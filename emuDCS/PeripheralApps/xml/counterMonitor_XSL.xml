@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:svg="http://www.w3.org/2000/svg">
+
+  <xsl:output method="html" encoding="UTF-8" indent="yes"/>
+
+  <xsl:variable name="SIDE"><xsl:value-of select="substring(//count[position()=1]/@chamber,3,1)"/></xsl:variable>
+
+  <xsl:template name="geoContainer">
+    <CSC_rings>
+      <ring name="ME+4/2" x= "2100" y="0" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
+      <ring name="ME+4/1" x= "2100" y="0" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,178 -39,178" yText="325"/>
+      <ring name="ME+3/2" x=  "700" y="0" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
+      <ring name="ME+3/1" x=  "700" y="0" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,161 -39,161" yText="325"/>
+      <ring name="ME+2/2" x= "-700" y="0" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
+      <ring name="ME+2/1" x= "-700" y="0" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,139 -39,139" yText="325"/>
+      <ring name="ME+1/3" x="-2100" y="0" phiOffset="-85" deltaPhi="-10" chamberCorners="-60,696 60,696 44,504 -44,504" yText="676"/>
+      <ring name="ME+1/2" x="-2100" y="0" phiOffset="-85" deltaPhi="-10" chamberCorners="-52,448 52,448 38,275 -38,275" yText="428"/>
+      <ring name="ME+1/1" x="-2100" y="0" phiOffset="-85" deltaPhi="-10" chamberCorners="-31,262 31,262 15,100 -15,100" yText="242"/>
+      <ring name="ME-1/1" x=" 2100" y="0" phiOffset="-85" deltaPhi="-10" chamberCorners="-31,262 31,262 15,100 -15,100" yText="242"/>
+      <ring name="ME-1/2" x= "2100" y="0" phiOffset="-85" deltaPhi="-10" chamberCorners="-52,448 52,448 38,275 -38,275" yText="428"/>
+      <ring name="ME-1/3" x= "2100" y="0" phiOffset="-85" deltaPhi="-10" chamberCorners="-60,696 60,696 44,504 -44,504" yText="676"/>
+      <ring name="ME-2/1" x=  "700" y="0" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,139 -39,139" yText="325"/>
+      <ring name="ME-2/2" x=  "700" y="0" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
+      <ring name="ME-3/1" x= "-700" y="0" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,161 -39,161" yText="325"/>
+      <ring name="ME-3/2" x= "-700" y="0" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
+      <ring name="ME-4/1" x="-2100" y="0" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,178 -39,178" yText="325"/>
+      <ring name="ME-4/2" x="-2100" y="0" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
+    </CSC_rings>
+  </xsl:template>
+
+  <xsl:template name="palette">
+<!--     <table id="paletteTable" class="palette"><tr> -->
+<!--       <td style="background-color: #000000;">0</td> -->
+<!--       <td style="background-color: #222200;">1</td> -->
+<!--       <td style="background-color: #333300;">2</td> -->
+<!--       <td style="background-color: #555500;">4</td> -->
+<!--       <td style="background-color: #777700;">8</td> -->
+<!--       <td style="background-color: #999900;">16</td> -->
+<!--       <td style="background-color: #bbbb00;">32</td> -->
+<!--       <td style="background-color: #dddd00;">64</td> -->
+<!--       <td style="background-color: #ffff33;">128</td> -->
+<!--       <td style="background-color: #ffff66;">256</td> -->
+<!--       <td style="background-color: #ffff99;">512</td> -->
+<!--       <td style="background-color: #ffffcc;">1028</td> -->
+<!--       <td style="background-color: #ffffff;">2048</td> -->
+<!--     </tr></table> -->
+
+    <table id="paletteTable" class="palette"><tr>
+      <td style="background-color: #220022; color: #220022;">-1</td>
+      <td style="background-color: #000000;">0</td>
+      <td style="background-color: #222200;">1</td>
+      <td style="background-color: #333300;">2</td>
+      <td style="background-color: #555500;">4</td>
+      <td style="background-color: #777700;">8</td>
+      <td style="background-color: #999900;">16</td>
+      <td style="background-color: #bbbb00;">32</td>
+      <td style="background-color: #dddd00;">64</td>
+      <td style="background-color: #ffff00;">128</td>
+    </tr></table>
+
+<!--     <table id="paletteTable" class="palette"><tr> -->
+<!--       <td style="background-color: #000000;">0</td> -->
+<!--       <td style="background-color: #002200;">1</td> -->
+<!--       <td style="background-color: #003300;">2</td> -->
+<!--       <td style="background-color: #005500;">4</td> -->
+<!--       <td style="background-color: #007700;">8</td> -->
+<!--       <td style="background-color: #009900;">16</td> -->
+<!--       <td style="background-color: #00bb00;">32</td> -->
+<!--       <td style="background-color: #00dd00;">64</td> -->
+<!--       <td style="background-color: #00ff00;">128</td> -->
+<!--     </tr></table> -->
+
+<!--     <table id="paletteTable" class="palette"><tr> -->
+<!--       <td style="background-color: #000000;">0</td> -->
+<!--       <td style="background-color: #000022;">1</td> -->
+<!--       <td style="background-color: #000033;">2</td> -->
+<!--       <td style="background-color: #000055;">4</td> -->
+<!--       <td style="background-color: #000077;">8</td> -->
+<!--       <td style="background-color: #000099;">16</td> -->
+<!--       <td style="background-color: #0000bb;">32</td> -->
+<!--       <td style="background-color: #0000dd;">64</td> -->
+<!--       <td style="background-color: #0000ff;">128</td> -->
+<!--     </tr></table> -->
+
+<!--     <table id="paletteTable" class="palette"><tr> -->
+<!--       <td style="background-color: #000000;">0</td> -->
+<!--       <td style="background-color: #8200dc;">1</td> -->
+<!--       <td style="background-color: #1e3cff;">2</td> -->
+<!--       <td style="background-color: #00a0ff;">4</td> -->
+<!--       <td style="background-color: #00c8c8;">8</td> -->
+<!--       <td style="background-color: #00d28c;">16</td> -->
+<!--       <td style="background-color: #00dc00;">32</td> -->
+<!--       <td style="background-color: #a0e632;">64</td> -->
+<!--       <td style="background-color: #e6dc32;">128</td> -->
+<!--       <td style="background-color: #e6af2d;">256</td> -->
+<!--       <td style="background-color: #f08228;">512</td> -->
+<!--       <td style="background-color: #fa3c3c;">1028</td> -->
+<!--       <td style="background-color: #f00082;">2048</td> -->
+<!--     </tr></table> -->
+  </xsl:template>
+  
+<!-- START TABLE PART -->
+
+
+  <xsl:template name="loop_tooltip">
+    <xsl:param name="COUNT"/>
+    <xsl:param name="MAX"/>
+    <xsl:param name="COLS"/>
+    <xsl:param name="RING_NAME"/>
+    <xsl:if test="$MAX>=$COUNT">
+      <xsl:variable name="ENDCAP"><xsl:value-of select="substring($RING_NAME,3,1)"/></xsl:variable>
+      <xsl:variable name="STATION"><xsl:value-of select="substring($RING_NAME,4,1)"/></xsl:variable>
+      <xsl:variable name="RING"><xsl:value-of select="substring($RING_NAME,6,1)"/></xsl:variable>
+      <xsl:variable name="CHAMBER">ME<xsl:value-of select="$ENDCAP"/><xsl:value-of select="$STATION"/>/<xsl:value-of select="$RING"/>/<xsl:value-of select="$COUNT"/></xsl:variable>
+      <div class="tooltip" id="mapping_{$CHAMBER}">
+	<table class="mapping">
+	  <tr>
+	    <th class="chamber">chamber</th>
+	    <th class="RUI">RUI</th>
+	    <th class="DDU" colspan="3">DDU</th>
+	    <th class="DCC" colspan="2">DCC</th>
+	    <th class="fiber" colspan="3">fiber cassette</th>
+	    <th class="PC" colspan="4">peripheral crate</th>
+	  </tr>
+	  <tr>
+	    <th class="chamber">name</th>
+	    <th class="RUI">instance</th>
+	    <th class="DDU">crate</th>
+	    <th class="DDU">slot</th>
+	    <th class="DDU">input</th>
+	    <th class="DCC">fifo</th>
+	    <th class="DCC">S-link</th>
+	    <th class="fiber">crate</th>
+	    <th class="fiber">position</th>
+	    <th class="fiber">socket</th>
+	    <th class="PC">name</th>
+	    <th class="PC">id</th>
+	    <th class="PC">sector</th>
+	    <th class="PC">position</th>
+	  </tr>
+	  <xsl:for-each select="document('/emu/emuDCS/PeripheralApps/xml/RUI-to-chamber_mapping.xml')//input[Chamber/@endcap=$ENDCAP and Chamber/@station=$STATION and Chamber/@type=$RING and Chamber/@number=$COUNT]">
+	    <tr>
+	      <td class="chamber"><xsl:value-of select="translate($CHAMBER,'-','&#8211;')"/></td>
+	      <td class="RUI"><xsl:value-of select="../../@instance"/></td>
+	      <td class="DDU"><xsl:value-of select="../@crate"/></td>
+	      <td class="DDU"><xsl:value-of select="../@slot"/></td>
+	      <td class="DDU"><xsl:value-of select="@id"/></td>
+	      <td class="DCC"><xsl:value-of select="../../DCC/@fifo"/></td>
+	      <td class="DCC"><xsl:value-of select="../../DCC/@slink"/></td>
+	      <td class="fiber"><xsl:value-of select="FiberCassette/@crate"/></td>
+	      <td class="fiber"><xsl:value-of select="FiberCassette/@pos"/></td>
+	      <td class="fiber"><xsl:value-of select="FiberCassette/@socket"/></td>
+	      <td class="PC">VME<xsl:value-of select="translate(Chamber/@endcap,'-','&#8211;')"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="PeripheralCrate/@VMEcrate"/></td>
+	      <td class="PC"><xsl:value-of select="PeripheralCrate/@id"/></td>
+	      <td class="PC"><xsl:value-of select="PeripheralCrate/@VMEcrate"/></td>
+	      <td class="PC"><xsl:value-of select="PeripheralCrate/@VMEslot"/></td>
+	    </tr>
+	  </xsl:for-each>
+	</table>
+      </div>
+      <xsl:call-template name="loop_tooltip">
+	<xsl:with-param name="COUNT"><xsl:value-of select="number($COUNT)+1"/></xsl:with-param>
+	<xsl:with-param name="MAX"><xsl:value-of select="number($MAX)"/></xsl:with-param>
+	<xsl:with-param name="COLS"><xsl:value-of select="$COLS"/></xsl:with-param>
+	<xsl:with-param name="RING_NAME"><xsl:value-of select="$RING_NAME"/></xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template name="toolTips">
+      <xsl:for-each select="document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[substring(@name,3,1)=$SIDE]">
+	<xsl:variable name="COLSPAN"><xsl:if test="@deltaPhi='-10'">1</xsl:if><xsl:if test="@deltaPhi='-20'">2</xsl:if></xsl:variable>
+	  <xsl:call-template name="loop_tooltip">
+	    <xsl:with-param name="COUNT">1</xsl:with-param>
+	    <xsl:with-param name="MAX"><xsl:if test="@deltaPhi='-10'">36</xsl:if><xsl:if test="@deltaPhi='-20'">18</xsl:if></xsl:with-param>
+	    <xsl:with-param name="RING_NAME"><xsl:value-of select="@name"/></xsl:with-param>
+	    <xsl:with-param name="COLS"><xsl:value-of select="$COLSPAN"/></xsl:with-param>
+	  </xsl:call-template>
+      </xsl:for-each>
+  </xsl:template>
+
+  <xsl:template name="loop_th">
+    <xsl:param name="COUNT"/>
+    <xsl:param name="MAX"/>
+    <xsl:param name="COLS"/>
+    <xsl:if test="$MAX>=$COUNT">
+      <th>
+	<xsl:attribute name="colspan"><xsl:value-of select="$COLS"/></xsl:attribute>
+	<xsl:value-of select="$COUNT"/>
+      </th>
+      <xsl:call-template name="loop_th">
+	<xsl:with-param name="COUNT"><xsl:value-of select="number($COUNT)+1"/></xsl:with-param>
+	<xsl:with-param name="MAX"><xsl:value-of select="number($MAX)"/></xsl:with-param>
+	<xsl:with-param name="COLS"><xsl:value-of select="$COLS"/></xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template name="loop_td">
+    <xsl:param name="COUNT"/>
+    <xsl:param name="MAX"/>
+    <xsl:param name="RING"/>
+    <xsl:param name="COLS"/>
+    <xsl:if test="$MAX>=$COUNT">
+      <xsl:variable name="CHAMBER_NAME"><xsl:value-of
+      select="$RING"/>/<xsl:value-of select="$COUNT"/></xsl:variable>
+      <td name="td_count">
+	<xsl:attribute name="id">td_<xsl:value-of select="$CHAMBER_NAME"/></xsl:attribute>
+	<xsl:attribute name="colspan"><xsl:value-of select="$COLS"/></xsl:attribute>
+	0
+      </td>
+      <xsl:call-template name="loop_td">
+	<xsl:with-param name="COUNT"><xsl:value-of select="number($COUNT)+1"/></xsl:with-param>
+	<xsl:with-param name="MAX"><xsl:value-of select="number($MAX)"/></xsl:with-param>
+	<xsl:with-param name="RING"><xsl:value-of select="$RING"/></xsl:with-param>
+	<xsl:with-param name="COLS"><xsl:value-of select="$COLS"/></xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template name="countsTable">
+    <table id="countsTableParent" class="counts">
+
+      <tr>
+	<th/>
+	<xsl:call-template name="loop_th">
+	  <xsl:with-param name="COUNT">1</xsl:with-param>
+	  <xsl:with-param name="MAX">18</xsl:with-param>
+	  <xsl:with-param name="COLS">2</xsl:with-param>
+	</xsl:call-template>
+      </tr>
+      
+      <xsl:for-each select="document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[substring(@name,3,1)=$SIDE]">
+	<xsl:variable name="RING_NAME"><xsl:value-of select="@name"/></xsl:variable>
+	<xsl:variable name="COLSPAN"><xsl:if test="@deltaPhi='-10'">1</xsl:if><xsl:if test="@deltaPhi='-20'">2</xsl:if></xsl:variable>
+	<tr>
+	  <th><xsl:value-of select="translate(@name,'-','&#8211;')"/></th>
+	  <xsl:call-template name="loop_td">
+	    <xsl:with-param name="COUNT">1</xsl:with-param>
+	    <xsl:with-param name="MAX"><xsl:if test="@deltaPhi='-10'">36</xsl:if><xsl:if test="@deltaPhi='-20'">18</xsl:if></xsl:with-param>
+	    <xsl:with-param name="RING"><xsl:value-of select="$RING_NAME"/></xsl:with-param>
+	    <xsl:with-param name="COLS"><xsl:value-of select="$COLSPAN"/></xsl:with-param>
+	  </xsl:call-template>
+	</tr>
+      </xsl:for-each>
+
+      <tr>
+	<th/>
+	<xsl:call-template name="loop_th">
+	  <xsl:with-param name="COUNT">1</xsl:with-param>
+	  <xsl:with-param name="MAX">36</xsl:with-param>
+	  <xsl:with-param name="COLS">1</xsl:with-param>
+	</xsl:call-template>
+      </tr>
+      
+    </table>
+  </xsl:template>
+
+<!-- END TABLE PART -->
+
+<!-- START GRAPHICS PART -->
+
+  <xsl:template mode="graphics" match="count">
+    <xsl:variable name="CHAMBER_NAME"><xsl:value-of select="@chamber"/></xsl:variable>
+    <xsl:variable name="CHAMBER_NUMBER"><xsl:value-of select="substring(@chamber,8)"/></xsl:variable>
+    <xsl:variable name="RING_NAME"><xsl:value-of select="substring(@chamber,1,6)"/></xsl:variable>
+    <xsl:variable name="ALCT"><xsl:value-of select="@alct"/></xsl:variable>
+    <xsl:variable name="PHI"><xsl:value-of select="number(document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[attribute::name=$RING_NAME]/@phiOffset)+number($CHAMBER_NUMBER)*number(document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[attribute::name=$RING_NAME]/@deltaPhi)"/></xsl:variable>
+    <xsl:variable name="CHAMBER_CORNERS"><xsl:value-of select="document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@chamberCorners"></xsl:value-of></xsl:variable>
+    <xsl:variable name="TRANSFORMATIONS">translate(<xsl:value-of select="document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@x"/>, <xsl:value-of select="document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@y"/>) rotate(<xsl:value-of select="$PHI"/>,0,0)</xsl:variable>
+    <xsl:variable name="Y_TEXT"><xsl:value-of select="document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@yText"/></xsl:variable>
+    <!-- 	      No need to color here; javascript will. -->
+<!--     <xsl:variable name="FILL_COLOR">#<xsl:value-of select="substring-after(document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='palette']/table/tr/td[number(text())&lt;=$ALCT][last()]/@style,'#')"/></xsl:variable> -->
+    <xsl:variable name="FILL_COLOR">#000000</xsl:variable>
+    <svg:polygon id="{$CHAMBER_NAME}" name="{$ALCT}" class="" points="{$CHAMBER_CORNERS}" fill="{$FILL_COLOR}" opacity="0.8" transform="{$TRANSFORMATIONS}"/>
+    <svg:text id="label_{$CHAMBER_NAME}" y="{$Y_TEXT}" text-anchor="middle" transform="{$TRANSFORMATIONS}" font-size="60" fill="#777777" opacity="1."><xsl:value-of select="$CHAMBER_NUMBER"/></svg:text>
+  </xsl:template>
+
+
+  <xsl:template name="captions">
+    <xsl:for-each select="document('counterMonitor_XSL.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[substring(@name,6,1)='2' and substring(@name,3,1)=$SIDE]">
+      <svg:text text-anchor="middle" font-size="200" fill="#aaaaaa" opacity="1.">
+	<xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>,<xsl:value-of select="number(@y)+900"/>)</xsl:attribute>
+	ME<xsl:if test="substring(@name,3,1)='-'">&#8211;</xsl:if><xsl:if test="substring(@name,3,1)='+'">+</xsl:if><xsl:value-of select="substring(@name,4,1)"/>
+      </svg:text>
+    </xsl:for-each>
+  </xsl:template>
+
+
+  <xsl:template name="coordinateAxes">
+    <svg:g transform="translate(0,800)">
+      <svg:line x1="0" y1="0" x2="300" y2=   "0" stroke="#aaaaaa" stroke-width="10" opacity="1."/>
+      <svg:polygon points="300,0 220,-30 220,30" fill="#aaaaaa" opacity="1."/>
+      <svg:line x1="0" y1="0" x2=  "0" y2="-300" stroke="#aaaaaa" stroke-width="10" opacity="1."/>
+      <svg:polygon points="0,-300 -30,-220 30,-220" fill="#aaaaaa" opacity="1."/>
+      <svg:circle r="30" stroke="#aaaaaa" stroke-width="10" fill="aaaaaa"/>
+      <svg:circle r="5"  stroke="#aaaaaa" stroke-width="10" fill="none"/>
+      <svg:text transform="translate(300, 0)" font-size="100" fill="#aaaaaa">X</svg:text>
+      <svg:text transform="translate(0,-300)" font-size="100" fill="#aaaaaa">Y</svg:text>
+      <svg:text transform="translate(-100,100)" font-size="100" fill="#aaaaaa">Z</svg:text>
+    </svg:g>
+  </xsl:template>
+
+
+  <xsl:template name="countLabel">
+    <svg:g id="countLabelGroup">
+      <svg:rect id="countLabelBox" visibility="hidden" opacity="1." x="1100" y="750" width="600" height="200" fill="Black"/>
+      <svg:text id="countLabelText" visibility="hidden" text-anchor="middle" x="1400" y="890" font-size="100" fill="#888888">count</svg:text>
+    </svg:g>
+  </xsl:template>
+
+
+  <xsl:template name="focusedChamberLabel">
+    <svg:rect id="focusedChamberBox" visibility="hidden" opacity="1." x="-1700" y="750" width="600" height="200" fill="#AAAAAA"/>    
+    <svg:text id="focusedChamberText" visibility="hidden" text-anchor="middle" x="-1400" y="890" font-size="100" fill="#000000">MEES/T/Ch</svg:text>
+  </xsl:template>
+
+
+<!-- END GRAPHICS PART -->
+
+
+  <xsl:template match="emuCounters">
+    
+    <xsl:processing-instruction name = "DOCTYPE" >html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"</xsl:processing-instruction>  
+    <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:svg="http://www.w3.org/2000/svg">
+      <head>
+	<title>Emu counts</title>
+<!-- 	<link type="text/css" rel="stylesheet" href="counterMonitor.css"/> -->
+<!-- 	<script type="text/javascript" src="tooltip.js"/> -->
+<!-- 	<script type="text/javascript" src="counterMonitor.js"/> -->
+	<link type="text/css" rel="stylesheet" href="/emu/emuDCS/PeripheralApps/xml/counterMonitor.css"/>
+	<script type="text/javascript" src="/emu/emuDCS/PeripheralApps/xml/tooltip.js"/>
+	<script type="text/javascript" src="/emu/emuDCS/PeripheralApps/xml/counterMonitor.js"/>
+      </head>
+      <body id="body" onload="on_load()">
+
+	<table style="height: 100%; width: 100%; background-color: #222222;">
+	  
+<!-- 	  <tr> -->
+<!-- 	    <td> -->
+<!-- 	      <input type="button" onclick="showHTML()" value="show HTML"/> -->
+<!-- 	    </td> -->
+<!-- 	  </tr> -->
+
+	  <tr>
+	    <td>
+	      <form name="controls" action="">
+		<table class="controls">
+		  <tr>
+		    <th>Time</th>
+		    <th>&#916;t [s]</th>
+		    <th colspan="1">Counter</th>
+		    <th colspan="2">Sample</th>
+		    <th colspan="2">Refresh</th>
+		    <th colspan="3">Scale</th>
+		  </tr>
+		  <tr>
+		    <td id="sampleTime"></td>
+		    <td id="sampleDeltaT"></td>
+		    <td>
+
+		      <select id="counterSelector" onchange="onSampleOrCounterSwitch()" title="Select counter.">
+			<option value="alct" title="Anode Local Charged Track">ALCT</option>
+			<option value="clct" title="Cathode Local Charged Track">CLCT</option>
+			<option value="lct" title="Local Charged Track" selected="selected">LCT</option>
+			<option value="l1a" title="Level-1 Accept">L1A</option>
+		      </select>
+
+<!-- 		      ALCT <input type="radio" name="counterSelector" value="alct" onclick="onSampleOrCounterSwitch()" title="Show ALCT counts."/> -->
+<!-- 		      </td><td> -->
+<!-- 		      CLCT <input type="radio" name="counterSelector" value="clct" onclick="onSampleOrCounterSwitch()" title="Show CLCT counts."/> -->
+<!-- 		      </td><td> -->
+<!-- 		      LCT  <input type="radio" name="counterSelector" value= "lct" checked="checked" onclick="onSampleOrCounterSwitch()" title="Show LCT counts."/> -->
+<!-- 		      </td><td> -->
+<!-- 		      L1A  <input type="radio" name="counterSelector" value= "l1a" onclick="onSampleOrCounterSwitch()" title="Show L1A counts."/> -->
+
+		    </td>
+		    <td>
+		      instantaneous <input type="radio" name="sampleSelector" value="sliding" checked="checked" onclick="onSampleOrCounterSwitch()" title="Counts during the last few seconds."/>
+		      </td><td>
+		      cumulative <input type="radio" name="sampleSelector" value="cumulative" onclick="onSampleOrCounterSwitch()" title="Count since the last reset."/>
+<!-- 		      <input type="button" id="resetCumulative" name="reset" value="reset" title="Reset the cumulative counter now."/> -->
+		    </td>
+		    <td>
+		      auto <input type="checkbox" id="autoRefresh" checked="checked" onclick="autoLoadCountsXML()" title="Automatic refreshing of counters."/>
+		      every <input type="text" id="refreshPeriod" name="T_refresh" value="10" size="4" title="Period in seconds. (Don't hit 'Enter'.)"/> seconds
+		      </td><td>
+		      <input type="button" id="refreshNow" name="refresh" value="now" onclick="loadCountsXML()" title="Refresh values now."/>
+		    </td>
+		    <td>
+		      auto <input type="checkbox" id="autoScale" checked="checked" onclick="onAutoScale(event)" title="Let color scale adapt automatically."/>
+		      </td><td>
+		      <input type="button" id="scaleDown" value="down" onclick="onScale(event)" title="Adjust color scale manually. Uncheck 'auto' first."/>
+		      <input type="button" id="scaleUp"  value="up" onclick="onScale(event)" title="Adjust color scale manaully. Uncheck 'auto' first."/>
+		      </td><td>
+		      log <input type="checkbox" id="logScale" onclick="onLogScale()" title="Use logarithmic color scale."/>
+		    </td>
+		  </tr>
+		</table>
+	      </form>
+	    </td>
+	  </tr>
+
+
+	  <tr>
+	    <td>
+	      <xsl:call-template name="countsTable"/>
+	    </td>
+	  </tr>
+	  
+	  <tr>
+	    <td>
+	      <svg:svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+		       width="960" height="300" preserveAspectRatio="*YMin meet">
+		<svg:g transform="scale(0.17, 0.17) translate(2800,800)" id="group">
+		  <xsl:apply-templates mode="graphics" select="/emuCounters/sample[position()='1']/count"/>
+		  <xsl:call-template name="captions"/>
+		  <xsl:call-template name="coordinateAxes"/>
+		  <xsl:call-template name="countLabel"/>
+		  <xsl:call-template name="focusedChamberLabel"/>
+		</svg:g>
+	      </svg:svg>
+	    </td>
+	  </tr>
+
+	  <tr>
+	    <td>
+	      <xsl:call-template name="palette"/>
+	    </td>
+	  </tr>
+
+	</table>
+
+	<xsl:call-template name="toolTips"/>
+
+	<br/>
+	<code id="htmlListed">
+	</code>
+      </body>
+    </html>
+
+  </xsl:template>
+
+
+</xsl:transform>
