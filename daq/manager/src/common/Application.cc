@@ -1378,24 +1378,53 @@ vector<emu::base::WebReportItem>
 emu::daq::manager::Application::materialToReportOnPage1(){
   vector<emu::base::WebReportItem> items;
 
+  string controlURL = getHref( appDescriptor_ ) + "/control";
+
   // Title
   items.push_back( emu::base::WebReportItem( "title",
                                              "Local DAQ",
                                              "",
                                              "Click to visit the local DAQ Manager page.",
                                              "",
-                                             "" ) );
+                                             controlURL ) );
 
   // State
   string state = getDAQState();
   string valueTip;
-  string controlURL = getHref( appDescriptor_ ) + "/control";
   if ( ! ( state == "Enabled" || state == "Ready" || state == "Halted" ) ) 
     valueTip = "Local DAQ may need attention. Recreate it, or click to control it manually.";
   items.push_back( emu::base::WebReportItem( "state",
                                              state,
                                              "The overall state of local DAQ.",
                                              valueTip,
+                                             controlURL,
+                                             controlURL ) );
+
+  // Run number
+  items.push_back( emu::base::WebReportItem( "run",
+                                             runNumber_.toString(),
+                                             "Local run number. In unsupervised mode, this may be different from the global one.",
+                                             "Click to visit the local DAQ Manager page.",
+                                             controlURL,
+                                             controlURL ) );
+
+  // Start and end times
+  string runNumber("UNKNOWN");
+  string maxNumEvents("UNKNOWN");
+  string runStartTime("UNKNOWN");
+  string runStopTime("UNKNOWN");
+  getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
+  items.push_back( emu::base::WebReportItem( "start",
+                                             runStartTime,
+                                             "The start time of the local run in UTC.",
+                                             "Click to visit the local DAQ Manager page.",
+                                             controlURL,
+                                             controlURL ) );
+
+  items.push_back( emu::base::WebReportItem( "stop",
+					     ( ( state == "Enabled" || state == "Ready" ) ? "not yet" : runStopTime ), 
+                                             "The stop time of the local run in UTC.",
+                                             "Click to visit the local DAQ Manager page.",
                                              controlURL,
                                              controlURL ) );
 
@@ -1418,16 +1447,16 @@ emu::daq::manager::Application::materialToReportOnPage1(){
     nss << "Events read from " << counts.at(minCountIndex)["hwName"] << " by RUI " << counts.at(minCountIndex)["appInst"] << ".";
     items.push_back( emu::base::WebReportItem( "min events",
 					       counts.at(minCountIndex)["count"],
-					       "The lowest number of events read by any RUI. It should remain close to 'max'.",
+					       "The lowest number of events read by any RUI. In local runs, this should remain close to 'max'.",
 					       nss.str(),
-					       "", "" ) );
+					       controlURL, controlURL ) );
     stringstream xss;
     xss << "Events read from " << counts.at(maxCountIndex)["hwName"] << " by RUI " << counts.at(maxCountIndex)["appInst"] << ".";
     items.push_back( emu::base::WebReportItem( "max events",
 					       counts.at(maxCountIndex)["count"],
 					       "The highest number of events read by any RUI.",
 					       xss.str(),
-					       "", "" ) );
+					       controlURL, controlURL ) );
   }
   catch( const std::exception& e ){
     LOG4CPLUS_WARN(logger_, "Failed to report min and max number of events to Page 1 : " << e.what() );
@@ -4528,7 +4557,8 @@ vector<string> emu::daq::manager::Application::parseRunningConfigurationsReplyFr
   for ( XMLSize_t i=0; i<URIs->getLength(); ++i ){
     runningConfigs.push_back( xoap::XMLCh2String( URIs->item(i)->getTextContent() ) );
   }
-
+  // We're responsible for releasing the memory allocated to DOMDocument
+  doc->release();
   // Parser must be explicitly removed, or else it stays in the memory
   xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 
@@ -4628,7 +4658,8 @@ string emu::daq::manager::Application::parseConfigParameterReplyFromFM( xoap::Me
     ss << "Got " << (unsigned int) values->getLength() << " values in reply to getParameter SOAP to FM";
     XCEPT_RAISE(emu::daq::manager::exception::Exception, ss.str() );
   }
-
+  // We're responsible for releasing the memory allocated to DOMDocument
+  doc->release();
   // Parser must be explicitly removed, or else it stays in the memory
   xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 
@@ -5312,6 +5343,9 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 
       isFinished &= ( (int) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
 
+      // We're responsible for releasing the memory allocated to DOMDocument
+      doc->release();
+
     } catch( emu::daq::manager::exception::Exception e ){
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
 		      << (*rui)->getClassName() << (*rui)->getInstance() 
@@ -5488,6 +5522,8 @@ bool emu::daq::manager::Application::isSTEPFinished(){
       DOMNodeList* dataNode = doc->getElementsByTagNameNS(xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("LowestCount") );
       DOMNode* n = dataNode->item(0);
       serializer.import( &lowestCount, n );
+      // We're responsible for releasing the memory allocated to DOMDocument
+      doc->release();
 //       cout << "Lowest count = " << lowestCount.toString() << endl << ss.str() << endl;
     } catch( emu::daq::manager::exception::Exception e ){
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
@@ -6568,12 +6604,12 @@ void emu::daq::manager::Application::noAction(toolbox::Event::Reference e)
   LOG4CPLUS_WARN(getApplicationLogger(), e->type() 
 		 << " attempted when already " 
 		 << fsm_.getStateName(fsm_.getCurrentState()));
-  stringstream ss83;
-  ss83 << e->type() 
-       << " attempted when already " 
-       << fsm_.getStateName(fsm_.getCurrentState());
-  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss83.str() );
-  this->notifyQualified( "warning", eObj );
+  //   stringstream ss83;
+  //   ss83 << e->type() 
+  //        << " attempted when already " 
+  //        << fsm_.getStateName(fsm_.getCurrentState());
+  //   XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss83.str() );
+  //   this->notifyQualified( "warning", eObj );
 }
 
 void emu::daq::manager::Application::resetAction()
