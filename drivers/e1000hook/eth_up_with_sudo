@@ -1,0 +1,27 @@
+#!/bin/bash
+# Reload Gbit drivers and create schar devices if they don't exist.
+
+H=$(hostname -s)
+echo "sudo /sbin/modprobe -r e1000h"
+sudo /sbin/modprobe -r e1000h
+echo "sudo /sbin/modprobe e1000h"
+sudo /sbin/modprobe e1000h
+for N in 2 3 4 5; do
+    [[ -c /dev/schar${N} ]] || ( echo "sudo mknod /dev/schar${N} c 23${N} 0"; sudo mknod /dev/schar${N} c 23${N} 0 )
+
+    echo "sudo chmod 777 /dev/schar${N}"
+    sudo chmod 777 /dev/schar${N}
+
+    ls -l /dev/schar${N}
+
+    echo "sudo /sbin/ifconfig eth${N} down"
+    sudo /sbin/ifconfig eth${N} down
+
+    echo "sudo /sbin/ifconfig eth${N} 192.168.${H##*-}.${N}"
+    sudo /sbin/ifconfig eth${N} 192.168.${H##*-}.${N} 
+
+    echo "sudo /sbin/ifconfig eth${N} promisc mtu 8192 broadcast 192.168.255.255 netmask 255.255.0.0"
+    sudo /sbin/ifconfig eth${N} promisc mtu 8192 broadcast 192.168.255.255 netmask 255.255.0.0
+done
+echo
+/sbin/ifconfig
