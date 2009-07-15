@@ -3998,6 +3998,9 @@ xoap::MessageReference emu::daq::rui::Application::maskDDUInputs( const bool in,
       if ( in ) STEPEventCounter_.unmaskInput( dduInputIndex );
       else      STEPEventCounter_.maskInput( dduInputIndex );
     }
+
+    // We're responsible for releasing the memory allocated to DOMDocument
+    doc->release();
     
   } catch( xoap::exception::Exception e ){
     XCEPT_RETHROW(xoap::exception::Exception, "Failed to mask DDU inputs.", e );

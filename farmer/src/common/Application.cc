@@ -702,6 +702,8 @@ void emu::farmer::Application::createProcessDescriptors()
 	processDescriptors_[ uri.str() ] = pd;
       }
     }
+    // We're responsible for releasing the memory allocated to DOMDocument
+    doc->release();
   }
 //   catch( SAXException& e ){
 //     stringstream ss; ss << "Failed to collect processes from .duck file: " << e.getMessage();
