@@ -3476,6 +3476,9 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
       serializer.import( &rui_counts, n );
       n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("rui_instances") )->item(0);
       serializer.import( &rui_instances, n );
+
+      // We're responsible for releasing the memory allocated to DOMDocument
+      doc->release();
     }
     catch (xoap::exception::Exception& e){
       LOG4CPLUS_WARN( logger_, "Failed to parse run summary: " << xcept::stdformat_exception_history(e) );
