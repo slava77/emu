@@ -4,13 +4,13 @@
   <xsl:output method="html" encoding="UTF-8" indent="no"/>
 
   <xsl:template name="pageParameters">
-    <application name="emu::daq::manager::Application"     pageRefreshPeriodInMSec= "9000" graph="show"/>
-    <application name="xmas::las::Application"             pageRefreshPeriodInMSec="20000" graph="none"/>
-    <application name="emu::fed::Manager"                  pageRefreshPeriodInMSec="10000" graph="show"/>
+    <application name="emu::daq::manager::Application"     pageRefreshPeriodInMSec="10000" graph="show"/>
+    <application name="xmas::las::Application"             pageRefreshPeriodInMSec="21000" graph="none"/>
+    <application name="emu::fed::Manager"                  pageRefreshPeriodInMSec="11000" graph="show"/>
     <application name="emu::pc::EmuPeripheralCrateMonitor" pageRefreshPeriodInMSec="13000" graph="none"/>
     <application name="emu::pc::EmuPeripheralCrateManager" pageRefreshPeriodInMSec="15000" graph="none"/>
-    <application name="emu::pc::EmuPeripheralCrateService" pageRefreshPeriodInMSec="15000" graph="none"/>
-    <application name="EmuDisplayClient"                   pageRefreshPeriodInMSec="17000" graph="show"/>
+    <application name="emu::pc::EmuPeripheralCrateService" pageRefreshPeriodInMSec="17000" graph="none"/>
+    <application name="EmuDisplayClient"                   pageRefreshPeriodInMSec="19000" graph="show"/>
   </xsl:template>
 
   <xsl:template match="ForEmuPage1">
