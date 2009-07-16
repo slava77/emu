@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.cc,v 1.9 2009/07/08 12:07:49 paste Exp $
+* $Id: Crate.cc,v 1.10 2009/07/16 09:19:37 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Crate.h"
 
@@ -14,23 +14,6 @@ number_(myNumber)
 {
 	boardVector_.reserve(18);
 	broadcastDDU_ = new DDU(28); // broadcast slot.
-	
-	// The name of the lock should be unique to the crate, so use the crate number
-	std::ostringstream lockName;
-	lockName << "/tmp/FEDCrate_" << myNumber << ".lock";
-	try {
-		mutex_ = new VMELock(lockName.str());
-	} catch (emu::fed::exception::Exception &e) {
-		std::ostringstream error;
-		error << "Unable to create mutex: " << e.what();
-		XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
-		std::ostringstream tag;
-		tag << "FEDCrate " << number_;
-		e2.setProperty("tag", tag.str());
-		throw e2;
-	}
-	
-	broadcastDDU_->setMutex(mutex_);
 }
 
 
@@ -39,37 +22,17 @@ emu::fed::Crate::~Crate()
 {
 	delete broadcastDDU_;
 	delete vmeController_;
-	delete mutex_;
 }
 
 
 
-void emu::fed::Crate::setNumber(const unsigned int &myNumber)
-throw(emu::fed::exception::SoftwareException)
+bool emu::fed::Crate::isTrackFinder()
 {
-	number_ = myNumber;
-	
-	// The name of the lock should be unique to the crate, so use the crate number
-	delete mutex_;
-	std::ostringstream lockName;
-	lockName << "/tmp/FEDCrate_" << myNumber << ".lock";
-	try {
-		mutex_ = new VMELock(lockName.str());
-	} catch (emu::fed::exception::Exception &e) {
-		std::ostringstream error;
-		error << "Unable to create mutex: " << e.what();
-		XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
-		std::ostringstream tag;
-		tag << "FEDCrate " << number_;
-		e2.setProperty("tag", tag.str());
-		throw e2;
+	if (boardVector_.size() == 1) {
+		std::vector<DDU *> myDDUs = getDDUs();
+		if (myDDUs.size() == 1 && myDDUs[0]->getRUI() == 192) return true;
 	}
-	
-	broadcastDDU_->setMutex(mutex_);
-	
-	for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
-		(*iBoard)->setMutex(mutex_);
-	}
+	return false;
 }
 
 
@@ -88,32 +51,24 @@ throw (emu::fed::exception::OutOfBoundsException)
 	}
 	if (vmeController_ != NULL) {
 		myBoard->setBHandle(vmeController_->getBHandle());
+		myBoard->setMutex(vmeController_->getMutex());
 	}
-	myBoard->setMutex(mutex_);
 	boardVector_.push_back(myBoard);
 }
 
 
 
-void emu::fed::Crate::setController(VMEController *controller) {
+void emu::fed::Crate::setController(VMEController *controller)
+throw(emu::fed::exception::SoftwareException)
+{
 	vmeController_ = controller;
 
 	broadcastDDU_->setBHandle(vmeController_->getBHandle());
+	broadcastDDU_->setMutex(vmeController_->getMutex());
 
 	for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
 		(*iBoard)->setBHandle(vmeController_->getBHandle());
-	}
-}
-
-
-
-void emu::fed::Crate::setMutex(VMELock *myMutex) {
-	mutex_ = myMutex;
-	
-	broadcastDDU_->setMutex(mutex_);
-	
-	for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
-		(*iBoard)->setMutex(mutex_);
+		(*iBoard)->setMutex(vmeController_->getMutex());
 	}
 }
 
@@ -121,7 +76,7 @@ void emu::fed::Crate::setMutex(VMELock *myMutex) {
 
 uint16_t emu::fed::Crate::getRUI(const int &slot) {
 	// TF is special.
-	if (number_ == 5) return 192;
+	if (isTrackFinder()) return 192;
 	// Test crate is special
 	if (number_ < 1 || number_ > 5) return 0;
 
