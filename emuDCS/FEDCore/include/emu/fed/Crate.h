@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.h,v 1.7 2009/07/08 12:07:48 paste Exp $
+* $Id: Crate.h,v 1.8 2009/07/16 09:19:37 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATE_H__
 #define __EMU_FED_CRATE_H__
@@ -14,8 +14,6 @@ namespace emu {
 	namespace fed {
 
 		class VMEController;
-		
-		class VMELock;
 
 		/** @class Crate An object that contains VMEModules and a VMEController.  **/
 		class Crate
@@ -33,28 +31,25 @@ namespace emu {
 			~Crate();
 
 			/** @returns the identification number of the crate. **/
-			const unsigned int number() {return number_;}
-			const unsigned int getNumber() {return number_;}
+			const unsigned int number() { return number_; }
+			const unsigned int getNumber() { return number_; }
 			
-			/** Set the number of the crate **/
-			void setNumber(const unsigned int &myNumber)
-			throw (emu::fed::exception::SoftwareException);
+			/** Set the crate number **/
+			inline void setNumber(const unsigned int &number) { number_ = number; }
+			
+			/** @returns true if the crate can be identified as a Track Finder crate, false otherwise. **/
+			bool isTrackFinder();
 
 			/** Adds a VMEModule to the crate. **/
 			void addBoard(VMEModule *myBoard)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** Sets the VMEController in the crate. **/
-			void setController(VMEController *controller);
-			
-			/** Sets the mutex to some other mutex **/
-			void setMutex(VMELock *myMutex);
+			void setController(VMEController *controller)
+			throw (emu::fed::exception::SoftwareException);
 
 			/** @returns a pointer to the crate's VMEController. **/
 			inline VMEController *getController() { return vmeController_; }
-			
-			/** @returns a pointer to the crate's mutex. **/
-			inline VMELock *getMutex() { return mutex_; }
 
 			/** @returns all the boards of type T that are in the crate. **/
 			template<typename T>
@@ -105,9 +100,6 @@ namespace emu {
 
 			/// A pointer to the special broadcast DDU for the crate.
 			DDU *broadcastDDU_;
-
-			/// A pointer to a shared mutex for everybody in the crate.
-			VMELock *mutex_;
 
 		};
 

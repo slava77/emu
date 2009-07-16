@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.7 2009/07/06 16:05:40 paste Exp $
+* $Id: VMEController.cc,v 1.8 2009/07/16 09:19:37 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -14,6 +14,7 @@
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
 #include "emu/fed/VMEModule.h"
+#include "emu/fed/VMELock.h"
 
 emu::fed::VMEController::VMEController(const int &Device, const int &Link)
 throw (emu::fed::exception::CAENException):
@@ -33,7 +34,7 @@ BHandle_(-1)
 		// If this failed, then maybe some other process has already opened the device.
 		// There should be a file that has the BHandle in it.
 		std::ostringstream fileName;
-		fileName << "CAEN_" << Device_ << "_" << Link_ << ".BHandle";
+		fileName << "/tmp/CAEN_" << Device_ << "_" << Link_ << ".BHandle";
 		std::ifstream inFile(fileName.str().c_str());
 		if (inFile.is_open()) {
 			inFile.exceptions(std::ifstream::badbit | std::ifstream::failbit);
@@ -78,6 +79,18 @@ BHandle_(-1)
 			XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 			throw e2;
 		}
+	}
+	
+	// I can use the device and link numbers to make a unique lock file name for this controller on this manchine.
+	std::ostringstream lockName;
+	lockName << "/tmp/CAEN_" << Device_ << "_" << Link_ << ".lock";
+	try {
+		mutex_ = new VMELock(lockName.str());
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to create mutex: " << e.what();
+		XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
+		throw e2;
 	}
 
 }
