@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.cc,v 1.5 2009/07/08 12:05:16 paste Exp $
+* $Id: AutoConfigurator.cc,v 1.6 2009/07/16 09:21:25 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AutoConfigurator.h"
@@ -33,6 +33,7 @@ throw (emu::fed::exception::ConfigurationException)
 	// Discover which Device/Link pairs are active
 	// 4 is a good number.  We shouldn't need any more than 4 devices or links per device.
 	for (unsigned int iDevice = 0; iDevice < 4; iDevice++) {
+		bool noLinks = false;
 		for (unsigned int iLink = 0; iLink < 4; iLink++) {
 			
 			Crate *testCrate;
@@ -53,7 +54,10 @@ throw (emu::fed::exception::ConfigurationException)
 			try {
 				testController = new VMEController(iDevice, iLink);
 			} catch (emu::fed::exception::Exception &e) {
-				continue;
+				// As soon as I can't find a link, I am done with this device
+				// If this is the first link I am checking, then I am completely done.
+				if (iLink == 0) noLinks = true;
+				break;
 			}
 			
 			testCrate->setController(testController);
@@ -65,7 +69,7 @@ throw (emu::fed::exception::ConfigurationException)
 				try {
 					DDU *testDDU = new DDU(iSlot);
 					testDDU->setBHandle(testController->getBHandle());
-					testDDU->setMutex(testCrate->getMutex());
+					testDDU->setMutex(testController->getMutex());
 					
 					// Gives nonsense for DCCs, but standard answer for DDUs
 					uint32_t idCode = testDDU->readIDCode(VMEPROM);
@@ -104,6 +108,9 @@ throw (emu::fed::exception::ConfigurationException)
 			// Save the crate
 			crateVector_.push_back(testCrate);
 		}
+		
+		if (noLinks) break;
+		
 	}
 	
 	// The only way this can fail is if I don't find any controllers attached to the machine
@@ -117,19 +124,9 @@ throw (emu::fed::exception::ConfigurationException)
 		// Am I a TrackFinder crate?
 		std::vector<DDU *> dduVector = crateVector_[0]->getDDUs();
 		std::vector<DCC *> dccVector = crateVector_[0]->getDCCs();
-		if (dduVector.size() == 1 && dccVector.size() == 0 && dduVector[0]->slot() == 2) {
+		if (crateVector_[0]->isTrackFinder()) {
 			systemName_ = "Track-Finder";
-			try {
-				crateVector_[0]->setNumber(5);
-			} catch (emu::fed::exception::Exception &e) {
-				std::ostringstream error;
-				error << "Unable to change crate number for Track Finder crate: " << e.what();
-				XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
-				std::ostringstream tag;
-				tag << "FEDCrate " << 5;
-				e2.setProperty("tag", tag.str());
-				throw e2;
-			}
+			crateVector_[0]->setNumber(5);
 		} else {
 			systemName_ = "Test-Crate";
 		}
