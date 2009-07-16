@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.4 2009/07/11 19:53:20 paste Exp $
+* $Id: Configurable.cc,v 1.5 2009/07/16 09:24:21 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/path.hpp"
