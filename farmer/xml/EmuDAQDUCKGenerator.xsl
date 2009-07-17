@@ -31,8 +31,8 @@
     <xsl:if test="$FARM='DQM_Display'">DQM/DQM_Display</xsl:if>
   </xsl:param>
   <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param>
-  <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/var/log/emu BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu PATH=/bin:/usr/bin</xsl:param>
-  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/nfshome0/cscdqm LD_LIBRARY_PATH=/nfshome0/cscdqm/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/var/log/emu BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu ROOTSYS=/nfshome0/cscdqm/root</xsl:param>
+  <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu PATH=/bin:/usr/bin</xsl:param>
+  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/nfshome0/cscdqm LD_LIBRARY_PATH=/nfshome0/cscdqm/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu ROOTSYS=/nfshome0/cscdqm/root</xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 
@@ -72,7 +72,7 @@
 		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdaq"
 		   logLevel="WARN"
-		   logURL="file:/var/log/emu/xdaq-daqmanager-cscdaq.log"
+		   logURL="file:/tmp/xdaq-daqmanager-cscdaq.log"
 		   environmentString="{$DAQ_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
@@ -93,7 +93,7 @@
 		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdaq"
 		   logLevel="WARN"
-		   logURL="file:/var/log/emu/xdaq-evm_ta-cscdaq.log"
+		   logURL="file:/tmp/xdaq-evm_ta-cscdaq.log"
 		   environmentString="{$DAQ_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
@@ -112,7 +112,7 @@
 		       pathToExecutive="{$PATHTOEXECUTIVE}"
 		       unixUser="cscdaq"
 		       logLevel="WARN"
-		       logURL="file:/var/log/emu/xdaq-rui{@instance}-cscdaq.log"
+		       logURL="file:/tmp/xdaq-rui{@instance}-cscdaq.log"
 		       environmentString="{$DAQ_ENVIRONMENTSTRING}">
 	  <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
 	</XdaqExecutive>
@@ -131,7 +131,7 @@
 		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdqm"
 		   logLevel="INFO"
-		   logURL="file:/var/log/emu/xdaq-display-cscdqm.log"
+		   logURL="file:/tmp/xdaq-display-cscdqm.log"
 		   environmentString="{$DQM_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
@@ -148,7 +148,7 @@
 		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdqm"
 		   logLevel="INFO"
-		   logURL="file:/var/log/emu/xdaq-tf-display-cscdqm.log"
+		   logURL="file:/tmp/xdaq-tf-display-cscdqm.log"
 		   environmentString="{$DQM_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
@@ -172,7 +172,7 @@
 		       pathToExecutive="{$PATHTOEXECUTIVE}"
 		       unixUser="cscdqm"
 		       logLevel="WARN"
-		       logURL="file:/var/log/emu/xdaq-monitor{@instance}-cscdqm.log"
+		       logURL="file:/tmp/xdaq-monitor{@instance}-cscdqm.log"
 		       environmentString="{$DQM_ENVIRONMENTSTRING}">
 	  <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
 	</XdaqExecutive>
