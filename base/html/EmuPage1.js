@@ -664,6 +664,8 @@ function valuesFromXmlToGraph(){
 
     var graphPoint = { name:'', time:time, value:Number(0) };
 
+    var state = '';
+
     if ( monitorables == null ) monitorables = new Array( mElements.length );
 
     for ( i=0; i<mElements.length; i++ ){
@@ -681,8 +683,10 @@ function valuesFromXmlToGraph(){
 							 mElements[i].getAttribute('valueDescription'),
 							 mElements[i].getAttribute('nameURL'),
 							 mElements[i].getAttribute('valueURL') );
+      if ( monitorables[i].name == 'state' ){ state = monitorables[i].value; }
+    }
 
-
+    for ( i=0; i<monitorables.length; i++ ){
         // Graph:
 	if ( monitorables[i].name == 'max events' || monitorables[i].name == 'Heartbeat' ){
 	  graphPoint.name  = monitorables[i].name + ' rate [Hz]';
@@ -714,7 +718,7 @@ function valuesFromXmlToGraph(){
 	var td_value = document.getElementById( 'td_value_'+i );
 	if ( td_value ){
 	  td_value.className = monitorables[i].value;
-	  //if ( ( monitorables[i].name == 'TF Errors'  || monitorables[i].name == 'ME- Errors' || monitorables[i].name == 'ME+ Errors' ) && monitorables[i].value > 0 ) td_value.className += ' WARN';
+	  if ( monitorables[i].name == 'min events' && state == 'Enabled' ) td_value.className += ( monitorables[i].value == 0 ? ' WARN' : '' );
 	  if ( monitorables[i].name == 'Heartbeat' ) td_value.className += ( monitorables[i].rate() == 0 ? ' WARN' : ' ON' );
 	}
 	var a_value = document.getElementById( 'a_value_'+i );
