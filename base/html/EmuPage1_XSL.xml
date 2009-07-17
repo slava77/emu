@@ -28,7 +28,7 @@
       <xsl:variable name="DATA_URL">
 	<xsl:if test="@application != 'xmas::las::Application'">document.URL</xsl:if>
 	<xsl:if test="child::monitorable[@name='title' and @value='Local DAQ disks']">"http://csc-daq00.cms:9941/urn:xdaq-application:lid=100/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:diskInfo"</xsl:if>
-	<xsl:if test="child::monitorable[@name='title' and @value='CSC Track Finder']">"http://csc-tf.cms:5005/urn:xdaq-application:service=las/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:emupageone"</xsl:if>
+	<xsl:if test="child::monitorable[@name='title' and @value='CSC Track Finder']">"http://csc-tf.cms:5005/urn:xdaq-application:service=las/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:csctf_emupageone"</xsl:if>
       </xsl:variable>
     <xsl:variable name="TITLEID">a_value_<xsl:value-of select="count(//monitorable[@name='title']/preceding::monitorable)"/></xsl:variable>
 
