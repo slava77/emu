@@ -17,7 +17,7 @@
 		<properties xmlns="urn:xdaq-application:pt::http::PeerTransportHTTP" xsi:type="soapenc:Struct">
 		 	<documentRoot xsi:type="xsd:string">${XDAQ_DOCUMENT_ROOT}</documentRoot>
 			<aliasName xsi:type="xsd:string">log</aliasName>
-			<aliasPath xsi:type="xsd:string">/var/log/emu</aliasPath>
+			<aliasPath xsi:type="xsd:string">/var/log</aliasPath>
 		</properties>
 	</xp:Application>
 	<xp:Module>${XDAQ_ROOT}/lib/libpthttp.so</xp:Module>
