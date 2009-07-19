@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.7 2009/05/04 13:30:12 liu Exp $
+// $Id: EmuDim.h,v 1.8 2009/07/19 13:25:01 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -74,6 +74,7 @@ public:
   xdata::String BadChamberFile_;
   xdata::String XmasDcsUrl_;
   xdata::String BlueDcsUrl_;
+  xdata::String FedcDcsUrl_;
   xdata::String TestPrefix_;
   xdata::Integer OpMode_;
   //
@@ -112,7 +113,7 @@ public:
   
 private:
 
-  LOAD *XmasLoader, *BlueLoader;
+  LOAD *XmasLoader, *BlueLoader, *FedcLoader;
   bool inited;
   Chamber chamb[TOTAL_CHAMBERS];
 
@@ -138,7 +139,7 @@ private:
   int current_state_;
 
   std::string xmas_root, xmas_load, xmas_start, xmas_stop, xmas_info;
-  std::string blue_root, blue_info;
+  std::string blue_root, blue_info, fedc_root, fedc_load;
              
   int crate_state[TOTAL_CRATES];
   std::string crate_name[TOTAL_CRATES];

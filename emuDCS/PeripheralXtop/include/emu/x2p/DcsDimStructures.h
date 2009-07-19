@@ -58,4 +58,22 @@ typedef struct{
 }TEMP_1_DimBroker;
 
 
+typedef struct{
+
+  float v15;
+  float v25a;
+  float v25b;
+  float v33;
+
+  float td1;
+  float td2;
+  float td3;
+  float td4;
+
+  int update_time;
+  int status;
+
+}DDU_1_DimBroker;
+
+
 #endif

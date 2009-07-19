@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.22 2009/07/01 17:03:26 liu Exp $
+// $Id: EmuDim.cc,v 1.23 2009/07/19 13:25:01 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -28,6 +28,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   BadChamberFile_ = "";
   XmasDcsUrl_ = "";
   BlueDcsUrl_ = "";
+  FedcDcsUrl_ = "";
   TestPrefix_ = "";
   OpMode_ = 0;
 
@@ -39,6 +40,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   getApplicationInfoSpace()->fireItemAvailable("BadChamberFileName", &BadChamberFile_);
   getApplicationInfoSpace()->fireItemAvailable("XmasDcsUrl", &XmasDcsUrl_ );
   getApplicationInfoSpace()->fireItemAvailable("BlueDcsUrl", &BlueDcsUrl_ );
+  getApplicationInfoSpace()->fireItemAvailable("FedcDcsUrl", &FedcDcsUrl_ );
   getApplicationInfoSpace()->fireItemAvailable("TestPrefix", &TestPrefix_ );
   getApplicationInfoSpace()->fireItemAvailable("OperationMode", &OpMode_ );
 
@@ -260,6 +262,7 @@ void EmuDim::Setup()
       std::cout << "ERROR in read file " << fn << " DIM services cannot start." << std::endl;
    XmasLoader = new LOAD();
    BlueLoader = new LOAD();
+   FedcLoader = new LOAD();
 
    xmas_root=XmasDcsUrl_;
    xmas_load=xmas_root + "/DCSOutput";
@@ -271,6 +274,10 @@ void EmuDim::Setup()
    blue_root=BlueDcsUrl_;
    blue_info=blue_root + "/SwitchBoard";
    BlueLoader->init(blue_info.c_str());
+
+   fedc_root=FedcDcsUrl_;
+   fedc_load=fedc_root + "/DCSOutput";
+   FedcLoader->init(fedc_load.c_str());
    inited=true;
 }
 
@@ -488,12 +495,20 @@ void EmuDim::CheckCommand()
          XmasLoader->reload(xmas_stop);
          Suspended_ = true;
          start_powerup=false;
+         for(int i=0; i<TOTAL_CRATES; i++)
+         {  
+            crate_state[i]=0;
+         }
       }
       else if(cmnd.substr(0,12)=="RESUME_SLOW_")
       {
          XmasLoader->reload(xmas_start);
          Suspended_ = false;
          start_powerup=false;
+         for(int i=0; i<TOTAL_CRATES; i++)
+         {
+            crate_state[i]=0;
+         }
       }
       else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
       {
