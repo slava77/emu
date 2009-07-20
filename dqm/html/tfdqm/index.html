@@ -1,0 +1,1505 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en" dir="ltr" >
+<head>
+<title>EMU TF Online DQM Browser</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+	body {
+		color: #000000; 
+		background-color: #9090FF;
+		margin: 2px;
+		font-family:Arial;
+		overflow: auto;
+	}
+	a, A:link, a:visited, a:active, A:hover	{
+			color: #000000; 
+			text-decoration: none;		
+			outline-style: none;			
+	}
+	
+	fieldset {
+		background-color: #ddd;	
+			
+		border-style: solid;
+		border-width: 1px;
+		border-color: black;
+		margin: 2px;
+		padding: 2px;
+		
+	}
+	legend {
+		border-style: solid;
+		border-width: 1px;		
+		background-color:  #C0C0FF;				
+	}
+	legend:hover {
+		background-color: white;
+	}
+	
+	label {
+		font-weight: bold;
+	}
+	
+	table {
+		border-color: black;
+		border-width: 0px;		
+		border-style: solid;		
+		border-spacing: 0px;
+		background-color: #AFAFAF;
+	}
+	tr, th, td {
+		
+		border: 1px solid black;
+		
+	}
+	td, th {
+		font-size:8pt;
+		
+		padding: 0px;
+	}
+	
+	
+	
+	td:hover, td.me:hover, td.me_csc:hover,td.me_type:hover {
+		background-color: #A0A0FF;
+	}
+	
+	div.tabs {
+		float: none;
+	}
+	
+	div.tabs ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		
+	}
+
+	div.tabs li {
+		font-size: 12px;
+		float: left;
+		border: 1px solid;
+		border-bottom-width: 0;
+		margin: 0 0.5em 0 0;
+		background-color: #9F9F9F;
+	}
+
+	div.tabs a {
+		display: block;
+		padding: 0 1em;
+		
+	}
+
+	div.tabs #selected, #selected:active, #selected_runs, #selected_runs:active {
+		font-weight: bold;
+		position: relative;
+		top: 1px;
+		background-color: white;
+		
+	}
+	
+	div.MainWindow {
+		background-color: #FFA000;
+		
+		padding: 2px;
+		border-style: solid;
+		border-width: 1px;
+		border-color: black;
+	}
+	div#l_panel {
+		width: 250px; 
+		float: left;	
+	}
+	div#r_panel {
+		position: absolute; left: 260px;
+		
+	}	
+	
+
+	div#tests_div {
+		max-height: 500px;
+		overflow: auto;
+	}
+	
+	
+	div#log {
+		max-height: 200px;
+		overflow: auto;
+	}
+	
+	table.log {
+		border-collapse: collapse;
+		background-color: #ccc;
+		border-width: 1px;
+		border-spacing: 0px;
+		border-style: solid;
+		margin: 2px;
+	}
+	table.log th {background-color: #AFAFFF; text-align: left; padding: 0 2px 0 2px;}
+	table.log tr {border-style: solid; background-color:#E0E0E0;}
+	td.log {font-size:8pt; font-family:Arial; padding: 0 2px 0 2px; border-style: solid;}	
+	span#debug {color: black; font-weight: bold;}
+	span#info  {color: green; font-weight: bold;}
+	span#error {color: orange; font-weight: bold;}
+	span#warn  {color: orange; font-weight: bold;}
+	
+	li.sshow_list { font-size:8pt; font-family:Arial; margin: 0;}
+	
+	a.winTitle {
+		margin: 0;
+		font-size: 12px;
+		font-weight: bold;
+		text-decoration: none;
+		color: #000080;		
+	}
+	
+	table.runs_table, table.tests_table {
+		width: 100%;
+		border-collapse: collapse;
+		background-color: #bbb;
+		border-width: 1px;
+		border-spacing: 0px;
+		border-style: solid;	
+		margin: 1px;
+	}
+	
+	table.layout, table.nodes_table tr, td {white-space: nowrap; }
+	td.node_info {background-color: white; text-align: center; }
+	table.layout, td.layout {
+		border-collapse: collapse;
+		background-color: #bbb;
+		border-width: 0px;
+		border-spacing: 0px;
+		border-style: solid;
+		margin: 2px;
+	}
+	
+	#tftable_div, #tests_div
+	{
+		padding: 1px;
+		border-style: solid;
+		border-width: 1px;
+		border-color: black;
+		background-color: white;
+		clear: left;
+		overflow:auto;
+	}
+	
+	#tftable_div {
+		float: left;
+	}
+	
+	#hwtable_div, #csccounters_div, #ddutable_div {
+		max-height: 350px;
+	}
+	
+	#tf_table, table.sys_table {
+		border-collapse: collapse;
+		background-color: #bbb;
+		border-width: 1px;
+		border-spacing: 0px;
+		border-style: solid;
+		margin: 2px;
+	}
+	
+	table.sys_table, #tf_table td {
+		text-align: center;		
+	}
+	
+	legend.t_hdr, a.test_hdr {
+		font-size: 9pt;
+		font-weight: bold;
+		background-color: #ddd;
+		
+	}
+	a.test_hdr2 {
+		font-size: 8pt;
+		font-weight: bold;
+		background-color: #ddd;
+	}
+	
+	td.hw_tr {font-size: 10pt; font-weight: bold; background-color: #ddd;}
+	td.hw_td {background-color: white; text-align: center;}
+	
+	td.me_csc, td.me_tf { width: 18px;}
+	td.me_type{ background-color: #ddd; font-weight: bold;  width: 40px;} 
+	td.me, td.me_emu { background-color: #ddd; font-weight: bold; font-size:9pt; min-width: 50px; white-space: nowrap;}
+	th.RunLink {padding: 0 0 0 4px; text-align: left; font-size:10pt;  font-weight: bold; background-color: #AFAFFF; } 
+	td.node {width: 24px; background-color: white; text-align: center; }
+	td.td_status {background-color: white; text-align: center}
+</style>
+<script type="text/javascript">
+
+// var baseURL="http://cms-csc.web.cern.ch/cms-csc/DQM/DAQ/plots/merged/";
+var baseURL="";
+var TestsList="getTestsList";
+// var TFMap="getTFMapping";
+var TFMap="redir?url=tf_map.js";
+var NodesStatus="getNodesStatus";
+var controlDQM="controlDQM";
+var TFList="getTFList";
+// var TFList="redir?url=tf_list.js";
+
+var imgFormat=".png";
+var RunNumber="";
+var Folder="";
+var RunInfoIdx = -1;
+var Canvas="";
+var Scope="";
+var isFolderValid=false;
+var postfix = ".plots";
+
+var updateImageInterval=10000; 
+
+var minImageHeight=100;
+var maxImageHeight=1200;
+var minImageWidth=100;
+var maxImageWidth=1900;
+var imgWidth=800;
+var imgHeight=600;
+var imgSizeStep=40;
+
+var TREE_RUNS=false; //  actually list of Tests/Canvases
+var TF_LIST=false;
+var NODES_LIST=false;
+
+var Log=new Array();
+var logLevel="all";
+
+var isIE = false;
+
+var selectedObjectList=new Array();
+
+var fOpenExternal=false;
+var loopFoldersFirst = true;
+var fAutoUpdatePlot = false;
+var selFolder="";
+var selNode="";
+var selTF=false;
+var selTF_F=false;
+var selTF_CSC=false;
+
+var updateCounters = new Array();
+var NodesHistory = new Array();
+var histDepth=200;
+var numCSCs=0;
+var numDDUs=0;
+var getNodesListDelay=10;
+var getTFListDelay=20;
+var totalDAQevents=0;
+var totalDQMevents=0;
+var totalCSCblocks=0;
+var totalDQMrate=0;
+var totalCSCrate=0;
+
+var TF_CSC_MAP=false;
+
+var SP_LABELS = ['ME+1a', 'ME+1b', 'ME+2', 'ME+3', 'ME+4', 'ME-1a', 'ME-1b', 'ME-2', 'ME-3', 'ME-4'];
+
+var SP_MAP = [
+	['ME+',[
+		["ME+4", ["1/17","1/18","1/1", "-",   "-",   "-",   "-",   "-",   "-" ]],
+		["ME+3", ["1/17","1/18","1/1", "2/33","2/34","2/35","2/36","2/1", "2/2" ]],
+		["ME+2", ["1/17","1/18","1/1", "2/33","2/34","2/35","2/36","2/1", "2/2" ]],
+		["ME+1b",["1/24","1/25","1/26","2/24","2/25","2/26","3/24","3/25","3/26"]],
+		["ME+1a",["1/24","1/25","1/26","2/24","2/25","2/26","3/24","3/25","3/26"]]]
+	],
+	['ME-',[["ME-4", ["1/17","1/18","1/1", "-",   "-",   "-",   "-",   "-",   "-" ]],
+		["ME-3", ["1/17","1/18","1/1", "2/33","2/34","2/35","2/36","2/1", "2/2" ]],
+		["ME-2", ["1/17","1/18","1/1", "2/33","2/34","2/35","2/36","2/1", "2/2" ]],
+		["ME-1b",["1/24","1/25","1/26","2/24","2/25","2/26","3/24","3/25","3/26"]],
+		["ME-1a",["1/24","1/25","1/26","2/24","2/25","2/26","3/24","3/25","3/26"]]]
+	]
+];
+
+
+var CSC_TYPES = [
+	['ME+',[
+		["ME+4/1", 18],
+		["ME+3/2", 36],
+		["ME+3/1", 18],
+		["ME+2/2", 36],
+		["ME+2/1", 18],
+		["ME+1/3", 36],
+		["ME+1/2", 36],
+		["ME+1/1", 36]]
+	],
+	['ME-',[["ME-1/1", 36],
+		["ME-1/2", 36],
+		["ME-1/3", 36],
+		["ME-2/1", 18],
+		["ME-2/2", 36],
+		["ME-3/1", 18],
+		["ME-3/2", 36],
+		["ME-4/1", 18]]
+	]
+];
+
+function loadPlot() {
+	// var imgurl = Folder+"/"+Canvas;
+	// var objname = Canvas.substr(Canvas.search("/"), Canvas.length);	
+	var cFolder = "c_TF_";
+	if (Scope == "EMU") {
+		Folder = "EMU";
+		cFolder = "c_TF_";
+		}
+	else if (Scope == "TF" && selTF) {
+		Folder = "TF";
+		cFolder = "c_TF_"+selTF+"_";
+	}
+	else if (Scope == "Inputs" && selTF && selTF_F) {
+		Folder = "Inputs";
+		cFolder = "c_TF_"+selTF+"_"+selTF_F+"_";
+	}
+	else if (Scope == "Chambers" && selTF && selTF_F && selTF_CSC) {
+		Folder = "Chambers";
+		cFolder = "c_TF_"+selTF+"_"+selTF_F+"_"+selTF_CSC+"_";
+	}
+	// Scope = "EMU";	
+	var objname = Canvas.substr(0, Canvas.search(".png"));
+	// objname = "Strips";
+	if (objname.search("/") >=0) objname = objname.substr(objname.search("/")+1, objname.length);
+	var timestamp=new Date()
+	var imgurl=baseURL+"genPlot?objectName="+objname+"&folder="+cFolder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&timestamp="+timestamp.getTime();
+	var zoomimage=baseURL+"genPlot?objectName="+objname+"&folder="+cFolder+"&imageWidth="+1600+"&imageHeight="+1200+"&timestamp="+timestamp.getTime();
+	var out = "";
+	var title = "Plots";
+	// addlog(Folder +"/"+objname, "info"); 
+	
+	
+	
+	if (!isFolderValid) {
+			
+		// out += RunNumber+": Invalid folder - \""+Folder+"\"<hr>";
+	} else {
+		if ((parent.Folder != "") && (parent.Canvas != "") ) {
+			if ((Folder.search("EMU") >=0 && Scope == "EMU") || 
+				(Folder.search("TF") >=0 && Scope == "TF") || 
+				(Folder.search("Inputs") >=0 && parent.Scope == "Inputs") ||
+				(Folder.search("Chambers") >=0 && parent.Scope == "Chambers")) {
+				// out += RunNumber+": \""+Folder+"/"+Canvas+"\"<hr>";				
+				title += ": " +cFolder+Canvas;
+				// addlog(title, "info")
+				// out += "<a target=blank href=\'"+imgurl+"\'><IMAGE height='"+imgHeight+"' NAME='test' SRC='"+imgurl+"'></a>";
+				// dirtypop();				
+				if (fOpenExternal) {
+					try {
+						var generator=window.open('','name','height='+(imgHeight+40)+',width='+(imgWidth+40)+',resizable=no');						
+						if (window.focus) {generator.focus()} 
+						generator.resizeTo(imgWidth+20, imgHeight+50);
+						generator.document.write('<html><head><title>'+title+'</title>');
+						generator.document.write("<style>body {color: #000000; background-color: #9090FF;margin: 2px;font-family:Arial;	overflow: auto;}"+
+						"span.winTitle {	margin: 0;font-size: 12px;font-weight: bold;text-decoration: none;color: #000000;}"+
+						"fieldset {background-color: #ddd;	border-style: solid;border-width: 1px;border-color: black;margin: 2px;padding: 2px;}"+
+						"legend {border-style: solid;border-width: 1px;background-color:  #C0C0FF;}</style>");
+						generator.document.write('</head><body>');
+						generator.document.write("<fieldset><legend><span class='winTitle'>"+title+"</span></legend>");
+						generator.document.write("<IMAGE NAME='test' SRC='"+imgurl+"'>");
+						generator.document.write("</fieldset>");
+						// generator.document.write('<p><a href="javascript:self.close()">Close</a> the popup.</p>');
+						generator.document.write('</body></html>');
+						generator.document.close();
+					  } 
+					  catch (exc){
+					}
+				} else {
+					out += "<a target=blank href=\'"+zoomimage+"\'><IMAGE NAME='test' SRC='"+imgurl+"'></a>";
+				}
+				
+			}else {
+				addlog("Can not display '"+Canvas+"'. Selected canvas scope '"+Scope+"' and folder '"+Folder+"' logical sections mismatch", "warn");
+				// addlog("Invalid canvas: \""+RunNumber+"/"+Folder+"/"+Canvas, "error");
+				// out += "Invalid canvas: \""+Folder+"/"+Canvas+"\"<hr>";
+			} 
+		} 
+	}
+	var o_obj = document.getElementById("plots_div");
+	if (o_obj) o_obj.innerHTML = out;
+	o_obj = document.getElementById("plot_title");
+	if (o_obj) o_obj.innerHTML = title;
+	return false;
+}
+
+function updatePlots() {
+	if (fAutoUpdatePlot) {
+		loadPlot();
+		setTimeout('updatePlots()',updateImageInterval);
+	}
+}
+
+function showHide(id)
+{
+   obj = document.getElementById(id);
+   if (obj) {
+	if (obj.style.display == 'none') obj.style.display = '';
+	else obj.style.display = 'none';
+   }
+   return false;
+}
+
+function getTime()
+{
+	var t = new Date();
+	val = t.getDate()
+	date = (val<10)?'0'+val:val;
+	val = t.getMonth()+1;
+	month = (val<10)?'0'+val:val;
+	year = t.getFullYear();	
+	val = t.getHours();
+	hour = (val<10)?'0'+val:val;
+	val = t.getMinutes();
+	minute = (val<10)?'0'+val:val;
+	val = t.getSeconds();
+	sec = (val<10)?'0'+val:val;
+	time_str = date+"/"+month+"/"+year+" "+hour+":"+minute+":"+sec;
+	return time_str;
+}
+
+function addlog(message, level)
+{
+	if (Log) {
+		var entry = new Array();
+		entry[0] = getTime();
+		entry[1] = level;
+		entry[2] = message;
+		Log.push(entry);
+		showLog();
+	}
+}
+
+function addPadding(num,count,pad)
+{
+	var numStr = num + '';
+	while(numStr.length < count) {
+	numStr = pad + numStr;
+	}
+	return numStr;
+}
+
+function showLog()
+{
+	var logd = document.getElementById("log");
+	if (Log && logd && !isIE) {
+		logd.style.display = "none";
+		logd.innerHTML = "";
+		var out = "<table class='log'>";
+		if (Log.length >0) 
+			out += "<tr><th>Date/Time</th><th>Level</th><th>Message</th></tr>";
+		
+		for (var i=Log.length-1; i>=0; i--) {
+			if (Log[i] && Log[i].length==3) {
+				level = Log[i][1];
+				if (level == logLevel || logLevel == "all") {
+					out += '<tr><td class="log">'+Log[i][0]+'</td><td class="log"><span class="log" id=\"'+Log[i][1]+'\">'+Log[i][1].toUpperCase()+ '</span></td><td width="100%" class="log">' +Log[i][2]+'</td></tr>';
+				}
+			}
+		}
+		out +="</table>";
+		logd.style.display = "block";
+		logd.innerHTML = out;
+	}
+}
+
+function selectLogLevel()
+{
+	var selObj = document.getElementById("selLogLevel");
+	if (selObj) {
+		var selIdx = selObj.selectedIndex;
+		selList = selObj.options[selIdx].value;
+		logLevel = selList;		
+		// addlog(selList, "info");
+		showLog();
+	}
+}
+
+function clearLog() 
+{
+	Log.length = 0;
+	showLog();
+
+}
+
+function resetTFTables()
+{
+	resetTable('tf_table', 'me_tf', '#AFAFAF');
+	resetTable('trig_table', 'me_tf', '#AFAFAF');
+	resetTable('csc_table', 'me_csc', '#AFAFAF');
+}
+
+function resetTable(c_table, class_id, color)
+{
+	var ct = document.getElementById(c_table);
+	if (ct) {
+		var tds = ct.getElementsByTagName("td");	
+		for (var i=0; i< tds.length; i++) {
+			
+			if (tds[i].getAttribute("class")) {
+				if (tds[i].getAttributeNode("class").value == class_id) {
+					id = tds[i].getAttributeNode("id").value;	
+					tds[i].style.background = color;															
+				}				
+			}			
+		}
+	}
+}
+
+
+function showTFTable(id)
+{
+	var c_list = CSC_TYPES;
+	obj = document.getElementById(id);
+	if (obj) {
+		if (c_list && c_list.length > 0) {
+			out = "<table class='layout'>";
+
+			
+
+			out +="<tr><td class='layout' valign='top'>";
+			
+			out += "<table class='layout'>";
+			out += "<th class='RunLink' id='RunLink' colspan=2 align=left>Run:</th>";
+			out +="<tr><td class='layout' valign='top'>";
+			
+			out += "<table border=1 cellpadding=0 cellspacing=0 id='tf_table' class='sys_table'> ";
+			
+			// Display TFs  ME+
+			out += "<tr class='me'><td id='cscTF' colspan=2 class='me'>TFs (Side ME+)</td>";
+			for (var i=1; i<= 6; i++) {
+				out += "<td id='cscTF"+i+"' class='me_tf' >"+i+"</td>";
+			}
+			
+			out += "</tr>";
+			
+			out += "<tr class='me'>";
+			out += "<td id='cscTFF' class='me' rowspan=5 >FPGA</td>";			
+			
+			for (var i=1; i<= 5; i++) {
+				if (i>1) out +="<tr class='me'>";
+				out +="<td class='me'>"+SP_LABELS[i-1]+"</td>";
+				for (var j=1; j<=6; j++) {
+					out += "<td id='cscTF"+j+"_F"+i+"' class='me_tf' >"+i+"</td>";
+				}
+				out += "</tr>";
+			}
+			
+			// Display TFs  ME-
+			out += "<tr class='me'><td id='cscTF' colspan=2 class='me'>TFs (Side ME-)</td>";
+			for (var i=1; i<= 6; i++) {
+				out += "<td id='cscTF"+(i+6)+"' class='me_tf' >"+i+"</td>";
+			}
+			out += "</tr>";
+			
+			out += "<tr class='me'><td id='cscTFF' class='me' rowspan=5 >FPGA</td>";			
+			
+			for (var i=1; i<= 5; i++) {
+				if (i>1) out +="<tr class='me'>";
+				out +="<td class='me'>"+SP_LABELS[i+4]+"</td>";
+				for (var j=7; j<=12; j++) {
+					out += "<td id='cscTF"+j+"_F"+i+"' class='me_tf' >"+i+"</td>";
+				}
+				out +="</tr>";
+			}
+						
+			out += "</table>";
+			
+			out += "</td><td class='layout'  valign='top'>";												
+			
+			// Display CSC Trig IDs table
+			out += "<table border=1 cellpadding=0 cellspacing=0 name='trig_table' class='sys_table'>";
+			out += "<tr class='me'><td id='cscCSC' class='me'>CSC Trig ID</td></tr>";						
+			for (var i=1; i<=9; i++) {
+				
+				out += "<tr><td id='cscTF_CSC"+i+"' class='me_tf' >"+i+"</td></tr>";
+				
+			}			
+			out += "</table >";
+			
+			// layout
+			out += "</td></tr></table>";
+			out += "</td><td class='layout' valign='top'>";
+			
+			// Display CSCs Table			
+			out += "<table border=1 cellpadding=0 cellspacing=0 id='csc_table' class='sys_table'>";
+									
+			for (var i=0; i< c_list.length; i++) 
+			{
+				if (c_list[i] && c_list[i].length > 0) {
+					var side = c_list[i][0];
+			 		out += "<tr class='me'><td rowspan='8' id='"+side+"' class='me' >"+side+"</td>";
+					
+					var types =  c_list[i][1];
+					if (types && types.length > 0) {
+						for (var j=0; j< types.length; j++) {			
+							var csctype = types[j][0];
+							if (j>0) out+= "<tr class='me_type'>";
+							out += "<td id='"+csctype+"' class='me_type' >"+csctype+"</td>";		
+							var num_cscs = types[j][1];
+
+							for (var k=1; k<= num_cscs; k++) {
+								if (num_cscs==18) 
+									out += "<td class='me_csc' id='"+(csctype+"/"+addPadding(k,2,'0'))+"' colspan='2'>"+k+"</td>";
+								else 
+									out += "<td class='me_csc' id='"+(csctype+"/"+addPadding(k,2,'0'))+"'>"+k+"</td>";
+								
+							}
+							if (j>0) out += "</tr>";
+						}
+					}
+					out += "</tr>";		
+				}
+			}
+			
+			out += "</table>";
+			
+			
+			out += "</td></tr></table>";
+			obj.innerHTML = out;
+		}
+	}
+}
+
+
+function showNodeDetailedStatus(id) {
+	var out="";
+	var nodes=NODES_LIST;
+	obj = document.getElementById("nodestatus_div");
+	if (nodes && nodes.length>1) {
+		var idx=false;
+		for (i=1; i<nodes.length; i++) {
+			if (nodes[i] && nodes[i].length) {
+				node = nodes[i][0].substr(nodes[i][0].lastIndexOf('-')+1,nodes[i][0].length);
+				if (node == id) idx=i;
+			}
+		}
+		if (obj && nodes[idx] && nodes[idx].length && idx) {
+			out +="<table class='nodes_table'>";
+			// Show Table Header
+			if (nodes.length && nodes[0] && nodes[0].length) {
+				for (i=0; i< nodes[0].length; i++) {
+					out+="<th>"+nodes[0][i]+"</th>";
+				}
+			}
+			// Show Node Status 
+			out+="<tr>";
+			out+="<td class='node_info'><a target='shownode' href='"+nodes[idx][1]+"'>"+nodes[idx][0]+"</a></td>";
+			state = nodes[idx][2];
+			id = 'node_'+node;
+			var color='white';
+			if (state.search("Enabled") >=0) {color='#90ff90';}
+			else if (state.search("Halted") >=0) {color='#ff9090';}
+			else if (state.search("Ready") >=0) {color='#ffff90';}
+			else if (state.search("Unknown") >=0) {color='909090';}
+			
+			out +="<td class='node_info' style='background-color: "+color+"'>"+state+"</td>";
+			for (j=3; j<nodes[idx].length; j++) {
+				out+="<td class='node_info'>"+nodes[idx][j]+"</td>";
+			}
+			out+="</tr>";
+			out +="</table>"		
+			obj.innerHTML=out;
+		} else {
+			if (selNode != "") addlog("Selected Monitor node "+selNode+" is down", "warn");
+			selNode="";
+			obj.innerHTML="";
+		}
+	}
+	return false;
+}
+
+function showNodeInfo(id)
+{
+	obj = document.getElementById("nodestatus_div");
+	if (obj) {
+		if (id == selNode) {
+			if (obj.style.display == 'none') obj.style.display = '';
+			else obj.style.display = 'none';
+		} else {
+			obj.style.display = '';
+		}	
+		
+	}
+   return false;
+	
+}
+
+function sendDQMAction(action) 
+{
+  var fullUrl = baseURL + controlDQM;
+	params = "?action="+action;
+	fullUrl+=params;
+	var req=false;
+	if (window.XMLHttpRequest) { 
+		/*
+		try {
+	    		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead UniversalBrowserWrite");
+	   	} catch (e) {
+	    		alert("Permission UniversalBrowserRead denied.");
+	   	}
+		*/
+	    req = new XMLHttpRequest();    
+	   
+	} else if (window.ActiveXObject) {    
+		//req = new ActiveXObject("Microsoft.XMLDOM");
+	    req = new ActiveXObject((navigator.userAgent.toLowerCase().indexOf('msie 5') != -1) ? "Microsoft.XMLHTTP" : "Msxml2.XMLHTTP");
+		// var req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    req.open("GET",fullUrl,true); // true= asynch, false=wait until loaded    
+	
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+			if (req.status==200) {	        
+				var reply = req.responseText;
+				addlog("Sent DQM command "+action, "info");
+				req=false;				
+	    	} else if (req.status==404) {
+				addlog("Unable to send DQM command "+action, "error");
+	    	}
+						
+		}
+    }
+	req.send(null);	
+	// addlog("Update Nodes List", "info");
+	return false;
+}
+
+function updateNodesStatus()
+{
+	
+	var out="";
+	var nodes=NODES_LIST;
+	obj = document.getElementById("nodesview_div");
+	if (obj) 
+	{
+
+		out +="<table>";
+			
+		nodeclass="EmuTFMonitor"
+		out +="<tr><td><b>" + nodeclass + ":</b></td>";
+		
+		color="#C0C0C0";
+		node=0;
+		out +="<td class='node' style='background-color: "+color+"' id='node_0'>"+node+"</td>";
+		
+		out +="<td><b>Rate Evt/s:</b></td>";
+			rate="-";
+			out +="<td class='node' id='rate_node_0'>"+rate+"</td>";
+			
+		out +="<td><b>TF DQM Control</b>";
+		
+		out += '<input class="button" type="button" name="action" value="Init" onClick="return sendDQMAction(\'Configure\');">';
+		out += '<input class="button" type="button" name="action" value="Start" onClick="return sendDQMAction(\'Enable\');">';
+        out += '<input class="button" type="button" name="action" value="Stop" onClick="return sendDQMAction(\'Halt\');"></td>';
+		
+		out +="</tr>";
+		out +="</table>";
+		obj.innerHTML=out;
+		
+		if (nodes) 
+		{			
+			if (nodes.length>1) 
+			{		
+				totalDAQevents=0;
+				totalDQMevents=0;
+				totalCSCblocks=0;
+				totalDQMrate=0;
+				totalCSCrate=0;
+				for (i=1; i<nodes.length; i++) 
+				{
+					if (!nodes[i]) continue;
+					node = nodes[i][0].substr(nodes[i][0].lastIndexOf('-')+1,nodes[i][0].length);
+					state = nodes[i][2];
+					rate = nodes[i][6];
+					csc_rate = nodes[i][8];
+					RunNumber=nodes[i][3];
+					// id = 'node_'+node;
+					id=node;
+					node = "<a href='' onClick='showNodeDetailedStatus(\""+node+"\");showNodeInfo(\""+node+"\");selectNode(\""+node+"\");return false;'>"+node+"</a>";
+					var color='white';
+					if (state.search("Enabled") >=0) {color='#90ff90';}
+					else if (state.search("Halted") >=0) {color='#ff9090';}
+					else if (state.search("Ready") >=0) {color='#ffff90';}
+					else if (state.search("Unknown") >=0) {color='909090';}
+					cell = document.getElementById('node_'+id); 
+					if (cell){
+						cell.innerHTML=node;
+						cell.style.background = color;
+					}
+					cell = document.getElementById('rate_node_'+id); 
+					if (cell){
+						cell.innerHTML=rate;					
+					}
+					cell = document.getElementById('csc_rate_node_'+id); 
+					if (cell){
+						cell.innerHTML=csc_rate;
+					
+					}
+					
+					
+					totalDAQevents += parseInt(nodes[i][4]);
+					totalDQMevents += parseInt(nodes[i][5]);
+					totalDQMrate += parseInt(nodes[i][6]);
+					totalCSCblocks += parseInt(nodes[i][7]);
+					totalCSCrate += parseInt(nodes[i][8]);
+					
+				}
+			}
+		}
+	}
+}
+
+function findCSCLabel(tf, inp, csc)
+{
+	var label=false;
+	if (TF_CSC_MAP) 
+	{
+		var map=TF_CSC_MAP;
+		if (map.tf_map.length) 
+		{
+			for (var i=0; i<map.tf_map.length; i++)
+			{
+				
+				if (map.tf_map[i] && map.tf_map[i].TF) 
+				{
+					
+					var TF=map.tf_map[i].TF;
+					if (TF==tf && map.tf_map[i].inputs 
+						&& map.tf_map[i].inputs.length) 
+					{
+						
+						for (var j=0; j<map.tf_map[i].inputs.length; j++)
+						{
+							if (map.tf_map[i].inputs[j] 
+								&& map.tf_map[i].inputs[j].F)
+							{
+								var INP=map.tf_map[i].inputs[j].F;
+								var pcrate=map.tf_map[i].inputs[j].pcrate;
+								if (INP==inp && map.tf_map[i].inputs[j].chambers 
+									&& map.tf_map[i].inputs[j].chambers.length)
+								{
+									
+									for (var k=0; k<map.tf_map[i].inputs[j].chambers.length; k++)
+									{
+										if (map.tf_map[i].inputs[j].chambers[k] 
+											&& map.tf_map[i].inputs[j].chambers[k].CSC 
+											)
+										{
+											
+											CSC=map.tf_map[i].inputs[j].chambers[k].CSC;
+											if (CSC==csc) {
+												if (map.tf_map[i].inputs[j].chambers[k].label) 
+												{
+													label=map.tf_map[i].inputs[j].chambers[k].label;
+													//addlog(label, "debug");
+												}
+												return label;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return label;
+}
+
+function getNodesList()
+{
+	var fullUrl = baseURL + NodesStatus;
+	getNodesListDelay=10;
+	var req=false;
+	if (window.XMLHttpRequest) { 
+		/*
+		try {
+	    		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead UniversalBrowserWrite");
+	   	} catch (e) {
+	    		alert("Permission UniversalBrowserRead denied.");
+	   	}
+		*/
+	    req = new XMLHttpRequest();    
+	   
+	} else if (window.ActiveXObject) {    
+		//req = new ActiveXObject("Microsoft.XMLDOM");
+	    req = new ActiveXObject((navigator.userAgent.toLowerCase().indexOf('msie 5') != -1) ? "Microsoft.XMLHTTP" : "Msxml2.XMLHTTP");
+		// var req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    req.open("GET",fullUrl,true); // true= asynch, false=wait until loaded    
+	
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+			if (req.status==200) {	        
+				var reply = req.responseText;
+				// Need to strip malformed array string to satisfy IE7
+				reply = reply.replace(/,]/g,"]");
+				reply = reply.replace("var ","");
+	        	window.eval(reply);
+				updateNodesStatus();
+				selectNode(selNode);
+				// showNodeDetailedStatus(selNode);
+				req=false;
+				
+	    	} else if (req.status==404) {
+	    	}
+						
+		}
+    }
+	req.send(null);	
+	setTimeout('getNodesList()', 10000);
+	// addlog("Update Nodes List", "info");
+	return false;
+}
+
+// Load Available Tests/Canvases ist
+function loadTestsList(r_list, id) 
+{
+	obj = document.getElementById(id);
+	if (obj) {
+		if (r_list) {
+			out = "";
+			for (var i = 0; i< r_list.length; i++) {
+				// document.write("<tr><td><b>"+r_list[i][0]+"</b></td></tr>");
+				if (!r_list[i]) continue;
+				out += "<fieldset>";
+				
+				th_folder = r_list[i][0];
+				th_id = "folder_"+ th_folder;
+				out += "<legend class='t_hdr'><a class='test_hdr' href='' onClick='return showHide(\""+th_id+"\");'>"+th_folder+"</a></legend>";
+				scope = r_list[i][0];
+				var child = [];				
+				child=r_list[i];
+				out += "<div class='t_div' id='"+th_id+"' style='overflow: hidden;'>";
+				t_map = [];
+				for (var j=2; j<child.length; j++) {
+					if (!child[j]) continue;
+					t_id = child[j][1];
+					t_name = child[j][0];
+					// === Replace with search()
+					if (t_name.lastIndexOf(":") != -1) {
+						t_folder = t_name.substr(0, t_name.lastIndexOf(":"));			
+						t_name = t_name.substr(t_name.lastIndexOf(':')+1, t_name.length);
+					} else {
+						t_folder = th_folder;
+					}
+					if (!t_map[t_folder])
+						t_map[t_folder] = new Array();
+					if (!t_map[t_folder][t_id])
+						t_map[t_folder][t_id] = t_name;
+				}
+				for (var list in t_map) {
+					if ((list != th_folder) || (list == "CSC")) {
+						out += "<fieldset>";
+						out += "<legend class='t_hdr'><a class='test_hdr2' href='' onClick='return showHide(\"id_"+list+"\"); return false;'>"+list+"</a></legend>";
+						out += "<div class='t_div' id='id_"+list+"' style='overflow: hidden;'>";				
+					}
+					out += "<table class='tests_table'>";
+					folder = t_map[list];			
+					for (var entry in folder) {
+						// <td><input type=checkbox id='cb_"+entry+"'></td>
+						out += "<tr></td><td>";
+						out += "</a><a class='test_item' href='' id =\""+entry+"\"  onClick='Canvas=\""+entry+"\";Scope=\""+scope+"\";return updateBrowserPage(\""+entry+"\",false,3)'>"+folder[entry]+"</a></td></tr>";			 				
+						if (scope=="CSC" ) { 
+							addToTestsShowList("All CSC Tests", entry, folder[entry], scope);
+						}
+							
+							
+					}
+					out += "</table>";
+				
+					if ((list != th_folder)|| (list == "CSC")) out += "</div></fieldset>";
+					
+				}
+				
+				out += "</div></fieldset>";
+
+			}
+			obj.innerHTML = out;
+		}		
+	}	
+}	
+
+
+// Load Available TFs list for selected Run 
+function loadTFList()
+{
+	getTFListDelay=20;
+	var fullUrl = baseURL+TFList;
+	// var r_link=document.getElementById("RunLink");
+	// if (r_link) r_link.innerHTML = "Run Number: <a class='RLink' href=''>" + RunNumber + "</a>";
+	
+	var req=false;
+	if (window.XMLHttpRequest) { 
+		/*
+		try {
+	    		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead UniversalBrowserWrite");
+	   	} catch (e) {
+	    		alert("Permission UniversalBrowserRead denied.");
+	   	}
+		*/
+	    req = new XMLHttpRequest();    
+	   
+	} else if (window.ActiveXObject) {    
+		//req = new ActiveXObject("Microsoft.XMLDOM");
+	    req = new ActiveXObject((navigator.userAgent.toLowerCase().indexOf('msie 5') != -1) ? "Microsoft.XMLHTTP" : "Msxml2.XMLHTTP");
+		// var req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    req.open("GET",fullUrl,true); // true= asynch, false=wait until loaded    
+	
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+			if (req.status==200) {	
+				TF_LIST=false;
+				var reply = req.responseText;
+				// Need to strip malformed array string to satisfy IE7
+				reply = reply.replace(/,]/g,"]");
+				reply = reply.replace("var ","");
+	        	window.eval(reply);					
+				// resetTFTable("tf_table");
+				// resetCSCTable("csc_table");
+				resetTFTables();
+				updateTFMappings();
+				req=false;
+				
+				// addlog("Loaded TF List", "info");
+	    	} else if (req.status==404) {
+				addlog("Unable to load TF List", "error");
+	    	}
+						
+		}
+    }
+	req.send(null);	
+	setTimeout('loadTFList()', 20000);
+	return false;
+}
+
+
+function updateSysStatus() 
+{
+	var obj=document.getElementById("sysstatus_div");
+	if (obj) {
+		getNodesListDelay-=2;
+		getTFListDelay-=2;
+		var out="<table><tr>";
+		
+		out+= "<table><tr><td><b>Total:</b></td>";
+		out+= "<td class='td_status'>DAQ Evts: <b>"+totalDAQevents+"</b></td><td class='td_status'>DQM Evts: <b>"+totalDQMevents+"</b></td>"
+		out+= "<td class='td_status'>DQM Rate: <b>"+totalDQMrate+"</b></td>";		
+		out+= "<td class='td_status'>Upd Node status in <b>"+getNodesListDelay+"</b>s</td><td class='td_status'>Upd TF List in <b>"+getTFListDelay+"</b>s</td></tr></table>";
+		
+		obj.innerHTML=out;
+	}
+	setTimeout('updateSysStatus()', 2000);
+}
+
+function updateTFMappings()
+{
+	if (TF_LIST) 
+	{
+		if (TF_LIST.tf_map.length) 
+		{
+			for (var i=0; i<TF_LIST.tf_map.length; i++)
+			{
+				enableTFEntry(TF_LIST.tf_map[i]);
+			}
+		}
+	}
+}
+
+function selectTF(tf)
+{
+	
+	id = "TF"+tf;
+	selectObject(id, false, 1);
+	if (selTF_F) 
+	{
+		id = "TF"+tf+"_F"+selTF_F;
+		selectObject(id, false, 2);
+	}
+	selTF=tf;
+	return false; 
+}
+
+function selectTFInput(tf,inp)
+{	
+	if (inp) {
+		selTF_F=inp;
+		id = "TF"+tf+"_F"+inp;
+		selectObject(id, false, 2);
+	}
+	selectTF(tf);
+	// updateTFMappings();
+	return false;
+}
+
+
+function selectTFCSC(csc)
+{
+	selTF_CSC=csc;
+	id = "TF_CSC"+csc;
+	selectObject(id, false, 4);
+}
+
+function enableTFEntry(tf)
+{
+	if (tf && tf.TF) 
+	{
+		TFid = "cscTF"+tf.TF;
+		obj = document.getElementById(TFid);
+		if (obj) 
+		{
+			obj.style.background = 'lightgreen';
+			folderTF="c_TF_"+tf.TF+"_";
+			link="<a href='' id='TF" + tf.TF+ "' onClick='Folder=\""+folderTF+"\"; selectTF("+tf.TF+");return loadPlot();'>"+tf.TF+"</a>";
+			obj.innerHTML = link;
+			
+			if (tf.inputs) 
+			{				
+				for (var i=0; i<tf.inputs.length; i++) 
+				{
+					if (!tf.inputs[i] || !tf.inputs[i].F) continue;
+					tf_inp = tf.inputs[i].F;
+					TFFid=TFid+"_F"+tf_inp;
+			
+					fobj=document.getElementById(TFFid);
+					if (fobj) 
+					{
+						fobj.style.background = 'lightgreen';
+						folderTFF="c_TF_"+tf.TF+"_"+tf_inp+"_";
+						link="<a href='' id='TF"+ tf.TF+"_F" + tf_inp + "' onClick='Folder=\""+folderTFF+"\"; selectTFInput("+tf.TF+","+tf_inp+");updateTFMappings();return loadPlot();'>"+tf_inp+"</a>";
+						fobj.innerHTML = link;
+						if ( (tf.TF == selTF) && (tf_inp == selTF_F)) {							
+							// addlog(selTF_F, "debug");
+							selectTFInput(tf.TF,tf_inp);
+							
+							if (tf.inputs[i].chambers) 
+							{
+								for (var j=1; j<10; j++) {
+									TF_CSCid="cscTF_CSC"+j;
+									cobj=document.getElementById(TF_CSCid);
+									if (cobj)
+									{
+										cobj.style.background = '#AFAFAF';
+										var tag = j;
+										var label = findCSCLabel(tf.TF, tf_inp, j);
+										if (label)  tag = j + ": " + label;
+										cobj.innerHTML=tag;
+									}
+									
+								}
+								for (var j=0; j<tf.inputs[i].chambers.length; j++)
+								{
+									tf_csc=tf.inputs[i].chambers[j].CSC;
+									TF_CSCid="cscTF_CSC"+tf_csc;
+									cobj=document.getElementById(TF_CSCid);
+									if (cobj)
+									{
+										cobj.style.background = 'lightgreen';
+										var tag = tf_csc;
+										var label = findCSCLabel(tf.TF, tf_inp, tf_csc);
+										if (label)  tag = tf_csc + ": " + label;
+										folderTFCSC="c_TF_"+tf.TF+"_"+tf_inp+"_"+tf_csc+"_";
+										link="<a href='' id='TF_CSC" + tf_csc + "' onClick='Folder=\""+folderTFCSC+"\"; selectTFCSC("+tf_csc+");updateTFMappings();return loadPlot();'>"+ tag + "</a>";
+										cobj.innerHTML = link;
+										
+									}
+									if (tf_csc == selTF_CSC) 
+									{
+										selectTFCSC(tf_csc);
+									}
+								}
+							}
+							
+						}
+						
+						if (tf.inputs[i].chambers) 
+							{
+								for (var j=0; j<tf.inputs[i].chambers.length; j++)
+								{
+									tf_csc=tf.inputs[i].chambers[j].CSC;
+									cscID= findCSCLabel(tf.TF, tf_inp, tf_csc);
+									cobj=document.getElementById(cscID);
+									if (cobj)
+									{
+										
+										cobj.style.background = 'lightgreen';										
+									}
+									
+								}
+							}
+						
+						
+					}
+				}
+			}
+			
+		}
+	}
+}
+
+
+function selectNode(id)
+{
+	node = "node_"+id;
+	selectObject(node, false, 6);	
+	selNode = id;
+	return false;
+}
+
+
+function selectTest(id, b_select)
+{
+	isFolderValid=true;	
+	
+	selectObject(id, b_select, 3);
+	// addlog(selected_list[idx].id, "debug");
+	// loadPlot();
+	return false; 
+}
+
+function updateBrowserPage(id, f_select, idx)
+{
+	isFolderValid=true;		
+	selectObject(id, f_select, idx);
+	// addlog(selected_list[idx].id, "debug");
+	loadPlot();
+	return false; 
+}
+
+
+function decImageHeight()
+{	
+	imgHeight = imgHeight-imgSizeStep;
+	if (imgHeight<minImageHeight) imgHeight=minImageHeight;
+	obj = document.getElementById("imageHeight");
+	if (obj) obj.value = imgHeight;
+			
+			
+	// loadPlot();
+}
+
+function incImageHeight()
+{
+	imgHeight = imgHeight+imgSizeStep;
+	if (imgHeight>maxImageHeight) imgHeight = maxImageHeight;	
+	obj = document.getElementById("imageHeight");
+	if (obj) obj.value = imgHeight;
+	
+	
+	// loadPlot();
+}
+
+function decImageWidth()
+{	
+			
+	imgWidth = imgWidth-imgSizeStep;
+	if (imgWidth<minImageWidth) imgWidth = minImageWidth;	
+	obj = document.getElementById("imageWidth");
+	if (obj) obj.value = imgWidth;
+			
+	//loadPlot();
+}
+
+function incImageWidth()
+{
+	
+	imgWidth = imgWidth+imgSizeStep;
+	if (imgWidth>maxImageWidth) imgWidth = maxImageWidth;	
+	obj = document.getElementById("imageWidth");
+	if (obj) obj.value = imgWidth;
+	
+	//loadPlot();
+}
+
+function selectPlotMode()
+{
+	var obj = document.getElementById("openExternal");
+	if (obj) {
+		if (obj.checked) {
+			fOpenExternal=true;
+		} else {
+			fOpenExternal=false;
+		}
+	}
+}
+
+function selectUpdateMode()
+{
+	var obj = document.getElementById("autoUpdateMode");
+	if (obj) {
+		if (obj.checked) {
+			fAutoUpdatePlot=true;
+			updatePlots();
+		} else {
+			fAutoUpdatePlot=false;
+		}
+	}
+}
+
+function selectObject (id, f_deselect, idx) {
+	var obj = get_element(id);
+	if (obj) {
+		
+		if(!f_deselect) {
+			var o_olditem = selectedObjectList[idx];
+			selectedObjectList[idx] = obj;
+			if (o_olditem) selectObject(o_olditem.id, true, idx);
+			
+		}
+		if (obj.style) {
+			obj.style.fontWeight = f_deselect ? 'normal' : 'bold';
+			obj.style.color = f_deselect ? '#000000' : '#ff0000';
+		}
+	} 
+}
+
+
+get_element = document.all ?
+	function (s_id) { return document.all[s_id] } :
+	function (s_id) { return document.getElementById(s_id) };
+
+</script>
+</head>
+<body>
+
+<script type="text/javascript">
+	if (navigator.userAgent.toLowerCase().indexOf('msie') != -1) isIE=true;
+	baseURL=document.URL;
+	if (document.URL.lastIndexOf('/') != document.URL.length-1) baseURL+="/";	
+	document.write('<script src="', baseURL+TestsList, '" type="text/javascript"><\/script>');
+	document.write('<script src="', baseURL+TFMap, '" type="text/javascript"><\/script>');
+	
+//-->
+</script>
+
+<div class="MainWindow" id="l_panel">
+	
+	<fieldset id="Tests">
+		<legend>
+			<a class='winTitle' href='' onClick='return showHide("tests_div");'>Tests</a>
+		</legend>
+		<div id="tests_div">
+			<script type="text/javascript">
+			<!--//		
+				
+				new loadTestsList (TREE_ITEMS, "tests_div");
+				
+			//-->
+			</script>
+		</div>
+	</fieldset>
+	
+	<fieldset id="Options">
+		<legend><a class='winTitle' href='' onClick='return showHide("options_div");'>Options</a></legend>
+		<div id="options_div">
+			<table>
+				<tr>
+					<td><label>Plot Width:</label> 
+					<input type=button name="decWidth" value="-" onclick="decImageWidth();">    		     
+					<script type="text/javascript"> 
+						document.write("<input type=text readonly id='imageWidth' align=right value='"+imgWidth+"' size='4'>"); 		 
+					</script>
+					<input type=button name="incWidth" value="+" onclick="incImageWidth()">    
+			      </td>
+				</tr>
+				<tr>
+					<td><label>Plot Height:</label> 
+					<input type=button name="decHeight" value="-" onclick="decImageHeight();">    		     
+					<script type="text/javascript"> 
+						document.write("<input type=text readonly id='imageHeight' align=right value='"+imgHeight+"' size='4'>"); 		 
+					</script>
+					<input type=button name="incHeight" value="+" onclick="incImageHeight()">    
+			      </td>
+				</tr>
+				<tr>
+				  <td>
+					<label>Open in External Window</label></label> <input type=checkbox id="openExternal" onclick="selectPlotMode()">  
+				  </td>
+			   </tr>
+			   <tr>
+				  <td>
+					<label>Auto Update</label></label> <input type=checkbox id="autoUpdateMode" onclick="selectUpdateMode()">  
+				  </td>
+			   </tr>
+			</table>
+		</div>
+	</fieldset>
+
+	
+</div>
+
+<div class="MainWindow" id="r_panel">
+	<fieldset id="NodesView">
+		<legend>
+			<a class='winTitle' href='' onClick='return showHide("nodes_div");'>Nodes Status</a>						
+		</legend>
+		<div id="nodes_div">
+			<div id="nodesview_div">
+				<script type="text/javascript">
+					<!--//
+						new getNodesList();		
+						
+					//-->
+				</script>
+			</div>
+			<div id='sysstatus_div'>
+				<script type="text/javascript">
+					<!--//
+						new updateSysStatus();					
+					//-->
+				</script>
+			</div>
+			<div id='nodestatus_div' style='display:none'></div>
+			
+		</div>
+	</fieldset>
+	<fieldset id="SystemView">
+		<legend>
+			<a class='winTitle' href='' onClick='return showHide("sysview_div");'>System View</a>
+		</legend>		
+		<div id="sysview_div">	
+			
+			
+			<div id="tftable_div" >
+				<script type="text/javascript">
+				<!--//
+					// new showCSCTable("csctable_div");
+					showTFTable("tftable_div");	
+					new loadTFList();
+				//-->
+				</script>
+			</div>
+				
+			
+		</div>
+		
+	</fieldset>
+	<fieldset id="Plots">
+		<legend><a id='plot_title' class='winTitle' href='' onClick='return showHide("plots_div");'>Plots</a></legend>
+		<div id="plots_div">
+		</div>
+	</fieldset>
+	
+	<fieldset>
+		<legend><a class='winTitle' href='' onClick='return showHide("log");'>Log</a>
+			<input type=button value="Clear" onclick="clearLog();"> 
+			<select id="selLogLevel" onChange="selectLogLevel()";>	
+				<option selected value="all">ALL</option>
+				<option value="debug">DEBUG</option>			
+				<option value="info">INFO</option>
+				<option value="warn">WARNING</option>
+				<option value="error">ERROR</option>
+				
+			</select>
+		</legend>
+		<table>
+		<div id="log">
+		</div>
+		</table>
+	</fieldset>
+</div>
+
+</body>
+</html>
