@@ -58,22 +58,36 @@ __description__
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/{bin,lib,include,etc}
-mkdir -p $RPM_BUILD_ROOT/%{_prefix}/include/%{_package}/linux
-#mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml
+#mkdir -p $RPM_BUILD_ROOT/%{_prefix}/include/%{_package}/linux
+mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/{xml,html}
 
 for x in %{_packages}; do
-        install -m 655 %{_packagedir}/../$x/lib/%{_os}/%{_platform}/*.so $RPM_BUILD_ROOT/%{_prefix}/lib/
+#        install -m 655 %{_packagedir}/../$x/lib/%{_os}/%{_platform}/*.so $RPM_BUILD_ROOT/%{_prefix}/lib/
+	( cd %{_packagedir}/../$x/lib/%{_os}/%{_platform};
+          find ./ \( -name "*.so" \) \
+            -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/lib/{} \;
+        )
+	( cd %{_packagedir}/../$x/bin/%{_os}/%{_platform};
+          find ./ \( -name "*.exe" \) \
+            -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/bin/{} \;
+        )
         ( cd %{_packagedir}/../$x/include;
           find ./ \( -name "*.[hi]" -o -name "*.hpp" -o -name "*.hh" -o -name "*.hxx" \) \
             -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/include/{} \;
         )
 done
 
-mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml
+#mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml
 ( cd %{_packagedir}/xml;
-  find ./ \( -name "*.xml" \) \
+  find ./ \( -name "*.xml" -o -name "csc_map.*" \) \
     -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml/{} \;
 )
+
+( cd %{_packagedir}/html;
+  find ./ \(  -name "*.html" -o -name "*.js" \) \
+    -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/html/{} \;
+)
+
 
 if [ -e %{_packagedir}/ChangeLog ]; then
 	install -m 655 %{_packagedir}/ChangeLog %{_packagedir}/rpm/RPMBUILD/BUILD/ChangeLog
@@ -115,6 +129,7 @@ rm -rf $RPM_BUILD_ROOT
 # %{_prefix}/htdocs/%{_project}/%{_package}/*/html
 #%{_prefix}/htdocs/%{_project}/%{_package}/*/xml
 %{_prefix}/htdocs/%{_project}/%{_package}/xml
+%{_prefix}/htdocs/%{_project}/%{_package}/html
 
 #
 # Files that go in the devel RPM
