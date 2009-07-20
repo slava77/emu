@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Binding xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_</Prefix>
+		<Name>integrity</Name>
+		<Title>Data Integrity Checks</Title>
+		<Item Options="LeftMargin=0.43">integrity</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_</Prefix>
+		<Name>DDU_status</Name>
+		<Title>DDU Status</Title>
+		<Item>DDU_status</Item>
+	</Canvas>
+
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>Counters</Name>
+		<Title>SP Counter Block</Title>
+		<Item>OrbitCounter(Top)</Item>
+		<Item>TrackCounter(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>EventRecordHeader</Name>
+		<Title>SP: Event Record Header</Title>
+		<Item>L1A_BXN(Top)</Item>
+		<Item Options="LeftMargin=0.2">FMM_status(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>DataBlockHeader1</Name>
+		<Title>Synchronization Errors</Title>
+		<Item>SE(Top)</Item>
+		<Item>SM(Bottom)</Item>
+	</Canvas>
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>DBH1timeline</Name>
+		<Title>Synchronization Errors</Title>
+		<Item>SEtimeline(Top)</Item>
+		<Item>SMtimeline(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>DataBlockHeader2</Name>
+		<Title>Internal Timing Errors</Title>
+		<Item>AF(Top)</Item>
+		<Item>BX(Bottom)</Item>
+	</Canvas>
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>DBH2timeline</Name>
+		<Title>Internal Timing Errors</Title>
+		<Item>AFtimeline(Top)</Item>
+		<Item>BXtimeline(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>rate</Name>
+		<Title>L1A Rate Sensetive Parameters</Title>
+		<Item>L1A_increment(Top)</Item>
+		<Item>L1A_queue_size(Bottom)</Item>
+	</Canvas>
+
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_data2</Name>
+		<Title>Drift Tubes</Title>
+		<Item>dt_bits(Top)</Item>
+		<Item>dt_synch(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_data1</Name>
+		<Title>Drift Tubes</Title>
+		<Item>dt_phi(Top)</Item>
+		<Item>dt_phi_bend(0.485x0.485+0.01+0.01)</Item>
+		<Item>dt_quality(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>CLCT</Name>
+		<Title>CLCT Patter #</Title>
+		<Item>CLCT</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>Strips</Name>
+		<Title>Strip distributuon</Title>
+		<Item>strips(Top)</Item>
+		<Item>stripsVSpatterns(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>WireGroup</Name>
+		<Title>Wire Group Distributuon</Title>
+		<Item>WireGroup</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>LCTquality</Name>
+		<Title>Quality Distributuon</Title>
+		<Item>LCTquality</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>time_bin</Name>
+		<Title>LCT's Time Bin</Title>
+		<Item>time_bin</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_</Prefix>
+		<Name>csc</Name>
+		<Title>CSC ID</Title>
+		<Item>csc</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>status</Name>
+		<Title>status</Title>
+		<Item>sp_bits(Top)</Item>
+		<!--<Item>lct_bits(0.485x0.485+0.01+0.01)</Item>-->
+		<Item Options="Normalize">lct_bits(0.485x0.485+0.01+0.01)</Item>
+		<Item>synch(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>qualityConsistency</Name>
+		<Title>Consistency of Quality codes</Title>
+		<Item>wg0quality(Top)</Item>
+		<Item>strip0quality(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_</Prefix>
+		<Name>links</Name>
+		<Title>Links' Integrity</Title>
+		<Item>mpc_id(Top)</Item>
+		<Item>inputs(0.485x0.485+0.01+0.01)</Item>
+		<Item>epc(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
+<!-- TF output information -->
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>tracks</Name>
+		<Title>Tracks</Title>
+		<Item Options="LogY">nTracks(Top)</Item>
+		<Item Options="LeftMargin=0.2">mode_vs_station(0.485x0.485+0.01+0.01)</Item>
+		<Item>stations_vs_lcts(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_</Prefix>
+		<Name>occupancy</Name>
+		<Title>Occupancy</Title>
+		<Item>occupancy</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>timing</Name>
+		<Title>Internal Timing Properties</Title>
+		<Item>tbins(Top)</Item>
+		<Item>track_time(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>csc_timing</Name>
+		<Title></Title>
+		<Item Options="LeftMargin=0.15:GridX:GridY">csc_timing</Item>
+	</Canvas>
+
+</Binding>

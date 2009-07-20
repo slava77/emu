@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <TestResult>
+		<Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+		<Title>R01 - Pulse Maximum Amplitude</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R01</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>600</YMin>
+                <YMax>1200</YMax>
+                <YBins>600</YBins>
+                <YTitle>Maximum Amplitude</YTitle>
+		<Low1Limit>650</Low1Limit>
+		<Low0Limit>700</Low0Limit>
+		<High0Limit>1100</High0Limit>
+		<High1Limit>1150</High1Limit>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R02 - Pulse Peak Position in Time</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R02</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>175</YMin>
+                <YMax>325</YMax>
+                <YBins>600</YBins>
+                <YTitle>Time, ns</YTitle>
+                <Low1Limit>180</Low1Limit>
+                <Low0Limit>190</Low0Limit>
+                <High0Limit>310</High0Limit>
+                <High1Limit>320</High1Limit>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R03 - Pulse FWHM</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R03</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>0</YMin>
+                <YMax>200</YMax>
+                <YBins>200</YBins>
+                <YTitle>Pulse FWHM, ns</YTitle>
+                <Low1Limit>50</Low1Limit>
+                <Low0Limit>80</Low0Limit>
+                <High0Limit>150</High0Limit>
+                <High1Limit>180</High1Limit>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R04 - Left Crosstalk</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R04</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>-0.1</YMin>
+                <YMax>0.2</YMax>
+                <YBins>90</YBins>
+                <YTitle>Left Crosstalk</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0.0</Low0Limit>
+                <High0Limit>0.15</High0Limit>
+                <High1Limit>0.18</High1Limit>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R05 - Right Crosstalk</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R05</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>-0.1</YMin>
+                <YMax>0.2</YMax>
+                <YBins>90</YBins>
+                <YTitle>Right Crosstalk</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0.0</Low0Limit>
+                <High0Limit>0.15</High0Limit>
+                <High1Limit>0.18</High1Limit>
+        </TestResult>
+
+
+	 <TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R06 - Left Crosstalk Slope</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R06</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>-0.002</YMin>
+                <YMax>0</YMax>
+                <YBins>200</YBins>
+                <YTitle>Slope</YTitle>
+                <Low1Limit>-0.0018</Low1Limit>
+                <Low0Limit>-0.0018</Low0Limit>
+                <High0Limit>0</High0Limit>
+                <High1Limit>0</High1Limit>
+        </TestResult>
+
+        <TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R07 - Left Crosstalk Intercept</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R07</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>0</YMin>
+                <YMax>0.2</YMax>
+                <YBins>200</YBins>
+                <YTitle>Intercept</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0</Low0Limit>
+                <High0Limit>0.15</High0Limit>
+                <High1Limit>0.18</High1Limit>
+        </TestResult>
+
+	 <TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R08 - Left Crosstalk RMS</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R08</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>0</YMin>
+                <YMax>0.02</YMax>
+                <YBins>100</YBins>
+                <YTitle>RMS</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0</Low0Limit>
+                <High0Limit>0.015</High0Limit>
+                <High1Limit>0.018</High1Limit>
+        </TestResult>
+
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R09 - Right Crosstalk Slope</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R09</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>-0.002</YMin>
+                <YMax>0</YMax>
+                <YBins>200</YBins>
+                <YTitle>Slope</YTitle>
+                <Low1Limit>-0.0018</Low1Limit>
+                <Low0Limit>-0.0018</Low0Limit>
+                <High0Limit>0</High0Limit>
+                <High1Limit>0</High1Limit>
+        </TestResult>
+
+        <TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R10 - Right Crosstalk Intercept</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R10</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>0</YMin>
+                <YMax>0.2</YMax>
+                <YBins>200</YBins>
+                <YTitle>Intercept</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0</Low0Limit>
+                <High0Limit>0.15</High0Limit>
+                <High1Limit>0.18</High1Limit>
+        </TestResult>
+
+
+	 <TestResult>
+                <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R11 - Right Crosstalk RMS</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R11</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>0</YMin>
+                <YMax>0.02</YMax>
+                <YBins>100</YBins>
+                <YTitle>RMS</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0</Low0Limit>
+                <High0Limit>0.015</High0Limit>
+                <High1Limit>0.018</High1Limit>
+        </TestResult>
+
+
+
+         <!--TestResult>	
+	        <Test>CFEB03</Test>
+                <Type>cfeb_cnv</Type>
+                <Title>R06 - Convoluted Peak Position in Time</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R06</Name>
+                <XMin>0</XMin>
+                <XMax>80</XMax>
+                <XBins>80</XBins>
+                <XTitle>Strip Number</XTitle>
+                <YMin>200</YMin>
+                <YMax>350</YMax>
+                <YBins>300</YBins>
+                <YTitle>Time, ns</YTitle>
+                <Low1Limit>210</Low1Limit>
+                <Low0Limit>230</Low0Limit>
+                <High0Limit>330</High0Limit>
+                <High1Limit>340</High1Limit>
+        </TestResult-->
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h1</Type>
+                <Title>V00 - Format Errors Frequency</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V00</Name>
+                <XMin>0</XMin>
+                <XMax>20</XMax>
+                <XBins>20</XBins>
+                <SetOption>texthbar1</SetOption>
+		<YTitle>Frequency (%)</YTitle>
+		<SetOptStat>e</SetOptStat> 
+		<SetXLabels>1='DMB Trailer Missing'|2='DMB Header Missing'|3='ALCT Trailer Missing'|4='ALCT Header Missing'|5='ALCT Word Count Error'|6='ALCT CRC Error'|7='ALCT Trailer Bit Error'|8='TMB Trailer Missing'|9='TMB Header Missing'|10='TMB Word Count Error'|11='TMB CRC Error'|12='CFEB Word Count Per Sample Error'|13='CFEB Sample Count Error'|14='CFEB CRC Error'|15='DDU Event Size Limit Error'|16='C-Words'|17='ALCT DAV Error'|18='TMB DAV Error'|19='CFEB DAV Error'|20='DMB Active Error'|</SetXLabels>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+		<SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetNdivisionsX>20</SetNdivisionsX>                
+		<SetLeftMargin>0.3</SetLeftMargin>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V01 - Number of Events per one setting</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V01</Name>
+                <XMin>0</XMin>
+                <XMax>10</XMax>
+                <XBins>10</XBins>
+                <XTitle>Setting #</XTitle>
+		<YMin>0</YMin>
+                <YMax>30</YMax>
+                <YBins>30</YBins>
+                <YTitle>Number of events per setting</YTitle>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOption>textcolz</SetOption>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V02 - Signal line shape</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V02</Name>
+                <XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
+		<XTitle>Time sample i</XTitle>
+		<YMin>-20</YMin>
+                <YMax>1400</YMax>
+                <YBins>71</YBins>
+                <YTitle>Charge Qi-Q12</YTitle>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOption>colz</SetOption>
+        </TestResult>
+
+	 <TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V03 - Crosstalk signal line (left/right strips from the pulsed strips)</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V03</Name>
+		<XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
+                <XTitle>PulseDAC(i)</XTitle>
+                <YMin>-100</YMin>
+                <YMax>200</YMax>
+                <YBins>300</YBins>
+                <YTitle>Charge Qi-Q12</YTitle>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOption>colz</SetOption>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h1</Type>
+                <Title>V04 - L1A increment</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V04</Name>
+                <XMin>0</XMin>
+                <XMax>25</XMax>
+                <XBins>25</XBins>
+                <XTitle>L1A increment</XTitle>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOptStat>eoum</SetOptStat>
+        </TestResult>
+
+        <TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V05 - Convoluted Central Strip </Title>
+                <Prefix>CSC</Prefix>
+                <Name>V05</Name>
+                <XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
+                <XTitle>Time Step</XTitle>
+        	<YMin>0</YMin>
+                <YMax>30000</YMax>
+                <YBins>1500</YBins>
+
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOptStat>e</SetOptStat>
+		<SetOption>colz</SetOption>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V06 - Convoluted Left Strip </Title>
+                <Prefix>CSC</Prefix>
+                <Name>V06</Name>
+                <XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
+                <XTitle>Time Step</XTitle>
+                <YMin>-1000</YMin>
+                <YMax>3000</YMax>
+                <YBins>800</YBins>
+
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOptStat>e</SetOptStat>
+		<SetOption>colz</SetOption>
+        </TestResult>
+
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V07 - Convoluted Right Strip </Title>
+                <Prefix>CSC</Prefix>
+                <Name>V07</Name>
+                <XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
+                <XTitle>Time Step</XTitle>
+                <YMin>-1000</YMin>
+                <YMax>3000</YMax>
+                <YBins>800</YBins>
+
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOptStat>e</SetOptStat>
+		<SetOption>colz</SetOption>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V08 - Convoluted Left Ratio </Title>
+                <Prefix>CSC</Prefix>
+                <Name>V08</Name>
+                <XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
+                <XTitle>Time Step</XTitle>
+                <YMin>-0.2</YMin>
+                <YMax>0.3</YMax>
+                <YBins>250</YBins>
+
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOptStat>e</SetOptStat>
+                <SetOption>colz</SetOption>
+        </TestResult>
+
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V09 - Convoluted Right  Ratio </Title>
+                <Prefix>CSC</Prefix>
+                <Name>V09</Name>
+                <XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
+                <XTitle>Time Step</XTitle>
+                <YMin>-0.2</YMin>
+                <YMax>0.3</YMax>
+                <YBins>250</YBins>
+
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOptStat>e</SetOptStat>
+                <SetOption>colz</SetOption>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V10 - Convoluted (Right-Left)/2</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V10</Name>
+                <XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
+                <XTitle>Time Step</XTitle>
+                <YMin>-100</YMin>
+                <YMax>100</YMax>
+                <YBins>200</YBins>
+
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOptStat>e</SetOptStat>
+                <SetOption>colz</SetOption>
+        </TestResult>
+
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>E00</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>E00 - Summary CSCs with Format Errors</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+        </TestResult>
+
+
+	
+
+
+</Booking>
