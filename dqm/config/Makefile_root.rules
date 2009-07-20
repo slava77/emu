@@ -1,0 +1,31 @@
+ifdef ROOTDicts
+
+RootCint=$(ROOTSYS)/bin/rootcint
+DictLinkdef=$(ROOTDicts)
+#CHistogram.hh CObject.hh TConsumerInfo.hh HistoDisplay.hh
+
+PackageDir=$(BUILD_HOME)/$(Project)/$(Package)
+DestDir=$(PackageDir)/src/common
+Dicts=$(DictLinkdef:%.hh=%Dict.cc)
+Sources += $(Dicts)
+TargetDicts=$(DictLinkdef:%.hh=$(DestDir)/%Dict.cc)
+LD_LIBRARY_PATH=$(ROOTSYS)/lib
+
+vpath %.hh	$(PackageDir)/include
+vpath %.h 	$(PackageDir)/include
+
+$(DestDir)/%Dict.cc : %.hh %_linkdef.h
+	@echo "==> Generating dictionary $@"
+	$(RootCint) -f $@ -c $?
+
+
+all: build 
+
+build: $(TargetDicts)
+	
+
+clean:
+	@rm $(DestDir)/*Dict.*
+
+endif
+
