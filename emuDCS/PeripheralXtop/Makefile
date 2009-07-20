@@ -21,6 +21,7 @@ PACKAGE_VER_PATCH=00
 Sources=\
         XtopVersion.cc \
         Chamber.cc \
+        DDU.cc \
         LOAD.cc \
         EmuDim.cc
 
