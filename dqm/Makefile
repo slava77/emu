@@ -23,7 +23,8 @@ PACKAGE_VER_MAJOR=1
 PACKAGE_VER_MINOR=0
 PACKAGE_VER_PATCH=0
 
-
+include $(XDAQ_ROOT)/config/Makefile.rules
+include $(XDAQ_ROOT)/config/mfRPM.rules
 
 
 Packages=\
@@ -38,7 +39,7 @@ Packages=\
         dqm/tfdisplay 
 
 include $(XDAQ_ROOT)/config/Makefile.rules
-include $(XDAQ_ROOT)/config/mfRPM.rules
+#include $(XDAQ_ROOT)/config/mfRPM.rules
 
 
 .PHONY: _rpmall
