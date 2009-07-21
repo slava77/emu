@@ -171,6 +171,15 @@ std::vector<std::string> EmuPlotter::getListOfFolders(std::string filter, TDirec
   else
     {
       std::map<std::string, ME_List >::iterator itr;
+      for (itr = MEs.begin(); itr != MEs.end(); ++itr)
+       {
+	 if (itr->first.find(filter) != std::string::npos) 
+	   {
+		dirlist.push_back(itr->first);
+           }
+       } 
+
+/*
       if (MEs.size() != 0 && ((itr = MEs.find(filter)) != MEs.end()))
         {
           ME_List& MElist = MEs[filter];
@@ -179,6 +188,7 @@ std::vector<std::string> EmuPlotter::getListOfFolders(std::string filter, TDirec
               if (f_itr->first != "") dirlist.push_back(f_itr->first);
             }
         }
+*/
     }
   return dirlist;
 }
@@ -1013,6 +1023,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
   for (uint32_t i=0; i<CSC_folders.size(); i++)
     {
       int crate=0, slot =0;
+      uint32_t min_events = 100;
       //    std::cout << getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition) << std::endl;
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
       int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName);
@@ -1022,6 +1033,13 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       std::vector<int> lowEffCFEBs(5,0);
       std::vector<int> badCFEBs(5,0);
       int nbadCFEBs = 0;
+   
+      if (csc_stats[cscName] < min_events) {
+	std::string diag=Form("Not enough events for occupancy checks (%d events, needs > %d)", csc_stats[cscName], min_events);
+	dqm_report.addEntry(cscName, entry.fillEntry(diag,NONE));
+	continue;
+      }
+
       std::vector< std::pair<int,int> > hvSegMap = emu::dqm::utils::getHVSegmentsMap(cscName);
       //    bool isme11 = isME11(cscName);
 

@@ -26,8 +26,30 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
   std::map<std::string, uint32_t>::iterator stats_itr;
 
-  std::map<std::string, uint32_t> csc_stats;
   MonitorElement* me = NULL;
+
+
+  uint32_t csc_avg_events = 0;
+  std::map<std::string, uint32_t> csc_stats;
+  hname = "DMB_Reporting";
+  me = findME("EMU", hname,  sourcedir);
+
+  if (me)
+    {
+      TH2F* h = dynamic_cast<TH2F*>(me);
+      for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+        for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
+          {
+            uint32_t cnt = uint32_t(h->GetBinContent(i, j));
+            if (cnt>0)
+              {
+                std::string cscTag(Form("CSC_%03d_%02d", i, j));
+                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                csc_stats[cscName] = cnt;
+              }
+          }
+    }
+
 
   // == Check for chambers with Format Errors
   hname =  "DMB_Format_Errors_Fract";
@@ -56,7 +78,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 else if (fract >= 10.) severity=SEVERE;
                 else if (fract > 1.) severity=TOLERABLE;
                 else severity=MINOR;
-                std::string diag=Form("Format Errors: %d events (%.3f%%))",events, fract);
+                std::string diag=Form("Format Errors: %d events (%.3f%%)",events, fract);
                 dqm_report.addEntry(cscName,entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
 
 
@@ -370,6 +392,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   for (uint32_t i=0; i<CSC_folders.size(); i++)
     {
       int crate=0, slot =0;
+      uint32_t min_events = 100;
       //    std::cout << getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition) << std::endl;
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
       int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName);
@@ -383,6 +406,13 @@ int EmuPlotter::generateOnlineReport(std::string runname)
       //    bool isme11 = isME11(cscName);
 
       // int deadALCT=0;
+      if (csc_stats[cscName] < min_events)
+        {
+          std::string diag=Form("Not enough events for occupancy checks (%d events, needs > %d)", csc_stats[cscName], min_events);
+          dqm_report.addEntry(cscName, entry.fillEntry(diag,NONE));
+          continue;
+        }
+
 
 
       // -- CFEBs DAV checks
