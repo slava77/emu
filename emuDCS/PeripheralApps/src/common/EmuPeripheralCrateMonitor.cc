@@ -3318,7 +3318,7 @@ void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
     *out << "  <monitorable name=\"" << "title"
          <<            "\" value=\"" << "PCrate Monitor " + (std::string)((endcap_side==1)?"Plus":"Minus")
          <<  "\" nameDescription=\"" << " "
-         << "\" valueDescription=\"" << " "
+         << "\" valueDescription=\"" << "click this to access the PCrate monitoring page"
          <<          "\" nameURL=\"" << " "
          <<         "\" valueURL=\"" << main_url_
          << "\"/>" << std::endl;
@@ -3334,7 +3334,7 @@ void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
     *out << "  <monitorable name=\"" << "Heartbeat"
          <<            "\" value=\"" << fast_count
          <<  "\" nameDescription=\"" << " "
-         << "\" valueDescription=\"" << " "
+         << "\" valueDescription=\"" << "should be non-zero when VME access is ON"
          <<          "\" nameURL=\"" << " "
          <<         "\" valueURL=\"" << " "
          << "\"/>" << std::endl;
