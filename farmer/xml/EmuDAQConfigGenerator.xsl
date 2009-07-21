@@ -341,7 +341,7 @@
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
-      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuTFDisplayClient.so</xc:Module>
+      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libemudqmtfdisplay.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -353,12 +353,16 @@
 	<properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
 	<monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
         <imageFormat xsi:type="xsd:string">png</imageFormat>
-        <baseDir xsi:type="xsd:string">/nfshome0/cscdqm/config/dqm</baseDir>
+        <baseDir xsi:type="xsd:string">/nfshome0/cscdqm/config/cscdqm</baseDir>
+	<resultsDir xsi:type="xsd:string">/data/dqm/online</resultsDir>
         <viewOnly xsi:type="xsd:boolean">false</viewOnly>
+        <xmlCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMBooking.xml</xmlCfgFile>
+        <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+        <cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
-      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuDisplayClient.so</xc:Module>
+      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libemudqmcscdisplay.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -389,8 +393,8 @@
 	  <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
 	    <item xsi:type="xsd:unsignedInt" soapenc:position="[0]">3000</item>
 	  </serverTIDs>
-	  <xmlCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/xml/CSCTF_histograms.xml</xmlCfgFile>
-	  <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/xml/CSCTF_canvases.xml</xmlCanvasesCfgFile>
+	  <xmlCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/CSCTF_histograms.xml</xmlCfgFile>
+	  <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/CSCTF_canvases.xml</xmlCanvasesCfgFile>
 	  <cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
 	  <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
 	  <outputROOTFile xsi:type="xsd:string">/data/dqm/</outputROOTFile>
@@ -400,8 +404,8 @@
 	  <binCheckMask xsi:type="xsd:unsignedInt">0xFFFB7BF6</binCheckMask>
 	</properties>
       </xc:Application>
-      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuTFPlotter.so</xc:Module>
-      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuTFMonitor.so</xc:Module>
+      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libemudqmtfanalyzer.so</xc:Module>
+      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libemudqmtfmonitor.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -450,11 +454,11 @@
               <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
               <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
               <dduCheckMask xsi:type="xsd:unsignedInt">0xFFFFDFFF</dduCheckMask>
-              <binCheckMask xsi:type="xsd:unsignedInt">0xF7FB7BF6</binCheckMask>
+              <binCheckMask xsi:type="xsd:unsignedInt">0x16EBF7F6</binCheckMask>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuPlotter.so</xc:Module>
-          <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuMonitor.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libemudqmcscanalyzer.so</xc:Module>
+          <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libemudqmcscmonitor.so</xc:Module>
 	</xc:Context>
 	
       </xsl:if>
