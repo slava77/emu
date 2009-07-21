@@ -27,6 +27,7 @@ ifeq ($(Set),PeripheralApps)
 Packages= \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
+        emuDCS/PeripheralXtop \
 	emuDCS/OnlineDB \
 endif
 
