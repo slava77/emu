@@ -90,7 +90,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if (isMEvalid(nodeME, "All_DDUs_Format_Errors", mo))
     {
       // std::vector<int> DDUs = bin_checker.listOfDDUs();
-	std::vector<DDUIdType> DDUs = bin_checker.listOfDDUs();
+      std::vector<DDUIdType> DDUs = bin_checker.listOfDDUs();
       for (std::vector<DDUIdType>::iterator ddu_itr = DDUs.begin(); ddu_itr != DDUs.end(); ++ddu_itr)
         {
           if (*ddu_itr != 0xFFF)
@@ -207,7 +207,11 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   fillChamberBinCheck(node, EventDenied);
 
-  if (EventDenied) { appBSem_.give(); return;}
+  if (EventDenied)
+    {
+      appBSem_.give();
+      return;
+    }
   else LOG4CPLUS_DEBUG(logger_,eTag << "is accepted");
 
   nGoodEvents++;
@@ -1024,27 +1028,30 @@ void EmuPlotter::updateCSCFractionHistos(std::string cscTag)
       EmuMonitoringObject *mof = NULL;
       ME_List& cscME = MEs[cscName];
 
-      if (isMEvalid(cscME, "BinCheck_DataFlow_Problems_Table", mo)
-          && isMEvalid(cscME, "BinCheck_DataFlow_Problems_Frequency", mof))
+      if (nDMBEvents[cscName] != 0)
         {
-          mof->getObject()->Reset();
-          mof->getObject()->Add(mo->getObject());
-          mof->getObject()->Scale(1./(nDMBEvents[cscTag]));
-          mof->getObject()->SetMaximum(1.);
-          mof->SetEntries(nDMBEvents[cscTag]);
-          mo->SetEntries(nDMBEvents[cscTag]);
+          if (isMEvalid(cscME, "BinCheck_DataFlow_Problems_Table", mo)
+              && isMEvalid(cscME, "BinCheck_DataFlow_Problems_Frequency", mof))
+            {
+              mof->getObject()->Reset();
+              mof->getObject()->Add(mo->getObject());
+              mof->getObject()->Scale(1./(nDMBEvents[cscName]));
+              mof->getObject()->SetMaximum(1.);
+              mof->SetEntries(nDMBEvents[cscName]);
+              mo->SetEntries(nDMBEvents[cscName]);
 
-        }
+            }
 
-      if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
-          && isMEvalid(cscME, "BinCheck_Errors_Frequency", mof))
-        {
-          mof->getObject()->Reset();
-          mof->getObject()->Add(mo->getObject());
-          mof->getObject()->Scale(1./(nDMBEvents[cscTag]));
-          mof->getObject()->SetMaximum(1.);
-          mof->SetEntries(nDMBEvents[cscTag]);
-          mo->SetEntries(nDMBEvents[cscTag]);
+          if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
+              && isMEvalid(cscME, "BinCheck_Errors_Frequency", mof))
+            {
+              mof->getObject()->Reset();
+              mof->getObject()->Add(mo->getObject());
+              mof->getObject()->Scale(1./(nDMBEvents[cscName]));
+              mof->getObject()->SetMaximum(1.);
+              mof->SetEntries(nDMBEvents[cscName]);
+              mo->SetEntries(nDMBEvents[cscName]);
+            }
         }
     }
 }

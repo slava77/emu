@@ -136,6 +136,7 @@ xoap::MessageReference EmuMonitor::requestReport(xoap::MessageReference node) th
 
           plotter_->updateFractionHistos();
           plotter_->updateCSCFractionHistos();
+          // plotter_->updateCSCHistos();
           plotter_->generateOnlineReport(runNumber_.toString());
           DQMReport dqm_report = plotter_->getDQMReport();
           T_DQMReport& report = dqm_report.getReport();
