@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.56 2009/03/25 10:19:42 liu Exp $
+// $Id: VMEController.cc,v 3.57 2009/07/21 12:18:23 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.57  2009/07/21 12:18:23  liu
+// increase retry in eth_read
+//
 // Revision 3.56  2009/03/25 10:19:42  liu
 // move header files to include/emu/pc
 //
@@ -869,7 +872,7 @@ GETMORE:
 //   if(size==6){nrbuf=0;return 0;}
    if(size<0)return size;
    if(size<7)
-   {   if(rbuf[0]==0x04 && loopcnt<1)
+   {   if(rbuf[0]==0x04 && loopcnt<2)
        {   // usleep(50);
            loopcnt=loopcnt+1;
            goto GETMORE;
