@@ -703,7 +703,7 @@ void emu::farmer::Application::createProcessDescriptors()
       }
     }
     // We're responsible for releasing the memory allocated to DOMDocument
-    doc->release();
+    // this crashes: doc->release();
   }
 //   catch( SAXException& e ){
 //     stringstream ss; ss << "Failed to collect processes from .duck file: " << e.getMessage();
@@ -802,6 +802,7 @@ void emu::farmer::Application::editorWebPage(xgi::Input *in, xgi::Output *out)
 	// Generate files and list them.
 
 	// Save edited RUI mapping to file
+	// TODO: create outputDir_ if it doesn't exist
 	fstream ruiMappingFile( (outputDir_.toString()+"/RUI-to-computer_mapping.xml").c_str(), fstream::out );
 	ruiMappingFile.write( editedMapping_.c_str(), editedMapping_.size() );
 	ruiMappingFile.close();
