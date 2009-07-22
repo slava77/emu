@@ -641,7 +641,6 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
 
 void EmuDisplayClient::saveNodesResults()
 {
-  appBSem_.take();
   std::string action = "saveResults";
   LOG4CPLUS_INFO (getApplicationLogger(), "Save Nodes Results");
   if (!monitors.empty())
@@ -675,7 +674,8 @@ void EmuDisplayClient::saveNodesResults()
 		  std::string errmsg = "DQMNode: ";
 		  errmsg += fault.getFaultString();
 		  XCEPT_RAISE(xoap::exception::Exception, errmsg);
-		  return;
+		  
+		  continue;
 		}
 	      else
 		{
@@ -703,7 +703,6 @@ void EmuDisplayClient::saveNodesResults()
         }
 
     }
-  appBSem_.give();
 }
 
 
@@ -2516,7 +2515,9 @@ int EmuDisplayClient::svc()
       if (counter % (6*saveResultsDelay) == 0)
         {
           // Send command to Monitors to save results
+	  appBSem_.take();
 	  saveNodesResults();
+	  appBSem_.give();
         }
       // if (counter % 3*2*saveResultsDelay == 0) counter = 0;
 
