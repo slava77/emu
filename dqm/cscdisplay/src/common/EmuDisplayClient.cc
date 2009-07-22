@@ -184,7 +184,7 @@ void EmuDisplayClient::actionPerformed (xdata::Event& e)
       else if ( item == "saveResultsDelay")
         {
           LOG4CPLUS_INFO(getApplicationLogger(),
-                         "Save Nodes Results request delay : " << saveResultsDelay.toString() <<"s");
+                         "Save Nodes Results request delay : " << saveResultsDelay.toString() <<"min");
 
         }
 
