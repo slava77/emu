@@ -168,6 +168,7 @@ protected:
   
   void book();
   void cleanup();
+  void saveNodesResults();
   int loadXMLBookingInfo(std::string xmlFile);
   int loadXMLCanvasesInfo(std::string xmlFile);
   void clearMECollection(std::map<std::string, ME_List > & collection);
@@ -285,7 +286,9 @@ private:
   xdata::Boolean debug;
   xdata::String BaseDir;
   xdata::String ResultsDir;
-  xdata::String refImagePath;
+  xdata::String refImagePath;     
+  xdata::UnsignedInteger saveResultsDelay; // Time delay for sending saveResults command to Monitors
+
   FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
   CSCCounters cscCounters; // == CSC Counters from EmuMonitor nodes
   DQMNodesStatus nodesStatus; // == DQM Monitoring Nodes Statuses

@@ -36,6 +36,7 @@ throw (xdaq::exception::Exception)
     debug(false),
     BaseDir("/csc_data/dqm"),
     refImagePath("ref.plots"),
+    saveResultsDelay(10),
     appBSem_(BSem::FULL)
 {
 
@@ -92,6 +93,9 @@ throw (xdaq::exception::Exception)
 
   getApplicationInfoSpace()->fireItemAvailable("cscMapFile",&cscMapFile_);
   getApplicationInfoSpace()->addItemChangedListener ("cscMapFile", this);
+ 
+  getApplicationInfoSpace()->fireItemAvailable("saveResultsDelay",&saveResultsDelay);
+  getApplicationInfoSpace()->addItemChangedListener ("saveResultsDelay", this);
 
 
   book();
@@ -176,8 +180,13 @@ void EmuDisplayClient::actionPerformed (xdata::Event& e)
                          "CSC Mapping File for plotter : " << cscMapFile_.toString());
           setCSCMapFile(cscMapFile_.toString());
 
-        }
+        }      
+      else if ( item == "saveResultsDelay")
+        {
+          LOG4CPLUS_INFO(getApplicationLogger(),
+                         "Save Nodes Results request delay : " << saveResultsDelay.toString() <<"s");
 
+        }
 
 
     }
@@ -630,6 +639,72 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
 
 }
 
+void EmuDisplayClient::saveNodesResults()
+{
+  appBSem_.take();
+  std::string action = "saveResults";
+  LOG4CPLUS_INFO (getApplicationLogger(), "Save Nodes Results");
+  if (!monitors.empty())
+    {
+      std::set<xdaq::ApplicationDescriptor*>::iterator mon;
+
+      for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
+        {
+          try
+            {
+	      xoap::MessageReference msg = xoap::createMessage();
+	      xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+	      xoap::SOAPBody body = envelope.getBody();
+	      xoap::SOAPName commandName = envelope.createName(action,"xdaq", "urn:xdaq-soap:3.0");
+
+
+	      xoap::SOAPElement command = body.addBodyElement(commandName );
+	      /*
+	      xoap::SOAPName timeStamp = envelope.createName("TimeStamp", "", "");
+	      xoap::SOAPElement folderElement = command.addChildElement(folderName);
+	      folderElement.addTextNode(tstamp);
+	      */
+
+	      // LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
+	      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *(*mon));
+
+	      xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
+	      if (rb.hasFault() )
+		{
+		  xoap::SOAPFault fault = rb.getFault();
+		  std::string errmsg = "DQMNode: ";
+		  errmsg += fault.getFaultString();
+		  XCEPT_RAISE(xoap::exception::Exception, errmsg);
+		  return;
+		}
+	      else
+		{
+		  //		  LOG4CPLUS_INFO (getApplicationLogger(), "Sent saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
+		}
+
+
+              // emu::dqm::sendFSMEventToApp(action, getApplicationContext(), getApplicationDescriptor(),*mon);
+            }
+          catch (xcept::Exception e)
+            {
+              //      stringstream oss;
+
+              //      oss << "Failed to " << action << " ";
+              //      oss << (*mon)->getClassName() << (*mon)->getInstance();
+
+              //      XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
+
+              // Don't raise exception here. Go on to try to deal with the others.
+              LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to send " << action << " "
+                              << (*mon)->getClassName() << (*mon)->getInstance() << " "
+                              << xcept::stdformat_exception_history(e));
+            }
+
+        }
+
+    }
+  appBSem_.give();
+}
 
 
 void EmuDisplayClient::getTestsList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
@@ -2438,7 +2513,12 @@ int EmuDisplayClient::svc()
           dqm_report = report;
           appBSem_.give();
         }
-      if (counter % 3*2 == 0) counter = 0;
+      if (counter % (6*saveResultsDelay) == 0)
+        {
+          // Send command to Monitors to save results
+	  saveNodesResults();
+        }
+      // if (counter % 3*2*saveResultsDelay == 0) counter = 0;
 
     }
   return 0;

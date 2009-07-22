@@ -190,6 +190,69 @@ xoap::MessageReference EmuMonitor::requestReport(xoap::MessageReference node) th
 
 }
 
+xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) throw (xoap::exception::Exception)
+{
+  appBSem_.take();
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Save Results request");
+  try
+    {
+
+      xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
+      if (rb.hasFault() )
+        {
+          xoap::SOAPFault fault = rb.getFault();
+          std::string errmsg = "DQMNode: ";
+          errmsg += fault.getFaultString();
+          XCEPT_RAISE(xoap::exception::Exception, errmsg);
+        }
+
+      xoap::MessageReference msg = xoap::createMessage();
+      xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+      xoap::SOAPBody body = envelope.getBody();
+      xoap::SOAPName commandName = envelope.createName("saveResults","xdaq", "urn:xdaq-soap:3.0");
+      xoap::SOAPElement command = body.addBodyElement(commandName );
+      xdata::Integer localTid(i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor()));
+
+      xoap::SOAPName monitorNode = envelope.createName("DQMNode", "", "");
+      xoap::SOAPElement monitorNodeElement = command.addChildElement(monitorNode);
+      xoap::SOAPName nodeID("id","","");
+      monitorNodeElement.addAttribute(nodeID,localTid.toString()); 
+
+      uint32_t rate = rateMeter->getRate("averageRate");
+      if ((plotter_ != NULL)
+          && (fsm_.getCurrentState() == 'E')
+          && (fSaveROOTFile_ == xdata::Boolean(true))
+          && (sessionEvents_ > xdata::UnsignedInteger(0))
+          && (timer_ != NULL)
+          && (!timer_->isActive())
+	  && (rate >0) )
+        {
+          timer_->setPlotter(plotter_);
+          timer_->setROOTFileName(getROOTFileName());
+          timer_->activate();
+        }
+
+      appBSem_.give();
+      return msg;
+    }
+  catch (xoap::exception::Exception &e)
+    {
+      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+    }
+  catch (xdaq::exception::Exception& e)
+    {
+      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+    }
+  catch (xcept::Exception e)
+    {
+      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+    }
+  appBSem_.give();
+  return node;
+
+}
+
+
 
 xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
@@ -357,7 +420,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
                                     }
                                   // Check and Update detector efficiency histograms
                                   // if (objname.find("EMU_Status") != std::string::npos) plotter_->updateEfficiencyHistos();
-				  // TBufferFile buf(0);
+                                  // TBufferFile buf(0);
                                   TMessage buf(kMESS_OBJECT);
                                   buf.Reset();
                                   buf.SetWriteMode();
@@ -368,7 +431,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
                                   if (obj)
                                     {
                                       int res = buf.WriteObjectAny(obj, obj->Class());
-				      int buf_size = buf.Length();
+                                      int buf_size = buf.Length();
 
                                       if (res == 1)
                                         {
@@ -382,19 +445,19 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
                                               memset(attch_buf, 0, buf_size);
                                               int nbytes=buf.ReadBuf(attch_buf, buf_size);
 
-					      /*
-                                              // == Dump attachment buffer
-                                              std::ostringstream st;
-                                              st << "/csc_data/mon" << localTid.toString() << "_soap_dump.txt";
-                                              std::ofstream fout(st.str().c_str(), ios::app);
-                                              std::string dump="";
-                                              fout << "------- START ------- " << std::endl;
-                                              fout << "Objname: " << folder << "/" << objname << " size: " << buf_size <<   std::endl;
-                                              dump.append(attch_buf, nbytes);
-                                              fout << dump << std::endl;
-                                              fout << "------- STOP -------" << std::endl;
-                                              fout.close();
-					      */
+                                              /*
+                                                                            // == Dump attachment buffer
+                                                                            std::ostringstream st;
+                                                                            st << "/csc_data/mon" << localTid.toString() << "_soap_dump.txt";
+                                                                            std::ofstream fout(st.str().c_str(), ios::app);
+                                                                            std::string dump="";
+                                                                            fout << "------- START ------- " << std::endl;
+                                                                            fout << "Objname: " << folder << "/" << objname << " size: " << buf_size <<   std::endl;
+                                                                            dump.append(attch_buf, nbytes);
+                                                                            fout << dump << std::endl;
+                                                                            fout << "------- STOP -------" << std::endl;
+                                                                            fout.close();
+                                              */
 
                                               // memcpy (attch_buf, buf->Buffer(), buf->BufferSize());
                                               buf.Reset();
@@ -616,7 +679,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
                                   cnv->Draw(melist_itr->second);
                                   // buf.WriteObjectAny(meobj_itr->second->getObject(), meobj_itr->second->getObject()->Class());
                                   buf.WriteObjectAny(cnv->getCanvasObject(), cnv->getCanvasObject()->Class());
-				  int buf_size = buf.Length();
+                                  int buf_size = buf.Length();
                                   char * attch_buf = new char[buf_size];
                                   buf.Reset();
                                   buf.SetReadMode();

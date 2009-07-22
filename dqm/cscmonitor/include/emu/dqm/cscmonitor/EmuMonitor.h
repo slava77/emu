@@ -179,6 +179,7 @@ protected:
   xoap::MessageReference requestFoldersList (xoap::MessageReference msg) throw (xoap::exception::Exception);
   xoap::MessageReference requestCSCCounters (xoap::MessageReference msg) throw (xoap::exception::Exception);
   xoap::MessageReference requestReport (xoap::MessageReference msg) throw (xoap::exception::Exception);
+  xoap::MessageReference saveResults (xoap::MessageReference msg) throw (xoap::exception::Exception);
 
   // Construct ROOT output file name
   std::string getROOTFileName();

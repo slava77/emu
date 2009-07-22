@@ -12,6 +12,7 @@ void EmuPlotter::saveToROOTFile(std::string filename)
   TFile f(filename.c_str(), "recreate");
   if (!f.IsZombie())
     {
+      appBSem_.take();
       updateFractionHistos();
       updateCSCHistos();
       updateEfficiencyHistos();
@@ -21,7 +22,6 @@ void EmuPlotter::saveToROOTFile(std::string filename)
       ME_List_const_iterator h_itr;
       TDirectory * hdir = f.mkdir("DQMData");
       hdir->cd();
-      appBSem_.take();
       for (itr = MEs.begin(); itr != MEs.end(); ++itr)
         {
           TDirectory * rdir = hdir->mkdir((itr->first).c_str());
