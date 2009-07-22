@@ -347,8 +347,9 @@ void EmuMonitor::setupPlotter()
       plotter_ = NULL;
     }
 
-  // plotter_ = new EmuPlotter(this->getApplicationLogger());
-  plotter_ = new EmuPlotter();
+//  plotter_ = new EmuPlotter(this->getApplicationLogger());
+  plotter_ = new EmuPlotter(Logger::getInstance(Form("EmuPlotter-%d", appTid_)));
+
   plotter_->setLogLevel(WARN_LOG_LEVEL);
   plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);
   if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
@@ -380,6 +381,7 @@ void EmuMonitor::bindSOAPcallbacks()
   xoap::bind (this, &EmuMonitor::requestFoldersList, "requestFoldersList", XDAQ_NS_URI);
   xoap::bind (this, &EmuMonitor::requestCSCCounters, "requestCSCCounters", XDAQ_NS_URI);
   xoap::bind (this, &EmuMonitor::requestReport, "requestReport", XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::saveResults, "saveResults", XDAQ_NS_URI);
 }
 
 // == Bind CGI Callbacks ==//
@@ -706,15 +708,8 @@ std::string EmuMonitor::getROOTFileName()
         {
           std::ostringstream st;
           st.clear();
-//      st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << serversClassName_.toString();
           st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << "EmuRUI";
           st << std::setw(2) << std::setfill('0') << appTid_ << "_" << getDateTime();
-          /*
-          std::set<xdaq::ApplicationDescriptor*>::iterator pos;
-          for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
-          st << "_" << (*pos)->getInstance();
-          }
-          */
           histofile = st.str();
         }
     }
@@ -899,36 +894,28 @@ void EmuMonitor::doStop()
       if (rateMeter != NULL && rateMeter->isActive())
         {
           rateMeter->kill();
-          // rateMeter->stop();
         }
       if (fSaveROOTFile_ == xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)))
         {
           disableReadout();
-          //    usleep(500000);
 
-          if (timer_ != NULL)
+          if ( (timer_ != NULL) && (!timer_->isActive()) )
             {
               timer_->setPlotter(plotter_);
               timer_->setROOTFileName(getROOTFileName());
-              if (plotterSaveTimer_>xdata::Integer(0))
-                {
-                  timer_->setTimer(plotterSaveTimer_);
-                }
               timer_->activate();
-              int timeout=0;
-              while (!timer_->isActive() && timeout < 3)
-                {
-                  usleep(1000000);
-                  timeout++;
-                  LOG4CPLUS_INFO (getApplicationLogger(),
-                                  "Waiting to start saving of results... " << timeout);
-                }
+              /*
+                            int timeout=0;
+                            while (!timer_->isActive() && timeout < 3)
+                              {
+                                usleep(1000000);
+                                timeout++;
+                                LOG4CPLUS_INFO (getApplicationLogger(),
+                                                "Waiting to start saving of results... " << timeout);
+                              }
+              */
             }
-
-          //    disableReadout();
-          //      plotter_->saveToROOTFile(getROOTFileName());
         }
-
     }
   //  disableReadout();
   pmeter_->init(200);
@@ -939,32 +926,35 @@ void EmuMonitor::doStop()
 
 void EmuMonitor::doConfigure()
 {
-  appBSem_.take();
+//  appBSem_.take();
   disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
-  // !! EmuMonitor or EmuRUI tid?
-  // appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
-  /*
-    if (xmlCfgFile_ != "" && plotter_ != NULL) plotter_->setXMLCfgFile(xmlCfgFile_.toString());
-    if (plotter_ != NULL) plotter_->book(appTid_);
-  */
-  /*
-    if (timer_ != NULL && timer_->isActive()) {
-    int timeout=0;
-    while (timer_->isActive() && timeout < 10) {
-    usleep(1000000);
-    timeout++;
-    LOG4CPLUS_WARN (getApplicationLogger(),
-    "Waiting to finish saving of results... " << timeout);
+
+  // Wait for finishing of results saving process before resetting plotter
+  if (timer_ != NULL && timer_->isActive())
+    {
+      int timeout=0;
+      while (timer_->isActive() && timeout < 10)
+        {
+          usleep(1000000);
+          timeout++;
+          LOG4CPLUS_WARN (getApplicationLogger(),
+                          "Waiting to finish saving of results... " << timeout);
+        }
+      if (timer_->isActive())
+        {
+          LOG4CPLUS_ERROR (getApplicationLogger(),
+                           "Timeout waiting for saving of results. Killing save process." << timeout);
+          timer_->kill();
+        }
     }
-    timer_->kill();
-    }
-  */
+
+  appBSem_.take();
   setupPlotter();
+
   if (plotter_ != NULL)
     {
-      // timer_->setPlotter(plotter_);
       if (outputROOTFile_.toString().length())
         {
           LOG4CPLUS_INFO (getApplicationLogger(),
@@ -1022,12 +1012,6 @@ void  EmuMonitor::doStart()
   runNumber_ = 0;
   nEventCredits_ = defEventCredits_;
 
-  //    configureReadout();
-  // if (plotter_ != NULL) timer_->activate();
-  /*
-    if (timer_ != NULL && timer_->isActive())
-    timer_->kill();
-  */
   enableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
@@ -1037,7 +1021,6 @@ void  EmuMonitor::doStart()
       rateMeter->activate();
     }
   appBSem_.give();
-  // bindI2Ocallbacks();
 }
 
 void EmuMonitor::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
@@ -1052,7 +1035,6 @@ void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::
   if (fsm_.getCurrentState() == 'E') return;
   if (fsm_.getCurrentState() == 'H') doConfigure();
   doStart();
-  //  doStart();
   LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
@@ -1148,13 +1130,33 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
       //" from " << runNumber_ << " to " << msg->runNumber<< ". Resetting Monitor...");
       if (plotter_ != NULL)
         {
+
+          if (timer_ != NULL && timer_->isActive())
+            {
+              int timeout=0;
+              while (timer_->isActive() && timeout < 10)
+                {
+                  usleep(1000000);
+                  timeout++;
+                  LOG4CPLUS_WARN (getApplicationLogger(),
+                                  "Waiting to finish saving of results... " << timeout);
+                }
+              if (timer_->isActive())
+                {
+                  LOG4CPLUS_ERROR (getApplicationLogger(),
+                                   "Timeout waiting for saving of results. Killing save process." << timeout);
+                  timer_->kill();
+                }
+            }
+
+
           if (fSaveROOTFile_== xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)) )
             {
               plotter_->saveToROOTFile(getROOTFileName());
             }
           sessionEvents_=0;
           cscUnpacked_ = 0;
-	  cscDetected_ = 0;
+          cscDetected_ = 0;
           plotter_->reset();
         }
     }
@@ -1556,7 +1558,10 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
       sessionEvents_++;
       if (sessionEvents_ % 5000 == 0)
         {
-          LOG4CPLUS_DEBUG(getApplicationLogger(), "Evt# " << sessionEvents_.toString() << ": Readout rate: " << rateMeter->getRate("averageRate") << " Evts/sec;  Unpack rate: "<< rateMeter->getRate("cscRate") << " CSCs/sec" ) ;
+          LOG4CPLUS_DEBUG(getApplicationLogger(),
+                          "Evt# " << sessionEvents_.toString() << ": Readout rate: "
+                          << rateMeter->getRate("averageRate") << " Evts/sec;  Unpack rate: "
+                          << rateMeter->getRate("cscRate") << " CSCs/sec" ) ;
           //		   << " (Total processed: " << totalEvents_.toString() << ")");
         }
       plotter_->processEvent(data, dataSize, errorFlag, node);
@@ -1567,7 +1572,7 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
         {
           pmeterCSC_->addSample(1);
         }
-      lastEventTime_ = emu::dqm::utils::now();
+      // lastEventTime_ = emu::dqm::utils::now();
     }
 }
 
