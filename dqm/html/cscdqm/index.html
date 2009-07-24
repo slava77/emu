@@ -2523,7 +2523,9 @@ function setSelectedTab(obj)
    if (o_selected) {
 	o_selected.id = '';
    }
-   obj.id = "selected";
+   
+   obj.id = "selected";  
+
    if (obj.title == "csc_view") {
 	div_obj = get_element("csctable_div");
 	div_obj.style.display = "";
@@ -2584,7 +2586,6 @@ function setSelectedTab(obj)
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "";
    }
-   o_selected = obj;
    return false;
 }
 
@@ -2618,6 +2619,7 @@ function setSelectedRunsTab(obj)
 	div_obj = get_element("online_runs");
 	div_obj.style.display = "";
    }
+   obj.id = "selected";
    o_selected = obj;
    return false;
 }
@@ -2648,15 +2650,15 @@ get_element = document.all ?
 <tr style='border: 0px black solid;'><td style='border: 0px black solid;'>
 	
 	
-	<fieldset id="DQMControl">
+	<fieldset id="DQMControl" title='DQM Run Control action buttons'>
 		<legend>
 			<a class='winTitle' href='#' onClick='showHide("dqm_control");'>DQM Control</a>
 		</legend>
 		<div id="dqm_control">
 			<table><tr><td>	
-				<input class="button" type="button" name="action" style="background-color: #ffff90; font: bold 12px Arial;" value="Init" onClick="return sendDQMAction('Configure');">
-				<input class="button" type="button" name="action" style="background-color: #90ff90; font: bold 12px Arial;" value="Start" onClick="return sendDQMAction('Enable');">
-				<input class="button" type="button" name="action" style="background-color: #ff9090; font: bold 12px Arial;" value="Stop" onClick="return sendDQMAction('Halt');"></td>				
+				<input class="button" type="button" name="action" style="background-color: #ffff90; font: bold 12px Arial;" value="Init" onClick="return sendDQMAction('Configure');"  title='Click to Initialize and Configure DQM Monitors'>
+				<input class="button" type="button" name="action" style="background-color: #90ff90; font: bold 12px Arial;" value="Start" onClick="return sendDQMAction('Enable');" title='Click to Start DQM Monitors to get data from DAQ'>
+				<input class="button" type="button" name="action" style="background-color: #ff9090; font: bold 12px Arial;" value="Stop" onClick="return sendDQMAction('Halt');" title='Click to Stop DQM Monitors and to force saving of current DQM results'></td>				
 			</tr></table>		
 			
 		</div>
@@ -2664,7 +2666,7 @@ get_element = document.all ?
 	
 	
 	
-	<fieldset id="Runs">
+	<fieldset id="Runs" title='List of available for browsing Runs'>
 		<legend>
 			<a class='winTitle' href='#' onClick='showHide("runs_list");'>Runs</a>
 		</legend>
@@ -2679,7 +2681,7 @@ get_element = document.all ?
 	</fieldset>
 	
 	
-	<fieldset id="Tests">
+	<fieldset id="Tests" title='List of available for browsing Tests/Canvases'>
 		<legend>
 			<a class='winTitle' href='' onClick='return showHide("tests_div");'>Tests</a>
 		</legend>
@@ -2694,48 +2696,54 @@ get_element = document.all ?
 		</div>
 	</fieldset>
 	
-	<fieldset id="Options">
+	<fieldset id="Options" title='Plots displaying optons'>
 		<legend><a class='winTitle' href='' onClick='return showHide("options_div");'>Options</a></legend>
 		<div id="options_div">
 			<table>
 				<tr>
-					<td><label>Plot Width:</label> 
+					<td>
+					<span title='Change Displayed Plots Width in pixels'>
+					<label>Plot Width:</label> 
 					<input type=button name="decWidth" value="-" onclick="decImageWidth();">    		     
 					<script type="text/javascript"> 
 						document.write("<input type=text readonly id='imageWidth' align=right value='"+imgWidth+"' size='4'>"); 		 
 					</script>
 					<input type=button name="incWidth" value="+" onclick="incImageWidth()">    
+					</span>
 			      </td>
 				</tr>
 				<tr>
-					<td><label>Plot Height:</label> 
+					<td>
+					<span title='Change Displayed Plots Height in pixels'>
+					<label>Plot Height:</label> 
 					<input type=button name="decHeight" value="-" onclick="decImageHeight();">    		     
 					<script type="text/javascript"> 
 						document.write("<input type=text readonly id='imageHeight' align=right value='"+imgHeight+"' size='4'>"); 		 
 					</script>
-					<input type=button name="incHeight" value="+" onclick="incImageHeight()">    
+					<input type=button name="incHeight" value="+" onclick="incImageHeight()">
+					</span>
 			      </td>
 				</tr>
 				<tr>
 				  <td>
-					<label>Open in External Window</label></label> <input type=checkbox  id="openExternal" onclick="selectPlotMode()">  
+					<span title='Show Plots in External Window'><label>Open in External Window</label></label> <input type=checkbox  id="openExternal" onclick="selectPlotMode()"></span>  
 				  </td>
 			   </tr>
 			   <tr>
 				  <td>
-					<label>Show Reference Plots</label></label> <input type=checkbox  id="showReference" onclick="selectShowReferenceMode()">  
+					<span title='Switch Display of Reference Plots'><label>Show Reference Plots</label></label> <input type=checkbox  id="showReference" onclick="selectShowReferenceMode()"></span>  
 				  </td>
 			   </tr>
 			   <tr>
 				  <td>
-					<label>Auto Update</label></label> <input type=checkbox  id="autoUpdateMode" onclick="selectUpdateMode()">  
+					<span title='Switch Plots Auto-Updating'><label>Auto Update</label></label> <input type=checkbox  id="autoUpdateMode" onclick="selectUpdateMode()"></span>  
 				  </td>
 			   </tr>
 			</table>
 		</div>
 	</fieldset>
 	
-	<fieldset id="SlideShow">
+	<fieldset id="SlideShow" title='Plots slide-show control and options'>
 		<legend><a class='winTitle' href='' onClick='return showHide("slideshow_div");'>SlideShow</a></legend>
 		<div id="slideshow_div">
 			<form name="theTimer"><table>
@@ -2777,7 +2785,7 @@ get_element = document.all ?
 	
 </td><td style='border: 0px black solid;'>	
 
-	<fieldset id="NodesView">
+	<fieldset id="NodesView" title='DQM Monitor Nodes status view'>
 		<legend>
 			<a class='winTitle' href='' onClick='return showHide("nodes_div");'>Nodes Status</a>						
 		</legend>
@@ -2800,18 +2808,18 @@ get_element = document.all ?
 			
 		</div>
 	</fieldset>
-	<fieldset id="SystemView">
+	<fieldset id="SystemView" title='EMU System Views'>
 		<legend>
 			<a class='winTitle' href='' onClick='return showHide("sysview_div");'>System View</a>
 		</legend>		
 		<div id="sysview_div">	
 			<div class="tabs">
 				<ul>
-				<li title="csc_view" id="selected" onClick="return setSelectedTab(this);"><a href="">CSCs Table</a></li>
-				<li title="hw_view"   onClick="return setSelectedTab(this);"><a href="">VME/DMB Table</a></li>
-				<li title="ddu_view"  onClick="return setSelectedTab(this);"><a href="">DDU/CSC Map</a></li>
-				<li title="csccounters_view"   onClick="return setSelectedTab(this);"><a href="">CSC Efficiencies</a></li>
-				<li title="report_view"  onClick="return setSelectedTab(this);"><a href="#">Summary Report</a></li>
+				<li title="csc_view" id="selected" onClick="return setSelectedTab(this);"><a href="" title="CSC View Table">CSCs Table</a></li>
+				<li title="hw_view" onClick="return setSelectedTab(this);"><a href="" title="VME Crate/DMB Slot View Table">VME/DMB Table</a></li>
+				<li title="ddu_view"  onClick="return setSelectedTab(this);"><a href="" title="DDU to CSC Mapping">DDU/CSC Map</a></li>
+				<li title="csccounters_view"  onClick="return setSelectedTab(this);"><a href="" title="CSC Efficiencies Counters">CSC Counters</a></li>
+				<li title="report_view"  onClick="return setSelectedTab(this);"><a href="#" title="DQM Quality Checks Summary Report">Summary Report</a></li>
 				</ul>
 			</div>
 			
@@ -2856,13 +2864,13 @@ get_element = document.all ?
 		
 	</fieldset>
 	
-	<fieldset id="StatusEntry">	
+	<fieldset id="StatusEntry" title="Report Entry">	
 		<legend><a id='report_title' class='winTitle' href='#' onClick='showHide("report_entry_div");'>Report Status</a></legend>
 		<div id="report_entry_div">		
 		</div>	
 	</fieldset>	
 	
-	<fieldset id="Plots">
+	<fieldset id="Plots" title="Plots Display Windows">
 		<legend><a id='plot_title' class='winTitle' href='' onClick='return showHide("plots_div");'>Plots</a></legend>
 		<div id="plots_div">
 		</div>
@@ -2871,7 +2879,7 @@ get_element = document.all ?
 </td></tr>
 <tr style='border: 0px black solid;'><td colspan=2 style='border: 0px black solid;'>
 	
-	<fieldset>
+	<fieldset title="Log Window">
 		<legend><a class='winTitle' href='' onClick='return showHide("log");'>Log</a>
 			<input type=button value="Clear" onclick="clearLog();"> 
 			<select id="selLogLevel" onChange="selectLogLevel()";>	
