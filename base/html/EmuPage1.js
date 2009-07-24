@@ -712,13 +712,14 @@ function valuesFromXmlToGraph(){
 	if ( a_name ){
 	  a_name.href = monitorables[i].nameURL;
 	  a_name.title = monitorables[i].nameDescr;
-	  if ( monitorables[i].name.indexOf(' Rate') < 0 ) a_name.innerHTML = monitorables[i].name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) Errors$/,'$1').replace(/^([^ ]*) events$/,'$1').replace(/ /g,'&#160;');
+	  if ( monitorables[i].name.indexOf(' Rate') < 0 ) a_name.innerHTML = monitorables[i].name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) Errors$/,'$1').replace(/^([^ ]*) events$/,'$1').replace(/^([^ ]*)rate$/,'$1').replace(/ /g,'&#160;');
 	}
 	// value
 	var td_value = document.getElementById( 'td_value_'+i );
 	if ( td_value ){
 	  td_value.className = monitorables[i].value;
-	  if ( monitorables[i].name == 'min events' && state == 'Enabled' ) td_value.className += ( monitorables[i].value == 0 ? ' WARN' : '' );
+	  if ( ( monitorables[i].name == 'min events' || monitorables[i].name.indexOf('rate') > 0 ) 
+	       && state == 'Enabled' ) td_value.className += ( monitorables[i].value == 0 ? ' WARN' : '' );
 	  if ( monitorables[i].name == 'Heartbeat' ) td_value.className += ( monitorables[i].rate() == 0 ? ' WARN' : ' ON' );
 	}
 	var a_value = document.getElementById( 'a_value_'+i );
@@ -726,6 +727,7 @@ function valuesFromXmlToGraph(){
 	  a_value.href = monitorables[i].valueURL;
 	  a_value.title = monitorables[i].valueDescr;
 	  if ( monitorables[i].name == 'Heartbeat' ) a_value.innerHTML = monitorables[i].rate().toFixed(4) + '&#160;Hz';
+	  else if ( monitorables[i].name.indexOf('rate') > 0 ) a_value.innerHTML = monitorables[i].value + '&#160;Hz';
 	  else if ( monitorables[i].name.indexOf(' Rate') > 0 ) a_value.innerHTML = (Number(monitorables[i].value)*0.001).toFixed(3) + '&#160;kB/s';
 	  else a_value.innerHTML = monitorables[i].value;
 	}
