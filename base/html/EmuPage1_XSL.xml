@@ -38,7 +38,7 @@
 
 	<table class="fresh" rules="all" id="fadingTable">
 
-	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateManager' or @application = 'emu::pc::EmuPeripheralCrateService' or @application = 'EmuDisplayClient'">
+	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateManager' or @application = 'emu::pc::EmuPeripheralCrateService'">
 	    <tr><th colspan="2" class="title">
 	      <xsl:if test="monitorable[@name='title']">
 		<a id="{$TITLEID}" target="_blank">
@@ -127,6 +127,31 @@
 	      <td class="layout">
 		<table class="layout"><tr class="layout">
 		  <xsl:apply-templates mode="DAQ" select="monitorable[substring-after(@name,' ')='events']"/>
+		</tr></table>
+	      </td>
+	    </tr>
+	  </xsl:if>
+
+	  <xsl:if test="@application = 'EmuDisplayClient'">
+	    <tr><th colspan="5" class="title">
+	      <xsl:if test="monitorable[@name='title']">
+		<a id="{$TITLEID}" target="_blank">
+		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
+		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
+		  <xsl:value-of select="monitorable[@name='title']/@value"/>
+		</a>
+	      </xsl:if>
+	      <xsl:if test="not(monitorable[@name='title'])">
+		<xsl:value-of select="@application"/>
+	      </xsl:if>
+	    </th></tr>
+	    <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	    <xsl:apply-templates mode="DQM" select="monitorable[string-length(substring-before(@name,'rate'))=0 and not(@name='title')]"/>
+	    <tr>
+	      <th>rates</th>
+	      <td class="layout">
+		<table class="layout"><tr class="layout">
+		  <xsl:apply-templates mode="DQM" select="monitorable[not(string-length(substring-before(@name,'rate'))=0)]"/>
 		</tr></table>
 	      </td>
 	    </tr>
@@ -281,6 +306,35 @@
       <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
     </td>
   </xsl:template>
+
+
+
+  <xsl:template mode="DQM" match="monitorable[not(@name = 'title')]">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <xsl:variable name="CLASSES"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <tr>
+      <th id="th_name_{$INDEX}">
+	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
+      </th>
+      <td colspan="4" class="{$CLASSES}" id="td_value_{$INDEX}">
+	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
+      </td>
+    </tr>
+  </xsl:template>
+
+  <xsl:template mode="DQM" match="monitorable[not(string-length(substring-before(@name,'rate'))=0)]">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <th id="th_name_{$INDEX}">
+      <a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
+    </th>
+    <td class="{@value}" id="td_value_{$INDEX}">
+      <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
+    </td>
+  </xsl:template>
+
+
 
 
   <xsl:template name="graph">
