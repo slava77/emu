@@ -33,7 +33,7 @@ namespace emu {
   thisApp = s;
   xmlfile_    = HomeDir_ + "/vme_config.xml";
   dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
-
+	
 }
 
 
@@ -108,7 +108,7 @@ void EmuTStore::disconnect(const std::string &connectionID) throw (xcept::Except
 	sendSOAPMessage(message);
 }
 
-void EmuTStore::queryMaxId(const std::string &connectionID, const std::string &queryViewName, const std::string &dbTable, const std::string &dbColumn, const std::string endcap_side, xdata::Table &results) throw (xcept::Exception) {
+void EmuTStore::queryMaxId(const std::string &connectionID, const std::string &queryViewName, const std::string &dbTable, const std::string &dbColumn, const std::string &endcap_side,xdata::Table &results) throw (xcept::Exception) {
 	//for a query, we need to send some parameters which are specific to SQLView.
 	//these use the namespace tstore-view-SQL. 
 	
@@ -135,7 +135,6 @@ void EmuTStore::queryMaxId(const std::string &connectionID, const std::string &q
 
 	//add parameter name and value (endcap_side)
 	request.addViewSpecificParameter("SIDE",endcap_side);
-
 
 	xoap::MessageReference message=request.toSOAP();
 	xoap::MessageReference response=sendSOAPMessage(message);
@@ -361,6 +360,66 @@ EmuEndcap * EmuTStore::getConfiguredEndcap(const std::string &emu_config_id) thr
   
   return endcap;
 
+}
+
+void EmuTStore::getConfigIds(std::vector<std::string> &configIDs,const std::string endcap_side,int max_ids) throw (xcept::Exception) {
+  xdata::Table results;
+  std::string connectionID=connect();
+
+	std::string queryViewName="getallconfigids";
+
+	//for a query, we need to send some parameters which are specific to SQLView.
+	//these use the namespace tstore-view-SQL. 
+
+	//In general, you might have the view name in a variable, so you won't know the view class. In this
+	//case you can find out the view class using the TStore client library:
+	std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+
+	//If we give the name of the view class when constructing the TStoreRequest, 
+	//it will automatically use that namespace for
+	//any view specific parameters we add.
+	TStoreRequest request("query",viewClass);
+
+	//add the connection ID
+	request.addTStoreParameter("connectionID",connectionID);
+
+	//for an SQLView, the name parameter refers to the name of a query section in the configuration
+	request.addViewSpecificParameter("name",queryViewName);
+
+	//add parameter name and value (endcap_side)
+	request.addViewSpecificParameter("SIDE",endcap_side);
+	
+	std::ostringstream maxRows;
+	maxRows << max_ids;
+	request.addViewSpecificParameter("MAX",maxRows.str());
+
+	xoap::MessageReference message=request.toSOAP();
+	xoap::MessageReference response=sendSOAPMessage(message);
+
+	//use the TStore client library to extract the first attachment of type "table"
+	//from the SOAP response
+	if (!tstoreclient::getFirstAttachmentOfType(response,results)) {
+		XCEPT_RAISE (xcept::Exception, "Server returned no data");
+	}
+
+	disconnect(connectionID);
+	std::vector<std::string> columns=results.getColumns();
+	std::string column=*columns.begin();
+	  for (unsigned long rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
+		configIDs.push_back(results.getValueAt(rowIndex,column)->toString());
+		  std::cout << "config ID " << results.getValueAt(rowIndex,column)->toString() << std::endl;
+	      }
+}
+
+std::vector<std::string> EmuTStore::getConfigurationList(unsigned int endcap, unsigned int max_item_in_list) throw (xcept::Exception) {
+	std::vector<std::string> configIDs;
+	if (endcap>2) {
+		std::ostringstream error;
+		error << "unknown endcap: " << endcap;
+		XCEPT_RAISE (xcept::Exception, error.str());
+	}
+	getConfigIds(configIDs,(endcap==1)?"plus":"minus",max_item_in_list);
+	return configIDs;
 }
 //
 
