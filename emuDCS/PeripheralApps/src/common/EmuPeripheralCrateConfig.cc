@@ -167,7 +167,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   }
   //
   firmware_checked_ = 0;
-  number_of_hard_resets_ = 10;
+  number_of_hard_resets_ = 0;
+  number_of_checks_ = 1;
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateConfig::MainPage, "MainPage");
@@ -3039,7 +3040,7 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
 void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
-  std::cout << "Checking System Firmware " << std::dec << number_of_hard_resets_ << " times..." << std::endl;
+  std::cout << "Checking System Firmware " << std::dec << number_of_checks_ << " times..." << std::endl;
   //
   int initial_crate = current_crate_;
   //
@@ -3071,17 +3072,22 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
     }
   }
   //
-  for (int hard_reset_index=0; hard_reset_index<number_of_hard_resets_; hard_reset_index++) {
+
+  for (int hard_reset_index=0; hard_reset_index<number_of_checks_; hard_reset_index++) {
     //
     std::cout << "Firmware check iteration " << hard_reset_index << std::endl;
     //
-    // send hard reset from CCB to load FPGA's from EEPROM's in all electronics modules
-    for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
+    // send hard reset from CCB to load FPGA's from EEPROM's in all electronics modules.  
+    // If the user does not request a hard reset, just read the values
+    if (number_of_hard_resets_>0 && hard_reset_index !=0 ){ //do not send a hard reset on the first iteration...
       //
-      SetCurrentCrate(crate_index);
-      if (!thisCrate->IsAlive()) continue;
-      //
-      thisCCB->hardReset();
+      for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
+	//
+	SetCurrentCrate(crate_index);
+	if (!thisCrate->IsAlive()) continue;
+	//
+	thisCCB->hardReset();
+      }
     }
     //
     // Check that the firmware status is A-OK:
@@ -3215,9 +3221,9 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
     SetCurrentCrate(crate_index);
     if (!thisCrate->IsAlive()) continue;
     //
-    if (ccb_firmware_ok[crate_index] != number_of_hard_resets_) {
+    if (ccb_firmware_ok[crate_index] != number_of_checks_) {
       //
-      int number_of_bad_readings = number_of_hard_resets_ - ccb_firmware_ok[crate_index];
+      int number_of_bad_readings = number_of_checks_ - ccb_firmware_ok[crate_index];
       //
       crate_to_reload.push_back(crate_index);
       slot_to_reload.push_back(thisCCB->slot());
@@ -3228,14 +3234,14 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       component_string.push_back(problem_label.str());
       //
       std::ostringstream reason;
-      reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times";
+      reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times";
       reason_for_reload.push_back(reason.str());
       loaded_ok.push_back(-1);
     }
     //
-    if (mpc_firmware_ok[crate_index] != number_of_hard_resets_) {
+    if (mpc_firmware_ok[crate_index] != number_of_checks_) {
       //
-      int number_of_bad_readings = number_of_hard_resets_ - mpc_firmware_ok[crate_index];
+      int number_of_bad_readings = number_of_checks_ - mpc_firmware_ok[crate_index];
       //
       std::ostringstream problem_label;
       problem_label << "MPC"; 
@@ -3245,7 +3251,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       slot_to_reload.push_back(thisMPC->slot());
       component_to_reload.push_back(MPC_LABEL);
       std::ostringstream reason;
-      reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times";
+      reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times";
       reason_for_reload.push_back(reason.str());
       loaded_ok.push_back(-1);
     }
@@ -3259,10 +3265,10 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       int tslot = thisTMB->slot();
       //
       if (
-	  alctcfg_ok[crate_index][chamber_index]           != number_of_hard_resets_ ||
-	  alct_lvmb_current_ok[crate_index][chamber_index] != number_of_hard_resets_ || 
-	  alct_adc_current_ok[crate_index][chamber_index]  != number_of_hard_resets_ || 
-	  alct_firmware_ok[crate_index][chamber_index]     != number_of_hard_resets_  
+	  alctcfg_ok[crate_index][chamber_index]           != number_of_checks_ ||
+	  alct_lvmb_current_ok[crate_index][chamber_index] != number_of_checks_ || 
+	  alct_adc_current_ok[crate_index][chamber_index]  != number_of_checks_ || 
+	  alct_firmware_ok[crate_index][chamber_index]     != number_of_checks_  
 	  ) {
 	crate_to_reload.push_back(crate_index);
 	slot_to_reload.push_back(tslot);
@@ -3273,24 +3279,24 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	component_string.push_back(problem_label.str());
 	//
 	std::ostringstream reason;
-	if (alct_firmware_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
-	  int number_of_bad_readings = number_of_hard_resets_ - alct_firmware_ok[crate_index][chamber_index];
-	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	if (alct_firmware_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	  int number_of_bad_readings = number_of_checks_ - alct_firmware_ok[crate_index][chamber_index];
+	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
-	if (alctcfg_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
-	  int number_of_bad_readings = number_of_hard_resets_ - alctcfg_ok[crate_index][chamber_index];
-	  reason << "CCB cfg bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	if (alctcfg_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	  int number_of_bad_readings = number_of_checks_ - alctcfg_ok[crate_index][chamber_index];
+	  reason << "CCB cfg bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
-	if (alct_adc_current_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
-	  int number_of_bad_readings = number_of_hard_resets_ - alct_adc_current_ok[crate_index][chamber_index];
-	  reason << "I(ADC) bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	if (alct_adc_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	  int number_of_bad_readings = number_of_checks_ - alct_adc_current_ok[crate_index][chamber_index];
+	  reason << "I(ADC) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
-	if (alct_lvmb_current_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
-	  int number_of_bad_readings = number_of_hard_resets_ - alct_lvmb_current_ok[crate_index][chamber_index];
-	  reason << "I(LVMB) bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	if (alct_lvmb_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	  int number_of_bad_readings = number_of_checks_ - alct_lvmb_current_ok[crate_index][chamber_index];
+	  reason << "I(LVMB) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
 	reason_for_reload.push_back(reason.str());
@@ -3298,8 +3304,8 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       }
       //
       if (
-	  tmbcfg_ok[crate_index][chamber_index]       != number_of_hard_resets_ || 
-	  tmb_firmware_ok[crate_index][chamber_index] != number_of_hard_resets_  
+	  tmbcfg_ok[crate_index][chamber_index]       != number_of_checks_ || 
+	  tmb_firmware_ok[crate_index][chamber_index] != number_of_checks_  
 	  ) {
 	crate_to_reload.push_back(crate_index);
 	slot_to_reload.push_back(tslot);
@@ -3310,21 +3316,21 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	component_string.push_back(problem_label.str());
 	//
 	std::ostringstream reason;
-	if (tmb_firmware_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
-	  int number_of_bad_readings = number_of_hard_resets_ - tmb_firmware_ok[crate_index][chamber_index];
-	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	if (tmb_firmware_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	  int number_of_bad_readings = number_of_checks_ - tmb_firmware_ok[crate_index][chamber_index];
+	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
-	if (tmbcfg_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
-	  int number_of_bad_readings = number_of_hard_resets_ - tmbcfg_ok[crate_index][chamber_index];
-	  reason << "cfg bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	if (tmbcfg_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	  int number_of_bad_readings = number_of_checks_ - tmbcfg_ok[crate_index][chamber_index];
+	  reason << "cfg bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
 	reason_for_reload.push_back(reason.str());
 	loaded_ok.push_back(-1);
       }
       //
-      if (dmb_vme_firmware_ok[crate_index][chamber_index] != number_of_hard_resets_ ) { 
+      if (dmb_vme_firmware_ok[crate_index][chamber_index] != number_of_checks_ ) { 
 	crate_to_reload.push_back(crate_index);
 	slot_to_reload.push_back(dslot);
 	component_to_reload.push_back(DMB_VME_LABEL);
@@ -3334,9 +3340,9 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	component_string.push_back(problem_label.str());
 	//
 	std::ostringstream reason;
-	if (dmb_vme_firmware_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
-	  int number_of_bad_readings = number_of_hard_resets_ - dmb_vme_firmware_ok[crate_index][chamber_index];
-	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	if (dmb_vme_firmware_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	  int number_of_bad_readings = number_of_checks_ - dmb_vme_firmware_ok[crate_index][chamber_index];
+	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
 	reason_for_reload.push_back(reason.str());
@@ -3344,9 +3350,9 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       }
       //  
       // The following will always check ME1/3, because the dmbcfg check will never pass for ME1/3, see above
-      if (dmbcfg_ok[crate_index][chamber_index] != number_of_hard_resets_ ) {
+      if (dmbcfg_ok[crate_index][chamber_index] != number_of_checks_ ) {
 	//
-	if (dmb_control_firmware_ok[crate_index][chamber_index] < number_of_hard_resets_ ) {
+	if (dmb_control_firmware_ok[crate_index][chamber_index] < number_of_checks_ ) {
 	  crate_to_reload.push_back(crate_index);
 	  slot_to_reload.push_back(dslot);
 	  component_to_reload.push_back(DMB_CONTROL_LABEL);
@@ -3356,9 +3362,9 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  component_string.push_back(problem_label.str());
 	  //
 	  std::ostringstream reason;
-	  if (dmb_control_firmware_ok[crate_index][chamber_index]     < number_of_hard_resets_ ) {
-	    int number_of_bad_readings = number_of_hard_resets_ - dmb_control_firmware_ok[crate_index][chamber_index];
-	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	  if (dmb_control_firmware_ok[crate_index][chamber_index]     < number_of_checks_ ) {
+	    int number_of_bad_readings = number_of_checks_ - dmb_control_firmware_ok[crate_index][chamber_index];
+	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
 	  reason_for_reload.push_back(reason.str());
@@ -3368,8 +3374,8 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       //
       for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
 	if (
-	    cfeb_firmware_ok[crate_index][chamber_index][cfeb_index] < number_of_hard_resets_ ||
-	    cfeb_current_ok[crate_index][chamber_index][cfeb_index]  < number_of_hard_resets_ 
+	    cfeb_firmware_ok[crate_index][chamber_index][cfeb_index] < number_of_checks_ ||
+	    cfeb_current_ok[crate_index][chamber_index][cfeb_index]  < number_of_checks_ 
 	    ) {
 	  crate_to_reload.push_back(crate_index);
 	  slot_to_reload.push_back(dslot);
@@ -3380,14 +3386,14 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  component_string.push_back(problem_label.str());
 	  //
 	  std::ostringstream reason;
-	  if (cfeb_firmware_ok[crate_index][chamber_index][cfeb_index]     < number_of_hard_resets_ ) {
-	    int number_of_bad_readings = number_of_hard_resets_ - cfeb_firmware_ok[crate_index][chamber_index][cfeb_index];
-	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	  if (cfeb_firmware_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
+	    int number_of_bad_readings = number_of_checks_ - cfeb_firmware_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
-	  if (cfeb_current_ok[crate_index][chamber_index][cfeb_index]     < number_of_hard_resets_ ) {
-	    int number_of_bad_readings = number_of_hard_resets_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
-	    reason << "I(LVMB) bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	  if (cfeb_current_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
+	    int number_of_bad_readings = number_of_checks_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "I(LVMB) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
 	  reason_for_reload.push_back(reason.str());
@@ -3489,12 +3495,19 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
   *out << cgicc::br();
   std::string SetNumberOfHardResets = toolbox::toString("/%s/SetNumberOfHardResets",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",SetNumberOfHardResets) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Number of iterations (~1 minute per iteration)").set("style","color:black") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Number of hard resets").set("style","color:black") << std::endl ;
   sprintf(buf,"%d",number_of_hard_resets_);
   *out << cgicc::input().set("type","text").set("value",buf).set("name","number_of_hard_resets") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::br();
   //
+  if (number_of_hard_resets_ > 0) {
+    *out << cgicc::br();
+    *out << "WARNING, you are going to check the firmware " << number_of_checks_ 
+	 << " times, sending " << number_of_hard_resets_ << " hard resets" << cgicc::br();
+    *out << "---> DO NOT DO THIS IN THE MIDDLE OF A RUN <---" << cgicc::br();
+    *out << cgicc::br();
+  }
   //
   std::string CheckFirmware = toolbox::toString("/%s/CheckFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckFirmware) << std::endl ;
@@ -5639,6 +5652,9 @@ void EmuPeripheralCrateConfig::SetNumberOfHardResets(xgi::Input * in, xgi::Outpu
   if(name != cgi.getElements().end()) {
     number_of_hard_resets_ = strtol(cgi["number_of_hard_resets"]->getValue().c_str(),NULL,10);
     std::cout << "Setting number of hard resets to " << number_of_hard_resets_ << std::endl;
+    //
+    number_of_checks_ = number_of_hard_resets_ + 1;
+    std::cout << "Setting number of checks to " << number_of_checks_ << std::endl;
   }
   //
   this->PowerOnFixCFEB(in,out);

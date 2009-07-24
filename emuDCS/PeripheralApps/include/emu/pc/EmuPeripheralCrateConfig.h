@@ -566,6 +566,7 @@ private:
   int cfeb_current_ok[60][9][5];
   //
   int number_of_hard_resets_;
+  int number_of_checks_;
   //
   std::vector<int> crate_to_reload;
   std::vector<int> slot_to_reload;
