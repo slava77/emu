@@ -53,10 +53,12 @@ public:
   void disconnect(const std::string &connectionID) throw (xcept::Exception);
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, xdata::Table &results) throw (xcept::Exception);
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, const std::string &xxx_config_id, xdata::Table &results) throw (xcept::Exception);
-  void queryMaxId(const std::string &connectionID,const std::string &queryViewName, const std::string &dbTable, const std::string &dbColumn, const std::string endcap_side, xdata::Table &results) throw (xcept::Exception);
-  void getDefinition(const std::string &connectionID, const std::string &insertViewName, xdata::Table &results) throw (xcept::Exception);
+ void queryMaxId(const std::string &connectionID, const std::string &queryViewName, const std::string &dbTable, const std::string &dbColumn, const std::string &endcap_side,xdata::Table &results) throw (xcept::Exception);
+void getDefinition(const std::string &connectionID, const std::string &insertViewName, xdata::Table &results) throw (xcept::Exception);
   void insert(const std::string &connectionID, const std::string &insertViewName, xdata::Table &newRows) throw (xcept::Exception);
   void getConfiguration(const std::string &xpath) throw (xcept::Exception);
+void EmuTStore::getConfigIds(std::vector<std::string> &configIDs,const std::string endcap_side,int max_ids) throw (xcept::Exception);
+ std::vector<std::string> EmuTStore::getConfigurationList(unsigned int endcap, unsigned int max_item_in_list) throw (xcept::Exception);
 
   //
   void getDbUserData();
@@ -74,8 +76,7 @@ public:
   void readTMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception);
   void readALCT(const std::string &connectionID, const std::string &emu_config_id, const std::string &tmb_config_id, TMB * theTmb) throw (xcept::Exception);
   void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct) throw (xcept::Exception);
-
-private:
+ private:
 
   xdaq::Application *thisApp;
   std::string xmlfile_;
