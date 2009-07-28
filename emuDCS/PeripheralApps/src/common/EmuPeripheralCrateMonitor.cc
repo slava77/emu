@@ -800,8 +800,8 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
 {
        int n_keys, selected_index;
        std::string CounterName, current_ch_name, endcap_name, dcs_chamber_name;
-       std::string station_name[8]={"1/1","1/2","1/3","2/1","2/2","3/1","3/2","4/1"};
-       int         station_size[8]={ 36,   36,   36,   18,   36,  18,    36,   18  };
+       std::string station_name[9]={"1/1","1/2","1/3","2/1","2/2","3/1","3/2","4/1", "4/2"};
+       int         station_size[9]={ 36,   36,   36,   18,   36,  18,    36,   18,    18  };
        xdata::UnsignedShort xchamber;
 
   if(!parsed) ParsingXML();
@@ -850,7 +850,7 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/DCSStatSel") << std::endl;
 	n_keys = 8;
-
+        if(endcap_side==1) n_keys++;  /* ME 4/2 only on Plus side */
 	*out << cgicc::select().set("name", "selected") << std::endl;
 
 	selected_index = dcs_station;
@@ -890,6 +890,7 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
 	selected_index = dcs_chamber;
 	for (int i = 0; i < n_keys; ++i) {
                 xchamber=i+1;
+
                 CounterName = endcap_name+station_name[dcs_station]+"/"+xchamber.toString();
 		if (i == selected_index) {
 		  *out << cgicc::option()
@@ -1027,7 +1028,7 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
   void EmuPeripheralCrateMonitor::DCSChamSel(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     int         station_size[8]={ 36,   36,   36,   18,   36,  18,    36,   18  };
+     int         station_size[9]={ 36,   36,   36,   18,   36,  18,    36,   18 , 18 };
 
      cgicc::Cgicc cgi(in);
 
@@ -1044,8 +1045,8 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
   void EmuPeripheralCrateMonitor::DCSStatSel(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     std::string station_name[8]={"1/1","1/2","1/3","2/1","2/2","3/1","3/2","4/1"};
-     int         station_size[8]={ 36,   36,   36,   18,   36,  18,    36,   18  };
+     std::string station_name[9]={"1/1","1/2","1/3","2/1","2/2","3/1","3/2","4/1","4/2"};
+     int         station_size[9]={ 36,   36,   36,   18,   36,  18,    36,   18,   18 };
 
      cgicc::Cgicc cgi(in);
 
@@ -1055,7 +1056,7 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
      {
 //        int k=in_value.find(" ",0);
 //        std::string value = (k) ? in_value.substr(0,k):in_value;
-        for(unsigned i=0; i< 8; i++)
+        for(unsigned i=0; i< 9; i++)
         {
            if((in_value.substr(3,3))==station_name[i]) dcs_station=i;
         }
@@ -1110,13 +1111,10 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   cgicc::CgiEnvironment cgiEnvi(in);
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-  //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
-  //
   Page=cgiEnvi.getQueryString();
   std::string cham_name=Page.substr(0,Page.find("=", 0) );
   std::vector<DAQMB*> myVector;
-  int mycrate=0, mychamb=0;
+  int mycrate=-1, mychamb=-1;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      myVector = crateVector[i]->daqmbs();
@@ -1128,6 +1126,14 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
        }
      }
   }
+  if(mycrate<0 || mychamb<0)
+  {  
+     *out << "<B><H2> Chamber not found </H2></B>" << std::endl;
+     return;
+  }
+  //
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
+  //
   // chamber 1/3 have only 4 CFEBs
   if(cham_name.substr(3,3)=="1/3") cfebs=4;
   *out << cgicc::b("Chamber: "+ cham_name) << std::endl;
