@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.8 2009/07/19 13:25:01 liu Exp $
+// $Id: EmuDim.h,v 1.9 2009/07/29 14:10:33 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -51,9 +51,11 @@
 
 #include "emu/x2p/LOAD.h"
 #include "emu/x2p/Chamber.h"
+#include "emu/x2p/DDU.h"
 
 #define TOTAL_CHAMBERS 235
 #define TOTAL_CRATES 30
+#define TOTAL_DDUS 18
 
 namespace emu {
   namespace x2p {
@@ -101,11 +103,14 @@ public:
   void CheckCommand();
   void StartDim (int chs);
   void UpdateAllDim ();
-  int UpdateDim (int ch);
+  int UpdateChamber (int ch);
+  int UpdateDDU (int ch);
   int ReadFromFile(const char *filename);
   int ReadFromXmas ();
   int ParseTXT(char *buff, int buffsize, int source);
   int FillChamber(char *buff, int source);
+  int ParseDDU(char *buff, int buffsize, int source);
+  int FillDDU(char *buff, int source);
   int ChnameToNumber(const char *chname);
   int CrateToNumber(const char *chname);
   int PowerUp();
@@ -116,10 +121,12 @@ private:
   LOAD *XmasLoader, *BlueLoader, *FedcLoader;
   bool inited;
   Chamber chamb[TOTAL_CHAMBERS];
+  DDU ddumb[TOTAL_DDUS];
 
   LV_1_DimBroker EmuDim_lv[TOTAL_CHAMBERS];
   TEMP_1_DimBroker EmuDim_temp[TOTAL_CHAMBERS];
-  DimService *LV_1_Service[TOTAL_CHAMBERS], *TEMP_1_Service[TOTAL_CHAMBERS];
+  DDU_1_DimBroker EmuDim_ddu[TOTAL_DDUS];
+  DimService *LV_1_Service[TOTAL_CHAMBERS], *TEMP_1_Service[TOTAL_CHAMBERS], *DDU_1_Service[TOTAL_DDUS];
   DimCommand *LV_1_Command;
 //
 // below for return commands to PVSS:

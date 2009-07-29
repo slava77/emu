@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.23 2009/07/19 13:25:01 liu Exp $
+// $Id: EmuDim.cc,v 1.24 2009/07/29 14:10:33 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -309,7 +309,14 @@ int EmuDim::ReadFromXmas()
 
    // then fill the structure
    ch=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), 0);
-   std::cout << ch << " Chambers read at " << getLocalDateTime() << std::endl;
+   std::cout << ch << " Chambers and ";
+   // 
+   // read
+   FedcLoader->reload(fedc_load);
+
+   // then fill the structure
+   ch=ParseDDU(FedcLoader->Content(), FedcLoader->Content_Size(), 0);
+   std::cout << ch << " DDUs read at " << getLocalDateTime() << std::endl;
    // 
    return ch;
 }
@@ -412,10 +419,70 @@ int EmuDim::CrateToNumber(const char *chname)
    }
 }
 
+int EmuDim::ParseDDU(char *buff, int buffsize, int source)
+{
+//
+// source==0  from Xmas
+//       ==1  from file
+//
+   int chmbs=0;
+   bool more_line = true;
+   char * start = buff;
+   char *endstr;
+   unsigned char *bbb=(unsigned char *)buff;
+
+   if(buffsize < 50) return 0;
+   for(int i=0; i<buffsize; i++)
+   {  if((bbb[i]< 0x20 || bbb[i]>0x7e) && bbb[i]!=0x0a)
+      { std::cout << "ERROR at " << i << " " << std::hex << (int)(bbb[i]) << std::dec << std::endl;
+        bbb[i]=0x0a;
+      }
+   }
+   do
+   {
+       endstr=strchr(start, '\n');
+       if(endstr==NULL || ((endstr-buff)>buffsize)) more_line=false;
+       else
+       {
+           *endstr=0;
+           chmbs += FillDDU(start, source);
+       }
+       start = endstr+1;
+   } while(more_line);
+   return chmbs;
+}
+
+int EmuDim::FillDDU(char *buff, int source)
+{
+   char *content;
+   char * endstr;
+   std::string label;
+
+   if(strlen(buff) < 50) return 0;
+   endstr=strchr(buff, ' ');
+   if(endstr==NULL) return 0;
+   *endstr=0;
+   int chnumb=atoi(buff+3);
+   if(chnumb>18) chnumb -= 18;
+   label=buff;
+//   std::cout << "Found DDU " << label << " with number " << chnumb << std::endl; 
+   content = endstr+1;
+   if(strlen(content)>100) std::cout<< label << " WARNING " << content << std::endl;
+   if(strncmp(buff, "DDU", 3)==0 && chnumb>0 && chnumb <TOTAL_DDUS)
+   {   if(source) ddumb[chnumb].SetLabel(label);
+       ddumb[chnumb].Fill(content, source);
+       return 1;
+   }
+   else
+   {   std::cout << "WRONG tag " << label << std::endl;
+       return 0;
+   }
+}
+
 void EmuDim::StartDim(int chs)
 {
-   int total=0, i=0;
-   std::string dim_lv_name, dim_temp_name, dim_command, dim_server, pref;
+   int total=0, total_d=0, i=0;
+   std::string dim_lv_name, dim_temp_name, dim_ddu_name, dim_command, dim_server, pref;
 
    pref=TestPrefix_;
    while(total<chs && i < TOTAL_CHAMBERS)
@@ -436,6 +503,20 @@ void EmuDim::StartDim(int chs)
       }
       i++;
    }
+
+   for(i=1;  i<TOTAL_DDUS; i++)
+   {
+      if(ddumb[i].Ready())
+      {
+         ddumb[i].GetDimDDU(1, &(EmuDim_ddu[i]));
+         dim_ddu_name = pref + "FED_1_" + ddumb[i].GetLabel(); 
+
+         DDU_1_Service[i]= new DimService(dim_ddu_name.c_str(),"F:8;I:2",
+           &(EmuDim_ddu[i]), sizeof(DDU_1_DimBroker));
+
+         total_d++;
+      }
+   }
    Confirmation_Service = new DimService("LV_CONFIRMATION_SERVICE","C:80", (void *)&pvssrespond, sizeof(pvssrespond));
 
    dim_command = pref + "LV_1_COMMAND";
@@ -448,12 +529,12 @@ void EmuDim::StartDim(int chs)
    strcpy(pvssrespond.command, "SOFT_START");
    Confirmation_Service->updateService();
  
-   std::cout << total << " DIM serives";
+   std::cout << total << " Chamber serives and " << total_d << " DDU services";
    if(pref!="") std::cout << " ( with prefix " << pref << " )";
    std::cout << " started at " << getLocalDateTime() << std::endl;
 }
 
-int EmuDim::UpdateDim(int ch)
+int EmuDim::UpdateChamber(int ch)
 {
    int mode = OpMode_;
    if(mode<=0) mode = 2;
@@ -471,13 +552,33 @@ int EmuDim::UpdateDim(int ch)
    else return 0;
 }
 
+int EmuDim::UpdateDDU(int ch)
+{
+   int mode = OpMode_;
+   if(mode<=0) mode = 2;
+   if(ch>0 && ch < TOTAL_DDUS && ddumb[ch].Ready())
+   {
+         ddumb[ch].GetDimDDU(mode, &(EmuDim_ddu[ch]));
+     try 
+     {
+         if(DDU_1_Service[ch]) DDU_1_Service[ch]->updateService();
+     } catch (...) {}
+         return 1;
+   }
+   else return 0;
+}
+
 void EmuDim::UpdateAllDim()
 {
    int j=0;
 
    for(int i=0; i < TOTAL_CHAMBERS; i++)
    {
-      j += UpdateDim(i);
+      j += UpdateChamber(i);
+   }
+   for(int i=1; i < TOTAL_DDUS; i++)
+   {
+      j += UpdateDDU(i);
    }
    // std::cout << j << " Dim services updated" << std::endl;
 }
@@ -512,8 +613,17 @@ void EmuDim::CheckCommand()
       }
       else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
       {
-         int ch=ChnameToNumber(cmnd.c_str());
-         if(ch>=0 && ch<TOTAL_CHAMBERS) UpdateDim(ch);
+         if(strncmp(cmnd.c_str(), "DDU", 3)==0)
+         {
+            int ch=atoi(cmnd.c_str()+3);
+            if(ch>18) ch -= 18;
+            if(ch>0 && ch<TOTAL_DDUS) UpdateDDU(ch);
+         }
+         else
+         {
+            int ch=ChnameToNumber(cmnd.c_str());
+            if(ch>=0 && ch<TOTAL_CHAMBERS) UpdateChamber(ch);
+         }
       }
       else if(cmnd.substr(0,13)=="PREPARE_POWER")
       {
