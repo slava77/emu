@@ -71,7 +71,8 @@ function onLoad( refreshPeriod, dataURL ) {
     } catch(ex) {}
 
     try{	
-      xAxis = new Axis( t-150000, t+150000, 5, true,
+      // Times in millisec!
+      xAxis = new Axis( t-300000, t+300000, 5, true,
 			Number(pad_element.getAttribute('x')),
 			Number(pad_element.getAttribute('x'))+Number(pad_element.getAttribute('width')),
 			1./svg_element.getScreenCTM().a/xScale );
@@ -845,9 +846,9 @@ function TrackFinderFromJson(){
 	});
 	$.each( row.EMUPAGEONE_RATES.rows, function(j,ratesRow){ 
 	  if ( j == 0 ){
-	    var graphPoint = { name:'min SP rate', time:time, value:ratesRow['Min Single SP Rate'] };
+	    var graphPoint = { name:'min SP rate [Hz]', time:time, value:ratesRow['Min Single SP Rate'] };
 	    appendPoint( graphPoint );
-	    $('#a_value_min').text( ratesRow['Min Single SP Rate'] );
+	    $('#a_value_min').text( ratesRow['Min Single SP Rate'] + ' Hz' );
 	    if ( ratesRow['Min Single SP Rate'] == 0 && ratesRow['Total SPs Rate'] > 0 ){
 	      $('#td_value_min').attr('class', 'WARN' );
 	      $('#a_value_min').attr('title', 'One or more SPs may be dead. Click to check.' );
@@ -856,7 +857,7 @@ function TrackFinderFromJson(){
 	      $('#td_value_min').attr('class', '');
 	      $('#a_value_min').attr('title', '');
 	    }
-	    $('#a_value_total').text( ratesRow['Total SPs Rate'] );
+	    $('#a_value_total').text( ratesRow['Total SPs Rate'] + ' Hz' );
 	  }
 	});
       }
