@@ -2252,19 +2252,13 @@ void EmuPCrateConfigTStore::getDbUserData(){
 //
 
 void EmuPCrateConfigTStore::getTableDefinitions(const std::string &connectionID) {
-//todo: change this to loop through an array of table names
-  getDefinition(connectionID,"configuration");
-  getDefinition(connectionID,"peripheralcrate");
-  getDefinition(connectionID,"ccb");
-  getDefinition(connectionID,"mpc");
-  getDefinition(connectionID,"vcc");
-  getDefinition(connectionID,"csc");
-  getDefinition(connectionID,"daqmb");
-  getDefinition(connectionID,"cfeb");
-  getDefinition(connectionID,"tmb");
-  getDefinition(connectionID,"alct");
-  getDefinition(connectionID,"anodechannel");
-  std::cout << "got table definitions" << std::endl;
+	for (std::map<std::string,std::vector<std::string> >::iterator tableName=tableNames.begin();tableName!=tableNames.end();++tableName) {
+		getDefinition(connectionID,(*tableName).first);
+	}
+	
+	getDefinition(connectionID,"configuration");
+	getDefinition(connectionID,"peripheralcrate");
+	std::cout << "got table definitions" << std::endl;
 }
 
 std::string EmuPCrateConfigTStore::getEndcapSide(std::vector<Crate *> &myCrates) throw (xcept::Exception) {
