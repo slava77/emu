@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.12 2009/07/11 19:36:44 paste Exp $
+* $Id: DDU.cc,v 1.13 2009/08/01 01:34:48 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -621,7 +621,7 @@ throw (emu::fed::exception::DDUException)
 {
 	try {
 		// Input register needs to be written first before updating flash.
-		writeInputRegister(value & 0x7fff);
+		writeInputRegister(value & 0xffff);
 		// Bogus data for sending to the VMESERI path.
 		const std::vector<uint16_t> bogoData(1,0);
 		writeRegister(VMESERI, 0x0904, 16, bogoData);
