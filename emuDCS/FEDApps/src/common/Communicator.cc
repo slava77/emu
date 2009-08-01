@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.16 2009/07/16 09:24:21 paste Exp $
+* $Id: Communicator.cc,v 1.17 2009/08/01 01:32:07 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -457,13 +457,13 @@ throw (toolbox::fsm::exception::Exception)
 
 				LOG4CPLUS_DEBUG(getApplicationLogger(), "killFiber for DDU in crate " << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": XML(" << std::hex << xmlKillFiber << std::dec << ") FPGA(" << std::hex << fpgaKillFiber << std::dec << ") flash(" << std::hex << flashKillFiber << std::dec << ")");
 
-				if ((flashKillFiber & 0x7fff) != (uint16_t) (xmlKillFiber & 0x7fff)) {
+				if ((flashKillFiber & 0xffff) != (uint16_t) (xmlKillFiber & 0xffff)) {
 					LOG4CPLUS_INFO(getApplicationLogger(),"Flash and XML killFiber for DDU in crate " << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree:  reloading flash");
-					(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0x7fff);
+					(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0xffff);
 					
 					// Check again.
 					uint16_t newFlashKillFiber = (*iDDU)->readFlashKillFiber();
-					if ((newFlashKillFiber & 0x7fff) != (uint16_t) (xmlKillFiber & 0x7fff)) {
+					if ((newFlashKillFiber & 0xffff) != (uint16_t) (xmlKillFiber & 0xffff)) {
 						std::ostringstream error;
 						error << "Flash (" << std::hex << newFlashKillFiber << ") and XML (" << xmlKillFiber << ") killFiber for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree after an attempt was made to reload the flash.";
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
@@ -475,13 +475,13 @@ throw (toolbox::fsm::exception::Exception)
 				}
 				REVOKE_ALARM("CommunicatorConfigureFlashKillFiber", NULL);
 				
-				if ((fpgaKillFiber & 0x7fff) != (xmlKillFiber & 0x7fff)) {
+				if (fpgaKillFiber != xmlKillFiber) {
 					LOG4CPLUS_INFO(getApplicationLogger(),"FPGA and XML killFiber for DDU in crate " << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree:  reloading FPGA");
 					(*iDDU)->writeKillFiber(xmlKillFiber);
 					
 					// Check again.
 					uint32_t newKillFiber = (*iDDU)->readKillFiber();
-					if ((newKillFiber & 0x7fff) != (xmlKillFiber & 0x7fff)) {
+					if (newKillFiber != xmlKillFiber) {
 						std::ostringstream error;
 						error << "FPGA (" << std::hex << newKillFiber << ") and XML (" << xmlKillFiber << ") killFiber for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree after an attempt was made to reload the FPGA.";
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
