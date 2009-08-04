@@ -1206,9 +1206,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   SCAsums.clear();
                   int noSCAs = 0;
                   double low_sca_thresh = 0.2;
-                  double high_sca_thresh = 2.0;
+                  double high_sca_thresh = 2.5;
 
-                  if ( nentries >= (5*16*nActiveCFEBs) )
+                  if ( nentries >= (10*16*nActiveCFEBs) )
                     {
                       // -- Check for dead SCAs CFEBs
                       for (int icfeb=0; icfeb < nCFEBs; icfeb++)
@@ -1321,7 +1321,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   double high_comp_thresh = 2.5;
                   // std::cout << cscName << ": " << ilayer << " "  << allCompsum << std::endl;
 
-                  if ( nentries >= (32*nActiveCFEBs) )
+                  if ( nentries >= (5*32*nActiveCFEBs) )
                     {
                       //	  if (h->GetMaximum() > 0.1) {
 
