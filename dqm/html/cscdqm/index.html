@@ -156,11 +156,14 @@
 	span#error {color: orange; font-weight: bold;}
 	span#warn  {color: orange; font-weight: bold;}
 	
-	span.SEVERITY_NONE {background-color: yellowgreen; font-weight: bold;}
-	span.SEVERITY_MINOR  {background-color: yellow; font-weight: bold;}
-	span.SEVERITY_TOLERABLE {background-color: lightpink; font-weight: bold;}
-	span.SEVERITY_SEVERE  {background-color: orange; font-weight: bold;}
-	span.SEVERITY_CRITICAL  {background-color: red; font-weight: bold;}
+	.SEVERITY_NONE {background-color: yellowgreen; font-weight: bold;}
+	.SEVERITY_LOW_STAT {background-color: yellowgreen; font-weight: bold;}
+	.SEVERITY_MINOR  {background-color: yellow; font-weight: bold;}
+	.SEVERITY_TOLERABLE {background-color: lightpink; font-weight: bold;}
+	.SEVERITY_SEVERE  {background-color: orange; font-weight: bold;}
+	.SEVERITY_CRITICAL  {background-color: red; font-weight: bold;}
+	.SEVERITY_KNOWN_PROBLEMS {background-color: #9090FF; font-weight: bold;}
+	.SEVERITY_NO_DATA {background-color: #8C8C8C; font-weight: bold;}
 	
 	li.sshow_list { font-size:8pt; font-family:Arial; margin: 0;}
 	
@@ -341,6 +344,7 @@ var NODES_LIST=false;
 var CSC_COUNTERS=false;
 var TESTS_MAP=false;
 var DQM_REPORT=false;
+var REF_DQM_REPORT=false;
 var NODES_SAVED=false;
 
 var Log=new Array();
@@ -363,8 +367,10 @@ var fOpenExternal=false;
 var loopFoldersFirst = true;
 var fAutoUpdatePlot = false;
 var fShowReference = false;
+var fCompareDDUs = false;
 var selFolder="";
 var selNode="";
+var selRefRun="";
 
 var EMUs = new Array();
 var DDUs = new Array();
@@ -386,11 +392,13 @@ var totalCSCrate=0;
 
 var DQM_SEVERITY = 
 	[
-	{"name": "NONE", "color": "yellowgreen"},
-	{"name": "MINOR", "color": "yellow"},
-	{"name": "TOLERABLE", "color": "lightpink"},
-	{"name": "SEVERE", "color": "orange"},
-	{"name": "CRITICAL", "color": "red"}
+	{"name": "LOW_STAT", "color": "yellowgreen", "descr": "Not Enough Statistics to perform Quality Test. Wait for more events."},
+	{"name": "MINOR", "color": "yellow", "descr": "Minor Issue. Could be ignored."},
+	{"name": "TOLERABLE", "color": "lightpink", "descr": "Tolerable Issue. Check status periodically. Report if switched to higher severity level." },
+	{"name": "SEVERE", "color": "orange", "descr": "Severe Problem. Check status periodically. Report if switched to higher severity level"},
+	{"name": "CRITICAL", "color": "red", "descr": "Important Problem. Consult with CEO and Hardware Experts."},
+	{"name": "KNOWN_PROBLEMS", "color": "#9090FF", "descr": "Re-appearring Problem wrt selected comparison Run."},
+	{"name": "NO_DATA", "color": "#8C8C8C", "descr": "No Events data for DDU or CSC. Check with official disabled CSCs list."}
 	];
 
 var CSC_TYPES = [
@@ -445,7 +453,7 @@ function printReportLegend()
 	var out = "<table class='dqm_report'><tr>";
 	out += "<td><b>Severity legend:</b> ";
 	for (var i=0; i<DQM_SEVERITY.length; i++) {
-		out += " <span class='SEVERITY_"+DQM_SEVERITY[i].name+"'>" + DQM_SEVERITY[i].name + "</span> ";
+		out += " <span title='"+DQM_SEVERITY[i].descr+"' class='SEVERITY_"+DQM_SEVERITY[i].name+"'>" + DQM_SEVERITY[i].name + "</span> ";
 	}
 	out += "</td></tr></table>";
 	return out; 
@@ -460,7 +468,9 @@ function loadPlot() {
 	var imgurl=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&run="+RunName+"&timestamp="+timestamp.getTime();
 	var zoomimage=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+1600+"&imageHeight="+1200+"&run="+RunName+"&timestamp="+timestamp.getTime();
 //	var ref_imgurl =baseURL+getRefPlot+"?folder="+Folder+"&plot="+Canvas;
-	var ref_imgurl=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&run=ref&timestamp="+timestamp.getTime();
+	var ref = "ref";
+	if (selRefRun && selRefRun!="noref") ref = selRefRun;
+	var ref_imgurl=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&run="+ref+"&timestamp="+timestamp.getTime();
 	var out = "";
 	var title = "Plots";
 	// addlog(Folder +"/"+objname, "info"); 
@@ -1380,7 +1390,8 @@ function loadTestsList(r_list, id)
 					folder = t_map[list];			
 					for (var entry in folder) {
 						// <td><input type=checkbox id='cb_"+entry+"'></td>
-						out += "<tr></td><td><a class='add_to_list' href='' onClick='addToTestsShowList(\"Custom\",\""+entry+"\",\""+folder[entry]+"\" ,\""+scope+"\");return false;'>[+]</a>";
+						out += "<tr><td id =\""+entry+"\"><a class='add_to_list' href='' onClick='addToTestsShowList(\"Custom\",\""+entry+"\",\""+folder[entry]+"\" ,\""+scope+"\");return false;'>[+]</a>";
+						// out += "<tr></td><td><a class='add_to_list' href='' onClick='addToTestsShowList(\"Custom\",\""+entry+"\",\""+folder[entry]+"\" ,\""+scope+"\");return false;'>[+]</a>";
 						out += "</a><a class='test_item' href='' id =\""+entry+"\"  onClick='Canvas=\""+entry+"\";Scope=\""+scope+"\";return updateBrowserPage(\""+entry+"\",false,3)'>"+folder[entry]+"</a></td></tr>";			 				
 						if (scope=="CSC" ) { 
 							addToTestsShowList("All CSC Tests", entry, folder[entry], scope);
@@ -1574,7 +1585,7 @@ function findReportEntry(report, id)
 function setTestsStatus(id)
 {
 	loadTestsList (TREE_ITEMS, "tests_div");
-	var out = "<table class='dqm_report'><tr><th class='repScope' colspan=3><b>Status for " + id + "</b></th></tr>";
+	var out = "<table class='page_layout' style='border: 0px black solid;'><tr style='border: 0px black solid;'><td style='border: 0px black solid;'><table class='dqm_report'><tr><th class='repScope' colspan=2><b>Run " + RunName + " Status for " + id + "</b></th></tr>";
 	if (DQM_REPORT && DQM_REPORT.report.length) {
 		var repentry = findReportEntry(DQM_REPORT.report, id);
 		if (repentry) {	
@@ -1589,10 +1600,11 @@ function setTestsStatus(id)
 						//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
 						
 						var sev_idx = parseInt(entry.severity);
+						
 						var sev_name = DQM_SEVERITY[sev_idx].name;
 						var sev_str = "";
 						if ( sev_idx > 0) {
-							sev_str = "<span class='SEVERITY_"+sev_name+"'>" + sev_name + "</span>";
+							sev_str = "<span>" + sev_name + "</span>";
 						} 
 												
 						var descr_str = entry.descr;
@@ -1603,6 +1615,8 @@ function setTestsStatus(id)
 								var testPlot = testInfo.testPlot + ".png";
 								var t_obj = document.getElementById(testPlot);
 								if (t_obj) {
+									if ( ((id.search("ME") >=0) || ((id.search("DDU") >=0) && fCompareDDUs))
+										&& isProblemKnown(id, entry)) sev_idx = 5; // KNOWN problem
 									t_obj.style.background = DQM_SEVERITY[sev_idx].color;
 								}
 								// descr_str = entry.descr + " " +testPlot;
@@ -1610,13 +1624,48 @@ function setTestsStatus(id)
 							}
 							
 						}
+						out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
+					}
+				}
+			}							
+		}
+	}
+	out += "</table></td><td style='border: 0px black solid;'>";
+	out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Compared to Run " + selRefRun + "</b></th></tr>";
+	
+	if (REF_DQM_REPORT) {
+		var repentry = findReportEntry(REF_DQM_REPORT.report, id);
+		if (repentry) {	
+			
+			if (repentry.list && repentry.list.length) {
+				var err_list = repentry.list;
+				
+				for (var j=0; j< err_list.length; j++) {
+					var entry = err_list[j];
+					if (entry) {
+						
+						//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
+						
+						var sev_idx = parseInt(entry.severity);
+						
+						var sev_name = DQM_SEVERITY[sev_idx].name;
+						var sev_str = "";
+						if ( sev_idx > 0) {
+							sev_str = "<span class='SEVERITY_"+sev_name+"'>" + sev_name + "</span>";
+						} 
+												
+						var descr_str = entry.descr;
+						
 						out += "<tr><td>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
 					}
 				}
 			}							
 		}
 	}
-	out += "</table>";
+	
+	
+	
+	out + "</table></td></tr></table>";
 	rep_div = document.getElementById("report_entry_div");
 	if (rep_div) rep_div.innerHTML = out;						
 
@@ -1654,12 +1703,45 @@ function add_show_icon()
 }
 
 
+function isProblemKnown(id, entry)
+{
+	if (REF_DQM_REPORT) {
+		ref_report = REF_DQM_REPORT.report;
+		if (ref_report && ref_report.length) {
+			for (var i = 0; i < ref_report.length; i++) {
+				if (ref_report[i]) {
+					if (id == ref_report[i].objID)
+						{
+							// return true;
+							if (ref_report[i].list && ref_report[i].list.length) {
+								var err_list = ref_report[i].list;
+							
+								for (var j=0; j< err_list.length; j++) {
+									var ref_entry = err_list[j];
+									if (ref_entry) {
+										
+										if (entry.testID == ref_entry.testID)
+										{
+											return true;
+										}
+									}
+								}
+							}
+						}
+				}
+			}
+		}		
+	}
+	return false;
+}
+
 function loadDQMReport(id)
 {
 				
 	obj = document.getElementById(id);
 	if (obj) {
 		out = "";
+		
 		if (DQM_REPORT) {
 			/// if (reportWindow && !reportWindow.closed) openReportInWindow();
 			// var fullUrl = ResultsFolder+RunNumber+".plots/" + TextReport;	
@@ -1667,7 +1749,7 @@ function loadDQMReport(id)
 				// <a href='' onClick='openReportInWindow();return false;'>[Open]</a></h5>";
 			out += printReportLegend();
 			out += "<table class='dqm_report'>";
-		
+			
 			// addlog("DQM report #entries: " + DQM_REPORT.report.length, "info");
 			report = DQM_REPORT.report;
 			if (report && report.length) {
@@ -1685,13 +1767,20 @@ function loadDQMReport(id)
 									//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
 									
 									var sev_idx = parseInt(entry.severity);
+									if (((report[i].objID.search("ME") >=0) || ((report[i].objID.search("DDU") >=0) && fCompareDDUs))
+										&& isProblemKnown(report[i].objID, entry)) sev_idx = 5; // KNOWN problem
+									if (sev_idx > obj_sev) obj_sev = sev_idx;
+									
+									
+									
 									var sev_name = DQM_SEVERITY[sev_idx].name;
 									var sev_str = "";
+									
 									if ( sev_idx > 0) {
-										sev_str = "<span class='SEVERITY_"+sev_name+"'>" + sev_name + "</span>";
+										sev_str = "<span>" + sev_name + "</span>";
 									} 
 									
-									if (sev_idx > obj_sev) obj_sev = sev_idx;
+									
 									var descr_str = entry.descr;
 									if (entry.testID != "") {
 										var testInfo = findTestPlotInfo(entry.testID);
@@ -1703,7 +1792,7 @@ function loadDQMReport(id)
 										}
 										
 									}
-									out += "<tr><td>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
+									out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
 								}
 							}
 						}	
@@ -1722,9 +1811,34 @@ function loadDQMReport(id)
 		} else {
 			out = "DQM Report file for Run:" + RunName +" not found";
 			addlog(out, "warn");
-		}
+		}		
 		obj.innerHTML=out;
 		// DQMReport = out;
+		setTestsStatus(getCSCId(selFolder));
+		
+	}
+}
+
+function getCSCId(id)
+{
+	if (selFolder.search("CSC_") >= 0) {
+		var str_id = selFolder.split("_");
+		if (str_id.length == 3) {
+			crate = "crate" + str_id[1].replace(/^[0]+/g,"");;			
+			slot = "slot" + str_id[2].replace(/^[0]+/g,"");
+			// addlog(crate + "/" +slot, "debug");
+			return findCSCFromMap(crate, slot);
+		}
+	} 
+	return selFolder;
+}
+
+function setCompareRun() {
+	var selObj = document.getElementById("compare_selection");
+	if (selObj) {
+		var selIdx = selObj.selectedIndex;
+		selRefRun = selObj.options[selIdx].value;		
+		getRefDQMReport(selRefRun);
 	}
 }
 
@@ -1736,8 +1850,34 @@ function loadRunsList(r_list)
 	out += "<th>Run</th><th>Analyzed on</th>";
 	out += "<tr><td><a href='' id='Online' onClick='RunName=\"Online\";getTestsList();getCSCCounters();loadCSCList(\"Online\");return false;'>Online</a></td><td></td></tr>";
 	if (r_list) {
+		compare_list = document.getElementById("compare_selection");
+		
+		if (compare_list) {
+			compare_list.options.length = 0;
+			var isSelected = false;
+			
+			try {
+					if (selRefRun == "noref") isSelected = true;
+					compare_list.add(new Option("Don't compare", "noref",false, isSelected), null)					
+					isSelected = false;
+					if (selRefRun == "ref") isSelected = true;
+					compare_list.add(new Option("Default Reference Run", "ref", false, isSelected), null) //add new option to end of "sample"					
+				}
+			catch(e){ //in IE, try the below version instead of add()
+					if (selRefRun == "noref") isSelected = true;
+					compare_list.add(new Option("Don't compare", "noref"));
+					isSelected = false;
+					if (selRefRun == "ref") isSelected = true;
+					compare_list.add(new Option("Default Reference Run", "ref", false, isSelected));
+				}
+				if (selRefRun == "") {
+					selRefRun = "noref";
+					// getRefDQMReport(selRefRun);
+				}
+			}
 		// addlog("runs", "info");
 		for (var i = 0; i< r_list.length; i++) {
+			isSelected = false;
 			child = [];		
 			child=r_list[i];
 			if (!child) continue;
@@ -1749,6 +1889,20 @@ function loadRunsList(r_list)
 			// if (i==0) RunNumber = run_num;
 			// addlog(run_descr, "info");
 			out += "<tr><td><a href='' id='"+run_num+"' onClick='RunName=\""+run_num+"\";getTestsList();getCSCCounters();loadCSCList(\""+run_num+"\");return false;'>"+run_num+"</a></td><td>"+run_time+"</td></tr>";
+			if (selRefRun == run_num) isSelected = true;
+			if (compare_list)
+				{
+					try 
+					{
+						
+						compare_list.add(new Option(run_num, run_num, false, isSelected), null) //add new option to end of "sample"					
+					}
+					catch(e){ //in IE, try the below version instead of add()
+						compare_list.add(new Option(run_num, run_num, false, isSelected));
+					}
+					
+				
+				}
 			
 		}
 		
@@ -1860,6 +2014,66 @@ function getDQMReport()
 	// setTimeout('getDQMReport()', 20000);
 	return false;
 }
+
+function getRefDQMReport(run)
+{
+	
+	var fullUrl = baseURL + JSONReport+"?run="+run;
+	
+	if (run == "noref") {
+		REF_DQM_REPORT = false;
+		loadDQMReport("report_div");
+		return false;
+	}
+	
+	
+	var req=false;
+	if (window.XMLHttpRequest) { 
+		/*
+		try {
+	    		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead UniversalBrowserWrite");
+	   	} catch (e) {
+	    		alert("Permission UniversalBrowserRead denied.");
+	   	}
+		*/
+	    req = new XMLHttpRequest();    
+	   
+	} else if (window.ActiveXObject) {    
+		//req = new ActiveXObject("Microsoft.XMLDOM");
+	    req = new ActiveXObject((navigator.userAgent.toLowerCase().indexOf('msie 5') != -1) ? "Microsoft.XMLHTTP" : "Msxml2.XMLHTTP");
+		// var req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    req.open("GET",fullUrl,true); // true= asynch, false=wait until loaded    
+	
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+			if (req.status==200) {
+				REF_DQM_REPORT = false;
+				
+				var reply = req.responseText;
+				// Need to strip malformed array string to satisfy IE7
+				reply = reply.replace(/DQM_REPORT/g,"REF_DQM_REPORT");
+				reply = reply.replace(/,]/g,"]");
+				reply = reply.replace("var ","");
+				window.eval(reply);
+				// addlog("Loaded report for " + run, "debug");
+				loadDQMReport("report_div");
+				
+				
+	    	} else if (req.status==404) {
+				REF_DQM_REPORT = false;
+				addlog("Can not load " + fullUrl, 'warn');
+				// loadTextReport("report_div");
+				loadDQMReport("report_div");
+	    	}
+						
+		}
+    }
+	req.send(null);	
+	// setTimeout('getDQMReport()', 20000);
+	return false;
+}
+
 
 function getVMECrateName(crate)
 {
@@ -2220,12 +2434,26 @@ function selectPlotMode()
 	}
 }
 
+function selectCompareDDUMode()
+{
+	var obj = document.getElementById("dducompare");
+	if (obj) {
+		if (obj.checked) {
+			fCompareDDUs=true;
+		} else {
+			fCompareDDUs=false;
+		}
+		loadDQMReport("report_div");
+	}
+}
+
 function selectShowReferenceMode()
 {
 	var obj = document.getElementById("showReference");
 	if (obj) {
 		if (obj.checked) {
 			fShowReference=true;
+			loadPlot();
 		} else {
 			fShowReference=false;
 		}
@@ -2670,14 +2898,22 @@ get_element = document.all ?
 		<legend>
 			<a class='winTitle' href='#' onClick='showHide("runs_list");'>Runs</a>
 		</legend>
+		
 		<div id="runs_list">
-			<script type="text/javascript">			
+			
+		</div>
+		<div id="compare_list" title="Compare selected Run DQM Results to other Runs">	
+			<label>Compare to:</label>
+			<select id="compare_selection" onChange="setCompareRun();">
+			</select><br>
+			<span title='Check to Enable DDUs Comparison'><label>DDUs Comparison</label> <input type=checkbox  id="dducompare" onclick="selectCompareDDUMode()"></span>
+		</div>
+		<script type="text/javascript">			
 			<!--//
 				// setSelectedResultsFolder();
 				getRunsList();
 			//-->
-			</script>
-		</div>
+		</script>
 	</fieldset>
 	
 	

@@ -36,7 +36,7 @@ throw (xdaq::exception::Exception)
     debug(false),
     BaseDir("/csc_data/dqm"),
     refImagePath("ref.plots"),
-    saveResultsDelay(10),
+    saveResultsDelay(20),
     appBSem_(BSem::FULL)
 {
 
@@ -93,7 +93,7 @@ throw (xdaq::exception::Exception)
 
   getApplicationInfoSpace()->fireItemAvailable("cscMapFile",&cscMapFile_);
   getApplicationInfoSpace()->addItemChangedListener ("cscMapFile", this);
- 
+
   getApplicationInfoSpace()->fireItemAvailable("saveResultsDelay",&saveResultsDelay);
   getApplicationInfoSpace()->addItemChangedListener ("saveResultsDelay", this);
 
@@ -180,7 +180,7 @@ void EmuDisplayClient::actionPerformed (xdata::Event& e)
                          "CSC Mapping File for plotter : " << cscMapFile_.toString());
           setCSCMapFile(cscMapFile_.toString());
 
-        }      
+        }
       else if ( item == "saveResultsDelay")
         {
           LOG4CPLUS_INFO(getApplicationLogger(),
@@ -229,6 +229,8 @@ FoldersMap EmuDisplayClient::readFoldersMap(std::string run)
           if (!rootsrc->cd("DQMData"))
             {
               LOG4CPLUS_ERROR (getApplicationLogger(), "No histos folder in file");
+              rootsrc->Close();
+              rootsrc=NULL;
               return folders;
             }
 
@@ -255,6 +257,7 @@ FoldersMap EmuDisplayClient::readFoldersMap(std::string run)
               delete obj;
             }
           rootsrc->Close();
+          rootsrc = NULL;
 
         }
 
@@ -635,6 +638,7 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
         }
 
     }
+  updateNodesStatus();
   appBSem_.give();
 
 }
@@ -651,36 +655,36 @@ void EmuDisplayClient::saveNodesResults()
         {
           try
             {
-	      xoap::MessageReference msg = xoap::createMessage();
-	      xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
-	      xoap::SOAPBody body = envelope.getBody();
-	      xoap::SOAPName commandName = envelope.createName(action,"xdaq", "urn:xdaq-soap:3.0");
+              xoap::MessageReference msg = xoap::createMessage();
+              xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+              xoap::SOAPBody body = envelope.getBody();
+              xoap::SOAPName commandName = envelope.createName(action,"xdaq", "urn:xdaq-soap:3.0");
 
 
-	      xoap::SOAPElement command = body.addBodyElement(commandName );
-	      /*
-	      xoap::SOAPName timeStamp = envelope.createName("TimeStamp", "", "");
-	      xoap::SOAPElement folderElement = command.addChildElement(folderName);
-	      folderElement.addTextNode(tstamp);
-	      */
+              xoap::SOAPElement command = body.addBodyElement(commandName );
+              /*
+              xoap::SOAPName timeStamp = envelope.createName("TimeStamp", "", "");
+              xoap::SOAPElement folderElement = command.addChildElement(folderName);
+              folderElement.addTextNode(tstamp);
+              */
 
-	      // LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
-	      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *(*mon));
+              // LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
+              xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *(*mon));
 
-	      xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
-	      if (rb.hasFault() )
-		{
-		  xoap::SOAPFault fault = rb.getFault();
-		  std::string errmsg = "DQMNode: ";
-		  errmsg += fault.getFaultString();
-		  XCEPT_RAISE(xoap::exception::Exception, errmsg);
-		  
-		  continue;
-		}
-	      else
-		{
-		  //		  LOG4CPLUS_INFO (getApplicationLogger(), "Sent saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
-		}
+              xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
+              if (rb.hasFault() )
+                {
+                  xoap::SOAPFault fault = rb.getFault();
+                  std::string errmsg = "DQMNode: ";
+                  errmsg += fault.getFaultString();
+                  XCEPT_RAISE(xoap::exception::Exception, errmsg);
+
+                  continue;
+                }
+              else
+                {
+                  //		  LOG4CPLUS_INFO (getApplicationLogger(), "Sent saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
+                }
 
 
               // emu::dqm::sendFSMEventToApp(action, getApplicationContext(), getApplicationDescriptor(),*mon);
@@ -1004,14 +1008,31 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
     }
 
 
+  TFile* rootsrc = NULL;
+
   if (runname == "Online" || runname == "")
     {
+
       std::map<std::string, std::set<int> >::iterator itr = foldersMap.find(folder);
       if ((itr == foldersMap.end()) || itr->second.empty())
         {
           if (debug) LOG4CPLUS_WARN (getApplicationLogger(), "Can not locate request node for " << folder);
           appBSem_.give();
           return;
+        }
+
+    }
+  else
+    {
+      std::string rootfile = ResultsDir.toString()+"/"+runname+".root";
+      struct stat attrib;                   // create a file attribute structure
+      std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), runname+".root");
+      if (r_itr != runsList.end())
+        {
+          if (stat(rootfile.c_str(), &attrib) == 0)    // Folder exists
+            {
+              rootsrc = TFile::Open( rootfile.c_str());
+            }
         }
 
     }
@@ -1033,7 +1054,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
           EmuMonitoringObject* mo = 0;
           if (bookME(folder, p_itr->second, emu::dqm::utils::genCSCTitle(folder), mo))
             {
-              if (updateME(folder, p_itr->second, mo, runname) )  booked_pads++;
+              if (updateME(folder, p_itr->second, mo, rootsrc) )  booked_pads++;
             }
           else
             {
@@ -1048,7 +1069,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
       if (fBooked)
         {
           // Update Efficiency plots
-          if (objname.find("EMU_Status") != std::string::npos) updateEfficiencyHistos(runname);
+          if (objname.find("EMU_Status") != std::string::npos) updateEfficiencyHistos(rootsrc);
 
           cnv->reset();
           //      const time_t t = cnv->getTimestamp();
@@ -1056,7 +1077,12 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
           // LOG4CPLUS_INFO (getApplicationLogger(), "All objects for Canvas " << objname << " are booked");
           cnv->setCanvasWidth(width);
           cnv->setCanvasHeight(height);
-          cnv->setRunNumber(curRunNumber);
+
+
+          if (runname == "Online" || runname == "")
+            cnv->setRunNumber(curRunNumber);
+          else
+            cnv->setRunNumber(runname);
 
           cnv->Draw(MEs[folder],true);
 
@@ -1088,10 +1114,18 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
 
         }
 
+	// if (cnv) delete cnv;
     }
   else
     {
       LOG4CPLUS_ERROR (getApplicationLogger(), "Can not book canvas");
+    }
+
+  if (rootsrc != NULL)
+    {
+      clearMECollection(MEs);
+      rootsrc->Close();
+      rootsrc = NULL;
     }
   appBSem_.give();
 
@@ -1760,126 +1794,126 @@ CSCCounters EmuDisplayClient::updateCSCCounters()
 
 DQMNodesStatus EmuDisplayClient::updateNodesStatus()
 {
-  if (time(NULL)- nodesStatus.getTimeStamp()>10)
-    {
-      nodesStatus.clear();
+  //  if (time(NULL)- nodesStatus.getTimeStamp()>10)
+  {
+    nodesStatus.clear();
 
-      //      std::set<xdaq::ApplicationDescriptor*>  ruis = getAppsList("EmuRUI","default");
-      if (!monitors.empty())
-        {
-          std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+    //      std::set<xdaq::ApplicationDescriptor*>  ruis = getAppsList("EmuRUI","default");
+    if (!monitors.empty())
+      {
+        std::set<xdaq::ApplicationDescriptor*>::iterator pos;
 
-          // std::set<xdaq::ApplicationDescriptor*>::iterator rui_itr;
-          // xdaq::ApplicationDescriptor* rui=NULL;
+        // std::set<xdaq::ApplicationDescriptor*>::iterator rui_itr;
+        // xdaq::ApplicationDescriptor* rui=NULL;
 
-          for (pos=monitors.begin(); pos!=monitors.end(); ++pos)
-            {
-              if ((*pos) == NULL) continue;
+        for (pos=monitors.begin(); pos!=monitors.end(); ++pos)
+          {
+            if ((*pos) == NULL) continue;
 
-              std::ostringstream st;
-              st << (*pos)->getClassName() << "-" << (*pos)->getInstance();
-              std::string nodename = st.str();
+            std::ostringstream st;
+            st << (*pos)->getClassName() << "-" << (*pos)->getInstance();
+            std::string nodename = st.str();
 
-              std::string applink = "NA";
-              std::string state =  "NA";
-              std::string stateChangeTime = "NA";
-              std::string runNumber   = "NA";
-              std::string events = "0";
-              std::string dataRate   = "0";
-              std::string cscUnpacked   = "0";
-              std::string cscDetected   = "0";
-              std::string cscRate   = "0";
-              std::string readoutMode   = "NA";
-              std::string lastEventTime = "NA";
-              std::string nDAQevents = "0";
-              std::string dataSource = "NA";
+            std::string applink = "NA";
+            std::string state =  "NA";
+            std::string stateChangeTime = "NA";
+            std::string runNumber   = "NA";
+            std::string events = "0";
+            std::string dataRate   = "0";
+            std::string cscUnpacked   = "0";
+            std::string cscDetected   = "0";
+            std::string cscRate   = "0";
+            std::string readoutMode   = "NA";
+            std::string lastEventTime = "NA";
+            std::string nDAQevents = "0";
+            std::string dataSource = "NA";
 
-              try
-                {
-                  applink = (*pos)->getContextDescriptor()->getURL()+"/"+(*pos)->getURN();
-                  state =  emu::dqm::getScalarParam(getApplicationContext(),
-                                                    getApplicationDescriptor(), (*pos),"stateName","string");
-                  if (!viewOnly_)
+            try
+              {
+                applink = (*pos)->getContextDescriptor()->getURL()+"/"+(*pos)->getURN();
+                state =  emu::dqm::getScalarParam(getApplicationContext(),
+                                                  getApplicationDescriptor(), (*pos),"stateName","string");
+                if (!viewOnly_)
+                  {
+                    applink += "/showControl";
+                  }
+                if (state == "")
+                  {
+                    state = "Unknown/Dead";
+                    continue;
+                  }
+                else
+                  {
+                    stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(),
+                                      getApplicationDescriptor(), (*pos),"stateChangeTime","string");
+                  }
+
+
+                runNumber   = emu::dqm::getScalarParam(getApplicationContext(),
+                                                       getApplicationDescriptor(),  (*pos),"runNumber","unsignedInt");
+                curRunNumber = runNumber;
+
+                events = emu::dqm::getScalarParam(getApplicationContext(),
+                                                  getApplicationDescriptor(), (*pos),"sessionEvents","unsignedInt");
+                dataRate   = emu::dqm::getScalarParam(getApplicationContext(),
+                                                      getApplicationDescriptor(), (*pos),"averageRate","unsignedInt");
+                cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(),
+                                getApplicationDescriptor(), (*pos),"cscUnpacked","unsignedInt");
+                cscDetected   = emu::dqm::getScalarParam(getApplicationContext(),
+                                getApplicationDescriptor(), (*pos),"cscDetected","unsignedInt");
+                cscRate   = emu::dqm::getScalarParam(getApplicationContext(),
+                                                     getApplicationDescriptor(), (*pos),"cscRate","unsignedInt");
+                readoutMode   = emu::dqm::getScalarParam(getApplicationContext(),
+                                getApplicationDescriptor(), (*pos),"readoutMode","string");
+
+                //lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"lastEventTime","string");
+
+                nDAQevents = "0";
+                if (readoutMode == "internal")
+                  {
+                    dataSource   = emu::dqm::getScalarParam(getApplicationContext(),
+                                                            getApplicationDescriptor(), (*pos),"inputDeviceName","string");
+                    nDAQevents = events;
+                  }
+                if (readoutMode == "external")
+                  {
+                    dataSource   = emu::dqm::getScalarParam(getApplicationContext(),
+                                                            getApplicationDescriptor(), (*pos),"serversClassName","string");
+                    /*
+                    if (rui != NULL)
                     {
-                      applink += "/showControl";
+                    // == Commented it to prevent online DQM freezes
+                    // nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), rui,"nEventsRead","unsignedLong");
+                    // nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
                     }
-                  if (state == "")
-                    {
-                      state = "Unknown/Dead";
-                      continue;
-                    }
-                  else
-                    {
-                      stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(),
-                                        getApplicationDescriptor(), (*pos),"stateChangeTime","string");
-                    }
+                    */
+                  }
+              }
+            catch (xcept::Exception e)
+              {
+                if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+              }
+
+            nodesStatus[nodename]["appLink"] = applink;
+            nodesStatus[nodename]["stateName"] = state;
+            nodesStatus[nodename]["stateChangeTime"] = stateChangeTime;
+            nodesStatus[nodename]["runNumber"] = runNumber;
+            nodesStatus[nodename]["sessionEvents"] = events;
+            nodesStatus[nodename]["averageRate"] = dataRate;
+            nodesStatus[nodename]["cscUnpacked"] = cscUnpacked;
+            nodesStatus[nodename]["cscDetected"] = cscDetected;
+            nodesStatus[nodename]["cscRate"] = cscRate;
+            nodesStatus[nodename]["readoutMode"] = readoutMode;
+            nodesStatus[nodename]["nDAQevents"] = nDAQevents;
+            nodesStatus[nodename]["dataSource"] = dataSource;
 
 
-                  runNumber   = emu::dqm::getScalarParam(getApplicationContext(),
-                                                         getApplicationDescriptor(),  (*pos),"runNumber","unsignedInt");
-                  curRunNumber = runNumber;
+          }
 
-                  events = emu::dqm::getScalarParam(getApplicationContext(),
-                                                    getApplicationDescriptor(), (*pos),"sessionEvents","unsignedInt");
-                  dataRate   = emu::dqm::getScalarParam(getApplicationContext(),
-                                                        getApplicationDescriptor(), (*pos),"averageRate","unsignedInt");
-                  cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(),
-                                  getApplicationDescriptor(), (*pos),"cscUnpacked","unsignedInt");
-                  cscDetected   = emu::dqm::getScalarParam(getApplicationContext(),
-                                  getApplicationDescriptor(), (*pos),"cscDetected","unsignedInt");
-                  cscRate   = emu::dqm::getScalarParam(getApplicationContext(),
-                                                       getApplicationDescriptor(), (*pos),"cscRate","unsignedInt");
-                  readoutMode   = emu::dqm::getScalarParam(getApplicationContext(),
-                                  getApplicationDescriptor(), (*pos),"readoutMode","string");
-
-                  //lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"lastEventTime","string");
-
-                  nDAQevents = "0";
-                  if (readoutMode == "internal")
-                    {
-                      dataSource   = emu::dqm::getScalarParam(getApplicationContext(),
-                                                              getApplicationDescriptor(), (*pos),"inputDeviceName","string");
-                      nDAQevents = events;
-                    }
-                  if (readoutMode == "external")
-                    {
-                      dataSource   = emu::dqm::getScalarParam(getApplicationContext(),
-                                                              getApplicationDescriptor(), (*pos),"serversClassName","string");
-                      /*
-                      if (rui != NULL)
-                      {
-                      // == Commented it to prevent online DQM freezes
-                      // nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), rui,"nEventsRead","unsignedLong");
-                      // nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
-                      }
-                      */
-                    }
-                }
-              catch (xcept::Exception e)
-                {
-                  if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
-                }
-
-              nodesStatus[nodename]["appLink"] = applink;
-              nodesStatus[nodename]["stateName"] = state;
-              nodesStatus[nodename]["stateChangeTime"] = stateChangeTime;
-              nodesStatus[nodename]["runNumber"] = runNumber;
-              nodesStatus[nodename]["sessionEvents"] = events;
-              nodesStatus[nodename]["averageRate"] = dataRate;
-              nodesStatus[nodename]["cscUnpacked"] = cscUnpacked;
-              nodesStatus[nodename]["cscDetected"] = cscDetected;
-              nodesStatus[nodename]["cscRate"] = cscRate;
-              nodesStatus[nodename]["readoutMode"] = readoutMode;
-              nodesStatus[nodename]["nDAQevents"] = nDAQevents;
-              nodesStatus[nodename]["dataSource"] = dataSource;
-
-
-            }
-
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "DQM Nodes Statuses are updated");
-          nodesStatus.setTimeStamp(time(NULL));
-        }
-    }
+        LOG4CPLUS_DEBUG (getApplicationLogger(), "DQM Nodes Statuses are updated");
+        nodesStatus.setTimeStamp(time(NULL));
+      }
+  }
   return nodesStatus;
 }
 
@@ -2515,11 +2549,11 @@ int EmuDisplayClient::svc()
       if (counter % (6*saveResultsDelay) == 0)
         {
           // Send command to Monitors to save results
-	  appBSem_.take();
-	  saveNodesResults();
-	  appBSem_.give();
+          appBSem_.take();
+          saveNodesResults();
+          appBSem_.give();
         }
-      // if (counter % 3*2*saveResultsDelay == 0) counter = 0;
+      if (counter % (3*2*6*saveResultsDelay) == 0) counter = 0;
 
     }
   return 0;

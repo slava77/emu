@@ -348,7 +348,7 @@ void EmuMonitor::setupPlotter()
     }
 
 //  plotter_ = new EmuPlotter(this->getApplicationLogger());
-  plotter_ = new EmuPlotter(Logger::getInstance(Form("EmuPlotter-%d", appTid_)));
+  plotter_ = new EmuPlotter(Logger::getInstance(Form("EmuPlotter.%d", appTid_)));
 
   plotter_->setLogLevel(WARN_LOG_LEVEL);
   plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);

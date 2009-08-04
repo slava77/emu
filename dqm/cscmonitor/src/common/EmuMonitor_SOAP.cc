@@ -225,7 +225,7 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
           && (sessionEvents_ > xdata::UnsignedInteger(0))
           && (timer_ != NULL)
           && (!timer_->isActive())
-	  && (rate >0) )
+	  )
         {
           timer_->setPlotter(plotter_);
           timer_->setROOTFileName(getROOTFileName());

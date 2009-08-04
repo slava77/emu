@@ -192,8 +192,8 @@ protected:
   {
     return bookME(MEs, Folder, Name, Title, mo);
   }
-  bool updateME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, std::string runname="");
-  bool readME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, std::string runname);
+  bool updateME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, TFile* rootsrc=NULL);
+  bool readME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, TFile* rootsrc);
 
 
   bool isCanvasValid(std::map<std::string, MECanvases_List >&  List, std::string Folder, std::string Name, EmuMonitoringCanvas*& me);
@@ -207,7 +207,7 @@ protected:
     return bookCanvas(MECanvases, Folder, Name, Title, me);
   }
   MonitorElement* mergeObjects(std::vector<TObject*>& olist);
-  void updateEfficiencyHistos(std::string runname="");
+  void updateEfficiencyHistos(TFile* rootsrc=NULL);
 
   // Report related
   MonitorElement* findME(std::string tag, std::string name);
