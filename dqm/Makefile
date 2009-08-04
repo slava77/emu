@@ -36,7 +36,8 @@ Packages=\
 	dqm/cscdisplay \
 	dqm/tfanalyzer \
         dqm/tfmonitor \
-        dqm/tfdisplay 
+        dqm/tfdisplay \
+	dqm/calibration
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 #include $(XDAQ_ROOT)/config/mfRPM.rules
