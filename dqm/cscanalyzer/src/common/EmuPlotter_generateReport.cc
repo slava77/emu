@@ -1106,6 +1106,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       //    std::cout << getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition) << std::endl;
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
       int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName);
+      bool ME11 = emu::dqm::utils::isME11(cscName);
       // int nStrips = emu::dqm::utils::getNumStrips(cscName);
       int nWireGroups = emu::dqm::utils::getNumWireGroups(cscName);
       std::vector<int> deadCFEBs(5,0);
@@ -1205,9 +1206,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   SCAsums.clear();
                   int noSCAs = 0;
                   double low_sca_thresh = 0.2;
-                  double high_sca_thresh = 2.5;
+                  double high_sca_thresh = 2.0;
 
-                  if ( nentries >= (2*16*nActiveCFEBs) )
+                  if ( nentries >= (5*16*nActiveCFEBs) )
                     {
                       // -- Check for dead SCAs CFEBs
                       for (int icfeb=0; icfeb < nCFEBs; icfeb++)
@@ -1237,37 +1238,43 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                       if (nActiveCFEBs - noSCAs > 0)
                         { // Check that still active CFEBs present
                           double avg_sca_occupancy = allSCAsum/(nActiveCFEBs-noSCAs);
-                          double avg_sca_ch_occupancy = avg_sca_occupancy/16;
+                          double avg_sca_ch_occupancy = (avg_sca_occupancy/(16*nentries))*100;
                           // std::cout << cscName << "> avg SCA: " << avg_sca_occupancy << ", ";
                           for (int icfeb=0; icfeb < nCFEBs; icfeb++)
                             {
                               //		std::cout << "CFEB"<< (icfeb+1) << ": " << (double(SCAsums[icfeb])) << ", ";
                               // Avg. strip SCA occupancy > 5.
                               bool isLowEff = false;
-                              if (SCAsums[icfeb])
+			      double cfeb_sca_sum = SCAsums[icfeb];
+			      if ( (icfeb == 4) && ME11) cfeb_sca_sum/=2;
+                              if (cfeb_sca_sum)
                                 {
 
-                                  if ( (SCAsums[icfeb] < low_sca_thresh*avg_sca_occupancy) && (lowEffCFEBs[icfeb] != 1))
+                                  if ( (cfeb_sca_sum < low_sca_thresh*avg_sca_occupancy) && (lowEffCFEBs[icfeb] != 1))
                                     {
                                       std::string diag=Form("CFEB Low SCA Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
-                                                            (SCAsums[icfeb]/avg_sca_occupancy)*100., low_sca_thresh*100 );
+                                                            (cfeb_sca_sum/avg_sca_occupancy)*100., low_sca_thresh*100 );
                                       dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE, "CSC_CFEB_SCA_LOW_EFF"));
                                       // std::cout << cscName << " "  << diag << std::endl;
                                       isLowEff = true;
                                     }
 
-                                  if ( SCAsums[icfeb] >= high_sca_thresh*avg_sca_occupancy )
+
+				  
+                                  if ( cfeb_sca_sum >= high_sca_thresh*avg_sca_occupancy )
                                     {
                                       std::string diag=Form("CFEB Noisy/Hot CFEB SCAs: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,
-                                                            SCAsums[icfeb]/avg_sca_occupancy, high_sca_thresh);
+                                                            cfeb_sca_sum/avg_sca_occupancy, high_sca_thresh);
                                       dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_SCA_NOISY"));
                                       // std::cout << cscName << " " << diag << std::endl;
                                     }
 
                                   for (int ch=1; ch <=16; ch++)
                                     {
-                                      double ch_val = h->GetBinContent(ch+icfeb*16);
-                                      if (ch_val > 4*avg_sca_ch_occupancy)
+                                      double ch_val = 100*h->GetBinContent(ch+icfeb*16)/nentries;
+				      if ( (icfeb == 4) && ME11) ch_val/=2;
+				 
+                                      if (ch_val > high_sca_thresh*avg_sca_ch_occupancy)
                                         {
                                           std::string diag = Form("CFEB Hot/Noisy SCA channel: CFEB%d Layer%d Ch#%d (occupancy %.1f times > average)", icfeb+1, ilayer, ch+icfeb*16,
                                                                   ch_val/avg_sca_ch_occupancy);
@@ -1415,20 +1422,22 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
           if (me)
             {
               TH1F* h = reinterpret_cast<TH1F*>(me);
-              // if (h->GetEntries() > nWireGroups) {
-              if (h->GetMaximum() > 0.1)
+              double ent = h->GetEntries();
+              if (ent > 10*nWireGroups)
                 {
+
                   double avg_anode_occup = 0;
                   double anode_max = 0;
- 		  vector<double> afebs;
-		  vector<double> hvsegs;
-		  vector<int> no_hv_segments;
-		  vector<int> noisy_hv_segments;
+                  vector<double> afebs;
+                  vector<double> hvsegs;
+                  vector<int> no_hv_segments;
+                  vector<int> noisy_hv_segments;
                   for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++)
                     {
-                      double val = h->Integral(hvSegMap[hvseg].first+1, hvSegMap[hvseg].second+1);
+                      double val = (h->Integral(hvSegMap[hvseg].first+1, hvSegMap[hvseg].second+1)/((hvSegMap[hvseg].second-hvSegMap[hvseg].first)*ent))*100.;
                       hvsegs.push_back(val);
                       if (val>anode_max) anode_max=val;
+                      // std::cout << cscName << " ly" << ilayer << " ent:" <<   ent << " seg" << hvseg << " " << val << std::endl;
                     }
 
                   TH1F* h_tmp = new TH1F("temp", "temp", 1000, 0, anode_max+1);
@@ -1440,34 +1449,23 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   delete h_tmp;
                   for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++)
                     {
-                      double z=round(hvsegs[hvseg]);
-                      if (z < 0.1*avg_anode_occup)
+                      double z=hvsegs[hvseg];
+                      if (z < 0.3)
                         {
-                          std::string diag=Form("No HV: Segment%d Layer%d (Segment Occupancy <10%% of average)", hvseg+1, ilayer );
+                          std::string diag=Form("No HV: Segment%d Layer%d", hvseg+1, ilayer );
                           dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
-			  no_hv_segments.push_back(hvseg);
-                          // std::cout << cscName << " " << diag << std::endl;
-                        } 
-		      else if (z > 5*avg_anode_occup)
-                        {
-                          std::string diag=Form("Noisy HV Segment: Segment%d Layer%d (Segment Occupancy > 5 times average)", hvseg+1, ilayer );
-                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
-			  noisy_hv_segments.push_back(hvseg);
-			  std::cout << cscName << " " << z << " " << avg_anode_occup << std::endl;
-                          // no_hv_segments.push_back(hvseg);
-                          // std::cout << cscName << " " << diag << std::endl;
+                          no_hv_segments.push_back(hvseg);
                         }
-
-			
                     }
 
                   anode_max = 0;
 
                   for (int32_t iseg=0; iseg < nWireGroups/8; iseg++)
                     {
-                      double val = h->Integral(iseg*8+1+1, (iseg+1)*8+1);
+                      double val = (h->Integral(iseg*8+1+1, (iseg+1)*8+1)/(8*ent))*100;
                       afebs.push_back(val);
                       if (val>anode_max) anode_max=val;
+                      // std::cout << cscName << " ly" << ilayer << " ent:" <<   ent << " seg" << iseg << " " << val << std::endl;
                     }
 
                   h_tmp = new TH1F("temp", "temp", 1000, 0, anode_max+1);
@@ -1476,20 +1474,19 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                       h_tmp->Fill(afebs[iseg]);
                     }
                   avg_anode_occup = h_tmp->GetMean();
-                  // std::cout << "Mean :" << avg_anode_occup << std::endl;
                   delete h_tmp;
 
                   for (int32_t iseg=0; iseg < nWireGroups/8; iseg++)
                     {
-                      double z=round(afebs[iseg]);
-		      int hvseg = emu::dqm::utils::getHVSegmentNumber(cscName, iseg);
-		      
-                      if ( (z < 0.1*avg_anode_occup) 
-			&& (find(no_hv_segments.begin(), no_hv_segments.end(), hvseg ) == no_hv_segments.end()) 
-			&& (find(noisy_hv_segments.begin(), noisy_hv_segments.end(), hvseg ) == noisy_hv_segments.end()))
+                      double z=afebs[iseg];
+                      int hvseg = emu::dqm::utils::getHVSegmentNumber(cscName, iseg);
+		      int afeb = iseg*3+(ilayer+1)/2;
+
+                      if ( (z < 0.2)
+                           && (find(no_hv_segments.begin(), no_hv_segments.end(), hvseg ) == no_hv_segments.end())
+                           && (find(noisy_hv_segments.begin(), noisy_hv_segments.end(), hvseg ) == noisy_hv_segments.end()))
                         {
 
-                          int afeb = iseg*3+(ilayer+1)/2;
                           if (z==0)
                             {
                               std::string diag=Form("ALCT No Anode Data: AFEB%d Layer%d", afeb, ilayer);
@@ -1497,11 +1494,18 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                             }
                           else
                             {
-                              std::string diag=Form("ALCT Low Anode Efficiency: AFEB%d Layer%d (AFEB Occupancy <10%% of average)", afeb, ilayer);
+                              std::string diag=Form("ALCT Low Anode Efficiency: AFEB%d Layer%d", afeb, ilayer);
                               dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_ALCT_NO_ANODE_DATA"));
                             }
 
                         }
+                      else if (z > 10.)
+                        {
+                          std::string diag=Form("Noisy Anodes Segment: AFEB%d Layer%d", afeb, ilayer );
+                          // !!!! Change to different test ID !!!!
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_ALCT_AFEB_NOISY"));
+                        }
+
                     }
 
 
