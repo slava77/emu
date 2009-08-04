@@ -53,6 +53,7 @@
 #include <TApplication.h>
 #include <TSystem.h>
 #include <TH1.h>
+#include <TF1.h>
 #include <TFile.h>
 #include <TDirectory.h>
 #include <TString.h>
