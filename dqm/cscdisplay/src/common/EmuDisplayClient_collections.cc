@@ -172,7 +172,11 @@ bool EmuDisplayClient::bookME(std::map<std::string, ME_List >&  List,
   EmuMonitoringObject * obj = 0;
   std::string Scope="";
   std::string Prefix=Folder;
-  if (Folder.find("EMU") ==0) { Scope = "EMU"; Prefix = "EMU_Summary"; }
+  if (Folder.find("EMU") ==0)
+    {
+      Scope = "EMU";
+      Prefix = "EMU_Summary";
+    }
   else if (Folder.find("DDU") ==0) Scope = "DDU";
   else if (Folder.find("CSC") ==0) Scope = "CSC";
   if (Scope == "")
@@ -312,9 +316,9 @@ bool EmuDisplayClient::bookCanvas(std::map<std::string, MECanvases_List >&  List
   return false;
 }
 
-bool EmuDisplayClient::readME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, std::string run)
+bool EmuDisplayClient::readME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, TFile* rootsrc)
 {
-
+/*
   std::string rootfile = ResultsDir.toString()+"/"+run+".root";
   struct stat attrib;                   // create a file attribute structure
   std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), run+".root");
@@ -323,38 +327,51 @@ bool EmuDisplayClient::readME(std::string Folder, std::string Name, EmuMonitorin
       if (stat(rootfile.c_str(), &attrib) == 0)    // Folder exists
         {
           TFile* rootsrc = TFile::Open( rootfile.c_str());
+*/
           if (!rootsrc)
             {
-              LOG4CPLUS_ERROR (getApplicationLogger(), "Unable to open " << rootfile.c_str());
+              // LOG4CPLUS_ERROR (getApplicationLogger(), "Unable to open " << rootfile.c_str());
               return false;
             }
+
           if (!rootsrc->cd("DQMData"))
             {
               LOG4CPLUS_ERROR (getApplicationLogger(), "No histos folder in file");
+//              rootsrc->Close();
+//              rootsrc = NULL;
               return false;
             }
-	  LOG4CPLUS_DEBUG(getApplicationLogger(), "Trying to Read " << Folder << "/" << mo->getFullName() << " object from " << rootfile);
+          LOG4CPLUS_DEBUG(getApplicationLogger(), "Trying to Read " << Folder << "/" << mo->getFullName() << " object" );
           TDirectory *sourcedir = gDirectory;
-	  TObject *obj = sourcedir->Get((Folder+"/"+mo->getFullName()).c_str());
-	  if (obj != NULL) {
-		LOG4CPLUS_DEBUG(getApplicationLogger(), "Successfully Read " << Folder << "/" << mo->getFullName() << " object from " << rootfile);
-		mo->setObject(reinterpret_cast<MonitorElement*>(obj));
-		return true;
-          } else {
-		LOG4CPLUS_WARN(getApplicationLogger(), "Unable to Read " << Folder << "/" << mo->getFullName() << " object from " << rootfile);
-	  }
-          rootsrc->Close();
-        }
 
-    }
+          TObject *obj = sourcedir->Get((Folder+"/"+mo->getFullName()).c_str());
+          if (obj != NULL)
+            {
+              LOG4CPLUS_DEBUG(getApplicationLogger(), "Successfully Read " << Folder << "/" << mo->getFullName() << " object");
+              mo->setObject(reinterpret_cast<MonitorElement*>(obj->Clone()));
+              return true;
+            }
+          else
+            {
+              LOG4CPLUS_WARN(getApplicationLogger(), "Unable to Read " << Folder << "/" << mo->getFullName() << " object");
+//              rootsrc->Close();
+//              rootsrc = NULL;
+            }
+//        }
+
+//    }
 
   return false;
 }
 
-bool EmuDisplayClient::updateME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, std::string runname)
+bool EmuDisplayClient::updateME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, TFile* runname)
 {
 
-  if ((runname != "Online") && (runname != ""))  { return readME(Folder, Name, mo, runname);}
+  // if ((runname != "Online") && (runname != ""))
+  if (runname != NULL)
+    {
+      return readME(Folder, Name, mo, runname);
+    }
 
   std::map<std::string, std::set<int> >::iterator itr = foldersMap.find(Folder);
   if ((itr == foldersMap.end()) || itr->second.empty())
@@ -429,7 +446,7 @@ MonitorElement* EmuDisplayClient::mergeObjects(std::vector<TObject*>& olist)
   return me;
 }
 
-void EmuDisplayClient::updateEfficiencyHistos(std::string runname)
+void EmuDisplayClient::updateEfficiencyHistos(TFile* runname)
 {
 
   std::string nodeTag = "EMU";

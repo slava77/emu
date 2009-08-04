@@ -29,14 +29,15 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   MonitorElement* me = NULL;
 
 
-  uint32_t csc_avg_events = 0;
   std::map<std::string, uint32_t> csc_stats;
   hname = "DMB_Reporting";
   me = findME("EMU", hname,  sourcedir);
 
+
+  // == Get number events for CSCs
   if (me)
     {
-      TH2F* h = dynamic_cast<TH2F*>(me);
+      TH2F* h = reinterpret_cast<TH2F*>(me);
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -57,9 +58,10 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   MonitorElement* me2 = findME("EMU", "DMB_Format_Errors",  sourcedir);
   if (me && me2)
     {
-      TH2F* h1 = dynamic_cast<TH2F*>(me);
-      TH2F* h2 = dynamic_cast<TH2F*>(me2);
+      TH2F* h1 = reinterpret_cast<TH2F*>(me);
+      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
           {
@@ -73,11 +75,14 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 uint32_t events =  uint32_t(h2->GetBinContent(i, j));
 
                 float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                DQM_SEVERITY severity=MINOR;
+                uint32_t csc_events = csc_stats[cscName];
+                if (csc_events>min_events)
+                  {
+                    if (fract >= 80.) severity=CRITICAL;
+                    else if (fract >= 10.) severity=SEVERE;
+                    else if (fract > 1.) severity=TOLERABLE;
+                  }
                 std::string diag=Form("Format Errors: %d events (%.3f%%)",events, fract);
                 dqm_report.addEntry(cscName,entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
 
@@ -88,8 +93,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 if (me3 && me4)
                   {
 
-                    TH2F* h3 = dynamic_cast<TH2F*>(me3);
-                    TH2F* h4 = dynamic_cast<TH2F*>(me4);
+                    TH2F* h3 = reinterpret_cast<TH2F*>(me3);
+                    TH2F* h4 = reinterpret_cast<TH2F*>(me4);
 
                     for (int err=int(h3->GetYaxis()->GetXmin()); err <= int(h3->GetYaxis()->GetXmax()); err++)
                       {
@@ -99,11 +104,13 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
                             float fract=z*100;
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
+                            DQM_SEVERITY severity=MINOR;
+                            if (csc_events>min_events)
+                              {
+                                if (fract >= 80.) severity=CRITICAL;
+                                else if (fract >= 10.) severity=SEVERE;
+                                else if (fract > 1.) severity=TOLERABLE;
+                              }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("\tFormat Errors: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
                             // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
@@ -127,9 +134,10 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   me2 = findME("EMU", "DMB_input_fifo_full",  sourcedir);
   if (me && me2)
     {
-      TH2F* h1 = dynamic_cast<TH2F*>(me);
-      TH2F* h2 = dynamic_cast<TH2F*>(me2);
+      TH2F* h1 = reinterpret_cast<TH2F*>(me);
+      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
           {
@@ -141,13 +149,17 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t events =  uint32_t(h2->GetBinContent(i, j));
+                uint32_t csc_events = csc_stats[cscName];
 
                 float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                DQM_SEVERITY severity=MINOR;
+
+                if (csc_events>min_events)
+                  {
+                    if (fract >= 80.) severity=CRITICAL;
+                    else if (fract >= 10.) severity=SEVERE;
+                    else if (fract > 1.) severity=TOLERABLE;
+                  }
                 std::string diag=Form("DMB-Input FIFO Full: %d events (%.3f%%)",events, fract);
                 dqm_report.addEntry(cscName, entry.fillEntry(diag, severity,"CSC_WITH_INPUT_FIFO_FULL"));
 
@@ -158,8 +170,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 if (me3 && me4)
                   {
 
-                    TH2F* h3 = dynamic_cast<TH2F*>(me3);
-                    TH2F* h4 = dynamic_cast<TH2F*>(me4);
+                    TH2F* h3 = reinterpret_cast<TH2F*>(me3);
+                    TH2F* h4 = reinterpret_cast<TH2F*>(me4);
 
                     for (int err=int(h3->GetYaxis()->GetXmin()); err <= 7; err++)
                       {
@@ -169,11 +181,13 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
                             float fract=z*100;
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
+                            DQM_SEVERITY severity=MINOR;
+                            if (csc_events>min_events)
+                              {
+                                if (fract >= 80.) severity=CRITICAL;
+                                else if (fract >= 10.) severity=SEVERE;
+                                else if (fract > 1.) severity=TOLERABLE;
+                              }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("DMB-Input FIFO Full: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
                             // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
@@ -192,9 +206,10 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   me2 = findME("EMU", "DMB_input_timeout",  sourcedir);
   if (me && me2)
     {
-      TH2F* h1 = dynamic_cast<TH2F*>(me);
-      TH2F* h2 = dynamic_cast<TH2F*>(me2);
+      TH2F* h1 = reinterpret_cast<TH2F*>(me);
+      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
           {
@@ -206,13 +221,16 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t events =  uint32_t(h2->GetBinContent(i, j));
+                uint32_t csc_events = csc_stats[cscName];
 
                 float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                DQM_SEVERITY severity=MINOR;
+                if (csc_events>min_events)
+                  {
+                    if (fract >= 80.) severity=CRITICAL;
+                    else if (fract >= 10.) severity=SEVERE;
+                    else if (fract > 1.) severity=TOLERABLE;
+                  }
                 std::string diag=Form("DMB-Input Timeout: %d events (%.3f%%)",events, fract);
                 dqm_report.addEntry(cscName, entry.fillEntry(diag,severity, "CSC_WITH_INPUT_TIMEOUT"));
 
@@ -223,8 +241,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 if (me3 && me4)
                   {
 
-                    TH2F* h3 = dynamic_cast<TH2F*>(me3);
-                    TH2F* h4 = dynamic_cast<TH2F*>(me4);
+                    TH2F* h3 = reinterpret_cast<TH2F*>(me3);
+                    TH2F* h4 = reinterpret_cast<TH2F*>(me4);
 
                     for (int err=8; err<int(h3->GetYaxis()->GetXmax())-2; err++)
                       {
@@ -234,11 +252,13 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
                             float fract=z*100;
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
+                            DQM_SEVERITY severity=MINOR;
+                            if (csc_events>min_events)
+                              {
+                                if (fract >= 80.) severity=CRITICAL;
+                                else if (fract >= 10.) severity=SEVERE;
+                                else if (fract > 1.) severity=TOLERABLE;
+                              }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("DMB-Input Timeout: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
                             // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
@@ -256,8 +276,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   me = findME("EMU", "DMB_wo_ALCT_Fract",  sourcedir);
   if (me)
     {
-      TH2F* h = dynamic_cast<TH2F*>(me);
+      TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -267,10 +288,20 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 csc_cntr++;
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
                 float fract=z*100;
-                std::string diag=Form("No ALCT Data: %.1f%%",fract);
+                if (csc_events>min_events)
+                  {
+                    std::string diag=Form("No ALCT Data: %.1f%%",fract);
 
-                dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
+                  }
+                else
+                  {
+                    std::string diag=Form("No ALCT Data (low stats): %.1f%%",fract);
+
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_WITHOUT_ALCT"));
+                  }
               }
 
           }
@@ -280,8 +311,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   me = findME("EMU", "DMB_wo_CLCT_Fract",  sourcedir);
   if (me)
     {
-      TH2F* h = dynamic_cast<TH2F*>(me);
+      TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -291,10 +323,20 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 csc_cntr++;
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
                 float fract=z*100;
-                std::string diag=Form("No CLCT Data: %.1f%%",fract);
+                if (csc_events>min_events)
+                  {
+                    std::string diag=Form("No CLCT Data: %.1f%%",fract);
 
-                dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
+                  }
+                else
+                  {
+                    std::string diag=Form("No CLCT Data (low stats): %.1f%%",fract);
+
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CLCT"));
+                  }
               }
 
           }
@@ -304,8 +346,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   me = findME("EMU", "DMB_wo_CFEB_Fract",  sourcedir);
   if (me)
     {
-      TH2F* h = dynamic_cast<TH2F*>(me);
+      TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -315,10 +358,20 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 csc_cntr++;
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
                 float fract=z*100;
-                std::string diag=Form("No CFEB Data: %.1f%%",fract);
+                if (csc_events>min_events)
+                  {
+                    std::string diag=Form("No CFEB Data: %.1f%%",fract);
 
-                dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
+                  }
+                else
+                  {
+                    std::string diag=Form("No CFEB Data (low stats): %.1f%%",fract);
+
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CFEB"));
+                  }
               }
 
           }
@@ -330,9 +383,10 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   me2 = findME("EMU", "DMB_L1A_out_of_sync",  sourcedir);
   if (me)
     {
-      TH2F* h = dynamic_cast<TH2F*>(me);
-      TH2F* h2 = dynamic_cast<TH2F*>(me2);
+      TH2F* h = reinterpret_cast<TH2F*>(me);
+      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -343,12 +397,15 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 uint32_t events = uint32_t(h2->GetBinContent(i, j));
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
                 float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+		DQM_SEVERITY severity=MINOR;
+                if (csc_events>min_events)
+                  {
+                    if (fract >= 80.) severity=CRITICAL;
+                    else if (fract >= 10.) severity=SEVERE;
+                    else if (fract > 1.) severity=TOLERABLE;
+                  }
 
                 std::string diag=Form("L1A out of sync: %d events (%.3f%%)",events, fract);
 
@@ -372,7 +429,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                     me3 = findME(cscTag, l1a_histos[k].second,  sourcedir);
                     if (me3)
                       {
-                        TH1F* h3 = dynamic_cast<TH1F*>(me3);
+                        TH1F* h3 = reinterpret_cast<TH1F*>(me3);
                         if (h3->GetMean() != 0)
                           {
                             diag=Form("L1A out of sync: %s",(l1a_histos[k].first).c_str());
@@ -392,7 +449,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   for (uint32_t i=0; i<CSC_folders.size(); i++)
     {
       int crate=0, slot =0;
-      uint32_t min_events = 100;
+      uint32_t min_events = 300;
       //    std::cout << getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition) << std::endl;
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
       int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName);
@@ -408,7 +465,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
       // int deadALCT=0;
       if (csc_stats[cscName] < min_events)
         {
-          std::string diag=Form("Not enough events for occupancy checks (%d events, needs > %d)", csc_stats[cscName], min_events);
+          std::string diag=Form("Not enough events for per-CSC checks (%d events, needs > %d)", csc_stats[cscName], min_events);
           dqm_report.addEntry(cscName, entry.fillEntry(diag,NONE));
           continue;
         }
@@ -420,8 +477,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
       me2 = findME(CSC_folders[i], "Actual_DMB_CFEB_DAV_Rate",  sourcedir);
       if (me && me2)
         {
-          TH1F* h = dynamic_cast<TH1F*>(me);
-          // TH1F* h1 = dynamic_cast<TH1F*>(me2);
+          TH1F* h = reinterpret_cast<TH1F*>(me);
+          // TH1F* h1 = reinterpret_cast<TH1F*>(me2);
 
           if  ( h->GetEntries() > nCFEBs)
             {
@@ -432,19 +489,21 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                     {
                       //	    uint32_t events = uint32_t(h1->GetBinContent(icfeb+1));
 
-                      std::string diag=Form("CFEB Dead/Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                       if (z==0)
                         {
+                          std::string diag=Form("CFEB Dead: CFEB%d DAV %.3f%%", icfeb+1, z);
                           deadCFEBs[icfeb]=1;    // Mark this CFEB as dead
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_WITH_LOW_CFEB_DAV_EFF"));
                         }
                       else
                         {
+                          std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                           lowEffCFEBs[icfeb]=1;
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITH_LOW_CFEB_DAV_EFF"));
                         }
                       badCFEBs[icfeb]=1;
                       nbadCFEBs ++;
 
-                      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITH_LOW_CFEB_DAV_EFF"));
                     }
                 }
             }
@@ -463,7 +522,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
               me = findME(CSC_folders[i], name , sourcedir);
               if (me)
                 {
-                  TH1F* h = dynamic_cast<TH1F*>(me);
+                  TH1F* h = reinterpret_cast<TH1F*>(me);
                   int nentries = (int)h->GetEntries();
                   double allSCAsum = h->Integral();
                   std::vector<double> SCAsums;
@@ -490,7 +549,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                           if (cfeb_sca_sum == 0)
                             {
                               std::string diag=Form("CFEB No SCA Data: CFEB%d Layer%d", icfeb+1, ilayer);
-                              dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL,"CSC_CFEB_NO_SCA_DATA"));
+                              dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE,"CSC_CFEB_NO_SCA_DATA"));
                               noSCAs++;
                               // std::cout << cscName << " " << diag << std::endl;
                             }
@@ -516,7 +575,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                     {
                                       std::string diag=Form("CFEB Low SCA Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
                                                             (SCAsums[icfeb]/avg_sca_occupancy)*100., low_sca_thresh*100 );
-                                      dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_CFEB_SCA_LOW_EFF"));
+                                      dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE, "CSC_CFEB_SCA_LOW_EFF"));
                                       // std::cout << cscName << " "  << diag << std::endl;
                                       isLowEff = true;
                                     }
@@ -525,7 +584,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                     {
                                       std::string diag=Form("CFEB Noisy/Hot CFEB SCAs: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,
                                                             SCAsums[icfeb]/avg_sca_occupancy, high_sca_thresh);
-                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_SCA_NOISY"));
+                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_SCA_NOISY"));
                                       // std::cout << cscName << " " << diag << std::endl;
                                     }
 
@@ -536,7 +595,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                         {
                                           std::string diag = Form("CFEB Hot/Noisy SCA channel: CFEB%d Layer%d Ch#%d (occupancy %.1f times > average)", icfeb+1, ilayer, ch+icfeb*16,
                                                                   ch_val/avg_sca_ch_occupancy);
-                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_SCA_NOISY_CHANNEL"));
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_CFEB_SCA_NOISY_CHANNEL"));
                                           //					std::cout << cscName << " " << diag << std::endl;
                                         }
                                       /*
@@ -567,7 +626,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
               me = findME(CSC_folders[i], name , sourcedir);
               if (me)
                 {
-                  TH1F* h = dynamic_cast<TH1F*>(me);
+                  TH1F* h = reinterpret_cast<TH1F*>(me);
                   int nentries = (int)h->GetEntries();
                   double allCompsum = h->Integral();
                   std::vector<double> Compsums;
@@ -598,7 +657,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                             {
 
                               std::string diag=Form("CFEB No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);
-                              dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_NO_COMPARATORS_DATA"));
+                              dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_NO_COMPARATORS_DATA"));
                               noComps++;
                               // std::cout << cscName << " " << diag << std::endl;
                             }
@@ -625,7 +684,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                     {
                                       std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
                                                             (Compsums[icfeb]/avg_comp_occupancy)*100., low_comp_thresh*100 );
-                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
                                       // std::cout << cscName << " "  << diag << std::endl;
                                     }
 
@@ -633,7 +692,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                     {
                                       std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,
                                                             Compsums[icfeb]/avg_comp_occupancy, high_comp_thresh);
-                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_COMPARATORS_NOISY"));
+                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY"));
                                       //  std::cout << cscName << " " << diag << std::endl;
                                     }
 
@@ -645,7 +704,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                           std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)",
                                                                   icfeb+1, ilayer, ch+icfeb*32,
                                                                   ch_val/avg_comp_ch_occupancy);
-                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY_CHANNEL"));
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY_CHANNEL"));
                                           // std::cout << cscName << " " << diag << std::endl;
                                         }
                                       /*
@@ -675,27 +734,28 @@ int EmuPlotter::generateOnlineReport(std::string runname)
           me = findME(CSC_folders[i], name , sourcedir);
           if (me)
             {
-              TH1F* h = dynamic_cast<TH1F*>(me);
+              TH1F* h = reinterpret_cast<TH1F*>(me);
               // if (h->GetEntries() > nWireGroups) {
+	      vector<uint32_t> no_hv_segments;
               if (h->GetMaximum() > 0.1)
                 {
+		  for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++)
+                    {
+                      if (h->Integral(hvSegMap[hvseg].first+1, hvSegMap[hvseg].second+1) == 0)
+                        {
+                          std::string diag=Form("No HV: Segment%d Layer%d", hvseg+1, ilayer);
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
+			  no_hv_segments.push_back(hvseg);
+                          // std::cout << cscName << " " << diag << std::endl;
+                        }
+                    }
                   for (int32_t iseg=0; iseg < nWireGroups/8; iseg++)
                     {
                       if (h->Integral(iseg*8+1+1, (iseg+1)*8+1) == 0)
                         {
                           int afeb = iseg*3+(ilayer+1)/2;
                           std::string diag=Form("ALCT No Anode Data: AFEB%d Layer%d", afeb, ilayer);
-                          dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_ALCT_NO_ANODE_DATA"));
-                        }
-                    }
-
-                  for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++)
-                    {
-                      if (h->Integral(hvSegMap[hvseg].first+1, hvSegMap[hvseg].second+1) == 0)
-                        {
-                          std::string diag=Form("No HV: Segment%d Layer%d", hvseg+1, ilayer);
-                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_NO_HV_SEGMENT"));
-                          // std::cout << cscName << " " << diag << std::endl;
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_NO_ANODE_DATA"));
                         }
                     }
 
@@ -712,8 +772,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   me2 = findME("EMU", "DMB_Format_Warnings",  sourcedir);
   if (me)
     {
-      TH2F* h = dynamic_cast<TH2F*>(me);
-      TH2F* h2 = dynamic_cast<TH2F*>(me2);
+      TH2F* h = reinterpret_cast<TH2F*>(me);
+      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)

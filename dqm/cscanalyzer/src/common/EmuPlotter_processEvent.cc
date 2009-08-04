@@ -57,7 +57,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
     {
       if (errorStat != 0)
         {
-          LOG4CPLUS_WARN(logger_,eTag << "Readout Errors: 0x" << std::hex << errorStat << " mask 0x" << dduCheckMask);
+          if (debug) LOG4CPLUS_WARN(logger_,eTag << "Readout Errors: 0x" << std::hex << errorStat << " mask 0x" << dduCheckMask);
           mo->Fill(nodeNumber,1);
           for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(nodeNumber,i+2);
         }
@@ -148,7 +148,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   if (BinaryErrorStatus != 0)
     {
-      LOG4CPLUS_WARN(logger_,eTag << "Format Errors DDU level: 0x" << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask << std::dec << " evtSize:"<<  evtSize);
+      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Errors DDU level: 0x" << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask << std::dec << " evtSize:"<<  evtSize);
       /*
         if (isMEvalid(nodeME, "BinaryChecker_Errors", mo)) {
         for(int i=0; i<bin_checker.nERRORS; i++) { // run over all errors
@@ -166,7 +166,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   if (BinaryWarningStatus != 0)
     {
-      LOG4CPLUS_WARN(logger_,eTag << "Format Warnings DDU level: 0x"
+      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Warnings DDU level: 0x"
                      << std::hex << BinaryWarningStatus)
       /*
       if (isMEvalid(nodeME, "BinaryChecker_Warnings", mo)) {
@@ -188,14 +188,14 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   //	Accept or deny event according to DDU Readout Error and dduCheckMask
   if (((uint32_t)errorStat & dduCheckMask) > 0)
     {
-      LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Readout Error");
+      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Readout Error");
       EventDenied = true;
     }
 
   // if ((BinaryErrorStatus & binCheckMask)>0) {
   if ((BinaryErrorStatus & dduBinCheckMask)>0)
     {
-      LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Format Error");
+      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Format Error");
       EventDenied = true;
     }
 
@@ -236,7 +236,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   CSCDDUTrailer dduTrailer = dduData.trailer();
   if (!dduTrailer.check())
     {
-      LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Trailer check failed.");
+      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Trailer check failed.");
       appBSem_.give();
       return;
     }
@@ -924,7 +924,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
 
       if (CrateID>60 || DMBSlot>10)
         {
-          LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
+          if (debug) LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
           continue;
         }
 
@@ -966,7 +966,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       if (isCSCError)
         {
 
-          LOG4CPLUS_WARN(logger_,eTag << "Format Errors "<< cscTag << ": 0x" << std::hex << chamber->second);
+          if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Errors "<< cscTag << ": 0x" << std::hex << chamber->second);
 
           if (isMEvalid(nodeME, "DMB_Format_Errors", mo))
             {

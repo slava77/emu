@@ -101,6 +101,20 @@ std::vector< std::pair<int,int> > getHVSegmentsMap(std::string cscID)
 
 }
 
+int getHVSegmentNumber(std::string cscID, uint32_t aseg)
+{
+  std::vector< std::pair<int,int> > hvSegMap = getHVSegmentsMap(cscID);
+  int first_wire = aseg*8+1;
+  for (uint32_t i=0; i<hvSegMap.size(); i++)
+    {
+      if ( (first_wire >= hvSegMap[i].first)
+           && (first_wire < hvSegMap[i].second) )
+        return i;
+    }
+  return -1;
+
+}
+
 bool isME11(std::string cscID)
 {
   if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 ))
