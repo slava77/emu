@@ -358,596 +358,596 @@
     <view label="Endcap +">
       <view label="Station 1">
 	<view label="Ring 1">
-	  <guard label="ME+1/1/01" tag="chamber[ ]+ME\+1/1/01"/> 
-	  <guard label="ME+1/1/02" tag="chamber[ ]+ME\+1/1/02"/> 
-	  <guard label="ME+1/1/03" tag="chamber[ ]+ME\+1/1/03"/> 
-	  <guard label="ME+1/1/04" tag="chamber[ ]+ME\+1/1/04"/> 
-	  <guard label="ME+1/1/05" tag="chamber[ ]+ME\+1/1/05"/> 
-	  <guard label="ME+1/1/06" tag="chamber[ ]+ME\+1/1/06"/> 
-	  <guard label="ME+1/1/07" tag="chamber[ ]+ME\+1/1/07"/> 
-	  <guard label="ME+1/1/08" tag="chamber[ ]+ME\+1/1/08"/> 
-	  <guard label="ME+1/1/09" tag="chamber[ ]+ME\+1/1/09"/> 
-	  <guard label="ME+1/1/10" tag="chamber[ ]+ME\+1/1/10"/> 
-	  <guard label="ME+1/1/11" tag="chamber[ ]+ME\+1/1/11"/> 
-	  <guard label="ME+1/1/12" tag="chamber[ ]+ME\+1/1/12"/> 
-	  <guard label="ME+1/1/13" tag="chamber[ ]+ME\+1/1/13"/> 
-	  <guard label="ME+1/1/14" tag="chamber[ ]+ME\+1/1/14"/> 
-	  <guard label="ME+1/1/15" tag="chamber[ ]+ME\+1/1/15"/> 
-	  <guard label="ME+1/1/16" tag="chamber[ ]+ME\+1/1/16"/> 
-	  <guard label="ME+1/1/17" tag="chamber[ ]+ME\+1/1/17"/> 
-	  <guard label="ME+1/1/18" tag="chamber[ ]+ME\+1/1/18"/> 
-	  <guard label="ME+1/1/19" tag="chamber[ ]+ME\+1/1/19"/> 
-	  <guard label="ME+1/1/20" tag="chamber[ ]+ME\+1/1/20"/> 
-	  <guard label="ME+1/1/21" tag="chamber[ ]+ME\+1/1/21"/> 
-	  <guard label="ME+1/1/22" tag="chamber[ ]+ME\+1/1/22"/> 
-	  <guard label="ME+1/1/23" tag="chamber[ ]+ME\+1/1/23"/> 
-	  <guard label="ME+1/1/24" tag="chamber[ ]+ME\+1/1/24"/> 
-	  <guard label="ME+1/1/25" tag="chamber[ ]+ME\+1/1/25"/> 
-	  <guard label="ME+1/1/26" tag="chamber[ ]+ME\+1/1/26"/> 
-	  <guard label="ME+1/1/27" tag="chamber[ ]+ME\+1/1/27"/> 
-	  <guard label="ME+1/1/28" tag="chamber[ ]+ME\+1/1/28"/> 
-	  <guard label="ME+1/1/29" tag="chamber[ ]+ME\+1/1/29"/> 
-	  <guard label="ME+1/1/30" tag="chamber[ ]+ME\+1/1/30"/> 
-	  <guard label="ME+1/1/31" tag="chamber[ ]+ME\+1/1/31"/> 
-	  <guard label="ME+1/1/32" tag="chamber[ ]+ME\+1/1/32"/> 
-	  <guard label="ME+1/1/33" tag="chamber[ ]+ME\+1/1/33"/> 
-	  <guard label="ME+1/1/34" tag="chamber[ ]+ME\+1/1/34"/> 
-	  <guard label="ME+1/1/35" tag="chamber[ ]+ME\+1/1/35"/> 
-	  <guard label="ME+1/1/36" tag="chamber[ ]+ME\+1/1/36"/> 
+	  <guard label="ME+1/1/01" tag="chamber[ ]+(ME)?\+1/1/01"/> 
+	  <guard label="ME+1/1/02" tag="chamber[ ]+(ME)?\+1/1/02"/> 
+	  <guard label="ME+1/1/03" tag="chamber[ ]+(ME)?\+1/1/03"/> 
+	  <guard label="ME+1/1/04" tag="chamber[ ]+(ME)?\+1/1/04"/> 
+	  <guard label="ME+1/1/05" tag="chamber[ ]+(ME)?\+1/1/05"/> 
+	  <guard label="ME+1/1/06" tag="chamber[ ]+(ME)?\+1/1/06"/> 
+	  <guard label="ME+1/1/07" tag="chamber[ ]+(ME)?\+1/1/07"/> 
+	  <guard label="ME+1/1/08" tag="chamber[ ]+(ME)?\+1/1/08"/> 
+	  <guard label="ME+1/1/09" tag="chamber[ ]+(ME)?\+1/1/09"/> 
+	  <guard label="ME+1/1/10" tag="chamber[ ]+(ME)?\+1/1/10"/> 
+	  <guard label="ME+1/1/11" tag="chamber[ ]+(ME)?\+1/1/11"/> 
+	  <guard label="ME+1/1/12" tag="chamber[ ]+(ME)?\+1/1/12"/> 
+	  <guard label="ME+1/1/13" tag="chamber[ ]+(ME)?\+1/1/13"/> 
+	  <guard label="ME+1/1/14" tag="chamber[ ]+(ME)?\+1/1/14"/> 
+	  <guard label="ME+1/1/15" tag="chamber[ ]+(ME)?\+1/1/15"/> 
+	  <guard label="ME+1/1/16" tag="chamber[ ]+(ME)?\+1/1/16"/> 
+	  <guard label="ME+1/1/17" tag="chamber[ ]+(ME)?\+1/1/17"/> 
+	  <guard label="ME+1/1/18" tag="chamber[ ]+(ME)?\+1/1/18"/> 
+	  <guard label="ME+1/1/19" tag="chamber[ ]+(ME)?\+1/1/19"/> 
+	  <guard label="ME+1/1/20" tag="chamber[ ]+(ME)?\+1/1/20"/> 
+	  <guard label="ME+1/1/21" tag="chamber[ ]+(ME)?\+1/1/21"/> 
+	  <guard label="ME+1/1/22" tag="chamber[ ]+(ME)?\+1/1/22"/> 
+	  <guard label="ME+1/1/23" tag="chamber[ ]+(ME)?\+1/1/23"/> 
+	  <guard label="ME+1/1/24" tag="chamber[ ]+(ME)?\+1/1/24"/> 
+	  <guard label="ME+1/1/25" tag="chamber[ ]+(ME)?\+1/1/25"/> 
+	  <guard label="ME+1/1/26" tag="chamber[ ]+(ME)?\+1/1/26"/> 
+	  <guard label="ME+1/1/27" tag="chamber[ ]+(ME)?\+1/1/27"/> 
+	  <guard label="ME+1/1/28" tag="chamber[ ]+(ME)?\+1/1/28"/> 
+	  <guard label="ME+1/1/29" tag="chamber[ ]+(ME)?\+1/1/29"/> 
+	  <guard label="ME+1/1/30" tag="chamber[ ]+(ME)?\+1/1/30"/> 
+	  <guard label="ME+1/1/31" tag="chamber[ ]+(ME)?\+1/1/31"/> 
+	  <guard label="ME+1/1/32" tag="chamber[ ]+(ME)?\+1/1/32"/> 
+	  <guard label="ME+1/1/33" tag="chamber[ ]+(ME)?\+1/1/33"/> 
+	  <guard label="ME+1/1/34" tag="chamber[ ]+(ME)?\+1/1/34"/> 
+	  <guard label="ME+1/1/35" tag="chamber[ ]+(ME)?\+1/1/35"/> 
+	  <guard label="ME+1/1/36" tag="chamber[ ]+(ME)?\+1/1/36"/> 
 	</view>
 	<view label="Ring 2">
-	  <guard label="ME+1/2/01" tag="chamber[ ]+ME\+1/2/01"/> 
-	  <guard label="ME+1/2/02" tag="chamber[ ]+ME\+1/2/02"/> 
-	  <guard label="ME+1/2/03" tag="chamber[ ]+ME\+1/2/03"/> 
-	  <guard label="ME+1/2/04" tag="chamber[ ]+ME\+1/2/04"/> 
-	  <guard label="ME+1/2/05" tag="chamber[ ]+ME\+1/2/05"/> 
-	  <guard label="ME+1/2/06" tag="chamber[ ]+ME\+1/2/06"/> 
-	  <guard label="ME+1/2/07" tag="chamber[ ]+ME\+1/2/07"/> 
-	  <guard label="ME+1/2/08" tag="chamber[ ]+ME\+1/2/08"/> 
-	  <guard label="ME+1/2/09" tag="chamber[ ]+ME\+1/2/09"/> 
-	  <guard label="ME+1/2/10" tag="chamber[ ]+ME\+1/2/10"/> 
-	  <guard label="ME+1/2/11" tag="chamber[ ]+ME\+1/2/11"/> 
-	  <guard label="ME+1/2/12" tag="chamber[ ]+ME\+1/2/12"/> 
-	  <guard label="ME+1/2/13" tag="chamber[ ]+ME\+1/2/13"/> 
-	  <guard label="ME+1/2/14" tag="chamber[ ]+ME\+1/2/14"/> 
-	  <guard label="ME+1/2/15" tag="chamber[ ]+ME\+1/2/15"/> 
-	  <guard label="ME+1/2/16" tag="chamber[ ]+ME\+1/2/16"/> 
-	  <guard label="ME+1/2/17" tag="chamber[ ]+ME\+1/2/17"/> 
-	  <guard label="ME+1/2/18" tag="chamber[ ]+ME\+1/2/18"/> 
-	  <guard label="ME+1/2/19" tag="chamber[ ]+ME\+1/2/19"/> 
-	  <guard label="ME+1/2/20" tag="chamber[ ]+ME\+1/2/20"/> 
-	  <guard label="ME+1/2/21" tag="chamber[ ]+ME\+1/2/21"/> 
-	  <guard label="ME+1/2/22" tag="chamber[ ]+ME\+1/2/22"/> 
-	  <guard label="ME+1/2/23" tag="chamber[ ]+ME\+1/2/23"/> 
-	  <guard label="ME+1/2/24" tag="chamber[ ]+ME\+1/2/24"/> 
-	  <guard label="ME+1/2/25" tag="chamber[ ]+ME\+1/2/25"/> 
-	  <guard label="ME+1/2/26" tag="chamber[ ]+ME\+1/2/26"/> 
-	  <guard label="ME+1/2/27" tag="chamber[ ]+ME\+1/2/27"/> 
-	  <guard label="ME+1/2/28" tag="chamber[ ]+ME\+1/2/28"/> 
-	  <guard label="ME+1/2/29" tag="chamber[ ]+ME\+1/2/29"/> 
-	  <guard label="ME+1/2/30" tag="chamber[ ]+ME\+1/2/30"/> 
-	  <guard label="ME+1/2/31" tag="chamber[ ]+ME\+1/2/31"/> 
-	  <guard label="ME+1/2/32" tag="chamber[ ]+ME\+1/2/32"/> 
-	  <guard label="ME+1/2/33" tag="chamber[ ]+ME\+1/2/33"/> 
-	  <guard label="ME+1/2/34" tag="chamber[ ]+ME\+1/2/34"/> 
-	  <guard label="ME+1/2/35" tag="chamber[ ]+ME\+1/2/35"/> 
-	  <guard label="ME+1/2/36" tag="chamber[ ]+ME\+1/2/36"/> 
+	  <guard label="ME+1/2/01" tag="chamber[ ]+(ME)?\+1/2/01"/> 
+	  <guard label="ME+1/2/02" tag="chamber[ ]+(ME)?\+1/2/02"/> 
+	  <guard label="ME+1/2/03" tag="chamber[ ]+(ME)?\+1/2/03"/> 
+	  <guard label="ME+1/2/04" tag="chamber[ ]+(ME)?\+1/2/04"/> 
+	  <guard label="ME+1/2/05" tag="chamber[ ]+(ME)?\+1/2/05"/> 
+	  <guard label="ME+1/2/06" tag="chamber[ ]+(ME)?\+1/2/06"/> 
+	  <guard label="ME+1/2/07" tag="chamber[ ]+(ME)?\+1/2/07"/> 
+	  <guard label="ME+1/2/08" tag="chamber[ ]+(ME)?\+1/2/08"/> 
+	  <guard label="ME+1/2/09" tag="chamber[ ]+(ME)?\+1/2/09"/> 
+	  <guard label="ME+1/2/10" tag="chamber[ ]+(ME)?\+1/2/10"/> 
+	  <guard label="ME+1/2/11" tag="chamber[ ]+(ME)?\+1/2/11"/> 
+	  <guard label="ME+1/2/12" tag="chamber[ ]+(ME)?\+1/2/12"/> 
+	  <guard label="ME+1/2/13" tag="chamber[ ]+(ME)?\+1/2/13"/> 
+	  <guard label="ME+1/2/14" tag="chamber[ ]+(ME)?\+1/2/14"/> 
+	  <guard label="ME+1/2/15" tag="chamber[ ]+(ME)?\+1/2/15"/> 
+	  <guard label="ME+1/2/16" tag="chamber[ ]+(ME)?\+1/2/16"/> 
+	  <guard label="ME+1/2/17" tag="chamber[ ]+(ME)?\+1/2/17"/> 
+	  <guard label="ME+1/2/18" tag="chamber[ ]+(ME)?\+1/2/18"/> 
+	  <guard label="ME+1/2/19" tag="chamber[ ]+(ME)?\+1/2/19"/> 
+	  <guard label="ME+1/2/20" tag="chamber[ ]+(ME)?\+1/2/20"/> 
+	  <guard label="ME+1/2/21" tag="chamber[ ]+(ME)?\+1/2/21"/> 
+	  <guard label="ME+1/2/22" tag="chamber[ ]+(ME)?\+1/2/22"/> 
+	  <guard label="ME+1/2/23" tag="chamber[ ]+(ME)?\+1/2/23"/> 
+	  <guard label="ME+1/2/24" tag="chamber[ ]+(ME)?\+1/2/24"/> 
+	  <guard label="ME+1/2/25" tag="chamber[ ]+(ME)?\+1/2/25"/> 
+	  <guard label="ME+1/2/26" tag="chamber[ ]+(ME)?\+1/2/26"/> 
+	  <guard label="ME+1/2/27" tag="chamber[ ]+(ME)?\+1/2/27"/> 
+	  <guard label="ME+1/2/28" tag="chamber[ ]+(ME)?\+1/2/28"/> 
+	  <guard label="ME+1/2/29" tag="chamber[ ]+(ME)?\+1/2/29"/> 
+	  <guard label="ME+1/2/30" tag="chamber[ ]+(ME)?\+1/2/30"/> 
+	  <guard label="ME+1/2/31" tag="chamber[ ]+(ME)?\+1/2/31"/> 
+	  <guard label="ME+1/2/32" tag="chamber[ ]+(ME)?\+1/2/32"/> 
+	  <guard label="ME+1/2/33" tag="chamber[ ]+(ME)?\+1/2/33"/> 
+	  <guard label="ME+1/2/34" tag="chamber[ ]+(ME)?\+1/2/34"/> 
+	  <guard label="ME+1/2/35" tag="chamber[ ]+(ME)?\+1/2/35"/> 
+	  <guard label="ME+1/2/36" tag="chamber[ ]+(ME)?\+1/2/36"/> 
 	</view>
 	<view label="Ring 3">
-	  <guard label="ME+1/3/01" tag="chamber[ ]+ME\+1/3/01"/> 
-	  <guard label="ME+1/3/02" tag="chamber[ ]+ME\+1/3/02"/> 
-	  <guard label="ME+1/3/03" tag="chamber[ ]+ME\+1/3/03"/> 
-	  <guard label="ME+1/3/04" tag="chamber[ ]+ME\+1/3/04"/> 
-	  <guard label="ME+1/3/05" tag="chamber[ ]+ME\+1/3/05"/> 
-	  <guard label="ME+1/3/06" tag="chamber[ ]+ME\+1/3/06"/> 
-	  <guard label="ME+1/3/07" tag="chamber[ ]+ME\+1/3/07"/> 
-	  <guard label="ME+1/3/08" tag="chamber[ ]+ME\+1/3/08"/> 
-	  <guard label="ME+1/3/09" tag="chamber[ ]+ME\+1/3/09"/> 
-	  <guard label="ME+1/3/10" tag="chamber[ ]+ME\+1/3/10"/> 
-	  <guard label="ME+1/3/11" tag="chamber[ ]+ME\+1/3/11"/> 
-	  <guard label="ME+1/3/12" tag="chamber[ ]+ME\+1/3/12"/> 
-	  <guard label="ME+1/3/13" tag="chamber[ ]+ME\+1/3/13"/> 
-	  <guard label="ME+1/3/14" tag="chamber[ ]+ME\+1/3/14"/> 
-	  <guard label="ME+1/3/15" tag="chamber[ ]+ME\+1/3/15"/> 
-	  <guard label="ME+1/3/16" tag="chamber[ ]+ME\+1/3/16"/> 
-	  <guard label="ME+1/3/17" tag="chamber[ ]+ME\+1/3/17"/> 
-	  <guard label="ME+1/3/18" tag="chamber[ ]+ME\+1/3/18"/> 
-	  <guard label="ME+1/3/19" tag="chamber[ ]+ME\+1/3/19"/> 
-	  <guard label="ME+1/3/20" tag="chamber[ ]+ME\+1/3/20"/> 
-	  <guard label="ME+1/3/21" tag="chamber[ ]+ME\+1/3/21"/> 
-	  <guard label="ME+1/3/22" tag="chamber[ ]+ME\+1/3/22"/> 
-	  <guard label="ME+1/3/23" tag="chamber[ ]+ME\+1/3/23"/> 
-	  <guard label="ME+1/3/24" tag="chamber[ ]+ME\+1/3/24"/> 
-	  <guard label="ME+1/3/25" tag="chamber[ ]+ME\+1/3/25"/> 
-	  <guard label="ME+1/3/26" tag="chamber[ ]+ME\+1/3/26"/> 
-	  <guard label="ME+1/3/27" tag="chamber[ ]+ME\+1/3/27"/> 
-	  <guard label="ME+1/3/28" tag="chamber[ ]+ME\+1/3/28"/> 
-	  <guard label="ME+1/3/29" tag="chamber[ ]+ME\+1/3/29"/> 
-	  <guard label="ME+1/3/30" tag="chamber[ ]+ME\+1/3/30"/> 
-	  <guard label="ME+1/3/31" tag="chamber[ ]+ME\+1/3/31"/> 
-	  <guard label="ME+1/3/32" tag="chamber[ ]+ME\+1/3/32"/> 
-	  <guard label="ME+1/3/33" tag="chamber[ ]+ME\+1/3/33"/> 
-	  <guard label="ME+1/3/34" tag="chamber[ ]+ME\+1/3/34"/> 
-	  <guard label="ME+1/3/35" tag="chamber[ ]+ME\+1/3/35"/> 
-	  <guard label="ME+1/3/36" tag="chamber[ ]+ME\+1/3/36"/> 
+	  <guard label="ME+1/3/01" tag="chamber[ ]+(ME)?\+1/3/01"/> 
+	  <guard label="ME+1/3/02" tag="chamber[ ]+(ME)?\+1/3/02"/> 
+	  <guard label="ME+1/3/03" tag="chamber[ ]+(ME)?\+1/3/03"/> 
+	  <guard label="ME+1/3/04" tag="chamber[ ]+(ME)?\+1/3/04"/> 
+	  <guard label="ME+1/3/05" tag="chamber[ ]+(ME)?\+1/3/05"/> 
+	  <guard label="ME+1/3/06" tag="chamber[ ]+(ME)?\+1/3/06"/> 
+	  <guard label="ME+1/3/07" tag="chamber[ ]+(ME)?\+1/3/07"/> 
+	  <guard label="ME+1/3/08" tag="chamber[ ]+(ME)?\+1/3/08"/> 
+	  <guard label="ME+1/3/09" tag="chamber[ ]+(ME)?\+1/3/09"/> 
+	  <guard label="ME+1/3/10" tag="chamber[ ]+(ME)?\+1/3/10"/> 
+	  <guard label="ME+1/3/11" tag="chamber[ ]+(ME)?\+1/3/11"/> 
+	  <guard label="ME+1/3/12" tag="chamber[ ]+(ME)?\+1/3/12"/> 
+	  <guard label="ME+1/3/13" tag="chamber[ ]+(ME)?\+1/3/13"/> 
+	  <guard label="ME+1/3/14" tag="chamber[ ]+(ME)?\+1/3/14"/> 
+	  <guard label="ME+1/3/15" tag="chamber[ ]+(ME)?\+1/3/15"/> 
+	  <guard label="ME+1/3/16" tag="chamber[ ]+(ME)?\+1/3/16"/> 
+	  <guard label="ME+1/3/17" tag="chamber[ ]+(ME)?\+1/3/17"/> 
+	  <guard label="ME+1/3/18" tag="chamber[ ]+(ME)?\+1/3/18"/> 
+	  <guard label="ME+1/3/19" tag="chamber[ ]+(ME)?\+1/3/19"/> 
+	  <guard label="ME+1/3/20" tag="chamber[ ]+(ME)?\+1/3/20"/> 
+	  <guard label="ME+1/3/21" tag="chamber[ ]+(ME)?\+1/3/21"/> 
+	  <guard label="ME+1/3/22" tag="chamber[ ]+(ME)?\+1/3/22"/> 
+	  <guard label="ME+1/3/23" tag="chamber[ ]+(ME)?\+1/3/23"/> 
+	  <guard label="ME+1/3/24" tag="chamber[ ]+(ME)?\+1/3/24"/> 
+	  <guard label="ME+1/3/25" tag="chamber[ ]+(ME)?\+1/3/25"/> 
+	  <guard label="ME+1/3/26" tag="chamber[ ]+(ME)?\+1/3/26"/> 
+	  <guard label="ME+1/3/27" tag="chamber[ ]+(ME)?\+1/3/27"/> 
+	  <guard label="ME+1/3/28" tag="chamber[ ]+(ME)?\+1/3/28"/> 
+	  <guard label="ME+1/3/29" tag="chamber[ ]+(ME)?\+1/3/29"/> 
+	  <guard label="ME+1/3/30" tag="chamber[ ]+(ME)?\+1/3/30"/> 
+	  <guard label="ME+1/3/31" tag="chamber[ ]+(ME)?\+1/3/31"/> 
+	  <guard label="ME+1/3/32" tag="chamber[ ]+(ME)?\+1/3/32"/> 
+	  <guard label="ME+1/3/33" tag="chamber[ ]+(ME)?\+1/3/33"/> 
+	  <guard label="ME+1/3/34" tag="chamber[ ]+(ME)?\+1/3/34"/> 
+	  <guard label="ME+1/3/35" tag="chamber[ ]+(ME)?\+1/3/35"/> 
+	  <guard label="ME+1/3/36" tag="chamber[ ]+(ME)?\+1/3/36"/> 
 	</view>
       </view>
       <view label="Station 2">
 	<view label="Ring 1">
-	  <guard label="ME+2/1/01" tag="chamber[ ]+ME\+2/1/01"/> 
-	  <guard label="ME+2/1/02" tag="chamber[ ]+ME\+2/1/02"/> 
-	  <guard label="ME+2/1/03" tag="chamber[ ]+ME\+2/1/03"/> 
-	  <guard label="ME+2/1/04" tag="chamber[ ]+ME\+2/1/04"/> 
-	  <guard label="ME+2/1/05" tag="chamber[ ]+ME\+2/1/05"/> 
-	  <guard label="ME+2/1/06" tag="chamber[ ]+ME\+2/1/06"/> 
-	  <guard label="ME+2/1/07" tag="chamber[ ]+ME\+2/1/07"/> 
-	  <guard label="ME+2/1/08" tag="chamber[ ]+ME\+2/1/08"/> 
-	  <guard label="ME+2/1/09" tag="chamber[ ]+ME\+2/1/09"/> 
-	  <guard label="ME+2/1/10" tag="chamber[ ]+ME\+2/1/10"/> 
-	  <guard label="ME+2/1/11" tag="chamber[ ]+ME\+2/1/11"/> 
-	  <guard label="ME+2/1/12" tag="chamber[ ]+ME\+2/1/12"/> 
-	  <guard label="ME+2/1/13" tag="chamber[ ]+ME\+2/1/13"/> 
-	  <guard label="ME+2/1/14" tag="chamber[ ]+ME\+2/1/14"/> 
-	  <guard label="ME+2/1/15" tag="chamber[ ]+ME\+2/1/15"/> 
-	  <guard label="ME+2/1/16" tag="chamber[ ]+ME\+2/1/16"/> 
-	  <guard label="ME+2/1/17" tag="chamber[ ]+ME\+2/1/17"/> 
-	  <guard label="ME+2/1/18" tag="chamber[ ]+ME\+2/1/18"/> 
+	  <guard label="ME+2/1/01" tag="chamber[ ]+(ME)?\+2/1/01"/> 
+	  <guard label="ME+2/1/02" tag="chamber[ ]+(ME)?\+2/1/02"/> 
+	  <guard label="ME+2/1/03" tag="chamber[ ]+(ME)?\+2/1/03"/> 
+	  <guard label="ME+2/1/04" tag="chamber[ ]+(ME)?\+2/1/04"/> 
+	  <guard label="ME+2/1/05" tag="chamber[ ]+(ME)?\+2/1/05"/> 
+	  <guard label="ME+2/1/06" tag="chamber[ ]+(ME)?\+2/1/06"/> 
+	  <guard label="ME+2/1/07" tag="chamber[ ]+(ME)?\+2/1/07"/> 
+	  <guard label="ME+2/1/08" tag="chamber[ ]+(ME)?\+2/1/08"/> 
+	  <guard label="ME+2/1/09" tag="chamber[ ]+(ME)?\+2/1/09"/> 
+	  <guard label="ME+2/1/10" tag="chamber[ ]+(ME)?\+2/1/10"/> 
+	  <guard label="ME+2/1/11" tag="chamber[ ]+(ME)?\+2/1/11"/> 
+	  <guard label="ME+2/1/12" tag="chamber[ ]+(ME)?\+2/1/12"/> 
+	  <guard label="ME+2/1/13" tag="chamber[ ]+(ME)?\+2/1/13"/> 
+	  <guard label="ME+2/1/14" tag="chamber[ ]+(ME)?\+2/1/14"/> 
+	  <guard label="ME+2/1/15" tag="chamber[ ]+(ME)?\+2/1/15"/> 
+	  <guard label="ME+2/1/16" tag="chamber[ ]+(ME)?\+2/1/16"/> 
+	  <guard label="ME+2/1/17" tag="chamber[ ]+(ME)?\+2/1/17"/> 
+	  <guard label="ME+2/1/18" tag="chamber[ ]+(ME)?\+2/1/18"/> 
 	</view>
 	<view label="Ring 2">
-	  <guard label="ME+2/2/01" tag="chamber[ ]+ME\+2/2/01"/> 
-	  <guard label="ME+2/2/02" tag="chamber[ ]+ME\+2/2/02"/> 
-	  <guard label="ME+2/2/03" tag="chamber[ ]+ME\+2/2/03"/> 
-	  <guard label="ME+2/2/04" tag="chamber[ ]+ME\+2/2/04"/> 
-	  <guard label="ME+2/2/05" tag="chamber[ ]+ME\+2/2/05"/> 
-	  <guard label="ME+2/2/06" tag="chamber[ ]+ME\+2/2/06"/> 
-	  <guard label="ME+2/2/07" tag="chamber[ ]+ME\+2/2/07"/> 
-	  <guard label="ME+2/2/08" tag="chamber[ ]+ME\+2/2/08"/> 
-	  <guard label="ME+2/2/09" tag="chamber[ ]+ME\+2/2/09"/> 
-	  <guard label="ME+2/2/10" tag="chamber[ ]+ME\+2/2/10"/> 
-	  <guard label="ME+2/2/11" tag="chamber[ ]+ME\+2/2/11"/> 
-	  <guard label="ME+2/2/12" tag="chamber[ ]+ME\+2/2/12"/> 
-	  <guard label="ME+2/2/13" tag="chamber[ ]+ME\+2/2/13"/> 
-	  <guard label="ME+2/2/14" tag="chamber[ ]+ME\+2/2/14"/> 
-	  <guard label="ME+2/2/15" tag="chamber[ ]+ME\+2/2/15"/> 
-	  <guard label="ME+2/2/16" tag="chamber[ ]+ME\+2/2/16"/> 
-	  <guard label="ME+2/2/17" tag="chamber[ ]+ME\+2/2/17"/> 
-	  <guard label="ME+2/2/18" tag="chamber[ ]+ME\+2/2/18"/> 
-	  <guard label="ME+2/2/19" tag="chamber[ ]+ME\+2/2/19"/> 
-	  <guard label="ME+2/2/20" tag="chamber[ ]+ME\+2/2/20"/> 
-	  <guard label="ME+2/2/21" tag="chamber[ ]+ME\+2/2/21"/> 
-	  <guard label="ME+2/2/22" tag="chamber[ ]+ME\+2/2/22"/> 
-	  <guard label="ME+2/2/23" tag="chamber[ ]+ME\+2/2/23"/> 
-	  <guard label="ME+2/2/24" tag="chamber[ ]+ME\+2/2/24"/> 
-	  <guard label="ME+2/2/25" tag="chamber[ ]+ME\+2/2/25"/> 
-	  <guard label="ME+2/2/26" tag="chamber[ ]+ME\+2/2/26"/> 
-	  <guard label="ME+2/2/27" tag="chamber[ ]+ME\+2/2/27"/> 
-	  <guard label="ME+2/2/28" tag="chamber[ ]+ME\+2/2/28"/> 
-	  <guard label="ME+2/2/29" tag="chamber[ ]+ME\+2/2/29"/> 
-	  <guard label="ME+2/2/30" tag="chamber[ ]+ME\+2/2/30"/> 
-	  <guard label="ME+2/2/31" tag="chamber[ ]+ME\+2/2/31"/> 
-	  <guard label="ME+2/2/32" tag="chamber[ ]+ME\+2/2/32"/> 
-	  <guard label="ME+2/2/33" tag="chamber[ ]+ME\+2/2/33"/> 
-	  <guard label="ME+2/2/34" tag="chamber[ ]+ME\+2/2/34"/> 
-	  <guard label="ME+2/2/35" tag="chamber[ ]+ME\+2/2/35"/> 
-	  <guard label="ME+2/2/36" tag="chamber[ ]+ME\+2/2/36"/> 
+	  <guard label="ME+2/2/01" tag="chamber[ ]+(ME)?\+2/2/01"/> 
+	  <guard label="ME+2/2/02" tag="chamber[ ]+(ME)?\+2/2/02"/> 
+	  <guard label="ME+2/2/03" tag="chamber[ ]+(ME)?\+2/2/03"/> 
+	  <guard label="ME+2/2/04" tag="chamber[ ]+(ME)?\+2/2/04"/> 
+	  <guard label="ME+2/2/05" tag="chamber[ ]+(ME)?\+2/2/05"/> 
+	  <guard label="ME+2/2/06" tag="chamber[ ]+(ME)?\+2/2/06"/> 
+	  <guard label="ME+2/2/07" tag="chamber[ ]+(ME)?\+2/2/07"/> 
+	  <guard label="ME+2/2/08" tag="chamber[ ]+(ME)?\+2/2/08"/> 
+	  <guard label="ME+2/2/09" tag="chamber[ ]+(ME)?\+2/2/09"/> 
+	  <guard label="ME+2/2/10" tag="chamber[ ]+(ME)?\+2/2/10"/> 
+	  <guard label="ME+2/2/11" tag="chamber[ ]+(ME)?\+2/2/11"/> 
+	  <guard label="ME+2/2/12" tag="chamber[ ]+(ME)?\+2/2/12"/> 
+	  <guard label="ME+2/2/13" tag="chamber[ ]+(ME)?\+2/2/13"/> 
+	  <guard label="ME+2/2/14" tag="chamber[ ]+(ME)?\+2/2/14"/> 
+	  <guard label="ME+2/2/15" tag="chamber[ ]+(ME)?\+2/2/15"/> 
+	  <guard label="ME+2/2/16" tag="chamber[ ]+(ME)?\+2/2/16"/> 
+	  <guard label="ME+2/2/17" tag="chamber[ ]+(ME)?\+2/2/17"/> 
+	  <guard label="ME+2/2/18" tag="chamber[ ]+(ME)?\+2/2/18"/> 
+	  <guard label="ME+2/2/19" tag="chamber[ ]+(ME)?\+2/2/19"/> 
+	  <guard label="ME+2/2/20" tag="chamber[ ]+(ME)?\+2/2/20"/> 
+	  <guard label="ME+2/2/21" tag="chamber[ ]+(ME)?\+2/2/21"/> 
+	  <guard label="ME+2/2/22" tag="chamber[ ]+(ME)?\+2/2/22"/> 
+	  <guard label="ME+2/2/23" tag="chamber[ ]+(ME)?\+2/2/23"/> 
+	  <guard label="ME+2/2/24" tag="chamber[ ]+(ME)?\+2/2/24"/> 
+	  <guard label="ME+2/2/25" tag="chamber[ ]+(ME)?\+2/2/25"/> 
+	  <guard label="ME+2/2/26" tag="chamber[ ]+(ME)?\+2/2/26"/> 
+	  <guard label="ME+2/2/27" tag="chamber[ ]+(ME)?\+2/2/27"/> 
+	  <guard label="ME+2/2/28" tag="chamber[ ]+(ME)?\+2/2/28"/> 
+	  <guard label="ME+2/2/29" tag="chamber[ ]+(ME)?\+2/2/29"/> 
+	  <guard label="ME+2/2/30" tag="chamber[ ]+(ME)?\+2/2/30"/> 
+	  <guard label="ME+2/2/31" tag="chamber[ ]+(ME)?\+2/2/31"/> 
+	  <guard label="ME+2/2/32" tag="chamber[ ]+(ME)?\+2/2/32"/> 
+	  <guard label="ME+2/2/33" tag="chamber[ ]+(ME)?\+2/2/33"/> 
+	  <guard label="ME+2/2/34" tag="chamber[ ]+(ME)?\+2/2/34"/> 
+	  <guard label="ME+2/2/35" tag="chamber[ ]+(ME)?\+2/2/35"/> 
+	  <guard label="ME+2/2/36" tag="chamber[ ]+(ME)?\+2/2/36"/> 
 	</view>
       </view>
       <view label="Station 3">
 	<view label="Ring 1">
-	  <guard label="ME+3/1/01" tag="chamber[ ]+ME\+3/1/01"/> 
-	  <guard label="ME+3/1/02" tag="chamber[ ]+ME\+3/1/02"/> 
-	  <guard label="ME+3/1/03" tag="chamber[ ]+ME\+3/1/03"/> 
-	  <guard label="ME+3/1/04" tag="chamber[ ]+ME\+3/1/04"/> 
-	  <guard label="ME+3/1/05" tag="chamber[ ]+ME\+3/1/05"/> 
-	  <guard label="ME+3/1/06" tag="chamber[ ]+ME\+3/1/06"/> 
-	  <guard label="ME+3/1/07" tag="chamber[ ]+ME\+3/1/07"/> 
-	  <guard label="ME+3/1/08" tag="chamber[ ]+ME\+3/1/08"/> 
-	  <guard label="ME+3/1/09" tag="chamber[ ]+ME\+3/1/09"/> 
-	  <guard label="ME+3/1/10" tag="chamber[ ]+ME\+3/1/10"/> 
-	  <guard label="ME+3/1/11" tag="chamber[ ]+ME\+3/1/11"/> 
-	  <guard label="ME+3/1/12" tag="chamber[ ]+ME\+3/1/12"/> 
-	  <guard label="ME+3/1/13" tag="chamber[ ]+ME\+3/1/13"/> 
-	  <guard label="ME+3/1/14" tag="chamber[ ]+ME\+3/1/14"/> 
-	  <guard label="ME+3/1/15" tag="chamber[ ]+ME\+3/1/15"/> 
-	  <guard label="ME+3/1/16" tag="chamber[ ]+ME\+3/1/16"/> 
-	  <guard label="ME+3/1/17" tag="chamber[ ]+ME\+3/1/17"/> 
-	  <guard label="ME+3/1/18" tag="chamber[ ]+ME\+3/1/18"/> 
+	  <guard label="ME+3/1/01" tag="chamber[ ]+(ME)?\+3/1/01"/> 
+	  <guard label="ME+3/1/02" tag="chamber[ ]+(ME)?\+3/1/02"/> 
+	  <guard label="ME+3/1/03" tag="chamber[ ]+(ME)?\+3/1/03"/> 
+	  <guard label="ME+3/1/04" tag="chamber[ ]+(ME)?\+3/1/04"/> 
+	  <guard label="ME+3/1/05" tag="chamber[ ]+(ME)?\+3/1/05"/> 
+	  <guard label="ME+3/1/06" tag="chamber[ ]+(ME)?\+3/1/06"/> 
+	  <guard label="ME+3/1/07" tag="chamber[ ]+(ME)?\+3/1/07"/> 
+	  <guard label="ME+3/1/08" tag="chamber[ ]+(ME)?\+3/1/08"/> 
+	  <guard label="ME+3/1/09" tag="chamber[ ]+(ME)?\+3/1/09"/> 
+	  <guard label="ME+3/1/10" tag="chamber[ ]+(ME)?\+3/1/10"/> 
+	  <guard label="ME+3/1/11" tag="chamber[ ]+(ME)?\+3/1/11"/> 
+	  <guard label="ME+3/1/12" tag="chamber[ ]+(ME)?\+3/1/12"/> 
+	  <guard label="ME+3/1/13" tag="chamber[ ]+(ME)?\+3/1/13"/> 
+	  <guard label="ME+3/1/14" tag="chamber[ ]+(ME)?\+3/1/14"/> 
+	  <guard label="ME+3/1/15" tag="chamber[ ]+(ME)?\+3/1/15"/> 
+	  <guard label="ME+3/1/16" tag="chamber[ ]+(ME)?\+3/1/16"/> 
+	  <guard label="ME+3/1/17" tag="chamber[ ]+(ME)?\+3/1/17"/> 
+	  <guard label="ME+3/1/18" tag="chamber[ ]+(ME)?\+3/1/18"/> 
 	</view>
 	<view label="Ring 2">
-	  <guard label="ME+3/2/01" tag="chamber[ ]+ME\+3/2/01"/> 
-	  <guard label="ME+3/2/02" tag="chamber[ ]+ME\+3/2/02"/> 
-	  <guard label="ME+3/2/03" tag="chamber[ ]+ME\+3/2/03"/> 
-	  <guard label="ME+3/2/04" tag="chamber[ ]+ME\+3/2/04"/> 
-	  <guard label="ME+3/2/05" tag="chamber[ ]+ME\+3/2/05"/> 
-	  <guard label="ME+3/2/06" tag="chamber[ ]+ME\+3/2/06"/> 
-	  <guard label="ME+3/2/07" tag="chamber[ ]+ME\+3/2/07"/> 
-	  <guard label="ME+3/2/08" tag="chamber[ ]+ME\+3/2/08"/> 
-	  <guard label="ME+3/2/09" tag="chamber[ ]+ME\+3/2/09"/> 
-	  <guard label="ME+3/2/10" tag="chamber[ ]+ME\+3/2/10"/> 
-	  <guard label="ME+3/2/11" tag="chamber[ ]+ME\+3/2/11"/> 
-	  <guard label="ME+3/2/12" tag="chamber[ ]+ME\+3/2/12"/> 
-	  <guard label="ME+3/2/13" tag="chamber[ ]+ME\+3/2/13"/> 
-	  <guard label="ME+3/2/14" tag="chamber[ ]+ME\+3/2/14"/> 
-	  <guard label="ME+3/2/15" tag="chamber[ ]+ME\+3/2/15"/> 
-	  <guard label="ME+3/2/16" tag="chamber[ ]+ME\+3/2/16"/> 
-	  <guard label="ME+3/2/17" tag="chamber[ ]+ME\+3/2/17"/> 
-	  <guard label="ME+3/2/18" tag="chamber[ ]+ME\+3/2/18"/> 
-	  <guard label="ME+3/2/19" tag="chamber[ ]+ME\+3/2/19"/> 
-	  <guard label="ME+3/2/20" tag="chamber[ ]+ME\+3/2/20"/> 
-	  <guard label="ME+3/2/21" tag="chamber[ ]+ME\+3/2/21"/> 
-	  <guard label="ME+3/2/22" tag="chamber[ ]+ME\+3/2/22"/> 
-	  <guard label="ME+3/2/23" tag="chamber[ ]+ME\+3/2/23"/> 
-	  <guard label="ME+3/2/24" tag="chamber[ ]+ME\+3/2/24"/> 
-	  <guard label="ME+3/2/25" tag="chamber[ ]+ME\+3/2/25"/> 
-	  <guard label="ME+3/2/26" tag="chamber[ ]+ME\+3/2/26"/> 
-	  <guard label="ME+3/2/27" tag="chamber[ ]+ME\+3/2/27"/> 
-	  <guard label="ME+3/2/28" tag="chamber[ ]+ME\+3/2/28"/> 
-	  <guard label="ME+3/2/29" tag="chamber[ ]+ME\+3/2/29"/> 
-	  <guard label="ME+3/2/30" tag="chamber[ ]+ME\+3/2/30"/> 
-	  <guard label="ME+3/2/31" tag="chamber[ ]+ME\+3/2/31"/> 
-	  <guard label="ME+3/2/32" tag="chamber[ ]+ME\+3/2/32"/> 
-	  <guard label="ME+3/2/33" tag="chamber[ ]+ME\+3/2/33"/> 
-	  <guard label="ME+3/2/34" tag="chamber[ ]+ME\+3/2/34"/> 
-	  <guard label="ME+3/2/35" tag="chamber[ ]+ME\+3/2/35"/> 
-	  <guard label="ME+3/2/36" tag="chamber[ ]+ME\+3/2/36"/> 
+	  <guard label="ME+3/2/01" tag="chamber[ ]+(ME)?\+3/2/01"/> 
+	  <guard label="ME+3/2/02" tag="chamber[ ]+(ME)?\+3/2/02"/> 
+	  <guard label="ME+3/2/03" tag="chamber[ ]+(ME)?\+3/2/03"/> 
+	  <guard label="ME+3/2/04" tag="chamber[ ]+(ME)?\+3/2/04"/> 
+	  <guard label="ME+3/2/05" tag="chamber[ ]+(ME)?\+3/2/05"/> 
+	  <guard label="ME+3/2/06" tag="chamber[ ]+(ME)?\+3/2/06"/> 
+	  <guard label="ME+3/2/07" tag="chamber[ ]+(ME)?\+3/2/07"/> 
+	  <guard label="ME+3/2/08" tag="chamber[ ]+(ME)?\+3/2/08"/> 
+	  <guard label="ME+3/2/09" tag="chamber[ ]+(ME)?\+3/2/09"/> 
+	  <guard label="ME+3/2/10" tag="chamber[ ]+(ME)?\+3/2/10"/> 
+	  <guard label="ME+3/2/11" tag="chamber[ ]+(ME)?\+3/2/11"/> 
+	  <guard label="ME+3/2/12" tag="chamber[ ]+(ME)?\+3/2/12"/> 
+	  <guard label="ME+3/2/13" tag="chamber[ ]+(ME)?\+3/2/13"/> 
+	  <guard label="ME+3/2/14" tag="chamber[ ]+(ME)?\+3/2/14"/> 
+	  <guard label="ME+3/2/15" tag="chamber[ ]+(ME)?\+3/2/15"/> 
+	  <guard label="ME+3/2/16" tag="chamber[ ]+(ME)?\+3/2/16"/> 
+	  <guard label="ME+3/2/17" tag="chamber[ ]+(ME)?\+3/2/17"/> 
+	  <guard label="ME+3/2/18" tag="chamber[ ]+(ME)?\+3/2/18"/> 
+	  <guard label="ME+3/2/19" tag="chamber[ ]+(ME)?\+3/2/19"/> 
+	  <guard label="ME+3/2/20" tag="chamber[ ]+(ME)?\+3/2/20"/> 
+	  <guard label="ME+3/2/21" tag="chamber[ ]+(ME)?\+3/2/21"/> 
+	  <guard label="ME+3/2/22" tag="chamber[ ]+(ME)?\+3/2/22"/> 
+	  <guard label="ME+3/2/23" tag="chamber[ ]+(ME)?\+3/2/23"/> 
+	  <guard label="ME+3/2/24" tag="chamber[ ]+(ME)?\+3/2/24"/> 
+	  <guard label="ME+3/2/25" tag="chamber[ ]+(ME)?\+3/2/25"/> 
+	  <guard label="ME+3/2/26" tag="chamber[ ]+(ME)?\+3/2/26"/> 
+	  <guard label="ME+3/2/27" tag="chamber[ ]+(ME)?\+3/2/27"/> 
+	  <guard label="ME+3/2/28" tag="chamber[ ]+(ME)?\+3/2/28"/> 
+	  <guard label="ME+3/2/29" tag="chamber[ ]+(ME)?\+3/2/29"/> 
+	  <guard label="ME+3/2/30" tag="chamber[ ]+(ME)?\+3/2/30"/> 
+	  <guard label="ME+3/2/31" tag="chamber[ ]+(ME)?\+3/2/31"/> 
+	  <guard label="ME+3/2/32" tag="chamber[ ]+(ME)?\+3/2/32"/> 
+	  <guard label="ME+3/2/33" tag="chamber[ ]+(ME)?\+3/2/33"/> 
+	  <guard label="ME+3/2/34" tag="chamber[ ]+(ME)?\+3/2/34"/> 
+	  <guard label="ME+3/2/35" tag="chamber[ ]+(ME)?\+3/2/35"/> 
+	  <guard label="ME+3/2/36" tag="chamber[ ]+(ME)?\+3/2/36"/> 
 	</view>
       </view>
       <view label="Station 4">
 	<view label="Ring 1">
-	  <guard label="ME+4/1/01" tag="chamber[ ]+ME\+4/1/01"/> 
-	  <guard label="ME+4/1/02" tag="chamber[ ]+ME\+4/1/02"/> 
-	  <guard label="ME+4/1/03" tag="chamber[ ]+ME\+4/1/03"/> 
-	  <guard label="ME+4/1/04" tag="chamber[ ]+ME\+4/1/04"/> 
-	  <guard label="ME+4/1/05" tag="chamber[ ]+ME\+4/1/05"/> 
-	  <guard label="ME+4/1/06" tag="chamber[ ]+ME\+4/1/06"/> 
-	  <guard label="ME+4/1/07" tag="chamber[ ]+ME\+4/1/07"/> 
-	  <guard label="ME+4/1/08" tag="chamber[ ]+ME\+4/1/08"/> 
-	  <guard label="ME+4/1/09" tag="chamber[ ]+ME\+4/1/09"/> 
-	  <guard label="ME+4/1/10" tag="chamber[ ]+ME\+4/1/10"/> 
-	  <guard label="ME+4/1/11" tag="chamber[ ]+ME\+4/1/11"/> 
-	  <guard label="ME+4/1/12" tag="chamber[ ]+ME\+4/1/12"/> 
-	  <guard label="ME+4/1/13" tag="chamber[ ]+ME\+4/1/13"/> 
-	  <guard label="ME+4/1/14" tag="chamber[ ]+ME\+4/1/14"/> 
-	  <guard label="ME+4/1/15" tag="chamber[ ]+ME\+4/1/15"/> 
-	  <guard label="ME+4/1/16" tag="chamber[ ]+ME\+4/1/16"/> 
-	  <guard label="ME+4/1/17" tag="chamber[ ]+ME\+4/1/17"/> 
-	  <guard label="ME+4/1/18" tag="chamber[ ]+ME\+4/1/18"/> 
+	  <guard label="ME+4/1/01" tag="chamber[ ]+(ME)?\+4/1/01"/> 
+	  <guard label="ME+4/1/02" tag="chamber[ ]+(ME)?\+4/1/02"/> 
+	  <guard label="ME+4/1/03" tag="chamber[ ]+(ME)?\+4/1/03"/> 
+	  <guard label="ME+4/1/04" tag="chamber[ ]+(ME)?\+4/1/04"/> 
+	  <guard label="ME+4/1/05" tag="chamber[ ]+(ME)?\+4/1/05"/> 
+	  <guard label="ME+4/1/06" tag="chamber[ ]+(ME)?\+4/1/06"/> 
+	  <guard label="ME+4/1/07" tag="chamber[ ]+(ME)?\+4/1/07"/> 
+	  <guard label="ME+4/1/08" tag="chamber[ ]+(ME)?\+4/1/08"/> 
+	  <guard label="ME+4/1/09" tag="chamber[ ]+(ME)?\+4/1/09"/> 
+	  <guard label="ME+4/1/10" tag="chamber[ ]+(ME)?\+4/1/10"/> 
+	  <guard label="ME+4/1/11" tag="chamber[ ]+(ME)?\+4/1/11"/> 
+	  <guard label="ME+4/1/12" tag="chamber[ ]+(ME)?\+4/1/12"/> 
+	  <guard label="ME+4/1/13" tag="chamber[ ]+(ME)?\+4/1/13"/> 
+	  <guard label="ME+4/1/14" tag="chamber[ ]+(ME)?\+4/1/14"/> 
+	  <guard label="ME+4/1/15" tag="chamber[ ]+(ME)?\+4/1/15"/> 
+	  <guard label="ME+4/1/16" tag="chamber[ ]+(ME)?\+4/1/16"/> 
+	  <guard label="ME+4/1/17" tag="chamber[ ]+(ME)?\+4/1/17"/> 
+	  <guard label="ME+4/1/18" tag="chamber[ ]+(ME)?\+4/1/18"/> 
 	</view>
 	<view label="Ring 2">
-	  <guard label="ME+4/2/01" tag="chamber[ ]+ME\+4/2/01"/> 
-	  <guard label="ME+4/2/02" tag="chamber[ ]+ME\+4/2/02"/> 
-	  <guard label="ME+4/2/03" tag="chamber[ ]+ME\+4/2/03"/> 
-	  <guard label="ME+4/2/04" tag="chamber[ ]+ME\+4/2/04"/> 
-	  <guard label="ME+4/2/05" tag="chamber[ ]+ME\+4/2/05"/> 
-	  <guard label="ME+4/2/06" tag="chamber[ ]+ME\+4/2/06"/> 
-	  <guard label="ME+4/2/07" tag="chamber[ ]+ME\+4/2/07"/> 
-	  <guard label="ME+4/2/08" tag="chamber[ ]+ME\+4/2/08"/> 
-	  <guard label="ME+4/2/09" tag="chamber[ ]+ME\+4/2/09"/> 
-	  <guard label="ME+4/2/10" tag="chamber[ ]+ME\+4/2/10"/> 
-	  <guard label="ME+4/2/11" tag="chamber[ ]+ME\+4/2/11"/> 
-	  <guard label="ME+4/2/12" tag="chamber[ ]+ME\+4/2/12"/> 
-	  <guard label="ME+4/2/13" tag="chamber[ ]+ME\+4/2/13"/> 
-	  <guard label="ME+4/2/14" tag="chamber[ ]+ME\+4/2/14"/> 
-	  <guard label="ME+4/2/15" tag="chamber[ ]+ME\+4/2/15"/> 
-	  <guard label="ME+4/2/16" tag="chamber[ ]+ME\+4/2/16"/> 
-	  <guard label="ME+4/2/17" tag="chamber[ ]+ME\+4/2/17"/> 
-	  <guard label="ME+4/2/18" tag="chamber[ ]+ME\+4/2/18"/> 
-	  <guard label="ME+4/2/19" tag="chamber[ ]+ME\+4/2/19"/> 
-	  <guard label="ME+4/2/20" tag="chamber[ ]+ME\+4/2/20"/> 
-	  <guard label="ME+4/2/21" tag="chamber[ ]+ME\+4/2/21"/> 
-	  <guard label="ME+4/2/22" tag="chamber[ ]+ME\+4/2/22"/> 
-	  <guard label="ME+4/2/23" tag="chamber[ ]+ME\+4/2/23"/> 
-	  <guard label="ME+4/2/24" tag="chamber[ ]+ME\+4/2/24"/> 
-	  <guard label="ME+4/2/25" tag="chamber[ ]+ME\+4/2/25"/> 
-	  <guard label="ME+4/2/26" tag="chamber[ ]+ME\+4/2/26"/> 
-	  <guard label="ME+4/2/27" tag="chamber[ ]+ME\+4/2/27"/> 
-	  <guard label="ME+4/2/28" tag="chamber[ ]+ME\+4/2/28"/> 
-	  <guard label="ME+4/2/29" tag="chamber[ ]+ME\+4/2/29"/> 
-	  <guard label="ME+4/2/30" tag="chamber[ ]+ME\+4/2/30"/> 
-	  <guard label="ME+4/2/31" tag="chamber[ ]+ME\+4/2/31"/> 
-	  <guard label="ME+4/2/32" tag="chamber[ ]+ME\+4/2/32"/> 
-	  <guard label="ME+4/2/33" tag="chamber[ ]+ME\+4/2/33"/> 
-	  <guard label="ME+4/2/34" tag="chamber[ ]+ME\+4/2/34"/> 
-	  <guard label="ME+4/2/35" tag="chamber[ ]+ME\+4/2/35"/> 
-	  <guard label="ME+4/2/36" tag="chamber[ ]+ME\+4/2/36"/> 
+	  <guard label="ME+4/2/01" tag="chamber[ ]+(ME)?\+4/2/01"/> 
+	  <guard label="ME+4/2/02" tag="chamber[ ]+(ME)?\+4/2/02"/> 
+	  <guard label="ME+4/2/03" tag="chamber[ ]+(ME)?\+4/2/03"/> 
+	  <guard label="ME+4/2/04" tag="chamber[ ]+(ME)?\+4/2/04"/> 
+	  <guard label="ME+4/2/05" tag="chamber[ ]+(ME)?\+4/2/05"/> 
+	  <guard label="ME+4/2/06" tag="chamber[ ]+(ME)?\+4/2/06"/> 
+	  <guard label="ME+4/2/07" tag="chamber[ ]+(ME)?\+4/2/07"/> 
+	  <guard label="ME+4/2/08" tag="chamber[ ]+(ME)?\+4/2/08"/> 
+	  <guard label="ME+4/2/09" tag="chamber[ ]+(ME)?\+4/2/09"/> 
+	  <guard label="ME+4/2/10" tag="chamber[ ]+(ME)?\+4/2/10"/> 
+	  <guard label="ME+4/2/11" tag="chamber[ ]+(ME)?\+4/2/11"/> 
+	  <guard label="ME+4/2/12" tag="chamber[ ]+(ME)?\+4/2/12"/> 
+	  <guard label="ME+4/2/13" tag="chamber[ ]+(ME)?\+4/2/13"/> 
+	  <guard label="ME+4/2/14" tag="chamber[ ]+(ME)?\+4/2/14"/> 
+	  <guard label="ME+4/2/15" tag="chamber[ ]+(ME)?\+4/2/15"/> 
+	  <guard label="ME+4/2/16" tag="chamber[ ]+(ME)?\+4/2/16"/> 
+	  <guard label="ME+4/2/17" tag="chamber[ ]+(ME)?\+4/2/17"/> 
+	  <guard label="ME+4/2/18" tag="chamber[ ]+(ME)?\+4/2/18"/> 
+	  <guard label="ME+4/2/19" tag="chamber[ ]+(ME)?\+4/2/19"/> 
+	  <guard label="ME+4/2/20" tag="chamber[ ]+(ME)?\+4/2/20"/> 
+	  <guard label="ME+4/2/21" tag="chamber[ ]+(ME)?\+4/2/21"/> 
+	  <guard label="ME+4/2/22" tag="chamber[ ]+(ME)?\+4/2/22"/> 
+	  <guard label="ME+4/2/23" tag="chamber[ ]+(ME)?\+4/2/23"/> 
+	  <guard label="ME+4/2/24" tag="chamber[ ]+(ME)?\+4/2/24"/> 
+	  <guard label="ME+4/2/25" tag="chamber[ ]+(ME)?\+4/2/25"/> 
+	  <guard label="ME+4/2/26" tag="chamber[ ]+(ME)?\+4/2/26"/> 
+	  <guard label="ME+4/2/27" tag="chamber[ ]+(ME)?\+4/2/27"/> 
+	  <guard label="ME+4/2/28" tag="chamber[ ]+(ME)?\+4/2/28"/> 
+	  <guard label="ME+4/2/29" tag="chamber[ ]+(ME)?\+4/2/29"/> 
+	  <guard label="ME+4/2/30" tag="chamber[ ]+(ME)?\+4/2/30"/> 
+	  <guard label="ME+4/2/31" tag="chamber[ ]+(ME)?\+4/2/31"/> 
+	  <guard label="ME+4/2/32" tag="chamber[ ]+(ME)?\+4/2/32"/> 
+	  <guard label="ME+4/2/33" tag="chamber[ ]+(ME)?\+4/2/33"/> 
+	  <guard label="ME+4/2/34" tag="chamber[ ]+(ME)?\+4/2/34"/> 
+	  <guard label="ME+4/2/35" tag="chamber[ ]+(ME)?\+4/2/35"/> 
+	  <guard label="ME+4/2/36" tag="chamber[ ]+(ME)?\+4/2/36"/> 
 	</view>
       </view>
     </view>
     <view label="Endcap -">
       <view label="Station 1">
 	<view label="Ring 1">
-	  <guard label="ME-1/1/01" tag="chamber[ ]+ME-1/1/01"/> 
-	  <guard label="ME-1/1/02" tag="chamber[ ]+ME-1/1/02"/> 
-	  <guard label="ME-1/1/03" tag="chamber[ ]+ME-1/1/03"/> 
-	  <guard label="ME-1/1/04" tag="chamber[ ]+ME-1/1/04"/> 
-	  <guard label="ME-1/1/05" tag="chamber[ ]+ME-1/1/05"/> 
-	  <guard label="ME-1/1/06" tag="chamber[ ]+ME-1/1/06"/> 
-	  <guard label="ME-1/1/07" tag="chamber[ ]+ME-1/1/07"/> 
-	  <guard label="ME-1/1/08" tag="chamber[ ]+ME-1/1/08"/> 
-	  <guard label="ME-1/1/09" tag="chamber[ ]+ME-1/1/09"/> 
-	  <guard label="ME-1/1/10" tag="chamber[ ]+ME-1/1/10"/> 
-	  <guard label="ME-1/1/11" tag="chamber[ ]+ME-1/1/11"/> 
-	  <guard label="ME-1/1/12" tag="chamber[ ]+ME-1/1/12"/> 
-	  <guard label="ME-1/1/13" tag="chamber[ ]+ME-1/1/13"/> 
-	  <guard label="ME-1/1/14" tag="chamber[ ]+ME-1/1/14"/> 
-	  <guard label="ME-1/1/15" tag="chamber[ ]+ME-1/1/15"/> 
-	  <guard label="ME-1/1/16" tag="chamber[ ]+ME-1/1/16"/> 
-	  <guard label="ME-1/1/17" tag="chamber[ ]+ME-1/1/17"/> 
-	  <guard label="ME-1/1/18" tag="chamber[ ]+ME-1/1/18"/> 
-	  <guard label="ME-1/1/19" tag="chamber[ ]+ME-1/1/19"/> 
-	  <guard label="ME-1/1/20" tag="chamber[ ]+ME-1/1/20"/> 
-	  <guard label="ME-1/1/21" tag="chamber[ ]+ME-1/1/21"/> 
-	  <guard label="ME-1/1/22" tag="chamber[ ]+ME-1/1/22"/> 
-	  <guard label="ME-1/1/23" tag="chamber[ ]+ME-1/1/23"/> 
-	  <guard label="ME-1/1/24" tag="chamber[ ]+ME-1/1/24"/> 
-	  <guard label="ME-1/1/25" tag="chamber[ ]+ME-1/1/25"/> 
-	  <guard label="ME-1/1/26" tag="chamber[ ]+ME-1/1/26"/> 
-	  <guard label="ME-1/1/27" tag="chamber[ ]+ME-1/1/27"/> 
-	  <guard label="ME-1/1/28" tag="chamber[ ]+ME-1/1/28"/> 
-	  <guard label="ME-1/1/29" tag="chamber[ ]+ME-1/1/29"/> 
-	  <guard label="ME-1/1/30" tag="chamber[ ]+ME-1/1/30"/> 
-	  <guard label="ME-1/1/31" tag="chamber[ ]+ME-1/1/31"/> 
-	  <guard label="ME-1/1/32" tag="chamber[ ]+ME-1/1/32"/> 
-	  <guard label="ME-1/1/33" tag="chamber[ ]+ME-1/1/33"/> 
-	  <guard label="ME-1/1/34" tag="chamber[ ]+ME-1/1/34"/> 
-	  <guard label="ME-1/1/35" tag="chamber[ ]+ME-1/1/35"/> 
-	  <guard label="ME-1/1/36" tag="chamber[ ]+ME-1/1/36"/> 
+	  <guard label="ME-1/1/01" tag="chamber[ ]+(ME)?-1/1/01"/> 
+	  <guard label="ME-1/1/02" tag="chamber[ ]+(ME)?-1/1/02"/> 
+	  <guard label="ME-1/1/03" tag="chamber[ ]+(ME)?-1/1/03"/> 
+	  <guard label="ME-1/1/04" tag="chamber[ ]+(ME)?-1/1/04"/> 
+	  <guard label="ME-1/1/05" tag="chamber[ ]+(ME)?-1/1/05"/> 
+	  <guard label="ME-1/1/06" tag="chamber[ ]+(ME)?-1/1/06"/> 
+	  <guard label="ME-1/1/07" tag="chamber[ ]+(ME)?-1/1/07"/> 
+	  <guard label="ME-1/1/08" tag="chamber[ ]+(ME)?-1/1/08"/> 
+	  <guard label="ME-1/1/09" tag="chamber[ ]+(ME)?-1/1/09"/> 
+	  <guard label="ME-1/1/10" tag="chamber[ ]+(ME)?-1/1/10"/> 
+	  <guard label="ME-1/1/11" tag="chamber[ ]+(ME)?-1/1/11"/> 
+	  <guard label="ME-1/1/12" tag="chamber[ ]+(ME)?-1/1/12"/> 
+	  <guard label="ME-1/1/13" tag="chamber[ ]+(ME)?-1/1/13"/> 
+	  <guard label="ME-1/1/14" tag="chamber[ ]+(ME)?-1/1/14"/> 
+	  <guard label="ME-1/1/15" tag="chamber[ ]+(ME)?-1/1/15"/> 
+	  <guard label="ME-1/1/16" tag="chamber[ ]+(ME)?-1/1/16"/> 
+	  <guard label="ME-1/1/17" tag="chamber[ ]+(ME)?-1/1/17"/> 
+	  <guard label="ME-1/1/18" tag="chamber[ ]+(ME)?-1/1/18"/> 
+	  <guard label="ME-1/1/19" tag="chamber[ ]+(ME)?-1/1/19"/> 
+	  <guard label="ME-1/1/20" tag="chamber[ ]+(ME)?-1/1/20"/> 
+	  <guard label="ME-1/1/21" tag="chamber[ ]+(ME)?-1/1/21"/> 
+	  <guard label="ME-1/1/22" tag="chamber[ ]+(ME)?-1/1/22"/> 
+	  <guard label="ME-1/1/23" tag="chamber[ ]+(ME)?-1/1/23"/> 
+	  <guard label="ME-1/1/24" tag="chamber[ ]+(ME)?-1/1/24"/> 
+	  <guard label="ME-1/1/25" tag="chamber[ ]+(ME)?-1/1/25"/> 
+	  <guard label="ME-1/1/26" tag="chamber[ ]+(ME)?-1/1/26"/> 
+	  <guard label="ME-1/1/27" tag="chamber[ ]+(ME)?-1/1/27"/> 
+	  <guard label="ME-1/1/28" tag="chamber[ ]+(ME)?-1/1/28"/> 
+	  <guard label="ME-1/1/29" tag="chamber[ ]+(ME)?-1/1/29"/> 
+	  <guard label="ME-1/1/30" tag="chamber[ ]+(ME)?-1/1/30"/> 
+	  <guard label="ME-1/1/31" tag="chamber[ ]+(ME)?-1/1/31"/> 
+	  <guard label="ME-1/1/32" tag="chamber[ ]+(ME)?-1/1/32"/> 
+	  <guard label="ME-1/1/33" tag="chamber[ ]+(ME)?-1/1/33"/> 
+	  <guard label="ME-1/1/34" tag="chamber[ ]+(ME)?-1/1/34"/> 
+	  <guard label="ME-1/1/35" tag="chamber[ ]+(ME)?-1/1/35"/> 
+	  <guard label="ME-1/1/36" tag="chamber[ ]+(ME)?-1/1/36"/> 
 	</view>
 	<view label="Ring 2">
-	  <guard label="ME-1/2/01" tag="chamber[ ]+ME-1/2/01"/> 
-	  <guard label="ME-1/2/02" tag="chamber[ ]+ME-1/2/02"/> 
-	  <guard label="ME-1/2/03" tag="chamber[ ]+ME-1/2/03"/> 
-	  <guard label="ME-1/2/04" tag="chamber[ ]+ME-1/2/04"/> 
-	  <guard label="ME-1/2/05" tag="chamber[ ]+ME-1/2/05"/> 
-	  <guard label="ME-1/2/06" tag="chamber[ ]+ME-1/2/06"/> 
-	  <guard label="ME-1/2/07" tag="chamber[ ]+ME-1/2/07"/> 
-	  <guard label="ME-1/2/08" tag="chamber[ ]+ME-1/2/08"/> 
-	  <guard label="ME-1/2/09" tag="chamber[ ]+ME-1/2/09"/> 
-	  <guard label="ME-1/2/10" tag="chamber[ ]+ME-1/2/10"/> 
-	  <guard label="ME-1/2/11" tag="chamber[ ]+ME-1/2/11"/> 
-	  <guard label="ME-1/2/12" tag="chamber[ ]+ME-1/2/12"/> 
-	  <guard label="ME-1/2/13" tag="chamber[ ]+ME-1/2/13"/> 
-	  <guard label="ME-1/2/14" tag="chamber[ ]+ME-1/2/14"/> 
-	  <guard label="ME-1/2/15" tag="chamber[ ]+ME-1/2/15"/> 
-	  <guard label="ME-1/2/16" tag="chamber[ ]+ME-1/2/16"/> 
-	  <guard label="ME-1/2/17" tag="chamber[ ]+ME-1/2/17"/> 
-	  <guard label="ME-1/2/18" tag="chamber[ ]+ME-1/2/18"/> 
-	  <guard label="ME-1/2/19" tag="chamber[ ]+ME-1/2/19"/> 
-	  <guard label="ME-1/2/20" tag="chamber[ ]+ME-1/2/20"/> 
-	  <guard label="ME-1/2/21" tag="chamber[ ]+ME-1/2/21"/> 
-	  <guard label="ME-1/2/22" tag="chamber[ ]+ME-1/2/22"/> 
-	  <guard label="ME-1/2/23" tag="chamber[ ]+ME-1/2/23"/> 
-	  <guard label="ME-1/2/24" tag="chamber[ ]+ME-1/2/24"/> 
-	  <guard label="ME-1/2/25" tag="chamber[ ]+ME-1/2/25"/> 
-	  <guard label="ME-1/2/26" tag="chamber[ ]+ME-1/2/26"/> 
-	  <guard label="ME-1/2/27" tag="chamber[ ]+ME-1/2/27"/> 
-	  <guard label="ME-1/2/28" tag="chamber[ ]+ME-1/2/28"/> 
-	  <guard label="ME-1/2/29" tag="chamber[ ]+ME-1/2/29"/> 
-	  <guard label="ME-1/2/30" tag="chamber[ ]+ME-1/2/30"/> 
-	  <guard label="ME-1/2/31" tag="chamber[ ]+ME-1/2/31"/> 
-	  <guard label="ME-1/2/32" tag="chamber[ ]+ME-1/2/32"/> 
-	  <guard label="ME-1/2/33" tag="chamber[ ]+ME-1/2/33"/> 
-	  <guard label="ME-1/2/34" tag="chamber[ ]+ME-1/2/34"/> 
-	  <guard label="ME-1/2/35" tag="chamber[ ]+ME-1/2/35"/> 
-	  <guard label="ME-1/2/36" tag="chamber[ ]+ME-1/2/36"/> 
+	  <guard label="ME-1/2/01" tag="chamber[ ]+(ME)?-1/2/01"/> 
+	  <guard label="ME-1/2/02" tag="chamber[ ]+(ME)?-1/2/02"/> 
+	  <guard label="ME-1/2/03" tag="chamber[ ]+(ME)?-1/2/03"/> 
+	  <guard label="ME-1/2/04" tag="chamber[ ]+(ME)?-1/2/04"/> 
+	  <guard label="ME-1/2/05" tag="chamber[ ]+(ME)?-1/2/05"/> 
+	  <guard label="ME-1/2/06" tag="chamber[ ]+(ME)?-1/2/06"/> 
+	  <guard label="ME-1/2/07" tag="chamber[ ]+(ME)?-1/2/07"/> 
+	  <guard label="ME-1/2/08" tag="chamber[ ]+(ME)?-1/2/08"/> 
+	  <guard label="ME-1/2/09" tag="chamber[ ]+(ME)?-1/2/09"/> 
+	  <guard label="ME-1/2/10" tag="chamber[ ]+(ME)?-1/2/10"/> 
+	  <guard label="ME-1/2/11" tag="chamber[ ]+(ME)?-1/2/11"/> 
+	  <guard label="ME-1/2/12" tag="chamber[ ]+(ME)?-1/2/12"/> 
+	  <guard label="ME-1/2/13" tag="chamber[ ]+(ME)?-1/2/13"/> 
+	  <guard label="ME-1/2/14" tag="chamber[ ]+(ME)?-1/2/14"/> 
+	  <guard label="ME-1/2/15" tag="chamber[ ]+(ME)?-1/2/15"/> 
+	  <guard label="ME-1/2/16" tag="chamber[ ]+(ME)?-1/2/16"/> 
+	  <guard label="ME-1/2/17" tag="chamber[ ]+(ME)?-1/2/17"/> 
+	  <guard label="ME-1/2/18" tag="chamber[ ]+(ME)?-1/2/18"/> 
+	  <guard label="ME-1/2/19" tag="chamber[ ]+(ME)?-1/2/19"/> 
+	  <guard label="ME-1/2/20" tag="chamber[ ]+(ME)?-1/2/20"/> 
+	  <guard label="ME-1/2/21" tag="chamber[ ]+(ME)?-1/2/21"/> 
+	  <guard label="ME-1/2/22" tag="chamber[ ]+(ME)?-1/2/22"/> 
+	  <guard label="ME-1/2/23" tag="chamber[ ]+(ME)?-1/2/23"/> 
+	  <guard label="ME-1/2/24" tag="chamber[ ]+(ME)?-1/2/24"/> 
+	  <guard label="ME-1/2/25" tag="chamber[ ]+(ME)?-1/2/25"/> 
+	  <guard label="ME-1/2/26" tag="chamber[ ]+(ME)?-1/2/26"/> 
+	  <guard label="ME-1/2/27" tag="chamber[ ]+(ME)?-1/2/27"/> 
+	  <guard label="ME-1/2/28" tag="chamber[ ]+(ME)?-1/2/28"/> 
+	  <guard label="ME-1/2/29" tag="chamber[ ]+(ME)?-1/2/29"/> 
+	  <guard label="ME-1/2/30" tag="chamber[ ]+(ME)?-1/2/30"/> 
+	  <guard label="ME-1/2/31" tag="chamber[ ]+(ME)?-1/2/31"/> 
+	  <guard label="ME-1/2/32" tag="chamber[ ]+(ME)?-1/2/32"/> 
+	  <guard label="ME-1/2/33" tag="chamber[ ]+(ME)?-1/2/33"/> 
+	  <guard label="ME-1/2/34" tag="chamber[ ]+(ME)?-1/2/34"/> 
+	  <guard label="ME-1/2/35" tag="chamber[ ]+(ME)?-1/2/35"/> 
+	  <guard label="ME-1/2/36" tag="chamber[ ]+(ME)?-1/2/36"/> 
 	</view>
 	<view label="Ring 3">
-	  <guard label="ME-1/3/01" tag="chamber[ ]+ME-1/3/01"/> 
-	  <guard label="ME-1/3/02" tag="chamber[ ]+ME-1/3/02"/> 
-	  <guard label="ME-1/3/03" tag="chamber[ ]+ME-1/3/03"/> 
-	  <guard label="ME-1/3/04" tag="chamber[ ]+ME-1/3/04"/> 
-	  <guard label="ME-1/3/05" tag="chamber[ ]+ME-1/3/05"/> 
-	  <guard label="ME-1/3/06" tag="chamber[ ]+ME-1/3/06"/> 
-	  <guard label="ME-1/3/07" tag="chamber[ ]+ME-1/3/07"/> 
-	  <guard label="ME-1/3/08" tag="chamber[ ]+ME-1/3/08"/> 
-	  <guard label="ME-1/3/09" tag="chamber[ ]+ME-1/3/09"/> 
-	  <guard label="ME-1/3/10" tag="chamber[ ]+ME-1/3/10"/> 
-	  <guard label="ME-1/3/11" tag="chamber[ ]+ME-1/3/11"/> 
-	  <guard label="ME-1/3/12" tag="chamber[ ]+ME-1/3/12"/> 
-	  <guard label="ME-1/3/13" tag="chamber[ ]+ME-1/3/13"/> 
-	  <guard label="ME-1/3/14" tag="chamber[ ]+ME-1/3/14"/> 
-	  <guard label="ME-1/3/15" tag="chamber[ ]+ME-1/3/15"/> 
-	  <guard label="ME-1/3/16" tag="chamber[ ]+ME-1/3/16"/> 
-	  <guard label="ME-1/3/17" tag="chamber[ ]+ME-1/3/17"/> 
-	  <guard label="ME-1/3/18" tag="chamber[ ]+ME-1/3/18"/> 
-	  <guard label="ME-1/3/19" tag="chamber[ ]+ME-1/3/19"/> 
-	  <guard label="ME-1/3/20" tag="chamber[ ]+ME-1/3/20"/> 
-	  <guard label="ME-1/3/21" tag="chamber[ ]+ME-1/3/21"/> 
-	  <guard label="ME-1/3/22" tag="chamber[ ]+ME-1/3/22"/> 
-	  <guard label="ME-1/3/23" tag="chamber[ ]+ME-1/3/23"/> 
-	  <guard label="ME-1/3/24" tag="chamber[ ]+ME-1/3/24"/> 
-	  <guard label="ME-1/3/25" tag="chamber[ ]+ME-1/3/25"/> 
-	  <guard label="ME-1/3/26" tag="chamber[ ]+ME-1/3/26"/> 
-	  <guard label="ME-1/3/27" tag="chamber[ ]+ME-1/3/27"/> 
-	  <guard label="ME-1/3/28" tag="chamber[ ]+ME-1/3/28"/> 
-	  <guard label="ME-1/3/29" tag="chamber[ ]+ME-1/3/29"/> 
-	  <guard label="ME-1/3/30" tag="chamber[ ]+ME-1/3/30"/> 
-	  <guard label="ME-1/3/31" tag="chamber[ ]+ME-1/3/31"/> 
-	  <guard label="ME-1/3/32" tag="chamber[ ]+ME-1/3/32"/> 
-	  <guard label="ME-1/3/33" tag="chamber[ ]+ME-1/3/33"/> 
-	  <guard label="ME-1/3/34" tag="chamber[ ]+ME-1/3/34"/> 
-	  <guard label="ME-1/3/35" tag="chamber[ ]+ME-1/3/35"/> 
-	  <guard label="ME-1/3/36" tag="chamber[ ]+ME-1/3/36"/> 
+	  <guard label="ME-1/3/01" tag="chamber[ ]+(ME)?-1/3/01"/> 
+	  <guard label="ME-1/3/02" tag="chamber[ ]+(ME)?-1/3/02"/> 
+	  <guard label="ME-1/3/03" tag="chamber[ ]+(ME)?-1/3/03"/> 
+	  <guard label="ME-1/3/04" tag="chamber[ ]+(ME)?-1/3/04"/> 
+	  <guard label="ME-1/3/05" tag="chamber[ ]+(ME)?-1/3/05"/> 
+	  <guard label="ME-1/3/06" tag="chamber[ ]+(ME)?-1/3/06"/> 
+	  <guard label="ME-1/3/07" tag="chamber[ ]+(ME)?-1/3/07"/> 
+	  <guard label="ME-1/3/08" tag="chamber[ ]+(ME)?-1/3/08"/> 
+	  <guard label="ME-1/3/09" tag="chamber[ ]+(ME)?-1/3/09"/> 
+	  <guard label="ME-1/3/10" tag="chamber[ ]+(ME)?-1/3/10"/> 
+	  <guard label="ME-1/3/11" tag="chamber[ ]+(ME)?-1/3/11"/> 
+	  <guard label="ME-1/3/12" tag="chamber[ ]+(ME)?-1/3/12"/> 
+	  <guard label="ME-1/3/13" tag="chamber[ ]+(ME)?-1/3/13"/> 
+	  <guard label="ME-1/3/14" tag="chamber[ ]+(ME)?-1/3/14"/> 
+	  <guard label="ME-1/3/15" tag="chamber[ ]+(ME)?-1/3/15"/> 
+	  <guard label="ME-1/3/16" tag="chamber[ ]+(ME)?-1/3/16"/> 
+	  <guard label="ME-1/3/17" tag="chamber[ ]+(ME)?-1/3/17"/> 
+	  <guard label="ME-1/3/18" tag="chamber[ ]+(ME)?-1/3/18"/> 
+	  <guard label="ME-1/3/19" tag="chamber[ ]+(ME)?-1/3/19"/> 
+	  <guard label="ME-1/3/20" tag="chamber[ ]+(ME)?-1/3/20"/> 
+	  <guard label="ME-1/3/21" tag="chamber[ ]+(ME)?-1/3/21"/> 
+	  <guard label="ME-1/3/22" tag="chamber[ ]+(ME)?-1/3/22"/> 
+	  <guard label="ME-1/3/23" tag="chamber[ ]+(ME)?-1/3/23"/> 
+	  <guard label="ME-1/3/24" tag="chamber[ ]+(ME)?-1/3/24"/> 
+	  <guard label="ME-1/3/25" tag="chamber[ ]+(ME)?-1/3/25"/> 
+	  <guard label="ME-1/3/26" tag="chamber[ ]+(ME)?-1/3/26"/> 
+	  <guard label="ME-1/3/27" tag="chamber[ ]+(ME)?-1/3/27"/> 
+	  <guard label="ME-1/3/28" tag="chamber[ ]+(ME)?-1/3/28"/> 
+	  <guard label="ME-1/3/29" tag="chamber[ ]+(ME)?-1/3/29"/> 
+	  <guard label="ME-1/3/30" tag="chamber[ ]+(ME)?-1/3/30"/> 
+	  <guard label="ME-1/3/31" tag="chamber[ ]+(ME)?-1/3/31"/> 
+	  <guard label="ME-1/3/32" tag="chamber[ ]+(ME)?-1/3/32"/> 
+	  <guard label="ME-1/3/33" tag="chamber[ ]+(ME)?-1/3/33"/> 
+	  <guard label="ME-1/3/34" tag="chamber[ ]+(ME)?-1/3/34"/> 
+	  <guard label="ME-1/3/35" tag="chamber[ ]+(ME)?-1/3/35"/> 
+	  <guard label="ME-1/3/36" tag="chamber[ ]+(ME)?-1/3/36"/> 
 	</view>
       </view>
       <view label="Station 2">
 	<view label="Ring 1">
-	  <guard label="ME-2/1/01" tag="chamber[ ]+ME-2/1/01"/> 
-	  <guard label="ME-2/1/02" tag="chamber[ ]+ME-2/1/02"/> 
-	  <guard label="ME-2/1/03" tag="chamber[ ]+ME-2/1/03"/> 
-	  <guard label="ME-2/1/04" tag="chamber[ ]+ME-2/1/04"/> 
-	  <guard label="ME-2/1/05" tag="chamber[ ]+ME-2/1/05"/> 
-	  <guard label="ME-2/1/06" tag="chamber[ ]+ME-2/1/06"/> 
-	  <guard label="ME-2/1/07" tag="chamber[ ]+ME-2/1/07"/> 
-	  <guard label="ME-2/1/08" tag="chamber[ ]+ME-2/1/08"/> 
-	  <guard label="ME-2/1/09" tag="chamber[ ]+ME-2/1/09"/> 
-	  <guard label="ME-2/1/10" tag="chamber[ ]+ME-2/1/10"/> 
-	  <guard label="ME-2/1/11" tag="chamber[ ]+ME-2/1/11"/> 
-	  <guard label="ME-2/1/12" tag="chamber[ ]+ME-2/1/12"/> 
-	  <guard label="ME-2/1/13" tag="chamber[ ]+ME-2/1/13"/> 
-	  <guard label="ME-2/1/14" tag="chamber[ ]+ME-2/1/14"/> 
-	  <guard label="ME-2/1/15" tag="chamber[ ]+ME-2/1/15"/> 
-	  <guard label="ME-2/1/16" tag="chamber[ ]+ME-2/1/16"/> 
-	  <guard label="ME-2/1/17" tag="chamber[ ]+ME-2/1/17"/> 
-	  <guard label="ME-2/1/18" tag="chamber[ ]+ME-2/1/18"/> 
+	  <guard label="ME-2/1/01" tag="chamber[ ]+(ME)?-2/1/01"/> 
+	  <guard label="ME-2/1/02" tag="chamber[ ]+(ME)?-2/1/02"/> 
+	  <guard label="ME-2/1/03" tag="chamber[ ]+(ME)?-2/1/03"/> 
+	  <guard label="ME-2/1/04" tag="chamber[ ]+(ME)?-2/1/04"/> 
+	  <guard label="ME-2/1/05" tag="chamber[ ]+(ME)?-2/1/05"/> 
+	  <guard label="ME-2/1/06" tag="chamber[ ]+(ME)?-2/1/06"/> 
+	  <guard label="ME-2/1/07" tag="chamber[ ]+(ME)?-2/1/07"/> 
+	  <guard label="ME-2/1/08" tag="chamber[ ]+(ME)?-2/1/08"/> 
+	  <guard label="ME-2/1/09" tag="chamber[ ]+(ME)?-2/1/09"/> 
+	  <guard label="ME-2/1/10" tag="chamber[ ]+(ME)?-2/1/10"/> 
+	  <guard label="ME-2/1/11" tag="chamber[ ]+(ME)?-2/1/11"/> 
+	  <guard label="ME-2/1/12" tag="chamber[ ]+(ME)?-2/1/12"/> 
+	  <guard label="ME-2/1/13" tag="chamber[ ]+(ME)?-2/1/13"/> 
+	  <guard label="ME-2/1/14" tag="chamber[ ]+(ME)?-2/1/14"/> 
+	  <guard label="ME-2/1/15" tag="chamber[ ]+(ME)?-2/1/15"/> 
+	  <guard label="ME-2/1/16" tag="chamber[ ]+(ME)?-2/1/16"/> 
+	  <guard label="ME-2/1/17" tag="chamber[ ]+(ME)?-2/1/17"/> 
+	  <guard label="ME-2/1/18" tag="chamber[ ]+(ME)?-2/1/18"/> 
 	</view>
 	<view label="Ring 2">
-	  <guard label="ME-2/2/01" tag="chamber[ ]+ME-2/2/01"/> 
-	  <guard label="ME-2/2/02" tag="chamber[ ]+ME-2/2/02"/> 
-	  <guard label="ME-2/2/03" tag="chamber[ ]+ME-2/2/03"/> 
-	  <guard label="ME-2/2/04" tag="chamber[ ]+ME-2/2/04"/> 
-	  <guard label="ME-2/2/05" tag="chamber[ ]+ME-2/2/05"/> 
-	  <guard label="ME-2/2/06" tag="chamber[ ]+ME-2/2/06"/> 
-	  <guard label="ME-2/2/07" tag="chamber[ ]+ME-2/2/07"/> 
-	  <guard label="ME-2/2/08" tag="chamber[ ]+ME-2/2/08"/> 
-	  <guard label="ME-2/2/09" tag="chamber[ ]+ME-2/2/09"/> 
-	  <guard label="ME-2/2/10" tag="chamber[ ]+ME-2/2/10"/> 
-	  <guard label="ME-2/2/11" tag="chamber[ ]+ME-2/2/11"/> 
-	  <guard label="ME-2/2/12" tag="chamber[ ]+ME-2/2/12"/> 
-	  <guard label="ME-2/2/13" tag="chamber[ ]+ME-2/2/13"/> 
-	  <guard label="ME-2/2/14" tag="chamber[ ]+ME-2/2/14"/> 
-	  <guard label="ME-2/2/15" tag="chamber[ ]+ME-2/2/15"/> 
-	  <guard label="ME-2/2/16" tag="chamber[ ]+ME-2/2/16"/> 
-	  <guard label="ME-2/2/17" tag="chamber[ ]+ME-2/2/17"/> 
-	  <guard label="ME-2/2/18" tag="chamber[ ]+ME-2/2/18"/> 
-	  <guard label="ME-2/2/19" tag="chamber[ ]+ME-2/2/19"/> 
-	  <guard label="ME-2/2/20" tag="chamber[ ]+ME-2/2/20"/> 
-	  <guard label="ME-2/2/21" tag="chamber[ ]+ME-2/2/21"/> 
-	  <guard label="ME-2/2/22" tag="chamber[ ]+ME-2/2/22"/> 
-	  <guard label="ME-2/2/23" tag="chamber[ ]+ME-2/2/23"/> 
-	  <guard label="ME-2/2/24" tag="chamber[ ]+ME-2/2/24"/> 
-	  <guard label="ME-2/2/25" tag="chamber[ ]+ME-2/2/25"/> 
-	  <guard label="ME-2/2/26" tag="chamber[ ]+ME-2/2/26"/> 
-	  <guard label="ME-2/2/27" tag="chamber[ ]+ME-2/2/27"/> 
-	  <guard label="ME-2/2/28" tag="chamber[ ]+ME-2/2/28"/> 
-	  <guard label="ME-2/2/29" tag="chamber[ ]+ME-2/2/29"/> 
-	  <guard label="ME-2/2/30" tag="chamber[ ]+ME-2/2/30"/> 
-	  <guard label="ME-2/2/31" tag="chamber[ ]+ME-2/2/31"/> 
-	  <guard label="ME-2/2/32" tag="chamber[ ]+ME-2/2/32"/> 
-	  <guard label="ME-2/2/33" tag="chamber[ ]+ME-2/2/33"/> 
-	  <guard label="ME-2/2/34" tag="chamber[ ]+ME-2/2/34"/> 
-	  <guard label="ME-2/2/35" tag="chamber[ ]+ME-2/2/35"/> 
-	  <guard label="ME-2/2/36" tag="chamber[ ]+ME-2/2/36"/> 
+	  <guard label="ME-2/2/01" tag="chamber[ ]+(ME)?-2/2/01"/> 
+	  <guard label="ME-2/2/02" tag="chamber[ ]+(ME)?-2/2/02"/> 
+	  <guard label="ME-2/2/03" tag="chamber[ ]+(ME)?-2/2/03"/> 
+	  <guard label="ME-2/2/04" tag="chamber[ ]+(ME)?-2/2/04"/> 
+	  <guard label="ME-2/2/05" tag="chamber[ ]+(ME)?-2/2/05"/> 
+	  <guard label="ME-2/2/06" tag="chamber[ ]+(ME)?-2/2/06"/> 
+	  <guard label="ME-2/2/07" tag="chamber[ ]+(ME)?-2/2/07"/> 
+	  <guard label="ME-2/2/08" tag="chamber[ ]+(ME)?-2/2/08"/> 
+	  <guard label="ME-2/2/09" tag="chamber[ ]+(ME)?-2/2/09"/> 
+	  <guard label="ME-2/2/10" tag="chamber[ ]+(ME)?-2/2/10"/> 
+	  <guard label="ME-2/2/11" tag="chamber[ ]+(ME)?-2/2/11"/> 
+	  <guard label="ME-2/2/12" tag="chamber[ ]+(ME)?-2/2/12"/> 
+	  <guard label="ME-2/2/13" tag="chamber[ ]+(ME)?-2/2/13"/> 
+	  <guard label="ME-2/2/14" tag="chamber[ ]+(ME)?-2/2/14"/> 
+	  <guard label="ME-2/2/15" tag="chamber[ ]+(ME)?-2/2/15"/> 
+	  <guard label="ME-2/2/16" tag="chamber[ ]+(ME)?-2/2/16"/> 
+	  <guard label="ME-2/2/17" tag="chamber[ ]+(ME)?-2/2/17"/> 
+	  <guard label="ME-2/2/18" tag="chamber[ ]+(ME)?-2/2/18"/> 
+	  <guard label="ME-2/2/19" tag="chamber[ ]+(ME)?-2/2/19"/> 
+	  <guard label="ME-2/2/20" tag="chamber[ ]+(ME)?-2/2/20"/> 
+	  <guard label="ME-2/2/21" tag="chamber[ ]+(ME)?-2/2/21"/> 
+	  <guard label="ME-2/2/22" tag="chamber[ ]+(ME)?-2/2/22"/> 
+	  <guard label="ME-2/2/23" tag="chamber[ ]+(ME)?-2/2/23"/> 
+	  <guard label="ME-2/2/24" tag="chamber[ ]+(ME)?-2/2/24"/> 
+	  <guard label="ME-2/2/25" tag="chamber[ ]+(ME)?-2/2/25"/> 
+	  <guard label="ME-2/2/26" tag="chamber[ ]+(ME)?-2/2/26"/> 
+	  <guard label="ME-2/2/27" tag="chamber[ ]+(ME)?-2/2/27"/> 
+	  <guard label="ME-2/2/28" tag="chamber[ ]+(ME)?-2/2/28"/> 
+	  <guard label="ME-2/2/29" tag="chamber[ ]+(ME)?-2/2/29"/> 
+	  <guard label="ME-2/2/30" tag="chamber[ ]+(ME)?-2/2/30"/> 
+	  <guard label="ME-2/2/31" tag="chamber[ ]+(ME)?-2/2/31"/> 
+	  <guard label="ME-2/2/32" tag="chamber[ ]+(ME)?-2/2/32"/> 
+	  <guard label="ME-2/2/33" tag="chamber[ ]+(ME)?-2/2/33"/> 
+	  <guard label="ME-2/2/34" tag="chamber[ ]+(ME)?-2/2/34"/> 
+	  <guard label="ME-2/2/35" tag="chamber[ ]+(ME)?-2/2/35"/> 
+	  <guard label="ME-2/2/36" tag="chamber[ ]+(ME)?-2/2/36"/> 
 	</view>
       </view>
       <view label="Station 3">
 	<view label="Ring 1">
-	  <guard label="ME-3/1/01" tag="chamber[ ]+ME-3/1/01"/> 
-	  <guard label="ME-3/1/02" tag="chamber[ ]+ME-3/1/02"/> 
-	  <guard label="ME-3/1/03" tag="chamber[ ]+ME-3/1/03"/> 
-	  <guard label="ME-3/1/04" tag="chamber[ ]+ME-3/1/04"/> 
-	  <guard label="ME-3/1/05" tag="chamber[ ]+ME-3/1/05"/> 
-	  <guard label="ME-3/1/06" tag="chamber[ ]+ME-3/1/06"/> 
-	  <guard label="ME-3/1/07" tag="chamber[ ]+ME-3/1/07"/> 
-	  <guard label="ME-3/1/08" tag="chamber[ ]+ME-3/1/08"/> 
-	  <guard label="ME-3/1/09" tag="chamber[ ]+ME-3/1/09"/> 
-	  <guard label="ME-3/1/10" tag="chamber[ ]+ME-3/1/10"/> 
-	  <guard label="ME-3/1/11" tag="chamber[ ]+ME-3/1/11"/> 
-	  <guard label="ME-3/1/12" tag="chamber[ ]+ME-3/1/12"/> 
-	  <guard label="ME-3/1/13" tag="chamber[ ]+ME-3/1/13"/> 
-	  <guard label="ME-3/1/14" tag="chamber[ ]+ME-3/1/14"/> 
-	  <guard label="ME-3/1/15" tag="chamber[ ]+ME-3/1/15"/> 
-	  <guard label="ME-3/1/16" tag="chamber[ ]+ME-3/1/16"/> 
-	  <guard label="ME-3/1/17" tag="chamber[ ]+ME-3/1/17"/> 
-	  <guard label="ME-3/1/18" tag="chamber[ ]+ME-3/1/18"/> 
+	  <guard label="ME-3/1/01" tag="chamber[ ]+(ME)?-3/1/01"/> 
+	  <guard label="ME-3/1/02" tag="chamber[ ]+(ME)?-3/1/02"/> 
+	  <guard label="ME-3/1/03" tag="chamber[ ]+(ME)?-3/1/03"/> 
+	  <guard label="ME-3/1/04" tag="chamber[ ]+(ME)?-3/1/04"/> 
+	  <guard label="ME-3/1/05" tag="chamber[ ]+(ME)?-3/1/05"/> 
+	  <guard label="ME-3/1/06" tag="chamber[ ]+(ME)?-3/1/06"/> 
+	  <guard label="ME-3/1/07" tag="chamber[ ]+(ME)?-3/1/07"/> 
+	  <guard label="ME-3/1/08" tag="chamber[ ]+(ME)?-3/1/08"/> 
+	  <guard label="ME-3/1/09" tag="chamber[ ]+(ME)?-3/1/09"/> 
+	  <guard label="ME-3/1/10" tag="chamber[ ]+(ME)?-3/1/10"/> 
+	  <guard label="ME-3/1/11" tag="chamber[ ]+(ME)?-3/1/11"/> 
+	  <guard label="ME-3/1/12" tag="chamber[ ]+(ME)?-3/1/12"/> 
+	  <guard label="ME-3/1/13" tag="chamber[ ]+(ME)?-3/1/13"/> 
+	  <guard label="ME-3/1/14" tag="chamber[ ]+(ME)?-3/1/14"/> 
+	  <guard label="ME-3/1/15" tag="chamber[ ]+(ME)?-3/1/15"/> 
+	  <guard label="ME-3/1/16" tag="chamber[ ]+(ME)?-3/1/16"/> 
+	  <guard label="ME-3/1/17" tag="chamber[ ]+(ME)?-3/1/17"/> 
+	  <guard label="ME-3/1/18" tag="chamber[ ]+(ME)?-3/1/18"/> 
 	</view>
 	<view label="Ring 2">
-	  <guard label="ME-3/2/01" tag="chamber[ ]+ME-3/2/01"/> 
-	  <guard label="ME-3/2/02" tag="chamber[ ]+ME-3/2/02"/> 
-	  <guard label="ME-3/2/03" tag="chamber[ ]+ME-3/2/03"/> 
-	  <guard label="ME-3/2/04" tag="chamber[ ]+ME-3/2/04"/> 
-	  <guard label="ME-3/2/05" tag="chamber[ ]+ME-3/2/05"/> 
-	  <guard label="ME-3/2/06" tag="chamber[ ]+ME-3/2/06"/> 
-	  <guard label="ME-3/2/07" tag="chamber[ ]+ME-3/2/07"/> 
-	  <guard label="ME-3/2/08" tag="chamber[ ]+ME-3/2/08"/> 
-	  <guard label="ME-3/2/09" tag="chamber[ ]+ME-3/2/09"/> 
-	  <guard label="ME-3/2/10" tag="chamber[ ]+ME-3/2/10"/> 
-	  <guard label="ME-3/2/11" tag="chamber[ ]+ME-3/2/11"/> 
-	  <guard label="ME-3/2/12" tag="chamber[ ]+ME-3/2/12"/> 
-	  <guard label="ME-3/2/13" tag="chamber[ ]+ME-3/2/13"/> 
-	  <guard label="ME-3/2/14" tag="chamber[ ]+ME-3/2/14"/> 
-	  <guard label="ME-3/2/15" tag="chamber[ ]+ME-3/2/15"/> 
-	  <guard label="ME-3/2/16" tag="chamber[ ]+ME-3/2/16"/> 
-	  <guard label="ME-3/2/17" tag="chamber[ ]+ME-3/2/17"/> 
-	  <guard label="ME-3/2/18" tag="chamber[ ]+ME-3/2/18"/> 
-	  <guard label="ME-3/2/19" tag="chamber[ ]+ME-3/2/19"/> 
-	  <guard label="ME-3/2/20" tag="chamber[ ]+ME-3/2/20"/> 
-	  <guard label="ME-3/2/21" tag="chamber[ ]+ME-3/2/21"/> 
-	  <guard label="ME-3/2/22" tag="chamber[ ]+ME-3/2/22"/> 
-	  <guard label="ME-3/2/23" tag="chamber[ ]+ME-3/2/23"/> 
-	  <guard label="ME-3/2/24" tag="chamber[ ]+ME-3/2/24"/> 
-	  <guard label="ME-3/2/25" tag="chamber[ ]+ME-3/2/25"/> 
-	  <guard label="ME-3/2/26" tag="chamber[ ]+ME-3/2/26"/> 
-	  <guard label="ME-3/2/27" tag="chamber[ ]+ME-3/2/27"/> 
-	  <guard label="ME-3/2/28" tag="chamber[ ]+ME-3/2/28"/> 
-	  <guard label="ME-3/2/29" tag="chamber[ ]+ME-3/2/29"/> 
-	  <guard label="ME-3/2/30" tag="chamber[ ]+ME-3/2/30"/> 
-	  <guard label="ME-3/2/31" tag="chamber[ ]+ME-3/2/31"/> 
-	  <guard label="ME-3/2/32" tag="chamber[ ]+ME-3/2/32"/> 
-	  <guard label="ME-3/2/33" tag="chamber[ ]+ME-3/2/33"/> 
-	  <guard label="ME-3/2/34" tag="chamber[ ]+ME-3/2/34"/> 
-	  <guard label="ME-3/2/35" tag="chamber[ ]+ME-3/2/35"/> 
-	  <guard label="ME-3/2/36" tag="chamber[ ]+ME-3/2/36"/> 
+	  <guard label="ME-3/2/01" tag="chamber[ ]+(ME)?-3/2/01"/> 
+	  <guard label="ME-3/2/02" tag="chamber[ ]+(ME)?-3/2/02"/> 
+	  <guard label="ME-3/2/03" tag="chamber[ ]+(ME)?-3/2/03"/> 
+	  <guard label="ME-3/2/04" tag="chamber[ ]+(ME)?-3/2/04"/> 
+	  <guard label="ME-3/2/05" tag="chamber[ ]+(ME)?-3/2/05"/> 
+	  <guard label="ME-3/2/06" tag="chamber[ ]+(ME)?-3/2/06"/> 
+	  <guard label="ME-3/2/07" tag="chamber[ ]+(ME)?-3/2/07"/> 
+	  <guard label="ME-3/2/08" tag="chamber[ ]+(ME)?-3/2/08"/> 
+	  <guard label="ME-3/2/09" tag="chamber[ ]+(ME)?-3/2/09"/> 
+	  <guard label="ME-3/2/10" tag="chamber[ ]+(ME)?-3/2/10"/> 
+	  <guard label="ME-3/2/11" tag="chamber[ ]+(ME)?-3/2/11"/> 
+	  <guard label="ME-3/2/12" tag="chamber[ ]+(ME)?-3/2/12"/> 
+	  <guard label="ME-3/2/13" tag="chamber[ ]+(ME)?-3/2/13"/> 
+	  <guard label="ME-3/2/14" tag="chamber[ ]+(ME)?-3/2/14"/> 
+	  <guard label="ME-3/2/15" tag="chamber[ ]+(ME)?-3/2/15"/> 
+	  <guard label="ME-3/2/16" tag="chamber[ ]+(ME)?-3/2/16"/> 
+	  <guard label="ME-3/2/17" tag="chamber[ ]+(ME)?-3/2/17"/> 
+	  <guard label="ME-3/2/18" tag="chamber[ ]+(ME)?-3/2/18"/> 
+	  <guard label="ME-3/2/19" tag="chamber[ ]+(ME)?-3/2/19"/> 
+	  <guard label="ME-3/2/20" tag="chamber[ ]+(ME)?-3/2/20"/> 
+	  <guard label="ME-3/2/21" tag="chamber[ ]+(ME)?-3/2/21"/> 
+	  <guard label="ME-3/2/22" tag="chamber[ ]+(ME)?-3/2/22"/> 
+	  <guard label="ME-3/2/23" tag="chamber[ ]+(ME)?-3/2/23"/> 
+	  <guard label="ME-3/2/24" tag="chamber[ ]+(ME)?-3/2/24"/> 
+	  <guard label="ME-3/2/25" tag="chamber[ ]+(ME)?-3/2/25"/> 
+	  <guard label="ME-3/2/26" tag="chamber[ ]+(ME)?-3/2/26"/> 
+	  <guard label="ME-3/2/27" tag="chamber[ ]+(ME)?-3/2/27"/> 
+	  <guard label="ME-3/2/28" tag="chamber[ ]+(ME)?-3/2/28"/> 
+	  <guard label="ME-3/2/29" tag="chamber[ ]+(ME)?-3/2/29"/> 
+	  <guard label="ME-3/2/30" tag="chamber[ ]+(ME)?-3/2/30"/> 
+	  <guard label="ME-3/2/31" tag="chamber[ ]+(ME)?-3/2/31"/> 
+	  <guard label="ME-3/2/32" tag="chamber[ ]+(ME)?-3/2/32"/> 
+	  <guard label="ME-3/2/33" tag="chamber[ ]+(ME)?-3/2/33"/> 
+	  <guard label="ME-3/2/34" tag="chamber[ ]+(ME)?-3/2/34"/> 
+	  <guard label="ME-3/2/35" tag="chamber[ ]+(ME)?-3/2/35"/> 
+	  <guard label="ME-3/2/36" tag="chamber[ ]+(ME)?-3/2/36"/> 
 	</view>
       </view>
       <view label="Station 4">
 	<view label="Ring 1">
-	  <guard label="ME-4/1/01" tag="chamber[ ]+ME-4/1/01"/> 
-	  <guard label="ME-4/1/02" tag="chamber[ ]+ME-4/1/02"/> 
-	  <guard label="ME-4/1/03" tag="chamber[ ]+ME-4/1/03"/> 
-	  <guard label="ME-4/1/04" tag="chamber[ ]+ME-4/1/04"/> 
-	  <guard label="ME-4/1/05" tag="chamber[ ]+ME-4/1/05"/> 
-	  <guard label="ME-4/1/06" tag="chamber[ ]+ME-4/1/06"/> 
-	  <guard label="ME-4/1/07" tag="chamber[ ]+ME-4/1/07"/> 
-	  <guard label="ME-4/1/08" tag="chamber[ ]+ME-4/1/08"/> 
-	  <guard label="ME-4/1/09" tag="chamber[ ]+ME-4/1/09"/> 
-	  <guard label="ME-4/1/10" tag="chamber[ ]+ME-4/1/10"/> 
-	  <guard label="ME-4/1/11" tag="chamber[ ]+ME-4/1/11"/> 
-	  <guard label="ME-4/1/12" tag="chamber[ ]+ME-4/1/12"/> 
-	  <guard label="ME-4/1/13" tag="chamber[ ]+ME-4/1/13"/> 
-	  <guard label="ME-4/1/14" tag="chamber[ ]+ME-4/1/14"/> 
-	  <guard label="ME-4/1/15" tag="chamber[ ]+ME-4/1/15"/> 
-	  <guard label="ME-4/1/16" tag="chamber[ ]+ME-4/1/16"/> 
-	  <guard label="ME-4/1/17" tag="chamber[ ]+ME-4/1/17"/> 
-	  <guard label="ME-4/1/18" tag="chamber[ ]+ME-4/1/18"/> 
+	  <guard label="ME-4/1/01" tag="chamber[ ]+(ME)?-4/1/01"/> 
+	  <guard label="ME-4/1/02" tag="chamber[ ]+(ME)?-4/1/02"/> 
+	  <guard label="ME-4/1/03" tag="chamber[ ]+(ME)?-4/1/03"/> 
+	  <guard label="ME-4/1/04" tag="chamber[ ]+(ME)?-4/1/04"/> 
+	  <guard label="ME-4/1/05" tag="chamber[ ]+(ME)?-4/1/05"/> 
+	  <guard label="ME-4/1/06" tag="chamber[ ]+(ME)?-4/1/06"/> 
+	  <guard label="ME-4/1/07" tag="chamber[ ]+(ME)?-4/1/07"/> 
+	  <guard label="ME-4/1/08" tag="chamber[ ]+(ME)?-4/1/08"/> 
+	  <guard label="ME-4/1/09" tag="chamber[ ]+(ME)?-4/1/09"/> 
+	  <guard label="ME-4/1/10" tag="chamber[ ]+(ME)?-4/1/10"/> 
+	  <guard label="ME-4/1/11" tag="chamber[ ]+(ME)?-4/1/11"/> 
+	  <guard label="ME-4/1/12" tag="chamber[ ]+(ME)?-4/1/12"/> 
+	  <guard label="ME-4/1/13" tag="chamber[ ]+(ME)?-4/1/13"/> 
+	  <guard label="ME-4/1/14" tag="chamber[ ]+(ME)?-4/1/14"/> 
+	  <guard label="ME-4/1/15" tag="chamber[ ]+(ME)?-4/1/15"/> 
+	  <guard label="ME-4/1/16" tag="chamber[ ]+(ME)?-4/1/16"/> 
+	  <guard label="ME-4/1/17" tag="chamber[ ]+(ME)?-4/1/17"/> 
+	  <guard label="ME-4/1/18" tag="chamber[ ]+(ME)?-4/1/18"/> 
 	</view>
 	<view label="Ring 2">
-	  <guard label="ME-4/2/01" tag="chamber[ ]+ME-4/2/01"/> 
-	  <guard label="ME-4/2/02" tag="chamber[ ]+ME-4/2/02"/> 
-	  <guard label="ME-4/2/03" tag="chamber[ ]+ME-4/2/03"/> 
-	  <guard label="ME-4/2/04" tag="chamber[ ]+ME-4/2/04"/> 
-	  <guard label="ME-4/2/05" tag="chamber[ ]+ME-4/2/05"/> 
-	  <guard label="ME-4/2/06" tag="chamber[ ]+ME-4/2/06"/> 
-	  <guard label="ME-4/2/07" tag="chamber[ ]+ME-4/2/07"/> 
-	  <guard label="ME-4/2/08" tag="chamber[ ]+ME-4/2/08"/> 
-	  <guard label="ME-4/2/09" tag="chamber[ ]+ME-4/2/09"/> 
-	  <guard label="ME-4/2/10" tag="chamber[ ]+ME-4/2/10"/> 
-	  <guard label="ME-4/2/11" tag="chamber[ ]+ME-4/2/11"/> 
-	  <guard label="ME-4/2/12" tag="chamber[ ]+ME-4/2/12"/> 
-	  <guard label="ME-4/2/13" tag="chamber[ ]+ME-4/2/13"/> 
-	  <guard label="ME-4/2/14" tag="chamber[ ]+ME-4/2/14"/> 
-	  <guard label="ME-4/2/15" tag="chamber[ ]+ME-4/2/15"/> 
-	  <guard label="ME-4/2/16" tag="chamber[ ]+ME-4/2/16"/> 
-	  <guard label="ME-4/2/17" tag="chamber[ ]+ME-4/2/17"/> 
-	  <guard label="ME-4/2/18" tag="chamber[ ]+ME-4/2/18"/> 
-	  <guard label="ME-4/2/19" tag="chamber[ ]+ME-4/2/19"/> 
-	  <guard label="ME-4/2/20" tag="chamber[ ]+ME-4/2/20"/> 
-	  <guard label="ME-4/2/21" tag="chamber[ ]+ME-4/2/21"/> 
-	  <guard label="ME-4/2/22" tag="chamber[ ]+ME-4/2/22"/> 
-	  <guard label="ME-4/2/23" tag="chamber[ ]+ME-4/2/23"/> 
-	  <guard label="ME-4/2/24" tag="chamber[ ]+ME-4/2/24"/> 
-	  <guard label="ME-4/2/25" tag="chamber[ ]+ME-4/2/25"/> 
-	  <guard label="ME-4/2/26" tag="chamber[ ]+ME-4/2/26"/> 
-	  <guard label="ME-4/2/27" tag="chamber[ ]+ME-4/2/27"/> 
-	  <guard label="ME-4/2/28" tag="chamber[ ]+ME-4/2/28"/> 
-	  <guard label="ME-4/2/29" tag="chamber[ ]+ME-4/2/29"/> 
-	  <guard label="ME-4/2/30" tag="chamber[ ]+ME-4/2/30"/> 
-	  <guard label="ME-4/2/31" tag="chamber[ ]+ME-4/2/31"/> 
-	  <guard label="ME-4/2/32" tag="chamber[ ]+ME-4/2/32"/> 
-	  <guard label="ME-4/2/33" tag="chamber[ ]+ME-4/2/33"/> 
-	  <guard label="ME-4/2/34" tag="chamber[ ]+ME-4/2/34"/> 
-	  <guard label="ME-4/2/35" tag="chamber[ ]+ME-4/2/35"/> 
-	  <guard label="ME-4/2/36" tag="chamber[ ]+ME-4/2/36"/> 
+	  <guard label="ME-4/2/01" tag="chamber[ ]+(ME)?-4/2/01"/> 
+	  <guard label="ME-4/2/02" tag="chamber[ ]+(ME)?-4/2/02"/> 
+	  <guard label="ME-4/2/03" tag="chamber[ ]+(ME)?-4/2/03"/> 
+	  <guard label="ME-4/2/04" tag="chamber[ ]+(ME)?-4/2/04"/> 
+	  <guard label="ME-4/2/05" tag="chamber[ ]+(ME)?-4/2/05"/> 
+	  <guard label="ME-4/2/06" tag="chamber[ ]+(ME)?-4/2/06"/> 
+	  <guard label="ME-4/2/07" tag="chamber[ ]+(ME)?-4/2/07"/> 
+	  <guard label="ME-4/2/08" tag="chamber[ ]+(ME)?-4/2/08"/> 
+	  <guard label="ME-4/2/09" tag="chamber[ ]+(ME)?-4/2/09"/> 
+	  <guard label="ME-4/2/10" tag="chamber[ ]+(ME)?-4/2/10"/> 
+	  <guard label="ME-4/2/11" tag="chamber[ ]+(ME)?-4/2/11"/> 
+	  <guard label="ME-4/2/12" tag="chamber[ ]+(ME)?-4/2/12"/> 
+	  <guard label="ME-4/2/13" tag="chamber[ ]+(ME)?-4/2/13"/> 
+	  <guard label="ME-4/2/14" tag="chamber[ ]+(ME)?-4/2/14"/> 
+	  <guard label="ME-4/2/15" tag="chamber[ ]+(ME)?-4/2/15"/> 
+	  <guard label="ME-4/2/16" tag="chamber[ ]+(ME)?-4/2/16"/> 
+	  <guard label="ME-4/2/17" tag="chamber[ ]+(ME)?-4/2/17"/> 
+	  <guard label="ME-4/2/18" tag="chamber[ ]+(ME)?-4/2/18"/> 
+	  <guard label="ME-4/2/19" tag="chamber[ ]+(ME)?-4/2/19"/> 
+	  <guard label="ME-4/2/20" tag="chamber[ ]+(ME)?-4/2/20"/> 
+	  <guard label="ME-4/2/21" tag="chamber[ ]+(ME)?-4/2/21"/> 
+	  <guard label="ME-4/2/22" tag="chamber[ ]+(ME)?-4/2/22"/> 
+	  <guard label="ME-4/2/23" tag="chamber[ ]+(ME)?-4/2/23"/> 
+	  <guard label="ME-4/2/24" tag="chamber[ ]+(ME)?-4/2/24"/> 
+	  <guard label="ME-4/2/25" tag="chamber[ ]+(ME)?-4/2/25"/> 
+	  <guard label="ME-4/2/26" tag="chamber[ ]+(ME)?-4/2/26"/> 
+	  <guard label="ME-4/2/27" tag="chamber[ ]+(ME)?-4/2/27"/> 
+	  <guard label="ME-4/2/28" tag="chamber[ ]+(ME)?-4/2/28"/> 
+	  <guard label="ME-4/2/29" tag="chamber[ ]+(ME)?-4/2/29"/> 
+	  <guard label="ME-4/2/30" tag="chamber[ ]+(ME)?-4/2/30"/> 
+	  <guard label="ME-4/2/31" tag="chamber[ ]+(ME)?-4/2/31"/> 
+	  <guard label="ME-4/2/32" tag="chamber[ ]+(ME)?-4/2/32"/> 
+	  <guard label="ME-4/2/33" tag="chamber[ ]+(ME)?-4/2/33"/> 
+	  <guard label="ME-4/2/34" tag="chamber[ ]+(ME)?-4/2/34"/> 
+	  <guard label="ME-4/2/35" tag="chamber[ ]+(ME)?-4/2/35"/> 
+	  <guard label="ME-4/2/36" tag="chamber[ ]+(ME)?-4/2/36"/> 
 	</view>
       </view>
     </view>
@@ -1035,622 +1035,622 @@
   <view label="FED Crates" image="http://xdaq.web.cern.ch/xdaq/setup/images/FRLController.png">
     <view label="Crate 1">
       <view label="DDU 1">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+01[ ]+FEDcrate[ ]+1"/>
-      </view>
-      <view label="DDU 2">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+02[ ]+FEDcrate[ ]+1"/>
-      </view>
-      <view label="DDU 3">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+03[ ]+FEDcrate[ ]+1"/>
-      </view>
-      <view label="DDU 4">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+04[ ]+FEDcrate[ ]+1"/>
-      </view>
-      <view label="DDU 5">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+05[ ]+FEDcrate[ ]+1"/>
-      </view>
-      <view label="DDU 6">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+06[ ]+FEDcrate[ ]+1"/>
-      </view>
-      <view label="DDU 7">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+07[ ]+FEDcrate[ ]+1"/>
-      </view>
-      <view label="DDU 8">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+08[ ]+FEDcrate[ ]+1"/>
-      </view>
-      <view label="DDU 9">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+09[ ]+FEDcrate[ ]+1"/>
-      </view>
-    </view>
-    <view label="Crate 2">
-      <view label="DDU 10">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+10[ ]+FEDcrate[ ]+2"/>
-      </view>
-      <view label="DDU 11">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+11[ ]+FEDcrate[ ]+2"/>
-      </view>
-      <view label="DDU 12">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+12[ ]+FEDcrate[ ]+2"/>
-      </view>
-      <view label="DDU 13">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+13[ ]+FEDcrate[ ]+2"/>
-      </view>
-      <view label="DDU 14">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+14[ ]+FEDcrate[ ]+2"/>
-      </view>
-      <view label="DDU 15">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+15[ ]+FEDcrate[ ]+2"/>
-      </view>
-      <view label="DDU 16">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+16[ ]+FEDcrate[ ]+2"/>
-      </view>
-      <view label="DDU 17">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+17[ ]+FEDcrate[ ]+2"/>
-      </view>
-      <view label="DDU 18">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+18[ ]+FEDcrate[ ]+2"/>
-      </view>
-    </view>
-    <view label="Crate 3">
-      <view label="DDU 19">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+19[ ]+FEDcrate[ ]+3"/>
-      </view>
-      <view label="DDU 20">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+20[ ]+FEDcrate[ ]+3"/>
-      </view>
-      <view label="DDU 21">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+21[ ]+FEDcrate[ ]+3"/>
-      </view>
-      <view label="DDU 22">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+22[ ]+FEDcrate[ ]+3"/>
-      </view>
-      <view label="DDU 23">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+23[ ]+FEDcrate[ ]+3"/>
-      </view>
-      <view label="DDU 24">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+24[ ]+FEDcrate[ ]+3"/>
-      </view>
-      <view label="DDU 25">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+25[ ]+FEDcrate[ ]+3"/>
-      </view>
-      <view label="DDU 26">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+26[ ]+FEDcrate[ ]+3"/>
-      </view>
-      <view label="DDU 27">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+27[ ]+FEDcrate[ ]+3"/>
-      </view>
-    </view>
-    <view label="Crate 4">
-      <view label="DDU 28">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+28[ ]+FEDcrate[ ]+4"/>
-      </view>
-      <view label="DDU 29">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+29[ ]+FEDcrate[ ]+4"/>
-      </view>
-      <view label="DDU 30">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+30[ ]+FEDcrate[ ]+4"/>
-      </view>
-      <view label="DDU 31">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+31[ ]+FEDcrate[ ]+4"/>
-      </view>
-      <view label="DDU 32">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+32[ ]+FEDcrate[ ]+4"/>
-      </view>
-      <view label="DDU 33">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+33[ ]+FEDcrate[ ]+4"/>
-      </view>
-      <view label="DDU 34">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+34[ ]+FEDcrate[ ]+4"/>
-      </view>
-      <view label="DDU 35">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+35[ ]+FEDcrate[ ]+4"/>
-      </view>
-      <view label="DDU 36">
-	<guard label="fiber input 00" tag="fiber[ ]+00[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 01" tag="fiber[ ]+01[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 02" tag="fiber[ ]+02[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 03" tag="fiber[ ]+03[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 04" tag="fiber[ ]+04[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 05" tag="fiber[ ]+05[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 06" tag="fiber[ ]+06[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 07" tag="fiber[ ]+07[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 08" tag="fiber[ ]+08[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 09" tag="fiber[ ]+09[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 10" tag="fiber[ ]+10[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 11" tag="fiber[ ]+11[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 12" tag="fiber[ ]+12[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 13" tag="fiber[ ]+13[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
-	<guard label="fiber input 14" tag="fiber[ ]+14[ ]+RUI[ ]+36[ ]+FEDcrate[ ]+4"/>
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 2">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?2[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 3">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?3[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 4">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?4[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 5">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?5[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 6">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?6[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 7">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?7[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 8">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?8[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 9">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?9[ ]+fiber[ ]+14"/>
+      </view>				                		               
+    </view>				                		               
+    <view label="Crate 2">		                		               
+      <view label="DDU 10">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 11">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+11[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 12">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+12[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 13">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+13[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 14">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+14[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 15">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+15[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 16">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+16[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 17">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+17[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 18">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+2[ ]+RUI[ ]+18[ ]+fiber[ ]+14"/>
+      </view>				                		               
+    </view>				                		               
+    <view label="Crate 3">		                		               
+      <view label="DDU 19">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 20">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+20[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 21">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+21[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 22">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+22[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 23">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+23[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 24">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+24[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 25">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+25[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 26">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+26[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 27">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+3[ ]+RUI[ ]+27[ ]+fiber[ ]+14"/>
+      </view>				                		               
+    </view>				                		               
+    <view label="Crate 4">		                		               
+      <view label="DDU 28">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 29">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+29[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 30">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+30[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 31">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+31[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 32">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+32[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 33">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+33[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 34">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+34[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 35">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+35[ ]+fiber[ ]+14"/>
+      </view>				                		               
+      <view label="DDU 36">		                		               
+	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+05"/>
+	<guard label="fiber input 06" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+06"/>
+	<guard label="fiber input 07" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+07"/>
+	<guard label="fiber input 08" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+08"/>
+	<guard label="fiber input 09" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+14"/>
       </view>
     </view>
   </view>
