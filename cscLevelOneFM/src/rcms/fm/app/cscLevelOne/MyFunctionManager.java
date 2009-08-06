@@ -195,7 +195,14 @@ public class MyFunctionManager extends UserFunctionManager {
 		// call renderers
 	    _myUtil.renderMainGui();
 
-
-
 	}
+	/**
+	 * Returns true if custom GUI is required, false otherwise
+	 * 
+	 * @return true, because MyFunctionManager class requires user code
+	 */	
+	public boolean hasCustomGUI() {
+		return true;
+	}
+
 }
