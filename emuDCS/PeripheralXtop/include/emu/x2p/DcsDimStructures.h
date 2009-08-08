@@ -72,7 +72,8 @@ typedef struct{
 
   int update_time;
   int status;
-
+  char QTAG[80];
+  
 }DDU_1_DimBroker;
 
 

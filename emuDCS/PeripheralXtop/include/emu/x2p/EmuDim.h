@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.9 2009/07/29 14:10:33 liu Exp $
+// $Id: EmuDim.h,v 1.10 2009/08/08 04:14:56 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -53,9 +53,9 @@
 #include "emu/x2p/Chamber.h"
 #include "emu/x2p/DDU.h"
 
-#define TOTAL_CHAMBERS 235
+#define TOTAL_CHAMBERS 240
 #define TOTAL_CRATES 30
-#define TOTAL_DDUS 18
+#define TOTAL_DDUS 19
 
 namespace emu {
   namespace x2p {
@@ -101,7 +101,7 @@ public:
   void Stop();
   void Setup ();
   void CheckCommand();
-  void StartDim (int chs);
+  void StartDim ();
   void UpdateAllDim ();
   int UpdateChamber (int ch);
   int UpdateDDU (int ch);
