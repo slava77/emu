@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.9 2009/06/03 01:37:50 liu Exp $
+// $Id: Chamber.cc,v 1.10 2009/08/08 04:14:56 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.10  2009/08/08 04:14:56  liu
+// update protocol for DDU
+//
 // Revision 1.9  2009/06/03 01:37:50  liu
 // don't send data if can't read the crate or chamber
 //
@@ -158,10 +161,10 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
    }
    else
       dim_lv->update_time = old_time_lv;
-   dim_lv->slot = (states_bk[2]>>8)&0xFF;
+   dim_lv->slot = (states[2]>>8)&0xFF;
 
    memcpy(dim_lv->VCCMAC, vcc_ip, 18);
-   sprintf(dim_lv->VCCMAC+15, "%02X", (states_bk[2]&0xFF));
+   sprintf(dim_lv->VCCMAC+15, "%02X", (states[2]&0xFF));
 }
 
 void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
@@ -200,10 +203,10 @@ void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
    }
    else
       dim_temp->update_time = old_time_temp;
-   dim_temp->slot = (states_bk[2]>>8)&0xFF;
+   dim_temp->slot = (states[2]>>8)&0xFF;
 
    memcpy(dim_temp->VCCMAC, vcc_ip, 18);
-   sprintf(dim_temp->VCCMAC+15, "%02X", (states_bk[2]&0xFF));
+   sprintf(dim_temp->VCCMAC+15, "%02X", (states[2]&0xFF));
 }
 
   } // namespace emu::x2p

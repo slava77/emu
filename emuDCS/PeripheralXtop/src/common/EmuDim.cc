@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.24 2009/07/29 14:10:33 liu Exp $
+// $Id: EmuDim.cc,v 1.25 2009/08/08 04:14:56 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -254,12 +254,6 @@ void EmuDim::MyHeader(xgi::Input * in, xgi::Output * out, std::string title )
 
 void EmuDim::Setup()
 {
-   std::string fn=PeripheralCrateDimFile_;
-   int ch=ReadFromFile(fn.c_str());
-   if(ch>0 && ch<TOTAL_CHAMBERS) 
-      StartDim(ch);
-   else
-      std::cout << "ERROR in read file " << fn << " DIM services cannot start." << std::endl;
    XmasLoader = new LOAD();
    BlueLoader = new LOAD();
    FedcLoader = new LOAD();
@@ -278,7 +272,15 @@ void EmuDim::Setup()
    fedc_root=FedcDcsUrl_;
    fedc_load=fedc_root + "/DCSOutput";
    FedcLoader->init(fedc_load.c_str());
-   inited=true;
+
+   int ch=ReadFromXmas();
+   if(ch>0 && ch<TOTAL_CHAMBERS) 
+   {
+      StartDim();
+      inited=true;
+   }
+   else
+      std::cout << "ERROR in connecting monitor process. DIM services cannot start." << std::endl;
 }
 
 int EmuDim::ReadFromFile(const char *filename)
@@ -303,7 +305,7 @@ int EmuDim::ReadFromFile(const char *filename)
 
 int EmuDim::ReadFromXmas()
 {
-  int ch=0;
+  int ch=0, du=0;
    // read
    XmasLoader->reload(xmas_load);
 
@@ -315,8 +317,8 @@ int EmuDim::ReadFromXmas()
    FedcLoader->reload(fedc_load);
 
    // then fill the structure
-   ch=ParseDDU(FedcLoader->Content(), FedcLoader->Content_Size(), 0);
-   std::cout << ch << " DDUs read at " << getLocalDateTime() << std::endl;
+   du=ParseDDU(FedcLoader->Content(), FedcLoader->Content_Size(), 0);
+   std::cout << du << " DDUs read at " << getLocalDateTime() << std::endl;
    // 
    return ch;
 }
@@ -370,7 +372,7 @@ int EmuDim::FillChamber(char *buff, int source)
    content = endstr+1;
    if(strlen(content)>430) std::cout<< label << " WARNING " << content << std::endl;
    if(chnumb>=0 && chnumb <TOTAL_CHAMBERS)
-   {   if(source) chamb[chnumb].SetLabel(label);
+   {   chamb[chnumb].SetLabel(label);
        chamb[chnumb].Fill(content, source);
        return 1;
    }
@@ -469,7 +471,7 @@ int EmuDim::FillDDU(char *buff, int source)
    content = endstr+1;
    if(strlen(content)>100) std::cout<< label << " WARNING " << content << std::endl;
    if(strncmp(buff, "DDU", 3)==0 && chnumb>0 && chnumb <TOTAL_DDUS)
-   {   if(source) ddumb[chnumb].SetLabel(label);
+   {   ddumb[chnumb].SetLabel(label);
        ddumb[chnumb].Fill(content, source);
        return 1;
    }
@@ -479,18 +481,18 @@ int EmuDim::FillDDU(char *buff, int source)
    }
 }
 
-void EmuDim::StartDim(int chs)
+void EmuDim::StartDim()
 {
    int total=0, total_d=0, i=0;
    std::string dim_lv_name, dim_temp_name, dim_ddu_name, dim_command, dim_server, pref;
 
    pref=TestPrefix_;
-   while(total<chs && i < TOTAL_CHAMBERS)
+   while(i < TOTAL_CHAMBERS)
    {
       if(chamb[i].Ready())
       {
-         chamb[i].GetDimLV(1, &(EmuDim_lv[i]));
-         chamb[i].GetDimTEMP(1, &(EmuDim_temp[i]));
+         chamb[i].GetDimLV(0, &(EmuDim_lv[i]));
+         chamb[i].GetDimTEMP(0, &(EmuDim_temp[i]));
          dim_lv_name = pref + "LV_1_" + chamb[i].GetLabel(); 
          dim_temp_name = pref + "TEMP_1_" + chamb[i].GetLabel(); 
 
@@ -508,24 +510,23 @@ void EmuDim::StartDim(int chs)
    {
       if(ddumb[i].Ready())
       {
-         ddumb[i].GetDimDDU(1, &(EmuDim_ddu[i]));
+         ddumb[i].GetDimDDU(0, &(EmuDim_ddu[i]));
          dim_ddu_name = pref + "FED_1_" + ddumb[i].GetLabel(); 
 
-         DDU_1_Service[i]= new DimService(dim_ddu_name.c_str(),"F:8;I:2",
+         DDU_1_Service[i]= new DimService(dim_ddu_name.c_str(),"F:8;I:2;C:80",
            &(EmuDim_ddu[i]), sizeof(DDU_1_DimBroker));
 
          total_d++;
       }
    }
-   Confirmation_Service = new DimService("LV_CONFIRMATION_SERVICE","C:80", (void *)&pvssrespond, sizeof(pvssrespond));
+   std::string confirm_cmd = pref + "LV_CONFIRMATION_SERVICE";
+   Confirmation_Service = new DimService(confirm_cmd.c_str(),"C:80", (void *)&pvssrespond, sizeof(pvssrespond));
 
    dim_command = pref + "LV_1_COMMAND";
    LV_1_Command = new DimCommand( dim_command.c_str(),"C");
    dim_server = pref + "Emu-Dcs Dim Server";
    DimServer::start(dim_server.c_str());
 
-//   std::string confirm_cmd = pref + "LV_1_COMMAND_CONFIRMATION";
-//   DimClient::sendCommand( confirm_cmd.c_str(), "SOFT_START");
    strcpy(pvssrespond.command, "SOFT_START");
    Confirmation_Service->updateService();
  
@@ -570,6 +571,12 @@ int EmuDim::UpdateDDU(int ch)
 
 void EmuDim::UpdateAllDim()
 {
+   if(!inited)
+   {
+      StartDim();
+      inited=true;
+      return;
+   }
    int j=0;
 
    for(int i=0; i < TOTAL_CHAMBERS; i++)

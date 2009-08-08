@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.cc,v 1.1 2009/07/20 12:41:34 liu Exp $
+// $Id: DDU.cc,v 1.2 2009/08/08 04:14:56 liu Exp $
 // $Log: DDU.cc,v $
+// Revision 1.2  2009/08/08 04:14:56  liu
+// update protocol for DDU
+//
 // Revision 1.1  2009/07/20 12:41:34  liu
 // add DDU info to X2P
 //
@@ -52,7 +55,7 @@ void DDU::Fill(char *buffer, int source)
        idx++;
        item=strtok_r(NULL, sep, &last);
    };
-   if(idx==11) 
+   if(idx==12) 
    {   
        if(source) 
        {
@@ -66,8 +69,8 @@ void DDU::Fill(char *buffer, int source)
    if(source)
    {   corruption = false;
    }
-   else if(idx!=11 || values[8]!=(48879.))
-   {   std::cout << "BAD...total " << idx << " last one " << values[47] << std::endl;
+   else if(idx!=12 || values[8]!=(48879.))
+   {   std::cout << "BAD...total " << idx << " last one " << values[8] << std::endl;
        corruption = true;
    }
    else corruption = false;
@@ -103,7 +106,7 @@ void DDU::GetDimDDU(int hint, DDU_1_DimBroker *dim_return )
       dim_return->td4 = data[7];
       dim_return->status = info[1];
       dim_return->update_time = info[0];
-
+      memcpy(dim_return->QTAG, "DDU", 4);
 }
 
   } // namespace emu::x2p
