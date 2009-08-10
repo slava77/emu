@@ -2518,6 +2518,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   xdata::InfoSpace * is;
   std::string mac;
   int ip, slot;
+  bool gooddata;
 
   if(!Monitor_Ready_)
   {  //  X2P will trigger the start of monitoring.
@@ -2530,14 +2531,21 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   {
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
-     if(dmbdata==NULL || dmbdata->size()==0) continue;
-     xdata::UnsignedInteger32 *counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
-     if (counter32==NULL) readtime=0; 
-        else readtime = (*counter32);
-     xdata::UnsignedShort *counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
-     if (counter16==NULL) crateok= 0; 
-        else crateok = (*counter16);
-
+     if(dmbdata==NULL || dmbdata->size()==0)
+     {  gooddata=false;
+        crateok=0;
+        readtime=0;
+     }
+     else
+     {
+        gooddata=true;
+        xdata::UnsignedInteger32 *counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
+        if (counter32==NULL) readtime=0; 
+           else readtime = (*counter32);
+        xdata::UnsignedShort *counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
+        if (counter16==NULL) crateok= 0; 
+           else crateok = (*counter16);
+     }
      mac=crateVector[i]->vmeController()->GetMAC(0);
      ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
      *out << std::setprecision(5);
@@ -2548,9 +2556,12 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         ip = (ip & 0xff) + slot*256;
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
         *out << " " << crateok << " " << readtime << " " << ip;
-        for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
-        {  val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
-           *out << " " << val;
+        if(gooddata)
+        {
+           for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
+           {  val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
+              *out << " " << val;
+           }
         }
         *out << std::endl;
      }

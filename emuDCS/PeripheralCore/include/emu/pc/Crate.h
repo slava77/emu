@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.3 2009/04/21 13:23:49 liu Exp $
+// $Id: Crate.h,v 1.4 2009/08/10 15:03:04 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.4  2009/08/10 15:03:04  liu
+// expand configure() to include a second argument: configID
+//
 // Revision 1.3  2009/04/21 13:23:49  liu
 // introduce dead channel masks in monitoring
 //
@@ -114,7 +117,7 @@ public:
   
   void enable();
   void disable();
-  int configure(int c=0);
+  int configure(int, int ID=0);
   void init();
   void addModule(VMEModule * module);
   void AddChamber(Chamber * chamber);

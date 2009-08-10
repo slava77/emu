@@ -174,7 +174,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MainPage, "MainPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::setConfFile, "setConfFile");
   //
-  xgi::bind(this,&EmuPeripheralCrateConfig::InitSystem, "InitSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ConfigOneCrate, "ConfigOneCrate");
   //
   //------------------------------------------------------
   // bind buttons -> other pages
@@ -682,8 +682,8 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    std::string InitSystem = toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
+    std::string ConfigOneCr = toolbox::toString("/%s/ConfigOneCrate",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",ConfigOneCr) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Write FLASH to Crate") << std::endl ;
     *out << cgicc::form() << std::endl ;
     *out << cgicc::td();
@@ -883,8 +883,15 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
     throw (xgi::exception::Exception)
   {
      std::cout << "Button: ConfigAllCrates" << std::endl;
-     ConfigureInit();
-//     fireEvent("Configure");
+     ConfigureInit(0, 0);
+     this->Default(in,out);
+  }
+
+  void EmuPeripheralCrateConfig::ConfigOneCrate(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     std::cout << "Button: ConfigOneCrate" << std::endl;
+     thisCrate->configure(0);
      this->Default(in,out);
   }
 
@@ -893,7 +900,6 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
   {
      std::cout << "Button: FastConfigCrates" << std::endl;
      ConfigureInit(2);
-//     fireEvent("Configure");
      this->Default(in,out);
   }
 
@@ -931,7 +937,7 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
       }
   }
 
-  void EmuPeripheralCrateConfig::ConfigureInit(int c)
+  void EmuPeripheralCrateConfig::ConfigureInit(int c, int ID)
   {
 
     if(!parsed) ParsingXML();
@@ -940,7 +946,7 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
     current_config_state_=1;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-        if(crateVector[i] && crateVector[i]->IsAlive()) crateVector[i]->configure(c);
+        if(crateVector[i] && crateVector[i]->IsAlive()) crateVector[i]->configure(c, ID);
     }
     current_config_state_=2;
     //
@@ -4560,36 +4566,6 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
   this->DMBTests(in,out);
 }
 //
-//
-////////////////////////////////////////////////////////////////////////////////////
-// Main page methods
-////////////////////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateConfig::InitSystem(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  std::cout << "Init System" << std::endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Init System");
-  //
-  //
-  thisCrate->configure();          // Init system
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  cgicc::form_iterator name = cgi.getElement("navigator");
-  //
-  int navigator;
-  if(name != cgi.getElements().end()) {
-    navigator = cgi["navigator"]->getIntegerValue();
-    std::cout << "Navigator " << navigator << std::endl;
-    if ( navigator == 1 ) {
-      thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
-      this->ChamberTests(in,out);
-    }
-  } else {
-    std::cout << "No navigator" << std::endl;
-    this->Default(in,out);
-  }
-}
 //
 ////////////////////////////////////////////////////////////////
 // Chamber Tests (synchronization) methods

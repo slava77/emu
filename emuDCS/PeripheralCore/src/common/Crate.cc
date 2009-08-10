@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.53 2009/05/29 11:25:40 liu Exp $
+// $Id: Crate.cc,v 3.54 2009/08/10 15:03:04 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.54  2009/08/10 15:03:04  liu
+// expand configure() to include a second argument: configID
+//
 // Revision 3.53  2009/05/29 11:25:40  liu
 // counters for May 2009 TMB firmware
 //
@@ -395,7 +398,7 @@ void Crate::DumpConfiguration() {
   //
 }
 //
-int Crate::configure(int c) {
+int Crate::configure(int c, int ID) {
   //
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();

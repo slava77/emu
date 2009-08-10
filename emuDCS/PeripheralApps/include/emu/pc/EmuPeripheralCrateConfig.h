@@ -344,7 +344,7 @@ private:
   void CreateMonitorUnit(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
   void Display(xgi::Input * in, xgi::Output * out, int counter ) throw (xgi::exception::Exception); 
   void ResetAllCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ConfigOneCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void InitChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CCBBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TmbMPCTest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -513,7 +513,7 @@ private:
   void ConfigAllCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FastConfigCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FastConfigOne(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void ConfigureInit(int c=0);
+  void ConfigureInit(int c, int ID=0);
   bool ParsingXML();
   void SetCurrentCrate(int crate);
   int current_crate_;
