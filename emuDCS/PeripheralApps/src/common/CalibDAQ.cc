@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 1.3 2009/03/25 11:37:22 liu Exp $
+// $Id: CalibDAQ.cc,v 1.4 2009/08/10 15:03:15 liu Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 1.4  2009/08/10 15:03:15  liu
+// expand configure() to include a second argument: configID
+//
 // Revision 1.3  2009/03/25 11:37:22  liu
 // move header files to include/emu/pc
 //
@@ -218,29 +221,6 @@ CalibDAQ::CalibDAQ(EmuEndcap *endcap){
   myEndcap = endcap;
 }
 
-void CalibDAQ::loadConstants() {
-
-  std::vector<Crate*> myCrates = myEndcap->crates();
-
-  for(unsigned i = 0; i < myCrates.size(); ++i) {
-    loadConstants(myCrates[i]);
-  }
-
-}
-
-
-void CalibDAQ::loadConstants(Crate * crate) {
-  //
-  crate->configure();
-  //
-  std::vector<DAQMB*> myDmbs = myEndcap->daqmbs(crate);
-  for(unsigned i =0; i < myDmbs.size(); ++i) {
-    myDmbs[i]->restoreCFEBIdle();
-    myDmbs[i]->restoreMotherboardIdle();
-    myDmbs[i]->configure();
-  }
-}
-//
 void CalibDAQ::rateTest() {
   //
   //  int chip,ch,brd, nstrip;

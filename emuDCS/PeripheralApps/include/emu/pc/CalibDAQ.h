@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 1.1 2009/03/25 10:22:43 liu Exp $
+// $Id: CalibDAQ.h,v 1.2 2009/08/10 15:03:14 liu Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 1.2  2009/08/10 15:03:14  liu
+// expand configure() to include a second argument: configID
+//
 // Revision 1.1  2009/03/25 10:22:43  liu
 // move header files to include/emu/pc
 //
@@ -92,12 +95,10 @@ class CalibDAQ {
   CalibDAQ(EmuEndcap * endcap);
   ~CalibDAQ() {}
   
-  void loadConstants();
   void rateTest();
   void gainCFEB();
   void CFEBSaturation();
   void CFEBSaturationTest();
-  void loadConstants(Crate * crate);   
   void pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, int calType=0);
   void pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep, int calType=0);
   void pulseAllDMBsInit();
