@@ -69,7 +69,7 @@ find ./ \( -name "*.[hi]" -o -name "*.hpp" -o -name "*.hh" -o -name "*.hxx" \) \
 -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/include/{} \;
 )
 ( cd %{_packagedir}/xml;
-find ./ \( -name "*.xml" -o -name "*.view" -o -name "*.pl" \) \
+find ./ \( -name "*.xml" -o -name "*.view" -o -name "*.pl" -o -name "*.html" -o -name "*.js" -o -name "*.css" \) \
 -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml/{} \;
 )
 
