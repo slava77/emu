@@ -504,7 +504,7 @@ void EmuPeripheralCrateService::ForEmuPage1(xgi::Input *in, xgi::Output *out)
          << "\"/>" << std::endl;
 
     *out << "  <monitorable name=\"" << "VME Access"
-         <<            "\" value=\"" << "Ready"
+         <<            "\" value=\"" << "Enabled"
          <<  "\" nameDescription=\"" << " "
          << "\" valueDescription=\"" << " "
          <<          "\" nameURL=\"" << " "
