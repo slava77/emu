@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.5 2009/05/28 16:36:10 rakness Exp $
+// $Id: TMB.h,v 1.6 2009/08/11 10:07:15 liu Exp $
 // $Log: TMB.h,v $
+// Revision 1.6  2009/08/11 10:07:15  liu
+// to skip monitoring if vme access failed
+//
 // Revision 1.5  2009/05/28 16:36:10  rakness
 // update for May 2009 TMB and ALCT firmware versions
 //
@@ -1740,6 +1743,7 @@ public:
   int ConvertToHexAscii(int value_to_convert); /// convert the argument to its "hex-ascii" value:  i.e.  2007 -> 0x2007
   //
   int DCSreadAll(char *data); /// read out all DCS values (Temperatures and LVs)
+  bool checkvme_fail(); /// true=no vme access (whatever reason) 
   //
   FILE *pfile;
   int ucla_ldev;
