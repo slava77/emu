@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.87 2009/08/11 10:07:14 liu Exp $
+// $Id: TMB.cc,v 3.88 2009/08/11 12:57:03 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.88  2009/08/11 12:57:03  liu
+// update checkvme_fail function
+//
 // Revision 3.87  2009/08/11 10:07:14  liu
 // to skip monitoring if vme access failed
 //
@@ -8914,11 +8917,13 @@ int TMB::DCSreadAll(char *data)
 }
 //
 bool TMB::checkvme_fail() 
-{  
-   unsigned char data[2];
-   int i=read_now(0x70000, (char *)data);
-   if(i<=0) return true;
-   return (data[0] & 0x40)==0 ;
+{  // return true:  TMB vme access failed
+   //       false:  TMB vme access OK
+
+   char data[2];
+   int i=read_now(0x70000, data);
+   if(i<=0) return true;  // if VCC problem, or TMB time-out
+   return (data[1] & 0x40)==0 ;  // if TMB vme access disabled
 }
 //
 
