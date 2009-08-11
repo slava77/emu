@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.86 2009/05/28 16:36:10 rakness Exp $
+// $Id: TMB.cc,v 3.87 2009/08/11 10:07:14 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.87  2009/08/11 10:07:14  liu
+// to skip monitoring if vme access failed
+//
 // Revision 3.86  2009/05/28 16:36:10  rakness
 // update for May 2009 TMB and ALCT firmware versions
 //
@@ -1477,6 +1480,7 @@ int * TMB::GetCounters(){
 }
 //
 int * TMB::NewCounters(){
+  if(checkvme_fail()) return NULL;
   //
   // Take snapshot of current counter state
   //
@@ -8886,6 +8890,7 @@ int TMB::DCSreadAll(char *data)
   char out[2];
   unsigned short tt, tr;
 
+  if(checkvme_fail()) return 0;
   start(6,1);
   // RestoreIdle();
   // send out register number
@@ -8906,6 +8911,14 @@ int TMB::DCSreadAll(char *data)
   tr |= (tt & 1);
   memcpy(data, &tr, 2);
   return 2;
+}
+//
+bool TMB::checkvme_fail() 
+{  
+   unsigned char data[2];
+   int i=read_now(0x70000, (char *)data);
+   if(i<=0) return true;
+   return (data[0] & 0x40)==0 ;
 }
 //
 
