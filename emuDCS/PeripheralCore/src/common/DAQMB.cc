@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.53 2009/03/25 10:19:41 liu Exp $
+// $Id: DAQMB.cc,v 3.54 2009/08/13 01:48:21 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.54  2009/08/13 01:48:21  liu
+// to skip monitoring if vme access failed
+//
 // Revision 3.53  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -430,7 +433,8 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   cable_delay_(0), crate_id_(0xfe), toogle_bxn_(1), ALCT_dav_delay_(2),
   killflatclk_(5183),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
-  tmb_dav_counter_(-1), alct_dav_counter_(-1)
+  tmb_dav_counter_(-1), alct_dav_counter_(-1),
+  failed_checkvme_(-1)
 {
   //
    //get the initial value first:
@@ -4661,6 +4665,9 @@ char * DAQMB::GetCounters()
   //
   //printf(" Entered READ_TIMING \n");
   //
+  if(failed_checkvme_<0) checkvme_fail();
+  if(failed_checkvme_>0) return NULL;
+
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CAL_STATUS;
   sndbuf[0]=36;      //F36 in DMB6cntl, July 5, 2005
@@ -5976,6 +5983,8 @@ int DAQMB::DCSreadAll(char *data)
   unsigned short n, m;
   int retn=0;
 
+  if(checkvme_fail()) return 0;
+
   for(int i=1; i<6; i++)
   {
      // devdo() dev=25, ncmd=16, Cmd[0]=i, Cmd[1]=j
@@ -6002,6 +6011,19 @@ int DAQMB::DCSreadAll(char *data)
   return retn;
 }
 
+bool DAQMB::checkvme_fail()
+{  // return true:  DMB vme access failed
+   //       false:  DMB vme access OK
+
+   unsigned short data;
+
+   failed_checkvme_ = 0;
+   int i=read_now(0x7024, (char *) &data);
+   if(i<=0) failed_checkvme_ = 1;  // if VCC problem
+   else if(data==0xBAAD)  failed_checkvme_ = 1; // DMB time-out
+   return (bool)failed_checkvme_;
+}
+//
 //
 } // namespace emu::pc
 } // namespace emu

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: DAQMB.h,v 1.3 2009/08/13 01:48:21 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.3  2009/08/13 01:48:21  liu
+// to skip monitoring if vme access failed
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -547,6 +550,7 @@ public:
   inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
 
   int DCSreadAll(char *data);  
+  bool checkvme_fail();
   //
   //
 public:
@@ -681,6 +685,7 @@ public:
   int       expected_firmware_revision_;
   unsigned long int expected_cfeb_firmware_tag_[5];
   //
+  int failed_checkvme_;
 }; 
 
   } // namespace emu::pc
