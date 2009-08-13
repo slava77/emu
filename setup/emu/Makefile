@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2009/07/17 10:12:35 banicz Exp $
+# $Id: Makefile,v 1.7 2009/08/13 03:47:55 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -57,3 +57,7 @@ clean:
 	-rm -f etc/xdaq.zone
 
 include $(XDAQ_ROOT)/config/mfSetupRPM.rules
+
+csctfrpm:
+	mkdir -p rpm/{BUILD,RPMS}
+	rpmbuild -bb -vv emu-csctf.spec
