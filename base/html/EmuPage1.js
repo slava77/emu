@@ -360,7 +360,7 @@ function transformYToFit(){
     }
     if ( noPointInRange ) return;
     var yShiftSVG = 0.5* ( ( yAxis.loSVG + yAxis.hiSVG ) - ( minYSVG + maxYSVG ) ); // midpoint shift
-    var yFactor   = ( yAxis.loSVG - yAxis.hiSVG ) / Math.max( 100., 1.1 * ( maxYSVG -  minYSVG ) );
+    var yFactor   = ( yAxis.loSVG - yAxis.hiSVG ) / Math.max( 300., 1.1 * ( maxYSVG -  minYSVG ) );
     translate( 0., yShiftSVG );
     scale( 1., yFactor );
 }
@@ -722,6 +722,9 @@ function valuesFromXmlToGraph(){
 	  if ( ( monitorables[i].name == 'min events' || monitorables[i].name.indexOf('rate') > 0 ) 
 	       && state == 'Enabled' ) td_value.className += ( monitorables[i].value == 0 ? ' WARN' : '' );
 	  if ( monitorables[i].name == 'Heartbeat' ) td_value.className += ( monitorables[i].rate() == 0 ? ' WARN' : ' ON' );
+	  else if ( monitorables[i].name == 'TF Errors'  || monitorables[i].name == 'ME- Errors' || monitorables[i].name == 'ME+ Errors' ){
+	    td_value.className += ( monitorables[i].rate() > 0 ? ' ERROR' : '' );
+	  }
 	}
 	var a_value = document.getElementById( 'a_value_'+i );
 	if ( a_value ){
@@ -846,7 +849,8 @@ function TrackFinderFromJson(){
 	});
 	$.each( row.EMUPAGEONE_RATES.rows, function(j,ratesRow){ 
 	  if ( j == 0 ){
-	    var graphPoint = { name:'min SP rate [Hz]', time:time, value:ratesRow['Min Single SP Rate'] };
+	    //var graphPoint = { name:'min SP rate [Hz]', time:time, value:ratesRow['Min Single SP Rate'] };
+	    var graphPoint = { name:'total SP input rate [Hz]', time:time, value:ratesRow['Total SPs Rate'] };
 	    appendPoint( graphPoint );
 	    $('#a_value_min').text( ratesRow['Min Single SP Rate'] + ' Hz' );
 	    if ( ratesRow['Min Single SP Rate'] == 0 && ratesRow['Total SPs Rate'] > 0 ){
