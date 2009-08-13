@@ -354,6 +354,8 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
                    if(dmbdata->size()==0)
                       for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0.);
+                   short bad_read[22][7];
+                   for(int kk=3; kk<22; kk=kk+2 ) for(int ll=0; ll<7; ll++) bad_read[kk][ll]=0;
                    for(unsigned ii=0; ii<buf2[0]; ii++)
                    {   unsigned short rdv = buf2[ii+2];
                        if(rdv >= 0xFFF) rdv = 0;
@@ -363,16 +365,22 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
 
                           // for Voltage & Current reading error handling
                           int dmbslot=(ii/48)*2+3;
-                          if(dmbslot>10) dmbslot += 2;
-                          if(cratename.substr(4,1)=="4" && dmbslot>7)
-                          { // nothing for empty slots
+                          if(dmbslot>11) dmbslot += 2;
+                          int cfebnum=(ii%48)%19;
+                          if(cfebnum>17) cfebnum=17;
+                          cfebnum= cfebnum/3 + 1;       
+                          if((ii%48)==17 || (ii%48)>37 || (cratename.substr(4,1)=="4" && dmbslot>7))
+                          { // ignore ALCT 5.5B current or Analog/Digital Feed
+                            // nothing for empty slots
                           }
-                          else
+                          else if(cratename.substr(4,1)=="1" && dmbslot>16 && cfebnum==5)
+                          { // ME 1_3 chambers have no CFEB 5
+                          }
+                          else     
                           {
-                             if(rdv==0 || rdv>=4065)
-                             {  std::cout << "CFEB reading ERROR: " << cratename
-                                       << " slot " << dmbslot << " read back " << std::hex << rdv << std::dec
-                                       << " at " << getLocalDateTime() << std::endl; 
+                             if(rdv==0 || rdv>=4065)  
+                             {   bad_read[dmbslot][cfebnum]++;
+                                 bad_read[dmbslot][0]++;
                              }
                           }
 
@@ -408,6 +416,14 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                                        << " at " << getLocalDateTime() << std::endl; 
                              }
                           }
+                       }
+                   }
+                   for(int kk=3; kk<22; kk=kk+2)
+                   {   if(bad_read[kk][0]>0)
+                       {  std::cout << "ERROR reading CFEB ";
+                          for(int ll=1; ll<=6; ll++)
+                             if(bad_read[kk][ll]>0) std::cout << ll << " ";
+                          std::cout << cratename << " slot " << kk << " at " << getLocalDateTime() << std::endl; 
                        }
                    }
                    counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
