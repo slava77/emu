@@ -25,3 +25,4 @@ a:hover { color:#ff9900; font-weight:bold; }
 .stale { opacity:0.3; }
 table.stale td.time { text-decoration:blink; }
 td.WARN { background-color:#ffff22; }
+td.ERROR { background-color:#ff2222; }
