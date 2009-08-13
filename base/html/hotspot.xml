@@ -1034,6 +1034,7 @@
 
   <view label="FED Crates" image="http://xdaq.web.cern.ch/xdaq/setup/images/FRLController.png">
     <view label="Crate 1">
+      <guard label="DCC 750" tag="FMM[ ]+750"/>
       <view label="DDU 1">
 	<guard label="fiber input 00" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+00"/>
 	<guard label="fiber input 01" tag="FEDcrate[ ]+1[ ]+RUI[ ]+0?1[ ]+fiber[ ]+01"/>
@@ -1189,6 +1190,7 @@
       </view>				                		               
     </view>				                		               
     <view label="Crate 2">		                		               
+      <guard label="DCC 752" tag="FMM[ ]+752"/>
       <view label="DDU 10">		                		               
 	<guard label="fiber input 00" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+00"/>
 	<guard label="fiber input 01" tag="FEDcrate[ ]+2[ ]+RUI[ ]+10[ ]+fiber[ ]+01"/>
@@ -1344,6 +1346,7 @@
       </view>				                		               
     </view>				                		               
     <view label="Crate 3">		                		               
+      <guard label="DCC 754" tag="FMM[ ]+754"/>
       <view label="DDU 19">		                		               
 	<guard label="fiber input 00" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+00"/>
 	<guard label="fiber input 01" tag="FEDcrate[ ]+3[ ]+RUI[ ]+19[ ]+fiber[ ]+01"/>
@@ -1499,6 +1502,7 @@
       </view>				                		               
     </view>				                		               
     <view label="Crate 4">		                		               
+      <guard label="DCC 756" tag="FMM[ ]+756"/>
       <view label="DDU 28">		                		               
 	<guard label="fiber input 00" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+00"/>
 	<guard label="fiber input 01" tag="FEDcrate[ ]+4[ ]+RUI[ ]+28[ ]+fiber[ ]+01"/>
