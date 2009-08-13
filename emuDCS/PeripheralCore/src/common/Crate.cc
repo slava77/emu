@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.54 2009/08/10 15:03:04 liu Exp $
+// $Id: Crate.cc,v 3.55 2009/08/13 01:53:19 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.55  2009/08/13 01:53:19  liu
+// monitoring update
+//
 // Revision 3.54  2009/08/10 15:03:04  liu
 // expand configure() to include a second argument: configID
 //
@@ -621,6 +624,7 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
 
   buf2=(short *)buf;
   *buf2 = 0;
+  for(int i=0; i<= TOTAL_DMB_COUNTERS*9; i++) buf2[i]=0;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
