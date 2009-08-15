@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.7 2009/07/08 12:03:09 paste Exp $
+* $Id: Commander.cc,v 1.8 2009/08/15 19:17:42 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -274,19 +274,48 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div("Manage Firmware")
 		.set("class", "tier0") << std::endl;
 	*out << cgicc::div()
-		.set("class", "tier1") << std::endl;
+		.set("id", "firmware_hidden")
+		.set("class", "tier1")
+		.set("style", "display: none;") << std::endl;
 	*out << cgicc::button("Manage DDU Firmware")
 		.set("id", "ddu_firmware_button") << std::endl;
 	*out << cgicc::button("Manage DCC Firmware")
 		.set("id", "dcc_firmware_button") << std::endl;
 	*out << cgicc::div() << std::endl;
+	*out << cgicc::div("Select a crate to display firmware commands.")
+		.set("id", "firmware_displayed")
+		.set("class", "tier1") << std::endl;
 		
 	// The DDU-specific commands
 	*out << cgicc::div("Read/Write DDU Registers")
 		.set("class", "tier0") << std::endl;
+	// A series of buttons for custom dialogs
+	*out << cgicc::div()
+		.set("class", "tier1 ddu_hidden")
+		.set("style", "display: none;") << std::endl;
+	*out << cgicc::button("Set Flash Board ID")
+		.set("id", "ddu_flash_boardid_dialog") << std::endl;
+	*out << cgicc::button("Set Flash RUI Number")
+		.set("id", "ddu_flash_rui_dialog") << std::endl;
+	*out << cgicc::button("Set Flash KillFiber")
+		.set("id", "ddu_flash_killfiber_dialog") << std::endl;
+	*out << cgicc::button("Set GbE Prescale")
+		.set("id", "ddu_gbe_prescale_dialog") << std::endl;
+	*out << cgicc::button("Set FMM Status")
+		.set("id", "ddu_fmm_dialog") << std::endl;
+	*out << cgicc::button("Set Fake L1 Register")
+		.set("id", "ddu_fake_l1_dialog") << std::endl;
+	*out << cgicc::button("Set Flash GbE Thresholds")
+		.set("id", "ddu_flash_gbe_thresholds_dialog") << std::endl;
+	*out << cgicc::button("Set Bunch-Crossing Orbit")
+		.set("id", "ddu_bxorbit_dialog") << std::endl;
+	*out << cgicc::button("Set Input Register")
+		.set("id", "ddu_input_reg_dialog") << std::endl;
+	*out << cgicc::div() << std::endl;
 	// A series of buttons to make things easier on us
 	*out << cgicc::div()
-		.set("class", "tier1") << std::endl;
+		.set("class", "tier1 ddu_hidden")
+		.set("style", "display: none;") << std::endl;
 	*out << cgicc::button("Select All DDU Registers")
 		.set("id", "all_ddu_registers") << std::endl;
 	*out << cgicc::button("Select No DDU Registers")
@@ -398,7 +427,16 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Retister 1 (fibers 8-14)", "ddu_infpga1_diag1"));
 	
 	// Print the table of registers
+	*out << cgicc::div()
+		.set("class", "ddu_hidden")
+		.set("style", "display: none;") << std::endl;
 	*out << printRegisterTable(DDURegisters, "ddu_registers") << std::endl;
+
+	*out << cgicc::div() << std::endl;
+
+	*out << cgicc::div("Select a DDU to display DDU registers.")
+		.set("class", "tier1")
+		.set("id", "ddu_displayed") << std::endl;
 	
 	*out << cgicc::li("Select output format")
 		.set("class", "bold tier0") << std::endl;
@@ -406,7 +444,7 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::ol() << std::endl;
 	
 	*out << cgicc::fieldset() << std::endl;
-	
+
 	
 	// Advanced configuration options
 	*out << cgicc::div()
