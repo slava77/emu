@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.1 2009/07/03 23:33:29 paste Exp $
+* $Id: commander.js,v 1.2 2009/08/15 19:17:42 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -58,6 +58,8 @@ Event.observe(window, "load", function(event) {
 			$$(".ddu_checkbox").each(function(element2) {
 				if (element2.readAttribute("crate") == crate) element2.checked = true;
 			});
+			$$(".ddu_hidden").invoke("show");
+			$("ddu_displayed").hide();
 		});
 	});
 	$$(".no_ddus").each(function(element) {
@@ -67,6 +69,8 @@ Event.observe(window, "load", function(event) {
 			$$(".ddu_checkbox").each(function(element2) {
 				if (element2.readAttribute("crate") == crate) element2.checked = false;
 			});
+			$$(".ddu_hidden").invoke("hide");
+			$("ddu_displayed").show();
 		});
 	});
 	$$(".all_dccs").each(function(element) {
@@ -85,6 +89,73 @@ Event.observe(window, "load", function(event) {
 			$$(".dcc_checkbox").each(function(element2) {
 				if (element2.readAttribute("crate") == crate) element2.checked = false;
 			});
+		});
+	});
+
+	// Hide firmware section until a crate is selected
+	// Count the number of checked crates and make the firmware section appear if there are any
+	var firmwareChecked = 0;
+	$$(".crate_checkbox").each(function(el2) {
+		if (el2.checked) firmwareChecked++;
+	});
+	if (firmwareChecked) {
+		$("firmware_hidden").show();
+		$("firmware_displayed").hide();
+	} else {
+		$("firmware_hidden").hide();
+		$("firmware_displayed").show();
+	}
+	$$(".crate_checkbox").each(function(element) {
+		element.observe("change", function(el) {
+			// Ensure that only one check box is selected at a time (but they can't be radios, which cannot be unselected)
+			if (el.checked) {
+				// Bleh
+				$$(".crate_checkbox").each(function(el2) {
+					if (el2.id != el.id) el2.checked = false;
+				});
+			}
+			// Count the number of checked crates and make the firmware section appear if there are any
+			var totalChecked = 0;
+			$$(".crate_checkbox").each(function(el2) {
+				if (el2.checked) totalChecked++;
+			});
+			if (totalChecked) {
+				$("firmware_hidden").show();
+				$("firmware_displayed").hide();
+			} else {
+				$("firmware_hidden").hide();
+				$("firmware_displayed").show();
+			}
+		});
+	});
+
+	// Hide DDU section until a DDU is selected
+	// Count the number of checked DDUs and make the DDU section appear if there are any
+	var dduChecked = 0;
+	$$(".ddu_checkbox").each(function(el2) {
+		if (el2.checked) dduChecked++;
+	});
+	if (dduChecked) {
+		$$(".ddu_hidden").invoke("show");
+		$("ddu_displayed").hide();
+	} else {
+		$$(".ddu_hidden").invoke("hide");
+		$("ddu_displayed").show();
+	}
+	$$(".ddu_checkbox").each(function(element) {
+		element.observe("change", function(el) {
+			// Count the number of checked ddus and make the ddu section appear if there are any
+			var totalChecked = 0;
+			$$(".ddu_checkbox").each(function(el2) {
+				if (el2.checked) totalChecked++;
+			});
+			if (totalChecked) {
+				$$(".ddu_hidden").invoke("show");
+				$("ddu_displayed").hide();
+			} else {
+				$$(".ddu_hidden").invoke("hide");
+				$("ddu_displayed").show();
+			}
 		});
 	});
 	
