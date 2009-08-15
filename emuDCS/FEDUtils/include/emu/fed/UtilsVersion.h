@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: UtilsVersion.h,v 1.19 2009/07/16 09:21:25 paste Exp $
+* $Id: UtilsVersion.h,v 1.20 2009/08/15 19:15:14 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_UTILSVERSION_H__
 #define __EMU_FED_UTILSVERSION_H__
@@ -8,7 +8,7 @@
 
 namespace EmuFEDUtils {
 	const std::string package     = "EmuFEDUtils";
-	const std::string versions    = "07.07.00";
+	const std::string versions    = "07.09.00";
 	const std::string description = "Emu (CSC) FED Utility Libraries";
 
 	const std::string summary     = "Utility libraries used by the Front End Device (FED) crate XDAQ applications (FEDApps) for the CMS Emu (CSC) subdetector";
