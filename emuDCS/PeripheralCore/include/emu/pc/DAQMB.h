@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.3 2009/08/13 01:48:21 liu Exp $
+// $Id: DAQMB.h,v 1.4 2009/08/15 07:56:47 durkin Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.4  2009/08/15 07:56:47  durkin
+// fixed several bugs and added new routines
+//
 // Revision 1.3  2009/08/13 01:48:21  liu
 // to skip monitoring if vme access failed
 //
@@ -551,6 +554,15 @@ public:
 
   int DCSreadAll(char *data);  
   bool checkvme_fail();
+
+  int cfeb_testjtag_shift(int icfeb,char *out);
+  int vtx_cmpfiles(char *fname,int *cbits);
+  void set_chans_mode(int schan,int mode);
+  void set_chans_by4(int schan,int mode);
+  void small_configure();
+  void testlink(enum DEVTYPE devnum);
+  void varytmbdavdelay(int delay);  
+
   //
   //
 public:

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.54 2009/08/13 01:48:21 liu Exp $
+// $Id: DAQMB.cc,v 3.55 2009/08/15 07:56:02 durkin Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.55  2009/08/15 07:56:02  durkin
+// fixed several bugs and added new routines
+//
 // Revision 3.54  2009/08/13 01:48:21  liu
 // to skip monitoring if vme access failed
 //
@@ -968,7 +971,7 @@ void DAQMB::setcaldelay(int dword)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2); 
-  (*MyOutput_) << "caldelay was set to " << std::hex << dword <<std::dec << std::endl;
+  //(*MyOutput_) << "caldelay was set to " << std::hex << dword <<std::dec << std::endl;
   //
 }
 
@@ -1450,9 +1453,9 @@ void DAQMB::chan2shift(int chan[5][6][16])
       for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
 	 int brdn = cfebs_[icfeb].number();
 	 for(int i=0; i<16;i++) {
-	    if ( chan[brdn][lay][i] > 0 ) printf("%c[01;43m", '\033');
+	   // if ( chan[brdn][lay][i] > 0 ) printf("%c", '\033');
 	    (*MyOutput_) << chan[brdn][lay][i] << "" ;
-	    printf("%c[0m", '\033'); 
+	    //  printf("%c", '\033'); 
 	 }
 	 (*MyOutput_) << " | " ;		
       }
@@ -1637,7 +1640,7 @@ void DAQMB::dmb_readstatus(char status[11])
   for (i=0;i<11;i++)  {rcvbuf[i]=0;sndbuf[i]=0;}
   //
   devdo(MCTRL,6,cmd,88,sndbuf,rcvbuf,1);
-  status = rcvbuf;
+  for(i=0;i<11;i++)status[i]=rcvbuf[i];
   for (i=0;i<11;i++)
     {printf(" i= %d, rcvbuf[i]= %02x, status[i]= %02x \n",i,rcvbuf[i],status[i]);}
 
@@ -2396,7 +2399,7 @@ int i,j,nchips2;
 void DAQMB::set_cal_tim_pulse(int itim)
 {
   //
-  (*MyOutput_)<< "setting pulse timing to " << itim << std::endl; 
+  //(*MyOutput_)<< "setting pulse timing to " << itim << std::endl; 
   int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
     | (calibration_l1acc_delay_ & 0x1F) << 4
     | (itim & 0x1F) << 9
@@ -2542,17 +2545,17 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
   cmd[0]=VTX2_USR1;
   sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,2);
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
   //
   //(*MyOutput_) << "readfifo3" << std::endl;
   //
   cmd[0]=5;
-  devdo(devnum,1,cmd,nrcvfifo*2,sndbuf,rcvfifo,2);
+  devdo(devnum,1,cmd,nrcvfifo*2,sndbuf,rcvfifo,1);
   //
-  for(i=0;i<16380;i++)printf(" %d %04x ",i,((rcvbuf[2*i]<<8)&0xff00)|(rcvbuf[2*i+1]&0xff)); 
+  //  for(i=0;i<16380;i++)printf(" %d %04x ",i,((rcvbuf[2*i]<<8)&0xff00)|(rcvbuf[2*i+1]&0xff)); 
   //
   //(*MyOutput_) << "readfifo4" << std::endl;
   //
@@ -2565,7 +2568,7 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
   //
   printf("readfifo: %d %02x %02x \n",nrcvfifo,rcvfifo[0]&0xff,rcvfifo[1]&0xff); 
   //
@@ -3253,7 +3256,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     devstr=geo[dv].nam;
     dwnfp    = fopen(downfile,"r");
     fpout=fopen("eprom.bit","w");
-    //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
+    // printf("Programming Design %s with %s\n",devstr,downfile);
     //
     char bogobuf[8192];
     unsigned long int nlines=0;
@@ -3267,7 +3270,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
       if ((line%20)==0) printf("<   > Processed line %lu of %lu (%.1f%%)\n",line,nlines,percent*100.0);
       fflush(stdout);
       if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
-	//  printf("%s",buf);
+	// printf("%s",buf);
       }
       else {
 	line++;
@@ -4048,9 +4051,10 @@ char cval;
       sndbuf[33]=0x00;
       sndbuf[34]=0x00;
       sndbuf[35]=0x00;
+      sndbuf[36]=0x00;
       // bits have to be shifed for 3 bit delay
       for(i=0;i<36;i++)sndbuf2[i]=0x00;
-      ibstr=3;
+      ibstr=1;
       ibstr2=0;
 LOOP:     
       imod=ibstr-8*(ibstr/8);
@@ -4065,19 +4069,21 @@ LOOP:
       ibstr2=ibstr2+1;
       if(ibstr<288)goto LOOP;
       //   for(i=0;i<10;i++)printf(" %d %02x \n",i,sndbuf2[i]);
-      devdo(dv,5,cmd,285,sndbuf2,rcvbuf,0);
+      devdo(dv,5,cmd,288-1,sndbuf2,rcvbuf,0);
       cmd[0]=VTX_CFG_OUT;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
       totbytes=4*clbword2;
       totbits=8*totbytes;
-      char * data_ptr = new char;
-      char * rtn_ptr = new char;
+      // char * data_ptr = new char;
+      // char * rtn_ptr = new char;
       // data_ptr=(char *)malloc((clbword2*4+1),sizeof(char));
       // rtn_ptr=(char *)malloc((clbword2*4+1),sizeof(char));
       //@@ looks wrong!
+      char data_ptr[63505];
+      char rtn_ptr[63505];
       scan(DATA_REG,data_ptr,totbits+2,rtn_ptr,1);
       
-      bits=0;
+      /*     bits=0;
       for(i=0;i<totbytes;i++){
 	for(j=0;j<8;j++) { 
 	  if (bits>0) fprintf(fp,"%d",(rtn_ptr[i]>>j)&1);
@@ -4085,9 +4091,18 @@ LOOP:
 	  if (bits>2 && (bits-3)%32==0) fprintf(fp,"\n"); 
 	  if (bits==totbits) fprintf(fp,"0\n");
 	}
+	} */
+      bits=0;
+      for(i=0;i<totbytes;i++){
+        for(j=0;j<8;j++){
+           fprintf(fp,"%d",(rtn_ptr[i]>>j)&1);
+           bits++;
+           if(bits%32==0)fprintf(fp,"\n");
+           if(bits==totbits)fprintf(fp,"\n");
+        }
       }
-      delete data_ptr;
-      delete rtn_ptr;
+      //    delete data_ptr;
+      //  delete rtn_ptr;
       //  printf("\n Total bits read %d \n",totbits);
       cmd[0]=VTX_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
@@ -4387,12 +4402,13 @@ void DAQMB::trigset2(int nset, int iuse[5])
   if(nset<4)tsndbuf[44]=0x03;
   */
   if (nset>0) tsndbuf[4]=0x03;
-  if (nset>1) tsndbuf[7]=0x03;
+  if (nset>1) tsndbuf[21]=0x03;
   //
   //  if (nset>1) tsndbuf[40]=0x03;
   //  if (nset>1) tsndbuf[60]=0x03;
   //
   if (nset>2) tsndbuf[44]=0x03;
+  if (nset>3) tsndbuf[64]=0x03;
   //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=LOAD_TRIG;
@@ -5261,9 +5277,11 @@ void DAQMB::wrtfifox(enum DEVTYPE devnum,unsigned short int pass)
  cmd[0]=0;
  sndbuf[0]=pass&0xff;
  sndbuf[1]=((pass>>8)&0xff);
+ for(int i=0;i<16;i++){sndbuf[0+2*i]=sndbuf[0];sndbuf[1+2*i]=sndbuf[1];};
  //  printf(" wrtfifox 16384 %02x %02x \n",sndbuf[1]&0xff,sndbuf[0]&0xff);
  if(devnum-FIFO7!=0){
-   devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
+    devdo(devnum,1,cmd,16*2,sndbuf,rcvbuf,2);} 
+   // devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
  else{
    devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
 }
@@ -5294,7 +5312,8 @@ int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
  cmd[0]=1;
  sndbuf[0]=memchk&0xff;
  sndbuf[1]=((memchk>>8)&0xff);
- devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);
+ // devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,1);
+ devdo(devnum,1,cmd,16*2,sndbuf,rcvbuf,1);
  //
  (*MyOutput_) << " Number Bad: rcvbuf " << std::hex << rcvbuf[1] << " " << rcvbuf[0] << std::endl; 
  //
@@ -5329,8 +5348,11 @@ int DAQMB::memchk(enum DEVTYPE devnum)
   }
   //
   ierr2=0;
-  wrtfifox(devnum,0xffff);
-  ierr=readfifox_chk(devnum,0xffff);
+  char snd[40];
+  for(int j=0;j<32;j++)snd[j]=0xff;
+  wrtfifo(1,16,snd);
+  char rcv[40];
+  readfifo(1,16,rcv);
   ierr2+=ierr;
   (*MyOutput_) << " ierr " << ierr << ierr2 << std::endl;
   wrtfifox(devnum,0x0000);
@@ -6023,6 +6045,125 @@ bool DAQMB::checkvme_fail()
    else if(data==0xBAAD)  failed_checkvme_ = 1; // DMB time-out
    return (bool)failed_checkvme_;
 }
+
+int DAQMB::cfeb_testjtag_shift(int icfeb,char *out){
+    int ierr = 0;
+    DEVTYPE dv = cfebs_[icfeb].scamDevice();
+    cmd[0]=VTX_BYPASS;
+    sndbuf[0]=0x00;
+    sndbuf[1]=0xaa;
+    sndbuf[2]=0x55;
+    sndbuf[3]=0x00;
+    devdo(dv,5,cmd,40,sndbuf,rcvbuf,1);
+    if((rcvbuf[1]&0xFF)!=0xa8)ierr=1;
+    if((rcvbuf[2]&0xFF)!=0x56)ierr=1;
+    if((rcvbuf[3]&0xFF)!=0x01)ierr=1;
+    if((rcvbuf[4]&0x3F)!=0x00)ierr=1;
+    out[0]=rcvbuf[0]; 
+    out[1]=rcvbuf[1];
+    out[2]=rcvbuf[2];
+    out[3]=rcvbuf[3];
+    out[4]=rcvbuf[4];
+    return ierr;
+}
+
+
+int DAQMB::vtx_cmpfiles(char *fname,int *cbits){
+  int err=0;
+  cbits[0]=0;cbits[1]=0;
+  return err;
+}
+
+void DAQMB::set_chans_mode(int schan,int mode)
+{
+  for(int brd=0;brd<5;brd++){
+    for(int chip=0;chip<6;chip++){
+      for(int ch=0;ch<16;ch++){
+        shift_array[brd][chip][ch]=NORM_RUN;
+      }
+      shift_array[brd][chip][schan]=mode;
+    }
+  }
+}
+
+void DAQMB::set_chans_by4(int schan,int mode)
+{
+  for(int brd=0;brd<5;brd++){
+    for(int chip=0;chip<6;chip++){
+      for(int ch=0;ch<16;ch++){
+        shift_array[brd][chip][ch]=NORM_RUN;
+      }
+      shift_array[brd][chip][schan]=mode;
+      shift_array[brd][chip][schan+4]=mode;
+      shift_array[brd][chip][schan+8]=mode;
+      shift_array[brd][chip][schan+12]=mode;
+    }
+  }
+}
+
+void DAQMB::small_configure() {
+
+   //***Do this setting only for calibration ****
+  int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+     | (calibration_l1acc_delay_ & 0x1F) << 4
+      | (pulse_delay_ & 0x1F) << 9
+      | (inject_delay_ & 0x1F) << 14;
+   (*MyOutput_) << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
+   setcaldelay(cal_delay_bits);
+   (*MyOutput_) << "doing set_cal_dac " << inj_dac_set_ << " " 
+	<<  pul_dac_set_ << std::endl;
+   set_cal_dac(inj_dac_set_, pul_dac_set_);
+   //
+
+   //*** Do this setting only for older DMB firmware (V18 or older)
+   int dav_delay_bits = (feb_dav_delay_    & 0x1F)
+      | (tmb_dav_delay_ & 0X1F) << 5
+      | (push_dav_delay_   & 0x1F) << 10
+      | (l1acc_dav_delay_  & 0x3F) << 15
+      | (ALCT_dav_delay_   & 0x1F) << 21;
+   (*MyOutput_) << "doing setdavdelay " << dav_delay_bits << std::endl;
+   setdavdelay(dav_delay_bits);
+   int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
+     set_comp_mode(comp_mode_bits);
+   //
+
+   }
+
+void DAQMB::testlink(DEVTYPE devnum){
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=0x05;
+  sndbuf[1]=0x00;
+  devdo(devnum,5,cmd,8,sndbuf,rcvbuf,0);
+  usleep(50000);
+  // due to the routing in Xilinx, we need extra time here
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=0x03;
+  sndbuf[1]=0x00;
+  devdo(devnum,5,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=0x04;
+  sndbuf[1]=0x00;
+  devdo(devnum,5,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  sndbuf[0]=0x00;
+  devdo(devnum,5,cmd,0,sndbuf,rcvbuf,0);
+}
+
+void DAQMB::varytmbdavdelay(int delay)
+{
+
+   int dav_delay_bits = (feb_dav_delay_    & 0x1F)
+      | (delay & 0X1F) << 5
+      | (push_dav_delay_   & 0x1F) << 10
+      | (l1acc_dav_delay_  & 0x3F) << 15
+      | (ALCT_dav_delay_   & 0x1F) << 21;
+   (*MyOutput_) << "doing setdavdelay " << dav_delay_bits << std::endl;
+   printf(" delay %02x standard %02x \n",delay,tmb_dav_delay_);
+   setdavdelay(dav_delay_bits);
+
+
+}
+
 //
 //
 } // namespace emu::pc
