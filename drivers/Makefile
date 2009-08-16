@@ -1,6 +1,7 @@
 DAQSUBDIRS= e1000hook/eth_hook_2_nobigphysxxx e1000hook/eth_hook_3_nobigphysxxx e1000hook/eth_hook_4_nobigphysxxx e1000hook/eth_hook_5_nobigphysxxx e1000hook/e1000-7.0.39/src
 DAQSUBDIRS904= dl2khook/eth_hook_2_nobigphysxxx dl2khook/dl2k_driver
-SUBDIRS=$(DAQSUBDIRS) $(DAQSUBDIRS904)
+PCVMEDIRS= gbit-vme/eth_hook_jtag_simple gbit-vme/dl2k_driver
+SUBDIRS=$(DAQSUBDIRS) $(DAQSUBDIRS904) $(PCVMEDIRS)
 
 all:
 	@echo "*** Error: No target specified. ***"
@@ -10,6 +11,8 @@ all:
 	@echo "   daqdriverrpm"
 	@echo "   daqdriver904"
 	@echo "   daqdriverrpm904"
+	@echo "   pcvme"
+	@echo "   pcvmerpm"
 	@echo "For example, to compile the local DAQ drivers and pack them in an RPM:"
 	@echo "   make daqdriver daqdriverrpm"
 	@echo "Exiting."
@@ -52,3 +55,18 @@ daqdriver904:
 daqdriverrpm904:
 	mkdir -p rpm/{BUILD,RPMS}
 	rpmbuild -bb -vv emu-daqdriver904.spec
+
+
+
+###########################
+# Perihperal Controller Gbit driver
+###########################
+pcvme:
+	@for i in $(PCVMEDIRS); do \
+        echo "make in $$i..."; \
+	(cd $$i; make); \
+	done
+
+pcvmerpm:
+	mkdir -p rpm/{BUILD,RPMS}
+	rpmbuild -bb -vv emu-pcvme.spec
