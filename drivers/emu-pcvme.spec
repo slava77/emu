@@ -62,9 +62,12 @@ echo "PROMISC=no"                       >> ${NWSDIR}/ifcfg-eth2
 echo "SCHARDEV=yes"                     >> ${NWSDIR}/ifcfg-eth2
 [[ -f /sys/class/net/eth2/address ]] && echo "HWADDR=$(cat /sys/class/net/eth2/address)" >> ${NWSDIR}/ifcfg-eth2
 # Create character device
-[ -c /dev/schar2 ] || ( mknod /dev/schar2 c 42 0 && chmod 777 /dev/schar2 )
+# [ -c /dev/schar2 ] || ( mknod /dev/schar2 c 42 0 && chmod 777 /dev/schar2 )
 
 # Load new modules
-/sbin/modprobe dl2k
+# /sbin/modprobe dl2k
 
+%changelog
+* Sun Aug 16 2009 --
+- Initial build.
 
