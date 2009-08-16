@@ -28,7 +28,7 @@ mkdir -p $RPM_BUILD_ROOT/lib/modules/$(uname -r)/kernel/drivers/net
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
 cp %{workingDir}/gbit-vme/dl2k_driver/dl2k.ko $RPM_BUILD_ROOT/lib/modules/$(uname -r)/kernel/drivers/net/
 cp %{workingDir}/gbit-vme/eth_hook_jtag_simple/eth_hook.ko $RPM_BUILD_ROOT/lib/modules/$(uname -r)/kernel/drivers/net
-cp %{workingDir}/script/pcratedriver $RPM_BUILD_ROOT/etc/init.d
+cp %{workingDir}/script/pcratedriver $RPM_BUILD_ROOT/etc/rc.d/init.d
 
 %clean
 [[ ${RPM_BUILD_ROOT} != "/" ]] && rm -rf $RPM_BUILD_ROOT
