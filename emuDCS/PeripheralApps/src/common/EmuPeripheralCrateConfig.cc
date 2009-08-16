@@ -230,6 +230,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
   xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ConfigIDSelection, "ConfigIDSelection");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate,"MeasureL1AsAndDAVsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber,"MeasureL1AsAndDAVsForChamber");
@@ -447,6 +448,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   XML_or_DB_ = "xml";
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
+  Valid_config_ID="";
   //
   for(unsigned int dmb=0; dmb<9; dmb++) {
     L1aLctCounter_.push_back(0);
@@ -534,8 +536,58 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   //
   MyHeader(in,out,"EmuPeripheralCrateConfig");
 
-  if(!parsed) ParsingXML();
+  if(!parsed) 
+  {  
+     if(Valid_config_ID=="" && (XML_or_DB_.toString() == "db" || XML_or_DB_.toString() == "db"))
+        Valid_config_ID = EMU_config_ID_.toString();
+     if(Valid_config_ID=="-1" || Valid_config_ID=="-2")
+     {
+        // choose a ID from list
+        std::vector<std::string> configIDs;
+        myTStore = new EmuTStore(this);
+        if(!myTStore)
+        {  std::cout << "Can't create object EmuTStore" << std::endl;
+           return;
+        }
 
+        myTStore->getConfigIds(configIDs,(Valid_config_ID=="-1")?"plus":"minus",50);
+        
+        int n_ids = configIDs.size();
+        if(n_ids>0 && n_ids<51)
+        {
+          // Begin select config ID
+           *out << cgicc::form().set("action",
+                   "/" + getApplicationDescriptor()->getURN() + "/ConfigIDSelection") << std::endl;
+
+           *out << "Choose Config ID: " << cgicc::br() << std::endl;
+           *out << cgicc::select().set("name", "runtype") << std::endl;
+
+           int selected_index = 0;
+           for (int i = 0; i < n_ids; ++i) {
+             if (i == selected_index) {
+               *out << cgicc::option()
+               .set("value", configIDs[i])
+               .set("selected", "");
+             } else {
+               *out << cgicc::option()
+               .set("value", configIDs[i]);
+             }
+             *out << configIDs[i] << cgicc::option() << std::endl;
+           }
+
+           *out << cgicc::select() << std::endl;
+
+           *out << cgicc::input().set("type", "submit")
+                 .set("name", "command")
+                 .set("value", "Select Config ID") << std::endl;
+           *out << cgicc::form() << cgicc::br() << cgicc::hr() << std::endl;
+           //End select config
+        } 
+     }
+     else
+     {   ParsingXML();
+     }
+  }
   *out << "Total Crates : ";
   *out << total_crates_ << cgicc::br() << std::endl ;
   unsigned int active_crates=0;
@@ -822,7 +874,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   else if(xml_or_db==1)
   {
     *out << cgicc::b(cgicc::i("TStore EMU_config_ID : ")) ;
-    *out << EMU_config_ID_.toString() << cgicc::br() << std::endl ;
+    *out << Valid_config_ID << cgicc::br() << std::endl ;
   }
   *out << cgicc::br();
   //
@@ -952,6 +1004,20 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
     //
   }
 
+  void EmuPeripheralCrateConfig::ConfigIDSelection(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     cgicc::Cgicc cgi(in);
+
+     std::string in_value = cgi.getElement("runtype")->getValue(); 
+     std::cout << "Select Config ID " << in_value << std::endl;
+     if(!in_value.empty())
+     {
+       Valid_config_ID=in_value;
+     }
+     this->Default(in,out);
+  }
+
 bool EmuPeripheralCrateConfig::ParsingXML(){
   //
   LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
@@ -994,12 +1060,13 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
   {
     // from TStore    
     // std::cout << "We are in db" << std::endl;
-    myTStore = new EmuTStore(this);
+    if(!myTStore) myTStore = new EmuTStore(this);
     if(!myTStore)
     {  std::cout << "Can't create object EmuTStore" << std::endl;
        return false;  
     }
-    emuEndcap_ = myTStore->getConfiguredEndcap(EMU_config_ID_.toString());   
+    std::cout << "Configuration ID: " << Valid_config_ID <<std::endl;
+    if(Valid_config_ID!="") emuEndcap_ = myTStore->getConfiguredEndcap(Valid_config_ID);
     if(!emuEndcap_) 
     {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
        return false;

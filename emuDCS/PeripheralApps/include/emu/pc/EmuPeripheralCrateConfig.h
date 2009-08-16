@@ -77,6 +77,7 @@ protected:
   int xml_or_db;
   xdata::String  XML_or_DB_;
   xdata::String  EMU_config_ID_;
+  std::string Valid_config_ID;
 
   xdata::String xmlFile_;
   xdata::String CalibrationState_;
@@ -508,6 +509,7 @@ private:
   void SetNumberOfHardResets(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   void ReadbackALCTFirmware(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   //
+  void ConfigIDSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigAllCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
