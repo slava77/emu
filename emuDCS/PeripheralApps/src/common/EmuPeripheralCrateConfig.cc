@@ -65,6 +65,9 @@ const std::string ALCT_READBACK_FILENAME_ME32 = "alct384mirror/alct384mirror_ver
 const std::string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror";
 const std::string ALCT_READBACK_FILENAME_ME41 = "alct576mirror/alct576mirror_verify";
 //
+const std::string ALCT_FIRMWARE_FILENAME_ME42 = "alct384mirror/alct384mirror";
+const std::string ALCT_READBACK_FILENAME_ME42 = "alct384mirror/alct384mirror_verify";
+//
 // Old svf files (to be deprecated once it is verified that the xsvf firmware is working...
 //const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf"; //
 //const std::string ALCT_READBACK_FILENAME_ME11 = "readback-192-288-384";//
@@ -12721,6 +12724,9 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     } else if ( (thisALCT->GetChamberType()).find("ME41") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME41;
       ALCTReadback << ALCT_READBACK_FILENAME_ME41;
+    } else if ( (thisALCT->GetChamberType()).find("ME42") != std::string::npos ) {
+      ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME42;
+      ALCTReadback << ALCT_READBACK_FILENAME_ME42;
     } 
     ALCTFirmware_[tmb] = ALCTFirmware.str();
     ALCTReadback_[tmb] = ALCTReadback.str();
