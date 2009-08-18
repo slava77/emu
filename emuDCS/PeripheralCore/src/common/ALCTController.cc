@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.59 2009/04/30 14:23:15 liu Exp $
+// $Id: ALCTController.cc,v 3.60 2009/08/18 11:48:56 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.60  2009/08/18 11:48:56  rakness
+// define the mirror/regular firmware type for ME42
+//
 // Revision 3.59  2009/04/30 14:23:15  liu
 // fix Get_InvertPulse()
 //
@@ -3985,6 +3988,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     //
   } else if (chamber_type_string_ == "ME42") {
     //
+    SetExpectedFastControlRegularMirrorType(MIRROR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME42;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME42);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME42);
