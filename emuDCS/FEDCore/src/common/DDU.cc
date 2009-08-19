@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.13 2009/08/01 01:34:48 paste Exp $
+* $Id: DDU.cc,v 1.14 2009/08/19 16:38:29 brett Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -157,11 +157,11 @@ throw (emu::fed::exception::OutOfBoundsException)
 		delete fiberVector_[iFiber];
 	}
 	fiberVector_ = fiberVector;
-	
+
 	// Set the kill fiber appropriately
 	killfiber_ &= ~(0x00007fff);
-	for (std::vector<Fiber *>::const_iterator iFiber = fiberVector_.begin(); iFiber != fiberVector.end(); iFiber++) {
-		if (!((*iFiber)->isKilled())) killfiber_ |= (1 << (*iFiber)->number());
+	for (std::vector<Fiber *>::const_iterator fiber = fiberVector_.begin(); fiber != fiberVector_.end(); ++fiber) {
+		if (!((*fiber)->isKilled())) killfiber_ |= (1 << (*fiber)->number());
 	}
 }
 
