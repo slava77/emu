@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.7 2009/07/01 14:17:19 paste Exp $
+* $Id: DCC.cc,v 1.8 2009/08/19 16:38:29 brett Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -104,7 +104,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 	
 	// Set the FIFO in use appropriately
 	fifoinuse_ = 0;
-	for (std::vector<FIFO *>::const_iterator iFIFO = fifoVector_.begin(); iFIFO != fifoVector.end(); iFIFO++) {
+	for (std::vector<FIFO *>::const_iterator iFIFO = fifoVector_.begin(); iFIFO != fifoVector_.end(); ++iFIFO) {
 		if ((*iFIFO)->isUsed()) fifoinuse_ |= (1 << (*iFIFO)->number());
 	}
 }
