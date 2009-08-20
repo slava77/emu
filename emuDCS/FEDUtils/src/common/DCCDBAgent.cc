@@ -1,9 +1,10 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: DCCDBAgent.cc,v 1.4 2009/08/20 13:41:01 brett Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DCCDBAgent.h"
 #include "emu/fed/DCC.h"
+#include "emu/fed/FIFODBAgent.h"
 #include "xdata/TableIterator.h"
 #include "xdata/Boolean.h"
 #include "xdata/UnsignedShort.h"
@@ -17,17 +18,18 @@ DBAgent(application)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> emu::fed::DCCDBAgent::getDCCs(xdata::UnsignedInteger64 &id)
+std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> emu::fed::DCCDBAgent::getDCCs(xdata::UnsignedInteger64 &key,xdata::UnsignedShort &crateNumber)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
 	std::map<std::string, std::string> parameters;
-	parameters["CRATE_ID"] = id.toString();
+	parameters["KEY"] = key.toString();
+	parameters["CRATE_NUMBER"] = crateNumber.toString();
 	
 	// Execute the query
 	xdata::Table result;
 	try {
-		result = query("get_dccs", parameters);
+		result = query("get_dccs_by_key_crate", parameters);
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
 	}
@@ -105,21 +107,17 @@ throw (emu::fed::exception::DBException)
 		xdata::Boolean ignore_slink_not_present;
 		xdata::Boolean sw_bit4;
 		xdata::Boolean sw_bit5;
-		try {
-			id.setValue(*(iRow->getField("ID"))); // only way to get a serializable to something else
-			slot.setValue(*(iRow->getField("SLOT"))); // only way to get a serializable to something else
-			fmm_id.setValue(*(iRow->getField("FMM_ID"))); // only way to get a serializable to something else
-			slink1_id.setValue(*(iRow->getField("SLINK1_ID"))); // only way to get a serializable to something else
-			slink2_id.setValue(*(iRow->getField("SLINK2_ID"))); // only way to get a serializable to something else
-			enable_sw_switch.setValue(*(iRow->getField("ENABLE_SW_SWITCH"))); // only way to get a serializable to something else
-			ttcrx_not_ready.setValue(*(iRow->getField("TTCRX_NOT_READY"))); // only way to get a serializable to something else
-			ignore_slink_backpressure.setValue(*(iRow->getField("IGNORE_SLINK_BACKPRESSURE"))); // only way to get a serializable to something else
-			ignore_slink_not_present.setValue(*(iRow->getField("IGNORE_SLINK_NOT_PRESENT"))); // only way to get a serializable to something else
-			sw_bit4.setValue(*(iRow->getField("SW_BIT4"))); // only way to get a serializable to something else
-			sw_bit5.setValue(*(iRow->getField("SW_BIT5"))); // only way to get a serializable to something else
-		} catch (xdata::exception::Exception &e) {
-			XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
-		}
+		//id.setValue(*(iRow->getField("ID"))); // only way to get a serializable to something else
+		setValue(slot,*iRow,"SLOT");
+		setValue(fmm_id,*iRow,"FMM_ID");
+		setValue(slink1_id,*iRow,"SLINK1_ID");
+		setValue(slink2_id,*iRow,"SLINK2_ID");
+		setValue(enable_sw_switch,*iRow,"ENABLE_SW_SWITCH");
+		setValue(ttcrx_not_ready,*iRow,"TTCRX_NOT_READY"); 
+		setValue(ignore_slink_backpressure,*iRow,"IGNORE_SLINK_BACKPRESSURE"); 
+		setValue(ignore_slink_not_present,*iRow,"IGNORE_SLINK_NOT_PRESENT");
+		setValue(sw_bit4,*iRow,"SW_BIT4");
+		setValue(sw_bit5,*iRow,"SW_BIT5");
 		
 		DCC *newDCC = new DCC(slot);
 		newDCC->fmm_id_ = fmm_id;
@@ -131,6 +129,13 @@ throw (emu::fed::exception::DBException)
 		if (ignore_slink_not_present) newDCC->softsw_ |= 0x4000;
 		if (sw_bit4) newDCC->softsw_ |= 0x10;
 		if (sw_bit5) newDCC->softsw_ |= 0x20;
+		FIFODBAgent FIFOAgent(application_);
+		FIFOAgent.setConnectionID(connectionID_);
+		xdata::UnsignedInteger64 *key=dynamic_cast<xdata::UnsignedInteger64 *>(iRow->getField("KEY"));
+		if (key) {
+			std::vector<emu::fed::FIFO *> FIFOs=FIFOAgent.getFIFOs(*key,fmm_id);
+			newDCC->setFIFOs(FIFOs);
+		}
 		returnMe[id] = newDCC;
 	}
 	

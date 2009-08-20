@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.h,v 1.6 2009/07/11 19:38:32 paste Exp $
+* $Id: DBAgent.h,v 1.7 2009/08/20 13:41:01 brett Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBAGENT_H__
 #define __EMU_FED_DBAGENT_H__
@@ -65,6 +65,7 @@ namespace emu {
 			xdata::Table getByKey(const xdata::UnsignedInteger64 &key)
 			throw (emu::fed::exception::DBException);
 			
+			void setConnectionID(const std::string &connectionID);
 			/** Required to make maps with xdata::UnsignedInteger64 keys. 
 			*
 			*	@note Seriously?  Who is responsibile for defining special comparison operators without defining const versions of the same?  Good thing I'm a c++ ninja, or this would end me.
@@ -72,9 +73,14 @@ namespace emu {
 			struct comp {
 				bool operator() (const xdata::UnsignedInteger64 &lhs, const xdata::UnsignedInteger64 &rhs) const { return *(const_cast<xdata::UnsignedInteger64 *>(&lhs)) < *(const_cast<xdata::UnsignedInteger64 *>(&rhs)); }
 			};
-
-		protected:
+			//safe way to copy from a xdata::Serializable pointer to an instance of a subclass of xdata::Serializable. 
+			//Will throw an exception saying the source and destination types if the destination is not of the right type
+			void setValue(xdata::Serializable &destination,xdata::Serializable *source) throw (emu::fed::exception::DBException);
 			
+			//wrapper for the other setValue, will take a given field from a table row and include the field name in any exception string
+			void setValue(xdata::Serializable &destination,xdata::Table::Row &sourceRow,const std::string &fieldName) throw (emu::fed::exception::DBException);
+		protected:
+
 			/** Send a SOAP message to the given application **/
 			xoap::MessageReference sendSOAPMessage(const xoap::MessageReference &message, const std::string &klass, const int &instance = -1)
 			throw (emu::fed::exception::SOAPException);
