@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.cc,v 1.4 2009/06/13 17:59:45 paste Exp $
+* $Id: FIFODBAgent.cc,v 1.5 2009/08/20 13:41:01 brett Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FIFODBAgent.h"
@@ -50,7 +50,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::vector<emu::fed::FIFO *> emu::fed::FIFODBAgent::getFIFOs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &fmm_id)
+std::vector<emu::fed::FIFO *> emu::fed::FIFODBAgent::getFIFOs(xdata::UnsignedInteger64 &key, xdata::UnsignedInteger &fmm_id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -124,22 +124,17 @@ throw (emu::fed::exception::DBException)
 {
 	std::vector<emu::fed::FIFO *> returnMe;
 	
-	for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); iRow++) {
+	for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); ++iRow) {
 		// Parse out all needed elements
 		xdata::UnsignedShort fifo_number;
 		xdata::UnsignedShort rui;
 		xdata::Boolean used;
-		try {
-			fifo_number.setValue(*(iRow->getField("FIFO_NUMBER"))); // only way to get a serializable to something else
-			rui.setValue(*(iRow->getField("RUI"))); // only way to get a serializable to something else
-			used.setValue(*(iRow->getField("USED"))); // only way to get a serializable to something else
-		} catch (xdata::exception::Exception &e) {
-			XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
-		}
+		setValue(fifo_number,*iRow,"FIFO_NUMBER");
+		setValue(rui,*iRow,"RUI");
+		setValue(used,*iRow,"USED");
 		
 		// Don't want to kill myself here
-		if ((unsigned int) fifo_number > 9) XCEPT_RAISE(emu::fed::exception::DBException, "FIFO number is too large");
-		
+		if ((xdata::UnsignedShortT) fifo_number > 9) XCEPT_RAISE(emu::fed::exception::DBException, "FIFO number is too large");
 		// Set names now.
 		returnMe.push_back(new FIFO(fifo_number, rui, used));
 	}

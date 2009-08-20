@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDBAgent.h,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: DDUDBAgent.h,v 1.4 2009/08/20 13:41:01 brett Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDUDBAGENT_H__
 #define __EMU_FED_DDUDBAGENT_H__
@@ -27,18 +27,14 @@ namespace emu {
 			DDUDBAgent(xdaq::WebApplication *application)
 			throw (emu::fed::exception::DBException);
 			
-			/** Build a bunch of DDUs corresponding to a crate ID **/
-			std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> getDDUs(xdata::UnsignedInteger64 &id)
-			throw (emu::fed::exception::DBException);
-			
-			/** Build a bunch of DDU objects corresponding to a configuration key and an RUI **/
-			std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> getDDUs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui)
+			/** Build a bunch of DDU objects corresponding to a configuration key and a crate number **/
+			std::vector<emu::fed::DDU *> getDDUs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber)
 			throw (emu::fed::exception::DBException);
 
 		private:
 		
 			/** Build the crates from the table returned **/
-			std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> buildDDUs(xdata::Table &table)
+			std::vector<emu::fed::DDU *> buildDDUs(xdata::Table &table)
 			throw (emu::fed::exception::DBException);
 
 		};

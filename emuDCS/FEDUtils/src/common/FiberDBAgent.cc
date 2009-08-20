@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.6 2009/06/17 15:58:24 paste Exp $
+* $Id: FiberDBAgent.cc,v 1.7 2009/08/20 13:41:01 brett Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -118,22 +118,16 @@ std::vector<emu::fed::Fiber *> emu::fed::FiberDBAgent::buildFibers(xdata::Table 
 throw (emu::fed::exception::DBException)
 {
 	std::vector<emu::fed::Fiber *> returnMe;
-	
 	for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); iRow++) {
 		// Parse out all needed elements
 		xdata::UnsignedShort fiber_number;
 		xdata::String chamber;
 		xdata::Boolean killed;
-		try {
-			fiber_number.setValue(*(iRow->getField("FIBER_NUMBER"))); // only way to get a serializable to something else
-			chamber.setValue(*(iRow->getField("CHAMBER"))); // only way to get a serializable to something else
-			killed.setValue(*(iRow->getField("KILLED"))); // only way to get a serializable to something else
-		} catch (xdata::exception::Exception &e) {
-			XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
-		}
-		
+		setValue(fiber_number,*iRow,"FIBER_NUMBER");
+		setValue(chamber,*iRow,"CHAMBER");
+		setValue(killed,*iRow,"KILLED"); 
 		// Don't want to kill myself here
-		if ((unsigned int) fiber_number > 14) XCEPT_RAISE(emu::fed::exception::DBException, "Fiber number is too large");
+		if ((xdata::UnsignedShortT) fiber_number > 14) XCEPT_RAISE(emu::fed::exception::DBException, "Fiber number is too large");
 		
 		std::string chamberName = chamber.toString();
 		std::string endcap = "?";

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.5 2009/07/11 19:38:32 paste Exp $
+* $Id: DBAgent.cc,v 1.6 2009/08/20 13:41:01 brett Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -9,6 +9,7 @@
 #include "toolbox/TimeInterval.h"
 #include "tstore/client/Client.h"
 #include "tstore/client/AttachmentUtils.h"
+#include "xdata/TableIterator.h"
 
 
 
@@ -17,7 +18,8 @@ throw (emu::fed::exception::DBException):
 application_(application)
 {
 	// This is to read the configuration from the view file
-	
+	// but it's completely unnecessary. :)
+	/*
 	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUFEDsystem");
 	TStoreRequest request("getConfiguration", viewClass);
 	
@@ -40,18 +42,24 @@ application_(application)
 		XCEPT_RAISE(emu::fed::exception::DBException, "Error attempting to set configuration file");
 	}
 	
-	/*
+	
 	DOMNode *configNode=tstoreclient::getNodeNamed(response,"getConfigurationResponse");
 	//configNode contains the requested configuration.
 	std::cout << "configuration corresponding to xpath " << xpath << " is: " << tstoreclient::writeXML(configNode) << std::endl;
 	*/
 }
 
-
+//if you have already opened a connection and want to use the existing connection to query, set the connection ID instead of calling connect()
+void emu::fed::DBAgent::setConnectionID(const std::string &connectionID) {
+	connectionID_=connectionID;
+	//should maybe renew the connection or otherwise check that it's valid?
+}
 
 void emu::fed::DBAgent::connect(const std::string &username, const std::string &password)
 throw (emu::fed::exception::DBException)
 {
+	//maybe if a connectionID has already been set using setConnectionID, this function should just renew it, or do nothing.
+	
 	TStoreRequest request("connect");
 	
 	// Add view ID
@@ -133,18 +141,17 @@ throw (emu::fed::exception::DBException) {
 	xoap::MessageReference message = request.toSOAP();
 	xoap::MessageReference response;
 	try {
-		xoap::MessageReference response = sendSOAPMessage(message, "tstore::TStore");
+		response = sendSOAPMessage(message, "tstore::TStore");
 	} catch (emu::fed::exception::SOAPException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
-	}
-	
+	}	
+
 	//use the TStore client library to extract the first attachment of type "table"
 	//from the SOAP response
 	xdata::Table results;
 	if (!tstoreclient::getFirstAttachmentOfType(response, results)) {
 		XCEPT_RAISE (emu::fed::exception::DBException, "Server returned no data");
 	}
-	
 	return results;
 }
 
@@ -275,7 +282,11 @@ throw (emu::fed::exception::SOAPException)
 	
 	// send the message
 	try {
-		return sendSOAPMessage(message, app);
+		message->writeTo(std::cout);
+		xoap::MessageReference reply= sendSOAPMessage(message, app);
+		std::cout << std::endl << "Response: " << std::endl;
+	reply->writeTo(std::cout);
+		return reply;
 	} catch (emu::fed::exception::SOAPException &e) {
 		throw e;
 	}
@@ -299,10 +310,40 @@ throw (emu::fed::exception::SOAPException)
 	
 	if (iTries == 0) {
 		std::ostringstream error;
+		//this is kind of silly. It's unlikely to work the second, third, fourth or fifth times if it didn't work the first time, and here we throw away the information about why it didn't work.
 		error << "Reached the maximum number of retries sending message";
 		XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
 	}
 
 	// Prevents warnings
 	return xoap::MessageReference();
+}
+
+void emu::fed::DBAgent::setValue(xdata::Serializable &destination,xdata::Table::Row &sourceRow,const std::string &columnName) throw (emu::fed::exception::DBException) {
+	try {
+		setValue(destination,sourceRow.getField(columnName));
+	} catch (emu::fed::exception::DBException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException,"Can't convert column "+columnName+" to expected type",e);
+	} catch (xdata::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException,"Can't read column "+columnName,e);
+	}
+}
+
+void emu::fed::DBAgent::setValue(xdata::Serializable &destination,xdata::Serializable *source) throw (emu::fed::exception::DBException) {
+	if (!source) {
+		XCEPT_RAISE(emu::fed::exception::DBException,"Can't convert NULL value to "+destination.type());
+	}
+	if (source->type()!=destination.type()) {
+		XCEPT_RAISE(emu::fed::exception::DBException,"Can't convert "+source->type()+" value to "+destination.type());
+	}
+	try {
+		//could also do this by making the destination a template type and using dynamic_cast, but this way is a bit simpler
+		//and probably no less efficient since the value is copied anyway.
+		destination.setValue(*source);
+	} catch (std::bad_cast &e) {
+		//if this happens then the two objects profess to have the same type but are in fact different types; should not happen unless there is a bug in xdata.
+		XCEPT_RAISE(emu::fed::exception::DBException,"Can't copy one "+source->type()+" to another. Maybe two xdata types return the same value from type()");
+	} catch (std::exception &e) {
+		XCEPT_RAISE(emu::fed::exception::DBException,"Can't copy one "+source->type()+" to another. "+e.what());
+	}
 }

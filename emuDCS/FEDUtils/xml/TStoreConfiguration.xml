@@ -3,12 +3,31 @@
 
 	<tstore:view id="urn:tstore-view-SQL:EMUFEDsystem">
 		<tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>
-		<!-- <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/> -->
+		 <!--<tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/>--> 
 		
+		<!-- add some mappings because TStore doesn't know which tables the values in queries come from
+		so it can't look at the column check constraints etc. to figure out what types to read the results as.-->
+		<tstore:maptype source="unsigned short" column=".*_NUMBER$"/>
+		<tstore:maptype source="unsigned int" column="FMM_ID"/>
+		<tstore:maptype source="unsigned short" column="RUI"/>
+		<tstore:maptype source="unsigned int 64" column="KEY"/>
+		<tstore:maptype source="unsigned short" column="GBE_PRESCALE"/>
+		<tstore:maptype source="unsigned short" column="SLOT"/>
+		<tstore:maptype source="unsigned short" column="^CAEN_.*"/>
+		<tstore:maptype source="unsigned int" column="^SLINK._ID"/>
+		<tstore:maptype source="bool" column="USED"/>
+		<tstore:maptype source="bool" column="^FORCE_.*"/>
+		<tstore:maptype source="bool" column="^ENABLE_.*"/>
+		<tstore:maptype source="bool" column="INVERT_CCB_COMMAND_SIGNALS"/>
+		<tstore:maptype source="bool" column="KILLED"/>
+		<tstore:maptype source="bool" column=".*SLINK.*"/>
+		<tstore:maptype source="bool" column=".*BIT.*"/>
+		<tstore:maptype source="bool" column="TTCRX_NOT_READY"/>
+		 
 		<!-- Select statments for configuration -->
-		
+
 		<!-- Select the system belonging to a certain hostname and a certain key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_system">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="system">
 			<sql:parameter name="KEY" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
@@ -19,23 +38,37 @@
 		</sql:query>
 		
 		<!-- Select the crates on a certain system given a certain system ID -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_crates">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="crates_by_sysid">
 			<sql:parameter name="SYSTEM_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
-			<![CDATA[select EMU_FED_CRATES.ID, EMU_FED_CRATES.CRATE_NUMBER from EMU_FED_SYSTEMS inner join EMU_FED_CRATES on (EMU_FED_CRATES.KEY = EMU_FED_SYSTEMS.KEY) where EMU_FED_SYSTEMS.ID = $SYSTEM_ID]]>
+			<![CDATA[select EMU_FED_CRATES.CRATE_NUMBER from EMU_FED_SYSTEMS inner join EMU_FED_CRATES on (EMU_FED_CRATES.KEY = EMU_FED_SYSTEMS.KEY) where EMU_FED_SYSTEMS.ID = $SYSTEM_ID]]>
 		</sql:query>
 		
+		<!-- Select the crates on a certain system given a certain key  -->
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="crates">
+			<sql:parameter name="KEY" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<![CDATA[select CRATE_NUMBER from EMU_FED_CRATES where KEY=$KEY]]>
+		</sql:query>
+		
+				<sql:insert xmlns:sql="urn:tstore-view-SQL" name="FEDCrates">
+			<table name="EMU_FED_CRATES"/>
+		</sql:insert>
+		
 		<!-- Select the controller in a certain crate given a certain crate ID -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_controller">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="controller">
 			<sql:parameter name="CRATE_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
 			<![CDATA[select EMU_FED_CONTROLLERS.ID, EMU_FED_CONTROLLERS.CAEN_DEVICE, EMU_FED_CONTROLLERS.CAEN_LINK from EMU_FED_CRATES inner join EMU_FED_CONTROLLERS on (EMU_FED_CRATES.CRATE_NUMBER = EMU_FED_CONTROLLERS.CRATE_NUMBER and EMU_FED_CRATES.KEY = EMU_FED_CONTROLLERS.KEY) where EMU_FED_CRATES.ID = $CRATE_ID]]>
 		</sql:query>
-		
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="VMEControllers">
+			<table name="EMU_FED_CONTROLLERS"/>
+		</sql:insert>
 		<!-- Select the DDUs on a certain system given a certain crate ID -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_ddus">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="ddus">
 			<sql:parameter name="CRATE_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
@@ -43,7 +76,7 @@
 		</sql:query>
 		
 		<!-- Select the fibers/CSCs on a certain DDU given a certain DDU ID -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_fibers">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="fibers">
 			<sql:parameter name="DDU_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
@@ -51,7 +84,7 @@
 		</sql:query>
 		
 		<!-- Select the DCCs on a certain system given a certain crate ID -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_dccs">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="dccs">
 			<sql:parameter name="CRATE_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
@@ -59,7 +92,7 @@
 		</sql:query>
 		
 		<!-- Select the fifos on a certain DCC given a certain DCC ID -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_fifos">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="fifos">
 			<sql:parameter name="DCC_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
@@ -99,8 +132,8 @@
 		</sql:query>
 		
 		<!-- Add a new configuration -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_configuration">
-			<sql:table name="EMU_CONFIGURATION" />
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="configuration">
+			<sql:table name="EMU_FED_CONFIGURATIONS" />
 		</sql:insert>
 		
 		<!-- Select systems given a configuration key and a hostname -->
@@ -122,8 +155,18 @@
 			<![CDATA[select EMU_FED_SYSTEMS.* from EMU_FED_SYSTEMS right join EMU_FED_CONFIGURATIONS on (EMU_FED_CONFIGURATIONS.KEY = EMU_FED_SYSTEMS.KEY) where EMU_FED_SYSTEMS.HOSTNAME = $HOSTNAME order by EMU_FED_CONFIGURATIONS.TIMESTAMP desc limit 1]]>
 		</sql:query>
 		
+		        <sql:query xmlns:sql="urn:tstore-view-SQL" name="getMax">
+      <sql:parameter name="column">
+        <![CDATA[]]>
+      </sql:parameter>
+            <sql:parameter name="table">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select NVL(MAX($column),0) $column from $table]]>
+    </sql:query>
+		
 		<!-- Add a new system -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="addsystem">
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="system">
 			<sql:table name="EMU_FED_SYSTEMS" />
 		</sql:insert>
 		
@@ -139,7 +182,7 @@
 		</sql:query>
 		
 		<!-- Add a new crate -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_crate">
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="crate">
 			<sql:table name="EMU_FED_CRATES" />
 		</sql:insert>
 		
@@ -155,7 +198,7 @@
 		</sql:query>
 		
 		<!-- Add a new controller -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_controller">
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="controller">
 			<sql:table name="EMU_FED_CONTROLLERS" />
 		</sql:insert>
 		
@@ -170,8 +213,19 @@
 			<![CDATA[select * from EMU_FED_DDUS where KEY = $KEY and RUI = $RUI]]>
 		</sql:query>
 		
+				<!-- Select DDUs given a configuration key and a crate number -->
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_ddus_by_key_crate">
+			<sql:parameter name="KEY" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<sql:parameter name="CRATE_NUMBER" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<![CDATA[select * from EMU_FED_DDUS where KEY = $KEY and CRATE_NUMBER = $CRATE_NUMBER]]>
+		</sql:query>
+		
 		<!-- Add a new DDU -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_ddu">
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="ddu">
 			<sql:table name="EMU_FED_DDUS" />
 		</sql:insert>
 		
@@ -186,8 +240,18 @@
 			<![CDATA[select * from EMU_FED_DCCS where KEY = $KEY and FMM_ID = $FMM_ID]]>
 		</sql:query>
 		
+			<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_dccs_by_key_crate">
+			<sql:parameter name="KEY" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<sql:parameter name="CRATE_NUMBER" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<![CDATA[select * from EMU_FED_DCCS where KEY = $KEY and CRATE_NUMBER = $CRATE_NUMBER]]>
+		</sql:query>
+		
 		<!-- Add a new DCC -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_dcc">
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="dcc">
 			<sql:table name="EMU_FED_DCCS" />
 		</sql:insert>
 		
@@ -217,7 +281,7 @@
 		</sql:query>
 		
 		<!-- Add a new DDU fiber -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_fiber">
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="fiber">
 			<sql:table name="EMU_FED_DDU_FIBERS" />
 		</sql:insert>
 		
@@ -226,7 +290,7 @@
 			<sql:parameter name="KEY" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
-			<sql:parameter name="RUI" bind="yes">
+			<sql:parameter name="FMM_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
 			<![CDATA[select * from EMU_FED_DCC_FIFOS where KEY = $KEY and FMM_ID = $FMM_ID]]>
@@ -247,7 +311,7 @@
 		</sql:query>
 		
 		<!-- Add a new DCC fifo -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_fifo">
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="fifo">
 			<sql:table name="EMU_FED_DCC_FIFOS" />
 		</sql:insert>
 
@@ -269,8 +333,8 @@
 			</tstore:foreignkey>
 		</tstore:table>
 		
-		<tstore:table key="ID" name="EMU_FED_CRATES">
-			<tstore:column name="ID" type="unsigned int 64"/>
+		<tstore:table key="KEY,CRATE_NUMBER" name="EMU_FED_CRATES">
+			<!--tstore:column name="ID" type="unsigned int 64"/-->
 			<tstore:column name="SYSTEM_NAME" type="string"/>
 			<tstore:column name="CRATE_NUMBER" type="unsigned short"/>
 			<tstore:column name="KEY" type="unsigned int 64"/>
@@ -279,8 +343,8 @@
 			</tstore:foreignkey>
 		</tstore:table>
 
-		<tstore:table key="ID" name="EMU_FED_CONTROLLERS">
-			<tstore:column name="ID" type="unsigned int 64"/>
+		<tstore:table key="KEY,CRATE_NUMBER" name="EMU_FED_CONTROLLERS">
+			<!--tstore:column name="ID" type="unsigned int 64"/-->
 			<tstore:column name="CRATE_NUMBER" type="unsigned short"/>
 			<tstore:column name="CAEN_DEVICE" type="unsigned short"/>
 			<tstore:column name="CAEN_LINK" type="unsigned short"/>
@@ -290,8 +354,8 @@
 			</tstore:foreignkey>
 		</tstore:table>
 		
-		<tstore:table key="ID" name="EMU_FED_DDUS">
-			<tstore:column name="ID" type="unsigned int 64"/>
+		<tstore:table key="KEY,RUI" name="EMU_FED_DDUS">
+			<!--tstore:column name="ID" type="unsigned int 64"/-->
 			<tstore:column name="CRATE_NUMBER" type="unsigned short"/>
 			<tstore:column name="SLOT" type="unsigned short"/>
 			<tstore:column name="RUI" type="unsigned short"/>
@@ -309,8 +373,8 @@
 			</tstore:foreignkey>
 		</tstore:table>
 
-		<tstore:table key="ID" name="EMU_FED_DCCS">
-			<tstore:column name="ID" type="unsigned int 64"/>
+		<tstore:table key="KEY,FMM_ID" name="EMU_FED_DCCS">
+			<!--tstore:column name="ID" type="unsigned int 64"/-->
 			<tstore:column name="CRATE_NUMBER" type="unsigned short"/>
 			<tstore:column name="SLOT" type="unsigned short"/>
 			<tstore:column name="FMM_ID" type="unsigned int"/>
@@ -328,8 +392,8 @@
 			</tstore:foreignkey>
 		</tstore:table>
 
-		<tstore:table key="ID" name="EMU_FED_DDU_FIBERS">
-			<tstore:column name="ID" type="unsigned int 64"/>
+		<tstore:table key="KEY,FIBER_NUMBER" name="EMU_FED_DDU_FIBERS">
+			<!--tstore:column name="ID" type="unsigned int 64"/-->
 			<tstore:column name="RUI" type="unsigned short"/>
 			<tstore:column name="FIBER_NUMBER" type="unsigned short"/>
 			<tstore:column name="CHAMBER" type="string"/>
@@ -340,8 +404,8 @@
 			</tstore:foreignkey>
 		</tstore:table>
 		
-		<tstore:table key="ID" name="EMU_FED_DCC_FIFOS">
-			<tstore:column name="ID" type="unsigned int 64"/>
+		<tstore:table key="KEY,FIFO_NUMBER" name="EMU_FED_DCC_FIFOS">
+			<!--tstore:column name="ID" type="unsigned int 64"/-->
 			<tstore:column name="FMM_ID" type="unsigned int"/>
 			<tstore:column name="FIFO_NUMBER" type="unsigned short"/>
 			<tstore:column name="RUI" type="unsigned short"/>

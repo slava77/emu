@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerDBAgent.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: VMEControllerDBAgent.cc,v 1.4 2009/08/20 13:41:01 brett Exp $
 \*****************************************************************************/
 
 #include "emu/fed/VMEControllerDBAgent.h"
@@ -94,12 +94,8 @@ throw (emu::fed::exception::DBException)
 	xdata::UnsignedShort device;
 	xdata::UnsignedShort link;
 	// There is only one row in the table
-	try {
-		device.setValue(*(table.getValueAt(0, "CAEN_DEVICE"))); // only way to get a serializable to something else
-		link.setValue(*(table.getValueAt(0, "CAEN_LINK"))); // only way to get a serializable to something else
-	} catch (xdata::exception::Exception &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
-	}
+	setValue(device,table.getValueAt(0, "CAEN_DEVICE")); 
+	setValue(link,table.getValueAt(0, "CAEN_LINK")); 
 	
 	return new VMEController(device, link);
 }
