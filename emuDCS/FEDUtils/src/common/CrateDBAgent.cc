@@ -1,8 +1,11 @@
 /*****************************************************************************\
-* $Id: CrateDBAgent.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: CrateDBAgent.cc,v 1.4 2009/08/20 13:47:25 brett Exp $
 \*****************************************************************************/
 
 #include "emu/fed/CrateDBAgent.h"
+#include "emu/fed/VMEControllerDBAgent.h"
+#include "emu/fed/DDUDBAgent.h"
+#include "emu/fed/DCCDBAgent.h"
 #include "emu/fed/Crate.h"
 #include "xdata/TableIterator.h"
 
@@ -15,17 +18,17 @@ DBAgent(application)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::getCrates(xdata::UnsignedInteger64 &id)
+std::vector<emu::fed::Crate *> emu::fed::CrateDBAgent::getCrates(xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
 	std::map<std::string, std::string> parameters;
-	parameters["SYSTEM_ID"] = id.toString();
+	parameters["KEY"] = id.toString();
 	
 	// Execute the query
 	xdata::Table result;
 	try {
-		result = query("get_crates", parameters);
+		result = query("crates", parameters);
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
 	}
@@ -40,7 +43,7 @@ throw (emu::fed::exception::DBException)
 	}
 	
 	try {
-		return buildCrates(result);
+		return buildCrates(result,id);
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
 	}
@@ -48,7 +51,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::getCrates(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number)
+std::vector<emu::fed::Crate *> emu::fed::CrateDBAgent::getCrates(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -72,12 +75,13 @@ throw (emu::fed::exception::DBException)
 	case 1:
 		break;
 	default:
-		XCEPT_RAISE(emu::fed::exception::DBException, "More than one matching row found");
+		//AB: is this an error? It seems to me that there can be more than one crate
+		//XCEPT_RAISE(emu::fed::exception::DBException, "More than one matching row found");
 		break;
 	}
 
 	try {
-		return buildCrates(result);
+		return buildCrates(result,key);
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
 	}
@@ -85,23 +89,45 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::buildCrates(xdata::Table &table)
+std::vector<emu::fed::Crate *> emu::fed::CrateDBAgent::buildCrates(xdata::Table &table,xdata::UnsignedInteger64 &key)
 throw (emu::fed::exception::DBException)
 {
-	std::map<xdata::UnsignedInteger64, Crate *, DBAgent::comp> returnMe;
-	
+	std::vector<emu::fed::Crate *> returnMe;
 	for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); iRow++) {
 		// Parse out the ID and crate number
-		xdata::UnsignedInteger64 id;
+		//xdata::UnsignedInteger64 id;
 		xdata::UnsignedShort number;
+		Crate *newCrate=0;
 		try {
-			id.setValue(*(iRow->getField("ID"))); // only way to get a serializable to something else
-			number.setValue(*(iRow->getField("CRATE_NUMBER"))); // only way to get a serializable to something else
+			setValue(number,*iRow,"CRATE_NUMBER"); 
+			newCrate=new Crate(number);
+			//now load VMEs, DDUs, DCCs and FIFOs.
+			VMEControllerDBAgent VMEAgent(application_);
+			VMEAgent.setConnectionID(connectionID_);
+			emu::fed::VMEController *controller=VMEAgent.getController(key,number);
+			newCrate->setController(controller);
+			
+			DDUDBAgent DDUAgent(application_);
+			DDUAgent.setConnectionID(connectionID_);
+			
+			std::vector<DDU *> DDUs=DDUAgent.getDDUs(key,number);
+			for (std::vector<DDU *>::iterator ddu=DDUs.begin();ddu!=DDUs.end();++ddu) {
+				newCrate->addBoard((VMEModule *)(*ddu));
+			}
+		
+			DCCDBAgent DCCAgent(application_);
+			DCCAgent.setConnectionID(connectionID_);
+			
+			std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> DCCs=DCCAgent.getDCCs(key,number);
+			for (std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp>::iterator dcc=DCCs.begin();dcc!=DCCs.end();++dcc) {
+				newCrate->addBoard((VMEModule *)(*dcc).second);
+			}
+			
 		} catch (xdata::exception::Exception &e) {
+			if (newCrate) delete newCrate;
 			XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
 		}
-		
-		returnMe[id] = new Crate(number);
+		returnMe.push_back(newCrate);
 	}
 	
 	return returnMe;
