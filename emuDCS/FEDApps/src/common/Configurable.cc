@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.5 2009/07/16 09:24:21 paste Exp $
+* $Id: Configurable.cc,v 1.6 2009/08/21 11:39:40 brett Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/path.hpp"
@@ -31,7 +31,7 @@ systemName_("unnamed")
 	xgi::bind(this, &emu::fed::Configurable::webGetConfiguration, "GetConfiguration");
 	xgi::bind(this, &emu::fed::Configurable::webChangeConfigMode, "ChangeConfigMode");
 	xgi::bind(this, &emu::fed::Configurable::webChangeXMLFile, "ChangeXMLFile");
-	xgi::bind(this, &emu::fed::Configurable::webChangeXMLFile, "ChangeDBKey");
+	xgi::bind(this, &emu::fed::Configurable::webChangeDBKey, "ChangeDBKey");
 	xgi::bind(this, &emu::fed::Configurable::webReconfigure, "Reconfigure");
 }
 
