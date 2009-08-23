@@ -9,7 +9,6 @@
 #include "xdata/UnsignedInteger32.h"
 #include "xdata/Vector.h"
 
-#include "emu/farmer/EmuXalanTransformerProblemListener.h"
 #include "emu/farmer/ProcessDescriptor.h"
 
 #include <set>

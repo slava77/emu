@@ -1,6 +1,5 @@
 #include "emu/farmer/utils/Xalan.h"
 
-#include "emu/farmer/EmuXalanTransformerProblemListener.h"
 #include <exception>
 
 // headers needed for Xalan transform

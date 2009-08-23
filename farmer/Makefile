@@ -17,7 +17,7 @@ Summary="Emu (CSC) Farmer"
 Authors="Karoly Banicz"
 Link=""
 PACKAGE_VER_MAJOR=7
-PACKAGE_VER_MINOR=7
+PACKAGE_VER_MINOR=8
 PACKAGE_VER_PATCH=0
 
 Sources = \
@@ -30,8 +30,7 @@ Sources = \
 	version.cc
 
 IncludeDirs = \
-	$(XDAQ_ROOT)/include \
-	$(XDAQ_ROOT)/include/$(XDAQ_OS)
+	$(XDAQ_ROOT)/include
 
 LibraryDirs = $(XDAQ_ROOT)/lib
 
