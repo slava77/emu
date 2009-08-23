@@ -125,10 +125,10 @@ emu::farmer::Application::startExecutives(){
   for ( int iCheck = 0; iCheck<nChecks; iCheck++ ){
     ::sleep( (unsigned int)(1) );
     pollProcesses();
-    // Check if all executives are up
+    // Check if all selected executives are up
     allUp = true;
     for ( map<string,ProcessDescriptor>::iterator ex = processDescriptors_.begin(); ex != processDescriptors_.end(); ++ex ){
-      if ( ex->second.getName() == executiveClass_.toString() ){
+      if ( ex->second.isSelected() && ex->second.getName() == executiveClass_.toString() ){
 	allUp &= ( ex->second.getState() == "ON" );
       }
     }
