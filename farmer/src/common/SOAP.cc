@@ -203,10 +203,17 @@ string emu::farmer::utils::extractScalarParameterValueFromSoapMsg
       DOMNodeList *propertiesList = propertiesNode->getChildNodes();
       DOMNode *paramNode = findNode(propertiesList, paramName);
       DOMNodeList *paramList = paramNode->getChildNodes();
-      DOMNode *valueNode = paramList->item(0);
-      string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
-
-      return paramValue;
+      if ( paramList->getLength() == 1 ){
+	DOMNode *valueNode = paramList->item(0);
+	string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
+	return paramValue;
+      }
+      else{
+	cout << endl; msg->writeTo( cout ); cout.flush(); cout << endl;
+	stringstream ess;
+	ess << paramList->getLength() << " \"properties\" elements found in SOAP reply.";
+	XCEPT_RAISE(xcept::Exception, ess.str() );
+      }
     }
   catch(xcept::Exception e)
     {
