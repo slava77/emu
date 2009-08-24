@@ -33,7 +33,7 @@ public:
 
 	XDAQ_INSTANTIATOR();
 
-	Application(xdaq::ApplicationStub *stub) throw (xdaq::exception::Exception);
+        Application(xdaq::ApplicationStub *stub);// throw (xcept::Exception);
 
 	// SOAP interface
 	xoap::MessageReference onConfigure(xoap::MessageReference message)
@@ -80,8 +80,6 @@ public:
 	// State transitions
 	void configureAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
-  //void configuredAction(toolbox::Event::Reference e) 
-  //	throw (toolbox::fsm::exception::Exception);
 	void startAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
 	void stopAction(toolbox::Event::Reference e) 
@@ -121,14 +119,16 @@ private: // XDAQ parameters
 	xdata::Vector<xdata::String> fc_configs_;
 
 	xdata::String daq_mode_;
-	xdata::String trigger_config_;
 	xdata::String ttc_source_;
 
 	xdata::UnsignedInteger tts_id_;
 	xdata::UnsignedInteger tts_bits_;
         xdaq2rc::RcmsStateNotifier rcmsStateNotifier_;
 
-
+	xdata::String          TFCellOpState_;
+	xdata::String          TFCellOpName_;
+	xdata::String          TFCellClass_;
+	xdata::UnsignedInteger TFCellInstance_;
 
 	toolbox::task::WorkLoop *wl_;
 	toolbox::BSem wl_semaphore_;
@@ -139,18 +139,17 @@ private: // XDAQ parameters
 
 	void submit(toolbox::task::ActionSignature *signature);
 
-	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-			throw (toolbox::fsm::exception::Exception);
+        void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+	  throw (toolbox::fsm::exception::Exception);
         void transitionFailed(toolbox::Event::Reference event)
-                        throw (toolbox::fsm::exception::Exception);
+	  throw (toolbox::fsm::exception::Exception);
 
-	void sendCommand(string command, string klass)
-			throw (xoap::exception::Exception, xdaq::exception::Exception);
-	void sendCommand(string command, string klass, int instance)
-			throw (xoap::exception::Exception, xdaq::exception::Exception);
-	void sendCommandWithAttr(
-			string command, map<string, string> attr, string klass)
-			throw (xoap::exception::Exception, xdaq::exception::Exception);
+        void sendCommand(string command, string klass)
+          throw (xoap::exception::Exception, xcept::Exception);
+        void sendCommand(string command, string klass, int instance)
+          throw (xoap::exception::Exception, xcept::Exception);
+	void sendCommandWithAttr(string command, map<string, string> attr, string klass)
+          throw (xoap::exception::Exception, xcept::Exception);
 
 	xoap::MessageReference createCommandSOAP(string command);
 	xoap::MessageReference createCommandSOAPWithAttr(
@@ -181,42 +180,25 @@ private: // XDAQ parameters
 
 	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
   //////////////////////////////////////////////////////////////
-  std::string getCommand(xoap::MessageReference msg);
-  std::string getNameSpace(xoap::MessageReference msg);
-  bool isAsync(xoap::MessageReference msg);
-  std::string getCid(xoap::MessageReference msg);
-  std::string getSid(xoap::MessageReference msg);
-  std::string getOpid(xoap::MessageReference msg);
-  std::string getOperation(xoap::MessageReference msg);
-  std::string getCallbackFun(xoap::MessageReference msg);
-  std::string getCallbackUrl(xoap::MessageReference msg);
-  std::string getCallbackUrn(xoap::MessageReference msg);
-  xdata::Serializable* getXdaqParameter(xoap::MessageReference msg);
   xdata::Serializable* analyse(DOMNode* com);
   xdata::Serializable* analyseSoapBag(DOMNode* com);
   xdata::Serializable* analyseSoapVector(DOMNode* com);
   xdata::Serializable* getPayload(xoap::MessageReference msg); 
-  //methods used in CellOpSendCom object
-  std::string getOpComName(xoap::MessageReference msg);
-  std::map<std::string, xdata::Serializable*> getOpComParamList(xoap::MessageReference msg);
-  //methods used in CellOpInit
-  std::string getInitOpName(xoap::MessageReference msg_);
-  std::string getInitOpId(xoap::MessageReference msg_);
 
-  void sendCommandCellOpInit(string klass, int instance)
-    throw (xoap::exception::Exception, xdaq::exception::Exception);
+  void sendCommandCellOpInit(string klass, int instance);
+    //throw (xoap::exception::Exception, xcept::Exception);
  
- void sendCommandCell(string command, string klass, int instance)
-    throw (xoap::exception::Exception, xdaq::exception::Exception);
+  void sendCommandCell(string command, string klass, int instance);
+    //throw (xoap::exception::Exception, xcept::Exception);
 
-  std::string OpGetStateCell(string klass, int instance)
-    throw (xoap::exception::Exception, xdaq::exception::Exception);
+  std::string OpGetStateCell(string klass, int instance);
+    //throw (xoap::exception::Exception, xcept::Exception);
 
-  void OpResetCell(string klass, int instance)
-    throw (xoap::exception::Exception, xdaq::exception::Exception);
+  void OpResetCell(string klass, int instance);
+    //throw (xoap::exception::Exception, xcept::Exception);
 
-  void sendCommandCellOpkill(string klass, int instance)
-    throw (xoap::exception::Exception, xdaq::exception::Exception);
+  void sendCommandCellOpkill(string klass, int instance);
+    //throw (xoap::exception::Exception, xcept::Exception);
 
   xoap::MessageReference doSoapOpInit(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& op, std::map<std::string,xdata::Serializable*> param, const std::string& cb,const std::string& url,const std::string& urn, const std::string& opId="");
  
@@ -228,8 +210,10 @@ private: // XDAQ parameters
 
  xoap::MessageReference doSoapOpReset(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& op, const std::string& cb,const std::string& url,const std::string& urn);
   //////////////////////////////////////////////////////////////
+
+  bool waitForTFCellOpToReach( const string targetState, const unsigned int seconds );
+
 	string getDAQMode();
-	string getTFConfig();
 	string getTTCciSource();
 	bool isDAQConfiguredInGlobal();
 	string getLocalDAQState();
@@ -245,6 +229,8 @@ private: // XDAQ parameters
 
 	bool keep_refresh_;
 	bool hide_tts_control_;
+
+        xdata::Boolean isGlobalRun_;
 
         xdata::String tf_key_;       // Track Finder Key
 	xdata::String curlHost_;            // host on which to execute the curl command

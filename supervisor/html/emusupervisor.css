@@ -1,22 +1,28 @@
-td.Halted {
+.Halted, .halted {
 	background-color: #9999FF;
 }
-td.Configured {
+.Configured, .configured {
 	background-color: #FFFF44;
 }
-td.Ready {
+.Ready, .ready {
 	background-color: #FFFF44;
 }
-td.Enabled {
+.Enabled, .enabled {
 	background-color: #99FF99;
 }
-td.Running {
+.Running, .running {
 	background-color: #99FF99;
 }
-td.Error {
+.Suspended, .suspended {
+	background-color: #99CC66;
+}
+.Error, .error {
 	background-color: #FF9999;
 }
-td.Failed {
+.UNKNOWN, .Unknown, .unknown {
+	background-color: #FF9999;
+}
+.Failed {
 	color: #FFFFFF;
 	background-color: #000000;
 	text-decoration: blink;
