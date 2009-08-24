@@ -219,8 +219,8 @@ private:
   void stringReplace( string& inThis, const string& This, const string& withThis );
   string textToHtml( const string text );
 
-  xdata::Boolean globalMode_; // true if we obey central run control
-  xdata::Boolean configuredInGlobalMode_; // true if this run was configured on central run control's command
+  xdata::Boolean supervisedMode_; // true if we obey central run control
+  xdata::Boolean configuredInSupervisedMode_; // true if this run was configured on central run control's command
 
   string comments_;        // The comments entered by the user.
   string globalRunNumber_; // The global run number entered by the user.
@@ -309,7 +309,7 @@ private:
   void getTriggerSources();
   void getTriggerMode();
 
-  void setParametersForGlobalMode();
+  void setParametersForSupervisedMode();
 
   string warningsToDisplay_;
 

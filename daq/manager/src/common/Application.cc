@@ -139,7 +139,6 @@ void emu::daq::manager::Application::getAllAppDescriptors()
 {
     try
     {
-//         evmDescriptors_ = getAppDescriptors(zone_, "EVM");
         evmDescriptors_ = getAppDescriptors(zone_, "rubuilder::evm::Application");
     }
     catch(emu::daq::manager::exception::Exception e)
@@ -858,8 +857,8 @@ void emu::daq::manager::Application::governorForm(xgi::Input *in, xgi::Output *o
   *out << "  <td align=\"left\">"                                    << endl;
   *out << " Select who should configure, start and stop the CSC local run: "    << endl;
   *out << "<select name=\"governor\" title=\"Whose commands are to be obeyed.\">"<< endl;
-  *out << " <option value=\"global\">[ Supervisor | FM | Central RC ] (<em>supervised mode</em>)</option>"<< endl;
-  *out << " <option value=\"local\">CSC Shift from this page (<em>unsupervised mode</em>)</option>"                << endl;
+  *out << " <option value=\"supervised\">[ Supervisor | FM | Central RC ] (<em>supervised mode</em>)</option>"<< endl;
+  *out << " <option value=\"unsupervised\">CSC Shift from this page (<em>unsupervised mode</em>)</option>"    << endl;
   *out << "</select>"                                                           << endl;
   *out << "  </td>"                                                  << endl;
 
@@ -896,21 +895,21 @@ throw (xgi::exception::Exception)
 //      cout << fe->getName() << ": " << fe->getValue() << endl;
 
       if ( fe->getName() == "governor" ){
-	bool userWantsGlobal = ( fe->getValue() == "global");
-// 	cout << "userWantsGlobal        " << userWantsGlobal << endl
-// 	     << "configuredInGlobalMode " << configuredInGlobalMode_.value_ << endl
+	bool userWantsSupervised = ( fe->getValue() == "supervised");
+// 	cout << "userWantsSupervised        " << userWantsSupervised << endl
+// 	     << "configuredInSupervisedMode " << configuredInSupervisedMode_.value_ << endl
 // 	     << "CurrentState           " << fsm_.getCurrentState() << endl;
 	
 	if ( daqState_.toString() == "Halted" ){
 	  // DAQ's halted, everything's permitted.
 	  warningsToDisplay_ = "";
-	  globalMode_ = userWantsGlobal;
+	  supervisedMode_ = userWantsSupervised;
 	}
 	else{
 	  // DAQ's most probably been configured.
-	  if ( !globalMode_.value_ && userWantsGlobal ){
+	  if ( !supervisedMode_.value_ && userWantsSupervised ){
 	    // User wants to switch to central RC.
-	    if ( !configuredInGlobalMode_.value_ ){
+	    if ( !configuredInSupervisedMode_.value_ ){
 	      // Warn him if we are in a locally configured run.
 	      warningsToDisplay_ = "<p><span style=\"color:#ff0000; font-weight:bold; text-decoration:blink\">Warning</span>:";
 	      warningsToDisplay_ += "You have chosen <em>supervised mode</em> (i.e., handed over the control to [CSC Supervisor | CSC Function Manager | Central Run Control]) in a run configured in <em>unsupervised mode</em> (i.e., by CSC Shift from this web page). ";
@@ -920,18 +919,18 @@ throw (xgi::exception::Exception)
 	    else{
 	      warningsToDisplay_ = "";
 	    }
-	    globalMode_ = userWantsGlobal;
+	    supervisedMode_ = userWantsSupervised;
 	  }
 	  else{
 	    // Warn the user when he wants to take control back from central RC...
-	    if ( globalMode_.value_ && !userWantsGlobal && configuredInGlobalMode_.value_ && daqState_.toString() != "Halted" ){
+	    if ( supervisedMode_.value_ && !userWantsSupervised && configuredInSupervisedMode_.value_ && daqState_.toString() != "Halted" ){
 	      warningsToDisplay_  = "<p><span style=\"color:#ff0000; font-weight:bold; text-decoration:blink\">Warning</span>:";
 	      warningsToDisplay_ += "You have chosen <em>unsupervised mode</em> (i.e., control by CSC Shift from this web page) in a run run configured in <em>supervised mode</em> (i.e., by [CSC Supervisor | CSC Function Manager | Central Run Control]).";
 	      warningsToDisplay_ += "It is preferable that such runs be started and stopped in <em>supervised mode</em>. ";
 	      warningsToDisplay_ += "Consider going back to <em>supervised mode</em>.</p>";
 	    }
 	    // ...but do as he requested.
-	    globalMode_ = userWantsGlobal;
+	    supervisedMode_ = userWantsSupervised;
 	  }
 	}
 
@@ -942,14 +941,14 @@ throw (xgi::exception::Exception)
     
     *out << warningsToDisplay_;
 
-    if ( globalMode_.value_ ){
+    if ( supervisedMode_.value_ ){
       REVOKE_ALARM( "unsupervised", NULL );
     }
     else {
       RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warning", "Local DAQ is in unsupervised mode.", "", &logger_ );
     }
 
-    if ( globalMode_.value_ ) setParametersForGlobalMode();
+    if ( supervisedMode_.value_ ) setParametersForSupervisedMode();
 
 }
 
@@ -996,7 +995,7 @@ throw (xgi::exception::Exception)
   *out << " alt=\"global run number\""                               << endl;
   *out << " value=\"" << globalRunNumber_ << "\""                    << endl;
   *out << " size=\"8\""                                              << endl;
-  if ( globalMode_.value_ ) *out << " disabled=\"true\""             << endl;
+  if ( supervisedMode_.value_ ) *out << " disabled=\"true\""             << endl;
   *out << "/>  "                                                     << endl;
   *out << "  </td>"                                                  << endl;
 
@@ -1139,7 +1138,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
     if ( runNumber    != "UNKNOWN" ) runNumber_.fromString( runNumber );
     if ( maxNumEvents != "UNKNOWN" ) maxNumberOfEvents_.fromString( maxNumEvents );
 
-    // ...but let the user overwrite them by selecting global mode.
+    // ...but let the user overwrite them by selecting supervised mode.
     *out << "<hr/>"                                                    << endl;
     governorForm( in, out );
     *out << "<hr/>"                                                    << endl;
@@ -1176,7 +1175,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       *out << "<select"                                              ;
       *out << " name=\"runtype\""                                    ;
       *out << " size=\"1\""                                          ;
-      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
+      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 ;
       for ( unsigned int iType=0; iType<runTypes_.elements(); ++iType ){
 	xdata::String* runtype = dynamic_cast<xdata::String*>(runTypes_.elementAt(iType));
@@ -1196,7 +1195,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       *out << " alt=\"maximum number of events\""                    << endl;
       *out << " value=\"" << maxNumberOfEvents_.toString() << "\""   << endl;
       *out << " size=\"10\""                                         << endl;
-      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
+      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
 
@@ -1207,7 +1206,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       *out << " title=\"If checked, events will be built.\""         << endl;
       *out << " alt=\"build events\""                                << endl;
       if ( buildEvents_.value_ ) *out << " checked"                  << endl;
-      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
+      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
     }
@@ -1227,7 +1226,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       else{
 	if ( isBookedRunNumber_ ) 
 	  *out << " (booked)";
-	else if ( !configuredInGlobalMode_ ) 
+	else if ( !configuredInSupervisedMode_ ) 
 	  *out << " (<span style=\"font-weight: bold; color:#ff0000;\">not</span> booked)";
       }
       *out << "</td></tr>"                                           << endl;
@@ -1278,7 +1277,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
 	*out << " value=\"start\""                                   << endl;
       else if ( fsm_.getCurrentState() == 'F' )
 	*out << " value=\"reset\""                                   << endl;
-      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
+      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>"                                                   << endl;
 
       // In case the user has changed his mind, allow him to halt from 'configured' state.
@@ -1289,7 +1288,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
 	  *out << " type=\"submit\""                                     << endl;
 	  *out << " name=\"command\""                                    << endl;
 	  *out << " value=\"stop\""                                      << endl;
-	  if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
+	  if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
 	  *out << "/>"                                                   << endl;
 	}
 
@@ -1304,7 +1303,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
 	  *out << " type=\"submit\""                                     << endl;
 	  *out << " name=\"command\""                                    << endl;
 	  *out << " value=\"reset\""                                     << endl;
-	  if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
+	  if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
 	  *out << "/>"                                                   << endl;
       }
       
@@ -1315,7 +1314,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       *out << " title=\"If checked, DQM's state will be changed too.\""  << endl;
       *out << " alt=\"control dqm\""                                     << endl;
       if ( controlDQM_.value_ ) *out << " checked"                       << endl;
-      if ( globalMode_.value_ ) *out << " disabled=\"true\""             << endl;
+      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""             << endl;
       *out << "/>  "                                                     << endl;
       *out << " DQM too"                                                 << endl;
     *out << "</td>"                                                     << endl;
@@ -1469,7 +1468,7 @@ emu::daq::manager::Application::materialToReportOnPage1(){
   return items;
 }
 
-void emu::daq::manager::Application::setParametersForGlobalMode(){
+void emu::daq::manager::Application::setParametersForSupervisedMode(){
   // Prepare for obeying Central Run Control commands
 //   runType_                = "Monitor";
 //   maxNumberOfEvents_      = -1;
@@ -2363,7 +2362,7 @@ void emu::daq::manager::Application::printDAQState( xgi::Output *out, string sta
   *out << " " << state << " ";
   *out << "</span>";
   *out << "</a> state, ";
-  *out << ( globalMode_.value_ ? 
+  *out << ( supervisedMode_.value_ ? 
 	    "<em>supervised</em> mode (controlled by <span style=\"font-weight:bold; border-color:#000000; border-style:solid; border-width:thin; padding:2px\">Supervisor | Function Manager | Central Run Control</span>)." : 
 	    "<em>unsupervised</em> mode (controlled from this page by  <span style=\"font-weight:bold; border-color:#000000; border-style:solid; border-width:thin; padding:2px\">CSC Shift</span>)." ) << endl;
 }
@@ -4947,10 +4946,10 @@ throw (xgi::exception::Exception)
 void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
 {
 
-  globalMode_             = false;
-  configuredInGlobalMode_ = false;
-  s->fireItemAvailable( "globalMode",  &globalMode_  );
-  s->fireItemAvailable( "configuredInGlobalMode",  &configuredInGlobalMode_  );
+  supervisedMode_             = false;
+  configuredInSupervisedMode_ = false;
+  s->fireItemAvailable( "supervisedMode",  &supervisedMode_  );
+  s->fireItemAvailable( "configuredInSupervisedMode",  &configuredInSupervisedMode_  );
 
   postToELog_   = true;
   curlHost_     = "cmsusr1.cms";
@@ -5161,6 +5160,7 @@ void emu::daq::manager::Application::printEventCountsTable
 {
     const int superColWidth = 3; // [columns]
     int nCounts = counts.size();
+    if ( nCounts == 0 ) return;
     int nSuperCols = 6;
     if ( nCounts < nSuperCols ) nSuperCols = nCounts;
     int nRows = nCounts/nSuperCols + (nCounts%nSuperCols?1:0);
@@ -5212,33 +5212,33 @@ void emu::daq::manager::Application::printEventCountsTable
 
 	  *out << "  <td align=\"right\" style=\"padding:0 15px 0 5px;\">"<< endl;
 	  if ( iCount < nCounts ){
-	    if ( counts[iCount].find("dduError") != counts[iCount].end() ){ // have element for DDU error
-	      if ( counts[iCount]["dduError"].size() > 0 ){ // DDU in error
-		string href   = getHref( appDescriptor_ ) + "/control"; // self
-		string target = "_self";
-		try{
-		  href   = getHref( zone_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
-		  target = "_blank";
-		}
-		catch(...){
-		  href = getHref( appDescriptor_ ) + "/control"; // self
-		  target = "_self";
-		}
-		*out << "      <a href=\"" << href << "\""
-		     <<         " title=\"" << counts[iCount]["dduError"] << "\""
-		     <<         " style=\"color:#ffffff;"
-		     <<                  "background-color:#000000;"
-		     <<                  "text-decoration:underline blink\""
-		     <<         " target=\"" << target << "\">"
-		     <<           counts[iCount]["count"] << "</a>"    << endl;
-	      }
-	      else{ // DDU OK
-		*out << "    " << counts[iCount]["count"]              << endl;
-	      }
-	    }
-	    else{ // no element for DDU error
+// 	    if ( counts[iCount].find("dduError") != counts[iCount].end() ){ // have element for DDU error
+// 	      if ( counts[iCount]["dduError"].size() > 0 ){ // DDU in error
+// 		string href   = getHref( appDescriptor_ ) + "/control"; // self
+// 		string target = "_self";
+// 		try{
+// 		  href   = getHref( zone_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
+// 		  target = "_blank";
+// 		}
+// 		catch(...){
+// 		  href = getHref( appDescriptor_ ) + "/control"; // self
+// 		  target = "_self";
+// 		}
+// 		*out << "      <a href=\"" << href << "\""
+// 		     <<         " title=\"" << counts[iCount]["dduError"] << "\""
+// 		     <<         " style=\"color:#ffffff;"
+// 		     <<                  "background-color:#000000;"
+// 		     <<                  "text-decoration:underline blink\""
+// 		     <<         " target=\"" << target << "\">"
+// 		     <<           counts[iCount]["count"] << "</a>"    << endl;
+// 	      }
+// 	      else{ // DDU OK
+// 		*out << "    " << counts[iCount]["count"]              << endl;
+// 	      }
+// 	    }
+// 	    else{ // no element for DDU error
 	      *out << "    " << counts[iCount]["count"]                << endl;
-	    }
+// 	    }
 	  }
 	  *out << "  </td>"                                            << endl;
       } // for (int superCol=0; superCol<nSuperCols; superCol++){
@@ -6402,15 +6402,15 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
 
     createAllAppStatesVector();
 
-    // Parameters will be set again in global mode on enable, 
+    // Parameters will be set again in supervised mode on enable, 
     // but just for the display lets set them now:
-    if ( globalMode_.value_ ) setParametersForGlobalMode();
-    // Set configuredInGlobalMode_ to true if and when configuration succeeds.
-    configuredInGlobalMode_ = false;
+    if ( supervisedMode_.value_ ) setParametersForSupervisedMode();
+    // Set configuredInSupervisedMode_ to true if and when configuration succeeds.
+    configuredInSupervisedMode_ = false;
 
     warningsToDisplay_ = "";
 
-    if ( globalMode_.value_ ){
+    if ( supervisedMode_.value_ ){
       REVOKE_ALARM( "unsupervised", NULL );
     }
     else {
@@ -6456,8 +6456,8 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
 	this->notifyQualified( "error", eObj );
       }
 
-    // Successfully configured in global mode.
-    if ( globalMode_.value_ ) configuredInGlobalMode_ = true;
+    // Successfully configured in supervised mode.
+    if ( supervisedMode_.value_ ) configuredInSupervisedMode_ = true;
 
 
   LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
@@ -6467,8 +6467,8 @@ void emu::daq::manager::Application::enableAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
 
-    if ( globalMode_.value_ ){
-      setParametersForGlobalMode();
+    if ( supervisedMode_.value_ ){
+      setParametersForSupervisedMode();
     }
     else{
       try
@@ -6539,8 +6539,8 @@ void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
 
     try
       {
-	// Write to database only if not in global mode.
-	writeRunInfo( !globalMode_.value_ , true );
+	// Write to database only if not in supervised mode.
+	writeRunInfo( !supervisedMode_.value_ , true );
       }
     catch(...)
       {
