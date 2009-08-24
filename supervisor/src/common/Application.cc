@@ -74,18 +74,21 @@ void emu::supervisor::Application::CalibParam::registerFields(xdata::Bag<CalibPa
 }
 
 emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
-  throw (xdaq::exception::Exception) :
+  //throw (xcept::Exception) 
+  :
   xdaq::WebApplication(stub),
   emu::base::Supervised(stub),
   logger_(Logger::getInstance("emu::supervisor::Application")),
   run_type_("Monitor"), run_number_(1), runSequenceNumber_(0),
-  daq_mode_(""), trigger_config_(""), ttc_source_(""),
+  daq_mode_("UNKNOWN"), ttc_source_(""),
   rcmsStateNotifier_(getApplicationLogger(), getApplicationDescriptor(), getApplicationContext()),
+  TFCellOpState_(""), TFCellOpName_("EmuLocal"), TFCellClass_("Cell"), TFCellInstance_(8), 
   wl_semaphore_(toolbox::BSem::EMPTY), quit_calibration_(false),
   daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
   nevents_(-1),
   step_counter_(0),
   error_message_(""), keep_refresh_(false), hide_tts_control_(true),
+  isGlobalRun_(true), // Default MUST be global run, i.e., hands off the TF Cell.
   curlHost_("cmsusr1.cms"),
   runInfo_(NULL),
   runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
@@ -112,11 +115,17 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   i->fireItemAvailable("fcConfigs",  &fc_configs_);
   
   i->fireItemAvailable("DAQMode", &daq_mode_);
-  i->fireItemAvailable("TriggerConfig", &trigger_config_);
   i->fireItemAvailable("TTCSource", &ttc_source_);
   
+  i->fireItemAvailable("TFCellOpState",  &TFCellOpState_);
+  i->fireItemAvailable("TFCellOpName",   &TFCellOpName_);
+  i->fireItemAvailable("TFCellClass",    &TFCellClass_);
+  i->fireItemAvailable("TFCellInstance", &TFCellInstance_);
+
   i->fireItemAvailable("ttsID", &tts_id_);
   i->fireItemAvailable("ttsBits", &tts_bits_);
+
+  i->fireItemAvailable("isGlobalRun", &isGlobalRun_);
 
   // Track Finder Key
   tf_key_ = "310309";   // default key as of 31/03/2009
@@ -420,11 +429,15 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   
   refreshConfigParameters();
   
-  *out << "Mode of DAQManager: " << daq_mode_.toString() << br() << endl;
-  *out << "TF configuration: " << trigger_config_.toString() << br() << endl;
   *out << "TTCci inputs(Clock:Orbit:Trig:BGo): " << ttc_source_.toString() << br() << endl;
   
-  *out << "Local DAQ state: " << getLocalDAQState() << br() << endl;
+  *out << "Mode of DAQManager: " << daq_mode_.toString() << br() << endl;
+  string localDAQState = getLocalDAQState();
+  *out << "Local DAQ state: " << span().set("class",localDAQState) << localDAQState << span() << br() << endl;
+
+  *out << "State of TF operation " << cite() << TFCellOpName_.toString() << cite() << ": " 
+       << span().set("class",TFCellOpState_.toString()) << TFCellOpState_.toString() 
+       << span() << br() << endl;
   
   // Application states
   *out << hr() << endl;
@@ -604,15 +617,29 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
   rcmsStateNotifier_.findRcmsStateListener();      	
   step_counter_ = 0;
 
-  //Creating csctf-cell operation
-  sendCommandCellOpInit("Cell", 8);
-  //OpGetStateCell("Cell", 8);
-  
   try {
 
-//    state_table_.refresh();
+    //
+    // Clean up leftover apps and ops
+    //
     
+    if ( ! isGlobalRun_.value_ ){
+      TFCellOpState_ = OpGetStateCell(TFCellClass_.toString(), TFCellInstance_.value_);
+      if ( TFCellOpState_.toString() != "UNKNOWN" ){
+	// Reset csctf-cell operation before killing it to allow it to stop in an orderly fashion
+	OpResetCell(TFCellClass_.toString(), TFCellInstance_.value_);
+	waitForTFCellOpToReach("halted",60);
+      }
+      // Kill leftover csctf-cell operation
+      sendCommandCellOpkill(TFCellClass_.toString(), TFCellInstance_.value_);
+      if ( waitForTFCellOpToReach("UNKNOWN",60) ){
+	// Creating csctf-cell operation
+	sendCommandCellOpInit(TFCellClass_.toString(), TFCellInstance_.value_);
+      }
+    }
+
     try {
+      state_table_.refresh();
       if (state_table_.getState("emu::daq::manager::Application", 0) != "Halted") {
 	sendCommand("Halt", "emu::daq::manager::Application");
 	waitForDAQToExecute("Halt", 10, true);
@@ -623,9 +650,16 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       }
       if (state_table_.getState("LTCControl", 0) != "Halted") {
 	sendCommand("Halt", "LTCControl");
+	// Allow LTCControl some time to halt:
+	::sleep(2);
       }
     } catch (xcept::Exception ignored) {}
     
+
+    //
+    // Configure
+    //
+
     try {
       setParameter("emu::daq::manager::Application", "maxNumberOfEvents", "xsd:integer",
 		   toString(nevents_));
@@ -639,21 +673,43 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       sendCommand("Configure", "emu::daq::manager::Application");
     } catch (xcept::Exception ignored) {}
     
-    // Allow LTCControl some time to halt:
-    ::sleep(2);
-
+    // Configure PCrate
     string str = trim(getCrateConfig("PC", run_type_.toString()));
     if (!str.empty()) {
       setParameter(
 		   "emu::pc::EmuPeripheralCrateManager", "xmlFileName", "xsd:string", str);
     }
+    if (!isCalibrationMode()) {
+      sendCommand("Configure", "emu::pc::EmuPeripheralCrateManager");
+    } else {
+      sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
+    }   
+       
+    // Configure TF Cell operation
+    if ( ! isGlobalRun_.value_ ){
+      if ( waitForTFCellOpToReach("halted",60) ){
+	sendCommandCell("configure", TFCellClass_.toString(), TFCellInstance_.value_);
+	waitForTFCellOpToReach("configured",60);
+      }
+      if ( TFCellOpState_.toString() != "configured" ){
+	//LOG4CPLUS_ERROR( logger_, "TF Cell Operation \"" << TFCellOpName_.toString() 
+	//		 << "\" failed to reach configured state. Aborting." );
+	stringstream ss;
+	ss << "TF Cell Operation \"" << TFCellOpName_.toString() 
+	   << "\" failed to reach configured state. Aborting.";
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss.str() );
+	this->notifyQualified( "error", eObj );
+	throw eObj;
+      } 
+    }
 
-
-    //configuring the csctf-cell
-    sendCommandCell("configure", "Cell", 8);
+    // Configure FED
+    sendCommand("Configure", "emu::fed::Manager");
     
+    // Configure TTC
     sendCommand("Configure", "TTCciControl");
     
+    // Configure LTC
     int index = getCalibParamIndex(run_type_);
     if (index >= 0) {
       setParameter("LTCControl", "Configuration", "xsd:string",
@@ -661,21 +717,14 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     }
     sendCommand("Configure", "LTCControl");
 
-    if (!isCalibrationMode()) {
-      sendCommand("Configure", "emu::pc::EmuPeripheralCrateManager");
-    } else {
-      sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
-    }   
-       
-    sendCommand("Configure", "emu::fed::Manager");
-    
+    // If necessary, wait a bit for DAQ to finish configuring
     waitForDAQToExecute("Configure", 10, true);
        
     state_table_.refresh();
     if (!state_table_.isValidState("Configured")) {
       stringstream ss;
       ss << state_table_;
-      XCEPT_RAISE(xdaq::exception::Exception,
+      XCEPT_RAISE(xcept::Exception,
 		  "Applications got to unexpected states: "+ss.str() );
     }
     refreshConfigParameters();
@@ -690,7 +739,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     this->notifyQualified( "error", eObj );
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
-  } catch (xdaq::exception::Exception e) {
+  } catch (xcept::Exception e) {
     LOG4CPLUS_ERROR(logger_,
 		    "Exception in " << evt->type() << ": " << e.what());
     stringstream ss1;
@@ -699,7 +748,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss1.str() );
     this->notifyQualified( "error", eObj );
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-		  "Failed to send a command", e);
+		  "Failed to configure", e);
 	}
   
   state_table_.refresh();
@@ -754,13 +803,19 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     }
     sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
     
+    // Enable TF Cell operation
+    if ( ! isGlobalRun_.value_ ){
+      sendCommandCell("enable", TFCellClass_.toString(), TFCellInstance_.value_);
+      waitForTFCellOpToReach("enabled",10);
+    }
+
     refreshConfigParameters();
     
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
     
-  } catch (xdaq::exception::Exception e) {
+  } catch (xcept::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "Failed to send a command", e);
     
@@ -782,6 +837,12 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
   try {
     state_table_.refresh();
     
+    // Stop TF Cell operation
+    if ( ! isGlobalRun_.value_ ){
+      sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
+      waitForTFCellOpToReach("configured",10);
+    }
+
     if (state_table_.getState("LTCControl", 0) != "Halted") {
       sendCommand("Halt", "LTCControl");
     }
@@ -801,7 +862,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
-  } catch (xdaq::exception::Exception e) {
+  } catch (xcept::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "Failed to send a command", e);
   }
@@ -817,6 +878,12 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
   try {
     state_table_.refresh();
     
+    // Stop TF Cell operation
+    if ( ! isGlobalRun_.value_ ){
+      sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
+      waitForTFCellOpToReach("configured",10);
+    }
+
     if (state_table_.getState("LTCControl", 0) != "Halted") {
       sendCommand("Halt", "LTCControl");
     }
@@ -833,7 +900,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
-  } catch (xdaq::exception::Exception e) {
+  } catch (xcept::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "Failed to send a command", e);
   }
@@ -866,7 +933,7 @@ void emu::supervisor::Application::setTTSAction(toolbox::Event::Reference evt)
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
-  } catch (xdaq::exception::Exception e) {
+  } catch (xcept::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "Failed to send a command", e);
   }
@@ -934,7 +1001,7 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
 }
 
 void emu::supervisor::Application::sendCommand(string command, string klass)
-  throw (xoap::exception::Exception, xdaq::exception::Exception)
+  throw (xoap::exception::Exception, xcept::Exception)
 {
   // Exceptions:
   // xoap exceptions are thrown by analyzeReply() for SOAP faults.
@@ -968,7 +1035,7 @@ void emu::supervisor::Application::sendCommand(string command, string klass)
 }
 
 void emu::supervisor::Application::sendCommand(string command, string klass, int instance)
-  throw (xoap::exception::Exception, xdaq::exception::Exception)
+  throw (xoap::exception::Exception, xcept::Exception)
 {
   // Exceptions:
   // xoap exceptions are thrown by analyzeReply() for SOAP faults.
@@ -1000,7 +1067,7 @@ void emu::supervisor::Application::sendCommand(string command, string klass, int
 
 void emu::supervisor::Application::sendCommandWithAttr(
 					string command, std::map<string, string> attr, string klass)
-  throw (xoap::exception::Exception, xdaq::exception::Exception)
+  throw (xoap::exception::Exception, xcept::Exception)
 {
   // Exceptions:
 	// xoap exceptions are thrown by analyzeReply() for SOAP faults.
@@ -1034,7 +1101,7 @@ void emu::supervisor::Application::sendCommandWithAttr(
 }
 
 void emu::supervisor::Application::sendCommandCellOpInit(string klass, int instance)
-  throw (xoap::exception::Exception, xdaq::exception::Exception)
+  //throw (xoap::exception::Exception, xcept::Exception)
 {
   // find applications
   xdaq::ApplicationDescriptor* d;
@@ -1045,7 +1112,10 @@ void emu::supervisor::Application::sendCommandCellOpInit(string klass, int insta
     {
       d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
     } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      return; // Do nothing if the target doesn't exist
+      stringstream ss;
+      ss << "No application " << klass << " of instance " << instance << " found.";
+      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
+      //return; // Do nothing if the target doesn't exist
     }
   
   // prepare a SOAP message  
@@ -1060,44 +1130,46 @@ void emu::supervisor::Application::sendCommandCellOpInit(string klass, int insta
 //  param["KEY"] = new xdata::String(mnumb);
   param["KEY"] = new xdata::String(tf_key_);
   std::string ns="urn:ts-soap:3.0";
-  std::string opId="MTCCIIConfiguration";
+  std::string opId=TFCellOpName_.toString();
   bool async=false;
 
-  request = doSoapOpInit(ns, cid, sid, async, op, param, cb, url, urn, opId);
- 
-  try{
-    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*d); 
-  } catch (xdaq::exception::Exception& e){}
-  
+//   // TODO: Why is this done twice?
 
-  if ((OpGetStateCell("Cell", 8) == "halted") || (OpGetStateCell("Cell", 8) == "configured")) {
-    sendCommandCellOpkill("Cell", 8);    
-  }
+//   request = doSoapOpInit(ns, cid, sid, async, op, param, cb, url, urn, opId);
+ 
+//   try{
+//     reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*d); 
+//   } catch (xcept::Exception& e){}
+  
+//   TFCellOpState_ = OpGetStateCell(TFCellClass_.toString(), TFCellInstance_.value_);
+//   if ( TFCellOpState_.toString() == "halted" || TFCellOpState_.toString() == "configured" ){
+//     sendCommandCellOpkill(TFCellClass_.toString(), TFCellInstance_.value_);    
+//   }
 
   request = doSoapOpInit(ns, cid, sid, async, op, param, cb, url, urn, opId);
 
   std::string tmp;
   xoap::dumpTree(request->getEnvelope(),tmp);
-  std::cout << "--SOAP message: " << tmp <<std::endl;
+  std::cout << "--SOAP init message: " << tmp <<std::endl;
   
   std::cout << "sending the request" << std::endl;
   // send the message
   try{
     reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*d); 
     
-    //std::string tmp;
-    //xoap::dumpTree(reply->getEnvelope(),tmp);
-    //std::cout << "--SOAP message: " << tmp <<std::endl;
+    std::string tmp;
+    xoap::dumpTree(reply->getEnvelope(),tmp);
+    std::cout << "--SOAP init message reply: " << std::endl << tmp <<std::endl;
     
-    xdata::Serializable* serial = getPayload(reply);
-    std::string sresult = serial->toString();
-  } catch (xdaq::exception::Exception& e){}
+//     xdata::Serializable* serial = getPayload(reply);
+//     std::string sresult = serial->toString();
+  } catch (xcept::Exception& e){}
   
   return;
 }
 
 /*
-  catch (xdaq::exception::Exception& e){
+  catch (xcept::Exception& e){
   std::cout << xcept::stdformat_exception_history(e) << std::endl;
   
   //(xcept::Exception &e) {std::cout << xcept::stdformat_exception_history(e) << std::endl;
@@ -1108,7 +1180,7 @@ void emu::supervisor::Application::sendCommandCellOpInit(string klass, int insta
 */
 
 void emu::supervisor::Application::sendCommandCell(string command, string klass, int instance)
-  throw (xoap::exception::Exception, xdaq::exception::Exception)
+  //throw (xoap::exception::Exception, xcept::Exception)
 {
   
   // find applications
@@ -1120,7 +1192,10 @@ void emu::supervisor::Application::sendCommandCell(string command, string klass,
     {
       d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
     } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      return; // Do nothing if the target doesn't exist
+      stringstream ss;
+      ss << "No application " << klass << " of instance " << instance << " found.";
+      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
+      //return; // Do nothing if the target doesn't exist
     }
   // prepare a SOAP message
   //  xoap::MessageReference *msg_tmp=NULL;
@@ -1137,7 +1212,7 @@ void emu::supervisor::Application::sendCommandCell(string command, string klass,
 //  param["KEY"] = new xdata::String(mnumb);
   param["KEY"] = new xdata::String(tf_key_);
   std::string ns="urn:ts-soap:3.0";
-  std::string opid="MTCCIIConfiguration";
+  std::string opid=TFCellOpName_.toString();
   bool async=false;
   
   std::cout << "preparing the sendcomm request" << std::endl;
@@ -1151,434 +1226,13 @@ void emu::supervisor::Application::sendCommandCell(string command, string klass,
   try{
     reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(), *d); 
     
-    xdata::Serializable* serial = getPayload(reply);
-    std::string sresult = serial->toString();
-  } catch (xdaq::exception::Exception& e){}
+//     xdata::Serializable* serial = getPayload(reply);
+//     std::string sresult = serial->toString();
+  } catch (xcept::Exception& e){}
   
   return;
-}  
-//  analyzeReply(request, reply, d); 
-/*
-    if (command = "Configure"){
-    request = doSoapOpInit(ns, cid, sid, async, op, param, cb, url, urn, opId);  
-    reply = getApplicationContext()->postSOAP(request, d); 
-    analyzeReply(request, reply, d);  
-    
-    std::cout << "preparing the request" << std::endl;  
-    request = doSoapOpSendComand(ns, cid, sid, async, opid, command, param, cb, url, urn); 
-    std::cout << "sending the request" << std::endl;
-    reply = getApplicationContext()->postSOAP(request, d); 
-    std::cout << "the request sent" << std::endl;   
-    analyzeReply(request, reply, d);  
-    
-    } else {
-    
-    
-    std::cout << "preparing the request" << std::endl;  
-    request = doSoapOpSendComand(ns, cid, sid, async, opid, command, param, cb, url, urn); 
-    std::cout << "sending the request" << std::endl;
-    // send the message
-    // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(request, d); 
-    std::cout << "the request sent" << std::endl;   
-    
-    analyzeReply(request, reply, d);  
-    
-    }
-*/
-bool emu::supervisor::Application::isAsync(xoap::MessageReference msg) 
-{ 
-  bool async = false; 
-  bool throw_exception = true; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  if(command->hasAttributes()) 
-	    { 
-	      DOMNamedNodeMap* nodeMap = command->getAttributes(); 
-	      std::string attrs = "async"; 
-	      XMLCh* attrx =  XMLString::transcode(attrs.c_str()); 
-	      DOMNode* asyncNode = nodeMap->getNamedItem(attrx); 
-	      if(asyncNode!=NULL) 
-		{ 
-		  const XMLCh* asyncValue = asyncNode->getNodeValue(); 
-		  std::string asyncString = xoap::XMLCh2String (asyncValue); 
-		  if(asyncString=="true") 
-		    { 
-		      //if it exist and async = "true" then return true; 
-		      async = true; 
-		      throw_exception = false; 
-		    } 
-		  else 
-		    { 
-		      async = false; 
-		      throw_exception = false; 
-		    } 
-		} 
-	    } 
-	} 
-    } 
-  if(throw_exception) 
-    { 
-      std::string msg = "The async attribute has not ben found"; 
-      //XCEPT_RAISE(tsexception::SoapParsingError, msg); 
-    } 
-  return async;     
-} 
+}
 
-std::string emu::supervisor::Application::getNameSpace(xoap::MessageReference msg) 
-{ 
-  std::string namespaceURI; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  namespaceURI = xoap::XMLCh2String (command->getNamespaceURI()); 
-	} 
-    } 
-  return namespaceURI;     
-} 
-
-
-std::string emu::supervisor::Application::getCid(xoap::MessageReference msg) 
-{ 
-  std::string cid; 
-  bool throw_exception = true; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  if(command->hasAttributes()) 
-	    { 
-	      DOMNamedNodeMap* nodeMap = command->getAttributes(); 
-	      std::string attrs = "cid"; 
-	      XMLCh* attrx =  XMLString::transcode(attrs.c_str()); 
-	      DOMNode* asyncNode = nodeMap->getNamedItem(attrx); 
-	      if(asyncNode!=NULL) 
-		{ 
-		  const XMLCh* asyncValue = asyncNode->getNodeValue(); 
-		  cid = xoap::XMLCh2String (asyncValue); 
-		  throw_exception = false; 
-		} 
-	    } 
-	} 
-    } 
-  if(throw_exception) 
-    { 
-      std::string msg = "The cid attribute has not ben found"; 
-      //XCEPT_RAISE(tsexception::SoapParsingError, msg); 
-    } 
-  return cid;     
-} 
-
-std::string emu::supervisor::Application::getSid(xoap::MessageReference msg) 
-{ 
-  std::string sid; 
-  bool throw_exception = true; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  if(command->hasAttributes()) 
-	    { 
-	      DOMNamedNodeMap* nodeMap = command->getAttributes(); 
-	      std::string attrs = "sid"; 
-	      XMLCh* attrx =  XMLString::transcode(attrs.c_str()); 
-	      DOMNode* asyncNode = nodeMap->getNamedItem(attrx); 
-	      if(asyncNode!=NULL) 
-		{ 
-		  const XMLCh* asyncValue = asyncNode->getNodeValue(); 
-		  sid = xoap::XMLCh2String (asyncValue); 
-		  throw_exception = false; 
-		} 
-	    } 
-	} 
-    } 
-  if(throw_exception) 
-    { 
-      std::string msg = "The sid attribute has not ben found"; 
-      
-      //XCEPT_RAISE(tsexception::SoapParsingError, msg); 
-    } 
-  return sid;     
-} 
-
-std::string emu::supervisor::Application::getInitOpId(xoap::MessageReference msg) 
-{ 
-  std::string oper = ""; 
-  std::string opId = ""; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  std::string coma = xoap::XMLCh2String(command->getLocalName()); 
-	  //we are at the command level 
-	  DOMNodeList* bodyList2 = command->getChildNodes(); 
-	  for (unsigned int j = 0; j < bodyList2->getLength(); j++)  
-	    { 
-	      DOMNode* command2 = bodyList2->item(j); 
-	      if (command2->getNodeType() == DOMNode::ELEMENT_NODE) 
-		{ 
-		  std::string oper = xoap::XMLCh2String(command2->getLocalName()); 
-		  if(oper=="operation") 
-		    { 
-		      DOMNamedNodeMap* nodeMap = command2->getAttributes(); 
-		      if(nodeMap->getLength() != 0) 
-			{ 
-			  DOMNode* attribute = nodeMap->item(0); 
-			  std::string value = xoap::XMLCh2String(attribute->getTextContent()); 
-			  opId = value; 
-			} 
-		    } 
-		} 
-	    } 
-	} 
-    } 
-  return opId; 
-} 
-
-
-std::string emu::supervisor::Application::getCallbackUrl(xoap::MessageReference msg) 
-{ 
-  std::string fun; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  //cout<< toolbox::toString("hola1"); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      //cout << toolbox::toString("hola2"); 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  std::string coma = xoap::XMLCh2String(command->getLocalName()); 
-	  //cout << toolbox::toString("hola3%s",coma.c_str()); 
-	  //we are at the command level 
-	  DOMNodeList* bodyList2 = command->getChildNodes(); 
-	  for (unsigned int j = 0; j < bodyList2->getLength(); j++)  
-	    { 
-	      //cout << toolbox::toString("hola4"); 
-	      DOMNode* command2 = bodyList2->item(j); 
-	      if (command2->getNodeType() == DOMNode::ELEMENT_NODE) 
-		{ 
-		  std::string com = xoap::XMLCh2String(command2->getLocalName()); 
-		  //cout << toolbox::toString("hola5,%s",com.c_str()); 
-		  if(com=="callbackUrl") 
-		    { 
-		      DOMNode* command3 = command2->getFirstChild(); 
-		      if (command3) 
-		      	fun=xoap::XMLCh2String(command3->getNodeValue()); 
-		      else 
-		      	fun=""; 
-		      return fun; 
-		    } 
-		} 
-	    } 
-	} 
-    } 
-  return fun; 
-} 
-
-std::string emu::supervisor::Application::getCallbackFun(xoap::MessageReference msg) 
-{ 
-  std::string fun; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  //cout<< toolbox::toString("hola1"); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      //cout << toolbox::toString("hola2"); 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  std::string coma = xoap::XMLCh2String(command->getLocalName()); 
-	  //cout << toolbox::toString("hola3%s",coma.c_str()); 
-	  //we are at the command level 
-	  DOMNodeList* bodyList2 = command->getChildNodes(); 
-	  for (unsigned int j = 0; j < bodyList2->getLength(); j++)  
-	    { 
-	      //cout << toolbox::toString("hola4"); 
-	      DOMNode* command2 = bodyList2->item(j); 
-	      if (command2->getNodeType() == DOMNode::ELEMENT_NODE) 
-		{ 
-		  std::string com = xoap::XMLCh2String(command2->getLocalName()); 
-		  //cout << toolbox::toString("hola5,%s",com.c_str()); 
-		  if(com=="callbackFun") 
-		    { 
-		      DOMNode* command3 = command2->getFirstChild(); 
-		      if (command3) 
-		      	fun=xoap::XMLCh2String(command3->getNodeValue()); 
-		      else 
-		      	fun=""; 
-		      return fun; 
-		    } 
-		} 
-	    } 
-	} 
-    } 
-  return fun; 
-} 
-
-std::string emu::supervisor::Application::getCallbackUrn(xoap::MessageReference msg) 
-{ 
-  std::string fun; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  //cout<< toolbox::toString("hola1"); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      //cout << toolbox::toString("hola2"); 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  std::string coma = xoap::XMLCh2String(command->getLocalName()); 
-	  //cout << toolbox::toString("hola3%s",coma.c_str()); 
-	  //we are at the command level 
-	  DOMNodeList* bodyList2 = command->getChildNodes(); 
-	  for (unsigned int j = 0; j < bodyList2->getLength(); j++)  
-	    { 
-	      //cout << toolbox::toString("hola4"); 
-	      DOMNode* command2 = bodyList2->item(j); 
-	      if (command2->getNodeType() == DOMNode::ELEMENT_NODE) 
-		{ 
-		  std::string com = xoap::XMLCh2String(command2->getLocalName()); 
-		  //cout << toolbox::toString("hola5,%s",com.c_str()); 
-		  if(com=="callbackUrn") 
-		    { 
-		      DOMNode* command3 = command2->getFirstChild(); 
-		      if (command3) 
-		      	fun=xoap::XMLCh2String(command3->getNodeValue()); 
-		      else 
-		      	fun=""; 
-		      return fun; 
-		    } 
-		} 
-	    } 
-	} 
-    } 
-  return fun; 
-} 
-
-std::string emu::supervisor::Application::getOperation(xoap::MessageReference msg) 
-{ 
-  xoap::SOAPBody body = msg->getSOAPPart().getEnvelope().getBody();
-  if (body.hasFault() ) {
-    std::ostringstream err;
-    err << "SOAPFault found while getting Operation identifier from message. ";
-    /*
-    if ( body.getFault().hasDetail() ) {
-      
-      xoap::SOAPElement detail = body.getFault().getDetail();
-      xcept::Exception rae;
-      xdaq::XceptSerializer::importFrom (detail.getDOM(), rae);
-      // XCEPT_RETHROW(tsexception::SoapFault, err.str(), rae);
-      
-    } else {
-      
-      err << body.getFault().getFaultString();
-      //XCEPT_RAISE(tsexception::SoapFault,err.str());
-      
-    }
-    */
-  }
-
-  std::string fun; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  //cout<< toolbox::toString("hola1"); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      //cout << toolbox::toString("hola2"); 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  std::string coma = xoap::XMLCh2String(command->getLocalName()); 
-	  //cout << toolbox::toString("hola3%s",coma.c_str()); 
-	  //we are at the command level 
-	  DOMNodeList* bodyList2 = command->getChildNodes(); 
-	  for (unsigned int j = 0; j < bodyList2->getLength(); j++)  
-	    { 
-	      //cout << toolbox::toString("hola4"); 
-	      DOMNode* command2 = bodyList2->item(j); 
-	      if (command2->getNodeType() == DOMNode::ELEMENT_NODE) 
-		{ 
-		  std::string com = xoap::XMLCh2String(command2->getLocalName()); 
-		  //cout << toolbox::toString("hola5,%s",com.c_str()); 
-		  if(com=="operation") 
-		    { 
-		      DOMNode* command3 = command2->getFirstChild(); 
-		      fun=xoap::XMLCh2String(command3->getNodeValue()); 
-		      //cout << toolbox::toString("hola6,%s",fun.c_str()); 
-		    } 
-		} 
-	    } 
-	} 
-    } 
-  return fun; 
-} 
-
-std::string emu::supervisor::Application::getOpid(xoap::MessageReference msg) 
-{ 
-  //cout<< toolbox::toString("h1") << endl; 
-  std::string fun; 
-  //cout<< toolbox::toString("h2")<< endl; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  //cout<< toolbox::toString("h3"); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  //cout<< toolbox::toString("hola1")<< endl; 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      //cout << toolbox::toString("hola2")<< endl; 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  std::string coma = xoap::XMLCh2String(command->getLocalName()); 
-	  //cout << toolbox::toString("hola3%s",coma.c_str())<< endl; 
-	  //we are at the command level 
-	  DOMNodeList* bodyList2 = command->getChildNodes(); 
-	  for (unsigned int j = 0; j < bodyList2->getLength(); j++)  
-	    { 
-	      //cout << toolbox::toString("hola4")<< endl; 
-	      DOMNode* command2 = bodyList2->item(j); 
-	      if (command2->getNodeType() == DOMNode::ELEMENT_NODE) 
-		{ 
-		  std::string com = xoap::XMLCh2String(command2->getLocalName()); 
-		  //cout << toolbox::toString("hola5,%s",com.c_str())<< endl; 
-		  if(com=="operation") 
-		    { 
-		      //cout << "1" << endl; 
-		      //DOMNode* command3 = command2->getFirstChild(); 
-		      //cout << "2" << endl; 
-		      if(command2->hasChildNodes()) 
-			{ 
-			  DOMNode* command3 = command2->getFirstChild(); 
-			  //cout << "3" << endl; 
-			  fun=xoap::XMLCh2String(command3->getNodeValue()); 
-			  //cout << "4" << endl; 
-			  //cout << toolbox::toString("hola6,%s",fun.c_str()); 
-			} 
-		    } 
-		} 
-	    } 
-	} 
-    } 
-  return fun; 
-} 
 
 xdata::Serializable* emu::supervisor::Application::getPayload(xoap::MessageReference msg) 
 { 
@@ -1742,81 +1396,9 @@ xdata::Serializable* emu::supervisor::Application::analyseSoapVector(DOMNode* co
   return ret; 
 } 
  
-std::map<std::string, xdata::Serializable*> emu::supervisor::Application::getOpComParamList(xoap::MessageReference msg) 
-{ 
-  std::map<std::string, xdata::Serializable*> mapParam; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  std::string coma = xoap::XMLCh2String(command->getLocalName()); 
-	  DOMNodeList* bodyList2 = command->getChildNodes(); 
-	  for (unsigned int j = 0; j < bodyList2->getLength(); j++)  
-	    { 
-	      DOMNode* command2 = bodyList2->item(j); 
-	      if (command2->getNodeType() == DOMNode::ELEMENT_NODE) 
-		{ 
-		  std::string com = xoap::XMLCh2String(command2->getLocalName()); 
-		  if(com=="param") 
-		    { 
-		      xdata::Serializable* ret = NULL; 
-		      std::string name; 
-		      try 
-			{ 
-			  xdata::soap::Serializer serializer; 
-			  ret = analyse(command2); 
-			  //cout << ret->type() << " " << ret->toString()<< endl; 
-			  serializer.import(ret, command2);//ret, command2); 
-			  //cout << ret->type() << " " << ret->toString()<< endl; 
-			}  
-			catch (xdata::exception::Exception & xde) 
-			  { 
-			    //XCEPT_RETHROW (tsexception::SoapParsingError, "Failed to decode parameter list", xde); 
-			  } 
-		      if(command2->hasAttributes()) 
-			{ 
-			  DOMNamedNodeMap* nodeMap = command2->getAttributes(); 
-			  std::string attrs = "name"; 
-			  XMLCh* attrx =  XMLString::transcode(attrs.c_str()); 
-			  DOMNode* asyncNode = nodeMap->getNamedItem(attrx); 
-			  if(asyncNode!=NULL) 
-			    { 
-			      const XMLCh* asyncValue = asyncNode->getNodeValue(); 
-			      name = xoap::XMLCh2String (asyncValue); 
-			    } 
-			  //else 
-			    //   XCEPT_RAISE(tsexception::SoapParsingError,"The <param> elemnet has not a name attribute"); 
-			    	} 
-		      //else 
-			//	XCEPT_RAISE(tsexception::SoapParsingError,"The <param> elemenet has not a name attribute"); 
-		      mapParam[name] = ret; 
-		    } 
-		} 
-	    } 
-	} 
-    } 
-  return mapParam; 
-} 
 
-std::string emu::supervisor::Application::getCommand(xoap::MessageReference msg) 
-{ 
-  std::string com; 
-  DOMNode* node  = msg->getSOAPPart().getEnvelope().getBody().getDOMNode(); 
-  DOMNodeList* bodyList = node->getChildNodes(); 
-  for (unsigned int i = 0; i < bodyList->getLength(); i++)  
-    { 
-      DOMNode* command = bodyList->item(i); 
-      if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-	{ 
-	  com = xoap::XMLCh2String(command->getLocalName()); 
-	} 
-    } 
-  return com;     
-}
 //////////////////////////////////////////////////////////////////////
+
 xoap::MessageReference emu::supervisor::Application::doSoapOpInit(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& op, std::map<std::string,xdata::Serializable*> param, const std::string& cb,const std::string& url,const std::string& urn, const std::string& opId){ 
   std::string asyncs; 
   if (async)  
@@ -1966,7 +1548,7 @@ xoap::MessageReference emu::supervisor::Application::doSoapOpSendComand(const st
 	   return msg; 
 } 
 void emu::supervisor::Application::sendCommandCellOpkill(string klass, int instance)
-  throw (xoap::exception::Exception, xdaq::exception::Exception)
+  //throw (xoap::exception::Exception, xcept::Exception)
 {
   // find applications
   xdaq::ApplicationDescriptor* d;
@@ -1977,13 +1559,16 @@ void emu::supervisor::Application::sendCommandCellOpkill(string klass, int insta
     {
       d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
     } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      return; // Do nothing if the target doesn't exist
+      stringstream ss;
+      ss << "No application " << klass << " of instance " << instance << " found.";
+      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
+      //return; // Do nothing if the target doesn't exist
     }
   
   // prepare a SOAP message  
   std::string sid="73";  
   std::string cid="10";
-  std::string op="MTCCIIConfiguration";
+  std::string op=TFCellOpName_.toString();//"MTCCIIConfiguration";
   std::string cb="NULL";
   std::string urn="NULL";
   std::string url="NULL";
@@ -1993,7 +1578,7 @@ void emu::supervisor::Application::sendCommandCellOpkill(string klass, int insta
   request = doSoapOpKill(ns, cid, sid, async, op, cb,url,urn);
   std::string tmp;
   xoap::dumpTree(request->getEnvelope(),tmp);
-  std::cout << "--SOAP kill message: " << tmp <<std::endl;
+  std::cout << "--SOAP kill message: " <<std::endl << tmp <<std::endl;
   
   // send the message
   try{
@@ -2001,11 +1586,11 @@ void emu::supervisor::Application::sendCommandCellOpkill(string klass, int insta
 
     std::string tmp;
     xoap::dumpTree(reply->getEnvelope(),tmp);
-    std::cout << "--SOAP message killreply: " << tmp <<std::endl;
+    std::cout << "--SOAP message killreply: " <<std::endl<< tmp <<std::endl;
 
-    xdata::Serializable* serial = getPayload(reply);
-    std::string sresult = serial->toString();
-  } catch (xdaq::exception::Exception& e){}
+//     xdata::Serializable* serial = getPayload(reply);
+//     std::string sresult = serial->toString();
+  } catch (xcept::Exception& e){}
   
   return;
 }
@@ -2071,20 +1656,9 @@ xoap::MessageReference emu::supervisor::Application::doSoapOpKill(const std::str
 	 
 	return msg; 
 	 
-//  std::ostringstream msg; 
-//  msg << "<?xml version='1.0' ?><SOAP-ENV:Envelope SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" "; 
-//  msg << "xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\"><SOAP-ENV:Header></SOAP-ENV:Header><SOAP-ENV:Body><cell:OpKill xmlns:cell=\""; 
-//  msg << ns << "\" cid=\"" << cid << "\" sid=\"" << sid << "\" async=\"" << asyncs << "\"><operation>" << op; 
-//  msg << "</operation><callbackFun>"<< cb << "</callbackFun><callbackUrl>" << url << "</callbackUrl><callbackUrn>" << urn; 
-//  msg << "</callbackUrn></cell:OpKill></SOAP-ENV:Body></SOAP-ENV:Envelope>"; 
-//   
-//  XMLCh* a = XMLString::transcode(msg.str().c_str()); 
-//  char* b = XMLString::transcode(a); 
-//  xoap::MessageReference request = xoap::createMessage(b, strlen(b)+1); 
-//  return request; 
 }
 std::string emu::supervisor::Application::OpGetStateCell(string klass, int instance)
-  throw (xoap::exception::Exception, xdaq::exception::Exception)
+  //throw (xoap::exception::Exception, xcept::Exception)
 {
   // find applications
   xdaq::ApplicationDescriptor* d;
@@ -2094,8 +1668,11 @@ std::string emu::supervisor::Application::OpGetStateCell(string klass, int insta
   try
     {
       d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
-    } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      return "NONE"; // Do nothing if the target doesn't exist
+    } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+      stringstream ss;
+      ss << "No application " << klass << " of instance " << instance << " found.";
+      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
+      //return "UNKNOWN"; // Do nothing if the target doesn't exist
     }
   
   // prepare a SOAP message  
@@ -2105,13 +1682,13 @@ std::string emu::supervisor::Application::OpGetStateCell(string klass, int insta
   std::string urn="NULL";
   std::string url="NULL";
   std::string ns="urn:ts-soap:3.0";
-  std::string opid="MTCCIIConfiguration";
+  std::string opid=TFCellOpName_.toString();
   bool async=false;
-  std::string sresult="NONE" ;
+  std::string sresult="UNKNOWN" ;
   request = doSoapOpGetState(ns, cid, sid, async, opid, cb, url, urn);
   std::string tmp;
   xoap::dumpTree(request->getEnvelope(),tmp);
-  std::cout << "--SOAP message getstate: " << tmp <<std::endl;
+  std::cout << "--SOAP message getstate: " << std::endl << tmp <<std::endl;
   
   std::cout << "sending the request" << std::endl;
   // send the message
@@ -2126,9 +1703,9 @@ std::string emu::supervisor::Application::OpGetStateCell(string klass, int insta
     sresult = serial->toString();
     std::string tmp;
     xoap::dumpTree(reply->getEnvelope(),tmp);
-    std::cout << "--SOAP reply message: " << tmp <<std::endl;
-  } catch (xdaq::exception::Exception& e){
-    return "NONE";
+    std::cout << "--SOAP getstate reply message: " << std::endl << tmp <<std::endl;
+  } catch (xcept::Exception& e){
+    return "UNKNOWN";
   }
   std::cout << "--I am here 3 --> sresult ==  " << sresult <<std::endl;
 
@@ -2136,7 +1713,7 @@ std::string emu::supervisor::Application::OpGetStateCell(string klass, int insta
 }
 
 void emu::supervisor::Application::OpResetCell(string klass, int instance)
-  throw (xoap::exception::Exception, xdaq::exception::Exception)
+  //throw (xoap::exception::Exception, xcept::Exception)
 {
 
   // find applications
@@ -2148,7 +1725,10 @@ void emu::supervisor::Application::OpResetCell(string klass, int instance)
     {
       d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
     } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      return; // Do nothing if the target doesn't exist
+      stringstream ss;
+      ss << "No application " << klass << " of instance " << instance << " found.";
+      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
+      //return; // Do nothing if the target doesn't exist
     }
   // prepare a SOAP message
   //  xoap::MessageReference *msg_tmp=NULL;
@@ -2161,14 +1741,14 @@ void emu::supervisor::Application::OpResetCell(string klass, int instance)
   std::string urn="";
   std::string url="";
   std::string ns="urn:ts-soap:3.0";
-  std::string opid="MTCCIIConfiguration";
+  std::string opid=TFCellOpName_.toString();
   bool async=false;
   
   std::cout << "preparing the sendcomm request" << std::endl;
   request = doSoapOpReset(ns, cid, sid, async, opid, cb, url, urn);
   std::string tmp;
   xoap::dumpTree(request->getEnvelope(),tmp);
-  std::cout << "--SOAP message: " << tmp <<std::endl;
+  std::cout << "--SOAP reset message: " << std::endl << tmp <<std::endl;
 
   // send the message
   // postSOAP() may throw an exception when failed.
@@ -2177,11 +1757,11 @@ void emu::supervisor::Application::OpResetCell(string klass, int instance)
 
   std::string tmp;
   xoap::dumpTree(reply->getEnvelope(),tmp);
-  std::cout << "--SOAP message: " << tmp <<std::endl;
+  std::cout << "--SOAP reset message reply: " << std::endl << tmp <<std::endl;
 
-    xdata::Serializable* serial = getPayload(reply);
-    std::string sresult = serial->toString();
-  } catch (xdaq::exception::Exception& e){}
+//     xdata::Serializable* serial = getPayload(reply);
+//     std::string sresult = serial->toString();
+  } catch (xcept::Exception& e){}
   
   return;
 }    
@@ -2193,18 +1773,6 @@ xoap::MessageReference emu::supervisor::Application::doSoapOpReset(const std::st
 	else  
 		asyncs = "false"; 
    
-//  std::ostringstream msg; 
-   
-//  msg << "<?xml version='1.0' ?><SOAP-ENV:Envelope SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" "; 
-//  msg << "xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\"><SOAP-ENV:Header></SOAP-ENV:Header><SOAP-ENV:Body><cell:OpReset xmlns:cell=\""; 
-//  msg << ns << "\" cid=\"" << cid << "\" sid=\"" << sid << "\" async=\"" << asyncs << "\"><operation>"; 
-//  msg << op << "</operation><callbackFun>" << cb << "</callbackFun><callbackUrl>" << url << "</callbackUrl><callbackUrn>"; 
-//  msg << urn << "</callbackUrn></cell:OpReset></SOAP-ENV:Body></SOAP-ENV:Envelope>"; 
-// 
-//  XMLCh* a = XMLString::transcode(msg.str().c_str()); 
-//  char* b = XMLString::transcode(a); 
-//  xoap::MessageReference request = xoap::createMessage(b, strlen(b)+1); 
-//  return request; 
  
 	xoap::MessageReference msg = xoap::createMessage(); 
 	try  
@@ -2339,6 +1907,30 @@ xoap::MessageReference emu::supervisor::Application::createCommandSOAPWithAttr(
 	}
 
 	return message;
+}
+
+bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetState, const unsigned int seconds ){
+  // Poll, and return TRUE if and only if DAQ gets into the expected state before timeout.
+  for ( unsigned int i=0; i<=seconds; ++i ){
+    TFCellOpState_ = OpGetStateCell(TFCellClass_.toString(), TFCellInstance_.value_);
+    if ( TFCellOpState_.toString() == targetState ){ return true; }
+    LOG4CPLUS_INFO( logger_, "Waited " << i << " sec so far for TF Cell Operation " 
+		    << TFCellOpName_.toString() << " to get " << targetState 
+		    << ". It is still in " << TFCellOpState_.toString() << " state." );
+    ::sleep(1);
+  }
+
+  LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec so far for TF Cell Operation " 
+		   << TFCellOpName_.toString() << " to get " << targetState 
+		   << ". It is still in " << TFCellOpState_.toString() << " state." );
+
+  stringstream ss10;
+  ss10 <<  "Timeout after waiting " << seconds << " sec so far for TF Cell Operation "
+       << TFCellOpName_.toString() << " to get "<< targetState 
+       << ". It is still in " << TFCellOpState_.toString() << " state.";
+  XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss10.str() );
+  this->notifyQualified( "error", eObj );
+  return false;
 }
 
 void emu::supervisor::Application::setParameter(
@@ -2504,7 +2096,7 @@ string emu::supervisor::Application::extractParameter(
 void emu::supervisor::Application::refreshConfigParameters()
 {
 	daq_mode_ = getDAQMode();
-	trigger_config_ = getTFConfig();
+	TFCellOpState_ = OpGetStateCell( TFCellClass_.toString(), TFCellInstance_.value_ );
 	ttc_source_ = getTTCciSource();
 }
 
@@ -2621,8 +2213,8 @@ string emu::supervisor::Application::getDAQMode()
 	if (daq_descr_ != NULL) {
 
 	  std::map<string, string> m;
-	  m["globalMode"] = "xsd:boolean";
-	  m["configuredInGlobalMode"] = "xsd:boolean";
+	  m["supervisedMode"] = "xsd:boolean";
+	  m["configuredInSupervisedMode"] = "xsd:boolean";
 	  m["daqState"] = "xsd:string";
 	  xoap::MessageReference daq_param = createParameterGetSOAP("emu::daq::manager::Application", m);
 
@@ -2631,14 +2223,14 @@ string emu::supervisor::Application::getDAQMode()
 	    reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
 	    analyzeReply(daq_param, reply, daq_descr_);
 	    
-	    result = extractParameter(reply, "globalMode");
-	    result = (result == "true") ? "global" : "local";
+	    result = extractParameter(reply, "supervisedMode");
+	    result = (result == "true") ? "supervised" : "unsupervised";
 	    REVOKE_ALARM( "noLocalDAQ", NULL );
-	  } catch (xdaq::exception::Exception e) {
+	  } catch (xcept::Exception e) {
 	    LOG4CPLUS_INFO(logger_, "Failed to get local DAQ mode. "
 			    << xcept::stdformat_exception_history(e));
 	    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
-	    result = "Unknown";
+	    result = "UNKNOWN";
 	  }
 
 	}
@@ -2661,15 +2253,15 @@ string emu::supervisor::Application::getLocalDAQState()
 			ss6 <<  "Failed to get local DAQ state. ";
 			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss6.str(), e );
 			this->notifyQualified( "error", eObj );
-			result = "Unknown";
+			result = "UNKNOWN";
 		}
 	}
 
 	if (daq_descr_ != NULL) {
 
         	std::map<string, string> m;
-		m["globalMode"] = "xsd:boolean";
-		m["configuredInGlobalMode"] = "xsd:boolean";
+		m["supervisedMode"] = "xsd:boolean";
+		m["configuredInSupervisedMode"] = "xsd:boolean";
 		m["daqState"] = "xsd:string";
 		xoap::MessageReference daq_param = createParameterGetSOAP("emu::daq::manager::Application", m);
 
@@ -2679,45 +2271,17 @@ string emu::supervisor::Application::getLocalDAQState()
 			analyzeReply(daq_param, reply, daq_descr_);
 			result = extractParameter(reply, "daqState");
 			REVOKE_ALARM( "noLocalDAQ", NULL );
-		} catch (xdaq::exception::Exception e) {
+		} catch (xcept::Exception e) {
 			LOG4CPLUS_INFO(logger_, "Failed to get local DAQ state. "
 					<< xcept::stdformat_exception_history(e));
 			RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
-			result = "Unknown";
+			result = "UNKNOWN";
 		}
 	}
 
 	return result;
 }
 
-string emu::supervisor::Application::getTFConfig()
-{
-	string result = "";
-
-	if (tf_descr_ == NULL) {
-		try {
-			tf_descr_ = getApplicationContext()->getDefaultZone()
-					->getApplicationDescriptor("TF_hyperDAQ", 0);
-		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-			return result; // Do nothing if the target doesn't exist
-		}
-	}
-
-	xoap::MessageReference tf_param = createParameterGetSOAP(
-				"TF_hyperDAQ", "triggerMode", "xsd:string");
-
-	xoap::MessageReference reply;
-	try {
-		reply = getApplicationContext()->postSOAP(tf_param, *appDescriptor_, *tf_descr_);
-		analyzeReply(tf_param, reply, tf_descr_);
-
-		result = extractParameter(reply, "triggerMode");
-	} catch (xdaq::exception::Exception e) {
-		result = "Unknown";
-	}
-
-	return result;
-}
 
 string emu::supervisor::Application::getTTCciSource()
 {
@@ -2749,8 +2313,8 @@ string emu::supervisor::Application::getTTCciSource()
 		result += ":" + extractParameter(reply, "OrbitSource");
 		result += ":" + extractParameter(reply, "TriggerSource");
 		result += ":" + extractParameter(reply, "BGOSource");
-	} catch (xdaq::exception::Exception e) {
-		result = "Unknown";
+	} catch (xcept::Exception e) {
+		result = "UNKNOWN";
 	}
 
 	return result;
@@ -2765,22 +2329,22 @@ bool emu::supervisor::Application::isDAQConfiguredInGlobal()
 			daq_descr_ = getApplicationContext()->getDefaultZone()
 					->getApplicationDescriptor("emu::daq::manager::Application", 0);
 		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInGlobalMode\" from emu::daq::manager::Application. "
+			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInSupervisedMode\" from emu::daq::manager::Application. "
 					<< xcept::stdformat_exception_history(e));
 			stringstream ss7;
-			ss7 <<  "Failed to get \"configuredInGlobalMode\" from emu::daq::manager::Application. "
+			ss7 <<  "Failed to get \"configuredInSupervisedMode\" from emu::daq::manager::Application. "
 					;
 			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss7.str(), e );
 			this->notifyQualified( "error", eObj );
-			result = "Unknown";
+			result = "UNKNOWN";
 		}
 	}
 
 	if (daq_descr_ != NULL) {
 
  	        std::map<string, string> m;
-		m["globalMode"] = "xsd:boolean";
-		m["configuredInGlobalMode"] = "xsd:boolean";
+		m["supervisedMode"] = "xsd:boolean";
+		m["configuredInSupervisedMode"] = "xsd:boolean";
 		m["daqState"] = "xsd:string";
 		xoap::MessageReference daq_param = createParameterGetSOAP("emu::daq::manager::Application", m);
 
@@ -2789,16 +2353,16 @@ bool emu::supervisor::Application::isDAQConfiguredInGlobal()
 			reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
 			analyzeReply(daq_param, reply, daq_descr_);
 
-			result = extractParameter(reply, "configuredInGlobalMode");
-		} catch (xdaq::exception::Exception e) {
-			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInGlobalMode\" from emu::daq::manager::Application. "
+			result = extractParameter(reply, "configuredInSupervisedMode");
+		} catch (xcept::Exception e) {
+			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInSupervisedMode\" from emu::daq::manager::Application. "
 					<< xcept::stdformat_exception_history(e));
 			stringstream ss8;
-			ss8 <<  "Failed to get \"configuredInGlobalMode\" from emu::daq::manager::Application. "
+			ss8 <<  "Failed to get \"configuredInSupervisedMode\" from emu::daq::manager::Application. "
 					;
 			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss8.str(), e );
 			this->notifyQualified( "error", eObj );
-			result = "Unknown";
+			result = "UNKNOWN";
 		}
 	}
 
@@ -2865,8 +2429,8 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
 	// Enforce "Halt" irrespective of DAQ mode.
 	// if (command == "Halt") { return true; }
 
-	// Don't send any other command when DAQ is in local mode.
-	if (getDAQMode() != "global") { return false; }
+	// Don't send any other command when DAQ is in unsupervised mode.
+	if (getDAQMode() != "supervised") { return false; }
 
 	// And don't send any other command when DAQ was configured in local mode, either.
 	if (command != "Configure" && !isDAQConfiguredInGlobal()) { return false; }
@@ -2913,7 +2477,7 @@ void emu::supervisor::Application::StateTable::refresh()
 			app_->analyzeReply(message, reply, i->first);
 
 			i->second = extractState(reply, klass);
-		} catch (xdaq::exception::Exception e) {
+		} catch (xcept::Exception e) {
 			i->second = STATE_UNKNOWN;
 			LOG4CPLUS_ERROR(app_->logger_, "Exception when trying to get state of "
 					<< klass << ": " << xcept::stdformat_exception_history(e));
