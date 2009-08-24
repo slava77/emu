@@ -211,7 +211,7 @@ string emu::farmer::utils::extractScalarParameterValueFromSoapMsg
       else{
 	cout << endl; msg->writeTo( cout ); cout.flush(); cout << endl;
 	stringstream ess;
-	ess << paramList->getLength() << " \"properties\" elements found in SOAP reply.";
+	ess << paramList->getLength() << " child nodes of \"properties\" element found in SOAP reply.";
 	XCEPT_RAISE(xcept::Exception, ess.str() );
       }
     }
