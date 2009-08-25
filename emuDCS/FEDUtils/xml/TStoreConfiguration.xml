@@ -164,6 +164,13 @@
       </sql:parameter>
       <![CDATA[select NVL(MAX($column),0) $column from $table]]>
     </sql:query>
+    
+      <sql:query xmlns:sql="urn:tstore-view-SQL" name="getallconfigids">
+<sql:parameter name="SIDE" bind="yes">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select key from emu_fed_systems where name=$SIDE order by key desc]]>
+      </sql:query>
 		
 		<!-- Add a new system -->
 		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="system">
