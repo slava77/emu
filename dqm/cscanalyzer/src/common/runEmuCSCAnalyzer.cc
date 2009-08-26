@@ -117,9 +117,9 @@ int main(int argc, char **argv)
 
       // Setting default parameters
       std::string cfgDir = DEFAULT_CONFIG_DIR_PREFIX;
-      if (getenv("DQMCONFIG") && string(getenv("DQMCONFIG")).size()) cfgDir=getenv("DQMCONFIG");
       if (getenv("HOME") && string(getenv("HOME")).size()) cfgDir=getenv("HOME");
       cfgDir += DEFAULT_CONFIG_DIR_SUFFIX;
+      if (getenv("DQMCONFIG") && string(getenv("DQMCONFIG")).size()) cfgDir=getenv("DQMCONFIG");
 
       // *******************************************************
       // Setting Command Line arguments
