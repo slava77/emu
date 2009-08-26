@@ -620,7 +620,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
   try {
 
     //
-    // Clean up leftover apps and ops
+    // Clean up leftover ops and halt apps
     //
     
     if ( ! isGlobalRun_.value_ ){
@@ -692,8 +692,6 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 	waitForTFCellOpToReach("configured",60);
       }
       if ( TFCellOpState_.toString() != "configured" ){
-	//LOG4CPLUS_ERROR( logger_, "TF Cell Operation \"" << TFCellOpName_.toString() 
-	//		 << "\" failed to reach configured state. Aborting." );
 	stringstream ss;
 	ss << "TF Cell Operation \"" << TFCellOpName_.toString() 
 	   << "\" failed to reach configured state. Aborting.";
@@ -798,7 +796,7 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     if (state_table_.getState("TTCciControl", 0) != "Enabled") {
       sendCommand("Enable", "TTCciControl");
     }
-    if (state_table_.getState("TTCciControl", 0) != "Enabled") {
+    if (state_table_.getState("LTCControl", 0) != "Enabled") {
       sendCommand("Enable", "LTCControl");
     }
     sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
@@ -840,7 +838,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     // Stop TF Cell operation
     if ( ! isGlobalRun_.value_ ){
       sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
-      waitForTFCellOpToReach("configured",10);
+      waitForTFCellOpToReach("configured",60);
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
@@ -881,7 +879,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     // Stop TF Cell operation
     if ( ! isGlobalRun_.value_ ){
       sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
-      waitForTFCellOpToReach("configured",10);
+      waitForTFCellOpToReach("configured",60);
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
@@ -1007,16 +1005,18 @@ void emu::supervisor::Application::sendCommand(string command, string klass)
   // xoap exceptions are thrown by analyzeReply() for SOAP faults.
   // xdaq exceptions are thrown by postSOAP() for socket level errors.
 
+  
+  LOG4CPLUS_INFO( logger_, "Sending " + command + " to " + klass );
   // find applications
   std::set<xdaq::ApplicationDescriptor *> apps;
-  try {
-    apps = getApplicationContext()->getDefaultZone()
-      ->getApplicationDescriptors(klass);
-  } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+  apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
+  if ( apps.size() == 0 ){
+    LOG4CPLUS_INFO( logger_, "Sending " + command + " to " + klass + " aborted: No application descriptor found.");
     return; // Do nothing if the target doesn't exist
   }
   
   if (klass == "emu::daq::manager::Application" && !isDAQManagerControlled(command)) {
+    LOG4CPLUS_INFO( logger_, "Sending " + command + " to " + klass + " aborted: Local DAQ is not controlled.");
     return;  // Do nothing if emu::daq::manager::Application is not under control.
   }
   
@@ -1032,6 +1032,7 @@ void emu::supervisor::Application::sendCommand(string command, string klass)
 
     analyzeReply(message, reply, *i);
   }
+  LOG4CPLUS_INFO( logger_, "Sent " + command + " to " + klass );
 }
 
 void emu::supervisor::Application::sendCommand(string command, string klass, int instance)
