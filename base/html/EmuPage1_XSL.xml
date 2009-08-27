@@ -223,12 +223,12 @@
   <xsl:template mode="PC" match="monitorable[not(@name = 'title')]">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <xsl:variable name="CLASSES"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <xsl:variable name="TDCLASS"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
     <tr>
       <th id="th_name_{$INDEX}">
 	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
       </th>
-      <td class="{$CLASSES}" id="td_value_{$INDEX}">
+      <td class="{$TDCLASS}" id="td_value_{$INDEX}">
 	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
       </td>
     </tr>
@@ -237,11 +237,11 @@
   <xsl:template mode="PCMon" match="monitorable[not(@name = 'title')]">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <xsl:variable name="CLASSES"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <xsl:variable name="TDCLASS"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
     <th id="th_name_{$INDEX}">
       <a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
     </th>
-    <td class="{$CLASSES}" id="td_value_{$INDEX}">
+    <td class="{$TDCLASS}" id="td_value_{$INDEX}">
       <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
     </td>
   </xsl:template>
@@ -285,13 +285,14 @@
   <xsl:template mode="DAQ" match="monitorable[not(@name = 'title')]">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <xsl:variable name="CLASSES"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <xsl:variable name="TDCLASS"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <xsl:variable name="ACLASS"><xsl:if test="@name = 'run' or @name = 'start' or @name = 'stop'">forLog</xsl:if></xsl:variable>
     <tr>
       <th id="th_name_{$INDEX}">
-	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
+	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}" class="{$ACLASS}"><xsl:value-of select="@name"/></a>
       </th>
-      <td colspan="4" class="{$CLASSES}" id="td_value_{$INDEX}">
-	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
+      <td colspan="4" class="{$TDCLASS}" id="td_value_{$INDEX}">
+	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}" class="{$ACLASS}"><xsl:value-of select="@value"/></a>
       </td>
     </tr>
   </xsl:template>
@@ -312,12 +313,12 @@
   <xsl:template mode="DQM" match="monitorable[not(@name = 'title')]">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <xsl:variable name="CLASSES"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <xsl:variable name="TDCLASS"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
     <tr>
       <th id="th_name_{$INDEX}">
 	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
       </th>
-      <td colspan="4" class="{$CLASSES}" id="td_value_{$INDEX}">
+      <td colspan="4" class="{$TDCLASS}" id="td_value_{$INDEX}">
 	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
       </td>
     </tr>
