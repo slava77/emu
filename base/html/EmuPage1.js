@@ -638,9 +638,9 @@ function xmlDocLoaded(e){
     //alert('xmlDocLoaded: event type '+e.type+' target '+e.target);
     var xmlIsOK = false;
     try{
-	xmlIsOK = valuesFromXmlToGraph();
+	xmlIsOK = valuesFromXml();
     } catch(e) {
-      //alert('Caught exception thrown from valuesFromXmlToGraph: '+e.message);
+      //alert('Caught exception thrown from valuesFromXml: '+e.message);
     }
     if ( xmlIsOK ){
 	clearTimeout(Clock);
@@ -650,7 +650,7 @@ function xmlDocLoaded(e){
 }
 
 
-function valuesFromXmlToGraph(){
+function valuesFromXml(){
     var rootElement = XmlDoc.getElementsByTagName('ForEmuPage1');
     if ( !rootElement.length ) return false;
     document.getElementById('td_localDateTime').innerHTML = rootElement[0].getAttribute('localDateTime');
