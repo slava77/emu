@@ -20,6 +20,8 @@ table.root { width: 100%; border-collapse: collapse; background-color:#ffffff; }
 table.root td { color:#000000; }
 a:link,a:active,a:visited { color:#333333; }
 a:hover { color:#ff9900; font-weight:bold; }
+a.forLog:link,a.forLog:active,a.forLog:visited { color:#2222ff; }
+a.forLog:hover { color:#ff9900; font-weight:bold; }
 .fresh { opacity:1.0; }
 .aging { opacity:0.5; }
 .stale { opacity:0.3; }
