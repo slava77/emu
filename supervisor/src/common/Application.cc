@@ -850,6 +850,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     
     try {
       sendCommand("Halt", "emu::daq::manager::Application");
+      waitForDAQToExecute("Halt", 10, true);
     } catch (xcept::Exception ignored) {}
     
     writeRunInfo( true, false );
@@ -876,10 +877,11 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
   try {
     state_table_.refresh();
     
-    // Stop TF Cell operation
+    // Stop and destroy TF Cell operation
     if ( ! isGlobalRun_.value_ ){
       sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
       waitForTFCellOpToReach("configured",60);
+      sendCommandCellOpkill(TFCellClass_.toString(), TFCellInstance_.value_);
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
@@ -893,6 +895,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     
     try {
       sendCommand("Halt", "emu::daq::manager::Application");
+      waitForDAQToExecute("Halt", 10, true);
     } catch (xcept::Exception ignored) {}
     writeRunInfo( true, false );
   } catch (xoap::exception::Exception e) {
@@ -2071,10 +2074,11 @@ void emu::supervisor::Application::analyzeReply(
 	error << reply_str << endl;
 
 	LOG4CPLUS_ERROR(logger_, error.str());
-	stringstream ss4;
-	ss4 <<  error.str();
-	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss4.str() );
-	this->notifyQualified( "error", eObj );
+	// Instead decide in the calling function whether or not to notify Sentinel.
+	//   stringstream ss4;
+	//   ss4 <<  error.str();
+	//   XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss4.str() );
+	//   this->notifyQualified( "error", eObj );
 	XCEPT_RAISE(xoap::exception::Exception, "SOAP fault: \n" + reply_str);
 
 	return;
