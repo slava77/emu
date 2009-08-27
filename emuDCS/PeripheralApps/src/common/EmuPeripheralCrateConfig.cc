@@ -296,6 +296,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBPrintCounters, "DMBPrintCounters");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTurnOff, "DMBTurnOff");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTurnOn, "DMBTurnOn");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTurnOn, "CFEBTurnOn");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBLoadFirmware, "DMBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmware, "DMBVmeLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
@@ -6357,33 +6358,130 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::h1(Name);
   *out << cgicc::br();
   //
-  char buf[200] ;
+  char buf[200], nbuf[100];
+  unsigned short *voltbuf;
+  voltbuf = (unsigned short *)buf;
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
+  //
+  *out << cgicc::legend("Power Control").set("style","color:blue") ;
+  //
+  *out << cgicc::table().set("border","1");
+  //
+  // read out Low voltages and currents to determine if a CFEB/ALCT is on or off
+  int power_read = thisDMB->DCSreadAll(buf);
+  if (power_read<20)
+  {
+    std::cout << "Cannot read DMB" << std::endl;
+    *out << "Cannot read DMB" << std::endl;
+    return;
+  }
+  for(int icc=0; icc<40; icc++)
+  {  // remove the bad readings 0xBAAD etc
+     if(voltbuf[icc] >= 0xFFF) voltbuf[icc]=0;
+  }
+  int power_state[7];
+  for(int icc=1; icc<=6; icc++)
+  {
+     power_read = voltbuf[16+icc*3]+voltbuf[17+icc*3]+voltbuf[18+icc*3];
+     power_state[icc]= (power_read>1200) ? 1 : 0;  // roughly 3 volts 
+  }
+  power_read=power_state[6];
+  for(int icc=5; icc>0; icc--)
+  {
+     power_read = power_read<<1;
+     power_read += power_state[icc];
+  }
+ // std::cout << "power register is " << std::hex << power_read << std::dec << std::endl;
+  for(int icc=0; icc<=6; icc++)
+  {
+     *out << cgicc::td();
+     if(power_state[icc])
+        *out << cgicc::span().set("style","color:green");
+     else
+        *out << cgicc::span().set("style","color:red");
+     if(icc>0 && icc<6)
+     {
+           *out << "CFEB " << icc;
+     }
+     else if(icc==6)
+     {
+           *out << "ALCT";
+     }
+     *out << cgicc::span() << cgicc::td();
+  }
+  *out << cgicc::tr();
+  *out << cgicc::td();
+  //
+  std::string DMBTurnOn = toolbox::toString("/%s/DMBTurnOn",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",DMBTurnOn) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Turn All On") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::td();
+  for(int icc=1; icc<=6; icc++)
+  {
+     *out << cgicc::td();
+     if(power_state[icc])
+     {
+        *out << "On";
+     }
+     else
+     {
+  std::string CFEBTurnOn = toolbox::toString("/%s/CFEBTurnOn",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CFEBTurnOn) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Turn On") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  sprintf(nbuf, "%d", power_read|(1<<(icc-1)) ); 
+  *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
+  *out << cgicc::form() << std::endl ;
+     }
+     *out << cgicc::td();
+  }
+
+  *out << cgicc::tr();
+  *out << cgicc::td();
+  //
+  std::string DMBTurnOff = toolbox::toString("/%s/DMBTurnOff",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",DMBTurnOff) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Turn All Off") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::td();
+  for(int icc=1; icc<=6; icc++)
+  {
+     *out << cgicc::td();
+     if(power_state[icc])
+     {
+  std::string CFEBTurnOn = toolbox::toString("/%s/CFEBTurnOn",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CFEBTurnOn) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Turn OFF") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  sprintf(nbuf, "%d", power_read & (~(1<<(icc-1))) );
+  *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
+  *out << cgicc::form() << std::endl ;
+     }
+     else
+     {
+        *out << "OFF";
+     }
+     *out << cgicc::td();
+  }
+ // *out << cgicc::tr();
+  *out << cgicc::table();
+  //
+  *out << cgicc::fieldset();
+  *out << cgicc::br();
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
   //
   *out << cgicc::legend("DMB Utils").set("style","color:blue") ;
-  //
-  //    *out << cgicc::table().set("border","1");
-  //
-  // *out << cgicc::td();
-  //
-  std::string DMBTurnOff = toolbox::toString("/%s/DMBTurnOff",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",DMBTurnOff) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","DMB Turn Off LV") << std::endl ;
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  *out << cgicc::form() << std::endl ;
-  //
-  *out << cgicc::br();
-  //
-  std::string DMBTurnOn = toolbox::toString("/%s/DMBTurnOn",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",DMBTurnOn) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","DMB Turn On LV") << std::endl ;
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  *out << cgicc::form() << std::endl ;
-  //
-  *out << cgicc::br();
   //
   std::string DMBPrintCounters = toolbox::toString("/%s/DMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",DMBPrintCounters) << std::endl ;
@@ -6406,7 +6504,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
   //
-  *out << cgicc::legend("DMB/CFEB Load PROM").set("style","color:red") ;
+  *out << cgicc::legend("DMB/CFEB Load PROM").set("style","color:blue") ;
   //
   std::string DMBLoadFirmware = toolbox::toString("/%s/DMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",DMBLoadFirmware) << std::endl ;
@@ -6485,6 +6583,41 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
 }
 //
+void EmuPeripheralCrateConfig::CFEBTurnOn(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    // std::cout << "CFEBTurnOn:  DMB " << dmb << std::endl;
+  }
+  //
+  name = cgi.getElement("cfeb");
+  //
+  int mask=-1;
+  if(name != cgi.getElements().end()) {
+    mask = cgi["cfeb"]->getIntegerValue();
+    // std::cout << "CFEBTurnOn: mask " << mask << std::endl;
+  }
+  DAQMB * thisDMB = dmbVector[dmb];
+  //
+  std::cout << "CFEBTurnOn mask " <<std::hex << mask << std::dec <<std::endl;  
+  //
+  if (thisDMB && mask>0) 
+  {
+    mask = mask & 0xFF;
+    thisDMB->lowv_onoff(mask);
+    ::sleep(1);
+  }
+  //
+  this->DMBUtils(in,out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::DMBTurnOff(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
@@ -6501,10 +6634,9 @@ void EmuPeripheralCrateConfig::DMBTurnOff(xgi::Input * in, xgi::Output * out )
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
-  std::cout << "DMBTurnOff" << std::endl;
-  //
   if (thisDMB) {
     thisDMB->lowv_onoff(0x0);
+    ::sleep(1);
   }
   //
   this->DMBUtils(in,out);
@@ -6919,16 +7051,15 @@ void EmuPeripheralCrateConfig::DMBTurnOn(xgi::Input * in, xgi::Output * out )
   int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    std::cout << "DMB " << dmb << std::endl;
+    std::cout << "DMBTurnOn DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
-  std::cout << "DMBTurnOn" << std::endl;
-  //
   if (thisDMB) {
     thisDMB->lowv_onoff(0x3f);
+    ::sleep(1);
   }
   //
   this->DMBUtils(in,out);
