@@ -320,9 +320,9 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
      if(!parsed) ParsingXML();
 
      msgHandler("Button: Power-Up-Init Crate " + ThisCrateID_);
-
-     if(!Simulation_) thisCrate->configure(2);
-     crate_state[current_crate_] = 1;
+     int rt=0;
+     if(!Simulation_) rt=thisCrate->configure(2);
+     crate_state[current_crate_] = (rt==0)?1:0;
      this->Default(in,out);
   }
 
@@ -333,8 +333,9 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
     for(unsigned i=0; i< crateVector.size(); i++)
     {
         if(crateVector[i] && crateVector[i]->IsAlive())
-        {   if(!Simulation_) crateVector[i]->configure(c);
-            crate_state[i] = 1;
+        {   int rt=0;
+            if(!Simulation_) rt=crateVector[i]->configure(c);
+            crate_state[i] = (rt==0)?1:0;
         }
     }
     current_config_state_=2;
@@ -576,10 +577,18 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
      else for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
         if(command_argu==crateVector[i]->GetLabel()) 
-        {  crate_state[i] = 1;
-           if(!Simulation_) crateVector[i]->configure(2);
-           *out << "Power Up Successful " <<  command_argu << std::endl;
-           msgHandler("Message: Power-Up-Init Crate " + command_argu);
+        {  
+           int rt=0;
+           if(!Simulation_) rt=crateVector[i]->configure(2);
+           if(rt==0)
+           {   *out << "Power Up Successful " <<  command_argu << std::endl;
+               msgHandler("Message: Power-Up-Init Crate " + command_argu);
+               crate_state[i] = 1;
+           } else
+           {   *out << "FAILED Power Up " <<  command_argu << std::endl;
+               msgHandler("Message: Power-Up-Init Crate FAILED " + command_argu);
+               crate_state[i] = 0;
+           }
         }
      }
   }
