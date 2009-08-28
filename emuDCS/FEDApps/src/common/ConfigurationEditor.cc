@@ -427,20 +427,23 @@ void ConfigurationEditor::displayChildConfiguration(xgi::Output * out,const std:
 }
 
 void ConfigurationEditor::outputCurrentDiff(xgi::Output * out) {
-	std::map<std::string,xdata::Table> &crates=currentDiff[topLevelTableName_];
-		for(std::map<std::string,xdata::Table>::iterator crate=crates.begin(); crate!=crates.end(); ++crate) {
+	//std::map<std::string,xdata::Table> &crates=currentDiff[topLevelTableName_];
+			for(std::vector<std::string>::iterator crateID=crateIDsInDiff.begin(); crateID!=crateIDsInDiff.end(); ++crateID) {
+
+		//or(std::map<std::string,xdata::Table>::iterator crate=crates.begin(); crate!=crates.end(); ++crate) {
 			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
 			//should probably select the crate labels as well so that this can show it
-			std::string crateID=(*crate).first;
-			*out << "<tr><td bgcolor=\"#FFFFCC\">Crate " << crateID << "</td></tr><tr><td>"  << std::endl;
+			//std::string crateID=(*crate).first;
+			*out << "<tr><td bgcolor=\"#FFFFCC\">Crate " << *crateID << "</td></tr><tr><td>"  << std::endl;
 			ChangeSummary changes;
 			std::ostringstream diffDisplay;
 			for (std::vector<std::string>::iterator tableName=topLevelTables.begin();tableName!=topLevelTables.end();++tableName) {
-				displayDiff(&diffDisplay,(*tableName),crateID,changes);
+				//displayDiff(&diffDisplay,(*tableName),"CRATE "+*crateID,changes);
+				displayChildDiff(&diffDisplay,(*tableName),"CRATE "+*crateID,changes);
 			}
 			outputDiffSummary(out,changes);
-			outputShowHideButton(out,"wholecrate",crateID,"diff");
-			if (shouldDisplayConfiguration("wholecrate",crateID)) {
+			outputShowHideButton(out,"wholecrate","CRATE "+*crateID,"diff");
+			if (shouldDisplayConfiguration("wholecrate","CRATE "+*crateID)) {
 				*out << diffDisplay.str();
 			}
 			*out << "</tr></td></table>";
@@ -871,14 +874,6 @@ void ConfigurationEditor::hideTable(xgi::Input * in, xgi::Output * out )
 	showHideTable(in,out,false);
     }
   
-//runs a diff query and caches the results
-//this is used in any situation where you don't need values from the diff to read in child records or do anything else complicated.
-void ConfigurationEditor::simpleDiff(const std::string &queryViewName,const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,const std::string &identifier) throw (xcept::Exception) {
-  xdata::Table results;
-  diff(connectionID, queryViewName, old_emu_config_id, old_xxx_config_id, new_emu_config_id, new_xxx_config_id, results);
-  setCachedDiff(queryViewName,identifier,results);
-}
-
     void ConfigurationEditor::compareVersions(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception) {
 	    clearCachedDiff();
@@ -888,7 +883,7 @@ void ConfigurationEditor::simpleDiff(const std::string &queryViewName,const std:
 		std::string new_emu_config_id=**cgi["newConfigID"];
 		std::string connectionID=connect();
 		//here should call a virtual method implemented by subclasses
-		//diffPeripheralCrate(connectionID, old_emu_config_id,new_emu_config_id);
+		diffCrate(connectionID, old_emu_config_id,new_emu_config_id);
 		disconnect(connectionID);
 	    
 	} catch (xcept::Exception &e) {
@@ -1031,13 +1026,13 @@ void add(xdata::Serializable *originalValue,const std::string &addend) {
 	if (original) {
 		xdataType amountToAdd;
 		amountToAdd.fromString(addend);
-		std::cout << "addend=" << addend << " amountToAdd=" << amountToAdd << " simply " << (simpleType)amountToAdd << std::endl;
-		std::cout << "original=" << *original << " simply " << (simpleType)*original << std::endl;
+		//std::cout << "addend=" << addend << " amountToAdd=" << amountToAdd << " simply " << (simpleType)amountToAdd << std::endl;
+		//std::cout << "original=" << *original << " simply " << (simpleType)*original << std::endl;
 		simpleType sum=(simpleType)*original+(simpleType)amountToAdd;
-		std::cout << "sum=" << sum << std::endl;
+		//std::cout << "sum=" << sum << std::endl;
 		//*originalValue=(xdataType)sum;
 		*original=sum;
-		std::cout << "new value=" << originalValue->toString() << std::endl;
+		//std::cout << "new value=" << originalValue->toString() << std::endl;
 	}
 }
 
@@ -1070,7 +1065,10 @@ void ConfigurationEditor::setValueFromString(xdata::Serializable *value,const st
 	} else if (columnType=="time") {
 		set<xdata::TimeVal>(value,newValue);
 	} else if (columnType=="bool") { 
-		set<xdata::Boolean>(value,newValue);
+		//set only works if the value is "true" or "false", but some XML files use 1 and 0 instead, so check for them first
+		if (newValue=="1") value->setValue(xdata::Boolean(true));
+		else if (newValue=="0") value->setValue(xdata::Boolean(false));
+		else set<xdata::Boolean>(value,newValue);
 	} 
 }
 
@@ -1323,7 +1321,6 @@ void ConfigurationEditor::readConfigFromDB(xgi::Input * in, xgi::Output * out ) 
 	cgicc::Cgicc cgi(in);
     outputHeader(out);
     outputStandardInterface(out);
-
     std::string endcap_side=cgi("side");
     std::string emu_config_id = cgi("configID");
   } catch (xcept::Exception &e) {
@@ -1512,54 +1509,6 @@ void ConfigurationEditor::query(const std::string &connectionID, const std::stri
 }
 //
 
-void ConfigurationEditor::diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &new_emu_config_id,xdata::Table &results) throw (xcept::Exception) {
-	diff(connectionID,queryViewName,old_emu_config_id,"",new_emu_config_id,"",results);
-}
-
-void ConfigurationEditor::diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,xdata::Table &results) throw (xcept::Exception) {
-	//for a query, we need to send some parameters which are specific to SQLView.
-	//these use the namespace tstore-view-SQL. 
-	
-	//In general, you might have the view name in a variable, so you won't know the view class. In this
-	//case you can find out the view class using the TStore client library:
-	std::string viewClass=tstoreclient::classNameForView(viewID_);
-	
-	//If we give the name of the view class when constructing the TStoreRequest, 
-	//it will automatically use that namespace for
-	//any view specific parameters we add.
-	fed::TStoreRequest request("query",viewClass);
-	
-	//add the connection ID
-	request.addTStoreParameter("connectionID",connectionID);
-	
-	//for an SQLView, the name parameter refers to the name of a query section in the configuration
-	//We'll use the "hello" one.
-	request.addViewSpecificParameter("name",queryViewName+"_diff");
-
-	//add parameter name and value (emu_config_id)
-	request.addViewSpecificParameter("OLD_EMU_CONFIG_ID",old_emu_config_id);
-	
-	if (!old_xxx_config_id.empty() && !new_xxx_config_id.empty()) {
-		//add parameter name and value (xxx_config_id; xxx="periph|ccb|mpc|csc|tmb|daqmb|alct|afeb|cfeb" )
-		request.addViewSpecificParameter("OLD_XXX_CONFIG_ID",old_xxx_config_id);
-		
-		//add parameter name and value (xxx_config_id; xxx="periph|ccb|mpc|csc|tmb|daqmb|alct|afeb|cfeb" )
-		request.addViewSpecificParameter("NEW_XXX_CONFIG_ID",new_xxx_config_id);
-	}
-	
-	//add parameter name and value (emu_config_id)
-	request.addViewSpecificParameter("NEW_EMU_CONFIG_ID",new_emu_config_id);
-
-	xoap::MessageReference message=request.toSOAP();
-	xoap::MessageReference response=sendSOAPMessage(message);
-	
-	//use the TStore client library to extract the first attachment of type "table"
-	//from the SOAP response
-	if (!tstoreclient::getFirstAttachmentOfType(response,results)) {
-		XCEPT_RAISE (xcept::Exception, "Server returned no data");
-	}
-}
-
 void ConfigurationEditor::query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, const std::string &xxx_config_id, xdata::Table &results) throw (xcept::Exception) {
 	//for a query, we need to send some parameters which are specific to SQLView.
 	//these use the namespace tstore-view-SQL. 
@@ -1745,14 +1694,18 @@ void ConfigurationEditor::getTableDefinitions(const std::string &connectionID) {
 }
 
 void ConfigurationEditor::setCachedTable(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception) {
-	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"setting cached "+insertViewName+" table "+identifier);
+	std::ostringstream logMessage;
+	logMessage << "setting cached "+insertViewName+" table "+identifier+" with " << table.getRowCount() << " rows";
+	LOG4CPLUS_DEBUG(this->getApplicationLogger(),logMessage.str());
 	currentTables[insertViewName][identifier]=table;
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"set cached "+insertViewName+" table "+identifier);
 
 }
 
 void ConfigurationEditor::setCachedDiff(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception) {
-	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"setting cached "+insertViewName+" diff "+identifier);
+	std::ostringstream logMessage;
+	logMessage << "setting cached "+insertViewName+" diff "+identifier+" with " << table.getRowCount() << " rows";
+	LOG4CPLUS_DEBUG(this->getApplicationLogger(),logMessage.str());
 	currentDiff[insertViewName][identifier]=table;
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"set cached "+insertViewName+" diff "+identifier);
 
