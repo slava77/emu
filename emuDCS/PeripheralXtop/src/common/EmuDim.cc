@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.25 2009/08/08 04:14:56 liu Exp $
+// $Id: EmuDim.cc,v 1.26 2009/08/28 15:49:58 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -656,6 +656,8 @@ int EmuDim::PowerUp()
    std::string pref = TestPrefix_;
    std::string confirm_cmd = pref + "LV_1_COMMAND_CONFIRMATION";
    std::cout << "Start Power Up" << std::endl;
+   // make sure Xmas stopped before power-up
+   XmasLoader->reload(xmas_stop);
    for(int i=0; i<TOTAL_CRATES; i++)
    {  
       if(crate_state[i]==1) 
