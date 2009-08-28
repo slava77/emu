@@ -50,7 +50,9 @@ throw (xcept::Exception);
 void readController(const std::string &connectionID,const std::string &parentIdentifier,xdata::UnsignedInteger64 &key,xdata::UnsignedShort &number)
 throw (emu::fed::exception::DBException);
 void readConfigFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-
+void diff(const std::string &connectionID, const std::string &queryViewName,const std::string &old_key,const std::string &new_key,const std::string &other_parameter_name,const std::string &other_parameter,xdata::Table &results);
+void diff(const std::string &connectionID, const std::string &queryViewName,const std::string &old_key,const std::string &new_key,const std::string &other_parameter_name,const std::string &other_parameter,const std::string &resultKey);
+void diffCrate(const std::string &connectionID, const std::string &old_key, const std::string &new_key) throw (xcept::Exception);
 xdata::String dbUsername_;
 xdata::String dbPassword_;
 xdata::String endcapSide_;

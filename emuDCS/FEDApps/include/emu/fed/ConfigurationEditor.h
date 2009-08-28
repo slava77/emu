@@ -90,8 +90,8 @@ void outputShowHideButton(std::ostream * out,const std::string &configName,const
   xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception);
   std::string connect() throw (xcept::Exception);
   void disconnect(const std::string &connectionID) throw (xcept::Exception);
-  void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &new_emu_config_id,xdata::Table &results) throw (xcept::Exception);
-  void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,xdata::Table &results) throw (xcept::Exception);
+  //void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &new_emu_config_id,xdata::Table &results) throw (xcept::Exception);
+  //void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,xdata::Table &results) throw (xcept::Exception);
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, xdata::Table &results) throw (xcept::Exception);
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, const std::string &xxx_config_id, xdata::Table &results) throw (xcept::Exception);
 void query(const std::string &connectionID,const std::string &queryViewName, const std::map<std::string, std::string> &queryParameters,xdata::Table &results) throw (xcept::Exception) ;
@@ -110,10 +110,12 @@ void queryMaxId(const std::string &connectionID,const std::string &queryViewName
   void uploadConfiguration(const std::string &connectionID, const std::string endcap_side) throw (xcept::Exception);
   
   // DB Data Reads
- void simpleDiff(const std::string &queryViewName,const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,const std::string &identifier) throw (xcept::Exception);
+ //void simpleDiff(const std::string &queryViewName,const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,const std::string &identifier) throw (xcept::Exception);
+virtual void diffCrate(const std::string &connectionID, const std::string &old_key, const std::string &new_key) throw (xcept::Exception)=0;
 
 protected:
 	
+  std::vector<std::string> crateIDsInDiff;
   std::string xmlfile_;
 std::string viewID_;
 	  void addTable(const std::string &tableName);

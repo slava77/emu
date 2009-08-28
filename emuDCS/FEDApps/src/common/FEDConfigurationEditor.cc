@@ -360,7 +360,7 @@ void FEDConfigurationEditor::readConfigFromDB(xgi::Input * in, xgi::Output * out
 	//in fact, let's look at what is done already in the other application.
 	std::map<std::string, std::string> parameters;
   	cgicc::Cgicc cgi(in);
-	std::string key=cgi("key");
+	std::string key=cgi("configID");
 	parameters["KEY"] = key;
 	
 	// Execute the query
@@ -368,11 +368,18 @@ void FEDConfigurationEditor::readConfigFromDB(xgi::Input * in, xgi::Output * out
 	try {
 		std::string connectionID=connect();
 		query(connectionID,"crates", parameters,crates);
+		std::cout << "found " << crates.getRowCount() << " rows" << std::endl;	
+		xdata::String *endcapSide=dynamic_cast<xdata::String *>(crates.getValueAt(0,"SYSTEM_NAME"));
+		if (endcapSide) {
+			endcapSide_=*endcapSide;
+		} else {
+			XCEPT_RAISE(xgi::exception::Exception, "Could not determine endcap side");
+		}
 		for (xdata::Table::iterator iRow = crates.begin(); iRow != crates.end(); ++iRow) {
-			//std::cout << "a row" << std::endl;
+			std::cout << "a row" << std::endl;
 			// Parse out the ID and crate number
 			xdata::UnsignedInteger64 id;
-			//std::cout << "crate number type is " << iRow->getField("CRATE_NUMBER")->type() << std::endl;
+			std::cout << "crate number type is " << iRow->getField("CRATE_NUMBER")->type() << std::endl;
 			xdata::UnsignedShort *number=dynamic_cast<xdata::UnsignedShort *>(iRow->getField("CRATE_NUMBER"));
 			if (number) {
 				id.fromString(key); 
@@ -507,6 +514,7 @@ try {
 	
 	xdata::UnsignedInteger64 configID=addNewConfiguration(connectionID,description);
 	xdata::UnsignedInteger64 key=addNewSystem(connectionID,configID,endcapSide_,hostname);
+	emu_config_id_=key;
 	uploadCrates(connectionID,key,endcapSide_);
 	disconnect(connectionID);
   } catch (xcept::Exception &e) {
@@ -565,55 +573,10 @@ void FEDConfigurationEditor::readChildNodesIntoTable(const std::string &tableNam
 
 void FEDConfigurationEditor::parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	getTableDefinitionsIfNecessary();
-	// Initialize XML4C system
-	/*try {
-		xercesc::XMLPlatformUtils::Initialize();
-	} catch (xercesc::XMLException &e) {
-		std::ostringstream error;
-		error << "Error during Xerces-c Initialization: " << xercesc::XMLString::transcode(e.getMessage());
-		XCEPT_RAISE(xgi::exception::Exception, error.str());
-	}
-	
-	// Create our parser
-	xercesc::XercesDOMParser *parser = new xercesc::XercesDOMParser();
-	parser->setValidationScheme(xercesc::XercesDOMParser::Val_Auto);
-	parser->setDoNamespaces(false);
-	parser->setCreateEntityReferenceNodes(false);
-	//parser->setToCreateXMLDeclTypeNode(true);
-	parser->setCreateCommentNodes(false);*/
 	
 	std::string xmlname = xmlpath_ + xmlfile_;
-	std::vector<std::string> files;
-	try {
-		files = toolbox::getRuntime()->expandPathName(xmlname);
-	} catch (toolbox::exception::Exception& tbe) {
-		XCEPT_RETHROW (xgi::exception::Exception, "Cannot parse pathname " + xmlname, tbe);
-	}
-	if (files.size() == 1) xmlname=files[0];//tstoreclient::parsePath(filename);
 	std::cout << "configuring from " << xmlname;
-	// Parse the XML file, catching any XML exceptions that might propogate out of it.
-	/*try {
-		parser->parse(xmlname.c_str());
-	} catch (xercesc::XMLException& e) {
-		delete parser;
-		xercesc::XMLPlatformUtils::Terminate();
-		std::ostringstream error;
-		error << "Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
-		XCEPT_RAISE(xgi::exception::Exception, error.str());
-	} catch (xercesc::DOMException& e) {
-		delete parser;
-		xercesc::XMLPlatformUtils::Terminate();
-		std::ostringstream error;
-		error << "Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
-		XCEPT_RAISE(xgi::exception::Exception, error.str());
-	} catch (...) {
-		delete parser;
-		xercesc::XMLPlatformUtils::Terminate();
-		XCEPT_RAISE(xgi::exception::Exception, "Unknown error during parsing");
-	}
-	
-	// If the parse was successful, output the document data from the DOM tree
-	xercesc::DOMNode *pDoc = parser->getDocument();*/
+
 	DOMDocument* pDoc = xoap::getDOMParserFactory()->get("configure")->loadXML(tstoreclient::parsePath(xmlname)); //The parser owns the returned DOMDocument. It will be deleted when the parser is released.
 	
 	xercesc::DOMElement *pFEDSystem = (xercesc::DOMElement *) pDoc->getFirstChild();
@@ -672,106 +635,7 @@ void FEDConfigurationEditor::parseConfigFromXML(xgi::Input * in, xgi::Output * o
 			XCEPT_RETHROW(xgi::exception::Exception, "Exception in parsing Crate element", e);
 		}
 		
-		// Get VMEController
-	/*	xercesc::DOMNodeList *pVMEControllers = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("VMEController"));
-		
-		if (pVMEControllers->getLength() != 1) {
-			delete parser;
-			xercesc::XMLPlatformUtils::Terminate();
-			std::ostringstream error;
-			error << "Exactly one VMEController element must exist as a child element of every FEDCrate element in the XML document " << xmlname;
-			XCEPT_RAISE(xgi::exception::Exception, error.str());
-		}
-		
-		xercesc::DOMElement *pVMEController = (xercesc::DOMElement *) pVMEControllers->item(0);
-		
-		// Parse the attributes and make the controller.
-		try {
-			newCrate->setController(VMEControllerParser(pVMEController).getController());
-		} catch (emu::fed::exception::ParseException &e) {
-			delete parser;
-			xercesc::XMLPlatformUtils::Terminate();
-			XCEPT_RETHROW(xgi::exception::Exception, "Exception in parsing VMEController element", e);
-		}
-		
-		// Get DDUs.  If there are none, then that is a valid crate anyway (even though it doesn't make sense).
-		xercesc::DOMNodeList *pDDUs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DDU"));
-		
-		for (unsigned int iDDU = 0; iDDU < pDDUs->getLength(); iDDU++) {
-			xercesc::DOMElement *pDDU = (xercesc::DOMElement *) pDDUs->item(iDDU);
-			
-			// Parse and figure out high 5 bits of killfiber, gbe prescale, etc.
-			DDU *newDDU;
-			try {
-				newDDU = DDUParser(pDDU).getDDU();
-			} catch (emu::fed::exception::ParseException &e) {
-				delete parser;
-				xercesc::XMLPlatformUtils::Terminate();
-				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing DDU element", e);
-			}
-			
-			// Get Chambers.  OK if there are none.
-			xercesc::DOMNodeList *pFibers = pDDU->getElementsByTagName(xercesc::XMLString::transcode("Fiber"));
-			
-			for (unsigned int iFiber = 0; iFiber < pFibers->getLength(); iFiber++) {
-				xercesc::DOMElement *pFiber = (xercesc::DOMElement *) pFibers->item(iFiber);
-				// Parse and add to the Fiber.
-				try {
-					FiberParser fiberParser = FiberParser(pFiber);
-					newDDU->addFiber(fiberParser.getFiber());
-				} catch (emu::fed::exception::Exception &e) {
-					delete parser;
-					xercesc::XMLPlatformUtils::Terminate();
-					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing Fiber element", e);
-				}
-			}
-			
-			// Add the DDU to the crate.
-			newCrate->addBoard((VMEModule *) newDDU);
-		}
-		
-		// Get DCCs.  OK if there are none.
-		xercesc::DOMNodeList *pDCCs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DCC"));
-		
-		for (unsigned int iDCC = 0; iDCC < pDCCs->getLength(); iDCC++) {
-			xercesc::DOMElement *pDCC = (xercesc::DOMElement *) pDCCs->item(iDCC);
-			
-			// Parse
-			DCC *newDCC;
-			try {
-				newDCC = DCCParser(pDCC).getDCC();
-			} catch (emu::fed::exception::ParseException &e) {
-				delete parser;
-				xercesc::XMLPlatformUtils::Terminate();
-				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing DCC element", e);
-			}
-			
-			// Get FIFOs.  OK if there are none.
-			xercesc::DOMNodeList *pFIFOs = pDCC->getElementsByTagName(xercesc::XMLString::transcode("FIFO"));
-			
-			for (unsigned int iFIFO = 0; iFIFO < pFIFOs->getLength(); iFIFO++) {
-				
-				xercesc::DOMElement *pFIFO = (xercesc::DOMElement *) pFIFOs->item(iFIFO);
-				
-				// Parse and add to the FIFO.
-				try {
-					FIFOParser fifoParser = FIFOParser(pFIFO);
-					// This alters the fifos in use, too.
-					newDCC->addFIFO(fifoParser.getFIFO());
-				} catch (emu::fed::exception::ParseException &e) {
-					delete parser;
-					xercesc::XMLPlatformUtils::Terminate();
-					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing FIFO element", e);
-				}
-			}
-			
-			// Add the DCC to the crate.
-
-			newCrate->addBoard((VMEModule *) newDCC);
-		}
-		
-		crateVector_.push_back(newCrate);*/
-		
+		// Get VMEController		
 	}
 	
 	// Delete the parser itself.  Must be done prior to calling Terminate, below.
@@ -791,6 +655,70 @@ bool FEDConfigurationEditor::columnIsUniqueIdentifier(const std::string &columnN
 	return columnName=="FMM_ID";
 }
 
+void FEDConfigurationEditor::diffCrate(const std::string &connectionID, const std::string &old_key, const std::string &new_key) throw (xcept::Exception) {
 
+	std::string queryViewName=topLevelTableName_;
+	std::string periph_config_id;
+	xdata::Table results;
+	std::string crateid;
+	std::string  label;
+
+	//there is actually nothing in the FED crate table that can be changed.
+	//for now the diff just selects the crate IDs necessary to select child records,
+	//even for crates which may not have changed.
+	std::map<std::string, std::string> parameters;
+	parameters["KEY"] = old_key;
+	//std::string connectionID=connect();
+	query(connectionID,"crates", parameters,results);
+	  //diff(connectionID, queryViewName, old_emu_config_id, new_emu_config_id,results);
+	  std::vector<std::string> columns=results.getColumns();
+	  //std::string old_key;
+	  //std::string new_key;
+	crateIDsInDiff.clear();
+	std::string configIDName="PERIPH_CONFIG_ID";
+	std::string crateIdentifierColumn="CRATE_NUMBER";
+	  for (unsigned rowIndex=0; rowIndex<results.getRowCount(); rowIndex++ ) {
+	    for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
+		      std::string StrgValue=results.getValueAt(rowIndex,*column)->toString();
+		      if (*column == crateIdentifierColumn) {
+			      crateid=results.getValueAt(rowIndex,crateIdentifierColumn)->toString();//readCrateID(results,rowIndex);
+			      crateIDsInDiff.push_back(crateid);
+		      }
+	      }
+	      std::string crateIdentifier="CRATE "+crateid;
+	      diff(connectionID,"controller",old_key,new_key,"CRATE_NUMBER",crateid,crateIdentifier);
+	      xdata::Table dduDiff;
+	      diff(connectionID,"ddu",old_key,new_key,"CRATE_NUMBER",crateid,dduDiff);
+	       setCachedDiff("ddu",crateIdentifier,dduDiff);
+	       for (unsigned rowIndex=0;rowIndex<dduDiff.getRowCount();rowIndex++ ) {
+		       xdata::Serializable *rui=dduDiff.getValueAt(rowIndex,"RUI");
+		       if (rui) diff(connectionID,"fiber",old_key,new_key,"RUI",rui->toString(),crateIdentifier+" "+uniqueIdentifierForRow(dduDiff,rowIndex));
+	       }
+	      xdata::Table dccDiff;
+		diff(connectionID,"dcc",old_key,new_key,"CRATE_NUMBER",crateid,dccDiff);
+	       setCachedDiff("dcc",crateIdentifier,dccDiff);
+	       for (unsigned rowIndex=0;rowIndex<dccDiff.getRowCount();rowIndex++ ) {
+		       xdata::Serializable *rui=dccDiff.getValueAt(rowIndex,"FMM_ID");
+		       if (rui) diff(connectionID,"fifo",old_key,new_key,"FMM_ID",rui->toString(),crateIdentifier);
+	       }
+	 }
+ }
+
+void FEDConfigurationEditor::diff(const std::string &connectionID, const std::string &queryViewName,const std::string &old_key,const std::string &new_key,const std::string &other_parameter_name,const std::string &other_parameter,xdata::Table &results) {
+	std::map<std::string, std::string> parameters;
+	parameters.clear();
+      parameters["OLD_KEY"]=old_key;
+      parameters["NEW_KEY"]=new_key;
+      parameters[other_parameter_name]=other_parameter;
+      xdata::Table controllerDiff;
+      query(connectionID,queryViewName+"_diff",parameters,results);
+}
+
+void FEDConfigurationEditor::diff(const std::string &connectionID, const std::string &queryViewName,const std::string &old_key,const std::string &new_key,const std::string &other_parameter_name,const std::string &other_parameter,const std::string &resultKey) {
+	xdata::Table results;
+	diff(connectionID,queryViewName,old_key,new_key,other_parameter_name,other_parameter,results);
+      setCachedDiff(queryViewName,resultKey,results);
+ 
   }
+}
 }
