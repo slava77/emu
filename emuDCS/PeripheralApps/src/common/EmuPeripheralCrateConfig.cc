@@ -6356,7 +6356,6 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   MyHeader(in,out,Name);
   //
   *out << cgicc::h1(Name);
-  *out << cgicc::br();
   //
   char buf[200], nbuf[100];
   unsigned short *voltbuf;
@@ -6368,31 +6367,49 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::table().set("border","1");
   //
-  // read out Low voltages and currents to determine if a CFEB/ALCT is on or off
-  int power_read = thisDMB->DCSreadAll(buf);
-  if (power_read<20)
-  {
-    std::cout << "Cannot read DMB" << std::endl;
-    *out << "Cannot read DMB" << std::endl;
-    return;
-  }
-  for(int icc=0; icc<40; icc++)
-  {  // remove the bad readings 0xBAAD etc
-     if(voltbuf[icc] >= 0xFFF) voltbuf[icc]=0;
-  }
   int power_state[7];
-  for(int icc=1; icc<=6; icc++)
+  unsigned int power_register = thisDMB->lowv_rdpwrreg();
+  // std::cout << "power register is " << std::hex << power_register << std::dec << std::endl;
+  if (power_register==0xBAAD)
   {
-     power_read = voltbuf[16+icc*3]+voltbuf[17+icc*3]+voltbuf[18+icc*3];
-     power_state[icc]= (power_read>1200) ? 1 : 0;  // roughly 3 volts 
+        std::cout << "Cannot read DMB" << std::endl;
+        *out << "Cannot read DMB" << std::endl;
+        return;
   }
-  power_read=power_state[6];
-  for(int icc=5; icc>0; icc--)
+  int power_read = power_register&0x3F;
+  if(power_read)
   {
-     power_read = power_read<<1;
-     power_read += power_state[icc];
+     for(int icc=1; icc<=6; icc++)
+     {   power_state[icc]= power_register & 1;
+         power_register = power_register>>1;
+     }
   }
- // std::cout << "power register is " << std::hex << power_read << std::dec << std::endl;
+  else
+  {  // if read back is 0 then
+     // try read Low voltages and currents to determine if a CFEB/ALCT is on or off
+     power_read = thisDMB->DCSreadAll(buf);
+     if (power_read<20)
+     {
+        std::cout << "Cannot read DMB" << std::endl;
+        *out << "Cannot read DMB" << std::endl;
+        return;
+     }
+     for(int icc=0; icc<40; icc++)
+     {  // remove the bad readings 0xBAAD etc
+        if(voltbuf[icc] >= 0xFFF) voltbuf[icc]=0;
+     }
+     for(int icc=1; icc<=6; icc++)
+     {
+        power_read = voltbuf[16+icc*3]+voltbuf[17+icc*3]+voltbuf[18+icc*3];
+        power_state[icc]= (power_read>1200) ? 1 : 0;  // roughly 3 volts 
+     }
+     power_read=power_state[6];
+     for(int icc=5; icc>0; icc--)
+     {
+        power_read = power_read<<1;
+        power_read += power_state[icc];
+     }
+  }
   for(int icc=0; icc<=6; icc++)
   {
      *out << cgicc::td();
@@ -6421,23 +6438,23 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::td();
-  for(int icc=1; icc<=6; icc++)
+  for(int icc=0; icc<6; icc++)
   {
      *out << cgicc::td();
-     if(power_state[icc])
+     if(power_state[icc+1])
      {
         *out << "On";
      }
      else
      {
-  std::string CFEBTurnOn = toolbox::toString("/%s/CFEBTurnOn",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CFEBTurnOn) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Turn On") << std::endl ;
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  sprintf(nbuf, "%d", power_read|(1<<(icc-1)) ); 
-  *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
-  *out << cgicc::form() << std::endl ;
+        std::string CFEBTurnOn = toolbox::toString("/%s/CFEBTurnOn",getApplicationDescriptor()->getURN().c_str());
+        *out << cgicc::form().set("method","GET").set("action",CFEBTurnOn) << std::endl ;
+        *out << cgicc::input().set("type","submit").set("value","Turn On") << std::endl ;
+        sprintf(buf,"%d",dmb);
+        *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+        sprintf(nbuf, "%d", power_read|(1<<icc) ); 
+        *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
+        *out << cgicc::form() << std::endl ;
      }
      *out << cgicc::td();
   }
@@ -6453,31 +6470,31 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::td();
-  for(int icc=1; icc<=6; icc++)
+  for(int icc=0; icc<6; icc++)
   {
      *out << cgicc::td();
-     if(power_state[icc])
+     if(power_state[icc+1])
      {
-  std::string CFEBTurnOn = toolbox::toString("/%s/CFEBTurnOn",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CFEBTurnOn) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Turn OFF") << std::endl ;
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  sprintf(nbuf, "%d", power_read & (~(1<<(icc-1))) );
-  *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
-  *out << cgicc::form() << std::endl ;
+        std::string CFEBTurnOn = toolbox::toString("/%s/CFEBTurnOn",getApplicationDescriptor()->getURN().c_str());
+        *out << cgicc::form().set("method","GET").set("action",CFEBTurnOn) << std::endl ;
+        *out << cgicc::input().set("type","submit").set("value","Turn Off") << std::endl ;
+        sprintf(buf,"%d",dmb);
+        *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+        sprintf(nbuf, "%d", power_read & (~(1<<icc)) );
+        *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
+        *out << cgicc::form() << std::endl ;
      }
      else
      {
-        *out << "OFF";
+        *out << "Off";
      }
      *out << cgicc::td();
   }
  // *out << cgicc::tr();
   *out << cgicc::table();
   //
-  *out << cgicc::fieldset();
-  *out << cgicc::br();
+  *out << cgicc::fieldset() << cgicc::br();
+  //
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
   //
@@ -6499,7 +6516,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << cgicc::fieldset();
+  *out << cgicc::fieldset() << cgicc::br();
   //  
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
