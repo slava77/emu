@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.56 2009/08/28 17:09:02 liu Exp $
+// $Id: Crate.cc,v 3.57 2009/08/28 17:18:22 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.57  2009/08/28 17:18:22  liu
+// more comments
+//
 // Revision 3.56  2009/08/28 17:09:02  liu
 // clean-up configure function
 //
@@ -406,8 +409,10 @@ void Crate::DumpConfiguration() {
 //
 int Crate::configure(int c, int ID) {
   // c=0: same as 1
-  // c=1: (power-on chambers is not already on) & write flash
+  // c=1: (power-on chambers if not already on) & write flash
   // c=2: FAST configure, power-on chambers & configure CCB & MPC
+  // return <0 ERROR, failed and the crate is not accessible
+  // return 0 successful
 
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
@@ -438,13 +443,12 @@ int Crate::configure(int c, int ID) {
     //    myDmbs[dmb]->calctrl_fifomrst();
   }
   ::sleep(2);
-  //
-  //theController->init();
-  //
+
   if(!IsAlive())
   {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
      return -1;
   }
+
   if(c>1)
   {  // only do this for power-up init
      ccb->configure();
@@ -457,6 +461,7 @@ int Crate::configure(int c, int ID) {
      return 0; 
   }
 
+  // to write flash memory
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     if (myTmbs[i]->slot()<22){
