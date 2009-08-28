@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.55 2009/08/13 01:53:19 liu Exp $
+// $Id: Crate.cc,v 3.56 2009/08/28 17:09:02 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.56  2009/08/28 17:09:02  liu
+// clean-up configure function
+//
 // Revision 3.55  2009/08/13 01:53:19  liu
 // monitoring update
 //
@@ -402,12 +405,19 @@ void Crate::DumpConfiguration() {
 }
 //
 int Crate::configure(int c, int ID) {
-  //
+  // c=0: same as 1
+  // c=1: (power-on chambers is not already on) & write flash
+  // c=2: FAST configure, power-on chambers & configure CCB & MPC
+
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
   if(!ccb) return -2;
   std::cout << label_ << " Crate Configuring, Mode: " << c << std::endl; 
   
+  // this usually follows a power cycle, let's assume everything is fresh
+  alive_ = true;
+  vmeController()->SetLife(true);
+
   std::vector<DAQMB*> myDmbs = this->daqmbs();
 
   std::cout << " HardReset, then lowv_onoff " << std::endl;
@@ -435,17 +445,17 @@ int Crate::configure(int c, int ID) {
   {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
      return -1;
   }
-  ccb->configure();
-  //
-  if(!IsAlive())
-  {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
-     return -1;
+  if(c>1)
+  {  // only do this for power-up init
+     ccb->configure();
+     
+     if(!IsAlive())
+     {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
+        return -1;
+     }
+     if(mpc) mpc->configure();
+     return 0; 
   }
-  if(mpc) mpc->configure();
-  //
-
-  // c>1: FAST configure, only doing configure for CCB & MPC
-  if(c>1) return 0; 
 
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
