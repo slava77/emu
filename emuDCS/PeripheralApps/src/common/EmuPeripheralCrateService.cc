@@ -29,6 +29,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   }
   last_msg=0;
   total_msg=0;
+  main_url_="";
   //
   //
   xgi::bind(this,&EmuPeripheralCrateService::Default, "Default");
@@ -63,7 +64,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
   Simulation_ = false;
-  GuiButton_ = true;
+  GuiButton_ = false;
   //
   RunNumber_= "-1";
   //
@@ -93,6 +94,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
 void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out ) 
 {
   if(!parsed) ParsingXML();
+  main_url_ = getApplicationDescriptor()->getContextDescriptor()->getURL();
 
   if(endcap_side==1)
      MyHeader(in,out,"EmuPeripheralCrateService -- Plus Endcap");
@@ -117,13 +119,19 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
      if(crate_state[i]==1) inited_crates++;
   if( inited_crates <= total_crates_) 
      *out << cgicc::b(" Initialized Crates: ") << inited_crates << std::endl ;
-  *out << cgicc::td();
-  if (Simulation_)
-  {  *out << cgicc::td();
-     *out << cgicc::span().set("style","color:red") << cgicc::h2("Simulation ON");
+  *out << cgicc::td() << cgicc::td();
+  if (!GuiButton_)
+  {  
+     *out << cgicc::span().set("style","color:red") << cgicc::h2("--Buttons Disabled--");
      *out << cgicc::span();
-     *out << cgicc::td();
   }
+  *out << cgicc::td() << cgicc::td();  
+  if (Simulation_)
+  {  
+     *out << cgicc::span().set("style","color:red") << cgicc::h2("--Simulation On--");
+     *out << cgicc::span();
+  }
+  *out << cgicc::td();
   *out << cgicc::table() << std::endl;
 
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:blue");
@@ -308,9 +316,12 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   {
      if(!parsed) ParsingXML();
 
-     msgHandler("Button: Power-Up-Init All Crates");
+     if(GuiButton_)
+     {
+        msgHandler("Button: Power-Up-Init All Crates");
 
-     ConfigureInit(2);
+        ConfigureInit(2);
+     }
      this->Default(in,out);
   }
 
@@ -319,10 +330,13 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   {
      if(!parsed) ParsingXML();
 
-     msgHandler("Button: Power-Up-Init Crate " + ThisCrateID_);
-     int rt=0;
-     if(!Simulation_) rt=thisCrate->configure(2);
-     crate_state[current_crate_] = (rt==0)?1:0;
+     if(GuiButton_)
+     {
+        msgHandler("Button: Power-Up-Init Crate " + ThisCrateID_);
+        int rt=0;
+        if(!Simulation_) rt=thisCrate->configure(2);
+        crate_state[current_crate_] = (rt==0)?1:0;
+     }
      this->Default(in,out);
   }
 
@@ -347,8 +361,11 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   {  
     if(!parsed) ParsingXML();
 
-    msgHandler("Button: Check Crate Controllers");
-    check_controllers();
+    if(GuiButton_)
+    {
+        msgHandler("Button: Check Crate Controllers");
+        check_controllers();
+    }
     this->Default(in, out);
   }
 
@@ -367,12 +384,13 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   {
      if(!parsed) ParsingXML();
 
-     msgHandler("Button: Hard-Reset Crate " + ThisCrateID_);
-    //
-    if(!Simulation_) thisCCB->hardReset();
-    //
-    this->Default(in,out);
-    //
+     if(GuiButton_)
+     {
+        msgHandler("Button: Hard-Reset Crate " + ThisCrateID_);
+ 
+        if(!Simulation_) thisCCB->hardReset();
+     }
+     this->Default(in,out);
   }
 
 bool EmuPeripheralCrateService::ParsingXML(){
@@ -499,9 +517,9 @@ void EmuPeripheralCrateService::ForEmuPage1(xgi::Input *in, xgi::Output *out)
     *out << "  <monitorable name=\"" << "title"
          <<            "\" value=\"" << "PCrate Service " + (std::string)((endcap_side==1)?"Plus":"Minus")
          <<  "\" nameDescription=\"" << " "
-         << "\" valueDescription=\"" << " "
+         << "\" valueDescription=\"" << "click this to access the PCrate Blue Page "
          <<          "\" nameURL=\"" << " "
-         <<         "\" valueURL=\"" << " "
+         <<         "\" valueURL=\"" << main_url_
          << "\"/>" << std::endl;
 
     *out << "  <monitorable name=\"" << "VME Access"

@@ -127,6 +127,7 @@ private:
   int last_msg;
   int total_msg;
   std::string command_msg[MAX_MESSAGES];
+  std::string main_url_;
 
 };
 
