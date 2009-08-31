@@ -236,7 +236,7 @@ throw (emu::fed::exception::DBException) {
 	xdata::Table result;
 	try {
 		query(connectionID,"get_ddus_by_key_crate", parameters,result);
-		setCachedTable("ddu",parentIdentifier,result);
+		//setCachedTable("ddu",parentIdentifier,result);
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
 	}
@@ -247,7 +247,12 @@ throw (emu::fed::exception::DBException) {
 	for (xdata::Table::iterator iRow = result.begin(); iRow != result.end(); ++iRow,++rowIndex) {			
 		xdata::UnsignedShort *rui=dynamic_cast<xdata::UnsignedShort *>(iRow->getField("RUI"));
 		if (rui) {
-			readFibers(connectionID,parentIdentifier+" "+uniqueIdentifierForRow(result,rowIndex),key,*rui);
+			xdata::Table justThisRow(result.getTableDefinition());
+			justThisRow.insert(*iRow);
+			//in theory could use parentIdentifier+" "+uniqueIdentifierForRow(result,rowIndex), instead oc directly RUI, but this picks the crate number as unique ID... this should be fixed somehow
+			//however, this is not a problem in the more generic code (which uniqueIdentifierForRow was made for) to read from the XML since the crate number does not exist in the DDU in the XML
+			setCachedTable("ddu",parentIdentifier+" RUI "+rui->toString(),justThisRow);
+			readFibers(connectionID,parentIdentifier+" RUI "+rui->toString(),key,*rui);
 		} else {
 			XCEPT_RAISE(emu::fed::exception::DBException,"rui is of type "+rui->type()+", expected unsigned short");
 		}
@@ -546,14 +551,14 @@ void FEDConfigurationEditor::readChildNodesIntoTable(const std::string &tableNam
 		XCEPT_RAISE(xgi::exception::Exception, error.str());
 	}*/
 	
-			xdata::Table table=tableDefinitions[tableName];
+	xdata::Table table=tableDefinitions[tableName];
+	bool tableCanHaveChildren=false;
+	if (tableNames.count(tableName)) tableCanHaveChildren=tableNames[tableName].size();
 	for (int childIndex=0; childIndex<childrenCount;childIndex++) {
 		xercesc::DOMElement *child=dynamic_cast<xercesc::DOMElement *>(children->item(childIndex));
 		if (child) {
 			//xdata::Table table=tableDefinitions[tableName];
-			std::string childIdentifier=copyAttributesToTable(table,child,childIndex);
-			//check is this making a table of more rows than it should?
-			//indeed, we're creating a new table (with more rows) each time through the loop
+			std::string childIdentifier=copyAttributesToTable(table,child,tableCanHaveChildren?0:childIndex);
 			
 			//set crateNumber to some property of parent
 			std::string fullIdentifier=parentIdentifier;
@@ -561,6 +566,11 @@ void FEDConfigurationEditor::readChildNodesIntoTable(const std::string &tableNam
 			fullIdentifier+=childIdentifier;
 			std::vector<std::string> subTables;
 			if (tableNames.count(tableName)) {
+				if (tableCanHaveChildren) {
+					//if this has child tables, we need to make sure that each row is cached separately
+					setCachedTable(tableName,fullIdentifier,table);
+					table=tableDefinitions[tableName];
+				}
 				subTables=tableNames[tableName];
 				for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) {
 					readChildNodesIntoTable(*subTable,child,fullIdentifier);
@@ -568,7 +578,7 @@ void FEDConfigurationEditor::readChildNodesIntoTable(const std::string &tableNam
 			}
 		}
 	}
-	setCachedTable(tableName,parentIdentifier,table);
+	if (!tableCanHaveChildren) setCachedTable(tableName,parentIdentifier,table);
 }
 
 void FEDConfigurationEditor::parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
@@ -652,7 +662,7 @@ void FEDConfigurationEditor::parseConfigFromXML(xgi::Input * in, xgi::Output * o
 }
 
 bool FEDConfigurationEditor::columnIsUniqueIdentifier(const std::string &columnName) {
-	return columnName=="FMM_ID";
+	return columnName=="FMM_ID" || columnName=="RUI";
 }
 
 void FEDConfigurationEditor::diffCrate(const std::string &connectionID, const std::string &old_key, const std::string &new_key) throw (xcept::Exception) {
