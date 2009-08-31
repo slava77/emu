@@ -1142,7 +1142,12 @@ void Test_Generic::doBinCheck()
       int CSCtype   = 0;
       int CSCposition = 0;
       std::string cscID = getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
-      if (cscID == "") continue;
+      if (cscID == "") 
+	{
+	  chamber++;
+	  continue;
+	}
+
       addCSCtoMap(cscID, CrateID, DMBSlot);
 
       cscTestData::iterator td_itr = tdata.find(cscID);
