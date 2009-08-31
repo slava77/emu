@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.26 2009/08/28 15:49:58 liu Exp $
+// $Id: EmuDim.cc,v 1.27 2009/08/31 13:02:08 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -31,6 +31,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   FedcDcsUrl_ = "";
   TestPrefix_ = "";
   OpMode_ = 0;
+  heartbeat = 0;
 
   xgi::bind(this,&EmuDim::Default, "Default");
   xgi::bind(this,&EmuDim::MainPage, "MainPage");
@@ -86,8 +87,12 @@ xoap::MessageReference EmuDim::SoapStop (xoap::MessageReference message)
 
 void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
 {
-
      if(! Monitor_On_ ) return;
+
+     std::string name = e.getTimerTask()->name;
+     // std::cout << "timeExpired: " << name << std::endl;
+     if(strncmp(name.c_str(),"EmuDimRead",13)==0) heartbeat++;
+
      if( In_Monitor_ ) return;
      In_Monitor_ = true;
 
@@ -95,8 +100,6 @@ void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
      CheckCommand();
 
      // if( Suspended_ ) return;
-     std::string name = e.getTimerTask()->name;
-     // std::cout << "timeExpired: " << name << std::endl;
      if(strncmp(name.c_str(),"EmuDimRead",13)==0) 
      {  if( !Suspended_ ) ReadFromXmas();
         UpdateAllDim();
@@ -318,7 +321,7 @@ int EmuDim::ReadFromXmas()
 
    // then fill the structure
    du=ParseDDU(FedcLoader->Content(), FedcLoader->Content_Size(), 0);
-   std::cout << du << " DDUs read at " << getLocalDateTime() << std::endl;
+   std::cout << du << " DDUs on " << heartbeat << " at " << getLocalDateTime() << std::endl;
    // 
    return ch;
 }
