@@ -169,7 +169,7 @@
 <sql:parameter name="SIDE" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
-      <![CDATA[select key from emu_fed_systems where name=$SIDE order by key desc]]>
+      <![CDATA[select key from emu_fed_systems where name=NLS_INITCAP($SIDE)||'-Side' order by key desc]]>
       </sql:query>
 		
 		<!-- Add a new system -->
@@ -556,7 +556,7 @@ and oldconfig.RUI=newconfig.RUI and
 			</tstore:foreignkey>
 		</tstore:table>
 
-		<tstore:table key="KEY,FIBER_NUMBER" name="EMU_FED_DDU_FIBERS">
+		<tstore:table key="KEY,RUI,FIBER_NUMBER" name="EMU_FED_DDU_FIBERS">
 			<!--tstore:column name="ID" type="unsigned int 64"/-->
 			<tstore:column name="RUI" type="unsigned short"/>
 			<tstore:column name="FIBER_NUMBER" type="unsigned short"/>
@@ -568,7 +568,7 @@ and oldconfig.RUI=newconfig.RUI and
 			</tstore:foreignkey>
 		</tstore:table>
 		
-		<tstore:table key="KEY,FIFO_NUMBER" name="EMU_FED_DCC_FIFOS">
+		<tstore:table key="KEY,FMM_ID,FIFO_NUMBER" name="EMU_FED_DCC_FIFOS">
 			<!--tstore:column name="ID" type="unsigned int 64"/-->
 			<tstore:column name="FMM_ID" type="unsigned int"/>
 			<tstore:column name="FIFO_NUMBER" type="unsigned short"/>
