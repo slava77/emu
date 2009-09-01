@@ -230,7 +230,7 @@ private: // XDAQ parameters
 	bool keep_refresh_;
 	bool hide_tts_control_;
 
-        xdata::Boolean isGlobalRun_;
+        xdata::Boolean controlTFCellOp_;
 
         xdata::String tf_key_;       // Track Finder Key
 	xdata::String curlHost_;            // host on which to execute the curl command
