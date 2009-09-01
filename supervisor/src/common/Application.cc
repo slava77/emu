@@ -88,7 +88,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   nevents_(-1),
   step_counter_(0),
   error_message_(""), keep_refresh_(false), hide_tts_control_(true),
-  isGlobalRun_(true), // Default MUST be global run, i.e., hands off the TF Cell.
+  controlTFCellOp_(false), // Default MUST be false, i.e., hands off the TF Cell.
   curlHost_("cmsusr1.cms"),
   runInfo_(NULL),
   runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
@@ -125,7 +125,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   i->fireItemAvailable("ttsID", &tts_id_);
   i->fireItemAvailable("ttsBits", &tts_bits_);
 
-  i->fireItemAvailable("isGlobalRun", &isGlobalRun_);
+  i->fireItemAvailable("controlTFCellOp", &controlTFCellOp_);
 
   // Track Finder Key
   tf_key_ = "310309";   // default key as of 31/03/2009
@@ -623,7 +623,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     // Clean up leftover ops and halt apps
     //
     
-    if ( ! isGlobalRun_.value_ ){
+    if ( controlTFCellOp_.value_ ){
       TFCellOpState_ = OpGetStateCell(TFCellClass_.toString(), TFCellInstance_.value_);
       if ( TFCellOpState_.toString() != "UNKNOWN" ){
 	// Reset csctf-cell operation before killing it to allow it to stop in an orderly fashion
@@ -686,7 +686,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     }   
        
     // Configure TF Cell operation
-    if ( ! isGlobalRun_.value_ ){
+    if ( controlTFCellOp_.value_ ){
       if ( waitForTFCellOpToReach("halted",60) ){
 	sendCommandCell("configure", TFCellClass_.toString(), TFCellInstance_.value_);
 	waitForTFCellOpToReach("configured",60);
@@ -802,7 +802,7 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
     
     // Enable TF Cell operation
-    if ( ! isGlobalRun_.value_ ){
+    if ( controlTFCellOp_.value_ ){
       sendCommandCell("enable", TFCellClass_.toString(), TFCellInstance_.value_);
       waitForTFCellOpToReach("enabled",10);
     }
@@ -836,7 +836,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     state_table_.refresh();
     
     // Stop TF Cell operation
-    if ( ! isGlobalRun_.value_ ){
+    if ( controlTFCellOp_.value_ ){
       sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
       waitForTFCellOpToReach("configured",60);
     }
@@ -878,7 +878,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     state_table_.refresh();
     
     // Stop and destroy TF Cell operation
-    if ( ! isGlobalRun_.value_ ){
+    if ( controlTFCellOp_.value_ ){
       sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
       waitForTFCellOpToReach("configured",60);
       sendCommandCellOpkill(TFCellClass_.toString(), TFCellInstance_.value_);
