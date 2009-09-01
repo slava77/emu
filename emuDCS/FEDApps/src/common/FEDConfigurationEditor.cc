@@ -19,7 +19,6 @@
 #include "xdata/UnsignedInteger.h"
 #include "xdata/UnsignedInteger32.h"
 #include "xdata/SimpleType.h"
-#include "emu/pc/XMLParser.h"
 #include "xercesc/parsers/XercesDOMParser.hpp"
 #include "xoap/domutils.h"
 #include "toolbox/Runtime.h"

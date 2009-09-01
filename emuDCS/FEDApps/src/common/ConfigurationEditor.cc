@@ -24,7 +24,6 @@
 #include "xdata/UnsignedInteger32.h"
 #include "xdata/SimpleType.h"
 #include "xdata/Boolean.h"
-#include "emu/pc/XMLParser.h"
 #include "xoap/domutils.h"
 #include "xoap/DOMParserFactory.h"
 
