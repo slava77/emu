@@ -120,7 +120,7 @@
 	  </runTypes>
 	  <buildEvents xsi:type="xsd:boolean"><xsl:if test="$BUILD='N'">false</xsl:if><xsl:if test="$BUILD='Y'">true</xsl:if></buildEvents>
 	  <runType xsi:type="xsd:string">Monitor</runType>
-	  <globalMode xsi:type="xsd:boolean">true</globalMode>
+	  <supervisedMode xsi:type="xsd:boolean">true</supervisedMode>
 	  <runDbBookingCommand xsi:type="xsd:string">/nfshome0/cscdaq/bin/java -jar /nfshome0/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
 	  <runDbWritingCommand xsi:type="xsd:string">/nfshome0/cscdaq/bin/java -jar /nfshome0/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
 	  <runDbAddress xsi:type="xsd:string">jdbc:oracle:thin:@cmsonr1-v.cms:10121/cms_rcms.cern.ch</runDbAddress>
