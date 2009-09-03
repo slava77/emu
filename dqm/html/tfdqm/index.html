@@ -316,6 +316,7 @@ var SP_MAP = [
 
 var CSC_TYPES = [
 	['ME+',[
+		["ME+4/2", 36],
 		["ME+4/1", 18],
 		["ME+3/2", 36],
 		["ME+3/1", 18],
@@ -332,7 +333,8 @@ var CSC_TYPES = [
 		["ME-2/2", 36],
 		["ME-3/1", 18],
 		["ME-3/2", 36],
-		["ME-4/1", 18]]
+		["ME-4/1", 18],
+		["ME-4/2", 36]]
 	]
 ];
 
@@ -519,15 +521,7 @@ function clearLog()
 	showLog();
 
 }
-
-function resetTFTables()
-{
-	resetTable('tf_table', 'me_tf', '#AFAFAF');
-	resetTable('trig_table', 'me_tf', '#AFAFAF');
-	resetTable('csc_table', 'me_csc', '#AFAFAF');
-}
-
-function resetTable(c_table, class_id, color)
+function resetTFTable(c_table)
 {
 	var ct = document.getElementById(c_table);
 	if (ct) {
@@ -535,15 +529,31 @@ function resetTable(c_table, class_id, color)
 		for (var i=0; i< tds.length; i++) {
 			
 			if (tds[i].getAttribute("class")) {
-				if (tds[i].getAttributeNode("class").value == class_id) {
+				if (tds[i].getAttributeNode("class").value == "me_tf") {
 					id = tds[i].getAttributeNode("id").value;	
-					tds[i].style.background = color;															
+					tds[i].style.background = '#AFAFAF';															
 				}				
 			}			
 		}
 	}
 }
 
+function resetCSCTable(c_table)
+{
+	var ct = document.getElementById(c_table);
+	if (ct) {
+		var tds = ct.getElementsByTagName("td");	
+		for (var i=0; i< tds.length; i++) {
+			
+			if (tds[i].getAttribute("class")) {
+				if (tds[i].getAttributeNode("class").value == "me_csc") {
+					id = tds[i].getAttributeNode("id").value;	
+					tds[i].style.background = '#AFAFAF';															
+				}				
+			}			
+		}
+	}
+}
 
 function showTFTable(id)
 {
@@ -606,7 +616,7 @@ function showTFTable(id)
 			out += "</td><td class='layout'  valign='top'>";												
 			
 			// Display CSC Trig IDs table
-			out += "<table border=1 cellpadding=0 cellspacing=0 name='trig_table' class='sys_table'>";
+			out += "<table border=1 cellpadding=0 cellspacing=0 class='sys_table'>";
 			out += "<tr class='me'><td id='cscCSC' class='me'>CSC Trig ID</td></tr>";						
 			for (var i=1; i<=9; i++) {
 				
@@ -626,7 +636,7 @@ function showTFTable(id)
 			{
 				if (c_list[i] && c_list[i].length > 0) {
 					var side = c_list[i][0];
-			 		out += "<tr class='me'><td rowspan='8' id='"+side+"' class='me' >"+side+"</td>";
+			 		out += "<tr class='me'><td rowspan='9' id='"+side+"' class='me' >"+side+"</td>";
 					
 					var types =  c_list[i][1];
 					if (types && types.length > 0) {
@@ -1027,8 +1037,8 @@ function loadTFList()
 {
 	getTFListDelay=20;
 	var fullUrl = baseURL+TFList;
-	// var r_link=document.getElementById("RunLink");
-	// if (r_link) r_link.innerHTML = "Run Number: <a class='RLink' href=''>" + RunNumber + "</a>";
+	var r_link=document.getElementById("RunLink");
+	if (r_link) r_link.innerHTML = "Run: <a class='RLink' href=''>" + RunNumber + "</a>";
 	
 	var req=false;
 	if (window.XMLHttpRequest) { 
@@ -1057,9 +1067,8 @@ function loadTFList()
 				reply = reply.replace(/,]/g,"]");
 				reply = reply.replace("var ","");
 	        	window.eval(reply);					
-				// resetTFTable("tf_table");
-				// resetCSCTable("csc_table");
-				resetTFTables();
+				resetTFTable("tf_table");
+				resetCSCTable("csc_table");
 				updateTFMappings();
 				req=false;
 				
