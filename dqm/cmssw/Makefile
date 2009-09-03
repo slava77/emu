@@ -126,8 +126,12 @@ $(ODIR)/%.o: $(DQM_MODULE)/%.cc
 $(ODIR)/%.o: $(DQM)/src/%.cc
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(ROOTCFLAGS) $(INCLUDES) $< -o $@
 
-all: libs 
+all: makedirs libs 
 _all: all
+
+makedirs: 
+	@mkdir -p ${ODIR}
+	@mkdir -p ${LDIR}
 
 libs: $(LDIR)/libCSCDigi.a $(LDIR)/libCSCDigi.so $(LDIR)/libCSCRawToDigi.a $(LDIR)/libCSCRawToDigi.so $(LDIR)/libCSCDQMCommon.a
 # $(LDIR)/libQualityTests.a $(LDIR)/libQualityTests.so
