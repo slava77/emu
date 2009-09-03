@@ -198,7 +198,7 @@ void ConfigurationEditor::displayDiff(std::ostream * out,const std::string &conf
 		xdata::Table &currentTable=getCachedDiff(configName,identifier);
 		std::ostringstream diffDisplay;
 		TableChangeSummary changesToThisTable;
-		outputDiff(&diffDisplay,currentTable,changesToThisTable);
+		outputDiff(&diffDisplay,currentTable,configName,changesToThisTable);
 		outputDiffSummary(out,changesToThisTable);
 		sumChanges(changes[configName],changesToThisTable);
 		if (displayCommonTableElements(out,configName,identifier,currentTable,"diff")) {
@@ -216,8 +216,9 @@ std::string ConfigurationEditor::elementNameFromTableName(const std::string &tab
 
 //subclasses should override
 std::string ConfigurationEditor::fixColumnName(const std::string &column) {
-	std::string lowerCaseName=toolbox::tolower(column);
-	return lowerCaseName;
+	//std::string lowerCaseName=toolbox::tolower(column);
+	//return lowerCaseName;
+	return column;
 }
 
 std::string ConfigurationEditor::xdataToHex(xdata::Serializable *xdataValue) {
@@ -238,6 +239,19 @@ bool ConfigurationEditor::shouldDisplayInHex(const std::string &columnName) {
 	return false; //should be overridden by subclasses
 }
 
+void ConfigurationEditor::copyTableToAttributes(xercesc::DOMElement *node,xdata::Table &table,const std::string &tableName,int rowIndex) throw (xcept::Exception) {
+	std::vector<std::string> columns=table.getColumns();
+	for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
+		xdata::Serializable *xdataValue=table.getValueAt(rowIndex,*column);
+		std::string value;
+		if (!columnIsDatabaseOnly(*column,tableName)) {
+			value=valueToString(xdataValue,*column);
+			node->setAttribute(xoap::XStr(fixColumnName(*column)),xoap::XStr(value));
+			std::cout << "adding attribute with name " << *column << std::endl;
+		}
+	}
+}
+
 void ConfigurationEditor::addChildNodes(DOMElement *parentElement,const std::string &configName,const std::string &parentIdentifier) {	
 	DOMDocument* doc = parentElement->getOwnerDocument();
 	if (currentTables.count(configName)) {		
@@ -253,20 +267,11 @@ void ConfigurationEditor::addChildNodes(DOMElement *parentElement,const std::str
    		for (table=tables.lower_bound(parentIdentifier);table!=tables.lower_bound(parentIdentifier+"~");++table) {
 			//for each row, add an element with the name configName, add it to parentElement
 			//for each column, add an attribute.
-			std::vector<std::string> columns=(*table).second.getColumns();
 			unsigned int rowCount=(*table).second.getRowCount();
 			for (unsigned rowIndex=0; rowIndex<rowCount; rowIndex++ ) {
 				std::cout << "adding element with name "<< configName << std::endl;
 				DOMElement *newElement=doc->createElement(xoap::XStr(elementNameFromTableName(configName)));
-				for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
-					xdata::Serializable *xdataValue=(*table).second.getValueAt(rowIndex,*column);
-					std::string value;
-					if (!columnIsDatabaseOnly(*column)) {
-						value=valueToString(xdataValue,*column);
-						newElement->setAttribute(xoap::XStr(fixColumnName(*column)),xoap::XStr(value));
-						std::cout << "adding attribute with name " << *column << std::endl;
-					}
-				}
+				copyTableToAttributes(newElement,(*table).second,configName,rowIndex);
 				parentElement->appendChild(newElement);
 				for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) { 			
 					std::cout << "crate subtable, showing " << (*subTable) << " of " << (*table).first << std::endl;
@@ -288,17 +293,15 @@ DOMNode *ConfigurationEditor::DOMOfCurrentTables() {
 				DOMImplementation *impl = DOMImplementationRegistry::getDOMImplementation(xoap::XStr("LS"));
 			DOMDocument* doc = impl->createDocument(
 				   xoap::XStr(""),                    // root element namespace URI.
-				   xoap::XStr("EmuSystem"),         // root element name
+				   xoap::XStr(rootElementName_),         // root element name
 				   0);                   // document type object (DTD).
+		fillRootElement(doc->getDocumentElement());
 		std::map<std::string,xdata::Table> &crates=currentTables[topLevelTableName_];
-		for(std::map<std::string,xdata::Table>::iterator crate=crates.begin(); crate!=crates.end(); ++crate) { //here we are looping through tables of crates, actually we ned to loop through rows in those tables
-			DOMElement *crateElement=doc->createElement(xoap::XStr(topLevelTableName_)); //topLevelTableName_ should be in the XML case, elsewhere it should be fixed to be database case
-			std::string crateID=(*crate).second.getValueAt(0,"CRATEID")->toString();
-			crateElement->setAttribute(xoap::XStr("crateID"),xoap::XStr(crateID));
-			crateElement->setAttribute(xoap::XStr("label"),xoap::XStr((*crate).second.getValueAt(0,"LABEL")->toString()));
+		for(std::map<std::string,xdata::Table>::iterator crate=crates.begin(); crate!=crates.end(); ++crate) { 
+			DOMElement *crateElement=doc->createElement(xoap::XStr(elementNameFromTableName(topLevelTableName_)));
+			copyTableToAttributes(crateElement,(*crate).second,topLevelTableName_,0); //there is only one row in each crate table
 			doc->getDocumentElement()->appendChild(crateElement);
 			for (std::vector<std::string>::iterator tableName=topLevelTables.begin();tableName!=topLevelTables.end();++tableName) {
-				std::cout << " adding nodes for crate "<< crateID << " table name " << *tableName << std::endl;
 				addChildNodes(crateElement,*tableName,(*crate).first);
 			}
 		}
@@ -491,21 +494,21 @@ void ConfigurationEditor::outputException(xgi::Output * out,xcept::Exception &e)
   *out << "<p>" << e.message() << "</p>" << std::endl;
 }
 
-bool ConfigurationEditor::canChangeColumnGlobally(const std::string &columnName) {
+bool ConfigurationEditor::canChangeColumnGlobally(const std::string &columnName,const std::string &tableName) {
 	if (columnName=="DESCRIPTION") return false;
 	if (columnName=="PROBLEM_MASK") return false;
 	//can't edit ID columns, which all have _CONFIG_ID in their names
-	return canChangeColumn(columnName);
+	return canChangeColumn(columnName,tableName);
 }
 
 //to be overridden
-bool ConfigurationEditor::columnIsDatabaseOnly(const std::string &columnName) {
+bool ConfigurationEditor::columnIsDatabaseOnly(const std::string &columnName,const std::string &tableName) {
 	return columnName.find("CONFIG_ID")!=std::string::npos;
 }
 
 //to be overridden
-bool ConfigurationEditor::canChangeColumn(const std::string &columnName) {
-	return !columnIsDatabaseOnly(columnName);
+bool ConfigurationEditor::canChangeColumn(const std::string &columnName,const std::string &tableName) {
+	return !columnIsDatabaseOnly(columnName,tableName);
 }
 
 bool ConfigurationEditor::isNumericType(const std::string &xdataType) {
@@ -546,7 +549,7 @@ void ConfigurationEditor::outputTableEditControls(xgi::Output * out,const std::s
 
 	increment << "increment all " << cgicc::select().set("name","fieldName");//<< cgicc::input().set("type","text").set("name","view").set("value",view) << std::endl;
 	for (column=columns.begin(); column!=columns.end(); column++) {
-		if (canChangeColumnGlobally(*column)) {
+		if (canChangeColumnGlobally(*column,tableName)) {
 			if (isNumericType(definition.getColumnType(*column))) {
 				increment << cgicc::option().set("value",*column) << *column << cgicc::option() << std::endl;
 				fieldsToIncrement=true;
@@ -563,7 +566,7 @@ void ConfigurationEditor::outputTableEditControls(xgi::Output * out,const std::s
 	set << cgicc::input().set("type","hidden").set("name","prefix").set("value",prefix);
 	set << "set all " << cgicc::select().set("name","fieldName");
 	for (column=columns.begin(); column!=columns.end(); column++) {
-		if (canChangeColumnGlobally(*column)) {
+		if (canChangeColumnGlobally(*column,tableName)) {
 			set << cgicc::option().set("value",*column) << *column << cgicc::option() << std::endl;
 			fieldsToSet=true;
 		}
@@ -578,7 +581,7 @@ void ConfigurationEditor::outputTableEditControls(xgi::Output * out,const std::s
 	view << cgicc::input().set("type","hidden").set("name","prefix").set("value",prefix);
 	view << "view all " << cgicc::select().set("name","fieldName");
 	for (column=columns.begin(); column!=columns.end(); column++) {
-		if (!columnIsDatabaseOnly(*column)) { //we want to be able to show all even when we can't change all
+		if (!columnIsDatabaseOnly(*column,tableName)) { //we want to be able to show all even when we can't change all
 			view << cgicc::option().set("value",*column) << *column << cgicc::option() << std::endl;
 			fieldsToView=true;
 		}
@@ -611,8 +614,11 @@ void ConfigurationEditor::outputTableEditControls(xgi::Output * out,const std::s
 std::string ConfigurationEditor::valueToString(xdata::Serializable *value,const std::string &columnName) {
 	if (shouldDisplayInHex(columnName)) {
 		return xdataToHex(value);
+	} if (displayBooleansAsIntegers_) {
+		xdata::Boolean *boolValue=dynamic_cast<xdata::Boolean *>(value);
+		if (boolValue) return (bool)*boolValue?"1":"0";
 	}
-	else return value->toString();
+	return value->toString();
 }
 
 //outputs the value of \a value to *out. If the last three parameters are filled in (to indicate where the value comes from, so how to change it) then
@@ -629,7 +635,7 @@ void ConfigurationEditor::outputSingleValue(std::ostream * out,xdata::Serializab
 	} else {
 		std::string displayValue=valueToString(value,column);
 		if (shouldDisplayInHex(column)) displayValue="0x"+displayValue; //display with 0x so that it's clear to the user and also so it can be correctly parsed after they make changes
-		if (canChangeColumn(column) && !tableName.empty() && !identifier.empty()) {
+		if (canChangeColumn(column,tableName) && !tableName.empty() && !identifier.empty()) {
 			std::string anchor=tableName+identifier+column+to_string(rowIndex);
 			*out << cgicc::a().set("name",anchor); //add an anchor so we can scroll immediately to the thing we just hid or showed
 			  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/changeSingleValue#%s",getApplicationDescriptor()->getURN().c_str(),anchor.c_str())) << std::endl;
@@ -671,9 +677,9 @@ std::string ConfigurationEditor::newCell(xdata::Serializable *newValue,xdata::Se
 	return "<td>";
 }
 
-bool ConfigurationEditor::getNextColumn(std::vector<std::string>::iterator &nextColumn,std::string &columnWithoutVersionNumber,const std::vector<std::string>::iterator &currentColumn,const std::vector<std::string>::iterator &end) {
+bool ConfigurationEditor::getNextColumn(std::vector<std::string>::iterator &nextColumn,std::string &columnWithoutVersionNumber,const std::vector<std::string>::iterator &currentColumn,const std::string &tableName,const std::vector<std::string>::iterator &end) {
 	columnWithoutVersionNumber=withoutVersionNumber(*currentColumn);
-	if (canChangeColumn(columnWithoutVersionNumber)) {
+	if (canChangeColumn(columnWithoutVersionNumber,tableName)) {
 		if (currentColumn!=end) {
 			nextColumn=currentColumn;
 			++nextColumn;
@@ -686,39 +692,39 @@ bool ConfigurationEditor::getNextColumn(std::vector<std::string>::iterator &next
 	return false;
 }
 
-void ConfigurationEditor::outputDiffRow(std::ostream * out,xdata::Table &results,int rowIndex,bool vertical,TableChangeSummary &changes) {
+void ConfigurationEditor::outputDiffRow(std::ostream * out,xdata::Table &results,int rowIndex,bool vertical,const std::string &tableName,TableChangeSummary &changes) {
 	std::vector<std::string> columns=results.getColumns();
 	std::sort(columns.begin(),columns.end());
 	std::vector<std::string>::iterator column;
 	std::vector<std::string>::iterator nextColumn;
 	for(column=columns.begin(); column!=columns.end(); ++column) {
 		std::string columnWithoutVersionNumber;
-		if (getNextColumn(nextColumn,columnWithoutVersionNumber,column,columns.end())) {
+		if (getNextColumn(nextColumn,columnWithoutVersionNumber,column,tableName,columns.end())) {
 			if (vertical) *out << "<tr><td>" << columnWithoutVersionNumber << "</td>";
 			xdata::Serializable *oldValue=results.getValueAt(rowIndex,*column);
 			xdata::Serializable *newValue=results.getValueAt(rowIndex,*nextColumn);
 			std::string tableCellTag=newCell(oldValue,newValue);
 			if (!oldValue->equals(*newValue)) changes[columnWithoutVersionNumber]++;
 			*out << tableCellTag;
-			outputSingleValue(out,oldValue,columnWithoutVersionNumber);
+			outputSingleValue(out,oldValue,tableName,columnWithoutVersionNumber);
 			*out << "</td>";
 			*out << tableCellTag;
-			outputSingleValue(out,newValue,columnWithoutVersionNumber);
+			outputSingleValue(out,newValue,tableName,columnWithoutVersionNumber);
 			column=nextColumn;
 			*out << "</td>";
 			if (vertical) *out << "</tr>";
-		} else if (!columnIsDatabaseOnly(*column)) {
+		} else if (!columnIsDatabaseOnly(*column,tableName)) {
 			//if there is no matching column, then it is probably something that can't be changed, which was only selected
 			//so we could tell which row is which.
 			//std::cout << "column without new version: " << *column << std::endl;
 			xdata::Serializable *value=results.getValueAt(rowIndex,*column);
 			if (vertical) {
 				*out << "<tr><td>" << columnWithoutVersionNumber << "</td><td colspan=\"2\">";
-				outputSingleValue(out,value,columnWithoutVersionNumber);
+				outputSingleValue(out,value,tableName,columnWithoutVersionNumber);
 				*out << "</td></tr>";
 			} else {
 				*out << "<td>";
-				outputSingleValue(out,value,columnWithoutVersionNumber);
+				outputSingleValue(out,value,tableName,columnWithoutVersionNumber);
 				*out << "</td>";
 			}
 		}
@@ -744,7 +750,7 @@ void ConfigurationEditor::outputDiffSummary(std::ostream *out,ChangeSummary &cha
 	if (!changesFound) *out << "no changes";
 }
 
-void ConfigurationEditor::outputDiff(std::ostream * out,xdata::Table &results,TableChangeSummary &changes) {
+void ConfigurationEditor::outputDiff(std::ostream * out,xdata::Table &results,const std::string &tableName,TableChangeSummary &changes) {
 	//this uses raw HTML tags because cgicc can't handle any nested tags, which makes it pretty much useless
 	std::vector<std::string> columns=results.getColumns();
 	int rowCount=results.getRowCount();
@@ -767,7 +773,7 @@ void ConfigurationEditor::outputDiff(std::ostream * out,xdata::Table &results,Ta
 	if (rowCount==1) {
 		*out << "<table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">";
 		*out << "<tr><td></td><td> configuration " << oldConfigID << "</td><td> configuration " << newConfigID << "</td>";
-		outputDiffRow(out,results,0,true,changes);
+		outputDiffRow(out,results,0,true,tableName,changes);
 		*out << "</table>";
 	} else {
 		*out << rowCount << " rows";
@@ -775,7 +781,7 @@ void ConfigurationEditor::outputDiff(std::ostream * out,xdata::Table &results,Ta
 		*out << "<table border=\"2\" cellpadding=\"2\">";
 		*out << "<tr>";
 		for(column=columns.begin(); column!=columns.end(); ++column) {
-			if (!columnIsDatabaseOnly(withoutVersionNumber(*column))) {
+			if (!columnIsDatabaseOnly(withoutVersionNumber(*column),tableName)) {
 				*out << "<td>" << *column << "</td>";
 			}
 			/*this version only shows the matched columns, but in fact we also want to see any columns which have no version number because they are
@@ -789,7 +795,7 @@ void ConfigurationEditor::outputDiff(std::ostream * out,xdata::Table &results,Ta
 		unsigned long rowIndex;
 		for (rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
 			*out << "<tr>";
-			outputDiffRow(out,results,rowIndex,false,changes);
+			outputDiffRow(out,results,rowIndex,false,tableName,changes);
 
 			*out << "</tr>";
 		}
@@ -806,7 +812,7 @@ void ConfigurationEditor::outputTable(std::ostream * out,xdata::Table &results,c
 		*out << "<table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">";
 		for(columnIterator=columns.begin(); columnIterator!=columns.end(); ++columnIterator) {
 			std::string stringValue=results.getValueAt(0,*columnIterator)->toString();
-			if (canChangeColumn(*columnIterator) && stringValue!="NaN") {
+			if (canChangeColumn(*columnIterator,tableName) && stringValue!="NaN") {
 				*out << "<tr><td>" << *columnIterator << /*(" << columnType << ")" << */ ":</td><td>";
 				outputSingleValue(out,results.getValueAt(0,*columnIterator),*columnIterator,tableName,identifier,0);
 				*out << "</tr>";
@@ -1071,7 +1077,7 @@ void ConfigurationEditor::setValueFromString(xdata::Serializable *value,const st
 	} 
 }
 
-std::string ConfigurationEditor::copyAttributesToTable(xdata::Table &table,xercesc::DOMElement *node,int rowIndex) throw (xcept::Exception) {
+std::string ConfigurationEditor::copyAttributesToTable(xdata::Table &table,const std::string &tableName,xercesc::DOMElement *node,int rowIndex) throw (xcept::Exception) {
 	std::string identifier;
 	if (node) {
 		xercesc::DOMNamedNodeMap *pAttributes=node->getAttributes();
@@ -1092,7 +1098,7 @@ std::string ConfigurationEditor::copyAttributesToTable(xdata::Table &table,xerce
 					if ((numberPosition=columnName.find("_NUMBER"))!=std::string::npos) {
 						identifier=columnName.substr(0,numberPosition)+" "+stringValue;
 						std::cout << "identifier for column "+columnName+" is "+identifier << std::endl;
-					} else if (columnIsUniqueIdentifier(columnName) && identifier.empty()) {
+					} else if (columnIsUniqueIdentifier(columnName,tableName) && identifier.empty()) {
 						identifier=columnName+" "+stringValue;
 					}
 				} else {
@@ -1105,7 +1111,7 @@ std::string ConfigurationEditor::copyAttributesToTable(xdata::Table &table,xerce
 	return identifier;
 }
 
-std::string ConfigurationEditor::uniqueIdentifierForRow(xdata::Table &table,unsigned int rowIndex) {
+std::string ConfigurationEditor::uniqueIdentifierForRow(xdata::Table &table,const std::string &tableName,unsigned int rowIndex) {
 	std::vector<std::string> columns=table.getColumns();
 	std::string identifier;
 	for (std::vector<std::string>::iterator column=columns.begin();column!=columns.end();++column) {
@@ -1114,7 +1120,7 @@ std::string ConfigurationEditor::uniqueIdentifierForRow(xdata::Table &table,unsi
 		if ((numberPosition=(*column).find("_NUMBER"))!=std::string::npos) {
 			identifier=(*column).substr(0,numberPosition)+" "+value->toString();
 			std::cout << "identifier for column "+*column+" is "+identifier << std::endl;
-		} else if (columnIsUniqueIdentifier(*column) && identifier.empty()) {
+		} else if (columnIsUniqueIdentifier(*column,tableName) && identifier.empty()) {
 			identifier=*column+" "+value->toString();
 		}
 	}
@@ -1171,7 +1177,7 @@ void ConfigurationEditor::setValue(xgi::Input * in, xgi::Output * out )
 			unsigned int rowIndex;
 			std::istringstream myStream(rowString);
 			if ((myStream>>rowIndex) && table.getRowCount()>=rowIndex) {
-				if (tableHasColumn(table,fieldName) && canChangeColumn(fieldName)) {
+				if (tableHasColumn(table,fieldName) && canChangeColumn(fieldName,tableName)) {
 					xdata::Serializable *value=table.getValueAt(rowIndex,fieldName);
 					std::cout << "changing value from " << value->toString() << " to " << newValue << std::endl;
 					setValueFromString(value,newValue);
@@ -1334,6 +1340,18 @@ void ConfigurationEditor::setViewID(const std::string &viewID) {
 
 void ConfigurationEditor::setTopLevelTableName(const std::string &tableName) {
 	topLevelTableName_=tableName;
+}
+
+void ConfigurationEditor::setDisplayBooleansAsIntegers(bool displayBooleansAsIntegers) {
+	displayBooleansAsIntegers_=displayBooleansAsIntegers;
+}
+
+void ConfigurationEditor::setXMLRootElement(const std::string &rootElementName) {
+	rootElementName_=rootElementName;
+}
+
+//subclasses should override this to add any attributes to the root element of the XML.
+void ConfigurationEditor::fillRootElement(DOMElement *rootElement) {
 }
 
 void ConfigurationEditor::setTableNamePrefix(const std::string &prefix) {

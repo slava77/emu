@@ -43,6 +43,8 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::FEDConfigurationEditor)
 {
 	setTableNamePrefix("EMU_FED_");
 	setTopLevelTableName("crate");
+	setXMLRootElement("FEDSystem");
+	setDisplayBooleansAsIntegers(true);
 	setViewID("urn:tstore-view-SQL:EMUFEDsystem");
 	getApplicationInfoSpace()->fireItemAvailable("dbUsername", &dbUsername_);
 	getApplicationInfoSpace()->fireItemAvailable("dbPassword", &dbPassword_);
@@ -51,6 +53,10 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::FEDConfigurationEditor)
 	addTable("dcc");
 	addChildTable("ddu","fiber");
 	addChildTable("dcc","fifo");
+}
+
+void FEDConfigurationEditor::fillRootElement(DOMElement *rootElement) {
+	rootElement->setAttribute(xoap::XStr("NAME"),xoap::XStr(endcapSide_.toString()));
 }
 
 void FEDConfigurationEditor::outputEndcapSelector(xgi::Output * out) {
@@ -557,7 +563,7 @@ void FEDConfigurationEditor::readChildNodesIntoTable(const std::string &tableNam
 		xercesc::DOMElement *child=dynamic_cast<xercesc::DOMElement *>(children->item(childIndex));
 		if (child) {
 			//xdata::Table table=tableDefinitions[tableName];
-			std::string childIdentifier=copyAttributesToTable(table,child,tableCanHaveChildren?0:childIndex);
+			std::string childIdentifier=copyAttributesToTable(table,tableName,child,tableCanHaveChildren?0:childIndex);
 			
 			//set crateNumber to some property of parent
 			std::string fullIdentifier=parentIdentifier;
@@ -633,7 +639,7 @@ void FEDConfigurationEditor::parseConfigFromXML(xgi::Input * in, xgi::Output * o
 		xercesc::DOMElement *pFEDCrate = (xercesc::DOMElement *) pFEDCrates->item(iFEDCrate);
 		try {
 			xdata::Table crate=tableDefinitions["crate"];
-			std::string crateNumber=copyAttributesToTable(crate,pFEDCrate,0);//crate.getValueAt(0,"CRATE_NUMBER")->toString();
+			std::string crateNumber=copyAttributesToTable(crate,"crate",pFEDCrate,0);//crate.getValueAt(0,"CRATE_NUMBER")->toString();
 			setCachedTable("crate",crateNumber,crate);
 			readChildNodesIntoTable("controller",pFEDCrate,crateNumber);
 			readChildNodesIntoTable("ddu",pFEDCrate,crateNumber);
@@ -660,8 +666,8 @@ void FEDConfigurationEditor::parseConfigFromXML(xgi::Input * in, xgi::Output * o
 	outputFooter(out);
 }
 
-bool FEDConfigurationEditor::columnIsUniqueIdentifier(const std::string &columnName) {
-	return columnName=="FMM_ID" || columnName=="RUI";
+bool FEDConfigurationEditor::columnIsUniqueIdentifier(const std::string &columnName,const std::string &tableName) {
+	return (columnName=="FMM_ID"  && tableName=="dcc") || (columnName=="RUI" && tableName=="ddu");
 }
 
 void FEDConfigurationEditor::diffCrate(const std::string &connectionID, const std::string &old_key, const std::string &new_key) throw (xcept::Exception) {
@@ -701,7 +707,7 @@ void FEDConfigurationEditor::diffCrate(const std::string &connectionID, const st
 	       setCachedDiff("ddu",crateIdentifier,dduDiff);
 	       for (unsigned rowIndex=0;rowIndex<dduDiff.getRowCount();rowIndex++ ) {
 		       xdata::Serializable *rui=dduDiff.getValueAt(rowIndex,"RUI");
-		       if (rui) diff(connectionID,"fiber",old_key,new_key,"RUI",rui->toString(),crateIdentifier+" "+uniqueIdentifierForRow(dduDiff,rowIndex));
+		       if (rui) diff(connectionID,"fiber",old_key,new_key,"RUI",rui->toString(),crateIdentifier+" "+uniqueIdentifierForRow(dduDiff,"ddu",rowIndex));
 	       }
 	      xdata::Table dccDiff;
 		diff(connectionID,"dcc",old_key,new_key,"CRATE_NUMBER",crateid,dccDiff);
@@ -729,5 +735,22 @@ void FEDConfigurationEditor::diff(const std::string &connectionID, const std::st
       setCachedDiff(queryViewName,resultKey,results);
  
   }
+
+bool FEDConfigurationEditor::columnIsDatabaseOnly(const std::string &columnName,const std::string &tableName) {
+	//std::cout << "FEDConfigurationEditor::columnIsDatabaseOnly(" << columnName << "," << tableName << ")" << std::endl;
+	if (columnName=="KEY" || columnName=="SYSTEM_NAME" ) return true;
+	if (columnName=="CRATE_NUMBER" && tableName!="crate") return true;
+	if (columnName=="RUI" && tableName=="fiber") return true;
+	if (columnName=="FMM_ID" && tableName=="fifo") return true;
+	return false;
+}
+
+bool FEDConfigurationEditor::canChangeColumn(const std::string &columnName,const std::string &tableName) {
+	unsigned int numberPosition;
+	if ((numberPosition=columnName.find("_NUMBER"))!=std::string::npos) return false; //this check should also be put in columnIsUniqueIdentifier
+	if (columnIsUniqueIdentifier(columnName,tableName)) return false;
+	return !columnIsDatabaseOnly(columnName,tableName);
+}
+
 }
 }

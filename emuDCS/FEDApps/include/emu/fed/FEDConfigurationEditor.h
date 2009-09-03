@@ -24,11 +24,13 @@ private:
 void outputStandardInterface(xgi::Output * out);
   void startUpload(xgi::Input *in) throw (xcept::Exception);
   void getDbUserData();
-
 	std::string elementNameFromTableName(const std::string &column);
+	void fillRootElement(DOMElement *rootElement);
 void readChildNodesIntoTable(const std::string &tableName,DOMElement *parent,const std::string &parentIdentifier);
 void parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-bool columnIsUniqueIdentifier(const std::string &columnName);
+bool columnIsUniqueIdentifier(const std::string &columnName,const std::string &tableName);
+bool columnIsDatabaseOnly(const std::string &columnName,const std::string &tableName);
+bool canChangeColumn(const std::string &columnName,const std::string &tableName);
 void getForeignKey(const std::string &childTableName,std::string &parentColumn,std::string &childColumn) throw (xcept::Exception);
 xdata::UnsignedInteger64 getNewConfigId(const std::string &connectionID);
 void fillDatabaseOnlyValues(const std::string &tableName,const std::string &prefix,const std::string &globalKeyColumn,xdata::Serializable &keyValue,const std::string &otherKeyColumn="",xdata::Serializable *otherValue=NULL);
