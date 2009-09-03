@@ -263,9 +263,8 @@ oldconfig.CAEN_LINK!=newconfig.CAEN_LINK)]]>
       </sql:parameter>
 <![CDATA[select
 oldconfig.CHAMBER "CHAMBER $OLD_KEY",newconfig.CHAMBER "CHAMBER $NEW_KEY",
-oldconfig.FIBER_NUMBER "FIBER_NUMBER $OLD_KEY",newconfig.FIBER_NUMBER "FIBER_NUMBER $NEW_KEY",
-oldconfig.KILLED "KILLED $OLD_KEY",newconfig.KILLED "KILLED $NEW_KEY",
-oldconfig.RUI "RUI $OLD_KEY",newconfig.RUI "RUI $NEW_KEY"
+oldconfig.FIBER_NUMBER,
+oldconfig.KILLED "KILLED $OLD_KEY",newconfig.KILLED "KILLED $NEW_KEY"
 from EMU_FED_DDU_FIBERS oldconfig,EMU_FED_DDU_FIBERS newconfig where
 oldconfig.KEY=$OLD_KEY and oldconfig.RUI=$RUI
 and newconfig.KEY=$NEW_KEY and newconfig.RUI=$RUI
