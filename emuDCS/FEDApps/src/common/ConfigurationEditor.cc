@@ -56,33 +56,9 @@ namespace emu {
 	  dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
 	  config_type_ = "GLOBAL";
 	  config_desc_ = "manual entry";
-	  blankValues["string"]=new xdata::String();
-	  blankValues["int"]=new xdata::Integer();
-	  blankValues["unsigned long"]=new xdata::UnsignedLong();
-	  blankValues["float"]=new xdata::Float();
-	  blankValues["double"]=new xdata::Double();
-	  blankValues["bool"]=new xdata::Boolean();
-	  blankValues["unsigned int"]=new xdata::UnsignedInteger();
-	  blankValues["unsigned int 32"]=new xdata::UnsignedInteger32();
-	  blankValues["unsigned int 64"]=new xdata::UnsignedInteger64();
-	  blankValues["unsigned short"]=new xdata::UnsignedShort();
-	  blankValues["time"]=new xdata::TimeVal();
-	  //blankValues["mime"]=new xdata::Mime();
-  }
-  
-  void ConfigurationEditor::setBlankValue(xdata::Table &table,const std::string &columnName,unsigned int rowIndex) {
-	  if (tableHasColumn(table,columnName)) {
-		  std:: string columnType=table.getColumnType(columnName);
-		  if (blankValues.count(columnType)) {
-			  table.setValueAt(rowIndex,columnName,*blankValues[columnType]);
-		  }
-	  }
   }
   
   ConfigurationEditor::~ConfigurationEditor() {
-	  for (std::map<std::string,xdata::Serializable *>::iterator blankValue=blankValues.begin();blankValue!=blankValues.end();++blankValue) {
-		  delete (*blankValue).second;
-	  }
   }
   
   void ConfigurationEditor::SelectConfFile(xgi::Input * in, xgi::Output * out ) 
@@ -214,10 +190,8 @@ std::string ConfigurationEditor::elementNameFromTableName(const std::string &tab
 	return toolbox::toupper(tableName);
 }
 
-//subclasses should override
-std::string ConfigurationEditor::fixColumnName(const std::string &column) {
-	//std::string lowerCaseName=toolbox::tolower(column);
-	//return lowerCaseName;
+//subclasses should override if attributes in XML differ from the column names (usually because XML is case-sensitive and column names are in uppercase)
+std::string ConfigurationEditor::attributeNameFromColumnName(const std::string &column) {
 	return column;
 }
 
@@ -246,7 +220,7 @@ void ConfigurationEditor::copyTableToAttributes(xercesc::DOMElement *node,xdata:
 		std::string value;
 		if (!columnIsDatabaseOnly(*column,tableName)) {
 			value=valueToString(xdataValue,*column);
-			node->setAttribute(xoap::XStr(fixColumnName(*column)),xoap::XStr(value));
+			node->setAttribute(xoap::XStr(attributeNameFromColumnName(*column)),xoap::XStr(value));
 			std::cout << "adding attribute with name " << *column << std::endl;
 		}
 	}
@@ -264,7 +238,10 @@ void ConfigurationEditor::addChildNodes(DOMElement *parentElement,const std::str
 		}
   		//loop through all tables whose key begins with the parent ID
   		//all keys begin with the appropriate parent ID
-   		for (table=tables.lower_bound(parentIdentifier);table!=tables.lower_bound(parentIdentifier+"~");++table) {
+		std::map<std::string,xdata::Table>::iterator firstTable;
+		std::map<std::string,xdata::Table>::iterator lastTable;
+		getRangeOfTables(parentIdentifier,tables,firstTable,lastTable);
+   		for (table=firstTable;table!=lastTable;++table) {
 			//for each row, add an element with the name configName, add it to parentElement
 			//for each column, add an attribute.
 			unsigned int rowCount=(*table).second.getRowCount();
@@ -281,10 +258,6 @@ void ConfigurationEditor::addChildNodes(DOMElement *parentElement,const std::str
 			}
   		}
   	} else std::cout << "no tables of type " << configName << std::endl;
-}
-
-void ConfigurationEditor::addNode(DOMElement *crateElement,const std::string &configName,int crateID) {			
-	//\addChildNodes(crateElement,configName,crateIdentifierString(crateID));
 }
 
 DOMNode *ConfigurationEditor::DOMOfCurrentTables() {
@@ -346,7 +319,10 @@ void ConfigurationEditor::displayChildDiff(std::ostream * out,const std::string 
 		}
   		//loop through all tables whose key begins with the crateID
   		//all keys begin with the appropriate crateID
-   		for (table=tables.lower_bound(parentIdentifier);table!=tables.lower_bound(parentIdentifier+"~");++table) {
+		std::map<std::string,xdata::Table>::iterator firstTable;
+		std::map<std::string,xdata::Table>::iterator lastTable;
+		getRangeOfTables(parentIdentifier,tables,firstTable,lastTable);
+   		for (table=firstTable;table!=lastTable;++table) {
 			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
 			std::string heading;
 			if (!subTables.empty()) heading=(*table).first;
@@ -370,8 +346,9 @@ void ConfigurationEditor::displayChildDiff(std::ostream * out,const std::string 
 //it needs to check that there's more than one of them before showing the 'update all...' box.
 bool ConfigurationEditor::moreThanOneChildConfigurationExists(const std::string &configName,const std::string &parentIdentifier) {
 	std::map<std::string,xdata::Table> &tables=currentDiff[configName];
-	std::map<std::string,xdata::Table>::iterator firstTable=tables.lower_bound(parentIdentifier);
-	std::map<std::string,xdata::Table>::iterator lastTable=tables.upper_bound(parentIdentifier+"~"); //~ is sorted last, so this should find the first key with a different prefix
+	std::map<std::string,xdata::Table>::iterator firstTable;//=tables.lower_bound(parentIdentifier);
+	std::map<std::string,xdata::Table>::iterator lastTable;//=tables.upper_bound(parentIdentifier+"~"); //~ is sorted last, so this should find the first key with a different prefix
+	getRangeOfTables(parentIdentifier,tables,firstTable,lastTable);
 	if (firstTable==tables.end() || firstTable==lastTable) return false;
 	++firstTable;
 	return firstTable!=lastTable;
@@ -400,7 +377,10 @@ void ConfigurationEditor::displayChildConfiguration(xgi::Output * out,const std:
 		}
   		//loop through all tables whose key begins with the crateID
   		//all keys begin with the appropriate crateID
-   		for (table=tables.lower_bound(parentIdentifier);table!=tables.lower_bound(parentIdentifier+"~");++table) {
+		std::map<std::string,xdata::Table>::iterator firstTable;
+		std::map<std::string,xdata::Table>::iterator lastTable;
+		getRangeOfTables(parentIdentifier,tables,firstTable,lastTable);
+   		for (table=firstTable;table!=lastTable;++table) {
 			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
 			std::string heading;
 			if (!subTables.empty()) heading=(*table).first;
@@ -881,7 +861,7 @@ void ConfigurationEditor::hideTable(xgi::Input * in, xgi::Output * out )
   
     void ConfigurationEditor::compareVersions(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception) {
-	    clearCachedDiff();
+	clearCachedDiff();
 	try {
 		cgicc::Cgicc cgi(in);
 		std::string old_emu_config_id=**cgi["oldConfigID"];
@@ -1090,7 +1070,6 @@ std::string ConfigurationEditor::copyAttributesToTable(xdata::Table &table,const
 				std::string columnName=toolbox::toupper(xoap::XMLCh2String(attribute->getName()));
 				std::string stringValue=xoap::XMLCh2String(attribute->getValue());
 				if (tableHasColumn(table,columnName)) {
-					//setBlankValue(table,columnName,rowIndex);
 					std::cout << "setting " << columnName << " to " << stringValue << std::endl;
 					xdata::Serializable *value=table.getValueAt(rowIndex,columnName);
 					setValueFromString(value,stringValue);
@@ -1336,6 +1315,10 @@ void ConfigurationEditor::readConfigFromDB(xgi::Input * in, xgi::Output * out ) 
 
 void ConfigurationEditor::setViewID(const std::string &viewID) {
 	viewID_=viewID;
+}
+
+void ConfigurationEditor::setHumanReadableConfigName(const std::string &configName) {
+	configName_=configName;
 }
 
 void ConfigurationEditor::setTopLevelTableName(const std::string &tableName) {
@@ -1714,7 +1697,7 @@ void ConfigurationEditor::setCachedTable(const std::string &insertViewName,const
 	std::ostringstream logMessage;
 	logMessage << "setting cached "+insertViewName+" table "+identifier+" with " << table.getRowCount() << " rows";
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),logMessage.str());
-	currentTables[insertViewName][identifier]=table;
+	currentTables[insertViewName][identifier+" "]=table; //add space to identifier so that something beginning with e.g. 'crate 11' is not included when looking for 'crate 1 '
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"set cached "+insertViewName+" table "+identifier);
 
 }
@@ -1723,7 +1706,7 @@ void ConfigurationEditor::setCachedDiff(const std::string &insertViewName,const 
 	std::ostringstream logMessage;
 	logMessage << "setting cached "+insertViewName+" diff "+identifier+" with " << table.getRowCount() << " rows";
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),logMessage.str());
-	currentDiff[insertViewName][identifier]=table;
+	currentDiff[insertViewName][identifier+" "]=table;
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"set cached "+insertViewName+" diff "+identifier);
 
 }

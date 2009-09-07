@@ -39,15 +39,16 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::FEDConfigurationEditor)
 
   FEDConfigurationEditor::FEDConfigurationEditor(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception)
 	: emu::ConfigurationEditor(s)
-	//: emu::fed::DBAgent(s) 
 {
 	setTableNamePrefix("EMU_FED_");
 	setTopLevelTableName("crate");
 	setXMLRootElement("FEDSystem");
 	setDisplayBooleansAsIntegers(true);
 	setViewID("urn:tstore-view-SQL:EMUFEDsystem");
+	
 	getApplicationInfoSpace()->fireItemAvailable("dbUsername", &dbUsername_);
 	getApplicationInfoSpace()->fireItemAvailable("dbPassword", &dbPassword_);
+	setHumanReadableConfigName("FED Crate");
 	addTable("controller");
 	addTable("ddu");
 	addTable("dcc");
@@ -377,6 +378,7 @@ void FEDConfigurationEditor::readConfigFromDB(xgi::Input * in, xgi::Output * out
 	xdata::Table crates;
 	try {
 		std::string connectionID=connect();
+		clearCachedTables();
 		query(connectionID,"crates", parameters,crates);
 		std::cout << "found " << crates.getRowCount() << " rows" << std::endl;	
 		xdata::String *endcapSide=dynamic_cast<xdata::String *>(crates.getValueAt(0,"SYSTEM_NAME"));
@@ -588,12 +590,16 @@ void FEDConfigurationEditor::readChildNodesIntoTable(const std::string &tableNam
 
 void FEDConfigurationEditor::parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	getTableDefinitionsIfNecessary();
-	
+	clearCachedTables();
+	DOMDocument* pDoc=NULL;
 	std::string xmlname = xmlpath_ + xmlfile_;
-	std::cout << "configuring from " << xmlname;
+	try {
+		std::cout << "configuring from " << xmlname;
 
-	DOMDocument* pDoc = xoap::getDOMParserFactory()->get("configure")->loadXML(tstoreclient::parsePath(xmlname)); //The parser owns the returned DOMDocument. It will be deleted when the parser is released.
-	
+		pDoc = xoap::getDOMParserFactory()->get("configure")->loadXML(tstoreclient::parsePath(xmlname)); //The parser owns the returned DOMDocument. It will be deleted when the parser is released.
+	} catch (xoap::exception::Exception &e) {
+		XCEPT_RETHROW(xgi::exception::Exception,"Could not parse document at "+xmlname,e);
+	}
 	xercesc::DOMElement *pFEDSystem = (xercesc::DOMElement *) pDoc->getFirstChild();
 	
 	// Trick to ignore comments

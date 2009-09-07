@@ -128,11 +128,10 @@ std::string viewID_;
 	std::string valueToString(xdata::Serializable *value,const std::string &columnName);
 	std::string xdataToHex(xdata::Serializable *xdataValue);
 	DOMNode *DOMOfCurrentTables(); 
-	virtual std::string fixColumnName(const std::string &column);
+	virtual std::string attributeNameFromColumnName(const std::string &column);
 	virtual std::string elementNameFromTableName(const std::string &column);
 
 	void addChildNodes(DOMElement *parentElement,const std::string &configName,const std::string &parentIdentifier);
-	void addNode(DOMElement *crateElement,const std::string &configName,int crateID);
 	std::string configIDOptions(std::vector<std::string> &configIDs);
 	void outputCompareVersionsForm(xgi::Output * out,const std::string &endcap_side);
 	std::string newCell(xdata::Serializable *newValue,xdata::Serializable *oldValue);
@@ -174,11 +173,12 @@ std::string viewID_;
 	void setTableNamePrefix(const std::string &prefix);
 	void setViewID(const std::string &viewID);
 	void setTopLevelTableName(const std::string &tableName);
+	//set the name of what you are configuring (used in the page title)
+	void setHumanReadableConfigName(const std::string &configName);
 	void setDisplayBooleansAsIntegers(bool displayBooleansAsIntegers);
 	virtual void fillRootElement(DOMElement *rootElement);
 	void setXMLRootElement(const std::string &rootElementName);
 	void createCredentialString();
-	 void setBlankValue(xdata::Table &table,const std::string &columnName,unsigned int rowIndex);
   std::string config_type_;
   std::string config_desc_;
   std::string xmlpath_;
@@ -219,9 +219,6 @@ std::string viewID_;
   std::map<std::string,std::vector<std::string> > tableNames;
   //and this is just a list of the 'top level' tables which are immediately in the crate.
   std::vector<std::string> topLevelTables;
-  
-  //map of type names to blank values of that type, to get around the problem of adding a row to a table which may have any type of column.
-  std::map<std::string,xdata::Serializable *> blankValues; 
 };
 
 // Convert to string
