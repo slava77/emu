@@ -1717,7 +1717,7 @@ xdata::Table &ConfigurationEditor::getCachedTableFrom(std::map<std::string,std::
 		if (cache[insertViewName].count(identifier)==1) {
 			LOG4CPLUS_DEBUG(this->getApplicationLogger(),"getting cached "+insertViewName+" table "+identifier);
 			xdata::Table &returnValue= cache[insertViewName][identifier];
-			LOG4CPLUS_DEBUG(this->getApplicationLogger(),"got cached "+insertViewName+" table "+identifier);\
+			LOG4CPLUS_DEBUG(this->getApplicationLogger(),"got cached "+insertViewName+" table "+identifier);
 			return returnValue;
 			
 		}
