@@ -217,7 +217,49 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   
   // last_log_.size(N_LOG_MESSAGES);
   
+  getAppDescriptors();
+
   LOG4CPLUS_INFO(logger_, "emu::supervisor::Application constructed for " << state_table_ );
+}
+
+void emu::supervisor::Application::getAppDescriptors(){
+
+  try {
+    daq_descr_ = getApplicationContext()->getDefaultZone()
+      ->getApplicationDescriptor("emu::daq::manager::Application", 0);
+  } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    LOG4CPLUS_ERROR(logger_, "Failed to get application descriptor for local DAQ Manager. "
+		    << xcept::stdformat_exception_history(e));
+    stringstream ss;
+    ss <<  "Failed to get application descriptor for local DAQ Manager. ";
+    XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
+    this->notifyQualified( "error", eObj );
+  }
+
+  try {
+    ttc_descr_ = getApplicationContext()->getDefaultZone()
+      ->getApplicationDescriptor("TTCciControl", 0);
+  } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    LOG4CPLUS_ERROR(logger_, "Failed to get application descriptor for TTCciControl. "
+		    << xcept::stdformat_exception_history(e));
+    stringstream ss;
+    ss <<  "Failed to get application descriptor for TTCciControl. ";
+    XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
+    this->notifyQualified( "error", eObj );
+  }
+
+  try {
+    tf_descr_ = getApplicationContext()->getDefaultZone()
+      ->getApplicationDescriptor( TFCellClass_.toString(), TFCellInstance_.value_ );
+  } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    stringstream ss;
+    ss << "No Track Finder application \"" << TFCellClass_.toString() 
+       << "\" of instance " << TFCellInstance_.value_ << " found.";
+    LOG4CPLUS_ERROR(logger_, ss.str() << xcept::stdformat_exception_history(e));
+    XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
+    this->notifyQualified( "error", eObj );
+  }  
+  
 }
 
 xoap::MessageReference emu::supervisor::Application::onConfigure(xoap::MessageReference message)
@@ -624,17 +666,17 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     //
     
     if ( controlTFCellOp_.value_ ){
-      TFCellOpState_ = OpGetStateCell(TFCellClass_.toString(), TFCellInstance_.value_);
+      TFCellOpState_ = OpGetStateCell();
       if ( TFCellOpState_.toString() != "UNKNOWN" ){
 	// Reset csctf-cell operation before killing it to allow it to stop in an orderly fashion
-	OpResetCell(TFCellClass_.toString(), TFCellInstance_.value_);
+	OpResetCell();
 	waitForTFCellOpToReach("halted",60);
       }
       // Kill leftover csctf-cell operation
-      sendCommandCellOpkill(TFCellClass_.toString(), TFCellInstance_.value_);
+      sendCommandCellOpkill();
       if ( waitForTFCellOpToReach("UNKNOWN",60) ){
 	// Creating csctf-cell operation
-	sendCommandCellOpInit(TFCellClass_.toString(), TFCellInstance_.value_);
+	sendCommandCellOpInit();
       }
     }
 
@@ -688,7 +730,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     // Configure TF Cell operation
     if ( controlTFCellOp_.value_ ){
       if ( waitForTFCellOpToReach("halted",60) ){
-	sendCommandCell("configure", TFCellClass_.toString(), TFCellInstance_.value_);
+	sendCommandCell("configure");
 	waitForTFCellOpToReach("configured",60);
       }
       if ( TFCellOpState_.toString() != "configured" ){
@@ -803,7 +845,7 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     
     // Enable TF Cell operation
     if ( controlTFCellOp_.value_ ){
-      sendCommandCell("enable", TFCellClass_.toString(), TFCellInstance_.value_);
+      sendCommandCell("enable");
       waitForTFCellOpToReach("enabled",10);
     }
 
@@ -837,7 +879,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     
     // Stop TF Cell operation
     if ( controlTFCellOp_.value_ ){
-      sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
+      sendCommandCell("stop");
       waitForTFCellOpToReach("configured",60);
     }
 
@@ -879,9 +921,9 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     
     // Stop and destroy TF Cell operation
     if ( controlTFCellOp_.value_ ){
-      sendCommandCell("stop", TFCellClass_.toString(), TFCellInstance_.value_);
+      sendCommandCell("stop");
       waitForTFCellOpToReach("configured",60);
-      sendCommandCellOpkill(TFCellClass_.toString(), TFCellInstance_.value_);
+      sendCommandCellOpkill();
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
@@ -1104,23 +1146,14 @@ void emu::supervisor::Application::sendCommandWithAttr(
   }
 }
 
-void emu::supervisor::Application::sendCommandCellOpInit(string klass, int instance)
+void emu::supervisor::Application::sendCommandCellOpInit()
   //throw (xoap::exception::Exception, xcept::Exception)
 {
-  // find applications
-  xdaq::ApplicationDescriptor* d;
+
   xoap::MessageReference request; 
   xoap::MessageReference reply;
   
-  try
-    {
-      d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
-    } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      stringstream ss;
-      ss << "No application " << klass << " of instance " << instance << " found.";
-      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
-      //return; // Do nothing if the target doesn't exist
-    }
+  if ( tf_descr_ == NULL ) return;
   
   // prepare a SOAP message  
   std::string sid="73";  
@@ -1137,19 +1170,6 @@ void emu::supervisor::Application::sendCommandCellOpInit(string klass, int insta
   std::string opId=TFCellOpName_.toString();
   bool async=false;
 
-//   // TODO: Why is this done twice?
-
-//   request = doSoapOpInit(ns, cid, sid, async, op, param, cb, url, urn, opId);
- 
-//   try{
-//     reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*d); 
-//   } catch (xcept::Exception& e){}
-  
-//   TFCellOpState_ = OpGetStateCell(TFCellClass_.toString(), TFCellInstance_.value_);
-//   if ( TFCellOpState_.toString() == "halted" || TFCellOpState_.toString() == "configured" ){
-//     sendCommandCellOpkill(TFCellClass_.toString(), TFCellInstance_.value_);    
-//   }
-
   request = doSoapOpInit(ns, cid, sid, async, op, param, cb, url, urn, opId);
 
   std::string tmp;
@@ -1159,7 +1179,7 @@ void emu::supervisor::Application::sendCommandCellOpInit(string klass, int insta
   std::cout << "sending the request" << std::endl;
   // send the message
   try{
-    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*d); 
+    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(), *tf_descr_); 
     
     std::string tmp;
     xoap::dumpTree(reply->getEnvelope(),tmp);
@@ -1183,27 +1203,15 @@ void emu::supervisor::Application::sendCommandCellOpInit(string klass, int insta
   return reply;
 */
 
-void emu::supervisor::Application::sendCommandCell(string command, string klass, int instance)
+void emu::supervisor::Application::sendCommandCell(string command)
   //throw (xoap::exception::Exception, xcept::Exception)
 {
   
-  // find applications
-  xdaq::ApplicationDescriptor* d;
   xoap::MessageReference request; 
   xoap::MessageReference reply;
   
-  try
-    {
-      d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
-    } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      stringstream ss;
-      ss << "No application " << klass << " of instance " << instance << " found.";
-      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
-      //return; // Do nothing if the target doesn't exist
-    }
-  // prepare a SOAP message
-  //  xoap::MessageReference *msg_tmp=NULL;
-  //xoap::MessageReference msg= xoap::createMessage();
+  if ( tf_descr_ == NULL ) return;
+
   
   std::string sid="73";  
   std::string cid="10";
@@ -1228,7 +1236,7 @@ void emu::supervisor::Application::sendCommandCell(string command, string klass,
   // send the message
   // postSOAP() may throw an exception when failed.
   try{
-    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(), *d); 
+    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(), *tf_descr_); 
     
 //     xdata::Serializable* serial = getPayload(reply);
 //     std::string sresult = serial->toString();
@@ -1551,23 +1559,14 @@ xoap::MessageReference emu::supervisor::Application::doSoapOpSendComand(const st
 	   
 	   return msg; 
 } 
-void emu::supervisor::Application::sendCommandCellOpkill(string klass, int instance)
+void emu::supervisor::Application::sendCommandCellOpkill()
   //throw (xoap::exception::Exception, xcept::Exception)
 {
-  // find applications
-  xdaq::ApplicationDescriptor* d;
   xoap::MessageReference request; 
   xoap::MessageReference reply;
   
-  try
-    {
-      d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
-    } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      stringstream ss;
-      ss << "No application " << klass << " of instance " << instance << " found.";
-      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
-      //return; // Do nothing if the target doesn't exist
-    }
+  if ( tf_descr_ == NULL ) return;
+
   
   // prepare a SOAP message  
   std::string sid="73";  
@@ -1586,7 +1585,7 @@ void emu::supervisor::Application::sendCommandCellOpkill(string klass, int insta
   
   // send the message
   try{
-    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*d); 
+    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*tf_descr_);
 
     std::string tmp;
     xoap::dumpTree(reply->getEnvelope(),tmp);
@@ -1661,23 +1660,15 @@ xoap::MessageReference emu::supervisor::Application::doSoapOpKill(const std::str
 	return msg; 
 	 
 }
-std::string emu::supervisor::Application::OpGetStateCell(string klass, int instance)
+std::string emu::supervisor::Application::OpGetStateCell()
   //throw (xoap::exception::Exception, xcept::Exception)
 {
-  // find applications
-  xdaq::ApplicationDescriptor* d;
+
   xoap::MessageReference request; 
   xoap::MessageReference reply;
   
-  try
-    {
-      d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
-    } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
-      stringstream ss;
-      ss << "No application " << klass << " of instance " << instance << " found.";
-      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
-      //return "UNKNOWN"; // Do nothing if the target doesn't exist
-    }
+  if ( tf_descr_ == NULL ) return string("");
+
   
   // prepare a SOAP message  
   std::string sid="73";  
@@ -1697,7 +1688,7 @@ std::string emu::supervisor::Application::OpGetStateCell(string klass, int insta
   std::cout << "sending the request" << std::endl;
   // send the message
   try{
-    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*d); 
+    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(),*tf_descr_);
 
     //std::string tmp;
     //xoap::dumpTree(reply->getEnvelope(),tmp);
@@ -1716,27 +1707,15 @@ std::string emu::supervisor::Application::OpGetStateCell(string klass, int insta
   return sresult;
 }
 
-void emu::supervisor::Application::OpResetCell(string klass, int instance)
+void emu::supervisor::Application::OpResetCell()
   //throw (xoap::exception::Exception, xcept::Exception)
 {
 
-  // find applications
-  xdaq::ApplicationDescriptor* d;
   xoap::MessageReference request; 
   xoap::MessageReference reply;
 
-  try
-    {
-      d = getApplicationContext()->getDefaultZone()->getApplicationDescriptor (klass, instance);
-    } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-      stringstream ss;
-      ss << "No application " << klass << " of instance " << instance << " found.";
-      XCEPT_RETHROW(xcept::Exception, ss.str(), e);
-      //return; // Do nothing if the target doesn't exist
-    }
-  // prepare a SOAP message
-  //  xoap::MessageReference *msg_tmp=NULL;
-  //xoap::MessageReference msg= xoap::createMessage();
+  if ( tf_descr_ == NULL ) return;
+
     
   std::string sid="73";  
   std::string cid="10";
@@ -1757,7 +1736,7 @@ void emu::supervisor::Application::OpResetCell(string klass, int instance)
   // send the message
   // postSOAP() may throw an exception when failed.
   try{
-    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(), *d); 
+    reply = getApplicationContext()->postSOAP(request, *getApplicationDescriptor(), *tf_descr_);
 
   std::string tmp;
   xoap::dumpTree(reply->getEnvelope(),tmp);
@@ -1914,9 +1893,11 @@ xoap::MessageReference emu::supervisor::Application::createCommandSOAPWithAttr(
 }
 
 bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetState, const unsigned int seconds ){
+  if ( tf_descr_ == NULL ) return false;
+
   // Poll, and return TRUE if and only if DAQ gets into the expected state before timeout.
   for ( unsigned int i=0; i<=seconds; ++i ){
-    TFCellOpState_ = OpGetStateCell(TFCellClass_.toString(), TFCellInstance_.value_);
+    TFCellOpState_ = OpGetStateCell();
     if ( TFCellOpState_.toString() == targetState ){ return true; }
     LOG4CPLUS_INFO( logger_, "Waited " << i << " sec so far for TF Cell Operation " 
 		    << TFCellOpName_.toString() << " to get " << targetState 
@@ -2101,7 +2082,7 @@ string emu::supervisor::Application::extractParameter(
 void emu::supervisor::Application::refreshConfigParameters()
 {
 	daq_mode_ = getDAQMode();
-	TFCellOpState_ = OpGetStateCell( TFCellClass_.toString(), TFCellInstance_.value_ );
+	TFCellOpState_ = OpGetStateCell();
 	ttc_source_ = getTTCciSource();
 }
 
@@ -2199,22 +2180,6 @@ string emu::supervisor::Application::getDAQMode()
 {
 	string result = "";
 
-	if (daq_descr_ == NULL) {
-		try {
-			daq_descr_ = getApplicationContext()->getDefaultZone()
-					->getApplicationDescriptor("emu::daq::manager::Application", 0);
-		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-			LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ mode. "
-					<< xcept::stdformat_exception_history(e));
-			stringstream ss5;
-			ss5 <<  "Failed to get local DAQ mode. ";
-			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss5.str(), e );
-			this->notifyQualified( "error", eObj );
-			return result; // Do nothing if the target doesn't exist
-		}
-
-	}
-
 	if (daq_descr_ != NULL) {
 
 	  std::map<string, string> m;
@@ -2247,21 +2212,6 @@ string emu::supervisor::Application::getLocalDAQState()
 {
 	string result = "";
 
-	if (daq_descr_ == NULL) {
-		try {
-			daq_descr_ = getApplicationContext()->getDefaultZone()
-					->getApplicationDescriptor("emu::daq::manager::Application", 0);
-		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-			LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ state. "
-					<< xcept::stdformat_exception_history(e));
-			stringstream ss6;
-			ss6 <<  "Failed to get local DAQ state. ";
-			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss6.str(), e );
-			this->notifyQualified( "error", eObj );
-			result = "UNKNOWN";
-		}
-	}
-
 	if (daq_descr_ != NULL) {
 
         	std::map<string, string> m;
@@ -2292,15 +2242,7 @@ string emu::supervisor::Application::getTTCciSource()
 {
 	string result = "";
 
-	if (ttc_descr_ == NULL) {
-		try {
-			ttc_descr_ = getApplicationContext()->getDefaultZone()
-					->getApplicationDescriptor("TTCciControl", 0);
-		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-			return result; // Do nothing if the target doesn't exist
-		}
-		
-	}
+	if (ttc_descr_ == NULL) return result; // Do nothing if the target doesn't exist
 
 	std::map<string, string> m;
 	m["ClockSource"] = "xsd:string";
@@ -2325,25 +2267,9 @@ string emu::supervisor::Application::getTTCciSource()
 	return result;
 }
 
-bool emu::supervisor::Application::isDAQConfiguredInGlobal()
+bool emu::supervisor::Application::isDAQConfiguredInSupervisedMode()
 {
 	string result = "";
-
-	if (daq_descr_ == NULL) {
-		try {
-			daq_descr_ = getApplicationContext()->getDefaultZone()
-					->getApplicationDescriptor("emu::daq::manager::Application", 0);
-		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInSupervisedMode\" from emu::daq::manager::Application. "
-					<< xcept::stdformat_exception_history(e));
-			stringstream ss7;
-			ss7 <<  "Failed to get \"configuredInSupervisedMode\" from emu::daq::manager::Application. "
-					;
-			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss7.str(), e );
-			this->notifyQualified( "error", eObj );
-			result = "UNKNOWN";
-		}
-	}
 
 	if (daq_descr_ != NULL) {
 
@@ -2437,8 +2363,8 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
 	// Don't send any other command when DAQ is in unsupervised mode.
 	if (getDAQMode() != "supervised") { return false; }
 
-	// And don't send any other command when DAQ was configured in local mode, either.
-	if (command != "Configure" && !isDAQConfiguredInGlobal()) { return false; }
+	// And don't send any other command when DAQ was configured in unsupervised mode, either.
+	if (command != "Configure" && !isDAQConfiguredInSupervisedMode()) { return false; }
 
 	return true;
 }

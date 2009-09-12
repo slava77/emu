@@ -179,25 +179,28 @@ private: // XDAQ parameters
 	string toString(const long int i) const;
 
 	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
+
+        void getAppDescriptors();
+
   //////////////////////////////////////////////////////////////
   xdata::Serializable* analyse(DOMNode* com);
   xdata::Serializable* analyseSoapBag(DOMNode* com);
   xdata::Serializable* analyseSoapVector(DOMNode* com);
   xdata::Serializable* getPayload(xoap::MessageReference msg); 
 
-  void sendCommandCellOpInit(string klass, int instance);
+  void sendCommandCellOpInit();
     //throw (xoap::exception::Exception, xcept::Exception);
  
-  void sendCommandCell(string command, string klass, int instance);
+  void sendCommandCell(string command);
     //throw (xoap::exception::Exception, xcept::Exception);
 
-  std::string OpGetStateCell(string klass, int instance);
+  std::string OpGetStateCell();
     //throw (xoap::exception::Exception, xcept::Exception);
 
-  void OpResetCell(string klass, int instance);
+  void OpResetCell();
     //throw (xoap::exception::Exception, xcept::Exception);
 
-  void sendCommandCellOpkill(string klass, int instance);
+  void sendCommandCellOpkill();
     //throw (xoap::exception::Exception, xcept::Exception);
 
   xoap::MessageReference doSoapOpInit(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& op, std::map<std::string,xdata::Serializable*> param, const std::string& cb,const std::string& url,const std::string& urn, const std::string& opId="");
@@ -215,7 +218,7 @@ private: // XDAQ parameters
 
 	string getDAQMode();
 	string getTTCciSource();
-	bool isDAQConfiguredInGlobal();
+	bool isDAQConfiguredInSupervisedMode();
 	string getLocalDAQState();
 
 	bool isDAQManagerControlled(string command);
