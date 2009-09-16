@@ -665,7 +665,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     // Clean up leftover ops and halt apps
     //
     
-    if ( controlTFCellOp_.value_ ){
+    if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       TFCellOpState_ = OpGetStateCell();
       if ( TFCellOpState_.toString() != "UNKNOWN" ){
 	// Reset csctf-cell operation before killing it to allow it to stop in an orderly fashion
@@ -728,7 +728,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     }   
        
     // Configure TF Cell operation
-    if ( controlTFCellOp_.value_ ){
+    if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       if ( waitForTFCellOpToReach("halted",60) ){
 	sendCommandCell("configure");
 	waitForTFCellOpToReach("configured",60);
@@ -844,7 +844,7 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
     
     // Enable TF Cell operation
-    if ( controlTFCellOp_.value_ ){
+    if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       sendCommandCell("enable");
       waitForTFCellOpToReach("enabled",10);
     }
@@ -878,7 +878,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     state_table_.refresh();
     
     // Stop TF Cell operation
-    if ( controlTFCellOp_.value_ ){
+    if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       sendCommandCell("stop");
       waitForTFCellOpToReach("configured",60);
     }
@@ -920,7 +920,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     state_table_.refresh();
     
     // Stop and destroy TF Cell operation
-    if ( controlTFCellOp_.value_ ){
+    if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       sendCommandCell("stop");
       waitForTFCellOpToReach("configured",60);
       sendCommandCellOpkill();
