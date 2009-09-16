@@ -39,6 +39,7 @@
 	  td.ON         { text-align: center; background-color:#44dd44; }
 	  td.Initial    { text-align: center; background-color:#4444aa; }
 	  td.Failed     { text-align: center; background-color:#dd4444; }
+	  td.Error      { text-align: center; background-color:#dd4444; }
 	  td.UNKNOWN    { text-align: center; background-color:transparent; }
 	  td.Unknown    { text-align: center; background-color:#dd4444; }
 	  td.INDEFINITE { text-align: center; background-color:#dd4444; }
