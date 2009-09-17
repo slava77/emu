@@ -24,6 +24,8 @@ Sources = \
         Supervised.cc \
 	WebReporter.cc \
 	WebReportItem.cc \
+	ConfigurationEditor.cc \
+	TStoreRequest.cc \
 	version.cc
 
 IncludeDirs = \

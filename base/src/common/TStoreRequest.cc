@@ -1,7 +1,7 @@
 /*****************************************************************************\
-* $Id: TStoreRequest.cc,v 1.2 2009/07/11 19:38:32 paste Exp $
+* $Id: TStoreRequest.cc,v 1.1 2009/09/17 15:33:42 brett Exp $
 \*****************************************************************************/
-#include "emu/fed/TStoreRequest.h"
+#include "emu/base/TStoreRequest.h"
 
 #include "tstore/client/AttachmentUtils.h"
 #include "tstore/client/Client.h"
@@ -13,7 +13,7 @@
 
 
 
-emu::fed::TStoreRequest::TStoreRequest(const std::string &commandName, const std::string &viewClass): 
+emu::base::TStoreRequest::TStoreRequest(const std::string &commandName, const std::string &viewClass): 
 viewClass_(viewClass),
 commandName_(commandName)
 {
@@ -21,14 +21,14 @@ commandName_(commandName)
 
 
 
-void emu::fed::TStoreRequest::addTStoreParameter(const std::string &parameterName, const std::string &parameterValue)
+void emu::base::TStoreRequest::addTStoreParameter(const std::string &parameterName, const std::string &parameterValue)
 {
 	generalParameters_[parameterName] = parameterValue;
 }
 
 
 
-void emu::fed::TStoreRequest::addViewSpecificParameter(const std::string &parameterName, const std::string &parameterValue)
+void emu::base::TStoreRequest::addViewSpecificParameter(const std::string &parameterName, const std::string &parameterValue)
 throw (xcept::Exception)
 {
 	if (viewClass_.empty()) {
@@ -39,7 +39,7 @@ throw (xcept::Exception)
 
 
 
-void emu::fed::TStoreRequest::addParametersWithNamespace(xoap::SOAPElement &element, xoap::SOAPEnvelope &envelope, const std::map<const std::string,std::string> &parameters, const std::string &namespaceURI, const std::string &namespacePrefix)
+void emu::base::TStoreRequest::addParametersWithNamespace(xoap::SOAPElement &element, xoap::SOAPEnvelope &envelope, const std::map<const std::string,std::string> &parameters, const std::string &namespaceURI, const std::string &namespacePrefix)
 {
 	if (!parameters.empty()) element.addNamespaceDeclaration(namespacePrefix, namespaceURI); 
 
@@ -52,7 +52,7 @@ void emu::fed::TStoreRequest::addParametersWithNamespace(xoap::SOAPElement &elem
 
 
 
-xoap::MessageReference emu::fed::TStoreRequest::toSOAP()
+xoap::MessageReference emu::base::TStoreRequest::toSOAP()
 {
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();

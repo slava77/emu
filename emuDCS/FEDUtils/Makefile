@@ -34,7 +34,6 @@ Sources=\
 	DCCParser.cc \
 	VMEControllerParser.cc \
 	CrateParser.cc \
-	TStoreRequest.cc \
 	DBAgent.cc \
 	SystemDBAgent.cc \
 	CrateDBAgent.cc \
@@ -60,7 +59,7 @@ IncludeDirs = \
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/lib
-
+	
 UserCFlags =
 UserCCFlags = -pipe -DLINUX -g -Wall -pedantic-errors -Wno-long-long -isystem $(XDAQ_ROOT)/include
 UserStaticLinkFlags =
@@ -69,7 +68,7 @@ UserExecutableLinkFlags = -D_REENTRAN -pthread -pedantic-errors
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries =
+Libraries = 
 ExternalObjects =
 
 #

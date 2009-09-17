@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: TStoreRequest.h,v 1.3 2009/07/11 19:38:32 paste Exp $
+* $Id: TStoreRequest.h,v 1.1 2009/09/17 15:33:42 brett Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_TSTOREREQUEST_H__
 #define __EMU_FED_TSTOREREQUEST_H__
@@ -10,7 +10,7 @@
 
 namespace emu {
 
-	namespace fed {
+	namespace base {
 
 		/** @class TStoreRequest is a utility class designed to make TStore SOAP requests.
 		**/
@@ -61,7 +61,7 @@ namespace emu {
 			//xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message);
 		};
 
-	} // namespace emu::pc
+	} // namespace emu::base
 
 } // namespace emu
 
