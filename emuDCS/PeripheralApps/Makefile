@@ -24,8 +24,7 @@ Sources=\
         ChamberUtilities.cc \
 	CrateUtilities.cc \
         XMLParser.cc \
-        TStoreRequest.cc \
-        EmuTStore.cc \
+	EmuTStore.cc \
         EmuPCrateConfigTStore.cc \
         EmuController.cc \
         EmuPeripheralCrateBase.cc \

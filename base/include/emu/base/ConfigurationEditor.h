@@ -25,7 +25,7 @@
 #include <sstream>
 
 namespace emu {
-  //namespace pc {
+  namespace base {
 	typedef std::map<std::string,unsigned int> TableChangeSummary;
 	  typedef std::map<std::string,TableChangeSummary > ChangeSummary;
 	  
@@ -34,7 +34,7 @@ class ConfigurationEditor: public xdaq::Application
 
 public:
 
-  XDAQ_INSTANTIATOR();
+  //XDAQ_INSTANTIATOR();
 
   ConfigurationEditor(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception);
   ~ConfigurationEditor();
@@ -77,6 +77,7 @@ void outputShowHideButton(std::ostream * out,const std::string &configName,const
   void incrementValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void setValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void changeSingleValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void outputEndcapSelector(xgi::Output * out);
   void showHideTable(xgi::Input * in, xgi::Output * out,bool show ) throw (xgi::exception::Exception);
   void showTable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void hideTable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -94,7 +95,7 @@ void outputShowHideButton(std::ostream * out,const std::string &configName,const
   //void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &new_emu_config_id,xdata::Table &results) throw (xcept::Exception);
   //void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,xdata::Table &results) throw (xcept::Exception);
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, xdata::Table &results) throw (xcept::Exception);
-  void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, const std::string &xxx_config_id, xdata::Table &results) throw (xcept::Exception);
+  //void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, const std::string &xxx_config_id, xdata::Table &results) throw (xcept::Exception);
 void query(const std::string &connectionID,const std::string &queryViewName, const std::map<std::string, std::string> &queryParameters,xdata::Table &results) throw (xcept::Exception) ;
 void queryMaxId(const std::string &connectionID,const std::string &queryViewName, const std::string &dbTable, const std::string &dbColumn, const std::string endcap_side, xdata::Table &results) throw (xcept::Exception);
   void getDefinition(const std::string &connectionID, const std::string &insertViewName) throw (xcept::Exception);
@@ -114,9 +115,12 @@ void queryMaxId(const std::string &connectionID,const std::string &queryViewName
  //void simpleDiff(const std::string &queryViewName,const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,const std::string &identifier) throw (xcept::Exception);
 virtual void diffCrate(const std::string &connectionID, const std::string &old_key, const std::string &new_key) throw (xcept::Exception)=0;
 
-protected:
-	
-  std::vector<std::string> crateIDsInDiff;
+//protected:
+ template <class xdataType>
+static void set(xdata::Serializable *originalValue,const std::string &newValue);	
+template <class xdataType, typename simpleType>
+static void add(xdata::Serializable *originalValue,const std::string &addend);
+std::vector<std::string> crateIDsInDiff;
   std::string xmlfile_;
 std::string viewID_;
 	  void addTable(const std::string &tableName);
@@ -124,7 +128,7 @@ std::string viewID_;
 	void setUsername(const std::string &username);
 	void setPassword(const std::string &password);
 //private:
-	bool shouldDisplayInHex(const std::string &columnName);
+	virtual bool shouldDisplayInHex(const std::string &columnName);
 	std::string valueToString(xdata::Serializable *value,const std::string &columnName);
 	std::string xdataToHex(xdata::Serializable *xdataValue);
 	DOMNode *DOMOfCurrentTables(); 
@@ -143,6 +147,8 @@ std::string viewID_;
 	void setValueFromString(xdata::Serializable *value,const std::string &newValue) throw (xdata::exception::Exception);
 	void getRangeOfTables(const cgicc::Cgicc &cgi,std::map<std::string,xdata::Table> &tables,std::map<std::string,xdata::Table>::iterator &firstTable,std::map<std::string,xdata::Table>::iterator &lastTable);
 	void getRangeOfTables(const std::string &prefix,std::map<std::string,xdata::Table> &tables,std::map<std::string,xdata::Table>::iterator &firstTable,std::map<std::string,xdata::Table>::iterator &lastTable);
+	std::string crateIdentifierString(int crateID);
+	std::string crateIdentifierString(const std::string &crateID);
 	void setConfigID(xdata::Table &newRows,size_t rowId,const std::string &columnName,xdata::UnsignedInteger64 &id);
 	
 	xdata::Table &getCachedTableFrom(std::map<std::string,std::map<std::string,xdata::Table> > &cache,const std::string &insertViewName,const std::string &identifier/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception);
@@ -150,14 +156,14 @@ std::string viewID_;
 	void clearCachedDiff();
 	xdata::Table &getCachedDiff(const std::string &insertViewName,const std::string &identifier) throw (xcept::Exception);
 	void setCachedDiff(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception);
-	xdata::Table &getCachedDiff(const std::string &insertViewName,int crateIndex) throw (xcept::Exception);
-	void setCachedDiff(const std::string &insertViewName,int crateIndex,xdata::Table &table) throw (xcept::Exception);
+	//xdata::Table &getCachedDiff(const std::string &insertViewName,int crateIndex) throw (xcept::Exception);
+	 //void setCachedDiff(const std::string &insertViewName,int crateIndex,xdata::Table &table) throw (xcept::Exception);
 
 	void clearCachedTables();
 	xdata::Table &getCachedTable(const std::string &insertViewName,const std::string &identifier) throw (xcept::Exception);
 	void setCachedTable(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception);
 	xdata::Table &getCachedTable(const std::string &insertViewName,int crateIndex) throw (xcept::Exception);
-	void setCachedTable(const std::string &insertViewName,int crateIndex,xdata::Table &table) throw (xcept::Exception);
+	//void setCachedTable(const std::string &insertViewName,int crateIndex,xdata::Table &table) throw (xcept::Exception);
 
 	virtual bool columnIsUniqueIdentifier(const std::string &columnName,const std::string &tableName)=0;
 	std::string uniqueIdentifierForRow(xdata::Table &table,const std::string &tableName,unsigned int rowIndex);
@@ -166,7 +172,7 @@ std::string viewID_;
 	virtual bool canChangeColumnGlobally(const std::string &columnName,const std::string &tableName);
 	static bool isNumericType(const std::string &xdataType);
 	void getTableDefinitionsIfNecessary() throw ();
-	void getTableDefinitions(const std::string &connectionID);
+	virtual void getTableDefinitions(const std::string &connectionID);
 	bool moreThanOneChildConfigurationExists(const std::string &configName,const std::string &parentIdentifier);
 	std::string keyContaining(std::map<std::string,xdata::Table> &haystack,const std::string &needle) throw (xdaq::exception::Exception);
 	xdata::Table &valueForKeyContaining(std::map<std::string,xdata::Table> &haystack,const std::string &needle) throw (xdaq::exception::Exception);
@@ -250,7 +256,7 @@ inline bool convertToHex(std::string &dataHex, const std::string format, const T
   return converted;
 }
 
-//} // namespace emu::pc
+} // namespace emu::base
 } // namespace emu
 
 

@@ -1,11 +1,11 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.6 2009/08/20 13:41:01 brett Exp $
+* $Id: DBAgent.cc,v 1.7 2009/09/17 15:33:42 brett Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
 #include <sstream>
 
-#include "emu/fed/TStoreRequest.h"
+#include "emu/base/TStoreRequest.h"
 #include "toolbox/TimeInterval.h"
 #include "tstore/client/Client.h"
 #include "tstore/client/AttachmentUtils.h"
@@ -21,7 +21,7 @@ application_(application)
 	// but it's completely unnecessary. :)
 	/*
 	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUFEDsystem");
-	TStoreRequest request("getConfiguration", viewClass);
+	emu::base::TStoreRequest request("getConfiguration", viewClass);
 	
 	//add the view ID
 	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUFEDsystem");
@@ -60,7 +60,7 @@ throw (emu::fed::exception::DBException)
 {
 	//maybe if a connectionID has already been set using setConnectionID, this function should just renew it, or do nothing.
 	
-	TStoreRequest request("connect");
+	emu::base::TStoreRequest request("connect");
 	
 	// Add view ID
 	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUFEDsystem");
@@ -97,7 +97,7 @@ throw (emu::fed::exception::DBException)
 
 void emu::fed::DBAgent::disconnect()
 throw (emu::fed::exception::DBException) {
-	TStoreRequest request("disconnect");
+	emu::base::TStoreRequest request("disconnect");
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID", connectionID_);
@@ -125,7 +125,7 @@ throw (emu::fed::exception::DBException) {
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	TStoreRequest request("query", viewClass);
+	emu::base::TStoreRequest request("query", viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID", connectionID_);
@@ -170,7 +170,7 @@ throw (emu::fed::exception::DBException) {
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	TStoreRequest request("insert", viewClass);
+	emu::base::TStoreRequest request("insert", viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID", connectionID_);

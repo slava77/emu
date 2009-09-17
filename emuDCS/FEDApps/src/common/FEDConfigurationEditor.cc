@@ -1,5 +1,5 @@
 #include "emu/fed/FEDConfigurationEditor.h"
-#include "emu/fed/TStoreRequest.h"
+#include "emu/base/TStoreRequest.h"
 
 #include <time.h>
 #include "toolbox/TimeInterval.h"
@@ -38,7 +38,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::FEDConfigurationEditor)
     namespace fed {
 
   FEDConfigurationEditor::FEDConfigurationEditor(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception)
-	: emu::ConfigurationEditor(s)
+	: emu::base::ConfigurationEditor(s)
 {
 	setTableNamePrefix("EMU_FED_");
 	setTopLevelTableName("crate");
@@ -58,13 +58,6 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::FEDConfigurationEditor)
 
 void FEDConfigurationEditor::fillRootElement(DOMElement *rootElement) {
 	rootElement->setAttribute(xoap::XStr("NAME"),xoap::XStr(endcapSide_.toString()));
-}
-
-void FEDConfigurationEditor::outputEndcapSelector(xgi::Output * out) {
-	*out << cgicc::select().set("name","side");
-	*out << cgicc::option().set("value","minus") << "minus" << cgicc::option() << std::endl;
-	*out << cgicc::option().set("value","plus") << "plus" << cgicc::option() << std::endl;
-	*out << cgicc::select();
 }
 
 void FEDConfigurationEditor::outputStandardInterface(xgi::Output * out) {
@@ -395,7 +388,7 @@ void FEDConfigurationEditor::readConfigFromDB(xgi::Input * in, xgi::Output * out
 			xdata::UnsignedShort *number=dynamic_cast<xdata::UnsignedShort *>(iRow->getField("CRATE_NUMBER"));
 			if (number) {
 				id.fromString(key); 
-				std::string crateNumber="CRATE "+number->toString();
+				std::string crateNumber=crateIdentifierString(number->toString());
 				xdata::Table justThisRow(crates.getTableDefinition());
 				justThisRow.insert(*iRow);
 				setCachedTable("crate",crateNumber,justThisRow);
@@ -436,7 +429,7 @@ void FEDConfigurationEditor::queryMaxId(const std::string &connectionID, const s
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	TStoreRequest request("query",viewClass);
+	emu::base::TStoreRequest request("query",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -597,7 +590,7 @@ void FEDConfigurationEditor::parseConfigFromXML(xgi::Input * in, xgi::Output * o
 		std::cout << "configuring from " << xmlname;
 
 		pDoc = xoap::getDOMParserFactory()->get("configure")->loadXML(tstoreclient::parsePath(xmlname)); //The parser owns the returned DOMDocument. It will be deleted when the parser is released.
-	} catch (xoap::exception::Exception &e) {
+	} catch (xcept::Exception &e) {
 		XCEPT_RETHROW(xgi::exception::Exception,"Could not parse document at "+xmlname,e);
 	}
 	xercesc::DOMElement *pFEDSystem = (xercesc::DOMElement *) pDoc->getFirstChild();
@@ -706,7 +699,7 @@ void FEDConfigurationEditor::diffCrate(const std::string &connectionID, const st
 			      crateIDsInDiff.push_back(crateid);
 		      }
 	      }
-	      std::string crateIdentifier="CRATE "+crateid;
+	      std::string crateIdentifier=crateIdentifierString(crateid);
 	      diff(connectionID,"controller",old_key,new_key,"CRATE_NUMBER",crateid,crateIdentifier);
 	      xdata::Table dduDiff;
 	      diff(connectionID,"ddu",old_key,new_key,"CRATE_NUMBER",crateid,dduDiff);

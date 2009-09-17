@@ -1,7 +1,7 @@
 /* code mostly copied and modified from EmuPCrateConfigTStore, which will eventually become a subclass of this */
 
-#include "emu/fed/ConfigurationEditor.h"
-#include "emu/fed/TStoreRequest.h"
+#include "emu/base/ConfigurationEditor.h"
+#include "emu/base/TStoreRequest.h"
 
 #include <time.h>
 #include "toolbox/TimeInterval.h"
@@ -28,10 +28,8 @@
 #include "xoap/DOMParserFactory.h"
 
 
-
-//XDAQ_INSTANTIATOR_IMPL(emu::ConfigurationEditor)
-
 namespace emu {
+namespace base {
 	
   ConfigurationEditor::ConfigurationEditor(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception): xdaq::Application(s) {
 	xgi::bind(this,&ConfigurationEditor::Default, "Default");
@@ -421,11 +419,11 @@ void ConfigurationEditor::outputCurrentDiff(xgi::Output * out) {
 			std::ostringstream diffDisplay;
 			for (std::vector<std::string>::iterator tableName=topLevelTables.begin();tableName!=topLevelTables.end();++tableName) {
 				//displayDiff(&diffDisplay,(*tableName),"CRATE "+*crateID,changes);
-				displayChildDiff(&diffDisplay,(*tableName),"CRATE "+*crateID,changes);
+				displayChildDiff(&diffDisplay,(*tableName),crateIdentifierString(*crateID),changes);
 			}
 			outputDiffSummary(out,changes);
-			outputShowHideButton(out,"wholecrate","CRATE "+*crateID,"diff");
-			if (shouldDisplayConfiguration("wholecrate","CRATE "+*crateID)) {
+			outputShowHideButton(out,"wholecrate",crateIdentifierString(*crateID),"diff");
+			if (shouldDisplayConfiguration("wholecrate",crateIdentifierString(*crateID))) {
 				*out << diffDisplay.str();
 			}
 			*out << "</tr></td></table>";
@@ -474,10 +472,9 @@ void ConfigurationEditor::outputException(xgi::Output * out,xcept::Exception &e)
   *out << "<p>" << e.message() << "</p>" << std::endl;
 }
 
+//to be overridden by subclasses
+//returns whether a column should be changeable using the 'change all' controls.
 bool ConfigurationEditor::canChangeColumnGlobally(const std::string &columnName,const std::string &tableName) {
-	if (columnName=="DESCRIPTION") return false;
-	if (columnName=="PROBLEM_MASK") return false;
-	//can't edit ID columns, which all have _CONFIG_ID in their names
 	return canChangeColumn(columnName,tableName);
 }
 
@@ -837,6 +834,13 @@ void ConfigurationEditor::getTableDefinitionsIfNecessary() throw () {
 }
 
 
+void ConfigurationEditor::outputEndcapSelector(xgi::Output * out) {
+	*out << cgicc::select().set("name","side");
+	*out << cgicc::option().set("value","minus") << "minus" << cgicc::option() << std::endl;
+	*out << cgicc::option().set("value","plus") << "plus" << cgicc::option() << std::endl;
+	*out << cgicc::select();
+}
+
  void ConfigurationEditor::showHideTable(xgi::Input * in, xgi::Output * out,bool show ) 
     throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);	
@@ -998,7 +1002,7 @@ void ConfigurationEditor::selectVersion(xgi::Input * in, xgi::Output * out )
 }
     
 template <class xdataType>
-void set(xdata::Serializable *originalValue,const std::string &newValue) {
+void ConfigurationEditor::set(xdata::Serializable *originalValue,const std::string &newValue) {
 	xdataType *original=dynamic_cast<xdataType *>(originalValue);
 	if (original) {
 		original->fromString(newValue);
@@ -1006,7 +1010,7 @@ void set(xdata::Serializable *originalValue,const std::string &newValue) {
 }
   
 template <class xdataType, typename simpleType>
-void add(xdata::Serializable *originalValue,const std::string &addend) {
+void ConfigurationEditor::add(xdata::Serializable *originalValue,const std::string &addend) {
 	xdataType *original=dynamic_cast<xdataType *>(originalValue);
 	if (original) {
 		xdataType amountToAdd;
@@ -1382,7 +1386,7 @@ void ConfigurationEditor::getConfigIds(std::vector<std::string> &configIDs,const
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	fed::TStoreRequest request("query",viewClass);
+	emu::base::TStoreRequest request("query",viewClass);
 
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1460,10 +1464,9 @@ void ConfigurationEditor::createCredentialString() {
 	std::cout << "credentials are " << dbUserAndPassword_;
 }
 
-
 std::string ConfigurationEditor::connect() throw (xcept::Exception) {
 try {
-	fed::TStoreRequest request("connect");
+	emu::base::TStoreRequest request("connect");
 	
 	//add the view ID
 	request.addTStoreParameter("id",viewID_);
@@ -1494,7 +1497,7 @@ try {
 }
 
 void ConfigurationEditor::disconnect(const std::string &connectionID) throw (xcept::Exception) {
-	fed::TStoreRequest request("disconnect");
+	emu::base::TStoreRequest request("disconnect");
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1503,50 +1506,10 @@ void ConfigurationEditor::disconnect(const std::string &connectionID) throw (xce
 	
 	sendSOAPMessage(message);
 }
-
+/*
 void ConfigurationEditor::query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, xdata::Table &results) throw (xcept::Exception) {
 	query(connectionID,queryViewName,emu_config_id,"",results);
-}
-//
-
-void ConfigurationEditor::query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, const std::string &xxx_config_id, xdata::Table &results) throw (xcept::Exception) {
-	//for a query, we need to send some parameters which are specific to SQLView.
-	//these use the namespace tstore-view-SQL. 
-	
-	//In general, you might have the view name in a variable, so you won't know the view class. In this
-	//case you can find out the view class using the TStore client library:
-	std::string viewClass=tstoreclient::classNameForView(viewID_);
-	
-	//If we give the name of the view class when constructing the TStoreRequest, 
-	//it will automatically use that namespace for
-	//any view specific parameters we add.
-	fed::TStoreRequest request("query",viewClass);
-	
-	//add the connection ID
-	request.addTStoreParameter("connectionID",connectionID);
-	
-	//for an SQLView, the name parameter refers to the name of a query section in the configuration
-	//We'll use the "hello" one.
-	request.addViewSpecificParameter("name",queryViewName);
-
-	//add parameter name and value (emu_config_id)
-	request.addViewSpecificParameter("EMU_CONFIG_ID",emu_config_id);
-
-	if (!xxx_config_id.empty()) {
-		//add parameter name and value (xxx_config_id; xxx="periph|ccb|mpc|csc|tmb|daqmb|alct|afeb|cfeb" )
-		request.addViewSpecificParameter("XXX_CONFIG_ID",xxx_config_id);
-	}
-
-	xoap::MessageReference message=request.toSOAP();
-	xoap::MessageReference response=sendSOAPMessage(message);
-	
-	//use the TStore client library to extract the first attachment of type "table"
-	//from the SOAP response
-	if (!tstoreclient::getFirstAttachmentOfType(response,results)) {
-		XCEPT_RAISE (xcept::Exception, "Server returned no data");
-	}
-}
-
+}*/
 
 void ConfigurationEditor::query(const std::string &connectionID,const std::string &queryViewName, const std::map<std::string, std::string> &queryParameters,xdata::Table &results)
 throw (xcept::Exception) {
@@ -1560,7 +1523,7 @@ throw (xcept::Exception) {
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	fed::TStoreRequest request("query", viewClass);
+	emu::base::TStoreRequest request("query", viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID", connectionID);
@@ -1604,7 +1567,7 @@ void ConfigurationEditor::getDefinition(const std::string &connectionID, const s
 	//case you can find out the view class using the TStore client library:
 	std::string viewClass=tstoreclient::classNameForView(viewID_);
 	
-	fed::TStoreRequest request("definition",viewClass);
+	emu::base::TStoreRequest request("definition",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1640,7 +1603,7 @@ void ConfigurationEditor::insert(const std::string &connectionID, const std::str
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	fed::TStoreRequest request("insert",viewClass);
+	emu::base::TStoreRequest request("insert",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1664,7 +1627,7 @@ void ConfigurationEditor::insert(const std::string &connectionID, const std::str
 
 void ConfigurationEditor::synchronize(const std::string &connectionID, const std::string &syncMode, const std::string &syncPattern) throw (xcept::Exception) {
   std::string viewClass=tstoreclient::classNameForView(viewID_);
-  fed::TStoreRequest request("sync",viewClass);
+  emu::base::TStoreRequest request("sync",viewClass);
   request.addTStoreParameter("connectionID",connectionID);
   request.addTStoreParameter("mode", syncMode);
   request.addTStoreParameter("pattern", syncPattern);
@@ -1714,9 +1677,11 @@ void ConfigurationEditor::setCachedDiff(const std::string &insertViewName,const 
 xdata::Table &ConfigurationEditor::getCachedTableFrom(std::map<std::string,std::map<std::string,xdata::Table> > &cache,const std::string &insertViewName,const std::string &identifier/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
 
 	if (cache.count(insertViewName)) {
-		if (cache[insertViewName].count(identifier)==1) {
+		std::string realIdentifier=identifier;
+		if (cache[insertViewName].count(realIdentifier)==0) realIdentifier+=" "; //setCached... adds a space to the end
+		if (cache[insertViewName].count(realIdentifier)==1) {
 			LOG4CPLUS_DEBUG(this->getApplicationLogger(),"getting cached "+insertViewName+" table "+identifier);
-			xdata::Table &returnValue= cache[insertViewName][identifier];
+			xdata::Table &returnValue= cache[insertViewName][realIdentifier];
 			LOG4CPLUS_DEBUG(this->getApplicationLogger(),"got cached "+insertViewName+" table "+identifier);
 			return returnValue;
 			
@@ -1733,6 +1698,15 @@ void ConfigurationEditor::clearCachedDiff() {
 	currentDiff.clear();
 }
 
+
+std::string ConfigurationEditor::crateIdentifierString(int crateID) {
+	return crateIdentifierString(to_string(crateID)); //add space to the end so that when looping over keys beginning with this crate ID, we don't confuse e.g. 1 with 11
+}
+
+std::string ConfigurationEditor::crateIdentifierString(const std::string &crateID) {
+	return "crate "+crateID+" "; //add space to the end so that when looping over keys beginning with this crate ID, we don't confuse e.g. 1 with 11
+}
+
 xdata::Table &ConfigurationEditor::getCachedTable(const std::string &insertViewName,const std::string &identifier/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
 	return getCachedTableFrom(currentTables,insertViewName,identifier);
 }
@@ -1741,4 +1715,5 @@ xdata::Table &ConfigurationEditor::getCachedDiff(const std::string &insertViewNa
 	return getCachedTableFrom(currentDiff,insertViewName,identifier);
 }
 
+}
 }

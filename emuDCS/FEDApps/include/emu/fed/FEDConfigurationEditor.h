@@ -1,7 +1,7 @@
 #ifndef _FEDConfigurationEditor_h_
 #define _FEDConfigurationEditor_h_
 
-#include "ConfigurationEditor.h"
+#include "emu/base/ConfigurationEditor.h"
 #include "xdata/String.h"
 #include "emu/fed/Exception.h"
 #include "emu/fed/DBAgent.h"
@@ -11,7 +11,7 @@
 namespace emu {
   namespace fed {
 	  
-class FEDConfigurationEditor: public ConfigurationEditor/*,public DBAgent*/
+class FEDConfigurationEditor: public emu::base::ConfigurationEditor/*,public DBAgent*/
 {
 
 public:
@@ -20,7 +20,6 @@ public:
 
   FEDConfigurationEditor(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception);
 private: 
-	void outputEndcapSelector(xgi::Output * out);
 void outputStandardInterface(xgi::Output * out);
   void startUpload(xgi::Input *in) throw (xcept::Exception);
   void getDbUserData();
