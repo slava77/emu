@@ -2,7 +2,7 @@
 
 namespace EmuOnlineDB {
         const std::string package  =  "EmuOnlineDB";
-        const std::string versions =  "7.9";
+        const std::string versions =  "7.10";
         const std::string summary = "emu/emuDCS/OnlineDB";
         const std::string description = "Emu Online Database Library";
         const std::string authors = "Stan Durkin";
