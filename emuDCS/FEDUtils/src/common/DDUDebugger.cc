@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.4 2009/07/08 15:42:55 paste Exp $
+* $Id: DDUDebugger.cc,v 1.5 2009/09/29 13:57:58 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -279,61 +279,6 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(const uint16_t &
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(const uint16_t &stat)
-{
-	std::map<std::string, std::string> returnValues;
-
-	if (stat&0x000000ff) {
-
-		if (0x00000040&stat) returnValues["L1A FIFO Empty"] = "none";
-		if (0x00000040&stat == 0) returnValues["L1A FIFO Not Empty"] = "none";
-		if (0x00000002&stat) returnValues["GbE FIFO Full occurred"] = "none";
-		if (0x00000001&stat) returnValues["L1A FIFO Full occurred"] = "red";
-
-	} else {
-		//returnValues["OK"] = "none";
-	}
-
-
-	return returnValues;
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(const uint16_t &stat)
-{
-	std::map<std::string, std::string> returnValues;
-
-	if (stat&0x00000fff) {
-		//*out << "<blockquote><font size=-1 color=red face=arial>";
-		if (stat&0x00000F00) {
-			if (0x00000800&stat) returnValues["InRD End C-Code Error occurred"] = "red";
-			if (0x00000400&stat) returnValues["InRD Begin C-Code Error occurred"] =  "red";
-			if (0x00000200&stat) returnValues["InRD Multiple L1A Mismatches occurred"] = "red";
-			else if (0x00000100&stat) returnValues["InRD Single L1A Mismatch occurred"] = "blue";
-		}
-		if (stat&0x000000F0) {
-			if (0x00000080&stat) returnValues["InRD Hard Error occurred"] = "red";
-			if (0x00000040&stat) returnValues["InRD Sync Error occurred"] = "red";
-			if (0x00000020&stat) returnValues["InRD Single Error occurred"] = "blue";
-			if (0x00000010&stat) returnValues["InRD Mem/FIFO Error occurred"] = "red";
-		}
-		if (stat&0x0000000F) {
-			if (0x00000008&stat) returnValues["InRD Fiber Connection Error occurred"] = "red";
-			if (0x00000004&stat) returnValues["InRD Multiple Transmit Errors occurred"] = "red";
-			if (0x00000002&stat) returnValues["InRD Stuck Data Error occurred"] = "red";
-			if (0x00000001&stat) returnValues["InRD Timeout Error occurred"] = "red";
-		}
-	} else {
-		//returnValues["OK"] = "none";
-	}
-
-
-	return returnValues;
-}
-
-
-
 std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
@@ -381,76 +326,18 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(const std::vector<
 	};
 
 	// Pop out the decoded register.
+	bool noError = true;
 	for (unsigned int iBits = 0; iBits < 12; iBits++) {
+		if (lcode[11 - iBits]) noError = false;
 		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << lcode[11 - iBits];
 		out.push_back(outStream.str());
 		outStream.str("");
 	}
-
-// 	i = 23;
-// 	sprintf(buf, "                        o-stat  fful  fifo-c fifo-b");
-// 	*out << buf << std::endl;
-// 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
-// 	sprintf(cbuf1, "%s", sgrn);
-// 	if (0x09010000&lcode[5])sprintf(cbuf1, "%s", sblu);
-// 	if (0x40000000&lcode[5])sprintf(cbuf1, "%s", syel);
-// 	if (0x80800000&lcode[5])sprintf(cbuf1, "%s", sred);
-// 	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[5]) >> 16, snul);
-// 	sprintf(cbuf2, "%s", sgrn);
-// 	if (0x01ff&lcode[5])sprintf(cbuf2, "%s", sred);
-// 	sprintf(buf2, "%s   %04lx%s", cbuf2, 0xffff&lcode[5], snul);
-// 	sprintf(cbuf3, "%s", sgrn);
-// 	if (0xffff0000&lcode[4])sprintf(cbuf3, "%s", sred);
-// 	sprintf(buf3, "%s   %04lx%s", cbuf3, (0xffff0000&lcode[4]) >> 16, snul);
-// 	sprintf(cbuf4, "%s", sgrn);
-// 	if (0x01ff&lcode[4])sprintf(cbuf4, "%s", sblu);
-// 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[4], snul);
-// 	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
-// 
-// 	i = 15;
-// 	sprintf(buf, "                        fifo-a instat c-code  erc");
-// 	*out << buf << std::endl;
-// 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
-// 	sprintf(cbuf1, "%s", sgrn);
-// 	if (0xfff00000&lcode[3])sprintf(cbuf1, "%s", sred);
-// 	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[3]) >> 16, snul);
-// 	sprintf(cbuf2, "%s", sgrn);
-// 	if (0x00f0&lcode[3])sprintf(cbuf2, "%s", syel);
-// 	if (0xff0f&lcode[3])sprintf(cbuf2, "%s", sred);
-// 	sprintf(buf2, "%s   %04lx%s", cbuf2, 0xffff&lcode[3], snul);
-// 	sprintf(cbuf3, "%s", sgrn);
-// 	if (0x00200000&lcode[2])sprintf(cbuf3, "%s", syel);
-// 	if (0xffdf0000&lcode[2])sprintf(cbuf3, "%s", sred);
-// 	sprintf(buf3, "%s   %04lx%s", cbuf3, (0xffff0000&lcode[2]) >> 16, snul);
-// 	sprintf(cbuf4, "%s", sgrn);
-// 	if (0x9f1f&lcode[2])sprintf(cbuf4, "%s", syel);
-// 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[2], snul);
-// 	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
-// 
-// 	i = 7;
-// 	sprintf(buf, "                         erb    era   32-bit status");
-// 	*out << buf << std::endl;
-// 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
-// 	sprintf(cbuf1, "%s", sgrn);
-// 	if (0x00110000&lcode[1])sprintf(cbuf1, "%s", syel);
-// 	if (0xd08e0000&lcode[1])sprintf(cbuf1, "%s", sred);
-// 	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[1]) >> 16, snul);
-// 	sprintf(cbuf2, "%s", sgrn);
-// 	if (0x2c00&lcode[1])sprintf(cbuf2, "%s", sblu);
-// 	if (0x01e0&lcode[1])sprintf(cbuf2, "%s", syel);
-// 	if (0xc00c&lcode[1])sprintf(cbuf2, "%s", sred);
-// 	sprintf(buf2, "%s   %04lx%s", cbuf2, 0xffff&lcode[1], snul);
-// 	sprintf(cbuf3, "%s", sgrn);
-// 	if (0x21800000&lcode[0])sprintf(cbuf3, "%s", sblu);
-// 	if (0xd00f0000&lcode[0])sprintf(cbuf3, "%s", syel);
-// 	if (0x0e400000&lcode[0])sprintf(cbuf3, "%s", sred);
-// 	sprintf(buf3, "%s   %04lx%s", cbuf3, (0xffff0000&lcode[0]) >> 16, snul);
-// 	sprintf(cbuf4, "%s", sgrn);
-// 	if (0x3400&lcode[0])sprintf(cbuf4, "%s", sblu);
-// 	if (0x4b23&lcode[0])sprintf(cbuf4, "%s", syel);
-// 	if (0x80dc&lcode[0])sprintf(cbuf4, "%s", sred);
-// 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[0], snul);
-// 	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
+	
+	// If nothing here is set, we can return instantly
+	if (noError) {
+		return out;
+	}
 
 	// Next, spit out the funky fiber information.
 	const unsigned long int CSCStat = thisDDU->readCSCStatus();
@@ -1670,4 +1557,168 @@ std::pair<std::string, std::string> emu::fed::DDUDebugger::Voltage(const uint8_t
 	
 	return std::make_pair("mV", "ok");
 
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::DebugFiber(DDU *ddu, const uint16_t &value, const std::string &className)
+{
+	std::map<std::string, std::string> returnMe;
+
+	for (int8_t iBit = 0; iBit < 15; iBit++) {
+		if (value & (1 << iBit)) {
+			returnMe[ddu->getFiber(iBit)->getName()] = className;
+		}
+	}
+	if (value & 0x8000) {
+		returnMe["The DDU itself"] = className;
+	}
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::InRDStat(const uint16_t &stat)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0xf000) {
+		std::ostringstream sReport;
+		sReport << "Hard error: " << std::showbase << std::hex << ((stat >> 12) & 0xf);
+		returnMe[sReport.str()] = "red";
+		
+		std::vector<std::string> fibers = decodeInRD((stat >> 12) & 0xf);
+		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
+			returnMe[*iFibers] = "red";
+		}
+	}
+	if (stat & 0x0f00) {
+		std::ostringstream sReport;
+		sReport << "Sync error: " << std::showbase << std::hex << ((stat >> 8) & 0xf);
+		returnMe[sReport.str()] = "red";
+		
+		std::vector<std::string> fibers = decodeInRD((stat >> 8) & 0xf);
+		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
+			returnMe[*iFibers] = "red";
+		}
+	}
+	if (stat & 0x00f0) {
+		std::ostringstream sReport;
+		sReport << "Single event error: " << std::showbase << std::hex << ((stat >> 4) & 0xf);
+		returnMe[sReport.str()] = "red";
+		
+		std::vector<std::string> fibers = decodeInRD((stat >> 4) & 0xf);
+		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
+			returnMe[*iFibers] = "red";
+		}
+	}
+	if (stat & 0x000f) {
+		std::ostringstream sReport;
+		sReport << "Timeout error: " << std::showbase << std::hex << (stat & 0xf);
+		returnMe[sReport.str()] = "red";
+		
+		std::vector<std::string> fibers = decodeInRD(stat & 0xf);
+		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
+			returnMe[*iFibers] = "red";
+		}
+	}
+	
+	return returnMe;
+}
+
+
+
+std::vector<std::string> emu::fed::DDUDebugger::decodeInRD(const uint8_t &stat)
+{
+	std::vector<std::string> returnMe;
+	
+	for (unsigned int iBit = 0; iBit < 4; iBit++) {
+		unsigned int minFiber = iBit * 4;
+		unsigned int maxFiber = iBit * 4 + 3;
+		if (iBit == 3) maxFiber -= 1;
+		std::ostringstream sFibers;
+		sFibers << "fibers " << minFiber << "-" << maxFiber;
+		returnMe.push_back(sFibers.str());
+	}
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(const uint16_t &stat)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0x000f) {
+		std::ostringstream sReport;
+		sReport << "Multiple transmit errors: " << std::showbase << std::hex << (stat & 0xf);
+		returnMe[sReport.str()] = "red";
+		
+		std::vector<std::string> fibers = decodeInRD(stat & 0xf);
+		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
+			returnMe[*iFibers] = "red";
+		}
+	}
+	
+	if (0x08000 & stat) returnMe["InRD End C-Code Error occurred"] = "red";
+	if (0x04000 & stat) returnMe["InRD Begin C-Code Error occurred"] =  "red";
+	if (0x02000 & stat) returnMe["InRD multiple L1A Mismatches occurred"] = "red";
+	else if (0x01000 & stat) returnMe["InRD Single L1A Mismatch occurred"] = "yellow";
+	if (0x0800 & stat) returnMe["InRD Hard Error occurred"] = "red";
+	if (0x0400 & stat) returnMe["InRD Sync Error occurred"] = "red";
+	if (0x0200 & stat) returnMe["InRD Single Error occurred"] = "yellow";
+	if (0x0100 & stat) returnMe["InRD Mem/FIFO Error occurred"] = "red";
+	if (0x0080 & stat) returnMe["InRD Fiber Connection Error occurred"] = "red";
+	if (0x0040 & stat) returnMe["InRD Multiple Transmit Errors occurred"] = "red";
+	if (0x0020 & stat) returnMe["InRD Stuck Data Error occurred"] = "red";
+	if (0x0010 & stat) returnMe["InRD Timeout Error occurred"] = "red";
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(const uint16_t &stat)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0x3b00) {
+		std::ostringstream sReport;
+		sReport << "Raw Ext. FIFO empty: " << std::showbase << std::hex << ((stat >> 10) & 0xf);
+		returnMe[sReport.str()] = "none";
+		
+		std::vector<std::string> fibers = decodeInRD((stat >> 10) & 0xf);
+		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
+			returnMe[*iFibers] = "none";
+		}
+	}
+	if (stat & 0x00f0) {
+		std::ostringstream sReport;
+		sReport << "InRD FIFO full: " << std::showbase << std::hex << ((stat >> 4) & 0xf);
+		returnMe[sReport.str()] = "red";
+		
+		std::vector<std::string> fibers = decodeInRD((stat >> 4) & 0xf);
+		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
+			returnMe[*iFibers] = "red";
+		}
+	}
+	if (stat & 0x000f) {
+		std::ostringstream sReport;
+		sReport << "Ext. FIFO full: " << std::showbase << std::hex << (stat & 0xf);
+		returnMe[sReport.str()] = "red";
+		
+		std::vector<std::string> fibers = decodeInRD(stat & 0xf);
+		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
+			returnMe[*iFibers] = "red";
+		}
+	}
+	
+	if (0x4000 & stat) returnMe["L1A FIFO Empty"] = "none";
+	if (0x4000 & stat == 0) returnMe["L1A FIFO Not Empty"] = "none";
+	if (0x0200 & stat) returnMe["GbE FIFO Full occurred"] = "yellow";
+	if (0x0100 & stat) returnMe["L1A FIFO Full occurred"] = "red";
+	
+	return returnMe;
 }
