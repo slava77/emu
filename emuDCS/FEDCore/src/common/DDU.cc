@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.14 2009/08/19 16:38:29 brett Exp $
+* $Id: DDU.cc,v 1.15 2009/09/29 14:18:12 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -728,17 +728,9 @@ throw (emu::fed::exception::DDUException)
 float emu::fed::DDU::readTemperature(const uint8_t &sensor, const enum TEMPSCALE &scale)
 throw (emu::fed::exception::DDUException)
 {
-	if (sensor >= 4) {
-		std::ostringstream error;
-		error << "Temperature sensor argument must be 0-3 inclusive";
-		XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
-		std::ostringstream tag;
-		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
-		e2.setProperty("tag", tag.str());
-		throw e2;
-	}
+	
 	try {
-		float Vout= (float) readRegister(SADC, 0x0089 | (sensor << 4), 16)[0] / 1000.;
+		float Vout= (float) readRawTemperature(sensor) / 1000.;
 		float cval = 1 / (0.1049406423E-2 + 0.2133635468E-3 * log(65000.0 / Vout - 13000.0) + 0.7522287E-7 * pow(log(65000.0 / Vout - 13000.0), 3.0)) - 0.27315E+3;
 		if (scale == CELSIUS) return cval;
 		else if (scale == FAHRENHEIT) return 9.0 / 5.0 * cval + 32.0;
@@ -764,7 +756,57 @@ throw (emu::fed::exception::DDUException)
 
 
 
+uint16_t emu::fed::DDU::readRawTemperature(const uint8_t &sensor)
+throw (emu::fed::exception::DDUException)
+{
+	if (sensor >= 4) {
+		std::ostringstream error;
+		error << "Temperature sensor argument must be 0-3 inclusive";
+		XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
+		std::ostringstream tag;
+		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+	try {
+		uint16_t temp = 0xffff;
+		unsigned int trials = 5;
+		do {
+			temp = readRegister(SADC, 0x0089 | (sensor << 4), 16)[0];
+		} while (temp == 0xffff && --trials);
+		return temp;
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+
 float emu::fed::DDU::readVoltage(const uint8_t &sensor)
+throw (emu::fed::exception::DDUException)
+{
+	try {
+		return (float) readRawVoltage(sensor);
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readRawVoltage(const uint8_t &sensor)
 throw (emu::fed::exception::DDUException)
 {
 	if (sensor >= 4) {
@@ -777,7 +819,12 @@ throw (emu::fed::exception::DDUException)
 		throw e2;
 	}
 	try {
-		return (float) readRegister(SADC, 0x0089 | ((sensor+4) << 4), 16)[0];
+		uint16_t volt = 0xffff;
+		unsigned int trials = 5;
+		do {
+			volt = readRegister(SADC, 0x0089 | ((sensor+4) << 4), 16)[0];
+		} while (volt == 0xffff && --trials);
+		return volt;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";

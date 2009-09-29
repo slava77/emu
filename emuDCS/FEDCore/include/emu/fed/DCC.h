@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.8 2009/07/01 14:17:18 paste Exp $
+* $Id: DCC.h,v 1.9 2009/09/29 14:18:12 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -91,6 +91,50 @@ namespace emu {
 			 **/
 			uint16_t readStatusLow()
 			throw (emu::fed::exception::DCCException);
+			
+			/** @returns the FMM status of the DCC, as decoded from the StatusHigh register **/
+			inline uint8_t readFMMStatus()
+			throw (emu::fed::exception::DCCException)
+			{
+				try {
+					return ((readStatusHigh() >> 12) & 0xf);
+				} catch (emu::fed::exception::DCCException &e) {
+					throw e;
+				}
+			}
+			
+			/** @returns the SLink statuses, as decided from the StatusHigh register **/
+			inline uint8_t readSLinkStatus()
+			throw (emu::fed::exception::DCCException)
+			{
+				try {
+					return (readStatusHigh() & 0xf);
+				} catch (emu::fed::exception::DCCException &e) {
+					throw e;
+				}
+			}
+			
+			/** @returns the FIFO statuses, as decided from the StatusHigh register **/
+			inline uint8_t readFIFOStatus()
+			throw (emu::fed::exception::DCCException)
+			{
+				try {
+					return ((readStatusHigh() >> 4) & 0xf);
+				} catch (emu::fed::exception::DCCException &e) {
+					throw e;
+				}
+			}
+			
+			/** @returns the L1A count, an alias for readStatusLow **/
+			inline uint16_t readL1A()
+			throw (emu::fed::exception::DCCException)
+			{
+				try {
+					return readStatusLow();
+				} catch (emu::fed::exception::DCCException &e) {
+					throw e;
+				}
+			}
 
 			/** @returns the input FIFOs (DDUs) that are being read in
 			 * to the DCC as a binary number where a 1 in the nth bit means that
@@ -243,7 +287,7 @@ namespace emu {
 
 			/** @returns the FIFO number corresponding to the given input DDU slot number
 			*
-			* @param myDlot the DDU slot number from which to calculate the FIFO number
+			* @param mySlot the DDU slot number from which to calculate the FIFO number
 			**/
 			unsigned int getFIFOFromDDUSlot(const unsigned int &mySlot)
 			throw (emu::fed::exception::OutOfBoundsException);

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.12 2009/07/08 15:37:40 paste Exp $
+* $Id: DDU.h,v 1.13 2009/09/29 14:18:12 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -206,9 +206,17 @@ namespace emu {
 			/** @returns the calculated temperature of a given SADC sensor and a temperature scale **/
 			float readTemperature(const uint8_t &sensor, const enum TEMPSCALE &scale = CELSIUS)
 			throw (emu::fed::exception::DDUException);
+			
+			/** @returns the raw temperature from a given SADC sensor **/
+			uint16_t readRawTemperature(const uint8_t &sensor)
+			throw (emu::fed::exception::DDUException);
 
 			/** @returns the calculated voltage of a given SADC sensor. **/
 			float readVoltage(const uint8_t &sensor)
+			throw (emu::fed::exception::DDUException);
+			
+			/** @returns the raw voltage from a given SADC sensor **/
+			uint16_t readRawVoltage(const uint8_t &sensor)
 			throw (emu::fed::exception::DDUException);
 
 			// Read DDUFPGA JTAG registers
