@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.3 2009/07/01 14:54:03 paste Exp $
+* $Id: Commander.h,v 1.4 2009/09/29 13:51:00 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
@@ -40,6 +40,12 @@ namespace emu {
 			**/
 			void webDefault(xgi::Input *in, xgi::Output *out);
 			
+			/** Reads multiple registers and returns data in JSON **/
+			void webReadDDURegisters(xgi::Input *in, xgi::Output *out);
+			
+			/** Takes JSON data and displays it nicely **/
+			void webDisplayDDURegisters(xgi::Input *in, xgi::Output *out);
+			
 			/** Returns common DDU and DCC status information **/
 			void webGetStatus(xgi::Input *in, xgi::Output *out);
 			
@@ -77,6 +83,26 @@ namespace emu {
 			*	@param id is the identifier to use for the checkboxes.
 			**/
 			std::string printRegisterTable(const std::vector<Register> &registers, const std::string &id);
+			
+			/** Return a string of cgicc::div elements from a given debugger map
+			*
+			*	@param debug is a map of string, string values with the index being a description of the debug and the value being the class of the debug.
+			*	@sa emu::fed::DDUDebugger
+			**/
+			std::string printDebug(const std::map<std::string, std::string> &debug);
+			
+			/** Return a cgicc::div elements from a given debugger pair
+			*
+			*	@param debug is a pair of string, string values with the index being a description of the debug and the value being the class of the debug.
+			*	@sa emu::fed::DDUDebugger
+			**/
+			std::string printDebug(const std::pair<std::string, std::string> &debug);
+			
+			/** Format a big number into nice groups of 4 hex characters **/
+			std::string formatBigNum(const std::vector<uint16_t> &bigNum);
+			
+			/** Format a vector of debugging information using cgicc::divs **/
+			std::string formatBigDebug(const std::vector<std::string> &debug);
 			
 		};
 	}

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.12 2009/07/01 14:54:03 paste Exp $
+* $Id: Manager.cc,v 1.13 2009/09/29 13:51:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -332,6 +332,7 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 		std::string systemName = "?";
 		std::string fmmErrors = "0";
 		std::string url = "";
+		std::string fiberNames = "";
 
 		JSONSpirit::Object appObject = iApp->get_obj();
 		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
@@ -353,6 +354,9 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 				fmmErrors = fiberStream.str();
 			}
 			
+			// Fiber error names per endcap
+			else if (iPair->name_ == "fiberNamesWithErrors") fiberNames = iPair->value_.get_str();
+			
 			// Sum up dcc input/output averages
 			else if (iPair->name_ == "totalDCCInputRate") dccInRate += iPair->value_.get_real();
 			else if (iPair->name_ == "totalDCCOutputRate") dccOutRate += iPair->value_.get_real();
@@ -361,8 +365,16 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 			else if (iPair->name_ == "monitorURL") url = iPair->value_.get_str();
 		}
 		
+		// Make a description of the status
+		std::ostringstream errorDescription;
+		if (fmmErrors != "0") {
+			errorDescription << "There are " << fmmErrors << " fibers on the " << systemName << " system that are in an error state:  " << fiberNames << ".  Click here to open the FED Monitor page for the " << systemName << " system.";
+		} else {
+			errorDescription << "There are no reported fiber errors on the " << systemName << " system.  Click here to open the FED Monitor page for the " << systemName << " system.";
+		}
+		
 		// Push back the report for the system
-		report.push_back(emu::base::WebReportItem(systemName + " Errors", fmmErrors, "Number of fiber inputs currently reporting errors (since the last reset or resync)", "", "", url));
+		report.push_back(emu::base::WebReportItem(systemName + " Errors", fmmErrors, "Number of fiber inputs currently reporting errors (since the last reset or resync)", errorDescription.str(), "", url));
 	}
 	
 	// Push back the heartbeats
@@ -370,8 +382,8 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 	inRateStream << dccInRate;
 	std::ostringstream outRateStream;
 	outRateStream << dccOutRate;
-	report.push_back(emu::base::WebReportItem("DCC Total Input Rate", inRateStream.str(), "DCC input rate totaled over all DDUs (in bytes/s)", "", "", ""));
-	report.push_back(emu::base::WebReportItem("DCC Total Output Rate", outRateStream.str(), "DCC output rate totaled over all S-Links (in bytes/s)", "", "", ""));
+	report.push_back(emu::base::WebReportItem("DCC Total Input Rate", inRateStream.str(), "DCC input rate summed over all DDUs (in bytes/s)", "", "", ""));
+	report.push_back(emu::base::WebReportItem("DCC Total Output Rate", outRateStream.str(), "DCC output rate summed over all S-Links (in bytes/s)", "", "", ""));
 	
 	return report;
 }
@@ -682,6 +694,7 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "configMode", "Unknown"));
 		applicationObject.push_back(toJSONPair<xdata::Boolean, bool>(reply, "ignoreSOAP", false));
 		applicationObject.push_back(toJSONPair<xdata::UnsignedInteger, int>(reply, "fibersWithErrors", 0));
+		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "fiberNamesWithErrors", ""));
 		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "totalDCCInputRate", 0));
 		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "totalDCCOutputRate", 0));
 		

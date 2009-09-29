@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.9 2009/06/13 17:59:08 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.10 2009/09/29 13:51:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -5444,11 +5444,9 @@ void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 		generalTable(1,0) << "DCC FMM Status (4-bit)";
 		unsigned long int dccValue = myDCC->readStatusHigh();
 		generalTable(1,1) << std::showbase << std::hex << ((dccValue & 0xf000) >> 12);
-		std::map<std::string, std::string> debugMap = DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
-		for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
-			generalTable(1,2) << cgicc::div(iDebug->first)
-				.set("class",iDebug->second);
-		}
+		std::pair<std::string, std::string> fifoDebugMap = DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
+		generalTable(1,2) << cgicc::div(fifoDebugMap.first)
+			.set("class", fifoDebugMap.second);
 		if (((dccValue & 0xf000) >> 12) == 0x3) {
 			generalTable(1,1).setClass("bad");
 		} else if (((dccValue & 0xf000) >> 12) == 0x1) {
@@ -5463,7 +5461,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 
 		generalTable(2,0) << "DCC FIFO Backpressure (8-bit)";
 		generalTable(2,1) << std::showbase << std::hex << ((dccValue & 0x0ff0) >> 4);
-		debugMap = DCCDebugger::InFIFOStat((dccValue & 0x0ff0) >> 4);
+		std::map<std::string, std::string> debugMap = DCCDebugger::InFIFOStat((dccValue & 0x0ff0) >> 4);
 		for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
 			generalTable(2,2) << cgicc::div(iDebug->first)
 				.set("class",iDebug->second);

@@ -57,7 +57,7 @@ UserExecutableLinkFlags = -D_REENTRAN -pthread -pedantic-errors
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries =
+Libraries = 
 ExternalObjects =
 
 #
