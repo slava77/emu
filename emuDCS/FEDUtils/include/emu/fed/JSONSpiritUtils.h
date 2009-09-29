@@ -1,25 +1,20 @@
 #ifndef JASON_SPIRIT_UTILS
 #define JASON_SPIRIT_UTILS
 
-/* Copyright (c) 2007-2009 John W Wilkinson
+//          Copyright John W. Wilkinson 2007 - 2009.
+// Distributed under the MIT License, see accompanying file LICENSE.txt
 
-   This source code can be used for any purpose as long as
-   this comment is retained. */
-
-// json spirit version 3.00
+// json spirit version 4.02
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
-#include "JSONSpiritValue.h"
+#include "emu/fed/JSONSpiritValue.h"
 #include <map>
 
 namespace JSONSpirit
 { 
-    //template< class Object_t, class String_t >
-    //Value_impl< String_t >& find_value( const Object_t& obj, const String_t &name );
-
     template< class Obj_t, class Map_t >
     void obj_to_map( const Obj_t& obj, Map_t& mp_obj )
     {
@@ -48,10 +43,10 @@ namespace JSONSpirit
     typedef std::map< std::wstring, wValue > wMapped_obj;
 #endif
 
-    template< class Object_t, class String_t >
-    const Value_impl< String_t >& find_value( const Object_t& obj, const String_t& name )
+    template< class Object_type, class String_type >
+    const typename Object_type::value_type::Value_type& find_value( const Object_type& obj, const String_type& name )
     {
-        for( typename Object_t::const_iterator i = obj.begin(); i != obj.end(); ++i )
+        for( typename Object_type::const_iterator i = obj.begin(); i != obj.end(); ++i )
         {
             if( i->name_ == name )
             {
@@ -59,7 +54,7 @@ namespace JSONSpirit
             }
         }
 
-        return Value_impl< String_t >::null;
+        return Object_type::value_type::Value_type::null;
     }
 }
 

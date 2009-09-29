@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.h,v 1.4 2009/07/08 15:42:55 paste Exp $
+* $Id: DDUDebugger.h,v 1.5 2009/09/29 13:57:58 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDUDEBUGGER_H__
 #define __EMU_FED_DDUDEBUGGER_H__
@@ -44,12 +44,6 @@ namespace emu {
 		
 			/** Reads from method @sa DDU::checkFIFO(2) **/
 			std::map<std::string, std::string> FIFO2(const uint16_t &stat);
-		
-			/** Reads from method @sa DDU::readFFError() **/
-			std::map<std::string, std::string> FFError(const uint16_t &stat);
-		
-			/** Reads from method @sa DDU::readInCHistory() **/
-			std::map<std::string, std::string> InCHistory(const uint16_t &stat);
 		
 			/** Reads from method @sa DDU::readWarnMon() **/
 			std::map<std::string, std::string> WarnMon(const uint16_t &stat);
@@ -101,6 +95,21 @@ namespace emu {
 
 			/** Reads from DDU::readVoltage **/
 			std::pair<std::string, std::string> Voltage(const uint8_t &sensor, const float &voltage);
+			
+			/** Reads a 16-bit value and spits out the names of the fibers associated with the DDU for each bit high in the number.  **/
+			std::map<std::string, std::string> DebugFiber(DDU *ddu, const uint16_t &value, const std::string &className = "none");
+			
+			/** Reads from method @sa DDI::readInRDStat() **/
+			std::map<std::string, std::string> InRDStat(const uint16_t &stat);
+			
+			/** Spits out a vector of "fibers: X-Y" strings based on the 4-bit input. **/
+			std::vector<std::string> decodeInRD(const uint8_t &stat);
+			
+			/** Reads from method @sa DDI::readInCHistory() **/
+			std::map<std::string, std::string> InCHistory(const uint16_t &stat);
+			
+			/** Reads from method @sa DDU::readFFError() **/
+			std::map<std::string, std::string> FFError(const uint16_t &stat);
 		
 		}
 

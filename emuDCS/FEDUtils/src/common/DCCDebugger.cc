@@ -1,26 +1,22 @@
 /*****************************************************************************\
-* $Id: DCCDebugger.cc,v 1.4 2009/07/11 19:38:32 paste Exp $
+* $Id: DCCDebugger.cc,v 1.5 2009/09/29 13:57:58 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCCDebugger.h"
 
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <utility>
 
 
-
-std::map<std::string, std::string> emu::fed::DCCDebugger::FMMStat(const uint8_t &stat)
+std::pair<std::string, std::string> emu::fed::DCCDebugger::FMMStat(const uint8_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
-
-	if (0xf&stat == 0x3) returnValues["Error"] = "error";
-	else if (0x1&stat) returnValues["Busy"] = "caution";
-	else if (0x2&stat) returnValues["Ready"] = "ok";
-	else if (0x4&stat) returnValues["Warning"] = "warning";
-	else if (0x8&stat) returnValues["Out-of-Sync"] = "error";
-	else returnValues["Undefined"] = "undefined";
-
-	return returnValues;
+	if (0xf&stat == 0x3) return std::make_pair("Error", "error");
+	else if (0x1&stat) return std::make_pair("Busy", "caution");
+	else if (0x2&stat) return std::make_pair("Ready", "ok");
+	else if (0x4&stat) return std::make_pair("Warning", "warning");
+	else if (0x8&stat) return std::make_pair("Out-of-Sync", "error");
+	else return std::make_pair("Undefined", "undefined");
 }
 
 
@@ -70,5 +66,53 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::InFIFOStat(const uint8
 	
 	return returnValues;
 }
+
+
+
+std::pair<std::string, std::string> emu::fed::DCCDebugger::decodeFIFOStatus(const uint8_t &stat, const size_t &iFIFO)
+{
+	if (iFIFO == 6 || iFIFO < 1 || iFIFO > 11) return std::make_pair("undefined", "undefined");
+
+	// Each bit corresponds to two FIFOs.
+	// We have to make up for the fact that iFIFO 6 correspons to an SLink.
+	unsigned int fifoBit = (iFIFO < 6 ? (iFIFO - 1)/2 : (iFIFO - 2)/2);
+	
+	// Bits 0, 1, and 2 correspond to a 1/2-full signal from FIFOs 1-2, 3-4, and 5-7 respectively.
+	// Bits 3, 4, 5, 6, and 7 correspond to a full signal from FIFOs 1-2. 3-4. 5-7. 8-9, and 10-11 respectively.
+	// Bit low is true.
+	std::string status = "ok";
+	std::string message = "ok";
+	if (!(stat & (1 << (fifoBit + 3)))) {
+		status = "error";
+		message = "full";
+	} else if (fifoBit < 3 && !(stat & (1 << fifoBit))) {
+		status = "warning";
+		message = "1/2 full";
+	}
+
+	return std::make_pair(message, status);
+}
+
+
+
+std::pair<std::string, std::string> emu::fed::DCCDebugger::decodeSLinkStatus(const uint8_t &stat, const size_t &iLink)
+{
+	if (iLink < 1 || iLink > 2) return std::make_pair("undefined", "undefined");
+	
+	// Bits 0 and 1 correspond to backpressure warnings for SLinks 1 and 2 respectively.
+	// Bits 2 and 3 correspond to inactive warnings for SLinks 1 and 2 respectively.
+	std::string status = "ok";
+	std::string message = "ok";
+	if (!(stat & (1 << (iLink * 2 - 1)))) {
+		status = "undefined";
+		message = "inactive";
+	} else if (!(stat & (1 << ((iLink - 1) * 2 )))) {
+		status = "error";
+		message = "backpressure";
+	}
+	
+	return std::make_pair(message, status);
+}
+
 
 
