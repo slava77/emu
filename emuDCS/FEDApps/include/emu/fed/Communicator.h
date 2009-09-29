@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.7 2009/07/06 15:50:10 paste Exp $
+* $Id: Communicator.h,v 1.8 2009/09/29 13:51:00 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -110,8 +110,11 @@ namespace emu {
 			/// A manager that takes care of FMM interrupt handling.
 			IRQThreadManager *TM_;
 			
-			/// Number of chambers with errors (for Page One)
+			/// Number of chambers with errors (for Page1)
 			xdata::UnsignedInteger fibersWithErrors_;
+			
+			/// The names of the fibers with errors as a space-separated list, for reporting to Page1
+			xdata::String fiberNamesWithErrors_;
 			
 			/// The current DDU to DCC input rates
 			xdata::Float totalDCCInputRate_;

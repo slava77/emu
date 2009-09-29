@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.17 2009/08/01 01:32:07 paste Exp $
+* $Id: Communicator.cc,v 1.18 2009/09/29 13:51:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -888,6 +888,7 @@ xoap::MessageReference emu::fed::Communicator::onGetParameters(xoap::MessageRefe
 	}
 	
 	fibersWithErrors_ = 0;
+	fiberNamesWithErrors_ = "";
 	totalDCCInputRate_ = 0;
 	totalDCCOutputRate_ = 0;
 	
@@ -897,8 +898,13 @@ xoap::MessageReference emu::fed::Communicator::onGetParameters(xoap::MessageRefe
 		for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 		
 			fibersWithErrors_ = fibersWithErrors_ + TM_->getData()->errorCount[(*iCrate)->getNumber()];
+			std::vector<std::string> fiberNames = TM_->getData()->errorFiberNames[(*iCrate)->getNumber()];
+			for (std::vector<std::string>::const_iterator iName = fiberNames.begin(); iName != fiberNames.end(); iName++) {
+				if (fiberNamesWithErrors_ != "") fiberNamesWithErrors_ = (fiberNamesWithErrors_.toString()) + " ";
+				fiberNamesWithErrors_ = (fiberNamesWithErrors_.toString()) + (*iName); // Oh, xdaq, you so silly!
+			}
 			
-			// Average the input/output rates from the DCCs
+			// Total the input/output rates from the DCCs
 			std::vector<DCC *> dccVector = (*iCrate)->getDCCs();
 			for (std::vector<DCC *>::const_iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
 				// DDU input FIFOs are 1-5 and 7-11, S-Links are 0 and 6

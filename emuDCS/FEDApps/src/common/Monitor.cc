@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.12 2009/07/01 14:54:03 paste Exp $
+* $Id: Monitor.cc,v 1.13 2009/09/29 13:51:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -172,7 +172,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 			crateTable(iRow, 0)->set("id", "crate_" + crateName.str() + "_slot_" + slotText.str() + "_slot");
 			crateTable(iRow, 0) << slotText.str();
 			crateTable(iRow, 1).setClass("name");
-			crateTable(iRow, 1) << "DDU " << (*iDDU)->getRUI() << cgicc::br();
+			crateTable(iRow, 1) << "DDU " << (*iDDU)->getRUI() << cgicc::br() << "(FMM " << (*iDDU)->getFMMID() << ")" << cgicc::br();
 			crateTable(iRow, 1) << cgicc::div(" ")
 				.set("class", "l1a")
 				.set("id", "crate_" + crateName.str() + "_slot_" + slotText.str() + "_l1a");
@@ -196,7 +196,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 			crateTable(iRow, 0)->set("id", "crate_" + crateName.str() + "_slot_" + slotText.str() + "_slot");
 			crateTable(iRow, 0) << slotText.str();
 			crateTable(iRow, 1).setClass("name");
-			crateTable(iRow, 1) << "DCC " << (*iDCC)->getFMMID() << cgicc::br();
+			crateTable(iRow, 1) << "DCC" << cgicc::br() << "(FMM " << (*iDCC)->getFMMID() << ")" << cgicc::br();
 			crateTable(iRow, 1) << cgicc::span(" ")
 				.set("class", "l1a")
 				.set("id", "crate_" + crateName.str() + "_slot_" + slotText.str() + "_l1a");
@@ -887,9 +887,9 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		// FMM Status
 		std::string statusDecoded = "undefined";
 		try {
-			uint8_t fmmStatus = ((*iDCC)->readStatusHigh() >> 12) & 0x000f;
-			std::map<std::string, std::string> debugged = DCCDebugger::FMMStat(fmmStatus);
-			statusDecoded = debugged.begin()->second;
+			uint8_t fmmStatus = (*iDCC)->readFMMStatus();
+			std::pair<std::string, std::string> debugged = DCCDebugger::FMMStat(fmmStatus);
+			statusDecoded = debugged.second;
 		} catch (emu::fed::exception::DCCException &e) {
 			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
@@ -898,7 +898,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		// L1A count
 		uint32_t dccL1A = 0;
 		try {
-			dccL1A = (*iDCC)->readStatusLow();
+			dccL1A = (*iDCC)->readL1A();
 		} catch (emu::fed::exception::DCCException &e) {
 			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
@@ -908,47 +908,44 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		JSONSpirit::Array fifoArray;
 		uint16_t fifoStatus = 0;
 		try {
-			fifoStatus = ((*iDCC)->readStatusHigh() & 0x0ff0) >> 4;
+			fifoStatus = (*iDCC)->readFIFOStatus();
 		} catch (emu::fed::exception::DCCException &e) {
 			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
-		for (size_t iFIFO = 0; iFIFO <= 9; iFIFO++) {
+		for (size_t iFIFO = 1; iFIFO <= 11; iFIFO++) {
+			// This code here is because iFIFO is an index from 1-11,
+			// but it does not account for the SLinks that are index 0 and 6.
+			// What we really want is to count 1, 2, 3, 4, 5, 7, 8, 9, 10, 11.
+			if (iFIFO == 6) continue;
+			
 			JSONSpirit::Object fifoObject;
 			
 			unsigned int iSlot = 0;
-			unsigned int realFIFO = iFIFO + 1;
-			if (realFIFO >= 6) realFIFO++;
 			try {
-				iSlot = (*iDCC)->getDDUSlotFromFIFO(realFIFO);
+				iSlot = (*iDCC)->getDDUSlotFromFIFO(iFIFO);
 			} catch (emu::fed::exception::OutOfBoundsException &e) {
 				// Not a valid FIFO number?
 				fifoObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			fifoObject.push_back(JSONSpirit::Pair("slot", (int) iSlot));
 			
-			// Each bit corresponds to two FIFOs
-			unsigned int jFIFO = iFIFO/2;
-			
 			uint16_t rate = 0;
 			std::string status = "ok";
 			std::string message = "bytes/s";
 			try {
+				// Look up rates by slot, not by FIFO
 				rate = (*iDCC)->readDDURate(iSlot);
 			} catch (emu::fed::exception::DCCException &e) {
 				fifoObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			
-			FIFO *fifo = (*iDCC)->getFIFO(iFIFO);
-			
-			if (!fifo->isUsed()) {
+			if (!(*iDCC)->getFIFO(iFIFO)->isUsed()) {
 				status = "killed";
 				message = "not used";
-			} else if (!(fifoStatus & (1 << (jFIFO + 3)))) {
-				status = "error";
-				message = "full";
-			} else if (jFIFO < 3 && !(fifoStatus & (1 << jFIFO))) {
-				status = "warning";
-				message = "1/2 full";
+			} else {
+				std::pair<std::string, std::string> debuggedStatus = DCCDebugger::decodeFIFOStatus(fifoStatus, iFIFO);
+				status = debuggedStatus.second;
+				if (status != "ok") message = debuggedStatus.first;
 			}
 			
 			fifoObject.push_back(JSONSpirit::Pair("rate", rate));
@@ -963,7 +960,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		JSONSpirit::Array slinkArray;
 		uint16_t slinkStatus = 0;
 		try {
-			slinkStatus = (*iDCC)->readStatusHigh() & 0xf;
+			slinkStatus = (*iDCC)->readSLinkStatus();
 		} catch (emu::fed::exception::DCCException &e) {
 			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
@@ -983,13 +980,9 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 				slinkObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 
-			if (!(slinkStatus & (1 << (iLink * 2 - 1)))) {
-				status = "undefined";
-				message = "inactive";
-			} else if (!(slinkStatus & (1 << ((iLink - 1) * 2 )))) {
-				status = "warning";
-				message = "backpressure";
-			}
+			std::pair<std::string, std::string> debuggedStatus = DCCDebugger::decodeSLinkStatus(slinkStatus, iLink);
+			status = debuggedStatus.second;
+			if (status != "ok") message = debuggedStatus.first;
 			
 			slinkObject.push_back(JSONSpirit::Pair("rate", rate));
 			slinkObject.push_back(JSONSpirit::Pair("status", status));

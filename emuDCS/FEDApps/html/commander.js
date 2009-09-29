@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.2 2009/08/15 19:17:42 paste Exp $
+* $Id: commander.js,v 1.3 2009/09/29 13:51:00 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -58,8 +58,7 @@ Event.observe(window, "load", function(event) {
 			$$(".ddu_checkbox").each(function(element2) {
 				if (element2.readAttribute("crate") == crate) element2.checked = true;
 			});
-			$$(".ddu_hidden").invoke("show");
-			$("ddu_displayed").hide();
+			$$(".ddu_button").each( function(e) { e.disabled = false; });
 		});
 	});
 	$$(".no_ddus").each(function(element) {
@@ -69,8 +68,7 @@ Event.observe(window, "load", function(event) {
 			$$(".ddu_checkbox").each(function(element2) {
 				if (element2.readAttribute("crate") == crate) element2.checked = false;
 			});
-			$$(".ddu_hidden").invoke("hide");
-			$("ddu_displayed").show();
+			$$(".ddu_button").each( function(e) { e.disabled = true; });
 		});
 	});
 	$$(".all_dccs").each(function(element) {
@@ -99,11 +97,9 @@ Event.observe(window, "load", function(event) {
 		if (el2.checked) firmwareChecked++;
 	});
 	if (firmwareChecked) {
-		$("firmware_hidden").show();
-		$("firmware_displayed").hide();
+		$$(".firmware_button").each( function(e) { e.disabled = false; });
 	} else {
-		$("firmware_hidden").hide();
-		$("firmware_displayed").show();
+		$$(".firmware_button").each( function(e) { e.disabled = true; });
 	}
 	$$(".crate_checkbox").each(function(element) {
 		element.observe("change", function(el) {
@@ -120,27 +116,23 @@ Event.observe(window, "load", function(event) {
 				if (el2.checked) totalChecked++;
 			});
 			if (totalChecked) {
-				$("firmware_hidden").show();
-				$("firmware_displayed").hide();
+				$$(".firmware_button").each( function(e) { e.disabled = false; });
 			} else {
-				$("firmware_hidden").hide();
-				$("firmware_displayed").show();
+				$$(".firmware_button").each( function(e) { e.disabled = true; });
 			}
 		});
 	});
 
-	// Hide DDU section until a DDU is selected
-	// Count the number of checked DDUs and make the DDU section appear if there are any
+	// Disable DDU buttons until a DDU is selected
+	// Count the number of checked DDUs
 	var dduChecked = 0;
 	$$(".ddu_checkbox").each(function(el2) {
 		if (el2.checked) dduChecked++;
 	});
 	if (dduChecked) {
-		$$(".ddu_hidden").invoke("show");
-		$("ddu_displayed").hide();
+		$$(".ddu_button").each( function(e) { e.disabled = false; });
 	} else {
-		$$(".ddu_hidden").invoke("hide");
-		$("ddu_displayed").show();
+		$$(".ddu_button").each( function(e) { e.disabled = true; });
 	}
 	$$(".ddu_checkbox").each(function(element) {
 		element.observe("change", function(el) {
@@ -150,11 +142,9 @@ Event.observe(window, "load", function(event) {
 				if (el2.checked) totalChecked++;
 			});
 			if (totalChecked) {
-				$$(".ddu_hidden").invoke("show");
-				$("ddu_displayed").hide();
+				$$(".ddu_button").each( function(e) { e.disabled = false; });
 			} else {
-				$$(".ddu_hidden").invoke("hide");
-				$("ddu_displayed").show();
+				$$(".ddu_button").each( function(e) { e.disabled = true; });
 			}
 		});
 	});
@@ -169,6 +159,27 @@ Event.observe(window, "load", function(event) {
 			element.checked = false;
 		});
 	});
+	
+	// Print data in selected format (in a new window)
+	$("ddu_display_button").observe("click", function(ev) {
+		// The crates/slots to read
+		var ruis = new Array();
+		$$(".ddu_checkbox").each( function(e) {
+			if (e.checked == true) {
+				ruis.push(e.readAttribute("rui"));
+			}
+		});
+		// The registers to read
+		var registers = new Array();
+		$$(".ddu_registers_checkbox").each( function(e) {
+			if (e.checked == true) {
+				registers.push(e.readAttribute("name"));
+			}
+		});
+		var checkboxes = new Hash({"rui": ruis, "reg": registers, "debug": 1});
+		window.open(URL + "/DisplayDDURegisters?" + checkboxes.toQueryString(), "commanderResults");
+	});
+
 });
 
 function getStatus() {
