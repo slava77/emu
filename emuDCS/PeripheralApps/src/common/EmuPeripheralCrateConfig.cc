@@ -6373,41 +6373,38 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   if (power_register==0xBAAD)
   {
         std::cout << "Cannot read DMB" << std::endl;
-        *out << "Cannot read DMB" << std::endl;
-        return;
+        power_register=0;  // can't read DMB (mostly DMB VME firmware problem), assume 0
   }
   int power_read = power_register&0x3F;
-  if(power_read)
-  {
-     for(int icc=1; icc<=6; icc++)
-     {   power_state[icc]= power_register & 1;
-         power_register = power_register>>1;
-     }
+  for(int icc=1; icc<=6; icc++)
+  {   power_state[icc]= power_register & 1;
+      power_register = power_register>>1;
   }
-  else
+  if(power_read==0)
   {  // if read back is 0 then
      // try read Low voltages and currents to determine if a CFEB/ALCT is on or off
      power_read = thisDMB->DCSreadAll(buf);
      if (power_read<20)
      {
-        std::cout << "Cannot read DMB" << std::endl;
-        *out << "Cannot read DMB" << std::endl;
-        return;
+        std::cout << "Cannot read DMB DCS info" << std::endl;
      }
-     for(int icc=0; icc<40; icc++)
-     {  // remove the bad readings 0xBAAD etc
-        if(voltbuf[icc] >= 0xFFF) voltbuf[icc]=0;
-     }
-     for(int icc=1; icc<=6; icc++)
+     else
      {
-        power_read = voltbuf[16+icc*3]+voltbuf[17+icc*3]+voltbuf[18+icc*3];
-        power_state[icc]= (power_read>1200) ? 1 : 0;  // roughly 3 volts 
-     }
-     power_read=power_state[6];
-     for(int icc=5; icc>0; icc--)
-     {
-        power_read = power_read<<1;
-        power_read += power_state[icc];
+        for(int icc=0; icc<40; icc++)
+        {  // remove the bad readings 0xBAAD etc
+           if(voltbuf[icc] >= 0xFFF) voltbuf[icc]=0;
+        }
+        for(int icc=1; icc<=6; icc++)
+        {
+           power_read = voltbuf[16+icc*3]+voltbuf[17+icc*3]+voltbuf[18+icc*3];
+           power_state[icc]= (power_read>1200) ? 1 : 0;  // roughly 3 volts 
+        }
+        power_read=power_state[6];
+        for(int icc=5; icc>0; icc--)
+        {
+           power_read = power_read<<1;
+           power_read += power_state[icc];
+        }
      }
   }
   for(int icc=0; icc<=6; icc++)
