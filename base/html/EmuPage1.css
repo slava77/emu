@@ -16,6 +16,7 @@ td.Failed { background-color:#ff2222; }
 td.UNKNOWN, td.Unknown { background-color:#ff2222; }
 td.INDEFINITE, td.Indefinite { background-color:#ff2222; }
 td.OFF { background-color:#ff2222; }
+td.NA { background-color:#ff2222; }
 table.root { width: 100%; border-collapse: collapse; background-color:#ffffff; }
 table.root td { color:#000000; }
 a:link,a:active,a:visited { color:#333333; }
