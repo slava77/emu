@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.15 2009/09/29 14:18:12 paste Exp $
+* $Id: DDU.cc,v 1.16 2009/10/12 14:59:56 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -861,9 +861,9 @@ throw (emu::fed::exception::DDUException)
 uint16_t emu::fed::DDU::readFIFOStatus(const uint8_t &fifo)
 throw (emu::fed::exception::DDUException)
 {
-	if (fifo < 1 || fifo > 3) {
+	if (fifo > 2) {
 		std::ostringstream error;
-		error << "FIFOStatus argument must be between 1 and 3 (inclusive)";
+		error << "FIFOStatus argument must be between 0 and 2 (inclusive)";
 		XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
 		std::ostringstream tag;
 		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
@@ -872,11 +872,11 @@ throw (emu::fed::exception::DDUException)
 	}
 
 	uint16_t command = 7;
-	if (fifo == 1)
+	if (fifo == 0)
 		command = 7;
-	else if (fifo == 2)
+	else if (fifo == 1)
 		command = 8;
-	else if (fifo == 3)
+	else if (fifo == 2)
 		command = 11;
 
 	try {
@@ -1077,9 +1077,9 @@ throw (emu::fed::exception::DDUException)
 uint16_t emu::fed::DDU::readEBRegister(const uint8_t reg)
 throw (emu::fed::exception::DDUException)
 {
-	if (reg < 1 || reg > 3) {
+	if (reg > 2) {
 		std::ostringstream error;
-		error << "EBRegister argument must be 1, 2, or 3";
+		error << "EBRegister argument must be 0, 1, or 2";
 		XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
 		std::ostringstream tag;
 		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
@@ -1087,7 +1087,7 @@ throw (emu::fed::exception::DDUException)
 		throw e2;
 	}
 	try {
-		return readRegister(DDUFPGA, 21 + reg, 16)[0];
+		return readRegister(DDUFPGA, 22 + reg, 16)[0];
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
@@ -2060,7 +2060,7 @@ uint16_t emu::fed::DDU::readLiveFibers()
 throw (emu::fed::exception::DDUException)
 {
 	try {
-		return (readFiberStatus(INFPGA0)&0x000000ff) | ((readFiberStatus(INFPGA1)&0x000000ff)<<8);
+		return (readFiberStatus(INFPGA0) & 0x00ff) | ((readFiberStatus(INFPGA1) & 0x00ff) << 8);
 	} catch (emu::fed::exception::DDUException &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
