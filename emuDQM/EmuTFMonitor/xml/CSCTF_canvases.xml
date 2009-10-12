@@ -195,10 +195,34 @@
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_</Prefix>
-		<Name>occupancy</Name>
-		<Title>Occupancy</Title>
-		<Item>occupancy</Item>
+		<Name>occupancyTracks</Name>
+		<Title>Occupancy of tracks</Title>
+		<Item>occupancyTracksP(Top)</Item>
+		<Item>occupancyTracksM(Bottom)</Item>
 	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_</Prefix>
+		<Name>occupancyLCTsPlus</Name>
+		<Title>LCTs' occupancy in ME+</Title>
+		<Item>occupancyME1p(0.485x0.485+0.01+0.505)</Item>
+		<Item>occupancyME2p(0.485x0.485+0.505+0.505)</Item>
+		<Item>occupancyME3p(0.485x0.485+0.01+0.01)</Item>
+		<Item>occupancyME4p(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_</Prefix>
+		<Name>occupancyLCTsMinus</Name>
+		<Title>LCTs' occupancy in ME-</Title>
+		<Item>occupancyME1m(0.485x0.485+0.01+0.505)</Item>
+		<Item>occupancyME2m(0.485x0.485+0.505+0.505)</Item>
+		<Item>occupancyME3m(0.485x0.485+0.01+0.01)</Item>
+		<Item>occupancyME4m(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
 
 	<Canvas>
 		<Type>c_</Type>

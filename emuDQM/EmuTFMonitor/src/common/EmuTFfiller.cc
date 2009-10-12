@@ -45,8 +45,17 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 		return;
 	}
 
-	// All-in-one plot to identify problems/gaps at one glance
-	TH2F *occupancy = (TH2F*)tf.get("occupancy");
+	// All-in-one plots to identify problems/gaps at one glance
+	TH2F *occupancyME1p    = (TH2F*)tf.get("occupancyME1p");
+	TH2F *occupancyME2p    = (TH2F*)tf.get("occupancyME2p");
+	TH2F *occupancyME3p    = (TH2F*)tf.get("occupancyME3p");
+	TH2F *occupancyME4p    = (TH2F*)tf.get("occupancyME4p");
+	TH2F *occupancyME1m    = (TH2F*)tf.get("occupancyME1m");
+	TH2F *occupancyME2m    = (TH2F*)tf.get("occupancyME2m");
+	TH2F *occupancyME3m    = (TH2F*)tf.get("occupancyME3m");
+	TH2F *occupancyME4m    = (TH2F*)tf.get("occupancyME4m");
+	TH2F *occupancyTracksP = (TH2F*)tf.get("occupancyTracksP");
+	TH2F *occupancyTracksM = (TH2F*)tf.get("occupancyTracksM");
 
 	// DDU Status word (FMM)
 	TH2F *DDU_status = (TH2F*)tf.get("DDU_status");
@@ -337,6 +346,7 @@ if( sp == 0 ){
 				unsigned short mpc =(lct->spInput()-1)/3+1; // 1-5
 				unsigned short csc = lct->csc();            // 1-9
 
+				// No comments on the code below
 				const double offsetEta[6][10] = { 
 					{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 					{-1,  0,  0,  0,  2,  2,  2,  4,  4,  4},
@@ -350,8 +360,8 @@ if( sp == 0 ){
 					{-1, 48/2., 48/2., 48/2., 64/2., 64/2., 64/2., 32/2., 32/2., 32/2.},
 					{-1, 48/2., 48/2., 48/2., 64/2., 64/2., 64/2., 32/2., 32/2., 32/2.},
 					{-1,112/3.,112/3.,112/3., 64/3., 64/3., 64/3., 64/3., 64/3., 64/3.},
-					{-1,112/3.,112/3.,112/3., 64/3., 64/3., 64/3., 64/3., 64/3., 64/3.},
-					{-1,112/3.,112/3.,112/3., 64/3., 64/3., 64/3., 64/3., 64/3., 64/3.}
+					{-1, 96/3., 96/3., 96/3., 64/3., 64/3., 64/3., 64/3., 64/3., 64/3.},
+					{-1, 96/3., 96/3., 96/3., 64/3., 64/3., 64/3., 64/3., 64/3., 64/3.}
 				};
 				const double offsetPhi[6][10] = { 
 					{-1,   -1,   -1,   -1,   -1,  -1,    -1,   -1,   -1,   -1},
@@ -363,16 +373,38 @@ if( sp == 0 ){
 				};
 				const double normPhi[6][10] = {
 					{-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1},
-					{-1, 158, 158, 158, 158, 158, 158, 126, 126, 126},
-					{-1, 158, 158, 158, 158, 158, 158, 126, 126, 126},
-					{-1, 158, 158, 158, 158, 158, 158, 158, 158, 158},
-					{-1, 158, 158, 158, 158, 158, 158, 158, 158, 158},
-					{-1, 158, 158, 158, 158, 158, 158, 158, 158, 158}
+					{-1, 158*6., 158*6., 158*6., 158*6., 158*6., 158*6., 126*6., 126*6., 126*6.},
+					{-1, 158*6., 158*6., 158*6., 158*6., 158*6., 158*6., 126*6., 126*6., 126*6.},
+					{-1, 158*3., 158*3., 158*3., 158*6., 158*6., 158*6., 158*6., 158*6., 158*6.},
+					{-1, 158*3., 158*3., 158*3., 158*6., 158*6., 158*6., 158*6., 158*6., 158*6.},
+					{-1, 158*3., 158*3., 158*3., 158*6., 158*6., 158*6., 158*6., 158*6., 158*6.}
 				};
 
-				if(occupancy && mpc<6 && csc<10)
-					occupancy->Fill( lct->wireGroup()/normEta[mpc][csc] + offsetEta[mpc][csc], lct->strip()/normPhi[mpc][csc] + offsetPhi[mpc][csc] + sp);
-//cout<<"lct->wireGroup()="<<lct->wireGroup()<<" norm[mpc][csc]="<<norm[mpc][csc]<<" offset[mpc][csc]="<<offset[mpc][csc]<<" total="<<(lct->wireGroup()/norm[mpc][csc] + offset[mpc][csc])<<endl;
+				if( mpc<6 && csc<10){
+					double eta = lct->wireGroup() / normEta[mpc][csc] + offsetEta[mpc][csc];
+					double phi = lct->strip()     / normPhi[mpc][csc] + offsetPhi[mpc][csc];
+					// now put the eta and phi on the physical scale
+					eta = 2.4-eta/6.*(2.4-0.9);
+					if( (spPtr->header().endcap() && mpc<4) || (!spPtr->header().endcap() && mpc>=4) ) // phi ~ strip
+						phi = fmod((phi+spPtr->header().sector()-1.)/6.*360. + 15.,360.);
+						//phi = (phi+sp)/6.*360. + 15.;
+					else // phi ~ -strip
+						phi = fmod((spPtr->header().sector()-phi)/6.*360. + 15.,360.);
+						//phi = (sp+1.-phi)/6.*360. + 15.;
+
+					if( occupancyME1p && mpc< 3 &&  spPtr->header().endcap() ) occupancyME1p->Fill(eta,phi);
+					if( occupancyME2p && mpc==3 &&  spPtr->header().endcap() ) occupancyME2p->Fill(eta,phi);
+					if( occupancyME3p && mpc==4 &&  spPtr->header().endcap() ) occupancyME3p->Fill(eta,phi);
+					if( occupancyME4p && mpc==5 &&  spPtr->header().endcap() ) occupancyME4p->Fill(eta,phi);
+
+					if( occupancyME1m && mpc< 3 && !spPtr->header().endcap() ) occupancyME1m->Fill(eta,phi);
+					if( occupancyME2m && mpc==3 && !spPtr->header().endcap() ) occupancyME2m->Fill(eta,phi);
+					if( occupancyME3m && mpc==4 && !spPtr->header().endcap() ) occupancyME3m->Fill(eta,phi);
+					if( occupancyME4m && mpc==5 && !spPtr->header().endcap() ) occupancyME4m->Fill(eta,phi);
+//if( lct->wireGroup()/normEta[mpc][csc] + offsetEta[mpc][csc] > (csc<4 || (csc<7 && mpc<3) ? offsetEta[mpc][csc+3] : 6) ) cout<<"lct->wireGroup()="<<lct->wireGroup()<<" normEta["<<mpc<<"]["<<csc<<"]="<<normEta[mpc][csc]<<" offsetEta["<<mpc<<"]["<<csc<<"]="<<offsetEta[mpc][csc]<<" total="<<(lct->wireGroup()/normEta[mpc][csc] + offsetEta[mpc][csc])<<endl;
+//if( lct->strip()/normPhi[mpc][csc] + offsetPhi[mpc][csc]>1 ) cout<<"lct->strip()="<<lct->strip()<<" normPhi["<<mpc<<"]["<<csc<<"]="<<normPhi[mpc][csc]<<" offsetPhi["<<mpc<<"]["<<csc<<"]="<<offsetPhi[mpc][csc]<<" total="<<(lct->strip()/normPhi[mpc][csc] + offsetPhi[mpc][csc])<<endl;
+				}
+
 				if(!tf.isBooked(sp,mpc) ){
 					tf.book(sp,mpc);
 					cout<<"Booking histograms for SP:"<<sp<<" MPC: "<<mpc<<std::endl;
@@ -449,31 +481,66 @@ if( sp == 0 ){
 
 			vector<CSCSP_MBblock> dt_stubs = spPtr->record(tbin).mbStubs();
 			for(vector<CSCSP_MBblock>::const_iterator dt_stub=dt_stubs.begin(); dt_stub!=dt_stubs.end(); dt_stub++){
-                                TH1F *dt_bits = (TH1F*)tf.get("dt_bits",sp);
-                                if( dt_bits ){
-					dt_bits->Fill(dt_stub->flag()>>0);
-					dt_bits->Fill(dt_stub->cal()>>1);
-					dt_bits->Fill(dt_stub->bc0()>>2);
-					dt_bits->Fill(dt_stub->BXN()>>3);
+			switch( dt_stub->id() ){
+			case 1: {
+                                TH1F *dt_bitsA = (TH1F*)tf.get("dt_bitsA",sp);
+                                if( dt_bitsA ){
+					dt_bitsA->Fill(dt_stub->flag()>>0);
+					dt_bitsA->Fill(dt_stub->cal()>>1);
+					dt_bitsA->Fill(dt_stub->bc0()>>2);
+					dt_bitsA->Fill(dt_stub->BXN()>>3);
 				}
 
-				TH1F *dt_time_bin = (TH1F*)tf.get("dt_time_bin",sp);
-				if( dt_time_bin ) dt_time_bin->Fill(dt_stub->tbin());
+				TH1F *dt_time_binA = (TH1F*)tf.get("dt_time_binA",sp);
+				if( dt_time_binA ) dt_time_binA->Fill(dt_stub->tbin());
 
-				TH1F *dt_quality = (TH1F*)tf.get("dt_quality",sp);
-				if( dt_quality ) dt_quality->Fill(dt_stub->quality());
+				TH1F *dt_qualityA = (TH1F*)tf.get("dt_qualityA",sp);
+				if( dt_qualityA ) dt_qualityA->Fill(dt_stub->quality());
 
-				TH1F *dt_phi_bend = (TH1F*)tf.get("dt_phi_bend",sp);
-				if( dt_phi_bend ) dt_phi_bend->Fill(dt_stub->phi_bend());
+				TH1F *dt_phi_bendA = (TH1F*)tf.get("dt_phi_bendA",sp);
+				if( dt_phi_bendA ) dt_phi_bendA->Fill(dt_stub->phi_bend());
 
-				TH1F *dt_phi = (TH1F*)tf.get("dt_phi",sp);
-				if( dt_phi ){
+				TH1F *dt_phiA = (TH1F*)tf.get("dt_phiA",sp);
+				if( dt_phiA ){
                                     signed int s_phi = dt_stub->phi();
-                                    dt_phi->Fill( (s_phi&0x800 ? (s_phi&0x7FF)-0x800 : s_phi&0x7FF) );
+                                    //dt_phi->Fill( (s_phi&0x800 ? (s_phi&0x7FF)-0x800 : s_phi&0x7FF) );
+                                    dt_phiA->Fill(s_phi);
                                 }
 
-				TH2F *dt_synch = (TH2F*)tf.get("dt_synch",sp);
-				if( dt_synch ) dt_synch->Fill(spPtr->header().BXN()%(int)dt_synch->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synch->GetYaxis()->GetXmax());
+				TH2F *dt_synchA = (TH2F*)tf.get("dt_synchA",sp);
+				if( dt_synchA ) dt_synchA->Fill(spPtr->header().BXN()%(int)dt_synchA->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synchA->GetYaxis()->GetXmax());
+			}
+			case 2: {
+                                TH1F *dt_bitsD = (TH1F*)tf.get("dt_bitsD",sp);
+                                if( dt_bitsD ){
+					dt_bitsD->Fill(dt_stub->flag()>>0);
+					dt_bitsD->Fill(dt_stub->cal()>>1);
+					dt_bitsD->Fill(dt_stub->bc0()>>2);
+					dt_bitsD->Fill(dt_stub->BXN()>>3);
+				}
+
+				TH1F *dt_time_binD = (TH1F*)tf.get("dt_time_binD",sp);
+				if( dt_time_binD ) dt_time_binD->Fill(dt_stub->tbin());
+
+				TH1F *dt_qualityD = (TH1F*)tf.get("dt_qualityD",sp);
+				if( dt_qualityD ) dt_qualityD->Fill(dt_stub->quality());
+
+				TH1F *dt_phi_bendD = (TH1F*)tf.get("dt_phi_bendD",sp);
+				if( dt_phi_bendD ) dt_phi_bendD->Fill(dt_stub->phi_bend());
+
+				TH1F *dt_phiD = (TH1F*)tf.get("dt_phiD",sp);
+				if( dt_phiD ){
+                                    signed int s_phi = dt_stub->phi();
+                                    //dt_phi->Fill( (s_phi&0x800 ? (s_phi&0x7FF)-0x800 : s_phi&0x7FF) );
+                                    dt_phiD->Fill(s_phi);
+                                }
+
+				TH2F *dt_synchD = (TH2F*)tf.get("dt_synchD",sp);
+				if( dt_synchD ) dt_synchD->Fill(spPtr->header().BXN()%(int)dt_synchD->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synchD->GetYaxis()->GetXmax());
+			}
+			default : cout<<"Booking of general histograms"<<std::endl;
+			}
+				shared_hits.fill(tbin,dt_stub->id(),*dt_stub);
 			}
 
 
@@ -483,7 +550,10 @@ if( sp == 0 ){
 			if( nTracks ) nTracks->Fill(tracks.size());
 
 			for(vector<CSCSP_SPblock>::const_iterator track=tracks.begin(); track!=tracks.end(); track++){
-				if(occupancy) occupancy->Fill( track->eta()/32.*6, track->phi()/32. + sp+12 ); 
+				if( occupancyTracksP &&  spPtr->header().endcap() )
+					occupancyTracksP->Fill( track->eta()/32.*(2.4-0.9)+0.9, fmod(360.*(track->phi()/32. + spPtr->header().sector()-1)/6.+15,360.)); 
+				if( occupancyTracksM && !spPtr->header().endcap() )
+					occupancyTracksM->Fill( track->eta()/32.*(2.4-0.9)+0.9, fmod(360.*(track->phi()/32. + spPtr->header().sector()-1)/6.+15,360.)); 
 
 				TH2F *mode_vs_station = (TH2F*)tf.get("mode_vs_station",sp);
 				if( mode_vs_station ){
@@ -507,11 +577,11 @@ if( sp == 0 ){
 
 				TH1F *tbins = (TH1F*)tf.get("tbins",sp);
 				if( tbins ){
-					tbins->Fill(track->ME1_tbin()+0);
-					tbins->Fill(track->ME2_tbin()+7);
-					tbins->Fill(track->ME3_tbin()+14);
-					tbins->Fill(track->ME4_tbin()+21);
-					tbins->Fill(track->MB_tbin ()+28);
+					if( track->ME1_id() ) tbins->Fill(track->ME1_tbin()+0);
+					if( track->ME2_id() ) tbins->Fill(track->ME2_tbin()+7);
+					if( track->ME3_id() ) tbins->Fill(track->ME3_tbin()+14);
+					if( track->ME4_id() ) tbins->Fill(track->ME4_tbin()+21);
+					if( track->MB_id()  ) tbins->Fill(track->MB_tbin ()+28);
 				}
 
 				TH1F *track_time = (TH1F*)tf.get("track_time",sp);
@@ -525,7 +595,7 @@ if( sp == 0 ){
 			map<pair<unsigned int,unsigned int>,int> deltaBX = shared_hits.diffBX();
 			map<pair<unsigned int,unsigned int>,int>::const_iterator iter = deltaBX.begin();
 			while(iter!=deltaBX.end()){
-                                if(iter->first.second<0 || iter->first.second>=50 || iter->first.first<0 || iter->first.second>=50){
+                                if(iter->first.second<0 || iter->first.second>=53 || iter->first.first<0 || iter->first.second>=53){
                                    cout<<"iter->first.first="<<iter->first.first<<" iter->first.second="<<iter->first.second<<endl;
                                    continue;
                                 }
@@ -533,12 +603,13 @@ if( sp == 0 ){
 				unsigned short csc1 = iter->first.first%10;
 				if( !tf.isBooked(sp,mpc1,csc1) ) tf.book(sp,mpc1,csc1);
 				// following mapping is strictly defined by Y labels of the timing histogram
-				const int id2bin[50] = {
+				const int id2bin[53] = {
 					-1, 1,  2,  3,  4,  5,  6,  7,  8,  9,
 					-1,10, 11, 12, 13, 14, 15, 16, 17, 18,
 					-1,19, 20, 21, 22, 23, 24, 25, 26, 27,
 					-1,28, 29, 30, 31, 32, 33, 34, 35, 36,
-					-1,37, 38, 39, -1, -1, -1, -1, -1, -1
+					-1,37, 38, 39, -1, -1, -1, -1, -1, -1,
+					-1,40, 41
 					///-1,37, 38, 39, 40, 41, 42, 43, 44, 45
 				};
 				TH2F *csc_timing = (TH2F*)tf.get("csc_timing",sp,mpc1,csc1);

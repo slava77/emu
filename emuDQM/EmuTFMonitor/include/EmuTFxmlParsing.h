@@ -13,8 +13,9 @@ public:
 	std::string prefix;
 	std::string name;
 	std::string title;
-	int xMax, xMin, xNbins;
-	int yMax, yMin, yNbins;
+	int xNbins, yNbins;
+	float xMax, xMin;
+	float yMax, yMin;
 	std::string xLabel;
 	std::string yLabel;
 	std::vector<std::string> xBinLabels;
@@ -23,8 +24,9 @@ public:
 	HistAttributes(void):
 		type("Unknown"),prefix("Unknown"),
 		name("Unknown"),title("Untitled"),
-		xMax(0),xMin(0),xNbins(0),
-		yMax(0),yMin(0),yNbins(0),
+		xNbins(0),yNbins(0),
+		xMax(0),xMin(0),
+		yMax(0),yMin(0),
 		xLabel(""),yLabel(""){}
 };
 
