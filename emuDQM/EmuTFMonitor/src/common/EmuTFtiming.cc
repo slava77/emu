@@ -9,26 +9,29 @@ using namespace std;
 
 class EmuTFtiming {
 private:
-	vector< pair<unsigned int,CSCSP_MEblock> > hits[5][10];
+	vector< pair<unsigned int,CSCSP_MEblock> > hits[6][10];
 public:
 	void init(void){
-		for(int mpc=0; mpc<5; mpc++)
+		for(int mpc=0; mpc<6; mpc++)
 			for(int csc=0; csc<10; csc++)
 				hits[mpc][csc].clear();
 	}
 	void fill(unsigned int bx, unsigned int mpc, unsigned int csc, CSCSP_MEblock correlatedLCT){
 		hits[mpc][csc].push_back( pair<unsigned int,CSCSP_MEblock>(bx,correlatedLCT) );
 	}
+	void fill(unsigned int bx, unsigned int dt, CSCSP_MBblock mbStub){
+		hits[5][dt].push_back( pair<unsigned int,CSCSP_MEblock>(bx,CSCSP_MEblock()) );
+	}
 	unsigned int nHits(void){
 		unsigned int retval=0;
-		for(int mpc=0; mpc<5; mpc++)
+		for(int mpc=0; mpc<6; mpc++)
 			for(int csc=0; csc<10; csc++)
 				retval += hits[mpc][csc].size();
 		return retval;
 	}
 	map<pair<unsigned int,unsigned int>,int> diffBX(void){
 		map<pair<unsigned int,unsigned int>,vector< pair<unsigned int,CSCSP_MEblock> >::const_iterator> chamber_list;
-		for(int mpc=0; mpc<5; mpc++)
+		for(int mpc=0; mpc<6; mpc++)
 			for(int csc=0; csc<10; csc++){
 				vector< pair<unsigned int,CSCSP_MEblock> >::const_iterator first_hit = hits[mpc][csc].begin();
 				if(first_hit!=hits[mpc][csc].end()) chamber_list[pair<unsigned int,unsigned int>(mpc,csc)] = first_hit;

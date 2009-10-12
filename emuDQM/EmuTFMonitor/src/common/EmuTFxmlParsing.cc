@@ -250,8 +250,8 @@ std::map<std::string,HistAttributes> parseHistXML(const char *filename) throw (s
 						char *second = strchr(textChar,':') + 1;
 						if( first!=NULL && second!=NULL ){
 							second[-1] = '\0';
-							histogram.xMin = atoi(first);
-							histogram.xMax = atoi(second);
+							histogram.xMin = atof(first);
+							histogram.xMax = atof(second);
 						} else
 							std::cerr<<"Unknown format of XRange tag: "<<xmlChar<<std::endl;
 						XMLString::release(&textChar);
@@ -290,8 +290,8 @@ std::map<std::string,HistAttributes> parseHistXML(const char *filename) throw (s
 						char *second = strchr(textChar,':') + 1;
 						if( first!=NULL && second!=NULL ){
 							second[-1] = '\0';
-							histogram.yMin = atoi(first);
-							histogram.yMax = atoi(second);
+							histogram.yMin = atof(first);
+							histogram.yMax = atof(second);
 						} else
 							std::cerr<<"Unknown format of YRange tag: "<<xmlChar<<std::endl;
 						XMLString::release(&textChar);
