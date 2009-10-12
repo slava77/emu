@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.9 2009/09/29 13:51:00 paste Exp $
+* $Id: Commander.cc,v 1.10 2009/10/12 15:12:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -392,59 +392,69 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 	DDURegisters.push_back(Register("Fake L1", "ddu42"));
 	DDURegisters.push_back(Register("Flash GbE FIFO Thresholds", "ddu43"));
 	DDURegisters.push_back(Register("InRD Status", "ddu44"));
-	DDURegisters.push_back(Register("Error Register \"B\"", "ddu45"));
-	DDURegisters.push_back(Register("Maximum L1A-to-Data Timeout", "ddu46"));
-	DDURegisters.push_back(Register("Bunch-Crossing Orbit", "ddu47"));
-	DDURegisters.push_back(Register("DDUFPGA Output Status", "ddu48"));
-	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status", "ddu49"));
-	DDURegisters.push_back(Register("Serial Status", "ddu50"));
-	DDURegisters.push_back(Register("Parallel Status", "ddu51"));
-	DDURegisters.push_back(Register("Switches", "ddu52"));
+	DDURegisters.push_back(Register("Error Bus Register A", "ddu45"));
+	DDURegisters.push_back(Register("Error Bus Register B", "ddu46"));
+	DDURegisters.push_back(Register("Error Bus Register C", "ddu47"));
+	DDURegisters.push_back(Register("Maximum L1A-to-Data Timeout", "ddu48"));
+	DDURegisters.push_back(Register("Bunch-Crossing Orbit", "ddu49"));
+	DDURegisters.push_back(Register("DDUFPGA Output Status", "ddu50"));
+	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 1", "ddu51"));
+	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 2", "ddu52"));
+	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 3", "ddu53"));
+	DDURegisters.push_back(Register("Serial Status", "ddu54"));
+	DDURegisters.push_back(Register("Parallel Status", "ddu55"));
+	DDURegisters.push_back(Register("Switches", "ddu56"));
 	
-	DDURegisters.push_back(Register("Input Register 0", "ddu53"));
-	DDURegisters.push_back(Register("Input Register 1", "ddu54"));
-	DDURegisters.push_back(Register("Input Register 2", "ddu55"));
-	DDURegisters.push_back(Register("Test Register 0", "ddu56"));
-	DDURegisters.push_back(Register("Test Register 1", "ddu57"));
-	DDURegisters.push_back(Register("Test Register 2", "ddu58"));
-	DDURegisters.push_back(Register("Test Register 3", "ddu59"));
-	DDURegisters.push_back(Register("Test Register 4", "ddu60"));
+	DDURegisters.push_back(Register("Input Register 0", "ddu57"));
+	DDURegisters.push_back(Register("Input Register 1", "ddu58"));
+	DDURegisters.push_back(Register("Input Register 2", "ddu59"));
+	DDURegisters.push_back(Register("Test Register 0", "ddu60"));
+	DDURegisters.push_back(Register("Test Register 1", "ddu61"));
+	DDURegisters.push_back(Register("Test Register 2", "ddu62"));
+	DDURegisters.push_back(Register("Test Register 3", "ddu63"));
+	DDURegisters.push_back(Register("Test Register 4", "ddu64"));
 
-	DDURegisters.push_back(Register("INFPGA0 Status", "ddu61"));
-	DDURegisters.push_back(Register("INFPGA0 Diagnostic Trap", "ddu62"));
-	DDURegisters.push_back(Register("INFPGA0 Fiber Status (fibers 0-7)", "ddu63"));
-	DDURegisters.push_back(Register("INFPGA0 DMB Sync (fibers 0-7)", "ddu64"));
-	DDURegisters.push_back(Register("INFPGA0 FIFO Status (fibers 0-7)", "ddu65"));
-	DDURegisters.push_back(Register("INFPGA0 FIFO Full (fibers 0-7)", "ddu66"));
-	DDURegisters.push_back(Register("INFPGA0 Link Receive Error (fibers 0-7)", "ddu67"));
-	DDURegisters.push_back(Register("INFPGA0 Link Transmit Error (fibers 0-7)", "ddu68"));
-	DDURegisters.push_back(Register("INFPGA0 Timeout Error (fibers 0-7)", "ddu69"));
-	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 0-7)", "ddu70"));
-	DDURegisters.push_back(Register("INFPGA0 Memory Free (fibers 0-7)", "ddu71"));
-	DDURegisters.push_back(Register("INFPGA0 Minimum Memory Free (fibers 0-7)", "ddu72"));
-	DDURegisters.push_back(Register("INFPGA0 Lost-In-Event (fibers 0-7)", "ddu73"));
-	DDURegisters.push_back(Register("INFPGA0 \"C\" Code (fibers 0-7)", "ddu74"));
-	DDURegisters.push_back(Register("INFPGA0 DMB Warning (fibers 0-7)", "ddu75"));
-	DDURegisters.push_back(Register("INFPGA0 Fiber Diagnostic Register 0 (fibers 0-7)", "ddu76"));
-	DDURegisters.push_back(Register("INFPGA0 Fiber Diagnostic Register 1 (fibers 0-7)", "ddu77"));
+	DDURegisters.push_back(Register("INFPGA0 Status", "ddu65"));
+	DDURegisters.push_back(Register("INFPGA0 Diagnostic Trap", "ddu66"));
+	DDURegisters.push_back(Register("INFPGA0 Fiber Status (fibers 0-7)", "ddu67"));
+	DDURegisters.push_back(Register("INFPGA0 DMB Sync (fibers 0-7)", "ddu68"));
+	DDURegisters.push_back(Register("INFPGA0 FIFO Status (fibers 0-7)", "ddu69"));
+	DDURegisters.push_back(Register("INFPGA0 FIFO Full (fibers 0-7)", "ddu70"));
+	DDURegisters.push_back(Register("INFPGA0 Link Receive Error (fibers 0-7)", "ddu71"));
+	DDURegisters.push_back(Register("INFPGA0 Link Transmit Error (fibers 0-7)", "ddu72"));
+	DDURegisters.push_back(Register("INFPGA0 Timeout Error (fibers 0-7)", "ddu73"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 0-1)", "ddu74"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 2-3)", "ddu75"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 4-5)", "ddu76"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 6-7)", "ddu77"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Free (fibers 0-7)", "ddu78"));
+	DDURegisters.push_back(Register("INFPGA0 Minimum Memory Free (fibers 0-7)", "ddu79"));
+	DDURegisters.push_back(Register("INFPGA0 Lost-In-Event (fibers 0-7)", "ddu80"));
+	DDURegisters.push_back(Register("INFPGA0 \"C\" Code (fibers 0-7)", "ddu81"));
+	DDURegisters.push_back(Register("INFPGA0 DMB Warning (fibers 0-7)", "ddu82"));
+	DDURegisters.push_back(Register("INFPGA0 Fiber Diagnostic Register 0 (fibers 0-7)", "ddu83"));
+	DDURegisters.push_back(Register("INFPGA0 Fiber Diagnostic Register 1 (fibers 0-7)", "ddu84"));
 	
-	DDURegisters.push_back(Register("INFPGA1 Status", "ddu78"));
-	DDURegisters.push_back(Register("INFPGA1 Diagnostic Trap", "ddu79"));
-	DDURegisters.push_back(Register("INFPGA1 Fiber Status (fibers 8-14)", "ddu80"));
-	DDURegisters.push_back(Register("INFPGA1 DMB Sync (fibers 8-14)", "ddu81"));
-	DDURegisters.push_back(Register("INFPGA1 FIFO Status (fibers 8-14)", "ddu82"));
-	DDURegisters.push_back(Register("INFPGA1 FIFO Full (fibers 8-14)", "ddu83"));
-	DDURegisters.push_back(Register("INFPGA1 Link Receive Error (fibers 8-14)", "ddu84"));
-	DDURegisters.push_back(Register("INFPGA1 Link Transmit Error (fibers 8-14)", "ddu85"));
-	DDURegisters.push_back(Register("INFPGA1 Timeout Error (fibers 8-14)", "ddu86"));
-	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 8-14)", "ddu87"));
-	DDURegisters.push_back(Register("INFPGA1 Memory Free (fibers 8-14)", "ddu88"));
-	DDURegisters.push_back(Register("INFPGA1 Minimum Memory Free (fibers 8-14)", "ddu89"));
-	DDURegisters.push_back(Register("INFPGA1 Lost-In-Event (fibers 8-14)", "ddu90"));
-	DDURegisters.push_back(Register("INFPGA1 \"C\" Code (fibers 8-14)", "ddu91"));
-	DDURegisters.push_back(Register("INFPGA1 DMB Warning (fibers 8-14)", "ddu92"));
-	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Register 0 (fibers 8-14)", "ddu93"));
-	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Register 1 (fibers 8-14)", "ddu94"));
+	DDURegisters.push_back(Register("INFPGA1 Status", "ddu85"));
+	DDURegisters.push_back(Register("INFPGA1 Diagnostic Trap", "ddu86"));
+	DDURegisters.push_back(Register("INFPGA1 Fiber Status (fibers 8-14)", "ddu87"));
+	DDURegisters.push_back(Register("INFPGA1 DMB Sync (fibers 8-14)", "ddu88"));
+	DDURegisters.push_back(Register("INFPGA1 FIFO Status (fibers 8-14)", "ddu89"));
+	DDURegisters.push_back(Register("INFPGA1 FIFO Full (fibers 8-14)", "ddu90"));
+	DDURegisters.push_back(Register("INFPGA1 Link Receive Error (fibers 8-14)", "ddu91"));
+	DDURegisters.push_back(Register("INFPGA1 Link Transmit Error (fibers 8-14)", "ddu92"));
+	DDURegisters.push_back(Register("INFPGA1 Timeout Error (fibers 8-14)", "ddu93"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 8-9)", "ddu94"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 10-11)", "ddu95"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 12-13)", "ddu96"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Active (fiber 14)", "ddu97"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Free (fibers 8-14)", "ddu98"));
+	DDURegisters.push_back(Register("INFPGA1 Minimum Memory Free (fibers 8-14)", "ddu99"));
+	DDURegisters.push_back(Register("INFPGA1 Lost-In-Event (fibers 8-14)", "ddu100"));
+	DDURegisters.push_back(Register("INFPGA1 \"C\" Code (fibers 8-14)", "ddu101"));
+	DDURegisters.push_back(Register("INFPGA1 DMB Warning (fibers 8-14)", "ddu102"));
+	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Register 0 (fibers 8-14)", "ddu103"));
+	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Register 1 (fibers 8-14)", "ddu104"));
 	
 	// Print the table of registers
 	*out << cgicc::div()
@@ -612,8 +622,12 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 				continue;
 			}
 			
+			// You can't instantiate a variable that crosses case statements, so I have to make sure everything I want exists already.
 			JSONSpirit::Object entryObject;
 			JSONSpirit::Array valueArray, descriptionArray;
+			std::ostringstream sName;
+			enum DEVTYPE inFPGA = INFPGA1;
+			std::string inFPGAName = "INFPGA1";
 			
 			// SWITCH!
 			switch(reg) {
@@ -654,33 +668,56 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 				case 4: // Killfiber
 					entryObject.push_back(JSONSpirit::Pair("name", "KillFiber"));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject;
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint32_t value = (*iDDU)->readKillFiber();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", (int) (*iDDU)->readKillFiber()));
-						// No description
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						// There are two pieces to the KillFiber:  the killed fibers and the option bits.
+						std::map<std::string, std::string> fiberDebug = DDUDebugger::DebugFiber((*iDDU), 0x7fff - (value & 0x7fff), "none");
+						std::map<std::string, std::string> fiberDebug2 = DDUDebugger::KillFiber(value);
+						fiberDebug.insert(fiberDebug2.begin(), fiberDebug2.end());
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(fiberDebug)));
+						
 						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
 					}
 					break;
 					
 				case 5: // Flash Killfiber
 					entryObject.push_back(JSONSpirit::Pair("name", "Flash KillFiber"));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject;
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readFlashKillFiber();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readFlashKillFiber()));
-						// No description
+						valueObject.push_back(JSONSpirit::Pair("value", value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), 0x7fff - (value & 0x7fff), "none"))));
+						
 						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
 					}
 					break;
 					
 				case 6: // GbE Prescale
 					entryObject.push_back(JSONSpirit::Pair("name", "GbE Prescale"));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject;
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readGbEPrescale();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readGbEPrescale()));
-						// No description
+						valueObject.push_back(JSONSpirit::Pair("value", value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::GbEPrescale(value))));
+						
 						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
 					}
 					break;
 					
@@ -742,11 +779,17 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 				case 12: // FMM Register
 					entryObject.push_back(JSONSpirit::Pair("name", "FMM Register"));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject;
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readFMM();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readFMM()));
-						// No description
+						valueObject.push_back(JSONSpirit::Pair("value", value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::F0EReg(value))));
+						
 						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
 					}
 					break;
 					
@@ -896,7 +939,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DDUFPGAStat(value))));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FPGAStatus(DDUFPGA, value))));
 						
 						valueArray.push_back(valueObject);
 						descriptionArray.push_back(descriptionObject);
@@ -1108,62 +1151,15 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 					break;
 					
 				case 34: // Temperature 0
-					entryObject.push_back(JSONSpirit::Pair("name", "Temperature 0"));
-					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject, descriptionObject;
-						
-						float value = (*iDDU)->readTemperature(0);
-						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", value));
-						
-						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Temperature(value))));
-						
-						valueArray.push_back(valueObject);
-						descriptionArray.push_back(descriptionObject);
-					}
-					break;
-					
 				case 35: // Temperature 1
-					entryObject.push_back(JSONSpirit::Pair("name", "Temperature 1"));
-					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject, descriptionObject;
-						
-						float value = (*iDDU)->readTemperature(1);
-						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", value));
-						
-						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Temperature(value))));
-						
-						valueArray.push_back(valueObject);
-						descriptionArray.push_back(descriptionObject);
-					}
-					break;
-					
 				case 36: // Temperature 2
-					entryObject.push_back(JSONSpirit::Pair("name", "Temperature 2"));
-					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject, descriptionObject;
-						
-						float value = (*iDDU)->readTemperature(2);
-						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", value));
-						
-						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Temperature(value))));
-						
-						valueArray.push_back(valueObject);
-						descriptionArray.push_back(descriptionObject);
-					}
-					break;
-					
 				case 37: // Temperature 3
-					entryObject.push_back(JSONSpirit::Pair("name", "Temperature 3"));
+					sName << "Temperature " << (reg - 34);
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
 						JSONSpirit::Object valueObject, descriptionObject;
 						
-						float value = (*iDDU)->readTemperature(3);
+						float value = (*iDDU)->readTemperature(reg - 34);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
 						
@@ -1176,67 +1172,22 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 					break;
 					
 				case 38: // Voltage 1.5
-					entryObject.push_back(JSONSpirit::Pair("name", "Voltage 1.5"));
-					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject, descriptionObject;
-						
-						float value = (*iDDU)->readVoltage(0);
-						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", value));
-						
-						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Voltage(0, value))));
-						
-						valueArray.push_back(valueObject);
-						descriptionArray.push_back(descriptionObject);
-					}
-					break;
-					
-				case 39: // Voltage 2.5 (1)
-					entryObject.push_back(JSONSpirit::Pair("name", "Voltage 2.5 (1)"));
-					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject, descriptionObject;
-						
-						float value = (*iDDU)->readVoltage(1);
-						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", value));
-						
-						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Voltage(1, value))));
-						
-						valueArray.push_back(valueObject);
-						descriptionArray.push_back(descriptionObject);
-					}
-					break;
-					
-				case 40: // Voltage 2.5 (2)
-					entryObject.push_back(JSONSpirit::Pair("name", "Voltage 2.5 (2)"));
-					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
-						JSONSpirit::Object valueObject, descriptionObject;
-						
-						float value = (*iDDU)->readVoltage(2);
-						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", value));
-						
-						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Voltage(2, value))));
-						
-						valueArray.push_back(valueObject);
-						descriptionArray.push_back(descriptionObject);
-					}
-					break;
-					
+				case 39: // Voltage 2.5
+				case 40: // Voltage 2.5
 				case 41: // Voltage 3.3
-					entryObject.push_back(JSONSpirit::Pair("name", "Voltage 3.3"));
+					if (reg == 38) sName << "Voltage 1.5";
+					else if (reg == 41) sName << "Voltage 3.3";
+					else sName << "Voltage 2.5";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
 						JSONSpirit::Object valueObject, descriptionObject;
 						
-						float value = (*iDDU)->readVoltage(3);
+						float value = (*iDDU)->readVoltage(reg - 38);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Voltage(3, value))));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Voltage(reg - 38, value))));
 						
 						valueArray.push_back(valueObject);
 						descriptionArray.push_back(descriptionObject);
@@ -1292,204 +1243,509 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 					}
 					break;
 					
-				case 45: // Error Register \"B\"
-					
+				case 45: // Error Bus Register A
+				case 46: // Error Bus Register B
+				case 47: // Error Bus Register C
+					// Tricky use of chars here
+					sName << "Error Bus Register " << char('A' + (reg - 45));
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readEBRegister(reg - 45);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::EBRegister(reg - 45,value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 46: // Maximum L1A-to-Data Timeout
-					
+				case 48: // Maximum L1A-to-Data Timeout
+					entryObject.push_back(JSONSpirit::Pair("name", "Maximum L1A-to-Data Timeout"));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readMaxTimeoutCount();
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::MaxTimeoutCount(value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 47: // Bunch-Crossing Orbit
-					
+				case 49: // Bunch-Crossing Orbit
+					entryObject.push_back(JSONSpirit::Pair("name", "Bunch-Crossing Orbit"));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject;
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readBXOrbit()));
+						// No description
+						valueArray.push_back(valueObject);
+					}
 					break;
 					
-				case 48: // DDUFPGA Output Status
-					
+				case 50: // DDUFPGA Output Status
+					entryObject.push_back(JSONSpirit::Pair("name", "DDUFPGA Output Status"));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readOutputStatus();
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::OutputStatus(value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 49: // DDUFPGA Input FIFO Status
-					
+				case 51: // DDUFPGA Input FIFO Status 0
+				case 52: // DDUFPGA Input FIFO Status 1
+				case 53: // DDUFPGA Input FIFO Status 2
+					sName << "DDUFPGA Input FIFO Status " << (reg - 51);
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readFIFOStatus(reg - 51);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FIFOStatus(reg - 51, value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 50: // Serial Status
-					
+				case 54: // Serial Status
+					entryObject.push_back(JSONSpirit::Pair("name", "Serial Status"));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint8_t value = (*iDDU)->readSerialStatus();
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::SerialStatus(value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 51: // Parallel Status
-					
+				case 55: // Parallel Status
+					entryObject.push_back(JSONSpirit::Pair("name", "Parallel Status"));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint8_t value = (*iDDU)->readParallelStatus();
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::ParallelStat(value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 52: // Switches
-					
+				case 56: // Switches
+					entryObject.push_back(JSONSpirit::Pair("name", "Switches"));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject;
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readSwitches()));
+						// No description
+						valueArray.push_back(valueObject);
+					}
 					break;
 					
-				case 53:
-					
+				case 57: // Input Register 0
+				case 58: // Input Register 1
+				case 59: // Input Register 2
+					sName << "Input Register " << (reg - 57);
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject;
+						
+						uint16_t value = (*iDDU)->readInputRegister(reg - 57);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						// No description
+						valueArray.push_back(valueObject);
+					}
 					break;
 					
-				case 54:
-					
+				case 60: // Test Register 0
+				case 61: // Test Register 1
+				case 62: // Test Register 2
+				case 63: // Test Register 3
+				case 64: // Test Register 4
+					sName << "Test Register " << (reg - 60);
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject;
+						
+						uint16_t value = (*iDDU)->readTestRegister(reg - 60);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						// No description
+						valueArray.push_back(valueObject);
+					}
 					break;
 					
-				case 55:
-					
+				case 65: // INFPGA0 Status
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 85: // INFPGA1 Status
+					sName << inFPGAName << " Status";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint32_t value = (*iDDU)->readFPGAStatus(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FPGAStatus(inFPGA, value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 56:
-					
+				case 66: // INFPGA0 Diagnostic Trap
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 86: // INFPGA1 Diagnostic Trap
+					sName << inFPGAName << " Diagnostic Trap";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						std::vector<uint16_t> value = (*iDDU)->readDebugTrap(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", formatBigNum(value)));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", formatBigDebug(DDUDebugger::INFPGADebugTrap(inFPGA, value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 57:
-					
+				case 67: // INFPGA0 Fiber Status (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 87: // INFPGA1 Fiber Status (fibers 8-14)
+					sName << inFPGAName << " Fiber Status";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readFiberStatus(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FiberStatus(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 58:
-					
+				case 68: // INFPGA0 DMB Sync (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 88: // INFPGA1 DMB Sync (fibers 8-14)
+					sName << inFPGAName << " DMB Sync";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readDMBSync(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DMBSync(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 59:
-					
+				case 69: // INFPGA0 FIFO Status (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 89: // INFPGA1 FIFO Status (fibers 8-14)
+					sName << inFPGAName << " FIFO Status";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readFIFOStatus(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FIFOStatus(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 60:
-					
+				case 70: // INFPGA0 FIFO Full (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 90: // INFPGA1 FIFO Full (fibers 8-14)
+					sName << inFPGAName << " FIFO Full";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readFIFOFull(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FIFOFull(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 61:
-					
+				case 71: // INFPGA0 Link Receive Error (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 91: // INFPGA1 Link Receive Error (fibers 8-14)
+					sName << inFPGAName << " Link Receive Error";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readRxError(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::RxError(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 62:
-					
+				case 72: // INFPGA0 Link Transmit Error (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 92: // INFPGA1 Link Transmit Error (fibers 8-14)
+					sName << inFPGAName << " Link Transmit Error";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readTxError(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::TxError(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 63:
-					
+				case 73: // INFPGA0 Timeout Error (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 93: // INFPGA1 Timeout Error (fibers 8-14)
+					sName << inFPGAName << " Timeout Error";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readTimeout(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Timeout(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 64:
-					
+				case 74: // INFPGA0 Memory Active (fibers 0-1)
+				case 75: // INFPGA0 Memory Active (fibers 2-3)
+				case 76: // INFPGA0 Memory Active (fibers 4-5)
+				case 77: // INFPGA0 Memory Active (fibers 6-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 94: // INFPGA1 Memory Active (fibers 8-9)
+				case 95: // INFPGA1 Memory Active (fibers 10-11)
+				case 96: // INFPGA1 Memory Active (fibers 12-13)
+				case 97: // INFPGA1 Memory Active (fiber 14)
+					sName << inFPGAName << " Memory Active";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readActiveWriteMemory(inFPGA, (reg - 74) % 20);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::ActiveWriteMemory(inFPGA, (reg - 74) % 20, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 65:
-					
+				case 78: // INFPGA0 Memory Free (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 98: // INFPGA1 Memory Free (fibers 8-14)
+					sName << inFPGAName << " Memory Free";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readAvailableMemory(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::AvailableMemory(inFPGA, value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 66:
-					
+				case 79: // INFPGA0 Minimum Memory Free (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 99: // INFPGA1 Minimum Memory Free (fibers 8-14)
+					sName << inFPGAName << " Minimum Memory Free";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readMinMemory(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::AvailableMemory(inFPGA, value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 67:
-					
+				case 80: // INFPGA0 Lost-In-Event (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 100: // INFPGA1 Lost-In-Event (fibers 8-14)
+					sName << inFPGAName << " Lost-In-Event";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readLostError(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::LostError(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 68:
-					
+				case 81: // INFPGA0 \"C\" Code (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 101: // INFPGA1 \"C\" Code (fibers 8-14)
+					sName << inFPGAName << " \"C\" Code";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readCCodeStatus(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::CCodeStatus(inFPGA, value))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 69:
-					
+				case 82: // INFPGA0 DMB Warning (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 102: // INFPGA1 DMB Warning (fibers 8-14)
+					sName << inFPGAName << " DMB Warning";
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject, descriptionObject;
+						
+						uint16_t value = (*iDDU)->readDMBWarning(inFPGA);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						
+						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DMBWarning(inFPGA, value, (*iDDU)))));
+						
+						valueArray.push_back(valueObject);
+						descriptionArray.push_back(descriptionObject);
+					}
 					break;
 					
-				case 70:
-					
-					break;
-					
-				case 71:
-					
-					break;
-					
-				case 72:
-					
-					break;
-					
-				case 73:
-					
-					break;
-					
-				case 74:
-					
-					break;
-					
-				case 75:
-					
-					break;
-					
-				case 76:
-					
-					break;
-					
-				case 77:
-					
-					break;
-					
-				case 78:
-					
-					break;
-					
-				case 79:
-					
-					break;
-					
-				case 80:
-					
-					break;
-					
-				case 81:
-					
-					break;
-					
-				case 82:
-					
-					break;
-					
-				case 83:
-					
-					break;
-					
-				case 84:
-					
-					break;
-					
-				case 85:
-					
-					break;
-					
-				case 86:
-					
-					break;
-					
-				case 87:
-					
-					break;
-					
-				case 88:
-					
-					break;
-					
-				case 89:
-					
-					break;
-					
-				case 90:
-					
-					break;
-					
-				case 91:
-					
-					break;
-					
-				case 92:
-					
-					break;
-					
-				case 93:
-					
-					break;
-					
-				case 94:
-					
+				case 83: // INFPGA0 Fiber Diagnostic Register 0 (fibers 0-7)
+				case 84: // INFPGA0 Fiber Diagnostic Register 1 (fibers 0-7)
+					inFPGA = INFPGA0;
+					inFPGAName = "INFPGA0";
+				case 103: // INFPGA1 Fiber Diagnostic Register 0 (fibers 8-14)
+				case 104: // INFPGA1 Fiber Diagnostic Register 1 (fibers 8-14)
+					sName << inFPGAName << " Fiber Diagnostic Register " << ((reg - 83) % 20);
+					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
+					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
+						JSONSpirit::Object valueObject;
+						
+						uint32_t value = (*iDDU)->readFiberDiagnostics(inFPGA, (reg - 83) % 20);
+						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
+						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						// No diagnostics?
+						valueArray.push_back(valueObject);
+					}
 					break;
 					
 				default:

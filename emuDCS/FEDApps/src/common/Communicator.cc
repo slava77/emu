@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.18 2009/09/29 13:51:00 paste Exp $
+* $Id: Communicator.cc,v 1.19 2009/10/12 15:12:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -23,6 +23,8 @@
 #include "emu/fed/XMLConfigurator.h"
 #include "emu/fed/DBConfigurator.h"
 #include "emu/base/Alarm.h"
+#include "emu/fed/DCCDebugger.h"
+#include "emu/fed/DDUDebugger.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Communicator)
 
@@ -621,30 +623,7 @@ throw (toolbox::fsm::exception::Exception)
 				
 				REVOKE_ALARM("CommunicatorConfigureFPGASoftwareSwitch", NULL);
 				
-				uint16_t dccL1A = (*iDCC)->readStatusLow(); // should be all 0
-				uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2ff5
 				
-				LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC Status for crate " << (*iCrate)->getNumber() << ", slot " << std::dec << (*iDCC)->slot() << ": L1A: " << dccL1A << ", status: " << std::hex << status << std::dec);
-				
-				if (dccL1A) {
-					std::ostringstream error;
-					error << "L1A for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset";
-					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-					std::ostringstream tag;
-					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(), tag.str(), NULL);
-					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
-				}
-				if (status != 0x2ff5) {
-					std::ostringstream error;
-					error << "Status for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset";
-					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-					std::ostringstream tag;
-					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(), tag.str(), NULL);
-					//FIXME for local running, if S-Link is not ignored, this will probably fail
-					//XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
-				}
 
 			} catch (emu::fed::exception::DCCException &e) {
 				std::ostringstream error;
@@ -732,9 +711,9 @@ throw (toolbox::fsm::exception::Exception)
 			}
 			
 			uint32_t CSCStat = (*iDDU)->readFiberErrors();
-			uint32_t dduFPGAStat = (*iDDU)->readFPGAStatus(DDUFPGA) & 0xdecfffff;  // <<- note the mask
-			uint32_t inFPGA0Stat = (*iDDU)->readFPGAStatus(INFPGA0) & 0xf7eedfff;  // <<- note the mask
-			uint32_t inFPGA1Stat = (*iDDU)->readFPGAStatus(INFPGA1) & 0xf7eedfff;  // <<- note the mask
+			uint32_t dduFPGAStat = (*iDDU)->readFPGAStatus(DDUFPGA);
+			uint32_t inFPGA0Stat = (*iDDU)->readFPGAStatus(INFPGA0);
+			uint32_t inFPGA1Stat = (*iDDU)->readFPGAStatus(INFPGA1);
 		
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "DDU Status for crate " << (*iCrate)->getNumber() << ", slot " << std::dec << (*iDDU)->slot() << ": CSC: " << std::hex << CSCStat << ", DDUFPGA: " << dduFPGAStat << ", INFPGA0: " << inFPGA0Stat << ", INFPGA1:" << inFPGA1Stat << std::dec);
 			
@@ -746,27 +725,45 @@ throw (toolbox::fsm::exception::Exception)
 			uint32_t thisL1A = (*iDDU)->readL1Scaler(DDUFPGA);
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "L1A Scalar for crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": " << thisL1A);
 			
-			if (inFPGA0Stat) {
+			if (inFPGA0Stat & 0xf7eedfff) { // The mask is important
 				std::ostringstream error;
-				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": INFPGA0 status register (" << std::hex << inFPGA0Stat << std::dec << ")";
+				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": INFPGA0 status register (" << std::hex << inFPGA0Stat << std::dec << "):" << std::endl;
+				
+				std::map<std::string, std::string> inFPGA0Status = DDUDebugger::InFPGAStat(INFPGA0, inFPGA0Stat);
+				for (std::map<std::string, std::string>::const_iterator iDebug = inFPGA0Status.begin(); iDebug != inFPGA0Status.end(); ++iDebug) {
+					error << (*iDebug).first << std::endl;
+				}
+				
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->getNumber() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
 				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDDU", "ERROR", error.str(), tag.str(), NULL);
 				XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 			}
-			if (inFPGA1Stat) {
+			if (inFPGA1Stat & 0xf7eedfff) { // The mask is important
 				std::ostringstream error;
-				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": INFPGA1 status register (" << std::hex << inFPGA1Stat << std::dec << ")";
+				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": INFPGA1 status register (" << std::hex << inFPGA1Stat << std::dec << "):" << std::endl;
+				
+				std::map<std::string, std::string> inFPGA1Status = DDUDebugger::InFPGAStat(INFPGA1, inFPGA1Stat);
+				for (std::map<std::string, std::string>::const_iterator iDebug = inFPGA1Status.begin(); iDebug != inFPGA1Status.end(); ++iDebug) {
+					error << (*iDebug).first << std::endl;
+				}
+				
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->getNumber() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
 				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDDU", "ERROR", error.str(), tag.str(), NULL);
 				XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 			}
-			if (dduFPGAStat) {
+			if (dduFPGAStat  & 0xdecfffff) { // The mask is important
 				std::ostringstream error;
-				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": DDUFPGA status register (" << std::hex << dduFPGAStat << std::dec << ")";
+				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": DDUFPGA status register (" << std::hex << dduFPGAStat << std::dec << "):" << std::endl;
+				
+				std::map<std::string, std::string> dduFPGAStatus = DDUDebugger::DDUFPGAStat(dduFPGAStat);
+				for (std::map<std::string, std::string>::const_iterator iDebug = dduFPGAStatus.begin(); iDebug != dduFPGAStatus.end(); ++iDebug) {
+					error << (*iDebug).first << std::endl;
+				}
+				
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->getNumber() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
@@ -800,6 +797,56 @@ throw (toolbox::fsm::exception::Exception)
 		
 		REVOKE_ALARM("CommunicatorEnableDDU", NULL);
 		
+		// Check DCC status
+		std::vector<DCC *> dccVector = (*iCrate)->getDCCs();
+		
+		for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
+		
+			uint16_t dccL1A = (*iDCC)->readStatusLow(); // should be all 0
+			uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2ff5
+			
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC Status for crate " << (*iCrate)->getNumber() << ", slot " << std::dec << (*iDCC)->slot() << ": L1A: " << dccL1A << ", status: " << std::hex << status << std::dec);
+			
+			if (dccL1A) {
+				std::ostringstream error;
+				error << "L1A for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset";
+				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+				std::ostringstream tag;
+				tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
+				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDCC", "ERROR", error.str(), tag.str(), NULL);
+				XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
+			}
+			if (status != 0x2ff5) {
+				std::ostringstream error;
+				error << "Status for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset: " << std::endl;
+				
+				std::pair<std::string, std::string> fmmStatus = DCCDebugger::FMMStat((status >> 12) & 0xf);
+				error << "FMM status: " << fmmStatus.first << std::endl;
+				
+				std::map<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStat(status & 0xf);
+				for (std::map<std::string, std::string>::const_iterator iSLink = sLinkStatus.begin(); iSLink != sLinkStatus.end(); ++iSLink) {
+					error << (*iSLink).first << std::endl;
+				}
+				
+				std::map<std::string, std::string> inFIFOStatus = DCCDebugger::InFIFOStat((status >> 8) & 0xff);
+				for (std::map<std::string, std::string>::const_iterator iFIFO = inFIFOStatus.begin(); iFIFO != inFIFOStatus.end(); ++iFIFO) {
+					error << (*iFIFO).first << std::endl;
+				}
+				
+				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+				std::ostringstream tag;
+				tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
+				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDCC", "ERROR", error.str(), tag.str(), NULL);
+				//FIXME for local running, if S-Link is not ignored, this will probably fail
+				XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
+			}
+			
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC " << (*iDCC)->getFMMID() << " ready to enable");
+		
+		}
+		
+		REVOKE_ALARM("CommunicatorEnableDDU", NULL);
+		
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << (*iCrate)->getNumber() << " ready to enable");
 	}
 	
@@ -810,7 +857,6 @@ throw (toolbox::fsm::exception::Exception)
 	TM_ = new IRQThreadManager(this, fmmErrorThreshold_);
 	TM_->setSystemName(systemName_);
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-		//if ((*iCrate)->getNumber() > 4) continue; // Don't monitor TF crates!
 		TM_->attachCrate(*iCrate);
 	}
 	
@@ -821,9 +867,10 @@ throw (toolbox::fsm::exception::Exception)
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "FMM monitoring threads not started!";
-		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorEnableThreads", "ERROR", error.str(), "", NULL, e);
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+		// Probably not a critical error.
+		//XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 	}
 	
 }
