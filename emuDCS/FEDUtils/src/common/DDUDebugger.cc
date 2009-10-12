@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.5 2009/09/29 13:57:58 paste Exp $
+* $Id: DDUDebugger.cc,v 1.6 2009/10/12 15:07:03 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -10,249 +10,320 @@
 #include "emu/fed/DDU.h"
 #include "emu/fed/Fiber.h"
 
+
+
 std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(const uint32_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
+	return FPGAStatus(DDUFPGA, stat);
+}
 
-	if (stat&0x0000F000) {
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::FPGAStatus(const enum DEVTYPE &dev, const uint32_t &stat)
+{
+	std::map<std::string, std::string> returnMe;
+
+	if (dev == DDUFPGA) {
+		if (stat&0x0000F000) {
+			if (stat&0xF0000000) {
+				if (0x80000000&stat) returnMe["DMB LCT/DAV/MOVLP Mismatch"] = "red";
+				if (0x40000000&stat) returnMe["CFEB L1A Mismatch"] = "red";
+				if (0x20000000&stat) returnMe["DDUsawNoGoodDMB-CRCs"] = "blue";
+				if (0x10000000&stat) returnMe["CFEB Count Mismatch"] = "red";
+			}
+			if (stat&0x0F000000) {
+				if (0x08000000&stat) returnMe["FirstDat Error"] = "red";
+				if (0x04000000&stat) returnMe["L1A-FIFO Full occurred"] = "red";
+				if (0x02000000&stat) returnMe["Data Stuck in FIFO occurred"] = "red";
+				if (0x01000000&stat) returnMe["NoLiveFiber warning"] = "blue";
+			}
+			if (stat&0x00F00000) {
+				if (0x00800000&stat) returnMe["Special-word voted-bit warning"] = "orange";
+				if (0x00400000&stat) returnMe["InRDctrl Error"] = "red";
+				if (0x00200000&stat) returnMe["DAQ Stop bit set"] = "blue";
+				if (0x00100000&stat) returnMe["DAQ says Not Ready"] = "blue";
+				if (0x00300000&stat == 0x00200000) returnMe["DAQ Applied Backpressure"] = "blue";
+			}
+			if (stat&0x000F0000) {
+				if (0x00080000&stat) returnMe["TMB Error"] = "orange";
+				if (0x00040000&stat) returnMe["ALCT Error"] = "orange";
+				if (0x00020000&stat) returnMe["Trigger Wordcount Error"] = "orange";
+				if (0x00010000&stat) returnMe["Trigger L1A Match Error"] = "orange";
+			}
+			// JRG, low-order 16-bit status (most serious errors)"
+			if (stat&0x0000F000) {
+				if (0x00008000&stat) returnMe["Critical Error ** needs reset **"] = "error";
+				if (0x00004000&stat) returnMe["Single Error, bad event"] = "orange";
+				if (0x00002000&stat) returnMe["Single warning, possible data problem"] = "blue";
+				if (0x00001000&stat) returnMe["Near Full Warning"] = "blue";
+			}
+			if (stat&0x00000F00) {
+				if (0x00000800&stat) returnMe["64-bit Alignment Error"] = "blue";
+				if (0x00000400&stat) returnMe["DDU Control DLL Error (recent)"] = "blue";
+				if (0x00000200&stat) returnMe["DMB Error in event"] = "orange";
+				if (0x00000100&stat) returnMe["Lost In Event Error"] = "orange";
+			}
+			if (stat&0x000000F0) {
+				if (0x00000080&stat) returnMe["Lost In Data Error occurred"] = "red";
+				if (0x00000040&stat) returnMe["Timeout Error occurred"] = "red";
+				if (0x00000020&stat) returnMe["Trigger CRC Error"] = "orange";
+				if (0x00000010&stat) returnMe["Multiple Transmit Errors occurred"] = "red";
+			}
+			if (stat&0x0000000F) {
+				if (0x00000008&stat) returnMe["Lost Sync occurred (FIFO Full or L1A Error)"] = "red";
+				if (0x00000004&stat) returnMe["Fiber/FIFO Connection Error occurred"] = "red";
+				if (0x00000002&stat) returnMe["Single L1A Mismatch"] = "orange";
+				if (0x00000001&stat) returnMe["DMB or CFEB CRC Error"] = "orange";
+			}
+		}
+		
+	} else if (dev == INFPGA0 || dev == INFPGA1) {
+		const std::string minFiber = (dev == INFPGA0 ? "0" : "8");
+		const std::string minFiber2 = (dev == INFPGA0 ? "4" : "12");
+		const std::string maxFiber = (dev == INFPGA0 ? "7" : "14");
+		const std::string rdCtrl1 = (dev == INFPGA0 ? "0" : "2");
+		const std::string rdCtrl2 = (dev == INFPGA0 ? "1" : "3");
+		
 		if (stat&0xF0000000) {
-			if (0x80000000&stat) returnValues["DMB LCT/DAV/MOVLP Mismatch"] = "red";
-			if (0x40000000&stat) returnValues["CFEB L1A Mismatch"] = "red";
-			if (0x20000000&stat) returnValues["DDUsawNoGoodDMB-CRCs"] = "blue";
-			if (0x10000000&stat) returnValues["CFEB Count Mismatch"] = "red";
+			if (0x80000000&stat) returnMe["DLL2 Lock Error"] = "red";
+			if (0x40000000&stat) returnMe["64-bit Filler was used"] = "red";
+			if (0x20000000&stat) {
+				returnMe["RdCtrl-"+rdCtrl2+" Not Ready"] = "red";
+			}
+			if (0x10000000&stat) {
+				returnMe["RdCtrl-"+rdCtrl1+" Not Ready"] = "red";
+			}
 		}
 		if (stat&0x0F000000) {
-			if (0x08000000&stat) returnValues["FirstDat Error"] = "red";
-			if (0x04000000&stat) returnValues["L1A-FIFO Full occurred"] = "red";
-			if (0x02000000&stat) returnValues["Data Stuck in FIFO occurred"] = "red";
-			if (0x01000000&stat) returnValues["NoLiveFiber warning"] = "blue";
+			if (0x08000000&stat) returnMe["NoLiveFiber 0 or 1"] = "blue";
+			if (0x04000000&stat) returnMe["DLL Error occurred"] = "blue";
+			if (0x02000000&stat) {
+				returnMe["InRD"+rdCtrl2+" DMB Warn"] = "none";
+			}
+			if (0x01000000&stat) {
+				returnMe["InRD"+rdCtrl1+" DMB Warn"] = "none";
+			}
 		}
 		if (stat&0x00F00000) {
-			if (0x00800000&stat) returnValues["Special-word voted-bit warning"] = "orange";
-			if (0x00400000&stat) returnValues["InRDctrl Error"] = "red";
-			if (0x00200000&stat) returnValues["DAQ Stop bit set"] = "blue";
-			if (0x00100000&stat) returnValues["DAQ says Not Ready"] = "blue";
-			if (0x00300000&stat == 0x00200000) returnValues["DAQ Applied Backpressure"] = "blue";
+			if (0x00800000&stat) {
+				returnMe["InRD"+rdCtrl2+" DMB Full"] = "blue";
+			}
+			if (0x00400000&stat) {
+
+				returnMe["Mem/FIFO-InRD"+rdCtrl2+" Error"] = "red";
+			}
+			if (0x00200000&stat) {
+				returnMe["MultL1A Error-InRD"+rdCtrl2] = "red";
+			}
+			if (0x00100000&stat) {
+				returnMe["NoLiveFiber"+minFiber2+"-"+maxFiber] = "none";
+			}
 		}
 		if (stat&0x000F0000) {
-			if (0x00080000&stat) returnValues["TMB Error"] = "orange";
-			if (0x00040000&stat) returnValues["ALCT Error"] = "orange";
-			if (0x00020000&stat) returnValues["Trigger Wordcount Error"] = "orange";
-			if (0x00010000&stat) returnValues["Trigger L1A Match Error"] = "orange";
+			if (0x00080000&stat) returnMe["InRD"+rdCtrl1+" DMB Full"] = "blue";
+			if (0x00040000&stat) returnMe["Mem/FIFO-InRD"+rdCtrl1+" Error"] = "red";
+			if (0x00020000&stat) returnMe["MultL1A Error-InRD"+rdCtrl1] = "red";
+			if (0x00010000&stat) {
+				returnMe["NoLiveFiber"+minFiber+"-"+minFiber2] = "none";
+			}
 		}
 		// JRG, low-order 16-bit status (most serious errors):
 		if (stat&0x0000F000) {
-			if (0x00008000&stat) returnValues["Critical Error ** needs reset **"] = "error";
-			if (0x00004000&stat) returnValues["Single Error, bad event"] = "orange";
-			if (0x00002000&stat) returnValues["Single warning, possible data problem"] = "blue";
-			if (0x00001000&stat) returnValues["Near Full Warning"] = "blue";
+			if (0x00008000&stat) returnMe["Critical Error ** needs reset **"] = "error";
+			if (0x00004000&stat) returnMe["Single Error, bad event"] = "orange";
+			if (0x00002000&stat) returnMe["Single warning, possible data problem"] = "blue";
+			if (0x00001000&stat) returnMe["Near Full Warning"] = "blue";
 		}
 		if (stat&0x00000F00) {
-			if (0x00000800&stat) returnValues["64-bit Alignment Error"] = "blue";
-			if (0x00000400&stat) returnValues["DDU Control DLL Error (recent)"] = "blue";
-			if (0x00000200&stat) returnValues["DMB Error in event"] = "orange";
-			if (0x00000100&stat) returnValues["Lost In Event Error"] = "orange";
+			if (0x00000800&stat) returnMe["RX Error occurred"] = "blue";
+			if (0x00000400&stat) returnMe["DLL Error (recent)"] = "blue";
+			if (0x00000200&stat) returnMe["SCA Full detected"] = "orange";
+			if (0x00000100&stat) returnMe["Special Word voted-bit warning"] = "blue";
 		}
 		if (stat&0x000000F0) {
-			if (0x00000080&stat) returnValues["Lost In Data Error occurred"] = "red";
-			if (0x00000040&stat) returnValues["Timeout Error occurred"] = "red";
-			if (0x00000020&stat) returnValues["Trigger CRC Error"] = "orange";
-			if (0x00000010&stat) returnValues["Multiple Transmit Errors occurred"] = "red";
+			if (0x00000080&stat) returnMe["Stuck Data occurred"] = "red";
+			if (0x00000040&stat) returnMe["Timeout occurred"] = "red";
+			if (0x00000020&stat) returnMe["Multiple voted-bit Errors"] = "red";
+			if (0x00000010&stat) returnMe["Multiple Transmit Errors"] = "red";
 		}
 		if (stat&0x0000000F) {
-			if (0x00000008&stat) returnValues["Lost Sync occurred (FIFO Full or L1A Error)"] = "red";
-			if (0x00000004&stat) returnValues["Fiber/FIFO Connection Error occurred"] = "red";
-			if (0x00000002&stat) returnValues["Single L1A Mismatch"] = "orange";
-			if (0x00000001&stat) returnValues["DMB or CFEB CRC Error"] = "orange";
+			if (0x00000008&stat) returnMe["Mem/FIFO Full Error"] = "red";
+			if (0x00000004&stat) returnMe["Fiber Error"] = "red";
+			if (0x00000002&stat) returnMe["L1A Match Error"] = "orange";
+			if (0x00000001&stat) returnMe["Not Ready Error"] = "red";
 		}
 	} else {
-		//returnValues["OK"] = "none";
+		// FIXME Error here.
 	}
 
-	return returnValues;
+	return returnMe;
 }
 
 
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
+	return OutputStatus(stat);
+}
 
-	if (stat&0x0000D981) {
-		if (0x00001000&stat) returnValues["DDU S-Link Not Present"] = "green";
-		if (0x00000100&stat) returnValues["SPY/GbE Fiber Disconnected"] = "blue";
-		else if (0x00000200&stat) returnValues["SPY/GbE FIFO Always Empty"] = "none";
-		if (stat&0x0000ECEF) {
-			if (stat&0x0000E000) {
-				if (0x00008000&stat) returnValues["DDU Buffer Overflow occurred"] = "none";
-				if (0x00004000&stat) returnValues["DAQ (DCC/S-Link) Wait occurred"] = "blue";
-				if (0x00002000&stat) returnValues["DDU S-Link Full occurred"] = "none";
-				//if (0x00001000&stat) returnValues["DDU S-Link Never Ready"] = "none";
-				//if (0x000000cef&stat&&(0x000000cef&stat)<=0x00ff) *out << cgicc::br();
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStatus(const uint16_t &stat)
+{
+	std::map<std::string, std::string> returnMe;
+
+	if (stat & 0xD981) {
+		if (0x1000 & stat) returnMe["DDU S-Link Not Present"] = "green";
+		if (0x0100 & stat) returnMe["SPY/GbE Fiber Disconnected"] = "blue";
+		else if (0x0200 & stat) returnMe["SPY/GbE FIFO Always Empty"] = "none";
+		if (stat & 0xECEF) {
+			if (stat & 0xE000) {
+				if (0x8000 & stat) returnMe["DDU Buffer Overflow occurred"] = "none";
+				if (0x4000 & stat) returnMe["DAQ (DCC/S-Link) Wait occurred"] = "blue";
+				if (0x2000 & stat) returnMe["DDU S-Link Full occurred"] = "none";
+				//if (0x00001000&stat) returnMe["DDU S-Link Never Ready"] = "none";
 			}
-			if (stat&0x00000E00) {
-				//if (stat&0x00000900)==0x0800||(stat&0x00000500)==0x0400) *out << cgicc::br();
-				if (0x00000800&stat && (0x00000100&stat) == 0) returnValues["DDU GbE Overflow occurred"] = "blue";
-				if (0x00000400&stat && (0x00000100&stat) == 0) returnValues["GbE Transmit Limit occurred"] = "none";
-				//if (0x00000200&stat&&(0x00000100&stat)==0) returnValues["GbE FIFO Always Empty &nbsp ";
-				//if (0x00000100&stat) returnValues["<font color=blue>SPY/GbE Fiber Disconnect occurred</font>";
-				//if (0x000000ef&stat) *out << cgicc::br();
+			if (stat & 0x0E00) {
+				if (0x0800 & stat && (0x0100 & stat) == 0) returnMe["DDU GbE Overflow occurred"] = "blue";
+				if (0x0400 & stat && (0x0100 & stat) == 0) returnMe["GbE Transmit Limit occurred"] = "none";
+				//if (0x00000200&stat&&(0x00000100&stat)==0) returnMe["GbE FIFO Always Empty &nbsp ";
+				//if (0x00000100&stat) returnMe["<font color=blue>SPY/GbE Fiber Disconnect occurred</font>";
 			}
-			if (stat&0x000000F0) {
-				if (0x00000080&stat) returnValues["DDU DAQ-Limited Overflow occurred (DCC/S-Link Wait)"] = "red";
-				if (0x00000040&stat) returnValues["DAQ (DCC/S-Link) Wait"] = "blue";
-				if (0x00000020&stat) returnValues["DDU S-Link Full/Stop"] = "none";
-				if (0x00000010&stat && (0x00001000&stat) == 0) returnValues["DDU S-Link Not Ready"] = "red";
+			if (stat & 0x00F0) {
+				if (0x0080 & stat) returnMe["DDU DAQ-Limited Overflow occurred (DCC/S-Link Wait)"] = "red";
+				if (0x0040 & stat) returnMe["DAQ (DCC/S-Link) Wait"] = "blue";
+				if (0x0020 & stat) returnMe["DDU S-Link Full/Stop"] = "none";
+				if (0x0010 & stat && (0x1000 & stat) == 0) returnMe["DDU S-Link Not Ready"] = "red";
 			}
-			if (stat&0x0000000F) {
-				//if (0x0000000e&stat&&(0x00000001&stat)==0) *out << cgicc::br();
-				if (0x00000008&stat && (0x00000100&stat) == 0) returnValues["GbE FIFO Full"] = "none";
-				if (0x00000004&stat && (0x00000100&stat) == 0) returnValues["DDU Skipped SPY Event (GbE data not sent)"] = "none";
-				if (0x00000002&stat && (0x00000100&stat) == 0) returnValues["GbE FIFO Not Empty"] = "none";
-				if (0x00000001&stat) returnValues["DCC Link Not Ready"] = "blue";
+			if (stat & 0x000F) {
+				if (0x0008 & stat && (0x0100&stat) == 0) returnMe["GbE FIFO Full"] = "none";
+				if (0x0004 & stat && (0x0100&stat) == 0) returnMe["DDU Skipped SPY Event (GbE data not sent)"] = "none";
+				if (0x0002 & stat && (0x0100&stat) == 0) returnMe["GbE FIFO Not Empty"] = "none";
+				if (0x0001 & stat) returnMe["DCC Link Not Ready"] = "blue";
 			}
-			//*out << "</font></blockquote>";
 		}
-	} else {
-		//returnValues["OK"] = "none";
 	}
 
-	return returnValues;
+	return returnMe;
 }
 
 
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
-
-	if (stat&0x0000ffff) {
-		//*out << "<blockquote><font size=-1 color=orange face=arial>";
-		if (stat&0x0000F000) {
-			if (0x00008000&stat) returnValues["DMB Timeout signal, ** needs reset **"] = "error";
-			if (0x00004000&stat) returnValues["Mult L1A Error occurred"] = "red";
-			if (0x00002000&stat) returnValues["L1A-FIFO Near Full Warning"] = "blue";
-			if (0x00001000&stat) returnValues["GbE FIFO Almost-Full"] = "none";
-			//if (0x0fff&stat) *out << cgicc::br();
-		}
-		if (stat&0x00000F00) {
-			if (0x00000800&stat) returnValues["Ext.FIFO Near Full Warning"] = "blue";
-			//if (0x00000400&stat) returnValues["Near Full Warning"] = "blue";
-			if (0x00000400&stat) returnValues["InSingle Warning"] = "blue";
-			if (0x00000200&stat) returnValues["CFEB-CRC not OK"] = "none";
-			if (0x00000100&stat) returnValues["CFEB-CRC End Error"] = "orange";
-			//if (0x00ff&stat) *out << cgicc::br();
-		}
-		if (stat&0x000000F0) {
-			if (0x00000080&stat) returnValues["CFEB-CRC Count Error"] = "orange";
-			if (0x00000040&stat) returnValues["DMB or CFEB CRC Error"] = "orange";
-			//if (0x00000020&stat) returnValues["Latched Trigger Trail"] = "none";
-			if (0x00000020&stat) returnValues["Trigger Readout Error"] = "orange";
-			if (0x00000010&stat) returnValues["Trigger Trail Done"] = "none";
-			//if (0x000f&stat) *out << cgicc::br();
-		}
-		if (stat&0x0000000F) {
-			if (0x00000008&stat) returnValues["Start Timeout"] = "red";
-			if (0x00000004&stat) returnValues["End Timeout"] = "red";
-			if (0x00000002&stat) returnValues["SP/TF Error in last event"] = "orange";
-			if (0x00000001&stat) returnValues["SP/TF data detected in last event"] = "orange";
-		}
-	} else {
-		//returnValues["OK"] = "none";
-	}
-
-	return returnValues;
+	return EBRegister(0, stat);
 }
 
 
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
-
-	if (stat&0x0000ffff) {
-		if (0x00000020&stat) returnValues["Empty CSC in Event flag"] = "green";
-		//if (0x0000FFDF&stat) *out << "<blockquote><font size=-1 color=orange face=arial>";
-		if (stat&0x0000F000) {
-			if (0x00008000&stat) returnValues["Lost In Event Error"] = "orange";
-			if (0x00004000&stat) returnValues["DMB Error in Event"] = "orange";
-			if (0x00002000&stat) returnValues["Control DLL Error occured"] = "blue";
-			if (0x00001000&stat) returnValues["2nd Header First flag"] = "orange";
-			//if(0x0fdf&stat) *out << cgicc::br();
-		}
-		if (stat&0x00000F00) {
-			if (0x00000800&stat) returnValues["Early 2nd Trailer flag"] = "none";
-			if (0x00000400&stat) returnValues["Extra 1st Trailer flag"] = "none";
-			if (0x00000200&stat) returnValues["Extra 1st Header flag"] = "none";
-			if (0x00000100&stat) returnValues["Extra 2nd Header flag"] = "none";
-			//if(0x00df&stat) *out << cgicc::br();
-		}
-		if (stat&0x000000D0) {
-			if (0x00000080&stat) returnValues["SCA Full detected this Event"] = "orange";
-			if (0x00000040&stat) returnValues["Probable DMB Full occurred"] = "blue";
-			//if (0x00000020&stat) returnValues["Empty Event flag"] = "green";
-			if (0x00000010&stat) returnValues["Bad Control Word Error occurred"] = "red";
-			//if(0x000f&stat) *out << cgicc::br();
-		}
-		if (stat&0x0000000F) {
-			if (0x00000008&stat) returnValues["Missed Trigger Trailer Error"] = "orange";
-			if (0x00000004&stat) returnValues["First Dat Error"] = "orange";
-			if (0x00000002&stat) returnValues["Bad First Word"] = "orange";
-			if (0x00000001&stat) returnValues["Confirmed DMB Full occured"] = "red";
-			// if (0x00000001&stat) returnValues["Lost In Data occured"] = "red";
-		}
-	} else {
-		//returnValues["OK"] = "none";
-	}
-
-	return returnValues;
+	return EBRegister(1, stat);
 }
 
 
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
+	return EBRegister(2, stat);
+}
 
-	if (stat&0x0000ffff) {
-		//*out << "<blockquote><font size=-1 color=black face=arial>";
-		if (stat&0x0000F000) {
-			if (0x00008000&stat) returnValues["Trigger Readout Error"] = "orange";
-			if (0x00004000&stat) returnValues["ALCT Trailer Done"] = "none";
-			if (0x00002000&stat) returnValues["2nd ALCT Trailer detected"] = "red";
-			//if (0x00002000&stat) returnValues["ALCT DAV Vote True occurred"] = "none";
-			if (0x00001000&stat) returnValues["ALCT L1A mismatch error occurred"] = "none";
-			//if(0x0fff&stat) *out << cgicc::br();
-		}
-		if (stat&0x00000F00) {
-			if (0x00000800&stat) returnValues["ALCT CRC Error occurred"] = "none";
-			if (0x00000400&stat) returnValues["ALCT Wordcount Error occurred"] = "none";
-			if (0x00000200&stat) returnValues["Missing ALCT Trailer occurred"] = "none";
-			if (0x00000100&stat) returnValues["ALCT Error occurred"] = "none";
-			//if(0x00ff&stat) *out << cgicc::br();
-		}
-		if (stat&0x000000F0) {
-			if (0x00000080&stat) returnValues["DMB Critical Error occurred"] = "none";
-			//if (0x00000080&stat) returnValues["Compare Trigger CRC flag"] = "none";
-			if (0x00000040&stat) returnValues["TMB Trailer Done"] = "none";
-			if (0x00000020&stat) returnValues["2nd TMB Trailer detected"] = "red";
-			//if (0x00000020&stat) returnValues["TMB DAV Vote True occurred"] = "none";
-			if (0x00000010&stat) returnValues["TMB L1A mismatch error occurred"] = "none";
-			//if(0x000f&stat) *out << cgicc::br();
-		}
-		if (stat&0x0000000F) {
-			if (0x00000008&stat) returnValues["TMB CRC Error occurred"] = "none";
-			if (0x00000004&stat) returnValues["TMB Word Count Error occurred"] = "none";
-			if (0x00000002&stat) returnValues["Missing TMB Trailer occurred"] = "none";
-			if (0x00000001&stat) returnValues["TMB Error occurred"] = "none";
-		}
 
-	} else {
-		//returnValues["OK"] = "none";
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBRegister(const uint8_t &reg, const uint16_t &stat)
+{
+
+	std::map<std::string, std::string> returnMe;
+	
+	if (!stat) return returnMe;
+	
+	switch (reg) {
+	case 0:
+		if (stat & 0xF000) {
+			if (0x8000&stat) returnMe["DMB Timeout signal, ** needs reset **"] = "error";
+			if (0x4000&stat) returnMe["Mult L1A Error occurred"] = "red";
+			if (0x2000&stat) returnMe["L1A-FIFO Near Full Warning"] = "blue";
+			if (0x1000&stat) returnMe["GbE FIFO Almost-Full"] = "none";
+		}
+		if (stat & 0x0F00) {
+			if (0x0800 & stat) returnMe["Ext.FIFO Near Full Warning"] = "blue";
+			if (0x0400 & stat) returnMe["InSingle Warning"] = "blue";
+			if (0x0200 & stat) returnMe["CFEB-CRC not OK"] = "none";
+			if (0x0100 & stat) returnMe["CFEB-CRC End Error"] = "orange";
+		}
+		if (stat & 0x00F0) {
+			if (0x0080 & stat) returnMe["CFEB-CRC Count Error"] = "orange";
+			if (0x0040 & stat) returnMe["DMB or CFEB CRC Error"] = "orange";
+			if (0x0020 & stat) returnMe["Trigger Readout Error"] = "orange";
+			if (0x0010 & stat) returnMe["Trigger Trail Done"] = "none";
+		}
+		if (stat & 0x000F) {
+			if (0x0008 & stat) returnMe["Start Timeout"] = "red";
+			if (0x0004 & stat) returnMe["End Timeout"] = "red";
+			if (0x0002 & stat) returnMe["SP/TF Error in last event"] = "orange";
+			if (0x0001 & stat) returnMe["SP/TF data detected in last event"] = "orange";
+		}
+		break;
+	case 1:
+		if (0x0020 & stat) returnMe["Empty CSC in Event flag"] = "green";
+		if (stat & 0xF000) {
+			if (0x8000 & stat) returnMe["Lost In Event Error"] = "orange";
+			if (0x4000 & stat) returnMe["DMB Error in Event"] = "orange";
+			if (0x2000 & stat) returnMe["Control DLL Error occured"] = "blue";
+			if (0x1000 & stat) returnMe["2nd Header First flag"] = "orange";
+		}
+		if (stat & 0x0F00) {
+			if (0x0800 & stat) returnMe["Early 2nd Trailer flag"] = "none";
+			if (0x0400 & stat) returnMe["Extra 1st Trailer flag"] = "none";
+			if (0x0200 & stat) returnMe["Extra 1st Header flag"] = "none";
+			if (0x0100 & stat) returnMe["Extra 2nd Header flag"] = "none";
+		}
+		if (stat & 0x00D0) {
+			if (0x0080 & stat) returnMe["SCA Full detected this Event"] = "orange";
+			if (0x0040 & stat) returnMe["Probable DMB Full occurred"] = "blue";
+			//if (0x0020&stat) returnMe["Empty Event flag"] = "green";
+			if (0x0010 & stat) returnMe["Bad Control Word Error occurred"] = "red";
+		}
+		if (stat & 0x000F) {
+			if (0x0008 & stat) returnMe["Missed Trigger Trailer Error"] = "orange";
+			if (0x0004 & stat) returnMe["First Dat Error"] = "orange";
+			if (0x0002 & stat) returnMe["Bad First Word"] = "orange";
+			if (0x0001 & stat) returnMe["Confirmed DMB Full occured"] = "red";
+		}
+		break;
+	case 2:
+		if (stat & 0xF000) {
+			if (0x8000 & stat) returnMe["Trigger Readout Error"] = "orange";
+			if (0x4000 & stat) returnMe["ALCT Trailer Done"] = "none";
+			if (0x2000 & stat) returnMe["2nd ALCT Trailer detected"] = "red";
+			if (0x1000 & stat) returnMe["ALCT L1A mismatch error occurred"] = "none";
+		}
+		if (stat & 0x0F00) {
+			if (0x0800 & stat) returnMe["ALCT CRC Error occurred"] = "none";
+			if (0x0400 & stat) returnMe["ALCT Wordcount Error occurred"] = "none";
+			if (0x0200 & stat) returnMe["Missing ALCT Trailer occurred"] = "none";
+			if (0x0100 & stat) returnMe["ALCT Error occurred"] = "none";
+		}
+		if (stat & 0x00F0) {
+			if (0x0080 & stat) returnMe["DMB Critical Error occurred"] = "none";
+			if (0x0040 & stat) returnMe["TMB Trailer Done"] = "none";
+			if (0x0020 & stat) returnMe["2nd TMB Trailer detected"] = "red";
+			if (0x0010 & stat) returnMe["TMB L1A mismatch error occurred"] = "none";
+		}
+		if (stat & 0x000F) {
+			if (0x0008 & stat) returnMe["TMB CRC Error occurred"] = "none";
+			if (0x0004 & stat) returnMe["TMB Word Count Error occurred"] = "none";
+			if (0x0002 & stat) returnMe["Missing TMB Trailer occurred"] = "none";
+			if (0x0001 & stat) returnMe["TMB Error occurred"] = "none";
+		}
+		break;
+	default:
+		// FIXME error
+		break;
 	}
 
+	return returnMe;
 
-	return returnValues;
 }
 
 
@@ -982,204 +1053,42 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(const uint32
 {
 	std::map<std::string, std::string> returnValues;
 
-	if ((stat&0x00018000) == 0x8000) returnValues["ALCT checking is disabled"] = "blue";
-	if ((stat&0x00028000) == 0x8000) returnValues["TMB checking is disabled"] = "blue";
-	//if ((stat&0x00008000)>0&&(stat&0x00030000)<0x00030000) *out << cgicc::br() ;
-	if ((stat&0x00048000) == 0x8000) returnValues["CFEB DAV/LCT/MOVLP/L1A checks disabled"] = "blue";
-	if ((stat&0x00088000) == 0x8000) returnValues["Some DMB checks disabled for SP/TF compatibility"] = "blue";
-	if ((stat&0x00008000) == 0) returnValues["All checks are Enabled"] = "green";
+	if ((stat & 0x00018000) == 0x8000) returnValues["ALCT checking is disabled"] = "blue";
+	if ((stat & 0x00028000) == 0x8000) returnValues["TMB checking is disabled"] = "blue";
+	if ((stat & 0x00048000) == 0x8000) returnValues["CFEB DAV/LCT/MOVLP/L1A checks disabled"] = "blue";
+	if ((stat & 0x00088000) == 0x8000) returnValues["Some DMB checks disabled for SP/TF compatibility"] = "blue";
+	if ((stat & 0x00008000) == 0) returnValues["All checks are Enabled"] = "green";
 
 	return returnValues;
 }
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(const enum DEVTYPE &dt, const uint32_t &stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(const enum DEVTYPE &dev, const uint32_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
-
-	const unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
-	//*out << "<blockquote><font size=-1 color=red face=arial>";
-	if (stat&0xF0000000) {
-		if (0x80000000&stat) returnValues["DLL2 Lock Error"] = "red";
-		// if (0x80000000&stat) returnValues["DLL-2 Not Locked"] = "red";
-		// if (0x40000000&stat) returnValues["DLL-1 Not Locked"] = "red";
-		if (0x40000000&stat) returnValues["64-bit Filler was used"] = "red";
-		if (0x20000000&stat) {
-			std::stringstream fibers;
-			fibers << (1 + fiberOffset * 2 / 8);
-			returnValues["RdCtrl-"+fibers.str()+" Not Ready"] = "red";
-		}
-		if (0x10000000&stat) {
-			std::stringstream fibers;
-			fibers << (0 + fiberOffset * 2 / 8);
-			returnValues["RdCtrl-"+fibers.str()+" Not Ready"] = "red";
-		}
-	}
-	if (stat&0x0F000000) {
-		if (0x08000000&stat) returnValues["NoLiveFiber 0 or 1"] = "blue";
-		if (0x04000000&stat) returnValues["DLL Error occurred"] = "blue";
-		if (0x02000000&stat) {
-			std::stringstream fibers;
-			fibers << (1 + fiberOffset * 2 / 8);
-			returnValues["InRD"+fibers.str()+" DMB Warn"] = "none";
-		}
-		if (0x01000000&stat) {
-			std::stringstream fibers;
-			fibers << (0 + fiberOffset * 2 / 8);
-			returnValues["InRD"+fibers.str()+" DMB Warn"] = "none";
-		}
-	}
-	if (stat&0x00F00000) {
-		std::stringstream registers;
-		registers << (1 + fiberOffset * 2 / 8);
-		if (0x00800000&stat) {
-			returnValues["InRD"+registers.str()+" DMB Full"] = "blue";
-		}
-		if (0x00400000&stat) {
-
-			returnValues["Mem/FIFO-InRD"+registers.str()+" Error"] = "red";
-		}
-		if (0x00200000&stat) {
-			returnValues["MultL1A Error-InRD"+registers.str()] = "red";
-		}
-		if (0x00100000&stat) {
-			std::stringstream fibers;
-			fibers << (4 + fiberOffset) << "-" << (7 + fiberOffset);
-			returnValues["NoLiveFiber"+fibers.str()] = "none";
-		}
-	}
-	if (stat&0x000F0000) {
-		std::stringstream registers;
-		registers << (0 + fiberOffset * 2 / 8);
-		if (0x00080000&stat) returnValues["InRD"+registers.str()+" DMB Full"] = "blue";
-		if (0x00040000&stat) returnValues["Mem/FIFO-InRD"+registers.str()+" Error"] = "red";
-		if (0x00020000&stat) returnValues["MultL1A Error-InRD"+registers.str()] = "red";
-		if (0x00010000&stat) {
-			std::stringstream fibers;
-			fibers << (0 + fiberOffset) << "-" << (3 + fiberOffset);
-			returnValues["NoLiveFiber"+fibers.str()] = "none";
-		}
-	}
-	// JRG, low-order 16-bit status (most serious errors):
-	if (stat&0x0000F000) {
-		if (0x00008000&stat) returnValues["Critical Error ** needs reset **"] = "error";
-		if (0x00004000&stat) returnValues["Single Error, bad event"] = "orange";
-		if (0x00002000&stat) returnValues["Single warning, possible data problem"] = "blue";
-		if (0x00001000&stat) returnValues["Near Full Warning"] = "blue";
-	}
-	if (stat&0x00000F00) {
-		if (0x00000800&stat) returnValues["RX Error occurred"] = "blue";
-		if (0x00000400&stat) returnValues["DLL Error (recent)"] = "blue";
-		if (0x00000200&stat) returnValues["SCA Full detected"] = "orange";
-		if (0x00000100&stat) returnValues["Special Word voted-bit warning"] = "blue";
-	}
-	if (stat&0x000000F0) {
-		if (0x00000080&stat) returnValues["Stuck Data occurred"] = "red";
-		if (0x00000040&stat) returnValues["Timeout occurred"] = "red";
-		if (0x00000020&stat) returnValues["Multiple voted-bit Errors"] = "red";
-		if (0x00000010&stat) returnValues["Multiple Transmit Errors"] = "red";
-	}
-	if (stat&0x0000000F) {
-		if (0x00000008&stat) returnValues["Mem/FIFO Full Error"] = "red";
-		if (0x00000004&stat) returnValues["Fiber Error"] = "red";
-		if (0x00000002&stat) returnValues["L1A Match Error"] = "orange";
-		if (0x00000001&stat) returnValues["Not Ready Error"] = "red";
-	}
-
-	return returnValues;
+	return FPGAStatus(dev, stat);
 }
 
 
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(const enum DEVTYPE &dt, const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
-
-	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
-	//*out << "<blockquote><font size=-1 color=black face=arial>";
-	if (stat&0x00000055) {
-		//returnValues["&nbsp InRD0 Status: &nbsp <font color=blue>";
-		if (0x00000040&stat) returnValues["Ext.FIFO 3/4 Full"] = "blue";
-		if (0x00000010&stat) returnValues["L1A FIFO Almost Full"] = "blue";
-		if (0x00000004&stat) returnValues["MemCtrl Almost Full"] = "blue";
-		//*out << "</font>";
-		if (0x00000001&stat) returnValues["L1A FIFO Empty"] = "none";
-		if (0x00000001&stat == 0) returnValues["L1A FIFO Not Empty"] = "none";
-	}
-	if (stat&0x000000AA) {
-		//returnValues["&nbsp InRD1 Status: &nbsp <font color=blue>";
-		if (0x00000080&stat) returnValues["Ext.FIFO 3/4 Full"] = "blue";
-		if (0x00000020&stat) returnValues["L1A FIFO Almost Full"] = "blue";
-		if (0x00000008&stat) returnValues["MemCtrl Almost Full"] = "blue";
-		//*out << "</font>";
-		if (0x000002&stat) returnValues["L1A FIFO Empty"] = "none";
-		if (0x000002&stat == 0) returnValues["L1A FIFO Not Empty"] = "none";
-	}
-
-	return returnValues;
+	return FIFOStatus(dt, stat);
 }
 
 
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(const enum DEVTYPE &dt, const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
-
-	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
-	//*out << "<blockquote><font size=-1 color=black face=arial>";
-	if (stat&0x00000005) {
-		//returnValues["&nbsp InRD0 Status: &nbsp <font color=red>";
-		if (0x00000004&stat) returnValues["Ext.FIFO Full Occurred"] = "red";
-		if (0x00000001&stat) returnValues["L1A FIFO Full Occurred"] = "red";
-		//*out << "</font>" << cgicc::br();
-	}
-	if (stat&0x0000000A) {
-		//returnValues["&nbsp InRD1 Status: &nbsp <font color=red>";
-		if (0x00000008&stat) returnValues["Ext.FIFO Full Occurred"] = "red";
-		if (0x00000002&stat) returnValues["L1A FIFO Full Occurred"] = "red";
-		//*out << "</font>" << cgicc::br();
-	}
-
-	return returnValues;
+	return FIFOFull(dt, stat, new DDU(0));
 }
 
 
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(const enum DEVTYPE &dt, const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
-
-	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
-	//out << "<blockquote><font size=-1 color=black face=arial>";
-	if (stat&0x000000ff) {
-		//*out << " &nbsp InRD0: &nbsp <font color=red>";
-		if (0x000080&stat) returnValues["Critical Error ** needs reset **"] = "error";
-		if (0x000040&stat) returnValues["Sync Error ** needs reset **"] = "error";
-		if (0x000020&stat) returnValues["Single Error"] = "orange";
-		if (0x000010&stat) returnValues["FIFO Overflow detected"] = "red";
-		if (0x000008&stat) returnValues["Fiber Connection Error"] = "red";
-		if (0x000004&stat) returnValues["Multi-Transmit Error"] = "red";
-		if (0x000002&stat) returnValues["Stuck Data"] = "red";
-		if (0x000001&stat) returnValues["Timeout"] = "red";
-		//*out  << "</font>" << cgicc::br();
-	}
-	if (stat&0x0000ff00) {
-		//*out << " &nbsp InRD1 &nbsp <font color=red>";
-		if (0x0008000&stat) returnValues["Critical Error ** needs reset **"] = "error";
-		if (0x00004000&stat) returnValues["Sync Error ** needs reset **"] = "error";
-		if (0x00002000&stat) returnValues["Single Error"] = "orange";
-		if (0x00001000&stat) returnValues["FIFO Overflow detected"] = "red";
-		if (0x00000800&stat) returnValues["Fiber Connection Error"] = "red";
-		if (0x00000400&stat) returnValues["Multi-Transmit Error"] = "red";
-		if (0x00000200&stat) returnValues["Stuck Data"] = "red";
-		if (0x00000100&stat) returnValues["Timeout"] = "red";
-		//*out  << "</font>" << cgicc::br();
-	}
-
-	return returnValues;
+	return CCodeStatus(dt, stat);
 }
-
 
 
 
@@ -1248,6 +1157,13 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(cons
 
 
 std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const std::vector<uint16_t> &lcode, const enum DEVTYPE &dt)
+{
+	return INFPGADebugTrap(dt, lcode);
+}
+
+
+
+std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const enum DEVTYPE &dt, const std::vector<uint16_t> &lcode)
 {
 	std::vector<std::string> out;
 	std::ostringstream outStream;
@@ -1384,14 +1300,14 @@ std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const std::vecto
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStat(const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues;
+	std::map<std::string, std::string> returnValues = FMM(stat & 0x000f);
 
-	if (stat&0x0080) returnValues["VME DLL-2 Not Locked"] = "blue";
-	if (stat&0x0040) returnValues["VME DLL-1 Not Locked"] = "blue";
-	if (stat&0x8000) returnValues["VME FPGA detects a problem"] = "red";
-	if (stat&0x4000) returnValues["VME FPGA has a clock problem"] = "red";
-	if (stat&0x2000) returnValues["VME FPGA is Not Ready"] = "orange";
-	if (stat&0x1000) returnValues["DDU is Not Ready"] = "orange";
+	if (stat & 0x0080) returnValues["VME DLL-2 Not Locked"] = "blue";
+	if (stat & 0x0040) returnValues["VME DLL-1 Not Locked"] = "blue";
+	if (stat & 0x8000) returnValues["VME FPGA detects a problem"] = "red";
+	if (stat & 0x4000) returnValues["VME FPGA has a clock problem"] = "red";
+	if (stat & 0x2000) returnValues["VME FPGA is Not Ready"] = "orange";
+	if (stat & 0x1000) returnValues["DDU is Not Ready"] = "orange";
 
 	return returnValues;
 }
@@ -1410,6 +1326,9 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FMM(const uint16_t &st
 	else if (myStat == 8) returnValues["Ready"] = "ok";
 	else if (myStat == 0xC) returnValues["Error"] = "error";
 	else returnValues["Undefined"] = "undefined";
+	
+	if ((stat & 0xfff0) == 0xfed0) returnValues["FMM reporting "] = "green";
+	else returnValues[""] = "green";
 
 	return returnValues;
 }
@@ -1426,14 +1345,14 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(const uint
 	int reg3 = (stat & 0xF000) >> 12;
 
 	if (reg0 == reg2 && reg1 == reg3 && reg0 + reg1 == 0xF) {
-		if ((0x7&stat) == 0x7) returnValues["Transmitting never"] = "none";
+		if ((0x7 & stat) == 0x7) returnValues["Transmitting never"] = "none";
 		else {
 			const unsigned int prescale = 1 << reg0;
 			std::stringstream prescaleText;
 			prescaleText << "1:" << prescale;
 			returnValues["Transmitting "+prescaleText.str()+" events"] = "green";
 		}
-		if (0x8&stat) returnValues["Ignoring DCC/S-Link Wait"] = "orange";
+		if (0x8 & stat) returnValues["Ignoring DCC/S-Link Wait"] = "orange";
 	} else {
 		returnValues["Transmitting never"] = "none";
 	}
@@ -1584,44 +1503,16 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::InRDStat(const uint16_
 	std::map<std::string, std::string> returnMe;
 	
 	if (stat & 0xf000) {
-		std::ostringstream sReport;
-		sReport << "Hard error: " << std::showbase << std::hex << ((stat >> 12) & 0xf);
-		returnMe[sReport.str()] = "red";
-		
-		std::vector<std::string> fibers = decodeInRD((stat >> 12) & 0xf);
-		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
-			returnMe[*iFibers] = "red";
-		}
+		returnMe["Hard error:" + decodeInRD((stat >> 12) & 0xf)] = "red";
 	}
 	if (stat & 0x0f00) {
-		std::ostringstream sReport;
-		sReport << "Sync error: " << std::showbase << std::hex << ((stat >> 8) & 0xf);
-		returnMe[sReport.str()] = "red";
-		
-		std::vector<std::string> fibers = decodeInRD((stat >> 8) & 0xf);
-		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
-			returnMe[*iFibers] = "red";
-		}
+		returnMe["Sync error: " + decodeInRD((stat >> 8) & 0xf)] = "red";
 	}
 	if (stat & 0x00f0) {
-		std::ostringstream sReport;
-		sReport << "Single event error: " << std::showbase << std::hex << ((stat >> 4) & 0xf);
-		returnMe[sReport.str()] = "red";
-		
-		std::vector<std::string> fibers = decodeInRD((stat >> 4) & 0xf);
-		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
-			returnMe[*iFibers] = "red";
-		}
+		returnMe["Single event error: " + decodeInRD((stat >> 4) & 0xf)] = "red";
 	}
 	if (stat & 0x000f) {
-		std::ostringstream sReport;
-		sReport << "Timeout error: " << std::showbase << std::hex << (stat & 0xf);
-		returnMe[sReport.str()] = "red";
-		
-		std::vector<std::string> fibers = decodeInRD(stat & 0xf);
-		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
-			returnMe[*iFibers] = "red";
-		}
+		returnMe["Timeout error: " + decodeInRD(stat & 0xf)] = "red";
 	}
 	
 	return returnMe;
@@ -1629,20 +1520,36 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::InRDStat(const uint16_
 
 
 
-std::vector<std::string> emu::fed::DDUDebugger::decodeInRD(const uint8_t &stat)
+std::string emu::fed::DDUDebugger::decodeInRD(const uint8_t &stat)
 {
-	std::vector<std::string> returnMe;
+	std::ostringstream returnMe;
 	
 	for (unsigned int iBit = 0; iBit < 4; iBit++) {
 		unsigned int minFiber = iBit * 4;
 		unsigned int maxFiber = iBit * 4 + 3;
 		if (iBit == 3) maxFiber -= 1;
-		std::ostringstream sFibers;
-		sFibers << "fibers " << minFiber << "-" << maxFiber;
-		returnMe.push_back(sFibers.str());
+		returnMe << "fibers " << minFiber << "-" << maxFiber << " ";
 	}
 	
-	return returnMe;
+	return returnMe.str();
+}
+
+
+
+std::string emu::fed::DDUDebugger::decodeINFPGAFibers(const enum DEVTYPE &dev, const uint8_t &stat, DDU *ddu)
+{
+	
+	std::ostringstream returnMe;
+	
+	unsigned int minFiber = (dev == INFPGA0) ? 0 : 8;
+	unsigned int maxFiber = (dev == INFPGA0) ? 7 : 14;
+	
+	unsigned int iBit = 0;
+	for (unsigned int iFiber = minFiber; iFiber < maxFiber; ++iFiber, ++iBit) {
+		if (stat && (1 << iBit)) returnMe << ddu->getFiber(iFiber)->getName() << " ";
+	}
+	
+	return returnMe.str();
 }
 
 
@@ -1652,14 +1559,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(const uint1
 	std::map<std::string, std::string> returnMe;
 	
 	if (stat & 0x000f) {
-		std::ostringstream sReport;
-		sReport << "Multiple transmit errors: " << std::showbase << std::hex << (stat & 0xf);
-		returnMe[sReport.str()] = "red";
-		
-		std::vector<std::string> fibers = decodeInRD(stat & 0xf);
-		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
-			returnMe[*iFibers] = "red";
-		}
+		returnMe["Multiple transmit errors: " + decodeInRD(stat & 0xf)] = "red";
 	}
 	
 	if (0x08000 & stat) returnMe["InRD End C-Code Error occurred"] = "red";
@@ -1685,40 +1585,381 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(const uint16_t
 	std::map<std::string, std::string> returnMe;
 	
 	if (stat & 0x3b00) {
-		std::ostringstream sReport;
-		sReport << "Raw Ext. FIFO empty: " << std::showbase << std::hex << ((stat >> 10) & 0xf);
-		returnMe[sReport.str()] = "none";
-		
-		std::vector<std::string> fibers = decodeInRD((stat >> 10) & 0xf);
-		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
-			returnMe[*iFibers] = "none";
-		}
+		returnMe["Raw Ext. FIFO empty: " + decodeInRD((stat >> 10) & 0xf)] = "none";
 	}
 	if (stat & 0x00f0) {
-		std::ostringstream sReport;
-		sReport << "InRD FIFO full: " << std::showbase << std::hex << ((stat >> 4) & 0xf);
-		returnMe[sReport.str()] = "red";
-		
-		std::vector<std::string> fibers = decodeInRD((stat >> 4) & 0xf);
-		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
-			returnMe[*iFibers] = "red";
-		}
+		returnMe["InRD FIFO full: " + decodeInRD((stat >> 4) & 0xf)] = "red";
 	}
 	if (stat & 0x000f) {
-		std::ostringstream sReport;
-		sReport << "Ext. FIFO full: " << std::showbase << std::hex << (stat & 0xf);
-		returnMe[sReport.str()] = "red";
-		
-		std::vector<std::string> fibers = decodeInRD(stat & 0xf);
-		for (std::vector<std::string>::const_iterator iFibers = fibers.begin(); iFibers != fibers.end(); iFibers++) {
-			returnMe[*iFibers] = "red";
-		}
+		returnMe["Ext. FIFO full: " + decodeInRD(stat & 0xf)] = "red";
 	}
 	
 	if (0x4000 & stat) returnMe["L1A FIFO Empty"] = "none";
 	if (0x4000 & stat == 0) returnMe["L1A FIFO Not Empty"] = "none";
 	if (0x0200 & stat) returnMe["GbE FIFO Full occurred"] = "yellow";
 	if (0x0100 & stat) returnMe["L1A FIFO Full occurred"] = "red";
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::MaxTimeoutCount(const uint16_t &stat)
+{
+
+	std::map<std::string, std::string> returnMe;
+	
+	std::ostringstream sL1ATime;
+	sL1ATime << "DDU L1A-to-start max processing time: " << ((stat & 0xff) * 400.0) << " ns";
+	returnMe[sL1ATime.str()] = "none";
+	
+	std::ostringstream sTotalTime;
+	sTotalTime << "DDU start-to-end max processing time: " << (((stat >> 8) & 0xff) * 6.4) << " μs";
+	returnMe[sTotalTime.str()] = "none";
+	
+	return returnMe;
+
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStatus(const uint8_t &fifo, const uint16_t &stat)
+{
+	return FIFOStatus(DDUFPGA, fifo, stat);
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStatus(const enum DEVTYPE &dev, const uint8_t &fifo, const uint16_t &stat)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (dev == DDUFPGA) {
+		
+		switch (fifo) {
+		case 0:
+			if (stat & 0xf000) {
+				returnMe["Stuck data error: " + decodeInRD((stat >> 12) & 0xf)] = "red";
+			}
+			if (stat & 0x0f00) {
+				returnMe["Fiber or FIFO connection error: " + decodeInRD((stat >> 8) & 0xf)] = "red";
+			}
+			if (stat & 0x00f0) {
+				returnMe["L1A mismatch: " + decodeInRD((stat >> 4) & 0xf)] = "orange";
+			}
+			if (stat & 0x000f) {
+				returnMe["InRDs with active fiber: " + decodeInRD(stat & 0xf)] = "none";
+			}
+			break;
+			
+		case 1:
+			if (stat & 0x3b00) {
+				returnMe["Active ext. FIFO empty: " + decodeInRD((stat >> 10) & 0xf)] = "none";
+			}
+			if (stat & 0x00f0) {
+				returnMe["InRD near-full warning: " + decodeInRD((stat >> 4) & 0xf)] = "orange";
+			}
+			if (stat & 0x000f) {
+				returnMe["Ext. FIFO almost full: " + decodeInRD(stat & 0xf)] = "blue";
+			}
+
+			if (stat & 0xb300) {
+
+				if (0x0040 & stat) returnMe["L1A FIFO Empty"] = "none";
+				if (0x0040 & stat == 0) returnMe["L1A FIFO Not Empty"] = "none";
+				if (0x0080 & stat) returnMe["DDU C-code L1A error"] = "blue";
+				if (0x0002 & stat) returnMe["GbE FIFO Almost-Full occurred"] = "none";
+				if (0x0001 & stat) returnMe["L1A FIFO Almost-Full occurred"] = "blue";
+
+			}
+			break;
+			
+		case 2:
+			if (stat & 0xf000) {
+				returnMe["Timeout-End/Busy: " + decodeInRD((stat >> 12) & 0xf)] = "red";
+			}
+			if (stat & 0x0f00) {
+				returnMe["Timeout-End/Wait: " + decodeInRD((stat >> 8) & 0xf)] = "red";
+			}
+			if (stat & 0x00f0) {
+				returnMe["Timeout-Start: " + decodeInRD((stat >> 4) & 0xf)] = "red";
+			}
+			if (stat & 0x000f) {
+				returnMe["Lost-In-Data error: " + decodeInRD(stat & 0xf)] = "red";
+			}
+			break;
+			
+		default:
+			// FIXME error
+			break;
+		}
+		
+	} else {
+		// FIXME error
+	}
+	
+	return returnMe;
+
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStatus(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (dev == INFPGA0 || dev == INFPGA1) {
+		
+		if (stat & 0xff00) {
+			returnMe["Input buffer empty: " + decodeINFPGAFibers(INFPGA0, (stat >> 8), ddu)] = "none";
+		}
+		
+		if (stat & 0x0055) {
+			std::string fifoName = (dev == INFPGA0 ? "1" : "3");
+			if (0x0040 & stat) returnMe["Ext.FIFO " + fifoName + " Full"] = "blue";
+			if (0x0010 & stat) returnMe["L1A FIFO " + fifoName + " Almost Full"] = "blue";
+			if (0x0004 & stat) returnMe["MemCtrl " + fifoName + " Almost Full"] = "blue";
+			if (0x0001 & stat) returnMe["L1A FIFO " + fifoName + " Empty"] = "none";
+			if (0x0001 & stat == 0) returnMe["L1A FIFO " + fifoName + " Not Empty"] = "none";
+		}
+		if (stat & 0x00AA) {
+			std::string fifoName = (dev == INFPGA0 ? "2" : "4");
+			if (0x0080 & stat) returnMe["Ext.FIFO " + fifoName + " Full"] = "blue";
+			if (0x0020 & stat) returnMe["L1A FIFO " + fifoName + " Almost Full"] = "blue";
+			if (0x0008 & stat) returnMe["MemCtrl " + fifoName + " Almost Full"] = "blue";
+			if (0x0002 & stat) returnMe["L1A FIFO " + fifoName + " Empty"] = "none";
+			if (0x0002 & stat == 0) returnMe["L1A FIFO " + fifoName + " Not Empty"] = "none";
+		}
+	} else {
+		// FIXME error
+	}
+	
+	return returnMe;
+}
+
+
+
+std::pair<std::string, std::string> emu::fed::DDUDebugger::SerialStatus(const uint8_t &stat)
+{
+	
+	if (stat & 0x80) return std::make_pair("Error", "red");
+	else if (stat & 0x0c) return std::make_pair("Warning", "orange");
+
+	else return std::make_pair("", "");
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::FiberStatus(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0xff00) {
+		returnMe["Fiber connection error: " + decodeINFPGAFibers(dev, (stat >> 8), ddu)] = "red";
+	}
+	returnMe["Fiber link inactive: " + decodeINFPGAFibers(dev, ~stat, ddu)] = "none";
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::DMBSync(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0xff00) {
+		returnMe["Stuck data: " + decodeINFPGAFibers(dev, (stat >> 8), ddu)] = "red";
+	}
+	if (stat & 0x00ff) {
+		returnMe["L1A mismatch: " + decodeINFPGAFibers(dev, stat, ddu)] = "orange";
+	}
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+
+	if (stat & 0x00ff) {
+		returnMe["Input buffer full history: " + decodeINFPGAFibers(dev, stat, ddu)] = "red";
+	}
+	
+	if (stat & 0x0500) {
+		std::string fifoName = (dev == INFPGA0 ? "1" : "3");
+		if (0x0400 & stat) returnMe["Ext. FIFO " + fifoName + " Full Occurred"] = "red";
+		if (0x0100 & stat) returnMe["L1A FIFO " + fifoName + " Full Occurred"] = "red";
+	}
+	if (stat & 0x0A00) {
+		std::string fifoName = (dev == INFPGA0 ? "2" : "4");
+		if (0x0800 & stat) returnMe["Ext. FIFO " + fifoName + " Full Occurred"] = "red";
+		if (0x0200 & stat) returnMe["L1A FIFO " + fifoName + " Full Occurred"] = "red";
+	}
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::RxError(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0xff00) {
+		returnMe["GT-Rx error: " + decodeINFPGAFibers(dev, (stat >> 8), ddu)] = "red";
+	}
+	if (stat & 0x00ff) {
+		returnMe["Timeout-start: " + decodeINFPGAFibers(dev, stat, ddu)] = "red";
+	}
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::TxError(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0xff00) {
+		returnMe["SCA-full history: " + decodeINFPGAFibers(dev, (stat >> 8), ddu)] = "red";
+	}
+	if (stat & 0x00ff) {
+		returnMe["CSC transmit error: " + decodeINFPGAFibers(dev, stat, ddu)] = "red";
+	}
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::Timeout(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0xff00) {
+		returnMe["Timeout-end busy: " + decodeINFPGAFibers(dev, (stat >> 8), ddu)] = "red";
+	}
+	if (stat & 0x00ff) {
+		returnMe["Timeout-end wait: " + decodeINFPGAFibers(dev, stat, ddu)] = "red";
+	}
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::ActiveWriteMemory(const enum DEVTYPE &dev, const uint8_t &reg, const uint16_t &stat, DDU *ddu)
+{
+	
+	std::map<std::string, std::string> returnMe;
+	
+	// Get the fibers we are dealing with
+	const unsigned int fiber0 = ((dev == INFPGA0) ? 0 : 8) + reg * 2;
+	const unsigned int fiber1 = fiber0 + 1;
+	
+	if (stat & 0x1f) {
+		std::ostringstream status;
+		status << ddu->getFiber(fiber0)->getName() << ": " << (stat & 0x1f) << " units";
+		returnMe[status.str()] = "none";
+	}
+	if ((stat >> 5) & 0x1f) {
+		std::ostringstream status;
+		status << ddu->getFiber(fiber1)->getName() << ": " << ((stat >> 5) & 0x1f) << " units";
+		returnMe[status.str()] = "none";
+	}
+	
+	return returnMe;
+	
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::AvailableMemory(const enum DEVTYPE &dev, const uint16_t &stat)
+{
+
+	std::map<std::string, std::string> returnMe;
+	
+	std::ostringstream status;
+	status << "Fibers " << (dev == INFPGA0 ? 0 : 8) << "-" << (dev == INFPGA0 ? 3 : 11) << ": " << (stat & 0x1f) << " units";
+	if (stat & 0x1f == 1) returnMe[status.str()] = "orange";
+	else if (!(stat & 0x1f)) returnMe[status.str()] = "red";
+	else returnMe[status.str()] = "none";
+
+	status << "Fibers " << (dev == INFPGA0 ? 4 : 12) << "-" << (dev == INFPGA0 ? 7 : 14) << ": " << ((stat >> 5) & 0x1f) << " units";
+	if ((stat >> 5) & 0x1f == 1) returnMe[status.str()] = "orange";
+	else if (!((stat >> 5) & 0x1f)) returnMe[status.str()] = "red";
+	else returnMe[status.str()] = "none";
+	
+	return returnMe;
+	
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::LostError(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0xff00) {
+		returnMe["DDU lost-in-event: " + decodeINFPGAFibers(dev, (stat >> 8), ddu)] = "red";
+	}
+	if (stat & 0x00ff) {
+		returnMe["DDU lost-in-data: " + decodeINFPGAFibers(dev, stat, ddu)] = "red";
+	}
+	
+	return returnMe;
+}
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStatus(const enum DEVTYPE &dev, const uint16_t &stat)
+{
+	std::map<std::string, std::string> returnMe;
+
+	if (stat & 0x00ff) {
+
+		std::ostringstream fibers;
+		fibers << "Fibers " << (dev == INFPGA0 ? "0" : "8") << "-" << (dev == INFPGA0 ? "3" : "11");
+		if (0x0080 & stat) returnMe["Critical Error " + fibers.str() + " ** needs reset **"] = "error";
+		if (0x0040 & stat) returnMe["Sync Error " + fibers.str() + " ** needs reset **"] = "error";
+		if (0x0020 & stat) returnMe["Single Error " + fibers.str() + ""] = "orange";
+		if (0x0010 & stat) returnMe["FIFO Overflow detected " + fibers.str() + ""] = "red";
+		if (0x0008 & stat) returnMe["Fiber Connection Error " + fibers.str() + ""] = "red";
+		if (0x0004 & stat) returnMe["Multi-Transmit Error " + fibers.str() + ""] = "red";
+		if (0x0002 & stat) returnMe["Stuck Data " + fibers.str() + ""] = "red";
+		if (0x0001 & stat) returnMe["Timeout " + fibers.str() + ""] = "red";
+	}
+	if (stat & 0xff00) {
+		std::ostringstream fibers;
+		fibers << "Fibers " << (dev == INFPGA0 ? "4" : "12") << "-" << (dev == INFPGA0 ? "7" : "14");
+		if (0x8000 & stat) returnMe["Critical Error " + fibers.str() + " ** needs reset **"] = "error";
+		if (0x4000 & stat) returnMe["Sync Error " + fibers.str() + " ** needs reset **"] = "error";
+		if (0x2000 & stat) returnMe["Single Error " + fibers.str() + ""] = "orange";
+		if (0x1000 & stat) returnMe["FIFO Overflow detected " + fibers.str() + ""] = "red";
+		if (0x0800 & stat) returnMe["Fiber Connection Error " + fibers.str() + ""] = "red";
+		if (0x0400 & stat) returnMe["Multi-Transmit Error " + fibers.str() + ""] = "red";
+		if (0x0200 & stat) returnMe["Stuck Data " + fibers.str() + ""] = "red";
+		if (0x0100 & stat) returnMe["Timeout " + fibers.str() + ""] = "red";
+	}
+
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::DMBWarning(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu)
+{
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0xff00) {
+		returnMe["DMB error: " + decodeINFPGAFibers(dev, (stat >> 8), ddu)] = "red";
+	}
+	if (stat & 0x00ff) {
+		returnMe["DMB warning: " + decodeINFPGAFibers(dev, stat, ddu)] = "orange";
+	}
 	
 	return returnMe;
 }
