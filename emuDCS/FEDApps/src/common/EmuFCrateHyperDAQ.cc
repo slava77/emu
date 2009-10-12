@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.10 2009/09/29 13:51:00 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.11 2009/10/12 15:12:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -1930,7 +1930,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		}
 
 		generalTable(5,0) << "Error bus A register bits (16-bit)";
-		dduValue = myDDU->readEBRegister(1);
+		dduValue = myDDU->readEBRegister(0);
 		generalTable(5,1) << std::showbase << std::hex << dduValue;
 		if (dduValue & 0x0000C00C) generalTable(5,1).setClass("bad");
 		else if (dduValue & 0x000001C8) generalTable(5,1).setClass("warning");
@@ -1944,7 +1944,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		}
 
 		generalTable(6,0) << "Error bus B register bits (16-bit)";
-		dduValue = myDDU->readEBRegister(2);
+		dduValue = myDDU->readEBRegister(1);
 		generalTable(6,1) << std::showbase << std::hex << dduValue;
 		if (dduValue & 0x00000011) generalTable(6,1).setClass("bad");
 		else if (dduValue & 0x0000D08E) generalTable(6,1).setClass("warning");
@@ -1958,7 +1958,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		}
 
 		generalTable(7,0) << "Error bus C register bits (16-bit)";
-		dduValue = myDDU->readEBRegister(3);
+		dduValue = myDDU->readEBRegister(2);
 		generalTable(7,1) << std::showbase << std::hex << dduValue;
 		if (dduValue & 0x0000BFBF) generalTable(7,1).setClass("warning");
 		else generalTable(7,1).setClass("ok");
@@ -2215,7 +2215,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		inrdTable[0]->set("class", "header");
 
 		inrdTable(1,0) << "Stuck data error";
-		dduValue = myDDU->readFIFOStatus(1);
+		dduValue = myDDU->readFIFOStatus(0);
 		inrdTable(1,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 		if ((dduValue >> 12) & 0xF) inrdTable(1,1).setClass("bad");
 		else inrdTable(1,1).setClass("ok");
@@ -2234,11 +2234,11 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 
 		inrdTable(4,0) << "InRD with active fiber";
 		//dduValue = myDDU->checkFIFO(1);
-		inrdTable(4,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+		inrdTable(4,1) << std::showbase << std::hex << (dduValue & 0xF);
 		inrdTable(4,1).setClass("none");
 
 		inrdTable(5,0) << "Active ext. FIFO empty";
-		dduValue = myDDU->readFIFOStatus(2);
+		dduValue = myDDU->readFIFOStatus(1);
 		inrdTable(5,1) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
 		inrdTable(5,1).setClass("none");
 
@@ -2268,7 +2268,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		}
 
 		inrdTable(9,0) << "Timeout-EndBusy";
-		dduValue = myDDU->readFIFOStatus(3);
+		dduValue = myDDU->readFIFOStatus(2);
 		inrdTable(9,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 		if ((dduValue >> 12) & 0xF) inrdTable(9,1).setClass("bad");
 		else inrdTable(9,1).setClass("ok");
@@ -2725,7 +2725,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 		fiberTable(0,4) << "Decoded Chambers";
 		fiberTable[0]->set("class", "header");
 		
-		fiberTable(21,0) << "DMB full";
+		fiberTable(2,0) << "DMB full";
 		fiberTable(3,0) << "DMB warning";
 		fiberTable(4,0) << "Connection error";
 		fiberTable(5,0) << "Link active";
