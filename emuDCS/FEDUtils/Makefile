@@ -17,9 +17,9 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 Project=emu
 Package=emuDCS/FEDUtils
 PackageName=FEDUtils
-Description="Utility libraries used by the Front End Device (FED) crate XDAQ applications (FEDApps) for the CMS Emu (CSC) subdetector"
+Description="Utility libraries used by the Front End Driver (FED) crate XDAQ applications (FEDApps) for the CMS EMu (CSC) subdetector"
 Summary="Emu (CSC) FED Utility Libraries"
-Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
+Authors="Phillip Killewald, Angela Brett, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
 PACKAGE_VER_MINOR=11
@@ -49,7 +49,12 @@ Sources=\
 	DDUDebugger.cc \
 	DCCDebugger.cc \
 	DataTable.cc \
-	JSONSpiritWriter.cc
+	JSONSpiritWriter.cc \
+	CSSElement.cc \
+	TableCell.cc \
+	TableRow.cc \
+	TableColumn.cc \
+	Table.cc
 
 IncludeDirs = \
 	$(BUILD_HOME)/emu/emuDCS/FEDCore/include \
