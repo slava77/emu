@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: TableRow.cc,v 1.1 2009/10/13 20:29:18 paste Exp $
+* $Id: TableRow.cc,v 1.2 2009/10/14 20:02:50 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/TableRow.h"
 
@@ -38,6 +38,14 @@ cellVector_(myRow.cellVector_)
 
 
 
+emu::fed::TableRow::TableRow(TableRow &myRow):
+CSSElement(myRow),
+cellVector_(myRow.cellVector_)
+{
+}
+
+
+
 emu::fed::TableRow::~TableRow()
 {
 }
@@ -45,6 +53,16 @@ emu::fed::TableRow::~TableRow()
 
 
 emu::fed::TableRow &emu::fed::TableRow::operator=(const TableRow &myRow)
+{
+	setID(myRow.getID());
+	setClasses(myRow.getClasses());
+	cellVector_ = myRow.cellVector_;
+	return *this;
+}
+
+
+
+emu::fed::TableRow &emu::fed::TableRow::operator=(TableRow &myRow)
 {
 	setID(myRow.getID());
 	setClasses(myRow.getClasses());
@@ -69,6 +87,13 @@ emu::fed::TableCell *emu::fed::TableRow::getCell(const unsigned int &col)
 		}
 	}
 	return cellVector_[col];
+}
+
+
+
+std::vector<emu::fed::TableCell *> emu::fed::TableRow::getCells()
+{
+	return cellVector_;
 }
 
 
@@ -124,18 +149,41 @@ emu::fed::TableRow &emu::fed::TableRow::replaceCell(TableCell &myCell, const uns
 
 
 
-std::string emu::fed::TableRow::toHTML() const
+emu::fed::TableRow &emu::fed::TableRow::clear()
+{
+	cellVector_.clear();
+	return *this;
+}
+
+
+
+std::string emu::fed::TableRow::toHTML()
 {
 	std::ostringstream out;
+	
+	out << cgicc::tr()
+		.set("id", getID())
+		.set("class", getClass());
+	
+	for (std::vector<TableCell *>::const_iterator iCell = cellVector_.begin(); iCell != cellVector_.end(); ++iCell) {
+		out << (*iCell)->toHTML();
+	}
+
+	out << cgicc::tr();
 	
 	return out.str();
 }
 
 
 
-std::string emu::fed::TableRow::toText() const
+std::string emu::fed::TableRow::toText()
 {
 	std::ostringstream out;
+	
+	out << "|";
+	for (std::vector<TableCell *>::const_iterator iCell = cellVector_.begin(); iCell != cellVector_.end(); ++iCell) {
+		out << (*iCell)->toText() << "|";
+	}
 	
 	return out.str();
 }

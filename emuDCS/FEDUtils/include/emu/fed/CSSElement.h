@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CSSElement.h,v 1.1 2009/10/13 20:29:17 paste Exp $
+* $Id: CSSElement.h,v 1.2 2009/10/14 20:02:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CSSELEMENT_H__
 #define __EMU_FED_CSSELEMENT_H__
@@ -42,12 +42,14 @@ namespace emu {
 			
 			/** Copy constructor. **/
 			CSSElement(const CSSElement &myElement);
+			CSSElement(CSSElement &myElement);
 			
 			/** Destructor. **/
 			virtual ~CSSElement();
 			
 			/** Assignment operator. **/
 			CSSElement &operator=(const CSSElement &myElement);
+			CSSElement &operator=(CSSElement &myElement);
 			
 			/** @return the CSS ID of the table. **/
 			std::string getID() const;
@@ -68,10 +70,10 @@ namespace emu {
 			CSSElement &setClasses(const std::vector<std::string> &classes);
 			
 			/** Return an HTML representation of the element as a string.  **/
-			virtual std::string toHTML() const = 0;
+			virtual std::string toHTML() = 0;
 			
 			/** Return a formatted text representation of the element as a string.  **/
-			virtual std::string toText() const = 0;
+			virtual std::string toText() = 0;
 			
 		private:
 			

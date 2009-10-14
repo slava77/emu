@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: TableRow.h,v 1.1 2009/10/13 20:29:18 paste Exp $
+* $Id: TableRow.h,v 1.2 2009/10/14 20:02:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_TABLEROW_H__
 #define __EMU_FED_TABLEROW_H__
@@ -42,12 +42,14 @@ namespace emu {
 			
 			/** Copy constructor. **/
 			TableRow(const TableRow &myRow);
+			TableRow(TableRow &myRow);
 			
 			/** Destructor. **/
 			~TableRow();
 			
 			/** Assignment operator. **/
 			TableRow &operator=(const TableRow &myRow);
+			TableRow &operator=(TableRow &myRow);
 			
 			/** Count the number of cells in the row. **/
 			unsigned int size();
@@ -57,6 +59,9 @@ namespace emu {
 
 			/** Access a given element.  Expand the vector as needed.  **/
 			TableCell *operator[](const unsigned int &col);
+			
+			/** Access all cells. **/
+			std::vector<TableCell *> getCells();
 			
 			/** Insert a TableCell. 
 			*
@@ -73,12 +78,15 @@ namespace emu {
 			**/
 			TableRow &replaceCell(TableCell *myCell, const unsigned int &colNumber);
 			TableRow &replaceCell(TableCell &myCell, const unsigned int &colNumber);
+			
+			/** Clear the cells **/
+			TableRow &clear();
 		
 			/** @returns a string representing the row in an HTML table row \<tr\>. **/
-			virtual std::string toHTML() const;
+			virtual std::string toHTML();
 			
 			/** @returns a string representing the row in formatted text. **/
-			virtual std::string toText() const;
+			virtual std::string toText();
 		
 		private:
 			std::vector<TableCell *> cellVector_;

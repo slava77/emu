@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Table.cc,v 1.1 2009/10/13 20:29:18 paste Exp $
+* $Id: Table.cc,v 1.2 2009/10/14 20:02:50 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Table.h"
 
@@ -35,8 +35,16 @@ CSSElement(id, classes)
 emu::fed::Table::Table(const Table &myTable):
 CSSElement(myTable),
 rowVector_(myTable.rowVector_),
-columnIDs_(myTable.columnIDs_),
-columnClasses_(myTable.columnClasses_)
+columnVector_(myTable.columnVector_)
+{
+}
+
+
+
+emu::fed::Table::Table(Table &myTable):
+CSSElement(myTable),
+rowVector_(myTable.rowVector_),
+columnVector_(myTable.columnVector_)
 {
 }
 
@@ -53,8 +61,18 @@ emu::fed::Table &emu::fed::Table::operator=(const Table &myTable)
 	setID(myTable.getID());
 	setClasses(myTable.getClasses());
 	rowVector_ = myTable.rowVector_;
-	columnIDs_ = myTable.columnIDs_;
-	columnClasses_ = myTable.columnClasses_;
+	columnVector_ = myTable.columnVector_;
+	return *this;
+}
+
+
+
+emu::fed::Table &emu::fed::Table::operator=(Table &myTable)
+{
+	setID(myTable.getID());
+	setClasses(myTable.getClasses());
+	rowVector_ = myTable.rowVector_;
+	columnVector_ = myTable.columnVector_;
 	return *this;
 }
 
@@ -69,9 +87,9 @@ unsigned int emu::fed::Table::rowSize()
 
 emu::fed::TableRow *emu::fed::Table::getRow(const unsigned int &row)
 {
-	if (row >= rowVector_.size()) {
-		for (unsigned int iRow = rowVector_.size(); iRow <= row; ++iRow) {
-			rowVector_.push_back(new TableRow());
+	if (row >= rowSize()) {
+		for (unsigned int iRow = rowSize(); iRow <= row; ++iRow) {
+			insertRow(new TableRow());
 		}
 	}
 	return rowVector_[row];
@@ -86,36 +104,28 @@ emu::fed::TableRow *emu::fed::Table::operator[](const unsigned int &row)
 
 
 
+std::vector<emu::fed::TableRow *> emu::fed::Table::getRows()
+{
+	return rowVector_;
+}
+
+
+
 unsigned int emu::fed::Table::columnSize()
 {
-	unsigned int maxCols = 0;
-	for (std::vector<TableRow *>::const_iterator iRow = rowVector_.begin(); iRow != rowVector_.end(); ++iRow) {
-		if ((*iRow)->size() > maxCols) maxCols = (*iRow)->size();
-	}
-	return maxCols;
+	return columnVector_.size();
 }
 
 
 
 emu::fed::TableColumn *emu::fed::Table::getColumn(const unsigned int &col)
 {
-	// Columns are fake, so I have to build one myself.
-	TableColumn *column = new TableColumn();
-	for (std::vector<TableRow *>::const_iterator iRow = rowVector_.begin(); iRow != rowVector_.end(); ++iRow) {
-		column->insertCell((*iRow)->getCell(col));
-	}
-	if (col >= columnIDs_.size()) {
-		for (unsigned int id = columnIDs_.size(); id <= col; ++id) {
-			columnIDs_.push_back("");
+	if (col >= columnSize()) {
+		for (unsigned int iCol = columnSize(); iCol <= col; ++iCol) {
+			insertColumn(new TableColumn());
 		}
 	}
-	if (col >= columnClasses_.size()) {
-		for (unsigned int id = columnClasses_.size(); id <= col; ++id) {
-			columnClasses_.push_back(std::vector<std::string> ());
-		}
-	}
-	column->setID(columnIDs_[col]).setClasses(columnClasses_[col]);
-	return column;
+	return columnVector_[col];
 }
 
 
@@ -123,6 +133,13 @@ emu::fed::TableColumn *emu::fed::Table::getColumn(const unsigned int &col)
 emu::fed::TableColumn *emu::fed::Table::operator()(const unsigned int &col)
 {
 	return getColumn(col);
+}
+
+
+
+std::vector<emu::fed::TableColumn *> emu::fed::Table::getColumns()
+{
+	return columnVector_;
 }
 
 
@@ -143,16 +160,31 @@ emu::fed::TableCell *emu::fed::Table::operator()(const unsigned int &row, const 
 
 emu::fed::Table &emu::fed::Table::insertRow(TableRow *myRow, const int &rowNumber)
 {
-	if (rowNumber < 0) {
+	if (myRow->size() < columnSize()) {
+		// If the row being inserted is smaller than the current number of columns, increase its size.
+		myRow->insertCell(new TableCell(), columnSize() - 1);
+	}
+	
+	if (rowNumber < 0 || rowNumber == (int) rowSize()) {
+		// Tack the row onto the end.
 		rowVector_.push_back(myRow);
-	} else if ((unsigned int) rowNumber >= rowVector_.size()) {
-		for (int iRow = rowVector_.size(); iRow <= rowNumber - 1; iRow++) {
-			rowVector_.push_back(new TableRow());
+	} else if (rowNumber > (int) rowSize()) {
+		// Insert empty rows until we get to the point where we can insert this row.
+		for (int iRow = rowSize(); iRow <= rowNumber - 1; ++iRow) {
+			// Make a new row with the same number of elements as the row being inserted.
+			TableRow *newRow = new TableRow();
+			newRow->insertCell(new TableCell(), myRow->size() - 1);
+			rowVector_.push_back(newRow);
 		}
 		rowVector_.push_back(myRow);
 	} else {
+		// Insert the row and move everything down one.
 		rowVector_.insert(rowVector_.begin() + rowNumber, myRow);
 	}
+	
+	// Now we need to rebuild the columns.
+	rebuildColumns();
+	
 	return *this;
 }
 
@@ -167,12 +199,14 @@ emu::fed::Table &emu::fed::Table::insertRow(TableRow &myRow, const int &rowNumbe
 
 emu::fed::Table &emu::fed::Table::replaceRow(TableRow *myRow, const unsigned int &rowNumber)
 {
-	if (rowNumber >= rowVector_.size()) {
+	if (rowNumber >= rowSize()) {
 		insertRow(myRow, rowNumber);
 	} else {
 		rowVector_.erase(rowVector_.begin() + rowNumber);
 		rowVector_.insert(rowVector_.begin() + rowNumber, myRow);
+		rebuildColumns();
 	}
+	
 	return *this;
 }
 
@@ -187,33 +221,31 @@ emu::fed::Table &emu::fed::Table::replaceRow(TableRow &myRow, const unsigned int
 
 emu::fed::Table &emu::fed::Table::insertColumn(TableColumn *myColumn, const int &colNumber)
 {
-	// Columns are fake, so I have to build the rows manually.
-	// A column is one element per row at a specific location.
-	int maxCol = colNumber;
-	if (colNumber < 0) {
-		// Find the largest row.
-		for (std::vector<TableRow *>::const_iterator iRow = rowVector_.begin(); iRow != rowVector_.end(); ++iRow) {
-			if ((int) (*iRow)->size() > maxCol) maxCol = (*iRow)->size();
+	if (myColumn->size() < rowSize()) {
+		// If the row being inserted is smaller than the current number of columns, increase its size.
+		myColumn->insertCell(new TableCell(), rowSize() - 1);
+	}
+	
+	if (colNumber < 0 || colNumber == (int) columnSize()) {
+		// Tack the row onto the end.
+		columnVector_.push_back(myColumn);
+	} else if (colNumber > (int) columnSize()) {
+		// Insert empty columns until we get to the point where we can insert this column.
+		for (int iCol = columnSize(); iCol <= colNumber - 1; ++iCol) {
+			// Make a new row with the same number of elements as the row being inserted.
+			TableColumn *newColumn = new TableColumn();
+			newColumn->insertCell(new TableCell(), myColumn->size() - 1);
+			columnVector_.push_back(newColumn);
 		}
+		columnVector_.push_back(myColumn);
+	} else {
+		// Insert the row and move everything down one.
+		columnVector_.insert(columnVector_.begin() + colNumber, myColumn);
 	}
-	// It is important that the number of rows in the table be maintained, and that all rows are shifted.
-	// This mimics the behavior of inserting a row even if the row does not match the columns of the table.
-	for (unsigned int iRow = 0; iRow < rowVector_.size(); ++iRow) {
-		getRow(iRow)->insertCell(myColumn->getCell(iRow), maxCol);
-	}
-	// The ID and classes of the column must be stored.
-	if ((unsigned int) maxCol >= columnIDs_.size()) {
-		for (unsigned int id = columnIDs_.size(); id <= (unsigned int) maxCol; ++id) {
-			columnIDs_.push_back("");
-		}
-	}
-	if ((unsigned int) maxCol >= columnClasses_.size()) {
-		for (unsigned int id = columnClasses_.size(); id <= (unsigned int) maxCol; ++id) {
-			columnClasses_.push_back(std::vector<std::string> ());
-		}
-	}
-	columnIDs_[maxCol] = myColumn->getID();
-	columnClasses_[maxCol] = myColumn->getClasses();
+	
+	// Now we need to rebuild the rows.
+	rebuildRows();
+	
 	return *this;
 }
 
@@ -228,22 +260,14 @@ emu::fed::Table &emu::fed::Table::insertColumn(TableColumn &myColumn, const int 
 
 emu::fed::Table &emu::fed::Table::replaceColumn(TableColumn *myColumn, const unsigned int &colNumber)
 {
-	for (unsigned int iRow = 0; iRow < myColumn->size(); ++iRow) {
-		getRow(iRow)->replaceCell(myColumn->getCell(iRow), colNumber);
+	if (colNumber >= columnSize()) {
+		insertColumn(myColumn, colNumber);
+	} else {
+		columnVector_.erase(columnVector_.begin() + colNumber);
+		columnVector_.insert(columnVector_.begin() + colNumber, myColumn);
+		rebuildRows();
 	}
-	// The ID and classes of the column must be stored.
-	if (colNumber >= columnIDs_.size()) {
-		for (unsigned int id = columnIDs_.size(); id <= colNumber; ++id) {
-			columnIDs_.push_back("");
-		}
-	}
-	if (colNumber >= columnClasses_.size()) {
-		for (unsigned int id = columnClasses_.size(); id <= colNumber; ++id) {
-			columnClasses_.push_back(std::vector<std::string> ());
-		}
-	}
-	columnIDs_[colNumber] = myColumn->getID();
-	columnClasses_[colNumber] = myColumn->getClasses();
+	
 	return *this;
 }
 
@@ -264,19 +288,118 @@ emu::fed::Table &emu::fed::Table::replaceCell(TableCell *myCell, const unsigned 
 }
 
 
+emu::fed::Table &emu::fed::Table::clear()
+{
+	rowVector_.clear();
+	columnVector_.clear();
+	return *this;
+}
 
-std::string emu::fed::Table::toHTML() const
+
+
+std::string emu::fed::Table::toHTML()
 {
 	std::ostringstream out;
+	
+	out << cgicc::table()
+		.set("id", getID())
+		.set("class", getClass());
+	out << cgicc::colgroup();
+	
+	for (std::vector<TableColumn *>::const_iterator iCol = columnVector_.begin(); iCol != columnVector_.end(); ++iCol) {
+		out << cgicc::col()
+			.set("id", (*iCol)->getID())
+			.set("class", (*iCol)->getClass());
+	}
+	
+	out << cgicc::colgroup();
+	
+	for (std::vector<TableRow *>::const_iterator iRow = rowVector_.begin(); iRow != rowVector_.end(); ++iRow) {
+		out << (*iRow)->toHTML();
+	}
+	
+	out << cgicc::table();
 	
 	return out.str();
 }
 
 
 
-std::string emu::fed::Table::toText() const
+std::string emu::fed::Table::toText()
 {
 	std::ostringstream out;
+	std::ostringstream border;
+	std::ostringstream breaker;
+	
+	// Make sure the elements in a single column have the same widths.
+	for (std::vector<TableColumn *>::iterator iColumn = columnVector_.begin(); iColumn != columnVector_.end(); ++iColumn) {
+		unsigned int width = 0;
+		std::vector<TableCell *> cells = (*iColumn)->getCells();
+		for (std::vector<TableCell *>::iterator iCell = cells.begin(); iCell != cells.end(); ++iCell) {
+			if ((*iCell)->str().length() > width) width = (*iCell)->str().length();
+		}
+		for (std::vector<TableCell *>::iterator iCell = cells.begin(); iCell != cells.end(); ++iCell) {
+			(*iCell)->fill(' ');
+			(*iCell)->width(width);
+		}
+	}
+	
+	border << "+";
+	breaker << "+";
+	// Make the border and breakers.
+	std::vector<TableCell *> cells = getRow(0)->getCells();
+	for (std::vector<TableCell *>::const_iterator iCell = cells.begin(); iCell != cells.end(); ++iCell) {
+		unsigned int length = (*iCell)->str().length() + 2;
+		for (unsigned int iDash = 0; iDash < length; ++iDash) {
+			border << "=";
+			breaker << "-";
+		}
+		border << "+";
+		breaker << "+";
+	}
+	
+	out << border.str() << std::endl;
+	// Print the rows
+	for (std::vector<TableRow *>::const_iterator iRow = rowVector_.begin(); iRow != rowVector_.end(); ++iRow) {
+		out << (*iRow)->toText() << std::endl;
+		if (iRow + 1 != rowVector_.end()) out << breaker.str();
+	}
+	
+	out << border.str();
 	
 	return out.str();
+}
+
+
+
+void emu::fed::Table::rebuildColumns()
+{
+	// Rebuild my column vector from scratch.
+	std::vector<TableColumn *> columns;
+	for (unsigned int iColumn = 0; iColumn != columnSize(); ++iColumn) {
+		TableColumn *newColumn = new TableColumn(*getColumn(iColumn));
+		newColumn->clear();
+		for (std::vector<TableRow *>::const_iterator iRow = rowVector_.begin(); iRow != rowVector_.end(); ++iRow) {
+			newColumn->insertCell((*iRow)->getCell(iColumn));
+		}
+		columns.push_back(newColumn);
+	}
+	columnVector_ = columns;
+}
+
+
+
+void emu::fed::Table::rebuildRows()
+{
+	// Rebuild my row vector from scratch.
+	std::vector<TableRow *> rows;
+	for (unsigned int iRow = 0; iRow != rowSize(); ++iRow) {
+		TableRow *newRow = new TableRow(*getRow(iRow));
+		newRow->clear();
+		for (std::vector<TableColumn *>::const_iterator iCol = columnVector_.begin(); iCol != columnVector_.end(); ++iCol) {
+			newRow->insertCell((*iCol)->getCell(iRow));
+		}
+		rows.push_back(newRow);
+	}
+	rowVector_ = rows;
 }

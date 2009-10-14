@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: TableCell.h,v 1.1 2009/10/13 20:29:18 paste Exp $
+* $Id: TableCell.h,v 1.2 2009/10/14 20:02:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_TABLECELL_H__
 #define __EMU_FED_TABLECELL_H__
@@ -41,18 +41,20 @@ namespace emu {
 				
 				/** Copy constructor. **/
 				TableCell(const TableCell &myCell);
+				TableCell(TableCell &myCell);
 				
 				/** Destructor. **/
 				~TableCell();
 				
 				/** Assignment operator. **/
 				TableCell &operator=(const TableCell &myCell);
+				TableCell &operator=(TableCell &myCell);
 				
 				/** @returns a string representing the cell in an HTML table element \<td\>. **/
-				virtual std::string toHTML() const;
+				virtual std::string toHTML();
 				
 				/** @returns a string representing the cell in formatted text. **/
-				virtual std::string toText() const;
+				virtual std::string toText();
 				
 		};
 		
