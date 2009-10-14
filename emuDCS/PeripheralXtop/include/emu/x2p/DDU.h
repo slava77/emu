@@ -37,13 +37,8 @@ private:
   bool ready_;
   bool corruption;
 
-  int old_time;
   int states[4];
   float values[10];
-
-  // book values
-  int states_bk[4];
-  float values_bk[10];
 
   // DIM
   DDU_1_DimBroker dim_ddu;

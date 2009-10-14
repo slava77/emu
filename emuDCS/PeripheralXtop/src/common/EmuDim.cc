@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.27 2009/08/31 13:02:08 liu Exp $
+// $Id: EmuDim.cc,v 1.28 2009/10/14 17:33:09 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -276,21 +276,23 @@ void EmuDim::Setup()
    fedc_load=fedc_root + "/DCSOutput";
    FedcLoader->init(fedc_load.c_str());
 
-   int ch=ReadFromXmas();
-   if(ch>0 && ch<TOTAL_CHAMBERS) 
-   {
-      StartDim();
-      inited=true;
-   }
-   else
-      std::cout << "ERROR in connecting monitor process. DIM services cannot start." << std::endl;
+   std::string fn=PeripheralCrateDimFile_;
+   int ch=ReadFromFile(fn.c_str());
+   if(ch<=0) 
+      std::cout << "ERROR in read file " << fn << std::endl;
+
+   ch=ReadFromXmas();
+   if(ch<=0) 
+      std::cout << "ERROR in connecting monitor process." << std::endl;
+   StartDim();
+   inited=true;
 }
 
 int EmuDim::ReadFromFile(const char *filename)
 {
    FILE * fl;
    char *buffer;
-   int readsize, ch=0;
+   int readsize, ch=0, chd=0;
 
    if(strlen(filename)==0) return 0;
    fl=fopen(filename, "r");
@@ -300,9 +302,13 @@ int EmuDim::ReadFromFile(const char *filename)
    // then fill the structure
    readsize=fread(buffer, 1, 100000, fl);
    if(readsize>40) ch=ParseTXT(buffer, readsize, 1);
+   std::cout << ch << " Chambers read from file " << filename << std::endl;
+   fseek(fl,0,SEEK_SET);
+   readsize=fread(buffer, 1, 100000, fl);
+   if(readsize>40) chd=ParseDDU(buffer, readsize, 1);
+   std::cout << chd << " DDUs read from file " << filename << std::endl;
    free(buffer);
    fclose(fl);
-   std::cout << ch << " Chambers read from file " << filename << std::endl;
    return ch;
 }
 
@@ -313,14 +319,14 @@ int EmuDim::ReadFromXmas()
    XmasLoader->reload(xmas_load);
 
    // then fill the structure
-   ch=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), 0);
+   ch=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), inited?0:1);
    std::cout << ch << " Chambers and ";
    // 
    // read
    FedcLoader->reload(fedc_load);
 
    // then fill the structure
-   du=ParseDDU(FedcLoader->Content(), FedcLoader->Content_Size(), 0);
+   du=ParseDDU(FedcLoader->Content(), FedcLoader->Content_Size(), inited?0:1);
    std::cout << du << " DDUs on " << heartbeat << " at " << getLocalDateTime() << std::endl;
    // 
    return ch;
@@ -338,7 +344,7 @@ int EmuDim::ParseTXT(char *buff, int buffsize, int source)
    char *endstr;
    unsigned char *bbb=(unsigned char *)buff;
 
-   if(buffsize < 100) return 0;
+   if(source==0 && buffsize<100) return 0;
    for(int i=0; i<buffsize; i++)
    {  if((bbb[i]< 0x20 || bbb[i]>0x7e) && bbb[i]!=0x0a)
       { std::cout << "ERROR at " << i << " " << std::hex << (int)(bbb[i]) << std::dec << std::endl;
@@ -365,7 +371,7 @@ int EmuDim::FillChamber(char *buff, int source)
    char * endstr;
    std::string label;
 
-   if(strlen(buff) < 100) return 0;
+   if(source==0 && strlen(buff) < 100) return 0;
    endstr=strchr(buff, ' ');
    if(endstr==NULL) return 0;
    *endstr=0;
@@ -380,7 +386,7 @@ int EmuDim::FillChamber(char *buff, int source)
        return 1;
    }
    else
-   {   std::cout << "WRONG tag " << label << std::endl;
+   {   if(source==0) std::cout << "WRONG tag " << label << std::endl;
        return 0;
    }
 }
@@ -463,7 +469,7 @@ int EmuDim::FillDDU(char *buff, int source)
    char * endstr;
    std::string label;
 
-   if(strlen(buff) < 50) return 0;
+   if(source==0 && strlen(buff) < 50) return 0;
    endstr=strchr(buff, ' ');
    if(endstr==NULL) return 0;
    *endstr=0;
@@ -479,7 +485,7 @@ int EmuDim::FillDDU(char *buff, int source)
        return 1;
    }
    else
-   {   std::cout << "WRONG tag " << label << std::endl;
+   {   if(source==0) std::cout << "WRONG tag " << label << std::endl;
        return 0;
    }
 }
@@ -635,6 +641,12 @@ void EmuDim::CheckCommand()
             if(ch>=0 && ch<TOTAL_CHAMBERS) UpdateChamber(ch);
          }
       }
+      else if(cmnd.substr(0,15)=="CRATE_POWER_OFF")
+      {
+         int cr=CrateToNumber(cmnd.substr(16).c_str());
+         if(cr>=0 && cr<TOTAL_CRATES) crate_state[cr] = -1;
+         // notify Xmas to skip this crate
+      }
       else if(cmnd.substr(0,13)=="PREPARE_POWER")
       {
          int cr=CrateToNumber(cmnd.substr(17).c_str());
@@ -664,22 +676,28 @@ int EmuDim::PowerUp()
    for(int i=0; i<TOTAL_CRATES; i++)
    {  
       if(crate_state[i]==1) 
-      {  BlueLoader->reload(blue_info+"?POWERUP="+crate_name[i]);
+      {  
+         // start initializing
+         std::string confirm = "INITIALIZING;" + crate_name[i];              
+         strcpy(pvssrespond.command, confirm.c_str());
+         Confirmation_Service->updateService();
+         BlueLoader->reload(blue_info+"?POWERUP="+crate_name[i]);
          // check return message
          if(BlueLoader->Content_Size() > 27)
          {
            if(strncmp(BlueLoader->Content(), "Power Up Successful",19)==0)
            {
               crate_state[i] = 0;
-              std::string confirm = "INIT_IS_DONE;" + crate_name[i];              
-              strcpy(pvssrespond.command, confirm.c_str());
-              Confirmation_Service->updateService();
+              confirm = "INIT_IS_DONE;" + crate_name[i];              
               std::cout << getLocalDateTime() << " Return: " << confirm << std::endl;
            }
            else
            {
+              confirm = "INIT_FAILED;" + crate_name[i];              
               std::cout << getLocalDateTime() << " Init failed: " << crate_name[i] << std::endl;
            }
+           strcpy(pvssrespond.command, confirm.c_str());
+           Confirmation_Service->updateService();
          }
       }
    }

@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.11 2009/08/31 13:02:08 liu Exp $
+// $Id: EmuDim.h,v 1.12 2009/10/14 17:33:09 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -53,7 +53,7 @@
 #include "emu/x2p/Chamber.h"
 #include "emu/x2p/DDU.h"
 
-#define TOTAL_CHAMBERS 240
+#define TOTAL_CHAMBERS 270
 #define TOTAL_CRATES 30
 #define TOTAL_DDUS 19
 

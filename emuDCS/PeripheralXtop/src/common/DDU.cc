@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.cc,v 1.2 2009/08/08 04:14:56 liu Exp $
+// $Id: DDU.cc,v 1.3 2009/10/14 17:33:09 liu Exp $
 // $Log: DDU.cc,v $
+// Revision 1.3  2009/10/14 17:33:09  liu
+// allow X2P to start before monitoring processes, add new DIM commands
+//
 // Revision 1.2  2009/08/08 04:14:56  liu
 // update protocol for DDU
 //
@@ -40,34 +43,21 @@ void DDU::Fill(char *buffer, int source)
        if(idx<3) 
        {
            i = atoi(item);
-           if(source) 
-             {  states_bk[idx] = i; 
-             }
            states[idx] = i; 
        }
        else if(idx<12)
        {  
            y=strtof(item,NULL);
            if(idx<7) y=y*0.001;
-           if(source) values_bk[idx-3]=y;
            values[idx-3]=y;
        }
        idx++;
        item=strtok_r(NULL, sep, &last);
    };
-   if(idx==12) 
-   {   
-       if(source) 
-       {
-          ready_ = false;
-       }
-       else
-       {
-          ready_ = states[1];
-       }
-   }
+
    if(source)
    {   corruption = false;
+       ready_ = true;
    }
    else if(idx!=12 || values[8]!=(48879.))
    {   std::cout << "BAD...total " << idx << " last one " << values[8] << std::endl;
@@ -88,14 +78,9 @@ void DDU::GetDimDDU(int hint, DDU_1_DimBroker *dim_return )
    float *data;
    //   float V15, V25A, V25B, V33, TD1, TD2, TD3, TD4;
 
-   if(corruption || hint==1)
-   {  info = &(states_bk[0]);
-      data = &(values_bk[0]);
-   }
-   else
-   {  info = &(states[0]);
+      info = &(states[0]);
       data = &(values[0]);
-   }      
+         
       dim_return->v15 = data[0];
       dim_return->v25a = data[1];
       dim_return->v25b = data[2];
