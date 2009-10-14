@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: TableCell.cc,v 1.1 2009/10/13 20:29:18 paste Exp $
+* $Id: TableCell.cc,v 1.2 2009/10/14 20:02:50 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/TableCell.h"
 
@@ -38,6 +38,14 @@ CSSElement(myCell)
 
 
 
+emu::fed::TableCell::TableCell(TableCell &myCell):
+CSSElement(myCell)
+{
+	*this << myCell.str();
+}
+
+
+
 emu::fed::TableCell::~TableCell()
 {
 }
@@ -54,18 +62,34 @@ emu::fed::TableCell &emu::fed::TableCell::operator=(const TableCell &myCell)
 
 
 
-std::string emu::fed::TableCell::toHTML() const
+emu::fed::TableCell &emu::fed::TableCell::operator=(TableCell &myCell)
+{
+	setID(myCell.getID());
+	setClasses(myCell.getClasses());
+	this->copyfmt(myCell);
+	return *this;
+}
+
+
+
+std::string emu::fed::TableCell::toHTML()
 {
 	std::ostringstream out;
+	
+	out << cgicc::td(this->str())
+		.set("id", getID())
+		.set("class", getClass());
 	
 	return out.str();
 }
 
 
 
-std::string emu::fed::TableCell::toText() const
+std::string emu::fed::TableCell::toText()
 {
 	std::ostringstream out;
+	
+	out << " " << this->str() << " ";
 	
 	return out.str();
 }

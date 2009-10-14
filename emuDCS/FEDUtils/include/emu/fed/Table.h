@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Table.h,v 1.1 2009/10/13 20:29:18 paste Exp $
+* $Id: Table.h,v 1.2 2009/10/14 20:02:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_TABLE_H__
 #define __EMU_FED_TABLE_H__
@@ -50,12 +50,14 @@ namespace emu {
 			
 			/** Copy constructor. **/
 			Table(const Table &myTable);
+			Table(Table &myTable);
 			
 			/** Destructor. **/
 			~Table();
 			
 			/** Assignment operator. **/
 			Table &operator=(const Table &myTable);
+			Table &operator=(Table &myTable);
 			
 			/** Get the number of rows. **/
 			inline unsigned int rowSize();
@@ -65,6 +67,9 @@ namespace emu {
 			
 			/** Access a given TableRow.  Automatically resize the TableRow vector as needed.  **/
 			TableRow *operator[](const unsigned int &row);
+			
+			/** Access to all TableRows via a vector. **/
+			std::vector<TableRow *> getRows();
 			
 			// Note for the following:  in HTML, columns are not real structural elements, so I have to be tricky about their display.
 			
@@ -76,6 +81,9 @@ namespace emu {
 			
 			/** Access a given TableColumn.  Automatically resize the TableRows as needed.  **/
 			TableColumn *operator()(const unsigned int &col);
+			
+			/** Access to all TableColumns via a vector. **/
+			std::vector<TableColumn *> getColumns();
 			
 			/** Access a given TableCell.  Automatically resize the TableRows as needed.  **/
 			TableCell *getCell(const unsigned int &row, const unsigned int &col);
@@ -124,17 +132,22 @@ namespace emu {
 			Table &replaceCell(TableCell *myCell, const unsigned int &rowNumber, const unsigned int &colNumber);
 			Table &replaceCell(TableCell &myCell, const unsigned int &rowNumber, const unsigned int &colNumber);
 			
+			/** Clear the table of rows and columns. **/
+			Table &clear();
+			
 			/** @returns a string representing the row in an HTML table \<table\>. **/
-			virtual std::string toHTML() const;
+			virtual std::string toHTML();
 			
 			/** @returns a string representing the row in formatted text. **/
-			virtual std::string toText() const;
+			virtual std::string toText();
 		
 		private:
 			
 			std::vector<TableRow *> rowVector_;
-			std::vector<std::string> columnIDs_;
-			std::vector<std::vector<std::string> > columnClasses_;
+			std::vector<TableColumn *> columnVector_;
+			
+			void rebuildColumns();
+			void rebuildRows();
 
 		};
 

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CSSElement.cc,v 1.1 2009/10/13 20:29:18 paste Exp $
+* $Id: CSSElement.cc,v 1.2 2009/10/14 20:02:50 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/CSSElement.h"
 
@@ -40,6 +40,15 @@ classes_(myCSSElement.classes_)
 
 
 
+emu::fed::CSSElement::CSSElement(CSSElement &myCSSElement):
+id_(myCSSElement.id_),
+classes_(myCSSElement.classes_)
+{
+}
+
+
+
+
 emu::fed::CSSElement::~CSSElement()
 {
 }
@@ -47,6 +56,15 @@ emu::fed::CSSElement::~CSSElement()
 
 
 emu::fed::CSSElement &emu::fed::CSSElement::operator=(const CSSElement &myCSSElement)
+{
+	id_ = myCSSElement.id_;
+	classes_ = myCSSElement.classes_;
+	return *this;
+}
+
+
+
+emu::fed::CSSElement &emu::fed::CSSElement::operator=(CSSElement &myCSSElement)
 {
 	id_ = myCSSElement.id_;
 	classes_ = myCSSElement.classes_;
