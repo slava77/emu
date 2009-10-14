@@ -38,13 +38,8 @@ private:
   bool ready_;
   bool corruption;
 
-  int old_time_lv, old_time_temp;
   int states[4];
   float values[60];
-
-  // book values
-  int states_bk[4];
-  float values_bk[60];
 
   // DIM
   LV_1_DimBroker dim_lv;
