@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.16 2009/10/12 14:59:56 paste Exp $
+* $Id: DDU.cc,v 1.17 2009/10/16 20:42:06 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -80,12 +80,15 @@ fmm_id_(0)
 }
 
 
+
 emu::fed::DDU::~DDU()
 {
 	for (size_t iFiber = 0; iFiber < fiberVector_.size(); iFiber++) {
 		delete fiberVector_[iFiber];
 	}
 }
+
+
 
 void emu::fed::DDU::configure()
 throw (emu::fed::exception::DDUException)
