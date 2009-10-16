@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.10 2009/10/12 15:12:04 paste Exp $
+* $Id: Commander.cc,v 1.11 2009/10/16 20:32:36 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -638,6 +638,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readFlashBoardID()));
+						valueObject.push_back(JSONSpirit::Pair("base", 10));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -649,6 +650,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readRUI()));
+						valueObject.push_back(JSONSpirit::Pair("base", 10));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -660,6 +662,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readFlashRUI()));
+						valueObject.push_back(JSONSpirit::Pair("base", 10));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -673,6 +676,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint32_t value = (*iDDU)->readKillFiber();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						// There are two pieces to the KillFiber:  the killed fibers and the option bits.
 						std::map<std::string, std::string> fiberDebug = DDUDebugger::DebugFiber((*iDDU), 0x7fff - (value & 0x7fff), "none");
@@ -695,6 +699,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFlashKillFiber();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), 0x7fff - (value & 0x7fff), "none"))));
@@ -712,6 +717,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readGbEPrescale();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::GbEPrescale(value))));
@@ -727,6 +733,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (uint64_t) (*iDDU)->readL1Scaler(DDUFPGA)));
+						valueObject.push_back(JSONSpirit::Pair("base", 10));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -738,6 +745,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (uint64_t) (*iDDU)->readL1Scaler(INFPGA0)));
+						valueObject.push_back(JSONSpirit::Pair("base", 10));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -749,6 +757,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (uint64_t) (*iDDU)->readL1Scaler1(INFPGA0)));
+						valueObject.push_back(JSONSpirit::Pair("base", 10));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -760,6 +769,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (uint64_t) (*iDDU)->readL1Scaler(INFPGA1)));
+						valueObject.push_back(JSONSpirit::Pair("base", 10));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -771,6 +781,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (uint64_t) (*iDDU)->readL1Scaler1(INFPGA1)));
+						valueObject.push_back(JSONSpirit::Pair("base", 10));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -784,6 +795,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFMM();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::F0EReg(value))));
@@ -801,6 +813,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readCSCStatus();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -818,6 +831,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readAdvancedFiberErrors();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -835,6 +849,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFMMBusy();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "yellow"))));
@@ -852,6 +867,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readBusyHistory();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "yellow"))));
@@ -869,6 +885,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFMMFullWarning();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "orange"))));
@@ -886,6 +903,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readWarningHistory();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "orange"))));
@@ -903,6 +921,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFMMLostSync();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -920,6 +939,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFMMError();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -937,6 +957,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint32_t value = (*iDDU)->readFPGAStatus(DDUFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FPGAStatus(DDUFPGA, value))));
@@ -954,6 +975,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						std::vector<uint16_t> value = (*iDDU)->readDebugTrap(DDUFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", formatBigNum(value)));
+						valueObject.push_back(JSONSpirit::Pair("base", 0));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", formatBigDebug(DDUDebugger::DDUDebugTrap(value, *iDDU))));
@@ -971,6 +993,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFFError();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FFError(value))));
@@ -988,6 +1011,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readCRCError();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -1005,6 +1029,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readXmitError();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -1022,6 +1047,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readDMBError();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -1039,6 +1065,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readTMBError();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -1056,6 +1083,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readALCTError();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -1073,6 +1101,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readLIEError();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "red"))));
@@ -1090,6 +1119,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readInCHistory();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::InCHistory(value))));
@@ -1107,6 +1137,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readDMBLive();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), (0x7fff - value), "red"))));
@@ -1124,6 +1155,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readDMBLiveAtFirstEvent();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), (0x7fff - value), "yellow"))));
@@ -1141,6 +1173,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readWarningMonitor();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DebugFiber((*iDDU), value, "orange"))));
@@ -1158,10 +1191,13 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
 						JSONSpirit::Object valueObject, descriptionObject;
+						std::ostringstream valueText;
 						
 						float value = (*iDDU)->readTemperature(reg - 34);
+						valueText << std::setprecision(4) << value << " C";
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("value", valueText.str()));
+						valueObject.push_back(JSONSpirit::Pair("base", 0));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Temperature(value))));
@@ -1181,10 +1217,13 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 					entryObject.push_back(JSONSpirit::Pair("name", sName.str()));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
 						JSONSpirit::Object valueObject, descriptionObject;
+						std::ostringstream valueText;
 						
 						float value = (*iDDU)->readVoltage(reg - 38);
+						valueText << std::setprecision(4) << value << " mV";
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						valueObject.push_back(JSONSpirit::Pair("value", value));
+						valueObject.push_back(JSONSpirit::Pair("value", valueText.str()));
+						valueObject.push_back(JSONSpirit::Pair("base", 0));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Voltage(reg - 38, value))));
@@ -1202,6 +1241,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFakeL1();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FakeL1Reg(value))));
@@ -1219,6 +1259,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						std::vector<uint16_t> value = (*iDDU)->readFlashGbEFIFOThresholds();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", formatBigNum(value)));
+						valueObject.push_back(JSONSpirit::Pair("base", 0));
 						
 						// No description
 						
@@ -1234,6 +1275,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readInRDStat();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::InRDStat(value))));
@@ -1255,6 +1297,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readEBRegister(reg - 45);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::EBRegister(reg - 45,value))));
@@ -1272,6 +1315,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readMaxTimeoutCount();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::MaxTimeoutCount(value))));
@@ -1287,6 +1331,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readBXOrbit()));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -1300,6 +1345,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readOutputStatus();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::OutputStatus(value))));
@@ -1320,6 +1366,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFIFOStatus(reg - 51);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FIFOStatus(reg - 51, value))));
@@ -1337,6 +1384,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint8_t value = (*iDDU)->readSerialStatus();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::SerialStatus(value))));
@@ -1354,6 +1402,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint8_t value = (*iDDU)->readParallelStatus();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::ParallelStat(value))));
@@ -1369,6 +1418,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						JSONSpirit::Object valueObject;
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readSwitches()));
+						valueObject.push_back(JSONSpirit::Pair("base", 2));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -1385,6 +1435,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readInputRegister(reg - 57);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -1403,6 +1454,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readTestRegister(reg - 60);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						// No description
 						valueArray.push_back(valueObject);
 					}
@@ -1420,6 +1472,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint32_t value = (*iDDU)->readFPGAStatus(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FPGAStatus(inFPGA, value))));
@@ -1441,6 +1494,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						std::vector<uint16_t> value = (*iDDU)->readDebugTrap(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", formatBigNum(value)));
+						valueObject.push_back(JSONSpirit::Pair("base", 0));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", formatBigDebug(DDUDebugger::INFPGADebugTrap(inFPGA, value))));
@@ -1462,6 +1516,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFiberStatus(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FiberStatus(inFPGA, value, (*iDDU)))));
@@ -1483,6 +1538,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readDMBSync(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DMBSync(inFPGA, value, (*iDDU)))));
@@ -1504,6 +1560,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFIFOStatus(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FIFOStatus(inFPGA, value, (*iDDU)))));
@@ -1525,6 +1582,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readFIFOFull(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FIFOFull(inFPGA, value, (*iDDU)))));
@@ -1546,6 +1604,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readRxError(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::RxError(inFPGA, value, (*iDDU)))));
@@ -1567,6 +1626,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readTxError(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::TxError(inFPGA, value, (*iDDU)))));
@@ -1588,6 +1648,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readTimeout(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::Timeout(inFPGA, value, (*iDDU)))));
@@ -1615,6 +1676,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readActiveWriteMemory(inFPGA, (reg - 74) % 20);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::ActiveWriteMemory(inFPGA, (reg - 74) % 20, value, (*iDDU)))));
@@ -1636,6 +1698,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readAvailableMemory(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::AvailableMemory(inFPGA, value))));
@@ -1657,6 +1720,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readMinMemory(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::AvailableMemory(inFPGA, value))));
@@ -1678,6 +1742,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readLostError(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::LostError(inFPGA, value, (*iDDU)))));
@@ -1699,6 +1764,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readCCodeStatus(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::CCodeStatus(inFPGA, value))));
@@ -1720,6 +1786,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint16_t value = (*iDDU)->readDMBWarning(inFPGA);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::DMBWarning(inFPGA, value, (*iDDU)))));
@@ -1743,6 +1810,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						uint32_t value = (*iDDU)->readFiberDiagnostics(inFPGA, (reg - 83) % 20);
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
+						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						// No diagnostics?
 						valueArray.push_back(valueObject);
 					}
@@ -1772,7 +1840,95 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Commander::webDisplayDDURegisters(xgi::Input *in, xgi::Output *out)
 {
+	// Everything here is embedded in the GET statement.
+	// I just pass it on to the GetDDURegisters page and the javascript handles the rest.
+
+	*out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
+	*out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
+	*out << cgicc::head() << std::endl;
+	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/emu/emuDCS/FEDApps/html/FEDApps.css\" />" << std::endl;
 	
+	// Include the javascript files
+	// This is a universal global that I want to always have around.
+	*out << "<script type=\"text/javascript\">var URL = \"" << getApplicationDescriptor()->getContextDescriptor()->getURL() << "/" << getApplicationDescriptor()->getURN() << "\";</script>";
+	// Always include prototype
+	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/prototype.js\"></script>" << std::endl;
+	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/table.js\"></script>" << std::endl;
+	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/commanderDisplay.js\"></script>" << std::endl;
+	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/definitions.js\"></script>" << std::endl;
+	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/common.js\"></script>" << std::endl;
+	
+	*out << cgicc::head() << std::endl;
+	*out << cgicc::body() << std::endl;
+	
+	// A place for the content
+	*out << cgicc::div()
+		.set("id", "content") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	// Useful display modes
+	*out << cgicc::div("Set display mode")
+		.set("class", "tier0") << std::endl;
+		
+	*out << cgicc::div()
+		.set("class", "tier1") << std::endl;
+	*out << cgicc::input()
+		.set("type", "radio")
+		.set("name", "display_radio")
+		.set("id", "radio_html")
+		.set("value", "html")
+		.set("class", "display_radio")
+		.set("checked", "checked") << std::endl;
+	*out << cgicc::label("HTML")
+		.set("for", "radio_html") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "tier1") << std::endl;
+	*out << cgicc::input()
+		.set("type", "radio")
+		.set("name", "display_radio")
+		.set("id", "radio_text")
+		.set("value", "text")
+		.set("class", "display_radio") << std::endl;
+	*out << cgicc::label("Plain text")
+		.set("for", "radio_text") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	// Update form
+	*out << cgicc::div("Update options")
+		.set("class", "tier0") << std::endl;
+	
+	*out << cgicc::button("Update now")
+		.set("class", "tier1")
+		.set("id", "display_update")
+		.set("class", "display_button") << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "tier1") << std::endl;
+	
+	*out << cgicc::input()
+		.set("type", "checkbox")
+		.set("name", "update_checkbox")
+		.set("class", "update_checkbox")
+		.set("id", "autoupdate") << std::endl;
+	*out << cgicc::label("Automatically update values ")
+		.set("for", "autoupdate") << std::endl;
+	*out << cgicc::span() << std::endl;
+	*out << "every ";
+	*out << cgicc::input()
+		.set("type", "text")
+		.set("name", "update_seconds")
+		.set("class", "update_seconds")
+		.set("id", "update_seconds")
+		.set("value", "10") << std::endl;
+	*out << " seconds";
+	*out << cgicc::span() << std::endl;
+	
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::body() << std::endl;
+	*out << cgicc::html() << std::endl;
 }
 
 
