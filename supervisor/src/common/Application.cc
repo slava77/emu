@@ -723,8 +723,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     }
     if (!isCalibrationMode()) {
       sendCommand("Configure", "emu::pc::EmuPeripheralCrateManager");
-    } else {
-      sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
+    } else 
+	{
+		if (isAlctCalibrationMode())
+			sendCommand("ConfigCalALCT", "emu::pc::EmuPeripheralCrateManager");
+		else
+			sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
     }   
        
     // Configure TF Cell operation
@@ -2142,6 +2146,14 @@ string emu::supervisor::Application::getCrateConfig(const string type, const str
 bool emu::supervisor::Application::isCalibrationMode()
 {
 	return (getCalibParamIndex(run_type_) >= 0);
+}
+
+bool emu::supervisor::Application::isAlctCalibrationMode()
+{
+	std::cout << "isAlctCalibMode: runtype: " << run_type_.toString() << "index" << getCalibParamIndex(run_type_);
+	bool res = run_type_.toString().find("ALCT") != string::npos;
+	std::cout << "isAlctCalibMode result: " << res << std::endl;
+	return res;
 }
 
 int emu::supervisor::Application::getCalibParamIndex(const string name)
