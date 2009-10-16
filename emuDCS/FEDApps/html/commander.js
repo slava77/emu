@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.3 2009/09/29 13:51:00 paste Exp $
+* $Id: commander.js,v 1.4 2009/10/16 20:32:35 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -176,8 +176,8 @@ Event.observe(window, "load", function(event) {
 				registers.push(e.readAttribute("name"));
 			}
 		});
-		var checkboxes = new Hash({"rui": ruis, "reg": registers, "debug": 1});
-		window.open(URL + "/DisplayDDURegisters?" + checkboxes.toQueryString(), "commanderResults");
+		var checkboxes = new Hash({"rui": ruis, "reg": registers, "board": "ddu"});
+		window.open(URL + "/DisplayDDURegisters?" + checkboxes.toQueryString(), "commanderDisplay");
 	});
 
 });
