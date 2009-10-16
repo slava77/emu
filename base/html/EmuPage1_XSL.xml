@@ -190,6 +190,10 @@
 		<td id="td_value_state"><a target="_blank" id="a_value_state" href="{monitorable[@name='state']/@valueURL}" title="{monitorable[@name='state']/@valueDescription}"><xsl:value-of select="monitorable[@name='state']/@value"/></a></td>
 	      </tr>
 	      <tr>
+		<th id="th_name_confkey"><a target="_blank" id="a_name_confkey" href="{monitorable[@name='conf_key']/@nameURL}" title="{monitorable[@name='conf_key']/@nameDescription}">key</a></th>
+		<td id="td_value_confkey"><a target="_blank" id="a_value_confkey" href="{monitorable[@name='conf_key']/@valueURL}" title="{monitorable[@name='conf_key']/@valueDescription}"><xsl:value-of select="monitorable[@name='conf_key']/@value"/></a></td>
+	      </tr>
+	      <tr>
 		<th>rates</th>
 		<td class="layout">
 		  <table class="layout"><tr class="layout">

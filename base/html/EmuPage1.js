@@ -830,14 +830,17 @@ function TrackFinderFromJson(){
     $.each( json.table.rows, function(i,row){
       if ( i == 0 ){
 	msg += 'FSM_STATE.rows.length='+row.FSM_STATE.rows.length+'   EMUPAGEONE_RATES.rows.length='+row.EMUPAGEONE_RATES.rows.length;
-	var validConfPatterns = ['^CC-Conf','^MTCCIIConfiguration$','^EmuLocal$'];
+	var validConfPatterns = ['^CC-Conf','^EmuLocal$'];
 	var foundValidConf = false;
 	for ( p=0; p<validConfPatterns.length && !foundValidConf; p++ ){
 	  $.each( row.FSM_STATE.rows, function(j,configRow){
 	    if ( configRow['id'].search(validConfPatterns[p])==0 ){
 	      $('#td_value_state').attr( 'class', configRow['state'] );
 	      $('#a_value_state').text( configRow['state'] );
-	      $('#a_value_state').attr( 'title', configRow['id']+' is in '+configRow['state']+' state.' );
+	      $('#a_value_state').attr( 'title', 'Operation \"'+configRow['id']+'\" is in '+configRow['state']+' state.' );
+	      $('#td_value_confkey').attr( 'class', configRow['conf_key'] );
+	      $('#a_value_confkey').text( configRow['conf_key'] );
+	      $('#a_value_confkey').attr( 'title', 'Operation \"'+configRow['id']+'\" has configuration key '+configRow['conf_key']+'.' );
 	      foundValidConf = true;
 	    }
 	  });
@@ -845,7 +848,10 @@ function TrackFinderFromJson(){
 	if ( !foundValidConf ){
 	  $('#td_value_state').attr( 'class', 'UNKNOWN' );
 	  $('#a_value_state').text( 'UNKNOWN' );
-	  $('#a_value_state').attr( 'title', 'No'+(row.FSM_STATE.rows.length==0?' ':' valid ')+'configuration found.' );
+	  $('#a_value_state').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'configuration found.' );
+	  $('#td_value_confkey').attr( 'class', 'UNKNOWN' );
+	  $('#a_value_confkey').text( 'UNKNOWN' );
+	  $('#a_value_confkey').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'configuration found.' );
 	}
 	$.each( row.EMUPAGEONE_RATES.rows, function(j,ratesRow){ 
 	  if ( j == 0 ){
