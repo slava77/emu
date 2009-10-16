@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.6 2009/10/12 15:07:03 paste Exp $
+* $Id: DDUDebugger.cc,v 1.7 2009/10/16 20:40:31 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -1400,11 +1400,11 @@ std::pair<std::string, std::string> emu::fed::DDUDebugger::Temperature(const flo
 {
 	float warnTemp = 30;
 	float errorTemp = 40;
-	std::string degreeText = "&deg;C";
+	std::string degreeText = " C";
 	if (scale == DDU::FAHRENHEIT) {
 		warnTemp = warnTemp * 9. / 5. + 32.;
 		errorTemp = errorTemp * 9. / 5. + 32.;
-		degreeText = "&deg;F";
+		degreeText = " F";
 	} else if (scale == DDU::KELVIN) {
 		warnTemp = warnTemp + 273.15;
 		errorTemp = errorTemp + 273.15;
@@ -1416,32 +1416,32 @@ std::pair<std::string, std::string> emu::fed::DDUDebugger::Temperature(const flo
 	} else if (scale == DDU::DELISLE) {
 		warnTemp = (100. - warnTemp) * 3. / 2.;
 		errorTemp = (100. - errorTemp) * 3. / 2.;
-		degreeText = "&deg;D";
+		degreeText = " D";
 	} else if (scale == DDU::NEWTON) {
 		warnTemp = warnTemp * 33. / 100.;
 		errorTemp = errorTemp * 33. / 100.;
-		degreeText = "&deg;N";
+		degreeText = " N";
 	} else if (scale == DDU::REAUMUR) {
 		warnTemp = warnTemp * 4. / 5.;
 		errorTemp = errorTemp * 4. / 5.;
-		degreeText = "&deg;R&eacute;";
+		degreeText = " R&eacute;";
 	} else if (scale == DDU::ROMER) {
 		warnTemp = warnTemp * 21. / 40. + 7.5;
 		errorTemp = errorTemp * 21. / 40. + 7.5;
-		degreeText = "&deg;R&oslash;";
+		degreeText = " R&oslash;";
 	}
 	
 	if ((scale == DDU::DELISLE && temp < errorTemp) || temp > errorTemp) {
 		std::ostringstream response;
-		response << "&gt; " << errorTemp << degreeText;
-		return std::make_pair(response.str(), "error");
+		response << "> " << errorTemp << degreeText;
+		return std::make_pair(response.str(), "red");
 	} else if ((scale == DDU::DELISLE && temp < warnTemp) || temp > warnTemp) {
 		std::ostringstream response;
-		response << "&gt; " << warnTemp << degreeText;
-		return std::make_pair(response.str(), "warning");
+		response << "> " << warnTemp << degreeText;
+		return std::make_pair(response.str(), "yellow");
 	}
 
-	return std::make_pair(degreeText, "ok");
+	return std::make_pair("OK", "green");
 }
 
 
@@ -1455,26 +1455,26 @@ std::pair<std::string, std::string> emu::fed::DDUDebugger::Voltage(const uint8_t
 	else if (sensor == 3) targetVoltage = 3300;
 
 	if (voltage > 3500 || voltage < 0) {
-		return std::make_pair("???", "questionable");
+		return std::make_pair("???", "blue");
 	} else if (voltage > targetVoltage*1.05) {
 		std::ostringstream targetText;
-		targetText << "&gt; " << targetVoltage*1.05 << " mV";
-		return std::make_pair(targetText.str(), "error");
+		targetText << "> " << targetVoltage*1.05 << " mV";
+		return std::make_pair(targetText.str(), "red");
 	} else if (voltage < targetVoltage*.95) {
 		std::ostringstream targetText;
-		targetText << "&lt; " << targetVoltage*.95 << " mV";
-		return std::make_pair(targetText.str(), "error");
+		targetText << "< " << targetVoltage*.95 << " mV";
+		return std::make_pair(targetText.str(), "red");
 	} else if (voltage > targetVoltage*1.025) {
 		std::ostringstream targetText;
-		targetText << "&gt; " << targetVoltage*1.025 << " mV";
-		return std::make_pair(targetText.str(), "warning");
+		targetText << "> " << targetVoltage*1.025 << " mV";
+		return std::make_pair(targetText.str(), "yellow");
 	} else if (voltage < targetVoltage*.975) {
 		std::ostringstream targetText;
-		targetText << "&lt; " << targetVoltage*.975 << " mV";
-		return std::make_pair(targetText.str(), "warning");
+		targetText << "< " << targetVoltage*.975 << " mV";
+		return std::make_pair(targetText.str(), "yellow");
 	}
 	
-	return std::make_pair("mV", "ok");
+	return std::make_pair("OK", "green");
 
 }
 
@@ -1503,7 +1503,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::InRDStat(const uint16_
 	std::map<std::string, std::string> returnMe;
 	
 	if (stat & 0xf000) {
-		returnMe["Hard error:" + decodeInRD((stat >> 12) & 0xf)] = "red";
+		returnMe["Hard error: " + decodeInRD((stat >> 12) & 0xf)] = "red";
 	}
 	if (stat & 0x0f00) {
 		returnMe["Sync error: " + decodeInRD((stat >> 8) & 0xf)] = "red";
