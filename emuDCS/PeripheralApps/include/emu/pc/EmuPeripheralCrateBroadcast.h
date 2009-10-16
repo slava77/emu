@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.2 2009/03/25 11:37:22 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.3 2009/10/16 07:45:23 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -125,14 +125,21 @@ public:
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onConfigCalALCT (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBGains (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBCrossTalk (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBSCAPed (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalALCTConnectivity (xoap::MessageReference message) throw (xoap::exception::Exception);
   //
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void dummyAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
+
+// from XTEP
+  void ccb_EnableL1aFromSyncAdb(CCB *ccb);
+  void ccb_SetExtTrigDelay(CCB *ccb, unsigned delay);
+  void tmb_EnableClctExtTrig(TMB * tmb);
 
 private:
 

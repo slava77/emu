@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.20 2009/06/11 23:11:15 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.21 2009/10/16 07:45:22 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -40,10 +40,12 @@ EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s):
   xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onConfigCalCFEB,"ConfigCalCFEB", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onConfigCalALCT,"ConfigCalALCT", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBGains,"EnableCalCFEBGains", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk,"EnableCalCFEBCrossTalk", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBSCAPed,"EnableCalCFEBSCAPed", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBComparator,"EnableCalCFEBComparator", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalALCTConnectivity,"EnableCalALCTConnectivity", XDAQ_NS_URI);
 
   //
   // fsm_ is defined in EmuApplication
@@ -153,6 +155,17 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::Message
   return createReply(message);
 }
 
+xoap::MessageReference EmuPeripheralCrateManager::onConfigCalALCT (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  std::cout << "Received SOAP message ConfigCalALCT " << std::endl;
+   PCsendCommand("ConfigCalALCT","emu::pc::EmuPeripheralCrateCommand");
+   //
+  std::cout << "SOAP message ConfigCalALCT relayed to Command" << std::endl;
+//   ::sleep(1);
+   fireEvent("Configure");
+  return createReply(message);
+}
+
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
@@ -196,6 +209,14 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoa
   page1_state_ = 3;
 
   PCsendCommand("EnableCalCFEBComparator","emu::pc::EmuPeripheralCrateBroadcast");
+  //
+  fireEvent("Enable");
+  return createReply(message);
+}
+
+xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTConnectivity (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  PCsendCommand("EnableCalALCTConnectivity","emu::pc::EmuPeripheralCrateCommand");
   //
   fireEvent("Enable");
   return createReply(message);

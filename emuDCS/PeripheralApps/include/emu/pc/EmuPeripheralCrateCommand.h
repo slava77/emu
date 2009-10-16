@@ -179,6 +179,10 @@ private:
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
+// alct calibration
+  xoap::MessageReference onConfigCalALCT (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalALCTConnectivity (xoap::MessageReference message) throw (xoap::exception::Exception);
+  int calsetup;
 
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void configureFail(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
