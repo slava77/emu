@@ -7,9 +7,8 @@
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
-# Testing
-#CXX=g++4
-#LD=g++4
+CXX=g++4
+LD=g++4
 
 #
 # Packages to be built
