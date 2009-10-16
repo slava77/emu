@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.43 2009/05/12 11:08:03 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.44 2009/10/16 07:45:22 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -82,10 +82,12 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCTestBcast,  "VMECCTestBcast"); 
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCTestSkewClear,  "VMECCTestSkewClear");
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onConfigCalCFEB, "ConfigCalCFEB", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateBroadcast::onConfigCalALCT, "ConfigCalALCT", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBGains, "EnableCalCFEBGains", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk, "EnableCalCFEBCrossTalk", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed, "EnableCalCFEBSCAPed", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator, "EnableCalCFEBComparator", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalALCTConnectivity, "EnableCalALCTConnectivity", XDAQ_NS_URI);
   //
   fsm_.addState('H', "Halted", this, &EmuPeripheralCrateBroadcast::stateChanged);
   fsm_.addState('C', "Configured", this, &EmuPeripheralCrateBroadcast::stateChanged);
@@ -851,6 +853,83 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   return createReply(message);
   //
 }
+xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalALCT (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  //
+  In_Broadcast_ = true;
+  std::cout<< "Inside onConfigCalALCT-broadcast"<<std::endl;
+  std::ostringstream test;
+  message->writeTo(test);
+  std::cout << test.str() << std::endl;
+  std::cout << "Inside onConfigCalALCT-broadcast, dealt with message"<< std::endl;
+  //
+  //
+//  DefineBroadcastCrate(); // this pulls out all broadcast objects, inlcuding alct
+  //
+  // do setup here
+
+  In_Broadcast_ = false;
+  return createReply(message);
+  //
+}
+//
+
+void EmuPeripheralCrateBroadcast::ccb_EnableL1aFromSyncAdb(CCB *ccb)
+{
+	// enable L1A and clct_pretrig from ALCT sync test pulse
+	unsigned csrb1 = 0x12fd; // also disable all other trigger sources
+	ccb->WriteRegister(0x20, csrb1);
+}
+
+void EmuPeripheralCrateBroadcast::ccb_SetExtTrigDelay(CCB *ccb, unsigned delay)
+{
+	unsigned csrb5 = ccb->ReadRegister(0x28);
+	csrb5 &= 0xff;
+	csrb5 |= (delay << 8);
+	ccb->WriteRegister(0x28, csrb5);
+	
+}
+
+void EmuPeripheralCrateBroadcast::tmb_EnableClctExtTrig(TMB * tmb)
+{
+	tmb->SetClctExtTrigEnable(1);
+    int data_to_write = tmb->FillTMBRegister(0x68);
+    tmb->WriteRegister(0x68 ,data_to_write);
+}
+
+xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalALCTConnectivity (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+
+	In_Broadcast_ = true;
+	std::ostringstream test;
+	message->writeTo(test);
+	std::cout << test.str() <<std::endl;
+
+	calsetup++; // step counter
+
+	std::cout << "Setting up for ALCT connectivity test, calsetup= " <<calsetup<< std::endl;
+
+	// Initial setup, first time only
+	if (calsetup==1) 
+	{
+		// more configuration here
+		std::cout << "Starting STEP test: 12"  << std::endl;
+	}
+/*
+	broadcastALCT->SetUpPulsing
+	(
+		100, // pulse amplitude, later will have to make individual for each chamber type
+		PULSE_LAYERS, 
+		(1 << (calsetup-1)), // strip mask
+		ADB_SYNC
+	);
+*/
+	In_Broadcast_ = false;
+	return createReply(message);
+}
+
+
 //
 xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {

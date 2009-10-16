@@ -63,6 +63,9 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   xoap::bind(this, &EmuPeripheralCrateCommand::onEnable,    "Enable",    XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onDisable,   "Disable",   XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onHalt,      "Halt",      XDAQ_NS_URI);
+// alct calib commands
+  xoap::bind(this, &EmuPeripheralCrateCommand::onConfigCalALCT, "ConfigCalALCT", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateCommand::onEnableCalALCTConnectivity, "EnableCalALCTConnectivity", XDAQ_NS_URI);
   //
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
@@ -138,6 +141,7 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   this_crate_no_=0;
 
   parsed=0;
+
 }
 
 void EmuPeripheralCrateCommand::MainPage(xgi::Input * in, xgi::Output * out ) 
@@ -647,9 +651,78 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
 }
 //
 
+
+xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalALCT (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  //
+  std::cout<< "Inside onConfigCalALCT-command"<<std::endl;
+  calsetup = 0;
+  // do setup here
+
+  return createReply(message);
+  //
+}
+
+xoap::MessageReference EmuPeripheralCrateCommand::onEnableCalALCTConnectivity (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+
+  calsetup++; // step counter
+
+  // Initial setup, first time only
+  if (calsetup==1) 
+    {
+      std::cout << std::dec << "XTEP: Setting up for ALCT connectivity test, calsetup= " <<calsetup<< std::endl;
+      // this will read all crate and chamber info from xml file and fill crateVector
+      if(!parsed) ParsingXML();
+      int tc = crateVector.size();
+      std::cout << "XTEP: crateVector size = " << /*crateVector.size()*/ tc << std::endl;
+      // more configuration here
+    }
+
+  for(unsigned i=0; i< crateVector.size(); i++) 
+    {
+		
+      if ( crateVector[i]->IsAlive() ) 
+	{
+			
+	  SetCurrentCrate(i);	
+	  std::cout << "XTEP: Setting up crate: " << std::dec << ThisCrateID_ << std::endl;
+	  for (unsigned tn = 0; tn < tmbVector.size(); tn++)
+	    {
+	      time_t currentTime;
+	      time (&currentTime); // fill now with the current time
+
+	      int strip_mask = (1 << (calsetup-1));
+	      std::cout << "XTEP: "<< ctime(&currentTime)  << " setting up chamber: " << thisCrate->GetChamber(tmbVector[tn]->slot())->GetLabel().c_str() << std::endl;
+	      std::cout << "XTEP: calibration step: " << calsetup << std::endl;
+	      std::cout << "XTEP: strip mask: " << std::hex << "0x" << strip_mask << std::dec << std::endl;
+
+	      tmbVector[tn]->SetCheckJtagWrite(1);
+								
+	      ALCTController * alct = tmbVector[tn]->alctController();
+	      
+	      alct->SetUpPulsing
+		(
+		 100, // pulse amplitude, later will have to make individual for each chamber type
+		 PULSE_LAYERS, 
+		 strip_mask,
+		 ADB_SYNC
+		 );
+
+	      // set up alct so it sends DAQ block without trigger
+	      alct->SetSendEmpty(1);
+	      alct->WriteConfigurationReg();
+	    }
+	}
+    }
+
+  ::sleep(1);
+  return createReply(message);
+}
+
  }  // namespace emu::pc
 }  // namespace emu
-
 // provides factory method for instantion of HellWorld application
 //
 XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPeripheralCrateCommand)
