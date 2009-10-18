@@ -49,11 +49,7 @@ Sources=\
 	DCCDebugger.cc \
 	DataTable.cc \
 	JSONSpiritWriter.cc \
-	CSSElement.cc \
-	TableCell.cc \
-	TableRow.cc \
-	TableColumn.cc \
-	Table.cc
+	CSSElement.cc
 
 IncludeDirs = \
 	$(BUILD_HOME)/emu/emuDCS/FEDCore/include \
