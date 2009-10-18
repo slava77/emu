@@ -28,7 +28,7 @@ Packages= \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
         emuDCS/PeripheralXtop \
-	emuDCS/OnlineDB \
+	emuDCS/OnlineDB
 endif
 
 ifeq ($(Set),FEDCrate)
