@@ -17,7 +17,7 @@ Summary="Emu (CSC) Supervisor"
 Authors="Ichiro Suzuki, Karoly Banicz, Jinghua Liu"
 Link=""
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=10
+PACKAGE_VER_MINOR=11
 PACKAGE_VER_PATCH=00
 
 Sources = \
