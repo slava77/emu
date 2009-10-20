@@ -1,0 +1,9 @@
+<?xml version='1.0'?>
+<xmas:pulser xmlns:xmas="http://xdaq.web.cern.ch/xdaq/xsd/2006/xmas-10">
+	<xmas:event delay="PT1S" period="PT100S" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" tag="general" xlink:href="#urn:xdaq-flashlist:diskInfo"/>
+	</xmas:event>
+	<xmas:event delay="PT2S" period="PT25S" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" tag="general" xlink:href="#urn:xdaq-flashlist:processInfo"/>
+	</xmas:event>
+</xmas:pulser>
