@@ -140,8 +140,9 @@
 	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*/Local/.*|.*/Global/.*</RegexMatchingCSCConfigName>
 	</properties>
       </xc:Application>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqmanager.so</xc:Module>
+      <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
+      <xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
+      <xc:Module>${XDAQ_ROOT}/lib/libemudaqmanager.so</xc:Module>
     </xc:Context>
   </xsl:template>
   
@@ -318,6 +319,7 @@
         <cscMapFile xsi:type="xsd:string">/home/cscdev/config/dqm/csc_map.txt</cscMapFile>
 	</properties>
       </xc:Application>
+      <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
       <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscdisplay.so</xc:Module>
     </xc:Context>
@@ -335,6 +337,7 @@
 	  <viewOnly xsi:type="xsd:boolean">false</viewOnly>
 	</properties>
       </xc:Application>
+      <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
       <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmtfdisplay.so</xc:Module>
     </xc:Context>
