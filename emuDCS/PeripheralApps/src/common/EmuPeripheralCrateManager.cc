@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.21 2009/10/16 07:45:22 rakness Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.22 2009/10/20 15:56:32 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -40,13 +40,17 @@ EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s):
   xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onConfigCalCFEB,"ConfigCalCFEB", XDAQ_NS_URI);
-  xoap::bind(this, &EmuPeripheralCrateManager::onConfigCalALCT,"ConfigCalALCT", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBGains,"EnableCalCFEBGains", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk,"EnableCalCFEBCrossTalk", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBSCAPed,"EnableCalCFEBSCAPed", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBComparator,"EnableCalCFEBComparator", XDAQ_NS_URI);
-  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalALCTConnectivity,"EnableCalALCTConnectivity", XDAQ_NS_URI);
 
+// alct calibrations (Madorsky)
+  xoap::bind(this, &EmuPeripheralCrateManager::onConfigCalALCT,"ConfigCalALCT", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalALCTConnectivity,"EnableCalALCTConnectivity", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalALCTThresholds,"EnableCalALCTThresholds", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalALCTDelays,"EnableCalALCTDelays", XDAQ_NS_URI);
+// ---
   //
   // fsm_ is defined in EmuApplication
   fsm_.addState('H', "Halted",     this, &EmuPeripheralCrateManager::stateChanged);
@@ -154,7 +158,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::Message
   fireEvent("Configure");
   return createReply(message);
 }
-
+// ALCT calibrations (Madorsky)
 xoap::MessageReference EmuPeripheralCrateManager::onConfigCalALCT (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   std::cout << "Received SOAP message ConfigCalALCT " << std::endl;
@@ -165,7 +169,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigCalALCT (xoap::Message
    fireEvent("Configure");
   return createReply(message);
 }
-
+// ---
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
@@ -213,7 +217,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoa
   fireEvent("Enable");
   return createReply(message);
 }
-
+// alct calibrations (Madorsky)
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTConnectivity (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   PCsendCommand("EnableCalALCTConnectivity","emu::pc::EmuPeripheralCrateCommand");
@@ -222,6 +226,22 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTConnectivity (x
   return createReply(message);
 }
 
+xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTThresholds (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  PCsendCommand("EnableCalALCTThresholds","emu::pc::EmuPeripheralCrateCommand");
+  //
+  fireEvent("Enable");
+  return createReply(message);
+}
+
+xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTDelays (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  PCsendCommand("EnableCalALCTDelays","emu::pc::EmuPeripheralCrateCommand");
+  //
+  fireEvent("Enable");
+  return createReply(message);
+}
+// ---
 xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
