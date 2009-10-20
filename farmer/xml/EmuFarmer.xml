@@ -2,7 +2,7 @@
 <?xml-stylesheet type="text/xml" href="../EmuDAQConfig.xsl"?>
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
-  <xc:Context url="http://csc-c2d07-08.cms:20399">
+  <xc:Context url="http://csc-daq00.cms:20399">
 
     <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
 
