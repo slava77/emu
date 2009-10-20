@@ -1162,7 +1162,7 @@ void emu::supervisor::Application::sendCommandCellOpInit()
   // prepare a SOAP message  
   std::string sid="73";  
   std::string cid="10";
-  std::string op="MTCCIIConfiguration";
+  std::string op="Configuration";
   std::string cb="NULL";
   std::string urn="NULL";
   std::string url="NULL";
@@ -1219,7 +1219,7 @@ void emu::supervisor::Application::sendCommandCell(string command)
   
   std::string sid="73";  
   std::string cid="10";
-  std::string op="MTCCIIConfiguration";
+  std::string op="Configuration";
   std::string cb="";
   std::string urn="";
   std::string url="";
@@ -1575,7 +1575,7 @@ void emu::supervisor::Application::sendCommandCellOpkill()
   // prepare a SOAP message  
   std::string sid="73";  
   std::string cid="10";
-  std::string op=TFCellOpName_.toString();//"MTCCIIConfiguration";
+  std::string op=TFCellOpName_.toString();//"Configuration";
   std::string cb="NULL";
   std::string urn="NULL";
   std::string url="NULL";
@@ -1723,7 +1723,7 @@ void emu::supervisor::Application::OpResetCell()
     
   std::string sid="73";  
   std::string cid="10";
-  std::string op="MTCCIIConfiguration";
+  std::string op="Configuration";
   std::string cb="";
   std::string urn="";
   std::string url="";
