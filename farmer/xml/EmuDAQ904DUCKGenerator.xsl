@@ -12,6 +12,10 @@
   <!-- If it's set to 'M', only the minus side will be generated; if 'P', only the plus side; if 'B', both sides; otherwise both sides. -->
 <!--   <xsl:param name="SIDE"/> -->
 
+  <!-- Parameter DIR is to be set from the command line. -->
+  <!-- It's the system directory containing the XDAQ configuration files. -->
+  <xsl:param name="DIR">/home/cscdev/config/conf_generator/r9/out</xsl:param>
+
   <!-- Parameter NAME is to be set from the command line. -->
   <!-- It's the name of the XDAQ configuration file (without path or extension) -->
   <xsl:param name="NAME"/>
@@ -20,7 +24,7 @@
   <!-- It's either DAQ or DQM or DQM_Display-->
   <xsl:param name="FARM"/>
 
-  <xsl:param name="CONFIG_FILE">/home/cscdev/config/conf_generator/r7/out/<xsl:value-of select="$NAME"/>.xml</xsl:param>
+  <xsl:param name="CONFIG_FILE"><xsl:value-of select="$DIR"/>/<xsl:value-of select="$NAME"/>.xml</xsl:param>
   <xsl:param name="FM_CONFIG_PATH">
     <xsl:if test="$FARM='DAQ'">DAQ/<xsl:value-of select="$NAME"/></xsl:if>
     <xsl:if test="$FARM='DQM'">DQM/DQM</xsl:if>
