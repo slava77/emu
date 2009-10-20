@@ -12,12 +12,17 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 Project = emu
 Package = daq/reader
 
+Standalone = no
+
 Sources = \
 	Base.cc \
 	RawDataFile.cc \
 	Spy.cc \
-	Clock.cc \
-	version.cc
+	Clock.cc 
+
+ifeq ($(Standalone),no)
+	Sources += version.cc
+endif
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/include \
@@ -45,8 +50,13 @@ ExternalObjects =
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary = emudaqreader
-StaticLibrary =
+ifeq ($(Standalone),no)
+	DynamicLibrary = emudaqreader
+	StaticLibrary = 
+else
+	DynamicLibrary = 
+	StaticLibrary = emudaqreader_sa
+endif
 
 TestLibraries=
 TestExecutables=

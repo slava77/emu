@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.6 2009/10/16 07:45:23 rakness Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.7 2009/10/20 15:56:32 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -66,13 +66,16 @@ public:
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onConfigCalALCT (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBCrossTalk (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBSCAPed (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBGains (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
+// ALCT calibrations (Madorsky)
+  xoap::MessageReference onConfigCalALCT (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalALCTConnectivity (xoap::MessageReference message) throw (xoap::exception::Exception);
-
+  xoap::MessageReference onEnableCalALCTThresholds (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalALCTDelays (xoap::MessageReference message) throw (xoap::exception::Exception);
+// ---
 //
 };
 

@@ -11,6 +11,9 @@
 #include <cstdlib>
 #include <iomanip>
 #include <time.h>
+// for xml parser (Madorsky)
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/dom/DOMNodeList.hpp>
 
 //using namespace cgicc;
 //using namespace std;
@@ -63,9 +66,12 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   xoap::bind(this, &EmuPeripheralCrateCommand::onEnable,    "Enable",    XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onDisable,   "Disable",   XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onHalt,      "Halt",      XDAQ_NS_URI);
-// alct calib commands
+// alct calib commands (Madorsky)
   xoap::bind(this, &EmuPeripheralCrateCommand::onConfigCalALCT, "ConfigCalALCT", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onEnableCalALCTConnectivity, "EnableCalALCTConnectivity", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateCommand::onEnableCalALCTThresholds, "EnableCalALCTThresholds", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateCommand::onEnableCalALCTDelays, "EnableCalALCTDelays", XDAQ_NS_URI);
+// ---
   //
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
@@ -651,75 +657,397 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
 }
 //
 
-
+// alct calibrations (Madorsky)
 xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalALCT (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  std::cout<< "Inside onConfigCalALCT-command"<<std::endl;
-  calsetup = 0;
-  // do setup here
+  throw (xoap::exception::Exception) 
+{
+	//
+	std::cout<< "Inside onConfigCalALCT-command"<<std::endl;
+	calsetup = 0;
 
-  return createReply(message);
-  //
+	// this will read all crate and chamber info from xml file and fill crateVector
+	if(!parsed) ParsingXML();
+	int tc = crateVector.size();
+	std::cout << "XTEP: crateVector size = " << /*crateVector.size()*/ tc << std::endl;
+
+	// read test configuration from xml into tcs structure
+	int cal_conf_res = read_test_config("alct-calib-config.xml", &tcs);
+	std::cout << "ALCT calibration configuration reading result (0 == OK): " << cal_conf_res << std::endl;
+	return createReply(message);
+	//
 }
 
 xoap::MessageReference EmuPeripheralCrateCommand::onEnableCalALCTConnectivity (xoap::MessageReference message) 
   throw (xoap::exception::Exception) 
 {
 
-  calsetup++; // step counter
+	std::cout << std::dec << "XTEP: ALCT connectivity test 12" << std::endl;
 
-  // Initial setup, first time only
-  if (calsetup==1) 
-    {
-      std::cout << std::dec << "XTEP: Setting up for ALCT connectivity test, calsetup= " <<calsetup<< std::endl;
-      // this will read all crate and chamber info from xml file and fill crateVector
-      if(!parsed) ParsingXML();
-      int tc = crateVector.size();
-      std::cout << "XTEP: crateVector size = " << /*crateVector.size()*/ tc << std::endl;
-      // more configuration here
-    }
-
-  for(unsigned i=0; i< crateVector.size(); i++) 
+	for(unsigned i=0; i< crateVector.size(); i++) 
     {
 		
-      if ( crateVector[i]->IsAlive() ) 
-	{
+		if ( crateVector[i]->IsAlive() ) 
+		{
 			
-	  SetCurrentCrate(i);	
-	  std::cout << "XTEP: Setting up crate: " << std::dec << ThisCrateID_ << std::endl;
-	  for (unsigned tn = 0; tn < tmbVector.size(); tn++)
-	    {
-	      time_t currentTime;
-	      time (&currentTime); // fill now with the current time
+			SetCurrentCrate(i);	
+			std::cout << "XTEP: Setting up crate: " << std::dec << ThisCrateID_ << std::endl;
+			for (unsigned tn = 0; tn < tmbVector.size(); tn++)
+			{
+				time_t currentTime;
+				time (&currentTime); // fill now with the current time
 
-	      int strip_mask = (1 << (calsetup-1));
-	      std::cout << "XTEP: "<< ctime(&currentTime)  << " setting up chamber: " << thisCrate->GetChamber(tmbVector[tn]->slot())->GetLabel().c_str() << std::endl;
-	      std::cout << "XTEP: calibration step: " << calsetup << std::endl;
-	      std::cout << "XTEP: strip mask: " << std::hex << "0x" << strip_mask << std::dec << std::endl;
+				int strip_mask = (1 << calsetup);
+				std::cout << "XTEP: "<< ctime(&currentTime)  << " setting up chamber: " << thisCrate->GetChamber(tmbVector[tn]->slot())->GetLabel().c_str() << std::endl;
+				std::cout << "XTEP: calibration step: " << calsetup << std::endl;
+				std::cout << "XTEP: strip mask: " << std::hex << "0x" << strip_mask << std::dec << std::endl;
 
-	      tmbVector[tn]->SetCheckJtagWrite(1);
+				tmbVector[tn]->SetCheckJtagWrite(1);
 								
-	      ALCTController * alct = tmbVector[tn]->alctController();
-	      
-	      alct->SetUpPulsing
-		(
-		 100, // pulse amplitude, later will have to make individual for each chamber type
-		 PULSE_LAYERS, 
-		 strip_mask,
-		 ADB_SYNC
-		 );
+				ALCTController * alct = tmbVector[tn]->alctController();
+				std::string chamtype = alct->GetChamberType(); // returns "MEXX"
 
-	      // set up alct so it sends DAQ block without trigger
-	      alct->SetSendEmpty(1);
-	      alct->WriteConfigurationReg();
-	    }
+				// map of test pulse amplitudes for all chamber types, taken from config file
+				std::map <std::string, int*> tpamp_map;
+				tpamp_map["ME11"] = &tcs.t12.alct_test_pulse_amp_11;
+				tpamp_map["ME12"] = &tcs.t12.alct_test_pulse_amp_12;
+				tpamp_map["ME13"] = &tcs.t12.alct_test_pulse_amp_13;
+				tpamp_map["ME21"] = &tcs.t12.alct_test_pulse_amp_21;
+				tpamp_map["ME22"] = &tcs.t12.alct_test_pulse_amp_22;
+				tpamp_map["ME31"] = &tcs.t12.alct_test_pulse_amp_31;
+				tpamp_map["ME32"] = &tcs.t12.alct_test_pulse_amp_32;
+				tpamp_map["ME41"] = &tcs.t12.alct_test_pulse_amp_41;
+				tpamp_map["ME42"] = &tcs.t12.alct_test_pulse_amp_42;
+	      		
+				int tpamp = *(tpamp_map[chamtype]);
+				alct->SetUpPulsing
+				(
+					tpamp,
+					PULSE_LAYERS, 
+					strip_mask,
+					ADB_SYNC
+				);
+
+				std::cout << "XTEP: chamber type: " << chamtype << "  ALCT test pulse amplitude: " << tpamp << std::endl;
+
+				// set up alct so it sends DAQ block without trigger
+				alct->SetSendEmpty(1);
+				alct->WriteConfigurationReg();
+			}
+		}
+    }
+	calsetup++; // step counter
+
+	::sleep(1);
+	return createReply(message);
+}
+
+xoap::MessageReference EmuPeripheralCrateCommand::onEnableCalALCTThresholds (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+	std::cout << std::dec << "XTEP: ALCT thresholds test 13" << std::endl;
+
+	int num_thresh     = tcs.t13.thresholds_per_tpamp; // number of thresholds to scan with each test pulse amp
+	int first_thresh   = tcs.t13.threshold_first; // first thresh
+	int thresh_step    = tcs.t13.threshold_step; // threshold step
+
+	// calculate indexes
+	int k = calsetup % num_thresh; // threshold number
+	int tpanum = calsetup / num_thresh; // test pulse amplitude number
+
+	int cur_thresh = first_thresh + thresh_step*k;
+	int cur_tpamp = tcs.t13.tpamp_first + tpanum * tcs.t13.tpamp_step;
+	// every ev_per_strip events switch test strip
+	std::cout << "XTEP: Setting tpamp:  " << cur_tpamp << " thresh: " << cur_thresh << std::endl;
+
+	for(unsigned i=0; i< crateVector.size(); i++) 
+    {
+		
+		if ( crateVector[i]->IsAlive() ) 
+		{
+			
+			SetCurrentCrate(i);	
+			std::cout << "XTEP: Setting up crate: " << std::dec << ThisCrateID_ << std::endl;
+			for (unsigned tn = 0; tn < tmbVector.size(); tn++)
+			{
+				time_t currentTime;
+				time (&currentTime); // fill now with the current time
+
+				std::cout << "XTEP: "<< ctime(&currentTime)  << " setting up chamber: " << thisCrate->GetChamber(tmbVector[tn]->slot())->GetLabel().c_str() << std::endl;
+				std::cout << "XTEP: calibration step: " << calsetup << std::endl;
+
+				tmbVector[tn]->SetCheckJtagWrite(1);
+								
+				ALCTController * alct = tmbVector[tn]->alctController();
+				for (int c = 0; c <= alct->MaximumUserIndex(); c++)
+					alct->SetAfebThreshold(c, cur_thresh);
+
+				alct->WriteAfebThresholds();
+
+				alct->SetUpPulsing
+				(
+					cur_tpamp, 
+					PULSE_AFEBS, 
+					0x7f, // afeb group mask
+					ADB_SYNC
+				);
+
+				// set up alct so it sends DAQ block without trigger
+				alct->SetSendEmpty(1);
+				alct->WriteConfigurationReg();
+			}
+		}
 	}
+	calsetup++;
+	return createReply(message);
+}
+
+xoap::MessageReference EmuPeripheralCrateCommand::onEnableCalALCTDelays (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+	std::cout << std::dec << "XTEP: ALCT delays test 14" << std::endl;
+
+	// calsetup is number of delay setting
+	int cur_delay = tcs.t14.delay_first + tcs.t14.delay_step * calsetup;
+
+	std::cout << "XTEP: Setting delay:  " << cur_delay << std::endl;
+
+	for(unsigned i=0; i< crateVector.size(); i++) 
+    {
+		
+		if ( crateVector[i]->IsAlive() ) 
+		{
+			
+			SetCurrentCrate(i);	
+			std::cout << "XTEP: Setting up crate: " << std::dec << ThisCrateID_ << std::endl;
+			for (unsigned tn = 0; tn < tmbVector.size(); tn++)
+			{
+				time_t currentTime;
+				time (&currentTime); // fill now with the current time
+
+				std::cout << "XTEP: "<< ctime(&currentTime)  << " setting up chamber: " << thisCrate->GetChamber(tmbVector[tn]->slot())->GetLabel().c_str() << std::endl;
+				std::cout << "XTEP: calibration step: " << calsetup << std::endl;
+
+				tmbVector[tn]->SetCheckJtagWrite(1);
+								
+				ALCTController * alct = tmbVector[tn]->alctController();
+
+				for (int k = 0; k <= alct->MaximumUserIndex(); k++) 
+					alct->SetAsicDelay(k, cur_delay);
+
+				alct->WriteAsicDelaysAndPatterns();
+
+				alct->SetUpPulsing
+				(
+					tcs.t14.alct_test_pulse_amp, 
+					PULSE_AFEBS, 
+					0x3fff, // all afebs
+					ADB_ASYNC
+				);
+
+				// set up alct so it sends DAQ block without trigger
+				alct->SetSendEmpty(1);
+				alct->WriteConfigurationReg();
+			}
+		}
+	}
+	calsetup++;
+	return createReply(message);
+}
+
+
+// macro to fill the parameter map
+#define map_add(tnum, parname) map##tnum[#parname] = &(tcs->t##tnum.parname)
+
+int EmuPeripheralCrateCommand::read_test_config(char* xmlFile, test_config_struct * tcs) 
+{
+	char* step_path_ch = getenv("HOME");
+	if (step_path_ch == NULL) return -1;
+	
+	std::string step_config = std::string(step_path_ch) + "/config/pc/" + xmlFile;
+
+	memset(tcs, 0, sizeof(test_config_struct));
+
+	// maps of parameters for each test
+	std::map <std::string, int*> map11, map12, map13, map14, map15, map16, map17, map18, map19, map21, map30;
+	std::map <std::string, int*>* cur_map; // currently used map
+
+	// fill the maps (see macro above)
+	map_add(11, events_total);
+
+	map_add(12, events_per_strip);
+	map_add(12, alct_test_pulse_amp_11);
+	map_add(12, alct_test_pulse_amp_12);
+	map_add(12, alct_test_pulse_amp_13);
+	map_add(12, alct_test_pulse_amp_21);
+	map_add(12, alct_test_pulse_amp_22);
+	map_add(12, alct_test_pulse_amp_31);
+	map_add(12, alct_test_pulse_amp_32);
+	map_add(12, alct_test_pulse_amp_41);
+	map_add(12, alct_test_pulse_amp_42);
+
+	map_add(13, events_per_threshold);
+	map_add(13, thresholds_per_tpamp);
+	map_add(13, threshold_first);	 
+	map_add(13, threshold_step);	 
+	map_add(13, tpamps_per_run);	 
+	map_add(13, tpamp_first);     
+	map_add(13, tpamp_step);	     
+
+	map_add(14, alct_test_pulse_amp);
+	map_add(14, events_per_delay);
+	map_add(14,	delays_per_run); 
+	map_add(14,	delay_first);	 
+	map_add(14,	delay_step);	 
+
+	map_add(15, events_total);
+
+	map_add(16, events_per_layer);
+	map_add(16, alct_test_pulse_amp);
+
+	map_add(17, dmb_test_pulse_amp);
+	map_add(17, events_per_delay); 
+	map_add(17, delays_per_strip); 
+	map_add(17, delay_first);      
+	map_add(17, delay_step);       
+	map_add(17, strips_per_run);   
+	map_add(17, strip_first);      
+	map_add(17, strip_step);       
+
+	map_add(18, events_total);
+
+	map_add(19, scale_turnoff);
+	map_add(19, range_turnoff);
+	map_add(19, events_per_thresh);
+	map_add(19, threshs_per_tpamp);
+	map_add(19, thresh_first);
+	map_add(19, thresh_step);
+	map_add(19, dmb_tpamps_per_strip);
+	map_add(19, dmb_tpamp_first);
+	map_add(19, dmb_tpamp_step);
+	map_add(19, strips_per_run);
+	map_add(19, strip_first);
+	map_add(19, strip_step);
+
+	map_add(21, dmb_test_pulse_amp);
+	map_add(21, cfeb_threshold);    
+	map_add(21, events_per_hstrip); 
+	map_add(21, hstrips_per_run);   
+	map_add(21, hstrip_first);      
+	map_add(21, hstrip_step);       
+
+	map_add(30, events_per_delay);
+	map_add(30, tmb_l1a_delays_per_run);
+	map_add(30, tmb_l1a_delay_first);
+	map_add(30, tmb_l1a_delay_step);
+
+	// map of test parameter maps
+	std::map <std::string, std::map <std::string, int*>* > test_map; 
+	test_map["11"] = &map11;
+	test_map["12"] = &map12;
+	test_map["13"] = &map13;
+	test_map["14"] = &map14;
+	test_map["15"] = &map15;
+	test_map["16"] = &map16;
+	test_map["17"] = &map17;
+	test_map["18"] = &map18;
+	test_map["19"] = &map19;
+	test_map["21"] = &map21;
+	test_map["30"] = &map30;
+
+	std::cout << "Loading test configuration from XML file: "  <<  step_config << std::endl;
+
+	if (step_config == "") 
+    {
+		std::cout << "Invalid configuration file: " << step_config << std::endl;
+		return 1;
     }
 
-  ::sleep(1);
-  return createReply(message);
+	XMLPlatformUtils::Initialize();
+	XercesDOMParser *parser = new XercesDOMParser();
+	parser->setValidationScheme(XercesDOMParser::Val_Always);
+	parser->setDoNamespaces(true);
+	parser->setDoSchema(true);
+	parser->setValidationSchemaFullChecking(false); // this is default
+	parser->setCreateEntityReferenceNodes(true);  // this is default
+	parser->setIncludeIgnorableWhitespace (false);
+
+	parser->parse(step_config.c_str());
+	DOMDocument *doc = parser->getDocument();
+	DOMNodeList *l = doc->getElementsByTagName( XMLString::transcode("XTEP_tests") );
+	if( l->getLength() != 1 )
+    {
+		std::cout << "There is not exactly one STEP_tests node in configuration" << std::endl;
+		return 1;
+    }
+	DOMNodeList *itemList = doc->getElementsByTagName( XMLString::transcode("test_config") );
+	if( itemList->getLength() == 0 )
+    {
+		std::cout << "There are no test configuration sections" << std::endl;
+		return 1;
+    }
+
+	DOMNode* info;
+
+	for(unsigned int j=0; j<itemList->getLength(); j++)
+    {
+		info = itemList->item(j); // test config section
+		
+		std::map<std::string, std::string> obj_info;
+		DOMNodeList *children = info->getChildNodes();
+
+		std::string nodename = std::string(XMLString::transcode(info->getNodeName()));
+		std::cout <<  "node: " << trim(nodename) << std::endl;
+
+		// test_config node found. Decode parameters
+		for(unsigned int i=0; i<children->getLength(); i++)
+		{
+			std::string paramname = std::string(XMLString::transcode(children->item(i)->getNodeName()));
+			trim(paramname);
+
+			if ( children->item(i)->hasChildNodes() ) 
+			{
+				std::string param = std::string(XMLString::transcode(children->item(i)->getFirstChild()->getNodeValue()));
+				trim(param);
+
+				std::cout <<  paramname << " = " << param << std::endl;
+				if (paramname.compare("test") == 0) // test number
+					cur_map = test_map[param]; // select map of that test
+				else // one of the parameters
+					*((*cur_map)[paramname]) = atol(param.c_str()); // assign to structure item
+				
+			}
+		}
+
+
+    }
+
+	delete parser;
+	return 0;
 }
+
+// removes leading and trailing spaces from a string
+std::string& EmuPeripheralCrateCommand::trim(std::string &str)
+{
+	std::string whitespaces (" \t\f\v\n\r");
+	size_t found;
+  
+	// trailing
+	found = str.find_last_not_of(whitespaces);
+	if (found != std::string::npos)
+		str.erase(found+1);
+	else
+		str.clear();            // str is all whitespace
+
+	// leading
+	found = str.find_last_of(whitespaces);
+	if (found != std::string::npos)
+		str.erase(0, found+1);
+
+	return str;
+
+}
+// ---
+
 
  }  // namespace emu::pc
 }  // namespace emu
