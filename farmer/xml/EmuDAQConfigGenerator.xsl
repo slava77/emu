@@ -142,6 +142,7 @@
 	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*/Local/.*|.*/Global/.*</RegexMatchingCSCConfigName>
 	</properties>
       </xc:Application>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libtstoreclient.so</xc:Module>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqmanager.so</xc:Module>
     </xc:Context>
@@ -340,6 +341,7 @@
 	  <viewOnly xsi:type="xsd:boolean">false</viewOnly>
 	</properties>
       </xc:Application>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libtstoreclient.so</xc:Module>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
       <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libemudqmtfdisplay.so</xc:Module>
     </xc:Context>
@@ -361,6 +363,7 @@
         <cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
 	</properties>
       </xc:Application>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libtstoreclient.so</xc:Module>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
       <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libemudqmcscdisplay.so</xc:Module>
     </xc:Context>
