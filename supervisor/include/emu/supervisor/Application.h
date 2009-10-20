@@ -173,6 +173,7 @@ private: // XDAQ parameters
 
 	string getCrateConfig(const string type, const string key) const;
 	bool isCalibrationMode();
+	bool isAlctCalibrationMode();
 	int getCalibParamIndex(const string name);
 
 	string trim(string orig) const;
