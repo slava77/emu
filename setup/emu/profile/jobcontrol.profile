@@ -78,6 +78,7 @@
 	
 	<!-- jobcontrol requires the installation of jobcontrol	-->
 	<xp:Application class="jobcontrol::Application" id="10" service="jobcontrol" group="init2" network="local"/>
+	<xp:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xp:Module>
 	<xp:Module>${XDAQ_ROOT}/lib/libjobcontrol.so</xp:Module>
 
 </xp:Profile>
