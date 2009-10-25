@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.4 2009/08/15 07:56:47 durkin Exp $
+// $Id: DAQMB.h,v 1.5 2009/10/25 09:54:45 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.5  2009/10/25 09:54:45  liu
+// add a new parameter power_mask for DMB, more counters for CCB
+//
 // Revision 1.4  2009/08/15 07:56:47  durkin
 // fixed several bugs and added new routines
 //
@@ -621,6 +624,9 @@ public:
   inline void SetKillChip(int cfeb, int chip, int value) { kill_chip_[cfeb][chip] = value; }
   inline int  GetKillChip(int cfeb, int chip) { return kill_chip_[cfeb][chip]; }
   //
+  inline void SetPowerMask(int value) { power_mask_ = value; }
+  inline int GetPowerMask() { return power_mask_; }
+
   inline int GetFirmwareYear(){ return fwyear_; }
   inline int GetFirmwareMonth(){ return fwmonth_; }
   inline int GetFirmwareDay(){ return fwday_; }
@@ -698,6 +704,7 @@ public:
   unsigned long int expected_cfeb_firmware_tag_[5];
   //
   int failed_checkvme_;
+  int power_mask_;
 }; 
 
   } // namespace emu::pc

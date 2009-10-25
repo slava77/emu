@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.55 2009/08/15 07:56:02 durkin Exp $
+// $Id: DAQMB.cc,v 3.56 2009/10/25 09:54:46 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.56  2009/10/25 09:54:46  liu
+// add a new parameter power_mask for DMB, more counters for CCB
+//
 // Revision 3.55  2009/08/15 07:56:02  durkin
 // fixed several bugs and added new routines
 //
@@ -437,7 +440,7 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   killflatclk_(5183),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1),
-  failed_checkvme_(-1)
+  failed_checkvme_(-1), power_mask_(0)
 {
   //
    //get the initial value first:
@@ -1900,9 +1903,11 @@ static int conv_lowv[5][8]={
 
 void DAQMB::lowv_onoff(char c)
 {
- cmd[0]=0x08; /* write power register */
- cmd[1]=c; /* 0x3f means all on, 0x00 means all off  */
- devdo(LOWVOLT,16,cmd,0,sndbuf,rcvbuf,2);
+// cmd[0]=0x08; /* write power register */
+// cmd[1]=c; /* 0x3f means all on, 0x00 means all off  */
+// devdo(LOWVOLT,16,cmd,0,sndbuf,rcvbuf,2);
+  unsigned short mask= 0x3F && c && (~power_mask_);
+  write_now(0x8010, mask, rcvbuf);
 }
 
 unsigned int DAQMB::lowv_rdpwrreg()
