@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.4 2009/08/10 15:03:04 liu Exp $
+// $Id: Crate.h,v 1.5 2009/10/25 09:54:45 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.5  2009/10/25 09:54:45  liu
+// add a new parameter power_mask for DMB, more counters for CCB
+//
 // Revision 1.4  2009/08/10 15:03:04  liu
 // expand configure() to include a second argument: configID
 //
@@ -145,6 +148,7 @@ public:
   Chamber * GetChamber(DAQMB *dmb);
   TMB * GetTMB(unsigned int slot);
   DAQMB * GetDAQMB(unsigned int slot);
+  void PowerOff();
   void MonitorCCB(int cycle, char * buf);
   void MonitorTMB(int cycle, char * buf, unsigned mask=0);
   void MonitorDMB(int cycle, char * buf, unsigned mask=0);

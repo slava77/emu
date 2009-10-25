@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.57 2009/08/28 17:18:22 liu Exp $
+// $Id: Crate.cc,v 3.58 2009/10/25 09:54:46 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.58  2009/10/25 09:54:46  liu
+// add a new parameter power_mask for DMB, more counters for CCB
+//
 // Revision 3.57  2009/08/28 17:18:22  liu
 // more comments
 //
@@ -406,7 +409,16 @@ void Crate::DumpConfiguration() {
   }
   //
 }
-//
+
+void Crate::PowerOff() 
+{
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
+  std::cout << "turn OFF all chambers in Crate " << label_  << std::endl;
+  for (unsigned dmb=0; dmb<myDmbs.size(); dmb++) {
+    myDmbs[dmb]->lowv_onoff(0);
+  }
+}
+
 int Crate::configure(int c, int ID) {
   // c=0: same as 1
   // c=1: (power-on chambers if not already on) & write flash
@@ -581,7 +593,7 @@ int Crate::CheckController()
 
 void Crate::MonitorCCB(int cycle, char * buf) 
 {
-  int  TOTAL_CCB_COUNTERS=15;
+  int  TOTAL_CCB_COUNTERS=18;
 
   short *buf2=(short *)buf;
   for(int i=0; i<= TOTAL_CCB_COUNTERS; i++) buf2[i]=0;
@@ -604,7 +616,10 @@ void Crate::MonitorCCB(int cycle, char * buf)
   mpc->read_later(0x0);
   mpc->read_later(0xB8);
   mpc->read_later(0xCA);
-  int rb=mpc->read_now(0xCC, buf+2);
+  mpc->read_later(0xCC);
+  ccb->read_later(0x4A);
+  ccb->read_later(0x4C);
+  int rb=ccb->read_now(0x4E, buf+2);
   if(rb>0)  buf2[0]=TOTAL_CCB_COUNTERS;
 }
 
