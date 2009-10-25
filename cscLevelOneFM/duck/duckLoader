@@ -15,7 +15,7 @@ then
 	host=cmsonr1-v
 	port=10121
 	name=cms_rcms.cern.ch
-	user=cms_csc_rs
+	user=cms_csc_rs_w
 	type=ORACLE
     fi
     shift
