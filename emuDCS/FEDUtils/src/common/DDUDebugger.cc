@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.7 2009/10/16 20:40:31 paste Exp $
+* $Id: DDUDebugger.cc,v 1.8 2009/10/26 19:00:25 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -9,13 +9,6 @@
 
 #include "emu/fed/DDU.h"
 #include "emu/fed/Fiber.h"
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(const uint32_t &stat)
-{
-	return FPGAStatus(DDUFPGA, stat);
-}
 
 
 
@@ -161,13 +154,6 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FPGAStatus(const enum 
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(const uint16_t &stat)
-{
-	return OutputStatus(stat);
-}
-
-
-
 std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStatus(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnMe;
@@ -205,27 +191,6 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStatus(const uin
 	}
 
 	return returnMe;
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(const uint16_t &stat)
-{
-	return EBRegister(0, stat);
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(const uint16_t &stat)
-{
-	return EBRegister(1, stat);
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(const uint16_t &stat)
-{
-	return EBRegister(2, stat);
 }
 
 
@@ -326,51 +291,6 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::EBRegister(const uint8
 
 }
 
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(const uint16_t &stat)
-{
-	std::map<std::string, std::string> returnValues;
-
-	if (stat&0x000000ff) {
-
-		if (0x00000040&stat) returnValues["L1A FIFO Empty"] = "none";
-		if (0x00000040&stat == 0) returnValues["L1A FIFO Not Empty"] = "none";
-		if (0x00000080&stat) returnValues["DDU C-code L1A error"] = "blue";
-		if (0x00000002&stat) returnValues["GbE FIFO Almost-Full occurred"] = "none";
-		if (0x00000001&stat) returnValues["L1A FIFO Almost-Full occurred"] = "blue";
-
-	} else {
-		//returnValues["OK"] = "none";
-	}
-
-
-	return returnValues;
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(const uint16_t &stat)
-{
-	std::map<std::string, std::string> returnValues;
-
-	if (stat&0x000000ff) {
-		if (0x01&stat) returnValues["InRD0 set FMM warning"] = "none";
-		if (0x02&stat) returnValues["InRD1 set FMM warning"] = "none";
-		if (0x04&stat) returnValues["InRD2 set FMM warning"] = "none";
-		if (0x08&stat) returnValues["InRD3 set FMM warning"] = "none";
-		if (0x10&stat) returnValues["L1A FIFO set FMM warning"] = "none";
-		if (0x20&stat) returnValues["Ext. FIFO set FMM warning"] = "none";
-		if (0x40&stat) returnValues["DMB set FMM warning"] = "none";
-		if (0x80&stat) returnValues["DDU set FMM warning"] = "none";
-
-	} else {
-		//returnValues["OK"] = "none";
-	}
-
-
-	return returnValues;
-}
 
 
 std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(const std::vector<uint16_t> &lcode, DDU *thisDDU)
@@ -1064,105 +984,6 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(const uint32
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(const enum DEVTYPE &dev, const uint32_t &stat)
-{
-	return FPGAStatus(dev, stat);
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(const enum DEVTYPE &dt, const uint16_t &stat)
-{
-	return FIFOStatus(dt, stat);
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(const enum DEVTYPE &dt, const uint16_t &stat)
-{
-	return FIFOFull(dt, stat, new DDU(0));
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(const enum DEVTYPE &dt, const uint16_t &stat)
-{
-	return CCodeStatus(dt, stat);
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::FiberDiagnostics(const enum DEVTYPE &dt, const uint16_t &reg, const uint32_t &stat)
-{
-	std::map<std::string, std::string> returnValues;
-
-	const unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
-	if (0x1f000000&stat) {
-		std::stringstream fiber;
-		fiber << "Fiber " << (3 + fiberOffset + 4*reg) << ": " << ((0x1f000000&stat) >> 24);
-		returnValues[fiber.str()] = "none";
-	}
-	if (0x001f0000&stat) {
-		std::stringstream fiber;
-		fiber << "Fiber " << (2 + fiberOffset + 4*reg) << ": " << ((0x001f0000&stat) >> 16);
-		returnValues[fiber.str()] = "none";
-	}
-	if (0x00001f00&stat) {
-		std::stringstream fiber;
-		fiber << "Fiber " << (1 + fiberOffset + 4*reg) << ": " << ((0x00001f00&stat) >> 8);
-		returnValues[fiber.str()] = "none";
-	}
-	if (0x0000001f&stat) {
-		std::stringstream fiber;
-		fiber << "Fiber " << (0 + fiberOffset + 4*reg) << ": " << ((0x0000001f&stat) >> 0);
-		returnValues[fiber.str()] = "none";
-	}
-
-	return returnValues;
-}
-
-
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(const enum DEVTYPE &dt, const uint16_t &iFiber, const uint16_t &stat)
-{
-	std::map<std::string, std::string> returnValues;
-
-	unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
-	int fiber0 = stat & 0x1f;
-	int fiber1 = (stat >> 5) & 0x1f;
-	if (fiber0 != 0x1f) {
-		std::stringstream fiber;
-		fiber << "Fiber " << (0 + iFiber*2 + fiberOffset) << ": " << fiber0;
-		returnValues[fiber.str()] = "none";
-	} else {
-		std::stringstream fiber;
-		fiber << "Fiber " << (0 + iFiber*2 + fiberOffset) << " is inactive";
-		returnValues[fiber.str()] = "none";
-	}
-	if (fiber1 != 0x1f) {
-		std::stringstream fiber;
-		fiber << "Fiber " << (1 + iFiber*2 + fiberOffset) << ": " << fiber1;
-		returnValues[fiber.str()] = "none";
-	} else {
-		std::stringstream fiber;
-		fiber << "Fiber " << (1 + iFiber*2 + fiberOffset) << " is inactive";
-		returnValues[fiber.str()] = "none";
-	}
-
-	return returnValues;
-}
-
-
-
-std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const std::vector<uint16_t> &lcode, const enum DEVTYPE &dt)
-{
-	return INFPGADebugTrap(dt, lcode);
-}
-
-
-
 std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const enum DEVTYPE &dt, const std::vector<uint16_t> &lcode)
 {
 	std::vector<std::string> out;
@@ -1298,7 +1119,7 @@ std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const enum DEVTY
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStat(const uint16_t &stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStatus(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues = FMM(stat & 0x000f);
 
@@ -1362,7 +1183,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(const uint
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(const uint16_t &stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1378,18 +1199,6 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(const uint16
 	} else {
 		returnValues["No passthrough"] = "none";
 	}
-
-	return returnValues;
-}
-
-
-
-std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(const uint16_t &stat)
-{
-	std::map<std::string, std::string> returnValues;
-
-	if ((stat & 0xFFF0) == 0xFED0) returnValues["FMM error reporting disabled"] = "orange";
-	else returnValues["FMM error reporting enabled"] = "green";
 
 	return returnValues;
 }
@@ -1498,7 +1307,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::DebugFiber(DDU *ddu, c
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::InRDStat(const uint16_t &stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::InRDStatus(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnMe;
 	

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.4 2009/07/11 19:38:32 paste Exp $
+* $Id: IRQThreadManager.h,v 1.5 2009/10/26 19:00:25 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -54,6 +54,9 @@ namespace emu {
 			/** Stop the threads. **/
 			void endThreads()
 			throw (emu::fed::exception::FMMThreadException);
+			
+			/** Stop the threads and do not check to see if everything is okay. **/
+			void killThreads();
 			
 			/** Change the system name. **/
 			inline void setSystemName(const std::string &systemName) { systemName_ = systemName; }

@@ -21,7 +21,7 @@ Summary="Emu (CSC) FED Utility Libraries"
 Authors="Phillip Killewald, Angela Brett, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=11
+PACKAGE_VER_MINOR=12
 PACKAGE_VER_PATCH=00
 
 Sources=\
@@ -48,8 +48,7 @@ Sources=\
 	DDUDebugger.cc \
 	DCCDebugger.cc \
 	DataTable.cc \
-	JSONSpiritWriter.cc \
-	CSSElement.cc
+	JSONSpiritWriter.cc
 
 IncludeDirs = \
 	$(BUILD_HOME)/emu/emuDCS/FEDCore/include \
