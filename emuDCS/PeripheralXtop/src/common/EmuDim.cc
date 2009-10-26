@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.28 2009/10/14 17:33:09 liu Exp $
+// $Id: EmuDim.cc,v 1.29 2009/10/26 11:58:32 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -31,6 +31,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   FedcDcsUrl_ = "";
   TestPrefix_ = "";
   OpMode_ = 0;
+  EndCap_ = 0;
   heartbeat = 0;
 
   xgi::bind(this,&EmuDim::Default, "Default");
@@ -44,6 +45,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   getApplicationInfoSpace()->fireItemAvailable("FedcDcsUrl", &FedcDcsUrl_ );
   getApplicationInfoSpace()->fireItemAvailable("TestPrefix", &TestPrefix_ );
   getApplicationInfoSpace()->fireItemAvailable("OperationMode", &OpMode_ );
+  getApplicationInfoSpace()->fireItemAvailable("EndCap", &EndCap_ );
 
   // everything below for Monitoring
   timer_ = toolbox::task::getTimerFactory()->createTimer("EmuMonitorTimer");
@@ -65,7 +67,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   xgi::bind(this,&EmuDim::ButtonStop      ,"ButtonStop");
   xgi::bind(this,&EmuDim::SwitchBoard      ,"SwitchBoard");
 
-  for(int i=0; i<30; i++) 
+  for(int i=0; i<TOTAL_CRATES; i++) 
   {  crate_state[i]=0; 
      crate_name[i]=""; 
   }
@@ -174,9 +176,10 @@ void EmuDim::SwitchBoard(xgi::Input * in, xgi::Output * out ) throw (xgi::except
        if(Monitor_On_) *out << "ON ";
        else *out << "OFF ";
 
-       if(Suspended_) *out << "SUSPENDED" << std::endl;
-       else *out << "READING" << std::endl;
+       *out << heartbeat;
 
+       if(Suspended_) *out << " SUSPENDED" << std::endl;
+       else *out << " READING" << std::endl;
     }
     else if (command_name=="READING")
     {
@@ -210,7 +213,17 @@ void EmuDim::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception:
 /////////////////////////////////////////////////////////////////////////////////
 void EmuDim::MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
   //
-  MyHeader(in,out,"EmuDim");
+   int endcap = EndCap_;
+   if(endcap > 0)
+   {
+      MyHeader(in,out,"EmuDim -- Plus Endcap");
+   }
+   else if(endcap < 0)
+   {
+      MyHeader(in,out,"EmuDim -- Minus Endcap");
+   }
+   else
+      MyHeader(in,out,"EmuDim");
   //
   if(Monitor_On_)
   {
@@ -393,8 +406,19 @@ int EmuDim::FillChamber(char *buff, int source)
 
 int EmuDim::ChnameToNumber(const char *chname)
 {
+   int endcap = EndCap_;
+
    if(strlen(chname)<7) return -1;
-   if(strncmp(chname,"ME",2)) return -2;
+   if(endcap > 0)
+   {
+      if(strncmp(chname,"ME+",3)) return -2;
+   }
+   else if(endcap < 0)
+   {
+      if(strncmp(chname,"ME-",3)) return -2;
+   }
+   else
+      if(strncmp(chname,"ME",2)) return -2;
    int station = std::atoi(chname+3);
    int ring = std::atoi(chname+5);
    int chnumb = std::atoi(chname+7);
@@ -415,8 +439,20 @@ int EmuDim::ChnameToNumber(const char *chname)
 
 int EmuDim::CrateToNumber(const char *chname)
 {
+   int endcap = EndCap_;
+
    if(strlen(chname)<7) return -1;
-   if(strncmp(chname,"VME",2)) return -2;
+   if(endcap > 0)
+   {
+      if(strncmp(chname,"VMEp",4)) return -2;
+   }
+   else if(endcap < 0)
+   {
+      if(strncmp(chname,"VMEm",4)) return -2;
+   }
+   else
+      if(strncmp(chname,"VME",3)) return -2;
+     
    int station = std::atoi(chname+4);
    int chnumb = std::atoi(chname+6);
    if(chnumb>12 || chnumb<1) return -3;
