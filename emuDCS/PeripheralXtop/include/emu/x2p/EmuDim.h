@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.12 2009/10/14 17:33:09 liu Exp $
+// $Id: EmuDim.h,v 1.13 2009/10/26 11:58:32 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -79,6 +79,7 @@ public:
   xdata::String FedcDcsUrl_;
   xdata::String TestPrefix_;
   xdata::Integer OpMode_;
+  xdata::Integer EndCap_;
   //
   EmuDim(xdaq::ApplicationStub * s);
   //
