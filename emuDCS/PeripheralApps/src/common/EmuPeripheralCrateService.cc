@@ -40,6 +40,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateService::CheckCrates, "CheckCrates");
   xgi::bind(this,&EmuPeripheralCrateService::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateService::HardReset, "HardReset");
+  xgi::bind(this,&EmuPeripheralCrateService::ChamberOff, "ChamberOff");
   xgi::bind(this,&EmuPeripheralCrateService::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this,&EmuPeripheralCrateService::FastConfigOne, "FastConfigOne");
   xgi::bind(this,&EmuPeripheralCrateService::ForEmuPage1, "ForEmuPage1");
@@ -134,7 +135,7 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   *out << cgicc::table() << std::endl;
 
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:blue");
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#0099FF");
   *out << std::endl;
   *out << cgicc::table().set("border","0");
     //
@@ -211,7 +212,7 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
   std::cout << "Main Page: "<< std::dec << active_crates << "/" <<total_crates_ << " Crates" << std::endl;
   //
   if (tmbVector.size()>0 || dmbVector.size()>0) {
-    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:blue");
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#0099FF");
     *out << std::endl;
     //
     *out << cgicc::table().set("border","0");
@@ -230,6 +231,13 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << std::endl ;
     *out << cgicc::td();
     //
+    *out << cgicc::td();
+    std::string poweroff = toolbox::toString("/%s/PowerOff",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",poweroff) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Chambers Off") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::td();
+    //
     *out << cgicc::table();
     //
     //
@@ -237,7 +245,7 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
     //
   }
   *out << cgicc::br() << cgicc::b("Last Received Commands") << std::endl;
-  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial; color: yellow; background-color:blue");
+  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial; color: yellow; background-color:#0099FF");
   *out << std::endl;
   if(total_msg > 0)
   {
@@ -389,6 +397,20 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
         msgHandler("Button: Hard-Reset Crate " + ThisCrateID_);
  
         if(!Simulation_) thisCCB->hardReset();
+     }
+     this->Default(in,out);
+  }
+
+  void EmuPeripheralCrateService::ChamberOff(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     if(!parsed) ParsingXML();
+
+     if(GuiButton_)
+     {
+        msgHandler("Button: Power Off Chambers Crate " + ThisCrateID_);
+ 
+        if(!Simulation_) thisCrate->PowerOff();
      }
      this->Default(in,out);
   }
