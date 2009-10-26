@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.22 2009/10/26 21:29:10 paste Exp $
+* $Id: Communicator.cc,v 1.23 2009/10/26 21:49:17 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -622,47 +622,6 @@ throw (toolbox::fsm::exception::Exception)
 				}
 				
 				REVOKE_ALARM("CommunicatorConfigureFPGASoftwareSwitch", NULL);
-				
-				
-				// Now that the DCC is set up properly, we can check the status.
-				uint16_t dccL1A = (*iDCC)->readStatusLow(); // should be all 0
-				uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2ffX
-				
-				LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC Status for crate " << (*iCrate)->getNumber() << ", slot " << std::dec << (*iDCC)->slot() << ": L1A: " << dccL1A << ", status: " << std::hex << status << std::dec);
-				
-				if (dccL1A) {
-					std::ostringstream error;
-					error << "L1A for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset";
-					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-					std::ostringstream tag;
-					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDCC", "ERROR", error.str(), tag.str(), NULL);
-					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
-				}
-				if ((status & 0xfff0) != 0x2ff0) {
-					std::ostringstream error;
-					error << "Status for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset: " << std::endl;
-					
-					std::pair<std::string, std::string> fmmStatus = DCCDebugger::FMMStat((status >> 12) & 0xf);
-					error << "FMM status: " << fmmStatus.first << std::endl;
-					
-					std::map<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStat(status & 0xf);
-					for (std::map<std::string, std::string>::const_iterator iSLink = sLinkStatus.begin(); iSLink != sLinkStatus.end(); ++iSLink) {
-						error << (*iSLink).first << std::endl;
-					}
-					
-					std::map<std::string, std::string> inFIFOStatus = DCCDebugger::InFIFOStat((status >> 8) & 0xff);
-					for (std::map<std::string, std::string>::const_iterator iFIFO = inFIFOStatus.begin(); iFIFO != inFIFOStatus.end(); ++iFIFO) {
-						error << (*iFIFO).first << std::endl;
-					}
-					
-					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-					std::ostringstream tag;
-					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDCC", "ERROR", error.str(), tag.str(), NULL);
-					//FIXME for local running, if S-Link is not ignored, this will probably fail
-					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
-				}
 
 			} catch (emu::fed::exception::DCCException &e) {
 				std::ostringstream error;
