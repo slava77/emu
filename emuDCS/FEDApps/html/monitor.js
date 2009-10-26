@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: monitor.js,v 1.7 2009/07/01 14:54:02 paste Exp $
+* $Id: monitor.js,v 1.8 2009/10/26 19:17:20 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -104,7 +104,6 @@ Event.observe(window, "load", function(event) {
 });
 
 function getDDUMonitor() {
-	
 	// Bind the special callbacks
 	var successCallback = this.updateDDUMonitor.bind(this);
 	var errorCallback = this.callbackError.bind(this);

@@ -457,7 +457,7 @@ void FEDConfigurationEditor::queryMaxId(const std::string &connectionID, const s
 		XCEPT_RAISE (xcept::Exception, "Not expected number of rows");
 	}
 	std::cout << "2" << std::endl;
-	if (resultPointer=/*dynamic_cast<xdata::String *>(*/results.getValueAt(0,dbColumn)/*)*/) {
+	if ((resultPointer=/*dynamic_cast<xdata::String *>(*/results.getValueAt(0,dbColumn)/*)*/)) {
 		//result will be returned as a string because TStore does not know which table/column it comes from so can't be sure it'll fit into an unsigned int 64
 	std::cout << "3" << std::endl;
 		result.fromString(resultPointer->toString());//=*resultPointer;

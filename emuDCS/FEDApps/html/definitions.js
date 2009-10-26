@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: definitions.js,v 1.2 2009/07/08 12:03:09 paste Exp $
+* $Id: definitions.js,v 1.3 2009/10/26 19:17:20 paste Exp $
 \*****************************************************************************/
 
 function ReloadElement() {
@@ -23,7 +23,8 @@ function ReloadElement() {
 				var date = new Date();
 				this.lastReloadTime = date.toLocaleString();
 			}
-			updateElement.update(this.lastReloadTime + " (" + time + " ago)");
+			if (this.stop) updateElement.update(this.lastReloadTime + " (paused)");
+			else updateElement.update(this.lastReloadTime + " (" + time + " ago)");
 		}
 		this.timeSinceReload++;
 		if (this.timeSinceReload > this.timeToError) {
@@ -36,7 +37,7 @@ function ReloadElement() {
 			}
 		}
 		if (this.timeSinceReload % this.timeToReload == 0 || now == true) {
-			if (this.stop) return;
+			if (this.stop && now != true) return;
 			$(this.id + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/ajax-loader.gif");
 			this.reloadFunction();
 		}

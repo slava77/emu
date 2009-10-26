@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.19 2009/10/12 15:12:04 paste Exp $
+* $Id: Communicator.cc,v 1.20 2009/10/26 19:17:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -638,6 +638,24 @@ throw (toolbox::fsm::exception::Exception)
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC " << (*iDCC)->getFMMID() << " fully configured");
 		}
 		
+		// Final sync reset before continuing
+		if (myDCCs.size() > 0 && !(*iCrate)->isTrackFinder()) {
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!");
+			try {
+				myDCCs[0]->crateResync();
+				REVOKE_ALARM("CommunicatorConfigureDCCResync", NULL);
+			} catch (emu::fed::exception::DCCException &e) {
+				std::ostringstream error;
+				error << "Resync through DCC in crate " << (*iCrate)->getNumber() << " slot " << myDCCs[0]->slot() << " has failed";
+				LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+				std::ostringstream tag;
+				tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << myDCCs[0]->getFMMID(); 
+				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCCResync", "WARN", error.str(), tag.str(), NULL, e);
+				// Not an error--we could still be able to configure properly.
+				//XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+			}
+		}
+		
 		REVOKE_ALARM("CommunicatorConfigureDCC", NULL);
 		
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << (*iCrate)->getNumber() << " fully configured");
@@ -658,7 +676,7 @@ throw (toolbox::fsm::exception::Exception)
 	// PGK No hard reset or sync reset is coming any time soon, so we should
 	//  do it ourselves.
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-		
+		/*
 		std::vector<DCC *> dccs = (*iCrate)->getDCCs();
 		if (dccs.size() > 0 && !(*iCrate)->isTrackFinder()) {
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!");
@@ -675,7 +693,8 @@ throw (toolbox::fsm::exception::Exception)
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 			}
 			
-		} else if ((*iCrate)->isTrackFinder()){
+		} else */
+		if ((*iCrate)->isTrackFinder()) {
 			// TF crate recieves a hard reset on Disable, so I have to make sure the GbE prescale is set properly here.
 			DDU *myDDU = (*iCrate)->getDDUs()[0];
 			try {
@@ -729,7 +748,7 @@ throw (toolbox::fsm::exception::Exception)
 				std::ostringstream error;
 				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": INFPGA0 status register (" << std::hex << inFPGA0Stat << std::dec << "):" << std::endl;
 				
-				std::map<std::string, std::string> inFPGA0Status = DDUDebugger::InFPGAStat(INFPGA0, inFPGA0Stat);
+				std::map<std::string, std::string> inFPGA0Status = DDUDebugger::FPGAStatus(INFPGA0, inFPGA0Stat);
 				for (std::map<std::string, std::string>::const_iterator iDebug = inFPGA0Status.begin(); iDebug != inFPGA0Status.end(); ++iDebug) {
 					error << (*iDebug).first << std::endl;
 				}
@@ -744,7 +763,7 @@ throw (toolbox::fsm::exception::Exception)
 				std::ostringstream error;
 				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": INFPGA1 status register (" << std::hex << inFPGA1Stat << std::dec << "):" << std::endl;
 				
-				std::map<std::string, std::string> inFPGA1Status = DDUDebugger::InFPGAStat(INFPGA1, inFPGA1Stat);
+				std::map<std::string, std::string> inFPGA1Status = DDUDebugger::FPGAStatus(INFPGA1, inFPGA1Stat);
 				for (std::map<std::string, std::string>::const_iterator iDebug = inFPGA1Status.begin(); iDebug != inFPGA1Status.end(); ++iDebug) {
 					error << (*iDebug).first << std::endl;
 				}
@@ -759,7 +778,7 @@ throw (toolbox::fsm::exception::Exception)
 				std::ostringstream error;
 				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": DDUFPGA status register (" << std::hex << dduFPGAStat << std::dec << "):" << std::endl;
 				
-				std::map<std::string, std::string> dduFPGAStatus = DDUDebugger::DDUFPGAStat(dduFPGAStat);
+				std::map<std::string, std::string> dduFPGAStatus = DDUDebugger::FPGAStatus(DDUFPGA, dduFPGAStat);
 				for (std::map<std::string, std::string>::const_iterator iDebug = dduFPGAStatus.begin(); iDebug != dduFPGAStatus.end(); ++iDebug) {
 					error << (*iDebug).first << std::endl;
 				}
@@ -883,7 +902,8 @@ throw (toolbox::fsm::exception::Exception)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Disable");
 
 	try {
-		TM_->endThreads();
+		//TM_->endThreads();
+		TM_->killThreads();
 		REVOKE_ALARM("CommunicatorDisableThreads", NULL);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
@@ -903,7 +923,8 @@ throw (toolbox::fsm::exception::Exception)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Halt");
 
 	try {
-		TM_->endThreads();
+		//TM_->endThreads();
+		TM_->killThreads();
 		REVOKE_ALARM("CommunicatorHaltThreads", NULL);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;

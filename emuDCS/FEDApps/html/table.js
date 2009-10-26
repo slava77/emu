@@ -1,34 +1,24 @@
 /*****************************************************************************\
-* $Id: table.js,v 1.1 2009/10/16 20:32:36 paste Exp $
+* $Id: table.js,v 1.2 2009/10/26 19:17:20 paste Exp $
 \*****************************************************************************/
 
 /** Javascript object for generating an HTML table **/
 
-function Table(id, classes)
+function Table(properties)
 {
-	this.id = id;
-	if (Object.isArray(classes))
-		this.classes = classes;
-	else
-		this.classes = new Array();
+	this.properties = properties;
 	
 	this.rows = new Array();
 	this.cols = new Array();
 
 	this.toElement = function() {
 	
-		var eTable = new Element("table", {"id": this.id});
-		this.classes.each(function(class) {
-			eTable.addClassName(class);
-		});
+		var eTable = new Element("table", this.properties);
 		
 		if (this.cols.size()) {
 			var eColgroup = new Element("colgroup");
 			this.cols.each(function(col) {
-				var eCol = new Element("col", {"id": col.id});
-				col.classes.each(function(class) {
-					eCol.addClassName(class);
-				});
+				var eCol = new Element("col", col.properties);
 				eColgroup.insert(eCol);
 			});
 			eTable.insert(eColgroup);
@@ -83,22 +73,15 @@ function Table(id, classes)
 	}
 }
 
-function Row(id, classes)
+function Row(properties)
 {
-	this.id = id;
-	if (Object.isArray(classes))
-		this.classes = classes;
-	else
-		this.classes = new Array();
+	this.properties = properties;
 	
 	this.cells = new Array();
 	
 	this.toElement = function() {
 	
-		var eTr = new Element("tr", {"id": this.id});
-		this.classes.each(function(class) {
-			eTr.addClassName(class);
-		});
+		var eTr = new Element("tr", this.properties);
 		
 		this.cells.each(function(cell) {
 			eTr.insert(cell.toElement());
@@ -120,22 +103,15 @@ function Row(id, classes)
 	}
 }
 
-function Cell(id, classes)
+function Cell(properties)
 {
-	this.id = id;
-	if (Object.isArray(classes))
-		this.classes = classes;
-	else
-		this.classes = new Array();
+	this.properties = properties;
 	
 	this.content = "";
 	
 	this.toElement = function() {
 	
-		var eTd = new Element("td", {"id": this.id});
-		this.classes.each(function(class) {
-			eTd.addClassName(class);
-		});
+		var eTd = new Element("td", this.properties);
 		eTd.update(this.content);
 		return eTd;
 	}

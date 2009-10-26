@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.7 2009/07/01 14:54:03 paste Exp $
+* $Id: Application.h,v 1.8 2009/10/26 19:17:20 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -173,7 +173,7 @@ namespace emu {
 					} catch (emu::fed::exception::SOAPException &e) {
 						std::ostringstream error;
 						error << "Unable to get parameters from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
-						LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+						//LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 						XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
 						notifyQualified("WARN", e2);
 						continue;
@@ -187,7 +187,7 @@ namespace emu {
 					} catch (emu::fed::exception::SOAPException &e) {
 						std::ostringstream error;
 						error << "Unable to read parameter '" << parameter << "' from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
-						LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+						//LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 						XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
 						notifyQualified("WARN", e2);
 						continue;
@@ -196,7 +196,7 @@ namespace emu {
 				
 				std::ostringstream error;
 				error << "Unable to find an application of class '" << myClass << "' with a parameter '" << parameter << "' matching '" << value << "'";
-				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+				//LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 				XCEPT_RAISE(emu::fed::exception::SoftwareException, error.str());
 			}
 
