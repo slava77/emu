@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.17 2009/10/16 20:42:06 paste Exp $
+* $Id: DDU.cc,v 1.18 2009/10/26 18:51:25 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -1041,7 +1041,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readInRDStat()
+uint16_t emu::fed::DDU::readInRDStatus()
 throw (emu::fed::exception::DDUException)
 {
 	try {

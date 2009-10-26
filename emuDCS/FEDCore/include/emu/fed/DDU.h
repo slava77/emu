@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.13 2009/09/29 14:18:12 paste Exp $
+* $Id: DDU.h,v 1.14 2009/10/26 18:51:25 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -262,7 +262,7 @@ namespace emu {
 			throw (emu::fed::exception::DDUException);
 
 			/** @returns the status of the paths out to the INFPGAs. **/
-			uint16_t readInRDStat()
+			uint16_t readInRDStatus()
 			throw (emu::fed::exception::DDUException);
 
 			/** @returns which fibers have ever experienced input corruption (?). **/
