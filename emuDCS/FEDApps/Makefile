@@ -7,8 +7,8 @@
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
-CXX=g++4
-LD=g++4
+#CXX=g++4
+#LD=g++4
 
 #
 # Packages to be built
@@ -22,7 +22,7 @@ Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
 PACKAGE_VER_MINOR=12
-PACKAGE_VER_PATCH=02
+PACKAGE_VER_PATCH=03
 
 Sources=\
 	AppsVersion.cc \
@@ -48,7 +48,7 @@ LibraryDirs = \
 	$(XDAQ_ROOT)/lib
 
 UserCFlags =
-UserCCFlags = -pipe -DLINUX -g -Wall -pedantic-errors -Wno-long-long -isystem $(XDAQ_ROOT)/include -O2
+UserCCFlags = -pipe -DLINUX -g -Wall -pedantic-errors -Wno-long-long -isystem $(XDAQ_ROOT)/include -O1
 UserStaticLinkFlags =
 UserDynamicLinkFlags = -lboost_filesystem
 UserExecutableLinkFlags = -D_REENTRAN -pthread -pedantic-errors
