@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.9 2009/09/29 14:18:12 paste Exp $
+* $Id: DCC.h,v 1.10 2009/10/26 18:51:24 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -119,7 +119,7 @@ namespace emu {
 			throw (emu::fed::exception::DCCException)
 			{
 				try {
-					return ((readStatusHigh() >> 4) & 0xf);
+					return ((readStatusHigh() >> 4) & 0xff);
 				} catch (emu::fed::exception::DCCException &e) {
 					throw e;
 				}
