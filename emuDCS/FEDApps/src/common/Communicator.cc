@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.20 2009/10/26 19:17:20 paste Exp $
+* $Id: Communicator.cc,v 1.21 2009/10/26 21:03:56 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -624,6 +624,45 @@ throw (toolbox::fsm::exception::Exception)
 				REVOKE_ALARM("CommunicatorConfigureFPGASoftwareSwitch", NULL);
 				
 				
+				// Now that the DCC is set up properly, we can check the status.
+				uint16_t dccL1A = (*iDCC)->readStatusLow(); // should be all 0
+				uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2ffX
+				
+				LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC Status for crate " << (*iCrate)->getNumber() << ", slot " << std::dec << (*iDCC)->slot() << ": L1A: " << dccL1A << ", status: " << std::hex << status << std::dec);
+				
+				if (dccL1A) {
+					std::ostringstream error;
+					error << "L1A for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset";
+					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+					std::ostringstream tag;
+					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
+					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDCC", "ERROR", error.str(), tag.str(), NULL);
+					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
+				}
+				if ((status & 0xfff0) != 0x2ff0) {
+					std::ostringstream error;
+					error << "Status for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset: " << std::endl;
+					
+					std::pair<std::string, std::string> fmmStatus = DCCDebugger::FMMStat((status >> 12) & 0xf);
+					error << "FMM status: " << fmmStatus.first << std::endl;
+					
+					std::map<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStat(status & 0xf);
+					for (std::map<std::string, std::string>::const_iterator iSLink = sLinkStatus.begin(); iSLink != sLinkStatus.end(); ++iSLink) {
+						error << (*iSLink).first << std::endl;
+					}
+					
+					std::map<std::string, std::string> inFIFOStatus = DCCDebugger::InFIFOStat((status >> 8) & 0xff);
+					for (std::map<std::string, std::string>::const_iterator iFIFO = inFIFOStatus.begin(); iFIFO != inFIFOStatus.end(); ++iFIFO) {
+						error << (*iFIFO).first << std::endl;
+					}
+					
+					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+					std::ostringstream tag;
+					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
+					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDCC", "ERROR", error.str(), tag.str(), NULL);
+					//FIXME for local running, if S-Link is not ignored, this will probably fail
+					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
+				}
 
 			} catch (emu::fed::exception::DCCException &e) {
 				std::ostringstream error;
@@ -636,24 +675,6 @@ throw (toolbox::fsm::exception::Exception)
 			}
 			
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC " << (*iDCC)->getFMMID() << " fully configured");
-		}
-		
-		// Final sync reset before continuing
-		if (myDCCs.size() > 0 && !(*iCrate)->isTrackFinder()) {
-			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!");
-			try {
-				myDCCs[0]->crateResync();
-				REVOKE_ALARM("CommunicatorConfigureDCCResync", NULL);
-			} catch (emu::fed::exception::DCCException &e) {
-				std::ostringstream error;
-				error << "Resync through DCC in crate " << (*iCrate)->getNumber() << " slot " << myDCCs[0]->slot() << " has failed";
-				LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-				std::ostringstream tag;
-				tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << myDCCs[0]->getFMMID(); 
-				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCCResync", "WARN", error.str(), tag.str(), NULL, e);
-				// Not an error--we could still be able to configure properly.
-				//XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-			}
 		}
 		
 		REVOKE_ALARM("CommunicatorConfigureDCC", NULL);
@@ -676,7 +697,6 @@ throw (toolbox::fsm::exception::Exception)
 	// PGK No hard reset or sync reset is coming any time soon, so we should
 	//  do it ourselves.
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-		/*
 		std::vector<DCC *> dccs = (*iCrate)->getDCCs();
 		if (dccs.size() > 0 && !(*iCrate)->isTrackFinder()) {
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!");
@@ -693,8 +713,7 @@ throw (toolbox::fsm::exception::Exception)
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 			}
 			
-		} else */
-		if ((*iCrate)->isTrackFinder()) {
+		} else if ((*iCrate)->isTrackFinder()) {
 			// TF crate recieves a hard reset on Disable, so I have to make sure the GbE prescale is set properly here.
 			DDU *myDDU = (*iCrate)->getDDUs()[0];
 			try {
@@ -812,56 +831,6 @@ throw (toolbox::fsm::exception::Exception)
 			}
 			
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "DDU " << (*iDDU)->getRUI() << " ready to enable");
-		}
-		
-		REVOKE_ALARM("CommunicatorEnableDDU", NULL);
-		
-		// Check DCC status
-		std::vector<DCC *> dccVector = (*iCrate)->getDCCs();
-		
-		for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
-		
-			uint16_t dccL1A = (*iDCC)->readStatusLow(); // should be all 0
-			uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2ff5
-			
-			LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC Status for crate " << (*iCrate)->getNumber() << ", slot " << std::dec << (*iDCC)->slot() << ": L1A: " << dccL1A << ", status: " << std::hex << status << std::dec);
-			
-			if (dccL1A) {
-				std::ostringstream error;
-				error << "L1A for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset";
-				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-				std::ostringstream tag;
-				tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDCC", "ERROR", error.str(), tag.str(), NULL);
-				XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
-			}
-			if (status != 0x2ff5) {
-				std::ostringstream error;
-				error << "Status for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset: " << std::endl;
-				
-				std::pair<std::string, std::string> fmmStatus = DCCDebugger::FMMStat((status >> 12) & 0xf);
-				error << "FMM status: " << fmmStatus.first << std::endl;
-				
-				std::map<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStat(status & 0xf);
-				for (std::map<std::string, std::string>::const_iterator iSLink = sLinkStatus.begin(); iSLink != sLinkStatus.end(); ++iSLink) {
-					error << (*iSLink).first << std::endl;
-				}
-				
-				std::map<std::string, std::string> inFIFOStatus = DCCDebugger::InFIFOStat((status >> 8) & 0xff);
-				for (std::map<std::string, std::string>::const_iterator iFIFO = inFIFOStatus.begin(); iFIFO != inFIFOStatus.end(); ++iFIFO) {
-					error << (*iFIFO).first << std::endl;
-				}
-				
-				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-				std::ostringstream tag;
-				tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDCC", "ERROR", error.str(), tag.str(), NULL);
-				//FIXME for local running, if S-Link is not ignored, this will probably fail
-				XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
-			}
-			
-			LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC " << (*iDCC)->getFMMID() << " ready to enable");
-		
 		}
 		
 		REVOKE_ALARM("CommunicatorEnableDDU", NULL);
