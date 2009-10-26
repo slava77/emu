@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDebugger.cc,v 1.5 2009/09/29 13:57:58 paste Exp $
+* $Id: DCCDebugger.cc,v 1.6 2009/10/26 19:00:25 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCCDebugger.h"
 
@@ -71,14 +71,14 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::InFIFOStat(const uint8
 
 std::pair<std::string, std::string> emu::fed::DCCDebugger::decodeFIFOStatus(const uint8_t &stat, const size_t &iFIFO)
 {
-	if (iFIFO == 6 || iFIFO < 1 || iFIFO > 11) return std::make_pair("undefined", "undefined");
+	if (iFIFO < 0 || iFIFO > 9) return std::make_pair("undefined", "undefined");
 
 	// Each bit corresponds to two FIFOs.
 	// We have to make up for the fact that iFIFO 6 correspons to an SLink.
-	unsigned int fifoBit = (iFIFO < 6 ? (iFIFO - 1)/2 : (iFIFO - 2)/2);
+	unsigned int fifoBit = iFIFO/2;
 	
-	// Bits 0, 1, and 2 correspond to a 1/2-full signal from FIFOs 1-2, 3-4, and 5-7 respectively.
-	// Bits 3, 4, 5, 6, and 7 correspond to a full signal from FIFOs 1-2. 3-4. 5-7. 8-9, and 10-11 respectively.
+	// Bits 0, 1, and 2 correspond to a 1/2-full signal from FIFOs 0-1, 2-3, and 4-5 respectively.  Bit low is bad.
+	// Bits 3, 4, 5, 6, and 7 correspond to a full signal from FIFOs 0-1. 2-3. 4-5. 6-7, and 8-9 respectively.  Bit low is bad.
 	// Bit low is true.
 	std::string status = "ok";
 	std::string message = "ok";
@@ -97,16 +97,16 @@ std::pair<std::string, std::string> emu::fed::DCCDebugger::decodeFIFOStatus(cons
 
 std::pair<std::string, std::string> emu::fed::DCCDebugger::decodeSLinkStatus(const uint8_t &stat, const size_t &iLink)
 {
-	if (iLink < 1 || iLink > 2) return std::make_pair("undefined", "undefined");
+	if (iLink < 0 || iLink > 1) return std::make_pair("undefined", "undefined");
 	
-	// Bits 0 and 1 correspond to backpressure warnings for SLinks 1 and 2 respectively.
-	// Bits 2 and 3 correspond to inactive warnings for SLinks 1 and 2 respectively.
+	// Bits 0 and 2 correspond to backpressure warnings for SLinks 1 and 2 respectively.  Bit low is bad.
+	// Bits 1 and 3 correspond to inactive warnings for SLinks 1 and 2 respectively.  Bit low is bad.
 	std::string status = "ok";
 	std::string message = "ok";
-	if (!(stat & (1 << (iLink * 2 - 1)))) {
+	if (!(stat & (1 << (iLink * 2 + 1)))) {
 		status = "undefined";
 		message = "inactive";
-	} else if (!(stat & (1 << ((iLink - 1) * 2 )))) {
+	} else if (!(stat & (1 << (iLink * 2 )))) {
 		status = "error";
 		message = "backpressure";
 	}
