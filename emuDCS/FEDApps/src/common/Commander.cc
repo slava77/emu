@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.11 2009/10/16 20:32:36 paste Exp $
+* $Id: Commander.cc,v 1.12 2009/10/26 19:17:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -314,7 +314,7 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::button("Set FMM Status")
 		.set("id", "ddu_fmm_dialog")
 		.set("class", "ddu_button") << std::endl;
-	*out << cgicc::button("Set Fake L1 Register")
+	*out << cgicc::button("Set Fake L1 Passthrough")
 		.set("id", "ddu_fake_l1_dialog")
 		.set("class", "ddu_button") << std::endl;
 	*out << cgicc::button("Set Flash GbE Thresholds")
@@ -389,7 +389,7 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 	DDURegisters.push_back(Register("Voltage 2.5 (2)", "ddu40"));
 	DDURegisters.push_back(Register("Voltage 3.3", "ddu41"));
 	
-	DDURegisters.push_back(Register("Fake L1", "ddu42"));
+	DDURegisters.push_back(Register("Fake L1 Passthrough", "ddu42"));
 	DDURegisters.push_back(Register("Flash GbE FIFO Thresholds", "ddu43"));
 	DDURegisters.push_back(Register("InRD Status", "ddu44"));
 	DDURegisters.push_back(Register("Error Bus Register A", "ddu45"));
@@ -798,7 +798,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::F0EReg(value))));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FMM(value))));
 						
 						valueArray.push_back(valueObject);
 						descriptionArray.push_back(descriptionObject);
@@ -1234,7 +1234,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 					break;
 					
 				case 42: // Fake L1
-					entryObject.push_back(JSONSpirit::Pair("name", "Fake L1"));
+					entryObject.push_back(JSONSpirit::Pair("name", "Fake L1 Passthrough"));
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
 						JSONSpirit::Object valueObject, descriptionObject;
 						
@@ -1244,7 +1244,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FakeL1Reg(value))));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::FakeL1(value))));
 						
 						valueArray.push_back(valueObject);
 						descriptionArray.push_back(descriptionObject);
@@ -1272,13 +1272,13 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 					for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
 						JSONSpirit::Object valueObject, descriptionObject;
 						
-						uint16_t value = (*iDDU)->readInRDStat();
+						uint16_t value = (*iDDU)->readInRDStatus();
 						valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
 						valueObject.push_back(JSONSpirit::Pair("value", (int) value));
 						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::InRDStat(value))));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::InRDStatus(value))));
 						
 						valueArray.push_back(valueObject);
 						descriptionArray.push_back(descriptionObject);
@@ -1405,7 +1405,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						valueObject.push_back(JSONSpirit::Pair("base", 16));
 						
 						descriptionObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::ParallelStat(value))));
+						descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(DDUDebugger::ParallelStatus(value))));
 						
 						valueArray.push_back(valueObject);
 						descriptionArray.push_back(descriptionObject);
@@ -1861,71 +1861,96 @@ void emu::fed::Commander::webDisplayDDURegisters(xgi::Input *in, xgi::Output *ou
 	*out << cgicc::head() << std::endl;
 	*out << cgicc::body() << std::endl;
 	
+	*out << cgicc::div()
+		.set("class", "titlebar monitor_width")
+		.set("id", "FED_Commander_titlebar") << std::endl;
+	*out << cgicc::div("Commander Display")
+		.set("class", "titletext") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "statusbar monitor_width")
+		.set("id", "FED_Commander_statusbar") << std::endl;
+	*out << cgicc::div("Time of last update:")
+		.set("class", "timetext") << std::endl;
+	*out << cgicc::div("never")
+		.set("class", "loadtime")
+		.set("name", "FED_Commander")
+		.set("id", "FED_Commander_loadtime") << std::endl;
+	*out << cgicc::img()
+		.set("class", "loadicon")
+		.set("id", "FED_Commander_loadicon")
+		.set("src", "/emu/emuDCS/FEDApps/images/empty.gif")
+		.set("alt", "Loading...") << std::endl;
+	*out << cgicc::br()
+		.set("class", "clear") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::fieldset()
+		.set("class", "dialog monitor_width")
+		.set("id", "FED_Commander_dialog") << std::endl;
+		
+	// Useful display modes
+	*out << cgicc::table()
+		.set("class", "noborder dialog tier1") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::td("Current display mode: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::select()
+		.set("id", "display_select")
+		.set("class", "monitor_select")
+		.set("name", "FED_Commander") << std::endl;
+	*out << cgicc::option("HTML")
+		.set("value", "html")
+		.set("selected", "true");
+	*out << cgicc::option("Text")
+		.set("value", "text");
+	*out << cgicc::select() << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::table() << std::endl;
+	
 	// A place for the content
 	*out << cgicc::div()
 		.set("id", "content") << std::endl;
 	*out << cgicc::div() << std::endl;
 	
-	// Useful display modes
-	*out << cgicc::div("Set display mode")
-		.set("class", "tier0") << std::endl;
-		
-	*out << cgicc::div()
-		.set("class", "tier1") << std::endl;
-	*out << cgicc::input()
-		.set("type", "radio")
-		.set("name", "display_radio")
-		.set("id", "radio_html")
-		.set("value", "html")
-		.set("class", "display_radio")
-		.set("checked", "checked") << std::endl;
-	*out << cgicc::label("HTML")
-		.set("for", "radio_html") << std::endl;
-	*out << cgicc::div() << std::endl;
+	// Update buttons
+	*out << cgicc::button()
+		.set("id", "display_refresh")
+		.set("class", "right button statechange pause_button")
+		.set("name", "FED_Commander")
+		.set("command", "refresh") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
+	*out << "Refresh now" << std::endl;
+	*out << cgicc::button() << std::endl;
 	
-	*out << cgicc::div()
-		.set("class", "tier1") << std::endl;
-	*out << cgicc::input()
-		.set("type", "radio")
-		.set("name", "display_radio")
-		.set("id", "radio_text")
-		.set("value", "text")
-		.set("class", "display_radio") << std::endl;
-	*out << cgicc::label("Plain text")
-		.set("for", "radio_text") << std::endl;
-	*out << cgicc::div() << std::endl;
+	*out << cgicc::button()
+		.set("id", "display_start")
+		.set("class", "right button statechange start_button")
+		.set("name", "FED_Commander")
+		.set("command", "start") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/media-playback-start.png");
+	*out << "Begin refreshing" << std::endl;
+	*out << cgicc::button() << std::endl;
 	
-	// Update form
-	*out << cgicc::div("Update options")
-		.set("class", "tier0") << std::endl;
+	*out << cgicc::button()
+		.set("id", "display_pause")
+		.set("class", "right button statechange pause_button")
+		.set("name", "FED_Commander")
+		.set("command", "pause")
+		.set("disabled", "true") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/media-playback-pause.png");
+	*out << "Pause refreshing" << std::endl;
+	*out << cgicc::button() << std::endl;
 	
-	*out << cgicc::button("Update now")
-		.set("class", "tier1")
-		.set("id", "display_update")
-		.set("class", "display_button") << std::endl;
-	
-	*out << cgicc::div()
-		.set("class", "tier1") << std::endl;
-	
-	*out << cgicc::input()
-		.set("type", "checkbox")
-		.set("name", "update_checkbox")
-		.set("class", "update_checkbox")
-		.set("id", "autoupdate") << std::endl;
-	*out << cgicc::label("Automatically update values ")
-		.set("for", "autoupdate") << std::endl;
-	*out << cgicc::span() << std::endl;
-	*out << "every ";
-	*out << cgicc::input()
-		.set("type", "text")
-		.set("name", "update_seconds")
-		.set("class", "update_seconds")
-		.set("id", "update_seconds")
-		.set("value", "10") << std::endl;
-	*out << " seconds";
-	*out << cgicc::span() << std::endl;
-	
-	*out << cgicc::div() << std::endl;
+	*out << cgicc::fieldset() << std::endl;
 	
 	*out << cgicc::body() << std::endl;
 	*out << cgicc::html() << std::endl;
@@ -2233,8 +2258,17 @@ std::string emu::fed::Commander::formatBigNum(const std::vector<uint16_t> &bigNu
 {
 	std::ostringstream out;
 	out << std::setfill('0') << std::hex;
-	for (std::vector<uint16_t>::const_reverse_iterator iValue = bigNum.rbegin(); iValue != bigNum.rend(); iValue+=2) {
-		out << std::setw(4) << *iValue  << std::setw(4) << *(iValue-1) << " ";
+	// If there are an odd number of 16-bit values, don't combine the MSB with anything
+	unsigned int offset = 0;
+	if (bigNum.size() % 2) {
+		out << std::setw(4) << bigNum.back();
+		if (bigNum.size() > 2) out << " ";
+		offset = 1;
+	}
+	for (std::vector<uint16_t>::const_reverse_iterator iValue = bigNum.rbegin() + offset; iValue != bigNum.rend(); iValue+=2) {
+		out << std::setw(4) << *iValue << std::setw(4) << *(iValue + 1);
+		// Add a space if this is not the last one
+		if (iValue + 2 != bigNum.rend()) out << " ";
 	}
 	return out.str();
 }

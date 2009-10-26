@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.11 2009/10/12 15:12:04 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.12 2009/10/26 19:17:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -1907,7 +1907,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		}
 		else if (dduValue & 0xDE4F4BFF) generalTable(3,1).setClass("warning");
 		else generalTable(3,1).setClass("ok");
-		std::map<std::string, std::string> dduComments = DDUDebugger::DDUFPGAStat(dduValue);
+		std::map<std::string, std::string> dduComments = DDUDebugger::FPGAStatus(DDUFPGA, dduValue);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -1921,7 +1921,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		if (dduValue & 0x00000080) generalTable(4,1).setClass("bad");
 		else if (dduValue & 0x00004000) generalTable(4,1).setClass("warning");
 		else generalTable(4,1).setClass("ok");
-		dduComments = DDUDebugger::OutputStat(dduValue);
+		dduComments = DDUDebugger::OutputStatus(dduValue);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -1935,7 +1935,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		if (dduValue & 0x0000C00C) generalTable(5,1).setClass("bad");
 		else if (dduValue & 0x000001C8) generalTable(5,1).setClass("warning");
 		else generalTable(5,1).setClass("ok");
-		dduComments = DDUDebugger::EBReg1(dduValue);
+		dduComments = DDUDebugger::EBRegister(0, dduValue);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -1949,7 +1949,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		if (dduValue & 0x00000011) generalTable(6,1).setClass("bad");
 		else if (dduValue & 0x0000D08E) generalTable(6,1).setClass("warning");
 		else generalTable(6,1).setClass("ok");
-		dduComments = DDUDebugger::EBReg2(dduValue);
+		dduComments = DDUDebugger::EBRegister(1, dduValue);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -1962,7 +1962,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		generalTable(7,1) << std::showbase << std::hex << dduValue;
 		if (dduValue & 0x0000BFBF) generalTable(7,1).setClass("warning");
 		else generalTable(7,1).setClass("ok");
-		dduComments = DDUDebugger::EBReg3(dduValue);
+		dduComments = DDUDebugger::EBRegister(2, dduValue);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -2020,26 +2020,26 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		otherTable(1,1) << std::showbase << std::hex << ((dduValue) & 0xFF);
 		if ((dduValue) & 0xFF) otherTable(1,1).setClass("questionable");
 		else otherTable(1,1).setClass("ok");
-		dduComments = DDUDebugger::WarnMon((dduValue) & 0xFF);
+		/*dduComments = DDUDebugger::WarnMon((dduValue) & 0xFF);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
 			otherTable(1,2) << cgicc::div(iComment->first)
 				.set("class",iComment->second);
-		}
+		}*/
 
 		otherTable(2,0) << "DDU near full historical (8-bit)";
 		//dduValue = myDDU->readWarnMon();
 		otherTable(2,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xFF);
 		if ((dduValue >> 8) & 0xFF) otherTable(2,1).setClass("questionable");
 		else otherTable(2,1).setClass("ok");
-		dduComments = DDUDebugger::WarnMon((dduValue >> 8) & 0xFF);
+		/*dduComments = DDUDebugger::WarnMon((dduValue >> 8) & 0xFF);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
 			otherTable(2,2) << cgicc::div(iComment->first)
 				.set("class",iComment->second);
-		}
+		}*/
 
 		otherTable(3,0) << "DDU L1A-to-start max process time";
 		dduValue = myDDU->readMaxTimeoutCount();
@@ -2259,7 +2259,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		inrdTable(8,1) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
 		if ((dduValue >> 8) & 0x81) inrdTable(8,1).setClass("warning");
 		else inrdTable(8,1).setClass("ok");
-		dduComments = DDUDebugger::FIFO2((dduValue >> 8) & 0x43);
+		dduComments = DDUDebugger::FIFOStatus(1, (dduValue >> 8) & 0x43);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -2322,7 +2322,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		}
 
 		inrdTable(17,0) << "InRD hard error";
-		dduValue = myDDU->readInRDStat();
+		dduValue = myDDU->readInRDStatus();
 		inrdTable(17,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 		if ((dduValue >> 12) & 0xF) inrdTable(17,1).setClass("bad");
 		else inrdTable(17,1).setClass("ok");
@@ -2662,7 +2662,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 				debugTrapValid[iDevType] = true;
 			}
 			if (!(infpgastat & 0x0000C000)) generalTable(2,iDevType*2+1).setClass("ok");
-			std::map<std::string, std::string> infpgastatComments = DDUDebugger::InFPGAStat(dt,infpgastat);
+			std::map<std::string, std::string> infpgastatComments = DDUDebugger::FPGAStatus(dt, infpgastat);
 			for (std::map<std::string,std::string>::iterator iComment = infpgastatComments.begin();
 				iComment != infpgastatComments.end();
 				iComment++) {
@@ -2990,7 +2990,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			otherTable(3,iDevType*2+1) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
 			if (((readFIFOStat) & 0xfc)) otherTable(3,iDevType*2+1).setClass("warning");
 			else otherTable(3,iDevType*2+1).setClass("ok");
-			std::map<std::string, std::string> readFIFOStatComments = DDUDebugger::FIFOStat(dt,(readFIFOStat) & 0xff);
+			std::map<std::string, std::string> readFIFOStatComments = DDUDebugger::FIFOStatus(dt, (readFIFOStat) & 0xff, myDDU);
 			for (std::map< std::string, std::string >::iterator iComment = readFIFOStatComments.begin();
 				iComment != readFIFOStatComments.end();
 				iComment++) {
@@ -3012,7 +3012,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			otherTable(5,iDevType*2+1) << std::showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
 			if (((readFIFOFull >> 8) & 0xf)) otherTable(5,iDevType*2+1).setClass("warning");
 			else otherTable(5,iDevType*2+1).setClass("ok");
-			std::map<std::string, std::string> readFIFOFullComments = DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff);
+			std::map<std::string, std::string> readFIFOFullComments = DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff, myDDU);
 			for (std::map< std::string, std::string >::iterator iComment = readFIFOFullComments.begin();
 				iComment != readFIFOFullComments.end();
 				iComment++) {
@@ -3025,7 +3025,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			if ((readCCodeStat & 0xff) == 0x20) otherTable(6,iDevType*2+1).setClass("warning");
 			else if (readCCodeStat & 0xff) otherTable(6,iDevType*2+1).setClass("bad");
 			else otherTable(6,iDevType*2+1).setClass("ok");
-			std::map<std::string, std::string> readCCodeStatComments = DDUDebugger::CCodeStat(dt,(readCCodeStat) & 0xff);
+			std::map<std::string, std::string> readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat) & 0xff);
 			for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
 				iComment != readCCodeStatComments.end();
 				iComment++) {
@@ -3037,7 +3037,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			if (((readCCodeStat >> 8) & 0xff) == 0x20) otherTable(7,iDevType*2+1).setClass("warning");
 			else if (((readCCodeStat >> 8) & 0xff)) otherTable(7,iDevType*2+1).setClass("bad");
 			else otherTable(7,iDevType*2+1).setClass("ok");
-			readCCodeStatComments = DDUDebugger::CCodeStat(dt,(readCCodeStat >> 8) & 0xff);
+			readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat >> 8) & 0xff);
 			for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
 				iComment != readCCodeStatComments.end();
 				iComment++) {
@@ -3116,24 +3116,24 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			unsigned int memValue = myDDU->readFiberDiagnostics(dt,0);
 			memTable(2,iDevType*2+1) << std::showbase << std::hex << memValue;
 			memTable(2,iDevType*2+1).setClass("ok");
-			std::map< std::string, std::string> memComments = DDUDebugger::FiberDiagnostics(dt,0,memValue);
+			/*std::map< std::string, std::string> memComments = DDUDebugger::FiberDiagnostics(dt,0,memValue);
 			for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 				iComment != memComments.end();
 				iComment++) {
 				memTable(2,iDevType*2+2) << cgicc::div(iComment->first)
 					.set("class",iComment->second) << std::endl;
-			}
+			}*/
 
 			memValue = myDDU->readFiberDiagnostics(dt,1);
 			memTable(3,iDevType*2+1) << std::showbase << std::hex << memValue;
 			memTable(3,iDevType*2+1).setClass("ok");
-			memComments = DDUDebugger::FiberDiagnostics(dt,1,memValue);
+			/*memComments = DDUDebugger::FiberDiagnostics(dt,1,memValue);
 			for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 				iComment != memComments.end();
 				iComment++) {
 				memTable(3,iDevType*2+2) << cgicc::div(iComment->first)
 					.set("class",iComment->second) << std::endl;
-			}
+			}*/
 
 			memValue = myDDU->readAvailableMemory(dt);
 			memTable(4,iDevType*2+1) << (memValue & 0x1f);
@@ -3163,7 +3163,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 				memValue = myDDU->readActiveWriteMemory(dt,ireg);
 				memTable(ireg + 8,iDevType*2+1) << std::showbase << std::hex << memValue;
 				memTable(ireg + 8,iDevType*2+1).setClass("ok");
-				memComments = DDUDebugger::WriteMemoryActive(dt,ireg,memValue);
+				std::map< std::string, std::string> memComments = DDUDebugger::ActiveWriteMemory(dt, ireg, memValue, myDDU);
 				for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 					iComment != memComments.end();
 					iComment++) {
@@ -3207,7 +3207,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 
 				// Here it is.
 				std::vector<uint16_t> lcode = myDDU->readDebugTrap(dt);
-				std::vector<std::string> bigComments = DDUDebugger::INFPGADebugTrap(lcode, dt);
+				std::vector<std::string> bigComments = DDUDebugger::INFPGADebugTrap(dt, lcode);
 
 				std::stringstream diagCode;
 				diagCode << std::setfill('0');
@@ -4237,7 +4237,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 		unsigned int parallelStat = myDDU->readParallelStatus();
 		statusTable(1,0) << "VME status register";
 		statusTable(1,1) << std::showbase << std::hex << parallelStat;
-		std::map<std::string,std::string> parallelStatComments = DDUDebugger::ParallelStat(parallelStat);
+		std::map<std::string,std::string> parallelStatComments = DDUDebugger::ParallelStatus(parallelStat);
 		for (std::map<std::string,std::string>::iterator iComment = parallelStatComments.begin();
 			iComment != parallelStatComments.end();
 			iComment++) {

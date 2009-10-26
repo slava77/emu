@@ -536,3 +536,37 @@ table.fibers {
 	border: 1px solid #000;
 }
 
+table.data_table {
+	border-collapse: collapse;
+	border: 2px solid #000;
+	background-color: #FFF;
+}
+
+table.data_table > tr:nth-of-type(2n+3) {
+	background-color: #EEE;
+}
+
+tr.data_header {
+	background-color: #000;
+	color: #FFF;
+	font-weight: bold;
+}
+
+td.entry_name, td.entry_value, td.entry_debug {
+	padding: 4px;
+	border-right: 1px solid #666;
+}
+
+td.entry_name {
+	font-weight: bold;
+}
+
+td.entry_value {
+	font-family: monospace;
+}
+
+td.data_board {
+	cursor: pointer;
+}
+
+
