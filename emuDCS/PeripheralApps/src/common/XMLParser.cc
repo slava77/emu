@@ -787,6 +787,10 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
       daqmb_->SetKillInput(delay);
     }
     //
+    if (fillInt("power_mask",delay)) {
+      daqmb_->SetPowerMask(delay);
+    }
+    //
     long int long_value;
     if (fillLongIntX("dmb_cntl_firmware_tag", long_value) ) 
       daqmb_->SetExpectedControlFirmwareTag(long_value);
