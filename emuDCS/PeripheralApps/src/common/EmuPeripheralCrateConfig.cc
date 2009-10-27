@@ -229,7 +229,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateConfiguration, "CrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateTests, "CrateTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ALCT_TMB_communication, "ALCT_TMB_communication");
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
   xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
@@ -237,14 +236,18 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate,"MeasureL1AsAndDAVsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber,"MeasureL1AsAndDAVsForChamber");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForSystem,"MeasureL1AsAndDAVsForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsForCrate,"MeasureL1AsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureDAVsForCrate,"MeasureDAVsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForCrate,"MeasureALCTTMBRxTxForCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem,"MeasureALCTTMBRxTxForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForCrate,"MeasureCFEBTMBRxForCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForSystem,"MeasureCFEBTMBRxForSystem");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::StopPRBS, "StopPRBS");
-
+  //
   //-----------------------------------------------
   // VME Controller routines
   //-----------------------------------------------
@@ -350,32 +353,32 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::LogChamberTestsOutput, "LogChamberTestsOutput");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogCrateTestsOutput, "LogCrateTestsOutput");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogALCT_TMB_communicationOutput, "LogALCT_TMB_communicationOutput");
-  xgi::bind(this,&EmuPeripheralCrateConfig::Operator, "Operator");
-  xgi::bind(this,&EmuPeripheralCrateConfig::RunNumber, "RunNumber");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CrateChassisID, "CrateChassisID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CrateRegulatorBoardID, "CrateRegulatorBoardID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::PeripheralCrateMotherBoardID, "PeripheralCrateMotherBoardID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ELMBID, "ELMBID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::BackplaneID, "BackplaneID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ControllerBoardID, "ControllerBoardID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::MPCBoardID, "MPCBoardID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CCBBoardID, "CCBBoardID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::DMBBoardID, "DMBBoardID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBoardID, "TMBBoardID");
-  xgi::bind(this,&EmuPeripheralCrateConfig::RATBoardID, "RATBoardID");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogOutput, "LogOutput");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogTestSummary, "LogTestSummary");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogDMBTestsOutput, "LogDMBTestsOutput");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogTMBTestsOutput, "LogTMBTestsOutput");
   //
   //----------------------------------------------
-  // Bind chamber test (synchronization) methods
+  // Bind BC0 methods
   //----------------------------------------------
-  xgi::bind(this,&EmuPeripheralCrateConfig::InitChamber, "InitChamber");                            //should be deprecated
-  xgi::bind(this,&EmuPeripheralCrateConfig::ALCTTiming, "ALCTTiming");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ALCTBC0Scan, "ALCTBC0Scan");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ALCTBC0ScanForCrate,"ALCTBC0ScanForCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ALCTBC0ScanForSystem,"ALCTBC0ScanForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::Settmb_bxn_offset, "Settmb_bxn_offset");
+  //
+  //----------------------------------------------------
+  // Bind phase determination (commmunication)  methods
+  //----------------------------------------------------
+  xgi::bind(this,&EmuPeripheralCrateConfig::ALCT_TMB_communication, "ALCT_TMB_communication");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCT_TMB_Loopback, "ALCT_TMB_Loopback");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMB_to_ALCT_walking_ones, "TMB_to_ALCT_walking_ones");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTiming, "CFEBTiming");
+  xgi::bind(this,&EmuPeripheralCrateConfig::RatTmbTiming, "RatTmbTiming");
+  xgi::bind(this,&EmuPeripheralCrateConfig::RpcRatTiming, "RpcRatTiming");
+  //
+  //----------------------------------------------
+  // Bind synchronization methods
+  //----------------------------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::FindDistripHotChannel, "FindDistripHotChannel");
   xgi::bind(this,&EmuPeripheralCrateConfig::setupCoincidencePulsing, "setupCoincidencePulsing");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBStartTrigger, "TMBStartTrigger");                    //should be deprecated
@@ -383,7 +386,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::setTMBCounterReadValues, "setTMBCounterReadValues");
   xgi::bind(this,&EmuPeripheralCrateConfig::setDataReadValues, "setDataReadValues");
   xgi::bind(this,&EmuPeripheralCrateConfig::Automatic, "Automatic");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ALCTvpf,"ALCTvpf");
+  //  xgi::bind(this,&EmuPeripheralCrateConfig::ALCTvpf,"ALCTvpf");
   xgi::bind(this,&EmuPeripheralCrateConfig::FindWinner, "FindWinner");
   xgi::bind(this,&EmuPeripheralCrateConfig::TmbLctCableDelay, "TmbLctCableDelay");
   xgi::bind(this,&EmuPeripheralCrateConfig::PrintDmbValuesAndScopes, "PrintDmbValuesAndScopes");
@@ -391,8 +394,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTL1aTiming, "ALCTL1aTiming");
   xgi::bind(this,&EmuPeripheralCrateConfig::AlctDavCableDelay, "AlctDavCableDelay");
   xgi::bind(this,&EmuPeripheralCrateConfig::CfebDavCableDelay, "CfebDavCableDelay");
-  xgi::bind(this,&EmuPeripheralCrateConfig::RatTmbTiming, "RatTmbTiming");
-  xgi::bind(this,&EmuPeripheralCrateConfig::RpcRatTiming, "RpcRatTiming");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTScan, "ALCTScan");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBScan, "CFEBScan");
   //
@@ -472,28 +473,15 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //
   able_to_load_alct = -1;
   //
-  Operator_ = "Operator";
-  RunNumber_= "-1";
   CalibrationState_ = "None";
   //
-  MPCBoardID_ = "-2";
-  CCBBoardID_ = "-2";
-  ControllerBoardID_ = "-2";
-  for (int i=0; i<9; i++) 
-   {  DMBBoardID_[i] = "-2" ; 
-      TMBBoardID_[i] = "-2" ; 
-      RATBoardID_[i] = "-2" ;
-      number_of_tmb_firmware_errors[i] = -1;
-      number_of_alct_firmware_errors[i] = -1;
-   }
+  for (int i=0; i<9; i++) {  
+    number_of_tmb_firmware_errors[i] = -1;
+    number_of_alct_firmware_errors[i] = -1;
+  }
   for (int i=0; i<9; i++) 
     for (int j=0; j<5; j++)
       CFEBid_[i][j] = -2;
-  CrateChassisID_ = "-2";
-  CrateRegulatorBoardID_ = "-2";
-  PeripheralCrateMotherBoardID_ = "-2";
-  ELMBID_ = "-2";
-  BackplaneID_ = "-2";
   //
   for(int i=0; i<9;i++) {
     OutputStringDMBStatus[i] << "DMB-CFEB Status " << i << " output:" << std::endl;
@@ -601,7 +589,8 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
      *out << cgicc::b(" Active Crates: ") << active_crates << cgicc::br() << std::endl ;
  
   *out << cgicc::table().set("border","0");
-    //
+  *out << cgicc::h2("System utilities")<< std::endl;
+  //
   *out << cgicc::td();
   std::string CheckCrates = toolbox::toString("/%s/CheckCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckCrates) << std::endl ;
@@ -660,8 +649,42 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << cgicc::br() << std::endl ;;
   }
   *out << cgicc::td();
-
+  //
   *out << cgicc::table() << std::endl ;
+  //
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
+  std::string MeasureALCTTMBRxTxForSystem = toolbox::toString("/%s/MeasureALCTTMBRxTxForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureALCTTMBRxTxForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find ALCT rx/tx") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string MeasureCFEBTMBRxForSystem = toolbox::toString("/%s/MeasureCFEBTMBRxForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureCFEBTMBRxForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find CFEB rx") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string ALCTBC0ScanForSystem = toolbox::toString("/%s/ALCTBC0ScanForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCTBC0ScanForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Synchronize ALCT BC0") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string MeasureL1AsAndDAVsForSystem = toolbox::toString("/%s/MeasureL1AsAndDAVsForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find L1As and DAVs") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table() << std::endl ;
+  //
   //
   *out << cgicc::br() << cgicc::hr() <<std::endl;
 
@@ -837,18 +860,6 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:yellow");
     *out << std::endl;
     *out << cgicc::legend((("Logging"))).set("style","color:blue") ;
-    //
-    std::string Operator = toolbox::toString("/%s/Operator",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",Operator) << std::endl ;
-    *out << cgicc::input().set("type","text").set("name","Operator").set("size","20").set("value",Operator_) << std::endl ;
-    *out << "Operator" << std::endl;
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string RunNumber = toolbox::toString("/%s/RunNumber",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",RunNumber) << std::endl ;
-    *out << cgicc::input().set("type","text").set("name","RunNumber").set("size","20").set("value",RunNumber_) << std::endl ;
-    *out << "RunNumber" << std::endl;
-    *out << cgicc::form() << std::endl ;
     //
     std::string LogOutput = toolbox::toString("/%s/LogOutput",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LogOutput) << std::endl ;
@@ -1132,6 +1143,13 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
     chamberVector = thisCrate->chambers();
     //  
     tmbTestVector = InitTMBTests(thisCrate);
+    //
+    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+      MyTest[i][cr].SetTMB(tmbVector[i]);
+      MyTest[i][cr].SetDMB(dmbVector[i]);
+      MyTest[i][cr].SetCCB(thisCCB);
+      MyTest[i][cr].SetMPC(thisMPC);
+    }
     //
     DefineFirmwareFilenames();
     //
@@ -1461,13 +1479,8 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
     //----------------------------------
     //
     if(ii==1) {
-      std::string ControllerBoardID = toolbox::toString("/%s/ControllerBoardID",getApplicationDescriptor()->getURN().c_str());
-      //
       *out << cgicc::td();
-      *out << "Controller Board ID" ;
-      *out << cgicc::form().set("method","GET").set("action",ControllerBoardID) << std::endl ;
-      *out << cgicc::input().set("type","text").set("name","ControllerBoardID").set("value",ControllerBoardID_) << std::endl ;
-      *out << cgicc::form() << std::endl ;
+      *out << "VME Crate Controller" ;
       *out << cgicc::td();
       //
       *out << cgicc::td();
@@ -1483,28 +1496,18 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
     int slot = -1;
     if(thisCCB) slot=thisCCB->slot();
     if(slot == ii) {
-      std::string CCBBoardID = toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
-      //
       *out << cgicc::td();
-      *out << "CCB Board ID" ;
-      *out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
-      *out << cgicc::input().set("type","text").set("name","CCBBoardID").set("value",CCBBoardID_) << std::endl ;
-      *out << cgicc::form() << std::endl ;
+      *out << "CCB" ;
       *out << cgicc::td();
       //
       *out << cgicc::td();
-      if ( CCBBoardID_.find("-1") == std::string::npos ) {
-	std::string CCBStatus = toolbox::toString("/%s/CCBStatus?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-	*out << cgicc::a("CCB Status").set("href",CCBStatus) << std::endl;
-      }
+      std::string CCBStatus = toolbox::toString("/%s/CCBStatus?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+      *out << cgicc::a("CCB Status").set("href",CCBStatus) << std::endl;
       *out << cgicc::td();
       //
       *out << cgicc::td();
-      if ( CCBBoardID_.find("-1") == std::string::npos ) {
-	//sprintf(Name,"CCB Utils slot=%d",slot);
-	std::string CCBUtils = toolbox::toString("/%s/CCBUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-	*out << cgicc::a("CCB Utils").set("href",CCBUtils) << std::endl;
-      }
+      std::string CCBUtils = toolbox::toString("/%s/CCBUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+      *out << cgicc::a("CCB Utils").set("href",CCBUtils) << std::endl;
       *out << cgicc::td();
       //
     }
@@ -1512,21 +1515,15 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
     //----------------------------------
     // Display MPC buttons, if it exists
     //----------------------------------
-    std::string MPCStatus = toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
-    std::string MPCBoardID = toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
-    //
     slot = -1;
     if ( thisMPC ) slot = thisMPC->slot() ;
     if(slot == ii) {
       //
       *out << cgicc::td();
-      *out << "MPC Board ID" ;
-      *out << cgicc::form().set("method","GET").set("action",MPCBoardID) << std::endl ;
-      *out << cgicc::input().set("type","text").set("name","MPCBoardID").set("value",MPCBoardID_) << std::endl ;
-      *out << cgicc::form() << std::endl ;
+      *out << "MPC" ;
       *out << cgicc::td();
       //
-      if ( MPCBoardID_.find("-1") == std::string::npos && thisMPC ) {
+      if ( thisMPC ) {
 	//
 	*out << cgicc::td();
 	std::string MPCStatus = toolbox::toString("/%s/MPCStatus?mpc=%d",getApplicationDescriptor()->getURN().c_str(),ii);
@@ -1546,12 +1543,8 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
     std::string TMBStatus ;
     std::string TMBTests ;
     std::string TMBUtils ;
-    std::string TMBBoardID ;
-    std::string RATBoardID ;
     //
     TMBStatus  = toolbox::toString("/%s/TMBStatus" ,getApplicationDescriptor()->getURN().c_str());
-    TMBBoardID = toolbox::toString("/%s/TMBBoardID",getApplicationDescriptor()->getURN().c_str());
-    RATBoardID = toolbox::toString("/%s/RATBoardID",getApplicationDescriptor()->getURN().c_str());
     TMBTests   = toolbox::toString("/%s/TMBTests"  ,getApplicationDescriptor()->getURN().c_str());
     TMBUtils   = toolbox::toString("/%s/TMBUtils"  ,getApplicationDescriptor()->getURN().c_str());
     //
@@ -1560,53 +1553,28 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
       int slot = tmbVector[i]->slot();
       if(slot == ii) {
 	//
-	char buf[20];
-	//
 	*out << cgicc::td();
-	*out << "TMB Board ID" ;
-	*out << cgicc::form().set("method","GET").set("action",TMBBoardID) << std::endl ;
-	sprintf(buf,"TMBBoardID_%d",i);
-	*out << cgicc::input().set("type","text").set("name",buf).set("value",TMBBoardID_[i]).set("size","10") << std::endl ;
-	sprintf(buf,"%d",i);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-	*out << cgicc::form() << std::endl ;
+	*out << "TMB / RAT / ALCT" ;
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	*out << "RAT Board ID" ;
-	*out << cgicc::form().set("method","GET").set("action",RATBoardID) << std::endl ;
-	sprintf(buf,"RATBoardID_%d",i);
-	*out << cgicc::input().set("type","text").set("name",buf).set("value",RATBoardID_[i]).set("size","10") << std::endl ;
-	sprintf(buf,"%d",i);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","rat");
-	*out << cgicc::form() << std::endl ;
-	*out << cgicc::td();
-	  //
-	*out << cgicc::td();
-	if ( TMBBoardID_[i].find("-1") == std::string::npos ) {
-	  std::string MonitorTMBTrigger = toolbox::toString("/%s/MonitorTMBTrigger?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("Monitor TMB trigger").set("href",MonitorTMBTrigger) << std::endl;
-	  *out << cgicc::td();
-	  //
-	  *out << cgicc::td();
-	  std::string TMBStatus = toolbox::toString("/%s/TMBStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("TMB Status").set("href",TMBStatus) << std::endl;
-	  //
-	}
+	std::string MonitorTMBTrigger = toolbox::toString("/%s/MonitorTMBTrigger?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("Monitor TMB trigger").set("href",MonitorTMBTrigger) << std::endl;
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( TMBBoardID_[i].find("-1") == std::string::npos ) {
-	  std::string TMBTests = toolbox::toString("/%s/TMBTests?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("TMB Tests").set("href",TMBTests) << std::endl;
-	}
+	std::string TMBStatus = toolbox::toString("/%s/TMBStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("TMB Status").set("href",TMBStatus) << std::endl;
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( TMBBoardID_[i].find("-1") == std::string::npos ) {
-	    std::string TMBUtils = toolbox::toString("/%s/TMBUtils?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	    *out << cgicc::a("TMB Utils").set("href",TMBUtils) << std::endl;
-	}
+	std::string TMBTests = toolbox::toString("/%s/TMBTests?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("TMB Tests").set("href",TMBTests) << std::endl;
+	*out << cgicc::td();
+	//
+	*out << cgicc::td();
+	std::string TMBUtils = toolbox::toString("/%s/TMBUtils?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("TMB Utils").set("href",TMBUtils) << std::endl;
 	*out << cgicc::td();
 	//
 	//Found TMB...look for DMB...
@@ -1618,21 +1586,10 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
 	  //
 	  if ( dmbslot == slot+1 ) {
 	    *out << cgicc::td();
-	    if ( TMBBoardID_[i].find("-1") == std::string::npos ) {
-	      //
-	      char Name[50];
-	      sprintf(Name,"Chamber Tests: %s",(thisCrate->GetChamber(slot)->GetLabel()).c_str());
-	      //
-	      std::string ChamberTests = toolbox::toString("/%s/ChamberTests?tmb=%d&dmb=%d",getApplicationDescriptor()->getURN().c_str(),i,iii);
-	      *out << cgicc::a(Name).set("href",ChamberTests) << std::endl;
-	      //
-	      //std::cout << "Creating ChamberTests for TMB=" << i << ", DMB=" << iii << std::endl;
-	      //
-	      MyTest[i][current_crate_].SetTMB(tmbVector[i]);
-	      MyTest[i][current_crate_].SetDMB(dmbVector[iii]);
-	      MyTest[i][current_crate_].SetCCB(thisCCB);
-	      MyTest[i][current_crate_].SetMPC(thisMPC);
-	    }
+	    char Name[50];
+	    sprintf(Name,"Chamber Tests: %s",(thisCrate->GetChamber(slot)->GetLabel()).c_str());
+	    std::string ChamberTests = toolbox::toString("/%s/ChamberTests?tmb=%d&dmb=%d",getApplicationDescriptor()->getURN().c_str(),i,iii);
+	    *out << cgicc::a(Name).set("href",ChamberTests) << std::endl;
 	    *out << cgicc::td();
 	  }
 	  //
@@ -1643,115 +1600,46 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
     std::string DMBStatus;
     std::string DMBTests;
     std::string DMBUtils;
-    std::string DMBBoardID;
     //
     DMBStatus  = toolbox::toString("/%s/DMBStatus",getApplicationDescriptor()->getURN().c_str());
     DMBTests   = toolbox::toString("/%s/DMBTests",getApplicationDescriptor()->getURN().c_str());
     DMBUtils   = toolbox::toString("/%s/DMBUtils",getApplicationDescriptor()->getURN().c_str());
-    DMBBoardID = toolbox::toString("/%s/DMBBoardID",getApplicationDescriptor()->getURN().c_str());
     //
     for (unsigned int i=0; i<dmbVector.size(); i++) {
       int slot = dmbVector[i]->slot();
       if(slot == ii ) {
 	//
-	char buf[20];
-	//
 	*out << cgicc::td();
-	*out << "DMB Board ID" ;
-	*out << cgicc::form().set("method","GET").set("action",DMBBoardID) << std::endl ;
-	sprintf(buf,"DMBBoardID_%d",i);
-	*out << cgicc::input().set("type","text").set("name",buf).set("value",DMBBoardID_[i]).set("size","10") << std::endl ;
-	sprintf(buf,"%d",i);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-	*out << cgicc::form() << std::endl ;
+	*out << "DMB / CFEB" ;
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( DMBBoardID_[i].find("-1",0) == std::string::npos ) {
-	  std::string DMBStatus = toolbox::toString("/%s/DMBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("DMB Status").set("href",DMBStatus) << std::endl;
-	  //
-	}
+	std::string DMBStatus = toolbox::toString("/%s/DMBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("DMB Status").set("href",DMBStatus) << std::endl;
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( DMBBoardID_[i].find("-1",0) == std::string::npos ) {
-	  std::string DMBTests = toolbox::toString("/%s/DMBTests?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("DMB Tests").set("href",DMBTests) << std::endl;
-	}
+	std::string DMBTests = toolbox::toString("/%s/DMBTests?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("DMB Tests").set("href",DMBTests) << std::endl;
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( DMBBoardID_[i].find("-1",0) == std::string::npos ) {
-	  std::string DMBUtils = toolbox::toString("/%s/DMBUtils?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("DMB Utils").set("href",DMBUtils) << std::endl;
-	}
+	std::string DMBUtils = toolbox::toString("/%s/DMBUtils?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("DMB Utils").set("href",DMBUtils) << std::endl;
 	*out << cgicc::td();
 	//
       }
     }
     //
-    //*out<< cgicc::br() ;
-    //
     *out << cgicc::table();
-    //
+    *out << cgicc::br();
   }
   //
-  // Here are the peripheral crate accoutrements...
-  //
-  *out << cgicc::table().set("border","1");
-  //
-  std::string CrateChassisID               = toolbox::toString("/%s/CrateChassisID"              ,getApplicationDescriptor()->getURN().c_str());
-  std::string BackplaneID                  = toolbox::toString("/%s/BackplaneID"                 ,getApplicationDescriptor()->getURN().c_str());
-  std::string CrateRegulatorBoardID        = toolbox::toString("/%s/CrateRegulatorBoardID"       ,getApplicationDescriptor()->getURN().c_str());
-  std::string PeripheralCrateMotherBoardID = toolbox::toString("/%s/PeripheralCrateMotherBoardID",getApplicationDescriptor()->getURN().c_str());
-  std::string ELMBID                       = toolbox::toString("/%s/ELMBID"                      ,getApplicationDescriptor()->getURN().c_str());
-  //
-  *out << cgicc::td();
-  *out << "Crate Chassis ID" ;
-  *out << cgicc::form().set("method","GET").set("action",CrateChassisID) << std::endl ;
-  *out << cgicc::input().set("type","text").set("name","CrateChassisID").set("value",CrateChassisID_) << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  *out << "Backplane ID" ;
-  *out << cgicc::form().set("method","GET").set("action",BackplaneID) << std::endl ;
-  *out << cgicc::input().set("type","text").set("name","BackplaneID").set("value",BackplaneID_) << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  *out << "CRB ID" ;
-  *out << cgicc::form().set("method","GET").set("action",CrateRegulatorBoardID) << std::endl ;
-  *out << cgicc::input().set("type","text").set("name","CrateRegulatorBoardID").set("value",CrateRegulatorBoardID_) << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  *out << "PCMB ID" ;
-  *out << cgicc::form().set("method","GET").set("action",PeripheralCrateMotherBoardID) << std::endl ;
-  *out << cgicc::input().set("type","text").set("name","PeripheralCrateMotherBoardID").set("value",PeripheralCrateMotherBoardID_) << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  *out << "ELMB ID" ;
-  *out << cgicc::form().set("method","GET").set("action",ELMBID) << std::endl ;
-  *out << cgicc::input().set("type","text").set("name","ELMBID").set("value",ELMBID_) << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
   //
   *out << cgicc::table().set("border","1");
   //
   *out << cgicc::td();
-  std::string MeasureL1AsAndDAVsForCrate = toolbox::toString("/%s/MeasureL1AsAndDAVsForCrate",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForCrate) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Find L1A and DAV delays for crate") << std::endl ;
-  *out << cgicc::form() << std::endl ;
+  *out << "Data readout synchronization parameters..." << std::endl;
   *out << cgicc::td();
   //
   *out << cgicc::td();
@@ -1769,9 +1657,48 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   *out << cgicc::td();
   //
   *out << cgicc::td();
+  std::string MeasureL1AsAndDAVsForCrate = toolbox::toString("/%s/MeasureL1AsAndDAVsForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find L1A and DAV delays for crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td();
+  *out << "Muonic timing scans" << std::endl;
+  *out << cgicc::td();  
+  //
+  *out << cgicc::td();
   std::string MeasureALCTTMBRxTxForCrate = toolbox::toString("/%s/MeasureALCTTMBRxTxForCrate",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",MeasureALCTTMBRxTxForCrate) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Find ALCT rx/tx for crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string MeasureCFEBTMBRxForCrate = toolbox::toString("/%s/MeasureCFEBTMBRxForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureCFEBTMBRxForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find CFEB rx for crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  char buf[20];
+  std::string Settmb_bxn_offset = toolbox::toString("/%s/Settmb_bxn_offset",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",Settmb_bxn_offset) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Set tmb_bxn_offset for BC0 scan") << std::endl ;
+  *out << "tmb_bxn_offset (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[0][current_crate_].getLocalTmbBxnOffset());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_bxn_offset") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string ALCTBC0ScanForCrate = toolbox::toString("/%s/ALCTBC0ScanForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCTBC0ScanForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Synchronize ALCT BC0 for crate") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
@@ -4003,46 +3930,7 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
 /////////////////////////////////////////////////////////////////////
 // Chamber Utilities (synchronization) methods
 /////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateConfig::InitChamber(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  std::cout << "Init Chamber" << std::endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Init Chamber");
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  int tmb, dmb;
-  //
-  cgicc::form_iterator name = cgi.getElement("dmb");
-  //
-  if(name != cgi.getElements().end()) {
-    dmb = cgi["dmb"]->getIntegerValue();
-    std::cout << "InitChamber:  DMB " << dmb << std::endl;
-    DMB_ = dmb;
-  } else {
-    std::cout << "InitChamber:No dmb" << std::endl;
-    dmb = DMB_;
-  }
-  //
-  name = cgi.getElement("tmb");
-  //
-  if(name != cgi.getElements().end()) {
-    tmb = cgi["tmb"]->getIntegerValue();
-    std::cout << "InitChamber:  TMB " << tmb << std::endl;
-    TMB_ = tmb;
-  } else {
-    std::cout << "InitChamber:  No tmb" << std::endl;
-    tmb = TMB_;
-  }
-  //
-  MyTest[tmb][current_crate_].InitSystem();          // Init chamber
-  //
-  // Comment out dangerous next line....
-  //  thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
-  //
-  this->ChamberTests(in,out);
-  //
-}
+//
 //////////////////////////////////////////////////////////////////////////
 // Crate utilities methods
 //////////////////////////////////////////////////////////////////////////
@@ -4079,26 +3967,6 @@ void EmuPeripheralCrateConfig::MPCSafeWindowScan(xgi::Input * in, xgi::Output * 
   //
   this->CrateTests(in,out);
   //
-}
-//
-void EmuPeripheralCrateConfig::Operator(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  cgicc::Cgicc cgi(in);
-  //
-  Operator_= cgi["Operator"]->getValue() ;
-  //
-  this->Default(in,out);
-}
-//
-void EmuPeripheralCrateConfig::RunNumber(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  cgicc::Cgicc cgi(in);
-  //
-  RunNumber_= cgi["RunNumber"]->getValue() ;
-  std::cout << "RunNumber " << RunNumber_ << std::endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "RunNumber");
-  //
-  this->Default(in,out);
 }
 //
 //////////////////////////////////////////////////////////////
@@ -4689,12 +4557,6 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   char buf[20];
   //
-  //    std::string InitChamber = toolbox::toString("/%s/InitChamber",getApplicationDescriptor()->getURN().c_str());
-  //    *out << cgicc::form().set("method","GET").set("action",InitChamber) << std::endl ;
-  //    *out << cgicc::input().set("type","submit").set("value","Init Chamber") << std::endl ;
-  //    *out << cgicc::input().set("type","hidden").set("value","1").set("name","navigator");
-  //    *out << cgicc::form() << std::endl ;
-  //
   //    std::string TMBStartTrigger = toolbox::toString("/%s/TMBStartTrigger",getApplicationDescriptor()->getURN().c_str());
   //    *out << cgicc::form().set("method","GET").set("action",TMBStartTrigger) << std::endl ;
   //    *out << cgicc::input().set("type","submit").set("value","TMBStartTrigger") << std::endl ;
@@ -4750,7 +4612,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   for(int i=0;i<5;i++) {
     *out << "cfeb" << i << "delay = " << MyTest[tmb][current_crate_].GetCFEBrxPhaseTest(i) 
-	 << " ("  << MyTest[tmb][current_crate_].GetCFEBrxPhase(i) << ") " <<std::endl;
+	 << " ("  << MyTest[tmb][current_crate_].GetCfebRxClockDelay(i) << ") " <<std::endl;
     *out << cgicc::br();
   }
   *out << cgicc::br();
@@ -4850,6 +4712,22 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br();
+  //
+  std::string ALCTBC0Scan = toolbox::toString("/%s/ALCTBC0Scan",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCTBC0Scan) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Measure ALCT BC0 delay") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << "alct_bx0_delay = " << MyTest[tmb][current_crate_].GetAlctBx0DelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetAlctBx0Delay() << ") " <<std::endl;
+  *out << cgicc::br();
+  *out << "match_trig_alct_delay = " << MyTest[tmb][current_crate_].GetMatchTrigAlctDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetALCTvpf_configvalue() << ") " << std::endl;
+  *out << cgicc::br();
+  //
+  *out << cgicc::br();
   *out << cgicc::br();
   //
   //
@@ -4857,34 +4735,34 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << "--------------------------------------------------------------------------" << std::endl;
   *out << " Synchronization step-by-step" << std::endl;
   *out << "--------------------------------------------------------------------------" << std::endl;
-  *out << "A) Measure CLCT-ALCT match timing" << std::endl;
+  //  *out << "A) Measure CLCT-ALCT match timing" << std::endl;
   //  *out << "   -> Measured values are based on current values of:" << std::endl;
   //  *out << "        * match_trig_window_size" << std::endl;
   //  *out << "        * match_trig_alct_delay" << std::endl;
   //  *out << "        * mpc_tx_delay" << std::endl;
   //  *out << "(assuming that the trigger primitives have already been synchronized at the MPC)" << std::endl;
+  //  *out << cgicc::pre();
+  //
+  //  std::string ALCTvpf = toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",ALCTvpf) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Measure CLCT-ALCT match timing") << std::endl ;
+  //  sprintf(buf,"%d",tmb);
+  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  //  sprintf(buf,"%d",dmb);
+  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  //  *out << cgicc::form() << std::endl ;
+  //  //
+  //  *out << "match_trig_alct_delay = " << MyTest[tmb][current_crate_].GetMatchTrigAlctDelayTest() 
+  //       << " ("  << MyTest[tmb][current_crate_].GetALCTvpf_configvalue() << ") " << std::endl;
+  //  *out << cgicc::br();
+  //  *out << "mpc_tx_delay = " << MyTest[tmb][current_crate_].GetMpcTxDelayTest() 
+  //       << " ("  << MyTest[tmb][current_crate_].GetMPCTxDelay_configvalue() << ") " << std::endl;
+  //  *out << cgicc::br();
+  //  *out << cgicc::br();
+  //
+  //
   *out << cgicc::pre();
-  //
-  std::string ALCTvpf = toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",ALCTvpf) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Measure CLCT-ALCT match timing") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  *out << cgicc::form() << std::endl ;
-  //
-  *out << "match_trig_alct_delay = " << MyTest[tmb][current_crate_].GetMatchTrigAlctDelayTest() 
-       << " ("  << MyTest[tmb][current_crate_].GetALCTvpf_configvalue() << ") " << std::endl;
-  *out << cgicc::br();
-  *out << "mpc_tx_delay = " << MyTest[tmb][current_crate_].GetMpcTxDelayTest() 
-       << " ("  << MyTest[tmb][current_crate_].GetMPCTxDelay_configvalue() << ") " << std::endl;
-  *out << cgicc::br();
-  *out << cgicc::br();
-  //
-  //
-  *out << cgicc::pre();
-  *out << "B) Measure the delay needed for the winner bit from MPC back to TMB" << std::endl;
+  *out << "Measure the delay needed for the winner bit from MPC back to TMB" << std::endl;
   *out << cgicc::pre();
   //
   std::string FindWinner = toolbox::toString("/%s/FindWinner",getApplicationDescriptor()->getURN().c_str());
@@ -4903,7 +4781,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   //
   *out << cgicc::pre();
-  *out << "C) Find the L1A at the TMB and ALCT" << std::endl;
+  *out << "Find the L1A at the TMB and ALCT" << std::endl;
   *out << cgicc::pre();
   //
   std::string setTMBCounterReadValues = toolbox::toString("/%s/setTMBCounterReadValues",getApplicationDescriptor()->getURN().c_str());
@@ -4959,7 +4837,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   //
   *out << cgicc::pre();
-  *out << "D) Align the Data AVailable (DAV) bits for the ALCT" << std::endl;
+  *out << "Align the Data AVailable (DAV) bits for the ALCT" << std::endl;
   *out << cgicc::pre();
   //
   std::string AlctDavCableDelay = toolbox::toString("/%s/AlctDavCableDelay",getApplicationDescriptor()->getURN().c_str());
@@ -4982,7 +4860,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //  *out << cgicc::pre();
   //
   *out << cgicc::pre();
-  *out << "E) Find the L1A at the CFEB" << std::endl;
+  *out << "Find the L1A at the CFEB" << std::endl;
   *out << cgicc::pre();
   //
   std::string TmbLctCableDelay = toolbox::toString("/%s/TmbLctCableDelay",getApplicationDescriptor()->getURN().c_str());
@@ -5000,7 +4878,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   //
   *out << cgicc::pre();
-  *out << "F) Align the Data AVailable (DAV) bits for the CFEB" << std::endl;
+  *out << "Align the Data AVailable (DAV) bits for the CFEB" << std::endl;
   *out << cgicc::pre();
   //
   std::string CfebDavCableDelay = toolbox::toString("/%s/CfebDavCableDelay",getApplicationDescriptor()->getURN().c_str());
@@ -5017,21 +4895,6 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   *out << cgicc::br();
   //
-  //  *out << cgicc::pre();
-  //  *out << "E) Check the overall state of the DMB readout" << std::endl;
-  //  *out << "   -> Is the Active FEB Flag to L1A where it should be for this xLatency?" << std::endl;
-  //  *out << "   -> Is the ALCT DAV scope centered at 2?" << std::endl;
-  //  *out << "   -> Is the CFEB DAV scope centered at 2?" << std::endl;
-  //  *out << cgicc::pre();
-  //
-  //
-  // The following buttons are not being used at the moment...
-  //
-  //  *out << cgicc::pre();
-  //  *out << "F) Measure the communication phase of the RPC link board to the RAT" << std::endl;
-  //  *out << "   -> For the future, when RPC Link Boards are connected to the RAT" << std::endl;
-  //  *out << "   -> Make sure the RPC parity-bit is enabled for the following scan" << std::endl;
-  //  *out << cgicc::pre();
   //
   //  std::string setupCoincidencePulsing = toolbox::toString("/%s/setupCoincidencePulsing",getApplicationDescriptor()->getURN().c_str());
   //  *out << cgicc::form().set("method","GET").set("action",setupCoincidencePulsing) << std::endl ;
@@ -5279,14 +5142,17 @@ void EmuPeripheralCrateConfig::ALCT_TMB_communication(xgi::Input * in, xgi::Outp
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "alct_rx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTrxPhaseTest() 
-       <<  " (" << MyTest[tmb][current_crate_].GetALCTrxPhase() << ") " << std::endl;
+  *out << "alct_tx_clock_delay = " << MyTest[tmb][current_crate_].GetALCTtxPhaseTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetAlctTxClockDelay() << ") " << std::endl;
   *out << cgicc::br();
-  *out << "alct_tx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTtxPhaseTest() 
-       <<  " (" << MyTest[tmb][current_crate_].GetALCTtxPhase() << ") " << std::endl;
+  *out << "alct_rx_clock_delay = " << MyTest[tmb][current_crate_].GetALCTrxPhaseTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetAlctRxClockDelay() << ") " << std::endl;
   *out << cgicc::br();
-  *out << "alct_posneg = " << MyTest[tmb][current_crate_].GetAlctPosNegTest() 
-       <<  " (" << MyTest[tmb][current_crate_].GetAlctPosNeg() << ") " << std::endl;
+  *out << "alct_posneg = " << MyTest[tmb][current_crate_].GetAlctRxPosNegTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetAlctRxPosNeg() << ") " << std::endl;
+  *out << cgicc::br();
+  *out << "alct_tx_posneg = " << MyTest[tmb][current_crate_].GetAlctTxPosNegTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetAlctTxPosNeg() << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -5299,27 +5165,6 @@ void EmuPeripheralCrateConfig::ALCT_TMB_communication(xgi::Input * in, xgi::Outp
   //
   *out << cgicc::fieldset() << std::endl;
   //
-  //
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-  //
-  *out << cgicc::legend("Old tests").set("style","color:blue") << cgicc::p() << std::endl ;
-  //
-  std::string ALCTTiming = toolbox::toString("/%s/ALCTTiming",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",ALCTTiming) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Scan ALCT tx/rx phases") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  *out << cgicc::form() << std::endl ;
-  //
-  *out << "alct_rx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTrxPhaseTest() 
-       <<  " (" << MyTest[tmb][current_crate_].GetALCTrxPhase() << ") " << std::endl;
-  *out << cgicc::br();
-  *out << "alct_tx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTtxPhaseTest() 
-       <<  " (" << MyTest[tmb][current_crate_].GetALCTtxPhase() << ") " << std::endl;
-  *out << cgicc::br();
-  *out << cgicc::br();
-  //
-  *out << cgicc::fieldset() << std::endl;
   //
   //
   *out << cgicc::form().set("method","GET") << std::endl ;
@@ -5393,35 +5238,6 @@ void EmuPeripheralCrateConfig::TMB_to_ALCT_walking_ones(xgi::Input * in, xgi::Ou
   //
 }
 //
-void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  std::cout << "ALCTTiming" << std::endl;
-  LOG4CPLUS_INFO(getApplicationLogger(), "ALCTTiming");
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  int tmb = TMB_;
-  //
-  cgicc::form_iterator name = cgi.getElement("tmb");
-  //
-  if(name != cgi.getElements().end()) {
-    tmb = cgi["tmb"]->getIntegerValue();
-    std::cout << "ALCTTiming:  TMB " << tmb << std::endl;
-    TMB_ = tmb;
-  } else {
-    std::cout << "ALCTTiming: No tmb" << std::endl;
-    tmb = TMB_;
-  }
-  //
-  MyTest[tmb][current_crate_].RedirectOutput(&ALCT_TMB_communicationOutput[tmb][current_crate_]);
-  MyTest[tmb][current_crate_].ALCTTiming();
-  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
-  //
-  this->ALCT_TMB_communication(in,out);
-  //
-}
-//
 void EmuPeripheralCrateConfig::CFEBTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -5456,6 +5272,33 @@ void EmuPeripheralCrateConfig::CFEBTiming(xgi::Input * in, xgi::Output * out )
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
   MyTest[tmb][current_crate_].CFEBTiming();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+  //
+  this->ChamberTests(in,out);
+  //
+}
+void EmuPeripheralCrateConfig::ALCTBC0Scan(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "ALCTBC0Scan" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "ALCTBC0Scan");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb = TMB_;
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "ALCTBC0Scan:  TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "ALCTBC0Scan" << std::endl;
+  }
+  //
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].ALCTBC0Scan();
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -5623,6 +5466,228 @@ void EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForCrate(xgi::Input * in, xgi::
   }
   //
   this->CrateConfiguration(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureCFEBTMBRxForCrate(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Find CFEB rx phase delays for Crate" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find CFEB rx phase delays for the crate");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    //
+    std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
+    //
+    MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
+    MyTest[i][current_crate_].CFEBTiming();
+    MyTest[i][current_crate_].RedirectOutput(&std::cout);
+  }
+  //
+  this->CrateConfiguration(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::ALCTBC0ScanForCrate(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Find alct_bx0_delays for Crate" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find alct_bx0_delays for the crate");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    //    
+    std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
+    //
+    MyTest[i][current_crate_].RedirectOutput(&ALCT_TMB_communicationOutput[i][current_crate_]);
+    MyTest[i][current_crate_].ALCTBC0Scan();
+    MyTest[i][current_crate_].RedirectOutput(&std::cout);
+  }
+  //
+  this->CrateConfiguration(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::Settmb_bxn_offset(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb_bxn_offset");
+  //
+  int tmb_bxn_offset  = 3550;
+  //
+  if(name != cgi.getElements().end()) {
+    tmb_bxn_offset = strtol(cgi["tmb_bxn_offset"]->getValue().c_str(),NULL,10);
+    std::cout << "Settmb_bxn_offset = " << tmb_bxn_offset << std::endl;
+  } else {
+    std::cout << "No set value:  Settmb_bxn_offset = " << tmb_bxn_offset << std::endl;
+  }
+  //
+  for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) 
+    MyTest[i][current_crate_].setLocalTmbBxnOffset(tmb_bxn_offset);
+
+  //
+  this->CrateConfiguration(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Find ALCT rx/tx phase delays for System" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find ALCT rx/tx phase delays for the system");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if(!parsed) ParsingXML();
+  //
+  if(total_crates_<=0) return;
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    if ( crateVector[crate_number]->IsAlive() ) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	//
+	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	//
+	MyTest[tmb][current_crate_].RedirectOutput(&ALCT_TMB_communicationOutput[tmb][current_crate_]);
+	MyTest[tmb][current_crate_].ALCT_TMB_Loopback();
+	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+      }
+      //
+      SaveLog();
+      //
+      SaveTestSummary();
+      //
+    }
+  }
+  //
+  this->Default(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureCFEBTMBRxForSystem(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Find CFEB rx phase delays for System" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find CFEB rx phase delays for the system");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if(!parsed) ParsingXML();
+  //
+  if(total_crates_<=0) return;
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    if ( crateVector[crate_number]->IsAlive() ) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	//
+	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	//
+	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+	MyTest[tmb][current_crate_].CFEBTiming();
+	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+      }
+      //
+      SaveLog();
+      //
+      SaveTestSummary();
+      //
+    }
+  }
+  //
+  this->Default(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForSystem(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Find L1As and DAVs for System" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find L1As and DAVs for the system");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if(!parsed) ParsingXML();
+  //
+  if(total_crates_<=0) return;
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    if ( crateVector[crate_number]->IsAlive() ) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	//
+	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	//
+	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+	MyTest[tmb][current_crate_].SetupRadioactiveTriggerConditions();
+	MyTest[tmb][current_crate_].FindL1AAndDAVDelays();
+	MyTest[tmb][current_crate_].ReturnToInitialTriggerConditions();
+	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+	//
+      }
+      //
+      SaveLog();
+      //
+      SaveTestSummary();
+      //
+    }
+  }
+  //
+  this->Default(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::ALCTBC0ScanForSystem(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Find ALCT rx/tx phase delays for System" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find ALCT rx/tx phase delays for the system");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if(!parsed) ParsingXML();
+  //
+  if(total_crates_<=0) return;
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    if ( crateVector[crate_number]->IsAlive() ) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	//
+	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	//
+	MyTest[tmb][current_crate_].RedirectOutput(&ALCT_TMB_communicationOutput[tmb][current_crate_]);
+	MyTest[tmb][current_crate_].ALCTBC0Scan();
+	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+      }
+      //
+    }
+  }
+  //
+  // This test is so fast, we only need to save stuff at the end....
+  SaveLog();
+  //
+  SaveTestSummary();
+  //
+  this->Default(in,out);
   //
 }
 //
@@ -5840,44 +5905,44 @@ void EmuPeripheralCrateConfig::ALCTL1aTiming(xgi::Input * in, xgi::Output * out 
   //
 }
 //
-void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  std::cout << "EmuPeripheralCrate:  ALCTvpf" << std::endl;
-  LOG4CPLUS_INFO(getApplicationLogger(), "ALCTvpf");
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  int tmb=0;
-  //
-  cgicc::form_iterator name = cgi.getElement("tmb");
-  //
-  if(name != cgi.getElements().end()) {
-    tmb = cgi["tmb"]->getIntegerValue();
-    std::cout << "ALCTvpf:  TMB " << tmb << " will read TMB Raw Hits "
-	 << MyTest[tmb][current_crate_].getNumberOfDataReads() << " times" << std::endl;
-    TMB_ = tmb;
-  } else {
-    std::cout << "ALCTvpf:  No tmb" << std::endl;
-  }
-  //
-  int dmb;
-  name = cgi.getElement("dmb");
-  //
-  if(name != cgi.getElements().end()) {
-    dmb = cgi["dmb"]->getIntegerValue();
-    std::cout << "ALCTvpf:  DMB " << dmb << std::endl;
-    DMB_ = dmb;
-  } else {
-    std::cout << "ALCTvpf:  No dmb" << std::endl;
-  }
-  //
-  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-  MyTest[tmb][current_crate_].FindALCTinCLCTMatchWindow();
-  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
-  //
-  this->ChamberTests(in,out);
-}
+//void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out ) 
+  //  throw (xgi::exception::Exception) {
+//  //
+//  std::cout << "EmuPeripheralCrate:  ALCTvpf" << std::endl;
+//  LOG4CPLUS_INFO(getApplicationLogger(), "ALCTvpf");
+//  //
+//  cgicc::Cgicc cgi(in);
+//  //
+//  int tmb=0;
+//  //
+//  cgicc::form_iterator name = cgi.getElement("tmb");
+//  //
+//  if(name != cgi.getElements().end()) {
+//    tmb = cgi["tmb"]->getIntegerValue();
+//    std::cout << "ALCTvpf:  TMB " << tmb << " will read TMB Raw Hits "
+//	 << MyTest[tmb][current_crate_].getNumberOfDataReads() << " times" << std::endl;
+//    TMB_ = tmb;
+//  } else {
+//    std::cout << "ALCTvpf:  No tmb" << std::endl;
+//  }
+//  //
+//  int dmb;
+//  name = cgi.getElement("dmb");
+//  //
+//  if(name != cgi.getElements().end()) {
+//    dmb = cgi["dmb"]->getIntegerValue();
+//    std::cout << "ALCTvpf:  DMB " << dmb << std::endl;
+//    DMB_ = dmb;
+//  } else {
+//    std::cout << "ALCTvpf:  No dmb" << std::endl;
+//  }
+//  //
+//  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+//  MyTest[tmb][current_crate_].FindALCTinCLCTMatchWindow();
+//  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+//  //
+//  this->ChamberTests(in,out);
+//}
 //
 void EmuPeripheralCrateConfig::ALCTScan(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
@@ -11207,17 +11272,6 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
 //////////////////////////////////////////////////
 // MPC methods
 //////////////////////////////////////////////////
-void EmuPeripheralCrateConfig::MPCBoardID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  MPCBoardID_= cgi["MPCBoardID"]->getValue() ;
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
 void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -13373,158 +13427,6 @@ void EmuPeripheralCrateConfig::LoadRATFirmware(xgi::Input * in, xgi::Output * ou
   //
 }
 //
-//////////////////////////////////////////////////////////////////
-// Logging information
-///////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateConfig::DMBBoardID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception){
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  cgicc::form_iterator name = cgi.getElement("dmb");
-  int dmb;
-  if(name != cgi.getElements().end()) {
-    dmb = cgi["dmb"]->getIntegerValue();
-    std::cout << "DMB " << dmb << std::endl;
-    DMB_ = dmb;
-  } else {
-    std::cout << "Not dmb" << std::endl ;
-    dmb = DMB_;
-  }
-  //
-  char buf[20];
-  sprintf(buf,"DMBBoardID_%d",dmb);
-  DMBBoardID_[dmb] = cgi[buf]->getValue();
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::TMBBoardID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception){
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
-  if(name != cgi.getElements().end()) {
-    tmb = cgi["tmb"]->getIntegerValue();
-    std::cout << "TMB " << tmb << std::endl;
-    TMB_ = tmb;
-  } else {
-    std::cout << "Not tmb" << std::endl ;
-    tmb = TMB_;
-  }
-  //
-  char buf[20];
-  sprintf(buf,"TMBBoardID_%d",tmb);
-  TMBBoardID_[tmb] = cgi[buf]->getValue();
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::RATBoardID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception){
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  cgicc::form_iterator name = cgi.getElement("rat");
-  int rat;
-  if(name != cgi.getElements().end()) {
-    rat = cgi["rat"]->getIntegerValue();
-    std::cout << "RAT " << rat << std::endl;
-    RAT_ = rat;
-  } else {
-    std::cout << "Not rat" << std::endl ;
-    rat = RAT_;
-  }
-  //
-  char buf[20];
-  sprintf(buf,"RATBoardID_%d",rat);
-  RATBoardID_[rat] = cgi[buf]->getValue();
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::CCBBoardID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  CCBBoardID_= cgi["CCBBoardID"]->getValue() ;
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::ControllerBoardID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  ControllerBoardID_= cgi["ControllerBoardID"]->getValue() ;
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::CrateChassisID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  CrateChassisID_= cgi["CrateChassisID"]->getValue() ;
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::CrateRegulatorBoardID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  CrateRegulatorBoardID_= cgi["CrateRegulatorBoardID"]->getValue() ;
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::PeripheralCrateMotherBoardID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  PeripheralCrateMotherBoardID_= cgi["PeripheralCrateMotherBoardID"]->getValue() ;
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::ELMBID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  ELMBID_= cgi["ELMBID"]->getValue() ;
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::BackplaneID(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  BackplaneID_= cgi["BackplaneID"]->getValue() ;
-  //
-  this->CrateConfiguration(in,out);
-  //
-}
-//
 ///////////////////////////////////////////////////////////////////////////////////
 // DMB status
 ///////////////////////////////////////////////////////////////////////////////////
@@ -14528,6 +14430,263 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     this->DMBUtils(in,out);
   }
   //
+//////////////////////////////////////////////////////////////////
+// Logging information
+///////////////////////////////////////////////////////////////////
+  void EmuPeripheralCrateConfig::LogTestSummary(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception){
+    //
+    SaveTestSummary();
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrateConfig::LogOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception){
+    //
+    SaveLog();
+    //
+    this->Default(in,out);
+    //
+  }
+void EmuPeripheralCrateConfig::SaveLog() {
+  //
+  int initial_crate = current_crate_;
+  //
+  // get the date and time of this check:
+  time_t rawtime;
+  time(&rawtime);
+  //
+  std::string buf;
+  std::string time_dump = ctime(&rawtime);
+  std::string time = time_dump.substr(0,time_dump.length()-1);
+  //
+  while( time.find(" ",0) != std::string::npos ) {
+    //
+    int thispos = time.find(" ",0); 
+    time.replace(thispos,1,"_");
+    //
+  }
+  //
+  buf = "EmuPeripheralCrateLogFile_"+time+".log";
+  //
+  std::cout << "Logging output to" << buf << std::endl ;
+  //
+  std::ifstream TextFile ;
+  TextFile.open(xmlFile_.toString().c_str());
+  //
+  std::ofstream LogFile;
+  LogFile.open(buf.c_str());
+  while(TextFile.good()) LogFile << (char) TextFile.get() ;
+  TextFile.close();
+  //
+  LogFile << CrateTestsOutput.str();
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    SetCurrentCrate(crate_number);
+    //
+    for (unsigned int i=0; i<tmbVector.size(); i++) {
+      LogFile << OutputTMBTests[i][current_crate_].str() ;
+      LogFile << ChamberTestsOutput[i][current_crate_].str() ;
+      LogFile << ALCT_TMB_communicationOutput[i][current_crate_].str() ;
+    }
+    for (unsigned int i=0; i<dmbVector.size(); i++) {
+      LogFile << OutputDMBTests[i][current_crate_].str() ;
+    }
+  }
+  //
+  LogFile.close();    
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  return;
+}
+//
+void EmuPeripheralCrateConfig::SaveTestSummary() {
+  //
+  int initial_crate = current_crate_;
+  //
+  time_t rawtime;
+  time(&rawtime);
+  //
+  std::string buf;
+  std::string time_dump = ctime(&rawtime);
+  std::string time = time_dump.substr(0,time_dump.length()-1);
+  //
+  while( time.find(" ",0) != std::string::npos ) {
+    //
+    int thispos = time.find(" ",0); 
+    time.replace(thispos,1,"_");
+    //
+  }
+  //
+  buf = "EmuPeripheralCrateTestSummary_"+time+".log";
+  //
+  std::ofstream LogFile;
+  LogFile.open(buf.c_str());
+  //
+  LogFile << " *** Output : Test Summary *** " << std::endl ;
+  //
+  LogFile << std::endl;
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    SetCurrentCrate(crate_number);
+    //
+    for(int i=0; i<20; i++) LogFile << "+";
+    LogFile << std::endl ;
+    LogFile << " Timing scans : " << std::endl;
+    for(int i=0; i<20; i++) LogFile << "-";
+    LogFile << std::endl ;
+    //
+    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+      //	
+      Chamber * thisChamber = chamberVector[i];
+      //
+      LogFile << "slot                  " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << tmbVector[i]->slot()
+	      << std::endl;
+      LogFile << "cfeb0delay            " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(0)
+	      << std::endl;
+      LogFile << "cfeb1delay            " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(1)
+	      << std::endl;
+      LogFile << "cfeb2delay            " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(2)
+	      << std::endl;
+      LogFile << "cfeb3delay            " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(3)
+	      << std::endl;
+      LogFile << "cfeb4delay            " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(4)
+	      << std::endl;
+      LogFile << "cfeb0posneg           " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(0)
+	      << std::endl;
+      LogFile << "cfeb1posneg           " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(1)
+	      << std::endl;
+      LogFile << "cfeb2posneg           " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(2)
+	      << std::endl;
+      LogFile << "cfeb3posneg           " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(3)
+	      << std::endl;
+      LogFile << "cfeb4posneg           " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(4)
+	      << std::endl;
+      LogFile << "alct_tx_clock_delay   " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetALCTtxPhaseTest()
+	      << std::endl;
+      LogFile << "alct_rx_clock_delay   " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetALCTrxPhaseTest()
+	      << std::endl;
+      LogFile << "alct_posneg           " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetAlctRxPosNegTest()
+	      << std::endl;
+      LogFile << "alct_tx_posneg        " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetAlctTxPosNegTest()
+	      << std::endl;
+      LogFile << "alct_bx0_delay        " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetAlctBx0DelayTest()
+	      << std::endl;
+      LogFile << "match_trig_alct_delay " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetMatchTrigAlctDelayTest()
+	      << std::endl;
+      LogFile << "tmb_bxn_offset        " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetTmbBxnOffsetTest()
+	      << std::endl;
+      LogFile << "rat_tmb_delay         " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetRatTmbDelayTest()
+	      << std::endl;
+      LogFile << "mpc_rx_delay          " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetMpcRxDelayTest()
+	      << std::endl;
+      LogFile << "tmb_lct_cable_delay   " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetTmbLctCableDelayTest()
+	      << std::endl;
+      LogFile << "alct_dav_cable_delay  " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetAlctDavCableDelayTest()
+	      << std::endl;
+      LogFile << "cfeb_dav_cable_delay  " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCfebDavCableDelayTest()
+	      << std::endl;
+      LogFile << "tmb_l1a_delay         " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetTmbL1aDelayTest()
+	      << std::endl;
+      LogFile << "alct_l1a_delay        " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetAlctL1aDelayTest()
+	      << std::endl;
+      LogFile << "rpc0_rat_delay        " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetRpcRatDelayTest(0)
+	      << std::endl;
+      LogFile << "TTCrxID               " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << thisCCB->GetReadTTCrxID() 
+	      << std::endl;
+      LogFile << "best_avg_aff_to_l1a      " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(10) << MyTest[i][current_crate_].GetBestAverageAFFtoL1A()
+	      << std::endl;
+      LogFile << "best_avg_alct_dav_scope  " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(10) << MyTest[i][current_crate_].GetBestAverageALCTDAVScope()
+	      << std::endl;
+      LogFile << "best_avg_cfeb_dav_scope  " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(10) << MyTest[i][current_crate_].GetBestAverageCFEBDAVScope()
+	      << std::endl;
+      //      for (int CFEBs = 0; CFEBs<5; CFEBs++) {
+      //	LogFile << "cfeb" << CFEBs << "_scan " << std::setw(3) << i;
+      //	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+      //	  LogFile << std::setw(3) << MyTest[i][current_crate_].GetCFEBStripScan(CFEBs,HalfStrip) ;
+      //	LogFile << std::endl;
+      //      }
+      //      //
+      //      LogFile << "alct_scan  " << std::setw(3) << i;
+      //      for (int Wire = 0; Wire<(tmbVector[i]->alctController()->GetNumberOfChannelsInAlct())/6; Wire++) 
+      //	LogFile << std::setw(3) << MyTest[i][current_crate_].GetALCTWireScan(Wire) ;
+      //      LogFile << std::endl;
+      //      //
+      LogFile << std::endl;
+    }
+  }
+  //
+  LogFile.close();
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  return;
+}
+  //
   void EmuPeripheralCrateConfig::LogDMBTestsOutput(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -14567,10 +14726,8 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     //
     DAQMB * thisDMB = dmbVector[dmb];
     //
-    std::cout << DMBBoardID_[dmb] << std::endl ;
-    //
     char buf[20];
-    sprintf(buf,"DMBTestsLogFile_%d_%s.log",thisDMB->slot(),DMBBoardID_[dmb].c_str());
+    sprintf(buf,"DMBTestsLogFile_%d.log",thisDMB->slot());
     //
     std::ofstream DMBTestsLogFile;
     DMBTestsLogFile.open(buf);
@@ -14580,280 +14737,6 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     OutputDMBTests[dmb][current_crate_].str("");
     //
     this->DMBTests(in,out);
-    //
-  }
-  //
-  void EmuPeripheralCrateConfig::LogTestSummary(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception){
-    //
-    time_t rawtime;
-    time(&rawtime);
-    //
-    std::string buf;
-    std::string time_dump = ctime(&rawtime);
-    std::string time = time_dump.substr(0,time_dump.length()-1);
-    //
-    while( time.find(" ",0) != std::string::npos ) {
-      //
-      int thispos = time.find(" ",0); 
-      time.replace(thispos,1,"_");
-      //
-    }
-    //
-    //    buf = "EmuPeripheralCrateTestSummary_"+RunNumber_+"_"+Operator_+time+".log";
-    buf = "EmuPeripheralCrateTestSummary_"+RunNumber_+"_"+Operator_+".log";
-    //
-    std::ofstream LogFile;
-    LogFile.open(buf.c_str());
-    //
-    LogFile << " *** Output : Test Summary *** " << std::endl ;
-    //
-    LogFile << std::endl;
-    //
-    LogFile << "Operator : " << Operator_ << std::endl ;
-    LogFile << "Time     : " << ctime(&rawtime) << std::endl ;
-    LogFile << "XML File : " << xmlFile_.toString() << std::endl ;
-    //
-    //    LogFile << std::endl ;
-    //    LogFile << "Chassis " << std::setw(7) << CrateChassisID_ << std::endl;
-    //    LogFile << "Backplane " << std::setw(5) << BackplaneID_ << std::endl;
-    //    LogFile << "CRB " << std::setw(6) << CrateRegulatorBoardID_ << std::endl;
-    //    LogFile << "PCMB " << std::setw(5) << PeripheralCrateMotherBoardID_ << std::endl;
-    //    LogFile << "ELMB " << std::setw(5) << ELMBID_ << std::endl;
-    //    LogFile << std::endl ;
-    //    //
-    //    LogFile << "VCC    1" << std::setw(5) << ControllerBoardID_ << std::endl;
-    //    //
-    //    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
-    //      //
-    //      LogFile << "TMB" << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
-    //	TMBBoardID_[i] << std::setw(5) << RATBoardID_[i] <<std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestBootRegister() << std::setw(5) <<
-    //	//	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestFirmwareDate() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestFirmwareType() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestFirmwareVersion() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestFirmwareRevCode() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestMezzId() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestPromId() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestPROMPath() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestDSN() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestADC() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTest3d3444() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestRATtemper() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestRATidCodes() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestRATuserCodes() << std::setw(5) <<
-    //	tmbTestVector[i].GetResultTestU76chip() 
-    //	      << std::endl ;
-    //      //
-    //    }
-    //    //
-    //    for(int i=0; i<20; i++) LogFile << "-";
-    //    LogFile << std::endl ;
-    //    //
-    //    LogFile << "MPC     12 " << std::setw(5)  << MPCBoardID_ << std::endl;
-    //    LogFile << "CCB     13 " << std::setw(5)  << CCBBoardID_ << std::endl;
-    //    //
-    //    for(int i=0; i<20; i++) LogFile << "-";
-    //    LogFile << std::endl ;
-    //
-    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
-      //
-      SetCurrentCrate(crate_number);
-      //
-      //      for (unsigned int i=0; i<(dmbVector.size()<9?dmbVector.size():9) ; i++) {
-      //	//
-      //	LogFile << "DMB " << std::setw(5) << dmbVector[i]->slot() << std::setw(5) <<
-      //	  DMBBoardID_[i] ;
-      //	for (int j=0; j<20; j++) LogFile << std::setw(5) << dmbVector[i]->GetTestStatus(j) ;
-      //	LogFile << std::endl ;
-      //	//
-      //      }
-      //      //
-      //      LogFile << std::endl;
-      //
-      //      for (unsigned int dmbctr=0; dmbctr<(dmbVector.size()<9?dmbVector.size():9) ; dmbctr++) {
-      //      DAQMB * thisDMB = dmbVector[dmbctr];
-      //      vector<CFEB> thisCFEBs = thisDMB->cfebs();
-      //      for (unsigned int cfebctr=0; cfebctr<thisCFEBs.size(); cfebctr++) {
-      //	LogFile << "CFEBid " << std::setw(5) << dmbctr 
-      //		<< std::setw(5) << cfebctr 
-      //		<< std::setw(10) << CFEBid_[dmbctr][cfebctr] 
-      //		<< std::endl;
-      //      }
-      //    }
-      //    LogFile << std::endl;
-      //    //
-      //    for(int i=0; i<20; i++) LogFile << "+";
-      //    LogFile << std::endl ;
-      //    LogFile << " CrateTest : " << std::endl;
-      //    for(int i=0; i<20; i++) LogFile << "-";
-      //    LogFile << std::endl ;
-      //    //
-      //    LogFile << "MpcTMBTest " << myCrateTest.GetMpcTMBTestResult() << std::endl ;
-      //    //
-      //    LogFile << std::endl ;
-      //
-      for(int i=0; i<20; i++) LogFile << "+";
-      LogFile << std::endl ;
-      LogFile << " Timing scans : " << std::endl;
-      for(int i=0; i<20; i++) LogFile << "-";
-      LogFile << std::endl ;
-
-      for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
-	//	
-	Chamber * thisChamber = chamberVector[i];
-	//
-	LogFile << "slot                  " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << tmbVector[i]->slot()
-		<< std::endl;
-	LogFile << "cfeb0delay            " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(0)
-		<< std::endl;
-	LogFile << "cfeb1delay            " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(1)
-		<< std::endl;
-	LogFile << "cfeb2delay            " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(2)
-		<< std::endl;
-	LogFile << "cfeb3delay            " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(3)
-		<< std::endl;
-	LogFile << "cfeb4delay            " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(4)
-		<< std::endl;
-	LogFile << "alct_tx_clock_delay   " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetALCTtxPhaseTest()
-		<< std::endl;
-	LogFile << "alct_rx_clock_delay   " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetALCTrxPhaseTest()
-		<< std::endl;
-	LogFile << "alct_posneg           " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetAlctPosNegTest()
-		<< std::endl;
-	LogFile << "rat_tmb_delay         " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetRatTmbDelayTest()
-		<< std::endl;
-	LogFile << "match_trig_alct_delay " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetMatchTrigAlctDelayTest()
-		<< std::endl;
-	LogFile << "mpc_tx_delay          " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetMpcTxDelayTest()
-		<< std::endl;
-	LogFile << "mpc_rx_delay          " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetMpcRxDelayTest()
-		<< std::endl;
-	LogFile << "tmb_lct_cable_delay   " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetTmbLctCableDelayTest()
-		<< std::endl;
-	LogFile << "alct_dav_cable_delay  " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetAlctDavCableDelayTest()
-		<< std::endl;
-	LogFile << "cfeb_dav_cable_delay  " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetCfebDavCableDelayTest()
-		<< std::endl;
-	LogFile << "tmb_l1a_delay         " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetTmbL1aDelayTest()
-		<< std::endl;
-	LogFile << "alct_l1a_delay        " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetAlctL1aDelayTest()
-		<< std::endl;
-	LogFile << "rpc0_rat_delay        " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << MyTest[i][current_crate_].GetRpcRatDelayTest(0)
-		<< std::endl;
-	LogFile << "TTCrxID               " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(5) << thisCCB->GetReadTTCrxID() 
-		<< std::endl;
-	LogFile << "best_avg_aff_to_l1a      " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(10) << MyTest[i][current_crate_].GetBestAverageAFFtoL1A()
-		<< std::endl;
-	LogFile << "best_avg_alct_dav_scope  " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(10) << MyTest[i][current_crate_].GetBestAverageALCTDAVScope()
-		<< std::endl;
-	LogFile << "best_avg_cfeb_dav_scope  " 
-		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
-		<< std::setw(10) << MyTest[i][current_crate_].GetBestAverageCFEBDAVScope()
-		<< std::endl;
-	//      for (int CFEBs = 0; CFEBs<5; CFEBs++) {
-	//	LogFile << "cfeb" << CFEBs << "_scan " << std::setw(3) << i;
-	//	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
-	//	  LogFile << std::setw(3) << MyTest[i][current_crate_].GetCFEBStripScan(CFEBs,HalfStrip) ;
-	//	LogFile << std::endl;
-	//      }
-	//      //
-	//      LogFile << "alct_scan  " << std::setw(3) << i;
-	//      for (int Wire = 0; Wire<(tmbVector[i]->alctController()->GetNumberOfChannelsInAlct())/6; Wire++) 
-	//	LogFile << std::setw(3) << MyTest[i][current_crate_].GetALCTWireScan(Wire) ;
-	//      LogFile << std::endl;
-	//      //
-	LogFile << std::endl;
-      }
-    }
-    //
-    LogFile.close();
-    //
-    this->Default(in,out);
-    //
-  }
-  //
-  void EmuPeripheralCrateConfig::LogOutput(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception){
-    //
-    std::cout << "LogOuput" << std::endl;
-    //
-    //
-    std::string buf;
-    //int test = 1;
-    buf = "EmuPeripheralCrateLogFile_"+RunNumber_+"_"+Operator_+".log";
-    //
-    std::cout << "File to write to" << buf << std::endl ;
-    //
-    std::ifstream TextFile ;
-    TextFile.open(xmlFile_.toString().c_str());
-    //
-    std::ofstream LogFile;
-    LogFile.open(buf.c_str());
-    while(TextFile.good()) LogFile << (char) TextFile.get() ;
-    TextFile.close();
-    LogFile << CrateTestsOutput.str();
-    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
-      //
-      SetCurrentCrate(crate_number);
-
-      for (unsigned int i=0; i<tmbVector.size(); i++) {
-	LogFile << OutputTMBTests[i][current_crate_].str() ;
-	LogFile << ChamberTestsOutput[i][current_crate_].str() ;
-	LogFile << ALCT_TMB_communicationOutput[i][current_crate_].str() ;
-      }
-      for (unsigned int i=0; i<dmbVector.size(); i++) {
-	LogFile << OutputDMBTests[i][current_crate_].str() ;
-      }
-    }
-    LogFile.close();    
-    //
-    this->Default(in,out);
     //
   }
   //
@@ -14894,10 +14777,8 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     //
     TMB * thisTMB = tmbVector[tmb];
     //
-    std::cout << TMBBoardID_[tmb] << std::endl ;
-    //
     char buf[20];
-    sprintf(buf,"TMBTestsLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
+    sprintf(buf,"TMBTestsLogFile_%d.log",thisTMB->slot());
     //
     std::ofstream TMBTestsLogFile;
     TMBTestsLogFile.open(buf);
@@ -14950,10 +14831,8 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     //
     TMB * thisTMB = tmbVector[tmb];
     //
-    std::cout << TMBBoardID_[tmb] << std::endl ;
-    //
     char buf[20];
-    sprintf(buf,"ChamberTestsLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
+    sprintf(buf,"ChamberTestsLogFile_%d.log",thisTMB->slot());
     //
     std::ofstream ChamberTestsLogFile;
     ChamberTestsLogFile.open(buf);
@@ -15003,10 +14882,8 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     //
     TMB * thisTMB = tmbVector[tmb];
     //
-    std::cout << TMBBoardID_[tmb] << std::endl ;
-    //
     char buf[20];
-    sprintf(buf,"ALCT_TMB_communicationLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
+    sprintf(buf,"ALCT_TMB_communicationLogFile_%d.log",thisTMB->slot());
     //
     std::ofstream ALCT_TMB_communicationLogFile;
     ALCT_TMB_communicationLogFile.open(buf);

@@ -615,9 +615,13 @@ void EMUjtag::CreateUserPromFile() {
     TmbUserDataMsb = tmb_->GetTMBVecDataMsb();
     //
     for (unsigned int data_counter=0; data_counter<TmbUserVmeAddress.size(); data_counter++) {
-      data_to_prom[address_counter++] = TmbUserVmeAddress.at(data_counter);
-      data_to_prom[address_counter++] = 0x00;
-      data_to_prom[address_counter++] = 0x00;
+      int user_address_lsb = (TmbUserVmeAddress.at(data_counter) >> 0) & 0xff;
+      int user_address_msb = (TmbUserVmeAddress.at(data_counter) >> 8) & 0xff;
+      int user_address_hsb = (TmbUserVmeAddress.at(data_counter) >>16) & 0xff;
+      //
+      data_to_prom[address_counter++] = user_address_lsb;
+      data_to_prom[address_counter++] = user_address_msb;
+      data_to_prom[address_counter++] = user_address_hsb;
       data_to_prom[address_counter++] = TmbUserDataLsb.at(data_counter);
       data_to_prom[address_counter++] = TmbUserDataMsb.at(data_counter);
     }

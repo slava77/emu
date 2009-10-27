@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.4 2009/05/28 16:36:10 rakness Exp $
+// $Id: TMB_constants.h,v 1.5 2009/10/27 11:07:26 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.5  2009/10/27 11:07:26  rakness
+// 15 Oct 2009 TMB firmware update
+//
 // Revision 1.4  2009/05/28 16:36:10  rakness
 // update for May 2009 TMB and ALCT firmware versions
 //
@@ -259,8 +262,23 @@ static const unsigned long int  seq_debug_adr           = 0x000102;
 static const unsigned long int  alct_sync_ctrl_adr      = 0x000104;
 static const unsigned long int  alct_sync_txdata_1st_adr= 0x000106;
 static const unsigned long int  alct_sync_txdata_2nd_adr= 0x000108;
+static const unsigned long int  seq_offset1_adr         = 0x00010A;
+static const unsigned long int  miniscope_adr           = 0x00010C;
+static const unsigned long int  phaser_alct_rxd_adr     = 0x00010E;
 //
-static const int LARGEST_VME_ADDRESS = alct_sync_txdata_2nd_adr;
+static const unsigned long int  phaser_alct_txd_adr     = 0x000110;
+static const unsigned long int  phaser_cfeb0_rxd_adr    = 0x000112;
+static const unsigned long int  phaser_cfeb1_rxd_adr    = 0x000114;
+static const unsigned long int  phaser_cfeb2_rxd_adr    = 0x000116;
+static const unsigned long int  phaser_cfeb3_rxd_adr    = 0x000118;
+static const unsigned long int  phaser_cfeb4_rxd_adr    = 0x00011A;
+static const unsigned long int  phaser_cfeb0_3_inter_adr= 0x00011C;
+static const unsigned long int  phaser_cfeb4_inter_adr  = 0x00011E;
+//
+static const unsigned long int  sync_err_control_adr    = 0x000120;
+//
+static const int LARGEST_VME_ADDRESS = sync_err_control_adr;
+//
 //
 // TMB counter indices:
 const int ALCT_SENT_TO_TMB_COUNTER_INDEX                      = 0;
@@ -445,10 +463,10 @@ const int ddd_state_machine_clockd_alct_lock_bitlo    = 12;
 const int ddd_state_machine_clockd_alct_lock_bithi    = 12;
 const int ddd_state_machine_clockd_alct_lock_expected =  1;  
 //
-const int ddd_state_machine_clock_mpc_lock_vmereg     =  vme_dddsm_adr;
-const int ddd_state_machine_clock_mpc_lock_bitlo      = 13;
-const int ddd_state_machine_clock_mpc_lock_bithi      = 13;
-const int ddd_state_machine_clock_mpc_lock_expected   =  0;  
+const int ddd_state_machine_clock_cfeb_lock_vmereg     =  vme_dddsm_adr;
+const int ddd_state_machine_clock_cfeb_lock_bitlo      = 13;
+const int ddd_state_machine_clock_cfeb_lock_bithi      = 13;
+const int ddd_state_machine_clock_cfeb_lock_expected   =  0;  
 //
 const int ddd_state_machine_clock_dcc_lock_vmereg     =  vme_dddsm_adr;
 const int ddd_state_machine_clock_dcc_lock_bitlo      = 14;
@@ -464,73 +482,63 @@ const int ddd_state_machine_clock_rpc_lock_bithi      = 15;
 //------------------------------------------------------------------
 //0X16 = ADR_DDD0:  3D3444 Chip 0 Delays, 1 step = 2ns
 //------------------------------------------------------------------
-const int alct_tx_clock_delay_vmereg  =  vme_ddd0_adr;
-const int alct_tx_clock_delay_bitlo   =  0;
-const int alct_tx_clock_delay_bithi   =  3;
-const int alct_tx_clock_delay_default = 11;               //TMB documentation says this should be 8
-//
-const int alct_rx_clock_delay_vmereg  =  vme_ddd0_adr;
-const int alct_rx_clock_delay_bitlo   =  4;
-const int alct_rx_clock_delay_bithi   =  7;
-const int alct_rx_clock_delay_default =  1;
+const int alct_tof_delay_vmereg       =  vme_ddd0_adr;
+const int alct_tof_delay_bitlo        =  0;
+const int alct_tof_delay_bithi        =  3;
+const int alct_tof_delay_default      =  0;               
 //
 const int dmb_tx_delay_vmereg         =  vme_ddd0_adr;
 const int dmb_tx_delay_bitlo          =  8;
 const int dmb_tx_delay_bithi          = 11;
-const int dmb_tx_delay_default        =  2;
+const int dmb_tx_delay_default        =  6;
 //
 const int rat_tmb_delay_vmereg        =  vme_ddd0_adr;
 const int rat_tmb_delay_bitlo         = 12;
 const int rat_tmb_delay_bithi         = 15;
-const int rat_tmb_delay_default       =  9;               //TMB documentation says this should be 0
+const int rat_tmb_delay_default       =  9;          
 //
 //
 //------------------------------------------------------------------
 //0X18 = ADR_DDD1:  3D3444 Chip 1 Delays, 1 step = 2ns
 //------------------------------------------------------------------
-const int tmb1_phase_vmereg  =  vme_ddd1_adr;
-const int tmb1_phase_bitlo   =  0;
-const int tmb1_phase_bithi   =  3;
-const int tmb1_phase_default =  0;
+const int tmb1_phase_vmereg           =  vme_ddd1_adr;
+const int tmb1_phase_bitlo            =  4;
+const int tmb1_phase_bithi            =  7;
+const int tmb1_phase_default          =  0;
 //
-const int mpc_phase_vmereg   =  vme_ddd1_adr;
-const int mpc_phase_bitlo    =  4;
-const int mpc_phase_bithi    =  7;
-const int mpc_phase_default  =  0;
+const int cfeb_tof_delay_vmereg       =  vme_ddd1_adr;
+const int cfeb_tof_delay_bitlo        =  8;
+const int cfeb_tof_delay_bithi        = 11;
+const int cfeb_tof_delay_default      =  0;
 //
-const int dcc_phase_vmereg   =  vme_ddd1_adr;
-const int dcc_phase_bitlo    =  8;
-const int dcc_phase_bithi    = 11;
-const int dcc_phase_default  =  0;
-//
-const int cfeb0delay_vmereg  =  vme_ddd1_adr;
-const int cfeb0delay_bitlo   = 12;
-const int cfeb0delay_bithi   = 15;
-const int cfeb0delay_default =  7;
+const int cfeb0_tof_delay_vmereg      =  vme_ddd1_adr;
+const int cfeb0_tof_delay_bitlo       = 12;
+const int cfeb0_tof_delay_bithi       = 15;
+const int cfeb0_tof_delay_default     =  7;
 //
 //
 //------------------------------------------------------------------
 //0X1A = ADR_DDD2:  3D3444 Chip 2 Delays, 1 step = 2ns
 //------------------------------------------------------------------
-const int cfeb1delay_vmereg  =  vme_ddd2_adr;
-const int cfeb1delay_bitlo   =  0;
-const int cfeb1delay_bithi   =  3;
-const int cfeb1delay_default =  7;
+const int cfeb1_tof_delay_vmereg  =  vme_ddd2_adr;
+const int cfeb1_tof_delay_bitlo   =  0;
+const int cfeb1_tof_delay_bithi   =  3;
+const int cfeb1_tof_delay_default =  7;
 //
-const int cfeb2delay_vmereg  =  vme_ddd2_adr;
-const int cfeb2delay_bitlo   =  4;
-const int cfeb2delay_bithi   =  7;
-const int cfeb2delay_default =  7;
+const int cfeb2_tof_delay_vmereg  =  vme_ddd2_adr;
+const int cfeb2_tof_delay_bitlo   =  4;
+const int cfeb2_tof_delay_bithi   =  7;
+const int cfeb2_tof_delay_default =  7;
 //
-const int cfeb3delay_vmereg  =  vme_ddd2_adr;
-const int cfeb3delay_bitlo   =  8;
-const int cfeb3delay_bithi   = 11;
-const int cfeb3delay_default =  7;
+const int cfeb3_tof_delay_vmereg  =  vme_ddd2_adr;
+const int cfeb3_tof_delay_bitlo   =  8;
+const int cfeb3_tof_delay_bithi   = 11;
+const int cfeb3_tof_delay_default =  7;
 //
-const int cfeb4delay_vmereg  =  vme_ddd2_adr;
-const int cfeb4delay_bitlo   = 12;
-const int cfeb4delay_bithi   = 15;
-const int cfeb4delay_default =  7;
+const int cfeb4_tof_delay_vmereg  =  vme_ddd2_adr;
+const int cfeb4_tof_delay_bitlo   = 12;
+const int cfeb4_tof_delay_bithi   = 15;
+const int cfeb4_tof_delay_default =  7;
 //
 //
 //------------------------------------------------------------------
@@ -640,7 +648,6 @@ const int internal_l1a_delay_vme_bithi   = 15;
 const int internal_l1a_delay_vme_default =0x72;
 //
 //
-// greg, this needs address 2E added for monitors
 //------------------------------------------------------------------
 //0X30 = ADR_ALCT_CFG:  ALCT Configuration
 //------------------------------------------------------------------
@@ -679,19 +686,24 @@ const int LOOPBACK_RANDOM                    = 0x4;
 const int SEND_RANDOM                        = 0xb; 
 //
 const int alct_clock_en_use_ccb_vmereg   =  alct_cfg_adr;
-const int alct_clock_en_use_ccb_bitlo    = 12;
-const int alct_clock_en_use_ccb_bithi    = 12;
+const int alct_clock_en_use_ccb_bitlo    =  8;
+const int alct_clock_en_use_ccb_bithi    =  8;
 const int alct_clock_en_use_ccb_default  =  1;            
 //
 const int alct_clock_en_use_vme_vmereg   =  alct_cfg_adr;
-const int alct_clock_en_use_vme_bitlo    = 13;
-const int alct_clock_en_use_vme_bithi    = 13;
+const int alct_clock_en_use_vme_bitlo    =  9;
+const int alct_clock_en_use_vme_bithi    =  9;
 const int alct_clock_en_use_vme_default  =  0;            
 //
-const int alct_posneg_vmereg             =  alct_cfg_adr;
-const int alct_posneg_bitlo              = 14;
-const int alct_posneg_bithi              = 14;
-const int alct_posneg_default            =  0;            
+const int alct_muonic_vmereg             =  alct_cfg_adr;
+const int alct_muonic_bitlo              = 10;
+const int alct_muonic_bithi              = 10;
+const int alct_muonic_default            =  0;            
+//
+const int cfeb_muonic_vmereg             =  alct_cfg_adr;
+const int cfeb_muonic_bitlo              = 11;
+const int cfeb_muonic_bithi              = 11;
+const int cfeb_muonic_default            =  0;            
 //
 //
 //------------------------------------------------------------------
@@ -1519,6 +1531,14 @@ const int alct_bx0_enable_bitlo   =  8;
 const int alct_bx0_enable_bithi   =  8;
 const int alct_bx0_enable_default =  1;
 //
+const int bx0_vpf_test_vmereg     = bx0_delay_adr;
+const int bx0_vpf_test_bitlo      =  9;
+const int bx0_vpf_test_bithi      =  9;
+const int bx0_vpf_test_default    =  0;
+//
+const int bx0_match_vmereg        = bx0_delay_adr;
+const int bx0_match_bitlo         = 10;
+const int bx0_match_bithi         = 10;
 //
 //-----------------------------------------------------------------------------
 //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
@@ -1721,6 +1741,11 @@ const int vme_state_machine_path_ok_vmereg     =  vme_sm_ctrl_adr;
 const int vme_state_machine_path_ok_bitlo      = 10;
 const int vme_state_machine_path_ok_bithi      = 10;
 const int vme_state_machine_path_ok_expected   =  1;            //expect VME state machine path check OK
+//
+const int phase_shifter_auto_vmereg            =  vme_sm_ctrl_adr;
+const int phase_shifter_auto_bitlo             = 11;
+const int phase_shifter_auto_bithi             = 11;
+const int phase_shifter_auto_default           =  1;
 //
 const int vme_state_machine_throttle_vmereg    =  vme_sm_ctrl_adr;
 const int vme_state_machine_throttle_bitlo     = 12;
@@ -2032,6 +2057,98 @@ const int alct_sync_txdata_2nd_vmereg        =  alct_sync_txdata_2nd_adr;
 const int alct_sync_txdata_2nd_bitlo         =  0;
 const int alct_sync_txdata_2nd_bithi         =  9;
 const int alct_sync_txdata_2nd_default       =  0; 
+//
+//
+//---------------------------------------------------------------------
+//[0X10E-0X11A] = ADR_PHASER[0-6]: digital phase shifter for...
+// alct_rx, alct_tx, cfeb[0-4]_rx
+//---------------------------------------------------------------------
+const int fire_phaser_bitlo                     =  0;
+const int fire_phaser_bithi                     =  0;
+const int fire_phaser_default                   =  0; 
+//
+const int reset_phase_bitlo                     =  1;
+const int reset_phase_bithi                     =  1;
+const int reset_phase_default                   =  0; 
+//
+const int phaser_busy_bitlo                     =  2;
+const int phaser_busy_bithi                     =  2;
+//
+const int digital_clock_manager_locked_bitlo    =  3;
+const int digital_clock_manager_locked_bithi    =  3;
+//
+const int phase_shifter_state_bitlo             =  4;
+const int phase_shifter_state_bithi             =  6;
+//
+const int phaser_posneg_bitlo                   =  7;
+const int phaser_posneg_bithi                   =  7;
+//
+const int phase_value_within_quadrant_bitlo     =  8;
+const int phase_value_within_quadrant_bithi     = 13;
+//
+const int quarter_cycle_quadrant_select_bitlo   = 14;
+const int quarter_cycle_quadrant_select_bithi   = 14;
+//
+const int half_cycle_quadrant_select_bitlo      = 15;
+const int half_cycle_quadrant_select_bithi      = 15;
+//
+//
+// This is the total number of bins defined in the phase shifter in the FPGA
+const int number_of_available_bins_per_clock_cycle = 256;   
+//
+// This is the granularity that the user wants to step within that 40MHz clock 
+// (must be converted into phase shifter bins, above)
+const int maximum_number_of_phase_delay_values     = 25;
+
+//
+//--------------------------------------------------------------
+//[0X10E] = ADR_PHASER0:  values in the xml file for alct_rx
+//--------------------------------------------------------------
+const int alct_rx_clock_delay_vmereg   =  phaser_alct_rxd_adr;
+const int alct_rx_clock_delay_default  =  3;                    //default value in nanoseconds (not the VME register values)
+const int alct_rx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X110] = ADR_PHASER1:  values in the xml file for alct_tx
+//--------------------------------------------------------------
+const int alct_tx_clock_delay_vmereg   =  phaser_alct_txd_adr;
+const int alct_tx_clock_delay_default  =  3;                    //default value in nanoseconds (not the VME register values) 
+const int alct_tx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X112] = ADR_PHASER2:  values in the xml file for cfeb0_rx
+//--------------------------------------------------------------
+const int cfeb0_rx_clock_delay_vmereg   =  phaser_cfeb0_rxd_adr;
+const int cfeb0_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb0_rx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X114] = ADR_PHASER3:  values in the xml file for cfeb1_rx
+//--------------------------------------------------------------
+const int cfeb1_rx_clock_delay_vmereg   =  phaser_cfeb1_rxd_adr;
+const int cfeb1_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb1_rx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X116] = ADR_PHASER4:  values in the xml file for cfeb2_rx
+//--------------------------------------------------------------
+const int cfeb2_rx_clock_delay_vmereg   =  phaser_cfeb2_rxd_adr;
+const int cfeb2_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb2_rx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X118] = ADR_PHASER5:  values in the xml file for cfeb3_rx
+//--------------------------------------------------------------
+const int cfeb3_rx_clock_delay_vmereg   =  phaser_cfeb3_rxd_adr;
+const int cfeb3_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb3_rx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X11A] = ADR_PHASER6:  values in the xml file for cfeb4_rx
+//--------------------------------------------------------------
+const int cfeb4_rx_clock_delay_vmereg   =  phaser_cfeb4_rxd_adr;
+const int cfeb4_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb4_rx_posneg_default       =  0; 
 //
 //
 //////////////////////////////////////////////

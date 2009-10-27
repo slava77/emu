@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.6 2009/08/11 10:07:15 liu Exp $
+// $Id: TMB.h,v 1.7 2009/10/27 11:07:26 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.7  2009/10/27 11:07:26  rakness
+// 15 Oct 2009 TMB firmware update
+//
 // Revision 1.6  2009/08/11 10:07:15  liu
 // to skip monitoring if vme access failed
 //
@@ -416,11 +419,17 @@ public:
   void DecodeALCT();
   void PrintALCT();
   //
-  //void lctrequestdelay(int dword);
   void clear_i2c();
+  //! Set the values for the DDD delays.  Better done writing the register values and firing the state machine separately.
   void clk_delays(unsigned short int time,int cfeb_id);
+  //
+  //!Firing the DDD state machine to set the delay values
+  void FireDDDStateMachine();
+  //
   void scope(int scp_arm,int scp_readout, int scp_channel=0x1d);
   void decode();
+  //! Set the Phaser delays by firing the Phaser state machine at the given vme_address
+  void FirePhaser(long unsigned int vme_address);
   //
   //!Extract ALCT raw hits data from VME
   void ALCTRawhits();
@@ -495,8 +504,6 @@ public:
   int  PowerComparator();
   //
   // called by TRGMODE, depending on version_
-  void setupNewDelayChips();
-  void setupOldDelayChips();
   void trgmode_bprsq_alct();
   void trgmode_bprsq_clct(int choice);
   void activecfeb();
@@ -580,7 +587,6 @@ public:
   int tmb_enable_vme_commands(int flag_enable);      
   //
   /// mostly for GUI
-  void executeCommand(std::string command);      
   friend std::ostream & operator<<(std::ostream & os, TMB & tmb);
   //
   //  int GetCLCT0Cfeb() { return -999; }  //does not exist in TMB firmware anymore
@@ -659,8 +665,8 @@ public:
   //
   int tmb_read_delays(int);
   //
-  inline int  GetCFEBrxPhase(int CFEB) {
-    int tmp[5] = { cfeb0delay_, cfeb1delay_, cfeb2delay_, cfeb3delay_, cfeb4delay_ };
+  inline int  GetCfebRxClockDelay(int CFEB) {
+    int tmp[5] = { cfeb0_rx_clock_delay_, cfeb1_rx_clock_delay_, cfeb2_rx_clock_delay_, cfeb3_rx_clock_delay_, cfeb4_rx_clock_delay_ };
     return tmp[CFEB]; 
   }
   //
@@ -696,15 +702,10 @@ public:
   //------------------------------------------------------------------
   //0X16 = ADR_DDD0:  3D3444 Chip 0 Delays, 1 step = 2ns
   //------------------------------------------------------------------
-  //!alct_tx_clock_delay = [0-15] (2ns)
-  inline void SetAlctTXclockDelay(int alct_tx_clock_delay) { alct_tx_clock_delay_ = alct_tx_clock_delay; }
-  inline int  GetAlctTXclockDelay() { return alct_tx_clock_delay_; }
-  inline int  GetALCTtxPhase() { return alct_tx_clock_delay_; }
-  //
-  //!alct_rx_clock_delay = [0-15] (2ns)
-  inline void SetAlctRXclockDelay(int alct_rx_clock_delay) {alct_rx_clock_delay_ = alct_rx_clock_delay;}
-  inline int  GetAlctRXclockDelay() { return alct_rx_clock_delay_; }
-  inline int  GetALCTrxPhase() { return alct_rx_clock_delay_; }
+  //!alct_tof_delay = [0-15] (2ns)
+  inline void SetAlctTOFDelay(int alct_tof_delay) {alct_tof_delay_ = alct_tof_delay;}
+  inline int  GetAlctTOFDelay() { return alct_tof_delay_; }
+  inline int  GetReadAlctTOFDelay() { return read_alct_tof_delay_; }
   //
   //!dmb_tx_delay = [0-15] (2ns)
   inline void SetDmbTxDelay(int dmb_tx_delay) { dmb_tx_delay_ = dmb_tx_delay; }
@@ -721,36 +722,33 @@ public:
   inline void SetTmb1Phase(int tmb1_phase) { tmb1_phase_ = tmb1_phase; }
   inline int  GetTmb1Phase() { return tmb1_phase_; }
   //
-  //!mpc_phase = [0-15] (2ns)
-  inline void SetMpcPhase(int mpc_phase) { mpc_phase_ = mpc_phase; }
-  inline int  GetMpcPhase() { return mpc_phase_; }
+  //!cfeb_tof_delay = [0-15] (2ns)
+  inline void SetCfebTOFDelay(int cfeb_tof_delay) {cfeb_tof_delay_ = cfeb_tof_delay;}
+  inline int  GetCfebTOFDelay() { return cfeb_tof_delay_; }
+  inline int  GetReadCfebTOFDelay() { return read_cfeb_tof_delay_; }
   //
-  //!dcc_phase = [0-15] (2ns) (CFEB Duty Cycle Correction)
-  inline void SetDccPhase(int dcc_phase) { dcc_phase_ = dcc_phase; }
-  inline int  GetDccPhase() { return dcc_phase_; }
-  //
-  //!cfeb0delay = [0-15] (2ns)
-  inline void SetCFEB0delay(int cfeb0delay) { cfeb0delay_ = cfeb0delay; }
-  inline int  GetCFEB0delay() { return cfeb0delay_; }
+  //!cfeb0_tof_delay = [0-15] (2ns)
+  inline void SetCfeb0TOFDelay(int cfeb0_tof_delay) { cfeb0_tof_delay_ = cfeb0_tof_delay; }
+  inline int  GetCfeb0TOFDelay() { return cfeb0_tof_delay_; }
   //
   //------------------------------------------------------------------
   //0X1A = ADR_DDD2:  3D3444 Chip 2 Delays, 1 step = 2ns
   //------------------------------------------------------------------
-  //!cfeb1delay = [0-15] (2ns)
-  inline void SetCFEB1delay(int cfeb1delay) { cfeb1delay_ = cfeb1delay; }
-  inline int  GetCFEB1delay() { return cfeb1delay_; }
+  //!cfeb1_tof_delay = [0-15] (2ns)
+  inline void SetCfeb1TOFDelay(int cfeb1_tof_delay) { cfeb1_tof_delay_ = cfeb1_tof_delay; }
+  inline int  GetCfeb1TOFDelay() { return cfeb1_tof_delay_; }
   //
-  //!cfeb2delay = [0-15] (2ns)
-  inline void SetCFEB2delay(int cfeb2delay) { cfeb2delay_ = cfeb2delay; }
-  inline int  GetCFEB2delay(){return cfeb2delay_;}
+  //!cfeb2_tof_delay = [0-15] (2ns)
+  inline void SetCfeb2TOFDelay(int cfeb2_tof_delay) { cfeb2_tof_delay_ = cfeb2_tof_delay; }
+  inline int  GetCfeb2TOFDelay(){return cfeb2_tof_delay_;}
   //
-  //!cfeb3delay = [0-15] (2ns)
-  inline void SetCFEB3delay(int cfeb3delay) { cfeb3delay_ = cfeb3delay; }
-  inline int  GetCFEB3delay() { return cfeb3delay_; }
+  //!cfeb3_tof_delay = [0-15] (2ns)
+  inline void SetCfeb3TOFDelay(int cfeb3_tof_delay) { cfeb3_tof_delay_ = cfeb3_tof_delay; }
+  inline int  GetCfeb3TOFDelay() { return cfeb3_tof_delay_; }
   //
-  //!cfeb4delay = [0-15] (2ns)
-  inline void SetCFEB4delay(int cfeb4delay) { cfeb4delay_ = cfeb4delay; }
-  inline int  GetCFEB4delay() { return cfeb4delay_; }
+  //!cfeb4_tof_delay = [0-15] (2ns)
+  inline void SetCfeb4TOFDelay(int cfeb4_tof_delay) { cfeb4_tof_delay_ = cfeb4_tof_delay; }
+  inline int  GetCfeb4TOFDelay() { return cfeb4_tof_delay_; }
   //
   //------------------------------------------------------------------
   //0X2A = ADR_CCB_CFG:  CCB Configuration
@@ -853,9 +851,11 @@ public:
   inline void SetAlctClockVme(int alct_clock_en_use_vme) { alct_clock_en_use_vme_ = alct_clock_en_use_vme; }
   inline int  GetAlctClockVme() { return alct_clock_en_use_vme_; }
   //
-  //!alct_posneg = [0,1] = latch the ALCT inter-stage flip-flops on the [rising,falling] edge of the alct_rx clock
-  inline void SetAlctPosNeg(int alct_posneg) { alct_posneg_ = alct_posneg; }
-  inline int  GetAlctPosNeg() { return alct_posneg_; }
+  // alct_muonic = 1 = ALCT has independent time-of-flight delay
+  inline int  GetAlctMuonic() { return read_alct_muonic_; }
+  //
+  // cfeb_muonic = 1 = CFEB's have independent time-of-flight delay
+  inline int  GetCfebMuonic() { return read_alct_muonic_; }
   //
   //----------------------------------------------------------------
   //0X32 = ADR_ALCT_INJ:  ALCT Injector Control:
@@ -1453,6 +1453,9 @@ public:
   inline void SetAlctBx0Enable(int alct_bx0_enable) { alct_bx0_enable_ = alct_bx0_enable; }
   inline int  GetAlctBx0Enable() { return alct_bx0_enable_; }
   //
+  inline int  GetReadBx0Match() { return read_bx0_match_; }
+  //
+  //
   //-----------------------------------------------------------------------------
   //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
   //-----------------------------------------------------------------------------
@@ -1633,6 +1636,102 @@ public:
   inline int  GetALCTSyncTxData2nd() { return alct_sync_txdata_2nd_; }
   inline int  GetReadALCTSyncTxData2nd() { return read_alct_sync_txdata_2nd_; }
   //
+  //---------------------------------------------------------------------
+  //0X10E = ADR_PHASER0 digital phase shifter setting for alct_rx
+  //---------------------------------------------------------------------
+  //!alct_rx_clock_delay = [0-24] (nsec)
+  inline void SetAlctRxClockDelay(int alct_rx_clock_delay) {alct_rx_clock_delay_ = alct_rx_clock_delay;}
+  inline void SetAlctRXclockDelay(int alct_rx_clock_delay) {alct_rx_clock_delay_ = alct_rx_clock_delay;} //legacy setter
+  inline int  GetAlctRxClockDelay() { return alct_rx_clock_delay_; }
+  inline int  GetALCTrxPhase()      { return alct_rx_clock_delay_; } //legacy getter
+  inline int  GetReadAlctRxClockDelay() { return read_alct_rx_clock_delay_; }
+  //
+  inline void SetAlctRxPosNeg(int alct_rx_posneg) { alct_rx_posneg_ = alct_rx_posneg; }
+  inline void SetAlctPosNeg(int alct_rx_posneg)   { alct_rx_posneg_ = alct_rx_posneg; } //legacy setter
+  inline int  GetAlctRxPosNeg() { return alct_rx_posneg_; }
+  inline int  GetAlctPosNeg()   { return alct_rx_posneg_; } //legacy getter
+  inline int  GetReadAlctRxPosNeg() { return read_alct_rx_posneg_; }
+  //
+  //---------------------------------------------------------------------
+  //0X110 = ADR_PHASER1 digital phase shifter setting for alct_tx
+  //---------------------------------------------------------------------
+  //!alct_tx_clock_delay = [0-24] (nsec)
+  inline void SetAlctTxClockDelay(int alct_tx_clock_delay) { alct_tx_clock_delay_ = alct_tx_clock_delay; }
+  inline void SetAlctTXclockDelay(int alct_tx_clock_delay) { alct_tx_clock_delay_ = alct_tx_clock_delay; } //legacy setter
+  inline int  GetAlctTxClockDelay() { return alct_tx_clock_delay_; }
+  inline int  GetALCTtxPhase()      { return alct_tx_clock_delay_; } //legacy getter
+  inline int  GetReadAlctTxClockDelay() { return read_alct_tx_clock_delay_; }
+  //
+  inline void SetAlctTxPosNeg(int alct_tx_posneg) { alct_tx_posneg_ = alct_tx_posneg; }
+  inline int  GetAlctTxPosNeg() { return alct_tx_posneg_; }
+  inline int  GetReadAlctTxPosNeg() { return read_alct_tx_posneg_; }
+  //
+  //---------------------------------------------------------------------
+  //0X112 = ADR_PHASER2 digital phase shifter setting for cfeb0_rx
+  //---------------------------------------------------------------------
+  inline void SetCfeb0RxClockDelay(int cfeb0_rx_clock_delay) { cfeb0_rx_clock_delay_ = cfeb0_rx_clock_delay; }
+  inline void SetCFEB0delay(int cfeb0_rx_clock_delay)        { cfeb0_rx_clock_delay_ = cfeb0_rx_clock_delay; } //legacy setter
+  inline int  GetCfeb0RxClockDelay() { return cfeb0_rx_clock_delay_; }
+  inline int  GetCFEB0delay()        { return cfeb0_rx_clock_delay_; } //legacy getter
+  inline int  GetReadCfeb0RxClockDelay() { return read_cfeb0_rx_clock_delay_; }
+  //
+  inline void SetCfeb0RxPosNeg(int cfeb0_rx_posneg) { cfeb0_rx_posneg_ = cfeb0_rx_posneg; }
+  inline int  GetCfeb0RxPosNeg() { return cfeb0_rx_posneg_; }
+  inline int  GetReadCfeb0RxPosNeg() { return read_cfeb0_rx_posneg_; }
+  //
+  //---------------------------------------------------------------------
+  //0X114 = ADR_PHASER3 digital phase shifter setting for cfeb1_rx
+  //---------------------------------------------------------------------
+  inline void SetCfeb1RxClockDelay(int cfeb1_rx_clock_delay) { cfeb1_rx_clock_delay_ = cfeb1_rx_clock_delay; }
+  inline void SetCFEB1delay(int cfeb1_rx_clock_delay)        { cfeb1_rx_clock_delay_ = cfeb1_rx_clock_delay; } //legacy setter
+  inline int  GetCfeb1RxClockDelay() { return cfeb1_rx_clock_delay_; }
+  inline int  GetCFEB1delay()        { return cfeb1_rx_clock_delay_; } //legacy getter
+  inline int  GetReadCfeb1RxClockDelay() { return read_cfeb1_rx_clock_delay_; }
+  //
+  inline void SetCfeb1RxPosNeg(int cfeb1_rx_posneg) { cfeb1_rx_posneg_ = cfeb1_rx_posneg; }
+  inline int  GetCfeb1RxPosNeg() { return cfeb1_rx_posneg_; }
+  inline int  GetReadCfeb1RxPosNeg() { return read_cfeb1_rx_posneg_; }
+  //
+  //---------------------------------------------------------------------
+  //0X116 = ADR_PHASER4 digital phase shifter setting for cfeb2_rx
+  //---------------------------------------------------------------------
+  inline void SetCfeb2RxClockDelay(int cfeb2_rx_clock_delay) { cfeb2_rx_clock_delay_ = cfeb2_rx_clock_delay; }
+  inline void SetCFEB2delay(int cfeb2_rx_clock_delay)        { cfeb2_rx_clock_delay_ = cfeb2_rx_clock_delay; } //legacy setter
+  inline int  GetCfeb2RxClockDelay() { return cfeb2_rx_clock_delay_; }
+  inline int  GetCFEB2delay()        { return cfeb2_rx_clock_delay_; } //legacy getter
+  inline int  GetReadCfeb2RxClockDelay() { return read_cfeb2_rx_clock_delay_; }
+  //
+  inline void SetCfeb2RxPosNeg(int cfeb2_rx_posneg) { cfeb2_rx_posneg_ = cfeb2_rx_posneg; }
+  inline int  GetCfeb2RxPosNeg() { return cfeb2_rx_posneg_; }
+  inline int  GetReadCfeb2RxPosNeg() { return read_cfeb2_rx_posneg_; }
+  //
+  //---------------------------------------------------------------------
+  //0X118 = ADR_PHASER5 digital phase shifter setting for cfeb3_rx
+  //---------------------------------------------------------------------
+  inline void SetCfeb3RxClockDelay(int cfeb3_rx_clock_delay) { cfeb3_rx_clock_delay_ = cfeb3_rx_clock_delay; }
+  inline void SetCFEB3delay(int cfeb3_rx_clock_delay)        { cfeb3_rx_clock_delay_ = cfeb3_rx_clock_delay; } //legacy setter
+  inline int  GetCfeb3RxClockDelay() { return cfeb3_rx_clock_delay_; }
+  inline int  GetCFEB3delay()        { return cfeb3_rx_clock_delay_; } //legacy getter
+  inline int  GetReadCfeb3RxClockDelay() { return read_cfeb3_rx_clock_delay_; }
+  //
+  inline void SetCfeb3RxPosNeg(int cfeb3_rx_posneg) { cfeb3_rx_posneg_ = cfeb3_rx_posneg; }
+  inline int  GetCfeb3RxPosNeg() { return cfeb3_rx_posneg_; }
+  inline int  GetReadCfeb3RxPosNeg() { return read_cfeb3_rx_posneg_; }
+  //
+  //---------------------------------------------------------------------
+  //0X11A = ADR_PHASER6 digital phase shifter setting for cfeb4_rx
+  //---------------------------------------------------------------------
+  inline void SetCfeb4RxClockDelay(int cfeb4_rx_clock_delay) { cfeb4_rx_clock_delay_ = cfeb4_rx_clock_delay; }  
+  inline void SetCFEB4delay(int cfeb4_rx_clock_delay)        { cfeb4_rx_clock_delay_ = cfeb4_rx_clock_delay; } //legacy setter
+  inline int  GetCfeb4RxClockDelay() { return cfeb4_rx_clock_delay_; }
+  inline int  GetCFEB4delay()        { return cfeb4_rx_clock_delay_; } //legacy getter
+  inline int  GetReadCfeb4RxClockDelay() { return read_cfeb4_rx_clock_delay_; }
+  //
+  inline void SetCfeb4RxPosNeg(int cfeb4_rx_posneg) { cfeb4_rx_posneg_ = cfeb4_rx_posneg; }
+  inline int  GetCfeb4RxPosNeg() { return cfeb4_rx_posneg_; }
+  inline int  GetReadCfeb4RxPosNeg() { return read_cfeb4_rx_posneg_; }
+  //
+  //
   //
   // **********************************************************************************
   //
@@ -1749,9 +1848,10 @@ public:
   int ucla_ldev;
   //std::string version_;
   //
+  void SetTMBRegisterDefaults();               //set the software write values for TMB registers to default values
+  //
 protected:
   void new_clk_delays(unsigned short int time, int cfeb_id);
-  void new_clk_delays_preGreg(unsigned short int time, int cfeb_id);
   //
   int dsnIO(int);
   //
@@ -1805,7 +1905,7 @@ private:
   int ALCT1_data_;
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
-  static const int MaxCounter = 77;
+  static const int MaxCounter = 78;
   long int FinalCounter[MaxCounter+2];
   int alct_sent_to_tmb_counter_index_;
   int ecc_trigger_path_one_error_counter_index_;
@@ -1869,8 +1969,6 @@ private:
   //*******************************************************************
   void DefineTMBConfigurationRegisters_();      //define the registers which define the TMB configuration 
   //                                              (i.e., those that are written into the user PROM)
-  void SetTMBRegisterDefaults_();               //set the software write values for TMB registers to default values
-  //
   //
   void DecodeTMBRegister_(unsigned long int address, int data);  //parse "data" according to the bit map corresponding to "address"
   void DecodeBootRegister_(int data);                            //parse "data" according to the bit map for the boot register
@@ -1957,20 +2055,18 @@ private:
   int read_ddd_state_machine_clock1_lock_;
   int read_ddd_state_machine_clock_alct_lock_;
   int read_ddd_state_machine_clockd_alct_lock_;
-  int read_ddd_state_machine_clock_mpc_lock_;
+  int read_ddd_state_machine_clock_cfeb_lock_;
   int read_ddd_state_machine_clock_dcc_lock_;
   int read_ddd_state_machine_clock_rpc_lock_;
   //
   //------------------------------------------------------------------
   //0X16 = ADR_DDD0:  3D3444 Chip 0 Delays, 1 step = 2ns
   //------------------------------------------------------------------
-  int alct_tx_clock_delay_;
-  int alct_rx_clock_delay_;
+  int alct_tof_delay_;
   int dmb_tx_delay_;
   int rat_tmb_delay_;
   //
-  int read_alct_tx_clock_delay_;
-  int read_alct_rx_clock_delay_;
+  int read_alct_tof_delay_;
   int read_dmb_tx_delay_;
   int read_rat_tmb_delay_;
   //
@@ -1978,27 +2074,25 @@ private:
   //0X18 = ADR_DDD1:  3D3444 Chip 1 Delays, 1 step = 2ns
   //------------------------------------------------------------------
   int tmb1_phase_;
-  int mpc_phase_;
-  int dcc_phase_;
-  int cfeb0delay_;
+  int cfeb_tof_delay_;
+  int cfeb0_tof_delay_;
   //
   int read_tmb1_phase_;
-  int read_mpc_phase_;
-  int read_dcc_phase_;
-  int read_cfeb0delay_;
+  int read_cfeb_tof_delay_;
+  int read_cfeb0_tof_delay_;
   //
   //------------------------------------------------------------------
   //0X1A = ADR_DDD2:  3D3444 Chip 2 Delays, 1 step = 2ns
   //------------------------------------------------------------------
-  int cfeb1delay_;
-  int cfeb2delay_;
-  int cfeb3delay_;
-  int cfeb4delay_;
+  int cfeb1_tof_delay_;
+  int cfeb2_tof_delay_;
+  int cfeb3_tof_delay_;
+  int cfeb4_tof_delay_;
   //
-  int read_cfeb1delay_;
-  int read_cfeb2delay_;
-  int read_cfeb3delay_;
-  int read_cfeb4delay_;
+  int read_cfeb1_tof_delay_;
+  int read_cfeb2_tof_delay_;
+  int read_cfeb3_tof_delay_;
+  int read_cfeb4_tof_delay_;
   //
   //------------------------------------------------------------------
   //0X1E = ADR_RATCTRL:  RAT Module Control
@@ -2063,7 +2157,6 @@ private:
   int alct_seq_cmd_;         
   int alct_clock_en_use_ccb_;
   int alct_clock_en_use_vme_;
-  int alct_posneg_;
   //
   int read_cfg_alct_ext_trig_en_;  
   int read_cfg_alct_ext_inject_en_;
@@ -2072,7 +2165,8 @@ private:
   int read_alct_seq_cmd_;         
   int read_alct_clock_en_use_ccb_;
   int read_alct_clock_en_use_vme_;
-  int read_alct_posneg_;
+  int read_alct_muonic_;
+  int read_cfeb_muonic_;
   //
   //------------------------------------------------------------------
   //0X32 = ADR_ALCT_INJ:  ALCT Injector Control
@@ -2448,10 +2542,14 @@ private:
   int alct_bx0_delay_ ;
   int clct_bx0_delay_ ;
   int alct_bx0_enable_;
+  int bx0_vpf_test_   ;
+  int bx0_match_      ;
   //
   int read_alct_bx0_delay_ ;
   int read_clct_bx0_delay_ ;
   int read_alct_bx0_enable_;
+  int read_bx0_vpf_test_   ;
+  int read_bx0_match_      ;
   //
   //-----------------------------------------------------------------------------
   //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
@@ -2520,6 +2618,7 @@ private:
   int vme_state_machine_start_;
   int vme_state_machine_sreset_;
   int vme_state_machine_jtag_auto_; 
+  int phase_shifter_auto_;
   int vme_state_machine_throttle_; 
   //
   int read_vme_state_machine_start_;
@@ -2533,6 +2632,7 @@ private:
   int read_vme_state_machine_vme_ready_; 
   int read_vme_state_machine_ok_;
   int read_vme_state_machine_path_ok_; 
+  int read_phase_shifter_auto_;
   int read_vme_state_machine_throttle_; 
   //
   //------------------------------------------------------------------
@@ -2657,6 +2757,103 @@ private:
   int alct_sync_txdata_2nd_;
   //
   int read_alct_sync_txdata_2nd_;
+  //
+  //
+  //----------------------------------------------------------------------------------------
+  //[0X10E-0X11A] = ADR_PHASER[0-6]:  parameters common to the digital phase shifters
+  //----------------------------------------------------------------------------------------
+  int fire_phaser_                  ;
+  int reset_phase_                  ; 
+  int phaser_posneg_                ;
+  int phase_value_within_quadrant_  ; 
+  int quarter_cycle_quadrant_select_; 
+  int half_cycle_quadrant_select_   ; 
+  //
+  int read_fire_phaser_                  ;
+  int read_reset_phase_                  ; 
+  int read_phaser_busy_                  ;
+  int read_digital_clock_manager_locked_ ;
+  int read_phase_shifter_state_          ;
+  int read_phaser_posneg_                ;
+  int read_phase_value_within_quadrant_  ; 
+  int read_quarter_cycle_quadrant_select_; 
+  int read_half_cycle_quadrant_select_   ; 
+  //
+  //--------------------------------------------------------------
+  //[0X10E] = ADR_PHASER0:  values in the xml file for alct_rx
+  //--------------------------------------------------------------
+  int alct_rx_clock_delay_;
+  int alct_rx_posneg_  ;
+  //
+  int read_alct_rx_clock_delay_;
+  int read_alct_rx_posneg_  ;
+  //
+  //
+  //--------------------------------------------------------------
+  //[0X110] = ADR_PHASER1:  values in the xml file for alct_tx
+  //--------------------------------------------------------------
+  int alct_tx_clock_delay_;
+  int alct_tx_posneg_  ;
+  //
+  int read_alct_tx_clock_delay_;
+  int read_alct_tx_posneg_  ;
+  //
+  //
+  //--------------------------------------------------------------
+  //[0X112] = ADR_PHASER2:  values in the xml file for cfeb0_rx
+  //--------------------------------------------------------------
+  int cfeb0_rx_clock_delay_ ;
+  int cfeb0_rx_posneg_;
+  //
+  int read_cfeb0_rx_clock_delay_ ;
+  int read_cfeb0_rx_posneg_;
+  //
+  //
+  //--------------------------------------------------------------
+  //[0X114] = ADR_PHASER3:  values in the xml file for cfeb1_rx
+  //--------------------------------------------------------------
+  int cfeb1_rx_clock_delay_ ;
+  int cfeb1_rx_posneg_;
+  //
+  int read_cfeb1_rx_clock_delay_ ;
+  int read_cfeb1_rx_posneg_;
+  //
+  //
+  //--------------------------------------------------------------
+  //[0X116] = ADR_PHASER4:  values in the xml file for cfeb2_rx
+  //--------------------------------------------------------------
+  int cfeb2_rx_clock_delay_ ;
+  int cfeb2_rx_posneg_;
+  //
+  int read_cfeb2_rx_clock_delay_ ;
+  int read_cfeb2_rx_posneg_;
+  //
+  //
+  //--------------------------------------------------------------
+  //[0X118] = ADR_PHASER5:  values in the xml file for cfeb3_rx
+  //--------------------------------------------------------------
+  int cfeb3_rx_clock_delay_ ;
+  int cfeb3_rx_posneg_;
+  //
+  int read_cfeb3_rx_clock_delay_ ;
+  int read_cfeb3_rx_posneg_;
+  //
+  //
+  //--------------------------------------------------------------
+  //[0X11A] = ADR_PHASER6:  values in the xml file for cfeb4_rx
+  //--------------------------------------------------------------
+  int cfeb4_rx_clock_delay_ ;
+  int cfeb4_rx_posneg_;
+  //
+  int read_cfeb4_rx_clock_delay_ ;
+  int read_cfeb4_rx_posneg_;
+  //
+  //
+  //!convert the user value to values which are written to the VME Register
+  int ConvertDigitalPhaseToVMERegisterValues_(int digital_phase,int posneg);
+  //
+  //!convert the user value (in nsec) to values which are written to the VME Register
+  void ConvertVMERegisterValuesToDigitalPhases_(long unsigned int vme_address);
   //
   //
   //*******************************************************************

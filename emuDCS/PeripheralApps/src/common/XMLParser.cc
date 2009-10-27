@@ -334,22 +334,20 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("enable_alct_rx",value)) { tmb_->SetAlctInput(value);    }
     //    
     //0X16
-    if (fillInt("alct_tx_clock_delay",value)) { tmb_->SetAlctTXclockDelay(value); }
-    if (fillInt("alct_rx_clock_delay",value)) { tmb_->SetAlctRXclockDelay(value); }
-    if (fillInt("dmb_tx_delay"       ,value)) { tmb_->SetDmbTxDelay(value);       }
-    if (fillInt("rat_tmb_delay"      ,value)) { tmb_->SetRatTmbDelay(value);      }
+    if (fillInt("alct_tof_delay",value)) { tmb_->SetAlctTOFDelay(value); }
+    if (fillInt("dmb_tx_delay"  ,value)) { tmb_->SetDmbTxDelay(value);   }
+    if (fillInt("rat_tmb_delay" ,value)) { tmb_->SetRatTmbDelay(value);  }
     //
     //0X18
-    //if (fillInt("tmb1_phase",value)) { tmb_->SetTmb1Phase(value);  }
-    //if (fillInt("mpc_phase" ,value)) { tmb_->SetMpcPhase(value);   }
-    //if (fillInt("dcc_phase" ,value)) { tmb_->SetDccPhase(value);   }
-    if (fillInt("cfeb0delay",value)) { tmb_->SetCFEB0delay(value); }
+    //if (fillInt("tmb1_phase"     ,value)) { tmb_->SetTmb1Phase(value);     }
+    if (fillInt("cfeb_tof_delay" ,value)) { tmb_->SetCfebTOFDelay(value);  }
+    if (fillInt("cfeb0_tof_delay",value)) { tmb_->SetCfeb0TOFDelay(value); }
     //
     //0X1A
-    if (fillInt("cfeb1delay",value)) { tmb_->SetCFEB1delay(value); }
-    if (fillInt("cfeb2delay",value)) { tmb_->SetCFEB2delay(value); }
-    if (fillInt("cfeb3delay",value)) { tmb_->SetCFEB3delay(value); }
-    if (fillInt("cfeb4delay",value)) { tmb_->SetCFEB4delay(value); }
+    if (fillInt("cfeb1_tof_delay",value)) { tmb_->SetCfeb1TOFDelay(value); }
+    if (fillInt("cfeb2_tof_delay",value)) { tmb_->SetCfeb2TOFDelay(value); }
+    if (fillInt("cfeb3_tof_delay",value)) { tmb_->SetCfeb3TOFDelay(value); }
+    if (fillInt("cfeb4_tof_delay",value)) { tmb_->SetCfeb4TOFDelay(value); }
     //
     //0X2C
     //if (fillInt("alct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnAlctExtTrig(value); }
@@ -370,13 +368,17 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //if (fillInt("alct_seq_cmd"          ,value)) { tmb_->SetAlctSequencerCommand(value);  }
     if (fillInt("alct_clock_en_use_ccb" ,value)) { tmb_->SetEnableAlctUseCcbClock(value); }
     //if (fillInt("alct_clock_en_use_vme" ,value)) { tmb_->SetAlctClockVme(value);          }
-    if (fillInt("alct_posneg"           ,value)) { tmb_->SetAlctPosNeg(value);            }
     //
     //0X32:
     if (fillInt("alct_clear"     ,value)) { tmb_->SetAlctClear(value);                  }
     //if (fillInt("alct_inject_mux",value)) { tmb_->SetAlctInject(value);                 }
     //if (fillInt("alct_sync_clct" ,value)) { tmb_->SetSyncAlctInjectToClctInject(value); }
     //if (fillInt("alct_inj_delay" ,value)) { tmb_->SetAlctInjectorDelay(value);          }
+    //
+    //0X38:
+    //if (fillInt("alct_ecc_enable"       ,value)) { tmb_->SetALCTErrorCorrectionCodeEnable(value);     }
+    //if (fillInt("alct_ecc_error_blank"  ,value)) { tmb_->SetALCTErrorCorrectionCodeErrorBlank(value); }
+    if (fillInt("tmb_to_alct_data_delay",value)) { tmb_->SetALCTTxDataDelay(value);                   }
     //
     //0X42:
     if (fillInt("enableCLCTInputs_reg42",value)) { tmb_->SetEnableCLCTInputs(value);     }
@@ -544,6 +546,34 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //
     //0XF6
     if (fillInt("clct_min_separation",value)) { tmb_->SetMinClctSeparation(value); }
+    //
+    //0X10E
+    if (fillInt("alct_rx_clock_delay",value)) { tmb_->SetAlctRxClockDelay(value); }
+    if (fillInt("alct_posneg"        ,value)) { tmb_->SetAlctRxPosNeg(value); }
+    //
+    //0X110
+    if (fillInt("alct_tx_clock_delay",value)) { tmb_->SetAlctTxClockDelay(value); }
+    if (fillInt("alct_tx_posneg"     ,value)) { tmb_->SetAlctTxPosNeg(value);     }
+    //
+    //0X112
+    if (fillInt("cfeb0delay"     ,value)) { tmb_->SetCfeb0RxClockDelay(value); }
+    if (fillInt("cfeb0posneg",value))     { tmb_->SetCfeb0RxPosNeg(value);     }
+    //
+    //0X114
+    if (fillInt("cfeb1delay"     ,value)) { tmb_->SetCfeb1RxClockDelay(value); }
+    if (fillInt("cfeb1posneg",value))     { tmb_->SetCfeb1RxPosNeg(value);     }
+    //
+    //0X116
+    if (fillInt("cfeb2delay"     ,value)) { tmb_->SetCfeb2RxClockDelay(value); }
+    if (fillInt("cfeb2posneg",value))     { tmb_->SetCfeb2RxPosNeg(value);     }
+    //
+    //0X118
+    if (fillInt("cfeb3delay"     ,value)) { tmb_->SetCfeb3RxClockDelay(value); }
+    if (fillInt("cfeb3posneg",value))     { tmb_->SetCfeb3RxPosNeg(value);     }
+    //
+    //0X11A
+    if (fillInt("cfeb4delay"     ,value)) { tmb_->SetCfeb4RxClockDelay(value); }
+    if (fillInt("cfeb4posneg",value))     { tmb_->SetCfeb4RxPosNeg(value);     }
     //
     //
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();

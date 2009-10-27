@@ -95,11 +95,17 @@ attlist.TMB &=
    attribute alct_tx_clock_delay { xsd:unsignedInt },
    attribute alct_rx_clock_delay { xsd:unsignedInt },
    attribute alct_posneg { xsd:unsignedInt },
+   attribute alct_tx_posneg { xsd:unsignedInt },
    attribute cfeb0delay { xsd:unsignedInt },
    attribute cfeb1delay { xsd:unsignedInt },
    attribute cfeb2delay { xsd:unsignedInt },
    attribute cfeb3delay { xsd:unsignedInt },
    attribute cfeb4delay { xsd:unsignedInt },
+   attribute cfeb0posneg { xsd:unsignedInt },
+   attribute cfeb1posneg { xsd:unsignedInt },
+   attribute cfeb2posneg { xsd:unsignedInt },
+   attribute cfeb3posneg { xsd:unsignedInt },
+   attribute cfeb4posneg { xsd:unsignedInt },
    attribute layer_trig_enable { xsd:unsignedInt },
    attribute layer_trig_thresh { xsd:unsignedInt },
    attribute clct_pretrig_enable { xsd:unsignedInt },
@@ -173,12 +179,21 @@ attlist.TMB &=
    attribute alct_bx0_delay { xsd:unsignedInt },
    attribute clct_bx0_delay { xsd:unsignedInt },
    attribute alct_bx0_enable { xsd:unsignedInt },
+   attribute mpc_sel_ttc_bx0 { xsd:unsignedInt },
    attribute rpc_fifo_tbins { xsd:unsignedInt },
    attribute rpc_fifo_pretrig { xsd:unsignedInt },
    attribute rpc_fifo_decouple { xsd:unsignedInt },
    attribute write_buffer_autoclear { xsd:unsignedInt },
    attribute write_buffer_continous_enable { xsd:unsignedInt },
-   attribute tmb_fifo_no_raw_hits { xsd:unsignedInt }
+   attribute tmb_fifo_no_raw_hits { xsd:unsignedInt },
+   attribute alct_tof_delay { xsd:unsignedInt },
+   attribute tmb_to_alct_data_delay { xsd:unsignedInt },
+   attribute cfeb_tof_delay { xsd:unsignedInt },
+   attribute cfeb0_tof_delay { xsd:unsignedInt },
+   attribute cfeb1_tof_delay { xsd:unsignedInt },
+   attribute cfeb2_tof_delay { xsd:unsignedInt },
+   attribute cfeb3_tof_delay { xsd:unsignedInt },
+   attribute cfeb4_tof_delay { xsd:unsignedInt }
 
 ALCT = element ALCT { attlist.ALCT, AnodeChannel* }
 attlist.ALCT &=
@@ -195,6 +210,7 @@ attlist.ALCT &=
        | "ME31"
        | "ME32"
        | "ME41"
+       | "ME42"
       }
    ),
    attribute alct_firmware_month { xsd:unsignedByte { minInclusive="1" maxInclusive="12" } },
