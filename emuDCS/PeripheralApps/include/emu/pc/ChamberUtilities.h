@@ -49,26 +49,43 @@ public:
   void FindL1AAndDAVDelays();
   void Automatic();    // should be deprecated, since its name is not descriptive at all
   //
-  // clock phases
+  // clock phases...
+  ///  CFEB -> TMB communication delays
   void CFEBTiming();
-  void ALCTTiming();
+  void CFEBTiming_with_Posnegs();
+  void CFEBTiming_without_Posnegs();
+  //
+  /// RAT -> TMB communication delays
   int  RatTmbDelayScan();
   void RpcRatDelayScan();       //rpc=0
   void RpcRatDelayScan(int rpc);
   //
+  /// Determine all the timing parameters needed to establish ALCT<->TMB communication
   void ALCT_TMB_Loopback();
   //
-  int  Find_alct_tx_with_ALCT_to_TMB_evenodd(int number_of_passes);
-  int  Find_alct_rx_with_TMB_to_ALCT_evenodd(int number_of_passes);
+  /// Find a "good enough" value of the alct_rx_clock_delay with alternating 1's and 0's sent from ALCT to TMB. 
+  int  Find_alct_rx_with_ALCT_to_TMB_evenodd(int number_of_passes);
+  //
+  /// Find a "good enough" value of the alct_tx_clock_delay with alternating 1's and 0's looped back from TMB -> ALCT -> TMB.
+  int  Find_alct_tx_with_TMB_to_ALCT_evenodd(int number_of_passes);
+  //
+  /// Check all the conductors in the cable with walking 1's looped back from TMB -> ALCT -> TMB
   int  TMB_to_ALCT_walking_ones(int number_of_passes);
   //
   /// same as above, but with "default number of passes...
-  int  Find_alct_tx_with_ALCT_to_TMB_evenodd();
-  int  Find_alct_rx_with_TMB_to_ALCT_evenodd();
+  int  Find_alct_rx_with_ALCT_to_TMB_evenodd();
+  int  Find_alct_tx_with_TMB_to_ALCT_evenodd();
   int  TMB_to_ALCT_walking_ones();
+  //
+  /// Thoroughly check the ALCT<->TMB communication by looping back random data from TMB -> ALCT -> TMB
   int ALCT_TMB_TimingUsingRandomLoopback();
   int ALCT_TMB_TimingUsingErrorCorrectionCode();
   //
+  // Define the timing of the BC0 from TMB -> ALCT -> TMB
+  int ALCTBC0Scan();
+  //
+  inline void setLocalTmbBxnOffset(int value) { local_tmb_bxn_offset_ = value; }
+  inline int getLocalTmbBxnOffset() { return local_tmb_bxn_offset_; }
   //
   //-----
   /// number of microseconds to wait between data reads
@@ -80,8 +97,7 @@ public:
   inline int getNumberOfDataReads() { return number_of_data_reads_; }
   //
   // ALCT-CLCT match timing
-  int FindALCTinCLCTMatchWindow();
-  //  int FindALCTvpf();
+  //  int FindALCTinCLCTMatchWindow();
   //
   // DMB parameters
   int MeasureAlctDavCableDelay();
@@ -153,9 +169,9 @@ public:
   // analysis methods
   void ZeroTmbHistograms();
   void ZeroDmbHistograms();
-  void ALCT_phase_analysis_old(int rxtxtiming[13][13]);
-  void ALCT_phase_analysis(int rxtxtiming[13][13]);
+  void ALCT_phase_analysis(int array_to_analyze[25][25]);
   int window_analysis(int * data, const int length);
+  int window_counter;
   int DelayWhichGivesDesiredValue(float * vector_of_values_with_delay_index, 
 				  const int min_delay, const int max_delay, 
 				  int desired_value);
@@ -183,10 +199,11 @@ public:
   inline void SetMPC(MPC * myMPC)   {thisMPC = myMPC; }
   //
   // Get xml values:
-  inline int  GetCFEBrxPhase(int CFEB)           { return thisTMB->GetCFEBrxPhase(CFEB); }
-  inline int  GetALCTrxPhase()                   { return thisTMB->GetALCTrxPhase(); }
-  inline int  GetALCTtxPhase()                   { return thisTMB->GetALCTtxPhase(); }
-  inline int  GetAlctPosNeg()                    { return thisTMB->GetAlctPosNeg(); }
+  inline int  GetCfebRxClockDelay(int CFEB)      { return thisTMB->GetCfebRxClockDelay(CFEB); }
+  inline int  GetAlctRxClockDelay()              { return thisTMB->GetAlctRxClockDelay(); }
+  inline int  GetAlctTxClockDelay()              { return thisTMB->GetAlctTxClockDelay(); }
+  inline int  GetAlctRxPosNeg()                  { return thisTMB->GetAlctRxPosNeg(); }
+  inline int  GetAlctTxPosNeg()                  { return thisTMB->GetAlctTxPosNeg(); }
   inline int  GetRatTmbDelay()                   { return thisTMB->GetRatTmbDelay() ; }
   inline int  GetRpcRatDelay()                   { return thisTMB->GetRpc0RatDelay(); }
   inline int  GetMPCdelay()                      { return thisTMB->GetMpcRxDelay(); }
@@ -198,23 +215,27 @@ public:
   inline int  GetTMBL1aTiming_configvalue()      { return thisTMB->GetL1aDelay(); }
   inline int  GetALCTvpf_configvalue()           { return thisTMB->GetAlctVpfDelay(); }
   inline int  GetALCTL1aDelay_configvalue()      { return thisTMB->alctController()->GetWriteL1aDelay(); }
+  inline int  GetAlctBx0Delay()                  { return thisTMB->GetAlctBx0Delay(); }
   //
   // Get parameters from test summary results (not xml parameters):
   inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB] ; }
+  inline int  GetCFEBrxPosnegTest(int CFEB){ return CFEBrxPosneg_[CFEB] ; }
   inline int  GetALCTrxPhaseTest()         { return ALCTrxPhase_ ; }
   inline int  GetALCTtxPhaseTest()         { return ALCTtxPhase_ ; }
-  inline int  GetAlctPosNegTest()          { return ALCTPosNeg_ ; }
+  inline int  GetAlctRxPosNegTest()        { return ALCTrxPosNeg_ ; }
+  inline int  GetAlctTxPosNegTest()        { return ALCTtxPosNeg_ ; }
   inline int  GetRatTmbDelayTest()         { return RatTmbDelay_ ; }
   inline int  GetRpcRatDelayTest()         { return GetRpcRatDelayTest(0); }
   inline int  GetRpcRatDelayTest(int rpc)  { return RpcRatDelay_[rpc] ; }
-  inline int  GetMatchTrigAlctDelayTest()  { return measured_match_trig_alct_delay_; }
-  inline int  GetMpcTxDelayTest()          { return measured_mpc_tx_delay_; }
+  inline int  GetMatchTrigAlctDelayTest()  { return match_trig_alct_delay_; }
+  inline int  GetTmbBxnOffsetTest()        { return tmb_bxn_offset_used_; }
   inline int  GetMpcRxDelayTest()          { return MPCdelay_ ; }
   inline int  GetAlctDavCableDelayTest()   { return AlctDavCableDelay_; }
   inline int  GetTmbLctCableDelayTest()    { return TmbLctCableDelay_; }
   inline int  GetCfebDavCableDelayTest()   { return CfebDavCableDelay_; }
   inline int  GetTmbL1aDelayTest()         { return TMBL1aTiming_; }
   inline int  GetAlctL1aDelayTest()        { return ALCTL1aDelay_; }
+  inline int  GetAlctBx0DelayTest()        { return ALCT_bx0_delay_; }
   //
   // Get measured values (not parameters)
   inline float GetActiveFebFlagToL1aAtDMB() { return AffToL1aAverageValue_; }
@@ -237,11 +258,11 @@ public:
   inline void SetCFEBrxPhaseTest(int CFEB, int value) { CFEBrxPhase_[CFEB] = value ; }
   inline void SetALCTrxPhaseTest(int value)           { ALCTrxPhase_ = value ; }
   inline void SetALCTtxPhaseTest(int value)           { ALCTtxPhase_ = value ; }
-  inline void SetAlctPosNegTest(int value)            { ALCTPosNeg_ = value ; }
+  inline void SetAlctRxPosNegTest(int value)          { ALCTrxPosNeg_ = value ; }
+  inline void SetAlctTxPosNegTest(int value)          { ALCTtxPosNeg_ = value ; }
   inline void SetRatTmbDelayTest(int value)           { RatTmbDelay_ = value ; }
   inline void SetRpcRatDelayTest(int rpc, int value)  { RpcRatDelay_[rpc] = value ; }
-  inline void SetMatchTrigAlctDelayTest(int value)    { measured_match_trig_alct_delay_ = value; }
-  inline void SetMpcTxDelayTest(int value)            { measured_mpc_tx_delay_ = value; }
+  inline void SetMatchTrigAlctDelayTest(int value)    { match_trig_alct_delay_ = value; }
   inline void SetMpcRxDelayTest(int value)            { MPCdelay_ = value; }
   inline void SetAlctDavCableDelayTest(int value)     { AlctDavCableDelay_ = value; }
   inline void SetTmbLctCableDelayTest(int value)      { TmbLctCableDelay_ = value; }
@@ -287,14 +308,15 @@ private:
   RAT * thisRAT_;
   //
   int CFEBrxPhase_[5];
+  int CFEBrxPosneg_[5];
   int ALCTtxPhase_;
   int ALCTrxPhase_;
-  int ALCTPosNeg_;
+  int ALCTrxPosNeg_;
+  int ALCTtxPosNeg_;
   int RatTmbDelay_;
   int RpcRatDelay_[2];
   int ALCTvpf_;
-  int measured_match_trig_alct_delay_;
-  int measured_mpc_tx_delay_;
+  int match_trig_alct_delay_;
   int MPCdelay_;
   int AlctDavCableDelay_;
   int TmbLctCableDelay_;
@@ -302,6 +324,10 @@ private:
   int TMBL1aTiming_;
   int BestALCTL1aDelay_;
   int ALCTL1aDelay_;
+  //
+  int local_tmb_bxn_offset_;
+  int ALCT_bx0_delay_;
+  int tmb_bxn_offset_used_;
   //
   int ScopeMin_;
   int ScopeMax_;

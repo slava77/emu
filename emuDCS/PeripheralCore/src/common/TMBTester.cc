@@ -739,20 +739,28 @@ bool TMBTester::test3d3444(){
   //
   (*MyOutput_) << "TMBTester: Verifying 3d3444 operation" << std::endl;
   //
+  unsigned long int devices[4] = {vme_ddd0_adr,vme_ddd1_adr,vme_ddd2_adr,rat_3d_delays_adr};
+  //
   bool tempbool = true;  
   //
-  for (int device=0; device<=11; device++){
+  for (unsigned device=0; device<4; device++) {  //loop through the DDD devices available
     //
-    int initial_data=tmb_->tmb_read_delays(device);   //initial value of delays
+    unsigned long vme_address = devices[device];
     //
-    for (unsigned short int ddd_delay=0; ddd_delay<=15; ddd_delay++ ) {
+    int initial_data = tmb_->ReadRegister(vme_address);
+    //
+    for (unsigned short int channel=0; channel<16; channel+=4) {  //loop through channels on the DDD chip
       //
-      tmb_->tmb_clk_delays(ddd_delay,device);              
-      int delay_data=tmb_->tmb_read_delays(device);
-      tempbool &= compareValues("delay values ",delay_data,ddd_delay,true);
+      for (unsigned short int ddd_delay=0; ddd_delay<16; ddd_delay++ ) {  // loop through all possible delay channels
+	//
+	int write_data = (ddd_delay << channel);
+	tmb_->WriteRegister(vme_address,write_data);
+	int read_data = tmb_->ReadRegister(vme_address); 
+	tempbool &= compareValues("delay values ",read_data,write_data,true);
+      }
     }
     //
-    tmb_->tmb_clk_delays(initial_data,device);              
+    tmb_->WriteRegister(vme_address,initial_data);
   }
   //
   bool testOK = tempbool;
