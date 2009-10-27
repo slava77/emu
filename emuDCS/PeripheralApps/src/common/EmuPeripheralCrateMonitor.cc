@@ -1247,6 +1247,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   // TEMPs
   *out << cgicc::br() << cgicc::b("<center> Temperatures (C)</center>") << std::endl;
   *out << cgicc::table().set("border","1").set("align","center");
+  *out << std::setprecision(1) << std::fixed ;
   //
   *out <<cgicc::td() << cgicc::td();
   *out <<cgicc::td() << "DMB" << cgicc::td();
@@ -1437,7 +1438,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
         *out << LVCounterName[count] ;
 	*out <<cgicc::td() << cgicc::td();
       }
-      *out << std::setprecision(3) << std::fixed ;
+      *out << std::setprecision(2) << std::fixed ;
       val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1528,10 +1529,13 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
         *out << TECounterName[count] ;
 	*out <<cgicc::td() << cgicc::td();
       }
-      *out << std::setprecision(3) << std::fixed;
+      *out << std::setprecision(1) << std::fixed;
       val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+40+count];
       if(val<0.)    
-         *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+      {
+         if(count==5 && val < -50.)  *out << "-";
+         else  *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+      } 
       else if(val > temp_max[count] || val < temp_min[count])
          *out << cgicc::span().set("style","color:red") << val << cgicc::span();
       else 
