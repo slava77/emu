@@ -1174,7 +1174,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      difftime=time(NULL)-readtime;
      if(difftime>0) *out << " reading was " << difftime << " seconds old" << std::endl;
   }
-  *out << std::setprecision(3);
+  *out << std::setprecision(2) << std::fixed ;
 
   *out << cgicc::br() << cgicc::b("<center> Low Voltages and Currents </center>") << std::endl;
 
@@ -1350,7 +1350,7 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
         *out << LVCounterName[count] ;
 	*out <<cgicc::td() << cgicc::td();
       }
-      *out << std::setprecision(3);
+      *out << std::setprecision(2) << std::fixed;
       val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+19+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1437,7 +1437,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
         *out << LVCounterName[count] ;
 	*out <<cgicc::td() << cgicc::td();
       }
-      *out << std::setprecision(3);
+      *out << std::setprecision(3) << std::fixed ;
       val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1528,7 +1528,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
         *out << TECounterName[count] ;
 	*out <<cgicc::td() << cgicc::td();
       }
-      *out << std::setprecision(3);
+      *out << std::setprecision(3) << std::fixed;
       val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+40+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1791,7 +1791,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
 //     unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
-     unsigned TOTAL_COUNTS=10;
+     unsigned TOTAL_COUNTS=13;
 
      cgicc::Cgicc cgi(in);
 
@@ -1842,7 +1842,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
     // retrieve data from inforspace
     xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[idx]);
     xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
-    unsigned short csra1=0,csra2=0,csra3=0,csrm0=0,brstr=0,dtstr=0;
+    unsigned short csra1=0,csra2=0,csra3=0,csrm0=0,brstr=0,dtstr=0,qploc=0,ttcrd=0,qperr=0;
     if(!ccbdata) continue;
     if(ccbdata->size()>12)
     {
@@ -1852,6 +1852,9 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
       brstr=(*ccbdata)[9];
       dtstr=(*ccbdata)[10];
       csrm0=(*ccbdata)[11];
+      qploc=(*ccbdata)[15];
+      ttcrd=(*ccbdata)[16];
+      qperr=(*ccbdata)[17];
     }
     //
     for(unsigned int count=0; count<TOTAL_COUNTS; count++) {
@@ -1912,6 +1915,15 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
    	   *out << dtstr;
            break;
          case 9:
+   	   *out << qploc;
+           break;
+         case 10:
+   	   *out << ttcrd;
+           break;
+         case 11:
+   	   *out << qperr;
+           break;
+         case 12:
            *out << vcc_reset[idx];
            break;
          default:
@@ -2823,7 +2835,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   {
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
-        if(command_argu==crateVector[i]->GetLabel())
+        if(command_argu=="ALL" || command_argu==crateVector[i]->GetLabel())
         {   crate_off[i] = true;
             std::cout << "SwitchBoard: disable crate " << command_argu << std::endl;
         }
@@ -2833,7 +2845,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   {
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
-        if(command_argu==crateVector[i]->GetLabel())
+        if(command_argu=="ALL" || command_argu==crateVector[i]->GetLabel())
         {   crate_off[i] = false;
             std::cout << "SwitchBoard: enable crate " << command_argu << std::endl;
         }
@@ -3262,11 +3274,14 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     OCounterName.push_back( "CSRA3 ");
     OCounterName.push_back( "BRSTR ");
     OCounterName.push_back( "DTSTR ");
+    OCounterName.push_back( "QP count ");  
+    OCounterName.push_back( "RX count ");  // 10
+    OCounterName.push_back( "QP error ");
     OCounterName.push_back( "RESET ");
-    OCounterName.push_back( "MPC CSR0  ");
-    OCounterName.push_back( "MPC CSR4  "); // 10
+    OCounterName.push_back( "MPC CSR0  "); 
+    OCounterName.push_back( "MPC CSR4  "); 
     OCounterName.push_back( "MPC CSR7  ");
-    OCounterName.push_back( "MPC CSR8  "); // 12
+    OCounterName.push_back( "MPC CSR8  "); // 17
 
     LVCounterName.push_back( "CFEB1 3.3V ");  // 0
     LVCounterName.push_back( "CFEB1 5V   ");  //
