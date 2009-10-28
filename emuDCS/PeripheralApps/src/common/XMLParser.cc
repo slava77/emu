@@ -470,7 +470,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("clct_trig_enable"   ,value)) { tmb_->SetTmbAllowClct(value);     }
     if (fillInt("match_trig_enable"  ,value)) { tmb_->SetTmbAllowMatch(value);    }
     if (fillInt("mpc_rx_delay"       ,value)) { tmb_->SetMpcRxDelay(value);       }
-    //if (fillInt("mpc_sel_ttc_bx0"    ,value)) { tmb_->SetSelectMpcTtcBx0(value);  }
+    if (fillInt("mpc_sel_ttc_bx0"    ,value)) { tmb_->SetSelectMpcTtcBx0(value);  }
     if (fillInt("mpc_idle_blank"     ,value)) { tmb_->SetMpcIdleBlank(value);     }
     if (fillInt("mpc_output_enable"  ,value)) { tmb_->SetMpcOutputEnable(value);  }
     //
