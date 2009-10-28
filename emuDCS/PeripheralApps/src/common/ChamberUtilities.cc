@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.26 2009/10/27 11:07:26 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.27 2009/10/28 11:36:25 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.27  2009/10/28 11:36:25  rakness
+// add sleeps after resyncs for BC0 scan
+//
 // Revision 1.26  2009/10/27 11:07:26  rakness
 // 15 Oct 2009 TMB firmware update
 //
@@ -2675,6 +2678,8 @@ int ChamberUtilities::ALCTBC0Scan() {
   thisCCB_->syncReset(); 
   thisCCB_->setCCBMode(CCB::DLOG);
   //
+  // put in a sleep to allow the resync to take hold...
+  ::sleep(1);
   //
   // Values for scan over tmb_bxn_offset
   //
@@ -2754,6 +2759,8 @@ int ChamberUtilities::ALCTBC0Scan() {
   thisCCB_->syncReset(); 
   thisCCB_->setCCBMode(CCB::DLOG);
   //
+  // put in a sleep to allow the resync to take hold...
+  ::sleep(1);
   //
   return ALCT_bx0_delay_;
   //
