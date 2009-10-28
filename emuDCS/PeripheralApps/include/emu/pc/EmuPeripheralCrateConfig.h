@@ -533,6 +533,7 @@ private:
   // Configuration and firmware checks
   void CheckConfigurationPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckTimeSinceHardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckBC0Synchronization(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -560,6 +561,7 @@ private:
   int tmb_check_ok[60][9];
   int dmb_check_ok[60][9];
   int time_since_reset[60][9];
+  int bc0_sync[60][9];
   //
   void SaveTestSummary();
   void SaveLog();
