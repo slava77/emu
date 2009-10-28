@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.58 2009/10/27 11:43:42 liu Exp $
+// $Id: DAQMB.cc,v 3.59 2009/10/28 09:51:13 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.59  2009/10/28 09:51:13  liu
+// fix a typo
+//
 // Revision 3.58  2009/10/27 11:43:42  liu
 // add back power_mask parameter
 //
@@ -1911,7 +1914,7 @@ void DAQMB::lowv_onoff(char c)
  // cmd[0]=0x08; /* write power register */
  // cmd[1]=c; /* 0x3f means all on, 0x00 means all off  */
  // devdo(LOWVOLT,16,cmd,0,sndbuf,rcvbuf,2);
- unsigned short mask= 0x3F && c && (~power_mask_);
+ unsigned short mask= 0x3F & c & (~power_mask_);
  write_now(0x8010, mask, rcvbuf);
 }
 
