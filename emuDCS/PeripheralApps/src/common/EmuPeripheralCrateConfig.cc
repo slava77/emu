@@ -8018,7 +8018,7 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("CCB Info").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("CCB Info").set("style","color:blue") << std::endl ;
   //
   thisCCB->RedirectOutput(out);
   //
