@@ -144,6 +144,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
       tmb_check_ok[i][j] = -1;
       dmb_check_ok[i][j] = -1;
       time_since_reset[i][j] = -1;
+      bc0_sync[i][j] = -1;
     }
   }
   //
@@ -198,6 +199,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //---------------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckConfigurationPage,"CheckConfigurationPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTimeSinceHardReset,"CheckTimeSinceHardReset");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckBC0Synchronization,"CheckBC0Synchronization");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesConfiguration, "CheckCratesConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
@@ -2544,6 +2546,13 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
   *out << cgicc::td();
   //
   *out << cgicc::td();
+  std::string CheckBC0Synchronization = toolbox::toString("/%s/CheckBC0Synchronization",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckBC0Synchronization) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check BC0 synchronization") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
   std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfiguration",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
   if (all_crates_ok == 1) {
@@ -2591,6 +2600,36 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
       for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
 	*out                     << " " << std::dec << time_since_reset[crate_number][chamber_index];
 	OutputCheckConfiguration << " " << std::dec << time_since_reset[crate_number][chamber_index];
+      }
+      //
+      *out                     << cgicc::br() << std::endl;
+      OutputCheckConfiguration                << std::endl;
+    }
+  }
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Number of times BC0 is synchronized at TMB").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  bool print_sync = false;
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) 
+    for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+      if (bc0_sync[crate_number][chamber_index]>=0) print_sync = true;
+  //
+  if ( print_sync ) {
+    //
+    OutputCheckConfiguration << "Number of times BC0 from TMB matched BC0 from ALCT" << std::endl;
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      *out                     << crateVector[crate_number]->GetLabel();
+      OutputCheckConfiguration << crateVector[crate_number]->GetLabel();
+      //
+      for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	*out                     << " " << std::dec << bc0_sync[crate_number][chamber_index];
+	OutputCheckConfiguration << " " << std::dec << bc0_sync[crate_number][chamber_index];
       }
       //
       *out                     << cgicc::br() << std::endl;
@@ -2786,6 +2825,40 @@ void EmuPeripheralCrateConfig::CheckTimeSinceHardReset(xgi::Input * in, xgi::Out
   this->CheckConfigurationPage(in, out);
 }
 //
+void EmuPeripheralCrateConfig::CheckBC0Synchronization(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::cout << "Check BC0 synchronization at TMBs... " << std::endl; 
+  //
+  int initialcrate=current_crate_;
+  //
+  for (int i=0; i<60; i++) 
+    for (int j=0; j<9; j++) 
+      bc0_sync[i][j] = 0;
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	for (int count=0; count < 100; count++) {
+	  tmbVector[tmb]->ReadRegister(0xCA);
+	  bc0_sync[i][tmb] += tmbVector[tmb]->GetReadBx0Match();
+	}
+	std::cout << " " << bc0_sync[i][tmb];
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  SetCurrentCrate(initialcrate);	
+  //
+  this->CheckConfigurationPage(in, out);
+}
+//
 void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
@@ -2816,9 +2889,12 @@ void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Ou
   //
   std::cout << "Check time since TMBs last received hard resets... " << std::endl; 
   //
-  for (int i=0; i<60; i++) 
-    for (int j=0; j<9; j++) 
+  for (int i=0; i<60; i++) {
+    for (int j=0; j<9; j++) {
       time_since_reset[i][j] = -1;
+      bc0_sync[i][j] = 0;
+    }
+  }
   //
   for(unsigned i=0; i< crateVector.size(); i++) {
     //
@@ -2829,6 +2905,23 @@ void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Ou
       for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
 	time_since_reset[i][tmb] = tmbVector[tmb]->ReadRegister(0xE8); 
 	std::cout << " " << tmbVector[tmb]->ReadRegister(0xE8);
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	for (int count=0; count < 100; count++) {
+	  tmbVector[tmb]->ReadRegister(0xCA); 
+	  bc0_sync[i][tmb] += tmbVector[tmb]->GetReadBx0Match();
+	}
+	std::cout << " " << bc0_sync[i][tmb];
       }
       std::cout << std::endl;
     }
