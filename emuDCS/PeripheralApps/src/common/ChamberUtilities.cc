@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.27 2009/10/28 11:36:25 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.28 2009/10/30 11:40:53 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.28  2009/10/30 11:40:53  rakness
+// Update CFEB rx scan for ME1/1 TMB firmware
+//
 // Revision 1.27  2009/10/28 11:36:25  rakness
 // add sleeps after resyncs for BC0 scan
 //
@@ -840,8 +843,8 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
   thisTMB->SetTmbAllowClct(1);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
-  thisTMB->SetHsPretrigThresh(6);
-  thisTMB->SetMinHitsPattern(6);
+  thisTMB->SetHsPretrigThresh(5);
+  thisTMB->SetMinHitsPattern(5);
   thisTMB->WriteRegister(seq_clct_adr);
   //
   thisTMB->SetIgnoreCcbStartStop(0);
@@ -917,13 +920,34 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 	  //
 	  PulseCFEB(random_halfstrip[List],CLCTInputList[List]);	
 	  //
-	  int pulsed_halfstrip = List*32 + random_halfstrip[List];
-	  //
 	  usleep(50);
 	  //
+	  // Now need to map the CFEB numbering into the ME1/1 numbering
+	  //
+	  int pulsed_halfstrip = -1;
+	  //
+	  if ( thisTMB->GetTMBFirmwareCompileType() == 0xa ) {   // normal TMB compile type
+	    //
+	    pulsed_halfstrip = List*32 + random_halfstrip[List];
+	    //
+	  } else if ( thisTMB->GetTMBFirmwareCompileType() == 0xc ) {  // plus endcap ME1/1
+	    //
+	    pulsed_halfstrip = List*32 + random_halfstrip[List];
+	    if (List == 4) 
+	      pulsed_halfstrip = 159 - random_halfstrip[List];
+	    //
+	  } else if ( thisTMB->GetTMBFirmwareCompileType() == 0xd ) {  // minus endcap ME1/1
+	    //
+	    pulsed_halfstrip = 159 - random_halfstrip[List];
+	    //
+	    pulsed_halfstrip = 127 - (List*32 + random_halfstrip[List]);
+	    if (List == 4)
+	      pulsed_halfstrip = 128 + random_halfstrip[List];
+	  }
+	  //
 	  if (debug_) {
-	    std::cout << "posneg=" << posneg << ", TimeDelay=" << TimeDelay << std::endl;
-	    std::cout << "CLCTInput=" << List      
+	    std::cout << "posneg=" << std::dec << posneg << ", TimeDelay=" << TimeDelay << std::endl;
+	    std::cout << "CFEB pulsed:" << List      
 		      << ", halfstrip in CFEB =" << random_halfstrip[List]
 		      << ", halfstrip in chamber =" << pulsed_halfstrip
 		      << ", Nmuons=" << Nmuons 
@@ -934,7 +958,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 	  int clct0nhit         = thisTMB->GetCLCT0Nhit();
 	  int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
 	  if (debug_) {
-	    std::cout << "clct0patternId=" << clct0patternId
+	    std::cout << "TMB:   clct0patternId=" << std::dec << clct0patternId
 		      << ", clct0hstp=" << clct0keyHalfStrip      
 		      << ", nHits =" << clct0nhit;
 	  }
@@ -943,7 +967,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 	  //	int clct1nhit         = thisTMB->GetCLCT1Nhit();
 	  //	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
 	  //
-	  if ( clct0patternId == 10 && clct0keyHalfStrip == pulsed_halfstrip && clct0nhit == 6 ) {
+	  if ( clct0patternId == 10 && clct0keyHalfStrip == pulsed_halfstrip && clct0nhit >= 5 ) {
 	    Muons[List][posneg][TimeDelay]++;
 	    if (debug_) std::cout << " found" << std::endl;
 	    last_pulsed_halfstrip[List] = random_halfstrip[List];
@@ -2556,26 +2580,23 @@ void ChamberUtilities::ALCT_TMB_Loopback() {
   PropagateMeasuredValues(true);
   //
   // Find a "good enough" value of the alct_rx_clock_delay with alternating 1's and 0's sent from ALCT -> TMB
-  if (Find_alct_rx_with_ALCT_to_TMB_evenodd(10) < 0) {
-    PropagateMeasuredValues(initial_use_measured_values);
-    return;
-  }
+  int alct_rx_value = Find_alct_rx_with_ALCT_to_TMB_evenodd(10);
+  //
   ::sleep(2);
   //
   // Find a "good enough" value of the alct_tx_clock_delay with alternating 1's and 0's 
   // sent from TMB, correctly latched at ALCT, and then looped back:  TMB -> ALCT -> TMB
-  if (Find_alct_tx_with_TMB_to_ALCT_evenodd(10) < 0) {
+  int alct_tx_value = Find_alct_tx_with_TMB_to_ALCT_evenodd(10);
+  //
+  if (alct_rx_value < 0 || alct_tx_value < 0) {
     PropagateMeasuredValues(initial_use_measured_values);
     return;
   }
+  //
   ::sleep(2);
   //
   // Now measure alct_[rx,tx]_phase_delay with random data...
-  if (ALCT_TMB_TimingUsingRandomLoopback() < 0) {
-    PropagateMeasuredValues(initial_use_measured_values);
-    return;
-  }
-  //
+  ALCT_TMB_TimingUsingRandomLoopback();
   //
   PropagateMeasuredValues(initial_use_measured_values);
   //
@@ -3676,7 +3697,7 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   // Active-FEB Flag <-> L1A difference greater than 1 away from the desired value,
   // we are not optimally receiving the L1A in the window for the CFEB...
   //
-  if (difference > 0.5) {
+  if (difference > 2.5) {
     return -999;
   } else {
     return TmbLctCableDelay_;
