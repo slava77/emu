@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.h,v 1.1 2009/03/25 10:22:43 liu Exp $
+// $Id: EmuPeripheralCrateBase.h,v 1.2 2009/10/30 15:09:22 liu Exp $
 
 #ifndef _EmuPeripheralCrateBase_h_
 #define _EmuPeripheralCrateBase_h_
@@ -43,10 +43,15 @@ protected:
 
   xoap::MessageReference createReply(xoap::MessageReference message)
                         throw (xoap::exception::Exception);
+  std::string getAttrFromSOAP(xoap::MessageReference message, std::string tag);
 
   //
   xoap::MessageReference PCcreateCommandSOAP(std::string command);
   int PCsendCommand(std::string command, std::string klass, int instance = -1) 
+                        throw (xoap::exception::Exception, xdaq::exception::Exception);
+
+  xoap::MessageReference PCcreateCommandSOAPwithAttr(std::string command, std::string tag, std::string attr);
+  int PCsendCommandwithAttr(std::string command, std::string tag, std::string attr, std::string klass, int instance = -1) 
                         throw (xoap::exception::Exception, xdaq::exception::Exception);
   std::string getLocalDateTime();
   //

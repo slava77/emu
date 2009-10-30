@@ -344,6 +344,8 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
         int rt=0;
         if(!Simulation_) rt=thisCrate->configure(2);
         crate_state[current_crate_] = (rt==0)?1:0;
+        if(rt==0)
+           PCsendCommandwithAttr("SoapInfo", "CrateUp", ThisCrateID_, "emu::x2p::EmuDim");
      }
      this->Default(in,out);
   }
@@ -358,6 +360,8 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
         {   int rt=0;
             if(!Simulation_) rt=crateVector[i]->configure(c);
             crate_state[i] = (rt==0)?1:0;
+            if(c==2 && rt==0)
+               PCsendCommandwithAttr("SoapInfo", "CrateUp", crateVector[i]->GetLabel(), "emu::x2p::EmuDim");
         }
     }
     current_config_state_=2;

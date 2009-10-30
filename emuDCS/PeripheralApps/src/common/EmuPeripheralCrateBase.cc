@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.4 2009/03/25 11:37:22 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.5 2009/10/30 15:09:22 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -84,7 +84,6 @@ xoap::MessageReference EmuPeripheralCrateBase::createReply(xoap::MessageReferenc
 	return reply;
 }
 
-//
 ////////////////////////////////////////////////////////////////////
 // sending soap commands
 ////////////////////////////////////////////////////////////////////
@@ -126,6 +125,45 @@ int EmuPeripheralCrateBase::PCsendCommand(std::string command, std::string klass
   }
   return num;
 }
+
+int EmuPeripheralCrateBase::PCsendCommandwithAttr(std::string command, std::string tag, std::string attr, std::string klass, int instance)
+  throw (xoap::exception::Exception, xdaq::exception::Exception){
+  //
+  int num = 0;
+
+  // find applications
+  std::set<xdaq::ApplicationDescriptor *> apps;
+  //
+  try {
+    if(instance < 0)
+       apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
+    else
+       apps.insert(getApplicationContext()->getDefaultZone()->getApplicationDescriptor(klass, instance));
+  }
+  catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+    return num; // Do nothing if the target doesn't exist
+  }
+  //
+  // prepare a SOAP message
+  xoap::MessageReference message = PCcreateCommandSOAPwithAttr(command, tag, attr);
+  xoap::MessageReference reply;
+  xdaq::ApplicationDescriptor *ori=this->getApplicationDescriptor();
+  //
+  // send the message one-by-one
+  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+  for (; i != apps.end(); ++i) {
+    // postSOAP() may throw an exception when failed.
+    try {
+        reply = getApplicationContext()->postSOAP(message, *ori, *(*i));
+        num++;
+    }
+    catch (xcept::Exception &e) {
+        std::cout << "PCsendCommand failed, command=" << command << ", klass=" << klass << ", instance=" << instance << std::endl;
+    }
+    //
+  }
+  return num;
+}
 //
 xoap::MessageReference EmuPeripheralCrateBase::PCcreateCommandSOAP(std::string command) {
   //
@@ -137,6 +175,28 @@ xoap::MessageReference EmuPeripheralCrateBase::PCcreateCommandSOAP(std::string c
   envelope.getBody().addBodyElement(name);
   //
   return message;
+}
+
+xoap::MessageReference EmuPeripheralCrateBase::PCcreateCommandSOAPwithAttr(
+                std::string command, std::string tag, std::string attr)
+{
+        xoap::MessageReference message = xoap::createMessage();
+        xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+        xoap::SOAPName name = envelope.createName(command, "xdaq", XDAQ_NS_URI);
+        xoap::SOAPElement element = envelope.getBody().addBodyElement(name);
+
+        xoap::SOAPName p = envelope.createName(tag);
+        envelope.getBody().addAttribute(p, attr);
+
+        return message;
+}
+
+std::string EmuPeripheralCrateBase::getAttrFromSOAP(xoap::MessageReference message, std::string tag)
+{
+        xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+        xoap::SOAPName name = envelope.createName(tag);
+        std::string value = envelope.getBody().getAttributeValue(name);
+        return value;
 }
 
 std::string EmuPeripheralCrateBase::getLocalDateTime(){
