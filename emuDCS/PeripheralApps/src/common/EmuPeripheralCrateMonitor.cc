@@ -479,7 +479,6 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
 void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out ) 
 {
   if(!parsed) ParsingXML();
-  main_url_ = getApplicationDescriptor()->getContextDescriptor()->getURL();
   //
   std::string LoggerName = getApplicationLogger().getName() ;
   std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
@@ -1979,7 +1978,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
 
-    *out << cgicc::b("<center>"+TCounterName[this_tcounter_]+"</center>" ) << std::endl;
+    *out << cgicc::b(TCounterName[this_tcounter_]) << std::endl;
 
   *out << cgicc::table().set("border","1");
   //
@@ -2090,7 +2089,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
 
-    *out << cgicc::b("<center>"+DCounterName[this_dcounter_]+"</center>" ) << std::endl;
+    *out << cgicc::b(DCounterName[this_dcounter_]) << std::endl;
 
   *out << cgicc::table().set("border","1");
   //

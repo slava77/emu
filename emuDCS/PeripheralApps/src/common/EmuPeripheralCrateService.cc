@@ -65,7 +65,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
   Simulation_ = false;
-  GuiButton_ = false;
+  GuiButton_ = true;
   //
   RunNumber_= "-1";
   //
@@ -95,7 +95,6 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
 void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out ) 
 {
   if(!parsed) ParsingXML();
-  main_url_ = getApplicationDescriptor()->getContextDescriptor()->getURL();
 
   if(endcap_side==1)
      MyHeader(in,out,"EmuPeripheralCrateService -- Plus Endcap");
@@ -282,7 +281,9 @@ void EmuPeripheralCrateService::MyHeader(xgi::Input * in, xgi::Output * out, std
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
   *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
   //
+  std::string myUrl = getApplicationDescriptor()->getContextDescriptor()->getURL();
   std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+  main_url_ = myUrl + "/" + myUrn + "/MainPage";
   xgi::Utils::getPageHeader(out,title,myUrn,"","");
   //
 }
@@ -541,7 +542,7 @@ void EmuPeripheralCrateService::ForEmuPage1(xgi::Input *in, xgi::Output *out)
        <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << std::endl;
 
     *out << "  <monitorable name=\"" << "title"
-         <<            "\" value=\"" << "PCrate Service " + (std::string)((endcap_side==1)?"Plus":"Minus")
+         <<            "\" value=\"" << "Blue Page " + (std::string)((endcap_side==1)?"Plus":"Minus")
          <<  "\" nameDescription=\"" << " "
          << "\" valueDescription=\"" << "click this to access the PCrate Blue Page "
          <<          "\" nameURL=\"" << " "
