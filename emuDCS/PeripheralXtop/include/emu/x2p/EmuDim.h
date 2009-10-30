@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.13 2009/10/26 11:58:32 liu Exp $
+// $Id: EmuDim.h,v 1.14 2009/10/30 14:49:58 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -93,6 +93,8 @@ public:
   xoap::MessageReference  SoapStart(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference  SoapStop(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference  createReply(xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference  SoapInfo(xoap::MessageReference message) throw (xoap::exception::Exception);
+  std::string  getAttrFromSOAP(xoap::MessageReference message, std::string tag);
 
   void ButtonStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ButtonStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.29 2009/10/26 11:58:32 liu Exp $
+// $Id: EmuDim.cc,v 1.30 2009/10/30 14:49:58 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -63,6 +63,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   getApplicationInfoSpace()->fireItemAvailable("ExtraLoop", &extraloop);
   xoap::bind(this, &EmuDim::SoapStart, "SoapStart", XDAQ_NS_URI);
   xoap::bind(this, &EmuDim::SoapStop, "SoapStop", XDAQ_NS_URI);
+  xoap::bind(this, &EmuDim::SoapInfo, "SoapInfo", XDAQ_NS_URI);
   xgi::bind(this,&EmuDim::ButtonStart      ,"ButtonStart");
   xgi::bind(this,&EmuDim::ButtonStop      ,"ButtonStop");
   xgi::bind(this,&EmuDim::SwitchBoard      ,"SwitchBoard");
@@ -84,6 +85,25 @@ xoap::MessageReference EmuDim::SoapStop (xoap::MessageReference message)
   throw (xoap::exception::Exception) 
 {
      Stop();
+     return createReply(message);
+}
+
+xoap::MessageReference EmuDim::SoapInfo (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+     if(inited)
+     {
+        std::string cratename=getAttrFromSOAP(message, "CrateUp");
+        int i=CrateToNumber( cratename.c_str() );
+        if(i>=0 && i<TOTAL_CRATES)
+        {
+            crate_state[i] = 0;
+            std::string confirm = "INIT_IS_DONE;" + crate_name[i];
+            std::cout << getLocalDateTime() << " BP Return: " << confirm << std::endl;
+            strcpy(pvssrespond.command, confirm.c_str());
+            Confirmation_Service->updateService();
+        }
+     }
      return createReply(message);
 }
 
@@ -764,6 +784,14 @@ xoap::MessageReference EmuDim::createReply(xoap::MessageReference message)
         envelope.getBody().addBodyElement(responseName);
 
         return reply;
+}
+
+std::string EmuDim::getAttrFromSOAP(xoap::MessageReference message, std::string tag)
+{
+        xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+        xoap::SOAPName name = envelope.createName(tag);
+        std::string value = envelope.getBody().getAttributeValue(name);
+        return value;
 }
 
 std::string EmuDim::getLocalDateTime(){
