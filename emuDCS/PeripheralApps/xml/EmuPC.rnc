@@ -248,6 +248,7 @@ attlist.AnodeChannel &=
    attribute afeb_threshold { xsd:unsignedInt }
 DAQMB = element DAQMB { attlist.DAQMB, CFEB+ }
 attlist.DAQMB &=
+   attribute power_mask { xsd:unsignedInt },
    attribute dmb_cntl_firmware_tag { xsd:hexBinary },
    attribute dmb_vme_firmware_tag { xsd:unsignedInt },
    attribute slot { xsd:unsignedInt },
