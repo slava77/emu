@@ -215,6 +215,7 @@
       </TMB>
 
       <DAQMB slot="11"
+             power_mask="0"
              set_comp_thresh="0.030" 
              cfeb_cable_delay="0"
              tmb_lct_cable_delay="3"
