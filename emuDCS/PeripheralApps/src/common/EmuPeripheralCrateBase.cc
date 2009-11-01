@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.5 2009/10/30 15:09:22 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.6 2009/11/01 12:17:32 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -84,6 +84,35 @@ xoap::MessageReference EmuPeripheralCrateBase::createReply(xoap::MessageReferenc
 	return reply;
 }
 
+xoap::MessageReference EmuPeripheralCrateBase::createReplywithAttr(xoap::MessageReference message, std::string tag, std::string attr)
+		throw (xoap::exception::Exception)
+{
+	std::string command = "";
+
+	DOMNodeList *elements =
+			message->getSOAPPart().getEnvelope().getBody()
+			.getDOMNode()->getChildNodes();
+
+	for (unsigned int i = 0; i < elements->getLength(); i++) {
+		DOMNode *e = elements->item(i);
+		if (e->getNodeType() == DOMNode::ELEMENT_NODE) {
+			command = xoap::XMLCh2String(e->getLocalName());
+			break;
+		}
+	}
+
+	xoap::MessageReference reply = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+	xoap::SOAPName responseName = envelope.createName(
+			command + "Response", "xdaq", XDAQ_NS_URI);
+	envelope.getBody().addBodyElement(responseName);
+
+        xoap::SOAPName p = envelope.createName(tag);
+        envelope.getBody().addAttribute(p, attr);
+
+	return reply;
+}
+
 ////////////////////////////////////////////////////////////////////
 // sending soap commands
 ////////////////////////////////////////////////////////////////////
@@ -119,7 +148,8 @@ int EmuPeripheralCrateBase::PCsendCommand(std::string command, std::string klass
         num++;
     }
     catch (xcept::Exception &e) {
-        std::cout << "PCsendCommand failed, command=" << command << ", klass=" << klass << ", instance=" << instance << std::endl;
+        std::cout << getLocalDateTime() << " PCsendCommand failed, command=" << command 
+                  << ", class=" << klass << ", instance=" << instance << ", return=" << num << std::endl;
     }
     //
   }
@@ -158,7 +188,8 @@ int EmuPeripheralCrateBase::PCsendCommandwithAttr(std::string command, std::stri
         num++;
     }
     catch (xcept::Exception &e) {
-        std::cout << "PCsendCommand failed, command=" << command << ", klass=" << klass << ", instance=" << instance << std::endl;
+        std::cout << getLocalDateTime() << " PCsendCommandwithAttr failed, command=" << command 
+                  << ", class=" << klass << ", instance=" << instance << ", return=" << num << std::endl;
     }
     //
   }
@@ -219,4 +250,3 @@ std::string EmuPeripheralCrateBase::getLocalDateTime(){
 
  }  // namespace emu::pc
 }  // namespace emu
-
