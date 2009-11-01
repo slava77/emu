@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.31 2009/11/01 09:41:00 liu Exp $
+// $Id: EmuDim.cc,v 1.32 2009/11/01 15:29:30 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -498,7 +498,7 @@ int EmuDim::ParseDDU(char *buff, int buffsize, int source)
    char *endstr;
    unsigned char *bbb=(unsigned char *)buff;
 
-   if(buffsize < 50) return 0;
+   if(source==0 && buffsize < 50) return 0;
    for(int i=0; i<buffsize; i++)
    {  if((bbb[i]< 0x20 || bbb[i]>0x7e) && bbb[i]!=0x0a)
       { std::cout << "ERROR at " << i << " " << std::hex << (int)(bbb[i]) << std::dec << std::endl;
@@ -533,7 +533,7 @@ int EmuDim::FillDDU(char *buff, int source)
    if(chnumb>100) chnumb=(chnumb%10)+(chnumb%100)/10; // for non-standard DDU #, create one in the range.
    if(chnumb>18) chnumb -= 18;
    label=buff;
-//   std::cout << "Found DDU " << label << " with number " << chnumb << std::endl; 
+   // std::cout << "Found DDU " << label << " with number " << chnumb << std::endl; 
    content = endstr+1;
    if(strlen(content)>100) std::cout<< label << " WARNING " << content << std::endl;
    if(strncmp(buff, "DDU", 3)==0 && chnumb>0 && chnumb <TOTAL_DDUS)
