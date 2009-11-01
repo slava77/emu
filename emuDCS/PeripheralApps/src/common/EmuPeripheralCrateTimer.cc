@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.8 2009/11/01 12:18:35 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.9 2009/11/01 13:05:27 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateTimer.h"
 
@@ -70,8 +70,8 @@ xoap::MessageReference EmuPeripheralCrateTimer::MonitorStart (xoap::MessageRefer
          interval.sec(cycle);
 
          fastintv=fastloop;
-         fastintv=slowloop;
-         fastintv=extraloop;
+         slowintv=slowloop;
+         extraintv=extraloop;
          rtime_fast=0;
          rtime_slow=0;
          rtime_extra=0;
