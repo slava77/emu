@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.h,v 1.2 2009/10/30 15:09:22 liu Exp $
+// $Id: EmuPeripheralCrateBase.h,v 1.3 2009/11/01 12:17:32 liu Exp $
 
 #ifndef _EmuPeripheralCrateBase_h_
 #define _EmuPeripheralCrateBase_h_
@@ -42,6 +42,8 @@ protected:
   void fireEvent(std::string event) throw (toolbox::fsm::exception::Exception);
 
   xoap::MessageReference createReply(xoap::MessageReference message)
+                        throw (xoap::exception::Exception);
+  xoap::MessageReference createReplywithAttr(xoap::MessageReference message, std::string tag, std::string attr)
                         throw (xoap::exception::Exception);
   std::string getAttrFromSOAP(xoap::MessageReference message, std::string tag);
 
