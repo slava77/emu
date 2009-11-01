@@ -329,7 +329,16 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
      {
         msgHandler("Button: Power-Up-Init All Crates");
 
-        ConfigureInit(2);
+        if(!Simulation_)
+        {  int getlock=PCsendCommand("Locked", "emu:pc:EmuPeripheralCrateTimer");
+           if(getlock>0)  
+              ConfigureInit(2);
+           else 
+              msgHandler("ERROR: Xmas not responding");
+           PCsendCommand("Unlock", "emu:pc:EmuPeripheralCrateTimer");
+        }
+        else
+           ConfigureInit(2);
      }
      this->Default(in,out);
   }
@@ -343,7 +352,14 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
      {
         msgHandler("Button: Power-Up-Init Crate " + ThisCrateID_);
         int rt=0;
-        if(!Simulation_) rt=thisCrate->configure(2);
+        if(!Simulation_)
+        {  int getlock=PCsendCommand("Locked", "emu:pc:EmuPeripheralCrateTimer");
+           if(getlock>0)  
+              rt=thisCrate->configure(2);
+           else 
+              msgHandler("ERROR: Xmas not responding");
+           PCsendCommand("Unlock", "emu:pc:EmuPeripheralCrateTimer");
+        }
         crate_state[current_crate_] = (rt==0)?1:0;
         if(rt==0)
            PCsendCommandwithAttr("SoapInfo", "CrateUp", ThisCrateID_, "emu::x2p::EmuDim");

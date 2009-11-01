@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.h,v 1.2 2009/03/25 11:37:22 liu Exp $
+// $Id: EmuPeripheralCrateTimer.h,v 1.3 2009/11/01 12:18:35 liu Exp $
 
 #ifndef _EmuPeripheralCrateTimer_h_
 #define _EmuPeripheralCrateTimer_h_
@@ -76,6 +76,8 @@ public:
   // for Monitoring
   xoap::MessageReference  MonitorStart(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference  MonitorStop(xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference  Locked(xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference  Unlock(xoap::MessageReference message) throw (xoap::exception::Exception);
   void timeExpired (toolbox::task::TimerEvent& e);
 
 private:
@@ -83,6 +85,7 @@ private:
   bool Monitor_On_, Monitor_Ready_, In_Monitor_, In_Broadcast_;
   toolbox::task::Timer * timer_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
+  int fastintv, slowintv, extraintv, rtime_fast, rtime_slow, rtime_extra; 
   int current_state_;
 };
 
