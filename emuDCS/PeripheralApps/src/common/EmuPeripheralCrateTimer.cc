@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.7 2009/03/25 11:37:22 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.8 2009/11/01 12:18:35 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateTimer.h"
 
@@ -55,7 +55,8 @@ EmuPeripheralCrateTimer::EmuPeripheralCrateTimer(xdaq::ApplicationStub * s): Emu
   this->getApplicationInfoSpace()->fireItemAvailable("ExtraLoop", &extraloop);
   xoap::bind(this, &EmuPeripheralCrateTimer::MonitorStart, "MonitorStart", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateTimer::MonitorStop, "MonitorStop", XDAQ_NS_URI);
-
+  xoap::bind(this, &EmuPeripheralCrateTimer::Locked, "Locked", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateTimer::Unlock, "Unlock", XDAQ_NS_URI);
 }  
 
 xoap::MessageReference EmuPeripheralCrateTimer::MonitorStart (xoap::MessageReference message) 
@@ -63,26 +64,23 @@ xoap::MessageReference EmuPeripheralCrateTimer::MonitorStart (xoap::MessageRefer
 {
      if(!Monitor_Ready_)
      {
-         toolbox::TimeInterval interval1, interval2, interval3;
+         toolbox::TimeInterval interval;
          toolbox::TimeVal startTime;
-         startTime = toolbox::TimeVal::gettimeofday();
+         time_t cycle=1;  // number of seconds
+         interval.sec(cycle);
+
+         fastintv=fastloop;
+         fastintv=slowloop;
+         fastintv=extraloop;
+         rtime_fast=0;
+         rtime_slow=0;
+         rtime_extra=0;
 
          timer_->start(); // must activate timer before submission, abort otherwise!!!
-         if(fastloop) 
-         {   interval1.sec((time_t)fastloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval1, 0, "EmuPCrateFast" );
-             std::cout << "fast scheduled" << std::endl;
-         }
-         if(slowloop) 
-         {   interval2.sec((time_t)slowloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval2, 0, "EmuPCrateSlow" );
-             std::cout << "slow scheduled" << std::endl;
-         }
-         if(extraloop) 
-         {   interval3.sec((time_t)extraloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval3, 0, "EmuPCrateExtra" );
-             std::cout << "extra scheduled" << std::endl;
-         }
+         startTime = toolbox::TimeVal::gettimeofday();
+         timer_->scheduleAtFixedRate(startTime, this, interval, 0, "EmuPCrateTimer" );
+         std::cout << "EmuPCrateTimer scheduled at 1 sec interval" << std::endl;
+
          Monitor_Ready_=true;
      }
      Monitor_On_=true;
@@ -111,17 +109,46 @@ xoap::MessageReference EmuPeripheralCrateTimer::MonitorStop (xoap::MessageRefere
      return createReply(message);
 }
 
+xoap::MessageReference EmuPeripheralCrateTimer::Locked (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+     In_Broadcast_=true;
+     return createReply(message);
+}
+
+xoap::MessageReference EmuPeripheralCrateTimer::Unlock (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+     In_Broadcast_=false;
+     return createReply(message);
+}
+
 void EmuPeripheralCrateTimer::timeExpired (toolbox::task::TimerEvent& e)
 {
 
      if(! Monitor_On_ ) return;
      if( In_Monitor_  || In_Broadcast_) return;
      In_Monitor_ = true;
-     std::string name = e.getTimerTask()->name;
+
+     time_t thistime=time(NULL);
+     if((thistime-rtime_fast)>fastintv)
+     {
+        PCsendCommand("FastLoop","emu::pc::EmuPeripheralCrateMonitor");
+        rtime_fast=thistime=time(NULL);
+     }
+     if((thistime-rtime_extra)>extraintv)
+     {
+        PCsendCommand("ExtraLoop","emu::pc::EmuPeripheralCrateMonitor");
+        rtime_extra=thistime=time(NULL);
+     }
+     if((thistime-rtime_slow)>slowintv)
+     {
+        PCsendCommand("SlowLoop","emu::pc::EmuPeripheralCrateMonitor");
+        rtime_slow=thistime=time(NULL);
+     }
+
+     // std::string name = e.getTimerTask()->name;
      // std::cout << "timeExpired: " << name << std::endl;
-     if(strncmp(name.c_str(),"EmuPCrateFast",13)==0)  PCsendCommand("FastLoop","emu::pc::EmuPeripheralCrateMonitor");
-     else if(strncmp(name.c_str(),"EmuPCrateSlow",13)==0) PCsendCommand("SlowLoop","emu::pc::EmuPeripheralCrateMonitor");
-     else if(strncmp(name.c_str(),"EmuPCrateExtra",14)==0) PCsendCommand("ExtraLoop","emu::pc::EmuPeripheralCrateMonitor");
      In_Monitor_ = false;
 }
 //
