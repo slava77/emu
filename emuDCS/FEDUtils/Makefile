@@ -7,8 +7,8 @@
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
-CXX=g++4
-LD=g++4
+# CXX=g++4
+# LD=g++4
 
 #
 # Packages to be built
@@ -20,8 +20,8 @@ Description="Utility libraries used by the Front End Driver (FED) crate XDAQ app
 Summary="Emu (CSC) FED Utility Libraries"
 Authors="Phillip Killewald, Angela Brett, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
-PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=12
+PACKAGE_VER_MAJOR=09
+PACKAGE_VER_MINOR=00
 PACKAGE_VER_PATCH=00
 
 Sources=\
