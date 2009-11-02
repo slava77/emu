@@ -391,9 +391,14 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
     if(!parsed) ParsingXML();
 
     if(GuiButton_)
-    {
+    {   
         msgHandler("Button: Check Crate Controllers");
-        check_controllers();
+        int getlock=PCsendCommand("Locked", "emu::pc::EmuPeripheralCrateTimer");
+        if(getlock>0)
+           check_controllers();
+        else
+           msgHandler("ERROR: Xmas not responding");
+        PCsendCommand("Unlock", "emu::pc::EmuPeripheralCrateTimer");
     }
     this->Default(in, out);
   }
