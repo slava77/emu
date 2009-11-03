@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.18 2009/10/26 18:51:25 paste Exp $
+* $Id: DDU.cc,v 1.19 2009/11/03 11:51:41 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -2082,6 +2082,24 @@ throw (emu::fed::exception::DDUException)
 {
 	try {
 		return (readCSCStatus() | readAdvancedFiberErrors());
+	} catch (emu::fed::exception::DDUException &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+
+uint8_t emu::fed::DDU::readRealFMM()
+throw (emu::fed::exception::DDUException)
+{
+	try {
+		return (readParallelStatus() >> 8) & 0xf;
 	} catch (emu::fed::exception::DDUException &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";

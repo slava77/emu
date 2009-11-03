@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.14 2009/10/26 18:51:25 paste Exp $
+* $Id: DDU.h,v 1.15 2009/11/03 11:51:41 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -431,6 +431,10 @@ namespace emu {
 
 			/** @returns a bit-mask of which fibers have errors (an OR of CSCStatus and AdvancedFiberStatus). **/
 			uint16_t readFiberErrors()
+			throw (emu::fed::exception::DDUException);
+			
+			/** @returns the real 4-bit FMM status.  This will report an error even if FMM reporting is disabled. **/
+			uint8_t readRealFMM()
 			throw (emu::fed::exception::DDUException);
 
 		protected:
