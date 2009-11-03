@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.4 2009/09/29 13:57:58 paste Exp $
+* $Id: IRQData.h,v 1.5 2009/11/03 15:14:31 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQDATA_H__
 #define __EMU_FED_IRQDATA_H__
@@ -31,7 +31,6 @@ namespace emu {
 		
 		public:
 			IRQData(xdaq::WebApplication *myApplication):
-			exit(true),
 			runNumber(0),
 			fmmErrorThreshold(0),
 			application(myApplication)
@@ -47,7 +46,7 @@ namespace emu {
 			
 			// "Global" variables -- all threads read these together.
 			/// If true, exit the thread loop
-			bool exit;
+			//bool exit;
 			
 			/// The run number to which this particular set of data is assigned
 			unsigned long int runNumber;

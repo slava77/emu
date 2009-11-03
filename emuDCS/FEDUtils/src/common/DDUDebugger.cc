@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.8 2009/10/26 19:00:25 paste Exp $
+* $Id: DDUDebugger.cc,v 1.9 2009/11/03 15:14:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -1121,7 +1121,8 @@ std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const enum DEVTY
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStatus(const uint16_t &stat)
 {
-	std::map<std::string, std::string> returnValues = FMM(stat & 0x000f);
+	std::map<std::string, std::string> returnValues;
+	returnValues.insert(RealFMM(stat & 0xf));
 
 	if (stat & 0x0080) returnValues["VME DLL-2 Not Locked"] = "blue";
 	if (stat & 0x0040) returnValues["VME DLL-1 Not Locked"] = "blue";
@@ -1138,20 +1139,24 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStatus(const u
 std::map<std::string, std::string> emu::fed::DDUDebugger::FMM(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
-	
-	uint16_t myStat = stat & 0xf;
-	
-	if (myStat == 1) returnValues["Warning"] = "warning";
-	else if (myStat == 2) returnValues["Out-of-Sync"] = "error";
-	else if (myStat == 4) returnValues["Busy"] = "caution";
-	else if (myStat == 8) returnValues["Ready"] = "ok";
-	else if (myStat == 0xC) returnValues["Error"] = "error";
-	else returnValues["Undefined"] = "undefined";
+	returnValues.insert(RealFMM(stat & 0xf));
 	
 	if ((stat & 0xfff0) == 0xfed0) returnValues["FMM reporting "] = "green";
 	else returnValues[""] = "green";
 
 	return returnValues;
+}
+
+
+
+std::pair<std::string, std::string> emu::fed::DDUDebugger::RealFMM(const uint8_t &stat)
+{
+	if (stat == 0x1) return std::make_pair("Warning", "warning");
+	else if (stat == 0x2) return std::make_pair("Out-of-Sync", "error");
+	else if (stat == 0x4) return std::make_pair("Busy", "caution");
+	else if (stat == 0x8) return std::make_pair("Ready", "ok");
+	else if (stat == 0xc) return std::make_pair("Error", "error");
+	else return std::make_pair("Undefined", "undefined");
 }
 
 
