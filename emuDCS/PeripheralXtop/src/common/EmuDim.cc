@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.32 2009/11/01 15:29:30 liu Exp $
+// $Id: EmuDim.cc,v 1.33 2009/11/03 12:19:18 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -698,11 +698,17 @@ void EmuDim::CheckCommand()
             if(ch>=0 && ch<TOTAL_CHAMBERS) UpdateChamber(ch);
          }
       }
+      else if(cmnd.substr(0,15)=="TURN_CHAMBER_OFF")
+      {
+         int cr=CrateToNumber(cmnd.substr(16).c_str());
+         if(cr>=0 && cr<TOTAL_CRATES) crate_state[cr] = -1;
+         BlueLoader->reload(blue_info+"?CHAMBEROFF="+crate_name[cr]);
+      }
       else if(cmnd.substr(0,15)=="CRATE_POWER_OFF")
       {
          int cr=CrateToNumber(cmnd.substr(16).c_str());
          if(cr>=0 && cr<TOTAL_CRATES) crate_state[cr] = -1;
-         // notify Xmas to skip this crate
+         XmasLoader->reload(xmas_info+"?CRATEOFF="+crate_name[cr]);
       }
       else if(cmnd.substr(0,13)=="PREPARE_POWER")
       {
