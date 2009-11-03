@@ -6526,6 +6526,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table().set("border","1");
   //
   int power_state[7];
+  int powermask = 0x3F & thisDMB->GetPowerMask();
   unsigned int power_register = thisDMB->lowv_rdpwrreg();
   // std::cout << "power register is " << std::hex << power_register << std::dec << std::endl;
   if (power_register==0xBAAD)
@@ -6565,13 +6566,19 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
         }
      }
   }
+  if(powermask)  for(int icc=1; icc<=6; icc++)
+  {   if(powermask & 1)  power_state[icc]= -1;
+      powermask = powermask>>1;
+  }
   for(int icc=0; icc<=6; icc++)
   {
      *out << cgicc::td();
-     if(power_state[icc])
+     if(power_state[icc]>0)
         *out << cgicc::span().set("style","color:green");
-     else
+     else if(power_state[icc]==0)
         *out << cgicc::span().set("style","color:red");
+     else
+        *out << cgicc::span().set("style","color:black");
      if(icc>0 && icc<6)
      {
            *out << "CFEB " << icc;
@@ -6596,9 +6603,13 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   for(int icc=0; icc<6; icc++)
   {
      *out << cgicc::td();
-     if(power_state[icc+1])
+     if(power_state[icc+1]>0)
      {
         *out << "On";
+     }
+     else if(power_state[icc+1]<0)
+     {
+        *out << "Masked";
      }
      else
      {
@@ -6628,7 +6639,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   for(int icc=0; icc<6; icc++)
   {
      *out << cgicc::td();
-     if(power_state[icc+1])
+     if(power_state[icc+1]>0)
      {
         std::string CFEBTurnOn = toolbox::toString("/%s/CFEBTurnOn",getApplicationDescriptor()->getURN().c_str());
         *out << cgicc::form().set("method","GET").set("action",CFEBTurnOn) << std::endl ;
@@ -6638,6 +6649,10 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
         sprintf(nbuf, "%d", power_read & (~(1<<icc)) );
         *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
         *out << cgicc::form() << std::endl ;
+     }
+     else if(power_state[icc+1]<0)
+     {
+        *out << "Masked";
      }
      else
      {
