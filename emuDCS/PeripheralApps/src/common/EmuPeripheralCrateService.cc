@@ -231,7 +231,7 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    std::string poweroff = toolbox::toString("/%s/PowerOff",getApplicationDescriptor()->getURN().c_str());
+    std::string poweroff = toolbox::toString("/%s/ChamberOff",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",poweroff) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Chambers Off") << std::endl ;
     *out << cgicc::form() << std::endl ;
@@ -629,6 +629,18 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
         {  crate_state[i] = -1;
            *out << "Switch Off Successful " <<  command_argu << std::endl;
            msgHandler("Message: Switch Off Crate " + command_argu);
+        }
+     }
+  }
+  else if (command_name=="CHAMBEROFF")
+  {
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(command_argu==crateVector[i]->GetLabel()) 
+        {  
+           if(!Simulation_) crateVector[i]->PowerOff();
+           *out << "Switch Off Successful " <<  command_argu << std::endl;
+           msgHandler("Message: Switch Off Chambers " + command_argu);
         }
      }
   }
