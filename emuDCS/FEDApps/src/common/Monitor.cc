@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.13 2009/09/29 13:51:00 paste Exp $
+* $Id: Monitor.cc,v 1.14 2009/11/03 15:17:05 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -1059,8 +1059,8 @@ void emu::fed::Monitor::webGetDDUStatus(xgi::Input *in, xgi::Output *out)
 		// FMM status (decoded)
 		std::string statusDecoded = "undefined";
 		try {
-			uint8_t fmmStatus = ((*iDDU)->readParallelStatus() >> 8) & 0x000F;
-			statusDecoded = DDUDebugger::FMM(fmmStatus).begin()->second;
+			uint8_t fmmStatus = (*iDDU)->readRealFMM();
+			statusDecoded = DDUDebugger::RealFMM(fmmStatus).second;
 		} catch (emu::fed::exception::DDUException &e) {
 			dduObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}

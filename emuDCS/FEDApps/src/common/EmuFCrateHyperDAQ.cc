@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.12 2009/10/26 19:17:20 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.13 2009/11/03 15:17:05 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -221,7 +221,7 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			//myCrate->getVMEController()->CAEN_err_reset();
 			// Do a fast FMM status check
 			//unsigned short int DDU_FMM = (((*iDDU)->vmepara_status()>>8)&0x000F);
-			unsigned short int DDU_FMM = (((*iDDU)->readParallelStatus()>>8)&0x000F);
+			unsigned short int DDU_FMM = (*iDDU)->readRealFMM();
 			//unsigned short int DDU_FMM = 8; // DEBUG
 			// Mark the status with pretty colors
 			std::string fmmClass = "green";
