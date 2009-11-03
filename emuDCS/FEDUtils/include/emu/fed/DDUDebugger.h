@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.h,v 1.7 2009/10/26 19:00:25 paste Exp $
+* $Id: DDUDebugger.h,v 1.8 2009/11/03 15:14:31 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDUDEBUGGER_H__
 #define __EMU_FED_DDUDEBUGGER_H__
@@ -50,6 +50,9 @@ namespace emu {
 			
 			/** Reads from DDU::readFMM **/
 			std::map<std::string, std::string> FMM(const uint16_t &stat);
+			
+			/** Reads from DDU::readRealFMM **/
+			std::pair<std::string, std::string> RealFMM(const uint8_t &stat);
 		
 			/** Reads from method DDU::readGbEPrescale() **/
 			std::map<std::string, std::string> GbEPrescale(const uint16_t &stat);

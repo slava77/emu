@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.12 2009/10/26 19:00:25 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.13 2009/11/03 15:14:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -88,7 +88,7 @@ throw (emu::fed::exception::FMMThreadException)
 
 	data_->runNumber = runNumber;
 	// Do not quit the threads immediately.
-	data_->exit = false;
+	//data_->exit = false;
 
 	// First, load up the data_ object with the crates that I govern.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
@@ -177,26 +177,39 @@ throw (emu::fed::exception::FMMThreadException)
 
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 
-	if (data_->exit || threadVector_.size() == 0) {
+	if (threadVector_.size() == 0) {
 		LOG4CPLUS_DEBUG(logger, "Threads already stopped.");
 		return;
 	}
 	LOG4CPLUS_INFO(logger, "Gracefully killing off all threads.");
 
-	data_->exit = true;
-
-
 	// We probably do not need to return the status of the threads,
 	//  but this may be used later for whatever reason.
 	//std::vector<int> returnStatus;
 
-	// The threads should be stopping now.  Let's join them.
 	for (unsigned int iThread=0; iThread < threadVector_.size(); iThread++) {
-		void *tempException = NULL; // I have to do this for type safety.
-		int err = pthread_join(threadVector_[iThread].second, &tempException); // Waits until the thread calls pthread_exit(void *return_status)
+		
 		Crate *myCrate = threadVector_[iThread].first;
+		
+		// Cancel threads first.
+		int err = pthread_cancel(threadVector_[iThread].second);
+		if (err) {
+			std::ostringstream error;
+			error << "Exception cancelling IRQThread for crate " << myCrate->number() << ": " << err;
+			LOG4CPLUS_FATAL(logger, error.str());
+			std::ostringstream tag;
+			tag << "FEDCrate " << myCrate->number();
+			MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, "IRQThreadEnd", "ERROR", error.str(), tag.str());
+			XCEPT_DECLARE(emu::fed::exception::FMMThreadException, e2, error.str());
+			e2.setProperty("tag", tag.str());
+			throw e2;
+		}
+		
+		// The threads should be stopping now.  Let's join them.
+		void *tempException = NULL; // I have to do this for type safety.
+		err = pthread_join(threadVector_[iThread].second, &tempException); // Waits until the thread calls pthread_exit(void *return_status)
 
-		if (err || tempException != NULL) {
+		if (err || tempException != PTHREAD_CANCELED) {
 			std::ostringstream error;
 			error << "Exception joining IRQThread for crate " << myCrate->number() << ": " << err;
 			LOG4CPLUS_FATAL(logger, error.str());
@@ -217,18 +230,6 @@ throw (emu::fed::exception::FMMThreadException)
 	threadVector_.clear();
 }
 
-
-
-void emu::fed::IRQThreadManager::killThreads()
-{
-	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
-	
-	LOG4CPLUS_INFO(logger, "Forcefully killing off all threads.");
-	
-	data_->exit = true;
-	
-	threadVector_.clear();
-}
 
 
 /// The big one
@@ -276,8 +277,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	}
 
 	// Continue unless someone tells us to stop.
-	while (locdata->exit == false) {
+	while (1) { // Always looping until the thread is canceled
 
+		// Immediate check for cancel
+		pthread_testcancel();
+		
 		//LOG4CPLUS_DEBUG(logger, "Start of loop reached.");
 
 		// Increase the ticks.
@@ -297,8 +301,13 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			try {
 				// This will either immediately generate a false on detection of an IRQ,
 				// or will timeout after the specified number of milliseconds and return true if no IRQ is received.
-				allClear = myCrate->getController()->waitIRQ(5000);
+				// Let's do this 5 times with 1 second intervals, testing for cancel at each pulse.
+				for (unsigned int iTimes = 0; iTimes < 5; iTimes++) {
+					pthread_testcancel();
+					if (!(allClear = myCrate->getController()->waitIRQ(1000))) break;
+				}
 				MY_REVOKE_ALARM("IRQThreadWait");
+				pthread_testcancel();
 			} catch (emu::fed::exception::CAENException &e) {
 				std::ostringstream error;
 				error << "Exception waiting for IRQ in crate number " << crateNumber;
@@ -306,12 +315,23 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				std::ostringstream tag;
 				tag << "FEDcrate " << crateNumber;
 				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadWait", "ERROR", error.str(), tag.str(), e);
-				XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-				e2.setProperty("tag", tag.str());
-				pthread_exit((void *) &e2);
+				//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
+				//e2.setProperty("tag", tag.str());
+				//pthread_exit((void *) &e2);
+				pthread_exit(NULL);
 			}
 		} else { // The TF crate will, for now, fake the IRQ and just sleep
-			sleep((unsigned int) 5);
+			pthread_testcancel();
+			sleep((unsigned int) 1);
+			pthread_testcancel();
+			sleep((unsigned int) 1);
+			pthread_testcancel();
+			sleep((unsigned int) 1);
+			pthread_testcancel();
+			sleep((unsigned int) 1);
+			pthread_testcancel();
+			sleep((unsigned int) 1);
+			pthread_testcancel();
 		}
 
 
@@ -334,7 +354,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			try {
 				if (myDDU == NULL || (myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors()) < lastError[myDDU->slot()]) {
 					LOG4CPLUS_INFO(logger, "Reset detected on crate " << crateNumber << ": checking again to make sure...");
+					pthread_testcancel();
 					usleep(100);
+					pthread_testcancel();
 
 					if (myDDU == NULL || (myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors()) < lastError[myDDU->slot()]) {
 						LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << crateNumber);
@@ -369,9 +391,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				if (myDDU != NULL) tag << "RUI " << myDDU->readRUI() << " ";
 				tag << "FEDcrate " << crateNumber;
 				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadLastDDUStatus", "ERROR", error.str(), tag.str(), e);
-				XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-				e2.setProperty("tag", tag.str());
-				pthread_exit((void *) &e2);
+				//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
+				//e2.setProperty("tag", tag.str());
+				//pthread_exit((void *) &e2);
+				pthread_exit(NULL);
 			}
 
 			MY_REVOKE_ALARM("IRQThreadLastDDUStatus");
@@ -486,9 +509,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				std::ostringstream tag;
 				tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber;
 				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadDCCStatus", "ERROR", error.str(), tag.str(), e);
-				XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-				e2.setProperty("tag", tag.str());
-				pthread_exit((void *) &e2);
+				//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
+				//e2.setProperty("tag", tag.str());
+				//pthread_exit((void *) &e2);
+				pthread_exit(NULL);
 			}
 			
 			MY_REVOKE_ALARM("IRQThreadDCCStatus");
@@ -517,9 +541,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				std::ostringstream tag;
 				tag << "FEDcrate " << crateNumber;
 				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadReadIRQ", "ERROR", error.str(), tag.str(), e);
-				XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-				e2.setProperty("tag", tag.str());
-				pthread_exit((void *) &e2);
+				//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
+				//e2.setProperty("tag", tag.str());
+				//pthread_exit((void *) &e2);
+				pthread_exit(NULL);
 			}
 		} else { // The TF crate has to fake this data for now
 			errorData = (2 << 8);
@@ -689,12 +714,15 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			std::ostringstream tag;
 			tag << "FEDcrate " << crateNumber;
 			MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, "IRQThreadGeneralError", "ERROR", error.str(), tag.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-			e2.setProperty("tag", tag.str());
-			pthread_exit((void *) &e2);
+			//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
+			//e2.setProperty("tag", tag.str());
+			//pthread_exit((void *) &e2);
+			pthread_exit(NULL);
 		}
 	}
-	pthread_exit(NULL);
+	
+	// I will never make it here, but just in case.
+	pthread_exit(PTHREAD_CANCELED);
 }
 
 
