@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.23 2009/10/26 21:49:17 paste Exp $
+* $Id: Communicator.cc,v 1.24 2009/11/03 15:17:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -904,8 +904,8 @@ throw (toolbox::fsm::exception::Exception)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Disable");
 
 	try {
-		//TM_->endThreads();
-		TM_->killThreads();
+		TM_->endThreads();
+		//TM_->killThreads();
 		REVOKE_ALARM("CommunicatorDisableThreads", NULL);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
@@ -925,8 +925,8 @@ throw (toolbox::fsm::exception::Exception)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Halt");
 
 	try {
-		//TM_->endThreads();
-		TM_->killThreads();
+		TM_->endThreads();
+		//TM_->killThreads();
 		REVOKE_ALARM("CommunicatorHaltThreads", NULL);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;

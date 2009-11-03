@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.12 2009/10/26 19:17:20 paste Exp $
+* $Id: Commander.cc,v 1.13 2009/11/03 15:17:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -2009,8 +2009,8 @@ void emu::fed::Commander::webGetStatus(xgi::Input *in, xgi::Output *out)
 			// FMM status (decoded)
 			std::string statusDecoded = "undefined";
 			try {
-				uint8_t fmmStatus = ((*iDDU)->readParallelStatus() >> 8) & 0x000F;
-				statusDecoded = DDUDebugger::FMM(fmmStatus).begin()->second;
+				uint8_t fmmStatus = (*iDDU)->readRealFMM();
+				statusDecoded = DDUDebugger::RealFMM(fmmStatus).second;
 				REVOKE_ALARM("CommanderGetStatusDDU", NULL);
 			} catch (emu::fed::exception::DDUException &e) {
 				dduObject.push_back(JSONSpirit::Pair("exception", e.what()));
