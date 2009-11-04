@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.58 2009/10/25 09:54:46 liu Exp $
+// $Id: Crate.cc,v 3.59 2009/11/04 18:22:57 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.59  2009/11/04 18:22:57  liu
+// remove empty slots
+//
 // Revision 3.58  2009/10/25 09:54:46  liu
 // add a new parameter power_mask for DMB, more counters for CCB
 //
@@ -642,7 +645,7 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
        if(countbuf) memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
     }
   }  
-  *buf2 = TOTAL_TMB_COUNTERS*2*9;
+  *buf2 = TOTAL_TMB_COUNTERS*2*myTmbs.size();
   return;
 }
 
@@ -663,7 +666,7 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
        if(countbuf) memcpy(buf+4+i*TOTAL_DMB_COUNTERS, countbuf, TOTAL_DMB_COUNTERS);
     }
   }
-  *buf2 = (TOTAL_DMB_COUNTERS/2)*9;
+  *buf2 = (TOTAL_DMB_COUNTERS/2)*myDmbs.size();
   return;
 }
 
@@ -686,7 +689,7 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
         rn=myTmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS+46*2);
     }
   }
-  *buf2 = (TOTAL_DCS_COUNTERS)*9;
+  *buf2 = (TOTAL_DCS_COUNTERS)*myDmbs.size();
   return;
 }
 
