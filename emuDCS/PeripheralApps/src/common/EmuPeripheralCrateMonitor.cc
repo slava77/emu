@@ -1651,9 +1651,6 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
 
     // std::cout << "Select Over View " << std::endl;
 // now produce the counter view page
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" << std::endl;
@@ -1707,16 +1704,20 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
       *out <<cgicc::td();
       //
       if(tmb==0) {
-        *out << crateVector[idx]->GetLabel() ;
-	*out <<cgicc::td();
-	*out <<cgicc::td();
+         *out << crateVector[idx]->GetLabel() ;
+	 *out << cgicc::td() << cgicc::td();
 
-        if(crateVector[idx]->IsAlive()) 
-           *out << cgicc::span().set("style","color:green") << "On " << cgicc::span();
-        else
-           *out << cgicc::span().set("style","color:red") << "Off" << cgicc::span();
-         *out <<cgicc::td();
-        *out <<cgicc::td();
+         if(crateVector[idx]->IsAlive()) 
+            *out << cgicc::span().set("style","color:green") << "On " << cgicc::span();
+         else
+            *out << cgicc::span().set("style","color:red") << "Off" << cgicc::span();
+         *out <<cgicc::td() << cgicc::td();
+         if(myVector[0]->slot() > 2)
+         {
+            int blanks = (myVector[0]->slot()-2)/2;
+            if(myVector[0]->slot() > 10) blanks--;
+            for(int i=0; i<blanks; i++) *out << cgicc::td() << cgicc::td();
+         }
       }
       // chamber name
       *out << crateVector[idx]->GetChamber(myVector[tmb])->GetLabel() << cgicc::br();
@@ -1799,9 +1800,6 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
      cgicc::Cgicc cgi(in);
 
      // std::cout << "Select Crate View " << std::endl;
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"120; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
@@ -1961,9 +1959,6 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
         }
      }
 // now produce the counter view page
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
@@ -2010,22 +2005,26 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
       *out <<cgicc::td();
       //
       if(tmb==0) {
-        *out << crateVector[idx]->GetLabel() ;
-	*out <<cgicc::td();
-	*out <<cgicc::td();
+         *out << crateVector[idx]->GetLabel() ;
+	 *out << cgicc::td() << cgicc::td();
 
-        if(crateVector[idx]->IsAlive())
-        { 
-           *out << "On ";
-        }
-        else
-        {
-           *out << cgicc::span().set("style","color:red");
-           *out << "Off";
-           *out << cgicc::span();
-        }
-        *out <<cgicc::td();
-        *out <<cgicc::td();
+         if(crateVector[idx]->IsAlive())
+         { 
+            *out << "On ";
+         }
+         else
+         {
+            *out << cgicc::span().set("style","color:red");
+            *out << "Off";
+            *out << cgicc::span();
+         }
+         *out << cgicc::td() << cgicc::td();
+         if(myVector[0]->slot() > 2)
+         {
+            int blanks = (myVector[0]->slot()-2)/2;
+            if(myVector[0]->slot() > 10) blanks--;
+            for(int i=0; i<blanks; i++) *out << cgicc::td() << cgicc::td();
+         }
       }
       int value = myVector[tmb]->GetCounter(this_tcounter_);
       /* 0xBAADBAAD from VCC for a failed VME access */
@@ -2072,9 +2071,6 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
         }
      }
 // now produce the counter view page
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
@@ -2121,14 +2117,18 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
       *out <<cgicc::td();
       //
       if(dmb==0) {
-        *out << crateVector[idx]->GetLabel() ;
-	*out <<cgicc::td();
-	*out <<cgicc::td();
+         *out << crateVector[idx]->GetLabel() ;
+	 *out << cgicc::td() << cgicc::td();
 
-        if(crateVector[idx]->IsAlive()) *out << "On ";
-        else * out << "Off";
-        *out <<cgicc::td();
-        *out <<cgicc::td();
+         if(crateVector[idx]->IsAlive()) *out << "On ";
+         else * out << "Off";
+         *out << cgicc::td() <<cgicc::td();
+         if(myVector[0]->slot() > 3)
+         {
+            int blanks = (myVector[0]->slot()-3)/2;
+            if(myVector[0]->slot() > 11) blanks--;
+            for(int i=0; i<blanks; i++) *out << cgicc::td() << cgicc::td();
+         }
       }
       unsigned dc=myVector[dmb]->GetCounter(this_dcounter_);
       if ( this_dcounter_<4 )
@@ -2279,9 +2279,6 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
 //
 void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
-  //
-  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
