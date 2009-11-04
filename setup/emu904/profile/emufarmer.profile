@@ -5,8 +5,8 @@
 	<!-- Compulsory  Plugins -->
 	<xp:Application class="executive::Application" id="0"  service="executive" network="local">
 		<properties xmlns="urn:xdaq-application:Executive" xsi:type="soapenc:Struct">
-			<!-- logUrl xsi:type="xsd:string">console</logUrl>
-			<logLevel xsi:type="xsd:string">INFO</logLevel -->
+			<logUrl xsi:type="xsd:string">console</logUrl>
+			<logLevel xsi:type="xsd:string">INFO</logLevel>
 		</properties>
 	</xp:Application>
 	<xp:Module>${XDAQ_ROOT}/lib/libb2innub.so</xp:Module>
