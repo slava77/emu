@@ -197,7 +197,6 @@ xdaqdDaemon() {
 	    # aohcms: workaround for buggy system initlog/su
  	    # su -m -s /bin/bash - $user -c "cd $CORE_DIR; $*"
 	    $nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/bash - $user -c \"$*\""
-
 	fi
 	[ "$?" -eq 0 ] && success $"$base startup" || failure $"$base startup"
 }
@@ -329,9 +328,22 @@ for C in ${STARTUP_LIST}; do
 		export CONFIGURATION
 		. ${CONF_DIR}/${C}.conf
 	else
-	    echo -n 'ERROR xdaqd: Could not find '${CONF_DIR}'/'${C}'.conf or '${CONF_DIR}'/'${CONFIGURATION}'.conf, stopping'
+	    echo 'ERROR xdaqd: Could not find '${CONF_DIR}'/'${C}'.conf or '${CONF_DIR}'/'${CONFIGURATION}'.conf, stopping'
 	    exit -1
 	fi
+
+	# Create pid dir writeable for users other than root
+	if [ ! $XDAQ_USER == "root" ]; then 
+	    PID_DIR=/var/run/${XDAQ_USER}
+	    export PID_DIR
+	    if [ ! -d $PID_DIR ]; then
+		mkdir -p $PID_DIR
+	    fi
+	    chmod 777 $PID_DIR
+	fi
+
+	XDAQD_OUT=/var/log/${CONFIGURATION}.out
+	export XDAQD_OUT
 
 	export XDAQ_ROOT
 	export LD_LIBRARY_PATH
@@ -395,18 +407,16 @@ for C in ${STARTUP_LIST}; do
     		args="$args -z $XDAQ_ZONE"
 	    fi
 
-	    args="$args >> /var/log/${CONFIGURATION}.out 2>&1"
-
-	    # echo $args >> /var/log/${CONFIGURATION}.out
+	    args="$args >> ${XDAQ_LOG} 2>&1"
 
 	    xdaqdDaemon $args
 
 	    sleep 1
 	    xdaqdStatus ${CONFIGURATION}
 	    if [ $? -eq 0 ]; then
-    		echo `date` ": Started XDAQ service '"${CONFIGURATION}"'" >> /var/log/${CONFIGURATION}.out
+    		echo `date` ": Started XDAQ service '"${CONFIGURATION}"'" >> ${XDAQD_OUT}
 	    else
-    		echo `date` ": Failed to start XDAQ service '"${CONFIGURATION}"'" >> /var/log/${CONFIGURATION}.out
+    		echo `date` ": Failed to start XDAQ service '"${CONFIGURATION}"'" >> ${XDAQD_OUT}
 	    fi
 	    echo
 	    ;;
@@ -415,9 +425,9 @@ for C in ${STARTUP_LIST}; do
 	    echo -n $"Stopping XDAQ service '"${CONFIGURATION}"': "
 	    xdaqdKillProc ${CONFIGURATION}
 	    if [ $? -eq 0 ]; then
-    		echo `date` ": Stopped XDAQ service '"${CONFIGURATION}"'" >> /var/log/${CONFIGURATION}.out
+    		echo `date` ": Stopped XDAQ service '"${CONFIGURATION}"'" >> ${XDAQD_OUT}
 	    else
-    		echo `date` ": Failed to stop XDAQ service '"${CONFIGURATION}"'" >> /var/log/${CONFIGURATION}.out
+    		echo `date` ": Failed to stop XDAQ service '"${CONFIGURATION}"'" >> ${XDAQD_OUT}
 	    fi
 	    echo
 	    ;;
