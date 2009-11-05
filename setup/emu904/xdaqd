@@ -107,7 +107,7 @@ LD_LIBRARY_PATH=${XDAQ_ROOT}/lib:${XDAQ_EXTERN_LIBRARY_PATH}
 xdaqdDaemon() {
 	# Test syntax.
 	local gotbase= force=
-	local base= user= nice= bg= pid=
+	local base= user=root nice= bg= pid=
 	nicelevel=0
 	while [ "$1" != "${1##[-+]}" ]; do
 	  case $1 in
@@ -187,17 +187,13 @@ xdaqdDaemon() {
 
 	# And start it up.
 	
-	if [ -z "$user" ]; then
-	    # $nice initlog $INITLOG_ARGS -c "$*"
-	    # aohcms: workaround for buggy system initlog/su
-	    # /bin/bash -c "cd $CORE_DIR; $*"
-	    $nice initlog $INITLOG_ARGS -c "$*"
-	else
-	    # $nice initlog $INITLOG_ARGS -c "su -s /bin/bash - $user -c \"$*\""
-	    # aohcms: workaround for buggy system initlog/su
- 	    # su -m -s /bin/bash - $user -c "cd $CORE_DIR; $*"
-	    $nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/bash - $user -c \"$*\""
-	fi
+	# ${XDAQ_LOG} must exist otherwise the redirection of stderr to it will fail.
+	$SU_CMD -s /bin/zsh - $user -c "touch ${XDAQ_LOG}"
+	#echo $SU_CMD -s /bin/zsh - $user -c "touch ${XDAQ_LOG}"
+	# Start and disown it.
+	$nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c '$* &!'"
+	#echo $nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c '$* &!'"
+
 	[ "$?" -eq 0 ] && success $"$base startup" || failure $"$base startup"
 }
 
@@ -342,7 +338,7 @@ for C in ${STARTUP_LIST}; do
 	    chmod 777 $PID_DIR
 	fi
 
-	XDAQD_OUT=/var/log/${CONFIGURATION}.out
+	XDAQD_OUT=/var/log/xdaqd_${CONFIGURATION}.out
 	export XDAQD_OUT
 
 	export XDAQ_ROOT
@@ -385,7 +381,10 @@ for C in ${STARTUP_LIST}; do
     		args="$args XDAQ_DOCUMENT_ROOT=$XDAQ_DOCUMENT_ROOT"
 	    fi
 
-	    args="$args $XDAQ_ROOT/bin/xdaq.exe --daemon --pidfile ${PID_DIR}/${CONFIGURATION}.pid -u file:${XDAQ_LOG}"
+	    # Do not use the built-in daemonizer as it would redirect stdout to /dev/null. Make the parent shell disown it instead when it's started.
+	    # Also, no need to set the log file on the command line. The .profile file defines the destination for the log4c messages.
+	    #args="$args $XDAQ_ROOT/bin/xdaq.exe --daemon --pidfile ${PID_DIR}/${CONFIGURATION}.pid -u file:${XDAQ_LOG}"
+	    args="$args $XDAQ_ROOT/bin/xdaq.exe --pidfile ${PID_DIR}/${CONFIGURATION}.pid"
 
 	    if [ -n "$XDAQ_HOSTNAME" ]; then 
     		args="$args -h $XDAQ_HOSTNAME"
@@ -407,7 +406,7 @@ for C in ${STARTUP_LIST}; do
     		args="$args -z $XDAQ_ZONE"
 	    fi
 
-	    args="$args >> ${XDAQ_LOG} 2>&1"
+	    args="$args >>& ${XDAQ_LOG}"
 
 	    xdaqdDaemon $args
 
