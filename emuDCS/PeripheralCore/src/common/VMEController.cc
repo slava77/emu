@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.57 2009/07/21 12:18:23 liu Exp $
+// $Id: VMEController.cc,v 3.58 2009/11/05 10:50:35 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.58  2009/11/05 10:50:35  liu
+// protect against wrong or corrupted packets from VCC
+//
 // Revision 3.57  2009/07/21 12:18:23  liu
 // increase retry in eth_read
 //
@@ -1015,7 +1018,7 @@ void VMEController::vcc_check_config()
   // and reset them if necessary.
   // in the future, the correct values should come from XML file
 
-  unsigned short regbuf[30], tvalue[4];
+  unsigned short regbuf[3000], tvalue[4];
   bool config_change=false;
   int n;
 
@@ -1100,7 +1103,7 @@ void VMEController::set_ErrorServer()
 {
   // Set the controller's "Default Error Server MAC" to the current MAC if it isn't.
 
-  unsigned short regbuf[30], tvalue[4];
+  unsigned short regbuf[3000], tvalue[4];
   int n;
 
   n=vcc_read_command(0x0D, 15, regbuf);
@@ -1123,7 +1126,7 @@ void VMEController::set_ErrorServer()
 
 void VMEController::vcc_dump_config()
 {
-  unsigned short regbuf[30];
+  unsigned short regbuf[3000];
   char *mmmac;
   int n, i, j;
 
@@ -1194,7 +1197,7 @@ bool VMEController::SelfTest()
 
 bool VMEController::exist(int slot)
 { 
-   unsigned char tmp[2]={0, 0};
+   unsigned char tmp[3000]={0, 0};
 //   bool v_return;
    unsigned short int tmp2[1]={0x0000}, *ptr;
 
@@ -1212,7 +1215,7 @@ bool VMEController::exist(int slot)
    clear_error();
    return v_return;
 */
-   // When the controller's infor packet disabled, this is the only way,
+   // When the controller's info packet disabled, this is the only way,
    // it may not be always reliable though.
    return !(tmp[0]==0xAD && tmp[1]==0xBA);
 }
