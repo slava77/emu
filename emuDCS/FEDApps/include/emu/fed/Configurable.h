@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.h,v 1.1 2009/07/01 14:54:03 paste Exp $
+* $Id: Configurable.h,v 1.2 2009/11/06 13:48:34 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURABLE_H__
 #define __EMU_FED_CONFIGURABLE_H__
@@ -51,6 +51,13 @@ namespace emu {
 			
 			/** Print the software configure options. **/
 			std::string printConfigureOptions();
+			
+			/** Grabs the available DB keys from TStore **/
+			std::vector<xdata::UnsignedInteger64> getDBKeys()
+			throw (emu::fed::exception::ConfigurationException);
+			
+			/** Grabs the available XML file names from the configuration directory **/
+			std::vector<std::string> getXMLFileNames(const std::string &configDir = "");
 			
 			/// The system name for the application.  This is just some name that can be used to distinguish differently-configured applications from each other.
 			xdata::String systemName_;

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.13 2009/09/29 13:51:00 paste Exp $
+* $Id: Manager.cc,v 1.14 2009/11/06 13:48:34 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -183,7 +183,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("src", "/emu/emuDCS/FEDApps/images/go-next.png");
+		.set("src", "/emu/emuDCS/FEDApps/images/media-playback-start.png");
 	*out << "Enable" << std::endl;
 	*out << cgicc::button() << std::endl;
 	
@@ -195,7 +195,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("src", "/emu/emuDCS/FEDApps/images/go-previous.png");
+		.set("src", "/emu/emuDCS/FEDApps/images/media-playback-pause.png");
 	*out << "Disable" << std::endl;
 	*out << cgicc::button() << std::endl;
 	
@@ -207,7 +207,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
+		.set("src", "/emu/emuDCS/FEDApps/images/configure.png");
 	*out << "Configure" << std::endl;
 	*out << cgicc::button() << std::endl;
 	

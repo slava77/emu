@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.6 2009/08/21 11:39:40 brett Exp $
+* $Id: Configurable.cc,v 1.7 2009/11/06 13:48:34 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/path.hpp"
@@ -8,11 +8,13 @@
 
 #include "xgi/Method.h"
 #include "cgicc/HTMLClasses.h"
+#include "xdata/Table.h"
 #include "emu/fed/Crate.h"
 #include "emu/fed/AutoConfigurator.h"
 #include "emu/fed/DBConfigurator.h"
 #include "emu/fed/XMLConfigurator.h"
 #include "emu/fed/JSONSpiritWriter.h"
+#include "emu/fed/SystemDBAgent.h"
 
 emu::fed::Configurable::Configurable(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
@@ -280,34 +282,67 @@ std::string emu::fed::Configurable::printConfigureOptions()
 	std::ostringstream out;
 	out << cgicc::div()
 		.set("class", "category tier1") << std::endl;
-	out << cgicc::input().set("type", "radio")
+	cgicc::input dbRadio;
+	dbRadio.set("type", "radio")
 		.set("class", "config_type")
 		.set("name", "config_type")
 		.set("id", "config_type_database")
-		.set("value", "Database") << std::endl;
+		.set("value", "Database");
+	if (configMode_ == "Database") dbRadio.set("checked", "checked");
+	out << dbRadio << std::endl;
 	out << cgicc::label("Database")
 		.set("for", "config_type_database") << std::endl;
 	out << cgicc::div() << std::endl;
-	
-	// TODO: Put the possible configuration keys in this vector
-	std::vector<uint64_t> dbKeys;
 	
 	out << cgicc::table()
 		.set("class", "noborder dialog tier2") << std::endl;
 	out << cgicc::tr() << std::endl;
 	out << cgicc::td("DB Key: ") << std::endl;
 	out << cgicc::td() << std::endl;
-	out << cgicc::select()
-		.set("id", "db_key_select")
+	cgicc::input dbInput;
+	dbInput.set("id", "db_key_select")
 		.set("class", "key_select")
 		.set("name", "db_key_select")
-		.set("disabled", "true") << std::endl;
-	for (std::vector<uint64_t>::const_iterator iKey = dbKeys.begin(); iKey != dbKeys.end(); iKey++) {
-		std::ostringstream keyString;
-		keyString << *iKey;
-		cgicc::option opt(keyString.str());
-		opt.set("value", keyString.str());
-		if (dbKey_ == *iKey) opt.set("selected", "true");
+		.set("value", dbKey_.toString());
+	if (configMode_ != "Database") dbInput.set("disabled", "true");
+	out << dbInput << std::endl;
+	out << cgicc::td() << std::endl;
+	out << cgicc::tr() << std::endl;
+	out << cgicc::table() << std::endl;
+	
+	out << cgicc::div()
+		.set("class", "category tier1") << std::endl;
+	cgicc::input xmlRadio;
+	xmlRadio.set("type", "radio")
+		.set("class", "config_type")
+		.set("name", "config_type")
+		.set("id", "config_type_xml")
+		.set("value", "XML");
+	if (configMode_ == "XML") xmlRadio.set("checked", "checked");
+	out << xmlRadio << std::endl;
+	out << cgicc::label("XML")
+		.set("for", "config_type_xml") << std::endl;
+	out << cgicc::div() << std::endl;
+	
+	std::string configPath(std::string(getenv("HOME")) + std::string("config/fed"));
+	std::vector<std::string> xmlFiles = getXMLFileNames(configPath);
+	if (xmlFiles.empty()) xmlFiles.push_back("Unable to find valid XML files in " + configPath);
+	
+	out << cgicc::table()
+		.set("class", "noborder dialog tier2") << std::endl;
+	out << cgicc::tr() << std::endl;
+	out << cgicc::td("XML file name: ") << std::endl;
+	out << cgicc::td() << std::endl;
+	cgicc::select xmlSelect;
+	xmlSelect.set("id", "xml_file_select")
+		.set("class", "file_select")
+		.set("name", "xml_file_select");
+	if (configMode_ != "XML") xmlSelect.set("disabled", "true");
+	out << xmlSelect << std::endl;
+	for (std::vector<std::string>::const_iterator iFile = xmlFiles.begin(); iFile != xmlFiles.end(); iFile++) {
+		cgicc::option opt(*iFile);
+		opt.set("value", *iFile);
+		if (xmlFile_ == *iFile) opt.set("selected", "true");
 		out << opt << std::endl;
 	}
 	out << cgicc::select() << std::endl;
@@ -317,24 +352,75 @@ std::string emu::fed::Configurable::printConfigureOptions()
 	
 	out << cgicc::div()
 		.set("class", "category tier1") << std::endl;
-	out << cgicc::input()
-		.set("type", "radio")
+	cgicc::input autoRadio;
+	autoRadio.set("type", "radio")
 		.set("class", "config_type")
 		.set("name", "config_type")
-		.set("id", "config_type_xml")
-		.set("value", "XML") << std::endl;
-	out << cgicc::label("XML")
-		.set("for", "config_type_xml") << std::endl;
-	out << cgicc::div() << std::endl;
+		.set("id", "config_type_autodetect")
+		.set("value", "Autodetect");
+	if (configMode_ == "Autodetect") autoRadio.set("checked", "checked");
+	out << autoRadio << std::endl;
+	out << cgicc::label("Autodetect")
+		.set("for", "config_type_autodetect") << std::endl;
+	out << cgicc::div();
 	
-	// To access the available files, we need a few directories.
-	std::string homeDir(getenv("HOME"));
-	boost::filesystem::path configPath;
-	configPath = boost::filesystem::path(homeDir + "config/fed/");
+	out << cgicc::button()
+		.set("class", "right button")
+		.set("id", "reconfigure_button") << std::endl;
+	out << cgicc::img()
+		.set("class", "icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/configure-toolbars.png");
+	out << "Reconfigure Software" << std::endl;
+	out << cgicc::button() << std::endl;
 	
-	// Use boost to get all the xml files in this directory
+	return out.str();
+}
+
+
+
+std::vector<xdata::UnsignedInteger64> emu::fed::Configurable::getDBKeys()
+throw(emu::fed::exception::ConfigurationException)
+{
+	std::vector<xdata::UnsignedInteger64> dbKeys;
+	
+	// Get the keys from the systems table.
+	SystemDBAgent agent(this);
+	
+	try {
+		agent.connect(dbUsername_, dbPassword_);
+		
+		xdata::Table allParameters = agent.getAll();
+		
+		// Parse out all the keys from the returned table
+		// Prove to myself this works
+	
+		size_t nRows = allParameters.getRowCount();
+		for (size_t iRow = 0; iRow < nRows; iRow++) {
+			xdata::UnsignedInteger64 key;
+			key.setValue(*(allParameters.getValueAt(iRow, "KEY")));
+			dbKeys.push_back(key);
+		}
+		
+		// This causes bad things to happen.
+		//agent.disconnect();
+		
+	} catch (emu::fed::exception::DBException &e) {
+		std::ostringstream error;
+		error << "Exception attempting to read DB keys";
+		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
+	}
+	
+	return dbKeys;
+}
+
+
+
+std::vector<std::string> emu::fed::Configurable::getXMLFileNames(const std::string &configDir)
+{
 	std::vector<std::string> xmlFiles;
 	
+	boost::filesystem::path configPath(configDir);
+
 	if (boost::filesystem::exists(configPath)) {
 		// The default iterator is the end iterator.
 		boost::filesystem::directory_iterator end;
@@ -352,37 +438,5 @@ std::string emu::fed::Configurable::printConfigureOptions()
 		}
 	}
 	
-	out << cgicc::table()
-		.set("class", "noborder dialog tier2") << std::endl;
-	out << cgicc::tr() << std::endl;
-	out << cgicc::td("XML file name: ") << std::endl;
-	out << cgicc::td() << std::endl;
-	out << cgicc::select()
-		.set("id", "xml_file_select")
-		.set("class", "file_select")
-		.set("name", "xml_file_select")
-		.set("disabled", "true") << std::endl;
-	for (std::vector<std::string>::const_iterator iFile = xmlFiles.begin(); iFile != xmlFiles.end(); iFile++) {
-		cgicc::option opt(*iFile);
-		opt.set("value", *iFile);
-		if (xmlFile_ == *iFile) opt.set("selected", "true");
-		out << opt << std::endl;
-	}
-	out << cgicc::select() << std::endl;
-	out << cgicc::td() << std::endl;
-	out << cgicc::tr() << std::endl;
-	out << cgicc::table() << std::endl;
-	
-	out << cgicc::div()
-		.set("class", "category tier1") << std::endl;
-	out << cgicc::input().set("type", "radio")
-		.set("class", "config_type")
-		.set("name", "config_type")
-		.set("id", "config_type_autodetect")
-		.set("value", "Autodetect") << std::endl;
-	out << cgicc::label("Autodetect")
-		.set("for", "config_type_autodetect") << std::endl;
-	out << cgicc::div();
-	
-	return out.str();
+	return xmlFiles;
 }

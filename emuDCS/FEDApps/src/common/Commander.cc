@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.13 2009/11/03 15:17:04 paste Exp $
+* $Id: Commander.cc,v 1.14 2009/11/06 13:48:34 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -69,12 +69,13 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 		}
 	}
 	
-	std::vector<std::string> jsFiles;
-	jsFiles.push_back("errorFlasher.js");
-	jsFiles.push_back("definitions.js");
-	jsFiles.push_back("commander.js");
-	jsFiles.push_back("common.js");
-	*out << Header("FED Commander (" + systemName_.toString() + ")", jsFiles);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("errorFlasher.js");
+	jsFileNames.push_back("definitions.js");
+	jsFileNames.push_back("commander.js");
+	jsFileNames.push_back("configurable.js");
+	jsFileNames.push_back("common.js");
+	*out << Header("FED Commander (" + systemName_.toString() + ")", jsFileNames);
 	
 	// Overview of crate status
 	*out << cgicc::div()
@@ -501,19 +502,11 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset()
-		.set("class", "dialog default_width")
-		.set("id", "FED_Commander_Configuration_dialog") << std::endl;
+		.set("class", "dialog configuration_dialog default_width")
+		.set("id", "FED_Commander_Configuration_dialog")
+		.set("name", "FED_Commander_Configuration") << std::endl;
 	
 	*out << printConfigureOptions() << std::endl;
-	
-	*out << cgicc::button()
-		.set("class", "right button")
-		.set("id", "reconfigure_button") << std::endl;
-	*out << cgicc::img()
-		.set("class", "icon")
-		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
-	*out << "Reconfigure Software" << std::endl;
-	*out << cgicc::button() << std::endl;
 	
 	*out << cgicc::fieldset() << std::endl;
 
