@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.4 2009/10/16 20:32:35 paste Exp $
+* $Id: commander.js,v 1.5 2009/11/06 13:48:34 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -12,43 +12,6 @@ Event.observe(window, "load", function(event) {
 	statusReloadElement.timeToReload = 10;
 	statusReloadElement.timeToError = 60;
 	reloadElements.push(statusReloadElement);
-	
-	var configurationReloadElement = new ReloadElement();
-	configurationReloadElement.id = "FED_Commander_Configuration";
-	configurationReloadElement.reloadFunction = getConfiguration;
-	configurationReloadElement.callbackSuccess = updateConfiguration;
-	configurationReloadElement.callbackError = reportErrorAndStop;
-	configurationReloadElement.timeToReload = 10;
-	configurationReloadElement.timeToError = 60;
-	reloadElements.push(configurationReloadElement);
-	
-	// Change configuration settings
-	$$(".config_type").each(function(element) {
-		element.observe("change", function(ev) {
-			var el = ev.element();
-			if (el.checked) {
-				changeConfigMode(el.value, configurationReloadElement);
-			}
-		});
-	});
-	
-	// Make the configuration file change automatically submit.
-	$("xml_file_select").observe("change", function(ev) {
-		changeXMLFile($("xml_file_select").value, configurationReloadElement);
-	});
-	
-	// Make the DB key change automatically submit.
-	$("db_key_select").observe("change", function(ev) {
-		changeDBKey($("db_key_select").value, configurationReloadElement);
-	});
-	
-	// Reconfigure
-	// Firefox is an idiot when it comes to refreshing the DOM, so I need this here.
-	$("reconfigure_button").disabled = false;
-	$("reconfigure_button").observe("click", function(ev) {
-		ev.element().disabled = true;
-		reconfigure(configurationReloadElement);
-	});
 	
 	// Selection buttons
 	$$(".all_ddus").each(function(element) {

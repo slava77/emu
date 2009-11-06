@@ -1,8 +1,6 @@
 /*****************************************************************************\
-* $Id: communicator.js,v 1.3 2009/07/01 14:54:02 paste Exp $
+* $Id: communicator.js,v 1.4 2009/11/06 13:48:34 paste Exp $
 \*****************************************************************************/
-
-var defaultConfigurationMode = "XML";
 
 Event.observe(window, "load", function(event) {
 	
@@ -14,15 +12,6 @@ Event.observe(window, "load", function(event) {
 	statusReloadElement.timeToReload = 10;
 	statusReloadElement.timeToError = 60;
 	reloadElements.push(statusReloadElement);
-	
-	var configurationReloadElement = new ReloadElement();
-	configurationReloadElement.id = "FED_Communicator_Configuration";
-	configurationReloadElement.reloadFunction = getConfiguration;
-	configurationReloadElement.callbackSuccess = updateConfiguration;
-	configurationReloadElement.callbackError = reportErrorAndStop;
-	configurationReloadElement.timeToReload = 10;
-	configurationReloadElement.timeToError = 60;
-	reloadElements.push(configurationReloadElement);
 	
 	// enable buttons with check-box
 	$("enable_buttons").observe("change", function(ev) {
@@ -47,26 +36,6 @@ Event.observe(window, "load", function(event) {
 			$$("button.statechange").each(function(el) { el.disabled = true; });
 			doCommand(ev.element().readAttribute("command"), statusReloadElement);
 		});
-	});
-	
-	// Change configuration settings
-	$$(".config_type").each(function(element) {
-		element.observe("change", function(ev) {
-			var el = ev.element();
-			if (el.checked) {
-				changeConfigMode(el.value, configurationReloadElement);
-			}
-		});
-	});
-	
-	// Make the configuration file change automatically submit.
-	$("xml_file_select").observe("change", function(ev) {
-		changeXMLFile($("xml_file_select").value, configurationReloadElement);
-	});
-	
-	// Make the DB key change automatically submit.
-	$("db_key_select").observe("change", function(ev) {
-		changeDBKey($("db_key_select").value, configurationReloadElement);
 	});
 	
 });

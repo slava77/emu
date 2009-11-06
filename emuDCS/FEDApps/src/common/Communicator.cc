@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.24 2009/11/03 15:17:04 paste Exp $
+* $Id: Communicator.cc,v 1.25 2009/11/06 13:48:34 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -131,6 +131,7 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 	jsFileNames.push_back("errorFlasher.js");
 	jsFileNames.push_back("definitions.js");
 	jsFileNames.push_back("communicator.js");
+	jsFileNames.push_back("configurable.js");
 	jsFileNames.push_back("common.js");
 	*out << Header("FED Crate Communicator (" + systemName_.toString() + ")", jsFileNames);
 	
@@ -235,7 +236,7 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("src", "/emu/emuDCS/FEDApps/images/go-next.png");
+		.set("src", "/emu/emuDCS/FEDApps/images/media-playback-start.png");
 	*out << "Enable" << std::endl;
 	*out << cgicc::button() << std::endl;
 	
@@ -247,7 +248,7 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("src", "/emu/emuDCS/FEDApps/images/go-previous.png");
+		.set("src", "/emu/emuDCS/FEDApps/images/media-playback-pause.png");
 	*out << "Disable" << std::endl;
 	*out << cgicc::button() << std::endl;
 	
@@ -259,7 +260,7 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
+		.set("src", "/emu/emuDCS/FEDApps/images/configure.png");
 	*out << "Configure" << std::endl;
 	*out << cgicc::button() << std::endl;
 	
@@ -292,8 +293,9 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset()
-		.set("class", "dialog default_width")
-		.set("id", "FED_Communicator_Configuration_dialog") << std::endl;
+		.set("class", "dialog configuration_dialog default_width")
+		.set("id", "FED_Communicator_Configuration_dialog")
+		.set("name", "FED_Communicator_Configuration") << std::endl;
 	
 	*out << printConfigureOptions() << std::endl;
 	

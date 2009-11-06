@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.14 2009/11/03 15:17:05 paste Exp $
+* $Id: Monitor.cc,v 1.15 2009/11/06 13:48:34 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -81,6 +81,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 	jsFileNames.push_back("definitions.js");
 	jsFileNames.push_back("errorFlasher.js");
 	jsFileNames.push_back("monitor.js");
+	jsFileNames.push_back("configurable.js");
 	jsFileNames.push_back("common.js");
 	*out << Header(sTitle.str(), jsFileNames);
 
@@ -261,19 +262,11 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset()
-		.set("class", "dialog default_width")
-		.set("id", "FED_Monitor_Configuration_dialog") << std::endl;
+		.set("class", "dialog configuration_dialog default_width")
+		.set("id", "FED_Monitor_Configuration_dialog")
+		.set("name", "FED_Monitor_Configuration") << std::endl;
 	
 	*out << printConfigureOptions() << std::endl;;
-	
-	*out << cgicc::button()
-		.set("class", "right button")
-		.set("id", "reconfigure_button") << std::endl;
-	*out << cgicc::img()
-		.set("class", "icon")
-		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
-	*out << "Reconfigure Software" << std::endl;
-	*out << cgicc::button() << std::endl;
 	
 	*out << cgicc::fieldset() << std::endl;
 	
