@@ -505,19 +505,22 @@ private:
   //
   // synchronization functions looping over CSC's
   void MeasureL1AsAndDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MeasureL1AsAndDAVsForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void MeasureL1AsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureALCTTMBRxTxForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureALCTTMBRxTxForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MeasureCFEBTMBRxForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
-  void MeasureCFEBTMBRxForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void MeasureL1AsAndDAVsForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void ALCTBC0ScanForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void MeasureCFEBTMBRxForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void QuickScanForChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void QuickScanForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void QuickScanForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   //
   // BC0 scan functions
   void ALCTBC0Scan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ALCTBC0ScanForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ALCTBC0ScanForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void Settmb_bxn_offset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
   // Output logging

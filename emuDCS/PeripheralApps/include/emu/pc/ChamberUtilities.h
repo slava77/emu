@@ -49,6 +49,9 @@ public:
   void FindL1AAndDAVDelays();
   void Automatic();    // should be deprecated, since its name is not descriptive at all
   //
+  /// When BC0 synchronization parameters change, perform this quick scan:
+  void QuickTimingScan();
+  //
   // clock phases...
   ///  CFEB -> TMB communication delays
   void CFEBTiming();
