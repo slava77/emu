@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.28 2009/10/30 11:40:53 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.29 2009/11/07 15:22:42 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.29  2009/11/07 15:22:42  rakness
+// speed up synchronization scans
+//
 // Revision 1.28  2009/10/30 11:40:53  rakness
 // Update CFEB rx scan for ME1/1 TMB firmware
 //
@@ -806,35 +809,6 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
   int initial_cfeb3_posneg = thisTMB->GetCfeb3RxPosNeg();                              //0x118
   int initial_cfeb4_posneg = thisTMB->GetCfeb4RxPosNeg();                              //0x11a
   //
-  //  int initial_cfeb_tof_delay  = thisTMB->GetCfebTOFDelay();                             //0x18
-  //  int initial_cfeb0_tof_delay = thisTMB->GetCfeb0TOFDelay();                             //0x18
-  //  int initial_cfeb1_tof_delay = thisTMB->GetCfeb1TOFDelay();                             //0x1a
-  //  int initial_cfeb2_tof_delay = thisTMB->GetCfeb2TOFDelay();                             //0x1a
-  //  int initial_cfeb3_tof_delay = thisTMB->GetCfeb3TOFDelay();                             //0x1a
-  //  int initial_cfeb4_tof_delay = thisTMB->GetCfeb4TOFDelay();                             //0x1a
-  //
-  // Especially for ME11, it is necessary to set the TMB parameters back to their default values
-  // in order to make the scan work...
-  //  thisTMB->SetTMBRegisterDefaults();  
-  //
-  // configure the TMB with the default register values, but do NOT write to the user PROM 
-  // (i.e., we want hard reset to bring it back to normal operations...)
-  //  thisTMB->configure(2);
-  //
-  // BUT, we need the configuration to preserve the TOF parameters from the xml file, otherwise the
-  // CFEB rx delay scan will be screwed up...
-  //
-  //  thisTMB->SetCfebTOFDelay(initial_cfeb_tof_delay);
-  //  thisTMB->SetCfeb0TOFDelay(initial_cfeb0_tof_delay);
-  //  thisTMB->WriteRegister(vme_ddd1_adr);
-  //
-  //  thisTMB->SetCfeb1TOFDelay(initial_cfeb1_tof_delay);
-  //  thisTMB->SetCfeb2TOFDelay(initial_cfeb2_tof_delay);
-  //  thisTMB->SetCfeb3TOFDelay(initial_cfeb3_tof_delay);
-  //  thisTMB->SetCfeb4TOFDelay(initial_cfeb4_tof_delay);
-  //  thisTMB->WriteRegister(vme_ddd2_adr);
-  //
-  //  thisTMB->FireDDDStateMachine();  // set the above parameters into the DDD chip
   //
   // Enable this TMB for this test
   thisTMB->SetClctPatternTrigEnable(1);
@@ -984,19 +958,101 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
   //
   // Perform the analysis for each CFEB for each posneg
   //
-  int center_of_windows[5][2] = {};
   int windows_per_cfeb[5][2] = {};
   int total_number_of_windows[2] = {};
   //
+  // First:  figure out how many "good windows" each CFEB has for each posneg
   for (int posneg=0; posneg<2; posneg++) {
     for (int CFEBs=0; CFEBs<5; CFEBs++) {
-      center_of_windows[CFEBs][posneg] = window_analysis(NoMuons[CFEBs][posneg],MaxTimeDelay);
+      window_analysis(NoMuons[CFEBs][posneg],MaxTimeDelay);
       windows_per_cfeb[CFEBs][posneg] += window_counter + 1;
       total_number_of_windows[posneg] += window_counter + 1;
     }
   }
   //
-  // Print number of muons found versus cfeb[0-4]delay for each CFEB
+  // Next:  determine the average value for each CFEB for each posneg
+  //
+  int TimeDelay;
+  //
+  int MuonsWork[5][2][2*MaxTimeDelay] = {};
+  //
+  // Build-up the data including wrap-around
+  for (int posneg=0; posneg<2; posneg++) {
+    for (int CFEBs=0; CFEBs<5; CFEBs++) {
+      for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
+	MuonsWork[CFEBs][posneg][TimeDelay] = Muons[CFEBs][posneg][TimeDelay] ;
+      }
+    }
+  }
+  //
+  for (int posneg=0; posneg<2; posneg++) {
+    for (int CFEBs=0; CFEBs<5; CFEBs++) {
+      TimeDelay=0;
+      while (Muons[CFEBs][posneg][TimeDelay]>0) {
+	MuonsWork[CFEBs][posneg][TimeDelay+MaxTimeDelay] = Muons[CFEBs][posneg][TimeDelay] ;
+	MuonsWork[CFEBs][posneg][TimeDelay] = 0 ;
+	TimeDelay++;
+      }
+    }
+  }
+  //
+  if (debug_ >= 5) {
+    for (int posneg=0; posneg<2; posneg++) {    
+      std::cout << "TimeDelay Fixed for Delay Wrapping, posneg = " << posneg << std::endl ;
+      std::cout << "TimeDelay " ;
+      for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) 
+	std::cout << std::setw(4) << TimeDelay ;
+      std::cout << std::endl;
+      for (int CFEBs=0; CFEBs<5; CFEBs++) {
+	std::cout << "CFEB Id=" << CFEBs << " " ;
+	for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++){ 
+	  std::cout << std::setw(4) << MuonsWork[CFEBs][posneg][TimeDelay] ;
+	}     
+	std::cout << std::endl ;
+      }   
+      std::cout << std::endl ;
+    }
+  }
+  //
+  //
+  //
+  // Determine the mean value
+  //
+  float CFEBMeanN[5][2], CFEBMean[5][2];
+  //
+  for( int j=0; j<2; j++) {
+    for( int i=0; i<5; i++) {
+      CFEBMean[i][j]  = 0 ;
+      CFEBMeanN[i][j] = 0 ;
+    }
+  }
+  //
+  for (int posneg=0; posneg<2; posneg++) {    
+    for (int CFEBs=0; CFEBs<5; CFEBs++) {
+      for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++){ 
+	if ( MuonsWork[CFEBs][posneg][TimeDelay] > 0  ) {
+	  CFEBMean[CFEBs][posneg]  += ((float) TimeDelay) * ((float) MuonsWork[CFEBs][posneg][TimeDelay])  ; 
+	  CFEBMeanN[CFEBs][posneg] += (float) MuonsWork[CFEBs][posneg][TimeDelay] ; 
+	}
+      }     
+    }   
+  }
+  //
+  for (int posneg=0; posneg<2; posneg++) {    
+    for( int CFEBs=0; CFEBs<5; CFEBs++) {
+      if (CFEBMeanN[CFEBs][posneg] > 0) {
+	CFEBMean[CFEBs][posneg] /= CFEBMeanN[CFEBs][posneg] ;
+      } else {
+	CFEBMean[CFEBs][posneg] = -999;
+      }
+      if (CFEBMean[CFEBs][posneg] > (MaxTimeDelay-1) ) 
+	CFEBMean[CFEBs][posneg] -= MaxTimeDelay ;
+      if (debug_ >= 5) std::cout << "posneg " << posneg << ", CFEB" << CFEBs << " mean delay = " << CFEBMean[CFEBs][posneg] ;
+    }
+    if (debug_ >= 5) std::cout << std::endl;
+  }
+  //
+  // Print number of muons found versus cfeb[0-4]delay for each CFEB for each posneg
   //
   for (int posneg=0; posneg<2; posneg++) {
     (*MyOutput_) << "posneg = " << std::dec << posneg << " gives a total of " 
@@ -1006,8 +1062,8 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
     (*MyOutput_) << "TimeDelay " ;
     std::cout << "TimeDelay " ;
     for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) {
-      (*MyOutput_) << std::setw(5) << TimeDelay ;
-      std::cout << std::setw(5) << TimeDelay ;
+      (*MyOutput_) << std::setw(4) << TimeDelay ;
+      std::cout << std::setw(4) << TimeDelay ;
     }
     (*MyOutput_) << std::endl ;
     std::cout    << std::endl ;
@@ -1015,8 +1071,8 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
       (*MyOutput_) << "CFEB Id=" << CFEBs << " " ;
       std::cout    << "CFEB Id=" << CFEBs << " " ;
       for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
-	(*MyOutput_) << std::setw(5) << Muons[CFEBs][posneg][TimeDelay] ;
-	std::cout    << std::setw(5) << Muons[CFEBs][posneg][TimeDelay] ;
+	(*MyOutput_) << std::setw(4) << Muons[CFEBs][posneg][TimeDelay] ;
+	std::cout    << std::setw(4) << Muons[CFEBs][posneg][TimeDelay] ;
       }     
       (*MyOutput_) << std::endl ;
       std::cout    << std::endl ;
@@ -1064,7 +1120,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
   } else if (special_cfeb < 0) {  //OK scan on 5 out of 5 CFEBs
     //
     for (int CFEBs=0; CFEBs<5; CFEBs++) {
-      CFEBrxPhase_[CFEBs] = center_of_windows[CFEBs][pick_posneg];
+      CFEBrxPhase_[CFEBs] = RoundOff(CFEBMean[CFEBs][pick_posneg]);
       CFEBrxPosneg_[CFEBs] = pick_posneg;
       (*MyOutput_) << "Best value is cfeb" << CFEBs << "delay = " << CFEBrxPhase_[CFEBs] << std::endl;
       std::cout    << "Best value is cfeb" << CFEBs << "delay = " << CFEBrxPhase_[CFEBs] << std::endl;
@@ -1076,7 +1132,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
   } else {                        //OK scan on 4 out of 5 CFEBs put the value of the 1 to be equal to the rest... 
     //
     for (int CFEBs=0; CFEBs<5; CFEBs++) {
-      CFEBrxPhase_[CFEBs] = center_of_windows[CFEBs][pick_posneg];
+      CFEBrxPhase_[CFEBs] = RoundOff(CFEBMean[CFEBs][pick_posneg]);
       CFEBrxPosneg_[CFEBs] = pick_posneg;
     }
     //
@@ -1967,7 +2023,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   //
   int good_data[2][2][16] = {};
   //
-  int min_pipedepth=8;
+  int min_pipedepth=10;
   int max_pipedepth=16;  
   //
   for (int rx_posneg=0; rx_posneg<2; rx_posneg++) {
@@ -2008,12 +2064,12 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	    thisTMB->SetALCTSyncClearErrors(1);
 	    thisTMB->WriteRegister(alct_sync_ctrl_adr);
 	    //
-	    // wait for a short time for errors to accumulate...
-	    ::usleep(5);
-	    //
 	    // Unclear error flipflops, after this write, the errors are being tallied by TMB firmware
 	    thisTMB->SetALCTSyncClearErrors(0);
 	    thisTMB->WriteRegister(alct_sync_ctrl_adr);
+	    //
+	    // wait for a short time for errors to accumulate...
+	    //	    ::usleep(1);
 	    //
 	    // Read TMB data check flipflops
 	    thisTMB->ReadRegister(alct_sync_ctrl_adr);
@@ -2054,8 +2110,8 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
       }
       // focus in on where the good pipedepth is, in order not to waste any time...
       if (good_depth>0) {
-        min_pipedepth = (good_depth-3 < 0  ? 0  : good_depth-3);
-        max_pipedepth = (good_depth+3 > 16 ? 16 : good_depth+3);
+        min_pipedepth = (good_depth-2 < 0  ? 0  : good_depth-2);
+        max_pipedepth = (good_depth+2 > 16 ? 16 : good_depth+2);
       }
     }
   }
@@ -2154,9 +2210,13 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
       //Set depth where to look for the data
       thisTMB->SetALCTSyncTXRandom(1);
       //
-      bool go_quick = false;
+      //      bool go_quick = false;
       //
-      for (int check_loop=0; check_loop<100; check_loop++) {
+      const int max_loop = 100;
+      //
+      alct_tx_rx_display[rx_value][tx_value] = max_loop;
+      //
+      for (int check_loop=0; check_loop<max_loop; check_loop++) {
 	//
 	// Clear TMB data check flipflops
 	thisTMB->SetALCTSyncClearErrors(1);
@@ -2167,18 +2227,22 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	thisTMB->SetALCTSyncClearErrors(0);
 	thisTMB->WriteRegister(alct_sync_ctrl_adr);
 	//
-	if (!go_quick) ::usleep(1000);
+	//	if (!go_quick) ::usleep(100);
+	::usleep(100);
 	//
 	// Read TMB data check flipflops
 	thisTMB->ReadRegister(alct_sync_ctrl_adr);
 	//      
-	alct_tx_rx_display[rx_value][tx_value] += (thisTMB->GetReadALCTSync1stErrorLatched() | thisTMB->GetReadALCTSync2ndErrorLatched());
+	if (thisTMB->GetReadALCTSync1stErrorLatched() == 0 && thisTMB->GetReadALCTSync2ndErrorLatched() == 0) {
+	  alct_tx_rx_display[rx_value][tx_value] --;  // count down the number of times it is OK
+	} 
 	//
 	// no sense wasting time on this rx,tx value.  It has badness...
-	if (thisTMB->GetReadALCTSync1stErrorLatched() || thisTMB->GetReadALCTSync2ndErrorLatched()) go_quick = true;
+	//	if (thisTMB->GetReadALCTSync1stErrorLatched() || thisTMB->GetReadALCTSync2ndErrorLatched()) go_quick = true;
+	if (thisTMB->GetReadALCTSync1stErrorLatched() || thisTMB->GetReadALCTSync2ndErrorLatched()) check_loop = max_loop+1;
 	//
 	// OK for this read:  read it again, slowly...
-	if (!thisTMB->GetReadALCTSync1stErrorLatched() && !thisTMB->GetReadALCTSync2ndErrorLatched()) go_quick = false;
+	//	if (!thisTMB->GetReadALCTSync1stErrorLatched() && !thisTMB->GetReadALCTSync2ndErrorLatched()) go_quick = false;
 	//
       }
       //
@@ -2582,7 +2646,7 @@ void ChamberUtilities::ALCT_TMB_Loopback() {
   // Find a "good enough" value of the alct_rx_clock_delay with alternating 1's and 0's sent from ALCT -> TMB
   int alct_rx_value = Find_alct_rx_with_ALCT_to_TMB_evenodd(10);
   //
-  ::sleep(2);
+  ::usleep(500000);
   //
   // Find a "good enough" value of the alct_tx_clock_delay with alternating 1's and 0's 
   // sent from TMB, correctly latched at ALCT, and then looped back:  TMB -> ALCT -> TMB
@@ -2593,7 +2657,7 @@ void ChamberUtilities::ALCT_TMB_Loopback() {
     return;
   }
   //
-  ::sleep(2);
+  ::usleep(500000);
   //
   // Now measure alct_[rx,tx]_phase_delay with random data...
   ALCT_TMB_TimingUsingRandomLoopback();
@@ -2655,9 +2719,12 @@ int ChamberUtilities::ALCTBC0Scan() {
     std::cout << "-> initial_bxn_offset        = " << initial_bxn_offset        << std::endl;
   }
   //
-  std::cout << "This scan has the following input parameters... " << std::endl;
-  std::cout << "alct_tof_delay          = 0x" << std::hex << thisTMB->GetAlctTOFDelay() << std::endl;
-  std::cout << "tmb_to_alct_data_delay  = 0x" << std::hex << thisTMB->GetALCTTxDataDelay() << std::endl;
+  std::cout    << "This scan has the following input parameters... " << std::endl;
+  std::cout    << "alct_tof_delay          = 0x" << std::hex << thisTMB->GetAlctTOFDelay() << std::endl;
+  std::cout    << "tmb_to_alct_data_delay  = 0x" << std::hex << thisTMB->GetALCTTxDataDelay() << std::endl;
+  (*MyOutput_) << "This scan has the following input parameters... " << std::endl;
+  (*MyOutput_) << "alct_tof_delay          = 0x" << std::hex << thisTMB->GetAlctTOFDelay() << std::endl;
+  (*MyOutput_) << "tmb_to_alct_data_delay  = 0x" << std::hex << thisTMB->GetALCTTxDataDelay() << std::endl;
   //
   // Set up for this test:
   // turn off the one shot L1A (from TMB)...
@@ -2691,16 +2758,18 @@ int ChamberUtilities::ALCTBC0Scan() {
   std::cout    << "Using tmb_bxn_offset = " << std::dec << local_tmb_bxn_offset_ << std::endl;
   (*MyOutput_) << "Using tmb_bxn_offset = " << std::dec << local_tmb_bxn_offset_ << std::endl;
   //
-  thisTMB->SetBxnOffset(local_tmb_bxn_offset_);
-  thisTMB->WriteRegister(seq_offset_adr);
-  //
-  // Send a BGo "Resync" to make sure that the BC0 offset has taken effect
-  thisCCB_->setCCBMode(CCB::VMEFPGA);
-  thisCCB_->syncReset(); 
-  thisCCB_->setCCBMode(CCB::DLOG);
-  //
-  // put in a sleep to allow the resync to take hold...
-  ::sleep(1);
+  if (initial_bxn_offset != local_tmb_bxn_offset_) {
+    thisTMB->SetBxnOffset(local_tmb_bxn_offset_);
+    thisTMB->WriteRegister(seq_offset_adr);
+    //
+    // Send a BGo "Resync" to make sure that the BC0 offset has taken effect
+    thisCCB_->setCCBMode(CCB::VMEFPGA);
+    thisCCB_->syncReset(); 
+    thisCCB_->setCCBMode(CCB::DLOG);
+    //
+    // put in a sleep to allow the resync to take hold...
+    ::sleep(1);
+  }
   //
   // Values for scan over tmb_bxn_offset
   //
@@ -2772,16 +2841,32 @@ int ChamberUtilities::ALCTBC0Scan() {
   thisTMB->SetALCTTxDataDelay(initial_alct_txdata_delay);
   thisTMB->WriteRegister(alct_stat_adr);
   //
-  thisTMB->SetBxnOffset(initial_bxn_offset);
-  thisTMB->WriteRegister(seq_offset_adr);
-  //
-  // Send a BGo "Resync" to make sure that the BC0 offset has taken effect
-  thisCCB_->setCCBMode(CCB::VMEFPGA);
-  thisCCB_->syncReset(); 
-  thisCCB_->setCCBMode(CCB::DLOG);
-  //
-  // put in a sleep to allow the resync to take hold...
-  ::sleep(1);
+  if (use_measured_values_) {
+    (*MyOutput_) << "Setting alct_bx0_delay and match_trig_alct_delay to measured value..." << std::endl;
+    //
+    thisTMB->SetAlctBx0Delay(ALCT_bx0_delay_);
+    thisTMB->WriteRegister(bx0_delay_adr);
+    //
+    thisTMB->SetAlctVpfDelay(match_trig_alct_delay_);
+    thisTMB->WriteRegister(tmbtim_adr);
+    //
+  } else {
+    (*MyOutput_) << "Reverting to initial values of alct_bx0_delay and match_trig_alct_delay to measured value..." << std::endl;
+    //
+    if (initial_bxn_offset != local_tmb_bxn_offset_) {
+      //
+      thisTMB->SetBxnOffset(initial_bxn_offset);
+      thisTMB->WriteRegister(seq_offset_adr);
+      //
+      // Send a BGo "Resync" to make sure that the BC0 offset has taken effect
+      thisCCB_->setCCBMode(CCB::VMEFPGA);
+      thisCCB_->syncReset(); 
+      thisCCB_->setCCBMode(CCB::DLOG);
+      //
+      // put in a sleep to allow the resync to take hold...
+      ::sleep(1);
+    }
+  }
   //
   return ALCT_bx0_delay_;
   //
@@ -3056,6 +3141,40 @@ void ChamberUtilities::Automatic(){
   return;
 }
 //
+void ChamberUtilities::QuickTimingScan() {
+  //
+  // If only the BC0 synchronization changes ("Time-Of-Flight parameters"), the 
+  // following parameters will need to be determined in a "quick" scan
+  //
+  std::cout << "Quick timing Scan" << std::endl;
+  //
+  bool initial_use_measured_values = use_measured_values_;
+  PropagateMeasuredValues(true);
+  //
+  // 1) Establish communication between TMB and ALCT, since the ALCT clock has changed
+  //  ALCT_TMB_Loopback();
+  //
+  // 2) ALCT to TMB delays needed to synchronize the BC0 back at TMB
+  //  ALCTBC0Scan();
+  //
+  // For the next couple of scans, we need the radioactive trigger...
+  SetupRadioactiveTriggerConditions();
+  //
+  // 3) Timing between the CLCT pretrigger and the L1A (L1A may be affected by the ALCT 
+  // to TMB delays)
+  MeasureTmbLctCableDelay();
+  //
+  // 4) Timing between the L1A at the DMB and the DAV back from the ALCT (Since delay of
+  // the L1A to the ALCT has changed)
+  MeasureAlctDavCableDelay();
+  //
+  // Go back to the initial trigger conditions...
+  ReturnToInitialTriggerConditions();
+  //
+  PropagateMeasuredValues(initial_use_measured_values);  
+  //
+  return;
+}
 //
 //----------------------------------------------
 // ALCT-CLCT match timing
@@ -3630,6 +3749,8 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
       Histo[delay][histo] = 0;
   }
   //
+  int analyze_up_to = DelayMax;
+  //
   for (int delay=DelayMin; delay<=DelayMax; delay++) {
     //
     // Need to set extra latency values into the VME register before you push in
@@ -3656,11 +3777,19 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
     // Print the data from this delay value:
     (*MyOutput_) << "Setting tmb_lct_cable_delay = " << delay << " gives..." << std::endl;
     if (debug_) std::cout << "Setting tmb_lct_cable_delay = " << delay << " gives..." << std::endl;
-    PrintHistogram("AFF to L1A Value",Histo[delay],HistoMin,HistoMax,Average[delay]);  
+    PrintHistogram("AFF to L1A Value",Histo[delay],HistoMin,HistoMax,Average[delay]);
+    //
+    float difference = (float) desired_value - Average[delay];
+    if (difference > 3.) {
+      std::cout    << "We've gone past the desired value = " << desired_value << ". Stop this scan." << std::endl;
+      (*MyOutput_) << "We've gone past the desired value = " << desired_value << ". Stop this scan." << std::endl;
+      analyze_up_to = delay;
+      delay = DelayMax+1;
+    }
   }
   //
-  // determine which delay value gives the reading we want:
-  TmbLctCableDelay_ = DelayWhichGivesDesiredValue(Average,DelayMin,DelayMax,desired_value);
+  // determine which delay value gives the reading we want.  Only analyze over the values which have been used...
+  TmbLctCableDelay_ = DelayWhichGivesDesiredValue(Average,DelayMin,analyze_up_to,desired_value);
   //
   // print the delay value that gives the reading we want:
   (*MyOutput_) << "-----------------------------------------------------" << std::endl;
@@ -3697,7 +3826,7 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   // Active-FEB Flag <-> L1A difference greater than 1 away from the desired value,
   // we are not optimally receiving the L1A in the window for the CFEB...
   //
-  if (difference > 2.5) {
+  if (fabs(difference) > 2.5) {
     return -999;
   } else {
     return TmbLctCableDelay_;

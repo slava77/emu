@@ -245,6 +245,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem,"MeasureALCTTMBRxTxForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForCrate,"MeasureCFEBTMBRxForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForSystem,"MeasureCFEBTMBRxForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForChamber,"QuickScanForChamber");
+  xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForCrate,"QuickScanForCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForSystem,"QuickScanForSystem");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
@@ -682,6 +685,13 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   std::string MeasureL1AsAndDAVsForSystem = toolbox::toString("/%s/MeasureL1AsAndDAVsForSystem",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForSystem) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Find L1As and DAVs") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string QuickScanForSystem = toolbox::toString("/%s/QuickScanForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",QuickScanForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","L1As and DAVs for TOF parameters only") << std::endl ;
   *out << cgicc::form() << cgicc::br() << std::endl ;
   *out << cgicc::td();
   //
@@ -1662,6 +1672,13 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   std::string MeasureL1AsAndDAVsForCrate = toolbox::toString("/%s/MeasureL1AsAndDAVsForCrate",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForCrate) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Find L1A and DAV delays for crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string QuickScanForCrate = toolbox::toString("/%s/QuickScanForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",QuickScanForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Quick Scan for crate") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
@@ -4820,7 +4837,15 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
        << " ("  << MyTest[tmb][current_crate_].GetALCTvpf_configvalue() << ") " << std::endl;
   *out << cgicc::br();
   //
+  std::string QuickScanForChamber = toolbox::toString("/%s/QuickScanForChamber",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",QuickScanForChamber) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Quick Scan") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
   *out << cgicc::br();
+
   *out << cgicc::br();
   //
   //
@@ -5468,6 +5493,35 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi
   //
 }
 //
+void EmuPeripheralCrateConfig::QuickScanForChamber(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Quick Scan for chamber" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Quick Scan for chamber");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb;
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Quick Scan for chamber:  TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "Quick Scan for chamber:  No tmb" << std::endl;
+    tmb = TMB_;
+  }
+  //
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].QuickTimingScan();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+  //
+  this->ChamberTests(in,out);
+  //
+}
+//
+//
 void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -5533,6 +5587,27 @@ void EmuPeripheralCrateConfig::MeasureDAVsForCrate(xgi::Input * in, xgi::Output 
     MyTest[i][current_crate_].SetupRadioactiveTriggerConditions();
     MyTest[i][current_crate_].FindDAVDelays();
     MyTest[i][current_crate_].ReturnToInitialTriggerConditions();
+    MyTest[i][current_crate_].RedirectOutput(&std::cout);
+  }
+  //
+  this->CrateConfiguration(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::QuickScanForCrate(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Quick Scan for crate" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Quick Scan for crate");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    //
+    std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
+    //
+    MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
+    MyTest[i][current_crate_].QuickTimingScan();
     MyTest[i][current_crate_].RedirectOutput(&std::cout);
   }
   //
@@ -5783,6 +5858,46 @@ void EmuPeripheralCrateConfig::ALCTBC0ScanForSystem(xgi::Input * in, xgi::Output
   this->Default(in,out);
   //
 }
+//
+void EmuPeripheralCrateConfig::QuickScanForSystem(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Quick Scan for System" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Quick Scan for system");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if(!parsed) ParsingXML();
+  //
+  if(total_crates_<=0) return;
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    if ( crateVector[crate_number]->IsAlive() ) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	//
+	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	//
+	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+	MyTest[tmb][current_crate_].QuickTimingScan();
+	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+	//
+      }
+      //
+      SaveLog();
+      //
+      SaveTestSummary();
+      //
+    }
+  }
+  //
+  this->Default(in,out);
+  //
+}
+//
 //
 void EmuPeripheralCrateConfig::setTMBCounterReadValues(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
