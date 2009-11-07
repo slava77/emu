@@ -2896,15 +2896,21 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"200; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
   int mycrate=0;
+  Crate *myCrate=0;
+  std::vector<DAQMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     if(crate_name==crateVector[i]->GetLabel()) mycrate = i;
+     if(crate_name==crateVector[i]->GetLabel())
+     {   myVector = crateVector[i]->daqmbs();
+         myCrate = crateVector[i];
+         mycrate = i;
+     }
   }
   if(Monitor_On_)
   {
@@ -2940,7 +2946,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   //
   if(((csra3>>12)&0x1) == 1) {
     *out << cgicc::span().set("style","color:green");
-    *out << " (Done)";
+    *out << " (OK)";
     *out << cgicc::span();
   } else {
     *out << cgicc::span().set("style","color:red");
@@ -2974,82 +2980,64 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   }
   *out << cgicc::br();
   //
-  *out << "All cfg                       " << ((csra3>>15)&0x1);
+  *out << "All cfg " << ((csra3>>15)&0x1);
   *out << cgicc::br();
   *out << cgicc::fieldset() ;
   //
   // read = (thisCCB->ReadRegister(0x2))&0xffff;
   //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "MPC cfg             " << (csra2&0x1);
+  *out << "MPC cfg ";
+  if((csra2&0x1) == 0) {
+    *out << cgicc::span().set("style","color:green");
+    *out << " OK";
+    *out << cgicc::span();
+  } else {
+    *out << cgicc::span().set("style","color:red");
+    *out << " No";
+    *out << cgicc::span();
+  }
   *out << cgicc::br();
   *out << cgicc::fieldset() ;
   //
-  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "ALCT slot = 02 cfg            " << ((csra2>>1)&0x1);
-  *out << cgicc::br();
-  *out << "ALCT slot = 04 cfg            " << ((csra2>>2)&0x1);
-  *out << cgicc::br();
-  *out << "ALCT slot = 06 cfg            " << ((csra2>>3)&0x1);
-  *out << cgicc::br();
-  *out << "ALCT slot = 08 cfg            " << ((csra2>>4)&0x1);
-  *out << cgicc::br();
-  *out << "ALCT slot = 10 cfg            " << ((csra2>>5)&0x1);
-  *out << cgicc::br();
-  *out << "ALCT slot = 14 cfg            " << ((csra2>>6)&0x1);
-  *out << cgicc::br();
-  *out << "ALCT slot = 16 cfg            " << ((csra2>>7)&0x1);
-  *out << cgicc::br();
-  *out << "ALCT slot = 18 cfg            " << ((csra2>>8)&0x1);
-  *out << cgicc::br();
-  *out << "ALCT slot = 20 cfg            " << ((csra2>>9)&0x1);
-  *out << cgicc::br();
-  *out << cgicc::fieldset() ;
+  *out << cgicc::table().set("border","1");
   //
-  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "TMB  slot = 02 cfg            " << ((csra2>>10)&0x1);
-  *out << cgicc::br();
-  *out << "TMB  slot = 04 cfg            " << ((csra2>>11)&0x1);
-  *out << cgicc::br();
-  *out << "TMB  slot = 06 cfg            " << ((csra2>>12)&0x1);
-  *out << cgicc::br();
-  *out << "TMB  slot = 08 cfg            " << ((csra2>>13)&0x1);
-  *out << cgicc::br();
-  *out << "TMB  slot = 10 cfg            " << ((csra2>>14)&0x1);
-  *out << cgicc::br();
-  *out << "TMB  slot = 14 cfg            " << ((csra2>>15)&0x1);
-  *out << cgicc::br();
+  *out << cgicc::td() << cgicc::td();
   //
-  // read = (thisCCB->ReadRegister(0x4))&0xffff;
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    *out << cgicc::td();
+    *out << myCrate->GetChamber(myVector[dmb])->GetLabel();
+    *out << cgicc::td();
+  }
   //
-  *out << "TMB  slot = 16 cfg            " << ((csra3)&0x1);
-  *out << cgicc::br();
-  *out << "TMB  slot = 18 cfg            " << ((csra3>>1)&0x1);
-  *out << cgicc::br();
-  *out << "TMB  slot = 20 cfg            " << ((csra3>>2)&0x1);
-  *out << cgicc::br();
-  *out << cgicc::fieldset() ;
-  //
-  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "DMB  slot = 03 cfg            " << ((csra3>>3)&0x1);
-  *out << cgicc::br();
-  *out << "DMB  slot = 05 cfg            " << ((csra3>>4)&0x1);
-  *out << cgicc::br();
-  *out << "DMB  slot = 07 cfg            " << ((csra3>>5)&0x1);
-  *out << cgicc::br();
-  *out << "DMB  slot = 09 cfg            " << ((csra3>>6)&0x1);
-  *out << cgicc::br();
-  *out << "DMB  slot = 11 cfg            " << ((csra3>>7)&0x1);
-  *out << cgicc::br();
-  *out << "DMB  slot = 15 cfg            " << ((csra3>>8)&0x1);
-  *out << cgicc::br();
-  *out << "DMB  slot = 17 cfg            " << ((csra3>>9)&0x1);
-  *out << cgicc::br();
-  *out << "DMB  slot = 19 cfg            " << ((csra3>>10)&0x1);
-  *out << cgicc::br();
-  *out << "DMB  slot = 21 cfg            " << ((csra3>>11)&0x1);
-  *out << cgicc::br();
-  *out << cgicc::fieldset() ;
+  *out <<cgicc::tr();
+  // 
+  *out << cgicc::td() << "ALCT (0=OK)" << cgicc::td();
+  for (int count=1; count<=9; count++)
+  {
+     *out <<cgicc::td() << ((csra2>>count)&0x1);
+     *out << cgicc::td();
+  }
+  *out << cgicc::tr() << std::endl;
+  *out << cgicc::td() << "TMB (0=OK)" << cgicc::td();
+  for (int count=1; count<=9; count++)
+  {
+     if(count<7)
+         *out <<cgicc::td() << ((csra2>>(count+9))&0x1);
+     else
+         *out <<cgicc::td() << ((csra3>>(count-7))&0x1);
+     *out << cgicc::td();
+  }
+  *out << cgicc::tr() << std::endl;
+  *out << cgicc::td() << "DMB (1=OK)" << cgicc::td();
+  for (int count=1; count<=9; count++)
+  {
+     *out <<cgicc::td() << ((csra3>>(count+2))&0x1);
+     *out << cgicc::td();
+  }
+  *out << cgicc::tr() << std::endl;
+  *out << cgicc::table();
+  *out << "Note: for ME 1/3 chambers, DMB always 0" << std::endl;
   //
 }
 
