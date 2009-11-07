@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.9 2009/11/01 13:05:27 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.10 2009/11/07 14:25:23 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateTimer.h"
 
@@ -24,6 +24,7 @@ EmuPeripheralCrateTimer::EmuPeripheralCrateTimer(xdaq::ApplicationStub * s): Emu
 
   xgi::bind(this,&EmuPeripheralCrateTimer::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateTimer::MainPage, "MainPage");
+  xgi::bind(this,&EmuPeripheralCrateTimer::SwitchBoard, "SwitchBoard");
   //
   fsm_.addState('H', "Halted", this, &EmuPeripheralCrateTimer::stateChanged);
   fsm_.addState('E', "Enabled",    this, &EmuPeripheralCrateTimer::stateChanged);
@@ -47,9 +48,12 @@ EmuPeripheralCrateTimer::EmuPeripheralCrateTimer(xdaq::ApplicationStub * s): Emu
   Monitor_Ready_ = false;
   In_Monitor_ = false;
   In_Broadcast_ = false;
-  fastloop=0;
-  slowloop=0;
-  extraloop=0;
+  fastloop = 0;
+  slowloop = 0;
+  extraloop = 0;
+  fastintv = -1;
+  slowintv = -1;
+  extraintv = -1;
   this->getApplicationInfoSpace()->fireItemAvailable("FastLoop", &fastloop);
   this->getApplicationInfoSpace()->fireItemAvailable("SlowLoop", &slowloop);
   this->getApplicationInfoSpace()->fireItemAvailable("ExtraLoop", &extraloop);
@@ -69,9 +73,9 @@ xoap::MessageReference EmuPeripheralCrateTimer::MonitorStart (xoap::MessageRefer
          time_t cycle=1;  // number of seconds
          interval.sec(cycle);
 
-         fastintv=fastloop;
-         slowintv=slowloop;
-         extraintv=extraloop;
+         if(fastintv<0) fastintv=fastloop;
+         if(slowintv<0) slowintv=slowloop;
+         if(extraintv<0) extraintv=extraloop;
          rtime_fast=0;
          rtime_slow=0;
          rtime_extra=0;
@@ -80,7 +84,7 @@ xoap::MessageReference EmuPeripheralCrateTimer::MonitorStart (xoap::MessageRefer
          startTime = toolbox::TimeVal::gettimeofday();
          timer_->scheduleAtFixedRate(startTime, this, interval, 0, "EmuPCrateTimer" );
          std::cout << "EmuPCrateTimer scheduled at 1 sec interval" << std::endl;
-
+         std::cout << "Fast Loop: " << fastintv << ", Slow Loop: " << slowintv << ", Extra Loop: " << extraintv << std::endl;
          Monitor_Ready_=true;
      }
      Monitor_On_=true;
@@ -97,9 +101,7 @@ xoap::MessageReference EmuPeripheralCrateTimer::MonitorStop (xoap::MessageRefere
      {
          Monitor_On_=false;
 #if 0
-         if(fastloop) timer_->remove("EmuPCrateFast" );
-         if(slowloop) timer_->remove("EmuPCrateSlow" );
-         if(extraloop) timer_->remove("EmuPCrateExtra" );
+         timer_->remove("EmuPCrateTimer" );
          timer_->stop(); 
 #endif
          fireEvent("Halt");
@@ -131,17 +133,17 @@ void EmuPeripheralCrateTimer::timeExpired (toolbox::task::TimerEvent& e)
      In_Monitor_ = true;
 
      time_t thistime=time(NULL);
-     if((thistime-rtime_fast)>fastintv)
+     if(fastintv>0 && (thistime-rtime_fast)>fastintv)
      {
         PCsendCommand("FastLoop","emu::pc::EmuPeripheralCrateMonitor");
         rtime_fast=thistime=time(NULL);
      }
-     if((thistime-rtime_extra)>extraintv)
+     if(extraintv>0 && (thistime-rtime_extra)>extraintv)
      {
         PCsendCommand("ExtraLoop","emu::pc::EmuPeripheralCrateMonitor");
         rtime_extra=thistime=time(NULL);
      }
-     if((thistime-rtime_slow)>slowintv)
+     if(slowintv && (thistime-rtime_slow)>slowintv)
      {
         PCsendCommand("SlowLoop","emu::pc::EmuPeripheralCrateMonitor");
         rtime_slow=thistime=time(NULL);
@@ -200,6 +202,42 @@ xoap::MessageReference EmuPeripheralCrateTimer::onHalt (xoap::MessageReference m
   fireEvent("Halt");
   //
   return createReply(message);
+}
+
+void EmuPeripheralCrateTimer::SwitchBoard(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception)
+{
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  Page=cgiEnvi.getQueryString();
+  std::string command_name=Page.substr(0,Page.find("=", 0) );
+  std::string command_argu=Page.substr(Page.find("=", 0)+1);
+
+  if (command_name=="FAST")
+  {
+     int interval = atoi(command_argu.c_str());
+     if(interval>=0) 
+        {  fastintv=interval;
+           std::cout << "FAST Loop set to " << fastintv << std::endl;
+        }
+  }  
+  else if (command_name=="SLOW")
+  {
+     int interval = atoi(command_argu.c_str());
+     if(interval>=0) 
+        {  slowintv=interval;
+           std::cout << "SLOW Loop set to " << slowintv << std::endl;
+        }
+  }  
+  else if (command_name=="EXTRA")
+  {
+     int interval = atoi(command_argu.c_str());
+     if(interval>=0) 
+        {  extraintv=interval;
+           std::cout << "EXTRA Loop set to " << extraintv << std::endl;
+        }
+  }
 }
 
  }  // namespace emu::pc

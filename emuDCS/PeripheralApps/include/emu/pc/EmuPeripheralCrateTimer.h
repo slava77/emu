@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.h,v 1.3 2009/11/01 12:18:35 liu Exp $
+// $Id: EmuPeripheralCrateTimer.h,v 1.4 2009/11/07 14:25:23 liu Exp $
 
 #ifndef _EmuPeripheralCrateTimer_h_
 #define _EmuPeripheralCrateTimer_h_
@@ -79,7 +79,8 @@ public:
   xoap::MessageReference  Locked(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference  Unlock(xoap::MessageReference message) throw (xoap::exception::Exception);
   void timeExpired (toolbox::task::TimerEvent& e);
-
+  void SwitchBoard(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  
 private:
 
   bool Monitor_On_, Monitor_Ready_, In_Monitor_, In_Broadcast_;
