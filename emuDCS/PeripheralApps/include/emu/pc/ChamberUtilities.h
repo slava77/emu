@@ -83,6 +83,7 @@ public:
   /// Thoroughly check the ALCT<->TMB communication by looping back random data from TMB -> ALCT -> TMB
   int ALCT_TMB_TimingUsingRandomLoopback();
   int ALCT_TMB_TimingUsingErrorCorrectionCode();
+  void ThoroughRxTxScan(int rx_posneg, int tx_posneg, int pipe_depth);
   //
   // Define the timing of the BC0 from TMB -> ALCT -> TMB
   int ALCTBC0Scan();

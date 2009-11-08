@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.29 2009/11/07 15:22:42 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.30 2009/11/08 15:09:12 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.30  2009/11/08 15:09:12  rakness
+// keep away from bad region in ALCT-TMB communication scan
+//
 // Revision 1.29  2009/11/07 15:22:42  rakness
 // speed up synchronization scans
 //
@@ -2012,7 +2015,6 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   thisTMB->SetAlctSequencerCommand(LOOPBACK_RANDOM);
   thisTMB->WriteRegister(alct_cfg_adr);	
   //
-  //
   // Not sure where in the FIFO the data looped back is going to show up...
   // Do a quick scan to look if there is ANY good data here...
   //
@@ -2068,8 +2070,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	    thisTMB->SetALCTSyncClearErrors(0);
 	    thisTMB->WriteRegister(alct_sync_ctrl_adr);
 	    //
-	    // wait for a short time for errors to accumulate...
-	    //	    ::usleep(1);
+	    // This is the quick scan, so don't wait for a short time for errors to accumulate...
 	    //
 	    // Read TMB data check flipflops
 	    thisTMB->ReadRegister(alct_sync_ctrl_adr);
@@ -2119,10 +2120,10 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   if (good_depth < 0) {
     std::cout    << "ERROR:  No pipe depths with good data." << std::endl;
     (*MyOutput_) << "ERROR:  No pipe depths with good data." << std::endl;
-    ALCTtxPhase_ = -900;
-    ALCTtxPosNeg_= -900;
-    ALCTrxPhase_ = -900;
-    ALCTrxPosNeg_= -900;
+    ALCTtxPhase_ = -999;
+    ALCTtxPosNeg_= -999;
+    ALCTrxPhase_ = -999;
+    ALCTrxPosNeg_= -999;
     //
     // return back to previous conditions
     thisTMB->SetFireL1AOneshot(initial_fire_l1a_oneshot);
@@ -2177,15 +2178,86 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   (*MyOutput_) << "Performing a more thorough scan at (rx_posneg,tx_posneg,pipedepth) = (" 
 	       << best_rx_posneg << "," << best_tx_posneg << "," << best_pipedepth << ")" << std::endl;
   //
-  thisTMB->SetAlctRxPosNeg(best_rx_posneg);
-  thisTMB->WriteRegister(phaser_alct_rxd_adr);
-  thisTMB->FirePhaser(phaser_alct_rxd_adr);
+  ThoroughRxTxScan(best_rx_posneg,best_tx_posneg,best_pipedepth);
   //
-  thisTMB->SetAlctTxPosNeg(best_tx_posneg);
+  // Analysis of the trigger primitive arrival timing at the SP indicates that the following 
+  // set of communication phase parameters to send the BC0 signal to ALCT results in a 
+  // non-desirable shift of 1bx...  A perusal of the scans seems to indicate that we might
+  // have a comparable sized communication window of good data by just forcing the tx_posneg
+  // bit to be 1... Thus.....
+  //
+  if (ALCTtxPosNeg_ == 0 && ALCTtxPhase_ > 15) {
+    ThoroughRxTxScan(best_rx_posneg,1,best_pipedepth);
+  }
+  //
+  //
+  (*MyOutput_) << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
+  (*MyOutput_) << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
+  (*MyOutput_) << "Best value is alct_posneg = " << std::dec << ALCTrxPosNeg_ << std::endl;
+  (*MyOutput_) << "Best value is alct_tx_posneg = " << std::dec << ALCTtxPosNeg_ << std::endl;
+  //
+  std::cout    << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
+  std::cout    << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
+  std::cout    << "Best value is alct_posneg = " << std::dec << ALCTrxPosNeg_ << std::endl;
+  std::cout    << "Best value is alct_tx_posneg = " << std::dec << ALCTtxPosNeg_ << std::endl;
+  //
+  if (use_measured_values_) { 
+    (*MyOutput_) << "Setting alct_rx/tx_clock_delays to measured values..." << std::endl;
+    std::cout    << "Setting alct_rx/tx_clock_delays to measured values..." << std::endl;
+    thisTMB->SetAlctTxClockDelay(ALCTtxPhase_);
+    thisTMB->SetAlctTxPosNeg(ALCTtxPosNeg_);
+    thisTMB->SetAlctRxClockDelay(ALCTrxPhase_);
+    thisTMB->SetAlctRxPosNeg(ALCTrxPosNeg_);
+    //
+  } else {
+    (*MyOutput_) << "Reverting back to original alct_rx/tx_clock_delay values..." << std::endl;
+    std::cout    << "Reverting back to original alct_rx/tx_clock_delay values..." << std::endl;
+    thisTMB->SetAlctTxClockDelay(initial_alct_tx_phase);
+    thisTMB->SetAlctTxPosNeg(initial_alct_tx_posneg);
+    thisTMB->SetAlctRxClockDelay(initial_alct_rx_phase);
+    thisTMB->SetAlctRxPosNeg(initial_alct_rx_posneg);
+  }
+  // Set the phase values chosen above...
   thisTMB->WriteRegister(phaser_alct_txd_adr);
   thisTMB->FirePhaser(phaser_alct_txd_adr);
   //
-  thisTMB->SetALCTSyncRxDataDelay(best_pipedepth);
+  thisTMB->WriteRegister(phaser_alct_rxd_adr);
+  thisTMB->FirePhaser(phaser_alct_rxd_adr);
+  //
+  // return back to previous conditions
+  thisTMB->SetFireL1AOneshot(initial_fire_l1a_oneshot);
+  thisTMB->SetIgnoreCCBRx(initial_ignore_ccb_rx);
+  thisTMB->WriteRegister(ccb_cfg_adr);
+  //
+  thisTMB->SetALCTSyncRxDataDelay(initial_alct_sync_rx_data_delay);
+  thisTMB->SetALCTSyncTXRandom(initial_alct_sync_tx_random);
+  thisTMB->WriteRegister(alct_sync_ctrl_adr);
+  //
+  thisTMB->SetAlctSequencerCommand(initial_sequencer_command);
+  thisTMB->WriteRegister(alct_cfg_adr);
+  //
+  thisTMB->SetAlctDemuxMode(initial_demux_mode);
+  thisTMB->SetAlctRawReadAddress(initial_ALCT_read_address);
+  thisTMB->WriteRegister(alctfifo1_adr);
+  //
+  thisTMB->RedirectOutput(MyOutput_);
+  alct->RedirectOutput(MyOutput_);
+  //
+  return ALCTtxPhase_;
+}
+//
+//
+void ChamberUtilities::ThoroughRxTxScan(int rx_posneg, int tx_posneg, int pipedepth) {
+  //
+  thisTMB->SetAlctRxPosNeg(rx_posneg);
+  thisTMB->WriteRegister(phaser_alct_rxd_adr);
+  thisTMB->FirePhaser(phaser_alct_rxd_adr);
+  //
+  thisTMB->SetAlctTxPosNeg(tx_posneg);
+  thisTMB->WriteRegister(phaser_alct_txd_adr);
+  thisTMB->FirePhaser(phaser_alct_txd_adr);
+  //
+  thisTMB->SetALCTSyncRxDataDelay(pipedepth);
   thisTMB->WriteRegister(alct_sync_ctrl_adr);
   //
   //
@@ -2210,8 +2282,6 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
       //Set depth where to look for the data
       thisTMB->SetALCTSyncTXRandom(1);
       //
-      //      bool go_quick = false;
-      //
       const int max_loop = 100;
       //
       alct_tx_rx_display[rx_value][tx_value] = max_loop;
@@ -2227,7 +2297,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	thisTMB->SetALCTSyncClearErrors(0);
 	thisTMB->WriteRegister(alct_sync_ctrl_adr);
 	//
-	//	if (!go_quick) ::usleep(100);
+	// wait for an error to arrive in order to latch it...
 	::usleep(100);
 	//
 	// Read TMB data check flipflops
@@ -2238,15 +2308,13 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	} 
 	//
 	// no sense wasting time on this rx,tx value.  It has badness...
-	//	if (thisTMB->GetReadALCTSync1stErrorLatched() || thisTMB->GetReadALCTSync2ndErrorLatched()) go_quick = true;
 	if (thisTMB->GetReadALCTSync1stErrorLatched() || thisTMB->GetReadALCTSync2ndErrorLatched()) check_loop = max_loop+1;
-	//
-	// OK for this read:  read it again, slowly...
-	//	if (!thisTMB->GetReadALCTSync1stErrorLatched() && !thisTMB->GetReadALCTSync2ndErrorLatched()) go_quick = false;
 	//
       }
       //
-      if ( alct_tx_rx_display[rx_value][tx_value] == 0 ) alct_tx_rx_analyze[rx_value][tx_value] = good_depth;
+      // Since the analysis routine requires a non-zero value as a "good" spot and 0 as a "bad" spot,
+      // invert what is put in the analysis array compared to the display array...
+      alct_tx_rx_analyze[rx_value][tx_value] = max_loop - alct_tx_rx_display[rx_value][tx_value];
       //
       if (debug_>5) {   // Read TMB received demux data just to see what is going on...
 	//
@@ -2272,7 +2340,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	int alct_sync_expect_1st = alct_demux_rd[4] | (alct_demux_rd[5] << 14);
 	int alct_sync_expect_2nd = alct_demux_rd[6] | (alct_demux_rd[7] << 14);
 	//      
-	printf("Latch OK=%8i depth=%2i delay_value_tx=%2i delay_value_rx=%2i", alct_tx_rx_display[rx_value][tx_value],good_depth,tx_value,rx_value);
+	printf("Latch OK=%8i delay_value_tx=%2i delay_value_rx=%2i", alct_tx_rx_display[rx_value][tx_value],tx_value,rx_value);
 	printf("  read 1st=%8.8X 2nd=%8.8X ", alct_sync_rxdata_1st,alct_sync_rxdata_2nd);
 	printf("expect 1st=%8.8X 2nd=%8.8X\n",alct_sync_expect_1st,alct_sync_expect_2nd);
       }
@@ -2325,59 +2393,12 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   //
   // These are the best values:
   //
-  ALCTrxPosNeg_ = best_rx_posneg;
-  ALCTtxPosNeg_ = best_tx_posneg;
+  ALCTrxPosNeg_ = rx_posneg;
+  ALCTtxPosNeg_ = tx_posneg;
   //
   ALCT_phase_analysis(alct_tx_rx_analyze);
   //
-  (*MyOutput_) << "Best value is alct_posneg = " << std::dec << ALCTrxPosNeg_ << std::endl;
-  (*MyOutput_) << "Best value is alct_tx_posneg = " << std::dec << ALCTtxPosNeg_ << std::endl;
-  std::cout    << "Best value is alct_posneg = " << std::dec << ALCTrxPosNeg_ << std::endl;
-  std::cout    << "Best value is alct_tx_posneg = " << std::dec << ALCTtxPosNeg_ << std::endl;
-  //
-  if (use_measured_values_) { 
-    (*MyOutput_) << "Setting alct_rx/tx_clock_delays to measured values..." << std::endl;
-    std::cout    << "Setting alct_rx/tx_clock_delays to measured values..." << std::endl;
-    thisTMB->SetAlctTxClockDelay(ALCTtxPhase_);
-    thisTMB->SetAlctTxPosNeg(ALCTtxPosNeg_);
-    thisTMB->SetAlctRxClockDelay(ALCTrxPhase_);
-    thisTMB->SetAlctRxPosNeg(ALCTrxPosNeg_);
-    //
-  } else {
-    (*MyOutput_) << "Reverting back to original alct_rx/tx_clock_delay values..." << std::endl;
-    std::cout    << "Reverting back to original alct_rx/tx_clock_delay values..." << std::endl;
-    thisTMB->SetAlctTxClockDelay(initial_alct_tx_phase);
-    thisTMB->SetAlctTxPosNeg(initial_alct_tx_posneg);
-    thisTMB->SetAlctRxClockDelay(initial_alct_rx_phase);
-    thisTMB->SetAlctRxPosNeg(initial_alct_rx_posneg);
-  }
-  // Set the phase values chosen above...
-  thisTMB->WriteRegister(phaser_alct_txd_adr);
-  thisTMB->FirePhaser(phaser_alct_txd_adr);
-  //
-  thisTMB->WriteRegister(phaser_alct_rxd_adr);
-  thisTMB->FirePhaser(phaser_alct_rxd_adr);
-  //
-  // return back to previous conditions
-  thisTMB->SetFireL1AOneshot(initial_fire_l1a_oneshot);
-  thisTMB->SetIgnoreCCBRx(initial_ignore_ccb_rx);
-  thisTMB->WriteRegister(ccb_cfg_adr);
-  //
-  thisTMB->SetALCTSyncRxDataDelay(initial_alct_sync_rx_data_delay);
-  thisTMB->SetALCTSyncTXRandom(initial_alct_sync_tx_random);
-  thisTMB->WriteRegister(alct_sync_ctrl_adr);
-  //
-  thisTMB->SetAlctSequencerCommand(initial_sequencer_command);
-  thisTMB->WriteRegister(alct_cfg_adr);
-  //
-  thisTMB->SetAlctDemuxMode(initial_demux_mode);
-  thisTMB->SetAlctRawReadAddress(initial_ALCT_read_address);
-  thisTMB->WriteRegister(alctfifo1_adr);
-  //
-  thisTMB->RedirectOutput(MyOutput_);
-  alct->RedirectOutput(MyOutput_);
-  //
-  return ALCTtxPhase_;
+  return;
 }
 //
 int ChamberUtilities::ALCT_TMB_TimingUsingErrorCorrectionCode() {
@@ -3152,13 +3173,18 @@ void ChamberUtilities::QuickTimingScan() {
   PropagateMeasuredValues(true);
   //
   // 1) Establish communication between TMB and ALCT, since the ALCT clock has changed
-  //  ALCT_TMB_Loopback();
+  ALCT_TMB_Loopback();
   //
   // 2) ALCT to TMB delays needed to synchronize the BC0 back at TMB
-  //  ALCTBC0Scan();
+  ALCTBC0Scan();
   //
-  // For the next couple of scans, we need the radioactive trigger...
+  // For the next couple of scans, we need the radioactive trigger to have a large L1A rate from one chamber
+  //
+  ::sleep(1);   //put in a sleep to recover from the previous scan
+  //
   SetupRadioactiveTriggerConditions();
+  //
+  ::sleep(1);   //put in a sleep to allow the radioactive trigger configuration to take place...
   //
   // 3) Timing between the CLCT pretrigger and the L1A (L1A may be affected by the ALCT 
   // to TMB delays)
@@ -5404,12 +5430,9 @@ void ChamberUtilities::ALCT_phase_analysis(int rxtx_timing[25][25]) {
   ALCTrxPhase_ = best_element_row ;
   ALCTtxPhase_ = best_element_col ;
   //
-  (*MyOutput_) << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
-  (*MyOutput_) << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
-  std::cout    << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
-  std::cout    << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
-  //
   if (debug_>=5) {
+    std::cout    << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
+    std::cout    << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
     std::cout << "...due to their following analysis values... " << std::endl;
     std::cout << "|Nup - Ndown|    = " << min_up_down_diff << std::endl;
     std::cout << "|Nleft - Nright| = " << min_left_right_diff << std::endl;
