@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.8 2009/10/26 19:17:20 paste Exp $
+* $Id: Application.h,v 1.9 2009/11/09 11:43:52 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -69,7 +69,7 @@ namespace emu {
 			*	binding to this command is set, but it seems to affect all
 			*	of the applications we are concerned with.
 			*
-			*	@param klass is the target application class name (this
+			*	@param applicationName is the target application name (this
 			*	function sends to all of the instances of that class.)
 			*	@param name is the name of the variable you want to set.
 			*	@param type is the type of the varialbe you want to set.  Use
@@ -86,7 +86,7 @@ namespace emu {
 			*
 			*	@author Phillip Killewald (stolen from Laria's CSCSupervisor.cc)
 			**/
-			void setParameter(const std::string &klass, const std::string &name, const std::string &type, const std::string &value, const int &instance = -1)
+			void setParameter(const std::string &applicationName, const std::string &name, const std::string &type, const std::string &value, const int &instance = -1)
 			throw (emu::fed::exception::SOAPException);
 
 			/** Reads a reply from onGetParameters and returns a named parameter from

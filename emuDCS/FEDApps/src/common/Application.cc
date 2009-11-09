@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.9 2009/07/11 19:53:19 paste Exp $
+* $Id: Application.cc,v 1.10 2009/11/09 11:43:52 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -111,22 +111,30 @@ throw (emu::fed::exception::SOAPException)
 
 
 
-void emu::fed::Application::setParameter(const std::string &klass, const std::string &name, const std::string &type, const std::string &value, const int &instance)
+void emu::fed::Application::setParameter(const std::string &applicationName, const std::string &name, const std::string &type, const std::string &value, const int &instance)
 throw (emu::fed::exception::SOAPException)
 {
 
 	// find applications
 	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
-		apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
+		apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(applicationName);
 	} catch (xdaq::exception::ApplicationDescriptorNotFound &e) {
 		std::ostringstream error;
-		error << "Application class name '" << klass << "' not found";
+		error << "Application name '" << applicationName << "' not found";
 		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 		XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
 	}
 
-	//LOG4CPLUS_DEBUG(getApplicationLogger(), "setParameter " << klass << " " << name << " " << type << " " << value);
+	//LOG4CPLUS_DEBUG(getApplicationLogger(), "setParameter " << applicationName << " " << name << " " << type << " " << value << " " << instance << " shows " << apps.size() << " apps");
+	
+	// If the application was not found, bail
+	if (apps.empty()) {
+		std::ostringstream error;
+		error << "Application name '" << applicationName << "' not found";
+		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+		XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
+	}
 
 	// prepare a SOAP message
 	xoap::MessageReference message = xoap::createMessage();
@@ -134,8 +142,9 @@ throw (emu::fed::exception::SOAPException)
 	envelope.addNamespaceDeclaration("xsi", XSI_NAMESPACE_URI);
 
 	xoap::SOAPName command = envelope.createName("ParameterSet", "xdaq", XDAQ_NS_URI);
-	xoap::SOAPName properties = envelope.createName("properties", klass, "urn:xdaq-application:" + klass);
-	xoap::SOAPName parameter = envelope.createName(name, klass, "urn:xdaq-application:" + klass);
+	
+	xoap::SOAPName properties = envelope.createName("properties", "xapp", "urn:xdaq-application:" + applicationName);
+	xoap::SOAPName parameter = envelope.createName(name, "xapp", "urn:xdaq-application:" + applicationName);
 	xoap::SOAPName xsitype = envelope.createName("type", "xsi", XSI_NAMESPACE_URI);
 
 	xoap::SOAPElement properties_e = envelope.getBody()
@@ -146,7 +155,10 @@ throw (emu::fed::exception::SOAPException)
 	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
 	parameter_e.addAttribute(xsitype, type);
 	parameter_e.addTextNode(value);
-
+	
+	std::cerr << "This is what I send:" << std::endl;
+	message->writeTo(std::cerr);
+	
 	xoap::MessageReference reply;
 
 	// send the message one-by-one
@@ -373,7 +385,7 @@ throw (emu::fed::exception::SOAPException)
 {
 
 	// find applications
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "sendCommand with command=" << command << ", klass=" << klass << ", instance=" << instance);
+	//LOG4CPLUS_DEBUG(getApplicationLogger(), "sendCommand with command=" << command << ", klass=" << klass << ", instance=" << instance);
 	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
 		if (instance == -1) {
