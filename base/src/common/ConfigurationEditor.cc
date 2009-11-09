@@ -69,12 +69,17 @@ namespace base {
 	cgicc::Cgicc cgi(in);
 	//
 	cgicc::const_file_iterator file;
-	file = cgi.getFile("xmlFileNameUpload");
+	//file = cgi.getFile("xmlFileNameUpload");
 	//
+	      std::string XMLname = cgi["xmlFilename"]->getValue() ; 
+	//
+	std::cout << XMLname  << std::endl ;
+	      xmlfile_ = XMLname ;
+	/*
 	if(file != cgi.getFiles().end()) {
 	  xmlfile_=(*file).getFilename();
           std::cout << "Select XML file " << xmlfile_ << std::endl;
-	}
+	}*/
 	this->Default(in,out);
 	//
       }
