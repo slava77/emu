@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.19 2009/11/03 11:51:41 paste Exp $
+* $Id: DDU.cc,v 1.20 2009/11/09 20:34:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -776,7 +776,7 @@ throw (emu::fed::exception::DDUException)
 		unsigned int trials = 5;
 		do {
 			temp = readRegister(SADC, 0x0089 | (sensor << 4), 16)[0];
-		} while (temp == 0xffff && --trials);
+		} while ((temp == 0xffff || temp == 0) && --trials);
 		return temp;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
@@ -826,7 +826,7 @@ throw (emu::fed::exception::DDUException)
 		unsigned int trials = 5;
 		do {
 			volt = readRegister(SADC, 0x0089 | ((sensor+4) << 4), 16)[0];
-		} while (volt == 0xffff && --trials);
+		} while ((volt == 0xffff || volt == 0) && --trials);
 		return volt;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
