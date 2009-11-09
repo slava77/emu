@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.13 2009/11/03 15:14:32 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.14 2009/11/09 11:46:33 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -437,21 +437,24 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				uint8_t dccFIFOStatus = (*iDCC)->readFIFOStatus();
 				if (dccFIFOStatus != 0xff) {
 					std::vector<FIFO *> fifoVector = (*iDCC)->getFIFOs();
-					std::ostringstream logError;
 					for (std::vector<FIFO *>::iterator iFIFO = fifoVector.begin(); iFIFO != fifoVector.end(); iFIFO++) {
 						std::pair<std::string, std::string> fifoDecoded = DCCDebugger::decodeFIFOStatus(dccFIFOStatus, (*iFIFO)->getNumber());
 						if (fifoDecoded.second != "green") {
 							std::ostringstream error;
 							error << "FIFO " << (*iFIFO)->getNumber() << " (DDU " << (*iFIFO)->getRUI() << ") status for DCC in crate " << crateNumber << " is " <<  fifoDecoded.first;
 							
-							logError << error.str() << std::endl;
-							
 							std::ostringstream tag;
 							tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber << " RUI " << (*iFIFO)->getRUI();
 							
 							// What kind of alarm is this raising?
-							std::string alarmType = "ERROR";
-							if (fifoDecoded.second != "error") alarmType = "WARN";
+							std::string alarmType;
+							if (fifoDecoded.second != "error" && fifoDecoded.second != "red") {
+								alarmType = "WARN";
+								LOG4CPLUS_WARN(logger, error.str());
+							} else {
+								alarmType = "ERROR";
+								LOG4CPLUS_ERROR(logger, error.str());
+							}
 							
 							// Distinct alarm for each FIFO
 							std::ostringstream alarmName;
@@ -463,15 +466,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							MY_REVOKE_ALARM(alarmName.str());
 						}
 					}
-					
-					LOG4CPLUS_ERROR(logger, logError.str());
 				}
 				
 				// Report the SLink statuses to Hotspot
 				uint16_t dccSLinkStatus = (*iDCC)->readSLinkStatus();
 				if (dccSLinkStatus & 0xa) {
-					
-					std::ostringstream logError;
 					
 					for (unsigned int iLink = 0; iLink <= 1; iLink++) {
 						std::pair<std::string, std::string> slinkDecoded = DCCDebugger::decodeSLinkStatus(dccSLinkStatus, iLink);
@@ -479,14 +478,20 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							std::ostringstream error;
 							error << "SLink " << iLink << " status for DCC in crate " << crateNumber << " is " <<  slinkDecoded.first;
 
-							logError << error.str() << std::endl;
+						
 							
 							std::ostringstream tag;
 							tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber;
 							
 							// What kind of alarm is this raising?
-							std::string alarmType = "ERROR";
-							if (slinkDecoded.second != "error") alarmType = "WARN";
+							std::string alarmType;
+							if (slinkDecoded.second != "error" && slinkDecoded.second != "red") {
+								alarmType = "WARN";
+								LOG4CPLUS_WARN(logger, error.str());
+							} else {
+								alarmType = "ERROR";
+								LOG4CPLUS_ERROR(logger, error.str());
+							}
 							
 							// Distinct alarm for each SLink
 							std::ostringstream alarmName;
@@ -498,8 +503,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							MY_REVOKE_ALARM(alarmName.str());
 						}
 					}
-					
-					LOG4CPLUS_ERROR(logger, logError.str());
 				}
 				
 			} catch (emu::fed::exception::Exception &e) {

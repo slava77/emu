@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.cc,v 1.5 2009/08/20 13:41:01 brett Exp $
+* $Id: FIFODBAgent.cc,v 1.6 2009/11/09 11:46:33 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FIFODBAgent.h"
@@ -8,8 +8,7 @@
 #include "xdata/String.h"
 #include "xdata/TableIterator.h"
 
-emu::fed::FIFODBAgent::FIFODBAgent(xdaq::WebApplication *application)
-throw (emu::fed::exception::DBException):
+emu::fed::FIFODBAgent::FIFODBAgent(xdaq::WebApplication *application):
 DBAgent(application)
 { 
 	table_ = "EMU_FED_DCC_FIFOS";

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.cc,v 1.4 2009/08/20 13:41:01 brett Exp $
+* $Id: DBConfigurator.cc,v 1.5 2009/11/09 11:46:33 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DBConfigurator.h"
@@ -29,7 +29,7 @@ throw (emu::fed::exception::ConfigurationException)
 		//get crates
 		//unlike with XML, each DBAgent reads in its own child objects, e.g. CrateDBAgent configures also the DCCs, DDUs etc. of the crates it configures.
 		//so all we need to do is get the crates.
-		crateVector_=crateAgent.getCrates(dbKey_);
+		crateVector_ = crateAgent.getCrates(dbKey_);
 		return crateVector_;
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Error setting up crates", e);

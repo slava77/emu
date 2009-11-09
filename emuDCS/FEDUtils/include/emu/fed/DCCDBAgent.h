@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.h,v 1.4 2009/08/20 13:41:01 brett Exp $
+* $Id: DCCDBAgent.h,v 1.5 2009/11/09 11:46:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCCDBAGENT_H__
 #define __EMU_FED_DCCDBAGENT_H__
@@ -25,8 +25,7 @@ namespace emu {
 		public:
 
 			/** Default constructor **/
-			DCCDBAgent(xdaq::WebApplication *application)
-			throw (emu::fed::exception::DBException);
+			DCCDBAgent(xdaq::WebApplication *application);
 			
 			/** Build a bunch of DCCs corresponding to a crate ID **/
 			std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> getDCCs(xdata::UnsignedInteger64 &key,xdata::UnsignedShort &crateNumber)

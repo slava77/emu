@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.h,v 1.7 2009/08/20 13:41:01 brett Exp $
+* $Id: DBAgent.h,v 1.8 2009/11/09 11:46:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBAGENT_H__
 #define __EMU_FED_DBAGENT_H__
@@ -21,10 +21,11 @@ namespace emu {
 		{
 		public:
 
-			/** Default constructor.
-			**/
-			DBAgent(xdaq::WebApplication *application)
-			throw (emu::fed::exception::DBException);
+			/** Default constructor. **/
+			DBAgent(xdaq::WebApplication *application);
+			
+			/** Default destructor. **/
+			~DBAgent();
 			
 			/** Connect to the database and store the connectionID for later use.
 			*	@param username the username to use for connecting to the database.
