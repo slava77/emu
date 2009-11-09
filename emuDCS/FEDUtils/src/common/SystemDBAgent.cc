@@ -1,12 +1,11 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.4 2009/11/09 11:46:33 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
 #include "xdata/String.h"
 
-emu::fed::SystemDBAgent::SystemDBAgent(xdaq::WebApplication *application)
-throw (emu::fed::exception::DBException):
+emu::fed::SystemDBAgent::SystemDBAgent(xdaq::WebApplication *application):
 DBAgent(application)
 {
 	table_ = "EMU_FED_SYSTEMS";

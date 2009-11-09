@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.h,v 1.4 2009/08/20 13:41:01 brett Exp $
+* $Id: FIFODBAgent.h,v 1.5 2009/11/09 11:46:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIFODBAGENT_H__
 #define __EMU_FED_FIFODBAGENT_H__
@@ -23,8 +23,7 @@ namespace emu {
 		public:
 
 			/** Default constructor **/
-			FIFODBAgent(xdaq::WebApplication *application)
-			throw (emu::fed::exception::DBException);
+			FIFODBAgent(xdaq::WebApplication *application);
 			
 			/** Build a bunch of FIFOs corresponding to a DCC ID **/
 			std::vector<emu::fed::FIFO *> getFIFOs(xdata::UnsignedInteger64 &id)

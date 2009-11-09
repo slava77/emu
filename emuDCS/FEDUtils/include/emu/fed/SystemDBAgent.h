@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.h,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: SystemDBAgent.h,v 1.4 2009/11/09 11:46:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SYSTEMDBAGENT_H__
 #define __EMU_FED_SYSTEMDBAGENT_H__
@@ -16,8 +16,7 @@ namespace emu {
 		public:
 
 			/** Default constructor. **/
-			SystemDBAgent(xdaq::WebApplication *application)
-			throw (emu::fed::exception::DBException);
+			SystemDBAgent(xdaq::WebApplication *application);
 			
 			/** Get the system ID and name corresponding to a hostname and a configuration key **/
 			std::pair<xdata::UnsignedInteger64, std::string> getSystem(const std::string &hostname, xdata::UnsignedInteger64 &key)

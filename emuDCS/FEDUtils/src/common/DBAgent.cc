@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.7 2009/09/17 15:33:42 brett Exp $
+* $Id: DBAgent.cc,v 1.8 2009/11/09 11:46:33 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -13,8 +13,7 @@
 
 
 
-emu::fed::DBAgent::DBAgent(xdaq::WebApplication *application)
-throw (emu::fed::exception::DBException):
+emu::fed::DBAgent::DBAgent(xdaq::WebApplication *application):
 application_(application)
 {
 	// This is to read the configuration from the view file
@@ -49,11 +48,21 @@ application_(application)
 	*/
 }
 
+
+emu::fed::DBAgent::~DBAgent()
+{
+	// This causes bad things to happen
+	// disconnect();
+}
+
+
 //if you have already opened a connection and want to use the existing connection to query, set the connection ID instead of calling connect()
 void emu::fed::DBAgent::setConnectionID(const std::string &connectionID) {
-	connectionID_=connectionID;
+	connectionID_ = connectionID;
 	//should maybe renew the connection or otherwise check that it's valid?
 }
+
+
 
 void emu::fed::DBAgent::connect(const std::string &username, const std::string &password)
 throw (emu::fed::exception::DBException)
@@ -282,11 +291,12 @@ throw (emu::fed::exception::SOAPException)
 	
 	// send the message
 	try {
-		message->writeTo(std::cout);
-		xoap::MessageReference reply= sendSOAPMessage(message, app);
-		std::cout << std::endl << "Response: " << std::endl;
-	reply->writeTo(std::cout);
-		return reply;
+		//message->writeTo(std::cerr);
+		//xoap::MessageReference reply= sendSOAPMessage(message, app);
+		//std::cerr << std::endl << "Response: " << std::endl;
+		//reply->writeTo(std::cerr);
+		//return reply;
+		return sendSOAPMessage(message, app);
 	} catch (emu::fed::exception::SOAPException &e) {
 		throw e;
 	}
@@ -299,24 +309,11 @@ throw (emu::fed::exception::SOAPException)
 	// XDAQ people are lazy
 	xoap::MessageReference myMessage = message;
 	// postSOAP() may throw an exception when failed.
-	unsigned int iTries = 5;
-	while (iTries > 0) {
-		try {
-			return application_->getApplicationContext()->postSOAP(myMessage, *(application_->getApplicationDescriptor()), *app);
-		} catch (xcept::Exception &e) {
-			iTries--;
-		}
+	try {
+		return application_->getApplicationContext()->postSOAP(myMessage, *(application_->getApplicationDescriptor()), *app);
+	} catch (xcept::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::SOAPException, "Error sending SOAP message", e);
 	}
-	
-	if (iTries == 0) {
-		std::ostringstream error;
-		//this is kind of silly. It's unlikely to work the second, third, fourth or fifth times if it didn't work the first time, and here we throw away the information about why it didn't work.
-		error << "Reached the maximum number of retries sending message";
-		XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
-	}
-
-	// Prevents warnings
-	return xoap::MessageReference();
 }
 
 void emu::fed::DBAgent::setValue(xdata::Serializable &destination,xdata::Table::Row &sourceRow,const std::string &columnName) throw (emu::fed::exception::DBException) {

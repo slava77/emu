@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateDBAgent.h,v 1.4 2009/08/20 13:41:01 brett Exp $
+* $Id: CrateDBAgent.h,v 1.5 2009/11/09 11:46:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATEDBAGENT_H__
 #define __EMU_FED_CRATEDBAGENT_H__
@@ -24,8 +24,7 @@ namespace emu {
 		public:
 
 			/** Default constructor **/
-			CrateDBAgent(xdaq::WebApplication *application)
-			throw (emu::fed::exception::DBException);
+			CrateDBAgent(xdaq::WebApplication *application);
 			
 			/** Build a bunch of crate objects corresponding to a system ID **/
 			std::vector<emu::fed::Crate *> getCrates(xdata::UnsignedInteger64 &id)

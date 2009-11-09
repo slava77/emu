@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.7 2009/08/20 13:41:01 brett Exp $
+* $Id: FiberDBAgent.cc,v 1.8 2009/11/09 11:46:33 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -9,8 +9,7 @@
 #include "xdata/TableIterator.h"
 #include <sstream>
 
-emu::fed::FiberDBAgent::FiberDBAgent(xdaq::WebApplication *application)
-throw (emu::fed::exception::DBException):
+emu::fed::FiberDBAgent::FiberDBAgent(xdaq::WebApplication *application):
 DBAgent(application)
 { 
 	table_ = "EMU_FED_DDU_FIBERS";

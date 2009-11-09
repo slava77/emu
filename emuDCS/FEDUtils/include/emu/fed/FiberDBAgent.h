@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.h,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: FiberDBAgent.h,v 1.4 2009/11/09 11:46:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBERDBAGENT_H__
 #define __EMU_FED_FIBERDBAGENT_H__
@@ -23,8 +23,7 @@ namespace emu {
 		public:
 
 			/** Default constructor **/
-			FiberDBAgent(xdaq::WebApplication *application)
-			throw (emu::fed::exception::DBException);
+			FiberDBAgent(xdaq::WebApplication *application);
 			
 			/** Build a bunch of Fibers corresponding to a DDU ID **/
 			std::vector<emu::fed::Fiber *> getFibers(xdata::UnsignedInteger64 &id)

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDBAgent.cc,v 1.5 2009/08/20 13:47:25 brett Exp $
+* $Id: DDUDBAgent.cc,v 1.6 2009/11/09 11:46:33 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DDUDBAgent.h"
@@ -9,8 +9,7 @@
 #include "xdata/Boolean.h"
 #include "xdata/UnsignedInteger.h"
 
-emu::fed::DDUDBAgent::DDUDBAgent(xdaq::WebApplication *application)
-throw (emu::fed::exception::DBException):
+emu::fed::DDUDBAgent::DDUDBAgent(xdaq::WebApplication *application):
 DBAgent(application)
 { 
 	table_ = "EMU_FED_DDUS";
