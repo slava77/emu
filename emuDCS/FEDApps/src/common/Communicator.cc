@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.25 2009/11/06 13:48:34 paste Exp $
+* $Id: Communicator.cc,v 1.26 2009/11/09 11:43:52 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -47,6 +47,7 @@ totalDCCOutputRate_(0)
 	getApplicationInfoSpace()->fireItemAvailable("ttsSlot",  &ttsSlot_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsBits",  &ttsBits_);
 	getApplicationInfoSpace()->fireItemAvailable("fibersWithErrors", &fibersWithErrors_);
+	getApplicationInfoSpace()->fireItemAvailable("fiberNamesWithErrors", &fiberNamesWithErrors_);
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCInputRate", &totalDCCInputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCOutputRate", &totalDCCOutputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("fmmErrorThreshold", &fmmErrorThreshold_);
