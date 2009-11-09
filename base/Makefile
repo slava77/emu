@@ -16,8 +16,8 @@ Description="The Emu (CSC) application base class"
 Summary="The Emu (CSC) application base class"
 Authors="Ichiro Suzuki, Karoly Banicz"
 Link=""
-PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=00
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=13
 PACKAGE_VER_PATCH=00
 
 Sources = \
