@@ -20,9 +20,9 @@ Description="Applications to control and monitor the Front End Device (FED) crat
 Summary="Emu (CSC) FED XDAQ Applications"
 Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
-PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=00
-PACKAGE_VER_PATCH=03
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=13
+PACKAGE_VER_PATCH=00
 
 Sources=\
 	AppsVersion.cc \

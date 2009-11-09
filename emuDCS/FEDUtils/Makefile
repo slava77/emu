@@ -20,9 +20,9 @@ Description="Utility libraries used by the Front End Driver (FED) crate XDAQ app
 Summary="Emu (CSC) FED Utility Libraries"
 Authors="Phillip Killewald, Angela Brett, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
-PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=00
-PACKAGE_VER_PATCH=02
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=13
+PACKAGE_VER_PATCH=00
 
 Sources=\
 	UtilsVersion.cc \
