@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.30 2009/11/08 15:09:12 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.31 2009/11/10 10:53:26 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.31  2009/11/10 10:53:26  rakness
+// fix bug picking the correct pipedepth for the updated rx/tx scan
+//
 // Revision 1.30  2009/11/08 15:09:12  rakness
 // keep away from bad region in ALCT-TMB communication scan
 //
@@ -2187,7 +2190,31 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   // bit to be 1... Thus.....
   //
   if (ALCTtxPosNeg_ == 0 && ALCTtxPhase_ > 15) {
-    ThoroughRxTxScan(best_rx_posneg,1,best_pipedepth);
+    //
+    int use_this_tx_posneg = 1;
+    //
+    std::cout    << "The scan returned values (alct_tx_posneg,alct_tx_clock_delay) = (" << ALCTtxPosNeg_ << "," << ALCTtxPhase_ 
+		 << "), which have been deemed to be bad.  Change alct_tx_posneg to 1 and redo scan..." << std::endl;
+    (*MyOutput_) << "The scan returned values (alct_tx_posneg,alct_tx_clock_delay) = (" << ALCTtxPosNeg_ << "," << ALCTtxPhase_ 
+		 << "), which have been deemed to be bad.  Change alct_tx_posneg to 1 and redo scan..." << std::endl;
+    //
+    int max_good = 0;
+    for (int rx_posneg=0; rx_posneg<2; rx_posneg++) {
+      for(int pipedepth=0; pipedepth<16; pipedepth++) {
+	if (good_data[rx_posneg][use_this_tx_posneg][pipedepth]>max_good) {
+	  best_pipedepth = pipedepth;
+	  best_rx_posneg = rx_posneg;
+	  max_good = good_data[rx_posneg][use_this_tx_posneg][pipedepth];
+	}
+      }
+    }
+    //
+    std::cout    << "Performing a more thorough scan at (rx_posneg,tx_posneg,pipedepth) = (" 
+		 << best_rx_posneg << "," << use_this_tx_posneg << "," << best_pipedepth << ")" << std::endl;
+    (*MyOutput_) << "Performing a more thorough scan at (rx_posneg,tx_posneg,pipedepth) = (" 
+		 << best_rx_posneg << "," << use_this_tx_posneg << "," << best_pipedepth << ")" << std::endl;
+    //    
+    ThoroughRxTxScan(best_rx_posneg,use_this_tx_posneg,best_pipedepth);
   }
   //
   //
