@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.8 2009/11/09 11:46:33 paste Exp $
+* $Id: DBAgent.cc,v 1.9 2009/11/11 14:39:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -287,6 +287,12 @@ throw (emu::fed::exception::SOAPException)
 		std::ostringstream error;
 		error << "Found no applications matching klass=" << klass << ", instance=" << instance;
 		XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
+	}
+	
+	if (app == NULL) {
+		std::ostringstream error;
+		error << "Found no applications matching klass=" << klass << ", instance=" << instance;
+		XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
 	}
 	
 	// send the message
