@@ -1,14 +1,11 @@
 /*****************************************************************************\
-* $Id: MicroMonitor.cc,v 1.2 2009/07/08 12:03:09 paste Exp $
+* $Id: MicroMonitor.cc,v 1.3 2009/11/11 14:44:41 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/MicroMonitor.h"
 
 #include <string>
-#include <vector>
 #include <sstream>
-#include <map>
 #include <iomanip>
-#include <time.h>
 
 #include "xgi/Method.h"
 #include "emu/base/Alarm.h"
@@ -80,6 +77,20 @@ emu::fed::Supervised(stub)
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MicroMonitorConfigure", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 	}
+	
+	// Set the last good reads to a bad read
+	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
+		
+		std::vector<DDU *> myDDUs = (*iCrate)->getDDUs();
+		for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
+			
+			lastGoodVoltages_[(*iDDU)->getRUI()] = std::vector<float>(4, 99999);
+			lastGoodTemperatures_[(*iDDU)->getRUI()] = std::vector<float>(4, 99999);
+			
+		}
+	}
+	
+	lastGoodTimestamp_ = time(NULL);
 }
 
 
@@ -112,34 +123,41 @@ void emu::fed::MicroMonitor::DCSOutput(xgi::Input *in, xgi::Output *out)
 			try {
 				reserved = (*iDDU)->readFiberErrors();
 			} catch (emu::fed::exception::Exception &e) {
-				goodRead = false;
+				// Not a bad read because this is not stored in the database
+				//goodRead = false;
 			}
 			
 			// Voltages
-			std::vector<float> voltages(4, 9999);
+			std::vector<float> voltages(4, 99999);
 			for (size_t iVolt = 0; iVolt < 4; iVolt++) {
 				try {
 					voltages[iVolt] = (*iDDU)->readVoltage(iVolt);
+					lastGoodVoltages_[(*iDDU)->getRUI()][iVolt] = voltages[iVolt];
 				} catch (emu::fed::exception::Exception &e) {
 					goodRead = false;
+					voltages[iVolt] = lastGoodVoltages_[(*iDDU)->getRUI()][iVolt];
 				}
 			}
 			
 			// Temperatures
-			std::vector<float> temperatures(4, 999);
+			std::vector<float> temperatures(4, 99999);
 			for (size_t iTemp = 0; iTemp < 4; iTemp++) {
 				try {
 					temperatures[iTemp] = (*iDDU)->readTemperature(iTemp);
+					lastGoodTemperatures_[(*iDDU)->getRUI()][iTemp] = temperatures[iTemp];
 				} catch (emu::fed::exception::Exception &e) {
 					goodRead = false;
+					temperatures[iTemp] = lastGoodTemperatures_[(*iDDU)->getRUI()][iTemp];
 				}
 			}
+			
+			if (goodRead) lastGoodTimestamp_ = timestamp;
 			
 			// Trailer is fixed
 			uint16_t trailer = 0xBEEF;
 			
 			// Compile the string and output
-			*out << "DDU" << rui << " " << timestamp << " " << (goodRead ? 1 : 0) << " " << reserved << " ";
+			*out << "DDU" << rui << " " << lastGoodTimestamp_ << " " << (goodRead ? 1 : 0) << " " << reserved << " ";
 			for (std::vector<float>::const_iterator iVolt = voltages.begin(); iVolt != voltages.end(); iVolt++) {
 				*out << (*iVolt) << " ";
 			}

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.7 2009/11/06 13:48:34 paste Exp $
+* $Id: Configurable.cc,v 1.8 2009/11/11 14:44:41 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/path.hpp"
@@ -324,7 +324,7 @@ std::string emu::fed::Configurable::printConfigureOptions()
 		.set("for", "config_type_xml") << std::endl;
 	out << cgicc::div() << std::endl;
 	
-	std::string configPath(std::string(getenv("HOME")) + std::string("config/fed"));
+	std::string configPath(std::string(getenv("HOME")) + std::string("/config/fed"));
 	std::vector<std::string> xmlFiles = getXMLFileNames(configPath);
 	if (xmlFiles.empty()) xmlFiles.push_back("Unable to find valid XML files in " + configPath);
 	

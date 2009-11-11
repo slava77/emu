@@ -1,8 +1,12 @@
 /*****************************************************************************\
-* $Id: MicroMonitor.h,v 1.2 2009/07/08 12:03:09 paste Exp $
+* $Id: MicroMonitor.h,v 1.3 2009/11/11 14:44:40 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MICROMONITOR_H__
 #define __EMU_FED_MICROMONITOR_H__
+
+#include <vector>
+#include <map>
+#include <time.h>
 
 #include "emu/fed/Configurable.h"
 #include "emu/fed/Supervised.h"
@@ -66,6 +70,11 @@ namespace emu {
 			
 			
 		private:
+			
+			// Last good reads
+			std::map<uint16_t, std::vector<float> > lastGoodVoltages_;
+			std::map<uint16_t, std::vector<float> > lastGoodTemperatures_;
+			time_t lastGoodTimestamp_;
 			
 		};
 		
