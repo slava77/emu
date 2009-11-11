@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.58 2009/11/05 10:50:35 liu Exp $
+// $Id: VMEController.cc,v 3.59 2009/11/11 10:36:55 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.59  2009/11/11 10:36:55  liu
+// work around patch for VCC code 306 problem
+//
 // Revision 3.58  2009/11/05 10:50:35  liu
 // protect against wrong or corrupted packets from VCC
 //
@@ -1489,11 +1492,13 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
  
   if(nread>0){
     clear_error();
+    int vcc_error306=0;
 READETH:
     nrbuf=nread;
     size=eth_read();
     if(size<10)
-        { printf(" ERROR: no data read back from crate %02X, address %08lX\n", hw_dest_addr[5]&0xff, ptrt);
+        { if(vcc_error306) printf(" EWI 306 packets: %d\n", vcc_error306);
+          printf(" ERROR: no data read back from crate %02X, address %08lX\n", hw_dest_addr[5]&0xff, ptrt);
           error_count++;
           if(DEBUG) {
             int schar_status=ioctl(theSocket,SCHAR_INQR);
@@ -1559,8 +1564,19 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
              if(EWI==2) error_count++;
              if(DEBUG || return_type==0xff || return_type==0xfe) 
              {
-               printf("EWI packet %02X, %02X%02X, ", return_type&0xff, r_datat[0]&0xff, r_datat[1]&0xff);
-               printf("type: %d, source: %d, code: %d from %d, crate %02X, address %08lX\n", EWI, Source_ID, error_type, irdwr, hw_dest_addr[5]&0xff, ptrt);
+               if(return_type==0xff && EWI==2 && error_type==306)
+               {  // special patch for VCC's type 306 error packets
+                  if(vcc_error306==0) 
+                  {  reset();
+                     printf("EWI 306 packet from %d, crate %02X, address %08lX\n", irdwr, hw_dest_addr[5]&0xff, ptrt);
+                  }
+                  ++vcc_error306;
+               }
+               else
+               {
+                  printf("EWI packet %02X, %02X%02X, ", return_type&0xff, r_datat[0]&0xff, r_datat[1]&0xff);
+                  printf("type: %d, source: %d, code: %d from %d, crate %02X, address %08lX\n", EWI, Source_ID, error_type, irdwr, hw_dest_addr[5]&0xff, ptrt);
+               }
              }
           }
           else
