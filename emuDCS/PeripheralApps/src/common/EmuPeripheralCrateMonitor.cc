@@ -793,7 +793,6 @@ void EmuPeripheralCrateMonitor::MyHeader(xgi::Input * in, xgi::Output * out, std
   //
   std::string myUrl = getApplicationDescriptor()->getContextDescriptor()->getURL();
   std::string myUrn = getApplicationDescriptor()->getURN().c_str();
-  main_url_ = myUrl + "/" + myUrn + "/MainPage";
   xgi::Utils::getPageHeader(out,title,myUrl,myUrn,"");
   //
 }
@@ -2419,7 +2418,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   *out << now_time.toString();
   *out << "\">" << std::endl;
 
-  *out << "  <sample name=\"sliding\" delta_t=\"5\">" << std::endl;
+  *out << "  <sample name=\"sliding\" delta_t=\"10\">" << std::endl;
 
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
@@ -3345,6 +3344,9 @@ void EmuPeripheralCrateMonitor::msgHandler(std::string msg, int msglevel)
 void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  std::string myUrl = getApplicationDescriptor()->getContextDescriptor()->getURL();
+  std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+  main_url_ = myUrl + "/" + myUrn + "/MainPage";
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
        << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << std::endl
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()

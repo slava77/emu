@@ -283,7 +283,6 @@ void EmuPeripheralCrateService::MyHeader(xgi::Input * in, xgi::Output * out, std
   //
   std::string myUrl = getApplicationDescriptor()->getContextDescriptor()->getURL();
   std::string myUrn = getApplicationDescriptor()->getURN().c_str();
-  main_url_ = myUrl + "/" + myUrn + "/MainPage";
   xgi::Utils::getPageHeader(out,title,myUrn,"","");
   //
 }
@@ -556,6 +555,9 @@ void EmuPeripheralCrateService::msgHandler(std::string msg)
 void EmuPeripheralCrateService::ForEmuPage1(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  std::string myUrl = getApplicationDescriptor()->getContextDescriptor()->getURL();
+  std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+  main_url_ = myUrl + "/" + myUrn + "/MainPage";
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
        << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << std::endl
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
