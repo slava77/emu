@@ -25,5 +25,5 @@ vmepcs2g18-07.cms:s2g18:service:monitoring:jobcontrol
 vmepcs2g18-06.cms:s2g18:service:monitoring:jobcontrol
 vmepcs2g18-09.cms:s2g18:service:monitoring:jobcontrol
 vmepcs2g18-08.cms:s2g18:service:monitoring:jobcontrol
-dcspcs2g19-10.cms:s2g19:service:monitoring:jobcontrol
-dcspcs2g19-11.cms:s2g19:service:monitoring:jobcontrol
+dcspcs2g19-10.cms:s2g19:service:monitoring:jobcontrol pctimer1 pcservice1 pcmonitor1
+dcspcs2g19-11.cms:s2g19:service:monitoring:jobcontrol pctimer2 pcservice2 pcmonitor2
