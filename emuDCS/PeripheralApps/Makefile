@@ -13,8 +13,8 @@ Project=emu
 Package=emuDCS/PeripheralApps
 PackageName=PeripheralApps
 Description="XDAQ Application libraries for Peripheral Crates"
-PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=13
+PACKAGE_VER_MAJOR=09
+PACKAGE_VER_MINOR=01
 PACKAGE_VER_PATCH=00
 
 

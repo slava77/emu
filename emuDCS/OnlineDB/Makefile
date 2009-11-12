@@ -13,8 +13,8 @@ Project=emu
 Package=emuDCS/OnlineDB
 PackageName=OnlineDB
 Description="Hardware ID libraries for DMBs and CFEBs in Peripheral Crates"
-PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=13
+PACKAGE_VER_MAJOR=09
+PACKAGE_VER_MINOR=01
 PACKAGE_VER_PATCH=00
 
 
