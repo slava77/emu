@@ -49,7 +49,7 @@ fi
 #
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/{broker,conf,flash,netflow,pulser,sensor,profile,xplore,store,scripts}
+mkdir -p $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/{broker,conf,flash,netflow,pulser,sensor,profile,xplore,store,scripts,xml}
 mkdir -p $RPM_BUILD_ROOT/etc
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/bin
@@ -99,6 +99,9 @@ if [ -d %{_packagedir}/profile ]; then
 fi
 if [ -d %{_packagedir}/xplore ]; then 
 	install -m 655 %{_packagedir}/xplore/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/xplore
+fi
+if [ -d %{_packagedir}/xml ]; then 
+	install -m 655 %{_packagedir}/xml/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/xml
 fi
 
 %clean

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2009/10/20 18:33:34 banicz Exp $
+# $Id: Makefile,v 1.10 2009/11/12 18:06:22 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -30,7 +30,7 @@ PackageName=emu
 Project=emu
 Package=setup/$(PackageName)
 
-PACKAGE_VER_MAJOR=6
+PACKAGE_VER_MAJOR=9
 PACKAGE_VER_MINOR=0
 PACKAGE_VER_PATCH=0
 
