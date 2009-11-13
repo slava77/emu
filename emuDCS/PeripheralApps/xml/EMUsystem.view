@@ -29,8 +29,8 @@
 	can paste them into a query similar to the existing ones. 
 -->
   <tstore:view id="urn:tstore-view-SQL:EMUsystem">
-  <!--   <tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>  -->
-       <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/>    <!-- QUERY TO GET CONFIG IDs -->
+    <tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>  
+       <!-- <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/> -->   <!-- QUERY TO GET CONFIG IDs -->
     <sql:query xmlns:sql="urn:tstore-view-SQL" name="getconfigids" expectedRows="1">
       <sql:parameter name="TABLE">
         <![CDATA[]]>
