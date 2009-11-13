@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.h,v 1.5 2009/11/09 11:46:32 paste Exp $
+* $Id: FIFODBAgent.h,v 1.6 2009/11/13 09:03:11 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIFODBAGENT_H__
 #define __EMU_FED_FIFODBAGENT_H__
@@ -24,17 +24,9 @@ namespace emu {
 
 			/** Default constructor **/
 			FIFODBAgent(xdaq::WebApplication *application);
-			
-			/** Build a bunch of FIFOs corresponding to a DCC ID **/
-			std::vector<emu::fed::FIFO *> getFIFOs(xdata::UnsignedInteger64 &id)
-			throw (emu::fed::exception::DBException);
-			
+
 			/** Build a bunch of FIFO objects corresponding to a configuration key and a DCC FMM ID **/
 			std::vector<emu::fed::FIFO *> getFIFOs(xdata::UnsignedInteger64 &key, xdata::UnsignedInteger &fmm_id)
-			throw (emu::fed::exception::DBException);
-			
-			/** Build a bunch of FIFO objects corresponding to a configuration key and a DCC FMM ID and a FIFO number **/
-			std::vector<emu::fed::FIFO *> getFIFOs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &fmm_id, xdata::UnsignedShort &number)
 			throw (emu::fed::exception::DBException);
 
 		private:

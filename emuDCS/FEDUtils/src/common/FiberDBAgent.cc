@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.8 2009/11/09 11:46:33 paste Exp $
+* $Id: FiberDBAgent.cc,v 1.9 2009/11/13 09:03:11 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -13,39 +13,6 @@ emu::fed::FiberDBAgent::FiberDBAgent(xdaq::WebApplication *application):
 DBAgent(application)
 { 
 	table_ = "EMU_FED_DDU_FIBERS";
-}
-
-
-
-std::vector<emu::fed::Fiber *> emu::fed::FiberDBAgent::getFibers(xdata::UnsignedInteger64 &id)
-throw (emu::fed::exception::DBException)
-{
-	// Set up parameters
-	std::map<std::string, std::string> parameters;
-	parameters["DDU_ID"] = id.toString();
-	
-	// Execute the query
-	xdata::Table result;
-	try {
-		result = query("get_fibers", parameters);
-	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
-	}
-	
-	// Did we match anything
-	switch (result.getRowCount()) {
-		case 0: 
-			XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
-			break;
-		default:
-			break;
-	}
-	
-	try {
-		return buildFibers(result);
-	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
-	}
 }
 
 
@@ -65,45 +32,7 @@ throw (emu::fed::exception::DBException)
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
 	}
-	
-	// Did we match anything
-	switch (result.getRowCount()) {
-		case 0: 
-			XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
-			break;
-		default:
-			break;
-	}
-	
-	try {
-		return buildFibers(result);
-	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
-	}
-}
 
-
-
-std::vector<emu::fed::Fiber *> emu::fed::FiberDBAgent::getFibers(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui, xdata::UnsignedShort &number)
-throw (emu::fed::exception::DBException)
-{
-	// Set up parameters
-	std::map<std::string, std::string> parameters;
-	parameters["KEY"] = key.toString();
-	parameters["RUI"] = rui.toString();
-	parameters["FIBER_NUMBER"] = number.toString();
-	
-	// Execute the query
-	xdata::Table result;
-	try {
-		result = query("get_fibers_by_key_rui_number", parameters);
-	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
-	}
-	
-	// Did we match anything
-	if (!result.getRowCount()) XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
-	
 	try {
 		return buildFibers(result);
 	} catch (emu::fed::exception::DBException &e) {
@@ -119,12 +48,9 @@ throw (emu::fed::exception::DBException)
 	std::vector<emu::fed::Fiber *> returnMe;
 	for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); iRow++) {
 		// Parse out all needed elements
-		xdata::UnsignedShort fiber_number;
-		xdata::String chamber;
-		xdata::Boolean killed;
-		setValue(fiber_number,*iRow,"FIBER_NUMBER");
-		setValue(chamber,*iRow,"CHAMBER");
-		setValue(killed,*iRow,"KILLED"); 
+		xdata::UnsignedShort fiber_number = getValue<xdata::UnsignedShort>(*iRow, "FIBER_NUMBER");
+		xdata::String chamber = getValue<xdata::String>(*iRow, "CHAMBER");
+		xdata::Boolean killed = getValue<xdata::Boolean>(*iRow, "KILLED");
 		// Don't want to kill myself here
 		if ((xdata::UnsignedShortT) fiber_number > 14) XCEPT_RAISE(emu::fed::exception::DBException, "Fiber number is too large");
 		

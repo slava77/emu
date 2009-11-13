@@ -135,6 +135,14 @@
 		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="configuration">
 			<sql:table name="EMU_FED_CONFIGURATIONS" />
 		</sql:insert>
+
+		<!-- Select system given a configuration key -->
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_system">
+			<sql:parameter name="KEY" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<![CDATA[select * from EMU_FED_SYSTEMS where KEY = $KEY]]>
+		</sql:query>
 		
 		<!-- Select systems given a configuration key and a hostname -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_systems_by_key_hostname">

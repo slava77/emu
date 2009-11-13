@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.9 2009/11/11 14:39:20 paste Exp $
+* $Id: DBAgent.cc,v 1.10 2009/11/13 09:03:11 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -16,36 +16,7 @@
 emu::fed::DBAgent::DBAgent(xdaq::WebApplication *application):
 application_(application)
 {
-	// This is to read the configuration from the view file
-	// but it's completely unnecessary. :)
-	/*
-	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUFEDsystem");
-	emu::base::TStoreRequest request("getConfiguration", viewClass);
-	
-	//add the view ID
-	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUFEDsystem");
-	
-	//add view specific parameter
-	// This is a standard location
-	request.addTStoreParameter("path", "/opt/xdaq/htdocs/emu/emuDCS/FEDUtils/xml/TStoreConfiguration.xml");
-	
-	xoap::MessageReference message = request.toSOAP();
-	xoap::MessageReference response;
-	try {
-		response = sendSOAPMessage(message, "tstore::TStore");
-	} catch (emu::fed::exception::SOAPException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
-	}
-	
-	if (response->getSOAPPart().getEnvelope().getBody().hasFault()) {
-		XCEPT_RAISE(emu::fed::exception::DBException, "Error attempting to set configuration file");
-	}
-	
-	
-	DOMNode *configNode=tstoreclient::getNodeNamed(response,"getConfigurationResponse");
-	//configNode contains the requested configuration.
-	std::cout << "configuration corresponding to xpath " << xpath << " is: " << tstoreclient::writeXML(configNode) << std::endl;
-	*/
+
 }
 
 
@@ -64,7 +35,7 @@ void emu::fed::DBAgent::setConnectionID(const std::string &connectionID) {
 
 
 
-void emu::fed::DBAgent::connect(const std::string &username, const std::string &password)
+std::string emu::fed::DBAgent::connect(const std::string &username, const std::string &password)
 throw (emu::fed::exception::DBException)
 {
 	//maybe if a connectionID has already been set using setConnectionID, this function should just renew it, or do nothing.
@@ -100,6 +71,8 @@ throw (emu::fed::exception::DBException)
 	} catch (xcept::Exception &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to parse connection ID", e);
 	}
+	
+	return connectionID_;
 }
 
 
@@ -309,6 +282,7 @@ throw (emu::fed::exception::SOAPException)
 }
 
 
+
 xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(const xoap::MessageReference &message, xdaq::ApplicationDescriptor *app)
 throw (emu::fed::exception::SOAPException)
 {
@@ -322,9 +296,13 @@ throw (emu::fed::exception::SOAPException)
 	}
 }
 
-void emu::fed::DBAgent::setValue(xdata::Serializable &destination,xdata::Table::Row &sourceRow,const std::string &columnName) throw (emu::fed::exception::DBException) {
+
+
+void emu::fed::DBAgent::setValue(xdata::Serializable &destination, xdata::Table::Row &sourceRow, const std::string &columnName)
+throw (emu::fed::exception::DBException)
+{
 	try {
-		setValue(destination,sourceRow.getField(columnName));
+		setValue(destination, sourceRow.getField(columnName));
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException,"Can't convert column "+columnName+" to expected type",e);
 	} catch (xdata::exception::Exception &e) {
@@ -332,7 +310,11 @@ void emu::fed::DBAgent::setValue(xdata::Serializable &destination,xdata::Table::
 	}
 }
 
-void emu::fed::DBAgent::setValue(xdata::Serializable &destination,xdata::Serializable *source) throw (emu::fed::exception::DBException) {
+
+
+void emu::fed::DBAgent::setValue(xdata::Serializable &destination, xdata::Serializable *source)
+throw (emu::fed::exception::DBException) 
+{
 	if (!source) {
 		XCEPT_RAISE(emu::fed::exception::DBException,"Can't convert NULL value to "+destination.type());
 	}
@@ -350,3 +332,5 @@ void emu::fed::DBAgent::setValue(xdata::Serializable &destination,xdata::Seriali
 		XCEPT_RAISE(emu::fed::exception::DBException,"Can't copy one "+source->type()+" to another. "+e.what());
 	}
 }
+
+
