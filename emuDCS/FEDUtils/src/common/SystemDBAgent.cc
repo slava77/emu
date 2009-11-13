@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.4 2009/11/09 11:46:33 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.5 2009/11/13 09:03:11 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
@@ -13,12 +13,11 @@ DBAgent(application)
 
 
 
-std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::getSystem(const std::string &hostname, xdata::UnsignedInteger64 &key)
+std::string emu::fed::SystemDBAgent::getSystem(xdata::UnsignedInteger64 &key)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
 	std::map<std::string, std::string> parameters;
-	parameters["HOSTNAME"] = hostname;
 	parameters["KEY"] = key.toString();
 	
 	// Execute the query
@@ -29,18 +28,6 @@ throw (emu::fed::exception::DBException)
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
 	}
 	
-	// Did we match anything
-	switch (result.getRowCount()) {
-	case 0: 
-		XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
-		break;
-	case 1:
-		break;
-	default:
-		XCEPT_RAISE(emu::fed::exception::DBException, "More than one matching row found");
-		break;
-	}
-		
 	try {
 		return buildSystem(result);
 	} catch (xdata::exception::Exception &e) {
@@ -51,55 +38,17 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::getSystem(const std::string &hostname)
+std::string emu::fed::SystemDBAgent::buildSystem(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
-	// Set up parameters
-	std::map<std::string, std::string> parameters;
-	parameters["HOSTNAME"] = hostname;
-	
-	// Execute the query
-	xdata::Table result;
-	try {
-		result = query("get_systems_by_hostname", parameters);
-	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
-	}
-	
-	// Did we match anything
-	switch (result.getRowCount()) {
-		case 0: 
-			XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
-			break;
-		case 1:
-			break;
-		default:
-			XCEPT_RAISE(emu::fed::exception::DBException, "More than one matching row found");
-			break;
-	}
-	
-	try {
-		return buildSystem(result);
-	} catch (xdata::exception::Exception &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
-	}
-}
-
-
-
-std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::buildSystem(xdata::Table &table)
-throw (emu::fed::exception::DBException)
-{
-	// Parse out the ID and system name
-	xdata::UnsignedInteger64 id;
+	// Parse out system name
 	xdata::String name;
 	// There is only one row in the table
 	try {
-		id.setValue(*(table.getValueAt(0, "ID"))); // only way to get a serializable to something else
-		name.setValue(*(table.getValueAt(0, "NAME"))); // only way to get a serializable to something else
-	} catch (xdata::exception::Exception &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
+		xdata::String name = getValue<xdata::String>(table.getValueAt(0, "NAME"));
+	} catch (emu::fed::exception::DBException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading system name", e);
 	}
 	
-	return std::make_pair(id, name.toString());
+	return name.toString();
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerDBAgent.cc,v 1.5 2009/11/09 11:46:33 paste Exp $
+* $Id: VMEControllerDBAgent.cc,v 1.6 2009/11/13 09:03:11 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/VMEControllerDBAgent.h"
@@ -9,42 +9,6 @@ emu::fed::VMEControllerDBAgent::VMEControllerDBAgent(xdaq::WebApplication *appli
 DBAgent(application)
 { 
 	table_ = "EMU_FED_CONTROLLERS";
-}
-
-
-
-emu::fed::VMEController *emu::fed::VMEControllerDBAgent::getController(xdata::UnsignedInteger64 &id)
-throw (emu::fed::exception::DBException)
-{
-	// Set up parameters
-	std::map<std::string, std::string> parameters;
-	parameters["CRATE_ID"] = id.toString();
-	
-	// Execute the query
-	xdata::Table result;
-	try {
-		result = query("get_controller", parameters);
-	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
-	}
-	
-	// Did we match anything
-	switch (result.getRowCount()) {
-	case 0: 
-		XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
-		break;
-	case 1:
-		break;
-	default:
-		XCEPT_RAISE(emu::fed::exception::DBException, "More than one matching row found");
-		break;
-	}
-	
-	try {
-		return buildController(result);
-	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
-	}
 }
 
 
@@ -64,19 +28,7 @@ throw (emu::fed::exception::DBException)
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
 	}
-	
-	// Did we match anything
-	switch (result.getRowCount()) {
-	case 0: 
-		XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
-		break;
-	case 1:
-		break;
-	default:
-		XCEPT_RAISE(emu::fed::exception::DBException, "More than one matching row found");
-		break;
-	}
-	
+
 	try {
 		return buildController(result);
 	} catch (emu::fed::exception::DBException &e) {
@@ -90,11 +42,11 @@ emu::fed::VMEController *emu::fed::VMEControllerDBAgent::buildController(xdata::
 throw (emu::fed::exception::DBException)
 {
 	// Parse out the CAEN device and link numbers
-	xdata::UnsignedShort device;
-	xdata::UnsignedShort link;
-	// There is only one row in the table
-	setValue(device,table.getValueAt(0, "CAEN_DEVICE")); 
-	setValue(link,table.getValueAt(0, "CAEN_LINK")); 
-	
-	return new VMEController(device, link);
+	try {
+		xdata::UnsignedShort device = getValue<xdata::UnsignedShort>(table.getValueAt(0, "CAEN_DEVICE"));
+		xdata::UnsignedShort link = getValue<xdata::UnsignedShort>(table.getValueAt(0, "CAEN_LINK"));
+		return new VMEController(device, link);
+	} catch (emu::fed::exception::DBException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading controller parameters from database", e);
+	}
 }

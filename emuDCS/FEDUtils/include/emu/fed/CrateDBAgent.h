@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateDBAgent.h,v 1.5 2009/11/09 11:46:32 paste Exp $
+* $Id: CrateDBAgent.h,v 1.6 2009/11/13 09:03:11 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATEDBAGENT_H__
 #define __EMU_FED_CRATEDBAGENT_H__
@@ -28,10 +28,6 @@ namespace emu {
 			
 			/** Build a bunch of crate objects corresponding to a system ID **/
 			std::vector<emu::fed::Crate *> getCrates(xdata::UnsignedInteger64 &id)
-			throw (emu::fed::exception::DBException);
-			
-			/** Build a bunch of crate objects corresponding to a configuration key and a crate number **/
-			std::vector<emu::fed::Crate *> getCrates(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number)
 			throw (emu::fed::exception::DBException);
 
 		private:

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.h,v 1.8 2009/11/09 11:46:32 paste Exp $
+* $Id: DBAgent.h,v 1.9 2009/11/13 09:03:11 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBAGENT_H__
 #define __EMU_FED_DBAGENT_H__
@@ -31,7 +31,7 @@ namespace emu {
 			*	@param username the username to use for connecting to the database.
 			*	@param password the password to use for connecting to the database.
 			**/
-			void connect(const std::string &username, const std::string &password)
+			std::string connect(const std::string &username, const std::string &password)
 			throw (emu::fed::exception::DBException);
 			
 			/** Disconnect from the database **/
@@ -80,6 +80,44 @@ namespace emu {
 			
 			//wrapper for the other setValue, will take a given field from a table row and include the field name in any exception string
 			void setValue(xdata::Serializable &destination,xdata::Table::Row &sourceRow,const std::string &fieldName) throw (emu::fed::exception::DBException);
+			
+			// I love templates
+			template<class T>
+			T getValue(xdata::Table::Row &sourceRow, const std::string &columnName)
+			throw (emu::fed::exception::DBException)
+			{
+				try {
+					return getValue<T>(sourceRow.getField(columnName));
+				} catch (emu::fed::exception::DBException &e) {
+					XCEPT_RETHROW(emu::fed::exception::DBException, "Can't convert column "+columnName+" to expected type",e);
+				} catch (xdata::exception::Exception &e) {
+					XCEPT_RETHROW(emu::fed::exception::DBException, "Can't read column "+columnName,e);
+				}
+			}
+			
+			template<class T>
+			T getValue(xdata::Serializable *source)
+			throw (emu::fed::exception::DBException)
+			{
+				if (!source) {
+					XCEPT_RAISE(emu::fed::exception::DBException,"Can't convert NULL value to anything");
+				}
+				T destination;
+				if (source->type() != destination.type()) {
+					XCEPT_RAISE(emu::fed::exception::DBException,"Can't convert "+source->type()+" value to "+destination.type());
+				}
+				try {
+					destination.setValue(*source);
+				} catch (std::bad_cast &e) {
+					XCEPT_RAISE(emu::fed::exception::DBException,"Can't copy one "+source->type()+" to another. Maybe two xdata types return the same value from type()");
+				} catch (std::exception &e) {
+					XCEPT_RAISE(emu::fed::exception::DBException,"Can't copy one "+source->type()+" to another. "+e.what());
+				}
+				return destination;
+			}
+			
+			
+			
 		protected:
 
 			/** Send a SOAP message to the given application **/
