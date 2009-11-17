@@ -29,8 +29,8 @@
 	can paste them into a query similar to the existing ones. 
 -->
   <tstore:view id="urn:tstore-view-SQL:EMUsystem">
-    <tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>  
-       <!-- <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/> -->   <!-- QUERY TO GET CONFIG IDs -->
+     <tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>  
+       <!--<tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/>-->    <!-- QUERY TO GET CONFIG IDs -->
     <sql:query xmlns:sql="urn:tstore-view-SQL" name="getconfigids" expectedRows="1">
       <sql:parameter name="TABLE">
         <![CDATA[]]>
@@ -485,18 +485,23 @@ oldconfig.ALCT_TX_CLOCK_DELAY "ALCT_TX_CLOCK_DELAY $OLD_EMU_CONFIG_ID",newconfig
 oldconfig.ALL_CFEB_ACTIVE "ALL_CFEB_ACTIVE $OLD_EMU_CONFIG_ID",newconfig.ALL_CFEB_ACTIVE "ALL_CFEB_ACTIVE $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB0DELAY "CFEB0DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB0DELAY "CFEB0DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB0POSNEG "CFEB0POSNEG $OLD_EMU_CONFIG_ID",newconfig.CFEB0POSNEG "CFEB0POSNEG $NEW_EMU_CONFIG_ID",
+oldconfig.CFEB0_RXD_INT_DELAY "CFEB0_RXD_INT_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB0_RXD_INT_DELAY "CFEB0_RXD_INT_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB0_TOF_DELAY "CFEB0_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB0_TOF_DELAY "CFEB0_TOF_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB1DELAY "CFEB1DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB1DELAY "CFEB1DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB1POSNEG "CFEB1POSNEG $OLD_EMU_CONFIG_ID",newconfig.CFEB1POSNEG "CFEB1POSNEG $NEW_EMU_CONFIG_ID",
+oldconfig.CFEB1_RXD_INT_DELAY "CFEB1_RXD_INT_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB1_RXD_INT_DELAY "CFEB1_RXD_INT_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB1_TOF_DELAY "CFEB1_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB1_TOF_DELAY "CFEB1_TOF_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB2DELAY "CFEB2DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB2DELAY "CFEB2DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB2POSNEG "CFEB2POSNEG $OLD_EMU_CONFIG_ID",newconfig.CFEB2POSNEG "CFEB2POSNEG $NEW_EMU_CONFIG_ID",
+oldconfig.CFEB2_RXD_INT_DELAY "CFEB2_RXD_INT_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB2_RXD_INT_DELAY "CFEB2_RXD_INT_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB2_TOF_DELAY "CFEB2_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB2_TOF_DELAY "CFEB2_TOF_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB3DELAY "CFEB3DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB3DELAY "CFEB3DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB3POSNEG "CFEB3POSNEG $OLD_EMU_CONFIG_ID",newconfig.CFEB3POSNEG "CFEB3POSNEG $NEW_EMU_CONFIG_ID",
+oldconfig.CFEB3_RXD_INT_DELAY "CFEB3_RXD_INT_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB3_RXD_INT_DELAY "CFEB3_RXD_INT_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB3_TOF_DELAY "CFEB3_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB3_TOF_DELAY "CFEB3_TOF_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB4DELAY "CFEB4DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB4DELAY "CFEB4DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB4POSNEG "CFEB4POSNEG $OLD_EMU_CONFIG_ID",newconfig.CFEB4POSNEG "CFEB4POSNEG $NEW_EMU_CONFIG_ID",
+oldconfig.CFEB4_RXD_INT_DELAY "CFEB4_RXD_INT_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB4_RXD_INT_DELAY "CFEB4_RXD_INT_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB4_TOF_DELAY "CFEB4_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB4_TOF_DELAY "CFEB4_TOF_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB_ENABLE_SOURCE "CFEB_ENABLE_SOURCE $OLD_EMU_CONFIG_ID",newconfig.CFEB_ENABLE_SOURCE "CFEB_ENABLE_SOURCE $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB_TOF_DELAY "CFEB_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB_TOF_DELAY "CFEB_TOF_DELAY $NEW_EMU_CONFIG_ID",
@@ -603,18 +608,23 @@ oldconfig.ALCT_TX_CLOCK_DELAY!=newconfig.ALCT_TX_CLOCK_DELAY or
 oldconfig.ALL_CFEB_ACTIVE!=newconfig.ALL_CFEB_ACTIVE or 
 oldconfig.CFEB0DELAY!=newconfig.CFEB0DELAY or 
 oldconfig.CFEB0POSNEG!=newconfig.CFEB0POSNEG or 
+oldconfig.CFEB0_RXD_INT_DELAY!=newconfig.CFEB0_RXD_INT_DELAY or 
 oldconfig.CFEB0_TOF_DELAY!=newconfig.CFEB0_TOF_DELAY or 
 oldconfig.CFEB1DELAY!=newconfig.CFEB1DELAY or 
 oldconfig.CFEB1POSNEG!=newconfig.CFEB1POSNEG or 
+oldconfig.CFEB1_RXD_INT_DELAY!=newconfig.CFEB1_RXD_INT_DELAY or 
 oldconfig.CFEB1_TOF_DELAY!=newconfig.CFEB1_TOF_DELAY or 
 oldconfig.CFEB2DELAY!=newconfig.CFEB2DELAY or 
 oldconfig.CFEB2POSNEG!=newconfig.CFEB2POSNEG or 
+oldconfig.CFEB2_RXD_INT_DELAY!=newconfig.CFEB2_RXD_INT_DELAY or 
 oldconfig.CFEB2_TOF_DELAY!=newconfig.CFEB2_TOF_DELAY or 
 oldconfig.CFEB3DELAY!=newconfig.CFEB3DELAY or 
 oldconfig.CFEB3POSNEG!=newconfig.CFEB3POSNEG or 
+oldconfig.CFEB3_RXD_INT_DELAY!=newconfig.CFEB3_RXD_INT_DELAY or 
 oldconfig.CFEB3_TOF_DELAY!=newconfig.CFEB3_TOF_DELAY or 
 oldconfig.CFEB4DELAY!=newconfig.CFEB4DELAY or 
 oldconfig.CFEB4POSNEG!=newconfig.CFEB4POSNEG or 
+oldconfig.CFEB4_RXD_INT_DELAY!=newconfig.CFEB4_RXD_INT_DELAY or 
 oldconfig.CFEB4_TOF_DELAY!=newconfig.CFEB4_TOF_DELAY or 
 oldconfig.CFEB_ENABLE_SOURCE!=newconfig.CFEB_ENABLE_SOURCE or 
 oldconfig.CFEB_TOF_DELAY!=newconfig.CFEB_TOF_DELAY or 
@@ -1160,6 +1170,12 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
       <tstore:column name="CFEB2_TOF_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB3_TOF_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB4_TOF_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB0_RXD_INT_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB1_RXD_INT_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB2_RXD_INT_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB3_RXD_INT_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB4_RXD_INT_DELAY" type="unsigned short"/>
+
       <tstore:foreignkey references="EMU_CSC">
         <tstore:keycolumn column="CSC_CONFIG_ID" references="CSC_CONFIG_ID"/>
       </tstore:foreignkey>
