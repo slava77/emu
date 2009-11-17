@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.7 2009/10/27 11:07:26 rakness Exp $
+// $Id: TMB.h,v 1.8 2009/11/17 10:04:10 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.8  2009/11/17 10:04:10  rakness
+// include CFEB to TMB integer delays to align CLCT-ALCT matching
+//
 // Revision 1.7  2009/10/27 11:07:26  rakness
 // 15 Oct 2009 TMB firmware update
 //
@@ -1731,6 +1734,37 @@ public:
   inline int  GetCfeb4RxPosNeg() { return cfeb4_rx_posneg_; }
   inline int  GetReadCfeb4RxPosNeg() { return read_cfeb4_rx_posneg_; }
   //
+  //---------------------------------------------------------------------
+  // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
+  //---------------------------------------------------------------------
+  //!cfeb0_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
+  inline void SetCFEB0RxdIntDelay(int cfeb0_rxd_int_delay) { cfeb0_rxd_int_delay_ = cfeb0_rxd_int_delay; }
+  inline int  GetCFEB0RxdIntDelay() { return cfeb0_rxd_int_delay_; }
+  inline int  GetReadCFEB0RxdIntDelay() { return read_cfeb0_rxd_int_delay_; }
+  //
+  //!cfeb1_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
+  inline void SetCFEB1RxdIntDelay(int cfeb1_rxd_int_delay) { cfeb1_rxd_int_delay_ = cfeb1_rxd_int_delay; }
+  inline int  GetCFEB1RxdIntDelay() { return cfeb1_rxd_int_delay_; }
+  inline int  GetReadCFEB1RxdIntDelay() { return read_cfeb1_rxd_int_delay_; }
+  //
+  //!cfeb2_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
+  inline void SetCFEB2RxdIntDelay(int cfeb2_rxd_int_delay) { cfeb2_rxd_int_delay_ = cfeb2_rxd_int_delay; }
+  inline int  GetCFEB2RxdIntDelay() { return cfeb2_rxd_int_delay_; }
+  inline int  GetReadCFEB2RxdIntDelay() { return read_cfeb2_rxd_int_delay_; }
+  //
+  //!cfeb3_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
+  inline void SetCFEB3RxdIntDelay(int cfeb3_rxd_int_delay) { cfeb3_rxd_int_delay_ = cfeb3_rxd_int_delay; }
+  inline int  GetCFEB3RxdIntDelay() { return cfeb3_rxd_int_delay_; }
+  inline int  GetReadCFEB3RxdIntDelay() { return read_cfeb3_rxd_int_delay_; }
+  //
+  //
+  //---------------------------------------------------------------------
+  // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
+  //---------------------------------------------------------------------
+  //!cfeb4_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
+  inline void SetCFEB4RxdIntDelay(int cfeb4_rxd_int_delay) { cfeb4_rxd_int_delay_ = cfeb4_rxd_int_delay; }
+  inline int  GetCFEB4RxdIntDelay() { return cfeb4_rxd_int_delay_; }
+  inline int  GetReadCFEB4RxdIntDelay() { return read_cfeb4_rxd_int_delay_; }
   //
   //
   // **********************************************************************************
@@ -2854,6 +2888,26 @@ private:
   //
   //!convert the user value (in nsec) to values which are written to the VME Register
   void ConvertVMERegisterValuesToDigitalPhases_(long unsigned int vme_address);
+  //
+  //---------------------------------------------------------------------
+  // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
+  //---------------------------------------------------------------------
+  int cfeb0_rxd_int_delay_;
+  int cfeb1_rxd_int_delay_;
+  int cfeb2_rxd_int_delay_;
+  int cfeb3_rxd_int_delay_;
+  //
+  int read_cfeb0_rxd_int_delay_; 
+  int read_cfeb1_rxd_int_delay_; 
+  int read_cfeb2_rxd_int_delay_; 
+  int read_cfeb3_rxd_int_delay_; 
+  //
+  //---------------------------------------------------------------------
+  // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
+  //---------------------------------------------------------------------
+  int cfeb4_rxd_int_delay_;
+  //
+  int read_cfeb4_rxd_int_delay_; 
   //
   //
   //*******************************************************************

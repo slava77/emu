@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.5 2009/10/27 11:07:26 rakness Exp $
+// $Id: TMB_constants.h,v 1.6 2009/11/17 10:04:10 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.6  2009/11/17 10:04:10  rakness
+// include CFEB to TMB integer delays to align CLCT-ALCT matching
+//
 // Revision 1.5  2009/10/27 11:07:26  rakness
 // 15 Oct 2009 TMB firmware update
 //
@@ -272,8 +275,8 @@ static const unsigned long int  phaser_cfeb1_rxd_adr    = 0x000114;
 static const unsigned long int  phaser_cfeb2_rxd_adr    = 0x000116;
 static const unsigned long int  phaser_cfeb3_rxd_adr    = 0x000118;
 static const unsigned long int  phaser_cfeb4_rxd_adr    = 0x00011A;
-static const unsigned long int  phaser_cfeb0_3_inter_adr= 0x00011C;
-static const unsigned long int  phaser_cfeb4_inter_adr  = 0x00011E;
+static const unsigned long int  cfeb0_3_interstage_adr  = 0x00011C;
+static const unsigned long int  cfeb4_interstage_adr    = 0x00011E;
 //
 static const unsigned long int  sync_err_control_adr    = 0x000120;
 //
@@ -2149,6 +2152,37 @@ const int cfeb3_rx_posneg_default       =  0;
 const int cfeb4_rx_clock_delay_vmereg   =  phaser_cfeb4_rxd_adr;
 const int cfeb4_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
 const int cfeb4_rx_posneg_default       =  0; 
+//
+//---------------------------------------------------------------------
+// 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
+//---------------------------------------------------------------------
+const int cfeb0_rxd_int_delay_vmereg  =  cfeb0_3_interstage_adr;
+const int cfeb0_rxd_int_delay_bitlo   =  0;
+const int cfeb0_rxd_int_delay_bithi   =  3;
+const int cfeb0_rxd_int_delay_default =  0; 
+//
+const int cfeb1_rxd_int_delay_vmereg  =  cfeb0_3_interstage_adr;
+const int cfeb1_rxd_int_delay_bitlo   =  4;
+const int cfeb1_rxd_int_delay_bithi   =  7;
+const int cfeb1_rxd_int_delay_default =  0; 
+//
+const int cfeb2_rxd_int_delay_vmereg  =  cfeb0_3_interstage_adr;
+const int cfeb2_rxd_int_delay_bitlo   =  8;
+const int cfeb2_rxd_int_delay_bithi   = 11;
+const int cfeb2_rxd_int_delay_default =  0; 
+//
+const int cfeb3_rxd_int_delay_vmereg  =  cfeb0_3_interstage_adr;
+const int cfeb3_rxd_int_delay_bitlo   = 12;
+const int cfeb3_rxd_int_delay_bithi   = 15;
+const int cfeb3_rxd_int_delay_default =  0; 
+//
+//---------------------------------------------------------------------
+// 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
+//---------------------------------------------------------------------
+const int cfeb4_rxd_int_delay_vmereg  =  cfeb4_interstage_adr;
+const int cfeb4_rxd_int_delay_bitlo   =  0;
+const int cfeb4_rxd_int_delay_bithi   =  3;
+const int cfeb4_rxd_int_delay_default =  0; 
 //
 //
 //////////////////////////////////////////////

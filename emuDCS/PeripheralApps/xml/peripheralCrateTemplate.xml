@@ -137,7 +137,12 @@
            cfeb1_tof_delay="0"
            cfeb2_tof_delay="0"
            cfeb3_tof_delay="0"
-           cfeb4_tof_delay="0">
+           cfeb4_tof_delay="0"
+           cfeb0_rxd_int_delay="0"
+           cfeb1_rxd_int_delay="0"
+           cfeb2_rxd_int_delay="0"
+           cfeb3_rxd_int_delay="0"
+           cfeb4_rxd_int_delay="0">
           <ALCT chamber_type="ME21"
                 alct_firmware_month="5"
                 alct_firmware_day="5"
