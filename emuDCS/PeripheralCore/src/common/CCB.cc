@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.37 2009/03/25 10:19:41 liu Exp $
+// $Id: CCB.cc,v 3.38 2009/11/17 13:28:46 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.38  2009/11/17 13:28:46  liu
+// fix a bug in TTCrx fine delay with 0 nano sec
+//
 // Revision 3.37  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -1162,7 +1165,7 @@ void CCB::configure() {
   //
   // Download fine delay to TTCrx
   //
-  if( TTCrxFineDelay_>0)
+  if( TTCrxFineDelay_>=0)
   {
      int delay = ConvertNanosecondsToFineDelayUnits_(TTCrxFineDelay_&0xff);
      WriteTTCrxReg(0,delay);
