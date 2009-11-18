@@ -1703,6 +1703,8 @@ std::string emu::supervisor::Application::OpGetStateCell()
     std::string tmp;
     xoap::dumpTree(reply->getEnvelope(),tmp);
     std::cout << "--SOAP getstate reply message: " << std::endl << tmp <<std::endl;
+    if ( sresult == "" ) sresult="UNKNOWN";
+
   } catch (xcept::Exception& e){
     return "UNKNOWN";
   }
