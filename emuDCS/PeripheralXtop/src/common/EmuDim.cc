@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.34 2009/11/09 14:44:24 liu Exp $
+// $Id: EmuDim.cc,v 1.35 2009/11/18 12:58:52 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -686,6 +686,7 @@ void EmuDim::CheckCommand()
       }
       else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
       {
+/*
          if(strncmp(cmnd.c_str(), "DDU", 3)==0)
          {
             int ch=atoi(cmnd.c_str()+3);
@@ -697,6 +698,7 @@ void EmuDim::CheckCommand()
             int ch=ChnameToNumber(cmnd.c_str());
             if(ch>=0 && ch<TOTAL_CHAMBERS) UpdateChamber(ch);
          }
+*/
       }
       else if(cmnd.substr(0,15)=="TURN_CHAMBER_OFF")
       {
