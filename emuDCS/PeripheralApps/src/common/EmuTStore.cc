@@ -741,6 +741,7 @@ void EmuTStore::readDAQMB(const std::string &connectionID, const std::string &em
       } 
       if (*column == "DMB_VME_FIRMWARE_TAG"){daqmb_->SetExpectedVMEFirmwareTag(IntValue);}
       if (*column == "DAQMB_CONFIG_ID"){daqmb_config_id_ = StrgValue;}
+       if (*column == "POWER_MASK") { daqmb_->SetPowerMask(IntValue); }
       std::cout << *column + ": " + StrgValue << std::endl;
     }
     readCFEB(connectionID, emu_config_id, daqmb_config_id_, daqmb_);
@@ -982,6 +983,26 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
       if (*column == "WRITE_BUFFER_AUTOCLEAR"       ) {tmb_->SetWriteBufferAutoclear(IntValue);      }
       if (*column == "WRITE_BUFFER_CONTINOUS_ENABLE") {tmb_->SetClctWriteContinuousEnable(IntValue); }
       if (*column == "TMB_FIFO_NO_RAW_HITS"         ) {tmb_->SetFifoNoRawHits(IntValue);             }
+       if (*column == "ALCT_TX_POSNEG"      ) {tmb_->SetAlctTxPosNeg(IntValue);             }
+	if (*column == "CFEB0POSNEG"         ) {tmb_->SetCfeb0RxPosNeg(IntValue);             }
+	if (*column == "CFEB1POSNEG"         ) {tmb_->SetCfeb1RxPosNeg(IntValue);             }
+	if (*column == "CFEB2POSNEG"         ) {tmb_->SetCfeb2RxPosNeg(IntValue);             }
+	if (*column == "CFEB3POSNEG"         ) {tmb_->SetCfeb3RxPosNeg(IntValue);             }
+	if (*column == "CFEB4POSNEG"         ) {tmb_->SetCfeb4RxPosNeg(IntValue);             }
+	if (*column == "MPC_SEL_TTC_BX0"   ) {tmb_->SetSelectMpcTtcBx0(IntValue);             }
+	if (*column == "ALCT_TOF_DELAY"       ) {tmb_->SetAlctTOFDelay(IntValue);                 }
+	if (*column == "TMB_TO_ALCT_DATA_DELAY") {tmb_->SetALCTTxDataDelay(IntValue);        }
+	if (*column == "CFEB_TOF_DELAY"         ) {tmb_->SetCfebTOFDelay(IntValue);               }
+	if (*column == "CFEB0_TOF_DELAY"         ) {tmb_->SetCfeb0TOFDelay(IntValue);             }
+	if (*column == "CFEB1_TOF_DELAY"         ) {tmb_->SetCfeb1TOFDelay(IntValue);             }
+	if (*column == "CFEB2_TOF_DELAY"         ) {tmb_->SetCfeb2TOFDelay(IntValue);             }
+	if (*column == "CFEB3_TOF_DELAY"         ) {tmb_->SetCfeb3TOFDelay(IntValue);             }
+	if (*column == "CFEB4_TOF_DELAY"         ) {tmb_->SetCfeb4TOFDelay(IntValue);             }
+	if (*column == "CFEB0_RXD_INT_DELAY"   ) {tmb_->SetCFEB0RxdIntDelay(IntValue);          }
+	if (*column == "CFEB1_RXD_INT_DELAY"   ) {tmb_->SetCFEB1RxdIntDelay(IntValue);          }
+	if (*column == "CFEB2_RXD_INT_DELAY"   ) {tmb_->SetCFEB2RxdIntDelay(IntValue);          }
+	if (*column == "CFEB3_RXD_INT_DELAY"   ) {tmb_->SetCFEB3RxdIntDelay(IntValue);          }
+	if (*column == "CFEB4_RXD_INT_DELAY"   ) {tmb_->SetCFEB4RxdIntDelay(IntValue);          }	 
       if (*column == "TMB_CONFIG_ID"                ) {tmb_config_id_ = StrgValue;                   }
 
       std::cout << *column + ": " + StrgValue << std::endl;
