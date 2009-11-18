@@ -14,7 +14,7 @@ Package=emuDCS/PCSwitches
 PackageName=PCSwitches
 Description="Application libraries for Peripheral Crate Gigabit Switches"
 PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=01
+PACKAGE_VER_MINOR=02
 PACKAGE_VER_PATCH=00
 
 Sources=\

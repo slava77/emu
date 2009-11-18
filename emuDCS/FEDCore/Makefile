@@ -21,7 +21,7 @@ Summary="Emu (CSC) FED Core Libraries"
 Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=01
+PACKAGE_VER_MINOR=02
 PACKAGE_VER_PATCH=00
 
 Sources=\
