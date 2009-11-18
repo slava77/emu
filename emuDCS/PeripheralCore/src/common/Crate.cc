@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.59 2009/11/04 18:22:57 liu Exp $
+// $Id: Crate.cc,v 3.60 2009/11/18 12:27:17 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.60  2009/11/18 12:27:17  liu
+// more error messages for DCS reading problems
+//
 // Revision 3.59  2009/11/04 18:22:57  liu
 // remove empty slots
 //
@@ -673,7 +676,7 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
 void Crate::MonitorDCS(int cycle, char * buf, unsigned mask) 
 {
   int rn, TOTAL_DCS_COUNTERS=48; // aligned at 4 bytes (integer)
-  short *buf2;
+  short *buf2, flag=0;
 
   buf2=(short *)buf;
   *buf2 = 0;
@@ -686,10 +689,12 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
     {  
         rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
        // if ( rn<0 ) error condition
+        if( rn<=0 ) flag |= (1<<i);
         rn=myTmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS+46*2);
     }
   }
   *buf2 = (TOTAL_DCS_COUNTERS)*myDmbs.size();
+  *(buf2+1) = flag;
   return;
 }
 

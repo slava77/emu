@@ -284,6 +284,7 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
             // for DCS temps, voltages
                 is->fireItemAvailable("DCStemps",new xdata::Vector<xdata::Float>());
                 is->fireItemAvailable("DCScrate",new xdata::UnsignedShort(0));
+                is->fireItemAvailable("DCSchamber",new xdata::UnsignedShort(0));
                 is->fireItemAvailable("DCSitime",new xdata::UnsignedInteger32(0));
                 is->fireItemAvailable("DCSstime",new xdata::TimeVal);
          }
@@ -428,6 +429,8 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    }
                    counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
                    *counter16 = 1;
+                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCSchamber"));
+                   *counter16 = buf2[1];
                    counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
                    *counter32 = time(NULL);
                 }
@@ -1424,7 +1427,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
     *out <<cgicc::td();
   }
   //
-  *out <<cgicc::tr();
+  *out <<cgicc::tr() << std::endl;
   //
   for (int count=0; count<Total_count; count++) {
     //
@@ -1449,7 +1452,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
          *out << val;  
       *out <<cgicc::td();
     }
-    *out <<cgicc::tr();
+    *out <<cgicc::tr() << std::endl;
   }
   //
   *out << cgicc::table();
@@ -1692,7 +1695,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
     //
   }
   //
-  *out <<cgicc::tr();
+  *out <<cgicc::tr() << std::endl;
   //
   std::vector<TMB*> myVector;
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
@@ -1783,7 +1786,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
          *out << "L: " << dc;
       *out <<cgicc::td();
     }
-    *out <<cgicc::tr();
+    *out <<cgicc::tr() << std::endl;
   }
   //
   *out << cgicc::table() << std::endl;
@@ -1835,7 +1838,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
     //
   }
   //
-  *out <<cgicc::tr();
+  *out <<cgicc::tr() << std::endl;
   //
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
 
@@ -1931,7 +1934,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
       }
       *out <<cgicc::td();
     }
-    *out <<cgicc::tr();
+    *out <<cgicc::tr() << std::endl;
   }
   //
   *out << cgicc::table() << std::endl;
@@ -2538,7 +2541,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
 
   unsigned int readtime;
-  unsigned short crateok;
+  unsigned short crateok, skip_chamber;
   float val;
   std::vector<DAQMB*> myVector;
   int TOTAL_DCS_COUNTERS=48;
@@ -2572,6 +2575,9 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         xdata::UnsignedShort *counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
         if (counter16==NULL) crateok= 0; 
            else crateok = (*counter16);
+        counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCSchamber"));
+        if (counter16==NULL) skip_chamber= 0; 
+           else skip_chamber = (*counter16);
      }
      mac=crateVector[i]->vmeController()->GetMAC(0);
      ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
@@ -2582,7 +2588,11 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         slot = myVector[j]->slot();
         ip = (ip & 0xff) + slot*256;
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
-        *out << " " << crateok << " " << readtime << " " << ip;
+        if(crateok>0 && (skip_chamber & (1<<j))==0) 
+          *out << " " << 1;
+        else
+          *out << " " << 0;
+       *out << " " << readtime << " " << ip;
         if(gooddata)
         {
            for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
@@ -2980,7 +2990,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   //
   *out << "All cfg " << ((csra3>>15)&0x1);
-  *out << cgicc::br();
+  *out << cgicc::br() << std::endl;
   *out << cgicc::fieldset() ;
   //
   // read = (thisCCB->ReadRegister(0x2))&0xffff;
@@ -2996,8 +3006,8 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
     *out << " No";
     *out << cgicc::span();
   }
-  *out << cgicc::br();
-  *out << cgicc::fieldset() ;
+  *out << cgicc::br(); 
+  *out << cgicc::fieldset() << std::endl;
   //
   *out << cgicc::table().set("border","1");
   //
@@ -3009,7 +3019,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
     *out << cgicc::td();
   }
   //
-  *out <<cgicc::tr();
+  *out <<cgicc::tr() << std::endl;
   // 
   *out << cgicc::td() << "ALCT (0=OK)" << cgicc::td();
   for (int count=1; count<=9; count++)
