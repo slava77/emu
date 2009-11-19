@@ -50,7 +50,7 @@
 	<!-- XPlore requires the installation of Power Pack  -->
 	<xp:Application class="xplore::Application" id="9"  network="local">
 	 	<properties xmlns="urn:xdaq-application:xplore::Application" xsi:type="soapenc:Struct">
-			<!-- settings xsi:type="xsd:string">${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/xplore/shortcuts.xml</settings -->
+			<settings xsi:type="xsd:string">${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/xplore/shortcuts.xml</settings>
 			<republishInterval xsi:type="xsd:string">60</republishInterval>
                 </properties>
 	</xp:Application>	
