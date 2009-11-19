@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.59 2009/10/28 09:51:13 liu Exp $
+// $Id: DAQMB.cc,v 3.60 2009/11/19 17:04:10 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.60  2009/11/19 17:04:10  rakness
+// remove some extraneous cout statements
+//
 // Revision 3.59  2009/10/28 09:51:13  liu
 // fix a typo
 //
@@ -1165,11 +1168,11 @@ char dt[2];
  }
  dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
  dt[1]=dt[1]>>1;
- (*MyOutput_) << "CFEB size="<<cfebs_.size() << std::endl;
+ // (*MyOutput_) << "CFEB size="<<cfebs_.size() << std::endl;
  //
- for(unsigned int i=0; i<cfebs_.size();i++) {
-   (*MyOutput_) << i << " CFEB number" << cfebs_[i].number() << std::endl;
- }
+ // for(unsigned int i=0; i<cfebs_.size();i++) {
+ //   (*MyOutput_) << i << " CFEB number" << cfebs_[i].number() << std::endl;
+ // }
  //
  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
    DEVTYPE dv = cfebs_[icfeb].scamDevice();
@@ -1318,8 +1321,8 @@ void  DAQMB::halfset(int ifeb,int ipln,int ihalf)
 void DAQMB::trigsetx(int *hp, int CFEBInput)
 {
   //
-  (*MyOutput_) << "DAQMB.trigsetx" << std::endl;
-  (*MyOutput_) << "CFEB size="<<cfebs_.size() << std::endl;;
+  //  (*MyOutput_) << "DAQMB.trigsetx" << std::endl;
+  //  (*MyOutput_) << "CFEB size="<<cfebs_.size() << std::endl;;
   //
   int hs[6];
   int i,j,k;
@@ -1332,14 +1335,14 @@ void DAQMB::trigsetx(int *hp, int CFEBInput)
     }
   }
   //
-  (*MyOutput_) << "Setting Staggering" << std::endl;
+  //  (*MyOutput_) << "Setting Staggering" << std::endl;
   //
   for(i=0;i<6;i+=2){
      hs[i]=-1;
      hs[i+1]=0;
   } 
   //
-  (*MyOutput_) << " Setting halfset " << std::endl;
+  //  (*MyOutput_) << " Setting halfset " << std::endl;
   //
   for(k=0;k<5;k++){
      for(j=0;j<6;j++){
@@ -1453,12 +1456,12 @@ void DAQMB::chan2shift(int chan[5][6][16])
    char chip_mask;
    char shft_bits[6][6];
    
-   (*MyOutput_) << "CFEB size=" << cfebs_.size() << std::endl;
-   (*MyOutput_) << "CFEB numbers" << std::endl;
-
-   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) (*MyOutput_) << " " << cfebs_[icfeb].number() ;
-
-   (*MyOutput_) << std::endl;
+   //   (*MyOutput_) << "CFEB size=" << cfebs_.size() << std::endl;
+   //   (*MyOutput_) << "CFEB numbers" << std::endl;
+   //
+   //   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) (*MyOutput_) << " " << cfebs_[icfeb].number() ;
+   //
+   //   (*MyOutput_) << std::endl;
    
    for(lay=0;lay<6;lay++){
       for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
@@ -1476,7 +1479,7 @@ void DAQMB::chan2shift(int chan[5][6][16])
    for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
       DEVTYPE dv   = cfebs_[icfeb].scamDevice() ;
       int brdn = cfebs_[icfeb].number();
-      printf(" brdn=%d F1SCAM=%d dv=%d\n",brdn,F1SCAM,dv);
+      //      printf(" brdn=%d F1SCAM=%d dv=%d\n",brdn,F1SCAM,dv);
       for(lay=0;lay<6;lay++){
 	 shft_bits[lay][0]=((chan[brdn][lay][13]<<6)|(chan[brdn][lay][14]<<3)|chan[brdn][lay][15])&0XFF;
 	 shft_bits[lay][1]=((chan[brdn][lay][10]<<7)|(chan[brdn][lay][11]<<4)|(chan[brdn][lay][12]<<1)|(chan[brdn][lay][13]>>2))&0XFF;
