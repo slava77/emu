@@ -21,8 +21,8 @@ csc-c2d08-09.cms:c2d08:service:monitoring:jobcontrol
 csc-c2d08-10.cms:c2d08:service:monitoring:jobcontrol
 vmepcs2g19-12.cms:s2g19:service:monitoring:jobcontrol
 vmepcs2b16-08.cms:s2b16:service:monitoring:jobcontrol
-vmepcs2g18-07.cms:s2g18:service:monitoring:jobcontrol
-vmepcs2g18-06.cms:s2g18:service:monitoring:jobcontrol
+vmepcs2g18-07.cms:s2g18:service:monitoring:jobcontrol fedmicromon1
+vmepcs2g18-06.cms:s2g18:service:monitoring:jobcontrol fedmicromon2
 vmepcs2g18-09.cms:s2g18:service:monitoring:jobcontrol
 vmepcs2g18-08.cms:s2g18:service:monitoring:jobcontrol
 dcspcs2g19-10.cms:s2g19:service:monitoring:jobcontrol pctimer1 pcservice1 pcmonitor1
