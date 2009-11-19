@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.14 2009/11/09 11:46:33 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.15 2009/11/19 00:22:06 liu Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -72,7 +72,7 @@ throw (emu::fed::exception::FMMThreadException)
 
 	// log file format: EmuFMMThread_(EndcapName_)YYYYMMDD-hhmmss_rRUNNUMBER.log
 	strftime(datebuf, sizeof(datebuf), "%Y%m%d-%H%M%S", localtime(&theTime));
-	fileName << "EmuFMMThread_" << (systemName_ != "" ? systemName_ + "_" : "") << datebuf << "_r" << std::setw(6) << std::setfill('0') << std::dec << runNumber << ".log";
+	fileName << "/tmp/EmuFMMThread_" << (systemName_ != "" ? systemName_ + "_" : "") << datebuf << "_r" << std::setw(6) << std::setfill('0') << std::dec << runNumber << ".log";
 
 	log4cplus::SharedAppenderPtr myAppend = new log4cplus::FileAppender(fileName.str().c_str());
 	myAppend->setName("EmuFMMIRQAppender");
