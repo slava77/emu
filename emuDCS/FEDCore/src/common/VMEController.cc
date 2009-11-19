@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.8 2009/07/16 09:19:37 paste Exp $
+* $Id: VMEController.cc,v 1.9 2009/11/19 00:22:06 liu Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -66,7 +66,7 @@ BHandle_(-1)
 
 		// Now that you own the BHandle, make a file that shows this
 		std::ostringstream fileName;
-		fileName << "CAEN_" << Device_ << "_" << Link_ << ".BHandle";
+		fileName << "/tmp/CAEN_" << Device_ << "_" << Link_ << ".BHandle";
 		std::ofstream outFile(fileName.str().c_str(), std::ios_base::trunc);
 		if (outFile.is_open()) {
 			outFile << BHandle_;

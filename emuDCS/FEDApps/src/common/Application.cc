@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.10 2009/11/09 11:43:52 paste Exp $
+* $Id: Application.cc,v 1.11 2009/11/19 00:22:06 liu Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -32,7 +32,7 @@ xdaq::WebApplication(stub)
 	char filebuf[255];
 	std::time_t theTime = time(NULL);
 	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H-%M-%S", localtime(&theTime));
-	std::string fileName = "emu-" + myClassName_ + "-%s.log";
+	std::string fileName = "/tmp/emu-" + myClassName_ + "-%s.log";
 	std::sprintf(filebuf, fileName.c_str(), datebuf);
 	log4cplus::SharedAppenderPtr myAppender = new log4cplus::FileAppender(filebuf);
 	myAppender->setName(getApplicationDescriptor()->getClassName() + "Appender");
