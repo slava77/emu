@@ -70,7 +70,7 @@
 			<useDiscovery xsi:type="xsd:boolean">true</useDiscovery>
 			<subscribeGroup xsi:type="xsd:string">csc-monitor</subscribeGroup>
 			<!-- Subscribe to flashlists tagged for this las, e.g. collection-las1 -->
-			<tag xsi:type="xsd:string">csc-metric</tag>
+			<tag xsi:type="xsd:string">emu-metric</tag>
         </properties>
 	</xp:Application>
 	<xp:Module>${XDAQ_ROOT}/lib/libwsaddressing.so</xp:Module>
