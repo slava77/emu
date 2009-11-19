@@ -301,6 +301,7 @@ private:
   //
   int Npulses_;
   bool comparing_with_clct_;
+  int me11_pulsing_;
   //
   bool UsePulsing_;
   //

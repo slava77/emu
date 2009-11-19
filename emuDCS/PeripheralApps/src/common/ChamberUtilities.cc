@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.31 2009/11/10 10:53:26 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.32 2009/11/19 17:04:56 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.32  2009/11/19 17:04:56  rakness
+// change CFEB-TMB rx scan to look at non-straight tracks
+//
 // Revision 1.31  2009/11/10 10:53:26  rakness
 // fix bug picking the correct pipedepth for the updated rx/tx scan
 //
@@ -367,6 +370,7 @@ ChamberUtilities::ChamberUtilities(){
   //
   Npulses_ = 2;
   comparing_with_clct_ = false;
+  me11_pulsing_        = 0;
   //
   use_measured_values_ = false;
   //
@@ -855,7 +859,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
     //
     for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
       //
-      //    (*MyOutput_) << " Setting TimeDelay to " << TimeDelay << std::endl;
+      if (debug_) std::cout << "Next event:  posneg=" << std::dec << posneg << ", TimeDelay=" << TimeDelay << std::endl;
       //
       thisTMB->SetCfeb0RxClockDelay(TimeDelay);
       thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);
@@ -893,14 +897,11 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 	  // generate a random halfstrip to pulse which is not the same as the 
 	  // last valid halfstrip for this CFEB. 
 	  // In addition, this should be away from the edges of the CFEB...
-	  while (random_halfstrip[List] == last_pulsed_halfstrip[List] ) {
-	    random_halfstrip[List] = (int) (rand()/(RAND_MAX+0.01)*28);  // random number between 0 and 28
-	    random_halfstrip[List] += 2;                                 // translate to between 2 and 30
-	  }
-	  //
-	  PulseCFEB(random_halfstrip[List],CLCTInputList[List]);	
-	  //
-	  usleep(50);
+	  //	  while (random_halfstrip[List] == last_pulsed_halfstrip[List] ) {
+	  //	    random_halfstrip[List] = (int) (rand()/(RAND_MAX+0.01)*10);  // random number between 0 and 10
+	  //	    random_halfstrip[List] += 13;                                 // translate to between 13 and 23
+	    	    random_halfstrip[List] = 10;                                 // translate to between 13 and 23
+		    //	  }
 	  //
 	  // Now need to map the CFEB numbering into the ME1/1 numbering
 	  //
@@ -908,9 +909,13 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 	  //
 	  if ( thisTMB->GetTMBFirmwareCompileType() == 0xa ) {   // normal TMB compile type
 	    //
+	    me11_pulsing_ = 0;
+	    //
 	    pulsed_halfstrip = List*32 + random_halfstrip[List];
 	    //
 	  } else if ( thisTMB->GetTMBFirmwareCompileType() == 0xc ) {  // plus endcap ME1/1
+	    //
+	    me11_pulsing_ = 1;
 	    //
 	    pulsed_halfstrip = List*32 + random_halfstrip[List];
 	    if (List == 4) 
@@ -918,15 +923,18 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 	    //
 	  } else if ( thisTMB->GetTMBFirmwareCompileType() == 0xd ) {  // minus endcap ME1/1
 	    //
-	    pulsed_halfstrip = 159 - random_halfstrip[List];
+	    me11_pulsing_ = 1;
 	    //
 	    pulsed_halfstrip = 127 - (List*32 + random_halfstrip[List]);
 	    if (List == 4)
 	      pulsed_halfstrip = 128 + random_halfstrip[List];
 	  }
 	  //
+	  PulseCFEB(random_halfstrip[List],CLCTInputList[List]);	
+	  //
+	  usleep(50);
+	  //
 	  if (debug_) {
-	    std::cout << "posneg=" << std::dec << posneg << ", TimeDelay=" << TimeDelay << std::endl;
 	    std::cout << "CFEB pulsed:" << List      
 		      << ", halfstrip in CFEB =" << random_halfstrip[List]
 		      << ", halfstrip in chamber =" << pulsed_halfstrip
@@ -947,7 +955,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 	  //	int clct1nhit         = thisTMB->GetCLCT1Nhit();
 	  //	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
 	  //
-	  if ( clct0patternId == 10 && clct0keyHalfStrip == pulsed_halfstrip && clct0nhit >= 5 ) {
+	  if ( clct0patternId <= 3 && clct0keyHalfStrip == pulsed_halfstrip && clct0nhit == 6 ) {
 	    Muons[List][posneg][TimeDelay]++;
 	    if (debug_) std::cout << " found" << std::endl;
 	    last_pulsed_halfstrip[List] = random_halfstrip[List];
@@ -1160,6 +1168,9 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
   }
   //
   // return to initial values:
+  //
+  me11_pulsing_ = 0;
+  //
   thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
   thisTMB->WriteRegister(seq_trig_en_adr);
   //
@@ -5090,8 +5101,18 @@ void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmu
     // As a result, for a staggered, non-bending pattern, the key 1/2-strip 
     // determined by the CLCT is changed by 1.
     //
-    for (int layer = 0; layer < 6; layer++ )
-      hp[layer] = HalfStrip+1;       
+    for (int layer = 0; layer < 6; layer++ ) {
+      // make a very slanted road.  In addition, for ME1/1, need to "unstagger" the strips...
+      if (layer == 0) hp[layer] = HalfStrip + 4 + me11_pulsing_;
+      if (layer == 1) hp[layer] = HalfStrip + 2;
+      if (layer == 2) hp[layer] = HalfStrip     + me11_pulsing_;
+      if (layer == 3) hp[layer] = HalfStrip - 2;
+      if (layer == 4) hp[layer] = HalfStrip - 4 + me11_pulsing_;
+      if (layer == 5) hp[layer] = HalfStrip - 5;
+      //
+      // The following is needed for NON me11 chambers
+      if (me11_pulsing_ == 0) hp[layer]++;
+    } 
     //
   } else{
     //
