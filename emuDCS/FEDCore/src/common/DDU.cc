@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.20 2009/11/09 20:34:00 paste Exp $
+* $Id: DDU.cc,v 1.21 2009/11/22 22:39:44 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -744,7 +744,7 @@ throw (emu::fed::exception::DDUException)
 		else if (scale == NEWTON) return cval * 33.0 / 100.0;
 		else if (scale == DELISLE) return (100 - cval) * 3.0 / 2.0;
 		else {
-			XCEPT_RAISE(emu::fed::exception::OutOfBoundsException, "Unknown temperature type given");
+			XCEPT_RAISE(emu::fed::exception::DDUException, "Unknown temperature type given");
 		}
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
@@ -777,6 +777,15 @@ throw (emu::fed::exception::DDUException)
 		do {
 			temp = readRegister(SADC, 0x0089 | (sensor << 4), 16)[0];
 		} while ((temp == 0xffff || temp == 0) && --trials);
+		if (temp == 0xffff || temp == 0) {
+			std::ostringstream error;
+			error << "Unable to produce a sensible reading for temperature " << sensor << ": last value " << std::hex << std::showbase << temp;
+			XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
+			std::ostringstream tag;
+			tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
+		}
 		return temp;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
@@ -827,6 +836,15 @@ throw (emu::fed::exception::DDUException)
 		do {
 			volt = readRegister(SADC, 0x0089 | ((sensor+4) << 4), 16)[0];
 		} while ((volt == 0xffff || volt == 0) && --trials);
+		if (volt == 0xffff || volt == 0) {
+			std::ostringstream error;
+			error << "Unable to produce a sensible reading for voltage " << sensor << ": last value " << std::hex << std::showbase << volt;
+			XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
+			std::ostringstream tag;
+			tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
+		}
 		return volt;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
