@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.11 2009/10/14 17:33:09 liu Exp $
+// $Id: Chamber.cc,v 1.12 2009/11/22 13:45:37 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.12  2009/11/22 13:45:37  liu
+// debug message  for bad readings
+//
 // Revision 1.11  2009/10/14 17:33:09  liu
 // allow X2P to start before monitoring processes, add new DIM commands
 //
@@ -77,11 +80,17 @@ void Chamber::Fill(char *buffer, int source)
        idx++;
        item=strtok_r(NULL, sep, &last);
    };
-   if(source)
-   {   corruption = false;
+   if(source==0 && states[0]==0)
+   {   // DEBUG: print a bad reading, but only the first time it goes to bad
+       if(ready_) std::cout << label_ << " " << states[1] << std::endl;
+       ready_ = false;
+   }
+   else
+   {   // DEBUG: print if a bad reading changes back to good
+       if(source==0 && !ready_) std::cout << "OK now: " << label_ << " " << states[1] << std::endl;
        ready_ = true;
    }
-   else if(idx!=51 || values[47]!=(-50.))
+   if(source==0 && (idx!=51 || values[47]!=(-50.)))
    {   std::cout << "BAD...total " << idx << " last one " << values[47] << std::endl;
        corruption = true;
    }
