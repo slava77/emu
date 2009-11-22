@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.9 2009/11/19 00:22:06 liu Exp $
+* $Id: VMEController.cc,v 1.10 2009/11/22 22:39:44 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -28,13 +28,15 @@ BHandle_(-1)
 	int32_t BHandle;
 
 	CVErrorCodes err = CAENVME_Init(VMEBoard, Device_, Link_, &BHandle);
+	
+	// The file that will hold the BHandle.  It might already exist and have a valid handle, but we will see later.
+	std::ostringstream fileName;
+	fileName << "/tmp/CAEN_" << Device_ << "_" << Link_ << ".BHandle";
 
 	// Check to see if the board has been initialized.
 	if (err == cvGenericError) {
 		// If this failed, then maybe some other process has already opened the device.
 		// There should be a file that has the BHandle in it.
-		std::ostringstream fileName;
-		fileName << "/tmp/CAEN_" << Device_ << "_" << Link_ << ".BHandle";
 		std::ifstream inFile(fileName.str().c_str());
 		if (inFile.is_open()) {
 			inFile.exceptions(std::ifstream::badbit | std::ifstream::failbit);
@@ -65,8 +67,6 @@ BHandle_(-1)
 		BHandle_ = BHandle;
 
 		// Now that you own the BHandle, make a file that shows this
-		std::ostringstream fileName;
-		fileName << "/tmp/CAEN_" << Device_ << "_" << Link_ << ".BHandle";
 		std::ofstream outFile(fileName.str().c_str(), std::ios_base::trunc);
 		if (outFile.is_open()) {
 			outFile << BHandle_;
