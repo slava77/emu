@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.h,v 1.2 2009/11/06 13:48:34 paste Exp $
+* $Id: Configurable.h,v 1.3 2009/11/22 22:52:22 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURABLE_H__
 #define __EMU_FED_CONFIGURABLE_H__
@@ -7,6 +7,7 @@
 #include "emu/fed/Application.h"
 #include "xdata/xdata.h"
 #include "xdata/UnsignedInteger64.h"
+#include "boost/filesystem/path.hpp"
 
 namespace emu {
 	namespace fed {
@@ -57,7 +58,7 @@ namespace emu {
 			throw (emu::fed::exception::ConfigurationException);
 			
 			/** Grabs the available XML file names from the configuration directory **/
-			std::vector<std::string> getXMLFileNames(const std::string &configDir = "");
+			std::vector<std::string> getXMLFileNames(const boost::filesystem::path &configDir);
 			
 			/// The system name for the application.  This is just some name that can be used to distinguish differently-configured applications from each other.
 			xdata::String systemName_;

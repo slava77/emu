@@ -569,4 +569,10 @@ td.data_board {
 	cursor: pointer;
 }
 
+.pointer {
+	cursor: pointer;
+}
 
+/* Closed to begin with */
+.hidden {
+}
