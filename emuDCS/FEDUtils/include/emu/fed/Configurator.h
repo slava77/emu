@@ -1,10 +1,12 @@
 /*****************************************************************************\
-* $Id: Configurator.h,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: Configurator.h,v 1.2 2009/11/22 22:45:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURATOR_H__
 #define __EMU_FED_CONFIGURATOR_H__
 
 #include <vector>
+#include <string>
+#include <time.h>
 
 #include "emu/fed/Exception.h"
 
@@ -30,6 +32,9 @@ namespace emu {
 			
 			/** Access the name of the system **/
 			inline std::string getSystemName() { return systemName_; }
+			
+			/** Access the timestamp **/
+			inline time_t getTimeStamp() { return timeStamp_; }
 
 		protected:
 			
@@ -38,6 +43,9 @@ namespace emu {
 			
 			/// The name of the system (for user convenience)
 			std::string systemName_;
+			
+			/// The time stamp of the system
+			time_t timeStamp_;
 
 		private:
 		

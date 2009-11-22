@@ -1,10 +1,12 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.cc,v 1.6 2009/07/11 19:38:32 paste Exp $
+* $Id: XMLConfigurator.cc,v 1.7 2009/11/22 22:45:10 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/XMLConfigurator.h"
 
 #include <sstream>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "xercesc/parsers/XercesDOMParser.hpp"
 #include "emu/fed/DDUParser.h"
 #include "emu/fed/DDU.h"
@@ -20,7 +22,7 @@ emu::fed::XMLConfigurator::XMLConfigurator(const std::string &filename):
 filename_(filename)
 {
 	systemName_ = "unnamed";
-	// Does nothing
+	timeStamp_ = time(NULL);
 }
 
 
@@ -28,6 +30,11 @@ filename_(filename)
 std::vector<emu::fed::Crate *> emu::fed::XMLConfigurator::setupCrates()
 throw (emu::fed::exception::ConfigurationException)
 {
+	// Timestamp is easy
+	struct stat attrib;
+	stat(filename_.c_str(), &attrib);
+	timeStamp_ = attrib.st_mtime;
+	
 	// Initialize XML4C system
 	try {
 		xercesc::XMLPlatformUtils::Initialize();

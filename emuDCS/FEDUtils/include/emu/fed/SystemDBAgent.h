@@ -1,15 +1,20 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.h,v 1.5 2009/11/13 09:03:11 paste Exp $
+* $Id: SystemDBAgent.h,v 1.6 2009/11/22 22:45:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SYSTEMDBAGENT_H__
 #define __EMU_FED_SYSTEMDBAGENT_H__
 
 #include "emu/fed/DBAgent.h"
+#include <utility>
+#include <time.h>
+#include <vector>
+#include <map>
+#include <string>
 
 namespace emu {
 	namespace fed {
 
-		/** @class SystemDBAgent A utility class that will download a system configuration from the database and properly configure a vector of Crate objects based on that information.
+		/** @class SystemDBAgent A utility class that will download a system configuration from the database.
 		**/
 		class SystemDBAgent: public DBAgent {
 		
@@ -19,13 +24,17 @@ namespace emu {
 			SystemDBAgent(xdaq::WebApplication *application);
 			
 			/** Get the system ID and name corresponding to a configuration key **/
-			std::string getSystem(xdata::UnsignedInteger64 &key)
+			std::pair<std::string, time_t> getSystem(xdata::UnsignedInteger64 &key)
+			throw (emu::fed::exception::DBException);
+			
+			/** Get all the system IDs corresponding to the given system name, or all the system names if the parameter is omitted **/
+			std::map<std::string, std::vector<xdata::UnsignedInteger64> > getAllKeys(const std::string &system = "")
 			throw (emu::fed::exception::DBException);
 
 		private:
 		
 			/** Build a system from the table returned **/
-			std::string buildSystem(xdata::Table &table)
+			std::pair<std::string, time_t> buildSystem(xdata::Table &table)
 			throw (emu::fed::exception::DBException);
 
 		};

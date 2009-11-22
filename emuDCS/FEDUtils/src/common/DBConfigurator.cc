@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.cc,v 1.6 2009/11/13 09:03:11 paste Exp $
+* $Id: DBConfigurator.cc,v 1.7 2009/11/22 22:45:10 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DBConfigurator.h"
@@ -21,6 +21,7 @@ dbPassword_(password),
 dbKey_(key)
 {
 	systemName_ = "unnamed";
+	timeStamp_ = time(NULL);
 }
 
 
@@ -33,7 +34,9 @@ throw (emu::fed::exception::ConfigurationException)
 	try {
 		SystemDBAgent systemAgent(application_);
 		connectionID = systemAgent.connect(dbUsername_, dbPassword_);
-		systemName_ = systemAgent.getSystem(dbKey_);
+		std::pair<std::string, time_t> nameTime = systemAgent.getSystem(dbKey_);
+		systemName_ = nameTime.first;
+		timeStamp_ = nameTime.second;
 	} catch (emu::fed::exception::DBException &e) {
 		systemName_ = "unnamed";
 		//XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Error setting system name", e);

@@ -1,10 +1,12 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.cc,v 1.6 2009/07/16 09:21:25 paste Exp $
+* $Id: AutoConfigurator.cc,v 1.7 2009/11/22 22:45:10 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AutoConfigurator.h"
 
 #include <sstream>
+#include <unistd.h>
+#include <time.h>
 #include "emu/fed/Crate.h"
 #include "emu/fed/VMEController.h"
 #include "emu/fed/DDU.h"
@@ -13,7 +15,7 @@
 emu::fed::AutoConfigurator::AutoConfigurator()
 {
 	systemName_ = "Autoconfigured";
-	// Does nothing (nothing needed for auto configuration)
+	timeStamp_ = time(NULL);
 }
 
 
@@ -21,6 +23,9 @@ emu::fed::AutoConfigurator::AutoConfigurator()
 std::vector<emu::fed::Crate *> emu::fed::AutoConfigurator::setupCrates()
 throw (emu::fed::exception::ConfigurationException)
 {
+	// Timestamp is easy
+	timeStamp_ = time(NULL);
+	
 	// An incrementing crate number
 	unsigned int crateNumber = 0;
 	
