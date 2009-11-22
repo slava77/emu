@@ -1,8 +1,7 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.8 2009/11/11 14:44:41 paste Exp $
+* $Id: Configurable.cc,v 1.9 2009/11/22 22:52:22 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
-#include "boost/filesystem/path.hpp"
 #include "boost/filesystem/operations.hpp"
 #include "boost/algorithm/string/case_conv.hpp"
 
@@ -324,9 +323,9 @@ std::string emu::fed::Configurable::printConfigureOptions()
 		.set("for", "config_type_xml") << std::endl;
 	out << cgicc::div() << std::endl;
 	
-	std::string configPath(std::string(getenv("HOME")) + std::string("/config/fed"));
-	std::vector<std::string> xmlFiles = getXMLFileNames(configPath);
-	if (xmlFiles.empty()) xmlFiles.push_back("Unable to find valid XML files in " + configPath);
+	// Make the path from the directory part of the xmlFile variable
+	std::vector<std::string> xmlFiles = getXMLFileNames(boost::filesystem::path(xmlFile_.toString()).branch_path());
+	if (xmlFiles.empty()) xmlFiles.push_back("Unable to find valid XML files in " + boost::filesystem::path(xmlFile_.toString()).branch_path().string());
 	
 	out << cgicc::table()
 		.set("class", "noborder dialog tier2") << std::endl;
@@ -415,11 +414,9 @@ throw(emu::fed::exception::ConfigurationException)
 
 
 
-std::vector<std::string> emu::fed::Configurable::getXMLFileNames(const std::string &configDir)
+std::vector<std::string> emu::fed::Configurable::getXMLFileNames(const boost::filesystem::path &configPath)
 {
 	std::vector<std::string> xmlFiles;
-	
-	boost::filesystem::path configPath(configDir);
 
 	if (boost::filesystem::exists(configPath)) {
 		// The default iterator is the end iterator.
