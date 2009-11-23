@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.26 2009/11/09 11:43:52 paste Exp $
+* $Id: Communicator.cc,v 1.27 2009/11/23 08:05:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -118,7 +118,8 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 
 	// Configure the software so it knows to what it is talking
 	try {
-		softwareConfigure();
+		// Under no circumstances do you configure software if you have a filled crate vector!
+		if (crateVector_.empty()) softwareConfigure();
 		REVOKE_ALARM("CommunicatorConfigurator", NULL);
 	} catch (emu::fed::exception::ConfigurationException &e) {
 		std::ostringstream error;
@@ -366,7 +367,8 @@ throw (toolbox::fsm::exception::Exception)
 	
 	// Configure the software so it knows to what it is talking
 	try {
-		softwareConfigure();
+		// Under no circumstances do you configure software if you are enabled.
+		if (crateVector_.empty() || state_ != "Enabled") softwareConfigure();
 		REVOKE_ALARM("CommunicatorConfigurator", NULL);
 	} catch (emu::fed::exception::ConfigurationException &e) {
 		std::ostringstream error;
@@ -950,7 +952,8 @@ xoap::MessageReference emu::fed::Communicator::onGetParameters(xoap::MessageRefe
 	// Configure yourself if you haven't yet.  This is a software-only configure.
 	if (!crateVector_.size()) {
 		try {
-			softwareConfigure();
+			// Under no circumstances do you configure software if your crate vector is filled.
+			if (crateVector_.empty()) softwareConfigure();
 			REVOKE_ALARM("CommunicatorGetParameters", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
