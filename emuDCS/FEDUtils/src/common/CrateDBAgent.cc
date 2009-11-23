@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateDBAgent.cc,v 1.6 2009/11/13 09:03:11 paste Exp $
+* $Id: CrateDBAgent.cc,v 1.7 2009/11/23 09:20:20 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/CrateDBAgent.h"
@@ -45,14 +45,14 @@ std::vector<emu::fed::Crate *> emu::fed::CrateDBAgent::buildCrates(xdata::Table 
 throw (emu::fed::exception::DBException)
 {
 	std::vector<emu::fed::Crate *> returnMe;
-	for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); iRow++) {
-		// Parse out the crate number
-		try {
+	try {
+		for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); iRow++) {
+			// Parse out the crate number
 			xdata::UnsignedShort number = getValue<xdata::UnsignedShort>(*iRow, "CRATE_NUMBER");
 			returnMe.push_back(new Crate(number));
-		} catch (xdata::exception::Exception &e) {
-			XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to create crate object from database", e);
 		}
+	} catch (xdata::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading crate parameters from database: " + std::string(e.what()), e);
 	}
 
 	return returnMe;

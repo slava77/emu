@@ -127,7 +127,7 @@
 		</sql:query>
 
 		<!-- Select all systems given a system name -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_configuration">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_configurations_by_description">
 			<sql:parameter name="DESCRIPTION" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>

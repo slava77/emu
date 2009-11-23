@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerDBAgent.cc,v 1.6 2009/11/13 09:03:11 paste Exp $
+* $Id: VMEControllerDBAgent.cc,v 1.7 2009/11/23 09:20:20 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/VMEControllerDBAgent.h"
@@ -46,7 +46,7 @@ throw (emu::fed::exception::DBException)
 		xdata::UnsignedShort device = getValue<xdata::UnsignedShort>(table.getValueAt(0, "CAEN_DEVICE"));
 		xdata::UnsignedShort link = getValue<xdata::UnsignedShort>(table.getValueAt(0, "CAEN_LINK"));
 		return new VMEController(device, link);
-	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading controller parameters from database", e);
+	} catch (xdata::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading controller parameters from database: " + std::string(e.what()), e);
 	}
 }
