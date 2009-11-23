@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.cc,v 1.8 2009/11/22 22:52:22 paste Exp $
+* $Id: ConfigurationEditor.cc,v 1.9 2009/11/23 12:21:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/ConfigurationEditor.h"
 
@@ -1200,7 +1200,7 @@ void emu::fed::ConfigurationEditor::webGetDBKeys(xgi::Input *in, xgi::Output *ou
 	// Get the keys from the configurations table.
 	SystemDBAgent agent(this);
 	
-	std::map<std::string, std::vector<xdata::UnsignedInteger64> > keyMap;
+	std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > keyMap;
 	
 	// Make a JSON output object
 	JSONSpirit::Object output;
@@ -1222,14 +1222,14 @@ void emu::fed::ConfigurationEditor::webGetDBKeys(xgi::Input *in, xgi::Output *ou
 		keySets.push_back(systemObject);
 	}
 	
-	for (std::map<std::string, std::vector<xdata::UnsignedInteger64> >::iterator iPair = keyMap.begin(); iPair != keyMap.end(); ++iPair) {
+	for (std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > >::iterator iPair = keyMap.begin(); iPair != keyMap.end(); ++iPair) {
 		
 		JSONSpirit::Object systemObject;
 		JSONSpirit::Array keyArray;
 		
-		std::vector<xdata::UnsignedInteger64> keys = iPair->second;
-		for (std::vector<xdata::UnsignedInteger64>::iterator iKey = keys.begin(); iKey != keys.end(); ++iKey) {
-			keyArray.push_back(iKey->toString());
+		std::vector<std::pair<xdata::UnsignedInteger64, time_t> > keys = iPair->second;
+		for (std::vector<std::pair<xdata::UnsignedInteger64, time_t> >::iterator iKey = keys.begin(); iKey != keys.end(); ++iKey) {
+			keyArray.push_back(iKey->first.toString());
 		}
 		
 		systemObject.push_back(JSONSpirit::Pair("name", iPair->first));
