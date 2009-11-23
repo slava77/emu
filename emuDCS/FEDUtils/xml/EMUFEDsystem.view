@@ -26,25 +26,6 @@
 		<tstore:maptype source="bool" column="TTCRX_NOT_READY"/>
 		 
 		<!-- Select statments for configuration -->
-
-		<!-- Select the system belonging to a certain hostname and a certain key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="system">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<sql:parameter name="HOSTNAME" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select EMU_FED_SYSTEMS.ID, EMU_FED_SYSTEMS.NAME from EMU_FED_SYSTEMS where EMU_FED_SYSTEMS.KEY = $KEY and EMU_FED_SYSTEMS.HOSTNAME = $HOSTNAME]]>
-		</sql:query>
-		
-		<!-- Select the crates on a certain system given a certain system ID -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="crates_by_sysid">
-			<sql:parameter name="SYSTEM_ID" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select EMU_FED_CRATES.CRATE_NUMBER from EMU_FED_SYSTEMS inner join EMU_FED_CRATES on (EMU_FED_CRATES.KEY = EMU_FED_SYSTEMS.KEY) where EMU_FED_SYSTEMS.ID = $SYSTEM_ID]]>
-		</sql:query>
 		
 		<!-- Select the crates on a certain system given a certain key  -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="crates">
@@ -137,40 +118,22 @@
 			<sql:table name="EMU_FED_CONFIGURATIONS" />
 		</sql:insert>
 
-		<!-- Select configuration given a configuration key -->
+		<!-- Select system given a configuration key -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_configuration">
-			<sql:parameter name="KEY" bind="yes">
+			<sql:parameter name="ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
-			<![CDATA[select * from EMU_FED_CONFIGURATIONS where KEY = $KEY]]>
+			<![CDATA[select * from EMU_FED_CONFIGURATIONS where ID = $ID]]>
 		</sql:query>
 
-		<!-- Select configurations given a description -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_configurations_by_description">
+		<!-- Select all systems given a system name -->
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_configuration">
 			<sql:parameter name="DESCRIPTION" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
 			<![CDATA[select * from EMU_FED_CONFIGURATIONS where DESCRIPTION = $DESCRIPTION]]>
 		</sql:query>
-		
-		<!-- Select systems given a configuration key and a hostname -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_systems_by_key_hostname">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<sql:parameter name="HOSTNAME" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select * from EMU_FED_SYSTEMS where KEY = $KEY and HOSTNAME = $HOSTNAME]]>
-		</sql:query>
-		
-		<!-- Select latest system given a hostname -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_systems_by_hostname">
-			<sql:parameter name="HOSTNAME" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select EMU_FED_SYSTEMS.* from EMU_FED_SYSTEMS right join EMU_FED_CONFIGURATIONS on (EMU_FED_CONFIGURATIONS.KEY = EMU_FED_SYSTEMS.KEY) where EMU_FED_SYSTEMS.HOSTNAME = $HOSTNAME order by EMU_FED_CONFIGURATIONS.TIMESTAMP desc limit 1]]>
-		</sql:query>
+
 		
 		        <sql:query xmlns:sql="urn:tstore-view-SQL" name="getMax">
       <sql:parameter name="column">
@@ -182,17 +145,13 @@
       <![CDATA[select NVL(MAX($column),0) $column from $table]]>
     </sql:query>
     
-      <sql:query xmlns:sql="urn:tstore-view-SQL" name="getallconfigids">
+      <!--sql:query xmlns:sql="urn:tstore-view-SQL" name="getallconfigids">
 <sql:parameter name="SIDE" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
       <![CDATA[select key from emu_fed_systems where name=NLS_INITCAP($SIDE)||'-Side' order by key desc]]>
-      </sql:query>
-		
-		<!-- Add a new system -->
-		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="system">
-			<sql:table name="EMU_FED_SYSTEMS" />
-		</sql:insert>
+      </sql:query-->
+
 		
 		<!-- Select crates given a configuration key and a crate number -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_crates_by_key_number">
@@ -503,19 +462,8 @@ and oldconfig.RUI=newconfig.RUI and
 			<tstore:column name="TIMESTAMP" type="time"/>
 		</tstore:table>
 		
-		<tstore:table key="ID" name="EMU_FED_SYSTEMS">
-			<tstore:column name="ID" type="unsigned int 64"/>
-			<tstore:column name="NAME" type="string"/>
-			<tstore:column name="HOSTNAME" type="string"/>
-			<tstore:column name="KEY" type="unsigned int 64"/>
-			<tstore:foreignkey references="EMU_FED_CONFIGURATIONS">
-				<tstore:keycolumn column="KEY" references="ID"/>
-			</tstore:foreignkey>
-		</tstore:table>
-		
 		<tstore:table key="KEY,CRATE_NUMBER" name="EMU_FED_CRATES">
 			<!--tstore:column name="ID" type="unsigned int 64"/-->
-			<tstore:column name="SYSTEM_NAME" type="string"/>
 			<tstore:column name="CRATE_NUMBER" type="unsigned short"/>
 			<tstore:column name="KEY" type="unsigned int 64"/>
 			<tstore:foreignkey references="EMU_FED_CONFIGURATIONS">

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.cc,v 1.7 2009/11/22 22:45:10 paste Exp $
+* $Id: AutoConfigurator.cc,v 1.8 2009/11/23 07:44:00 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AutoConfigurator.h"
@@ -23,7 +23,6 @@ emu::fed::AutoConfigurator::AutoConfigurator()
 std::vector<emu::fed::Crate *> emu::fed::AutoConfigurator::setupCrates()
 throw (emu::fed::exception::ConfigurationException)
 {
-	// Timestamp is easy
 	timeStamp_ = time(NULL);
 	
 	// An incrementing crate number
