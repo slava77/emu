@@ -29,7 +29,6 @@ Sources=\
 	Application.cc \
 	Manager.cc \
 	Monitor.cc \
-	ConfigurationEditor.cc \
 	Supervised.cc \
 	Configurable.cc \
 	Communicator.cc \
