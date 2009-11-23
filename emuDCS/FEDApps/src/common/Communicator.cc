@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.27 2009/11/23 08:05:45 paste Exp $
+* $Id: Communicator.cc,v 1.28 2009/11/23 09:21:30 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -55,6 +55,7 @@ totalDCCOutputRate_(0)
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Communicator::webDefault, "Default");
 	xgi::bind(this, &emu::fed::Communicator::webGetStatus, "GetStatus");
+	xgi::bind(this, &emu::fed::Communicator::webReconfigure, "Reconfigure");
 
 	// SOAP call-back functions which fire the transitions to the FSM
 	BIND_DEFAULT_SOAP2FSM_ACTION(Communicator, Configure);
@@ -353,6 +354,38 @@ void emu::fed::Communicator::webGetStatus(xgi::Input *in, xgi::Output *out)
 	
 	// And now return everything as JSON
 	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::Communicator::webReconfigure(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make a JSON output object
+	JSONSpirit::Object output;
+	
+	try {
+		// Never ever ever configure if enabled
+		if (state_ != "Enabled") softwareConfigure();
+	} catch (emu::fed::exception::ConfigurationException &e) {
+		std::ostringstream error;
+		error << "Error attempting to reconfigure";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
+		notifyQualified("ERROR", e2);
+		output.push_back(JSONSpirit::Pair("exception", error.str()));
+	}
+	
+	*out << JSONSpirit::write(output);
+	
 }
 
 

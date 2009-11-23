@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: communicator.js,v 1.4 2009/11/06 13:48:34 paste Exp $
+* $Id: communicator.js,v 1.5 2009/11/23 09:21:29 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -37,6 +37,8 @@ Event.observe(window, "load", function(event) {
 			doCommand(ev.element().readAttribute("command"), statusReloadElement);
 		});
 	});
+
+	$("reconfigure_button").disabled = true;
 	
 });
 
@@ -70,26 +72,31 @@ function updateStatus(transport) {
 		$("status_description").update("The Communicator was unable to properly determine its own FSM state.  If sending a Halt command does not fix this, call an expert.");
 		$("statusicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/dialog-error.png");
 		$("halt_button").disabled = false;
+		$("reconfigure_button").disabled = false;
 	} else if (state == "Failed") {
 		$("status_description").update("The Communicator detected an error when attempting to transition between states.  If sending a Halt command does not fix this, call an expert.");
 		$("statusicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/dialog-error.png");
 		$("halt_button").disabled = false;
+		$("reconfigure_button").disabled = false;
 	} else if (state == "Halted") {
 		$("status_description").update("The FED crate hardware under command of this application is ready to be configured.");
 		$("statusicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/dialog-information.png");
 		$("halt_button").disabled = false;
 		$("configure_button").disabled = false;
+		$("reconfigure_button").disabled = false;
 	} else if (state == "Configured") {
 		$("status_description").update("The FED crate hardware under command of this application has been configured and is ready to take data.");
 		$("statusicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/dialog-information.png");
 		$("halt_button").disabled = false;
 		$("configure_button").disabled = false;
 		$("enable_button").disabled = false;
+		$("reconfigure_button").disabled = false;
 	} else if (state == "Enabled") {
 		$("status_description").update("The FED crate hardware under command of this application is monitoring data in real-time and will report errors to the CSC Hotspot.");
 		$("statusicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/dialog-information.png");
 		$("halt_button").disabled = false;
 		$("disable_button").disabled = false;
+		$("reconfigure_button").disabled = true;
 	}
 	
 	var monitorURL = data.monitorURL;
