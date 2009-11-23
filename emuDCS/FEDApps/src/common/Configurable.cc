@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.9 2009/11/22 22:52:22 paste Exp $
+* $Id: Configurable.cc,v 1.10 2009/11/23 08:05:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/operations.hpp"
@@ -208,6 +208,8 @@ void emu::fed::Configurable::webReconfigure(xgi::Input *in, xgi::Output *out)
 		output.push_back(JSONSpirit::Pair("exception", error.str()));
 	}
 	
+	*out << JSONSpirit::write(output);
+	
 }
 
 
@@ -223,6 +225,8 @@ throw (emu::fed::exception::ConfigurationException)
 	crateVector_.clear();
 	
 	if (configMode_ == "Autodetect") {
+		
+		LOG4CPLUS_INFO(getApplicationLogger(), "Autodetect configuration");
 		AutoConfigurator configurator;
 		
 		try {
@@ -253,6 +257,7 @@ throw (emu::fed::exception::ConfigurationException)
 		
 	} else if (configMode_ == "Database") {
 		
+		LOG4CPLUS_INFO(getApplicationLogger(), "DB configuration using key " << dbKey_.toString());
 		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString(), dbKey_);
 		
 		try {
