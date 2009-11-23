@@ -42,6 +42,7 @@ Sources=\
 	MicroMonitor.cc \
 	Commander.cc \
 	FEDConfigurationEditor.cc \
+	ConfigurationEditor.cc \
 	EmuFCrateHyperDAQ.cc
 
 IncludeDirs = \
