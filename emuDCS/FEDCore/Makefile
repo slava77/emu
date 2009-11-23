@@ -28,6 +28,7 @@ Sources=\
 	CoreVersion.cc \
 	VMELock.cc\
 	VMEModule.cc \
+	FakeVMEModule.cc \
 	Fiber.cc \
 	DDU.cc \
 	FIFO.cc \
