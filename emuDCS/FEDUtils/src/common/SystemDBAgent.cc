@@ -1,11 +1,12 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.6 2009/11/22 22:45:10 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.7 2009/11/23 07:44:00 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
 #include "xdata/String.h"
 #include "xdata/TimeVal.h"
 #include "toolbox/TimeVal.h"
+#include "xdata/TableIterator.h"
 
 emu::fed::SystemDBAgent::SystemDBAgent(xdaq::WebApplication *application):
 DBAgent(application)
@@ -20,7 +21,7 @@ throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
 	std::map<std::string, std::string> parameters;
-	parameters["KEY"] = key.toString();
+	parameters["ID"] = key.toString();
 	
 	// Execute the query
 	xdata::Table result;
@@ -40,42 +41,32 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<std::string, std::vector<xdata::UnsignedInteger64> > emu::fed::SystemDBAgent::getAllKeys(const std::string &system)
+std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > emu::fed::SystemDBAgent::getAllKeys()
 throw (emu::fed::exception::DBException)
 {
-	// Set up parameters
-	std::map<std::string, std::string> parameters;
-	std::string qry;
-	if (system != "") {
-		parameters["DESCRIPTION"] = system;
-		qry = "get_configurations_by_description";
-	} else {
-		parameters["TABLE"] = table_;
-		qry = "get_all";
-	}
-	
 	// Execute the query
 	xdata::Table result;
 	try {
-		result = query(qry, parameters);
+		result = getAll();
 	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query " + qry + " : " + std::string(e.what()), e);
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
 	}
 	
-	// Make the map
-	std::map<std::string, std::vector<xdata::UnsignedInteger64> > keyMap;
-	size_t nRows = result.getRowCount();
-	for (size_t iRow = 0; iRow < nRows; iRow++) {
+	std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > returnMe;
+	for (xdata::Table::iterator iRow = result.begin(); iRow != result.end(); iRow++) {
 		try {
-			xdata::String description = getValue<xdata::String>(result.getValueAt(iRow, "DESCRIPTION"));
-			xdata::UnsignedInteger64 key = getValue<xdata::UnsignedInteger64>(result.getValueAt(iRow, "ID"));
-			keyMap[description.toString()].push_back(key);
-		} catch (emu::fed::exception::DBException &e) {
-			XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading value in returned row: " + std::string(e.what()), e);
+			xdata::String name = getValue<xdata::String>(*iRow, "DESCRIPTION");
+			xdata::UnsignedInteger64 id = getValue<xdata::UnsignedInteger64>(*iRow, "ID");
+			toolbox::TimeVal timeStamp = getValue<xdata::TimeVal>(*iRow, "TIMESTAMP");
+			
+			returnMe[name.toString()].push_back(std::make_pair(id, timeStamp.sec()));
+		} catch (xdata::exception::Exception &e) {
+			XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to parse system from database", e);
 		}
 	}
 	
-	return keyMap;	
+	return returnMe;
+	
 }
 
 
@@ -83,16 +74,17 @@ throw (emu::fed::exception::DBException)
 std::pair<std::string, time_t> emu::fed::SystemDBAgent::buildSystem(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
-	// Parse out system name and time stamp
+	// Parse out system name and timestamp
 	xdata::String name;
-	time_t dbTime;
+	time_t timeStamp;
 	// There is only one row in the table
 	try {
 		name = getValue<xdata::String>(table.getValueAt(0, "DESCRIPTION"));
-		dbTime = toolbox::TimeVal(getValue<xdata::TimeVal>(table.getValueAt(0, "TIMESTAMP"))).sec();
+		toolbox::TimeVal timeVal = getValue<xdata::TimeVal>(table.getValueAt(0, "TIMESTAMP"));
+		timeStamp = timeVal.sec();
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading value in returned row", e);
 	}
 	
-	return make_pair(name.toString(), dbTime);
+	return make_pair(name.toString(), timeStamp);
 }

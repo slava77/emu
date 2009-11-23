@@ -1,12 +1,11 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.cc,v 1.7 2009/11/22 22:45:10 paste Exp $
+* $Id: XMLConfigurator.cc,v 1.8 2009/11/23 07:44:00 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/XMLConfigurator.h"
 
 #include <sstream>
 #include <sys/stat.h>
-#include <unistd.h>
 #include "xercesc/parsers/XercesDOMParser.hpp"
 #include "emu/fed/DDUParser.h"
 #include "emu/fed/DDU.h"
@@ -72,6 +71,11 @@ throw (emu::fed::exception::ConfigurationException)
 		xercesc::XMLPlatformUtils::Terminate();
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, "Unknown error during parsing");
 	}
+	
+	// The file exists, so I can parse out the timestamp
+	struct stat fileAttributes;
+	stat(filename_.c_str(), &fileAttributes);
+	timeStamp_ = fileAttributes.st_mtime;
 	
 	// If the parse was successful, output the document data from the DOM tree
 	xercesc::DOMNode *pDoc = parser->getDocument();

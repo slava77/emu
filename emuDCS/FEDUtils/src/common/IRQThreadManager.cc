@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.15 2009/11/19 00:22:06 liu Exp $
+* $Id: IRQThreadManager.cc,v 1.16 2009/11/23 07:44:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -40,7 +40,7 @@ emu::fed::IRQThreadManager::~IRQThreadManager()
 	try {
 		endThreads();
 	} catch (...) {
-		// I don't care if this doesn't work.  Zombies will all die eventually.
+		// I don't care if this doesn't work.  Zombies will all die eventually, even if they leak a little memory.
 	}
 	delete data_;
 }
@@ -91,7 +91,7 @@ throw (emu::fed::exception::FMMThreadException)
 	//data_->exit = false;
 
 	// First, load up the data_ object with the crates that I govern.
-	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
+	for (unsigned int iThread = 0; iThread < threadVector_.size(); ++iThread) {
 		data_->crateQueue.push(threadVector_[iThread].first);
 	}
 
@@ -101,14 +101,14 @@ throw (emu::fed::exception::FMMThreadException)
 	//  make a note in the log.  This is because DDUs that are already throwing
 	//  errors will not set interrupts, so we want to notify the user somehow
 	//  about the possible problem.
-	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
+	for (unsigned int iThread = 0; iThread < threadVector_.size(); ++iThread) {
 
 		emu::fed::Crate *myCrate = threadVector_[iThread].first;
 		std::vector<emu::fed::DDU *> dduVector = myCrate->getDDUs();
-		for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+		for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
 			unsigned int cscStatus = 0;
 			try {
-				cscStatus = (*iDDU)->readCSCStatus() | (*iDDU)->readAdvancedFiberErrors();
+				cscStatus = (*iDDU)->readFiberErrors();
 				MY_REVOKE_ALARM("IRQThreadStartup");
 			} catch (emu::fed::exception::DDUException &e) {
 				std::ostringstream error;
@@ -122,7 +122,7 @@ throw (emu::fed::exception::FMMThreadException)
 				throw e2;
 			}
 			if (cscStatus) {
-				for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
+				for (unsigned int iFiber = 0; iFiber <= 15; ++iFiber) {
 					if (cscStatus & (1 << iFiber)) {
 					
 						std::ostringstream tag;
@@ -237,7 +237,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 {
 
 	// Recast the void pointer as something more useful.
-	IRQData *locdata = (IRQData *)data;
+	IRQData *locdata = (IRQData *) data;
 	
 	// Make sure we have an application_ variable for the macros.  Static functions cannot access class members.
 	xdaq::WebApplication *application_ = locdata->application;
@@ -321,16 +321,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				pthread_exit(NULL);
 			}
 		} else { // The TF crate will, for now, fake the IRQ and just sleep
-			pthread_testcancel();
-			sleep((unsigned int) 1);
-			pthread_testcancel();
-			sleep((unsigned int) 1);
-			pthread_testcancel();
-			sleep((unsigned int) 1);
-			pthread_testcancel();
-			sleep((unsigned int) 1);
-			pthread_testcancel();
-			sleep((unsigned int) 1);
+			for (unsigned int iTimes = 0; iTimes < 5; iTimes++) {
+				pthread_testcancel();
+				sleep((unsigned int) 1);
+			}
 			pthread_testcancel();
 		}
 
@@ -338,7 +332,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		// If allClear is true, then there was not an error.
 		// If there was no error, check to see if we were in an error state
 		//  before...
-		if (allClear && locdata->errorCount[crateNumber] > 0) {
+		if (allClear && locdata->errorCount[crateNumber]) {
 
 			// Get the last DDU to report an error
 			DDU *myDDU = NULL;
@@ -348,62 +342,61 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					break;
 				}
 			}
+			
+			// Make sure there was a previous DDU
+			if (myDDU != NULL) {
 
-			// If my status has cleared, then all is cool, right?
-			//  Reset all my data.
-			try {
-				if (myDDU == NULL || (myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors()) < lastError[myDDU->slot()]) {
-					LOG4CPLUS_INFO(logger, "Reset detected on crate " << crateNumber << ": checking again to make sure...");
-					pthread_testcancel();
-					usleep(100);
-					pthread_testcancel();
+				// If my status has cleared, then all is cool, right?
+				//  Reset all my data.
+				try {
+					if (myDDU->readFiberErrors() < lastError[myDDU->slot()]) {
+						LOG4CPLUS_INFO(logger, "Reset detected on crate " << crateNumber << ": checking again to make sure...");
+						pthread_testcancel();
+						usleep(100);
+						pthread_testcancel();
 
-					if (myDDU == NULL || (myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors()) < lastError[myDDU->slot()]) {
-						LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << crateNumber);
-						LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << std::endl);
+						if (myDDU->readFiberErrors() < lastError[myDDU->slot()]) {
+							LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << crateNumber);
+							LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << std::endl);
 
-						// Reset the total error count and the saved errors.
-						locdata->errorCount[crateNumber] = 0;
-						locdata->errorFiberNames[crateNumber].clear();
-						locdata->lastDDU[crateNumber] = 0;
-						lastError.clear();
-						
-						// Clear all alarms that have been set.  This is difficult because all the alarms have different names.
-						if (myDDU != NULL) {
+							// Reset the total error count and the saved errors.
+							locdata->errorCount[crateNumber] = 0;
+							locdata->errorFiberNames[crateNumber].clear();
+							locdata->lastDDU[crateNumber] = 0;
+							lastError.clear();
+							
+							// Clear all alarms that have been set.  This is difficult because all the alarms have different names.
 							for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 								std::ostringstream alarmName;
 								alarmName << "IRQThreadFiber" << crateNumber << "_" << myDDU->slot() << "_" << iFiber;
 								MY_REVOKE_ALARM(alarmName.str());
 							}
-						}
-					} else {
 
-						LOG4CPLUS_INFO(logger, "No reset.  Continuing as normal.");
+						} else {
+
+							LOG4CPLUS_INFO(logger, "No reset.  Continuing as normal.");
+
+						}
 
 					}
-
+				} catch (emu::fed::exception::Exception &e) {
+					std::ostringstream error;
+					error << "Exception reading last DDU status for crate number " << crateNumber;
+					LOG4CPLUS_FATAL(logger, error.str());
+					std::ostringstream tag;
+					tag << "RUI " << myDDU->readRUI() << " " << "FEDcrate " << crateNumber;
+					MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadLastDDUStatus", "ERROR", error.str(), tag.str(), e);
+					pthread_exit(NULL);
 				}
-			} catch (emu::fed::exception::Exception &e) {
-				std::ostringstream error;
-				error << "Exception reading last DDU status for crate number " << crateNumber;
-				LOG4CPLUS_FATAL(logger, error.str());
-				std::ostringstream tag;
-				if (myDDU != NULL) tag << "RUI " << myDDU->readRUI() << " ";
-				tag << "FEDcrate " << crateNumber;
-				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadLastDDUStatus", "ERROR", error.str(), tag.str(), e);
-				//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-				//e2.setProperty("tag", tag.str());
-				//pthread_exit((void *) &e2);
-				pthread_exit(NULL);
-			}
 
-			MY_REVOKE_ALARM("IRQThreadLastDDUStatus");
+				MY_REVOKE_ALARM("IRQThreadLastDDUStatus");
+			}
 		}
 		
 		// Here is a good place to put things you want scanned every 5 seconds,
 		// but are not covered by the IRQ, like DCC statuses.
 		std::vector<DCC *> dccVector = myCrate->getDCCs();
-		for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
+		for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
 			
 			try {
 				
@@ -549,7 +542,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				//pthread_exit((void *) &e2);
 				pthread_exit(NULL);
 			}
-		} else { // The TF crate has to fake this data for now
+		} else { // The TF crate has to fake this data for now.  Do that by manually specifying the slot.
 			errorData = (2 << 8);
 		}
 
@@ -627,29 +620,32 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			LOG4CPLUS_INFO(logger, cscsWithHardError << " CSCs on this DDU have hard errors");
 			LOG4CPLUS_INFO(logger, cscsWithSyncError << " CSCs on this DDU have sync errors");
 
-			std::vector<std::string> trapInfo = DDUDebugger::DDUDebugTrap(myDDU->readDebugTrap(DDUFPGA), myDDU);
-			std::ostringstream trapStream;
-			for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
-				trapStream << (*iTrap) << std::endl;
+			// These only show up if there has been a hard error.
+			if (hardError) {
+				std::vector<std::string> trapInfo = DDUDebugger::DDUDebugTrap(myDDU->readDebugTrap(DDUFPGA), myDDU);
+				std::ostringstream trapStream;
+				for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+					trapStream << (*iTrap) << std::endl;
+				}
+
+				LOG4CPLUS_INFO(logger, "Logging DDUFPGA diagnostic trap information:" << std::endl << trapStream.str());
+
+				trapInfo = DDUDebugger::INFPGADebugTrap(INFPGA0, myDDU->readDebugTrap(INFPGA0));
+				trapStream.str("");
+				for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+					trapStream << (*iTrap) << std::endl;
+				}
+
+				LOG4CPLUS_INFO(logger, "Logging INFPGA0 diagnostic trap information:" << std::endl << trapStream.str());
+
+				trapInfo = DDUDebugger::INFPGADebugTrap(INFPGA1, myDDU->readDebugTrap(INFPGA1));
+				trapStream.str("");
+				for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+					trapStream << (*iTrap) << std::endl;
+				}
+
+				LOG4CPLUS_INFO(logger, "Logging INFPGA1 diagnostic trap information:" << std::endl << trapStream.str());
 			}
-
-			LOG4CPLUS_INFO(logger, "Logging DDUFPGA diagnostic trap information:" << std::endl << trapStream.str());
-
-			trapInfo = DDUDebugger::INFPGADebugTrap(INFPGA0, myDDU->readDebugTrap(INFPGA0));
-			trapStream.str("");
-			for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
-				trapStream << (*iTrap) << std::endl;
-			}
-
-			LOG4CPLUS_INFO(logger, "Logging INFPGA0 diagnostic trap information:" << std::endl << trapStream.str());
-
-			trapInfo = DDUDebugger::INFPGADebugTrap(INFPGA1, myDDU->readDebugTrap(INFPGA1));
-			trapStream.str("");
-			for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
-				trapStream << (*iTrap) << std::endl;
-			}
-
-			LOG4CPLUS_INFO(logger, "Logging INFPGA1 diagnostic trap information:" << std::endl << trapStream.str());
 
 			// Record the error in an accessable history of errors.
 			lastError[myDDU->slot()] = (cscStatus | advStatus);
@@ -701,7 +697,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			}
 
 			// Check if we have sufficient error conditions to reset.
-			if (totalChamberErrors > locdata->fmmErrorThreshold) {
+			if (totalChamberErrors > locdata->fmmErrorThreshold && !myCrate->isTrackFinder()) {
 				LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this system greater than " << locdata->fmmErrorThreshold);
 
 				// I only have to do this to my crate:  eventually, a reset will come.
@@ -713,7 +709,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
 			error << "Exception dealing with IRQ on crate " << crateNumber;
-			LOG4CPLUS_ERROR(logger, error.str());
+			LOG4CPLUS_FATAL(logger, error.str());
 			std::ostringstream tag;
 			tag << "FEDcrate " << crateNumber;
 			MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, "IRQThreadGeneralError", "ERROR", error.str(), tag.str());

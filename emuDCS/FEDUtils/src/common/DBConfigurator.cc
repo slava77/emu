@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.cc,v 1.7 2009/11/22 22:45:10 paste Exp $
+* $Id: DBConfigurator.cc,v 1.8 2009/11/23 07:44:00 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DBConfigurator.h"
@@ -34,12 +34,13 @@ throw (emu::fed::exception::ConfigurationException)
 	try {
 		SystemDBAgent systemAgent(application_);
 		connectionID = systemAgent.connect(dbUsername_, dbPassword_);
-		std::pair<std::string, time_t> nameTime = systemAgent.getSystem(dbKey_);
-		systemName_ = nameTime.first;
-		timeStamp_ = nameTime.second;
+		std::pair<std::string, time_t> values = systemAgent.getSystem(dbKey_);
+		systemName_ = values.first;
+		timeStamp_ = values.second;
 	} catch (emu::fed::exception::DBException &e) {
 		systemName_ = "unnamed";
-		//XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Error setting system name", e);
+		timeStamp_ = time(NULL);
+		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Error setting system name and timestamp", e);
 	}
 	
 	// Now get the crates.  The Crate agent gives us a vector of crates.

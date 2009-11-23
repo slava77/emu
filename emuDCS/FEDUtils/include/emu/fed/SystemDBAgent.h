@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.h,v 1.6 2009/11/22 22:45:10 paste Exp $
+* $Id: SystemDBAgent.h,v 1.7 2009/11/23 07:43:59 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SYSTEMDBAGENT_H__
 #define __EMU_FED_SYSTEMDBAGENT_H__
@@ -10,6 +10,9 @@
 #include <vector>
 #include <map>
 #include <string>
+
+#include <map>
+#include <time.h>
 
 namespace emu {
 	namespace fed {
@@ -27,8 +30,8 @@ namespace emu {
 			std::pair<std::string, time_t> getSystem(xdata::UnsignedInteger64 &key)
 			throw (emu::fed::exception::DBException);
 			
-			/** Get all the system IDs corresponding to the given system name, or all the system names if the parameter is omitted **/
-			std::map<std::string, std::vector<xdata::UnsignedInteger64> > getAllKeys(const std::string &system = "")
+			/** Get all the System names/IDs in the DB **/
+			std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > getAllKeys()
 			throw (emu::fed::exception::DBException);
 
 		private:

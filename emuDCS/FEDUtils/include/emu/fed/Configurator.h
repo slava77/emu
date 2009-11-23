@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurator.h,v 1.2 2009/11/22 22:45:10 paste Exp $
+* $Id: Configurator.h,v 1.3 2009/11/23 07:43:59 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURATOR_H__
 #define __EMU_FED_CONFIGURATOR_H__
@@ -44,7 +44,7 @@ namespace emu {
 			/// The name of the system (for user convenience)
 			std::string systemName_;
 			
-			/// The time stamp of the system
+			/// The time stamp of the configuration
 			time_t timeStamp_;
 
 		private:
