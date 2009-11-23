@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.8 2009/09/29 13:51:00 paste Exp $
+* $Id: Communicator.h,v 1.9 2009/11/23 09:21:29 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -35,6 +35,9 @@ namespace emu {
 			
 			/** Get the status of the application and report in JSON **/
 			void webGetStatus(xgi::Input *in, xgi::Output *out);
+			
+			/** Override the Configurable method to prevent software reconfigure while enabled. **/
+			void webReconfigure(xgi::Input *in, xgi::Output *out);
 
 			// FSM transition call-back functions
 			/** Send the 'Configure' command to the crates **/
