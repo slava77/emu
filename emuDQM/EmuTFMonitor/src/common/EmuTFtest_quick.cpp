@@ -14,10 +14,6 @@
 
 #include "EventFilter/CSCTFRawToDigi/src/CSCTFEvent.h"
 #include "EventFilter/CSCTFRawToDigi/src/CSCSPTrailer.h"
-#include "EmuTFxmlParsing.cc"
-#include "_EmuTFfiller.cc"
-#include "EmuTFvalidator.cc"
-#include "EmuTFbookkeeper.cc"
 
 #include <math.h>
 #include <sstream>
@@ -49,8 +45,8 @@ int main(int argc, char *argv[]){
 	// Histograms/Canvases description
 //	std::map<std::string,HistAttributes>   histList   = parseHistXML  (BASE "EmuTFMonitor/xml/CSCTF_histograms.xml");
 //	std::map<std::string,CanvasAttributes> canvasList = parseCanvasXML(BASE "EmuTFMonitor/xml/CSCTF_canvases.xml");
-	std::map<std::string,HistAttributes>   histList   = parseHistXML  (BASE "EmuTFMonitor/xml/CSCTF_histograms.xml");
-	std::map<std::string,CanvasAttributes> canvasList = parseCanvasXML(BASE "EmuTFMonitor/xml/CSCTF_canvases.xml");
+	std::map<std::string,HistAttributes>   histList   = parseHistXML  (BASE "EmuTFMonitor/xml/CSCTF_histograms_quick.xml");
+	std::map<std::string,CanvasAttributes> canvasList = parseCanvasXML(BASE "EmuTFMonitor/xml/CSCTF_canvases_quick.xml");
 	std::map<std::string,CheckAttributes>  checkList  = parseCheckXML (BASE "EmuTFMonitor/xml/CSCTF_checks.xml");
 
 	EmuTFfiller filler(histList);
@@ -63,7 +59,7 @@ int main(int argc, char *argv[]){
 	// Keep track of dates
 	map<string,string> history;
 
-        int prescaling = 1; // Stupid way to speed-up this process
+        int prescaling = argc - 1; // Stupid way to speed-up this process
 	int nEventsTotal = 0;
 
 	for(int arg=1; arg<argc; arg++){

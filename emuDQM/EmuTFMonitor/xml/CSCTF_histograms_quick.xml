@@ -376,7 +376,7 @@
 		<Title>Relative Timing</Title>
 		<XRange>(-7:7)</XRange>
 		<XBins>14</XBins>
-		<XLabel>Relative BX of the first LCT form other CSCs</XLabel>
+		<XLabel>BX(SP%d/F%d/CSC%d) - BX(CSC on y-axis)</XLabel>
 		<YRange>(1:42)</YRange>
 		<YBins>41</YBins>
 		<YLabel></YLabel>
@@ -397,17 +397,6 @@
 	</Histogram>
 
 <!-- TF output information -->
-
-	<Histogram Options="bar1:FillColor=48">
-		<Type>h1_</Type>
-		<Prefix>TF_id_</Prefix>
-		<Name>nTracks</Name>
-		<Title>Number of Tracks</Title>
-		<XRange>(0:21)</XRange>
-		<XBins>21</XBins>
-		<XLabel>Number of Tracks</XLabel>
-		<YLabel>Number of Events</YLabel>
-	</Histogram>
 
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>

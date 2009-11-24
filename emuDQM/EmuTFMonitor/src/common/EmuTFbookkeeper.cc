@@ -58,8 +58,12 @@ bool EmuTFbookkeeper::book(unsigned short sp, unsigned short mpc, unsigned short
 			hist->GetYaxis()->SetLabelSize(0.05);
 			hist->GetYaxis()->SetTitleOffset(1.25);
 
-			if( iter->second.xLabel.length() )
-				hist->GetXaxis()->SetTitle(iter->second.xLabel.c_str());
+			if( iter->second.xLabel.length() ){
+				char title[1024],format[1024];
+				sprintf(format,"%s",iter->second.xLabel.c_str());
+				sprintf(title ,format,sp,mpc,csc);
+				hist->GetXaxis()->SetTitle(title);
+			}
 			if( iter->second.yLabel.length() )
 				hist->GetYaxis()->SetTitle(iter->second.yLabel.c_str());
 
