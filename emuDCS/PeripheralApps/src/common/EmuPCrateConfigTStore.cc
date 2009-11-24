@@ -49,6 +49,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
 	setDisplayBooleansAsIntegers(false); //false is the default anyway, but just to make it obvious to anyone looking at this code later
 	setViewID("urn:tstore-view-SQL:EMUsystem");
 	setHumanReadableConfigName("Peripheral Crate");
+	setConfigurationDirectory("pc");
 	
 	addTable("vcc");
 	addTable("csc");
@@ -227,18 +228,7 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << cgicc::legend("Select XML file").set("style","color:blue") << std::endl ;
   //
-    std::string method = toolbox::toString("/%s/SelectConfFile",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
-  *out << cgicc::input().set("type","text").set("name","xmlFilename").set("size","90").set("ENCTYPE","multipart/form-data").set("value",xmlfile_) << std::endl;
-  *out << cgicc::input().set("type","submit").set("value","Select") << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  /*
-  std::string methodUpload = toolbox::toString("/%s/SelectConfFile",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","POST").set("enctype","multipart/form-data").set("action",methodUpload) << std::endl ;
-  *out << cgicc::input().set("type","file").set("name","xmlFilenameUpload").set("size","90") << std::endl;
-  *out << cgicc::input().set("type","submit").set("value","Select") << std::endl ;
-  *out << cgicc::form() << std::endl ;*/
-  //
+  outputFileSelector(out);
   std::string ReadString = 
     toolbox::toString("/%s/SetTypeDesc",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ReadString) << std::endl ;

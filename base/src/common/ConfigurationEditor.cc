@@ -6,6 +6,7 @@
 #include <time.h>
 #include "toolbox/TimeInterval.h"
 #include "toolbox/TimeVal.h"
+#include "toolbox/Runtime.h"
 #include "tstore/client/AttachmentUtils.h"
 #include "tstore/client/LoadDOM.h"
 #include "tstore/client/Client.h"
@@ -27,7 +28,6 @@
 #include "xoap/domutils.h"
 #include "xoap/DOMParserFactory.h"
 
-
 namespace emu {
 namespace base {
 	
@@ -37,7 +37,8 @@ namespace base {
 	  xgi::bind(this,&ConfigurationEditor::uploadConfigToDB, "upload");
 	  xgi::bind(this,&ConfigurationEditor::readConfigFromDB, "read");
 	  xgi::bind(this,&ConfigurationEditor::synchronizeToFromDB, "sync"); 
-	  xgi::bind(this,&ConfigurationEditor::SelectConfFile, "SelectConfFile");
+	  xgi::bind(this,&ConfigurationEditor::SelectLocalConfFile, "selectConfFile");
+	  xgi::bind(this,&ConfigurationEditor::uploadConfFile, "UploadConfFile");
 	  xgi::bind(this,&ConfigurationEditor::incrementValue, "incrementValue");
 	  xgi::bind(this,&ConfigurationEditor::setValue, "setValue");
 	  xgi::bind(this,&ConfigurationEditor::viewValues, "viewValues");
@@ -49,7 +50,7 @@ namespace base {
 	  xgi::bind(this,&ConfigurationEditor::selectVersion, "selectVersion"); //select one version to load
 	  xgi::bind(this,&ConfigurationEditor::exportAsXML, "exportAsXML"); 
 	  std::string HomeDir_ =getenv("HOME");
-	  xmlpath_    = HomeDir_ + "/config/pc/"; //xml file chosen must be in this directory. If you choose something in another directory then it will look for it in here and fail.
+	  xmlpath_    = HomeDir_ + "/config/"+configurationDirectory_+"/"; //xml file chosen must be in this directory. If you choose something in another directory then it will look for it in here and fail.
 	  xmlfile_    = "";
 	  dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
 	  config_type_ = "GLOBAL";
@@ -59,34 +60,108 @@ namespace base {
   ConfigurationEditor::~ConfigurationEditor() {
   }
   
-  void ConfigurationEditor::SelectConfFile(xgi::Input * in, xgi::Output * out ) 
+  void ConfigurationEditor::uploadConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     try
       {
-	std::cout << "Button: Select XML file" << std::endl ;
-	//
 	cgicc::Cgicc cgi(in);
 	//
 	cgicc::const_file_iterator file;
-	//file = cgi.getFile("xmlFileNameUpload");
+	file = cgi.getFile("xmlFileNameUpload");
 	//
-	      std::string XMLname = cgi["xmlFilename"]->getValue() ; 
-	//
-	std::cout << XMLname  << std::endl ;
-	      xmlfile_ = XMLname ;
-	/*
 	if(file != cgi.getFiles().end()) {
-	  xmlfile_=(*file).getFilename();
-          std::cout << "Select XML file " << xmlfile_ << std::endl;
-	}*/
+	  std::ofstream TextFile ;
+	   xmlfile_ = fullConfigurationDirectory()+(*file).getFilename();
+	  TextFile.open(xmlfile_.c_str());
+	  (*file).writeToStream(TextFile);
+	  TextFile.close();
+	}
+	//
+	//ParsingXML();
+	//
+	std::cout << "UploadConfFile done" << std::endl ;
+	//
 	this->Default(in,out);
 	//
       }
     catch (const std::exception & e )
       {
-	XCEPT_RAISE(xgi::exception::Exception, e.what());
+	XCEPT_RAISE(xgi::exception::Exception, (std::string)"problem uploading file"+e.what());
       }
+  }
+  
+  //get the file name from the new select box.
+void ConfigurationEditor::SelectLocalConfFile(xgi::Input * in, xgi::Output * out ) 
+throw (xgi::exception::Exception)
+{
+	try {
+		std::cout << "Button: Select XML file" << std::endl;
+		
+		cgicc::Cgicc cgi(in);
+		if (cgi.getElement("xmlFileName") != cgi.getElements().end()) {
+			xmlfile_ = cgi["xmlFileName"]->getValue();
+			std::cout << "Select XML file " << xmlfile_ << std::endl;
+		}
+		this->Default(in,out);
+	}
+	catch (const std::exception &e) {
+		XCEPT_RAISE(xgi::exception::Exception, e.what());
+	}
+}
+  
+  /*outputs three different ways of selecting a file (presumably someone will decide which of these to keep)
+  1.) A text box where you can put the full path of a file which is accessible from the server.
+  2) A file selector with which you can upload a file which will be saved in the /config/<configDirectory>/ directory on the server
+  3) A menu where you can select from files which are already in the /config/<configDirectory>/ directory on the server.
+  */
+  void ConfigurationEditor::outputFileSelector(xgi::Output * out) throw (xgi::exception::Exception) {
+	  try {
+		  *out << "<table border=\"0\" cellpadding=\"5\"><tr><td align=\"right\">";
+	   std::string method = toolbox::toString("/%s/selectConfFile",getApplicationDescriptor()->getURN().c_str());
+	  *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
+	  *out << "enter full path of file on server: </td><td>" << cgicc::input().set("type","text").set("name","xmlFilename").set("size","90").set("ENCTYPE","multipart/form-data").set("value",xmlfile_) << std::endl;
+	  *out << cgicc::input().set("type","submit").set("value","Select") << std::endl ;
+	  *out << cgicc::form() << std::endl ;
+	  //
+	  // Upload file...
+	  //
+	  std::string methodUpload = toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
+	  *out << "</tr><tr><td align=\"right\">" << cgicc::form().set("method","POST").set("enctype","multipart/form-data").set("action",methodUpload) << std::endl ;
+	  *out << "or upload file:  </td><td>" << cgicc::input().set("type","file").set("name","xmlFilenameUpload").set("size","90") << std::endl;
+	  *out << cgicc::input().set("type","submit").set("value","Upload") << std::endl ;
+	  *out << cgicc::form() << std::endl ;
+	  
+	    std::string methodSelect = toolbox::toString("/%s/selectConfFile",getApplicationDescriptor()->getURN().c_str());
+  *out << "</tr><tr><td align=\"right\">" << cgicc::form().set("method","POST").set("action",methodSelect) << std::endl;
+  //*out << cgicc::input().set("type","file").set("name","xmlFilenameUpload").set("size","90") << std::endl;
+	// To access the available files, we need a few directories.
+	std::string homeDir(getenv("HOME"));
+	std::string configPath;
+	configPath = fullConfigurationDirectory();
+	
+	// Don't use boost to get all the xml files in this directory
+	std::vector<std::string> xmlFiles=toolbox::getRuntime()->expandPathName(configPath+"*.xml");
+
+	*out << "or select existing file:  </td><td>" << cgicc::select()
+		.set("id", "xml_file_select")
+		.set("class", "file_select")
+		.set("name", "xmlFilename") << std::endl;
+	for (std::vector<std::string>::const_iterator iFile = xmlFiles.begin(); iFile != xmlFiles.end(); iFile++) {
+		cgicc::option opt(*iFile);
+		opt.set("value", *iFile);
+		//if (xmlFile_ == *iFile) opt.set("selected", "true");
+		*out << opt << std::endl;
+	}
+	*out << cgicc::select() << std::endl;
+  *out << cgicc::input().set("type","submit").set("value","Select") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  
+  //
+  *out << /*cgicc::fieldset() <<*/ cgicc::br() << "</td></tr></table>";
+} catch (std::exception &e) {
+	XCEPT_RAISE(xgi::exception::Exception,(std::string)"Could not get available config files. "+e.what());
+}
   }
   
   void ConfigurationEditor::outputHeader(xgi::Output * out) {
@@ -1340,6 +1415,17 @@ void ConfigurationEditor::setDisplayBooleansAsIntegers(bool displayBooleansAsInt
 
 void ConfigurationEditor::setXMLRootElement(const std::string &rootElementName) {
 	rootElementName_=rootElementName;
+}
+
+void ConfigurationEditor::setConfigurationDirectory(const std::string &configurationDirectory) {
+	configurationDirectory_=configurationDirectory;
+}
+
+std::string ConfigurationEditor::fullConfigurationDirectory() {
+	std::string HomeDir_ =getenv("HOME");
+	size_t pos = HomeDir_.find_last_of("/");
+	if(pos!=HomeDir_.length()-1) HomeDir_+"/";
+	return HomeDir_ + "config/"+configurationDirectory_+="/"; 
 }
 
 //subclasses should override this to add any attributes to the root element of the XML.

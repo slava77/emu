@@ -72,8 +72,9 @@ void outputShowHideButton(std::ostream * out,const std::string &configName,const
   void uploadConfigToDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   virtual void readConfigFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void synchronizeToFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void SelectConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void SetTypeDesc(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void SelectLocalConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void uploadConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+ void SetTypeDesc(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void incrementValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void setValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void changeSingleValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -137,6 +138,7 @@ std::string viewID_;
 
 	void addChildNodes(DOMElement *parentElement,const std::string &configName,const std::string &parentIdentifier);
 	std::string configIDOptions(std::vector<std::string> &configIDs);
+	  void outputFileSelector(xgi::Output * out) throw (xgi::exception::Exception);
 	void outputCompareVersionsForm(xgi::Output * out,const std::string &endcap_side);
 	std::string newCell(xdata::Serializable *newValue,xdata::Serializable *oldValue);
 	bool getNextColumn(std::vector<std::string>::iterator &nextColumn,std::string &columnWithoutVersionNumber,const std::vector<std::string>::iterator &currentColumn,const std::string &tableName,const std::vector<std::string>::iterator &end);
@@ -184,6 +186,8 @@ std::string viewID_;
 	void setDisplayBooleansAsIntegers(bool displayBooleansAsIntegers);
 	virtual void fillRootElement(DOMElement *rootElement);
 	void setXMLRootElement(const std::string &rootElementName);
+	void setConfigurationDirectory(const std::string &configurationDirectory);
+	std::string fullConfigurationDirectory();
 	void createCredentialString();
   std::string config_type_;
   std::string config_desc_;
@@ -196,6 +200,7 @@ std::string viewID_;
   std::string syncPattern_;
   xdata::Table configIDs;
   std::string configName_; //to be set by subclasses
+  std::string configurationDirectory_;
   //std::vector<std::string> topLevelIdentifiersInDiff;
   std::string topLevelTableName_;
   std::string rootElementName_;

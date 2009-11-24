@@ -48,6 +48,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::FEDConfigurationEditor)
 	setXMLRootElement("FEDSystem");
 	setDisplayBooleansAsIntegers(true);
 	setViewID("urn:tstore-view-SQL:EMUFEDsystem");
+	setConfigurationDirectory("fed");
 	
 	getApplicationInfoSpace()->fireItemAvailable("dbUsername", &dbUsername_);
 	getApplicationInfoSpace()->fireItemAvailable("dbPassword", &dbPassword_);
@@ -57,9 +58,6 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::FEDConfigurationEditor)
 	addTable("dcc");
 	addChildTable("ddu","fiber");
 	addChildTable("dcc","fifo");
-	
-	// A new file selector to work with file names, not entire file uploads
-	xgi::bind(this, &FEDConfigurationEditor::SelectConfFile, "SelectConfFile");
 	
 	// xmlPath is now superfluous, because the selector tells the application the full pathname
 	xmlpath_ = "";
@@ -143,48 +141,7 @@ void FEDConfigurationEditor::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << cgicc::legend("Select XML file").set("style","color:blue") << std::endl ;
   
-  // We cannot assume that the server and client are the same machine, so we either have to make this an actual file upload, or make it a selector that refers specifically to files on the server.
-  // I am choosing to make this a selector, because that seems to be the intended function of the old code.
-  std::string methodUpload = toolbox::toString("/%s/SelectConfFile",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","POST").set("action",methodUpload) << std::endl;
-  //*out << cgicc::input().set("type","file").set("name","xmlFilenameUpload").set("size","90") << std::endl;
-	// To access the available files, we need a few directories.
-	std::string homeDir(getenv("HOME"));
-	boost::filesystem::path configPath;
-	configPath = boost::filesystem::path(homeDir + "config/fed/");
-	
-	// Use boost to get all the xml files in this directory
-	std::vector<std::string> xmlFiles;
-	
-	if (boost::filesystem::exists(configPath)) {
-		// The default iterator is the end iterator.
-		boost::filesystem::directory_iterator end;
-		for (boost::filesystem::directory_iterator iFile(configPath); iFile != end; ++iFile) {
-			std::string lastThree;
-			try {
-				std::string name = iFile->native_file_string();
-				lastThree = name.substr(name.length() - 3);
-			} catch (...) {
-				// Don't do anything with file names shorter than 3 characters
-				continue;
-			}
-			boost::algorithm::to_lower(lastThree);
-			if (lastThree == "xml") xmlFiles.push_back(iFile->native_file_string());
-		}
-	}
-	*out << cgicc::select()
-		.set("id", "xml_file_select")
-		.set("class", "file_select")
-		.set("name", "xmlFilenameUpload") << std::endl;
-	for (std::vector<std::string>::const_iterator iFile = xmlFiles.begin(); iFile != xmlFiles.end(); iFile++) {
-		cgicc::option opt(*iFile);
-		opt.set("value", *iFile);
-		//if (xmlFile_ == *iFile) opt.set("selected", "true");
-		*out << opt << std::endl;
-	}
-	*out << cgicc::select() << std::endl;
-  *out << cgicc::input().set("type","submit").set("value","Select") << std::endl ;
-  *out << cgicc::form() << std::endl ;
+  outputFileSelector(out);
   
   //
   *out << cgicc::fieldset() << cgicc::br();
@@ -192,26 +149,6 @@ void FEDConfigurationEditor::outputStandardInterface(xgi::Output * out) {
 //  
   //
 }
-
-// I need this new function in order to get the file name from the new select box instead of digging if out of the file upload machinery.
-void FEDConfigurationEditor::SelectConfFile(xgi::Input * in, xgi::Output * out ) 
-throw (xgi::exception::Exception)
-{
-	try {
-		std::cout << "Button: Select XML file" << std::endl;
-		
-		cgicc::Cgicc cgi(in);
-		if (cgi.getElement("xmlFileNameUpload") != cgi.getElements().end()) {
-			xmlfile_ = cgi["xmlFileNameUpload"]->getValue();
-			std::cout << "Select XML file " << xmlfile_ << std::endl;
-		}
-		this->Default(in,out);
-	}
-	catch (const std::exception &e) {
-		XCEPT_RAISE(xgi::exception::Exception, e.what());
-	}
-}
-
 
 //gets the column linking this table to its 'parent'. parentColumn will be set to the column name in the parent table, childColumn will be set to the column name in the child table which should be set to the same value
 void FEDConfigurationEditor::getForeignKey(const std::string &childTableName,std::string &parentColumn,std::string &childColumn) throw (xcept::Exception) {

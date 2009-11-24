@@ -21,9 +21,6 @@ namespace emu {
 			FEDConfigurationEditor(xdaq::ApplicationStub *s)
 			throw (xdaq::exception::Exception);
 			
-			void SelectConfFile(xgi::Input *in, xgi::Output *out)
-			throw (xgi::exception::Exception);
-			
 		private: 
 			void outputStandardInterface(xgi::Output *out);
 			
