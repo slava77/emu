@@ -4,9 +4,9 @@ source $HOME/.bashrc
 
 echo "***** Starting Monitoring job as $(whoami) at `date` *****"
 
-is_running1=$HOME/logs/quick_web_update.is_running
-is_running2=$HOME/logs/web_update.is_running
-gateway=cmsusr2
+is_running1=$HOME/quick_web_update.is_running
+is_running2=$HOME/web_update.is_running
+gateway=cmsusr1
 user=$(whoami)
 
 if [ -e $is_running1 ];then
