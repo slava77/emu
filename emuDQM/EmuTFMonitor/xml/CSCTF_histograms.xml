@@ -207,13 +207,12 @@
 		<YBinLabels>BX1a,BX1b,BX1c,BX1d,BX1e,BX1f,BX2a,BX2b,BX2c,BX3a,BX3b,BX3c,BX4a,BX4b,BX4c,BXBa,BXBb</YBinLabels>
 	</Histogram>
 
-
 <!--DT section-->
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
 		<Prefix>TF_id_</Prefix>
-		<Name>dt_time_bin</Name>
-		<Title>DT Stub Time Bin</Title>
+		<Name>dt_time_binA</Name>
+		<Title>DT Stub Time Bin (subsector #1)</Title>
 		<XRange>(0:7)</XRange>
 		<XBins>7</XBins>
 		<XLabel>Time Bin</XLabel>
@@ -223,8 +222,19 @@
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
 		<Prefix>TF_id_</Prefix>
-		<Name>dt_quality</Name>
-		<Title>Quality</Title>
+		<Name>dt_time_binD</Name>
+		<Title>DT Stub Time Bin (subsector #2)</Title>
+		<XRange>(0:7)</XRange>
+		<XBins>7</XBins>
+		<XLabel>Time Bin</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="bar1:FillColor=48">
+		<Type>h1_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_qualityA</Name>
+		<Title>Quality (subsector #1)</Title>
 		<XRange>(0:8)</XRange>
 		<XBins>8</XBins>
 		<XLabel>Quality</XLabel>
@@ -234,8 +244,19 @@
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
 		<Prefix>TF_id_</Prefix>
-		<Name>dt_phi_bend</Name>
-		<Title>Phi Bend</Title>
+		<Name>dt_qualityD</Name>
+		<Title>Quality (subsector #2)</Title>
+		<XRange>(0:8)</XRange>
+		<XBins>8</XBins>
+		<XLabel>Quality</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="bar1:FillColor=48">
+		<Type>h1_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_phi_bendA</Name>
+		<Title>Phi Bend (subsector #1)</Title>
 		<XRange>(0:32)</XRange>
 		<XBins>32</XBins>
 		<XLabel>Phi Bend</XLabel>
@@ -245,9 +266,20 @@
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
 		<Prefix>TF_id_</Prefix>
-		<Name>dt_phi</Name>
-		<Title>Phi</Title>
-		<XRange>(-2047:2048)</XRange>
+		<Name>dt_phi_bendD</Name>
+		<Title>Phi Bend (subsector #2)</Title>
+		<XRange>(0:32)</XRange>
+		<XBins>32</XBins>
+		<XLabel>Phi Bend</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="bar1:FillColor=48">
+		<Type>h1_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_phiA</Name>
+		<Title>Phi (subsector #1)</Title>
+		<XRange>(0:4096)</XRange>
 		<XBins>128</XBins>
 		<XLabel>Phi</XLabel>
 		<YLabel>Number of Events</YLabel>
@@ -256,8 +288,30 @@
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
 		<Prefix>TF_id_</Prefix>
-		<Name>dt_bits</Name>
-		<Title>Bits</Title>
+		<Name>dt_phiD</Name>
+		<Title>Phi (subsector #2)</Title>
+		<XRange>(0:4096)</XRange>
+		<XBins>128</XBins>
+		<XLabel>Phi</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="bar1:FillColor=48">
+		<Type>h1_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_bitsA</Name>
+		<Title>Bits (subsector #1)</Title>
+		<XRange>(0:5)</XRange>
+		<XBins>5</XBins>
+		<XBinLabels>FLAG,CAL,BC0,BXN0,BXN1</XBinLabels>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="bar1:FillColor=48">
+		<Type>h1_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_bitsD</Name>
+		<Title>Bits (subsector #2)</Title>
 		<XRange>(0:5)</XRange>
 		<XBins>5</XBins>
 		<XBinLabels>FLAG,CAL,BC0,BXN0,BXN1</XBinLabels>
@@ -267,8 +321,21 @@
 	<Histogram>
 		<Type>h2_</Type>
 		<Prefix>TF_id_</Prefix>
-		<Name>dt_synch</Name>
-		<Title>Synchronization</Title>
+		<Name>dt_synchA</Name>
+		<Title>Synchronization (subsector #1)</Title>
+		<XRange>(0:3600)</XRange>
+		<XBins>512</XBins>
+		<YRange>(0:3600)</YRange>
+		<YBins>512</YBins>
+		<XLabel>L1A_BXN</XLabel>
+		<YLabel>MB_BXN</YLabel>
+	</Histogram>
+
+	<Histogram>
+		<Type>h2_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_synchD</Name>
+		<Title>Synchronization (subsector #2)</Title>
 		<XRange>(0:3600)</XRange>
 		<XBins>512</XBins>
 		<YRange>(0:3600)</YRange>
@@ -318,7 +385,7 @@
 		<Type>h1_</Type>
 		<Prefix>TF_id_id_id_</Prefix>
 		<Name>strips</Name>
-		<Title>Strips (old Half-Strips)</Title>
+		<Title>Strips</Title>
 		<XRange>(0:256)</XRange>
 		<XBins>256</XBins>
 		<XLabel>strip</XLabel>
@@ -476,7 +543,7 @@
 		<Title>Relative Timing</Title>
 		<XRange>(-7:7)</XRange>
 		<XBins>14</XBins>
-		<XLabel>Relative BX of the first LCT form other CSCs</XLabel>
+		<XLabel>BX(SP%d/F%d/CSC%d) - BX(CSC on y-axis)</XLabel>
 		<YRange>(1:42)</YRange>
 		<YBins>41</YBins>
 		<YLabel></YLabel>

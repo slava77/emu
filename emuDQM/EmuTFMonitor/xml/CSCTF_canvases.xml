@@ -79,26 +79,46 @@
 		<Item>L1A_queue_size(Bottom)</Item>
 	</Canvas>
 
-
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_id_</Prefix>
-		<Name>dt_data2</Name>
-		<Title>Drift Tubes</Title>
-		<Item>dt_bits(Top)</Item>
-		<Item>dt_synch(0.485x0.485+0.01+0.01)</Item>
-		<Item>dt_time_bin(0.485x0.485+0.505+0.01)</Item>
+		<Name>dt_data2A</Name>
+		<Title>Drift Tubes (subsector #1)</Title>
+		<Item>dt_bitsA(Top)</Item>
+		<Item>dt_synchA(0.485x0.485+0.01+0.01)</Item>
+		<Item>dt_time_binA(0.485x0.485+0.505+0.01)</Item>
 	</Canvas>
 
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_id_</Prefix>
-		<Name>dt_data1</Name>
-		<Title>Drift Tubes</Title>
-		<Item>dt_phi(Top)</Item>
-		<Item>dt_phi_bend(0.485x0.485+0.01+0.01)</Item>
-		<Item>dt_quality(0.485x0.485+0.505+0.01)</Item>
+		<Name>dt_data1A</Name>
+		<Title>Drift Tubes (subsector #1)</Title>
+		<Item>dt_phiA(Top)</Item>
+		<Item>dt_phi_bendA(0.485x0.485+0.01+0.01)</Item>
+		<Item>dt_qualityA(0.485x0.485+0.505+0.01)</Item>
 	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_data2D</Name>
+		<Title>Drift Tubes (subsector #2)</Title>
+		<Item>dt_bitsD(Top)</Item>
+		<Item>dt_synchD(0.485x0.485+0.01+0.01)</Item>
+		<Item>dt_time_binD(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>dt_data1D</Name>
+		<Title>Drift Tubes (subsector #2)</Title>
+		<Item>dt_phiD(Top)</Item>
+		<Item>dt_phi_bendD(0.485x0.485+0.01+0.01)</Item>
+		<Item>dt_qualityD(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
 
 
 	<Canvas>
