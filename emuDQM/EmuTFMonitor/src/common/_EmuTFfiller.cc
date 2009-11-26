@@ -397,7 +397,7 @@ if( sp == 0 ){
 					double eta = offsetEta[mpc][csc] - scaleEta[mpc][csc] * lct->wireGroup() / normEta[mpc][csc];
 					double phi = lct->strip() / normPhi[mpc][csc];
 					if( (!spPtr->header().endcap() && mpc<4) || (spPtr->header().endcap() && mpc>=4) ) phi = 1. - phi;
-					phi = fmod((phi*scalePhi[mpc][csc]+offsetPhi[mpc][csc] + spPtr->header().sector()-1.)/6.*2*3.1415927 + 3.1415927/12.,2*3.1415927);
+					phi = fmod((phi*scalePhi[mpc][csc]+offsetPhi[mpc][csc] + spPtr->header().sector()-1.)/6.*360. + 15.,360.);
 
 if(spPtr->header().BXN() == 380 ){
 std::cout<<"380"<<std::endl;
