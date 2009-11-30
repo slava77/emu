@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.22 2009/11/26 14:33:12 paste Exp $
+* $Id: DDU.cc,v 1.23 2009/11/30 15:38:48 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -774,11 +774,10 @@ throw (emu::fed::exception::DDUException)
 	try {
 		uint16_t temp = 0xffff;
 		unsigned int trials = 5;
-		// The 12th bit is sometimes sticky...
+		// The 12th, 13th, 14th, and 15th bits are sometimes sticky...
 		do {
 			temp = readRegister(SADC, 0x0089 | (sensor << 4), 16)[0];
-		//} while ((temp == 0xffff || temp == 0 || temp & 0x1000) && --trials);
-		} while ((temp == 0xffff || temp == 0) && --trials);
+		} while ((temp == 0xffff || temp == 0 || temp > 0x1000) && --trials);
 		if (temp == 0xffff || temp == 0) {
 			std::ostringstream error;
 			error << "Unable to produce a sensible reading for temperature " << sensor << ": last value " << std::hex << std::showbase << temp;
@@ -835,10 +834,10 @@ throw (emu::fed::exception::DDUException)
 	try {
 		uint16_t volt = 0xffff;
 		unsigned int trials = 5;
-		// The 12th bit is sometimes sticky
+		// The 12th, 13th, 14th, and 15th bits are sometimes sticky
 		do {
 			volt = readRegister(SADC, 0x0089 | ((sensor+4) << 4), 16)[0];
-		} while ((volt == 0xffff || volt == 0 || volt & 0x1000) && --trials);
+		} while ((volt == 0xffff || volt == 0 || volt > 0x1000) && --trials);
 		if (volt == 0xffff || volt == 0) {
 			std::ostringstream error;
 			error << "Unable to produce a sensible reading for voltage " << sensor << ": last value " << std::hex << std::showbase << volt;
