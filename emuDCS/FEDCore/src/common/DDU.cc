@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.23 2009/11/30 15:38:48 paste Exp $
+* $Id: DDU.cc,v 1.24 2009/11/30 16:13:24 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -772,22 +772,27 @@ throw (emu::fed::exception::DDUException)
 		throw e2;
 	}
 	try {
-		uint16_t temp = 0xffff;
-		unsigned int trials = 5;
-		// The 12th, 13th, 14th, and 15th bits are sometimes sticky...
-		do {
-			temp = readRegister(SADC, 0x0089 | (sensor << 4), 16)[0];
-		} while ((temp == 0xffff || temp == 0 || temp > 0x1000) && --trials);
-		if (temp == 0xffff || temp == 0) {
+		unsigned int trials = 10;
+		uint32_t totalTemp = 0;
+		unsigned int totalTrials = 0;
+		// The 12th, 13th, 14th, and 15th bits are sometimes sticky
+		while (trials--) {
+			uint16_t temp = readRegister(SADC, 0x0089 | (sensor << 4), 16)[0];
+			if (temp != 0xffff && temp != 0 && temp < 0x1000) {
+				totalTemp += temp;
+				totalTrials++;
+			}
+		}
+		if (totalTrials == 0) {
 			std::ostringstream error;
-			error << "Unable to produce a sensible reading for temperature " << sensor << ": last value " << std::hex << std::showbase << temp;
+			error << "Unable to produce a sensible reading for temperature " << sensor;
 			XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
 			std::ostringstream tag;
 			tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
-		return temp;
+		return totalTemp/totalTrials;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
@@ -832,22 +837,27 @@ throw (emu::fed::exception::DDUException)
 		throw e2;
 	}
 	try {
-		uint16_t volt = 0xffff;
-		unsigned int trials = 5;
+		unsigned int trials = 10;
+		uint32_t totalVolt = 0;
+		unsigned int totalTrials = 0;
 		// The 12th, 13th, 14th, and 15th bits are sometimes sticky
-		do {
-			volt = readRegister(SADC, 0x0089 | ((sensor+4) << 4), 16)[0];
-		} while ((volt == 0xffff || volt == 0 || volt > 0x1000) && --trials);
-		if (volt == 0xffff || volt == 0) {
+		while (trials--) {
+			uint16_t volt = readRegister(SADC, 0x0089 | ((sensor+4) << 4), 16)[0];
+			if (volt != 0xffff && volt != 0 && volt < 0x1000) {
+				totalVolt += volt;
+				totalTrials++;
+			}
+		}
+		if (totalTrials == 0) {
 			std::ostringstream error;
-			error << "Unable to produce a sensible reading for voltage " << sensor << ": last value " << std::hex << std::showbase << volt;
+			error << "Unable to produce a sensible reading for voltage " << sensor;
 			XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
 			std::ostringstream tag;
 			tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
-		return volt;
+		return totalVolt/totalTrials;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
