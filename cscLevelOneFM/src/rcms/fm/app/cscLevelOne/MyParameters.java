@@ -71,6 +71,18 @@ public class MyParameters {
     public static final String LOCAL_CONF_KEY="LOCAL_CONF_KEY";
 
 
+    public static final String RUN_KEY         = "RUN_KEY";
+    public static final String TPG_KEY         = "TPG_KEY";
+    public static final String FED_ENABLE_MASK = "FED_ENABLE_MASK";
+
+    public static final String INITIALIZED_WITH_SID             = "INITIALIZED_WITH_SID";
+    public static final String INITIALIZED_WITH_GLOBAL_CONF_KEY = "INITIALIZED_WITH_GLOBAL_CONF_KEY";
+    public static final String CONFIGURED_WITH_RUN_KEY          = "CONFIGURED_WITH_RUN_KEY";
+    public static final String CONFIGURED_WITH_TPG_KEY          = "CONFIGURED_WITH_TPG_KEY";
+    public static final String CONFIGURED_WITH_FED_ENABLE_MASK  = "CONFIGURED_WITH_FED_ENABLE_MASK";
+    public static final String CONFIGURED_WITH_RUN_NUMBER       = "CONFIGURED_WITH_RUN_NUMBER";
+    public static final String STARTED_WITH_RUN_NUMBER          = "STARTED_WITH_RUN_NUMBER";
+
     
     // standard level 1 parameter set
     public static final ParameterSet<FunctionManagerParameter> LVL_ONE_PARAMETER_SET = new ParameterSet<FunctionManagerParameter>();
@@ -117,6 +129,19 @@ public class MyParameters {
 	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT>(ERROR_MSG, new StringT(""), Exported.READONLY));
 	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<DoubleT>(COMPLETION, new DoubleT(-1), Exported.READONLY));
 		
+	
+	/**
+	 * parameters for cross checks (RCMS task #12155)
+	 */
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT> (INITIALIZED_WITH_SID            , new StringT(""), Exported.READONLY));
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT> (INITIALIZED_WITH_GLOBAL_CONF_KEY, new StringT(""), Exported.READONLY));
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT> (CONFIGURED_WITH_RUN_KEY         , new StringT(""), Exported.READONLY));
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT> (CONFIGURED_WITH_TPG_KEY         , new StringT(""), Exported.READONLY));
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT> (CONFIGURED_WITH_FED_ENABLE_MASK , new StringT(""), Exported.READONLY));
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<IntegerT>(CONFIGURED_WITH_RUN_NUMBER      , new IntegerT(0), Exported.READONLY));
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<IntegerT>(STARTED_WITH_RUN_NUMBER         , new IntegerT(0), Exported.READONLY));
+
+
     }
     
 }
