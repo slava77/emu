@@ -322,6 +322,8 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigure (xoap::MessageRefe
   current_config_state_=2;
   fireEvent("Configure");
   //
+  if(!parsed) ParsingXML();
+
   current_config_state_=(GlobalRun_?1:VerifyCratesConfiguration());
   //
   return createReply(message);
@@ -334,6 +336,7 @@ xoap::MessageReference EmuPeripheralCrateCommand::onEnable (xoap::MessageReferen
   current_run_state_ = 1;
   fireEvent("Enable");
   //
+  ResetAllTMBCounters();
   return createReply(message);
 }
 //
@@ -526,6 +529,23 @@ void EmuPeripheralCrateCommand::check_controllers()
         crateVector[i]->CheckController();
     }
     controller_checked_ = true;
+}
+
+void EmuPeripheralCrateCommand::ResetAllTMBCounters()
+{
+  std::vector<TMB*> myVector;
+  if(!parsed) ParsingXML();
+
+  if(total_crates_<=0) return;
+  //
+  for(unsigned i=0; i< crateVector.size(); i++)
+  {
+        myVector = crateVector[i]->tmbs();
+        for(unsigned int j=0; j<myVector.size(); j++)
+        {
+          myVector[j]->ResetCounters();
+        }
+  }
 }
 
 void EmuPeripheralCrateCommand::CheckCratesConfiguration(xgi::Input * in, xgi::Output * out )
