@@ -331,6 +331,7 @@ private:
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
 
+  void ResetAllTMBCounters();
   int VerifyCratesConfiguration();
   bool ParsingXML();
   void SetCurrentCrate(int crate);
