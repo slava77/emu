@@ -190,6 +190,16 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
 
+
+			// parameters for cross checks (RCMS task #12155)
+			ParameterSet parameters = getUserFunctionManager().getLastInput().getParameterSet();
+			IntegerT sid             = (IntegerT)parameters.get(MyParameters.SID            ).getValue();
+			functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.SID, sid));
+			StringT  global_conf_key = (StringT)parameters.get(MyParameters.GLOBAL_CONF_KEY).getValue();
+			functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.INITIALIZED_WITH_SID            , sid             ));
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.INITIALIZED_WITH_GLOBAL_CONF_KEY, global_conf_key ));
+
+
 			logger.info("initAction Executed");
 		}
 	}
@@ -309,6 +319,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			System.out.println("Executing configureAction");
 			logger.info("Executing configureAction");
 
+
 			// check that we have a csc supervisor to control
 			if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
 				// nothing to control, go to configured immediately
@@ -380,9 +391,22 @@ public class MyEventHandler extends UserStateNotificationHandler {
 				functionManager.fireEvent(MyInputs.SETERROR);
 			}
 
-		// set action
-		functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
-		logger.info("configureAction Executed");
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
+
+			// parameters for cross checks (RCMS task #12155)
+			ParameterSet parameters = getUserFunctionManager().getLastInput().getParameterSet();
+			IntegerT run_number      = (IntegerT)parameters.get(MyParameters.RUN_NUMBER     ).getValue();
+			StringT  run_key         = (StringT) parameters.get(MyParameters.RUN_KEY        ).getValue();
+			StringT  tpg_key         = (StringT) parameters.get(MyParameters.TPG_KEY        ).getValue();
+			StringT  fed_enable_mask = (StringT) parameters.get(MyParameters.FED_ENABLE_MASK).getValue();
+			functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.CONFIGURED_WITH_RUN_NUMBER     , run_number));
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT> (MyParameters.CONFIGURED_WITH_RUN_KEY        , run_key));
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT> (MyParameters.CONFIGURED_WITH_TPG_KEY        , tpg_key));
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT> (MyParameters.CONFIGURED_WITH_FED_ENABLE_MASK, fed_enable_mask));
+
+
+			logger.info("configureAction Executed");
 		}
 	}
 
@@ -411,6 +435,7 @@ public void startAction(Object obj) throws UserActionException {
 		else if (obj instanceof StateEnteredEvent) {
 			System.out.println("Executing startAction");
 			logger.info("Executing startAction");
+
 
 			// check that we have a csc supervisor to control
 			if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
@@ -547,6 +572,12 @@ public void startAction(Object obj) throws UserActionException {
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
 			
+			// parameters for cross checks (RCMS task #12155)
+			ParameterSet parameters = getUserFunctionManager().getLastInput().getParameterSet();
+			IntegerT run_number      = (IntegerT)parameters.get(MyParameters.RUN_NUMBER).getValue();
+			functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.STARTED_WITH_RUN_NUMBER, run_number));
+
+
 			logger.debug("startAction Executed");
 			
 		}
