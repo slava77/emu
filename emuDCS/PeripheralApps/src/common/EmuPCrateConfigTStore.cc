@@ -1689,7 +1689,6 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   std::string CFEB4POSNEG("CFEB4POSNEG");
   std::string MPC_SEL_TTC_BX0("MPC_SEL_TTC_BX0");
   std::string ALCT_TOF_DELAY("ALCT_TOF_DELAY");
-  std::cout << "meh" << std::endl;
   std::string TMB_TO_ALCT_DATA_DELAY("TMB_TO_ALCT_DATA_DELAY");
   std::string CFEB_TOF_DELAY("CFEB_TOF_DELAY");
   std::string CFEB0_TOF_DELAY("CFEB0_TOF_DELAY");
@@ -1704,7 +1703,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   std::string CFEB4_RXD_INT_DELAY("CFEB4_RXD_INT_DELAY");
   xdata::UnsignedShort     _adjacent_cfeb_distance        = TStore_thisTMB->GetAdjacentCfebDistance();
   xdata::UnsignedShort     _aff_thresh                    = TStore_thisTMB->GetActiveFebFlagThresh();
-  xdata::UnsignedShort     _alct_bx0_delay                = TStore_thisTMB->GetClctBx0Delay();
+  xdata::UnsignedShort     _alct_bx0_delay                = TStore_thisTMB->GetAlctBx0Delay();
   xdata::UnsignedShort     _alct_bx0_enable               = TStore_thisTMB->GetAlctBx0Enable();
   xdata::UnsignedShort     _alct_clear                    = TStore_thisTMB->GetAlctClear();
   xdata::UnsignedShort     _alct_clock_en_use_ccb         = TStore_thisTMB->GetEnableAlctUseCcbClock();
@@ -1847,6 +1846,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   newRows.setValueAt(rowId, ALCT_TRIG_ENABLE,              _alct_trig_enable);
   newRows.setValueAt(rowId, ALCT_TX_CLOCK_DELAY,           _alct_tx_clock_delay);
   newRows.setValueAt(rowId, ALCT_POSNEG,           _alct_posneg);
+  newRows.setValueAt(rowId, ALCT_TX_POSNEG,           _alct_tx_posneg);
   newRows.setValueAt(rowId, ALL_CFEB_ACTIVE,               _all_cfeb_active);
   newRows.setValueAt(rowId, CFEB0DELAY,                    _cfeb0delay);
   newRows.setValueAt(rowId, CFEB1DELAY,                    _cfeb1delay);
