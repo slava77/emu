@@ -476,6 +476,7 @@ oldconfig.ALCT_BX0_ENABLE "ALCT_BX0_ENABLE $OLD_EMU_CONFIG_ID",newconfig.ALCT_BX
 oldconfig.ALCT_CLEAR "ALCT_CLEAR $OLD_EMU_CONFIG_ID",newconfig.ALCT_CLEAR "ALCT_CLEAR $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_CLOCK_EN_USE_CCB "ALCT_CLOCK_EN_USE_CCB $OLD_EMU_CONFIG_ID",newconfig.ALCT_CLOCK_EN_USE_CCB "ALCT_CLOCK_EN_USE_CCB $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_POSNEG "ALCT_POSNEG $OLD_EMU_CONFIG_ID",newconfig.ALCT_POSNEG "ALCT_POSNEG $NEW_EMU_CONFIG_ID",
+oldconfig.ALCT_TX_POSNEG "ALCT_TX_POSNEG $OLD_EMU_CONFIG_ID",newconfig.ALCT_TX_POSNEG "ALCT_TX_POSNEG $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_PRETRIG_ENABLE "ALCT_PRETRIG_ENABLE $OLD_EMU_CONFIG_ID",newconfig.ALCT_PRETRIG_ENABLE "ALCT_PRETRIG_ENABLE $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_READOUT_WITHOUT_TRIG "ALCT_READOUT_WITHOUT_T $OLD_EMU_CONFIG_ID",newconfig.ALCT_READOUT_WITHOUT_TRIG "ALCT_READOUT_WITHOUT_T $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_RX_CLOCK_DELAY "ALCT_RX_CLOCK_DELAY $OLD_EMU_CONFIG_ID",newconfig.ALCT_RX_CLOCK_DELAY "ALCT_RX_CLOCK_DELAY $NEW_EMU_CONFIG_ID",
@@ -599,6 +600,7 @@ oldconfig.ALCT_BX0_ENABLE!=newconfig.ALCT_BX0_ENABLE or
 oldconfig.ALCT_CLEAR!=newconfig.ALCT_CLEAR or 
 oldconfig.ALCT_CLOCK_EN_USE_CCB!=newconfig.ALCT_CLOCK_EN_USE_CCB or 
 oldconfig.ALCT_POSNEG!=newconfig.ALCT_POSNEG or 
+oldconfig.ALCT_TX_POSNEG!=newconfig.ALCT_TX_POSNEG or 
 oldconfig.ALCT_PRETRIG_ENABLE!=newconfig.ALCT_PRETRIG_ENABLE or 
 oldconfig.ALCT_READOUT_WITHOUT_TRIG!=newconfig.ALCT_READOUT_WITHOUT_TRIG or 
 oldconfig.ALCT_RX_CLOCK_DELAY!=newconfig.ALCT_RX_CLOCK_DELAY or 
@@ -1066,6 +1068,7 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
       <tstore:column name="ALCT_TRIG_ENABLE" type="unsigned short"/>
       <tstore:column name="ALCT_TX_CLOCK_DELAY" type="unsigned short"/>
       <tstore:column name="ALCT_POSNEG" type="unsigned short"/>
+      <tstore:column name="ALCT_TX_POSNEG" type="unsigned short"/>
       <tstore:column name="ALL_CFEB_ACTIVE" type="unsigned short"/>
       <tstore:column name="CFEB0DELAY" type="unsigned short"/>
       <tstore:column name="CFEB1DELAY" type="unsigned short"/>
