@@ -89,6 +89,22 @@ function valuesFromXmlToTable( xmlDoc ){
     }catch(err){ 
       //alert( err );
     }
+    sumOverRingsChambers();
+}
+
+function sumOverRingsChambers(){
+    var sum_endcap = 0;
+    var th = document.getElementById('countsTableParent').getElementsByTagName('th');
+    for (t=0;t<th.length;t++){
+	if ( th[t].id.substr(0,9) == 'sum_ring_' ){
+	    var sum_ring = 0;
+	    var cells = th[t].parentNode.cells;
+	    for ( c=th[t].cellIndex+1; c<cells.length; c++ ) sum_ring += Number(cells[c].innerHTML);
+	    th[t].innerHTML = sum_ring;
+	    sum_endcap += sum_ring;
+	}
+    }
+    document.getElementById('sum_endcap').innerHTML = sum_endcap;
 }
 
 function getSelectedRadio( name ){
