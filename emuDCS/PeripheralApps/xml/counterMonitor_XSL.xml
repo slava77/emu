@@ -6,6 +6,7 @@
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
   <xsl:variable name="SIDE"><xsl:value-of select="substring(//count[position()=1]/@chamber,3,1)"/></xsl:variable>
+  <xsl:variable name="BASEDIR">/emu/emuDCS/PeripheralApps/xml/</xsl:variable>
 
   <xsl:template name="geoContainer">
     <CSC_rings>
@@ -140,7 +141,8 @@
 	    <th class="PC">sector</th>
 	    <th class="PC">position</th>
 	  </tr>
-	  <xsl:for-each select="document('/emu/emuDCS/PeripheralApps/xml/RUI-to-chamber_mapping.xml')//input[Chamber/@endcap=$ENDCAP and Chamber/@station=$STATION and Chamber/@type=$RING and Chamber/@number=$COUNT]">
+<!-- 	  <xsl:for-each select="document('/emu/emuDCS/PeripheralApps/xml/RUI-to-chamber_mapping.xml')//input[Chamber/@endcap=$ENDCAP and Chamber/@station=$STATION and Chamber/@type=$RING and Chamber/@number=$COUNT]"> -->
+	  <xsl:for-each select="document(concat($BASEDIR,'RUI-to-chamber_mapping.xml'))//input[Chamber/@endcap=$ENDCAP and Chamber/@station=$STATION and Chamber/@type=$RING and Chamber/@number=$COUNT]">
 	    <tr>
 	      <td class="chamber"><xsl:value-of select="translate($CHAMBER,'-','&#8211;')"/></td>
 	      <td class="RUI"><xsl:value-of select="../../@instance"/></td>
@@ -225,6 +227,8 @@
 
       <tr>
 	<th/>
+	<!-- 	<th>&#931;</th> -->
+	<th>Sum</th>
 	<xsl:call-template name="loop_th">
 	  <xsl:with-param name="COUNT">1</xsl:with-param>
 	  <xsl:with-param name="MAX">18</xsl:with-param>
@@ -237,6 +241,7 @@
 	<xsl:variable name="COLSPAN"><xsl:if test="@deltaPhi='-10'">1</xsl:if><xsl:if test="@deltaPhi='-20'">2</xsl:if></xsl:variable>
 	<tr>
 	  <th><xsl:value-of select="translate(@name,'-','&#8211;')"/></th>
+	  <th class="sum" id="sum_ring_{$RING_NAME}"/>
 	  <xsl:call-template name="loop_td">
 	    <xsl:with-param name="COUNT">1</xsl:with-param>
 	    <xsl:with-param name="MAX"><xsl:if test="@deltaPhi='-10'">36</xsl:if><xsl:if test="@deltaPhi='-20'">18</xsl:if></xsl:with-param>
@@ -248,6 +253,7 @@
 
       <tr>
 	<th/>
+	<th class="sum" id="sum_endcap"/>
 	<xsl:call-template name="loop_th">
 	  <xsl:with-param name="COUNT">1</xsl:with-param>
 	  <xsl:with-param name="MAX">36</xsl:with-param>
@@ -330,9 +336,9 @@
 <!-- 	<link type="text/css" rel="stylesheet" href="counterMonitor.css"/> -->
 <!-- 	<script type="text/javascript" src="tooltip.js"/> -->
 <!-- 	<script type="text/javascript" src="counterMonitor.js"/> -->
-	<link type="text/css" rel="stylesheet" href="/emu/emuDCS/PeripheralApps/xml/counterMonitor.css"/>
-	<script type="text/javascript" src="/emu/emuDCS/PeripheralApps/xml/tooltip.js"/>
-	<script type="text/javascript" src="/emu/emuDCS/PeripheralApps/xml/counterMonitor.js"/>
+	<link type="text/css" rel="stylesheet" href="{$BASEDIR}counterMonitor.css"/>
+	<script type="text/javascript" src="{$BASEDIR}tooltip.js"/>
+	<script type="text/javascript" src="{$BASEDIR}counterMonitor.js"/>
       </head>
       <body id="body" onload="on_load()">
 
