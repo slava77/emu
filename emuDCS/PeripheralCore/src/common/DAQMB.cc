@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.60 2009/11/19 17:04:10 rakness Exp $
+// $Id: DAQMB.cc,v 3.61 2009/12/03 16:39:59 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.61  2009/12/03 16:39:59  liu
+// open eprom.bit file in /tmp instead of current directory
+//
 // Revision 3.60  2009/11/19 17:04:10  rakness
 // remove some extraneous cout statements
 //
@@ -404,6 +407,8 @@
 #include <unistd.h>
 #include <iomanip>
 #include "emu/pc/geom.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
 
 #ifndef debugV //silent mode
@@ -3014,7 +3019,8 @@ void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *
     //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
     devstr=geo[dv].nam;
     dwnfp    = fopen(downfile,"r");
-    fpout=fopen("eprom.bit","w");
+    fpout=fopen("/tmp/eprom.bit","w");
+    chmod("/tmp/eprom.bit",S_IRUSR| S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
     //
     char bogobuf[8192];
@@ -3286,8 +3292,12 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
     devstr=geo[dv].nam;
     dwnfp    = fopen(downfile,"r");
-    fpout=fopen("eprom.bit","w");
-    // printf("Programming Design %s with %s\n",devstr,downfile);
+    if(dwnfp==NULL) std::cout << "Can't open firmware file " << downfile << std::endl;
+    fpout=fopen("/tmp/eprom.bit","w");
+    chmod("/tmp/eprom.bit",S_IRUSR| S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    if(fpout==NULL) std::cout << "Can't open eprom.bit file"<< std::endl;
+    
+    printf("Programming Design %s with %s\n",devstr,downfile);
     //
     char bogobuf[8192];
     unsigned long int nlines=0;
@@ -3559,7 +3569,8 @@ ipass == 3 - load only the stuff after the board number
   //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
   devstr=geo[dv].nam;
   dwnfp    = fopen(downfile,"r");
-  fpout=fopen("eprom.bit","w");
+    fpout=fopen("/tmp/eprom.bit","w");
+    chmod("/tmp/eprom.bit",S_IRUSR| S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
   printf("Programming Design %s with %s\n",devstr,downfile);
 
   //switching to the proper device
