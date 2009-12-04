@@ -294,6 +294,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   // ==     DDU Header bunch crossing number (BXN)
   BXN=dduHeader.bxnum();
   // LOG4CPLUS_WARN(logger_,dduTag << " DDU Header BXN Number = " << std::dec << BXN);
+  if (isMEvalid(nodeME, "All_DDUs_BXNs", mo)) mo->Fill(BXN);
   if (isMEvalid(dduME, "BXN", mo)) mo->Fill(BXN);
 
   // ==     L1A number from DDU Header
