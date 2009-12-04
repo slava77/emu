@@ -9,9 +9,18 @@ var TREE_ITEMS = [
            ['EMU Test04 - DDU Format Errors','EMU_Test04_DDU_Format_Errors.png'],
            ['EMU Test05 - DDU Inputs Status','EMU_Test05_DDU_Inputs_Status.png'],
 	   ['EMU Test06 - DDU Inputs in ERROR/WARNING State','EMU_Test06_DDU_Inputs_in_Error_State.png'],
+	   ['EMU Test07 - DDU BXNs','EMU_Test07_DDU_BXNs.png'],
            ['EMU Test08 - CSCs Reporting Data and Unpacked','EMU_Test08_Reporting_Unpacked_CSCs.png'],
            ['EMU Test10 - CSCs with Errors and Warnings (Fractions)','EMU_Test10_CSC_Errors_Warnings_Fract.png'],
 	   ['EMU Test11 - CSCs without Data Blocks (Fractions)','EMU_Test11_CSC_wo_Data_Blocks.png'],
+	   ['EMU Test12 - CSCs ALCT and CLCT Quality and # Planes with Hits','EMU_Test12_ALCT_CLCT_Quality_and_Planes.png'],
+	   ['EMU Test14 - CSCs ALCT Timing','EMU_Test14_ALCT_Timing.png'],
+	   ['EMU Test15 - CSCs CLCT Timing','EMU_Test15_CLCT_Timing.png'],
+           ['EMU Test16 - CSCs AFEBs Raw Hits Timing','EMU_Test16_AFEB_RawHits_Timing.png'],
+	   ['EMU Test17 - CSCs CFEBs Comparators Hits Timing','EMU_Test17_Comparators_Hits_Timing.png'],
+	   ['EMU Test18 - CSCs CFEBs SCA Cell Peak Timing','EMU_Test18_CFEB_SCA_Cell_Peak_Timing.png'],
+	   ['EMU Test19 - CSCs ALCT-CLCT Match Timing','EMU_Test19_ALCT_CLCT_Match_Timing.png']
+	   
 	],
 	['DDU', ' ',
            ['Connected and Active Inputs','DDU_Connected_and_Active_Inputs.png'],
@@ -56,7 +65,7 @@ var TREE_ITEMS = [
 	   ['SYNC: Test02 - BXN Differences','SYNC/SYNC_Test02_BXN_Differences.png'],
            ['TMB-CLCT: CLCT0_BXN and TMB_L1A_BXN Synchronization','TMB/TMB-CLCT_CLCT0_BXN_and_TMB_L1A_BXN_Synchronization.png'],
            ['TMB-CLCT: CLCT0 Key HalfStrips, Patterns and Quality','TMB/TMB-CLCT_CLCT0_Key_HalfStrips__Patterns_and_Quality.png'],
-           ['TMB-CLCT: CLCT1_BXN and TMB_L1A_BXN Synchronization','TMB/TMB-CLCT_CLCT1_BXN_and_TMB_L1A_BXN_Synchronization.png'],
+           /*['TMB-CLCT: CLCT1_BXN and TMB_L1A_BXN Synchronization','TMB/TMB-CLCT_CLCT1_BXN_and_TMB_L1A_BXN_Synchronization.png'],*/
            ['TMB-CLCT: CLCT1 Key HalfStrips, Patterns and Quality','TMB/TMB-CLCT_CLCT1_Key_HalfStrips__Patterns_and_Quality.png'],
            ['TMB-CLCT: CLCTs Found','TMB/TMB-CLCT_CLCTs_Found.png'],
            ['TMB-CLCT: Cathode Comparator Hit Occupancy per Chamber','TMB/TMB-CLCT_Cathode_Comparator_Hit_Occupancy_per_Chamber.png'],
