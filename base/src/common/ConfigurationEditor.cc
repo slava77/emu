@@ -329,7 +329,7 @@ void ConfigurationEditor::addChildNodes(DOMElement *parentElement,const std::str
 				copyTableToAttributes(newElement,(*table).second,configName,rowIndex);
 				parentElement->appendChild(newElement);
 				for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) { 			
-					std::cout << "crate subtable, showing " << (*subTable) << " of " << (*table).first << std::endl;
+					//std::cout << "crate subtable, showing " << (*subTable) << " of " << (*table).first << std::endl;
 	 
 					addChildNodes(newElement,*subTable,(*table).first);
 				}
@@ -387,6 +387,10 @@ bool ConfigurationEditor::displayCommonTableElements(std::ostream * out,const st
 	return false;
 }
 
+std::string ConfigurationEditor::displayName(const std::string &configName,const std::string &identifier,xdata::Table &data) {
+	return identifier;
+}
+
 void ConfigurationEditor::displayChildDiff(std::ostream * out,const std::string &configName,const std::string &parentIdentifier,ChangeSummary &changes) {
    	if (currentDiff.count(configName)) {		
   		std::map<std::string,xdata::Table> &tables=currentDiff[configName];
@@ -403,7 +407,8 @@ void ConfigurationEditor::displayChildDiff(std::ostream * out,const std::string 
    		for (table=firstTable;table!=lastTable;++table) {
 			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
 			std::string heading;
-			if (!subTables.empty()) heading=(*table).first;
+			if (!subTables.empty()) heading=displayName(configName,(*table).first,(*table).second);
+			
 			else heading=parentIdentifier; //there is no need to specify which one since there should be only one
 			*out << "<tr><td bgcolor=\"#FFCCFF\">" << configName << " of " << heading << "</td></tr><tr><td>"  << std::endl;
 			displayDiff(out,configName,(*table).first,changes);
@@ -525,7 +530,7 @@ void ConfigurationEditor::outputCurrentConfiguration(xgi::Output * out) {
 		std::map<std::string,xdata::Table> &crates=currentTables[topLevelTableName_];
 		for(std::map<std::string,xdata::Table>::iterator crate=crates.begin(); crate!=crates.end(); ++crate) {
 			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
-			*out << "<tr><td bgcolor=\"#FFFFCC\">" /*PeripheralCrate label='" << (*crate).second.getValueAt(0,"LABEL")->toString() */ << (*crate).first << "</td></tr><tr><td>"  << std::endl;
+			*out << "<tr><td bgcolor=\"#FFFFCC\">" << displayName(topLevelTableName_,(*crate).first,(*crate).second) << "</td></tr><tr><td>"  << std::endl;
 			outputShowHideButton(out,"wholecrate",(*crate).first);
 			if (shouldDisplayConfiguration("wholecrate",(*crate).first)) {
 				for (std::vector<std::string>::iterator tableName=topLevelTables.begin();tableName!=topLevelTables.end();++tableName) {
@@ -654,11 +659,11 @@ void ConfigurationEditor::outputTableEditControls(xgi::Output * out,const std::s
 		//*out << "table " << tableName << cgicc::br();
 		*out << cgicc::a().set("name",anchor) << "table " << tableName;
 		
-		if (!prefix.empty()) {
+		/*if (!prefix.empty()) {
 			std::string key=fullTableID(tableName,prefix);
 			//do not show the 'change all' controls of a given table without also showing the data which would be changing.
 			tablesToDisplay[key]=true;
-		}
+		}*/
 		
 		if (fieldsToView) *out << view.str();
 		if (fieldsToIncrement) *out << increment.str();
@@ -695,7 +700,10 @@ void ConfigurationEditor::outputSingleValue(std::ostream * out,xdata::Serializab
 		if (canChangeColumn(column,tableName) && !tableName.empty() && !identifier.empty()) {
 			std::string anchor=tableName+identifier+column+to_string(rowIndex);
 			*out << cgicc::a().set("name",anchor); //add an anchor so we can scroll immediately to the thing we just hid or showed
-			  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/changeSingleValue#%s",getApplicationDescriptor()->getURN().c_str(),anchor.c_str())) << std::endl;
+			/*This must be a POST form, since with a GET, even though a + is correctly escaped to %2B in the URL, when we read it back from the Cgicc FormElement it is double-unencoded to space, 
+			and there doesn't seem to be a way of telling the difference between a space that was encoded as a + and a + that was encoded as %2B.
+			So we will just ensure we never use identifiers with + in.*/
+			  *out << cgicc::form().set("method","POST").set("action", toolbox::toString("/%s/changeSingleValue#%s",getApplicationDescriptor()->getURN().c_str(),anchor.c_str())) << std::endl;
 			*out << cgicc::input().set("type","hidden").set("name","table").set("value",tableName);
 			*out << cgicc::input().set("type","hidden").set("name","identifier").set("value",identifier);
 			*out << cgicc::input().set("type","hidden").set("name","fieldName").set("value",column);
@@ -1424,7 +1432,11 @@ void ConfigurationEditor::setConfigurationDirectory(const std::string &configura
 std::string ConfigurationEditor::fullConfigurationDirectory() {
 	std::string HomeDir_ =getenv("HOME");
 	size_t pos = HomeDir_.find_last_of("/");
+<<<<<<< ConfigurationEditor.cc
+	if(pos!=HomeDir_.length()-1) HomeDir_+="/";
+=======
 	if(pos!=HomeDir_.length()-1) HomeDir_ += "/";
+>>>>>>> 1.4
 	return HomeDir_ + "config/"+configurationDirectory_+="/"; 
 }
 

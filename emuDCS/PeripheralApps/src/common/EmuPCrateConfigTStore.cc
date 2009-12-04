@@ -3129,6 +3129,15 @@ void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, co
   copyAnodeChannelToTable(results,theAlct); //this is because the results from TStore have the wrong column types
 	setCachedTable(queryViewName,identifier,results);
 }
+std::string EmuPCrateConfigTStore::displayName(const std::string &configName,const std::string &identifier,xdata::Table &data) {
+	//std::cout << "displayName for " << configName << std::endl;
+	if (configName==topLevelTableName_ && tableHasColumn(data,"LABEL") && data.getRowCount()==1) {
+		xdata::String *label=dynamic_cast<xdata::String *>(data.getValueAt(0,"LABEL"));
+		if (label) return (std::string)*label;
+	}
+	return ConfigurationEditor::displayName(configName,identifier,data);
+}
+
   } 
   }
 //  }

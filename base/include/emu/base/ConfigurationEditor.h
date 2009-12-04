@@ -47,6 +47,7 @@ public:
 	void outputFooter(xgi::Output * out);
 	void outputException(xgi::Output * out,xcept::Exception &e);
 	virtual void outputStandardInterface(xgi::Output * out)=0;
+	virtual std::string displayName(const std::string &configName,const std::string &identifier,xdata::Table &data);
 	void displayChildDiff(std::ostream * out,const std::string &configName,const std::string &parentIdentifier,ChangeSummary &changes);
 	bool displayCommonTableElements(std::ostream * out,const std::string &configName,const std::string &identifier,xdata::Table &currentTable,const std::string &display="config");
 	void displayDiff(std ::ostream* out,const std::string &configName,const std::string &identifier,ChangeSummary &changes) ;

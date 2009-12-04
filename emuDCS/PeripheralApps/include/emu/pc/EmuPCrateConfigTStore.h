@@ -59,7 +59,7 @@ public:
 	void outputStandardInterface(xgi::Output * out);
 	bool getVersionNumber(const std::string &columnName,std::string &versionNumber);
 	std::string withoutVersionNumber(const std::string &columnName);
-	
+	 std::string displayName(const std::string &configName,const std::string &identifier,xdata::Table &data);
 void sumChanges(TableChangeSummary &allChanges,TableChangeSummary &changesToThisTable);
   
 void EmuPCrateConfigTStore::SelectTestSummaryFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
