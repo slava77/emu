@@ -18,6 +18,7 @@
 #include "xdaq/NamespaceURI.h"
 #include "xdata/InfoSpaceFactory.h"
 #include "xcept/tools.h"
+#include <time.h>
 
 #include "toolbox/Event.h"
 #include "toolbox/string.h"
@@ -141,6 +142,8 @@ protected:
   double O_T_min, O_T_max, R_L_min, R_L_max, T_B_min, T_B_max;
 
   int dcs_station, dcs_ring, dcs_chamber;
+  time_t old_time;
+  int read_interval;
       
 public:
   //
