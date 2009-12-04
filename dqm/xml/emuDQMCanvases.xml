@@ -477,6 +477,108 @@
                 <Pad1>CSC_DMB_input_timeout_Fract</Pad1>
         </Canvas-->
 
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test07_DDU_BXNs</Name>
+                <Title>EMU Test07 - All DDUs BXNs</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>All_DDUs_BXNs</Pad1>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test12_ALCT_CLCT_Quality_and_Planes</Name>
+                <Title>EMU Test12 - CSCs ALCT and CLCT Quality and # Planes with Hits</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CSC_ALCT_Planes_with_Hits</Pad1>
+                <Pad2>CSC_ALCT0_Quality</Pad2>
+                <Pad3>CSC_CLCT_Planes_with_Hits</Pad3>
+                <Pad4>CSC_CLCT0_Quality</Pad4>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test14_ALCT_Timing</Name>
+                <Title>EMU Test14 - CSCs ALCT Timing</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+		<Pad1>CSC_ALCT0_BXN_mean</Pad1>
+                <Pad2>CSC_Plus_endcap_ALCT0_dTime</Pad2>
+                <Pad3>CSC_ALCT0_BXN_rms</Pad3>
+                <Pad4>CSC_Minus_endcap_ALCT0_dTime</Pad4>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test15_CLCT_Timing</Name>
+                <Title>EMU Test15 - CSCs CLCT Timing</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CSC_CLCT0_BXN_mean</Pad1>
+                <Pad2>CSC_Plus_endcap_CLCT0_dTime</Pad2>
+                <Pad3>CSC_CLCT0_BXN_rms</Pad3>
+                <Pad4>CSC_Minus_endcap_CLCT0_dTime</Pad4>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test16_AFEB_RawHits_Timing</Name>
+                <Title>EMU Test16 - CSCs AFEBs Raw Hits Timing</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CSC_AFEB_RawHits_Time_mean</Pad1>
+                <Pad2>CSC_Plus_endcap_AFEB_RawHits_Time</Pad2>
+                <Pad3>CSC_AFEB_RawHits_Time_rms</Pad3>
+                <Pad4>CSC_Minus_endcap_AFEB_RawHits_Time</Pad4>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test17_Comparators_Hits_Timing</Name>
+                <Title>EMU Test17 - CSCs CFEB Comparators Hits Timing</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CSC_CFEB_Comparators_Time_mean</Pad1>
+                <Pad2>CSC_Plus_endcap_CFEB_Comparators_Time</Pad2>
+                <Pad3>CSC_CFEB_Comparators_Time_rms</Pad3>
+                <Pad4>CSC_Minus_endcap_CFEB_Comparators_Time</Pad4>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test18_CFEB_SCA_Cell_Peak_Timing</Name>
+                <Title>EMU Test18 - CSCs CFEB SCA Cell Peak Timing</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CSC_CFEB_SCA_CellPeak_Time_mean</Pad1>
+                <Pad2>CSC_Plus_endcap_CFEB_SCA_CellPeak_Time</Pad2>
+                <Pad3>CSC_CFEB_SCA_CellPeak_Time_rms</Pad3>
+                <Pad4>CSC_Minus_endcap_CFEB_SCA_CellPeak_Time</Pad4>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test19_ALCT_CLCT_Match_Timing</Name>
+                <Title>EMU Test14 - CSCs ALCT-CLCT Match Timing</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CSC_ALCT_CLCT_Match_mean</Pad1>
+                <Pad2>CSC_Plus_endcap_ALCT_CLCT_Match_Time</Pad2>
+                <Pad3>CSC_ALCT_CLCT_Match_rms</Pad3>
+                <Pad4>CSC_Minus_endcap_ALCT_CLCT_Match_Time</Pad4>
+        </Canvas>
+
+
 <!-- ========================================================================================
 # DDU Level histograms
 ============================================================================================= -->
@@ -552,13 +654,16 @@
 		<Prefix>CSC</Prefix>
 		<Name>ALCT_ALCT0_Key_Wiregroups__Patterns_and_Quality</Name>
 		<Title>ALCT: ALCT0 Key Wiregroups, Patterns and Quality</Title>
-		<NumPadsX>2</NumPadsX>
+		<NumPadsX>3</NumPadsX>
 		<NumPadsY>2</NumPadsY>
 		<Pad1>ALCT0_KeyWG</Pad1>
-		<Pad2>ALCT0_Quality</Pad2>
-		<Pad3>ALCT0_Pattern</Pad3>
+		<Pad2>ALCT0_Pattern</Pad2>
+		<Pad3>ALCT0_Pattern_Distr</Pad3>
+
+		<Pad4>ALCT0_Quality</Pad4>
+		<Pad5>ALCT0_Quality_Profile</Pad5>
+		<Pad6>ALCT0_Quality_Distr</Pad6>
 		<Folder>ALCT</Folder>
-		<Pad4>ALCT0_Quality_Profile</Pad4>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -578,13 +683,16 @@
 		<Prefix>CSC</Prefix>
 		<Name>ALCT_ALCT1_Key_Wiregroups__Patterns_and_Quality</Name>
 		<Title>ALCT: ALCT1 Key Wiregroups, Patterns and Quality</Title>
-		<NumPadsX>2</NumPadsX>
+		<NumPadsX>3</NumPadsX>
 		<NumPadsY>2</NumPadsY>
 		<Pad1>ALCT1_KeyWG</Pad1>
-		<Pad2>ALCT1_Quality</Pad2>
-		<Pad3>ALCT1_Pattern</Pad3>
-		<Folder>ALCT</Folder>
-		<Pad4>ALCT1_Quality_Profile</Pad4>
+                <Pad2>ALCT1_Pattern</Pad2>
+                <Pad3>ALCT1_Pattern_Distr</Pad3>
+
+                <Pad4>ALCT1_Quality</Pad4>
+                <Pad5>ALCT1_Quality_Profile</Pad5>
+                <Pad6>ALCT1_Quality_Distr</Pad6>
+                <Folder>ALCT</Folder>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -1157,13 +1265,14 @@
 		<Prefix>CSC</Prefix>
 		<Name>TMB-CLCT_CLCT0_Key_HalfStrips__Patterns_and_Quality</Name>
 		<Title>TMB-CLCT: CLCT0 Key HalfStrips, Patterns and Quality</Title>
-		<NumPadsX>2</NumPadsX>
+		<NumPadsX>3</NumPadsX>
 		<NumPadsY>2</NumPadsY>
 		<Pad1>CLCT0_KeyHalfStrip</Pad1>
-		<Pad2>CLCT0_Half_Strip_Quality</Pad2>
-		<Pad3>CLCT0_Half_Strip_Pattern</Pad3>
-		<Folder>TMB</Folder>
-		<Pad4>CLCT0_Half_Strip_Quality_Profile</Pad4>
+                <Pad2>CLCT0_Half_Strip_Pattern</Pad2>
+                <Pad3>CLCT0_Half_Strip_Pattern_Distr</Pad3>
+                <Pad4>CLCT0_Half_Strip_Quality</Pad4>
+                <Pad5>CLCT0_Half_Strip_Quality_Profile</Pad5>
+                <Pad6>CLCT0_Half_Strip_Quality_Distr</Pad6>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -1175,6 +1284,7 @@
 		<Pad1>CLCT0_BXN</Pad1>
 		<Pad2>CLCT0_dTime_vs_Half_Strip</Pad2>
 		<Pad3>CLCT0_dTime</Pad3>
+		<Pad4>CLCT0_dTime_Profile</Pad4>
 		<Folder>TMB</Folder>
 	</Canvas>
 	<Canvas>
@@ -1182,13 +1292,15 @@
 		<Prefix>CSC</Prefix>
 		<Name>TMB-CLCT_CLCT1_Key_HalfStrips__Patterns_and_Quality</Name>
 		<Title>TMB-CLCT: CLCT1 Key HalfStrips, Patterns and Quality</Title>
-		<NumPadsX>2</NumPadsX>
+		<NumPadsX>3</NumPadsX>
 		<NumPadsY>2</NumPadsY>
 		<Pad1>CLCT1_KeyHalfStrip</Pad1>
-		<Pad2>CLCT1_Half_Strip_Quality</Pad2>
-		<Pad3>CLCT1_Half_Strip_Pattern</Pad3>
+		<Pad2>CLCT1_Half_Strip_Pattern</Pad2>
+		<Pad3>CLCT1_Half_Strip_Pattern_Distr</Pad3>
+		<Pad4>CLCT1_Half_Strip_Quality</Pad4>
+		<Pad5>CLCT1_Half_Strip_Quality_Profile</Pad5>
+		<Pad6>CLCT1_Half_Strip_Quality_Distr</Pad6>
 		<Folder>TMB</Folder>
-		<Pad4>CLCT1_Half_Strip_Quality_Profile</Pad4>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -1200,6 +1312,7 @@
 		<Pad1>CLCT1_BXN</Pad1>
 		<Pad2>CLCT1_dTime_vs_Half_Strip</Pad2>
 		<Pad3>CLCT1_dTime</Pad3>
+		<Pad4>CLCT1_dTime_Profile</Pad4>
 		<Folder>TMB</Folder>
 	</Canvas>
 	<Canvas>
