@@ -1103,6 +1103,604 @@
 		<SetMinimum>0</SetMinimum>
 		<DrawType>ChamberMap</DrawType>
 	</Histogram>
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_ALCT0_BXN_mean</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Mean ALCT0 BXN - L1A BXN</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_ALCT0_BXN_rms</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>RMS ALCT0 BXN - L1A BXN</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Plus_endcap_ALCT0_dTime</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>-16</XMin>
+                <XMax>16</XMax>
+                <XBins>32</XBins>
+                <XTitle>ALCT0 BXN - ALCT_L1A BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Plus Endcap ALCT0 BXN - ALCT_L1A BXN difference</Title>
+        </Histogram>
+
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Minus_endcap_ALCT0_dTime</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>-16</XMin>
+                <XMax>16</XMax>
+                <XBins>32</XBins>
+                <XTitle>ALCT0 BXN - ALCT_L1A BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Minus Endcap ALCT0 BXN - ALCT_L1A BXN difference</Title>
+        </Histogram>
+
+
+	
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_CLCT0_BXN_mean</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Mean CLCT0 BXN - L1A BXN</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_CLCT0_BXN_rms</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>RMS CLCT0 BXN - L1A BXN</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Plus_endcap_CLCT0_dTime</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>-16</XMin>
+                <XMax>16</XMax>
+                <XBins>32</XBins>
+                <XTitle>CLCT0 BXN - CLCT_L1A BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Plus Endcap CLCT0 BXN - CLCT_L1A BXN difference</Title>
+        </Histogram>
+
+
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Minus_endcap_CLCT0_dTime</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>-16</XMin>
+                <XMax>16</XMax>
+                <XBins>32</XBins>
+                <XTitle>CLCT0 BXN - CLCT_L1A BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Minus Endcap CLCT0 BXN - CLCT_L1A BXN difference</Title>
+        </Histogram>
+
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_AFEB_RawHits_Time_mean</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Mean AFEBs Raw Hits Time Bin</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_AFEB_RawHits_Time_rms</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>RMS AFEBs Raw Hits Time Bin</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+        
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Plus_endcap_AFEB_RawHits_Time</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>32</XMax>
+                <XBins>32</XBins>
+                <XTitle>Time Bin</XTitle>
+                <YTitle>Number of Anode Raw Hits</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Plus Endcap AFEBs Raw Hits Time Bins distribution</Title>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Minus_endcap_AFEB_RawHits_Time</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>32</XMax>
+                <XBins>32</XBins>
+                <XTitle>Time Bin</XTitle>
+                <YTitle>Number of Anode Raw Hits</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Minus Endcap AFEBs Raw Hits Time Bins distribution</Title>
+        </Histogram>
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_CFEB_SCA_CellPeak_Time_mean</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Mean CFEBs SCA Cell Peak Time</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+        
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_CFEB_SCA_CellPeak_Time_rms</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>RMS CFEBs SCA Cell Peal Time </Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Plus_endcap_CFEB_SCA_CellPeak_Time</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+                <XTitle>SCA Cell</XTitle>
+                <YTitle>Number of CFEB SCA Cell Peaks</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Plus Endcap CFEBs SCA Cell Peak Time distribution</Title>
+        </Histogram>
+
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Minus_endcap_CFEB_SCA_CellPeak_Time</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+                <XTitle>SCA Cell</XTitle>
+                <YTitle>Number of CFEB SCA Cell Peaks</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Minus Endcap CFEBs SCA Cell Peak Time distribution</Title>
+        </Histogram>
+       
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_CFEB_Comparators_Time_mean</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Mean CFEBs Comparators Time Bin</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_CFEB_Comparators_Time_rms</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>RMS CFEB Comparators Time Bin</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Plus_endcap_CFEB_Comparators_Time</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>32</XMax>
+                <XBins>32</XBins>
+                <XTitle>Time Bin</XTitle>
+                <YTitle>Number of CFEB Comparators Hits</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Plus Endcap CFEBs Comparators Time Bins distribution</Title>
+        </Histogram>
+
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Minus_endcap_CFEB_Comparators_Time</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>32</XMax>
+                <XBins>32</XBins>
+                <XTitle>Time Bin</XTitle>
+                <YTitle>Number of CFEB Comparators Hits</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Minus Endcap CFEBs Comparators Time Bins distribution</Title>
+        </Histogram>
+
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_ALCT_CLCT_Match_mean</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Mean ALCT-CLCT Match Timing</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_ALCT_CLCT_Match_rms</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>RMS ALCT-CLCT Match Timing</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Plus_endcap_ALCT_CLCT_Match_Time</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+                <XTitle>ALCT location in CLCT-tagged window</XTitle>
+                <YTitle>Number of Events</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Plus Endcap ALCT-CLCT Match Time distribution</Title>
+        </Histogram>
+
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Minus_endcap_ALCT_CLCT_Match_Time</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+                <XTitle>ALCT location in CLCT-tagged window</XTitle>
+                <YTitle>Number of Events</YTitle>
+                <SetOptStat>emruo</SetOptStat>
+                <Title>Minus Endcap ALCT-CLCT Match Time distribution</Title>
+        </Histogram>
+	        
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_ALCT_Planes_with_Hits</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Average number of planes with Anode Hits</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+		<SetMaximum>6</SetMaximum>
+                <SetMinimum>0</SetMinimum> 
+                <DrawType>ChamberMap</DrawType>
+        </Histogram> 
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_CLCT_Planes_with_Hits</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Average number of planes with Comparators Hits</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMaximum>6</SetMaximum>
+                <SetMinimum>0</SetMinimum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_ALCT0_Quality</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Average ALCT0 quality</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+		<SetMaximum>3</SetMaximum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_CLCT0_Quality</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Average CLCT0 quality</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
+E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <SetMinimum>0</SetMinimum>
+		<SetMaximum>6</SetMaximum>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>EMU</Prefix>
@@ -1401,7 +1999,21 @@
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='No Warnings'|2='Any Input'|3='1'|4='2'|5='3'|6='4'|7='5'|8='6'|9='7'|10='8'|11='9'|12='10'|13='11'|14='12'|15='13'|16='14'|17='15'|</SetYLabels>
 	</Histogram>
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>EMU</Prefix>
+                <Name>All_DDUs_BXNs</Name>
+                <SetOption>bar1</SetOption>
+                <XMin>0</XMin>
+                <XMax>4096</XMax>
+                <XBins>512</XBins>
+                <XTitle>BXN Counter Number</XTitle>
+                <YTitle>Number of Events</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <SetLogy>1</SetLogy>
+        </Histogram>
 	<!-- Histogram>
+
 		<Type>h2</Type>
 		<Prefix>EMU</Prefix>
 		<Name>BinaryChecker_Errors</Name>
@@ -1756,6 +2368,20 @@
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>ALCT0_Pattern_Distr</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>4</XMax>
+                <XBins>4</XBins>
+                <XTitle>Pattern</XTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>ALCT0 Patterns Distributions</Title>
+                <SetXLabels>1='Collision A'|2='Collision B'|3='Acelerator'|4='N/A'|</SetXLabels>
+                <Folder>ALCT</Folder>
+        </Histogram>
+	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
 		<Name>ALCT0_Quality</Name>
@@ -1772,6 +2398,20 @@
 		<SetYLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|</SetYLabels>
 		<Folder>ALCT</Folder>
 	</Histogram>
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>ALCT0_Quality_Distr</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>4</XMax>
+                <XBins>4</XBins>
+                <XTitle>Quality</XTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>ALCT0 Quality Distribution</Title>
+                <SetXLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|</SetXLabels>
+                <Folder>ALCT</Folder>
+        </Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
@@ -1799,7 +2439,7 @@
 		<XBins>32</XBins>
 		<XTitle>ALCT0 BXN - ALCT_L1A BXN</XTitle>
 		<YTitle>Number of events</YTitle>
-		<SetOptStat>emuo</SetOptStat>
+		<SetOptStat>emruo</SetOptStat>
 		<Title>ALCT0 BXN - ALCT_L1A BXN difference</Title>
 		<Folder>ALCT</Folder>
 	</Histogram>
@@ -1884,6 +2524,20 @@
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>ALCT1_Pattern_Distr</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>4</XMax>
+                <XBins>4</XBins>
+                <XTitle>Pattern</XTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>ALCT0 Patterns Distributions</Title>
+                <SetXLabels>1='Collision A'|2='Collision B'|3='Acelerator'|4='N/A'|</SetXLabels>
+                <Folder>ALCT</Folder>
+        </Histogram>
+	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
 		<Name>ALCT1_Quality</Name>
@@ -1900,6 +2554,20 @@
 		<SetYLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|</SetYLabels>
 		<Folder>ALCT</Folder>
 	</Histogram>
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>ALCT1_Quality_Distr</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>4</XMax>
+                <XBins>4</XBins>
+                <XTitle>Quality</XTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>ALCT1 Quality Distribution</Title>
+                <SetXLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|</SetXLabels>
+                <Folder>ALCT</Folder>
+        </Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
@@ -1927,7 +2595,7 @@
 		<XBins>32</XBins>
 		<XTitle>ALCT1 BXN - ALCT_L1A BXN</XTitle>
 		<YTitle>Number of events</YTitle>
-		<SetOptStat>emuo</SetOptStat>
+		<SetOptStat>emruo</SetOptStat>
 		<Title>ALCT1 BXN - ALCT_L1A BXN difference</Title>
 		<Folder>ALCT</Folder>
 	</Histogram>
@@ -1982,6 +2650,22 @@
 		<Title>ALCT1 &amp; ALCT0 Correlation</Title>
 		<Folder>ALCT</Folder>
 	</Histogram>
+
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>AFEB_RawHits_TimeBins</Name>
+                <XMin>0</XMin>
+                <XMax>32</XMax>
+                <XBins>32</XBins>
+                <XTitle>Time Samples</XTitle>
+                <YTitle>Number of Raw Hits</YTitle>
+                <SetOptStat>emr</SetOptStat>
+                <Title>AFEB Raw Hits Time Bins distribution</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+        </Histogram>
+
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
@@ -2012,8 +2696,10 @@
 		<YMax>1</YMax>
 		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 1</Title>
+		<SetMinimum>5</SetMinimum>
+		<SetMaximum>15</SetMaximum>
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -2046,8 +2732,10 @@
 		<YMax>1</YMax>
 		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 2</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -2080,8 +2768,10 @@
 		<YMax>1</YMax>
 		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 3</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -2114,8 +2804,10 @@
 		<YMax>1</YMax>
 		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 4</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -2148,8 +2840,10 @@
 		<YMax>1</YMax>
 		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 5</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -2182,8 +2876,10 @@
 		<YMax>1</YMax>
 		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 6</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -2451,13 +3147,15 @@
 		<Name>ALCT_Number_Efficiency</Name>
 		<SetOption>texthist</SetOption>
 		<XMin>0</XMin>
-		<XMax>3</XMax>
-		<XBins>3</XBins>
+		<XMax>33</XMax>
+		<XBins>33</XBins>
 		<XTitle>Number of ALCTs</XTitle>
 		<YTitle>Efficiency (% of total DMB events)</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Number of ALCTs</Title>
-		<SetXLabels>1='0'|2='1'|3='2'|</SetXLabels>
+		<SetNdivisionsX>33</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+		<!--SetXLabels>1='0'|2='1'|3='2'|</SetXLabels-->
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -2494,8 +3192,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>ALCT_Number_Rate</Name>
 		<XMin>0</XMin>
-		<XMax>3</XMax>
-		<XBins>3</XBins>
+		<XMax>33</XMax>
+		<XBins>33</XBins>
 		<Title>Number of ALCTs</Title>
 		<Folder>ALCT</Folder>
 	</Histogram>
@@ -3531,6 +4229,20 @@
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB_SCA_CellPeak_Time</Name>
+                <XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+                <XTitle>SCA Cell</XTitle>
+                <YTitle>Number of Cell Peaks</YTitle>
+                <SetOptStat>emr</SetOptStat>
+                <Title>CFEB SCA Cell Peak Time distribution</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+        </Histogram>
+	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly1</Name>
@@ -4544,8 +5256,8 @@
 		<Name>CLCT0_BXN</Name>
 		<SetOption>hist</SetOption>
 		<XMin>0</XMin>
-		<XMax>4</XMax>
-		<XBins>4</XBins>
+		<XMax>32</XMax>
+		<XBins>32</XBins>
 		<XTitle>CLCT0 BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>eo</SetOptStat>
@@ -4652,6 +5364,20 @@
 		<Folder>CLCT</Folder>
 	</Histogram>
 	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CLCT0_Half_Strip_Pattern_Distr</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>11</XMax>
+                <XBins>11</XBins>
+                <XTitle>Pattern</XTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>CLCT0 Patterns Distribution</Title>
+                <SetXLabels>1='P=0'|2='P=1'|3='P=2'|4='P=4'|5='P=6'|6='P=8'|7='P=10'|8='P=9'|9='P=7'|10='P=5'|11='P=3'|</SetXLabels>
+                <Folder>CLCT</Folder>
+        </Histogram>
+	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CLCT0_Half_Strip_Quality</Name>
@@ -4668,6 +5394,20 @@
 		<SetYLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|5='Q=4'|6='Q=5'|7='Q=6'|</SetYLabels>
 		<Folder>CLCT</Folder>
 	</Histogram>
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CLCT0_Half_Strip_Quality_Distr</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>7</XMax>
+                <XBins>7</XBins>
+                <XTitle>Quality</XTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>CLCT0 Quality Distribution</Title>
+                <SetXLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|5='Q=4'|6='Q=5'|7='Q=6'|</SetXLabels>
+                <Folder>CLCT</Folder>
+        </Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
@@ -4718,16 +5458,33 @@
 		<Prefix>CSC</Prefix>
 		<Name>CLCT0_dTime</Name>
 		<SetOption>texthist</SetOption>
-		<XMin>-4</XMin>
-		<XMax>4</XMax>
-		<XBins>8</XBins>
+		<XMin>-16</XMin>
+		<XMax>16</XMax>
+		<XBins>32</XBins>
 		<XTitle>CLCT0 BXN - TMB_L1A BXN</XTitle>
 		<YTitle>Number of events</YTitle>
-		<SetOptStat>emuo</SetOptStat>
+		<SetOptStat>emruo</SetOptStat>
 		<Title>CLCT0 BXN - TMB_L1A BXN Difference</Title>
 		<SetMinimum>0</SetMinimum>
 		<Folder>CLCT</Folder>
 	</Histogram>
+	<Histogram>
+                <Type>hp</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CLCT0_dTime_Profile</Name>
+                <SetOption>P</SetOption>
+                <XMin>0</XMin>
+                <XMax>160</XMax>
+                <XBins>160</XBins>
+                <XTitle>Key Half Strip</XTitle>
+                <YMin>-16</YMin>
+                <YMax>16</YMax>
+                <YBins>32</YBins>
+                <YTitle>Average (CLCT0 BXN - L1A BXN)</YTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>Average (CLCT0 BXN - L1A BXN) vs Key Half Strip</Title>
+                <Folder>ALCT</Folder>
+        </Histogram>
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
@@ -4737,9 +5494,9 @@
 		<XMax>160</XMax>
 		<XBins>40</XBins>
 		<XTitle>Key DiStrip</XTitle>
-		<YMin>-4</YMin>
-		<YMax>4</YMax>
-		<YBins>8</YBins>
+		<YMin>-16</YMin>
+		<YMax>16</YMax>
+		<YBins>32</YBins>
 		<YTitle>CLCT0 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>(CLCT0 BXN - TMB_L1A BXN) vs Key DiStrip</Title>
@@ -4754,11 +5511,11 @@
 		<XMax>160</XMax>
 		<XBins>160</XBins>
 		<XTitle>Key Half Strip</XTitle>
-		<YMin>-4</YMin>
-		<YMax>4</YMax>
-		<YBins>8</YBins>
+		<YMin>-16</YMin>
+		<YMax>16</YMax>
+		<YBins>32</YBins>
 		<YTitle>CLCT0 BXN - TMB_L1A BXN</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>(CLCT0 BXN - TMB_L1A BXN) vs Key Half Strip</Title>
 		<Folder>CLCT</Folder>
 	</Histogram>
@@ -4785,8 +5542,8 @@
 		<Name>CLCT1_BXN</Name>
 		<SetOption>hist</SetOption>
 		<XMin>0</XMin>
-		<XMax>4</XMax>
-		<XBins>4</XBins>
+		<XMax>32</XMax>
+		<XBins>32</XBins>
 		<XTitle>CLCT1 BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>eo</SetOptStat>
@@ -4863,6 +5620,20 @@
 		<Folder>CLCT</Folder>
 	</Histogram>
 	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CLCT1_Half_Strip_Pattern_Distr</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>11</XMax>
+                <XBins>11</XBins>
+                <XTitle>Pattern</XTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>CLCT1 Patterns Distribution</Title>
+                <SetXLabels>1='P=0'|2='P=1'|3='P=2'|4='P=4'|5='P=6'|6='P=8'|7='P=10'|8='P=9'|9='P=7'|10='P=5'|11='P=3'|</SetXLabels>
+                <Folder>CLCT</Folder>
+        </Histogram>
+	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CLCT1_Half_Strip_Quality</Name>
@@ -4879,6 +5650,20 @@
 		<SetYLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|5='Q=4'|6='Q=5'|7='Q=6'|</SetYLabels>
 		<Folder>CLCT</Folder>
 	</Histogram>
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CLCT1_Half_Strip_Quality_Distr</Name>
+                <SetOption>texthist</SetOption>
+                <XMin>0</XMin>
+                <XMax>7</XMax>
+                <XBins>7</XBins>
+                <XTitle>Quality</XTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>CLCT1 Quality Distribution</Title>
+                <SetXLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|5='Q=4'|6='Q=5'|7='Q=6'|</SetXLabels>
+                <Folder>CLCT</Folder>
+        </Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
@@ -4929,16 +5714,33 @@
 		<Prefix>CSC</Prefix>
 		<Name>CLCT1_dTime</Name>
 		<SetOption>texthist</SetOption>
-		<XMin>-4</XMin>
-		<XMax>4</XMax>
-		<XBins>8</XBins>
+		<XMin>-16</XMin>
+		<XMax>16</XMax>
+		<XBins>32</XBins>
 		<XTitle>CLCT1 BXN - TMB_L1A BXN</XTitle>
 		<YTitle>Number of events</YTitle>
-		<SetOptStat>emuo</SetOptStat>
+		<SetOptStat>emruo</SetOptStat>
 		<Title>CLCT1 BXN - TMB_L1A BXN Difference</Title>
 		<SetMinimum>0</SetMinimum>
 		<Folder>CLCT</Folder>
 	</Histogram>
+	<Histogram>
+                <Type>hp</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CLCT1_dTime_Profile</Name>
+                <SetOption>P</SetOption>
+                <XMin>0</XMin>
+                <XMax>160</XMax>
+                <XBins>160</XBins>
+                <XTitle>Key Half Strip</XTitle>
+                <YMin>-16</YMin>
+                <YMax>16</YMax>
+                <YBins>32</YBins>
+                <YTitle>Average (CLCT1 BXN - L1A BXN)</YTitle>
+                <SetOptStat>em</SetOptStat>
+                <Title>Average (CLCT1 BXN - L1A BXN) vs Key Half Strip</Title>
+                <Folder>ALCT</Folder>
+        </Histogram>
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
@@ -4948,9 +5750,9 @@
 		<XMax>160</XMax>
 		<XBins>40</XBins>
 		<XTitle>Key DiStrip</XTitle>
-		<YMin>-4</YMin>
-		<YMax>4</YMax>
-		<YBins>8</YBins>
+		<YMin>-16</YMin>
+		<YMax>16</YMax>
+		<YBins>32</YBins>
 		<YTitle>CLCT1 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>(CLCT1 BXN - TMB_L1A BXN) vs Key DiStrip</Title>
@@ -4965,11 +5767,11 @@
 		<XMax>160</XMax>
 		<XBins>160</XBins>
 		<XTitle>Key Half Strip</XTitle>
-		<YMin>-4</YMin>
-		<YMax>4</YMax>
-		<YBins>8</YBins>
+		<YMin>-16</YMin>
+		<YMax>16</YMax>
+		<YBins>32</YBins>
 		<YTitle>CLCT1 BXN - TMB_L1A BXN</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>(CLCT1 BXN - TMB_L1A BXN) vs Key Half Strip</Title>
 		<Folder>CLCT</Folder>
 	</Histogram>
@@ -4990,6 +5792,20 @@
 		<Title>CLCT1 &amp; CLCT0 Correlation</Title>
 		<Folder>CLCT</Folder>
 	</Histogram>
+	 <Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB_Comparators_TimeSamples</Name>
+                <XMin>0</XMin>
+                <XMax>32</XMax>
+                <XBins>32</XBins>
+                <XTitle>Time Sample</XTitle>
+                <YTitle>Number of Comparators Hits</YTitle>
+                <SetOptStat>emr</SetOptStat>
+                <Title>CFEB Comparators Time Samples distribution</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+        </Histogram>
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
@@ -5020,8 +5836,10 @@
 		<YMax>32</YMax>
 		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 1</Title>
+		<SetMinimum>5</SetMinimum>
+		<SetMaximum>15</SetMaximum>
 		<Folder>CLCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -5054,8 +5872,10 @@
 		<YMax>32</YMax>
 		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 2</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>CLCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -5088,8 +5908,10 @@
 		<YMax>32</YMax>
 		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 3</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>CLCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -5122,8 +5944,10 @@
 		<YMax>32</YMax>
 		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 4</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>CLCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -5156,8 +5980,10 @@
 		<YMax>32</YMax>
 		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 5</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>CLCT</Folder>
 	</Histogram>
 	<Histogram>
@@ -5190,8 +6016,10 @@
 		<YMax>32</YMax>
 		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 6</Title>
+		<SetMinimum>5</SetMinimum>
+                <SetMaximum>15</SetMaximum>
 		<Folder>CLCT</Folder>
 	</Histogram>
 	<Histogram>
