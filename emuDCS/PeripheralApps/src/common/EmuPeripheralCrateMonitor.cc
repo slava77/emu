@@ -124,6 +124,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   fast_count = 0;
   slow_count = 0;
   extra_count = 0;
+  read_interval=0;
 
   global_config_states[0]="UnConfiged";
   global_config_states[1]="Configuring";
@@ -223,7 +224,12 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onFastLoop (xoap::MessageRefer
 {
   // std::cout << "SOAP Fast Loop" << std::endl;
   fast_count++;
-  if(fast_on) PublishEmuInfospace(1);
+  if(fast_on)
+  {   time_t thistime = ::time(NULL);
+      if(old_time) read_interval = thistime - old_time;
+      old_time = thistime;
+      PublishEmuInfospace(1);
+  }
   return createReply(message);
 }
 
@@ -2411,7 +2417,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   int o_value, n_value, i_value;
   xdata::InfoSpace * is;
 
-  if(!Monitor_Ready_) return;
+  if((!Monitor_Ready_) || read_interval<=0) return;
   //
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
   *out << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/emuDCS/PeripheralApps/xml/counterMonitor_XSL.xml\"?>" << std::endl;
@@ -2421,7 +2427,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   *out << now_time.toString();
   *out << "\">" << std::endl;
 
-  *out << "  <sample name=\"sliding\" delta_t=\"10\">" << std::endl;
+  *out << "  <sample name=\"sliding\" delta_t=\"" << read_interval << "\">" << std::endl;
 
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
