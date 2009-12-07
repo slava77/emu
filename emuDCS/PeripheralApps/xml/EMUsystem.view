@@ -909,7 +909,15 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
 ]]>
     </sql:query>
     
-    
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="latest_flash_write">
+      <sql:parameter name="SIDE">
+        <![CDATA[]]>
+      </sql:parameter> 
+	<![CDATA[select * from (select emu_flash_write.config_id from emu_flash_write,emu_configuration where emu_configuration.emu_config_id=emu_flash_write.config_id and emu_configuration.emu_endcap_side='$SIDE' order by write_date desc) where rownum=1]]>
+    </sql:query>
+   <sql:insert name="flash_write"  xmlns:sql="urn:tstore-view-SQL" >
+	<sql:table name="EMU_FLASH_WRITE"/>
+    </sql:insert>
     <!-- Table definitions-->
     <tstore:table key="EMU_CONFIG_ID" name="EMU_CONFIGURATION">
       <tstore:column name="DESCRIPTION" type="string"/>
@@ -1242,6 +1250,10 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
         <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
       </tstore:foreignkey>
     </tstore:table>
+   <tstore:table name="EMU_FLASH_WRITE" key="WRITE_DATE">
+	<tstore:column name="WRITE_DATE" type="time"/>
+	<tstore:column name="CONFIG_ID" type="unsigned int 64"/>
+   </tstore:table>
   </tstore:view>
 
 </tstore:configuration>
