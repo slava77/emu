@@ -411,12 +411,74 @@ void EmuTStore::getConfigIds(std::vector<std::string> &configIDs,const std::stri
 	      }
 }
 
+ bool EmuTStore::tableHasColumn(xdata::Table &table,const std::string &column) {
+	 std::vector<std::string> columns=table.getColumns();
+	 return std::find(columns.begin(),columns.end(),column)!=columns.end();
+ }
+
+std::string EmuTStore::getLastConfigIdUsed(const std::string &endcap_side) throw (xcept::Exception) {
+	std::string connectionID=connect();
+
+	std::string queryViewName="latest_flash_write";
+
+	//for a query, we need to send some parameters which are specific to SQLView.
+	//these use the namespace tstore-view-SQL. 
+
+	//In general, you might have the view name in a variable, so you won't know the view class. In this
+	//case you can find out the view class using the TStore client library:
+	std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+
+	//If we give the name of the view class when constructing the TStoreRequest, 
+	//it will automatically use that namespace for
+	//any view specific parameters we add.
+	emu::base::TStoreRequest request("query",viewClass);
+
+	//add the connection ID
+	request.addTStoreParameter("connectionID",connectionID);
+
+	//for an SQLView, the name parameter refers to the name of a query section in the configuration
+	request.addViewSpecificParameter("name",queryViewName);
+
+	//add parameter name and value (endcap_side)
+	request.addViewSpecificParameter("SIDE",endcap_side);
+	
+	xoap::MessageReference message=request.toSOAP();
+	xoap::MessageReference response=sendSOAPMessage(message);
+
+	//use the TStore client library to extract the first attachment of type "table"
+	//from the SOAP response
+	xdata::Table results;
+	if (!tstoreclient::getFirstAttachmentOfType(response,results)) {
+		XCEPT_RAISE (xcept::Exception, "Server returned no data");
+	}
+
+	disconnect(connectionID);
+	if (!results.getRowCount()) return "";
+	if (results.getRowCount()>1) XCEPT_RAISE(xcept::Exception,"query returned more than one row");
+	if (!tableHasColumn(results,"CONFIG_ID")) XCEPT_RAISE(xcept::Exception,"query did not return a CONFIG_ID column");
+	return results.getValueAt(0,"CONFIG_ID")->toString();
+}
+
+void EmuTStore::recordFlashWrite(const std::string &configID) throw (xcept::Exception) {
+	xdata::UnsignedInteger64 xdaqConfigID;
+	xdaqConfigID.fromString(configID);
+	xdata::TimeVal currentTime(toolbox::TimeVal::gettimeofday());
+	xdata::Table definition;
+	std::string connectionID=connect();
+	getDefinition(connectionID,"flash_write",definition);
+	//definition.append();
+	definition.setValueAt(0,"CONFIG_ID",xdaqConfigID);
+	definition.setValueAt(0,"WRITE_DATE",currentTime);
+	insert(connectionID,"flash_write", definition);
+	disconnect(connectionID);
+}
+
 std::vector<std::string> EmuTStore::getConfigurationList(unsigned int endcap, unsigned int max_item_in_list) throw (xcept::Exception) {
 	std::vector<std::string> configIDs;
 	if (endcap>2) {
 		std::ostringstream error;
 		error << "unknown endcap: " << endcap;
-		XCEPT_RAISE (xcept::Exception, error.str());
+		XCEPT_RAISE (xcept::Exception, error.str()); 
 	}
 	getConfigIds(configIDs,(endcap==1)?"plus":"minus",max_item_in_list);
 	return configIDs;

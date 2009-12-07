@@ -59,8 +59,8 @@ void getDefinition(const std::string &connectionID, const std::string &insertVie
   void getConfiguration(const std::string &xpath) throw (xcept::Exception);
 void EmuTStore::getConfigIds(std::vector<std::string> &configIDs,const std::string endcap_side,int max_ids) throw (xcept::Exception);
  std::vector<std::string> EmuTStore::getConfigurationList(unsigned int endcap, unsigned int max_item_in_list) throw (xcept::Exception);
-
-  //
+void recordFlashWrite(const std::string &configID) throw (xcept::Exception);
+std::string getLastConfigIdUsed(const std::string &endcap_side) throw (xcept::Exception);
   void getDbUserData();
 
   // DB Data Reads
@@ -77,6 +77,7 @@ void EmuTStore::getConfigIds(std::vector<std::string> &configIDs,const std::stri
   void readALCT(const std::string &connectionID, const std::string &emu_config_id, const std::string &tmb_config_id, TMB * theTmb) throw (xcept::Exception);
   void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct) throw (xcept::Exception);
  private:
+ bool tableHasColumn(xdata::Table &table,const std::string &column);
 
   xdaq::Application *thisApp;
   std::string xmlfile_;
