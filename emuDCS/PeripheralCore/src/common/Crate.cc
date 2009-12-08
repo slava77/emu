@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.60 2009/11/18 12:27:17 liu Exp $
+// $Id: Crate.cc,v 3.61 2009/12/08 11:37:19 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.61  2009/12/08 11:37:19  liu
+// sort chambers within a crate if they are in random order
+//
 // Revision 3.60  2009/11/18 12:27:17  liu
 // more error messages for DCS reading problems
 //
@@ -257,11 +260,13 @@ Crate::Crate(int CrateID, VMEController * controller) :
   theCrateID(CrateID),  
   label_("label"),
   alive_(true),
+  sorted_(false),
   theModules(28),
   theController(controller)
 {
   for(unsigned i=0;i<theModules.size();i++) theModules[i] = 0;
   theChambers.clear();
+  sortedChambers.clear();
 }
 
 
@@ -312,10 +317,30 @@ std::vector<ChamberUtilities> Crate::chamberUtilsMatch() const {
 #endif
 
 //
-std::vector<Chamber*> Crate::chambers() const {
+std::vector<Chamber*> Crate::chambers() {
   //
-  return theChambers;
-  //
+  if(!sorted_)
+  {
+     for (int i=2; i<21; i+=2) {
+           if(i==12) continue;
+           Chamber * mychamber = this->GetChamber(i);
+           if(mychamber)
+           {   sortedChambers.push_back(mychamber);
+           }
+           else
+           {    mychamber = this->GetChamber(i+1);
+                if(mychamber) sortedChambers.push_back(mychamber);
+           }
+     }
+     sorted_ = true;
+  }
+  if(sortedChambers.size()==theChambers.size()) return sortedChambers;
+  else
+  { 
+     // something wrong, can't sort the chambers
+     std::cout << "ERROR in Crate: Cannot sort chambers " << sortedChambers.size() << " " << theChambers.size() << std::endl;
+     return theChambers;  
+  }
 }
 //
 std::vector<DAQMB *> Crate::daqmbs() const {

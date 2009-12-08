@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.5 2009/10/25 09:54:45 liu Exp $
+// $Id: Crate.h,v 1.6 2009/12/08 11:41:39 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.6  2009/12/08 11:41:39  liu
+// sort chambers within a crate if they are in random order
+//
 // Revision 1.5  2009/10/25 09:54:45  liu
 // add a new parameter power_mask for DMB, more counters for CCB
 //
@@ -138,7 +141,7 @@ public:
   std::vector<DAQMB *> daqmbs() const;
   std::vector<TMB *> tmbs() const;
   std::vector<ALCTController *> alcts() const;
-  std::vector<Chamber*> chambers() const;
+  std::vector<Chamber *> chambers();
   //
   VMECC * vmecc() const;
   CCB * ccb() const;
@@ -168,9 +171,11 @@ private:
   int theCrateID;
   std::string label_;
   bool alive_;
+  bool sorted_;
   /// indexed by slot 
   std::vector<VMEModule *> theModules;
   std::vector<Chamber *> theChambers;
+  std::vector<Chamber *> sortedChambers;
   VMEController * theController;
 };
 
