@@ -576,3 +576,12 @@ td.data_board {
 /* Closed to begin with */
 .hidden {
 }
+
+.inputError {
+	background-color: #FAA;
+}
+
+.inputWarning {
+	background-color: #FFA;
+}
+
