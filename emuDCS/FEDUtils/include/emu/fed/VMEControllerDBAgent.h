@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerDBAgent.h,v 1.5 2009/11/13 09:03:11 paste Exp $
+* $Id: VMEControllerDBAgent.h,v 1.6 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMECONTROLLERDBAGENT_H__
 #define __EMU_FED_VMECONTROLLERDBAGENT_H__
@@ -11,6 +11,7 @@
 
 #include "emu/fed/Exception.h"
 #include "xdata/UnsignedShort.h"
+#include "xdata/TableIterator.h"
 
 namespace emu {
 	namespace fed {
@@ -28,13 +29,17 @@ namespace emu {
 			VMEControllerDBAgent(xdaq::WebApplication *application);
 			
 			/** Build a controller corresponding to a configuration key and a crate number **/
-			emu::fed::VMEController *getController(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number)
+			emu::fed::VMEController *getController(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number, const bool &fake = false)
+			throw (emu::fed::exception::DBException);
+			
+			/** Upload a controller **/
+			void upload(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber, VMEController *controller)
 			throw (emu::fed::exception::DBException);
 
 		private:
 		
 			/** Build the controller from the table returned **/
-			emu::fed::VMEController *buildController(xdata::Table &table)
+			emu::fed::VMEController *buildController(xdata::Table &table, const bool &fake = false)
 			throw (emu::fed::exception::DBException);
 			
 		};

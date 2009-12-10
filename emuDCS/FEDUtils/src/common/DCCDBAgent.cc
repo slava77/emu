@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.cc,v 1.7 2009/11/23 09:20:20 paste Exp $
+* $Id: DCCDBAgent.cc,v 1.8 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DCCDBAgent.h"
@@ -17,7 +17,7 @@ DBAgent(application)
 
 
 
-std::vector<emu::fed::DCC *> emu::fed::DCCDBAgent::getDCCs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber)
+std::vector<emu::fed::DCC *> emu::fed::DCCDBAgent::getDCCs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber, const bool &fake)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -34,7 +34,7 @@ throw (emu::fed::exception::DBException)
 	}
 	
 	try {
-		return buildDCCs(result);
+		return buildDCCs(result, fake);
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
 	}
@@ -42,7 +42,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::vector<emu::fed::DCC *> emu::fed::DCCDBAgent::buildDCCs(xdata::Table &table)
+std::vector<emu::fed::DCC *> emu::fed::DCCDBAgent::buildDCCs(xdata::Table &table, const bool &fake)
 throw (emu::fed::exception::DBException)
 {
 	std::vector<DCC *> returnMe;
@@ -60,16 +60,20 @@ throw (emu::fed::exception::DBException)
 			xdata::Boolean sw_bit4 = getValue<xdata::Boolean>(*iRow, "SW_BIT4");
 			xdata::Boolean sw_bit5 = getValue<xdata::Boolean>(*iRow, "SW_BIT5");
 
-			DCC *newDCC = new DCC(slot);
-			newDCC->fmm_id_ = fmm_id;
-			newDCC->slink1_id_ = slink1_id;
-			newDCC->slink2_id_ = slink2_id;
-			if (enable_sw_switch) newDCC->softsw_ |= 0x200;
-			if (ttcrx_not_ready) newDCC->softsw_ |= 0x1000;
-			if (ignore_slink_backpressure) newDCC->softsw_ |= 0x2000;
-			if (ignore_slink_not_present) newDCC->softsw_ |= 0x4000;
-			if (sw_bit4) newDCC->softsw_ |= 0x10;
-			if (sw_bit5) newDCC->softsw_ |= 0x20;
+			DCC *newDCC = new DCC(slot, fake);
+			newDCC->setFMMID(fmm_id);
+			newDCC->setSLinkID(1, slink1_id);
+			newDCC->setSLinkID(2, slink2_id);
+			
+			uint16_t softsw = 0;
+			if (enable_sw_switch) softsw |= 0x200;
+			if (ttcrx_not_ready) softsw |= 0x1000;
+			if (ignore_slink_not_present) softsw |= 0x4000;
+			else if (ignore_slink_backpressure) softsw |= 0x2000;
+			if (sw_bit4) softsw |= 0x10;
+			if (sw_bit5) softsw |= 0x20;
+			
+			newDCC->setSoftwareSwitch(softsw);
 
 			returnMe.push_back(newDCC);
 		}
@@ -78,4 +82,65 @@ throw (emu::fed::exception::DBException)
 	}
 	
 	return returnMe;
+}
+
+
+
+void emu::fed::DCCDBAgent::upload(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber, const std::vector<emu::fed::DCC *> &dccVector)
+throw (emu::fed::exception::DBException)
+{
+	try {
+		// Make a table
+		xdata::Table table;
+		
+		// Add column names and types
+		table.addColumn("KEY", "unsigned int 64");
+		table.addColumn("CRATE_NUMBER", "unsigned short");
+		table.addColumn("SLOT", "unsigned short");
+		table.addColumn("FMM_ID", "unsigned int");
+		table.addColumn("SLINK1_ID", "unsigned int");
+		table.addColumn("SLINK2_ID", "unsigned int");
+		table.addColumn("ENABLE_SW_SWITCH", "bool");
+		table.addColumn("TTCRX_NOT_READY", "bool");
+		table.addColumn("IGNORE_SLINK_BACKPRESSURE", "bool");
+		table.addColumn("IGNORE_SLINK_NOT_PRESENT", "bool");
+		table.addColumn("SW_BIT4", "bool");
+		table.addColumn("SW_BIT5", "bool");
+		
+		for (std::vector<DCC *>::const_iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
+			// Make a new row
+			xdata::TableIterator iRow = table.append();
+			
+			// Set values
+			xdata::UnsignedShort slot = (*iDCC)->getSlot();
+			xdata::UnsignedInteger fmmid = (*iDCC)->getFMMID();
+			xdata::UnsignedInteger slink1 = (*iDCC)->getSLinkID(1);
+			xdata::UnsignedInteger slink2 = (*iDCC)->getSLinkID(2);
+			xdata::Boolean sw = (*iDCC)->getSoftwareSwitch() & 0x200;
+			xdata::Boolean ttcrx = (*iDCC)->getSoftwareSwitch() & 0x1000;
+			xdata::Boolean backpressure = (*iDCC)->getSoftwareSwitch() & 0x2000;
+			xdata::Boolean slinknp = (*iDCC)->getSoftwareSwitch() & 0x4000;
+			xdata::Boolean bit4 = (*iDCC)->getSoftwareSwitch() & 0x10;
+			xdata::Boolean bit5 = (*iDCC)->getSoftwareSwitch() & 0x20;
+			iRow->setField("KEY", key);
+			iRow->setField("CRATE_NUMBER", crateNumber);
+			iRow->setField("SLOT", slot);
+			iRow->setField("FMM_ID", fmmid);
+			iRow->setField("SLINK1_ID", slink1);
+			iRow->setField("SLINK2_ID", slink2);
+			iRow->setField("ENABLE_SW_SWITCH", sw);
+			iRow->setField("TTCRX_NOT_READY", ttcrx);
+			iRow->setField("IGNORE_SLINK_BACKPRESSURE", backpressure);
+			iRow->setField("IGNORE_SLINK_NOT_PRESENT", slinknp);
+			iRow->setField("SW_BIT4", bit4);
+			iRow->setField("SW_BIT5", bit5);
+			
+		}
+		
+		// Insert
+		insert("dcc", table);
+		
+	} catch (xdaq::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload DCCs to database: " + std::string(e.what()), e);
+	}
 }

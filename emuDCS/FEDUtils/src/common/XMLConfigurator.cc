@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.cc,v 1.8 2009/11/23 07:44:00 paste Exp $
+* $Id: XMLConfigurator.cc,v 1.9 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/XMLConfigurator.h"
@@ -7,15 +7,23 @@
 #include <sstream>
 #include <sys/stat.h>
 #include "xercesc/parsers/XercesDOMParser.hpp"
+#include "xercesc/dom/DOM.hpp"
+#include "xercesc/dom/DOMImplementation.hpp"
+#include "xercesc/dom/DOMImplementationLS.hpp"
+#include "xercesc/dom/DOMWriter.hpp"
 #include "emu/fed/DDUParser.h"
 #include "emu/fed/DDU.h"
 #include "emu/fed/Crate.h"
+#include "emu/fed/VMEController.h"
 #include "emu/fed/FiberParser.h"
 #include "emu/fed/DCCParser.h"
 #include "emu/fed/DDU.h"
 #include "emu/fed/FIFOParser.h"
 #include "emu/fed/VMEControllerParser.h"
 #include "emu/fed/CrateParser.h"
+
+#define X(str) xercesc::XMLString::transcode(str)
+
 
 emu::fed::XMLConfigurator::XMLConfigurator(const std::string &filename):
 filename_(filename)
@@ -26,7 +34,7 @@ filename_(filename)
 
 
 
-std::vector<emu::fed::Crate *> emu::fed::XMLConfigurator::setupCrates()
+std::vector<emu::fed::Crate *> emu::fed::XMLConfigurator::setupCrates(const bool &fake)
 throw (emu::fed::exception::ConfigurationException)
 {
 	// Timestamp is easy
@@ -39,7 +47,7 @@ throw (emu::fed::exception::ConfigurationException)
 		xercesc::XMLPlatformUtils::Initialize();
 	} catch (xercesc::XMLException &e) {
 		std::ostringstream error;
-		error << "Error during Xerces-c Initialization: " << xercesc::XMLString::transcode(e.getMessage());
+		error << "Error during Xerces-c Initialization: " << X(e.getMessage());
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
 	
@@ -58,13 +66,13 @@ throw (emu::fed::exception::ConfigurationException)
 		delete parser;
 		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
-		error << "XML Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
+		error << "XML Error during parsing: " << X(e.getMessage());
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	} catch (xercesc::DOMException& e) {
 		delete parser;
 		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
-		error << "DOM Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
+		error << "DOM Error during parsing: " << X(e.getMessage());
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	} catch (...) {
 		delete parser;
@@ -94,7 +102,7 @@ throw (emu::fed::exception::ConfigurationException)
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
 	
-	if ( strcmp(xercesc::XMLString::transcode(pFEDSystem->getTagName()), "FEDSystem") ) {
+	if ( strcmp(X(pFEDSystem->getTagName()), "FEDSystem") ) {
 		delete parser;
 		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
@@ -103,13 +111,13 @@ throw (emu::fed::exception::ConfigurationException)
 	}
 	
 	// Let's get the system name
-	std::string tempName(xercesc::XMLString::transcode(pFEDSystem->getAttribute( xercesc::XMLString::transcode("NAME"))));
+	std::string tempName(X(pFEDSystem->getAttribute( X("NAME"))));
 	systemName_ = (tempName == "" ? "unnamed" : tempName);
 	
 	// Parse everything one element at a time.
 	
 	// Get Crates and parse
-	xercesc::DOMNodeList *pFEDCrates = pFEDSystem->getElementsByTagName(xercesc::XMLString::transcode("FEDCrate"));
+	xercesc::DOMNodeList *pFEDCrates = pFEDSystem->getElementsByTagName(X("FEDCrate"));
 	
 	if (pFEDCrates == NULL) {
 		delete parser;
@@ -125,7 +133,7 @@ throw (emu::fed::exception::ConfigurationException)
 		
 		Crate *newCrate;
 		try {
-			newCrate = CrateParser(pFEDCrate).getCrate();
+			newCrate = CrateParser::parse(pFEDCrate);
 		} catch (emu::fed::exception::ParseException &e) {
 			delete parser;
 			xercesc::XMLPlatformUtils::Terminate();
@@ -135,7 +143,7 @@ throw (emu::fed::exception::ConfigurationException)
 		}
 		
 		// Get VMEController
-		xercesc::DOMNodeList *pVMEControllers = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("VMEController"));
+		xercesc::DOMNodeList *pVMEControllers = pFEDCrate->getElementsByTagName(X("VMEController"));
 		
 		if (pVMEControllers->getLength() != 1) {
 			delete parser;
@@ -149,7 +157,7 @@ throw (emu::fed::exception::ConfigurationException)
 		
 		// Parse the attributes and make the controller.
 		try {
-			newCrate->setController(VMEControllerParser(pVMEController).getController());
+			newCrate->setController(VMEControllerParser::parse(pVMEController, fake));
 		} catch (emu::fed::exception::ParseException &e) {
 			delete parser;
 			xercesc::XMLPlatformUtils::Terminate();
@@ -159,7 +167,7 @@ throw (emu::fed::exception::ConfigurationException)
 		}
 		
 		// Get DDUs.  If there are none, then that is a valid crate anyway (even though it doesn't make sense).
-		xercesc::DOMNodeList *pDDUs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DDU"));
+		xercesc::DOMNodeList *pDDUs = pFEDCrate->getElementsByTagName(X("DDU"));
 		
 		for (unsigned int iDDU = 0; iDDU < pDDUs->getLength(); iDDU++) {
 			xercesc::DOMElement *pDDU = (xercesc::DOMElement *) pDDUs->item(iDDU);
@@ -167,7 +175,7 @@ throw (emu::fed::exception::ConfigurationException)
 			// Parse and figure out high 5 bits of killfiber, gbe prescale, etc.
 			DDU *newDDU;
 			try {
-				newDDU = DDUParser(pDDU).getDDU();
+				newDDU = DDUParser::parse(pDDU);
 			} catch (emu::fed::exception::ParseException &e) {
 				delete parser;
 				xercesc::XMLPlatformUtils::Terminate();
@@ -177,14 +185,13 @@ throw (emu::fed::exception::ConfigurationException)
 			}
 			
 			// Get Chambers.  OK if there are none.
-			xercesc::DOMNodeList *pFibers = pDDU->getElementsByTagName(xercesc::XMLString::transcode("Fiber"));
+			xercesc::DOMNodeList *pFibers = pDDU->getElementsByTagName(X("Fiber"));
 			
 			for (unsigned int iFiber = 0; iFiber < pFibers->getLength(); iFiber++) {
 				xercesc::DOMElement *pFiber = (xercesc::DOMElement *) pFibers->item(iFiber);
 				// Parse and add to the Fiber.
 				try {
-					FiberParser fiberParser = FiberParser(pFiber);
-					newDDU->addFiber(fiberParser.getFiber());
+					newDDU->addFiber(FiberParser::parse(pFiber));
 				} catch (emu::fed::exception::Exception &e) {
 					delete parser;
 					xercesc::XMLPlatformUtils::Terminate();
@@ -199,7 +206,7 @@ throw (emu::fed::exception::ConfigurationException)
 		}
 		
 		// Get DCCs.  OK if there are none.
-		xercesc::DOMNodeList *pDCCs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DCC"));
+		xercesc::DOMNodeList *pDCCs = pFEDCrate->getElementsByTagName(X("DCC"));
 		
 		for (unsigned int iDCC = 0; iDCC < pDCCs->getLength(); iDCC++) {
 			xercesc::DOMElement *pDCC = (xercesc::DOMElement *) pDCCs->item(iDCC);
@@ -207,7 +214,7 @@ throw (emu::fed::exception::ConfigurationException)
 			// Parse
 			DCC *newDCC;
 			try {
-				newDCC = DCCParser(pDCC).getDCC();
+				newDCC = DCCParser::parse(pDCC);
 			} catch (emu::fed::exception::ParseException &e) {
 				delete parser;
 				xercesc::XMLPlatformUtils::Terminate();
@@ -217,7 +224,7 @@ throw (emu::fed::exception::ConfigurationException)
 			}
 			
 			// Get FIFOs.  OK if there are none.
-			xercesc::DOMNodeList *pFIFOs = pDCC->getElementsByTagName(xercesc::XMLString::transcode("FIFO"));
+			xercesc::DOMNodeList *pFIFOs = pDCC->getElementsByTagName(X("FIFO"));
 			
 			for (unsigned int iFIFO = 0; iFIFO < pFIFOs->getLength(); iFIFO++) {
 				
@@ -225,9 +232,7 @@ throw (emu::fed::exception::ConfigurationException)
 				
 				// Parse and add to the FIFO.
 				try {
-					FIFOParser fifoParser = FIFOParser(pFIFO);
-					// This alters the fifos in use, too.
-					newDCC->addFIFO(fifoParser.getFIFO());
+					newDCC->addFIFO(FIFOParser::parse(pFIFO));
 				} catch (emu::fed::exception::ParseException &e) {
 					delete parser;
 					xercesc::XMLPlatformUtils::Terminate();
@@ -254,3 +259,142 @@ throw (emu::fed::exception::ConfigurationException)
 
 	return crateVector_;
 }
+
+
+
+std::string emu::fed::XMLConfigurator::makeXML(const std::vector<emu::fed::Crate *> &crateVector, const std::string &systemName)
+throw (emu::fed::exception::ConfigurationException)
+{
+	// Initialize XML4C system
+	try {
+		xercesc::XMLPlatformUtils::Initialize();
+	} catch (xercesc::XMLException &e) {
+		std::ostringstream error;
+		error << "Error during Xerces-c Initialization: " << X(e.getMessage());
+		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+	}
+	
+	// I need an implementation to build a DOMWriter.  The Core XML implementation is good enough.
+	xercesc::DOMImplementation *implementation = xercesc::DOMImplementationRegistry::getDOMImplementation(X("Core"));
+	
+	if (implementation == NULL) {
+		xercesc::XMLPlatformUtils::Terminate();
+		std::ostringstream error;
+		error << "Error getting DOM implementation: feature 'Core' unsupported";
+		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+	}
+	
+	// Create the document
+	xercesc::DOMDocument *document;
+	try {
+		document = implementation->createDocument(NULL, X("FEDSystem"), NULL);
+	} catch (xercesc::DOMException& e) {
+		xercesc::XMLPlatformUtils::Terminate();
+		std::ostringstream error;
+		error << "Error creating DOMDocument: " << X(e.getMessage());
+		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+	}
+	
+	// Get the newly created root
+	xercesc::DOMElement *root;
+	try {
+		root = (xercesc::DOMElement *) document->getFirstChild();
+	} catch (xercesc::DOMException& e) {
+		xercesc::XMLPlatformUtils::Terminate();
+		std::ostringstream error;
+		error << "Error getting root element: " << X(e.getMessage());
+		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+	}
+	
+	try {
+		// Set system name
+		root->setAttribute(X("NAME"), X(systemName.c_str()));
+		
+		for (std::vector<Crate *>::const_iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); ++iCrate) {
+			
+			// Make a crate element
+			xercesc::DOMElement *crateElement = CrateParser::makeDOMElement(document, (*iCrate));
+			// Append to root
+			root->appendChild(crateElement);
+			
+			// Make a controller element
+			xercesc::DOMElement *controllerElement = VMEControllerParser::makeDOMElement(document, (*iCrate)->getController());
+			// Append to crate
+			crateElement->appendChild(controllerElement);
+			
+			std::vector<DDU *> dduVector = (*iCrate)->getDDUs();
+			for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+				
+				// Make a DDU element
+				xercesc::DOMElement *dduElement = DDUParser::makeDOMElement(document, (*iDDU));
+				// Append to crate
+				crateElement->appendChild(dduElement);
+				
+				std::vector<Fiber *> fiberVector = (*iDDU)->getFibers();
+				for (std::vector<Fiber *>::iterator iFiber = fiberVector.begin(); iFiber != fiberVector.end(); ++iFiber) {
+					
+					// Make a Fiber element
+					xercesc::DOMElement *fiberElement = FiberParser::makeDOMElement(document, (*iFiber));
+					// Append to DDU
+					dduElement->appendChild(fiberElement);
+					
+				}
+				
+			}
+			
+			std::vector<DCC *> dccVector = (*iCrate)->getDCCs();
+			for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
+				
+				// Make a DDU element
+				xercesc::DOMElement *dccElement = DCCParser::makeDOMElement(document, (*iDCC));
+				// Append to crate
+				crateElement->appendChild(dccElement);
+				
+				std::vector<FIFO *> fifoVector = (*iDCC)->getFIFOs();
+				for (std::vector<FIFO *>::iterator iFIFO = fifoVector.begin(); iFIFO != fifoVector.end(); ++iFIFO) {
+					
+					// Make a FIFO element
+					xercesc::DOMElement *fifoElement = FIFOParser::makeDOMElement(document, (*iFIFO));
+					// Append to DDU
+					dccElement->appendChild(fifoElement);
+					
+				}
+				
+			}
+			
+		}
+	
+	} catch (emu::fed::exception::ParseException &e) {
+		xercesc::XMLPlatformUtils::Terminate();
+		std::ostringstream error;
+		error << "Unable to build XML document";
+		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
+	} catch (xercesc::DOMException &e) {
+		xercesc::XMLPlatformUtils::Terminate();
+		std::ostringstream error;
+		error << "Unable to build XML document due to DOM exception: " << X(e.getMessage());
+		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+	}
+	
+	// Create a writer
+	xercesc::DOMImplementation *implementationLS = xercesc::DOMImplementationRegistry::getDOMImplementation(X("LS"));
+	xercesc::DOMWriter *writer = ((xercesc::DOMImplementationLS *) implementationLS)->createDOMWriter();
+	
+	// Make things pretty if we can
+	if (writer->canSetFeature(X("format-pretty-print"), true)) writer->setFeature(X("format-pretty-print"), true);
+	
+	// Write
+	std::string returnXML = X(writer->writeToString(*document));
+	
+	delete writer;
+	
+	// Release all memory used by the document
+	document->release();
+	
+	// Terminate XML services
+	xercesc::XMLPlatformUtils::Terminate();
+	
+	return returnXML;
+	
+}
+

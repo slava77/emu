@@ -1,9 +1,8 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.8 2009/11/23 09:20:20 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.9 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
-#include "xdata/String.h"
 #include "xdata/TimeVal.h"
 #include "toolbox/TimeVal.h"
 #include "xdata/TableIterator.h"
@@ -87,4 +86,36 @@ throw (emu::fed::exception::DBException)
 	}
 	
 	return make_pair(name.toString(), timeStamp);
+}
+
+
+
+void emu::fed::SystemDBAgent::upload(xdata::UnsignedInteger64 &key, xdata::String &name)
+throw (emu::fed::exception::DBException)
+{
+	
+	try {
+		// Make a table
+		xdata::Table table;
+		
+		// Add column names and types
+		table.addColumn("ID", "unsigned int 64");
+		table.addColumn("DESCRIPTION", "string");
+		table.addColumn("TIMESTAMP", "time");
+		
+		// Make a new row
+		xdata::TableIterator iRow = table.append();
+		
+		// Set values
+		iRow->setField("ID", key);
+		iRow->setField("DESCRIPTION", name);
+		xdata::TimeVal now = toolbox::TimeVal(time(NULL));
+		iRow->setField("TIMESTAMP", now);
+		
+		// Insert
+		insert("configuration", table);
+	
+	} catch (xdaq::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload system to database: " + std::string(e.what()), e);
+	}
 }

@@ -1,9 +1,10 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.cc,v 1.8 2009/11/23 09:20:20 paste Exp $
+* $Id: FIFODBAgent.cc,v 1.9 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FIFODBAgent.h"
 #include "emu/fed/FIFO.h"
+#include "xdata/UnsignedShort.h"
 #include "xdata/Boolean.h"
 #include "xdata/String.h"
 #include "xdata/TableIterator.h"
@@ -62,4 +63,44 @@ throw (emu::fed::exception::DBException)
 	}
 	
 	return returnMe;
+}
+
+
+
+void emu::fed::FIFODBAgent::upload(xdata::UnsignedInteger64 &key, xdata::UnsignedInteger &fmmid, const std::vector<emu::fed::FIFO *> &fifoVector)
+throw (emu::fed::exception::DBException)
+{
+	try {
+		// Make a table
+		xdata::Table table;
+		
+		// Add column names and types
+		table.addColumn("KEY", "unsigned int 64");
+		table.addColumn("FMM_ID", "unsigned int");
+		table.addColumn("FIFO_NUMBER", "unsigned short");
+		table.addColumn("RUI", "unsigned short");
+		table.addColumn("USED", "bool");
+		
+		for (std::vector<FIFO *>::const_iterator iFIFO = fifoVector.begin(); iFIFO != fifoVector.end(); ++iFIFO) {
+			// Make a new row
+			xdata::TableIterator iRow = table.append();
+			
+			// Set values
+			xdata::UnsignedShort fifoNumber = (*iFIFO)->getNumber();
+			xdata::UnsignedShort rui = (*iFIFO)->getRUI();
+			xdata::Boolean used = (*iFIFO)->isUsed();
+			iRow->setField("KEY", key);
+			iRow->setField("FMM_ID", fmmid);
+			iRow->setField("FIFO_NUMBER", fifoNumber);
+			iRow->setField("RUI", rui);
+			iRow->setField("USED", used);
+			
+		}
+		
+		// Insert
+		insert("fifo", table);
+		
+	} catch (xdaq::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload FIFOs to database: " + std::string(e.what()), e);
+	}
 }

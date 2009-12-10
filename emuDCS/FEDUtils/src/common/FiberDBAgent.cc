@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.10 2009/11/23 09:20:20 paste Exp $
+* $Id: FiberDBAgent.cc,v 1.11 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -78,4 +78,44 @@ throw (emu::fed::exception::DBException)
 	
 	return returnMe;
 	
+}
+
+
+
+void emu::fed::FiberDBAgent::upload(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui, const std::vector<emu::fed::Fiber *> &fiberVector)
+throw (emu::fed::exception::DBException)
+{
+	try {
+		// Make a table
+		xdata::Table table;
+		
+		// Add column names and types
+		table.addColumn("KEY", "unsigned int 64");
+		table.addColumn("RUI", "unsigned short");
+		table.addColumn("FIBER_NUMBER", "unsigned short");
+		table.addColumn("CHAMBER", "string");
+		table.addColumn("KILLED", "bool");
+		
+		for (std::vector<Fiber *>::const_iterator iFiber = fiberVector.begin(); iFiber != fiberVector.end(); ++iFiber) {
+			// Make a new row
+			xdata::TableIterator iRow = table.append();
+			
+			// Set values
+			xdata::UnsignedShort fiberNumber = (*iFiber)->getFiberNumber();
+			xdata::String chamber = (*iFiber)->getName();
+			xdata::Boolean killed = (*iFiber)->isKilled();
+			iRow->setField("KEY", key);
+			iRow->setField("RUI", rui);
+			iRow->setField("FIBER_NUMBER", fiberNumber);
+			iRow->setField("CHAMBER", chamber);
+			iRow->setField("KILLED", killed);
+			
+		}
+		
+		// Insert
+		insert("fiber", table);
+		
+	} catch (xdaq::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload fibers to database: " + std::string(e.what()), e);
+	}
 }

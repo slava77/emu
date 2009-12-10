@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.h,v 1.2 2009/06/13 17:59:45 paste Exp $
+* $Id: XMLConfigurator.h,v 1.3 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_XMLCONFIGURATOR_H__
 #define __EMU_FED_XMLCONFIGURATOR_H__
@@ -21,9 +21,14 @@ namespace emu {
 			*	@param filename The XML file name which to parse.
 			**/
 			XMLConfigurator(const std::string &filename);
+			
+			virtual ~XMLConfigurator() {};
 
 			/** Configure the crates and return them **/
-			std::vector<emu::fed::Crate *> setupCrates()
+			virtual std::vector<emu::fed::Crate *> setupCrates(const bool &fake = false)
+			throw (emu::fed::exception::ConfigurationException);
+			
+			static std::string makeXML(const std::vector<emu::fed::Crate *> &crateVector, const std::string &systemName)
 			throw (emu::fed::exception::ConfigurationException);
 
 		protected:

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.h,v 1.5 2009/11/13 09:03:11 paste Exp $
+* $Id: FiberDBAgent.h,v 1.6 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBERDBAGENT_H__
 #define __EMU_FED_FIBERDBAGENT_H__
@@ -27,6 +27,10 @@ namespace emu {
 			
 			/** Build a bunch of Fiber objects corresponding to a configuration key and an RUI **/
 			std::vector<emu::fed::Fiber *> getFibers(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui)
+			throw (emu::fed::exception::DBException);
+			
+			/** Upload a set of fibers **/
+			void upload(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui, const std::vector<Fiber *> &fiberVector)
 			throw (emu::fed::exception::DBException);
 
 		private:

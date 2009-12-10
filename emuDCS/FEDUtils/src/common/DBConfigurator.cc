@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.cc,v 1.8 2009/11/23 07:44:00 paste Exp $
+* $Id: DBConfigurator.cc,v 1.9 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DBConfigurator.h"
@@ -26,7 +26,7 @@ dbKey_(key)
 
 
 
-std::vector<emu::fed::Crate *> emu::fed::DBConfigurator::setupCrates()
+std::vector<emu::fed::Crate *> emu::fed::DBConfigurator::setupCrates(const bool &fake)
 throw (emu::fed::exception::ConfigurationException)
 {
 	// Begin by setting up the system name
@@ -59,7 +59,7 @@ throw (emu::fed::exception::ConfigurationException)
 		try {
 			VMEControllerDBAgent VMEAgent(application_);
 			VMEAgent.setConnectionID(connectionID);
-			emu::fed::VMEController *controller = VMEAgent.getController(dbKey_, crateNumber);
+			emu::fed::VMEController *controller = VMEAgent.getController(dbKey_, crateNumber, fake);
 			(*iCrate)->setController(controller);
 		} catch (emu::fed::exception::DBException &e) {
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Error creating VME controller", e);
@@ -70,7 +70,7 @@ throw (emu::fed::exception::ConfigurationException)
 		try {
 			DDUDBAgent DDUAgent(application_);
 			DDUAgent.setConnectionID(connectionID);
-			ddus = DDUAgent.getDDUs(dbKey_, crateNumber);
+			ddus = DDUAgent.getDDUs(dbKey_, crateNumber, fake);
 		} catch (emu::fed::exception::DBException &e) {
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Error creating DDUs", e);
 		}
@@ -97,7 +97,7 @@ throw (emu::fed::exception::ConfigurationException)
 		try {
 			DCCDBAgent DCCAgent(application_);
 			DCCAgent.setConnectionID(connectionID);
-			dccs = DCCAgent.getDCCs(dbKey_, crateNumber);
+			dccs = DCCAgent.getDCCs(dbKey_, crateNumber, fake);
 		} catch (emu::fed::exception::DBException &e) {
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Error creating DCCs", e);
 		}
@@ -122,4 +122,79 @@ throw (emu::fed::exception::ConfigurationException)
 	
 	return crateVector_;
 
+}
+
+
+
+void emu::fed::DBConfigurator::uploadToDB(const std::vector<emu::fed::Crate *> &crateVector, const std::string &systemName)
+throw (emu::fed::exception::ConfigurationException)
+{
+	
+	try {
+		
+		// Create system entry
+		SystemDBAgent systemAgent(application_);
+		std::string connectionID = systemAgent.connect(dbUsername_, dbPassword_);
+		xdata::String xSystemName = systemName;
+		LOG4CPLUS_DEBUG(application_->getApplicationLogger(), "Uploading system");
+		systemAgent.upload(dbKey_, xSystemName);
+		
+		CrateDBAgent crateAgent(application_);
+		crateAgent.setConnectionID(connectionID);
+		LOG4CPLUS_DEBUG(application_->getApplicationLogger(), "Uploading crates");
+		crateAgent.upload(dbKey_, crateVector);
+		
+		for (std::vector<Crate *>::const_iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); ++iCrate) {
+			
+			xdata::UnsignedShort crateNumber = (*iCrate)->getNumber();
+			
+			VMEController *controller = (*iCrate)->getController();
+			VMEControllerDBAgent controllerAgent(application_);
+			controllerAgent.setConnectionID(connectionID);
+			controllerAgent.upload(dbKey_, crateNumber, controller);
+			
+			const std::vector<DDU *> &dduVector = (*iCrate)->getDDUs();
+			DDUDBAgent dduAgent(application_);
+			dduAgent.setConnectionID(connectionID);
+			LOG4CPLUS_DEBUG(application_->getApplicationLogger(), "Uploading DDUs for crate " << crateNumber);
+			dduAgent.upload(dbKey_, crateNumber, dduVector);
+			
+			for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+				
+				xdata::UnsignedShort ruiNumber = (*iDDU)->getRUI();
+				
+				const std::vector<Fiber *> &fiberVector = (*iDDU)->getFibers();
+				FiberDBAgent fiberAgent(application_);
+				fiberAgent.setConnectionID(connectionID);
+				LOG4CPLUS_DEBUG(application_->getApplicationLogger(), "Uploading fibers for RUI " << ruiNumber);
+				fiberAgent.upload(dbKey_, ruiNumber, fiberVector);
+				
+			}
+			
+			const std::vector<DCC *> &dccVector = (*iCrate)->getDCCs();
+			DCCDBAgent dccAgent(application_);
+			dccAgent.setConnectionID(connectionID);
+			LOG4CPLUS_DEBUG(application_->getApplicationLogger(), "Uploading DCCs for crate " << crateNumber);
+			dccAgent.upload(dbKey_, crateNumber, dccVector);
+			
+			for (std::vector<DCC *>::const_iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
+				
+				xdata::UnsignedInteger fmmidNumber = (*iDCC)->getFMMID();
+				
+				const std::vector<FIFO *> &fifoVector = (*iDCC)->getFIFOs();
+				FIFODBAgent fifoAgent(application_);
+				fifoAgent.setConnectionID(connectionID);
+				LOG4CPLUS_DEBUG(application_->getApplicationLogger(), "Uploading FIFOs for FMMID " << fmmidNumber);
+				fifoAgent.upload(dbKey_, fmmidNumber, fifoVector);
+				
+			}
+			
+		}
+		
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to upload to database: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
+	}
+	
 }

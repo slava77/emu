@@ -1,31 +1,28 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 1.6 2009/07/11 19:38:32 paste Exp $
+* $Id: DDUParser.cc,v 1.7 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUParser.h"
 
-#include <sstream>
-#include <vector>
-#include <string>
-
 #include "emu/fed/DDU.h"
 
-emu::fed::DDUParser::DDUParser(xercesc::DOMElement *pNode)
-throw (emu::fed::exception::ParseException):
-Parser(pNode)
+emu::fed::DDU *emu::fed::DDUParser::parse(xercesc::DOMElement *pNode, const bool &fake)
+throw (emu::fed::exception::ParseException)
 {
+	Parser parser(pNode);
+	
 	unsigned int slot = 0;
 	try {
-		slot = extract<unsigned int>("SLOT");
+		slot = parser.extract<unsigned int>("SLOT");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse SLOT from element";
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 
-	ddu_ = new DDU(slot);
+	DDU *ddu_ = new DDU(slot, fake);
 	
 	try {
-		ddu_->rui_ = extract<uint16_t>("RUI") & 0x3f;
+		ddu_->setRUI(parser.extract<uint16_t>("RUI") & 0x3f);
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse RUI from element";
@@ -33,8 +30,8 @@ Parser(pNode)
 	}
 	
 	try {
-		if (extract<bool>("INVERT_CCB_COMMAND_SIGNALS")) {
-			ddu_->rui_ = 0xc0;
+		if (parser.extract<bool>("INVERT_CCB_COMMAND_SIGNALS")) {
+			ddu_->setRUI(0xc0);
 		}
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
@@ -43,7 +40,7 @@ Parser(pNode)
 	}
 	
 	try {
-		ddu_->fmm_id_ = extract<uint16_t>("FMM_ID");
+		ddu_->setFMMID(parser.extract<uint16_t>("FMM_ID"));
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse FMM_ID from element";
@@ -51,7 +48,7 @@ Parser(pNode)
 	}
 
 	try {
-		ddu_->gbe_prescale_ = extract<uint16_t>("GBE_PRESCALE", std::ios::hex);
+		ddu_->setGbEPrescale(parser.extract<uint16_t>("GBE_PRESCALE", std::ios::hex));
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse GBE_PRESCALE from element";
@@ -64,24 +61,61 @@ Parser(pNode)
 	optionNames.push_back("FORCE_TMB_CHECKS");
 	optionNames.push_back("FORCE_CFEB_CHECKS");
 	optionNames.push_back("FORCE_NORMAL_DMB");
-	ddu_->killfiber_ = 0;
+	uint32_t killfiber = 0;
 	
 	for (unsigned int iOption = 0; iOption < optionNames.size(); iOption++) {
 		std::string optionName = optionNames[iOption];
 		try {
-			if (extract<bool>(optionName)) ddu_->killfiber_ |= (1 << (15 + iOption));
+			if (parser.extract<bool>(optionName)) killfiber |= (1 << (15 + iOption));
 		} catch (emu::fed::exception::ParseException &e) {
 			std::ostringstream error;
 			error << "Unable to parse " << optionName << " from element";
 			XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 		}
 	}
+	
+	ddu_->setKillFiber(killfiber);
+	
+	return ddu_;
 
 }
 
 
 
-emu::fed::DDUParser::~DDUParser()
+xercesc::DOMElement *emu::fed::DDUParser::makeDOMElement(xercesc::DOMDocument *document, emu::fed::DDU *ddu)
+throw (emu::fed::exception::ParseException)
 {
-	//delete ddu_;
+	try {
+		// Make a crate element
+		xercesc::DOMElement *dduElement = document->createElement(X("DDU"));
+		
+		// Set attributes
+		Parser::insert(dduElement, "SLOT", ddu->getSlot());
+		Parser::insert(dduElement, "RUI", ddu->getRUI());
+		if (ddu->getRUI() == 0xc0) Parser::insert(dduElement, "INVERT_CCB_COMMAND_SIGNALS", 1);
+		else Parser::insert(dduElement, "INVERT_CCB_COMMAND_SIGNALS", 0);
+		Parser::insert(dduElement, "FMM_ID", ddu->getFMMID());
+		Parser::insert(dduElement, "GBE_PRESCALE", ddu->getGbEPrescale());
+		
+		std::vector<std::string> optionNames;
+		optionNames.push_back("ENABLE_FORCE_CHECKS");
+		optionNames.push_back("FORCE_ALCT_CHECKS");
+		optionNames.push_back("FORCE_TMB_CHECKS");
+		optionNames.push_back("FORCE_CFEB_CHECKS");
+		optionNames.push_back("FORCE_NORMAL_DMB");
+		
+		uint32_t killFiber = ddu->getKillFiber();
+		
+		for (unsigned int iOption = 0; iOption < optionNames.size(); iOption++) {
+			std::string optionName = optionNames[iOption];
+			if (killFiber & (1 << (15 + iOption))) Parser::insert(dduElement, optionName, 1);
+			else Parser::insert(dduElement, optionName, 0);
+		}
+		
+		return dduElement;
+	} catch (xercesc::DOMException &e) {
+		std::ostringstream error;
+		error << "Unable to create DDU element: " << X(e.getMessage());
+		XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
+	}
 }

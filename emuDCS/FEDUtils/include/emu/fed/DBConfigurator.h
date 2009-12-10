@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.h,v 1.4 2009/11/23 07:43:59 paste Exp $
+* $Id: DBConfigurator.h,v 1.5 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBCONFIGURATOR_H__
 #define __EMU_FED_DBCONFIGURATOR_H__
@@ -25,9 +25,16 @@ namespace emu {
 			*	@param password The database password.
 			**/
 			DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password, xdata::UnsignedInteger64 &key);
+			
+			/** Destructor **/
+			virtual ~DBConfigurator() {};
 
 			/** Configure the crates and return them. **/
-			std::vector<emu::fed::Crate *> setupCrates()
+			virtual std::vector<emu::fed::Crate *> setupCrates(const bool &fake = false)
+			throw (emu::fed::exception::ConfigurationException);
+			
+			/** Upload system configuration to database **/
+			void uploadToDB(const std::vector<emu::fed::Crate *> &crateVector, const std::string &systemName)
 			throw (emu::fed::exception::ConfigurationException);
 
 		protected:

@@ -1,44 +1,30 @@
 /*****************************************************************************\
-* $Id: VMEControllerParser.h,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: VMEControllerParser.h,v 1.4 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMECONTROLLERPARSER_H__
 #define __EMU_FED_VMECONTROLLERPARSER_H__
 
 #include "emu/fed/Parser.h"
-#include "emu/fed/Exception.h"
 
 namespace emu {
 	namespace fed {
 
 		class VMEController;
 
-		/** @class DDUParser A parser that builds DDU objects to be loaded into a FEDCrate.
+		/** @namespace VMEControllerParser A parser that builds VMEController objects to be loaded into a FEDCrate.
 		*	@sa VMEController
 		**/
-		class VMEControllerParser : public Parser
-		{
-		
-		public:
+		namespace VMEControllerParser {
+			
+			/** Parse and return a (real or fake) VMEController **/
+			VMEController *parse(xercesc::DOMElement *pNode, const bool &fake = false)
+			throw (emu::fed::exception::ParseException);
 
-			/** Default constructor.
-			*
-			*	@param pNode the XML DOM element node to parse.
-			**/
-			explicit VMEControllerParser(xercesc::DOMElement *pNode)
+			/** @returns a DOMElement from a given VMEController object **/
+			xercesc::DOMElement *makeDOMElement(xercesc::DOMDocument *document, VMEController *controller)
 			throw (emu::fed::exception::ParseException);
 			
-			/** Default destructor **/
-			~VMEControllerParser();
-
-			/** @returns a pointer to the parsed VMEController object. **/
-			inline VMEController *getController() { return vmeController_; }
-		
-		private:
-
-			/// A VMEController object built from the parsed attributes of the DOM node.
-			VMEController *vmeController_;
-		};
-
+		}
 	}
 }
 

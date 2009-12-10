@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.h,v 1.7 2009/11/23 07:43:59 paste Exp $
+* $Id: SystemDBAgent.h,v 1.8 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SYSTEMDBAGENT_H__
 #define __EMU_FED_SYSTEMDBAGENT_H__
@@ -11,8 +11,7 @@
 #include <map>
 #include <string>
 
-#include <map>
-#include <time.h>
+#include "xdata/String.h"
 
 namespace emu {
 	namespace fed {
@@ -32,6 +31,10 @@ namespace emu {
 			
 			/** Get all the System names/IDs in the DB **/
 			std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > getAllKeys()
+			throw (emu::fed::exception::DBException);
+			
+			/** Upload the system **/
+			void upload(xdata::UnsignedInteger64 &key, xdata::String &name)
 			throw (emu::fed::exception::DBException);
 
 		private:

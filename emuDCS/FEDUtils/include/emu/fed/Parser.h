@@ -1,14 +1,16 @@
 /*****************************************************************************\
-* $Id: Parser.h,v 1.4 2009/07/11 19:38:32 paste Exp $
+* $Id: Parser.h,v 1.5 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_PARSER_H__
 #define __EMU_FED_PARSER_H__
 
-#include <xercesc/dom/DOM.hpp>
 #include <string>
 #include <iostream>
 #include <sstream>
+#include "xercesc/dom/DOM.hpp"
 #include "emu/fed/Exception.h"
+
+#define X(str) xercesc::XMLString::transcode(str)
 
 namespace emu {
 	namespace fed {
@@ -24,8 +26,6 @@ namespace emu {
 			**/
 			Parser(xercesc::DOMNode *pNode);
 
-		protected:
-
 			/** Extract a named attribute from the DOM node and return it converted into a variable of type T.
 			*
 			*	@param item the name of the attribute to extract.
@@ -35,7 +35,7 @@ namespace emu {
 			T extract(const char *item, const std::ios_base::fmtflags &flags = std::ios::dec)
 			throw (emu::fed::exception::ParseException)
 			{
-				XMLCh *name = xercesc::XMLString::transcode(item);
+				XMLCh *name = X(item);
 				xercesc::DOMAttr *pAttributeNode = (xercesc::DOMAttr *) pAttributes_->getNamedItem(name);
 				
 				if (pAttributeNode == NULL) {
@@ -46,14 +46,14 @@ namespace emu {
 
 				std::stringstream scan;
 				scan.exceptions(std::stringstream::failbit | std::stringstream::badbit);
-				scan << xercesc::XMLString::transcode(pAttributeNode->getNodeValue());
+				scan << X(pAttributeNode->getNodeValue());
 				T target;
 				try {
 					scan.flags(flags);
 					scan >> target;
 				} catch (std::stringstream::failure &e) {
 					std::ostringstream error;
-					error << "Unable to parse " << item << "=" << xercesc::XMLString::transcode(pAttributeNode->getNodeValue()) << ": " << e.what();
+					error << "Unable to parse " << item << "=" << X(pAttributeNode->getNodeValue()) << ": " << e.what();
 					XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
 				}
 				return target;
@@ -67,6 +67,27 @@ namespace emu {
 					return extract<T>(item.c_str(), flags);
 				} catch (...) {
 					throw;
+				}
+			}
+			
+			/** Insert a name/value pair into a given DOMElement
+			*
+			* @param name the name of the attribute to insert
+			* @param value the value of the attribute
+			**/
+			template<class T>
+			static void insert(xercesc::DOMElement *element, const std::string &name, const T &value, const std::ios_base::fmtflags &flags = std::ios::dec)
+			throw (emu::fed::exception::ParseException)
+			{
+				std::ostringstream valStream;
+				valStream.flags(flags);
+				valStream << value;
+				try {
+					element->setAttribute(X(name.c_str()), X(valStream.str().c_str()));
+				} catch (xercesc::DOMException &e) {
+					std::ostringstream error;
+					error << "Unable to set attribute " << name << " with value " << valStream.str() << ": " << X(e.getMessage());
+					XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
 				}
 			}
 		
