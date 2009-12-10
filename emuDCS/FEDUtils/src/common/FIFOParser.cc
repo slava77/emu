@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFOParser.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: FIFOParser.cc,v 1.4 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/FIFOParser.h"
 
@@ -8,13 +8,14 @@
 #include "emu/fed/FIFO.h"
 
 
-emu::fed::FIFOParser::FIFOParser(xercesc::DOMElement *pNode)
-throw (emu::fed::exception::ParseException):
-Parser(pNode)
+emu::fed::FIFO *emu::fed::FIFOParser::parse(xercesc::DOMElement *pNode)
+throw (emu::fed::exception::ParseException)
 {
+	Parser parser(pNode);
+	
 	unsigned int number = 0;
 	try {
-		number = extract<unsigned int>("FIFO_NUMBER");
+		number = parser.extract<unsigned int>("FIFO_NUMBER");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse FIFO_NUMBER from element";
@@ -23,7 +24,7 @@ Parser(pNode)
 	
 	bool used;
 	try {
-		used = (extract<int>("USED")) ? true : false;
+		used = parser.extract<bool>("USED");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse USED from element";
@@ -32,20 +33,36 @@ Parser(pNode)
 	
 	unsigned int rui = 0;
 	try {
-		rui = extract<unsigned int>("RUI");
+		rui = parser.extract<unsigned int>("RUI");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse RUI from element";
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 	
-	fifo_ = new FIFO(number, rui, used);
+	return new FIFO(number, rui, used);
 
 }
 
 
 
-emu::fed::FIFOParser::~FIFOParser()
+xercesc::DOMElement *emu::fed::FIFOParser::makeDOMElement(xercesc::DOMDocument *document, emu::fed::FIFO *fifo)
+throw (emu::fed::exception::ParseException)
 {
-	//delete fifo_;
+	try {
+		// Make a crate element
+		xercesc::DOMElement *fifoElement = document->createElement(X("FIFO"));
+		
+		// Set attributes
+		Parser::insert(fifoElement, "FIFO_NUMBER", fifo->getNumber());
+		if (fifo->isUsed()) Parser::insert(fifoElement, "USED", 1);
+		else Parser::insert(fifoElement, "USED", 0);
+		Parser::insert(fifoElement, "RUI", fifo->getRUI());
+		
+		return fifoElement;
+	} catch (xercesc::DOMException &e) {
+		std::ostringstream error;
+		error << "Unable to create FIFO element: " << X(e.getMessage());
+		XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
+	}
 }

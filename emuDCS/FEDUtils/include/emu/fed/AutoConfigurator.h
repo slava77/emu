@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.h,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: AutoConfigurator.h,v 1.2 2009/12/10 16:30:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_AUTOCONFIGURATOR_H__
 #define __EMU_FED_AUTOCONFIGURATOR_H__
@@ -16,9 +16,12 @@ namespace emu {
 			
 			/** Constructor. **/
 			AutoConfigurator();
+			
+			/** Destructor **/
+			virtual ~AutoConfigurator() {};
 
 			/** Configure the crates and return them **/
-			std::vector<emu::fed::Crate *> setupCrates()
+			virtual std::vector<emu::fed::Crate *> setupCrates(const bool &fake = false)
 			throw (emu::fed::exception::ConfigurationException);
 
 		protected:

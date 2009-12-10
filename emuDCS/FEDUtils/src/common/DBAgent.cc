@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.10 2009/11/13 09:03:11 paste Exp $
+* $Id: DBAgent.cc,v 1.11 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -175,9 +175,8 @@ throw (emu::fed::exception::DBException) {
 	} catch (emu::fed::exception::SOAPException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
 	}
-	
 	if (response->getSOAPPart().getEnvelope().getBody().hasFault()) {
-		XCEPT_RAISE(emu::fed::exception::DBException, "Error inserting data into database");
+		XCEPT_RAISE(emu::fed::exception::DBException, "Error inserting data into database: " + response->getSOAPPart().getEnvelope().getBody().getFault().getFaultString());
 	}
 }
 

@@ -1,44 +1,30 @@
 /*****************************************************************************\
-* $Id: FiberParser.h,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: FiberParser.h,v 1.4 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBERPARSER_H__
 #define __EMU_FED_FIBERPARSER_H__
 
 #include "emu/fed/Parser.h"
-#include "emu/fed/Exception.h"
 
 namespace emu {
 	namespace fed {
 
 		class Fiber;
 
-		/** @class FiberParser A parser that builds Fiber objects to be loaded into the DDU.
+		/** @namespace FiberParser A parser that builds Fiber objects to be loaded into the DDU.
 		*	@sa Fiber
 		**/
-		class FiberParser: public Parser
-		{
-		
-		public:
-
-			/** Default constructor.
-			*
-			*	@param pNode the XML DOM element node to parse.
-			**/
-			explicit FiberParser(xercesc::DOMElement *pNode)
-			throw (emu::fed::exception::ParseException);
-			
-			/** Default destructor **/
-			~FiberParser();
+		namespace FiberParser {
 
 			/** @returns a pointer to the parsed Fiber object. **/
-			inline Fiber *getFiber() { return fiber_; }
-		
-		private:
+			Fiber *parse(xercesc::DOMElement *pNode)
+			throw (emu::fed::exception::ParseException);
 
-			/// A Fiber object built from the parsed attributes of the DOM node.
-			Fiber *fiber_;
+			/** @returns a DOMElement from a given Fiber object **/
+			xercesc::DOMElement *makeDOMElement(xercesc::DOMDocument *document, Fiber *fiber)
+			throw (emu::fed::exception::ParseException);
 
-		};
+		}
 
 	}
 }

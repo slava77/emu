@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.h,v 1.6 2009/11/13 09:03:11 paste Exp $
+* $Id: DCCDBAgent.h,v 1.7 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCCDBAGENT_H__
 #define __EMU_FED_DCCDBAGENT_H__
@@ -27,13 +27,17 @@ namespace emu {
 			DCCDBAgent(xdaq::WebApplication *application);
 			
 			/** Build a bunch of DCCs corresponding to a crate ID **/
-			std::vector<emu::fed::DCC *> getDCCs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber)
+			std::vector<emu::fed::DCC *> getDCCs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber, const bool &fake = false)
+			throw (emu::fed::exception::DBException);
+			
+			/** Upload a set of DCCs **/
+			void upload(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber, const std::vector<DCC *> &dccVector)
 			throw (emu::fed::exception::DBException);
 
 		private:
 		
 			/** Build the crates from the table returned **/
-			std::vector<emu::fed::DCC *> buildDCCs(xdata::Table &table)
+			std::vector<emu::fed::DCC *> buildDCCs(xdata::Table &table, const bool &fake = false)
 			throw (emu::fed::exception::DBException);
 
 		};

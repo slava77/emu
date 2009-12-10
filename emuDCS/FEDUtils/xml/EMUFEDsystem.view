@@ -35,7 +35,7 @@
 			<![CDATA[select * from EMU_FED_CRATES where KEY=$KEY]]>
 		</sql:query>
 		
-				<sql:insert xmlns:sql="urn:tstore-view-SQL" name="FEDCrates">
+		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="FEDCrates">
 			<table name="EMU_FED_CRATES"/>
 		</sql:insert>
 		

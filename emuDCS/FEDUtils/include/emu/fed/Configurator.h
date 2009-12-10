@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurator.h,v 1.3 2009/11/23 07:43:59 paste Exp $
+* $Id: Configurator.h,v 1.4 2009/12/10 16:30:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURATOR_H__
 #define __EMU_FED_CONFIGURATOR_H__
@@ -24,7 +24,7 @@ namespace emu {
 			virtual ~Configurator() {};
 
 			/** Configure the crates and return them **/
-			virtual std::vector<emu::fed::Crate *> setupCrates()
+			virtual std::vector<emu::fed::Crate *> setupCrates(const bool &fake = false)
 			throw (emu::fed::exception::ConfigurationException) = 0;
 			
 			/** Access the already-configured crates **/

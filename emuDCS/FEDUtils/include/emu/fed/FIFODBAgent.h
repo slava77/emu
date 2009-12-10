@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.h,v 1.6 2009/11/13 09:03:11 paste Exp $
+* $Id: FIFODBAgent.h,v 1.7 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIFODBAGENT_H__
 #define __EMU_FED_FIFODBAGENT_H__
@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "emu/fed/Exception.h"
-#include "xdata/UnsignedShort.h"
+#include "xdata/UnsignedInteger.h"
 
 namespace emu {
 	namespace fed {
@@ -27,6 +27,10 @@ namespace emu {
 
 			/** Build a bunch of FIFO objects corresponding to a configuration key and a DCC FMM ID **/
 			std::vector<emu::fed::FIFO *> getFIFOs(xdata::UnsignedInteger64 &key, xdata::UnsignedInteger &fmm_id)
+			throw (emu::fed::exception::DBException);
+			
+			/** Upload a set of FIFOs **/
+			void upload(xdata::UnsignedInteger64 &key, xdata::UnsignedInteger &fmmid, const std::vector<FIFO *> &fifoVector)
 			throw (emu::fed::exception::DBException);
 
 		private:

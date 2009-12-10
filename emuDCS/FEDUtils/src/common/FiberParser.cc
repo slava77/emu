@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberParser.cc,v 1.5 2009/06/13 17:59:45 paste Exp $
+* $Id: FiberParser.cc,v 1.6 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/FiberParser.h"
 
@@ -8,13 +8,14 @@
 #include "emu/fed/Fiber.h"
 
 
-emu::fed::FiberParser::FiberParser(xercesc::DOMElement *pNode)
-throw (emu::fed::exception::ParseException):
-Parser(pNode)
+emu::fed::Fiber *emu::fed::FiberParser::parse(xercesc::DOMElement *pNode)
+throw (emu::fed::exception::ParseException)
 {
+	Parser parser(pNode);
+	
 	unsigned int fiberNumber = 0;
 	try {
-		fiberNumber = extract<unsigned int>("FIBER_NUMBER");
+		fiberNumber = parser.extract<unsigned int>("FIBER_NUMBER");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse FIBER_NUMBER from element";
@@ -23,7 +24,7 @@ Parser(pNode)
 	
 	bool killed;
 	try {
-		killed = extract<bool>("KILLED");
+		killed = parser.extract<bool>("KILLED");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse KILLED from element";
@@ -33,7 +34,7 @@ Parser(pNode)
 	// This is optional
 	std::string chamberName = "+0/0/00";
 	try {
-		chamberName = extract<std::string>("CHAMBER");
+		chamberName = parser.extract<std::string>("CHAMBER");
 	} catch (emu::fed::exception::ParseException &e) {
 		// already set to the default.
 	}
@@ -52,13 +53,29 @@ Parser(pNode)
 	}
 	
 	// Set names now.
-	fiber_ = new Fiber(fiberNumber, endcap, station, ring, number, killed);
+	return new Fiber(fiberNumber, endcap, station, ring, number, killed);
 	
 }
 
 
 
-emu::fed::FiberParser::~FiberParser()
+xercesc::DOMElement *emu::fed::FiberParser::makeDOMElement(xercesc::DOMDocument *document, emu::fed::Fiber *fiber)
+throw (emu::fed::exception::ParseException)
 {
-	//delete fiber_;
+	try {
+		// Make a crate element
+		xercesc::DOMElement *fiberElement = document->createElement(X("Fiber"));
+		
+		// Set attributes
+		Parser::insert(fiberElement, "FIBER_NUMBER", fiber->getFiberNumber());
+		if (fiber->isKilled()) Parser::insert(fiberElement, "KILLED", 1);
+		else Parser::insert(fiberElement, "KILLED", 0);
+		Parser::insert(fiberElement, "CHAMBER", fiber->getName());
+		
+		return fiberElement;
+	} catch (xercesc::DOMException &e) {
+		std::ostringstream error;
+		error << "Unable to create Fiber element: " << X(e.getMessage());
+		XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
+	}
 }

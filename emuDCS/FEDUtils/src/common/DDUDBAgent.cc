@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDBAgent.cc,v 1.8 2009/11/23 09:20:20 paste Exp $
+* $Id: DDUDBAgent.cc,v 1.9 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DDUDBAgent.h"
@@ -17,7 +17,7 @@ DBAgent(application)
 
 
 
-std::vector<emu::fed::DDU *> emu::fed::DDUDBAgent::getDDUs(xdata::UnsignedInteger64 &key,xdata::UnsignedShort &crateNumber)
+std::vector<emu::fed::DDU *> emu::fed::DDUDBAgent::getDDUs(xdata::UnsignedInteger64 &key,xdata::UnsignedShort &crateNumber, const bool &fake)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -34,7 +34,7 @@ throw (emu::fed::exception::DBException)
 	}
 	
 	try {
-		return buildDDUs(result);
+		return buildDDUs(result, fake);
 	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
 	}
@@ -42,7 +42,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::vector<emu::fed::DDU *> emu::fed::DDUDBAgent::buildDDUs(xdata::Table &table)
+std::vector<emu::fed::DDU *> emu::fed::DDUDBAgent::buildDDUs(xdata::Table &table, const bool &fake)
 throw (emu::fed::exception::DBException)
 {
 	std::vector<DDU *> returnMe;
@@ -60,16 +60,21 @@ throw (emu::fed::exception::DBException)
 			xdata::Boolean bit19 = getValue<xdata::Boolean>(*iRow, "FORCE_NORMAL_DMB");
 			xdata::Boolean invert_ccb_signals = getValue<xdata::Boolean>(*iRow, "INVERT_CCB_COMMAND_SIGNALS");
 			
-			DDU *newDDU = new DDU(slot);
-			newDDU->rui_ = rui & 0x3f;
-			newDDU->fmm_id_ = fmm_id;
-			newDDU->gbe_prescale_ = gbe_prescale;
-			if (bit15) newDDU->killfiber_ |= (1 << 15);
-			if (bit16) newDDU->killfiber_ |= (1 << 16);
-			if (bit17) newDDU->killfiber_ |= (1 << 17);
-			if (bit18) newDDU->killfiber_ |= (1 << 18);
-			if (bit19) newDDU->killfiber_ |= (1 << 19);
-			if (invert_ccb_signals) newDDU->rui_ = 0xc0;
+			DDU *newDDU = new DDU(slot, fake);
+			newDDU->setRUI(rui & 0x3f);
+			newDDU->setFMMID(fmm_id);
+			newDDU->setGbEPrescale(gbe_prescale);
+			
+			uint32_t killfiber = 0;
+			if (bit15) killfiber |= (1 << 15);
+			if (bit16) killfiber |= (1 << 16);
+			if (bit17) killfiber |= (1 << 17);
+			if (bit18) killfiber |= (1 << 18);
+			if (bit19) killfiber |= (1 << 19);
+			
+			newDDU->setKillFiber(killfiber);
+			
+			if (invert_ccb_signals) newDDU->setRUI(0xc0);
 			
 			returnMe.push_back(newDDU);
 		}
@@ -78,4 +83,65 @@ throw (emu::fed::exception::DBException)
 	}
 	
 	return returnMe;
+}
+
+
+
+void emu::fed::DDUDBAgent::upload(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber, const std::vector<emu::fed::DDU *> &dduVector)
+throw (emu::fed::exception::DBException)
+{
+	try {
+		// Make a table
+		xdata::Table table;
+		
+		// Add column names and types
+		table.addColumn("KEY", "unsigned int 64");
+		table.addColumn("CRATE_NUMBER", "unsigned short");
+		table.addColumn("SLOT", "unsigned short");
+		table.addColumn("RUI", "unsigned short");
+		table.addColumn("FMM_ID", "unsigned int");
+		table.addColumn("ENABLE_FORCE_CHECKS", "bool");
+		table.addColumn("FORCE_ALCT_CHECKS", "bool");
+		table.addColumn("FORCE_TMB_CHECKS", "bool");
+		table.addColumn("FORCE_CFEB_CHECKS", "bool");
+		table.addColumn("FORCE_NORMAL_DMB", "bool");
+		table.addColumn("GBE_PRESCALE", "unsigned short");
+		table.addColumn("INVERT_CCB_COMMAND_SIGNALS", "bool");
+		
+		for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+			// Make a new row
+			xdata::TableIterator iRow = table.append();
+			
+			// Set values
+			xdata::UnsignedShort slot = (*iDDU)->getSlot();
+			xdata::UnsignedShort rui = (*iDDU)->getRUI();
+			xdata::UnsignedInteger fmmid = (*iDDU)->getFMMID();
+			xdata::Boolean force = (*iDDU)->getKillFiber() & (1 << 15);
+			xdata::Boolean alct = (*iDDU)->getKillFiber() & (1 << 16);
+			xdata::Boolean tmb = (*iDDU)->getKillFiber() & (1 << 17);
+			xdata::Boolean cfeb = (*iDDU)->getKillFiber() & (1 << 18);
+			xdata::Boolean dmb = (*iDDU)->getKillFiber() & (1 << 19);
+			xdata::UnsignedShort gbe_prescale = (*iDDU)->getGbEPrescale();
+			xdata::Boolean invert = ((*iDDU)->getRUI() == 0xc0);
+			iRow->setField("KEY", key);
+			iRow->setField("CRATE_NUMBER", crateNumber);
+			iRow->setField("SLOT", slot);
+			iRow->setField("RUI", rui);
+			iRow->setField("FMM_ID", fmmid);
+			iRow->setField("ENABLE_FORCE_CHECKS", force);
+			iRow->setField("FORCE_ALCT_CHECKS", alct);
+			iRow->setField("FORCE_TMB_CHECKS", tmb);
+			iRow->setField("FORCE_CFEB_CHECKS", cfeb);
+			iRow->setField("FORCE_NORMAL_DMB", dmb);
+			iRow->setField("GBE_PRESCALE", gbe_prescale);
+			iRow->setField("INVERT_CCB_COMMAND_SIGNALS", invert);
+			
+		}
+		
+		// Insert
+		insert("ddu", table);
+		
+	} catch (xdaq::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload DDUs to database: " + std::string(e.what()), e);
+	}
 }

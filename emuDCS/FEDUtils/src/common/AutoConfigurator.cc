@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.cc,v 1.8 2009/11/23 07:44:00 paste Exp $
+* $Id: AutoConfigurator.cc,v 1.9 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AutoConfigurator.h"
@@ -20,7 +20,7 @@ emu::fed::AutoConfigurator::AutoConfigurator()
 
 
 
-std::vector<emu::fed::Crate *> emu::fed::AutoConfigurator::setupCrates()
+std::vector<emu::fed::Crate *> emu::fed::AutoConfigurator::setupCrates(const bool &fake)
 throw (emu::fed::exception::ConfigurationException)
 {
 	timeStamp_ = time(NULL);
@@ -52,11 +52,11 @@ throw (emu::fed::exception::ConfigurationException)
 				e2.setProperty("tag", tag.str());
 				throw e2;
 			}
-			VMEController *testController;
 			
-			// If this throws, then this is not a legal device/link combination
+			VMEController *testController;
+
 			try {
-				testController = new VMEController(iDevice, iLink);
+				testController = new VMEController(iDevice, iLink, fake);
 			} catch (emu::fed::exception::Exception &e) {
 				// As soon as I can't find a link, I am done with this device
 				// If this is the first link I am checking, then I am completely done.
@@ -71,7 +71,7 @@ throw (emu::fed::exception::ConfigurationException)
 
 				// These will throw if there is no board at the given slot.
 				try {
-					DDU *testDDU = new DDU(iSlot);
+					DDU *testDDU = new DDU(iSlot, fake);
 					testDDU->setBHandle(testController->getBHandle());
 					testDDU->setMutex(testController->getMutex());
 					
@@ -79,24 +79,24 @@ throw (emu::fed::exception::ConfigurationException)
 					uint32_t idCode = testDDU->readIDCode(VMEPROM);
 					if (idCode == 0x05036093) {
 						// Read all the normal configuration information from the board itself
-						testDDU->gbe_prescale_ = testDDU->readGbEPrescale();
-						testDDU->killfiber_ = (testDDU->readKillFiber() & 0xf7000) | (testDDU->readFlashKillFiber());
-						testDDU->rui_ = testDDU->readFlashRUI();
+						testDDU->setGbEPrescale(testDDU->readGbEPrescale());
+						testDDU->setKillFiber((testDDU->readKillFiber() & 0xf7000) | (testDDU->readFlashKillFiber()));
+						testDDU->setRUI(testDDU->readFlashRUI());
 						ruiTotal += testDDU->getRUI();
 						testCrate->addBoard(testDDU);
 						continue;
 					}
 					delete testDDU;
 					
-					DCC *testDCC = new DCC(iSlot);
+					DCC *testDCC = new DCC(iSlot, fake);
 					testDCC->setBHandle(testController->getBHandle());
 					
 					// Gives nonsense for DDUs, but standard answer for DCCs
 					idCode = testDCC->readIDCode(MPROM);
 					if (idCode == 0xf5059093) {
 						// Read all the normal configuration information from the board itself
-						testDCC->fifoinuse_ = testDCC->readFIFOInUse();
-						testDCC->softsw_ = testDCC->readSoftwareSwitch();
+						testDCC->setFIFOInUse(testDCC->readFIFOInUse());
+						testDCC->setSoftwareSwitch(testDCC->readSoftwareSwitch());
 						testCrate->addBoard(testDCC);
 						continue;
 					}

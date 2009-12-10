@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateDBAgent.cc,v 1.7 2009/11/23 09:20:20 paste Exp $
+* $Id: CrateDBAgent.cc,v 1.8 2009/12/10 16:30:04 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/CrateDBAgent.h"
@@ -56,4 +56,38 @@ throw (emu::fed::exception::DBException)
 	}
 
 	return returnMe;
+}
+
+
+
+void emu::fed::CrateDBAgent::upload(xdata::UnsignedInteger64 &key, const std::vector<emu::fed::Crate *> &crateVector)
+throw (emu::fed::exception::DBException)
+{
+	
+	try {
+		// Make a table
+		xdata::Table table;
+		
+		// Add column names and types
+		table.addColumn("KEY", "unsigned int 64");
+		table.addColumn("CRATE_NUMBER", "unsigned short");
+		
+		for (std::vector<Crate *>::const_iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); ++iCrate) {
+			
+			// Make a new row
+			xdata::TableIterator iRow = table.append();
+			
+			// Set values
+			xdata::UnsignedShort crateNumber = (*iCrate)->getNumber();
+			iRow->setField("KEY", key);
+			iRow->setField("CRATE_NUMBER", crateNumber);
+
+		}
+		
+		// Insert
+		insert("crate", table);
+		
+	} catch (xdaq::exception::Exception &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload crates to database: " + std::string(e.what()), e);
+	}
 }
