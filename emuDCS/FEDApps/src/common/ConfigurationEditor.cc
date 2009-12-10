@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.cc,v 1.9 2009/11/23 12:21:20 paste Exp $
+* $Id: ConfigurationEditor.cc,v 1.10 2009/12/10 16:55:02 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/ConfigurationEditor.h"
 
@@ -12,9 +12,11 @@
 #include "xdaq2rc/RcmsStateNotifier.h"
 #include "xdata/TimeVal.h"
 #include "toolbox/TimeVal.h"
+#include "toolbox/string.h"
 #include "emu/base/Alarm.h"
 #include "emu/fed/JSONSpiritWriter.h"
 #include "emu/fed/XMLConfigurator.h"
+#include "emu/fed/DBConfigurator.h"
 #include "emu/fed/Crate.h"
 #include "emu/fed/VMEController.h"
 #include "emu/fed/DDU.h"
@@ -41,6 +43,17 @@ dbKey_(0)
 	xgi::bind(this, &emu::fed::ConfigurationEditor::webDefault, "Default");
 	xgi::bind(this, &emu::fed::ConfigurationEditor::webUploadFile, "UploadFile");
 	xgi::bind(this, &emu::fed::ConfigurationEditor::webGetDBKeys, "GetDBKeys");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webLoadFromDB, "LoadFromDB");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webCreateNew, "CreateNew");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webWriteXML, "WriteXML");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webBuildSystem, "BuildSystem");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webBuildCrate, "BuildCrate");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webBuildController, "BuildController");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webBuildDDU, "BuildDDU");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webBuildFiber, "BuildFiber");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webBuildDCC, "BuildDCC");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webBuildFIFO, "BuildFIFO");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webUploadToDB, "UploadToDB");
 	
 	timeStamp_ = time(NULL);
 }
@@ -115,10 +128,19 @@ void emu::fed::ConfigurationEditor::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("id", "load_button") << std::endl;
 	*out << cgicc::div() << std::endl;
 	
+	*out << cgicc::div("Create a configuration from scratch")
+		.set("class", "category tier0") << std::endl;
+	*out << cgicc::div()
+		.set("class", "tier1") << std::endl;
+	*out << cgicc::button("Create empty configuration")
+		.set("name", "createButton")
+		.set("id", "create_button") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
 	*out << cgicc::fieldset() << std::endl;
 	
 	
-	if (systemName_ != "") {
+	if (crateVector_.size() || systemName_ != "") {
 		*out << cgicc::div()
 			.set("class", "titlebar default_width")
 			.set("id", "FED_Configuration_Editor_titlebar") << std::endl;
@@ -129,6 +151,23 @@ void emu::fed::ConfigurationEditor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::fieldset()
 			.set("class", "dialog default_width")
 			.set("id", "FED_Configuration_Editor_dialog") << std::endl;
+			
+		*out << cgicc::div("Find a fiber")
+			.set("class", "category tier0") << std::endl;
+		*out << cgicc::div()
+			.set("class", "tier1") << std::endl;
+		*out << cgicc::span("Chamber/SP name: ") << std::endl;
+		*out << cgicc::input()
+			.set("type", "text")
+			.set("id", "find_a_fiber")
+			.set("class", "find_a_fiber") << std::endl;
+		*out << cgicc::button("Find")
+			.set("class", "find_button")
+			.set("id", "find_button") << std::endl;
+		*out << cgicc::span("No matching fiber found")
+			.set("id", "find_a_fiber_error")
+			.set("class", "red hidden") << std::endl;
+		*out << cgicc::div() << std::endl;
 		
 		*out << cgicc::div("System")
 			.set("class", "category tier0") << std::endl;
@@ -148,7 +187,7 @@ void emu::fed::ConfigurationEditor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::td() << std::endl;
 		*out << cgicc::input()
 			.set("type", "text")
-			.set("id", "input_database_key")
+			.set("id", "input_database_name")
 			.set("value", systemName_.toString()) << std::endl;
 		*out << cgicc::td() << std::endl;
 		*out << cgicc::tr() << std::endl;
@@ -1177,6 +1216,19 @@ void emu::fed::ConfigurationEditor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::button() << std::endl;
 		*out << cgicc::div() << std::endl;
 		
+		
+		*out << cgicc::button()
+			.set("class", "right upload_to_db action_button")
+			.set("id", "upload_to_db");
+		*out << "Upload configuration to database";
+		*out << cgicc::button() << std::endl;
+		
+		*out << cgicc::button()
+			.set("class", "right write_xml action_button")
+			.set("id", "write_xml");
+		*out << "Write configuration to XML";
+		*out << cgicc::button() << std::endl;
+		
 		*out << cgicc::fieldset() << std::endl;
 	}
 	
@@ -1254,7 +1306,7 @@ void emu::fed::ConfigurationEditor::webUploadFile(xgi::Input *in, xgi::Output *o
 		LOG4CPLUS_ERROR(getApplicationLogger(), "Error uploading file");
 		return;
 	} else {
-		std::ofstream tempFile("config_fed_upload.xml");
+		std::ofstream tempFile("/tmp/config_fed_upload.xml");
 		if (tempFile.good()) {
 			iFile->writeToStream(tempFile);
 			tempFile.close();
@@ -1262,23 +1314,841 @@ void emu::fed::ConfigurationEditor::webUploadFile(xgi::Input *in, xgi::Output *o
 		} else {
 			// ERROR!
 			if (tempFile.is_open()) tempFile.close();
-			LOG4CPLUS_ERROR(getApplicationLogger(), "Error opening local file for writing");
+			LOG4CPLUS_ERROR(getApplicationLogger(), "Error opening local file /tmp/config_fed_upload.xml for writing");
 			return;
 		}
 	}
 	
 	// Parse the XML file and build crates properly
-	XMLConfigurator configurator("config_fed_upload.xml");
+	XMLConfigurator configurator("/tmp/config_fed_upload.xml");
 	
 	try {
-		crateVector_ = configurator.setupCrates();
+		crateVector_ = configurator.setupCrates(true);
 		systemName_ = configurator.getSystemName();
 		timeStamp_ = configurator.getTimeStamp();
+		dbKey_ = 0;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
-		error << "Unable to create FED objects by parsing file config_fed_upload.xml: " << e.what();
+		error << "Unable to create FED objects by parsing file /tmp/config_fed_upload.xml: " << e.what();
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		return;
 	}
 
+}
+
+
+
+void emu::fed::ConfigurationEditor::webLoadFromDB(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	if (cgi.getElement("key") != cgi.getElements().end()) {
+		dbKey_ = cgi["key"]->getIntegerValue();
+	} else {
+		// Unable to load key.
+		// TODO report error via JSON
+		std::ostringstream error;
+		error << "Unable to find parameter 'key' in POST data";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		return;
+	}
+	
+	// Get the configuration from the DB
+	DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString(), dbKey_);
+	
+	try {
+		crateVector_ = configurator.setupCrates(true);
+		systemName_ = configurator.getSystemName();
+		timeStamp_ = configurator.getTimeStamp();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to create FED objects by loading key " << dbKey_.toString() << ": " << e.what();
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		return;
+	}
+}
+
+
+
+void emu::fed::ConfigurationEditor::webCreateNew(xgi::Input *in, xgi::Output *out)
+{
+
+	crateVector_.clear();
+	dbKey_ = 0;
+	systemName_ = "new configuration";
+	timeStamp_ = time(NULL);
+	
+	// TODO respond via JSON?
+	return;
+
+}
+
+
+
+void emu::fed::ConfigurationEditor::webWriteXML(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	try {
+		std::string output = XMLConfigurator::makeXML(crateVector_, systemName_);
+		
+		// Need some header information to be able to return JSON
+		if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+			cgicc::HTTPResponseHeader xmlHeader("HTTP/1.1", 200, "OK");
+			xmlHeader.addHeader("Content-Type", "text/xml");
+			std::ostringstream attachment;
+			attachment << "attachment; filename=fed-system-" << toolbox::escape(systemName_ == "" ? "unnamed" : systemName_.toString()) << "-" << toolbox::TimeVal(timeStamp_).toString(toolbox::TimeVal::gmt) << ".xml";
+			xmlHeader.addHeader("Content-Disposition", attachment.str());
+			out->setHTTPResponseHeader(xmlHeader);
+		}
+		
+		*out << output;
+		
+	} catch (emu::fed::exception::Exception &e) {
+		
+		*out << printException(e);
+		
+	}
+}
+
+
+
+void emu::fed::ConfigurationEditor::webBuildSystem(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Wipe out the old configuration
+	crateVector_.clear();
+	
+	// Make JSON output
+	JSONSpirit::Object output;
+	
+	// Set our new system name and time stamp
+	if (cgi.getElement("systemName") != cgi.getElements().end()) {
+		systemName_ = cgi["systemName"]->getValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find systemName in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	if (cgi.getElement("key") != cgi.getElements().end()) {
+		dbKey_ = cgi["key"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find key in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Set time to now
+	timeStamp_ = time(NULL);
+	
+	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::ConfigurationEditor::webBuildCrate(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make JSON output
+	JSONSpirit::Object output;
+	
+	// Get the fake crate and return it
+	if (cgi.getElement("fakeCrate") != cgi.getElements().end()) {
+		output.push_back(JSONSpirit::Pair("fakeCrate", cgi["fakeCrate"]->getValue()));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find fakeCrate in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Make a crate with this number
+	unsigned int crateNumber = 0;
+	
+	if (cgi.getElement("number") != cgi.getElements().end()) {
+		crateNumber = cgi["number"]->getIntegerValue();
+		output.push_back(JSONSpirit::Pair("crate", (int) crateNumber));
+		crateVector_.push_back(new Crate(crateNumber));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find crate number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::ConfigurationEditor::webBuildController(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make JSON output
+	JSONSpirit::Object output;
+	
+	// Get the fake crate and return it
+	if (cgi.getElement("fakeCrate") != cgi.getElements().end()) {
+		output.push_back(JSONSpirit::Pair("fakeCrate", cgi["fakeCrate"]->getValue()));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find fakeCrate in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get the crate
+	unsigned int crateNumber = 0;
+	
+	if (cgi.getElement("crate") != cgi.getElements().end()) {
+		crateNumber = cgi["crate"]->getIntegerValue();
+		output.push_back(JSONSpirit::Pair("crate", (int) crateNumber));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find crate number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Find the crate
+	Crate *myCrate = NULL;
+	
+	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
+		if ((*iCrate)->getNumber() == crateNumber) {
+			myCrate = (*iCrate);
+			break;
+		}
+	}
+	if (myCrate == NULL) {
+		std::ostringstream error;
+		error << "Unable to find crate matching number " << crateNumber;
+		output.push_back(JSONSpirit::Pair("error", error.str()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get the device and link
+	unsigned int device = 0;
+	unsigned int link = 0;
+	
+	if (cgi.getElement("device") != cgi.getElements().end()) {
+		device = cgi["device"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find device number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	if (cgi.getElement("link") != cgi.getElements().end()) {
+		link = cgi["link"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find link number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	try {
+		myCrate->setController(new VMEController(device, link, true));
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to build controller object: " << e.what();
+		output.push_back(JSONSpirit::Pair("error", error.str()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::ConfigurationEditor::webBuildDDU(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make JSON output
+	JSONSpirit::Object output;
+	
+	// Get the fake crate and return it
+	if (cgi.getElement("fakeCrate") != cgi.getElements().end()) {
+		output.push_back(JSONSpirit::Pair("fakeCrate", cgi["fakeCrate"]->getValue()));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find fakeCrate in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get the crate
+	unsigned int crateNumber = 0;
+	
+	if (cgi.getElement("crate") != cgi.getElements().end()) {
+		crateNumber = cgi["crate"]->getIntegerValue();
+		output.push_back(JSONSpirit::Pair("crate", (int) crateNumber));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find crate number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Find the crate
+	Crate *myCrate = NULL;
+	
+	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
+		if ((*iCrate)->getNumber() == crateNumber) {
+			myCrate = (*iCrate);
+			break;
+		}
+	}
+	if (myCrate == NULL) {
+		std::ostringstream error;
+		error << "Unable to find crate matching number " << crateNumber;
+		output.push_back(JSONSpirit::Pair("error", error.str()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get slot
+	unsigned int slot = 0;
+	if (cgi.getElement("input_ddu_slot") != cgi.getElements().end()) {
+		slot = cgi["input_ddu_slot"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find slot number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	DDU *myDDU = new DDU(slot, true);
+	
+	// Get RUI
+	if (cgi.getElement("input_ddu_rui") != cgi.getElements().end()) {
+		unsigned int rui = cgi["input_ddu_rui"]->getIntegerValue();
+		output.push_back(JSONSpirit::Pair("rui", (int) rui));
+		myDDU->setRUI(rui);
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find RUI number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get the fake RUI and return it
+	if (cgi.getElement("fakeRUI") != cgi.getElements().end()) {
+		output.push_back(JSONSpirit::Pair("fakeRUI", cgi["fakeRUI"]->getValue()));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find fakeRUI in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get FMMID
+	if (cgi.getElement("input_ddu_fmm_id") != cgi.getElements().end()) {
+		myDDU->setFMMID(cgi["input_ddu_fmm_id"]->getIntegerValue());
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find FMM ID number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get GbEPrescale
+	if (cgi.getElement("input_ddu_gbe_prescale") != cgi.getElements().end()) {
+		myDDU->setGbEPrescale(cgi["input_ddu_gbe_prescale"]->getIntegerValue());
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find GbEPrescale in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get options
+	uint32_t killfiber = 0;
+	if (cgi.getElement("input_ddu_force_checks") != cgi.getElements().end()) {
+		killfiber |= (cgi["input_ddu_force_checks"]->getIntegerValue()) << 15;
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find force checks checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	if (cgi.getElement("input_ddu_force_alct") != cgi.getElements().end()) {
+		killfiber |= (cgi["input_ddu_force_alct"]->getIntegerValue()) << 16;
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find force ALCT checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	if (cgi.getElement("input_ddu_force_tmb") != cgi.getElements().end()) {
+		killfiber |= (cgi["input_ddu_force_tmb"]->getIntegerValue()) << 17;
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find force TMB checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	if (cgi.getElement("input_ddu_force_cfeb") != cgi.getElements().end()) {
+		killfiber |= (cgi["input_ddu_force_cfeb"]->getIntegerValue()) << 18;
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find force CFEB checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	if (cgi.getElement("input_ddu_force_dmb") != cgi.getElements().end()) {
+		killfiber |= (cgi["input_ddu_force_dmb"]->getIntegerValue()) << 19;
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find force DMB checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	myDDU->setKillFiber(killfiber);
+	
+	myCrate->addBoard(myDDU);
+	
+	*out << JSONSpirit::write(output);
+	
+}
+
+
+
+void emu::fed::ConfigurationEditor::webBuildFiber(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make JSON output
+	JSONSpirit::Object output;
+	
+	// Get the crate
+	unsigned int crateNumber = 0;
+	
+	if (cgi.getElement("crate") != cgi.getElements().end()) {
+		crateNumber = cgi["crate"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find crate number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Find the crate
+	Crate *myCrate = NULL;
+	
+	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+		if ((*iCrate)->getNumber() == crateNumber) {
+			myCrate = (*iCrate);
+			break;
+		}
+	}
+	if (myCrate == NULL) {
+		std::ostringstream error;
+		error << "Unable to find crate matching number " << crateNumber;
+		output.push_back(JSONSpirit::Pair("error", error.str()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	// Get RUI
+	unsigned int rui;
+	if (cgi.getElement("rui") != cgi.getElements().end()) {
+		rui = cgi["rui"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find RUI number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Find the DDU
+	DDU *myDDU = NULL;
+	
+	std::vector<DDU *> dduVector = myCrate->getDDUs();
+	for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+		if ((*iDDU)->getRUI() == rui) {
+			myDDU = (*iDDU);
+			break;
+		}
+	}
+	if (myDDU == NULL) {
+		std::ostringstream error;
+		error << "Unable to find DDU matching RUI number " << rui;
+		output.push_back(JSONSpirit::Pair("error", error.str()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get number
+	unsigned int fiberNumber = 0;
+	if (cgi.getElement("input_fiber_number") != cgi.getElements().end()) {
+		fiberNumber = cgi["input_fiber_number"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find fiber number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get name
+	std::string name = "";
+	if (cgi.getElement("input_fiber_name") != cgi.getElements().end()) {
+		name = cgi["input_fiber_name"]->getValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find fiber name in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get killed
+	bool killed = false;
+	if (cgi.getElement("input_fiber_killed") != cgi.getElements().end()) {
+		killed = cgi["input_fiber_killed"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find killed checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	std::string endcap = "?";
+	unsigned int station = 0;
+	unsigned int ring = 0;
+	unsigned int number = 0;
+	
+	// Check normal station name first
+	if (sscanf(name.c_str(), "%*c%1u/%1u/%02u", &station, &ring, &number) == 3) {
+		endcap = "-";
+		// CGICC does not understand that %2B is a plus-sign, so check for that here
+	} else if (sscanf(name.c_str(), "%1u/%1u/%02u", &station, &ring, &number) == 3) {
+		endcap = "+";
+		// Else it's probably an SP, so check that
+	} else if (sscanf(name.c_str(), "SP%02u", &number) == 1) {
+		endcap = (number <= 6) ? "+" : "-";
+	}
+	
+	myDDU->addFiber(new Fiber(fiberNumber, endcap, station, ring, number, killed));
+	
+	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::ConfigurationEditor::webBuildDCC(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make JSON output
+	JSONSpirit::Object output;
+	
+	// Get the fake crate and return it
+	if (cgi.getElement("fakeCrate") != cgi.getElements().end()) {
+		output.push_back(JSONSpirit::Pair("fakeCrate", cgi["fakeCrate"]->getValue()));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find fakeCrate in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get the crate
+	unsigned int crateNumber = 0;
+	
+	if (cgi.getElement("crate") != cgi.getElements().end()) {
+		crateNumber = cgi["crate"]->getIntegerValue();
+		output.push_back(JSONSpirit::Pair("crate", (int) crateNumber));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find crate number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Find the crate
+	Crate *myCrate = NULL;
+	
+	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
+		if ((*iCrate)->getNumber() == crateNumber) {
+			myCrate = (*iCrate);
+			break;
+		}
+	}
+	if (myCrate == NULL) {
+		std::ostringstream error;
+		error << "Unable to find crate matching number " << crateNumber;
+		output.push_back(JSONSpirit::Pair("error", error.str()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	// Get slot
+	unsigned int slot = 0;
+	if (cgi.getElement("input_dcc_slot") != cgi.getElements().end()) {
+		slot = cgi["input_dcc_slot"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find slot number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	DCC *myDCC = new DCC(slot, true);
+
+	// Get FMMID
+	if (cgi.getElement("input_dcc_fmm_id") != cgi.getElements().end()) {
+		unsigned int fmmid = cgi["input_dcc_fmm_id"]->getIntegerValue();
+		output.push_back(JSONSpirit::Pair("fmmid", (int) fmmid));
+		myDCC->setFMMID(fmmid);
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find FMM ID number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	// Get the fake FMMID and return it
+	if (cgi.getElement("fakeFMMID") != cgi.getElements().end()) {
+		output.push_back(JSONSpirit::Pair("fakeFMMID", cgi["fakeFMMID"]->getValue()));
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find fakeFMMID in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	// Get SLink1 ID
+	if (cgi.getElement("input_dcc_slink1") != cgi.getElements().end()) {
+		myDCC->setSLinkID(1, cgi["input_dcc_slink1"]->getIntegerValue());
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find SLink 1 ID number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	// Get SLink2 ID
+	if (cgi.getElement("input_dcc_slink2") != cgi.getElements().end()) {
+		myDCC->setSLinkID(2, cgi["input_dcc_slink2"]->getIntegerValue());
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find SLink 2 ID number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	// Get options
+	uint16_t softsw = 0;
+	if (cgi.getElement("input_dcc_sw_switch") != cgi.getElements().end()) {
+		softsw |= (cgi["input_dcc_sw_switch"]->getIntegerValue() ? 0x200 : 0);
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find software switch checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	if (cgi.getElement("input_dcc_ignore_ttc") != cgi.getElements().end()) {
+		softsw |= (cgi["input_dcc_ignore_ttc"]->getIntegerValue() ? 0x1000 : 0);
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find ignore TTC checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	if (cgi.getElement("input_dcc_ignore_backpressure") != cgi.getElements().end() && cgi.getElement("input_dcc_ignore_slink") != cgi.getElements().end()) {
+		if (cgi["input_dcc_ignore_slink"]->getIntegerValue()) softsw |= 0x4000;
+		else if (cgi["input_dcc_ignore_backpressure"]->getIntegerValue()) softsw |= 0x2000;
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find ignore slink/backpressure checkboxes in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	if (cgi.getElement("input_dcc_sw4") != cgi.getElements().end()) {
+		softsw |= (cgi["input_dcc_sw4"]->getIntegerValue() ? 0x10 : 0);
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find SW bit 4 checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	if (cgi.getElement("input_dcc_sw5") != cgi.getElements().end()) {
+		softsw |= (cgi["input_dcc_sw5"]->getIntegerValue() ? 0x20 : 0);
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find SW bit 5 checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	myDCC->setSoftwareSwitch(softsw);
+	
+	myCrate->addBoard(myDCC);
+	
+	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::ConfigurationEditor::webBuildFIFO(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make JSON output
+	JSONSpirit::Object output;
+	
+	// Get the crate
+	unsigned int crateNumber = 0;
+	
+	if (cgi.getElement("crate") != cgi.getElements().end()) {
+		crateNumber = cgi["crate"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find crate number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Find the crate
+	Crate *myCrate = NULL;
+	
+	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+		if ((*iCrate)->getNumber() == crateNumber) {
+			myCrate = (*iCrate);
+			break;
+		}
+	}
+	if (myCrate == NULL) {
+		std::ostringstream error;
+		error << "Unable to find crate matching number " << crateNumber;
+		output.push_back(JSONSpirit::Pair("error", error.str()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get FMMID
+	unsigned int fmmid;
+	if (cgi.getElement("fmmid") != cgi.getElements().end()) {
+		fmmid = cgi["fmmid"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find FMM ID number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Find the DCC
+	DCC *myDCC = NULL;
+	
+	std::vector<DCC *> dccVector = myCrate->getDCCs();
+	for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
+		if ((*iDCC)->getFMMID() == fmmid) {
+			myDCC = (*iDCC);
+			break;
+		}
+	}
+	if (myDCC == NULL) {
+		std::ostringstream error;
+		error << "Unable to find DCC matching FMM ID number " << fmmid;
+		output.push_back(JSONSpirit::Pair("error", error.str()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get number
+	unsigned int fifoNumber = 0;
+	if (cgi.getElement("input_fifo_number") != cgi.getElements().end()) {
+		fifoNumber = cgi["input_fifo_number"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find FIFO number in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get RUI
+	unsigned int rui = 0;
+	if (cgi.getElement("input_fifo_rui") != cgi.getElements().end()) {
+		rui = cgi["input_fifo_rui"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find FIFO RUI in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	// Get used
+	bool used = false;
+	if (cgi.getElement("input_fifo_used") != cgi.getElements().end()) {
+		used = cgi["input_fifo_used"]->getIntegerValue();
+	} else {
+		output.push_back(JSONSpirit::Pair("error", "Cannot find used checkbox in header"));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+	
+	myDCC->addFIFO(new FIFO(fifoNumber, rui, used));
+	
+	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::ConfigurationEditor::webUploadToDB(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader xmlHeader("HTTP/1.1", 200, "OK");
+		xmlHeader.addHeader("Content-Type", "text/xml");
+		std::ostringstream attachment;
+		attachment << "attachment; filename=fed-system-" << toolbox::escape(systemName_ == "" ? "unnamed" : systemName_.toString()) << "-" << toolbox::TimeVal(timeStamp_).toString(toolbox::TimeVal::gmt) << ".xml";
+		xmlHeader.addHeader("Content-Disposition", attachment.str());
+		out->setHTTPResponseHeader(xmlHeader);
+	}
+	
+	DBConfigurator configurator(this, dbUsername_, dbPassword_, dbKey_);
+	
+	JSONSpirit::Object output;
+	
+	try {
+		configurator.uploadToDB(crateVector_, systemName_);
+		
+		// Need some header information to be able to return JSON
+		if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+			cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+			jsonHeader.addHeader("Content-type", "application/json");
+			out->setHTTPResponseHeader(jsonHeader);
+		}
+		
+		output.push_back(JSONSpirit::Pair("systemName", systemName_.toString()));
+		output.push_back(JSONSpirit::Pair("key", dbKey_.toString()));
+		
+	} catch (emu::fed::exception::ConfigurationException &e) {
+		
+		output.push_back(JSONSpirit::Pair("error", e.what()));
+		
+	}
+	
+	*out << JSONSpirit::write(output);
 }

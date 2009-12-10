@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.h,v 1.6 2009/11/22 22:52:22 paste Exp $
+* $Id: ConfigurationEditor.h,v 1.7 2009/12/10 16:55:02 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURATIONEDITOR_H__
 #define __EMU_FED_CONFIGURATIONEDITOR_H__
@@ -38,6 +38,39 @@ namespace emu {
 			
 			/** Get database keys **/
 			void webGetDBKeys(xgi::Input *in, xgi::Output *out);
+			
+			/** Load from the DB given a configuration key **/
+			void webLoadFromDB(xgi::Input *in, xgi::Output *out);
+			
+			/** Create a new configuration from scratch **/
+			void webCreateNew(xgi::Input *in, xgi::Output *out);
+			
+			/** Write configuration to XML **/
+			void webWriteXML(xgi::Input *in, xgi::Output *out);
+			
+			/** Build a system and delete the old system **/
+			void webBuildSystem(xgi::Input *in, xgi::Output *out);
+			
+			/** Build a crate and add it to the crate vector **/
+			void webBuildCrate(xgi::Input *in, xgi::Output *out);
+			
+			/** Build a controller and add it to the specified crate **/
+			void webBuildController(xgi::Input *in, xgi::Output *out);
+			
+			/** Build a DDU and add it to the specified crate **/
+			void webBuildDDU(xgi::Input *in, xgi::Output *out);
+			
+			/** Build a fiber and add it to the specified DDU **/
+			void webBuildFiber(xgi::Input *in, xgi::Output *out);
+			
+			/** Build a DCC and add it to the specified crate **/
+			void webBuildDCC(xgi::Input *in, xgi::Output *out);
+			
+			/** Build a FIFO and add it to the specified DCC **/
+			void webBuildFIFO(xgi::Input *in, xgi::Output *out);
+			
+			/** Upload configuration to DB **/
+			void webUploadToDB(xgi::Input *in, xgi::Output *out);
 			
 		private:
 			
