@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.24 2009/11/30 16:13:24 paste Exp $
+* $Id: DDU.cc,v 1.25 2009/12/10 16:24:29 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -10,8 +10,8 @@
 #include "emu/fed/Fiber.h"
 #include "emu/fed/JTAGElement.h"
 
-emu::fed::DDU::DDU(const unsigned int mySlot):
-VMEModule(mySlot),
+emu::fed::DDU::DDU(const unsigned int &mySlot, const bool &fake):
+VMEModule(mySlot, fake),
 gbe_prescale_(0),
 killfiber_(0xf7fff),
 rui_(0),
@@ -2148,7 +2148,7 @@ throw (emu::fed::exception::DDUException)
 void emu::fed::DDU::reloadFiberKillBits(const uint16_t &killfiber)
 {
 	for (size_t iFiber = 0; iFiber < fiberVector_.size(); iFiber++) {
-		fiberVector_[iFiber]->killed_ = (killfiber & (1 << iFiber));
+		fiberVector_[iFiber]->setKilled(killfiber & (1 << iFiber));
 	}
 }
 

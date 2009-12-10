@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.8 2009/08/19 16:38:29 brett Exp $
+* $Id: DCC.cc,v 1.9 2009/12/10 16:24:29 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -10,8 +10,8 @@
 #include "emu/fed/JTAGElement.h"
 #include "emu/fed/FIFO.h"
 
-emu::fed::DCC::DCC(const unsigned int &slot):
-VMEModule(slot),
+emu::fed::DCC::DCC(const unsigned int &slot, const bool &fake):
+VMEModule(slot, fake),
 fifoinuse_(0x3fe),
 softsw_(0),
 fmm_id_(0),
@@ -745,7 +745,7 @@ throw (emu::fed::exception::DCCException)
 void emu::fed::DCC::reloadFIFOUsedBits(const uint16_t &fifoInUse)
 {
 	for (size_t iFIFO = 0; iFIFO < fifoVector_.size(); iFIFO++) {
-		fifoVector_[iFIFO]->used_ = (fifoInUse & (1 << iFIFO));
+		fifoVector_[iFIFO]->setUsed(fifoInUse & (1 << iFIFO));
 	}
 }
 

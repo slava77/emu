@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFO.h,v 1.4 2009/07/01 14:17:18 paste Exp $
+* $Id: FIFO.h,v 1.5 2009/12/10 16:24:28 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIFO_H__
 #define __EMU_FED_FIFO_H__
@@ -14,8 +14,8 @@ namespace emu {
 		{
 		public:
 
-			friend class FIFOParser;
-			friend class DCC;
+			//friend class FIFOParser;
+			//friend class DCC;
 
 			/** Constructor used to set the RUI **/
 			FIFO(const unsigned int &fifoNumber, const unsigned int &rui = 0, const bool &used = true);
@@ -29,6 +29,9 @@ namespace emu {
 			
 			/** @Returns whether or not the owning DCC should be configured to use this FIFO **/
 			inline bool isUsed() { return used_; }
+			
+			/** Sets whether of not the DCC should be configured to use this FIFO **/
+			inline void setUsed(const bool &used) { used_ = used; }
 
 		private:
 			

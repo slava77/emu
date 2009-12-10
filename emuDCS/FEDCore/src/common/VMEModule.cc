@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.8 2009/07/08 12:07:49 paste Exp $
+* $Id: VMEModule.cc,v 1.9 2009/12/10 16:24:29 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -10,13 +10,15 @@
 #include <unistd.h>
 #include <iostream>
 #include <sys/time.h>
+#include <cstdlib>
 
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
 #include "emu/fed/VMELock.h"
 
-emu::fed::VMEModule::VMEModule(const unsigned int &mySlot):
-slot_(mySlot)
+emu::fed::VMEModule::VMEModule(const unsigned int &mySlot, const bool &fake):
+slot_(mySlot),
+fake_(fake)
 {
 	vmeAddress_ = slot_ << 19;
 }
@@ -565,31 +567,36 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 uint16_t emu::fed::VMEModule::readVME(const uint32_t &Address, const bool &debug)
 throw (emu::fed::exception::CAENException)
 {
+	if (fake_) {
+		srand(time(NULL));
+		return rand() & 0xffff;
+	}
+	
 	// The address always has the board slot encoded.
-	uint32_t myAddress = Address | vmeAddress_;
-
+	uint32_t myAddress = Address | getAddress();
+	
 	// The address modifier for talking to other boards
 	CVAddressModifier AM = cvA24_U_DATA;
-
+	
 	// 16-bit data width
 	CVDataWidth DW = cvD16;
-
+	
 	// 16-bit buffer to fill durring reads
-	uint16_t data;
+	uint16_t data = 0;
 	//uint64_t *data;
-
+	
 	// Read and return error code
-	if (debug) std::cerr << std::hex << "Read BHandle_(" << BHandle_ << ") Address(" << myAddress << ") " << std::flush;
-	CVErrorCodes err = CAENVME_ReadCycle(BHandle_, myAddress, &data, AM, DW);
+	if (debug) std::cerr << std::hex << "Read BHandle_(" << getBHandle() << ") Address(" << myAddress << ") " << std::flush;
+	CVErrorCodes err = CAENVME_ReadCycle(getBHandle(), myAddress, &data, AM, DW);
 	if (debug) std::cerr << std::hex << "data(" << data << ") err(" << err << ")" << std::flush << std::endl;
-
+	
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in readVME(Address=" << myAddress << "): " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
 	}
-
+	
 	return data;
 }
 
@@ -598,29 +605,31 @@ throw (emu::fed::exception::CAENException)
 void emu::fed::VMEModule::writeVME(const uint32_t &Address, const uint16_t &data, const bool &debug)
 throw (emu::fed::exception::CAENException)
 {
+	if (fake_) return;
+	
 	uint16_t myData = data;
 	
 	// The address always has the board slot encoded.
-	uint32_t myAddress = Address | vmeAddress_;
-
+	uint32_t myAddress = Address | getAddress();
+	
 	// The address modifier for talking to other boards
 	CVAddressModifier AM = cvA24_U_DATA;
-
+	
 	// 16-bit data width
 	CVDataWidth DW = cvD16;
-
+	
 	// Write and return error code
-	if (debug) std::cerr << std::hex << "Write BHandle_(" << BHandle_ << ") Address(" << myAddress << ") data(" << data << ")" << std::flush;
-	CVErrorCodes err = CAENVME_WriteCycle(BHandle_, myAddress, &myData, AM, DW);
+	if (debug) std::cerr << std::hex << "Write BHandle_(" << getBHandle() << ") Address(" << myAddress << ") data(" << data << ")" << std::flush;
+	CVErrorCodes err = CAENVME_WriteCycle(getBHandle(), myAddress, &myData, AM, DW);
 	if (debug) std::cerr << std::hex << " err(" << err << ")" << std::endl << std::flush;
-
+	
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in writeVME(Address=" << myAddress << ", data=" << data << "): " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
 	}
-
+	
 	return;
 }
 
