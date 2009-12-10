@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMELock.cc,v 1.2 2009/07/08 12:07:49 paste Exp $
+* $Id: VMELock.cc,v 1.3 2009/12/10 16:24:29 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMELock.h"
 #include <sstream>
@@ -54,7 +54,7 @@ emu::fed::VMELock::~VMELock()
 	if (nFileLock_) {
 		flock(fd_, LOCK_UN);
 	}
-	close(fd_);
+	if (fd_ >= 0) close(fd_);
 }
 
 

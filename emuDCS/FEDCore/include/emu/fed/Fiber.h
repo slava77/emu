@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.h,v 1.4 2009/07/01 14:17:18 paste Exp $
+* $Id: Fiber.h,v 1.5 2009/12/10 16:24:29 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBER_H__
 #define __EMU_FED_FIBER_H__
@@ -14,8 +14,8 @@ namespace emu {
 		{
 		public:
 
-			friend class FiberParser;
-			friend class DDU;
+			//friend class FiberParser;
+			//friend class DDU;
 
 			/** Default constructor **/
 			Fiber();
@@ -50,6 +50,9 @@ namespace emu {
 			
 			/** @returns whether or not the owning DDU should be configured to kill this fiber **/
 			inline bool isKilled() { return killed_; }
+			
+			/** Sets whether or not the DDU should be configured to kill this fiber **/
+			inline void setKilled(const bool &killed) { killed_ = killed; }
 
 		private:
 			

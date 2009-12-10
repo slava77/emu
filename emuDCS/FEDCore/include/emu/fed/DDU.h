@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.15 2009/11/03 11:51:41 paste Exp $
+* $Id: DDU.h,v 1.16 2009/12/10 16:24:28 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -21,14 +21,14 @@ namespace emu {
 		/** @class DDU A class representing the Detector-Dependent Unit boards in the EMU FED Crates. **/
 		class DDU: public VMEModule
 		{
-			friend class DDUParser;
-			friend class AutoConfigurator;
-			friend class DDUDBAgent;
+			//friend class DDUParser;
+			//friend class AutoConfigurator;
+			//friend class DDUDBAgent;
 
 		public:
 
 			/** @param slot the slot of the board for VME addressing purposes. **/
-			DDU(const unsigned int mySlot);
+			DDU(const unsigned int &mySlot, const bool &fake = false);
 
 			/** Default destructor. **/
 			virtual ~DDU();
@@ -36,14 +36,26 @@ namespace emu {
 			/** @returns the GbEPrescale setting from the configuration. **/
 			inline uint16_t getGbEPrescale() { return gbe_prescale_; }
 			
+			/** Sets the GbEPrescale **/
+			inline void setGbEPrescale(const uint16_t &gbe_prescale) { gbe_prescale_ = gbe_prescale; }
+			
 			/** @returns the KillFiber bit-mask (LS 15 bits) and the options bits (MS 5 bits) from the configuration. **/
 			inline uint32_t getKillFiber() { return killfiber_; }
+			
+			/** Sets the KillFiber **/
+			inline void setKillFiber(const uint32_t &killfiber) { killfiber_ = killfiber; reloadFiberKillBits(killfiber_); }
 			
 			/** @returns the RUI from the configuration **/
 			inline uint16_t getRUI() { return rui_; }
 			
+			/** Sets the RUI **/
+			inline void setRUI(const uint16_t &rui) { rui_ = rui; }
+			
 			/** @returns the FMM ID from the configuration **/
 			inline uint16_t getFMMID() { return fmm_id_; }
+			
+			/** Sets the FMM ID **/
+			inline void setFMMID(const uint16_t &fmm_id) { fmm_id_ = fmm_id; }
 
 			/** Configures the DDU. **/
 			void configure()

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.10 2009/10/26 18:51:24 paste Exp $
+* $Id: DCC.h,v 1.11 2009/12/10 16:24:28 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -21,12 +21,12 @@ namespace emu {
 		class DCC: public VMEModule
 		{
 		public:
-			friend class DCCParser;
-			friend class AutoConfigurator;
-			friend class DCCDBAgent;
+			//friend class DCCParser;
+			//friend class AutoConfigurator;
+			//friend class DCCDBAgent;
 
 			/** @param slot the slot of the board for VME addressing purposes. **/
-			DCC(const unsigned int &slot);
+			DCC(const unsigned int &slot, const bool &fake = false);
 
 			/** Default destructor. **/
 			virtual ~DCC();
@@ -34,11 +34,20 @@ namespace emu {
 			/** @return the FIFOInUse parameter from configuration **/
 			inline uint16_t getFIFOInUse() { return fifoinuse_; }
 			
+			/** Sets the FIFOInUse parameter **/
+			inline void setFIFOInUse(const uint16_t &fifoinuse) { fifoinuse_ = fifoinuse; reloadFIFOUsedBits(fifoinuse_); }
+			
 			/** @return the Software switch parameter from configuration **/
 			inline uint16_t getSoftwareSwitch() { return softsw_; }
 			
+			/** Sets the Software switch parameter **/
+			inline void setSoftwareSwitch(const uint16_t &softsw) { softsw_ = softsw; }
+			
 			/** @return the FMM ID parameter from configuration **/
 			inline uint16_t getFMMID() { return fmm_id_; }
+			
+			/** Sets the FMMID parameter **/
+			inline void setFMMID(const uint16_t &fmm_id) { fmm_id_ = fmm_id; }
 			
 			/** @return the S-Link parameter from configuration **/
 			inline uint16_t getSLinkID(const unsigned short int &iSlink)
@@ -46,6 +55,15 @@ namespace emu {
 			{ 
 				if (iSlink == 1) return slink1_id_;
 				else if (iSlink == 2) return slink2_id_;
+				else XCEPT_RAISE(emu::fed::exception::OutOfBoundsException, "Parameter must be either 1 or 2");
+			}
+			
+			/** Sets the S-Link ID parameter **/
+			inline void setSLinkID(const unsigned short int &iSlink, const uint16_t &slink_id)
+			throw (emu::fed::exception::OutOfBoundsException)
+			{
+				if (iSlink == 1) slink1_id_ = slink_id;
+				else if (iSlink == 2) slink2_id_ = slink_id;
 				else XCEPT_RAISE(emu::fed::exception::OutOfBoundsException, "Parameter must be either 1 or 2");
 			}
 
