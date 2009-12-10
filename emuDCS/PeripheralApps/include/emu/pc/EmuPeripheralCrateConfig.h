@@ -600,7 +600,7 @@ private:
   //
   int number_of_alct_firmware_errors[9];
   int number_of_tmb_firmware_errors[9];
-  int able_to_load_alct;
+  int able_to_load_alct[9];
   //
   bool print_stuff;
   char date_and_time_[13];

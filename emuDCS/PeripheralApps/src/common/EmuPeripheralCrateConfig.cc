@@ -476,11 +476,10 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MPCRegisterWrite_ = -1;
   MPCWriteValue_ = -1;
   //
-  able_to_load_alct = -1;
-  //
   CalibrationState_ = "None";
   //
-  for (int i=0; i<9; i++) {  
+  for (int i=0; i<9; i++) {
+    able_to_load_alct[i] = -1;  
     number_of_tmb_firmware_errors[i] = -1;
     number_of_alct_firmware_errors[i] = -1;
   }
@@ -1161,6 +1160,8 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
       MyTest[i][cr].SetDMB(dmbVector[i]);
       MyTest[i][cr].SetCCB(thisCCB);
       MyTest[i][cr].SetMPC(thisMPC);
+      // reset ALCT firmware check value for this crate
+      able_to_load_alct[i] = -1;
     }
     //
     DefineFirmwareFilenames();
@@ -12651,7 +12652,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   if (alct) {
     *out << "ALCT: " << cgicc::br() << std::endl;
-  *out << "firmware version = " << ALCTFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
+    *out << "firmware version = " << ALCTFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
     //
     *out << cgicc::br() << std::endl;
     //
@@ -12660,9 +12661,20 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     std::string CheckAbilityToLoadALCT = toolbox::toString("/%s/CheckAbilityToLoadALCT",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CheckAbilityToLoadALCT) << std::endl ;
     //
-    if ( able_to_load_alct < 0 ) {
+    int track_checked = -1;
+    //
+    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++)
+      if (able_to_load_alct[i] == 0) 
+	track_checked = 0;
+    //
+    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++)
+      if (able_to_load_alct[i] > 0) 
+	track_checked++;
+    //
+    //
+    if ( track_checked < 0 ) {
       *out << cgicc::input().set("type","submit").set("value","Step 2) ALCT firmware loading check").set("style","color:blue");
-    } else if ( able_to_load_alct == 0 ) {
+    } else if ( track_checked == 0 ) {
       *out << cgicc::input().set("type","submit").set("value","Step 2) ALCT firmware loading check").set("style","color:green");
     } else {
       *out << cgicc::input().set("type","submit").set("value","Step 2) ALCT firmware loading check").set("style","color:red");
@@ -13413,7 +13425,6 @@ void EmuPeripheralCrateConfig::CheckAbilityToLoadALCT(xgi::Input * in, xgi::Outp
   //
   std::cout << "Check ability to load firmware for all ALCTs in this crate..." << std::endl;
   //
-  able_to_load_alct = 0;
   int check_value[10] = {};
   //
   for (unsigned i=0; i<tmbVector.size(); i++) 
@@ -13425,9 +13436,10 @@ void EmuPeripheralCrateConfig::CheckAbilityToLoadALCT(xgi::Input * in, xgi::Outp
     //
     std::cout << "TMB in slot " << tmbVector[i]->slot() << " ... ";
     if (check_value[i] == 1) {
+      able_to_load_alct[i] = 0;
       std::cout << "OK";
     } else if (check_value[i] == 0) {
-      able_to_load_alct += 1;
+      able_to_load_alct[i] = 1;
       std::cout << " ---> FAIL <---";
     }
     std::cout << std::endl;
@@ -13459,18 +13471,18 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   //
   if (!thisALCT) {
     std::cout << "This ALCT not defined" << std::endl;
-    return;
+    this->TMBUtils(in,out);
   }
-  if (able_to_load_alct != 0) {
+  if (able_to_load_alct[tmb] != 0) {
     std::cout << "----------------------------------------------------------------" << std::endl;
     std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
     std::cout << "---- Firmware database check did not pass for this crate. ------" << std::endl;
     std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
     std::cout << "----------------------------------------------------------------" << std::endl;
-    return;
+    this->TMBUtils(in,out);
   }
   // reset the ALCT check button
-  able_to_load_alct = -1;
+  able_to_load_alct[tmb] = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
   thisCCB->setCCBMode(CCB::VMEFPGA);
@@ -13537,17 +13549,6 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     tmb = TMB_;
   }
   //
-  if (able_to_load_alct != 0) {
-    std::cout << "----------------------------------------------------------------" << std::endl;
-    std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
-    std::cout << "---- Firmware database check did not pass for this crate. ------" << std::endl;
-    std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
-    std::cout << "----------------------------------------------------------------" << std::endl;
-    return;
-  }
-  // reset the ALCT check button
-  able_to_load_alct = -1;
-  //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
   thisCCB->setCCBMode(CCB::VMEFPGA);
   //
@@ -13557,8 +13558,19 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     //
     if (!thisALCT) {
       std::cout << "This ALCT not defined" << std::endl;
-      return;
+      this->TMBUtils(in,out);
     }
+    //
+    if (able_to_load_alct[i] != 0) {
+      std::cout << "----------------------------------------------------------------" << std::endl;
+      std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
+      std::cout << "---- Firmware database check did not pass for this crate. ------" << std::endl;
+      std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
+      std::cout << "----------------------------------------------------------------" << std::endl;
+      this->TMBUtils(in,out);
+    }
+    // reset the ALCT check button
+    able_to_load_alct[i] = -1;
     //
     LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
     //
