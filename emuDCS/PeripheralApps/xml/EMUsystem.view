@@ -30,7 +30,7 @@
 -->
   <tstore:view id="urn:tstore-view-SQL:EMUsystem">
      <tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>  
-       <!--<tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/>-->    <!-- QUERY TO GET CONFIG IDs -->
+      <!-- <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/> -->   <!-- QUERY TO GET CONFIG IDs -->
     <sql:query xmlns:sql="urn:tstore-view-SQL" name="getconfigids" expectedRows="1">
       <sql:parameter name="TABLE">
         <![CDATA[]]>
@@ -587,7 +587,8 @@ oldconfig.TMB_TO_ALCT_DATA_DELAY "TMB_TO_ALCT_DATA_DELAY $OLD_EMU_CONFIG_ID",new
 oldconfig.VALID_CLCT_REQUIRED "VALID_CLCT_REQUIRED $OLD_EMU_CONFIG_ID",newconfig.VALID_CLCT_REQUIRED "VALID_CLCT_REQUIRED $NEW_EMU_CONFIG_ID",
 oldconfig.WRITE_BUFFER_AUTOCLEAR "WRITE_BUFFER_AUTOCLEAR $OLD_EMU_CONFIG_ID",newconfig.WRITE_BUFFER_AUTOCLEAR "WRITE_BUFFER_AUTOCLEAR $NEW_EMU_CONFIG_ID",
 oldconfig.WRITE_BUFFER_CONTINOUS_ENABLE "WRITE_BUFFER_CONTINOUS $OLD_EMU_CONFIG_ID",newconfig.WRITE_BUFFER_CONTINOUS_ENABLE "WRITE_BUFFER_CONTINOUS $NEW_EMU_CONFIG_ID",
-oldconfig.WRITE_BUFFER_REQUIRED "WRITE_BUFFER_REQUIRED $OLD_EMU_CONFIG_ID",newconfig.WRITE_BUFFER_REQUIRED "WRITE_BUFFER_REQUIRED $NEW_EMU_CONFIG_ID"
+oldconfig.WRITE_BUFFER_REQUIRED "WRITE_BUFFER_REQUIRED $OLD_EMU_CONFIG_ID",newconfig.WRITE_BUFFER_REQUIRED "WRITE_BUFFER_REQUIRED $NEW_EMU_CONFIG_ID",
+oldconfig.TMB_CONFIG_ID "TMB_CONFIG_ID $OLD_EMU_CONFIG_ID",newconfig.TMB_CONFIG_ID "TMB_CONFIG_ID $NEW_EMU_CONFIG_ID"
 from EMU_TMB oldconfig,EMU_TMB newconfig,emu_alct oldalct,emu_alct newalct
 where oldconfig.EMU_CONFIG_ID=$OLD_EMU_CONFIG_ID and oldconfig.csc_CONFIG_ID=$OLD_XXX_CONFIG_ID
 and   newconfig.EMU_CONFIG_ID=$NEW_EMU_CONFIG_ID and newconfig.csc_CONFIG_ID=$NEW_XXX_CONFIG_ID
