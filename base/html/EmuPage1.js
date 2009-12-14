@@ -831,8 +831,9 @@ function TrackFinderFromJson(){
       if ( i == 0 ){
 	msg += 'FSM_STATE.rows.length='+row.FSM_STATE.rows.length+'   EMUPAGEONE_RATES.rows.length='+row.EMUPAGEONE_RATES.rows.length;
 	var validConfPatterns = ['^CC-Conf','^EmuLocal$'];
-	var foundValidConf = false;
-	for ( p=0; p<validConfPatterns.length && !foundValidConf; p++ ){
+	var foundGlobalConf = false;
+	var foundLocalConf  = false;
+	for ( p=0; p<validConfPatterns.length; p++ ){
 	  $.each( row.FSM_STATE.rows, function(j,configRow){
 	    if ( configRow['id'].search(validConfPatterns[p])==0 ){
 	      $('#td_value_state').attr( 'class', configRow['state'] );
@@ -841,17 +842,26 @@ function TrackFinderFromJson(){
 	      $('#td_value_confkey').attr( 'class', configRow['conf_key'] );
 	      $('#a_value_confkey').text( configRow['conf_key'] );
 	      $('#a_value_confkey').attr( 'title', 'Operation \"'+configRow['id']+'\" has configuration key '+configRow['conf_key']+'.' );
-	      foundValidConf = true;
+	      if ( p==0 ) foundGlobalConf = true;
+	      else        foundLocalConf  = true;
 	    }
 	  });
 	}
-	if ( !foundValidConf ){
+	if ( !foundGlobalConf && !foundLocalConf ){
 	  $('#td_value_state').attr( 'class', 'UNKNOWN' );
 	  $('#a_value_state').text( 'UNKNOWN' );
-	  $('#a_value_state').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'configuration found.' );
+	  $('#a_value_state').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'operation found.' );
 	  $('#td_value_confkey').attr( 'class', 'UNKNOWN' );
 	  $('#a_value_confkey').text( 'UNKNOWN' );
-	  $('#a_value_confkey').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'configuration found.' );
+	  $('#a_value_confkey').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'operation found.' );
+	}
+	if ( foundGlobalConf && foundLocalConf ){
+	  $('#td_value_state').attr( 'class', 'INDEFINITE' );
+	  $('#a_value_state').text( 'INDEFINITE' );
+	  $('#a_value_state').attr( 'title', 'Both global and local operations found. Click to destroy \"EmuLocal\", or consult the Trigger shifter to have the global one destroyed.' );
+	  $('#td_value_confkey').attr( 'class', 'INDEFINITE' );
+	  $('#a_value_confkey').text( 'INDEFINITE' );
+	  $('#a_value_confkey').attr( 'title', 'Both global and local operations found. Click to destroy \"EmuLocal\", or consult the Trigger shifter to have the global one destroyed.' );
 	}
 	$.each( row.EMUPAGEONE_RATES.rows, function(j,ratesRow){ 
 	  if ( j == 0 ){
