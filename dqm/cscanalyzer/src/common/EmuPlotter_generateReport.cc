@@ -1245,8 +1245,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                               //		std::cout << "CFEB"<< (icfeb+1) << ": " << (double(SCAsums[icfeb])) << ", ";
                               // Avg. strip SCA occupancy > 5.
                               bool isLowEff = false;
-			      double cfeb_sca_sum = SCAsums[icfeb];
-			      if ( (icfeb == 4) && ME11) cfeb_sca_sum/=2;
+                              double cfeb_sca_sum = SCAsums[icfeb];
+                              if ( (icfeb == 4) && ME11) cfeb_sca_sum/=2;
                               if (cfeb_sca_sum)
                                 {
 
@@ -1260,7 +1260,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                     }
 
 
-				  
+
                                   if ( cfeb_sca_sum >= high_sca_thresh*avg_sca_occupancy )
                                     {
                                       std::string diag=Form("CFEB Noisy/Hot CFEB SCAs: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,
@@ -1272,8 +1272,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                   for (int ch=1; ch <=16; ch++)
                                     {
                                       double ch_val = 100*h->GetBinContent(ch+icfeb*16-1)/nentries;
-				      if ( (icfeb == 4) && ME11) ch_val/=2;
-				 
+                                      if ( (icfeb == 4) && ME11) ch_val/=2;
+
                                       if (ch_val > high_sca_thresh*avg_sca_ch_occupancy)
                                         {
                                           std::string diag = Form("CFEB Hot/Noisy SCA channel: CFEB%d Layer%d Ch#%d (occupancy %.1f times > average)", icfeb+1, ilayer, ch+icfeb*16,
@@ -1480,7 +1480,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                     {
                       double z=afebs[iseg];
                       int hvseg = emu::dqm::utils::getHVSegmentNumber(cscName, iseg);
-		      int afeb = iseg*3+(ilayer+1)/2;
+                      int afeb = iseg*3+(ilayer+1)/2;
 
                       if ( (z < 0.2)
                            && (find(no_hv_segments.begin(), no_hv_segments.end(), hvseg ) == no_hv_segments.end())

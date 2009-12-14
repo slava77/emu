@@ -142,7 +142,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   // === Use 6-bit L1A
   dmbHeaderL1A = dmbHeader->l1a()%64;
 
-  
+
   //          Calculate difference between L1A numbers from DDU and DMB
   dmb_ddu_l1a_diff = (int)(dmbHeaderL1A-(int)(L1ANumber%64));
   if (dmb_ddu_l1a_diff != 0) L1A_out_of_sync = true;
@@ -153,15 +153,16 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   EmuMonitoringObject* mo_EventDisplay = 0;
   if (isMEvalid(cscME, "EventDisplay", mo_EventDisplay)) mo_EventDisplay->getObject()->Reset();
 
-  if (mo_EventDisplay) {
-        mo_EventDisplay->SetBinContent(1, 1, cid.endcap());
-        mo_EventDisplay->SetBinContent(1, 2, cid.station());
-        mo_EventDisplay->SetBinContent(1, 3, cid.ring());
-        mo_EventDisplay->SetBinContent(1, 4, CSCposition);
-        mo_EventDisplay->SetBinContent(1, 5, crateID);
-        mo_EventDisplay->SetBinContent(1, 6, dmbID);
-        mo_EventDisplay->SetBinContent(1, 7, dmbHeader->l1a());
-        }
+  if (mo_EventDisplay)
+    {
+      mo_EventDisplay->SetBinContent(1, 1, cid.endcap());
+      mo_EventDisplay->SetBinContent(1, 2, cid.station());
+      mo_EventDisplay->SetBinContent(1, 3, cid.ring());
+      mo_EventDisplay->SetBinContent(1, 4, CSCposition);
+      mo_EventDisplay->SetBinContent(1, 5, crateID);
+      mo_EventDisplay->SetBinContent(1, 6, dmbID);
+      mo_EventDisplay->SetBinContent(1, 7, dmbHeader->l1a());
+    }
 
 
   if (isMEvalid(cscME, "DMB_L1A_Distrib", mo)) mo->Fill(dmbHeaderL1A);
@@ -478,24 +479,24 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           if (isMEvalid(cscME, "ALCT_DMB_BXN_diff", mo))
             {
 
-		int alct_dmb_bxn_diff = (int)(alctHeader->BXNCount()-dmbHeader->bxn12());
-		if (alct_dmb_bxn_diff > 0) alct_dmb_bxn_diff -= 3564;
-		alct_dmb_bxn_diff %= 64;
-		/*
-              int alct_dmb_bxn_diff = (int)(alctHeader->BXNCount()%64-dmbHeader->bxn12()%64);
-	      cout << cscTag << " " << alctHeader->BXNL1A() << " " << dmbHeader->bxn12() << " " 
-		<< (int)(alctHeader->BXNL1A() - dmbHeader->bxn12()) << endl;
-		*/
+              int alct_dmb_bxn_diff = (int)(alctHeader->BXNCount()-dmbHeader->bxn12());
+              if (alct_dmb_bxn_diff > 0) alct_dmb_bxn_diff -= 3564;
+              alct_dmb_bxn_diff %= 64;
+              /*
+                        int alct_dmb_bxn_diff = (int)(alctHeader->BXNCount()%64-dmbHeader->bxn12()%64);
+                  cout << cscTag << " " << alctHeader->BXNL1A() << " " << dmbHeader->bxn12() << " "
+              << (int)(alctHeader->BXNL1A() - dmbHeader->bxn12()) << endl;
+              */
 
-		mo->Fill(alct_dmb_bxn_diff);
-		/*
-              if (alct_dmb_bxn_diff < -32) mo->Fill(alct_dmb_bxn_diff + 64);
-              else
-                {
-                  if (alct_dmb_bxn_diff >= 32)  mo->Fill(alct_dmb_bxn_diff - 64);
-                  else mo->Fill(alct_dmb_bxn_diff);
-                }
-		*/
+              mo->Fill(alct_dmb_bxn_diff);
+              /*
+                        if (alct_dmb_bxn_diff < -32) mo->Fill(alct_dmb_bxn_diff + 64);
+                        else
+                          {
+                            if (alct_dmb_bxn_diff >= 32)  mo->Fill(alct_dmb_bxn_diff - 64);
+                            else mo->Fill(alct_dmb_bxn_diff);
+                          }
+              */
               mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
             }
 
@@ -625,7 +626,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
               if (mo_EventDisplay)
                 {
                   mo_EventDisplay->SetBinContent(2, alctsDatas[lct].getKeyWG(), alct_bxn + 1 );
-		  mo_EventDisplay->SetBinContent(3, alctsDatas[lct].getKeyWG(), alctsDatas[lct].getQuality());
+                  mo_EventDisplay->SetBinContent(3, alctsDatas[lct].getKeyWG(), alctsDatas[lct].getQuality());
                 }
 
               if (isMEvalid(cscME, Form("ALCT%d_Quality_Distr", lct), mo))
@@ -1034,29 +1035,30 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                   if (isMEvalid(cscME,  Form("CLCT%d_BXN", lct), mo)) mo ->Fill(clctsDatas[lct].getFullBX() %64);
 
 
-		  int clct_dtime = clctsDatas[lct].getFullBX() - tmbHeader->BXNCount();
+                  int clct_dtime = clctsDatas[lct].getFullBX() - tmbHeader->BXNCount();
 
-		  if (clct_dtime > 0) {
-			clct_dtime -= 3564;
-			
-		  }
-		
+                  if (clct_dtime > 0)
+                    {
+                      clct_dtime -= 3564;
 
-/*                  int clct_dtime = (int)(clctsDatas[lct].getFullBX()%64 -(tmbHeader->BXNCount()%64));
+                    }
 
-		  cout << cscTag << " " << clctsDatas[lct].getFullBX() << " " << tmbHeader->BXNCount() << " " << 
-			(clctsDatas[lct].getFullBX() - tmbHeader->BXNCount()) << endl;
-*/
+
+                  /*                  int clct_dtime = (int)(clctsDatas[lct].getFullBX()%64 -(tmbHeader->BXNCount()%64));
+
+                  		  cout << cscTag << " " << clctsDatas[lct].getFullBX() << " " << tmbHeader->BXNCount() << " " <<
+                  			(clctsDatas[lct].getFullBX() - tmbHeader->BXNCount()) << endl;
+                  */
                   if (isMEvalid(cscME,  Form("CLCT%d_dTime", lct), mo))
                     {
                       int dTime = clct_dtime;
-		/*
-                      if (clct_dtime < -32) dTime = clct_dtime + 64;
-                      else
-                        {
-                          if (clct_dtime >= 32 ) dTime = clct_dtime - 64;
-                        }
-		*/
+                      /*
+                                        if (clct_dtime < -32) dTime = clct_dtime + 64;
+                                        else
+                                          {
+                                            if (clct_dtime >= 32 ) dTime = clct_dtime - 64;
+                                          }
+                      */
                       mo->Fill(dTime);
                       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
                       double dTime_mean = mo->getObject()->GetMean();
@@ -1099,28 +1101,28 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
                       if (isMEvalid(cscME,  Form("CLCT%d_dTime_vs_Half_Strip", lct), mo))
                         {
-			mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
-			/*
-                          if (clct_dtime < -32) mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime + 64);
-                          else
-                            {
-                              if (clct_dtime >= 32)    mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime - 64);
-                              else                  mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
-                            }
-			*/
+                          mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
+                          /*
+                                              if (clct_dtime < -32) mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime + 64);
+                                              else
+                                                {
+                                                  if (clct_dtime >= 32)    mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime - 64);
+                                                  else                  mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
+                                                }
+                          */
                         }
 
                       if (isMEvalid(cscME,  Form("CLCT%d_dTime_Profile", lct), mo))
                         {
-			  mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
-			/*
-                          if (clct_dtime < -32) mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime + 64);
-                          else
-                            {
-                              if (clct_dtime >= 32)    mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime - 64);
-                              else                  mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
-                            }
-			*/
+                          mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
+                          /*
+                                              if (clct_dtime < -32) mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime + 64);
+                                              else
+                                                {
+                                                  if (clct_dtime >= 32)    mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime - 64);
+                                                  else                  mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
+                                                }
+                          */
                         }
 
                       if (isMEvalid(cscME,  Form("CLCT%d_Half_Strip_Pattern", lct), mo))
@@ -1187,10 +1189,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                         mo->Fill((int)(clctsDatas[lct].getKeyStrip()),(int)(clctsDatas[lct].getQuality()));
 
 
-                      if (mo_EventDisplay) {
-				mo_EventDisplay->SetBinContent(10, clctsDatas[lct].getKeyStrip(), clct_dtime);
-				mo_EventDisplay->SetBinContent(11, clctsDatas[lct].getKeyStrip(), clctsDatas[lct].getQuality());
-			}
+                      if (mo_EventDisplay)
+                        {
+                          mo_EventDisplay->SetBinContent(10, clctsDatas[lct].getKeyStrip(), clct_dtime);
+                          mo_EventDisplay->SetBinContent(11, clctsDatas[lct].getKeyStrip(), clctsDatas[lct].getQuality());
+                        }
 
 
                       if (isMEvalid(cscME,  Form("CLCT%d_Half_Strip_Quality_Distr", lct), mo))
@@ -1218,15 +1221,15 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
                       if (isMEvalid(cscME,  Form("CLCT%d_dTime_vs_DiStrip", lct), mo))
                         {
-			mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
-			/*
-                          if (clct_dtime < -32) mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime + 64);
-                          else
-                            {
-                              if (clct_dtime >= 32)    mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime - 64);
-                              else                  mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
-                            }
-			*/
+                          mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
+                          /*
+                                              if (clct_dtime < -32) mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime + 64);
+                                              else
+                                                {
+                                                  if (clct_dtime >= 32)    mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime - 64);
+                                                  else                  mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime);
+                                                }
+                          */
                         }
 
                       if (isMEvalid(cscME,  Form("CLCT%d_DiStrip_Pattern", lct), mo))
