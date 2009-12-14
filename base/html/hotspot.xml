@@ -1657,6 +1657,25 @@
 	<guard label="fiber input 14" tag="FEDcrate[ ]+4[ ]+RUI[ ]+36[ ]+fiber[ ]+14"/>
       </view>
     </view>
+    <view label="Crate 5">
+      <view label="DDU 0 (TF DDU)">
+	<guard label="fiber input 00 (SP 05)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+00"/>
+	<guard label="fiber input 01 (SP 02)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+01"/>
+	<guard label="fiber input 02 (SP 04)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+02"/>
+	<guard label="fiber input 03 (SP 03)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+03"/>
+	<guard label="fiber input 04 (SP 06)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+04"/>
+	<guard label="fiber input 05 (SP 01)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+05"/>
+<!-- 	<guard label="fiber input 06 (SP 0-)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+06"/> -->
+<!-- 	<guard label="fiber input 07 (SP 0-)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+07"/> -->
+<!-- 	<guard label="fiber input 08 (SP 0-)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+08"/> -->
+	<guard label="fiber input 09 (SP 10)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+09"/>
+	<guard label="fiber input 10 (SP 11)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+10"/>
+	<guard label="fiber input 11 (SP 12)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+11"/>
+	<guard label="fiber input 12 (SP 08)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+12"/>
+	<guard label="fiber input 13 (SP 09)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+13"/>
+	<guard label="fiber input 14 (SP 07)" tag="FEDcrate[ ]+5[ ]+RUI[ ]+(0?0|192)[ ]+fiber[ ]+14"/>
+      </view>
+    </view>
   </view>
 
 
