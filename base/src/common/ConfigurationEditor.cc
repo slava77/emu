@@ -213,6 +213,13 @@ bool ConfigurationEditor::shouldDisplayConfiguration(const std::string &configNa
 	return false;
 }
 
+/*void ConfigurationEditor::setShouldDisplayConfiguration(const std::string &configName,const std::string &identifier,bool show) {
+	std::string key=fullTableID(configName,identifier);
+	if (tablesToDisplay.count(key)) {
+		tablesToDisplay[key]=show;
+	}
+}*/
+
 void ConfigurationEditor::outputShowHideButton(std::ostream * out,const std::string &configName,const std::string &identifier,const std::string &display) {
 	std::string key=fullTableID(configName,identifier);
 	std::string action;
@@ -280,7 +287,10 @@ std::string ConfigurationEditor::xdataToHex(xdata::Serializable *xdataValue) {
 	long long int intValue;
 	stream >> intValue;
 	std::string hexValue;
-	convertToHex(hexValue,"%Lx",intValue);
+	//see notes in EmuPCrateConfigTStore::shouldDisplayInHex
+	//if other hex values need more digits, a new parameter should be added to that function to say how many.
+	//But at the moment most hex values are stored as strings.
+	convertToHex(hexValue,"%02Lx",intValue);
 	//std::cout << "converted " << valueAsString << " to " << intValue << " to " << hexValue << std::endl;
 	return hexValue;
 }
@@ -1432,7 +1442,11 @@ void ConfigurationEditor::setConfigurationDirectory(const std::string &configura
 std::string ConfigurationEditor::fullConfigurationDirectory() {
 	std::string HomeDir_ =getenv("HOME");
 	size_t pos = HomeDir_.find_last_of("/");
+<<<<<<< ConfigurationEditor.cc
+	if(pos!=HomeDir_.length()-1) HomeDir_+="/";
+=======
 	if(pos!=HomeDir_.length()-1) HomeDir_ += "/";
+>>>>>>> 1.6
 	return HomeDir_ + "config/"+configurationDirectory_+="/"; 
 }
 
@@ -1761,7 +1775,6 @@ void ConfigurationEditor::setCachedTable(const std::string &insertViewName,const
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),logMessage.str());
 	currentTables[insertViewName][identifier+" "]=table; //add space to identifier so that something beginning with e.g. 'crate 11' is not included when looking for 'crate 1 '
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"set cached "+insertViewName+" table "+identifier);
-
 }
 
 void ConfigurationEditor::setCachedDiff(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception) {
