@@ -1220,7 +1220,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                               continue; // Skip already known bad CFEBs
                             }
 
-                          double cfeb_sca_sum = h->Integral(icfeb*16+1, (icfeb+1)*16);
+                          double cfeb_sca_sum = h->Integral(icfeb*16, (icfeb+1)*16-1);
                           SCAsums.push_back(cfeb_sca_sum);
 
                           if (cfeb_sca_sum == 0)
@@ -1271,7 +1271,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
                                   for (int ch=1; ch <=16; ch++)
                                     {
-                                      double ch_val = 100*h->GetBinContent(ch+icfeb*16)/nentries;
+                                      double ch_val = 100*h->GetBinContent(ch+icfeb*16-1)/nentries;
 				      if ( (icfeb == 4) && ME11) ch_val/=2;
 				 
                                       if (ch_val > high_sca_thresh*avg_sca_ch_occupancy)
@@ -1335,7 +1335,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                               continue;
                             }// Skip dead CFEBs
 
-                          double cfeb_comp_sum = h->Integral(icfeb*32+1, (icfeb+1)*32);
+                          double cfeb_comp_sum = h->Integral(icfeb*32, (icfeb+1)*32-1);
                           Compsums.push_back(cfeb_comp_sum);
                           // std::cout << "CFEB" << (icfeb+1) << ": " << cfeb_comp_sum << ", ";
                           if (cfeb_comp_sum == 0 && (lowEffCFEBs[icfeb] != 1))
@@ -1383,7 +1383,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
                                   for (int ch=1; ch <=32; ch++)
                                     {
-                                      double ch_val = h->GetBinContent(ch+icfeb*32);
+                                      double ch_val = h->GetBinContent(ch+icfeb*32-1);
                                       if (ch_val > 5*avg_comp_ch_occupancy)
                                         {
                                           std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)",
@@ -1434,7 +1434,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   vector<int> noisy_hv_segments;
                   for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++)
                     {
-                      double val = (h->Integral(hvSegMap[hvseg].first+1, hvSegMap[hvseg].second+1)/((hvSegMap[hvseg].second-hvSegMap[hvseg].first)*ent))*100.;
+                      double val = (h->Integral(hvSegMap[hvseg].first, hvSegMap[hvseg].second)/((hvSegMap[hvseg].second-hvSegMap[hvseg].first)*ent))*100.;
                       hvsegs.push_back(val);
                       if (val>anode_max) anode_max=val;
                       // std::cout << cscName << " ly" << ilayer << " ent:" <<   ent << " seg" << hvseg << " " << val << std::endl;
@@ -1462,7 +1462,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
                   for (int32_t iseg=0; iseg < nWireGroups/8; iseg++)
                     {
-                      double val = (h->Integral(iseg*8+1+1, (iseg+1)*8+1)/(8*ent))*100;
+                      double val = (h->Integral(iseg*8, (iseg+1)*8-1)/(8*ent))*100;
                       afebs.push_back(val);
                       if (val>anode_max) anode_max=val;
                       // std::cout << cscName << " ly" << ilayer << " ent:" <<   ent << " seg" << iseg << " " << val << std::endl;

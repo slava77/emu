@@ -543,7 +543,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                               continue; // Skip already known bad CFEBs
                             }
 
-                          double cfeb_sca_sum = h->Integral(icfeb*16+1, (icfeb+1)*16);
+                          double cfeb_sca_sum = h->Integral(icfeb*16, (icfeb+1)*16-1);
+			  // cout << cscName << " cfeb" << icfeb << " " << cfeb_sca_sum << endl;
                           SCAsums.push_back(cfeb_sca_sum);
 
                           if (cfeb_sca_sum == 0)
@@ -590,7 +591,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
                                   for (int ch=1; ch <=16; ch++)
                                     {
-                                      double ch_val = h->GetBinContent(ch+icfeb*16);
+                                      double ch_val = h->GetBinContent(ch+icfeb*16-1);
                                       if (ch_val > 4*avg_sca_ch_occupancy)
                                         {
                                           std::string diag = Form("CFEB Hot/Noisy SCA channel: CFEB%d Layer%d Ch#%d (occupancy %.1f times > average)", icfeb+1, ilayer, ch+icfeb*16,
@@ -650,7 +651,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                               continue;
                             }// Skip dead CFEBs
 
-                          double cfeb_comp_sum = h->Integral(icfeb*32+1, (icfeb+1)*32);
+                          double cfeb_comp_sum = h->Integral(icfeb*32, (icfeb+1)*32-1);
                           Compsums.push_back(cfeb_comp_sum);
                           // std::cout << "CFEB" << (icfeb+1) << ": " << cfeb_comp_sum << ", ";
                           if (cfeb_comp_sum == 0 && (lowEffCFEBs[icfeb] != 1))
@@ -698,7 +699,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
                                   for (int ch=1; ch <=32; ch++)
                                     {
-                                      double ch_val = h->GetBinContent(ch+icfeb*32);
+                                      double ch_val = h->GetBinContent(ch+icfeb*32-1);
                                       if (ch_val > 5*avg_comp_ch_occupancy)
                                         {
                                           std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)",
@@ -741,7 +742,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 {
 		  for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++)
                     {
-                      if (h->Integral(hvSegMap[hvseg].first+1, hvSegMap[hvseg].second+1) == 0)
+                      if (h->Integral(hvSegMap[hvseg].first, hvSegMap[hvseg].second) == 0)
                         {
                           std::string diag=Form("No HV: Segment%d Layer%d", hvseg+1, ilayer);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
@@ -751,7 +752,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                     }
                   for (int32_t iseg=0; iseg < nWireGroups/8; iseg++)
                     {
-                      if (h->Integral(iseg*8+1+1, (iseg+1)*8+1) == 0)
+                      if (h->Integral(iseg*8, (iseg+1)*8-1) == 0)
                         {
                           int afeb = iseg*3+(ilayer+1)/2;
                           std::string diag=Form("ALCT No Anode Data: AFEB%d Layer%d", afeb, ilayer);
