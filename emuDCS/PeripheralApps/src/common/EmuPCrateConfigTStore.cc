@@ -80,7 +80,7 @@ std::string EmuPCrateConfigTStore::attributeNameFromColumnName(const std::string
 		"MAC_addr","MCAST_1","MCAST_2","MCAST_3","Dflt_Srv_MAC","VCC_frmw_ver","Ethernet_CR","Ext_FIFO_CR",
 		"Rst_Misc_CR","VME_CR","BTO","BGTO","Msg_Lvl","Warn_On_Shtdwn","Pkt_On_Startup","xLatency",
 		"xFineLatency","calibration_LCT_delay","enableCLCTInputs_reg42","enableCLCTInputs_reg68","l1aDelay",
-		"CCBmode","TTCrxID","TTCrxCoarseDelay","TTCrxFineDelay","crateID"};
+		"CCBmode","TTCrxID","TTCrxCoarseDelay","TTCrxFineDelay","crateID","TransparentMode"};
 		for (size_t columnIndex=0;columnIndex<sizeof(columnNamesArray)/sizeof(columnNamesArray[0]);columnIndex++) {
 			columnNames[toolbox::tolower(columnNamesArray[columnIndex])]=columnNamesArray[columnIndex];
 		}
@@ -111,8 +111,16 @@ bool EmuPCrateConfigTStore::shouldDisplayInHex(const std::string &columnName) {
 	return (std::find(&hexColumns[0],lastElement,columnName)!=lastElement);*/
 	
 	//the other ones are stored as strings anyway, so there is no point converting them from hex strings to numbers and then back into hex strings, except to validate input.
-	bool hex=toolbox::toupper(columnName)=="PROBLEM_MASK";
-	return hex;
+	std::string uppercaseName=toolbox::toupper(columnName);
+	if (uppercaseName=="PROBLEM_MASK") {
+		//if ever there are other columns which should be displayed as hex and are stored as numbers,
+		//this method should take an extra output parameter minimumDigits, which would be used by ConfigurationEditor::xdataToHex
+		//but since so far all hex parameters except this one are stored as strings,
+		//for now ConfigurationEditor::xdataToHex always sets the minimum digits to 2.
+		//minimumDigits=2;
+		return true;
+	}
+	return false;
 }
 
 void EmuPCrateConfigTStore::outputException(xgi::Output * out,xcept::Exception &e) {
@@ -591,6 +599,7 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
 			if (myCrates[i]) {
 				copyPeripheralCrateToTable(dataAsTable,myCrates[i]);
 				setCachedTable("peripheralcrate",myCrates[i]->CrateID(),dataAsTable);
+				setShouldDisplayConfiguration("wholecrate",crateIdentifierString(myCrates[i]->CrateID()),true); //show the chambers by default so it is easy to search for them on the page
 				copyCCBToTable(dataAsTable,myCrates[i]);
 				setCachedTable("ccb",myCrates[i]->CrateID(),dataAsTable);
 				copyMPCToTable(dataAsTable,myCrates[i]);
@@ -1493,17 +1502,17 @@ void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows,DAQMB * TStore
    xdata::UnsignedShort      _cfeb_number       = TStore_allCFEBs[j].number();
     emu::base::convertToHex(valueInHex,"%lx",TStore_thisDAQMB->GetExpectedCFEBFirmwareTag(_cfeb_number));
     xdata::String _cfeb_firmware_tag = valueInHex;
-    emu::base::convertToHex(valueInHex,"%x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 0));
+    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 0));
     xdata::String _kill_chip0 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 1));
+    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 1));
     xdata::String _kill_chip1 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 2));
+    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 2));
     xdata::String _kill_chip2 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 3));
+    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 3));
     xdata::String _kill_chip3 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 4));
+    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 4));
     xdata::String _kill_chip4 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 5));
+    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 5));
     xdata::String _kill_chip5 = valueInHex;
     
     #ifdef debugV
@@ -2313,6 +2322,9 @@ void EmuPCrateConfigTStore::readPeripheralCrate(const std::string &connectionID,
     xdata::Table thisCrate;
    copyPeripheralCrateToTable(thisCrate,crate); //this is because the results from TStore have the wrong column types
   setCachedTable(queryViewName,crate->CrateID(),thisCrate); 
+     //show the chambers by default so it is easy to search for them on the page
+    //not actually very practical because you see the outlines of all the other tables and it takes a lot of space; this will have to be done a different way
+    //setShouldDisplayConfiguration("wholecrate",crateIdentifierString(crate->CrateID()),true);
     
     readVCC(connectionID, emu_config_id, periph_config_id, crate);
     readCCB(connectionID, emu_config_id, periph_config_id, crate);
@@ -2343,6 +2355,7 @@ void EmuPCrateConfigTStore::readVCC(const std::string &connectionID, const std::
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     // add VMECC(VMEModule in slot 1) to crate
     VMECC * vcc = new VMECC(theCrate, 1);
+	  std::cout << "added vmecc" << (vcc?"Not NULL":"NULL") << std::endl;
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
       if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
