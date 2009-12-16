@@ -74,5 +74,6 @@ var TREE_ITEMS = [
            ['TMB-CLCT: Comparator Raw Hit Time Bin Occupancy','TMB/TMB-CLCT_Comparator_Raw_Hit_Time_Bin_Occupancy.png'],
            ['TMB: ALCT - CLCT Time MatchingSynchronization','TMB/TMB_ALCT_-_CLCT_Time_MatchingSynchronization.png'],
            ['TMB: Number of Words in TMB','TMB/TMB_Number_of_Words_in_TMB.png'],
+	   ['DMB: Event Display', 'CSC_EventDisplay.png']
 	],
 ];

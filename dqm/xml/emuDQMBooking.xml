@@ -1207,6 +1207,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <SetGridx>1</SetGridx>
                 <SetGridy>1</SetGridy>
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetMaximum>-140</SetMaximum>
+		<SetMinimum>-170</SetMinimum>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
 E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
                 <DrawType>ChamberMap</DrawType>
@@ -1242,9 +1244,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <Prefix>EMU</Prefix>
                 <Name>CSC_Plus_endcap_CLCT0_dTime</Name>
                 <SetOption>texthist</SetOption>
-                <XMin>-16</XMin>
-                <XMax>16</XMax>
-                <XBins>32</XBins>
+                <XMin>-170</XMin>
+                <XMax>-140</XMax>
+                <XBins>30</XBins>
                 <XTitle>CLCT0 BXN - CLCT_L1A BXN</XTitle>
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emruo</SetOptStat>
@@ -1257,9 +1259,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <Prefix>EMU</Prefix>
                 <Name>CSC_Minus_endcap_CLCT0_dTime</Name>
                 <SetOption>texthist</SetOption>
-                <XMin>-16</XMin>
-                <XMax>16</XMax>
-                <XBins>32</XBins>
+                <XMin>-170</XMin>
+                <XMax>-140</XMax>
+                <XBins>30</XBins>
                 <XTitle>CLCT0 BXN - CLCT_L1A BXN</XTitle>
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emruo</SetOptStat>
@@ -2005,11 +2007,11 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <Name>All_DDUs_BXNs</Name>
                 <SetOption>bar1</SetOption>
                 <XMin>0</XMin>
-                <XMax>4096</XMax>
-                <XBins>512</XBins>
+                <XMax>3564</XMax>
+                <XBins>891</XBins>
                 <XTitle>BXN Counter Number</XTitle>
                 <YTitle>Number of Events</YTitle>
-                <SetOptStat>e</SetOptStat>
+                <SetOptStat>eo</SetOptStat>
                 <SetLogy>1</SetLogy>
         </Histogram>
 	<!-- Histogram>
@@ -2073,11 +2075,11 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Name>BXN</Name>
 		<SetOption>bar1</SetOption>
 		<XMin>0</XMin>
-		<XMax>4096</XMax>
-		<XBins>512</XBins>
+		<XMax>3564</XMax>
+		<XBins>891</XBins>
 		<XTitle>BXN Counter Number</XTitle>
 		<YTitle>Number of Events</YTitle>
-		<SetOptStat>e</SetOptStat>
+		<SetOptStat>eo</SetOptStat>
 		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
@@ -4148,8 +4150,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly1</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
@@ -4162,8 +4164,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly2</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
@@ -4176,8 +4178,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly3</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
@@ -4190,8 +4192,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly4</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
@@ -4204,8 +4206,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly5</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
@@ -4218,8 +4220,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly6</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
@@ -4247,8 +4249,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly1</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4265,8 +4267,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly1_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4283,8 +4285,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly2</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4301,8 +4303,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly2_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4319,8 +4321,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly3</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4337,8 +4339,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly3_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4355,8 +4357,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly4</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4373,8 +4375,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly4_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4391,8 +4393,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly5</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4409,8 +4411,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly5_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4427,8 +4429,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly6</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4445,8 +4447,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly6_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4696,8 +4698,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly1</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -4709,8 +4711,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly2</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -4722,8 +4724,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly3</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -4735,8 +4737,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly4</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -4748,8 +4750,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly5</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -4761,8 +4763,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly6</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -4775,8 +4777,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly1</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4793,8 +4795,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly2</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4811,8 +4813,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly3</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4829,8 +4831,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly4</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4847,8 +4849,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly5</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4865,8 +4867,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly6</Name>
 		<SetOption>P</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4882,8 +4884,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly1</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4900,8 +4902,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly2</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4918,8 +4920,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly3</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4936,8 +4938,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly4</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4954,8 +4956,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly5</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4972,8 +4974,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly6</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -4990,8 +4992,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly1</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
@@ -5004,8 +5006,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly2</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
@@ -5032,8 +5034,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly4</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
@@ -5046,8 +5048,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly5</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
@@ -5060,8 +5062,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly6</Name>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
@@ -5075,8 +5077,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_1</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -5092,8 +5094,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_2</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -5109,8 +5111,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_3</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -5126,8 +5128,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_4</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -5143,8 +5145,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_5</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -5160,8 +5162,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_6</Name>
 		<SetOption>col</SetOption>
-		<XMin>1</XMin>
-		<XMax>81</XMax>
+		<XMin>0</XMin>
+		<XMax>80</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -5256,8 +5258,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Name>CLCT0_BXN</Name>
 		<SetOption>hist</SetOption>
 		<XMin>0</XMin>
-		<XMax>32</XMax>
-		<XBins>32</XBins>
+		<XMax>64</XMax>
+		<XBins>64</XBins>
 		<XTitle>CLCT0 BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>eo</SetOptStat>
@@ -5458,9 +5460,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CLCT0_dTime</Name>
 		<SetOption>texthist</SetOption>
-		<XMin>-16</XMin>
-		<XMax>16</XMax>
-		<XBins>32</XBins>
+		<XMin>-170</XMin>
+		<XMax>-140</XMax>
+		<XBins>30</XBins>
 		<XTitle>CLCT0 BXN - TMB_L1A BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emruo</SetOptStat>
@@ -5477,9 +5479,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>160</XMax>
                 <XBins>160</XBins>
                 <XTitle>Key Half Strip</XTitle>
-                <YMin>-16</YMin>
-                <YMax>16</YMax>
-                <YBins>32</YBins>
+                <YMin>-170</YMin>
+                <YMax>-140</YMax>
+                <YBins>30</YBins>
                 <YTitle>Average (CLCT0 BXN - L1A BXN)</YTitle>
                 <SetOptStat>em</SetOptStat>
                 <Title>Average (CLCT0 BXN - L1A BXN) vs Key Half Strip</Title>
@@ -5494,9 +5496,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>160</XMax>
 		<XBins>40</XBins>
 		<XTitle>Key DiStrip</XTitle>
-		<YMin>-16</YMin>
-		<YMax>16</YMax>
-		<YBins>32</YBins>
+		<YMin>-170</YMin>
+		<YMax>-140</YMax>
+		<YBins>30</YBins>
 		<YTitle>CLCT0 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>(CLCT0 BXN - TMB_L1A BXN) vs Key DiStrip</Title>
@@ -5511,9 +5513,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>160</XMax>
 		<XBins>160</XBins>
 		<XTitle>Key Half Strip</XTitle>
-		<YMin>-16</YMin>
-		<YMax>16</YMax>
-		<YBins>32</YBins>
+		<YMin>-170</YMin>
+		<YMax>-140</YMax>
+		<YBins>30</YBins>
 		<YTitle>CLCT0 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>(CLCT0 BXN - TMB_L1A BXN) vs Key Half Strip</Title>
@@ -5542,8 +5544,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Name>CLCT1_BXN</Name>
 		<SetOption>hist</SetOption>
 		<XMin>0</XMin>
-		<XMax>32</XMax>
-		<XBins>32</XBins>
+		<XMax>64</XMax>
+		<XBins>64</XBins>
 		<XTitle>CLCT1 BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>eo</SetOptStat>
@@ -5714,9 +5716,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CLCT1_dTime</Name>
 		<SetOption>texthist</SetOption>
-		<XMin>-16</XMin>
-		<XMax>16</XMax>
-		<XBins>32</XBins>
+		<XMin>-170</XMin>
+		<XMax>-140</XMax>
+		<XBins>30</XBins>
 		<XTitle>CLCT1 BXN - TMB_L1A BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emruo</SetOptStat>
@@ -5733,9 +5735,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>160</XMax>
                 <XBins>160</XBins>
                 <XTitle>Key Half Strip</XTitle>
-                <YMin>-16</YMin>
-                <YMax>16</YMax>
-                <YBins>32</YBins>
+                <YMin>-170</YMin>
+                <YMax>-140</YMax>
+                <YBins>30</YBins>
                 <YTitle>Average (CLCT1 BXN - L1A BXN)</YTitle>
                 <SetOptStat>em</SetOptStat>
                 <Title>Average (CLCT1 BXN - L1A BXN) vs Key Half Strip</Title>
@@ -5750,9 +5752,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>160</XMax>
 		<XBins>40</XBins>
 		<XTitle>Key DiStrip</XTitle>
-		<YMin>-16</YMin>
-		<YMax>16</YMax>
-		<YBins>32</YBins>
+		<YMin>-170</YMin>
+		<YMax>-140</YMax>
+		<YBins>30</YBins>
 		<YTitle>CLCT1 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>(CLCT1 BXN - TMB_L1A BXN) vs Key DiStrip</Title>
@@ -5767,9 +5769,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>160</XMax>
 		<XBins>160</XBins>
 		<XTitle>Key Half Strip</XTitle>
-		<YMin>-16</YMin>
-		<YMax>16</YMax>
-		<YBins>32</YBins>
+		<YMin>-170</YMin>
+		<YMax>-140</YMax>
+		<YBins>30</YBins>
 		<YTitle>CLCT1 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>(CLCT1 BXN - TMB_L1A BXN) vs Key Half Strip</Title>
@@ -7078,4 +7080,20 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetOptStat>emo</SetOptStat>
 		<Folder>TMB</Folder>
 	</Histogram>
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>EventDisplay</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>23</XMax>
+                <XBins>23</XBins>
+		<YMin>0</YMin>
+                <YMax>160</YMax>
+                <YBins>160</YBins>	
+		<SetStats>0</SetStats>
+                <SetOptStat>e</SetOptStat>
+                <Folder>DMB</Folder>
+		<DrawType>EventDisplay</DrawType>
+        </Histogram>
 </Booking>

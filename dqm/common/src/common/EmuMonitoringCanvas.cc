@@ -1,4 +1,5 @@
 #include "emu/dqm/common/EmuMonitoringCanvas.h"
+#include "DQM/RenderPlugins/src/CSCRenderPlugin_EventDisplay.h"
 #include <sstream>
 
 EmuMonitoringCanvas::EmuMonitoringCanvas(const EmuMonitoringCanvas& mo)
@@ -16,6 +17,7 @@ EmuMonitoringCanvas::EmuMonitoringCanvas(const EmuMonitoringCanvas& mo)
   displayInWeb = mo.displayInWeb;
   summaryMap=mo.summaryMap;
   chamberMap=mo.chamberMap;
+  eventDisplay=mo.eventDisplay;
   runNumber=mo.runNumber;
 }
 
@@ -34,6 +36,7 @@ EmuMonitoringCanvas& EmuMonitoringCanvas::operator=(const EmuMonitoringCanvas& m
   displayInWeb = mo.displayInWeb;
   summaryMap=mo.summaryMap;
   chamberMap=mo.chamberMap;
+  eventDisplay=mo.eventDisplay;
   runNumber=mo.runNumber;
   return *this;
 }
@@ -53,6 +56,7 @@ EmuMonitoringCanvas::EmuMonitoringCanvas() :
   displayInWeb = true;
   summaryMap=NULL;
   chamberMap=NULL;
+  eventDisplay=NULL;
   params.clear();
 }
 
@@ -63,6 +67,7 @@ EmuMonitoringCanvas::EmuMonitoringCanvas(DOMNode* info)
   parseDOMNode(info);
   summaryMap=NULL;
   chamberMap=NULL;
+  eventDisplay=NULL;
   Book();
 }
 
@@ -261,6 +266,12 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height, bool useDraw
                           REREPLACE(".*Physics_ME([1234])$", station_str, "$1");
                           TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
                           summaryMap->drawStation(tmp, atoi(station_str.c_str()));
+                        }
+		      else if ((drawtype.find("EventDisplay") != std::string::npos))
+                        {
+                          TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
+			  // EventDisplay eventDisplay;
+		          eventDisplay->drawSingleChamber(tmp);
                         }
                       else
                         {

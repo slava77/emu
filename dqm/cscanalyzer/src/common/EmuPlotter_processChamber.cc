@@ -161,7 +161,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       mo_EventDisplay->SetBinContent(1, 4, CSCposition);
       mo_EventDisplay->SetBinContent(1, 5, crateID);
       mo_EventDisplay->SetBinContent(1, 6, dmbID);
-      mo_EventDisplay->SetBinContent(1, 7, dmbHeader->l1a());
+      mo_EventDisplay->SetBinContent(1, 7, L1ANumber);
+//      cout << eTag << (int)dmbHeader->l1a() << endl;
     }
 
 

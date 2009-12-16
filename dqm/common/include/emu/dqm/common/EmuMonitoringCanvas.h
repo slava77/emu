@@ -168,6 +168,11 @@ public:
   {
     summaryMap=map;
   }
+  void setEventDisplay(EventDisplay *ed)
+  {
+    eventDisplay=ed;
+  }
+
   void reset()
   {
     if (canvas!=NULL) delete canvas;
@@ -208,7 +213,8 @@ private:
   int cnv_height;
   std::string runNumber;
   ChamberMap* chamberMap;
-  SummaryMap* summaryMap;
+  SummaryMap* summaryMap; 
+  EventDisplay* eventDisplay;
   time_t timestamp;
 
 };

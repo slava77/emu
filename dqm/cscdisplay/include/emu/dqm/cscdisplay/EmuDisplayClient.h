@@ -258,6 +258,7 @@ private:
   cscdqm::Summary summary;
   ChamberMap chamberMap;
   SummaryMap summaryMap;
+  EventDisplay* eventDisplay;
 
   DQMReport dqm_report;
   CSCReadoutMappingFromFile cscMapping;

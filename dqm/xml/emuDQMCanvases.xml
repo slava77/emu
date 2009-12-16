@@ -1405,6 +1405,16 @@
 		<Pad1>TMB_Word_Count</Pad1>
 		<Folder>TMB</Folder>
 	</Canvas>
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CSC_EventDisplay</Name>
+                 <Title>CSC Event Display</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>EventDisplay</Pad1>
+                <Folder>DMB</Folder>
+        </Canvas>
 	<!--Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
