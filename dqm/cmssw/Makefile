@@ -89,7 +89,8 @@ SRCS_DQM     = \
         $(DQM_MODULE)/CSCDQM_Summary.cc \
         $(DQM_MODULE)/CSCDQM_Utility.cc \
 	$(SRCDQM_PATH)/CSCRenderPlugin_ChamberMap.cc \
-        $(SRCDQM_PATH)/CSCRenderPlugin_SummaryMap.cc 
+        $(SRCDQM_PATH)/CSCRenderPlugin_SummaryMap.cc \
+	$(SRCDQM_PATH)/CSCRenderPlugin_EventDisplay.cc
 
 OBJS_DQM      = $(addprefix $(ODIR)/, $(notdir $(SRCS_DQM:%.cc=%.o)))
 

@@ -35,6 +35,7 @@ using namespace XERCES_CPP_NAMESPACE;
 
 #include "DQM/RenderPlugins/src/CSCRenderPlugin_ChamberMap.h"
 #include "DQM/RenderPlugins/src/CSCRenderPlugin_SummaryMap.h"
+#include "DQM/RenderPlugins/src/CSCRenderPlugin_EventDisplay.h"
 
 //#include "EmuMonitorElement.h"
 //class MonitorElement: public TH1 {};

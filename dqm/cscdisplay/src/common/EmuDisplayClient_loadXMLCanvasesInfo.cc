@@ -60,6 +60,7 @@ int EmuDisplayClient::loadXMLCanvasesInfo(std::string xmlFile)
         }
       else if (obj->getPrefix().find("CSC") != std::string::npos)
         {
+	  obj->setEventDisplay(eventDisplay);
           MECanvasFactories["CSC"][name] = obj;
         }
       else

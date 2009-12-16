@@ -104,6 +104,10 @@ throw (xdaq::exception::Exception)
     TApplication::CreateApplication();
 
   gStyle->SetPalette(1,0);
+
+ 
+  eventDisplay = new EventDisplay();
+
   monitors = getAppsList(monitorClass_);
   readRunsList();
 
@@ -135,6 +139,7 @@ void EmuDisplayClient::cleanup()
 EmuDisplayClient::~EmuDisplayClient()
 {
   cleanup();
+  delete eventDisplay;
 }
 
 
