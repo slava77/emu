@@ -360,6 +360,7 @@ private:
   cscdqm::Summary summary;
   ChamberMap chamberMap;
   SummaryMap summaryMap;
+  EventDisplay eventDisplay;
 
 
   std::map<std::string, std::vector<std::string> > report;
