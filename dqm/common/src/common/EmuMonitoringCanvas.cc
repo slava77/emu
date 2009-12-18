@@ -267,7 +267,7 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height, bool useDraw
                           TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
                           summaryMap->drawStation(tmp, atoi(station_str.c_str()));
                         }
-		      else if ((drawtype.find("EventDisplay") != std::string::npos))
+		      else if ((drawtype.find("EventDisplay") != std::string::npos) && (eventDisplay!=NULL))
                         {
                           TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
 			  // EventDisplay eventDisplay;
