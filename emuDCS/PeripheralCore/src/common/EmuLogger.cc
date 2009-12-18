@@ -57,7 +57,7 @@ bool EmuLogger::compareValues(std::string TypeOfTest, int testval, int compareva
       return true;
     } else {
       if (print_errors) {
-	(*MyOutput_) << TypeOfTest << "FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
+	(*MyOutput_) << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
 	//
 	std::ostringstream dump;
 	dump << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
@@ -125,13 +125,13 @@ void EmuLogger::ReportCheck(std::string check_type, bool status_bit) {
   (*MyOutput_) << ": " << check_type << " -> ";
   //
   if ( status_bit ) {
-    dump << "OK" << std::endl;
-    (*MyOutput_) << "OK" << std::endl;
+    dump << " OK" << std::endl;
+    (*MyOutput_) << " OK" << std::endl;
     //    this->SendOutput(dump.str(),"INFO");
     //
   } else {
-    dump << "FAIL <-" << std::endl;
-    (*MyOutput_) << "FAIL <-" << std::endl;
+    dump << " FAIL <-" << std::endl;
+    (*MyOutput_) << " FAIL <-" << std::endl;
     //    this->SendOutput(dump.str(),"ERROR");
     //
   }
