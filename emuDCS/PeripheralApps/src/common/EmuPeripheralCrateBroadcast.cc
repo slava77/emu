@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.44 2009/10/16 07:45:22 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.45 2009/12/18 08:25:56 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -826,7 +826,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   // DMB fifo Master_Reset
   broadcastDMB->calctrl_fifomrst();
   std::cout << "DMB Fifo reset and initialization "<<std::endl;
-  usleep(1000);
+  usleep(5000);
+  broadcastDMB->restoreMotherboardIdle();
   //
   std::cout << "Set DAC for DMB slot  " << broadcastDMB->slot() << std::endl;
   broadcastDMB->set_cal_dac(dac,dac);
@@ -996,6 +997,15 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   std::cout << "DMB setup for CFEB Gain, calsetup= " <<calsetup<< std::endl;
   //
   //Start the setup process:
+  //
+  if (calsetup==1) {
+    int trig_src = 1;
+    std::cout << "Set trigger source to " << trig_src << std::endl;
+    ::sleep(5);
+    broadcastDMB->settrgsrc(trig_src); //set the trigger source and L1A source for the DMB
+  }
+  //
+  //Start the setup process:
   int gainsetting =((calsetup-1)%20);
   int nstrip=(calsetup-1)/20;
   if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
@@ -1025,6 +1035,13 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
   //implement the cal0 setup process:
   std::cout << "DMB setup for CFEB Time, calsetup= " <<calsetup<< std::endl;
   //
+  if (calsetup==1) {
+    int trig_src = 1;
+    std::cout << "Set trigger source to " << trig_src << std::endl;
+    ::sleep(5);
+    broadcastDMB->settrgsrc(trig_src); //set the trigger source and L1A source for the DMB
+  }
+  //
   //Start the setup process:
   int timesetting =((calsetup-1)%10);
   int nstrip=(calsetup-1)/10;
@@ -1053,6 +1070,13 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   //
   //implement the CFEB_Pedestal setup process:
   std::cout << "DMB setup for CFEB Pedestal, calsetup= " <<calsetup<< std::endl;
+  //
+  if (calsetup==1) {
+    int trig_src = 1;
+    std::cout << "Set trigger source to " << trig_src << std::endl;
+    ::sleep(5);
+    broadcastDMB->settrgsrc(trig_src); //set the trigger source and L1A source for the DMB
+  }
   //
   // Start the setup process: Set all channel to normal, DAC to 0, No_pulse:
   broadcastDMB->buck_shift_ext_bc(-1);
