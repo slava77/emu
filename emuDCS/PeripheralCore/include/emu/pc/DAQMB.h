@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.5 2009/10/25 09:54:45 liu Exp $
+// $Id: DAQMB.h,v 1.6 2009/12/18 09:42:48 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.6  2009/12/18 09:42:48  rakness
+// update firmware reloading routine to emulate expert actions
+//
 // Revision 1.5  2009/10/25 09:54:45  liu
 // add a new parameter power_mask for DMB, more counters for CCB
 //
@@ -554,7 +557,17 @@ public:
   void configure() ;
   bool checkDAQMBXMLValues();
   inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
-
+  //
+  ///Check the configuration of the CFEBs vs. the database...
+  void CheckCFEBsConfiguration(bool print_errors);
+  /// Check the configuration of the CFEBs vs. the database... (default not to print out the errors)
+  void CheckCFEBsConfiguration();
+  //
+  /// Get the status of a specific CFEB after having checked it...
+  inline bool GetCFEBConfigIsOK(int CFEBIndexCountingFromOne) { return cfeb_config_status_[CFEBIndexCountingFromOne - 1]; }
+  /// Get the status of the parameters specific to a CFEB having lost its firmware (after having checked it)...
+  inline bool GetSmokingGunIsOK(int CFEBIndexCountingFromOne) { return smoking_gun_status_[CFEBIndexCountingFromOne - 1]; }
+  //
   int DCSreadAll(char *data);  
   bool checkvme_fail();
 
@@ -702,6 +715,9 @@ public:
   int       expected_vme_firmware_tag_;
   int       expected_firmware_revision_;
   unsigned long int expected_cfeb_firmware_tag_[5];
+  //
+  bool cfeb_config_status_[5];
+  bool smoking_gun_status_[5];
   //
   int failed_checkvme_;
   int power_mask_;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.61 2009/12/03 16:39:59 liu Exp $
+// $Id: DAQMB.cc,v 3.62 2009/12/18 09:42:48 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.62  2009/12/18 09:42:48  rakness
+// update firmware reloading routine to emulate expert actions
+//
 // Revision 3.61  2009/12/03 16:39:59  liu
 // open eprom.bit file in /tmp instead of current directory
 //
@@ -474,6 +477,8 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
     comp_thresh_cfeb_[cfeb] = set_comp_thresh_;
     pre_block_end_cfeb_[cfeb] = pre_block_end_;
     L1A_extra_cfeb_[cfeb] = xlatency_;
+    cfeb_config_status_[cfeb] = false;
+    smoking_gun_status_[cfeb] = false;
   }
   //
   theChamber->SetDMB(this);
@@ -747,18 +752,18 @@ bool DAQMB::checkDAQMBXMLValues() {
     //
     calctrl_fifomrst();
     //
+    // move the following lines to CheckCFEBsConfiguration();
     // *** This part is for Buck_Flash (Parallel Memory) *****
-    int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
+    //    int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
     //
-    cfebs_readstatus();
-    //
+    // cfebs_readstatus();
     //
     //check the comp_timing, comp_mode, Pre_block_end and Extr_l1A latency setting
     //get the initial value first:
-    killinput_=GetKillInput();
-    cfeb_clk_delay_=GetCfebClkDelay();
-    xfinelatency_=GetxFineLatency();
-    xlatency_=GetxLatency();
+    //    killinput_=GetKillInput();
+    //    cfeb_clk_delay_=GetCfebClkDelay();
+    //    xfinelatency_=GetxFineLatency();
+    //    xlatency_=GetxLatency();
     //
     /*
       for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
@@ -775,7 +780,14 @@ bool DAQMB::checkDAQMBXMLValues() {
       }
       }
     */
+    // Check what the CFEB configuration status is...
+    CheckCFEBsConfiguration(print_errors);
+    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+      int cfeb_index = lfeb + 1;
+      cfebmatch &= GetCFEBConfigIsOK(cfeb_index);
+    }
     //
+    /* move the following to CheckCFEBsConfiguration();
     for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
       //
       //    for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
@@ -820,6 +832,7 @@ bool DAQMB::checkDAQMBXMLValues() {
       tested_value << "CFEB " << (lfeb+1) << " set_comp_thresh";
       cfebmatch &= compareValues(tested_value.str(),read_threshold_in_mV,set_threshold_in_mV,comparison_threshold, print_errors);
     }
+    */
     //
     /*
       int secondread=0;
@@ -845,7 +858,8 @@ bool DAQMB::checkDAQMBXMLValues() {
       goto SECONDREAD;
       }
       }
-    */
+    */ // finished moving the following to CheckCFEBsConfiguration();
+    //
     //
     // ***  This part is related to the SFM (Serial Flash Memory) ****
     //
@@ -883,7 +897,7 @@ bool DAQMB::checkDAQMBXMLValues() {
     cfebmatch &= compareValues("DAQMB CableDelays"    ,CableDelay_  ,cable_delay_   ,print_errors);
     cfebmatch &= compareValues("DAQMB CrateID"        ,CrateID_     ,crate_id_      ,print_errors);
     cfebmatch &= compareValues("DAQMB feb_clock_delay",CfebClkDelay_,cfeb_clk_delay_,print_errors);
-    cfebmatch &= compareValues("DAQMB xLatency"       ,XLatency_    ,xlatency_      ,print_errors);
+    //    cfebmatch &= compareValues("DAQMB xLatency"       ,XLatency_    ,xlatency_      ,print_errors);
     cfebmatch &= compareValues("DAQMB xFineLatency"   ,XFineLatency_,xfinelatency_  ,print_errors);
     cfebmatch &= compareValues("DAQMB kill_input"     ,KillInput_   ,killinput_     ,print_errors);
     cfebmatch &= CheckVMEFirmwareVersion();
@@ -893,6 +907,83 @@ bool DAQMB::checkDAQMBXMLValues() {
   //
   return cfebmatch;
   //
+}
+//
+void DAQMB::CheckCFEBsConfiguration() {
+  // default to not print out the errors...
+  CheckCFEBsConfiguration(false);
+  return;
+}
+//
+void DAQMB::CheckCFEBsConfiguration(bool print_errors) {
+  //
+  cfebs_readstatus();
+  //
+  // get the initial values...
+  int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
+  //
+  killinput_=GetKillInput();
+  cfeb_clk_delay_=GetCfebClkDelay();
+  xfinelatency_=GetxFineLatency();
+  xlatency_=GetxLatency();
+  //
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+    cfeb_config_status_[lfeb] = true;
+    smoking_gun_status_[lfeb] = true;
+  }
+  // Buck_Flash check...
+  //
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+    //    for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
+    //    std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
+    //
+    int comp_mode_bits_old = febstat_[lfeb][2]&0x1f;
+    int pre_block_end_old  = (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3));
+    int xlatency_old       = ((febstat_[lfeb][3]>>1)&0x03);
+    //    
+    std::ostringstream tested_value1;
+    tested_value1 << "CFEB " << (lfeb+1) << " comp_mode_bits";
+    cfeb_config_status_[lfeb] &= compareValues(tested_value1.str(), comp_mode_bits_old, comp_mode_bits, print_errors);
+    //
+    std::ostringstream tested_value2;
+    tested_value2 << "CFEB " << (lfeb+1) << " pre_block_end";
+    cfeb_config_status_[lfeb] &= compareValues(tested_value2.str(), pre_block_end_old, pre_block_end_, print_errors);
+    //
+    std::ostringstream tested_value3;
+    tested_value3 << "CFEB " << (lfeb+1) << " xlatency";
+    cfeb_config_status_[lfeb] &= compareValues(tested_value3.str(), xlatency_old, xlatency_, print_errors);
+    //
+    if (!compareValues(tested_value1.str(), comp_mode_bits_old, comp_mode_bits, false) &&
+	!compareValues(tested_value2.str(), pre_block_end_old , pre_block_end_, false) &&
+	!compareValues(tested_value3.str(), xlatency_old      , xlatency_     , false) ) {
+      smoking_gun_status_[lfeb] = false; 
+      //      std::cout << "CFEB " << lfeb+1 << " ... Gun is smoking...." << std::endl;
+    }
+  }
+  //
+  //
+  //check the comp_dac setting...
+  //
+  // The reference threshold (3.590V) is the most uncertain number.  
+  // Therefore, we set a threshold on this comparison to check for gross errors
+  //
+  const float comparison_threshold = 100;
+  //
+  float compthresh[5];
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)  compthresh[lfeb]=adcplus(2,lfeb);
+  //
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+    //
+    //as the monitor show that CFEB +5V is only 4.9V, the 3550 is used instead of 3590
+    float read_threshold_in_mV = (3550. - compthresh[lfeb]);
+    float set_threshold_in_mV  = (set_comp_thresh_ * 1000.);
+    //
+    std::ostringstream tested_value;
+    tested_value << "CFEB " << (lfeb+1) << " set_comp_thresh";
+    cfeb_config_status_[lfeb] &= compareValues(tested_value.str(),read_threshold_in_mV,set_threshold_in_mV,comparison_threshold, print_errors);
+  }
+  //
+  return;
 }
 //
 void DAQMB::enable_cfeb() {

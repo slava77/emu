@@ -165,7 +165,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
       //
       for (int k=0; k<5; k++) {
 	cfeb_firmware_ok[i][j][k] = -1;
-	cfeb_current_ok[i][j][k]     = -1;
+	cfeb_config_ok[i][j][k]   = -1;
+	cfeb_current_ok[i][j][k]  = -1;
       }
     }
   }
@@ -3049,14 +3050,14 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
   // = 1 = read configuration not OK
   // = 2 = read configuration not OK (or FPGA not programmed), and this has been masked in the problem_mask as such
   // = 3 = read configuration OK, but this has been masked in the problem_mask as a problem
-  // = 4 = FPGA not programmed
+  // = 4 = FPGA not programmed --> don't use this, as it just introduces other problems...
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     Chamber * thisChamber     = chamberVector[chamber_index];
-    TMB * thisTMB             = tmbVector[chamber_index];
+    //    TMB * thisTMB             = tmbVector[chamber_index];
     //													
     // The following mapping is needed when the crate is not full...
-    const int slot_to_ccb_index_mapping[21] = {22, 22, 0, 22, 1, 22, 2, 22, 3, 22, 4, 22, 22, 22, 5, 22, 6, 22, 7, 22, 8};    
+    //    const int slot_to_ccb_index_mapping[21] = {22, 22, 0, 22, 1, 22, 2, 22, 3, 22, 4, 22, 22, 22, 5, 22, 6, 22, 7, 22, 8};    
     //
     if(!(tmb_check_ok[current_crate_][chamber_index])) {
       tmb_check_ok[current_crate_][chamber_index] = 1;
@@ -3070,13 +3071,14 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
       tmb_check_ok[current_crate_][chamber_index] = 0;
     }
     //
-    if( thisCrate->ccb()->GetReadTMBConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) != 
-	thisCrate->ccb()->GetExpectedTMBConfigDone() ) {
-      tmb_check_ok[current_crate_][chamber_index] = 4;
-      //
-      if(thisChamber->GetExpectedConfigProblemTMB()) 
-	tmb_check_ok[current_crate_][chamber_index] = 2;
-    }
+    // do not use the signal sent to CCB.  It just hides what the problem is...
+    //    if( thisCrate->ccb()->GetReadTMBConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) != 
+    //	thisCrate->ccb()->GetExpectedTMBConfigDone() ) {
+    //      tmb_check_ok[current_crate_][chamber_index] = 4;
+    //      //
+    //      if(thisChamber->GetExpectedConfigProblemTMB()) 
+    //	tmb_check_ok[current_crate_][chamber_index] = 2;
+    //    }
     //    
     //
     if(!(alct_check_ok[current_crate_][chamber_index])) {
@@ -3091,13 +3093,14 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
       alct_check_ok[current_crate_][chamber_index] = 0;
     }
     //
-    if( thisCrate->ccb()->GetReadALCTConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) !=  
-	thisCrate->ccb()->GetExpectedALCTConfigDone() ) {
-      alct_check_ok[current_crate_][chamber_index] = 4;
-      //
-      if(thisChamber->GetExpectedConfigProblemALCT()) 
-	alct_check_ok[current_crate_][chamber_index] = 2;
-    }
+    // do not use the signal sent to CCB.  It just hides what the problem is...
+    //    if( thisCrate->ccb()->GetReadALCTConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) !=  
+    //	thisCrate->ccb()->GetExpectedALCTConfigDone() ) {
+    //      alct_check_ok[current_crate_][chamber_index] = 4;
+    //      //
+    //      if(thisChamber->GetExpectedConfigProblemALCT()) 
+    //	alct_check_ok[current_crate_][chamber_index] = 2;
+    //    }
     //
     //    
     //
@@ -3126,21 +3129,21 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
     } else {
       dmb_check_ok[current_crate_][chamber_index] = 0;
     }
-
     //
-    if( (thisCrate->ccb()->GetReadDMBConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) !=  
-	 thisCrate->ccb()->GetExpectedDMBConfigDone()) &&  
-	(chamberName.find("1/3/")==std::string::npos) ) {           // this is because ME1/3 chambers do not have CFEB4) 
-      dmb_check_ok[current_crate_][chamber_index] = 4;
-      //
-      if(thisChamber->GetExpectedConfigProblemDMB()    ||
-	 thisChamber->GetExpectedConfigProblemCFEB1()  ||
-	 thisChamber->GetExpectedConfigProblemCFEB2()  ||
-	 thisChamber->GetExpectedConfigProblemCFEB3()  ||
-	 thisChamber->GetExpectedConfigProblemCFEB4()  ||
-	 thisChamber->GetExpectedConfigProblemCFEB5()  ) 
-	  dmb_check_ok[current_crate_][chamber_index] = 2;
-    }
+    // do not use the signal sent to CCB.  It just hides what the problem is...
+    //    if( (thisCrate->ccb()->GetReadDMBConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) !=  
+    //	 thisCrate->ccb()->GetExpectedDMBConfigDone()) &&  
+    //	(chamberName.find("1/3/")==std::string::npos) ) {           // this is because ME1/3 chambers do not have CFEB4) 
+    //      dmb_check_ok[current_crate_][chamber_index] = 4;
+    //      //
+    //      if(thisChamber->GetExpectedConfigProblemDMB()    ||
+    //	 thisChamber->GetExpectedConfigProblemCFEB1()  ||
+    //	 thisChamber->GetExpectedConfigProblemCFEB2()  ||
+    //	 thisChamber->GetExpectedConfigProblemCFEB3()  ||
+    //	 thisChamber->GetExpectedConfigProblemCFEB4()  ||
+    //	 thisChamber->GetExpectedConfigProblemCFEB5()  ) 
+    //	  dmb_check_ok[current_crate_][chamber_index] = 2;
+    //    }
     //
     if ( tmb_check_ok[current_crate_][chamber_index]  > 0 ) crate_check_ok[current_crate_] = 0;
     if ( alct_check_ok[current_crate_][chamber_index] > 0 ) crate_check_ok[current_crate_] = 0;
@@ -3182,6 +3185,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       //
       for (int k=0; k<5; k++) {
 	cfeb_firmware_ok[i][j][k] = 0;
+	cfeb_config_ok[i][j][k]   = 0;
 	cfeb_current_ok[i][j][k]  = 0;
       }
     }
@@ -3257,6 +3261,16 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  for(CFEBItr cfebItr = thisCFEBs.begin(); cfebItr != thisCFEBs.end(); ++cfebItr) {
 	    int cfeb_index = (*cfebItr).number();
 	    cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] += (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
+	  }
+	  //
+	  // check if the configuration of the CFEBs are OK...
+	  thisDMB->CheckCFEBsConfiguration();
+	  for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
+	    int calling_index = cfeb_index+1;
+	    if ( thisDMB->GetSmokingGunIsOK(calling_index) )  {   // in particular, check if the "smoking gun" for firmware loss is OK...
+	      cfeb_config_ok[current_crate_][chamber_index][cfeb_index]++;
+	    }
+	    //	    std::cout << "smoking gun CFEB " << calling_index << " = " << cfeb_config_ok[current_crate_][chamber_index][cfeb_index];
 	  }
 	  //
 	  // check if the currents drawn by the FPGA are within bounds or without
@@ -3380,10 +3394,10 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       int tslot = thisTMB->slot();
       //
       if (
-	  alctcfg_ok[crate_index][chamber_index]           != number_of_checks_ ||
-	  alct_lvmb_current_ok[crate_index][chamber_index] != number_of_checks_ || 
-	  alct_adc_current_ok[crate_index][chamber_index]  != number_of_checks_ || 
-	  alct_firmware_ok[crate_index][chamber_index]     != number_of_checks_  
+	  //	  alctcfg_ok[crate_index][chamber_index]           != number_of_checks_ ||
+	  //	  alct_adc_current_ok[crate_index][chamber_index]  != number_of_checks_ || 
+	  //	  alct_firmware_ok[crate_index][chamber_index]     != number_of_checks_ ||
+	  alct_lvmb_current_ok[crate_index][chamber_index] != number_of_checks_ 
 	  ) {
 	crate_to_reload.push_back(crate_index);
 	slot_to_reload.push_back(tslot);
@@ -3394,24 +3408,24 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	component_string.push_back(problem_label.str());
 	//
 	std::ostringstream reason;
-	if (alct_firmware_ok[crate_index][chamber_index]     != number_of_checks_ ) {
-	  int number_of_bad_readings = number_of_checks_ - alct_firmware_ok[crate_index][chamber_index];
-	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
-	}
-	//
-	if (alctcfg_ok[crate_index][chamber_index]     != number_of_checks_ ) {
-	  int number_of_bad_readings = number_of_checks_ - alctcfg_ok[crate_index][chamber_index];
-	  reason << "CCB cfg bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
-	}
-	//
-	if (alct_adc_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
-	  int number_of_bad_readings = number_of_checks_ - alct_adc_current_ok[crate_index][chamber_index];
-	  reason << "I(ADC) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
-	}
+	//	if (alct_firmware_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	//	  int number_of_bad_readings = number_of_checks_ - alct_firmware_ok[crate_index][chamber_index];
+	//	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	//	}
+	//	//
+	//	if (alctcfg_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	//	  int number_of_bad_readings = number_of_checks_ - alctcfg_ok[crate_index][chamber_index];
+	//	  reason << "CCB cfg bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	//	}
+	//	//
+	//	if (alct_adc_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	//	  int number_of_bad_readings = number_of_checks_ - alct_adc_current_ok[crate_index][chamber_index];
+	//	  reason << "I(ADC) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	//	}
 	//
 	if (alct_lvmb_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
-	  int number_of_bad_readings = number_of_checks_ - alct_lvmb_current_ok[crate_index][chamber_index];
-	  reason << "I(LVMB) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	  //	  int number_of_bad_readings = number_of_checks_ - alct_lvmb_current_ok[crate_index][chamber_index];
+	  reason << "I(LVMB) bad ";   // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
 	reason_for_reload.push_back(reason.str());
@@ -3489,7 +3503,8 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       //
       for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
 	if (
-	    cfeb_firmware_ok[crate_index][chamber_index][cfeb_index] < number_of_checks_ ||
+	    //	    cfeb_firmware_ok[crate_index][chamber_index][cfeb_index] < number_of_checks_ ||
+	    cfeb_config_ok[crate_index][chamber_index][cfeb_index]   < number_of_checks_ ||
 	    cfeb_current_ok[crate_index][chamber_index][cfeb_index]  < number_of_checks_ 
 	    ) {
 	  crate_to_reload.push_back(crate_index);
@@ -3501,14 +3516,19 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  component_string.push_back(problem_label.str());
 	  //
 	  std::ostringstream reason;
-	  if (cfeb_firmware_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
-	    int number_of_bad_readings = number_of_checks_ - cfeb_firmware_ok[crate_index][chamber_index][cfeb_index];
-	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	  //	  if (cfeb_firmware_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
+	  //	    int number_of_bad_readings = number_of_checks_ - cfeb_firmware_ok[crate_index][chamber_index][cfeb_index];
+	  //	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	  //	  }
+	  //	  //
+	  if (cfeb_current_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
+	    //	    int number_of_bad_readings = number_of_checks_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "I(LVMB) bad ";  // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
-	  if (cfeb_current_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
-	    int number_of_bad_readings = number_of_checks_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
-	    reason << "I(LVMB) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	  if (cfeb_config_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
+	    //	    int number_of_bad_readings = number_of_checks_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "Configuration bad ";  // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
 	  reason_for_reload.push_back(reason.str());
@@ -3607,22 +3627,22 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
   //
   char buf[200];
   //
-  *out << cgicc::br();
-  std::string SetNumberOfHardResets = toolbox::toString("/%s/SetNumberOfHardResets",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",SetNumberOfHardResets) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Number of hard resets").set("style","color:black") << std::endl ;
-  sprintf(buf,"%d",number_of_hard_resets_);
-  *out << cgicc::input().set("type","text").set("value",buf).set("name","number_of_hard_resets") << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::br();
-  //
-  if (number_of_hard_resets_ > 0) {
-    *out << cgicc::br();
-    *out << "WARNING, you are going to check the firmware " << number_of_checks_ 
-	 << " times, sending " << number_of_hard_resets_ << " hard resets" << cgicc::br();
-    *out << "---> DO NOT DO THIS IN THE MIDDLE OF A RUN <---" << cgicc::br();
-    *out << cgicc::br();
-  }
+  //  *out << cgicc::br();
+  //  std::string SetNumberOfHardResets = toolbox::toString("/%s/SetNumberOfHardResets",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",SetNumberOfHardResets) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Number of hard resets").set("style","color:black") << std::endl ;
+  //  sprintf(buf,"%d",number_of_hard_resets_);
+  //  *out << cgicc::input().set("type","text").set("value",buf).set("name","number_of_hard_resets") << std::endl ;
+  //  *out << cgicc::form() << std::endl ;
+  //  *out << cgicc::br();
+  //  //
+  //  if (number_of_hard_resets_ > 0) {
+  //    *out << cgicc::br();
+  //    *out << "WARNING, you are going to check the firmware " << number_of_checks_ 
+  //	 << " times, sending " << number_of_hard_resets_ << " hard resets" << cgicc::br();
+  //    *out << "---> DO NOT DO THIS IN THE MIDDLE OF A RUN <---" << cgicc::br();
+  //    *out << cgicc::br();
+  //  }
   //
   std::string CheckFirmware = toolbox::toString("/%s/CheckFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckFirmware) << std::endl ;
@@ -3673,42 +3693,63 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
       *out << cgicc::td() << thisChamber->GetLabel()          << cgicc::td();
       *out << cgicc::td() << problem_slot                     << cgicc::td();
       *out << cgicc::td() << component_string[problem_index]  << cgicc::td();
-      *out << cgicc::td() << reason_for_reload[problem_index] << cgicc::td();
-      *out << cgicc::td();
-      std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
-      if (loaded_ok[problem_index] < 0) {
-	*out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:blue") << std::endl ;
-      } else if (loaded_ok[problem_index] == 0) {
-	*out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:green") << std::endl ;
-      } else if (loaded_ok[problem_index] > 0) {
-	*out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:red") << std::endl ;
-      }
-      sprintf(buf,"%d",problem_crate);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
-      sprintf(buf,"%d",within_crate_problem_index);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
-      sprintf(buf,"%d",problem_component);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
-      sprintf(buf,"%d",problem_index);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
-      *out << cgicc::form() << std::endl ;
-      *out << cgicc::td();
       //
-      *out << cgicc::td();
-      *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","CCB Hard Reset").set("style","color:black") << std::endl ;
-      sprintf(buf,"%d",problem_crate);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
-      sprintf(buf,"%d",within_crate_problem_index);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
-      sprintf(buf,"%d",problem_component);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
-      int ccb_hard_reset = -1;
-      sprintf(buf,"%d",ccb_hard_reset);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
-      *out << cgicc::form() << std::endl ;
-      *out << cgicc::td();
+      // has the expert already acknowledged that this is a problem?
+      bool known_problem = false;
+      //
+      if (thisChamber->GetExpectedConfigProblemTMB()   && problem_component == TMB_LABEL         ) known_problem = true;
+      if (thisChamber->GetExpectedConfigProblemALCT()  && problem_component == ALCT_LABEL        ) known_problem = true;
+      if (thisChamber->GetExpectedConfigProblemDMB()   && problem_component == DMB_CONTROL_LABEL ) known_problem = true;
+      if (thisChamber->GetExpectedConfigProblemCFEB1() && problem_component == CFEB_LABEL[0]     ) known_problem = true;
+      if (thisChamber->GetExpectedConfigProblemCFEB2() && problem_component == CFEB_LABEL[1]     ) known_problem = true;
+      if (thisChamber->GetExpectedConfigProblemCFEB3() && problem_component == CFEB_LABEL[2]     ) known_problem = true;
+      if (thisChamber->GetExpectedConfigProblemCFEB4() && problem_component == CFEB_LABEL[3]     ) known_problem = true;
+      if (thisChamber->GetExpectedConfigProblemCFEB5() && problem_component == CFEB_LABEL[4]     ) known_problem = true;
+      //
+      if (known_problem) { 	// The expert has acknowledged this problem.  Label it as such...
+	//
+	*out << cgicc::td() << "Acknowledged problem" << cgicc::td();
+	//
+      } else {                  // The expert has NOT acknowledged this problem.  It is new and allow the user to fix it...
+	//
+	*out << cgicc::td() << reason_for_reload[problem_index] << cgicc::td();
+	//
+	*out << cgicc::td();
+	std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
+	*out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
+	if (loaded_ok[problem_index] < 0) {
+	  *out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:blue") << std::endl ;
+	} else if (loaded_ok[problem_index] == 0) {
+	  *out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:green") << std::endl ;
+	} else if (loaded_ok[problem_index] > 0) {
+	  *out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:red") << std::endl ;
+	}
+	sprintf(buf,"%d",problem_crate);
+	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+	sprintf(buf,"%d",within_crate_problem_index);
+	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
+	sprintf(buf,"%d",problem_component);
+	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+	sprintf(buf,"%d",problem_index);
+	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
+	*out << cgicc::form() << std::endl ;
+	*out << cgicc::td();
+	//
+	*out << cgicc::td();
+	*out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
+	*out << cgicc::input().set("type","submit").set("value","CCB Hard Reset").set("style","color:black") << std::endl ;
+	sprintf(buf,"%d",problem_crate);
+	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+	sprintf(buf,"%d",within_crate_problem_index);
+	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
+	sprintf(buf,"%d",problem_component);
+	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+	int ccb_hard_reset = -1;
+	sprintf(buf,"%d",ccb_hard_reset);
+	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
+	*out << cgicc::form() << std::endl ;
+	*out << cgicc::td();
+      }
       //
       *out << cgicc::tr() << std::endl;
     }
@@ -6840,7 +6881,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   std::string CFEBLoadFirmware = toolbox::toString("/%s/CFEBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CFEBLoadFirmware) << std::endl ;
-  *out << "CFEB to download (0-4), (-1 == all) : ";
+  *out << "CFEB to download (1-5), (-1 == all) : ";
   *out << cgicc::input().set("type","text").set("value","-1").set("name","DMBNumber") << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","CFEB Load Firmware") << std::endl ;
   sprintf(buf,"%d",dmb);
@@ -7197,7 +7238,9 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
     dmbNumber = cgi["DMBNumber"]->getIntegerValue();
   }
   //
-  std::cout << "Loading DMBNumber " <<dmbNumber << std::endl ;
+  std::cout << "Loading CFEB " <<dmbNumber << std::endl ;
+  dmbNumber--;
+  std::cout << "... which is " << dmbNumber << " according to the software... " << std::endl;
   //*out << "Loading DMBNumber " <<dmbNumber ;
   //*out << cgicc::br();
   //
