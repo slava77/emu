@@ -1442,11 +1442,7 @@ void ConfigurationEditor::setConfigurationDirectory(const std::string &configura
 std::string ConfigurationEditor::fullConfigurationDirectory() {
 	std::string HomeDir_ =getenv("HOME");
 	size_t pos = HomeDir_.find_last_of("/");
-<<<<<<< ConfigurationEditor.cc
 	if(pos!=HomeDir_.length()-1) HomeDir_+="/";
-=======
-	if(pos!=HomeDir_.length()-1) HomeDir_ += "/";
->>>>>>> 1.6
 	return HomeDir_ + "config/"+configurationDirectory_+="/"; 
 }
 
