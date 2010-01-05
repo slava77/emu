@@ -599,7 +599,7 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
 			if (myCrates[i]) {
 				copyPeripheralCrateToTable(dataAsTable,myCrates[i]);
 				setCachedTable("peripheralcrate",myCrates[i]->CrateID(),dataAsTable);
-				setShouldDisplayConfiguration("wholecrate",crateIdentifierString(myCrates[i]->CrateID()),true); //show the chambers by default so it is easy to search for them on the page
+				//setShouldDisplayConfiguration("wholecrate",crateIdentifierString(myCrates[i]->CrateID()),true); //show the chambers by default so it is easy to search for them on the page
 				copyCCBToTable(dataAsTable,myCrates[i]);
 				setCachedTable("ccb",myCrates[i]->CrateID(),dataAsTable);
 				copyMPCToTable(dataAsTable,myCrates[i]);
