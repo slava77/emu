@@ -3412,12 +3412,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	//	  int number_of_bad_readings = number_of_checks_ - alct_firmware_ok[crate_index][chamber_index];
 	//	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	//	}
-	//	//
-	//	if (alctcfg_ok[crate_index][chamber_index]     != number_of_checks_ ) {
-	//	  int number_of_bad_readings = number_of_checks_ - alctcfg_ok[crate_index][chamber_index];
-	//	  reason << "CCB cfg bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
-	//	}
-	//	//
+	//
 	//	if (alct_adc_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
 	//	  int number_of_bad_readings = number_of_checks_ - alct_adc_current_ok[crate_index][chamber_index];
 	//	  reason << "I(ADC) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
@@ -3425,9 +3420,15 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	//
 	if (alct_lvmb_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
 	  //	  int number_of_bad_readings = number_of_checks_ - alct_lvmb_current_ok[crate_index][chamber_index];
-	  reason << "I(LVMB) bad ";   // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	  reason << "I(LVMB) low, ";   // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
+	// Although we do not use this as a "smoking gun", we print out if the configuration "done" bit makes it to the CCB...
+	if (alctcfg_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	  //	  int number_of_bad_readings = number_of_checks_ - alctcfg_ok[crate_index][chamber_index];
+	  reason << "FPGA cfg done bad"; // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	}
+      	//
 	reason_for_reload.push_back(reason.str());
 	loaded_ok.push_back(-1);
       }
@@ -3523,12 +3524,18 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  //	  //
 	  if (cfeb_current_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
 	    //	    int number_of_bad_readings = number_of_checks_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
-	    reason << "I(LVMB) bad ";  // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	    reason << "I(LVMB) low, ";  // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
 	  if (cfeb_config_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
-	    //	    int number_of_bad_readings = number_of_checks_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
-	    reason << "Configuration bad ";  // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	    //	    int number_of_bad_readings = number_of_checks_ - cfeb_config_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "Config bits high, ";  // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	  }
+	  //
+	  // Although we do not use this as a "smoking gun", we print out if the configuration "done" bit makes it to the CCB...
+	  if (dmbcfg_ok[crate_index][chamber_index] != number_of_checks_ ) {
+	    //	    int number_of_bad_readings = number_of_checks_ - dmbcfg_ok[crate_index][chamber_index];
+	    reason << "FPGA cfg done bad"; // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
 	  reason_for_reload.push_back(reason.str());
@@ -3655,7 +3662,7 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
     //
     // list the problems found...
     //
-    *out << "The following FPGAs showed problems.  Number of hard resets issued = " << number_of_hard_resets_ << std::endl;
+    *out << "The following FPGAs showed problems..." << std::endl;
     *out << cgicc::table().set("border","1");
     *out << cgicc::tr();
     *out << cgicc::td() << " Crate "     << cgicc::td();
@@ -3708,7 +3715,7 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
       //
       if (known_problem) { 	// The expert has acknowledged this problem.  Label it as such...
 	//
-	*out << cgicc::td() << "Acknowledged problem" << cgicc::td();
+	*out << cgicc::td() << "Known problem" << cgicc::td();
 	//
       } else {                  // The expert has NOT acknowledged this problem.  It is new and allow the user to fix it...
 	//
