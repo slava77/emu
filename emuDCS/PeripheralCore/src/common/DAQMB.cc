@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.62 2009/12/18 09:42:48 rakness Exp $
+// $Id: DAQMB.cc,v 3.63 2010/01/06 08:32:56 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.63  2010/01/06 08:32:56  rakness
+// make CFEB configuration check more robust for EEPROM bit loss
+//
 // Revision 3.62  2009/12/18 09:42:48  rakness
 // update firmware reloading routine to emulate expert actions
 //
@@ -950,14 +953,21 @@ void DAQMB::CheckCFEBsConfiguration(bool print_errors) {
     cfeb_config_status_[lfeb] &= compareValues(tested_value2.str(), pre_block_end_old, pre_block_end_, print_errors);
     //
     std::ostringstream tested_value3;
-    tested_value3 << "CFEB " << (lfeb+1) << " xlatency";
+    tested_value3 << "CFEB " << (lfeb+1) << " xLatency";
     cfeb_config_status_[lfeb] &= compareValues(tested_value3.str(), xlatency_old, xlatency_, print_errors);
     //
-    if (!compareValues(tested_value1.str(), comp_mode_bits_old, comp_mode_bits, false) &&
-	!compareValues(tested_value2.str(), pre_block_end_old , pre_block_end_, false) &&
-	!compareValues(tested_value3.str(), xlatency_old      , xlatency_     , false) ) {
+    // Check to see if all the configuration parameters are set high...
+    if (compareValues(tested_value1.str(), comp_mode_bits_old, 0x1f, false) &&
+	compareValues(tested_value2.str(), pre_block_end_old ,  0xf, false) &&
+	compareValues(tested_value3.str(), xlatency_old      ,  0x3, false) ) {
+      //
       smoking_gun_status_[lfeb] = false; 
-      //      std::cout << "CFEB " << lfeb+1 << " ... Gun is smoking...." << std::endl;
+      //std::cout << "CFEB " << lfeb+1 << " ... Gun is smoking...." << std::endl;
+      //
+      // Nullify this check if the values are, in fact, **intentionally** set high...
+      if ( comp_mode_bits == 0x1f && pre_block_end_ == 0xf && xlatency_ == 0x3 ) {
+	smoking_gun_status_[lfeb] = true;
+      }
     }
   }
   //
