@@ -329,6 +329,7 @@
       <view label="Monitor">
 	<guard label="Monitor +" type="^emu::fed::Monitor" notifier="^http://csc-fed1"/> 
 	<guard label="Monitor -" type="^emu::fed::Monitor" notifier="^http://csc-fed2"/> 
+	<guard label="MicroMonitor" type="^emu::fed::MicroMonitor"/> 
       </view>
     </view> 
     <view label="Peripheral Crate" image="^http://xdaq.web.cern.ch/xdaq/setup/images/Application.gif">  
