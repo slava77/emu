@@ -763,8 +763,6 @@ void emu::farmer::Application::editorWebPage(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception){
   try{
 
-    ProcessDescriptor pd("http://csc-daq08.cms:9999/urn:xdaq-application:lid=10");
-
     cgicc::Cgicc cgi( in );
     std::vector<cgicc::FormEntry> fev = cgi.getElements();
     
