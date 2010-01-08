@@ -26,6 +26,10 @@ Sources = \
 	WebReportItem.cc \
 	ConfigurationEditor.cc \
 	TStoreRequest.cc \
+	Fact.cc \
+	FactCollection.cc \
+	FactRequest.cc \
+	FactFinder.cc \
 	version.cc
 
 IncludeDirs = \
