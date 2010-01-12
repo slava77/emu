@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.15 2009/11/09 11:43:52 paste Exp $
+* $Id: Manager.cc,v 1.16 2010/01/12 19:24:52 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -11,6 +11,7 @@
 #include "xdaq2rc/RcmsStateNotifier.h"
 #include "emu/base/Alarm.h"
 #include "emu/fed/JSONSpiritWriter.h"
+#include "xdata/UnsignedInteger64.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Manager)
 
@@ -333,6 +334,9 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 		std::string fmmErrors = "0";
 		std::string url = "";
 		std::string fiberNames = "";
+		std::string configMode = "";
+		std::string xmlFile = "";
+		std::string dbKey = "";
 
 		JSONSpirit::Object appObject = iApp->get_obj();
 		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
@@ -363,6 +367,17 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 			
 			// Figure out my monitor's URL
 			else if (iPair->name_ == "monitorURL") url = iPair->value_.get_str();
+			
+			// Record the configuration mode
+			else if (iPair->name_ == "configMode") configMode = iPair->value_.get_str();
+			
+			// Record the configuration types
+			else if (iPair->name_ == "xmlFile") xmlFile = iPair->value_.get_str();
+			else if (iPair->name_ == "dbKey") {
+				std::ostringstream dbKeyStream;
+				dbKeyStream << iPair->value_.get_int();
+				dbKey = dbKeyStream.str();
+			}
 		}
 		
 		// Make a description of the status
@@ -373,8 +388,25 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 			errorDescription << "There are no reported fiber errors on the " << systemName << " system.  Click here to open the FED Monitor page for the " << systemName << " system.";
 		}
 		
+		// Make a description of the configuration
+		std::ostringstream configDescription;
+		std::string keyToReport = "";
+		if (configMode == "XML") {
+			configDescription << "This Communicator is configured using the XML file '" << xmlFile << "'";
+			keyToReport = xmlFile;
+		} else if (configMode == "Database") {
+			configDescription << "This Communicator is configured using the DB key '" << dbKey << "'";
+			keyToReport = dbKey;
+		} else if (configMode == "Autodetect") {
+			configDescription << "This Communicator was configured using auto-detection of the attached hardware";
+			keyToReport = "Autodetect";
+		}
+		
 		// Push back the report for the system
 		report.push_back(emu::base::WebReportItem(systemName + " Errors", fmmErrors, "Number of fiber inputs currently reporting errors (since the last reset or resync)", errorDescription.str(), "", url));
+		
+		// Push back the configuration types
+		report.push_back(emu::base::WebReportItem(systemName + " Configuration", keyToReport, "The configuration of the Communicator application", configDescription.str(), "", url));
 	}
 	
 	// Push back the heartbeats
@@ -692,6 +724,8 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 		applicationObject.push_back(systemNamePair);
 		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "state", "Unknown"));
 		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "configMode", "Unknown"));
+		applicationObject.push_back(toJSONPair<xdata::UnsignedInteger64, uint64_t>(reply, "dbKey", 0));
+		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "xmlFileName", "Unknown"));
 		applicationObject.push_back(toJSONPair<xdata::Boolean, bool>(reply, "ignoreSOAP", false));
 		applicationObject.push_back(toJSONPair<xdata::UnsignedInteger, int>(reply, "fibersWithErrors", 0));
 		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "fiberNamesWithErrors", ""));
