@@ -1,6 +1,7 @@
 // Application.cc
 
 #include "emu/supervisor/Application.h"
+#include "emu/supervisor/StopWatch.h"
 
 #include <sstream>
 #include <set>
@@ -265,6 +266,7 @@ void emu::supervisor::Application::getAppDescriptors(){
 xoap::MessageReference emu::supervisor::Application::onConfigure(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
+  isCommandFromWeb_ = false;
   run_number_ = 1;
   nevents_ = -1;
   
@@ -276,7 +278,7 @@ xoap::MessageReference emu::supervisor::Application::onConfigure(xoap::MessageRe
 xoap::MessageReference emu::supervisor::Application::onStart(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
-  //fireEvent("Start");
+  isCommandFromWeb_ = false;
   submit(start_signature_);
   
   return createReply(message);
@@ -285,6 +287,7 @@ xoap::MessageReference emu::supervisor::Application::onStart(xoap::MessageRefere
 xoap::MessageReference emu::supervisor::Application::onStop(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
+  isCommandFromWeb_ = false;
   fireEvent("Stop");
   
   return createReply(message);
@@ -293,6 +296,7 @@ xoap::MessageReference emu::supervisor::Application::onStop(xoap::MessageReferen
 xoap::MessageReference emu::supervisor::Application::onHalt(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
+  isCommandFromWeb_ = false;
   quit_calibration_ = true;
   
   submit(halt_signature_);
@@ -303,6 +307,7 @@ xoap::MessageReference emu::supervisor::Application::onHalt(xoap::MessageReferen
 xoap::MessageReference emu::supervisor::Application::onReset(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
+  isCommandFromWeb_ = false;
   resetAction();
   
   return onHalt(message);
@@ -311,6 +316,7 @@ xoap::MessageReference emu::supervisor::Application::onReset(xoap::MessageRefere
 xoap::MessageReference emu::supervisor::Application::onSetTTS(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
+  isCommandFromWeb_ = false;
   fireEvent("SetTTS");
   
   return createReply(message);
@@ -496,6 +502,7 @@ void emu::supervisor::Application::webConfigure(xgi::Input *in, xgi::Output *out
   throw (xgi::exception::Exception)
 {
   string value;
+  isCommandFromWeb_ = true;
   
   value = getCGIParameter(in, "runtype");
   if (value.empty()) { error_message_ += "Please select run type.\n"; }
@@ -515,6 +522,7 @@ void emu::supervisor::Application::webConfigure(xgi::Input *in, xgi::Output *out
 void emu::supervisor::Application::webStart(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  isCommandFromWeb_ = true;
   // Book run number here to make sure it's done 
   // only when requested by the user from the web page,
   // and not by the FunctionManager via SOAP.
@@ -533,6 +541,7 @@ void emu::supervisor::Application::webStart(xgi::Input *in, xgi::Output *out)
 void emu::supervisor::Application::webStop(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  isCommandFromWeb_ = true;
   fireEvent("Stop");
   
   keep_refresh_ = true;
@@ -542,6 +551,7 @@ void emu::supervisor::Application::webStop(xgi::Input *in, xgi::Output *out)
 void emu::supervisor::Application::webHalt(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  isCommandFromWeb_ = true;
   quit_calibration_ = true;
   
   submit(halt_signature_);
@@ -553,6 +563,7 @@ void emu::supervisor::Application::webHalt(xgi::Input *in, xgi::Output *out)
 void emu::supervisor::Application::webReset(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  isCommandFromWeb_ = true;
   resetAction();
   
   webHalt(in, out);
@@ -561,6 +572,7 @@ void emu::supervisor::Application::webReset(xgi::Input *in, xgi::Output *out)
 void emu::supervisor::Application::webSetTTS(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  isCommandFromWeb_ = true;
   tts_id_.fromString(getCGIParameter(in, "tts_id"));
   tts_bits_.fromString(getCGIParameter(in, "tts_bits"));
   
@@ -574,6 +586,7 @@ void emu::supervisor::Application::webSetTTS(xgi::Input *in, xgi::Output *out)
 void emu::supervisor::Application::webSwitchTTS(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  isCommandFromWeb_ = true;
   hide_tts_control_ = getCGIParameter(in, "command").find("Hide", 0) == 0;
   
   webRedirect(in, out);
@@ -899,7 +912,6 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
       waitForDAQToExecute("Halt", 10, true);
     } catch (xcept::Exception ignored) {}
     
-    writeRunInfo( true, false );
     sendCommand("Disable", "emu::fed::Manager");
     sendCommand("Disable", "emu::pc::EmuPeripheralCrateManager");
     sendCommand("Configure", "TTCciControl");
@@ -933,17 +945,22 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     if (state_table_.getState("LTCControl", 0) != "Halted") {
       sendCommand("Halt", "LTCControl");
     }
+
     if (state_table_.getState("TTCciControl", 0) != "Halted") {
       sendCommand("Halt", "TTCciControl");
     }
+
     sendCommand("Halt", "emu::fed::Manager");
+
     sendCommand("Halt", "emu::pc::EmuPeripheralCrateManager");
     
     try {
       sendCommand("Halt", "emu::daq::manager::Application");
-      waitForDAQToExecute("Halt", 10, true);
+      if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
     } catch (xcept::Exception ignored) {}
-    writeRunInfo( true, false );
+
+    writeRunInfo( isCommandFromWeb_, false ); // only write runinfo if Halt is issued from the web interface
+
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
@@ -2922,6 +2939,8 @@ void emu::supervisor::Application::bookRunNumber(){
 
 void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
   // Update run info db and post to eLog as well
+
+  if ( !toDatabase && !toELog ) return;
 
   // Don't write about debug runs:
   if ( run_type_.toString() == "Debug" ) return;

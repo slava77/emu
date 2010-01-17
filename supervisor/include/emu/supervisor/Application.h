@@ -260,6 +260,7 @@ private: // XDAQ parameters
         xoap::MessageReference getRunSummary()
 	  throw( xcept::Exception );
 
+        bool isCommandFromWeb_; // TRUE if command issued from web interface
 
 	class StateTable
 	{
