@@ -1,11 +1,12 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.4 2009/09/29 13:51:00 paste Exp $
+* $Id: Commander.h,v 1.5 2010/01/19 18:37:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
 
 #include "emu/fed/Configurable.h"
 #include "emu/fed/Exception.h"
+#include "emu/base/FactFinder.h"
 
 namespace emu {
 	namespace fed {
@@ -16,7 +17,7 @@ namespace emu {
 		*
 		*	@author Phillip Killewald
 		**/
-		class Commander: public virtual emu::fed::Configurable
+		class Commander: public virtual emu::fed::Configurable, public emu::base::FactFinder
 		{
 			
 		public:
@@ -51,6 +52,12 @@ namespace emu {
 			
 			/** Serializes the appropriate variables to send to whatever application requests them. **/
 			xoap::MessageReference onGetParameters(xoap::MessageReference message);
+			
+			/** Returns a requested fact **/
+			emu::base::Fact findFact(const std::string &component, const std::string &factType);
+			
+			/** Returns all facts for dispatch, either by schedule or by explicit call to sendFacts() **/
+			emu::base::FactCollection findFacts();
 			
 		private:
 			

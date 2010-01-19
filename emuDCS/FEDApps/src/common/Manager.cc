@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.17 2010/01/14 22:03:14 paste Exp $
+* $Id: Manager.cc,v 1.18 2010/01/19 18:37:33 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -12,7 +12,6 @@
 #include "emu/base/Alarm.h"
 #include "emu/fed/JSONSpiritWriter.h"
 #include "xdata/UnsignedInteger64.h"
-#include "emu/fed/Facts.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Manager)
 
@@ -22,7 +21,6 @@ emu::base::Supervised(stub),
 emu::fed::Application(stub),
 emu::fed::Supervised(stub),
 emu::base::WebReporter(stub),
-emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0),
 ttsID_(0),
 ttsBits_(0)
 {
@@ -831,48 +829,4 @@ xoap::MessageReference emu::fed::Manager::onSetTTSBits(xoap::MessageReference me
 	
 	return createReply(message);
 	
-}
-
-
-
-emu::base::Fact emu::fed::Manager::findFact(const std::string &component, const std::string &factType)
-{
-	if (factType == "dduVoltageFact") {
-		emu::base::TypedFact<emu::fed::dduVoltageFact> fact;
-		fact.setComponent("DDU")
-			.setSeverity(emu::base::Fact::DEBUG)
-			.setDescription("DDU voltages")
-			.setParameter(emu::fed::dduVoltageFact::voltage15, 1524)
-			.setParameter(emu::fed::dduVoltageFact::voltage25_1, 2499)
-			.setParameter(emu::fed::dduVoltageFact::voltage25_2, 2489)
-			.setParameter(emu::fed::dduVoltageFact::voltage33, 3350);
-		return fact;
-	}
-	
-	std::ostringstream error;
-	error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
-	XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
-	notifyQualified("WARN", e);
-	LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-	
-	return emu::base::Fact();
-}
-
-
-
-emu::base::FactCollection emu::fed::Manager::findFacts()
-{
-	emu::base::FactCollection collection;
-	
-	emu::base::TypedFact<emu::fed::dduVoltageFact> voltFact;
-	voltFact.setComponent("DDU")
-		.setSeverity(emu::base::Fact::DEBUG)
-		.setDescription("DDU voltages")
-		.setParameter(emu::fed::dduVoltageFact::voltage15, 1524)
-		.setParameter(emu::fed::dduVoltageFact::voltage25_1, 2499)
-		.setParameter(emu::fed::dduVoltageFact::voltage25_2, 2489)
-		.setParameter(emu::fed::dduVoltageFact::voltage33, 3350);
-	collection.addFact(voltFact);
-	
-	return collection;
 }
