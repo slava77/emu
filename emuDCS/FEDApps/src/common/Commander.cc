@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.14 2009/11/06 13:48:34 paste Exp $
+* $Id: Commander.cc,v 1.15 2010/01/19 18:37:33 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -25,13 +25,15 @@
 #include "boost/filesystem/operations.hpp"
 #include "boost/algorithm/string/case_conv.hpp"
 #include "emu/fed/JSONSpiritWriter.h"
+#include "emu/fed/Facts.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Commander)
 
 emu::fed::Commander::Commander(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
 emu::fed::Application(stub),
-emu::fed::Configurable(stub)
+emu::fed::Configurable(stub),
+emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0)
 {
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Commander::webDefault, "Default");
@@ -2275,4 +2277,48 @@ std::string emu::fed::Commander::formatBigDebug(const std::vector<std::string> &
 		out << cgicc::div(*iDebug) << std::endl;
 	}
 	return out.str();
+}
+
+
+
+emu::base::Fact emu::fed::Commander::findFact(const std::string &component, const std::string &factType)
+{
+	if (factType == "dduVoltageFact") {
+		emu::base::TypedFact<emu::fed::dduVoltageFact> fact;
+		fact.setComponent("DDU")
+			.setSeverity(emu::base::Fact::DEBUG)
+			.setDescription("DDU voltages")
+			.setParameter(emu::fed::dduVoltageFact::voltage15, 1524)
+			.setParameter(emu::fed::dduVoltageFact::voltage25_1, 2499)
+			.setParameter(emu::fed::dduVoltageFact::voltage25_2, 2489)
+			.setParameter(emu::fed::dduVoltageFact::voltage33, 3350);
+		return fact;
+	}
+	
+	std::ostringstream error;
+	error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
+	XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
+	notifyQualified("WARN", e);
+	LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+	
+	return emu::base::Fact();
+}
+
+
+
+emu::base::FactCollection emu::fed::Commander::findFacts()
+{
+	emu::base::FactCollection collection;
+	
+	emu::base::TypedFact<emu::fed::dduVoltageFact> voltFact;
+	voltFact.setComponent("DDU")
+		.setSeverity(emu::base::Fact::DEBUG)
+		.setDescription("DDU voltages")
+		.setParameter(emu::fed::dduVoltageFact::voltage15, 1524)
+		.setParameter(emu::fed::dduVoltageFact::voltage25_1, 2499)
+		.setParameter(emu::fed::dduVoltageFact::voltage25_2, 2489)
+		.setParameter(emu::fed::dduVoltageFact::voltage33, 3350);
+	collection.addFact(voltFact);
+	
+	return collection;
 }

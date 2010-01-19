@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.h,v 1.7 2010/01/14 22:03:13 paste Exp $
+* $Id: Manager.h,v 1.8 2010/01/19 18:37:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MANAGER_H__
 #define __EMU_FED_MANAGER_H__
@@ -10,7 +10,6 @@
 #include "emu/fed/Application.h"
 #include "emu/fed/Supervised.h"
 #include "emu/base/WebReporter.h"
-#include "emu/base/FactFinder.h"
 #include "emu/fed/JSONSpiritValue.h"
 
 namespace emu {
@@ -18,7 +17,7 @@ namespace emu {
 		/** @class Manager An XDAq application class that relays commands from the CSCSupervisor class
 		*	to the individual Communicator classes.
 		**/
-		class Manager : public emu::fed::Application, public emu::fed::Supervised, public emu::base::WebReporter, public emu::base::FactFinder
+		class Manager : public emu::fed::Application, public emu::fed::Supervised, public emu::base::WebReporter
 		{
 
 		public:
@@ -80,12 +79,6 @@ namespace emu {
 			// Other SOAP call-back functions
 			/** Set the TTS bits on the underlying Communicator applications as defined by members ttsID_ and ttsBits_ **/
 			xoap::MessageReference onSetTTSBits(xoap::MessageReference message);
-			
-			/** Returns a requested fact **/
-			emu::base::Fact findFact(const std::string &component, const std::string &factType);
-			
-			/** Returns all facts for dispatch, either by schedule or by explicit call to sendFacts() **/
-			emu::base::FactCollection findFacts();
 
 		private:
 
