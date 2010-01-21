@@ -99,7 +99,7 @@ function sumOverRingsChambers(){
 	if ( th[t].id.substr(0,9) == 'sum_ring_' ){
 	    var sum_ring = 0;
 	    var cells = th[t].parentNode.cells;
-	    for ( c=th[t].cellIndex+1; c<cells.length; c++ ) sum_ring += Number(cells[c].innerHTML);
+	    for ( c=th[t].cellIndex+1; c<cells.length; c++ ) sum_ring += Math.max(0,Number(cells[c].innerHTML)); // Exclude negative values (no access) from sum.
 	    th[t].innerHTML = sum_ring;
 	    sum_endcap += sum_ring;
 	}
