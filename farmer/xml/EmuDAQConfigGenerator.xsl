@@ -164,7 +164,7 @@
       <xc:Application instance="50" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	  <autoSize xsi:type="xsd:boolean">true</autoSize>
-	  <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	  <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
 	  <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	</properties>
       </xc:Application>
@@ -204,7 +204,7 @@
 	<xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	  <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	    <autoSize xsi:type="xsd:boolean">true</autoSize>
-	    <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	    <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
 	    <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	  </properties>
 	</xc:Application>
@@ -270,7 +270,7 @@
 	  <xc:Application instance="{@instance}" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	      <autoSize xsi:type="xsd:boolean">true</autoSize>
-	      <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	      <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
 	      <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	    </properties>
 	  </xc:Application>
@@ -377,8 +377,9 @@
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libxdaq2rc.so</xc:Module>
       <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	<properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
-	<autoSize xsi:type="xsd:boolean">true</autoSize>
-	<maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	  <autoSize xsi:type="xsd:boolean">true</autoSize>
+	  <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
+	  <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libptatcp.so</xc:Module>
@@ -431,7 +432,7 @@
 	  <xc:Application instance="{@instance}" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	    <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
 	      <autoSize xsi:type="xsd:boolean">true</autoSize>
-	      <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	      <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
 	      <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	    </properties>
 	  </xc:Application>
