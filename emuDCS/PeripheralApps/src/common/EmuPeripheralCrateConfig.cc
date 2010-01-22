@@ -460,6 +460,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
   Valid_config_ID="";
+  InFlash_config_ID="";
   //
   for(unsigned int dmb=0; dmb<9; dmb++) {
     L1aLctCounter_.push_back(0);
@@ -902,6 +903,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   {
     *out << cgicc::b(cgicc::i("TStore EMU_config_ID : ")) ;
     *out << Valid_config_ID << cgicc::br() << std::endl ;
+    if(InFlash_config_ID!="") *out << "(Currently in FLASH is : " << InFlash_config_ID << " )" << std::endl;
   }
   *out << cgicc::br();
   //
@@ -1018,16 +1020,35 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
 
   void EmuPeripheralCrateConfig::ConfigureInit(int c, int ID)
   {
-
+    int flashed_crates=0;
     if(!parsed) ParsingXML();
-    
+
     if(total_crates_<=0) return;
     current_config_state_=1;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-        if(crateVector[i] && crateVector[i]->IsAlive()) crateVector[i]->configure(c, ID);
+        if(crateVector[i] && crateVector[i]->IsAlive())
+        {   crateVector[i]->configure(c, ID);
+            flashed_crates++;
+        }
     }
     current_config_state_=2;
+
+    // record the WRITE FLASH action in configuration database
+    if(c==0 && xml_or_db==1 && flashed_crates>0)
+    {
+        InFlash_config_ID = Valid_config_ID;
+        try 
+        {
+           myTStore->recordFlashWrite(Valid_config_ID);
+           std::cout << "WRITE FLASH recorded in database. Configuration ID: " << Valid_config_ID << " written to " << flashed_crates << " crates." << std::endl;
+        }
+        catch( const std::exception & e )
+        {
+           std::cout << "Failed to write the configuration database!" << std::endl;
+        }
+    }
+   
     //
   }
 
@@ -1099,6 +1120,12 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
        return false;
     }
     xml_or_db = 1;
+    // read WRITE FALSH history to know what is already in the flash 
+    char side_char = *(Valid_config_ID.c_str());
+    if (side_char=='1')
+       InFlash_config_ID=myTStore->getLastConfigIdUsed("plus");
+    else if(side_char=='2')
+       InFlash_config_ID=myTStore->getLastConfigIdUsed("minus");
   }
   else
   {
