@@ -25,3 +25,9 @@ for WRITE in Y N; do
 	xsltproc --stringparam WRITE $WRITE --stringparam BUILD $BUILD EmuDAQ904ConfigGenerator.xsl RUI-to-computer_mapping_bdg904.xml > $OUTDIR/$NAME.xml
     done
 done
+
+# DQM_TF_File
+echo "xsltproc --stringparam FARM DQM_TF_File --stringparam DIR $OUTDIR --stringparam NAME DQM_TF_File EmuDAQ904DUCKGenerator.xsl RUI0-to-computer_mapping_bdg904.xml > $OUTDIR/DQM_TF_File.duck"
+xsltproc --stringparam FARM DQM_TF_File --stringparam DIR $OUTDIR --stringparam NAME DQM_TF_File EmuDAQ904DUCKGenerator.xsl RUI0-to-computer_mapping_bdg904.xml > $OUTDIR/DQM_TF_File.duck
+echo "xsltproc --stringparam FARM DQM_TF_File EmuDAQ904ConfigGenerator.xsl RUI0-to-computer_mapping_bdg904.xml > $OUTDIR/DQM_TF_File.xml"
+xsltproc --stringparam FARM DQM_TF_File EmuDAQ904ConfigGenerator.xsl RUI0-to-computer_mapping_bdg904.xml > $OUTDIR/DQM_TF_File.xml

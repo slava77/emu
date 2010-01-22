@@ -29,6 +29,11 @@
     <xsl:if test="$FARM='DAQ'">DAQ/<xsl:value-of select="$NAME"/></xsl:if>
     <xsl:if test="$FARM='DQM'">DQM/DQM</xsl:if>
     <xsl:if test="$FARM='DQM_Display'">DQM/DQM_Display</xsl:if>
+    <xsl:if test="$FARM='DQM_TF_File'">DQM/DQM_TF_File</xsl:if>
+  </xsl:param>
+  <xsl:param name="PORT_OFFSET">
+    <xsl:if test="$FARM!='DQM_TF_File'">0</xsl:if>
+    <xsl:if test="$FARM='DQM_TF_File'">10</xsl:if>
   </xsl:param>
   <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param>
   <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 PATH=/bin:/usr/bin</xsl:param>
@@ -49,16 +54,19 @@
 	<xsl:if test="$FARM='DAQ'">
 	  <xsl:call-template name="DAQManager"/>
 	  <xsl:call-template name="EVM_and_TA"/>
-<!-- 	  <xsl:if test="$SIDE!='M'"> -->
-<!-- 	    <xsl:call-template name="TF"/> -->
-<!-- 	  </xsl:if> -->
 	  <xsl:call-template name="RUIs"/>
 	</xsl:if>
 	<xsl:if test="$FARM='DQM'">
 	  <xsl:call-template name="Monitors"/>
 	</xsl:if>
 	<xsl:if test="$FARM='DQM_Display'">
-	  <xsl:call-template name="DisplayClient"/>
+	  <xsl:call-template name="DisplayClients"/>
+	</xsl:if>
+	<xsl:if test="$FARM='DQM_TF_File'">
+	  <xsl:call-template name="DAQManager"/>
+	  <xsl:call-template name="EVM_and_TA"/>
+	  <xsl:call-template name="RUIs"/>
+	  <xsl:call-template name="Monitors"/>
 	</xsl:if>
       </FunctionManager>
     </Configuration>
@@ -67,7 +75,7 @@
   <!-- emu::daq::manager -->
   <xsl:template name="DAQManager">
     <xsl:comment>emu::daq::manager</xsl:comment>
-    <xsl:variable name="HTTP_PORT">20200</xsl:variable>
+    <xsl:variable name="HTTP_PORT" select="20200+number($PORT_OFFSET)"/>
     <XdaqExecutive hostname="emudaq02.cern.ch" port="{$HTTP_PORT}"
 		   urn="urn:xdaq-application:lid=0"
 		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
@@ -88,7 +96,7 @@
   <!-- EVM and EmuTA -->
   <xsl:template name="EVM_and_TA">
     <xsl:comment >EVM and EmuTA</xsl:comment>
-    <xsl:variable name="HTTP_PORT">20201</xsl:variable>
+    <xsl:variable name="HTTP_PORT" select="20201+number($PORT_OFFSET)"/>
     <XdaqExecutive hostname="emudaq02.cern.ch" port="{$HTTP_PORT}"
 		   urn="urn:xdaq-application:lid=0"
 		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
@@ -102,26 +110,9 @@
     </XdaqExecutive>
   </xsl:template>
 
-  <!-- Track Finder's RUI -->
-  <xsl:template name="TF">
-    <xsl:comment >RUI 0 (TF)</xsl:comment>
-    <XdaqExecutive hostname="{//RUI[@instance='0']/../@alias}" port="{//RUI[@instance='0']/@port}"
-		   urn="urn:xdaq-application:lid=0"
-		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
-		   instance="0"
-		   pathToExecutive="{$PATHTOEXECUTIVE}"
-		   unixUser="cscdaq"
-		   logLevel="WARN"
-		   logURL="file:/tmp/xdaq-rui0-cscdaq.log"
-		   environmentString="{$DAQ_ENVIRONMENTSTRING}">
-      <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
-    </XdaqExecutive>
-  </xsl:template>
-
   <!-- RUIs -->
   <xsl:template name="RUIs">
-    <xsl:for-each select="//RUI[@instance!='0']">
-<!--       <xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)"> -->
+    <xsl:for-each select="//RUI">
 	
 	<xsl:comment >RUI <xsl:value-of select="@instance"/></xsl:comment>
 	<XdaqExecutive hostname="{../@alias}" port="{@port}"
@@ -136,12 +127,11 @@
 	  <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
 	</XdaqExecutive>
 
-<!--       </xsl:if> -->
     </xsl:for-each>
   </xsl:template>
 
   <!-- DQM Display Client -->
-  <xsl:template name="DisplayClient">
+  <xsl:template name="DisplayClients">
     <xsl:comment >DQM Display Client</xsl:comment>
     <XdaqExecutive hostname="emudaq02.cern.ch" port="20550"
 		   urn="urn:xdaq-application:lid=0"
@@ -154,13 +144,32 @@
 		   environmentString="{$DQM_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
+    <XdaqApplication className="EmuDisplayClient" hostname="emudaq02.cern.ch" port="20550"
+		     urn="urn:xdaq-application:lid=1450"
+		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
+		     instance="0" />
 
+    <xsl:comment >TF DQM Display Client</xsl:comment>
+    <XdaqExecutive hostname="emudaq02.cern.ch" port="20570"
+		   urn="urn:xdaq-application:lid=0"
+		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
+		   instance="0"
+		   pathToExecutive="{$PATHTOEXECUTIVE}"
+		   unixUser="cscdev"
+		   logLevel="INFO"
+		   logURL="file:/tmp/xdaq-tf-display-cscdev.log"
+		   environmentString="{$DQM_ENVIRONMENTSTRING}">
+      <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
+    </XdaqExecutive>
+    <XdaqApplication className="EmuTFDisplayClient" hostname="emudaq02.cern.ch" port="20570"
+		     urn="urn:xdaq-application:lid=1450"
+		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
+		     instance="0" />
   </xsl:template>
 
   <!-- DQM Monitors -->
   <xsl:template name="Monitors">
     <xsl:for-each select="//RUI">
-<!--       <xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)"> -->
 
 	<xsl:variable name="PORT"><xsl:value-of select="20500+number(@instance)"/></xsl:variable>
 	<xsl:comment >DQM Monitor <xsl:value-of select="@instance"/></xsl:comment>
@@ -170,15 +179,15 @@
 		       instance="0"
 		       pathToExecutive="{$PATHTOEXECUTIVE}"
 		       unixUser="cscdev"
-		       logLevel="WARN"
+		       logLevel="INFO"
 		       logURL="file:/tmp/xdaq-dqmmonitor{@instance}-cscdev.log"
 		       environmentString="{$DQM_ENVIRONMENTSTRING}">
 	  <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
 	</XdaqExecutive>
 
-<!--       </xsl:if>	 -->
     </xsl:for-each>
   </xsl:template>
+
 
   <!-- JobControls -->
   <xsl:template name="JobControls">
