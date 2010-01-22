@@ -78,6 +78,7 @@ protected:
   xdata::String  XML_or_DB_;
   xdata::String  EMU_config_ID_;
   std::string Valid_config_ID;
+  std::string InFlash_config_ID;
 
   xdata::String xmlFile_;
   xdata::String CalibrationState_;
