@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.11 2009/12/10 16:30:04 paste Exp $
+* $Id: DBAgent.cc,v 1.12 2010/01/23 13:17:46 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -69,7 +69,9 @@ throw (emu::fed::exception::DBException)
 	try {
 		connectionID_ = tstoreclient::connectionID(response);
 	} catch (xcept::Exception &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to parse connection ID", e);
+		std::string error;
+		response->writeTo(error);
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to parse connection ID: " + error, e);
 	}
 	
 	return connectionID_;
