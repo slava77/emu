@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.9 2009/12/10 16:30:04 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.10 2010/01/23 13:17:46 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
@@ -32,7 +32,7 @@ throw (emu::fed::exception::DBException)
 	
 	try {
 		return buildSystem(result);
-	} catch (xdata::exception::Exception &e) {
+	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
 	}
 	
@@ -59,7 +59,7 @@ throw (emu::fed::exception::DBException)
 			toolbox::TimeVal timeStamp = getValue<xdata::TimeVal>(*iRow, "TIMESTAMP");
 			
 			returnMe[name.toString()].push_back(std::make_pair(id, timeStamp.sec()));
-		} catch (xdata::exception::Exception &e) {
+		} catch (emu::fed::exception::DBException &e) {
 			XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to parse system from database", e);
 		}
 	}
@@ -81,7 +81,7 @@ throw (emu::fed::exception::DBException)
 		name = getValue<xdata::String>(table.getValueAt(0, "DESCRIPTION"));
 		toolbox::TimeVal timeVal = getValue<xdata::TimeVal>(table.getValueAt(0, "TIMESTAMP"));
 		timeStamp = timeVal.sec();
-	} catch (xdata::exception::Exception &e) {
+	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading value in returned row: " + std::string(e.what()), e);
 	}
 	
@@ -115,7 +115,7 @@ throw (emu::fed::exception::DBException)
 		// Insert
 		insert("configuration", table);
 	
-	} catch (xdaq::exception::Exception &e) {
+	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload system to database: " + std::string(e.what()), e);
 	}
 }

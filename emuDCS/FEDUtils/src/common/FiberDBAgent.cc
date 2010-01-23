@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.11 2009/12/10 16:30:04 paste Exp $
+* $Id: FiberDBAgent.cc,v 1.12 2010/01/23 13:17:46 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -115,7 +115,7 @@ throw (emu::fed::exception::DBException)
 		// Insert
 		insert("fiber", table);
 		
-	} catch (xdaq::exception::Exception &e) {
+	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload fibers to database: " + std::string(e.what()), e);
 	}
 }

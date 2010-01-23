@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.cc,v 1.9 2009/12/10 16:30:04 paste Exp $
+* $Id: FIFODBAgent.cc,v 1.10 2010/01/23 13:17:46 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FIFODBAgent.h"
@@ -100,7 +100,7 @@ throw (emu::fed::exception::DBException)
 		// Insert
 		insert("fifo", table);
 		
-	} catch (xdaq::exception::Exception &e) {
+	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload FIFOs to database: " + std::string(e.what()), e);
 	}
 }

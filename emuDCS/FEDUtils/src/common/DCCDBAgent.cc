@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.cc,v 1.8 2009/12/10 16:30:04 paste Exp $
+* $Id: DCCDBAgent.cc,v 1.9 2010/01/23 13:17:46 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DCCDBAgent.h"
@@ -140,7 +140,7 @@ throw (emu::fed::exception::DBException)
 		// Insert
 		insert("dcc", table);
 		
-	} catch (xdaq::exception::Exception &e) {
+	} catch (emu::fed::exception::DBException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to upload DCCs to database: " + std::string(e.what()), e);
 	}
 }
