@@ -1,7 +1,6 @@
 // Application.cc
 
 #include "emu/supervisor/Application.h"
-#include "emu/supervisor/StopWatch.h"
 
 #include <sstream>
 #include <set>
