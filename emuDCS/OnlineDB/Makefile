@@ -14,7 +14,7 @@ Package=emuDCS/OnlineDB
 PackageName=OnlineDB
 Description="Hardware ID libraries for DMBs and CFEBs in Peripheral Crates"
 PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=02
+PACKAGE_VER_MINOR=04
 PACKAGE_VER_PATCH=00
 
 
