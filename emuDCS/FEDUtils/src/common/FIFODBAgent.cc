@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.cc,v 1.10 2010/01/23 13:17:46 paste Exp $
+* $Id: FIFODBAgent.cc,v 1.11 2010/01/25 13:45:20 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FIFODBAgent.h"
@@ -58,8 +58,14 @@ throw (emu::fed::exception::DBException)
 			// Set names now.
 			returnMe.push_back(new FIFO(fifo_number, rui, used));
 		}
+	} catch (emu::fed::exception::DBException &e) {
+		std::ostringstream error;
+		error << "Error reading FIFO values from database: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
 	} catch (xdata::exception::Exception &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading FIFO parameters from database: " + std::string(e.what()), e);
+		std::ostringstream error;
+		error << "Error getting value from table: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
 	}
 	
 	return returnMe;

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.5 2009/11/03 15:14:31 paste Exp $
+* $Id: IRQData.h,v 1.6 2010/01/25 13:45:20 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQDATA_H__
 #define __EMU_FED_IRQDATA_H__
@@ -43,10 +43,6 @@ namespace emu {
 			/// A queue of crates that each thread can pop.  Mutexed.
 			pthread_mutex_t crateQueueMutex;
 			std::queue<Crate *> crateQueue;
-			
-			// "Global" variables -- all threads read these together.
-			/// If true, exit the thread loop
-			//bool exit;
 			
 			/// The run number to which this particular set of data is assigned
 			unsigned long int runNumber;
