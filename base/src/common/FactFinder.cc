@@ -1,7 +1,7 @@
 // Expert system web service namespace URI
-#define ESWS_NS_URI "http://ws.cdw.csc.cms.cern.ch/"
-// Expert system data namespace URI
-#define ESD_NS_URI "http://www.cern.ch/cms/csc/dw/data"
+#define ESWS_NS_URI "http://ws.dw.csc.cms.cern.org/"
+// Expert system data model namespace URI
+#define ESD_NS_URI "http://www.cern.ch/cms/csc/dw/model"
 
 #include "emu/base/FactFinder.h"
 
@@ -164,14 +164,13 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
   try {
     xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
 
-    xoap::SOAPName exSysOperationName = envelope.createName("getFactCollection", "es", ESWS_NS_URI);
-    xoap::SOAPName factCollectionName = envelope.createName("factCollection", "esd", ESD_NS_URI);
+    xoap::SOAPName exSysOperationName = envelope.createName("input", "ws", ESWS_NS_URI);
+    xoap::SOAPName factCollectionName = envelope.createName("factCollection", "", "");
     xoap::SOAPName sourceName         = envelope.createName("source", "esd", ESD_NS_URI);
-    xoap::SOAPName factName           = envelope.createName("fact", "esd", ESD_NS_URI);
     xoap::SOAPName requestIdName      = envelope.createName("requestId", "", "");
     xoap::SOAPName timeName           = envelope.createName("time", "esd", ESD_NS_URI);
     xoap::SOAPName runName            = envelope.createName("run", "esd", ESD_NS_URI);
-    xoap::SOAPName componentName      = envelope.createName("component", "esd", ESD_NS_URI);
+    xoap::SOAPName componentName      = envelope.createName("component_id", "esd", ESD_NS_URI);
     xoap::SOAPName parameterIdName    = envelope.createName("parameterId", "esd", ESD_NS_URI);
     xoap::SOAPName unitName           = envelope.createName("unit", "esd", ESD_NS_URI);
     xoap::SOAPName lowerThresholdName = envelope.createName("lowerThreshold", "esd", ESD_NS_URI);
@@ -191,6 +190,7 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
     for ( f = facts.begin(); f != facts.end(); f++ ){
       //cout << *f;
 
+      xoap::SOAPName    factName    = envelope.createName( f->getTagName().c_str(), "esd", ESD_NS_URI);
       xoap::SOAPElement factElement = collectionElement.addChildElement( factName );
       
       xoap::SOAPElement timeElement           = factElement.addChildElement( timeName           );
@@ -286,9 +286,8 @@ emu::base::FactFinder::collectFacts( const FactRequestCollection& requestCollect
   vector<emu::base::FactRequest>::const_iterator fr;
   for ( fr = requestCollection.getRequests().begin(); fr != requestCollection.getRequests().end(); ++fr ){
     emu::base::Fact f = findFact( fr->getComponent(), fr->getFactType() );
-//     // Set the component and parameter id in case the user forgot to:
-//     f .setComponent( fr->getComponent() )
-//       .setParameterId( fr->getParameterId() );
+    // Set the component in case the user forgot to:
+    f.setComponent( fr->getComponent() );
     fc.addFact( f );
   }
   return fc;
