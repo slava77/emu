@@ -17,7 +17,7 @@ namespace emu { namespace base {
 
     enum ValueType_t   { stringType=0, numericType, booleanType, nValueTypes };
     enum ParameterId_t { HV_CURRENT=0, LV_CURRENT, DATA_EVENTS, nParameterIds };
-    enum Unit_t        { Amper=0, Volt, meter, nUnits };
+    enum Unit_t        { AMPER=0, VOLT, METER, nUnits };
     enum Severity_t    { DEBUG=0, INFO, WARN, ERROR, FATAL, nSeverities };
 
     friend ostream& operator<<( ostream& os,       emu::base::Fact& f );
@@ -32,9 +32,10 @@ namespace emu { namespace base {
     const string& getUnit          () const { return unit_;                 }
     const string& getSeverity      () const { return severity_;             }
     const string& getDescription   () const { return description_;          }
-    const string& getValueTagName  () const { return valueTagName_;         }
+    const string& getTagName       () const { return tagName_;              }
     const map<string,string>& getParameters() const { return parameters_;   }
 
+    void setComponent( const string& component ){ component_   = component; }
 
   protected:
     string defaultDateTime();
@@ -49,9 +50,10 @@ namespace emu { namespace base {
     string unit_;
     string severity_;
     string description_;
-    string valueTagName_;
+    string tagName_;
 
     map<string,string> parameters_;
+
   };
 }} // namespace emu::base
 
