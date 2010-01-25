@@ -1041,7 +1041,7 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
         try 
         {
            myTStore->recordFlashWrite(Valid_config_ID);
-           std::cout << "WRITE FLASH recorded in database. Configuration ID: " << Valid_config_ID << " written to " << flashed_crates << " crates." << std::endl;
+           std::cout << getLocalDateTime() << " WRITE FLASH recorded in database. Configuration ID: " << Valid_config_ID << " written to " << flashed_crates << " crates." << std::endl;
         }
         catch( const std::exception & e )
         {
