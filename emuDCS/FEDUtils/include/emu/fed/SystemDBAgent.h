@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.h,v 1.8 2009/12/10 16:30:04 paste Exp $
+* $Id: SystemDBAgent.h,v 1.9 2010/01/25 09:52:16 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SYSTEMDBAGENT_H__
 #define __EMU_FED_SYSTEMDBAGENT_H__
@@ -42,6 +42,14 @@ namespace emu {
 			/** Build a system from the table returned **/
 			std::pair<std::string, time_t> buildSystem(xdata::Table &table)
 			throw (emu::fed::exception::DBException);
+			
+			/** Sort a vector of pairs by timestamp **/
+			struct TimeSort {
+				bool operator() (std::pair<xdata::UnsignedInteger64, time_t> lhs, std::pair<xdata::UnsignedInteger64, time_t> rhs) {
+					// Standards compliance
+					return difftime(lhs.second, rhs.second) > 0;
+				}
+			} sorter_;
 
 		};
 

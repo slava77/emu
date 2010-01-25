@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.10 2010/01/23 13:17:46 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.11 2010/01/25 09:52:16 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
@@ -62,6 +62,12 @@ throw (emu::fed::exception::DBException)
 		} catch (emu::fed::exception::DBException &e) {
 			XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to parse system from database", e);
 		}
+	}
+	
+	// Sort for extreme usefulness
+	for (xdata::Table::iterator iRow = result.begin(); iRow != result.end(); iRow++) {
+		std::string name = getValue<xdata::String>(*iRow, "DESCRIPTION").toString();
+		sort(returnMe[name].begin(), returnMe[name].end(), sorter_);
 	}
 	
 	return returnMe;
