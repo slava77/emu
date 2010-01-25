@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateDBAgent.cc,v 1.9 2010/01/23 13:17:46 paste Exp $
+* $Id: CrateDBAgent.cc,v 1.10 2010/01/25 13:45:20 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/CrateDBAgent.h"
@@ -51,8 +51,14 @@ throw (emu::fed::exception::DBException)
 			xdata::UnsignedShort number = getValue<xdata::UnsignedShort>(*iRow, "CRATE_NUMBER");
 			returnMe.push_back(new Crate(number));
 		}
+	} catch (emu::fed::exception::DBException &e) {
+		std::ostringstream error;
+		error << "Error reading crate values from database: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
 	} catch (xdata::exception::Exception &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading crate parameters from database: " + std::string(e.what()), e);
+		std::ostringstream error;
+		error << "Error getting value from table: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
 	}
 
 	return returnMe;

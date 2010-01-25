@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerDBAgent.cc,v 1.9 2010/01/23 13:17:46 paste Exp $
+* $Id: VMEControllerDBAgent.cc,v 1.10 2010/01/25 13:45:20 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/VMEControllerDBAgent.h"
@@ -47,7 +47,17 @@ throw (emu::fed::exception::DBException)
 		xdata::UnsignedShort link = getValue<xdata::UnsignedShort>(table.getValueAt(0, "CAEN_LINK"));
 		return new VMEController(device, link, fake);
 	} catch (emu::fed::exception::CAENException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading controller parameters from database: " + std::string(e.what()), e);
+		std::ostringstream error;
+		error << "Error initializing controller hardware: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
+	} catch (emu::fed::exception::DBException &e) {
+		std::ostringstream error;
+		error << "Error reading controller values from database: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
+	} catch (xdata::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Error getting value from table: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
 	}
 }
 

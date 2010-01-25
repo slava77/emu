@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.11 2010/01/25 09:52:16 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.12 2010/01/25 13:45:20 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
@@ -88,7 +88,13 @@ throw (emu::fed::exception::DBException)
 		toolbox::TimeVal timeVal = getValue<xdata::TimeVal>(table.getValueAt(0, "TIMESTAMP"));
 		timeStamp = timeVal.sec();
 	} catch (emu::fed::exception::DBException &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading value in returned row: " + std::string(e.what()), e);
+		std::ostringstream error;
+		error << "Error reading system values from database: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
+	} catch (xdata::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Error getting value from table: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
 	}
 	
 	return make_pair(name.toString(), timeStamp);

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.cc,v 1.9 2010/01/23 13:17:46 paste Exp $
+* $Id: DCCDBAgent.cc,v 1.10 2010/01/25 13:45:20 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DCCDBAgent.h"
@@ -77,8 +77,18 @@ throw (emu::fed::exception::DBException)
 
 			returnMe.push_back(newDCC);
 		}
+	} catch (emu::fed::exception::CAENException &e) {
+		std::ostringstream error;
+		error << "Error initializing DCC hardware: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
+	} catch (emu::fed::exception::DBException &e) {
+		std::ostringstream error;
+		error << "Error reading DCC values from database: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
 	} catch (xdata::exception::Exception &e) {
-		XCEPT_RETHROW(emu::fed::exception::DBException, "Error reading DCC parameters from database: " + std::string(e.what()), e);
+		std::ostringstream error;
+		error << "Error getting value from table: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::DBException, error.str(), e);
 	}
 	
 	return returnMe;
