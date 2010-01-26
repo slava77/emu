@@ -24,6 +24,7 @@ namespace emu { namespace base {
     friend ostream& operator<<( ostream& os, const emu::base::Fact& f );
 
     Fact();
+    Fact( const string& name );
 
     const string& getRun           () const { return run_;                  }
     const string& getTime          () const { return time_;                 }
@@ -32,7 +33,7 @@ namespace emu { namespace base {
     const string& getUnit          () const { return unit_;                 }
     const string& getSeverity      () const { return severity_;             }
     const string& getDescription   () const { return description_;          }
-    const string& getTagName       () const { return tagName_;              }
+    const string& getName          () const { return name_;                 }
     const map<string,string>& getParameters() const { return parameters_;   }
 
     void setComponent( const string& component ){ component_   = component; }
@@ -40,9 +41,9 @@ namespace emu { namespace base {
   protected:
     string defaultDateTime();
    
-    static const char* parameterIds_[nParameterIds];
-    static const char* units_[nUnits];
-    static const char* severities_[nSeverities];
+    static const char* const parameterIds_[nParameterIds];
+    static const char* const units_[nUnits];
+    static const char* const severities_[nSeverities];
     string run_;
     string time_;
     string component_;
@@ -50,7 +51,7 @@ namespace emu { namespace base {
     string unit_;
     string severity_;
     string description_;
-    string tagName_;
+    string name_;
 
     map<string,string> parameters_;
 
