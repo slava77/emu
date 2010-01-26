@@ -190,7 +190,7 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
     for ( f = facts.begin(); f != facts.end(); f++ ){
       //cout << *f;
 
-      xoap::SOAPName    factName    = envelope.createName( f->getTagName().c_str(), "esd", ESD_NS_URI);
+      xoap::SOAPName    factName    = envelope.createName( f->getName().c_str(), "esd", ESD_NS_URI);
       xoap::SOAPElement factElement = collectionElement.addChildElement( factName );
       
       xoap::SOAPElement timeElement           = factElement.addChildElement( timeName           );
@@ -483,7 +483,7 @@ emu::base::FactFinder::postSOAP( xoap::MessageReference message,
 	      headers += (*i).second;
 	      headers += "\r\n";
 	    }
-	  cout << endl << "MIME headers" << endl << headers << endl;;
+	  // cout << endl << "MIME headers" << endl << headers << endl;;
 
 
 

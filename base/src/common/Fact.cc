@@ -5,12 +5,16 @@
 
 using namespace std;
 
-const char* emu::base::Fact::parameterIds_[]  = { "HV_CURRENT", "LV_CURRENT", "DATA_EVENTS" };
-const char* emu::base::Fact::units_[]         = { "AMPER", "VOLT", "METER" };
-const char* emu::base::Fact::severities_[]    = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
+const char* const emu::base::Fact::parameterIds_[]  = { "HV_CURRENT", "LV_CURRENT", "DATA_EVENTS" };
+const char* const emu::base::Fact::units_[]         = { "AMPER", "VOLT", "METER" };
+const char* const emu::base::Fact::severities_[]    = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
 emu::base::Fact::Fact()
   : time_( defaultDateTime() ){}
+
+emu::base::Fact::Fact( const string& name )
+  : time_( defaultDateTime() ),
+    name_( name              ){}
 
 string
 emu::base::Fact::defaultDateTime(){
@@ -32,7 +36,8 @@ emu::base::Fact::defaultDateTime(){
 }
 
 ostream& emu::base::operator<<( ostream& os, emu::base::Fact& f ){
-  os << "   Time           " << f.getTime          () << endl
+  os << "   Name           " << f.getName          () << endl
+     << "   Time           " << f.getTime          () << endl
      << "   Component      " << f.getComponent     () << endl
      << "   Severity       " << f.getSeverity      () << endl
      << "   Description    " << f.getDescription   () << endl;
@@ -44,7 +49,8 @@ ostream& emu::base::operator<<( ostream& os, emu::base::Fact& f ){
 }
 
 ostream& emu::base::operator<<( ostream& os, const emu::base::Fact& f ){
-  os << "   Time           " << f.getTime          () << endl
+  os << "   Name           " << f.getName          () << endl
+     << "   Time           " << f.getTime          () << endl
      << "   Component      " << f.getComponent     () << endl
      << "   Severity       " << f.getSeverity      () << endl
      << "   Description    " << f.getDescription   () << endl;
