@@ -36,7 +36,7 @@ namespace emu { namespace base {
   template <class T>
   class TypedFact : public Fact {
   public:
-    TypedFact<T>(){ tagName_ = T::getTypeName(); }
+    TypedFact<T>() : Fact( T::getTypeName() ){}
 
     TypedFact<T>& setRun        ( const string& run                      ){ run_         = run;              return *this; }
     TypedFact<T>& setTime       ( const string& time                     ){ time_        = time;             return *this; }
