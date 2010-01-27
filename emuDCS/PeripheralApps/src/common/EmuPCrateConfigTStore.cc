@@ -50,6 +50,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
 	setViewID("urn:tstore-view-SQL:EMUsystem");
 	setHumanReadableConfigName("Peripheral Crate");
 	setConfigurationDirectory("pc");
+        TStore_myEndcap_ = NULL;
 	
 	addTable("vcc");
 	addTable("csc");
@@ -210,7 +211,9 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   
   *out << cgicc::td();
   
-  //This recreates the tables in the database, it only needs to be done for the initial setup and if the database structure changes,
+#if 0
+
+  //This recreates the tables in the database, it only needs to be done for the initial setup or if the database structure changes,
   //so we don't want to do it by accident.
 
   *out << cgicc::td().set("style", "width:130px;");
@@ -218,6 +221,8 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::input().set("type","submit").set("value","Sync to DB").set("style", "width:120px;") << std::endl;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();
+
+#endif
   
   *out << cgicc::tr();
 
