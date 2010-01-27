@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.10 2009/11/23 08:05:45 paste Exp $
+* $Id: Configurable.cc,v 1.11 2010/01/27 13:32:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/operations.hpp"
@@ -298,21 +298,72 @@ std::string emu::fed::Configurable::printConfigureOptions()
 		.set("for", "config_type_database") << std::endl;
 	out << cgicc::div() << std::endl;
 	
-	out << cgicc::table()
-		.set("class", "noborder dialog tier2") << std::endl;
-	out << cgicc::tr() << std::endl;
-	out << cgicc::td("DB Key: ") << std::endl;
-	out << cgicc::td() << std::endl;
-	cgicc::input dbInput;
-	dbInput.set("id", "db_key_select")
-		.set("class", "key_select")
-		.set("name", "db_key_select")
-		.set("value", dbKey_.toString());
-	if (configMode_ != "Database") dbInput.set("disabled", "true");
-	out << dbInput << std::endl;
-	out << cgicc::td() << std::endl;
-	out << cgicc::tr() << std::endl;
-	out << cgicc::table() << std::endl;
+	try {
+		
+		std::map<std::string, std::vector<xdata::UnsignedInteger64> > keys = getDBKeys();
+		
+		out << cgicc::table()
+			.set("class", "noborder dialog tier2") << std::endl;
+		out << cgicc::tr() << std::endl;
+		out << cgicc::td("System Name: ") << std::endl;
+		out << cgicc::td() << std::endl;
+		cgicc::select nameSelect;
+		nameSelect.set("id", "system_name_select")
+			.set("name", "system_name_select")
+			.set("class", "system_name_select");
+		if (configMode_ != "Database") nameSelect.set("disabled", "true");
+		out << nameSelect << std::endl;
+		
+		for (std::map<std::string, std::vector<xdata::UnsignedInteger64> >::const_iterator iPair = keys.begin(); iPair != keys.end(); ++iPair) {
+			cgicc::option nameOption(iPair->first);
+			nameOption.set("value", iPair->first);
+			if (iPair->first == systemName_.toString()) {
+				nameOption.set("selected", "selected");
+			}
+			out << nameOption << std::endl;
+		}
+		out << cgicc::select() << std::endl;
+		out << cgicc::td() << std::endl;
+		
+		out << cgicc::td("DB Key: ") << std::endl;
+		out << cgicc::td() << std::endl;
+		
+		for (std::map<std::string, std::vector<xdata::UnsignedInteger64> >::iterator iPair = keys.begin(); iPair != keys.end(); ++iPair) {
+			
+			cgicc::select keySelect;
+			keySelect.set("id", "db_key_select_" + iPair->first)
+				.set("name", "db_key_select")
+				.set("system", iPair->first);
+			if (iPair->first != systemName_.toString()) {
+				keySelect.set("class", "configurable_hidden db_key_select");
+			} else {
+				keySelect.set("class", "db_key_select");
+			}
+			if (configMode_ != "Database") keySelect.set("disabled", "true");
+			out << keySelect << std::endl;
+			
+			for (std::vector<xdata::UnsignedInteger64>::iterator iKey = iPair->second.begin(); iKey != iPair->second.end(); ++iKey) {
+				
+				cgicc::option keyOption(iKey->toString());
+				keyOption.set("value", iKey->toString());
+				if (*iKey == dbKey_) {
+					keyOption.set("selected", "selected");
+				}
+				out << keyOption << std::endl;
+			}
+			out << cgicc::select() << std::endl;
+		}
+		out << cgicc::td() << std::endl;
+		out << cgicc::tr() << std::endl;
+		out << cgicc::table() << std::endl;
+		
+	} catch (emu::fed::exception::ConfigurationException &e) {
+		
+		out << cgicc::div("Unable to read keys from the database")
+			.set("class", "tier2") << std::endl;
+		
+		notifyQualified("ERROR", e);
+	}
 	
 	out << cgicc::div()
 		.set("class", "category tier1") << std::endl;
@@ -382,36 +433,37 @@ std::string emu::fed::Configurable::printConfigureOptions()
 
 
 
-std::vector<xdata::UnsignedInteger64> emu::fed::Configurable::getDBKeys()
+std::map<std::string, std::vector<xdata::UnsignedInteger64> > emu::fed::Configurable::getDBKeys()
 throw(emu::fed::exception::ConfigurationException)
 {
-	std::vector<xdata::UnsignedInteger64> dbKeys;
+	std::map<std::string, std::vector<xdata::UnsignedInteger64> > dbKeys;
 	
 	// Get the keys from the systems table.
 	SystemDBAgent agent(this);
 	
+	std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > keyMap;
+
+	
 	try {
 		agent.connect(dbUsername_, dbPassword_);
 		
-		xdata::Table allParameters = agent.getAll();
-		
-		// Parse out all the keys from the returned table
-		// Prove to myself this works
-	
-		size_t nRows = allParameters.getRowCount();
-		for (size_t iRow = 0; iRow < nRows; iRow++) {
-			xdata::UnsignedInteger64 key;
-			key.setValue(*(allParameters.getValueAt(iRow, "KEY")));
-			dbKeys.push_back(key);
-		}
-		
-		// This causes bad things to happen.
-		//agent.disconnect();
+		keyMap = agent.getAllKeys();
 		
 	} catch (emu::fed::exception::DBException &e) {
 		std::ostringstream error;
 		error << "Exception attempting to read DB keys";
 		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
+	}
+	
+	for (std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > >::iterator iPair = keyMap.begin(); iPair != keyMap.end(); ++iPair) {
+		
+		std::vector<std::pair<xdata::UnsignedInteger64, time_t> > keys = iPair->second;
+		std::vector<xdata::UnsignedInteger64> keyArray;
+		for (std::vector<std::pair<xdata::UnsignedInteger64, time_t> >::iterator iKey = keys.begin(); iKey != keys.end(); ++iKey) {
+			keyArray.push_back(iKey->first);
+		}
+		
+		dbKeys[iPair->first] = keyArray;
 	}
 	
 	return dbKeys;

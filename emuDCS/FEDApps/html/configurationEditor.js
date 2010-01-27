@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: configurationEditor.js,v 1.2 2009/12/10 16:55:02 paste Exp $
+* $Id: configurationEditor.js,v 1.3 2010/01/27 13:32:13 paste Exp $
 \*****************************************************************************/
 
 // Make this global.  It saves on DB queries if we have an evil user
@@ -895,12 +895,8 @@ function updateDBKeys(transport) {
 	
 	data.systems.each(function(system) {
 		var name = system.name;
-		var sortArray = $A(system.keys);
-		sortArray.sort();
-		keyMap.set(name, sortArray);
-		
+		keyMap.set(name, ($A(system.keys)));
 		($("configuration_description")).insert(new Element("option", {"value": name}).update(name));
-	
 	});
 
 	($("configuration_description")).observe("change", updateKeySelector);

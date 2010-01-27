@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.h,v 1.3 2009/11/22 22:52:22 paste Exp $
+* $Id: Configurable.h,v 1.4 2010/01/27 13:32:13 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURABLE_H__
 #define __EMU_FED_CONFIGURABLE_H__
@@ -54,7 +54,7 @@ namespace emu {
 			std::string printConfigureOptions();
 			
 			/** Grabs the available DB keys from TStore **/
-			std::vector<xdata::UnsignedInteger64> getDBKeys()
+			std::map<std::string, std::vector<xdata::UnsignedInteger64> > getDBKeys()
 			throw (emu::fed::exception::ConfigurationException);
 			
 			/** Grabs the available XML file names from the configuration directory **/
