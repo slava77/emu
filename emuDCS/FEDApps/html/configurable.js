@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: configurable.js,v 1.1 2009/11/06 13:48:34 paste Exp $
+* $Id: configurable.js,v 1.2 2010/01/27 13:32:13 paste Exp $
 \*****************************************************************************/
 
 var oldConfigMode = "";
@@ -7,6 +7,9 @@ var oldConfigMode = "";
 Event.observe(window, "load", function(event) {
 	
 	var configurationReloadElement = new ReloadElement();
+
+	($$(".configurable_hidden")).invoke("hide");
+
 	// There is only one of these
 	$$(".configuration_dialog").each(function(el) {
 		configurationReloadElement.id = el.readAttribute("name");
@@ -37,20 +40,27 @@ Event.observe(window, "load", function(event) {
 		});
 	}
 	
-	// Make the DB key change automatically submit.
-	if ($("db_key_select")) {
-		$("db_key_select").observe("change", function(ev) {
-			changeDBKey($("db_key_select").value, configurationReloadElement);
+	// Make the correct DB key selector show up (if it hasn't already)
+	var selectedName = ($("system_name_select")).value;
+	($$(".db_key_select")).each(function(el) {
+		if (el.readAttribute("system") == selectedName) el.show();
+		else el.hide();
+	});
+	
+	// Make the correct DB key selector show up when the name changes
+	($("system_name_select")).observe("change", function(ev) {
+		($$(".db_key_select")).each(function(el) {
+			if (el.readAttribute("system") == ev.element().value) el.show();
+			else el.hide();
 		});
+	});
 
-		// Make the DB key field integer-only, and where the return key submits.
-		$("db_key_select").observe("keypress", function(ev) {
-			var key = ev.keyCode || ev.which;
-			if (key == Event.KEY_ENTER) {
-				changeDBKey($("db_key_select").value, configurationReloadElement);
-			}
+	// Make the DB key change automatically submit.
+	($$(".db_key_select")).each(function(el) {
+		el.observe("change", function(ev) {
+			changeDBKey(ev.element().value, configurationReloadElement);
 		});
-	}
+	});
 
 	// Reconfigure
 	// Firefox is an idiot when it comes to refreshing the DOM, so I need this here.
@@ -150,15 +160,21 @@ function finishConfigMode(transport) {
 	if (configMode == "XML") {
 		$("config_type_xml").checked = true;
 		$("xml_file_select").disabled = false;
-		$("db_key_select").disabled = true;
+		$$(".db_key_select", ".system_name_select").each(function(el) {
+			el.disabled = true;
+		});
 	} else if (configMode == "Database") {
 		$("config_type_database").checked = true;
 		$("xml_file_select").disabled = true;
-		$("db_key_select").disabled = false;
+		$$(".db_key_select", ".system_name_select").each(function(el) {
+			el.disabled = false;
+		});
 	} else if (configMode == "Autodetect") {
 		$("config_type_autodetect").checked = true;
 		$("xml_file_select").disabled = true;
-		$("db_key_select").disabled = true;
+		$$(".db_key_select", ".system_name_select").each(function(el) {
+			el.disabled = true;
+		});
 	}
 	this.tick(true);
 }
@@ -190,24 +206,45 @@ function updateConfiguration(transport) {
 	if (configMode == "XML") {
 		$("config_type_xml").checked = true;
 		$("xml_file_select").disabled = false;
+		$$(".db_key_select", ".system_name_select").each(function(el) {
+			el.disabled = true;
+		});
 	} else if (configMode == "Database") {
 		$("config_type_database").checked = true;
 		$("xml_file_select").disabled = true;
+		$$(".db_key_select", ".system_name_select").each(function(el) {
+			el.disabled = false;
+		});
 	} else if (configMode == "Autodetect") {
 		$("config_type_autodetect").checked = true;
 		$("xml_file_select").disabled = true;
+		$$(".db_key_select", ".system_name_select").each(function(el) {
+			el.disabled = true;
+		});
 	}
 	
 	var xmlFile = data.xmlFile;
 	$("xml_file_select").childElements().each(function(element) {
-		if (element.value == data.xmlFile) element.selected = true;
+		if (element.value == xmlFile) element.selected = true;
 		else element.selected = false;
 	});
 	
 	var dbKey = data.dbKey;
-	$("db_key_select").childElements().each(function(element) {
-		if (element.value == data.dbKey) element.selected = true;
-		else element.selected = false;
+	var systemName = "";
+	$$(".db_key_select").each(function(el) {
+		el.childElements().each(function(element) {
+			if (element.value == dbKey) {
+				element.selected = true;
+				systemName = el.readAttribute("system");
+			} else element.selected = false;
+		});
+	});
+	
+	$$(".system_name_select").each(function(el) {
+		el.childElements().each(function(element) {
+			if (element.value == systemName) element.selected = true;
+			else element.selected = false;
+		});
 	});
 	
 	this.reset();

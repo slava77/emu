@@ -370,19 +370,35 @@ void FEDConfigurationEditor::readConfigFromDB(xgi::Input * in, xgi::Output * out
 	std::string key=cgi("configID");
 	parameters["KEY"] = key;
 	
+	
+	try {
+		
+	} catch (xcept::Exception &e) {
+		XCEPT_RETHROW(xgi::exception::Exception, "Error reading crates", e);
+	}
+	
 	// Execute the query
 	xdata::Table crates;
 	try {
 		std::string connectionID=connect();
 		clearCachedTables();
-		query(connectionID,"crates", parameters,crates);
-		std::cout << "found " << crates.getRowCount() << " rows" << std::endl;	
-		xdata::String *endcapSide=dynamic_cast<xdata::String *>(crates.getValueAt(0,"SYSTEM_NAME"));
+		
+		// The system names are stored in the EMU_FED_CONFIGURATIONS table under "DESCRIPTION"
+		xdata::Table configurations;
+		std::map<std::string, std::string> configParams = parameters;
+		configParams["TABLE"] = "EMU_FED_CONFIGURATIONS";
+		query(connectionID, "get_all_by_key", configParams, configurations);
+		//std::cout << "found " << configurations.getRowCount() << " rows" << std::endl;	
+		xdata::String *endcapSide = dynamic_cast<xdata::String *>(configurations.getValueAt(0, "DESCRIPTION"));
 		if (endcapSide) {
-			endcapSide_=*endcapSide;
+			endcapSide_ = *endcapSide;
 		} else {
 			XCEPT_RAISE(xgi::exception::Exception, "Could not determine endcap side");
 		}
+		
+		query(connectionID,"crates", parameters,crates);
+		std::cout << "found " << crates.getRowCount() << " rows" << std::endl;	
+		
 		for (xdata::Table::iterator iRow = crates.begin(); iRow != crates.end(); ++iRow) {
 			std::cout << "a row" << std::endl;
 			// Parse out the ID and crate number

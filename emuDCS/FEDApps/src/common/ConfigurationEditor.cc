@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.cc,v 1.10 2009/12/10 16:55:02 paste Exp $
+* $Id: ConfigurationEditor.cc,v 1.11 2010/01/27 13:32:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/ConfigurationEditor.h"
 
@@ -1272,6 +1272,11 @@ void emu::fed::ConfigurationEditor::webGetDBKeys(xgi::Input *in, xgi::Output *ou
 		systemObject.push_back(JSONSpirit::Pair("keys", keyArray));
 		systemObject.push_back(JSONSpirit::Pair("error", e.what()));
 		keySets.push_back(systemObject);
+		
+		std::ostringstream error;
+		error << "Error loading keys from database: " << e.what();
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		notifyQualified("ERROR", e);
 	}
 	
 	for (std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > >::iterator iPair = keyMap.begin(); iPair != keyMap.end(); ++iPair) {
@@ -1300,13 +1305,19 @@ void emu::fed::ConfigurationEditor::webUploadFile(xgi::Input *in, xgi::Output *o
 {
 	cgicc::Cgicc cgi(in);
 	
+	const std::string ofile = "/tmp/config_fed_upload.xml";
 	cgicc::const_file_iterator iFile = cgi.getFile("xmlFile");
 	if (iFile == cgi.getFiles().end()) {
 		// ERROR!
-		LOG4CPLUS_ERROR(getApplicationLogger(), "Error uploading file");
+		std::ostringstream error;
+		error << "Error uploading file:  unable to find file in cgi data";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_DECLARE(emu::fed::exception::DBException, e, error.str());
+		notifyQualified("ERROR", e);
+		
 		return;
 	} else {
-		std::ofstream tempFile("/tmp/config_fed_upload.xml");
+		std::ofstream tempFile(ofile.c_str());
 		if (tempFile.good()) {
 			iFile->writeToStream(tempFile);
 			tempFile.close();
@@ -1314,13 +1325,17 @@ void emu::fed::ConfigurationEditor::webUploadFile(xgi::Input *in, xgi::Output *o
 		} else {
 			// ERROR!
 			if (tempFile.is_open()) tempFile.close();
-			LOG4CPLUS_ERROR(getApplicationLogger(), "Error opening local file /tmp/config_fed_upload.xml for writing");
+			std::ostringstream error;
+			error << "Error opening local file " << ofile << " for writing";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			XCEPT_DECLARE(emu::fed::exception::DBException, e, error.str());
+			notifyQualified("ERROR", e);
 			return;
 		}
 	}
 	
 	// Parse the XML file and build crates properly
-	XMLConfigurator configurator("/tmp/config_fed_upload.xml");
+	XMLConfigurator configurator(ofile);
 	
 	try {
 		crateVector_ = configurator.setupCrates(true);
@@ -1329,8 +1344,10 @@ void emu::fed::ConfigurationEditor::webUploadFile(xgi::Input *in, xgi::Output *o
 		dbKey_ = 0;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
-		error << "Unable to create FED objects by parsing file /tmp/config_fed_upload.xml: " << e.what();
+		error << "Unable to create FED objects by parsing file " << ofile << ": " << e.what();
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_DECLARE(emu::fed::exception::DBException, e, error.str());
+		notifyQualified("ERROR", e);
 		return;
 	}
 

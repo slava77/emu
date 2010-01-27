@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.5 2009/11/06 13:48:34 paste Exp $
+* $Id: commander.js,v 1.6 2010/01/27 13:32:13 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -122,7 +122,6 @@ Event.observe(window, "load", function(event) {
 			element.checked = false;
 		});
 	});
-	
 	// Print data in selected format (in a new window)
 	$("ddu_display_button").observe("click", function(ev) {
 		// The crates/slots to read
@@ -139,8 +138,18 @@ Event.observe(window, "load", function(event) {
 				registers.push(e.readAttribute("name"));
 			}
 		});
-		var checkboxes = new Hash({"rui": ruis, "reg": registers, "board": "ddu"});
-		window.open(URL + "/DisplayDDURegisters?" + checkboxes.toQueryString(), "commanderDisplay");
+		// Can I submit a form without that form actually existing?
+		var fakeForm = new Element("form", {"method": "post", "action": URL + "/DisplayDDURegisters", "target": "commanderDisplay"});
+		fakeForm.insert(new Element("input", {"name": "board", "value": "ddu"});
+		ruis.each(function(rui) {
+			fakeForm.insert(new Element("input", {"name": "rui", "value": rui});
+		});
+		registers.each(function(register) {
+			fakeForm.insert(new Element("input", {"name": "reg", "value": register});
+		});
+		//var checkboxes = new Hash({"rui": ruis, "reg": registers, "board": "ddu"});
+		//window.open(URL + "/DisplayDDURegisters?" + checkboxes.toQueryString(), "commanderDisplay");
+		fakeForm.submit();
 	});
 
 });

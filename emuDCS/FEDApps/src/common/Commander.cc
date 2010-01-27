@@ -1,11 +1,9 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.15 2010/01/19 18:37:33 paste Exp $
+* $Id: Commander.cc,v 1.16 2010/01/27 13:32:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
-#include <iostream>
 #include <iomanip>
-#include <map>
 
 #include "xgi/Method.h"
 #include "cgicc/HTMLClasses.h"
@@ -21,9 +19,6 @@
 #include "emu/fed/XMLConfigurator.h"
 #include "emu/fed/DBConfigurator.h"
 #include "emu/fed/AutoConfigurator.h"
-#include "boost/filesystem/path.hpp"
-#include "boost/filesystem/operations.hpp"
-#include "boost/algorithm/string/case_conv.hpp"
 #include "emu/fed/JSONSpiritWriter.h"
 #include "emu/fed/Facts.h"
 
