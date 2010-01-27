@@ -353,17 +353,6 @@ private:
   void MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
-  // 
-  void MonitorTMBTrigger(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
-  void MonitorTMBTriggerRedirect(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
-  void MenuMonitorTMBTrigger(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
-  void AlctKey(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
-  void ClctKey(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
-  void MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
-  void CreateMonitorUnit(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
-  void Display(xgi::Input * in, xgi::Output * out, int counter ) throw (xgi::exception::Exception); 
-  void ResetAllCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  //
   // Crate tests
   void CrateTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TmbMPCTest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -481,8 +470,6 @@ private:
   // synchronization functions
   void ChamberTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setupCoincidencePulsing(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void TMBStartTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void EnableL1aRequest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setTMBCounterReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setDataReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void Automatic(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
