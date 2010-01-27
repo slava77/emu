@@ -336,7 +336,12 @@ xoap::MessageReference EmuPeripheralCrateCommand::onEnable (xoap::MessageReferen
   current_run_state_ = 1;
   fireEvent("Enable");
   //
-  ResetAllTMBCounters();
+/*  comment out the following line until we find a better solution.
+    If too many crates are off, the total time (due to time-out) will be longer than 30 seconds
+    and the state transition will fail.
+*/    
+//  ResetAllTMBCounters();
+
   return createReply(message);
 }
 //
