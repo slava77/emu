@@ -144,7 +144,7 @@ protected:
   int dcs_station, dcs_ring, dcs_chamber;
   time_t old_time;
   int read_interval;
-      
+  int TOTAL_TMB_COUNTERS;      
 public:
   //
   XDAQ_INSTANTIATOR();

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.61 2009/12/08 11:37:19 liu Exp $
+// $Id: Crate.cc,v 3.62 2010/01/28 11:48:57 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.62  2010/01/28 11:48:57  liu
+// correct total TMB counter number
+//
 // Revision 3.61  2009/12/08 11:37:19  liu
 // sort chambers within a crate if they are in random order
 //
@@ -656,8 +659,7 @@ void Crate::MonitorCCB(int cycle, char * buf)
 
 void Crate::MonitorTMB(int cycle, char * buf, unsigned mask) 
 {
-  int TOTAL_TMB_COUNTERS=78;
-//  int TOTAL_TMB_COUNTERS=65;
+  int TOTAL_TMB_COUNTERS=79;
   int * countbuf, *buf4;
   short *buf2;
  
