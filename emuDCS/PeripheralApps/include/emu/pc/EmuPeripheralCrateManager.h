@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.7 2009/10/20 15:56:32 liu Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.8 2010/01/29 14:44:08 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -39,6 +39,8 @@ class EmuPeripheralCrateManager: public EmuPeripheralCrateBase
 protected:
   int page1_state_;
   std::vector< std::string> Page1States;
+  bool need_init;
+  std::string InFlash_plus, InFlash_minus;
   
 public:
   
