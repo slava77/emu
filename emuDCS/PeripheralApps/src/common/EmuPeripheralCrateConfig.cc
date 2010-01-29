@@ -534,7 +534,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
         {  std::cout << "Can't create object EmuTStore" << std::endl;
            return;
         }
-
+        InFlash_config_ID = myTStore->getLastConfigIdUsed( (Valid_config_ID=="-1")?"plus":"minus" );
         myTStore->getConfigIds(configIDs,(Valid_config_ID=="-1")?"plus":"minus",50);
         
         int n_ids = configIDs.size();
@@ -547,9 +547,11 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
            *out << "Choose Config ID: " << cgicc::br() << std::endl;
            *out << cgicc::select().set("name", "runtype") << std::endl;
 
-           int selected_index = 0;
+           int selected_index;
            for (int i = 0; i < n_ids; ++i) {
-             if (i == selected_index) {
+             if(configIDs[i]==InFlash_config_ID)
+             {
+               selected_index = i;
                *out << cgicc::option()
                .set("value", configIDs[i])
                .set("selected", "");
