@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.22 2009/10/20 15:56:32 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.23 2010/01/29 14:44:08 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -20,6 +20,7 @@
 #include <unistd.h> // for sleep()
 #include <sstream>
 #include <cstdlib>
+#include "emu/pc/EmuTStore.h"
 
 //using namespace cgicc;
 //using namespace std;
@@ -79,6 +80,10 @@ EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s):
   // state_ is defined in EmuApplication
   state_ = fsm_.getStateName(fsm_.getCurrentState());
   //
+  need_init = true;
+  InFlash_plus = -1;
+  InFlash_minus = -2;
+
   page1_state_ = 0;
   Page1States.push_back( "Halted" );      // 0
   Page1States.push_back( "Configured" );  // 1
@@ -248,7 +253,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageRefe
   msgHandler("Get SOAP message Configure");
   page1_state_ = 1;
 
-  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
+//  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
   PCsendCommand("Configure","emu::pc::EmuPeripheralCrateCommand");
   PCsendCommand("Configure","emu::pc::EmuPeripheralCrateBroadcast");
   //
@@ -266,7 +271,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReferen
 
   PCsendCommand("Enable","emu::pc::EmuPeripheralCrateCommand");
   PCsendCommand("Enable","emu::pc::EmuPeripheralCrateBroadcast");
-  PCsendCommand("MonitorStart","emu::pc::EmuPeripheralCrateMonitor");
+//  PCsendCommand("MonitorStart","emu::pc::EmuPeripheralCrateMonitor");
   //
   fireEvent("Enable");
   //
@@ -281,7 +286,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageRefere
 
   PCsendCommand("Disable","emu::pc::EmuPeripheralCrateCommand");
   PCsendCommand("Disable","emu::pc::EmuPeripheralCrateBroadcast");
-  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
+//  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
   //
   fireEvent("Disable");
   //
@@ -296,7 +301,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onHalt (xoap::MessageReference
 
   PCsendCommand("Halt","emu::pc::EmuPeripheralCrateCommand");
   PCsendCommand("Halt","emu::pc::EmuPeripheralCrateBroadcast");
-  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
+//  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
   //
   fireEvent("Halt");
   //
@@ -313,6 +318,20 @@ void EmuPeripheralCrateManager::msgHandler(std::string msg)
 void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
+  if(need_init)
+  {
+     EmuTStore *myTStore = new EmuTStore(this);
+     if(myTStore)
+     {    
+         InFlash_plus = myTStore->getLastConfigIdUsed("plus");
+         InFlash_minus = myTStore->getLastConfigIdUsed("minus");
+     }
+     else
+     {  std::cout << "Can't create object EmuTStore" << std::endl;
+     }
+     need_init = false;
+     delete myTStore;
+  }
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
        << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << std::endl
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
@@ -331,6 +350,22 @@ void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)
          <<            "\" value=\"" << Page1States[page1_state_]
          <<  "\" nameDescription=\"" << " "
          << "\" valueDescription=\"" << " "
+         <<          "\" nameURL=\"" << " "
+         <<         "\" valueURL=\"" << " "
+         << "\"/>" << std::endl;
+
+    *out << "  <monitorable name=\"" << "Key+"
+         <<            "\" value=\"" << InFlash_plus
+         <<  "\" nameDescription=\"" << "Plus Endcap"
+         << "\" valueDescription=\"" << "Configuration Key currently in the FLASH"
+         <<          "\" nameURL=\"" << " "
+         <<         "\" valueURL=\"" << " "
+         << "\"/>" << std::endl;
+
+    *out << "  <monitorable name=\"" << "Key-"
+         <<            "\" value=\"" << InFlash_minus
+         <<  "\" nameDescription=\"" << "Minus Endcap"
+         << "\" valueDescription=\"" << "Configuration Key currently in the FLASH"
          <<          "\" nameURL=\"" << " "
          <<         "\" valueURL=\"" << " "
          << "\"/>" << std::endl;
