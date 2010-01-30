@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2010/01/30 15:53:00 banicz Exp $
+# $Id: Makefile,v 1.2 2010/01/30 16:21:30 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -24,7 +24,7 @@ include $(XDAQ_ROOT)/config/mfDefs.extern_coretools
 include $(XDAQ_ROOT)/config/mfDefs.coretools
 
 
-Project=daq
+Project=emu
 Package=pt/http
 
 Sources=\
@@ -73,7 +73,7 @@ Libraries =
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary=pthttp
+DynamicLibrary=emupthttp
 StaticLibrary=
 Executables=
 
