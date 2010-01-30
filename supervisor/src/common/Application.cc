@@ -1,6 +1,7 @@
 // Application.cc
 
 #include "emu/supervisor/Application.h"
+#include "emu/supervisor/StopWatch.h"
 
 #include <sstream>
 #include <set>
@@ -167,14 +168,11 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   
   wl_ = toolbox::task::getWorkLoopFactory()->getWorkLoop("CSC SV", "waiting");
   wl_->activate();
-  configure_signature_ = toolbox::task::bind(
-					     this, &emu::supervisor::Application::configureAction,  "configureAction");
-  start_signature_ = toolbox::task::bind(
-					 this, &emu::supervisor::Application::startAction,  "startAction");
-  halt_signature_ = toolbox::task::bind(
-					this, &emu::supervisor::Application::haltAction,       "haltAction");
-  calibration_signature_ = toolbox::task::bind(
-					       this, &emu::supervisor::Application::calibrationAction, "calibrationAction");
+  configure_signature_   = toolbox::task::bind(this, &emu::supervisor::Application::configureAction,   "configureAction");
+  start_signature_       = toolbox::task::bind(this, &emu::supervisor::Application::startAction,       "startAction");
+  stop_signature_        = toolbox::task::bind(this, &emu::supervisor::Application::stopAction,        "stopAction");
+  halt_signature_        = toolbox::task::bind(this, &emu::supervisor::Application::haltAction,        "haltAction");
+  calibration_signature_ = toolbox::task::bind(this, &emu::supervisor::Application::calibrationAction, "calibrationAction");
   
   fsm_.addState('H', "Halted",     this, &emu::supervisor::Application::stateChanged);
   fsm_.addState('C', "Configured", this, &emu::supervisor::Application::stateChanged);
@@ -287,8 +285,9 @@ xoap::MessageReference emu::supervisor::Application::onStop(xoap::MessageReferen
   throw (xoap::exception::Exception)
 {
   isCommandFromWeb_ = false;
-  fireEvent("Stop");
-  
+
+  submit(stop_signature_);
+
   return createReply(message);
 }
 
@@ -541,6 +540,7 @@ void emu::supervisor::Application::webStop(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
   isCommandFromWeb_ = true;
+
   fireEvent("Stop");
   
   keep_refresh_ = true;
@@ -553,7 +553,7 @@ void emu::supervisor::Application::webHalt(xgi::Input *in, xgi::Output *out)
   isCommandFromWeb_ = true;
   quit_calibration_ = true;
   
-  submit(halt_signature_);
+  fireEvent("Halt");
 
   keep_refresh_ = true;
   webRedirect(in, out);
@@ -614,6 +614,13 @@ bool emu::supervisor::Application::configureAction(toolbox::task::WorkLoop *wl)
 bool emu::supervisor::Application::startAction(toolbox::task::WorkLoop *wl)
 {
   fireEvent("Start");
+  
+  return false;
+}
+
+bool emu::supervisor::Application::stopAction(toolbox::task::WorkLoop *wl)
+{
+  fireEvent("Stop");
   
   return false;
 }
@@ -891,30 +898,45 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   
   try {
+    StopWatch sw;
     state_table_.refresh();
-    
+    cout << "Timing in stopAction: " << endl
+	 << "    state table: " << state_table_
+	 << "    state_table_.refresh: " << sw.read() << endl;
+
     // Stop TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       sendCommandCell("stop");
       waitForTFCellOpToReach("configured",60);
+      cout << "    stop TFCellOp: " << sw.read() << endl;
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
       sendCommand("Halt", "LTCControl");
+      cout << "    Halt LTCControl: " << sw.read() << endl;
     }
     if (state_table_.getState("TTCciControl", 0) != "Halted") {
       sendCommand("Halt", "TTCciControl");
+      cout << "    Halt TTCciControl: " << sw.read() << endl;
     }
     
     try {
       sendCommand("Halt", "emu::daq::manager::Application");
-      waitForDAQToExecute("Halt", 10, true);
+      if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
     } catch (xcept::Exception ignored) {}
+    cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
     
     sendCommand("Disable", "emu::fed::Manager");
+    cout << "    Disable emu::fed::Manager: " << sw.read() << endl;
     sendCommand("Disable", "emu::pc::EmuPeripheralCrateManager");
+    cout << "    Disable emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
     sendCommand("Configure", "TTCciControl");
+    cout << "    Configure TTCci: " << sw.read() << endl;
     sendCommand("Configure", "LTCControl");
+    cout << "    Configure LTC: " << sw.read() << endl;
+
+    writeRunInfo( isCommandFromWeb_, false ); // only write runinfo if Stop was issued from the web interface
+    if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
@@ -932,33 +954,45 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   
   try {
+    StopWatch sw;
     state_table_.refresh();
+    cout << "Timing in haltAction: " << endl
+	 << "    state table: " << state_table_
+	 << "    state_table_.refresh: " << sw.read() << endl;
     
     // Stop and destroy TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       sendCommandCell("stop");
       waitForTFCellOpToReach("configured",60);
+      cout << "    stop TFCellOp: " << sw.read() << endl;
       sendCommandCellOpkill();
+      cout << "    kill TFCellOp: " << sw.read() << endl;
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
       sendCommand("Halt", "LTCControl");
+      cout << "    Halt LTCControl: " << sw.read() << endl;
     }
 
     if (state_table_.getState("TTCciControl", 0) != "Halted") {
       sendCommand("Halt", "TTCciControl");
+      cout << "    Halt TTCciControl: " << sw.read() << endl;
     }
 
     sendCommand("Halt", "emu::fed::Manager");
+    cout << "    Halt emu::fed::Manager: " << sw.read() << endl;
 
     sendCommand("Halt", "emu::pc::EmuPeripheralCrateManager");
+    cout << "    Halt emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
     
     try {
       sendCommand("Halt", "emu::daq::manager::Application");
       if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
     } catch (xcept::Exception ignored) {}
+    cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
 
-    writeRunInfo( isCommandFromWeb_, false ); // only write runinfo if Halt is issued from the web interface
+    writeRunInfo( isCommandFromWeb_, false ); // only write runinfo if Halt was issued from the web interface
+    if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
 
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,

@@ -73,6 +73,7 @@ public:
 
 	// work loop call-back functions
 	bool configureAction(toolbox::task::WorkLoop *wl);
+	bool stopAction(toolbox::task::WorkLoop *wl);
 	bool haltAction(toolbox::task::WorkLoop *wl);
 	bool startAction(toolbox::task::WorkLoop *wl);
 	bool calibrationAction(toolbox::task::WorkLoop *wl);
@@ -132,7 +133,7 @@ private: // XDAQ parameters
 
 	toolbox::task::WorkLoop *wl_;
 	toolbox::BSem wl_semaphore_;
-	toolbox::task::ActionSignature *configure_signature_, *halt_signature_, *start_signature_;
+	toolbox::task::ActionSignature *configure_signature_, *stop_signature_, *halt_signature_, *start_signature_;
 	toolbox::task::ActionSignature *calibration_signature_;
 	bool quit_calibration_;
 	std::map<string, string> start_attr, stop_attr;
