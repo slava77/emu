@@ -1,4 +1,4 @@
-// $Id: version.h,v 1.1 2010/01/30 15:53:06 banicz Exp $
+// $Id: version.h,v 1.2 2010/01/30 16:29:41 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -37,7 +37,7 @@
 #endif 
 namespace pthttp
 {
-    const std::string package  =  "pthttp";
+    const std::string package  =  "emupthttp";
     const std::string versions =  PTHTTP_FULL_VERSION_LIST;
     const std::string summary = "HTTP peer transport with SOAP and CGI service implementations";
     const std::string description = "";
