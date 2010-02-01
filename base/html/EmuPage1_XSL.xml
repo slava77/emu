@@ -98,6 +98,14 @@
 	      </td>
 	    </tr>
 	    <tr>
+	      <th>Config</th>
+	      <td class="layout">
+		<table class="layout"><tr class="layout">
+		  <xsl:apply-templates mode="FED" select="monitorable[substring-after(@name,' ')='Configuration']"/>
+		</tr></table>
+	      </td>
+	    </tr>
+	    <tr>
 	      <th>DCC</th>
 	      <td class="layout">
 		<table class="layout"><tr class="layout">
@@ -274,7 +282,7 @@
     </td>
   </xsl:template>
 
-  <xsl:template mode="FED" match="monitorable[substring-after(@name,' ')='Errors']">
+  <xsl:template mode="FED" match="monitorable[substring-after(@name,' ')='Errors'] | monitorable[substring-after(@name,' ')='Configuration']">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
     <th id="th_name_{$INDEX}">

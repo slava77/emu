@@ -713,7 +713,7 @@ function valuesFromXml(){
 	if ( a_name ){
 	  a_name.href = monitorables[i].nameURL;
 	  a_name.title = monitorables[i].nameDescr;
-	  if ( monitorables[i].name.indexOf(' Rate') < 0 ) a_name.innerHTML = monitorables[i].name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) Errors$/,'$1').replace(/^([^ ]*) events$/,'$1').replace(/^([^ ]*)rate$/,'$1').replace(/ /g,'&#160;');
+	  if ( monitorables[i].name.indexOf(' Rate') < 0 ) a_name.innerHTML = monitorables[i].name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) (Errors|Configuration)$/,'$1').replace(/^([^ ]*) events$/,'$1').replace(/^([^ ]*)rate$/,'$1').replace(/ /g,'&#160;');
 	}
 	// value
 	var td_value = document.getElementById( 'td_value_'+i );
@@ -723,7 +723,7 @@ function valuesFromXml(){
 	       && state == 'Enabled' ) td_value.className += ( monitorables[i].value == 0 ? ' WARN' : '' );
 	  if ( monitorables[i].name == 'Heartbeat' ) td_value.className += ( monitorables[i].rate() == 0 ? ' WARN' : ' ON' );
 	  else if ( monitorables[i].name == 'TF Errors'  || monitorables[i].name == 'ME- Errors' || monitorables[i].name == 'ME+ Errors' ){
-	    td_value.className += ( monitorables[i].rate() > 0 ? ' ERROR' : '' );
+	    td_value.className += ( monitorables[i].rate() > 0 ? ' WARN' : '' );
 	  }
 	}
 	var a_value = document.getElementById( 'a_value_'+i );
