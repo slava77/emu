@@ -5832,7 +5832,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   //
   for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
     //
-    int cfeb_index = (*cfebItr).number();
+    int cfeb_index = (*cfebItr).number() + 1;
     //
     sprintf(buf,"CFEB %d : ",cfeb_index);
     *out << buf;
@@ -6495,7 +6495,7 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
       //
       ::sleep(1);
       //
-      if (dmbNumber == -1 ) {
+      if (dmbNumber == -2 || dmbNumber == -1) {
 	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
 	  std::ostringstream dum;
 	  dum << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< i << std::endl;
