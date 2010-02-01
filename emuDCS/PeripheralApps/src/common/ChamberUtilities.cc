@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.32 2009/11/19 17:04:56 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.33 2010/02/01 14:16:29 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.33  2010/02/01 14:16:29  rakness
+// update bad region for ALCT-TMB rx/tx scan
+//
 // Revision 1.32  2009/11/19 17:04:56  rakness
 // change CFEB-TMB rx scan to look at non-straight tracks
 //
@@ -2200,32 +2203,44 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   // have a comparable sized communication window of good data by just forcing the tx_posneg
   // bit to be 1... Thus.....
   //
+  int alct_tof_delay = thisTMB->GetAlctTOFDelay();
+  //
   if (ALCTtxPosNeg_ == 0 && ALCTtxPhase_ > 15) {
     //
     int use_this_tx_posneg = 1;
     //
-    std::cout    << "The scan returned values (alct_tx_posneg,alct_tx_clock_delay) = (" << ALCTtxPosNeg_ << "," << ALCTtxPhase_ 
-		 << "), which have been deemed to be bad.  Change alct_tx_posneg to 1 and redo scan..." << std::endl;
-    (*MyOutput_) << "The scan returned values (alct_tx_posneg,alct_tx_clock_delay) = (" << ALCTtxPosNeg_ << "," << ALCTtxPhase_ 
-		 << "), which have been deemed to be bad.  Change alct_tx_posneg to 1 and redo scan..." << std::endl;
-    //
-    int max_good = 0;
-    for (int rx_posneg=0; rx_posneg<2; rx_posneg++) {
-      for(int pipedepth=0; pipedepth<16; pipedepth++) {
-	if (good_data[rx_posneg][use_this_tx_posneg][pipedepth]>max_good) {
-	  best_pipedepth = pipedepth;
-	  best_rx_posneg = rx_posneg;
-	  max_good = good_data[rx_posneg][use_this_tx_posneg][pipedepth];
+    std::cout    << "The scan returned values (alct_tx_posneg,alct_tx_clock_delay) = (" << ALCTtxPosNeg_ << "," << ALCTtxPhase_ << ")." << std::endl;
+    (*MyOutput_) << "The scan returned values (alct_tx_posneg,alct_tx_clock_delay) = (" << ALCTtxPosNeg_ << "," << ALCTtxPhase_ << ")." << std::endl;
+    if (alct_tof_delay == 12) {
+      //
+      std::cout    << "However, since alct_tof_delay is set to " << alct_tof_delay << ", keep this scan..." << std::endl;
+      (*MyOutput_) << "However, since alct_tof_delay is set to " << alct_tof_delay << ", keep this scan..." << std::endl;
+      //
+    } else {
+      //
+      std::cout    << "In addition, alct_tof_delay is set to " << alct_tof_delay 
+		   << ". Since this combination has been deemed to be bad, change alct_tx_posneg to 1 and redo scan..." << std::endl;
+      (*MyOutput_) << "In addition, alct_tof_delay is set to " << alct_tof_delay 
+		   << ". Since this combination has been deemed to be bad, change alct_tx_posneg to 1 and redo scan..." << std::endl;
+      //
+      int max_good = 0;
+      for (int rx_posneg=0; rx_posneg<2; rx_posneg++) {
+	for(int pipedepth=0; pipedepth<16; pipedepth++) {
+	  if (good_data[rx_posneg][use_this_tx_posneg][pipedepth]>max_good) {
+	    best_pipedepth = pipedepth;
+	    best_rx_posneg = rx_posneg;
+	    max_good = good_data[rx_posneg][use_this_tx_posneg][pipedepth];
+	  }
 	}
       }
+      //
+      std::cout    << "Performing a more thorough scan at (rx_posneg,tx_posneg,pipedepth) = (" 
+		   << best_rx_posneg << "," << use_this_tx_posneg << "," << best_pipedepth << ")" << std::endl;
+      (*MyOutput_) << "Performing a more thorough scan at (rx_posneg,tx_posneg,pipedepth) = (" 
+		   << best_rx_posneg << "," << use_this_tx_posneg << "," << best_pipedepth << ")" << std::endl;
+      //    
+      ThoroughRxTxScan(best_rx_posneg,use_this_tx_posneg,best_pipedepth);
     }
-    //
-    std::cout    << "Performing a more thorough scan at (rx_posneg,tx_posneg,pipedepth) = (" 
-		 << best_rx_posneg << "," << use_this_tx_posneg << "," << best_pipedepth << ")" << std::endl;
-    (*MyOutput_) << "Performing a more thorough scan at (rx_posneg,tx_posneg,pipedepth) = (" 
-		 << best_rx_posneg << "," << use_this_tx_posneg << "," << best_pipedepth << ")" << std::endl;
-    //    
-    ThoroughRxTxScan(best_rx_posneg,use_this_tx_posneg,best_pipedepth);
   }
   //
   //
@@ -2779,7 +2794,7 @@ int ChamberUtilities::ALCTBC0Scan() {
   }
   //
   std::cout    << "This scan has the following input parameters... " << std::endl;
-  std::cout    << "alct_tof_delay          = 0x" << std::hex << thisTMB->GetAlctTOFDelay() << std::endl;
+  std::cout    << "alct_tof_delay          = 0x" << std::hex << thisTMB->GetAlctTOFDelay() << std::endl; 
   std::cout    << "tmb_to_alct_data_delay  = 0x" << std::hex << thisTMB->GetALCTTxDataDelay() << std::endl;
   (*MyOutput_) << "This scan has the following input parameters... " << std::endl;
   (*MyOutput_) << "alct_tof_delay          = 0x" << std::hex << thisTMB->GetAlctTOFDelay() << std::endl;
