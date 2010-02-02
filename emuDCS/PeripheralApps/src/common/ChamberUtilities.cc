@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.33 2010/02/01 14:16:29 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.34 2010/02/02 15:38:10 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.34  2010/02/02 15:38:10  rakness
+// randomize comparator being pulsed in CFEB-TMB rx test
+//
 // Revision 1.33  2010/02/01 14:16:29  rakness
 // update bad region for ALCT-TMB rx/tx scan
 //
@@ -900,11 +903,11 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 	  // generate a random halfstrip to pulse which is not the same as the 
 	  // last valid halfstrip for this CFEB. 
 	  // In addition, this should be away from the edges of the CFEB...
-	  //	  while (random_halfstrip[List] == last_pulsed_halfstrip[List] ) {
-	  //	    random_halfstrip[List] = (int) (rand()/(RAND_MAX+0.01)*10);  // random number between 0 and 10
-	  //	    random_halfstrip[List] += 13;                                 // translate to between 13 and 23
-	    	    random_halfstrip[List] = 10;                                 // translate to between 13 and 23
-		    //	  }
+	  while (random_halfstrip[List] == last_pulsed_halfstrip[List] ) {
+	    random_halfstrip[List] = (int) (rand()/(RAND_MAX+0.01)*10);  // random number between 0 and 10
+	  	    random_halfstrip[List] += 13;                                 // translate to between 13 and 23
+		    //  	    random_halfstrip[List] = 10;                                 // translate to between 13 and 23
+	  }
 	  //
 	  // Now need to map the CFEB numbering into the ME1/1 numbering
 	  //
