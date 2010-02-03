@@ -581,8 +581,11 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("cfeb2_rxd_int_delay",value)) { tmb_->SetCFEB2RxdIntDelay(value); }
     if (fillInt("cfeb3_rxd_int_delay",value)) { tmb_->SetCFEB3RxdIntDelay(value); }
     //
-    //0X11C
+    //0X11E
     if (fillInt("cfeb4_rxd_int_delay",value)) { tmb_->SetCFEB4RxdIntDelay(value); }
+    //
+    //0X122
+    if (fillInt("cfeb_badbits_block",value)) { tmb_->SetCFEBBadBitsBlock(value); }
     //
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
     while(daughterNode) {
