@@ -25,9 +25,9 @@
          known_problem="short description of known problem"
          problem_location_mask="ab">
       <TMB slot="10" 
-           tmb_firmware_month="10"
-           tmb_firmware_day="11"
-           tmb_firmware_year="2007"
+           tmb_firmware_month="1"
+           tmb_firmware_day="14"
+           tmb_firmware_year="2010"
            tmb_firmware_version="14"
            tmb_firmware_revcode="4"
            tmb_firmware_type="12"
@@ -142,8 +142,9 @@
            cfeb1_rxd_int_delay="0"
            cfeb2_rxd_int_delay="0"
            cfeb3_rxd_int_delay="0"
-           cfeb4_rxd_int_delay="0">
-          <ALCT chamber_type="ME21"
+           cfeb4_rxd_int_delay="0"
+           cfeb_badbits_block="0">
+          <ALCT chamber_type="ME11"
                 alct_firmware_month="5"
                 alct_firmware_day="5"
                 alct_firmware_year="2008"

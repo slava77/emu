@@ -198,7 +198,8 @@ attlist.TMB &=
    attribute cfeb1_rxd_int_delay { xsd:unsignedInt },
    attribute cfeb2_rxd_int_delay { xsd:unsignedInt },
    attribute cfeb3_rxd_int_delay { xsd:unsignedInt },
-   attribute cfeb4_rxd_int_delay { xsd:unsignedInt }
+   attribute cfeb4_rxd_int_delay { xsd:unsignedInt },
+   attribute cfeb_badbits_block { xsd:unsignedInt }
 
 ALCT = element ALCT { attlist.ALCT, AnodeChannel* }
 attlist.ALCT &=

@@ -11739,6 +11739,18 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset();
   //
   *out << cgicc::fieldset();
+  *out << cgicc::legend("Comparator Badbits").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::pre();
+  thisTMB->RedirectOutput(out);
+  thisTMB->ReadRegister(0x122);
+  thisTMB->PrintTMBRegister(0x122);
+  thisTMB->ReadComparatorBadBits();
+  thisTMB->PrintComparatorBadBits();
+  thisTMB->RedirectOutput(&std::cout);
+  *out << cgicc::pre();
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::fieldset();
   *out << cgicc::legend("CLCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
   *out << cgicc::pre();
   thisTMB->RedirectOutput(out);

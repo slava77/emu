@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.8 2009/11/17 10:04:10 rakness Exp $
+// $Id: TMB.h,v 1.9 2010/02/03 12:18:56 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.9  2010/02/03 12:18:56  rakness
+// add CFEB badbits blocking (for TMB firmware 14 Jan 2010)
+//
 // Revision 1.8  2009/11/17 10:04:10  rakness
 // include CFEB to TMB integer delays to align CLCT-ALCT matching
 //
@@ -1767,6 +1770,50 @@ public:
   inline int  GetReadCFEB4RxdIntDelay() { return read_cfeb4_rxd_int_delay_; }
   //
   //
+  //---------------------------------------------------------------------
+  // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+  //---------------------------------------------------------------------
+  //!cfeb_badbits_reset = 1 = Set the reset bit for the "badbits" marker for all 5 CFEBs
+  void SetCFEBBadBitsReset(int cfeb_badbits_reset);
+  int  GetCFEBBadBitsReset();
+  int  GetReadCFEBBadBitsReset();
+  //
+  //!cfeb_badbits_block = 1 = Block channels which have been determined to be "badbits" by the firmware
+  void SetCFEBBadBitsBlock(int cfeb_badbits_block);
+  int  GetCFEBBadBitsBlock();
+  int  GetReadCFEBBadBitsBlock();
+  //
+  //!Bit mask for which CFEB has a bad bit found on it... 
+  inline int GetReadCFEBBadBitsFound() { return read_cfeb_badbits_found_; }
+  //
+  //!GetReadCFEBBadBitsBlocked() = 1 = At least one CFEB has a bad bit that was blocked on it...
+  inline int GetReadCFEBBadBitsBlocked() { return read_cfeb_badbits_blocked_; }
+  //
+  //
+  //---------------------------------------------------------------------
+  // 0X124 = ADR_CFEB_BADBITS_TIMER:  CFEB badbits check interval
+  //---------------------------------------------------------------------
+  //!cfeb_badbits_nbx = number of bx that a CFEB channel must be ON in order to be labeled as "bad"
+  inline void SetCFEBBadBitsNbx(int cfeb_badbits_nbx) { cfeb_badbits_nbx_ = cfeb_badbits_nbx; }
+  inline int  GetCFEBBadBitsNbx() { return cfeb_badbits_nbx_; }
+  inline int  GetReadCFEBBadBitsNbx() { return read_cfeb_badbits_nbx_; }
+  //
+  //
+  //------------------------------------------------------------------
+  //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks
+  //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 BadBits Masks
+  //0X132,134,136 = ADR_BADBITS201,BADBITS223,BADBITS245 = CFEB2 BadBits Masks
+  //0X138,13A,13C = ADR_BADBITS301,BADBITS323,BADBITS345 = CFEB3 BadBits Masks
+  //0X13E,140,142 = ADR_BADBITS401,BADBITS423,BADBITS445 = CFEB4 BadBits Masks
+  //------------------------------------------------------------------
+  //!Read and print registers who carry information as to which comparator input is bad
+  void ReadComparatorBadBits();
+  void PrintComparatorBadBits();
+  //
+  //!layer=[0-5], distrip=[0-39] = 1 = "bad"
+  inline int  GetComparatorBadBit(int layer,int distrip) { return read_badbits_[layer][distrip]; }
+  //
+  //
   // **********************************************************************************
   //
   //!Return the software value to be written into the register at "address", whose values have been set by the "Set...(int data)" methods
@@ -2908,6 +2955,36 @@ private:
   int cfeb4_rxd_int_delay_;
   //
   int read_cfeb4_rxd_int_delay_; 
+  //
+  //
+  //---------------------------------------------------------------------
+  // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+  //---------------------------------------------------------------------
+  int cfeb_badbits_reset_  ;
+  int cfeb_badbits_block_  ;
+  //
+  int read_cfeb_badbits_reset_  ;
+  int read_cfeb_badbits_block_  ;
+  int read_cfeb_badbits_found_  ;
+  int read_cfeb_badbits_blocked_;
+  //
+  //
+  //---------------------------------------------------------------------
+  // 0X124 = ADR_CFEB_BADBITS_TIMER:  CFEB badbits check interval
+  //---------------------------------------------------------------------
+  int cfeb_badbits_nbx_;
+  //
+  int read_cfeb_badbits_nbx_;
+  //
+  //
+  //------------------------------------------------------------------
+  //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks
+  //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 BadBits Masks
+  //0X132,134,136 = ADR_BADBITS201,BADBITS223,BADBITS245 = CFEB2 BadBits Masks
+  //0X138,13A,13C = ADR_BADBITS301,BADBITS323,BADBITS345 = CFEB3 BadBits Masks
+  //0X13E,140,142 = ADR_BADBITS401,BADBITS423,BADBITS445 = CFEB4 BadBits Masks
+  //------------------------------------------------------------------
+  int read_badbits_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER];
   //
   //
   //*******************************************************************

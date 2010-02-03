@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.6 2009/11/17 10:04:10 rakness Exp $
+// $Id: TMB_constants.h,v 1.7 2010/02/03 12:18:56 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.7  2010/02/03 12:18:56  rakness
+// add CFEB badbits blocking (for TMB firmware 14 Jan 2010)
+//
 // Revision 1.6  2009/11/17 10:04:10  rakness
 // include CFEB to TMB integer delays to align CLCT-ALCT matching
 //
@@ -279,8 +282,27 @@ static const unsigned long int  cfeb0_3_interstage_adr  = 0x00011C;
 static const unsigned long int  cfeb4_interstage_adr    = 0x00011E;
 //
 static const unsigned long int  sync_err_control_adr    = 0x000120;
+static const unsigned long int  cfeb_badbits_ctrl_adr   = 0x000122;
+static const unsigned long int  cfeb_badbits_timer_adr  = 0x000124;
+static const unsigned long int	badbits001_adr	        = 0x000126;
+static const unsigned long int	badbits023_adr	        = 0x000128;
+static const unsigned long int	badbits045_adr	        = 0x00012A;
+static const unsigned long int	badbits101_adr	        = 0x00012C;
+static const unsigned long int	badbits123_adr	        = 0x00012E;
 //
-static const int LARGEST_VME_ADDRESS = sync_err_control_adr;
+static const unsigned long int	badbits145_adr	        = 0x000130;
+static const unsigned long int	badbits201_adr	        = 0x000132;
+static const unsigned long int	badbits223_adr	        = 0x000134;
+static const unsigned long int	badbits245_adr	        = 0x000136;
+static const unsigned long int	badbits301_adr	        = 0x000138;
+static const unsigned long int	badbits323_adr	        = 0x00013A;
+static const unsigned long int	badbits345_adr	        = 0x00013C;
+static const unsigned long int	badbits401_adr	        = 0x00013E;
+//
+static const unsigned long int	badbits423_adr	        = 0x000140;
+static const unsigned long int	badbits445_adr	        = 0x000142;
+//
+static const int LARGEST_VME_ADDRESS = badbits445_adr;
 //
 //
 // TMB counter indices:
@@ -2183,6 +2205,36 @@ const int cfeb4_rxd_int_delay_vmereg  =  cfeb4_interstage_adr;
 const int cfeb4_rxd_int_delay_bitlo   =  0;
 const int cfeb4_rxd_int_delay_bithi   =  3;
 const int cfeb4_rxd_int_delay_default =  0; 
+//
+//---------------------------------------------------------------------
+// 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+//---------------------------------------------------------------------
+const int cfeb_badbits_reset_vmereg   =  cfeb_badbits_ctrl_adr;
+const int cfeb_badbits_reset_bitlo    =  0;
+const int cfeb_badbits_reset_bithi    =  4;
+const int cfeb_badbits_reset_default  =  0; 
+//
+const int cfeb_badbits_block_vmereg   =  cfeb_badbits_ctrl_adr;
+const int cfeb_badbits_block_bitlo    =  5;
+const int cfeb_badbits_block_bithi    =  9;
+const int cfeb_badbits_block_default  =  0; 
+//
+const int cfeb_badbits_found_vmereg   =  cfeb_badbits_ctrl_adr;
+const int cfeb_badbits_found_bitlo    = 10;
+const int cfeb_badbits_found_bithi    = 14;
+//
+const int cfeb_badbits_blocked_vmereg =  cfeb_badbits_ctrl_adr;
+const int cfeb_badbits_blocked_bitlo  = 15;
+const int cfeb_badbits_blocked_bithi  = 15;
+//
+//
+//---------------------------------------------------------------------
+// 0X124 = ADR_CFEB_BADBITS_TIMER:  CFEB badbits check interval
+//---------------------------------------------------------------------
+const int cfeb_badbits_nbx_vmereg   =  cfeb_badbits_timer_adr;
+const int cfeb_badbits_nbx_bitlo    =  0;
+const int cfeb_badbits_nbx_bithi    =  15;
+const int cfeb_badbits_nbx_default  =  3564;
 //
 //
 //////////////////////////////////////////////

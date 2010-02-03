@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.90 2009/11/17 10:04:10 rakness Exp $
+// $Id: TMB.cc,v 3.91 2010/02/03 12:19:02 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.91  2010/02/03 12:19:02  rakness
+// add CFEB badbits blocking (for TMB firmware 14 Jan 2010)
+//
 // Revision 3.90  2009/11/17 10:04:10  rakness
 // include CFEB to TMB integer delays to align CLCT-ALCT matching
 //
@@ -4196,7 +4199,7 @@ void TMB::ExtClctTrigFromCCBonly() {
   return;
 }
 /////////////////////////////////////////////////////////////////////
-// hot channel masks
+// hot channel masks and comparator badbits registers
 /////////////////////////////////////////////////////////////////////
 void TMB::SetDistripHotChannelMask(int layer,long long int mask) {
   //
@@ -4301,6 +4304,99 @@ void TMB::ReadDistripHotChannelMasks(){
   ReadRegister(hcm401_adr); 
   ReadRegister(hcm423_adr); 
   ReadRegister(hcm445_adr); 
+  //
+  return;
+}
+//
+void TMB::SetCFEBBadBitsReset(int cfeb_badbits_reset) {
+  //
+  // set the reset bit for all 5 CFEB's..
+  //.
+  cfeb_badbits_reset_ = 0;
+  for (int cfeb=0; cfeb<5; cfeb++) 
+    cfeb_badbits_reset_ |= (cfeb_badbits_reset & 0x1) << cfeb;
+  //
+  return;
+}
+//
+int TMB::GetCFEBBadBitsReset() {
+  //
+  // return a single value which has been set for all 5 CFEB's..
+  //
+  int return_value = 1;
+  for (int cfeb=0; cfeb<5; cfeb++) 
+    return_value &= (cfeb_badbits_reset_ >> cfeb) & 0x1;
+  //
+  return return_value;
+}
+//
+int TMB::GetReadCFEBBadBitsReset() {
+  //
+  // return a single value which has been set for all 5 CFEB's..
+  //
+  int return_value = 1;
+  for (int cfeb=0; cfeb<5; cfeb++) 
+    return_value &= (read_cfeb_badbits_reset_ >> cfeb) & 0x1;
+  //
+  return return_value;
+}
+//
+void TMB::SetCFEBBadBitsBlock(int cfeb_badbits_block) {
+  //
+  // set the block bit for all 5 CFEB's..
+  //.
+  cfeb_badbits_block_ = 0;
+  for (int cfeb=0; cfeb<5; cfeb++) 
+    cfeb_badbits_block_ |= (cfeb_badbits_block & 0x1) << cfeb;
+  //
+  return;
+}
+//
+int TMB::GetCFEBBadBitsBlock() {
+  //
+  // return a single value which has been set for all 5 CFEB's..
+  //
+  //  std::cout << "In software, CFEB Bad Bits Block = 0x" << cfeb_badbits_block_<< std::endl;
+  int return_value = 1;
+  for (int cfeb=0; cfeb<5; cfeb++) {
+    return_value &= (cfeb_badbits_block_ >> cfeb) & 0x1;
+    //    std::cout << "after bit " << cfeb << "... return value = " << return_value << std::endl;
+  }
+  //
+  return return_value;
+}
+//
+int TMB::GetReadCFEBBadBitsBlock() {
+  //
+  // return a single value which has been set for all 5 CFEB's..
+  //
+  //  std::cout << "Read CFEB Bad Bits Block = 0x" << read_cfeb_badbits_block_<< std::endl;
+  int return_value = 1;
+  for (int cfeb=0; cfeb<5; cfeb++) {
+    return_value &= (read_cfeb_badbits_block_ >> cfeb) & 0x1;
+    //    std::cout << "after bit " << cfeb << "... return value = " << return_value << std::endl;
+  }
+  //
+  return return_value;
+}
+//
+void TMB::ReadComparatorBadBits(){
+  //
+  ReadRegister(badbits001_adr);
+  ReadRegister(badbits023_adr); 
+  ReadRegister(badbits045_adr); 
+  ReadRegister(badbits101_adr); 
+  ReadRegister(badbits123_adr); 
+  ReadRegister(badbits145_adr); 
+  ReadRegister(badbits201_adr); 
+  ReadRegister(badbits223_adr); 
+  ReadRegister(badbits245_adr); 
+  ReadRegister(badbits301_adr); 
+  ReadRegister(badbits323_adr); 
+  ReadRegister(badbits345_adr); 
+  ReadRegister(badbits401_adr); 
+  ReadRegister(badbits423_adr); 
+  ReadRegister(badbits445_adr); 
   //
   return;
 }
@@ -5106,6 +5202,9 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(hcm423_adr);  //0x64 distrip hot channel mask CFEB 4 layers 2,3 
   TMBConfigurationRegister.push_back(hcm445_adr);  //0x66 distrip hot channel mask CFEB 4 layers 4,5 
   //
+  // Automatic masking of bad bits
+  TMBConfigurationRegister.push_back(cfeb_badbits_ctrl_adr) ;  //0x122
+  //
   // Not put into xml file, but may want to enable scope for test runs...
   //  TMBConfigurationRegister.push_back(scp_ctrl_adr);         //0x98 scope control
   //
@@ -5500,6 +5599,17 @@ void TMB::SetTMBRegisterDefaults() {
   // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
   //--------------------------------------------------------------
   cfeb4_rxd_int_delay_ = cfeb4_rxd_int_delay_default;
+  //
+  //---------------------------------------------------------------------
+  // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+  //---------------------------------------------------------------------
+  cfeb_badbits_reset_ = cfeb_badbits_reset_default;
+  cfeb_badbits_block_ = cfeb_badbits_block_default;
+  //
+  //---------------------------------------------------------------------
+  // 0X124 = ADR_CFEB_BADBITS_TIMER:  CFEB badbits check interval
+  //---------------------------------------------------------------------
+  cfeb_badbits_nbx_ = cfeb_badbits_nbx_default;
   //
   //
   return;
@@ -6201,6 +6311,43 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
     //---------------------------------------------------------------------
     read_cfeb4_rxd_int_delay_  = ExtractValueFromData(data,cfeb4_rxd_int_delay_bitlo,cfeb4_rxd_int_delay_bithi);    
+    //
+  } else if ( address == cfeb_badbits_ctrl_adr ) {
+    //---------------------------------------------------------------------
+    // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+    //---------------------------------------------------------------------
+    read_cfeb_badbits_reset_   = ExtractValueFromData(data,cfeb_badbits_reset_bitlo  ,cfeb_badbits_reset_bithi  );
+    read_cfeb_badbits_block_   = ExtractValueFromData(data,cfeb_badbits_block_bitlo  ,cfeb_badbits_block_bithi  );
+    read_cfeb_badbits_found_   = ExtractValueFromData(data,cfeb_badbits_found_bitlo  ,cfeb_badbits_found_bithi  );
+    read_cfeb_badbits_blocked_ = ExtractValueFromData(data,cfeb_badbits_blocked_bitlo,cfeb_badbits_blocked_bithi);
+    //
+  } else if ( address == cfeb_badbits_timer_adr ) {
+    //---------------------------------------------------------------------
+    // 0X124 = ADR_CFEB_BADBITS_TIMER:  CFEB badbits check interval
+    //---------------------------------------------------------------------
+    read_cfeb_badbits_nbx_ = ExtractValueFromData(data,cfeb_badbits_nbx_bitlo,cfeb_badbits_nbx_bithi);
+    //
+  } else if ( address == badbits001_adr || address == badbits023_adr || address == badbits045_adr ||
+	      address == badbits101_adr || address == badbits123_adr || address == badbits145_adr ||
+	      address == badbits201_adr || address == badbits223_adr || address == badbits245_adr ||
+	      address == badbits301_adr || address == badbits323_adr || address == badbits345_adr ||
+	      address == badbits401_adr || address == badbits423_adr || address == badbits445_adr ) {
+    //------------------------------------------------------------------
+    //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 Hot Channel Masks
+    //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 Hot Channel Masks
+    //0X132,134,136 = ADR_BADBITS201,BADBITS223,BADBITS245 = CFEB2 Hot Channel Masks
+    //0X138,13A,13C = ADR_BADBITS301,BADBITS323,BADBITS345 = CFEB3 Hot Channel Masks
+    //0X13E,140,142 = ADR_BADBITS401,BADBITS423,BADBITS445 = CFEB4 Hot Channel Masks
+    //------------------------------------------------------------------
+    for (int bit_in_register=0; bit_in_register<16; bit_in_register++) {
+      //
+      // get the layer and distrip channels covered by this register
+      int layer   = GetHotChannelLayerFromMap_(address,bit_in_register);
+      int distrip = GetHotChannelDistripFromMap_(address,bit_in_register);
+      //
+      read_badbits_[layer][distrip] = ExtractValueFromData(data,bit_in_register,bit_in_register);
+    }
+    //
   }
   //
   // combinations of bits which say which trgmode_ we are using....
@@ -6284,6 +6431,32 @@ void TMB::PrintHotChannelMask() {
       (*MyOutput_) << std::hex
 		   << ((hot_channel_mask[char_counter] >> 4) & 0xf) 
 		   << (hot_channel_mask[char_counter] & 0xf) << " ";
+      char_counter--;
+    }
+    (*MyOutput_) << std::endl;
+  }
+  return;
+}
+//
+void TMB::PrintComparatorBadBits() {
+  (*MyOutput_) << "----------------------------------------" << std::endl;
+  (*MyOutput_) << "TMB Hot Comparators (from right to left)" << std::endl;
+  (*MyOutput_) << "----------------------------------------" << std::endl;
+  //
+  for (int layer=5; layer>=0; layer--) {
+    char badbits[MAX_NUM_DISTRIPS_PER_LAYER/8];
+    packCharBuffer(read_badbits_[layer],
+		   MAX_NUM_DISTRIPS_PER_LAYER,
+		   badbits);
+    //
+    int char_counter = MAX_NUM_DISTRIPS_PER_LAYER/8 - 1;
+    //
+    (*MyOutput_) << "Layer " << std::dec << layer << " -> ";    
+    for (int layer_counter=MAX_NUM_DISTRIPS_PER_LAYER/8; layer_counter>0; layer_counter--) {
+      //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
+      (*MyOutput_) << std::hex
+		   << ((badbits[char_counter] >> 4) & 0xf) 
+		   << (badbits[char_counter] & 0xf) << " ";
       char_counter--;
     }
     (*MyOutput_) << std::endl;
@@ -6954,6 +7127,23 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << " ->CFEB to TMB interstage delays:" << std::endl;
     (*MyOutput_) << "    CFEB4 receive interstage delay    = " << std::dec << read_cfeb4_rxd_int_delay_ << std::endl;
     //
+  } else if ( address == cfeb_badbits_ctrl_adr ) {
+    //---------------------------------------------------------------------
+    // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->CFEB badbits control/status:" << std::endl;
+    (*MyOutput_) << "    Mask of CFEBs to reset badbits         = 0x" << std::hex << read_cfeb_badbits_reset_ << std::endl;
+    (*MyOutput_) << "    Mask of CFEBs to block badbits         = 0x" << std::hex << read_cfeb_badbits_block_ << std::endl;
+    (*MyOutput_) << "    Mask of CFEBs with at least one badbit = 0x" << std::hex << read_cfeb_badbits_found_ << std::endl;
+    (*MyOutput_) << "    At least one CFEB has a blocked badbit =   " << std::hex << read_cfeb_badbits_blocked_ << std::endl;
+    //
+  } else if ( address == cfeb_badbits_timer_adr ) {
+    //---------------------------------------------------------------------
+    // 0X124 = ADR_CFEB_BADBITS_TIMER:  CFEB badbits check interval
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->CFEB badbits timer:" << std::endl;
+    (*MyOutput_) << "    Check interval for CFEB badbits = " << std::dec << read_cfeb_badbits_nbx_ << std::endl;
+    //
   } else {
     //
     (*MyOutput_) << " -> Unable to decode register: PLEASE DEFINE" << std::endl;
@@ -6964,16 +7154,10 @@ void TMB::PrintTMBRegister(unsigned long int address) {
 //
 void TMB::PrintFirmwareDate() {
   //
-  (*MyOutput_) << "-> TMB Firmware date: " << std::dec 
-	       << ((GetReadTmbFirmwareMonth() >>  4) & 0xf)
-	       << ((GetReadTmbFirmwareMonth() >>  0) & 0xf)
-	       << ((GetReadTmbFirmwareDay()   >>  4) & 0xf)
-	       << ((GetReadTmbFirmwareDay()   >>  0) & 0xf)
-	       << ((GetReadTmbFirmwareYear()  >> 12) & 0xf)
-	       << ((GetReadTmbFirmwareYear()  >>  8) & 0xf)
-	       << ((GetReadTmbFirmwareYear()  >>  4) & 0xf)
-	       << ((GetReadTmbFirmwareYear()  >>  0) & 0xf) 
-	       << std::endl;
+  (*MyOutput_) << "-> TMB Firmware date: " << std::dec
+	       << GetReadTmbFirmwareYear() << " . " 
+	       << GetReadTmbFirmwareMonth() << " . " 
+	       << GetReadTmbFirmwareDay() << std::endl;
   (*MyOutput_) << "-> TMB Firmware type   : " << std::hex << GetReadTmbFirmwareType()    << std::endl;
   (*MyOutput_) << "-> TMB Firmware version: " << std::hex << GetReadTmbFirmwareVersion() << std::endl;
   (*MyOutput_) << "-> TMB Firmware RevCode: " << std::hex << GetReadTmbFirmwareRevcode() << std::endl;
@@ -7469,6 +7653,19 @@ int TMB::FillTMBRegister(unsigned long int address) {
     // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(cfeb4_rxd_int_delay_,cfeb4_rxd_int_delay_bithi,cfeb4_rxd_int_delay_bitlo,&data_word);
+    //
+  } else if ( address == cfeb_badbits_ctrl_adr ) {
+    //---------------------------------------------------------------------
+    // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(cfeb_badbits_reset_  ,cfeb_badbits_reset_bithi  ,cfeb_badbits_reset_bitlo  ,&data_word);
+    InsertValueIntoDataWord(cfeb_badbits_block_  ,cfeb_badbits_block_bithi  ,cfeb_badbits_block_bitlo  ,&data_word);
+    //
+  } else if ( address == cfeb_badbits_timer_adr ) {
+    //---------------------------------------------------------------------
+    // 0X124 = ADR_CFEB_BADBITS_TIMER:  CFEB badbits check interval
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(cfeb_badbits_nbx_,cfeb_badbits_nbx_bithi,cfeb_badbits_nbx_bitlo,&data_word);
     //
   } else {
     //
@@ -8015,9 +8212,15 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //--------------------------------------------------------------
     config_ok &= compareValues("TMB cfeb4_rxd_int_delay",read_cfeb4_rxd_int_delay_,cfeb4_rxd_int_delay_, print_errors);
     //
+    //---------------------------------------------------------------------
+    // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+    //---------------------------------------------------------------------
+    // Here check only the bit (ANDed between all five CFEB bits...)
+    config_ok &= compareValues("TMB cfeb_badbits_block",GetReadCFEBBadBitsBlock(),GetCFEBBadBitsBlock(),print_errors); 
     //
-    tmb_configuration_status_ = (int) config_ok;
   }
+  //
+  tmb_configuration_status_ = (int) config_ok;
   //
   //  ReportCheck("TMB configuration check",config_ok);
   //
@@ -8210,49 +8413,49 @@ int TMB::makemask(int bitlo, int bithi) {
 /////////////////////////////////////////////////////////////////////
 int TMB::GetHotChannelLayerFromMap_(unsigned long int vme_address, int bit_in_register) {
   //
-  if (vme_address == hcm001_adr) {
+  if (vme_address == hcm001_adr || vme_address == badbits001_adr ) {
     return cfeb0_layer01_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm023_adr) {
+  } else if (vme_address == hcm023_adr || vme_address == badbits023_adr ) {
     return cfeb0_layer23_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm045_adr) {
+  } else if (vme_address == hcm045_adr || vme_address == badbits045_adr ) {
     return cfeb0_layer45_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm101_adr) {
+  } else if (vme_address == hcm101_adr || vme_address == badbits101_adr ) {
     return cfeb1_layer01_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm123_adr) {
+  } else if (vme_address == hcm123_adr || vme_address == badbits123_adr ) {
     return cfeb1_layer23_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm145_adr) {
+  } else if (vme_address == hcm145_adr || vme_address == badbits145_adr ) {
     return cfeb1_layer45_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm201_adr) {
+  } else if (vme_address == hcm201_adr || vme_address == badbits201_adr ) {
     return cfeb2_layer01_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm223_adr) {
+  } else if (vme_address == hcm223_adr || vme_address == badbits223_adr ) {
     return cfeb2_layer23_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm245_adr) {
+  } else if (vme_address == hcm245_adr || vme_address == badbits245_adr ) {
     return cfeb2_layer45_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm301_adr) {
+  } else if (vme_address == hcm301_adr || vme_address == badbits301_adr ) {
     return cfeb3_layer01_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm323_adr) {
+  } else if (vme_address == hcm323_adr || vme_address == badbits323_adr ) {
     return cfeb3_layer23_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm345_adr) {
+  } else if (vme_address == hcm345_adr || vme_address == badbits345_adr ) {
     return cfeb3_layer45_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm401_adr) {
+  } else if (vme_address == hcm401_adr || vme_address == badbits401_adr ) {
     return cfeb4_layer01_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm423_adr) {
+  } else if (vme_address == hcm423_adr || vme_address == badbits423_adr ) {
     return cfeb4_layer23_hotchannelmask_layer_map[bit_in_register];
     //
-  } else if (vme_address == hcm445_adr) {
+  } else if (vme_address == hcm445_adr || vme_address == badbits445_adr ) {
     return cfeb4_layer45_hotchannelmask_layer_map[bit_in_register];
     //
   } 
@@ -8261,49 +8464,49 @@ int TMB::GetHotChannelLayerFromMap_(unsigned long int vme_address, int bit_in_re
 //
 int TMB::GetHotChannelDistripFromMap_(unsigned long int vme_address, int bit_in_register) {
   //
-  if (vme_address == hcm001_adr) {
+  if (vme_address == hcm001_adr || vme_address == badbits001_adr ) {
     return cfeb0_layer01_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm023_adr) {
+  } else if (vme_address == hcm023_adr || vme_address == badbits023_adr ) {
     return cfeb0_layer23_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm045_adr) {
+  } else if (vme_address == hcm045_adr || vme_address == badbits045_adr ) {
     return cfeb0_layer45_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm101_adr) {
+  } else if (vme_address == hcm101_adr || vme_address == badbits101_adr ) {
     return cfeb1_layer01_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm123_adr) {
+  } else if (vme_address == hcm123_adr || vme_address == badbits123_adr ) {
     return cfeb1_layer23_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm145_adr) {
+  } else if (vme_address == hcm145_adr || vme_address == badbits145_adr ) {
     return cfeb1_layer45_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm201_adr) {
+  } else if (vme_address == hcm201_adr || vme_address == badbits201_adr ) {
     return cfeb2_layer01_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm223_adr) {
+  } else if (vme_address == hcm223_adr || vme_address == badbits223_adr ) {
     return cfeb2_layer23_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm245_adr) {
+  } else if (vme_address == hcm245_adr || vme_address == badbits245_adr ) {
     return cfeb2_layer45_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm301_adr) {
+  } else if (vme_address == hcm301_adr || vme_address == badbits301_adr ) {
     return cfeb3_layer01_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm323_adr) {
+  } else if (vme_address == hcm323_adr || vme_address == badbits323_adr ) {
     return cfeb3_layer23_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm345_adr) {
+  } else if (vme_address == hcm345_adr || vme_address == badbits345_adr ) {
     return cfeb3_layer45_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm401_adr) {
+  } else if (vme_address == hcm401_adr || vme_address == badbits401_adr ) {
     return cfeb4_layer01_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm423_adr) {
+  } else if (vme_address == hcm423_adr || vme_address == badbits423_adr ) {
     return cfeb4_layer23_hotchannelmask_distrip_map[bit_in_register];
     //
-  } else if (vme_address == hcm445_adr) {
+  } else if (vme_address == hcm445_adr || vme_address == badbits445_adr ) {
     return cfeb4_layer45_hotchannelmask_distrip_map[bit_in_register];
     //
   } 
