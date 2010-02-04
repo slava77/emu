@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.13 2009/11/03 15:17:05 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.14 2010/02/04 10:40:03 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -5444,7 +5444,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 		generalTable(1,0) << "DCC FMM Status (4-bit)";
 		unsigned long int dccValue = myDCC->readStatusHigh();
 		generalTable(1,1) << std::showbase << std::hex << ((dccValue & 0xf000) >> 12);
-		std::pair<std::string, std::string> fifoDebugMap = DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
+		std::pair<std::string, std::string> fifoDebugMap = DCCDebugger::FMMStatus((dccValue & 0xf000) >> 12);
 		generalTable(1,2) << cgicc::div(fifoDebugMap.first)
 			.set("class", fifoDebugMap.second);
 		if (((dccValue & 0xf000) >> 12) == 0x3) {
@@ -5461,7 +5461,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 
 		generalTable(2,0) << "DCC FIFO Backpressure (8-bit)";
 		generalTable(2,1) << std::showbase << std::hex << ((dccValue & 0x0ff0) >> 4);
-		std::map<std::string, std::string> debugMap = DCCDebugger::InFIFOStat((dccValue & 0x0ff0) >> 4);
+		std::map<std::string, std::string> debugMap = DCCDebugger::FIFOStatus((dccValue & 0x0ff0) >> 4);
 		for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
 			generalTable(2,2) << cgicc::div(iDebug->first)
 				.set("class",iDebug->second);
@@ -5476,7 +5476,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 
 		generalTable(3,0) << "DCC S-Link Status (4-bit)";
 		generalTable(3,1) << std::showbase << std::hex << (dccValue & 0xf);
-		debugMap = DCCDebugger::SLinkStat(dccValue & 0xf);
+		debugMap = DCCDebugger::SLinkStatus(dccValue & 0xf);
 		for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
 			generalTable(3,2) << cgicc::div(iDebug->first)
 				.set("class",iDebug->second);

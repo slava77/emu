@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.6 2010/01/27 13:32:13 paste Exp $
+* $Id: commander.js,v 1.7 2010/02/04 10:39:51 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -112,6 +112,36 @@ Event.observe(window, "load", function(event) {
 		});
 	});
 	
+	// Disable DCC buttons until a DCC is selected
+	// Count the number of checked DCCs
+	var dccChecked = 0;
+	$$(".dcc_checkbox").each(function(el2) {
+		if (el2.checked) dccChecked++;
+	});
+	if (dccChecked) {
+		$$(".dcc_button").each( function(e) { e.disabled = false; });
+	} else {
+		$$(".dcc_button").each( function(e) { e.disabled = true; });
+	}
+	$$(".dcc_checkbox").each(function(element) {
+		element.observe("change", function(el) {
+			// Count the number of checked ddus and make the ddu section appear if there are any
+			var totalChecked = 0;
+			$$(".dcc_checkbox").each(function(el2) {
+				if (el2.checked) totalChecked++;
+			});
+			if (totalChecked) {
+				$$(".dcc_button").each( function(e) { e.disabled = false; });
+			} else {
+				$$(".dcc_button").each( function(e) { e.disabled = true; });
+			}
+		});
+	});
+
+	// TODO FIXME
+	$$(".ddu_button").each( function(e) { e.disabled = false; });
+	$$(".dcc_button").each( function(e) { e.disabled = false; });
+	
 	$("all_ddu_registers").observe("click", function(ev) {
 		$$(".ddu_registers_checkbox").each(function(element) {
 			element.checked = true;
@@ -122,6 +152,17 @@ Event.observe(window, "load", function(event) {
 			element.checked = false;
 		});
 	});
+	$("all_dcc_registers").observe("click", function(ev) {
+		$$(".dcc_registers_checkbox").each(function(element) {
+			element.checked = true;
+		});
+	});
+	$("no_dcc_registers").observe("click", function(ev) {
+		$$(".dcc_registers_checkbox").each(function(element) {
+			element.checked = false;
+		});
+	});
+	
 	// Print data in selected format (in a new window)
 	$("ddu_display_button").observe("click", function(ev) {
 		// The crates/slots to read
@@ -139,19 +180,47 @@ Event.observe(window, "load", function(event) {
 			}
 		});
 		// Can I submit a form without that form actually existing?
-		var fakeForm = new Element("form", {"method": "post", "action": URL + "/DisplayDDURegisters", "target": "commanderDisplay"});
-		fakeForm.insert(new Element("input", {"name": "board", "value": "ddu"});
+		($$(".fake_form")).invoke("remove");
+		var time = new Date();
+		var fakeForm = new Element("form", {"class": "fake_form", "style": "display:none", "method": "post", "action": URL + "/DisplayRegisters?board=ddu"});//, "target": "commanderDisplay" + time.valueOf()});
 		ruis.each(function(rui) {
-			fakeForm.insert(new Element("input", {"name": "rui", "value": rui});
+			fakeForm.insert(new Element("input", {"name": "rui", "value": rui}));
 		});
 		registers.each(function(register) {
-			fakeForm.insert(new Element("input", {"name": "reg", "value": register});
+			fakeForm.insert(new Element("input", {"name": "reg", "value": register}));
 		});
-		//var checkboxes = new Hash({"rui": ruis, "reg": registers, "board": "ddu"});
-		//window.open(URL + "/DisplayDDURegisters?" + checkboxes.toQueryString(), "commanderDisplay");
+		$("FED_Commander_Select_dialog").insert(fakeForm);
 		fakeForm.submit();
 	});
 
+	$("dcc_display_button").observe("click", function(ev) {
+		// The crates/slots to read
+		var fmmids = new Array();
+		$$(".dcc_checkbox").each( function(e) {
+			if (e.checked == true) {
+				fmmids.push(e.readAttribute("fmmid"));
+			}
+		});
+		// The registers to read
+		var registers = new Array();
+		$$(".dcc_registers_checkbox").each( function(e) {
+			if (e.checked == true) {
+				registers.push(e.readAttribute("name"));
+			}
+		});
+		// Can I submit a form without that form actually existing?
+		($$(".fake_form")).invoke("remove");
+		var time = new Date();
+		var fakeForm = new Element("form", {"class": "fake_form", "style": "display:none", "method": "post", "action": URL + "/DisplayRegisters?board=dcc", "target": "commanderDisplay" + time.valueOf()});
+		fmmids.each(function(fmmid) {
+			fakeForm.insert(new Element("input", {"name": "fmmid", "value": fmmid}));
+		});
+		registers.each(function(register) {
+			fakeForm.insert(new Element("input", {"name": "reg", "value": register}));
+		});
+		$("FED_Commander_Select_dialog").insert(fakeForm);
+		fakeForm.submit();
+	});
 });
 
 function getStatus() {

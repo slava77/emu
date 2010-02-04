@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.18 2010/01/19 18:37:33 paste Exp $
+* $Id: Manager.cc,v 1.19 2010/02/04 10:40:03 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -393,13 +393,13 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 		std::string keyToReport = "";
 		if (configMode == "XML") {
 			configDescription << "This Communicator is configured using the XML file '" << xmlFile << "'";
-			keyToReport = xmlFile;
+			keyToReport = "XML";
 		} else if (configMode == "Database") {
 			configDescription << "This Communicator is configured using the DB key '" << dbKey << "'";
 			keyToReport = dbKey;
 		} else if (configMode == "Autodetect") {
 			configDescription << "This Communicator was configured using auto-detection of the attached hardware";
-			keyToReport = "Autodetect";
+			keyToReport = "Auto";
 		}
 		
 		// Push back the report for the system

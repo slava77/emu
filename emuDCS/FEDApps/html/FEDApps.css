@@ -585,3 +585,16 @@ td.data_board {
 	background-color: #FFA;
 }
 
+td.configure_cell {
+	vertical-align: top;
+}
+
+button.add {
+	margin-left: auto;
+	margin-right: 0px;
+}
+
+tr.title {
+	font-weight: bold;
+}
+

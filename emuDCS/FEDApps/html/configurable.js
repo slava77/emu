@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: configurable.js,v 1.2 2010/01/27 13:32:13 paste Exp $
+* $Id: configurable.js,v 1.3 2010/02/04 10:39:51 paste Exp $
 \*****************************************************************************/
 
 var oldConfigMode = "";
@@ -41,19 +41,22 @@ Event.observe(window, "load", function(event) {
 	}
 	
 	// Make the correct DB key selector show up (if it hasn't already)
-	var selectedName = ($("system_name_select")).value;
-	($$(".db_key_select")).each(function(el) {
-		if (el.readAttribute("system") == selectedName) el.show();
-		else el.hide();
-	});
-	
-	// Make the correct DB key selector show up when the name changes
-	($("system_name_select")).observe("change", function(ev) {
+	if ($("system_name_select")) {
+		var element = ($("system_name_select"));
+		var selectedName = element.value;
 		($$(".db_key_select")).each(function(el) {
-			if (el.readAttribute("system") == ev.element().value) el.show();
+			if (el.readAttribute("system") == selectedName) el.show();
 			else el.hide();
 		});
-	});
+	
+		// Make the correct DB key selector show up when the name changes
+		element.observe("change", function(ev) {
+			($$(".db_key_select")).each(function(el) {
+				if (el.readAttribute("system") == ev.element().value) el.show();
+				else el.hide();
+			});
+		});
+	}
 
 	// Make the DB key change automatically submit.
 	($$(".db_key_select")).each(function(el) {

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commanderDisplay.js,v 1.2 2009/10/26 19:17:20 paste Exp $
+* $Id: commanderDisplay.js,v 1.3 2010/02/04 10:39:51 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -13,6 +13,9 @@ Event.observe(window, "load", function(event) {
 	reloadElement.timeToReload = 10;
 	reloadElement.timeToError = 60;
 	reloadElement.params = window.location.href.parseQuery();
+	reloadElement.params["reg"] = regs; // Defined in Commander.cc
+	reloadElement.params["rui"] = ruis; // Defined in Commander.cc
+	reloadElement.params["fmmid"] = fmmids; // Defined in Commander.cc
 	reloadElement.makeTable = true;
 	reloadElements.push(reloadElement);
 	
@@ -87,7 +90,7 @@ function updateValues(transport)
 			makeDDUTable(data);
 		} else updateDDUs(data);
 	} else if (data.dccs) {
-		if ($("display_select").value == "test" || this.makeTable) {
+		if ($("display_select").value == "text" || this.makeTable) {
 			this.makeTable = false;
 			makeDCCTable(data);
 		} else updateDCCs(data);
@@ -166,6 +169,9 @@ function makeDDUTable(data)
 				element.observe("click", function(event) {
 					reloadElements.each(function(re) {
 						re.params = window.location.href.parseQuery();
+						re.params["reg"] = regs; // Defined in Commander.cc
+						re.params["rui"] = ruis; // Defined in Commander.cc
+						re.params["fmmid"] = fmmids; // Defined in Commander.cc
 						re.makeTable = true;
 						re.tick(true);
 					});
@@ -207,6 +213,80 @@ function updateDDUs(data)
 
 function makeDCCTable(data)
 {
+	var debug = true;
+	if (data.ddus.size() > 1 || $("display_select").value == "text") debug = false;
+	var table = new Table({"id": "data_display", "class": "data_table"});
+	var header = new Row({"id": "data_header", "class": "data_header"});
+	
+	if (debug) {
+		header.cells.push(new Cell({"id": "board_name", "class": "data_board"}).update("DCC " + data.dccs[0].fmmid));
+		header.cells.push(new Cell({"id": "data_title", "class": "data_title"}).update("Register Value"));
+		header.cells.push(new Cell({"id": "data_debug", "class": "data_debug"}).update("Description"));
+	} else {
+		header.cells.push(new Cell({"id": "empty_cell", "class": "empty"}));
+		data.dccs.each(function(ddu) {
+			header.cells.push(new Cell({"id": "board_name_" + dcc.fmmid, "class": "data_board", "fmmid": dcc.fmmid}).update("DCC " + dcc.fmmid));
+		});
+	}
+	table.rows.push(header);
+
+	// Entries are always in order.
+	data.entries.each(function(entry, i) {
+		var row = new Row({"id": "data_" + i, "class": "data_entry"});
+		row.cells.push(new Cell({"id": "entry_name_" + i, "class": "entry_name"}).update(entry.name));
+
+		entry.values.each(function(val) {
+			var value = val.value;
+			var base = val.base;
+			if (base) value = value.toString(base);
+			if (base == 16) value = "0x" + value.toUpperCase();
+			else if (base == 8) value = "0" + value;
+			
+			row.cells.push(new Cell({"id": "entry_value_" + i + "_" + val.fmmid, "class": "entry_value", "base": base}).update(value));
+			if (debug) return;
+		});
+		if (debug) {
+			var cell = new Cell({"id": "entry_debug_" + i, "class": "entry_debug"});
+			if (entry.descriptions.size()) cell.update(entry.descriptions[0].value);
+			row.cells.push(cell);
+		}
+		table.rows.push(row);
+	});
+
+	if ($("display_select").value == "text") $("content").update(new Element("pre").update(table.toText()));
+	else {
+		$("content").update(table.toElement());
+	
+		// Add DDU-selecting functions
+		if (!debug) {
+			$$(".data_board").each(function(element) {
+				element.observe("click", function(event) {
+					reloadElements.each(function(re) {
+						var newParams = new Object();
+						newParams.fmmid = event.element().readAttribute("fmmid");
+						newParams.reg = re.params.reg; // An array.
+						newParams.board = re.params.board;
+						re.params = newParams;
+						re.makeTable = true;
+						re.tick(true);
+					});
+				});
+			});
+		} else {
+			$$(".data_board").each(function(element) {
+				element.observe("click", function(event) {
+					reloadElements.each(function(re) {
+						re.params = window.location.href.parseQuery();
+						re.params["reg"] = regs; // Defined in Commander.cc
+						re.params["rui"] = ruis; // Defined in Commander.cc
+						re.params["fmmid"] = fmmids; // Defined in Commander.cc
+						re.makeTable = true;
+						re.tick(true);
+					});
+				});
+			});
+		}
+	}
 }
 
 function updateDCCs(data)
