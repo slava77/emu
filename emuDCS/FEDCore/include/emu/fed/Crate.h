@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.h,v 1.8 2009/07/16 09:19:37 paste Exp $
+* $Id: Crate.h,v 1.9 2010/02/04 10:43:24 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATE_H__
 #define __EMU_FED_CRATE_H__
@@ -26,17 +26,17 @@ namespace emu {
 			**/
 			Crate(const unsigned int &myNumber = 0)
 			throw (emu::fed::exception::SoftwareException);
-			
+
 			/** Default destructor.**/
 			~Crate();
 
 			/** @returns the identification number of the crate. **/
 			const unsigned int number() { return number_; }
 			const unsigned int getNumber() { return number_; }
-			
+
 			/** Set the crate number **/
 			inline void setNumber(const unsigned int &number) { number_ = number; }
-			
+
 			/** @returns true if the crate can be identified as a Track Finder crate, false otherwise. **/
 			bool isTrackFinder();
 
@@ -86,6 +86,18 @@ namespace emu {
 			/** Relay the configure command to all the boards in the crate. **/
 			void configure()
 			throw (emu::fed::exception::ConfigurationException);
+
+			/** Deletes the board from the crate and invalidates the given pointer. **/
+			template<typename T>
+			void deleteBoard(T *board)
+			{
+				for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); ++iBoard) {
+					if (board == *iBoard) {
+						boardVector_.erase(iBoard);
+						return;
+					}
+				}
+			}
 
 		private:
 

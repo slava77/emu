@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.8 2009/12/10 16:24:29 paste Exp $
+* $Id: VMEModule.h,v 1.9 2010/02/04 10:43:24 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMEMODULE_H__
 #define __EMU_FED_VMEMODULE_H__
@@ -37,6 +37,9 @@ namespace emu {
 			inline unsigned int slot() { return slot_; }
 			inline unsigned int getSlot() { return slot_; }
 
+			/** Sets the slot number. **/
+			inline void setSlot(const unsigned int &slot) { slot_ = slot; }
+
 			/** Sets the appropriate BHandle for proper CAEN communication.
 			*
 			*	@param myHandle is the new BHandle to use.
@@ -45,10 +48,10 @@ namespace emu {
 
 			/** @returns the current BHandle. **/
 			inline int32_t getBHandle() { return BHandle_; }
-			
+
 			/** @returns the VME communication address **/
 			inline uint32_t getAddress() { return vmeAddress_; }
-			
+
 			/** Sets the mutex to that given by the Crate.
 			*
 			*	@param myMutex is the new mutex to use.
@@ -97,10 +100,10 @@ namespace emu {
 			**/
 			virtual std::vector<uint16_t> jtagRead(const enum DEVTYPE &dev, const unsigned int &nBits, const bool &debug = false)
 			throw(emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
-			
+
 			/** @returns false if this is a real board in a real crate with which one can communicate. **/
 			inline bool isFake() { return fake_; }
-			
+
 			inline void setFake(const bool &fake) { fake_ = fake; }
 
 		protected:
@@ -167,7 +170,7 @@ namespace emu {
 
 			/// Mutex so that communication to and from the board is atomic.
 			VMELock *mutex_;
-			
+
 			/// Whether or not to actually perform communications.
 			bool fake_;
 
