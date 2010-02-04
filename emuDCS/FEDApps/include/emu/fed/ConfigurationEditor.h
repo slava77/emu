@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.h,v 1.8 2010/02/04 10:39:57 paste Exp $
+* $Id: ConfigurationEditor.h,v 1.9 2010/02/04 21:03:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURATIONEDITOR_H__
 #define __EMU_FED_CONFIGURATIONEDITOR_H__
@@ -72,6 +72,9 @@ namespace emu {
 
 			/** Upload configuration to DB **/
 			void webUploadToDB(xgi::Input *in, xgi::Output *out);
+
+			/** Find a fiber **/
+			void webFindChamber(xgi::Input *in, xgi::Output *out);
 
 		private:
 
