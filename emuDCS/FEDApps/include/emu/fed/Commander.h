@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.5 2010/01/19 18:37:32 paste Exp $
+* $Id: Commander.h,v 1.6 2010/02/04 10:39:57 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
@@ -45,7 +45,10 @@ namespace emu {
 			void webReadDDURegisters(xgi::Input *in, xgi::Output *out);
 			
 			/** Takes JSON data and displays it nicely **/
-			void webDisplayDDURegisters(xgi::Input *in, xgi::Output *out);
+			void webDisplayRegisters(xgi::Input *in, xgi::Output *out);
+			
+			/** Reads multiple registers and returns data in JSON **/
+			void webReadDCCRegisters(xgi::Input *in, xgi::Output *out);
 			
 			/** Returns common DDU and DCC status information **/
 			void webGetStatus(xgi::Input *in, xgi::Output *out);

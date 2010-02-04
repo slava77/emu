@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.29 2009/12/10 16:55:02 paste Exp $
+* $Id: Communicator.cc,v 1.30 2010/02/04 10:40:03 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -717,15 +717,15 @@ throw (toolbox::fsm::exception::Exception)
 					std::ostringstream error;
 					error << "Status for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset: " << std::endl;
 					
-					std::pair<std::string, std::string> fmmStatus = DCCDebugger::FMMStat((status >> 12) & 0xf);
+					std::pair<std::string, std::string> fmmStatus = DCCDebugger::FMMStatus((status >> 12) & 0xf);
 					error << "FMM status: " << fmmStatus.first << std::endl;
 					
-					std::map<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStat(status & 0xf);
+					std::map<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStatus(status & 0xf);
 					for (std::map<std::string, std::string>::const_iterator iSLink = sLinkStatus.begin(); iSLink != sLinkStatus.end(); ++iSLink) {
 						error << (*iSLink).first << std::endl;
 					}
 					
-					std::map<std::string, std::string> inFIFOStatus = DCCDebugger::InFIFOStat((status >> 8) & 0xff);
+					std::map<std::string, std::string> inFIFOStatus = DCCDebugger::FIFOStatus((status >> 8) & 0xff);
 					for (std::map<std::string, std::string>::const_iterator iFIFO = inFIFOStatus.begin(); iFIFO != inFIFOStatus.end(); ++iFIFO) {
 						error << (*iFIFO).first << std::endl;
 					}
