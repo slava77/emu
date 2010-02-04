@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.17 2010/02/04 10:43:24 paste Exp $
+* $Id: DDU.h,v 1.18 2010/02/04 21:08:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -79,11 +79,28 @@ namespace emu {
 			void addFiber(Fiber *fiber)
 			throw (emu::fed::exception::OutOfBoundsException);
 
+			/** Deletes a fiber object from the DDU.
+			 * @param fiber is a pointer to the fiber to delete.
+			 **/
+			inline void deleteFiber(Fiber *fiber)
+			{
+				for (std::vector<Fiber *>::iterator iFiber = fiberVector_.begin(); iFiber != fiberVector_.end(); ++iFiber) {
+					if (fiber == *iFiber) {
+						fiberVector_.erase(iFiber);
+						break;
+					}
+				}
+				reloadKillFiber();
+			}
+
 			/** Sets the vector of fiber objects in the DDU to some vector.
 			*	@param fiberVector is a vector of chambers to copy to the internal vector.
 			**/
 			void setFibers(const std::vector<Fiber *> &fiberVector)
 			throw (emu::fed::exception::OutOfBoundsException);
+
+			/** Reloads the killfiber setting from the stored fiber objects **/
+			void reloadKillFiber();
 
 			// PGK New interface
 			// Read VME Parallel registers

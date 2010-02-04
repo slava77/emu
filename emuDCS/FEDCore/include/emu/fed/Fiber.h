@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.h,v 1.5 2009/12/10 16:24:29 paste Exp $
+* $Id: Fiber.h,v 1.6 2010/02/04 21:08:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBER_H__
 #define __EMU_FED_FIBER_H__
@@ -19,19 +19,28 @@ namespace emu {
 
 			/** Default constructor **/
 			Fiber();
-			
+
+			/** Constructor to build using the name of the fiber **/
+			Fiber(const unsigned int &fifoNumber, const std::string &name = "", const bool &killed = false);
+
 			/** Constructor used to set all the variables **/
 			Fiber(const unsigned int &fifoNumber, const unsigned int &plusMinus, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed = false);
-			
+
 			/** Constructor with a string for the endcap **/
-			Fiber(const unsigned int &fifoNumber, const std::string &endcap = "?", const unsigned int &station = 0, const unsigned int &ring = 0, const unsigned int &number = 0, const bool &killed = false);
-			
+			Fiber(const unsigned int &fifoNumber, const std::string &endcap, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed);
+
 			/** @returns the fiber input number. **/
 			inline unsigned int getFiberNumber() { return fiberNumber_; }
 			inline unsigned int number() { return fiberNumber_; }
 
+			/** Set the fiber number **/
+			inline void setFiberNumber(const unsigned int &number) { fiberNumber_ = number; }
+
 			/** @returns a human-readable string naming the chamber, like "+1/2/33". **/
 			inline std::string getName() { return name_; }
+
+			/** Set the name via string. **/
+			inline void setName(const std::string &name) { parseName_(name); }
 
 			/** @returns the endcap where the chamber is located.  Is either "+" or "-". **/
 			inline std::string getEndcap() { return endcap_; }
@@ -47,36 +56,42 @@ namespace emu {
 
 			/** @returns The chamber number.  The combination of endcap, station, type, and number uniquely defines each chamber. **/
 			inline unsigned int getNumber() { return number_; }
-			
+
 			/** @returns whether or not the owning DDU should be configured to kill this fiber **/
 			inline bool isKilled() { return killed_; }
-			
+
 			/** Sets whether or not the DDU should be configured to kill this fiber **/
 			inline void setKilled(const bool &killed) { killed_ = killed; }
 
 		private:
-			
+
+			/** Parse out the name string and set the corresponding values. **/
+			void parseName_(const std::string &name);
+
+			/** Generate the name from the stored values **/
+			void generateName_();
+
 			/// The fiber input number
 			unsigned int fiberNumber_;
-		
+
 			/// The name of the chamber (so I don't have to regenerate it every time)
 			std::string name_;
-			
+
 			/// The endcap (+ or -)
 			std::string endcap_;
-			
+
 			/// Whether this is the plus or minus side (1 or 2, matching CMSSW's notation)
 			unsigned int plusMinus_;
-			
+
 			/// The station
 			unsigned int station_;
-			
+
 			/// The ring
 			unsigned int ring_;
-			
+
 			/// The chamber/SP number
 			unsigned int number_;
-			
+
 			/// Whether or not this fiber is killed
 			bool killed_;
 

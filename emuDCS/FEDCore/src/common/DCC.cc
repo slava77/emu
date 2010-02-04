@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.9 2009/12/10 16:24:29 paste Exp $
+* $Id: DCC.cc,v 1.10 2010/02/04 21:08:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -58,7 +58,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 	for (std::vector<FIFO *>::iterator iFIFO = fifoVector_.begin(); iFIFO != fifoVector_.end(); iFIFO++) {
 		if ((*iFIFO)->number() == fifoNumber) return (*iFIFO);
 	}
-	
+
 	return new FIFO(fifoNumber);
 }
 
@@ -101,8 +101,15 @@ throw (emu::fed::exception::OutOfBoundsException)
 		delete fifoVector_[iFIFO];
 	}
 	fifoVector_ = fifoVector;
-	
+
 	// Set the FIFO in use appropriately
+	reloadFIFOInUse();
+}
+
+
+
+void emu::fed::DCC::reloadFIFOInUse()
+{
 	fifoinuse_ = 0;
 	for (std::vector<FIFO *>::const_iterator iFIFO = fifoVector_.begin(); iFIFO != fifoVector_.end(); ++iFIFO) {
 		if ((*iFIFO)->isUsed()) fifoinuse_ |= (1 << (*iFIFO)->number());
@@ -190,7 +197,7 @@ throw (emu::fed::exception::DCCException)
 	try {
 		std::vector<uint16_t> myData(1, value & 0x07FF);
 		writeRegister(MCTRL, 0x03, 16, myData);
-		
+
 		// Set the used bit on the owned FIFOs for convenience
 		reloadFIFOUsedBits(value & 0x03FF);
 		return;

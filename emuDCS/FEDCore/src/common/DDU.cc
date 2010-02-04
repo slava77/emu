@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.25 2009/12/10 16:24:29 paste Exp $
+* $Id: DDU.cc,v 1.26 2010/02/04 21:08:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -116,7 +116,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 	for (std::vector<Fiber *>::iterator iFiber = fiberVector_.begin(); iFiber != fiberVector_.end(); iFiber++) {
 		if ((*iFiber)->number() == fiberNumber) return (*iFiber);
 	}
-	
+
 	return new Fiber(fiberNumber);
 }
 
@@ -136,7 +136,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 	}
 
 	fiberVector_.push_back(fiber);
-	
+
 	// Set the kill fiber appropriately
 	if (fiber->isKilled()) killfiber_ &= ~(1 << fiber->number());
 	else killfiber_ |= (1 << fiber->number());
@@ -156,12 +156,17 @@ throw (emu::fed::exception::OutOfBoundsException)
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
-	for (size_t iFiber = 0; iFiber < fiberVector_.size(); iFiber++) {
-		delete fiberVector_[iFiber];
-	}
+	fiberVector_.clear();
 	fiberVector_ = fiberVector;
 
 	// Set the kill fiber appropriately
+	reloadKillFiber();
+}
+
+
+
+void emu::fed::DDU::reloadKillFiber()
+{
 	killfiber_ &= ~(0x00007fff);
 	for (std::vector<Fiber *>::const_iterator fiber = fiberVector_.begin(); fiber != fiberVector_.end(); ++fiber) {
 		if (!((*fiber)->isKilled())) killfiber_ |= (1 << (*fiber)->number());
@@ -731,7 +736,7 @@ throw (emu::fed::exception::DDUException)
 float emu::fed::DDU::readTemperature(const uint8_t &sensor, const enum TEMPSCALE &scale)
 throw (emu::fed::exception::DDUException)
 {
-	
+
 	try {
 		float Vout= (float) readRawTemperature(sensor) / 1000.;
 		float cval = 1 / (0.1049406423E-2 + 0.2133635468E-3 * log(65000.0 / Vout - 13000.0) + 0.7522287E-7 * pow(log(65000.0 / Vout - 13000.0), 3.0)) - 0.27315E+3;
@@ -1331,7 +1336,7 @@ throw (emu::fed::exception::DDUException)
 		bogoBits.push_back( (value & 0xffff) );
 		bogoBits.push_back( ((value & 0xf0000) >> 16) );
 		writeRegister(DDUFPGA, 14, 20, bogoBits);
-		
+
 		// Set the killed bit on the owned fibers for convenience
 		reloadFiberKillBits(value & 0x7fff);
 

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.11 2009/12/10 16:24:28 paste Exp $
+* $Id: DCC.h,v 1.12 2010/02/04 21:08:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -14,7 +14,7 @@
 namespace emu {
 
 	namespace fed {
-	
+
 		class FIFO;
 
 		/** @class DCC A class for talking to DCC boards. **/
@@ -33,31 +33,31 @@ namespace emu {
 
 			/** @return the FIFOInUse parameter from configuration **/
 			inline uint16_t getFIFOInUse() { return fifoinuse_; }
-			
+
 			/** Sets the FIFOInUse parameter **/
 			inline void setFIFOInUse(const uint16_t &fifoinuse) { fifoinuse_ = fifoinuse; reloadFIFOUsedBits(fifoinuse_); }
-			
+
 			/** @return the Software switch parameter from configuration **/
 			inline uint16_t getSoftwareSwitch() { return softsw_; }
-			
+
 			/** Sets the Software switch parameter **/
 			inline void setSoftwareSwitch(const uint16_t &softsw) { softsw_ = softsw; }
-			
+
 			/** @return the FMM ID parameter from configuration **/
 			inline uint16_t getFMMID() { return fmm_id_; }
-			
+
 			/** Sets the FMMID parameter **/
 			inline void setFMMID(const uint16_t &fmm_id) { fmm_id_ = fmm_id; }
-			
+
 			/** @return the S-Link parameter from configuration **/
 			inline uint16_t getSLinkID(const unsigned short int &iSlink)
 			throw (emu::fed::exception::OutOfBoundsException)
-			{ 
+			{
 				if (iSlink == 1) return slink1_id_;
 				else if (iSlink == 2) return slink2_id_;
 				else XCEPT_RAISE(emu::fed::exception::OutOfBoundsException, "Parameter must be either 1 or 2");
 			}
-			
+
 			/** Sets the S-Link ID parameter **/
 			inline void setSLinkID(const unsigned short int &iSlink, const uint16_t &slink_id)
 			throw (emu::fed::exception::OutOfBoundsException)
@@ -75,26 +75,41 @@ namespace emu {
 			*	@returns a vector of FIFOs in FIFO-order.
 			**/
 			inline std::vector<FIFO *> getFIFOs() { return fifoVector_; }
-			
+
 			/** Part of the suite of fiber methods.
 			*	@param fifoNumber runs from 0-14.
 			*	@returns the fifo at the given fifo input number.
 			**/
 			FIFO *getFIFO(const unsigned int &fifoNumber)
 			throw (emu::fed::exception::OutOfBoundsException);
-			
+
 			/** Adds a FIFO object to the DCC.
 			*	@param fifo is the FIFO being added.
 			*	@param fifoNumber is the FIFO number.
 			**/
 			void addFIFO(FIFO *fifo)
 			throw (emu::fed::exception::OutOfBoundsException);
-			
+
 			/** Sets the vector of FIFO objects in the DCC to some vector.
 			*	@param fifoVector is a vector of FIFOs to copy to the internal vector.
 			**/
 			void setFIFOs(const std::vector<FIFO *> &fifoVector)
 			throw (emu::fed::exception::OutOfBoundsException);
+
+			/** Deletes a given FIFO and invalidates the pointer **/
+			inline void deleteFIFO(FIFO *fifo)
+			{
+				for (std::vector<FIFO *>::iterator iFIFO = fifoVector_.begin(); iFIFO != fifoVector_.end(); ++iFIFO) {
+					if (fifo == (*iFIFO)) {
+						fifoVector_.erase(iFIFO);
+						break;
+					}
+				}
+				reloadFIFOInUse();
+			}
+
+			/** Reloads the FIFO in use from the inserted FIFOs **/
+			void reloadFIFOInUse();
 
 			// PGK New interface
 
@@ -109,7 +124,7 @@ namespace emu {
 			 **/
 			uint16_t readStatusLow()
 			throw (emu::fed::exception::DCCException);
-			
+
 			/** @returns the FMM status of the DCC, as decoded from the StatusHigh register **/
 			inline uint8_t readFMMStatus()
 			throw (emu::fed::exception::DCCException)
@@ -120,7 +135,7 @@ namespace emu {
 					throw e;
 				}
 			}
-			
+
 			/** @returns the SLink statuses, as decided from the StatusHigh register **/
 			inline uint8_t readSLinkStatus()
 			throw (emu::fed::exception::DCCException)
@@ -131,7 +146,7 @@ namespace emu {
 					throw e;
 				}
 			}
-			
+
 			/** @returns the FIFO statuses, as decided from the StatusHigh register **/
 			inline uint8_t readFIFOStatus()
 			throw (emu::fed::exception::DCCException)
@@ -142,7 +157,7 @@ namespace emu {
 					throw e;
 				}
 			}
-			
+
 			/** @returns the L1A count, an alias for readStatusLow **/
 			inline uint16_t readL1A()
 			throw (emu::fed::exception::DCCException)
@@ -340,7 +355,7 @@ namespace emu {
 
 
 		protected:
-		
+
 			/** Reloads the used members of the owned FIFOs based on the supplied FIFO-in-use setting
 			*
 			*	@param fifoInUse is the FIFO-in-use setting to parse into used bits for the FIFOs
@@ -366,7 +381,7 @@ namespace emu {
 			**/
 			std::vector<uint16_t> writeRegister(const enum DEVTYPE &dev, const uint16_t &myReg, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &debug = false)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
-			
+
 			/// The FIFOs that are associated with this DCC, in FIFO (NOT slot)-order.
 			std::vector<FIFO *> fifoVector_;
 
@@ -375,13 +390,13 @@ namespace emu {
 
 			/// The software switch setting from the configuration.
 			uint16_t softsw_;
-			
+
 			/// The FMM ID from the configuration
 			uint16_t fmm_id_;
-			
+
 			/// The first S-Link ID (should be the same as the FMM ID) from the configuration
 			uint16_t slink1_id_;
-			
+
 			/// The second S-Link ID (should be the same as the FMM ID + 1) from the configuration
 			uint16_t slink2_id_;
 
