@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.9 2009/11/03 15:14:32 paste Exp $
+* $Id: DDUDebugger.cc,v 1.10 2010/02/04 10:41:49 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -1703,6 +1703,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::AvailableMemory(const 
 	else if (!(stat & 0x1f)) returnMe[status.str()] = "red";
 	else returnMe[status.str()] = "none";
 
+	status.str("");
 	status << "Fibers " << (dev == INFPGA0 ? 4 : 12) << "-" << (dev == INFPGA0 ? 7 : 14) << ": " << ((stat >> 5) & 0x1f) << " units";
 	if ((stat >> 5) & 0x1f == 1) returnMe[status.str()] = "orange";
 	else if (!((stat >> 5) & 0x1f)) returnMe[status.str()] = "red";
