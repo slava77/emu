@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDebugger.cc,v 1.6 2009/10/26 19:00:25 paste Exp $
+* $Id: DCCDebugger.cc,v 1.7 2010/02/04 10:41:49 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCCDebugger.h"
 
@@ -9,7 +9,7 @@
 #include <utility>
 
 
-std::pair<std::string, std::string> emu::fed::DCCDebugger::FMMStat(const uint8_t &stat)
+std::pair<std::string, std::string> emu::fed::DCCDebugger::FMMStatus(const uint16_t &stat)
 {
 	if (0xf&stat == 0x3) return std::make_pair("Error", "error");
 	else if (0x1&stat) return std::make_pair("Busy", "caution");
@@ -21,7 +21,7 @@ std::pair<std::string, std::string> emu::fed::DCCDebugger::FMMStat(const uint8_t
 
 
 
-std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(const uint8_t &stat)
+std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStatus(const uint8_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 	for (int iLink = 0; iLink < 2; iLink++) {
@@ -47,7 +47,7 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(const uint8_
 
 
 
-std::map<std::string, std::string> emu::fed::DCCDebugger::InFIFOStat(const uint8_t &stat) {
+std::map<std::string, std::string> emu::fed::DCCDebugger::FIFOStatus(const uint8_t &stat) {
 	std::map<std::string, std::string> returnValues;
 	for (unsigned int iBit = 0; iBit < 3; iBit++) {
 		if (!(stat & (1 << iBit))) {
@@ -64,6 +64,23 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::InFIFOStat(const uint8
 		}
 	}
 	
+	return returnValues;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DCCDebugger::StatusHigh(const uint16_t &stat)
+{
+	std::map<std::string, std::string> returnValues;
+	
+	returnValues.insert(FMMStatus((stat >> 12) & 0xf));
+	
+	std::map<std::string, std::string> sLinkValues = SLinkStatus(stat & 0xf);
+	returnValues.insert(sLinkValues.begin(), sLinkValues.end());
+	
+	std::map<std::string, std::string> fifoValues = FIFOStatus((stat >> 4) & 0xff);
+	returnValues.insert(fifoValues.begin(), fifoValues.end());
+
 	return returnValues;
 }
 
@@ -116,3 +133,88 @@ std::pair<std::string, std::string> emu::fed::DCCDebugger::decodeSLinkStatus(con
 
 
 
+std::map<std::string, std::string> emu::fed::DCCDebugger::DebugFIFOs(DCC *dcc, const uint16_t &stat, const std::string &className)
+{
+	
+	std::map<std::string, std::string> returnMe;
+	
+	for (unsigned int iBit = 0; iBit < 12; ++iBit) {
+		if (stat & (1 << iBit)) {
+			try {
+				std::ostringstream name;
+				name << "RUI in slot " << dcc->getDDUSlotFromFIFO(iBit);
+				returnMe[name.str()] = className;
+				continue;
+			} catch (...) {}
+			try {
+				std::ostringstream name;
+				name << "SLink " << dcc->getSLinkFromFIFO(iBit);
+				returnMe[name.str()] = className;
+				continue;
+			} catch (...) {}
+			std::ostringstream name;
+			name << "Unknown FIFO " << iBit;
+			returnMe[name.str()] = className;
+		}
+	}
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DCCDebugger::SoftwareSwitch(const uint16_t &stat)
+{
+	
+	std::map<std::string, std::string> returnMe;
+
+	if (stat & 0x7) {
+		returnMe["DCM on control FPGA reset"] = "none";
+	} else if (stat & 0x1) {
+		returnMe["Fake L1A has been sent"] = "none";
+	} else if (stat & 0x6) {
+		returnMe["Generating Fake L1As at 1.6 ms intervals"] = "orange";
+	}
+	if (stat & 0x18) {
+		returnMe["Serial loopback on custom backplane RocketIO engaged"] = "orange";
+	} else if (stat & 0x8) {
+		returnMe[""] = "";
+	} else if (stat & 0x10) {
+		returnMe[""] = "";
+	} else {
+		returnMe[""] = "";
+	}
+	std::ostringstream xilinxRevision;
+	xilinxRevision << "Xilinx revision " << ((stat >> 5) & 0x7);
+	returnMe[xilinxRevision.str()] = "none";
+	
+	return returnMe;
+}
+
+
+
+std::map<std::string, std::string> emu::fed::DCCDebugger::TTCCommand(const uint16_t &stat)
+{
+	
+	std::map<std::string, std::string> returnMe;
+	
+	if (stat & 0x1000 && !(stat & 0x8000)) {
+		returnMe["Ignoring TTC signals"] = "orange";
+	}
+	if (stat & 0x200 && !(stat & 0x1)) {
+		returnMe["Software Switch active"] = "orange";
+	}
+	if (stat & 0x2000 && !(stat & 0x4000)) {
+		returnMe["Ignore SLink full"] = "none";
+	} else if (stat & 0x4000 && !(stat & 0x2000)) {
+		returnMe["Ignore all SLink errors"] = "none";
+	}
+	if (stat & 0x10) {
+		returnMe["Bit 4 active"] = "none";
+	}
+	if (stat & 0x20) {
+		returnMe["Bit 5 active"] = "none";
+	}
+	
+	return returnMe;
+}

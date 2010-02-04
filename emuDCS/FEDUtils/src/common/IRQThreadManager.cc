@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.17 2010/01/25 13:45:20 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.18 2010/02/04 10:41:49 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -434,7 +434,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				uint16_t dccFMMStatus = (*iDCC)->readFMMStatus();
 				if (dccFMMStatus != lastDCCError[(*iDCC)->getSlot()]) {
 					if (dccFMMStatus != 0x2) {
-						std::pair<std::string, std::string> dccFMMDecoded = DCCDebugger::FMMStat(dccFMMStatus);
+						std::pair<std::string, std::string> dccFMMDecoded = DCCDebugger::FMMStatus(dccFMMStatus);
 						if (dccFMMDecoded.second != "ok") {
 							std::ostringstream error;
 							error << "FMM status for DCC in crate " << crateNumber << " slot " << (*iDCC)->getSlot() << " is now " << std::hex << dccFMMStatus << std::dec << "(" <<  dccFMMDecoded.first << ")";
