@@ -3067,20 +3067,20 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 	*out << cgicc::form() << std::endl ;
 	*out << cgicc::td();
 	//
-	*out << cgicc::td();
-	*out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
-	*out << cgicc::input().set("type","submit").set("value","CCB Hard Reset").set("style","color:black") << std::endl ;
-	sprintf(buf,"%d",problem_crate);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
-	sprintf(buf,"%d",within_crate_problem_index);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
-	sprintf(buf,"%d",problem_component);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
-	int ccb_hard_reset = -1;
-	sprintf(buf,"%d",ccb_hard_reset);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
-	*out << cgicc::form() << std::endl ;
-	*out << cgicc::td();
+	//	*out << cgicc::td();
+	//	*out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
+	//	*out << cgicc::input().set("type","submit").set("value","CCB Hard Reset").set("style","color:black") << std::endl ;
+	//	sprintf(buf,"%d",problem_crate);
+	//	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+	//	sprintf(buf,"%d",within_crate_problem_index);
+	//	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
+	//	sprintf(buf,"%d",problem_component);
+	//	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+	//	int ccb_hard_reset = -1;
+	//	sprintf(buf,"%d",ccb_hard_reset);
+	//	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
+	//	*out << cgicc::form() << std::endl ;
+	//	*out << cgicc::td();
       }
       //
       *out << cgicc::tr() << std::endl;
@@ -3217,6 +3217,7 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
       // Put CCB back into DLOG mode to listen to TTC commands...
       thisCCB->setCCBMode(CCB::DLOG);
       //
+      thisCCB->hardReset(); 
       //
     } else if (problem_component == DMB_VME_LABEL) {
       //
@@ -3242,6 +3243,7 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 	  CFEBid_[chamber_index][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	  char * outp=(char *)dword;   // recast dword
 	  thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
+	  thisCCB->hardReset(); 
 	}
       }
       loaded_ok[problem_index] = 0;
