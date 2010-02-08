@@ -7,6 +7,7 @@
 #include "xdaq/WebApplication.h"
 
 #include "xdata/String.h"
+#include "xdata/Boolean.h"
 
 #include "toolbox/task/WorkLoop.h"
 #include "toolbox/task/WorkLoopFactory.h"
@@ -39,7 +40,8 @@ namespace emu { namespace base {
       throw (xoap::exception::Exception);
   
   protected:
-    xdata::String       expertSystemURL_;
+    xdata::String  expertSystemURL_;
+    xdata::Boolean isFactFinderInDebugMode_;
 
     toolbox::task::WorkLoop *factWorkLoop_;
     toolbox::task::ActionSignature *factRequestSignature_;

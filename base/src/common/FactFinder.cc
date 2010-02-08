@@ -2,6 +2,8 @@
 #define ESWS_NS_URI "http://ws.dw.csc.cms.cern.org/"
 // Expert system data model namespace URI
 #define ESD_NS_URI "http://www.cern.ch/cms/csc/dw/model"
+// Expert system input service namespace URI
+#define ESIS_NS_URI "http://www.cern.ch/cms/csc/dw/service"
 
 #include "emu/base/FactFinder.h"
 
@@ -39,8 +41,10 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
     targetDescriptor_( NULL ){
   xoap::bind( this, &emu::base::FactFinder::onFactRequest, "factRequestCollection",  ESD_NS_URI );
 
-  expertSystemURL_ = "";//"http://emuslice12:8080/FactCollectionInputService/FactCollectionInput";
-  getApplicationInfoSpace()->fireItemAvailable( "expertSystemURL",  &expertSystemURL_ );
+  expertSystemURL_         = "";//"http://emuslice12:8080/FactCollectionInputService/FactCollectionInput";
+  isFactFinderInDebugMode_ = false;
+  getApplicationInfoSpace()->fireItemAvailable( "expertSystemURL"        ,  &expertSystemURL_         );
+  getApplicationInfoSpace()->fireItemAvailable( "isFactFinderInDebugMode",  &isFactFinderInDebugMode_ );
 
   factWorkLoop_ = toolbox::task::getWorkLoopFactory()->getWorkLoop("emu::base::FactFinder", "waiting");
   factWorkLoop_->activate();
@@ -58,7 +62,7 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
 xoap::MessageReference
 emu::base::FactFinder::onFactRequest( xoap::MessageReference message )
   throw (xoap::exception::Exception){
-  cout << "##### emu::base::FactFinder::onFactRequest" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::onFactRequest" << endl;
 
 //   emu::base::FactRequest factRequest = emu::base::FactFinder::parseFactRequestSOAP( message );
 //   emu::base::FactCollection factCollection = collectFacts( factRequest );
@@ -75,19 +79,19 @@ emu::base::FactFinder::onFactRequest( xoap::MessageReference message )
   // Handle them in another thread:
   factWorkLoop_->submit( sendFactsSignature_ );
 
-  cout << "emu::base::FactFinder::onFactRequest #####" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::onFactRequest ***" << endl;
   return emu::base::FactFinder::createRequestAcknowlegdementSOAP();
 }
 
 emu::base::FactRequestCollection
 emu::base::FactFinder::parseFactRequestSOAP( xoap::MessageReference message ) const
   throw (xoap::exception::Exception){
-  cout << "##### emu::base::FactFinde::parseFactRequestSOAP" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::parseFactRequestSOAP" << endl;
   emu::base::FactRequestCollection factRequestCollection;
   try {
       // Get DOM document from SOAP
       DOMDocument *doc = message->getSOAPPart().getEnvelope().getBody().getDOMNode()->getOwnerDocument();
-      cout << "doc: " << doc << endl;
+      if ( isFactFinderInDebugMode_.value_ ) cout << "doc: " << doc << endl;
       if ( doc == NULL ) return factRequestCollection;
 //       // Get request id
 //       DOMNodeList *l = doc->getElementsByTagNameNS( xoap::XStr( ESD_NS_URI ), xoap::XStr("factRequestCollection") );
@@ -126,8 +130,8 @@ emu::base::FactFinder::parseFactRequestSOAP( xoap::MessageReference message ) co
   catch(...){
     XCEPT_RAISE(xoap::exception::Exception, "Failed to parse fact request SOAP message ");
   }
-  cout << factRequestCollection;
-  cout << "emu::base::FactFinder::parseFactRequestSOAP #####" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << factRequestCollection;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::parseFactRequestSOAP ***" << endl;
   return factRequestCollection;
 }
 
@@ -159,11 +163,10 @@ emu::base::FactFinder::createRequestAcknowlegdementSOAP() const {
 
 xoap::MessageReference
 emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCollection ) const {
-  cout << "##### emu::base::FactFinde::createFactsSOAP" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinde::createFactsSOAP" << endl;
   xoap::MessageReference message = xoap::createMessage();
   try {
     xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-
     xoap::SOAPName exSysOperationName = envelope.createName("input", "ws", ESWS_NS_URI);
     xoap::SOAPName factCollectionName = envelope.createName("factCollection", "", "");
     xoap::SOAPName sourceName         = envelope.createName("source", "esd", ESD_NS_URI);
@@ -182,6 +185,18 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
     xoap::SOAPBody body = envelope.getBody();
     xoap::SOAPElement exSysOperationElement = body.addBodyElement( exSysOperationName );
     xoap::SOAPElement collectionElement = exSysOperationElement.addChildElement( factCollectionName );
+    // string logLevel = getApplicationContext()->getLogLevel();
+    if ( isFactFinderInDebugMode_.value_ ){
+      // Add the optional serviceInstructions element in order to use strict service with synchronous connection for debugging.
+      xoap::SOAPName serverInstructionsName = envelope.createName("serviceInstructions", "service", ESIS_NS_URI);
+      xoap::SOAPName asyncAttributeName   = envelope.createName("async"  , "", "");
+      xoap::SOAPName strictAttributeName  = envelope.createName("strict" , "", "");
+      xoap::SOAPName persistAttributeName = envelope.createName("persist", "", "");
+      xoap::SOAPElement serverInstructionsElemenet = collectionElement.addChildElement( serverInstructionsName );
+      serverInstructionsElemenet.addAttribute( asyncAttributeName  , "false" );
+      serverInstructionsElemenet.addAttribute( strictAttributeName , "true"  );
+      serverInstructionsElemenet.addAttribute( persistAttributeName, "false" );
+    }
     xoap::SOAPElement sourceElement = collectionElement.addChildElement( sourceName );
     sourceElement.addTextNode( factCollection.getSource().c_str() );
     
@@ -227,8 +242,8 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
     XCEPT_RAISE( xoap::exception::Exception, "Failed to create fact SOAP message, unexpected exception." );
   }
 
-  cout << "Sending SOAP:" << endl; message->writeTo( cout ); cout << endl; cout.flush();
-  cout << "emu::base::FactFinde::createFactsSOAP #####" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) { cout << "Sending SOAP:" << endl; message->writeTo( cout ); cout << endl; cout.flush(); }
+  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinde::createFactsSOAP ***" << endl;
   return message;
 }
 
@@ -239,7 +254,7 @@ emu::base::FactFinder::sendFacts(){
   // Queue them for sending:
   factFinderBSem_.take();
   factsToSend_.push_back( facts );
-  cout << endl << endl << "factsToSend_.size() = " << factsToSend_.size() << endl << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << endl << endl << "factsToSend_.size() = " << factsToSend_.size() << endl << endl;
   // If queue is too long, drop the oldest facts:
   while ( factsToSend_.size() > maxQueueLength_ ) factsToSend_.pop_front();
   factFinderBSem_.give();
@@ -249,14 +264,14 @@ emu::base::FactFinder::sendFacts(){
 
 bool
 emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
-  cout << "*** emu::base::FactFinder::sendFactsInWorkLoop" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::sendFactsInWorkLoop" << endl;
   bool isToBeResubmitted = false;
 
   factFinderBSem_.take();
 
   // First handle the requests (one at a time)
   if ( factRequestCollections_.size() ){
-    cout << "   Handling request:" << endl << factRequestCollections_.front();
+    if ( isFactFinderInDebugMode_.value_ ) cout << "   Handling request:" << endl << factRequestCollections_.front();
     emu::base::FactCollection factCollection = collectFacts( factRequestCollections_.front() );
     // Explicitly requested facts jump sending queue:
     factsToSend_.push_front( factCollection );
@@ -266,7 +281,7 @@ emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
 
   // Send facts (one at a time)
   if ( factsToSend_.size() ){
-    cout << "   Sending fact:" << endl << factsToSend_.front();
+    if ( isFactFinderInDebugMode_.value_ ) cout << "   Sending fact:" << endl << factsToSend_.front();
     bool isSent = sendFactsInSOAP( factsToSend_.front() );
     if ( isSent ) factsToSend_.pop_front(); // delete it only if it's been sent
     isToBeResubmitted |= ( factsToSend_.size() > 0 );
@@ -275,7 +290,7 @@ emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
 
   factFinderBSem_.give();
 
-  cout << "emu::base::FactFinder::sendFactsInWorkLoop ***" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInWorkLoop ***" << endl;
   return isToBeResubmitted;
 }
 
@@ -295,41 +310,17 @@ emu::base::FactFinder::collectFacts( const FactRequestCollection& requestCollect
 
 bool
 emu::base::FactFinder::sendFactsInSOAP( const emu::base::FactCollection& facts ){
-  cout << "*** emu::base::FactFinder::sendFactsInSOAP" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::sendFactsInSOAP" << endl;
   try{
 
     xoap::MessageReference msg = createFactsSOAP( facts );
-
-//     if ( targetDescriptor_ == NULL ) findTargetDescriptor();
-
-//     msg->getMimeHeaders()->setHeader("Content-Type", "text/xml");
-
-//     msg->writeTo(cout); cout.flush();
-
-//     cout << endl << "targetDescriptor_->getContextDescriptor()->getURL():  " << targetDescriptor_->getContextDescriptor()->getURL() << endl;
-
-//     // START DEBUG
-// 	  // Fill the headers
-// 	  std::multimap<std::string, std::string, std::less<std::string> >& allHeaders = msg->getMimeHeaders()->getAllHeaders();
-// 	  std::multimap<std::string, std::string, std::less<std::string> >::iterator i;
-        
-// 	  std::string headers = "";
-// 	  for (i = allHeaders.begin(); i != allHeaders.end(); i++)
-// 	    {
-// 	      headers += (*i).first;
-// 	      headers += ": ";
-// 	      headers += (*i).second;
-// 	      headers += "\r\n";
-// 	    }
-// 	  cout << endl << "MIME headers" << endl << headers << endl;;
-//     // END DEBUG
 
     //xoap::MessageReference reply = getApplicationContext()->postSOAP( msg, *getApplicationDescriptor(), *targetDescriptor_ );
     //xoap::MessageReference reply = postSOAP( msg, "http://emuslice12:9080/cdw/getparametercollection", "cdw/getParameterCollection" );
     xoap::MessageReference reply = postSOAP( msg, expertSystemURL_, "" );
     //xoap::MessageReference reply = postSOAP( msg, "http://localhost:7000/FactCollectionInputService/FactCollectionInput", "FactCollectionInputService/FactCollectionInput" );
 
-    cout << "SOAP reply received:" << endl; reply->writeTo( cout ); cout << endl; cout.flush();
+    if ( isFactFinderInDebugMode_.value_ ) { cout << "SOAP reply received:" << endl; reply->writeTo( cout ); cout << endl; cout.flush(); }
 
     // Check if the reply indicates a fault occurred
     xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
@@ -373,7 +364,7 @@ emu::base::FactFinder::sendFactsInSOAP( const emu::base::FactCollection& facts )
     XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
     this->notifyQualified( "warning", eObj );
   }
-  cout << "emu::base::FactFinder::sendFactsInSOAP ***" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInSOAP ***" << endl;
   return false; // failed to send
 }
 
@@ -398,7 +389,7 @@ string emu::base::FactFinder::getSOAPFaultCode( xoap::SOAPFault soapFault ){
 
 void
 emu::base::FactFinder::findTargetDescriptor(){
-  cout << "*** emu::base::FactFinder::findTargetDescriptor" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::findTargetDescriptor" << endl;
   string targetClass = "DataWarehouse";
   std::set<xdaq::ApplicationDescriptor *> descriptors = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(targetClass); // This doesn't throw.
   if ( descriptors.size() == 0 ){
@@ -409,7 +400,7 @@ emu::base::FactFinder::findTargetDescriptor(){
   else{
     targetDescriptor_ = *descriptors.begin();
   }
-  cout << "emu::base::FactFinder::findTargetDescriptor ***" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::findTargetDescriptor ***" << endl;
 }
 
 
@@ -527,7 +518,7 @@ emu::base::FactFinder::postSOAP( xoap::MessageReference message,
 
 void
 emu::base::FactFinder::timeExpired(toolbox::task::TimerEvent& e){
-  cout << "*** emu::base::FactFinder::timeExpired" << endl; cout.flush();
+  if ( isFactFinderInDebugMode_.value_ ) { cout << "*** emu::base::FactFinder::timeExpired" << endl; cout.flush(); }
   sendFacts();
-  cout << "emu::base::FactFinder::timeExpired ***" << endl; cout.flush();
+  if ( isFactFinderInDebugMode_.value_ ) { cout << "emu::base::FactFinder::timeExpired ***" << endl; cout.flush(); }
 }
