@@ -13982,7 +13982,7 @@ void EmuPeripheralCrateConfig::SaveLog() {
     //
   }
   //
-  buf = "EmuPeripheralCrateLogFile_"+time+".log";
+  buf = "/tmp/EmuPeripheralCrateLogFile_"+time+".log";
   //
   std::cout << "Logging output to" << buf << std::endl ;
   //
@@ -14034,7 +14034,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     //
   }
   //
-  buf = "EmuPeripheralCrateTestSummary_"+time+".log";
+  buf = "/tmp/EmuPeripheralCrateTestSummary_"+time+".log";
   //
   std::ofstream LogFile;
   LogFile.open(buf.c_str());
@@ -14240,7 +14240,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     DAQMB * thisDMB = dmbVector[dmb];
     //
     char buf[20];
-    sprintf(buf,"DMBTestsLogFile_%d.log",thisDMB->slot());
+    sprintf(buf,"/tmp/DMBTestsLogFile_%d.log",thisDMB->slot());
     //
     std::ofstream DMBTestsLogFile;
     DMBTestsLogFile.open(buf);
@@ -14291,7 +14291,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     TMB * thisTMB = tmbVector[tmb];
     //
     char buf[20];
-    sprintf(buf,"TMBTestsLogFile_%d.log",thisTMB->slot());
+    sprintf(buf,"/tmp/TMBTestsLogFile_%d.log",thisTMB->slot());
     //
     std::ofstream TMBTestsLogFile;
     TMBTestsLogFile.open(buf);
@@ -14345,7 +14345,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     TMB * thisTMB = tmbVector[tmb];
     //
     char buf[20];
-    sprintf(buf,"ChamberTestsLogFile_%d.log",thisTMB->slot());
+    sprintf(buf,"/tmp/ChamberTestsLogFile_%d.log",thisTMB->slot());
     //
     std::ofstream ChamberTestsLogFile;
     ChamberTestsLogFile.open(buf);
@@ -14396,7 +14396,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     TMB * thisTMB = tmbVector[tmb];
     //
     char buf[20];
-    sprintf(buf,"ALCT_TMB_communicationLogFile_%d.log",thisTMB->slot());
+    sprintf(buf,"/tmp/ALCT_TMB_communicationLogFile_%d.log",thisTMB->slot());
     //
     std::ofstream ALCT_TMB_communicationLogFile;
     ALCT_TMB_communicationLogFile.open(buf);
@@ -14430,7 +14430,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     }
     //
     char buf[20];
-    sprintf(buf,"CrateTestsLogFile.log");
+    sprintf(buf,"/tmp/CrateTestsLogFile.log");
     //
     std::ofstream CrateTestsLogFile;
     CrateTestsLogFile.open(buf);
