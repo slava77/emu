@@ -504,6 +504,7 @@ oldconfig.CFEB4DELAY "CFEB4DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB4DELAY "CFEB4
 oldconfig.CFEB4POSNEG "CFEB4POSNEG $OLD_EMU_CONFIG_ID",newconfig.CFEB4POSNEG "CFEB4POSNEG $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB4_RXD_INT_DELAY "CFEB4_RXD_INT_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB4_RXD_INT_DELAY "CFEB4_RXD_INT_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB4_TOF_DELAY "CFEB4_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB4_TOF_DELAY "CFEB4_TOF_DELAY $NEW_EMU_CONFIG_ID",
+oldconfig.CFEB_BADBITS_BLOCK "CFEB_BADBITS_BLOCK $OLD_EMU_CONFIG_ID",newconfig.CFEB_BADBITS_BLOCK "CFEB_BADBITS_BLOCK $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB_ENABLE_SOURCE "CFEB_ENABLE_SOURCE $OLD_EMU_CONFIG_ID",newconfig.CFEB_ENABLE_SOURCE "CFEB_ENABLE_SOURCE $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB_TOF_DELAY "CFEB_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB_TOF_DELAY "CFEB_TOF_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CLCT_BLANKING "CLCT_BLANKING $OLD_EMU_CONFIG_ID",newconfig.CLCT_BLANKING "CLCT_BLANKING $NEW_EMU_CONFIG_ID",
@@ -629,6 +630,7 @@ oldconfig.CFEB4DELAY!=newconfig.CFEB4DELAY or
 oldconfig.CFEB4POSNEG!=newconfig.CFEB4POSNEG or 
 oldconfig.CFEB4_RXD_INT_DELAY!=newconfig.CFEB4_RXD_INT_DELAY or 
 oldconfig.CFEB4_TOF_DELAY!=newconfig.CFEB4_TOF_DELAY or 
+oldconfig.CFEB_BADBITS_BLOCK!=newconfig.CFEB_BADBITS_BLOCK or 
 oldconfig.CFEB_ENABLE_SOURCE!=newconfig.CFEB_ENABLE_SOURCE or 
 oldconfig.CFEB_TOF_DELAY!=newconfig.CFEB_TOF_DELAY or 
 oldconfig.CLCT_BLANKING!=newconfig.CLCT_BLANKING or 
@@ -1182,6 +1184,7 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
       <tstore:column name="CFEB2_TOF_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB3_TOF_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB4_TOF_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB_BADBITS_BLOCK" type="unsigned short"/>
       <tstore:column name="CFEB0_RXD_INT_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB1_RXD_INT_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB2_RXD_INT_DELAY" type="unsigned short"/>

@@ -1060,6 +1060,7 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
 	if (*column == "CFEB2_TOF_DELAY"         ) {tmb_->SetCfeb2TOFDelay(IntValue);             }
 	if (*column == "CFEB3_TOF_DELAY"         ) {tmb_->SetCfeb3TOFDelay(IntValue);             }
 	if (*column == "CFEB4_TOF_DELAY"         ) {tmb_->SetCfeb4TOFDelay(IntValue);             }
+	if (*column == "CFEB_BADBITS_BLOCK"    ) {tmb_->SetCFEBBadBitsBlock(IntValue);          }
 	if (*column == "CFEB0_RXD_INT_DELAY"   ) {tmb_->SetCFEB0RxdIntDelay(IntValue);          }
 	if (*column == "CFEB1_RXD_INT_DELAY"   ) {tmb_->SetCFEB1RxdIntDelay(IntValue);          }
 	if (*column == "CFEB2_RXD_INT_DELAY"   ) {tmb_->SetCFEB2RxdIntDelay(IntValue);          }
