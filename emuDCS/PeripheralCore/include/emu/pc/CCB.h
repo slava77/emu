@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: CCB.h,v 1.3 2010/02/09 12:12:19 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.3  2010/02/09 12:12:19  liu
+// introduce global run safe configuration check
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -264,7 +267,7 @@ public:
   void startI2C();
   void stopI2C();
   void writeI2C(int);
-  int CheckConfig();
+  int CheckConfig(int full_check=0);
   //
   /// mostly for GUIs
   void executeCommand(std::string command);
