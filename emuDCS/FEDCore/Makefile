@@ -6,6 +6,7 @@
 
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
+include $(BUILD_HOME)/emu/rpm_version
 
 # CXX=g++4
 # LD=g++4
@@ -20,9 +21,6 @@ Description="Core libraries for controlling Front End Device (FED) crates for th
 Summary="Emu (CSC) FED Core Libraries"
 Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
-PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=04
-PACKAGE_VER_PATCH=00
 
 Sources=\
 	CoreVersion.cc \

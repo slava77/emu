@@ -8,6 +8,7 @@
 
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
+include $(BUILD_HOME)/emu/rpm_version
 
 Project=emu
 

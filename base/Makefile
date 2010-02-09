@@ -5,6 +5,7 @@
 ##
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
+include $(BUILD_HOME)/emu/rpm_version
 
 #
 # Packages to be built
@@ -16,9 +17,6 @@ Description="The Emu (CSC) application base class"
 Summary="The Emu (CSC) application base class"
 Authors="Ichiro Suzuki, Karoly Banicz"
 Link=""
-PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=04
-PACKAGE_VER_PATCH=00
 
 Sources = \
         Supervised.cc \
