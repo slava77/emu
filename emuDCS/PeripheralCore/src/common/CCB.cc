@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.38 2009/11/17 13:28:46 liu Exp $
+// $Id: CCB.cc,v 3.39 2010/02/09 12:12:19 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.39  2010/02/09 12:12:19  liu
+// introduce global run safe configuration check
+//
 // Revision 3.38  2009/11/17 13:28:46  liu
 // fix a bug in TTCrx fine delay with 0 nano sec
 //
@@ -1191,9 +1194,10 @@ void CCB::configure() {
   //
 }
 
-int CCB::CheckConfig()
+int CCB::CheckConfig(int full_check)
 {
-  int rx;
+  int rx, read_value, expected_value;
+
   //
   bool config_ok = true;
   //
@@ -1210,39 +1214,46 @@ int CCB::CheckConfig()
   //  }
   //
   //
-  // check TTCrx Coarse delay
-  rx=(int) (ReadTTCrxReg(2).to_ulong());
   //
-  int read_value = (rx&0xf);
-  int expected_value = (TTCrxCoarseDelay_&0xf);
-  config_ok &= compareValues("CCB TTCrxCoarseDelay LSB",read_value,expected_value);
+  // For a safe version of CheckConfig, full_check==0 to avoid reading TTCrx registers 
+  // as I2C access would set the CCB in FPGA mode
   //
-  read_value = (rx&0xf0)>>4;
-  config_ok &= compareValues("CCB TTCrxCoarseDelay MSB",read_value,expected_value);
-  //
-  //  if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
-  //  {  std::cout << "CCB_Check_Config: TTCrx Coarse delay inconsistent "
-  //               << std::hex << (rx&0xff) << std::dec << std::endl;
-  //     return 0;
-  //  }
-  //
-  //
-  // check TTCrx Control register
-  rx=(int)(ReadTTCrxReg(3).to_ulong());
-  //
-  read_value = (rx&0xff);
-  expected_value = 0xB3;
-  config_ok &= compareValues("CCB TTCrx Control register",read_value,expected_value);
-  //
-  //  if((rx&0xff) != 0xB3) 
-  //  {  std::cout << "CCB_Check_Config: TTCrx Control register wrong "
-  //               << std::hex << (rx&0xff) << std::dec << std::endl;
-  //     return 0;
-  //  }
-  //
-  // I2C access could leave the CCB in FPGA mode
-  setCCBMode(CCB::DLOG);
-  //
+  if(full_check)
+  {
+    // check TTCrx Coarse delay
+    rx=(int) (ReadTTCrxReg(2).to_ulong());
+    //
+    read_value = (rx&0xf);
+    expected_value = (TTCrxCoarseDelay_&0xf);
+    config_ok &= compareValues("CCB TTCrxCoarseDelay LSB",read_value,expected_value);
+    //
+    read_value = (rx&0xf0)>>4;
+    config_ok &= compareValues("CCB TTCrxCoarseDelay MSB",read_value,expected_value);
+    //
+    //  if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
+    //  {  std::cout << "CCB_Check_Config: TTCrx Coarse delay inconsistent "
+    //               << std::hex << (rx&0xff) << std::dec << std::endl;
+    //     return 0;
+    //  }
+    //
+    //
+    // check TTCrx Control register
+    rx=(int)(ReadTTCrxReg(3).to_ulong());
+    //
+    read_value = (rx&0xff);
+    expected_value = 0xB3;
+    config_ok &= compareValues("CCB TTCrx Control register",read_value,expected_value);
+    //
+    //  if((rx&0xff) != 0xB3) 
+    //  {  std::cout << "CCB_Check_Config: TTCrx Control register wrong "
+    //               << std::hex << (rx&0xff) << std::dec << std::endl;
+    //     return 0;
+    //  }
+    //
+    // I2C access could leave the CCB in FPGA mode
+    setCCBMode(CCB::DLOG);
+    //
+  }
   // check CCB in DLOG mode
   rx=ReadRegister(CSRA1);
   //
@@ -1264,7 +1275,7 @@ int CCB::CheckConfig()
   //
   return (int) config_ok;
 }
-//
+// 
 int CCB::ConvertNanosecondsToFineDelayUnits_(int delay_in_nsec) {
   //
   // The Fine Delay register has 240 steps (called "K" counting from 0-239) to 
