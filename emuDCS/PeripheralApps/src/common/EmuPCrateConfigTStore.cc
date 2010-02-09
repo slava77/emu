@@ -1710,6 +1710,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   std::string CFEB2_TOF_DELAY("CFEB2_TOF_DELAY");
   std::string CFEB3_TOF_DELAY("CFEB3_TOF_DELAY");
   std::string CFEB4_TOF_DELAY("CFEB4_TOF_DELAY");
+  std::string CFEB_BADBITS_BLOCK("CFEB_BADBITS_BLOCK");
   std::string CFEB0_RXD_INT_DELAY("CFEB0_RXD_INT_DELAY");
   std::string CFEB1_RXD_INT_DELAY("CFEB1_RXD_INT_DELAY");
   std::string CFEB2_RXD_INT_DELAY("CFEB2_RXD_INT_DELAY");
@@ -1841,6 +1842,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   xdata::UnsignedShort	   _cfeb2_tof_delay		= TStore_thisTMB->GetCfeb2TOFDelay();
   xdata::UnsignedShort	   _cfeb3_tof_delay		= TStore_thisTMB->GetCfeb3TOFDelay();
   xdata::UnsignedShort	   _cfeb4_tof_delay		= TStore_thisTMB->GetCfeb4TOFDelay();
+  xdata::UnsignedShort	   _cfeb_badbits_block		= TStore_thisTMB->GetCFEBBadBitsBlock();
   xdata::UnsignedShort	   _cfeb0_rxd_int_delay		= TStore_thisTMB->GetCFEB0RxdIntDelay();
   xdata::UnsignedShort	   _cfeb1_rxd_int_delay		= TStore_thisTMB->GetCFEB1RxdIntDelay();
   xdata::UnsignedShort	   _cfeb2_rxd_int_delay		= TStore_thisTMB->GetCFEB2RxdIntDelay();
@@ -1965,6 +1967,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   newRows.setValueAt(rowId,CFEB2_TOF_DELAY, _cfeb2_tof_delay);
   newRows.setValueAt(rowId,CFEB3_TOF_DELAY, _cfeb3_tof_delay);
   newRows.setValueAt(rowId,CFEB4_TOF_DELAY, _cfeb4_tof_delay);
+  newRows.setValueAt(rowId,CFEB_BADBITS_BLOCK, _cfeb_badbits_block);
   newRows.setValueAt(rowId,CFEB0_RXD_INT_DELAY, _cfeb0_rxd_int_delay);
   newRows.setValueAt(rowId,CFEB1_RXD_INT_DELAY, _cfeb1_rxd_int_delay);
   newRows.setValueAt(rowId,CFEB2_RXD_INT_DELAY, _cfeb2_rxd_int_delay);
@@ -2972,6 +2975,7 @@ void EmuPCrateConfigTStore::readTMB(const std::string &connectionID, const std::
       if (*column == "CFEB2_TOF_DELAY"         ) {tmb_->SetCfeb2TOFDelay(IntValue);             }
       if (*column == "CFEB3_TOF_DELAY"         ) {tmb_->SetCfeb3TOFDelay(IntValue);             }
       if (*column == "CFEB4_TOF_DELAY"         ) {tmb_->SetCfeb4TOFDelay(IntValue);             }
+      if (*column == "CFEB_BADBITS_BLOCK"    ) {tmb_->SetCFEBBadBitsBlock(IntValue);          }
       if (*column == "CFEB0_RXD_INT_DELAY"   ) {tmb_->SetCFEB0RxdIntDelay(IntValue);          }
       if (*column == "CFEB1_RXD_INT_DELAY"   ) {tmb_->SetCFEB1RxdIntDelay(IntValue);          }
       if (*column == "CFEB2_RXD_INT_DELAY"   ) {tmb_->SetCFEB2RxdIntDelay(IntValue);          }
