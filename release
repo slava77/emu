@@ -10,3 +10,5 @@ emuDCS/FEDCore
 emuDCS/FEDUtils
 emuDCS/FEDApps
 Makefile
+rpm_version
+release
