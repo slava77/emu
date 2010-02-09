@@ -6,6 +6,7 @@
 
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
+include $(BUILD_HOME)/emu/rpm_version
 
 # Packages to be built
 #
@@ -13,10 +14,6 @@ Project=emu
 Package=emuDCS/PeripheralApps
 PackageName=PeripheralApps
 Description="XDAQ Application libraries for Peripheral Crates"
-PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=04
-PACKAGE_VER_PATCH=00
-
 
 Sources=\
         AppsVersion.cc \
