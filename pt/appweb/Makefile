@@ -22,7 +22,7 @@ include $(XDAQ_ROOT)/config/mfDefs.extern_coretools
 include $(XDAQ_ROOT)/config/mfDefs.coretools
 include $(XDAQ_ROOT)/config/mfDefs.extern_powerpack
 
-Project=daq
+Project=emu
 Package=pt/appweb
 
 Sources=\
@@ -72,7 +72,7 @@ DependentLibraries =
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary=ptappweb
+DynamicLibrary=emuptappweb
 StaticLibrary=
 Executables=
 

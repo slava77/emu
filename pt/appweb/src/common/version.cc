@@ -21,9 +21,9 @@
 #include <string>
 #include <set>
 
-GETPACKAGEINFO(ptappweb)
+GETPACKAGEINFO(emuptappweb)
 
-void ptappweb::checkPackageDependencies() throw (config::PackageInfo::VersionException)
+void emuptappweb::checkPackageDependencies() throw (config::PackageInfo::VersionException)
 {
 	CHECKDEPENDENCY(config);
 	CHECKDEPENDENCY(xcept);
@@ -35,7 +35,7 @@ void ptappweb::checkPackageDependencies() throw (config::PackageInfo::VersionExc
 	CHECKDEPENDENCY(xdaq);
 }
 
-std::set<std::string, std::less<std::string> > ptappweb::getPackageDependencies()
+std::set<std::string, std::less<std::string> > emuptappweb::getPackageDependencies()
 {
 	std::set<std::string, std::less<std::string> > dependencies;
 	ADDDEPENDENCY(dependencies,config);
