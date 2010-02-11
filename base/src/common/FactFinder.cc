@@ -30,11 +30,20 @@
 #include "pt/PeerTransportSender.h"
 #include "pt/SOAPMessenger.h"
 
+#ifdef CSCTF
+#include "ts/framework/CellAbstract.h"
+#include "ts/worker/include/CellContext.h"
+#endif
+
 using namespace std;
 
 emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactCollection::Source_t source, int periodInSec )
   throw (xcept::Exception)
+#ifdef CSCTF
+  : tsframework::CellAbstract( stub ),
+#else
   : xdaq::WebApplication( stub ),
+#endif
     factFinderBSem_( toolbox::BSem::FULL ),
     source_( source ),
     maxQueueLength_( 10 ),

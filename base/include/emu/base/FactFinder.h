@@ -23,12 +23,22 @@
 #include <utility>
 #include <time.h>
 
+#ifdef CSCTF
+#include "ts/framework/CellAbstract.h"
+#include "ts/worker/include/CellContext.h"
+#endif
+
+
 namespace emu { namespace base {
 
   using namespace std;
 
   class FactFinder 
+#ifndef CSCTF
     : public virtual xdaq::WebApplication
+#else
+    : public virtual tsframework::CellAbstract
+#endif
     , public toolbox::task::TimerListener
   {
   public:
