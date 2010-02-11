@@ -96,7 +96,8 @@ xoap::MessageReference pt::appweb::SOAPMessenger::send (xoap::MessageReference m
 	}
 	else
 	{
-		hdr.putFmt("Content-Type: application/soap+xml; charset=utf-8\r\n");
+// 		hdr.putFmt("Content-Type: application/soap+xml; charset=utf-8\r\n");
+		hdr.putFmt("Content-Type: text/xml; charset=utf-8\r\n");
 		hdr.putFmt("Content-Description: SOAP Message\r\n");
 	}
 	hdr.putFmt("Content-Length: %ld\r\n", size);
