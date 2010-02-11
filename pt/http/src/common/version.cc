@@ -1,4 +1,4 @@
-// $Id: version.cc,v 1.1 2010/01/30 15:53:19 banicz Exp $
+// $Id: version.cc,v 1.2 2010/02/11 22:02:16 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -23,9 +23,9 @@
 #include <string>
 #include <set>
 
-GETPACKAGEINFO(pthttp)
+GETPACKAGEINFO(emupthttp)
 
-void pthttp::checkPackageDependencies() throw (config::PackageInfo::VersionException)
+void emupthttp::checkPackageDependencies() throw (config::PackageInfo::VersionException)
 {
 	CHECKDEPENDENCY(config);
 	CHECKDEPENDENCY(xcept);
@@ -37,7 +37,7 @@ void pthttp::checkPackageDependencies() throw (config::PackageInfo::VersionExcep
 	CHECKDEPENDENCY(xdaq);
 }
 
-std::set<std::string, std::less<std::string> > pthttp::getPackageDependencies()
+std::set<std::string, std::less<std::string> > emupthttp::getPackageDependencies()
 {
     std::set<std::string, std::less<std::string> > dependencies;
     ADDDEPENDENCY(dependencies,config);
