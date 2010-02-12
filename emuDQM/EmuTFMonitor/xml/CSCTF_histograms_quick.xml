@@ -348,6 +348,17 @@
 
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
+		<Prefix>TF_id</Prefix>
+		<Name>L1A_BXN_halo</Name>
+		<Title>L1A BXN Distribution (Halo)</Title>
+		<XRange>(0:3564)</XRange>
+		<XBins>3564</XBins>
+		<XLabel>BX</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="bar1:FillColor=48">
+		<Type>h1_</Type>
 		<Prefix>TF_id_id_</Prefix>
 		<Name>csc</Name>
 		<Title>CSC occupancy</Title>

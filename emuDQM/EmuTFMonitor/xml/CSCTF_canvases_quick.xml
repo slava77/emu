@@ -135,6 +135,14 @@
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_id_</Prefix>
+		<Name>L1ABXN_Halo</Name>
+		<Title>L1A BXN (Halo)</Title>
+		<Item>L1A_BXN_halo</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
 		<Name>tracks</Name>
 		<Title>Tracks</Title>
 		<Item Options="LogY">nTracks(Top)</Item>
