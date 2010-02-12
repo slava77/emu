@@ -28,7 +28,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 		tf.book();
 		cout<<"Booking of general histograms"<<std::endl;
 	}
-/*
+
 	// Basic checks for DDU-level corruptions
 	if( flag != FileReaderDDU::Type1 ){
 		TH2F *integrity = (TH2F*)tf.get("integrity");
@@ -44,7 +44,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 		event_status |= DDU_CORRUPTION;
 		return;
 	}
-*/
+
 	// All-in-one plots to identify problems/gaps at one glance
 	TH2F *occupancyME1p    = (TH2F*)tf.get("occupancyME1p");
 	TH2F *occupancyME2p    = (TH2F*)tf.get("occupancyME2p");
@@ -56,14 +56,14 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 	TH2F *occupancyME4m    = (TH2F*)tf.get("occupancyME4m");
 	TH2F *occupancyTracksP = (TH2F*)tf.get("occupancyTracksP");
 	TH2F *occupancyTracksM = (TH2F*)tf.get("occupancyTracksM");
-/*
+
 	// DDU Status word (FMM)
 	TH2F *DDU_status = (TH2F*)tf.get("DDU_status");
 	if( DDU_status ){
 		DDU_status->Fill(nevents,(buffer[size-4]&0x00F0)>>4);
 		if( nevents%100==0 ) DDU_status->SetAxisRange(0, nevents+100);
 	}
-*/
+
 	// Swep out C-words
 	unsigned short event[size];
 
@@ -143,7 +143,7 @@ if( sp == 0 ){
 ///  cout<<"Error: invalid SP number: "<<sp<<endl;
   continue;
 }
-/*
+
 		if(!tf.isBooked(sp) ){
 			tf.book(sp);
 			cout<<"Booking histograms for SP: "<<sp<<" (sector="<<spPtr->header().sector()<<" & endcap="<<spPtr->header().endcap()<<")"<<std::endl;
@@ -178,9 +178,9 @@ if( sp == 0 ){
 
 		TH1F *OrbitCounter = (TH1F*)tf.get("OrbitCounter",sp);
 		if( OrbitCounter ) OrbitCounter->Fill(spPtr->counters().orbit_counter());
-*/
+
 		for(unsigned int tbin=0; tbin<spPtr->header().nTBINs(); tbin++){
-/*			TH2F *SE = (TH2F*)tf.get("SE",sp);
+			TH2F *SE = (TH2F*)tf.get("SE",sp);
 			if( SE ){
 				if( spPtr->record(tbin).SEs()&0x1   ) SE->Fill(0);
 				if( spPtr->record(tbin).SEs()&0x2   ) SE->Fill(1);
@@ -336,7 +336,7 @@ if( sp == 0 ){
 				if( spPtr->record(tbin).BXs()&0x10000) BXtimeline->Fill(nevents,16);
 				if( nevents%100==0 ) BXtimeline->SetAxisRange(0, nevents+100);
 			}
-*/
+
 			vector<CSCSP_MEblock> LCTs = spPtr->record(tbin).LCTs();
 			for(vector<CSCSP_MEblock>::const_iterator lct=LCTs.begin(); lct!=LCTs.end(); lct++){
 				//unsigned short mpc = lct->mpc()+1;        // 1-60
@@ -399,8 +399,8 @@ if( sp == 0 ){
 					if( (!spPtr->header().endcap() && mpc<4) || (spPtr->header().endcap() && mpc>=4) ) phi = 1. - phi;
 					phi = fmod((phi*scalePhi[mpc][csc]+offsetPhi[mpc][csc] + spPtr->header().sector()-1.)/6.*360. + 15.,360.);
 
-if(spPtr->header().BXN() == 380 ){
-std::cout<<"380"<<std::endl;
+//if(spPtr->header().BXN() == 380 ){
+//std::cout<<"380"<<std::endl;
 					if( occupancyME1p && mpc< 3 &&  spPtr->header().endcap() ) occupancyME1p->Fill(eta,phi);
 					if( occupancyME2p && mpc==3 &&  spPtr->header().endcap() ) occupancyME2p->Fill(eta,phi);
 					if( occupancyME3p && mpc==4 &&  spPtr->header().endcap() ) occupancyME3p->Fill(eta,phi);
@@ -410,11 +410,11 @@ std::cout<<"380"<<std::endl;
 					if( occupancyME2m && mpc==3 && !spPtr->header().endcap() ) occupancyME2m->Fill(eta,phi);
 					if( occupancyME3m && mpc==4 && !spPtr->header().endcap() ) occupancyME3m->Fill(eta,phi);
 					if( occupancyME4m && mpc==5 && !spPtr->header().endcap() ) occupancyME4m->Fill(eta,phi);
-}
+//}
 //if( lct->wireGroup()/normEta[mpc][csc] + offsetEta[mpc][csc] > (csc<4 || (csc<7 && mpc<3) ? offsetEta[mpc][csc+3] : 6) ) cout<<"lct->wireGroup()="<<lct->wireGroup()<<" normEta["<<mpc<<"]["<<csc<<"]="<<normEta[mpc][csc]<<" offsetEta["<<mpc<<"]["<<csc<<"]="<<offsetEta[mpc][csc]<<" total="<<(lct->wireGroup()/normEta[mpc][csc] + offsetEta[mpc][csc])<<endl;
 //if( lct->strip()/normPhi[mpc][csc] + offsetPhi[mpc][csc]>1 ) cout<<"lct->strip()="<<lct->strip()<<" normPhi["<<mpc<<"]["<<csc<<"]="<<normPhi[mpc][csc]<<" offsetPhi["<<mpc<<"]["<<csc<<"]="<<offsetPhi[mpc][csc]<<" total="<<(lct->strip()/normPhi[mpc][csc] + offsetPhi[mpc][csc])<<endl;
 				}
-/*
+
 				if(!tf.isBooked(sp,mpc) ){
 					tf.book(sp,mpc);
 					cout<<"Booking histograms for SP:"<<sp<<" MPC: "<<mpc<<std::endl;
@@ -487,8 +487,8 @@ std::cout<<"380"<<std::endl;
 				// Store hits for later timing correlation analysis:
 //cout<<"tbin="<<tbin<<" mpc="<<mpc<<" csc="<<csc<<endl;
 				if(mpc>0&&mpc<=5&&csc>0&&csc<=9) shared_hits.fill(tbin,mpc-1,csc,*lct);
-*/			}
-/*
+			}
+
 			vector<CSCSP_MBblock> dt_stubs = spPtr->record(tbin).mbStubs();
 			for(vector<CSCSP_MBblock>::const_iterator dt_stub=dt_stubs.begin(); dt_stub!=dt_stubs.end(); dt_stub++){
 			switch( dt_stub->id() ){
@@ -519,7 +519,7 @@ std::cout<<"380"<<std::endl;
 
 				TH2F *dt_synchA = (TH2F*)tf.get("dt_synchA",sp);
 				if( dt_synchA ) dt_synchA->Fill(spPtr->header().BXN()%(int)dt_synchA->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synchA->GetYaxis()->GetXmax());
-			}
+			} break;
 			case 2: {
                                 TH1F *dt_bitsD = (TH1F*)tf.get("dt_bitsD",sp);
                                 if( dt_bitsD ){
@@ -547,26 +547,31 @@ std::cout<<"380"<<std::endl;
 
 				TH2F *dt_synchD = (TH2F*)tf.get("dt_synchD",sp);
 				if( dt_synchD ) dt_synchD->Fill(spPtr->header().BXN()%(int)dt_synchD->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synchD->GetYaxis()->GetXmax());
-			}
-			default : cout<<"Booking of general histograms"<<std::endl;
+			} break;
+			default : cout<<"DT stub is out of range: "<<dt_stub->id()<<std::endl; break;
 			}
 				shared_hits.fill(tbin,dt_stub->id(),*dt_stub);
 			}
-*/
+
 			vector<CSCSP_SPblock> tracks = spPtr->record(tbin).tracks();
 
 			TH1F *nTracks = (TH1F*)tf.get("nTracks",sp);
 			if( nTracks ) nTracks->Fill(tracks.size());
 
 			for(vector<CSCSP_SPblock>::const_iterator track=tracks.begin(); track!=tracks.end(); track++){
-if( spPtr->header().BXN() == 380 ){
-std::cout<<"380_"<<std::endl;
+
+			        TH1F *L1A_BXN_halo = (TH1F*)tf.get("L1A_BXN_halo",sp);
+			        if (L1A_BXN_halo) 
+				  if (track->mode() == 15) L1A_BXN_halo->Fill(spPtr->header().BXN());
+
+//if( spPtr->header().BXN() == 380 ){
+//std::cout<<"380_"<<std::endl;
 				if( occupancyTracksP &&  spPtr->header().endcap() )
 					occupancyTracksP->Fill( track->eta()/32.*(2.5-0.9)+0.9, fmod(360.*(track->phi()/32. + spPtr->header().sector()-1)/6.+15,360.)); 
 				if( occupancyTracksM && !spPtr->header().endcap() )
 					occupancyTracksM->Fill( track->eta()/32.*(2.5-0.9)+0.9, fmod(360.*(track->phi()/32. + spPtr->header().sector()-1)/6.+15,360.)); 
-}
-/*
+//}
+
 				TH2F *mode_vs_station = (TH2F*)tf.get("mode_vs_station",sp);
 				if( mode_vs_station ){
 					unsigned int stations =0;
@@ -599,9 +604,9 @@ std::cout<<"380_"<<std::endl;
 				TH1F *track_time = (TH1F*)tf.get("track_time",sp);
 				if( track_time ) track_time->Fill(track->tbin());
 
-*/			}
+			}
 		}
-/*
+
 		// Timing correlation analysis
 		///if( shared_hits.nHits()<=300 ){ // showering prevention
 			map<pair<unsigned int,unsigned int>,int> deltaBX = shared_hits.diffBX();
@@ -634,7 +639,7 @@ std::cout<<"380_"<<std::endl;
 				iter++;
 			}
 		///}
-*/	}
+	}
 
 	if(nevents%1000==0) cout<<"Event: "<<nevents<<endl;
 	nevents++;

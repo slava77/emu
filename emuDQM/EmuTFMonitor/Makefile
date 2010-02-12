@@ -27,7 +27,7 @@ Sources=\
 
 #        EmuTFMonitorV.cc  \
 
-Executables = EmuTFtest.cc 
+Executables = EmuTFtest_quick.cc 
 
 
 IncludeDirs = $(XdaqIncludeDirs) \

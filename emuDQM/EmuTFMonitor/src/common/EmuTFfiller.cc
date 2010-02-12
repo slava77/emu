@@ -516,7 +516,7 @@ if( sp == 0 ){
 
 				TH2F *dt_synchA = (TH2F*)tf.get("dt_synchA",sp);
 				if( dt_synchA ) dt_synchA->Fill(spPtr->header().BXN()%(int)dt_synchA->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synchA->GetYaxis()->GetXmax());
-			}
+			} break;
 			case 2: {
                                 TH1F *dt_bitsD = (TH1F*)tf.get("dt_bitsD",sp);
                                 if( dt_bitsD ){
@@ -544,8 +544,8 @@ if( sp == 0 ){
 
 				TH2F *dt_synchD = (TH2F*)tf.get("dt_synchD",sp);
 				if( dt_synchD ) dt_synchD->Fill(spPtr->header().BXN()%(int)dt_synchD->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synchD->GetYaxis()->GetXmax());
-			}
-			default : cout<<"Booking of general histograms"<<std::endl;
+			} break;
+			default : cout<<"DT stub is out of range: "<<dt_stub->id()<<std::endl; break;
 			}
 				shared_hits.fill(tbin,dt_stub->id(),*dt_stub);
 			}
@@ -555,7 +555,14 @@ if( sp == 0 ){
 			TH1F *nTracks = (TH1F*)tf.get("nTracks",sp);
 			if( nTracks ) nTracks->Fill(tracks.size());
 
+
 			for(vector<CSCSP_SPblock>::const_iterator track=tracks.begin(); track!=tracks.end(); track++){
+
+			        TH1F *L1A_BXN_halo = (TH1F*)tf.get("L1A_BXN_halo",sp);
+			        if (L1A_BXN_halo) {
+				  if (track->mode() == 15) L1A_BXN_halo->Fill(spPtr->header().BXN());
+				}
+
 				if( occupancyTracksP &&  spPtr->header().endcap() )
 					occupancyTracksP->Fill( track->eta()/32.*(2.5-0.9)+0.9, fmod(360.*(track->phi()/32. + spPtr->header().sector()-1)/6.+15,360.)); 
 				if( occupancyTracksM && !spPtr->header().endcap() )
