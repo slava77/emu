@@ -38,8 +38,9 @@
 
 	<table class="fresh" rules="all" id="fadingTable">
 
-	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateManager' or @application = 'emu::pc::EmuPeripheralCrateService'">
-	    <tr><th colspan="2" class="title">
+	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateManager' or @application = 'emu::pc::EmuPeripheralCrateMonitor' or @application = 'emu::pc::EmuPeripheralCrateService'">
+	    <xsl:variable name="COLSPAN"><xsl:value-of select="2*count(monitorable[@name!='title'])"/>></xsl:variable>
+	    <tr><th colspan="{$COLSPAN}" class="title">
 	      <xsl:if test="monitorable[@name='title']">
 		<a id="{$TITLEID}" target="_blank">
 		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
@@ -51,26 +52,9 @@
 		<xsl:value-of select="@application"/>
 	      </xsl:if>
 	    </th></tr>
-	    <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
-	    <xsl:apply-templates mode="PC" select="monitorable"/>
-	  </xsl:if>
-
-	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateMonitor'">
-	    <tr><th colspan="5" class="title">
-	      <xsl:if test="monitorable[@name='title']">
-		<a id="{$TITLEID}" target="_blank">
-		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
-		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
-		  <xsl:value-of select="monitorable[@name='title']/@value"/>
-		</a>
-	      </xsl:if>
-	      <xsl:if test="not(monitorable[@name='title'])">
-		<xsl:value-of select="@application"/>
-	      </xsl:if>
-	    </th></tr>
-	    <tr><td colspan="5" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	    <tr><td colspan="{$COLSPAN}" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
 	    <tr>
-	      <xsl:apply-templates mode="PCMon" select="monitorable"/>
+	      <xsl:apply-templates mode="PC" select="monitorable"/>
 	    </tr>
 	  </xsl:if>
 
@@ -233,20 +217,6 @@
   </xsl:template>
 
   <xsl:template mode="PC" match="monitorable[not(@name = 'title')]">
-    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
-    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <xsl:variable name="TDCLASS"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
-    <tr>
-      <th id="th_name_{$INDEX}">
-	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
-      </th>
-      <td class="{$TDCLASS}" id="td_value_{$INDEX}">
-	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
-      </td>
-    </tr>
-  </xsl:template>
-
-  <xsl:template mode="PCMon" match="monitorable[not(@name = 'title')]">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
     <xsl:variable name="TDCLASS"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
