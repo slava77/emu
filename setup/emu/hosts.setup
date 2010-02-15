@@ -8,7 +8,7 @@
 #-----------------------------------------------------------------------------------------------------
 # lowercase and with .cms
 csc-c2d08-11.cms:c2d08:service:monitoring:jobcontrol ws-eventing pulser ws-eventing-exception spotlight las
-csc-c2d08-12.cms:c2d08:service:monitoring:jobcontrol
+csc-c2d08-13.cms:c2d08:service:monitoring:jobcontrol
 csc-c2d08-01.cms:c2d08:service:monitoring:jobcontrol
 csc-c2d08-02.cms:c2d08:service:monitoring:jobcontrol
 csc-c2d08-03.cms:c2d08:service:monitoring:jobcontrol

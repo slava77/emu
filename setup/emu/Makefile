@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.11 2009/11/19 17:08:45 banicz Exp $
+# $Id: Makefile,v 1.12 2010/02/15 11:52:41 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -31,7 +31,7 @@ Project=emu
 Package=setup/$(PackageName)
 
 PACKAGE_VER_MAJOR=9
-PACKAGE_VER_MINOR=1
+PACKAGE_VER_MINOR=2
 PACKAGE_VER_PATCH=0
 
 Summary=Setup data for the Emu (CSC) cluster at Cessy
