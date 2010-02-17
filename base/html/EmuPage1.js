@@ -577,8 +577,12 @@ function Monitorable( time, name, value, nameDescr, valueDescr, nameURL, valueUR
   
   this.previousTime  = this.time;
   this.previousValue = this.value;
+  this.prevPrevTime  = this.time;
+  this.prevPrevValue = this.value;
   
   this.set = function( time, name, value, nameDescr, valueDescr, nameURL, valueURL ){
+    this.prevPrevTime  = this.previousTime;
+    this.prevPrevValue = this.previousValue;
     this.previousTime  = this.time;
     this.previousValue = this.value;
 
@@ -595,6 +599,10 @@ function Monitorable( time, name, value, nameDescr, valueDescr, nameURL, valueUR
     return ( this.value - this.previousValue ) * 1000 / ( this.time - this.previousTime ); // ms --> s
   };
 
+  this.rate2 = function(){ // rate calculated over two samplings
+    if ( this.time == this.prevPrevTime ) return 0;
+    return ( this.value - this.prevPrevValue ) * 1000 / ( this.time - this.prevPrevTime ); // ms --> s
+  };
 }
 
 
@@ -721,7 +729,7 @@ function valuesFromXml(){
 	  td_value.className = monitorables[i].value;
 	  if ( ( monitorables[i].name == 'min events' || monitorables[i].name.indexOf('rate') > 0 ) 
 	       && state == 'Enabled' ) td_value.className += ( monitorables[i].value == 0 ? ' WARN' : '' );
-	  if ( monitorables[i].name == 'Heartbeat' ) td_value.className += ( monitorables[i].rate() == 0 ? ' WARN' : ' ON' );
+	  if ( monitorables[i].name == 'Heartbeat' ) td_value.className += ( monitorables[i].rate2() == 0 ? ' WARN' : ' ON' );
 	  else if ( monitorables[i].name == 'TF Errors'  || monitorables[i].name == 'ME- Errors' || monitorables[i].name == 'ME+ Errors' ){
 	    td_value.className += ( monitorables[i].rate() > 0 ? ' WARN' : '' );
 	  }
@@ -865,11 +873,10 @@ function TrackFinderFromJson(){
 	}
 	$.each( row.EMUPAGEONE_RATES.rows, function(j,ratesRow){ 
 	  if ( j == 0 ){
-	    //var graphPoint = { name:'min SP rate [Hz]', time:time, value:ratesRow['Min Single SP Rate'] };
 	    var graphPoint = { name:'total SP input rate [Hz]', time:time, value:ratesRow['Total SPs Rate'] };
 	    appendPoint( graphPoint );
 	    $('#a_value_min').text( ratesRow['Min Single SP Rate'] + ' Hz' );
-	    if ( ratesRow['Min Single SP Rate'] == 0 && ratesRow['Total SPs Rate'] > 0 ){
+	    if ( ratesRow['Min Single SP Rate'] == 0 && ratesRow['Total SPs Rate'] > 100 ){
 	      $('#td_value_min').attr('class', 'WARN' );
 	      $('#a_value_min').attr('title', 'One or more SPs may be dead. Click to check.' );
 	    }
