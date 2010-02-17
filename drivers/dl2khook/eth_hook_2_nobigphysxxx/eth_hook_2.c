@@ -282,24 +282,23 @@ unsigned long flags;
    }
 
    // DEBUG START
-/*    printk(KERN_INFO "ETH2 Length %d, flag_eevent %d, packet_count %04x\n",skb->len,flag_eevent_2,packet_count); */
-/*    printk(KERN_INFO "ETH2  "); */
-/*    for(i=90;i>=0;i-=2) */
-/*      printk("%+4d ",-i); */
-/*    printk("\n"); */
-/*    printk(KERN_INFO "ETH2  "); */
-/*    for(i=90;i>=0;i-=2) */
-/*      printk("%04x ",*(unsigned short int*)(skb->data+skb->len-i)); */
-/*    printk("\n");  */
+   // printk(KERN_INFO "ETH2 Length %d, flag_eevent %d, packet_count %04x\n",skb->len,flag_eevent_2,packet_count);
+   // printk(KERN_INFO "ETH2  ");
+   // for(i=90;i>=0;i-=2)
+   //   printk("%+4d ",-i);
+   // printk("\n");
+   // printk(KERN_INFO "ETH2  ");
+   // for(i=90;i>=0;i-=2)
+   //   printk("%04x ",*(unsigned short int*)(skb->data+skb->len-i));
+   // printk("\n");
    // DEBUG END
 
    // check for end of event 0x8000 0xffff 0x8000 0x8000
    eevent_mask=0x0000;
    if(flag_eevent_2==1){
      // printk(KERN_INFO "ETH2  ");
-     // TODO: There must be a way to calculate offset from other parameters... In the meantime:
-     const int offset = -4; // the end of packet is at skb->data + SKB_OFFSET + skb->len + offset
-     unsigned char *end_of_packet = skb->data + SKB_OFFSET + skb->len + offset;
+     // The end of packet is at skb->data + SKB_OFFSET + skb->len + SKB_EXTRA
+     unsigned char *end_of_packet = skb->data + SKB_OFFSET + skb->len + SKB_EXTRA;
      // First see if this is minimum-length packet.
      if ( skb->len+SKB_EXTRA == 64 ){
        // This is a minimum-length packet. This may mean either that it contains an entire
@@ -308,14 +307,14 @@ unsigned long flags;
        // In either case, it _must_ contain the end of an event.
        eevent_mask=0x4000;
 
-/*        const int DDU_trailer_length = 24; // bytes */
-/*        end1=*(unsigned short int *)(end_of_packet-DDU_trailer_length+0); */
-/*        end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2); */
-/*        end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4); */
-/*        end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6); */
-/*        printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x",end1,end2,end3,end4); */
+       // const int DDU_trailer_length = 24; // bytes
+       // end1=*(unsigned short int *)(end_of_packet-DDU_trailer_length+0);
+       // end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2);
+       // end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4);
+       // end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6);
+       // printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x\n",end1,end2,end3,end4);
+       // printk(KERN_INFO "ETH2  minimum-length packet ends event\n");
 
-       //printk(KERN_INFO "ETH2  minimum-length packet ends event\n");
      } // if ( skb->len+SKB_EXTRA == 64 )
      else{
        // Not a minimum-length packet.
@@ -326,11 +325,11 @@ unsigned long flags;
        end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2);
        end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4);
        end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6);
-       //printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x",end1,end2,end3,end4);
+       // printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x\n",end1,end2,end3,end4);
        if((end1==0x8000)&&(end2==0x8000)&&(end3==0xffff)&&(end4==0x8000)){
 	 // Caught a DDU trailer
 	 eevent_mask=0x4000;
-	 //printk(KERN_INFO "ETH2  DDU EoE\n");
+	 // printk(KERN_INFO "ETH2  DDU EoE\n");
        }
        else{
 	 // Then look for the end-of-event unique word of the DCC trailer.
