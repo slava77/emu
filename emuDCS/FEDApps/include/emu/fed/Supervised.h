@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Supervised.h,v 1.4 2009/07/01 14:54:03 paste Exp $
+* $Id: Supervised.h,v 1.5 2010/02/17 21:20:24 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SUPERVISED_H__
 #define __EMU_FED_SUPERVISED_H__
@@ -33,7 +33,7 @@ xoap::MessageReference on ##COMMAND(xoap::MessageReference message) \
 
 namespace emu {
 	namespace fed {
-		
+
 		/** @class Supervised A class from which all FED XDAQ applications that are managed by the Supervisor (i.e., have a finite state machine) should inherit.
 		*	Includes routines for FSM manipulation.
 		*
@@ -61,21 +61,24 @@ namespace emu {
 			*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 			**/
 			void webFire(xgi::Input *in, xgi::Output *out);
-			
-			/** Tells the application to ignore SOAP commands 
+
+			/** Tells the application to ignore SOAP commands
 			*
 			*	@note Looks for an input paramter "ignoreSOAP" with an integer value, 1 = ignore, 0 = do not ignore.
 			**/
 			void webIgnoreSOAP(xgi::Input *in, xgi::Output *out);
 
 		protected:
-			
+
 			/// The run number of the current run.  Useful for log files.
 			xdata::UnsignedLong runNumber_;
-			
+
+			/// The type of run (local, global, calibration).  Useful for modifying the configuration parameters of the DDUs and DCCs.
+			xdata::String runType_;
+
 			/// Whether or not to ignore SOAP state changes.
 			xdata::Boolean ignoreSOAP_;
-			
+
 			/// Whether or not the command is coming from SOAP.
 			bool fromSOAP_;
 
