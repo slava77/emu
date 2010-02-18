@@ -838,7 +838,7 @@ function TrackFinderFromJson(){
     $.each( json.table.rows, function(i,row){
       if ( i == 0 ){
 	msg += 'FSM_STATE.rows.length='+row.FSM_STATE.rows.length+'   EMUPAGEONE_RATES.rows.length='+row.EMUPAGEONE_RATES.rows.length;
-	var validConfPatterns = ['^CC-Conf','^EmuLocal$'];
+	var validConfPatterns = ['^EmuLocal$','^CC-Conf'];
 	var foundGlobalConf = false;
 	var foundLocalConf  = false;
 	for ( p=0; p<validConfPatterns.length; p++ ){
@@ -863,14 +863,14 @@ function TrackFinderFromJson(){
 	  $('#a_value_confkey').text( 'UNKNOWN' );
 	  $('#a_value_confkey').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'operation found.' );
 	}
-	if ( foundGlobalConf && foundLocalConf ){
-	  $('#td_value_state').attr( 'class', 'INDEFINITE' );
-	  $('#a_value_state').text( 'INDEFINITE' );
-	  $('#a_value_state').attr( 'title', 'Both global and local operations found. Click to destroy \"EmuLocal\", or consult the Trigger shifter to have the global one destroyed.' );
-	  $('#td_value_confkey').attr( 'class', 'INDEFINITE' );
-	  $('#a_value_confkey').text( 'INDEFINITE' );
-	  $('#a_value_confkey').attr( 'title', 'Both global and local operations found. Click to destroy \"EmuLocal\", or consult the Trigger shifter to have the global one destroyed.' );
-	}
+// 	if ( foundGlobalConf && foundLocalConf ){
+// 	  $('#td_value_state').attr( 'class', 'INDEFINITE' );
+// 	  $('#a_value_state').text( 'INDEFINITE' );
+// 	  $('#a_value_state').attr( 'title', 'Both global and local operations found. Click to destroy \"EmuLocal\", or consult the Trigger shifter to have the global one destroyed.' );
+// 	  $('#td_value_confkey').attr( 'class', 'INDEFINITE' );
+// 	  $('#a_value_confkey').text( 'INDEFINITE' );
+// 	  $('#a_value_confkey').attr( 'title', 'Both global and local operations found. Click to destroy \"EmuLocal\", or consult the Trigger shifter to have the global one destroyed.' );
+// 	}
 	$.each( row.EMUPAGEONE_RATES.rows, function(j,ratesRow){ 
 	  if ( j == 0 ){
 	    var graphPoint = { name:'total SP input rate [Hz]', time:time, value:ratesRow['Total SPs Rate'] };
