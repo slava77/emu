@@ -81,7 +81,7 @@
 	  <i2o:target tid="{$DAQ_TID3}" instance="{@instance}" class="emu::daq::fu::Application"></i2o:target>
 
 	  <xsl:variable name="DQM_TID"><xsl:value-of select="1400+number(@instance)"/></xsl:variable>
-<!-- 	  <i2o:target tid="{$DQM_TID}" instance="{@instance}" class="EmuMonitor"></i2o:target> -->
+	  <i2o:target tid="{$DQM_TID}" instance="{@instance}" class="EmuMonitor"></i2o:target>
 
 <!-- 	</xsl:if> -->
       </xsl:for-each>
