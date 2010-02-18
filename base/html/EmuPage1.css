@@ -9,6 +9,7 @@ td.time { font-size:70%; }
 td.Halted, td.halted { background-color:#2222ff; }
 td.Ready, td.ready { background-color:#ffff22; }
 td.Configured, td.configured { background-color:#ffff22; }
+td.suspended { background-color:#ffff22; }
 td.Enabled, td.enabled { background-color:#22ff22; }
 td.ON { background-color:#22ff22; }
 td.Calibration { background-color:#22ff22; }
