@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.62 2010/01/28 11:48:57 liu Exp $
+// $Id: Crate.cc,v 3.63 2010/02/21 23:52:39 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.63  2010/02/21 23:52:39  liu
+// add CFEB BadBits into TMB counters
+//
 // Revision 3.62  2010/01/28 11:48:57  liu
 // correct total TMB counter number
 //
@@ -659,7 +662,7 @@ void Crate::MonitorCCB(int cycle, char * buf)
 
 void Crate::MonitorTMB(int cycle, char * buf, unsigned mask) 
 {
-  int TOTAL_TMB_COUNTERS=79;
+  int TOTAL_TMB_COUNTERS=88;  // 9 from CFEB BadBits registers
   int * countbuf, *buf4;
   short *buf2;
  

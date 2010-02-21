@@ -2187,7 +2187,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
   //
   int counter_idx[25]={ 0 ,  1,  2,  3,  7, 11, 13, 14, 15, 16,
                         17, 18, 26, 30, 31, 32, 35, 41, 42, 48,
-                        50, 54, 57, 62, 77};
+                        50, 54, 57, 62, 87};
 
 #if 0
   int counter_idx[23]={ 0 ,  1,  3,  4,  5, 13, 14, 17, 20, 28,
@@ -3050,7 +3050,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   }
   *out << cgicc::tr() << std::endl;
   *out << cgicc::table();
-  *out << "Note: for ME 1/3 chambers, DMB always 0" << std::endl;
+  *out << "Note: for ME 1/3 chambers, DMB could be always 0" << std::endl;
   //
 }
 
@@ -3170,12 +3170,23 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ");
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 ");
 
-    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  "); //75
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  "); // 75
     TCounterName.push_back( "CCB:  TTCrx lock lost                                   ");
     TCounterName.push_back( "CCB:  qPLL lock lost                                    "); 
-    TCounterName.push_back( "TMB:  Time since last Hard Reset                        "); //78
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Control                             "); // 78    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 1                           ");     
 
-    TOTAL_TMB_COUNTERS=79;
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 2                           "); // 80    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 3                           "); //    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 4                           "); //    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 5                           "); //    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 6                           "); //    
+
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 7                           "); // 85    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 8                           "); //   
+    TCounterName.push_back( "TMB:  Time since last Hard Reset                        "); // 87
+
+    TOTAL_TMB_COUNTERS=88;
 
     DCounterName.push_back( "L1A to LCT delay");  // 0
     DCounterName.push_back( "CFEB DAV delay  ");
@@ -3257,6 +3268,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     IsErrCounter[55]=1;
     IsErrCounter[75]=1;
     IsErrCounter[76]=1;
+    for(int i=0; i<9; i++) IsErrCounter[78+i]=1;
 
 #if 0
     IsErrCounter[8]=1;

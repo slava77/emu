@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.91 2010/02/03 12:19:02 rakness Exp $
+// $Id: TMB.cc,v 3.92 2010/02/21 23:52:39 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.92  2010/02/21 23:52:39  liu
+// add CFEB BadBits into TMB counters
+//
 // Revision 3.91  2010/02/03 12:19:02  rakness
 // add CFEB badbits blocking (for TMB firmware 14 Jan 2010)
 //
@@ -1514,6 +1517,10 @@ int * TMB::NewCounters(){
       read_later(cnt_rdata_adr);
     }
   }   
+
+  // CFEB BadBits registers: 0x122->0x142, total 17 words => 9 counters (32-bit)
+  for(unsigned short add=0x122; add<=0x144; add+=2) read_later(add);
+
   // time since last hard_reset (in seconds)
   read_now(0xE8, (char *)FinalCounter);
   //
