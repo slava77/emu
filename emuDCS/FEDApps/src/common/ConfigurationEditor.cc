@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.cc,v 1.13 2010/02/04 21:03:51 paste Exp $
+* $Id: ConfigurationEditor.cc,v 1.14 2010/02/22 23:00:41 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/ConfigurationEditor.h"
 
@@ -55,6 +55,7 @@ dbKey_(0)
 	xgi::bind(this, &emu::fed::ConfigurationEditor::webFIFO, "FIFO");
 	xgi::bind(this, &emu::fed::ConfigurationEditor::webUploadToDB, "UploadToDB");
 	xgi::bind(this, &emu::fed::ConfigurationEditor::webFindChamber, "FindChamber");
+	xgi::bind(this, &emu::fed::ConfigurationEditor::webSummarize, "Summarize");
 
 	timeStamp_ = time(NULL);
 }
@@ -213,6 +214,12 @@ void emu::fed::ConfigurationEditor::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("class", "right write_xml action_button")
 		.set("id", "write_xml");
 	*out << "Write configuration to XML";
+	*out << cgicc::button() << std::endl;
+
+	*out << cgicc::button()
+		.set("class", "right summarize action_button")
+		.set("id", "summarize");
+	*out << "Summarize configuration";
 	*out << cgicc::button() << std::endl;
 
 	*out << cgicc::fieldset() << std::endl;
@@ -3102,4 +3109,251 @@ void emu::fed::ConfigurationEditor::webFindChamber(xgi::Input *in, xgi::Output *
 	output.push_back(JSONSpirit::Pair("error", "No fibers match that string."));
 	*out << JSONSpirit::write(output);
 	return;
+}
+
+
+
+void emu::fed::ConfigurationEditor::webSummarize(xgi::Input *in, xgi::Output *out)
+{
+	// Non-standard header
+	*out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
+	*out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
+	*out << cgicc::head() << std::endl;
+	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/emu/emuDCS/FEDApps/html/FEDApps.css\" />" << std::endl;
+
+	*out << cgicc::head() << std::endl;
+	*out << cgicc::body() << std::endl;
+
+	// Output system/key information
+	*out << cgicc::table()
+		.set("class", "data_table") << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("System Information")
+		.set("colspan", "2") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_entry") << std::endl;
+	*out << cgicc::td("System Name")
+		.set("class", "entry_name") << std::endl;
+	*out << cgicc::td(systemName_.toString())
+		.set("class", "entry_value") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_entry") << std::endl;
+	*out << cgicc::td("DB Key")
+		.set("class", "entry_name") << std::endl;
+	*out << cgicc::td(dbKey_.toString())
+		.set("class", "entry_value") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_entry") << std::endl;
+	*out << cgicc::td("Time Stamp")
+		.set("class", "entry_name") << std::endl;
+	*out << cgicc::td(toolbox::TimeVal(timeStamp_).toString(toolbox::TimeVal::gmt))
+		.set("class", "entry_value") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::table() << std::endl;
+
+	// Output hardware information
+	*out << cgicc::table()
+		.set("class", "data_table") << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("Hardware Information")
+		.set("colspan", "6") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("Crate Number") << std::endl;
+	*out << cgicc::td("Slot") << std::endl;
+	*out << cgicc::td("Board Type") << std::endl;
+	*out << cgicc::td("Identifier") << std::endl;
+	*out << cgicc::td("TF DDU") << std::endl;
+	*out << cgicc::td("Global") << std::endl;
+	*out << cgicc::tr() << std::endl;
+
+	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+
+		unsigned int crateNumber = (*iCrate)->getNumber();
+
+		std::vector<DDU *> dduVector = (*iCrate)->getDDUs();
+		for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+
+			unsigned int slot = (*iDDU)->getSlot();
+			std::string boardType = "DDU";
+			std::ostringstream identifier;
+			identifier << "RUI " << (*iDDU)->getRUI();
+			bool trackFinder = ((*iDDU)->getRUI() == 0xc0);
+			bool global = ((*iDDU)->getGbEPrescale() != 0x8);
+
+			*out << cgicc::tr()
+				.set("class", "data_entry") << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << crateNumber << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << slot << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << boardType << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << identifier.str() << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << (trackFinder ? "true" : "false") << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << (global ? "true" : "false") << cgicc::td() << std::endl;
+			*out << cgicc::tr() << std::endl;
+
+		}
+
+		std::vector<DCC *> dccVector = (*iCrate)->getDCCs();
+		for (std::vector<DCC *>::const_iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
+
+			unsigned int slot = (*iDCC)->getSlot();
+			std::string boardType = "DCC";
+			std::ostringstream identifier;
+			bool global = !((*iDCC)->getSoftwareSwitch() & 0x4000);
+			identifier << "FMM ID " << (*iDCC)->getFMMID();
+
+			*out << cgicc::tr()
+				.set("class", "data_entry") << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << crateNumber << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << slot << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << boardType << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << identifier.str() << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << cgicc::td() << std::endl;
+			*out << cgicc::td()
+				.set("class", "entry_value") << (global ? "true" : "false") << cgicc::td() << std::endl;
+			*out << cgicc::tr() << std::endl;
+
+		}
+
+	}
+
+	*out << cgicc::table() << std::endl;
+
+	// Output killed fibers
+	*out << cgicc::table()
+		.set("class", "data_table") << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("Killed Fibers")
+		.set("colspan", "5") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("Crate Number") << std::endl;
+	*out << cgicc::td("Slot") << std::endl;
+	*out << cgicc::td("RUI") << std::endl;
+	*out << cgicc::td("Fiber") << std::endl;
+	*out << cgicc::td("Chamber/SP") << std::endl;
+	*out << cgicc::tr() << std::endl;
+
+	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+
+		unsigned int crateNumber = (*iCrate)->getNumber();
+
+		std::vector<DDU *> dduVector = (*iCrate)->getDDUs();
+		for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+
+			unsigned int slot = (*iDDU)->getSlot();
+			unsigned int rui = (*iDDU)->getRUI();
+
+			std::vector<Fiber *> fiberVector = (*iDDU)->getFibers();
+			for (std::vector<Fiber *>::const_iterator iFiber = fiberVector.begin(); iFiber != fiberVector.end(); ++iFiber) {
+
+				if ((*iFiber)->isKilled()) {
+
+					unsigned int fiber = (*iFiber)->getFiberNumber();
+					std::string name = (*iFiber)->getName();
+
+					*out << cgicc::tr()
+						.set("class", "data_entry") << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << crateNumber << cgicc::td() << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << slot << cgicc::td() << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << rui << cgicc::td() << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << fiber << cgicc::td() << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << name << cgicc::td() << std::endl;
+					*out << cgicc::tr() << std::endl;
+
+				}
+
+			}
+
+		}
+
+	}
+
+	*out << cgicc::table() << std::endl;
+
+	// Output unused fifos
+	*out << cgicc::table()
+		.set("class", "data_table") << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("Unused FIFOs")
+		.set("colspan", "5") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("Crate Number") << std::endl;
+	*out << cgicc::td("Slot") << std::endl;
+	*out << cgicc::td("FMM ID") << std::endl;
+	*out << cgicc::td("FIFO") << std::endl;
+	*out << cgicc::td("RUI") << std::endl;
+	*out << cgicc::tr() << std::endl;
+
+	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+
+		unsigned int crateNumber = (*iCrate)->getNumber();
+
+		std::vector<DCC *> dccVector = (*iCrate)->getDCCs();
+		for (std::vector<DCC *>::const_iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
+
+			unsigned int slot = (*iDCC)->getSlot();
+			unsigned int fmmid = (*iDCC)->getFMMID();
+
+			std::vector<FIFO *> fifoVector = (*iDCC)->getFIFOs();
+			for (std::vector<FIFO *>::const_iterator iFIFO = fifoVector.begin(); iFIFO != fifoVector.end(); ++iFIFO) {
+
+				if (!(*iFIFO)->isUsed()) {
+
+					unsigned int fifo = (*iFIFO)->getNumber();
+					unsigned int rui = (*iFIFO)->getRUI();
+
+					*out << cgicc::tr()
+						.set("class", "data_entry") << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << crateNumber << cgicc::td() << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << slot << cgicc::td() << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << fmmid << cgicc::td() << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << fifo << cgicc::td() << std::endl;
+					*out << cgicc::td()
+						.set("class", "entry_value") << rui << cgicc::td() << std::endl;
+					*out << cgicc::tr() << std::endl;
+
+				}
+
+			}
+
+		}
+
+	}
+
+	*out << cgicc::table() << std::endl;
+
+	*out << cgicc::body() << std::endl;
+	*out << "</html>" << std::endl;
 }

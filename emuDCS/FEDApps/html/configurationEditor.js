@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: configurationEditor.js,v 1.5 2010/02/04 21:03:45 paste Exp $
+* $Id: configurationEditor.js,v 1.6 2010/02/22 23:00:35 paste Exp $
 \*****************************************************************************/
 
 // Global variables follow
@@ -1145,6 +1145,10 @@ Event.observe(window, "load", function(event) {
 
 	$("find_button").observe("click", function(ev) {
 		findChamber(($("find_a_fiber")).value);
+	});
+
+	$("summarize").observe("click", function(ev) {
+		window.open(URL + "/Summarize", "SummarizeWindow");
 	});
 
 

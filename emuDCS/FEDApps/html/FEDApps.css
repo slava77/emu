@@ -540,6 +540,7 @@ table.data_table {
 	border-collapse: collapse;
 	border: 2px solid #000;
 	background-color: #FFF;
+	margin: 6px;
 }
 
 table.data_table > tr:nth-of-type(2n+3) {
@@ -550,6 +551,11 @@ tr.data_header {
 	background-color: #000;
 	color: #FFF;
 	font-weight: bold;
+}
+
+tr.data_header > td {
+	padding-left: 6px;
+	padding-right: 6px;
 }
 
 td.entry_name, td.entry_value, td.entry_debug {
