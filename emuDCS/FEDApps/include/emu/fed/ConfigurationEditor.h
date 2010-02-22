@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.h,v 1.9 2010/02/04 21:03:45 paste Exp $
+* $Id: ConfigurationEditor.h,v 1.10 2010/02/22 23:00:35 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURATIONEDITOR_H__
 #define __EMU_FED_CONFIGURATIONEDITOR_H__
@@ -75,6 +75,9 @@ namespace emu {
 
 			/** Find a fiber **/
 			void webFindChamber(xgi::Input *in, xgi::Output *out);
+
+			/** Display what is killed in a given configuration **/
+			void webSummarize(xgi::Input *in, xgi::Output *out);
 
 		private:
 
