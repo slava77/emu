@@ -2,7 +2,7 @@
 
 namespace EmuPeripheralXtop {
 	const std::string package  =  "EmuPeripheralXtop";
-	const std::string versions =  "09.05.00";
+	const std::string versions =  "09.06.00";
 	const std::string summary = "emu/emuDCS/PeripheralXtop";
 	const std::string description = "Emu Peripheral Crate Xmas to PVSS Library";
 	const std::string authors = "Jinghua Liu for cms-emu-onlinesoftware";
