@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.12 2009/11/22 13:45:37 liu Exp $
+// $Id: Chamber.cc,v 1.13 2010/02/23 14:32:01 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.13  2010/02/23 14:32:01  liu
+// add debug info
+//
 // Revision 1.12  2009/11/22 13:45:37  liu
 // debug message  for bad readings
 //
@@ -81,7 +84,7 @@ void Chamber::Fill(char *buffer, int source)
        item=strtok_r(NULL, sep, &last);
    };
    if(source==0 && states[0]==0)
-   {   // DEBUG: print a bad reading, but only the first time it goes to bad
+   {   // DEBUG: print a bad reading, but only the first time it goes bad
        if(ready_) std::cout << label_ << " " << states[1] << std::endl;
        ready_ = false;
    }
@@ -91,7 +94,7 @@ void Chamber::Fill(char *buffer, int source)
        ready_ = true;
    }
    if(source==0 && (idx!=51 || values[47]!=(-50.)))
-   {   std::cout << "BAD...total " << idx << " last one " << values[47] << std::endl;
+   {   std::cout << label_ << " BAD...total " << idx << " last one " << values[47] << std::endl;
        corruption = true;
    }
    else corruption = false;
