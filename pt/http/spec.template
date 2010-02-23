@@ -1,17 +1,17 @@
-%define _package pt/http
-%define _packagename pthttp
-%define _version 3.10.13
-%define _release 1.cmsos9.slc4
-%define _prefix  /opt/xdaq
+%define _package __package__
+%define _packagename __packagename__
+%define _version __version__
+%define _release __release__
+%define _prefix  __prefix__
 %define _tmppath /tmp
-%define _packagedir /cmsnfshome0/nfshome0/cscdaq/TriDAS/emu/pt/http
-%define _os linux
-%define _platform x86
-%define _project emu
-%define _author cscdaq
-%define _summary HTTP peer transport with SOAP and CGI service implementations modified to work with Emu Expert System (SOAP 1.1)
-%define _url http://xdaqwiki.cern.ch/index.php/Core_Tools
-%define _buildarch x86
+%define _packagedir __packagedir__
+%define _os __os__
+%define _platform __platform__
+%define _project __project__
+%define _author __author__
+%define _summary __summary__
+%define _url __url__
+%define _buildarch __buildarch__
 
 %define _unpackaged_files_terminate_build 0
 
@@ -32,7 +32,7 @@ BuildRoot: %{_tmppath}/%{_packagename}-%{_version}-%{_release}-buildroot
 Prefix: %{_prefix}
 
 %description
-
+__description__
 
 #
 # Devel RPM specified attributes (extension to binary rpm with include files)
@@ -42,7 +42,7 @@ Summary:  Development package for %{_summary}
 Group:    Applications/XDAQ
 
 %description -n %{_project}-%{_packagename}-devel
-
+__description__
 
 
 #%prep
@@ -62,36 +62,36 @@ mkdir -p $RPM_BUILD_ROOT/%{_prefix}/include/%{_package}/linux
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_package}/{images,xml,html}
 # mkdir -p $RPM_BUILD_ROOT/%{_prefix}/{scripts}/%{_package}
 
-if [ -d %{_packagedir}/bin/%{_os}/%{_platform} ]; then 
-	install -m 655 %{_packagedir}/bin/%{_os}/%{_platform}/* $RPM_BUILD_ROOT/%{_prefix}/bin/ 
-fi
+#if [ -d %{_packagedir}/bin/%{_os}/%{_platform} ]; then 
+#	install -m 655 %{_packagedir}/bin/%{_os}/%{_platform}/* $RPM_BUILD_ROOT/%{_prefix}/bin/ 
+#fi
 if [ -d %{_packagedir}/lib/%{_os}/%{_platform} ]; then
 	install -m 655 %{_packagedir}/lib/%{_os}/%{_platform}/* $RPM_BUILD_ROOT/%{_prefix}/lib/
 fi
-if [ -d %{_packagedir}/include ]; then
-	cd %{_packagedir}/include; \
-	find ./ \( -name "*.[hi]" -o -name "*.hpp" -o -name "*.hh" -o -name "*.hxx" \) -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/include/{} \;
-fi
-if [ -d %{_packagedir}/scripts ]; then
-	cd %{_packagedir}/scripts
-	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 755 {} $RPM_BUILD_ROOT/%{_prefix}/bin/{} \;
-fi
-if [ -d %{_packagedir}/etc ]; then
-	cd %{_packagedir}/etc; \
-	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/etc/{} \;
-fi
-if [ -d %{_packagedir}/xml ]; then
-	cd %{_packagedir}/xml; \
-	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_package}/xml/{} \;
-fi
-if [ -d %{_packagedir}/images ]; then
-	cd %{_packagedir}/images; \
-	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_package}/images/{} \;
-fi
-if [ -d %{_packagedir}/html ]; then
-	cd %{_packagedir}/html; \
-	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_package}/html/{} \;
-fi
+#if [ -d %{_packagedir}/include ]; then
+#	cd %{_packagedir}/include; \
+#	find ./ \( -name "*.[hi]" -o -name "*.hpp" -o -name "*.hh" -o -name "*.hxx" \) -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/include/{} \;
+#fi
+#if [ -d %{_packagedir}/scripts ]; then
+#	cd %{_packagedir}/scripts
+#	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 755 {} $RPM_BUILD_ROOT/%{_prefix}/bin/{} \;
+#fi
+#if [ -d %{_packagedir}/etc ]; then
+#	cd %{_packagedir}/etc; \
+#	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/etc/{} \;
+#fi
+#if [ -d %{_packagedir}/xml ]; then
+#	cd %{_packagedir}/xml; \
+#	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_package}/xml/{} \;
+#fi
+#if [ -d %{_packagedir}/images ]; then
+#	cd %{_packagedir}/images; \
+#	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_package}/images/{} \;
+#fi
+#if [ -d %{_packagedir}/html ]; then
+#	cd %{_packagedir}/html; \
+#	find ./ -name ".svn" -prune -o -name "*" -exec install -D -m 655 {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_package}/html/{} \;
+#fi
 
 if [ -e %{_packagedir}/ChangeLog ]; then
 	install -m 655 %{_packagedir}/ChangeLog %{_packagedir}/rpm/RPMBUILD/BUILD/ChangeLog
