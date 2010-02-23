@@ -29,7 +29,7 @@ namespace emu {
 
 BoardsDB::BoardsDB(): pAttributes_(0)
 {
-  HOMEDIR_=getenv("BUILD_HOME");
+  HOMEDIR_=getenv("XDAQ_DOCUMENT_ROOT");
   HOMEDIR_+="/emu/emuDCS/OnlineDB/xml/";
   std::cout << "Home Directory:" << HOMEDIR_ <<std::endl;
 
