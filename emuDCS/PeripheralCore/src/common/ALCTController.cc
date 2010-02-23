@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.60 2009/08/18 11:48:56 rakness Exp $
+// $Id: ALCTController.cc,v 3.61 2010/02/23 09:10:43 liu Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.61  2010/02/23 09:10:43  liu
+// disabled checking of VCC ipAddress
+//
 // Revision 3.60  2009/08/18 11:48:56  rakness
 // define the mirror/regular firmware type for ME42
 //
@@ -4263,7 +4266,7 @@ int ALCTController::CheckFirmwareConfiguration() {
   // First get the configuration parameters set in the xml file...
   //
   // These two control VME access to the ALCT:
-  std::string xml_VCCIpAddress = tmb_->getCrate()->vmeController()->ipAddress();
+  std::string xml_VCCIpAddress = "";
   int         xml_tmb_slot     = tmb_->slot();
   //
   // The next 6 are a sanity check on the configuration parameters:
@@ -4288,7 +4291,7 @@ int ALCTController::CheckFirmwareConfiguration() {
   //
   for (unsigned int config_index=0; config_index<number_of_allowed_firmware_configurations; config_index++) {
     //
-    if ( xml_VCCIpAddress           == allowed_firmware_config[config_index].VCCIpAddress           && 
+    if ( 
 	 xml_tmb_slot               == allowed_firmware_config[config_index].tmb_slot               && 
 	 xml_crateLabel             == allowed_firmware_config[config_index].crateLabel             && 
 	 xml_chamberLabel           == allowed_firmware_config[config_index].chamberLabel           && 
