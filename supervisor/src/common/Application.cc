@@ -734,21 +734,9 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       sendCommand("Configure", "emu::daq::manager::Application");
     } catch (xcept::Exception ignored) {}
     
-    // Configure PCrate
-    string str = trim(getCrateConfig("PC", run_type_.toString()));
-    if (!str.empty()) {
-      setParameter(
-		   "emu::pc::EmuPeripheralCrateManager", "xmlFileName", "xsd:string", str);
-    }
     if (!isCalibrationMode()) {
       sendCommand("Configure", "emu::pc::EmuPeripheralCrateManager");
-    } else 
-	{
-		if (isAlctCalibrationMode())
-			sendCommand("ConfigCalALCT", "emu::pc::EmuPeripheralCrateManager");
-		else
-			sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
-    }   
+    }
        
     // Configure TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
@@ -766,6 +754,16 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       } 
     }
 
+    if( isCalibrationMode())
+    {
+       setParameter("emu::fed::Manager", "runType", "xsd:string", "calibration");
+    } else if( controlTFCellOp_.value_ )
+    {
+       setParameter("emu::fed::Manager", "runType", "xsd:string", "local");
+    } else
+    {
+       setParameter("emu::fed::Manager", "runType", "xsd:string", "global");
+    }
     // Configure FED
     sendCommand("Configure", "emu::fed::Manager");
     
@@ -780,6 +778,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     }
     sendCommand("Configure", "LTCControl");
 
+    if (isCalibrationMode()) {
+		if (isAlctCalibrationMode())
+			sendCommand("ConfigCalALCT", "emu::pc::EmuPeripheralCrateManager");
+		else
+			sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
+    }   
     // If necessary, wait a bit for DAQ to finish configuring
     waitForDAQToExecute("Configure", 10, true);
        
