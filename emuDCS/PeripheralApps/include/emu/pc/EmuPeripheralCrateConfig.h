@@ -327,9 +327,6 @@ private:
   void ConfigOneCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void InitChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
-  void StartPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void StopPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  // 
   // Calibration
   void CalibrationALCTThresholdScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CalibrationALCTConnectivity(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -534,8 +531,11 @@ private:
   void SetNumberOfHardResets(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   void ReadbackALCTFirmware(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   //
-  void SetHighRateTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void SetNormRateTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  // Expert Tools
+  void ExpertToolsPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void StartPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void StopPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void SetRadioactivityTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
   //
   void DefineFirmwareFilenames();

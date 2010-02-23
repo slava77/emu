@@ -208,6 +208,14 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::SetNumberOfHardResets, "SetNumberOfHardResets");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadbackALCTFirmware, "ReadbackALCTFirmware");
   //
+  //---------------------------------
+  // bind Expert Tools pages
+  //---------------------------------
+  xgi::bind(this,&EmuPeripheralCrateConfig::ExpertToolsPage,"ExpertToolsPage");
+  xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
+  xgi::bind(this,&EmuPeripheralCrateConfig::StopPRBS, "StopPRBS");
+  xgi::bind(this,&EmuPeripheralCrateConfig::SetRadioactivityTrigger, "SetRadioactivityTrigger");
+  //
   //------------------------------
   // bind crate utilities
   //------------------------------
@@ -249,8 +257,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForSystem,"QuickScanForSystem");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
-  xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
-  xgi::bind(this,&EmuPeripheralCrateConfig::StopPRBS, "StopPRBS");
   //
   //-----------------------------------------------
   // VME Controller routines
@@ -617,6 +623,11 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::a("[Configuration Check]").set("href",CheckConfigurationPage) << std::endl;
   *out << cgicc::td();
 
+  *out << cgicc::td();
+  std::string ExpertToolsPage = toolbox::toString("/%s/ExpertToolsPage",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::a("[Expert Tools Page]").set("href",ExpertToolsPage) << std::endl;
+  *out << cgicc::td();
+
   *out << cgicc::table();
 
   *out << cgicc::br() << std::endl;
@@ -629,62 +640,6 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << cgicc::br() << std::endl ;;
   *out << cgicc::td();
 
-  *out << cgicc::td();
-  if(prbs_test_)
-  {
-    std::string StopPRBS = toolbox::toString("/%s/StopPRBS",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",StopPRBS) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Stop PRBS test").set("style","color:red") << std::endl ;
-    *out << cgicc::form() << cgicc::br() << std::endl ;;
-  } else
-  {
-    std::string StartPRBS = toolbox::toString("/%s/StartPRBS",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",StartPRBS) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Start PRBS test").set("style","color:blue") << std::endl ;
-    *out << cgicc::form() << cgicc::br() << std::endl ;;
-  }
-  *out << cgicc::td();
-  //
-  *out << cgicc::table() << std::endl ;
-  //
-  //
-  *out << cgicc::table().set("border","0");
-  //
-  *out << cgicc::td();
-  std::string MeasureALCTTMBRxTxForSystem = toolbox::toString("/%s/MeasureALCTTMBRxTxForSystem",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",MeasureALCTTMBRxTxForSystem) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Find ALCT rx/tx") << std::endl ;
-  *out << cgicc::form() << cgicc::br() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  std::string MeasureCFEBTMBRxForSystem = toolbox::toString("/%s/MeasureCFEBTMBRxForSystem",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",MeasureCFEBTMBRxForSystem) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Find CFEB rx") << std::endl ;
-  *out << cgicc::form() << cgicc::br() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  std::string ALCTBC0ScanForSystem = toolbox::toString("/%s/ALCTBC0ScanForSystem",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",ALCTBC0ScanForSystem) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Synchronize ALCT BC0") << std::endl ;
-  *out << cgicc::form() << cgicc::br() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  std::string MeasureL1AsAndDAVsForSystem = toolbox::toString("/%s/MeasureL1AsAndDAVsForSystem",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForSystem) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Find L1As and DAVs") << std::endl ;
-  *out << cgicc::form() << cgicc::br() << std::endl ;
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  std::string QuickScanForSystem = toolbox::toString("/%s/QuickScanForSystem",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",QuickScanForSystem) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","L1As and DAVs for TOF parameters only") << std::endl ;
-  *out << cgicc::form() << cgicc::br() << std::endl ;
-  *out << cgicc::td();
-  //
   *out << cgicc::table() << std::endl ;
   //
   //
@@ -762,12 +717,12 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << std::endl ;
     *out << cgicc::td();
     //
-    *out << cgicc::td();
-    std::string ConfigOneCr = toolbox::toString("/%s/ConfigOneCrate",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",ConfigOneCr) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Write FLASH to Crate") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    *out << cgicc::td();
+    //    *out << cgicc::td();
+    //    std::string ConfigOneCr = toolbox::toString("/%s/ConfigOneCrate",getApplicationDescriptor()->getURN().c_str());
+    //    *out << cgicc::form().set("method","GET").set("action",ConfigOneCr) << std::endl ;
+    //    *out << cgicc::input().set("type","submit").set("value","Write FLASH to Crate") << std::endl ;
+    //    *out << cgicc::form() << std::endl ;
+    //    *out << cgicc::td();
     //
     *out << cgicc::td();
     std::string CrateDumpConfiguration = toolbox::toString("/%s/CrateDumpConfiguration",getApplicationDescriptor()->getURN().c_str());
@@ -1291,36 +1246,6 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
       }
   }
 
-
-void EmuPeripheralCrateConfig::StartPRBS(xgi::Input * in, xgi::Output * out )
-  throw (xgi::exception::Exception) {
-  //  
-  std::cout << "Button: Start PRBS Test" << std::endl;
-  //
-  if(total_crates_>0)
-  {
-     for(unsigned i=0; i< crateVector.size(); i++) {
-        if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->enablePRBS();
-     }
-     prbs_test_=true;
-  }
-  this->Default(in, out);
-}
-
-void EmuPeripheralCrateConfig::StopPRBS(xgi::Input * in, xgi::Output * out )
-  throw (xgi::exception::Exception) {
-  //  
-  std::cout << "Button: Start PRBS Test" << std::endl;
-  //
-  if(total_crates_>0)
-  {
-     for(unsigned i=0; i< crateVector.size(); i++) {
-        if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->disablePRBS();
-     }
-     prbs_test_=false;
-  }
-  this->Default(in, out);
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Layouts of html pages
@@ -3413,6 +3338,364 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
 }
 //
 //
+////////////////////////////////////////////////////////////////////////////////////
+// Expert Tools
+////////////////////////////////////////////////////////////////////////////////////
+void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  char Name[100];
+  sprintf(Name,"Expert Tools Page");
+  //
+  MyHeader(in,out,Name);
+  //
+  *out << cgicc::h2("!!!Do NOT click these buttons during a GLOBAL RUN!!!");
+  *out << cgicc::br();
+  //
+  //  ///////////////////////
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Special test configuration").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  std::string SetRadioactivityTrigger = toolbox::toString("/%s/SetRadioactivityTrigger",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SetRadioactivityTrigger) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","SetRadioactivityTrigger") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;;
+  //
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::br();
+  //
+  //  ///////////////////////
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Determine online synchronization parameters").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
+  std::string MeasureALCTTMBRxTxForSystem = toolbox::toString("/%s/MeasureALCTTMBRxTxForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureALCTTMBRxTxForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find ALCT rx/tx") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string MeasureCFEBTMBRxForSystem = toolbox::toString("/%s/MeasureCFEBTMBRxForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureCFEBTMBRxForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find CFEB rx") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string ALCTBC0ScanForSystem = toolbox::toString("/%s/ALCTBC0ScanForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCTBC0ScanForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Synchronize ALCT BC0") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string MeasureL1AsAndDAVsForSystem = toolbox::toString("/%s/MeasureL1AsAndDAVsForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find L1As and DAVs") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string QuickScanForSystem = toolbox::toString("/%s/QuickScanForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",QuickScanForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","L1As and DAVs for TOF parameters only") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table() << std::endl ;
+  //
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::br();
+  //
+  //
+  //  ///////////////////////
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Test MPC to SP links").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  if(prbs_test_) {
+    std::string StopPRBS = toolbox::toString("/%s/StopPRBS",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",StopPRBS) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Stop PRBS test").set("style","color:red") << std::endl ;
+    *out << cgicc::form() << cgicc::br() << std::endl ;;
+  } else {
+    std::string StartPRBS = toolbox::toString("/%s/StartPRBS",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",StartPRBS) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Start PRBS test").set("style","color:blue") << std::endl ;
+    *out << cgicc::form() << cgicc::br() << std::endl ;;
+  }
+  //
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::br();
+  //
+  //  ///////////////////////
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Full configuration check (including Global-run NON-safe parameters)").set("style","color:blue") 
+       << cgicc::p() << std::endl ;
+  //
+  std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfiguration",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
+  if (all_crates_ok == 1) {
+    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:green") << std::endl ;
+  } else if (all_crates_ok == 0) {
+    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:red") << std::endl ;
+  } else if (all_crates_ok == -1) {
+    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:blue") << std::endl ;
+  }
+  *out << cgicc::form() << std::endl ;
+  //
+  int initial_crate = current_crate_;
+  //
+  if (print_stuff) {
+    //
+    *out                     << "date_time = " << date_and_time_  << cgicc::br() << std::endl;
+    OutputCheckConfiguration << "date_time = " << date_and_time_                << std::endl;
+    //
+  }
+  //
+  if (all_crates_ok >= 0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      if ( !crate_check_ok[current_crate_] ) {
+	//
+	//    OutputCheckConfiguration << "Problem summary for Crate " << thisCrate->GetLabel() << "..." << std::endl;
+	//
+	if( !(ccb_check_ok[current_crate_]) ) {
+	  *out                     << thisCrate->GetLabel() << "<span style=\"color:red\" >, CCB config fail </span>" << cgicc::br() << std::endl;
+	  OutputCheckConfiguration << thisCrate->GetLabel() << ", CCB"                << std::endl;
+	}
+	//
+	if( !(mpc_check_ok[current_crate_]) ) {
+	  *out                     << thisCrate->GetLabel() << "<span style=\"color:red\" >, MPC config fail </span>" << cgicc::br() << std::endl;
+	  OutputCheckConfiguration << thisCrate->GetLabel() << ", MPC"                << std::endl;
+	}
+	//
+	for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	  //
+	  if( tmb_check_ok[current_crate_][chamber_index]  > 0  ||
+	      alct_check_ok[current_crate_][chamber_index] > 0  ||
+	      dmb_check_ok[current_crate_][chamber_index]  > 0 ) {
+	    //
+	    *out << "<span style=\"color:black\" >";
+	    *out                     << thisCrate->GetLabel() << ", " << (chamberVector[chamber_index]->GetLabel()).c_str();
+	    OutputCheckConfiguration << thisCrate->GetLabel() << ", " << (chamberVector[chamber_index]->GetLabel()).c_str();
+	    *out << "</span>";
+	    //
+	    bool print_description = false;
+	    //
+	    if( tmb_check_ok[current_crate_][chamber_index] > 0) {
+	      //
+	      OutputCheckConfiguration << ", TMB, " << tmb_check_ok[current_crate_][chamber_index];
+	      //
+	      if( tmb_check_ok[current_crate_][chamber_index]        == 1) {
+		*out << "<span style=\"color:red\" > TMB config fail, </span>";
+	      } else if( tmb_check_ok[current_crate_][chamber_index] == 2) {
+		*out << "<span style=\"color:black\" > expected TMB config fail, </span>";
+		print_description = true;
+	      } else if( tmb_check_ok[current_crate_][chamber_index] == 3) {
+		*out << "<span style=\"color:blue\" > did not see expected TMB config failure, </span>";
+		print_description = true;
+	      } else if( tmb_check_ok[current_crate_][chamber_index] == 4) {
+		*out << "<span style=\"color:red\" > TMB FPGA did not program, </span>";
+	      } 
+	      //
+	    } else {
+	      //
+	      *out                     << ", , ";
+	      OutputCheckConfiguration << ", , ";
+	    }
+	    //
+	    if( alct_check_ok[current_crate_][chamber_index] > 0) {
+	      //
+	      OutputCheckConfiguration << ", ALCT, " << alct_check_ok[current_crate_][chamber_index];
+	      //
+	      if( alct_check_ok[current_crate_][chamber_index]        == 1) {
+		*out << "<span style=\"color:red\" > ALCT config fail, </span>";
+	      } else if( alct_check_ok[current_crate_][chamber_index] == 2) {
+		*out << "<span style=\"color:black\" > expected ALCT config fail, </span>";
+		print_description = true;
+	      } else if( alct_check_ok[current_crate_][chamber_index] == 3) {
+		*out << "<span style=\"color:blue\" > did not see expected ALCT config failure, </span>";
+		print_description = true;
+	      } else if( alct_check_ok[current_crate_][chamber_index] == 4) {
+		*out << "<span style=\"color:red\" > ALCT FPGA did not program, </span>";
+	      } 
+	      //
+	    } else {
+	      //
+	      *out                     << ", , ";
+	      OutputCheckConfiguration << ", , ";
+	    }
+	    //
+	    if( dmb_check_ok[current_crate_][chamber_index] > 0) {
+	      //
+	      OutputCheckConfiguration << ", DMB, " << dmb_check_ok[current_crate_][chamber_index];
+	      //
+	      if( dmb_check_ok[current_crate_][chamber_index]        == 1) {
+		*out << "<span style=\"color:red\" > DMB config fail, </span>";
+	      } else if( dmb_check_ok[current_crate_][chamber_index] == 2) {
+		*out << "<span style=\"color:black\" > expected DMB config fail, </span>";
+		print_description = true;
+	      } else if( dmb_check_ok[current_crate_][chamber_index] == 3) {
+		*out << "<span style=\"color:blue\" > did not see expected DMB config failure, </span>";
+		print_description = true;
+	      } else if( dmb_check_ok[current_crate_][chamber_index] == 4) {
+		*out << "<span style=\"color:red\" > DMB FPGA did not program, </span>";
+	      } 
+	      //
+	    } else {
+	      //
+	      *out                     << ", , ";
+	      OutputCheckConfiguration << ", , ";
+	    }
+	    //
+	    if (print_description) {
+	      *out                     << ", " << (chamberVector[chamber_index]->GetProblemDescription()).c_str();
+	      OutputCheckConfiguration << ", " << (chamberVector[chamber_index]->GetProblemDescription()).c_str();
+	    } else {
+	      *out                     << ", ";
+	      OutputCheckConfiguration << ", ";
+	    }
+	    //
+	    *out                     << cgicc::br() << std::endl;
+	    OutputCheckConfiguration                << std::endl;
+	    //
+	  } 
+	}
+	} else if (crate_check_ok[current_crate_] == -1) {
+	//
+	*out << cgicc::span().set("style","color:blue");
+	*out                     << crateVector[crate_number]->GetLabel() << " Not checked" << cgicc::br();
+	OutputCheckConfiguration << crateVector[crate_number]->GetLabel() << " Not checked" << std::endl;
+	*out << cgicc::span() << std::endl ;
+      }
+
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  *out << cgicc::fieldset();
+  //
+  if (print_stuff) {
+    //
+    //Output the errors to a file...
+    //
+    // The peripheral crate labels have the convention:  VME[p,n]N_M.  Here we use 
+    // the "p" or "n" to label which endcap we are checking the firmware status on...
+    const char * crate_name = crateVector[0]->GetLabel().c_str();
+    char endcap_side = crate_name[3];
+    //
+    // This file is hardcoded as FirmwareDir_/status_check/YEARMODA_HRMN_[p,n]_firmware_status.log
+    char filename[200];
+    sprintf(filename,"%s/status_check/%s_%c_configuration_check.log",FirmwareDir_.c_str(),date_and_time_,endcap_side);
+    //
+    //  std::cout << "filename = " << filename << std::endl;
+    //
+    std::ofstream LogFileCheckConfiguration;
+    LogFileCheckConfiguration.open(filename);
+    LogFileCheckConfiguration << OutputCheckConfiguration.str() ;
+    LogFileCheckConfiguration.close();
+    //
+  }
+  print_stuff = false;
+  //
+}
+//
+void EmuPeripheralCrateConfig::StartPRBS(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Start PRBS Test" << std::endl;
+  //
+  if(total_crates_>0)
+  {
+     for(unsigned i=0; i< crateVector.size(); i++) {
+        if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->enablePRBS();
+     }
+     prbs_test_=true;
+  }
+  this->ExpertToolsPage(in, out);
+}
+
+void EmuPeripheralCrateConfig::StopPRBS(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Start PRBS Test" << std::endl;
+  //
+  if(total_crates_>0)
+  {
+     for(unsigned i=0; i< crateVector.size(); i++) {
+        if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->disablePRBS();
+     }
+     prbs_test_=false;
+  }
+  this->ExpertToolsPage(in, out);
+}
+//
+void EmuPeripheralCrateConfig::SetRadioactivityTrigger(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Configure all crates to have the Radioactivity Trigger" << std::endl;
+  //
+  int initial_crate = current_crate_;
+  //
+  if(total_crates_>0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      if ( crateVector[crate_number]->IsAlive() ) {
+	//
+	SetCurrentCrate(crate_number);
+	//
+	for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	  //
+	  // std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	  //
+	  TMB * thisTMB = tmbVector[tmb];
+	  ALCTController * thisALCT = thisTMB->alctController();
+	  //
+	  int initial_alct_nplanes_hit_pretrig = thisALCT->GetPretrigNumberOfLayers();
+	  int initial_alct_nplanes_hit_pattern = thisALCT->GetPretrigNumberOfPattern();
+	  thisALCT->SetPretrigNumberOfLayers(1);
+	  thisALCT->SetPretrigNumberOfPattern(1);
+	  thisALCT->WriteConfigurationReg();
+	  //
+	  int initial_clct_nplanes_hit_pretrig = thisTMB->GetHsPretrigThresh();
+	  int initial_clct_nplanes_hit_pattern = thisTMB->GetMinHitsPattern();
+	  thisTMB->SetHsPretrigThresh(1);
+	  thisTMB->SetMinHitsPattern(1);
+	  thisTMB->WriteRegister(0x70);
+	  //
+	  // Do not send triggers to the SP in this mode... it is too large of rate...
+	  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
+	  thisTMB->SetMpcOutputEnable(0);
+	  thisTMB->WriteRegister(0x86);
+	  //
+	  // Reset the software back to the initial values.  Leave the hardware in radioactivity mode...
+	  thisALCT->SetPretrigNumberOfLayers(initial_alct_nplanes_hit_pretrig);
+	  thisALCT->SetPretrigNumberOfPattern(initial_alct_nplanes_hit_pattern);
+	  //
+	  thisTMB->SetHsPretrigThresh(initial_clct_nplanes_hit_pretrig);
+	  thisTMB->SetMinHitsPattern(initial_clct_nplanes_hit_pattern);
+	  //
+	  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+	}
+      }
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  this->ExpertToolsPage(in,out);
+}
+//
 /////////////////////////////////////////////////////////////////////
 // Chamber Utilities (synchronization) methods
 /////////////////////////////////////////////////////////////////////
@@ -5002,7 +5285,7 @@ void EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem(xgi::Input * in, xgi:
     }
   }
   //
-  this->Default(in,out);
+  this->ExpertToolsPage(in,out);
   //
 }
 //
@@ -5040,7 +5323,7 @@ void EmuPeripheralCrateConfig::MeasureCFEBTMBRxForSystem(xgi::Input * in, xgi::O
     }
   }
   //
-  this->Default(in,out);
+  this->ExpertToolsPage(in,out);
   //
 }
 //
@@ -5081,7 +5364,7 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForSystem(xgi::Input * in, xgi:
     }
   }
   //
-  this->Default(in,out);
+  this->ExpertToolsPage(in,out);
   //
 }
 //
@@ -5120,7 +5403,7 @@ void EmuPeripheralCrateConfig::ALCTBC0ScanForSystem(xgi::Input * in, xgi::Output
   //
   SaveTestSummary();
   //
-  this->Default(in,out);
+  this->ExpertToolsPage(in,out);
   //
 }
 //
@@ -5159,7 +5442,7 @@ void EmuPeripheralCrateConfig::QuickScanForSystem(xgi::Input * in, xgi::Output *
     }
   }
   //
-  this->Default(in,out);
+  this->ExpertToolsPage(in,out);
   //
 }
 //
