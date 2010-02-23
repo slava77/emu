@@ -45,6 +45,8 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateTMBCounters, "CrateTMBCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::FullResetTMBC, "FullResetTMBC");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DatabaseOutput, "DatabaseOutput");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::EmuCounterNames, "EmuCounterNames");
   xgi::bind(this,&EmuPeripheralCrateMonitor::XmlOutput, "XmlOutput");
   xgi::bind(this,&EmuPeripheralCrateMonitor::SwitchBoard, "SwitchBoard");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
@@ -1290,9 +1292,9 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_DCS_COUNTERS=48, Total_count=19;
-  float lv_max[19]={3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 2.0, 6.0, 6.0};
-  float lv_min[19]={3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 1.6, 5.0, 5.0};
+  int TOTAL_DCS_COUNTERS=48, Total_count=21;
+  float lv_max[21]={3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 2.0, 6.0, 6.0, 8.0, 8.0};
+  float lv_min[21]={3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 1.6, 5.0, 5.0, 5.0, 5.0};
   float val;
 
   if(!Monitor_Ready_) return;
@@ -1661,7 +1663,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
 // now produce the counter view page
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" << std::endl;
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"10; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" << std::endl;
     *out << cgicc::b("All Chambers") << std::endl;
 
   if(Monitor_On_)
@@ -2409,6 +2411,84 @@ void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out
   }
 }
 
+void EmuPeripheralCrateMonitor::DatabaseOutput(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+
+  std::vector<TMB*> myVector;
+  int n_value;
+  xdata::InfoSpace * is;
+  char tcname[5]="TC00";
+
+  if((!Monitor_Ready_) || read_interval<=0) return;
+  //
+  *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
+  *out << "<emuCounters dateTime=\"";
+  toolbox::TimeVal currentTime;
+  xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
+  *out << now_time.toString();
+  *out << "\" version=\"1.0\">" << std::endl;
+
+//  *out << "  <sample name=\"cumulative\" delta_t=\"1000\">" << std::endl;
+
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     std::string cratename = crateVector[i]->GetLabel();
+
+     is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     xdata::Vector<xdata::UnsignedInteger32> *tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
+     if(tmbdata==NULL || tmbdata->size()==0) continue;
+     
+     myVector = crateVector[i]->tmbs();
+     for(unsigned int j=0; j<myVector.size(); j++) 
+     {
+        *out << "    <count chamber=\"";
+        *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << "\" ";
+        for(int tc=0; tc<TOTAL_TMB_COUNTERS; tc++)
+        {
+           sprintf(tcname+2,"%02d",tc);
+           *out << tcname << "=\"";
+           n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+tc];
+           // the last two counters only have 16 bits, not 32 bits
+           if( tc>=(TOTAL_TMB_COUNTERS-2) ) n_value &= 0xFFFF;
+           // counter error, set it to -1 here:
+           if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
+           *out << n_value;
+           *out << "\" ";
+        }
+        *out << "/>" << std::endl;
+     }
+  }
+
+//  *out << "  </sample>" << std::endl;
+  *out << "</emuCounters>" << std::endl;
+}
+
+void EmuPeripheralCrateMonitor::EmuCounterNames(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+
+  char tcname[5]="TC00";
+
+  if((!Monitor_Ready_) || read_interval<=0) return;
+  //
+  *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
+  *out << "<emuCounterNames dateTime=\"";
+  toolbox::TimeVal currentTime;
+  xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
+  *out << now_time.toString();
+  *out << "\" version=\"1.0\">" << std::endl;
+  for(int tc=0; tc<TOTAL_TMB_COUNTERS; tc++)
+  {
+      *out << "    <count name=\"";
+      sprintf(tcname+2,"%02d",tc);
+      *out << tcname << "\">";
+      *out << TCounterName[tc];
+      *out << "</count>" << std::endl;
+  }
+
+  *out << "</emuCounterNames>" << std::endl;
+}
+
 void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
 
@@ -2599,11 +2679,12 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
           *out << " " << 0;
        *out << " " << readtime << " " << ip;
         if(gooddata)
-        {
-           for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
+        {  // the last value isn't read out, skip
+           for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
            {  val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
               *out << " " << val;
            }
+           *out << " -50";  // as end-of-line marker
         }
         *out << std::endl;
      }
@@ -3235,6 +3316,8 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     LVCounterName.push_back( "ALCT 1.8V  ");  //
     LVCounterName.push_back( "ALCT 5.5V B");  //
     LVCounterName.push_back( "ALCT 5.5V A");  // 18
+    LVCounterName.push_back( "Analog 7V  ");  // 19
+    LVCounterName.push_back( "Digital 7V ");  // 20
 
     TECounterName.push_back( "DMB Temp  ");  // 0
     TECounterName.push_back( "CFEB1 Temp");  // 1
