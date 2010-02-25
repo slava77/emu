@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.9 2010/02/03 12:18:56 rakness Exp $
+// $Id: TMB.h,v 1.10 2010/02/25 15:59:31 liu Exp $
 // $Log: TMB.h,v $
+// Revision 1.10  2010/02/25 15:59:31  liu
+// fixed the number of counters
+//
 // Revision 1.9  2010/02/03 12:18:56  rakness
 // add CFEB badbits blocking (for TMB firmware 14 Jan 2010)
 //
@@ -1987,7 +1990,7 @@ private:
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
   static const int MaxCounter = 78;
-  long int FinalCounter[MaxCounter+2];
+  long int FinalCounter[MaxCounter+20];
   int alct_sent_to_tmb_counter_index_;
   int ecc_trigger_path_one_error_counter_index_;
   int ecc_trigger_path_two_errors_counter_index_;
