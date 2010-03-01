@@ -46,7 +46,7 @@
 namespace emu {
   namespace pc {
 
-const int MAX_MESSAGES=20;
+const int MAX_MESSAGES=110;
 
 class EmuPeripheralCrateService: public EmuPeripheralCrateBase
 {
