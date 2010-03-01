@@ -103,7 +103,20 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
   else
      MyHeader(in,out,"EmuPeripheralCrateService -- Stand-alone");
 
-  *out << cgicc::table().set("border","0");
+  *out << cgicc::span().set("style","color:blue");
+  if(xml_or_db==0)
+  {
+    *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
+    *out << xmlFile_.toString();
+  }
+  else if(xml_or_db==1)
+  {
+    *out << cgicc::b(cgicc::i("TStore EMU_config_ID : ")) ;
+    *out << EMU_config_ID_.toString();
+  }
+  *out << cgicc::br() << cgicc::span() << std::endl;
+  //
+  *out << cgicc::hr() << cgicc::table().set("border","0");
     //
   *out << cgicc::td();
   *out << "Total Crates : " << total_crates_ << cgicc::br() << std::endl ;
@@ -243,35 +256,24 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::fieldset() << cgicc::hr() << std::endl;
     //
   }
-  *out << cgicc::br() << cgicc::b("Last Received Commands") << std::endl;
-  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial; color: yellow; background-color:#0099FF");
+  *out << cgicc::br() << cgicc::b("Last Received Commands") << cgicc::br() << std::endl;
+//  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial; color: yellow; background-color:#0099FF");
   *out << std::endl;
+  *out << cgicc::textarea().set("name","CrateTestsOutput").set("WRAP","OFF").set("rows","20").set("cols","100");
   if(total_msg > 0)
   {
      // commands display
      int idx=last_msg;    
-     int max_display = (total_msg < 15) ? total_msg : 15;
+     int max_display = (total_msg < 100) ? total_msg : 100;
      for(int i=0; i< max_display; i++)
      {
-        *out << command_msg[idx--] << cgicc::br() << std::endl;
+        *out << command_msg[idx--] << std::endl;
         if(idx < 0) idx += MAX_MESSAGES;
      }
   }
-  *out << cgicc::fieldset() << std::endl;
-  *out << cgicc::br() << cgicc::br() << std::endl; 
-
-  if(xml_or_db==0)
-  {
-    *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
-    *out << xmlFile_.toString() << cgicc::br() << std::endl ;
-  }
-  else if(xml_or_db==1)
-  {
-    *out << cgicc::b(cgicc::i("TStore EMU_config_ID : ")) ;
-    *out << EMU_config_ID_.toString() << cgicc::br() << std::endl ;
-  }
-  *out << cgicc::br();
-  //
+  *out << cgicc::textarea();
+//  *out << cgicc::fieldset() << std::endl;
+  *out << cgicc::br() << std::endl; 
 }
 
 // 
