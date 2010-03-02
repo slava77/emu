@@ -742,7 +742,8 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       if ( waitForTFCellOpToReach("halted",60) ){
 	sendCommandCell("configure");
-	waitForTFCellOpToReach("configured",60);
+	// Allow more time for 'configure' after key change. With a new key, it may take a couple of minutes.
+	waitForTFCellOpToReach("configured",180);
       }
       if ( TFCellOpState_.toString() != "configured" ){
 	stringstream ss;
