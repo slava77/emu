@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.63 2010/01/06 08:32:56 rakness Exp $
+// $Id: DAQMB.cc,v 3.64 2010/03/03 20:33:19 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.64  2010/03/03 20:33:19  liu
+// adjust CFEB calib timing by Stan
+//
 // Revision 3.63  2010/01/06 08:32:56  rakness
 // make CFEB configuration check more robust for EEPROM bit loss
 //
@@ -6303,8 +6306,19 @@ void DAQMB::varytmbdavdelay(int delay)
    (*MyOutput_) << "doing setdavdelay " << dav_delay_bits << std::endl;
    printf(" delay %02x standard %02x \n",delay,tmb_dav_delay_);
    setdavdelay(dav_delay_bits);
+}
 
-
+void DAQMB::load_feb_clk_delay()
+{
+  printf(" load_feb_clk_delay called \n");
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=0x1D;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
 }
 
 //
