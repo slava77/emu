@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.6 2009/12/18 09:42:48 rakness Exp $
+// $Id: DAQMB.h,v 1.7 2010/03/03 20:33:19 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.7  2010/03/03 20:33:19  liu
+// adjust CFEB calib timing by Stan
+//
 // Revision 1.6  2009/12/18 09:42:48  rakness
 // update firmware reloading routine to emulate expert actions
 //
@@ -645,7 +648,9 @@ public:
   inline int GetFirmwareDay(){ return fwday_; }
   inline int GetFirmwareVersion(){ return fwvers_; }
   inline int GetFirmwareRevision(){ return fwrv_; }
-
+  inline int GetKillFlatClk(){return killflatclk_;}
+  void load_feb_clk_delay();           
+            
  private:
   //
   int shift_array_[5][6][16];
