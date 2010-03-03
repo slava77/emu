@@ -40,9 +40,8 @@ namespace emu { namespace base {
 
     TypedFact<T>& setRun        ( const string& run                      ){ run_         = run;              return *this; }
     TypedFact<T>& setTime       ( const string& time                     ){ time_        = time;             return *this; }
-    TypedFact<T>& setComponent  ( const string& component                ){ component_   = component;        return *this; }
     TypedFact<T>& setDescription( const string& description              ){ description_ = description;      return *this; }
-    TypedFact<T>& setParameterId( const emu::base::Fact::ParameterId_t p ){ parameterId_ = parameterIds_[p]; return *this; }
+    TypedFact<T>& setComponentId( const string& componentId              ){ componentId_ = componentId;      return *this; }
     TypedFact<T>& setUnit       ( const emu::base::Fact::Unit_t        u ){ unit_        = units_[u];        return *this; }
     TypedFact<T>& setSeverity   ( const emu::base::Fact::Severity_t    s ){ severity_    = severities_[s];   return *this; }
 

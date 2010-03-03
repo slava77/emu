@@ -16,7 +16,11 @@ namespace emu { namespace base {
     friend ostream& operator<<( ostream& os,       emu::base::FactCollection& f );
     friend ostream& operator<<( ostream& os, const emu::base::FactCollection& f );
 
-    enum Source_t { DCS, LOCAL_DQM, FED, nSources };
+    enum Source_t { DCS=0,
+		    LOCAL_DQM,
+		    FED,
+		    Xmas,
+		    nSources };
 
     const string& getSource() const { return source_; }
     const string& getRequestId() const { return requestId_; }

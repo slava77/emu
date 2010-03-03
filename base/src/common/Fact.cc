@@ -5,9 +5,16 @@
 
 using namespace std;
 
-const char* const emu::base::Fact::parameterIds_[]  = { "HV_CURRENT", "LV_CURRENT", "DATA_EVENTS" };
-const char* const emu::base::Fact::units_[]         = { "AMPER", "VOLT", "METER" };
-const char* const emu::base::Fact::severities_[]    = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
+const char* const emu::base::Fact::units_[]         = { "AMPERE", "VOLT", "METER" };
+const char* const emu::base::Fact::severities_[]    = { "DEBUG",
+							"INFO",
+							"MINOR",
+							"TOLERABLE",
+							"WARN",
+							"ERROR",
+							"SEVERE",
+							"CRITICAL",
+							"FATAL" };
 
 emu::base::Fact::Fact()
   : time_( defaultDateTime() ){}
@@ -38,7 +45,8 @@ emu::base::Fact::defaultDateTime(){
 ostream& emu::base::operator<<( ostream& os, emu::base::Fact& f ){
   os << "   Name           " << f.getName          () << endl
      << "   Time           " << f.getTime          () << endl
-     << "   Component      " << f.getComponent     () << endl
+     << "   ComponentId    " << f.getComponentId   () << endl
+     << "   Run            " << f.getRun           () << endl
      << "   Severity       " << f.getSeverity      () << endl
      << "   Description    " << f.getDescription   () << endl;
   map<string,string> parameters = f.getParameters();
@@ -51,7 +59,8 @@ ostream& emu::base::operator<<( ostream& os, emu::base::Fact& f ){
 ostream& emu::base::operator<<( ostream& os, const emu::base::Fact& f ){
   os << "   Name           " << f.getName          () << endl
      << "   Time           " << f.getTime          () << endl
-     << "   Component      " << f.getComponent     () << endl
+     << "   ComponentId    " << f.getComponentId   () << endl
+     << "   Run            " << f.getRun           () << endl
      << "   Severity       " << f.getSeverity      () << endl
      << "   Description    " << f.getDescription   () << endl;
   map<string,string>::const_iterator p;

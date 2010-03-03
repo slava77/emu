@@ -4,15 +4,15 @@ using namespace std;
 
 ostream& 
 emu::base::operator<<( ostream& os, emu::base::FactRequest& fri ){
-  os << "    Component    " << fri.getComponent() << endl
-     << "    Fact type    " << fri.getFactType () << endl;
+  os << "    ComponentId  " << fri.getComponentId() << endl
+     << "    Fact type    " << fri.getFactType   () << endl;
   return os;
 }
 
 ostream& 
 emu::base::operator<<( ostream& os, const emu::base::FactRequest& fri ){
-  os << "    Component    " << fri.getComponent() << endl
-     << "    Fact type    " << fri.getFactType () << endl;
+  os << "    ComponentId  " << fri.getComponentId() << endl
+     << "    Fact type    " << fri.getFactType   () << endl;
   return os;
 }
 
