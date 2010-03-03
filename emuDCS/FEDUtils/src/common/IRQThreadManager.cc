@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.19 2010/02/20 04:27:33 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.20 2010/03/03 16:04:04 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -202,6 +202,9 @@ throw (emu::fed::exception::FMMThreadException)
 			MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, "IRQThreadEnd", "ERROR", error.str(), tag.str());
 			XCEPT_DECLARE(emu::fed::exception::FMMThreadException, e2, error.str());
 			e2.setProperty("tag", tag.str());
+
+			LOG4CPLUS_INFO(logger, "Removing appender with exception");
+			logger.removeAllAppenders();
 			throw e2;
 		}
 
@@ -218,6 +221,9 @@ throw (emu::fed::exception::FMMThreadException)
 			MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, "IRQThreadEnd", "ERROR", error.str(), tag.str());
 			XCEPT_DECLARE(emu::fed::exception::FMMThreadException, e2, error.str());
 			e2.setProperty("tag", tag.str());
+
+			LOG4CPLUS_INFO(logger, "Removing appender with exception");
+			logger.removeAllAppenders();
 			throw e2;
 		}
 
@@ -228,6 +234,9 @@ throw (emu::fed::exception::FMMThreadException)
 	MY_REVOKE_ALARM("IRQThreadEnd");
 
 	threadVector_.clear();
+
+	LOG4CPLUS_INFO(logger, "Removing appender");
+	logger.removeAllAppenders();
 }
 
 
