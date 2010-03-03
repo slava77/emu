@@ -126,8 +126,8 @@ emu::base::FactFinder::parseFactRequestSOAP( xoap::MessageReference message ) co
 	    DOMNode *node = nodeList->item(j);
 	    if( node->getNodeType() == DOMNode::ELEMENT_NODE ){
 	      string name = xoap::XMLCh2String( node->getLocalName() );
-	      if ( name == "component" ) factRequest.setComponent( xoap::XMLCh2String( node->getTextContent() ) );
-	      if ( name == "factType"  ) factRequest.setFactType ( xoap::XMLCh2String( node->getTextContent() ) );
+	      if ( name == "component_id" ) factRequest.setComponentId( xoap::XMLCh2String( node->getTextContent() ) );
+	      if ( name == "factType"     ) factRequest.setFactType   ( xoap::XMLCh2String( node->getTextContent() ) );
 	    }
 	}
 	factRequestCollection.addRequest( factRequest );
@@ -181,15 +181,11 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
     xoap::SOAPName sourceName         = envelope.createName("source", "esd", ESD_NS_URI);
     xoap::SOAPName requestIdName      = envelope.createName("requestId", "", "");
     xoap::SOAPName timeName           = envelope.createName("time", "esd", ESD_NS_URI);
+    xoap::SOAPName componentIdName    = envelope.createName("component_id", "esd", ESD_NS_URI);
     xoap::SOAPName runName            = envelope.createName("run", "esd", ESD_NS_URI);
-    xoap::SOAPName componentName      = envelope.createName("component_id", "esd", ESD_NS_URI);
-    xoap::SOAPName parameterIdName    = envelope.createName("parameterId", "esd", ESD_NS_URI);
-    xoap::SOAPName unitName           = envelope.createName("unit", "esd", ESD_NS_URI);
-    xoap::SOAPName lowerThresholdName = envelope.createName("lowerThreshold", "esd", ESD_NS_URI);
-    xoap::SOAPName upperThresholdName = envelope.createName("upperThreshold", "esd", ESD_NS_URI);
-    xoap::SOAPName fractionName       = envelope.createName("fraction", "esd", ESD_NS_URI);
     xoap::SOAPName severityName       = envelope.createName("severity", "esd", ESD_NS_URI);
     xoap::SOAPName descriptionName    = envelope.createName("descr", "esd", ESD_NS_URI);
+    xoap::SOAPName unitName           = envelope.createName("unit", "esd", ESD_NS_URI);
 
     xoap::SOAPBody body = envelope.getBody();
     xoap::SOAPElement exSysOperationElement = body.addBodyElement( exSysOperationName );
@@ -217,15 +213,11 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
       xoap::SOAPName    factName    = envelope.createName( f->getName().c_str(), "esd", ESD_NS_URI);
       xoap::SOAPElement factElement = collectionElement.addChildElement( factName );
       
-      xoap::SOAPElement timeElement           = factElement.addChildElement( timeName           );
-      xoap::SOAPElement componentElement      = factElement.addChildElement( componentName      );
-      xoap::SOAPElement severityElement       = factElement.addChildElement( severityName       );
-      xoap::SOAPElement descriptionElement    = factElement.addChildElement( descriptionName    );
-
-      timeElement          .addTextNode( f->getTime().c_str() );       
-      componentElement     .addTextNode( f->getComponent().c_str() );  
-      severityElement      .addTextNode( f->getSeverity().c_str() );   
-      descriptionElement   .addTextNode( f->getDescription().c_str() );
+      factElement.addChildElement( timeName        ).addTextNode( f->getTime()       .c_str() );
+      factElement.addChildElement( componentIdName ).addTextNode( f->getComponentId().c_str() );
+      if ( f->getRun()        .size() ) factElement.addChildElement( runName         ).addTextNode( f->getRun()        .c_str() );
+      if ( f->getSeverity()   .size() ) factElement.addChildElement( severityName    ).addTextNode( f->getSeverity()   .c_str() );
+      if ( f->getDescription().size() ) factElement.addChildElement( descriptionName ).addTextNode( f->getDescription().c_str() );
 
       map<string,string>::const_iterator p;
       for ( p = f->getParameters().begin(); p != f->getParameters().end(); ++p ){
@@ -309,9 +301,9 @@ emu::base::FactFinder::collectFacts( const FactRequestCollection& requestCollect
   fc.setRequestId( requestCollection.getRequestId() ).setSource( source_ );
   vector<emu::base::FactRequest>::const_iterator fr;
   for ( fr = requestCollection.getRequests().begin(); fr != requestCollection.getRequests().end(); ++fr ){
-    emu::base::Fact f = findFact( fr->getComponent(), fr->getFactType() );
-    // Set the component in case the user forgot to:
-    f.setComponent( fr->getComponent() );
+    emu::base::Fact f = findFact( fr->getComponentId(), fr->getFactType() );
+    // Set the component id in case the user forgot to:
+    f.setComponentId( fr->getComponentId() );
     fc.addFact( f );
   }
   return fc;

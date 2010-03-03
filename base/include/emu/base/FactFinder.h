@@ -60,7 +60,7 @@ namespace emu { namespace base {
     void sendFacts();
     pair<time_t,string> getLocalDateTime();
   
-    virtual emu::base::Fact           findFact ( const string& component, const string& factType ) = 0;
+    virtual emu::base::Fact           findFact ( const string& componentId, const string& factType ) = 0;
     virtual emu::base::FactCollection findFacts() = 0;
 
   private:
