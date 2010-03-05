@@ -187,12 +187,12 @@ xdaqdDaemon() {
 
 	# And start it up.
 	
-	# ${XDAQ_LOG} must exist otherwise the redirection of stderr to it will fail.
+	# ${XDAQ_LOG} must exist otherwise the redirection of stderr and stdout to it will fail.
 	$SU_CMD -s /bin/zsh - $user -c "touch ${XDAQ_LOG}"
 	#echo $SU_CMD -s /bin/zsh - $user -c "touch ${XDAQ_LOG}"
-	# Start and disown it.
-	$nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c '$* &!'"
-	#echo $nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c '$* &!'"
+	# Start and disown it in /tmp.
+	$nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c 'cd /tmp ; $* &!'"
+	#echo $nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c 'cd /tmp ; $* &!'"
 
 	[ "$?" -eq 0 ] && success $"$base startup" || failure $"$base startup"
 }
@@ -381,7 +381,9 @@ for C in ${STARTUP_LIST}; do
     		args="$args XDAQ_DOCUMENT_ROOT=$XDAQ_DOCUMENT_ROOT"
 	    fi
 
-	    # Do not use the built-in daemonizer as it would redirect stdout to /dev/null. Make the parent shell disown it instead when it's started.
+	    # Do not use xdaq's built-in daemonizer as it would redirect stderr and stdout to /dev/null by default. 
+	    # Make the parent shell disown it instead when it's started.
+	    # In principle, one could use the --stderr and --stdout options of xdaq.exe, but they couldn't be merged into one file.
 	    # Also, no need to set the log file on the command line. The .profile file defines the destination for the log4c messages.
 	    #args="$args $XDAQ_ROOT/bin/xdaq.exe --daemon --pidfile ${PID_DIR}/${CONFIGURATION}.pid -u file:${XDAQ_LOG}"
 	    args="$args $XDAQ_ROOT/bin/xdaq.exe --pidfile ${PID_DIR}/${CONFIGURATION}.pid"
@@ -406,6 +408,7 @@ for C in ${STARTUP_LIST}; do
     		args="$args -z $XDAQ_ZONE"
 	    fi
 
+	    # Redirect stdout and stderr to one log file.
 	    args="$args >>& ${XDAQ_LOG}"
 
 	    xdaqdDaemon $args
