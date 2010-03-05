@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2009/11/05 18:37:08 banicz Exp $
+# $Id: Makefile,v 1.4 2010/03/05 13:34:07 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -31,7 +31,7 @@ Project=emu
 Package=setup/$(PackageName)
 
 PACKAGE_VER_MAJOR=2
-PACKAGE_VER_MINOR=0
+PACKAGE_VER_MINOR=1
 PACKAGE_VER_PATCH=0
 
 Summary=Setup data for the .cms surface cluster in Cessy
