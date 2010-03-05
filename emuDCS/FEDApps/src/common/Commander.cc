@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.18 2010/02/22 23:00:41 paste Exp $
+* $Id: Commander.cc,v 1.19 2010/03/05 16:20:48 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -2267,6 +2267,59 @@ void emu::fed::Commander::webReadDCCRegisters(xgi::Input *in, xgi::Output *out)
 void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out)
 {
 
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("CommanderDDUFirmwareManager", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Commander appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderDDUFirmwareManager", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+
+	cgicc::Cgicc cgi(in);
+
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+
+	// Make a JSON output object
+	JSONSpirit::Object output;
+
+	// Dig out the crate to which I should communicate.
+	unsigned int crateNumber = 0;
+	if (cgi.getElement("crate") != cgi.getElements().end()) {
+		crateNumber = cgi.getElement("crate")->getIntegerValue();
+	} else {
+		std::ostringstream error;
+		error << "Unable to find crate number in POST information";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+	}
+
+	Crate *myCrate = NULL;
+	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+
+		if ((*iCrate)->getNumber() == crateNumber) {
+			myCrate = (*iCrate);
+			break;
+		}
+
+	}
+
+	if (myCrate == NULL) {
+		std::ostringstream error;
+		error << "Unable to find crate number " << crateNumber << " in configuration";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+	}
+
 }
 
 
@@ -2631,7 +2684,7 @@ emu::base::Fact emu::fed::Commander::findFact(const std::string &component, cons
 {
 	if (factType == "dduVoltageFact") {
 		emu::base::TypedFact<emu::fed::dduVoltageFact> fact;
-		fact.setComponent("DDU")
+		fact.setComponentId("DDU")
 			.setSeverity(emu::base::Fact::DEBUG)
 			.setDescription("DDU voltages")
 			.setParameter(emu::fed::dduVoltageFact::voltage15, 1524)
@@ -2657,7 +2710,7 @@ emu::base::FactCollection emu::fed::Commander::findFacts()
 	emu::base::FactCollection collection;
 
 	emu::base::TypedFact<emu::fed::dduVoltageFact> voltFact;
-	voltFact.setComponent("DDU")
+	voltFact.setComponentId("DDU")
 		.setSeverity(emu::base::Fact::DEBUG)
 		.setDescription("DDU voltages")
 		.setParameter(emu::fed::dduVoltageFact::voltage15, 1524)
