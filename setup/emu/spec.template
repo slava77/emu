@@ -52,6 +52,7 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/{broker,conf,flash,netflow,pulser,sensor,profile,xplore,store,scripts,xml}
 mkdir -p $RPM_BUILD_ROOT/etc
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
+mkdir -p $RPM_BUILD_ROOT/etc/cron.d
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/bin
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs
 
@@ -103,6 +104,9 @@ fi
 if [ -d %{_packagedir}/xml ]; then 
 	install -m 655 %{_packagedir}/xml/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/xml
 fi
+if [ -x %{_packagedir}/scripts/EmuServiceGuard.cron ]; then
+	install -m 644 %{_packagedir}/scripts/EmuServiceGuard.cron $RPM_BUILD_ROOT/etc/cron.d/EmuServiceGuard.cron
+fi
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -116,6 +120,7 @@ rm -rf $RPM_BUILD_ROOT
 /etc/init.d/xdaqd
 /etc/*.zone
 /etc/*.services
+/etc/cron.d/*.cron
 
 %dir
 %{_prefix}/share
@@ -127,6 +132,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add xdaqd 
+/sbin/service crond restart
 
 %preun
 if [ "$1" = "0" ] ; then # last uninstall
@@ -136,4 +142,7 @@ if [ x"$exists" != x ] ; then
 fi
 
 fi
+
+%postun
+/sbin/service crond restart
 
