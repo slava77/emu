@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.9 2009/12/10 16:24:29 paste Exp $
+* $Id: VMEModule.cc,v 1.10 2010/03/08 22:18:56 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <cstdlib>
+#include <algorithm>
 
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
@@ -646,6 +647,9 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
 	}
+	
+	// Reset the firmware load percentage
+	firmwarePercentMap_[dev] = 0;
 
 	JTAGChain chain = JTAGMap[dev];
 	JTAGElement *element = NULL;
@@ -666,6 +670,11 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
 	}
+	
+	// Calculate the number of lines in the file (quickly)
+	unsigned int nLines = std::count(std::istreambuf_iterator<char>(inFile), std::istreambuf_iterator<char>(), '\n');
+	
+	unsigned int linesParsed = 0;
 
 	try {
 		mutex_->lock();
@@ -683,6 +692,9 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 			// Each line is a command (or comment)
 			std::string myLine;
 			getline(inFile, myLine);
+			
+			// At this point, increment the number of lines parsed and update the percentage
+			firmwarePercentMap_[dev] = (float) ++linesParsed / (float) nLines * 100.;
 
 			// Start after a particular command
 			// (useful for after loading a custom value into the usercode)
