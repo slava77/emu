@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.11 2009/11/19 00:22:06 liu Exp $
+* $Id: Application.cc,v 1.12 2010/03/08 15:10:31 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -187,7 +187,7 @@ throw (emu::fed::exception::SOAPException)
 
 
 
-std::string emu::fed::Application::Header(const std::string &myTitle, const std::vector<std::string> &jsFileNames)
+std::string emu::fed::Application::Header(const std::string &myTitle, const std::vector<std::string> &jsFileNames, const std::string &extraHead, const bool &displayName)
 {
 	std::stringstream out;
 
@@ -196,6 +196,7 @@ std::string emu::fed::Application::Header(const std::string &myTitle, const std:
 	// the XHTML Doctype.  Make my own.
 	out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
 	out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
+	
 	out << cgicc::head() << std::endl;
 	out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/emu/emuDCS/FEDApps/html/FEDApps.css\" />" << std::endl;
 	
@@ -210,52 +211,56 @@ std::string emu::fed::Application::Header(const std::string &myTitle, const std:
 		out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/" << (*iFile) << "\"></script>" << std::endl;
 	}
 
+	out << extraHead << std::endl;
+
 	out << cgicc::head() << std::endl;
 
 	// Dynamic backgrounds
-	out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + myClassName_ + ".png);\">" << std::endl;
+	//out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + myClassName_ + ".png);\">" << std::endl;
 
-	out << cgicc::fieldset()
-		.set("class", "header") << std::endl;
+	if (displayName) {
+		out << cgicc::fieldset()
+			.set("class", "header") << std::endl;
 
-	out << cgicc::a()
-		.set("href", "/") << std::endl;
+		out << cgicc::a()
+			.set("href", "/") << std::endl;
 
-	out << cgicc::img()
-		.set("src", "/emu/emuDCS/FEDApps/images/CMS_EMU_Seal.png")
-		.set("border", "0")
-		.set("style", "float: left; width: 100px; height: 100px") << std::endl;
+		out << cgicc::img()
+			.set("src", "/emu/emuDCS/FEDApps/images/CMS_EMU_Seal.png")
+			.set("border", "0")
+			.set("style", "float: left; width: 100px; height: 100px") << std::endl;
 
-	out << cgicc::a() << std::endl;
+		out << cgicc::a() << std::endl;
 
-	out << cgicc::img()
-		.set("src", "/emu/emuDCS/FEDApps/images/CMS-OSU-Color-Alt.png")
-		.set("border", "0")
-		.set("style", "float: right; width: 100px; height: 100px") << std::endl;
+		out << cgicc::img()
+			.set("src", "/emu/emuDCS/FEDApps/images/CMS-OSU-Color-Alt.png")
+			.set("border", "0")
+			.set("style", "float: right; width: 100px; height: 100px") << std::endl;
 
-	out << cgicc::div(myTitle)
-		.set("class", "title")
-		.set("id", "application_title") << std::endl;
+		out << cgicc::div(myTitle)
+			.set("class", "title")
+			.set("id", "application_title") << std::endl;
 
-	out << cgicc::div()
-		.set("class", "expert_names") << std::endl;
-	out << cgicc::span("Experts ")
-		.set("style", "font-weight: bold") << std::endl;
-	out << cgicc::a("Stan Durkin")
-		.set("href", "mailto:durkin@mps.ohio-state.edu") << ", " << std::endl;
-	out << cgicc::a("Jason Gilmore")
-		.set("href", "mailto:gilmore@mps.ohio-state.edu") << ", " << std::endl;
-	out << cgicc::a("Jianhui Gu")
-		.set("href", "mailto:gujh@mps.ohio-state.edu") << ", " << std::endl;
-	out << cgicc::a("Phillip Killewald")
-		.set("href", "mailto:paste@mps.ohio-state.edu") << std::endl;
-	out << cgicc::div() << std::endl;
+		out << cgicc::div()
+			.set("class", "expert_names") << std::endl;
+		out << cgicc::span("Experts ")
+			.set("style", "font-weight: bold") << std::endl;
+		out << cgicc::a("Stan Durkin")
+			.set("href", "mailto:durkin@mps.ohio-state.edu") << ", " << std::endl;
+		out << cgicc::a("Jason Gilmore")
+			.set("href", "mailto:gilmore@mps.ohio-state.edu") << ", " << std::endl;
+		out << cgicc::a("Jianhui Gu")
+			.set("href", "mailto:gujh@mps.ohio-state.edu") << ", " << std::endl;
+		out << cgicc::a("Phillip Killewald")
+			.set("href", "mailto:paste@mps.ohio-state.edu") << std::endl;
+		out << cgicc::div() << std::endl;
 
-	out << cgicc::fieldset() << std::endl;
+		out << cgicc::fieldset() << std::endl;
 
-	out << cgicc::br()
-		.set("style", "clear: both;") << std::endl;
-
+		out << cgicc::br()
+			.set("style", "clear: both;") << std::endl;
+	}
+	
 	return out.str();
 }
 

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.9 2009/11/09 11:43:52 paste Exp $
+* $Id: Application.h,v 1.10 2010/03/08 15:10:31 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -207,10 +207,14 @@ namespace emu {
 			*	 page.
 			*	@param jsFileNames is a vector of file names to be included as javascripts,
 			*	 see the directory FEDCrate/js for a list of files one can include.
+			*	@param extraHead is a string with stuff that will be placed in the header
+			*	 after all the default header information, but before the opening body tag.
+			*	@param displayName will show a big block at the top of the page with
+			*	 the title of the page and contact information if true.
 			*	@returns a huge std::string that is basically the header of the page in
 			*	 HTML.  Good for outputting straight to the xgi::Output.
 			**/
-			virtual std::string Header(const std::string &myTitle, const std::vector<std::string> &jsFileNames);
+			virtual std::string Header(const std::string &myTitle, const std::vector<std::string> &jsFileNames, const std::string &extraHead = "", const bool &displayName = true);
 			virtual inline std::string Header(const std::string &myTitle)
 			{
 				std::vector<std::string> fileNames;
