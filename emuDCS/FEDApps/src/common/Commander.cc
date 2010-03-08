@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.19 2010/03/05 16:20:48 paste Exp $
+* $Id: Commander.cc,v 1.20 2010/03/08 15:10:31 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -1902,33 +1902,27 @@ void emu::fed::Commander::webDisplayRegisters(xgi::Input *in, xgi::Output *out)
 {
 	// Everything here is embedded in the GET statement.
 	// I just pass it on to the GetDDURegisters page and the javascript handles the rest.
-
-	*out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
-	*out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
-	*out << cgicc::head() << std::endl;
-	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/emu/emuDCS/FEDApps/html/FEDApps.css\" />" << std::endl;
-
-	// Include the javascript files
-	// This is a universal global that I want to always have around.
-	*out << "<script type=\"text/javascript\">var URL = \"" << getApplicationDescriptor()->getContextDescriptor()->getURL() << "/" << getApplicationDescriptor()->getURN() << "\";</script>";
-	// Spit out everything in the POST so we can use it in the javascript that is to come
+	
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("errorFlasher.js");
+	jsFileNames.push_back("definitions.js");
+	jsFileNames.push_back("commanderDisplay.js");
+	jsFileNames.push_back("configurable.js");
+	jsFileNames.push_back("common.js");
+	
+	// Extra header information
 	cgicc::Cgicc cgi(in);
-	*out << "<script type=\"text/javascript\">" << std::endl;
-	*out << "var regs = new Array();\nvar ruis = new Array();\nvar fmmids = new Array();" << std::endl;
+	
+	std::ostringstream extraHeader;
+	extraHeader << "<script type=\"text/javascript\">" << std::endl;
+	extraHeader << "var regs = new Array();\nvar ruis = new Array();\nvar fmmids = new Array();" << std::endl;
 	for (std::vector<cgicc::FormEntry>::const_iterator iEntry = cgi.getElements().begin(); iEntry != cgi.getElements().end(); iEntry++) {
 		if (iEntry->getName() == "board") continue;
-		*out << iEntry->getName() << "s.push(" << iEntry->getValue() << ");" << std::endl;
+		extraHeader << iEntry->getName() << "s.push(" << iEntry->getValue() << ");" << std::endl;
 	}
-	*out << "</script>" << std::endl;
-	// Always include prototype
-	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/prototype.js\"></script>" << std::endl;
-	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/table.js\"></script>" << std::endl;
-	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/commanderDisplay.js\"></script>" << std::endl;
-	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/definitions.js\"></script>" << std::endl;
-	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/common.js\"></script>" << std::endl;
-
-	*out << cgicc::head() << std::endl;
-	*out << cgicc::body() << std::endl;
+	extraHeader << "</script>" << std::endl;
+	
+	*out << Header("FED Commander Register Display", jsFileNames, extraHeader.str(), false);
 
 	*out << cgicc::div()
 		.set("class", "titlebar monitor_width")
@@ -2282,25 +2276,16 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 
 	cgicc::Cgicc cgi(in);
 
-	// Need some header information to be able to return JSON
-	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
-		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
-		jsonHeader.addHeader("Content-type", "application/json");
-		out->setHTTPResponseHeader(jsonHeader);
-	}
-
-	// Make a JSON output object
-	JSONSpirit::Object output;
-
 	// Dig out the crate to which I should communicate.
 	unsigned int crateNumber = 0;
 	if (cgi.getElement("crate") != cgi.getElements().end()) {
 		crateNumber = cgi.getElement("crate")->getIntegerValue();
+		REVOKE_ALARM("CommanderDDUFirmwareManager", NULL);
 	} else {
 		std::ostringstream error;
 		error << "Unable to find crate number in POST information";
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+		RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommanderDDUFirmwareManager", "ERROR", error.str(), "", NULL);
 	}
 
 	Crate *myCrate = NULL;
@@ -2317,8 +2302,100 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		std::ostringstream error;
 		error << "Unable to find crate number " << crateNumber << " in configuration";
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
+		RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommanderDDUFirmwareManager", "WARN", error.str(), "", NULL);
+		*out << error.str();
+		return;
+	} else {
+		REVOKE_ALARM("CommanderDDUFirmwareManager", NULL);
 	}
+	
+	// Display truncated header
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("errorFlasher.js");
+	jsFileNames.push_back("definitions.js");
+	jsFileNames.push_back("commanderFirmware.js");
+	jsFileNames.push_back("configurable.js");
+	jsFileNames.push_back("common.js");
+	
+	// Extra header information
+	std::ostringstream extraHeader;
+	/*
+	extraHeader << "<script type=\"text/javascript\">" << std::endl;
+	extraHeader << "var regs = new Array();\nvar ruis = new Array();\nvar fmmids = new Array();" << std::endl;
+	for (std::vector<cgicc::FormEntry>::const_iterator iEntry = cgi.getElements().begin(); iEntry != cgi.getElements().end(); iEntry++) {
+		if (iEntry->getName() == "board") continue;
+		extraHeader << iEntry->getName() << "s.push(" << iEntry->getValue() << ");" << std::endl;
+	}
+	extraHeader << "</script>" << std::endl;
+	*/
+	*out << Header("DDU Firmware Management", jsFileNames, extraHeader.str(), false);
+	
+	*out << cgicc::div()
+		.set("class", "titlebar commander_width")
+		.set("id", "FED_Commander_ddu_selector_titlebar") << std::endl;
+	*out << cgicc::div("DDU Selector / Firmware Version Numbers")
+		.set("class", "titletext") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::fieldset()
+		.set("class", "dialog")
+		.set("id", "FED_Commander_ddu_selector_dialog") << std::endl;
+	
+	std::vector<DDU *> dduVector = myCrate->getDDUs();
+	
+	// Make a table for the DDUs
+	*out << cgicc::table()
+		.set("tier0") << std::endl;
+		
+	*out << cgicc::tr()
+		.set("class", "header") << std::endl;
+	*out << cgicc::td("DDU")
+		.set("class", "header") << std::endl;
+	*out << cgicc::td("VME")
+		.set("class", "header") << std::endl;
+	*out << cgicc::td("Control")
+		.set("class", "header") << std::endl;
+	*out << cgicc::td("Input")
+		.set("class", "header") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	
+	for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+		
+		// Two rows per DDU
+		*out << cgicc::tr()
+			.set("class", "board") << std::endl;
+		// DDU name
+		*out << cgicc::td()
+			.set("rowspan", "2") << "DDU " << (*iDDU)->getRUI() << cgicc::td() << std::endl;
+		// VME version
+		*out << cgicc::td()
+			.set("rowspan", "2") << "PROM: 0x1" << cgicc::td() << std::endl;
+		// DDUPROM1 version
+		*out << cgicc::td() << "PROM1: 0x2" << cgicc::td() << std::endl;
+		// DDUPROM2 version
+		*out << cgicc::td() << "PROM2: 0x3" << cgicc::td() << std::endl;
+		// INPROM1 version
+		*out << cgicc::td() << "PROM1: 0x4" << cgicc::td() << std::endl;
+		// INPROM2 version
+		*out << cgicc::td() << "PROM2: 0x5" << cgicc::td() << std::endl;
+		*out << cgicc::tr() << std::endl;
+		*out << cgicc::tr()
+			.set("class", "board") << std::endl;
+		// DDUFPGA version
+		*out << cgicc::td()
+			.set("colspan", "2") << "FPGA: 0x6" << cgicc::td() << std::endl;
+		// INFPGA1 version
+		*out << cgicc::td() << "FPGA1: 0x7" << cgicc::td() << std::endl;
+		// INFPGA2 version
+		*out << cgicc::td() << "FPGA2: 0x8" << cgicc::td() << std::endl;
+		*out << cgicc::tr() << std::endl;
+	}
+	
+	*out << cgicc::table() << std::endl;
+	
+	*out << cgicc::frameset() << std::endl;
+	
+	*out << Footer();
 
 }
 
@@ -2615,7 +2692,7 @@ std::string emu::fed::Commander::printRegisterTable(const std::vector<Register> 
 		out << cgicc::label() << std::endl;
 		out << cgicc::td() << std::endl;
 
-		if (iRegister % 3 == 2 || iRegister == registers.size()) {
+		if (iRegister % 3 == 2 || iRegister == registers.size() - 1) {
 			out << cgicc::tr() << std::endl;
 		}
 	}
