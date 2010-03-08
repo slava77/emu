@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.10 2010/02/04 10:41:49 paste Exp $
+* $Id: DDUDebugger.cc,v 1.11 2010/03/08 22:19:49 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -1777,4 +1777,39 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::DMBWarning(const enum 
 	}
 	
 	return returnMe;
+}
+
+
+
+std::string emu::fed::DDUDebugger::FirmwareDecode(const uint32_t &code)
+{
+	std::ostringstream returnMe;
+	
+	if ((code & 0xff000f00) == 0xb0000a00) { // VMEPROM
+		
+		returnMe << "VMEPROM v" << ((code >> 12) & 0xff) << " rev " << (code & 0xff);
+		
+	} else if ((code & 0xfc00ff00) == 0xc000dd00) { // DDUPROM
+		
+		returnMe << "DDUPROM" << ((code >> 24) & 0xf) << " v" << ((code >> 16) & 0xff) << " (rui " << (code & 0xff) << ")";
+		
+	} else if ((code & 0xfc000f00) == 0xd0000a00) { // INPROM
+		
+		returnMe << "INPROM" << ((code >> 24) & 0xf) << " v" << ((code >> 12) & 0xff) << " rev " << (code & 0xff);
+		
+	} else if ((code & 0xff000f00) == 0xcf000a00) { // DDUFPGA
+		
+		returnMe << "DDUFPGA v" << ((code >> 12) & 0xff) << " rev " << (code & 0xff);
+	
+	} else if ((code & 0xff000f00) == 0xdf000a00) { // INFPGA
+		
+		returnMe << "INFPGA v" << ((code >> 12) & 0xff) << " rev " << (code & 0xff);
+		
+	} else {
+		
+		returnMe << "Unknown version " << std::hex << std::showbase << code;
+		
+	}
+	
+	return returnMe.str();
 }
