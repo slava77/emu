@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.20 2010/03/08 15:10:31 paste Exp $
+* $Id: Commander.cc,v 1.21 2010/03/08 22:20:05 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -2311,89 +2311,408 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	
 	// Display truncated header
 	std::vector<std::string> jsFileNames;
-	jsFileNames.push_back("errorFlasher.js");
-	jsFileNames.push_back("definitions.js");
 	jsFileNames.push_back("commanderFirmware.js");
-	jsFileNames.push_back("configurable.js");
-	jsFileNames.push_back("common.js");
 	
 	// Extra header information
 	std::ostringstream extraHeader;
-	/*
 	extraHeader << "<script type=\"text/javascript\">" << std::endl;
-	extraHeader << "var regs = new Array();\nvar ruis = new Array();\nvar fmmids = new Array();" << std::endl;
-	for (std::vector<cgicc::FormEntry>::const_iterator iEntry = cgi.getElements().begin(); iEntry != cgi.getElements().end(); iEntry++) {
-		if (iEntry->getName() == "board") continue;
-		extraHeader << iEntry->getName() << "s.push(" << iEntry->getValue() << ");" << std::endl;
-	}
+	extraHeader << "var boardType = \"ddu\";" << std::endl;
+	extraHeader << "var crateNumber = " << crateNumber << ";" << std::endl;
 	extraHeader << "</script>" << std::endl;
-	*/
+
 	*out << Header("DDU Firmware Management", jsFileNames, extraHeader.str(), false);
 	
 	*out << cgicc::div()
 		.set("class", "titlebar commander_width")
 		.set("id", "FED_Commander_ddu_selector_titlebar") << std::endl;
-	*out << cgicc::div("DDU Selector / Firmware Version Numbers")
+	*out << cgicc::div("DDU Firmware Manager")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset()
-		.set("class", "dialog")
+		.set("class", "dialog commander_width")
 		.set("id", "FED_Commander_ddu_selector_dialog") << std::endl;
+	
+	// Everything falls in a list
+	*out << cgicc::ol() << std::endl;
+	
+	// Step 1
+	*out << cgicc::li("Review installed versions and select firmware install targets")
+		.set("class", "tier0 bold") << std::endl;
 	
 	std::vector<DDU *> dduVector = myCrate->getDDUs();
 	
 	// Make a table for the DDUs
 	*out << cgicc::table()
-		.set("tier0") << std::endl;
+		.set("class", "tier1 data_table")
+		.set("style", "font-size: 80%;") << std::endl;
 		
 	*out << cgicc::tr()
-		.set("class", "header") << std::endl;
+		.set("class", "data_header") << std::endl;
 	*out << cgicc::td("DDU")
-		.set("class", "header") << std::endl;
+		.set("rowspan", "2")
+		.set("class", "data_header") << std::endl;
 	*out << cgicc::td("VME")
-		.set("class", "header") << std::endl;
+		.set("class", "data_header") << std::endl;
 	*out << cgicc::td("Control")
-		.set("class", "header") << std::endl;
+		.set("class", "data_header")
+		.set("colspan", "2") << std::endl;
 	*out << cgicc::td("Input")
-		.set("class", "header") << std::endl;
+		.set("class", "data_header")
+		.set("colspan", "2") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::input()
+		.set("type", "checkbox")
+		.set("class", "broadcast")
+		.set("chip", "vme")
+		.set("id", "broadcast_vme") << std::endl;
+	*out << cgicc::label("broadcast")
+		.set("class", "pointer")
+		.set("for", "broadcast_vme") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::input()
+		.set("type", "checkbox")
+		.set("class", "broadcast")
+		.set("chip", "ddu0")
+		.set("id", "broadcast_ddu0") << std::endl;
+	*out << cgicc::label("broadcast 0")
+		.set("class", "pointer")
+		.set("for", "broadcast_ddu0") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::input()
+		.set("type", "checkbox")
+		.set("class", "broadcast")
+		.set("chip", "ddu1")
+		.set("id", "broadcast_ddu1") << std::endl;
+	*out << cgicc::label("broadcast 1")
+		.set("class", "pointer")
+		.set("for", "broadcast_ddu1") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::input()
+		.set("type", "checkbox")
+		.set("class", "broadcast")
+		.set("chip", "in0")
+		.set("id", "broadcast_in0") << std::endl;
+	*out << cgicc::label("broadcast 0")
+		.set("class", "pointer")
+		.set("for", "broadcast_in0") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::input()
+		.set("type", "checkbox")
+		.set("class", "broadcast")
+		.set("chip", "in1")
+		.set("id", "broadcast_in1") << std::endl;
+	*out << cgicc::label("broadcast 1")
+		.set("class", "pointer")
+		.set("for", "broadcast_in1") << std::endl;
+	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
 	
 	for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+		
+		uint32_t vmePROM = 0;
+		uint32_t dduPROM0 = 0;
+		uint32_t dduPROM1 = 0;
+		uint32_t inPROM0 = 0;
+		uint32_t inPROM1 = 0;
+		uint32_t dduFPGA = 0;
+		uint32_t inFPGA0 = 0;
+		uint32_t inFPGA1 = 0;
+		
+		try {
+			
+			vmePROM = (*iDDU)->readUserCode(emu::fed::VMEPROM);
+			dduPROM0 = (*iDDU)->readUserCode(emu::fed::DDUPROM0);
+			dduPROM1 = (*iDDU)->readUserCode(emu::fed::DDUPROM1);
+			inPROM0 = (*iDDU)->readUserCode(emu::fed::INPROM0);
+			inPROM1 = (*iDDU)->readUserCode(emu::fed::INPROM1);
+			dduFPGA = (*iDDU)->readUserCode(emu::fed::DDUFPGA);
+			inFPGA0 = (*iDDU)->readUserCode(emu::fed::INFPGA0);
+			inFPGA1 = (*iDDU)->readUserCode(emu::fed::INFPGA1);
+			
+		} catch (emu::fed::exception::DDUException &e) {
+			
+			// Zeros imply error.
+			std::ostringstream error;
+			error << "Error reading PROM/FPGA usercodes from DDU";
+			XCEPT_DECLARE_NESTED(emu::fed::exception::Exception, e2, error.str(), e);
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			notifyQualified("ERROR", e2);
+			
+		}
+		
+		// Each slot should be unique, so keep track of the slot number in element IDs.
+		std::ostringstream slotStream;
+		slotStream << (*iDDU)->getSlot();
+		std::string slot = slotStream.str();
 		
 		// Two rows per DDU
 		*out << cgicc::tr()
 			.set("class", "board") << std::endl;
 		// DDU name
 		*out << cgicc::td()
-			.set("rowspan", "2") << "DDU " << (*iDDU)->getRUI() << cgicc::td() << std::endl;
-		// VME version
+			.set("rowspan", "2")
+			.set("class", "entry_name") << "DDU " << (*iDDU)->getRUI() << cgicc::td() << std::endl;
+		// VMEPROM version
 		*out << cgicc::td()
-			.set("rowspan", "2") << "PROM: 0x1" << cgicc::td() << std::endl;
+			.set("rowspan", "2")
+			.set("class", "entry_value") << std::endl;
+		*out << cgicc::input()
+			.set("type", "checkbox")
+			.set("slot", slot)
+			.set("chip", "vme")
+			.set("id", "vme_" + slot) << std::endl;
+		*out << cgicc::label()
+			.set("class", "pointer")
+			.set("for", "vme_" + slot)
+			.set("id", "vme_label_" + slot) << std::endl;
+		if (vmePROM == 0) *out << "ERROR";
+		else *out << DDUDebugger::FirmwareDecode(vmePROM);
+		*out << cgicc::label() << std::endl;
+		*out << cgicc::td() << std::endl;
+		// DDUPROM0 version
+		*out << cgicc::td()
+			.set("class", "entry_value")
+			.set("style", "border-right: 1px dotted #000;") << std::endl;
+		*out << cgicc::input()
+			.set("type", "checkbox")
+			.set("slot", slot)
+			.set("chip", "ddu0")
+			.set("id", "ddu0_" + slot) << std::endl;
+		*out << cgicc::label()
+			.set("class", "pointer")
+			.set("for", "ddu0_" + slot)
+			.set("id", "ddu0_label_" + slot) << std::endl;
+		if (dduPROM0 == 0) *out << "ERROR";
+		else *out << DDUDebugger::FirmwareDecode(dduPROM0);
+		*out << cgicc::label() << std::endl;
+		*out << cgicc::td() << std::endl;
 		// DDUPROM1 version
-		*out << cgicc::td() << "PROM1: 0x2" << cgicc::td() << std::endl;
-		// DDUPROM2 version
-		*out << cgicc::td() << "PROM2: 0x3" << cgicc::td() << std::endl;
+		*out << cgicc::td()
+			.set("class", "entry_value") << std::endl;
+		*out << cgicc::input()
+			.set("type", "checkbox")
+			.set("slot", slot)
+			.set("chip", "ddu1")
+			.set("id", "ddu1_" + slot) << std::endl;
+		*out << cgicc::label()
+			.set("class", "pointer")
+			.set("for", "ddu1_" + slot)
+			.set("id", "ddu1_label_" + slot) << std::endl;
+		if (dduPROM1 == 0) *out << "ERROR";
+		else *out << DDUDebugger::FirmwareDecode(dduPROM1);
+		*out << cgicc::label() << std::endl;
+		*out << cgicc::td() << std::endl;
+		// INPROM0 version
+		*out << cgicc::td()
+			.set("class", "entry_value")
+			.set("style", "border-right: 1px dotted #000;") << std::endl;
+		*out << cgicc::input()
+			.set("type", "checkbox")
+			.set("slot", slot)
+			.set("chip", "in0")
+			.set("id", "in0_" + slot) << std::endl;
+		*out << cgicc::label()
+			.set("class", "pointer")
+			.set("for", "in0_" + slot)
+			.set("id", "in0_label_" + slot) << std::endl;
+		if (inPROM0 == 0) *out << "ERROR";
+		else *out << DDUDebugger::FirmwareDecode(inPROM0);
+		*out << cgicc::label() << std::endl;
+		*out << cgicc::td() << std::endl;
 		// INPROM1 version
-		*out << cgicc::td() << "PROM1: 0x4" << cgicc::td() << std::endl;
-		// INPROM2 version
-		*out << cgicc::td() << "PROM2: 0x5" << cgicc::td() << std::endl;
+		*out << cgicc::td()
+			.set("class", "entry_value") << std::endl;
+		*out << cgicc::input()
+			.set("type", "checkbox")
+			.set("slot", slot)
+			.set("chip", "in1")
+			.set("id", "in1_" + slot) << std::endl;
+		*out << cgicc::label()
+			.set("class", "pointer")
+			.set("for", "in1_" + slot)
+			.set("id", "in1_label_" + slot) << std::endl;
+		if (inPROM1 == 0) *out << "ERROR";
+		else *out << DDUDebugger::FirmwareDecode(inPROM1);
+		*out << cgicc::label() << std::endl;
+		*out << cgicc::td() << std::endl;
 		*out << cgicc::tr() << std::endl;
 		*out << cgicc::tr()
-			.set("class", "board") << std::endl;
+			.set("class", "board")
+			.set("style", "border-bottom: 2px solid #000;") << std::endl;
 		// DDUFPGA version
 		*out << cgicc::td()
-			.set("colspan", "2") << "FPGA: 0x6" << cgicc::td() << std::endl;
+			.set("class", "entry_value")
+			.set("colspan", "2")
+			.set("style", "border-top: 1px dotted #000;") << std::endl;
+		if (dduFPGA == 0) *out << "ERROR";
+		else *out << DDUDebugger::FirmwareDecode(dduFPGA);
+		*out << cgicc::td() << std::endl;
+		// INFPGA0 version
+		*out << cgicc::td()
+			.set("class", "entry_value")
+			.set("style", "border-right: 1px dotted #000; border-top: 1px dotted #000;") << std::endl;
+		if (inFPGA0 == 0) *out << "ERROR";
+		else *out << DDUDebugger::FirmwareDecode(inFPGA0);
+		*out << cgicc::td() << std::endl;
 		// INFPGA1 version
-		*out << cgicc::td() << "FPGA1: 0x7" << cgicc::td() << std::endl;
-		// INFPGA2 version
-		*out << cgicc::td() << "FPGA2: 0x8" << cgicc::td() << std::endl;
+		*out << cgicc::td()
+			.set("class", "entry_value")
+			.set("style", "border-top: 1px dotted #000;") << std::endl;
+		if (inFPGA1 == 0) *out << "ERROR";
+		else *out << DDUDebugger::FirmwareDecode(inFPGA1);
+		*out << cgicc::td() << std::endl;
 		*out << cgicc::tr() << std::endl;
 	}
 	
 	*out << cgicc::table() << std::endl;
 	
-	*out << cgicc::frameset() << std::endl;
+	// Step 2
+	
+	*out << cgicc::li("Upload local firmware files to selected targets")
+		.set("class", "tier0 bold") << std::endl;
+		
+	*out << cgicc::form()
+		.set("enctype", "multipart/form-data")
+		.set("method", "POST")
+		.set("action", "FirmwareUploader")
+		.set("target", "hidden_frame") << std::endl;
+	*out << cgicc::table()
+		.set("class", "tier1") << std::endl;
+	*out << cgicc::tr()
+		.set("class", "hidden")
+		.set("id", "vme_target") << std::endl;
+	*out << cgicc::td("VME firmware: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::input()
+		.set("type", "file")
+		.set("name", "vme_file")
+		.set("id", "vme_file") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::button("Upload and install")
+		.set("chip", "vme")
+		.set("class", "upload")
+		.set("id", "vme_upload") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "hidden")
+		.set("id", "ddu0_target") << std::endl;
+	*out << cgicc::td("Control PROM0 firmware: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::input()
+		.set("type", "file")
+		.set("name", "ddu0_file")
+		.set("id", "ddu0_file") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::button("Upload and install")
+		.set("chip", "ddu0")
+		.set("class", "upload")
+		.set("id", "ddu0_upload") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "hidden")
+		.set("id", "ddu1_target") << std::endl;
+	*out << cgicc::td("Control PROM1 firmware: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::input()
+		.set("type", "file")
+		.set("name", "ddu1_file")
+		.set("id", "ddu1_file") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::button("Upload and install")
+		.set("chip", "ddu1")
+		.set("class", "upload")
+		.set("id", "ddu1_upload") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "hidden")
+		.set("id", "in0_target") << std::endl;
+	*out << cgicc::td("Input PROM0 firmware: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::input()
+		.set("type", "file")
+		.set("name", "in0_file")
+		.set("id", "in0_file") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::button("Upload and install")
+		.set("chip", "in0")
+		.set("class", "upload")
+		.set("id", "in0_upload") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr()
+		.set("class", "hidden")
+		.set("id", "in1_target") << std::endl;
+	*out << cgicc::td("Input PROM1 firmware: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::input()
+		.set("type", "file")
+		.set("name", "in1_file")
+		.set("id", "in1_file") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::button("Upload and install")
+		.set("chip", "in1")
+		.set("class", "upload")
+		.set("id", "in1_upload") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::form() << std::endl;
+	
+	*out << cgicc::table() << std::endl;
+	
+	// A hidden iFrame for loading firmware
+	*out << cgicc::iframe()
+		.set("name", "hidden_frame")
+		.set("class", "hidden") << std::endl;
+	*out << cgicc::iframe() << std::endl;
+	
+	// Step 3
+	
+	// Check to see if DCCs exist in this crate
+	if (myCrate->getDCCs().size()) {
+		
+		*out << cgicc::li()
+			.set("class", "tier0 bold") << std::endl;
+	
+		*out << cgicc::button("Hard-reset the crate through the DCC")
+			.set("id", "reset") << std::endl;
+		
+		*out << cgicc::li() << std::endl;
+		
+	} else {
+		
+		*out << cgicc::li("Issue a hard-reset to the crate")
+			.set("class", "tier0 bold") << std::endl;
+			
+		*out << cgicc::div("Either use a TTC command or power-cycle the crate manually.")
+			.set("class", "tier1") << std::endl;
+		
+	}
+		
+	
+	*out << cgicc::ol() << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
 	
 	*out << Footer();
 
