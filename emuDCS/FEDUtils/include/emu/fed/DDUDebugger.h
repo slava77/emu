@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.h,v 1.8 2009/11/03 15:14:31 paste Exp $
+* $Id: DDUDebugger.h,v 1.9 2010/03/08 22:19:49 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDUDEBUGGER_H__
 #define __EMU_FED_DDUDEBUGGER_H__
@@ -132,8 +132,8 @@ namespace emu {
 			/** Reads from method DDU::readDMBWarning(DEVTYPE) **/
 			std::map<std::string, std::string> DMBWarning(const enum DEVTYPE &dev, const uint16_t &stat, DDU *ddu);
 			
-			/** Reads from method DDU::readFiberDiagnostics(DEVTYPE, reg) **/
-			//std::map<std::string, std::string> FiberDiagnostics(const enum DEVTYPE &dev, const uint8_t &reg, const uint16_t &stat);
+			/** Converts firmware verson code into a readable text string **/
+			std::string FirmwareDecode(const uint32_t &code);
 		}
 
 	}
