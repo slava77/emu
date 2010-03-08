@@ -13,5 +13,5 @@ lxcmddemo1.cern.ch:lxcmd:systemheadnode:directory-agent
 #-----------------------------------------------------------------------------------------------------
 # lowercase and with .cms
 emuslice02.cern.ch:e1a30:service:monitoring:jobcontrol ws-eventing pulser ws-eventing-exception spotlight las
-emuslice06.cern.ch:e1a30:service:monitoring:jobcontrol emufarmer
+emuslice06.cern.ch:e1a30:service:monitoring:jobcontrol
 emuslice12.cern.ch:e1a30:service:monitoring:jobcontrol pcmonitor pctimer pcservice
