@@ -12,5 +12,6 @@ XDAQ_HOSTNAME=`hostname -f`
 XDAQ_USER=root
 XDAQ_ROOT=/opt/xdaq
 CORE_DIR=/tmp
+DAEMON_COREFILE_LIMIT=unlimited
 XDAQ_CONFIG=
 STARTUP_LIST="%service"
