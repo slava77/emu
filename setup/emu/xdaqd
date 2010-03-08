@@ -188,11 +188,11 @@ xdaqdDaemon() {
 	# And start it up.
 	
 	# ${XDAQ_LOG} must exist otherwise the redirection of stderr and stdout to it will fail.
-	$SU_CMD -s /bin/zsh - $user -c "touch ${XDAQ_LOG}"
-	#echo $SU_CMD -s /bin/zsh - $user -c "touch ${XDAQ_LOG}"
-	# Start and disown it in /tmp.
-	$nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c 'cd /tmp ; $* &!'"
-	#echo $nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c 'cd /tmp ; $* &!'"
+	$SU_CMD -s /bin/zsh - $user -c "[[ -e ${XDAQ_LOG} ]] && rm ${XDAQ_LOG}; touch ${XDAQ_LOG}"
+	#echo $SU_CMD -s /bin/zsh - $user -c "[[ -e ${XDAQ_LOG} ]] && rm ${XDAQ_LOG}; touch ${XDAQ_LOG}"
+	# Enable core dumps, start and disown it in /tmp.
+	$nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c 'ulimit -S -c ${DAEMON_COREFILE_LIMIT:-0}; cd /tmp; $* &!'"
+	#echo $nice initlog $INITLOG_ARGS -c "$SU_CMD -s /bin/zsh - $user -c 'ulimit -S -c ${DAEMON_COREFILE_LIMIT:-0}; cd /tmp; $* &!'"
 
 	[ "$?" -eq 0 ] && success $"$base startup" || failure $"$base startup"
 }
