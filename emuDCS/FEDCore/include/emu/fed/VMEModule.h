@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.9 2010/02/04 10:43:24 paste Exp $
+* $Id: VMEModule.h,v 1.10 2010/03/08 22:18:55 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMEMODULE_H__
 #define __EMU_FED_VMEMODULE_H__
@@ -105,6 +105,11 @@ namespace emu {
 			inline bool isFake() { return fake_; }
 
 			inline void setFake(const bool &fake) { fake_ = fake; }
+			
+			/** Gets the firmware load percent complete for a given DEVTYPE. **/
+			inline float getFirmwarePercent(const enum DEVTYPE &dev) {
+				return firmwarePercentMap_[dev];
+			}
 
 		protected:
 
@@ -173,6 +178,9 @@ namespace emu {
 
 			/// Whether or not to actually perform communications.
 			bool fake_;
+			
+			/// A map of DEVs to the firmware load percentage complete.  TRICKY!
+			std::map<enum DEVTYPE, float> firmwarePercentMap_;
 
 		};
 
