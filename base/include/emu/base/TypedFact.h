@@ -6,31 +6,18 @@
 
 namespace emu { namespace base {
 
-  class slidingTmbTriggerCounterFact {
+
+  class ApplicationStatusFact {
   public:
-    enum ParameterName_t { alctCount, clctCount, lctCount, l1aCount, windowWidth, nParameters };
+    enum ParameterName_t { state, nParameters };
     static const char*  getTypeName() { return typeName_; }
     static const string getParameterName( const ParameterName_t p ) { return parameterNames_[p]; }
   protected:
     static const char* const typeName_; 
     static const char* const parameterNames_[nParameters];
   };
-  const char* const slidingTmbTriggerCounterFact::typeName_ = "slidingTmbTriggerCounterFact";
-  const char* const slidingTmbTriggerCounterFact::parameterNames_[] = { "alctCount", "clctCount", "lctCount", "l1aCount", "windowWidth" };
-
-
-  class cumulativeTmbTriggerCounterFact {
-  public:
-    enum ParameterName_t { alctCount, clctCount, lctCount, l1aCount, nParameters };
-    static const char*  getTypeName() { return typeName_; }
-    static const string getParameterName( const ParameterName_t p ) { return parameterNames_[p]; }
-  protected:
-    static const char* const typeName_; 
-    static const char* const parameterNames_[nParameters];
-  };
-  const char* const cumulativeTmbTriggerCounterFact::typeName_ = "cumulativeTmbTriggerCounterFact";
-  const char* const cumulativeTmbTriggerCounterFact::parameterNames_[] = { "alctCount", "clctCount", "lctCount", "l1aCount" };
-
+  const char* const ApplicationStatusFact::typeName_ = "ApplicationStatusFact";
+  const char* const ApplicationStatusFact::parameterNames_[] = { "state" };
 
 
   template <class T>
@@ -41,7 +28,8 @@ namespace emu { namespace base {
     TypedFact<T>& setRun        ( const string& run                      ){ run_         = run;              return *this; }
     TypedFact<T>& setTime       ( const string& time                     ){ time_        = time;             return *this; }
     TypedFact<T>& setDescription( const string& description              ){ description_ = description;      return *this; }
-    TypedFact<T>& setComponentId( const string& componentId              ){ componentId_ = componentId;      return *this; }
+    TypedFact<T>& setComponentId( const string& componentId              ){ component_.addId( componentId ); return *this; }
+    TypedFact<T>& setComponent  ( const emu::base::Component&          c ){ component_   = c;                return *this; }
     TypedFact<T>& setUnit       ( const emu::base::Fact::Unit_t        u ){ unit_        = units_[u];        return *this; }
     TypedFact<T>& setSeverity   ( const emu::base::Fact::Severity_t    s ){ severity_    = severities_[s];   return *this; }
 

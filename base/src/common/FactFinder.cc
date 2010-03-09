@@ -173,6 +173,7 @@ emu::base::FactFinder::createRequestAcknowlegdementSOAP() const {
 xoap::MessageReference
 emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCollection ) const {
   if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinde::createFactsSOAP" << endl;
+
   xoap::MessageReference message = xoap::createMessage();
   try {
     xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -213,8 +214,8 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
       xoap::SOAPName    factName    = envelope.createName( f->getName().c_str(), "esd", ESD_NS_URI);
       xoap::SOAPElement factElement = collectionElement.addChildElement( factName );
       
-      factElement.addChildElement( timeName        ).addTextNode( f->getTime()       .c_str() );
-      factElement.addChildElement( componentIdName ).addTextNode( f->getComponentId().c_str() );
+      factElement.addChildElement( timeName        ).addTextNode( f->getTime()          .c_str() );
+      factElement.addChildElement( componentIdName ).addTextNode( f->getOneComponentId().c_str() );
       if ( f->getRun()        .size() ) factElement.addChildElement( runName         ).addTextNode( f->getRun()        .c_str() );
       if ( f->getSeverity()   .size() ) factElement.addChildElement( severityName    ).addTextNode( f->getSeverity()   .c_str() );
       if ( f->getDescription().size() ) factElement.addChildElement( descriptionName ).addTextNode( f->getDescription().c_str() );
@@ -252,6 +253,52 @@ void
 emu::base::FactFinder::sendFacts(){
   // Get the facts:
   emu::base::FactCollection facts( findFacts().setSource( source_ ) );
+  // Queue them for sending:
+  factFinderBSem_.take();
+  factsToSend_.push_back( facts );
+  if ( isFactFinderInDebugMode_.value_ ) cout << endl << endl << "factsToSend_.size() = " << factsToSend_.size() << endl << endl;
+  // If queue is too long, drop the oldest facts:
+  while ( factsToSend_.size() > maxQueueLength_ ) factsToSend_.pop_front();
+  factFinderBSem_.give();
+  // Send them in another thread:
+  factWorkLoop_->submit( sendFactsSignature_ );
+}
+
+void
+emu::base::FactFinder::sendFact( const string& componentId, const string& factType ){
+  // Get the fact:
+  emu::base::Fact fact( findFact( componentId, factType ) );
+  // Bail out if untyped fact (which has no name) is returned, indicating failure of fact-finding:
+  if ( fact.getName().size() == 0 ) return;
+  // Set the component id in case the user forgot to:
+  fact.setComponentId( componentId );
+  // Wrap fact in a fact collection:
+  emu::base::FactCollection facts;
+  facts.setSource( source_ );
+  facts.addFact( fact );
+  // Queue them for sending:
+  factFinderBSem_.take();
+  factsToSend_.push_back( facts );
+  if ( isFactFinderInDebugMode_.value_ ) cout << endl << endl << "factsToSend_.size() = " << factsToSend_.size() << endl << endl;
+  // If queue is too long, drop the oldest facts:
+  while ( factsToSend_.size() > maxQueueLength_ ) factsToSend_.pop_front();
+  factFinderBSem_.give();
+  // Send them in another thread:
+  factWorkLoop_->submit( sendFactsSignature_ );
+}
+
+void
+emu::base::FactFinder::sendFact( const emu::base::Component& component, const string& factType ){
+  // Get the fact:
+  emu::base::Fact fact( findFact( component, factType ) );
+  // Bail out if untyped fact (which has no name) is returned, indicating failure of fact-finding:
+  if ( fact.getName().size() == 0 ) return;
+  // Set the component in case the user forgot to:
+  fact.setComponent( component );
+  // Wrap fact in a fact collection:
+  emu::base::FactCollection facts;
+  facts.setSource( source_ );
+  facts.addFact( fact );
   // Queue them for sending:
   factFinderBSem_.take();
   factsToSend_.push_back( facts );
@@ -301,10 +348,13 @@ emu::base::FactFinder::collectFacts( const FactRequestCollection& requestCollect
   fc.setRequestId( requestCollection.getRequestId() ).setSource( source_ );
   vector<emu::base::FactRequest>::const_iterator fr;
   for ( fr = requestCollection.getRequests().begin(); fr != requestCollection.getRequests().end(); ++fr ){
-    emu::base::Fact f = findFact( fr->getComponentId(), fr->getFactType() );
-    // Set the component id in case the user forgot to:
-    f.setComponentId( fr->getComponentId() );
-    fc.addFact( f );
+    emu::base::Fact f = findFact( fr->getComponent(), fr->getFactType() );
+    // Discard untyped fact (which has no name, indicating failure of fact-finding):
+    if ( f.getName().size() > 0 ){
+      // Set the component id in case the user forgot to:
+      f.setComponent( fr->getComponent() );
+      fc.addFact( f );
+    }
   }
   return fc;
 }

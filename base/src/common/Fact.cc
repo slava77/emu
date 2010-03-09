@@ -24,6 +24,13 @@ emu::base::Fact::Fact( const string& name )
     name_( name              ){}
 
 string
+emu::base::Fact::getOneComponentId() const {
+  if ( component_.getIds().empty() ) return "";
+  else                               return *component_.getIds().begin();
+}
+
+
+string
 emu::base::Fact::defaultDateTime(){
   time_t t;
   struct tm *tm;
@@ -45,26 +52,36 @@ emu::base::Fact::defaultDateTime(){
 ostream& emu::base::operator<<( ostream& os, emu::base::Fact& f ){
   os << "   Name           " << f.getName          () << endl
      << "   Time           " << f.getTime          () << endl
-     << "   ComponentId    " << f.getComponentId   () << endl
+     << "   Component      " << f.getComponent     () << endl
      << "   Run            " << f.getRun           () << endl
      << "   Severity       " << f.getSeverity      () << endl
      << "   Description    " << f.getDescription   () << endl;
   map<string,string> parameters = f.getParameters();
   map<string,string>::iterator p;
+  unsigned int maxNameLength = 0;
+  for ( p = parameters.begin(); p != parameters.end(); ++p ) 
+    if ( p->first.size() > maxNameLength ) maxNameLength = p->first.size();
   for ( p = parameters.begin(); p != parameters.end(); ++p )
-    os << "   " << p->first << string(15-p->first.size(),' ') << p->second << endl;
+    os << "   "                                << p->first 
+       << string(3+maxNameLength-p->first.size(),' ') << p->second
+       << endl;
   return os;
 }
 
 ostream& emu::base::operator<<( ostream& os, const emu::base::Fact& f ){
   os << "   Name           " << f.getName          () << endl
      << "   Time           " << f.getTime          () << endl
-     << "   ComponentId    " << f.getComponentId   () << endl
+     << "   Component      " << f.getComponent     () << endl
      << "   Run            " << f.getRun           () << endl
      << "   Severity       " << f.getSeverity      () << endl
      << "   Description    " << f.getDescription   () << endl;
   map<string,string>::const_iterator p;
+  unsigned int maxNameLength = 0;
   for ( p = f.getParameters().begin(); p != f.getParameters().end(); ++p )
-    os << "   " << p->first << string(15-p->first.size(),' ') << p->second << endl;
+    if ( p->first.size() > maxNameLength ) maxNameLength = p->first.size();
+  for ( p = f.getParameters().begin(); p != f.getParameters().end(); ++p )
+    os << "   "                                << p->first 
+       << string(3+maxNameLength-p->first.size(),' ') << p->second
+       << endl;
   return os;
 }
