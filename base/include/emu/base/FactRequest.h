@@ -18,17 +18,19 @@ namespace emu { namespace base {
     friend ostream& operator<<( ostream& os, const emu::base::FactRequest& fr );
 
     FactRequest(){}
-    FactRequest( const string& componentId, const string& factType )
-      : componentId_( componentId ),
+    FactRequest( const emu::base::Component& component, const string& factType )
+      : component_( component ),
 	factType_ ( factType  )
     {}
-    const string& getComponentId() const { return componentId_; }
-    const string& getFactType   () const { return factType_;    }
-    emu::base::FactRequest& setComponentId( const string& componentId ){ componentId_ = componentId; return *this; }
-    emu::base::FactRequest& setFactType   ( const string& factType    ){ factType_  = factType;      return *this; }
+
+    const emu::base::Component& getComponent()   const { return component_;   }
+    const string&               getFactType()    const { return factType_;    }
+    emu::base::FactRequest& setComponentId( const string& componentId     ){ component_.addId( componentId ); return *this; }
+    emu::base::FactRequest& setComponent  ( const emu::base::Component& c ){ component_ = c;                  return *this; }
+    emu::base::FactRequest& setFactType   ( const string& factType        ){ factType_  = factType;           return *this; }
   private:
-    string componentId_;
-    string factType_;
+    emu::base::Component component_;
+    string               factType_;
   };
 
   ///

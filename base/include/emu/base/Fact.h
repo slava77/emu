@@ -1,6 +1,8 @@
 #ifndef __FACT_H__
 #define __FACT_H__
 
+#include "emu/base/Component.h"
+
 #include <sstream>
 #include <ostream>
 #include <map>
@@ -36,14 +38,16 @@ namespace emu { namespace base {
 
     const string& getRun           () const { return run_;                  }
     const string& getTime          () const { return time_;                 }
-    const string& getComponentId   () const { return componentId_;          }
+    string        getOneComponentId() const;
     const string& getUnit          () const { return unit_;                 }
     const string& getSeverity      () const { return severity_;             }
     const string& getDescription   () const { return description_;          }
     const string& getName          () const { return name_;                 }
-    const map<string,string>& getParameters() const { return parameters_;   }
+    const emu::base::Component& getComponent()  const { return component_;  }
+    const map<string,string>&   getParameters() const { return parameters_; }
 
-    void setComponentId( const string& componentId ){ componentId_   = componentId; }
+    void setComponentId( const string& componentId     ){ component_.addId( componentId ); }
+    void setComponent  ( const emu::base::Component& c ){ component_ = c;                  }
 
   protected:
     string defaultDateTime();
@@ -52,7 +56,8 @@ namespace emu { namespace base {
     static const char* const severities_[nSeverities];
     string run_;
     string time_;
-    string componentId_;
+    //string componentId_;
+    emu::base::Component component_;
     string unit_;
     string severity_;
     string description_;

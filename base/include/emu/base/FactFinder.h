@@ -58,9 +58,11 @@ namespace emu { namespace base {
     toolbox::task::ActionSignature *sendFactsSignature_;
 
     void sendFacts();
+    void sendFact( const string& componentId,             const string& factType );
+    void sendFact( const emu::base::Component& component, const string& factType );
     pair<time_t,string> getLocalDateTime();
   
-    virtual emu::base::Fact           findFact ( const string& componentId, const string& factType ) = 0;
+    virtual emu::base::Fact           findFact ( const emu::base::Component& component, const string& factType ) = 0;
     virtual emu::base::FactCollection findFacts() = 0;
 
   private:
