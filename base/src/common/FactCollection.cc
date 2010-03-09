@@ -5,6 +5,7 @@ using namespace std;
 
 const char* emu::base::FactCollection::sources_[] = { "DCS",
 						      "LOCAL_DQM",
+						      "LOCAL_DAQ",
 						      "Xmas",
 						      "FED" };
 
