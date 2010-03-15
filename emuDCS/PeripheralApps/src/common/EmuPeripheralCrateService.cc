@@ -94,7 +94,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
 
 void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out ) 
 {
-  if(!parsed) ParsingXML();
+  ParsingXML();
 
   if(endcap_side==1)
      MyHeader(in,out,"EmuPeripheralCrateService -- Plus Endcap");
@@ -104,19 +104,20 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
      MyHeader(in,out,"EmuPeripheralCrateService -- Stand-alone");
 
   *out << cgicc::span().set("style","color:blue");
-  if(xml_or_db==0)
+  if(Xml_or_Db()==0)
   {
     *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
     *out << xmlFile_.toString();
   }
-  else if(xml_or_db==1)
+  else
   {
     *out << cgicc::b(cgicc::i("TStore EMU_config_ID : ")) ;
-    *out << EMU_config_ID_.toString();
+    *out << GetRealKey();
   }
   *out << cgicc::br() << cgicc::span() << std::endl;
   //
   *out << cgicc::hr() << cgicc::table().set("border","0");
+
     //
   *out << cgicc::td();
   *out << "Total Crates : " << total_crates_ << cgicc::br() << std::endl ;
@@ -324,7 +325,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   void EmuPeripheralCrateService::FastConfigCrates(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     if(!parsed) ParsingXML();
+     ParsingXML();
 
      if(GuiButton_)
      {
@@ -347,7 +348,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   void EmuPeripheralCrateService::FastConfigOne(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     if(!parsed) ParsingXML();
+     ParsingXML();
 
      if(GuiButton_)
      {
@@ -389,7 +390,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   void EmuPeripheralCrateService::CheckCrates(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
   {  
-    if(!parsed) ParsingXML();
+    ParsingXML();
 
     if(GuiButton_)
     {   
@@ -417,7 +418,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   void EmuPeripheralCrateService::HardReset(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     if(!parsed) ParsingXML();
+     ParsingXML();
 
      if(GuiButton_)
      {
@@ -431,7 +432,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   void EmuPeripheralCrateService::ChamberOff(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     if(!parsed) ParsingXML();
+     ParsingXML();
 
      if(GuiButton_)
      {
@@ -442,70 +443,35 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
      this->Default(in,out);
   }
 
-bool EmuPeripheralCrateService::ParsingXML(){
-  //
-  Logger logger_ = getApplicationLogger();
-  //
-  LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService starts...");
-  //
-  LOG4CPLUS_INFO(logger_, "Parsing Configuration XML");
-    //
-  std::cout << "XML_or_DB: " << XML_or_DB_.toString() << std::endl;
-  if(XML_or_DB_.toString() == "xml" || XML_or_DB_.toString() == "XML")
-  {
-    // Check if filename exists
-    //
-    if(xmlFile_.toString().find("http") == std::string::npos) 
-    {
-      std::ifstream filename(xmlFile_.toString().c_str());
-      if(filename.is_open()) {
-	filename.close();
-      }
-      else {
-	LOG4CPLUS_ERROR(logger_, "Filename doesn't exist");
-	XCEPT_RAISE (toolbox::fsm::exception::Exception, "Filename doesn't exist");
-	return false;
-      }
-    }
-    //
-    //cout <<"Start Parsing"<<endl;
-    if ( MyController != 0 ) {
-      LOG4CPLUS_INFO(logger_, "Delete existing controller");
-      delete MyController ;
-    }
-    //
-    MyController = new EmuController();
+bool EmuPeripheralCrateService::ParsingXML()
+{
+    if( parsed &&  Xml_or_Db() != -1) return true;
 
-    MyController->SetConfFile(xmlFile_.toString().c_str());
-    MyController->init();
-    MyController->NotInDCS();
+    std::string config_src, config_key;
     //
-    emuEndcap_ = MyController->GetEmuEndcap();
-    if(!emuEndcap_) return false;
-    xml_or_db = 0;
-  }
-  else if (XML_or_DB_.toString() == "db" || XML_or_DB_.toString() == "DB")
-  {
-    // from TStore    
-    // std::cout << "We are in db" << std::endl;
-    myTStore = new EmuTStore(this);
-    if(!myTStore)
-    {  std::cout << "Can't create object EmuTStore" << std::endl;
-       return false;  
+    Logger logger_ = getApplicationLogger();
+    //
+    LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService reloading...");
+    //
+    config_src = XML_or_DB_.toString();
+    // std::cout << "XML_or_DB: " << config_src << std::endl;
+    if(config_src == "xml" || config_src == "XML")
+    {
+       config_key = xmlFile_.toString();
     }
-    emuEndcap_ = myTStore->getConfiguredEndcap(EMU_config_ID_.toString());   
-    if(!emuEndcap_) 
-    {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
+    else if (config_src == "db" || config_src == "DB")
+    {
+       config_key = EMU_config_ID_.toString();
+    }
+    else
+    {
+       std::cout << "No valid XML_or_DB found..." << std::endl;
        return false;
     }
-    xml_or_db = 1;
-  }
-  else
-  {
-    std::cout << "No valid XML_or_DB found..." << std::endl;
-    return false;
-  }
-    crateVector = emuEndcap_->crates();
+    if(!CommonParser(config_src, config_key)) return false;
+    EmuEndcap *myEndcap = GetEmuEndcap();
+    if(myEndcap == NULL) return false;
+    crateVector = myEndcap->crates();
     //
     total_crates_=crateVector.size();
     if(total_crates_<=0) return false;
@@ -522,7 +488,7 @@ bool EmuPeripheralCrateService::ParsingXML(){
     //
     parsed=1;
     return true;
-  }
+}
 
   void EmuPeripheralCrateService::SetCurrentCrate(int cr)
   {  
@@ -595,7 +561,7 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
   std::string command_name=Page.substr(0,Page.find("=", 0) );
   std::string command_argu=Page.substr(Page.find("=", 0)+1);
 
-  if(!parsed) ParsingXML();
+   ParsingXML();
 
   if (command_name=="STATUS")
   {
