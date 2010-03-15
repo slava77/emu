@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.47 2010/03/03 20:33:25 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.48 2010/03/15 18:11:15 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -845,6 +845,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
   broadcastDMB->setcaldelay(dword);
 
+#if 0
       // added by Stan Durkin March 03, 2010
       // set DMB timing to calibration values
       int killinput=0;
@@ -862,6 +863,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
       broadcastDMB->load_feb_clk_delay();
       broadcastDMB->SetCfebCableDelay(feb_cable_delay);
       broadcastDMB->setcbldly(broadcastDMB->GetCableDelay());
+#endif
 
   //
   std::cout << " The Peripheral Crate configure finished "<<std::endl;
