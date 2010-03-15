@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.6 2009/11/01 12:17:32 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.7 2010/03/15 18:11:59 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -27,6 +27,11 @@ EmuPeripheralCrateBase::EmuPeripheralCrateBase(xdaq::ApplicationStub * s): xdaq:
         getApplicationInfoSpace()->fireItemAvailable("stateName", &state_);
 
         LOG4CPLUS_INFO(getApplicationLogger(), "Supervised");
+        activeEndcap_ = NULL;
+        activeParser_ = NULL;
+        activeTStore_ = NULL;
+        xml_or_db_ = 0;
+        real_key_ = "";
 }  
 
 void EmuPeripheralCrateBase::changeState(toolbox::fsm::FiniteStateMachine &fsm)
@@ -248,5 +253,103 @@ std::string EmuPeripheralCrateBase::getLocalDateTime(){
   return ss.str();
 }
 
+bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string configKey, bool NotDCS)
+{
+  std::string Valid_key, InFlash_key;
+//  EmuEndcap* myEndcap_=NULL;
+  int use_flash=0;
+    //
+  std::cout << "XML_or_DB: " << XML_or_DB << std::endl;
+  if(XML_or_DB == "xml" || XML_or_DB == "XML")
+  {
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
+    // Check if filename exists
+    //
+      std::ifstream filename(configKey.c_str());
+      if(filename.is_open()) {
+	filename.close();
+      }
+      else {
+	LOG4CPLUS_ERROR(getApplicationLogger(), "Filename doesn't exist");
+	XCEPT_RAISE (toolbox::fsm::exception::Exception, "Filename doesn't exist");
+	return false;
+      }
+    //
+    //cout <<"Start Parsing"<<endl;
+
+    // if activeEndcap_ exists, return without doing anything
+    if ( activeEndcap_) return true;
+
+    //
+    if (!activeParser_)  activeParser_ = new XMLParser();
+
+    activeParser_->parseFile(configKey);
+    //
+    activeEndcap_ = activeParser_->GetEmuEndcap();
+    if(!activeEndcap_) return false;
+    if(NotDCS) activeEndcap_->NotInDCS();
+    xml_or_db_ = 0;
+    return true;
+  }
+  else if (XML_or_DB == "db" || XML_or_DB == "DB")
+  {
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration DB");
+    // from TStore    
+    if(!activeTStore_) activeTStore_ = new EmuTStore(this);
+    if(!activeTStore_)
+    {  std::cout << "Can't create object EmuTStore" << std::endl;
+       return false;  
+    }
+
+    if( configKey=="-1" || configKey=="-2")
+    {
+       try 
+       {
+          InFlash_key = activeTStore_->getLastConfigIdUsed( (configKey=="-1")?"plus":"minus" );
+       } catch (...) {}
+
+       if (InFlash_key=="") return false;
+       use_flash=2;
+       Valid_key = InFlash_key;
+    }   
+    else
+    {  
+       Valid_key = configKey;
+    }
+
+    if( Valid_key != "" && Valid_key != real_key_)
+    {  // re-configuration needed
+       if ( activeEndcap_) {
+          std::cout << "Delete existing EmuEndcap" << std::endl;      
+          delete activeEndcap_ ;
+       }
+       std::cout << "Configuration ID: " << Valid_key << std::endl;
+       activeEndcap_ = activeTStore_->getConfiguredEndcap(Valid_key);   
+       if(!activeEndcap_) 
+        {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
+           return false;
+        }
+       if(NotDCS) activeEndcap_->NotInDCS();
+       xml_or_db_ = 1-use_flash;
+       real_key_ = Valid_key;
+       return true;
+    }
+    else return false;
+  }
+  else
+  {
+    std::cout << "No valid XML_or_DB found..." << std::endl;
+    return false;
+  }
+}
+
+EmuTStore *EmuPeripheralCrateBase::GetEmuTStore()
+{ 
+    if(!activeTStore_) activeTStore_ = new EmuTStore(this);
+    return activeTStore_; 
+}
+ 
  }  // namespace emu::pc
 }  // namespace emu

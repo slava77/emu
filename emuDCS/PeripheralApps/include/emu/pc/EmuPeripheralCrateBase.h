@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.h,v 1.3 2009/11/01 12:17:32 liu Exp $
+// $Id: EmuPeripheralCrateBase.h,v 1.4 2010/03/15 18:11:59 liu Exp $
 
 #ifndef _EmuPeripheralCrateBase_h_
 #define _EmuPeripheralCrateBase_h_
@@ -23,6 +23,9 @@
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include <string>
 #include "xdata/String.h"
+#include "emu/pc/EmuEndcap.h"
+#include "emu/pc/XMLParser.h"
+#include "emu/pc/EmuTStore.h"
 
 namespace emu {
   namespace pc {
@@ -56,12 +59,21 @@ protected:
   int PCsendCommandwithAttr(std::string command, std::string tag, std::string attr, std::string klass, int instance = -1) 
                         throw (xoap::exception::Exception, xdaq::exception::Exception);
   std::string getLocalDateTime();
+  bool CommonParser(std::string XML_or_DB, std::string xmlFile, bool NotDCS = false);
+  inline EmuEndcap *GetEmuEndcap() { return activeEndcap_; }
+  EmuTStore *GetEmuTStore();
+  inline int Xml_or_Db() { return xml_or_db_; }
+  inline std::string GetRealKey() { return real_key_; }
   //
   toolbox::fsm::FiniteStateMachine fsm_;
   xdata::String state_;
 
 private:
-
+  int xml_or_db_;
+  std::string real_key_;
+  EmuEndcap * activeEndcap_;
+  XMLParser * activeParser_;
+  EmuTStore * activeTStore_;
 };
 
   } // namespace emu::pc

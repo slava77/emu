@@ -787,8 +787,17 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   }
 
   *out << cgicc::br() << cgicc::br() << std::endl; 
-  *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
-  *out << xmlFile_.toString() << cgicc::br() << std::endl ;
+  if(Xml_or_Db()==0)
+  {
+     *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
+     *out << xmlFile_.toString() << cgicc::br() << std::endl ;
+  }
+  else
+  {
+     *out << cgicc::b(cgicc::i("TStore EMU_config_ID : ")) ;
+     *out << GetRealKey();
+  }
+
   //
 }
 
@@ -1580,40 +1589,33 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
      this->Default(in,out);
   }
 
-  bool EmuPeripheralCrateMonitor::ParsingXML(){
+  bool EmuPeripheralCrateMonitor::ParsingXML()
+{
+    std::string config_src, config_key;
     //
-    LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
+    Logger logger_ = getApplicationLogger();
     //
-    // Check if filename exists
+    LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService reloading...");
     //
-    if(xmlFile_.toString().find("http") == std::string::npos) 
+    config_src = XML_or_DB_.toString();
+    // std::cout << "XML_or_DB: " << config_src << std::endl;
+    if(config_src == "xml" || config_src == "XML")
     {
-      std::ifstream filename(xmlFile_.toString().c_str());
-      if(filename.is_open()) {
-	filename.close();
-      }
-      else {
-	LOG4CPLUS_ERROR(getApplicationLogger(), "Filename doesn't exist");
-	XCEPT_RAISE (toolbox::fsm::exception::Exception, "Filename doesn't exist");
-	return false;
-      }
+       config_key = xmlFile_.toString();
     }
-    //
-    //cout <<"Start Parsing"<<endl;
-    if ( MyController != 0 ) {
-      LOG4CPLUS_INFO(getApplicationLogger(), "Delete existing controller");
-      delete MyController ;
+    else if (config_src == "db" || config_src == "DB")
+    {
+       config_key = EMU_config_ID_.toString();
     }
-    //
-    MyController = new EmuController();
-
-    MyController->SetConfFile(xmlFile_.toString().c_str());
-    MyController->init();
-    // MyController->NotInDCS();
-    //
-    emuEndcap_ = MyController->GetEmuEndcap();
-    if(!emuEndcap_) return false;
-    crateVector = emuEndcap_->crates();
+    else
+    {
+       std::cout << "No valid XML_or_DB found..." << std::endl;
+       return false;
+    }
+    if(!CommonParser(config_src, config_key)) return false;
+    EmuEndcap *myEndcap = GetEmuEndcap();
+    if(myEndcap == NULL) return false;
+    crateVector = myEndcap->crates();
     //
     total_crates_=crateVector.size();
     if(total_crates_<=0) return false;
