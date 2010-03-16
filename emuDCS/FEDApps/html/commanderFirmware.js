@@ -1,6 +1,11 @@
 /*****************************************************************************\
-* $Id: commanderFirmware.js,v 1.1 2010/03/08 22:20:38 paste Exp $
+* $Id: commanderFirmware.js,v 1.2 2010/03/16 15:48:30 paste Exp $
 \*****************************************************************************/
+
+function reportError(transport) {
+	//this.stop = true;
+	alert("The following error has occurred: " + transport.statusText + ".  An expert should be contacted.");
+}
 
 // This is universal between DDUs and DCCs.  Be careful!
 
@@ -46,7 +51,84 @@ Event.observe(window, "load", function(event) {
 		});
 	});
 
+	$$(".upload").each(function(e) {
+	
+		// Disable all upload buttons to begin with.  The updater will enable them.
+		e.disabled = true;
+		
+		e.observe("click", function(event) {
+			// When firmware is being uploaded, make sure no other firmware can be uploaded by disabling buttons,
+			$$(".upload").each(function(el) {
+				el.disabled = true;
+			});
+
+			// Then do the upload
+			$$("form[chip=\"" + e.readAttribute("chip") + "\"").invoke("submit");
+
+		});
+	});
+
+	// Start an updater to make sure uploads do not collide
+	new PeriodicalExecuter(firmwareCheck, 1);
+
 });
+
+function firmwareCheck(pe)
+{
+
+	// Get the firmware completion data
+	var url = URL + "/FirmwareCheck";
+	var params = new Hash();
+	params.set("crate", crateNumber);
+	params.set("board", boardType);
+
+	new Ajax.Request(url, {
+		method: "get",
+		parameters: params,
+		onSuccess: updateFirmware,
+		onFailure: reportError
+	});
+
+}
+
+function updateFirmware(transport)
+{
+
+	var data = transport.responseJSON;
+
+	var percents = new Hash();
+	
+	// Loop through the returned boards
+	data.boards.each(function(board) {
+
+		var slot = board.slot;
+
+		// Loop through the returned chips
+		board.chips.each(function(chip) {
+
+			// Update the text in the table
+			$(chip.name + "_label_" + slot).update(chip.text);
+
+			// Check to see if this is the smallest % done for all chips of this type
+			if (!percents.get(chip.name) || chip.percent < percents.get(chip)) {
+				percents.set(chip.name, chip.percent);
+			}
+
+		});
+		
+	});
+
+	// Now update the submit buttons
+	percents.each(function(it) {
+
+		if (it.value == 100) {
+			$(it.key + "_upload").update("Upload and install").disabled = false;
+		} else {
+			$(it.key + "_upload").update(it.value + "%").disabled = true;
+		}
+	});
+
+}
 
 
 /*

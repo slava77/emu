@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.21 2010/03/08 22:20:05 paste Exp $
+* $Id: Commander.cc,v 1.22 2010/03/16 15:48:37 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -2583,12 +2583,7 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	
 	*out << cgicc::li("Upload local firmware files to selected targets")
 		.set("class", "tier0 bold") << std::endl;
-		
-	*out << cgicc::form()
-		.set("enctype", "multipart/form-data")
-		.set("method", "POST")
-		.set("action", "FirmwareUploader")
-		.set("target", "hidden_frame") << std::endl;
+
 	*out << cgicc::table()
 		.set("class", "tier1") << std::endl;
 	*out << cgicc::tr()
@@ -2596,10 +2591,17 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("id", "vme_target") << std::endl;
 	*out << cgicc::td("VME firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
+	*out << cgicc::form()
+		.set("enctype", "multipart/form-data")
+		.set("method", "POST")
+		.set("action", "FirmwareUploader")
+		.set("chip", "vme")
+		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
 		.set("name", "vme_file")
 		.set("id", "vme_file") << std::endl;
+	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
@@ -2613,10 +2615,17 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("id", "ddu0_target") << std::endl;
 	*out << cgicc::td("Control PROM0 firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
+	*out << cgicc::form()
+		.set("enctype", "multipart/form-data")
+		.set("method", "POST")
+		.set("action", "FirmwareUploader")
+		.set("chip", "ddu0")
+		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
 		.set("name", "ddu0_file")
 		.set("id", "ddu0_file") << std::endl;
+	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
@@ -2630,10 +2639,17 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("id", "ddu1_target") << std::endl;
 	*out << cgicc::td("Control PROM1 firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
+	*out << cgicc::form()
+		.set("enctype", "multipart/form-data")
+		.set("method", "POST")
+		.set("action", "FirmwareUploader")
+		.set("chip", "ddu1")
+		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
 		.set("name", "ddu1_file")
 		.set("id", "ddu1_file") << std::endl;
+	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
@@ -2647,10 +2663,17 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("id", "in0_target") << std::endl;
 	*out << cgicc::td("Input PROM0 firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
+	*out << cgicc::form()
+		.set("enctype", "multipart/form-data")
+		.set("method", "POST")
+		.set("action", "FirmwareUploader")
+		.set("chip", "in0")
+		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
 		.set("name", "in0_file")
 		.set("id", "in0_file") << std::endl;
+	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
@@ -2664,10 +2687,17 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("id", "in1_target") << std::endl;
 	*out << cgicc::td("Input PROM1 firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
+	*out << cgicc::form()
+		.set("enctype", "multipart/form-data")
+		.set("method", "POST")
+		.set("action", "FirmwareUploader")
+		.set("chip", "in1")
+		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
 		.set("name", "in1_file")
 		.set("id", "in1_file") << std::endl;
+	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
@@ -2676,7 +2706,6 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("id", "in1_upload") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
-	*out << cgicc::form() << std::endl;
 	
 	*out << cgicc::table() << std::endl;
 	
@@ -2743,6 +2772,149 @@ void emu::fed::Commander::webFirmwareUploader(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 {
+
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Commander appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
+			notifyQualified("ERROR", e2);
+		}
+	}
+	
+	cgicc::Cgicc cgi(in);
+
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make a JSON output object
+	JSONSpirit::Object output;
+	
+	// Dig out the crate to which I should communicate.
+	unsigned int crateNumber = 0;
+	if (cgi.getElement("crate") != cgi.getElements().end()) {
+		crateNumber = cgi.getElement("crate")->getIntegerValue();
+	} else {
+		std::ostringstream error;
+		error << "Unable to find crate number in POST information";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		notifyQualified("ERROR", e);
+		output.push_back(JSONSpirit::Pair("error", e.what()));
+	}
+
+	// Dig out the board type
+	std::string boardType = "";
+	if (cgi.getElement("board") != cgi.getElements().end()) {
+		boardType = cgi.getElement("board")->getValue();
+	} else {
+		std::ostringstream error;
+		error << "Unable to find board type in POST information";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		notifyQualified("ERROR", e);
+		output.push_back(JSONSpirit::Pair("error", e.what()));
+	}
+	
+	Crate *myCrate = NULL;
+	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+		
+		if ((*iCrate)->getNumber() == crateNumber) {
+			myCrate = (*iCrate);
+			break;
+		}
+		
+	}
+	
+	if (myCrate == NULL) {
+		std::ostringstream error;
+		error << "Unable to find crate number " << crateNumber << " in configuration";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		notifyQualified("ERROR", e);
+		output.push_back(JSONSpirit::Pair("error", e.what()));
+		*out << JSONSpirit::write(output);
+		return;
+	}
+
+	// Make a JSON object for the boards
+	JSONSpirit::Array boardArray;
+
+	if (boardType == "ddu") {
+
+		std::vector<DDU *> dduVector = myCrate->getDDUs();
+		for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+
+			JSONSpirit::Object boardObject;
+
+			boardObject.push_back(JSONSpirit::Pair("slot", (int) (*iDDU)->getSlot()));
+
+			try {
+			
+				JSONSpirit::Array chipArray;
+
+				JSONSpirit::Object vmeObject;
+				vmeObject.push_back(JSONSpirit::Pair("name", "vme"));
+				vmeObject.push_back(JSONSpirit::Pair("text", DDUDebugger::FirmwareDecode((*iDDU)->readUserCode(VMEPROM))));
+				vmeObject.push_back(JSONSpirit::Pair("percent", (int) (*iDDU)->getFirmwarePercent(VMEPROM)));
+				chipArray.push_back(vmeObject);
+
+				JSONSpirit::Object ddu0Object;
+				ddu0Object.push_back(JSONSpirit::Pair("name", "ddu0"));
+				ddu0Object.push_back(JSONSpirit::Pair("text", DDUDebugger::FirmwareDecode((*iDDU)->readUserCode(DDUPROM0))));
+				ddu0Object.push_back(JSONSpirit::Pair("percent", (int) (*iDDU)->getFirmwarePercent(DDUPROM0)));
+				chipArray.push_back(ddu0Object);
+
+				JSONSpirit::Object ddu1Object;
+				ddu1Object.push_back(JSONSpirit::Pair("name", "ddu1"));
+				ddu1Object.push_back(JSONSpirit::Pair("text", DDUDebugger::FirmwareDecode((*iDDU)->readUserCode(DDUPROM1))));
+				ddu1Object.push_back(JSONSpirit::Pair("percent", (int) (*iDDU)->getFirmwarePercent(DDUPROM1)));
+				chipArray.push_back(ddu1Object);
+
+				JSONSpirit::Object in0Object;
+				in0Object.push_back(JSONSpirit::Pair("name", "in0"));
+				in0Object.push_back(JSONSpirit::Pair("text", DDUDebugger::FirmwareDecode((*iDDU)->readUserCode(INPROM0))));
+				in0Object.push_back(JSONSpirit::Pair("percent", (int) (*iDDU)->getFirmwarePercent(INPROM0)));
+				chipArray.push_back(in0Object);
+
+				JSONSpirit::Object in1Object;
+				in1Object.push_back(JSONSpirit::Pair("name", "in1"));
+				in1Object.push_back(JSONSpirit::Pair("text", DDUDebugger::FirmwareDecode((*iDDU)->readUserCode(INPROM1))));
+				in1Object.push_back(JSONSpirit::Pair("percent", (int) (*iDDU)->getFirmwarePercent(INPROM1)));
+				chipArray.push_back(in1Object);
+
+				boardObject.push_back(JSONSpirit::Pair("chips", chipArray));
+				
+			} catch (emu::fed::exception::DDUException &e) {
+
+				std::ostringstream error;
+				error << "Unable to read from DDU " + (*iDDU)->getRUI();
+				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+				XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+				notifyQualified("ERROR", e2);
+				output.push_back(JSONSpirit::Pair("error", e2.what()));
+				
+			}
+
+			boardArray.push_back(boardObject);
+
+		}
+
+	} else if (boardType == "dcc") {
+
+	}
+
+	output.push_back(JSONSpirit::Pair("boards", boardArray));
+
+	*out << JSONSpirit::write(output);
 
 }
 
@@ -3076,7 +3248,7 @@ std::string emu::fed::Commander::formatBigDebug(const std::vector<std::string> &
 
 
 
-emu::base::Fact emu::fed::Commander::findFact(const std::string &component, const std::string &factType)
+emu::base::Fact emu::fed::Commander::findFact(const emu::base::Component& component, const std::string& factType)
 {
 	if (factType == "dduVoltageFact") {
 		emu::base::TypedFact<emu::fed::dduVoltageFact> fact;
