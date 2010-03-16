@@ -49,6 +49,7 @@ class EmuEndcap {
   std::vector<TMB *> tmbs();
   std::vector<TMB *> tmbs(Crate *);
 
+  void NotInDCS();
  private:
   //
   std::vector<int> theSelectedCrates;

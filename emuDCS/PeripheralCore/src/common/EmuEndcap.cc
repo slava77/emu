@@ -122,5 +122,14 @@ std::vector<TMB *> EmuEndcap::tmbs()  {
 std::vector<TMB *> EmuEndcap::tmbs(Crate * crate)  {
   return crate->tmbs();
 }
+
+void EmuEndcap::NotInDCS()
+{
+  std::vector<Crate *> myCrates = crates();
+  for(unsigned i = 0; i < myCrates.size(); ++i) {
+    if(myCrates[i]) myCrates[i]->vmeController()->SetUseDCS(false);
+  }
+}
+
 } // namespace emu::pc
 } // namespace emu
