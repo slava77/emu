@@ -418,6 +418,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CalibrationALCTThresholdScan, "CalibrationALCTThresholdScan");
   xgi::bind(this,&EmuPeripheralCrateConfig::CalibrationALCTConnectivity, "CalibrationALCTConnectivity");
   xgi::bind(this,&EmuPeripheralCrateConfig::CalibrationCFEBConnectivity, "CalibrationCFEBConnectivity");
+
+  xoap::bind(this, &EmuPeripheralCrateConfig::onConfigCalCFEB, "ConfigCalCFEB", XDAQ_NS_URI);
+
   //
   //----------------------------
   // Bind monitoring methods
@@ -1667,6 +1670,28 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
 //////////////////////////////////////////////////////////////////////////
 // Action:  calibrations
 //////////////////////////////////////////////////////////////////////////
+xoap::MessageReference EmuPeripheralCrateConfig::onConfigCalCFEB (xoap::MessageReference message)
+  throw (xoap::exception::Exception) 
+{
+  if(!parsed) ParsingXML();
+
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    if ( crateVector[i]->IsAlive() ) {
+      for (unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
+
+// code to configure DMBs for CFEB calibration 
+//	  dmbVector[dmb]->DisableCLCTInputs();
+//	  dmbVector[dmb]->DisableALCTInputs();
+// ...
+
+      }
+    }
+  }
+
+  return createReply(message);
+}
+//
+
 void EmuPeripheralCrateConfig::CalibrationALCTThresholdScan(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
