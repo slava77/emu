@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.7 2010/02/22 23:00:35 paste Exp $
+* $Id: Commander.h,v 1.8 2010/03/16 15:48:30 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
@@ -72,10 +72,10 @@ namespace emu {
 			xoap::MessageReference onGetParameters(xoap::MessageReference message);
 
 			/** Returns a requested fact **/
-			emu::base::Fact findFact(const std::string &component, const std::string &factType);
+			virtual emu::base::Fact findFact(const emu::base::Component& component, const std::string& factType);
 
 			/** Returns all facts for dispatch, either by schedule or by explicit call to sendFacts() **/
-			emu::base::FactCollection findFacts();
+			virtual emu::base::FactCollection findFacts();
 
 		private:
 
