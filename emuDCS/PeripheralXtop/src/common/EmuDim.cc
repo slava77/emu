@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.35 2009/11/18 12:58:52 liu Exp $
+// $Id: EmuDim.cc,v 1.36 2010/03/16 10:37:32 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -724,6 +724,7 @@ void EmuDim::CheckCommand()
       }
       else if(cmnd.substr(0,13)=="EXECUTE_POWER")
       {
+         BlueLoader->reload(blue_info+"?RELOAD");
          start_powerup=true;
       }
       // all other commands are ignored
