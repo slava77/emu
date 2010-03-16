@@ -260,7 +260,7 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br() << cgicc::b("Last Received Commands") << cgicc::br() << std::endl;
 //  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial; color: yellow; background-color:#0099FF");
   *out << std::endl;
-  *out << cgicc::textarea().set("name","CrateTestsOutput").set("WRAP","OFF").set("rows","20").set("cols","100");
+  *out << cgicc::textarea().set("name","commands").set("WRAP","OFF").set("rows","20").set("cols","100");
   if(total_msg > 0)
   {
      // commands display
@@ -449,9 +449,9 @@ bool EmuPeripheralCrateService::ParsingXML(bool reload)
   {
     std::string config_src, config_key;
     //
-    Logger logger_ = getApplicationLogger();
+    // Logger logger_ = getApplicationLogger();
     //
-    LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService reloading...");
+    std::cout <<  "EmuPeripheralCrateService reloading..." << std::endl;
     //
     config_src = XML_or_DB_.toString();
     // std::cout << "XML_or_DB: " << config_src << std::endl;
@@ -489,6 +489,7 @@ bool EmuPeripheralCrateService::ParsingXML(bool reload)
     parsed=1;
     return true;
   }
+  return false;
 }
 
   void EmuPeripheralCrateService::SetCurrentCrate(int cr)
