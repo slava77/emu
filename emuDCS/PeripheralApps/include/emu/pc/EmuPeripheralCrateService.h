@@ -114,7 +114,7 @@ private:
   void FastConfigCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FastConfigOne(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigureInit(int c=0);
-  bool ParsingXML();
+  bool ParsingXML(bool reload=false);
   void SetCurrentCrate(int crate);
   void check_controllers();
   void msgHandler(std::string msg);

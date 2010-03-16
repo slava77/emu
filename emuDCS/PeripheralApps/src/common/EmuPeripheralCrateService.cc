@@ -325,7 +325,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   void EmuPeripheralCrateService::FastConfigCrates(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     ParsingXML();
+     ParsingXML(true);
 
      if(GuiButton_)
      {
@@ -348,7 +348,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
   void EmuPeripheralCrateService::FastConfigOne(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     ParsingXML();
+     ParsingXML(true);
 
      if(GuiButton_)
      {
@@ -443,10 +443,10 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
      this->Default(in,out);
   }
 
-bool EmuPeripheralCrateService::ParsingXML()
+bool EmuPeripheralCrateService::ParsingXML(bool reload)
 {
-    if( parsed &&  Xml_or_Db() != -1) return true;
-
+  if( parsed==0 || (reload && Xml_or_Db() == -1))
+  {
     std::string config_src, config_key;
     //
     Logger logger_ = getApplicationLogger();
@@ -488,6 +488,7 @@ bool EmuPeripheralCrateService::ParsingXML()
     //
     parsed=1;
     return true;
+  }
 }
 
   void EmuPeripheralCrateService::SetCurrentCrate(int cr)
@@ -613,6 +614,11 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
            msgHandler("Message: Switch Off Chambers " + command_argu);
         }
      }
+  }
+  else if (command_name=="RELOAD")
+  {
+     ParsingXML(true);
+     msgHandler("Message: Check Configuration DB, auto reload if needed ");
   }
   else if (command_name=="POWERUP")
   {
