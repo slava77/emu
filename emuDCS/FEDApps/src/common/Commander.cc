@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.22 2010/03/16 15:48:37 paste Exp $
+* $Id: Commander.cc,v 1.23 2010/03/17 16:45:57 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -66,7 +66,7 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("CommanderDefault", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Commander appliction";
+			error << "Unable to properly configure the Commander application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderDefault", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -596,7 +596,7 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("CommanderReadDDURegisters", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Commander appliction";
+			error << "Unable to properly configure the Commander application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderReadDDURegisters", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -2031,7 +2031,7 @@ void emu::fed::Commander::webReadDCCRegisters(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("CommanderReadDCCRegisters", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Commander appliction";
+			error << "Unable to properly configure the Commander application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderReadDCCRegisters", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -2268,7 +2268,7 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 			REVOKE_ALARM("CommanderDDUFirmwareManager", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Commander appliction";
+			error << "Unable to properly configure the Commander application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderDDUFirmwareManager", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -2448,7 +2448,7 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 			std::ostringstream error;
 			error << "Error reading PROM/FPGA usercodes from DDU";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::Exception, e2, error.str(), e);
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("ERROR", e2);
 			
 		}
@@ -2711,8 +2711,8 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	
 	// A hidden iFrame for loading firmware
 	*out << cgicc::iframe()
-		.set("name", "hidden_frame")
-		.set("class", "hidden") << std::endl;
+		.set("name", "hidden_frame");
+		//.set("class", "hidden") << std::endl;
 	*out << cgicc::iframe() << std::endl;
 	
 	// Step 3
@@ -2766,6 +2766,9 @@ void emu::fed::Commander::webFirmwareLoader(xgi::Input *in, xgi::Output *out)
 void emu::fed::Commander::webFirmwareUploader(xgi::Input *in, xgi::Output *out)
 {
 
+	
+	*out << "WONK!" << std::endl;
+	
 }
 
 
@@ -2779,9 +2782,9 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 			softwareConfigure();
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Commander appliction";
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			error << "Unable to properly configure the Commander application";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
+			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("ERROR", e2);
 		}
 	}
@@ -2805,8 +2808,8 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 	} else {
 		std::ostringstream error;
 		error << "Unable to find crate number in POST information";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
 		notifyQualified("ERROR", e);
 		output.push_back(JSONSpirit::Pair("error", e.what()));
 	}
@@ -2818,8 +2821,8 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 	} else {
 		std::ostringstream error;
 		error << "Unable to find board type in POST information";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
 		notifyQualified("ERROR", e);
 		output.push_back(JSONSpirit::Pair("error", e.what()));
 	}
@@ -2837,8 +2840,8 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 	if (myCrate == NULL) {
 		std::ostringstream error;
 		error << "Unable to find crate number " << crateNumber << " in configuration";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
 		notifyQualified("ERROR", e);
 		output.push_back(JSONSpirit::Pair("error", e.what()));
 		*out << JSONSpirit::write(output);
@@ -2897,8 +2900,8 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 
 				std::ostringstream error;
 				error << "Unable to read from DDU " + (*iDDU)->getRUI();
-				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 				XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+				LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 				notifyQualified("ERROR", e2);
 				output.push_back(JSONSpirit::Pair("error", e2.what()));
 				
@@ -2929,7 +2932,7 @@ void emu::fed::Commander::webGetStatus(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("CommanderGetStatus", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Commander appliction";
+			error << "Unable to properly configure the Commander application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderGetStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -3139,7 +3142,7 @@ xoap::MessageReference emu::fed::Commander::onGetParameters(xoap::MessageReferen
 			REVOKE_ALARM("CommanderGetParameters", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Commander appliction";
+			error << "Unable to properly configure the Commander application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderGetParameters", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -3266,7 +3269,7 @@ emu::base::Fact emu::fed::Commander::findFact(const emu::base::Component& compon
 	error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
 	XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
 	notifyQualified("WARN", e);
-	LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+	LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
 
 	return emu::base::Fact();
 }

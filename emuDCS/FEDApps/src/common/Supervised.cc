@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Supervised.cc,v 1.4 2010/02/17 21:20:26 paste Exp $
+* $Id: Supervised.cc,v 1.5 2010/03/17 16:45:57 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Supervised.h"
 
@@ -11,6 +11,7 @@
 #include "xoap/SOAPBody.h"
 #include "xgi/Method.h"
 #include "toolbox/fsm/FailedEvent.h"
+#include "xcept/tools.h"
 
 emu::fed::Supervised::Supervised(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
@@ -57,8 +58,8 @@ void emu::fed::Supervised::fireEvent(std::string name)
 		if (ignoreSOAP_) {
 			std::ostringstream error;
 			error << "Ignoring SOAP event named " << name << " to application " << getApplicationDescriptor()->getClassName() << " instance " << getApplicationDescriptor()->getInstance();
-			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 			XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
+			LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("WARN", e2);
 			return;
 		}
@@ -72,8 +73,8 @@ void emu::fed::Supervised::fireEvent(std::string name)
 	} catch (toolbox::fsm::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception caught firing event named " << name << " to application " << getApplicationDescriptor()->getClassName() << " instance " << getApplicationDescriptor()->getInstance();
-		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		XCEPT_DECLARE_NESTED(emu::fed::exception::FSMException, e2, error.str(), e);
+		LOG4CPLUS_FATAL(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("FATAL", e2);
 	}
 }
@@ -93,8 +94,8 @@ void emu::fed::Supervised::webFire(xgi::Input *in, xgi::Output *out)
 		} catch (emu::fed::exception::FSMException &e) {
 			std::ostringstream error;
 			error << "Error in FSM state change from web with action " << action;
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 			XCEPT_DECLARE_NESTED(emu::fed::exception::FSMException, e2, error.str(), e);
+			LOG4CPLUS_FATAL(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("FATAL", e2);
 		}
 	}

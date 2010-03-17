@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.19 2010/02/04 10:40:03 paste Exp $
+* $Id: Manager.cc,v 1.20 2010/03/17 16:45:57 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -430,9 +430,9 @@ throw (toolbox::fsm::exception::Exception)
 	if (state_.toString() != "Halted") {
 		std::ostringstream error;
 		error << state_.toString() << "->Configured via action 'Configure' is not valid:  transitioning through 'Halted' first";
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
-		notifyQualified("WARN", e);
+		XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
+		LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("WARN", e2);
 
 		fireEvent("Halt");
 	}
@@ -479,9 +479,9 @@ throw (toolbox::fsm::exception::Exception)
 	if (state_.toString() != "Configured") {
 		std::ostringstream error;
 		error << state_.toString() << "->Enabled via action 'Enable' is not valid:  transitioning through 'Halted' and 'Configured' first";
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
-		notifyQualified("WARN", e);
+		XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
+		LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("WARN", e2);
 		
 		fireEvent("Halt");
 		fireEvent("Configure");
@@ -495,8 +495,8 @@ throw (toolbox::fsm::exception::Exception)
 	} catch (emu::fed::exception::SOAPException &e) {
 		std::ostringstream error;
 		error << "Unable to send runNumber to Communicators";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("ERROR", e2);
 	}
 
@@ -542,9 +542,9 @@ throw (toolbox::fsm::exception::Exception)
 	if (state_.toString() != "Enabled") {
 		std::ostringstream error;
 		error << state_.toString() << "->Configured via action 'Disable' is not valid:  doing 'Halted'->'Configured' instead";
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
-		notifyQualified("WARN", e);
+		XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
+		LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("WARN", e2);
 
 		fireEvent("Halt");
 		fireEvent("Configure");
@@ -629,9 +629,9 @@ void emu::fed::Manager::unknownAction(toolbox::Event::Reference event)
 {
 	std::ostringstream error;
 	error << "FSM transition to Unknown encountered";
-	LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-	XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
-	notifyQualified("WARN", e);
+	XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
+	LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+	notifyQualified("WARN", e2);
 }
 
 
@@ -653,9 +653,9 @@ std::string emu::fed::Manager::getManagerState(const std::string &targetState, c
 				if (state == "Failed" || state == "Unknown") {
 					std::ostringstream error;
 					error << "One or more Communicator application is in a Failed or Unknown state";
-					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-					XCEPT_DECLARE(emu::fed::exception::SoftwareException, e, error.str());
-					notifyQualified("FATAL", e);
+					XCEPT_DECLARE(emu::fed::exception::SoftwareException, e2, error.str());
+					LOG4CPLUS_FATAL(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+					notifyQualified("FATAL", e2);
 					return "Failed";
 				}
 				
@@ -669,18 +669,18 @@ std::string emu::fed::Manager::getManagerState(const std::string &targetState, c
 	if (stateMap.size() > 1) {
 		std::ostringstream error;
 		error << "Inconsistant state across Communicator applications";
-		XCEPT_DECLARE(emu::fed::exception::SoftwareException, e, error.str());
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		notifyQualified("WARN", e);
+		XCEPT_DECLARE(emu::fed::exception::SoftwareException, e2, error.str());
+		LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("WARN", e2);
 		return "Unknown";
 	}
 
 	if (stateMap.size() == 0 || stateMap.begin()->first != targetState) {
 		std::ostringstream error;
 		error << "Communicator applications are not in the target state of " << targetState;
-		XCEPT_DECLARE(emu::fed::exception::SoftwareException, e, error.str());
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		notifyQualified("FATAL", e);
+		XCEPT_DECLARE(emu::fed::exception::SoftwareException, e2, error.str());
+		LOG4CPLUS_FATAL(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("FATAL", e2);
 		return "Failed";
 	}
 	
@@ -803,9 +803,9 @@ xoap::MessageReference emu::fed::Manager::onSetTTSBits(xoap::MessageReference me
 	} else {
 		std::ostringstream error;
 		error << "ttsID_=" << ttsID_.toString() << " is out-of-bounds for the CSC FEDs";
-		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
-		notifyQualified("WARN", e);
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("WARN", e2);
 		return createReply(message);
 	}
 
@@ -823,8 +823,8 @@ xoap::MessageReference emu::fed::Manager::onSetTTSBits(xoap::MessageReference me
 		std::ostringstream error;
 		error << "Exception caught in completing setTTSBits";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::OutOfBoundsException, e2, error.str(), e);
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("ERROR", e2);
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 	}
 	
 	return createReply(message);

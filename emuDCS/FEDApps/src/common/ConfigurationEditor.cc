@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.cc,v 1.14 2010/02/22 23:00:41 paste Exp $
+* $Id: ConfigurationEditor.cc,v 1.15 2010/03/17 16:45:57 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/ConfigurationEditor.h"
 
@@ -266,9 +266,10 @@ void emu::fed::ConfigurationEditor::webGetDBKeys(xgi::Input *in, xgi::Output *ou
 		keySets.push_back(systemObject);
 
 		std::ostringstream error;
-		error << "Error loading keys from database: " << e.what();
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		notifyQualified("ERROR", e);
+		error << "Error loading keys from database";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DBException, e2, error.str(), e);
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("ERROR", e2);
 	}
 
 	for (std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > >::iterator iPair = keyMap.begin(); iPair != keyMap.end(); ++iPair) {
@@ -303,9 +304,9 @@ void emu::fed::ConfigurationEditor::webUploadFile(xgi::Input *in, xgi::Output *o
 		// ERROR!
 		std::ostringstream error;
 		error << "Error uploading file:  unable to find file in cgi data";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_DECLARE(emu::fed::exception::DBException, e, error.str());
-		notifyQualified("ERROR", e);
+		XCEPT_DECLARE(emu::fed::exception::DBException, e2, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("ERROR", e2);
 
 		return;
 	} else {
@@ -319,9 +320,9 @@ void emu::fed::ConfigurationEditor::webUploadFile(xgi::Input *in, xgi::Output *o
 			if (tempFile.is_open()) tempFile.close();
 			std::ostringstream error;
 			error << "Error opening local file " << ofile << " for writing";
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-			XCEPT_DECLARE(emu::fed::exception::DBException, e, error.str());
-			notifyQualified("ERROR", e);
+			XCEPT_DECLARE(emu::fed::exception::DBException, e2, error.str());
+			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+			notifyQualified("ERROR", e2);
 			return;
 		}
 	}
@@ -336,10 +337,10 @@ void emu::fed::ConfigurationEditor::webUploadFile(xgi::Input *in, xgi::Output *o
 		dbKey_ = 0;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
-		error << "Unable to create FED objects by parsing file " << ofile << ": " << e.what();
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_DECLARE(emu::fed::exception::DBException, e, error.str());
-		notifyQualified("ERROR", e);
+		error << "Unable to create FED objects by parsing file " << ofile;
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DBException, e2, error.str(), e);
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+		notifyQualified("ERROR", e2);
 		return;
 	}
 
@@ -540,9 +541,10 @@ void emu::fed::ConfigurationEditor::webSystem(xgi::Input *in, xgi::Output *out)
 
 		} catch (emu::fed::exception::DBException &e) {
 			std::ostringstream error;
-			error << "Error loading keys from database: " << e.what();
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-			notifyQualified("ERROR", e);
+			error << "Error loading keys from database";
+			XCEPT_DECLARE_NESTED(emu::fed::exception::DBException, e2, error.str(), e);
+			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
+			notifyQualified("ERROR", e2);
 			output.push_back(JSONSpirit::Pair("error", error.str()));
 			output.push_back(JSONSpirit::Pair("value", dbKey_.toString()));
 			*out << JSONSpirit::write(output);

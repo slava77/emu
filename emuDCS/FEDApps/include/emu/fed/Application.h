@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.10 2010/03/08 15:10:31 paste Exp $
+* $Id: Application.h,v 1.11 2010/03/17 16:45:51 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -21,6 +21,7 @@
 #include "xoap/domutils.h"
 #include "xgi/Input.h"
 #include "xoap/Method.h"
+#include "xcept/tools.h"
 
 namespace emu {
 	namespace fed {
@@ -173,8 +174,8 @@ namespace emu {
 					} catch (emu::fed::exception::SOAPException &e) {
 						std::ostringstream error;
 						error << "Unable to get parameters from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
-						//LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 						XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+						LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 						notifyQualified("WARN", e2);
 						continue;
 					}
@@ -187,8 +188,8 @@ namespace emu {
 					} catch (emu::fed::exception::SOAPException &e) {
 						std::ostringstream error;
 						error << "Unable to read parameter '" << parameter << "' from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
-						//LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 						XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+						LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 						notifyQualified("WARN", e2);
 						continue;
 					}

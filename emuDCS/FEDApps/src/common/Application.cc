@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.12 2010/03/08 15:10:31 paste Exp $
+* $Id: Application.cc,v 1.13 2010/03/17 16:45:57 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -15,6 +15,7 @@
 #include "log4cplus/configurator.h"
 #include "emu/fed/DataTable.h"
 #include "xoap/DOMParserFactory.h"
+#include "xcept/tools.h"
 
 emu::fed::Application::Application(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub)
@@ -304,9 +305,9 @@ xoap::MessageReference emu::fed::Application::onGetParameters(xoap::MessageRefer
 		}
 	} catch (xcept::Exception &e) {
 		std::ostringstream error;
-		error << "Exception in onGetParamters";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		error << "Exception in onGetParamters: " << e.what();
 		XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("ERROR", e2);
 	}
 	return reply;
@@ -401,7 +402,7 @@ throw (emu::fed::exception::SOAPException)
 	} catch (xdaq::exception::ApplicationDescriptorNotFound &e) {
 		std::ostringstream error;
 		error << "Found no applications matching klass=" << klass << ", instance=" << instance;
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
 	}
 
@@ -411,28 +412,17 @@ throw (emu::fed::exception::SOAPException)
 	// send the message
 	// postSOAP() may throw an exception when failed.
 	for (std::set<xdaq::ApplicationDescriptor *>::iterator iApp = apps.begin(); iApp != apps.end(); iApp++) {
-		unsigned int iTries = 1;
-		while (iTries++) {
-			try {
-				getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *(*iApp));
-				break;
-			} catch (xcept::Exception &e) {
-				std::ostringstream error;
-				std::string messageOut;
-				message->writeTo(messageOut);
-				error << "sendCommand failed sending command=" << command << " to klass=" << klass << ", instance=" << instance << ": " << e.what();
-				LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-			}
-			
-			if (iTries >= 5) {
-				std::ostringstream error;
-				error << "sendCommand reached the maximum number of retries";
-				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-				XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
-			}
+		try {
+			getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *(*iApp));
+		} catch (xcept::Exception &e) {
+			std::ostringstream error;
+			std::string messageOut;
+			message->writeTo(messageOut);
+			error << "sendCommand failed sending command=" << command << " to klass=" << klass << ", instance=" << instance;
+			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+			XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
 		}
 	}
-
 }
 
 

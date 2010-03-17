@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.11 2010/01/27 13:32:19 paste Exp $
+* $Id: Configurable.cc,v 1.12 2010/03/17 16:45:57 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/operations.hpp"
@@ -14,6 +14,7 @@
 #include "emu/fed/XMLConfigurator.h"
 #include "emu/fed/JSONSpiritWriter.h"
 #include "emu/fed/SystemDBAgent.h"
+#include "xcept/tools.h"
 
 emu::fed::Configurable::Configurable(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
@@ -93,8 +94,8 @@ void emu::fed::Configurable::webChangeConfigMode(xgi::Input *in, xgi::Output *ou
 		if (configMode_ != "XML" && configMode_ != "Database" && configMode_ != "Autodetect") {
 			std::ostringstream error;
 			error << "Configuration mode " << configMode_.toString() << " doesn't make sense, falling back to " << oldConfigMode.toString();
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
+			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("ERROR", e2);
 			configMode_ = oldConfigMode;
 			output.push_back(JSONSpirit::Pair("exception", error.str()));
@@ -130,8 +131,8 @@ void emu::fed::Configurable::webChangeXMLFile(xgi::Input *in, xgi::Output *out)
 		if (!boost::filesystem::exists(xmlFile_.toString())) {
 			std::ostringstream error;
 			error << "Configuration XML file " << xmlFile_.toString() << " doesn't exist, falling back to " << oldXMLFile.toString();
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			XCEPT_DECLARE(emu::fed::exception::FileException, e2, error.str());
+			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("ERROR", e2);
 			xmlFile_ = oldXMLFile;
 			output.push_back(JSONSpirit::Pair("exception", error.str()));
@@ -169,8 +170,8 @@ void emu::fed::Configurable::webChangeDBKey(xgi::Input *in, xgi::Output *out)
 		} catch (xdata::exception::Exception &e) {
 			std::ostringstream error;
 			error << "DB key " << cgi["dbKey"]->getValue() << " doesn't make sense, falling back to " << oldDBKey.toString();
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
+			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("ERROR", e2);
 			dbKey_ = oldDBKey;
 			output.push_back(JSONSpirit::Pair("exception", error.str()));
@@ -202,8 +203,8 @@ void emu::fed::Configurable::webReconfigure(xgi::Input *in, xgi::Output *out)
 	} catch (emu::fed::exception::ConfigurationException &e) {
 		std::ostringstream error;
 		error << "Error attempting to reconfigure";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("ERROR", e2);
 		output.push_back(JSONSpirit::Pair("exception", error.str()));
 	}
@@ -361,7 +362,7 @@ std::string emu::fed::Configurable::printConfigureOptions()
 		
 		out << cgicc::div("Unable to read keys from the database")
 			.set("class", "tier2") << std::endl;
-		
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
 		notifyQualified("ERROR", e);
 	}
 	
