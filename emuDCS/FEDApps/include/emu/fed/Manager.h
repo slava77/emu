@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.h,v 1.8 2010/01/19 18:37:32 paste Exp $
+* $Id: Manager.h,v 1.9 2010/03/17 16:45:51 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MANAGER_H__
 #define __EMU_FED_MANAGER_H__
@@ -11,6 +11,7 @@
 #include "emu/fed/Supervised.h"
 #include "emu/base/WebReporter.h"
 #include "emu/fed/JSONSpiritValue.h"
+#include "xcept/tools.h"
 
 namespace emu {
 	namespace fed {
@@ -113,8 +114,8 @@ namespace emu {
 				} catch (emu::fed::exception::SOAPException &e) {
 					std::ostringstream error;
 					error << "Unable to read parameter '" << name << "'";
-					LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 					XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+					LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 					notifyQualified("WARN", e2);
 				}
 				return JSONSpirit::Pair(name, value);

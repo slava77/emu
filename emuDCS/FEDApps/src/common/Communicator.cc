@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.30 2010/02/04 10:40:03 paste Exp $
+* $Id: Communicator.cc,v 1.31 2010/03/17 16:45:57 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -377,8 +377,8 @@ void emu::fed::Communicator::webReconfigure(xgi::Input *in, xgi::Output *out)
 	} catch (emu::fed::exception::ConfigurationException &e) {
 		std::ostringstream error;
 		error << "Error attempting to reconfigure";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("ERROR", e2);
 		output.push_back(JSONSpirit::Pair("exception", error.str()));
 	}
@@ -395,7 +395,7 @@ throw (toolbox::fsm::exception::Exception)
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Configure");
 	
-	LOG4CPLUS_INFO(getApplicationLogger(), "Configuring Communicator appliction using mode " << configMode_.toString());
+	LOG4CPLUS_INFO(getApplicationLogger(), "Configuring Communicator application using mode " << configMode_.toString());
 	
 	// Configure the software so it knows to what it is talking
 	try {
@@ -989,7 +989,7 @@ xoap::MessageReference emu::fed::Communicator::onGetParameters(xoap::MessageRefe
 			REVOKE_ALARM("CommunicatorGetParameters", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Communicator appliction";
+			error << "Unable to properly configure the Communicator application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorGetParameters", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.h,v 1.4 2010/01/27 13:32:13 paste Exp $
+* $Id: Configurable.h,v 1.5 2010/03/17 16:45:51 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURABLE_H__
 #define __EMU_FED_CONFIGURABLE_H__
@@ -75,7 +75,7 @@ namespace emu {
 			/// The XML configuration file name.
 			xdata::String xmlFile_;
 			
-			/// The mode by which to configure the appliction.
+			/// The mode by which to configure the application.
 			xdata::String configMode_;
 			
 			/// The ever-useful crate vector.

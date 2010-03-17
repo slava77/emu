@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.16 2010/02/04 10:40:03 paste Exp $
+* $Id: Monitor.cc,v 1.17 2010/03/17 16:45:57 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -69,7 +69,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("MonitorDefault", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorDefault", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -285,7 +285,7 @@ void emu::fed::Monitor::webGetTemperatures(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("MonitorGetTemperatures", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetTemperatures", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -374,7 +374,7 @@ void emu::fed::Monitor::webGetVoltages(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("MonitorGetVoltages", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetVoltages", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -464,7 +464,7 @@ void emu::fed::Monitor::webGetOccupancies(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("MonitorGetOccupancies", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetOccupancies", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -598,7 +598,7 @@ void emu::fed::Monitor::webGetCounts(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("MonitorGetCounts", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetCounts", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -721,7 +721,7 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("MonitorGetFiberStatus", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetFiberStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -834,7 +834,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("MonitorGetDCCStatus", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetDCCStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -1006,7 +1006,7 @@ void emu::fed::Monitor::webGetDDUStatus(xgi::Input *in, xgi::Output *out)
 			REVOKE_ALARM("MonitorGetDDUStatus", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetDDUStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
@@ -1121,7 +1121,7 @@ xoap::MessageReference emu::fed::Monitor::onGetParameters(xoap::MessageReference
 			REVOKE_ALARM("MonitorGetParameters", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Unable to properly configure the Monitor appliction";
+			error << "Unable to properly configure the Monitor application";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetParameters", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commanderFirmware.js,v 1.2 2010/03/16 15:48:30 paste Exp $
+* $Id: commanderFirmware.js,v 1.3 2010/03/17 16:45:51 paste Exp $
 \*****************************************************************************/
 
 function reportError(transport) {
@@ -62,8 +62,19 @@ Event.observe(window, "load", function(event) {
 				el.disabled = true;
 			});
 
+			var chip = e.readAttribute("chip");
+
 			// Then do the upload
-			$$("form[chip=\"" + e.readAttribute("chip") + "\"").invoke("submit");
+			$$("form[chip=\"" + chip + "\"").each(function(el) {
+				// Add some more form information
+				el["crate"] = crateNumber;
+				el["chip"] = chip;
+				el["slot"] = new Array();
+				$$("input[chip=\"" + chip + "\"").each(function(ele) {
+					el["slot"].push(ele.readAttribute("slot"));
+				});
+				el.submit;
+			});
 
 		});
 	});
