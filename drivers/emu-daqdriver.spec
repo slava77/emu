@@ -4,7 +4,7 @@
 
 Summary: CMS Emu local DAQ Gbit drivers for kernel %{kernel_version}
 Name: emu-daqdriver
-Version: 1.2.0
+Version: 1.3.0
 Release: 1
 License: none
 Group: none
@@ -59,24 +59,9 @@ cp %{workingDir}/script/load_daq_drivers.sh $RPM_BUILD_ROOT/usr/local/bin
 
 
 %post
-NWSDIR=/etc/sysconfig/network-scripts/
-
-# The postion number inside the rack from the host name
-HN=$(hostname -s | sed -e 's/[^\-]*-[^\-]*-0\?\([0-9]\)/\1/')
-
-for N in 2 3 4 5; do
-    # Create character devices
-    [ -c /dev/schar${N} ] || ( mknod /dev/schar${N} c 23${N} 0 && chmod 777 /dev/schar${N} )
-    # Associate device name with driver
-    [[ $(grep -c "alias eth${N}" /etc/modprobe.conf) -eq 0 ]] && echo "alias eth${N} e1000h" >> /etc/modprobe.conf || sed -i -e "s/^alias eth${N}.*$/alias eth${N} e1000h/" /etc/modprobe.conf
-done
-
 # Have load_daq_drivers.sh invoked on booting
 sed -i -e "/\/usr\/local\/bin\/load_daq_drivers.sh/d" /etc/rc.d/rc.local
 echo "[[ -x /usr/local/bin/load_daq_drivers.sh ]] && /usr/local/bin/load_daq_drivers.sh" >> /etc/rc.d/rc.local
-
-# Update module dependencies
-/sbin/depmod
 
 # Load new modules
 /usr/local/bin/load_daq_drivers.sh
