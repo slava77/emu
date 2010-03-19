@@ -16,7 +16,7 @@ namespace emu { namespace base {
     static const char* const typeName_; 
     static const char* const parameterNames_[nParameters];
   };
-  const char* const ApplicationStatusFact::typeName_ = "ApplicationStatusFact";
+  const char* const ApplicationStatusFact::typeName_ = "applicationStatusFact";
   const char* const ApplicationStatusFact::parameterNames_[] = { "state" };
 
 
