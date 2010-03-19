@@ -1267,7 +1267,7 @@ void EmuPCrateConfigTStore::copyVMECCToTable(xdata::Table &newRows,Crate * TStor
 try {
 	  newRows.clear(); //get a std::length_exception the second time this is called.
 	  newRows = tableDefinitions["vcc"];
-	  std::cout << "hek" << std::endl;
+//	  std::cout << "hek" << std::endl;
 	  newRows.setValueAt(rowId, BGTO,             _bgto);
 	  newRows.setValueAt(rowId, BTO,              _bto);
 	  newRows.setValueAt(rowId, DFLT_SRV_MAC,     _dflt_srv_mac);
@@ -1284,7 +1284,7 @@ try {
 	  newRows.setValueAt(rowId, VCC_FRMW_VER,     _vcc_frmw_ver);
 	  newRows.setValueAt(rowId, VME_CR,           _vme_cr);
 	  newRows.setValueAt(rowId, WARN_ON_SHTDWN,   _warn_on_shtdwn);
-	  std::cout << " got here " << std::endl;
+//	  std::cout << " got here " << std::endl;
   } catch (std::exception &e) {
   	XCEPT_RAISE(xcept::Exception,e.what());
   }

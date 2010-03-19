@@ -1527,11 +1527,11 @@ void ConfigurationEditor::getConfigIds(std::vector<std::string> &configIDs,const
 xoap::MessageReference ConfigurationEditor::sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception) {
 	xoap::MessageReference reply;
 	
-//#ifdef debugV
+#ifdef debugV
 	std::cout << "Message: " << std::endl;
 	message->writeTo(std::cout);
 	std::cout << std::endl;
-//#endif
+#endif
 	
 	try {
 		xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("tstore::TStore",0);
@@ -1545,11 +1545,11 @@ xoap::MessageReference ConfigurationEditor::sendSOAPMessage(xoap::MessageReferen
 	
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 		
-//#ifdef debugV
+#ifdef debugV
 	std::cout << std::endl << "Response: " << std::endl;
 	reply->writeTo(std::cout);
 	std::cout << std::endl;
-//#endif
+#endif
 
 	if (body.hasFault()) {
 	  //XCEPT_RAISE (xcept::Exception, body.getFault().getFaultString());
@@ -1743,10 +1743,10 @@ void ConfigurationEditor::synchronize(const std::string &connectionID, const std
 
   xoap::MessageReference message=request.toSOAP();
   xoap::MessageReference response=sendSOAPMessage(message);
-	std::cout << "message: " << std::endl;
-	message->writeTo(std::cout);
-	std::cout << "response: " << std::endl;
-	response->writeTo(std::cout);
+//	std::cout << "message: " << std::endl;
+//	message->writeTo(std::cout);
+//	std::cout << "response: " << std::endl;
+//	response->writeTo(std::cout);
 
   xoap::SOAPBody body = response->getSOAPPart().getEnvelope().getBody();
   if (body.hasFault()) {
