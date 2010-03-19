@@ -96,6 +96,8 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
 {
   ParsingXML();
 
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"10; URL=/" << getApplicationDescriptor()->getURN() << "/MainPage" << "\">" << std::endl;
+
   if(endcap_side==1)
      MyHeader(in,out,"EmuPeripheralCrateService -- Plus Endcap");
   else if(endcap_side==-1)
@@ -329,7 +331,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
 
      if(GuiButton_)
      {
-        msgHandler("Button: Power-Up-Init All Crates");
+        msgHandler("Button:  Power-Up-Init All Crates");
 
         if(!Simulation_)
         {  int getlock=PCsendCommand("Locked", "emu::pc::EmuPeripheralCrateTimer");
@@ -352,7 +354,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
 
      if(GuiButton_)
      {
-        msgHandler("Button: Power-Up-Init Crate " + ThisCrateID_);
+        msgHandler("Button:  Power-Up-Init Crate " + ThisCrateID_);
         int rt=0;
         if(!Simulation_)
         {  int getlock=PCsendCommand("Locked", "emu::pc::EmuPeripheralCrateTimer");
@@ -394,7 +396,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
 
     if(GuiButton_)
     {   
-        msgHandler("Button: Check Crate Controllers");
+        msgHandler("Button:  Check Crate Controllers");
         int getlock=PCsendCommand("Locked", "emu::pc::EmuPeripheralCrateTimer");
         if(getlock>0)
            check_controllers();
@@ -422,7 +424,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
 
      if(GuiButton_)
      {
-        msgHandler("Button: Hard-Reset Crate " + ThisCrateID_);
+        msgHandler("Button:  Hard-Reset Crate " + ThisCrateID_);
  
         if(!Simulation_) thisCCB->hardReset();
      }
@@ -436,7 +438,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
 
      if(GuiButton_)
      {
-        msgHandler("Button: Power Off Chambers Crate " + ThisCrateID_);
+        msgHandler("Button:  Power Off Chambers Crate " + ThisCrateID_);
  
         if(!Simulation_) thisCrate->PowerOff();
      }
@@ -637,11 +639,11 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
            if(!Simulation_) rt=crateVector[i]->configure(2);
            if(rt==0)
            {   *out << "Power Up Successful " <<  command_argu << std::endl;
-               msgHandler("Message: Power-Up-Init Crate " + command_argu);
+               msgHandler("Message: Power-Up-Init Crate " + command_argu + " done");
                crate_state[i] = 1;
            } else
-           {   *out << "FAILED Power Up " <<  command_argu << std::endl;
-               msgHandler("Message: Power-Up-Init Crate FAILED " + command_argu);
+           {   *out << "FAILED Power Up " <<  command_argu << " with code: " << rt << std::endl;
+               msgHandler("Message: Power-Up-Init Crate " + command_argu + " FAILED");
                crate_state[i] = 0;
            }
         }
