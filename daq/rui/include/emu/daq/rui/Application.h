@@ -17,6 +17,7 @@
 #include "xdata/UnsignedLong.h"
 #include "xdata/Vector.h"
 #include "xdata/Integer.h"
+#include "xdata/ItemEvent.h"
 
 /* // EMu-specific stuff */
 #include "emu/daq/reader/Base.h"
@@ -26,13 +27,15 @@
 #include "emu/daq/writer/RateLimiter.h"
 #include "emu/daq/rui/i2oFirstEventNumberMsg.h"
 #include "emu/daq/rui/STEPEventCounter.h"
+#include "emu/base/FactFinder.h"
 
 using namespace std;
 
 namespace emu { namespace daq { namespace rui {
 
 class Application :
-public xdaq::WebApplication
+//     public xdaq::WebApplication,
+    public emu::base::FactFinder
 {
 public:
 
@@ -145,7 +148,7 @@ private:
   void insertEmptySuperFragments( const unsigned long fromEventNumber, const unsigned long toEventNumber )
     throw (emu::daq::rui::exception::Exception);
   void ensureContiguousEventNumber();
-  void moveToFailedState();
+  void moveToFailedState( const string reason );
 
   xdata::UnsignedLong                 nEventsRead_;
   xdata::String                       persistentDDUError_;
@@ -223,6 +226,9 @@ private:
   time_t toUnixTime( const std::string YYMMDD_hhmmss_UTC );
 
   void getRunInfo() throw (emu::daq::rui::exception::Exception);
+
+  emu::base::Fact           findFact( const emu::base::Component& component, const string& factType );
+  emu::base::FactCollection findFacts();
 
   xoap::MessageReference onReset(xoap::MessageReference msg)
     throw (xoap::exception::Exception);
@@ -426,6 +432,7 @@ private:
     xdata::String       runStartTime_;         // run start time to be included in the file name
     xdata::String       runStopTime_;          // run stop time to be included in the metafile
     xdata::String       runType_;              // run type to be included in the file name
+    xdata::String       reasonForFailure_;     // the reason for going into Failed state
 
     /////////////////////////////////////////////////////////////
     // End of exported parameters used for configuration       //
