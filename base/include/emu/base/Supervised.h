@@ -29,6 +29,7 @@ protected:
 
 	toolbox::fsm::FiniteStateMachine fsm_;
 	xdata::String state_;
+	xdata::String reasonForFailure_;
 };
 
 }} // namespace emu::base
