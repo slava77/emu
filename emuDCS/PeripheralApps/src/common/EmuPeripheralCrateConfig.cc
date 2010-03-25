@@ -538,7 +538,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
      {
         // choose a ID from list
         std::vector<std::string> configIDs;
-        myTStore = new EmuTStore(this);
+        myTStore = GetEmuTStore();
         if(!myTStore)
         {  std::cout << "Can't create object EmuTStore" << std::endl;
            return;
@@ -1015,71 +1015,32 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
 
 bool EmuPeripheralCrateConfig::ParsingXML(){
   //
-  LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
+    std::string config_src, config_key;
     //
-  std::cout << "XML_or_DB: " << XML_or_DB_.toString() << std::endl;
-  if(XML_or_DB_.toString() == "xml" || XML_or_DB_.toString() == "XML")
-  {
-    // Check if filename exists
+    Logger logger_ = getApplicationLogger();
     //
-    if(xmlFile_.toString().find("http") == std::string::npos) 
+    LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService reloading...");
+    //
+    config_src = XML_or_DB_.toString();
+    // std::cout << "XML_or_DB: " << config_src << std::endl;
+    if(config_src == "xml" || config_src == "XML")
     {
-      std::ifstream filename(xmlFile_.toString().c_str());
-      if(filename.is_open()) {
-	filename.close();
-      }
-      else {
-	LOG4CPLUS_ERROR(getApplicationLogger(), "Filename doesn't exist");
-	XCEPT_RAISE (toolbox::fsm::exception::Exception, "Filename doesn't exist");
-	return false;
-      }
+       config_key = xmlFile_.toString();
     }
-    //
-    //cout <<"Start Parsing"<<endl;
-    if ( MyController != 0 ) {
-      LOG4CPLUS_INFO(getApplicationLogger(), "Delete existing controller");
-      delete MyController ;
+    else if (config_src == "db" || config_src == "DB")
+    {
+       config_key = Valid_config_ID;
     }
-    //
-    MyController = new EmuController();
-
-    MyController->SetConfFile(xmlFile_.toString().c_str());
-    MyController->init();
-    MyController->NotInDCS();
-    //
-    emuEndcap_ = MyController->GetEmuEndcap();
-    if(!emuEndcap_) return false;
-    xml_or_db = 0;
-  }
-  else if (XML_or_DB_.toString() == "db" || XML_or_DB_.toString() == "DB")
-  {
-    // from TStore    
-    // std::cout << "We are in db" << std::endl;
-    if(!myTStore) myTStore = new EmuTStore(this);
-    if(!myTStore)
-    {  std::cout << "Can't create object EmuTStore" << std::endl;
-       return false;  
-    }
-    std::cout << "Configuration ID: " << Valid_config_ID <<std::endl;
-    if(Valid_config_ID!="") emuEndcap_ = myTStore->getConfiguredEndcap(Valid_config_ID);
-    if(!emuEndcap_) 
-    {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
+    else
+    {
+       std::cout << "No valid XML_or_DB found..." << std::endl;
        return false;
     }
-    xml_or_db = 1;
-    // read WRITE FALSH history to know what is already in the flash 
-    char side_char = *(Valid_config_ID.c_str());
-    if (side_char=='1')
-       InFlash_config_ID=myTStore->getLastConfigIdUsed("plus");
-    else if(side_char=='2')
-       InFlash_config_ID=myTStore->getLastConfigIdUsed("minus");
-  }
-  else
-  {
-    std::cout << "No valid XML_or_DB found..." << std::endl;
-    return false;
-  }
-    crateVector = emuEndcap_->crates();
+    if(!CommonParser(config_src, config_key)) return false;
+    EmuEndcap *myEndcap = GetEmuEndcap();
+    if(myEndcap == NULL) return false;
+    myEndcap->NotInDCS();
+    crateVector = myEndcap->crates();
     //
     total_crates_=crateVector.size();
     if(total_crates_<=0) return false;

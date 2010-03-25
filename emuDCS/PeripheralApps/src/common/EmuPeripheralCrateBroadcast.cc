@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.48 2010/03/15 18:11:15 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.49 2010/03/25 14:16:43 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -274,10 +274,9 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
     std::cout <<" Broadcast crate has not been defined yet"<<std::endl;
     std::cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_.toString() << std::endl;
     //
-    MyController = new EmuController();
-    MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_.toString().c_str());
-    MyController->init();
-    std::vector<Crate *> tmpcrate=MyController->GetEmuEndcap()->broadcast_crate();
+    CommonParser("xml", PeripheralCrateBroadcastXmlFile_.toString());
+    EmuEndcap *myEndcap = GetEmuEndcap();
+    std::vector<Crate *> tmpcrate = myEndcap->broadcast_crate();
     broadcastCrate = tmpcrate[0];
     unsigned int ib=(broadcastCrate->daqmbs()).size()-1;
     broadcastDMB = (broadcastCrate->daqmbs())[ib];

@@ -424,65 +424,33 @@ void EmuPeripheralCrateCommand::stateChanged(toolbox::fsm::FiniteStateMachine &f
   changeState(fsm);
 }
 
-bool EmuPeripheralCrateCommand::ParsingXML(){
-  //
-  LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
+bool EmuPeripheralCrateCommand::ParsingXML()
+{
+    std::string config_src, config_key;
     //
-  std::cout << "XML_or_DB: " << XML_or_DB_.toString() << std::endl;
-  if(XML_or_DB_.toString() == "xml" || XML_or_DB_.toString() == "XML")
-  {
-    // Check if filename exists
+    Logger logger_ = getApplicationLogger();
     //
-    if(xmlFile_.toString().find("http") == std::string::npos) 
+    LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService reloading...");
+    //
+    config_src = XML_or_DB_.toString();
+    // std::cout << "XML_or_DB: " << config_src << std::endl;
+    if(config_src == "xml" || config_src == "XML")
     {
-      std::ifstream filename(xmlFile_.toString().c_str());
-      if(filename.is_open()) {
-	filename.close();
-      }
-      else {
-	LOG4CPLUS_ERROR(getApplicationLogger(), "Filename doesn't exist");
-	XCEPT_RAISE (toolbox::fsm::exception::Exception, "Filename doesn't exist");
-	return false;
-      }
+       config_key = xmlFile_.toString();
     }
-    //
-    //cout <<"Start Parsing"<<endl;
-    if ( MyController != 0 ) {
-      LOG4CPLUS_INFO(getApplicationLogger(), "Delete existing controller");
-      delete MyController ;
+    else if (config_src == "db" || config_src == "DB")
+    {
+       config_key = EMU_config_ID_.toString();
     }
-    //
-    MyController = new EmuController();
-
-    MyController->SetConfFile(xmlFile_.toString().c_str());
-    MyController->init();
-    MyController->NotInDCS();
-    //
-    emuEndcap_ = MyController->GetEmuEndcap();
-    if(!emuEndcap_) return false;
-    xml_or_db = 0;
-  }
-  else if (XML_or_DB_.toString() == "db" || XML_or_DB_.toString() == "DB")
-  {
-    // from TStore    
-    // std::cout << "We are in db" << std::endl;
-    myTStore = new EmuTStore(this);
-    if(!myTStore)
-    {  std::cout << "Can't create object EmuTStore" << std::endl;
-       return false;  
-    }
-    emuEndcap_ = myTStore->getConfiguredEndcap(EMU_config_ID_.toString());   
-    if(!emuEndcap_) 
-    {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
+    else
+    {
+       std::cout << "No valid XML_or_DB found..." << std::endl;
        return false;
     }
-    xml_or_db = 1;
-  }
-  else
-  {
-    std::cout << "No valid XML_or_DB found..." << std::endl;
-    return false;
-  }
+    if(!CommonParser(config_src, config_key)) return false;
+    EmuEndcap *myEndcap = GetEmuEndcap();
+    if(myEndcap == NULL) return false;
+    crateVector = myEndcap->crates();
 
     crateVector = emuEndcap_->crates();
     //
