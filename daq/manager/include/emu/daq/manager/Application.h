@@ -17,6 +17,7 @@
 #include "emu/supervisor/ELog.h"
 #include "emu/base/Supervised.h"
 #include "emu/base/WebReporter.h"
+#include "emu/base/FactFinder.h"
 #include "xdata/ItemEvent.h"
 
 #include "toolbox/task/WorkLoop.h"
@@ -24,15 +25,17 @@
 
 #include <string>
 
+#include "emu/daq/manager/AppStates.h"
 
 using namespace std;
 
 namespace emu { namespace daq { namespace manager {
 
-class Application :
-public emu::base::Supervised,
-public emu::base::WebReporter,
-public xdata::ActionListener
+class Application 
+  : public emu::base::Supervised,
+    public emu::base::WebReporter,
+    public emu::base::FactFinder,
+    public xdata::ActionListener
 {
 
 public:
@@ -205,6 +208,10 @@ private:
 
   vector<emu::base::WebReportItem> materialToReportOnPage1();
 
+  emu::base::Fact           findFact( const emu::base::Component& component, const string& factType );
+  emu::base::FactCollection findFacts();
+
+
   void governorForm(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
   void processGovernorForm(xgi::Input *in, xgi::Output *out)
@@ -258,6 +265,9 @@ private:
 
   xdata::String hardwareMapping_; // file of the hardware mapping (path relative to XDAQ_ROOT
 
+  emu::daq::manager::AppStates currentAppStates_;
+  emu::daq::manager::AppStates previousAppStates_;
+
   vector< map< string,string > > getRUIEventCounts();
   vector< map< string,string > > getFUEventCounts();
   void printEventCountsTable( xgi::Output              *out,
@@ -270,12 +280,19 @@ private:
   vector< pair<xdaq::ApplicationDescriptor*, string> > daqAppStates_;
   set<string> daqContexts_; // all different DAQ contexts with apps controlled by emu::daq::manager::Application
   void   createAllAppStatesVector();
-  void   queryAppStates( vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates );
+  void   createAllAppStates();
+//   void   queryAppStates( vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates );
+  void   queryAppStates();
   string getDAQState();
-  void   printStatesTable( xgi::Output *out,
+  void reportCrashedApps();
+//   void   printStatesTable( xgi::Output *out,
+// 			   string title,
+// 			   set<string> &contexts,
+// 			   vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates )
+  void   statesTableToHtml( xgi::Output *out,
 			   string title,
 			   set<string> &contexts,
-			   vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates )
+			   AppStates &as )
     throw (xgi::exception::Exception);
   void getMnemonicNames();
   map<int,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]

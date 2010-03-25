@@ -31,21 +31,23 @@
 #include "pt/PeerTransportSender.h"
 #include "pt/SOAPMessenger.h"
 
-// #include "emu/daq/manager/exception/Alarm.h"
-// #include "sentinel/utils/Alarm.h"
+#include "emu/base/TypedFact.h"
+#include "emu/daq/manager/FactTypes.h"
 
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
 #include <iomanip>
+#include <algorithm>
 
 emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
-throw (xdaq::exception::Exception) :
-xdaq::WebApplication(s),
-emu::base::Supervised(s),
-emu::base::WebReporter(s),
-logger_(Logger::getInstance(generateLoggerName())),
-runInfo_(NULL)
+  throw (xdaq::exception::Exception) 
+  : xdaq::WebApplication(s),
+    emu::base::Supervised(s),
+    emu::base::WebReporter(s),
+    emu::base::FactFinder( s, emu::base::FactCollection::LOCAL_DAQ, 0 ),
+    logger_(Logger::getInstance(generateLoggerName())),
+    runInfo_(NULL)
 {
     i2oAddressMap_ = i2o::utils::getAddressMap();
     poolFactory_   = toolbox::mem::getMemoryPoolFactory();
@@ -62,6 +64,7 @@ runInfo_(NULL)
 
     getAllAppDescriptors();
     createAllAppStatesVector();
+    createAllAppStates();
 
     // Bind web interface
     xgi::bind(this, &emu::daq::manager::Application::css           , "styles.css");
@@ -114,7 +117,7 @@ runInfo_(NULL)
     fsm_.reset();
 
     state_ = fsm_.getStateName(fsm_.getCurrentState());
-    
+
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
 
@@ -657,7 +660,8 @@ throw (xgi::exception::Exception)
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
     *out << "<td>"                                                   << endl;
-    printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
+    //printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
+    statesTableToHtml( out, "DAQ applications", daqContexts_, currentAppStates_ );
     *out << "</td>"                                                   << endl;
     *out << "<td width=\"16\"/>"                                      << endl;
     *out << "<td>"                                                   << endl;
@@ -903,7 +907,9 @@ throw (xgi::exception::Exception)
 	if ( daqState_.toString() == "Halted" ){
 	  // DAQ's halted, everything's permitted.
 	  warningsToDisplay_ = "";
+	  bool change = ( supervisedMode_.value_ != userWantsSupervised );
 	  supervisedMode_ = userWantsSupervised;
+	  if ( change ) appInfoSpace_->fireItemValueChanged( "supervisedMode" );
 	}
 	else{
 	  // DAQ's most probably been configured.
@@ -919,7 +925,9 @@ throw (xgi::exception::Exception)
 	    else{
 	      warningsToDisplay_ = "";
 	    }
+	    bool change = ( supervisedMode_.value_ != userWantsSupervised );
 	    supervisedMode_ = userWantsSupervised;
+	    if ( change ) appInfoSpace_->fireItemValueChanged( "supervisedMode" );
 	  }
 	  else{
 	    // Warn the user when he wants to take control back from central RC...
@@ -930,7 +938,9 @@ throw (xgi::exception::Exception)
 	      warningsToDisplay_ += "Consider going back to <em>supervised mode</em>.</p>";
 	    }
 	    // ...but do as he requested.
+	    bool change = ( supervisedMode_.value_ != userWantsSupervised );
 	    supervisedMode_ = userWantsSupervised;
+	    if ( change ) appInfoSpace_->fireItemValueChanged( "supervisedMode" );
 	  }
 	}
 
@@ -1358,7 +1368,8 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
     *out << "<table border=\"0\">"                                       << endl;
     *out << "<tr valign=\"top\">"                                        << endl;
     *out << "<td>"                                                       << endl;
-    printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
+//     printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
+    statesTableToHtml( out, "DAQ applications", daqContexts_, currentAppStates_ );
     *out << "</td>"                                                      << endl;
     *out << "<td width=\"16\"/>"                                         << endl;
     *out << "<td>"                                                       << endl;
@@ -1467,6 +1478,140 @@ emu::daq::manager::Application::materialToReportOnPage1(){
   
   return items;
 }
+
+
+emu::base::Fact
+emu::daq::manager::Application::findFact( const emu::base::Component& component, const string& factType ) {
+  cout << "*** emu::daq::manager::Application::findFact" << endl;
+
+  vector<string> matches;
+
+  if ( factType  == LocalDAQStatusFact::getTypeName() 
+       &&
+       component == emu::base::Component("emu::daq::manager::Application") ){
+//        component == emu::base::Component("DAQManager") ){
+    queryAppStates();
+    daqState_ = currentAppStates_.getCombinedState();
+    emu::base::TypedFact<LocalDAQStatusFact> ds;
+    ds.setRun( runNumber_.toString() )
+      .setSeverity( emu::base::Fact::INFO )
+      .setDescription( "The status of the local DAQ." )
+      .setParameter( LocalDAQStatusFact::runType,          runType_.toString()                       )
+      .setParameter( LocalDAQStatusFact::state,            fsm_.getStateName(fsm_.getCurrentState()) )
+      .setParameter( LocalDAQStatusFact::daqState,         daqState_.toString()                      )
+      .setParameter( LocalDAQStatusFact::isSupervised,     supervisedMode_.toString()                )
+      .setParameter( LocalDAQStatusFact::isBuildingEvents, buildEvents_.toString()                   );
+    cout << "emu::daq::manager::Application::findFact ***" << endl;
+    return ds;
+  }
+  else if ( factType == emu::base::ApplicationStatusFact::getTypeName() ){
+    if ( component.isMatchedBy( "^(emu::daq::rui::Application|RUI)([0-9]+)$", matches ) ) {
+      if ( matches.size() == 3 ){
+	stringstream iss( matches[2] );
+	unsigned int instance;
+	iss >> instance;
+	queryAppStates();
+	daqState_ = currentAppStates_.getCombinedState();
+	for ( vector< xdaq::ApplicationDescriptor* >::iterator ruid=ruiDescriptors_.begin(); ruid!=ruiDescriptors_.end(); ++ruid ){
+	  if ( (*ruid)->getInstance() == instance ){
+	    for ( vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s=daqAppStates_.begin(); s!=daqAppStates_.end(); ++s ){
+	      if ( s->first == (*ruid) ){
+		string ruiState = s->second; 
+		emu::base::TypedFact<emu::base::ApplicationStatusFact> as;
+		as.setRun( runNumber_.toString() )
+		  .setParameter( emu::base::ApplicationStatusFact::state, ruiState );
+		if  ( ruiState == "UNKNOWN" ) 
+		  as.setSeverity( emu::base::Fact::FATAL )
+		    .setDescription( matches[0] + " is unreachable. It may have crashed, or the network may be down." );
+		else if ( ruiState == "Failed"  )
+		  as.setSeverity( emu::base::Fact::FATAL )
+		    .setDescription( matches[0] + " is in 'Failed' state." );
+		else
+		  as.setSeverity( emu::base::Fact::INFO  )
+		    .setDescription( matches[0] + " is in '" + ruiState + "' state." );
+		cout << as;
+		cout << "emu::daq::manager::Application::findFact ***" << endl;
+		return as;
+	      }
+	    }
+	  }
+	}
+      } // if ( matches.size() == 3 )
+    } // if ( component.isMatchedBy( "^(emu::daq::rui::Application|RUI)([0-9]+)$", matches ) )
+    else if ( component == emu::base::Component("emu::daq::manager::Application") ){
+      string daqManagerState = fsm_.getStateName(fsm_.getCurrentState());
+      emu::base::TypedFact<emu::base::ApplicationStatusFact> as;
+      as.setRun( runNumber_.toString() )
+	.setParameter( emu::base::ApplicationStatusFact::state, daqManagerState );
+      if ( daqManagerState == "Failed"  )
+	as.setSeverity( emu::base::Fact::FATAL )
+	  .setDescription( matches[0] + " is in 'Failed' state." );
+      else
+	as.setSeverity( emu::base::Fact::INFO  )
+	  .setDescription( matches[0] + " is in '" + daqManagerState + "' state." );
+      cout << as;
+      cout << "emu::daq::manager::Application::findFact ***" << endl;
+      return as;
+    }
+  }
+
+  stringstream ss;
+  ss << "Failed to find fact of type \"" << factType
+     << "\" on component \"" << component
+     << "\" requested by expert system.";
+  LOG4CPLUS_WARN( logger_, ss.str() );
+  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss.str() );
+  this->notifyQualified( "warning", eObj );
+
+  // Return an untyped empty fact if no typed fact was found:
+  return emu::base::Fact();
+}
+
+emu::base::FactCollection
+emu::daq::manager::Application::findFacts() {
+  emu::base::FactCollection fc;
+  cout << "*** emu::daq::manager::Application::findFacts" << endl;
+
+  // Report DAQ state.
+  queryAppStates();
+  daqState_ = currentAppStates_.getCombinedState();
+  emu::base::TypedFact<LocalDAQStatusFact> ds;
+  ds.setComponentId( "emu::daq::manager::Application" )
+//   ds.setComponentId( "DAQManager" )
+    .setRun( runNumber_.toString() )
+    .setSeverity( emu::base::Fact::INFO )
+    .setParameter( LocalDAQStatusFact::runType,          runType_.toString()                       )
+    .setParameter( LocalDAQStatusFact::state,            fsm_.getStateName(fsm_.getCurrentState()) )
+    .setParameter( LocalDAQStatusFact::daqState,         daqState_.toString()                      )
+    .setParameter( LocalDAQStatusFact::isSupervised,     supervisedMode_.toString()                )
+    .setParameter( LocalDAQStatusFact::isBuildingEvents, buildEvents_.toString()                   );
+  fc.addFact( ds );
+
+  // Report crashed RUIs, if any.
+  if ( daqState_.toString() == "UNKNOWN" ){
+    for ( vector< xdaq::ApplicationDescriptor* >::iterator ruid=ruiDescriptors_.begin(); ruid!=ruiDescriptors_.end(); ++ruid ){
+      for ( vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s=daqAppStates_.begin(); s!=daqAppStates_.end(); ++s ){
+	if ( s->first == (*ruid) && s->second == "UNKNOWN" ){
+	  stringstream ruiName;
+	  ruiName << (*ruid)->getClassName() << setfill('0') << setw(2) << (*ruid)->getInstance();
+// 	  ruiName << "RUI" << setfill('0') << setw(2) << (*ruid)->getInstance();
+	  emu::base::TypedFact<emu::base::ApplicationStatusFact> as;
+	  as.setComponentId( ruiName.str() )
+	    .setRun( runNumber_.toString() )
+	    .setSeverity( emu::base::Fact::FATAL )
+	    .setDescription( ruiName.str() + " is unreachable. It may have crashed, or the network may be down." )
+	    .setParameter( emu::base::ApplicationStatusFact::state, "UNKNOWN" );
+	  fc.addFact( as );
+	}
+      }
+    }
+  }
+  cout << fc << endl;
+
+  cout << "emu::daq::manager::Application::findFacts ***" << endl;
+  return fc;
+}
+
 
 void emu::daq::manager::Application::setParametersForSupervisedMode(){
   // Prepare for obeying Central Run Control commands
@@ -2261,66 +2406,90 @@ void emu::daq::manager::Application::createAllAppStatesVector(){
 }
 
 
+void emu::daq::manager::Application::createAllAppStates(){
+  if ( buildEvents_.value_ ){ 
+    currentAppStates_.insertApps( evmDescriptors_.begin(), evmDescriptors_.end() );
+    currentAppStates_.insertApps( buDescriptors_ .begin(), buDescriptors_ .end() );
+    currentAppStates_.insertApps( ruDescriptors_ .begin(), ruDescriptors_ .end() );
+    currentAppStates_.insertApps( fuDescriptors_ .begin(), fuDescriptors_ .end() );
+  }
+  currentAppStates_.insertApps( taDescriptors_ .begin(), taDescriptors_ .end() );
+  currentAppStates_.insertApps( ruiDescriptors_.begin(), ruiDescriptors_.end() );
+  set<xdaq::ApplicationDescriptor*> apps( currentAppStates_.getApps() );
+  set<xdaq::ApplicationDescriptor*>::iterator a;
+  for ( a=apps.begin(); a!=apps.end(); ++a ){
+    // Collect different contexts too
+    daqContexts_.insert( (*a)->getContextDescriptor()->getURL() );
+  }
+}
 
-void emu::daq::manager::Application::queryAppStates( vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates ){
-  vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator as;
-  for ( as=appStates.begin(); as!=appStates.end(); ++as ){
-    string s;
-    try
-      {
-	s = getScalarParam(as->first, "stateName", "string");
-      }
-    catch(xcept::Exception e)
-      {
-	s = "UNKNOWN";
-	LOG4CPLUS_WARN(logger_, "Failed to get state"
-			<< " : " << xcept::stdformat_exception_history(e));
-	stringstream ss29;
-	ss29 <<  "Failed to get state"
-			<< " : " ;
-	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss29.str(), e );
-	this->notifyQualified( "warning", eObj );
-      }
-    as->second = s;
+
+void emu::daq::manager::Application::queryAppStates(){
+  // Perform query only if state info at least 1 second old.
+  if ( currentAppStates_.getAgeInSeconds() > 1 ){
+    set<xdaq::ApplicationDescriptor*> apps = currentAppStates_.getApps();
+    set<xdaq::ApplicationDescriptor*>::iterator a;
+    for ( a=apps.begin(); a!=apps.end(); ++a ){
+      string s;
+      try
+	{
+	  s = getScalarParam(*a, "stateName", "string");
+	}
+      catch(xcept::Exception e)
+	{
+	  s = "UNKNOWN";
+	  LOG4CPLUS_WARN(logger_, "Failed to get state"
+			 << " : " << xcept::stdformat_exception_history(e));
+	  stringstream ss29;
+	  ss29 <<  "Failed to get state"
+	       << " : " ;
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss29.str(), e );
+	  this->notifyQualified( "warning", eObj );
+	}
+      currentAppStates_.setAppState( *a, s );
+    }
+    cout << "Previous " << previousAppStates_;
+    cout << "Current "  << currentAppStates_;
   }
 }
 
 string emu::daq::manager::Application::getDAQState(){
-//   queryAllAppStates();
-  queryAppStates( daqAppStates_ );
+  cout << "*** emu::daq::manager::Application::getDAQState" << endl;
+  // Update previousAppStates_ here because findFact(s) doesn't call this method. (It calls queryAppStates().)
+  previousAppStates_ = currentAppStates_;
+  queryAppStates();
+  reportCrashedApps();
+  cout << "emu::daq::manager::Application::getDAQState ***" << endl;
+  return currentAppStates_.getCombinedState();
+}
 
-  // Combine states:
-  // If one is failed, the combined state will also be failed.
-  // Else, if one is unknown, the combined state will also be unknown.
-  // Else, if all are known but not the same, the combined state will be indefinite.
-  string combinedState("UNKNOWN");
-  vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s;
-  // First check if any failed:
-  for ( s=daqAppStates_.begin(); s!=daqAppStates_.end(); ++s )
-    if ( s->second == "Failed" ){
-      combinedState = s->second;
-      return combinedState;
-    }
-  // If none failed:
-  for ( s=daqAppStates_.begin(); s!=daqAppStates_.end(); ++s ){
-    if ( s->second == "UNKNOWN" ){
-      combinedState = s->second;
-      break;
-    }
-    else if ( s->second != combinedState && combinedState != "UNKNOWN" ){
-      combinedState = "INDEFINITE";
-      break;
-    }
-    else{
-      if ( s->second.find( "Mismatch", 0 ) != string::npos )
-	// DAQ is still "enabled" while RU is seeing mismatch but has not timed out
-	combinedState = "Enabled";
-      else
-	combinedState = s->second;
+void emu::daq::manager::Application::reportCrashedApps(){
+  // Report to expert system any apps that may have creashed since the last query.  
+  cout << "Previous " << previousAppStates_;
+  cout << "Current "  << currentAppStates_;
+  string combinedState = currentAppStates_.getCombinedState();
+  if ( combinedState == "UNKNOWN" 
+       &&
+       !( currentAppStates_.getAppStates() == previousAppStates_.getAppStates() ) ){
+    // Look for newly crashed apps
+    set<xdaq::ApplicationDescriptor*> previousCrashes = previousAppStates_.getAppsInState( "UNKNOWN" );
+    set<xdaq::ApplicationDescriptor*> currentCrashes  = currentAppStates_ .getAppsInState( "UNKNOWN" );
+    set<xdaq::ApplicationDescriptor*> newCrashes;
+    // set_difference is in <algorithm>
+    set_difference(currentCrashes .begin(), currentCrashes .end(),
+		   previousCrashes.begin(), previousCrashes.end(),
+		   insert_iterator< set<xdaq::ApplicationDescriptor*> >(newCrashes, newCrashes.begin()) );
+    // Report newly crashed apps
+    for ( set<xdaq::ApplicationDescriptor*>::iterator nca = newCrashes.begin(); nca != newCrashes.end(); ++nca ){
+      if ( binary_search( ruiDescriptors_.begin(), ruiDescriptors_.end(), *nca ) ){
+	stringstream ruiName;
+	ruiName << (*nca)->getClassName() << setfill('0') << setw(2) << (*nca)->getInstance();
+	sendFact( ruiName.str(), emu::base::ApplicationStatusFact::getTypeName() );
+      }
     }
   }
-  return combinedState;
 }
+
 
 void emu::daq::manager::Application::printDAQState( xgi::Output *out, string state ){
   map<string, string> bgcolor;
@@ -2368,10 +2537,10 @@ void emu::daq::manager::Application::printDAQState( xgi::Output *out, string sta
 }
 
 
-void emu::daq::manager::Application::printStatesTable( xgi::Output *out,
-				      string title,
-				      set<string> &contexts,
-				      vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates  )
+void emu::daq::manager::Application::statesTableToHtml( xgi::Output *out,
+							string title,
+							set<string> &contexts,
+							AppStates &as  )
   throw (xgi::exception::Exception)
 {
   map<string, string> bgcolor;
@@ -2402,10 +2571,11 @@ void emu::daq::manager::Application::printStatesTable( xgi::Output *out,
   decoration["Failed" ] = "blink";
   decoration["UNKNOWN"] = "none";
 
+  map<xdaq::ApplicationDescriptor*, string> appStates = as.getAppStates();
   // First find out if any application (RU) is in "Mismatch..." or "TimedOut..." state
   bool isMismatch = false;
   bool isTimedOut = false;
-  for ( vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s 
+  for ( map<xdaq::ApplicationDescriptor*, string>::iterator s 
 	  = appStates.begin(); s!=appStates.end(); ++s ){
     if ( s->second.find( "Mismatch", 0 ) != string::npos ) isMismatch = true;
     if ( s->second.find( "TimedOut", 0 ) != string::npos ) isTimedOut = true;
@@ -2451,7 +2621,7 @@ void emu::daq::manager::Application::printStatesTable( xgi::Output *out,
       *out << "  </th>"                                                 << endl;
       
       *out << "  <td>"                                                  << endl;
-      vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s;
+      map<xdaq::ApplicationDescriptor*, string>::iterator s;
       for ( s=appStates.begin(); s!=appStates.end(); ++s )
 	if ( *c == s->first->getContextDescriptor()->getURL() )
 	{
@@ -3172,30 +3342,6 @@ throw (emu::daq::manager::exception::Exception)
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
 
 
-//     ////////////////////
-//     // Configure RUIs //
-//     ////////////////////
-
-//     for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
-//     {
-//         try
-//         {
-//             sendFSMEventToApp("Configure", *pos);
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             stringstream oss;
-//             string       s;
-
-//             oss << "Failed to configure ";
-//             oss << (*pos)->getClassName() << (*pos)->getInstance();
-//             s = oss.str();
-
-//             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-//         }
-//     }
-
-
     /////////////////
     // Enable RUIs //
     /////////////////
@@ -3271,30 +3417,6 @@ throw (emu::daq::manager::exception::Exception)
             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
         }
     }
-
-
-//     /////////////////
-//     // Enable RUIs //
-//     /////////////////
-
-//     for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
-//     {
-//         try
-//         {
-//             sendFSMEventToApp("Enable", *pos);
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             stringstream oss;
-//             string       s;
-
-//             oss << "Failed to enable ";
-//             oss << (*pos)->getClassName() << (*pos)->getInstance();
-//             s = oss.str();
-
-//             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-//         }
-//     }
 }
 
 
@@ -3384,30 +3506,6 @@ throw (xcept::Exception)
             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
         }
     }
-
-
-//     ////////////////
-//     // Enable FUs //
-//     ////////////////
-
-//     for(pos = fuDescriptors_.begin(); pos != fuDescriptors_.end(); pos++)
-//     {
-//         try
-//         {
-//             sendFSMEventToApp("Enable", *pos);
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             stringstream oss;
-//             string       s;
-
-//             oss << "Failed to enable ";
-//             oss << (*pos)->getClassName() << (*pos)->getInstance();
-//             s = oss.str();
-
-//             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-//         }
-//     }
 }
 
 
@@ -3415,31 +3513,6 @@ void emu::daq::manager::Application::startFilterFarm()
 throw (emu::daq::manager::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
-
-
-//     ///////////////////
-//     // Configure FUs //
-//     ///////////////////
-
-//     for(pos = fuDescriptors_.begin(); pos != fuDescriptors_.end(); pos++)
-//     {
-//         try
-//         {
-//             sendFSMEventToApp("Configure", *pos);
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             stringstream oss;
-//             string       s;
-
-//             oss << "Failed to configure ";
-//             oss << (*pos)->getClassName() << (*pos)->getInstance();
-//             s = oss.str();
-
-//             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-//         }
-//     }
-
 
     ////////////////
     // Enable FUs //
@@ -4946,10 +5019,14 @@ throw (xgi::exception::Exception)
 void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
 {
 
-  supervisedMode_             = false;
-  configuredInSupervisedMode_ = false;
+  s->addItemChangedListener("stateName",this);
+
+  supervisedMode_             = true;
+  configuredInSupervisedMode_ = true;
   s->fireItemAvailable( "supervisedMode",  &supervisedMode_  );
   s->fireItemAvailable( "configuredInSupervisedMode",  &configuredInSupervisedMode_  );
+
+  s->addItemChangedListener("supervisedMode",this);
 
   postToELog_   = true;
   curlHost_     = "cmsusr1.cms";
@@ -6689,15 +6766,22 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
 
   xdata::ItemEvent& e = dynamic_cast<xdata::ItemEvent&>(received);
   
-  if      ( e.itemName() == "daqState"     && e.type() == "ItemRetrieveEvent" ) daqState_ = getDAQState();
-  else if ( e.itemName() == "STEPFinished" && e.type() == "ItemRetrieveEvent" ) STEPFinished_ = isSTEPFinished();
+  if      ( e.itemName() == "daqState"       && e.type() == "ItemRetrieveEvent" ){ daqState_ = getDAQState();        }
+  else if ( e.itemName() == "STEPFinished"   && e.type() == "ItemRetrieveEvent" ){ STEPFinished_ = isSTEPFinished(); }
+  else if ( e.itemName() == "supervisedMode" && e.type() == "ItemChangedEvent"  ){
+    sendFact( "emu::daq::manager::Application", LocalDAQStatusFact::getTypeName() );
+  }
+  else if ( e.itemName() == "stateName"      && e.type() == "ItemChangedEvent"  ){
+    if ( state_ == "Halted" || state_ == "Enabled" || state_ == "Failed" )
+    sendFact( "emu::daq::manager::Application", LocalDAQStatusFact::getTypeName() );
+  }
 
-//   LOG4CPLUS_INFO(logger_, 
-// 		 "Received an InfoSpace event" <<
-// 		 " Event type: " << e.type() <<
-// 		 " Event name: " << e.itemName() <<
-// 		 " Serializable: " << std::hex << e.item() << std::dec <<
-// 		 " Type of serializable: " << e.item()->type() );
+  LOG4CPLUS_INFO(logger_, 
+		 "Received an InfoSpace event" <<
+		 " Event type: " << e.type() <<
+		 " Event name: " << e.itemName() <<
+		 " Serializable: " << std::hex << e.item() << std::dec <<
+		 " Type of serializable: " << e.item()->type() );
 }
 
 
