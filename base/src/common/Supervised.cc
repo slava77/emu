@@ -9,6 +9,7 @@
 #include "xoap/SOAPBody.h"
 #include "xoap/domutils.h"  // XMLCh2String()
 #include "toolbox/fsm/FailedEvent.h"
+#include "xcept/tools.h"
 
 using namespace std;
 
@@ -23,6 +24,8 @@ emu::base::Supervised::Supervised(xdaq::ApplicationStub *stub)
 	state_ = "";
 	getApplicationInfoSpace()->fireItemAvailable("State", &state_);
 	getApplicationInfoSpace()->fireItemAvailable("stateName", &state_);
+	reasonForFailure_ = "";
+	getApplicationInfoSpace()->fireItemAvailable("reasonForFailure", &reasonForFailure_);
 
 	LOG4CPLUS_INFO(getApplicationLogger(), "Supervised");
 }
@@ -41,11 +44,15 @@ void emu::base::Supervised::transitionFailed(toolbox::Event::Reference event)
 	toolbox::fsm::FailedEvent &failed =
 			dynamic_cast<toolbox::fsm::FailedEvent &>(*event);
 
-	LOG4CPLUS_INFO(getApplicationLogger(),
-			"Failure occurred when performing transition"
-			<< " from: " << failed.getFromState()
-			<< " to: " << failed.getToState()
-			<< " exception: " << failed.getException().what());
+	stringstream reason;
+	reason << "Failure occurred when performing transition"
+	       << " from: "      << failed.getFromState()
+	       << " to: "        << failed.getToState()
+	       << " exception: " << xcept::stdformat_exception_history( failed.getException() );
+
+	reasonForFailure_ = reason.str();
+
+	LOG4CPLUS_ERROR(getApplicationLogger(), reason.str());
 }
 
 void emu::base::Supervised::fireEvent(string name)
