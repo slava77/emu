@@ -339,8 +339,7 @@ private:
   void CalibrationComparatorPulse(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CalibrationCFEBPedestal(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateDumpConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
-  //
+
   // status pages
   void TMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ALCTStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

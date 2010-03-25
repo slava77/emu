@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.23 2010/01/29 14:44:08 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.24 2010/03/25 16:02:26 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -159,6 +159,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::Message
 
   PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
   PCsendCommand("ConfigCalCFEB","emu::pc::EmuPeripheralCrateBroadcast");
+  PCsendCommand("ConfigCalCFEB","emu::pc::EmuPeripheralCrateCommand");
    //
   fireEvent("Configure");
   return createReply(message);

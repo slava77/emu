@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.49 2010/03/25 14:16:43 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.50 2010/03/25 16:02:26 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -802,11 +802,6 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   throw (xoap::exception::Exception) {
   //
   In_Broadcast_ = true;
-  std::cout<< "This is a checking printing for OnConfigCal0"<<std::endl;
-  std::ostringstream test;
-  message->writeTo(test);
-  std::cout << test.str() <<std::endl;
-  std::cout << " Print check working in OnConfigCal0 "<<std::endl;
   //
   //implement the cal0 configure process:
   float dac;
@@ -844,32 +839,9 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
   broadcastDMB->setcaldelay(dword);
 
-#if 0
-      // added by Stan Durkin March 03, 2010
-      // set DMB timing to calibration values
-      int killinput=0;
-      int xLatency=1;
-      int xfineLatency=7;
-      int cfeb_clk_delay=31;
-      int pre_block_end=7;
-      int feb_cable_delay=0;
-      broadcastDMB->fxpreblkend(pre_block_end);
-      broadcastDMB->SetxLatency(xLatency);
-      broadcastDMB->SetxFineLatency(xfineLatency);
-      broadcastDMB->SetKillInput(killinput);
-      broadcastDMB->SetCfebClkDelay(cfeb_clk_delay);
-      broadcastDMB->setfebdelay(broadcastDMB->GetKillFlatClk());
-      broadcastDMB->load_feb_clk_delay();
-      broadcastDMB->SetCfebCableDelay(feb_cable_delay);
-      broadcastDMB->setcbldly(broadcastDMB->GetCableDelay());
-#endif
-
-  //
   std::cout << " The Peripheral Crate configure finished "<<std::endl;
   ::usleep(nsleep);
-  //
-  //    fireEvent("Configure");
-  //
+
   In_Broadcast_ = false;
   return createReply(message);
   //
