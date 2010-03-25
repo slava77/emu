@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.h,v 1.4 2010/03/15 18:11:59 liu Exp $
+// $Id: EmuPeripheralCrateBase.h,v 1.5 2010/03/25 14:16:37 liu Exp $
 
 #ifndef _EmuPeripheralCrateBase_h_
 #define _EmuPeripheralCrateBase_h_
@@ -59,7 +59,7 @@ protected:
   int PCsendCommandwithAttr(std::string command, std::string tag, std::string attr, std::string klass, int instance = -1) 
                         throw (xoap::exception::Exception, xdaq::exception::Exception);
   std::string getLocalDateTime();
-  bool CommonParser(std::string XML_or_DB, std::string xmlFile, bool NotDCS = false);
+  bool CommonParser(std::string XML_or_DB, std::string xmlFile);
   inline EmuEndcap *GetEmuEndcap() { return activeEndcap_; }
   EmuTStore *GetEmuTStore();
   inline int Xml_or_Db() { return xml_or_db_; }

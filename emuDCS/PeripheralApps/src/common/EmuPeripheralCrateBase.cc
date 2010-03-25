@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.7 2010/03/15 18:11:59 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.8 2010/03/25 14:16:43 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -253,7 +253,7 @@ std::string EmuPeripheralCrateBase::getLocalDateTime(){
   return ss.str();
 }
 
-bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string configKey, bool NotDCS)
+bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string configKey)
 {
   std::string Valid_key, InFlash_key;
 //  EmuEndcap* myEndcap_=NULL;
@@ -288,7 +288,6 @@ bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string con
     //
     activeEndcap_ = activeParser_->GetEmuEndcap();
     if(!activeEndcap_) return false;
-    if(NotDCS) activeEndcap_->NotInDCS();
     xml_or_db_ = 0;
     return true;
   }
@@ -331,7 +330,6 @@ bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string con
         {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
            return false;
         }
-       if(NotDCS) activeEndcap_->NotInDCS();
        xml_or_db_ = 1-use_flash;
        real_key_ = Valid_key;
        return true;
