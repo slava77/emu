@@ -14,6 +14,7 @@ Package = daq/manager
 
 Sources = \
 	Application.cc \
+	AppStates.cc \
 	version.cc
 
 IncludeDirs = \
