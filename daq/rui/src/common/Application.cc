@@ -35,15 +35,18 @@
 #include "xdata/soap/Serializer.h"
 #include "xoap/DOMParser.h"
 #include "xoap/DOMParserFactory.h"
+#include "emu/base/TypedFact.h"
+#include "emu/daq/rui/FactTypes.h"
 
 
 emu::daq::rui::Application::Application(xdaq::ApplicationStub *s)
 throw (xdaq::exception::Exception) :
-xdaq::WebApplication(s),
+  xdaq::WebApplication(s),
+  emu::base::FactFinder( s, emu::base::FactCollection::LOCAL_DAQ, 0 ),
 
-logger_(Logger::getInstance(generateLoggerName())),
+  logger_(Logger::getInstance(generateLoggerName())),
 
-applicationBSem_(toolbox::BSem::FULL)
+  applicationBSem_(toolbox::BSem::FULL)
 
 {
     blocksArePendingTransmission_ = false;
@@ -1033,10 +1036,14 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     passDataOnToRUBuilder_ = true;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("passDataOnToRUBuilder", &passDataOnToRUBuilder_));
+
+    runNumber_ = 0;
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("runNumber", &runNumber_));
     runType_ = "";
     params.push_back(pair<string,xdata::Serializable *>
 		     ("runType", &runType_));
-    
+
     fileWritingRateLimitInHz_  =  2000;
     fileWritingRateSampleSize_ = 10000;
     params.push_back(pair<string,xdata::Serializable *>
@@ -1113,7 +1120,10 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     params.push_back(pair<string,xdata::Serializable *>
         ("runStopTime", &runStopTime_));
 
-
+    reasonForFailure_ = "";
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("reasonForFailure", &reasonForFailure_));
+    
     return params;
 }
 
@@ -1980,6 +1990,10 @@ throw (toolbox::fsm::exception::Exception)
 	    << failedEvent.getFromState() << " to " << failedEvent.getToState()
 	    << "; Exception history: " << xcept::stdformat_exception_history(exception);
 
+	reasonForFailure_ = oss.str();
+
+	applicationBSem_.give();
+
         LOG4CPLUS_FATAL(logger_, oss.str() );
         XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, oss.str() );
         this->notifyQualified( "fatal", eObj );
@@ -2003,6 +2017,8 @@ throw (toolbox::fsm::exception::Exception)
       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss27.str() );
       this->notifyQualified( "fatal", eObj );
     }
+
+    sendFacts();
 }
 
 void emu::daq::rui::Application::bindI2oCallbacks()
@@ -2012,13 +2028,14 @@ void emu::daq::rui::Application::bindI2oCallbacks()
 
 }
 
-void emu::daq::rui::Application::moveToFailedState(){
+void emu::daq::rui::Application::moveToFailedState( const string reason ){
   // Use this from inside the work loop to force the FSM to Failed state 
 
   try
     {
       // Move to the failed state
       toolbox::Event::Reference evtRef(new toolbox::Event("Fail", this));
+      reasonForFailure_ = reason;
       fsm_.fireEvent(evtRef);
       applicationBSem_.give();
     }
@@ -2543,7 +2560,7 @@ void emu::daq::rui::Application::createFileWriters(){
 	      ss39 <<  "A calibration run or a STEP run has been started without specifying a directory and/or maximum size for data files. Please set \"pathToRUIDataOutFile\" and \"ruiFileSizeInMegaBytes\" to nonzero values in the XML configuration file." ;
 	      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss39.str() );
 	      this->notifyQualified( "fatal", eObj );
-	      moveToFailedState();
+	      moveToFailedState( ss39.str() );
 	    }
 
 	  // inform the file writer about the new run
@@ -2559,7 +2576,7 @@ void emu::daq::rui::Application::createFileWriters(){
 	    ss40 <<  e ;
 	    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss40.str() );
 	    this->notifyQualified( "fatal", eObj );
-	    moveToFailedState();
+	    moveToFailedState( ss40.str() );
 	  }
 	  if ( pathToBadEventsFile_ != string("") && 
 	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
@@ -2602,7 +2619,7 @@ void emu::daq::rui::Application::writeDataToFile(  char* const data, const int d
       ss42 <<  e ;
       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss42.str() );
       this->notifyQualified( "fatal", eObj );
-      moveToFailedState();
+      moveToFailedState( ss42.str() );
     }
   }
 }
@@ -2646,7 +2663,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
       ss43 <<  oss.str();
       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss43.str() );
       this->notifyQualified( "fatal", eObj );
-      moveToFailedState();
+      moveToFailedState( ss43.str() );
       // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
     catch(...){
@@ -2659,7 +2676,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
       ss44 <<  oss.str();
       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss44.str() );
       this->notifyQualified( "fatal", eObj );
-      moveToFailedState();
+      moveToFailedState( ss44.str() );
       // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
 
@@ -2949,7 +2966,7 @@ int emu::daq::rui::Application::continueSTEPRun()
       ss53 <<  oss.str();
       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss53.str() );
       this->notifyQualified( "fatal", eObj );
-      moveToFailedState();
+      moveToFailedState( ss53.str() );
     }
     catch(...){
       stringstream oss;
@@ -2961,7 +2978,7 @@ int emu::daq::rui::Application::continueSTEPRun()
       ss54 <<  oss.str();
       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss54.str() );
       this->notifyQualified( "fatal", eObj );
-      moveToFailedState();
+      moveToFailedState( ss54.str() );
       // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
 
@@ -4014,6 +4031,78 @@ xoap::MessageReference emu::daq::rui::Application::maskDDUInputs( const bool in,
   return reply;
 }
 
+emu::base::Fact
+emu::daq::rui::Application::findFact( const emu::base::Component& component, const string& factType ) {
+  cout << "*** emu::daq::rui::Application::findFact" << endl;
+
+  stringstream component_id;
+  component_id << xmlClass_ << setfill('0') << setw(2) << instance_;
+
+  string state = fsm_.getStateName(fsm_.getCurrentState());
+  unsigned int nEventsWritten = 0;
+  if ( fileWriter_ ) nEventsWritten = fileWriter_->getNumberOfEventsWritten();
+
+  if ( factType == RUIStatusFact::getTypeName() 
+       &&
+       component == emu::base::Component( component_id.str() ) ) {
+    emu::base::TypedFact<RUIStatusFact> rs;
+    rs.setRun( runNumber_.toString() )
+      .setParameter( RUIStatusFact::state,           state                          )
+      .setParameter( RUIStatusFact::runType,         runType_.toString()            )
+      .setParameter( RUIStatusFact::nEventsRead,     nEventsRead_.value_            )
+      .setParameter( RUIStatusFact::isWritingToFile, ( fileWriter_ ? true : false ) )
+      .setParameter( RUIStatusFact::nEventsWritten,  nEventsWritten                 );
+    if ( state == "Failed" ) rs.setDescription( reasonForFailure_.toString() )
+			       .setSeverity( emu::base::Fact::FATAL );
+    else                     rs.setDescription( "The status of RUI." )
+			       .setSeverity( emu::base::Fact::INFO );
+  }
+
+  stringstream ss;
+  ss << "Failed to find fact of type \"" << factType
+     << "\" on component \"" << component
+     << "\" requested by expert system.";
+  LOG4CPLUS_WARN( logger_, ss.str() );
+  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss.str() );
+  this->notifyQualified( "warning", eObj );
+
+  // Return an untyped empty fact if no typed fact was found:
+  return emu::base::Fact();
+}
+
+emu::base::FactCollection
+emu::daq::rui::Application::findFacts() {
+  emu::base::FactCollection fc;
+  cout << "*** emu::daq::rui::Application::findFacts" << endl;
+
+  stringstream component_id;
+  component_id << xmlClass_ << setfill('0') << setw(2) << instance_;
+
+  string state = fsm_.getStateName(fsm_.getCurrentState());
+  unsigned int nEventsWritten = 0;
+  if ( fileWriter_ ) nEventsWritten = fileWriter_->getNumberOfEventsWritten();
+
+  cout << "Run number " << runNumber_.value_ << " " << runNumber_.toString() << endl;
+
+  emu::base::TypedFact<RUIStatusFact> rs;
+  rs.setComponentId( component_id.str() )
+    .setRun( runNumber_.toString() )
+    .setParameter( RUIStatusFact::state,           state                          )
+    .setParameter( RUIStatusFact::runType,         runType_.toString()            )
+    .setParameter( RUIStatusFact::nEventsRead,     nEventsRead_.value_            )
+    .setParameter( RUIStatusFact::isWritingToFile, ( fileWriter_ ? true : false ) )
+    .setParameter( RUIStatusFact::nEventsWritten,  nEventsWritten                 );
+  if ( state == "Failed" ) rs.setDescription( reasonForFailure_.toString() )
+			     .setSeverity( emu::base::Fact::FATAL );
+  else                     rs.setDescription( "The status of RUI." )
+			     .setSeverity( emu::base::Fact::INFO );
+  fc.addFact( rs );
+
+  cout << fc << endl;
+
+  cout << "emu::daq::rui::Application::findFacts ***" << endl;
+  return fc;
+}
 
 /**
  * Provides the factory method for the instantiation of emu::daq::rui::Application.

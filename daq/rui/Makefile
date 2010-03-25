@@ -20,6 +20,7 @@ Sources = \
 IncludeDirs = \
 	$(XDAQ_ROOT)/include \
 	$(XDAQ_ROOT)/include/$(XDAQ_OS) \
+	$(BUILD_HOME)/emu/base/include \
 	$(BUILD_HOME)/emu/daq/server/include \
 	$(BUILD_HOME)/emu/daq/writer/include \
 	$(BUILD_HOME)/emu/daq/reader/include
