@@ -176,6 +176,12 @@ namespace emu { namespace daq { namespace writer {
     /// @return run number
     ///
     unsigned int getRunNumber(){ return runNumber_; }
+
+    /// accessor of number of events written in this run
+
+    /// @return number of events written in this run
+    ///
+    unsigned int getNumberOfEventsWritten(){ return eventsInRunCounter_; }
   };
 
 }}} // namespace emu::daq::writer
