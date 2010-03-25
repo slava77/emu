@@ -27,7 +27,6 @@ namespace emu {
 EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s): EmuPeripheralCrateBase(s)
 {	
   //
-  MyController = 0;
   //thisTMB = 0;
   //thisDMB = 0;
   thisCCB = 0;
@@ -66,6 +65,8 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   xoap::bind(this, &EmuPeripheralCrateCommand::onEnable,    "Enable",    XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onDisable,   "Disable",   XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onHalt,      "Halt",      XDAQ_NS_URI);
+// cfeb calibration
+  xoap::bind(this, &EmuPeripheralCrateCommand::onConfigCalCFEB, "ConfigCalCFEB", XDAQ_NS_URI);
 // alct calib commands (Madorsky)
   xoap::bind(this, &EmuPeripheralCrateCommand::onConfigCalALCT, "ConfigCalALCT", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onEnableCalALCTConnectivity, "EnableCalALCTConnectivity", XDAQ_NS_URI);
@@ -430,7 +431,7 @@ bool EmuPeripheralCrateCommand::ParsingXML()
     //
     Logger logger_ = getApplicationLogger();
     //
-    LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService reloading...");
+    LOG4CPLUS_INFO(logger_, "EmuPeripheralCrate reloading...");
     //
     config_src = XML_or_DB_.toString();
     // std::cout << "XML_or_DB: " << config_src << std::endl;
@@ -452,8 +453,6 @@ bool EmuPeripheralCrateCommand::ParsingXML()
     if(myEndcap == NULL) return false;
     crateVector = myEndcap->crates();
 
-    crateVector = emuEndcap_->crates();
-    //
     total_crates_=crateVector.size();
     if(total_crates_<=0) return false;
     this_crate_no_=0;
@@ -647,6 +646,34 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
   }
   //
   return;
+}
+//
+xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalCFEB (xoap::MessageReference message)
+  throw (xoap::exception::Exception) 
+{
+  if(!parsed) ParsingXML();
+  int cfeb_clk_delay=31;
+  int pre_block_end=7;
+  int feb_cable_delay=0;
+
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    if ( crateVector[i]->IsAlive() ) {
+      SetCurrentCrate(i);
+      std::cout << "Configuring DMB's in crate " << thisCrate->GetLabel() << std::endl;
+      for (unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
+        dmbVector[dmb]->fxpreblkend(pre_block_end);
+        dmbVector[dmb]->SetCfebClkDelay(cfeb_clk_delay);
+        dmbVector[dmb]->setfebdelay(dmbVector[dmb]->GetKillFlatClk());
+        dmbVector[dmb]->load_feb_clk_delay();
+        dmbVector[dmb]->SetCfebCableDelay(feb_cable_delay);
+        dmbVector[dmb]->setcbldly(dmbVector[dmb]->GetCableDelay());
+        dmbVector[dmb]->calctrl_global();
+
+      }
+    }
+  }
+
+  return createReply(message);
 }
 //
 
