@@ -1,5 +1,5 @@
 // Expert system web service namespace URI
-#define ESWS_NS_URI "http://ws.dw.csc.cms.cern.org/"
+#define ESWS_NS_URI "http://www.cern.ch/cms/csc/dw/ws/factCollectionInput"
 // Expert system data model namespace URI
 #define ESD_NS_URI "http://www.cern.ch/cms/csc/dw/model"
 // Expert system input service namespace URI
