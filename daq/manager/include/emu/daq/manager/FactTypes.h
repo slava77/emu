@@ -12,7 +12,7 @@ namespace emu { namespace daq { namespace manager {
     static const char* const typeName_; 
     static const char* const parameterNames_[nParameters];
   };
-  const char* const LocalDAQStatusFact::typeName_ = "LocalDAQStatusFact";
+  const char* const LocalDAQStatusFact::typeName_ = "localDAQStatusFact";
   const char* const LocalDAQStatusFact::parameterNames_[] = { "runType", "state", "daqState", "isSupervised", "isBuildingEvents" };
 
 }}} // namespace emu::daq::manager
