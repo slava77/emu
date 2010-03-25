@@ -41,6 +41,9 @@ void emu::daq::writer::RawDataFile::open(){
   else{
     stringstream oss;
     oss << "Could not open " << fileName_ << " for writing.";
+    if ( ( fs_->rdstate() & ifstream::failbit ) != 0 ) oss << " : failbit is set (The last input operation failed because of an error related to the internal logic of the operation itself.)";
+    if ( ( fs_->rdstate() & ifstream::eofbit  ) != 0 ) oss << " : eofbit is set (End-Of-File reached while performing an extracting operation on an input stream.)";
+    if ( ( fs_->rdstate() & ifstream::badbit  ) != 0 ) oss << " : badbit is set (Error due to the failure of an input/output operation on the stream buffer.)";
     throw oss.str();
   }
 }
@@ -189,6 +192,9 @@ void emu::daq::writer::RawDataFile::writeData( const char* buf, const int nBytes
     //       fs_->clear();
     stringstream oss;
     oss << "Error writing to " << fileName_;
+    if ( ( fs_->rdstate() & ifstream::failbit ) != 0 ) oss << " : failbit is set (The last input operation failed because of an error related to the internal logic of the operation itself.)";
+    if ( ( fs_->rdstate() & ifstream::eofbit  ) != 0 ) oss << " : eofbit is set (End-Of-File reached while performing an extracting operation on an input stream.)";
+    if ( ( fs_->rdstate() & ifstream::badbit  ) != 0 ) oss << " : badbit is set (Error due to the failure of an input/output operation on the stream buffer.)";
     throw oss.str();
   }
   else{
