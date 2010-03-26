@@ -631,10 +631,12 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
 							copyTMBToTable(dataAsTable,tmb);
 							emu::base::ConfigurationEditor::setCachedTable("tmb",cacheIdentifier,dataAsTable);
 							 ALCTController * thisALCT = tmb->alctController();
+						    if(thisALCT) {	
 							copyALCTToTable(dataAsTable,thisALCT);
 							emu::base::ConfigurationEditor::setCachedTable("alct",cacheIdentifier,dataAsTable);
 							copyAnodeChannelToTable(dataAsTable,thisALCT);
 							emu::base::ConfigurationEditor::setCachedTable("anodechannel",cacheIdentifier,dataAsTable);
+                                                    }
 						}
 					}
 				}
