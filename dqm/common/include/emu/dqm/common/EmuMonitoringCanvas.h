@@ -162,7 +162,7 @@ public:
 
   void setChamberMap(ChamberMap *map)
   {
-    chamberMap=map;
+    // chamberMap=map; // new ChamberMap implementation doesn't allow reuse of ChamberMap object
   }
   void setSummaryMap(SummaryMap *map)
   {
@@ -213,7 +213,7 @@ private:
   int cnv_height;
   std::string runNumber;
   ChamberMap* chamberMap;
-  SummaryMap* summaryMap; 
+  SummaryMap* summaryMap;
   EventDisplay* eventDisplay;
   time_t timestamp;
 
