@@ -48,7 +48,7 @@
         <![CDATA[]]>
       </sql:parameter>
      <sql:parameter name="MAX">
-        <![CDATA[10]]>
+        <![CDATA[50]]>
       </sql:parameter>
 		<![CDATA[select EMU_CONFIG_ID from (select EMU_CONFIG_ID from EMU_CONFIGURATION where EMU_ENDCAP_SIDE='$SIDE' order by EMU_CONFIG_ID desc) where rownum<=$MAX]]>
 	</sql:query>
