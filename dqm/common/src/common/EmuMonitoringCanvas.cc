@@ -250,10 +250,12 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height, bool useDraw
                     {
                       std::string drawtype=obj->second->getParameter("DrawType");
 
-                      if ((drawtype.find("ChamberMap") != std::string::npos) && (chamberMap!=NULL))
+                      if ((drawtype.find("ChamberMap") != std::string::npos))
                         {
+			  if (chamberMap != NULL) { delete chamberMap; chamberMap = NULL;}
+                          chamberMap = new ChamberMap();
                           TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
-                          chamberMap->draw(tmp);
+                          if (chamberMap) chamberMap->draw(tmp);
                         }
                       else if ((drawtype.find("SummaryDetectorMap") != std::string::npos) && (summaryMap!=NULL))
                         {
@@ -322,6 +324,11 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height, bool useDraw
 
 EmuMonitoringCanvas::~EmuMonitoringCanvas()
 {
+  if (chamberMap != NULL)
+    {
+      delete chamberMap;
+      chamberMap = NULL;	
+    }
   if (canvas != NULL)
     {
       delete canvas;
