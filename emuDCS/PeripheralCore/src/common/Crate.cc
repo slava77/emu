@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.63 2010/02/21 23:52:39 liu Exp $
+// $Id: Crate.cc,v 3.64 2010/03/26 14:55:55 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.64  2010/03/26 14:55:55  liu
+// protection against non-exist TMB or DMB, as in broadcast crate
+//
 // Revision 3.63  2010/02/21 23:52:39  liu
 // add CFEB BadBits into TMB counters
 //
@@ -606,8 +609,8 @@ int Crate::CheckController()
   Chamber * Crate::GetChamber(int slotN)
   {
      for(unsigned i=0; i < theChambers.size(); i++)
-     {  if(theChambers[i]->GetTMB()->slot()==slotN || 
-           theChambers[i]->GetDMB()->slot()==slotN ) return theChambers[i];
+     {  if( (theChambers[i]->GetTMB() && theChambers[i]->GetTMB()->slot()==slotN) || 
+           (theChambers[i]->GetDMB() && theChambers[i]->GetDMB()->slot()==slotN) ) return theChambers[i];
      }
      return (Chamber *) 0x0;
   }
