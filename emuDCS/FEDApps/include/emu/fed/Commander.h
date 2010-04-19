@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.8 2010/03/16 15:48:30 paste Exp $
+* $Id: Commander.h,v 1.9 2010/04/19 15:30:36 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
@@ -78,6 +78,9 @@ namespace emu {
 			virtual emu::base::FactCollection findFacts();
 
 		private:
+
+			/** Firmware error for asynchronus loading **/
+			xcept::Exception *firmwareException_;
 
 			/** Does firmware management **/
 			//void webFirmware(xgi::Input *in, xgi::Output *out);

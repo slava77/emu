@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.7 2010/02/04 10:39:51 paste Exp $
+* $Id: commander.js,v 1.8 2010/04/19 15:30:35 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
-	
+
 	var statusReloadElement = new ReloadElement();
 	statusReloadElement.id = "FED_Commander_Select";
 	statusReloadElement.reloadFunction = getStatus;
@@ -12,7 +12,7 @@ Event.observe(window, "load", function(event) {
 	statusReloadElement.timeToReload = 10;
 	statusReloadElement.timeToError = 60;
 	reloadElements.push(statusReloadElement);
-	
+
 	// Selection buttons
 	$$(".all_ddus").each(function(element) {
 		element.observe("click", function(ev) {
@@ -86,6 +86,20 @@ Event.observe(window, "load", function(event) {
 		});
 	});
 
+	// Make the firmware buttons do something
+	($$(".ddu_firmware")).each(function(el) {
+		el.observe("click", function(ev) {
+			// The crates to manipulate
+			window.location.href = URL + "/DDUFirmwareManager?crate=" + ev.element().readAttribute("crate");
+		});
+	});
+	($$(".dcc_firmware")).each(function(el) {
+		el.observe("click", function(ev) {
+			// The crates to manipulate
+			window.location.href = URL + "/DCCFirmwareManager?crate=" + ev.element().readAttribute("crate");
+		});
+	});
+
 	// Disable DDU buttons until a DDU is selected
 	// Count the number of checked DDUs
 	var dduChecked = 0;
@@ -111,7 +125,7 @@ Event.observe(window, "load", function(event) {
 			}
 		});
 	});
-	
+
 	// Disable DCC buttons until a DCC is selected
 	// Count the number of checked DCCs
 	var dccChecked = 0;
@@ -141,7 +155,7 @@ Event.observe(window, "load", function(event) {
 	// TODO FIXME
 	$$(".ddu_button").each( function(e) { e.disabled = false; });
 	$$(".dcc_button").each( function(e) { e.disabled = false; });
-	
+
 	$("all_ddu_registers").observe("click", function(ev) {
 		$$(".ddu_registers_checkbox").each(function(element) {
 			element.checked = true;
@@ -162,7 +176,7 @@ Event.observe(window, "load", function(event) {
 			element.checked = false;
 		});
 	});
-	
+
 	// Print data in selected format (in a new window)
 	$("ddu_display_button").observe("click", function(ev) {
 		// The crates/slots to read
@@ -227,9 +241,9 @@ function getStatus() {
 	// Bind the special callbacks
 	var successCallback = this.callbackSuccess.bind(this);
 	var errorCallback = this.callbackError.bind(this);
-	
+
 	var url = URL + "/GetStatus";
-	
+
 	new Ajax.Request(url, {
 		method: "get",
 		onSuccess: successCallback,
@@ -239,7 +253,7 @@ function getStatus() {
 
 function updateStatus(transport) {
 	var data = transport.responseJSON;
-	
+
 	data.crates.each(function(crate) {
 		var crateNumber = crate.number;
 		crate.ddus.each(function(ddu) {
@@ -248,7 +262,7 @@ function updateStatus(transport) {
 			if (dduElement = $("crate_" + crateNumber + "_slot_" + slotNumber)) {
 				dduElement.removeClassName("ok").removeClassName("error").removeClassName("warning").removeClassName("error_black").removeClassName("questionable").addClassName(ddu.status);
 			}
-			
+
 			ddu.fibers.each(function(fiber) {
 				var fiberNumber = fiber.number;
 				var fiberElement;
@@ -263,16 +277,16 @@ function updateStatus(transport) {
 			if (dccElement = $("crate_" + crateNumber + "_slot_" + slotNumber)) {
 				dccElement.removeClassName("ok").removeClassName("error").removeClassName("warning").removeClassName("error_black").removeClassName("questionable").addClassName(dcc.status);
 			}
-			
+
 			dcc.fifos.each(function(fifo) {
 				var fifoNumber = fifo.number;
-				
+
 				var fifoElement;
 				if (fifoElement = $("crate_" + crateNumber + "_slot_" + slotNumber + "_fifo_" + fifoNumber)) {
 					fifoElement.removeClassName("ok").removeClassName("error").removeClassName("warning").removeClassName("error_black").removeClassName("questionable").addClassName(fifo.status);
 				}
 			});
-			
+
 			dcc.slinks.each(function(slink) {
 				var slinkNumber = slink.number;
 				var slinkElement;
@@ -282,7 +296,7 @@ function updateStatus(transport) {
 			});
 		});
 	});
-	
+
 	// Finish by resetting the countdown
 	this.reset();
 }

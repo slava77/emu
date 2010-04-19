@@ -1,9 +1,10 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.23 2010/03/17 16:45:57 paste Exp $
+* $Id: Commander.cc,v 1.24 2010/04/19 15:30:36 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
 #include <iomanip>
+#include <string>
 
 #include "xgi/Method.h"
 #include "cgicc/HTMLClasses.h"
@@ -28,7 +29,8 @@ emu::fed::Commander::Commander(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
 emu::fed::Application(stub),
 emu::fed::Configurable(stub),
-emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0)
+emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0),
+firmwareException_(NULL)
 {
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Commander::webDefault, "Default");
@@ -47,6 +49,7 @@ emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0)
 
 	// Other initializations
 	configMode_ = "XML";
+	firmwareException_ = NULL;
 }
 
 
@@ -121,17 +124,9 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::div()
 			.set("class", "tier0");
 
-		// Checkbox for the crate (for firmware commands)
-		*out << cgicc::input()
-			.set("type", "checkbox")
-			.set("class", "crate_checkbox")
-			.set("name", crateID)
-			.set("id", crateID + "_checkbox")
-			.set("crate", crateNumber.str()) << std::endl;
-		*out << cgicc::label()
-			.set("for", crateID + "_checkbox") << std::endl;
+		*out << cgicc::span() << std::endl;
 		*out << "Crate " << (*iCrate)->getNumber() << ": ";
-		*out << cgicc::label() << std::endl;
+		*out << cgicc::span() << std::endl;
 
 		// Some handy buttons for selecting groups of elements
 		*out << cgicc::button("Select all DDUs")
@@ -149,6 +144,14 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::button("Select no DCCs")
 			.set("id", crateID + "_no_dccs")
 			.set("class", "no_dccs")
+			.set("crate", crateNumber.str()) << std::endl;
+		*out << cgicc::button("Manage DDU Firmware")
+			.set("id", crateID + "_ddu_firmware")
+			.set("class", "ddu_firmware")
+			.set("crate", crateNumber.str()) << std::endl;
+		*out << cgicc::button("Manage DCC Firmware")
+			.set("id", crateID + "_dcc_firmware")
+			.set("class", "dcc_firmware")
 			.set("crate", crateNumber.str()) << std::endl;
 		*out << cgicc::div() << std::endl;
 
@@ -1902,17 +1905,17 @@ void emu::fed::Commander::webDisplayRegisters(xgi::Input *in, xgi::Output *out)
 {
 	// Everything here is embedded in the GET statement.
 	// I just pass it on to the GetDDURegisters page and the javascript handles the rest.
-	
+
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("errorFlasher.js");
 	jsFileNames.push_back("definitions.js");
 	jsFileNames.push_back("commanderDisplay.js");
 	jsFileNames.push_back("configurable.js");
 	jsFileNames.push_back("common.js");
-	
+
 	// Extra header information
 	cgicc::Cgicc cgi(in);
-	
+
 	std::ostringstream extraHeader;
 	extraHeader << "<script type=\"text/javascript\">" << std::endl;
 	extraHeader << "var regs = new Array();\nvar ruis = new Array();\nvar fmmids = new Array();" << std::endl;
@@ -1921,7 +1924,7 @@ void emu::fed::Commander::webDisplayRegisters(xgi::Input *in, xgi::Output *out)
 		extraHeader << iEntry->getName() << "s.push(" << iEntry->getValue() << ");" << std::endl;
 	}
 	extraHeader << "</script>" << std::endl;
-	
+
 	*out << Header("FED Commander Register Display", jsFileNames, extraHeader.str(), false);
 
 	*out << cgicc::div()
@@ -2308,11 +2311,11 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	} else {
 		REVOKE_ALARM("CommanderDDUFirmwareManager", NULL);
 	}
-	
+
 	// Display truncated header
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("commanderFirmware.js");
-	
+
 	// Extra header information
 	std::ostringstream extraHeader;
 	extraHeader << "<script type=\"text/javascript\">" << std::endl;
@@ -2321,32 +2324,32 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	extraHeader << "</script>" << std::endl;
 
 	*out << Header("DDU Firmware Management", jsFileNames, extraHeader.str(), false);
-	
+
 	*out << cgicc::div()
 		.set("class", "titlebar commander_width")
 		.set("id", "FED_Commander_ddu_selector_titlebar") << std::endl;
 	*out << cgicc::div("DDU Firmware Manager")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::fieldset()
 		.set("class", "dialog commander_width")
 		.set("id", "FED_Commander_ddu_selector_dialog") << std::endl;
-	
+
 	// Everything falls in a list
 	*out << cgicc::ol() << std::endl;
-	
+
 	// Step 1
 	*out << cgicc::li("Review installed versions and select firmware install targets")
 		.set("class", "tier0 bold") << std::endl;
-	
+
 	std::vector<DDU *> dduVector = myCrate->getDDUs();
-	
+
 	// Make a table for the DDUs
 	*out << cgicc::table()
 		.set("class", "tier1 data_table")
 		.set("style", "font-size: 80%;") << std::endl;
-		
+
 	*out << cgicc::tr()
 		.set("class", "data_header") << std::endl;
 	*out << cgicc::td("DDU")
@@ -2419,9 +2422,9 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("for", "broadcast_in1") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
-	
+
 	for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
-		
+
 		uint32_t vmePROM = 0;
 		uint32_t dduPROM0 = 0;
 		uint32_t dduPROM1 = 0;
@@ -2430,9 +2433,9 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		uint32_t dduFPGA = 0;
 		uint32_t inFPGA0 = 0;
 		uint32_t inFPGA1 = 0;
-		
+
 		try {
-			
+
 			vmePROM = (*iDDU)->readUserCode(emu::fed::VMEPROM);
 			dduPROM0 = (*iDDU)->readUserCode(emu::fed::DDUPROM0);
 			dduPROM1 = (*iDDU)->readUserCode(emu::fed::DDUPROM1);
@@ -2441,23 +2444,23 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 			dduFPGA = (*iDDU)->readUserCode(emu::fed::DDUFPGA);
 			inFPGA0 = (*iDDU)->readUserCode(emu::fed::INFPGA0);
 			inFPGA1 = (*iDDU)->readUserCode(emu::fed::INFPGA1);
-			
+
 		} catch (emu::fed::exception::DDUException &e) {
-			
+
 			// Zeros imply error.
 			std::ostringstream error;
 			error << "Error reading PROM/FPGA usercodes from DDU";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::Exception, e2, error.str(), e);
 			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("ERROR", e2);
-			
+
 		}
-		
+
 		// Each slot should be unique, so keep track of the slot number in element IDs.
 		std::ostringstream slotStream;
 		slotStream << (*iDDU)->getSlot();
 		std::string slot = slotStream.str();
-		
+
 		// Two rows per DDU
 		*out << cgicc::tr()
 			.set("class", "board") << std::endl;
@@ -2576,11 +2579,11 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		*out << cgicc::td() << std::endl;
 		*out << cgicc::tr() << std::endl;
 	}
-	
+
 	*out << cgicc::table() << std::endl;
-	
+
 	// Step 2
-	
+
 	*out << cgicc::li("Upload local firmware files to selected targets")
 		.set("class", "tier0 bold") << std::endl;
 
@@ -2594,12 +2597,13 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	*out << cgicc::form()
 		.set("enctype", "multipart/form-data")
 		.set("method", "POST")
-		.set("action", "FirmwareUploader")
+		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
 		.set("chip", "vme")
+		.set("id", "vme_form")
 		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
-		.set("name", "vme_file")
+		.set("name", "file")
 		.set("id", "vme_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
@@ -2618,12 +2622,13 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	*out << cgicc::form()
 		.set("enctype", "multipart/form-data")
 		.set("method", "POST")
-		.set("action", "FirmwareUploader")
+		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
 		.set("chip", "ddu0")
+		.set("id", "ddu0_form")
 		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
-		.set("name", "ddu0_file")
+		.set("name", "file")
 		.set("id", "ddu0_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
@@ -2642,12 +2647,13 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	*out << cgicc::form()
 		.set("enctype", "multipart/form-data")
 		.set("method", "POST")
-		.set("action", "FirmwareUploader")
+		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
 		.set("chip", "ddu1")
+		.set("id", "ddu1_form")
 		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
-		.set("name", "ddu1_file")
+		.set("name", "file")
 		.set("id", "ddu1_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
@@ -2666,12 +2672,13 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	*out << cgicc::form()
 		.set("enctype", "multipart/form-data")
 		.set("method", "POST")
-		.set("action", "FirmwareUploader")
+		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
 		.set("chip", "in0")
+		.set("id", "in0_form")
 		.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
-		.set("name", "in0_file")
+		.set("name", "file")
 		.set("id", "in0_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
@@ -2690,12 +2697,13 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	*out << cgicc::form()
 		.set("enctype", "multipart/form-data")
 		.set("method", "POST")
-		.set("action", "FirmwareUploader")
+		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
 		.set("chip", "in1")
-		.set("target", "hidden_frame") << std::endl;
+		.set("id", "in1_form");
+		//.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
 		.set("type", "file")
-		.set("name", "in1_file")
+		.set("name", "file")
 		.set("id", "in1_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
@@ -2706,43 +2714,44 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("id", "in1_upload") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
-	
+
 	*out << cgicc::table() << std::endl;
-	
+
 	// A hidden iFrame for loading firmware
 	*out << cgicc::iframe()
+		.set("id", "hidden_frame")
 		.set("name", "hidden_frame");
 		//.set("class", "hidden") << std::endl;
 	*out << cgicc::iframe() << std::endl;
-	
+
 	// Step 3
-	
+
 	// Check to see if DCCs exist in this crate
 	if (myCrate->getDCCs().size()) {
-		
+
 		*out << cgicc::li()
 			.set("class", "tier0 bold") << std::endl;
-	
+
 		*out << cgicc::button("Hard-reset the crate through the DCC")
 			.set("id", "reset") << std::endl;
-		
+
 		*out << cgicc::li() << std::endl;
-		
+
 	} else {
-		
+
 		*out << cgicc::li("Issue a hard-reset to the crate")
 			.set("class", "tier0 bold") << std::endl;
-			
+
 		*out << cgicc::div("Either use a TTC command or power-cycle the crate manually.")
 			.set("class", "tier1") << std::endl;
-		
+
 	}
-		
-	
+
+
 	*out << cgicc::ol() << std::endl;
-	
+
 	*out << cgicc::fieldset() << std::endl;
-	
+
 	*out << Footer();
 
 }
@@ -2765,10 +2774,365 @@ void emu::fed::Commander::webFirmwareLoader(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Commander::webFirmwareUploader(xgi::Input *in, xgi::Output *out)
 {
+	// Remove all previous firmware load exceptions
+	delete firmwareException_;
+	firmwareException_ = NULL;
 
-	
-	*out << "WONK!" << std::endl;
-	
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("CommanderReadDCCRegisters", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Commander application";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderReadDCCRegisters", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+			firmwareException_ = e.clone();
+		}
+	}
+
+	*out << "Configured" << std::endl;
+
+	cgicc::Cgicc cgi(in);
+
+	// Dig out the crate to which I should communicate.
+	unsigned int crateNumber = 0;
+	if (cgi.getElement("crate") != cgi.getElements().end()) {
+		crateNumber = cgi.getElement("crate")->getIntegerValue();
+	} else {
+		std::ostringstream error;
+		error << "Unable to find crate number in POST information";
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+		notifyQualified("ERROR", e);
+		*out << xcept::stdformat_exception_history(e);
+		firmwareException_ = e.clone();
+		return;
+	}
+
+	*out << "Crate " << crateNumber << std::endl;
+
+	// Find the crate in the configuration
+	Crate *myCrate = NULL;
+	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+
+		if ((*iCrate)->getNumber() == crateNumber) {
+			myCrate = (*iCrate);
+			break;
+		}
+
+	}
+
+	if (myCrate == NULL) {
+		std::ostringstream error;
+		error << "Unable to find crate number " << crateNumber << " in configuration";
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+		notifyQualified("ERROR", e);
+		*out << xcept::stdformat_exception_history(e);
+		firmwareException_ = e.clone();
+		return;
+	}
+
+	*out << "Crate found" << std::endl;
+
+	// Dig out the board type
+	std::string boardType = "";
+	if (cgi.getElement("board") != cgi.getElements().end()) {
+		boardType = cgi.getElement("board")->getValue();
+	} else {
+		std::ostringstream error;
+		error << "Unable to find board type in POST information";
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+		notifyQualified("ERROR", e);
+		*out << xcept::stdformat_exception_history(e);
+		firmwareException_ = e.clone();
+		return;
+	}
+
+	*out << "Board " << boardType << std::endl;
+
+	// Dig out the file data
+	std::string fileData;
+	std::string fileName;
+	if (cgi.getFile("file") != cgi.getFiles().end()) {
+		cgicc::const_file_iterator iFile = cgi.getFile("file");
+		fileName = iFile->getFilename();
+		fileData = iFile->getData();
+	} else {
+		std::ostringstream error;
+		error << "Unable to file data in POST information";
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+		notifyQualified("ERROR", e);
+		*out << xcept::stdformat_exception_history(e);
+		firmwareException_ = e.clone();
+		return;
+	}
+
+	*out << "File name " << fileName << " uploaded:" << std::endl << fileData << std::endl;
+
+	// Broadcast (or not)
+	bool broadcast = false;
+	if (cgi.getElement("broadcast") != cgi.getElements().end()) {
+		broadcast = cgi.getElement("broadcast")->getIntegerValue();
+	}
+
+	// If this is a trackfinder of a DCC target, do not broadcast
+	if (myCrate->isTrackFinder()) {
+		*out << "Disabling broadcast because TrackFinder detected" << std::endl;
+		broadcast = false;
+	} else if (boardType == "dcc") {
+		*out << "Disabling broadcast because DCC detected" << std::endl;
+		broadcast = false;
+	}
+
+	*out << "Broadcast " << broadcast << std::endl;
+
+	// Chip name
+	std::string chip;
+	if (cgi.getElement("chip") != cgi.getElements().end()) {
+		chip = cgi.getElement("chip")->getValue();
+	} else {
+		std::ostringstream error;
+		error << "Unable to find chip type in POST information";
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+		notifyQualified("ERROR", e);
+		*out << xcept::stdformat_exception_history(e);
+		firmwareException_ = e.clone();
+		return;
+	}
+
+	*out << "Chip " << chip << std::endl;
+
+	// Map these for faster lookup later
+	std::map<unsigned int, bool> slots;
+	for (std::vector<cgicc::FormEntry>::const_iterator iForm = cgi.getElements().begin(); iForm != cgi.getElements().end(); ++iForm) {
+		if (iForm->getName() == "slot") {
+			slots[iForm->getIntegerValue()] = true;
+		}
+	}
+
+	if (slots.size()) {
+		for (std::map<unsigned int, bool>::const_iterator iSlot = slots.begin(); iSlot != slots.end(); ++iSlot) {
+			*out << "Slot " << iSlot->first << std::endl;
+		}
+	} else if (!broadcast) {
+		std::ostringstream error;
+		error << "Unable to find slots or broadcast flag in POST information";
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+		notifyQualified("ERROR", e);
+		*out << xcept::stdformat_exception_history(e);
+		firmwareException_ = e.clone();
+		return;
+	}
+
+	if (boardType == "ddu") {
+
+		// Get the DEVTYPE
+		enum DEVTYPE dev;
+		if (chip == "vme") {
+			dev = VMEPROM;
+		} else if (chip == "ddu0") {
+			dev = DDUPROM0;
+		} else if (chip == "ddu1") {
+			dev = DDUPROM1;
+		} else if (chip == "in0") {
+			dev = INPROM0;
+		} else if (chip == "in1") {
+			dev = INPROM1;
+		} else {
+			std::ostringstream error;
+			error << "Chip " << chip << " not recognized for board " << boardType;
+			XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+			notifyQualified("ERROR", e);
+			*out << xcept::stdformat_exception_history(e);
+			firmwareException_ = e.clone();
+			return;
+		}
+
+		// TODO: Check the file to make sure it is the correct sort of firmware for the target DEVTYPE
+
+		// DDUPROMs need a usercode string.  Find the usercode now.
+		std::string userCodeString;
+		long unsigned int userCode = 0;
+		if (dev == DDUPROM0 || dev == DDUPROM1) {
+			std::istringstream userCodeStream(fileData);
+			while (!userCodeStream.eof()) {
+				std::string myLine;
+				std::getline(userCodeStream, myLine);
+
+				if (myLine.find("SIR 8 TDI (fd)") != std::string::npos) {
+					// The next line contains the usercode.
+					// Make sure there is a next line.
+					if (userCodeStream.eof()) break;
+
+					std::getline(userCodeStream, myLine);
+
+					std::stringstream lineStream(myLine);
+					std::string parsedLine;
+					lineStream >> parsedLine; // SDR
+					lineStream >> parsedLine; // 32
+					lineStream >> parsedLine; // TDI
+					lineStream >> parsedLine; // (########)
+
+					userCodeString = parsedLine.substr(1,8);
+					sscanf(userCodeString.c_str(), "%08lx", &userCode);
+
+					break;
+				}
+
+			}
+
+			if (userCodeString == "" || userCode == 0) {
+				std::ostringstream error;
+				error << "Unable to find usercode information in firmware for DDUPROM";
+				XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+				LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+				notifyQualified("ERROR", e);
+				*out << xcept::stdformat_exception_history(e);
+				firmwareException_ = e.clone();
+				return;
+			}
+		}
+
+		// If we are broadcasting, do things differently
+		if (broadcast) {
+
+			// The DDUPROMs have to be handled specially.
+			if (dev == DDUPROM0 || dev == DDUPROM1) {
+
+				try {
+					*out << "Broadcasting DDUPROM up to usercode " << userCodeString << std::endl;
+					myCrate->getBroadcastDDU()->loadPROMFile(dev, fileData, "", "(" + userCodeString + ")");
+
+					// Now load the board number for each DDU in the crate
+					std::vector<DDU *> dduVector = myCrate->getDDUs();
+					for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+
+						uint32_t boardNumber = (*iDDU)->readFlashBoardID();
+						std::vector<uint16_t> userCodeVector;
+						userCodeVector.push_back((userCode & 0x0000ff00) | (boardNumber & 0xff));
+						userCodeVector.push_back((userCode & 0xffff0000) >> 16);
+
+						*out << "Loading " << std::hex << userCodeVector[1] << userCodeVector[0] << " into DDU in slot " << std::dec << (*iDDU)->getSlot() << std::endl;
+						(*iDDU)->jtagWrite(dev, 32, userCodeVector, true);
+					}
+
+					*out << "Broadcasting DDUPROM after usercode" << std::endl;
+					myCrate->getBroadcastDDU()->loadPROMFile(dev, fileData, "(" + userCodeString + ")");
+
+				} catch (emu::fed::exception::Exception &e2) {
+					std::ostringstream error;
+					error << "Error loading firmware";
+					XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e, error.str(), e2);
+					LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+					notifyQualified("ERROR", e);
+					*out << xcept::stdformat_exception_history(e);
+					firmwareException_ = e.clone();
+					return;
+				}
+
+			} else { // Do other PROMs
+
+				try {
+
+					*out << "Broadcasting PROM to " << chip << std::endl;
+					myCrate->getBroadcastDDU()->loadPROMFile(dev, fileData);
+
+				} catch (emu::fed::exception::Exception &e2) {
+					std::ostringstream error;
+					error << "Error loading firmware";
+					XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e, error.str(), e2);
+					LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+					notifyQualified("ERROR", e);
+					*out << xcept::stdformat_exception_history(e);
+					firmwareException_ = e.clone();
+					return;
+				}
+
+			}
+
+		} else { // Do non-broadcast loads
+
+			std::vector<DDU *> dduVector = myCrate->getDDUs();
+			for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+				if (!slots[(*iDDU)->getSlot()]) continue;
+
+				// The DDUPROMs have to be handled specially.
+				if (dev == DDUPROM0 || dev == DDUPROM1) {
+
+					try {
+						*out << "Loading to slot " << (*iDDU)->getSlot() << " DDUPROM up to usercode " << userCodeString << std::endl;
+						(*iDDU)->loadPROMFile(dev, fileData, "", "(" + userCodeString + ")");
+
+						// Now load the board number
+						uint32_t boardNumber = (*iDDU)->readFlashBoardID();
+						std::vector<uint16_t> userCodeVector;
+						userCodeVector.push_back((userCode & 0x0000ff00) | (boardNumber & 0xff));
+						userCodeVector.push_back((userCode & 0xffff0000) >> 16);
+
+						*out << "Loading " << std::hex << userCodeVector[1] << userCodeVector[0] << " into DDU in slot " << std::dec << (*iDDU)->getSlot() << std::endl;
+						(*iDDU)->jtagWrite(dev, 32, userCodeVector, true);
+
+						*out << "Loading to slot " << (*iDDU)->getSlot() << " DDUPROM after usercode" << std::endl;
+						(*iDDU)->loadPROMFile(dev, fileData, "(" + userCodeString + ")");
+
+					} catch (emu::fed::exception::Exception &e2) {
+						std::ostringstream error;
+						error << "Error loading firmware";
+						XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e, error.str(), e2);
+						LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+						notifyQualified("ERROR", e);
+						*out << xcept::stdformat_exception_history(e);
+						firmwareException_ = e.clone();
+						return;
+					}
+
+				} else { // Do other PROMs
+
+					try {
+
+						*out << "Loading to slot " << (*iDDU)->getSlot() << " PROM " << chip << std::endl;
+						(*iDDU)->loadPROMFile(dev, fileData);
+
+					} catch (emu::fed::exception::Exception &e2) {
+						std::ostringstream error;
+						error << "Error loading firmware";
+						XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e, error.str(), e2);
+						LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+						notifyQualified("ERROR", e);
+						*out << xcept::stdformat_exception_history(e);
+						firmwareException_ = e.clone();
+						return;
+					}
+
+				}
+
+			}
+
+		}
+
+		*out << "Done with DDU loading." << std::endl;
+		return;
+
+	} else if (boardType == "dcc") {
+
+	} else {
+		std::ostringstream error;
+		error << "Board type " << boardType << " not recognized";
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
+		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
+		notifyQualified("ERROR", e);
+		*out << xcept::stdformat_exception_history(e);
+		firmwareException_ = e.clone();
+		return;
+	}
 }
 
 
@@ -2788,7 +3152,7 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 			notifyQualified("ERROR", e2);
 		}
 	}
-	
+
 	cgicc::Cgicc cgi(in);
 
 	// Need some header information to be able to return JSON
@@ -2797,10 +3161,10 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 		jsonHeader.addHeader("Content-type", "application/json");
 		out->setHTTPResponseHeader(jsonHeader);
 	}
-	
+
 	// Make a JSON output object
 	JSONSpirit::Object output;
-	
+
 	// Dig out the crate to which I should communicate.
 	unsigned int crateNumber = 0;
 	if (cgi.getElement("crate") != cgi.getElements().end()) {
@@ -2826,17 +3190,17 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 		notifyQualified("ERROR", e);
 		output.push_back(JSONSpirit::Pair("error", e.what()));
 	}
-	
+
 	Crate *myCrate = NULL;
 	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
-		
+
 		if ((*iCrate)->getNumber() == crateNumber) {
 			myCrate = (*iCrate);
 			break;
 		}
-		
+
 	}
-	
+
 	if (myCrate == NULL) {
 		std::ostringstream error;
 		error << "Unable to find crate number " << crateNumber << " in configuration";
@@ -2861,7 +3225,7 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 			boardObject.push_back(JSONSpirit::Pair("slot", (int) (*iDDU)->getSlot()));
 
 			try {
-			
+
 				JSONSpirit::Array chipArray;
 
 				JSONSpirit::Object vmeObject;
@@ -2895,7 +3259,7 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 				chipArray.push_back(in1Object);
 
 				boardObject.push_back(JSONSpirit::Pair("chips", chipArray));
-				
+
 			} catch (emu::fed::exception::DDUException &e) {
 
 				std::ostringstream error;
@@ -2904,7 +3268,7 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 				LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 				notifyQualified("ERROR", e2);
 				output.push_back(JSONSpirit::Pair("error", e2.what()));
-				
+
 			}
 
 			boardArray.push_back(boardObject);
@@ -2916,6 +3280,10 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 	}
 
 	output.push_back(JSONSpirit::Pair("boards", boardArray));
+
+	if (firmwareException_) {
+		output.push_back(JSONSpirit::Pair("exception", firmwareException_->message()));
+	}
 
 	*out << JSONSpirit::write(output);
 

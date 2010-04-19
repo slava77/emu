@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.20 2010/03/17 16:45:57 paste Exp $
+* $Id: Manager.cc,v 1.21 2010/04/19 15:30:36 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -62,13 +62,13 @@ ttsBits_(0)
 	fsm_.addStateTransition('E', 'C', "Disable", this, &emu::fed::Manager::disableAction); // valid
 	fsm_.addStateTransition('U', 'C', "Disable", this, &emu::fed::Manager::disableAction); // invalid
 	fsm_.addStateTransition('F', 'C', "Disable", this, &emu::fed::Manager::disableAction); // invalid
-	
+
 	fsm_.addStateTransition('H', 'E', "Enable", this, &emu::fed::Manager::enableAction); // invalid
 	fsm_.addStateTransition('C', 'E', "Enable", this, &emu::fed::Manager::enableAction); // valid
 	fsm_.addStateTransition('E', 'E', "Enable", this, &emu::fed::Manager::enableAction); // invalid
 	fsm_.addStateTransition('U', 'E', "Enable", this, &emu::fed::Manager::enableAction); // invalid
 	fsm_.addStateTransition('F', 'E', "Enable", this, &emu::fed::Manager::enableAction); // invalid
-	
+
 	fsm_.addStateTransition('H', 'H', "Halt", this, &emu::fed::Manager::haltAction); // valid
 	fsm_.addStateTransition('C', 'H', "Halt", this, &emu::fed::Manager::haltAction); // valid
 	fsm_.addStateTransition('E', 'H', "Halt", this, &emu::fed::Manager::haltAction); // valid
@@ -92,7 +92,7 @@ ttsBits_(0)
 // HyperDAQ pages
 void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 {
-	
+
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("errorFlasher.js");
 	jsFileNames.push_back("definitions.js");
@@ -100,7 +100,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	jsFileNames.push_back("common.js");
 	*out << Header("FED Crate Manager", jsFileNames);
 
-	
+
 	// Current condition of the FED system
 	*out << cgicc::div()
 		.set("class", "titlebar default_width")
@@ -108,7 +108,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div("FED System Status")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::div()
 		.set("class", "statusbar default_width")
 		.set("id", "FED_System_Status_statusbar") << std::endl;
@@ -125,16 +125,16 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::br()
 		.set("class", "clear") << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::fieldset()
 		.set("class", "dialog default_width")
 		.set("id", "FED_System_Status_dialog") << std::endl;
-	
+
 	*out << cgicc::img()
 		.set("id", "statusicon")
 		.set("src", "/emu/emuDCS/FEDApps/images/dialog-warning.png")
 		.set("alt", "Status Icon") << std::endl;
-	
+
 	*out << cgicc::div()
 		.set("class", "category") << std::endl;
 	*out << "Current state: ";
@@ -142,13 +142,13 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("class", "Unknown")
 		.set("id", "manager_state") << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::div()
 		.set("class", "description")
 		.set("id", "status_description") << std::endl;
 	*out << "The Manager has not yet contacted the Communicator applications.  Until that happens, the system will be in an unknown state." << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::div()
 		.set("class", "description") << std::endl;
 	cgicc::input checkBox;
@@ -163,7 +163,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << "Enable manual state changes (not recommended)" << std::endl;
 	*out << cgicc::label() << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::button()
 		.set("class", "left button statechange")
 		.set("id", "halt_button")
@@ -175,7 +175,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("src", "/emu/emuDCS/FEDApps/images/process-stop.png");
 	*out << "Halt" << std::endl;
 	*out << cgicc::button() << std::endl;
-	
+
 	*out << cgicc::button()
 		.set("class", "right button statechange")
 		.set("id", "enable_button")
@@ -187,7 +187,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("src", "/emu/emuDCS/FEDApps/images/media-playback-start.png");
 	*out << "Enable" << std::endl;
 	*out << cgicc::button() << std::endl;
-	
+
 	*out << cgicc::button()
 		.set("class", "right button statechange")
 		.set("id", "disable_button")
@@ -199,7 +199,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("src", "/emu/emuDCS/FEDApps/images/media-playback-pause.png");
 	*out << "Disable" << std::endl;
 	*out << cgicc::button() << std::endl;
-	
+
 	*out << cgicc::button()
 		.set("class", "right button statechange")
 		.set("id", "configure_button")
@@ -211,10 +211,10 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("src", "/emu/emuDCS/FEDApps/images/configure.png");
 	*out << "Configure" << std::endl;
 	*out << cgicc::button() << std::endl;
-	
+
 	*out << cgicc::fieldset() << std::endl;
-	
-	
+
+
 	// Current condition of the individual Communicator systems
 	*out << cgicc::div()
 		.set("class", "titlebar default_width")
@@ -222,7 +222,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div("FED Communicator Application Status")
 		.set("class", "titletext");
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::div()
 		.set("class", "statusbar default_width")
 		.set("id", "FED_Communicator_Status_statusbar") << std::endl;
@@ -239,16 +239,16 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::br()
 		.set("class", "clear") << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::fieldset()
 		.set("class", "dialog default_width")
 		.set("id", "FED_Communicator_Status_dialog") << std::endl;
-		
+
 	*out << cgicc::div("Waiting for data from the Communicator applications...")
 		.set("class", "description deleteme") << std::endl;
-	
+
 	*out << cgicc::fieldset() << std::endl;
-	
+
 	*out << cgicc::textarea()
 		.set("id", "debug")
 		.set("style", "display: none") << std::endl;
@@ -263,20 +263,20 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 void emu::fed::Manager::webGetSystemStatus(xgi::Input *in, xgi::Output *out)
 {
 	cgicc::Cgicc cgi(in);
-	
+
 	// Need some header information to be able to return JSON
 	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
 		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
 		jsonHeader.addHeader("Content-type", "application/json");
 		out->setHTTPResponseHeader(jsonHeader);
 	}
-	
+
 	// Make a JSON output object
 	JSONSpirit::Object output;
-	
+
 	// Push back my FSM state
 	output.push_back(JSONSpirit::Pair("state", state_.toString()));
-	
+
 	// And now return everything as JSON
 	*out << JSONSpirit::write(output);
 }
@@ -286,23 +286,23 @@ void emu::fed::Manager::webGetSystemStatus(xgi::Input *in, xgi::Output *out)
 void emu::fed::Manager::webGetCommunicatorStatus(xgi::Input *in, xgi::Output *out)
 {
 	cgicc::Cgicc cgi(in);
-	
+
 	// Need some header information to be able to return JSON
 	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
 		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
 		jsonHeader.addHeader("Content-type", "application/json");
 		out->setHTTPResponseHeader(jsonHeader);
 	}
-	
+
 	// Make a JSON output object
 	JSONSpirit::Object output;
-	
+
 	// Get the info from the underlying states
 	JSONSpirit::Array underlyingStatus = getUnderlyingStatus();
 
 	// Add that to the JSON output
 	output.push_back(JSONSpirit::Pair("communicators", underlyingStatus));
-	
+
 	// And now return everything as JSON
 	*out << JSONSpirit::write(output);
 }
@@ -312,24 +312,24 @@ void emu::fed::Manager::webGetCommunicatorStatus(xgi::Input *in, xgi::Output *ou
 std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1()
 {
 	std::vector<emu::base::WebReportItem> report;
-	
+
 	std::ostringstream managerURL;
 	managerURL << getApplicationDescriptor()->getContextDescriptor()->getURL() << "/" << getApplicationDescriptor()->getURN();
-	
+
 	// Application title
 	report.push_back(emu::base::WebReportItem("title", "FED System", "", "", "", managerURL.str()));
-	
+
 	// States of underlying Communicators
 	JSONSpirit::Array underlyingStatus = getUnderlyingStatus();
-	
+
 	// Calculate my state
 	report.push_back(emu::base::WebReportItem("State", getManagerState(state_.toString(), underlyingStatus), "Current state of the FED finite state machine", "", "", managerURL.str()));
-	
+
 	float dccInRate = 0;
 	float dccOutRate = 0;
-	
+
 	for (JSONSpirit::Array::const_iterator iApp = underlyingStatus.begin(); iApp != underlyingStatus.end(); iApp++) {
-		
+
 		std::string systemName = "?";
 		std::string fmmErrors = "0";
 		std::string url = "";
@@ -340,7 +340,7 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 
 		JSONSpirit::Object appObject = iApp->get_obj();
 		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
-			
+
 			// System name
 			if (iPair->name_ == "systemName") {
 				if (iPair->value_.get_str() == "Track-Finder") systemName = "TF";
@@ -350,27 +350,27 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 					systemName = "ME-";
 				}
 			}
-	
+
 			// FMM errors per endcap
 			else if (iPair->name_ == "fibersWithErrors") {
 				std::ostringstream fiberStream;
 				fiberStream << iPair->value_.get_int();
 				fmmErrors = fiberStream.str();
 			}
-			
+
 			// Fiber error names per endcap
 			else if (iPair->name_ == "fiberNamesWithErrors") fiberNames = iPair->value_.get_str();
-			
+
 			// Sum up dcc input/output averages
 			else if (iPair->name_ == "totalDCCInputRate") dccInRate += iPair->value_.get_real();
 			else if (iPair->name_ == "totalDCCOutputRate") dccOutRate += iPair->value_.get_real();
-			
+
 			// Figure out my monitor's URL
 			else if (iPair->name_ == "monitorURL") url = iPair->value_.get_str();
-			
+
 			// Record the configuration mode
 			else if (iPair->name_ == "configMode") configMode = iPair->value_.get_str();
-			
+
 			// Record the configuration types
 			else if (iPair->name_ == "xmlFile") xmlFile = iPair->value_.get_str();
 			else if (iPair->name_ == "dbKey") {
@@ -379,7 +379,7 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 				dbKey = dbKeyStream.str();
 			}
 		}
-		
+
 		// Make a description of the status
 		std::ostringstream errorDescription;
 		if (fmmErrors != "0") {
@@ -387,7 +387,7 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 		} else {
 			errorDescription << "There are no reported fiber errors on the " << systemName << " system.  Click here to open the FED Monitor page for the " << systemName << " system.";
 		}
-		
+
 		// Make a description of the configuration
 		std::ostringstream configDescription;
 		std::string keyToReport = "";
@@ -401,14 +401,14 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 			configDescription << "This Communicator was configured using auto-detection of the attached hardware";
 			keyToReport = "Auto";
 		}
-		
+
 		// Push back the report for the system
 		report.push_back(emu::base::WebReportItem(systemName + " Errors", fmmErrors, "Number of fiber inputs currently reporting errors (since the last reset or resync)", errorDescription.str(), "", url));
-		
+
 		// Push back the configuration types
 		report.push_back(emu::base::WebReportItem(systemName + " Configuration", keyToReport, "The configuration of the Communicator application", configDescription.str(), "", url));
 	}
-	
+
 	// Push back the heartbeats
 	std::ostringstream inRateStream;
 	inRateStream << dccInRate;
@@ -416,7 +416,7 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 	outRateStream << dccOutRate;
 	report.push_back(emu::base::WebReportItem("DCC Total Input Rate", inRateStream.str(), "DCC input rate summed over all DDUs (in bytes/s)", "", "", ""));
 	report.push_back(emu::base::WebReportItem("DCC Total Output Rate", outRateStream.str(), "DCC output rate summed over all S-Links (in bytes/s)", "", "", ""));
-	
+
 	return report;
 }
 
@@ -482,7 +482,7 @@ throw (toolbox::fsm::exception::Exception)
 		XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
 		LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("WARN", e2);
-		
+
 		fireEvent("Halt");
 		fireEvent("Configure");
 	}
@@ -518,7 +518,7 @@ throw (toolbox::fsm::exception::Exception)
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
 		notifyQualified("FATAL", e);
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+		throw e;
 	} else if (underlyingStates == "Unknown") {
 		try {
 			fireEvent("Unknown");
@@ -638,18 +638,18 @@ void emu::fed::Manager::unknownAction(toolbox::Event::Reference event)
 
 std::string emu::fed::Manager::getManagerState(const std::string &targetState, const JSONSpirit::Array &underlyingStatus)
 {
-	
+
 	// This map is to make sure everybody is in the same state.
 	std::map<const std::string, unsigned int> stateMap;
-	
+
 	for (JSONSpirit::Array::const_iterator iApp = underlyingStatus.begin(); iApp != underlyingStatus.end(); iApp++) {
-		
+
 		JSONSpirit::Object appObject = iApp->get_obj();
 		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
 			if (iPair->name_ == "state") {
 				std::string state = iPair->value_.get_str();
 				//LOG4CPLUS_DEBUG(getApplicationLogger(), "State of underlying Communicator: " << state);
-				
+
 				if (state == "Failed" || state == "Unknown") {
 					std::ostringstream error;
 					error << "One or more Communicator application is in a Failed or Unknown state";
@@ -658,14 +658,14 @@ std::string emu::fed::Manager::getManagerState(const std::string &targetState, c
 					notifyQualified("FATAL", e2);
 					return "Failed";
 				}
-				
+
 				stateMap[state]++;
 				break;
 			}
 		}
-		
+
 	}
-	
+
 	if (stateMap.size() > 1) {
 		std::ostringstream error;
 		error << "Inconsistant state across Communicator applications";
@@ -683,7 +683,7 @@ std::string emu::fed::Manager::getManagerState(const std::string &targetState, c
 		notifyQualified("FATAL", e2);
 		return "Failed";
 	}
-	
+
 	//LOG4CPLUS_DEBUG(getApplicationLogger(), "All Communicator applications are in the target state of " << targetState);
 	return targetState;
 }
@@ -692,21 +692,21 @@ std::string emu::fed::Manager::getManagerState(const std::string &targetState, c
 
 JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 {
-	
+
 	JSONSpirit::Array returnMe;
-	
+
 	std::set<xdaq::ApplicationDescriptor *> descriptors = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("emu::fed::Communicator");
-	
+
 	for (std::set<xdaq::ApplicationDescriptor *>::iterator iDescriptor = descriptors.begin(); iDescriptor != descriptors.end(); iDescriptor++) {
-	
+
 		JSONSpirit::Object applicationObject;
-		
+
 		applicationObject.push_back(JSONSpirit::Pair("instance", (int) (*iDescriptor)->getInstance()));
-		
+
 		std::ostringstream urlStream;
 		urlStream << (*iDescriptor)->getContextDescriptor()->getURL() << "/" << (*iDescriptor)->getURN();
 		applicationObject.push_back(JSONSpirit::Pair("url", urlStream.str()));
-		
+
 		// Ping the Communicators for their information.
 		xoap::MessageReference reply;
 		try {
@@ -719,7 +719,7 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 			RAISE_ALARM_NESTED(emu::fed::exception::SOAPException, "ManagerGetStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 			continue;
 		}
-		
+
 		JSONSpirit::Pair systemNamePair = toJSONPair<xdata::String, std::string>(reply, "systemName", "(unnamed instance)");
 		applicationObject.push_back(systemNamePair);
 		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "state", "Unknown"));
@@ -731,7 +731,7 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "fiberNamesWithErrors", ""));
 		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "totalDCCInputRate", 0));
 		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "totalDCCOutputRate", 0));
-		
+
 		// Get the Monitor URL that matches this application
 		// Figure out which monitor matches this communicator
 		std::string monitorURL;
@@ -744,7 +744,7 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 			// do nothing
 		}
 		applicationObject.push_back(JSONSpirit::Pair("monitorURL", monitorURL));
-		
+
 		// Do the same for the Commander applications
 		std::string commanderURL;
 		try {
@@ -756,13 +756,13 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 			// do nothing
 		}
 		applicationObject.push_back(JSONSpirit::Pair("commanderURL", commanderURL));
-		
-		
+
+
 		returnMe.push_back(applicationObject);
 	}
-	
+
 	return returnMe;
-	
+
 }
 
 
@@ -770,26 +770,26 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 xoap::MessageReference emu::fed::Manager::onSetTTSBits(xoap::MessageReference message)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP command received: SetTTSBits, ttsID_=" << ttsID_ << ", ttsBits_=" << std::hex << ttsBits_ << std::dec);
-	
+
 	// JRG, decode the Source ID into Crate/Slot locations
 	// PGK The ttsID_ is given to us by the CSCSV, so we don't have to do
 	//  anything to get it.
-	
+
 	xdata::UnsignedInteger crateNumber = 0;
 	xdata::UnsignedInteger slotNumber = 0;
 	int ttsID = ttsID_; // Cached for easier manipulations
-	
+
 	if (ttsID == 760) { // TF-DDU
 		crateNumber = 5;
 		slotNumber = 2;
-		
+
 	} else if ((ttsID >= 750 && ttsID <= 756) || (ttsID >= 880 && ttsID <= 886)) { // DCCs
 		// Determine if this is a master or slave DCC (for super-LHC)
 		if (ttsID > 756) slotNumber = 17;
 		else slotNumber = 8;
 		// Determine crate
 		crateNumber = (ttsID%10) / 2 + 1;
-		
+
 	} else if (ttsID >= 831 && ttsID <= 869 && ttsID%10) { // DDUs
 		// Determine slot number.  Note that there is no super-LHC checking here!
 		slotNumber = ttsID%10 + 2;
@@ -799,7 +799,7 @@ xoap::MessageReference emu::fed::Manager::onSetTTSBits(xoap::MessageReference me
 		else if (ttsID >= 841 && ttsID <= 849) crateNumber = 1;
 		else if (ttsID >= 851 && ttsID <= 859) crateNumber = 4;
 		else crateNumber = 3;
-		
+
 	} else {
 		std::ostringstream error;
 		error << "ttsID_=" << ttsID_.toString() << " is out-of-bounds for the CSC FEDs";
@@ -815,10 +815,10 @@ xoap::MessageReference emu::fed::Manager::onSetTTSBits(xoap::MessageReference me
 		setParameter("Communicator", "ttsCrate", "xsd:unsignedInt", crateNumber.toString());
 		setParameter("Communicator", "ttsSlot", "xsd:unsignedInt", slotNumber.toString());
 		setParameter("Communicator", "ttsBits", "xsd:int", ttsBits_.toString());
-		
+
 		// The Communicator applications will decide if they should do anything based on the crates they conmmand.
 		sendSOAPCommand("SetTTSBits", "emu::fed::Communicator");
-		
+
 	} catch (emu::fed::exception::SoftwareException &e) {
 		std::ostringstream error;
 		error << "Exception caught in completing setTTSBits";
@@ -826,7 +826,7 @@ xoap::MessageReference emu::fed::Manager::onSetTTSBits(xoap::MessageReference me
 		LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("ERROR", e2);
 	}
-	
+
 	return createReply(message);
-	
+
 }
