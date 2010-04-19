@@ -1,6 +1,9 @@
 /*****************************************************************************\
-* $Id: commanderFirmware.js,v 1.3 2010/03/17 16:45:51 paste Exp $
+* $Id: commanderFirmware.js,v 1.4 2010/04/19 15:30:35 paste Exp $
 \*****************************************************************************/
+
+// Global for the required pause in uploading
+var uploading = false;
 
 function reportError(transport) {
 	//this.stop = true;
@@ -13,9 +16,10 @@ Event.observe(window, "load", function(event) {
 
 	// Hide targets
 	$$(".hidden").invoke("hide");
-	
+
 	// When the broadcast checkbox is checked, disable non-broadcast checkboxes of the same chip type
 	$$("input.broadcast").each(function(e) {
+		e.checked = false;
 		e.observe("change", function(ev) {
 			if (ev.element().checked) {
 				$$("input[chip=\"" + ev.element().readAttribute("chip") + "\"]").each(function(el) {
@@ -23,15 +27,16 @@ Event.observe(window, "load", function(event) {
 				});
 			} else {
 				$$("input[chip=\"" + ev.element().readAttribute("chip") + "\"]").each(function(el) {
-					if (!el.hasClassName("broadcast")) el.disabled = false;
+					if (!el.hasClassName("broadcast")) el.enable();
 				});
 			}
 		});
 	});
-	
+
 	// When any checkmark is checked, make sure that there is a place to upload a file.  If not, show it.
 	// Clear all checkboxes, too.
 	$$("input[type=\"checkbox\"]").each(function(e) {
+		e.disabled = false;
 		e.checked = false;
 		e.observe("change", function(ev) {
 			if (ev.element().checked && !$(ev.element().readAttribute("chip") + "_target").visible()) {
@@ -52,31 +57,36 @@ Event.observe(window, "load", function(event) {
 	});
 
 	$$(".upload").each(function(e) {
-	
+
 		// Disable all upload buttons to begin with.  The updater will enable them.
 		e.disabled = true;
-		
-		e.observe("click", function(event) {
-			// When firmware is being uploaded, make sure no other firmware can be uploaded by disabling buttons,
-			$$(".upload").each(function(el) {
-				el.disabled = true;
+
+		var chip = e.readAttribute("chip");
+
+		// Intercept clicks, add form data and disable buttons appropriately.
+		e.observe("click", function(ev) {
+			// Make sure the updater knows that we are uploading
+			uploading = true;
+			$$(".form_hidden").invoke("remove");
+			var form = $(chip + "_form");
+			var crateEle = new Element("input", {"class": "form_hidden", name: "crate", value: crateNumber, type: "hidden"});
+			form.insert(crateEle);
+			var boardEle = new Element("input", {"class": "form_hidden", name: "board", value: boardType, type: "hidden"});
+			form.insert(boardEle);
+			var chipEle = new Element("input", {"class": "form_hidden", name: "chip", value: chip, type: "hidden"});
+			form.insert(chipEle);
+			$$("input[chip=\"" + chip + "\"]").each(function(el) {
+				if (el.checked) {
+					var slotEle = new Element("input", {"class": "form_hidden", name: "slot", value: el.readAttribute("slot"), type: "hidden"});
+					form.insert(slotEle);
+				}
 			});
-
-			var chip = e.readAttribute("chip");
-
-			// Then do the upload
-			$$("form[chip=\"" + chip + "\"").each(function(el) {
-				// Add some more form information
-				el["crate"] = crateNumber;
-				el["chip"] = chip;
-				el["slot"] = new Array();
-				$$("input[chip=\"" + chip + "\"").each(function(ele) {
-					el["slot"].push(ele.readAttribute("slot"));
-				});
-				el.submit;
-			});
-
+			var broadcast = $("broadcast_" + chip).checked ? 1 : 0;
+			var broadcastEle = new Element("input", {"class": "form_hidden", name: "broadcast", value: broadcast, type: "hidden"});
+			form.insert(broadcastEle);
+			form.submit();
 		});
+
 	});
 
 	// Start an updater to make sure uploads do not collide
@@ -108,7 +118,9 @@ function updateFirmware(transport)
 	var data = transport.responseJSON;
 
 	var percents = new Hash();
-	
+
+	var alldone = 0;
+
 	// Loop through the returned boards
 	data.boards.each(function(board) {
 
@@ -125,17 +137,25 @@ function updateFirmware(transport)
 				percents.set(chip.name, chip.percent);
 			}
 
+			if (chip.percent == 100) alldone++;
+
 		});
-		
+
 	});
+
+	// Only allow more uploads if this is 100% of everybody.
+	var disable = (alldone != percents.size());
 
 	// Now update the submit buttons
 	percents.each(function(it) {
 
-		if (it.value == 100) {
-			$(it.key + "_upload").update("Upload and install").disabled = false;
+		if (uploading && it.value == 100) {
+			$(it.key + "_upload").update("Uploading...").disabled = true;
+		} else if (it.value == 100) {
+			$(it.key + "_upload").update("Upload and install").disabled = disable;
 		} else {
-			$(it.key + "_upload").update(it.value + "%").disabled = true;
+			$(it.key + "_upload").update("Installing " + it.value + "%").disabled = true;
+			uploading = false;
 		}
 	});
 
@@ -148,9 +168,9 @@ function readValues()
 	// Bind the special callbacks
 	var successCallback = this.callbackSuccess.bind(this);
 	var errorCallback = this.callbackError.bind(this);
-	
+
 	var url = URL + "/Read" + this.params.board.toUpperCase() + "Registers";
-	
+
 	new Ajax.Request(url, {
 		method: "get",
 		parameters: this.params,
@@ -177,7 +197,7 @@ function updateValues(transport)
 	} else {
 		$("content").update("Bad result!  Nothing to display!");
 	}
-	
+
 	this.reset();
 }
 
@@ -189,7 +209,7 @@ function makeDDUTable(data)
 	if (data.ddus.size() > 1 || $("display_select").value == "text") debug = false;
 	var table = new Table({"id": "data_display", "class": "data_table"});
 	var header = new Row({"id": "data_header", "class": "data_header"});
-	
+
 	if (debug) {
 		header.cells.push(new Cell({"id": "board_name", "class": "data_board"}).update("DDU " + data.ddus[0].rui));
 		header.cells.push(new Cell({"id": "data_title", "class": "data_title"}).update("Register Value"));
@@ -213,7 +233,7 @@ function makeDDUTable(data)
 			if (base) value = value.toString(base);
 			if (base == 16) value = "0x" + value.toUpperCase();
 			else if (base == 8) value = "0" + value;
-			
+
 			row.cells.push(new Cell({"id": "entry_value_" + i + "_" + val.rui, "class": "entry_value", "base": base}).update(value));
 			if (debug) return;
 		});
@@ -228,7 +248,7 @@ function makeDDUTable(data)
 	if ($("display_select").value == "text") $("content").update(new Element("pre").update(table.toText()));
 	else {
 		$("content").update(table.toElement());
-	
+
 		// Add DDU-selecting functions
 		if (!debug) {
 			$$(".data_board").each(function(element) {
@@ -259,7 +279,7 @@ function makeDDUTable(data)
 			});
 		}
 	}
-	
+
 }
 
 
@@ -269,7 +289,7 @@ function updateDDUs(data)
 	if ($("display_select").value == "text") return makeDDUTable(data);
 	var debug = true;
 	if (data.ddus.size() > 1) debug = false;
-	
+
 	// Entries are always in order.
 	data.entries.each(function(entry, i) {
 
@@ -279,7 +299,7 @@ function updateDDUs(data)
 			if (base) value = value.toString(base);
 			if (base == 16) value = "0x" + value.toUpperCase();
 			else if (base == 8) value = "0" + value;
-			
+
 			$("entry_value_" + i + "_" + val.rui).update(value);
 			if (debug) return;
 		});
@@ -288,7 +308,7 @@ function updateDDUs(data)
 		}
 
 	});
-	
+
 }
 
 function makeDCCTable(data)
@@ -297,7 +317,7 @@ function makeDCCTable(data)
 	if (data.ddus.size() > 1 || $("display_select").value == "text") debug = false;
 	var table = new Table({"id": "data_display", "class": "data_table"});
 	var header = new Row({"id": "data_header", "class": "data_header"});
-	
+
 	if (debug) {
 		header.cells.push(new Cell({"id": "board_name", "class": "data_board"}).update("DCC " + data.dccs[0].fmmid));
 		header.cells.push(new Cell({"id": "data_title", "class": "data_title"}).update("Register Value"));
@@ -321,7 +341,7 @@ function makeDCCTable(data)
 			if (base) value = value.toString(base);
 			if (base == 16) value = "0x" + value.toUpperCase();
 			else if (base == 8) value = "0" + value;
-			
+
 			row.cells.push(new Cell({"id": "entry_value_" + i + "_" + val.fmmid, "class": "entry_value", "base": base}).update(value));
 			if (debug) return;
 		});
@@ -336,7 +356,7 @@ function makeDCCTable(data)
 	if ($("display_select").value == "text") $("content").update(new Element("pre").update(table.toText()));
 	else {
 		$("content").update(table.toElement());
-	
+
 		// Add DDU-selecting functions
 		if (!debug) {
 			$$(".data_board").each(function(element) {
