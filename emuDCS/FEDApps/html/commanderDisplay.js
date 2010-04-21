@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commanderDisplay.js,v 1.3 2010/02/04 10:39:51 paste Exp $
+* $Id: commanderDisplay.js,v 1.4 2010/04/21 13:19:25 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -179,7 +179,6 @@ function makeDDUTable(data)
 			});
 		}
 	}
-	
 }
 
 
