@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.9 2010/04/19 15:30:36 paste Exp $
+* $Id: Commander.h,v 1.10 2010/04/21 13:19:25 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
@@ -52,6 +52,9 @@ namespace emu {
 
 			/** GUI for managing DDU firmware **/
 			void webDDUFirmwareManager(xgi::Input *in, xgi::Output *out);
+			
+			/** Reset the entire crate (which loads the firmware into the DDU) **/
+			void webDDUReset(xgi::Input *in, xgi::Output *out);
 
 			/** GUI for managing DCC firmware **/
 			void webDCCFirmwareManager(xgi::Input *in, xgi::Output *out);

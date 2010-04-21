@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.8 2010/04/19 15:30:35 paste Exp $
+* $Id: commander.js,v 1.9 2010/04/21 13:19:25 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -193,18 +193,14 @@ Event.observe(window, "load", function(event) {
 				registers.push(e.readAttribute("name"));
 			}
 		});
-		// Can I submit a form without that form actually existing?
-		($$(".fake_form")).invoke("remove");
-		var time = new Date();
-		var fakeForm = new Element("form", {"class": "fake_form", "style": "display:none", "method": "post", "action": URL + "/DisplayRegisters?board=ddu"});//, "target": "commanderDisplay" + time.valueOf()});
-		ruis.each(function(rui) {
-			fakeForm.insert(new Element("input", {"name": "rui", "value": rui}));
-		});
-		registers.each(function(register) {
-			fakeForm.insert(new Element("input", {"name": "reg", "value": register}));
-		});
-		$("FED_Commander_Select_dialog").insert(fakeForm);
-		fakeForm.submit();
+		
+		// Build a URL from the registers
+		var params = new Hash();
+		params.set("board", "ddu");
+		params.set("rui", ruis);
+		params.set("reg", registers);
+		var url = URL + "/DisplayRegisters?" + params.toQueryString();
+		document.location.href = url;
 	});
 
 	$("dcc_display_button").observe("click", function(ev) {
@@ -225,7 +221,7 @@ Event.observe(window, "load", function(event) {
 		// Can I submit a form without that form actually existing?
 		($$(".fake_form")).invoke("remove");
 		var time = new Date();
-		var fakeForm = new Element("form", {"class": "fake_form", "style": "display:none", "method": "post", "action": URL + "/DisplayRegisters?board=dcc", "target": "commanderDisplay" + time.valueOf()});
+		var fakeForm = new Element("form", {"class": "fake_form", "style": "display:none", "method": "get", "action": URL + "/DisplayRegisters?board=dcc", "target": "commanderDisplay" + time.valueOf()});
 		fmmids.each(function(fmmid) {
 			fakeForm.insert(new Element("input", {"name": "fmmid", "value": fmmid}));
 		});
