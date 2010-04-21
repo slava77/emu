@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.11 2010/03/08 22:19:49 paste Exp $
+* $Id: DDUDebugger.cc,v 1.12 2010/04/21 13:18:42 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -1791,7 +1791,7 @@ std::string emu::fed::DDUDebugger::FirmwareDecode(const uint32_t &code)
 		
 	} else if ((code & 0xfc00ff00) == 0xc000dd00) { // DDUPROM
 		
-		returnMe << "DDUPROM" << ((code >> 24) & 0xf) << " v" << ((code >> 16) & 0xff) << " (rui " << (code & 0xff) << ")";
+		returnMe << "DDUPROM" << ((code >> 24) & 0xf) << " v" << ((code >> 16) & 0xff) << " (id " << (code & 0xff) << ")";
 		
 	} else if ((code & 0xfc000f00) == 0xd0000a00) { // INPROM
 		
