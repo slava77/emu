@@ -314,6 +314,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmware, "DMBVmeLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBLoadFirmware, "CFEBLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBHardResetFromDMBPage, "CCBHardResetFromDMBPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBReadFirmware, "CFEBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBLoadFirmwareID, "CFEBLoadFirmwareID");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBCheckConfiguration, "DMBCheckConfiguration");
@@ -6381,6 +6382,13 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::br();
+  //
+  std::string CCBHardResetFromDMBPage = toolbox::toString("/%s/CCBHardResetFromDMBPage",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromDMBPage) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","CCB hard reset") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  //
   // Output area
   //
   *out << cgicc::form().set("method","GET") << std::endl ;
@@ -6735,7 +6743,7 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
     //
     std::cout << "CFEBLoadFirmware - DMB " << dmb << std::endl;
     //
-    thisCCB->hardReset();
+    //    thisCCB->hardReset();
     //
     if (thisDMB) {
       //
@@ -6767,9 +6775,18 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
 	}
       }
     }
-    ::sleep(1);
-    thisCCB->hardReset();
+    //    ::sleep(1);
+    //    thisCCB->hardReset();
   }
+  //
+  this->DMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::CCBHardResetFromDMBPage(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  thisCCB->hardReset();
   //
   this->DMBUtils(in,out);
   //
