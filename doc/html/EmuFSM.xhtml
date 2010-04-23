@@ -1,0 +1,1204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Emu FSM Transitions</title>
+    <style type="text/css">
+      body { background-color: #eeeeee; }
+      table.transition { background-color: #000000;  border-color: #333333; border-collapse: separate; border-spacing: 1px 1px; }
+      table.transition th { background-color: #666666; text-align: center; padding: 0px 4px 0px 4px; color:#eeeeee; }
+      table.transition th.title { background-color: #333333; }
+      table.transition td { background-color: #ffffff; text-align: center; padding: 0px 4px 0px 4px; color:#0000dd; font-weight: bold; }
+      table.legend { background-color: #000000;  border-color: #333333; border-collapse: separate; border-spacing: 1px 1px; }
+      table.legend th { background-color: #666666; text-align: center; padding: 0px 4px 0px 4px; color:#eeeeee; }
+      table.legend th.title { background-color: #333333; }
+      table.legend td { background-color: #ffffff; padding: 0px 4px 0px 4px; color:#0000dd; font-weight: bold; }
+      span.setPar { color:#663333; font-weight: lighter; }
+      span.getPar { color:#336633; font-weight: lighter; }
+      a.conditional { color:#3333ee; font-weight: lighter; }
+      div.tooltip { position:absolute; z-index:100; visibility:visible; padding: 2px 2px 2px 2px; background-color:#dddddd; }
+    </style>
+    <script type="text/javascript">
+
+      var prevTooltip;
+
+function onLoadPage(){
+    // Add listeners for tooltips
+    var anchors=document.getElementsByTagName('a');
+    for (i=0;i&lt;anchors.length;i++){
+        if (anchors.item(i).hasAttribute('href') ){
+            anchors.item(i).addEventListener("mouseover", onMouseOverAnchor, false);
+            anchors.item(i).addEventListener("mouseout" , onMouseOutAnchor,  false);
+        }
+    }
+    // Clone every table into a div element to serve as tooltip. 
+    // (The original tables cannot be used as tooltip because they would become hidden.)
+    var tables=document.getElementsByTagName('table');
+    for (i=0;i&lt;tables.length;i++){
+        if ( tables.item(i).className.indexOf('transition')>=0 ){
+	    var newdivid = 'div_'+tables.item(i).id;
+	    // Clone it if and only if no clone of it exosts yet. (Otherwise it gets into an infinite recursion.)
+	    if ( document.getElementById( newdivid ) == null ){
+	        var newdiv=document.createElement("div");
+		newdiv.id = newdivid;
+		newdiv.className = 'tooltip';
+		newdiv.style.visibility = 'hidden';
+		newdiv.appendChild( tables.item(i).cloneNode(true) );
+		document.body.appendChild( newdiv );
+	    }
+        }
+    }
+    //alert(tables.item(0).className+' '+tables.item(0).className.indexOf('transition')+' '+document.body.getElementsByTagName('div').length);
+}
+
+function onMouseOverAnchor(event){
+   //alert('onMouseOverAnchor '+event.target+' '+event.target.href+' '+event.target.href.substr( event.target.href.search('#')+1 ) );
+    tooltip( event, 'div_'+event.target.href.substr( event.target.href.search('#')+1 ) );
+}
+
+function onMouseOutAnchor(event){
+    tooltip( event, 'div_'+event.target.href.substr( event.target.href.search('#')+1 ) );
+}
+
+function getWindowWidth() {
+    
+    if(window.innerWidth) {
+        return window.innerWidth;
+    }
+    
+    return document.body.clientWidth;
+}
+
+function mouseX(e) {
+
+    if(e.pageX) {
+        return e.pageX;
+    }
+    
+    return e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+}
+
+function mouseY(e) {
+   
+   if(e.pageY) {
+        return e.pageY;
+    }
+    
+    return e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+}
+
+function tooltip(e, o) {
+    var windowWidth = getWindowWidth();
+
+    o = document.getElementById(o);
+    
+    if(prevTooltip &amp;&amp; prevTooltip != o) {
+        prevTooltip.style.visibility = 'hidden';
+    }
+
+    if(o.style.visibility == 'visible') {
+
+        o.style.visibility = 'hidden';
+    } else {
+    
+        if(o.offsetWidth) {
+            ew = o.offsetWidth;
+        } else if(o.clip.width) {
+            ew = o.clip.width;
+        }
+    
+        y = mouseY(e) + 16;
+        x = mouseX(e) - (ew / 4);
+        
+        if (x &lt; 2) {
+            x = 2;
+        } else if(x + ew > windowWidth) {
+           //  x = windowWidth - ew - 4;
+            x = windowWidth - ew - 20;
+        }
+        
+        o.style.left = x + 'px';
+        o.style.top = y + 'px';
+        
+        o.style.visibility = 'visible';
+        
+        prevTooltip = o;
+    }
+}
+    </script>
+  </head>
+  <body onload="onLoadPage()">
+    <h1>Emu FSM Transitions</h1>
+    <h2 id="version">EmuLib v9.7</h2>
+
+    <h3>Legend</h3>
+
+    <table id="legend" class="legend">
+      <tr>
+	<th class="title" colspan="7">Legend</th>
+      </tr>
+      <tr>
+	<th>Symbol</th>
+	<th>Meaning</th>
+      </tr>
+      <tr>
+	<td>(<a class="conditional" href="#action">action</a>)</td>
+	<td>The execution of <em>action</em> between the parentheses is conditional.</td>
+      </tr>
+      <tr>
+	<td><span title="Get parameter" class="getPar">{someParameter}&rarr;</span></td>
+	<td>The value of <em>someParameter</em> is gotten.</td>
+      </tr>
+      <tr>
+	<td><span title="Set parameter" class="setPar">&rarr;{someParameter}</span></td>
+	<td>The value of <em>someParameter</em> is set.</td>
+      </tr>
+    </table>
+
+    <h3>emu::supervisor</h3>
+    
+    <a name="supervisor_configure"/>
+    <table id="supervisor_configure" class="transition">
+      <tr>
+	<th class="title" colspan="8">Supervisor Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Supervisor</th>
+	<th>PC Manager</th>
+	<th>LTC</th>
+	<th>TTCci</th>
+	<th>TF Cell</th>
+	<th>FED Manager</th>
+	<th>DAQ Manager</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td>(<a class="conditional" title="If leftover instance exists." href="#tf_reset">Reset</a>), (<a class="conditional"  title="If leftover instance exists." href="#tf_kill">Kill</a>)</td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#tf_init">Init</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td>(<a class="conditional" href="#daq_halt">Halt</a>)</td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td>(<a class="conditional" href="#ttcci_halt">Halt</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td>(<a class="conditional" href="#ltc_halt">Halt</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{maxNumberOfEvents, runType}</span> <a href="#daq_configure">Configure</a></td>
+      </tr>
+      <tr>
+	<th>7</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td><a href="#pc_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>8</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#tf_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>9</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runType}</span> <a href="#fed_configure">Configure</a></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>10</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td><a href="#ttcci_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>11</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td><span title="Get parameter" class="getPar">{runType}&rarr;</span> <span title="Set parameter" class="setPar">&rarr;{configuration}</span> <a href="#ltc_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>12</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td><a class="conditional" href="pc_config_cal#">(ConfigCalALCT | ConfigCalCFEB)</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>13</th>
+	<td>(<a class="conditional" title="If any of the polled components is not in configured state." href="#supervisor_fail">Fail</a>)</td>
+	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
+	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
+	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
+	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
+	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
+	<td></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="supervisor_enable"/>
+    <table id="supervisor_enable" class="transition">
+      <tr>
+	<th class="title" colspan="8">Supervisor Enable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Supervisor</th>
+	<th>PC Manager</th>
+	<th>LTC</th>
+	<th>TTCci</th>
+	<th>TF Cell</th>
+	<th>FED Manager</th>
+	<th>DAQ Manager</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runNumber}</span> <a href="#fed_enable">Enable</a></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td>(<a class="conditional" href="#pc_enable">Enable</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td>(<span title="Set parameter" class="setPar">&rarr;{nEvents}</span> <a class="conditional"  title="If DAQ is not in configured state yet," href="#daq_configure">Configure</a>)</td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runNumber}</span> <a href="#daq_enable">Enable</a></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td><a href="#ttcci_enable">Enable</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td><a href="#ltc_enable">Enable</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>7</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td>(<a  class="conditional" href="#ltc_stopcyclic">StopCyclic</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>8</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#tf_enable">Enable</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="supervisor_stop"/>
+    <table id="supervisor_stop" class="transition">
+      <tr>
+	<th class="title" colspan="8">Supervisor Stop</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Supervisor</th>
+	<th>PC Manager</th>
+	<th>LTC</th>
+	<th>TTCci</th>
+	<th>TF Cell</th>
+	<th>FED Manager</th>
+	<th>DAQ Manager</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#tf_stop">Stop</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td><a href="#ltc_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td><a href="#ttcci_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#daq_halt">Halt</a></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#fed_disable">Disable</a></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td><a href="#pc_disable">Disable</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>7</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td><a href="#ttcci_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>8</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td><a href="#ltc_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="supervisor_halt"/>
+    <table id="supervisor_halt" class="transition">
+      <tr>
+	<th class="title" colspan="8">Supervisor Halt</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Supervisor</th>
+	<th>PC Manager</th>
+	<th>LTC</th>
+	<th>TTCci</th>
+	<th>TF Cell</th>
+	<th>FED Manager</th>
+	<th>DAQ Manager</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#tf_stop">Stop</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#tf_kill">Kill</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td><a href="#ltc_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td><a href="#tttci_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#fed_halt">Halt</a></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td><a href="#pc_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>7</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#daq_halt">Halt</a></td>
+      </tr>
+    </table>
+
+
+
+    <h3>emu::pc::EmuPeripheralCrateManager</h3>
+
+    <a name="pc_configure"/>
+    <table id="pc_configure" class="transition">
+      <tr>
+	<th class="title" colspan="3">PC Manager Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#pc_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="pc_enable"/>
+    <table id="pc_enable" class="transition">
+      <tr>
+	<th class="title" colspan="3">PC Manager Enable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#pc_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="pc_disable"/>
+    <table id="pc_disable" class="transition">
+      <tr>
+	<th class="title" colspan="3">PC Manager Disable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#pc_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="pc_halt"/>
+    <table id="pc_halt" class="transition">
+      <tr>
+	<th class="title" colspan="3">PC Manager Halt</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#pc_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+
+
+    <h3>emu::fed::Manager</h3>
+
+    <a name="fed_configure"/>
+    <table id="fed_configure" class="transition">
+      <tr>
+	<th class="title" colspan="3">FED Manager Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>FED Manager</th>
+	<th>FED Communicators</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_fail">Fail</a>)</td>
+	<td><a href="#fed_communicator_configure">Configure</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="fed_enable"/>
+    <table id="fed_enable" class="transition">
+      <tr>
+	<th class="title" colspan="3">FED Manager Enable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>FED Manager</th>
+	<th>FED Communicators</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_fail">Fail</a>)</td>
+	<td><a href="#fed_communicator_enable">Enable</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="fed_disable"/>
+    <table id="fed_disable" class="transition">
+      <tr>
+	<th class="title" colspan="3">FED Manager Disable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>FED Manager</th>
+	<th>FED Communicators</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_fail">Fail</a>)</td>
+	<td><a href="#fed_communicator_disable">Disable</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="fed_halt"/>
+    <table id="fed_halt" class="transition">
+      <tr>
+	<th class="title" colspan="3">FED Manager Halt</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>FED Manager</th>
+	<th>FED Communicators</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_fail">Fail</a>)</td>
+	<td><a href="#fed_communicator_halt">Halt</a></td>
+      </tr>
+    </table>
+
+
+    <h3>LTC</h3>
+
+    <a name="ltc_configure"/>
+    <table id="ltc_configure" class="transition">
+      <tr>
+	<th class="title" colspan="3">LTC Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#ltc_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="ltc_enable"/>
+    <table id="ltc_enable" class="transition">
+      <tr>
+	<th class="title" colspan="3">LTC Enable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#ltc_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="ltc_halt"/>
+    <table id="ltc_halt" class="transition">
+      <tr>
+	<th class="title" colspan="3">LTC Halt</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#ltc_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+
+
+    <h3>TTCci</h3>
+
+    <a name="ttcci_configure"/>
+    <table id="ttcci_configure" class="transition">
+      <tr>
+	<th class="title" colspan="3">TTCci Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#ttcci_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="ttcci_enable"/>
+    <table id="ttcci_enable" class="transition">
+      <tr>
+	<th class="title" colspan="3">TTCci Enable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#ttcci_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="ttcci_halt"/>
+    <table id="ttcci_halt" class="transition">
+      <tr>
+	<th class="title" colspan="3">TTCci Halt</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#ttcci_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+
+
+
+    <h3>Track Finder Cell</h3>
+
+    <a name="tf_kill"/>
+    <table id="tf_kill" class="transition">
+      <tr>
+	<th class="title" colspan="3">Track Finder Cell Kill</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#tf_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="tf_init"/>
+    <table id="tf_init" class="transition">
+      <tr>
+	<th class="title" colspan="3">Track Finder Cell Init</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#tf_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="tf_configure"/>
+    <table id="tf_configure" class="transition">
+      <tr>
+	<th class="title" colspan="3">Track Finder Cell Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#tf_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="tf_enable"/>
+    <table id="tf_enable" class="transition">
+      <tr>
+	<th class="title" colspan="3">Track Finder Cell Enable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#tf_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="tf_stop"/>
+    <table id="tf_stop" class="transition">
+      <tr>
+	<th class="title" colspan="3">Track Finder Cell Stop</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#tf_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="tf_reset"/>
+    <table id="tf_reset" class="transition">
+      <tr>
+	<th class="title" colspan="3">Track Finder Cell Reset</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>aComponent</th>
+	<th>anotherComponent</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><a href="#tf_someaction">SomeAction</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+
+    <h3>emu::daq::manager</h3>
+    
+    <a name="daq_configure"/>
+    <table id="daq_configure" class="transition">
+      <tr>
+	<th class="title" colspan="7">DAQ Manager Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>EVM</th>
+	<th>TA</th>
+	<th>RUIs</th>
+	<th>RUs</th>
+	<th>BUs</th>
+	<th>FUs</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runType, nEvents}</span> <a href="#ta_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td><a href="#evm_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#bu_configure">Configure</a></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#ru_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td></td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runType, buildEvents}</span> <a href="#ta_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runType, confId, TFConfId}</span> <a href="#ta_configure">Configure</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="daq_enable"/>
+    <table id="daq_enable" class="transition">
+      <tr>
+	<th class="title" colspan="7">DAQ Manager Enable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>EVM</th>
+	<th>TA</th>
+	<th>RUIs</th>
+	<th>RUs</th>
+	<th>BUs</th>
+	<th>FUs</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runNumber, isBooked, nEvents}</span> <a href="#ta_enable">Enable</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#ru_enable">Enable</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td><a href="#evm_enable">Enable</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#bu_enable">Enable</a></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td></td>
+	<td></td>
+	<td><a href="#rui_enable">Enable</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#fu_enable">Enable</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="daq_halt"/>
+    <table id="daq_halt" class="transition">
+      <tr>
+	<th class="title" colspan="7">DAQ Manager Halt</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>EVM</th>
+	<th>TA</th>
+	<th>RUIs</th>
+	<th>RUs</th>
+	<th>BUs</th>
+	<th>FUs</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td></td>
+	<td><a href="#rui_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td><a href="#evm_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#bu_halt">Halt</a></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#ru_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td></td>
+	<td><a href="#ta_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#fu_halt">Halt</a></td>
+      </tr>
+    </table>
+
+  </body>
+</html>
