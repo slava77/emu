@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Exception.h,v 1.3 2009/05/13 06:52:00 paste Exp $
+* $Id: Exception.h,v 1.4 2010/04/26 09:55:12 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_EXCEPTION_H__
 #define __EMU_FED_EXCEPTION_H__
@@ -123,6 +123,8 @@ namespace emu {
 			XCEPT_CC(CGIException, SoftwareException);
 
 			XCEPT_CC(DBException, SoftwareException);
+
+			XCEPT_CC(FirmwareException, SoftwareException);
 		}
 	}
 }
