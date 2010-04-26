@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.50 2010/03/25 16:02:26 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.51 2010/04/26 10:28:42 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -827,7 +827,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   broadcastDMB->set_cal_dac(dac,dac);
   std::cout <<" DAC is set to: "<<dac<<std::endl;
   //Enable CLCT (bit0=1), disable L1A (bit1=0) on DMB calibration
-  broadcastDMB->settrgsrc(1);
+//  broadcastDMB->settrgsrc(1);
   //
   //set the default DMB Calibration timing:
   /* // change the itim to adjust the pulse position

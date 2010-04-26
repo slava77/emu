@@ -661,6 +661,7 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalCFEB (xoap::Message
       SetCurrentCrate(i);
       std::cout << "Configuring DMB's in crate " << thisCrate->GetLabel() << std::endl;
       for (unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
+        dmbVector[dmb]->settrgsrc(1);
         dmbVector[dmb]->fxpreblkend(pre_block_end);
         dmbVector[dmb]->SetCfebClkDelay(cfeb_clk_delay);
         dmbVector[dmb]->setfebdelay(dmbVector[dmb]->GetKillFlatClk());
