@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.64 2010/03/26 14:55:55 liu Exp $
+// $Id: Crate.cc,v 3.65 2010/04/26 09:36:20 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.65  2010/04/26 09:36:20  liu
+// add CCB & MPC configure back to WRITE FLASH
+//
 // Revision 3.64  2010/03/26 14:55:55  liu
 // protection against non-exist TMB or DMB, as in broadcast crate
 //
@@ -501,8 +504,7 @@ int Crate::configure(int c, int ID) {
      return -1;
   }
 
-  if(c>1)
-  {  // only do this for power-up init
+     // for power-up init
      ccb->configure();
      
      if(!IsAlive())
@@ -510,8 +512,7 @@ int Crate::configure(int c, int ID) {
         return -1;
      }
      if(mpc) mpc->configure();
-     return 0; 
-  }
+     if(c>1)   return 0; 
 
   // to write flash memory
   std::vector<TMB*> myTmbs = this->tmbs();
