@@ -524,6 +524,7 @@ private:
   void CheckTimeSinceHardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckBC0Synchronization(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCratesConfigurationFull(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
@@ -542,7 +543,7 @@ private:
   void DefineFirmwareFilenames();
   //
   std::vector<emu::pc::TMBTester> InitTMBTests(emu::pc::Crate *);
-  void CheckPeripheralCrateConfiguration();
+  void CheckPeripheralCrateConfiguration(int full_check=0);
   void CheckPeripheralCrateFirmware();
   bool prbs_test_;
   int all_crates_ok;;

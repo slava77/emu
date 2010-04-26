@@ -200,6 +200,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTimeSinceHardReset,"CheckTimeSinceHardReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckBC0Synchronization,"CheckBC0Synchronization");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesConfiguration, "CheckCratesConfiguration");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesConfigurationFull, "CheckCratesConfigurationFull");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::PowerOnFixCFEB, "PowerOnFixCFEB");
@@ -239,8 +240,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateTests, "CrateTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
-  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
-  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
+//  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
+//  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigIDSelection, "ConfigIDSelection");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate,"MeasureL1AsAndDAVsForCrate");
@@ -608,12 +609,15 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td(); lsd*/
 
+// remove Power-up Init from here, use the one in Service (Blue) instead
+/*
   *out << cgicc::td();
   std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Crates Power-up Init") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
+*/
 
   *out << cgicc::td();
   std::string PowerOnFixCFEB = toolbox::toString("/%s/PowerOnFixCFEB",getApplicationDescriptor()->getURN().c_str());
@@ -712,12 +716,16 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::br() << cgicc::br() << cgicc::table().set("border","0");
     //
+
+// remove Power-up Init from here, use the one in Service (Blue) instead
+/*
     *out << cgicc::td();
     std::string FastConfigOne = toolbox::toString("/%s/FastConfigOne",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",FastConfigOne) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Power-up Init") << std::endl ;
     *out << cgicc::form() << std::endl ;
     *out << cgicc::td();
+*/
     //
     //    *out << cgicc::td();
     //    std::string ConfigOneCr = toolbox::toString("/%s/ConfigOneCrate",getApplicationDescriptor()->getURN().c_str());
@@ -2183,6 +2191,97 @@ void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Ou
   this->CheckConfigurationPage(in, out);
 }
 //
+void EmuPeripheralCrateConfig::CheckCratesConfigurationFull(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Button:  Check Configuration of All Active Crates including TTCrx" << std::endl;
+  //
+  int initialcrate=current_crate_;
+  //
+  if(total_crates_<=0) return;
+  //
+  print_stuff = true;
+  //
+  OutputCheckConfiguration.str(""); //clear the output string
+  //
+  // get the date and time of this check:
+  time_t rawtime;
+  struct tm * timeinfo;
+  //
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  //
+  int yearAD = timeinfo->tm_year + 1900;
+  int month_counting_from_one = timeinfo->tm_mon + 1;
+  int day = timeinfo->tm_mday;
+  int hour = timeinfo->tm_hour;     
+  int minute = timeinfo->tm_min;     
+  //
+  sprintf(date_and_time_,"%4u%02u%02u_%02u%02u",yearAD,month_counting_from_one,day,hour,minute);
+  //
+  std::cout << "Check time since TMBs last received hard resets... " << std::endl; 
+  //
+  for (int i=0; i<60; i++) {
+    for (int j=0; j<9; j++) {
+      time_since_reset[i][j] = -1;
+      bc0_sync[i][j] = 0;
+    }
+  }
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	time_since_reset[i][tmb] = tmbVector[tmb]->ReadRegister(0xE8); 
+	std::cout << " " << tmbVector[tmb]->ReadRegister(0xE8);
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	for (int count=0; count < 100; count++) {
+	  tmbVector[tmb]->ReadRegister(0xCA); 
+	  bc0_sync[i][tmb] += tmbVector[tmb]->GetReadBx0Match();
+	}
+	std::cout << " " << bc0_sync[i][tmb];
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  all_crates_ok = 1;
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      CheckPeripheralCrateConfiguration(1);
+      //
+      all_crates_ok &= crate_check_ok[i];
+      //
+    } else {
+      //
+      crate_check_ok[i] = -1;
+    }
+  }
+  //
+  SetCurrentCrate(initialcrate);
+  //
+  this->CheckConfigurationPage(in, out);
+}
+//
 void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //  
@@ -2208,7 +2307,7 @@ void EmuPeripheralCrateConfig::CheckCrateFirmware(xgi::Input * in, xgi::Output *
 }
 //
 // Another method which would be better in another class... let's make it work, first....
-void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
+void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration(int full_check) {
   //
   std::cout << "Hardware configuration check for " << thisCrate->GetLabel() << std::endl;
   //  OutputCheckConfiguration << "Hardware configuration check for " << thisCrate->GetLabel() << "..." << std::endl;
@@ -2219,7 +2318,7 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
   //
   // perform the checks on the hardware.  Note that CCB needs to be checked to determine if boards' FPGA's are programmed.
   thisCrate->ccb()->RedirectOutput(&OutputCheckConfiguration);
-  ccb_check_ok[current_crate_] = thisCrate->ccb()->CheckConfig();
+  ccb_check_ok[current_crate_] = thisCrate->ccb()->CheckConfig(full_check);
   thisCrate->ccb()->RedirectOutput(&std::cout);
   //
   thisCrate->mpc()->RedirectOutput(&OutputCheckConfiguration);
@@ -3402,7 +3501,7 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::legend("Full configuration check (including Global-run NON-safe parameters)").set("style","color:blue") 
        << cgicc::p() << std::endl ;
   //
-  std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfiguration",getApplicationDescriptor()->getURN().c_str());
+  std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfigurationFull",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
   if (all_crates_ok == 1) {
     *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:green") << std::endl ;
