@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.10 2010/03/08 22:18:56 paste Exp $
+* $Id: VMEModule.cc,v 1.11 2010/04/26 09:55:13 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -12,6 +12,8 @@
 #include <sys/time.h>
 #include <cstdlib>
 #include <algorithm>
+#include <boost/algorithm/string.hpp> // split(), etc.
+//#include <boost/range.hpp>
 
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
@@ -145,9 +147,9 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		error << "Exception locking mutex: " << e.what();
 		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 	}
-	
+
 	try {
-		
+
 		// The RESET command is very straight forward
 		if (dev == RESET) {
 
@@ -188,7 +190,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			// End the reset command
 			writeCycle(myAddress, 2, bogoData1, debug);
 			writeCycle(myAddress, 2, bogoData0, debug);
-			
+
 		} else {
 
 			// Now we need to know the total number of bits our command has.
@@ -267,7 +269,7 @@ std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(const enum DEVTYPE &dev, co
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	std::vector<uint16_t> myData = data;
-	
+
 	// Get the chain.  Very important to know.
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
 		std::ostringstream error;
@@ -297,7 +299,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			break;
 		}
 	}
-	
+
 	try {
 		mutex_->lock();
 	} catch (emu::fed::exception::Exception &e) {
@@ -305,7 +307,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		error << "Exception locking mutex: " << e.what();
 		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 	}
-	
+
 	try {
 
 		// The RESET command writes things bit-by-bit.
@@ -347,7 +349,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			// End the reset command
 			writeCycle(myAddress, 2, bogoData1, debug);
 			writeCycle(myAddress, 2, bogoData0, debug);
-			
+
 			// Return nothing.
 			return result;
 		} else {
@@ -363,7 +365,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 				myData.push_back(0xffff);
 			}
 
-			
+
 
 			// Now, I start the sending process...
 			for (unsigned int iWord = 0; iWord < nWords; iWord++) {
@@ -413,11 +415,11 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 					result.push_back(tempResult);
 				}
-				
+
 			}
-			
+
 		}
-		
+
 	} catch (emu::fed::exception::CAENException &e) {
 		try {
 			mutex_->unlock();
@@ -428,7 +430,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		}
 		throw e;
 	}
-	
+
 	try {
 		mutex_->unlock();
 	} catch (emu::fed::exception::Exception &e) {
@@ -509,7 +511,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 			// Do the write command first, as this is required for every read-back.
 			uint16_t tempResult = 0;
-			
+
 			writeVME(address, 0xffff, debug);
 
 			// Read now and store it for later.
@@ -572,32 +574,32 @@ throw (emu::fed::exception::CAENException)
 		srand(time(NULL));
 		return rand() & 0xffff;
 	}
-	
+
 	// The address always has the board slot encoded.
 	uint32_t myAddress = Address | getAddress();
-	
+
 	// The address modifier for talking to other boards
 	CVAddressModifier AM = cvA24_U_DATA;
-	
+
 	// 16-bit data width
 	CVDataWidth DW = cvD16;
-	
+
 	// 16-bit buffer to fill durring reads
 	uint16_t data = 0;
 	//uint64_t *data;
-	
+
 	// Read and return error code
 	if (debug) std::cerr << std::hex << "Read BHandle_(" << getBHandle() << ") Address(" << myAddress << ") " << std::flush;
 	CVErrorCodes err = CAENVME_ReadCycle(getBHandle(), myAddress, &data, AM, DW);
 	if (debug) std::cerr << std::hex << "data(" << data << ") err(" << err << ")" << std::flush << std::endl;
-	
+
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in readVME(Address=" << myAddress << "): " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
 	}
-	
+
 	return data;
 }
 
@@ -607,36 +609,68 @@ void emu::fed::VMEModule::writeVME(const uint32_t &Address, const uint16_t &data
 throw (emu::fed::exception::CAENException)
 {
 	if (fake_) return;
-	
+
 	uint16_t myData = data;
-	
+
 	// The address always has the board slot encoded.
 	uint32_t myAddress = Address | getAddress();
-	
+
 	// The address modifier for talking to other boards
 	CVAddressModifier AM = cvA24_U_DATA;
-	
+
 	// 16-bit data width
 	CVDataWidth DW = cvD16;
-	
+
 	// Write and return error code
 	if (debug) std::cerr << std::hex << "Write BHandle_(" << getBHandle() << ") Address(" << myAddress << ") data(" << data << ")" << std::flush;
 	CVErrorCodes err = CAENVME_WriteCycle(getBHandle(), myAddress, &myData, AM, DW);
 	if (debug) std::cerr << std::hex << " err(" << err << ")" << std::endl << std::flush;
-	
+
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in writeVME(Address=" << myAddress << ", data=" << data << "): " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
 	}
-	
+
 	return;
 }
 
 
 
-int emu::fed::VMEModule::loadPROM(const enum DEVTYPE &dev, const char *fileName, const std::string &startString, const std::string &stopString, const bool &debug)
+void emu::fed::VMEModule::loadPROM(const enum DEVTYPE &dev, const char *fileName, const std::string &startString, const std::string &stopString, const bool &debug)
+throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
+{
+	// Open the filestream
+	std::ifstream inFile(fileName, std::ifstream::in);
+
+	// Can't have bogus files
+	if (!inFile.is_open()) {
+		std::stringstream error;
+		error << "Cannot open file " << fileName;
+		XCEPT_DECLARE(emu::fed::exception::FileException, e2, error.str());
+		throw e2;
+	}
+
+	// Stream to a stringstream
+	std::ostringstream data;
+	std::string line;
+	while (!inFile.eof()) {
+		getline(inFile, line);
+		data << line << std::endl;
+	}
+	inFile.close();
+
+	try {
+		loadPROMFile(dev, data.str(), startString, stopString, debug);
+	} catch (...) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::VMEModule::loadPROMFile(const enum DEVTYPE &dev, const std::string& data, const std::string &startString, const std::string &stopString, const bool &debug)
 throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -644,10 +678,10 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
 		std::ostringstream error;
 		error << "JTAGChain not defined for dev=" << dev;
-		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
 		throw e2;
 	}
-	
+
 	// Reset the firmware load percentage
 	firmwarePercentMap_[dev] = 0;
 
@@ -660,23 +694,16 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		}
 	}
 
-	// Now we open the file and being parsing.
-	std::ifstream inFile(fileName, std::ifstream::in);
+	// Put the data into a stream
+	//std::stringstream inFile(data);
 
-	// Can't have bogus files
-	if (!inFile.is_open()) {
-		std::stringstream error;
-		error << "Cannot open file " << fileName;
-		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-		throw e2;
-	}
-	
 	// Calculate the number of lines in the file (quickly)
-	unsigned int nLines = std::count(std::istreambuf_iterator<char>(inFile), std::istreambuf_iterator<char>(), '\n');
-	
+	unsigned int nLines = std::count(data.begin(), data.end(), '\n') + std::count(data.begin(), data.end(), '\r');
+
 	unsigned int linesParsed = 0;
 
 	try {
+		//std::cout << "lock 1" << std::endl;
 		mutex_->lock();
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
@@ -687,14 +714,15 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 	try {
 		// Now start parsing the file.  Read lines until we have an eof.
 		std::string myStartString = startString;
-		while (!inFile.eof()) {
+		for (boost::split_iterator<std::string::const_iterator> iLine = boost::make_split_iterator(data, boost::first_finder("\n", boost::is_iequal())); iLine != boost::split_iterator<std::string::const_iterator>(); ++iLine) {
 
 			// Each line is a command (or comment)
-			std::string myLine;
-			getline(inFile, myLine);
-			
+			std::string myLine = boost::copy_iterator_range<std::string>(*iLine);
+
 			// At this point, increment the number of lines parsed and update the percentage
-			firmwarePercentMap_[dev] = (float) ++linesParsed / (float) nLines * 100.;
+			++linesParsed;
+			if (debug) std::cerr << "This is line " << linesParsed << "/" << nLines << " " << (unsigned int) ((float) linesParsed / (float) nLines * 100.) << "%" << std::endl;
+			firmwarePercentMap_[dev] = (unsigned int) ((float) linesParsed / (float) nLines * 100.);
 
 			// Start after a particular command
 			// (useful for after loading a custom value into the usercode)
@@ -710,7 +738,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 			// (useful for before loading a custom value into the usercode)
 			if (stopString != "") {
 				if (myLine.find(stopString) != std::string::npos) {
-					inFile.close();
+					//inFile.close();
 					//std::cerr << "STOP!" << std::flush << std::endl;
 					try {
 						mutex_->unlock();
@@ -719,7 +747,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 						error << "Exception unlocking mutex: " << e.what();
 						XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 					}
-					return 0;
+					return;
 				}
 			}
 
@@ -733,9 +761,11 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 			while (myLine.rfind(';') == std::string::npos) {
 
 				// There may be nothing more to read.  In that case, quit (no error)
-				if (inFile.eof()) {
+				++iLine;
+				++linesParsed;
+				if (iLine == boost::split_iterator<std::string::const_iterator>()) {
 					//std::cout << "Warning: reached end-of-file and discarding the line " << myLine << std::endl;
-					inFile.close();
+					//inFile.close();
 					try {
 						mutex_->unlock();
 					} catch (emu::fed::exception::Exception &e) {
@@ -743,13 +773,11 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 						error << "Exception unlocking mutex: " << e.what();
 						XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 					}
-					return 1;
+					return;
 				}
 
 				// Get the next line and staple it on.
-				std::string nextLine;
-				getline(inFile, nextLine);
-				myLine += nextLine;
+				myLine += boost::copy_iterator_range<std::string>(*iLine);
 			}
 
 			if (debug) std::cerr << myLine << std::flush << std::endl;
@@ -835,13 +863,13 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 				// Send instructions, but only if it makes sense to.
 				if (command == "SIR") {
-					
+
 // 					if (nBits != element->cmdBits) {
 // 						std::stringstream error;
 // 						error << "SIR command " << value << " with nBits " << nBits << " does not match the number of bits in the command bus of dev " << element->name << " (" << element->cmdBits << ")";
 // 						XCEPT_RAISE(emu::fed::exception::FEDException, error.str());
 // 					}
-					
+
 					// The number of bits matches that of the command bus.
 					//std::clog << "Attempting commandCycle with dev " << dev << " data " << myData[0] << std::endl;
 					commandCycle(dev, myData[0], debug);
@@ -935,19 +963,20 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		}
 
 	} catch (emu::fed::exception::CAENException &e) {
-		inFile.close();
+		//inFile.close();
 		try {
 			mutex_->unlock();
 		} catch (emu::fed::exception::Exception &e2) {
 			std::ostringstream error;
 			error << "Exception unlocking mutex: " << e2.what();
-			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e2);
+			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e3, error.str(), e);
+			throw e3;
 		}
 		throw e;
 	}
-	
-	inFile.close();
-	
+
+	//inFile.close();
+
 	try {
 		mutex_->unlock();
 	} catch (emu::fed::exception::Exception &e) {
@@ -956,6 +985,5 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 	}
 
-	return 0;
 }
 

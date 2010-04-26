@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.26 2010/02/04 21:08:32 paste Exp $
+* $Id: DDU.cc,v 1.27 2010/04/26 09:55:13 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -25,6 +25,7 @@ fmm_id_(0)
 	JTAGChain chainVMEPROM;
 	chainVMEPROM.push_back(new JTAGElement("VMEPROM", VMEPROM, 2, PROM_BYPASS, 8, 0x00002000, false));
 	JTAGMap[VMEPROM] = chainVMEPROM;
+	firmwarePercentMap_[VMEPROM] = 100;
 
 	// DDUPROM has two elements
 	JTAGChain chainDDUPROM;
@@ -33,6 +34,8 @@ fmm_id_(0)
 	chainDDUPROM.push_back(new JTAGElement("DDUPROM1", DDUPROM1, 3, PROM_BYPASS, 8, 0x00003000, false));
 	JTAGMap[DDUPROM0] = chainDDUPROM;
 	JTAGMap[DDUPROM1] = chainDDUPROM;
+	firmwarePercentMap_[DDUPROM0] = 100;
+	firmwarePercentMap_[DDUPROM1] = 100;
 
 	// INPROM has two elements
 	JTAGChain chainINPROM;
@@ -41,6 +44,8 @@ fmm_id_(0)
 	chainINPROM.push_back(new JTAGElement("INPROM1", INPROM1, 4, PROM_BYPASS, 8, 0x00004000, false));
 	JTAGMap[INPROM0] = chainINPROM;
 	JTAGMap[INPROM1] = chainINPROM;
+	firmwarePercentMap_[INPROM0] = 100;
+	firmwarePercentMap_[INPROM1] = 100;
 
 	// DDUFPGA is one element
 	JTAGChain chainDDUFPGA;

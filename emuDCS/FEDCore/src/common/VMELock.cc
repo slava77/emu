@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMELock.cc,v 1.3 2009/12/10 16:24:29 paste Exp $
+* $Id: VMELock.cc,v 1.4 2010/04/26 09:55:13 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMELock.h"
 #include <sstream>
@@ -21,14 +21,14 @@ nFileLock_(0)
 		error << "Error opening lock file " << lockfile_ << ":  permissions problem?";
 		XCEPT_RAISE(emu::fed::exception::SoftwareException, error.str());
 	}
-	
+
 	// Make sure other people can use this file
 	if (fchmod(fd_, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) {
 		std::ostringstream error;
 		error << "Error changing permissions of lock file " << lockfile_;
 		XCEPT_RAISE(emu::fed::exception::SoftwareException, error.str());
 	}
-	
+
 	// Initialize the mutex
 	pthread_mutexattr_t mutexAttr;
 	pthread_mutexattr_init(&mutexAttr);
@@ -62,6 +62,7 @@ emu::fed::VMELock::~VMELock()
 void emu::fed::VMELock::lock()
 throw (emu::fed::exception::SoftwareException)
 {
+	//std::cout << "lock" << std::endl;
 	// First do the non-expensive locking of the process
 	int err = pthread_mutex_lock(&mutex_);
 	if (err) {
@@ -69,7 +70,7 @@ throw (emu::fed::exception::SoftwareException)
 		error << "Error locking mutex: " << err;
 		XCEPT_RAISE(emu::fed::exception::SoftwareException, error.str());
 	}
-	
+
 	// Now try to lock the file
 	err = flock(fd_, LOCK_EX);
 	if (err) {
@@ -85,6 +86,7 @@ throw (emu::fed::exception::SoftwareException)
 void emu::fed::VMELock::unlock()
 throw (emu::fed::exception::SoftwareException)
 {
+	//std::cout << "unlock" << std::endl;
 	// First, try to unlock the file
 	if (nFileLock_ == 1) {
 		int err = flock(fd_, LOCK_UN);

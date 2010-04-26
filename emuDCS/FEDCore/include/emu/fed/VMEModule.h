@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.10 2010/03/08 22:18:55 paste Exp $
+* $Id: VMEModule.h,v 1.11 2010/04/26 09:55:12 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMEMODULE_H__
 #define __EMU_FED_VMEMODULE_H__
@@ -66,14 +66,13 @@ namespace emu {
 			 * @param dev the PROM to which to load the parsed .svf file.
 			 * @param fileName the name on the local disk of the .svf file.
 			 * @param startString if set will cause the loader to ignore all instructions until the line after the one matching it.
-			 * @param stopString if set will cause the loader to stop immidately if it is found in the current line being read.  The line will not be loaded.
+			 * @param stopString if set will cause the loader to stop immedately if it is found in the current line being read.  The line will not be loaded.
 			 *
-			 * @returns zero if no errors occurred, a positive int for warnings, a negative int for errors.
 			 **/
-			virtual int loadPROM(const enum DEVTYPE &dev, const char *fileName, const std::string &startString = "", const std::string &stopString = "", const bool &debug = false)
+			virtual void loadPROM(const enum DEVTYPE &dev, const char *fileName, const std::string &startString = "", const std::string &stopString = "", const bool &debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
-			virtual int loadPROM(const enum DEVTYPE &dev, const std::string &fileName, const std::string &startString = "", const std::string &stopString = "", const bool &debug = false)
+			virtual void loadPROM(const enum DEVTYPE &dev, const std::string &fileName, const std::string &startString = "", const std::string &stopString = "", const bool &debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 			{
 				try {
@@ -82,6 +81,17 @@ namespace emu {
 					throw;
 				}
 			}
+
+			/** Writes the file data given to a given PROM
+			 *
+			 * @param dev the PROM into which the data will be loaded
+			 * @param data the data to load
+			 * @param startString if set will cause the loader to ignore all instructions until the line after the one matching it.
+			 * @param stopString if set will cause the loader to stop immediately if it is found in the current line being loaded.  The line will not be loaded.
+			 *
+			 **/
+			virtual void loadPROMFile(const enum DEVTYPE& dev, const std::string& data, const std::string& startString = "", const std::string& stopString = "", const bool& debug = false)
+			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Writes some data to a particular JTAG device.
 			*
@@ -105,9 +115,9 @@ namespace emu {
 			inline bool isFake() { return fake_; }
 
 			inline void setFake(const bool &fake) { fake_ = fake; }
-			
+
 			/** Gets the firmware load percent complete for a given DEVTYPE. **/
-			inline float getFirmwarePercent(const enum DEVTYPE &dev) {
+			inline unsigned int getFirmwarePercent(const enum DEVTYPE &dev) {
 				return firmwarePercentMap_[dev];
 			}
 
@@ -162,6 +172,9 @@ namespace emu {
 			/// A map of JTAG chains on this device.
 			std::map<enum DEVTYPE, JTAGChain> JTAGMap;
 
+			/// A map of DEVs to the firmware load percentage complete.  TRICKY!
+			std::map<enum DEVTYPE, unsigned int> firmwarePercentMap_;
+
 		private:
 
 			/// The slot number of the device (its location within it respective VME crate).
@@ -178,9 +191,6 @@ namespace emu {
 
 			/// Whether or not to actually perform communications.
 			bool fake_;
-			
-			/// A map of DEVs to the firmware load percentage complete.  TRICKY!
-			std::map<enum DEVTYPE, float> firmwarePercentMap_;
 
 		};
 
