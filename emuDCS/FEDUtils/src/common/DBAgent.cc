@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.12 2010/01/23 13:17:46 paste Exp $
+* $Id: DBAgent.cc,v 1.13 2010/04/27 08:35:54 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -250,10 +250,10 @@ throw (emu::fed::exception::SOAPException)
 {
 	
 	// find application
-	xdaq::ApplicationDescriptor *app;
+	xdaq::ApplicationDescriptor *app = NULL;
 	try {
-		if (instance == -1) {
-			app = *(application_->getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass).begin());
+		if (instance < 0) {
+			app = application_->getApplicationContext()->getFirstApplication(klass)->getApplicationDescriptor();
 		} else {
 			app = application_->getApplicationContext()->getDefaultZone()->getApplicationDescriptor(klass, instance);
 		}
