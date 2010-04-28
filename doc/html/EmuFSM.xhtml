@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:tooltip="http://cern.ch/CMS/Emu/tooltip">
   <head>
     <title>Emu FSM Transitions</title>
     <style type="text/css">
@@ -31,6 +31,13 @@ function onLoadPage(){
             anchors.item(i).addEventListener("mouseout" , onMouseOutAnchor,  false);
         }
     }
+    var svgTexts=document.getElementsByTagName('tspan');
+    for (i=0;i&lt;svgTexts.length;i++){
+        if (svgTexts.item(i).hasAttribute('tooltip:name') ){
+            svgTexts.item(i).addEventListener("mouseover", onMouseOverSVGText, false);
+            svgTexts.item(i).addEventListener("mouseout" , onMouseOutSVGText,  false);
+        }
+    }
     // Clone every table into a div element to serve as tooltip. 
     // (The original tables cannot be used as tooltip because they would become hidden.)
     var tables=document.getElementsByTagName('table');
@@ -58,6 +65,15 @@ function onMouseOverAnchor(event){
 
 function onMouseOutAnchor(event){
     tooltip( event, 'div_'+event.target.href.substr( event.target.href.search('#')+1 ) );
+}
+
+function onMouseOverSVGText(event){
+    //alert('onMouseOverSVGText '+ event.target.getAttribute('tooltip:name'));
+    tooltip( event, event.target.getAttribute('tooltip:name') );
+}
+
+function onMouseOutSVGText(event){
+    tooltip( event, event.target.getAttribute('tooltip:name') );
 }
 
 function getWindowWidth() {
@@ -132,6 +148,8 @@ function tooltip(e, o) {
     <h2 id="version">EmuLib v9.7</h2>
 
     <h3>Legend</h3>
+
+
 
     <table id="legend" class="legend">
       <tr>
@@ -986,6 +1004,46 @@ function tooltip(e, o) {
 
     <h3>emu::daq::manager</h3>
     
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" version="1.1" width="500" height="300" id="svg2">
+  <defs id="defs4">
+    <marker refX="0" refY="0" orient="auto" id="Arrow1Lend" style="overflow:visible">
+      <path d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" transform="matrix(-0.8,0,0,-0.8,-10,0)" id="path3664" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" />
+    </marker>
+    <marker refX="0" refY="0" orient="auto" id="Arrow1Lend-6" style="overflow:visible">
+      <path d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" transform="matrix(-0.8,0,0,-0.8,-10,0)" id="path3664-1" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" />
+    </marker>
+    <marker refX="0" refY="0" orient="auto" id="Arrow1Lend-4" style="overflow:visible">
+      <path d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" transform="matrix(-0.8,0,0,-0.8,-10,0)" id="path3664-7" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" />
+    </marker>
+  </defs>
+  <g id="layer1">
+    <rect width="120" height="30" x="70" y="72.362183" id="rect2874" style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" />
+    <text x="126.28125" y="92.362183" id="text3590" xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan x="126.28125" y="92.362183" id="tspan3592" style="font-size:16px;text-align:center;text-anchor:middle">Halted</tspan></text>
+    <rect width="120" height="30" x="70" y="142.36218" id="rect2874-6" style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" />
+    <text x="123.875" y="162.36218" id="text3590-1" xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan x="123.875" y="162.36218" id="tspan3592-5" style="font-size:16px;text-align:center;text-anchor:middle">Configured</tspan></text>
+    <rect width="120" height="30" x="70" y="212.36218" id="rect2874-6-1" style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" />
+    <text x="122.34375" y="232.36218" id="text3590-7" xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan x="122.34375" y="232.36218" id="tspan3592-6" style="font-size:16px;text-align:center;text-anchor:middle">Enabled</tspan></text>
+    <rect width="120" height="30" x="290" y="142.36218" id="rect2874-6-5" style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710683;stroke-opacity:1" />
+    <text x="343.21875" y="162.36218" id="text3590-3" xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan x="343.21875" y="162.36218" id="tspan3592-7" style="font-size:16px;text-align:center;text-anchor:middle">Failed</tspan></text>
+    <path d="m 100,102.36218 0,40" id="path2882" style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" />
+    <path d="m 100,172.36218 0,40" id="path3656" style="fill:#000000;fill-opacity:1;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" />
+    <path d="m 190,162.36218 100,1" id="path4296" style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" />
+    <path d="m 190,222.36218 100,-50" id="path4296-5" style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" />
+    <path d="M 190,82.362176 290,152.36218" id="path4296-6" style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" />
+    <path d="m 100,242.36218 0,0 0,30 -60,0 0,-229.999997 60,0 0,30" id="path4707" style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" />
+    <path d="m 351,142.36218 0,-99.999997 -191,0 0,30" id="path4897" style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" />
+    <text x="60" y="122.36218" id="text5087" xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan tooltip:name="div_daq_configure" x="60" y="122.36218" id="tspan5089" style="fill:#0000ff;fill-opacity:1">Configure</tspan></text>
+    <text x="70" y="192.36218" id="text5087-5" xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan tooltip:name="div_daq_enable" x="70" y="192.36218" id="tspan5089-6" style="fill:#0000ff;fill-opacity:1">Enable</tspan></text>
+    <text x="80" y="262.36218" id="text5087-5-9" xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan tooltip:name="div_daq_halt" x="80" y="262.36218" id="tspan5089-6-3" style="fill:#0000ff;fill-opacity:1">Halt</tspan></text>
+    <text x="360" y="122.36218" id="text5087-5-4" xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan tooltip:name="div_daq_reset" x="360" y="122.36218" id="tspan5089-6-5" style="fill:#0000ff;fill-opacity:1">Reset</tspan></text>
+    <text x="113" y="18.362183" id="text5679" xml:space="preserve" style="font-size:20px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan x="113" y="18.362183" id="tspan5681">DAQ Manager FSM</tspan></text>
+    <path d="m 160.51324,142.31575 0,-39.95357" id="path5767" style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" />
+    <text x="150" y="132.36218" id="text5087-5-9-2" xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"><tspan tooltip:name="div_daq_halt" x="150" y="132.36218" id="tspan5089-6-3-5" style="fill:#0000ff;fill-opacity:1">Halt</tspan></text>
+  </g>
+</svg>
+
+
     <a name="daq_configure"/>
     <table id="daq_configure" class="transition">
       <tr>
