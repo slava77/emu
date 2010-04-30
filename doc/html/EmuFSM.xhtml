@@ -766,6 +766,150 @@ function tooltip(e, o) {
     </table>
 
 
+    <h3>emu::fed::Communicator</h3>
+
+    <a name="fed_communicator_configure"/>
+    <table id="fed_communicator_configure" class="transition">
+      <tr>
+	<th class="title" colspan="5">FED Communicator Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Communicator</th>
+	<th>DDUs</th>
+	<th>TF DDUs</th>
+	<th>DCCs</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td>(<a class="conditional" title="If ???." href="#fed_crate_hard_reset">Crate hard reset</a>)</td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td>Configure</td>
+	<td>Configure</td>
+	<td>Configure</td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td>Disable FMM</td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td>Check flash/FPGA registers</td>
+	<td>Check flash/FPGA registers</td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td>Check FPGA registers</td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td>(<a class="conditional" title="If ???." href="#fed_crate_resync">Crate resync</a>)</td>
+      </tr>
+      <tr>
+	<th>7</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td>Check L1A count/board status</td>
+      </tr>
+    </table>
+
+    <br/>
+    
+    <a name="fed_communicator_enable"/>
+    <table id="fed_communicator_enable" class="transition">
+      <tr>
+	<th class="title" colspan="5">FED Communicator Enable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Communicator</th>
+	<th>DDUs</th>
+	<th>TF DDUs</th>
+	<th>DCCs</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td>(<a class="conditional" title="If ???" href="#fed_crate_resync">Crate resync</a>)</td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td></td>
+	<td>Configure</td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td>Check L1A count/board status</td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td>Start FMM monitoring (<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+    </table>
+
+    <br/>
+    
+    <a name="fed_communicator_disable"/>
+    <table id="fed_communicator_disable" class="transition">
+      <tr>
+	<th class="title" colspan="2">FED Communicator Disable</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Communicator</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>End FMM monitoring (<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+      </tr>
+    </table>
+
+    <br/>
+    
+    <a name="fed_communicator_halt"/>
+    <table id="fed_communicator_halt" class="transition">
+      <tr>
+	<th class="title" colspan="2">FED Communicator Halt</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Communicator</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>End FMM monitoring (<a class="conditional" title="If action on component fails." href="#fed_communicator_fail">Fail</a>)</td>
+      </tr>
+    </table>
+    
+
     <h3>LTC</h3>
 
     <a name="ltc_configure"/>
@@ -1255,6 +1399,78 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td><a href="#fu_halt">Halt</a></td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="daq_reset"/>
+    <table id="daq_reset" class="transition">
+      <tr>
+	<th class="title" colspan="7">DAQ Manager Reset</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>EVM</th>
+	<th>TA</th>
+	<th>RUIs</th>
+	<th>RUs</th>
+	<th>BUs</th>
+	<th>FUs</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td></td>
+	<td><a href="#rui_reset">Reset</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td><a href="#evm_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#bu_halt">Halt</a></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>4</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#ru_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>5</th>
+	<td></td>
+	<td><a href="#ta_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>6</th>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td><a href="#fu_reset">Reset</a></td>
       </tr>
     </table>
 
