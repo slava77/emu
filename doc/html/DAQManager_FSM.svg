@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="440.95999" height="280.04999" id="svg2" version="1.1" inkscape:version="0.47 r22583" sodipodi:docname="DAQManager_inkscape.svg">
+  <defs id="defs4">
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend" style="overflow:visible">
+      <path id="path3664" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <inkscape:perspective sodipodi:type="inkscape:persp3d" inkscape:vp_x="0 : 526.18109 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_z="744.09448 : 526.18109 : 1" inkscape:persp3d-origin="372.04724 : 350.78739 : 1" id="perspective10" />
+    <inkscape:perspective id="perspective3602" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3602-5" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3602-56" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3773" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3795" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3795-5" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective4674" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-6" style="overflow:visible">
+      <path id="path3664-1" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <inkscape:perspective id="perspective4674-5" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-4" style="overflow:visible">
+      <path id="path3664-7" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <inkscape:perspective id="perspective5099" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective5146" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective5146-7" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective5965" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+  </defs>
+  <sodipodi:namedview id="base" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:zoom="1.4142136" inkscape:cx="186.75384" inkscape:cy="116.95895" inkscape:document-units="px" inkscape:current-layer="layer1" showgrid="true" inkscape:window-width="1386" inkscape:window-height="1120" inkscape:window-x="423" inkscape:window-y="0" inkscape:window-maximized="0" inkscape:snap-bbox="false" inkscape:snap-global="true" inkscape:snap-grids="true" inkscape:snap-to-guides="false" showguides="true" inkscape:guide-bbox="true" inkscape:snap-object-midpoints="true" inkscape:snap-center="false" inkscape:snap-nodes="false" inkscape:showpageshadow="false" showborder="false">
+    <inkscape:grid type="xygrid" id="grid3773" empspacing="5" dotted="true" visible="true" enabled="true" snapvisiblegridlinesonly="true" />
+    <sodipodi:guide position="-19.395925,-768.03554" orientation="0,744.09448" id="guide2850" />
+    <sodipodi:guide position="724.69855,-768.03554" orientation="-1052.3622,0" id="guide2852" />
+    <sodipodi:guide position="724.69855,284.32666" orientation="0,-744.09448" id="guide2854" />
+    <sodipodi:guide position="-19.395925,284.32666" orientation="1052.3622,0" id="guide2856" />
+    <sodipodi:guide position="-19.395925,-768.03554" orientation="0,744.09448" id="guide2858" />
+    <sodipodi:guide position="724.69855,-768.03554" orientation="-1052.3622,0" id="guide2860" />
+    <sodipodi:guide position="724.69855,284.32666" orientation="0,-744.09448" id="guide2862" />
+    <sodipodi:guide position="-19.395925,284.32666" orientation="1052.3622,0" id="guide2864" />
+  </sodipodi:namedview>
+  <metadata id="metadata7">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1" transform="translate(-19.395925,-4.2765158)">
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" id="rect2874" width="120" height="30" x="110" y="83.119553" />
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="166.28125" y="103.11955" id="text3590"><tspan sodipodi:role="line" id="tspan3592" x="166.28125" y="103.11955" style="font-size:16px;text-align:center;text-anchor:middle">Halted</tspan></text>
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" id="rect2874-6" width="120" height="30" x="110" y="153.11954" />
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="163.875" y="173.11954" id="text3590-1"><tspan sodipodi:role="line" id="tspan3592-5" x="163.875" y="173.11954" style="font-size:16px;text-align:center;text-anchor:middle">Configured</tspan></text>
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" id="rect2874-6-1" width="120" height="30" x="110" y="223.11954" />
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="162.34375" y="243.11954" id="text3590-7"><tspan sodipodi:role="line" id="tspan3592-6" x="162.34375" y="243.11954" style="font-size:16px;text-align:center;text-anchor:middle">Enabled</tspan></text>
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710683;stroke-opacity:1" id="rect2874-6-5" width="120" height="30" x="330" y="153.11954" />
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="383.21875" y="173.11954" id="text3590-3"><tspan sodipodi:role="line" id="tspan3592-7" x="383.21875" y="173.11954" style="font-size:16px;text-align:center;text-anchor:middle">Failed</tspan></text>
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" d="m 140,113.11954 0,40" id="path2882" />
+    <path style="fill:#000000;fill-opacity:1;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" d="m 140,183.11954 0,40" id="path3656" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" d="m 230,173.11954 100,1" id="path4296" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" d="m 230,233.11954 100,-50" id="path4296-5" sodipodi:nodetypes="cc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" d="m 230,93.11954 100,70" id="path4296-6" sodipodi:nodetypes="cc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" d="m 140,253.11954 0,0 0,30 -120.104075,0 0,-229.999993 120.104075,0 0,30" id="path4707" sodipodi:nodetypes="ccccccc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" d="m 391,153.11954 0,-99.999993 -191,0 0,30" id="path4897" />
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="58" y="133.11954" id="text5087"><tspan sodipodi:role="line" id="tspan5089" x="58" y="133.11954" style="fill:#0000ff;fill-opacity:1">Configure</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="80" y="203.11954" id="text5087-5"><tspan sodipodi:role="line" id="tspan5089-6" x="80" y="203.11954" style="fill:#0000ff;fill-opacity:1">Enable</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="100" y="277.11954" id="text5087-5-9"><tspan sodipodi:role="line" id="tspan5089-6-3" x="100" y="277.11954" style="fill:#0000ff;fill-opacity:1">Halt</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="400" y="133.11954" id="text5087-5-4"><tspan sodipodi:role="line" id="tspan5089-6-5" x="400" y="133.11954" style="fill:#0000ff;fill-opacity:1">Reset</tspan></text>
+    <text xml:space="preserve" style="font-size:20px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="153" y="29.119545" id="text5679"><tspan sodipodi:role="line" id="tspan5681" x="153" y="29.119545">DAQ Manager FSM</tspan></text>
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" d="m 200.51324,153.07311 0,-39.95357" id="path5767" />
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="206" y="143.11954" id="text5087-5-9-2"><tspan sodipodi:role="line" id="tspan5089-6-3-5" x="206" y="143.11954" style="fill:#0000ff;fill-opacity:1">Halt</tspan></text>
+  </g>
+</svg>
