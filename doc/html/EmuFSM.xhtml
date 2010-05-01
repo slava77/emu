@@ -4,17 +4,22 @@
   <head>
     <title>Emu FSM Transitions</title>
     <style type="text/css">
-      body { background-color: #eeeeee; }
+      body { background-color: #dddddd; }
       table.transition { background-color: #000000;  border-color: #333333; border-collapse: separate; border-spacing: 1px 1px; }
       table.transition th { background-color: #666666; text-align: center; padding: 0px 4px 0px 4px; color:#eeeeee; }
       table.transition th.title { background-color: #333333; }
       table.transition td { background-color: #ffffff; text-align: center; padding: 0px 4px 0px 4px; color:#0000dd; font-weight: bold; }
-      table.legend { background-color: #000000;  border-color: #333333; border-collapse: separate; border-spacing: 1px 1px; }
-      table.legend th { background-color: #666666; text-align: center; padding: 0px 4px 0px 4px; color:#eeeeee; }
-      table.legend th.title { background-color: #333333; }
-      table.legend td { background-color: #ffffff; padding: 0px 4px 0px 4px; color:#0000dd; font-weight: bold; }
+      table.sequence   { background-color: #000000;  border-color: #333333; border-collapse: separate; border-spacing: 1px 1px; }
+      table.sequence   th { background-color: #666666; text-align: center; padding: 0px 4px 0px 4px; color:#eeeeee; }
+      table.sequence   th.title { background-color: #333333; }
+      table.sequence   td { background-color: #dddddd; text-align: center; padding: 0px 4px 0px 4px; color:#0000dd; font-weight: bold; }
+      table.legend     { background-color: #000000;  border-color: #333333; border-collapse: separate; border-spacing: 1px 1px; }
+      table.legend     th { background-color: #666666; text-align: center; padding: 0px 4px 0px 4px; color:#eeeeee; }
+      table.legend     th.title { background-color: #333333; }
+      table.legend     td { background-color: #ffffff; padding: 0px 4px 0px 4px; color:#0000dd; font-weight: bold; }
       span.setPar { color:#663333; font-weight: lighter; }
       span.getPar { color:#336633; font-weight: lighter; }
+      span.condition { vertical-align:sub; font-size: smaller; }
       a.conditional { color:#3333ee; font-weight: lighter; }
       div.tooltip { position:absolute; z-index:100; visibility:visible; padding: 2px 2px 2px 2px; background-color:#dddddd; }
     </style>
@@ -42,7 +47,7 @@ function onLoadPage(){
     // (The original tables cannot be used as tooltip because they would become hidden.)
     var tables=document.getElementsByTagName('table');
     for (i=0;i&lt;tables.length;i++){
-        if ( tables.item(i).className.indexOf('transition')>=0 ){
+        if ( tables.item(i).className.indexOf('transition')>=0 || tables.item(i).className.indexOf('sequence')>=0 ){
 	    var newdivid = 'div_'+tables.item(i).id;
 	    // Clone it if and only if no clone of it exosts yet. (Otherwise it gets into an infinite recursion.)
 	    if ( document.getElementById( newdivid ) == null ){
@@ -145,7 +150,7 @@ function tooltip(e, o) {
   </head>
   <body onload="onLoadPage()">
     <h1>Emu FSM Transitions</h1>
-    <h2 id="version">EmuLib v9.7</h2>
+    <h2 id="version">EmuLib v9.7, v9.8</h2>
 
     <h3>Legend</h3>
 
@@ -160,8 +165,8 @@ function tooltip(e, o) {
 	<th>Meaning</th>
       </tr>
       <tr>
-	<td>(<a class="conditional" href="#action">action</a>)</td>
-	<td>The execution of <em>action</em> between the parentheses is conditional.</td>
+	<td>(<a class="conditional" title="The exact condition for this action." href="#action">action</a>)<span class="condition">runType</span></td>
+	<td>The execution of <em>action</em> between the parentheses is conditional. One condition may be the <em>runType</em>. Move the mouse over <em>action</em> to see the exact condition.</td>
       </tr>
       <tr>
 	<td><span title="Get parameter" class="getPar">{someParameter}&rarr;</span></td>
@@ -196,7 +201,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td>(<a class="conditional" title="If leftover instance exists." href="#tf_reset">Reset</a>), (<a class="conditional"  title="If leftover instance exists." href="#tf_kill">Kill</a>)</td>
+	<td>(<a class="conditional" title="If leftover instance exists in a local run." href="#tf_reset">Reset</a>)<span class="condition">local</span>, (<a class="conditional"  title="If leftover instance exists in a local run." href="#tf_kill">Kill</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
       </tr>
@@ -206,7 +211,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td><a href="#tf_init">Init</a></td>
+	<td>(<a class="conditional" title="If in a local run." href="#tf_init">Init</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
       </tr>
@@ -218,14 +223,14 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td>(<a class="conditional" href="#daq_halt">Halt</a>)</td>
+	<td>(<a class="conditional" title="If DAQ is not in halted state yet." href="#daq_halt">Halt</a>)</td>
       </tr>
       <tr>
 	<th>4</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
 	<td></td>
-	<td>(<a class="conditional" href="#ttcci_halt">Halt</a>)</td>
+	<td>(<a class="conditional" title="If TTCci is not in halted state yet." href="#ttcci_halt">Halt</a>)</td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -234,7 +239,7 @@ function tooltip(e, o) {
 	<th>5</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
-	<td>(<a class="conditional" href="#ltc_halt">Halt</a>)</td>
+	<td>(<a class="conditional" title="If LTC is not in halted state yet." href="#ltc_halt">Halt</a>)</td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -253,7 +258,7 @@ function tooltip(e, o) {
       <tr>
 	<th>7</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
-	<td><a href="#pc_configure">Configure</a></td>
+	<td>(<a class="conditional" title="If not in calibration run." href="#pc_configure">Configure</a>)<span class="condition">local|global</span></td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -266,7 +271,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td><a href="#tf_configure">Configure</a></td>
+	<td>(<a class="conditional" title="If in a local run." href="#tf_configure">Configure</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
       </tr>
@@ -303,7 +308,7 @@ function tooltip(e, o) {
       <tr>
 	<th>12</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
-	<td><a class="conditional" href="pc_config_cal#">(ConfigCalALCT | ConfigCalCFEB)</a></td>
+	<td>(<a class="conditional" title="If in ALCT calibration run." href="pc_config_cal#">ConfigCalALCT</a>|<a class="conditional" title="If in CFEB calibration run." href="pc_config_cal#">ConfigCalCFEB</a>)<span class="condition">calib</span></td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -352,7 +357,7 @@ function tooltip(e, o) {
       <tr>
 	<th>2</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
-	<td>(<a class="conditional" href="#pc_enable">Enable</a>)</td>
+	<td>(<a class="conditional" title="If not in a calibration run." href="#pc_enable">Enable</a>)<span class="condition">local|global</span></td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -367,7 +372,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td>(<span title="Set parameter" class="setPar">&rarr;{nEvents}</span> <a class="conditional"  title="If DAQ is not in configured state yet," href="#daq_configure">Configure</a>)</td>
+	<td>(<span title="Set parameter" class="setPar">&rarr;{nEvents}</span> <a class="conditional" title="If DAQ is not in configured state yet." href="#daq_configure">Configure</a>)</td>
       </tr>
       <tr>
 	<th>4</th>
@@ -403,7 +408,7 @@ function tooltip(e, o) {
 	<th>7</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
-	<td>(<a  class="conditional" href="#ltc_stopcyclic">StopCyclic</a>)</td>
+	<td><a href="#ltc_stopcyclic">StopCyclic</a></td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -415,7 +420,17 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td><a href="#tf_enable">Enable</a></td>
+	<td>(<a class="conditional" title="If in a local run." href="#tf_enable">Enable</a>)<span class="condition">local</span></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>9</th>
+	<td>(<a class="conditional" title="If in a calibration run." href="#supervisor_calibration">CalibrationSequence</a>)<span class="condition">calib</span>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
 	<td></td>
 	<td></td>
       </tr>
@@ -444,7 +459,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td><a href="#tf_stop">Stop</a></td>
+	<td>(<a  class="conditional" title="If in a local run." href="#tf_stop">Stop</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
       </tr>
@@ -543,7 +558,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td><a href="#tf_stop">Stop</a></td>
+	<td>(<a class="conditional" title="If in a local run." href="#tf_stop">Stop</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
       </tr>
@@ -553,7 +568,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
-	<td><a href="#tf_kill">Kill</a></td>
+	<td>(<a class="conditional" title="If in a local run." href="#tf_kill">Kill</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
       </tr>
@@ -609,6 +624,54 @@ function tooltip(e, o) {
       </tr>
     </table>
 
+    <br/>
+
+    <a name="supervisor_calibration"/>
+    <table id="supervisor_calibration" class="sequence">
+      <tr>
+	<th class="title" colspan="8">Supervisor Calibration Sequence</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Supervisor</th>
+	<th>PC Manager</th>
+	<th>LTC</th>
+	<th>TTCci</th>
+	<th>TF Cell</th>
+	<th>FED Manager</th>
+	<th>DAQ Manager</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td><a href="#pc_enable_cal">EnableCal<em>Type</em></a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td><a href="#ltc_startcyclic">StartCyclic</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+      <tr>
+	<th>3</th>
+	<td><a href="#supervisor_halt">Halt</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+      </tr>
+    </table>
 
 
     <h3>emu::pc::EmuPeripheralCrateManager</h3>
