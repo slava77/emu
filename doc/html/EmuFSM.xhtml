@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:tooltip="http://cern.ch/CMS/Emu/tooltip">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg">
   <head>
     <title>Emu FSM Transitions</title>
     <style type="text/css">
@@ -177,6 +177,320 @@ function tooltip(e, o) {
 	<td>The value of <em>someParameter</em> is set.</td>
       </tr>
     </table>
+
+    <h3>CSC Function Manager</h3>
+
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:tooltip="http://cern.ch/CMS/Emu/tooltip" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="451.56" height="295.59" id="svg2" version="1.1" inkscape:version="0.47 r22583" sodipodi:docname="CSCFM_FSM.svg">
+  <defs id="defs4">
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend" style="overflow:visible">
+      <path id="path3664" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-6" style="overflow:visible">
+      <path id="path3664-1" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-4" style="overflow:visible">
+      <path id="path3664-7" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-69" style="overflow:visible">
+      <path id="path3664-3" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-5" style="overflow:visible">
+      <path id="path3664-2" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-4-7" style="overflow:visible">
+      <path id="path3664-7-8" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-43" style="overflow:visible">
+      <path id="path3664-14" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-61" style="overflow:visible">
+      <path id="path3664-5" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <inkscape:perspective sodipodi:type="inkscape:persp3d" inkscape:vp_x="0 : 526.18109 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_z="744.09448 : 526.18109 : 1" inkscape:persp3d-origin="372.04724 : 350.78739 : 1" id="perspective10" />
+    <inkscape:perspective id="perspective3602" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3602-5" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3602-56" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3773" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3795" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3795-5" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective4674" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective4674-5" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective5099" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective5146" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective5146-7" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective5965" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective2879" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective2907" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective2935" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective2935-4" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective2976" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective2976-4" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3012" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective3046" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective4107" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective id="perspective2917" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
+  </defs>
+  <sodipodi:namedview id="base" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:zoom="1.4142136" inkscape:cx="142.31213" inkscape:cy="164.16254" inkscape:document-units="px" inkscape:current-layer="layer1" showgrid="true" inkscape:window-width="1386" inkscape:window-height="1120" inkscape:window-x="120" inkscape:window-y="0" inkscape:window-maximized="0" inkscape:snap-bbox="false" inkscape:snap-global="true" inkscape:snap-grids="true" inkscape:snap-to-guides="false" showguides="true" inkscape:guide-bbox="true" inkscape:snap-object-midpoints="true" inkscape:snap-center="false" inkscape:snap-nodes="false" inkscape:showpageshadow="false" showborder="false">
+    <inkscape:grid type="xygrid" id="grid3773" empspacing="5" dotted="true" visible="true" enabled="true" snapvisiblegridlinesonly="true" />
+    <sodipodi:guide position="-148.85534,-720.83195" orientation="0,744.09448" id="guide2850" />
+    <sodipodi:guide position="595.23914,-720.83195" orientation="-1052.3622,0" id="guide2852" />
+    <sodipodi:guide position="595.23914,331.53025" orientation="0,-744.09448" id="guide2854" />
+    <sodipodi:guide position="-148.85534,331.53025" orientation="1052.3622,0" id="guide2856" />
+    <sodipodi:guide position="-148.85534,-720.83195" orientation="0,744.09448" id="guide2858" />
+    <sodipodi:guide position="595.23914,-720.83195" orientation="-1052.3622,0" id="guide2860" />
+    <sodipodi:guide position="595.23914,331.53025" orientation="0,-744.09448" id="guide2862" />
+    <sodipodi:guide position="-148.85534,331.53025" orientation="1052.3622,0" id="guide2864" />
+  </sodipodi:namedview>
+  <metadata id="metadata7">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1" transform="translate(-148.85534,-35.940013)">
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" id="rect2874" width="120" height="30" x="250.06601" y="154.77641" />
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" id="rect2874-6" width="120" height="30" x="250.06601" y="224.7764" />
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" id="rect2874-6-1" width="120" height="30" x="250.06601" y="294.7764" />
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710683;stroke-opacity:1" id="rect2874-6-5" width="120" height="30" x="470.06601" y="224.7764" />
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" id="rect2874-61" width="120" height="30" x="249.18837" y="85.742203" />
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70710677;stroke-opacity:1" id="rect2874-6-1-7" width="120" height="30" x="469.48337" y="295.83258" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" d="m 300.06601,184.77639 0,40" id="path2882" />
+    <path style="fill:#000000;fill-opacity:1;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" d="m 300.06601,254.77639 0,40" id="path3656" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" d="m 370.06601,244.77639 100,1" id="path4296" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" d="m 370.06601,294.16979 100,-39.3934" id="path4296-5" sodipodi:nodetypes="cc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" d="m 369.3589,184.57538 100.70711,50.20101" id="path4296-6" sodipodi:nodetypes="cc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" d="m 249.66042,314.8769 0,0 -100.30508,0.30151 0,-140.90454 100.30508,0.30152" id="path4707" sodipodi:nodetypes="ccccc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" d="m 530.3589,224.77639 0,-120.50609 -160.59441,0.30152" id="path4897" sodipodi:nodetypes="ccc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" d="m 320.57925,224.72996 0,-39.95357" id="path5767" />
+    <path style="fill:#000000;fill-opacity:1;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" d="M 468.40872,314.53107 370.82798,314.226" id="path3656-7" sodipodi:nodetypes="cc" />
+    <path style="fill:#000000;fill-opacity:1;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" d="m 370.12088,304.63159 99.70206,0.40202" id="path3656-5" sodipodi:nodetypes="cc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-4)" d="m 320.69232,294.64644 0,-39.95357" id="path5767-6" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)" d="m 299.72823,114.41987 0,40" id="path2882-9" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0;marker-mid:none;marker-end:url(#Arrow1Lend)" d="m 529.46254,295.88106 0.29795,-40.80761" id="path4296-5-5" sodipodi:nodetypes="cc" />
+    <path style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-43)" d="m 230.5168,300.55608 -62.22539,0 0,-60.81118 62.9325,0" id="path3087" transform="translate(19.395925,4.2765158)" sodipodi:nodetypes="cccc" />
+    <text xml:space="preserve" style="font-size:20px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="232.96193" y="61.140358" id="text5679"><tspan sodipodi:role="line" id="tspan5681" x="232.96193" y="61.140358">Function Manager FSM</tspan></text>
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="305.46964" y="105.7422" id="text3590-5"><tspan sodipodi:role="line" id="tspan3592-54" x="305.46964" y="105.7422" style="font-size:16px;text-align:center;text-anchor:middle">Initial</tspan></text>
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="306.34726" y="174.77641" id="text3590"><tspan sodipodi:role="line" id="tspan3592" x="306.34726" y="174.77641" style="font-size:16px;text-align:center;text-anchor:middle">Halted</tspan></text>
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="307.94101" y="244.7764" id="text3590-1"><tspan sodipodi:role="line" id="tspan3592-5" x="307.94101" y="244.7764" style="font-size:16px;text-align:center;text-anchor:middle">Configured</tspan></text>
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="308.40976" y="314.7764" id="text3590-7"><tspan sodipodi:role="line" id="tspan3592-6" x="308.40976" y="314.7764" style="font-size:16px;text-align:center;text-anchor:middle">Running</tspan></text>
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="529.82709" y="315.83258" id="text3590-7-6"><tspan sodipodi:role="line" id="tspan3592-6-5" x="529.82709" y="315.83258" style="font-size:16px;text-align:center;text-anchor:middle">Paused</tspan></text>
+    <text xml:space="preserve" style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="527.28479" y="244.7764" id="text3590-3"><tspan sodipodi:role="line" id="tspan3592-7" x="527.28479" y="244.7764" style="font-size:16px;text-align:center;text-anchor:middle">Error</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="226.65717" y="133.71277" id="text5087-2"><tspan tooltip:name="div_fm_initialize" sodipodi:role="line" id="tspan5089-0" x="226.65717" y="133.71277" style="fill:#0000ff;fill-opacity:1">Initialize</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="216.06601" y="204.7764" id="text5087"><tspan tooltip:name="div_fm_configure" sodipodi:role="line" id="tspan5089" x="216.06601" y="204.7764" style="fill:#0000ff;fill-opacity:1">Configure</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="254.06601" y="274.7764" id="text5087-5"><tspan tooltip:name="div_fm_start" sodipodi:role="line" id="tspan5089-6" x="254.06601" y="274.7764" style="fill:#0000ff;fill-opacity:1">Start</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="211.3589" y="331.36218" id="text5087-5-9"><tspan tooltip:name="div_fm_halt" sodipodi:role="line" id="tspan5089-6-3" x="211.3589" y="331.36218" style="fill:#0000ff;fill-opacity:1">Halt</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="326.06601" y="214.7764" id="text5087-5-9-2"><tspan tooltip:name="div_fm_halt" sodipodi:role="line" id="tspan5089-6-3-5" x="326.06601" y="214.7764" style="fill:#0000ff;fill-opacity:1">Halt</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="536.06604" y="204.7764" id="text5087-5-4"><tspan tooltip:name="div_fm_reset" sodipodi:role="line" id="tspan5089-6-5" x="536.06604" y="204.7764" style="fill:#0000ff;fill-opacity:1">Reset</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="208.50188" y="298.74207" id="text5087-5-9-2-8-6"><tspan tooltip:name="div_fm_stop" sodipodi:role="line" id="tspan5089-6-3-5-8-8" x="208.50188" y="298.74207" style="fill:#0000ff;fill-opacity:1">Stop</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="326.8862" y="285.98578" id="text5087-5-9-2-8"><tspan tooltip:name="div_fm_stop" sodipodi:role="line" id="tspan5089-6-3-5-8" x="326.8862" y="285.98578" style="fill:#0000ff;fill-opacity:1">Stop</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="388.50461" y="331.30353" id="text5087-5-9-4"><tspan tooltip:name="div_fm_resume" sodipodi:role="line" id="tspan5089-6-3-7" x="388.50461" y="331.30353" style="fill:#0000ff;fill-opacity:1">Resume</tspan></text>
+    <text xml:space="preserve" style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans" x="396.14066" y="298.77661" id="text5087-5-9-43"><tspan tooltip:name="div_fm_pause" sodipodi:role="line" id="tspan5089-6-3-0" x="396.14066" y="298.77661" style="fill:#0000ff;fill-opacity:1">Pause</tspan></text>
+  </g>
+</svg>
+
+    <a name="fm_initialize"/>
+    <table id="fm_initialize" class="transition">
+      <tr>
+	<th class="title" colspan="4">Function Manager Initialize</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Function Manager</th>
+	<th>JobControls</th>
+	<th>Supervisor</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td>Create processes</td>
+	<td></td>
+      </tr>      
+    </table>
+
+    <br/>
+
+    <a name="fm_configure"/>
+    <table id="fm_configure" class="transition">
+      <tr>
+	<th class="title" colspan="4">Function Manager Configure</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Function Manager</th>
+	<th>JobControls</th>
+	<th>Supervisor</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If Supervisor is in error." href="#fm_seterror">SetError</a>)</td>
+	<td></td>
+	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
+      </tr>      
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fm_seterror">SetError</a>)</td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runType}</span></td>
+      </tr>      
+      <tr>
+	<th>3</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fm_seterror">SetError</a>)</td>
+	<td></td>
+	<td><a href="#supervisor_configure">Configure</a></td>
+      </tr>      
+    </table>
+
+    <br/>
+
+    <a name="fm_start"/>
+    <table id="fm_start" class="transition">
+      <tr>
+	<th class="title" colspan="4">Function Manager Start</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Function Manager</th>
+	<th>JobControls</th>
+	<th>Supervisor</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If Supervisor is in error." href="#fm_seterror">SetError</a>)</td>
+	<td></td>
+	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
+      </tr>      
+      <tr>
+	<th>2</th>
+	<td>(<a class="conditional" title="If not in a global run." href="#fm_bookrunnumber">Book run number</a>)<span class="condition">local|calib</span></td>
+	<td></td>
+	<td></td>
+      </tr>      
+      <tr>
+	<th>3</th>
+	<td><a href="#fm_publishrunnumber">Publish run number</a></td>
+	<td></td>
+	<td></td>
+      </tr>      
+      <tr>
+	<th>4</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fm_seterror">SetError</a>)</td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runNumber}</span></td>
+      </tr>      
+      <tr>
+	<th>5</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fm_seterror">SetError</a>)</td>
+	<td></td>
+	<td><a href="#supervisor_enable">Enable</a></td>
+      </tr>      
+    </table>
+
+    <br/>
+
+    <a name="fm_stop"/>
+    <table id="fm_stop" class="transition">
+      <tr>
+	<th class="title" colspan="4">Function Manager Stop</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Function Manager</th>
+	<th>JobControls</th>
+	<th>Supervisor</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fm_seterror">SetError</a>)</td>
+	<td></td>
+	<td><a href="#supervisor_stop">Stop</a></td>
+      </tr>      
+    </table>
+
+    <br/>
+
+    <a name="fm_halt"/>
+    <table id="fm_halt" class="transition">
+      <tr>
+	<th class="title" colspan="4">Function Manager Halt</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Function Manager</th>
+	<th>JobControls</th>
+	<th>Supervisor</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#fm_seterror">SetError</a>)</td>
+	<td></td>
+	<td><a href="#supervisor_halt">Halt</a></td>
+      </tr>      
+    </table>
+
+    <br/>
+
+    <a name="fm_pause"/>
+    <table id="fm_pause" class="transition">
+      <tr>
+	<th class="title" colspan="4">Function Manager Pause</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Function Manager</th>
+	<th>JobControls</th>
+	<th>Supervisor</th>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="fm_resume"/>
+    <table id="fm_resume" class="transition">
+      <tr>
+	<th class="title" colspan="4">Function Manager Resume</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Function Manager</th>
+	<th>JobControls</th>
+	<th>Supervisor</th>
+      </tr>
+    </table>
+
+    <br/>
+
+    <a name="fm_reset"/>
+    <table id="fm_reset" class="transition">
+      <tr>
+	<th class="title" colspan="4">Function Manager Reset</th>
+      </tr>
+      <tr>
+	<th></th>
+	<th>Function Manager</th>
+	<th>JobControls</th>
+	<th>Supervisor</th>
+      </tr>
+      <tr>
+	<th>1</th>
+	<td></td>
+	<td>Destroy processes</td>
+	<td></td>
+      </tr>      
+      <tr>
+	<th>2</th>
+	<td></td>
+	<td>Create processes</td>
+	<td></td>
+      </tr>      
+    </table>
+
+    <br/>
+
+
 
     <h3>emu::supervisor</h3>
     
@@ -755,7 +1069,7 @@ function tooltip(e, o) {
     <h3>emu::fed::Manager</h3>
 
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" version="1.1" width="496.22" height="292.78" id="svg2" inkscape:version="0.47 r22583" sodipodi:docname="FED_inkscape.svg">
+<svg xmlns:tooltip="http://cern.ch/CMS/Emu/tooltip" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" version="1.1" width="496.22" height="292.78" id="svg2" inkscape:version="0.47 r22583" sodipodi:docname="FED_FSM.svg">
   <metadata id="metadata70">
     <rdf:RDF>
       <cc:Work rdf:about="">
@@ -1300,10 +1614,16 @@ function tooltip(e, o) {
     <h3>emu::daq::manager</h3>
     
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="440.95999" height="280.04999" id="svg2" version="1.1" inkscape:version="0.47 r22583" sodipodi:docname="DAQManager_inkscape.svg">
+<svg xmlns:tooltip="http://cern.ch/CMS/Emu/tooltip" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="440.95999" height="280.04999" id="svg2" version="1.1" inkscape:version="0.47 r22583" sodipodi:docname="DAQManager_FSM.svg">
   <defs id="defs4">
     <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend" style="overflow:visible">
-      <path id="path3664" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+      <path id="path3664" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-6" style="overflow:visible">
+      <path id="path3664-1" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-4" style="overflow:visible">
+      <path id="path3664-7" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
     </marker>
     <inkscape:perspective sodipodi:type="inkscape:persp3d" inkscape:vp_x="0 : 526.18109 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_z="744.09448 : 526.18109 : 1" inkscape:persp3d-origin="372.04724 : 350.78739 : 1" id="perspective10" />
     <inkscape:perspective id="perspective3602" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
@@ -1313,13 +1633,7 @@ function tooltip(e, o) {
     <inkscape:perspective id="perspective3795" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
     <inkscape:perspective id="perspective3795-5" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
     <inkscape:perspective id="perspective4674" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
-    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-6" style="overflow:visible">
-      <path id="path3664-1" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
-    </marker>
     <inkscape:perspective id="perspective4674-5" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
-    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend-4" style="overflow:visible">
-      <path id="path3664-7" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" />
-    </marker>
     <inkscape:perspective id="perspective5099" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
     <inkscape:perspective id="perspective5146" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
     <inkscape:perspective id="perspective5146-7" inkscape:persp3d-origin="0.5 : 0.33333333 : 1" inkscape:vp_z="1 : 0.5 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_x="0 : 0.5 : 1" sodipodi:type="inkscape:persp3d" />
