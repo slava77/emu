@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.12 2010/04/21 13:18:42 paste Exp $
+* $Id: DDUDebugger.cc,v 1.13 2010/05/04 12:34:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -99,7 +99,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FPGAStatus(const enum 
 		}
 		if (stat&0x00F00000) {
 			if (0x00800000&stat) {
-				returnMe["InRD"+rdCtrl2+" DMB Full"] = "blue";
+				returnMe["InRD"+rdCtrl2+" DMB Full"] = "orange";
 			}
 			if (0x00400000&stat) {
 
@@ -113,12 +113,10 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FPGAStatus(const enum 
 			}
 		}
 		if (stat&0x000F0000) {
-			if (0x00080000&stat) returnMe["InRD"+rdCtrl1+" DMB Full"] = "blue";
+			if (0x00080000&stat) returnMe["InRD"+rdCtrl1+" DMB Full"] = "orange";
 			if (0x00040000&stat) returnMe["Mem/FIFO-InRD"+rdCtrl1+" Error"] = "red";
 			if (0x00020000&stat) returnMe["MultL1A Error-InRD"+rdCtrl1] = "red";
-			if (0x00010000&stat) {
-				returnMe["NoLiveFiber"+minFiber+"-"+minFiber2] = "none";
-			}
+			if (0x00010000&stat) returnMe["NoLiveFiber"+minFiber+"-"+minFiber2] = "none";
 		}
 		// JRG, low-order 16-bit status (most serious errors):
 		if (stat&0x0000F000) {
