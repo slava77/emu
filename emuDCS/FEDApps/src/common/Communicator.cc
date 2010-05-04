@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.32 2010/04/19 15:30:36 paste Exp $
+* $Id: Communicator.cc,v 1.33 2010/05/04 12:35:52 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -833,7 +833,7 @@ throw (toolbox::fsm::exception::Exception)
 			uint32_t thisL1A = (*iDDU)->readL1Scaler(DDUFPGA);
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "L1A Scalar for crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": " << thisL1A);
 
-			if (inFPGA0Stat & 0xf7eedeff) { // The mask is important, used to be 0xf7eedfff
+			if (inFPGA0Stat & 0xf0eec2ff) { // The mask is important, used to be 0xf7eedfff
 				std::ostringstream error;
 				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": INFPGA0 status register (" << std::hex << inFPGA0Stat << std::dec << "):" << std::endl;
 
@@ -848,7 +848,7 @@ throw (toolbox::fsm::exception::Exception)
 				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDDU", "ERROR", error.str(), tag.str(), NULL);
 				XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 			}
-			if (inFPGA1Stat & 0xf7eedeff) { // The mask is important, used to be 0xf7eedfff
+			if (inFPGA1Stat & 0xf0eec2ff) { // The mask is important, used to be 0xf7eedfff
 				std::ostringstream error;
 				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": INFPGA1 status register (" << std::hex << inFPGA1Stat << std::dec << "):" << std::endl;
 
@@ -863,7 +863,7 @@ throw (toolbox::fsm::exception::Exception)
 				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorEnableDDU", "ERROR", error.str(), tag.str(), NULL);
 				XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 			}
-			if (dduFPGAStat  & 0xdecfffff) { // The mask is important
+			if (dduFPGAStat  & 0xdecfc3ff) { // The mask is important.  Used to be 0xdecfffff
 				std::ostringstream error;
 				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": DDUFPGA status register (" << std::hex << dduFPGAStat << std::dec << "):" << std::endl;
 

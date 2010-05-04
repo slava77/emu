@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.13 2010/03/17 16:45:57 paste Exp $
+* $Id: Application.cc,v 1.14 2010/05/04 12:35:52 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -394,7 +394,7 @@ throw (emu::fed::exception::SOAPException)
 	//LOG4CPLUS_DEBUG(getApplicationLogger(), "sendCommand with command=" << command << ", klass=" << klass << ", instance=" << instance);
 	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
-		if (instance == -1) {
+		if (instance < 0) {
 			apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
 		} else {
 			apps.insert(getApplicationContext()->getDefaultZone()->getApplicationDescriptor(klass, instance));
