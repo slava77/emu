@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.92 2010/02/21 23:52:39 liu Exp $
+// $Id: TMB.cc,v 3.93 2010/05/05 11:46:58 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.93  2010/05/05 11:46:58  liu
+// make some stdout prints optional
+//
 // Revision 3.92  2010/02/21 23:52:39  liu
 // add CFEB BadBits into TMB counters
 //
@@ -538,7 +541,9 @@ TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   //
   theChamber->SetTMB(this);
   //
+#ifdef debugV
   std::cout << "Inside TMB" << std::endl;
+#endif
   //
   (*MyOutput_) << "TMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
   //

@@ -16,7 +16,9 @@ namespace emu {
 
 EmuLogger::EmuLogger() {
   //
+#ifdef debugV
   std::cout << "Instantiate EmuLogger" << std::endl;
+#endif
   MyOutput_ = &std::cout ;
 };
 //
