@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.61 2010/02/23 09:10:43 liu Exp $
+// $Id: ALCTController.cc,v 3.62 2010/05/05 11:46:58 liu Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.62  2010/05/05 11:46:58  liu
+// make some stdout prints optional
+//
 // Revision 3.61  2010/02/23 09:10:43  liu
 // disabled checking of VCC ipAddress
 //
@@ -364,7 +367,9 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :  EmuLogger(
 {
   tmb_ = tmb;
   //
+#ifdef debugV
   std::cout << "Creating ALCTController" << std::endl;
+#endif
   //
   debug_ = 0;
   //

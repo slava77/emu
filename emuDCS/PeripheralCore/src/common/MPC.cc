@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.16 2009/03/25 10:19:41 liu Exp $
+// $Id: MPC.cc,v 3.17 2010/05/05 11:46:58 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.17  2010/05/05 11:46:58  liu
+// make some stdout prints optional
+//
 // Revision 3.16  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -166,7 +169,7 @@ namespace emu {
 MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),EmuLogger(),
 				       BoardId_(0), TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0)
 {
-  std::cout << "MPC: module created in crate=" << this->crate() 
+  std::cout << "MPC: in crate=" << this->crate() 
 	    << " slot=" << this->slot() << std::endl;
   //
   read_firmware_day_   = 9999;

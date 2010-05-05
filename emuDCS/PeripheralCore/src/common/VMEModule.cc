@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.22 2009/03/25 10:19:42 liu Exp $
+// $Id: VMEModule.cc,v 3.23 2010/05/05 11:46:58 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.23  2010/05/05 11:46:58  liu
+// make some stdout prints optional
+//
 // Revision 3.22  2009/03/25 10:19:42  liu
 // move header files to include/emu/pc
 //
@@ -179,12 +182,16 @@ VMEModule::VMEModule(Crate * theCrate, int newslot):
 {
   theCrate_ = theCrate;
   //
+#ifdef debugV
   std::cout << "creating VMEModule in crate " << theCrate->CrateID() << std::endl;
+#endif
   //
   theController = theCrate->vmeController();
   theCrate->addModule(this);
   //
+#ifdef debugV
   std::cout << "Done VMEModule in crate " << theCrate->CrateID() << std::endl;
+#endif
   //
 }
 

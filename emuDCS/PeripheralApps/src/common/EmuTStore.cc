@@ -33,7 +33,7 @@ namespace emu {
   thisApp = s;
   xmlfile_    = HomeDir_ + "/vme_config.xml";
   dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
-	
+  verbose = false;
 }
 
 
@@ -346,11 +346,12 @@ void EmuTStore::getDbUserData(){
 // #    Retrieving data   #
 // ########################
 
-EmuEndcap * EmuTStore::getConfiguredEndcap(const std::string &emu_config_id) throw (xcept::Exception) {
+EmuEndcap * EmuTStore::getConfiguredEndcap(const std::string &emu_config_id, bool verbo) throw (xcept::Exception) {
 
   EmuEndcap * endcap = new EmuEndcap();
   std::cout << "######## Empty EmuEndcap is created." << std::endl;
-  
+
+  verbose = verbo;  
   std::string connectionID=connect();
   // std::cout << "Liu DEBUG: connectionID " << connectionID << std::endl;
   readConfiguration(connectionID, emu_config_id, endcap);
@@ -497,7 +498,7 @@ void EmuTStore::readConfiguration(const std::string &connectionID, const std::st
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       std::string StrgValue=results.getValueAt(rowIndex,*column)->toString();
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
   }
 
@@ -518,8 +519,8 @@ void EmuTStore::readPeripheralCrate(const std::string &connectionID, const std::
 
   query(connectionID, queryViewName, emu_config_id, results);
   
-  std::cout << "Peripheral Crate" << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "Peripheral Crate" << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0; rowIndex<results.getRowCount(); rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
@@ -531,7 +532,7 @@ void EmuTStore::readPeripheralCrate(const std::string &connectionID, const std::
          crateid = (int)*i;
       }
       if (*column == "LABEL"){label = StrgValue;}
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
 
     VMEController * controller = new VMEController();    
@@ -562,8 +563,8 @@ void EmuTStore::readVCC(const std::string &connectionID, const std::string &emu_
 
   query(connectionID, queryViewName, emu_config_id, periph_config_id, results);
   
-  std::cout << "VCC  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "VCC  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     // add VMECC(VMEModule in slot 1) to crate
@@ -609,12 +610,12 @@ void EmuTStore::readVCC(const std::string &connectionID, const std::string &emu_
 	  theCrate->vmeController()->SetPkt_On_Startup(false);
 	}
       }
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
-    std::cout << "#### VCC:  " << std::endl;
+    if(verbose) std::cout << "#### VCC:  " << std::endl;
     
   }
-  std::cout << "######## VCC is created." << std::endl;
+  if(verbose) std::cout << "######## VCC is created." << std::endl;
 }
 //
 
@@ -631,8 +632,8 @@ void EmuTStore::readCSC(const std::string &connectionID, const std::string &emu_
 
   query(connectionID, queryViewName, emu_config_id, periph_config_id, results);
   
-  std::cout << "Chambers  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "Chambers  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     Chamber * csc_ = new Chamber(theCrate);
@@ -645,7 +646,7 @@ void EmuTStore::readCSC(const std::string &connectionID, const std::string &emu_
       if (*column == "KNOWN_PROBLEM"){csc_->SetProblemDescription(StrgValue);}
       if (*column == "PROBLEM_MASK") {csc_->SetProblemMask(IntValue);}
       if (*column == "CSC_CONFIG_ID"){csc_config_id = StrgValue;}
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
     readDAQMB(connectionID, emu_config_id, csc_config_id, theCrate, csc_);
     readTMB(connectionID, emu_config_id, csc_config_id, theCrate, csc_);
@@ -667,8 +668,8 @@ void EmuTStore::readCCB(const std::string &connectionID, const std::string &emu_
 
   query(connectionID, queryViewName, emu_config_id, periph_config_id, results);
   
-  std::cout << "CCBs  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "CCBs  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     CCB * ccb_ = new CCB(theCrate, slot);
@@ -685,7 +686,7 @@ void EmuTStore::readCCB(const std::string &connectionID, const std::string &emu_
       if (*column == "CCB_FIRMWARE_YEAR") {ccb_->SetExpectedFirmwareYear(IntValue);}
       if (*column == "CCB_FIRMWARE_MONTH"){ccb_->SetExpectedFirmwareMonth(IntValue);}
       if (*column == "CCB_FIRMWARE_DAY")  {ccb_->SetExpectedFirmwareDay(IntValue);}
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
   }   
 }
@@ -704,8 +705,8 @@ void EmuTStore::readMPC(const std::string &connectionID, const std::string &emu_
 
   query(connectionID, queryViewName, emu_config_id, periph_config_id, results);
   
-  std::cout << "MPCs  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "MPCs  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     MPC * mpc_ = new MPC(theCrate, slot);
@@ -721,7 +722,7 @@ void EmuTStore::readMPC(const std::string &connectionID, const std::string &emu_
       if (*column == "MPC_FIRMWARE_MONTH"){mpc_->SetExpectedFirmwareMonth(IntValue);}
       if (*column == "MPC_FIRMWARE_DAY")  {mpc_->SetExpectedFirmwareDay(IntValue);}
       
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
   }
     
@@ -744,8 +745,8 @@ void EmuTStore::readDAQMB(const std::string &connectionID, const std::string &em
 
   query(connectionID, queryViewName, emu_config_id, csc_config_id, results);
   
-  std::cout << "DAQMB  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "DAQMB  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
@@ -804,7 +805,7 @@ void EmuTStore::readDAQMB(const std::string &connectionID, const std::string &em
       if (*column == "DMB_VME_FIRMWARE_TAG"){daqmb_->SetExpectedVMEFirmwareTag(IntValue);}
       if (*column == "DAQMB_CONFIG_ID"){daqmb_config_id_ = StrgValue;}
        if (*column == "POWER_MASK") { daqmb_->SetPowerMask(IntValue); }
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
     readCFEB(connectionID, emu_config_id, daqmb_config_id_, daqmb_);
   }
@@ -826,8 +827,8 @@ void EmuTStore::readCFEB(const std::string &connectionID, const std::string &emu
   
   query(connectionID, queryViewName, emu_config_id, daqmb_config_id, results);
   
-  std::cout << "CFEBs  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "CFEBs  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
@@ -835,7 +836,7 @@ void EmuTStore::readCFEB(const std::string &connectionID, const std::string &emu
       if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
       if (*column == "CFEB_NUMBER"){number = IntValue;}
     }
-    std::cout << "CFEB cfeb( " + to_string(number) << " )" << std::endl;
+    if(verbose) std::cout << "CFEB cfeb( " + to_string(number) << " )" << std::endl;
     CFEB cfeb(number);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
@@ -881,7 +882,7 @@ void EmuTStore::readCFEB(const std::string &connectionID, const std::string &emu
 	  }
 	}
       }      
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
     //
     theDaqmb->cfebs_.push_back(cfeb);
@@ -906,8 +907,8 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
   
   query(connectionID, queryViewName, emu_config_id, csc_config_id, results);
   
-  std::cout << "TMB  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "TMB  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
@@ -1068,7 +1069,7 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
 	if (*column == "CFEB4_RXD_INT_DELAY"   ) {tmb_->SetCFEB4RxdIntDelay(IntValue);          }	 
       if (*column == "TMB_CONFIG_ID"                ) {tmb_config_id_ = StrgValue;                   }
 
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
     readALCT(connectionID, emu_config_id, tmb_config_id_, tmb_);
   }
@@ -1088,8 +1089,8 @@ void EmuTStore::readALCT(const std::string &connectionID, const std::string &emu
 
   query(connectionID, queryViewName, emu_config_id, tmb_config_id, results);
   
-  std::cout << "ALCT  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "ALCT  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
@@ -1137,7 +1138,7 @@ void EmuTStore::readALCT(const std::string &connectionID, const std::string &emu
       if (*column == "ALCT_TESTPULSE_DIRECTION"      ) {alct_->Set_PulseDirection(StrgValue);                     }
       if (*column == "ALCT_CONFIG_ID"                ) {alct_config_id_ = StrgValue;                              }
       
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }
     readAnodeChannel(connectionID, emu_config_id, alct_config_id_, alct_);
   }
@@ -1156,14 +1157,14 @@ void EmuTStore::readAnodeChannel(const std::string &connectionID, const std::str
 
   query(connectionID, queryViewName, emu_config_id, alct_config_id, results);
 
-  std::cout << "ANODECHANNEL  " << std::endl;
-  std::cout << "=========================================" << std::endl;
+  if(verbose) std::cout << "ANODECHANNEL  " << std::endl;
+  if(verbose) std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       if (*column == "AFEB_NUMBER") {
 	value = results.getValueAt(rowIndex,*column);
-	std::cout << *column + ": " + value->toString() << std::endl;
+	if(verbose) std::cout << *column + ": " + value->toString() << std::endl;
 	xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
 	afeb_number = (int)*i;
       }
@@ -1177,7 +1178,7 @@ void EmuTStore::readAnodeChannel(const std::string &connectionID, const std::str
       if (*column == "AFEB_FINE_DELAY") {theAlct->SetAsicDelay(afeb_number-1,IntValue);    }
       if (*column == "AFEB_THRESHOLD")  {theAlct->SetAfebThreshold(afeb_number-1,IntValue);}
       
-      std::cout << *column + ": " + StrgValue << std::endl;
+      if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
     }   
   }
 }

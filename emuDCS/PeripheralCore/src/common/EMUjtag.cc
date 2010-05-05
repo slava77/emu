@@ -26,7 +26,9 @@ namespace emu {
 EMUjtag::EMUjtag(TMB * tmb)
 {
   //
+#ifdef debugV
   std::cout << "Creating EMUjtag" << std::endl ;
+#endif
   //
   tmb_ = tmb; 
   debug_ = 0;

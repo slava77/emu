@@ -18,7 +18,9 @@ namespace emu {
 RAT::RAT(TMB * tmb) : EmuLogger()
 {
   //
+#ifdef debugV
   (*MyOutput_) << "RAT board" << std::endl;
+#endif
   //
   tmb_ = tmb;
   //
