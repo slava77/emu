@@ -131,6 +131,9 @@ rm -rf $RPM_BUILD_ROOT
 #%doc MAINTAINER ChangeLog README
 
 %post
+mkdir -p /var/log/emu
+chown root:csc /var/log/emu
+chmod 775 /var/log/emu
 /sbin/chkconfig --add xdaqd 
 /sbin/service crond restart
 
