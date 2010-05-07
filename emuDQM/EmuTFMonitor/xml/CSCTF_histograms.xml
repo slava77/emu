@@ -762,13 +762,13 @@
 		<Type>h2_</Type>
 		<Prefix>TF_id_</Prefix>
 		<Name>stations_vs_lcts</Name>
-		<Title>Number of Stations in MEx_IDs vs. Number of LCTs in the Track</Title>
+		<Title>Number of Stations in MEx_IDs vs. Number of LCTs attached to the Track</Title>
 		<XRange>(0:4)</XRange>
 		<XBins>4</XBins>
 		<YRange>(0:4)</YRange>
 		<YBins>4</YBins>
-		<XLabel>Number of Stations</XLabel>
-		<YLabel>Number of LCTs</YLabel>
+		<XLabel>Number of LCTs attached</XLabel>
+		<YLabel>Number of Stations</YLabel>
 	</Histogram>
 
 	<Histogram Options="bar1:FillColor=48">
