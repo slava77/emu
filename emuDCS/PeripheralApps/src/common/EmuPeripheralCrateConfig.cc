@@ -356,6 +356,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBCheckConfiguration, "TMBCheckConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadStateMachines, "TMBReadStateMachines");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBCheckStateMachines, "TMBCheckStateMachines");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBResetSyncError, "TMBResetSyncError");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBRawHits, "TMBRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTRawHits, "ALCTRawHits");
   //
@@ -7387,6 +7388,31 @@ void EmuPeripheralCrateConfig::TMBReadStateMachines(xgi::Input * in, xgi::Output
   //
 }
 //
+void EmuPeripheralCrateConfig::TMBResetSyncError(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  int tmb=0;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  //
+  thisTMB->SetSyncErrReset(1);
+  thisTMB->WriteRegister(0x120);
+  thisTMB->SetSyncErrReset(0);
+  thisTMB->WriteRegister(0x120);
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::TMBRawHits(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -12115,6 +12141,16 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset();
   //
   *out << cgicc::fieldset();
+  *out << cgicc::legend("Sync Error status").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::pre();
+  thisTMB->RedirectOutput(out);
+  thisTMB->ReadRegister(0x120);
+  thisTMB->PrintTMBRegister(0x120);
+  thisTMB->RedirectOutput(&std::cout);
+  *out << cgicc::pre();
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::fieldset();
   *out << cgicc::legend("CLCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
   *out << cgicc::pre();
   thisTMB->RedirectOutput(out);
@@ -12632,6 +12668,15 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::input().set("type","submit").set("value","Check TMB State Machines").set("style","color:blue");
     //
   }
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string TMBResetSyncError = toolbox::toString("/%s/TMBResetSyncError",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBResetSyncError) ;
+  *out << cgicc::input().set("type","submit").set("value","Clear TMB Sync Error") ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
