@@ -64,7 +64,7 @@ std::string getLastConfigIdUsed(const std::string &endcap_side) throw (xcept::Ex
   void getDbUserData();
 
   // DB Data Reads
-  EmuEndcap * getConfiguredEndcap(const std::string &emu_config_id) throw (xcept::Exception);
+  EmuEndcap * getConfiguredEndcap(const std::string &emu_config_id, bool verbose=false) throw (xcept::Exception);
   void readConfiguration(const std::string &connectionID, const std::string &emu_config_id, EmuEndcap * endcap) throw (xcept::Exception);
   void readPeripheralCrate(const std::string &connectionID, const std::string &emu_config_id, EmuEndcap * endcap) throw (xcept::Exception);
   void readVCC(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
@@ -76,9 +76,11 @@ std::string getLastConfigIdUsed(const std::string &endcap_side) throw (xcept::Ex
   void readTMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception);
   void readALCT(const std::string &connectionID, const std::string &emu_config_id, const std::string &tmb_config_id, TMB * theTmb) throw (xcept::Exception);
   void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct) throw (xcept::Exception);
- private:
- bool tableHasColumn(xdata::Table &table,const std::string &column);
 
+ private:
+  bool tableHasColumn(xdata::Table &table,const std::string &column);
+  bool verbose;
+  
   xdaq::Application *thisApp;
   std::string xmlfile_;
   std::string dbUserFile_;
