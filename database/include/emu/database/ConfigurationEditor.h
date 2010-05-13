@@ -25,7 +25,7 @@
 #include <sstream>
 
 namespace emu {
-  namespace base {
+  namespace database {
 	typedef std::map<std::string,unsigned int> TableChangeSummary;
 	  typedef std::map<std::string,TableChangeSummary > ChangeSummary;
 	  
@@ -262,7 +262,7 @@ inline bool convertToHex(std::string &dataHex, const std::string format, const T
   return converted;
 }
 
-} // namespace emu::base
+} // namespace emu::database
 } // namespace emu
 
 

@@ -1,7 +1,7 @@
 /* code mostly copied and modified from EmuPCrateConfigTStore, which will eventually become a subclass of this */
 
-#include "emu/base/ConfigurationEditor.h"
-#include "emu/base/TStoreRequest.h"
+#include "emu/database/ConfigurationEditor.h"
+#include "emu/database/TStoreRequest.h"
 
 #include <time.h>
 #include "toolbox/TimeInterval.h"
@@ -29,7 +29,7 @@
 #include "xoap/DOMParserFactory.h"
 
 namespace emu {
-namespace base {
+namespace database {
 	
   ConfigurationEditor::ConfigurationEditor(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception): xdaq::Application(s) {
 	xgi::bind(this,&ConfigurationEditor::Default, "Default");
@@ -1495,7 +1495,7 @@ void ConfigurationEditor::getConfigIds(std::vector<std::string> &configIDs,const
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::database::TStoreRequest request("query",viewClass);
 
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1575,7 +1575,7 @@ void ConfigurationEditor::createCredentialString() {
 
 std::string ConfigurationEditor::connect() throw (xcept::Exception) {
 try {
-	emu::base::TStoreRequest request("connect");
+	emu::database::TStoreRequest request("connect");
 	
 	//add the view ID
 	request.addTStoreParameter("id",viewID_);
@@ -1606,7 +1606,7 @@ try {
 }
 
 void ConfigurationEditor::disconnect(const std::string &connectionID) throw (xcept::Exception) {
-	emu::base::TStoreRequest request("disconnect");
+	emu::database::TStoreRequest request("disconnect");
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1632,7 +1632,7 @@ throw (xcept::Exception) {
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query", viewClass);
+	emu::database::TStoreRequest request("query", viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID", connectionID);
@@ -1676,7 +1676,7 @@ void ConfigurationEditor::getDefinition(const std::string &connectionID, const s
 	//case you can find out the view class using the TStore client library:
 	std::string viewClass=tstoreclient::classNameForView(viewID_);
 	
-	emu::base::TStoreRequest request("definition",viewClass);
+	emu::database::TStoreRequest request("definition",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1712,7 +1712,7 @@ void ConfigurationEditor::insert(const std::string &connectionID, const std::str
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("insert",viewClass);
+	emu::database::TStoreRequest request("insert",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1736,7 +1736,7 @@ void ConfigurationEditor::insert(const std::string &connectionID, const std::str
 
 void ConfigurationEditor::synchronize(const std::string &connectionID, const std::string &syncMode, const std::string &syncPattern) throw (xcept::Exception) {
   std::string viewClass=tstoreclient::classNameForView(viewID_);
-  emu::base::TStoreRequest request("sync",viewClass);
+  emu::database::TStoreRequest request("sync",viewClass);
   request.addTStoreParameter("connectionID",connectionID);
   request.addTStoreParameter("mode", syncMode);
   request.addTStoreParameter("pattern", syncPattern);
