@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.7 2010/02/03 12:18:56 rakness Exp $
+// $Id: TMB_constants.h,v 1.8 2010/05/13 15:37:02 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.8  2010/05/13 15:37:02  rakness
+// decode sync error register
+//
 // Revision 1.7  2010/02/03 12:18:56  rakness
 // add CFEB badbits blocking (for TMB firmware 14 Jan 2010)
 //
@@ -2205,6 +2208,71 @@ const int cfeb4_rxd_int_delay_vmereg  =  cfeb4_interstage_adr;
 const int cfeb4_rxd_int_delay_bitlo   =  0;
 const int cfeb4_rxd_int_delay_bithi   =  3;
 const int cfeb4_rxd_int_delay_default =  0; 
+//
+//
+//---------------------------------------------------------------------
+// 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
+//---------------------------------------------------------------------
+const int sync_err_reset_vmereg  =  sync_err_control_adr;
+const int sync_err_reset_bitlo   =  0;
+const int sync_err_reset_bithi   =  0;
+const int sync_err_reset_default =  0; 
+//
+const int clct_bx0_sync_err_enable_vmereg  =  sync_err_control_adr;
+const int clct_bx0_sync_err_enable_bitlo   =  1;
+const int clct_bx0_sync_err_enable_bithi   =  1;
+const int clct_bx0_sync_err_enable_default =  1; 
+//
+const int alct_ecc_rx_sync_err_enable_vmereg    =  sync_err_control_adr;
+const int alct_ecc_rx_sync_err_enable_bitlo     =  2;
+const int alct_ecc_rx_sync_err_enable_bithi     =  2;
+const int alct_ecc_rx_sync_err_enable_default   =  0; 
+//
+const int alct_ecc_tx_sync_err_enable_vmereg    =  sync_err_control_adr;
+const int alct_ecc_tx_sync_err_enable_bitlo     =  3;
+const int alct_ecc_tx_sync_err_enable_bithi     =  3;
+const int alct_ecc_tx_sync_err_enable_default   =  0; 
+//
+const int bx0_match_sync_err_enable_vmereg      =  sync_err_control_adr;
+const int bx0_match_sync_err_enable_bitlo       =  4;
+const int bx0_match_sync_err_enable_bithi       =  4;
+const int bx0_match_sync_err_enable_default     =  0; 
+//
+const int sync_err_blanks_mpc_enable_vmereg     =  sync_err_control_adr;
+const int sync_err_blanks_mpc_enable_bitlo      =  5;
+const int sync_err_blanks_mpc_enable_bithi      =  5;
+const int sync_err_blanks_mpc_enable_default    =  0; 
+//
+const int sync_err_stops_pretrig_enable_vmereg  =  sync_err_control_adr;
+const int sync_err_stops_pretrig_enable_bitlo   =  6;
+const int sync_err_stops_pretrig_enable_bithi   =  6;
+const int sync_err_stops_pretrig_enable_default =  0; 
+//
+const int sync_err_stops_readout_enable_vmereg  =  sync_err_control_adr;
+const int sync_err_stops_readout_enable_bitlo   =  7;
+const int sync_err_stops_readout_enable_bithi   =  7;
+const int sync_err_stops_readout_enable_default =  0; 
+//
+const int sync_err_vmereg             =  sync_err_control_adr;
+const int sync_err_bitlo              =  8;
+const int sync_err_bithi              =  8;
+//
+const int clct_bx0_sync_err_vmereg    =  sync_err_control_adr;
+const int clct_bx0_sync_err_bitlo     =  9;
+const int clct_bx0_sync_err_bithi     =  9;
+//
+const int alct_ecc_rx_sync_err_vmereg =  sync_err_control_adr;
+const int alct_ecc_rx_sync_err_bitlo  = 10;
+const int alct_ecc_rx_sync_err_bithi  = 10;
+//
+const int alct_ecc_tx_sync_err_vmereg =  sync_err_control_adr;
+const int alct_ecc_tx_sync_err_bitlo  = 11;
+const int alct_ecc_tx_sync_err_bithi  = 11;
+//
+const int bx0_match_sync_err_vmereg   =  sync_err_control_adr;
+const int bx0_match_sync_err_bitlo    = 12;
+const int bx0_match_sync_err_bithi    = 12;
+//
 //
 //---------------------------------------------------------------------
 // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
