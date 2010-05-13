@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.93 2010/05/05 11:46:58 liu Exp $
+// $Id: TMB.cc,v 3.94 2010/05/13 15:37:02 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.94  2010/05/13 15:37:02  rakness
+// decode sync error register
+//
 // Revision 3.93  2010/05/05 11:46:58  liu
 // make some stdout prints optional
 //
@@ -5613,6 +5616,18 @@ void TMB::SetTMBRegisterDefaults() {
   cfeb4_rxd_int_delay_ = cfeb4_rxd_int_delay_default;
   //
   //---------------------------------------------------------------------
+  // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
+  //---------------------------------------------------------------------
+  sync_err_reset_                =  sync_err_reset_default                ;
+  clct_bx0_sync_err_enable_      =  clct_bx0_sync_err_enable_default      ;
+  alct_ecc_rx_sync_err_enable_   =  alct_ecc_rx_sync_err_enable_default   ;
+  alct_ecc_tx_sync_err_enable_   =  alct_ecc_tx_sync_err_enable_default   ;
+  bx0_match_sync_err_enable_     =  bx0_match_sync_err_enable_default     ;
+  sync_err_blanks_mpc_enable_    =  sync_err_blanks_mpc_enable_default    ;
+  sync_err_stops_pretrig_enable_ =  sync_err_stops_pretrig_enable_default ;
+  sync_err_stops_readout_enable_ =  sync_err_stops_readout_enable_default ;
+  //
+  //---------------------------------------------------------------------
   // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
   //---------------------------------------------------------------------
   cfeb_badbits_reset_ = cfeb_badbits_reset_default;
@@ -6323,6 +6338,24 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
     //---------------------------------------------------------------------
     read_cfeb4_rxd_int_delay_  = ExtractValueFromData(data,cfeb4_rxd_int_delay_bitlo,cfeb4_rxd_int_delay_bithi);    
+    //
+  } else if ( address == sync_err_control_adr ) {
+    //---------------------------------------------------------------------
+    // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
+    //---------------------------------------------------------------------
+    read_sync_err_reset_                = ExtractValueFromData(data,sync_err_reset_bitlo               ,sync_err_reset_bithi               );
+    read_clct_bx0_sync_err_enable_      = ExtractValueFromData(data,clct_bx0_sync_err_enable_bitlo     ,clct_bx0_sync_err_enable_bithi     );
+    read_alct_ecc_rx_sync_err_enable_   = ExtractValueFromData(data,alct_ecc_rx_sync_err_enable_bitlo  ,alct_ecc_rx_sync_err_enable_bithi  );
+    read_alct_ecc_tx_sync_err_enable_   = ExtractValueFromData(data,alct_ecc_tx_sync_err_enable_bitlo  ,alct_ecc_tx_sync_err_enable_bithi  );
+    read_bx0_match_sync_err_enable_     = ExtractValueFromData(data,bx0_match_sync_err_enable_bitlo    ,bx0_match_sync_err_enable_bithi    );
+    read_sync_err_blanks_mpc_enable_    = ExtractValueFromData(data,sync_err_blanks_mpc_enable_bitlo   ,sync_err_blanks_mpc_enable_bithi   );
+    read_sync_err_stops_pretrig_enable_ = ExtractValueFromData(data,sync_err_stops_pretrig_enable_bitlo,sync_err_stops_pretrig_enable_bithi);
+    read_sync_err_stops_readout_enable_ = ExtractValueFromData(data,sync_err_stops_readout_enable_bitlo,sync_err_stops_readout_enable_bithi);
+    read_sync_err_                      = ExtractValueFromData(data,sync_err_bitlo                     ,sync_err_bithi                     );
+    read_clct_bx0_sync_err_             = ExtractValueFromData(data,clct_bx0_sync_err_bitlo            ,clct_bx0_sync_err_bithi            );
+    read_alct_ecc_rx_sync_err_          = ExtractValueFromData(data,alct_ecc_rx_sync_err_bitlo         ,alct_ecc_rx_sync_err_bithi         );
+    read_alct_ecc_tx_sync_err_          = ExtractValueFromData(data,alct_ecc_tx_sync_err_bitlo         ,alct_ecc_tx_sync_err_bithi         );
+    read_bx0_match_sync_err_            = ExtractValueFromData(data,bx0_match_sync_err_bitlo           ,bx0_match_sync_err_bithi           );
     //
   } else if ( address == cfeb_badbits_ctrl_adr ) {
     //---------------------------------------------------------------------
@@ -7139,6 +7172,25 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << " ->CFEB to TMB interstage delays:" << std::endl;
     (*MyOutput_) << "    CFEB4 receive interstage delay    = " << std::dec << read_cfeb4_rxd_int_delay_ << std::endl;
     //
+  } else if ( address == sync_err_control_adr ) {
+    //---------------------------------------------------------------------
+    // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->Synchronization Error Control:" << std::endl;
+    (*MyOutput_) << "   VME sync error reset = "                << read_sync_err_reset_ << std::endl;
+    (*MyOutput_) << "   Enable sync error type:  BXN != offset at ttc_bx0 arrival    = " << read_clct_bx0_sync_err_enable_    << std::endl;
+    (*MyOutput_) << "   Enable sync error type:  Uncorrected ECC data from TMB->ALCT = " << read_alct_ecc_rx_sync_err_enable_ << std::endl; 
+    (*MyOutput_) << "   Enable sync error type:  Uncorrected ECC data from ALCT->TMB = " << read_alct_ecc_tx_sync_err_enable_ << std::endl;
+    (*MyOutput_) << "   Enable sync error type:  alct_bx0 != clct_bx0                = " << read_bx0_match_sync_err_enable_   << std::endl;
+    (*MyOutput_) << "   Enable sync error to blank LCTs to MPC     = " << read_sync_err_blanks_mpc_enable_    << std::endl;
+    (*MyOutput_) << "   Enable sync error to stop CLCT pretriggers = " << read_sync_err_stops_pretrig_enable_ << std::endl;
+    (*MyOutput_) << "   Enable sync error to stop TMB readout      = " << read_sync_err_stops_readout_enable_ << std::endl;
+    (*MyOutput_) << "   Synchonization Error                                  = " << read_sync_err_             << std::endl;
+    (*MyOutput_) << "   Sync error type:  BXN != offset at ttc_bx0 arrival    = " << read_clct_bx0_sync_err_    << std::endl;
+    (*MyOutput_) << "   Sync error type:  Uncorrected ECC data from TMB->ALCT = " << read_alct_ecc_rx_sync_err_ << std::endl;
+    (*MyOutput_) << "   Sync error type:  Uncorrected ECC data from ALCT->TMB = " << read_alct_ecc_tx_sync_err_ << std::endl;
+    (*MyOutput_) << "   Sync error type:  alct_bx0 != clct_bx0                = " << read_bx0_match_sync_err_   << std::endl;
+    //
   } else if ( address == cfeb_badbits_ctrl_adr ) {
     //---------------------------------------------------------------------
     // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
@@ -7665,6 +7717,19 @@ int TMB::FillTMBRegister(unsigned long int address) {
     // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(cfeb4_rxd_int_delay_,cfeb4_rxd_int_delay_bithi,cfeb4_rxd_int_delay_bitlo,&data_word);
+    //
+  } else if ( address == sync_err_control_adr ) {
+    //---------------------------------------------------------------------
+    // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(sync_err_reset_               ,sync_err_reset_bithi               ,sync_err_reset_bitlo               ,&data_word);
+    InsertValueIntoDataWord(clct_bx0_sync_err_enable_     ,clct_bx0_sync_err_enable_bithi     ,clct_bx0_sync_err_enable_bitlo     ,&data_word);
+    InsertValueIntoDataWord(alct_ecc_rx_sync_err_enable_  ,alct_ecc_rx_sync_err_enable_bithi  ,alct_ecc_rx_sync_err_enable_bitlo  ,&data_word);
+    InsertValueIntoDataWord(alct_ecc_tx_sync_err_enable_  ,alct_ecc_tx_sync_err_enable_bithi  ,alct_ecc_tx_sync_err_enable_bitlo  ,&data_word);
+    InsertValueIntoDataWord(bx0_match_sync_err_enable_    ,bx0_match_sync_err_enable_bithi    ,bx0_match_sync_err_enable_bitlo    ,&data_word);
+    InsertValueIntoDataWord(sync_err_blanks_mpc_enable_   ,sync_err_blanks_mpc_enable_bithi   ,sync_err_blanks_mpc_enable_bitlo   ,&data_word);
+    InsertValueIntoDataWord(sync_err_stops_pretrig_enable_,sync_err_stops_pretrig_enable_bithi,sync_err_stops_pretrig_enable_bitlo,&data_word);
+    InsertValueIntoDataWord(sync_err_stops_readout_enable_,sync_err_stops_readout_enable_bithi,sync_err_stops_readout_enable_bitlo,&data_word);
     //
   } else if ( address == cfeb_badbits_ctrl_adr ) {
     //---------------------------------------------------------------------

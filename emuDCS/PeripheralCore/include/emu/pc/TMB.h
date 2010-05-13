@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.10 2010/02/25 15:59:31 liu Exp $
+// $Id: TMB.h,v 1.11 2010/05/13 15:37:02 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.11  2010/05/13 15:37:02  rakness
+// decode sync error register
+//
 // Revision 1.10  2010/02/25 15:59:31  liu
 // fixed the number of counters
 //
@@ -1774,6 +1777,65 @@ public:
   //
   //
   //---------------------------------------------------------------------
+  // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
+  //---------------------------------------------------------------------
+  //!VME sync error reset
+  inline void SetSyncErrReset(int sync_err_reset) { sync_err_reset_ = sync_err_reset; }
+  inline int  GetSyncErrReset() { return sync_err_reset_; }
+  inline int  GetReadSyncErrReset() { return read_sync_err_reset_; }
+  //
+  //!clct_bx0_sync_err_enable = 0/1 = don't/do set sync error on: TMB clock pulse count error -> bxn!=0+offset at ttc_bx0 arrival
+  inline void SetCLCTBX0SyncErrEnable(int clct_bx0_sync_err_enable) { clct_bx0_sync_err_enable_ = clct_bx0_sync_err_enable; }
+  inline int  GetCLCTBX0SyncErrEnable() { return clct_bx0_sync_err_enable_ ; }
+  inline int  GetReadCLCTBX0SyncErrEnable() { return read_clct_bx0_sync_err_enable_ ; }
+  //
+  //!alct_ecc_rx_sync_err_enable = 0/1 = don't/do set sync error on:  ALCT uncorrected ECC error in data received from TMB
+  inline void SetALCTECCRxSyncErrEnable(int alct_ecc_rx_sync_err_enable) { alct_ecc_rx_sync_err_enable_ = alct_ecc_rx_sync_err_enable; }
+  inline int  GetALCTECCRxSyncErrEnable() { return alct_ecc_rx_sync_err_enable_ ; }
+  inline int  GetReadALCTECCRxSyncErrEnable() { return read_alct_ecc_rx_sync_err_enable_ ; }
+  //
+  //!alct_ecc_tx_sync_err_enable = 0/1 = don't/do set sync error on:  ALCT uncorrected ECC error in data transmitted to TMB
+  inline void SetALCTECCTxSyncErrEnable(int alct_ecc_tx_sync_err_enable) { alct_ecc_tx_sync_err_enable_ = alct_ecc_tx_sync_err_enable; }
+  inline int  GetALCTECCTxSyncErrEnable() { return alct_ecc_tx_sync_err_enable_ ; }
+  inline int  GetReadALCTECCTxSyncErrEnable() { return read_alct_ecc_tx_sync_err_enable_ ; }
+  //
+  //!bx0_match_sync_err_enable = 0/1 = don't do set sync error on:  alct_bx0 != clct_bx0
+  inline void SetBX0MatchSyncErrEnable(int bx0_match_sync_err_enable) { bx0_match_sync_err_enable_ = bx0_match_sync_err_enable; }
+  inline int  GetBX0MatchSyncErrEnable() { return bx0_match_sync_err_enable_ ; }
+  inline int  GetReadBX0MatchSyncErrEnable() { return read_bx0_match_sync_err_enable_ ; }
+  //
+  //!sync_err_blanks_mpc_enable = 1/0 = Blank/don't blank LCTs to MPC on Sync Error
+  inline void SetEnableSyncErrBlanksMPC(int sync_err_blanks_mpc_enable) { sync_err_blanks_mpc_enable_ = sync_err_blanks_mpc_enable; }
+  inline int  GetEnableSyncErrBlanksMPC() { return sync_err_blanks_mpc_enable_ ; }
+  inline int  GetReadEnableSyncErrBlanksMPC() { return read_sync_err_blanks_mpc_enable_ ; }
+  //
+  //!sync_err_stops_pretrig_enable = 1/0 = stop/don't stop CLCT pretriggers on Sync Error
+  inline void SetEnableSyncErrStopsCLCTPretrig(int sync_err_stops_pretrig_enable) { sync_err_stops_pretrig_enable_ = sync_err_stops_pretrig_enable; }
+  inline int  GetEnableSyncErrStopsCLCTPretrig() { return sync_err_stops_pretrig_enable_ ; }
+  inline int  GetReadEnableSyncErrStopsCLCTPretrig() { return read_sync_err_stops_pretrig_enable_ ; }
+  //
+  //!sync_err_stops_readout_enable = 1/0 = stop/don't stop TMB readout on Sync Error
+  inline void SetEnableSyncErrStopsTMBReadout(int sync_err_stops_readout_enable) { sync_err_stops_readout_enable_ = sync_err_stops_readout_enable; }
+  inline int  GetEnableSyncErrStopsTMBReadout() { return sync_err_stops_readout_enable_ ; }
+  inline int  GetReadEnableSyncErrStopsTMBReadout() { return read_sync_err_stops_readout_enable_ ; }
+  //
+  //! Sync Error OR of enabled types of error
+  inline int  GetReadSyncErr() { return read_sync_err_ ; }
+  //
+  //! Sync Error of type: TMB clock pulse count error -> bxn!=0+offset at ttc_bx0 arrival
+  inline int  GetReadCLCTBX0SyncErr() { return read_clct_bx0_sync_err_ ; }
+  //
+  //! Sync Error of type:  ALCT uncorrected ECC error in data received from TMB
+  inline int  GetReadALCTECCRxSyncErr() { return read_alct_ecc_rx_sync_err_ ; }
+  //
+  //! Sync Error of type:  ALCT uncorrected ECC error in data transmitted to TMB
+  inline int  GetReadALCTECCTxSyncErr() { return read_alct_ecc_tx_sync_err_ ; }
+  //
+  //! Sync Error of type:  alct_bx0 != clct_bx0
+  inline int  GetReadBX0MatchSyncErr() { return read_bx0_match_sync_err_ ; }
+  //
+  //
+  //---------------------------------------------------------------------
   // 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
   //---------------------------------------------------------------------
   //!cfeb_badbits_reset = 1 = Set the reset bit for the "badbits" marker for all 5 CFEBs
@@ -2958,6 +3020,33 @@ private:
   int cfeb4_rxd_int_delay_;
   //
   int read_cfeb4_rxd_int_delay_; 
+  //
+  //
+  //---------------------------------------------------------------------
+  // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
+  //---------------------------------------------------------------------
+  int sync_err_reset_ ;
+  int clct_bx0_sync_err_enable_ ;
+  int alct_ecc_rx_sync_err_enable_   ;
+  int alct_ecc_tx_sync_err_enable_   ;
+  int bx0_match_sync_err_enable_     ;
+  int sync_err_blanks_mpc_enable_    ;
+  int sync_err_stops_pretrig_enable_ ;
+  int sync_err_stops_readout_enable_ ;
+  //
+  int read_sync_err_reset_  ;
+  int read_clct_bx0_sync_err_enable_  ;
+  int read_alct_ecc_rx_sync_err_enable_    ;
+  int read_alct_ecc_tx_sync_err_enable_    ;
+  int read_bx0_match_sync_err_enable_      ;
+  int read_sync_err_blanks_mpc_enable_     ;
+  int read_sync_err_stops_pretrig_enable_  ;
+  int read_sync_err_stops_readout_enable_  ;
+  int read_sync_err_             ;
+  int read_clct_bx0_sync_err_    ;
+  int read_alct_ecc_rx_sync_err_ ;
+  int read_alct_ecc_tx_sync_err_ ;
+  int read_bx0_match_sync_err_   ;
   //
   //
   //---------------------------------------------------------------------
