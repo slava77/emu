@@ -1,15 +1,15 @@
-#ifndef __emu_base_version_h__
-#define __emu_base_version_h__
+#ifndef __emu_database_version_h__
+#define __emu_database_version_h__
 
 #include "config/PackageInfo.h"
 
-namespace emubase {
-	const std::string package     = "emubase";
-	const std::string versions    = "09.08.00";
-	const std::string description = "Emu (CSC) applications' base classes";
+namespace emudatabase {
+	const std::string package     = "emudatabase";
+	const std::string versions    = "09.09.00";
+	const std::string description = "Emu (CSC) database access tools";
 
-	const std::string summary     = "emu/base";
-	const std::string authors     = "Ichiro Suzuki";
+	const std::string summary     = "emu/database";
+	const std::string authors     = "Angela Brett";
 	const std::string link        = "http://localhost:20000/";
 
 	config::PackageInfo getPackageInfo();
@@ -18,5 +18,5 @@ namespace emubase {
 	std::set<std::string, std::less<std::string> > getPackageDependencies();
 }
 
-#endif  // ifndef __EMU_BASE_VERSION_H__
+#endif  // ifndef __emu_database_version_h__
 

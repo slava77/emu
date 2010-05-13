@@ -1,7 +1,7 @@
 //
 // version.cc
 
-#include "emu/base/version.h"
+#include "emu/database/version.h"
 
 #include "toolbox/version.h"
 #include "xoap/version.h"
@@ -10,9 +10,9 @@
 
 using namespace std;
 
-GETPACKAGEINFO(emubase)
+GETPACKAGEINFO(emudatabase)
 
-void emubase::checkPackageDependencies()
+void emudatabase::checkPackageDependencies()
 		throw (config::PackageInfo::VersionException)
 {
 	CHECKDEPENDENCY(toolbox)
@@ -32,4 +32,3 @@ set<string, less<string> > xdaq::getPackageDependencies()
 
 	return dependencies;
 }
-
