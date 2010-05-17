@@ -96,7 +96,7 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
 {
   ParsingXML();
 
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"10; URL=/" << getApplicationDescriptor()->getURN() << "/MainPage" << "\">" << std::endl;
+//  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" << getApplicationDescriptor()->getURN() << "/MainPage" << "\">" << std::endl;
 
   if(endcap_side==1)
      MyHeader(in,out,"EmuPeripheralCrateService -- Plus Endcap");
