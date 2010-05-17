@@ -192,7 +192,7 @@ private:
   void InitCounterNames();
       
   void check_controllers();
-  bool ParsingXML();
+  bool ParsingXML(bool reload=false);
   void SetCurrentCrate(int crate);
   int current_crate_;
   //

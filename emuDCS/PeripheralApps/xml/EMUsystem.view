@@ -71,7 +71,7 @@
       <sql:parameter name="EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
-      <![CDATA[select * from EMU_PERIPHERALCRATE where EMU_CONFIG_ID=$EMU_CONFIG_ID]]>
+      <![CDATA[select * from EMU_PERIPHERALCRATE where EMU_CONFIG_ID=$EMU_CONFIG_ID order by CRATEID]]>
     </sql:query>
       <sql:query xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate_diff" expectedRows="30">
       <sql:parameter name="OLD_EMU_CONFIG_ID">

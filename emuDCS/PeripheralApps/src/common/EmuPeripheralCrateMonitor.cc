@@ -1589,13 +1589,15 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
      this->Default(in,out);
   }
 
-  bool EmuPeripheralCrateMonitor::ParsingXML()
+  bool EmuPeripheralCrateMonitor::ParsingXML(bool reload)
 {
+  if( parsed==0 || (reload && Xml_or_Db() == -1))
+  {
     std::string config_src, config_key;
     //
-    Logger logger_ = getApplicationLogger();
+    // Logger logger_ = getApplicationLogger();
     //
-    LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService reloading...");
+    std::cout << "EmuPeripheralCrate reloading..." << std::endl;
     //
     config_src = XML_or_DB_.toString();
     // std::cout << "XML_or_DB: " << config_src << std::endl;
@@ -1633,6 +1635,8 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
     parsed=1;
     return true;
   }
+  return false;
+}
 
   void EmuPeripheralCrateMonitor::SetCurrentCrate(int cr)
   {  
@@ -2980,6 +2984,11 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
         *out << ans;
      }
      *out << std::endl;
+  }
+  else if (command_name=="RELOAD")
+  {
+     ParsingXML(true);
+     std::cout << " Check Configuration DB, auto reload if needed " << std::endl;
   }
 }
 
