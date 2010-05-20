@@ -14,7 +14,6 @@
 #include "xdata/Integer.h"
 #include "xdata/Vector.h"
 #include "emu/supervisor/RunInfo.h"
-#include "emu/supervisor/ELog.h"
 #include "emu/base/Supervised.h"
 #include "emu/base/WebReporter.h"
 #include "emu/base/FactFinder.h"
@@ -233,14 +232,6 @@ private:
   string globalRunNumber_; // The global run number entered by the user.
   bool   badRun_;          // User's judgement on the run.
 
-  xdata::Boolean postToELog_;         // whether or not to post to e-log
-  xdata::String curlHost_;            // host on which to execute the curl command
-  xdata::String curlCommand_;         // the curl command's full path
-  xdata::String curlCookies_;         // file for cookies
-  xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
-  xdata::String eLogUserFile_;        // file that contains the username:password:author for eLog user
-  xdata::String eLogURL_;             // eLog's URL 
-
   emu::supervisor::RunInfo *runInfo_; // communicates with run database
 
   xdata::String runDbBookingCommand_; // e.g. "java -jar runnumberbooker.jar"
@@ -248,8 +239,7 @@ private:
   xdata::String runDbAddress_;        // e.g. "dbc:oracle:thin:@oracms.cern.ch:10121:omds"
   xdata::String runDbUserFile_;       // file that contains the username:password for run db user
   void bookRunNumber();
-  void writeRunInfo( bool toDatabase, bool toELog );
-  void postToELog( string subject, string body, vector<string> *attachments=0 );
+  void writeRunInfo();
   bool isBookedRunNumber_;
   bool abortedRun_; // The run is aborted if it is never started (only configured).
 
