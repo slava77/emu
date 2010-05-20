@@ -5028,22 +5028,6 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
 
   s->addItemChangedListener("supervisedMode",this);
 
-  postToELog_   = true;
-  curlHost_     = "cmsusr1.cms";
-  curlCommand_  = "curl";
-  curlCookies_  = ".curlCookies";
-  CMSUserFile_  = "";
-  eLogUserFile_ = "";
-  eLogURL_      = "";
-
-  s->fireItemAvailable( "postToELog",   &postToELog_   );
-  s->fireItemAvailable( "curlHost",     &curlHost_     );
-  s->fireItemAvailable( "curlCommand",  &curlCommand_  );
-  s->fireItemAvailable( "curlCookies", 	&curlCookies_  );
-  s->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
-  s->fireItemAvailable( "eLogUserFile",	&eLogUserFile_ );
-  s->fireItemAvailable( "eLogURL",     	&eLogURL_      );
-
   runDbBookingCommand_ = "java -jar runnumberbooker.jar";
   runDbWritingCommand_ = "java -jar runinfowriter.jar";
   runDbAddress_        = "dbc:oracle:thin:@oracms.cern.ch:10121:omds";
@@ -5925,8 +5909,8 @@ void emu::daq::manager::Application::bookRunNumber(){
 
 }
 
-void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog ){
-  // Update run info db and post to eLog as well
+void emu::daq::manager::Application::writeRunInfo(){
+  // Update run info db
 
   // Don't write about debug runs:
   if ( runType_.toString() == "Debug" ||  runType_.toString().find("STEP",0) != string::npos ) return;
@@ -5935,7 +5919,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
   if ( abortedRun_ ) return;
 
   // If it's not a debug run, it should normally have been booked. Inform the user that it somehow wasn't.
-  if ( toDatabase && !isBookedRunNumber_ ){ 
+  if ( !isBookedRunNumber_ ){ 
     LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
     stringstream ss66;
     ss66 <<  "Nothing written to run database as no run number was booked.";
@@ -5943,19 +5927,6 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     this->notifyQualified( "warning", eObj );
   }
 
-    stringstream subjectToELog;
-    subjectToELog << "Emu local run " << runNumber_.value_
-		  << " (" << runType_.value_ << ")" << ( badRun_? " is bad" : "" );
-
-    //
-    // run number; bad run; global run number
-    //
-    stringstream htmlMessageToELog;
-    htmlMessageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
-    htmlMessageToELog << "<table>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run number</td><td>" << runNumber_.value_ << "</td></tr>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">bad run</td><td>" << ( badRun_? "true" : "false" ) << "</td></tr>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">global run number</td><td>" << globalRunNumber_ << "</td></tr>";
 
     bool success = false;
     const string nameSpace = "CMS.CSC";
@@ -5966,8 +5937,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     //
     name      = "run_type";
     value     = runType_.value_;
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << runType_.value_ << "</td></tr>";
-    if ( toDatabase && isBookedRunNumber_ ){
+    if (  isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6006,10 +5976,9 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
 	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss68.str(), e );
 	this->notifyQualified( "error", eObj );
       }
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << runStartTime << "</td></tr>";
     name      = "start_time";
     value     = runStartTime;
-    if ( toDatabase && isBookedRunNumber_ ){
+    if (  isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6050,8 +6019,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
       }
     name      = "stop_time";
     value     = runStopTime;
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
-    if ( toDatabase && isBookedRunNumber_ ){
+    if (  isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6074,57 +6042,12 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
 
 
     //
-    // comments
-    //
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">comments</td><td>" << textToHtml(comments_) << "</td></tr>";
-
-
-//     //
-//     // trigger mode
-//     //
-//     getTriggerMode();
-//     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
-//     htmlMessageToELog << "<td><table>";
-//     htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger mode" << "</td><td align=\"right\">" 
-// 		      << TF_triggerMode_.toString() << "</td></tr>";
-//     htmlMessageToELog << "</table></td></tr>";
-//     name  = "trigger_mode";
-//     value = TF_triggerMode_.toString();
-//     if ( toDatabase && isBookedRunNumber_ ){
-//       success = runInfo_->writeRunInfo( name, value, nameSpace );
-//       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-// 				     nameSpace << ":" << name << " = " << value ); }
-//       else          { LOG4CPLUS_ERROR(logger_,
-// 				      "Failed to write " << nameSpace << ":" << name << 
-// 				      " to run database " << runDbAddress_.toString() <<
-// 				      " : " << runInfo_->errorMessage() ); }
-//       else          { stringstream ss72;
-//       else          { ss72 << 
-// 				      "Failed to write " << nameSpace << ":" << name << 
-// 				      " to run database " << runDbAddress_.toString() <<
-// 				      " : " << runInfo_->errorMessage() ; }
-//       else          { XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss72.str() );
-//       else          { this->notifyQualified( "error", eObj );
-//     }
-
-    //
     // trigger sources
     //
     getTriggerSources();
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci (TF)</td>";
-    htmlMessageToELog << "<td><table>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "clock source"   << "</td><td align=\"right\">" 
-		      << TTCci_ClockSource_.toString()   << "</td></tr>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "orbit source"   << "</td><td align=\"right\">" 
-		      << TTCci_OrbitSource_.toString()   << "</td></tr>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger source" << "</td><td align=\"right\">" 
-		      << TTCci_TriggerSource_.toString() << "</td></tr>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "BGO source"     << "</td><td align=\"right\">" 
-		      << TTCci_BGOSource_.toString()     << "</td></tr>";
-    htmlMessageToELog << "</table></td></tr>";
     name  = "clock_source";
     value = TTCci_ClockSource_.toString();
-    if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
+    if (  isBookedRunNumber_ && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6146,7 +6069,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     }
     name  = "orbit_source";
     value = TTCci_OrbitSource_.toString();
-    if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
+    if (  isBookedRunNumber_ && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6168,7 +6091,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     }
     name  = "trigger_source";
     value = TTCci_TriggerSource_.toString();
-    if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
+    if (  isBookedRunNumber_ && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6188,7 +6111,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     }
     name  = "BGO_source";
     value = TTCci_BGOSource_.toString();
-    if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
+    if (  isBookedRunNumber_ && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6217,8 +6140,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
       int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
       name      = "built_events";
       value     = counts.at(nFUs)["count"]; // the last element is the sum of all FUs' event counts
-      htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
-      if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
+      if (  isBookedRunNumber_ && runInfo_ != NULL ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
 	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6243,15 +6165,13 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     //
     // emu::daq::rui::Application event counts
     //
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events read</td><td><table>";
     counts.clear();
     counts = getRUIEventCounts();
     int nRUIs = counts.size();
     for ( int rui=0; rui<nRUIs; ++rui ){
       name  = "EmuRUI"+counts.at(rui)["appInst"];
       value = counts.at(rui)["count"];
-      htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
-      if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
+      if (  isBookedRunNumber_ && runInfo_ != NULL ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
 	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6272,60 +6192,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
 	}
       }
     }
-    htmlMessageToELog << "</table>";
 
-    htmlMessageToELog << "</td></tr></table>";
-
-
-    if ( toELog && postToELog_.value_ ){
-      vector<string> attachments;
-      postToELog( subjectToELog.str(), htmlMessageToELog.str(), &attachments );
-
-      // Just in case submission to e-log failed...
-      cout << 
-	"\n========================================================================\n" <<
-	"If automatic posting to eLog address " << eLogURL_.toString() << 
-	" failed, post this manually:\nSubject: " << subjectToELog.str() << 
-	"\nBody:\n" << htmlMessageToELog.str() <<
-	"\n========================================================================\n";
-    }
-}
-
-
-void emu::daq::manager::Application::postToELog( string subject, string body, vector<string> *attachments ){
-  // Post to eLog:
-  emu::supervisor::ELog *eel;
-  try
-    {
-      eel = new emu::supervisor::ELog(curlHost_.toString(),
-				      curlCommand_.toString(),
-				      curlCookies_.toString(),
-				      CMSUserFile_.toString(),
-				      eLogUserFile_.toString(),
-				      eLogURL_.toString());
-    }
-  catch( string e ){
-    LOG4CPLUS_ERROR(logger_, e);
-    stringstream ss79;
-    ss79 <<  e;
-    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss79.str() );
-    this->notifyQualified( "error", eObj );
-    eel = 0;
-  }
-  if ( eel ) {
-    string attachmentList;
-    if ( attachments )
-      for ( vector<string>::iterator attm = attachments->begin(); attm != attachments->end(); ++attm )
-	attachmentList += *attm + "\n";
-    LOG4CPLUS_INFO(logger_, 
-		   "Posting to eLog address " << eLogURL_.toString() << 
-		   " as user " << eel->eLogUser() << " (" << eel->CMSUser() << ") " <<
-		   ":\nSubject: " << subject << 
-		   "\nBody:\n" << body <<
-		   "\nAttachments:\n" << attachmentList );
-    eel->postMessage( subject, body, attachments );
-  }
-  delete eel;
 }
 
 
@@ -6617,7 +6484,7 @@ void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
     try
       {
 	// Write to database only if not in supervised mode.
-	writeRunInfo( !supervisedMode_.value_ , true );
+	if ( !supervisedMode_.value_ ) writeRunInfo();
       }
     catch(...)
       {
