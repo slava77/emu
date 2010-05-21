@@ -51,10 +51,6 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
           irdsnd = 1 send immediately, read
           irdsnd = 2 send in buffer, no read
   */
-  if (DEBUG) {
-      printf("devdo: dev=%d, ncmd=%d, nbuf=%d, irdsnd=%d, Cmd %02x %02x\n", 
-       dev, ncmd, nbuf, irdsnd, cmd[0]&0xff, cmd[1]&0xff);
-   }
   if(dev!=99){
   idev=geo[dev].jchan;
   }else{
@@ -62,6 +58,10 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
     if(idev>4&idev!=11)return;
   }
   // printf(" enter devdo %d %d \n",dev,idev);
+  if (DEBUG) {
+      printf("devdo: dev=%d, idev=%d, ncmd=%d, nbuf=%d, irdsnd=%d, Cmd %02x %02x\n", 
+       dev, idev, ncmd, nbuf, irdsnd, cmd[0]&0xff, cmd[1]&0xff);
+   }
 
   //printf(" ENTERING devdo, idev idevo dev %d %d %d \n",idev,idevo,dev);
   /****** check we have same old device otherwise we need to initialize */
