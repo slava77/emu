@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: MPC.h,v 1.3 2010/05/21 12:15:20 liu Exp $
 // $Log: MPC.h,v $
+// Revision 1.3  2010/05/21 12:15:20  liu
+// add MPC mask
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -200,6 +203,9 @@ class MPC : public VMEModule, public EmuLogger {
   void enablePRBS();
   void disablePRBS();
 
+  int ReadMask();
+  void WriteMask(int mask);
+
   void injectSP();      // injects some test patterns into fifos :dan Holmes
   int injectSP(char*); // as above you give me file with data in.:dan Holmes
 
@@ -222,6 +228,7 @@ class MPC : public VMEModule, public EmuLogger {
     /// Various Control & Status registers (CSR3 read only)
     CSR0 = 0x00, CSR1 = 0xAA, CSR2 = 0xAC,
     CSR3 = 0xAE, CSR4 = 0xB8, CSR5 = 0xBA,
+    CSR6 = 0xBC, CSR7 = 0xCA, CSR8 = 0xCC,
     /// L1-accept counter (read only)
     L1ACC = 0xB0,
     /// Transmit 511 words from all FIFO_A in test-mode (write only)

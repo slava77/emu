@@ -311,6 +311,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTurnOff, "DMBTurnOff");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTurnOn, "DMBTurnOn");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTurnOn, "CFEBTurnOn");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPCMask, "MPCMask");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBLoadFirmware, "DMBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmware, "DMBVmeLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
@@ -547,6 +548,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
         InFlash_config_ID = myTStore->getLastConfigIdUsed( (Valid_config_ID=="-1")?"plus":"minus" );
         myTStore->getConfigIds(configIDs,(Valid_config_ID=="-1")?"plus":"minus",50);
         
+        *out << "Config ID in FLASH is :" << InFlash_config_ID << cgicc::br() << std::endl;
         int n_ids = configIDs.size();
         if(n_ids>0 && n_ids<51)
         {
@@ -580,6 +582,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
            *out << cgicc::form() << cgicc::br() << cgicc::hr() << std::endl;
            //End select config
         } 
+        return;
      }
      else
      {   ParsingXML();
@@ -6564,6 +6567,27 @@ void EmuPeripheralCrateConfig::DMBTurnOff(xgi::Input * in, xgi::Output * out )
   //
 }
 //
+void EmuPeripheralCrateConfig::MPCMask(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("mask");
+  //
+  int mask=0;
+  if(name != cgi.getElements().end()) {
+    mask = cgi["mask"]->getIntegerValue();
+    // std::cout << "MPCMask: " << mask << std::endl;
+  }
+  std::cout << "MPC Mask set to " << std::hex << mask << std::dec << std::endl;
+  mask = mask & 0x1FF;
+  thisMPC->WriteMask(mask);
+  //
+  this->MPCUtils(in,out);
+  //
+}
+//
+//
 void EmuPeripheralCrateConfig::DMBLoadFirmware(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -11213,6 +11237,77 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::h1(Name);
   *out << cgicc::br();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
+  //
+  *out << cgicc::legend("TMB Mask Control").set("style","color:blue") ;
+  //
+  *out << cgicc::table().set("border","1");
+  //
+  int power_state[10];
+  int powermask = thisMPC->ReadMask();
+  int power_read = powermask;
+  for(int icc=0; icc<9; icc++)
+  {   power_state[9-icc]= power_read & 1;
+      power_read = power_read>>1;
+  }
+  for(int icc=1; icc<=9; icc++)
+  {
+     *out << cgicc::td();
+     if(power_state[icc]==0)
+        *out << cgicc::span().set("style","color:green");
+     else if(power_state[icc]==1)
+        *out << cgicc::span().set("style","color:red");
+     else
+        *out << cgicc::span().set("style","color:black");
+     *out << "TMB " << icc;
+     *out << cgicc::span() << cgicc::td();
+  }
+  *out << cgicc::tr();
+
+  for(int icc=1; icc<=9; icc++)
+  {
+     *out << cgicc::td();
+     if(power_state[icc]==0)
+     {
+        *out << "On";
+     }
+     else
+     {
+        std::string MPCMask = toolbox::toString("/%s/MPCMask",getApplicationDescriptor()->getURN().c_str());
+        *out << cgicc::form().set("method","GET").set("action",MPCMask) << std::endl ;
+        *out << cgicc::input().set("type","submit").set("value","Turn On") << std::endl ;
+        sprintf(buf, "%d", powermask^(1<<(9-icc)) ); 
+        *out << cgicc::input().set("type","hidden").set("value",buf).set("name","mask");
+        *out << cgicc::form() << std::endl ;
+     }
+     *out << cgicc::td();
+  }
+
+  *out << cgicc::tr();
+
+  for(int icc=1; icc<=9; icc++)
+  {
+     *out << cgicc::td();
+     if(power_state[icc]==0)
+     {
+        std::string MPCMask = toolbox::toString("/%s/MPCMask",getApplicationDescriptor()->getURN().c_str());
+        *out << cgicc::form().set("method","GET").set("action",MPCMask) << std::endl ;
+        *out << cgicc::input().set("type","submit").set("value","Turn Off") << std::endl ;
+        sprintf(buf, "%d", powermask|(1<<(9-icc)) );
+        *out << cgicc::input().set("type","hidden").set("value",buf).set("name","mask");
+        *out << cgicc::form() << std::endl ;
+     }
+     else
+     {
+        *out << "Off";
+     }
+     *out << cgicc::td();
+  }
+ // *out << cgicc::tr();
+  *out << cgicc::table();
+  //
+  *out << cgicc::fieldset() << cgicc::br();
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
