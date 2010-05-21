@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.17 2010/05/05 11:46:58 liu Exp $
+// $Id: MPC.cc,v 3.18 2010/05/21 12:15:20 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.18  2010/05/21 12:15:20  liu
+// add MPC mask
+//
 // Revision 3.17  2010/05/05 11:46:58  liu
 // make some stdout prints optional
 //
@@ -472,6 +475,51 @@ void MPC::disablePRBS(){
 
   (*MyOutput_) << "MPC: PRBS mode disabled" << std::endl;
 }
+
+int MPC::ReadMask()
+{
+  // return mask:  bit 0 ---- bit 8
+  //               TMB9 ....  TMB1
+  // bit=1 if both LCT0 & LCT1 are disabled 
+  // bit=0 if either LCT is enabled
+
+  int data, mask;
+
+  read_later(CSR7);
+  read_now(CSR8, (char *) &data);
+
+  mask=0;
+  for(int i=0; i<9; i++)
+  {
+     mask = mask << 1;
+     if((data&3)==3) mask |= 1;
+     data = data >> 2;
+  }
+
+  (*MyOutput_) << "read MPC mask :" << std::hex << mask << std::dec << std::endl;
+  return mask;
+}
+
+void MPC::WriteMask(int mask)
+{
+  unsigned short raw;
+  unsigned data;
+
+  data=0;
+  for(int i=0; i<9; i++)
+  {
+     data = data << 2;
+     if(mask&1) data |= 3;
+     mask = mask >> 1;
+  }
+  raw = data&0xFFFF;
+  write_later(CSR7, raw);
+  raw = (data>>16)&3;
+  write_now(CSR8, raw, rcvbuf);
+
+  (*MyOutput_) << "MPC mask set to: " << std::hex << mask << std::dec << std::endl;
+}
+
 
 void MPC::injectSP(){
 
