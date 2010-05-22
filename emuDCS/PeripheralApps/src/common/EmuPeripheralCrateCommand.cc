@@ -651,25 +651,76 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
 xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalCFEB (xoap::MessageReference message)
   throw (xoap::exception::Exception) 
 {
+  char dmbstatus[11];
+
   if(!parsed) ParsingXML();
   int cfeb_clk_delay=31;
   int pre_block_end=7;
   int feb_cable_delay=0;
+  int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
+  float dac=1.00;
 
   for(unsigned i=0; i< crateVector.size(); i++) {
     if ( crateVector[i]->IsAlive() ) {
       SetCurrentCrate(i);
-      std::cout << "Configuring DMB's in crate " << thisCrate->GetLabel() << std::endl;
-      for (unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-        dmbVector[dmb]->settrgsrc(1);
-        dmbVector[dmb]->fxpreblkend(pre_block_end);
-        dmbVector[dmb]->SetCfebClkDelay(cfeb_clk_delay);
-        dmbVector[dmb]->setfebdelay(dmbVector[dmb]->GetKillFlatClk());
-        dmbVector[dmb]->load_feb_clk_delay();
-        dmbVector[dmb]->SetCfebCableDelay(feb_cable_delay);
-        dmbVector[dmb]->setcbldly(dmbVector[dmb]->GetCableDelay());
-        dmbVector[dmb]->calctrl_global();
 
+// Liu to debug DMB 
+//      thisCrate->vmeController()->Debug(10);
+
+      std::cout << "Configuring DAQMB's in crate " << thisCrate->GetLabel() << std::endl;
+
+//	  thisCCB->hardReset();
+      //
+
+      for (unsigned int tmb=0; tmb<tmbVector.size(); tmb++) 
+      {
+          tmbVector[tmb]->DisableCLCTInputs();
+          tmbVector[tmb]->DisableALCTInputs();
+          // std::cout << "Disabling inputs for TMB slot  " << tmbVector[tmb]->slot() << std::endl;
+      }
+
+      //
+      for (unsigned int dmb=0; dmb<dmbVector.size(); dmb++) 
+      {
+	  //
+	  std::cout << "Configuring DAQMB " << (chamberVector[dmb]->GetLabel()).c_str() << std::endl;
+
+          dmbVector[dmb]->calctrl_fifomrst();
+          usleep(5000);
+          dmbVector[dmb]->restoreCFEBIdle();
+          dmbVector[dmb]->restoreMotherboardIdle();
+          //   float dac=1.00;
+          dmbVector[dmb]->set_cal_dac(dac,dac);
+          // int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
+          dmbVector[dmb]->setcaldelay(dword);
+
+	  dmbVector[dmb]->settrgsrc(1);
+	  dmbVector[dmb]->fxpreblkend(pre_block_end);
+	  dmbVector[dmb]->SetCfebClkDelay(cfeb_clk_delay);
+	  dmbVector[dmb]->setfebdelay(dmbVector[dmb]->GetKillFlatClk());
+	  dmbVector[dmb]->load_feb_clk_delay();
+	  if(dmbVector[dmb]->GetCfebCableDelay() == 1){
+	    // In the calibration, we set all cfeb_cable_delay=0 for all DMB's for
+	    // timing analysis.  If the collision setting is normally cfeb_cable_delay=1,
+	    // in order to ensure the proper timing of the CFEB DAV, we will need to 
+	    // adjust cfeb_dav_cable_delay to follow the change of cfeb_cable_delay...
+	    dmbVector[dmb]->SetCfebDavCableDelay(dmbVector[dmb]->GetCfebDavCableDelay()+1);
+	  }
+	  dmbVector[dmb]->SetCfebCableDelay(feb_cable_delay);
+	  dmbVector[dmb]->setcbldly(dmbVector[dmb]->GetCableDelay());
+	  dmbVector[dmb]->calctrl_global();
+	  //
+	  // Now check the DAQMB status.  Did the configuration "take"?
+	  std::cout << "After config: check status " << (chamberVector[dmb]->GetLabel()).c_str() << std::endl;
+	  usleep(50);
+	  dmbVector[dmb]->dmb_readstatus(dmbstatus);
+	  if( ((dmbstatus[9]&0xff)==0x00 || (dmbstatus[9]&0xff)==0xff) || 
+ 	      ((dmbstatus[8]&0xff)==0x00 || (dmbstatus[8]&0xff)==0xff) ||
+ 	      ((dmbstatus[7]&0xff)==0x00 || (dmbstatus[7]&0xff)==0xff) ||
+ 	      ((dmbstatus[6]&0xff)==0x00 || (dmbstatus[6]&0xff)==0xff) ||
+	      ((dmbstatus[0]&0xff)!=0x21)                              ) {
+	    std::cout << "... config check not OK for " << (chamberVector[dmb]->GetLabel()).c_str() << std::endl;
+ 	  }
       }
     }
   }
