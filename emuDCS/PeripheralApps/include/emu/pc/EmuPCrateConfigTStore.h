@@ -34,7 +34,7 @@
 #include "emu/pc/Crate.h"
 #include "emu/pc/EmuEndcap.h"
 #include "emu/pc/VMECC.h"
-#include "emu/base/ConfigurationEditor.h"
+#include "emu/db/ConfigurationEditor.h"
 
 #include <sstream>
 
@@ -43,7 +43,7 @@ namespace emu {
 	typedef std::map<std::string,unsigned int> TableChangeSummary;
 	  typedef std::map<std::string,TableChangeSummary > ChangeSummary;
 	  
-class EmuPCrateConfigTStore: public emu::base::ConfigurationEditor
+class EmuPCrateConfigTStore: public emu::db::ConfigurationEditor
 {
 
 public:
