@@ -22,8 +22,6 @@ Sources = \
         Supervised.cc \
 	WebReporter.cc \
 	WebReportItem.cc \
-	ConfigurationEditor.cc \
-	TStoreRequest.cc \
 	Fact.cc \
 	FactCollection.cc \
 	FactRequest.cc \

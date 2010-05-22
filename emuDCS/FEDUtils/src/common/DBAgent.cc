@@ -1,11 +1,11 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.13 2010/04/27 08:35:54 paste Exp $
+* $Id: DBAgent.cc,v 1.14 2010/05/22 21:47:57 liu Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
 #include <sstream>
 
-#include "emu/base/TStoreRequest.h"
+#include "emu/db/TStoreRequest.h"
 #include "toolbox/TimeInterval.h"
 #include "tstore/client/Client.h"
 #include "tstore/client/AttachmentUtils.h"
@@ -40,7 +40,7 @@ throw (emu::fed::exception::DBException)
 {
 	//maybe if a connectionID has already been set using setConnectionID, this function should just renew it, or do nothing.
 	
-	emu::base::TStoreRequest request("connect");
+	emu::db::TStoreRequest request("connect");
 	
 	// Add view ID
 	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUFEDsystem");
@@ -81,7 +81,7 @@ throw (emu::fed::exception::DBException)
 
 void emu::fed::DBAgent::disconnect()
 throw (emu::fed::exception::DBException) {
-	emu::base::TStoreRequest request("disconnect");
+	emu::db::TStoreRequest request("disconnect");
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID", connectionID_);
@@ -109,7 +109,7 @@ throw (emu::fed::exception::DBException) {
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query", viewClass);
+	emu::db::TStoreRequest request("query", viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID", connectionID_);
@@ -154,7 +154,7 @@ throw (emu::fed::exception::DBException) {
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("insert", viewClass);
+	emu::db::TStoreRequest request("insert", viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID", connectionID_);

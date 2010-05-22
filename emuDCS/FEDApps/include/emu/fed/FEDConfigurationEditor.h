@@ -1,7 +1,7 @@
 #ifndef _FEDConfigurationEditor_h_
 #define _FEDConfigurationEditor_h_
 
-#include "emu/base/ConfigurationEditor.h"
+#include "emu/db/ConfigurationEditor.h"
 #include "xdata/String.h"
 #include "emu/fed/Exception.h"
 #include "emu/fed/DBAgent.h"
@@ -11,7 +11,7 @@
 namespace emu {
 	namespace fed {
 
-		class FEDConfigurationEditor: public emu::base::ConfigurationEditor
+		class FEDConfigurationEditor: public emu::db::ConfigurationEditor
 		{
 
 		public:

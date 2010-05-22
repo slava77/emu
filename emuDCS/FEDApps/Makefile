@@ -40,6 +40,7 @@ IncludeDirs = \
 	$(BUILD_HOME)/emu/base/include \
 	$(BUILD_HOME)/emu/emuDCS/FEDCore/include \
 	$(BUILD_HOME)/emu/emuDCS/FEDUtils/include \
+	$(BUILD_HOME)/emu/emuDCS/OnlineDB/include \
 	$(XDAQ_ROOT)/include \
 	$(XDAQ_ROOT)/include/$(XDAQ_OS)
 
