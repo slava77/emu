@@ -1,5 +1,5 @@
 #include "emu/pc/EmuPCrateConfigTStore.h"
-#include "emu/base/TStoreRequest.h"
+#include "emu/db/TStoreRequest.h"
 
 #include <time.h>
 #include "toolbox/TimeInterval.h"
@@ -28,7 +28,7 @@
 #include "tstore/client/AttachmentUtils.h"
 #include "tstore/client/LoadDOM.h"
 #include "tstore/client/Client.h"
-#include "emu/base/ConfigurationEditor.h"
+#include "emu/db/ConfigurationEditor.h"
 
 
 XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
@@ -36,7 +36,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   namespace emu {
     namespace pc {
 
-  EmuPCrateConfigTStore::EmuPCrateConfigTStore(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception): emu::base::ConfigurationEditor(s)
+  EmuPCrateConfigTStore::EmuPCrateConfigTStore(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception): emu::db::ConfigurationEditor(s)
 {
   xgi::bind(this,&EmuPCrateConfigTStore::SetTypeDesc, "SetTypeDesc");
   xgi::bind(this,&EmuPCrateConfigTStore::SelectTestSummaryFile, "SelectTestSummaryFile");
@@ -353,7 +353,7 @@ crateIDsInDiff.clear();
 		}
 	}
     diffCSC(connectionID, old_emu_config_id, old_periph_config_id, new_emu_config_id, new_periph_config_id, crateid);
-    std::cout << "#### PERIPHERAL_CRATE:  " << periph_config_id << " --- " << emu::base::to_string(crateid) << " --- " << label << std::endl;
+    std::cout << "#### PERIPHERAL_CRATE:  " << periph_config_id << " --- " << emu::db::to_string(crateid) << " --- " << label << std::endl;
 }
 } 
 
@@ -481,7 +481,7 @@ void EmuPCrateConfigTStore::applyTestSummary(xgi::Input * in, xgi::Output * out 
 		}
 		
 		for (std::map<std::string,signed int>::iterator rxID=TTCrxIDs.begin();rxID!=TTCrxIDs.end();++rxID)  {
-			xdata::Table &ccbTableToChange=emu::base::ConfigurationEditor::getCachedTable(std::string("ccb"),rxID->first);//valueForKeyContaining(currentTables["ccb"],rxID->first);
+			xdata::Table &ccbTableToChange=emu::db::ConfigurationEditor::getCachedTable(std::string("ccb"),rxID->first);//valueForKeyContaining(currentTables["ccb"],rxID->first);
 			ccbTableToChange.getValueAt(0,"TTCRXID")->fromString(toolbox::toString("%d",rxID->second));
 		}
 		outputCurrentConfiguration(out);
@@ -616,26 +616,26 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
 				if(chambers[chamberIndex]) {
 						copyCSCToTable(dataAsTable,chambers[chamberIndex]);
 						std::string chamber=chamberID(myCrates[i]->CrateID(),chambers[chamberIndex]->GetLabel());
-						emu::base::ConfigurationEditor::setCachedTable("csc",chamber,dataAsTable);
+						emu::db::ConfigurationEditor::setCachedTable("csc",chamber,dataAsTable);
 						DAQMB *dmb=chambers[chamberIndex]->GetDMB();
 						if (dmb) {
 							std::string cacheIdentifier=DAQMBID(chamber,dmb->slot());
 							copyDAQMBToTable(dataAsTable,dmb);
-							emu::base::ConfigurationEditor::setCachedTable("daqmb",cacheIdentifier,dataAsTable);
+							emu::db::ConfigurationEditor::setCachedTable("daqmb",cacheIdentifier,dataAsTable);
 							copyCFEBToTable(dataAsTable,dmb);
-							emu::base::ConfigurationEditor::setCachedTable("cfeb",cacheIdentifier,dataAsTable);
+							emu::db::ConfigurationEditor::setCachedTable("cfeb",cacheIdentifier,dataAsTable);
 						}
 						TMB *tmb=chambers[chamberIndex]->GetTMB();
 						if (tmb) {
 							std::string cacheIdentifier=DAQMBID(chamber,tmb->slot());
 							copyTMBToTable(dataAsTable,tmb);
-							emu::base::ConfigurationEditor::setCachedTable("tmb",cacheIdentifier,dataAsTable);
+							emu::db::ConfigurationEditor::setCachedTable("tmb",cacheIdentifier,dataAsTable);
 							 ALCTController * thisALCT = tmb->alctController();
 						    if(thisALCT) {	
 							copyALCTToTable(dataAsTable,thisALCT);
-							emu::base::ConfigurationEditor::setCachedTable("alct",cacheIdentifier,dataAsTable);
+							emu::db::ConfigurationEditor::setCachedTable("alct",cacheIdentifier,dataAsTable);
 							copyAnodeChannelToTable(dataAsTable,thisALCT);
-							emu::base::ConfigurationEditor::setCachedTable("anodechannel",cacheIdentifier,dataAsTable);
+							emu::db::ConfigurationEditor::setCachedTable("anodechannel",cacheIdentifier,dataAsTable);
                                                     }
 						}
 					}
@@ -661,12 +661,12 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
 
 void EmuPCrateConfigTStore::setCachedTable(const std::string &insertViewName,int crateID,xdata::Table &table/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
 	std::string identifier=crateIdentifierString(crateID);
-	emu::base::ConfigurationEditor::setCachedTable(insertViewName,identifier,table);
+	emu::db::ConfigurationEditor::setCachedTable(insertViewName,identifier,table);
 }
 
 void EmuPCrateConfigTStore::setCachedDiff(const std::string &insertViewName,int crateID,xdata::Table &table/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
 	std::string identifier=crateIdentifierString(crateID);
-	emu::base::ConfigurationEditor::setCachedDiff(insertViewName,identifier,table);
+	emu::db::ConfigurationEditor::setCachedDiff(insertViewName,identifier,table);
 }
 
 void EmuPCrateConfigTStore::readConfigFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
@@ -741,10 +741,10 @@ void EmuPCrateConfigTStore::queryMaxId(const std::string &connectionID, const st
 	//case you can find out the view class using the TStore client library:
 	std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
 	
-	//If we give the name of the view class when constructing the emu::base::TStoreRequest, 
+	//If we give the name of the view class when constructing the emu::db::TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -790,10 +790,10 @@ void EmuPCrateConfigTStore::diff(const std::string &connectionID, const std::str
 	//case you can find out the view class using the TStore client library:
 	std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
 	
-	//If we give the name of the view class when constructing the emu::base::TStoreRequest, 
+	//If we give the name of the view class when constructing the emu::db::TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -834,10 +834,10 @@ void EmuPCrateConfigTStore::query(const std::string &connectionID, const std::st
 	//case you can find out the view class using the TStore client library:
 	std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
 	
-	//If we give the name of the view class when constructing the emu::base::TStoreRequest, 
+	//If we give the name of the view class when constructing the emu::db::TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -874,10 +874,10 @@ void EmuPCrateConfigTStore::insert(const std::string &connectionID, const std::s
 	//case you can find out the view class using the TStore client library:
 	std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
 	
-	//If we give the name of the view class when constructing the emu::base::TStoreRequest, 
+	//If we give the name of the view class when constructing the emu::db::TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("insert",viewClass);
+	emu::db::TStoreRequest request("insert",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -1295,12 +1295,12 @@ try {
 
 xdata::Table &EmuPCrateConfigTStore::getCachedDiff(const std::string &insertViewName,int crateID/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
 	std::string identifier=crateIdentifierString(crateID);
-	return emu::base::ConfigurationEditor::getCachedDiff(insertViewName,identifier);
+	return emu::db::ConfigurationEditor::getCachedDiff(insertViewName,identifier);
 }
 
 xdata::Table &EmuPCrateConfigTStore::getCachedTable(const std::string &insertViewName,int crateID/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
 	std::string identifier=crateIdentifierString(crateID)+" ";
-	return emu::base::ConfigurationEditor::getCachedTable(insertViewName,identifier);
+	return emu::db::ConfigurationEditor::getCachedTable(insertViewName,identifier);
 }
 
 void EmuPCrateConfigTStore::uploadVMECC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, /*Crate * TStore_thisCrate*/int crateID) throw (xcept::Exception) {
@@ -1367,7 +1367,7 @@ void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::Un
     if(TStore_allChambers[j]) {      
       _csc_config_id = periph_config_id + (j+1)*10000;
 		std::string chamber=chamberID(crateID,TStore_allChambers[j]->GetLabel());
-		xdata::Table &newRows=emu::base::ConfigurationEditor::getCachedTable(insertViewName,chamber);
+		xdata::Table &newRows=emu::db::ConfigurationEditor::getCachedTable(insertViewName,chamber);
 
       setConfigID(newRows,rowId, CSC_CONFIG_ID,    _csc_config_id);
       newRows.setValueAt(rowId, EMU_CONFIG_ID,    emu_config_id_);
@@ -1421,7 +1421,7 @@ void EmuPCrateConfigTStore::copyDAQMBToTable(xdata::Table &newRows,DAQMB * TStor
   xdata::UnsignedShort     _comp_timing             = TStore_thisDAQMB->GetCompTiming(); 
    xdata::String            _dmb_cntl_firmware_tag;
   std::string valueInHex;
-  emu::base::convertToHex(valueInHex,"%lx",TStore_thisDAQMB->GetExpectedControlFirmwareTag());
+  emu::db::convertToHex(valueInHex,"%lx",TStore_thisDAQMB->GetExpectedControlFirmwareTag());
   _dmb_cntl_firmware_tag = valueInHex;
   xdata::UnsignedShort     _dmb_vme_firmware_tag    = TStore_thisDAQMB->GetExpectedVMEFirmwareTag();
   xdata::UnsignedShort     _feb_clock_delay         = TStore_thisDAQMB->GetCfebClkDelay();
@@ -1467,7 +1467,7 @@ void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::
   
   std::string insertViewName="daqmb";
   std::string identifier=DAQMBID(chamber,slot);
-  xdata::Table &newRows=emu::base::ConfigurationEditor::getCachedTable(insertViewName,identifier);
+  xdata::Table &newRows=emu::db::ConfigurationEditor::getCachedTable(insertViewName,identifier);
   
   size_t rowId(0);
   std::string CSC_CONFIG_ID("CSC_CONFIG_ID");
@@ -1507,19 +1507,19 @@ void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows,DAQMB * TStore
   std::vector<CFEB> &TStore_allCFEBs = TStore_thisDAQMB->cfebs_;//was using TStore_thisDAQMB->cfebs();, but this means copying the whole thing, which results in a bad_alloc if there is something uninitialised, making it harder to diagnose problems
   for(unsigned j = 0; j < TStore_allCFEBs.size(); ++j) {
    xdata::UnsignedShort      _cfeb_number       = TStore_allCFEBs[j].number();
-    emu::base::convertToHex(valueInHex,"%lx",TStore_thisDAQMB->GetExpectedCFEBFirmwareTag(_cfeb_number));
+    emu::db::convertToHex(valueInHex,"%lx",TStore_thisDAQMB->GetExpectedCFEBFirmwareTag(_cfeb_number));
     xdata::String _cfeb_firmware_tag = valueInHex;
-    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 0));
+    emu::db::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 0));
     xdata::String _kill_chip0 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 1));
+    emu::db::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 1));
     xdata::String _kill_chip1 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 2));
+    emu::db::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 2));
     xdata::String _kill_chip2 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 3));
+    emu::db::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 3));
     xdata::String _kill_chip3 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 4));
+    emu::db::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 4));
     xdata::String _kill_chip4 = valueInHex;
-    emu::base::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 5));
+    emu::db::convertToHex(valueInHex,"%05x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 5));
     xdata::String _kill_chip5 = valueInHex;
     
     #ifdef debugV
@@ -1559,7 +1559,7 @@ void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows,DAQMB * TStore
 void EmuPCrateConfigTStore::uploadCFEB(const std::string &connectionID, xdata::UnsignedInteger64 &daqmb_config_id,const std::string &identifier) throw (xcept::Exception) {
   
   std::string insertViewName="cfeb";
-  xdata::Table &newRows=emu::base::ConfigurationEditor::getCachedTable(insertViewName,identifier);
+  xdata::Table &newRows=emu::db::ConfigurationEditor::getCachedTable(insertViewName,identifier);
   std::string valueInHex;
 
   size_t rowId(0);
@@ -1766,17 +1766,17 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   
   
   std::string valueInHex;
-  emu::base::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(0));
+  emu::db::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(0));
   xdata::String            _layer0_distrip_hot_chann_mask = valueInHex;
-  emu::base::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(1));
+  emu::db::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(1));
   xdata::String            _layer1_distrip_hot_chann_mask = valueInHex;
-  emu::base::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(2));
+  emu::db::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(2));
   xdata::String            _layer2_distrip_hot_chann_mask = valueInHex;
-  emu::base::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(3));
+  emu::db::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(3));
   xdata::String            _layer3_distrip_hot_chann_mask = valueInHex;
-  emu::base::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(4));
+  emu::db::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(4));
   xdata::String            _layer4_distrip_hot_chann_mask = valueInHex;
-  emu::base::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(5));
+  emu::db::convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(5));
   xdata::String            _layer5_distrip_hot_chann_mask = valueInHex;
   //  xdata::UnsignedShort     _layer_trig_delay              = TStore_thisTMB->GetLayerTrigDelay();   // obsolete
   xdata::UnsignedShort     _layer_trig_enable             = TStore_thisTMB->GetEnableLayerTrigger();
@@ -1814,7 +1814,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   xdata::UnsignedShort     _tmb_bxn_offset                = TStore_thisTMB->GetBxnOffset();
   xdata::UnsignedShort     _tmb_fifo_mode                 = TStore_thisTMB->GetFifoMode();
   xdata::UnsignedShort     _tmb_fifo_no_raw_hits          = TStore_thisTMB->GetFifoNoRawHits();
-  emu::base::convertToHex(valueInHex,"%x",TStore_thisTMB->GetTMBFirmwareCompileType());
+  emu::db::convertToHex(valueInHex,"%x",TStore_thisTMB->GetTMBFirmwareCompileType());
   xdata::String            _tmb_firmware_compile_type     = valueInHex;
   xdata::UnsignedShort     _tmb_firmware_day              = TStore_thisTMB->GetExpectedTmbFirmwareDay();
   xdata::UnsignedShort     _tmb_firmware_month            = TStore_thisTMB->GetExpectedTmbFirmwareMonth();
@@ -1988,7 +1988,7 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   
   std::string insertViewName="tmb";
   std::string identifier=DAQMBID(chamber,slot);
-  xdata::Table &newRows=emu::base::ConfigurationEditor::getCachedTable(insertViewName,identifier);
+  xdata::Table &newRows=emu::db::ConfigurationEditor::getCachedTable(insertViewName,identifier);
   std::string valueInHex;
   
   size_t rowId(0);
@@ -2156,7 +2156,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows,ALCTController
 void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::UnsignedInteger64 &tmb_config_id, ALCTController * &TStore_thisALCT,const std::string &identifier) throw (xcept::Exception) {
   
   std::string insertViewName="alct";
-  xdata::Table &newRows=emu::base::ConfigurationEditor::getCachedTable(insertViewName,identifier);
+  xdata::Table &newRows=emu::db::ConfigurationEditor::getCachedTable(insertViewName,identifier);
 
   size_t rowId(0);
   std::string ALCT_CONFIG_ID("ALCT_CONFIG_ID");
@@ -2209,7 +2209,7 @@ void EmuPCrateConfigTStore::copyAnodeChannelToTable(xdata::Table &newRows,ALCTCo
 void EmuPCrateConfigTStore::uploadAnodeChannel(const std::string &connectionID, xdata::UnsignedInteger64 &alct_config_id, ALCTController * &TStore_thisALCT,const std::string &identifier) throw (xcept::Exception) {
   
   std::string insertViewName="anodechannel";
-  xdata::Table &newRows=emu::base::ConfigurationEditor::getCachedTable(insertViewName,identifier);
+  xdata::Table &newRows=emu::db::ConfigurationEditor::getCachedTable(insertViewName,identifier);
 
   size_t rowId(0);
   std::string AFEB_CONFIG_ID("AFEB_CONFIG_ID");
@@ -2340,7 +2340,7 @@ void EmuPCrateConfigTStore::readPeripheralCrate(const std::string &connectionID,
     readCCB(connectionID, emu_config_id, periph_config_id, crate);
     readMPC(connectionID, emu_config_id, periph_config_id, crate);
     readCSC(connectionID, emu_config_id, periph_config_id, crate);
-    std::cout << "#### PERIPHERAL_CRATE:  " << periph_config_id << " --- " << emu::base::to_string(crateid) << " --- " << label << std::endl;
+    std::cout << "#### PERIPHERAL_CRATE:  " << periph_config_id << " --- " << emu::db::to_string(crateid) << " --- " << label << std::endl;
   }
   std::cout << "######## All Peripheral crates are created." << std::endl;
   
@@ -2451,7 +2451,7 @@ std::map<std::string,std::string,xdata::Table::ci_less> &definition=results.getT
       thisRowOnly.setValueAt(0,*column,*value);
     }
     std::string chamber=chamberID(crateID,label);
-    emu::base::ConfigurationEditor::setCachedDiff(queryViewName,chamber,thisRowOnly);
+    emu::db::ConfigurationEditor::setCachedDiff(queryViewName,chamber,thisRowOnly);
     diffDAQMB(connectionID, old_emu_config_id, old_csc_config_id,  new_emu_config_id, new_csc_config_id,chamber);
     diffTMB(connectionID, old_emu_config_id, old_csc_config_id,  new_emu_config_id, new_csc_config_id,chamber);
   }
@@ -2491,7 +2491,7 @@ void EmuPCrateConfigTStore::readCSC(const std::string &connectionID, const std::
     }
     xdata::Table correctedResults; //we can't overwrite results because we are still looping through it
     copyCSCToTable(correctedResults,csc_);
-    emu::base::ConfigurationEditor::setCachedTable(queryViewName,chamberID(theCrate->CrateID(),csc_->GetLabel()),correctedResults);
+    emu::db::ConfigurationEditor::setCachedTable(queryViewName,chamberID(theCrate->CrateID(),csc_->GetLabel()),correctedResults);
     readDAQMB(connectionID, emu_config_id, csc_config_id, theCrate, csc_);
     readTMB(connectionID, emu_config_id, csc_config_id, theCrate, csc_);
   }
@@ -2597,7 +2597,7 @@ std::cout << "DAQMB got " << results.getRowCount() << " rows" << std::endl;
 	}
     }
     
-	emu::base::ConfigurationEditor::setCachedDiff(queryViewName,chamberID,results);
+	emu::db::ConfigurationEditor::setCachedDiff(queryViewName,chamberID,results);
 	diffCFEB(connectionID, old_emu_config_id, old_daqmb_config_id,new_emu_config_id, new_daqmb_config_id,chamberID);
     }
 }
@@ -2685,7 +2685,7 @@ void EmuPCrateConfigTStore::readDAQMB(const std::string &connectionID, const std
     std::string identifier=DAQMBID(chamberID(theCrate->CrateID(),theChamber->GetLabel()),slot);
     readCFEB(connectionID, emu_config_id, daqmb_config_id_, daqmb_,identifier);
     copyDAQMBToTable(results,daqmb_); //this is because the results from TStore have the wrong column types
-  	emu::base::ConfigurationEditor::setCachedTable(queryViewName,identifier,results);
+  	emu::db::ConfigurationEditor::setCachedTable(queryViewName,identifier,results);
   }
 }
 //
@@ -2722,7 +2722,7 @@ void EmuPCrateConfigTStore::readCFEB(const std::string &connectionID, const std:
       if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
       if (*column == "CFEB_NUMBER"){number = IntValue;}
     }
-    std::cout << "CFEB cfeb( " + emu::base::to_string(number) << " )" << std::endl;
+    std::cout << "CFEB cfeb( " + emu::db::to_string(number) << " )" << std::endl;
     CFEB cfeb(number);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
@@ -2774,7 +2774,7 @@ void EmuPCrateConfigTStore::readCFEB(const std::string &connectionID, const std:
     theDaqmb->cfebs_.push_back(cfeb);
   }
   copyCFEBToTable(results,theDaqmb);
-  emu::base::ConfigurationEditor::setCachedTable(queryViewName,cacheIdentifier,results);
+  emu::db::ConfigurationEditor::setCachedTable(queryViewName,cacheIdentifier,results);
 }
 //
 

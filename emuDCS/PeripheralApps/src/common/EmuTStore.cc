@@ -1,5 +1,5 @@
 #include "emu/pc/EmuTStore.h"
-#include "emu/base/TStoreRequest.h"
+#include "emu/db/TStoreRequest.h"
 
 #include <time.h>
 #include "toolbox/TimeInterval.h"
@@ -72,7 +72,7 @@ xoap::MessageReference EmuTStore::sendSOAPMessage(xoap::MessageReference &messag
 }
 
 std::string EmuTStore::connect() throw (xcept::Exception) {
-	emu::base::TStoreRequest request("connect");
+	emu::db::TStoreRequest request("connect");
 	
 	//add the view ID
 	request.addTStoreParameter("id","urn:tstore-view-SQL:EMUsystem");
@@ -98,7 +98,7 @@ std::string EmuTStore::connect() throw (xcept::Exception) {
 }
 
 void EmuTStore::disconnect(const std::string &connectionID) throw (xcept::Exception) {
-	emu::base::TStoreRequest request("disconnect");
+	emu::db::TStoreRequest request("disconnect");
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -119,7 +119,7 @@ void EmuTStore::queryMaxId(const std::string &connectionID, const std::string &q
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -158,7 +158,7 @@ void EmuTStore::query(const std::string &connectionID, const std::string &queryV
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -192,7 +192,7 @@ void EmuTStore::query(const std::string &connectionID, const std::string &queryV
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -230,7 +230,7 @@ void EmuTStore::getDefinition(const std::string &connectionID, const std::string
 	//case you can find out the view class using the TStore client library:
 	std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
 	
-	emu::base::TStoreRequest request("definition",viewClass);
+	emu::db::TStoreRequest request("definition",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -264,7 +264,7 @@ void EmuTStore::insert(const std::string &connectionID, const std::string &inser
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("insert",viewClass);
+	emu::db::TStoreRequest request("insert",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -291,7 +291,7 @@ void EmuTStore::getConfiguration(const std::string &xpath) throw (xcept::Excepti
   // This is to read the configuration from the view file
 
   std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
-  emu::base::TStoreRequest request("getConfiguration",viewClass);
+  emu::db::TStoreRequest request("getConfiguration",viewClass);
 
   //add the view ID
   request.addTStoreParameter("id","urn:tstore-view-SQL:EMUsystem");
@@ -379,7 +379,7 @@ void EmuTStore::getConfigIds(std::vector<std::string> &configIDs,const std::stri
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
@@ -432,7 +432,7 @@ std::string EmuTStore::getLastConfigIdUsed(const std::string &endcap_side) throw
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
