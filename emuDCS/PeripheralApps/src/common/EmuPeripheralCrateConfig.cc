@@ -1283,7 +1283,7 @@ void EmuPeripheralCrateConfig::DefineConfiguration(xgi::Input * in, xgi::Output 
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("Upload Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Upload Configuration...").set("style","color:blue") << std::endl ;
   //
   std::string method = toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
@@ -1779,7 +1779,7 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  *out << cgicc::legend("Actions").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Actions").set("style","color:blue") << std::endl ;
   //
   *out << cgicc::table().set("border","1");
   //
@@ -1824,7 +1824,7 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
   }
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-  *out << cgicc::legend("Time since last hard reset").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Time since last hard reset").set("style","color:blue") << std::endl ;
   //
   bool print_times = false;
   for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) 
@@ -1854,7 +1854,7 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
   *out << cgicc::fieldset();
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-  *out << cgicc::legend("Number of times BC0 is synchronized at TMB").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Number of times BC0 is synchronized at TMB").set("style","color:blue") << std::endl ;
   //
   bool print_sync = false;
   for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) 
@@ -1886,7 +1886,7 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
   //
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-  *out << cgicc::legend("Configuration Status").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Configuration Status").set("style","color:blue") << std::endl ;
   //
   if (all_crates_ok >= 0) {
     //
@@ -3421,7 +3421,7 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   //
   //  ///////////////////////
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-  *out << cgicc::legend("Special test configuration").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Special test configuration").set("style","color:blue") << std::endl ;
   //
   std::string SetRadioactivityTrigger = toolbox::toString("/%s/SetRadioactivityTrigger",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",SetRadioactivityTrigger) << std::endl ;
@@ -3434,7 +3434,7 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   //
   //  ///////////////////////
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-  *out << cgicc::legend("Determine online synchronization parameters").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Determine online synchronization parameters").set("style","color:blue") << std::endl ;
   //
   *out << cgicc::table().set("border","0");
   //
@@ -3482,7 +3482,7 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   //
   //  ///////////////////////
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-  *out << cgicc::legend("Test MPC to SP links").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Test MPC to SP links").set("style","color:blue") << std::endl ;
   //
   if(prbs_test_) {
     std::string StopPRBS = toolbox::toString("/%s/StopPRBS",getApplicationDescriptor()->getURN().c_str());
@@ -3503,7 +3503,7 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   //  ///////////////////////
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("Full configuration check (including Global-run NON-safe parameters)").set("style","color:blue") 
-       << cgicc::p() << std::endl ;
+       << std::endl ;
   //
   std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfigurationFull",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
@@ -4389,7 +4389,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  *out << cgicc::legend("Team A tests").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Team A tests").set("style","color:blue") << std::endl ;
   //
   char buf[20];
   //
@@ -4437,7 +4437,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  *out << cgicc::legend("Expert tools").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Expert tools").set("style","color:blue") << std::endl ;
   //
   //  *out << cgicc::pre();
   //  *out << "   c) Enter above values into xml" << std::endl;
@@ -4866,7 +4866,7 @@ void EmuPeripheralCrateConfig::ALCT_TMB_communication(xgi::Input * in, xgi::Outp
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  *out << cgicc::legend("New tests").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("New tests").set("style","color:blue") << std::endl ;
   //
   std::string ALCT_TMB_Loopback = toolbox::toString("/%s/ALCT_TMB_Loopback",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ALCT_TMB_Loopback) << std::endl ;
@@ -6174,7 +6174,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("CFEB Status").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("CFEB Status").set("style","color:blue") << std::endl ;
   //
   char buf[200];
   //
@@ -7543,7 +7543,7 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("ALCT Firmware Status").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("ALCT Firmware Status").set("style","color:blue") << std::endl ;
   //
   alct->ReadSlowControlId();
   //
@@ -7581,7 +7581,7 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
   *out << cgicc::legend("Voltages, Currents, and Temperatures").set("style","color:blue") 
-       << cgicc::p() << std::endl ;
+       << std::endl ;
   //
   alct->ReadAlctTemperatureAndVoltages();
   //
@@ -7785,7 +7785,7 @@ void EmuPeripheralCrateConfig::RATStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("RAT Status").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("RAT Status").set("style","color:blue") << std::endl ;
   //
   *out << cgicc::br();
   //
@@ -11091,7 +11091,7 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("CCB Utils").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("CCB Utils").set("style","color:blue") << std::endl ;
   //
   std::string ReadCCBRegister = 
     toolbox::toString("/%s/ReadCCBRegister",getApplicationDescriptor()->getURN().c_str());
@@ -11188,7 +11188,7 @@ void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  *out << cgicc::legend("MPC Info").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("MPC Info").set("style","color:blue") << std::endl ;
   //
   thisMPC->RedirectOutput(out);
   //
@@ -11311,7 +11311,7 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  *out << cgicc::legend("MPC Utils").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("MPC Utils").set("style","color:blue") << std::endl ;
   //
   std::string ReadMPCRegister = 
     toolbox::toString("/%s/ReadMPCRegister",getApplicationDescriptor()->getURN().c_str());
@@ -11945,7 +11945,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("TMB Info").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("TMB Info").set("style","color:blue") << std::endl ;
   //
   *out << cgicc::pre();
   //
@@ -12224,7 +12224,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset();
   //
   *out << cgicc::fieldset();
-  *out << cgicc::legend("Comparator Badbits").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Comparator Badbits").set("style","color:blue") << std::endl ;
   *out << cgicc::pre();
   thisTMB->RedirectOutput(out);
   thisTMB->ReadRegister(0x122);
@@ -12236,7 +12236,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset();
   //
   *out << cgicc::fieldset();
-  *out << cgicc::legend("Sync Error status").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Sync Error status").set("style","color:blue") << std::endl ;
   *out << cgicc::pre();
   thisTMB->RedirectOutput(out);
   thisTMB->ReadRegister(0x120);
@@ -12246,7 +12246,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset();
   //
   *out << cgicc::fieldset();
-  *out << cgicc::legend("CLCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("CLCT Info").set("style","color:blue") << std::endl ;
   *out << cgicc::pre();
   thisTMB->RedirectOutput(out);
   thisTMB->DecodeCLCT();
@@ -12257,7 +12257,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   //
   if (alct) {
     *out << cgicc::fieldset();
-    *out << cgicc::legend("ALCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
+    *out << cgicc::legend("ALCT Info").set("style","color:blue") << std::endl ;
     *out << cgicc::pre();
     thisTMB->RedirectOutput(out);
     thisTMB->DecodeALCT();
@@ -13509,7 +13509,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("DMB IDs").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("DMB IDs").set("style","color:blue") << std::endl ;
   //
   *out << cgicc::pre();
   //
@@ -13582,7 +13582,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << std::endl ;
   //
   *out << cgicc::legend("Voltages, Temperatures, & Currents").set("style","color:blue") 
-       << cgicc::p() << std::endl ;
+       << std::endl ;
   //
   *out << cgicc::table().set("border","1");
   //
