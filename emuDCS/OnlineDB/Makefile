@@ -20,7 +20,10 @@ Sources=\
 	BoardsDB.cc \
         ConnectionsDB.cc \
         ConnectionsGUI.cc \
-	OnlineDBVersion.cc
+        TStoreRequest.cc \
+        ConfigurationEditor.cc \
+	OnlineDBVersion.cc 
+	
 
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
