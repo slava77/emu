@@ -50,6 +50,7 @@ Sources=\
 
 IncludeDirs = \
 	$(BUILD_HOME)/emu/emuDCS/FEDCore/include \
+	$(BUILD_HOME)/emu/emuDCS/OnlineDB/include \
 	$(BUILD_HOME)/emu/base/include \
 	$(XDAQ_ROOT)/include \
 	$(XDAQ_ROOT)/include/xdaq

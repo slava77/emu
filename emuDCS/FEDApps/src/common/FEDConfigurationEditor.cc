@@ -1,5 +1,5 @@
 #include "emu/fed/FEDConfigurationEditor.h"
-#include "emu/base/TStoreRequest.h"
+#include "emu/db/TStoreRequest.h"
 
 #include <time.h>
 #include "toolbox/TimeInterval.h"
@@ -41,7 +41,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::FEDConfigurationEditor)
     namespace fed {
 
   FEDConfigurationEditor::FEDConfigurationEditor(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception)
-	: emu::base::ConfigurationEditor(s)
+	: emu::db::ConfigurationEditor(s)
 {
 	setTableNamePrefix("EMU_FED_");
 	setTopLevelTableName("crate");
@@ -448,7 +448,7 @@ void FEDConfigurationEditor::queryMaxId(const std::string &connectionID, const s
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
 	//any view specific parameters we add.
-	emu::base::TStoreRequest request("query",viewClass);
+	emu::db::TStoreRequest request("query",viewClass);
 	
 	//add the connection ID
 	request.addTStoreParameter("connectionID",connectionID);
