@@ -385,10 +385,11 @@
 	      }
             }
             // Color chambers read out by this RUI instance
-            var c = document.getElementsByName(instance);
+            //var c = document.getElementsByName(instance); // No longer works in Firefox 3.6
+            var c = getElementsByTagAndName("svg:polygon", instance);
             for (i=0;i&lt;c.length;i++){
-              c.item(i).setAttribute('opacity','0.8');
-              c.item(i).setAttribute('fill','OrangeRed');
+              c[i].setAttribute('opacity','0.8');
+              c[i].setAttribute('fill','OrangeRed');
             }
 	    // Display label
 	    var b = document.getElementById('selectionLabelBox');
@@ -464,13 +465,14 @@
             // Color chamber read out through this input of this RUI instance
 	    var chamberName;
 	    var classwords;
-            var c = document.getElementsByName(ruiInstance);
+            //var c = document.getElementsByName(ruiInstance); // No longer works in Firefox 3.6
+            var c = getElementsByTagAndName("svg:polygon", ruiInstance);
             for (i=0;i&lt;c.length;i++){
-	      classwords = c.item(i).getAttribute('class').split(' ');
+	      classwords = c[i].getAttribute('class').split(' ');
 	      if ( parseInt( classwords[0], 10 ) == dduInput ){
-                c.item(i).setAttribute('opacity','0.8');
-                c.item(i).setAttribute('fill','OrangeRed');
-		chamberName = c.item(i).getAttribute('id');
+                c[i].setAttribute('opacity','0.8');
+                c[i].setAttribute('fill','OrangeRed');
+		chamberName = c[i].getAttribute('id');
 	      }
             }
 	    // Display label
@@ -532,6 +534,16 @@
 	    }
 	  }
 
+	  function getElementsByTagAndName( tagName, name ){
+	    var tagElements = document.getElementsByTagName( tagName ); // Firefox 3
+	    var e = new Array();
+            for (i=0;i&lt;tagElements.length;i++){
+	      if (tagElements.item(i).getAttribute('name')==name){
+	        e.push( tagElements.item(i) );
+	      }
+	    }
+	    return e;
+	  }
 	</script>
       </head>
       <body id="body" onload="onLoad(event)">
