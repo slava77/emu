@@ -29,7 +29,6 @@
 #include "xgi/Utils.h"
 
 #include "xcept/tools.h"
-#include "emu/supervisor/ELog.h"
 #include "xdaq2rc/RcmsStateNotifier.h"
 #include "toolbox/fsm/FailedEvent.h"
 
@@ -66,12 +65,14 @@ void emu::supervisor::Application::CalibParam::registerFields(xdata::Bag<CalibPa
   loop_ = 1U;
   delay_ = 1U;
   ltc_ = "LTCConfiguration.txt";
+  ttcci_ = "TTCciConfiguration_ListenCSCLTC904.txt";
   
   bag->addField("key",     &key_);
   bag->addField("command", &command_);
   bag->addField("loop",    &loop_);
   bag->addField("delay",   &delay_);
   bag->addField("ltc",     &ltc_);
+  bag->addField("ttcci",   &ttcci_);
 }
 
 emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
@@ -80,6 +81,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   xdaq::WebApplication(stub),
   emu::base::Supervised(stub),
   logger_(Logger::getInstance("emu::supervisor::Application")),
+  isInCalibrationSequence_(false),
   run_type_("Monitor"), run_number_(1), runSequenceNumber_(0),
   daq_mode_("UNKNOWN"), ttc_source_(""),
   rcmsStateNotifier_(getApplicationLogger(), getApplicationDescriptor(), getApplicationContext()),
@@ -90,7 +92,6 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   step_counter_(0),
   error_message_(""), keep_refresh_(false), hide_tts_control_(true),
   controlTFCellOp_(false), // Default MUST be false, i.e., hands off the TF Cell.
-  curlHost_("cmsusr1.cms"),
   runInfo_(NULL),
   runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
   runDbWritingCommand_( "java -jar runinfowriter.jar" ),
@@ -105,6 +106,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   appDescriptor_ = getApplicationDescriptor();
   
   xdata::InfoSpace *i = getApplicationInfoSpace();
+  i->fireItemAvailable("isInCalibrationSequence", &isInCalibrationSequence_);
   i->fireItemAvailable("RunType", &run_type_);
   i->fireItemAvailable("RunNumber", &run_number_);
   
@@ -132,14 +134,6 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   tf_key_ = "310309";   // default key as of 31/03/2009
   i->fireItemAvailable("TrackFinderKey", &tf_key_);  
 
-  i->fireItemAvailable( "curlHost",       &curlHost_     );
-  i->fireItemAvailable( "curlCommand",    &curlCommand_  );
-  i->fireItemAvailable( "curlCookies", 	&curlCookies_  );
-  i->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
-  i->fireItemAvailable( "eLogUserFile",	&eLogUserFile_ );
-  i->fireItemAvailable( "eLogURL",     	&eLogURL_      );
-  i->fireItemAvailable( "peripheralCrateConfigFiles", &peripheralCrateConfigFiles_ );
-  
   i->fireItemAvailable( "runDbBookingCommand", &runDbBookingCommand_ );
   i->fireItemAvailable( "runDbWritingCommand", &runDbWritingCommand_ );
   i->fireItemAvailable( "runDbAddress",        &runDbAddress_        );
@@ -150,29 +144,34 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   i->fireItemAvailable("foundRcmsStateListener", rcmsStateNotifier_.getFoundRcmsStateListenerParameter());
   rcmsStateNotifier_.subscribeToChangesInRcmsStateListener(getApplicationInfoSpace());
 	
-  xgi::bind(this, &emu::supervisor::Application::webDefault,   "Default");
-  xgi::bind(this, &emu::supervisor::Application::webConfigure, "Configure");
-  xgi::bind(this, &emu::supervisor::Application::webStart,    "Start");
-  xgi::bind(this, &emu::supervisor::Application::webStop,   "Stop");
-  xgi::bind(this, &emu::supervisor::Application::webHalt,      "Halt");
-  xgi::bind(this, &emu::supervisor::Application::webReset,     "Reset");
-  xgi::bind(this, &emu::supervisor::Application::webSetTTS,    "SetTTS");
-  xgi::bind(this, &emu::supervisor::Application::webSwitchTTS, "SwitchTTS");
+  xgi::bind(this, &emu::supervisor::Application::webDefault,     "Default");
+  xgi::bind(this, &emu::supervisor::Application::webConfigure,   "Configure");
+  xgi::bind(this, &emu::supervisor::Application::webStart,       "Start");
+  xgi::bind(this, &emu::supervisor::Application::webStop,        "Stop");
+  xgi::bind(this, &emu::supervisor::Application::webHalt,        "Halt");
+  xgi::bind(this, &emu::supervisor::Application::webReset,       "Reset");
+  xgi::bind(this, &emu::supervisor::Application::webSetTTS,      "SetTTS");
+  xgi::bind(this, &emu::supervisor::Application::webSwitchTTS,   "SwitchTTS");
+  xgi::bind(this, &emu::supervisor::Application::webRunSequence, "RunSequence");
   
-  xoap::bind(this, &emu::supervisor::Application::onConfigure, "Configure", XDAQ_NS_URI);
-  xoap::bind(this, &emu::supervisor::Application::onStart,    "Start",    XDAQ_NS_URI);
-  xoap::bind(this, &emu::supervisor::Application::onStop,   "Stop",   XDAQ_NS_URI);
-  xoap::bind(this, &emu::supervisor::Application::onHalt,      "Halt",      XDAQ_NS_URI);
-  xoap::bind(this, &emu::supervisor::Application::onReset,     "Reset",     XDAQ_NS_URI);
-  xoap::bind(this, &emu::supervisor::Application::onSetTTS,    "SetTTS",    XDAQ_NS_URI);
+  xoap::bind(this, &emu::supervisor::Application::onConfigure,   "Configure",   XDAQ_NS_URI);
+  xoap::bind(this, &emu::supervisor::Application::onStart,       "Start",       XDAQ_NS_URI);
+  xoap::bind(this, &emu::supervisor::Application::onStop,        "Stop",        XDAQ_NS_URI);
+  xoap::bind(this, &emu::supervisor::Application::onHalt,        "Halt",        XDAQ_NS_URI);
+  xoap::bind(this, &emu::supervisor::Application::onReset,       "Reset",       XDAQ_NS_URI);
+  xoap::bind(this, &emu::supervisor::Application::onSetTTS,      "SetTTS",      XDAQ_NS_URI);
+  xoap::bind(this, &emu::supervisor::Application::onRunSequence, "RunSequence", XDAQ_NS_URI);
   
+  calib_wl_ = toolbox::task::getWorkLoopFactory()->getWorkLoop("CSC SV Calib", "waiting");
+  calib_wl_->activate();
   wl_ = toolbox::task::getWorkLoopFactory()->getWorkLoop("CSC SV", "waiting");
   wl_->activate();
-  configure_signature_   = toolbox::task::bind(this, &emu::supervisor::Application::configureAction,   "configureAction");
-  start_signature_       = toolbox::task::bind(this, &emu::supervisor::Application::startAction,       "startAction");
-  stop_signature_        = toolbox::task::bind(this, &emu::supervisor::Application::stopAction,        "stopAction");
-  halt_signature_        = toolbox::task::bind(this, &emu::supervisor::Application::haltAction,        "haltAction");
-  calibration_signature_ = toolbox::task::bind(this, &emu::supervisor::Application::calibrationAction, "calibrationAction");
+  configure_signature_   = toolbox::task::bind(this, &emu::supervisor::Application::configureAction,      "configureAction");
+  start_signature_       = toolbox::task::bind(this, &emu::supervisor::Application::startAction,          "startAction");
+  stop_signature_        = toolbox::task::bind(this, &emu::supervisor::Application::stopAction,           "stopAction");
+  halt_signature_        = toolbox::task::bind(this, &emu::supervisor::Application::haltAction,           "haltAction");
+  calibration_signature_ = toolbox::task::bind(this, &emu::supervisor::Application::calibrationAction,    "calibrationAction");
+  sequencer_signature_   = toolbox::task::bind(this, &emu::supervisor::Application::calibrationSequencer, "calibrationSequencer");
   
   fsm_.addState('H', "Halted",     this, &emu::supervisor::Application::stateChanged);
   fsm_.addState('C', "Configured", this, &emu::supervisor::Application::stateChanged);
@@ -180,6 +179,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   
   fsm_.setStateName('F', "Error");
   fsm_.setFailedStateTransitionAction(this, &emu::supervisor::Application::transitionFailed);
+  fsm_.setFailedStateTransitionChanged(this, &emu::supervisor::Application::stateChanged);
   
   //fsm_.setStateName('F',"Error", this, &emu::supervisor::Application::transitionFailed);
   
@@ -190,9 +190,9 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   fsm_.addStateTransition(
 			  'C', 'C', "Configure", this, &emu::supervisor::Application::configureAction);
   fsm_.addStateTransition(
-			  'C', 'E', "Start",    this, &emu::supervisor::Application::startAction);
+			  'C', 'E', "Start",     this, &emu::supervisor::Application::startAction);
   fsm_.addStateTransition(
-			  'E', 'C', "Stop",   this, &emu::supervisor::Application::stopAction);
+			  'E', 'C', "Stop",      this, &emu::supervisor::Application::stopAction);
   fsm_.addStateTransition(
 			  'C', 'H', "Halt",      this, &emu::supervisor::Application::haltAction);
   fsm_.addStateTransition(
@@ -320,10 +320,18 @@ xoap::MessageReference emu::supervisor::Application::onSetTTS(xoap::MessageRefer
   return createReply(message);
 }
 
+xoap::MessageReference emu::supervisor::Application::onRunSequence(xoap::MessageReference message)
+  throw (xoap::exception::Exception)
+{
+  isCommandFromWeb_ = false;
+  calib_wl_->submit( sequencer_signature_ );
+  return createReply(message);
+}
+
 void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
-  if (keep_refresh_) {
+  if (keep_refresh_ || bool(isInCalibrationSequence_)) {
     HTTPResponseHeader &header = out->getHTTPResponseHeader();
     header.addHeader("Refresh", "2");
   }
@@ -333,7 +341,7 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   *out << html() << endl;
   
   *out << head() << endl;
-  *out << title("emu::supervisor::Application") << endl;
+  *out << title(string("Supervisor ")+state_.toString()) << endl;
   *out << cgicc::link().set("rel", "stylesheet")
     .set("href", "/emu/supervisor/html/emusupervisor.css")
     .set("type", "text/css") << endl;
@@ -342,6 +350,9 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   // Body
   *out << body() << endl;
   
+  *out << table() << tbody() << tr();
+
+  *out << td();
   // Config listbox
   *out << form().set("action",
 		     "/" + getApplicationDescriptor()->getURN() + "/Configure") << endl;
@@ -369,10 +380,25 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   
   *out << input().set("type", "submit")
     .set("name", "command")
+    .set("title", "Configure the selected run.")
     .set("value", "Configure") << endl;
   *out << form() << endl;
+  *out << td();
+
+  *out << td() << "OR" << td();
   
-  
+  *out << td();
+  *out << form().set("action",
+			     "/" + getApplicationDescriptor()->getURN() + "/RunSequence") << endl;
+  *out << input().set("type", "submit")
+    .set("name", "command")
+    .set("title", "Take all calibration runs in an automatic sequence.")
+    .set("value", "Run all calibrations") << endl;
+  *out << form() << endl;
+  *out << td();
+
+  *out << tr() << table();
+
   /*
    *out << "Run Number: " << endl;
    *out << input().set("type", "text")
@@ -388,11 +414,13 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   */
   
   // Buttons
-  *out << table() << tbody() << tr();
   
+  *out << table() << tbody() << tr();
+
   *out << td() << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Start") << endl;
   *out << input().set("type", "submit")
+    .set("title", "Start the configured run.")
     .set("name", "command")
     .set("value", "Start") << endl;
   *out << form() << td() << endl;
@@ -400,6 +428,7 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   *out << td() << form().set("action",
 			     "/" + getApplicationDescriptor()->getURN() + "/Stop") << endl;
   *out << input().set("type", "submit")
+    .set("title", "Stop the ongoing run.")
     .set("name", "command")
     .set("value", "Stop") << endl;
   *out << form() << td() << endl;
@@ -407,6 +436,7 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   *out << td() << form().set("action",
 			     "/" + getApplicationDescriptor()->getURN() + "/Halt") << endl;
   *out << input().set("type", "submit")
+    .set("title", "Halt the configured or ongoing run.")
     .set("name", "command")
     .set("value", "Halt") << endl;
   *out << form() << td() << endl;
@@ -416,7 +446,7 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   *out << input().set("type", "submit")
     .set("name", "command")
     .set("value", "Reset") << endl;
-  *out << form() << td() << endl;
+    *out << form() << td() << endl;
   
   *out << tr() << tbody() << table();
   
@@ -471,19 +501,28 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   
   // Configuration parameters
   *out << hr() << endl;
-  *out << "Step counter: " << step_counter_ << br() << endl;
+
+  *out << table(); 
+  *out << tr() << td() << "Run type: " << td() << td() << run_type_.toString();
+  if ( bool(isInCalibrationSequence_) ){
+      *out << " (run " << getCalibParamIndex(run_type_.toString())+1 << " in an automatic sequence of "
+	   << calib_params_.size() << " calibration runs)";
+  }
+  *out << td() << tr() << endl;
+  *out << tr() << td() << "Steps completed: " << td() << td() << step_counter_ << td() << tr() << endl;
   
   refreshConfigParameters();
   
-  *out << "TTCci inputs(Clock:Orbit:Trig:BGo): " << ttc_source_.toString() << br() << endl;
+  *out << tr() << td() << "TTCci inputs(Clock:Orbit:Trig:BGo): " <<  td() << td() << ttc_source_.toString() << td() << tr() << endl;
   
-  *out << "Mode of DAQManager: " << daq_mode_.toString() << br() << endl;
+  *out << tr() << td() << "Mode of DAQManager: " <<  td() << td() << daq_mode_.toString() << td() << tr() << endl;
   string localDAQState = getLocalDAQState();
-  *out << "Local DAQ state: " << span().set("class",localDAQState) << localDAQState << span() << br() << endl;
+  *out << tr() << td() << "Local DAQ state: " << td() << td() << span().set("class",localDAQState) << localDAQState << span() << td() << tr() << endl;
 
-  *out << "State of TF operation " << cite() << TFCellOpName_.toString() << cite() << ": " 
+  *out << tr() << td() << "State of TF operation " << cite() << TFCellOpName_.toString() << cite() << ": " << td() << td() 
        << span().set("class",TFCellOpState_.toString()) << TFCellOpState_.toString() 
-       << span() << br() << endl;
+       << span() << td() << tr() << endl;
+  *out << table(); 
   
   // Application states
   *out << hr() << endl;
@@ -591,6 +630,18 @@ void emu::supervisor::Application::webSwitchTTS(xgi::Input *in, xgi::Output *out
   webRedirect(in, out);
 }
 
+void emu::supervisor::Application::webRunSequence(xgi::Input *in, xgi::Output *out)
+  throw (xgi::exception::Exception)
+{
+  string value;
+  isCommandFromWeb_ = true;
+  
+  calib_wl_->submit( sequencer_signature_ );
+   
+  keep_refresh_ = true;
+  webRedirect(in, out);
+}
+
 void emu::supervisor::Application::webRedirect(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
@@ -636,26 +687,23 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
 {
   LOG4CPLUS_DEBUG(logger_, "calibrationAction " << "(begin)");
   
-  string command, ltc;
-  unsigned int loop, delay;
-  
   int index = getCalibParamIndex(run_type_);
-  command = calib_params_[index].bag.command_;
-  loop    = calib_params_[index].bag.loop_;
-  delay   = calib_params_[index].bag.delay_;
-  ltc     = calib_params_[index].bag.ltc_;
+
+  LOG4CPLUS_DEBUG( logger_, 
+		   "command: "   << calib_params_[index].bag.command_.toString()
+		   << " loop: "  << calib_params_[index].bag.loop_.toString()
+		   << " delay: " << calib_params_[index].bag.delay_.toString()
+		   << " ltc: "   << calib_params_[index].bag.ltc_.toString()
+		   << " ttcci: " << calib_params_[index].bag.ttcci_.toString()  );
   
-  LOG4CPLUS_DEBUG(logger_, "command: " << command
-		  << " loop: " << loop << " delay: " << delay << " ltc: " << ltc);
-  
-  for (step_counter_ = 0; step_counter_ < loop; ++step_counter_) {
+  for (step_counter_ = 0; step_counter_ < calib_params_[index].bag.loop_; ++step_counter_) {
     if (quit_calibration_) { break; }
     LOG4CPLUS_DEBUG(logger_,
 		    "calibrationAction: " << step_counter_);
     
-    sendCommand(command, "emu::pc::EmuPeripheralCrateManager");
+    sendCommand(calib_params_[index].bag.command_, "emu::pc::EmuPeripheralCrateManager");
     sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
-    sleep(delay);
+    sleep( calib_params_[index].bag.delay_ );
   }
   
   if (!quit_calibration_) {
@@ -664,6 +712,29 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
 
   LOG4CPLUS_DEBUG(logger_, "calibrationAction " << "(end)");
 
+  return false;
+}
+
+bool emu::supervisor::Application::calibrationSequencer(toolbox::task::WorkLoop *wl)
+{
+  // Do all calibrations in one go.
+  LOG4CPLUS_DEBUG(logger_, "calibrationSequencer " << "(begin)");
+  isInCalibrationSequence_ = true;
+  for ( size_t i=0; i<calib_params_.size() && fsm_.getCurrentState() != 'F'; ++i ){
+    run_type_ = calib_params_[i].bag.key_;
+    if ( !quit_calibration_ ){
+      submit(configure_signature_);
+      if ( waitForAppsToReach("Configured",60) ){
+	if ( fsm_.getCurrentState() != 'F' ) submit(start_signature_); // This is supposed to halt itself when done.
+      }
+      else{
+	if ( fsm_.getCurrentState() != 'F' ) submit(halt_signature_);
+      }
+      waitForAppsToReach("Halted");
+    }
+  }
+  isInCalibrationSequence_ = false;
+  LOG4CPLUS_DEBUG(logger_, "calibrationSequencer " << "(end)");
   return false;
 }
 
@@ -769,13 +840,17 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     sendCommand("Configure", "emu::fed::Manager");
     
     // Configure TTC
+    int index = getCalibParamIndex(run_type_);
+    if (index >= 0) {
+      setParameter("TTCciControl", "Configuration", "xsd:string",
+		   calib_params_[index].bag.ttcci_.toString() );
+    }
     sendCommand("Configure", "TTCciControl");
     
     // Configure LTC
-    int index = getCalibParamIndex(run_type_);
     if (index >= 0) {
       setParameter("LTCControl", "Configuration", "xsd:string",
-		   "[file=" + calib_params_[index].bag.ltc_.toString() + "]");
+		   calib_params_[index].bag.ltc_.toString() );
     }
     sendCommand("Configure", "LTCControl");
 
@@ -940,7 +1015,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     sendCommand("Configure", "LTCControl");
     cout << "    Configure LTC: " << sw.read() << endl;
 
-    writeRunInfo( isCommandFromWeb_, false ); // only write runinfo if Stop was issued from the web interface
+    writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Stop was issued from the web interface
     if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
@@ -996,7 +1071,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
 
-    writeRunInfo( isCommandFromWeb_, false ); // only write runinfo if Halt was issued from the web interface
+    writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Halt was issued from the web interface
     if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
 
   } catch (xoap::exception::Exception e) {
@@ -1081,11 +1156,19 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
   keep_refresh_ = false;
   toolbox::fsm::FailedEvent &failed = dynamic_cast<toolbox::fsm::FailedEvent&>(*event);
   
+  stringstream reason;
+  reason << "Failure occurred when performing transition"
+	 << " from "        << failed.getFromState()
+	 << " to "          << failed.getToState()
+	 << ". Exception: " << xcept::stdformat_exception_history( failed.getException() );
+  
+  reasonForFailure_ = reason.str();
+  LOG4CPLUS_ERROR(getApplicationLogger(), reason.str());
+
   // Send notification to Run Control
   try {
     LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
     rcmsStateNotifier_.stateChanged("Error",xcept::stdformat_exception_history(failed.getException()));
-    
   } catch(xcept::Exception &e) {
     LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control : "
 		    << xcept::stdformat_exception_history(e));
@@ -1095,11 +1178,6 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
     this->notifyQualified( "error", eObj );
   }
   
-  LOG4CPLUS_INFO(getApplicationLogger(),
-		 "Failure occurred when performing transition"
-		 << " from: " << failed.getFromState()
-		 << " to: " << failed.getToState()
-		 << " exception: " << failed.getException().what());
 }
 
 void emu::supervisor::Application::sendCommand(string command, string klass)
@@ -2100,7 +2178,7 @@ void emu::supervisor::Application::analyzeReply(
 			<< app->getClassName() << "(" << app->getInstance() << ")" << endl
 			<< reply_str;
 	// last_log_.add(s.str());
-	LOG4CPLUS_DEBUG(logger_, reply_str);
+	LOG4CPLUS_DEBUG(logger_, s.str());
 
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 
@@ -2369,6 +2447,7 @@ bool emu::supervisor::Application::isDAQConfiguredInSupervisedMode()
 	return result == "true";
 }
 
+
 bool emu::supervisor::Application::waitForDAQToExecute( const string command, const unsigned int seconds, const bool poll ){
   string expectedState;
   if      ( command == "Configure" ){ expectedState = "Ready";   }
@@ -2415,7 +2494,8 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
 {
 	// No point in sending any command when DAQ is in an irregular state (failed, indefinite, ...)
         string localDAQState = getLocalDAQState();
-	if ( localDAQState != "Halted" && localDAQState != "Ready" && localDAQState != "Enabled" ){
+	if ( localDAQState != "Halted"  && localDAQState != "Ready" && 
+	     localDAQState != "Enabled" && localDAQState != "INDEFINITE" ){
 	  LOG4CPLUS_WARN( logger_, "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
 			  << localDAQState << " state. Please destroy and recreate local DAQ." );
 	  stringstream ss11;
@@ -2438,29 +2518,59 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
 	return true;
 }
 
-emu::supervisor::Application::StateTable::StateTable(emu::supervisor::Application *sv) : app_(sv) {}
+bool emu::supervisor::Application::waitForAppsToReach( const string targetState, const int seconds ){
+  // If seconds is negative, no timeout.
+  for ( int i=0; i<=seconds || seconds<0; ++i ){
+    state_table_.refresh( false ); // Do not force refresh, we're not in a hurry. We'll refresh soon anyway.
+    if ( state_table_.isValidState( targetState ) ) return true;
+    LOG4CPLUS_DEBUG( logger_, "Waited " << i << " sec so far for applications to get '" << targetState
+		    << "'. Their current states are:" << state_table_ );
+    if ( fsm_.getCurrentState() == 'F' ) return false; // Abort if in Failed state.
+    ::sleep(1);
+  }
+  LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for applications to get " << targetState );
+  stringstream ss;
+  ss <<  "Timeout after waiting " << seconds << " sec for applications to get " << targetState;
+  XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss.str() );
+  this->notifyQualified( "error", eObj );
+  return false;
+}
+
+emu::supervisor::Application::StateTable::StateTable(emu::supervisor::Application *sv) 
+  : app_(sv)
+  , bSem_( toolbox::BSem::FULL )
+  , lastRefreshTime_(0){}
 
 void emu::supervisor::Application::StateTable::addApplication(string klass)
 {
+
 	// find applications
 	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
 		apps = app_->getApplicationContext()->getDefaultZone()
 				->getApplicationDescriptors(klass);
 	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+                bSem_.give();
 		return; // Do nothing if the target doesn't exist
 	}
 
 	// add to the table
+        bSem_.take();
 	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
 		table_.push_back(
 				pair<xdaq::ApplicationDescriptor *, string>(*i, "NULL"));
 	}
+        bSem_.give();
 }
 
-void emu::supervisor::Application::StateTable::refresh()
+void emu::supervisor::Application::StateTable::refresh( bool forceRefresh )
 {
+        // Limit refresh rate to 1/2 Hz if forceRefresh is false. (forceRefresh is true by default).
+        time_t timeNow;
+	time( &timeNow );
+	if ( timeNow < lastRefreshTime_ + 2 && !forceRefresh ) return;
+
 	string klass = "";
 	xoap::MessageReference message, reply;
 
@@ -2476,7 +2586,10 @@ void emu::supervisor::Application::StateTable::refresh()
 			reply = app_->getApplicationContext()->postSOAP(message, *app_->appDescriptor_, *i->first);
 			app_->analyzeReply(message, reply, i->first);
 
+                        bSem_.take();
 			i->second = extractState(reply, klass);
+			lastRefreshTime_ = timeNow;
+                        bSem_.give();
 		} catch (xcept::Exception e) {
 			i->second = STATE_UNKNOWN;
 			LOG4CPLUS_ERROR(app_->logger_, "Exception when trying to get state of "
@@ -2486,6 +2599,7 @@ void emu::supervisor::Application::StateTable::refresh()
 			     << klass << ": " ;
 			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss12.str(), e );
 			app_->notifyQualified( "error", eObj );
+                        bSem_.give();
 		} catch (...) {
 			LOG4CPLUS_ERROR(app_->logger_, "Unknown exception when trying to get state of " << klass);
 			stringstream ss13;
@@ -2493,6 +2607,7 @@ void emu::supervisor::Application::StateTable::refresh()
 			XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss13.str() );
 			app_->notifyQualified( "error", eObj );
 			i->second = STATE_UNKNOWN;
+                        bSem_.give();
 		}
 
 		if (klass == "emu::daq::manager::Application" && i->second == STATE_UNKNOWN) {
@@ -2503,13 +2618,14 @@ void emu::supervisor::Application::StateTable::refresh()
 			app_->notifyQualified( "warn", eObj );
 		}
 	}
+
 }
 
-string emu::supervisor::Application::StateTable::getState(string klass, unsigned int instance)
+string emu::supervisor::Application::StateTable::getState(string klass, unsigned int instance) const
 {
 	string state = "";
 
-	vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i =
+	vector<pair<xdaq::ApplicationDescriptor *, string> >::const_iterator i =
 			table_.begin();
 	for (; i != table_.end(); ++i) {
 		if (klass == i->first->getClassName()
@@ -2522,18 +2638,22 @@ string emu::supervisor::Application::StateTable::getState(string klass, unsigned
 	return state;
 }
 
-bool emu::supervisor::Application::StateTable::isValidState(string expected)
+bool emu::supervisor::Application::StateTable::isValidState(string expected) const
 {
 	bool is_valid = true;
 
-	vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i =
+	vector<pair<xdaq::ApplicationDescriptor *, string> >::const_iterator i =
 			table_.begin();
 	for (; i != table_.end(); ++i) {
 		string checked = expected;
 		string klass = i->first->getClassName();
 
-		// Ignore emu::daq::manager::Application. 
-		if ( klass == "emu::daq::manager::Application" ) continue;
+		// Ignore emu::daq::manager::Application in global runs.
+		// We know we're in a global run if controlTFCellOp_ is false,
+		// i.e., we're not in control of the TF Cell, and the run type is "Monitor".
+		if ( klass == "emu::daq::manager::Application" 
+		     && !app_->controlTFCellOp_.value_ 
+		     && app_->run_type_ == "Monitor" ) continue;
 
 		if (klass == "TTCciControl" || klass == "LTCControl") {
 			if (expected == "Configured") { checked = "Ready"; }
@@ -2577,8 +2697,7 @@ void emu::supervisor::Application::StateTable::webOutput(xgi::Output *out, strin
 	*out << tbody() << table() << endl;
 }
 
-xoap::MessageReference emu::supervisor::Application::StateTable::createStateSOAP(
-		string klass)
+xoap::MessageReference emu::supervisor::Application::StateTable::createStateSOAP(string klass) const
 {
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -2603,7 +2722,7 @@ xoap::MessageReference emu::supervisor::Application::StateTable::createStateSOAP
 	return message;
 }
 
-string emu::supervisor::Application::StateTable::extractState(xoap::MessageReference message, string klass)
+string emu::supervisor::Application::StateTable::extractState(xoap::MessageReference message, string klass) const
 {
 	xoap::SOAPElement root = message->getSOAPPart()
 			.getEnvelope().getBody().getChildElements(
@@ -2616,10 +2735,10 @@ string emu::supervisor::Application::StateTable::extractState(xoap::MessageRefer
 	return state.getValue();
 }
 
-ostream& emu::supervisor::operator<<( ostream& os, emu::supervisor::Application::StateTable& st ){
-  os << "Application(0) " << st.app_->fsm_.getCurrentState();
-  for (vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i = st.table_.begin(); i != st.table_.end(); ++i) {
-    os << ", " << i->first->getClassName() << "(" << i->first->getInstance() << ")" << i->second << endl;
+ostream& emu::supervisor::operator<<( ostream& os, const emu::supervisor::Application::StateTable& st ){
+  os << endl << "emu::supervisor::Application(0) " << st.app_->fsm_.getCurrentState() << endl;
+  for (vector<pair<xdaq::ApplicationDescriptor *, string> >::const_iterator i = st.table_.begin(); i != st.table_.end(); ++i) {
+    os << i->first->getClassName() << "(" << i->first->getInstance() << ") " << i->second << endl;
   }
   return os;
 }
@@ -2714,201 +2833,6 @@ xoap::MessageReference emu::supervisor::Application::getRunSummary()
   return reply;
 }
 
-string emu::supervisor::Application::reformatTime( string time ){
-  // reformat from YYMMDD_hhmmss_UTC to YYYY-MM-DD hh:mm:ss UTC
-  string reformatted("");
-  reformatted += "20";
-  reformatted += time.substr(0,2);
-  reformatted += "-";
-  reformatted += time.substr(2,2);
-  reformatted += "-";
-  reformatted += time.substr(4,2);
-  reformatted += " ";
-  reformatted += time.substr(7,2);
-  reformatted += ":";
-  reformatted += time.substr(9,2);
-  reformatted += ":";
-  reformatted += time.substr(11,2);
-  reformatted += " UTC";
-  return reformatted;
-}
-
-vector< vector<string> > emu::supervisor::Application::getFUEventCounts()
-{
-  vector< vector<string> > ec;
-
-  unsigned int totalProcessed = 0;
-
-  std::set<xdaq::ApplicationDescriptor *> EmuFUs;
-  try {
-    EmuFUs = getApplicationContext()->getDefaultZone()
-      ->getApplicationDescriptors("EmuFU");
-  } 
-  catch (...){}
-  // Zone::getApplicationDescriptors doesn't throw!
-  if ( EmuFUs.size() == 0 ){  
-    LOG4CPLUS_WARN(logger_, 
-		   "Failed to get application descriptors for EmuFUs");
-    stringstream ss15;
-    ss15 <<  
-		   "Failed to get application descriptors for EmuFUs";
-    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss15.str() );
-    this->notifyQualified( "warn", eObj );
-    vector<string> svt;
-    svt.push_back( "Total" );
-    svt.push_back( "UNKNOWN" );
-    ec.push_back( svt );
-    return ec;
-  }
-
-  xoap::MessageReference message = createParameterGetSOAP(
-		"EmuFU", "nbEventsProcessed", "xsd:unsignedLong");
-
-  std::set<xdaq::ApplicationDescriptor *>::iterator fu;
-  for ( fu = EmuFUs.begin(); fu!=EmuFUs.end(); ++fu ){
-	string       count;
-	stringstream name;
-    unsigned int nProcessed = 0;
-    stringstream ss;
-    try
-    {
-	  name << "EmuFU" << setfill('0') << setw(2) << (*fu)->getInstance();
-	  xoap::MessageReference reply =
-			getApplicationContext()->postSOAP(message, *appDescriptor_, **fu);
-	  analyzeReply(message, reply, *fu);
-	  count = extractParameter(reply, "nbEventsProcessed");
-      ss << count;
-      ss >> nProcessed;
-      totalProcessed += nProcessed;
-    }
-    catch(xcept::Exception e)
-    {
-      count = "UNKNOWN";
-      LOG4CPLUS_WARN(logger_,
-			"Failed to get event count of " << name.str()
-			<< " : " << xcept::stdformat_exception_history(e));
-      stringstream ss16;
-      ss16 << 
-			"Failed to get event count of " << name.str()
-			<< " : " ;
-      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss16.str(), e );
-      this->notifyQualified( "warn", eObj );
-    }
-    vector<string> sv;
-    sv.push_back( name.str() );
-    sv.push_back( count      );
-    ec.push_back( sv );
-  }
-  stringstream sst;
-  sst << totalProcessed;
-  vector<string> svt;
-  svt.push_back( "Total" );
-  svt.push_back( sst.str()  );
-  ec.push_back( svt );
-
-  return ec;
-}
-
-vector< vector<string> > emu::supervisor::Application::getRUIEventCounts()
-{
-  vector< vector<string> > ec;
-
-  std::set<xdaq::ApplicationDescriptor *> EmuRUIs;
-  try {
-    EmuRUIs = getApplicationContext()->getDefaultZone()
-      ->getApplicationDescriptors("EmuRUI");
-  } 
-  catch (...){}
-  // Zone::getApplicationDescriptors doesn't throw!
-  if ( EmuRUIs.size() == 0 ) {
-    LOG4CPLUS_WARN(logger_, 
-		    "Failed to get application descriptors for EmuRUIs");
-    stringstream ss17;
-    ss17 <<  
-		    "Failed to get application descriptors for EmuRUIs";
-    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss17.str() );
-    this->notifyQualified( "warn", eObj );
-    return ec;
-  }
-
-  std::map<string, string> m;
-  m["nEventsRead"     ] = "xsd:unsignedLong";
-  m["hardwareMnemonic"] = "xsd:string";
-  xoap::MessageReference message = createParameterGetSOAP("EmuRUI", m);
-
-  std::set< xdaq::ApplicationDescriptor* >::iterator rui;
-  for ( rui = EmuRUIs.begin(); rui!=EmuRUIs.end(); ++rui ){
-    string count;
-	string mnemonic;
-    stringstream name;
-	try {
-	  xoap::MessageReference reply =
-			getApplicationContext()->postSOAP(message, *appDescriptor_, **rui);
-	  analyzeReply(message, reply, *rui);
-	  count = extractParameter(reply, "nEventsRead");
-	  mnemonic = extractParameter(reply, "hardwareMnemonic");
-	}
-    catch(xcept::Exception e)
-    {
-      count    = "UNKNOWN";
-      LOG4CPLUS_WARN(logger_,
-			"Failed to get event count of "
-			<< "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance()
-			<< " [" << mnemonic << "]"
-		    << " : " << xcept::stdformat_exception_history(e));
-      stringstream ss18;
-      ss18 << 
-			"Failed to get event count of "
-			<< "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance()
-			<< " [" << mnemonic << "]"
-		    << " : " ;
-      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss18.str(), e );
-      this->notifyQualified( "warn", eObj );
-    }
-    vector<string> sv;
-    sv.push_back( name.str() );
-    sv.push_back( count      );
-    ec.push_back( sv );
-  }
-
-  return ec;
-}
-
-void emu::supervisor::Application::postToELog( string subject, string body, vector<string> *attachments ){
-  // Post to eLog:
-  emu::supervisor::ELog *eel;
-  try
-    {
-      eel = new emu::supervisor::ELog(curlHost_.toString(),
-			      curlCommand_.toString(),
-			      curlCookies_.toString(),
-			      CMSUserFile_.toString(),
-			      eLogUserFile_.toString(),
-			      eLogURL_.toString());
-    }
-  catch( string e ){
-    LOG4CPLUS_WARN(logger_, e);
-    stringstream ss19;
-    ss19 <<  e;
-    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss19.str() );
-    this->notifyQualified( "warn", eObj );
-    eel = 0;
-  }
-  if ( eel ) {
-    string attachmentList;
-    if ( attachments )
-      for ( vector<string>::iterator attm = attachments->begin(); attm != attachments->end(); ++attm )
-	attachmentList += *attm + "\n";
-    LOG4CPLUS_INFO(logger_, 
-		   "<![CDATA[Posting to eLog address " << eLogURL_.toString() << 
-		   " as user " << eel->eLogUser() << " (" << eel->CMSUser() << ") " <<
-		   ":\nSubject: " << subject << 
-		   "\nBody:\n" << body <<
-		   "\nAttachments:\n" << attachmentList << "]]>");
-    eel->postMessage( subject, body, attachments );
-  }
-  delete eel;
-}
 
 void emu::supervisor::Application::bookRunNumber(){
 
@@ -2975,10 +2899,10 @@ void emu::supervisor::Application::bookRunNumber(){
 
 }
 
-void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
-  // Update run info db and post to eLog as well
+void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
+  // Update run info db
 
-  if ( !toDatabase && !toELog ) return;
+  if ( !toDatabase ) return;
 
   // Don't write about debug runs:
   if ( run_type_.toString() == "Debug" ) return;
@@ -3001,9 +2925,6 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss23.str() );
     this->notifyQualified( "warn", eObj );
   }
-
-    stringstream subjectToELog;
-    stringstream htmlMessageToELog;
 
     bool success = false;
     const string nameSpace = "CMS.CSC";
@@ -3070,23 +2991,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
       runNumber = run_number_.toString();
     }
 
-    subjectToELog << "Emu local run " << runNumber
-		  << " (" << run_type_.toString() << ")"// << ( badRun_? " is bad" : "" );
-		  << " ---Supervisor";
-
-    //
-    // run number; bad run; global run number
-    //
-    htmlMessageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
-    htmlMessageToELog << "<table>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run number</td><td>" << run_number_.toString() << "</td></tr>";
-
     //
     // run type
     //
     name      = "run_type";
     value     = run_type_.toString();
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << run_type_.toString() << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
@@ -3113,7 +3022,6 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     //
     name      = "start_time";
     value     = start_time.toString();
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << value << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
@@ -3136,7 +3044,6 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     }
     name      = "stop_time";
     value     = stop_time.toString();
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
@@ -3201,17 +3108,6 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
       XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss30.str(), e );
       this->notifyQualified( "error", eObj );
     }
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci</td>";
-    htmlMessageToELog << "<td><table>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "clock source"   << "</td><td align=\"right\">" 
-		      << ClockSource   << "</td></tr>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "orbit source"   << "</td><td align=\"right\">" 
-		      << OrbitSource   << "</td></tr>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger source" << "</td><td align=\"right\">" 
-		      << TriggerSource << "</td></tr>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "BGO source"     << "</td><td align=\"right\">" 
-		      << BGOSource     << "</td></tr>";
-    htmlMessageToELog << "</table></td></tr>";
     name  = "clock_source";
     value = ClockSource;
     if ( toDatabase && isBookedRunNumber_ ){
@@ -3304,7 +3200,6 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     //
       name  = "built_events";
       value = built_events.toString();
-      htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
@@ -3329,11 +3224,9 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     //
     // EmuRUI event counts
     //
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events read</td><td><table>";
     for ( unsigned int i = 0; i < rui_counts.elements(); ++i ){
       name  = "EmuRUI" + (dynamic_cast<xdata::String*>(rui_instances.elementAt(i)))->toString();
       value = (dynamic_cast<xdata::String*>(rui_counts.elementAt(i)))->toString();
-      htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
@@ -3354,27 +3247,6 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
 	  this->notifyQualified( "error", eObj );
 	}
       }
-    }
-    htmlMessageToELog << "</table>";
-
-    htmlMessageToELog << "</td></tr></table>";
-
-
-    if ( toELog ){
-      vector<string> attachments;
-      for ( unsigned int i=0; i<peripheralCrateConfigFiles_.elements(); ++i ){
-	xdata::String* f = dynamic_cast<xdata::String*>(peripheralCrateConfigFiles_.elementAt(i));
-	attachments.push_back( f->toString() );
-      }
-      postToELog( subjectToELog.str(), htmlMessageToELog.str(), &attachments );
-
-      // Just in case submission to e-log failed...
-      cout << 
-	"\n========================================================================\n" <<
-	"If automatic posting to eLog address " << eLogURL_.toString() << 
-	" failed, post this manually:\nSubject: " << subjectToELog.str() << 
-	"\nBody:\n" << htmlMessageToELog.str() <<
-	"\n========================================================================\n";
     }
 
   // Parser must be explicitly removed, or else it stays in the memory

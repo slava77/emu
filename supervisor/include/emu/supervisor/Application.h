@@ -29,7 +29,7 @@ public:
 
   class StateTable;
   friend class emu::supervisor::Application::StateTable;
-  friend ostream& operator<<( ostream& os, emu::supervisor::Application::StateTable& table );
+  friend ostream& operator<<( ostream& os, const emu::supervisor::Application::StateTable& table );
 
 	XDAQ_INSTANTIATOR();
 
@@ -47,6 +47,8 @@ public:
 	xoap::MessageReference onReset(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
 	xoap::MessageReference onSetTTS(xoap::MessageReference message)
+			throw (xoap::exception::Exception);
+	xoap::MessageReference onRunSequence(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
 
 	// HyperDAQ interface
@@ -66,6 +68,8 @@ public:
 			throw (xgi::exception::Exception);
 	void webSwitchTTS(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
+	void webRunSequence(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
 	void webCalibPC(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 	void webRedirect(xgi::Input *in, xgi::Output *out)
@@ -77,6 +81,7 @@ public:
 	bool haltAction(toolbox::task::WorkLoop *wl);
 	bool startAction(toolbox::task::WorkLoop *wl);
 	bool calibrationAction(toolbox::task::WorkLoop *wl);
+	bool calibrationSequencer(toolbox::task::WorkLoop *wl);
 
 	// State transitions
 	void configureAction(toolbox::Event::Reference e) 
@@ -103,11 +108,13 @@ private: // XDAQ parameters
 		xdata::UnsignedInteger loop_;
 		xdata::UnsignedInteger delay_;
 		xdata::String ltc_;
+		xdata::String ttcci_;
 	};
 
         xdaq::ApplicationDescriptor* appDescriptor_;
         Logger logger_;
 
+        xdata::Boolean isInCalibrationSequence_; /// An automatic sequence of calibration runs is being executed.
 	xdata::String run_type_;
 	xdata::UnsignedLong run_number_;
 	xdata::UnsignedLong runSequenceNumber_;
@@ -135,6 +142,8 @@ private: // XDAQ parameters
 	toolbox::BSem wl_semaphore_;
 	toolbox::task::ActionSignature *configure_signature_, *stop_signature_, *halt_signature_, *start_signature_;
 	toolbox::task::ActionSignature *calibration_signature_;
+	toolbox::task::WorkLoop *calib_wl_;
+	toolbox::task::ActionSignature *sequencer_signature_;
 	bool quit_calibration_;
 	std::map<string, string> start_attr, stop_attr;
 
@@ -218,6 +227,8 @@ private: // XDAQ parameters
 
   bool waitForTFCellOpToReach( const string targetState, const unsigned int seconds );
 
+  bool waitForAppsToReach( const string targetState, const int seconds=-1 );
+
 	string getDAQMode();
 	string getTTCciSource();
 	bool isDAQConfiguredInSupervisedMode();
@@ -238,13 +249,6 @@ private: // XDAQ parameters
         xdata::Boolean controlTFCellOp_;
 
         xdata::String tf_key_;       // Track Finder Key
-	xdata::String curlHost_;            // host on which to execute the curl command
-	xdata::String curlCommand_;         // the curl command's full path
-	xdata::String curlCookies_;         // file for cookies
-	xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
-	xdata::String eLogUserFile_;        // file that contains the username:password:author for eLog user
-	xdata::String eLogURL_;             // eLog's URL 
-	xdata::Vector<xdata::String> peripheralCrateConfigFiles_; // files to be attached to elog post
 	
 	emu::supervisor::RunInfo *runInfo_;         // communicates with run database
 	xdata::String runDbBookingCommand_; // e.g. "java -jar runnumberbooker.jar"
@@ -253,11 +257,7 @@ private: // XDAQ parameters
 	xdata::String runDbUserFile_;       // file that contains the username:password for run db user
 	bool isBookedRunNumber_;
 	void bookRunNumber();
-	void writeRunInfo( bool toDatabase, bool toELog );
-	void postToELog( string subject, string body, vector<string> *attachments );
-	vector< vector<string> > getFUEventCounts();
-	vector< vector<string> > getRUIEventCounts();
-	string reformatTime( string time );
+	void writeRunInfo( bool toDatabase );
         xoap::MessageReference getRunSummary()
 	  throw( xcept::Exception );
 
@@ -265,23 +265,24 @@ private: // XDAQ parameters
 
 	class StateTable
 	{
-	  friend ostream& emu::supervisor::operator<<( ostream& os, emu::supervisor::Application::StateTable& table );
+	  friend ostream& emu::supervisor::operator<<( ostream& os, const emu::supervisor::Application::StateTable& table );
 	public:
 		StateTable(Application *app);
 		void addApplication(string klass);
-		void refresh() ;
-		string getState(string klass, unsigned int instance);
-		bool isValidState(string expected);
+		void refresh( bool forceRefresh=true );
+		string getState(string klass, unsigned int instance) const;
+		bool isValidState(string expected) const;
 		void webOutput(xgi::Output *out, string sv_state)
 				throw (xgi::exception::Exception);
-	        Application* getApplication(){ return app_; }
-	        vector<pair<xdaq::ApplicationDescriptor *, string> >* getTable(){ return &table_; }
+	        Application* getApplication() const { return app_; }
 
 	private:
-		xoap::MessageReference createStateSOAP(string klass);
-		string extractState(xoap::MessageReference message, string klass);
+		xoap::MessageReference createStateSOAP(string klass) const;
+		string extractState(xoap::MessageReference message, string klass) const;
 
 		Application *app_;
+	        mutable toolbox::BSem bSem_;
+	        time_t lastRefreshTime_;
 		vector<pair<xdaq::ApplicationDescriptor *, string> > table_;
 	} state_table_;
 
