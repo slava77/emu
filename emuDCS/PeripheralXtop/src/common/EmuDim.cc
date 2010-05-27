@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.36 2010/03/16 10:37:32 liu Exp $
+// $Id: EmuDim.cc,v 1.37 2010/05/27 12:38:18 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -762,6 +762,7 @@ int EmuDim::PowerUp()
               crate_state[i] = 0;
               confirm = "INIT_IS_DONE;" + crate_name[i];              
               std::cout << getLocalDateTime() << " Return: " << confirm << std::endl;
+              XmasLoader->reload(xmas_info+"?CRATEON="+crate_name[i]);
            }
            else
            {

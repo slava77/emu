@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.13 2010/02/23 14:32:01 liu Exp $
+// $Id: Chamber.cc,v 1.14 2010/05/27 12:38:18 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.14  2010/05/27 12:38:18  liu
+// add error flags for bad DMB reading
+//
 // Revision 1.13  2010/02/23 14:32:01  liu
 // add debug info
 //
@@ -83,7 +86,7 @@ void Chamber::Fill(char *buffer, int source)
        idx++;
        item=strtok_r(NULL, sep, &last);
    };
-   if(source==0 && states[0]==0)
+   if(source==0 && states[0]!=11)
    {   // DEBUG: print a bad reading, but only the first time it goes bad
        if(ready_) std::cout << label_ << " " << states[1] << std::endl;
        ready_ = false;
@@ -124,7 +127,7 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->cfeb.c33[i] = data[ 0+3*i];
       dim_lv->cfeb.c50[i] = data[ 1+3*i];
       dim_lv->cfeb.c60[i] = data[ 2+3*i];
-      this_st=info[0];
+      this_st = (info[0]==11 ? 1:0);
       if(data[19+3*i]==0. && data[20+3*i]==0. && data[21+3*i]==0.) this_st=0;
       if(corruption) this_st=0;
       dim_lv->cfeb.status[i] = this_st;
@@ -138,7 +141,7 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->alct.c33 = data[15];
       dim_lv->alct.c55 = data[17];
       dim_lv->alct.c56 = data[18];
-      this_st=info[0];
+      this_st = (info[0]==11 ? 1:0);
       if(data[34]==0. && data[35]==0. && data[36]==0. && data[37]==0. ) this_st=0;
       if(corruption) this_st=0;
       dim_lv->alct.status = this_st;
