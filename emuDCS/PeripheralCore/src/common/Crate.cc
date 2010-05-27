@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.66 2010/05/27 11:56:48 liu Exp $
+// $Id: Crate.cc,v 3.67 2010/05/27 14:49:21 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.67  2010/05/27 14:49:21  liu
+// updates error flags
+//
 // Revision 3.66  2010/05/27 11:56:48  liu
 // add error flags for DCS monitoring
 //
@@ -669,9 +672,14 @@ void Crate::MonitorCCB(int cycle, char * buf)
 
 void Crate::MonitorTMB(int cycle, char * buf, unsigned mask) 
 {
+  // flag  bits 13-10: if !=0, bad TMB/DMB # (1-9)
+  // flag  bit pattern 8-0 for each TMB/DMB
+  //                1   good reading
+  //                0   bad reading or no reading (skipped/masked)
+
   int TOTAL_TMB_COUNTERS=88;  // 9 from CFEB BadBits registers
   int * countbuf, *buf4;
-  short *buf2;
+  short *buf2, flag=0;
  
   
   buf2=(short *)buf;
@@ -682,18 +690,33 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     if(IsAlive() && (mask & (1<<i))==0 )
     {  countbuf=myTmbs[i]->NewCounters();
-       if(countbuf) memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
+       if(countbuf)
+        {
+            memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
+            flag |= (1<<i);
+        }
+       else
+        {
+           flag &= 0x3FF;
+           flag |= ((i+1)<<10);
+        }
     }
   }  
   *buf2 = TOTAL_TMB_COUNTERS*2*myTmbs.size();
+  *(buf2+1) = flag;
   return;
 }
 
 void Crate::MonitorDMB(int cycle, char * buf, unsigned mask) 
 {
+  // flag  bits 13-10: if !=0, bad TMB/DMB # (1-9)
+  // flag  bit pattern 8-0 for each TMB/DMB
+  //                1   good reading
+  //                0   bad reading or no reading (skipped/masked)
+
   int TOTAL_DMB_COUNTERS=12; // aligned at 4 bytes (integer)
   char * countbuf;
-  short *buf2;
+  short *buf2, flag=0;
 
   buf2=(short *)buf;
   *buf2 = 0;
@@ -703,15 +726,30 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
   for(unsigned i =0; i < myDmbs.size(); ++i) {
     if(IsAlive() && (mask & (1<<i))==0)
     {  countbuf=myDmbs[i]->GetCounters();
-       if(countbuf) memcpy(buf+4+i*TOTAL_DMB_COUNTERS, countbuf, TOTAL_DMB_COUNTERS);
-    }
+       if(countbuf) 
+        {
+          memcpy(buf+4+i*TOTAL_DMB_COUNTERS, countbuf, TOTAL_DMB_COUNTERS);
+          flag |= (1<<i);
+        }
+       else
+        {
+           flag &= 0x3FF;
+           flag |= ((i+1)<<10);
+        }
+     }
   }
   *buf2 = (TOTAL_DMB_COUNTERS/2)*myDmbs.size();
+  *(buf2+1) = flag;
   return;
 }
 
 void Crate::MonitorDCS(int cycle, char * buf, unsigned mask) 
 {
+  // flag  bits 13-10:  if !=0, bad TMB/DMB # (1-9)
+  // flag  bit pattern 8-0:  for each TMB/DMB
+  //                1   good reading
+  //                0   bad reading or no reading (skipped/masked)
+
   int rn, TOTAL_DCS_COUNTERS=48; // aligned at 4 bytes (integer)
   short *buf2, flag=0;
 
@@ -725,10 +763,6 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
     if(IsAlive() && (mask & (1<<i))==0)
     {  
         rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
-       //
-       //  rn<0 error condition, DMB #(1-9) store in the high 6 bits of flag
-       //  rn>0 read out is good, flag bit set (low 10 bits)
-       //
         if( rn>0) flag |= (1<<i);
         else if(rn<0) 
         {  
