@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.65 2010/04/26 09:36:20 liu Exp $
+// $Id: Crate.cc,v 3.66 2010/05/27 11:56:48 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.66  2010/05/27 11:56:48  liu
+// add error flags for DCS monitoring
+//
 // Revision 3.65  2010/04/26 09:36:20  liu
 // add CCB & MPC configure back to WRITE FLASH
 //
@@ -722,8 +725,16 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
     if(IsAlive() && (mask & (1<<i))==0)
     {  
         rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
-       // if ( rn<0 ) error condition
-        if( rn<=0 ) flag |= (1<<i);
+       //
+       //  rn<0 error condition, DMB #(1-9) store in the high 6 bits of flag
+       //  rn>0 read out is good, flag bit set (low 10 bits)
+       //
+        if( rn>0) flag |= (1<<i);
+        else if(rn<0) 
+        {  
+           flag &= 0x3FF; 
+           flag |= ((i+1)<<10);
+        }
         rn=myTmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS+46*2);
     }
   }
