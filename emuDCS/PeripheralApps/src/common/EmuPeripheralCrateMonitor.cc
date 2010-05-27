@@ -322,9 +322,10 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           if(crate_off[i]) continue;
           is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
           now_crate=crateVector[i];
+          if(now_crate==NULL) continue;
 
           // begin: reload VCC's FPGA (F9)
-          if(cycle==3 && now_crate && reload_vcc && !(now_crate->IsAlive()))
+          if(cycle==3 && reload_vcc && !(now_crate->IsAlive()))
           {
                 int cr = now_crate->CheckController();
                 if (cr==1)
@@ -340,7 +341,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           }
           // end: reload
 
-          if(now_crate && now_crate->IsAlive()) 
+          if(now_crate->IsAlive()) 
           {
              std::string cratename=now_crate->GetLabel();
              if(cycle==3)
@@ -441,6 +442,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    *counter16 = buf2[1];
                    counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
                    *counter32 = time(NULL);
+                   int badboard= buf2[1]>>10;
+                   if(badboard>0 && badboard<10) 
+                      std::cout << "Bad DMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl; 
                 }
              }
              else if( cycle==1)
@@ -477,6 +481,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           }
           else
           {  // for non-communicating crates
+             std::cout << "Crate " << now_crate->GetLabel() << " inactive at " << getLocalDateTime() << std::endl;
              if( cycle==2 )
              {
                    counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
@@ -2632,7 +2637,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
 
   unsigned int readtime;
-  unsigned short crateok, skip_chamber;
+  unsigned short crateok, good_chamber;
   float val;
   std::vector<DAQMB*> myVector;
   int TOTAL_DCS_COUNTERS=48;
@@ -2650,6 +2655,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
+     if(crate_off[i]) continue;
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
      if(dmbdata==NULL || dmbdata->size()==0)
@@ -2667,8 +2673,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         if (counter16==NULL) crateok= 0; 
            else crateok = (*counter16);
         counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCSchamber"));
-        if (counter16==NULL) skip_chamber= 0; 
-           else skip_chamber = (*counter16);
+        if (counter16==NULL) good_chamber= 0; 
+           else good_chamber = (*counter16);
      }
      mac=crateVector[i]->vmeController()->GetMAC(0);
      ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
@@ -2679,11 +2685,13 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         slot = myVector[j]->slot();
         ip = (ip & 0xff) + slot*256;
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
-        if(crateok>0 && (skip_chamber & (1<<j))==0) 
-          *out << " " << 1;
-        else
-          *out << " " << 0;
-       *out << " " << readtime << " " << ip;
+
+        // pattern in decimal format: 00AB
+        //    B -> VCC  (0=bad)
+        //    A -> Chamber (0=bad)
+        *out << " " << crateok + ((good_chamber & (1<<j))?10:0); 
+
+        *out << " " << readtime << " " << ip;
         if(gooddata)
         {  // the last value isn't read out, skip
            for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
