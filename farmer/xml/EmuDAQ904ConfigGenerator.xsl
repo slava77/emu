@@ -98,31 +98,18 @@
       <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
       <xc:Application instance="0" class="emu::daq::manager::Application" network="local" id="12" service="emudaqmanager">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::manager::Application">
-	  <runTypes xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[24]">
+	  <runTypes xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[11]">
 	    <item xsi:type="xsd:string" soapenc:position="[0]">Monitor</item>
-	    <item xsi:type="xsd:string" soapenc:position="[1]">SCA_Pedestals</item>
-	    <item xsi:type="xsd:string" soapenc:position="[2]">Comparator_Thresh</item>
-	    <item xsi:type="xsd:string" soapenc:position="[3]">Comparator_Spread</item>
-	    <item xsi:type="xsd:string" soapenc:position="[4]">Comparator_LeftRight</item>
-	    <item xsi:type="xsd:string" soapenc:position="[5]">Comparator_TimeOffset</item>
-	    <item xsi:type="xsd:string" soapenc:position="[6]">Comparator_Rate</item>
-	    <item xsi:type="xsd:string" soapenc:position="[7]">CFEB_Saturation</item>
-	    <item xsi:type="xsd:string" soapenc:position="[8]">CFEB_Connectivity</item>
-	    <item xsi:type="xsd:string" soapenc:position="[9]">CFEB_CompLogic</item>
-	    <item xsi:type="xsd:string" soapenc:position="[10]">CFEB_CompThreshDAC</item>
-	    <item xsi:type="xsd:string" soapenc:position="[11]">CFEB_PulseDAC</item>
-	    <item xsi:type="xsd:string" soapenc:position="[12]">CFEB_NoiseMatrix</item>
-	    <item xsi:type="xsd:string" soapenc:position="[13]">CFEB_Crosstalk</item>
-	    <item xsi:type="xsd:string" soapenc:position="[14]">CFEB_Gains</item>
-	    <item xsi:type="xsd:string" soapenc:position="[15]">AFEB_DAC</item>
-	    <item xsi:type="xsd:string" soapenc:position="[16]">AFEB_TimeDelay</item>
-	    <item xsi:type="xsd:string" soapenc:position="[17]">AFEB_NoiseRate</item>
-	    <item xsi:type="xsd:string" soapenc:position="[18]">AFEB_Connectivity</item>
-	    <item xsi:type="xsd:string" soapenc:position="[19]">AFEB_ALCT</item>
-	    <item xsi:type="xsd:string" soapenc:position="[20]">AFEB_Pulse</item>
-	    <item xsi:type="xsd:string" soapenc:position="[21]">HV_Scan</item>
-	    <item xsi:type="xsd:string" soapenc:position="[22]">STEP</item>
-	    <item xsi:type="xsd:string" soapenc:position="[23]">Debug</item>
+	    <item xsi:type="xsd:string" soapenc:position="[1]">Calib_CFEB_SCAPed</item>
+	    <item xsi:type="xsd:string" soapenc:position="[2]">Calib_CFEB_Comparator</item>
+	    <item xsi:type="xsd:string" soapenc:position="[3]">Calib_CFEB_CrossTalk</item>
+	    <item xsi:type="xsd:string" soapenc:position="[4]">Calib_CFEB_Gains</item>
+	    <item xsi:type="xsd:string" soapenc:position="[5]">Calib_ALCT_Connectivity</item>
+	    <item xsi:type="xsd:string" soapenc:position="[6]">Calib_ALCT_Thresholds</item>
+	    <item xsi:type="xsd:string" soapenc:position="[7]">Calib_ALCT_Delays</item>
+	    <item xsi:type="xsd:string" soapenc:position="[8]">HV_Scan</item>
+	    <item xsi:type="xsd:string" soapenc:position="[9]">STEP</item>
+	    <item xsi:type="xsd:string" soapenc:position="[10]">Debug</item>
 	  </runTypes>
 	  <buildEvents xsi:type="xsd:boolean"><xsl:if test="$BUILD='N'">false</xsl:if><xsl:if test="$BUILD='Y'">true</xsl:if></buildEvents>
 	  <runType xsi:type="xsd:string">Monitor</runType>
@@ -133,24 +120,18 @@
 <!-- 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbUser</runDbUserFile> -->
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
-	  <curlCommand xsi:type="xsd:string">/usr/bin/curl -v -k</curlCommand>
-	  <curlCookies xsi:type="xsd:string">.curlCookies</curlCookies>
-	  <CMSUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.CMSUser</CMSUserFile>
-	  <eLogUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.eLogUser</eLogUserFile>
-<!-- 	  <eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/CSC</eLogURL> -->
-	  <eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/Test</eLogURL>
-	  <postToELog xsi:type="xsd:boolean">true</postToELog>
 	  <controlDQM xsi:type="xsd:boolean">false</controlDQM>
 	  <hardwareMapping xsi:type="xsd:string">emu/config/EmuDAQ/RUI-to-chamber_mapping_bdg904.xml</hardwareMapping>
 	  <TF_FM_URL xsi:type="xsd:string">http://UNKNOWN.cms:12000</TF_FM_URL>
 	  <CSC_FM_URL xsi:type="xsd:string">http://emudaq02.cern.ch:12000</CSC_FM_URL>
 	  <RegexMatchingTFConfigName xsi:type="xsd:string">UNKNOWN</RegexMatchingTFConfigName>
 	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*/Local/.*|.*/Global/.*</RegexMatchingCSCConfigName>
+	  <expertSystemURL xsi:type="xsd:string">http://emuslice12:18080/cdw/factcollection</expertSystemURL>
+	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	</properties>
       </xc:Application>
-      <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
-      <xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
-      <xc:Module>${XDAQ_ROOT}/lib/libemudaqmanager.so</xc:Module>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqmanager.so</xc:Module>
     </xc:Context>
   </xsl:template>
   
@@ -256,8 +237,11 @@
 	      <poolSizeForClient xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0x4000000</item>
 	      </poolSizeForClient>
+	      <expertSystemURL xsi:type="xsd:string">http://emuslice12:18080/cdw/factcollection</expertSystemURL>
+	      <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	    </properties>
 	  </xc:Application>
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
 	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqrui.so</xc:Module>
 	</xc:Context>
 
