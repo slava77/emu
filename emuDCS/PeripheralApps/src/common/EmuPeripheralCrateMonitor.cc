@@ -146,6 +146,10 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   dcs_station=0;
   dcs_chamber=0;
 
+  dcs_mask.clear();
+  tmb_mask.clear();
+  dmb_mask.clear();
+
   parsed=0;
 }
 
@@ -271,6 +275,11 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 monitorables_.push_back(urn.toString());
                 xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(urn.toString());
 
+            // for masks
+                dcs_mask.push_back(0);
+                tmb_mask.push_back(0);
+                dmb_mask.push_back(0);
+
             // for VCC
                 vcc_reset.push_back(0);
                 crate_off.push_back(false);
@@ -357,7 +366,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              }
              else if( cycle==2)
              {
-                now_crate-> MonitorDCS(cycle, buf);
+                now_crate-> MonitorDCS(cycle, buf, dcs_mask[i]);
                 if(buf2[0])
                 {
                    // std::cout << "Crate " << i << " DCS counters " << buf2[0] << std::endl;
@@ -368,6 +377,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    for(int kk=3; kk<22; kk=kk+2 ) for(int ll=0; ll<7; ll++) bad_read[kk][ll]=0;
                    for(unsigned ii=0; ii<buf2[0]; ii++)
                    {   unsigned short rdv = buf2[ii+2];
+                       unsigned boardid=ii/48;
                        if(rdv >= 0xFFF) rdv = 0;
                        if((ii%48)<40)
                        {
@@ -379,8 +389,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           int cfebnum=(ii%48)%19;
                           if(cfebnum>17) cfebnum=17;
                           cfebnum= cfebnum/3 + 1;       
-                          if((ii%48)==17 || (ii%48)>37 || (cratename.substr(4,1)=="4" && dmbslot>7))
-                          { // ignore ALCT 5.5B current or Analog/Digital Feed
+                          if((dcs_mask[i] & (1<<boardid))>0 || (ii%48)==17 || (ii%48)>37 || (cratename.substr(4,1)=="4" && dmbslot>7))
+                          { // ignore masked boards
+                            // ignore ALCT 5.5B current or Analog/Digital Feed
                             // nothing for empty slots
                           }
                           else if(cratename.substr(4,1)=="1" && dmbslot>16 && cfebnum==5)
@@ -415,8 +426,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           // for ALCT temperature reading error handling
                           int tmbslot=(ii/48)*2+2;
                           if(tmbslot>10) tmbslot += 2;
-                          if(cratename.substr(4,1)=="4" && tmbslot>6)
-                          { // nothing for empty slots
+                          if((dcs_mask[i] & (1<<boardid))>0 || (cratename.substr(4,1)=="4" && tmbslot>6))
+                          { // ignore masked boards
+                            // nothing for empty slots
                           }
                           else
                           {
@@ -449,7 +461,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              }
              else if( cycle==1)
              {
-                now_crate-> MonitorTMB(cycle, buf);
+                now_crate-> MonitorTMB(cycle, buf, tmb_mask[i]);
                 if(buf2[0])
                 {
                    // std::cout << "TMB counters " << (buf2[0]/2) << std::endl;
@@ -467,7 +479,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    }
                    for(unsigned ii=0; ii<(buf2[0]/2); ii++) (*tmbdata)[ii] = buf4[ii+1];
                 }
-                now_crate-> MonitorDMB(cycle, buf);
+                now_crate-> MonitorDMB(cycle, buf, dmb_mask[i]);
                 if(buf2[0])
                 {
                    // std::cout << "DMB counters " << buf2[0] << std::endl;
@@ -497,7 +509,7 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   if(!parsed) ParsingXML();
   //
   std::string LoggerName = getApplicationLogger().getName() ;
-  std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
+  // std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate ready");
   //
@@ -2938,6 +2950,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   Page=cgiEnvi.getQueryString();
   std::string command_name=Page.substr(0,Page.find("=", 0) );
   std::string command_argu=Page.substr(Page.find("=", 0)+1);
+  if(command_name=="") return;
 
   if (command_name=="CRATEOFF")
   {
@@ -2945,7 +2958,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      {
         if(command_argu=="ALL" || command_argu==crateVector[i]->GetLabel())
         {   crate_off[i] = true;
-            std::cout << "SwitchBoard: disable crate " << command_argu << std::endl;
+            std::cout << "SwitchBoard: disable crate " << command_argu << " at " << getLocalDateTime() << std::endl;
         }
      }
   }
@@ -2955,7 +2968,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      {
         if(command_argu=="ALL" || command_argu==crateVector[i]->GetLabel())
         {   crate_off[i] = false;
-            std::cout << "SwitchBoard: enable crate " << command_argu << std::endl;
+            std::cout << "SwitchBoard: enable crate " << command_argu << " at " << getLocalDateTime() << std::endl;
         }
      }
   }
@@ -2964,20 +2977,20 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      if (command_argu=="FAST") fast_on = false;
      else if (command_argu=="SLOW") slow_on = false;
      else if (command_argu=="EXTRA") extra_on = false;
-     std::cout << "SwitchBoard: " << command_argu << " LOOP disabled" << std::endl;
+     std::cout << "SwitchBoard: " << command_argu << " LOOP disabled" << " at " << getLocalDateTime() << std::endl;
   }
   else if (command_name=="LOOPON")
   {
      if (command_argu=="FAST") fast_on = true;
      else if (command_argu=="SLOW") slow_on = true;
      else if (command_argu=="EXTRA") extra_on = true;
-     std::cout << "SwitchBoard: " << command_argu << " LOOP enabled" << std::endl;
+     std::cout << "SwitchBoard: " << command_argu << " LOOP enabled" << " at " << getLocalDateTime() << std::endl;
   }
   else if (command_name=="VCCRESET")
   {
      if (command_argu=="ON" || command_argu=="on") reload_vcc = true;
      else if (command_argu=="OFF" || command_argu=="off") reload_vcc = false;
-     std::cout << "SwitchBoard: VCC Reset " << command_argu << std::endl;
+     std::cout << "SwitchBoard: VCC Reset " << command_argu << " at " << getLocalDateTime() << std::endl;
   }
   else if (command_name=="STATUS")
   {
@@ -2995,8 +3008,68 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   }
   else if (command_name=="RELOAD")
   {
+     std::cout << " Check Configuration DB, auto reload if needed " << " at " << getLocalDateTime() << std::endl;
      ParsingXML(true);
-     std::cout << " Check Configuration DB, auto reload if needed " << std::endl;
+  }
+  else if (command_name=="LISTMASK")
+  {
+     if(!Monitor_Ready_) return;
+     // std::cout << "List of all masks:" << std::endl;
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(dcs_mask[i]) 
+          *out << "DCS Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << dcs_mask[i] << std::dec << std::endl;
+        if(tmb_mask[i]) 
+          *out << "TMB Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << tmb_mask[i] << std::dec << std::endl;
+        if(dmb_mask[i]) 
+          *out << "DMB Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << dmb_mask[i] << std::dec << std::endl;
+     }
+  }
+  else if (command_name=="MASKON" || command_name=="MASKOFF")
+  {
+     if(!Monitor_Ready_) return;
+     std::string board=command_argu.substr(0,3);
+     std::string detail=command_argu.substr(4);
+     std::string maskcrate=detail.substr(0,detail.find("-",0));
+     std::string maskst=detail.substr(detail.find("-",0)+1);
+     int maskid=atoi(maskst.c_str());
+     if(maskid<1 || maskid>9) return;
+     bool goodmask=false;
+
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(maskcrate==crateVector[i]->GetLabel())
+        {
+            if (board=="DCS" || board=="dcs")
+            {
+               goodmask=true;
+               if(command_name=="MASKON") 
+                  dcs_mask[i] |= (1<<(maskid-1));
+               else
+                  dcs_mask[i] &= ~(1<<(maskid-1));
+            }
+            else if (board=="TMB" || board=="tmb")
+            {
+               goodmask=true;
+               if(command_name=="MASKON")
+                  tmb_mask[i] |= (1<<(maskid-1));
+               else
+                  tmb_mask[i] &= ~(1<<(maskid-1));
+            }
+            else if (board=="DMB" || board=="dmb")
+            {
+               goodmask=true;
+               if(command_name=="MASKON")
+                  dmb_mask[i] |= (1<<(maskid-1));
+               else
+                  dmb_mask[i] &= ~(1<<(maskid-1));
+            }
+        }
+     }
+     if(goodmask)
+        std::cout << "SwitchBoard: " << command_name << " " << board << " " << maskcrate << " " << maskid << " at " << getLocalDateTime() << std::endl;
+     else
+        std::cout << "SwitchBoard: Invalid " << command_name << " " <<  command_argu << " at " << getLocalDateTime() << std::endl;
   }
 }
 
