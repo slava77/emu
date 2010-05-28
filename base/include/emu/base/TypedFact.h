@@ -6,20 +6,6 @@
 
 namespace emu { namespace base {
 
-
-  class ApplicationStatusFact {
-  public:
-    enum ParameterName_t { state, nParameters };
-    static const char*  getTypeName() { return typeName_; }
-    static const string getParameterName( const ParameterName_t p ) { return parameterNames_[p]; }
-  protected:
-    static const char* const typeName_; 
-    static const char* const parameterNames_[nParameters];
-  };
-  const char* const ApplicationStatusFact::typeName_ = "applicationStatusFact";
-  const char* const ApplicationStatusFact::parameterNames_[] = { "state" };
-
-
   template <class T>
   class TypedFact : public Fact {
   public:

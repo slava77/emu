@@ -27,6 +27,7 @@ Sources = \
 	FactRequest.cc \
 	FactFinder.cc \
 	Component.cc \
+	ApplicationStatusFact.cc \
 	version.cc
 
 IncludeDirs = \
