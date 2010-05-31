@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.h,v 1.9 2009/11/13 09:03:11 paste Exp $
+* $Id: DBAgent.h,v 1.10 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBAGENT_H__
 #define __EMU_FED_DBAGENT_H__
@@ -22,7 +22,7 @@ namespace emu {
 		public:
 
 			/** Default constructor. **/
-			DBAgent(xdaq::WebApplication *application);
+			DBAgent(xdaq::WebApplication *application, const int &instance = -1);
 			
 			/** Default destructor. **/
 			~DBAgent();
@@ -130,6 +130,9 @@ namespace emu {
 			
 			/// The application context from which to send the SOAP messages
 			xdaq::WebApplication *application_;
+			
+			/// The TStore instance number to use for this DBAgent.  An instance < 0 means send to the first TStore instance found on the executive, whatever that might be.
+			int instance_;
 
 			/// The ID recieved from the database after connecting for future requests
 			std::string connectionID_;

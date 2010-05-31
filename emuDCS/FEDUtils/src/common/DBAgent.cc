@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.14 2010/05/22 21:47:57 liu Exp $
+* $Id: DBAgent.cc,v 1.15 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -13,8 +13,9 @@
 
 
 
-emu::fed::DBAgent::DBAgent(xdaq::WebApplication *application):
-application_(application)
+emu::fed::DBAgent::DBAgent(xdaq::WebApplication *application, const int &instance):
+application_(application),
+instance_(instance)
 {
 
 }
@@ -60,7 +61,7 @@ throw (emu::fed::exception::DBException)
 	xoap::MessageReference response;
 	
 	try {
-		response = sendSOAPMessage(message, "tstore::TStore");
+		response = sendSOAPMessage(message, "tstore::TStore", instance_);
 	} catch (emu::fed::exception::SOAPException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
 	}
@@ -89,7 +90,7 @@ throw (emu::fed::exception::DBException) {
 	xoap::MessageReference message = request.toSOAP();
 	
 	try {
-		sendSOAPMessage(message, "tstore::Tstore");
+		sendSOAPMessage(message, "tstore::Tstore", instance_);
 	} catch (emu::fed::exception::SOAPException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
 	}
@@ -125,7 +126,7 @@ throw (emu::fed::exception::DBException) {
 	xoap::MessageReference message = request.toSOAP();
 	xoap::MessageReference response;
 	try {
-		response = sendSOAPMessage(message, "tstore::TStore");
+		response = sendSOAPMessage(message, "tstore::TStore", instance_);
 	} catch (emu::fed::exception::SOAPException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
 	}	
@@ -173,7 +174,7 @@ throw (emu::fed::exception::DBException) {
 	
 	xoap::MessageReference response;
 	try {
-		response = sendSOAPMessage(message, "tstore::TStore");
+		response = sendSOAPMessage(message, "tstore::TStore", instance_);
 	} catch (emu::fed::exception::SOAPException &e) {
 		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
 	}

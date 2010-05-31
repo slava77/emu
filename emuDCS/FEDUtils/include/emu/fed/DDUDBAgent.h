@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDBAgent.h,v 1.6 2009/12/10 16:30:04 paste Exp $
+* $Id: DDUDBAgent.h,v 1.7 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDUDBAGENT_H__
 #define __EMU_FED_DDUDBAGENT_H__
@@ -24,7 +24,7 @@ namespace emu {
 		public:
 
 			/** Default constructor **/
-			DDUDBAgent(xdaq::WebApplication *application);
+			DDUDBAgent(xdaq::WebApplication *application, const int &instance = -1);
 			
 			/** Build a bunch of DDU objects corresponding to a configuration key and a crate number **/
 			std::vector<emu::fed::DDU *> getDDUs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &crateNumber, const bool &fake = false)

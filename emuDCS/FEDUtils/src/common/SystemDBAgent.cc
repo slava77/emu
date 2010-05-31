@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.12 2010/01/25 13:45:20 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.13 2010/05/31 14:05:19 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
@@ -7,8 +7,8 @@
 #include "toolbox/TimeVal.h"
 #include "xdata/TableIterator.h"
 
-emu::fed::SystemDBAgent::SystemDBAgent(xdaq::WebApplication *application):
-DBAgent(application)
+emu::fed::SystemDBAgent::SystemDBAgent(xdaq::WebApplication *application, const int &instance):
+DBAgent(application, instance)
 {
 	table_ = "EMU_FED_CONFIGURATIONS";
 }

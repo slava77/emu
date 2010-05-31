@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.cc,v 1.10 2010/01/25 13:45:20 paste Exp $
+* $Id: DCCDBAgent.cc,v 1.11 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DCCDBAgent.h"
@@ -9,8 +9,8 @@
 #include "xdata/Boolean.h"
 #include "xdata/UnsignedShort.h"
 
-emu::fed::DCCDBAgent::DCCDBAgent(xdaq::WebApplication *application):
-DBAgent(application)
+emu::fed::DCCDBAgent::DCCDBAgent(xdaq::WebApplication *application, const int &instance):
+DBAgent(application, instance)
 { 
 	table_ = "EMU_FED_DCCS";
 }

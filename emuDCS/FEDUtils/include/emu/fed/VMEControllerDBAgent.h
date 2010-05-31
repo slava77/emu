@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerDBAgent.h,v 1.6 2009/12/10 16:30:04 paste Exp $
+* $Id: VMEControllerDBAgent.h,v 1.7 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMECONTROLLERDBAGENT_H__
 #define __EMU_FED_VMECONTROLLERDBAGENT_H__
@@ -26,7 +26,7 @@ namespace emu {
 
 			/** Default constructor.
 			**/
-			VMEControllerDBAgent(xdaq::WebApplication *application);
+			VMEControllerDBAgent(xdaq::WebApplication *application, const int &instance = -1);
 			
 			/** Build a controller corresponding to a configuration key and a crate number **/
 			emu::fed::VMEController *getController(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number, const bool &fake = false)
