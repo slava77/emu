@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.14 2010/05/04 12:35:52 paste Exp $
+* $Id: Application.cc,v 1.15 2010/05/31 14:57:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -39,7 +39,7 @@ xdaq::WebApplication(stub)
 	myAppender->setName(getApplicationDescriptor()->getClassName() + "Appender");
 	
 	// Appender Layout
-	std::auto_ptr<Layout> myLayout = std::auto_ptr<Layout>(new log4cplus::PatternLayout("%D{%m/%d/%Y %j-%H:%M:%S.%q} %-5p %c, %m%n"));
+	std::auto_ptr<Layout> myLayout = std::auto_ptr<Layout>(new log4cplus::PatternLayout("%D{%m/%d/%Y %H:%M:%S.%q} %-5p %c, %m%n"));
 	myAppender->setLayout( myLayout );
 	getApplicationLogger().addAppender(myAppender);
 	

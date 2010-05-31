@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.12 2010/03/17 16:45:57 paste Exp $
+* $Id: Configurable.cc,v 1.13 2010/05/31 14:57:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/operations.hpp"
@@ -19,7 +19,8 @@
 emu::fed::Configurable::Configurable(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
 emu::fed::Application(stub),
-systemName_("unnamed")
+systemName_("unnamed"),
+tstoreInstance_(-1)
 {
 	// Variables that are to be made available to other applications
 	getApplicationInfoSpace()->fireItemAvailable("systemName", &systemName_);
@@ -28,6 +29,7 @@ systemName_("unnamed")
 	getApplicationInfoSpace()->fireItemAvailable("dbPassword", &dbPassword_);
 	getApplicationInfoSpace()->fireItemAvailable("dbKey", &dbKey_);
 	getApplicationInfoSpace()->fireItemAvailable("configMode",  &configMode_);
+	getApplicationInfoSpace()->fireItemAvailable("tstoreInstance",  &tstoreInstance_);
 	
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Configurable::webGetConfiguration, "GetConfiguration");
@@ -259,7 +261,7 @@ throw (emu::fed::exception::ConfigurationException)
 	} else if (configMode_ == "Database") {
 		
 		LOG4CPLUS_INFO(getApplicationLogger(), "DB configuration using key " << dbKey_.toString());
-		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString(), dbKey_);
+		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString(), dbKey_, tstoreInstance_);
 		
 		try {
 			crateVector_ = configurator.setupCrates();
@@ -440,7 +442,7 @@ throw(emu::fed::exception::ConfigurationException)
 	std::map<std::string, std::vector<xdata::UnsignedInteger64> > dbKeys;
 	
 	// Get the keys from the systems table.
-	SystemDBAgent agent(this);
+	SystemDBAgent agent(this, tstoreInstance_);
 	
 	std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > keyMap;
 

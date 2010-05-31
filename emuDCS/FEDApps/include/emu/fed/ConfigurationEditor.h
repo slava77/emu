@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.h,v 1.10 2010/02/22 23:00:35 paste Exp $
+* $Id: ConfigurationEditor.h,v 1.11 2010/05/31 14:57:19 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURATIONEDITOR_H__
 #define __EMU_FED_CONFIGURATIONEDITOR_H__
@@ -13,6 +13,7 @@
 #include "emu/fed/JSONSpiritValue.h"
 #include "xdata/String.h"
 #include "xdata/UnsignedInteger64.h"
+#include "xdata/Integer.h"
 
 namespace emu {
 	namespace fed {
@@ -102,6 +103,9 @@ namespace emu {
 
 			/// Current configuration key
 			xdata::UnsignedInteger64 dbKey_;
+			
+			/// TStore instance to use.  -1 means use the first instance found on the executive, whatever that might be.
+			xdata::Integer tstoreInstance_;
 
 		};
 

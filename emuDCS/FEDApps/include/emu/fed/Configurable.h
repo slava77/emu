@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.h,v 1.5 2010/03/17 16:45:51 paste Exp $
+* $Id: Configurable.h,v 1.6 2010/05/31 14:57:19 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CONFIGURABLE_H__
 #define __EMU_FED_CONFIGURABLE_H__
@@ -8,6 +8,7 @@
 #include "xdata/xdata.h"
 #include "xdata/UnsignedInteger64.h"
 #include "boost/filesystem/path.hpp"
+#include "xdata/Integer.h"
 
 namespace emu {
 	namespace fed {
@@ -77,6 +78,9 @@ namespace emu {
 			
 			/// The mode by which to configure the application.
 			xdata::String configMode_;
+			
+			/// The TStore instance to use
+			xdata::Integer tstoreInstance_;
 			
 			/// The ever-useful crate vector.
 			std::vector<Crate *> crateVector_;

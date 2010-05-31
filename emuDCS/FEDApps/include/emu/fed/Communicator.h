@@ -1,23 +1,27 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.9 2009/11/23 09:21:29 paste Exp $
+* $Id: Communicator.h,v 1.10 2010/05/31 14:57:19 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
 
 #include "emu/fed/Configurable.h"
 #include "emu/fed/Supervised.h"
+#include "emu/base/FactFinder.h"
+#include "emu/fed/Facts.h"
 
 #include <vector>
 #include <string>
 
 #include "emu/fed/Crate.h"
-#include "emu/fed/IRQThreadManager.h"
 
 
 namespace emu {
 	namespace fed {
+
+		class IRQThreadManager;
+		
 		/** @class Communicator A class that is directly responsible for hardware communication with the FED Crates. **/
-		class Communicator: virtual public emu::fed::Configurable, public emu::fed::Supervised
+		class Communicator: virtual public emu::fed::Configurable, public emu::fed::Supervised, public emu::base::FactFinder
 		{
 
 		public:
@@ -80,6 +84,23 @@ namespace emu {
 			/** Serializes the appropriate variables to send to whatever application requests them. **/
 			xoap::MessageReference onGetParameters(xoap::MessageReference message);
 
+			/** Returns a requested fact **/
+			virtual emu::base::Fact findFact(const emu::base::Component& component, const std::string& factType);
+			
+			/** Returns all facts for dispatch, either by schedule or by explicit call to sendFacts() **/
+			virtual emu::base::FactCollection findFacts();
+
+			/** The Communicator itself is not fast enough to pick up IRQs, so the ThreadManager has to be able to send to the Communicator the facts from an IRQ so that the Communicator can report this to the Expert System. **/
+			inline void sendIRQFact(const emu::base::TypedFact<emu::fed::DDUFMMIRQFact> &fact) {
+				latestIRQFact_ = fact;
+				sendFact("", "LatestIRQFact");
+			}
+			
+			inline void sendResetFact(const emu::base::TypedFact<emu::fed::DDUFMMResetFact> &fact) {
+				latestResetFact_ = fact;
+				sendFact("", "LatestResetFact");
+			}
+
 		private:
 
 			/** Sets the TTS (FMM) bits on a given board.
@@ -127,6 +148,12 @@ namespace emu {
 			
 			/// The threshold number of chambers required to be in an error state before sending an FMM
 			xdata::UnsignedInteger fmmErrorThreshold_;
+
+			/// The latest IRQ fact to send to the Expert System
+			emu::base::TypedFact<emu::fed::DDUFMMIRQFact> latestIRQFact_;
+
+			/// The latest reset fact to send to the Expert System
+			emu::base::TypedFact<emu::fed::DDUFMMResetFact> latestResetFact_;
 
 		};
 	}
