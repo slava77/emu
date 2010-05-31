@@ -1,12 +1,12 @@
 /*****************************************************************************\
-* $Id: VMEControllerDBAgent.cc,v 1.10 2010/01/25 13:45:20 paste Exp $
+* $Id: VMEControllerDBAgent.cc,v 1.11 2010/05/31 14:05:19 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/VMEControllerDBAgent.h"
 #include "emu/fed/VMEController.h"
 
-emu::fed::VMEControllerDBAgent::VMEControllerDBAgent(xdaq::WebApplication *application):
-DBAgent(application)
+emu::fed::VMEControllerDBAgent::VMEControllerDBAgent(xdaq::WebApplication *application, const int &instance):
+DBAgent(application, instance)
 { 
 	table_ = "EMU_FED_CONTROLLERS";
 }

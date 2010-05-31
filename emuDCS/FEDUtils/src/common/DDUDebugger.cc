@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.13 2010/05/04 12:34:45 paste Exp $
+* $Id: DDUDebugger.cc,v 1.14 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -975,7 +975,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(const uint32
 	if ((stat & 0x00028000) == 0x8000) returnValues["TMB checking is disabled"] = "blue";
 	if ((stat & 0x00048000) == 0x8000) returnValues["CFEB DAV/LCT/MOVLP/L1A checks disabled"] = "blue";
 	if ((stat & 0x00088000) == 0x8000) returnValues["Some DMB checks disabled for SP/TF compatibility"] = "blue";
-	if ((stat & 0x00008000) == 0) returnValues["All checks are Enabled"] = "green";
+	if ((stat & 0x00008000) == 0) returnValues["All checks enabled (forced)"] = "green";
 
 	return returnValues;
 }
@@ -1163,20 +1163,21 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(const uint
 {
 	std::map<std::string, std::string> returnValues;
 
+	int prescaleMap[] = {1, 2, 4, 16, 128, 1024, 32768};
+
 	int reg0 = stat & 0xF;
 	int reg1 = (stat & 0xF0) >> 4;
 	int reg2 = (stat & 0xF00) >> 8;
 	int reg3 = (stat & 0xF000) >> 12;
 
 	if (reg0 == reg2 && reg1 == reg3 && reg0 + reg1 == 0xF) {
-		if ((0x7 & stat) == 0x7) returnValues["Transmitting never"] = "none";
+		if (reg0 == 7) returnValues["Transmitting never"] = "none";
 		else {
-			const unsigned int prescale = 1 << reg0;
 			std::stringstream prescaleText;
-			prescaleText << "1:" << prescale;
+			prescaleText << "1:" << prescaleMap[reg0 & 7];
 			returnValues["Transmitting "+prescaleText.str()+" events"] = "green";
 		}
-		if (0x8 & stat) returnValues["Ignoring DCC/S-Link Wait"] = "orange";
+		if (reg0 & 8) returnValues["Ignoring DCC/S-Link Wait"] = "orange";
 	} else {
 		returnValues["Transmitting never"] = "none";
 	}

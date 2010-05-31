@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDBAgent.cc,v 1.11 2010/01/25 13:45:20 paste Exp $
+* $Id: DDUDBAgent.cc,v 1.12 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DDUDBAgent.h"
@@ -9,8 +9,8 @@
 #include "xdata/Boolean.h"
 #include "xdata/UnsignedInteger.h"
 
-emu::fed::DDUDBAgent::DDUDBAgent(xdaq::WebApplication *application):
-DBAgent(application)
+emu::fed::DDUDBAgent::DDUDBAgent(xdaq::WebApplication *application, const int &instance):
+DBAgent(application, instance)
 { 
 	table_ = "EMU_FED_DDUS";
 }

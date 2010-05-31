@@ -42,7 +42,6 @@ Sources=\
 	DBConfigurator.cc \
 	XMLConfigurator.cc \
 	AutoConfigurator.cc \
-	IRQThreadManager.cc \
 	DDUDebugger.cc \
 	DCCDebugger.cc \
 	DataTable.cc \

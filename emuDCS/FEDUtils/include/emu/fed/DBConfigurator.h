@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.h,v 1.5 2009/12/10 16:30:04 paste Exp $
+* $Id: DBConfigurator.h,v 1.6 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBCONFIGURATOR_H__
 #define __EMU_FED_DBCONFIGURATOR_H__
@@ -9,6 +9,7 @@
 #include <string>
 #include "xdaq/WebApplication.h"
 #include "xdata/UnsignedInteger64.h"
+#include "xdata/Integer.h"
 
 namespace emu {
 	namespace fed {
@@ -24,7 +25,7 @@ namespace emu {
 			*	@param username The database username.
 			*	@param password The database password.
 			**/
-			DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password, xdata::UnsignedInteger64 &key);
+			DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password, xdata::UnsignedInteger64 &key, xdata::Integer &instance = -1);
 			
 			/** Destructor **/
 			virtual ~DBConfigurator() {};
@@ -52,6 +53,9 @@ namespace emu {
 			
 			/// The database key to use
 			xdata::UnsignedInteger64 dbKey_;
+			
+			/// The TStore instance to use
+			xdata::Integer instance_;
 		
 		};
 
