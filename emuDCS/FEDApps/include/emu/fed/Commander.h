@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.10 2010/04/21 13:19:25 paste Exp $
+* $Id: Commander.h,v 1.11 2010/05/31 14:57:16 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
@@ -17,7 +17,7 @@ namespace emu {
 		*
 		*	@author Phillip Killewald
 		**/
-		class Commander: public virtual emu::fed::Configurable, public emu::base::FactFinder
+		class Commander: public virtual emu::fed::Configurable/*, public emu::base::FactFinder*/
 		{
 
 		public:
@@ -67,6 +67,12 @@ namespace emu {
 
 			/** Backend for checking the status of a firmware load **/
 			void webFirmwareCheck(xgi::Input *in, xgi::Output *out);
+
+			/** Show a page for editing a register **/
+			void webEditDDURegister(xgi::Input *in, xgi::Output *out);
+
+			/** Backend for writing a register to a board **/
+			void webWriteRegister(xgi::Input *in, xgi::Output *out);
 
 			/** Returns common DDU and DCC status information **/
 			void webGetStatus(xgi::Input *in, xgi::Output *out);
@@ -134,6 +140,9 @@ namespace emu {
 
 			/** Format a vector of debugging information using cgicc::divs **/
 			std::string formatBigDebug(const std::vector<std::string> &debug);
+
+			/** Make a nice box for displaying and editing a register **/
+			std::string makeRegisterBox(const unsigned int &reg, const std::string &identifier, const std::string &id, const std::string &initialValue, const unsigned int &base = 10);
 
 		};
 	}

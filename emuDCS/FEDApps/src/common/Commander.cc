@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.25 2010/04/21 13:19:25 paste Exp $
+* $Id: Commander.cc,v 1.26 2010/05/31 14:57:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -29,7 +29,7 @@ emu::fed::Commander::Commander(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
 emu::fed::Application(stub),
 emu::fed::Configurable(stub),
-emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0),
+/*emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0),*/
 firmwareException_(NULL)
 {
 	// HyperDAQ pages
@@ -40,6 +40,8 @@ firmwareException_(NULL)
 	xgi::bind(this, &emu::fed::Commander::webDDUFirmwareManager, "DDUFirmwareManager");
 	xgi::bind(this, &emu::fed::Commander::webDDUReset, "DDUReset");
 	xgi::bind(this, &emu::fed::Commander::webDCCFirmwareManager, "DCCFirmwareManager");
+	xgi::bind(this, &emu::fed::Commander::webEditDDURegister, "EditDDURegister");
+	xgi::bind(this, &emu::fed::Commander::webWriteRegister, "WriteRegister");
 	xgi::bind(this, &emu::fed::Commander::webFirmwareLoader, "FirmwareLoader");
 	xgi::bind(this, &emu::fed::Commander::webFirmwareUploader, "FirmwareUploader");
 	xgi::bind(this, &emu::fed::Commander::webFirmwareCheck, "FirmwareCheck");
@@ -296,6 +298,9 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("class", "ddu_button") << std::endl;
 	*out << cgicc::button("Set Flash RUI Number")
 		.set("id", "ddu_flash_rui_dialog")
+		.set("class", "ddu_button") << std::endl;
+	*out << cgicc::button("Set KillFiber")
+		.set("id", "ddu_killfiber_dialog")
 		.set("class", "ddu_button") << std::endl;
 	*out << cgicc::button("Set Flash KillFiber")
 		.set("id", "ddu_flash_killfiber_dialog")
@@ -2264,9 +2269,9 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderDDUFirmwareManager", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
 	}
-
+	
 	cgicc::Cgicc cgi(in);
-
+	
 	// Dig out the crate to which I should communicate.
 	unsigned int crateNumber = 0;
 	if (cgi.getElement("crate") != cgi.getElements().end()) {
@@ -2278,17 +2283,17 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommanderDDUFirmwareManager", "ERROR", error.str(), "", NULL);
 	}
-
+	
 	Crate *myCrate = NULL;
 	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
-
+		
 		if ((*iCrate)->getNumber() == crateNumber) {
 			myCrate = (*iCrate);
 			break;
 		}
-
+		
 	}
-
+	
 	if (myCrate == NULL) {
 		std::ostringstream error;
 		error << "Unable to find crate number " << crateNumber << " in configuration";
@@ -2299,45 +2304,45 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	} else {
 		REVOKE_ALARM("CommanderDDUFirmwareManager", NULL);
 	}
-
+	
 	// Display truncated header
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("commanderFirmware.js");
-
+	
 	// Extra header information
 	std::ostringstream extraHeader;
 	extraHeader << "<script type=\"text/javascript\">" << std::endl;
 	extraHeader << "var boardType = \"ddu\";" << std::endl;
 	extraHeader << "var crateNumber = " << crateNumber << ";" << std::endl;
 	extraHeader << "</script>" << std::endl;
-
+	
 	*out << Header("DDU Firmware Management", jsFileNames, extraHeader.str(), false);
-
+	
 	*out << cgicc::div()
 		.set("class", "titlebar commander_width")
 		.set("id", "FED_Commander_ddu_selector_titlebar") << std::endl;
 	*out << cgicc::div("DDU Firmware Manager")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
-
+	
 	*out << cgicc::fieldset()
 		.set("class", "dialog commander_width")
 		.set("id", "FED_Commander_ddu_selector_dialog") << std::endl;
-
+	
 	// Everything falls in a list
 	*out << cgicc::ol() << std::endl;
-
+	
 	// Step 1
 	*out << cgicc::li("Review installed versions and select firmware install targets")
 		.set("class", "tier0 bold") << std::endl;
-
+	
 	std::vector<DDU *> dduVector = myCrate->getDDUs();
-
+	
 	// Make a table for the DDUs
 	*out << cgicc::table()
 		.set("class", "tier1 data_table")
 		.set("style", "font-size: 80%;") << std::endl;
-
+	
 	*out << cgicc::tr()
 		.set("class", "data_header") << std::endl;
 	*out << cgicc::td("DDU")
@@ -2410,9 +2415,9 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("for", "broadcast_in1") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
-
+	
 	for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
-
+		
 		uint32_t vmePROM = 0;
 		uint32_t dduPROM0 = 0;
 		uint32_t dduPROM1 = 0;
@@ -2421,9 +2426,9 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		uint32_t dduFPGA = 0;
 		uint32_t inFPGA0 = 0;
 		uint32_t inFPGA1 = 0;
-
+		
 		try {
-
+			
 			vmePROM = (*iDDU)->readUserCode(emu::fed::VMEPROM);
 			dduPROM0 = (*iDDU)->readUserCode(emu::fed::DDUPROM0);
 			dduPROM1 = (*iDDU)->readUserCode(emu::fed::DDUPROM1);
@@ -2432,23 +2437,23 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 			dduFPGA = (*iDDU)->readUserCode(emu::fed::DDUFPGA);
 			inFPGA0 = (*iDDU)->readUserCode(emu::fed::INFPGA0);
 			inFPGA1 = (*iDDU)->readUserCode(emu::fed::INFPGA1);
-
+			
 		} catch (emu::fed::exception::DDUException &e) {
-
+			
 			// Zeros imply error.
 			std::ostringstream error;
 			error << "Error reading PROM/FPGA usercodes from DDU";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::Exception, e2, error.str(), e);
 			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("ERROR", e2);
-
+			
 		}
-
+		
 		// Each slot should be unique, so keep track of the slot number in element IDs.
 		std::ostringstream slotStream;
 		slotStream << (*iDDU)->getSlot();
 		std::string slot = slotStream.str();
-
+		
 		// Two rows per DDU
 		*out << cgicc::tr()
 			.set("class", "board") << std::endl;
@@ -2570,183 +2575,183 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		*out << cgicc::td() << std::endl;
 		*out << cgicc::tr() << std::endl;
 	}
-
+	
 	*out << cgicc::table() << std::endl;
-
+	
 	// Step 2
-
+	
 	*out << cgicc::li("Upload local firmware files to selected targets")
-		.set("class", "tier0 bold") << std::endl;
-
+	.set("class", "tier0 bold") << std::endl;
+	
 	*out << cgicc::table()
-		.set("class", "tier1") << std::endl;
+	.set("class", "tier1") << std::endl;
 	*out << cgicc::tr()
-		.set("class", "hidden")
-		.set("id", "vme_target") << std::endl;
+	.set("class", "hidden")
+	.set("id", "vme_target") << std::endl;
 	*out << cgicc::td("VME firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::form()
-		.set("enctype", "multipart/form-data")
-		.set("method", "POST")
-		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
-		.set("chip", "vme")
-		.set("id", "vme_form")
-		.set("target", "hidden_frame") << std::endl;
+	.set("enctype", "multipart/form-data")
+	.set("method", "POST")
+	.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
+	.set("chip", "vme")
+	.set("id", "vme_form")
+	.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
-		.set("type", "file")
-		.set("name", "file")
-		.set("id", "vme_file") << std::endl;
+	.set("type", "file")
+	.set("name", "file")
+	.set("id", "vme_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
-		.set("chip", "vme")
-		.set("class", "upload")
-		.set("id", "vme_upload") << std::endl;
+	.set("chip", "vme")
+	.set("class", "upload")
+	.set("id", "vme_upload") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
 	*out << cgicc::tr()
-		.set("class", "hidden")
-		.set("id", "ddu0_target") << std::endl;
+	.set("class", "hidden")
+	.set("id", "ddu0_target") << std::endl;
 	*out << cgicc::td("Control PROM0 firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::form()
-		.set("enctype", "multipart/form-data")
-		.set("method", "POST")
-		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
-		.set("chip", "ddu0")
-		.set("id", "ddu0_form")
-		.set("target", "hidden_frame") << std::endl;
+	.set("enctype", "multipart/form-data")
+	.set("method", "POST")
+	.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
+	.set("chip", "ddu0")
+	.set("id", "ddu0_form")
+	.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
-		.set("type", "file")
-		.set("name", "file")
-		.set("id", "ddu0_file") << std::endl;
+	.set("type", "file")
+	.set("name", "file")
+	.set("id", "ddu0_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
-		.set("chip", "ddu0")
-		.set("class", "upload")
-		.set("id", "ddu0_upload") << std::endl;
+	.set("chip", "ddu0")
+	.set("class", "upload")
+	.set("id", "ddu0_upload") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
 	*out << cgicc::tr()
-		.set("class", "hidden")
-		.set("id", "ddu1_target") << std::endl;
+	.set("class", "hidden")
+	.set("id", "ddu1_target") << std::endl;
 	*out << cgicc::td("Control PROM1 firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::form()
-		.set("enctype", "multipart/form-data")
-		.set("method", "POST")
-		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
-		.set("chip", "ddu1")
-		.set("id", "ddu1_form")
-		.set("target", "hidden_frame") << std::endl;
+	.set("enctype", "multipart/form-data")
+	.set("method", "POST")
+	.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
+	.set("chip", "ddu1")
+	.set("id", "ddu1_form")
+	.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
-		.set("type", "file")
-		.set("name", "file")
-		.set("id", "ddu1_file") << std::endl;
+	.set("type", "file")
+	.set("name", "file")
+	.set("id", "ddu1_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
-		.set("chip", "ddu1")
-		.set("class", "upload")
-		.set("id", "ddu1_upload") << std::endl;
+	.set("chip", "ddu1")
+	.set("class", "upload")
+	.set("id", "ddu1_upload") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
 	*out << cgicc::tr()
-		.set("class", "hidden")
-		.set("id", "in0_target") << std::endl;
+	.set("class", "hidden")
+	.set("id", "in0_target") << std::endl;
 	*out << cgicc::td("Input PROM0 firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::form()
-		.set("enctype", "multipart/form-data")
-		.set("method", "POST")
-		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
-		.set("chip", "in0")
-		.set("id", "in0_form")
-		.set("target", "hidden_frame") << std::endl;
+	.set("enctype", "multipart/form-data")
+	.set("method", "POST")
+	.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
+	.set("chip", "in0")
+	.set("id", "in0_form")
+	.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
-		.set("type", "file")
-		.set("name", "file")
-		.set("id", "in0_file") << std::endl;
+	.set("type", "file")
+	.set("name", "file")
+	.set("id", "in0_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
-		.set("chip", "in0")
-		.set("class", "upload")
-		.set("id", "in0_upload") << std::endl;
+	.set("chip", "in0")
+	.set("class", "upload")
+	.set("id", "in0_upload") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
 	*out << cgicc::tr()
-		.set("class", "hidden")
-		.set("id", "in1_target") << std::endl;
+	.set("class", "hidden")
+	.set("id", "in1_target") << std::endl;
 	*out << cgicc::td("Input PROM1 firmware: ") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::form()
-		.set("enctype", "multipart/form-data")
-		.set("method", "POST")
-		.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
-		.set("chip", "in1")
-		.set("id", "in1_form")
-		.set("target", "hidden_frame") << std::endl;
+	.set("enctype", "multipart/form-data")
+	.set("method", "POST")
+	.set("action", "/" + getApplicationDescriptor()->getURN() + "/FirmwareUploader")
+	.set("chip", "in1")
+	.set("id", "in1_form")
+	.set("target", "hidden_frame") << std::endl;
 	*out << cgicc::input()
-		.set("type", "file")
-		.set("name", "file")
-		.set("id", "in1_file") << std::endl;
+	.set("type", "file")
+	.set("name", "file")
+	.set("id", "in1_file") << std::endl;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::button("Upload and install")
-		.set("chip", "in1")
-		.set("class", "upload")
-		.set("id", "in1_upload") << std::endl;
+	.set("chip", "in1")
+	.set("class", "upload")
+	.set("id", "in1_upload") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
-
+	
 	*out << cgicc::table() << std::endl;
-
+	
 	// A hidden iFrame for loading firmware
 	*out << cgicc::iframe()
-		.set("id", "hidden_frame")
-		.set("name", "hidden_frame")
-		.set("class", "hidden") << std::endl;
+	.set("id", "hidden_frame")
+	.set("name", "hidden_frame")
+	.set("class", "hidden") << std::endl;
 	*out << cgicc::iframe() << std::endl;
-
+	
 	// Step 3
-
+	
 	// Check to see if DCCs exist in this crate
 	if (myCrate->getDCCs().size()) {
-
+		
 		*out << cgicc::li()
-			.set("class", "tier0 bold") << std::endl;
-
+		.set("class", "tier0 bold") << std::endl;
+		
 		*out << cgicc::button("Hard-reset the crate through the DCC")
-			.set("id", "reset") << std::endl;
-
+		.set("id", "reset") << std::endl;
+		
 		*out << cgicc::li() << std::endl;
-
+		
 	} else {
-
+		
 		*out << cgicc::li("Issue a hard-reset to the crate")
-			.set("class", "tier0 bold") << std::endl;
-
+		.set("class", "tier0 bold") << std::endl;
+		
 		*out << cgicc::div("Either use a TTC command or power-cycle the crate manually.")
-			.set("class", "tier1") << std::endl;
-
+		.set("class", "tier1") << std::endl;
+		
 	}
-
-
+	
+	
 	*out << cgicc::ol() << std::endl;
-
+	
 	*out << cgicc::fieldset() << std::endl;
 	
 	*out << cgicc::a("Go back to Commander main page")
-		.set("style", "color: #ddf")
-		.set("href", "/" + getApplicationDescriptor()->getURN()) << std::endl;
-
+	.set("style", "color: #ddf")
+	.set("href", "/" + getApplicationDescriptor()->getURN()) << std::endl;
+	
 	*out << Footer();
 
 }
@@ -3367,6 +3372,668 @@ void emu::fed::Commander::webFirmwareCheck(xgi::Input *in, xgi::Output *out)
 
 
 
+void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
+{
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("CommanderEditRegister", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Commander application";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderEditRegister", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
+	cgicc::Cgicc cgi(in);
+	
+	/*cgicc::CgiEnvironment env = cgi.getEnvironment();
+	std::cout << "Post data: " << env.getPostData() << std::endl;
+	std::cout << "And from that, I find this many elements: " << cgi.getElements().size() << std::endl;*/
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+
+	// Dig out the DDUs or DCCs to which I should communicate.
+	std::vector<DDU *> targetDDUs;
+
+	// Map back to crate (RUI -> Crate)
+	std::map<uint16_t, Crate *> crateMap;
+
+	for (std::vector<cgicc::FormEntry>::const_iterator iEntry = cgi.getElements().begin(); iEntry != cgi.getElements().end(); iEntry++) {
+		if (iEntry->getName() == "rui") {
+			
+			unsigned int rui = iEntry->getIntegerValue();
+			
+			// See if we can find the DDU from which the RUI comes
+			for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
+				
+				bool ruiFound = false;
+				std::vector<DDU *> dduVector = (*iCrate)->getDDUs();
+				for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+					
+					if ((*iDDU)->getRUI() == rui) {
+						targetDDUs.push_back(*iDDU);
+						ruiFound = true;
+						crateMap[rui] = *iCrate;
+						break;
+					}
+				}
+				
+				if (ruiFound) break;
+			}
+			
+		}
+	}
+
+	unsigned int reg = 0;
+	if (cgi.getElement("reg") != cgi.getElements().end()) {
+		reg = cgi.getElement("reg")->getIntegerValue();
+	}
+	
+	// Display truncated header
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("commanderEdit.js");
+	
+	// Extra header information
+	std::ostringstream extraHeader;
+	extraHeader << "<script type=\"text/javascript\">" << std::endl;
+	extraHeader << "var ddus = new Array();" << std::endl;
+	for (std::vector<DDU *>::const_iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); ++iDDU) {
+		extraHeader << "ddus.push(" << (*iDDU)->getRUI() << ");" << std::endl;
+	}
+	extraHeader << "var reg = " << reg << ";" << std::endl;
+	extraHeader << "</script>" << std::endl;
+	
+	*out << Header("FED Commander DDU Register Editor", jsFileNames, extraHeader.str(), false);
+	
+	*out << cgicc::div()
+		.set("class", "titlebar commander_width")
+		.set("id", "FED_Commander_ddu_editor_titlebar") << std::endl;
+	*out << cgicc::div("DDU Register Editor")
+		.set("class", "titletext") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::fieldset()
+		.set("class", "dialog commander_width")
+		.set("id", "FED_Commander_ddu_editor_dialog") << std::endl;
+	
+
+	// Register name
+	std::string registerName;
+
+	// Register default base
+	unsigned int registerBase = 10;
+
+	// Register help text
+	std::string registerHelp;
+
+	// Switch on the register
+	if (targetDDUs.size()) {
+
+		switch (reg) {
+
+		case 1: // Flash board number
+			registerName = "Flash Board ID";
+			registerHelp = "The DDU serial board number.  It is stored in flash for debugging purposes in case the on-board labeling falls off.";
+			registerBase = 10;
+			break;
+
+		case 3: // Flash RUI number
+			registerName = "Flash RUI Number";
+			registerHelp = "The readout-unit identifier number.  It is inserted into the data stream so that local and central DAQ know from which DDU the data are coming.";
+			registerBase = 10;
+			break;
+
+		case 4: // KillFiber
+			registerName = "KillFiber";
+			registerHelp = "A register controlling which fiber inputs are read out in the data stream.  The highest five bits set options for data checking.";
+			registerBase = 16;
+			break;
+
+		case 5: // Flash KillFiber
+			registerName = "Flash KillFiber";
+			registerHelp = "A register controlling which fiber inputs are read out in the data stream.";
+			registerBase = 16;
+			break;
+
+		case 6: // GbE prescale
+			registerName = "GbE Prescale";
+			registerHelp = "The gigabit ethernet prescale value.";
+			registerBase = 10;
+			break;
+
+		case 12: // FMM status
+			registerName = "FMM Register";
+			registerHelp = "The FMM status of the DDU.";
+			registerBase = 16;
+			break;
+
+		case 42: // Fake L1
+			registerName = "Fake L1 Passthrough";
+			registerHelp = "Controls generation of fake L1As for debugging purposes.";
+			registerBase = 16;
+			break;
+
+		case 43: // Flash GbE FIFO Thresholds
+			registerName = "Flash GbE FIFO Thresholds";
+			registerHelp = "The data output thresholds for gigabit ethernet transmission.";
+			registerBase = 16;
+			break;
+
+		case 49: // Bunch-Crossing Orbit
+			registerName = "Bunch-Crossing Orbit";
+			registerHelp = "The orbit number for bunch crossings.";
+			registerBase = 10;
+			break;
+
+		case 57: // Input register
+			registerName = "Input Register 0";
+			registerHelp = "A writable register for writing values to flash.  This register is linked in serial with Input Register 1, which is in turn linked in serial with Input Register 2.  When a value is loaded into this register, the previous 16 bits that were stored are pushed into Input Register 1, and the previous 16 bits stored in Input Register 1 are pushed into Input Register 2.  The data in Input Register 2 is lost.  This allows for writing values larger than 16 bits to flash in a single JTAG command.";
+			registerBase = 16;
+			break;
+
+		default:
+			*out << "DDU register " << reg << " cannot be edited.";
+			*out << Footer();
+			return;
+		}
+
+	}
+
+	// Print the name of the variable
+	*out << cgicc::div(registerName)
+		.set("class", "tier0 bold") << std::endl;
+
+	*out << cgicc::div(registerHelp)
+		.set("class", "tier1") << std::endl;
+
+	// Print out the table up to the options part
+	*out << cgicc::table()
+		.set("class", "tier1 data_table")
+		.set("style", "font-size: 80%;") << std::endl;
+
+	*out << cgicc::tr()
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("DDU")
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("Current Value")
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::td("New Value")
+		.set("class", "data_header") << std::endl;
+	*out << cgicc::tr() << std::endl;
+
+	for (std::vector<DDU *>::const_iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); ++iDDU) {
+
+		std::ostringstream ruiStream;
+		ruiStream << (*iDDU)->getRUI();
+		std::string ruiString = ruiStream.str();
+
+		// Current value of the register
+		std::ostringstream registerValue;
+
+		// register options
+		std::ostringstream registerOptions;
+
+		// Outside initialization of other stuff
+		std::ostringstream configVal;
+		std::ostringstream calculateVal;
+		uint32_t val;
+		cgicc::input bit0Input;
+		cgicc::input bit1Input;
+		cgicc::input bit2Input;
+		cgicc::input bit3Input;
+		cgicc::input bit7Input;
+		cgicc::input bit15Input;
+		cgicc::input bit16Input;
+		cgicc::input bit17Input;
+		cgicc::input bit18Input;
+		cgicc::input bit19Input;
+		cgicc::input fedInput;
+		std::ostringstream fpgaVal;
+		std::vector<Fiber *> fiberVector = (*iDDU)->getFibers();
+		int prescaleMap[] = {1, 2, 4, 16, 128, 1024, 32768};
+		std::vector<uint16_t> valVector;
+
+		switch (reg) {
+
+		case 1: // Flash board number
+			registerValue << std::setbase(registerBase) << (*iDDU)->readFlashBoardID();
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+			break;
+
+		case 3: // Flash RUI number
+			registerValue << std::setbase(registerBase) << (*iDDU)->readFlashRUI();
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+
+			configVal << std::setbase(registerBase) << (*iDDU)->getRUI();
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "config_" + ruiString)
+				.set("value", configVal.str())
+				.set("rui", ruiString) << std::endl;
+			registerOptions << cgicc::label("Configuration Value")
+				.set("for", "config_" + ruiString) << std::endl;
+
+			calculateVal << std::setbase(registerBase) << crateMap[(*iDDU)->getRUI()]->getRUI((*iDDU)->slot());
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "calc_" + ruiString)
+				.set("value", calculateVal.str())
+				.set("rui", ruiString) << std::endl;
+			registerOptions << cgicc::label("Calculated Value")
+				.set("for", "calc_" + ruiString) << std::endl;
+			break;
+
+		case 4: // KillFiber
+			val = (*iDDU)->readKillFiber();
+			registerValue << std::setbase(registerBase) << val;
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+			
+			configVal << std::setbase(registerBase) << (*iDDU)->getKillFiber();
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "config_" + ruiString)
+				.set("value", configVal.str())
+				.set("rui", ruiString) << std::endl;
+			registerOptions << cgicc::label("Configuration Value")
+				.set("for", "config_" + ruiString) << std::endl;
+
+			for (std::vector<Fiber *>::const_iterator iFiber = fiberVector.begin(); iFiber != fiberVector.end(); ++iFiber) {
+				std::ostringstream fiberNumber;
+				fiberNumber << (*iFiber)->getFiberNumber();
+				cgicc::input fiberInput;
+				fiberInput.set("type", "checkbox")
+					.set("id", "bit" + fiberNumber.str() + "_" + ruiString)
+					.set("class", "manual_only")
+					.set("bit", fiberNumber.str())
+					.set("rui", ruiString);
+				if (val & (1 << (*iFiber)->getFiberNumber())) fiberInput.set("checked", "checked");
+				registerOptions << fiberInput << std::endl;
+				registerOptions << cgicc::label("Use Fiber " + fiberNumber.str() + " (" + (*iFiber)->getName() + ")")
+					.set("for", "bit" + fiberNumber.str() + "_" + ruiString) << std::endl;
+			}
+			
+			bit15Input.set("type", "checkbox")
+				.set("id", "bit15_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "15")
+				.set("rui", ruiString);
+			if (val & (1 << 15)) bit15Input.set("checked", "checked");
+			registerOptions << bit15Input << std::endl;
+			registerOptions << cgicc::label("Disable Force All Checks")
+				.set("for", "bit15_" + ruiString) << std::endl;
+
+			bit16Input.set("type", "checkbox")
+				.set("id", "bit16_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "16")
+				.set("rui", ruiString);
+			if (val & (1 << 16)) bit16Input.set("checked", "checked");
+			registerOptions << bit16Input << std::endl;
+			registerOptions << cgicc::label("Enable ALCT Checks")
+				.set("for", "bit16_" + ruiString) << std::endl;
+
+			bit17Input.set("type", "checkbox")
+				.set("id", "bit17_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "17")
+				.set("rui", ruiString);
+			if (val & (1 << 17)) bit17Input.set("checked", "checked");
+			registerOptions << bit17Input << std::endl;
+			registerOptions << cgicc::label("Enable TMB Checks")
+				.set("for", "bit17_" + ruiString) << std::endl;
+
+			bit18Input.set("type", "checkbox")
+				.set("id", "bit18_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "18")
+				.set("rui", ruiString);
+			if (val & (1 << 18)) bit18Input.set("checked", "checked");
+			registerOptions << bit18Input << std::endl;
+			registerOptions << cgicc::label("Enable CFEB Checks")
+				.set("for", "bit18_" + ruiString) << std::endl;
+
+			bit19Input.set("type", "checkbox")
+				.set("id", "bit19_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "19")
+				.set("rui", ruiString);
+			if (val & (1 << 19)) bit19Input.set("checked", "checked");
+			registerOptions << bit19Input << std::endl;
+			registerOptions << cgicc::label("Enable DMB Checks")
+				.set("for", "bit19_" + ruiString) << std::endl;
+			
+			break;
+
+		case 5: // Flash KillFiber
+			val = (*iDDU)->readFlashKillFiber();
+			registerValue << std::setbase(registerBase) << val;
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+			
+			configVal << std::setbase(registerBase) << (*iDDU)->getKillFiber();
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "config_" + ruiString)
+				.set("value", configVal.str())
+				.set("rui", ruiString) << std::endl;
+			registerOptions << cgicc::label("Configuration Value")
+				.set("for", "config_" + ruiString) << std::endl;
+
+			fpgaVal << std::setbase(registerBase) << (*iDDU)->readKillFiber();
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "fpga_" + ruiString)
+				.set("value", fpgaVal.str())
+				.set("rui", ruiString) << std::endl;
+			registerOptions << cgicc::label("FPGA Value")
+				.set("for", "fpga_" + ruiString) << std::endl;
+
+			for (std::vector<Fiber *>::const_iterator iFiber = fiberVector.begin(); iFiber != fiberVector.end(); ++iFiber) {
+				std::ostringstream fiberNumber;
+				fiberNumber << (*iFiber)->getFiberNumber();
+				cgicc::input fiberInput;
+				fiberInput.set("type", "checkbox")
+					.set("id", "bit" + fiberNumber.str() + "_" + ruiString)
+					.set("class", "manual_only")
+					.set("bit", fiberNumber.str())
+					.set("rui", ruiString);
+				if (val & (1 << (*iFiber)->getFiberNumber())) fiberInput.set("checked", "checked");
+				registerOptions << fiberInput << std::endl;
+				registerOptions << cgicc::label("Use Fiber " + fiberNumber.str() + " (" + (*iFiber)->getName() + ")")
+					.set("for", "bit" + fiberNumber.str() + "_" + ruiString) << std::endl;
+			}
+			break;
+
+		case 6: // GbE prescale
+			val = (*iDDU)->readGbEPrescale();
+			registerValue << std::setbase(registerBase) << val;
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+
+			configVal << std::setbase(registerBase) << (*iDDU)->getGbEPrescale();
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "config_" + ruiString)
+				.set("value", configVal.str())
+				.set("rui", ruiString) << std::endl;
+			registerOptions << cgicc::label("Configuration Value")
+				.set("for", "config_" + ruiString) << std::endl;
+
+			registerOptions << cgicc::select()
+				.set("id", "select_" + ruiString)
+				.set("class", "manual_only")
+				.set("bits", "7")
+				.set("rui", ruiString) << std::endl;
+			
+			for (unsigned int i = 0; i < 7; ++i) {
+				std::ostringstream bit;
+				bit << i;
+				std::ostringstream value;
+				value << prescaleMap[i];
+				cgicc::option o("Transmit 1:" + value.str());
+				o.set("value", bit.str());
+				if (val & (1 << i)) o.set("selected", "selected");
+				registerOptions << o << std::endl;
+			}
+
+			bit7Input.set("type", "checkbox")
+				.set("id", "bit7_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "7")
+				.set("rui", ruiString);
+			if (val & (1 << 7)) bit7Input.set("checked", "checked");
+			registerOptions << bit7Input << std::endl;
+			registerOptions << cgicc::label("Ignore DCC/S-Link Wait")
+				.set("for", "bit7_" + ruiString) << std::endl;
+				
+			break;
+
+		case 12: // FMM status
+			val = (*iDDU)->readFMM();
+			registerValue << std::setbase(registerBase) << val;
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+
+			bit0Input.set("type", "checkbox")
+				.set("id", "bit0_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "0")
+				.set("rui", ruiString);
+			if (val & (1 << 0)) bit0Input.set("checked", "checked");
+			registerOptions << bit0Input << std::endl;
+			registerOptions << cgicc::label("FMM Warning")
+				.set("for", "bit0_" + ruiString) << std::endl;
+
+			bit1Input.set("type", "checkbox")
+				.set("id", "bit1_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "1")
+				.set("rui", ruiString);
+			if (val & (1 << 1)) bit1Input.set("checked", "checked");
+			registerOptions << bit1Input << std::endl;
+			registerOptions << cgicc::label("FMM Out-of-Sync")
+				.set("for", "bit1_" + ruiString) << std::endl;
+
+			bit2Input.set("type", "checkbox")
+				.set("id", "bit2_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "2")
+				.set("rui", ruiString);
+			if (val & (1 << 2)) bit2Input.set("checked", "checked");
+			registerOptions << bit2Input << std::endl;
+			registerOptions << cgicc::label("FMM Busy")
+				.set("for", "bit2_" + ruiString) << std::endl;
+
+			bit3Input.set("type", "checkbox")
+				.set("id", "bit3_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "3")
+				.set("rui", ruiString);
+			if (val & (1 << 3)) bit3Input.set("checked", "checked");
+			registerOptions << bit3Input << std::endl;
+			registerOptions << cgicc::label("FMM Ready")
+				.set("for", "bit3_" + ruiString) << std::endl;
+
+			fedInput.set("type", "checkbox")
+				.set("id", "fed_" + ruiString)
+				.set("class", "manual_only")
+				.set("bits", "65232")
+				.set("rui", ruiString);
+			if ((val & 0xfff0) == 0xfed) fedInput.set("checked", "checked");
+			registerOptions << fedInput << std::endl;
+			registerOptions << cgicc::label("Prevent Sending of FMM")
+				.set("for", "fed_" + ruiString) << std::endl;
+			break;
+
+		case 42: // Fake L1
+			val = (*iDDU)->readFakeL1();
+			registerValue << std::setbase(registerBase) << val;
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+			
+			bit0Input.set("type", "checkbox")
+				.set("id", "bit0_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "0")
+				.set("rui", ruiString);
+			if (val & (1 << 0)) bit0Input.set("checked", "checked");
+			registerOptions << bit0Input << std::endl;
+			registerOptions << cgicc::label("InFPGA0 Passthrough")
+				.set("for", "bit0_" + ruiString) << std::endl;
+
+			bit1Input.set("type", "checkbox")
+				.set("id", "bit1_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "1")
+				.set("rui", ruiString);
+			if (val & (1 << 1)) bit1Input.set("checked", "checked");
+			registerOptions << bit1Input << std::endl;
+			registerOptions << cgicc::label("InFPGA1 Passthrough")
+				.set("for", "bit1_" + ruiString) << std::endl;
+
+			bit2Input.set("type", "checkbox")
+				.set("id", "bit2_" + ruiString)
+				.set("class", "manual_only")
+				.set("bit", "2")
+				.set("rui", ruiString);
+			if (val & (1 << 2)) bit2Input.set("checked", "checked");
+			registerOptions << bit2Input << std::endl;
+			registerOptions << cgicc::label("DDUFPGA Passthrough")
+				.set("for", "bit2_" + ruiString) << std::endl;
+				
+			break;
+
+		case 43: // Flash GbE FIFO Thresholds
+			valVector = (*iDDU)->readFlashGbEFIFOThresholds();
+			for (std::vector<uint16_t>::const_iterator iVal = valVector.begin(); iVal != valVector.end(); ++iVal) {
+				registerValue << std::setbase(16) << std::setw(4) << std::setfill('0') << *iVal;
+			}
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+			break;
+
+		case 49: // Bunch-Crossing Orbit
+			val = (*iDDU)->readBXOrbit();
+			registerValue << std::setbase(registerBase) << val;
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+			break;
+
+		case 57: // Input register
+			val = (*iDDU)->readInputRegister(0);
+			registerValue << std::setbase(registerBase) << val;
+			
+			registerOptions << cgicc::input()
+				.set("type", "radio")
+				.set("id", "manual_" + ruiString)
+				.set("value", "manual")
+				.set("rui", ruiString)
+				.set("checked", "checked") << std::endl;
+			registerOptions << cgicc::label("Manual Setting")
+				.set("for", "manual_" + ruiString) << std::endl;
+			break;
+				
+			default: break;
+		}
+
+		*out << cgicc::tr()
+			.set("class", "board") << std::endl;
+		// DDU name
+		*out << cgicc::td()
+			.set("rowspan", "2")
+			.set("class", "entry_name") << "DDU " << (*iDDU)->getRUI() << cgicc::td() << std::endl;
+		// Current value
+		*out << cgicc::td()
+			.set("rowspan", "2")
+			.set("class", "entry_name current")
+			.set("rui", ruiString) << registerValue.str() << cgicc::td() << std::endl;
+		//  New value
+		*out << cgicc::td()
+			.set("class", "entry_name new")
+			.set("rui", ruiString) << makeRegisterBox(reg, "rui", ruiString, registerValue.str(), registerBase) << cgicc::td() << std::endl;
+		*out << cgicc::tr() << std::endl;
+		*out << cgicc::tr()
+			.set("class", "board") << std::endl;
+		*out << cgicc::td()
+			.set("class", "entry_name") << registerOptions.str() << cgicc::td() << std::endl;
+		*out << cgicc::tr() << std::endl;
+		
+	}
+
+	*out << cgicc::table() << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+
+	*out << cgicc::a("Go back to Commander main page")
+		.set("style", "color: #ddf")
+		.set("href", "/" + getApplicationDescriptor()->getURN()) << std::endl;
+	
+	*out << Footer();
+}
+
+
+
+void emu::fed::Commander::webWriteRegister(xgi::Input *in, xgi::Output *out)
+{
+	
+}
+
+
+
 void emu::fed::Commander::webGetStatus(xgi::Input *in, xgi::Output *out)
 {
 	// Configure yourself if you haven't yet.  This is a software-only configure.
@@ -3697,7 +4364,8 @@ std::string emu::fed::Commander::formatBigDebug(const std::vector<std::string> &
 
 emu::base::Fact emu::fed::Commander::findFact(const emu::base::Component& component, const std::string& factType)
 {
-	if (factType == "dduVoltageFact") {
+	/*
+	if (factType == emu::fed::dduVoltageFact::getTypeName()) {
 		emu::base::TypedFact<emu::fed::dduVoltageFact> fact;
 		fact.setComponentId("DDU")
 			.setSeverity(emu::base::Fact::DEBUG)
@@ -3708,6 +4376,7 @@ emu::base::Fact emu::fed::Commander::findFact(const emu::base::Component& compon
 			.setParameter(emu::fed::dduVoltageFact::voltage33, 3350);
 		return fact;
 	}
+	*/
 
 	std::ostringstream error;
 	error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
@@ -3724,15 +4393,69 @@ emu::base::FactCollection emu::fed::Commander::findFacts()
 {
 	emu::base::FactCollection collection;
 
-	emu::base::TypedFact<emu::fed::dduVoltageFact> voltFact;
-	voltFact.setComponentId("DDU")
-		.setSeverity(emu::base::Fact::DEBUG)
-		.setDescription("DDU voltages")
-		.setParameter(emu::fed::dduVoltageFact::voltage15, 1524)
-		.setParameter(emu::fed::dduVoltageFact::voltage25_1, 2499)
-		.setParameter(emu::fed::dduVoltageFact::voltage25_2, 2489)
-		.setParameter(emu::fed::dduVoltageFact::voltage33, 3350);
-	collection.addFact(voltFact);
+	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
+		std::vector<DDU *> dduVector = (*iCrate)->getDDUs();
+		for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
+			std::ostringstream dduName;
+			dduName << "DDU" << (*iDDU)->getRUI();
+			// Can't force an rvalue to be an lvalue...YET!
+			/*
+			emu::base::Fact voltageFact = findFact(dduName.str(), emu::fed::dduVoltageFact::getTypeName());
+			collection.addFact(voltageFact);
+			*/
+		}
+	}
 
 	return collection;
+}
+
+
+
+std::string emu::fed::Commander::makeRegisterBox(const unsigned int &reg, const std::string &identifier, const std::string &id, const std::string &initialValue, const unsigned int &base)
+{
+	std::ostringstream out;
+	std::ostringstream regStream;
+	regStream << reg;
+	std::ostringstream idStream;
+	idStream << identifier << "_" << id << "_" << reg;
+
+	out << cgicc::input()
+		.set("type", "text")
+		.set("value", initialValue)
+		.set("class", "register_input")
+		.set("id", idStream.str() + "_value")
+		.set(identifier, id)
+		.set("reg", regStream.str()) << std::endl;
+
+	cgicc::input base10;
+	base10.set("type", "radio")
+		.set("name", idStream.str() + "_base")
+		.set("id", idStream.str() + "_base10")
+		.set(identifier, id)
+		.set("reg", regStream.str())
+		.set("value", "10");
+	if (base == 10) base10.set("checked", "checked");
+	out << base10 << std::endl;
+	out << cgicc::label("dec")
+		.set("for", idStream.str() + "_base10") << std::endl;
+
+	cgicc::input base16;
+	base16.set("type", "radio")
+		.set("name", idStream.str() + "_base")
+		.set("id", idStream.str() + "_base16")
+		.set(identifier, id)
+		.set("reg", regStream.str())
+		.set("value", "16");
+	if (base == 16) base16.set("checked", "checked");
+	out << base16 << std::endl;
+	out << cgicc::label("dec")
+		.set("for", idStream.str() + "_base10") << std::endl;
+
+	out << cgicc::button("Write")
+		.set("id", idStream.str() + "_write")
+		.set("class", "write_button")
+		.set("reg", regStream.str())
+		.set(identifier, id) << std::endl;
+	
+	return out.str();
 }

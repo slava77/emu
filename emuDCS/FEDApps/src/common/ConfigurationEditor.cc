@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.cc,v 1.15 2010/03/17 16:45:57 paste Exp $
+* $Id: ConfigurationEditor.cc,v 1.16 2010/05/31 14:57:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/ConfigurationEditor.h"
 
@@ -31,13 +31,15 @@ emu::fed::ConfigurationEditor::ConfigurationEditor(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
 emu::fed::Application(stub),
 systemName_(""),
-dbKey_(0)
+dbKey_(0),
+tstoreInstance_(-1)
 {
 
 	// Variables that are to be made available to other applications
 	xdata::InfoSpace *infoSpace = getApplicationInfoSpace();
 	infoSpace->fireItemAvailable("dbUsername", &dbUsername_);
 	infoSpace->fireItemAvailable("dbPassword", &dbPassword_);
+	infoSpace->fireItemAvailable("tstoreInstance", &tstoreInstance_);
 
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::ConfigurationEditor::webDefault, "Default");
@@ -242,7 +244,7 @@ void emu::fed::ConfigurationEditor::webGetDBKeys(xgi::Input *in, xgi::Output *ou
 	}
 
 	// Get the keys from the configurations table.
-	SystemDBAgent agent(this);
+	SystemDBAgent agent(this, tstoreInstance_);
 
 	std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > keyMap;
 
@@ -364,7 +366,7 @@ void emu::fed::ConfigurationEditor::webLoadFromDB(xgi::Input *in, xgi::Output *o
 	}
 
 	// Get the configuration from the DB
-	DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString(), dbKey_);
+	DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString(), dbKey_, tstoreInstance_);
 
 	try {
 		crateVector_ = configurator.setupCrates(true);
@@ -530,7 +532,7 @@ void emu::fed::ConfigurationEditor::webSystem(xgi::Input *in, xgi::Output *out)
 		}
 
 		// Make sure the key is not already in use.
-		SystemDBAgent agent(this);
+		SystemDBAgent agent(this, tstoreInstance_);
 
 		std::map<std::string, std::vector<std::pair<xdata::UnsignedInteger64, time_t> > > keyMap;
 
@@ -2982,7 +2984,7 @@ void emu::fed::ConfigurationEditor::webUploadToDB(xgi::Input *in, xgi::Output *o
 		out->setHTTPResponseHeader(jsonHeader);
 	}
 
-	DBConfigurator configurator(this, dbUsername_, dbPassword_, dbKey_);
+	DBConfigurator configurator(this, dbUsername_, dbPassword_, dbKey_, tstoreInstance_);
 
 	JSONSpirit::Object output;
 

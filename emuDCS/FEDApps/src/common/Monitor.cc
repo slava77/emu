@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.17 2010/03/17 16:45:57 paste Exp $
+* $Id: Monitor.cc,v 1.18 2010/05/31 14:57:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -936,7 +936,9 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 				status = "killed";
 				message = "not used";
 			} else {
-				std::pair<std::string, std::string> debuggedStatus = DCCDebugger::decodeFIFOStatus(fifoStatus, iFIFO);
+				unsigned int jFIFO = iFIFO - 1;
+				if (iFIFO > 5) --jFIFO;
+				std::pair<std::string, std::string> debuggedStatus = DCCDebugger::decodeFIFOStatus(fifoStatus, jFIFO);
 				status = debuggedStatus.second;
 				if (status != "ok") message = debuggedStatus.first;
 			}
@@ -973,7 +975,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 				slinkObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 
-			std::pair<std::string, std::string> debuggedStatus = DCCDebugger::decodeSLinkStatus(slinkStatus, iLink);
+			std::pair<std::string, std::string> debuggedStatus = DCCDebugger::decodeSLinkStatus(slinkStatus, iLink - 1);
 			status = debuggedStatus.second;
 			if (status != "ok") message = debuggedStatus.first;
 			
