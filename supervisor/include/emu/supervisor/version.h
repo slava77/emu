@@ -5,7 +5,7 @@
 
 namespace emusupervisor {
 	const std::string package     = "emusupervisor";
-	const std::string versions    = "09.09.00";
+	const std::string versions    = "09.09.01";
 	const std::string description = "Emu (CSC) Supervisor";
 
 	const std::string summary     = "emu/supervisor";
