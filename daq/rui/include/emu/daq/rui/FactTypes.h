@@ -1,6 +1,10 @@
 #ifndef __emu_daq_rui_FactTypes_h__
 #define __emu_daq_rui_FactTypes_h__
 
+#include <string>
+
+using namespace std;
+
 namespace emu { namespace daq { namespace rui {
 
   class RUIStatusFact {
@@ -12,8 +16,6 @@ namespace emu { namespace daq { namespace rui {
     static const char* const typeName_;
     static const char* const parameterNames_[nParameters];
   };
-  const char* const RUIStatusFact::typeName_ = "ruiStatusFact";
-  const char* const RUIStatusFact::parameterNames_[] = { "runType", "state", "nEventsRead", "isWritingToFile", "nEventsWritten" };
 
 }}} // namespace emu::daq::rui
 
