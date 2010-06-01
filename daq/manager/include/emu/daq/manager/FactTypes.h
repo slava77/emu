@@ -1,6 +1,10 @@
 #ifndef __emu_daq_manager_FactTypes_h__
 #define __emu_daq_manager_FactTypes_h__
 
+#include <string>
+
+using namespace std;
+
 namespace emu { namespace daq { namespace manager {
 
   class LocalDAQStatusFact {
@@ -12,8 +16,6 @@ namespace emu { namespace daq { namespace manager {
     static const char* const typeName_; 
     static const char* const parameterNames_[nParameters];
   };
-  const char* const LocalDAQStatusFact::typeName_ = "localDAQStatusFact";
-  const char* const LocalDAQStatusFact::parameterNames_[] = { "runType", "state", "daqState", "isSupervised", "isBuildingEvents" };
 
 }}} // namespace emu::daq::manager
 

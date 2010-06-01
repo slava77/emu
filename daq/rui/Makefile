@@ -15,6 +15,7 @@ Package = daq/rui
 Sources = \
 	STEPEventCounter.cc \
 	Application.cc \
+	FactTypes.cc \
 	version.cc
 
 IncludeDirs = \

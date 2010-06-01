@@ -32,6 +32,7 @@
 #include "pt/SOAPMessenger.h"
 
 #include "emu/base/TypedFact.h"
+#include "emu/base/ApplicationStatusFact.h"
 #include "emu/daq/manager/FactTypes.h"
 
 #include <math.h>
