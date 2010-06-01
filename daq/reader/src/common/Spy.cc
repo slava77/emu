@@ -229,7 +229,7 @@ int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
 //     // END DEBUG
 
     // If no data for a long time, abort.
-    if(iloop>100000){timeout=1; timeoutCount++; theErrorFlag|=Timeout; break;}
+    if(iloop>50000){timeout=1; timeoutCount++; theErrorFlag|=Timeout; break;}
 
     // If the write pointer buf_pnt_kern hasn't yet moved from the read pointer buf_pnt, 
     // wait a bit and retry in the next loop.
