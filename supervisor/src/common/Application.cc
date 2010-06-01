@@ -509,8 +509,13 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
 	   << calib_params_.size() << " calibration runs)";
   }
   *out << td() << tr() << endl;
-  *out << tr() << td() << "Steps completed: " << td() << td() << step_counter_ << td() << tr() << endl;
-  
+  if ( isCalibrationMode() ){
+    int index = getCalibParamIndex(run_type_);
+    *out << tr() 
+	 << td() << "Steps completed: " << td() 
+	 << td() << step_counter_ << " of " << calib_params_[index].bag.loop_ << td() 
+	 << tr() << endl;
+  }
   refreshConfigParameters();
   
   *out << tr() << td() << "TTCci inputs(Clock:Orbit:Trig:BGo): " <<  td() << td() << ttc_source_.toString() << td() << tr() << endl;
@@ -635,6 +640,8 @@ void emu::supervisor::Application::webRunSequence(xgi::Input *in, xgi::Output *o
 {
   string value;
   isCommandFromWeb_ = true;
+
+  bookRunNumber();
   
   calib_wl_->submit( sequencer_signature_ );
    
