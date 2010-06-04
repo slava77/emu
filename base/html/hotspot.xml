@@ -5,18 +5,21 @@
   </service>
   <service name="spotlight">
     <url host="csc-daq.cms" port="9979" service="sentinel-spotlight" description="alarm db"/>
+    <url host="l1ts-csctf.cms" port="5010" service="sentinel-spotlight" description="alarm db"/>
     <!-- 		<url host="emuslice02.cern.ch" port="9979" service="sentinel-spotlight" description="alarm db"/> -->
   </service>
 
   <service name="wseventing">
     <url host="csc-daq.cms" port="9988" service="ws-eventing" description="monitoring ws-eventing"/>
     <url host="csc-daq.cms" port="9989" service="ws-eventing" description="exception ws-eventing"/>
+    <url host="l1ts-csctf.cms" port="5001" service="ws-eventing" description="alarm db"/>
     <!-- 		<url host="emuslice02.cern.ch" port="9988" service="ws-eventing" description="monitoring ws-eventing"/> -->
     <!-- 		<url host="emuslice02.cern.ch" port="9989" service="ws-eventing" description="exception ws-eventing"/> -->
   </service>
   
   <service name="heartbeat">
     <url host="csc-daq.cms" port="9959" service="pulser"  description="pulser and heartbeat"/>
+    <url host="l1ts-csctf.cms" port="5002" service="pulser" description="pulser and heartbeat"/>
     <!-- 		<url host="emuslice02.cern.ch" port="9959" service="pulser"  description="pulser and heartbeat"/> -->
   </service>
 
@@ -1679,5 +1682,8 @@
     </view>
   </view>
 
+  <view label="Track Finder" image="http://xdaq.web.cern.ch/xdaq/setup/images/FRLController.png">		
+    <guard label="TF Cell" notifier="^http://(csc-tf|l1ts-csctf).cms:2974"/> 
+  </view>
 
 </setup>
