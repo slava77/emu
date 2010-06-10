@@ -72,6 +72,7 @@ xoap::MessageReference EmuTStore::sendSOAPMessage(xoap::MessageReference &messag
 }
 
 std::string EmuTStore::connect() throw (xcept::Exception) {
+    try {
 	emu::db::TStoreRequest request("connect");
 	
 	//add the view ID
@@ -95,6 +96,10 @@ std::string EmuTStore::connect() throw (xcept::Exception) {
 	
 	//use the TStore client library to extract the response from the reply
 	return tstoreclient::connectionID(response);
+    } 
+    catch (...) {
+        return "";
+    }
 }
 
 void EmuTStore::disconnect(const std::string &connectionID) throw (xcept::Exception) {
@@ -419,6 +424,7 @@ void EmuTStore::getConfigIds(std::vector<std::string> &configIDs,const std::stri
 
 std::string EmuTStore::getLastConfigIdUsed(const std::string &endcap_side) throw (xcept::Exception) {
 	std::string connectionID=connect();
+        if(connectionID=="") return "";
 
 	std::string queryViewName="latest_flash_write";
 

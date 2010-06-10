@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.24 2010/03/25 16:02:26 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.25 2010/06/10 16:27:07 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -81,8 +81,8 @@ EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s):
   state_ = fsm_.getStateName(fsm_.getCurrentState());
   //
   need_init = true;
-  InFlash_plus = -1;
-  InFlash_minus = -2;
+  InFlash_plus = "-1";
+  InFlash_minus = "-2";
 
   page1_state_ = 0;
   Page1States.push_back( "Halted" );      // 0
@@ -324,8 +324,12 @@ void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)
      EmuTStore *myTStore = new EmuTStore(this);
      if(myTStore)
      {    
-         InFlash_plus = myTStore->getLastConfigIdUsed("plus");
-         InFlash_minus = myTStore->getLastConfigIdUsed("minus");
+       try 
+       {
+          InFlash_plus = myTStore->getLastConfigIdUsed("plus");
+          InFlash_minus = myTStore->getLastConfigIdUsed("minus");
+       }
+       catch (...) { }
      }
      else
      {  std::cout << "Can't create object EmuTStore" << std::endl;
