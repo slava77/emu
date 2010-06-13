@@ -55,8 +55,11 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
   getApplicationInfoSpace()->fireItemAvailable( "expertSystemURL"        ,  &expertSystemURL_         );
   getApplicationInfoSpace()->fireItemAvailable( "isFactFinderInDebugMode",  &isFactFinderInDebugMode_ );
 
-  factWorkLoop_ = toolbox::task::getWorkLoopFactory()->getWorkLoop("emu::base::FactFinder", "waiting");
+  stringstream workLoopName;
+  workLoopName << getApplicationDescriptor()->getClassName() << "." << getApplicationDescriptor()->getInstance();
+  factWorkLoop_ = toolbox::task::getWorkLoopFactory()->getWorkLoop( workLoopName.str(), "waiting" );
   factWorkLoop_->activate();
+  LOG4CPLUS_DEBUG( getApplicationLogger(), "Activated work loop " << workLoopName.str() );
   sendFactsSignature_   = toolbox::task::bind( this, &emu::base::FactFinder::sendFactsInWorkLoop, "sendFactsInWorkLoop" );
 
   if ( periodInSec > 0 ){
