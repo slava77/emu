@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.52 2010/05/22 22:08:50 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.53 2010/06/16 16:19:48 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -805,7 +805,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   //
   //implement the cal0 configure process:
   float dac;
-  int nsleep = 100;  
+//  int nsleep = 100;  
   std::cout << "DMB setup for calibration " << std::endl;
   calsetup=0;
   dac=1.00;
@@ -850,15 +850,17 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   return createReply(message);
   //
 }
+
 xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalALCT (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
   In_Broadcast_ = true;
-  std::cout<< "Inside onConfigCalALCT-broadcast"<<std::endl;
-  std::ostringstream test;
-  message->writeTo(test);
-  std::cout << test.str() << std::endl;
-  std::cout << "Inside onConfigCalALCT-broadcast, dealt with message"<< std::endl;
+
+//  std::cout<< "Inside onConfigCalALCT-broadcast"<<std::endl;
+//  std::ostringstream test;
+//  message->writeTo(test);
+//  std::cout << test.str() << std::endl;
+//  std::cout << "Inside onConfigCalALCT-broadcast, dealt with message"<< std::endl;
   //
   //
 //  DefineBroadcastCrate(); // this pulls out all broadcast objects, inlcuding alct

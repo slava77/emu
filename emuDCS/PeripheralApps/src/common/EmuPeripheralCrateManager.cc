@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.25 2010/06/10 16:27:07 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.26 2010/06/16 16:19:48 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -167,11 +167,13 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::Message
 // ALCT calibrations (Madorsky)
 xoap::MessageReference EmuPeripheralCrateManager::onConfigCalALCT (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  std::cout << "Received SOAP message ConfigCalALCT " << std::endl;
+
+  msgHandler("Get SOAP message ConfigCalALCT");
+  page1_state_ = 1;
+
    PCsendCommand("ConfigCalALCT","emu::pc::EmuPeripheralCrateCommand");
    //
-  std::cout << "SOAP message ConfigCalALCT relayed to Command" << std::endl;
-//   ::sleep(1);
+
    fireEvent("Configure");
   return createReply(message);
 }
@@ -223,9 +225,14 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoa
   fireEvent("Enable");
   return createReply(message);
 }
+
 // alct calibrations (Madorsky)
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTConnectivity (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+
+  msgHandler("Get SOAP message EnableCalALCTConnectivity");
+  page1_state_ = 3;
+
   PCsendCommand("EnableCalALCTConnectivity","emu::pc::EmuPeripheralCrateCommand");
   //
   fireEvent("Enable");
@@ -234,6 +241,10 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTConnectivity (x
 
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTThresholds (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+
+  msgHandler("Get SOAP message EnableCalALCTThresholds");
+  page1_state_ = 3;
+
   PCsendCommand("EnableCalALCTThresholds","emu::pc::EmuPeripheralCrateCommand");
   //
   fireEvent("Enable");
@@ -242,6 +253,10 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTThresholds (xoa
 
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalALCTDelays (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+
+  msgHandler("Get SOAP message EnableCalALCTDelays");
+  page1_state_ = 3;
+
   PCsendCommand("EnableCalALCTDelays","emu::pc::EmuPeripheralCrateCommand");
   //
   fireEvent("Enable");
@@ -313,7 +328,7 @@ void EmuPeripheralCrateManager::msgHandler(std::string msg)
 {
      std::string logmsg = getLocalDateTime() + " " + msg;
      LOG4CPLUS_INFO(getApplicationLogger(), logmsg);
-     std::cout << logmsg << std::endl;
+     std::cout << "        " << logmsg << std::endl;
 }
 
 void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)
