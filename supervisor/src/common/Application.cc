@@ -202,6 +202,14 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   fsm_.addStateTransition(
 			  'E', 'E', "SetTTS",    this, &emu::supervisor::Application::setTTSAction);
   
+  // Define invalid transitions, too, so that they can be ignored, or else FSM will be unhappy when one is fired.
+  fsm_.addStateTransition('E', 'E', "Configure", this, &emu::supervisor::Application::noAction);
+  fsm_.addStateTransition('H', 'H', "Start"    , this, &emu::supervisor::Application::noAction);
+  fsm_.addStateTransition('E', 'E', "Start"    , this, &emu::supervisor::Application::noAction);
+  fsm_.addStateTransition('H', 'H', "Stop"     , this, &emu::supervisor::Application::noAction);
+  fsm_.addStateTransition('C', 'C', "Stop"     , this, &emu::supervisor::Application::noAction);
+
+
   fsm_.setInitialState('H');
   fsm_.reset();
   
@@ -741,6 +749,8 @@ bool emu::supervisor::Application::calibrationSequencer(toolbox::task::WorkLoop 
     }
   }
   isInCalibrationSequence_ = false;
+  // Keep refreshing the web page so that it can be seen that the sequence has finished.
+  keep_refresh_ = true;
   LOG4CPLUS_DEBUG(logger_, "calibrationSequencer " << "(end)");
   return false;
 }
@@ -1123,6 +1133,19 @@ void emu::supervisor::Application::setTTSAction(toolbox::Event::Reference evt)
   }
   
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
+}
+
+void emu::supervisor::Application::noAction(toolbox::Event::Reference evt) 
+  throw (toolbox::fsm::exception::Exception)
+{
+  stringstream ss;
+  ss << evt->type() 
+     << " attempted when in " 
+     << fsm_.getStateName(fsm_.getCurrentState())
+     << " state. Command ignored.";
+  LOG4CPLUS_WARN(logger_, ss.str());
+  XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss.str() );
+  this->notifyQualified( "warning", eObj );
 }
 
 void emu::supervisor::Application::submit(toolbox::task::ActionSignature *signature)
@@ -2529,7 +2552,10 @@ bool emu::supervisor::Application::waitForAppsToReach( const string targetState,
   // If seconds is negative, no timeout.
   for ( int i=0; i<=seconds || seconds<0; ++i ){
     state_table_.refresh( false ); // Do not force refresh, we're not in a hurry. We'll refresh soon anyway.
-    if ( state_table_.isValidState( targetState ) ) return true;
+    // Both the supervised apps and the Supervisor app itself should be in the target state:
+    if ( state_table_.isValidState( targetState )
+	 &&
+	 fsm_.getStateName(fsm_.getCurrentState()) == targetState ) return true;
     LOG4CPLUS_DEBUG( logger_, "Waited " << i << " sec so far for applications to get '" << targetState
 		    << "'. Their current states are:" << state_table_ );
     if ( fsm_.getCurrentState() == 'F' ) return false; // Abort if in Failed state.
