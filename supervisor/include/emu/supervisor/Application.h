@@ -95,6 +95,8 @@ public:
 	void resetAction() throw (toolbox::fsm::exception::Exception);
 	void setTTSAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
+	void noAction(toolbox::Event::Reference e) 
+			throw (toolbox::fsm::exception::Exception);
 
 
 private: // XDAQ parameters
