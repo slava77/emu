@@ -638,68 +638,72 @@ void emu::farmer::Application::createProcessDescriptors()
     XALAN_USING_XALAN(XObject);
     XALAN_USING_XALAN(XalanNode);
     if ( result->getType() == XObject::eTypeNodeSet ){
-      //       cout << "   result->nodeset().getLength()  " << result->nodeset().getLength() << endl;
+      //cout << "   result->nodeset().getLength()  " << result->nodeset().getLength() << endl;
       for ( unsigned int iNode=0; iNode<result->nodeset().getLength(); ++iNode ){
 	XalanNode *node = result->nodeset().item( iNode );
-	// 	cout << "---------" << endl;
-	// 	cout << "   node->getNodeName()  " << node->getNodeName()   << endl;
-	// 	cout << "   node->getNodeValue() " << node->getNodeValue()  << endl;
-	// 	cout << "   node->getNodeType()  " << node->getNodeType()   << endl;
-	// 	cout << "   node->hasChildNodes()  " << node->hasChildNodes() << endl;
-	// 	cout << "   node->getChildNodes()->getLength()  " << node->getChildNodes()->getLength() << endl;
-	// 	cout << "   node->getAttributes()  " << node->getAttributes()->getLength() << endl;
-	XalanDOMString X_hostname("hostname");
-	XalanDOMString X_port("port");
-	XalanDOMString X_urn ("urn" );
-	XalanDOMString X_name("className");
-	XalanDOMString X_environmentString ( "environmentString" );
-	XalanDOMString X_unixUser ( "unixUser" );
-	XalanDOMString X_configFile ( "configFile" );
-	stringstream env;
-	stringstream user;
-	stringstream uri;
-	stringstream configFile;
-	uri << "http://" << node->getAttributes()->getNamedItem( X_hostname )->getNodeValue()
-	    << ":"       << node->getAttributes()->getNamedItem( X_port     )->getNodeValue()
-	    << "/"       << node->getAttributes()->getNamedItem( X_urn      )->getNodeValue();
-	stringstream name;
-	if ( node->getNodeName() == XalanDOMString("Service") ){ // JobControl
-	  name << jobControlClass_.toString();
-	}
-	else if ( node->getNodeName() == XalanDOMString("XdaqExecutive") ){
-	  name << executiveClass_.toString();
-	  env  << node->getAttributes()->getNamedItem( X_environmentString )->getNodeValue();
-	  user << node->getAttributes()->getNamedItem( X_unixUser )->getNodeValue();
-	  // Get config file
-	  for ( unsigned int iChild = 0; iChild < node->getChildNodes()->getLength(); ++iChild ){
-	    if ( node->getChildNodes()->item( iChild )->getNodeName() == X_configFile ){
-	      XalanNode *configFileNode = node->getChildNodes()->item( iChild );
-	      for ( unsigned int jChild = 0; jChild < configFileNode->getChildNodes()->getLength(); ++jChild ){
-		if ( configFileNode->getChildNodes()->item( jChild )->getNodeType() == XalanNode::TEXT_NODE ){
-		  configFile << configFileNode->getChildNodes()->item( jChild )->getNodeValue();
+// 	cout << "---------" << endl;
+// 	cout << "   node->getNodeName()  " << node->getNodeName()   << endl;
+// 	cout << "   node->getNodeValue() " << node->getNodeValue()  << endl;
+// 	cout << "   node->getNodeType()  " << node->getNodeType()   << endl;
+// 	cout << "   node->hasChildNodes()  " << node->hasChildNodes() << endl;
+// 	cout << "   node->getChildNodes()->getLength()  " << node->getChildNodes()->getLength() << endl;
+// 	cout << "   node->getAttributes()  " << node->getAttributes()->getLength() << endl;
+	if (  node->getNodeName() == XalanDOMString("Service")         ||
+	      node->getNodeName() == XalanDOMString("XdaqExecutive")   ||
+	      node->getNodeName() == XalanDOMString("XdaqApplication")    ){
+	  XalanDOMString X_hostname("hostname");
+	  XalanDOMString X_port("port");
+	  XalanDOMString X_urn ("urn" );
+	  XalanDOMString X_name("className");
+	  XalanDOMString X_environmentString ( "environmentString" );
+	  XalanDOMString X_unixUser ( "unixUser" );
+	  XalanDOMString X_configFile ( "configFile" );
+	  stringstream env;
+	  stringstream user;
+	  stringstream uri;
+	  stringstream configFile;
+	  uri << "http://" << node->getAttributes()->getNamedItem( X_hostname )->getNodeValue()
+	      << ":"       << node->getAttributes()->getNamedItem( X_port     )->getNodeValue()
+	      << "/"       << node->getAttributes()->getNamedItem( X_urn      )->getNodeValue();
+	  stringstream name;
+	  if ( node->getNodeName() == XalanDOMString("Service") ){ // JobControl
+	    name << jobControlClass_.toString();
+	  }
+	  else if ( node->getNodeName() == XalanDOMString("XdaqExecutive") ){
+	    name << executiveClass_.toString();
+	    env  << node->getAttributes()->getNamedItem( X_environmentString )->getNodeValue();
+	    user << node->getAttributes()->getNamedItem( X_unixUser )->getNodeValue();
+	    // Get config file
+	    for ( unsigned int iChild = 0; iChild < node->getChildNodes()->getLength(); ++iChild ){
+	      if ( node->getChildNodes()->item( iChild )->getNodeName() == X_configFile ){
+		XalanNode *configFileNode = node->getChildNodes()->item( iChild );
+		for ( unsigned int jChild = 0; jChild < configFileNode->getChildNodes()->getLength(); ++jChild ){
+		  if ( configFileNode->getChildNodes()->item( jChild )->getNodeType() == XalanNode::TEXT_NODE ){
+		    configFile << configFileNode->getChildNodes()->item( jChild )->getNodeValue();
+		  }
 		}
 	      }
 	    }
+	    // Read in config file and store it
+	    if ( configFile.str().size() > 0 ){
+	      string cfgXML( emu::farmer::utils::readFile( configFile.str() ) );
+	      xdaqConfigs_[configFile.str()] = cfgXML;
+	    }
+	    else{
+	      XCEPT_RAISE( xcept::Exception, "XDAQ executive has no configuration file." );
+	    }
 	  }
-	  // Read in config file and store it
-	  if ( configFile.str().size() > 0 ){
-	    string cfgXML( emu::farmer::utils::readFile( configFile.str() ) );
-	    xdaqConfigs_[configFile.str()] = cfgXML;
+	  else if ( node->getNodeName() == XalanDOMString("XdaqApplication") ){
+	    name << node->getAttributes()->getNamedItem( X_name )->getNodeValue();
 	  }
-	  else{
-	    XCEPT_RAISE( xcept::Exception, "XDAQ executive has no configuration file." );
-	  }
+	  emu::farmer::ProcessDescriptor pd( uri.str() );
+	  pd.setName( name.str() );
+	  pd.setEnvironmentString( env.str() );
+	  pd.setUser( user.str() );
+	  pd.setXdaqConfigPath( configFile.str() );
+	  //pd.print( cout );
+	  processDescriptors_[ uri.str() ] = pd;
 	}
-	else if ( node->getNodeName() == XalanDOMString("XdaqApplication") ){
-	  name << node->getAttributes()->getNamedItem( X_name )->getNodeValue();
-	}
-	emu::farmer::ProcessDescriptor pd( uri.str() );
-	pd.setName( name.str() );
-	pd.setEnvironmentString( env.str() );
-	pd.setUser( user.str() );
-	pd.setXdaqConfigPath( configFile.str() );
-	//pd.print( cout );
-	processDescriptors_[ uri.str() ] = pd;
       }
     }
     // We're responsible for releasing the memory allocated to DOMDocument
