@@ -37,7 +37,7 @@
   </xsl:param>
   <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param>
   <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 PATH=/bin:/usr/bin</xsl:param>
-  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/home/cscdev LD_LIBRARY_PATH=/home/cscdev/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdev/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86_slc4 XDAQ_OS=linux XDAQ_ZONE=emu904 ROOTSYS=/home/cscdev/root</xsl:param>
+  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 ROOTSYS=/home/cscdaq/root</xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 
@@ -138,9 +138,9 @@
 		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
 		   instance="0"
 		   pathToExecutive="{$PATHTOEXECUTIVE}"
-		   unixUser="cscdev"
+		   unixUser="cscdaq"
 		   logLevel="INFO"
-		   logURL="file:/tmp/xdaq-dqmdisplay-cscdev.log"
+		   logURL="file:/tmp/xdaq-dqmdisplay-cscdaq.log"
 		   environmentString="{$DQM_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
@@ -149,22 +149,22 @@
 		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
 		     instance="0" />
 
-    <xsl:comment >TF DQM Display Client</xsl:comment>
-    <XdaqExecutive hostname="emudaq02.cern.ch" port="20570"
-		   urn="urn:xdaq-application:lid=0"
-		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
-		   instance="0"
-		   pathToExecutive="{$PATHTOEXECUTIVE}"
-		   unixUser="cscdev"
-		   logLevel="INFO"
-		   logURL="file:/tmp/xdaq-tf-display-cscdev.log"
-		   environmentString="{$DQM_ENVIRONMENTSTRING}">
-      <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
-    </XdaqExecutive>
-    <XdaqApplication className="EmuTFDisplayClient" hostname="emudaq02.cern.ch" port="20570"
-		     urn="urn:xdaq-application:lid=1450"
-		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
-		     instance="0" />
+<!--     <xsl:comment >TF DQM Display Client</xsl:comment> -->
+<!--     <XdaqExecutive hostname="emudaq02.cern.ch" port="20570" -->
+<!-- 		   urn="urn:xdaq-application:lid=0" -->
+<!-- 		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive" -->
+<!-- 		   instance="0" -->
+<!-- 		   pathToExecutive="{$PATHTOEXECUTIVE}" -->
+<!-- 		   unixUser="cscdaq" -->
+<!-- 		   logLevel="INFO" -->
+<!-- 		   logURL="file:/tmp/xdaq-tf-display-cscdaq.log" -->
+<!-- 		   environmentString="{$DQM_ENVIRONMENTSTRING}"> -->
+<!--       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile> -->
+<!--     </XdaqExecutive> -->
+<!--     <XdaqApplication className="EmuTFDisplayClient" hostname="emudaq02.cern.ch" port="20570" -->
+<!-- 		     urn="urn:xdaq-application:lid=1450" -->
+<!-- 		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication" -->
+<!-- 		     instance="0" /> -->
   </xsl:template>
 
   <!-- DQM Monitors -->
@@ -178,9 +178,9 @@
 		       qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
 		       instance="0"
 		       pathToExecutive="{$PATHTOEXECUTIVE}"
-		       unixUser="cscdev"
+		       unixUser="cscdaq"
 		       logLevel="INFO"
-		       logURL="file:/tmp/xdaq-dqmmonitor{@instance}-cscdev.log"
+		       logURL="file:/tmp/xdaq-dqmmonitor{@instance}-cscdaq.log"
 		       environmentString="{$DQM_ENVIRONMENTSTRING}">
 	  <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
 	</XdaqExecutive>

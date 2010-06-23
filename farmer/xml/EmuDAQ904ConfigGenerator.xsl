@@ -216,7 +216,7 @@
 	      <xsl:choose>
 		<xsl:when test="$FARM='DQM_TF_File'">
 		  <inputDeviceType xsi:type="xsd:string">file</inputDeviceType>
-		  <inputDeviceName xsi:type="xsd:string">/home/cscdev/config/dqm/TF_DDU_data.raw</inputDeviceName>
+		  <inputDeviceName xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/TF_DDU_data.raw</inputDeviceName>
 		</xsl:when>
 		<xsl:otherwise>
 		  <inputDeviceType xsi:type="xsd:string">spy</inputDeviceType>
@@ -256,12 +256,12 @@
 	<properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
 	<monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
         <imageFormat xsi:type="xsd:string">png</imageFormat>
-        <baseDir xsi:type="xsd:string">/home/cscdev/config/dqm/cscdqm</baseDir>
+        <baseDir xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/cscdqm</baseDir>
 	<resultsDir xsi:type="xsd:string">/data/dqm/online</resultsDir>
         <viewOnly xsi:type="xsd:boolean">false</viewOnly>
-        <xmlCfgFile xsi:type="xsd:string">/home/cscdev/config/dqm/emuDQMBooking.xml</xmlCfgFile>
-        <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdev/config/dqm/emuDQMCanvases.xml</xmlCanvasesCfgFile>
-        <cscMapFile xsi:type="xsd:string">/home/cscdev/config/dqm/csc_map.txt</cscMapFile>
+        <xmlCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/emuDQMBooking.xml</xmlCfgFile>
+        <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+        <cscMapFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/csc_map.txt</cscMapFile>
 	</properties>
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
@@ -278,7 +278,7 @@
 	<properties xmlns="urn:xdaq-application:EmuTFDisplayClient" xsi:type="soapenc:Struct">
 	  <monitorClass xsi:type="xsd:string">EmuTFMonitor</monitorClass>
 	  <imageFormat xsi:type="xsd:string">png</imageFormat>
-	  <baseDir xsi:type="xsd:string">/home/cscdev/config/dqm/tfdqm</baseDir>
+	  <baseDir xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/tfdqm</baseDir>
 	  <viewOnly xsi:type="xsd:boolean">false</viewOnly>
 	</properties>
       </xc:Application>
@@ -316,9 +316,9 @@
 	  <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
 	    <item xsi:type="xsd:unsignedInt" soapenc:position="[0]">1000</item>
 	  </serverTIDs>
-	  <xmlCfgFile xsi:type="xsd:string">/home/cscdev/config/dqm/CSCTF_histograms.xml</xmlCfgFile>
-	  <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdev/config/dqm/CSCTF_canvases.xml</xmlCanvasesCfgFile>
-	  <cscMapFile xsi:type="xsd:string">/home/cscdev/config/dqm/csc_map.txt</cscMapFile>
+	  <xmlCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/CSCTF_histograms.xml</xmlCfgFile>
+	  <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/CSCTF_canvases.xml</xmlCanvasesCfgFile>
+	  <cscMapFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/csc_map.txt</cscMapFile>
 	  <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
 	  <outputROOTFile xsi:type="xsd:string">/data/dqm/</outputROOTFile>
 	  <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
@@ -370,9 +370,9 @@
 	      <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
 		<item xsi:type="xsd:unsignedInt" soapenc:position="[0]"><xsl:value-of select="$SERVER_TID"/></item>
 	      </serverTIDs>
-	      <xmlCfgFile xsi:type="xsd:string">/home/cscdev/config/dqm/emuDQMBooking.xml</xmlCfgFile>
-              <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdev/config/dqm/emuDQMCanvases.xml</xmlCanvasesCfgFile>
-              <cscMapFile xsi:type="xsd:string">/home/cscdev/config/dqm/csc_map.txt</cscMapFile>
+	      <xmlCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/emuDQMBooking.xml</xmlCfgFile>
+              <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+              <cscMapFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/csc_map.txt</cscMapFile>
               <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
               <outputROOTFile xsi:type="xsd:string">/data/dqm/</outputROOTFile>
               <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
