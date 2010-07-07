@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.14 2010/05/27 12:38:18 liu Exp $
+// $Id: Chamber.cc,v 1.15 2010/07/07 21:56:41 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.15  2010/07/07 21:56:41  liu
+// update
+//
 // Revision 1.14  2010/05/27 12:38:18  liu
 // add error flags for bad DMB reading
 //
@@ -88,7 +91,7 @@ void Chamber::Fill(char *buffer, int source)
    };
    if(source==0 && states[0]!=11)
    {   // DEBUG: print a bad reading, but only the first time it goes bad
-       if(ready_) std::cout << label_ << " " << states[1] << std::endl;
+       if(ready_) std::cout << label_ << " " <<  states[0] << " " << states[1] << std::endl;
        ready_ = false;
    }
    else

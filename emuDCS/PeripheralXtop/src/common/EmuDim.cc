@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.37 2010/05/27 12:38:18 liu Exp $
+// $Id: EmuDim.cc,v 1.38 2010/07/07 21:56:41 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -100,6 +100,7 @@ xoap::MessageReference EmuDim::SoapInfo (xoap::MessageReference message)
             crate_state[i] = 0;
             std::string confirm = "INIT_IS_DONE;" + crate_name[i];
             std::cout << getLocalDateTime() << " BP Return: " << confirm << std::endl;
+            XmasLoader->reload(xmas_info+"?CRATEON="+crate_name[i]);
             strcpy(pvssrespond.command, confirm.c_str());
             Confirmation_Service->updateService();
         }
