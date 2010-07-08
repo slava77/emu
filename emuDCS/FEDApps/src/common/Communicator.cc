@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.34 2010/05/31 14:57:20 paste Exp $
+* $Id: Communicator.cc,v 1.35 2010/07/08 19:33:46 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -750,8 +750,8 @@ throw (toolbox::fsm::exception::Exception)
 					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2);
 					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorCheckDCC", "ERROR", error.str(), tag.str(), NULL);
 					//FIXME for local running, if S-Link is not ignored, this will probably fail
-					XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
-					exceptions.push_back(e2);
+					//XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
+					//exceptions.push_back(e2);
 				}
 
 			} catch (emu::fed::exception::DCCException &e) {
