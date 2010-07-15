@@ -14,6 +14,7 @@
 #include "xdata/Integer.h"
 #include "xdata/Vector.h"
 #include "emu/supervisor/RunInfo.h"
+#include "emu/base/SOAP.h"
 #include "emu/base/Supervised.h"
 #include "emu/base/WebReporter.h"
 #include "emu/base/FactFinder.h"
@@ -31,7 +32,8 @@ using namespace std;
 namespace emu { namespace daq { namespace manager {
 
 class Application 
-  : public emu::base::Supervised,
+  : public emu::base::SOAP,
+    public emu::base::Supervised,
     public emu::base::WebReporter,
     public emu::base::FactFinder,
     public xdata::ActionListener
@@ -248,8 +250,13 @@ private:
   xdata::Integer maxNumberOfEvents_;
   xdata::Vector<xdata::String> runTypes_; // all possible run types
   xdata::String runType_; // the current run type
+  xdata::Boolean isGlobalInControl_;
   xdata::Boolean buildEvents_;
   xdata::String daqState_; // the combined state of the DAQ applications
+  xdata::UnsignedLong calibRunIndex_;
+  xdata::UnsignedLong calibNRuns_;
+  xdata::UnsignedLong calibStepIndex_;
+  xdata::UnsignedLong calibNSteps_;
   int stringToInt( const string* const s );
   int purgeIntNumberString( string* s );
 
@@ -269,16 +276,10 @@ private:
   string reformatTime( string time );
   vector< pair<xdaq::ApplicationDescriptor*, string> > daqAppStates_;
   set<string> daqContexts_; // all different DAQ contexts with apps controlled by emu::daq::manager::Application
-  void   createAllAppStatesVector();
   void   createAllAppStates();
-//   void   queryAppStates( vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates );
   void   queryAppStates();
   string getDAQState();
   void reportCrashedApps();
-//   void   printStatesTable( xgi::Output *out,
-// 			   string title,
-// 			   set<string> &contexts,
-// 			   vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates )
   void   statesTableToHtml( xgi::Output *out,
 			   string title,
 			   set<string> &contexts,
@@ -438,8 +439,6 @@ private:
      */
     void exportParams(xdata::InfoSpace *s);
 
-    void startATCP()
-      throw (emu::daq::manager::exception::Exception);
     void configureDAQ()
     throw (emu::daq::manager::exception::Exception);
     /**

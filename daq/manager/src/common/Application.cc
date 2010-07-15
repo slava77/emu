@@ -44,6 +44,7 @@
 emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
   throw (xdaq::exception::Exception) 
   : xdaq::WebApplication(s),
+    emu::base::SOAP(s),
     emu::base::Supervised(s),
     emu::base::WebReporter(s),
     emu::base::FactFinder( s, emu::base::FactCollection::LOCAL_DAQ, 0 ),
@@ -64,8 +65,6 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
         "/emu/daq/manager/images/EmuDAQManager64x64.gif");
 
     getAllAppDescriptors();
-    createAllAppStatesVector();
-    createAllAppStates();
 
     // Bind web interface
     xgi::bind(this, &emu::daq::manager::Application::css           , "styles.css");
@@ -77,6 +76,7 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
         "MachineReadable");
 
     exportParams(appInfoSpace_);
+    createAllAppStates();
 
     abortedRun_ = true;
 
@@ -1412,10 +1412,26 @@ emu::daq::manager::Application::materialToReportOnPage1(){
                                              controlURL ) );
 
   // Run number
-  items.push_back( emu::base::WebReportItem( "run",
+  items.push_back( emu::base::WebReportItem( "#",
                                              runNumber_.toString(),
                                              "Local run number. In unsupervised mode, this may be different from the global one.",
                                              "Click to visit the local DAQ Manager page.",
+                                             controlURL,
+                                             controlURL ) );
+
+  // Run type
+  items.push_back( emu::base::WebReportItem( "type",
+                                             runType_.toString(),
+                                             "Run type.",
+                                             "Click to visit the local DAQ Manager page.",
+                                             controlURL,
+                                             controlURL ) );
+
+  // Run controller
+  items.push_back( emu::base::WebReportItem( "ctrl",
+                                             ( bool( isGlobalInControl_ ) ? "global" : "local" ),
+                                             "Whether local DAQ is controlled locally or by global DAQ.",
+                                             ( bool( isGlobalInControl_ ) ? "Local DAQ was started centrally, in sync with global DAQ." : "Local DAQ was started locally, independently of central DAQ." ),
                                              controlURL,
                                              controlURL ) );
 
@@ -1435,6 +1451,32 @@ emu::daq::manager::Application::materialToReportOnPage1(){
   items.push_back( emu::base::WebReportItem( "stop",
 					     ( ( state == "Enabled" || state == "Ready" ) ? "not yet" : runStopTime ), 
                                              "The stop time of the local run in UTC.",
+                                             "Click to visit the local DAQ Manager page.",
+                                             controlURL,
+                                             controlURL ) );
+
+  // Progress of calibration runs
+  items.push_back( emu::base::WebReportItem( "calib runIndex",
+                                             calibRunIndex_.toString(),
+                                             "Current run's index in the calibration sequence.",
+                                             "Click to visit the local DAQ Manager page.",
+                                             controlURL,
+                                             controlURL ) );
+  items.push_back( emu::base::WebReportItem( "calib nRuns",
+                                             calibNRuns_.toString(),
+                                             "Total number of runs in the calibration sequence.",
+                                             "Click to visit the local DAQ Manager page.",
+                                             controlURL,
+                                             controlURL ) );
+  items.push_back( emu::base::WebReportItem( "calib stepIndex",
+                                             calibStepIndex_.toString(),
+                                             "Index of the current step.",
+                                             "Click to visit the local DAQ Manager page.",
+                                             controlURL,
+                                             controlURL ) );
+  items.push_back( emu::base::WebReportItem( "calib nSteps",
+                                             calibNSteps_.toString(),
+                                             "Total number of steps in this calibration run.",
                                              "Click to visit the local DAQ Manager page.",
                                              controlURL,
                                              controlURL ) );
@@ -1515,7 +1557,8 @@ emu::daq::manager::Application::findFact( const emu::base::Component& component,
 	daqState_ = currentAppStates_.getCombinedState();
 	for ( vector< xdaq::ApplicationDescriptor* >::iterator ruid=ruiDescriptors_.begin(); ruid!=ruiDescriptors_.end(); ++ruid ){
 	  if ( (*ruid)->getInstance() == instance ){
-	    for ( vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s=daqAppStates_.begin(); s!=daqAppStates_.end(); ++s ){
+	    map<xdaq::ApplicationDescriptor*, string> cas = currentAppStates_.getAppStates();
+	    for ( map<xdaq::ApplicationDescriptor*, string>::iterator s=cas.begin(); s!=cas.end(); ++s ){
 	      if ( s->first == (*ruid) ){
 		string ruiState = s->second; 
 		emu::base::TypedFact<emu::base::ApplicationStatusFact> as;
@@ -1591,7 +1634,8 @@ emu::daq::manager::Application::findFacts() {
   // Report crashed RUIs, if any.
   if ( daqState_.toString() == "UNKNOWN" ){
     for ( vector< xdaq::ApplicationDescriptor* >::iterator ruid=ruiDescriptors_.begin(); ruid!=ruiDescriptors_.end(); ++ruid ){
-      for ( vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s=daqAppStates_.begin(); s!=daqAppStates_.end(); ++s ){
+      map<xdaq::ApplicationDescriptor*, string> cas = currentAppStates_.getAppStates();
+      for ( map<xdaq::ApplicationDescriptor*, string>::iterator s=cas.begin(); s!=cas.end(); ++s ){
 	if ( s->first == (*ruid) && s->second == "UNKNOWN" ){
 	  stringstream ruiName;
 	  ruiName << (*ruid)->getClassName() << setfill('0') << setw(2) << (*ruid)->getInstance();
@@ -1893,7 +1937,7 @@ throw (xgi::exception::Exception)
 		  runType_.fromString( fe->getValue() );
 		}
 	      }
-	    // Emu: buildEvents will be queried by emu::daq::rui::Applications
+	    // buildEvents will be queried by emu::daq::rui::Applications
 	    // Apparently the query string does not even include the checkbox element if it's not checked...
 	    buildEvents_ = false;
 	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
@@ -1910,11 +1954,12 @@ throw (xgi::exception::Exception)
 	      purgeIntNumberString( &maxNumEvents );
 	      maxNumberOfEvents_.fromString( maxNumEvents );
 	    }
-// 	    LOG4CPLUS_INFO(logger_, "maxNumEvents: " + maxNumEvents );
-// 	    LOG4CPLUS_INFO(logger_, "maxNumberOfEvents_: " + maxNumberOfEvents_.toString() );
 
             // Set controlDQM_ if and only if a DAQ control button was pressed.
 	    controlDQM_ = controlDQM_checked;
+
+	    // Obviously, global cannot be in control if command is issued from web page
+	    isGlobalInControl_ = false;
 
 	    fireEvent("Configure");
 	  }
@@ -1930,12 +1975,18 @@ throw (xgi::exception::Exception)
             // Set controlDQM_ if and only if a DAQ control button was pressed.
 	    controlDQM_ = controlDQM_checked;
 
+	    // Obviously, global cannot be in control if command is issued from web page
+	    isGlobalInControl_ = false;
+
 	    fireEvent("Halt");
 	  }
         else if( cmdName == "reset" )
 	  {
             // Set controlDQM_ if and only if a DAQ control button was pressed.
 	    controlDQM_ = controlDQM_checked;
+
+	    // Obviously, global cannot be in control if command is issued from web page
+	    isGlobalInControl_ = false;
 
 	    resetAction();
 	    try{
@@ -2373,41 +2424,9 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
     return stats;
 }
 
-void emu::daq::manager::Application::createAllAppStatesVector(){
-  //
-  // DAQ
-  //
-  daqAppStates_.clear();
-  daqContexts_.clear();
-  vector<xdaq::ApplicationDescriptor*> allApps;
-  if ( buildEvents_.value_ ){ 
-    allApps.insert( allApps.end(), evmDescriptors_.begin(), evmDescriptors_.end() );
-    allApps.insert( allApps.end(), buDescriptors_ .begin(), buDescriptors_ .end() );
-    allApps.insert( allApps.end(), ruDescriptors_ .begin(), ruDescriptors_ .end() );
-    allApps.insert( allApps.end(), fuDescriptors_ .begin(), fuDescriptors_ .end() );
-  }
-  allApps.insert( allApps.end(), taDescriptors_ .begin(), taDescriptors_ .end() );
-  allApps.insert( allApps.end(), ruiDescriptors_.begin(), ruiDescriptors_.end() );
-  vector<xdaq::ApplicationDescriptor*>::iterator a;
-  for ( a=allApps.begin(); a!=allApps.end(); ++a ){
-    daqAppStates_.push_back( make_pair( *a, string("UNKNOWN") ) );
-    // Collect different contexts too
-    daqContexts_.insert( (*a)->getContextDescriptor()->getURL() );
-  }
-  //
-  // DQM
-  //
-  dqmAppStates_.clear();
-  dqmContexts_.clear();
-  for ( a=dqmMonitorDescriptors_.begin(); a!=dqmMonitorDescriptors_.end(); ++a ){
-    dqmAppStates_.push_back( make_pair( *a, string("UNKNOWN") ) );
-    // Collect different contexts too
-    dqmContexts_.insert( (*a)->getContextDescriptor()->getURL() );
-  }
-}
-
 
 void emu::daq::manager::Application::createAllAppStates(){
+  currentAppStates_.clear();
   if ( buildEvents_.value_ ){ 
     currentAppStates_.insertApps( evmDescriptors_.begin(), evmDescriptors_.end() );
     currentAppStates_.insertApps( buDescriptors_ .begin(), buDescriptors_ .end() );
@@ -2416,6 +2435,8 @@ void emu::daq::manager::Application::createAllAppStates(){
   }
   currentAppStates_.insertApps( taDescriptors_ .begin(), taDescriptors_ .end() );
   currentAppStates_.insertApps( ruiDescriptors_.begin(), ruiDescriptors_.end() );
+
+  daqContexts_.clear();
   set<xdaq::ApplicationDescriptor*> apps( currentAppStates_.getApps() );
   set<xdaq::ApplicationDescriptor*>::iterator a;
   for ( a=apps.begin(); a!=apps.end(); ++a ){
@@ -2449,25 +2470,31 @@ void emu::daq::manager::Application::queryAppStates(){
 	}
       currentAppStates_.setAppState( *a, s );
     }
-    cout << "Previous " << previousAppStates_;
-    cout << "Current "  << currentAppStates_;
+    //cout << "Previous " << previousAppStates_;
+    //cout << "Current "  << currentAppStates_;
   }
 }
 
 string emu::daq::manager::Application::getDAQState(){
-  cout << "*** emu::daq::manager::Application::getDAQState" << endl;
+  //cout << "*** emu::daq::manager::Application::getDAQState" << endl;
   // Update previousAppStates_ here because findFact(s) doesn't call this method. (It calls queryAppStates().)
-  previousAppStates_ = currentAppStates_;
+  // Make sure it's only updated if currentAppStates_ is not empty. (It may be empty during configuring, for instance.)
+  if ( ! currentAppStates_.isEmpty() ) previousAppStates_ = currentAppStates_;
   queryAppStates();
   reportCrashedApps();
-  cout << "emu::daq::manager::Application::getDAQState ***" << endl;
-  return currentAppStates_.getCombinedState();
+  //cout << "emu::daq::manager::Application::getDAQState ***" << endl;
+  if      ( ! currentAppStates_.isEmpty()  ) return currentAppStates_. getCombinedState();
+  else if ( ! previousAppStates_.isEmpty() ) return previousAppStates_.getCombinedState();
+  return string("");
 }
 
 void emu::daq::manager::Application::reportCrashedApps(){
   // Report to expert system any apps that may have creashed since the last query.  
-  cout << "Previous " << previousAppStates_;
-  cout << "Current "  << currentAppStates_;
+  //cout << "Previous " << previousAppStates_;
+  //cout << "Current "  << currentAppStates_;
+  // No point checking if states are still empty:
+  if ( currentAppStates_.isEmpty() ) return;
+
   string combinedState = currentAppStates_.getCombinedState();
   if ( combinedState == "UNKNOWN" 
        &&
@@ -2651,68 +2678,6 @@ void emu::daq::manager::Application::statesTableToHtml( xgi::Output *out,
   *out << "</table>"                                                    << endl;
 }
 
-void 
-emu::daq::manager::Application::startATCP()
-  throw (emu::daq::manager::exception::Exception){
-  // configure and enable all pt::atcp::PeerTransportATCP
-
-  std::cout << "In emu::daq::manager::Application::startATCP()" << std::endl;
-
-  vector < xdaq::ApplicationDescriptor* > atcpDescriptors;
-  try
-    {
-      atcpDescriptors = getAppDescriptors(zone_, "pt::atcp::PeerTransportATCP");
-    }
-  catch(emu::daq::manager::exception::Exception e)
-    {
-      atcpDescriptors.clear();
-    }
-
-  std::cout << atcpDescriptors.size() << " atcpDescriptors" << std::endl;
-
-  vector < xdaq::ApplicationDescriptor* >::const_iterator atcpd;
-  for ( atcpd = atcpDescriptors.begin(); atcpd != atcpDescriptors.end(); ++atcpd ){
-
-    std::cout << appDescriptor_->getContextDescriptor()->getURL() << "         "
-	      << (*atcpd)->getContextDescriptor()->getURL() << std::endl;
-
-//     // ATCP may already have been started. Check its state.
-//     string atcpState;
-//     try{
-//       atcpState = getScalarParam( *atcpd, "stateName", "string" );
-//     }
-//     catch(emu::daq::manager::exception::Exception e)
-//     {
-//       stringstream oss;
-//       oss << "Failed to get state of " << (*atcpd)->getClassName() << (*atcpd)->getInstance();
-//       XCEPT_RETHROW(emu::daq::manager::exception::Exception, oss.str(), e);
-//     }
-
-//     if ( atcpState != "Halted" ) continue;
-
-//     // Configure ATCP
-//     try{
-//       sendFSMEventToApp("Configure", *atcpd);
-//     }
-//     catch(xcept::Exception e){
-//       stringstream oss;
-//       oss << "Failed to configure " << (*atcpd)->getClassName() << (*atcpd)->getInstance();
-//       XCEPT_RETHROW(emu::daq::manager::exception::Exception, oss.str(), e);
-//     }
-
-//     // Enable ATCP
-//     try{
-//       sendFSMEventToApp("Enable", *atcpd);
-//     }
-//     catch(xcept::Exception e){
-//       stringstream oss;
-//       oss << "Failed to enable " << (*atcpd)->getClassName() << (*atcpd)->getInstance();
-//       XCEPT_RETHROW(emu::daq::manager::exception::Exception, oss.str(), e);
-//     }
-
-  }
-  
-}
 
 void emu::daq::manager::Application::configureDAQ()
   throw (emu::daq::manager::exception::Exception)
@@ -2799,26 +2764,6 @@ void emu::daq::manager::Application::configureDAQ()
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to set run number to "  + runNumber, e);
 	}
-      // move to enableAction START
-//       try
-// 	{
-// 	  setScalarParam(taDescriptors_[0],"isBookedRunNumber","boolean",string(isBookedRunNumber_?"true":"false"));
-// 	  LOG4CPLUS_INFO(logger_,string("Set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false.") );
-// 	}
-//       catch(xcept::Exception e)
-// 	{
-// 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-// 			string("Failed to set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false."), e);
-// 	}
-      // move to enableAction END
-
-      // ATCP must be started explicitly
-      try{
-	startATCP();
-      }
-      catch(xcept::Exception e){
-	XCEPT_RETHROW(emu::daq::manager::exception::Exception, "Failed to start ATCP ", e);
-      }
 
       string maxNumEvents = maxNumberOfEvents_.toString();
       try
@@ -5039,15 +4984,25 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable( "runDbUserFile",       &runDbUserFile_       );
 
 
-    runNumber_         = 1;
-    maxNumberOfEvents_ = 0;
-    runType_           = "Monitor";
-    buildEvents_       = false;
-    s->fireItemAvailable("runNumber",         &runNumber_        );
-    s->fireItemAvailable("maxNumberOfEvents", &maxNumberOfEvents_);
-    s->fireItemAvailable("runType",           &runType_          );
-    s->fireItemAvailable("runTypes",          &runTypes_         );
-    s->fireItemAvailable("buildEvents",       &buildEvents_      );
+  runNumber_         = 1;
+  maxNumberOfEvents_ = 0;
+  runType_           = "Monitor";
+  isGlobalInControl_ = false;
+  buildEvents_       = false;
+  calibRunIndex_     = 0;
+  calibNRuns_        = 0;
+  calibStepIndex_    = 0;
+  calibNSteps_       = 0;
+  s->fireItemAvailable("runNumber",         &runNumber_        );
+  s->fireItemAvailable("maxNumberOfEvents", &maxNumberOfEvents_);
+  s->fireItemAvailable("runType",           &runType_          );
+  s->fireItemAvailable("runTypes",          &runTypes_         );
+  s->fireItemAvailable("isGlobalInControl", &isGlobalInControl_);
+  s->fireItemAvailable("buildEvents",       &buildEvents_      );
+  s->fireItemAvailable("calibRunIndex" ,    &calibRunIndex_    );
+  s->fireItemAvailable("calibNRuns"    ,    &calibNRuns_       );
+  s->fireItemAvailable("calibStepIndex",    &calibStepIndex_   );
+  s->fireItemAvailable("calibNSteps"   ,    &calibNSteps_      );
 
 //     s->addItemChangedListener("runNumber",this);
 
@@ -6345,7 +6300,7 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
   // Simulate crash
   //exit(1);
 
-    createAllAppStatesVector();
+    createAllAppStates();
 
     // Parameters will be set again in supervised mode on enable, 
     // but just for the display lets set them now:
