@@ -718,6 +718,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     
     sendCommand(calib_params_[index].bag.command_, "emu::pc::EmuPeripheralCrateManager");
     sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
+    sendCalibrationStatus( index, calib_params_.size(), step_counter_, calib_params_[index].bag.loop_ );
     sleep( calib_params_[index].bag.delay_ );
   }
   
@@ -753,6 +754,29 @@ bool emu::supervisor::Application::calibrationSequencer(toolbox::task::WorkLoop 
   keep_refresh_ = true;
   LOG4CPLUS_DEBUG(logger_, "calibrationSequencer " << "(end)");
   return false;
+}
+
+void emu::supervisor::Application::sendCalibrationStatus( unsigned int iRun, unsigned int nRuns, unsigned int iStep, unsigned int nSteps ){
+  emu::soap::Messenger m(this);
+  
+  xdata::UnsignedLong calibNRuns    ( nRuns  );
+  xdata::UnsignedLong calibNSteps   ( nSteps );
+  xdata::UnsignedLong calibRunIndex ( iRun   );
+  xdata::UnsignedLong calibStepIndex( iStep  );
+
+  try{
+    if ( daq_descr_ != NULL ) daq_descr_ = m.getAppDescriptor( "emu::daq::manager::Application", 0 );
+    m.setParameters( daq_descr_, 
+		     emu::soap::NamedData()
+		     .add( "calibNRuns"    , &calibNRuns     )
+		     .add( "calibNSteps"   , &calibNSteps    )
+		     .add( "calibRunIndex" , &calibRunIndex  )
+		     .add( "calibStepIndex", &calibStepIndex ) );
+  }
+  catch( xcept::Exception &e ){
+    LOG4CPLUS_WARN( logger_, "Failed to send calibration status to emu::daq::manager::Application : " << xcept::stdformat_exception_history(e) );
+  }
+
 }
 
 void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt) 
