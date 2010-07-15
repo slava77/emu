@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.38 2010/07/07 21:56:41 liu Exp $
+// $Id: EmuDim.cc,v 1.39 2010/07/15 11:41:08 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -563,9 +563,9 @@ void EmuDim::StartDim()
          dim_lv_name = pref + "LV_1_" + chamb[i].GetLabel(); 
          dim_temp_name = pref + "TEMP_1_" + chamb[i].GetLabel(); 
 
-         LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:5;F:9;I:2;C:80",
+         LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:8;I:2",
            &(EmuDim_lv[i]), sizeof(LV_1_DimBroker));
-         TEMP_1_Service[i]= new DimService(dim_temp_name.c_str(),"F:7;I:2;C:80",
+         TEMP_1_Service[i]= new DimService(dim_temp_name.c_str(),"F:7;I:2",
            &(EmuDim_temp[i]), sizeof(TEMP_1_DimBroker));
 
          total++;
@@ -580,7 +580,7 @@ void EmuDim::StartDim()
          ddumb[i].GetDimDDU(0, &(EmuDim_ddu[i]));
          dim_ddu_name = pref + "FED_1_" + ddumb[i].GetLabel(); 
 
-         DDU_1_Service[i]= new DimService(dim_ddu_name.c_str(),"F:8;I:2;C:80",
+         DDU_1_Service[i]= new DimService(dim_ddu_name.c_str(),"F:8;I:2",
            &(EmuDim_ddu[i]), sizeof(DDU_1_DimBroker));
 
          total_d++;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.cc,v 1.3 2009/10/14 17:33:09 liu Exp $
+// $Id: DDU.cc,v 1.4 2010/07/15 11:41:08 liu Exp $
 // $Log: DDU.cc,v $
+// Revision 1.4  2010/07/15 11:41:08  liu
+// update DIM data structure
+//
 // Revision 1.3  2009/10/14 17:33:09  liu
 // allow X2P to start before monitoring processes, add new DIM commands
 //
@@ -74,7 +77,7 @@ void DDU::Fill(char *buffer, int source)
 
 void DDU::GetDimDDU(int hint, DDU_1_DimBroker *dim_return )
 {
-   int *info;
+   int *info, this_st;
    float *data;
    //   float V15, V25A, V25B, V33, TD1, TD2, TD3, TD4;
 
@@ -89,9 +92,11 @@ void DDU::GetDimDDU(int hint, DDU_1_DimBroker *dim_return )
       dim_return->td2 = data[5];
       dim_return->td3 = data[6];
       dim_return->td4 = data[7];
-      dim_return->status = info[1];
+      this_st = (info[1]?0:1);
+      if(corruption) this_st=1;
+      dim_return->status = this_st;
       dim_return->update_time = info[0];
-      memcpy(dim_return->QTAG, "DDU", 4);
+//      memcpy(dim_return->QTAG, "DDU", 4);
 }
 
   } // namespace emu::x2p
