@@ -1,3 +1,5 @@
+* {margin:0}
+* {padding:0}
 body { background-color:#eeeeee; }
 table { width: 100%; background-color:#ffffff; border-collapse: separate; }
 td, th { color:#000000; font-size:90%; }
@@ -30,3 +32,4 @@ a.forLog:hover { color:#ff9900; font-weight:bold; }
 table.stale td.time { text-decoration:blink; }
 td.WARN { background-color:#ffff22; }
 td.ERROR { background-color:#ff2222; }
+svg { vertical-align: middle; text-align:center; }
