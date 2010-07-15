@@ -12,7 +12,6 @@ typedef struct{
   float c33[CFEB_NUMBER];
   float c50[CFEB_NUMBER];
   float c60[CFEB_NUMBER];
-  float status[CFEB_NUMBER];
 }CFEB_LV;
 
 typedef struct{
@@ -24,7 +23,6 @@ typedef struct{
   float c33;
   float c55;
   float c56;
-  float status;
 }ALCT_LV;
 
 typedef struct{
@@ -33,8 +31,7 @@ typedef struct{
   ALCT_LV alct;
 
   int update_time;
-  int slot;
-  char VCCMAC[80];
+  int status;
 
 }LV_1_DimBroker;
 
@@ -52,8 +49,7 @@ typedef struct{
   float t_cfeb5;
 
   int update_time;
-  int slot;
-  char VCCMAC[80];
+  int status;
 
 }TEMP_1_DimBroker;
 
@@ -72,7 +68,6 @@ typedef struct{
 
   int update_time;
   int status;
-  char QTAG[80];
   
 }DDU_1_DimBroker;
 
