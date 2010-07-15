@@ -10,9 +10,9 @@ emu::daq::manager::AppStates::AppStates()
 {}
 
 emu::daq::manager::AppStates::AppStates( const emu::daq::manager::AppStates& other )
-  : bSem_        ( toolbox::BSem::EMPTY         )
+  : bSem_        ( toolbox::BSem::EMPTY        )
   , timeOfUpdate_( other.getUnixTimeOfUpdate() )
-  , appStates_   ( other.getAppStates()         )
+  , appStates_   ( other.getAppStates()        )
 {
   bSem_.give();
 }
@@ -126,6 +126,28 @@ emu::daq::manager::AppStates::getAgeInSeconds() const {
   time_t now;
   time( &now );
   return ( now - timeOfUpdate_ );
+}
+
+bool
+emu::daq::manager::AppStates::isEmpty() const {
+  if ( appStates_.size() == 0 ) return true;
+  bSem_.take();
+  map<xdaq::ApplicationDescriptor*, string>::const_iterator s;  
+  for ( s=appStates_.begin(); s!=appStates_.end(); ++s ){
+    if ( s->second.size() == 0 ){
+      bSem_.give();
+      return true;
+    }
+  }
+  bSem_.give();
+  return false;
+}
+
+void
+emu::daq::manager::AppStates::clear(){
+  bSem_.take();
+  appStates_.clear();
+  bSem_.give();
 }
 
 ostream&
