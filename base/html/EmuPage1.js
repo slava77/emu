@@ -33,6 +33,8 @@ var Subsystem = null;
 // var XmlUrl    = document.URL;
 var DataURL   = null; // = document.URL;
 
+var ProgBar = null;
+
 function onLoad( refreshPeriod, dataURL ) {
 
   //alert('onLoad:' + dataURL );
@@ -46,6 +48,7 @@ function onLoad( refreshPeriod, dataURL ) {
   document.onmousemove = mouseMove;
   document.onmouseup = onMouseUp;
 
+  // Time development graph, if any
   graph_element = document.getElementById("graph");
   if ( graph_element ){
     svg_element = document.getElementById("svgRoot");
@@ -88,10 +91,19 @@ function onLoad( refreshPeriod, dataURL ) {
     attachListeners();
   }
 
+  // Progress bar, if any
+  var progBar_td_element = document.getElementById('td_progBar');
+  if ( progBar_td_element ) ProgBar = new ProgressBar( progBar_td_element );
+  window.onresize = resizeWindow;
+
   ageOfPageClock(0);
 
   if ( DataURL.search('fmt=json') > 0 ) autoReloadJsonDoc();
   else                                  autoReloadXmlDoc();
+}
+
+function resizeWindow(){
+  if ( ProgBar ) ProgBar.widenToMax();
 }
 
 function attachListeners(){
@@ -596,12 +608,12 @@ function Monitorable( time, name, value, nameDescr, valueDescr, nameURL, valueUR
 
   this.rate = function(){
     if ( this.time == this.previousTime ) return 0;
-    return ( this.value - this.previousValue ) * 1000 / ( this.time - this.previousTime ); // ms --> s
+    return Math.max( 0, (this.value-this.previousValue) * 1000 / (this.time-this.previousTime) ); // ms --> s
   };
 
   this.rate2 = function(){ // rate calculated over two samplings
     if ( this.time == this.prevPrevTime ) return 0;
-    return ( this.value - this.prevPrevValue ) * 1000 / ( this.time - this.prevPrevTime ); // ms --> s
+    return Math.max( 0, (this.value-this.prevPrevValue) * 1000 / (this.time-this.prevPrevTime) ); // ms --> s
   };
 }
 
@@ -631,6 +643,60 @@ function ageOfPageClock(ageOfPage){
     Clock = setTimeout('ageOfPageClock('+ageOfPage+')',1000);
 }
 
+function ProgressBar( containing_td_element ){
+  this.containing_td_element = containing_td_element;
+  this.g_element = document.getElementById('gProgBarScaler');
+  this.table_element = this.containing_td_element.parentNode.parentNode;
+  this.reference_row_element;
+  this.saved_row_element;
+  this.rowIndex = this.containing_td_element.parentNode.rowIndex;
+
+  this.baseContainerWidth  = this.containing_td_element.clientWidth;
+  this.viewPortWidth = document.getElementById('svgProgressBar').width.baseVal.value;
+  this.baseRectWidth  = document.getElementById('rectRuns').width.baseVal.value;
+
+  this.widenToMax = function(){
+    // Widen the progress bars to the width of the containing able cell, but not wider than the SVG viewport
+    var animContainerWidth = this.containing_td_element.clientWidth;
+    //this.table_element.getElementsByTagName('th')[0].innerHTML = this.containing_td_element+' '+this.baseRectWidth+' '+animContainerWidth+' '+this.viewPortWidth;
+    this.g_element.setAttribute( 'transform', 'scale('+Math.min(animContainerWidth,this.viewPortWidth)/this.baseRectWidth+',1.0)' );
+  };
+
+  this.show = function(){
+    //alert('ProgBar.show() '+this.saved_row_element+' '+this.reference_row_element);
+    if ( this.saved_row_element ){
+      if ( this.reference_row_element ) this.table_element.insertBefore( this.saved_row_element, this.reference_row_element );
+      else                              this.table_element.appendChild( this.saved_row_element );
+      // Update the element pointers whose pointees have been recreated:
+      this.containing_td_element = this.saved_row_element.getElementsByTagName('td')[0];
+      this.g_element = document.getElementById('gProgBarScaler');
+      // Widen it to the max avaliable width
+      this.widenToMax();
+    }
+  };
+
+  this.hide = function(){
+    //alert('ProgBar.hide() '+this.rowIndex+' '+this.table_element.rows.length+' '+this.table_element.rows[this.rowIndex]+' '+this.table_element.rows[this.rowIndex].getElementsByTagName('td')[0].id );
+    if ( this.table_element.rows.length > this.rowIndex+1 ){
+      if ( this.table_element.rows[this.rowIndex].getElementsByTagName('td')[0].id == 'td_progBar' ) this.reference_row_element = this.table_element.rows[this.rowIndex+1];
+      this.saved_row_element = this.table_element.rows[this.rowIndex].cloneNode(true);
+      this.table_element.deleteRow( this.rowIndex );
+    }
+  };
+
+  this.set = function( iRun, nRuns, iStep, nSteps ){
+    if ( document.getElementById('barRuns' ) ){
+      //this.table_element.getElementsByTagName('th')[0].innerHTML = 'Setting bars to'+' '+iRun+' '+nRuns+' '+iStep+' '+nSteps;
+      document.getElementById('barRuns' ).setAttribute('width',this.baseRectWidth/Math.max(1,nRuns) *iRun );
+      document.getElementById('barSteps').setAttribute('width',this.baseRectWidth/Math.max(1,nSteps)*iStep);
+      document.getElementById('textRuns' ).firstChild.nodeValue = 'run ' +iRun +'/'+nRuns;
+      document.getElementById('textSteps').firstChild.nodeValue = 'step '+iStep+'/'+nSteps;
+    }
+    //else this.table_element.getElementsByTagName('th')[0].innerHTML = 'No progress bar';
+  };
+
+  this.widenToMax();
+}
 
 //================
 // XML data access
@@ -657,6 +723,10 @@ function xmlDocLoaded(e){
     }
 }
 
+function findArrayElementByName( name, array ){
+    for (i=0; i<array.length; i++) if ( array[i].name == name ) return array[i];
+    return null;
+}
 
 function valuesFromXml(){
     var rootElement = XmlDoc.getElementsByTagName('ForEmuPage1');
@@ -743,6 +813,22 @@ function valuesFromXml(){
 	  else if ( monitorables[i].name.indexOf(' Rate') > 0 ) a_value.innerHTML = (Number(monitorables[i].value)*0.001).toFixed(3) + '&#160;kB/s';
 	  else a_value.innerHTML = monitorables[i].value;
 	}
+        // progress bar
+	if ( monitorables[i].name == 'type' ){
+            //ProgBar.table_element.getElementsByTagName('th')[0].innerHTML += ' '+monitorables[i].name;
+            if ( monitorables[i].value.indexOf('Calib') >= 0 ){	      
+              if ( ProgBar ){
+		ProgBar.show();
+		ProgBar.set( findArrayElementByName( 'calib runIndex' , monitorables ).value,
+			     findArrayElementByName( 'calib nRuns'    , monitorables ).value,
+			     findArrayElementByName( 'calib stepIndex', monitorables ).value,
+			     findArrayElementByName( 'calib nSteps'   , monitorables ).value  );
+	      }
+            }
+	    else if ( ProgBar ) ProgBar.hide();
+        }
+
+
     }
     // Append point to graph
     appendPoint( graphPoint );

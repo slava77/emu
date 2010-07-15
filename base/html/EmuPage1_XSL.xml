@@ -16,9 +16,9 @@
   <xsl:template match="ForEmuPage1">
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
-        <title>Report for EmuPage1 from <xsl:value-of select="@from"/> at <xsl:value-of select="@dateTime"/></title>
-	<link rel="stylesheet" type="text/css" href="/emu/base/html/EmuPage1.css"/>
-	<script type="text/javascript" src="/emu/base/html/EmuPage1.js"/>
+        <title>Report for EmuPage1 from <xsl:if test="monitorable[@name='title']"><xsl:value-of select="monitorable[@name='title']/@value"/></xsl:if><xsl:if test="not(monitorable[@name='title'])"><xsl:value-of select="@application"/></xsl:if> at <xsl:value-of select="@localDateTime"/></title>
+	<link rel="stylesheet" type="text/css" href="/emu/base/html/_dev_/EmuPage1.css"/>
+	<script type="text/javascript" src="/emu/base/html/_dev_/EmuPage1.js"/>
         <xsl:if test="@application = 'xmas::las::Application'"><script type="text/javascript" src="/emu/base/html/jquery-1.3.2.min.js"/></xsl:if>
 <!-- 	<link rel="stylesheet" type="text/css" href="EmuPage1.css"/> -->
 <!-- 	<script type="text/javascript" src="EmuPage1.js"/> -->
@@ -112,9 +112,29 @@
 		<xsl:value-of select="@application"/>
 	      </xsl:if>
 	    </th></tr>
-	    <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
-	    <xsl:apply-templates mode="DAQ" select="monitorable[not(substring-after(@name,' ')='events') and not(@name='title')]"/>
+	    <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage" onclick="ProgBar.hide()"/><span style="float:right;" onclick="ProgBar.show()">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	    <xsl:apply-templates mode="DAQ" select="monitorable[@name='state']"/>
 	    <tr>
+	      <th>run</th>
+	      <td class="layout">
+		<table class="layout"><tr class="layout">
+		  <xsl:apply-templates mode="DAQ" select="monitorable[@name='#' or @name='type' or @name='ctrl']"/>
+		</tr></table>
+	      </td>
+	    </tr>
+	    <xsl:apply-templates mode="DAQ" select="monitorable[not(substring-after(@name,' ')='events') and not(@name='title' or @name='state' or @name='#' or @name='type' or @name='ctrl') and not(substring-before(@name,' ')='calib')]"/>
+	    <tr onclick="ProgBar.widenToMax()">
+	      <th>calib</th>
+	      <td id="td_progBar">
+		<xsl:call-template name="progressBar">
+		  <xsl:with-param name="I_RUN"><xsl:value-of select="//monitorable[@name='calib runIndex']/@value"/></xsl:with-param>
+		  <xsl:with-param name="I_STEP"><xsl:value-of select="//monitorable[@name='calib stepIndex']/@value"/></xsl:with-param>
+		  <xsl:with-param name="N_RUNS"><xsl:value-of select="//monitorable[@name='calib nRuns']/@value"/></xsl:with-param>
+		  <xsl:with-param name="N_STEPS"><xsl:value-of select="//monitorable[@name='calib nSteps']/@value"/></xsl:with-param>
+		</xsl:call-template>
+	      </td>
+	    </tr>
+	    <tr id="tr_events">
 	      <th>events</th>
 	      <td class="layout">
 		<table class="layout"><tr class="layout">
@@ -202,7 +222,6 @@
 	</table>
 
 	</td></tr>
-
 	<xsl:if test="child::monitorable[@name='title' and @value='CSC Track Finder'] or document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@graph = 'show'">
 	  <tr><td style="padding: 0px 0px 0px 0px;">
 	    
@@ -268,7 +287,7 @@
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
     <xsl:variable name="TDCLASS"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
-    <xsl:variable name="ACLASS"><xsl:if test="@name = 'run' or @name = 'start' or @name = 'stop'">forLog</xsl:if></xsl:variable>
+    <xsl:variable name="ACLASS"><xsl:if test="@name = '#' or @name = 'start' or @name = 'stop'">forLog</xsl:if></xsl:variable>
     <tr>
       <th id="th_name_{$INDEX}">
 	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}" class="{$ACLASS}"><xsl:value-of select="@name"/></a>
@@ -277,6 +296,18 @@
 	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}" class="{$ACLASS}"><xsl:value-of select="@value"/></a>
       </td>
     </tr>
+  </xsl:template>
+
+  <xsl:template mode="DAQ" match="monitorable[@name='#' or @name='type' or @name='ctrl']">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <xsl:variable name="ACLASS"><xsl:if test="@name = '#' or @name = 'start' or @name = 'stop'">forLog</xsl:if></xsl:variable>
+    <th id="th_name_{$INDEX}">
+      <a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}" class="{$ACLASS}"><xsl:value-of select="@name"/></a>
+    </th>
+    <td class="{@value}" id="td_value_{$INDEX}">
+      <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}" class="{$ACLASS}"><xsl:value-of select="@value"/></a>
+    </td>
   </xsl:template>
 
   <xsl:template mode="DAQ" match="monitorable[substring-after(@name,' ')='events']">
@@ -289,7 +320,6 @@
       <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
     </td>
   </xsl:template>
-
 
 
   <xsl:template mode="DQM" match="monitorable[not(@name = 'title')]">
@@ -319,6 +349,23 @@
 
 
 
+  <xsl:template name="progressBar">
+    <xsl:param name="I_RUN"/>
+    <xsl:param name="I_STEP"/>
+    <xsl:param name="N_RUNS"/>
+    <xsl:param name="N_STEPS"/>
+    <svg:svg id="svgProgressBar" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="260" height="16">
+      <svg:g id="gProgBarScaler" title="Progress of calibration runs: run {$I_RUN}/{$N_RUNS}, step {$I_STEP}/{$N_STEPS}">
+	<svg:rect style="fill:#ffffff; fill-opacity:1;stroke:#000000; stroke-width:1.0; stroke-opacity:1; padding:0;" id="rectRuns" width="260" height="8" x="0." y="0." />
+	<svg:rect style="fill:#ffffff; fill-opacity:1;stroke:#000000; stroke-width:1.0; stroke-opacity:1; padding:0;" id="rectSteps" width="260" height="8" x="0." y="8." />
+	<svg:rect style="fill:#00aa00; fill-opacity:1;stroke:#000000; stroke-width:0.0; stroke-opacity:1" id="barRuns" width="120" height="8" x="0." y="0." />
+	<svg:rect style="fill:#449944; fill-opacity:1;stroke:#000000; stroke-width:0.0; stroke-opacity:1" id="barSteps" width="100" height="8" x="0." y="8." />
+	<svg:text text-anchor="middle" font-size="6" fill="black" x="130." y="6." id="textRuns">run <xsl:value-of select="$I_RUN"/>/<xsl:value-of select="$N_RUNS"/></svg:text>
+	<svg:text text-anchor="middle" font-size="6" fill="black" x="130." y="14." id="textSteps">step <xsl:value-of select="$I_STEP"/>/<xsl:value-of select="$N_STEPS"/></svg:text>
+      </svg:g>
+    </svg:svg>
+  </xsl:template>
+
 
   <xsl:template name="graph">
 	<!-- 	viewBox not working in FF 2... :-(  -->
@@ -344,7 +391,7 @@
 	      <svg:line x1=    "0" y1="-2000" x2=    "0" y2="2000" stroke="#333333" stroke-width="10"/>
 	      <svg:line x1= "2500" y1="-2000" x2= "2500" y2="2000" stroke="#333333" stroke-width="10"/>
 	    </svg:g>
-	    <svg:rect id="pad" title="left click to pan, mouse wheel to zoom, Alt-left mouse wheel to zoom in time" class="" x="-5000" y="-2000" width="10000" height="4000" fill="white" opacity="0.8" transform=""/>
+	    <svg:rect id="pad" title="Left click to pan, mouse wheel to zoom, left-Alt mouse wheel to zoom in time." class="" x="-5000" y="-2000" width="10000" height="4000" fill="white" opacity="0.8" transform=""/>
 <!-- 	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="20" points="0,3000 500,2000 1000,1500 1500,2500 2000,500 2500,1000 3000,2500 3500,500"/> -->
 <!-- 	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="50" points="-500,-500 -500,500 500,500 500,-500"/> -->
 	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="50" points=""/>
