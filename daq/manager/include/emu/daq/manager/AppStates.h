@@ -31,6 +31,8 @@ namespace emu { namespace daq { namespace manager {
     set<xdaq::ApplicationDescriptor*> getAppsInState( const string& state ) const;
     string getCombinedState() const;
     time_t getAgeInSeconds() const;
+    bool isEmpty() const; /// Empty if it contains no apps or any app it contains has no state assigned to it.
+    void clear();
     
     template <class Iterator>
     void insertApps( Iterator begin, Iterator end ){
