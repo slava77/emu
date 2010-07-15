@@ -2,6 +2,7 @@
 #define __emu_supervisor_Application_h__
 
 #include "emu/base/Supervised.h"
+#include "emu/soap/Messenger.h"
 
 #include <string>
 #include <deque>
@@ -155,6 +156,8 @@ private: // XDAQ parameters
 	  throw (toolbox::fsm::exception::Exception);
         void transitionFailed(toolbox::Event::Reference event)
 	  throw (toolbox::fsm::exception::Exception);
+
+        void sendCalibrationStatus( unsigned int iRun, unsigned int nRuns, unsigned int iStep, unsigned int nSteps );
 
         void sendCommand(string command, string klass)
           throw (xoap::exception::Exception, xcept::Exception);
