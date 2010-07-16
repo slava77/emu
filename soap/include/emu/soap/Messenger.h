@@ -42,12 +42,14 @@ namespace emu{
 
       /// 
       /// Ctor.
+      /// 
       /// @param parent Pointer to the parent XDAQ application. 
       ///
       Messenger( xdaq::Application *parent );
 
       /// 
       /// Finds the application descriptor of an application given by its class name and instance.
+      /// 
       /// @param className Application's class name.
       /// @param instance Application's instance (0 by default).
       ///
@@ -57,6 +59,7 @@ namespace emu{
 
       /// 
       /// Gets the specified parameters from the target application given by its descriptor.
+      /// 
       /// @param target The application descriptor of the target.
       /// @param parameters The parameters to get.
       ///
@@ -76,6 +79,7 @@ namespace emu{
 
       ///
       /// Gets the specified parameters from the target application given by its class name and instance.
+      /// 
       /// @param className Class name of the target application.
       /// @param instance Instance of the target application.
       /// @param parameters The parameters to get.
@@ -96,6 +100,7 @@ namespace emu{
 
       ///
       /// Sets the specified parameters in the target application given by its descriptor.
+      /// 
       /// @param target The application descriptor of the target.
       /// @param parameters The parameters to set.
       ///
@@ -115,6 +120,7 @@ namespace emu{
 
       /// 
       /// Sets the specified parameters in the target application given by its class name and instance.
+      /// 
       /// @param className Class name of the target application.
       /// @param instance  Instance of the target application.
       /// @param parameters The parameters to set.
@@ -133,19 +139,42 @@ namespace emu{
       /// \endcode
       void setParameters( const string &className, const unsigned int instance, emu::soap::NamedData &parameters );
 
+      /// 
+      /// Sets the specified parameters in all applications of \c className in the default zone.
+      /// 
+      /// @param className Class name of the target application(s).
+      /// @param parameters The parameters to set.
+      ///
+      /// Example:
+      /// \code
+      ///       emu::soap::Messenger m( this );
+      ///	xdata::UnsignedLong ul = 1234;
+      ///	xdata::Vector<xdata::String> Vs;
+      ///       Vs.push_back( xdata::String("pace"  ) );
+      ///	Vs.push_back( xdata::String("trot"  ) );
+      ///	Vs.push_back( xdata::String("gallop") );
+      ///	m.setParameters( "emu::daq::manager::Application",
+      ///			 emu::soap::NamedData().add( "runNumber", &ul )
+      ///			                       .add( "runTypes" , &Vs ) );
+      /// \endcode
+      void setParameters( const string &className, emu::soap::NamedData &parameters );
+
       ///
       /// Sends a command to the target application given by its descriptor.
+      /// 
       /// @param target The application descriptor of the target.
       /// @param command Command.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
       ///
+      /// @return The reply.
+      ///
       /// Examples:
       /// \code
       ///       // Send a simple command
       ///       emu::soap::Messenger m( this );
-      ///	m.setParameters( targetDescriptor, "Configure" );
+      ///	m.sendCommand( targetDescriptor, "Configure" );
       ///
       ///       // Send another command with attributes
       ///       xdata::String s("Start");
@@ -165,14 +194,15 @@ namespace emu{
       ///		       emu::soap::Messenger::noAttributes,
       ///		       attachments );
       /// \endcode
-      void sendCommand( xdaq::ApplicationDescriptor *target, 
-			const std::string &command, 
-			const emu::soap::NamedData &parameters = noParameters,
-			const emu::soap::NamedData &attributes = noAttributes,
-			const vector<emu::soap::Attachment> &attachments = noAttachments );
+      xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
+					  const std::string &command, 
+					  const emu::soap::NamedData &parameters = noParameters,
+					  const emu::soap::NamedData &attributes = noAttributes,
+					  const vector<emu::soap::Attachment> &attachments = noAttachments );
 
       ///
       /// Sends a command to the target application given by its class name and instance.
+      /// 
       /// @param className Class name of the target application.
       /// @param instance Instance of the target application.
       /// @param command Command.
@@ -180,8 +210,26 @@ namespace emu{
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
       ///
+      /// @return The reply.
+      ///
       /// See the overloaded version of this method for examples.
-      void sendCommand( const string &className, const unsigned int instance, 
+      xoap::MessageReference sendCommand( const string &className, const unsigned int instance, 
+					  const std::string &command, 
+					  const emu::soap::NamedData &parameters = noParameters,
+					  const emu::soap::NamedData &attributes = noAttributes,
+					  const vector<emu::soap::Attachment> &attachments = noAttachments );
+
+      ///
+      /// Sends a command to all applications of \c className in the default zone.
+      /// 
+      /// @param className Class name of the target application(s).
+      /// @param command Command.
+      /// @param parameters Optional parameters.
+      /// @param attributes Optional attributes of the command.
+      /// @param attachments Optional attachments.
+      ///
+      /// See the overloaded version of this method for examples.
+      void sendCommand( const string &className,
 			const std::string &command, 
 			const emu::soap::NamedData &parameters = noParameters,
 			const emu::soap::NamedData &attributes = noAttributes,
@@ -189,6 +237,7 @@ namespace emu{
 
       /// 
       /// Adds attachments to a SOAP message.
+      /// 
       /// @param message SOAP message reference.
       /// @param attachments Attachments to add.
       ///
@@ -196,6 +245,7 @@ namespace emu{
 
       /// 
       /// Adds attributes to an element in a SOAP message.
+      /// 
       /// @param message SOAP message reference.
       /// @param element Element to add the attributes to.
       /// @param attributes Attributes to add.
@@ -204,6 +254,7 @@ namespace emu{
 
       /// 
       /// Include parameters as child elements in a parent element.
+      /// 
       /// @param message SOAP message reference.
       /// @param parent Parent element to include the parameters in.
       /// @param parameters Parameters to include.
@@ -212,14 +263,27 @@ namespace emu{
 
       /// 
       /// Parses a SOAP reply to extract the specified parameters.
+      /// 
       /// @param reply SOAP message reference.
-      /// @param className Class name of the application sending the reply.
       /// @param parameters Parameters to extract.
+      /// @param parametersNamespaceURI Parameters' namespace URI (empty by default, in which case any namespace will match).
+      /// 
+      /// Example:
       ///
-      void extractParameters( xoap::MessageReference reply, const string &className, emu::soap::NamedData &parameters );
+      ///       // Send a command and extract parameters from the reply:
+      ///       xdata::String                start_time;
+      ///       xdata::String                stop_time;
+      ///       xdata::Vector<xdata::String> rui_counts;
+      ///       m.extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ),
+      ///       		     emu::soap::NamedData().add( "start_time", &start_time ) 
+      ///       		                           .add( "stop_time" , &stop_time  ) 
+      ///       		                           .add( "rui_counts", &rui_counts ) );
+      ///
+      void extractParameters( xoap::MessageReference reply, emu::soap::NamedData &parameters, const string &parametersNamespaceURI="" );
 
       /// 
       /// Converts a SOAP fault reply to plain text.
+      /// 
       /// @param fault SOAP fault.
       ///
       /// @return The fault in plain text format.
@@ -228,6 +292,7 @@ namespace emu{
 
       /// 
       /// Converts a SOAP fault reply to an \c xcept::Exception object that XDAQ applications are supposed to throw.
+      /// 
       /// @param fault SOAP fault.
       ///
       /// @return An \c xcept::Exception object.
@@ -236,6 +301,7 @@ namespace emu{
 
       /// 
       /// Sends a SOAP message to a target specified by its URL.
+      /// 
       /// @param message SOAP message reference.
       /// @param URL Full URL of target.
       /// @param SOAPAction SOAP action or content location.
@@ -253,6 +319,7 @@ namespace emu{
 
       /// 
       /// Recursively converts an element of the SOAP fault and its descendents into plain text.
+      /// 
       /// @param elem Element of the SOAP fault.
       /// @param indentDepth Size of indentation.
       ///
@@ -262,6 +329,7 @@ namespace emu{
 
       /// 
       /// Recursively converts an element of the SOAP fault and its descendents into a stack of \c xcept::ExceptionInformation . 
+      /// 
       /// @param elem Element of the SOAP fault.
       /// @param eStack A stack of \c xcept::ExceptionInformation .
       /// @param level Level of nestedness of \c elem .

@@ -84,7 +84,7 @@ emu::soap::Messenger::setParameters( xdaq::ApplicationDescriptor *target, const 
     xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
     if ( replyBody.hasFault() ){
       xoap::SOAPFault fault = replyBody.getFault();
-      cout << endl << faultToPlainText( &fault ) << endl;
+      //cout << endl << faultToPlainText( &fault ) << endl;
       throw faultToException( &fault );
     }
 
@@ -122,12 +122,27 @@ emu::soap::Messenger::setParameters( const string &className, const unsigned int
 }
 
 void
+emu::soap::Messenger::setParameters( const string &className, emu::soap::NamedData &parameters ){
+  std::set<xdaq::ApplicationDescriptor *> apps = application_->getApplicationContext()->getDefaultZone()->getApplicationDescriptors( className );
+
+  if ( apps.size() == 0 ){
+    LOG4CPLUS_WARN( application_->getApplicationLogger(), "Setting parameters " << parameters <<  " to " + className + " aborted: No descriptors found.");
+    return;
+  }
+
+  for ( std::set<xdaq::ApplicationDescriptor *>::iterator app = apps.begin(); app != apps.end(); ++app ) {
+    setParameters( *app, parameters );
+  }
+}
+
+xoap::MessageReference
 emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
 				   const std::string &command,
 				   const emu::soap::NamedData &parameters,
 				   const emu::soap::NamedData &attributes,
 				   const vector<emu::soap::Attachment> &attachments ){
   xoap::MessageReference message;
+  xoap::MessageReference reply;
 
   try{
 
@@ -144,10 +159,6 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
     xoap::SOAPBodyElement cmdElement = body.addBodyElement( cmdName );
 
     // Add attributes (if any) to command
-//     for ( emu::soap::NamedData::const_iterator a=attributes.begin(); a!=attributes.end(); ++a ){
-//       xoap::SOAPName attrName = envelope.createName( a->first, "", "" );
-//       cmdElement.addAttribute( attrName, a->second->toString() );
-//     }
     addAttributes( message, &cmdElement, attributes );
 
     // Add parameters (if any) as child elements to command element
@@ -160,7 +171,7 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
     string s;
     message->writeTo( s );
     LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sent:" << endl << "<![CDATA[" << endl << s << endl << "]]>" );
-    xoap::MessageReference reply = application_->getApplicationContext()->postSOAP( message, *application_->getApplicationDescriptor(), *target );
+    reply = application_->getApplicationContext()->postSOAP( message, *application_->getApplicationDescriptor(), *target );
     reply->writeTo( s );
     LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Received:" << endl << "<![CDATA[" << endl << s << endl << "]]>" );
     
@@ -168,7 +179,7 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
     xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
     if ( replyBody.hasFault() ){
       xoap::SOAPFault fault = replyBody.getFault();
-      cout << endl << faultToPlainText( &fault ) << endl;
+      //cout << endl << faultToPlainText( &fault ) << endl;
       throw faultToException( &fault );
     }
 
@@ -197,9 +208,10 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
 
+  return reply;
 }
 
-void
+xoap::MessageReference
 emu::soap::Messenger::sendCommand( const string &className, 
 				   const unsigned int instance,
 				   const std::string &command, 
@@ -207,7 +219,25 @@ emu::soap::Messenger::sendCommand( const string &className,
 				   const emu::soap::NamedData &attributes,
 				   const vector<emu::soap::Attachment> &attachments ){
   xdaq::ApplicationDescriptor* target = getAppDescriptor( className, instance );
-  sendCommand( target, command, parameters, attributes, attachments );
+  return sendCommand( target, command, parameters, attributes, attachments );
+}
+
+void
+emu::soap::Messenger::sendCommand( const string &className, 
+				   const std::string &command, 
+				   const emu::soap::NamedData &parameters,
+				   const emu::soap::NamedData &attributes,
+				   const vector<emu::soap::Attachment> &attachments ){
+  std::set<xdaq::ApplicationDescriptor *> apps = application_->getApplicationContext()->getDefaultZone()->getApplicationDescriptors( className );
+
+  if ( apps.size() == 0 ){
+    LOG4CPLUS_WARN( application_->getApplicationLogger(), "Sending command " << command <<  " to " + className + " aborted: No descriptors found.");
+    return;
+  }
+
+  for ( std::set<xdaq::ApplicationDescriptor *>::iterator app = apps.begin(); app != apps.end(); ++app ) {
+    sendCommand( *app, command, parameters, attributes, attachments );
+  }
 }
 
 void
@@ -248,12 +278,12 @@ emu::soap::Messenger::getParameters( xdaq::ApplicationDescriptor *target, emu::s
     xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
     if ( replyBody.hasFault() ){
       xoap::SOAPFault fault = replyBody.getFault();
-      cout << endl << faultToPlainText( &fault ) << endl;
+      //cout << endl << faultToPlainText( &fault ) << endl;
       throw faultToException( &fault );
     }
 
     // Parse reply to deserialize parameters
-    extractParameters( reply, target->getClassName(), parameters );
+    extractParameters( reply, parameters, string( XDAQ_APP_URN_BASE ) + target->getClassName() );
 
   }
   catch( xcept::Exception &e ){
@@ -313,9 +343,6 @@ void emu::soap::Messenger::includeParameters( xoap::MessageReference message, xo
   xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
   string parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
   string parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
-  cout << parent->getElementName().getLocalName() << "   '"
-       << parentNamespacePrefix << "'   '"
-       << parentNamespaceURI << "'" << endl;
   xdata::soap::Serializer serializer;
   emu::soap::NamedData::const_iterator p;
   for ( p=parameters.begin(); p!=parameters.end(); ++p ){
@@ -326,10 +353,8 @@ void emu::soap::Messenger::includeParameters( xoap::MessageReference message, xo
 }
 
 void
-emu::soap::Messenger::extractParameters( xoap::MessageReference reply, const string &className, emu::soap::NamedData &parameters ){
+emu::soap::Messenger::extractParameters( xoap::MessageReference reply, emu::soap::NamedData &parameters, const string &parametersNamespaceURI ){
   // Parse reply and deserialize the requested parameters
-  string targetAppNamespaceURI = string( XDAQ_APP_URN_BASE ) + className;
-
   xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
   xdata::soap::Serializer serializer;
 
@@ -337,7 +362,9 @@ emu::soap::Messenger::extractParameters( xoap::MessageReference reply, const str
   reply->writeTo( ss );
   DOMDocument* doc = parser->parse( ss.str() );
   for ( emu::soap::NamedData::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
-    DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( targetAppNamespaceURI.c_str() ), xoap::XStr( p->first.c_str() ) )->item(0);
+    DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( ( parametersNamespaceURI.size()>0 ? parametersNamespaceURI.c_str(): "*" ) ), 
+					      xoap::XStr( p->first.c_str() ) 
+					      )->item(0);
     if ( n != NULL ){
       serializer.import( p->second, n );
     }
@@ -440,7 +467,6 @@ emu::soap::Messenger::faultElementToException( xoap::SOAPElement* elem,
       }
     }
     else{
-      cout << "Opening new level for " << name << "   Value='" << value << "'" << endl;
       std::vector<xoap::SOAPElement> children = elem->getChildElements();
       // Add to stack a new exception
       history.push_back( xcept::ExceptionInformation() );
