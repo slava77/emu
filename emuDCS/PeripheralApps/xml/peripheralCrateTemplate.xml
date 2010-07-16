@@ -143,7 +143,10 @@
            cfeb2_rxd_int_delay="0"
            cfeb3_rxd_int_delay="0"
            cfeb4_rxd_int_delay="0"
-           cfeb_badbits_block="0">
+           cfeb_badbits_block="0"
+           cfeb_badbits_readout="0"
+           miniscope_enable="0"
+           l1a_priority_enable="1">
           <ALCT chamber_type="ME11"
                 alct_firmware_month="5"
                 alct_firmware_day="5"

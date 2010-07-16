@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.11 2010/05/13 15:37:02 rakness Exp $
+// $Id: TMB.h,v 1.12 2010/07/16 12:28:57 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.12  2010/07/16 12:28:57  rakness
+// software for TMB firmware version 2010 July 7
+//
 // Revision 1.11  2010/05/13 15:37:02  rakness
 // decode sync error register
 //
@@ -1169,6 +1172,11 @@ public:
   inline void SetFifoNoRawHits(int fifo_no_raw_hits) { fifo_no_raw_hits_ = fifo_no_raw_hits; }
   inline int  GetFifoNoRawHits() { return fifo_no_raw_hits_; }
   //
+  //!cfeb_badbits_readout = 1/0 = enable/disable readout of CFEB badbits into DMB
+  inline void SetCFEBBadBitsReadout(int cfeb_badbits_readout) { cfeb_badbits_readout_ = cfeb_badbits_readout; }
+  inline int  GetCFEBBadBitsReadout() { return cfeb_badbits_readout_ ; }
+  inline int  GetReadCFEBBadBitsReadout() { return read_cfeb_badbits_readout_ ; }
+  //
   //------------------------------------------------------------------
   //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
   //------------------------------------------------------------------
@@ -1603,6 +1611,27 @@ public:
   inline int GetReadQPLLLostEver() { return read_ccb_qpll_lost_ever_; }
   //
   //---------------------------------------------------------------------
+  //0X100 = ADR_L1A_LOOKBACK:  L1A Lookback Distance
+  //---------------------------------------------------------------------
+  //!l1a_allow_notmb_lookback = [0-2047] = bx to look back from L1As write_buffer_address for L1A-only readouts
+  inline void SetL1aAllowNoTmbLookbackDistance(int l1a_allow_notmb_lookback) { l1a_allow_notmb_lookback_ = l1a_allow_notmb_lookback; }
+  inline int  GetL1aAllowNoTmbLookbackDistance() { return l1a_allow_notmb_lookback_; }
+  inline int  GetReadL1aAllowNoTmbLookbackDistance() { return read_l1a_allow_notmb_lookback_; }
+  //
+  //!injector RAM write data Most Significant Bits
+  inline void SetInjectorRAMWriteMSBs(int inj_wrdata_msb) { inj_wrdata_msb_ = inj_wrdata_msb; }
+  inline int  GetInjectorRAMWriteMSBs() { return inj_wrdata_msb_; }
+  inline int  GetReadInjectorRAMWriteMSBs() { return read_inj_wrdata_msb_; }
+  //
+  //!injector RAM read data Most Significant Bits
+  inline int  GetReadInjectorRAMReadMSBs() { return read_inj_rdata_msb_; }
+  //
+  //!l1a_priority_enable = 1/0 = limit TMB to 1/many event readout per L1A
+  inline void SetL1APriorityEnable(int l1a_priority_enable) { l1a_priority_enable_ = l1a_priority_enable; }
+  inline int  GetL1APriorityEnable() { return l1a_priority_enable_; }
+  inline int  GetReadL1APriorityEnable() { return read_l1a_priority_enable_; }
+  //
+  //---------------------------------------------------------------------
   //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
   //---------------------------------------------------------------------
   //!alct_sync_rxdata_dly = sync mode delay pointer to valid data
@@ -1647,6 +1676,34 @@ public:
   inline void SetALCTSyncTxData2nd(int alct_sync_txdata_2nd) { alct_sync_txdata_2nd_ = alct_sync_txdata_2nd; }
   inline int  GetALCTSyncTxData2nd() { return alct_sync_txdata_2nd_; }
   inline int  GetReadALCTSyncTxData2nd() { return read_alct_sync_txdata_2nd_; }
+  //
+  //---------------------------------------------------------------------
+  //0X10C = ADR_MINISCOPE:  Internal 16 Channel Digital Scope
+  //---------------------------------------------------------------------
+  //!miniscope_enable = 1/0 = enable/disable miniscope readout to DMB
+  inline void SetMiniscopeEnable(int miniscope_enable) { miniscope_enable_ = miniscope_enable; }
+  inline int  GetMiniscopeEnable() { return miniscope_enable_ ; }
+  inline int  GetReadMiniscopeEnable() { return read_miniscope_enable_ ; }
+  //
+  //!data=write address (for testing miniscope)
+  inline void SetMiniscopeTbinsTest(int mini_tbins_test) { mini_tbins_test_ = mini_tbins_test; }
+  inline int  GetMiniscopeTbinsTest() { return mini_tbins_test_; }
+  inline int  GetReadMiniscopeTbinsTest() { return read_mini_tbins_test_; }
+  //
+  //!mini_tbins_word = 1/0 = insert/don't insert tbins and pretrig tbins in 1st miniscope data word
+  inline void SetMiniscopeTbinsWord(int mini_tbins_word) { mini_tbins_word_ = mini_tbins_word; }
+  inline int  GetMiniscopeTbinsWord() { return mini_tbins_word_; }
+  inline int  GetReadMiniscopeTbinsWord() { return read_mini_tbins_word_; }
+  //
+  //!fifo_tbins_mini = number of FIFO timebins to readout in miniscope
+  inline void SetFIFOTbinsMini(int fifo_tbins_mini) { fifo_tbins_mini_ = fifo_tbins_mini; }
+  inline int  GetFIFOTbinsMini() { return fifo_tbins_mini_; }
+  inline int  GetReadFIFOTbinsMini() { return read_fifo_tbins_mini_; }
+  //
+  //!fifo_pretrig_mini = number of FIFO timebins before pretrigger to readout in miniscope 
+  inline void SetFIFOPretrigMini(int fifo_pretrig_mini) { fifo_pretrig_mini_ = fifo_pretrig_mini; }
+  inline int  GetFIFOPretrigMini() { return fifo_pretrig_mini_; }
+  inline int  GetReadFIFOPretrigMini() { return read_fifo_pretrig_mini_; }
   //
   //---------------------------------------------------------------------
   //0X10E = ADR_PHASER0 digital phase shifter setting for alct_rx
@@ -1804,6 +1861,11 @@ public:
   inline int  GetBX0MatchSyncErrEnable() { return bx0_match_sync_err_enable_ ; }
   inline int  GetReadBX0MatchSyncErrEnable() { return read_bx0_match_sync_err_enable_ ; }
   //
+  //!clock_lock_lost_sync_err_enable = 0/1 = don't/do set sync error on: TMB clock lock lost
+  inline void SetClockLockLostSyncErrEnable(int clock_lock_lost_sync_err_enable) { clock_lock_lost_sync_err_enable_ = clock_lock_lost_sync_err_enable; }
+  inline int  GetClockLockLostSyncErrEnable() { return clock_lock_lost_sync_err_enable_ ; }
+  inline int  GetReadClockLockLostSyncErrEnable() { return read_clock_lock_lost_sync_err_enable_ ; }
+  //
   //!sync_err_blanks_mpc_enable = 1/0 = Blank/don't blank LCTs to MPC on Sync Error
   inline void SetEnableSyncErrBlanksMPC(int sync_err_blanks_mpc_enable) { sync_err_blanks_mpc_enable_ = sync_err_blanks_mpc_enable; }
   inline int  GetEnableSyncErrBlanksMPC() { return sync_err_blanks_mpc_enable_ ; }
@@ -1833,6 +1895,9 @@ public:
   //
   //! Sync Error of type:  alct_bx0 != clct_bx0
   inline int  GetReadBX0MatchSyncErr() { return read_bx0_match_sync_err_ ; }
+  //
+  //! Sync Error of type:  clock lost
+  inline int  GetReadClockLockLostSyncErr() { return read_clock_lock_lost_sync_err_ ; }
   //
   //
   //---------------------------------------------------------------------
@@ -2051,7 +2116,7 @@ private:
   int ALCT1_data_;
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
-  static const int MaxCounter = 78;
+  static const int MaxCounter = 79;
   long int FinalCounter[MaxCounter+20];
   int alct_sent_to_tmb_counter_index_;
   int ecc_trigger_path_one_error_counter_index_;
@@ -2488,11 +2553,13 @@ private:
   int fifo_tbins_;
   int fifo_pretrig_;
   int fifo_no_raw_hits_;
+  int cfeb_badbits_readout_;
   //
   int read_fifo_mode_;
   int read_fifo_tbins_;
   int read_fifo_pretrig_;
   int read_fifo_no_raw_hits_;
+  int read_cfeb_badbits_readout_;
   //
   //------------------------------------------------------------------
   //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
@@ -2876,6 +2943,18 @@ private:
   int read_ccb_qpll_lost_ever_  ;
   //
   //---------------------------------------------------------------------
+  //0X100 = ADR_L1A_LOOKBACK:  L1A Lookback Distance
+  //---------------------------------------------------------------------
+  int l1a_allow_notmb_lookback_;
+  int inj_wrdata_msb_          ;
+  int l1a_priority_enable_     ;
+  //
+  int read_l1a_allow_notmb_lookback_;
+  int read_inj_wrdata_msb_          ;
+  int read_inj_rdata_msb_           ;
+  int read_l1a_priority_enable_     ;
+  //
+  //---------------------------------------------------------------------
   //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
   //---------------------------------------------------------------------
   int alct_sync_rxdata_dly_       ;
@@ -2904,6 +2983,20 @@ private:
   //
   int read_alct_sync_txdata_2nd_;
   //
+  //---------------------------------------------------------------------
+  //0X10C = ADR_MINISCOPE:  Internal 16 Channel Digital Scope
+  //---------------------------------------------------------------------
+  int miniscope_enable_ ;
+  int mini_tbins_test_  ;
+  int mini_tbins_word_  ;
+  int fifo_tbins_mini_  ;
+  int fifo_pretrig_mini_;
+  //
+  int read_miniscope_enable_ ;
+  int read_mini_tbins_test_  ;
+  int read_mini_tbins_word_  ;
+  int read_fifo_tbins_mini_  ;
+  int read_fifo_pretrig_mini_;
   //
   //----------------------------------------------------------------------------------------
   //[0X10E-0X11A] = ADR_PHASER[0-6]:  parameters common to the digital phase shifters
@@ -3030,6 +3123,7 @@ private:
   int alct_ecc_rx_sync_err_enable_   ;
   int alct_ecc_tx_sync_err_enable_   ;
   int bx0_match_sync_err_enable_     ;
+  int clock_lock_lost_sync_err_enable_;
   int sync_err_blanks_mpc_enable_    ;
   int sync_err_stops_pretrig_enable_ ;
   int sync_err_stops_readout_enable_ ;
@@ -3039,6 +3133,7 @@ private:
   int read_alct_ecc_rx_sync_err_enable_    ;
   int read_alct_ecc_tx_sync_err_enable_    ;
   int read_bx0_match_sync_err_enable_      ;
+  int read_clock_lock_lost_sync_err_enable_;
   int read_sync_err_blanks_mpc_enable_     ;
   int read_sync_err_stops_pretrig_enable_  ;
   int read_sync_err_stops_readout_enable_  ;
@@ -3047,6 +3142,7 @@ private:
   int read_alct_ecc_rx_sync_err_ ;
   int read_alct_ecc_tx_sync_err_ ;
   int read_bx0_match_sync_err_   ;
+  int read_clock_lock_lost_sync_err_;
   //
   //
   //---------------------------------------------------------------------

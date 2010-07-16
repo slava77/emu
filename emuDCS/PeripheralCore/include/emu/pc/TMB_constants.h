@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.8 2010/05/13 15:37:02 rakness Exp $
+// $Id: TMB_constants.h,v 1.9 2010/07/16 12:28:57 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.9  2010/07/16 12:28:57  rakness
+// software for TMB firmware version 2010 July 7
+//
 // Revision 1.8  2010/05/13 15:37:02  rakness
 // decode sync error register
 //
@@ -1147,6 +1150,11 @@ const int fifo_no_raw_hits_bitlo   = 13;
 const int fifo_no_raw_hits_bithi   = 13;
 const int fifo_no_raw_hits_default =  0;
 //
+const int cfeb_badbits_readout_vmereg  =  seq_fifo_adr;
+const int cfeb_badbits_readout_bitlo   = 15;
+const int cfeb_badbits_readout_bithi   = 15;
+const int cfeb_badbits_readout_default =  0;
+//
 //
 //------------------------------------------------------------------
 //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
@@ -2035,6 +2043,29 @@ const int ccb_qpll_lost_ever_bithi    =  3;
 //
 //
 //---------------------------------------------------------------------
+//0X100 = ADR_L1A_LOOKBACK:  L1A Lookback Distance
+//---------------------------------------------------------------------
+const int l1a_allow_notmb_lookback_vmereg    =  l1a_lookback_adr;
+const int l1a_allow_notmb_lookback_bitlo     =  0;
+const int l1a_allow_notmb_lookback_bithi     = 10;
+const int l1a_allow_notmb_lookback_default   =128; 
+//
+const int inj_wrdata_msb_vmereg              =  l1a_lookback_adr;
+const int inj_wrdata_msb_bitlo               = 11;
+const int inj_wrdata_msb_bithi               = 12;
+const int inj_wrdata_msb_default             =  0; 
+//
+const int inj_rdata_msb_vmereg               =  l1a_lookback_adr;
+const int inj_rdata_msb_bitlo                = 13;
+const int inj_rdata_msb_bithi                = 14;
+//
+const int l1a_priority_enable_vmereg         =  l1a_lookback_adr;
+const int l1a_priority_enable_bitlo          = 15;
+const int l1a_priority_enable_bithi          = 15;
+const int l1a_priority_enable_default        =  1; 
+//
+//
+//---------------------------------------------------------------------
 //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
 //---------------------------------------------------------------------
 const int alct_sync_rxdata_dly_vmereg        =  alct_sync_ctrl_adr;
@@ -2085,6 +2116,35 @@ const int alct_sync_txdata_2nd_vmereg        =  alct_sync_txdata_2nd_adr;
 const int alct_sync_txdata_2nd_bitlo         =  0;
 const int alct_sync_txdata_2nd_bithi         =  9;
 const int alct_sync_txdata_2nd_default       =  0; 
+//
+//
+//---------------------------------------------------------------------
+//0X10C = ADR_MINISCOPE:  Internal 16 Channel Digital Scope
+//---------------------------------------------------------------------
+const int miniscope_enable_vmereg       =  miniscope_adr;
+const int miniscope_enable_bitlo        =  0;
+const int miniscope_enable_bithi        =  0;
+const int miniscope_enable_default      =  1; 
+//
+const int mini_tbins_test_vmereg        =  miniscope_adr;
+const int mini_tbins_test_bitlo         =  1;
+const int mini_tbins_test_bithi         =  1;
+const int mini_tbins_test_default       =  0; 
+//
+const int mini_tbins_word_vmereg        =  miniscope_adr;
+const int mini_tbins_word_bitlo         =  2;
+const int mini_tbins_word_bithi         =  2;
+const int mini_tbins_word_default       =  1; 
+//
+const int fifo_tbins_mini_vmereg        =  miniscope_adr;
+const int fifo_tbins_mini_bitlo         =  3;
+const int fifo_tbins_mini_bithi         =  7;
+const int fifo_tbins_mini_default       = 22; 
+//
+const int fifo_pretrig_mini_vmereg      =  miniscope_adr;
+const int fifo_pretrig_mini_bitlo       =  8;
+const int fifo_pretrig_mini_bithi       = 12;
+const int fifo_pretrig_mini_default     =  4; 
 //
 //
 //---------------------------------------------------------------------
@@ -2238,40 +2298,49 @@ const int bx0_match_sync_err_enable_bitlo       =  4;
 const int bx0_match_sync_err_enable_bithi       =  4;
 const int bx0_match_sync_err_enable_default     =  0; 
 //
+const int clock_lock_lost_sync_err_enable_vmereg     =  sync_err_control_adr;
+const int clock_lock_lost_sync_err_enable_bitlo      =  5;
+const int clock_lock_lost_sync_err_enable_bithi      =  5;
+const int clock_lock_lost_sync_err_enable_default    =  0; 
+//
 const int sync_err_blanks_mpc_enable_vmereg     =  sync_err_control_adr;
-const int sync_err_blanks_mpc_enable_bitlo      =  5;
-const int sync_err_blanks_mpc_enable_bithi      =  5;
+const int sync_err_blanks_mpc_enable_bitlo      =  6;
+const int sync_err_blanks_mpc_enable_bithi      =  6;
 const int sync_err_blanks_mpc_enable_default    =  0; 
 //
 const int sync_err_stops_pretrig_enable_vmereg  =  sync_err_control_adr;
-const int sync_err_stops_pretrig_enable_bitlo   =  6;
-const int sync_err_stops_pretrig_enable_bithi   =  6;
+const int sync_err_stops_pretrig_enable_bitlo   =  7;
+const int sync_err_stops_pretrig_enable_bithi   =  7;
 const int sync_err_stops_pretrig_enable_default =  0; 
 //
 const int sync_err_stops_readout_enable_vmereg  =  sync_err_control_adr;
-const int sync_err_stops_readout_enable_bitlo   =  7;
-const int sync_err_stops_readout_enable_bithi   =  7;
+const int sync_err_stops_readout_enable_bitlo   =  8;
+const int sync_err_stops_readout_enable_bithi   =  8;
 const int sync_err_stops_readout_enable_default =  0; 
 //
 const int sync_err_vmereg             =  sync_err_control_adr;
-const int sync_err_bitlo              =  8;
-const int sync_err_bithi              =  8;
+const int sync_err_bitlo              =  9;
+const int sync_err_bithi              =  9;
 //
 const int clct_bx0_sync_err_vmereg    =  sync_err_control_adr;
-const int clct_bx0_sync_err_bitlo     =  9;
-const int clct_bx0_sync_err_bithi     =  9;
+const int clct_bx0_sync_err_bitlo     = 10;
+const int clct_bx0_sync_err_bithi     = 10;
 //
 const int alct_ecc_rx_sync_err_vmereg =  sync_err_control_adr;
-const int alct_ecc_rx_sync_err_bitlo  = 10;
-const int alct_ecc_rx_sync_err_bithi  = 10;
+const int alct_ecc_rx_sync_err_bitlo  = 11;
+const int alct_ecc_rx_sync_err_bithi  = 11;
 //
 const int alct_ecc_tx_sync_err_vmereg =  sync_err_control_adr;
-const int alct_ecc_tx_sync_err_bitlo  = 11;
-const int alct_ecc_tx_sync_err_bithi  = 11;
+const int alct_ecc_tx_sync_err_bitlo  = 12;
+const int alct_ecc_tx_sync_err_bithi  = 12;
 //
 const int bx0_match_sync_err_vmereg   =  sync_err_control_adr;
-const int bx0_match_sync_err_bitlo    = 12;
-const int bx0_match_sync_err_bithi    = 12;
+const int bx0_match_sync_err_bitlo    = 13;
+const int bx0_match_sync_err_bithi    = 13;
+//
+const int clock_lock_lost_sync_err_vmereg  =  sync_err_control_adr;
+const int clock_lock_lost_sync_err_bitlo   = 14;
+const int clock_lock_lost_sync_err_bithi   = 14;
 //
 //
 //---------------------------------------------------------------------
