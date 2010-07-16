@@ -17,11 +17,11 @@
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
         <title>Report for EmuPage1 from <xsl:if test="monitorable[@name='title']"><xsl:value-of select="monitorable[@name='title']/@value"/></xsl:if><xsl:if test="not(monitorable[@name='title'])"><xsl:value-of select="@application"/></xsl:if> at <xsl:value-of select="@localDateTime"/></title>
-	<link rel="stylesheet" type="text/css" href="/emu/base/html/_dev_/EmuPage1.css"/>
-	<script type="text/javascript" src="/emu/base/html/_dev_/EmuPage1.js"/>
+<!-- 	<link rel="stylesheet" type="text/css" href="/emu/base/html/_dev_/EmuPage1.css"/> -->
+<!-- 	<script type="text/javascript" src="/emu/base/html/_dev_/EmuPage1.js"/> -->
         <xsl:if test="@application = 'xmas::las::Application'"><script type="text/javascript" src="/emu/base/html/jquery-1.3.2.min.js"/></xsl:if>
-<!-- 	<link rel="stylesheet" type="text/css" href="EmuPage1.css"/> -->
-<!-- 	<script type="text/javascript" src="EmuPage1.js"/> -->
+	<link rel="stylesheet" type="text/css" href="EmuPage1.css"/>
+	<script type="text/javascript" src="EmuPage1.js"/>
       </head>
       <xsl:variable name="APPLICATION"><xsl:value-of select="@application"/></xsl:variable>
       <xsl:variable name="REFRESH_PERIOD"><xsl:value-of select="document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@pageRefreshPeriodInMSec"/></xsl:variable>
@@ -355,7 +355,7 @@
     <xsl:param name="N_RUNS"/>
     <xsl:param name="N_STEPS"/>
     <svg:svg id="svgProgressBar" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="260" height="16">
-      <svg:g id="gProgBarScaler" title="Progress of calibration runs: run {$I_RUN}/{$N_RUNS}, step {$I_STEP}/{$N_STEPS}">
+      <svg:g id="gProgBarScaler">
 	<svg:rect style="fill:#ffffff; fill-opacity:1;stroke:#000000; stroke-width:1.0; stroke-opacity:1; padding:0;" id="rectRuns" width="260" height="8" x="0." y="0." />
 	<svg:rect style="fill:#ffffff; fill-opacity:1;stroke:#000000; stroke-width:1.0; stroke-opacity:1; padding:0;" id="rectSteps" width="260" height="8" x="0." y="8." />
 	<svg:rect style="fill:#00aa00; fill-opacity:1;stroke:#000000; stroke-width:0.0; stroke-opacity:1" id="barRuns" width="120" height="8" x="0." y="0." />
