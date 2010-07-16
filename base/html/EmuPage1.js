@@ -691,6 +691,8 @@ function ProgressBar( containing_td_element ){
       document.getElementById('barSteps').setAttribute('width',this.baseRectWidth/Math.max(1,nSteps)*iStep);
       document.getElementById('textRuns' ).firstChild.nodeValue = 'run ' +iRun +'/'+nRuns;
       document.getElementById('textSteps').firstChild.nodeValue = 'step '+iStep+'/'+nSteps;
+      this.containing_td_element.title = 'Progress of calibration runs: run '+iRun +'/'+nRuns+', step '+iStep+'/'+nSteps;
+      this.g_element.title = 'Progress of calibration runs: run '+iRun +'/'+nRuns+', step '+iStep+'/'+nSteps;
     }
     //else this.table_element.getElementsByTagName('th')[0].innerHTML = 'No progress bar';
   };
