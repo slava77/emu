@@ -44,7 +44,6 @@
 emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
   throw (xdaq::exception::Exception) 
   : xdaq::WebApplication(s),
-    emu::base::SOAP(s),
     emu::base::Supervised(s),
     emu::base::WebReporter(s),
     emu::base::FactFinder( s, emu::base::FactCollection::LOCAL_DAQ, 0 ),
