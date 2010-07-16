@@ -32,8 +32,7 @@ using namespace std;
 namespace emu { namespace daq { namespace manager {
 
 class Application 
-  : public emu::base::SOAP,
-    public emu::base::Supervised,
+  : public emu::base::Supervised,
     public emu::base::WebReporter,
     public emu::base::FactFinder,
     public xdata::ActionListener
