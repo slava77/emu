@@ -450,10 +450,11 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //if (fillInt("pretrigger_halt"              ,value)) { tmb_->SetPretriggerHalt(value);   }
     //
     //0X72
-    if (fillInt("tmb_fifo_mode"       ,value)) { tmb_->SetFifoMode(value);      }
-    if (fillInt("clct_fifo_tbins"     ,value)) { tmb_->SetFifoTbins(value);     }
-    if (fillInt("clct_fifo_pretrig"   ,value)) { tmb_->SetFifoPreTrig(value);   }
-    if (fillInt("tmb_fifo_no_raw_hits",value)) { tmb_->SetFifoNoRawHits(value); }
+    if (fillInt("tmb_fifo_mode"       ,value)) { tmb_->SetFifoMode(value);           }
+    if (fillInt("clct_fifo_tbins"     ,value)) { tmb_->SetFifoTbins(value);          }
+    if (fillInt("clct_fifo_pretrig"   ,value)) { tmb_->SetFifoPreTrig(value);        }
+    if (fillInt("tmb_fifo_no_raw_hits",value)) { tmb_->SetFifoNoRawHits(value);      }
+    if (fillInt("cfeb_badbits_readout",value)) { tmb_->SetCFEBBadBitsReadout(value); }
     //
     //0X74:
     if (fillInt("tmb_l1a_delay"       ,value)) { tmb_->SetL1aDelay(value);      }
@@ -547,6 +548,12 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //0XF6
     if (fillInt("clct_min_separation",value)) { tmb_->SetMinClctSeparation(value); }
     //
+    //0X100
+    //if (fillInt("l1a_allow_notmb_lookback",value)) { tmb_->SetL1aAllowNoTmbLookbackDistance(value); }
+    if (fillInt("l1a_priority_enable"     ,value)) { tmb_->SetL1APriorityEnable(value);             }
+    //
+    //0X10C
+    if (fillInt("miniscope_enable",value)) { tmb_->SetMiniscopeEnable(value); }
     //0X10E
     if (fillInt("alct_rx_clock_delay",value)) { tmb_->SetAlctRxClockDelay(value); }
     if (fillInt("alct_posneg"        ,value)) { tmb_->SetAlctRxPosNeg(value); }

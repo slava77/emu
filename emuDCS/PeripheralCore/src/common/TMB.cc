@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.94 2010/05/13 15:37:02 rakness Exp $
+// $Id: TMB.cc,v 3.95 2010/07/16 12:28:58 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.95  2010/07/16 12:28:58  rakness
+// software for TMB firmware version 2010 July 7
+//
 // Revision 3.94  2010/05/13 15:37:02  rakness
 // decode sync error register
 //
@@ -1452,31 +1455,32 @@ std::string TMB::CounterName(int counter){
   if( counter == 55) name = "L1A:  L1A received, no TMB in window                    ";
   if( counter == 56) name = "L1A:  TMB triggered, no L1A in window                   ";
   if( counter == 57) name = "L1A:  TMB readouts completed                            ";
+  if( counter == 58) name = "L1A:  TMB readouts lost by 1-event-per-L1A limit        ";
   //
-  if( counter == 58) name = "STAT: CLCT Triads skipped                               ";
-  if( counter == 59) name = "STAT: Raw hits buffer had to be reset                   ";
-  if( counter == 60) name = "STAT: TTC Resyncs received                              ";
-  if( counter == 61) name = "STAT: Sync Error, BC0/BXN=offset mismatch               ";
-  if( counter == 62) name = "STAT: Parity Error in CFEB or RPC raw hits RAM          ";
+  if( counter == 59) name = "STAT: CLCT Triads skipped                               ";
+  if( counter == 60) name = "STAT: Raw hits buffer had to be reset                   ";
+  if( counter == 61) name = "STAT: TTC Resyncs received                              ";
+  if( counter == 62) name = "STAT: Sync Error, BC0/BXN=offset mismatch               ";
+  if( counter == 63) name = "STAT: Parity Error in CFEB or RPC raw hits RAM          ";
   //
   // The following are not cleared via VME
-  if( counter == 63) name = "HDR:  Pretrigger counter                                ";
-  if( counter == 64) name = "HDR:  CLCT counter                                      ";
-  if( counter == 65) name = "HDR:  TMB trigger counter                               ";
-  if( counter == 66) name = "HDR:  ALCTs received counter                            ";
-  if( counter == 67) name = "HDR:  L1As received counter (12 bits)                   ";
-  if( counter == 68) name = "HDR:  Readout counter (12 bits)                         ";
-  if( counter == 69) name = "HDR:  Orbit counter                                     ";
+  if( counter == 64) name = "HDR:  Pretrigger counter                                ";
+  if( counter == 65) name = "HDR:  CLCT counter                                      ";
+  if( counter == 66) name = "HDR:  TMB trigger counter                               ";
+  if( counter == 67) name = "HDR:  ALCTs received counter                            ";
+  if( counter == 68) name = "HDR:  L1As received counter (12 bits)                   ";
+  if( counter == 69) name = "HDR:  Readout counter (12 bits)                         ";
+  if( counter == 70) name = "HDR:  Orbit counter                                     ";
   //
-  if( counter == 70) name = "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 ";
-  if( counter == 71) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ";
-  if( counter == 72) name = "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ";
-  if( counter == 73) name = "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ";
-  if( counter == 74) name = "ALCT:Struct Error, expect ALCT1[10:1]>0 when alct1vpf=1 ";
-  if( counter == 75) name = "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ";
+  if( counter == 71) name = "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 ";
+  if( counter == 72) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ";
+  if( counter == 73) name = "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ";
+  if( counter == 74) name = "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ";
+  if( counter == 75) name = "ALCT:Struct Error, expect ALCT1[10:1]>0 when alct1vpf=1 ";
+  if( counter == 76) name = "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ";
   //
-  if( counter == 76) name = "CCB:  TTCrx lock lost                                   ";
-  if( counter == 77) name = "CCB:  qPLL lock lost                                    ";
+  if( counter == 77) name = "CCB:  TTCrx lock lost                                   ";
+  if( counter == 78) name = "CCB:  qPLL lock lost                                    ";
   //
   return name;
 }
@@ -5175,6 +5179,8 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(seq_fifo_adr );         //0x72 sequencer fifo configuration
   TMBConfigurationRegister.push_back(rpc_tbins_adr);         //0xC4 RPC FIFO time bins    
   TMBConfigurationRegister.push_back(non_trig_readout_adr);  //0xCC Readout of non-triggering data, ME1/1 firmware tags
+  TMBConfigurationRegister.push_back(l1a_lookback_adr);      //0x100 L1A priority enable
+  TMBConfigurationRegister.push_back(miniscope_adr);         //0x10C Miniscope Readout
   //
   // L1A/BX0 receipt:
   TMBConfigurationRegister.push_back(seq_l1a_adr   );    //0x74 L1A accept window width/delay
@@ -5390,10 +5396,11 @@ void TMB::SetTMBRegisterDefaults() {
   //------------------------------------------------------------------
   //0X72 = ADR_SEQ_FIFO:  Sequencer FIFO configuration
   //------------------------------------------------------------------
-  fifo_mode_        = fifo_mode_default       ;
-  fifo_tbins_       = fifo_tbins_default      ;
-  fifo_pretrig_     = fifo_pretrig_default    ;
-  fifo_no_raw_hits_ = fifo_no_raw_hits_default;
+  fifo_mode_            = fifo_mode_default           ;
+  fifo_tbins_           = fifo_tbins_default          ;
+  fifo_pretrig_         = fifo_pretrig_default        ;
+  fifo_no_raw_hits_     = fifo_no_raw_hits_default    ;
+  cfeb_badbits_readout_ = cfeb_badbits_readout_default;
   //
   //------------------------------------------------------------------
   //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
@@ -5537,6 +5544,13 @@ void TMB::SetTMBRegisterDefaults() {
   min_clct_separation_              = min_clct_separation_default             ; 
   //
   //---------------------------------------------------------------------
+  //0X100 = ADR_L1A_LOOKBACK:  L1A Lookback Distance
+  //---------------------------------------------------------------------
+  l1a_allow_notmb_lookback_ = l1a_allow_notmb_lookback_default;
+  inj_wrdata_msb_           = inj_wrdata_msb_default          ; 
+  l1a_priority_enable_      = l1a_priority_enable_default     ; 
+  //
+  //---------------------------------------------------------------------
   //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
   //---------------------------------------------------------------------
   alct_sync_rxdata_dly_   = alct_sync_rxdata_dly_default  ;
@@ -5552,6 +5566,15 @@ void TMB::SetTMBRegisterDefaults() {
   //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
   //---------------------------------------------------------------------
   alct_sync_txdata_2nd_ = alct_sync_txdata_2nd_default;
+  //
+  //---------------------------------------------------------------------
+  //0X10C = ADR_MINISCOPE:  Internal 16 Channel Digital Scope
+  //---------------------------------------------------------------------
+  miniscope_enable_  = miniscope_enable_default ; 
+  mini_tbins_test_   = mini_tbins_test_default  ; 
+  mini_tbins_word_   = mini_tbins_word_default  ; 
+  fifo_tbins_mini_   = fifo_tbins_mini_default  ; 
+  fifo_pretrig_mini_ = fifo_pretrig_mini_default; 
   //
   //---------------------------------------------------------------------
   //(0X10E,0X110,0X112,0X114,0X116,0X118,0X11A) = ADR_PHASER[0-6]:  
@@ -5623,6 +5646,7 @@ void TMB::SetTMBRegisterDefaults() {
   alct_ecc_rx_sync_err_enable_   =  alct_ecc_rx_sync_err_enable_default   ;
   alct_ecc_tx_sync_err_enable_   =  alct_ecc_tx_sync_err_enable_default   ;
   bx0_match_sync_err_enable_     =  bx0_match_sync_err_enable_default     ;
+  clock_lock_lost_sync_err_enable_=clock_lock_lost_sync_err_enable_default;
   sync_err_blanks_mpc_enable_    =  sync_err_blanks_mpc_enable_default    ;
   sync_err_stops_pretrig_enable_ =  sync_err_stops_pretrig_enable_default ;
   sync_err_stops_readout_enable_ =  sync_err_stops_readout_enable_default ;
@@ -5955,10 +5979,11 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //------------------------------------------------------------------
     //0X72 = ADR_SEQ_FIFO:  Sequencer FIFO configuration
     //------------------------------------------------------------------
-    read_fifo_mode_        = ExtractValueFromData(data,fifo_mode_bitlo       ,fifo_mode_bithi       );
-    read_fifo_tbins_       = ExtractValueFromData(data,fifo_tbins_bitlo      ,fifo_tbins_bithi      );
-    read_fifo_pretrig_     = ExtractValueFromData(data,fifo_pretrig_bitlo    ,fifo_pretrig_bithi    );
-    read_fifo_no_raw_hits_ = ExtractValueFromData(data,fifo_no_raw_hits_bitlo,fifo_no_raw_hits_bithi);
+    read_fifo_mode_            = ExtractValueFromData(data,fifo_mode_bitlo           ,fifo_mode_bithi           );
+    read_fifo_tbins_           = ExtractValueFromData(data,fifo_tbins_bitlo          ,fifo_tbins_bithi          );
+    read_fifo_pretrig_         = ExtractValueFromData(data,fifo_pretrig_bitlo        ,fifo_pretrig_bithi        );
+    read_fifo_no_raw_hits_     = ExtractValueFromData(data,fifo_no_raw_hits_bitlo    ,fifo_no_raw_hits_bithi    );
+    read_cfeb_badbits_readout_ = ExtractValueFromData(data,cfeb_badbits_readout_bitlo,cfeb_badbits_readout_bithi);
     //
   } else if ( address == seq_l1a_adr ) {
     //------------------------------------------------------------------
@@ -6277,6 +6302,15 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_ccb_qpll_lock_never_  = ExtractValueFromData(data,ccb_qpll_lock_never_bitlo ,ccb_qpll_lock_never_bithi );
     read_ccb_qpll_lost_ever_   = ExtractValueFromData(data,ccb_qpll_lost_ever_bitlo  ,ccb_qpll_lost_ever_bithi  );
     //
+  } else if ( address == l1a_lookback_adr ) {    
+    //---------------------------------------------------------------------
+    //0X100 = ADR_L1A_LOOKBACK:  L1A Lookback Distance
+    //---------------------------------------------------------------------
+    read_l1a_allow_notmb_lookback_ = ExtractValueFromData(data,l1a_allow_notmb_lookback_bitlo,l1a_allow_notmb_lookback_bithi);
+    read_inj_wrdata_msb_           = ExtractValueFromData(data,inj_wrdata_msb_bitlo          ,inj_wrdata_msb_bithi          );
+    read_inj_rdata_msb_            = ExtractValueFromData(data,inj_rdata_msb_bitlo           ,inj_rdata_msb_bithi           );
+    read_l1a_priority_enable_      = ExtractValueFromData(data,l1a_priority_enable_bitlo     ,l1a_priority_enable_bithi     );
+    //
   } else if ( address == alct_sync_ctrl_adr ) {    
     //---------------------------------------------------------------------
     //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
@@ -6300,6 +6334,16 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
     //---------------------------------------------------------------------
     read_alct_sync_txdata_2nd_ = ExtractValueFromData(data,alct_sync_txdata_2nd_bitlo,alct_sync_txdata_2nd_bithi);
+    //
+  } else if ( address == miniscope_adr ) {
+    //---------------------------------------------------------------------
+    //0X10C = ADR_MINISCOPE:  Internal 16 Channel Digital Scope
+    //---------------------------------------------------------------------
+    read_miniscope_enable_  = ExtractValueFromData(data,miniscope_enable_bitlo ,miniscope_enable_bithi );
+    read_mini_tbins_test_   = ExtractValueFromData(data,mini_tbins_test_bitlo  ,mini_tbins_test_bithi  );
+    read_mini_tbins_word_   = ExtractValueFromData(data,mini_tbins_word_bitlo  ,mini_tbins_word_bithi  );
+    read_fifo_tbins_mini_   = ExtractValueFromData(data,fifo_tbins_mini_bitlo  ,fifo_tbins_mini_bithi  );
+    read_fifo_pretrig_mini_ = ExtractValueFromData(data,fifo_pretrig_mini_bitlo,fifo_pretrig_mini_bithi);
     //
   } else if ( address == phaser_alct_rxd_adr  ||
 	      address == phaser_alct_txd_adr  ||
@@ -6343,19 +6387,21 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //---------------------------------------------------------------------
     // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
     //---------------------------------------------------------------------
-    read_sync_err_reset_                = ExtractValueFromData(data,sync_err_reset_bitlo               ,sync_err_reset_bithi               );
-    read_clct_bx0_sync_err_enable_      = ExtractValueFromData(data,clct_bx0_sync_err_enable_bitlo     ,clct_bx0_sync_err_enable_bithi     );
-    read_alct_ecc_rx_sync_err_enable_   = ExtractValueFromData(data,alct_ecc_rx_sync_err_enable_bitlo  ,alct_ecc_rx_sync_err_enable_bithi  );
-    read_alct_ecc_tx_sync_err_enable_   = ExtractValueFromData(data,alct_ecc_tx_sync_err_enable_bitlo  ,alct_ecc_tx_sync_err_enable_bithi  );
-    read_bx0_match_sync_err_enable_     = ExtractValueFromData(data,bx0_match_sync_err_enable_bitlo    ,bx0_match_sync_err_enable_bithi    );
-    read_sync_err_blanks_mpc_enable_    = ExtractValueFromData(data,sync_err_blanks_mpc_enable_bitlo   ,sync_err_blanks_mpc_enable_bithi   );
-    read_sync_err_stops_pretrig_enable_ = ExtractValueFromData(data,sync_err_stops_pretrig_enable_bitlo,sync_err_stops_pretrig_enable_bithi);
-    read_sync_err_stops_readout_enable_ = ExtractValueFromData(data,sync_err_stops_readout_enable_bitlo,sync_err_stops_readout_enable_bithi);
-    read_sync_err_                      = ExtractValueFromData(data,sync_err_bitlo                     ,sync_err_bithi                     );
-    read_clct_bx0_sync_err_             = ExtractValueFromData(data,clct_bx0_sync_err_bitlo            ,clct_bx0_sync_err_bithi            );
-    read_alct_ecc_rx_sync_err_          = ExtractValueFromData(data,alct_ecc_rx_sync_err_bitlo         ,alct_ecc_rx_sync_err_bithi         );
-    read_alct_ecc_tx_sync_err_          = ExtractValueFromData(data,alct_ecc_tx_sync_err_bitlo         ,alct_ecc_tx_sync_err_bithi         );
-    read_bx0_match_sync_err_            = ExtractValueFromData(data,bx0_match_sync_err_bitlo           ,bx0_match_sync_err_bithi           );
+    read_sync_err_reset_                  = ExtractValueFromData(data,sync_err_reset_bitlo                 ,sync_err_reset_bithi               );
+    read_clct_bx0_sync_err_enable_        = ExtractValueFromData(data,clct_bx0_sync_err_enable_bitlo       ,clct_bx0_sync_err_enable_bithi     );
+    read_alct_ecc_rx_sync_err_enable_     = ExtractValueFromData(data,alct_ecc_rx_sync_err_enable_bitlo    ,alct_ecc_rx_sync_err_enable_bithi  );
+    read_alct_ecc_tx_sync_err_enable_     = ExtractValueFromData(data,alct_ecc_tx_sync_err_enable_bitlo    ,alct_ecc_tx_sync_err_enable_bithi  );
+    read_bx0_match_sync_err_enable_       = ExtractValueFromData(data,bx0_match_sync_err_enable_bitlo      ,bx0_match_sync_err_enable_bithi    );
+    read_clock_lock_lost_sync_err_enable_ = ExtractValueFromData(data,clock_lock_lost_sync_err_enable_bitlo,clock_lock_lost_sync_err_enable_bithi    );
+    read_sync_err_blanks_mpc_enable_      = ExtractValueFromData(data,sync_err_blanks_mpc_enable_bitlo     ,sync_err_blanks_mpc_enable_bithi   );
+    read_sync_err_stops_pretrig_enable_   = ExtractValueFromData(data,sync_err_stops_pretrig_enable_bitlo  ,sync_err_stops_pretrig_enable_bithi);
+    read_sync_err_stops_readout_enable_   = ExtractValueFromData(data,sync_err_stops_readout_enable_bitlo  ,sync_err_stops_readout_enable_bithi);
+    read_sync_err_                        = ExtractValueFromData(data,sync_err_bitlo                       ,sync_err_bithi                     );
+    read_clct_bx0_sync_err_               = ExtractValueFromData(data,clct_bx0_sync_err_bitlo              ,clct_bx0_sync_err_bithi            );
+    read_alct_ecc_rx_sync_err_            = ExtractValueFromData(data,alct_ecc_rx_sync_err_bitlo           ,alct_ecc_rx_sync_err_bithi         );
+    read_alct_ecc_tx_sync_err_            = ExtractValueFromData(data,alct_ecc_tx_sync_err_bitlo           ,alct_ecc_tx_sync_err_bithi         );
+    read_bx0_match_sync_err_              = ExtractValueFromData(data,bx0_match_sync_err_bitlo             ,bx0_match_sync_err_bithi           );
+    read_clock_lock_lost_sync_err_        = ExtractValueFromData(data,clock_lock_lost_sync_err_bitlo       ,clock_lock_lost_sync_err_bithi     );
     //
   } else if ( address == cfeb_badbits_ctrl_adr ) {
     //---------------------------------------------------------------------
@@ -6793,6 +6839,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "   Number FIFO time bins read out                = " << std::dec << read_fifo_tbins_       << std::endl;
     (*MyOutput_) << "   Number FIFO time bins before pretrig          = " << std::dec << read_fifo_pretrig_     << std::endl;
     (*MyOutput_) << "   Do not wait to store raw hits (a no-DAQ mode) = " << std::dec << read_fifo_no_raw_hits_ << std::endl;
+    (*MyOutput_) << "   Enable CFEB blocked distrip bits in readout   = " << std::dec << read_cfeb_badbits_readout_ << std::endl;
     //
   } else if ( address == seq_l1a_adr ) {
     //------------------------------------------------------------------
@@ -7079,6 +7126,16 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    QPLL lock never achieved      = " << std::hex << read_ccb_qpll_lock_never_  << std::endl;
     (*MyOutput_) << "    QPLL lock lost at least once  = " << std::hex << read_ccb_qpll_lost_ever_   << std::endl;
     //
+  } else if ( address == l1a_lookback_adr ) {    
+    //---------------------------------------------------------------------
+    //0X100 = ADR_L1A_LOOKBACK:  L1A Lookback Distance
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->L1A Lookback Distance register:" << std::endl;
+    (*MyOutput_) << "    bx to back from L1A for L1A-only readout (dec) = "   << std::dec <<read_l1a_allow_notmb_lookback_ << std::endl;
+    (*MyOutput_) << "    Injector RAM write data MSBs                   = 0x" << std::hex <<read_inj_wrdata_msb_           << std::endl;
+    (*MyOutput_) << "    Injector RAM read data MSBs                    = 0x" << std::hex <<read_inj_rdata_msb_            << std::endl;
+    (*MyOutput_) << "    Limit TMB to 1 event readout per L1A           = "   << std::hex <<read_l1a_priority_enable_      << std::endl;
+  //
   } else if ( address == alct_sync_ctrl_adr ) {
     //---------------------------------------------------------------------
     //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
@@ -7105,6 +7162,17 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     (*MyOutput_) << " ->ALCT sync mode Transmit Data 2nd frame:" << std::endl;
     (*MyOutput_) << "    Sync mode data to send for loopback 2nd frame = 0x" << std::hex << read_alct_sync_txdata_2nd_ << std::endl;
+    //
+  } else if ( address == miniscope_adr ) {
+    //---------------------------------------------------------------------
+    //0X10C = ADR_MINISCOPE:  Internal 16 Channel Digital Scope
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->Internal 16 channel digital scope:" << std::endl;
+    (*MyOutput_) << "  miniscope_enable                         = "   << std::hex << read_miniscope_enable_  << std::endl;
+    (*MyOutput_) << "  Miniscope data=write adr (for testing)   = 0x" << std::hex << read_mini_tbins_test_   << std::endl;
+    (*MyOutput_) << "  Insert tbins & pretrig tbins in 1st word = "   << std::hex << read_mini_tbins_word_   << std::endl;
+    (*MyOutput_) << "  Number of FIFO tbins in miniscope        = 0x" << std::hex << read_fifo_tbins_mini_   << std::endl;
+    (*MyOutput_) << "  Number of FIFO tbins before pretrig      = 0x" << std::hex << read_fifo_pretrig_mini_ << std::endl;
     //
   } else if ( address == phaser_alct_rxd_adr ) {
     //--------------------------------------------------------------
@@ -7182,6 +7250,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "   Enable sync error type:  Uncorrected ECC data from TMB->ALCT = " << read_alct_ecc_rx_sync_err_enable_ << std::endl; 
     (*MyOutput_) << "   Enable sync error type:  Uncorrected ECC data from ALCT->TMB = " << read_alct_ecc_tx_sync_err_enable_ << std::endl;
     (*MyOutput_) << "   Enable sync error type:  alct_bx0 != clct_bx0                = " << read_bx0_match_sync_err_enable_   << std::endl;
+    (*MyOutput_) << "   Enable sync error type:  clock lock lost                     = " << read_clock_lock_lost_sync_err_enable_ << std::endl;
     (*MyOutput_) << "   Enable sync error to blank LCTs to MPC     = " << read_sync_err_blanks_mpc_enable_    << std::endl;
     (*MyOutput_) << "   Enable sync error to stop CLCT pretriggers = " << read_sync_err_stops_pretrig_enable_ << std::endl;
     (*MyOutput_) << "   Enable sync error to stop TMB readout      = " << read_sync_err_stops_readout_enable_ << std::endl;
@@ -7190,6 +7259,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "   Sync error type:  Uncorrected ECC data from TMB->ALCT = " << read_alct_ecc_rx_sync_err_ << std::endl;
     (*MyOutput_) << "   Sync error type:  Uncorrected ECC data from ALCT->TMB = " << read_alct_ecc_tx_sync_err_ << std::endl;
     (*MyOutput_) << "   Sync error type:  alct_bx0 != clct_bx0                = " << read_bx0_match_sync_err_   << std::endl;
+    (*MyOutput_) << "   Sync error type:  clock lock lost                     = " << read_clock_lock_lost_sync_err_<< std::endl;
     //
   } else if ( address == cfeb_badbits_ctrl_adr ) {
     //---------------------------------------------------------------------
@@ -7465,10 +7535,11 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     //0X72 = ADR_SEQ_FIFO:  Sequencer FIFO configuration
     //------------------------------------------------------------------
-    InsertValueIntoDataWord(fifo_mode_       ,fifo_mode_bithi       ,fifo_mode_bitlo       ,&data_word);
-    InsertValueIntoDataWord(fifo_tbins_      ,fifo_tbins_bithi      ,fifo_tbins_bitlo      ,&data_word);
-    InsertValueIntoDataWord(fifo_pretrig_    ,fifo_pretrig_bithi    ,fifo_pretrig_bitlo    ,&data_word);
-    InsertValueIntoDataWord(fifo_no_raw_hits_,fifo_no_raw_hits_bithi,fifo_no_raw_hits_bitlo,&data_word);
+    InsertValueIntoDataWord(fifo_mode_           ,fifo_mode_bithi           ,fifo_mode_bitlo           ,&data_word);
+    InsertValueIntoDataWord(fifo_tbins_          ,fifo_tbins_bithi          ,fifo_tbins_bitlo          ,&data_word);
+    InsertValueIntoDataWord(fifo_pretrig_        ,fifo_pretrig_bithi        ,fifo_pretrig_bitlo        ,&data_word);
+    InsertValueIntoDataWord(fifo_no_raw_hits_    ,fifo_no_raw_hits_bithi    ,fifo_no_raw_hits_bitlo    ,&data_word);
+    InsertValueIntoDataWord(cfeb_badbits_readout_,cfeb_badbits_readout_bithi,cfeb_badbits_readout_bitlo,&data_word);
     //
   } else if ( address == seq_l1a_adr ) {
     //------------------------------------------------------------------
@@ -7641,6 +7712,14 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(clct_separation_ram_adr_         ,clct_separation_ram_adr_bithi         ,clct_separation_ram_adr_bitlo         ,&data_word);
     InsertValueIntoDataWord(min_clct_separation_             ,min_clct_separation_bithi             ,min_clct_separation_bitlo             ,&data_word);
     //
+  } else if ( address == l1a_lookback_adr ) {    
+    //---------------------------------------------------------------------
+    //0X100 = ADR_L1A_LOOKBACK:  L1A Lookback Distance
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(l1a_allow_notmb_lookback_,l1a_allow_notmb_lookback_bithi,l1a_allow_notmb_lookback_bitlo,&data_word);
+    InsertValueIntoDataWord(inj_wrdata_msb_          ,inj_wrdata_msb_bithi          ,inj_wrdata_msb_bitlo          ,&data_word);
+    InsertValueIntoDataWord(l1a_priority_enable_     ,l1a_priority_enable_bithi     ,l1a_priority_enable_bitlo     ,&data_word);
+    //
   } else if ( address == alct_sync_ctrl_adr ) {    
     //---------------------------------------------------------------------
     //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
@@ -7660,6 +7739,16 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(alct_sync_txdata_2nd_,alct_sync_txdata_2nd_bithi,alct_sync_txdata_2nd_bitlo,&data_word);
+    //
+  } else if ( address == miniscope_adr ) {
+    //---------------------------------------------------------------------
+    //0X10C = ADR_MINISCOPE:  Internal 16 Channel Digital Scope
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(miniscope_enable_ ,miniscope_enable_bithi ,miniscope_enable_bitlo ,&data_word);
+    InsertValueIntoDataWord(mini_tbins_test_  ,mini_tbins_test_bithi  ,mini_tbins_test_bitlo  ,&data_word);
+    InsertValueIntoDataWord(mini_tbins_word_  ,mini_tbins_word_bithi  ,mini_tbins_word_bitlo  ,&data_word);
+    InsertValueIntoDataWord(fifo_tbins_mini_  ,fifo_tbins_mini_bithi  ,fifo_tbins_mini_bitlo  ,&data_word);
+    InsertValueIntoDataWord(fifo_pretrig_mini_,fifo_pretrig_mini_bithi,fifo_pretrig_mini_bitlo,&data_word);
     //
   } else if ( address == phaser_alct_rxd_adr ) {
     //---------------------------------------------------------------------
@@ -7722,14 +7811,15 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
     //---------------------------------------------------------------------
-    InsertValueIntoDataWord(sync_err_reset_               ,sync_err_reset_bithi               ,sync_err_reset_bitlo               ,&data_word);
-    InsertValueIntoDataWord(clct_bx0_sync_err_enable_     ,clct_bx0_sync_err_enable_bithi     ,clct_bx0_sync_err_enable_bitlo     ,&data_word);
-    InsertValueIntoDataWord(alct_ecc_rx_sync_err_enable_  ,alct_ecc_rx_sync_err_enable_bithi  ,alct_ecc_rx_sync_err_enable_bitlo  ,&data_word);
-    InsertValueIntoDataWord(alct_ecc_tx_sync_err_enable_  ,alct_ecc_tx_sync_err_enable_bithi  ,alct_ecc_tx_sync_err_enable_bitlo  ,&data_word);
-    InsertValueIntoDataWord(bx0_match_sync_err_enable_    ,bx0_match_sync_err_enable_bithi    ,bx0_match_sync_err_enable_bitlo    ,&data_word);
-    InsertValueIntoDataWord(sync_err_blanks_mpc_enable_   ,sync_err_blanks_mpc_enable_bithi   ,sync_err_blanks_mpc_enable_bitlo   ,&data_word);
-    InsertValueIntoDataWord(sync_err_stops_pretrig_enable_,sync_err_stops_pretrig_enable_bithi,sync_err_stops_pretrig_enable_bitlo,&data_word);
-    InsertValueIntoDataWord(sync_err_stops_readout_enable_,sync_err_stops_readout_enable_bithi,sync_err_stops_readout_enable_bitlo,&data_word);
+    InsertValueIntoDataWord(sync_err_reset_                 ,sync_err_reset_bithi                 ,sync_err_reset_bitlo                 ,&data_word);
+    InsertValueIntoDataWord(clct_bx0_sync_err_enable_       ,clct_bx0_sync_err_enable_bithi       ,clct_bx0_sync_err_enable_bitlo       ,&data_word);
+    InsertValueIntoDataWord(alct_ecc_rx_sync_err_enable_    ,alct_ecc_rx_sync_err_enable_bithi    ,alct_ecc_rx_sync_err_enable_bitlo    ,&data_word);
+    InsertValueIntoDataWord(alct_ecc_tx_sync_err_enable_    ,alct_ecc_tx_sync_err_enable_bithi    ,alct_ecc_tx_sync_err_enable_bitlo    ,&data_word);
+    InsertValueIntoDataWord(bx0_match_sync_err_enable_      ,bx0_match_sync_err_enable_bithi      ,bx0_match_sync_err_enable_bitlo      ,&data_word);
+    InsertValueIntoDataWord(clock_lock_lost_sync_err_enable_,clock_lock_lost_sync_err_enable_bithi,clock_lock_lost_sync_err_enable_bitlo,&data_word);
+    InsertValueIntoDataWord(sync_err_blanks_mpc_enable_     ,sync_err_blanks_mpc_enable_bithi     ,sync_err_blanks_mpc_enable_bitlo     ,&data_word);
+    InsertValueIntoDataWord(sync_err_stops_pretrig_enable_  ,sync_err_stops_pretrig_enable_bithi  ,sync_err_stops_pretrig_enable_bitlo  ,&data_word);
+    InsertValueIntoDataWord(sync_err_stops_readout_enable_  ,sync_err_stops_readout_enable_bithi  ,sync_err_stops_readout_enable_bitlo  ,&data_word);
     //
   } else if ( address == cfeb_badbits_ctrl_adr ) {
     //---------------------------------------------------------------------
@@ -8092,10 +8182,11 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //------------------------------------------------------------------
     //0X72 = ADR_SEQ_FIFO:  Sequencer FIFO configuration
     //------------------------------------------------------------------
-    config_ok &= compareValues("TMB tmb_fifo_mode"       ,read_fifo_mode_       ,fifo_mode_       , print_errors);
-    config_ok &= compareValues("TMB clct_fifo_tbins"     ,read_fifo_tbins_      ,fifo_tbins_      , print_errors);
-    config_ok &= compareValues("TMB clct_fifo_pretrig"   ,read_fifo_pretrig_    ,fifo_pretrig_    , print_errors);
-    config_ok &= compareValues("TMB tmb_fifo_no_raw_hits",read_fifo_no_raw_hits_,fifo_no_raw_hits_, print_errors);
+    config_ok &= compareValues("TMB tmb_fifo_mode"       ,read_fifo_mode_           ,fifo_mode_           , print_errors);
+    config_ok &= compareValues("TMB clct_fifo_tbins"     ,read_fifo_tbins_          ,fifo_tbins_          , print_errors);
+    config_ok &= compareValues("TMB clct_fifo_pretrig"   ,read_fifo_pretrig_        ,fifo_pretrig_        , print_errors);
+    config_ok &= compareValues("TMB tmb_fifo_no_raw_hits",read_fifo_no_raw_hits_    ,fifo_no_raw_hits_    , print_errors);
+    config_ok &= compareValues("TMB cfeb_badbits_readout",read_cfeb_badbits_readout_,cfeb_badbits_readout_, print_errors);
     //
     //------------------------------------------------------------------
     //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
@@ -8227,6 +8318,21 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //---------------------------------------------------------------------
     config_ok &= compareValues("TMB CLCT separation source is VME (not in xml)",read_clct_separation_src_,clct_separation_src_, print_errors);
     config_ok &= compareValues("TMB clct_min_separation"                       ,read_min_clct_separation_,min_clct_separation_, print_errors);
+    //
+    //---------------------------------------------------------------------
+    //0X100 = ADR_L1A_LOOKBACK:  L1A Lookback Distance
+    //---------------------------------------------------------------------
+    config_ok &= compareValues("TMB Lookback distance for non-TMB readout (not in xml)",read_l1a_allow_notmb_lookback_,l1a_allow_notmb_lookback_, print_errors);
+    config_ok &= compareValues("TMB l1a_priority_enable"                               ,read_l1a_priority_enable_     ,l1a_priority_enable_     , print_errors);
+    //
+    //---------------------------------------------------------------------
+    //0X10C = ADR_MINISCOPE:  Internal 16 Channel Digital Scope
+    //---------------------------------------------------------------------
+    config_ok &= compareValues ("TMB miniscope_enable",read_miniscope_enable_ ,miniscope_enable_ , print_errors);
+    config_ok &= compareValues ("TMB mini_tbins_test (not in xml)"  ,read_mini_tbins_test_  ,mini_tbins_test_  , print_errors);
+    config_ok &= compareValues ("TMB mini_tbins_word (not in xml)"  ,read_mini_tbins_word_  ,mini_tbins_word_  , print_errors);
+    config_ok &= compareValues ("TMB fifo_tbins_mini (not in xml)"  ,read_fifo_tbins_mini_  ,fifo_tbins_mini_  , print_errors);
+    config_ok &= compareValues ("TMB fifo_pretrig_mini (not in xml)",read_fifo_pretrig_mini_,fifo_pretrig_mini_, print_errors);
     //
     //--------------------------------------------------------------
     //[0X10E] = ADR_PHASER0:  ALCT -> TMB communication
