@@ -14,7 +14,6 @@
 #include "xdata/Integer.h"
 #include "xdata/Vector.h"
 #include "emu/supervisor/RunInfo.h"
-#include "emu/base/SOAP.h"
 #include "emu/base/Supervised.h"
 #include "emu/base/WebReporter.h"
 #include "emu/base/FactFinder.h"
