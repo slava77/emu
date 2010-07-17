@@ -17,11 +17,11 @@
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
         <title>Report for EmuPage1 from <xsl:if test="monitorable[@name='title']"><xsl:value-of select="monitorable[@name='title']/@value"/></xsl:if><xsl:if test="not(monitorable[@name='title'])"><xsl:value-of select="@application"/></xsl:if> at <xsl:value-of select="@localDateTime"/></title>
+	<link rel="stylesheet" type="text/css" href="/emu/base/html/EmuPage1.css"/>
+	<script type="text/javascript" src="/emu/base/html/EmuPage1.js"/>
 <!-- 	<link rel="stylesheet" type="text/css" href="/emu/base/html/_dev_/EmuPage1.css"/> -->
 <!-- 	<script type="text/javascript" src="/emu/base/html/_dev_/EmuPage1.js"/> -->
         <xsl:if test="@application = 'xmas::las::Application'"><script type="text/javascript" src="/emu/base/html/jquery-1.3.2.min.js"/></xsl:if>
-	<link rel="stylesheet" type="text/css" href="EmuPage1.css"/>
-	<script type="text/javascript" src="EmuPage1.js"/>
       </head>
       <xsl:variable name="APPLICATION"><xsl:value-of select="@application"/></xsl:variable>
       <xsl:variable name="REFRESH_PERIOD"><xsl:value-of select="document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@pageRefreshPeriodInMSec"/></xsl:variable>
