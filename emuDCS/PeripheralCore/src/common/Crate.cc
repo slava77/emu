@@ -1,6 +1,12 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.68 2010/07/17 15:50:55 liu Exp $
+// $Id: Crate.cc,v 3.69 2010/07/17 16:23:42 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.69  2010/07/17 16:23:42  liu
+// skip reading TMB counters of OFF chambers even though there is no problem reading them
+//
+// Revision 3.69  2010/07/17 16:19:10  liu
+// skip reading TMB counters even though there is no problem reading them
+//
 // Revision 3.68  2010/07/17 15:50:55  liu
 // skip reading OFF chambers
 //
@@ -689,9 +695,14 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
   buf4=(int *)buf;
   for(int i=0; i<= TOTAL_TMB_COUNTERS*9; i++) buf4[i]=0;
   vmeController()->SetUseDelay(true);
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
   std::vector<TMB*> myTmbs = this->tmbs();
-  for(unsigned i =0; i < myTmbs.size(); ++i) {
-    if(IsAlive() && (mask & (1<<i))==0 )
+  for(unsigned i =0; i < myTmbs.size(); ++i) 
+  {
+    int imask= 0x3F & (myDmbs[i]->GetPowerMask());
+    bool chamber_on = (imask!=0x3F);
+
+    if(IsAlive() && (mask & (1<<i))==0 && chamber_on)
     {  countbuf=myTmbs[i]->NewCounters();
        if(countbuf)
         {
@@ -726,8 +737,12 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
   for(int i=0; i<= TOTAL_DMB_COUNTERS*9; i++) buf2[i]=0;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
-  for(unsigned i =0; i < myDmbs.size(); ++i) {
-    if(IsAlive() && (mask & (1<<i))==0)
+  for(unsigned i =0; i < myDmbs.size(); ++i) 
+  {
+    int imask= 0x3F & (myDmbs[i]->GetPowerMask());
+    bool chamber_on = (imask!=0x3F);
+
+    if(IsAlive() && (mask & (1<<i))==0 && chamber_on)
     {  countbuf=myDmbs[i]->GetCounters();
        if(countbuf) 
         {
@@ -765,9 +780,9 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
   for(unsigned i =0; i < myDmbs.size(); ++i) 
   {
     int imask= 0x3F & (myDmbs[i]->GetPowerMask());
-    bool chamber_off = (imask==0x3F);
+    bool chamber_on = (imask!=0x3F);
 
-    if(IsAlive() && (mask & (1<<i))==0 && !chamber_off)
+    if(IsAlive() && (mask & (1<<i))==0 && chamber_on)
     {  
         rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
         if( rn>0) flag |= (1<<i);
