@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.67 2010/05/27 14:49:21 liu Exp $
+// $Id: Crate.cc,v 3.68 2010/07/17 15:50:55 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.68  2010/07/17 15:50:55  liu
+// skip reading OFF chambers
+//
 // Revision 3.67  2010/05/27 14:49:21  liu
 // updates error flags
 //
@@ -759,8 +762,12 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   std::vector<TMB*> myTmbs = this->tmbs();
-  for(unsigned i =0; i < myDmbs.size(); ++i) {
-    if(IsAlive() && (mask & (1<<i))==0)
+  for(unsigned i =0; i < myDmbs.size(); ++i) 
+  {
+    int imask= 0x3F & (myDmbs[i]->GetPowerMask());
+    bool chamber_off = (imask==0x3F);
+
+    if(IsAlive() && (mask & (1<<i))==0 && !chamber_off)
     {  
         rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
         if( rn>0) flag |= (1<<i);
