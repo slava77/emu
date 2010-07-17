@@ -99,10 +99,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   runDbUserFile_      ( "" ),
   isBookedRunNumber_  ( false ),
   state_table_(this)
-{
-  start_attr.insert(std::map<string, string>::value_type("Param", "Start"));
-  stop_attr.insert(std::map<string, string>::value_type("Param", "Stop"));
-  
+{  
   appDescriptor_ = getApplicationDescriptor();
   
   xdata::InfoSpace *i = getApplicationInfoSpace();
@@ -702,25 +699,34 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
 {
   LOG4CPLUS_DEBUG(logger_, "calibrationAction " << "(begin)");
   
-  int index = getCalibParamIndex(run_type_);
+  unsigned int index = std::max( 0, getCalibParamIndex(run_type_) );
 
-  LOG4CPLUS_DEBUG( logger_, 
-		   "command: "   << calib_params_[index].bag.command_.toString()
-		   << " loop: "  << calib_params_[index].bag.loop_.toString()
-		   << " delay: " << calib_params_[index].bag.delay_.toString()
-		   << " ltc: "   << calib_params_[index].bag.ltc_.toString()
-		   << " ttcci: " << calib_params_[index].bag.ttcci_.toString()  );
-  
+  unsigned int nRuns = ( bool( isInCalibrationSequence_ ) ? calib_params_.size() : 1 );
+  unsigned int iRun  = ( bool( isInCalibrationSequence_ ) ? index                : 0 );
+
+  LOG4CPLUS_DEBUG( logger_, "Calibration" << endl
+		   << "command: " << calib_params_[index].bag.command_.toString()       << endl
+		   << "loop: "    << calib_params_[index].bag.loop_.toString()	        << endl
+		   << "delay: "   << calib_params_[index].bag.delay_.toString()	        << endl
+		   << "ltc: "     << endl << calib_params_[index].bag.ltc_.toString()   << endl
+		   << "ttcci: "   << endl << calib_params_[index].bag.ttcci_.toString() << endl );
+
+  emu::soap::Messenger m( this );
+
   for (step_counter_ = 0; step_counter_ < calib_params_[index].bag.loop_; ++step_counter_) {
     if (quit_calibration_) { break; }
-    LOG4CPLUS_DEBUG(logger_,
-		    "calibrationAction: " << step_counter_);
+    LOG4CPLUS_DEBUG(logger_, "calibrationAction: " << step_counter_);
     
-    sendCommand(calib_params_[index].bag.command_, "emu::pc::EmuPeripheralCrateManager");
-    sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
-    sendCalibrationStatus( index, calib_params_.size(), step_counter_, calib_params_[index].bag.loop_ );
+    m.sendCommand( "emu::pc::EmuPeripheralCrateManager", calib_params_[index].bag.command_ );
+
+    xdata::String attributeValue( "Start" );
+    m.sendCommand( "LTCControl", "Cyclic", emu::soap::Messenger::noParameters, emu::soap::NamedData().add( "Param", &attributeValue ) );
+    sendCalibrationStatus( iRun, nRuns, step_counter_, calib_params_[index].bag.loop_ );
+
     sleep( calib_params_[index].bag.delay_ );
   }
+  
+  sendCalibrationStatus( ( iRun+1 == nRuns ? nRuns : iRun ), nRuns, step_counter_, calib_params_[index].bag.loop_ );
   
   if (!quit_calibration_) {
     submit(halt_signature_);
@@ -784,11 +790,13 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 {
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
-		  << " runnumber: " << run_number_ << " nevents: " << nevents_);
+		  << " runnumber: " << run_number_ << " nevents: " << nevents_.toString());
   
 
   rcmsStateNotifier_.findRcmsStateListener();      	
   step_counter_ = 0;
+
+  emu::soap::Messenger m( this );
 
   try {
 
@@ -814,15 +822,15 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     try {
       state_table_.refresh();
       if (state_table_.getState("emu::daq::manager::Application", 0) != "Halted") {
-	sendCommand("Halt", "emu::daq::manager::Application");
+	if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
 	waitForDAQToExecute("Halt", 10, true);
       }
        
       if (state_table_.getState("TTCciControl", 0) != "Halted") {
-	sendCommand("Halt", "TTCciControl");
+	m.sendCommand( "TTCciControl", "Halt" );
       }
       if (state_table_.getState("LTCControl", 0) != "Halted") {
-	sendCommand("Halt", "LTCControl");
+	m.sendCommand( "LTCControl", "Halt" );
 	// Allow LTCControl some time to halt:
 	::sleep(2);
       }
@@ -834,20 +842,17 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     //
 
     try {
-      setParameter("emu::daq::manager::Application", "maxNumberOfEvents", "xsd:integer",
-		   toString(nevents_));
-      setParameter("emu::daq::manager::Application", "runType", "xsd:string",
-		   run_type_.toString());
+      m.setParameters( "emu::daq::manager::Application", emu::soap::NamedData().add( "maxNumberOfEvents", &nevents_ ).add( "runType", &run_type_ ) );
     } catch (xcept::Exception ignored) {}
     
     // Configure local DAQ first as its FSM is driven asynchronously,
     // and it will probably finish the transition by the time the others do.
     try {
-      sendCommand("Configure", "emu::daq::manager::Application");
+      if ( isDAQManagerControlled("Configure") ) m.sendCommand( "emu::daq::manager::Application", 0, "Configure" );
     } catch (xcept::Exception ignored) {}
     
     if (!isCalibrationMode()) {
-      sendCommand("Configure", "emu::pc::EmuPeripheralCrateManager");
+      m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Configure" );
     }
        
     // Configure TF Cell operation
@@ -867,42 +872,39 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       } 
     }
 
-    if( isCalibrationMode())
-    {
-       setParameter("emu::fed::Manager", "runType", "xsd:string", "calibration");
-    } else if( controlTFCellOp_.value_ )
-    {
-       setParameter("emu::fed::Manager", "runType", "xsd:string", "local");
-    } else
-    {
-       setParameter("emu::fed::Manager", "runType", "xsd:string", "global");
-    }
+    xdata::String runType( "global" );
+    if      ( isCalibrationMode()     ) runType = "calibration";
+    else if ( controlTFCellOp_.value_ ) runType = "local";
+    m.setParameters( "emu::fed::Manager", emu::soap::NamedData().add( "runType", &runType ) );
     // Configure FED
-    sendCommand("Configure", "emu::fed::Manager");
-    
+    m.sendCommand( "emu::fed::Manager", "Configure" );
+
     // Configure TTC
     int index = getCalibParamIndex(run_type_);
     if (index >= 0) {
-      setParameter("TTCciControl", "Configuration", "xsd:string",
-		   calib_params_[index].bag.ttcci_.toString() );
+      m.setParameters( "TTCciControl" , emu::soap::NamedData().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
     }
-    sendCommand("Configure", "TTCciControl");
+    m.sendCommand( "TTCciControl", "Configure" );    
     
     // Configure LTC
     if (index >= 0) {
-      setParameter("LTCControl", "Configuration", "xsd:string",
-		   calib_params_[index].bag.ltc_.toString() );
+      m.setParameters( "LTCControl" , emu::soap::NamedData().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
     }
-    sendCommand("Configure", "LTCControl");
+    m.sendCommand( "LTCControl", "Configure" );
 
     if (isCalibrationMode()) {
 		if (isAlctCalibrationMode())
-			sendCommand("ConfigCalALCT", "emu::pc::EmuPeripheralCrateManager");
+		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalALCT" );
 		else
-			sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
+		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalCFEB");
     }   
     // If necessary, wait a bit for DAQ to finish configuring
     waitForDAQToExecute("Configure", 10, true);
+
+    // Tell DAQ Manager whether global DAQ is running the show.
+    xdata::Boolean isGlobalInControl( true );
+    if ( isCalibrationMode() || bool( controlTFCellOp_ ) ) isGlobalInControl = false;
+    m.setParameters( "emu::daq::manager::Application", emu::soap::NamedData().add( "isGlobalInControl", &isGlobalInControl ) );
        
     state_table_.refresh();
     if (!state_table_.isValidState("Configured")) {
@@ -945,48 +947,46 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
 {
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
-		  << " runnumber: " << run_number_ << " nevents: " << nevents_);
+		  << " runnumber: " << run_number_ << " nevents: " << nevents_.toString());
   
+  emu::soap::Messenger m( this );
+
   try {
     state_table_.refresh();
 
-      setParameter("emu::fed::Manager",
-		   "runNumber", "xsd:unsignedLong", run_number_.toString());
-/*      setParameter("emu::fed::Manager",
-		   "runType", "xsd:string", run_type_.toString());
-*/
-    sendCommand("Enable", "emu::fed::Manager");
+    m.setParameters( "emu::fed::Manager", emu::soap::NamedData().add( "runNumber", &run_number_ ) );
+    m.sendCommand( "emu::fed::Manager", "Enable" );
     
     if (!isCalibrationMode()) {
-      sendCommand("Enable", "emu::pc::EmuPeripheralCrateManager");
+      m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Enable" );
     }
     
     try {
-      if (state_table_.getState("emu::daq::manager::Application", 0) == "Halted") {
-	setParameter("emu::daq::manager::Application",
-		     "maxNumberOfEvents", "xsd:integer", toString(nevents_));
-	sendCommand("Configure", "emu::daq::manager::Application");
+      if (state_table_.getState("emu::daq::manager::Application", 0) == "Halted" &&
+	  isDAQManagerControlled("Configure")                                        ) {
+	m.setParameters( "emu::daq::manager::Application", emu::soap::NamedData().add( "maxNumberOfEvents", &nevents_ ) );
+	m.sendCommand( "emu::daq::manager::Application", 0, "Configure" );
 	waitForDAQToExecute("Configure", 10, true);
       }
       
-      setParameter("emu::daq::manager::Application",
-		   "runNumber", "xsd:unsignedLong", run_number_.toString());
-      
-      sendCommand("Enable", "emu::daq::manager::Application");
-      waitForDAQToExecute("Enable", 10, true);
-      
+      if ( isDAQManagerControlled("Enable") ) {
+	m.setParameters( "emu::daq::manager::Application", emu::soap::NamedData().add( "runNumber", &run_number_ ) );
+	m.sendCommand( "emu::daq::manager::Application", 0, "Enable" );
+	waitForDAQToExecute("Enable", 10, true);
+      }
     } catch (xcept::Exception ignored) {}
     
     state_table_.refresh();
     
     if (state_table_.getState("TTCciControl", 0) != "Enabled") {
-      sendCommand("Enable", "TTCciControl");
+      m.sendCommand( "TTCciControl", "Enable" );
     }
     if (state_table_.getState("LTCControl", 0) != "Enabled") {
-      sendCommand("Enable", "LTCControl");
+      m.sendCommand( "LTCControl", "Enable" );
     }
-    sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
-    
+    xdata::String attributeValue( "Stop" );
+    m.sendCommand( "LTCControl", "Cyclic", emu::soap::Messenger::noParameters, emu::soap::NamedData().add( "Param", &attributeValue ) );
+
     // Enable TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       sendCommandCell("enable");
@@ -1018,6 +1018,8 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
 {
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   
+  emu::soap::Messenger m( this );
+
   try {
     StopWatch sw;
     state_table_.refresh();
@@ -1033,27 +1035,27 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
-      sendCommand("Halt", "LTCControl");
+      m.sendCommand( "LTCControl", "Halt" );
       cout << "    Halt LTCControl: " << sw.read() << endl;
     }
     if (state_table_.getState("TTCciControl", 0) != "Halted") {
-      sendCommand("Halt", "TTCciControl");
+      m.sendCommand( "TTCciControl", "Halt" );
       cout << "    Halt TTCciControl: " << sw.read() << endl;
     }
     
     try {
-      sendCommand("Halt", "emu::daq::manager::Application");
+      if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
       if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
     
-    sendCommand("Disable", "emu::fed::Manager");
+    m.sendCommand( "emu::fed::Manager", "Disable" );
     cout << "    Disable emu::fed::Manager: " << sw.read() << endl;
-    sendCommand("Disable", "emu::pc::EmuPeripheralCrateManager");
+    m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Disable" );
     cout << "    Disable emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
-    sendCommand("Configure", "TTCciControl");
+    m.sendCommand( "TTCciControl", "Configure" );
     cout << "    Configure TTCci: " << sw.read() << endl;
-    sendCommand("Configure", "LTCControl");
+    m.sendCommand( "LTCControl", "Configure" );
     cout << "    Configure LTC: " << sw.read() << endl;
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Stop was issued from the web interface
@@ -1074,6 +1076,8 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
 {
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   
+  emu::soap::Messenger m( this );
+
   try {
     StopWatch sw;
     state_table_.refresh();
@@ -1091,23 +1095,23 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
-      sendCommand("Halt", "LTCControl");
+      m.sendCommand( "LTCControl", "Halt" );
       cout << "    Halt LTCControl: " << sw.read() << endl;
     }
 
     if (state_table_.getState("TTCciControl", 0) != "Halted") {
-      sendCommand("Halt", "TTCciControl");
+      m.sendCommand( "TTCciControl", "Halt" );
       cout << "    Halt TTCciControl: " << sw.read() << endl;
     }
 
-    sendCommand("Halt", "emu::fed::Manager");
+    m.sendCommand( "emu::fed::Manager", "Halt" );
     cout << "    Halt emu::fed::Manager: " << sw.read() << endl;
 
-    sendCommand("Halt", "emu::pc::EmuPeripheralCrateManager");
+    m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Halt" );
     cout << "    Halt emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
     
     try {
-      sendCommand("Halt", "emu::daq::manager::Application");
+      if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
       if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
@@ -1141,13 +1145,11 @@ void emu::supervisor::Application::setTTSAction(toolbox::Event::Reference evt)
 {
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   
-  const string fed_app = "emu::fed::Manager";
+  emu::soap::Messenger m( this );
   
   try {
-    setParameter(fed_app, "ttsID",   "xsd:unsignedInt", tts_id_.toString());
-    setParameter(fed_app, "ttsBits", "xsd:unsignedInt", tts_bits_.toString());
-    
-    sendCommand("SetTTSBits", fed_app, 0);
+    m.setParameters( "emu::fed::Manager", emu::soap::NamedData().add( "ttsID", &tts_id_ ).add( "ttsBits", &tts_bits_ ) );
+    m.sendCommand( "emu::fed::Manager", 0, "SetTTSBits" );
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
@@ -1234,109 +1236,6 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
   
 }
 
-void emu::supervisor::Application::sendCommand(string command, string klass)
-  throw (xoap::exception::Exception, xcept::Exception)
-{
-  // Exceptions:
-  // xoap exceptions are thrown by analyzeReply() for SOAP faults.
-  // xdaq exceptions are thrown by postSOAP() for socket level errors.
-
-  
-  LOG4CPLUS_INFO( logger_, "Sending " + command + " to " + klass );
-  // find applications
-  std::set<xdaq::ApplicationDescriptor *> apps;
-  apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
-  if ( apps.size() == 0 ){
-    LOG4CPLUS_INFO( logger_, "Sending " + command + " to " + klass + " aborted: No application descriptor found.");
-    return; // Do nothing if the target doesn't exist
-  }
-  
-  if (klass == "emu::daq::manager::Application" && !isDAQManagerControlled(command)) {
-    LOG4CPLUS_INFO( logger_, "Sending " + command + " to " + klass + " aborted: Local DAQ is not controlled.");
-    return;  // Do nothing if emu::daq::manager::Application is not under control.
-  }
-  
-  // prepare a SOAP message
-  xoap::MessageReference message = createCommandSOAP(command);
-  xoap::MessageReference reply;
-
-  // send the message one-by-one
-  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-  for (; i != apps.end(); ++i) {
-    // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *appDescriptor_, **i);
-
-    analyzeReply(message, reply, *i);
-  }
-  LOG4CPLUS_INFO( logger_, "Sent " + command + " to " + klass );
-}
-
-void emu::supervisor::Application::sendCommand(string command, string klass, int instance)
-  throw (xoap::exception::Exception, xcept::Exception)
-{
-  // Exceptions:
-  // xoap exceptions are thrown by analyzeReply() for SOAP faults.
-  // xdaq exceptions are thrown by postSOAP() for socket level errors.
-
-  // find applications
-  xdaq::ApplicationDescriptor *app;
-  try {
-    app = getApplicationContext()->getDefaultZone()
-      ->getApplicationDescriptor(klass, instance);
-  } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    return; // Do nothing if the target doesn't exist
-  }
-  
-  if (klass == "emu::daq::manager::Application" && !isDAQManagerControlled(command)) {
-    return;  // Do nothing if emu::daq::manager::Application is not under control.
-  }
-  
-  // prepare a SOAP message
-  xoap::MessageReference message = createCommandSOAP(command);
-  xoap::MessageReference reply;
-  
-  // send the message
-  // postSOAP() may throw an exception when failed.
-  reply = getApplicationContext()->postSOAP(message, *appDescriptor_, *app);
-  
-  analyzeReply(message, reply, app);
-}
-
-void emu::supervisor::Application::sendCommandWithAttr(
-					string command, std::map<string, string> attr, string klass)
-  throw (xoap::exception::Exception, xcept::Exception)
-{
-  // Exceptions:
-	// xoap exceptions are thrown by analyzeReply() for SOAP faults.
-	// xdaq exceptions are thrown by postSOAP() for socket level errors.
-  
-	// find applications
-  std::set<xdaq::ApplicationDescriptor *> apps;
-  try {
-    apps = getApplicationContext()->getDefaultZone()
-      ->getApplicationDescriptors(klass);
-	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-	  return; // Do nothing if the target doesn't exist
-	}
-
-  if (klass == "emu::daq::manager::Application" && !isDAQManagerControlled(command)) {
-    return;  // Do nothing if emu::daq::manager::Application is not under control.
-	}
-  
-  // prepare a SOAP message
-  xoap::MessageReference message = createCommandSOAPWithAttr(command, attr);
-  xoap::MessageReference reply;
-  
-	// send the message one-by-one
-  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-  for (; i != apps.end(); ++i) {
-    // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *appDescriptor_, **i);
-    
-    analyzeReply(message, reply, *i);
-  }
-}
-
 void emu::supervisor::Application::sendCommandCellOpInit()
   //throw (xoap::exception::Exception, xcept::Exception)
 {
@@ -1382,17 +1281,6 @@ void emu::supervisor::Application::sendCommandCellOpInit()
   
   return;
 }
-
-/*
-  catch (xcept::Exception& e){
-  std::cout << xcept::stdformat_exception_history(e) << std::endl;
-  
-  //(xcept::Exception &e) {std::cout << xcept::stdformat_exception_history(e) << std::endl;
-  }
-  std::cout << "the request has been sent" << std::endl;   
-  //analyzeReply(request, reply, d);  
-  return reply;
-*/
 
 void emu::supervisor::Application::sendCommandCell(string command)
   //throw (xoap::exception::Exception, xcept::Exception)
@@ -2058,32 +1946,7 @@ xoap::MessageReference emu::supervisor::Application::doSoapOpGetState(const std:
 //	 
 	return msg; 
 } 
-xoap::MessageReference emu::supervisor::Application::createCommandSOAP(string command)
-{
-	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-	xoap::SOAPName name = envelope.createName(command, "xdaq", XDAQ_NS_URI);
-	envelope.getBody().addBodyElement(name);
 
-	return message;
-}
-
-xoap::MessageReference emu::supervisor::Application::createCommandSOAPWithAttr(
-		string command, std::map<string, string> attr)
-{
-	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-	xoap::SOAPName name = envelope.createName(command, "xdaq", XDAQ_NS_URI);
-	xoap::SOAPElement element = envelope.getBody().addBodyElement(name);
-
-	std::map<string, string>::iterator i;
-	for (i = attr.begin(); i != attr.end(); ++i) {
-		xoap::SOAPName p = envelope.createName((*i).first, "xdaq", XDAQ_NS_URI);
-		element.addAttribute(p, (*i).second);
-	}
-
-	return message;
-}
 
 bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetState, const unsigned int seconds ){
   if ( tf_descr_ == NULL ) return false;
@@ -2111,166 +1974,6 @@ bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetSt
   return false;
 }
 
-void emu::supervisor::Application::setParameter(
-		string klass, string name, string type, string value)
-{
-	// find applications
-	std::set<xdaq::ApplicationDescriptor *> apps;
-	try {
-		apps = getApplicationContext()->getDefaultZone()
-				->getApplicationDescriptors(klass);
-	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-		return; // Do nothing if the target doesn't exist
-	}
-
-	// prepare a SOAP message
-	xoap::MessageReference message = createParameterSetSOAP(
-			klass, name, type, value);
-	xoap::MessageReference reply;
-
-	// send the message one-by-one
-	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-	for (; i != apps.end(); ++i) {
-		reply = getApplicationContext()->postSOAP(message, *appDescriptor_, **i);
-		analyzeReply(message, reply, *i);
-	}
-}
-
-xoap::MessageReference emu::supervisor::Application::createParameterSetSOAP(
-		string klass, string name, string type, string value)
-{
-	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-	envelope.addNamespaceDeclaration("xsi", NS_XSI);
-
-	xoap::SOAPName command = envelope.createName(
-			"ParameterSet", "xdaq", XDAQ_NS_URI);
-	xoap::SOAPName properties = envelope.createName(
-			"properties", "xapp", "urn:xdaq-application:" + klass);
-	xoap::SOAPName parameter = envelope.createName(
-			name, "xapp", "urn:xdaq-application:" + klass);
-	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
-
-	xoap::SOAPElement properties_e = envelope.getBody()
-			.addBodyElement(command)
-			.addChildElement(properties);
-	properties_e.addAttribute(xsitype, "soapenc:Struct");
-
-	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
-	parameter_e.addAttribute(xsitype, type);
-	parameter_e.addTextNode(value);
-
-	return message;
-}
-
-xoap::MessageReference emu::supervisor::Application::createParameterGetSOAP(
-		string klass, string name, string type)
-{
-	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-	envelope.addNamespaceDeclaration("xsi", NS_XSI);
-
-	xoap::SOAPName command = envelope.createName(
-			"ParameterGet", "xdaq", XDAQ_NS_URI);
-	xoap::SOAPName properties = envelope.createName(
-			"properties", "xapp", "urn:xdaq-application:" + klass);
-	xoap::SOAPName parameter = envelope.createName(
-			name, "xapp", "urn:xdaq-application:" + klass);
-	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
-
-	xoap::SOAPElement properties_e = envelope.getBody()
-			.addBodyElement(command)
-			.addChildElement(properties);
-	properties_e.addAttribute(xsitype, "soapenc:Struct");
-
-	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
-	parameter_e.addAttribute(xsitype, type);
-	parameter_e.addTextNode("");
-
-	return message;
-}
-
-xoap::MessageReference emu::supervisor::Application::createParameterGetSOAP(
-		string klass, std::map<string, string> name_type)
-{
-	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-	envelope.addNamespaceDeclaration("xsi", NS_XSI);
-
-	xoap::SOAPName command = envelope.createName(
-			"ParameterGet", "xdaq", XDAQ_NS_URI);
-	xoap::SOAPName properties = envelope.createName(
-			"properties", "xapp", "urn:xdaq-application:" + klass);
-	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
-
-	xoap::SOAPElement properties_e = envelope.getBody()
-			.addBodyElement(command)
-			.addChildElement(properties);
-	properties_e.addAttribute(xsitype, "soapenc:Struct");
-
-	std::map<string, string>::iterator i;
-	for (i = name_type.begin(); i != name_type.end(); ++i) {
-		xoap::SOAPName n = envelope.createName(
-				(*i).first, "xapp", "urn:xdaq-application:" + klass);
-		xoap::SOAPElement e = properties_e.addChildElement(n);
-		e.addAttribute(xsitype, (*i).second);
-		e.addTextNode("");
-	}
-
-	return message;
-}
-
-void emu::supervisor::Application::analyzeReply(
-		xoap::MessageReference message, xoap::MessageReference reply,
-		xdaq::ApplicationDescriptor *app)
-{
-	string message_str, reply_str;
-
-	reply->writeTo(reply_str);
-	ostringstream s;
-	s << "Reply from "
-			<< app->getClassName() << "(" << app->getInstance() << ")" << endl
-			<< reply_str;
-	// last_log_.add(s.str());
-	LOG4CPLUS_DEBUG(logger_, s.str());
-
-	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
-
-	// do nothing when no fault
-	if (!body.hasFault()) { return; }
-
-	ostringstream error;
-
-	error << "SOAP message: " << endl;
-	message->writeTo(message_str);
-	error << message_str << endl;
-	error << "Fault string: " << endl;
-	error << reply_str << endl;
-
-	LOG4CPLUS_ERROR(logger_, error.str());
-	// Instead decide in the calling function whether or not to notify Sentinel.
-	//   stringstream ss4;
-	//   ss4 <<  error.str();
-	//   XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss4.str() );
-	//   this->notifyQualified( "error", eObj );
-	XCEPT_RAISE(xoap::exception::Exception, "SOAP fault: \n" + reply_str);
-
-	return;
-}
-
-string emu::supervisor::Application::extractParameter(
-		xoap::MessageReference message, string name)
-{
-	xoap::SOAPElement root = message->getSOAPPart()
-			.getEnvelope().getBody().getChildElements(
-			*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
-	xoap::SOAPElement properties = root.getChildElements(
-			*(new xoap::SOAPName("properties", "", "")))[0];
-	xoap::SOAPElement parameter = properties.getChildElements(
-			*(new xoap::SOAPName(name, "", "")))[0];
-
-	return parameter.getValue();
-}
 
 void emu::supervisor::Application::refreshConfigParameters()
 {
@@ -2306,31 +2009,6 @@ int emu::supervisor::Application::keyToIndex(const string key)
 	return index;
 }
 
-string emu::supervisor::Application::getCrateConfig(const string type, const string key) const
-{
-	xdata::Vector<xdata::String> keys;
-	xdata::Vector<xdata::String> values;
-
-	if (type == "PC") {
-		keys = pc_keys_;
-		values = pc_configs_;
-	} else if (type == "FC") {
-		keys = fc_keys_;
-		values = fc_configs_;
-	} else {
-		return "";
-	}
-
-	string result = "";
-	for (unsigned int i = 0; i < keys.size(); ++i) {
-		if (keys[i] == key) {
-			result = values[i];
-			break;
-		}
-	}
-
-	return result;
-}
 
 bool emu::supervisor::Application::isCalibrationMode()
 {
@@ -2359,146 +2037,72 @@ int emu::supervisor::Application::getCalibParamIndex(const string name)
 	return result;
 }
 
-string emu::supervisor::Application::trim(string orig) const
-{
-	string s = orig;
 
-	s.erase(0, s.find_first_not_of(" \t\n"));
-	s.erase(s.find_last_not_of(" \t\n") + 1);
+string emu::supervisor::Application::getDAQMode(){
+  string result("");
 
-	return s;
+  emu::soap::Messenger m( this );
+
+  xdata::Boolean daqMode( false );
+  try{
+    m.getParameters( "emu::daq::manager::Application", 0, emu::soap::NamedData().add( "supervisedMode", &daqMode ) );
+    result = ( bool( daqMode ) ? "supervised" : "unsupervised" );
+    REVOKE_ALARM( "noLocalDAQ", NULL );
+  } catch (xcept::Exception e) {
+    LOG4CPLUS_INFO(logger_, "Failed to get local DAQ state. "
+		   << xcept::stdformat_exception_history(e));
+    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
+    result = "UNKNOWN";
+  }
+
+  return result;
 }
 
-string emu::supervisor::Application::toString(const long int i) const
-{
-	ostringstream s;
-	s << i;
+string emu::supervisor::Application::getLocalDAQState(){
 
-	return s.str();
+  emu::soap::Messenger m( this );
+
+  xdata::String daqState( "UNKNOWN" );
+  try{
+    m.getParameters( "emu::daq::manager::Application", 0, emu::soap::NamedData().add( "daqState", &daqState ) );
+    REVOKE_ALARM( "noLocalDAQ", NULL );
+  } catch (xcept::Exception e) {
+    LOG4CPLUS_INFO(logger_, "Failed to get local DAQ state. "
+		   << xcept::stdformat_exception_history(e));
+    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
+  }
+
+  return daqState.toString();
 }
 
-string emu::supervisor::Application::getDAQMode()
-{
-	string result = "";
+string emu::supervisor::Application::getTTCciSource(){
+  string result( "" );
+  if ( ttc_descr_ == NULL ) return result;
 
-	if (daq_descr_ != NULL) {
+  emu::soap::Messenger m( this );
 
-	  std::map<string, string> m;
-	  m["supervisedMode"] = "xsd:boolean";
-	  m["configuredInSupervisedMode"] = "xsd:boolean";
-	  m["daqState"] = "xsd:string";
-	  xoap::MessageReference daq_param = createParameterGetSOAP("emu::daq::manager::Application", m);
+  xdata::String ClockSource   = "UNKNOWN";
+  xdata::String OrbitSource   = "UNKNOWN";
+  xdata::String TriggerSource = "UNKNOWN";
+  xdata::String BGOSource     = "UNKNOWN";
 
-	  xoap::MessageReference reply;
-	  try {
-	    reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
-	    analyzeReply(daq_param, reply, daq_descr_);
-	    
-	    result = extractParameter(reply, "supervisedMode");
-	    result = (result == "true") ? "supervised" : "unsupervised";
-	    REVOKE_ALARM( "noLocalDAQ", NULL );
-	  } catch (xcept::Exception e) {
-	    LOG4CPLUS_INFO(logger_, "Failed to get local DAQ mode. "
-			    << xcept::stdformat_exception_history(e));
-	    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
-	    result = "UNKNOWN";
-	  }
+  try{
+    m.getParameters( ttc_descr_,
+		     emu::soap::NamedData()
+		     .add( "ClockSource"  , &ClockSource   ) 
+		     .add( "OrbitSource"  , &OrbitSource   ) 
+		     .add( "TriggerSource", &TriggerSource ) 
+		     .add( "BGOSource"    , &BGOSource     ) );
+    result  =       ClockSource.toString();
+    result += ":" + OrbitSource.toString();
+    result += ":" + TriggerSource.toString();
+    result += ":" + BGOSource.toString();
+  }
+  catch(xcept::Exception e){
+    result = "UNKNOWN";
+  }
 
-	}
-
-	return result;
-}
-
-string emu::supervisor::Application::getLocalDAQState()
-{
-	string result = "";
-
-	if (daq_descr_ != NULL) {
-
-        	std::map<string, string> m;
-		m["supervisedMode"] = "xsd:boolean";
-		m["configuredInSupervisedMode"] = "xsd:boolean";
-		m["daqState"] = "xsd:string";
-		xoap::MessageReference daq_param = createParameterGetSOAP("emu::daq::manager::Application", m);
-
-		xoap::MessageReference reply;
-		try {
-			reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
-			analyzeReply(daq_param, reply, daq_descr_);
-			result = extractParameter(reply, "daqState");
-			REVOKE_ALARM( "noLocalDAQ", NULL );
-		} catch (xcept::Exception e) {
-			LOG4CPLUS_INFO(logger_, "Failed to get local DAQ state. "
-					<< xcept::stdformat_exception_history(e));
-			RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
-			result = "UNKNOWN";
-		}
-	}
-
-	return result;
-}
-
-
-string emu::supervisor::Application::getTTCciSource()
-{
-	string result = "";
-
-	if (ttc_descr_ == NULL) return result; // Do nothing if the target doesn't exist
-
-	std::map<string, string> m;
-	m["ClockSource"] = "xsd:string";
-	m["OrbitSource"] = "xsd:string";
-	m["TriggerSource"] = "xsd:string";
-	m["BGOSource"] = "xsd:string";
-	xoap::MessageReference ttc_param = createParameterGetSOAP("TTCciControl", m);
-
-	xoap::MessageReference reply;
-	try {
-		reply = getApplicationContext()->postSOAP(ttc_param, *appDescriptor_, *ttc_descr_);
-		analyzeReply(ttc_param, reply, ttc_descr_);
-
-		result = extractParameter(reply, "ClockSource");
-		result += ":" + extractParameter(reply, "OrbitSource");
-		result += ":" + extractParameter(reply, "TriggerSource");
-		result += ":" + extractParameter(reply, "BGOSource");
-	} catch (xcept::Exception e) {
-		result = "UNKNOWN";
-	}
-
-	return result;
-}
-
-bool emu::supervisor::Application::isDAQConfiguredInSupervisedMode()
-{
-	string result = "";
-
-	if (daq_descr_ != NULL) {
-
- 	        std::map<string, string> m;
-		m["supervisedMode"] = "xsd:boolean";
-		m["configuredInSupervisedMode"] = "xsd:boolean";
-		m["daqState"] = "xsd:string";
-		xoap::MessageReference daq_param = createParameterGetSOAP("emu::daq::manager::Application", m);
-
-		xoap::MessageReference reply;
-		try {
-			reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
-			analyzeReply(daq_param, reply, daq_descr_);
-
-			result = extractParameter(reply, "configuredInSupervisedMode");
-		} catch (xcept::Exception e) {
-			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInSupervisedMode\" from emu::daq::manager::Application. "
-					<< xcept::stdformat_exception_history(e));
-			stringstream ss8;
-			ss8 <<  "Failed to get \"configuredInSupervisedMode\" from emu::daq::manager::Application. "
-					;
-			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss8.str(), e );
-			this->notifyQualified( "error", eObj );
-			result = "UNKNOWN";
-		}
-	}
-
-	return result == "true";
+  return result;
 }
 
 
@@ -2516,29 +2120,30 @@ bool emu::supervisor::Application::waitForDAQToExecute( const string command, co
   }
 
   // Poll, and return TRUE if and only if DAQ gets into the expected state before timeout.
-  string localDAQState;
+  emu::soap::Messenger m( this );
+  xdata::String  daqState;
+  m.getParameters( "emu::daq::manager::Application", 0, emu::soap::NamedData().add( "daqState", &daqState ) );
   for ( unsigned int i=0; i<=seconds; ++i ){
-    localDAQState = getLocalDAQState();
-    if ( localDAQState != "Halted"  && localDAQState != "Ready" && 
-	 localDAQState != "Enabled" && localDAQState != "INDEFINITE" ){
-      LOG4CPLUS_ERROR( logger_, "Local DAQ is in " << localDAQState << " state. Please destroy and recreate local DAQ." );
+    if ( daqState.toString() != "Halted"  && daqState.toString() != "Ready" && 
+	 daqState.toString() != "Enabled" && daqState.toString() != "INDEFINITE" ){
+      LOG4CPLUS_ERROR( logger_, "Local DAQ is in " << daqState.toString() << " state. Please destroy and recreate local DAQ." );
       stringstream ss9;
-      ss9 <<  "Local DAQ is in " << localDAQState << " state. Please destroy and recreate local DAQ." ;
+      ss9 <<  "Local DAQ is in " << daqState.toString() << " state. Please destroy and recreate local DAQ." ;
       XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss9.str() );
       this->notifyQualified( "error", eObj );
       return false;
     }
-    if ( localDAQState == expectedState ){ return true; }
+    if ( daqState.toString() == expectedState ){ return true; }
     LOG4CPLUS_INFO( logger_, "Waited " << i << " sec so far for local DAQ to get " 
-		    << expectedState << ". It is still in " << localDAQState << " state." );
+		    << expectedState << ". It is still in " << daqState.toString() << " state." );
     ::sleep(1);
   }
 
   LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
-		   << ". It is in " << localDAQState << " state." );
+		   << ". It is in " << daqState.toString() << " state." );
   stringstream ss10;
   ss10 <<  "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
-		   << ". It is in " << localDAQState << " state." ;
+		   << ". It is in " << daqState.toString() << " state." ;
   XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss10.str() );
   this->notifyQualified( "error", eObj );
   return false;
@@ -2546,30 +2151,37 @@ bool emu::supervisor::Application::waitForDAQToExecute( const string command, co
 
 bool emu::supervisor::Application::isDAQManagerControlled(string command)
 {
-	// No point in sending any command when DAQ is in an irregular state (failed, indefinite, ...)
-        string localDAQState = getLocalDAQState();
-	if ( localDAQState != "Halted"  && localDAQState != "Ready" && 
-	     localDAQState != "Enabled" && localDAQState != "INDEFINITE" ){
-	  LOG4CPLUS_WARN( logger_, "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
-			  << localDAQState << " state. Please destroy and recreate local DAQ." );
-	  stringstream ss11;
-	  ss11 <<  "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
-			   << localDAQState << " state. Please destroy and recreate local DAQ." ;
-	  XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss11.str() );
-	  this->notifyQualified( "warn", eObj );
-	  return false;
-	}
+  emu::soap::Messenger m( this );
+  xdata::Boolean supervisedMode;
+  xdata::Boolean configuredInSupervisedMode;
+  xdata::String  daqState;
+  m.getParameters( "emu::daq::manager::Application", 0,
+		   emu::soap::NamedData()
+		   .add( "supervisedMode"            , &supervisedMode             )
+		   .add( "configuredInSupervisedMode", &configuredInSupervisedMode )
+		   .add( "daqState"                  , &daqState                   ) );
 
-	// Enforce "Halt" irrespective of DAQ mode.
-	// if (command == "Halt") { return true; }
+  // No point in sending any command when DAQ is in an irregular state (failed, indefinite, ...)
+  if ( daqState.toString() != "Halted"  && daqState.toString() != "Ready" && 
+       daqState.toString() != "Enabled" && daqState.toString() != "INDEFINITE" ){
+    LOG4CPLUS_WARN( logger_, "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
+		    << daqState.toString() << " state. Please destroy and recreate local DAQ." );
+    stringstream ss11;
+    ss11 <<  "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
+	 << daqState.toString() << " state. Please destroy and recreate local DAQ." ;
+    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss11.str() );
+    this->notifyQualified( "warn", eObj );
+    return false;
+  }
 
-	// Don't send any other command when DAQ is in unsupervised mode.
-	if (getDAQMode() != "supervised") { return false; }
+  // Don't send any other command when DAQ is in unsupervised mode.
+  if ( ! bool( supervisedMode ) ) { return false; }
+  
+  // And don't send any other command when DAQ was configured in unsupervised mode, either.
+  if ( command != "Configure" && !bool( configuredInSupervisedMode ) ) { return false; }
 
-	// And don't send any other command when DAQ was configured in unsupervised mode, either.
-	if (command != "Configure" && !isDAQConfiguredInSupervisedMode()) { return false; }
+  return true;
 
-	return true;
 }
 
 bool emu::supervisor::Application::waitForAppsToReach( const string targetState, const int seconds ){
@@ -2629,25 +2241,24 @@ void emu::supervisor::Application::StateTable::refresh( bool forceRefresh )
 	if ( timeNow < lastRefreshTime_ + 2 && !forceRefresh ) return;
 
 	string klass = "";
-	xoap::MessageReference message, reply;
+
+	emu::soap::Messenger m( app_ );
 
 	vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i =
 			table_.begin();
 	for (; i != table_.end(); ++i) {
-		if (klass != i->first->getClassName()) {
-			klass = i->first->getClassName();
-			message = createStateSOAP(klass);
-		}
+
+	        klass = i->first->getClassName();
 
 		try {
-			reply = app_->getApplicationContext()->postSOAP(message, *app_->appDescriptor_, *i->first);
-			app_->analyzeReply(message, reply, i->first);
+			xdata::String state;
+			m.getParameters( i->first, emu::soap::NamedData().add( "stateName", &state ) );
 
                         bSem_.take();
-			i->second = extractState(reply, klass);
+			i->second = state.toString();
 			lastRefreshTime_ = timeNow;
                         bSem_.give();
-		} catch (xcept::Exception e) {
+		} catch (xcept::Exception &e) {
 			i->second = STATE_UNKNOWN;
 			LOG4CPLUS_ERROR(app_->logger_, "Exception when trying to get state of "
 					<< klass << ": " << xcept::stdformat_exception_history(e));
@@ -2754,44 +2365,6 @@ void emu::supervisor::Application::StateTable::webOutput(xgi::Output *out, strin
 	*out << tbody() << table() << endl;
 }
 
-xoap::MessageReference emu::supervisor::Application::StateTable::createStateSOAP(string klass) const
-{
-	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-	envelope.addNamespaceDeclaration("xsi", NS_XSI);
-
-	xoap::SOAPName command = envelope.createName(
-			"ParameterGet", "xdaq", XDAQ_NS_URI);
-	xoap::SOAPName properties = envelope.createName(
-			"properties", "xapp", "urn:xdaq-application:" + klass);
-	xoap::SOAPName parameter = envelope.createName(
-			"stateName", "xapp", "urn:xdaq-application:" + klass);
-	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
-
-	xoap::SOAPElement properties_e = envelope.getBody()
-			.addBodyElement(command)
-			.addChildElement(properties);
-	properties_e.addAttribute(xsitype, "soapenc:Struct");
-
-	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
-	parameter_e.addAttribute(xsitype, "xsd:string");
-
-	return message;
-}
-
-string emu::supervisor::Application::StateTable::extractState(xoap::MessageReference message, string klass) const
-{
-	xoap::SOAPElement root = message->getSOAPPart()
-			.getEnvelope().getBody().getChildElements(
-			*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
-	xoap::SOAPElement properties = root.getChildElements(
-			*(new xoap::SOAPName("properties", "", "")))[0];
-	xoap::SOAPElement state = properties.getChildElements(
-			*(new xoap::SOAPName("stateName", "", "")))[0];
-
-	return state.getValue();
-}
-
 ostream& emu::supervisor::operator<<( ostream& os, const emu::supervisor::Application::StateTable& st ){
   os << endl << "emu::supervisor::Application(0) " << st.app_->fsm_.getCurrentState() << endl;
   for (vector<pair<xdaq::ApplicationDescriptor *, string> >::const_iterator i = st.table_.begin(); i != st.table_.end(); ++i) {
@@ -2847,47 +2420,6 @@ void emu::supervisor::Application::LastLog::webOutput(xgi::Output *out)
 	}
 
 	*out << textarea() << endl;
-}
-
-xoap::MessageReference emu::supervisor::Application::getRunSummary()
-  throw( xcept::Exception ){
-
-  xoap::MessageReference reply;
-
-  // find emu::daq::manager::Application
-  xdaq::ApplicationDescriptor *daqManagerDescriptor;
-  try {
-    daqManagerDescriptor = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("emu::daq::manager::Application", 0);
-  } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    XCEPT_RETHROW(xcept::Exception, "Failed to get run summary from emu::daq::manager::Application", e);
-  }
-
-  // prepare a SOAP message
-  xoap::MessageReference message = createCommandSOAP("QueryRunSummary");
-
-  // send the message
-  try{
-    reply = getApplicationContext()->postSOAP(message, *appDescriptor_, *daqManagerDescriptor);
-
-    // Check if the reply indicates a fault occurred
-    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
-    
-    if(replyBody.hasFault()){
-
-      stringstream oss;
-      string s;
-      
-      oss << "Received fault reply from emu::daq::manager::Application: " << replyBody.getFault().getFaultString();
-      s = oss.str();
-      
-      XCEPT_RAISE(xcept::Exception, s);
-    }
-  } 
-  catch(xcept::Exception e){
-    XCEPT_RETHROW(xcept::Exception, "Failed to get run summary from emu::daq::manager::Application", e);
-  }
-
-  return reply;
 }
 
 
@@ -2991,45 +2523,25 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     // Deserialize reply to run summary query
     //
 
-    // Start and end times
-    xdata::String start_time = "UNKNOWN"; // xdata can readily be serialized into SOAP...
-    xdata::String stop_time  = "UNKNOWN";
-    // FU event count
-    xdata::String built_events = "0";
-    // RUI event counts and instances
-    xdata::Vector<xdata::String> rui_counts; // xdata can readily be serialized into SOAP...
-    xdata::Vector<xdata::String> rui_instances; // xdata can readily be serialized into SOAP...
+    emu::soap::Messenger m( this );
 
-    xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
-    xdata::soap::Serializer serializer;
+    // Start and end times
+    xdata::String start_time( "UNKNOWN" );
+    xdata::String stop_time( "UNKNOWN" );
+    // FU event count
+    xdata::String built_events( "0" );
+    // RUI event counts and instances
+    xdata::Vector<xdata::String> rui_counts;
+    xdata::Vector<xdata::String> rui_instances;
 
     try{
-      xoap::MessageReference reply = getRunSummary();
-      std::stringstream ss;
-      reply->writeTo( ss );
-      DOMDocument* doc = parser->parse( ss.str() );
-      
-      DOMNode* n;
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("start_time") )->item(0);
-      serializer.import( &start_time, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("stop_time") )->item(0);
-      serializer.import( &stop_time, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("built_events") )->item(0);
-      serializer.import( &built_events, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("rui_counts") )->item(0);
-      serializer.import( &rui_counts, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("rui_instances") )->item(0);
-      serializer.import( &rui_instances, n );
-
-      // We're responsible for releasing the memory allocated to DOMDocument
-      doc->release();
-    }
-    catch (xoap::exception::Exception& e){
-      LOG4CPLUS_WARN( logger_, "Failed to parse run summary: " << xcept::stdformat_exception_history(e) );
-      stringstream ss24;
-      ss24 <<  "Failed to parse run summary: "  ;
-      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss24.str(), e );
-      this->notifyQualified( "warn", eObj );
+      m.extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ),
+			   emu::soap::NamedData()                  
+			   .add( "start_time"   , &start_time     ) 
+			   .add( "stop_time"    , &stop_time      ) 
+			   .add( "built_events" , &built_events   ) 
+			   .add( "rui_counts"   , &rui_counts     ) 
+			   .add( "rui_instances", &rui_instances  ) );
     }
     catch( xcept::Exception e ){
       LOG4CPLUS_WARN( logger_, "Run summary unknown: " << xcept::stdformat_exception_history(e) );
@@ -3039,15 +2551,6 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
       this->notifyQualified( "warn", eObj );
     }
     
-    string runNumber;
-    if ( run_number_.toString().size() < 2 || run_number_.toString().size() > 8 ){
-      // Something fishy with this run number. Use start time instead.
-      runNumber = start_time.toString();
-    }
-    else{
-      runNumber = run_number_.toString();
-    }
-
     //
     // run type
     //
@@ -3122,40 +2625,20 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
       }
     }
 
-    xdaq::ApplicationDescriptor *app;
-
     //
     // trigger sources
     //
-    std::map <string,string> namesAndTypes;
-    namesAndTypes.clear();
-    namesAndTypes["ClockSource"  ] = "xsd:string";
-    namesAndTypes["OrbitSource"  ] = "xsd:string";
-    namesAndTypes["TriggerSource"] = "xsd:string";
-    namesAndTypes["BGOSource"    ] = "xsd:string";
-    string ClockSource("UNKNOWN");
-    string OrbitSource("UNKNOWN");
-    string TriggerSource("UNKNOWN");
-    string BGOSource("UNKNOWN");
+    xdata::String ClockSource   = "UNKNOWN";
+    xdata::String OrbitSource   = "UNKNOWN";
+    xdata::String TriggerSource = "UNKNOWN";
+    xdata::String BGOSource     = "UNKNOWN";
     try{
-      app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TTCciControl",2);
-	  xoap::MessageReference message =
-			createParameterGetSOAP("TTCciControl", namesAndTypes);
-	  xoap::MessageReference reply =
-			getApplicationContext()->postSOAP(message, *appDescriptor_, *app);
-	  analyzeReply(message, reply, app);
-      ClockSource   = extractParameter(reply, "ClockSource");
-      OrbitSource   = extractParameter(reply, "OrbitSource");
-      TriggerSource = extractParameter(reply, "TriggerSource");
-      BGOSource     = extractParameter(reply, "BGOSource");
-    }
-    catch(xdaq::exception::ApplicationDescriptorNotFound e) {
-      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 2: " << 
-		      xcept::stdformat_exception_history(e) );
-      stringstream ss29;
-      ss29 << "Failed to get trigger sources from TTCciControl 2: ";
-      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss29.str(), e );
-      this->notifyQualified( "error", eObj );
+      m.getParameters( "TTCciControl", 2,
+		       emu::soap::NamedData()
+		       .add( "ClockSource"  , &ClockSource   ) 
+		       .add( "OrbitSource"  , &OrbitSource   ) 
+		       .add( "TriggerSource", &TriggerSource ) 
+		       .add( "BGOSource"    , &BGOSource     ) );
     }
     catch(xcept::Exception e){
       LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 2: " << 
@@ -3166,7 +2649,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
       this->notifyQualified( "error", eObj );
     }
     name  = "clock_source";
-    value = ClockSource;
+    value = ClockSource.toString();
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
@@ -3188,7 +2671,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
       }
     }
     name  = "orbit_source";
-    value = OrbitSource;
+    value = OrbitSource.toString();
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
@@ -3210,7 +2693,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
       }
     }
     name  = "trigger_source";
-    value = TriggerSource;
+    value = TriggerSource.toString();
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
@@ -3230,7 +2713,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
       }
     }
     name  = "BGO_source";
-    value = BGOSource;
+    value = BGOSource.toString();
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
@@ -3305,9 +2788,6 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
 	}
       }
     }
-
-  // Parser must be explicitly removed, or else it stays in the memory
-  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 }
 
 // End of file

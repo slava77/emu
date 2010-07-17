@@ -148,7 +148,6 @@ private: // XDAQ parameters
 	toolbox::task::WorkLoop *calib_wl_;
 	toolbox::task::ActionSignature *sequencer_signature_;
 	bool quit_calibration_;
-	std::map<string, string> start_attr, stop_attr;
 
 	void submit(toolbox::task::ActionSignature *signature);
 
@@ -159,40 +158,14 @@ private: // XDAQ parameters
 
         void sendCalibrationStatus( unsigned int iRun, unsigned int nRuns, unsigned int iStep, unsigned int nSteps );
 
-        void sendCommand(string command, string klass)
-          throw (xoap::exception::Exception, xcept::Exception);
-        void sendCommand(string command, string klass, int instance)
-          throw (xoap::exception::Exception, xcept::Exception);
-	void sendCommandWithAttr(string command, map<string, string> attr, string klass)
-          throw (xoap::exception::Exception, xcept::Exception);
-
-	xoap::MessageReference createCommandSOAP(string command);
-	xoap::MessageReference createCommandSOAPWithAttr(
-			string command, map<string, string> attr);
-
-	void setParameter(string klass, string name, string type, string value);
-	xoap::MessageReference createParameterSetSOAP(
-			string klass, string name, string type, string value);
-	xoap::MessageReference createParameterGetSOAP(
-			string klass, string name, string type);
-	xoap::MessageReference createParameterGetSOAP(
-			string klass, map<string, string> name_type);
-	void analyzeReply(
-			xoap::MessageReference message, xoap::MessageReference reply,
-			xdaq::ApplicationDescriptor *app);
-	string extractParameter(xoap::MessageReference message, string name);
 	void refreshConfigParameters();
 
 	string getCGIParameter(xgi::Input *in, string name);
 	int keyToIndex(const string key);
 
-	string getCrateConfig(const string type, const string key) const;
 	bool isCalibrationMode();
 	bool isAlctCalibrationMode();
 	int getCalibParamIndex(const string name);
-
-	string trim(string orig) const;
-	string toString(const long int i) const;
 
 	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
 
@@ -236,14 +209,13 @@ private: // XDAQ parameters
 
 	string getDAQMode();
 	string getTTCciSource();
-	bool isDAQConfiguredInSupervisedMode();
 	string getLocalDAQState();
 
 	bool isDAQManagerControlled(string command);
 
         bool waitForDAQToExecute( const string command, const unsigned int seconds, const bool poll = false );
 
-	int nevents_;
+	xdata::Integer nevents_;
 	unsigned int step_counter_;
 
 	string error_message_;
@@ -263,8 +235,6 @@ private: // XDAQ parameters
 	bool isBookedRunNumber_;
 	void bookRunNumber();
 	void writeRunInfo( bool toDatabase );
-        xoap::MessageReference getRunSummary()
-	  throw( xcept::Exception );
 
         bool isCommandFromWeb_; // TRUE if command issued from web interface
 
@@ -282,9 +252,6 @@ private: // XDAQ parameters
 	        Application* getApplication() const { return app_; }
 
 	private:
-		xoap::MessageReference createStateSOAP(string klass) const;
-		string extractState(xoap::MessageReference message, string klass) const;
-
 		Application *app_;
 	        mutable toolbox::BSem bSem_;
 	        time_t lastRefreshTime_;
@@ -311,4 +278,3 @@ private: // XDAQ parameters
 }} // namespace emu::supervisor
 
 #endif
-
