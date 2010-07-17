@@ -332,8 +332,10 @@ void emu::soap::Messenger::addAttachments( xoap::MessageReference message, const
 void emu::soap::Messenger::addAttributes( xoap::MessageReference message, xoap::SOAPElement* element, const emu::soap::NamedData &attributes ){
   // Add attributes to element
   xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+  string elementNamespaceURI    = xoap::XMLCh2String( element->getDOMNode()->getNamespaceURI() );
+  string elementNamespacePrefix = xoap::XMLCh2String( element->getDOMNode()->getPrefix()       );
   for ( emu::soap::NamedData::const_iterator a=attributes.begin(); a!=attributes.end(); ++a ){
-    xoap::SOAPName attrName = envelope.createName( a->first, "", "" );
+    xoap::SOAPName attrName = envelope.createName( a->first, elementNamespacePrefix, elementNamespaceURI );
     element->addAttribute( attrName, a->second->toString() );
   }
 }
@@ -358,9 +360,9 @@ emu::soap::Messenger::extractParameters( xoap::MessageReference reply, emu::soap
   xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
   xdata::soap::Serializer serializer;
 
-  std::stringstream ss;
-  reply->writeTo( ss );
-  DOMDocument* doc = parser->parse( ss.str() );
+  string s;
+  reply->writeTo( s );
+  DOMDocument* doc = parser->parse( s );
   for ( emu::soap::NamedData::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
     DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( ( parametersNamespaceURI.size()>0 ? parametersNamespaceURI.c_str(): "*" ) ), 
 					      xoap::XStr( p->first.c_str() ) 
@@ -377,8 +379,8 @@ emu::soap::Messenger::extractParameters( xoap::MessageReference reply, emu::soap
 
   // We're responsible for releasing the memory allocated to DOMDocument
   doc->release();
-  // Parser must be explicitly removed, or else it stays in the memory
-  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
+  // Do not destroy parser as other threads may be using it.
+  //xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 }
 
 std::string 
