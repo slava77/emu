@@ -356,12 +356,11 @@
     <xsl:param name="N_STEPS"/>
     <svg:svg id="svgProgressBar" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="260" height="16">
       <svg:g id="gProgBarScaler">
-	<svg:rect style="fill:#ffffff; fill-opacity:1;stroke:#000000; stroke-width:1.0; stroke-opacity:1; padding:0;" id="rectRuns" width="260" height="8" x="0." y="0." />
-	<svg:rect style="fill:#ffffff; fill-opacity:1;stroke:#000000; stroke-width:1.0; stroke-opacity:1; padding:0;" id="rectSteps" width="260" height="8" x="0." y="8." />
-	<svg:rect style="fill:#00aa00; fill-opacity:1;stroke:#000000; stroke-width:0.0; stroke-opacity:1" id="barRuns" width="120" height="8" x="0." y="0." />
-	<svg:rect style="fill:#449944; fill-opacity:1;stroke:#000000; stroke-width:0.0; stroke-opacity:1" id="barSteps" width="100" height="8" x="0." y="8." />
-	<svg:text text-anchor="middle" font-size="6" fill="black" x="130." y="6." id="textRuns">run <xsl:value-of select="$I_RUN"/>/<xsl:value-of select="$N_RUNS"/></svg:text>
-	<svg:text text-anchor="middle" font-size="6" fill="black" x="130." y="14." id="textSteps">step <xsl:value-of select="$I_STEP"/>/<xsl:value-of select="$N_STEPS"/></svg:text>
+	<svg:rect style="fill:#ffffff; fill-opacity:1;stroke:#000000; stroke-width:1.0; stroke-opacity:1; padding:0;" id="rectProgFrame" width="260" height="16" x="0." y="0." />
+	<svg:rect style="fill:#00aa00; fill-opacity:1;stroke:#000000; stroke-width:0.0; stroke-opacity:1" id="barRuns" width="0" height="8" x="0." y="0." />
+	<svg:rect style="fill:#449944; fill-opacity:1;stroke:#000000; stroke-width:0.0; stroke-opacity:1" id="barSteps" width="0" height="8" x="0." y="8." />
+	<svg:text text-anchor="middle" dominant-baseline="middle" font-size="14" fill="black" x= "65." y="8." id="textRuns">run <xsl:value-of select="$I_RUN"/>/<xsl:value-of select="$N_RUNS"/></svg:text>
+	<svg:text text-anchor="middle" dominant-baseline="middle" font-size="14" fill="black" x="195." y="8." id="textSteps">step <xsl:value-of select="$I_STEP"/>/<xsl:value-of select="$N_STEPS"/></svg:text>
       </svg:g>
     </svg:svg>
   </xsl:template>

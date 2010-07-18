@@ -653,7 +653,7 @@ function ProgressBar( containing_td_element ){
 
   this.baseContainerWidth  = this.containing_td_element.clientWidth;
   this.viewPortWidth = document.getElementById('svgProgressBar').width.baseVal.value;
-  this.baseRectWidth  = document.getElementById('rectRuns').width.baseVal.value;
+  this.baseRectWidth  = document.getElementById('rectProgFrame').width.baseVal.value;
 
   this.widenToMax = function(){
     // Widen the progress bars to the width of the containing able cell, but not wider than the SVG viewport
