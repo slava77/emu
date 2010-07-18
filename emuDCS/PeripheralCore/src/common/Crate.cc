@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.69 2010/07/17 16:23:42 liu Exp $
+// $Id: Crate.cc,v 3.70 2010/07/18 17:02:38 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.70  2010/07/18 17:02:38  liu
+// more TMB counters in firmware version July 2010
+//
 // Revision 3.69  2010/07/17 16:23:42  liu
 // skip reading TMB counters of OFF chambers even though there is no problem reading them
 //
@@ -686,7 +689,7 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
   //                1   good reading
   //                0   bad reading or no reading (skipped/masked)
 
-  int TOTAL_TMB_COUNTERS=88;  // 9 from CFEB BadBits registers
+  int TOTAL_TMB_COUNTERS=89;  // 9 from CFEB BadBits registers
   int * countbuf, *buf4;
   short *buf2, flag=0;
  
