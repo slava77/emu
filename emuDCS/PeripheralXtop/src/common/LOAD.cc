@@ -60,6 +60,13 @@ void LOAD::init(std::string url)
   inited_ = true;
 }
 
+void LOAD::settimeout(int t_out)
+{
+  /* timeout in seconds */
+   if(t_out>0)
+     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, t_out);
+}
+
 int LOAD::reload()
 {
   if(!inited_) return 0;

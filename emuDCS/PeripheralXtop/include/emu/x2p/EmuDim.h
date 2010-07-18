@@ -1,8 +1,9 @@
-// $Id: EmuDim.h,v 1.14 2009/10/30 14:49:58 liu Exp $
+// $Id: EmuDim.h,v 1.15 2010/07/18 16:41:47 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
 
+#include <time.h>
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
 
@@ -147,7 +148,8 @@ private:
   toolbox::task::Timer * timer_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   int current_state_;
-  int heartbeat;
+  int heartbeat, readin_, read_timeout;
+  time_t readtime_;
 
   std::string xmas_root, xmas_load, xmas_start, xmas_stop, xmas_info;
   std::string blue_root, blue_info, fedc_root, fedc_load;
