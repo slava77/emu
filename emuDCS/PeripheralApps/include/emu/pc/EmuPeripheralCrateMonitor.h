@@ -119,9 +119,9 @@ protected:
   
   int endcap_side;
   std::vector< std::string> monitorables_;
-  bool Monitor_On_, Monitor_Ready_;
+  bool Monitor_On_, Monitor_Ready_, new_data_;
   bool fast_on, slow_on, extra_on, reload_vcc;
-  int fast_count, slow_count, extra_count;
+  int fast_count, slow_count, extra_count, x2p_count;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   toolbox::task::Timer * timer_;
   //

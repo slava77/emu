@@ -119,6 +119,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
 
   Monitor_On_ = false;
   Monitor_Ready_ = false;
+  new_data_ = false;
   fast_on = true;
   slow_on = true;
   extra_on = true;
@@ -126,6 +127,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   fast_count = 0;
   slow_count = 0;
   extra_count = 0;
+  x2p_count = 0;
   read_interval=0;
 
   global_config_states[0]="UnConfiged";
@@ -149,6 +151,8 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   dcs_mask.clear();
   tmb_mask.clear();
   dmb_mask.clear();
+  vcc_reset.clear();
+  crate_off.clear();
 
   parsed=0;
 }
@@ -188,6 +192,7 @@ void EmuPeripheralCrateMonitor::ReadingOff()
          Monitor_On_=false;
          msgHandler("Monitor Reading Off", 1);
      }
+     new_data_ = false;
      fireEvent("Halt");
 }
 
@@ -244,7 +249,11 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onSlowLoop (xoap::MessageRefer
 {
   // std::cout << "SOAP Slow Loop" << std::endl;
   slow_count++;
-  if(slow_on) PublishEmuInfospace(2);
+  if(slow_on) 
+  {  
+      PublishEmuInfospace(2);
+      new_data_ = true;
+  }
   return createReply(message);
 }
 
@@ -266,23 +275,12 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
         InitCounterNames();
         //Create infospaces for monitoring
         monitorables_.clear();
-        vcc_reset.clear();
-        crate_off.clear();
         for ( unsigned int i = 0; i < crateVector.size(); i++ )
         {
                 toolbox::net::URN urn = this->createQualifiedInfoSpace("EMu_"+(crateVector[i]->GetLabel())+"_PCrate");
                 std::cout << "Crate " << i << " " << urn.toString() << std::endl;
                 monitorables_.push_back(urn.toString());
                 xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(urn.toString());
-
-            // for masks
-                dcs_mask.push_back(0);
-                tmb_mask.push_back(0);
-                dmb_mask.push_back(0);
-
-            // for VCC
-                vcc_reset.push_back(0);
-                crate_off.push_back(false);
 
             // for CCB, MPC, TTC etc.
                 is->fireItemAvailable("CCBcounter",new xdata::Vector<xdata::UnsignedShort>());
@@ -315,6 +313,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
    //           3  extra loop (e.g. CCB MPC TTC status)
 
       Crate * now_crate;
+      std::vector<DAQMB*> myDmbs;
       xdata::InfoSpace * is;
       char buf[8000];
       xdata::UnsignedInteger32 *counter32;
@@ -323,6 +322,8 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       unsigned short *buf2;
       buf2=(unsigned short *)buf;
       buf4=(unsigned long *)buf;
+      bool dmbpoweroff[9];
+
       if(cycle<1 || cycle>3) return;
       if(total_crates_<=0) return;
       //update infospaces
@@ -332,20 +333,26 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
           now_crate=crateVector[i];
           if(now_crate==NULL) continue;
+          myDmbs = now_crate->daqmbs();
+          for(unsigned int dmbn=0; dmbn<myDmbs.size(); dmbn++)
+          {   
+              int mask=myDmbs[dmbn]->GetPowerMask();
+              dmbpoweroff[dmbn]= (mask==0x3F);
+          }
 
           // begin: reload VCC's FPGA (F9)
-          if(cycle==3 && reload_vcc && !(now_crate->IsAlive()))
+          if(cycle>1 && reload_vcc && !(now_crate->IsAlive()))
           {
                 int cr = now_crate->CheckController();
                 if (cr==1)
                 {
                    now_crate->vmeController()->reset();
                    vcc_reset[i] = vcc_reset[i] + 1;
-                   // ::sleep(1);
+                   ::sleep(1);
                    // cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
                    // now_crate->SetLife( cr );
                    now_crate->SetLife( true );
-                   continue;  // skip this round of reading if the VCC has been reloaded
+                   // continue;  // skip this round of reading if the VCC has been reloaded
                 }
           }
           // end: reload
@@ -389,8 +396,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           int cfebnum=(ii%48)%19;
                           if(cfebnum>17) cfebnum=17;
                           cfebnum= cfebnum/3 + 1;       
-                          if((dcs_mask[i] & (1<<boardid))>0 || (ii%48)==17 || (ii%48)>37 || (cratename.substr(4,1)=="4" && dmbslot>7))
+                          if((dcs_mask[i] & (1<<boardid))>0 || dmbpoweroff[boardid] || (ii%48)==17 || (ii%48)>37 || (cratename.substr(4,1)=="4" && dmbslot>7))
                           { // ignore masked boards
+                            // igonre powered-off boards 
                             // ignore ALCT 5.5B current or Analog/Digital Feed
                             // nothing for empty slots
                           }
@@ -426,8 +434,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           // for ALCT temperature reading error handling
                           int tmbslot=(ii/48)*2+2;
                           if(tmbslot>10) tmbslot += 2;
-                          if((dcs_mask[i] & (1<<boardid))>0 || (cratename.substr(4,1)=="4" && tmbslot>6))
+                          if((dcs_mask[i] & (1<<boardid))>0 || dmbpoweroff[boardid] || (cratename.substr(4,1)=="4" && tmbslot>6))
                           { // ignore masked boards
+                            // igonre powered-off boards
                             // nothing for empty slots
                           }
                           else
@@ -493,9 +502,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           }
           else
           {  // for non-communicating crates
-             std::cout << "Crate " << now_crate->GetLabel() << " inactive at " << getLocalDateTime() << std::endl;
              if( cycle==2 )
              {
+                   std::cout << "Crate " << now_crate->GetLabel() << " inactive at " << getLocalDateTime() << std::endl;
                    counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
                    *counter16 = 0;
              }
@@ -747,7 +756,7 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   //End select crate
  
     *out << cgicc::br()<< std::endl;
-    std::cout << "Main Page: "<< std::dec << total_crates_ << " Crates" << std::endl;
+    std::cout << "Main Page: "<< std::dec << total_crates_ << " Crates at " << getLocalDateTime() << std::endl;
   //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:cyan");
     *out << std::endl;
@@ -1640,6 +1649,17 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
     if(total_crates_<=0) return false;
     this_crate_no_=0;
 
+    for ( unsigned int i = 0; i < crateVector.size(); i++ )
+    { 
+        // for masks
+        dcs_mask.push_back(0);
+        tmb_mask.push_back(0);
+        dmb_mask.push_back(0);
+
+        // for VCC
+        vcc_reset.push_back(0);
+        crate_off.push_back(false);
+    }
     SetCurrentCrate(this_crate_no_);
     //
     std::string endcap_name=crateVector[0]->GetLabel();
@@ -2438,6 +2458,7 @@ void EmuPeripheralCrateMonitor::DatabaseOutput(xgi::Input * in, xgi::Output * ou
   throw (xgi::exception::Exception) {
 
   std::vector<TMB*> myVector;
+  std::vector<DAQMB*> myDmbs;
   int n_value;
   xdata::InfoSpace * is;
   char tcname[5]="TC00";
@@ -2455,6 +2476,8 @@ void EmuPeripheralCrateMonitor::DatabaseOutput(xgi::Input * in, xgi::Output * ou
 
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
+     if(crate_off[i]) continue;
+ 
      std::string cratename = crateVector[i]->GetLabel();
 
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
@@ -2462,8 +2485,12 @@ void EmuPeripheralCrateMonitor::DatabaseOutput(xgi::Input * in, xgi::Output * ou
      if(tmbdata==NULL || tmbdata->size()==0) continue;
      
      myVector = crateVector[i]->tmbs();
+     myDmbs = crateVector[i]->daqmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
+        int imask = 0x3F & (myDmbs[j]->GetPowerMask());
+        if (imask==0x3F) continue;
+        
         *out << "    <count chamber=\"";
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
         *out << "\" ";
@@ -2648,6 +2675,15 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
+           // status bit pattern:
+           //   bit 0 (value  1):  misc. errors
+           //       1 (value  2):  chamber power off from Configuration DB
+           //       2 (value  4):  data corrupted (in infospace or during transimission)
+           //       3 (value  8):  VCC not accessible
+           //       4 (value 16):  Reading error
+           //       5 (value 32):  crate OFF
+           //       6 (value 64):  module which caused reading trouble
+
   unsigned int readtime;
   unsigned short crateok, good_chamber;
   float val;
@@ -2655,7 +2691,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   int TOTAL_DCS_COUNTERS=48;
   xdata::InfoSpace * is;
   std::string mac;
-  int ip, slot;
+  int ip, slot, ch_state;
+  unsigned int bad_module;
   bool gooddata;
 
   if(!Monitor_Ready_)
@@ -2665,9 +2702,34 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      return;
   }
 
+  x2p_count++;
+  std::cout << "Access " << x2p_count << " at " << getLocalDateTime() << std::endl;
+
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     if(crate_off[i]) continue;
+     if(crate_off[i])
+     {  // for OFF crates, send -2. in all fields, timestamp is current
+        myVector = crateVector[i]->daqmbs();
+        for(unsigned int j=0; j<myVector.size(); j++) 
+        {
+           slot = myVector[j]->slot();
+           ip = (ip & 0xff) + slot*256;
+           *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+
+           // status 32 ==>crate OFF
+           *out << " 32";
+
+           *out << " " << time(NULL) << " " << ip;
+           for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
+           {  
+              *out << " -2.";
+           }
+           *out << " -50";  // as end-of-line marker
+           *out << std::endl;
+        }
+        continue;
+     }  // end of OFF crates 
+
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
      if(dmbdata==NULL || dmbdata->size()==0)
@@ -2690,29 +2752,44 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      }
      mac=crateVector[i]->vmeController()->GetMAC(0);
      ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
+     ch_state=0;
+     bad_module = (good_chamber>>10) & 0xF;
+
      *out << std::setprecision(5);
      myVector = crateVector[i]->daqmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
+        int imask= 0x3F & (myVector[j]->GetPowerMask());
+        bool chamber_off = (imask==0x3F);
         slot = myVector[j]->slot();
         ip = (ip & 0xff) + slot*256;
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
 
-        // pattern in decimal format: 00AB
-        //    B -> VCC  (0=bad)
-        //    A -> Chamber (0=bad)
-        *out << " " << crateok + ((good_chamber & (1<<j))?10:0); 
+        ch_state=0;
+        if (chamber_off) ch_state |= 2;
+        else if (!gooddata) ch_state |= 4;
+        else if (crateok==0) ch_state |= 8;
+        else if ((good_chamber & (1<<j))==0) ch_state |= 16;
+
+        // the module which probably caused reading trouble
+        if(gooddata && ch_state>0 && bad_module==j+1) ch_state |= 64;
+
+        *out << " " << ch_state; 
 
         *out << " " << readtime << " " << ip;
-        if(gooddata)
-        {  // the last value isn't read out, skip
-           for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
-           {  val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
+        for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
+        {  
+           if(ch_state==0)
+           { 
+              val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
               *out << " " << val;
            }
-           *out << " -50";  // as end-of-line marker
+           else
+           {
+              *out << " -2.";
+           }             
         }
-        *out << std::endl;
+        *out << " -50" << std::endl;  // as end-of-line marker
      }
   }
 
@@ -2954,6 +3031,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
 
   if (command_name=="CRATEOFF")
   {
+     if(!parsed) return;
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
         if(command_argu=="ALL" || command_argu==crateVector[i]->GetLabel())
@@ -2964,10 +3042,12 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   }
   else if (command_name=="CRATEON")
   {
+     if(!parsed) return;
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
         if(command_argu=="ALL" || command_argu==crateVector[i]->GetLabel())
         {   crate_off[i] = false;
+            crateVector[i]->SetLife(true);
             std::cout << "SwitchBoard: enable crate " << command_argu << " at " << getLocalDateTime() << std::endl;
         }
      }
@@ -2994,6 +3074,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   }
   else if (command_name=="STATUS")
   {
+     if(!parsed) return;
      *out << "Monitor " << (std::string)((Monitor_On_)?"ON":"OFF");
      *out << " Heartbeat " << fast_count;
      *out << " Crates " << crateVector.size() << " ";
@@ -3006,6 +3087,14 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      }
      *out << std::endl;
   }
+  else if (command_name=="NEWDATA")
+  {
+     if(!new_data_)
+     {  
+        PublishEmuInfospace(2);
+        new_data_ = true;
+     }
+  }
   else if (command_name=="RELOAD")
   {
      std::cout << " Check Configuration DB, auto reload if needed " << " at " << getLocalDateTime() << std::endl;
@@ -3013,7 +3102,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   }
   else if (command_name=="LISTMASK")
   {
-     if(!Monitor_Ready_) return;
+     if(!parsed) return;
      // std::cout << "List of all masks:" << std::endl;
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
@@ -3027,11 +3116,13 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   }
   else if (command_name=="MASKON" || command_name=="MASKOFF")
   {
-     if(!Monitor_Ready_) return;
+     if(!parsed) return;
+     if(command_argu=="" || command_argu.length()<13) return;
      std::string board=command_argu.substr(0,3);
      std::string detail=command_argu.substr(4);
      std::string maskcrate=detail.substr(0,detail.find("-",0));
      std::string maskst=detail.substr(detail.find("-",0)+1);
+     if(maskcrate=="" || maskst=="") return;
      int maskid=atoi(maskst.c_str());
      if(maskid<1 || maskid>9) return;
      bool goodmask=false;
