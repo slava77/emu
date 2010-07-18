@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.39 2010/07/15 11:41:08 liu Exp $
+// $Id: EmuDim.cc,v 1.40 2010/07/18 16:41:47 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -33,6 +33,8 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   OpMode_ = 0;
   EndCap_ = 0;
   heartbeat = 0;
+  readin_ = 0;
+  read_timeout = 0;
 
   xgi::bind(this,&EmuDim::Default, "Default");
   xgi::bind(this,&EmuDim::MainPage, "MainPage");
@@ -121,6 +123,24 @@ void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
 
      // always check DimCommand
      CheckCommand();
+
+     // check reading timeout
+     if(strncmp(name.c_str(),"EmuDimCmnd",13)==0) 
+     {  if( readin_==1 || readin_==3 )
+        {
+           time_t nowtime=time(NULL);
+           if((nowtime-readtime_)>60) 
+           {   
+              if(read_timeout != readin_)
+                 std::cout << "Timeout " << readin_ << " on " << heartbeat << std::endl;
+              read_timeout = readin_;
+           }
+           else
+           {
+              read_timeout = 0;
+           }
+        }
+     }
 
      // if( Suspended_ ) return;
      if(strncmp(name.c_str(),"EmuDimRead",13)==0) 
@@ -309,6 +329,7 @@ void EmuDim::Setup()
    fedc_root=FedcDcsUrl_;
    fedc_load=fedc_root + "/DCSOutput";
    FedcLoader->init(fedc_load.c_str());
+   FedcLoader->settimeout(60);
 
    std::string fn=PeripheralCrateDimFile_;
    int ch=ReadFromFile(fn.c_str());
@@ -316,8 +337,14 @@ void EmuDim::Setup()
       std::cout << "ERROR in read file " << fn << std::endl;
 
    ch=ReadFromXmas();
+   // try one more time for the first time
    if(ch<=0) 
-      std::cout << "ERROR in connecting monitor process." << std::endl;
+   {
+      ::sleep(60);
+      heartbeat++;
+      ch=ReadFromXmas();
+   }
+   if(ch<=0) std::cout << "ERROR in connecting monitor process." << std::endl;
    StartDim();
    inited=true;
 }
@@ -348,21 +375,29 @@ int EmuDim::ReadFromFile(const char *filename)
 
 int EmuDim::ReadFromXmas()
 {
-  int ch=0, du=0;
+   int ch=0, du=0;
+
+   readin_=1;
+   readtime_=time(NULL);
    // read
    XmasLoader->reload(xmas_load);
 
+   readin_=2; 
    // then fill the structure
-   ch=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), inited?0:1);
-   std::cout << ch << " Chambers and ";
+   ch=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), 0);
+   std::cout << "Cycle " << heartbeat << " read " << ch << " Chambers and ";
    // 
+   readin_=3;
+   readtime_=time(NULL);
    // read
    FedcLoader->reload(fedc_load);
 
+   readin_=4;
    // then fill the structure
    du=ParseDDU(FedcLoader->Content(), FedcLoader->Content_Size(), inited?0:1);
-   std::cout << du << " DDUs on " << heartbeat << " at " << getLocalDateTime() << std::endl;
+   std::cout << du << " DDUs at " << getLocalDateTime() << std::endl;
    // 
+   readin_=0;
    return ch;
 }
 
@@ -678,7 +713,12 @@ void EmuDim::CheckCommand()
       else if(cmnd.substr(0,12)=="RESUME_SLOW_")
       {
          XmasLoader->reload(xmas_start);
-         Suspended_ = false;
+         if(Suspended_)
+         {  
+            ::sleep(3);
+            XmasLoader->reload(xmas_info+"?NEWDATA");
+            Suspended_ = false;
+         }
          start_powerup=false;
          for(int i=0; i<TOTAL_CRATES; i++)
          {

@@ -25,6 +25,7 @@ public:
   inline int Content_Size() { return cont_size; }
   inline std::string Url() { return URL_; }
   void init(std::string url);
+  void settimeout(int t_out);
   int reload();
   int reload(std::string url);
   void end();
