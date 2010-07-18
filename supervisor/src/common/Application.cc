@@ -1951,7 +1951,7 @@ xoap::MessageReference emu::supervisor::Application::doSoapOpGetState(const std:
 bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetState, const unsigned int seconds ){
   if ( tf_descr_ == NULL ) return false;
 
-  // Poll, and return TRUE if and only if DAQ gets into the expected state before timeout.
+  // Poll, and return TRUE if and only if TF Cell Operation gets into the expected state before timeout.
   for ( unsigned int i=0; i<=seconds; ++i ){
     TFCellOpState_ = OpGetStateCell();
     if ( TFCellOpState_.toString() == targetState ){ return true; }
@@ -2122,8 +2122,8 @@ bool emu::supervisor::Application::waitForDAQToExecute( const string command, co
   // Poll, and return TRUE if and only if DAQ gets into the expected state before timeout.
   emu::soap::Messenger m( this );
   xdata::String  daqState;
-  m.getParameters( "emu::daq::manager::Application", 0, emu::soap::NamedData().add( "daqState", &daqState ) );
   for ( unsigned int i=0; i<=seconds; ++i ){
+    m.getParameters( "emu::daq::manager::Application", 0, emu::soap::NamedData().add( "daqState", &daqState ) );
     if ( daqState.toString() != "Halted"  && daqState.toString() != "Ready" && 
 	 daqState.toString() != "Enabled" && daqState.toString() != "INDEFINITE" ){
       LOG4CPLUS_ERROR( logger_, "Local DAQ is in " << daqState.toString() << " state. Please destroy and recreate local DAQ." );
