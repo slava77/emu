@@ -2232,13 +2232,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
   //
   int counter_idx[25]={ 0 ,  1,  2,  3,  7, 11, 13, 14, 15, 16,
                         17, 18, 26, 30, 31, 32, 35, 41, 42, 48,
-                        50, 54, 57, 62, 87};
-
-#if 0
-  int counter_idx[23]={ 0 ,  1,  3,  4,  5, 13, 14, 17, 20, 28,
-                        29, 30, 31, 34, 35, 37, 40, 41, 44, 45,
-                        48, 49, 64};
-#endif
+                        50, 54, 57, 63, 88};
 
   std::ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
@@ -2470,7 +2464,7 @@ void EmuPeripheralCrateMonitor::DatabaseOutput(xgi::Input * in, xgi::Output * ou
   toolbox::TimeVal currentTime;
   xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
   *out << now_time.toString();
-  *out << "\" version=\"1.0\">" << std::endl;
+  *out << "\" version=\"1.1\">" << std::endl;
 
 //  *out << "  <sample name=\"cumulative\" delta_t=\"1000\">" << std::endl;
 
@@ -2526,7 +2520,7 @@ void EmuPeripheralCrateMonitor::EmuCounterNames(xgi::Input * in, xgi::Output * o
   toolbox::TimeVal currentTime;
   xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
   *out << now_time.toString();
-  *out << "\" version=\"1.0\">" << std::endl;
+  *out << "\" version=\"1.1\">" << std::endl;
   for(int tc=0; tc<TOTAL_TMB_COUNTERS; tc++)
   {
       *out << "    <count name=\"";
@@ -3413,44 +3407,45 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "L1A:  L1A received, no TMB in window                    "); // 55
     TCounterName.push_back( "L1A:  TMB triggered, no L1A in window                   "); 
     TCounterName.push_back( "L1A:  TMB readouts completed                            ");
+    TCounterName.push_back( "L1A:  TMB readouts lost by 1-event-per-L1A limit        ");
     TCounterName.push_back( "STAT: CLCT Triads skipped                               ");
-    TCounterName.push_back( "STAT: Raw hits buffer had to be reset                   ");
 
-    TCounterName.push_back( "STAT: TTC Resyncs received                              "); // 60
+    TCounterName.push_back( "STAT: Raw hits buffer had to be reset                   "); // 60
+    TCounterName.push_back( "STAT: TTC Resyncs received                              "); 
     TCounterName.push_back( "STAT: Sync Error, BC0/BXN=offset mismatch               "); 
     TCounterName.push_back( "STAT: Parity Error in CFEB or RPC raw hits RAM          ");
     TCounterName.push_back( "HDR:  Pretrigger counter                                ");
-    TCounterName.push_back( "HDR:  CLCT counter                                      ");
 
-    TCounterName.push_back( "HDR:  TMB trigger counter                               "); // 65
+    TCounterName.push_back( "HDR:  CLCT counter                                      "); // 65
+    TCounterName.push_back( "HDR:  TMB trigger counter                               ");
     TCounterName.push_back( "HDR:  ALCTs received counter                            ");
     TCounterName.push_back( "HDR:  L1As received counter (12 bits)                   ");
     TCounterName.push_back( "HDR:  Readout counter (12 bits)                         ");
-    TCounterName.push_back( "HDR:  Orbit counter                                     ");
 
-    TCounterName.push_back( "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 "); // 70
+    TCounterName.push_back( "HDR:  Orbit counter                                     "); // 70
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 "); 
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ");
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ");
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ");
-    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 ");
 
-    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  "); // 75
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 "); // 75
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ");
     TCounterName.push_back( "CCB:  TTCrx lock lost                                   ");
     TCounterName.push_back( "CCB:  qPLL lock lost                                    "); 
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Control                             "); // 78    
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 1                           ");     
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Control                             ");     
 
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 2                           "); // 80    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 1                           "); // 80    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 2                           "); //    
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 3                           "); //    
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 4                           "); //    
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 5                           "); //    
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 6                           "); //    
 
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 7                           "); // 85    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 6                           "); // 85   
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 7                           "); //     
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 8                           "); //   
-    TCounterName.push_back( "TMB:  Time since last Hard Reset                        "); // 87
+    TCounterName.push_back( "TMB:  Time since last Hard Reset                        "); // 88
 
-    TOTAL_TMB_COUNTERS=88;
+    TOTAL_TMB_COUNTERS=89;
 
     DCounterName.push_back( "L1A to LCT delay");  // 0
     DCounterName.push_back( "CFEB DAV delay  ");
