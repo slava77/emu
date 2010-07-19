@@ -366,7 +366,10 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
         }
         crate_state[current_crate_] = (rt==0)?1:0;
         if(rt==0)
+        {
            PCsendCommandwithAttr("SoapInfo", "CrateUp", ThisCrateID_, "emu::x2p::EmuDim");
+           msgHandler("Info:   Power-Up-Init Crate " + ThisCrateID_ + " done");
+        }
      }
      this->Default(in,out);
   }
@@ -379,10 +382,14 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
     {
         if(crateVector[i] && crateVector[i]->IsAlive())
         {   int rt=0;
+            std::string cratename = crateVector[i]->GetLabel();
             if(!Simulation_) rt=crateVector[i]->configure(c);
             crate_state[i] = (rt==0)?1:0;
             if(c==2 && rt==0)
-               PCsendCommandwithAttr("SoapInfo", "CrateUp", crateVector[i]->GetLabel(), "emu::x2p::EmuDim");
+            {
+               PCsendCommandwithAttr("SoapInfo", "CrateUp", cratename, "emu::x2p::EmuDim");
+               msgHandler("Info: Power-Up-Init Crate " + cratename + " done");
+            }
         }
     }
     current_config_state_=2;

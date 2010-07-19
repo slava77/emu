@@ -507,6 +507,8 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    std::cout << "Crate " << now_crate->GetLabel() << " inactive at " << getLocalDateTime() << std::endl;
                    counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
                    *counter16 = 0;
+                   counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
+                   *counter32 = time(NULL);
              }
           }
 
@@ -2771,6 +2773,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         *out << " " << ch_state; 
 
         *out << " " << readtime << " " << ip;
+        *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
         {  
            if(ch_state==0)
@@ -3083,6 +3086,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   }
   else if (command_name=="NEWDATA")
   {
+     if(!parsed) return;
      if(!new_data_)
      {  
         PublishEmuInfospace(2);
