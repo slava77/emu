@@ -15,6 +15,7 @@ ifeq ($(Set),framework)
 Packages=\
 	base \
         supervisor \
+        soap \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
 	emuDCS/PeripheralXtop \

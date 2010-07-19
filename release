@@ -9,6 +9,7 @@ emuDCS/OnlineDB
 emuDCS/FEDCore
 emuDCS/FEDUtils
 emuDCS/FEDApps
+soap
 Makefile
 rpm_version
 release
