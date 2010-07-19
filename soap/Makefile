@@ -20,7 +20,8 @@ Link=""
 
 Sources = \
 	Attachment.cc \
-	NamedData.cc \
+	Attributes.cc \
+	Parameters.cc \
         Messenger.cc \
 	version.cc
 
