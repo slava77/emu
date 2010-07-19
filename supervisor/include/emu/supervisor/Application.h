@@ -172,35 +172,17 @@ private: // XDAQ parameters
         void getAppDescriptors();
 
   //////////////////////////////////////////////////////////////
-  xdata::Serializable* analyse(DOMNode* com);
-  xdata::Serializable* analyseSoapBag(DOMNode* com);
-  xdata::Serializable* analyseSoapVector(DOMNode* com);
-  xdata::Serializable* getPayload(xoap::MessageReference msg); 
 
   void sendCommandCellOpInit();
-    //throw (xoap::exception::Exception, xcept::Exception);
  
   void sendCommandCell(string command);
-    //throw (xoap::exception::Exception, xcept::Exception);
 
   std::string OpGetStateCell();
-    //throw (xoap::exception::Exception, xcept::Exception);
 
   void OpResetCell();
-    //throw (xoap::exception::Exception, xcept::Exception);
 
   void sendCommandCellOpkill();
-    //throw (xoap::exception::Exception, xcept::Exception);
 
-  xoap::MessageReference doSoapOpInit(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& op, std::map<std::string,xdata::Serializable*> param, const std::string& cb,const std::string& url,const std::string& urn, const std::string& opId="");
- 
-  xoap::MessageReference doSoapOpSendComand(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& opid, const std::string& command, std::map<std::string,xdata::Serializable*> param,  const std::string& cb,const std::string& url,const std::string& urn);
-
-  xoap::MessageReference doSoapOpGetState(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& opid, const std::string& cb,const std::string& url,const std::string& urn);
-
-  xoap::MessageReference doSoapOpKill(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& op, const std::string& cb,const std::string& url,const std::string& urn); 
-
- xoap::MessageReference doSoapOpReset(const std::string& ns, const std::string& cid, const std::string& sid, bool async, const std::string& op, const std::string& cb,const std::string& url,const std::string& urn);
   //////////////////////////////////////////////////////////////
 
   bool waitForTFCellOpToReach( const string targetState, const unsigned int seconds );
