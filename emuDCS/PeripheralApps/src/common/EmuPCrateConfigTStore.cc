@@ -1718,6 +1718,9 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   std::string CFEB2_RXD_INT_DELAY("CFEB2_RXD_INT_DELAY");
   std::string CFEB3_RXD_INT_DELAY("CFEB3_RXD_INT_DELAY");
   std::string CFEB4_RXD_INT_DELAY("CFEB4_RXD_INT_DELAY");
+  std::string CFEB_BADBITS_READOUT("CFEB_BADBITS_READOUT");
+  std::string L1A_PRIORITY_ENABLE("L1A_PRIORITY_ENABLE");
+  std::string MINISCOPE_ENABLE("MINISCOPE_ENABLE");
   xdata::UnsignedShort     _adjacent_cfeb_distance        = TStore_thisTMB->GetAdjacentCfebDistance();
   xdata::UnsignedShort     _aff_thresh                    = TStore_thisTMB->GetActiveFebFlagThresh();
   xdata::UnsignedShort     _alct_bx0_delay                = TStore_thisTMB->GetAlctBx0Delay();
@@ -1850,6 +1853,9 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   xdata::UnsignedShort	   _cfeb2_rxd_int_delay		= TStore_thisTMB->GetCFEB2RxdIntDelay();
   xdata::UnsignedShort	   _cfeb3_rxd_int_delay		= TStore_thisTMB->GetCFEB3RxdIntDelay();
   xdata::UnsignedShort	   _cfeb4_rxd_int_delay		= TStore_thisTMB->GetCFEB4RxdIntDelay();
+  xdata::UnsignedShort	   _cfeb_badbits_readout	= TStore_thisTMB->GetCFEBBadBitsReadout();
+  xdata::UnsignedShort	   _l1a_priority_enable		= TStore_thisTMB->GetL1APriorityEnable();
+  xdata::UnsignedShort	   _miniscope_enable		= TStore_thisTMB->GetMiniscopeEnable();
 
   
     newRows.setValueAt(rowId, ADJACENT_CFEB_DISTANCE,        _adjacent_cfeb_distance); 
@@ -1975,6 +1981,9 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   newRows.setValueAt(rowId,CFEB2_RXD_INT_DELAY, _cfeb2_rxd_int_delay);
   newRows.setValueAt(rowId,CFEB3_RXD_INT_DELAY, _cfeb3_rxd_int_delay);
   newRows.setValueAt(rowId,CFEB4_RXD_INT_DELAY, _cfeb4_rxd_int_delay);
+  newRows.setValueAt(rowId,CFEB_BADBITS_READOUT, _cfeb_badbits_readout);
+  newRows.setValueAt(rowId,L1A_PRIORITY_ENABLE, _l1a_priority_enable);
+  newRows.setValueAt(rowId,MINISCOPE_ENABLE, _miniscope_enable);
   } catch (xcept::Exception &e) {
 	  std::cout << e.what() << std::endl;
 	  XCEPT_RETHROW(xgi::exception::Exception,"could not copy to TMB",e);
@@ -2983,6 +2992,9 @@ void EmuPCrateConfigTStore::readTMB(const std::string &connectionID, const std::
       if (*column == "CFEB2_RXD_INT_DELAY"   ) {tmb_->SetCFEB2RxdIntDelay(IntValue);          }
       if (*column == "CFEB3_RXD_INT_DELAY"   ) {tmb_->SetCFEB3RxdIntDelay(IntValue);          }
       if (*column == "CFEB4_RXD_INT_DELAY"   ) {tmb_->SetCFEB4RxdIntDelay(IntValue);          }
+      if (*column == "CFEB_BADBITS_READOUT"  ) {tmb_->SetCFEBBadBitsReadout(IntValue);        }
+      if (*column == "L1A_PRIORITY_ENABLE"   ) {tmb_->SetL1APriorityEnable(IntValue);         }
+      if (*column == "MINISCOPE_ENABLE"      ) {tmb_->SetMiniscopeEnable(IntValue);           }
       
       if (*column == "TMB_CONFIG_ID"                ) {tmb_config_id_ = StrgValue;                   }
       

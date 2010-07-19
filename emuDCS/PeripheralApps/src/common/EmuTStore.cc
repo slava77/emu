@@ -1073,6 +1073,9 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
 	if (*column == "CFEB2_RXD_INT_DELAY"   ) {tmb_->SetCFEB2RxdIntDelay(IntValue);          }
 	if (*column == "CFEB3_RXD_INT_DELAY"   ) {tmb_->SetCFEB3RxdIntDelay(IntValue);          }
 	if (*column == "CFEB4_RXD_INT_DELAY"   ) {tmb_->SetCFEB4RxdIntDelay(IntValue);          }	 
+	if (*column == "CFEB_BADBITS_READOUT"  ) {tmb_->SetCFEBBadBitsReadout(IntValue);        }	 
+	if (*column == "L1A_PRIORITY_ENABLE"   ) {tmb_->SetL1APriorityEnable(IntValue);         }	 
+	if (*column == "MINISCOPE_ENABLE"      ) {tmb_->SetMiniscopeEnable(IntValue);           }	 
       if (*column == "TMB_CONFIG_ID"                ) {tmb_config_id_ = StrgValue;                   }
 
       if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
