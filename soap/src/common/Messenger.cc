@@ -19,10 +19,8 @@
 #include "pt/PeerTransportSender.h"
 #include "pt/SOAPMessenger.h"
 
-//TODO: post SOAP to URL, doxygenate
-
-const emu::soap::NamedData emu::soap::Messenger::noAttributes = emu::soap::NamedData();
-const emu::soap::NamedData emu::soap::Messenger::noParameters = emu::soap::NamedData();
+const emu::soap::Attributes emu::soap::Messenger::noAttributes = emu::soap::Attributes();
+const emu::soap::Parameters emu::soap::Messenger::noParameters = emu::soap::Parameters();
 const std::vector<emu::soap::Attachment> emu::soap::Messenger::noAttachments = std::vector<emu::soap::Attachment>();
 
 emu::soap::Messenger::Messenger(){}
@@ -47,7 +45,7 @@ xdaq::ApplicationDescriptor* emu::soap::Messenger::getAppDescriptor( const std::
 }
 
 void
-emu::soap::Messenger::setParameters( xdaq::ApplicationDescriptor *target, const emu::soap::NamedData &parameters ){
+emu::soap::Messenger::setParameters( xdaq::ApplicationDescriptor *target, const emu::soap::Parameters &parameters ){
   try{
     string targetAppNamespaceURI = string( XDAQ_APP_URN_BASE ) + target->getClassName();
 
@@ -116,13 +114,13 @@ emu::soap::Messenger::setParameters( xdaq::ApplicationDescriptor *target, const 
 }
 
 void
-emu::soap::Messenger::setParameters( const string &className, const unsigned int instance, emu::soap::NamedData &parameters ){
+emu::soap::Messenger::setParameters( const string &className, const unsigned int instance, const emu::soap::Parameters &parameters ){
   xdaq::ApplicationDescriptor* target = getAppDescriptor( className, instance );
   setParameters( target, parameters );
 }
 
 void
-emu::soap::Messenger::setParameters( const string &className, emu::soap::NamedData &parameters ){
+emu::soap::Messenger::setParameters( const string &className, const emu::soap::Parameters &parameters ){
   std::set<xdaq::ApplicationDescriptor *> apps = application_->getApplicationContext()->getDefaultZone()->getApplicationDescriptors( className );
 
   if ( apps.size() == 0 ){
@@ -138,8 +136,9 @@ emu::soap::Messenger::setParameters( const string &className, emu::soap::NamedDa
 xoap::MessageReference
 emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
 				   const std::string &command,
-				   const emu::soap::NamedData &parameters,
-				   const emu::soap::NamedData &attributes,
+				   const std::string &commandNamespaceURI,
+				   const emu::soap::Parameters &parameters,
+				   const emu::soap::Attributes &attributes,
 				   const vector<emu::soap::Attachment> &attachments ){
   xoap::MessageReference message;
   xoap::MessageReference reply;
@@ -155,7 +154,7 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
 
     // Add command
     xoap::SOAPBody        body       = envelope.getBody();
-    xoap::SOAPName        cmdName    = envelope.createName( command, "xdaq", XDAQ_NS_URI );
+    xoap::SOAPName        cmdName    = envelope.createName( command, "xdaq", commandNamespaceURI ); // Prefix must be "xdaq" for LTC... :-(
     xoap::SOAPBodyElement cmdElement = body.addBodyElement( cmdName );
 
     // Add attributes (if any) to command
@@ -215,18 +214,20 @@ xoap::MessageReference
 emu::soap::Messenger::sendCommand( const string &className, 
 				   const unsigned int instance,
 				   const std::string &command, 
-				   const emu::soap::NamedData &parameters,
-				   const emu::soap::NamedData &attributes,
+				   const std::string &commandNamespaceURI,
+				   const emu::soap::Parameters &parameters,
+				   const emu::soap::Attributes &attributes,
 				   const vector<emu::soap::Attachment> &attachments ){
   xdaq::ApplicationDescriptor* target = getAppDescriptor( className, instance );
-  return sendCommand( target, command, parameters, attributes, attachments );
+  return sendCommand( target, command, commandNamespaceURI, parameters, attributes, attachments );
 }
 
 void
 emu::soap::Messenger::sendCommand( const string &className, 
 				   const std::string &command, 
-				   const emu::soap::NamedData &parameters,
-				   const emu::soap::NamedData &attributes,
+				   const std::string &commandNamespaceURI,
+				   const emu::soap::Parameters &parameters,
+				   const emu::soap::Attributes &attributes,
 				   const vector<emu::soap::Attachment> &attachments ){
   std::set<xdaq::ApplicationDescriptor *> apps = application_->getApplicationContext()->getDefaultZone()->getApplicationDescriptors( className );
 
@@ -236,12 +237,43 @@ emu::soap::Messenger::sendCommand( const string &className,
   }
 
   for ( std::set<xdaq::ApplicationDescriptor *>::iterator app = apps.begin(); app != apps.end(); ++app ) {
-    sendCommand( *app, command, parameters, attributes, attachments );
+    sendCommand( *app, command, commandNamespaceURI, parameters, attributes, attachments );
   }
 }
 
+xoap::MessageReference
+emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
+				   const std::string &command,
+				   const emu::soap::Parameters &parameters,
+				   const emu::soap::Attributes &attributes,
+				   const vector<emu::soap::Attachment> &attachments ){
+  // Use XDAQ_NS_URI if no command namespace URI is specified:
+  return sendCommand( target, command, XDAQ_NS_URI, parameters, attributes, attachments );
+}
+
+xoap::MessageReference
+emu::soap::Messenger::sendCommand( const string &className, 
+				   const unsigned int instance,
+				   const std::string &command, 
+				   const emu::soap::Parameters &parameters,
+				   const emu::soap::Attributes &attributes,
+				   const vector<emu::soap::Attachment> &attachments ){
+  // Use XDAQ_NS_URI if no command namespace URI is specified:
+  return sendCommand( className, instance, command, XDAQ_NS_URI, parameters, attributes, attachments );
+}
+
 void
-emu::soap::Messenger::getParameters( xdaq::ApplicationDescriptor *target, emu::soap::NamedData &parameters ){
+emu::soap::Messenger::sendCommand( const string &className, 
+				   const std::string &command, 
+				   const emu::soap::Parameters &parameters,
+				   const emu::soap::Attributes &attributes,
+				   const vector<emu::soap::Attachment> &attachments ){
+  // Use XDAQ_NS_URI if no command namespace URI is specified:
+  return sendCommand( className, command, XDAQ_NS_URI, parameters, attributes, attachments );
+}
+
+void
+emu::soap::Messenger::getParameters( xdaq::ApplicationDescriptor *target, emu::soap::Parameters &parameters ){
   try{
     string targetAppNamespaceURI = string( XDAQ_APP_URN_BASE ) + target->getClassName();
 
@@ -313,12 +345,13 @@ emu::soap::Messenger::getParameters( xdaq::ApplicationDescriptor *target, emu::s
 }
 
 void
-emu::soap::Messenger::getParameters( const string &className, const unsigned int instance, emu::soap::NamedData &parameters ){
+emu::soap::Messenger::getParameters( const string &className, const unsigned int instance, emu::soap::Parameters &parameters ){
   xdaq::ApplicationDescriptor* target = getAppDescriptor( className, instance );
   getParameters( target, parameters );
 }
 
-void emu::soap::Messenger::addAttachments( xoap::MessageReference message, const vector<emu::soap::Attachment> &attachments ){
+void 
+emu::soap::Messenger::addAttachments( xoap::MessageReference message, const vector<emu::soap::Attachment> &attachments ){
   // Add attachments to message
   for ( vector<emu::soap::Attachment>::const_iterator a=attachments.begin(); a!=attachments.end(); ++a ){
     xoap::AttachmentPart* attachmentPart = message->createAttachmentPart( a->getContent(), a->getContentLength(), a->getContentType() );
@@ -329,33 +362,68 @@ void emu::soap::Messenger::addAttachments( xoap::MessageReference message, const
   }
 }
 
-void emu::soap::Messenger::addAttributes( xoap::MessageReference message, xoap::SOAPElement* element, const emu::soap::NamedData &attributes ){
+void 
+emu::soap::Messenger::addAttributes( xoap::MessageReference message, xoap::SOAPElement* element, const emu::soap::Attributes &attributes ){
   // Add attributes to element
+  string elementNamespaceURI;
+  string elementNamespacePrefix;
+  if ( attributes.getUsePrefix() ){
+    elementNamespaceURI    = xoap::XMLCh2String( element->getDOMNode()->getNamespaceURI() );
+    elementNamespacePrefix = xoap::XMLCh2String( element->getDOMNode()->getPrefix()       );
+  }
   xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  string elementNamespaceURI    = xoap::XMLCh2String( element->getDOMNode()->getNamespaceURI() );
-  string elementNamespacePrefix = xoap::XMLCh2String( element->getDOMNode()->getPrefix()       );
-  for ( emu::soap::NamedData::const_iterator a=attributes.begin(); a!=attributes.end(); ++a ){
+  for ( emu::soap::Attributes::const_iterator a=attributes.begin(); a!=attributes.end(); ++a ){
     xoap::SOAPName attrName = envelope.createName( a->first, elementNamespacePrefix, elementNamespaceURI );
     element->addAttribute( attrName, a->second->toString() );
   }
 }
 
-void emu::soap::Messenger::includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, const emu::soap::NamedData &parameters ){
+void 
+emu::soap::Messenger::includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, emu::soap::Parameters &parameters ){
   // Include all requested parameters in parent element
+  string parentNamespaceURI;
+  string parentNamespacePrefix;
+  if ( parameters.getUsePrefix() ){
+    parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
+    parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
+  }
   xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  string parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
-  string parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
   xdata::soap::Serializer serializer;
-  emu::soap::NamedData::const_iterator p;
+  emu::soap::Parameters::const_iterator p;
   for ( p=parameters.begin(); p!=parameters.end(); ++p ){
     xoap::SOAPName    propertyName    = envelope.createName( p->first, parentNamespacePrefix, parentNamespaceURI );
     xoap::SOAPElement propertyElement = parent->addChildElement( propertyName );
-    serializer.exportAll( p->second, dynamic_cast<DOMElement*>( propertyElement.getDOMNode()), false );
+    serializer.exportAll( p->second.first, dynamic_cast<DOMElement*>( propertyElement.getDOMNode() ), false );
+    if ( p->second.second != NULL ){
+      addAttributes( message, &propertyElement, *p->second.second );
+    }
+  }
+}
+
+void 
+emu::soap::Messenger::includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, const emu::soap::Parameters &parameters ){
+  // Include all requested parameters in parent element
+  string parentNamespaceURI;
+  string parentNamespacePrefix;
+  if ( parameters.getUsePrefix() ){
+    parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
+    parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
+  }
+  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+  xdata::soap::Serializer serializer;
+  emu::soap::Parameters::const_iterator p;
+  for ( p=parameters.begin(); p!=parameters.end(); ++p ){
+    xoap::SOAPName    propertyName    = envelope.createName( p->first, parentNamespacePrefix, parentNamespaceURI );
+    xoap::SOAPElement propertyElement = parent->addChildElement( propertyName );
+    serializer.exportAll( p->second.first, dynamic_cast<DOMElement*>( propertyElement.getDOMNode() ), false );
+    if ( p->second.second != NULL ){
+      addAttributes( message, &propertyElement, *p->second.second );
+    }
   }
 }
 
 void
-emu::soap::Messenger::extractParameters( xoap::MessageReference reply, emu::soap::NamedData &parameters, const string &parametersNamespaceURI ){
+emu::soap::Messenger::extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters, const string &parametersNamespaceURI ){
   // Parse reply and deserialize the requested parameters
   xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
   xdata::soap::Serializer serializer;
@@ -363,12 +431,12 @@ emu::soap::Messenger::extractParameters( xoap::MessageReference reply, emu::soap
   string s;
   reply->writeTo( s );
   DOMDocument* doc = parser->parse( s );
-  for ( emu::soap::NamedData::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
+  for ( emu::soap::Parameters::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
     DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( ( parametersNamespaceURI.size()>0 ? parametersNamespaceURI.c_str(): "*" ) ), 
 					      xoap::XStr( p->first.c_str() ) 
 					      )->item(0);
     if ( n != NULL ){
-      serializer.import( p->second, n );
+      serializer.import( p->second.first, n );
     }
     else{
       std::stringstream ss;
