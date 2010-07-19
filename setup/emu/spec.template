@@ -53,6 +53,7 @@ mkdir -p $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/{broker,conf,flash,net
 mkdir -p $RPM_BUILD_ROOT/etc
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/bin
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs
 
@@ -64,6 +65,9 @@ fi
 
 if [ -s %{_packagedir}/xdaqd ]; then 
 	install -m 755 %{_packagedir}/xdaqd $RPM_BUILD_ROOT/etc/init.d
+fi
+if [ -s %{_packagedir}/xdaqd ]; then 
+	install -m 644 %{_packagedir}/emu.logrotate $RPM_BUILD_ROOT/etc/logrotate.d
 fi
 if [ -d %{_packagedir}/scripts ]; then 
 	install -m 755 %{_packagedir}/scripts/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/scripts
@@ -121,6 +125,7 @@ rm -rf $RPM_BUILD_ROOT
 /etc/*.zone
 /etc/*.services
 /etc/cron.d/*.cron
+/etc/logrotate.d/emu.logrotate
 
 %dir
 %{_prefix}/share
