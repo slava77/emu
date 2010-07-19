@@ -946,10 +946,10 @@ function TrackFinderFromJson(){
 	if ( !foundGlobalConf && !foundLocalConf ){
 	  $('#td_value_state').attr( 'class', 'UNKNOWN' );
 	  $('#a_value_state').text( 'UNKNOWN' );
-	  $('#a_value_state').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'operation found.' );
+	  $('#a_value_state').attr( 'title', (row.FSM_STATE.rows.length==0?'No operation found. (This is normal IF the TF Cell has been restarted in this run.)':' Only invalid operation found.') );
 	  $('#td_value_confkey').attr( 'class', 'UNKNOWN' );
 	  $('#a_value_confkey').text( 'UNKNOWN' );
-	  $('#a_value_confkey').attr( 'title', (row.FSM_STATE.rows.length==0?'No ':' Only invalid ')+'operation found.' );
+	  $('#a_value_confkey').attr( 'title', (row.FSM_STATE.rows.length==0?'No operation found. (This is normal IF the TF Cell has been restarted in this run.)':' Only invalid operation found.') );
 	}
 // 	if ( foundGlobalConf && foundLocalConf ){
 // 	  $('#td_value_state').attr( 'class', 'INDEFINITE' );
