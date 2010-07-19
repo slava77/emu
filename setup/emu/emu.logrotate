@@ -1,0 +1,7 @@
+/var/log/emu/*.log {
+    rotate 5
+    size=200M
+    compress
+    missingok
+    copytruncate
+}
