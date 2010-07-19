@@ -507,6 +507,9 @@ oldconfig.CFEB4_TOF_DELAY "CFEB4_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB4_T
 oldconfig.CFEB_BADBITS_BLOCK "CFEB_BADBITS_BLOCK $OLD_EMU_CONFIG_ID",newconfig.CFEB_BADBITS_BLOCK "CFEB_BADBITS_BLOCK $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB_ENABLE_SOURCE "CFEB_ENABLE_SOURCE $OLD_EMU_CONFIG_ID",newconfig.CFEB_ENABLE_SOURCE "CFEB_ENABLE_SOURCE $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB_TOF_DELAY "CFEB_TOF_DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB_TOF_DELAY "CFEB_TOF_DELAY $NEW_EMU_CONFIG_ID",
+oldconfig.CFEB_BADBITS_READOUT "CFEB_BADBITS_READOUT $OLD_EMU_CONFIG_ID",newconfig.CFEB_BADBITS_READOUT "CFEB_BADBITS_READOUT $NEW_EMU_CONFIG_ID",
+oldconfig.L1A_PRIORITY_ENABLE "L1A_PRIORITY_ENABLE $OLD_EMU_CONFIG_ID",newconfig.L1A_PRIORITY_ENABLE "L1A_PRIORITY_ENABLE $NEW_EMU_CONFIG_ID",
+oldconfig.MINISCOPE_ENABLE "MINISCOPE_ENABLE $OLD_EMU_CONFIG_ID",newconfig.MINISCOPE_ENABLE "MINISCOPE_ENABLE $NEW_EMU_CONFIG_ID",
 oldconfig.CLCT_BLANKING "CLCT_BLANKING $OLD_EMU_CONFIG_ID",newconfig.CLCT_BLANKING "CLCT_BLANKING $NEW_EMU_CONFIG_ID",
 oldconfig.CLCT_BX0_DELAY "CLCT_BX0_DELAY $OLD_EMU_CONFIG_ID",newconfig.CLCT_BX0_DELAY "CLCT_BX0_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CLCT_DRIFT_DELAY "CLCT_DRIFT_DELAY $OLD_EMU_CONFIG_ID",newconfig.CLCT_DRIFT_DELAY "CLCT_DRIFT_DELAY $NEW_EMU_CONFIG_ID",
@@ -633,6 +636,9 @@ oldconfig.CFEB4_TOF_DELAY!=newconfig.CFEB4_TOF_DELAY or
 oldconfig.CFEB_BADBITS_BLOCK!=newconfig.CFEB_BADBITS_BLOCK or 
 oldconfig.CFEB_ENABLE_SOURCE!=newconfig.CFEB_ENABLE_SOURCE or 
 oldconfig.CFEB_TOF_DELAY!=newconfig.CFEB_TOF_DELAY or 
+oldconfig.CFEB_BADBITS_READOUT!=newconfig.CFEB_BADBITS_READOUT or 
+oldconfig.L1A_PRIORITY_ENABLE!=newconfig.L1A_PRIORITY_ENABLE or 
+oldconfig.MINISCOPE_ENABLE!=newconfig.MINISCOPE_ENABLE or 
 oldconfig.CLCT_BLANKING!=newconfig.CLCT_BLANKING or 
 oldconfig.CLCT_BX0_DELAY!=newconfig.CLCT_BX0_DELAY or 
 oldconfig.CLCT_DRIFT_DELAY!=newconfig.CLCT_DRIFT_DELAY or 
@@ -1190,6 +1196,9 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
       <tstore:column name="CFEB2_RXD_INT_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB3_RXD_INT_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB4_RXD_INT_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB_BADBITS_READOUT" type="unsigned short"/>
+      <tstore:column name="L1A_PRIORITY_ENABLE" type="unsigned short"/>
+      <tstore:column name="MINISCOPE_ENABLE" type="unsigned short"/>
 
       <tstore:foreignkey references="EMU_CSC">
         <tstore:keycolumn column="CSC_CONFIG_ID" references="CSC_CONFIG_ID"/>
