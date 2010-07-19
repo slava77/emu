@@ -487,6 +487,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                       for(unsigned ii=0; ii<(buf2[0]/2); ii++) (*otmbdata)[ii] = (*tmbdata)[ii];
                    }
                    for(unsigned ii=0; ii<(buf2[0]/2); ii++) (*tmbdata)[ii] = buf4[ii+1];
+                   int badboard= buf2[1]>>10;
+                   if(badboard>0 && badboard<10)
+                      std::cout << "Bad TMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl;
                 }
                 now_crate-> MonitorDMB(cycle, buf, dmb_mask[i]);
                 if(buf2[0])
@@ -496,6 +499,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    if(dmbdata->size()==0)
                       for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0);
                    for(unsigned ii=0; ii<buf2[0]; ii++) (*dmbdata)[ii] = buf2[ii+1];
+                   int badboard= buf2[1]>>10;
+                   if(badboard>0 && badboard<10)
+                      std::cout << "Bad DAQMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl;
                 }
              }
                // is->fireGroupChanged(names, this);
