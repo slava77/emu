@@ -113,7 +113,7 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
   }
   else
   {
-    *out << cgicc::b(cgicc::i("TStore EMU_config_ID : ")) ;
+    *out << cgicc::b(cgicc::i("Configuration ID used in the last action : ")) ;
     *out << GetRealKey();
   }
   *out << cgicc::br() << cgicc::span() << std::endl;
@@ -368,7 +368,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
         if(rt==0)
         {
            PCsendCommandwithAttr("SoapInfo", "CrateUp", ThisCrateID_, "emu::x2p::EmuDim");
-           msgHandler("Info:   Power-Up-Init Crate " + ThisCrateID_ + " done");
+           msgHandler("Info:    Power-Up-Init Crate " + ThisCrateID_ + " done");
         }
      }
      this->Default(in,out);
@@ -388,7 +388,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
             if(c==2 && rt==0)
             {
                PCsendCommandwithAttr("SoapInfo", "CrateUp", cratename, "emu::x2p::EmuDim");
-               msgHandler("Info: Power-Up-Init Crate " + cratename + " done");
+               msgHandler("Info:    Power-Up-Init Crate " + cratename + " done");
             }
         }
     }
