@@ -46,7 +46,7 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
 #endif
     factFinderBSem_( toolbox::BSem::FULL ),
     source_( source ),
-    maxQueueLength_( 10 ),
+    maxQueueLength_( 1000 ),
     targetDescriptor_( NULL ){
   xoap::bind( this, &emu::base::FactFinder::onFactRequest, "factRequestCollection",  ESD_NS_URI );
 
@@ -86,7 +86,10 @@ emu::base::FactFinder::onFactRequest( xoap::MessageReference message )
   factFinderBSem_.take();
   factRequestCollections_.push_back( factRequestCollection );
   // If queue is too long, drop the oldest requests:
-  while ( factRequestCollections_.size() > maxQueueLength_ ) factRequestCollections_.pop_front();
+  while ( factRequestCollections_.size() > maxQueueLength_ ){
+    factRequestCollections_.pop_front();
+    LOG4CPLUS_WARN( getApplicationLogger(), "Incoming request queue full. Discarding the oldest request." );
+  }
   factFinderBSem_.give();
   // Handle them in another thread:
   factWorkLoop_->submit( sendFactsSignature_ );
@@ -261,7 +264,10 @@ emu::base::FactFinder::sendFacts(){
   factsToSend_.push_back( facts );
   if ( isFactFinderInDebugMode_.value_ ) cout << endl << endl << "factsToSend_.size() = " << factsToSend_.size() << endl << endl;
   // If queue is too long, drop the oldest facts:
-  while ( factsToSend_.size() > maxQueueLength_ ) factsToSend_.pop_front();
+  while ( factsToSend_.size() > maxQueueLength_ ){ 
+    factsToSend_.pop_front();
+    LOG4CPLUS_WARN( getApplicationLogger(), "Outgoing fact queue full. Discarding the oldest fact." );
+  }
   factFinderBSem_.give();
   // Send them in another thread:
   factWorkLoop_->submit( sendFactsSignature_ );
@@ -284,7 +290,10 @@ emu::base::FactFinder::sendFact( const string& componentId, const string& factTy
   factsToSend_.push_back( facts );
   if ( isFactFinderInDebugMode_.value_ ) cout << endl << endl << "factsToSend_.size() = " << factsToSend_.size() << endl << endl;
   // If queue is too long, drop the oldest facts:
-  while ( factsToSend_.size() > maxQueueLength_ ) factsToSend_.pop_front();
+  while ( factsToSend_.size() > maxQueueLength_ ){ 
+    factsToSend_.pop_front();
+    LOG4CPLUS_WARN( getApplicationLogger(), "Outgoing fact queue full. Discarding the oldest fact." );
+  }
   factFinderBSem_.give();
   // Send them in another thread:
   factWorkLoop_->submit( sendFactsSignature_ );
@@ -307,7 +316,10 @@ emu::base::FactFinder::sendFact( const emu::base::Component& component, const st
   factsToSend_.push_back( facts );
   if ( isFactFinderInDebugMode_.value_ ) cout << endl << endl << "factsToSend_.size() = " << factsToSend_.size() << endl << endl;
   // If queue is too long, drop the oldest facts:
-  while ( factsToSend_.size() > maxQueueLength_ ) factsToSend_.pop_front();
+  while ( factsToSend_.size() > maxQueueLength_ ){
+    factsToSend_.pop_front();
+    LOG4CPLUS_WARN( getApplicationLogger(), "Outgoing fact queue full. Discarding the oldest fact." );
+  }
   factFinderBSem_.give();
   // Send them in another thread:
   factWorkLoop_->submit( sendFactsSignature_ );
