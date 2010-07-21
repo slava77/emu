@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.10 2010/05/31 14:57:19 paste Exp $
+* $Id: Communicator.h,v 1.11 2010/07/21 19:39:55 banicz Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -21,7 +21,7 @@ namespace emu {
 		class IRQThreadManager;
 		
 		/** @class Communicator A class that is directly responsible for hardware communication with the FED Crates. **/
-		class Communicator: virtual public emu::fed::Configurable, public emu::fed::Supervised, public emu::base::FactFinder
+	        class Communicator: virtual public emu::fed::Configurable, public emu::fed::Supervised//, public emu::base::FactFinder
 		{
 
 		public:
@@ -85,20 +85,20 @@ namespace emu {
 			xoap::MessageReference onGetParameters(xoap::MessageReference message);
 
 			/** Returns a requested fact **/
-			virtual emu::base::Fact findFact(const emu::base::Component& component, const std::string& factType);
+// 			virtual emu::base::Fact findFact(const emu::base::Component& component, const std::string& factType);
 			
 			/** Returns all facts for dispatch, either by schedule or by explicit call to sendFacts() **/
-			virtual emu::base::FactCollection findFacts();
+// 			virtual emu::base::FactCollection findFacts();
 
 			/** The Communicator itself is not fast enough to pick up IRQs, so the ThreadManager has to be able to send to the Communicator the facts from an IRQ so that the Communicator can report this to the Expert System. **/
 			inline void sendIRQFact(const emu::base::TypedFact<emu::fed::DDUFMMIRQFact> &fact) {
-				latestIRQFact_ = fact;
-				sendFact("", "LatestIRQFact");
+// 				latestIRQFact_ = fact;
+// 				sendFact("", "LatestIRQFact");
 			}
 			
 			inline void sendResetFact(const emu::base::TypedFact<emu::fed::DDUFMMResetFact> &fact) {
-				latestResetFact_ = fact;
-				sendFact("", "LatestResetFact");
+// 				latestResetFact_ = fact;
+// 				sendFact("", "LatestResetFact");
 			}
 
 		private:
