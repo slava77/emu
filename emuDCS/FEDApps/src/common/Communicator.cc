@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.35 2010/07/08 19:33:46 paste Exp $
+* $Id: Communicator.cc,v 1.36 2010/07/21 19:39:56 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -34,7 +34,7 @@ emu::fed::Application(stub),
 emu::fed::Configurable(stub),
 emu::base::Supervised(stub),
 emu::fed::Supervised(stub),
-emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0),
+// emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0),
 ttsCrate_(0),
 ttsSlot_(0),
 ttsBits_(0),
@@ -1230,52 +1230,52 @@ throw (emu::fed::exception::TTSException)
 }
 
 
-emu::base::Fact emu::fed::Communicator::findFact(const emu::base::Component& component, const std::string& factType)
-{
-	/*
-	if (factType == emu::fed::ConfigurationFact::getTypeName()) {
-		emu::base::TypedFact<emu::fed::ConfigurationFact> fact;
-		fact.setComponentId("Communicator")
-			.setSeverity(emu::base::Fact::DEBUG)
-			.setDescription("Configuration type of the FED Communicator application")
-			.setParameter(emu::fed::ConfigurationFact::method, configMode_.toString());
-		if (configMode_.toString() == "Database") {
-			fact.setParameter(emu::fed::ConfigurationFact::id, dbKey_.toString());
-		} else if (configMode_.toString() == "XML") {
-			fact.setParameter(emu::fed::ConfigurationFact::id, xmlFileName_.toString());
-		} else {
-			fact.setParameter(emu::fed::ConfigurationFact::id, "none");
-		}
-		return fact;
-	}
-	*/
-	// This is me pretending to be tricky.
-	if (factType == "LatestIRQFact") {
-		return latestIRQFact_;
-	} else if (factType == "LatestResetFact") {
-		return latestResetFact_;
-	}
+// emu::base::Fact emu::fed::Communicator::findFact(const emu::base::Component& component, const std::string& factType)
+// {
+// 	/*
+// 	if (factType == emu::fed::ConfigurationFact::getTypeName()) {
+// 		emu::base::TypedFact<emu::fed::ConfigurationFact> fact;
+// 		fact.setComponentId("Communicator")
+// 			.setSeverity(emu::base::Fact::DEBUG)
+// 			.setDescription("Configuration type of the FED Communicator application")
+// 			.setParameter(emu::fed::ConfigurationFact::method, configMode_.toString());
+// 		if (configMode_.toString() == "Database") {
+// 			fact.setParameter(emu::fed::ConfigurationFact::id, dbKey_.toString());
+// 		} else if (configMode_.toString() == "XML") {
+// 			fact.setParameter(emu::fed::ConfigurationFact::id, xmlFileName_.toString());
+// 		} else {
+// 			fact.setParameter(emu::fed::ConfigurationFact::id, "none");
+// 		}
+// 		return fact;
+// 	}
+// 	*/
+// 	// This is me pretending to be tricky.
+// 	if (factType == "LatestIRQFact") {
+// 		return latestIRQFact_;
+// 	} else if (factType == "LatestResetFact") {
+// 		return latestResetFact_;
+// 	}
 	
-	std::ostringstream error;
-	error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
-	XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
-	notifyQualified("WARN", e);
-	LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+// 	std::ostringstream error;
+// 	error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
+// 	XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
+// 	notifyQualified("WARN", e);
+// 	LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
 	
-	return emu::base::Fact();
-}
+// 	return emu::base::Fact();
+// }
 
 
 
-emu::base::FactCollection emu::fed::Communicator::findFacts()
-{
-	emu::base::FactCollection collection;
+// emu::base::FactCollection emu::fed::Communicator::findFacts()
+// {
+// 	emu::base::FactCollection collection;
 
-	emu::base::Fact configurationFact = findFact(std::string("None"), emu::fed::ConfigurationFact::getTypeName());
-	collection.addFact(configurationFact);
+// 	emu::base::Fact configurationFact = findFact(std::string("None"), emu::fed::ConfigurationFact::getTypeName());
+// 	collection.addFact(configurationFact);
 	
-	return collection;
-}
+// 	return collection;
+// }
 
 // End of file
 // vim: set sw=4 ts=4:
