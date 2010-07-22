@@ -577,7 +577,11 @@ void EmuTStore::readVCC(const std::string &connectionID, const std::string &emu_
     VMECC * vcc = new VMECC(theCrate, 1);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       StrgValue=value->toString();
 
       if (*column == "MAC_ADDR"){
@@ -645,7 +649,11 @@ void EmuTStore::readCSC(const std::string &connectionID, const std::string &emu_
     Chamber * csc_ = new Chamber(theCrate);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       StrgValue=value->toString();
 
       if (*column == "LABEL")        {csc_->SetLabel(StrgValue);}
@@ -681,7 +689,11 @@ void EmuTStore::readCCB(const std::string &connectionID, const std::string &emu_
     CCB * ccb_ = new CCB(theCrate, slot);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       StrgValue=value->toString();
 
       if (*column == "CCBMODE")           {ccb_->SetTTCmode(IntValue);}
@@ -719,7 +731,11 @@ void EmuTStore::readMPC(const std::string &connectionID, const std::string &emu_
     mpc_->SetBoardID(theCrate->CrateID());
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       StrgValue=value->toString();
 
       if (*column == "SERIALIZERMODE")    {mpc_->SetTLK2501TxMode(IntValue);}
@@ -767,7 +783,11 @@ void EmuTStore::readDAQMB(const std::string &connectionID, const std::string &em
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
       //std::cout << *column + "[" + results.getColumnType(*column) + "]" + " ==> " + value->toString() << std::endl;     
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       if (results.getColumnType(*column)=="float")          {xdata::Float * f = dynamic_cast<xdata::Float *>(value); FloatValue=(float)*f;}
       StrgValue=value->toString();
 
@@ -839,14 +859,22 @@ void EmuTStore::readCFEB(const std::string &connectionID, const std::string &emu
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       if (*column == "CFEB_NUMBER"){number = IntValue;}
     }
-    if(verbose) std::cout << "CFEB cfeb( " + to_string(number) << " )" << std::endl;
+    if(verbose) std::cout << "CFEB cfeb(" << number << ")" << std::endl;
     CFEB cfeb(number);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       StrgValue=value->toString();
       if (*column == "CFEB_FIRMWARE_TAG"){                                      // saved as string in Oracle since there is no Hex support
 	sscanf(StrgValue.c_str(), "%lx", &LongIntValue);
@@ -927,7 +955,11 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
     TMB * tmb_ = new TMB(theCrate, theChamber, slot);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int"  ) {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       if (results.getColumnType(*column)=="float"           ) {xdata::Float * f = dynamic_cast<xdata::Float *>(value); FloatValue=(float)*f;}
       StrgValue=value->toString();
       
@@ -1111,7 +1143,11 @@ void EmuTStore::readALCT(const std::string &connectionID, const std::string &emu
     theTmb->SetRat(rat_); //store rat_  in theTmb
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int"  ) {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       if (results.getColumnType(*column)=="string"          ) {StrgValue=value->toString();}
       StrgValue=value->toString();
       
@@ -1181,7 +1217,11 @@ void EmuTStore::readAnodeChannel(const std::string &connectionID, const std::str
     theAlct->SetStandbyRegister_(afeb_number-1,ON);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int"  ) {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int")  {
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+         if(i->isNaN()) IntValue=0;
+         else IntValue=(int)*i;
+      }
       StrgValue=value->toString();
       
       if (*column == "AFEB_FINE_DELAY") {theAlct->SetAsicDelay(afeb_number-1,IntValue);    }
