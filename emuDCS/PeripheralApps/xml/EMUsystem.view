@@ -918,6 +918,12 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
 ]]>
     </sql:query>
     
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="flash_list">
+      <sql:parameter name="SIDE">
+        <![CDATA[]]>
+      </sql:parameter> 
+	<![CDATA[select * from emu_flash_write,emu_configuration where emu_configuration.emu_config_id=emu_flash_write.config_id and emu_configuration.emu_endcap_side='$SIDE' order by write_date desc]]>
+    </sql:query>
     <sql:query xmlns:sql="urn:tstore-view-SQL" name="latest_flash_write">
       <sql:parameter name="SIDE">
         <![CDATA[]]>

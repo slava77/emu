@@ -61,6 +61,7 @@ void EmuTStore::getConfigIds(std::vector<std::string> &configIDs,const std::stri
  std::vector<std::string> EmuTStore::getConfigurationList(unsigned int endcap, unsigned int max_item_in_list) throw (xcept::Exception);
 void recordFlashWrite(const std::string &configID) throw (xcept::Exception);
 std::string getLastConfigIdUsed(const std::string &endcap_side) throw (xcept::Exception);
+  int readFlashList(std::vector<std::string> &configKeys, std::vector<std::string> &configTimes, const std::string &endcap_side) throw (xcept::Exception);
   void getDbUserData();
 
   // DB Data Reads
