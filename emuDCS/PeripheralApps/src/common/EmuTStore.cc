@@ -492,6 +492,81 @@ std::vector<std::string> EmuTStore::getConfigurationList(unsigned int endcap, un
 }
 //
 
+int EmuTStore::readFlashList(std::vector<std::string> &configKeys, std::vector<std::string> &configTimes, const std::string &endcap_side) throw (xcept::Exception) 
+{
+        configKeys.clear();
+        configTimes.clear();
+	std::string connectionID=connect();
+        if(connectionID=="") return 0;
+
+	std::string queryViewName="flash_list";
+
+	//for a query, we need to send some parameters which are specific to SQLView.
+	//these use the namespace tstore-view-SQL. 
+
+	//In general, you might have the view name in a variable, so you won't know the view class. In this
+	//case you can find out the view class using the TStore client library:
+	std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+
+	//If we give the name of the view class when constructing the TStoreRequest, 
+	//it will automatically use that namespace for
+	//any view specific parameters we add.
+	emu::db::TStoreRequest request("query",viewClass);
+
+	//add the connection ID
+	request.addTStoreParameter("connectionID",connectionID);
+
+	//for an SQLView, the name parameter refers to the name of a query section in the configuration
+	request.addViewSpecificParameter("name",queryViewName);
+
+	//add parameter name and value (endcap_side)
+	request.addViewSpecificParameter("SIDE",endcap_side);
+	
+	xoap::MessageReference message=request.toSOAP();
+	xoap::MessageReference response=sendSOAPMessage(message);
+
+	//use the TStore client library to extract the first attachment of type "table"
+	//from the SOAP response
+	xdata::Table results;
+	if (!tstoreclient::getFirstAttachmentOfType(response,results)) {
+		XCEPT_RAISE (xcept::Exception, "Server returned no data");
+	}
+
+	disconnect(connectionID);
+
+  int items=0;
+//  std::cout << "EMU Flash List - START" << std::endl;
+//  std::cout << "=========================================" << std::endl;
+  std::vector<std::string> columns=results.getColumns();
+  for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
+    bool got_key=false, got_time=false;
+    std::string cfgkey, cfgtime;
+    for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
+       std::string StrgValue=results.getValueAt(rowIndex,*column)->toString();
+       if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
+       if (*column == "CONFIG_ID")
+       {   // std::cout << "Key: "+StrgValue;
+           cfgkey=StrgValue;
+           got_key=true;
+       }
+       if (*column == "WRITE_DATE")
+       {   // std::cout << " Time: "+StrgValue << std::endl;
+           cfgtime=StrgValue.substr(0,19);
+           got_time=true;
+       }
+    }
+    if (got_key && got_time)
+    {
+       items++;
+       configKeys.push_back(cfgkey);
+       configTimes.push_back(cfgtime);
+    }
+  }
+
+  return items;    
+}
+//
+
 void EmuTStore::readConfiguration(const std::string &connectionID, const std::string &emu_config_id, EmuEndcap * endcap) throw (xcept::Exception) {
 
   std::string queryViewName="configuration";
