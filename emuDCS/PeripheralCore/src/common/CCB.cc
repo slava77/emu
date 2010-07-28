@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.39 2010/02/09 12:12:19 liu Exp $
+// $Id: CCB.cc,v 3.40 2010/07/28 13:13:49 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.40  2010/07/28 13:13:49  rakness
+// make fine delay computation public
+//
 // Revision 3.39  2010/02/09 12:12:19  liu
 // introduce global run safe configuration check
 //
@@ -1170,7 +1173,7 @@ void CCB::configure() {
   //
   if( TTCrxFineDelay_>=0)
   {
-     int delay = ConvertNanosecondsToFineDelayUnits_(TTCrxFineDelay_&0xff);
+     int delay = ConvertNanosecondsToFineDelayUnits(TTCrxFineDelay_&0xff);
      WriteTTCrxReg(0,delay);
      WriteTTCrxReg(1,delay);
   }
@@ -1276,7 +1279,7 @@ int CCB::CheckConfig(int full_check)
   return (int) config_ok;
 }
 // 
-int CCB::ConvertNanosecondsToFineDelayUnits_(int delay_in_nsec) {
+int CCB::ConvertNanosecondsToFineDelayUnits(int delay_in_nsec) {
   //
   // The Fine Delay register has 240 steps (called "K" counting from 0-239) to 
   // divide up the 24.95nsec-period LHC clock.  Thus, to delay the TTCrxFineDelay 
