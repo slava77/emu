@@ -149,6 +149,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   dcs_chamber=0;
 
   dcs_mask.clear();
+  tcs_mask.clear();
   tmb_mask.clear();
   dmb_mask.clear();
   vcc_reset.clear();
@@ -373,7 +374,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              }
              else if( cycle==2)
              {
-                now_crate-> MonitorDCS(cycle, buf, dcs_mask[i]);
+                now_crate-> MonitorDCS(cycle, buf, dcs_mask[i]|(tcs_mask[i]<<10));
                 if(buf2[0])
                 {
                    // std::cout << "Crate " << i << " DCS counters " << buf2[0] << std::endl;
@@ -3111,7 +3112,9 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
         if(dcs_mask[i]) 
-          *out << "DCS Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << dcs_mask[i] << std::dec << std::endl;
+          *out << "DCS DMB Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << dcs_mask[i] << std::dec << std::endl;
+        if(tcs_mask[i]) 
+          *out << "DCS TMB Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << tcs_mask[i] << std::dec << std::endl;
         if(tmb_mask[i]) 
           *out << "TMB Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << tmb_mask[i] << std::dec << std::endl;
         if(dmb_mask[i]) 
@@ -3142,6 +3145,14 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
                   dcs_mask[i] |= (1<<(maskid-1));
                else
                   dcs_mask[i] &= ~(1<<(maskid-1));
+            }
+            else if (board=="TCS" || board=="tcs")
+            {
+               goodmask=true;
+               if(command_name=="MASKON") 
+                  tcs_mask[i] |= (1<<(maskid-1));
+               else
+                  tcs_mask[i] &= ~(1<<(maskid-1));
             }
             else if (board=="TMB" || board=="tmb")
             {
