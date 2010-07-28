@@ -216,6 +216,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::StopPRBS, "StopPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetRadioactivityTrigger, "SetRadioactivityTrigger");
+  xgi::bind(this,&EmuPeripheralCrateConfig::SetTTCDelays, "SetTTCDelays");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureAllTMBVoltages, "MeasureAllTMBVoltages");
   //
   //------------------------------
   // bind crate utilities
@@ -2283,7 +2285,7 @@ void EmuPeripheralCrateConfig::CheckCratesConfigurationFull(xgi::Input * in, xgi
   //
   SetCurrentCrate(initialcrate);
   //
-  this->CheckConfigurationPage(in, out);
+  this->ExpertToolsPage(in,out);
 }
 //
 void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Output * out )
@@ -3423,10 +3425,23 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("Special test configuration").set("style","color:blue") << std::endl ;
   //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
   std::string SetRadioactivityTrigger = toolbox::toString("/%s/SetRadioactivityTrigger",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",SetRadioactivityTrigger) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","SetRadioactivityTrigger") << std::endl ;
   *out << cgicc::form() << cgicc::br() << std::endl ;;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string SetTTCDelays = toolbox::toString("/%s/SetTTCDelays",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SetTTCDelays) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","SetTTCDelays") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table() << std::endl ;
   //
   *out << cgicc::fieldset();
   //
@@ -3505,16 +3520,30 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::legend("Full configuration check (including Global-run NON-safe parameters)").set("style","color:blue") 
        << std::endl ;
   //
-  std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfigurationFull",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
+  std::string MeasureAllTMBVoltages = toolbox::toString("/%s/MeasureAllTMBVoltages",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureAllTMBVoltages) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Measure All TMB Voltages") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string CheckCratesConfigurationFull = toolbox::toString("/%s/CheckCratesConfigurationFull",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckCratesConfigurationFull) << std::endl ;
   if (all_crates_ok == 1) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:green") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Check full configuration of crates").set("style","color:green") << std::endl ;
   } else if (all_crates_ok == 0) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:red") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Check full configuration of crates").set("style","color:red") << std::endl ;
   } else if (all_crates_ok == -1) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:blue") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Check full configuration of crates").set("style","color:blue") << std::endl ;
   }
   *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table() << std::endl ;
+  //
   //
   int initial_crate = current_crate_;
   //
@@ -3759,6 +3788,158 @@ void EmuPeripheralCrateConfig::SetRadioactivityTrigger(xgi::Input * in, xgi::Out
   }
   //
   SetCurrentCrate(initial_crate);
+  //
+  this->ExpertToolsPage(in,out);
+}
+//
+void EmuPeripheralCrateConfig::SetTTCDelays(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Set TTC Delays on all crates" << std::endl;
+  //
+  int initial_crate = current_crate_;
+  //
+  if(total_crates_>0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      if ( crateVector[crate_number]->IsAlive() ) {
+	//
+	SetCurrentCrate(crate_number);
+	//
+	thisCCB->HardResetTTCrx();
+	::usleep(1000);
+	// need to read the TTCrxID before TTCrx registers can be touched
+	thisCCB->ReadTTCrxID();
+	//
+	// Download coarse delay to TTCrx
+	int TTCrxCoarseDelay_ = thisCCB->GetTTCrxCoarseDelay();
+	//
+	//PrintTTCrxRegs();
+	std::cout << "write TTCrxCoarseDelay_ = " << TTCrxCoarseDelay_ << " to register 2" << std::endl;
+	//
+	if(TTCrxCoarseDelay_>0) {
+	  int delay = ((TTCrxCoarseDelay_&0xf)<<4) + (TTCrxCoarseDelay_&0xf);
+	  thisCCB->WriteTTCrxReg(2,delay);
+	}
+	//
+	// Download fine delay to TTCrx
+	int TTCrxFineDelay_ = thisCCB->GetTTCrxFineDelay();
+	//
+	if( TTCrxFineDelay_>=0) {
+	  int delay = thisCCB->ConvertNanosecondsToFineDelayUnits(TTCrxFineDelay_&0xff);
+	  std::cout << "write TTCrxFineDelay_ = " << TTCrxFineDelay_ 
+		    << " (TTCrx value = 0x" << std::hex << delay << ") to registers 0 and 1" 
+		    << std::endl;
+	  thisCCB->WriteTTCrxReg(0,delay);
+	  thisCCB->WriteTTCrxReg(1,delay);
+	}
+	//
+	// Enable TTCrx parallel output bus
+	//
+	thisCCB->WriteTTCrxReg(3,0xB3);  
+
+	// check TTCrx registers
+	int rx;
+	rx=(int) (thisCCB->ReadTTCrxReg(2).to_ulong());
+	if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
+	  std::cout << "ERROR: TTCrx Coarse Delay register readback " << std::hex << (rx&0xff) << std::endl; 
+	//
+	rx=(int)(thisCCB->ReadTTCrxReg(3).to_ulong());
+	if((rx&0xff) != 0xB3) 
+	  std::cout << "ERROR: TTCrx Control register readback " << std::hex << (rx&0xff) << std::endl; 
+	//
+	std::cout << "After writing..." << std::endl;
+	thisCCB->PrintTTCrxRegs();
+	//
+      }
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  this->ExpertToolsPage(in,out);
+}
+//
+void EmuPeripheralCrateConfig::MeasureAllTMBVoltages(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Measure voltages on all TMB's" << std::endl;
+  //
+  char current_date_and_time[13];
+  //
+  // get the date and time of this check:
+  time_t rawtime;
+  struct tm * timeinfo;
+  //
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  //
+  int yearAD = timeinfo->tm_year + 1900;
+  int month_counting_from_one = timeinfo->tm_mon + 1;
+  int day = timeinfo->tm_mday;
+  int hour = timeinfo->tm_hour;     
+  int minute = timeinfo->tm_min;     
+  //
+  //
+  sprintf(current_date_and_time,"%4u%02u%02u_%02u%02u",yearAD,month_counting_from_one,day,hour,minute);
+  std::cout  << "current_date_and_time = " << current_date_and_time << std::endl;
+  //
+  std::string buf;
+  //  buf = "/tmp/TMBVoltages_"+current_date_and_time+".log";
+  buf = "/tmp/TMBVoltages.log";
+  std::cout << "Logging output to" << buf << std::endl ;
+  //
+  std::ofstream LogFile;
+  LogFile.open(buf.c_str());
+  //
+  LogFile << "##date_time = " << current_date_and_time                << std::endl;
+  LogFile << "##Crate, Chamber, slot, 5.0V, 5.5A, 3.3V, 3.3A, 1.5V core, 1.5A core, 1.5V TT, 1.0V TT, 1.8V RAT, 1.8A RAT" << std::endl;
+  //
+  int initial_crate = current_crate_;
+  //
+  if(total_crates_>0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      if ( crateVector[crate_number]->IsAlive() ) {
+	//
+	SetCurrentCrate(crate_number);
+	//
+	for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	  //
+	  Chamber * thisChamber = chamberVector[tmb];
+	  TMB * thisTMB = tmbVector[tmb];
+	  //
+	  //	  char Name[100];
+	  //	  sprintf(Name,"%s TMB status, crate=%s, slot=%d",
+	  //		  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisTMB->slot());
+	  // std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	  //
+	  //
+	  float adc_voltage[13] = {};
+	  thisTMB->ADCvoltages(adc_voltage);
+	  //
+	  LogFile << ThisCrateID_.c_str() << " ";
+	  LogFile << thisChamber->GetLabel() << " ";
+	  LogFile << thisTMB->slot() << " ";
+	  LogFile << std::setprecision(2) << std::fixed << thisTMB->Get5p0v() << " ";
+	  LogFile << std::setprecision(2) << std::fixed << thisTMB->Get5p0a() << " "; 
+	  LogFile << std::setprecision(2) << std::fixed << thisTMB->Get3p3v() << " ";
+	  LogFile << std::setprecision(2) << thisTMB->Get3p3a() << " ";
+	  LogFile << std::setprecision(3) << thisTMB->Get1p5vCore() << " ";
+	  LogFile << std::setprecision(2) << thisTMB->Get1p5aCore() << " ";
+	  LogFile << std::setprecision(2) << thisTMB->Get1p5vTT() << " ";
+	  LogFile << std::setprecision(2) << thisTMB->Get1p0vTT() << " ";
+	  LogFile << std::setprecision(2) << thisTMB->Get1p8vRAT() << " ";
+	  LogFile << std::setprecision(2) << thisTMB->Get1p8aRAT() << " ";
+	  LogFile << std::endl;
+	}
+      }
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  LogFile.close();    
   //
   this->ExpertToolsPage(in,out);
 }
