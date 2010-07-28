@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.70 2010/07/18 17:02:38 liu Exp $
+// $Id: Crate.cc,v 3.71 2010/07/28 13:26:56 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.71  2010/07/28 13:26:56  liu
+// add TMB's DCS-reading mask
+//
 // Revision 3.70  2010/07/18 17:02:38  liu
 // more TMB counters in firmware version July 2010
 //
@@ -773,7 +776,10 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
 
   int rn, TOTAL_DCS_COUNTERS=48; // aligned at 4 bytes (integer)
   short *buf2, flag=0;
+  unsigned dmask, tmask;
 
+  dmask = mask & 0x1FF;
+  tmask = mask >> 10;
   buf2=(short *)buf;
   *buf2 = 0;
   for(int i=0; i<= TOTAL_DCS_COUNTERS*9; i++) buf2[i]=0;
@@ -785,7 +791,7 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
     int imask= 0x3F & (myDmbs[i]->GetPowerMask());
     bool chamber_on = (imask!=0x3F);
 
-    if(IsAlive() && (mask & (1<<i))==0 && chamber_on)
+    if(IsAlive() && (dmask & (1<<i))==0 && chamber_on)
     {  
         rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
         if( rn>0) flag |= (1<<i);
@@ -794,7 +800,16 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
            flag &= 0x3FF; 
            flag |= ((i+1)<<10);
         }
+    }
+    if(IsAlive() && (tmask & (1<<i))==0 && chamber_on)
+    {  
         rn=myTmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS+46*2);
+        if( rn>0) flag |= (1<<i);
+        else if(rn<0) 
+        {  
+           flag &= 0x3FF; 
+           flag |= ((i+1)<<10);
+        }
     }
   }
   *buf2 = (TOTAL_DCS_COUNTERS)*myDmbs.size();
