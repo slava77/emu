@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.3 2010/02/09 12:12:19 liu Exp $
+// $Id: CCB.h,v 1.4 2010/07/28 13:14:01 rakness Exp $
 // $Log: CCB.h,v $
+// Revision 1.4  2010/07/28 13:14:01  rakness
+// make fine delay computation public
+//
 // Revision 1.3  2010/02/09 12:12:19  liu
 // introduce global run safe configuration check
 //
@@ -222,6 +225,8 @@ public:
   //
   inline void SetTTCrxFineDelay(int delay)     {TTCrxFineDelay_  = delay;}
   inline int  GetTTCrxFineDelay(){return TTCrxFineDelay_;}
+  int ConvertNanosecondsToFineDelayUnits(int delay_in_nsec);
+  //
   //
   inline void SetExpectedFirmwareDay(int day) {expected_firmware_day_ = day;}
   inline int  GetExpectedFirmwareDay() { return expected_firmware_day_;}
@@ -385,8 +390,6 @@ private:
   bool l1enabled_;
   int mVersion; // CCB version number (2001,2004)
   bool mDebug;
-  //
-  int ConvertNanosecondsToFineDelayUnits_(int delay_in_nsec);
   //
   int read_firmware_day_;
   int read_firmware_month_; 
