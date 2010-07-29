@@ -3806,6 +3806,9 @@ void EmuPeripheralCrateConfig::SetTTCDelays(xgi::Input * in, xgi::Output * out )
 	//
 	SetCurrentCrate(crate_number);
 	//
+	// Put CCB into FPGA mode to talk to the TTCrx board...
+	thisCCB->setCCBMode(CCB::VMEFPGA);
+	//
 	thisCCB->HardResetTTCrx();
 	::usleep(1000);
 	// need to read the TTCrxID before TTCrx registers can be touched
@@ -3850,6 +3853,9 @@ void EmuPeripheralCrateConfig::SetTTCDelays(xgi::Input * in, xgi::Output * out )
 	//
 	std::cout << "After writing..." << std::endl;
 	thisCCB->PrintTTCrxRegs();
+	//
+	// Put CCB back into DLOG mode to listen to TTC commands...
+	thisCCB->setCCBMode(CCB::DLOG);
 	//
       }
     }
