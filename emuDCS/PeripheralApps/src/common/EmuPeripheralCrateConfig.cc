@@ -3921,8 +3921,7 @@ void EmuPeripheralCrateConfig::MeasureAllTMBVoltages(xgi::Input * in, xgi::Outpu
 	  // std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
 	  //
 	  //
-	  float adc_voltage[13] = {};
-	  thisTMB->ADCvoltages(adc_voltage);
+	  thisTMB->ADCvoltages();
 	  //
 	  LogFile << ThisCrateID_.c_str() << " ";
 	  LogFile << thisChamber->GetLabel() << " ";
