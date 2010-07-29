@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.12 2010/07/16 12:28:57 rakness Exp $
+// $Id: TMB.h,v 1.13 2010/07/29 11:23:24 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.13  2010/07/29 11:23:24  rakness
+// clean up getting TMB ADC voltages
+//
 // Revision 1.12  2010/07/16 12:28:57  rakness
 // software for TMB firmware version 2010 July 7
 //
@@ -660,6 +663,8 @@ public:
   //!Read on-board ADCs, then get functions to return values
   void ADCvoltages(float*);
   //
+  //!Use the following method followed by the following getters
+  void ADCvoltages();
   inline float Get5p0v()     {return v5p0_     ;}
   inline float Get5p0a()     {return a5p0_     ;}
   //

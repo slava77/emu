@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.95 2010/07/16 12:28:58 rakness Exp $
+// $Id: TMB.cc,v 3.96 2010/07/29 11:23:24 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.96  2010/07/29 11:23:24  rakness
+// clean up getting TMB ADC voltages
+//
 // Revision 3.95  2010/07/16 12:28:58  rakness
 // software for TMB firmware version 2010 July 7
 //
@@ -4515,6 +4518,16 @@ int TMB::dsnIO(int writeData){
 ////////////////////////////////////////////////////////////////////////////
 // read on-board Voltages and temperatures
 ////////////////////////////////////////////////////////////////////////////
+void TMB::ADCvoltages() { 
+  //
+  // user can use this method and then the getters for the different
+  // values (5.0V, 5.0 current, etc.) for the ADC readings...
+  //
+  float adc_voltage[13] = {};
+  ADCvoltages(adc_voltage);
+  return;
+}
+//
 void TMB::ADCvoltages(float * voltage){
   //
   //Read the ADC of the voltage values ->
