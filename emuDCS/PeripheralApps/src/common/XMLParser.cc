@@ -664,6 +664,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
 	if (fillInt("alct_ccb_enable"          ,value)) { alct_->SetCcbEnable(value);                }
 	if (fillInt("alct_config_in_readout"   ,value)) { alct_->SetConfigInReadout(value);          }
 	if (fillInt("alct_accel_mode"          ,value)) { alct_->SetAlctAmode(value);                }
+	if (fillInt("alct_zero_suppress"       ,value)) { alct_->SetAlctZeroSuppress(value);         }
 	if (fillInt("alct_trig_info_en"        ,value)) { alct_->SetTriggerInfoEnable(value);        }
 	if (fillInt("alct_sn_select"           ,value)) { alct_->SetSnSelect(value);                 }
 	if (fillInt("alct_testpulse_amplitude" ,value)) { alct_->SetTestpulseAmplitude(value);       }

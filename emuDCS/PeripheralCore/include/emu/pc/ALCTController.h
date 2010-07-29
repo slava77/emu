@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 1.3 2009/04/30 14:23:15 liu Exp $
+// $Id: ALCTController.h,v 1.4 2010/07/29 15:34:31 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 1.4  2010/07/29 15:34:31  rakness
+// add ALCT zero-suppression option (if =0, is backwards compatible w/old firmware)
+//
 // Revision 1.3  2009/04/30 14:23:15  liu
 // fix Get_InvertPulse()
 //
@@ -545,6 +548,14 @@ class ALCTController : public EmuLogger
   inline int GetWriteAlctAmode(){ return write_alct_amode_; }
   //
   //
+  void SetAlctZeroSuppress(int alct_zero_suppress); // set Write values...
+  //                    alct_zero_suppress = [0-1] -> readout with zero-suppression
+  //                                          0 = do not zero-suppress
+  //                                          1 = zero-suppress empty wiregroups
+  int  GetAlctZeroSuppress();               // get Read values
+  inline int GetWriteAlctZeroSuppress(){ return write_alct_zero_suppress_; }
+  //
+  //
   void SetTriggerInfoEnable(int trigger_info_en); // set Write values...
   //                            trigger_info_en = [0-1] -> 0 = do not write trigger info to FIFO
   //                                                       1 = write trigger info to FIFO
@@ -867,6 +878,7 @@ private:
   int write_config_in_readout_;
   int write_ccb_enable_;
   int write_alct_amode_;
+  int write_alct_zero_suppress_;
   int write_trigger_info_en_;
   int write_sn_select_;
   void FillConfigurationReg_();
@@ -893,6 +905,7 @@ private:
   int read_ccb_enable_;
   int read_config_in_readout_;
   int read_alct_amode_;
+  int read_alct_zero_suppress_;
   int read_trigger_info_en_;
   int read_sn_select_;
   void DecodeConfigurationReg_();
