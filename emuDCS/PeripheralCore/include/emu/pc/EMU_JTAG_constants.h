@@ -663,6 +663,10 @@ const int alct_amode_bitlo                 = 65;
 const int alct_amode_bithi                 = 65;
 const int alct_amode_default               = 0;
 //
+const int alct_zero_suppress_bitlo         = 66;
+const int alct_zero_suppress_bithi         = 66;
+const int alct_zero_suppress_default       = 0;
+//
 const int trigger_info_en_bitlo            = 67;
 const int trigger_info_en_bithi            = 67;
 const int trigger_info_en_default          = ON;

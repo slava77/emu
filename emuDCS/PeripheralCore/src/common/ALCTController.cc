@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.62 2010/05/05 11:46:58 liu Exp $
+// $Id: ALCTController.cc,v 3.63 2010/07/29 15:34:31 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.63  2010/07/29 15:34:31  rakness
+// add ALCT zero-suppression option (if =0, is backwards compatible w/old firmware)
+//
 // Revision 3.62  2010/05/05 11:46:58  liu
 // make some stdout prints optional
 //
@@ -427,6 +430,7 @@ std::ostream & operator<<(std::ostream & os, ALCTController & alct) {
      << "BXC offset " << alct.write_bxc_offset_ << std::endl
      << "Board ID " << alct.write_board_id_ << std::endl
      << "Amode " << alct.write_alct_amode_ << std::endl
+     << "ZeroSuppress " << alct.write_alct_zero_suppress_ << std::endl
      << "Serial Number Select " << alct.write_sn_select_ << std::endl;
   for(int afeb=alct.GetLowestAfebIndex(); afeb<=alct.GetHighestAfebIndex(); afeb++){
     os << "Afeb = " << afeb << " Threshold = " << alct.write_afeb_threshold_[afeb] 
@@ -904,25 +908,26 @@ void ALCTController::CheckALCTConfiguration(int max_number_of_reads) {
       config_ok &= compareValues(tested_value.str(),GetAsicDelay(afeb),GetWriteAsicDelay(afeb),print_errors);
     }
     //
-    config_ok &= compareValues("alct_trig_mode"            ,read_trigger_mode_   ,write_trigger_mode_   ,print_errors);
-    config_ok &= compareValues("alct_ext_trig_enable"      ,read_ext_trig_enable_,write_ext_trig_enable_,print_errors);
-    config_ok &= compareValues("alct_send_empty"           ,read_send_empty_     ,write_send_empty_     ,print_errors);
-    config_ok &= compareValues("alct_inject_mode"          ,read_inject_         ,write_inject_         ,print_errors);
-    config_ok &= compareValues("alct_bxn_offset"           ,read_bxc_offset_     ,write_bxc_offset_     ,print_errors);
-    config_ok &= compareValues("alct_pretrig_thresh"       ,read_nph_thresh_     ,write_nph_thresh_     ,print_errors);
-    config_ok &= compareValues("alct_pattern_thresh"       ,read_nph_pattern_    ,write_nph_pattern_    ,print_errors);
-    config_ok &= compareValues("alct_drift_delay"          ,read_drift_delay_    ,write_drift_delay_    ,print_errors);
-    config_ok &= compareValues("alct_fifo_tbins"           ,read_fifo_tbins_     ,write_fifo_tbins_     ,print_errors);
-    config_ok &= compareValues("alct_fifo_pretrig"         ,read_fifo_pretrig_   ,write_fifo_pretrig_   ,print_errors);
-    config_ok &= compareValues("alct_fifo_mode"            ,read_fifo_mode_      ,write_fifo_mode_      ,print_errors);
-    config_ok &= compareValues("alct_l1a_delay"            ,read_l1a_delay_      ,write_l1a_delay_      ,print_errors);
-    config_ok &= compareValues("alct_l1a_window_size"      ,read_l1a_window_     ,write_l1a_window_     ,print_errors);
-    config_ok &= compareValues("alct_L1a_offset"           ,read_l1a_offset_     ,write_l1a_offset_     ,print_errors);
-    config_ok &= compareValues("alct_l1a_internal"         ,read_l1a_internal_   ,write_l1a_internal_   ,print_errors);
-    config_ok &= compareValues("alct_Board ID (not in xml)",read_board_id_       ,write_board_id_       ,print_errors);
-    config_ok &= compareValues("alct_ccb_enable"           ,read_ccb_enable_     ,write_ccb_enable_     ,print_errors);
-    config_ok &= compareValues("alct_accel_mode"           ,read_alct_amode_     ,write_alct_amode_     ,print_errors);
-    config_ok &= compareValues("alct_trig_info_enable"     ,read_trigger_info_en_,write_trigger_info_en_,print_errors);
+    config_ok &= compareValues("alct_trig_mode"            ,read_trigger_mode_      ,write_trigger_mode_      ,print_errors);
+    config_ok &= compareValues("alct_ext_trig_enable"      ,read_ext_trig_enable_   ,write_ext_trig_enable_   ,print_errors);
+    config_ok &= compareValues("alct_send_empty"           ,read_send_empty_        ,write_send_empty_        ,print_errors);
+    config_ok &= compareValues("alct_inject_mode"          ,read_inject_            ,write_inject_            ,print_errors);
+    config_ok &= compareValues("alct_bxn_offset"           ,read_bxc_offset_        ,write_bxc_offset_        ,print_errors);
+    config_ok &= compareValues("alct_pretrig_thresh"       ,read_nph_thresh_        ,write_nph_thresh_        ,print_errors);
+    config_ok &= compareValues("alct_pattern_thresh"       ,read_nph_pattern_       ,write_nph_pattern_       ,print_errors);
+    config_ok &= compareValues("alct_drift_delay"          ,read_drift_delay_       ,write_drift_delay_       ,print_errors);
+    config_ok &= compareValues("alct_fifo_tbins"           ,read_fifo_tbins_        ,write_fifo_tbins_        ,print_errors);
+    config_ok &= compareValues("alct_fifo_pretrig"         ,read_fifo_pretrig_      ,write_fifo_pretrig_      ,print_errors);
+    config_ok &= compareValues("alct_fifo_mode"            ,read_fifo_mode_         ,write_fifo_mode_         ,print_errors);
+    config_ok &= compareValues("alct_l1a_delay"            ,read_l1a_delay_         ,write_l1a_delay_         ,print_errors);
+    config_ok &= compareValues("alct_l1a_window_size"      ,read_l1a_window_        ,write_l1a_window_        ,print_errors);
+    config_ok &= compareValues("alct_L1a_offset"           ,read_l1a_offset_        ,write_l1a_offset_        ,print_errors);
+    config_ok &= compareValues("alct_l1a_internal"         ,read_l1a_internal_      ,write_l1a_internal_      ,print_errors);
+    config_ok &= compareValues("alct_Board ID (not in xml)",read_board_id_          ,write_board_id_          ,print_errors);
+    config_ok &= compareValues("alct_ccb_enable"           ,read_ccb_enable_        ,write_ccb_enable_        ,print_errors);
+    config_ok &= compareValues("alct_accel_mode"           ,read_alct_amode_        ,write_alct_amode_        ,print_errors);
+    config_ok &= compareValues("alct_zero_suppress"        ,read_alct_zero_suppress_,write_alct_zero_suppress_,print_errors);
+    config_ok &= compareValues("alct_trig_info_enable"     ,read_trigger_info_en_   ,write_trigger_info_en_   ,print_errors);
     config_ok &= compareValues("alct_config_in_readout",
 			       read_config_in_readout_,write_config_in_readout_,print_errors);
     config_ok &= compareValues("alct_sn_select",
@@ -2934,6 +2939,8 @@ void ALCTController::PrintConfigurationReg() {
 		<< GetConfigInReadout() << std::endl;
   (*MyOutput_) << "alct_amode_                = " << std::dec
 		<< GetAlctAmode() << std::endl;
+  (*MyOutput_) << "alct_zero_suppress_        = " << std::dec
+		<< GetAlctZeroSuppress() << std::endl;
   (*MyOutput_) << "trigger_info_en_           = " << std::dec
 		<< GetTriggerInfoEnable() << std::endl;         
   (*MyOutput_) << "sn_select_                 = " << std::dec
@@ -3170,6 +3177,17 @@ int ALCTController::GetAlctAmode() {
   return read_alct_amode_; 
 }
 //
+void ALCTController::SetAlctZeroSuppress(int alct_zero_suppress) { 
+  //
+  write_alct_zero_suppress_ = alct_zero_suppress; 
+  return;
+}
+//
+int ALCTController::GetAlctZeroSuppress() { 
+  //
+  return read_alct_zero_suppress_; 
+}
+//
 void ALCTController::SetTriggerInfoEnable(int trigger_info_en) { 
   //
   write_trigger_info_en_ = trigger_info_en; 
@@ -3299,6 +3317,11 @@ void ALCTController::DecodeConfigurationReg_(){
 				       number_of_bits,
 				       LSBfirst);
   //
+  number_of_bits = alct_zero_suppress_bithi - alct_zero_suppress_bitlo + 1;
+  read_alct_zero_suppress_ = tmb_->bits_to_int(read_config_reg_+alct_zero_suppress_bitlo,
+					       number_of_bits,
+					       LSBfirst);
+  //
   number_of_bits = trigger_info_en_bithi - trigger_info_en_bitlo + 1;
   read_trigger_info_en_ = tmb_->bits_to_int(read_config_reg_+trigger_info_en_bitlo,
 					    number_of_bits,
@@ -3421,6 +3444,11 @@ void ALCTController::FillConfigurationReg_(){
 		    write_config_reg_+alct_amode_bitlo,
 		    LSBfirst);
   //
+  tmb_->int_to_bits(write_alct_zero_suppress_,
+		    alct_zero_suppress_bithi-alct_zero_suppress_bitlo+1,
+		    write_config_reg_+alct_zero_suppress_bitlo,
+		    LSBfirst);
+  //
   tmb_->int_to_bits(write_trigger_info_en_,
 		    trigger_info_en_bithi-trigger_info_en_bitlo+1,
 		    write_config_reg_+trigger_info_en_bitlo,
@@ -3460,6 +3488,7 @@ void ALCTController::SetPowerUpConfigurationReg() {
   SetCcbEnable(ccb_enable_default);                        
   SetConfigInReadout(config_in_readout_default);
   SetAlctAmode(alct_amode_default);                        
+  SetAlctZeroSuppress(alct_zero_suppress_default);                        
   SetTriggerInfoEnable(trigger_info_en_default);                
   SetSnSelect(sn_select_default);                         
   //
