@@ -926,7 +926,7 @@ function TrackFinderFromJson(){
     $.each( json.table.rows, function(i,row){
       if ( i == 0 ){
 	msg += 'FSM_STATE.rows.length='+row.FSM_STATE.rows.length+'   EMUPAGEONE_RATES.rows.length='+row.EMUPAGEONE_RATES.rows.length;
-	var validConfPatterns = ['^EmuLocal$','^CSCTF-Conf'];
+	var validConfPatterns = ['^EmuLocal$','^Configuration$'];
 	var foundGlobalConf = false;
 	var foundLocalConf  = false;
 	for ( p=0; p<validConfPatterns.length; p++ ){
