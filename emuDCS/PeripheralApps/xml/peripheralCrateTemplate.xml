@@ -175,6 +175,7 @@
                 alct_inject_mode="0"
                 alct_config_in_readout="0"
                 alct_sn_select="0"
+                alct_zero_suppress="0"
                 alct_testpulse_amplitude="255"
                 alct_testpulse_invert="on"
                 alct_testpulse_direction="strips">
