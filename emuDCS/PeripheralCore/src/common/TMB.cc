@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.96 2010/07/29 11:23:24 rakness Exp $
+// $Id: TMB.cc,v 3.97 2010/08/04 12:09:02 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.97  2010/08/04 12:09:02  rakness
+// clean up ADC voltage readings
+//
 // Revision 3.96  2010/07/29 11:23:24  rakness
 // clean up getting TMB ADC voltages
 //
@@ -4546,86 +4549,49 @@ void TMB::ADCvoltages(float * voltage){
   //      [11] = reference Voltage * 0.5
   //      [12] = ground (0V)
   //      [13] = reference voltage (= ADC maximized)
+  //      [14] = COMMAND:  ADC power down
   //
-  int adc_dout;                      //Voltage monitor ADC serial data receive
-  int adc_sclock;                    //Voltage monitor ADC serial clock
-  int adc_din;                       //Voltage monitor ADC serial data transmit
-  int adc_cs;                        //Voltage monitor ADC chip select
-  //
-  int adc_shiftin;
-  int iclk;
-  //
-  int write_data, read_data;
-  //
-  for (int ich=0; ich<=14; ich++){
+  for (int chip=0; chip<15; chip++) {
     //
-    adc_dout = 0;
+    int adc_data = 0;
     //
-    adc_din    = 0;
-    adc_sclock = 0;
-    adc_cs     = 1;
+    // Force a transition from ChipSelect= 1 -> 0 in order to tell the ADC you are going to set a chip address
+    SetVoltageADCDataIn(0);
+    SetVoltageADCSerialClock(0);
+    SetVoltageADCChipSelect(1);
+    WriteRegister(vme_adc_adr);
     //
-    write_data = 0;
-    write_data |= (adc_sclock << 6);  
-    write_data |= (adc_din    << 7);  
-    write_data |= (adc_cs     << 8);  
+    SetVoltageADCChipSelect(0);
     //
-    WriteRegister(vme_adc_adr,write_data);
+    // Clock in the address for a chip at the same time you clock out the data from the previous chip (d[11:8]=address)
+    int twelve_bit_address = 0x000 | (chip << 8);  
     //
-    adc_shiftin = ich << 4;      //d[7:4]=channel, d[3:2]=length, d[1:0]=ldbf,bip
-    if (ich >= 14) adc_shiftin = 0;  //don't send channel 14, it is power-down
+    // ... for the 14th loop (to get the 13th chip's data), don't clock in "14," because this is the ADC power off command
+    if (chip==14) twelve_bit_address = 0; 
     //
-    //put adc_shiftin serially in 11 vme writes
-    for (iclk=0; iclk<=11; iclk++){
+    for (int iclk=0; iclk<12; iclk++){
+      int data_in = (twelve_bit_address >> (11-iclk)) & 0x1; //clock in the chip address most-significant bit first
+      SetVoltageADCDataIn(data_in);                          
       //
-      if (iclk <= 7) {
-	adc_din = (adc_shiftin >> (7-iclk)) & 0x1;
-      } else {
-	adc_din = 0;
-      }
-      adc_sclock = 0;
-      adc_cs     = 0;
+      SetVoltageADCSerialClock(0);   
+      WriteRegister(vme_adc_adr);
+      SetVoltageADCSerialClock(1);   
+      WriteRegister(vme_adc_adr);
       //
-      write_data = 0;
-      write_data |= (adc_sclock << 6);  
-      write_data |= (adc_din    << 7);  
-      write_data |= (adc_cs     << 8);  
-      //
-      WriteRegister(vme_adc_adr,write_data);
-      //
-      adc_sclock = 1;
-      adc_cs     = 0;
-      //
-      write_data = 0;
-      write_data |= (adc_sclock << 6);  
-      write_data |= (adc_din    << 7);  
-      write_data |= (adc_cs     << 8);  
-      //
-      WriteRegister(vme_adc_adr,write_data);
-      //
-      usleep(100);
-      //
-      read_data = (PowerComparator() >> 5) & 0x1;
-      //
-      //pack output into adc_dout
-      adc_dout |= (read_data << (11-iclk));
+      ReadRegister(vme_adc_adr);     //the data (from the previous chip) has been clocked out.  Retrieve it.
+      adc_data |= (GetReadVoltageADCDataOut() << (11-iclk));  // pack the data into a 12 bit ADC value
     }
     //
-    adc_din    = 0;
-    adc_sclock = 0;
-    adc_cs     = 1;
-    //
-    write_data = 0;
-    write_data |= (adc_sclock << 6);  
-    write_data |= (adc_din    << 7);  
-    write_data |= (adc_cs     << 8);  
-    //
-    WriteRegister(vme_adc_adr,write_data);
-    //
-    if (ich>=1) 
-      voltage[ich-1] = ((float) adc_dout / 4095.)*4.095; //convert adc value to volts
+    if (chip>0) 
+      voltage[chip-1] = ((float) adc_data / 4095.)*4.095; //convert adc value to volts
     //
   }
+  //
+  // don't leave the chip selection set to 0
+  SetVoltageADCDataIn(0);
+  SetVoltageADCSerialClock(0);
+  SetVoltageADCChipSelect(1);
+  WriteRegister(vme_adc_adr);
   //
   voltage[0] *= 2.0;                      // 1V/2V
   voltage[5] /= 0.2;                      // 200mV/Amp
@@ -5287,6 +5253,16 @@ void TMB::SetTMBRegisterDefaults() {
   rat_dsn_en_ = rat_dsn_en_default;
   //
   //------------------------------------------------------------------
+  //0X24 = ADR_ADC:  ADC + power comparator
+  //------------------------------------------------------------------
+  voltage_adc_data_out_         = voltage_adc_data_out_default         ;
+  voltage_adc_serial_clock_     = voltage_adc_serial_clock_default     ;
+  voltage_adc_data_in_          = voltage_adc_data_in_default          ;
+  voltage_adc_chip_select_      = voltage_adc_chip_select_default      ;
+  temperature_adc_serial_clock_ = temperature_adc_serial_clock_default ;
+  temperature_adc_serial_data_  = temperature_adc_serial_data_default  ;
+  //
+  //------------------------------------------------------------------
   //0X2A = ADR_CCB_CFG:  CCB Configuration
   //------------------------------------------------------------------
   ignore_ccb_rx_                 = ignore_ccb_rx_default                ;
@@ -5816,6 +5792,22 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_rpc_sync_   = ExtractValueFromData(data,rpc_sync_bitlo  ,rpc_sync_bithi  );
     read_shift_rpc_  = ExtractValueFromData(data,shift_rpc_bitlo ,shift_rpc_bithi );
     read_rat_dsn_en_ = ExtractValueFromData(data,rat_dsn_en_bitlo,rat_dsn_en_bithi);
+    //
+  } else if ( address == vme_adc_adr ) {
+    //------------------------------------------------------------------
+    //0X24 = ADR_ADC:  ADC + power comparator
+    //------------------------------------------------------------------
+    read_adc_vstat_5p0v_        = ExtractValueFromData(data,adc_vstat_5p0v_bitlo         ,adc_vstat_5p0v_bithi         );
+    read_adc_vstat_3p3v_        = ExtractValueFromData(data,adc_vstat_3p3v_bitlo         ,adc_vstat_3p3v_bithi         );
+    read_adc_vstat_1p8v_        = ExtractValueFromData(data,adc_vstat_1p8v_bitlo         ,adc_vstat_1p8v_bithi         );
+    read_adc_vstat_1p5v_        = ExtractValueFromData(data,adc_vstat_1p5v_bitlo         ,adc_vstat_1p5v_bithi         );
+    read_temp_not_critical_ = ExtractValueFromData(data,temp_not_critical_bitlo  ,temp_not_critical_bithi  );
+    read_voltage_adc_data_out_     = ExtractValueFromData(data,voltage_adc_data_out_bitlo    ,voltage_adc_data_out_bithi    );
+    read_voltage_adc_serial_clock_ = ExtractValueFromData(data,voltage_adc_serial_clock_bitlo,voltage_adc_serial_clock_bithi);
+    read_voltage_adc_data_in_      = ExtractValueFromData(data,voltage_adc_data_in_bitlo     ,voltage_adc_data_in_bithi     );
+    read_voltage_adc_chip_select_  = ExtractValueFromData(data,voltage_adc_chip_select_bitlo ,voltage_adc_chip_select_bithi );
+    read_temperature_adc_serial_clock_ = ExtractValueFromData(data,temperature_adc_serial_clock_bitlo,temperature_adc_serial_clock_bithi);
+    read_temperature_adc_serial_data_  = ExtractValueFromData(data,temperature_adc_serial_data_bitlo ,temperature_adc_serial_data_bithi );
     //
   } else if ( address == ccb_cfg_adr ) {
     //------------------------------------------------------------------
@@ -6697,6 +6689,23 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    RPC shift 1/2 cycle = " << std::hex << read_shift_rpc_  << std::endl;
     (*MyOutput_) << "    enable RAT DSN read = " << std::hex << read_rat_dsn_en_ << std::endl;
     //
+  } else if ( address == vme_adc_adr ) {
+    //------------------------------------------------------------------
+    //0X24 = ADR_ADC:  ADC + power comparator
+    //-----------------------------------------------------------------
+    (*MyOutput_) << " ->ADC control register:" << std::endl;
+    (*MyOutput_) << "    Voltage status 5.0V             = " << std::hex << read_adc_vstat_5p0v_        << std::endl;
+    (*MyOutput_) << "    Voltage status 3.3V             = " << std::hex << read_adc_vstat_3p3v_        << std::endl;
+    (*MyOutput_) << "    Voltage status 1.8V             = " << std::hex << read_adc_vstat_1p8v_        << std::endl;
+    (*MyOutput_) << "    Voltage status 1.5V             = " << std::hex << read_adc_vstat_1p5v_        << std::endl;
+    (*MyOutput_) << "    Temperature status not critical = " << std::hex << read_temp_not_critical_ << std::endl;
+    (*MyOutput_) << "    Voltage ADC data out            = " << std::hex << read_voltage_adc_data_out_     << std::endl;
+    (*MyOutput_) << "    Voltage ADC serial clock        = " << std::hex << read_voltage_adc_serial_clock_ << std::endl;
+    (*MyOutput_) << "    Voltage ADC data in             = " << std::hex << read_voltage_adc_data_in_      << std::endl;
+    (*MyOutput_) << "    Voltage ADC chip select         = " << std::hex << read_voltage_adc_chip_select_  << std::endl;
+    (*MyOutput_) << "    Temperature ADC serial clock    = " << std::hex << read_temperature_adc_serial_clock_ << std::endl;
+    (*MyOutput_) << "    Temperature ADC serial data     = " << std::hex << read_temperature_adc_serial_data_  << std::endl;
+    //
   } else if ( address == ccb_cfg_adr ) {
     //------------------------------------------------------------------
     //0X2A =  ADR_CCB_CFG:  CCB Configuration
@@ -7405,6 +7414,17 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(rpc_sync_  ,rpc_sync_bithi  ,rpc_sync_bitlo  ,&data_word);
     InsertValueIntoDataWord(shift_rpc_ ,shift_rpc_bithi ,shift_rpc_bitlo ,&data_word);
     InsertValueIntoDataWord(rat_dsn_en_,rat_dsn_en_bithi,rat_dsn_en_bitlo,&data_word);
+    //
+  } else if ( address == vme_adc_adr ) {
+    //------------------------------------------------------------------
+    //0X24 = ADR_ADC:  ADC + power comparator
+    //-----------------------------------------------------------------
+    InsertValueIntoDataWord(voltage_adc_data_out_        ,voltage_adc_data_out_bithi        ,voltage_adc_data_out_bitlo        ,&data_word);
+    InsertValueIntoDataWord(voltage_adc_serial_clock_    ,voltage_adc_serial_clock_bithi    ,voltage_adc_serial_clock_bitlo    ,&data_word);
+    InsertValueIntoDataWord(voltage_adc_data_in_         ,voltage_adc_data_in_bithi         ,voltage_adc_data_in_bitlo         ,&data_word);
+    InsertValueIntoDataWord(voltage_adc_chip_select_     ,voltage_adc_chip_select_bithi     ,voltage_adc_chip_select_bitlo     ,&data_word);
+    InsertValueIntoDataWord(temperature_adc_serial_clock_,temperature_adc_serial_clock_bithi,temperature_adc_serial_clock_bitlo,&data_word);
+    InsertValueIntoDataWord(temperature_adc_serial_data_ ,temperature_adc_serial_data_bithi ,temperature_adc_serial_data_bitlo ,&data_word);
     //
   } else if ( address == ccb_cfg_adr ) {
     //------------------------------------------------------------------
