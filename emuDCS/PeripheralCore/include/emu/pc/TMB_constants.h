@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.9 2010/07/16 12:28:57 rakness Exp $
+// $Id: TMB_constants.h,v 1.10 2010/08/04 12:09:01 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.10  2010/08/04 12:09:01  rakness
+// clean up ADC voltage readings
+//
 // Revision 1.9  2010/07/16 12:28:57  rakness
 // software for TMB firmware version 2010 July 7
 //
@@ -589,6 +592,60 @@ const int rat_dsn_en_vmereg  =  vme_ratctrl_adr;
 const int rat_dsn_en_bitlo   =  4;
 const int rat_dsn_en_bithi   =  4;
 const int rat_dsn_en_default =  0;
+//
+//
+//------------------------------------------------------------------
+//0X24 = ADR_ADC:  ADC + power comparator
+//------------------------------------------------------------------
+const int adc_vstat_5p0v_vmereg        =  vme_adc_adr;
+const int adc_vstat_5p0v_bitlo         =  0;
+const int adc_vstat_5p0v_bithi         =  0;
+//
+const int adc_vstat_3p3v_vmereg        =  vme_adc_adr;
+const int adc_vstat_3p3v_bitlo         =  1;
+const int adc_vstat_3p3v_bithi         =  1;
+//
+const int adc_vstat_1p8v_vmereg        =  vme_adc_adr;
+const int adc_vstat_1p8v_bitlo         =  2;
+const int adc_vstat_1p8v_bithi         =  2;
+//
+const int adc_vstat_1p5v_vmereg        =  vme_adc_adr;
+const int adc_vstat_1p5v_bitlo         =  3;
+const int adc_vstat_1p5v_bithi         =  3;
+//
+const int temp_not_critical_vmereg =  vme_adc_adr;
+const int temp_not_critical_bitlo  =  4;
+const int temp_not_critical_bithi  =  4;
+//
+const int voltage_adc_data_out_vmereg      =  vme_adc_adr;
+const int voltage_adc_data_out_bitlo       =  5;
+const int voltage_adc_data_out_bithi       =  5;
+const int voltage_adc_data_out_default     =  0;
+//
+const int voltage_adc_serial_clock_vmereg  =  vme_adc_adr;
+const int voltage_adc_serial_clock_bitlo   =  6;
+const int voltage_adc_serial_clock_bithi   =  6;
+const int voltage_adc_serial_clock_default =  0;
+//
+const int voltage_adc_data_in_vmereg       =  vme_adc_adr;
+const int voltage_adc_data_in_bitlo        =  7;
+const int voltage_adc_data_in_bithi        =  7;
+const int voltage_adc_data_in_default      =  0;
+//
+const int voltage_adc_chip_select_vmereg   =  vme_adc_adr;
+const int voltage_adc_chip_select_bitlo    =  8;
+const int voltage_adc_chip_select_bithi    =  8;
+const int voltage_adc_chip_select_default  =  1;
+//
+const int temperature_adc_serial_clock_vmereg  =  vme_adc_adr;
+const int temperature_adc_serial_clock_bitlo   =  9;
+const int temperature_adc_serial_clock_bithi   =  9;
+const int temperature_adc_serial_clock_default =  0;
+//
+const int temperature_adc_serial_data_vmereg   =  vme_adc_adr;
+const int temperature_adc_serial_data_bitlo    = 10;
+const int temperature_adc_serial_data_bithi    = 10;
+const int temperature_adc_serial_data_default  =  1;
 //
 //
 //------------------------------------------------------------------

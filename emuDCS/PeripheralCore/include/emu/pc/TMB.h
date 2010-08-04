@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.13 2010/07/29 11:23:24 rakness Exp $
+// $Id: TMB.h,v 1.14 2010/08/04 12:09:01 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.14  2010/08/04 12:09:01  rakness
+// clean up ADC voltage readings
+//
 // Revision 1.13  2010/07/29 11:23:24  rakness
 // clean up getting TMB ADC voltages
 //
@@ -769,6 +772,49 @@ public:
   //!cfeb4_tof_delay = [0-15] (2ns)
   inline void SetCfeb4TOFDelay(int cfeb4_tof_delay) { cfeb4_tof_delay_ = cfeb4_tof_delay; }
   inline int  GetCfeb4TOFDelay() { return cfeb4_tof_delay_; }
+  //
+  //------------------------------------------------------------------
+  //0X24 = ADR_ADC:  ADC + power comparator
+  //------------------------------------------------------------------
+  //! GetVoltageStatus = 1 = status OK
+  inline int GetVoltageStatus5p0V() { return read_adc_vstat_5p0v_; }
+  //
+  //! GetVoltageStatus = 1 = status OK
+  inline int GetVoltageStatus3p3V() { return read_adc_vstat_3p3v_; }
+  //
+  //! GetVoltageStatus = 1 = status OK
+  inline int GetVoltageStatus1p8V() { return read_adc_vstat_1p8v_; }
+  //
+  //! GetVoltageStatus = 1 = status OK
+  inline int GetVoltageStatus1p5V() { return read_adc_vstat_1p5v_; }
+  //
+  //! GetTemperatureStatusNotCritical = 1 = temperature not critical (status OK)
+  inline int GetTemperatureStatusNotCritical() { return read_temp_not_critical_; }
+  //
+  inline void SetVoltageADCDataOut(int voltage_adc_data_out) { voltage_adc_data_out_ = voltage_adc_data_out; }
+  inline int  GetVoltageADCDataOut() { return voltage_adc_data_out_; }
+  inline int  GetReadVoltageADCDataOut() { return read_voltage_adc_data_out_; }
+  //
+  inline void SetVoltageADCSerialClock(int voltage_adc_serial_clock) { voltage_adc_serial_clock_ = voltage_adc_serial_clock; }
+  inline int  GetVoltageADCSerialClock() { return voltage_adc_serial_clock_; }
+  inline int  GetReadVoltageADCSerialClock() { return read_voltage_adc_serial_clock_; }
+  //
+  inline void SetVoltageADCDataIn(int voltage_adc_data_in) { voltage_adc_data_in_ = voltage_adc_data_in; }
+  inline int  GetVoltageADCDataIn() { return voltage_adc_data_in_; }
+  inline int  GetReadVoltageADCDataIn() { return read_voltage_adc_data_in_; }
+  //
+  inline void SetVoltageADCChipSelect(int voltage_adc_chip_select) { voltage_adc_chip_select_ = voltage_adc_chip_select; }
+  inline int  GetVoltageADCChipSelect() { return voltage_adc_chip_select_; }
+  inline int  GetReadVoltageADCChipSelect() { return read_voltage_adc_chip_select_; }
+  //
+  inline void SetTemperatureADCSerialClock(int temperature_adc_serial_clock) { temperature_adc_serial_clock_ = temperature_adc_serial_clock; }
+  inline int  GetTemperatureADCSerialClock() { return temperature_adc_serial_clock_; }
+  inline int  GetReadTemperatureADCSerialClock() { return read_temperature_adc_serial_clock_; }
+  //
+  inline void SetTemperatureADCSerialData(int temperature_adc_serial_data) { temperature_adc_serial_data_ = temperature_adc_serial_data; }
+  inline int  GetTemperatureADCSerialData() { return temperature_adc_serial_data_; }
+  inline int  GetReadTemperatureADCSerialData() { return read_temperature_adc_serial_data_; }
+  //
   //
   //------------------------------------------------------------------
   //0X2A = ADR_CCB_CFG:  CCB Configuration
@@ -2320,6 +2366,28 @@ private:
   int read_rpc_sync_;
   int read_shift_rpc_;
   int read_rat_dsn_en_;
+  //
+  //------------------------------------------------------------------
+  //0X24 = ADR_ADC:  ADC + power comparator
+  //------------------------------------------------------------------
+  int voltage_adc_data_out_      ;
+  int voltage_adc_serial_clock_  ;
+  int voltage_adc_data_in_       ;
+  int voltage_adc_chip_select_   ;
+  int temperature_adc_serial_clock_ ;
+  int temperature_adc_serial_data_  ;
+  //
+  int read_adc_vstat_5p0v_        ;
+  int read_adc_vstat_3p3v_        ;
+  int read_adc_vstat_1p8v_        ;
+  int read_adc_vstat_1p5v_        ;
+  int read_temp_not_critical_ ;
+  int read_voltage_adc_data_out_      ;
+  int read_voltage_adc_serial_clock_  ;
+  int read_voltage_adc_data_in_       ;
+  int read_voltage_adc_chip_select_   ;
+  int read_temperature_adc_serial_clock_ ;
+  int read_temperature_adc_serial_data_  ;
   //
   //------------------------------------------------------------------
   //0X2A = ADR_CCB_CFG:  CCB Configuration
