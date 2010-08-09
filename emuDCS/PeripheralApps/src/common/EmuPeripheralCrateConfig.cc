@@ -170,8 +170,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   }
   //
   firmware_checked_ = 0;
-  number_of_hard_resets_ = 0;
-  number_of_checks_ = 1;
+  number_of_hard_resets_ = 1;
+  number_of_checks_ = 2;
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateConfig::MainPage, "MainPage");
@@ -2517,7 +2517,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
     //
     // send hard reset from CCB to load FPGA's from EEPROM's in all electronics modules.  
     // If the user does not request a hard reset, just read the values
-    if (number_of_hard_resets_>0 && hard_reset_index !=0 ){ //do not send a hard reset on the first iteration...
+    if (number_of_hard_resets_>0 && hard_reset_index > 0 ){ //do not send a hard reset on the first iteration...
       //
       for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
 	//
@@ -2738,14 +2738,14 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	//	}
 	//
 	if (alct_lvmb_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
-	  //	  int number_of_bad_readings = number_of_checks_ - alct_lvmb_current_ok[crate_index][chamber_index];
-	  reason << "I(LVMB) low, ";   // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	  int number_of_bad_readings = number_of_checks_ - alct_lvmb_current_ok[crate_index][chamber_index];
+	  reason << "I(LVMB) low, " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
 	//
 	// Although we do not use this as a "smoking gun", we print out if the configuration "done" bit makes it to the CCB...
 	if (alctcfg_ok[crate_index][chamber_index]     != number_of_checks_ ) {
-	  //	  int number_of_bad_readings = number_of_checks_ - alctcfg_ok[crate_index][chamber_index];
-	  reason << "FPGA cfg done bad"; // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	  int number_of_bad_readings = number_of_checks_ - alctcfg_ok[crate_index][chamber_index];
+	  reason << "FPGA cfg done bad" << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
       	//
 	reason_for_reload.push_back(reason.str());
@@ -2842,13 +2842,13 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  //	  }
 	  //	  //
 	  if (cfeb_current_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
-	    //	    int number_of_bad_readings = number_of_checks_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
-	    reason << "I(LVMB) low, ";  // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	    int number_of_bad_readings = number_of_checks_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "I(LVMB) low, " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
 	  if (cfeb_config_ok[crate_index][chamber_index][cfeb_index]     < number_of_checks_ ) {
-	    //	    int number_of_bad_readings = number_of_checks_ - cfeb_config_ok[crate_index][chamber_index][cfeb_index];
-	    reason << "Config bits high, ";  // << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	    int number_of_bad_readings = number_of_checks_ - cfeb_config_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "Config bits high, " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	  }
 	  //
 	  // Although we do not use this as a "smoking gun", we print out if the configuration "done" bit makes it to the CCB...
