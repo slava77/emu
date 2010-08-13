@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.11 2010/07/21 19:39:55 banicz Exp $
+* $Id: Communicator.h,v 1.12 2010/08/13 03:00:07 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -9,8 +9,8 @@
 #include "emu/base/FactFinder.h"
 #include "emu/fed/Facts.h"
 
-#include <vector>
 #include <string>
+#include <list>
 
 #include "emu/fed/Crate.h"
 
@@ -21,8 +21,10 @@ namespace emu {
 		class IRQThreadManager;
 		
 		/** @class Communicator A class that is directly responsible for hardware communication with the FED Crates. **/
-	        class Communicator: virtual public emu::fed::Configurable, public emu::fed::Supervised//, public emu::base::FactFinder
+	        class Communicator: virtual public emu::fed::Configurable, public emu::fed::Supervised, public emu::base::FactFinder
 		{
+			
+			friend class IRQThreadManager;  // To get around protection of sendFacts()
 
 		public:
 			XDAQ_INSTANTIATOR();
@@ -85,20 +87,19 @@ namespace emu {
 			xoap::MessageReference onGetParameters(xoap::MessageReference message);
 
 			/** Returns a requested fact **/
-// 			virtual emu::base::Fact findFact(const emu::base::Component& component, const std::string& factType);
+			virtual emu::base::Fact findFact(const emu::base::Component& component, const std::string& factType);
 			
 			/** Returns all facts for dispatch, either by schedule or by explicit call to sendFacts() **/
-// 			virtual emu::base::FactCollection findFacts();
+			virtual emu::base::FactCollection findFacts();
 
 			/** The Communicator itself is not fast enough to pick up IRQs, so the ThreadManager has to be able to send to the Communicator the facts from an IRQ so that the Communicator can report this to the Expert System. **/
-			inline void sendIRQFact(const emu::base::TypedFact<emu::fed::DDUFMMIRQFact> &fact) {
-// 				latestIRQFact_ = fact;
-// 				sendFact("", "LatestIRQFact");
+			inline void storeFact(const emu::base::Fact &fact) {
+				storedFacts_.push_back(fact);
 			}
-			
-			inline void sendResetFact(const emu::base::TypedFact<emu::fed::DDUFMMResetFact> &fact) {
-// 				latestResetFact_ = fact;
-// 				sendFact("", "LatestResetFact");
+
+			/** Because FactFinder won't let me do this **/
+			inline void sendFact(const std::string &name) {
+				FactFinder::sendFact(std::string(""), name);
 			}
 
 		private:
@@ -148,12 +149,9 @@ namespace emu {
 			
 			/// The threshold number of chambers required to be in an error state before sending an FMM
 			xdata::UnsignedInteger fmmErrorThreshold_;
-
-			/// The latest IRQ fact to send to the Expert System
-			emu::base::TypedFact<emu::fed::DDUFMMIRQFact> latestIRQFact_;
-
-			/// The latest reset fact to send to the Expert System
-			emu::base::TypedFact<emu::fed::DDUFMMResetFact> latestResetFact_;
+			
+			/// Stored facts to be forcefully sent to the MasterSystem as soon as there is a problem
+			std::list<emu::base::Fact> storedFacts_;
 
 		};
 	}

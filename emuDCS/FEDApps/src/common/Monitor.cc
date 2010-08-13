@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.18 2010/05/31 14:57:20 paste Exp $
+* $Id: Monitor.cc,v 1.19 2010/08/13 03:00:07 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -881,8 +881,12 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		std::string statusDecoded = "undefined";
 		try {
 			uint8_t fmmStatus = (*iDCC)->readFMMStatus();
-			std::pair<std::string, std::string> debugged = DCCDebugger::FMMStatus(fmmStatus);
-			statusDecoded = debugged.second;
+			std::multimap<std::string, std::string> debugged = DCCDebugger::FMMStatus(fmmStatus);
+			if (debugged.find("undefined") != debugged.end()) statusDecoded = "undefined";
+			else if (debugged.find("error") != debugged.end()) statusDecoded = "error";
+			else if (debugged.find("warning") != debugged.end()) statusDecoded = "warning";
+			else if (debugged.find("caution") != debugged.end()) statusDecoded = "caution";
+			else statusDecoded = "ok";
 		} catch (emu::fed::exception::DCCException &e) {
 			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
