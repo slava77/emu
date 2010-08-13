@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.36 2010/07/21 19:39:56 banicz Exp $
+* $Id: Communicator.cc,v 1.37 2010/08/13 03:00:07 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -34,7 +34,7 @@ emu::fed::Application(stub),
 emu::fed::Configurable(stub),
 emu::base::Supervised(stub),
 emu::fed::Supervised(stub),
-// emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0),
+emu::base::FactFinder(stub, emu::base::FactCollection::FED, 0),
 ttsCrate_(0),
 ttsSlot_(0),
 ttsBits_(0),
@@ -468,7 +468,7 @@ throw (toolbox::fsm::exception::Exception)
 
 	// Store exceptions when checking and report them all at the end
 	std::vector<xcept::Exception> exceptions;
-	
+
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
 		// Set FMM error reporting disable.  Not on TF, though
@@ -728,21 +728,36 @@ throw (toolbox::fsm::exception::Exception)
 					XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
 					exceptions.push_back(e2);
 				}
-				if ((status & 0xfff0) != 0x2ff0) {
+				if ((status & 0xfff0) != 0x8ff0) {
 					std::ostringstream error;
 					error << "Status for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset: " << std::endl;
 
-					std::pair<std::string, std::string> fmmStatus = DCCDebugger::FMMStatus((status >> 12) & 0xf);
-					error << "FMM status: " << fmmStatus.first << std::endl;
-
-					std::map<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStatus(status & 0xf);
-					for (std::map<std::string, std::string>::const_iterator iSLink = sLinkStatus.begin(); iSLink != sLinkStatus.end(); ++iSLink) {
-						error << (*iSLink).first << std::endl;
+					std::multimap<std::string, std::string> fmmStatus = DCCDebugger::FMMStatus((status >> 12) & 0xf);
+					
+					error << "FMM status: ";
+					for (std::multimap<std::string, std::string>::const_iterator iStatus = fmmStatus.begin(); ;) {
+						error << iStatus->second << std::endl;
+						if (++iStatus != fmmStatus.end())
+							error << ", ";
+						else break;
 					}
+					error << "; SLink status: ";
 
-					std::map<std::string, std::string> inFIFOStatus = DCCDebugger::FIFOStatus((status >> 8) & 0xff);
-					for (std::map<std::string, std::string>::const_iterator iFIFO = inFIFOStatus.begin(); iFIFO != inFIFOStatus.end(); ++iFIFO) {
-						error << (*iFIFO).first << std::endl;
+					std::multimap<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStatus(status & 0xf);
+					for (std::multimap<std::string, std::string>::const_iterator iStatus = sLinkStatus.begin(); ;) {
+						error << iStatus->second << std::endl;
+						if (++iStatus != sLinkStatus.end())
+							error << ", ";
+						else break;
+					}
+					error << "; FIFO status: ";
+
+					std::multimap<std::string, std::string> inFIFOStatus = DCCDebugger::FIFOStatus((status >> 8) & 0xff);
+					for (std::multimap<std::string, std::string>::const_iterator iStatus = inFIFOStatus.begin(); ;) {
+						error << iStatus->second << std::endl;
+						if (++iStatus != inFIFOStatus.end())
+							error << ", ";
+						else break;
 					}
 
 					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
@@ -770,12 +785,33 @@ throw (toolbox::fsm::exception::Exception)
 
 	}
 
+	// Make an FSM fact
+	emu::base::TypedFact<emu::fed::FEDFSMFact> fact;
+	fact.setComponentId(systemName_.toString())
+		.setParameter(emu::fed::FEDFSMFact::from, state_.toString())
+		.setParameter(emu::fed::FEDFSMFact::to, "Configured")
+		.setParameter(emu::fed::FEDFSMFact::configType, configMode_.toString());
+	if (configMode_.toString() == "XML") {
+		fact.setParameter(emu::fed::FEDFSMFact::configValue, xmlFile_.toString());
+	} else if (configMode_.toString() == "Database") {
+		fact.setParameter(emu::fed::FEDFSMFact::configValue, dbKey_.toString());
+	}
+
 	if (exceptions.empty()) {
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "System " << systemName_.toString() << " fully configured");
+		fact.setParameter(emu::fed::FEDFSMFact::result, "ok")
+			.setSeverity(emu::base::Fact::INFO);
+		storeFact(fact);
+		sendFacts();
 	} else {
 		std::ostringstream error;
 		error << "System " << systemName_.toString() << " failed to configure with " << exceptions.size() << " caught exceptions";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str() << " (the first of which will be thrown)");
+		fact.setParameter(emu::fed::FEDFSMFact::result, "failed")
+			.setSeverity(emu::base::Fact::FATAL)
+			.setDescription(exceptions[0].message());
+		storeFact(fact);
+		sendFacts();
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), exceptions[0]);
 	}
 }
@@ -943,12 +979,33 @@ throw (toolbox::fsm::exception::Exception)
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << (*iCrate)->getNumber() << " ready to enable");
 	}
 
+	// Make an FSM fact
+	emu::base::TypedFact<emu::fed::FEDFSMFact> fact;
+	fact.setComponentId(systemName_.toString())
+		.setParameter(emu::fed::FEDFSMFact::from, state_.toString())
+		.setParameter(emu::fed::FEDFSMFact::to, "Enabled")
+		.setParameter(emu::fed::FEDFSMFact::configType, configMode_.toString());
+	if (configMode_.toString() == "XML") {
+		fact.setParameter(emu::fed::FEDFSMFact::configValue, xmlFile_.toString());
+	} else if (configMode_.toString() == "Database") {
+		fact.setParameter(emu::fed::FEDFSMFact::configValue, dbKey_.toString());
+	}
+
 	if (exceptions.empty()) {
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "System " << systemName_.toString() << " ready to enable");
+		fact.setParameter(emu::fed::FEDFSMFact::result, "ok")
+			.setSeverity(emu::base::Fact::INFO);
+		storeFact(fact);
+		sendFacts();
 	} else {
 		std::ostringstream error;
 		error << "System " << systemName_.toString() << " failed to enable with " << exceptions.size() << " caught exceptions";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str() << " (the first of which will be thrown)");
+		fact.setParameter(emu::fed::FEDFSMFact::result, "failed")
+			.setSeverity(emu::base::Fact::FATAL)
+			.setDescription(exceptions[0].message());
+		storeFact(fact);
+		sendFacts();
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), exceptions[0]);
 	}
 
@@ -1230,52 +1287,60 @@ throw (emu::fed::exception::TTSException)
 }
 
 
-// emu::base::Fact emu::fed::Communicator::findFact(const emu::base::Component& component, const std::string& factType)
-// {
-// 	/*
-// 	if (factType == emu::fed::ConfigurationFact::getTypeName()) {
-// 		emu::base::TypedFact<emu::fed::ConfigurationFact> fact;
-// 		fact.setComponentId("Communicator")
-// 			.setSeverity(emu::base::Fact::DEBUG)
-// 			.setDescription("Configuration type of the FED Communicator application")
-// 			.setParameter(emu::fed::ConfigurationFact::method, configMode_.toString());
-// 		if (configMode_.toString() == "Database") {
-// 			fact.setParameter(emu::fed::ConfigurationFact::id, dbKey_.toString());
-// 		} else if (configMode_.toString() == "XML") {
-// 			fact.setParameter(emu::fed::ConfigurationFact::id, xmlFileName_.toString());
-// 		} else {
-// 			fact.setParameter(emu::fed::ConfigurationFact::id, "none");
-// 		}
-// 		return fact;
-// 	}
-// 	*/
-// 	// This is me pretending to be tricky.
-// 	if (factType == "LatestIRQFact") {
-// 		return latestIRQFact_;
-// 	} else if (factType == "LatestResetFact") {
-// 		return latestResetFact_;
-// 	}
-	
-// 	std::ostringstream error;
-// 	error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
-// 	XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
-// 	notifyQualified("WARN", e);
-// 	LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
-	
-// 	return emu::base::Fact();
-// }
+
+emu::base::Fact emu::fed::Communicator::findFact(const emu::base::Component& component, const std::string& factType)
+{
+	/*
+	if (factType == emu::fed::ConfigurationFact::getTypeName()) {
+		emu::base::TypedFact<emu::fed::ConfigurationFact> fact;
+		fact.setComponentId("Communicator")
+			.setSeverity(emu::base::Fact::DEBUG)
+			.setDescription("Configuration type of the FED Communicator application")
+			.setParameter(emu::fed::ConfigurationFact::method, configMode_.toString());
+		if (configMode_.toString() == "Database") {
+			fact.setParameter(emu::fed::ConfigurationFact::id, dbKey_.toString());
+		} else if (configMode_.toString() == "XML") {
+			fact.setParameter(emu::fed::ConfigurationFact::id, xmlFileName_.toString());
+		} else {
+			fact.setParameter(emu::fed::ConfigurationFact::id, "none");
+		}
+		return fact;
+	}
+	*/
+	// This is me pretending to be tricky, but ending up doing O(N) searches.  Bleh
+	for (std::list<emu::base::Fact>::iterator iFact = storedFacts_.begin(); iFact != storedFacts_.end(); ++iFact) {
+		// Return only the last stored fact that matches the component and fact type
+		if (iFact->getComponent() == component && iFact->getName() == factType) {
+			emu::base::Fact returnMe = *iFact;
+			storedFacts_.erase(iFact);
+			return returnMe;
+		}
+	}
+
+	std::ostringstream error;
+	error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
+	XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
+	notifyQualified("WARN", e);
+	LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+
+	return emu::base::Fact();
+}
 
 
 
-// emu::base::FactCollection emu::fed::Communicator::findFacts()
-// {
-// 	emu::base::FactCollection collection;
+emu::base::FactCollection emu::fed::Communicator::findFacts()
+{
+	emu::base::FactCollection collection;
+	// I am manually sorting these by time.  I don't know if this is sensible or not.
+	for (std::list<emu::base::Fact>::iterator iFact = storedFacts_.begin(); iFact != storedFacts_.end(); ++iFact) {
+		collection.addFact(*iFact);
+	}
+	// This is legal because a FactCollection is basically a vector.
+	storedFacts_.clear();
 
-// 	emu::base::Fact configurationFact = findFact(std::string("None"), emu::fed::ConfigurationFact::getTypeName());
-// 	collection.addFact(configurationFact);
-	
-// 	return collection;
-// }
+	return collection;
+}
+
 
 // End of file
 // vim: set sw=4 ts=4:

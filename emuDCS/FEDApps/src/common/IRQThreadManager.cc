@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.1 2010/05/31 14:57:20 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.2 2010/08/13 03:00:07 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
+#include <bitset>
 #include <log4cplus/logger.h>
 #include <log4cplus/fileappender.h>
 
@@ -18,7 +19,6 @@
 #include "emu/fed/DCCDebugger.h"
 #include "emu/fed/Fiber.h"
 #include "emu/fed/FIFO.h"
-#include "emu/fed/IRQData.h"
 #include "emu/fed/Facts.h"
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
@@ -42,7 +42,7 @@ emu::fed::IRQThreadManager::~IRQThreadManager()
 	try {
 		endThreads();
 	} catch (...) {
-		// I don't care if this doesn't work.  Zombies will all die eventually, even if they leak a little memory.
+		// I don't care if this doesn't work.  Zombies will all die eventually, even if they leak a little memory (and brains).
 	}
 	delete data_;
 }
@@ -95,6 +95,7 @@ throw (emu::fed::exception::FMMThreadException)
 	// First, load up the data_ object with the crates that I govern.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); ++iThread) {
 		data_->crateQueue.push(threadVector_[iThread].first);
+		data_->nCrates++;
 	}
 
 	// Next, execute the threads.
@@ -246,7 +247,7 @@ throw (emu::fed::exception::FMMThreadException)
 /// The big one
 void *emu::fed::IRQThreadManager::IRQThread(void *data)
 {
-
+	
 	// Recast the void pointer as something more useful.
 	IRQData *locdata = (IRQData *) data;
 
@@ -261,7 +262,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	locdata->crateQueue.pop();
 	pthread_mutex_unlock(&(locdata->crateQueueMutex));
 
-	unsigned int crateNumber = myCrate->number();
+	unsigned int crateNumber = myCrate->getNumber();
 
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 
@@ -270,551 +271,617 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	std::vector<DCC *> dccVector = myCrate->getDCCs();
 
 	// This is when we started.  Don't know why this screws up sometimes...
-	time_t tock;
-	time(&tock);
-	tm *tockInfo = localtime(&tock);
-	std::string tockText(asctime(tockInfo));
-	locdata->startTime[crateNumber] = tockText;
+	//time_t tock;
+	//time(&tock);
+	//tm *tockInfo = localtime(&tock);
+	//std::string tockText(asctime(tockInfo));
+	//locdata->startTime[crateNumber] = tockText;
 
-	// A local tally of what the last error on a given DDU was.
-	std::map<unsigned int, int> lastDDUError;
+	// A local tally of what the last CSC status error on a given DDU was.
+	std::map<unsigned int, unsigned int> lastDDUError;
+	
+	// The last DDU slot to report an IRQ
+	unsigned int lastDDU = 0;
+	
+	// The L1A at the last IRQ (approximate)
+	unsigned int lastL1A = 0;
+	
+	// A local count of the number or errors for this crate, indexed by slot
+	std::map<unsigned int, unsigned int> nErrors;
+	
+	// Whether or not the debugging trap has been sprung on a given DDU
+	std::map<unsigned int, bool> trapSprung;
 
 	// A local tally of what the last FMM error on a given DCC was.
-	std::map<unsigned int, int> lastDCCError;
+	std::map<unsigned int, unsigned int> lastDCCError;
 
 	// A local tally of what the last FIFO error on a given DCC was.
-	std::map<unsigned int, int> lastFIFOError;
+	std::map<unsigned int, unsigned int> lastFIFOError;
 
 	// A local tally of what the last SLink error on a given DCC was.
-	std::map<unsigned int, int> lastSLinkError;
-
-	// Begin by clearing all the Sentinel alarms that might have popped up in past runs.  If there is a problem, they will be caught again.
-	for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-			std::ostringstream alarmName;
-			alarmName << "IRQThreadFiber" << crateNumber << "_" << (*iDDU)->slot() << "_" << iFiber;
-			MY_REVOKE_ALARM(alarmName.str());
-		}
-	}
-
-	// Clear all DCC errors in the same fashion
-	for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
-		lastDCCError[(*iDCC)->getSlot()] = 0x2;
-		lastFIFOError[(*iDCC)->getSlot()] = 0xff;
-		lastSLinkError[(*iDCC)->getSlot()] = 0x0;
-		std::ostringstream alarmName;
-		alarmName << "IRQThreadDCCFMM" << crateNumber << "_" << (*iDCC)->getSlot();
-		MY_REVOKE_ALARM(alarmName.str());
-		std::vector<FIFO *> fifoVector = (*iDCC)->getFIFOs();
-		for (std::vector<FIFO *>::iterator iFIFO = fifoVector.begin(); iFIFO != fifoVector.end(); iFIFO++) {
-			std::ostringstream alarmName;
-			alarmName << "IRQThreadDCCFIFO" << crateNumber << "_" << (*iDCC)->slot() << "_" << (*iFIFO)->getNumber();
-			MY_REVOKE_ALARM(alarmName.str());
-		}
-		for (unsigned int iLink = 0; iLink <= 1; iLink++) {
-			std::ostringstream alarmName;
-			alarmName << "IRQThreadDCCSlink" << crateNumber << "_" << (*iDCC)->slot() << "_" << iLink;
-			MY_REVOKE_ALARM(alarmName.str());
-		}
-	}
+	std::map<unsigned int, unsigned int> lastSLinkError;
 
 	// Continue unless someone tells us to stop.
 	while (1) { // Always looping until the thread is canceled
 
+		// New plan of attack:
+		// Reset everything and wait for all sister threads to reset
+		// Check every second for an interrupt
+		// If there is an interrupt, handle it
+		// Otherwise, do misc checks
+		//  check for reset
+		//  check TF?
+		//  check DCCs
+		// (if at any point a reset is detected, immediately restart the loop)
+
 		// Immediate check for cancel
 		pthread_testcancel();
+		
+		// Clear the stored number of errors
+		unsigned int totalErrors;
+		for (std::map<unsigned int, unsigned int>::const_iterator iError = nErrors.begin(); iError != nErrors.end(); ++iError) {
+			totalErrors += iError->second;
+		}
+		
+		pthread_mutex_lock(&locdata->errorCountMutex);
+		locdata->errorCount[crateNumber] = 0;
+		pthread_mutex_unlock(&locdata->errorCountMutex);
+		
+		nErrors.clear();
+		trapSprung.clear();
+		lastDDUError.clear();
+		lastDDU = 0;
+		lastL1A = 0;
+		
+		// Tell the DDUs on this crate to stop broadcasting FMM errors
+		if (!myCrate->isTrackFinder()) myCrate->getBroadcastDDU()->disableFMM();
 
-		//LOG4CPLUS_DEBUG(logger, "Start of loop reached.");
+		// Begin by clearing all the Sentinel alarms that might have popped up in past runs.  If there is a problem, they will be caught again.
+		for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+			// This resets the last set of CSC errors in the DDU
+			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+				std::ostringstream alarmName;
+				alarmName << "IRQThreadFiber" << crateNumber << "_" << (*iDDU)->getSlot() << "_" << iFiber;
+				MY_REVOKE_ALARM(alarmName.str());
+			}
+		}
 
-		// Increase the ticks.
-		locdata->ticks[crateNumber]++;
+		// Clear all DCC errors in the same fashion
+		for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
+			lastDCCError[(*iDCC)->getSlot()] = 0x8; // This is FMM for READY
+			lastFIFOError[(*iDCC)->getSlot()] = 0xff; // No FIFO errors FIXME
+			lastSLinkError[(*iDCC)->getSlot()] = 0x0; // No SLink problems FIXME
+			std::ostringstream alarmName;
+			alarmName << "IRQThreadDCCFMM" << crateNumber << "_" << (*iDCC)->getSlot();
+			MY_REVOKE_ALARM(alarmName.str());
+			std::vector<FIFO *> fifoVector = (*iDCC)->getFIFOs();
+			for (std::vector<FIFO *>::iterator iFIFO = fifoVector.begin(); iFIFO != fifoVector.end(); iFIFO++) {
+				std::ostringstream alarmName;
+				alarmName << "IRQThreadDCCFIFO" << crateNumber << "_" << (*iDCC)->slot() << "_" << (*iFIFO)->getNumber();
+				MY_REVOKE_ALARM(alarmName.str());
+			}
+			for (unsigned int iLink = 0; iLink <= 1; iLink++) {
+				std::ostringstream alarmName;
+				alarmName << "IRQThreadDCCSlink" << crateNumber << "_" << (*iDCC)->slot() << "_" << iLink;
+				MY_REVOKE_ALARM(alarmName.str());
+			}
+		}
+		
+		// Now wait until the other threads have also reset
+		pthread_mutex_lock(&locdata->resetCountMutex);
+		
+		// Increment the number of crates that have reset
+		locdata->resetCount++;
+		
+		if (locdata->nCrates > 1) { // No need to wait if there is only one thread!
+			// If this is the number of crates in existence, signal everybody else to continue
+			if (locdata->resetCount >= locdata->nCrates) {
+				LOG4CPLUS_INFO(logger, "Reset count has reached " << locdata->resetCount << "--unlocking threads");
+				pthread_cond_broadcast(&locdata->resetCountCondition);
+			}
+			
+			// Otherwise, wait until you are signaled by someone else!
+			else {
+				unsigned int remaining = locdata->nCrates - locdata->resetCount;
+				LOG4CPLUS_INFO(logger, "Thread waiting on " << remaining << " crate" << (remaining == 1 ? "" : "s") << " to reset...");
+				pthread_cond_wait(&locdata->resetCountCondition, &locdata->resetCountMutex);
+			}
+		}
+		
+		// Decrement the number of crates that have reset as long as I have the lock
+		locdata->resetCount = 0;
+		
+		pthread_mutex_unlock(&locdata->resetCountMutex);
+		
+		// Now I start the inner loop that waits on IRQs.
+		// Break out of this loop to reset the thread.
+		while (1) {
 
-		// Set the time of the last tick.
-		time_t tick;
-		time(&tick);
-		tm *tickInfo = localtime(&tick);
-		std::string tickText(asctime(tickInfo));
-		locdata->tickTime[crateNumber] = tickText;
+			// Increase the ticks.
+			//locdata->ticks[crateNumber]++;
 
-		// Enable the IRQ and wait for something to happen for 5 seconds...
-		bool allClear = false;
+			// Set the time of the last tick.
+			//time_t tick;
+			//time(&tick);
+			//tm *tickInfo = localtime(&tick);
+			//std::string tickText(asctime(tickInfo));
+			//locdata->tickTime[crateNumber] = tickText;
 
-		if (!myCrate->isTrackFinder()) { // The regular crates will just use the IRQ as normal
 			try {
-				// This will either immediately generate a false on detection of an IRQ,
-				// or will timeout after the specified number of milliseconds and return true if no IRQ is received.
-				// Let's do this 5 times with 1 second intervals, testing for cancel at each pulse.
-				for (unsigned int iTimes = 0; iTimes < 5; iTimes++) {
+				// I know this means the TF DDU will use interrupts, but we'll deal with that hurdle when we come to it.
+				if (myCrate->getController()->waitIRQ(1000)) {
 					pthread_testcancel();
-					if (!(allClear = myCrate->getController()->waitIRQ(1000))) break;
-				}
-				MY_REVOKE_ALARM("IRQThreadWait");
-				pthread_testcancel();
-			} catch (emu::fed::exception::CAENException &e) {
+
+					// INTERRUPT!
+					// Read out the error information into a local variable.
+					uint16_t errorData = myCrate->getController()->readIRQ();
+
+					// In which slot did the error occur?  Get the DDU that matches.
+					DDU *myDDU = NULL;
+					unsigned int slot = ((errorData & 0x1f00) >> 8);
+					for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+						if ((*iDDU)->slot() == slot) {
+							lastDDU = (*iDDU)->slot();
+							myDDU = (*iDDU);
+							break;
+						}
+					}
+				
+					// If there is no matching DDU, then ignore
+					if (myDDU == NULL) {
+						LOG4CPLUS_WARN(logger, "IRQ detected in crate " << crateNumber << " with unknown slot ("<< slot << ").  Ignoring.");
+						continue;
+					}
+				
+					unsigned int cscStatus = myDDU->readCSCStatus();
+					unsigned int advStatus = myDDU->readAdvancedFiberErrors(); // Technically this is the only thing I should be reading (so sayeth Jason)
+					unsigned int xorStatus = advStatus^lastDDUError[myDDU->slot()];
+					
+					// Emergency check to see if a reset has occurred!
+					// This checks if any bits have been turned off.  Example:
+					/*
+					 *  1100
+					 *^ 1010
+					 *  ----
+					 *  0110
+					 *&~1010 (= 0101)
+					 *  ----
+					 *  0100
+					 */
+					bool doReset = (xorStatus & (~advStatus));
+					
+					// The number of bits set high in advStatus tells me the number of CSCs requesting a resync.  Count those now.
+					std::bitset<16> statusBits(advStatus);
+					nErrors[slot] = statusBits.count();
+					
+					// Sometimes an interrupt does not have any errors to report.  Ignore these.
+					if (!xorStatus) {
+						LOG4CPLUS_WARN(logger, "IRQ detected on crate " << crateNumber << " slot " << slot << " with no new errors.  Ignoring.");
+						continue;
+					}
+					
+					uint32_t l1a = myDDU->readL1Scaler(DDUFPGA); // for debugging purposes
+					
+					// What type of error did I see?
+					bool hardError = (errorData & 0x8000);
+					bool syncError = (errorData & 0x4000);
+					
+					// If the DDU wants a reset, it will request it (basically an OR of the two above values.)
+					bool resetWanted = (errorData & 0x2000);
+					
+					// How many CSCs are in an error state on the given DDU?
+					//unsigned int cscsWithHardError = ((errorData >> 4) & 0x000f);
+					
+					// How many CSCs are in a bad sync state on the given DDU?
+					//unsigned int cscsWithSyncError = (errorData & 0x000f);
+					
+					// Log everything now.
+					LOG4CPLUS_ERROR(logger, "Interrupt detected!  (L1A " << l1a << ")");
+					//time_t theTime = time(NULL);
+					//LOG4CPLUS_ERROR(logger, " ErrorData " << std::dec << crateNumber << " " << myDDU->slot() << " " << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << cscStatus << " " << std::dec << (uintmax_t) theTime);
+					
+					std::bitset<16> xorBits(xorStatus);
+					
+					std::stringstream fiberErrors, chamberErrors;
+					for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
+						if (xorBits[iFiber]) {
+							fiberErrors << iFiber << " ";
+							chamberErrors << myDDU->getFiber(iFiber)->getName() << " ";
+						}
+					}
+					
+					std::bitset<16> cscBits(cscStatus);
+					
+					std::string cscBitString = cscBits.to_string<char, char_traits<char>, allocator<char> >();
+					std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
+					std::string xorBitString = xorBits.to_string<char, char_traits<char>, allocator<char> >();
+					
+					LOG4CPLUS_INFO(logger, "Decoded information follows" << std::endl
+						<< "FEDCrate   : " << crateNumber << std::endl
+						<< "Slot       : " << myDDU->getSlot() << std::endl
+						<< "RUI        : " << myDDU->getRUI() << std::endl
+						<< "CSC Status : " << cscBitString << std::endl
+						<< "ADV Status : " << statusBitString << std::endl
+						<< "XOR Status : " << xorBitString << std::endl
+						<< "DDU error  : " << ((cscStatus & 0x8000) == 0x8000) << std::endl
+						<< "Fibers     : " << fiberErrors.str() << std::endl
+						<< "Chambers   : " << chamberErrors.str() << std::endl
+						<< "Hard Error : " << hardError << std::endl
+						<< "Sync Error : " << syncError << std::endl
+						<< "Wants Reset: " << resetWanted);
+					
+					//LOG4CPLUS_INFO(logger, cscsWithHardError << " CSCs on this DDU have hard errors");
+					//LOG4CPLUS_INFO(logger, cscsWithSyncError << " CSCs on this DDU have sync errors");
+					
+					// These only show up if there has been a hard error.
+					std::vector<uint16_t> ddufpgaTrap; 
+					std::vector<uint16_t> infpga0Trap; 
+					std::vector<uint16_t> infpga1Trap; 
+					
+					std::ostringstream ddufpgaStream;
+					std::ostringstream infpga0Stream;
+					std::ostringstream infpga1Stream;
+					
+					if (hardError && !trapSprung[slot]) {
+						
+						ddufpgaTrap = myDDU->readDebugTrap(DDUFPGA);
+						infpga0Trap = myDDU->readDebugTrap(INFPGA0);
+						infpga1Trap = myDDU->readDebugTrap(INFPGA1);
+						/*
+						for (unsigned int iBits = 0; iBits < 12; iBits++) {
+							ddufpgaStream << std::setw(4) << std::setfill('0') << std::hex << ddufpgaTrap[11 - iBits];
+						}
+						for (unsigned int iBits = 0; iBits < 12; iBits++) {
+							infpga0Stream << std::setw(4) << std::setfill('0') << std::hex << infpga0Trap[11 - iBits];
+						}
+						for (unsigned int iBits = 0; iBits < 12; iBits++) {
+							infpga1Stream << std::setw(4) << std::setfill('0') << std::hex << infpga1Trap[11 - iBits];
+						}
+						*/
+						std::vector<std::string> trapInfo = DDUDebugger::DDUDebugTrap(ddufpgaTrap, myDDU);
+						for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+							ddufpgaStream << (*iTrap) << std::endl;
+						}
+						
+						LOG4CPLUS_INFO(logger, "Logging DDUFPGA diagnostic trap information:" << std::endl << ddufpgaStream.str());
+						
+						trapInfo = DDUDebugger::INFPGADebugTrap(INFPGA0, infpga0Trap);
+						for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+							infpga0Stream << (*iTrap) << std::endl;
+						}
+						
+						LOG4CPLUS_INFO(logger, "Logging INFPGA0 diagnostic trap information:" << std::endl << infpga0Stream.str());
+						
+						trapInfo = DDUDebugger::INFPGADebugTrap(INFPGA1, infpga1Trap);
+						for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+							infpga1Stream << (*iTrap) << std::endl;
+						}
+						
+						LOG4CPLUS_INFO(logger, "Logging INFPGA1 diagnostic trap information:" << std::endl << infpga1Stream.str());
+						
+						trapSprung[slot] = true;
+						
+					} else if (!hardError) {
+						LOG4CPLUS_INFO(logger, "No hard error reported.  Diagnostic trap information unavailable.");
+						ddufpgaStream << "Diagnostic trap information unavailable";
+						infpga0Stream << "Diagnostic trap information unavailable";
+						infpga1Stream << "Diagnostic trap information unavailable";
+					} else {
+						LOG4CPLUS_INFO(logger, "Diagnostic trap has already been sprung on this DDU.  No new diagnostic information available until next reset.");
+						ddufpgaStream << "Diagnostic trap information unavailable";
+						infpga0Stream << "Diagnostic trap information unavailable";
+						infpga1Stream << "Diagnostic trap information unavailable";
+					}
+
+					// Make and send the fact to the expert system
+					emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
+					std::ostringstream component;
+					component << "DDU" << myDDU->getRUI();
+					fact.setComponentId(component.str())
+						.setSeverity(emu::base::Fact::WARN)
+						.setDescription("DDU FMM IRQ information")
+						.setParameter(emu::fed::DDUFMMIRQFact::crateNumber, crateNumber)
+						.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot())
+						/*.setParameter(emu::fed::DDUFMMIRQFact::rui, myDDU->getRUI())*/
+						.setParameter(emu::fed::DDUFMMIRQFact::hardError, hardError)
+						.setParameter(emu::fed::DDUFMMIRQFact::syncError, syncError)
+						.setParameter(emu::fed::DDUFMMIRQFact::resetRequested, resetWanted)
+						.setParameter(emu::fed::DDUFMMIRQFact::fiberStatus, cscStatus)
+						.setParameter(emu::fed::DDUFMMIRQFact::advancedFiberStatus, advStatus)
+						.setParameter(emu::fed::DDUFMMIRQFact::xorStatus, xorStatus)
+						.setParameter(emu::fed::DDUFMMIRQFact::ddufpgaDebugTrap, ddufpgaStream.str())
+						.setParameter(emu::fed::DDUFMMIRQFact::infpga0DebugTrap, infpga0Stream.str())
+						.setParameter(emu::fed::DDUFMMIRQFact::infpga1DebugTrap, infpga1Stream.str());
+						
+					pthread_mutex_lock(&(locdata->applicationMutex));
+					application_->storeFact(fact);
+					application_->sendFacts();
+					pthread_mutex_unlock(&(locdata->applicationMutex));
+					
+					// Record the error in an accessable history of errors.
+					lastDDUError[myDDU->slot()] = advStatus;
+					
+					// Just in case there is some bizarre error at this point that causes this to
+					// overflow...
+					/*
+					if (locdata->errorCount[crateNumber] > 15) {
+						locdata->errorCount[crateNumber] = 15;
+					}
+					*/
+					lastDDU = slot;
+					lastL1A = l1a;
+					
+					
+					// Report the names of the bad fibers to hotspot, but ignore killed fibers
+					unsigned int liveFibers = myDDU->readKillFiber();
+					//LOG4CPLUS_DEBUG(logger, "Checking for problem fibers in crate " << myCrate->number() << " slot " << myDDU->slot());
+					for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+						std::ostringstream alarmName;
+						alarmName << "IRQThreadFiber" << crateNumber << "_" << myDDU->slot() << "_" << iFiber;
+						// Skip it if it is already killed or if it didn't cause a problem
+						if (!(liveFibers & (1<<iFiber)) || !(xorStatus & (1<<iFiber))) {
+							MY_REVOKE_ALARM(alarmName.str());
+							continue;
+						} else { // REPORT TO SENTENEL!
+							std::ostringstream error;
+							error << "Fiber error read on crate " << crateNumber << " slot " << myDDU->slot() << " fiber " << iFiber << " (" << myDDU->getFiber(iFiber)->getName() << ")";
+							LOG4CPLUS_ERROR(logger, error.str());
+							std::ostringstream tag;
+							tag << "FEDcrate " << crateNumber << " RUI " << myDDU->getRUI() << " fiber " << std::setw(2) << std::setfill('0') << iFiber << " chamber " << myDDU->getFiber(iFiber)->getName();
+							MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), "ERROR", error.str(), tag.str());
+						}
+					}
+					
+					
+					// Discover the error counts from this thread.
+					pthread_mutex_lock(&locdata->errorCountMutex);
+					
+					// Log all errors in persisting array...
+					for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+						if (xorBits[iFiber]) {
+							locdata->errorFiberNames[crateNumber].push_back(myDDU->getFiber(iFiber)->getName());
+						}
+					}
+					
+					locdata->errorCount[crateNumber] = 0;
+					for (std::map<unsigned int, unsigned int>::iterator iCount = nErrors.begin(); iCount != nErrors.end(); ++iCount) {
+						
+						locdata->errorCount[crateNumber] += iCount->second;
+						
+					}
+					
+					// Now count all the errors from all the threads
+					unsigned int totalErrors = 0;
+					for (std::map<unsigned int, unsigned int>::const_iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); ++iCount) {
+						totalErrors += iCount->second;
+					}
+					
+					if (totalErrors >= locdata->fmmErrorThreshold) {
+						LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this system greater than " << locdata->fmmErrorThreshold);
+						if (!myCrate->isTrackFinder()) myCrate->getBroadcastDDU()->disableFMM();
+					}
+					
+					pthread_mutex_unlock(&locdata->errorCountMutex);
+					
+					MY_REVOKE_ALARM("IRQThreadGeneralError");
+					
+					pthread_testcancel();
+					
+					// Emergency break if we think a reset has happened under our noses.
+					if (doReset || locdata->resetCount) break;
+
+				} else {
+					pthread_testcancel();
+
+					// ALL CLEAR!
+
+					// Check for reset only if there was a previous error
+					unsigned int totalChamberErrors = 0;
+					for (std::map<unsigned int, unsigned int>::iterator iCount = nErrors.begin(); iCount != nErrors.end(); ++iCount) {
+						
+						totalChamberErrors += iCount->second;
+						
+					}
+					
+					if (totalChamberErrors) {
+
+						// Find the last DDU to have an error
+						DDU *myDDU = NULL;
+						for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+							if ((*iDDU)->slot() == lastDDU) {
+								myDDU = (*iDDU);
+								break;
+							}
+						}
+
+						if (myDDU != NULL) {
+
+							// Check if the last DDU's error is now different from what it was before
+							if (myDDU->readAdvancedFiberErrors() < lastDDUError[lastDDU]) {
+								LOG4CPLUS_INFO(logger, "Reset detected on crate " << crateNumber << ": checking again to make sure...");
+
+								usleep(100);
+								pthread_testcancel();
+
+								if (myDDU->readAdvancedFiberErrors() < lastDDUError[lastDDU]) {
+									LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << crateNumber);
+									
+									emu::base::TypedFact<emu::fed::DDUFMMResetFact> fact;
+									std::ostringstream component;
+									component << "FEDCrate " << crateNumber;
+									fact.setComponentId(component.str())
+										.setSeverity(emu::base::Fact::DEBUG)
+										.setDescription("FED crate reset detection")
+										.setParameter(emu::fed::DDUFMMResetFact::crateNumber, crateNumber);
+									pthread_mutex_lock(&(locdata->applicationMutex));
+									application_->storeFact(fact);
+									application_->sendFacts();
+									pthread_mutex_unlock(&(locdata->applicationMutex));
+									
+									break; // Go to the beginning of the outer loop, which will do the resets and start everything over.
+									
+								} else {
+									
+									LOG4CPLUS_INFO(logger, "No reset.  Continuing as normal.");
+									
+								}
+								
+							}
+
+						} else {
+							LOG4CPLUS_WARN(logger, "Configuration might have changed on crate " << crateNumber << ", and that spells disaster!");
+							LOG4CPLUS_WARN(logger, "Assuming reset!");
+							
+							break;
+						}
+
+					} // End check for reset
+
+					// Do TF-related checks
+					if (myCrate->isTrackFinder()) {
+
+						
+
+					} else { // Do DCC-related checks
+
+						for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
+								
+							// Report the FMM status to Hotspot
+							uint16_t dccFMMStatus = (*iDCC)->readFMMStatus();
+							if (dccFMMStatus != lastDCCError[(*iDCC)->getSlot()]) {
+								std::multimap<std::string, std::string> dccFMMDecoded = DCCDebugger::FMMStatus(dccFMMStatus);
+								
+								std::ostringstream error;
+								error << "FMM status for DCC in crate " << crateNumber << " slot " << (*iDCC)->getSlot() << " is now " << std::hex << dccFMMStatus << std::dec << "(";
+								for (std::multimap<std::string, std::string>::const_iterator iStatus = dccFMMDecoded.begin(); ; ) {
+									error << iStatus->second;
+									if (++iStatus != dccFMMDecoded.end()) 
+										error << ", ";
+									else break;
+								}
+								error << ")";
+								
+								if (dccFMMDecoded.find("ok") == dccFMMDecoded.end()) {
+									LOG4CPLUS_ERROR(logger, error.str());
+									
+									std::ostringstream tag;
+									tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber;
+
+									// What kind of alarm is this raising?
+									std::string alarmType = "ERROR";
+									if (dccFMMDecoded.find("error") == dccFMMDecoded.end()) alarmType = "WARN";
+
+									// Distinct alarm for each DCC
+									std::ostringstream alarmName;
+									alarmName << "IRQThreadDCCFMM" << crateNumber << "_" << (*iDCC)->getSlot();
+									MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), alarmType, error.str(), tag.str());
+								} else {
+									LOG4CPLUS_INFO(logger, error.str());
+									
+									std::ostringstream alarmName;
+									alarmName << "IRQThreadDCCFMM" << crateNumber << "_" << (*iDCC)->getSlot();
+									MY_REVOKE_ALARM(alarmName.str());
+								}
+								lastDCCError[(*iDCC)->getSlot()] = dccFMMStatus;
+							}
+
+							// Report the FIFO statuses to Hotspot
+							uint8_t dccFIFOStatus = (*iDCC)->readFIFOStatus();
+							if (dccFIFOStatus != lastFIFOError[(*iDCC)->getSlot()]) {
+								if (dccFIFOStatus != 0xff) {
+									std::vector<FIFO *> fifoVector = (*iDCC)->getFIFOs();
+									for (std::vector<FIFO *>::iterator iFIFO = fifoVector.begin(); iFIFO != fifoVector.end(); iFIFO++) {
+										std::pair<std::string, std::string> fifoDecoded = DCCDebugger::decodeFIFOStatus(dccFIFOStatus, (*iFIFO)->getNumber());
+										if (fifoDecoded.second != "green") {
+											std::ostringstream error;
+											error << "FIFO " << (*iFIFO)->getNumber() << " (DDU " << (*iFIFO)->getRUI() << ") status for DCC in crate " << crateNumber << " is now " <<  fifoDecoded.first;
+
+											std::ostringstream tag;
+											tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber << " RUI " << (*iFIFO)->getRUI();
+
+											// What kind of alarm is this raising?
+											std::string alarmType;
+											if (fifoDecoded.second != "error" && fifoDecoded.second != "red") {
+												alarmType = "WARN";
+												LOG4CPLUS_WARN(logger, error.str());
+											} else {
+												alarmType = "ERROR";
+												LOG4CPLUS_ERROR(logger, error.str());
+											}
+
+											// Distinct alarm for each FIFO
+											std::ostringstream alarmName;
+											alarmName << "IRQThreadDCCFIFO" << crateNumber << "_" << (*iDCC)->slot() << "_" << (*iFIFO)->getNumber();
+											MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), alarmType, error.str(), tag.str());
+										} else {
+											std::ostringstream alarmName;
+											alarmName << "IRQThreadDCCFIFO" << crateNumber << "_" << (*iDCC)->slot() << "_" << (*iFIFO)->getNumber();
+											MY_REVOKE_ALARM(alarmName.str());
+										}
+									}
+								}
+								lastFIFOError[(*iDCC)->getSlot()] = dccFIFOStatus;
+							}
+
+							// Report the SLink statuses to Hotspot
+							uint16_t dccSLinkStatus = (*iDCC)->readSLinkStatus();
+							if (dccSLinkStatus != lastSLinkError[(*iDCC)->getSlot()]) {
+								if (dccSLinkStatus & 0xa) {
+
+									for (unsigned int iLink = 0; iLink <= 1; iLink++) {
+										std::pair<std::string, std::string> slinkDecoded = DCCDebugger::decodeSLinkStatus(dccSLinkStatus, iLink);
+										if (slinkDecoded.second != "ok") {
+											std::ostringstream error;
+											error << "SLink " << iLink << " status for DCC in crate " << crateNumber << " is now " <<  slinkDecoded.first;
+
+											std::ostringstream tag;
+											tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber;
+
+											// What kind of alarm is this raising?
+											std::string alarmType;
+											if (slinkDecoded.second != "error" && slinkDecoded.second != "red") {
+												alarmType = "WARN";
+												LOG4CPLUS_WARN(logger, error.str());
+											} else {
+												alarmType = "ERROR";
+												LOG4CPLUS_ERROR(logger, error.str());
+											}
+
+											// Distinct alarm for each SLink
+											std::ostringstream alarmName;
+											alarmName << "IRQThreadDCCSlink" << crateNumber << "_" << (*iDCC)->slot() << "_" << iLink;
+											MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), alarmType, error.str(), tag.str());
+										} else {
+											std::ostringstream alarmName;
+											alarmName << "IRQThreadDCCSlink" << crateNumber << "_" << (*iDCC)->slot() << "_" << iLink;
+											MY_REVOKE_ALARM(alarmName.str());
+										}
+									}
+
+								}
+								lastSLinkError[(*iDCC)->getSlot()] = dccSLinkStatus;
+							}
+							
+							MY_REVOKE_ALARM("IRQThreadDCCStatus");
+
+						}
+
+					} // End TF/DCC checks
+
+				} // End all clear
+				
+			} catch (emu::fed::exception::Exception &e) {
 				std::ostringstream error;
-				error << "Exception waiting for IRQ in crate number " << crateNumber;
+				error << "Exception in IRQ handling for crate " << crateNumber;
 				LOG4CPLUS_FATAL(logger, error.str());
 				std::ostringstream tag;
 				tag << "FEDcrate " << crateNumber;
 				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadWait", "ERROR", error.str(), tag.str(), e);
-				//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-				//e2.setProperty("tag", tag.str());
-				//pthread_exit((void *) &e2);
 				pthread_exit(NULL);
 			}
-		} else { // The TF crate will, for now, fake the IRQ and just sleep
-			for (unsigned int iTimes = 0; iTimes < 5; iTimes++) {
-				pthread_testcancel();
-				sleep((unsigned int) 1);
-			}
-			pthread_testcancel();
-		}
-
-
-		// If allClear is true, then there was not an error.
-		// If there was no error, check to see if we were in an error state
-		//  before...
-		if (allClear && locdata->errorCount[crateNumber]) {
-
-			// Get the last DDU to report an error
-			DDU *myDDU = NULL;
-			for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-				if ((*iDDU)->slot() == locdata->lastDDU[crateNumber]) {
-					myDDU = (*iDDU);
-					break;
-				}
-			}
-
-			// Make sure there was a previous DDU
-			if (myDDU != NULL) {
-
-				// If my status has cleared, then all is cool, right?
-				//  Reset all my data.
-				try {
-					if (myDDU->readFiberErrors() < lastDDUError[myDDU->slot()]) {
-						LOG4CPLUS_INFO(logger, "Reset detected on crate " << crateNumber << ": checking again to make sure...");
-						pthread_testcancel();
-						usleep(100);
-						pthread_testcancel();
-
-						if (myDDU->readFiberErrors() < lastDDUError[myDDU->slot()]) {
-							LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << crateNumber);
-							LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << std::endl);
-
-							// Reset the total error count and the saved errors.
-							locdata->errorCount[crateNumber] = 0;
-							locdata->errorFiberNames[crateNumber].clear();
-							locdata->lastDDU[crateNumber] = 0;
-							lastDDUError.clear();
-
-							// Clear all alarms that have been set.  This is difficult because all the alarms have different names.
-							for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-								std::ostringstream alarmName;
-								alarmName << "IRQThreadFiber" << crateNumber << "_" << myDDU->slot() << "_" << iFiber;
-								MY_REVOKE_ALARM(alarmName.str());
-							}
-
-							emu::base::TypedFact<emu::fed::DDUFMMResetFact> fact;
-							std::ostringstream component;
-							component << "FEDCrate " << crateNumber;
-							fact.setComponentId(component.str())
-								.setSeverity(emu::base::Fact::DEBUG)
-								.setDescription("FED crate reset detection")
-								.setParameter(emu::fed::DDUFMMResetFact::crateNumber, crateNumber);
-							application_->sendResetFact(fact);
-
-						} else {
-
-							LOG4CPLUS_INFO(logger, "No reset.  Continuing as normal.");
-
-						}
-
-					}
-				} catch (emu::fed::exception::Exception &e) {
-					std::ostringstream error;
-					error << "Exception reading last DDU status for crate number " << crateNumber;
-					LOG4CPLUS_FATAL(logger, error.str());
-					std::ostringstream tag;
-					tag << "RUI " << myDDU->getRUI() << " " << "FEDcrate " << crateNumber;
-					MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadLastDDUStatus", "ERROR", error.str(), tag.str(), e);
-					pthread_exit(NULL);
-				}
-
-				MY_REVOKE_ALARM("IRQThreadLastDDUStatus");
-			}
-		}
-
-		// Here is a good place to put things you want scanned every 5 seconds,
-		// but are not covered by the IRQ, like DCC statuses.
-		for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
-
-			try {
-
-				// Report the FMM status to Hotspot
-				uint16_t dccFMMStatus = (*iDCC)->readFMMStatus();
-				if (dccFMMStatus != lastDCCError[(*iDCC)->getSlot()]) {
-					if (dccFMMStatus != 0x2) {
-						std::pair<std::string, std::string> dccFMMDecoded = DCCDebugger::FMMStatus(dccFMMStatus);
-						if (dccFMMDecoded.second != "ok") {
-							std::ostringstream error;
-							error << "FMM status for DCC in crate " << crateNumber << " slot " << (*iDCC)->getSlot() << " is now " << std::hex << dccFMMStatus << std::dec << "(" <<  dccFMMDecoded.first << ")";
-							LOG4CPLUS_ERROR(logger, error.str());
-							std::ostringstream tag;
-							tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber;
-
-							// What kind of alarm is this raising?
-							std::string alarmType = "ERROR";
-							if (dccFMMDecoded.second != "error") alarmType = "WARN";
-
-							// Distinct alarm for each DCC
-							std::ostringstream alarmName;
-							alarmName << "IRQThreadDCCFMM" << crateNumber << "_" << (*iDCC)->getSlot();
-							MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), alarmType, error.str(), tag.str());
-						} else {
-							std::ostringstream alarmName;
-							alarmName << "IRQThreadDCCFMM" << crateNumber << "_" << (*iDCC)->getSlot();
-							MY_REVOKE_ALARM(alarmName.str());
-						}
-					}
-					lastDCCError[(*iDCC)->getSlot()] = dccFMMStatus;
-				}
-
-				// Report the FIFO statuses to Hotspot
-				uint8_t dccFIFOStatus = (*iDCC)->readFIFOStatus();
-				if (dccFIFOStatus != lastFIFOError[(*iDCC)->getSlot()]) {
-					if (dccFIFOStatus != 0xff) {
-						std::vector<FIFO *> fifoVector = (*iDCC)->getFIFOs();
-						for (std::vector<FIFO *>::iterator iFIFO = fifoVector.begin(); iFIFO != fifoVector.end(); iFIFO++) {
-							std::pair<std::string, std::string> fifoDecoded = DCCDebugger::decodeFIFOStatus(dccFIFOStatus, (*iFIFO)->getNumber());
-							if (fifoDecoded.second != "green") {
-								std::ostringstream error;
-								error << "FIFO " << (*iFIFO)->getNumber() << " (DDU " << (*iFIFO)->getRUI() << ") status for DCC in crate " << crateNumber << " is now " <<  fifoDecoded.first;
-
-								std::ostringstream tag;
-								tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber << " RUI " << (*iFIFO)->getRUI();
-
-								// What kind of alarm is this raising?
-								std::string alarmType;
-								if (fifoDecoded.second != "error" && fifoDecoded.second != "red") {
-									alarmType = "WARN";
-									LOG4CPLUS_WARN(logger, error.str());
-								} else {
-									alarmType = "ERROR";
-									LOG4CPLUS_ERROR(logger, error.str());
-								}
-
-								// Distinct alarm for each FIFO
-								std::ostringstream alarmName;
-								alarmName << "IRQThreadDCCFIFO" << crateNumber << "_" << (*iDCC)->slot() << "_" << (*iFIFO)->getNumber();
-								MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), alarmType, error.str(), tag.str());
-							} else {
-								std::ostringstream alarmName;
-								alarmName << "IRQThreadDCCFIFO" << crateNumber << "_" << (*iDCC)->slot() << "_" << (*iFIFO)->getNumber();
-								MY_REVOKE_ALARM(alarmName.str());
-							}
-						}
-					}
-					lastFIFOError[(*iDCC)->getSlot()] = dccFIFOStatus;
-				}
-
-				// Report the SLink statuses to Hotspot
-				uint16_t dccSLinkStatus = (*iDCC)->readSLinkStatus();
-				if (dccSLinkStatus != lastSLinkError[(*iDCC)->getSlot()]) {
-					if (dccSLinkStatus & 0xa) {
-
-						for (unsigned int iLink = 0; iLink <= 1; iLink++) {
-							std::pair<std::string, std::string> slinkDecoded = DCCDebugger::decodeSLinkStatus(dccSLinkStatus, iLink);
-							if (slinkDecoded.second != "ok") {
-								std::ostringstream error;
-								error << "SLink " << iLink << " status for DCC in crate " << crateNumber << " is now " <<  slinkDecoded.first;
-
-								std::ostringstream tag;
-								tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber;
-
-								// What kind of alarm is this raising?
-								std::string alarmType;
-								if (slinkDecoded.second != "error" && slinkDecoded.second != "red") {
-									alarmType = "WARN";
-									LOG4CPLUS_WARN(logger, error.str());
-								} else {
-									alarmType = "ERROR";
-									LOG4CPLUS_ERROR(logger, error.str());
-								}
-
-								// Distinct alarm for each SLink
-								std::ostringstream alarmName;
-								alarmName << "IRQThreadDCCSlink" << crateNumber << "_" << (*iDCC)->slot() << "_" << iLink;
-								MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), alarmType, error.str(), tag.str());
-							} else {
-								std::ostringstream alarmName;
-								alarmName << "IRQThreadDCCSlink" << crateNumber << "_" << (*iDCC)->slot() << "_" << iLink;
-								MY_REVOKE_ALARM(alarmName.str());
-							}
-						}
-
-					}
-					lastSLinkError[(*iDCC)->getSlot()] = dccSLinkStatus;
-				}
-
-			} catch (emu::fed::exception::Exception &e) {
-				std::ostringstream error;
-				error << "Exception reading DCC status for crate number " << crateNumber;
-				LOG4CPLUS_FATAL(logger, error.str());
-				std::ostringstream tag;
-				tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber;
-				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadDCCStatus", "ERROR", error.str(), tag.str(), e);
-				//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-				//e2.setProperty("tag", tag.str());
-				//pthread_exit((void *) &e2);
-				pthread_exit(NULL);
-			}
-
-			MY_REVOKE_ALARM("IRQThreadDCCStatus");
-
-			// Loop through all all the possible FIFOs
-
-		}
-
-		// If there was no error, and there was no previous error (or the
-		//  previous error was not cleared), then we are done here.  Except if this is a TF.
-		if (allClear && !myCrate->isTrackFinder()) continue;
-
-		// We have an error (or we are a TF)!
-
-		// Read out the error information into a local variable.
-		uint16_t errorData = 0;
-
-		if (!myCrate->isTrackFinder()) { // Only try to read the IRQ for normal FED crates
-			try {
-				errorData = myCrate->getController()->readIRQ();
-				MY_REVOKE_ALARM("IRQThreadReadIRQ");
-			} catch (emu::fed::exception::CAENException &e) {
-				std::ostringstream error;
-				error << "Exception reading IRQ for crate number " << crateNumber;
-				LOG4CPLUS_FATAL(logger, error.str());
-				std::ostringstream tag;
-				tag << "FEDcrate " << crateNumber;
-				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadReadIRQ", "ERROR", error.str(), tag.str(), e);
-				//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-				//e2.setProperty("tag", tag.str());
-				//pthread_exit((void *) &e2);
-				pthread_exit(NULL);
-			}
-		} else { // The TF crate has to fake this data for now.  Do that by manually specifying the slot.
-			errorData = (2 << 8);
-		}
-
-		// In which slot did the error occur?  Get the DDU that matches.
-		DDU *myDDU = NULL;
-		unsigned int targetSlot = ((errorData & 0x1f00) >> 8);
-		for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-			if ((*iDDU)->slot() == targetSlot) {
-				locdata->lastDDU[crateNumber] = (*iDDU)->slot();
-				myDDU = (*iDDU);
-				break;
-			}
-		}
-
-		// Problem if there is no matching DDU...
-		if (myDDU == NULL) {
-			// Looks like this happens all the time.  Squelch errors.
-			//LOG4CPLUS_FATAL(logger, "IRQ set from an unrecognized slot!  Crate " << myCrate->number() << " slot " << std::dec << (errorData[1] & 0x1f) << " error data " << std::hex << std::setw(2) << std::setfill('0') << (int) errorData[1] << std::setw(2) << std::setfill('0') << (int) errorData[0]);
-			continue;
-		}
-
-		// Collect the present CSC status and store...
-		try {
-			unsigned int cscStatus = myDDU->readCSCStatus();
-			unsigned int advStatus = myDDU->readAdvancedFiberErrors();
-			unsigned int xorStatus = (cscStatus | advStatus)^lastDDUError[myDDU->slot()];
-
-			// Moved this up and got rid of report so that the TF log doesn't explode
-			if (!xorStatus) {
-				//LOG4CPLUS_INFO(logger, "No CSC or DDU errors detected...  Ignoring interrupt");
-				continue;
-			}
-
-			// What type of error did I see?
-			bool hardError = (errorData & 0x8000);
-			bool syncError = (errorData & 0x4000);
-
-			// If the DDU wants a reset, it will request it (basically an OR of
-			//  the two above values.)
-			bool resetWanted = (errorData & 0x2000);
-
-			// How many CSCs are in an error state on the given DDU?
-			//unsigned int cscsWithHardError = ((errorData >> 4) & 0x000f);
-
-			// How many CSCs are in a bad sync state on the given DDU?
-			//unsigned int cscsWithSyncError = (errorData & 0x000f);
-
-			// Log everything now.
-			LOG4CPLUS_ERROR(logger, "Interrupt detected!");
-			time_t theTime = time(NULL);
-			LOG4CPLUS_ERROR(logger, " ErrorData " << std::dec << crateNumber << " " << myDDU->slot() << " " << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << cscStatus << " " << std::dec << (uintmax_t) theTime);
-
-			std::stringstream fiberErrors, chamberErrors;
-			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-				if (xorStatus & (1<<iFiber)) {
-					fiberErrors << iFiber << " ";
-					chamberErrors << myDDU->getFiber(iFiber)->getName() << " ";
-				}
-			}
-
-			LOG4CPLUS_INFO(logger, "Decoded information follows" << std::endl
-				<< "FEDCrate   : " << crateNumber << std::endl
-				<< "Slot       : " << myDDU->getSlot() << std::endl
-				<< "RUI        : " << myDDU->getRUI() << std::endl
-				<< "CSC Status : " << std::hex << cscStatus << std::endl
-				<< "ADV Status : " << advStatus << std::endl
-				<< "XOR Status : " << xorStatus << std::dec << std::endl
-				<< "DDU error  : " << ((cscStatus & 0x8000) == 0x8000) << std::endl
-				<< "Fibers     : " << fiberErrors.str() << std::endl
-				<< "Chambers   : " << chamberErrors.str() << std::endl
-				<< "Hard Error : " << hardError << std::endl
-				<< "Sync Error : " << syncError << std::endl
-				<< "Wants Reset: " << resetWanted);
-
-			//LOG4CPLUS_INFO(logger, cscsWithHardError << " CSCs on this DDU have hard errors");
-			//LOG4CPLUS_INFO(logger, cscsWithSyncError << " CSCs on this DDU have sync errors");
-
-			// These only show up if there has been a hard error.
-			std::vector<uint16_t> ddufpgaTrap = myDDU->readDebugTrap(DDUFPGA);
-			std::vector<uint16_t> infpga0Trap = myDDU->readDebugTrap(INFPGA0);
-			std::vector<uint16_t> infpga1Trap = myDDU->readDebugTrap(INFPGA1);
 			
-			if (hardError) {
-				std::vector<std::string> trapInfo = DDUDebugger::DDUDebugTrap(ddufpgaTrap, myDDU);
-				std::ostringstream trapStream;
-				for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
-					trapStream << (*iTrap) << std::endl;
-				}
-
-				LOG4CPLUS_INFO(logger, "Logging DDUFPGA diagnostic trap information:" << std::endl << trapStream.str());
-
-				trapInfo = DDUDebugger::INFPGADebugTrap(INFPGA0, infpga0Trap);
-				trapStream.str("");
-				for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
-					trapStream << (*iTrap) << std::endl;
-				}
-
-				LOG4CPLUS_INFO(logger, "Logging INFPGA0 diagnostic trap information:" << std::endl << trapStream.str());
-
-				trapInfo = DDUDebugger::INFPGADebugTrap(INFPGA1, infpga1Trap);
-				trapStream.str("");
-				for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
-					trapStream << (*iTrap) << std::endl;
-				}
-
-				LOG4CPLUS_INFO(logger, "Logging INFPGA1 diagnostic trap information:" << std::endl << trapStream.str());
-			}
-
-			std::ostringstream ddufpgaStream;
-			std::ostringstream infpga0Stream;
-			std::ostringstream infpga1Stream;
-			for (unsigned int iBits = 0; iBits < 12; iBits++) {
-				ddufpgaStream << std::setw(4) << std::setfill('0') << std::hex << ddufpgaTrap[11 - iBits];
-			}
-			for (unsigned int iBits = 0; iBits < 12; iBits++) {
-				infpga0Stream << std::setw(4) << std::setfill('0') << std::hex << infpga0Trap[11 - iBits];
-			}
-			for (unsigned int iBits = 0; iBits < 12; iBits++) {
-				infpga1Stream << std::setw(4) << std::setfill('0') << std::hex << infpga1Trap[11 - iBits];
-			}
-
-			// Make and send the fact to the expert system
-			emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
-			std::ostringstream component;
-			component << "DDU " << myDDU->getRUI();
-			fact.setComponentId(component.str())
-				.setSeverity(emu::base::Fact::ERROR)
-				.setDescription("DDU FMM IRQ information")
-				.setParameter(emu::fed::DDUFMMIRQFact::crateNumber, crateNumber)
-				.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot())
-				.setParameter(emu::fed::DDUFMMIRQFact::rui, myDDU->getRUI())
-				.setParameter(emu::fed::DDUFMMIRQFact::hardError, hardError)
-				.setParameter(emu::fed::DDUFMMIRQFact::syncError, syncError)
-				.setParameter(emu::fed::DDUFMMIRQFact::resetRequested, resetWanted)
-				.setParameter(emu::fed::DDUFMMIRQFact::fiberStatus, cscStatus)
-				.setParameter(emu::fed::DDUFMMIRQFact::advancedFiberStatus, advStatus)
-				.setParameter(emu::fed::DDUFMMIRQFact::xorStatus, xorStatus)
-				.setParameter(emu::fed::DDUFMMIRQFact::ddufpgaDebugTrap, ddufpgaStream.str())
-				.setParameter(emu::fed::DDUFMMIRQFact::infpga0DebugTrap, infpga0Stream.str())
-				.setParameter(emu::fed::DDUFMMIRQFact::infpga1DebugTrap, infpga1Stream.str());
-			application_->sendIRQFact(fact);
-			
-
-			// Record the error in an accessable history of errors.
-			lastDDUError[myDDU->slot()] = (cscStatus | advStatus);
-
-			// Log all errors in persisting array...
-			// I am not so worried about DDU-only errors, so I ignore iFiber==15
-			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-				if (xorStatus & (1 << iFiber)) {
-					locdata->errorCount[crateNumber]++;
-					// Record the name of the fiber, and hope that I don't have a repeat here (I shouldn't)
-					locdata->errorFiberNames[crateNumber].push_back(myDDU->getFiber(iFiber)->getName());
-				}
-			}
-			// Just in case there is some bizarre error at this point that causes this to
-			// overflow...
-			if (locdata->errorCount[crateNumber] > 15) {
-				locdata->errorCount[crateNumber] = 15;
-			}
-			locdata->lastDDU[crateNumber] = myDDU->slot();
-
-
-			// Check to see if any of the fibers are troublesome and report
-			unsigned int liveFibers = myDDU->readKillFiber();
-			//LOG4CPLUS_DEBUG(logger, "Checking for problem fibers in crate " << myCrate->number() << " slot " << myDDU->slot());
-			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-				std::ostringstream alarmName;
-				alarmName << "IRQThreadFiber" << crateNumber << "_" << myDDU->slot() << "_" << iFiber;
-				// Skip it if it is already killed or if it didn't cause a problem
-				if (!(liveFibers & (1<<iFiber)) || !(xorStatus & (1<<iFiber))) {
-					MY_REVOKE_ALARM(alarmName.str());
-					continue;
-				} else { // REPORT TO SENTENEL!
-					std::ostringstream error;
-					error << "Fiber error read on crate " << crateNumber << " slot " << myDDU->slot() << " fiber " << iFiber << " (" << myDDU->getFiber(iFiber)->getName() << ")";
-					LOG4CPLUS_ERROR(logger, error.str());
-					std::ostringstream tag;
-					tag << "FEDcrate " << crateNumber << " RUI " << myDDU->getRUI() << " fiber " << std::setw(2) << std::setfill('0') << iFiber << " chamber " << myDDU->getFiber(iFiber)->getName();
-					MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), "ERROR", error.str(), tag.str());
-				}
-			}
-
-			// Discover the error counts of the other crates.
-			unsigned long int totalChamberErrors = 0;
-			for (std::map<unsigned int, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
-				if (iCount->first != crateNumber) {
-					LOG4CPLUS_INFO(logger,"Crate " << iCount->first << " reports " << iCount->second << " CSCs in an error state.");
-				}
-				totalChamberErrors += iCount->second;
-			}
-
-			// Check if we have sufficient error conditions to reset.
-			if (totalChamberErrors > locdata->fmmErrorThreshold && !myCrate->isTrackFinder()) {
-				LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this system greater than " << locdata->fmmErrorThreshold);
-
-				// I only have to do this to my crate:  eventually, a reset will come.
-				myCrate->getBroadcastDDU()->enableFMM();
-			}
-
-			MY_REVOKE_ALARM("IRQThreadGeneralError");
-
-		} catch (emu::fed::exception::Exception &e) {
-			std::ostringstream error;
-			error << "Exception dealing with IRQ on crate " << crateNumber;
-			LOG4CPLUS_FATAL(logger, error.str());
-			std::ostringstream tag;
-			tag << "FEDcrate " << crateNumber;
-			MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, "IRQThreadGeneralError", "ERROR", error.str(), tag.str());
-			//XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-			//e2.setProperty("tag", tag.str());
-			//pthread_exit((void *) &e2);
-			pthread_exit(NULL);
 		}
+
 	}
 
 	// I will never make it here, but just in case.

@@ -24,9 +24,7 @@ Link="http://physics.ohio-state.edu/~cms"
 
 Sources=\
 	AppsVersion.cc \
-	ConfigurationFact.cc \
-	DDUFMMIRQFact.cc \
-	DDUFMMResetFact.cc \
+	Facts.cc \
 	Application.cc \
 	Manager.cc \
 	Monitor.cc \

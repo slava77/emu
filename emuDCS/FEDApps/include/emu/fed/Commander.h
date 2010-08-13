@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.11 2010/05/31 14:57:16 paste Exp $
+* $Id: Commander.h,v 1.12 2010/08/13 03:00:07 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
@@ -127,6 +127,13 @@ namespace emu {
 			*	@sa emu::fed::DDUDebugger
 			**/
 			std::string printDebug(const std::map<std::string, std::string> &debug);
+			
+			/** Return a string of cgicc::div elements from a given debugger map
+			 * 
+			 *	@param debug is a multimap of string, string values with the index being the class of the debug and the value being the description of the debug.
+			 *	@sa emu::fed::DDUDebugger
+			 **/
+			std::string printDebug(const std::multimap<std::string, std::string> &debug);
 
 			/** Return a cgicc::div elements from a given debugger pair
 			*
@@ -134,6 +141,13 @@ namespace emu {
 			*	@sa emu::fed::DDUDebugger
 			**/
 			std::string printDebug(const std::pair<std::string, std::string> &debug);
+			
+			/** Return a cgicc::div elements from a given debugger pair
+			 * 
+			 *	@param debug is a pair of string, string values with the index being the class of the debug and the value being a description of the debug.
+			 *	@sa emu::fed::DDUDebugger
+			 **/
+			std::string printDebugReverse(const std::pair<std::string, std::string> &debug);
 
 			/** Format a big number into nice groups of 4 hex characters **/
 			std::string formatBigNum(const std::vector<uint16_t> &bigNum);

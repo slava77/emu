@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.1 2010/05/31 14:57:19 paste Exp $
+* $Id: IRQThreadManager.h,v 1.2 2010/08/13 03:00:07 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -10,6 +10,7 @@
 
 #include "emu/fed/Exception.h"
 #include "emu/base/Alarm.h"
+#include "emu/fed/IRQData.h"
 
 // My own versions of Karoly's macros
 #define MY_RAISE_ALARM( TYPE, NAME, SEVERITY, MESSAGE, TAG) \
@@ -26,7 +27,6 @@ namespace emu {
 	namespace fed {
 
 		class Crate;
-		class IRQData;
 		class Communicator;
 
 		/** @class IRQThreadManager A class that manages communication with DDUs concerning FMM interrupt handling. **/
@@ -68,7 +68,9 @@ namespace emu {
 			static void *IRQThread(void *data);
 			
 			/** Get the shared data from an outside application. **/
-			inline IRQData *getData() { return data_; }
+			inline IRQData *getData() const {
+				return new IRQData(*data_);
+			}
 		
 		private:
 		

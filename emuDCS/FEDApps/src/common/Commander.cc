@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.26 2010/05/31 14:57:20 paste Exp $
+* $Id: Commander.cc,v 1.27 2010/08/13 03:00:07 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -266,7 +266,7 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 			for (size_t iFIFO = 0; iFIFO <= 9; iFIFO++) {
 				std::ostringstream fifoID;
 				fifoID << slotID << "_fifo_" << iFIFO;
-				FIFO *myFIFO = (*iDCC)->getFIFO(iFIFO);
+				const FIFO *myFIFO = (*iDCC)->getFIFO(iFIFO);
 				*out << "<td class=\"fiber\" id=\"" << fifoID.str() << "\">" << std::endl;
 				*out << "DDU " << myFIFO->getRUI();
 				*out << "</td>" << std::endl;
@@ -2007,7 +2007,7 @@ void emu::fed::Commander::webDisplayRegisters(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::button() << std::endl;
 
 	*out << cgicc::fieldset() << std::endl;
-	
+
 	*out << cgicc::a("Go back to Commander main page")
 		.set("style", "color: #ddf")
 		.set("href", "/" + getApplicationDescriptor()->getURN()) << std::endl;
@@ -2124,7 +2124,7 @@ void emu::fed::Commander::webReadDCCRegisters(xgi::Input *in, xgi::Output *out)
 							valueObject.push_back(JSONSpirit::Pair("value", (*iDCC)->readStatusHigh()));
 							valueObject.push_back(JSONSpirit::Pair("base", 16));
 
-							std::map<std::string, std::string> debug = DCCDebugger::StatusHigh(value);
+							std::multimap<std::string, std::string> debug = DCCDebugger::StatusHigh(value);
 
 							descriptionObject.push_back(JSONSpirit::Pair("fmmid", (*iDCC)->getFMMID()));
 							descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(debug)));
@@ -2145,7 +2145,7 @@ void emu::fed::Commander::webReadDCCRegisters(xgi::Input *in, xgi::Output *out)
 							valueObject.push_back(JSONSpirit::Pair("value", value));
 							valueObject.push_back(JSONSpirit::Pair("base", 16));
 
-							std::pair<std::string, std::string> debug = DCCDebugger::FMMStatus(value);
+							std::multimap<std::string, std::string> debug = DCCDebugger::FMMStatus(value);
 
 							descriptionObject.push_back(JSONSpirit::Pair("fmmid", (*iDCC)->getFMMID()));
 							descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(debug)));
@@ -2160,7 +2160,7 @@ void emu::fed::Commander::webReadDCCRegisters(xgi::Input *in, xgi::Output *out)
 						for (std::vector<DCC *>::iterator iDCC = targetDCCs.begin(); iDCC != targetDCCs.end(); iDCC++) {
 							JSONSpirit::Object valueObject;
 							valueObject.push_back(JSONSpirit::Pair("fmmid", (*iDCC)->getFMMID()));
-							valueObject.push_back(JSONSpirit::Pair("value", (*iDCC)->readL1A()));
+							valueObject.push_back(JSONSpirit::Pair("value", (uint64_t) (*iDCC)->readL1A()));
 							valueObject.push_back(JSONSpirit::Pair("base", 10));
 							// No description
 							valueArray.push_back(valueObject);
@@ -2178,7 +2178,7 @@ void emu::fed::Commander::webReadDCCRegisters(xgi::Input *in, xgi::Output *out)
 							valueObject.push_back(JSONSpirit::Pair("value", value));
 							valueObject.push_back(JSONSpirit::Pair("base", 16));
 
-							std::map<std::string, std::string> debug = DCCDebugger::DebugFIFOs((*iDCC), value, "none");
+							std::multimap<std::string, std::string> debug = DCCDebugger::DebugFIFOs((*iDCC), value, "none");
 
 							descriptionObject.push_back(JSONSpirit::Pair("fmmid", (*iDCC)->getFMMID()));
 							descriptionObject.push_back(JSONSpirit::Pair("value", printDebug(debug)));
@@ -2269,9 +2269,9 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderDDUFirmwareManager", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
 	}
-	
+
 	cgicc::Cgicc cgi(in);
-	
+
 	// Dig out the crate to which I should communicate.
 	unsigned int crateNumber = 0;
 	if (cgi.getElement("crate") != cgi.getElements().end()) {
@@ -2283,17 +2283,17 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommanderDDUFirmwareManager", "ERROR", error.str(), "", NULL);
 	}
-	
+
 	Crate *myCrate = NULL;
 	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
-		
+
 		if ((*iCrate)->getNumber() == crateNumber) {
 			myCrate = (*iCrate);
 			break;
 		}
-		
+
 	}
-	
+
 	if (myCrate == NULL) {
 		std::ostringstream error;
 		error << "Unable to find crate number " << crateNumber << " in configuration";
@@ -2304,45 +2304,45 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	} else {
 		REVOKE_ALARM("CommanderDDUFirmwareManager", NULL);
 	}
-	
+
 	// Display truncated header
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("commanderFirmware.js");
-	
+
 	// Extra header information
 	std::ostringstream extraHeader;
 	extraHeader << "<script type=\"text/javascript\">" << std::endl;
 	extraHeader << "var boardType = \"ddu\";" << std::endl;
 	extraHeader << "var crateNumber = " << crateNumber << ";" << std::endl;
 	extraHeader << "</script>" << std::endl;
-	
+
 	*out << Header("DDU Firmware Management", jsFileNames, extraHeader.str(), false);
-	
+
 	*out << cgicc::div()
 		.set("class", "titlebar commander_width")
 		.set("id", "FED_Commander_ddu_selector_titlebar") << std::endl;
 	*out << cgicc::div("DDU Firmware Manager")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::fieldset()
 		.set("class", "dialog commander_width")
 		.set("id", "FED_Commander_ddu_selector_dialog") << std::endl;
-	
+
 	// Everything falls in a list
 	*out << cgicc::ol() << std::endl;
-	
+
 	// Step 1
 	*out << cgicc::li("Review installed versions and select firmware install targets")
 		.set("class", "tier0 bold") << std::endl;
-	
+
 	std::vector<DDU *> dduVector = myCrate->getDDUs();
-	
+
 	// Make a table for the DDUs
 	*out << cgicc::table()
 		.set("class", "tier1 data_table")
 		.set("style", "font-size: 80%;") << std::endl;
-	
+
 	*out << cgicc::tr()
 		.set("class", "data_header") << std::endl;
 	*out << cgicc::td("DDU")
@@ -2415,9 +2415,9 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		.set("for", "broadcast_in1") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
-	
+
 	for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
-		
+
 		uint32_t vmePROM = 0;
 		uint32_t dduPROM0 = 0;
 		uint32_t dduPROM1 = 0;
@@ -2426,9 +2426,9 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		uint32_t dduFPGA = 0;
 		uint32_t inFPGA0 = 0;
 		uint32_t inFPGA1 = 0;
-		
+
 		try {
-			
+
 			vmePROM = (*iDDU)->readUserCode(emu::fed::VMEPROM);
 			dduPROM0 = (*iDDU)->readUserCode(emu::fed::DDUPROM0);
 			dduPROM1 = (*iDDU)->readUserCode(emu::fed::DDUPROM1);
@@ -2437,23 +2437,23 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 			dduFPGA = (*iDDU)->readUserCode(emu::fed::DDUFPGA);
 			inFPGA0 = (*iDDU)->readUserCode(emu::fed::INFPGA0);
 			inFPGA1 = (*iDDU)->readUserCode(emu::fed::INFPGA1);
-			
+
 		} catch (emu::fed::exception::DDUException &e) {
-			
+
 			// Zeros imply error.
 			std::ostringstream error;
 			error << "Error reading PROM/FPGA usercodes from DDU";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::Exception, e2, error.str(), e);
 			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 			notifyQualified("ERROR", e2);
-			
+
 		}
-		
+
 		// Each slot should be unique, so keep track of the slot number in element IDs.
 		std::ostringstream slotStream;
 		slotStream << (*iDDU)->getSlot();
 		std::string slot = slotStream.str();
-		
+
 		// Two rows per DDU
 		*out << cgicc::tr()
 			.set("class", "board") << std::endl;
@@ -2575,14 +2575,14 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 		*out << cgicc::td() << std::endl;
 		*out << cgicc::tr() << std::endl;
 	}
-	
+
 	*out << cgicc::table() << std::endl;
-	
+
 	// Step 2
-	
+
 	*out << cgicc::li("Upload local firmware files to selected targets")
 	.set("class", "tier0 bold") << std::endl;
-	
+
 	*out << cgicc::table()
 	.set("class", "tier1") << std::endl;
 	*out << cgicc::tr()
@@ -2710,48 +2710,48 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 	.set("id", "in1_upload") << std::endl;
 	*out << cgicc::td() << std::endl;
 	*out << cgicc::tr() << std::endl;
-	
+
 	*out << cgicc::table() << std::endl;
-	
+
 	// A hidden iFrame for loading firmware
 	*out << cgicc::iframe()
 	.set("id", "hidden_frame")
 	.set("name", "hidden_frame")
 	.set("class", "hidden") << std::endl;
 	*out << cgicc::iframe() << std::endl;
-	
+
 	// Step 3
-	
+
 	// Check to see if DCCs exist in this crate
 	if (myCrate->getDCCs().size()) {
-		
+
 		*out << cgicc::li()
 		.set("class", "tier0 bold") << std::endl;
-		
+
 		*out << cgicc::button("Hard-reset the crate through the DCC")
 		.set("id", "reset") << std::endl;
-		
+
 		*out << cgicc::li() << std::endl;
-		
+
 	} else {
-		
+
 		*out << cgicc::li("Issue a hard-reset to the crate")
 		.set("class", "tier0 bold") << std::endl;
-		
+
 		*out << cgicc::div("Either use a TTC command or power-cycle the crate manually.")
 		.set("class", "tier1") << std::endl;
-		
+
 	}
-	
-	
+
+
 	*out << cgicc::ol() << std::endl;
-	
+
 	*out << cgicc::fieldset() << std::endl;
-	
+
 	*out << cgicc::a("Go back to Commander main page")
 	.set("style", "color: #ddf")
 	.set("href", "/" + getApplicationDescriptor()->getURN()) << std::endl;
-	
+
 	*out << Footer();
 
 }
@@ -2761,17 +2761,17 @@ void emu::fed::Commander::webDDUFirmwareManager(xgi::Input *in, xgi::Output *out
 void emu::fed::Commander::webDDUReset(xgi::Input *in, xgi::Output *out)
 {
 	cgicc::Cgicc cgi(in);
-	
+
 	// Need some header information to be able to return JSON
 	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
 		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
 		jsonHeader.addHeader("Content-type", "application/json");
 		out->setHTTPResponseHeader(jsonHeader);
 	}
-	
+
 	// Make a JSON output object
 	JSONSpirit::Object output;
-	
+
 	// Dig out the crate I need to reset
 	unsigned int crateNumber = 0;
 	if (cgi.getElement("crate") != cgi.getElements().end()) {
@@ -2784,17 +2784,17 @@ void emu::fed::Commander::webDDUReset(xgi::Input *in, xgi::Output *out)
 		*out << JSONSpirit::write(output);
 		return;
 	}
-	
+
 	Crate *myCrate = NULL;
 	for (std::vector<Crate *>::const_iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); ++iCrate) {
-		
+
 		if ((*iCrate)->getNumber() == crateNumber) {
 			myCrate = (*iCrate);
 			break;
 		}
-		
+
 	}
-	
+
 	if (myCrate == NULL) {
 		std::ostringstream error;
 		error << "Unable to find crate number " << crateNumber << " in configuration";
@@ -2803,7 +2803,7 @@ void emu::fed::Commander::webDDUReset(xgi::Input *in, xgi::Output *out)
 		*out << JSONSpirit::write(output);
 		return;
 	}
-	
+
 	// Make sure there is a DCC in the crate
 	std::vector<DCC *> dccVector = myCrate->getDCCs();
 	if (dccVector.empty()) {
@@ -2814,7 +2814,7 @@ void emu::fed::Commander::webDDUReset(xgi::Input *in, xgi::Output *out)
 		*out << JSONSpirit::write(output);
 		return;
 	}
-	
+
 	// Reset
 	DCC *myDCC = dccVector[0];
 	try {
@@ -2825,42 +2825,42 @@ void emu::fed::Commander::webDDUReset(xgi::Input *in, xgi::Output *out)
 		*out << JSONSpirit::write(output);
 		return;
 	}
-	
+
 	// Success.  Get new DDU usercodes for display.
 	JSONSpirit::Array boardArray;
-	
+
 	std::vector<DDU *> dduVector = myCrate->getDDUs();
 	for (std::vector<DDU *>::const_iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); ++iDDU) {
-		
+
 		try {
 			uint32_t dduFPGA = (*iDDU)->readUserCode(emu::fed::DDUFPGA);
 			uint32_t inFPGA0 = (*iDDU)->readUserCode(emu::fed::INFPGA0);
 			uint32_t inFPGA1 = (*iDDU)->readUserCode(emu::fed::INFPGA1);
-			
+
 			JSONSpirit::Object boardObject;
-			
+
 			boardObject.push_back(JSONSpirit::Pair("slot", (int) (*iDDU)->getSlot()));
-			
+
 			JSONSpirit::Array chipArray;
-			
+
 			JSONSpirit::Object dduObject;
 			dduObject.push_back(JSONSpirit::Pair("chip", "ddufpga"));
 			dduObject.push_back(JSONSpirit::Pair("version", DDUDebugger::FirmwareDecode(dduFPGA)));
 			chipArray.push_back(dduObject);
-			
+
 			JSONSpirit::Object in0Object;
 			in0Object.push_back(JSONSpirit::Pair("chip", "infpga0"));
 			in0Object.push_back(JSONSpirit::Pair("version", DDUDebugger::FirmwareDecode(inFPGA0)));
 			chipArray.push_back(in0Object);
-			
+
 			JSONSpirit::Object in1Object;
 			in1Object.push_back(JSONSpirit::Pair("chip", "infpga1"));
 			in1Object.push_back(JSONSpirit::Pair("version", DDUDebugger::FirmwareDecode(inFPGA1)));
 			chipArray.push_back(in1Object);
-			
+
 			boardObject.push_back(JSONSpirit::Pair("chips", chipArray));
 			boardArray.push_back(boardObject);
-			
+
 		} catch (emu::fed::exception::Exception &e) {
 			LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e));
 			output.push_back(JSONSpirit::Pair("error", xcept::stdformat_exception_history(e)));
@@ -2868,7 +2868,7 @@ void emu::fed::Commander::webDDUReset(xgi::Input *in, xgi::Output *out)
 			return;
 		}
 	}
-	
+
 	output.push_back(JSONSpirit::Pair("boards", boardArray));
 	*out << JSONSpirit::write(output);
 }
@@ -3386,19 +3386,21 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommanderEditRegister", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
 	}
-	
+
 	cgicc::Cgicc cgi(in);
-	
+
 	/*cgicc::CgiEnvironment env = cgi.getEnvironment();
 	std::cout << "Post data: " << env.getPostData() << std::endl;
 	std::cout << "And from that, I find this many elements: " << cgi.getElements().size() << std::endl;*/
-	
+
 	// Need some header information to be able to return JSON
+	/*
 	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
 		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
 		jsonHeader.addHeader("Content-type", "application/json");
 		out->setHTTPResponseHeader(jsonHeader);
 	}
+	*/
 
 	// Dig out the DDUs or DCCs to which I should communicate.
 	std::vector<DDU *> targetDDUs;
@@ -3408,16 +3410,16 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 
 	for (std::vector<cgicc::FormEntry>::const_iterator iEntry = cgi.getElements().begin(); iEntry != cgi.getElements().end(); iEntry++) {
 		if (iEntry->getName() == "rui") {
-			
+
 			unsigned int rui = iEntry->getIntegerValue();
-			
+
 			// See if we can find the DDU from which the RUI comes
 			for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-				
+
 				bool ruiFound = false;
 				std::vector<DDU *> dduVector = (*iCrate)->getDDUs();
 				for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-					
+
 					if ((*iDDU)->getRUI() == rui) {
 						targetDDUs.push_back(*iDDU);
 						ruiFound = true;
@@ -3425,10 +3427,10 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 						break;
 					}
 				}
-				
+
 				if (ruiFound) break;
 			}
-			
+
 		}
 	}
 
@@ -3436,11 +3438,11 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 	if (cgi.getElement("reg") != cgi.getElements().end()) {
 		reg = cgi.getElement("reg")->getIntegerValue();
 	}
-	
+
 	// Display truncated header
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("commanderEdit.js");
-	
+
 	// Extra header information
 	std::ostringstream extraHeader;
 	extraHeader << "<script type=\"text/javascript\">" << std::endl;
@@ -3450,20 +3452,20 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 	}
 	extraHeader << "var reg = " << reg << ";" << std::endl;
 	extraHeader << "</script>" << std::endl;
-	
+
 	*out << Header("FED Commander DDU Register Editor", jsFileNames, extraHeader.str(), false);
-	
+
 	*out << cgicc::div()
 		.set("class", "titlebar commander_width")
 		.set("id", "FED_Commander_ddu_editor_titlebar") << std::endl;
 	*out << cgicc::div("DDU Register Editor")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
-	
+
 	*out << cgicc::fieldset()
 		.set("class", "dialog commander_width")
 		.set("id", "FED_Commander_ddu_editor_dialog") << std::endl;
-	
+
 
 	// Register name
 	std::string registerName;
@@ -3540,7 +3542,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 			break;
 
 		default:
-			*out << "DDU register " << reg << " cannot be edited.";
+			*out << "DDU register " << reg << " cannot be edited." << cgicc::fieldset();
 			*out << Footer();
 			return;
 		}
@@ -3605,7 +3607,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 
 		case 1: // Flash board number
 			registerValue << std::setbase(registerBase) << (*iDDU)->readFlashBoardID();
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3618,7 +3620,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 
 		case 3: // Flash RUI number
 			registerValue << std::setbase(registerBase) << (*iDDU)->readFlashRUI();
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3650,7 +3652,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 		case 4: // KillFiber
 			val = (*iDDU)->readKillFiber();
 			registerValue << std::setbase(registerBase) << val;
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3659,7 +3661,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 				.set("checked", "checked") << std::endl;
 			registerOptions << cgicc::label("Manual Setting")
 				.set("for", "manual_" + ruiString) << std::endl;
-			
+
 			configVal << std::setbase(registerBase) << (*iDDU)->getKillFiber();
 			registerOptions << cgicc::input()
 				.set("type", "radio")
@@ -3683,7 +3685,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 				registerOptions << cgicc::label("Use Fiber " + fiberNumber.str() + " (" + (*iFiber)->getName() + ")")
 					.set("for", "bit" + fiberNumber.str() + "_" + ruiString) << std::endl;
 			}
-			
+
 			bit15Input.set("type", "checkbox")
 				.set("id", "bit15_" + ruiString)
 				.set("class", "manual_only")
@@ -3733,13 +3735,13 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 			registerOptions << bit19Input << std::endl;
 			registerOptions << cgicc::label("Enable DMB Checks")
 				.set("for", "bit19_" + ruiString) << std::endl;
-			
+
 			break;
 
 		case 5: // Flash KillFiber
 			val = (*iDDU)->readFlashKillFiber();
 			registerValue << std::setbase(registerBase) << val;
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3748,7 +3750,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 				.set("checked", "checked") << std::endl;
 			registerOptions << cgicc::label("Manual Setting")
 				.set("for", "manual_" + ruiString) << std::endl;
-			
+
 			configVal << std::setbase(registerBase) << (*iDDU)->getKillFiber();
 			registerOptions << cgicc::input()
 				.set("type", "radio")
@@ -3786,7 +3788,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 		case 6: // GbE prescale
 			val = (*iDDU)->readGbEPrescale();
 			registerValue << std::setbase(registerBase) << val;
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3810,7 +3812,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 				.set("class", "manual_only")
 				.set("bits", "7")
 				.set("rui", ruiString) << std::endl;
-			
+
 			for (unsigned int i = 0; i < 7; ++i) {
 				std::ostringstream bit;
 				bit << i;
@@ -3831,13 +3833,13 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 			registerOptions << bit7Input << std::endl;
 			registerOptions << cgicc::label("Ignore DCC/S-Link Wait")
 				.set("for", "bit7_" + ruiString) << std::endl;
-				
+
 			break;
 
 		case 12: // FMM status
 			val = (*iDDU)->readFMM();
 			registerValue << std::setbase(registerBase) << val;
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3901,7 +3903,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 		case 42: // Fake L1
 			val = (*iDDU)->readFakeL1();
 			registerValue << std::setbase(registerBase) << val;
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3910,7 +3912,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 				.set("checked", "checked") << std::endl;
 			registerOptions << cgicc::label("Manual Setting")
 				.set("for", "manual_" + ruiString) << std::endl;
-			
+
 			bit0Input.set("type", "checkbox")
 				.set("id", "bit0_" + ruiString)
 				.set("class", "manual_only")
@@ -3940,7 +3942,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 			registerOptions << bit2Input << std::endl;
 			registerOptions << cgicc::label("DDUFPGA Passthrough")
 				.set("for", "bit2_" + ruiString) << std::endl;
-				
+
 			break;
 
 		case 43: // Flash GbE FIFO Thresholds
@@ -3948,7 +3950,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 			for (std::vector<uint16_t>::const_iterator iVal = valVector.begin(); iVal != valVector.end(); ++iVal) {
 				registerValue << std::setbase(16) << std::setw(4) << std::setfill('0') << *iVal;
 			}
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3962,7 +3964,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 		case 49: // Bunch-Crossing Orbit
 			val = (*iDDU)->readBXOrbit();
 			registerValue << std::setbase(registerBase) << val;
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3976,7 +3978,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 		case 57: // Input register
 			val = (*iDDU)->readInputRegister(0);
 			registerValue << std::setbase(registerBase) << val;
-			
+
 			registerOptions << cgicc::input()
 				.set("type", "radio")
 				.set("id", "manual_" + ruiString)
@@ -3986,7 +3988,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 			registerOptions << cgicc::label("Manual Setting")
 				.set("for", "manual_" + ruiString) << std::endl;
 			break;
-				
+
 			default: break;
 		}
 
@@ -4011,17 +4013,17 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::td()
 			.set("class", "entry_name") << registerOptions.str() << cgicc::td() << std::endl;
 		*out << cgicc::tr() << std::endl;
-		
+
 	}
 
 	*out << cgicc::table() << std::endl;
-	
+
 	*out << cgicc::fieldset() << std::endl;
 
 	*out << cgicc::a("Go back to Commander main page")
 		.set("style", "color: #ddf")
 		.set("href", "/" + getApplicationDescriptor()->getURN()) << std::endl;
-	
+
 	*out << Footer();
 }
 
@@ -4029,7 +4031,7 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Commander::webWriteRegister(xgi::Input *in, xgi::Output *out)
 {
-	
+
 }
 
 
@@ -4161,12 +4163,16 @@ void emu::fed::Commander::webGetStatus(xgi::Input *in, xgi::Output *out)
 			std::string statusDecoded = "undefined";
 			try {
 				uint8_t fmmStatus = (*iDCC)->readFMMStatus();
-				std::pair<std::string, std::string> debugged = DCCDebugger::FMMStatus(fmmStatus);
-				statusDecoded = debugged.second;
+				std::multimap<std::string, std::string> debugged = DCCDebugger::FMMStatus(fmmStatus);
+				if (debugged.find("undefined") != debugged.end()) statusDecoded = "undefined";
+				else if (debugged.find("error") != debugged.end()) statusDecoded = "error";
+				else if (debugged.find("warning") != debugged.end()) statusDecoded = "warning";
+				else if (debugged.find("caution") != debugged.end()) statusDecoded = "caution";
+				else statusDecoded = "ok";
 
-				fifoStatus = (*iDCC)->readFIFOStatus();
+				fifoStatus = (*iDCC)->readFIFOStatus(); // FIXME
 
-				slinkStatus = (*iDCC)->readSLinkStatus();
+				slinkStatus = (*iDCC)->readSLinkStatus(); // FIXME
 				REVOKE_ALARM("CommanderGetStatusDCC", NULL);
 			} catch (emu::fed::exception::DCCException &e) {
 				dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
@@ -4188,7 +4194,7 @@ void emu::fed::Commander::webGetStatus(xgi::Input *in, xgi::Output *out)
 
 				std::string status = "ok";
 
-				FIFO *fifo = (*iDCC)->getFIFO(iFIFO);
+				const FIFO *fifo = (*iDCC)->getFIFO(iFIFO);
 
 				if (!fifo->isUsed()) {
 					status = "killed";
@@ -4320,12 +4326,34 @@ std::string emu::fed::Commander::printDebug(const std::map<std::string, std::str
 
 
 
+std::string emu::fed::Commander::printDebug(const std::multimap<std::string, std::string> &debug)
+{
+	std::ostringstream out;
+	for (std::multimap<std::string, std::string>::const_iterator iPair = debug.begin(); iPair != debug.end(); iPair++) {
+		out << printDebugReverse(*iPair) << std::endl;
+	}
+	return out.str();
+}
+
+
+
 std::string emu::fed::Commander::printDebug(const std::pair<std::string, std::string> &debug)
 {
 	std::ostringstream out;
 	out << cgicc::div(debug.first)
 		.set("class", debug.second);
 	return out.str();
+}
+
+
+
+std::string emu::fed::Commander::printDebugReverse(const std::pair<std::string, std::string> &debug)
+{
+	std::ostringstream out;
+	out << cgicc::div(debug.second)
+		.set("class", debug.first);
+	return out.str();
+	
 }
 
 
@@ -4448,7 +4476,19 @@ std::string emu::fed::Commander::makeRegisterBox(const unsigned int &reg, const 
 		.set("value", "16");
 	if (base == 16) base16.set("checked", "checked");
 	out << base16 << std::endl;
-	out << cgicc::label("dec")
+	out << cgicc::label("hex")
+		.set("for", idStream.str() + "_base10") << std::endl;
+
+	cgicc::input base2;
+	base2.set("type", "radio")
+		.set("name", idStream.str() + "_base")
+		.set("id", idStream.str() + "_base2")
+		.set(identifier, id)
+		.set("reg", regStream.str())
+		.set("value", "2");
+	if (base == 2) base2.set("checked", "checked");
+	out << base2 << std::endl;
+	out << cgicc::label("bin")
 		.set("for", idStream.str() + "_base10") << std::endl;
 
 	out << cgicc::button("Write")
@@ -4456,6 +4496,6 @@ std::string emu::fed::Commander::makeRegisterBox(const unsigned int &reg, const 
 		.set("class", "write_button")
 		.set("reg", regStream.str())
 		.set(identifier, id) << std::endl;
-	
+
 	return out.str();
 }
