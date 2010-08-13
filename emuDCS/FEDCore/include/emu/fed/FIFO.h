@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFO.h,v 1.6 2010/02/04 21:08:32 paste Exp $
+* $Id: FIFO.h,v 1.7 2010/08/13 02:53:00 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIFO_H__
 #define __EMU_FED_FIFO_H__
@@ -21,20 +21,20 @@ namespace emu {
 			FIFO(const unsigned int &fifoNumber, const unsigned int &rui = 0, const bool &used = true);
 
 			/** @Returns the FIFO input number. **/
-			inline unsigned int getNumber() { return fifoNumber_; }
-			inline unsigned int number() { return fifoNumber_; }
+			inline unsigned int getNumber() const { return fifoNumber_; }
+			inline unsigned int number() const { return fifoNumber_; }
 
 			/** Set the FIFO input number **/
 			inline void setNumber(const unsigned int &number) { fifoNumber_ = number; }
 
 			/** @Returns the DDU RUI of the FIFO **/
-			inline unsigned int getRUI() { return rui_; }
+			inline unsigned int getRUI() const { return rui_; }
 
 			/** Set the DDU RUI of the FIFO **/
 			inline void setRUI(const unsigned int &rui) { rui_ = rui; }
 
 			/** @Returns whether or not the owning DCC should be configured to use this FIFO **/
-			inline bool isUsed() { return used_; }
+			inline bool isUsed() const { return used_; }
 
 			/** Sets whether of not the DCC should be configured to use this FIFO **/
 			inline void setUsed(const bool &used) { used_ = used; }

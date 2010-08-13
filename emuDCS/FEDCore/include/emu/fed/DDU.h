@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.18 2010/02/04 21:08:32 paste Exp $
+* $Id: DDU.h,v 1.19 2010/08/13 02:53:00 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -200,6 +200,12 @@ namespace emu {
 			std::vector<uint16_t> readFlashGbEFIFOThresholds()
 			throw (emu::fed::exception::DDUException);
 
+			/*const uint64_t readFlashGbEFIFOThresholds()
+			throw (emu::fed::exception::DDUException);*/
+
+			const uint32_t readFlashInFIFOThresholds()
+			throw (emu::fed::exception::DDUException);
+
 			// Write VME Serial/Flash registers
 
 			/** Writes a value to the kill fiber flash register. **/
@@ -216,6 +222,15 @@ namespace emu {
 
 			/** Writes a value to the GbE FIFO threshold flash register. **/
 			void writeFlashGbEFIFOThresholds(const std::vector<uint16_t> &values)
+			throw (emu::fed::exception::DDUException);
+
+			void writeFlashGbEFIFOThresholds(const uint64_t values)
+			throw (emu::fed::exception::DDUException);
+
+			void writeFlashInFIFOThresholds(const std::vector<uint16_t> &values)
+			throw (emu::fed::exception::DDUException);
+
+			void writeFlashInFIFOThresholds(const uint32_t values)
 			throw (emu::fed::exception::DDUException);
 
 			// Read SADC registers

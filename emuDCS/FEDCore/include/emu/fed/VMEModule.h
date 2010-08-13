@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.11 2010/04/26 09:55:12 paste Exp $
+* $Id: VMEModule.h,v 1.12 2010/08/13 02:53:00 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMEMODULE_H__
 #define __EMU_FED_VMEMODULE_H__
@@ -29,28 +29,28 @@ namespace emu {
 			*
 			*	@param mySlot is the board's slot number in the crate (needed for proper VME communication.)
 			**/
-			VMEModule(const unsigned int &mySlot, const bool &fake = false);
+			VMEModule(const unsigned int mySlot, const bool fake = false);
 
 			virtual ~VMEModule() {};
 
 			/** @returns the slot number. **/
-			inline unsigned int slot() { return slot_; }
-			inline unsigned int getSlot() { return slot_; }
+			const inline unsigned int slot() const { return slot_; }
+			const inline unsigned int getSlot() const { return slot_; }
 
 			/** Sets the slot number. **/
-			inline void setSlot(const unsigned int &slot) { slot_ = slot; }
+			inline void setSlot(const unsigned int slot) { slot_ = slot; }
 
 			/** Sets the appropriate BHandle for proper CAEN communication.
 			*
 			*	@param myHandle is the new BHandle to use.
 			**/
-			inline void setBHandle(const int32_t &myHandle) { BHandle_ = myHandle; }
+			inline void setBHandle(const int32_t myHandle) { BHandle_ = myHandle; }
 
-			/** @returns the current BHandle. **/
-			inline int32_t getBHandle() { return BHandle_; }
+			/** @return the current BHandle. **/
+			const inline int32_t getBHandle() const { return BHandle_; }
 
-			/** @returns the VME communication address **/
-			inline uint32_t getAddress() { return vmeAddress_; }
+			/** @return the VME communication address **/
+			const inline uint32_t getAddress() const { return vmeAddress_; }
 
 			/** Sets the mutex to that given by the Crate.
 			*
@@ -69,10 +69,10 @@ namespace emu {
 			 * @param stopString if set will cause the loader to stop immedately if it is found in the current line being read.  The line will not be loaded.
 			 *
 			 **/
-			virtual void loadPROM(const enum DEVTYPE &dev, const char *fileName, const std::string &startString = "", const std::string &stopString = "", const bool &debug = false)
+			virtual void loadPROM(const enum DEVTYPE dev, const char *fileName, const std::string &startString = "", const std::string &stopString = "", const bool debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
-			virtual void loadPROM(const enum DEVTYPE &dev, const std::string &fileName, const std::string &startString = "", const std::string &stopString = "", const bool &debug = false)
+			virtual void loadPROM(const enum DEVTYPE dev, const std::string &fileName, const std::string &startString = "", const std::string &stopString = "", const bool debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 			{
 				try {
@@ -90,7 +90,7 @@ namespace emu {
 			 * @param stopString if set will cause the loader to stop immediately if it is found in the current line being loaded.  The line will not be loaded.
 			 *
 			 **/
-			virtual void loadPROMFile(const enum DEVTYPE& dev, const std::string& data, const std::string& startString = "", const std::string& stopString = "", const bool& debug = false)
+			virtual void loadPROMFile(const enum DEVTYPE dev, const std::string &data, const std::string &startString = "", const std::string &stopString = "", const bool debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Writes some data to a particular JTAG device.
@@ -100,7 +100,7 @@ namespace emu {
 			*	@param data the data to write, with the first element of the vector being the LSB
 			*	@param noRead if true, will read back the data shifted out of the JTAG device and return it
 			**/
-			virtual std::vector<uint16_t> jtagWrite(const enum DEVTYPE &dev, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &noRead = false, const bool &debug = false)
+			virtual std::vector<uint16_t> jtagWrite(const enum DEVTYPE dev, const unsigned int nBits, const std::vector<uint16_t> &data, const bool noRead = false, const bool debug = false)
 			throw(emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Reads data from a particular JTAG device.
@@ -108,18 +108,16 @@ namespace emu {
 			*	@param dev the JTAG device from which the data will be read
 			*	@param nbits the number of bits to read
 			**/
-			virtual std::vector<uint16_t> jtagRead(const enum DEVTYPE &dev, const unsigned int &nBits, const bool &debug = false)
+			virtual std::vector<uint16_t> jtagRead(const enum DEVTYPE dev, const unsigned int nBits, const bool debug = false)
 			throw(emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** @returns false if this is a real board in a real crate with which one can communicate. **/
-			inline bool isFake() { return fake_; }
+			const inline bool isFake() const { return fake_; }
 
-			inline void setFake(const bool &fake) { fake_ = fake; }
+			inline void setFake(const bool fake) { fake_ = fake; }
 
 			/** Gets the firmware load percent complete for a given DEVTYPE. **/
-			inline unsigned int getFirmwarePercent(const enum DEVTYPE &dev) {
-				return firmwarePercentMap_[dev];
-			}
+			const inline unsigned int getFirmwarePercent(const enum DEVTYPE dev) { return firmwarePercentMap_[dev]; }
 
 		protected:
 
@@ -127,7 +125,7 @@ namespace emu {
 			*	@param dev the JTAG device to which the command will be sent
 			*	@param myCommand the command code to send
 			**/
-			virtual void commandCycle(const enum DEVTYPE &dev, const uint16_t &myCommand, const bool &debug = false)
+			virtual void commandCycle(const enum DEVTYPE dev, const uint16_t myCommand, const bool debug = false)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Reads 16 bits from a given VME address.
@@ -136,7 +134,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			virtual uint16_t readVME(const uint32_t &myAddress, const bool &debug = false)
+			virtual uint16_t readVME(const uint32_t myAddress, const bool debug = false)
 			throw (emu::fed::exception::CAENException);
 
 			/** Writes 16 bits to a given VME address.
@@ -146,7 +144,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			virtual void writeVME(const uint32_t &myAddress, const uint16_t &data, const bool &debug = false)
+			virtual void writeVME(const uint32_t myAddress, const uint16_t data, const bool debug = false)
 			throw (emu::fed::exception::CAENException);
 
 			/** Reads any arbitrary number of bits from a given VME address.
@@ -156,7 +154,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			virtual std::vector<uint16_t> readCycle(const uint32_t &myAddress, const unsigned int &nBits, const bool &debug = false)
+			virtual std::vector<uint16_t> readCycle(const uint32_t myAddress, const unsigned int nBits, const bool debug = false)
 			throw(emu::fed::exception::CAENException);
 
 			/** Writes any arbitrary number of bits to a given VME address.
@@ -166,7 +164,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			virtual void writeCycle(const uint32_t &myAddress, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &debug = false)
+			virtual void writeCycle(const uint32_t myAddress, const unsigned int nBits, const std::vector<uint16_t> &data, const bool debug = false)
 			throw(emu::fed::exception::CAENException);
 
 			/// A map of JTAG chains on this device.

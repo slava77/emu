@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.27 2010/04/26 09:55:13 paste Exp $
+* $Id: DDU.cc,v 1.28 2010/08/13 02:53:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -613,7 +613,45 @@ std::vector<uint16_t> emu::fed::DDU::readFlashGbEFIFOThresholds()
 throw (emu::fed::exception::DDUException)
 {
 	try {
-		return readRegister(VMESERI, 0x0504,34);
+		return readRegister(VMESERI, 0x0504, 34);
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+/*
+const uint64_t emu::fed::DDU::readFlashGbEFIFOThresholds()
+throw (emu::fed::exception::DDUException)
+{
+	try {
+		std::vector<uint16_t> reg = readRegister(VMESERI, 0x0504, 34);
+		return ((uint64_t) reg[0] & (((uint64_t) reg[1]) << 16) && (((uint64_t) reg[2]) << 32));
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+*/
+
+
+const uint32_t emu::fed::DDU::readFlashInFIFOThresholds()
+throw (emu::fed::exception::DDUException)
+{
+	try {
+		std::vector<uint16_t> reg = readRegister(VMESERI, 0x0404, 32);
+		return ((uint32_t) reg[0] & (((uint32_t) reg[1]) << 16));
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
@@ -706,7 +744,7 @@ throw (emu::fed::exception::DDUException)
 {
 	if (values.size() != 3) {
 		std::ostringstream error;
-		error << "value to be written to GBEFIFOThresholds needs to be 34 bits (3 uint16_t values)";
+		error << "value to be written to GbEFIFOThresholds needs to be 34 bits (3 uint16_t values)";
 		XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
 		std::ostringstream tag;
 		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
@@ -731,6 +769,72 @@ throw (emu::fed::exception::DDUException)
 		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
+	}
+}
+
+
+
+void emu::fed::DDU::writeFlashGbEFIFOThresholds(const uint64_t values)
+throw (emu::fed::exception::DDUException)
+{
+	try {
+		std::vector<uint16_t> reg;
+		reg.push_back(values & 0xffff);
+		reg.push_back((values >> 16) & 0xffff);
+		reg.push_back((values >> 32) & 0xffff);
+		return writeFlashGbEFIFOThresholds(reg);
+	} catch (...) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::writeFlashInFIFOThresholds(const std::vector<uint16_t> &values)
+throw (emu::fed::exception::DDUException)
+{
+	if (values.size() != 2) {
+		std::ostringstream error;
+		error << "value to be written to InFIFOThresholds needs to be 32 bits (2 uint16_t values)";
+		XCEPT_DECLARE(emu::fed::exception::DDUException, e2, error.str());
+		std::ostringstream tag;
+		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+	try {
+		// Input register needs to be written first before updating flash.
+		for (std::vector<uint16_t>::const_iterator iValue = values.begin(); iValue != values.end(); iValue++) {
+			writeInputRegister((*iValue));
+		}
+		// Bogus data for sending to the VMESERI path.
+		const std::vector<uint16_t> bogoData(1,0);
+		writeRegister(VMESERI, 0x0c04, 16, bogoData);
+		// Flash needs to sleep after writing
+		usleep(100000);
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "RUI " << std::setw(2) << std::setfill('0') << rui_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+
+void emu::fed::DDU::writeFlashInFIFOThresholds(const uint32_t values)
+throw (emu::fed::exception::DDUException)
+{
+	try {
+		std::vector<uint16_t> reg;
+		reg.push_back(values & 0xffff);
+		reg.push_back((values >> 16) & 0xffff);
+		return writeFlashInFIFOThresholds(reg);
+	} catch (...) {
+		throw;
 	}
 }
 
