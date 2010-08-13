@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.11 2010/04/26 09:55:13 paste Exp $
+* $Id: VMEModule.cc,v 1.12 2010/08/13 02:53:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -19,7 +19,7 @@
 #include "CAENVMEtypes.h"
 #include "emu/fed/VMELock.h"
 
-emu::fed::VMEModule::VMEModule(const unsigned int &mySlot, const bool &fake):
+emu::fed::VMEModule::VMEModule(const unsigned int mySlot, const bool fake):
 slot_(mySlot),
 fake_(fake)
 {
@@ -28,7 +28,7 @@ fake_(fake)
 
 
 
-void emu::fed::VMEModule::writeCycle(const uint32_t &myAddress, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &debug)
+void emu::fed::VMEModule::writeCycle(const uint32_t myAddress, const unsigned int nBits, const std::vector<uint16_t> &data, const bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// What I really need is the number of words and remainder bits.
@@ -76,7 +76,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::readCycle(const uint32_t &myAddress, const unsigned int &nBits, const bool &debug)
+std::vector<uint16_t> emu::fed::VMEModule::readCycle(const uint32_t myAddress, const unsigned int nBits, const bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// What I really need is the number of words and remainder bits.
@@ -125,7 +125,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::commandCycle(const enum DEVTYPE &dev, const uint16_t &myCommand, const bool &debug)
+void emu::fed::VMEModule::commandCycle(const enum DEVTYPE dev, const uint16_t myCommand, const bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -265,7 +265,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(const enum DEVTYPE &dev, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &noRead, const bool &debug)
+std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(const enum DEVTYPE dev, const unsigned int nBits, const std::vector<uint16_t> &data, const bool noRead, const bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	std::vector<uint16_t> myData = data;
@@ -445,7 +445,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::jtagRead(const enum DEVTYPE &dev, const unsigned int &nBits, const bool &debug)
+std::vector<uint16_t> emu::fed::VMEModule::jtagRead(const enum DEVTYPE dev, const unsigned int nBits, const bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// Get the chain.  Very important to know.
@@ -567,7 +567,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-uint16_t emu::fed::VMEModule::readVME(const uint32_t &Address, const bool &debug)
+uint16_t emu::fed::VMEModule::readVME(const uint32_t Address, const bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	if (fake_) {
@@ -605,7 +605,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::writeVME(const uint32_t &Address, const uint16_t &data, const bool &debug)
+void emu::fed::VMEModule::writeVME(const uint32_t Address, const uint16_t data, const bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	if (fake_) return;
@@ -638,7 +638,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::loadPROM(const enum DEVTYPE &dev, const char *fileName, const std::string &startString, const std::string &stopString, const bool &debug)
+void emu::fed::VMEModule::loadPROM(const enum DEVTYPE dev, const char *fileName, const std::string &startString, const std::string &stopString, const bool debug)
 throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// Open the filestream
@@ -670,7 +670,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 
 
-void emu::fed::VMEModule::loadPROMFile(const enum DEVTYPE &dev, const std::string& data, const std::string &startString, const std::string &stopString, const bool &debug)
+void emu::fed::VMEModule::loadPROMFile(const enum DEVTYPE dev, const std::string &data, const std::string &startString, const std::string &stopString, const bool debug)
 throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
