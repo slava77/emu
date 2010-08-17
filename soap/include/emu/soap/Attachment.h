@@ -18,7 +18,7 @@ namespace emu{
     using namespace std;
 
     ///
-    /// 
+    /// An attachment to a SOAP message.
     ///
     class Attachment{
     public:
@@ -96,7 +96,7 @@ namespace emu{
 
       /// 
       /// Sets the data length.
-      /// @param content The length of data in bytes.
+      /// @param length The length of data in bytes.
       ///
       /// @return The \c Attachment object itself.
       ///
@@ -104,7 +104,7 @@ namespace emu{
 
       /// 
       /// Sets the content type in the MIME header.
-      /// @param content Content type in the MIME header.
+      /// @param type Content type in the MIME header.
       ///
       /// @return The \c Attachment object itself.
       ///
@@ -112,7 +112,7 @@ namespace emu{
 
       /// 
       /// Sets the content encoding in the MIME header.
-      /// @param content Content encoding in the MIME header.
+      /// @param encoding Content encoding in the MIME header.
       ///
       /// @return The \c Attachment object itself.
       ///
@@ -120,7 +120,7 @@ namespace emu{
 
       /// 
       /// Sets the content id in the MIME header.
-      /// @param content Content id in the MIME header.
+      /// @param id Content id in the MIME header.
       ///
       /// @return The \c Attachment object itself.
       ///
@@ -128,7 +128,7 @@ namespace emu{
 
       /// 
       /// Sets the content location in the MIME header.
-      /// @param content Content location in the MIME header.
+      /// @param location Content location in the MIME header.
       ///
       /// @return The \c Attachment object itself.
       ///
