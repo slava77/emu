@@ -135,12 +135,12 @@ namespace emu{
       emu::soap::Attachment& setContentLocation( const string& location    );
 
     private:
-      const char   *content_; /// Pointer to the data.
-      unsigned int  contentLength_; /// Data length in bytes.
-      string        contentType_; /// Content type in MIME header.
-      string        contentEncoding_; /// Content encoding in MIME header.
-      string        contentId_; /// Content id in MIME header.
-      string        contentLocation_; /// Content location in MIME header.
+      const char   *content_; ///< Pointer to the data.
+      unsigned int  contentLength_; ///< Data length in bytes.
+      string        contentType_; ///< Content type in MIME header.
+      string        contentEncoding_; ///< Content encoding in MIME header.
+      string        contentId_; ///< Content id in MIME header.
+      string        contentLocation_; ///< Content location in MIME header.
     };
 
   }

@@ -59,6 +59,7 @@ namespace emu{
       /// Adds an \c xdata object and its name.
       /// @param name The name of the data.
       /// @param value Pointer to the \c xdata object.
+      /// @param attributes Pointer to the \c emu::soap::Attributes object.
       ///
       /// @return Ref. to the Parameters object itself. 
       ///
@@ -89,7 +90,7 @@ namespace emu{
       const emu::soap::Attributes* getAttributes( const string &name ) const;
 
     private:
-      bool usePrefix_; /// If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
+      bool usePrefix_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
     };
 
   }
