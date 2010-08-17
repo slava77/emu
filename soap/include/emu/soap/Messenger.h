@@ -364,16 +364,16 @@ namespace emu{
       /// @param parameters Parameters to extract.
       /// @param parametersNamespaceURI Parameters' namespace URI (empty by default, in which case any namespace will match).
       /// 
-      /// Example:
-      ///
-      ///       // Send a command and extract parameters from the reply:
+      /// Example for sending a command and extracting parameters from the reply:
+      /// \code
       ///       xdata::String                start_time;
       ///       xdata::String                stop_time;
       ///       xdata::Vector<xdata::String> rui_counts;
       ///       m.extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ),
       ///       		     emu::soap::Parameters().add( "start_time", &start_time ) 
-      ///       		                           .add( "stop_time" , &stop_time  ) 
-      ///       		                           .add( "rui_counts", &rui_counts ) );
+      ///        		                            .add( "stop_time" , &stop_time  ) 
+      ///       		                            .add( "rui_counts", &rui_counts ) );
+      /// \endcode
       ///
       void extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters, const string &parametersNamespaceURI="" );
 
@@ -433,11 +433,11 @@ namespace emu{
       void faultElementToException( xoap::SOAPElement* elem, std::vector<xcept::ExceptionInformation> &eStack, int level );
 
     public:
-      static const emu::soap::Attributes               noAttributes; /// An empty container of named data.
-      static const emu::soap::Parameters               noParameters; /// An empty container of named data.
-      static const std::vector<emu::soap::Attachment> noAttachments; /// An empty container of attachments.
+      static const emu::soap::Attributes               noAttributes; ///< An empty container of attributes.
+      static const emu::soap::Parameters               noParameters; ///< An empty container of parameters.
+      static const std::vector<emu::soap::Attachment> noAttachments; ///< An empty container of attachments.
     private:
-      xdaq::Application *application_; /// Pointer to the parent XDAQ application.
+      xdaq::Application *application_; ///< Pointer to the parent XDAQ application.
     };
 
   }
