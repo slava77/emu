@@ -1,3 +1,12 @@
+///
+/// @file   Messenger.h
+/// @author cscdaq common account <cscdaq@csc-C2D08-11.cms>
+/// @date   Thu Jul 15 09:41:28 2010
+/// 
+/// @brief  A SOAP messenger class implementing commonly used SOAP messages.
+/// 
+/// 
+///
 #ifndef __emu_soap_Messenger_h__
 #define __emu_soap_Messenger_h__
 
@@ -18,15 +27,6 @@
 #include "xdaq/NamespaceURI.h"
 #include "xdata/soap/NamespaceURI.h"
 #include "xoap/domutils.h"
-///
-/// @file   Messenger.h
-/// @author cscdaq common account <cscdaq@csc-C2D08-11.cms>
-/// @date   Thu Jul 15 09:41:28 2010
-/// 
-/// @brief  A SOAP messenger class implementing commonly used SOAP messages.
-/// 
-/// 
-///
 #include "xgi/Input.h"
 #include "xoap/Method.h"
 #include "xcept/tools.h"
@@ -37,6 +37,9 @@
 namespace emu{
   namespace soap{
 
+    /// 
+    /// A SOAP messenger class implementing commonly used SOAP messages.
+    /// 
     class Messenger{
     public:
 
@@ -65,16 +68,16 @@ namespace emu{
       ///
       /// Example:
       /// \code
-      ///       emu::soap::Messenger m( this );
-      ///	xdata::String s;
-      ///	xdata::UnsignedLong ul;
-      ///	xdata::Vector<xdata::String> Vs;
-      ///	m.getParameters( targetDescriptor, 
-      ///			 emu::soap::Parameters().add( "stateName", &s  )
-      ///			                       .add( "runNumber", &ul )
-      ///			                       .add( "runTypes" , &Vs ) );
-      ///       cout << ul.toString() << endl << s.toString() << endl << Vs.toString() << endl;
+      ///        xdata::String s;
+      ///        xdata::UnsignedLong ul;
+      ///        xdata::Vector<xdata::String> Vs;
+      ///        emu::soap::Messenger( this ).getParameters( targetDescriptor, 
+      ///                                                    emu::soap::Parameters().add( "stateName", &s  )
+      ///                                                                           .add( "runNumber", &ul )
+      ///                                                                           .add( "runTypes" , &Vs ) );
+      ///        cout << ul.toString() << endl << s.toString() << endl << Vs.toString() << endl;
       /// \endcode
+      ///
       void getParameters( xdaq::ApplicationDescriptor *target, emu::soap::Parameters &parameters );
 
       ///
@@ -86,16 +89,17 @@ namespace emu{
       ///
       /// Example:
       /// \code
-      ///       emu::soap::Messenger m( this );
-      ///	xdata::String s;
-      ///	xdata::UnsignedLong ul;
-      ///	xdata::Vector<xdata::String> Vs;
-      ///	m.getParameters( "emu::daq::manager::Application", 0,
-      ///			 emu::soap::Parameters().add( "stateName", &s  )
-      ///			                       .add( "runNumber", &ul )
-      ///			                       .add( "runTypes" , &Vs ) );
-      ///       cout << ul.toString() << endl << s.toString() << endl << Vs.toString() << endl;
+      ///        emu::soap::Messenger m( this );
+      ///        xdata::String s;
+      ///        xdata::UnsignedLong ul;
+      ///        xdata::Vector<xdata::String> Vs;
+      ///        m.getParameters( "emu::daq::manager::Application", 0,
+      ///                         emu::soap::Parameters().add( "stateName", &s  )
+      ///                                                .add( "runNumber", &ul )
+      ///                                                .add( "runTypes" , &Vs ) );
+      ///        cout << ul.toString() << endl << s.toString() << endl << Vs.toString() << endl;
       /// \endcode
+      ///
       void getParameters( const string &className, const unsigned int instance, emu::soap::Parameters &parameters );
 
       ///
@@ -107,15 +111,16 @@ namespace emu{
       /// Example:
       /// \code
       ///       emu::soap::Messenger m( this );
-      ///	xdata::UnsignedLong ul = 1234;
-      ///	xdata::Vector<xdata::String> Vs;
-      ///       Vs.push_back( xdata::String("pace"  ) );
-      ///	Vs.push_back( xdata::String("trot"  ) );
-      ///	Vs.push_back( xdata::String("gallop") );
-      ///	m.setParameters( targetDescriptor, 
-      ///			 emu::soap::Parameters().add( "runNumber", &ul )
-      ///			                       .add( "runTypes" , &Vs ) );
+      ///        xdata::UnsignedLong ul = 1234;
+      ///        xdata::Vector<xdata::String> Vs;
+      ///        Vs.push_back( xdata::String("pace"  ) );
+      ///        Vs.push_back( xdata::String("trot"  ) );
+      ///        Vs.push_back( xdata::String("gallop") );
+      ///        m.setParameters( targetDescriptor, 
+      ///                         emu::soap::Parameters().add( "runNumber", &ul )
+      ///                                                .add( "runTypes" , &Vs ) );
       /// \endcode
+      ///
       void setParameters( xdaq::ApplicationDescriptor *target, const emu::soap::Parameters &parameters );
 
       /// 
@@ -127,16 +132,17 @@ namespace emu{
       ///
       /// Example:
       /// \code
-      ///       emu::soap::Messenger m( this );
-      ///	xdata::UnsignedLong ul = 1234;
-      ///	xdata::Vector<xdata::String> Vs;
-      ///       Vs.push_back( xdata::String("pace"  ) );
-      ///	Vs.push_back( xdata::String("trot"  ) );
-      ///	Vs.push_back( xdata::String("gallop") );
-      ///	m.setParameters( "emu::daq::manager::Application", 0,
-      ///			 emu::soap::Parameters().add( "runNumber", &ul )
-      ///			                       .add( "runTypes" , &Vs ) );
+      ///        emu::soap::Messenger m( this );
+      ///        xdata::UnsignedLong ul = 1234;
+      ///        xdata::Vector<xdata::String> Vs;
+      ///        Vs.push_back( xdata::String("pace"  ) );
+      ///        Vs.push_back( xdata::String("trot"  ) );
+      ///        Vs.push_back( xdata::String("gallop") );
+      ///        m.setParameters( "emu::daq::manager::Application", 0,
+      ///                         emu::soap::Parameters().add( "runNumber", &ul )
+      ///                                                .add( "runTypes" , &Vs ) );
       /// \endcode
+      ///
       void setParameters( const string &className, const unsigned int instance, const emu::soap::Parameters &parameters );
 
       /// 
@@ -147,16 +153,17 @@ namespace emu{
       ///
       /// Example:
       /// \code
-      ///       emu::soap::Messenger m( this );
-      ///	xdata::UnsignedLong ul = 1234;
-      ///	xdata::Vector<xdata::String> Vs;
-      ///       Vs.push_back( xdata::String("pace"  ) );
-      ///	Vs.push_back( xdata::String("trot"  ) );
-      ///	Vs.push_back( xdata::String("gallop") );
-      ///	m.setParameters( "emu::daq::manager::Application",
-      ///			 emu::soap::Parameters().add( "runNumber", &ul )
-      ///			                       .add( "runTypes" , &Vs ) );
+      ///        emu::soap::Messenger m( this );
+      ///        xdata::UnsignedLong ul = 1234;
+      ///        xdata::Vector<xdata::String> Vs;
+      ///        Vs.push_back( xdata::String("pace"  ) );
+      ///        Vs.push_back( xdata::String("trot"  ) );
+      ///        Vs.push_back( xdata::String("gallop") );
+      ///        m.setParameters( "emu::daq::manager::Application",
+      ///                         emu::soap::Parameters().add( "runNumber", &ul )
+      ///                                                .add( "runTypes" , &Vs ) );
       /// \endcode
+      ///
       void setParameters( const string &className, const emu::soap::Parameters &parameters );
 
       ///
@@ -173,34 +180,35 @@ namespace emu{
       ///
       /// Examples:
       /// \code
-      ///       // Send a simple command
-      ///       emu::soap::Messenger m( this );
-      ///	m.sendCommand( targetDescriptor, "Configure" );
+      ///        // Send a simple command
+      ///        emu::soap::Messenger m( this );
+      ///        m.sendCommand( targetDescriptor, "Configure" );
       ///
-      ///       // Send another command with attributes
-      ///       xdata::String s("Start");
-      ///       m.sendCommand( targetDescriptor, "Cyclic",
-      ///                      emu::soap::Messenger::noParameters, 
-      ///                      emu::soap::Attributes().add( "Param", &s ) );
+      ///        // Send another command with attributes
+      ///        xdata::String s("Start");
+      ///        m.sendCommand( targetDescriptor, "Cyclic",
+      ///                       emu::soap::Messenger::noParameters, 
+      ///                       emu::soap::Attributes().add( "Param", &s ) );
       ///
-      ///       // Send yet another command with attachments 
-      ///	char* data1 = "Text\0"; unsigned int dataLength1 = 5;
-      ///	double d = 1.23456789;
-      ///	char* data2 = (char*)( &d ); unsigned int dataLength2 = sizeof( double ) / sizeof( char );
-      ///	std::vector<emu::soap::Attachment> attachments;
-      ///	attachments.push_back( emu::soap::Attachment( dataLength1, data1 ).setContentType( "text/plain" ).setContentEncoding( "8bit" ) );
-      ///	attachments.push_back( emu::soap::Attachment( dataLength2, data2 ).setContentType( "application/octet-stream" ).setContentEncoding( "binary" ) );
-      /// 	m.sendCommand( targetDescriptor, "SeeAttachments", 
-      ///		       emu::soap::Messenger::noParameters,
-      ///		       emu::soap::Messenger::noAttributes,
-      ///		       attachments );
+      ///        // Send yet another command with attachments 
+      ///        char* data1 = "Text\0"; unsigned int dataLength1 = 5;
+      ///        double d = 1.23456789;
+      ///        char* data2 = (char*)( &d ); unsigned int dataLength2 = sizeof( double ) / sizeof( char );
+      ///        std::vector<emu::soap::Attachment> attachments;
+      ///        attachments.push_back( emu::soap::Attachment( dataLength1, data1 ).setContentType( "text/plain" ).setContentEncoding( "8bit" ) );
+      ///        attachments.push_back( emu::soap::Attachment( dataLength2, data2 ).setContentType( "application/octet-stream" ).setContentEncoding( "binary" ) );
+      ///        m.sendCommand( targetDescriptor, "SeeAttachments", 
+      ///                       emu::soap::Messenger::noParameters,
+      ///                       emu::soap::Messenger::noAttributes,
+      ///                       attachments );
       /// \endcode
+      ///
       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
-					  const std::string &commandNamespaceURI,
-					  const std::string &command, 
-					  const emu::soap::Parameters &parameters = noParameters,
-					  const emu::soap::Attributes &attributes = noAttributes,
-					  const vector<emu::soap::Attachment> &attachments = noAttachments );
+                                          const std::string &commandNamespaceURI,
+                                          const std::string &command, 
+                                          const emu::soap::Parameters &parameters = noParameters,
+                                          const emu::soap::Attributes &attributes = noAttributes,
+                                          const vector<emu::soap::Attachment> &attachments = noAttachments );
 
       ///
       /// Sends a command to the target application given by its class name and instance.
@@ -216,12 +224,13 @@ namespace emu{
       /// @return The reply.
       ///
       /// See the overloaded version of this method for examples.
+      ///
       xoap::MessageReference sendCommand( const string &className, const unsigned int instance, 
-					  const std::string &commandNamespaceURI,
-					  const std::string &command, 
-					  const emu::soap::Parameters &parameters = noParameters,
-					  const emu::soap::Attributes &attributes = noAttributes,
-					  const vector<emu::soap::Attachment> &attachments = noAttachments );
+                                          const std::string &commandNamespaceURI,
+                                          const std::string &command, 
+                                          const emu::soap::Parameters &parameters = noParameters,
+                                          const emu::soap::Attributes &attributes = noAttributes,
+                                          const vector<emu::soap::Attachment> &attachments = noAttachments );
 
       ///
       /// Sends a command to all applications of \c className in the default zone.
@@ -234,12 +243,13 @@ namespace emu{
       /// @param attachments Optional attachments.
       ///
       /// See the overloaded version of this method for examples.
+      ///
       void sendCommand( const string &className,
-			const std::string &commandNamespaceURI,
-			const std::string &command, 
-			const emu::soap::Parameters &parameters = noParameters,
-			const emu::soap::Attributes &attributes = noAttributes,
-			const vector<emu::soap::Attachment> &attachments = noAttachments );
+                        const std::string &commandNamespaceURI,
+                        const std::string &command, 
+                        const emu::soap::Parameters &parameters = noParameters,
+                        const emu::soap::Attributes &attributes = noAttributes,
+                        const vector<emu::soap::Attachment> &attachments = noAttachments );
 
 
 
@@ -258,33 +268,34 @@ namespace emu{
       ///
       /// Examples:
       /// \code
-      ///       // Send a simple command
-      ///       emu::soap::Messenger m( this );
-      ///	m.sendCommand( targetDescriptor, "Configure" );
+      ///        // Send a simple command
+      ///        emu::soap::Messenger m( this );
+      ///        m.sendCommand( targetDescriptor, "Configure" );
+      ///	 
+      ///        // Send another command with attributes
+      ///        xdata::String s("Start");
+      ///        m.sendCommand( targetDescriptor, "Cyclic",
+      ///                       emu::soap::Messenger::noParameters, 
+      ///                       emu::soap::Attributes().add( "Param", &s ) );
       ///
-      ///       // Send another command with attributes
-      ///       xdata::String s("Start");
-      ///       m.sendCommand( targetDescriptor, "Cyclic",
-      ///                      emu::soap::Messenger::noParameters, 
-      ///                      emu::soap::Attributes().add( "Param", &s ) );
-      ///
-      ///       // Send yet another command with attachments 
-      ///	char* data1 = "Text\0"; unsigned int dataLength1 = 5;
-      ///	double d = 1.23456789;
-      ///	char* data2 = (char*)( &d ); unsigned int dataLength2 = sizeof( double ) / sizeof( char );
-      ///	std::vector<emu::soap::Attachment> attachments;
-      ///	attachments.push_back( emu::soap::Attachment( dataLength1, data1 ).setContentType( "text/plain" ).setContentEncoding( "8bit" ) );
-      ///	attachments.push_back( emu::soap::Attachment( dataLength2, data2 ).setContentType( "application/octet-stream" ).setContentEncoding( "binary" ) );
-      /// 	m.sendCommand( targetDescriptor, "SeeAttachments", 
-      ///		       emu::soap::Messenger::noParameters,
-      ///		       emu::soap::Messenger::noAttributes,
-      ///		       attachments );
+      ///        // Send yet another command with attachments 
+      ///        char* data1 = "Text\0"; unsigned int dataLength1 = 5;
+      ///        double d = 1.23456789;
+      ///        char* data2 = (char*)( &d ); unsigned int dataLength2 = sizeof( double ) / sizeof( char );
+      ///        std::vector<emu::soap::Attachment> attachments;
+      ///        attachments.push_back( emu::soap::Attachment( dataLength1, data1 ).setContentType( "text/plain" ).setContentEncoding( "8bit" ) );
+      ///        attachments.push_back( emu::soap::Attachment( dataLength2, data2 ).setContentType( "application/octet-stream" ).setContentEncoding( "binary" ) );
+      ///        m.sendCommand( targetDescriptor, "SeeAttachments", 
+      ///                       emu::soap::Messenger::noParameters,
+      ///                       emu::soap::Messenger::noAttributes,
+      ///                       attachments );
       /// \endcode
+      ///
       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
-					  const std::string &command, 
-					  const emu::soap::Parameters &parameters = noParameters,
-					  const emu::soap::Attributes &attributes = noAttributes,
-					  const vector<emu::soap::Attachment> &attachments = noAttachments );
+                                          const std::string &command, 
+                                          const emu::soap::Parameters &parameters = noParameters,
+                                          const emu::soap::Attributes &attributes = noAttributes,
+                                          const vector<emu::soap::Attachment> &attachments = noAttachments );
 
       ///
       /// Sends a command to the target application given by its class name and instance.
@@ -299,11 +310,12 @@ namespace emu{
       /// @return The reply.
       ///
       /// See the overloaded version of this method for examples.
+      ///
       xoap::MessageReference sendCommand( const string &className, const unsigned int instance, 
-					  const std::string &command, 
-					  const emu::soap::Parameters &parameters = noParameters,
-					  const emu::soap::Attributes &attributes = noAttributes,
-					  const vector<emu::soap::Attachment> &attachments = noAttachments );
+                                          const std::string &command, 
+                                          const emu::soap::Parameters &parameters = noParameters,
+                                          const emu::soap::Attributes &attributes = noAttributes,
+                                          const vector<emu::soap::Attachment> &attachments = noAttachments );
 
       ///
       /// Sends a command to all applications of \c className in the default zone.
@@ -315,11 +327,12 @@ namespace emu{
       /// @param attachments Optional attachments.
       ///
       /// See the overloaded version of this method for examples.
+      ///
       void sendCommand( const string &className,
-			const std::string &command, 
-			const emu::soap::Parameters &parameters = noParameters,
-			const emu::soap::Attributes &attributes = noAttributes,
-			const vector<emu::soap::Attachment> &attachments = noAttachments );
+                        const std::string &command, 
+                        const emu::soap::Parameters &parameters = noParameters,
+                        const emu::soap::Attributes &attributes = noAttributes,
+                        const vector<emu::soap::Attachment> &attachments = noAttachments );
 
 
       /// 
@@ -370,9 +383,9 @@ namespace emu{
       ///       xdata::String                stop_time;
       ///       xdata::Vector<xdata::String> rui_counts;
       ///       m.extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ),
-      ///       		     emu::soap::Parameters().add( "start_time", &start_time ) 
-      ///        		                            .add( "stop_time" , &stop_time  ) 
-      ///       		                            .add( "rui_counts", &rui_counts ) );
+      ///                            emu::soap::Parameters().add( "start_time", &start_time ) 
+      ///                                                   .add( "stop_time" , &stop_time  ) 
+      ///                                                   .add( "rui_counts", &rui_counts ) );
       /// \endcode
       ///
       void extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters, const string &parametersNamespaceURI="" );
