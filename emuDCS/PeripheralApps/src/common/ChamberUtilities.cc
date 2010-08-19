@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.34 2010/02/02 15:38:10 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.35 2010/08/19 11:18:27 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.35  2010/08/19 11:18:27  rakness
+// fix bug to pick the correct posneg in CFEBrx scan
+//
 // Revision 1.34  2010/02/02 15:38:10  rakness
 // randomize comparator being pulsed in CFEB-TMB rx test
 //
@@ -1126,6 +1129,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
     //
     if (good_scan[posneg] == 5) {
       pick_posneg = posneg;
+      break;
     } else if (good_scan[posneg] == 4) {
       pick_posneg = posneg;
       special_cfeb = bad_cfeb[posneg];
