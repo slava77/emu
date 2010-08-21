@@ -710,19 +710,19 @@ void emu::farmer::Application::createProcessDescriptors()
     // this crashes: doc->release();
   }
 //   catch( SAXException& e ){
-//     stringstream ss; ss << "Failed to collect processes from .duck file: " << e.getMessage();
+//     stringstream ss; ss << "Failed to collect processes from .duck file: " << xoap::XMLCh2String( e.getMessage() );
 //     XCEPT_RAISE( xcept::Exception, ss.str() );
 //   }
   catch( XMLException& e ){
-    stringstream ss; ss << "Failed to collect processes from .duck file: " << e.getMessage();
+    stringstream ss; ss << "Failed to collect processes from .duck file: " << xoap::XMLCh2String( e.getMessage() );
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   catch( DOMException& e ){
-    stringstream ss; ss << "Failed to collect processes from .duck file: " << e.getMessage();
+    stringstream ss; ss << "Failed to collect processes from .duck file: " << xoap::XMLCh2String( e.getMessage() );
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   catch( XSLException& e ){
-    stringstream ss; ss << "Failed to collect processes from .duck file: " << e.getMessage();
+    stringstream ss; ss << "Failed to collect processes from .duck file: " << xoap::XMLCh2String( e.getMessage() );
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   catch( xcept::Exception& e ){
