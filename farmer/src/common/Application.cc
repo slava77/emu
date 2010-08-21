@@ -710,7 +710,7 @@ void emu::farmer::Application::createProcessDescriptors()
     // this crashes: doc->release();
   }
 //   catch( SAXException& e ){
-//     stringstream ss; ss << "Failed to collect processes from .duck file: " << xoap::XMLCh2String( e.getMessage() );
+//     stringstream ss; ss << "Failed to collect processes from .duck file: " << e.getMessage();
 //     XCEPT_RAISE( xcept::Exception, ss.str() );
 //   }
   catch( XMLException& e ){
@@ -722,7 +722,7 @@ void emu::farmer::Application::createProcessDescriptors()
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   catch( XSLException& e ){
-    stringstream ss; ss << "Failed to collect processes from .duck file: " << xoap::XMLCh2String( e.getMessage() );
+    stringstream ss; ss << "Failed to collect processes from .duck file: " << e.getMessage(); // TODO: check if XalanDOMString is properly serialized this way.
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   catch( xcept::Exception& e ){
