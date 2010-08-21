@@ -240,7 +240,7 @@ private:
   xdata::String runDbUserFile_;       // file that contains the username:password for run db user
   void bookRunNumber();
   void writeRunInfo();
-  bool isBookedRunNumber_;
+  xdata::Boolean isBookedRunNumber_;
   bool abortedRun_; // The run is aborted if it is never started (only configured).
 
   xdata::UnsignedLong runNumber_;
@@ -287,8 +287,6 @@ private:
   map<int,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]
   void printDAQState( xgi::Output *out, string state );
 
-  xoap::MessageReference makeTAGenerateRunStopTime();
-
   vector< xdaq::ApplicationDescriptor* > dqmMonitorDescriptors_;
   set<string> dqmContexts_; // all different DQM contexts with apps controlled by emu::daq::manager::Application
   vector< pair<xdaq::ApplicationDescriptor*, string> > dqmAppStates_;
@@ -310,10 +308,7 @@ private:
   xdata::String TTCci_OrbitSource_;
   xdata::String TTCci_TriggerSource_;
   xdata::String TTCci_BGOSource_;
-  // Parameters to obtain from TF_hyperDAQ
-  xdata::String TF_triggerMode_;
   void getTriggerSources();
-  void getTriggerMode();
 
   void setParametersForSupervisedMode();
 
@@ -323,8 +318,6 @@ private:
   xdata::Boolean STEPFinished_; // set to TRUE when all DDUs' all live and unmasked inputs have produced the requested number of events
   bool printSTEPCountsTable( stringstream& out, bool control );
   bool isSTEPFinished();
-  xoap::MessageReference querySTEP( xdaq::ApplicationDescriptor* ruiDescriptor )
-    throw (emu::daq::manager::exception::Exception);
   void maskDDUInputs( const bool in, const std::vector<cgicc::FormEntry>& fev );
   void sendDDUInputMask( const bool in, const unsigned int ruiInstance, const std::set<unsigned int>& inputs );
 
@@ -336,21 +329,6 @@ private:
   xdata::String RegexMatchingCSCConfigName_; /// regular expression matching the name of the CSC configuration
   xdata::UnsignedLong TFConfigId_; /// unique id of the Track Finder configuration
   xdata::UnsignedLong CSCConfigId_; /// unique id of the CSC configuration
-  xoap::MessageReference postSOAP( xoap::MessageReference message,
-				   const string& URL,
-				   const string& SOAPAction )
-    throw (xdaq::exception::Exception);
-  vector<string> parseRunningConfigurationsReplyFromFM( xoap::MessageReference reply );
-  vector<string> getRunningConfigurationsFromFM( const string& URL )
-    throw (emu::daq::manager::exception::Exception);
-  string parseConfigParameterReplyFromFM( xoap::MessageReference reply )
-    throw(emu::daq::manager::exception::Exception);
-  string getConfigParameterFromFM( const string& configurationURL,
-				   const string& parameterName )
-  throw (emu::daq::manager::exception::Exception);
-  void getIdsOfRunningConfigurationsFromFM();
-
-
 
     /**
      * Processes the form sent from the control web page.
@@ -424,13 +402,6 @@ private:
     (
         xdaq::ApplicationDescriptor *appDescriptor
     );
-
-    /**
-     * Displays a web page of monitoring information that can be easily
-     * parsed by software.
-     */
-    void machineReadableWebPage(xgi::Input *in, xgi::Output *out)
-    throw (xgi::exception::Exception);
 
     /**
      * Exports the parameters.
@@ -544,115 +515,6 @@ private:
     void resetDAQ()
     throw (emu::daq::manager::exception::Exception);
 
-    /**
-     * Sends the specified FSM event as a SOAP message to the specified
-     * application.  An exception is raised if the application does not reply
-     * successfully with a SOAP response.
-     */
-    void sendFSMEventToApp
-    (
-        const string                 eventName,
-        xdaq::ApplicationDescriptor* appDescriptor
-    )
-    throw (emu::daq::manager::exception::Exception);
-
-    /**
-     * Creates a simple SOAP message representing a command with no
-     * parameters.
-     */
-    xoap::MessageReference createSimpleSOAPCmdMsg(const string cmdName)
-    throw (emu::daq::manager::exception::Exception);
-
-    /**
-     * Gets and returns the value of the specified parameter from the specified
-     * application.
-     */
-    string getScalarParam
-    (
-        xdaq::ApplicationDescriptor* appDescriptor,
-        const string                 paramName,
-        const string                 paramType
-    )
-    throw (emu::daq::manager::exception::Exception);
-
-  map<string,string> getScalarParams
-  (
-   xdaq::ApplicationDescriptor* appDescriptor,
-   const map<string,string>     paramNamesAndTypes
-   )
-    throw (emu::daq::manager::exception::Exception);
-    
-    /**
-     * Sets the specified parameter of the specified application to the
-     * specified value.
-     */
-    void setScalarParam
-    (
-        xdaq::ApplicationDescriptor* appDescriptor,
-        const string                 paramName,
-        const string                 paramType,
-        const string                 paramValue
-    )
-    throw (emu::daq::manager::exception::Exception);
-
-    /**
-     * Creates a ParameterGet SOAP message.
-     */
-    xoap::MessageReference createParameterGetSOAPMsg
-    (
-        const string appClass,
-        const string paramName,
-        const string paramType
-    )
-    throw (emu::daq::manager::exception::Exception);
-
-  xoap::MessageReference createParametersGetSOAPMsg
-  (
-   const string             appClass,
-   const map<string,string> paramNamesAndTypes
-   )
-    throw (emu::daq::manager::exception::Exception);
-
-    /**
-     * Creates a ParameterSet SOAP message.
-     */
-    xoap::MessageReference createParameterSetSOAPMsg
-    (
-        const string appClass,
-        const string paramName,
-        const string paramType,
-        const string paramValue
-    )
-    throw (emu::daq::manager::exception::Exception);
-
-    /**
-     * Returns the value of the specified parameter from the specified SOAP
-     * message.
-     */
-    string extractScalarParameterValueFromSoapMsg
-    (
-        xoap::MessageReference msg,
-        const string           paramName
-    )
-    throw (emu::daq::manager::exception::Exception);
-
-  map<string,string> extractScalarParameterValuesFromSoapMsg
-  (
-   xoap::MessageReference   msg,
-   const map<string,string> paramNamesAndTypes
-   )
-    throw (emu::daq::manager::exception::Exception);
-  
-    /**
-     * Retruns the node with the specified local name from the specified list
-     * of node.  An exception is thrown if the node is not found.
-     */
-    DOMNode *findNode
-    (
-        DOMNodeList *nodeList,
-        const string nodeLocalName
-    )
-    throw (emu::daq::manager::exception::Exception);
 
     /**
      * Prints the specified soap message to standard out.
@@ -671,8 +533,6 @@ public:
   xoap::MessageReference onHalt(xoap::MessageReference message)
     throw (xoap::exception::Exception);
   xoap::MessageReference onReset(xoap::MessageReference message)
-    throw (xoap::exception::Exception);
-  xoap::MessageReference onQueryDAQState(xoap::MessageReference message)
     throw (xoap::exception::Exception);
   xoap::MessageReference onQueryRunSummary(xoap::MessageReference message)
     throw (xoap::exception::Exception);

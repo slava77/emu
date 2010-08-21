@@ -10,30 +10,17 @@
 #include "xdaq/exception/ApplicationNotFound.h"
 #include "xgi/Method.h"
 #include "xgi/Utils.h"
-#include "xoap/domutils.h"
 #include "xoap/MessageFactory.h"
-#include "xoap/MessageReference.h"
-#include "xoap/Method.h"
-#include "xoap/SOAPBody.h"
-#include "xoap/SOAPBodyElement.h"
 #include "xoap/SOAPEnvelope.h"
 
-#include "xoap/DOMParser.h"
-#include "xoap/DOMParserFactory.h"
-#include "xoap/domutils.h"
-#include "xdata/soap/Serializer.h"
 #include "toolbox/regex.h"
 #include "toolbox/task/WorkLoopFactory.h" // getWorkLoopFactory()
-
-// For emu::daq::manager::Application::postSOAP
-#include "toolbox/net/URL.h"
-#include "pt/PeerTransportAgent.h"
-#include "pt/PeerTransportSender.h"
-#include "pt/SOAPMessenger.h"
 
 #include "emu/base/TypedFact.h"
 #include "emu/base/ApplicationStatusFact.h"
 #include "emu/daq/manager/FactTypes.h"
+
+#include "emu/soap/Messenger.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -71,8 +58,6 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
     xgi::bind(this, &emu::daq::manager::Application::controlWebPage, "control"   );
     xgi::bind(this, &emu::daq::manager::Application::commandWebPage, "command"   );
     xgi::bind(this, &emu::daq::manager::Application::commentWebPage, "comment"   );
-    xgi::bind(this, &emu::daq::manager::Application::machineReadableWebPage,
-        "MachineReadable");
 
     exportParams(appInfoSpace_);
     createAllAppStates();
@@ -687,7 +672,7 @@ throw (xgi::exception::Exception)
         {
             eventNb = getEventNbFromEVM(evmDescriptors_[0]);
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(xgi::exception::Exception,
                 "Failed to get event number from EVM", e);
@@ -697,7 +682,7 @@ throw (xgi::exception::Exception)
         {
             printParamsTable(in, out, evmDescriptors_[0], eventNb);
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(xgi::exception::Exception,
                 "Failed to print current event number of EVM", e);
@@ -711,7 +696,7 @@ throw (xgi::exception::Exception)
     {
         printParamsTables(in, out, evmDescriptors_, evmStats);
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         XCEPT_RETHROW(xgi::exception::Exception,
             "Failed to print the parameter table of the EVM", e);
@@ -726,7 +711,7 @@ throw (xgi::exception::Exception)
     {
         printParamsTables(in, out, ruDescriptors_, ruStats);
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         XCEPT_RETHROW(xgi::exception::Exception,
             "Failed to print the parameter tables of the RUs", e);
@@ -738,7 +723,7 @@ throw (xgi::exception::Exception)
     {
         printParamsTables(in, out, buDescriptors_, buStats);
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         XCEPT_RETHROW(xgi::exception::Exception,
             "Failed to print the parameter tables of the BUs", e);
@@ -1234,7 +1219,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
 	  *out << " (will be replaced with a booked one)";
       }
       else{
-	if ( isBookedRunNumber_ ) 
+	if ( bool(isBookedRunNumber_) ) 
 	  *out << " (booked)";
 	else if ( !configuredInSupervisedMode_ ) 
 	  *out << " (<span style=\"font-weight: bold; color:#ff0000;\">not</span> booked)";
@@ -1524,15 +1509,16 @@ emu::daq::manager::Application::materialToReportOnPage1(){
 
 emu::base::Fact
 emu::daq::manager::Application::findFact( const emu::base::Component& component, const string& factType ) {
-  cout << "*** emu::daq::manager::Application::findFact" << endl;
+  cout << "*** emu::daq::manager::Application::findFact " << component << " : " << factType << endl;
 
   vector<string> matches;
 
   if ( factType  == LocalDAQStatusFact::getTypeName() 
        &&
        component == emu::base::Component("emu::daq::manager::Application") ){
-//        component == emu::base::Component("DAQManager") ){
+    cout << currentAppStates_;
     queryAppStates();
+    cout << currentAppStates_;
     daqState_ = currentAppStates_.getCombinedState();
     emu::base::TypedFact<LocalDAQStatusFact> ds;
     ds.setRun( runNumber_.toString() )
@@ -1543,6 +1529,7 @@ emu::daq::manager::Application::findFact( const emu::base::Component& component,
       .setParameter( LocalDAQStatusFact::daqState,         daqState_.toString()                      )
       .setParameter( LocalDAQStatusFact::isSupervised,     supervisedMode_.toString()                )
       .setParameter( LocalDAQStatusFact::isBuildingEvents, buildEvents_.toString()                   );
+    cout << ds;
     cout << "emu::daq::manager::Application::findFact ***" << endl;
     return ds;
   }
@@ -1679,22 +1666,26 @@ void emu::daq::manager::Application::getRunInfoFromTA( string* runnum, string* m
 	this->notifyQualified( "warning", eObj );
       }
 
-      map <string,string> namesAndTypes;
-      namesAndTypes["runNumber"     ] = "unsignedLong";
-      namesAndTypes["maxNumTriggers"] = "integer";
-      namesAndTypes["runStartTime"  ] = "string";
-      namesAndTypes["runStopTime"   ] = "string";
+      xdata::UnsignedLong runNumber;
+      xdata::Integer      maxNumTriggers;
+      xdata::String       runStartTime;
+      xdata::String       runStopTime;
       try
 	{
-	  map <string,string> namesAndValues = getScalarParams(taDescriptors_[0],namesAndTypes);
-	  *runnum    = namesAndValues["runNumber"     ];
-	  *maxevents = namesAndValues["maxNumTriggers"];
-	  *starttime = namesAndValues["runStartTime"  ];
-	  *stoptime  = namesAndValues["runStopTime"   ];
+	  emu::soap::Messenger( this ).getParameters( taDescriptors_[0],
+						      emu::soap::Parameters()
+						      .add( "runNumber"     , &runNumber      )
+						      .add( "maxNumTriggers", &maxNumTriggers )
+						      .add( "runStartTime"  , &runStartTime   )
+						      .add( "runStopTime"   , &runStopTime    ) );
+	  *runnum    = runNumber.toString()     ;
+	  *maxevents = maxNumTriggers.toString();
+	  *starttime = runStartTime.toString()  ;
+	  *stoptime  = runStopTime.toString()   ;
 	  *starttime = reformatTime( *starttime );
 	  *stoptime  = reformatTime( *stoptime  );
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  LOG4CPLUS_ERROR(logger_,"Failed to get run info from TA0: " << 
 			  xcept::stdformat_exception_history(e) );
@@ -1735,7 +1726,7 @@ void emu::daq::manager::Application::getTriggerSources()
     {
       appDescriptors = getAppDescriptors(zone_, "TTCciControl");
     }
-  catch(xcept::Exception e)
+  catch(xcept::Exception &e)
     {
       appDescriptors.clear();
       LOG4CPLUS_WARN(logger_,
@@ -1761,18 +1752,14 @@ void emu::daq::manager::Application::getTriggerSources()
       XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss14.str() );
       this->notifyQualified( "warning", eObj );
     }
-    map <string,string> namesAndTypes;
-    namesAndTypes["ClockSource"  ] = "string";
-    namesAndTypes["OrbitSource"  ] = "string";
-    namesAndTypes["TriggerSource"] = "string";
-    namesAndTypes["BGOSource"    ] = "string";
     try
       {
-	map <string,string> namesAndValues = getScalarParams(appDescriptors[0],namesAndTypes);
-	TTCci_ClockSource_   = namesAndValues["ClockSource"  ];
-	TTCci_OrbitSource_   = namesAndValues["OrbitSource"  ];
-	TTCci_TriggerSource_ = namesAndValues["TriggerSource"];
-	TTCci_BGOSource_     = namesAndValues["BGOSource"    ];
+	emu::soap::Messenger( this ).getParameters( appDescriptors[0],
+						    emu::soap::Parameters()
+						    .add( "ClockSource"  , &TTCci_ClockSource_   )
+						    .add( "OrbitSource"  , &TTCci_OrbitSource_   )
+						    .add( "TriggerSource", &TTCci_TriggerSource_ )
+						    .add( "BGOSource"    , &TTCci_BGOSource_     ) );
 	
 	LOG4CPLUS_INFO(logger_, "Got trigger sources  from TTCciControl:" 
 		       << " ClockSource: "   << TTCci_ClockSource_.toString()
@@ -1808,67 +1795,6 @@ void emu::daq::manager::Application::getTriggerSources()
   }
 }
 
-void emu::daq::manager::Application::getTriggerMode()
-  // Gets the trigger mode from TF_hyperDAQ
-{
-  TF_triggerMode_ = "UNKNOWN";
-
-  vector< xdaq::ApplicationDescriptor* > appDescriptors;
-  try
-    {
-      appDescriptors = getAppDescriptors(zone_, "TF_hyperDAQ");
-    }
-  catch(xcept::Exception e)
-    {
-      appDescriptors.clear();
-      LOG4CPLUS_WARN(logger_,
-		      "Failed to get application descriptors for class TF_hyperDAQ"
-		      << stdformat_exception_history(e));
-      stringstream ss18;
-      ss18 << 
-		      "Failed to get application descriptors for class TF_hyperDAQ"
-		      ;
-      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss18.str(), e );
-      this->notifyQualified( "warning", eObj );
-    }
-
-  if ( appDescriptors.size() >= 1 ){
-    if ( appDescriptors.size() > 1 ){
-      LOG4CPLUS_WARN(logger_, "The embarassement of riches: " << 
-		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.");
-      stringstream ss19;
-      ss19 <<  "The embarassement of riches: " << 
-		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.";
-      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss19.str() );
-      this->notifyQualified( "warning", eObj );
-    }
-    try{
-      TF_triggerMode_ = getScalarParam(appDescriptors[0],"triggerMode","string");
-      LOG4CPLUS_INFO(logger_, "Got trigger mode from TF_hyperDAQ: " 
-		     << TF_triggerMode_.toString() );
-    }
-    catch( emu::daq::manager::exception::Exception e ){
-      LOG4CPLUS_WARN(logger_, "Failed to get trigger mode from " 
-		     << appDescriptors[0]->getClassName()
-		     << appDescriptors[0]->getInstance() << " "
-		     << xcept::stdformat_exception_history(e) );
-      stringstream ss20;
-      ss20 <<  "Failed to get trigger mode from " 
-		     << appDescriptors[0]->getClassName()
-		     << appDescriptors[0]->getInstance() << " "
-		      ;
-      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss20.str(), e );
-      this->notifyQualified( "warning", eObj );
-    }
-  }
-  else{
-    LOG4CPLUS_WARN(logger_, "Did not find TF_hyperDAQ. ==> Trigger mode is unknown.");
-    stringstream ss21;
-    ss21 <<  "Did not find TF_hyperDAQ. ==> Trigger mode is unknown.";
-    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss21.str() );
-    this->notifyQualified( "warning", eObj );
-  }
-}
 
 int emu::daq::manager::Application::purgeIntNumberString( string* s ){
   // Emu: purge string of all non-numeric characters
@@ -2068,7 +1994,7 @@ throw (xgi::exception::Exception)
         {
             printParamsTable(in, out, appDescriptor, params);
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -2150,22 +2076,21 @@ vector< pair<string,string> > emu::daq::manager::Application::getEventNbFromEVM
 )
 throw (emu::daq::manager::exception::Exception)
 {
-    string                        eventNb;
-    vector< pair<string,string> > params;
+  xdata::UnsignedInteger eventNb;
+  vector< pair<string,string> > params;
 
-    try
+  try
     {
-        eventNb = getScalarParam(evmDescriptor, "lastEventNumberFromTrigger", "unsignedInt");
+      emu::soap::Messenger( this ).getParameters( evmDescriptor, emu::soap::Parameters().add( "lastEventNumberFromTrigger", &eventNb ) );
     }
-    catch(xcept::Exception e)
+  catch(xcept::Exception &e)
     {
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-            "Failed to get eventNb from EVM", e);
+      XCEPT_RETHROW(emu::daq::manager::exception::Exception, "Failed to get eventNb from EVM", e);
     }
-
-    params.push_back(pair<string,string>("eventNb", eventNb));
-
-    return params;
+  
+  params.push_back(pair<string,string>("eventNb", eventNb.toString()));
+  
+  return params;
 }
 
 
@@ -2194,230 +2119,76 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
 )
 {
     vector< pair<string,string> > stats;
-    string                        s                          = "";
-    double                        deltaT                     = 0.0;
-    unsigned long                 deltaN                     = 0;
-    double                        deltaSumOfSquares          = 0.0;
-    unsigned long                 deltaSumOfSizes            = 0;
-    bool                          retrievedDeltaT            = false;
-    bool                          retrievedDeltaN            = false;
-    bool                          retrievedDeltaSumOfSquares = false;
-    bool                          retrievedDeltaSumOfSizes   = false;
+    xdata::String                 s                          = "";
+    xdata::Double                 deltaT                     = 0.0;
+    xdata::UnsignedLong           deltaN                     = 0;
+    xdata::Double                 deltaSumOfSquares          = 0.0;
+    xdata::UnsignedLong           deltaSumOfSizes            = 0;
 
+    bool successfullyRetrieved = false;
 
-    try
-    {
-        s = getScalarParam(appDescriptor, "stateName", "string");
-    }
-    catch(xcept::Exception e)
-    {
-        s = "UNKNOWN";
-
-        LOG4CPLUS_ERROR(logger_, "Failed to get state"
-            << " : " << xcept::stdformat_exception_history(e));
-        stringstream ss24;
-        ss24 <<  "Failed to get state"
-            << " : " ;
-        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss24.str(), e );
-        this->notifyQualified( "error", eObj );
-    }
-    stats.push_back(pair<string,string>("state", s));
-
-    try
-    {
-        s = getScalarParam(appDescriptor, "deltaT", "double");
-        deltaT = atof(s.c_str());
-        retrievedDeltaT = true;
-    }
-    catch(xcept::Exception e)
-    {
-        s = "UNKNOWN";
-        retrievedDeltaT = false;
-
-        LOG4CPLUS_ERROR(logger_, "Failed to get deltaT"
-            << " : " << xcept::stdformat_exception_history(e));
-        stringstream ss25;
-        ss25 <<  "Failed to get deltaT"
-            << " : " ;
-        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss25.str(), e );
-        this->notifyQualified( "error", eObj );
-    }
-    stats.push_back(pair<string,string>("deltaT", s));
-
-    try
-    {
-        s = getScalarParam(appDescriptor, "deltaN", "unsignedInt");
-        deltaN = atoi(s.c_str());
-        retrievedDeltaN = true;
-    }
-    catch(xcept::Exception e)
-    {
-        s = "UNKNOWN";
-        retrievedDeltaN = false;
-
-        LOG4CPLUS_ERROR(logger_, "Failed to get deltaN"
-            << " : " << xcept::stdformat_exception_history(e));
-        stringstream ss26;
-        ss26 <<  "Failed to get deltaN"
-            << " : " ;
-        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss26.str(), e );
-        this->notifyQualified( "error", eObj );
-    }
-    stats.push_back(pair<string,string>("deltaN", s));
-
-
-    try
-    {
-        s = getScalarParam(appDescriptor, "deltaSumOfSquares", "double");
-        deltaSumOfSquares = atof(s.c_str());
-        retrievedDeltaSumOfSquares = true;
-    }
-    catch(xcept::Exception e)
-    {
-        s = "UNKNOWN";
-        retrievedDeltaSumOfSquares = false;
-
-        LOG4CPLUS_ERROR(logger_, "Failed to get deltaSumOfSquares"
-            << " : " << xcept::stdformat_exception_history(e));
-        stringstream ss27;
-        ss27 <<  "Failed to get deltaSumOfSquares"
-            << " : " ;
-        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss27.str(), e );
-        this->notifyQualified( "error", eObj );
-    }
-    stats.push_back(pair<string,string>("deltaSumOfSquares", s));
-
-    try
-    {
-        s = getScalarParam(appDescriptor, "deltaSumOfSizes", "unsignedInt");
-        deltaSumOfSizes = atoi(s.c_str());
-        retrievedDeltaSumOfSizes = true;
-    }
-    catch(xcept::Exception e)
-    {
-        s = "UNKNOWN";
-        retrievedDeltaSumOfSizes = false;
-
-        LOG4CPLUS_ERROR(logger_, "Failed to get deltaSumOfSizes"
-            << " : " << xcept::stdformat_exception_history(e));
-        stringstream ss28;
-        ss28 <<  "Failed to get deltaSumOfSizes"
-            << " : " ;
-        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss28.str(), e );
-        this->notifyQualified( "error", eObj );
-    }
-    stats.push_back(pair<string,string>("deltaSumOfSizes", s));
-
-    if(retrievedDeltaSumOfSizes && retrievedDeltaT)
-    {
-        // Avoid divide by zero
-        if(deltaT != 0.0)
-        {
-            double throughput = deltaSumOfSizes / deltaT / 1000000.0;
-
-            stringstream oss;
-            string       s;
-        
-            oss << throughput << " MB/s";
-            s = oss.str();
-
-            stats.push_back(pair<string,string>("throughput", s));
-        }
-        else
-        {
-            stats.push_back(pair<string,string>("throughput", "DIV BY 0"));
-        }
-    }
-    else
-    {
-        stats.push_back(pair<string,string>("throughput", "UNKNOWN"));
+    try{
+      emu::soap::Messenger( this ).getParameters( appDescriptor,
+						  emu::soap::Parameters()
+						  .add( "stateName"        , &s                 )
+						  .add( "deltaT"           , &deltaT            )
+						  .add( "deltaN"           , &deltaN            )
+						  .add( "deltaSumOfSquares", &deltaSumOfSquares )
+						  .add( "deltaSumOfSizes"  , &deltaSumOfSizes   ) );
+      successfullyRetrieved = true;
+    } catch ( xcept::Exception &e ){
+      stringstream ss;
+      ss <<  "Failed to get stats from " << appDescriptor->getClassName() << "." << appDescriptor->getInstance() << ": " ;
+      LOG4CPLUS_ERROR(logger_, ss.str() + xcept::stdformat_exception_history(e));
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss.str(), e );
+      this->notifyQualified( "error", eObj );
     }
 
-    if(retrievedDeltaSumOfSizes && retrievedDeltaN)
-    {
-        // Avoid divide by zero
-        if(deltaN != 0)
-        {
-            double average = deltaSumOfSizes / deltaN / 1000.0;
-
-            stringstream oss;
-            string       s;
-
-            oss << average << " KB";
-            s = oss.str();
-
-            stats.push_back(pair<string,string>("average", s));
-        }
-        else
-        {
-             stats.push_back(pair<string,string>("average", "DIV BY 0"));
-        }
-    }
-    else
-    {
-        stats.push_back(pair<string,string>("average", "UNKNOWN"));
-    }
-
-    if(retrievedDeltaN && retrievedDeltaT)
-    {
-        // Avoid divide by zero
-        if(deltaT != 0.0)
-        {
-            double rate = ((double)deltaN) / deltaT / 1000.0;
-
-            stringstream oss;
-            string       s;
-
-            oss << rate << " KHz";
-            s = oss.str();
-
-            stats.push_back(pair<string,string>("rate", s));
-        }
-        else
-        {
-            stats.push_back(pair<string,string>("rate", "DIV BY 0"));
-        }
-    }
-    else
-    {
-        stats.push_back(pair<string,string>("rate", "UNKNOWN"));
-    }
-
-    if(retrievedDeltaSumOfSquares && retrievedDeltaN &&
-       retrievedDeltaSumOfSizes)
-    {
-        // Avoid divide by zero
-        if(deltaN != 0)
-        {
-            double meanOfSquares = deltaSumOfSquares / ((double)deltaN);
-            double mean          = ((double)deltaSumOfSizes) / ((double)deltaN);
-            double squareOfMean  = mean * mean;
-            double variance      = meanOfSquares - squareOfMean;
-
-            // Variance maybe negative due to lack of precision
-            if(variance < 0)
-            {
-                variance = 0.0;
-            }
-
-            double rms  = sqrt(variance) / 1000.0;
-
-            stringstream oss;
-            string       s;
-
-            oss << rms << " KB";
-            s = oss.str();
-
-            stats.push_back(pair<string,string>("rms", s));
-        }
-        else
-        {
-            stats.push_back(pair<string,string>("rms", "DIV BY 0"));
-        }
-    }
-    else
-    {
-        stats.push_back(pair<string,string>("rms", "UNKNOWN"));
+    if ( successfullyRetrieved 
+	 && deltaT.isFinite()
+	 && deltaN.isFinite()
+	 && deltaSumOfSquares.isFinite()
+	 && deltaSumOfSizes.isFinite()   ){
+      stats.push_back( pair<string,string>( "state"            , s                .toString() ) );
+      stats.push_back( pair<string,string>( "deltaT"           , deltaT           .toString() ) );
+      stats.push_back( pair<string,string>( "deltaN"           , deltaN           .toString() ) );
+      stats.push_back( pair<string,string>( "deltaSumOfSquares", deltaSumOfSquares.toString() ) );
+      stats.push_back( pair<string,string>( "deltaSumOfSizes"  , deltaSumOfSizes  .toString() ) );
+      if ( deltaT != 0. ){
+	xdata::Double throughput = deltaSumOfSizes / deltaT / 1000000.0;
+	xdata::Double rate =                deltaN / deltaT / 1000.0;
+	stats.push_back( pair<string,string>( "throughput", throughput.toString() + " MB/s" ) );
+	stats.push_back( pair<string,string>( "rate"      , rate.toString()       + " kHz"  ) );
+      }
+      else{
+	stats.push_back( pair<string,string>( "throughput", "DIV BY 0" ) );
+	stats.push_back( pair<string,string>( "rate"      , "DIV BY 0" ) );
+      }
+      if ( int(deltaN) != 0 ){
+	xdata::Double average = deltaSumOfSizes / deltaN / 1000.0;
+	double meanOfSquares = deltaSumOfSquares / ((double)deltaN);
+	double mean          = ((double)deltaSumOfSizes) / ((double)deltaN);
+	double squareOfMean  = mean * mean;
+	double variance      = meanOfSquares - squareOfMean;
+	if ( variance < 0. ) variance = 0.; // Variance maybe negative due to lack of precision
+	xdata::Double rms  = sqrt(variance) / 1000.0;
+	stats.push_back( pair<string,string>( "average", average.toString() + " kB" ) );
+	stats.push_back( pair<string,string>( "rms"    , rms.toString()     + " kB" ) );
+      }
+      else{
+	stats.push_back( pair<string,string>( "average", "DIV BY 0" ) );
+	stats.push_back( pair<string,string>( "rms"    , "DIV BY 0" ) );
+      }
+    }		       
+    else{	       
+      stats.push_back( pair<string,string>( "state"            , "UNKNOWN" ) );
+      stats.push_back( pair<string,string>( "deltaT"           , "UNKNOWN" ) );
+      stats.push_back( pair<string,string>( "deltaN"           , "UNKNOWN" ) );
+      stats.push_back( pair<string,string>( "deltaSumOfSquares", "UNKNOWN" ) );
+      stats.push_back( pair<string,string>( "deltaSumOfSizes"  , "UNKNOWN" ) );
+      stats.push_back( pair<string,string>( "throughput"       , "UNKNOWN" ) );
+      stats.push_back( pair<string,string>( "rate"             , "UNKNOWN" ) );
+      stats.push_back( pair<string,string>( "rms"              , "UNKNOWN" ) );
     }
 
     return stats;
@@ -2446,28 +2217,27 @@ void emu::daq::manager::Application::createAllAppStates(){
 
 
 void emu::daq::manager::Application::queryAppStates(){
+  emu::soap::Messenger m( this );
   // Perform query only if state info at least 1 second old.
   if ( currentAppStates_.getAgeInSeconds() > 1 ){
     set<xdaq::ApplicationDescriptor*> apps = currentAppStates_.getApps();
     set<xdaq::ApplicationDescriptor*>::iterator a;
     for ( a=apps.begin(); a!=apps.end(); ++a ){
-      string s;
+      xdata::String s( "UNKNOWN" );
       try
 	{
-	  s = getScalarParam(*a, "stateName", "string");
+	  m.getParameters( *a, emu::soap::Parameters().add( "stateName", &s ) );
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  s = "UNKNOWN";
-	  LOG4CPLUS_WARN(logger_, "Failed to get state"
-			 << " : " << xcept::stdformat_exception_history(e));
-	  stringstream ss29;
-	  ss29 <<  "Failed to get state"
-	       << " : " ;
-	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss29.str(), e );
+	  stringstream ss;
+	  ss << "Failed to get state of " << (*a)->getClassName() << "." << (*a)->getInstance() << " : " ;
+	  LOG4CPLUS_WARN(logger_, ss.str() + xcept::stdformat_exception_history(e));
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss.str(), e );
 	  this->notifyQualified( "warning", eObj );
 	}
-      currentAppStates_.setAppState( *a, s );
+      currentAppStates_.setAppState( *a, s.toString() );
     }
     //cout << "Previous " << previousAppStates_;
     //cout << "Current "  << currentAppStates_;
@@ -2703,7 +2473,7 @@ void emu::daq::manager::Application::configureDAQ()
 	{
 	  checkThereIsARuBuilder();
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Not enough applications to make a RU builder", e);
@@ -2713,7 +2483,7 @@ void emu::daq::manager::Application::configureDAQ()
 	{
 	  setEVMGenerateDummyTriggers(evmGenerateDummyTriggers);
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to tell EVM whether or not to generate dummy triggers", e);
@@ -2723,7 +2493,7 @@ void emu::daq::manager::Application::configureDAQ()
 	{
 	  setRUsGenerateDummySuperFrags(rusGenerateDummySuperFrags);
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to tell RUs whether or not to generate dummy super-fragments",
@@ -2734,7 +2504,7 @@ void emu::daq::manager::Application::configureDAQ()
 	{
 	  setBUsDropEvents(busDropEvents);
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to tell BUs whether or not drop events", e);
@@ -2752,34 +2522,30 @@ void emu::daq::manager::Application::configureDAQ()
 	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss30.str() );
 	this->notifyQualified( "warning", eObj );
       }
-      string runNumber    = runNumber_.toString();
+
       try
 	{
-	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
-	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
+	  emu::soap::Messenger( this ).setParameters( taDescriptors_[0], 
+						      emu::soap::Parameters()
+						      .add( "runNumber"     , &runNumber_         )
+						      .add( "maxNumTriggers", &maxNumberOfEvents_ ) );
+	  LOG4CPLUS_INFO(logger_,
+			 "Set run number to " + runNumber_.toString() + 
+			 ", maximum number of events to " + maxNumberOfEvents_.toString() );
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set run number to "  + runNumber, e);
+			"Failed to set run number to " + runNumber_.toString() + 
+			", maximum number of events to " + maxNumberOfEvents_.toString(), 
+			e);
 	}
 
-      string maxNumEvents = maxNumberOfEvents_.toString();
-      try
-	{
-	  setScalarParam(taDescriptors_[0],"maxNumTriggers","integer",maxNumEvents);
-	  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set maximum number of events to "  + maxNumEvents, e);
-	}
         try
         {
             configureTrigger();
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
                 "Failed to configure trigger", e);
@@ -2798,7 +2564,7 @@ void emu::daq::manager::Application::configureDAQ()
 	{
 	  configureRuBuilder();
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to configure RU builder", e);
@@ -2812,7 +2578,7 @@ void emu::daq::manager::Application::configureDAQ()
         {
             configureFedBuilder();
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
                 "Failed to configure FED builder", e);
@@ -2827,7 +2593,7 @@ void emu::daq::manager::Application::configureDAQ()
 	    {
 	      configureFilterFarm();
 	    }
-	  catch(xcept::Exception e)
+	  catch(xcept::Exception &e)
 	    {
 	      XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			    "Failed to configure filter farm", e);
@@ -2850,7 +2616,7 @@ throw (emu::daq::manager::exception::Exception)
 	{
 	  checkThereIsARuBuilder();
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Not enough applications to make a RU builder", e);
@@ -2860,7 +2626,7 @@ throw (emu::daq::manager::exception::Exception)
 	{
 	  setEVMGenerateDummyTriggers(evmGenerateDummyTriggers);
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to tell EVM whether or not to generate dummy triggers", e);
@@ -2870,7 +2636,7 @@ throw (emu::daq::manager::exception::Exception)
 	{
 	  setRUsGenerateDummySuperFrags(rusGenerateDummySuperFrags);
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to tell RUs whether or not to generate dummy super-fragments",
@@ -2881,7 +2647,7 @@ throw (emu::daq::manager::exception::Exception)
 	{
 	  setBUsDropEvents(busDropEvents);
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to tell BUs whether or not drop events", e);
@@ -2891,45 +2657,30 @@ throw (emu::daq::manager::exception::Exception)
     // If the TA is present then start it as an imaginary trigger
     if(taDescriptors_.size() > 0)
     {
-      // MOVED FROM configureDAQ BEGIN
-      string runNumber    = runNumber_.toString();
-      string maxNumEvents = maxNumberOfEvents_.toString();
       try
 	{
-	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
-	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
+	  emu::soap::Messenger( this ).setParameters( taDescriptors_[0], 
+					      emu::soap::Parameters()
+					      .add( "runNumber"        , &runNumber_         )
+					      .add( "maxNumTriggers"   , &maxNumberOfEvents_ )
+					      .add( "isBookedRunNumber", &isBookedRunNumber_ ) );
+	  LOG4CPLUS_INFO(logger_,
+			 "Set run number to " + runNumber_.toString() + 
+			 ", maximum number of events to " + maxNumberOfEvents_.toString() +
+			 ", isBookedRunNumber to " + isBookedRunNumber_.toString() );
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set run number to "  + runNumber, e);
+			"Failed to set run number to " + runNumber_.toString() + 
+			", maximum number of events to " + maxNumberOfEvents_.toString(), 
+			e);
 	}
       try
-	{
-	  setScalarParam(taDescriptors_[0],"isBookedRunNumber","boolean",string(isBookedRunNumber_?"true":"false"));
-	  LOG4CPLUS_INFO(logger_,string("Set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false.") );
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			string("Failed to set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false."), e);
-	}
-      try
-	{
-	  setScalarParam(taDescriptors_[0],"maxNumTriggers","integer",maxNumEvents);
-	  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set maximum number of events to "  + maxNumEvents, e);
-	}
-      // MOVED FROM configureDAQ END
-        try
         {
             startTrigger();
         }
-        catch(xcept::Exception e)
+      catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
                 "Failed to start trigger", e);
@@ -2941,7 +2692,7 @@ throw (emu::daq::manager::exception::Exception)
 	{
 	  startRuBuilder();
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to start RU builder", e);
@@ -2955,7 +2706,7 @@ throw (emu::daq::manager::exception::Exception)
         {
             startFedBuilder();
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
                 "Failed to start FED builder", e);
@@ -2970,7 +2721,7 @@ throw (emu::daq::manager::exception::Exception)
 	    {
 	      startFilterFarm();
 	    }
-	  catch(xcept::Exception e)
+	  catch(xcept::Exception &e)
 	    {
 	      XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			    "Failed to start filter farm", e);
@@ -3010,15 +2761,13 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::setEVMGenerateDummyTriggers(const bool value)
 throw (emu::daq::manager::exception::Exception)
 {
-    string valueStr = value ? "true" : "false";
-
-
+    xdata::Boolean v( value );
+    
     try
     {
-        setScalarParam(evmDescriptors_[0], "generateDummyTriggers", "boolean",
-            valueStr);
+        emu::soap::Messenger( this ).setParameters( evmDescriptors_[0], emu::soap::Parameters().add( "generateDummyTriggers", &v ) );
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         stringstream oss;
         string       s;
@@ -3026,7 +2775,7 @@ throw (emu::daq::manager::exception::Exception)
         oss << "Failed to set generateDummyTriggers of ";
         oss << evmDescriptors_[0]->getClassName();
         oss << evmDescriptors_[0]->getInstance();
-        oss << " to " << valueStr;
+        oss << " to " << v.toString();
         s = oss.str();
 
         XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
@@ -3037,25 +2786,24 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::setRUsGenerateDummySuperFrags(const bool value)
 throw (emu::daq::manager::exception::Exception)
 {
-    string valueStr = value ? "true" : "false";
+    xdata::Boolean v( value );
+    
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
-
 
     for(pos = ruDescriptors_.begin(); pos != ruDescriptors_.end(); pos++)
     {
         try
         {
-            setScalarParam(*pos, "generateDummySuperFragments", "boolean",
-                valueStr);
+	    emu::soap::Messenger( this ).setParameters( *pos, emu::soap::Parameters().add( "generateDummySuperFragments", &v ) );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
 
             oss << "Failed to set generateDummySuperFragments of ";
             oss << (*pos)->getClassName() << (*pos)->getInstance();
-            oss << " to " << valueStr;
+            oss << " to " << v.toString();
             s = oss.str();
 
             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
@@ -3067,24 +2815,24 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::setBUsDropEvents(const bool value)
 throw (emu::daq::manager::exception::Exception)
 {
-    string valueStr = value ? "true" : "false";
+    xdata::Boolean v( value );
+    
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
-
 
     for(pos = buDescriptors_.begin(); pos != buDescriptors_.end(); pos++)
     {
         try
         {
-            setScalarParam(*pos, "dropEventData", "boolean", valueStr);
+	    emu::soap::Messenger( this ).setParameters( *pos, emu::soap::Parameters().add( "dropEventData", &v ) );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
 
             oss << "Failed to set dropEventData of ";
             oss << (*pos)->getClassName() << (*pos)->getInstance();
-            oss << " to " << valueStr;
+            oss << " to " << v.toString();
             s = oss.str();
 
             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
@@ -3102,9 +2850,9 @@ throw (emu::daq::manager::exception::Exception)
 
     try
     {
-        sendFSMEventToApp("Configure", taDescriptors_[0]);
+        emu::soap::Messenger( this ).sendCommand( taDescriptors_[0], "Configure" );
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         stringstream oss;
         string       s;
@@ -3127,9 +2875,9 @@ throw (emu::daq::manager::exception::Exception)
 
     try
     {
-        sendFSMEventToApp("Enable", taDescriptors_[0]);
+        emu::soap::Messenger( this ).sendCommand( taDescriptors_[0], "Enable" );
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         stringstream oss;
         string       s;
@@ -3147,6 +2895,7 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::configureRuBuilder()
 throw (emu::daq::manager::exception::Exception)
 {
+    emu::soap::Messenger m( this );
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
 
 
@@ -3156,9 +2905,9 @@ throw (emu::daq::manager::exception::Exception)
 
     try
     {
-        sendFSMEventToApp("Configure", evmDescriptors_[0]);
+        m.sendCommand( evmDescriptors_[0], "Configure");
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         XCEPT_RETHROW(emu::daq::manager::exception::Exception,
             "Failed to configure EVM", e);
@@ -3173,9 +2922,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Configure", *pos);
+            m.sendCommand( *pos, "Configure" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3197,9 +2946,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Configure", *pos);
+            m.sendCommand( *pos, "Configure" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3216,6 +2965,8 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::startRuBuilder()
 throw (emu::daq::manager::exception::Exception)
 {
+    emu::soap::Messenger m( this );
+
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
     ////////////////
     // Enable RUs //
@@ -3225,9 +2976,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Enable", *pos);
+            m.sendCommand( *pos, "Enable" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3247,9 +2998,9 @@ throw (emu::daq::manager::exception::Exception)
 
     try
     {
-        sendFSMEventToApp("Enable", evmDescriptors_[0]);
+        m.sendCommand( evmDescriptors_[0], "Enable" );
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         XCEPT_RETHROW(emu::daq::manager::exception::Exception,
             "Failed to enable EVM", e);
@@ -3264,9 +3015,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Enable", *pos);
+            m.sendCommand( *pos, "Enable" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3295,9 +3046,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Enable", *pos);
+            emu::soap::Messenger( this ).sendCommand( *pos, "Enable" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3314,6 +3065,7 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::configureFedBuilder()
 throw (emu::daq::manager::exception::Exception)
 {
+    emu::soap::Messenger m( this );
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
 
 
@@ -3327,30 +3079,23 @@ throw (emu::daq::manager::exception::Exception)
       app << (*pos)->getClassName() << (*pos)->getInstance();
       try
 	{
-	  setScalarParam(*pos,"runType","string",runType_.toString());
-	  LOG4CPLUS_INFO(logger_,"Set run type for " + app.str() + " to " + runType_.toString() );
+	  m.setParameters( *pos, 
+			   emu::soap::Parameters()
+			   .add( "runType"              , &runType_     )
+			   .add( "passDataOnToRUBuilder", &buildEvents_ ) );
+	  LOG4CPLUS_INFO(logger_,"Set run type for " + app.str() + " to " + runType_.toString() + ", event building " + buildEvents_.toString());
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set run type for " + app.str() + " to "  + runType_.toString(), e);
-	}
-      try
-	{
-	  setScalarParam(*pos,"passDataOnToRUBuilder","boolean",buildEvents_.toString());
-	  LOG4CPLUS_INFO(logger_,"Set event building " + buildEvents_.toString() );
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set event building "  + buildEvents_.toString(), e);
+			"Failed to set run type for " + app.str() + " to " + runType_.toString() + ", event building " + buildEvents_.toString(), e);
 	}
       
-        try
+      try
         {
-            sendFSMEventToApp("Configure", *pos);
+	    m.sendCommand( *pos, "Configure" );
         }
-        catch(xcept::Exception e)
+      catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3369,9 +3114,8 @@ void emu::daq::manager::Application::configureFilterFarm()
   //throw (emu::daq::manager::exception::Exception)
 throw (xcept::Exception)
 {
+    emu::soap::Messenger m( this );
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
-
-    getIdsOfRunningConfigurationsFromFM();
 
     ///////////////////
     // Configure FUs //
@@ -3383,63 +3127,33 @@ throw (xcept::Exception)
       app << (*pos)->getClassName() << (*pos)->getInstance();
       try
 	{
-	  setScalarParam(*pos,"runType","string",runType_.toString());
-	  LOG4CPLUS_INFO(logger_,"Set run type for " + app.str() + " to " + runType_.toString() );
+	  m.setParameters( *pos, 
+			   emu::soap::Parameters()
+			   .add( "runType"    , &runType_     )
+			   .add( "CSCConfigId", &CSCConfigId_ ) 
+			   .add( "TFConfigId" , &TFConfigId_  ) );
+	  
+	  LOG4CPLUS_INFO(logger_,
+			 "Set run type for " + app.str() + " to " + runType_.toString() +
+			 ", CSC Config Id to " + CSCConfigId_.toString() +
+			 ", TF Config Id to " + TFConfigId_.toString()
+			 );
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set run type for " + app.str() + " to "  + runType_.toString(), e);
+			"Failed to set run type for " + app.str() + " to " + runType_.toString() +
+			 ", CSC Config Id to " + CSCConfigId_.toString() +
+			 ", TF Config Id to " + TFConfigId_.toString(), e);
 	}
 
-      try
-	{
-	  setScalarParam(*pos,"CSCConfigId","unsignedLong",CSCConfigId_.toString());
-	  LOG4CPLUS_INFO(logger_,"Set CSC configuration id in " + app.str() + " to " + CSCConfigId_.toString() );
-	}
-      catch(emu::daq::manager::exception::Exception e)
-	{
-	  // xdata/src/common/soap/InfoSpaceSerializer.cc puts an XML tag into the exception it throws, 
-	  // causing the logger to drop it ==> put it in CDATA
-	  // TODO: for each postSOAP...
-	  LOG4CPLUS_ERROR(logger_, "Failed to set CSC configuration id in " + app.str() 
-			  + " to " + CSCConfigId_.toString() + 
-			  " : <![CDATA[" + xcept::stdformat_exception_history(e) + "]]>");
-	  stringstream ss32;
-	  ss32 <<  "Failed to set CSC configuration id in " + app.str() 
-			  + " to " + CSCConfigId_.toString() + 
-			  " : <![CDATA["  + "]]>";
-	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss32.str(), e );
-	  this->notifyQualified( "error", eObj );
-	}
-
-      try
-	{
-	  setScalarParam(*pos,"TFConfigId","unsignedLong",TFConfigId_.toString());
-	  LOG4CPLUS_INFO(logger_,"Set TF configuration id in " + app.str() + " to " + TFConfigId_.toString() );
-	}
-      catch(emu::daq::manager::exception::Exception e)
-	{
-	  // xdata/src/common/soap/InfoSpaceSerializer.cc puts an XML tag into the exception it throws, 
-	  // causing the logger to drop it ==> put it in CDATA
-	  // TODO: for each postSOAP...
-	  LOG4CPLUS_ERROR(logger_, "Failed to set TF configuration id in " + app.str() 
-			  + " to " + TFConfigId_.toString() + 
-			  " : <![CDATA[" + xcept::stdformat_exception_history(e) + "]]>");
-	  stringstream ss33;
-	  ss33 <<  "Failed to set TF configuration id in " + app.str() 
-			  + " to " + TFConfigId_.toString() + 
-			  " : <![CDATA["  + "]]>";
-	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss33.str(), e );
-	  this->notifyQualified( "error", eObj );
-	}
 
 
         try
         {
-            sendFSMEventToApp("Configure", *pos);
+	    m.sendCommand( *pos, "Configure" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3467,9 +3181,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Enable", *pos);
+	    emu::soap::Messenger( this ).sendCommand( *pos, "Enable" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3488,8 +3202,8 @@ void emu::daq::manager::Application::stopDAQ()
 throw (emu::daq::manager::exception::Exception)
 {
 
-  // Instruct TA to generate stop time now, otherwise it'll be too late for emu::daq::rui::Applications.
-  makeTAGenerateRunStopTime();
+    // Instruct TA to generate stop time now, otherwise it'll be too late for emu::daq::rui::Applications.
+    emu::soap::Messenger( this ).sendCommand( taDescriptors_[0], "generateRunStopTime" );
 
     if(ruiDescriptors_.size() > 0)
     {
@@ -3497,7 +3211,7 @@ throw (emu::daq::manager::exception::Exception)
         {
             stopFedBuilder();
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
                 "Failed to stop emu::daq::rui::Applications", e);
@@ -3509,7 +3223,7 @@ throw (emu::daq::manager::exception::Exception)
 	{
 	  stopRuBuilder();
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			"Failed to stop RU builder", e);
@@ -3523,7 +3237,7 @@ throw (emu::daq::manager::exception::Exception)
         {
             stopTrigger();
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
                 "Failed to stop trigger", e);
@@ -3538,7 +3252,7 @@ throw (emu::daq::manager::exception::Exception)
 	    {
 	      stopFilterFarm();
 	    }
-	  catch(xcept::Exception e)
+	  catch(xcept::Exception &e)
 	    {
 	      XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 			    "Failed to stop filter farm", e);
@@ -3556,17 +3270,10 @@ void emu::daq::manager::Application::controlDQM( const string action )
 
     try
       {
-	sendFSMEventToApp(action, *mon);
+	emu::soap::Messenger( this ).sendCommand( *mon, action );
       }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
       {
-// 	stringstream oss;
-	
-// 	oss << "Failed to " << action << " ";
-// 	oss << (*mon)->getClassName() << (*mon)->getInstance();
-	
-// 	XCEPT_RETHROW(emu::daq::manager::exception::Exception, oss.str(), e);
-
 	// Don't raise exception here. Go on to try to deal with the others.
 	LOG4CPLUS_ERROR(logger_, "Failed to " << action << " " 
 			<< (*mon)->getClassName() << (*mon)->getInstance() << " "
@@ -3595,7 +3302,7 @@ throw (emu::daq::manager::exception::Exception)
         {
             resetApps( ruiDescriptors_ );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
 	  // Don't rethrow here, but log an error message and go ahead and reset the rest
 //             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
@@ -3615,7 +3322,7 @@ throw (emu::daq::manager::exception::Exception)
 	{
 	  stopRuBuilder();
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  // Don't rethrow here, but log an error message and go ahead and reset the rest
 	  //         XCEPT_RETHROW(emu::daq::manager::exception::Exception,
@@ -3636,7 +3343,7 @@ throw (emu::daq::manager::exception::Exception)
         {
             stopTrigger();
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
 	  // Don't rethrow here, but log an error message and go ahead and reset the rest
 //             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
@@ -3659,7 +3366,7 @@ throw (emu::daq::manager::exception::Exception)
 	    {
 	      resetApps( fuDescriptors_ );
 	    }
-	  catch(xcept::Exception e)
+	  catch(xcept::Exception &e)
 	    {
 	      // Don't rethrow here, but log an error message and go ahead and reset the rest
 	      //             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
@@ -3683,15 +3390,17 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::resetApps( vector< xdaq::ApplicationDescriptor* > apps )
   throw (emu::daq::manager::exception::Exception){
 
+  emu::soap::Messenger m( this );
+
   stringstream oss;
 
     for( vector< xdaq::ApplicationDescriptor* >::iterator pos = apps.begin(); pos != apps.end(); pos++)
     {
         try
         {
-            sendFSMEventToApp("Reset", *pos);
+	  m.sendCommand( *pos, "Reset" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
 	  // Don't rethrow here, but log an error message and go ahead and reset the rest
             oss << (*pos)->getClassName() 
@@ -3721,6 +3430,8 @@ void emu::daq::manager::Application::resetApps( vector< xdaq::ApplicationDescrip
 void emu::daq::manager::Application::stopRuBuilder()
 throw (emu::daq::manager::exception::Exception)
 {
+    emu::soap::Messenger m( this );
+
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
 
 
@@ -3730,9 +3441,9 @@ throw (emu::daq::manager::exception::Exception)
 
     try
     {
-        sendFSMEventToApp("Halt", evmDescriptors_[0]);
+        m.sendCommand( evmDescriptors_[0], "Halt" );
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
 //         XCEPT_RETHROW(emu::daq::manager::exception::Exception,
 //             "Failed to halt EVM", e);
@@ -3753,9 +3464,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Halt", *pos);
+            m.sendCommand( *pos, "Halt" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3783,9 +3494,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Halt", *pos);
+            m.sendCommand( *pos, "Halt" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3809,6 +3520,7 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::stopFedBuilder()
 throw (emu::daq::manager::exception::Exception)
 {
+    emu::soap::Messenger m( this );
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
 
 
@@ -3822,9 +3534,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Halt", *pos);
+            m.sendCommand( *pos, "Halt" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3861,9 +3573,9 @@ throw (emu::daq::manager::exception::Exception)
 
     try
     {
-        sendFSMEventToApp("Halt", taDescriptors_[0]);
+        emu::soap::Messenger( this ).sendCommand( taDescriptors_[0], "Halt" );
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
         stringstream oss;
         string       s;
@@ -3880,6 +3592,7 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::stopFilterFarm()
 throw (emu::daq::manager::exception::Exception)
 {
+    emu::soap::Messenger m( this );
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
 
 
@@ -3891,9 +3604,9 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            sendFSMEventToApp("Halt", *pos);
+            m.sendCommand( *pos, "Halt" );
         }
-        catch(xcept::Exception e)
+        catch(xcept::Exception &e)
         {
             stringstream oss;
             string       s;
@@ -3904,1059 +3617,6 @@ throw (emu::daq::manager::exception::Exception)
 
             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
         }
-    }
-}
-
-
-void emu::daq::manager::Application::sendFSMEventToApp
-(
-    const string                 eventName,
-    xdaq::ApplicationDescriptor* appDescriptor
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    try
-    {
-        xoap::MessageReference msg = createSimpleSOAPCmdMsg(eventName);
-        xoap::MessageReference reply =
-            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
-
-        // Check if the reply indicates a fault occurred
-        xoap::SOAPBody replyBody =
-            reply->getSOAPPart().getEnvelope().getBody();
-
-        if(replyBody.hasFault())
-        {
-            stringstream oss;
-            string s;
-
-            oss << "Received fault reply from ";
-            oss << appDescriptor->getClassName();
-            oss << appDescriptor->getInstance();
-            oss << " : " << replyBody.getFault().getFaultString();
-            s = oss.str();
-
-            XCEPT_RAISE(emu::daq::manager::exception::Exception, s);
-        }
-    }
-    catch(xcept::Exception e)
-    {
-        stringstream oss;
-        string       s;
-
-        oss << "Failed to send FSM event to ";
-        oss << appDescriptor->getClassName();
-        oss << appDescriptor->getInstance();
-        s = oss.str();
-
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-    }
-}
-
-
-xoap::MessageReference emu::daq::manager::Application::createSimpleSOAPCmdMsg
-(
-    const string cmdName
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    try
-    {
-        xoap::MessageReference message = xoap::createMessage();
-        xoap::SOAPPart soapPart = message->getSOAPPart();
-        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
-        xoap::SOAPBody body = envelope.getBody();
-        xoap::SOAPName cmdSOAPName =
-            envelope.createName(cmdName, "xdaq", "urn:xdaq-soap:3.0");
-
-        body.addBodyElement(cmdSOAPName);
-
-        return message;
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-            "Failed to create simple SOAP command message for cmdName " +
-            cmdName, e);
-    }
-}
-
-
-map<string,string> emu::daq::manager::Application::getScalarParams
-(
-    xdaq::ApplicationDescriptor* appDescriptor,
-    const map<string,string>     paramNamesAndTypes
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    string appClass = appDescriptor->getClassName();
-    map<string,string> paramNamesAndValues;
-
-    try
-    {
-        xoap::MessageReference msg =
-            createParametersGetSOAPMsg(appClass, paramNamesAndTypes);
-
-        xoap::MessageReference reply =
-            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
-
-        // Check if the reply indicates a fault occurred
-        xoap::SOAPBody replyBody =
-            reply->getSOAPPart().getEnvelope().getBody();
-
-        if(replyBody.hasFault())
-        {
-            stringstream oss;
-            string s;
-
-            oss << "Received fault reply: ";
-            oss << replyBody.getFault().getFaultString();
-            s = oss.str();
-
-            XCEPT_RAISE(emu::daq::manager::exception::Exception, s);
-        }
-
-        paramNamesAndValues = extractScalarParameterValuesFromSoapMsg(reply, paramNamesAndTypes);
-    }
-    catch(xcept::Exception e)
-    {
-        string s = "Failed to get scalar parameter from application";
-
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-    }
-
-    return paramNamesAndValues;
-}
-
-string emu::daq::manager::Application::getScalarParam
-(
-    xdaq::ApplicationDescriptor* appDescriptor,
-    const string                 paramName,
-    const string                 paramType
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    string appClass = appDescriptor->getClassName();
-    string value    = "";
-
-
-    try
-    {
-        xoap::MessageReference msg =
-            createParameterGetSOAPMsg(appClass, paramName, paramType);
-
-        xoap::MessageReference reply =
-            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
-
-        // Check if the reply indicates a fault occurred
-        xoap::SOAPBody replyBody =
-            reply->getSOAPPart().getEnvelope().getBody();
-
-        if(replyBody.hasFault())
-        {
-            stringstream oss;
-            string s;
-
-            oss << "Received fault reply: ";
-            oss << replyBody.getFault().getFaultString();
-            s = oss.str();
-
-            XCEPT_RAISE(emu::daq::manager::exception::Exception, s);
-        }
-
-        value = extractScalarParameterValueFromSoapMsg(reply, paramName);
-    }
-    catch(xcept::Exception e)
-    {
-        stringstream s;
-	s << "Failed to get scalar parameter " 
-	  << paramName << " from application " 
-	  << appDescriptor->getClassName() << appDescriptor->getInstance();
-
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception, s.str(), e);
-    }
-
-    return value;
-}
-
-
-void emu::daq::manager::Application::setScalarParam
-(
-    xdaq::ApplicationDescriptor* appDescriptor,
-    const string                 paramName,
-    const string                 paramType,
-    const string                 paramValue
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    string appClass = appDescriptor->getClassName();
-
-    try
-    {
-        xoap::MessageReference msg = createParameterSetSOAPMsg(appClass,
-                                     paramName, paramType, paramValue);
-
-        xoap::MessageReference reply =
-            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
-
-        // Check if the reply indicates a fault occurred
-        xoap::SOAPBody replyBody =
-            reply->getSOAPPart().getEnvelope().getBody();
-
-        if(replyBody.hasFault())
-        {
-            stringstream oss;
-            string s;
-
-            oss << "Received fault reply: ";
-            oss << replyBody.getFault().getFaultString();
-            s = oss.str();
-
-            XCEPT_RAISE(emu::daq::manager::exception::Exception, s);
-        }
-    }
-    catch(xdaq::exception::Exception e)
-    {
-        string s = "Failed to set scalar parameter";
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-    }
-    catch(emu::daq::manager::exception::Exception e)
-    {
-        string s = "Failed to set scalar parameter";
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-    }
-}
-
-
-xoap::MessageReference emu::daq::manager::Application::createParametersGetSOAPMsg
-(
-    const string             appClass,
-    const map<string,string> paramNamesAndTypes
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    string appNamespace = "urn:xdaq-application:" + appClass;
-
-    string problemParams = "";
-    for ( map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
-	  pnt != paramNamesAndTypes.end(); ++pnt ) problemParams += pnt->first + "(" + pnt->second + ") ";
-
-    try
-    {
-        xoap::MessageReference message = xoap::createMessage();
-        xoap::SOAPPart soapPart = message->getSOAPPart();
-        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
-        envelope.addNamespaceDeclaration("xsi",
-            "http://www.w3.org/2001/XMLSchema-instance");
-        envelope.addNamespaceDeclaration("xsd",
-            "http://www.w3.org/2001/XMLSchema");
-        envelope.addNamespaceDeclaration("soapenc",
-            "http://schemas.xmlsoap.org/soap/encoding/");
-        xoap::SOAPBody body = envelope.getBody();
-        xoap::SOAPName cmdName =
-            envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
-        xoap::SOAPBodyElement cmdElement =
-            body.addBodyElement(cmdName);
-        xoap::SOAPName propertiesName =
-            envelope.createName("properties", "xapp", appNamespace);
-        xoap::SOAPElement propertiesElement =
-            cmdElement.addChildElement(propertiesName);
-        xoap::SOAPName propertiesTypeName =
-            envelope.createName("type", "xsi",
-             "http://www.w3.org/2001/XMLSchema-instance");
-        propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
-
-	for ( map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
-	      pnt != paramNamesAndTypes.end(); ++pnt ){
-	  problemParams = pnt->first + "(" + pnt->second + ") ";
-
-	  xoap::SOAPName propertyName =
-            envelope.createName(pnt->first, "xapp", appNamespace);
-	  xoap::SOAPElement propertyElement =
-            propertiesElement.addChildElement(propertyName);
-	  xoap::SOAPName propertyTypeName =
-	    envelope.createName("type", "xsi",
-				"http://www.w3.org/2001/XMLSchema-instance");
-
-	  propertyElement.addAttribute(propertyTypeName, "xsd:" + pnt->second);
-
-	}
-
-        return message;
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-            "Failed to create ParameterGet SOAP message for parameter " +
-            problemParams, e);
-    }
-}
-
-xoap::MessageReference emu::daq::manager::Application::createParameterGetSOAPMsg
-(
-    const string appClass,
-    const string paramName,
-    const string paramType
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    string appNamespace = "urn:xdaq-application:" + appClass;
-    string paramXsdType = "xsd:" + paramType;
-
-    try
-    {
-        xoap::MessageReference message = xoap::createMessage();
-        xoap::SOAPPart soapPart = message->getSOAPPart();
-        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
-        envelope.addNamespaceDeclaration("xsi",
-            "http://www.w3.org/2001/XMLSchema-instance");
-        envelope.addNamespaceDeclaration("xsd",
-            "http://www.w3.org/2001/XMLSchema");
-        envelope.addNamespaceDeclaration("soapenc",
-            "http://schemas.xmlsoap.org/soap/encoding/");
-        xoap::SOAPBody body = envelope.getBody();
-        xoap::SOAPName cmdName =
-            envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
-        xoap::SOAPBodyElement cmdElement =
-            body.addBodyElement(cmdName);
-        xoap::SOAPName propertiesName =
-            envelope.createName("properties", "xapp", appNamespace);
-        xoap::SOAPElement propertiesElement =
-            cmdElement.addChildElement(propertiesName);
-        xoap::SOAPName propertiesTypeName =
-            envelope.createName("type", "xsi",
-             "http://www.w3.org/2001/XMLSchema-instance");
-        propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
-        xoap::SOAPName propertyName =
-            envelope.createName(paramName, "xapp", appNamespace);
-        xoap::SOAPElement propertyElement =
-            propertiesElement.addChildElement(propertyName);
-        xoap::SOAPName propertyTypeName =
-             envelope.createName("type", "xsi",
-             "http://www.w3.org/2001/XMLSchema-instance");
-
-        propertyElement.addAttribute(propertyTypeName, paramXsdType);
-
-        return message;
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-            "Failed to create ParameterGet SOAP message for parameter " +
-            paramName + " of type " + paramType, e);
-    }
-}
-
-
-xoap::MessageReference emu::daq::manager::Application::createParameterSetSOAPMsg
-(
-    const string appClass,
-    const string paramName,
-    const string paramType,
-    const string paramValue
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    string appNamespace = "urn:xdaq-application:" + appClass;
-    string paramXsdType = "xsd:" + paramType;
-
-    try
-    {
-        xoap::MessageReference message = xoap::createMessage();
-        xoap::SOAPPart soapPart = message->getSOAPPart();
-        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
-        envelope.addNamespaceDeclaration("xsi",
-            "http://www.w3.org/2001/XMLSchema-instance");
-        envelope.addNamespaceDeclaration("xsd",
-            "http://www.w3.org/2001/XMLSchema");
-        envelope.addNamespaceDeclaration("soapenc",
-            "http://schemas.xmlsoap.org/soap/encoding/");
-        xoap::SOAPBody body = envelope.getBody();
-        xoap::SOAPName cmdName =
-            envelope.createName("ParameterSet", "xdaq", "urn:xdaq-soap:3.0");
-        xoap::SOAPBodyElement cmdElement =
-            body.addBodyElement(cmdName);
-        xoap::SOAPName propertiesName =
-            envelope.createName("properties", "xapp", appNamespace);
-        xoap::SOAPElement propertiesElement =
-            cmdElement.addChildElement(propertiesName);
-        xoap::SOAPName propertiesTypeName =
-            envelope.createName("type", "xsi",
-             "http://www.w3.org/2001/XMLSchema-instance");
-        propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
-        xoap::SOAPName propertyName =
-            envelope.createName(paramName, "xapp", appNamespace);
-        xoap::SOAPElement propertyElement =
-            propertiesElement.addChildElement(propertyName);
-        xoap::SOAPName propertyTypeName =
-             envelope.createName("type", "xsi",
-             "http://www.w3.org/2001/XMLSchema-instance");
-
-        propertyElement.addAttribute(propertyTypeName, paramXsdType);
-
-        propertyElement.addTextNode(paramValue);
-
-        return message;
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-            "Failed to create ParameterSet SOAP message for parameter " +
-            paramName + " of type " + paramType + " with value " + paramValue,
-            e);
-    }
-}
-
-
-map<string,string> emu::daq::manager::Application::extractScalarParameterValuesFromSoapMsg
-(
-    xoap::MessageReference   msg,
-    const map<string,string> paramNamesAndTypes
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    map<string,string> paramNamesAndValues;
-
-    string paramName = "";
-    for ( map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
-	  pnt != paramNamesAndTypes.end(); ++pnt ) paramName += pnt->first + " ";
-
-    try
-    {
-        xoap::SOAPPart part = msg->getSOAPPart();
-        xoap::SOAPEnvelope env = part.getEnvelope();
-        xoap::SOAPBody body = env.getBody();
-        DOMNode *bodyNode = body.getDOMNode();
-        DOMNodeList *bodyList = bodyNode->getChildNodes();
-        DOMNode *responseNode = findNode(bodyList, "ParameterGetResponse");
-        DOMNodeList *responseList = responseNode->getChildNodes();
-        DOMNode *propertiesNode = findNode(responseList, "properties");
-        DOMNodeList *propertiesList = propertiesNode->getChildNodes();
-	
-	for ( map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
-	      pnt != paramNamesAndTypes.end(); ++pnt ){
-	  paramName = pnt->first;
-	  DOMNode *paramNode = findNode(propertiesList, pnt->first);
-	  DOMNodeList *paramList = paramNode->getChildNodes();
-	  DOMNode *valueNode = paramList->item(0);
-	  if ( valueNode )
-	    paramNamesAndValues[paramName] = xoap::XMLCh2String(valueNode->getNodeValue());
-	  else
-	    paramNamesAndValues[paramName] = "";
-	}
-
-        return paramNamesAndValues;
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-            "Parameter " + paramName + " not found", e);
-    }
-    catch(...)
-    {
-        XCEPT_RAISE(emu::daq::manager::exception::Exception,
-            "Parameter " + paramName + " not found");
-    }
-}
-
-string emu::daq::manager::Application::extractScalarParameterValueFromSoapMsg
-(
-    xoap::MessageReference msg,
-    const string           paramName
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    try
-    {
-        xoap::SOAPPart part = msg->getSOAPPart();
-        xoap::SOAPEnvelope env = part.getEnvelope();
-        xoap::SOAPBody body = env.getBody();
-        DOMNode *bodyNode = body.getDOMNode();
-        DOMNodeList *bodyList = bodyNode->getChildNodes();
-        DOMNode *responseNode = findNode(bodyList, "ParameterGetResponse");
-        DOMNodeList *responseList = responseNode->getChildNodes();
-        DOMNode *propertiesNode = findNode(responseList, "properties");
-        DOMNodeList *propertiesList = propertiesNode->getChildNodes();
-        DOMNode *paramNode = findNode(propertiesList, paramName);
-        DOMNodeList *paramList = paramNode->getChildNodes();
-        DOMNode *valueNode = paramList->item(0);
-        string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
-
-        return paramValue;
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-            "Parameter " + paramName + " not found", e);
-    }
-    catch(...)
-    {
-        XCEPT_RAISE(emu::daq::manager::exception::Exception,
-            "Parameter " + paramName + " not found");
-    }
-}
-
-
-DOMNode *emu::daq::manager::Application::findNode
-(
-    DOMNodeList *nodeList,
-    const string nodeLocalName
-)
-throw (emu::daq::manager::exception::Exception)
-{
-    DOMNode            *node = 0;
-    string             name  = "";
-    unsigned int       i     = 0;
-
-
-    for(i=0; i<nodeList->getLength(); i++)
-    {
-        node = nodeList->item(i);
-
-        if(node->getNodeType() == DOMNode::ELEMENT_NODE)
-        {
-            name = xoap::XMLCh2String(node->getLocalName());
-
-            if(name == nodeLocalName)
-            {
-                return node;
-            }
-        }
-    }
-
-    XCEPT_RAISE(emu::daq::manager::exception::Exception,
-        "Failed to find node with local name: " + nodeLocalName);
-}
-
-xoap::MessageReference emu::daq::manager::Application::postSOAP( xoap::MessageReference message, 
-						const string& URL,
-						const string& SOAPAction ) 
-  throw (xdaq::exception::Exception)
-// Adapted from xdaq::ApplicationContextImpl::postSOAP.
-// This is necessary for sending SOAP to contexts not defined in this process's config file.
-{
-	
-  bool setSOAPAction = false;
-  if ( message->getMimeHeaders()->getHeader("SOAPAction").size() == 0 )
-    {
-      message->getMimeHeaders()->setHeader("SOAPAction", SOAPAction);		
-      setSOAPAction = true;
-    }
-	
-  xoap::SOAPBody b = message->getSOAPPart().getEnvelope().getBody();
-  DOMNode* node = b.getDOMNode();
-	
-  DOMNodeList* bodyList = node->getChildNodes();
-  DOMNode* command = bodyList->item(0);
-	
-  if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
-    {                
-
-      try{
-	// Check format of URL
-	toolbox::net::URL u( URL );
-      }
-      catch (toolbox::net::exception::MalformedURL& mu){
-	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", mu);
-      }
-
-      try
-	{	
-	  // Local dispatch: if remote and local address are on same host, get local messenger
-			
-	  // Get the address on the fly from the URL
-	  pt::Address::Reference remoteAddress = pt::getPeerTransportAgent()
-	    ->createAddress(URL,"soap");
-				
-	  pt::Address::Reference localAddress = 
-	    pt::getPeerTransportAgent()->createAddress(getApplicationDescriptor()->getContextDescriptor()->getURL(),"soap");
-			
-	  // force here protocol http, service soap, because at this point we know over withc protocol/service to send.
-	  // this allows specifying a host URL without the SOAP service qualifier
-	  //		
-	  std::string protocol = remoteAddress->getProtocol();
-			
-	  pt::PeerTransportSender* s = dynamic_cast<pt::PeerTransportSender*>(pt::getPeerTransportAgent()->getPeerTransport (protocol, "soap", pt::Sender));
-
-	  // These two lines cannot be merges, since a reference that is a temporary object
-	  // would delete the contained object pointer immediately after use.
-	  //
-	  pt::Messenger::Reference mr = s->getMessenger(remoteAddress, localAddress);
-	  pt::SOAPMessenger& m = dynamic_cast<pt::SOAPMessenger&>(*mr);
-	  xoap::MessageReference rep = m.send(message);	 
-			
-	  if (setSOAPAction)
-	    {
-	      message->getMimeHeaders()->removeHeader("SOAPAction");
-	    }
-	  return rep;
-	}
-      catch (xdaq::exception::HostNotFound& hnf)
-	{
-	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", hnf);
-	} 
-      catch (xdaq::exception::ApplicationDescriptorNotFound& acnf)
-	{
-	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", acnf);
-	}
-      catch (pt::exception::Exception& pte)
-	{
-	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", pte);
-	}
-      catch(std::exception& se)
-	{
-	  XCEPT_RAISE (xdaq::exception::Exception, se.what());
-	}
-      catch(...)
-	{
-	  XCEPT_RAISE (xdaq::exception::Exception, "Failed to post SOAP message, unknown exception");
-	}
-    } 
-  else
-    {
-      /*applicationDescriptorFactory_.unlock();
-       */
-      XCEPT_RAISE (xdaq::exception::Exception, "Bad SOAP message. Cannot find command tag");
-    }
-
-}
-
-xoap::MessageReference emu::daq::manager::Application::makeTAGenerateRunStopTime(){
-
-  xoap::MessageReference reply;
-
-  try{
-    
-    // Create query message
-    xoap::MessageReference message = createSimpleSOAPCmdMsg("generateRunStopTime");
-
-    // Post it
-    reply = appContext_->postSOAP(message, *appDescriptor_, *taDescriptors_[0]);
-    
-    // Check if the reply indicates a fault occurred
-    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
-    
-    if(replyBody.hasFault())
-      {
-	LOG4CPLUS_WARN(logger_, "Failed to make emu::daq::ta::Application generate run stop time: Received fault reply: " 
-		       << replyBody.getFault().getFaultString() );
-	stringstream ss44;
-	ss44 <<  "Failed to make emu::daq::ta::Application generate run stop time: Received fault reply: " 
-		       << replyBody.getFault().getFaultString() ;
-	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss44.str() );
-	this->notifyQualified( "warning", eObj );
-      }
-  } catch(xcept::Exception e){
-    LOG4CPLUS_WARN(logger_, "Failed to make emu::daq::ta::Application generate run stop time: " 
-		   << xcept::stdformat_exception_history(e));
-    stringstream ss45;
-    ss45 <<  "Failed to make emu::daq::ta::Application generate run stop time: " 
-		   ;
-    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss45.str(), e );
-    this->notifyQualified( "warning", eObj );
-
-  }
-
-  return reply;
-}
-
-
-vector<string> emu::daq::manager::Application::parseRunningConfigurationsReplyFromFM( xoap::MessageReference reply ){
-
-  vector<string> runningConfigs;
-
-  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
-
-  std::stringstream ss;
-  reply->writeTo( ss );
-  DOMDocument* doc = parser->parse( ss.str() );
-  DOMNodeList *URIs = doc->getElementsByTagName( xoap::XStr("URI") );
-  for ( XMLSize_t i=0; i<URIs->getLength(); ++i ){
-    runningConfigs.push_back( xoap::XMLCh2String( URIs->item(i)->getTextContent() ) );
-  }
-  // We're responsible for releasing the memory allocated to DOMDocument
-  doc->release();
-  // Parser must be explicitly removed, or else it stays in the memory
-  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
-
-  return runningConfigs;
-}
-
-
-vector<string> emu::daq::manager::Application::getRunningConfigurationsFromFM( const string& baseURL )
-  throw (emu::daq::manager::exception::Exception){
-
-  vector<string> runningConfigs;
-
-  string serviceURL = baseURL + "/rcms/services/FMLifeCycle";
-
-  // Create SOAP message
-  xoap::MessageReference message;
-  try{
-    message = xoap::createMessage();
-    
-    xoap::SOAPPart     soapPart = message->getSOAPPart();
-    xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
-    
-    envelope.addNamespaceDeclaration("xsi" ,"http://www.w3.org/2001/XMLSchema-instance");
-    envelope.addNamespaceDeclaration("xsd" ,"http://www.w3.org/2001/XMLSchema");
-    envelope.addNamespaceDeclaration("soap","http://schemas.xmlsoap.org/soap/envelope/");
-    
-    xoap::SOAPBody body = envelope.getBody();
-    xoap::SOAPName name = envelope.createName("getRunningConfigurations","ns1","urn:FMLifeCycle");
-    body.addBodyElement( name );
-  }
-  catch(xcept::Exception &e){
-    XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-		  "Failed to create message to " + serviceURL + " : ", 
-		  e);
-  }
-  catch(...){
-    XCEPT_RAISE(emu::daq::manager::exception::Exception,
-		"Failed to create message to " + serviceURL);
-  }
-
-  // Send SOAP message
-
-  cout << endl << "Sending to " << serviceURL << endl; 
-  message->writeTo( cout );
-  cout.flush();
-  cout << endl;
-
-  xoap::MessageReference reply;
-  try{
-    xoap::MessageReference reply = postSOAP( message, serviceURL, "urn:FMLifeCycle" );
-
-    cout << endl << "Received reply from " << serviceURL << endl; 
-    reply->writeTo( cout );
-    cout.flush();
-    cout << endl;
-
-    // Check if the reply indicates a fault occurred
-    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
-    
-    if(replyBody.hasFault()){ // TODO: find out why hasFault() doesn't work
-      std::stringstream ss;
-      ss << "Received fault reply from " << serviceURL << " : "
-	 << replyBody.getFault().getFaultString();
-      XCEPT_RAISE(emu::daq::manager::exception::Exception, ss.str());
-    }
-
-    runningConfigs = parseRunningConfigurationsReplyFromFM( reply );
-
-  }
-  catch(xdaq::exception::Exception &e){
-    XCEPT_RETHROW(emu::daq::manager::exception::Exception, 
-		  "Failed to get running configurations from " + serviceURL + " : ",
-		  e);
-  }
-  
-  for ( unsigned int i=0; i<runningConfigs.size(); ++i ) cout << "Config " << i << "  " << runningConfigs[i] << endl;
-
-  return runningConfigs;
-}
-
-string emu::daq::manager::Application::parseConfigParameterReplyFromFM( xoap::MessageReference reply )
-  throw(emu::daq::manager::exception::Exception){
-
-  string parameterValue;
-
-  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
-
-  std::stringstream ss;
-  reply->writeTo( ss );
-  DOMDocument* doc = parser->parse( ss.str() );
-  DOMNodeList *values = doc->getElementsByTagName( xoap::XStr("value") );
-  if ( values->getLength() == 1 ){
-    parameterValue = xoap::XMLCh2String( values->item(0)->getTextContent() );
-  }
-  else{
-    stringstream ss;
-    ss << "Got " << (unsigned int) values->getLength() << " values in reply to getParameter SOAP to FM";
-    XCEPT_RAISE(emu::daq::manager::exception::Exception, ss.str() );
-  }
-  // We're responsible for releasing the memory allocated to DOMDocument
-  doc->release();
-  // Parser must be explicitly removed, or else it stays in the memory
-  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
-
-  return parameterValue;
-}
-
-
-string emu::daq::manager::Application::getConfigParameterFromFM( const string& configurationURL,
-						const string& parameterName )
-  throw (emu::daq::manager::exception::Exception){
-
-  string parameterValue;
-
-  // Parse URL
-  string baseURL;
-  string configurationURN;
-  vector<string> matches; // matches[1] will be the base URL (http://host:port), matches[2] the configuration URN
-  if ( toolbox::regx_match( configurationURL, "^http://.*:[0-9]{2,5}/.*$") ){ // Make sure there's a match...
-    toolbox::regx_match( configurationURL, "^(http://.*:[0-9]{2,5})/(.*)$", matches ); // ...because this crashes if no match.
-    baseURL          = matches[1];
-    configurationURN = matches[2];
-  }
-  else{
-    return parameterValue;
-  }
-  string serviceURL = baseURL + "/rcms/services/ParameterController";
-
-  // Create SOAP message
-  xoap::MessageReference message;
-  try{
-    message = xoap::createMessage();
-    
-    xoap::SOAPPart     soapPart = message->getSOAPPart();
-    xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
-    
-    envelope.addNamespaceDeclaration("xsi"    ,"http://www.w3.org/2001/XMLSchema-instance");
-    envelope.addNamespaceDeclaration("xsd"    ,"http://www.w3.org/2001/XMLSchema");
-    envelope.addNamespaceDeclaration("soap"   ,"http://schemas.xmlsoap.org/soap/envelope/");
-    envelope.addNamespaceDeclaration("soapenc","http://schemas.xmlsoap.org/soap/encoding/");
-    envelope.addNamespaceDeclaration("napesp1","http://namespaces.soaplite.com/perl");
-    
-    xoap::SOAPBody body = envelope.getBody();
-
-    // <getParameter>
-    xoap::SOAPName name = envelope.createName("getParameter","ns1","http://parameter.ws.fm.rcms");
-    xoap::SOAPBodyElement getParameterElement = body.addBodyElement( name );
-
-    // <uriPath>
-    name = envelope.createName("uriPath","","");
-    xoap::SOAPElement uriPathElement = getParameterElement.addChildElement(name);
-    xoap::SOAPName attName = envelope.createName("xsi:type","","");
-    uriPathElement.addAttribute( attName, "soapenc:string" );
-    uriPathElement.setTextContent( configurationURL );
-
-    // <requested>
-    name = envelope.createName("requested","","");
-    xoap::SOAPElement requestedElement = getParameterElement.addChildElement(name);
-    attName = envelope.createName("xsi:type","","");
-    requestedElement.addAttribute( attName, "namesp1:ParameterBean" );
-
-    // <item>
-    name = envelope.createName("item","","");
-    xoap::SOAPElement itemElement = requestedElement.addChildElement(name);
-
-    // <name>
-    name = envelope.createName("name","","");
-    xoap::SOAPElement nameElement = itemElement.addChildElement(name);
-    attName = envelope.createName("xsi:type","","");
-    nameElement.addAttribute( attName, "soapenc:string" );
-    nameElement.setTextContent( parameterName );
-
-//     // <type> // probably unnecessary for getParameter
-//     name = envelope.createName("type","","");
-//     xoap::SOAPElement typeElement = itemElement.addChildElement(name);
-//     attName = envelope.createName("xsi:type","","");
-//     typeElement.addAttribute( attName, "soapenc:string" );
-//     typeElement.setTextContent("rcms.fm.fw.parameter.type.StringT");
-
-//     // <value> // probably unnecessary for getParameter
-//     name = envelope.createName("value","","");
-//     xoap::SOAPElement valueElement = itemElement.addChildElement(name);
-//     attName = envelope.createName("xsi:type","","");
-//     valueElement.addAttribute( attName, "soapenc:string" );
-  }
-  catch(xcept::Exception &e){
-    XCEPT_RETHROW(emu::daq::manager::exception::Exception,"Failed to create getParameter message to FM", e);
-  }
-  catch(...){
-    XCEPT_RAISE(emu::daq::manager::exception::Exception, "Failed to create getParameter message to FM");
-  }
-
-  // Send SOAP message
-
-  cout << endl << "Sending to " << serviceURL << endl; 
-  message->writeTo( cout );
-  cout.flush();
-  cout << endl;
-
-  xoap::MessageReference reply;
-  try{
-    xoap::MessageReference reply = postSOAP( message, serviceURL, configurationURN );
-
-    cout << endl << "Received reply from " << serviceURL << endl; 
-    reply->writeTo( cout );
-    cout.flush();
-    cout << endl;
-
-    // Check if the reply indicates a fault occurred
-    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
-    
-    if(replyBody.hasFault()){ // TODO: find out why hasFault() doesn't work
-      std::stringstream ss;
-      ss << "Received fault reply from " << serviceURL << " : "
-	 << replyBody.getFault().getFaultString();
-      cout << endl << ss.str() << endl; cout.flush();
-      XCEPT_RAISE(emu::daq::manager::exception::Exception, ss.str());
-    }
-
-    parameterValue = parseConfigParameterReplyFromFM( reply );
-
-  }
-  catch(xdaq::exception::Exception &e){
-    XCEPT_RETHROW(emu::daq::manager::exception::Exception, 
-		  "Failed to get parameter " + parameterName 
-		  + " of configuration " + configurationURN 
-		  + " from " + serviceURL + " : ",
-		  e);
-  }
-  catch(emu::daq::manager::exception::Exception &e){
-    XCEPT_RETHROW(emu::daq::manager::exception::Exception, 
-		  "Failed to get parameter " + parameterName 
-		  + " of configuration " + configurationURN 
-		  + " from " + serviceURL + " : ",
-		  e);
-  }
-
-  cout << parameterName << ": " << parameterValue << endl;
-  
-  return parameterValue;
-}
-
-void emu::daq::manager::Application::getIdsOfRunningConfigurationsFromFM(){
-
-  vector<string> runningConfigs;
-
-  // From CSC Function Manager
-  CSCConfigId_ = 0;
-  try{
-    runningConfigs = getRunningConfigurationsFromFM( CSC_FM_URL_.toString() );
-    for ( vector<string>::iterator rc = runningConfigs.begin(); rc != runningConfigs.end(); ++rc ){
-      cout << *rc << "  matches \"" << RegexMatchingCSCConfigName_.toString() << "\" ? : " 
-	   << toolbox::regx_match( *rc, RegexMatchingCSCConfigName_.toString() )
-	   << endl;
-      if ( toolbox::regx_match( *rc, RegexMatchingCSCConfigName_.toString() ) ){
-	string configState = getConfigParameterFromFM( *rc, "STATE" );
-	if ( configState.find("Configur") != string::npos ){
-	  CSCConfigId_.fromString( getConfigParameterFromFM( *rc, "SID" ) );
-	  LOG4CPLUS_INFO(logger_,"Got CSC config id " << CSCConfigId_.toString()
-			 << " from " << *rc << " in state \"" << configState << "\"" );
-	  break;
-	}
-      }
-    }
-    if ( CSCConfigId_.toString() == "0" ){
-      LOG4CPLUS_WARN(logger_, "<![CDATA[ Found in CSC FM no CSC configuration matching \""
-		     << RegexMatchingCSCConfigName_.toString()
-		     << "\" in state \"Configur*\"."
-		     << " ==> CSC configuarion id will be 0. ]]>" );
-      stringstream ss46;
-      ss46 <<  "<![CDATA[ Found in CSC FM no CSC configuration matching \""
-		     << RegexMatchingCSCConfigName_.toString()
-		     << "\" in state \"Configur*\"."
-		     << " ==> CSC configuarion id will be 0. ]]>" ;
-      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss46.str() );
-      this->notifyQualified( "warning", eObj );
-    }
-  }
-  catch(emu::daq::manager::exception::Exception &e){
-    LOG4CPLUS_WARN(logger_,
-		   "Failed to get unique id of CSC configuration from CSC FM"
-		   << " : " << xcept::stdformat_exception_history(e));
-    stringstream ss47;
-    ss47 << 
-		   "Failed to get unique id of CSC configuration from CSC FM"
-		   << " : " ;
-    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss47.str(), e );
-    this->notifyQualified( "warning", eObj );
-  }
-
-  // From Track Finder Cell: TODO
-  TFConfigId_ = 0;
-}
-
-
-void emu::daq::manager::Application::machineReadableWebPage(xgi::Input *in, xgi::Output *out)
-throw (xgi::exception::Exception)
-{
-    string       monitoringInfo = "";
-    unsigned int nbRUs          = ruDescriptors_.size();
-    unsigned int nbBUs          = buDescriptors_.size();
-    unsigned int i              = 0;
-
-
-    out->getHTTPResponseHeader().addHeader("Content-Type", "text/plain");
-
-    *out << "Version,1"                                    << endl;
-    *out << "nbRUs," << nbRUs                              << endl;
-    *out << "nbBUs," << nbBUs                              << endl;
-    *out << "classInstance,state,dt,dn,dsumofsquares,dsum" << endl;
-
-    try
-    {
-        monitoringInfo = getScalarParam(evmDescriptors_[0],
-            "monitoringInfo", "string");
-    }
-    catch(emu::daq::manager::exception::Exception e)
-    {
-        monitoringInfo = "unreachable";
-
-        LOG4CPLUS_ERROR(logger_,
-            "Failed to get monitoringInfo parameter from EVM"
-            << " : " << xcept::stdformat_exception_history(e));
-        stringstream ss48;
-        ss48 << 
-            "Failed to get monitoringInfo parameter from EVM"
-            << " : " ;
-        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss48.str(), e );
-        this->notifyQualified( "error", eObj );
-    }
-
-    *out << "EVM0," << monitoringInfo << endl;
-
-    for(i=0; i<nbRUs; i++)
-    {
-        try
-        {
-            monitoringInfo = getScalarParam(ruDescriptors_[i],
-                "monitoringInfo", "string");
-        }
-        catch(xcept::Exception e)
-        {
-            monitoringInfo = "unreachable";
-
-            LOG4CPLUS_ERROR(logger_,
-                "Failed to get monitoringInfo parameter from RU" << i
-                << " : " << xcept::stdformat_exception_history(e));
-            stringstream ss49;
-            ss49 << 
-                "Failed to get monitoringInfo parameter from RU" << i
-                << " : " ;
-            XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss49.str(), e );
-            this->notifyQualified( "error", eObj );
-        }
-
-        *out << "RU" << i << "," << monitoringInfo << endl;
-    }
-
-    for(i=0; i<nbBUs; i++)
-    {
-        try
-        {
-            monitoringInfo = getScalarParam(buDescriptors_[i],
-                "monitoringInfo", "string");
-        }
-        catch(xcept::Exception e)
-        {
-            monitoringInfo = "unreachable";
-
-            LOG4CPLUS_ERROR(logger_,
-                "Failed to get monitoringInfo parameter from BU" << i
-                << " : " << xcept::stdformat_exception_history(e));
-            stringstream ss50;
-            ss50 << 
-                "Failed to get monitoringInfo parameter from BU" << i
-                << " : " ;
-            XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss50.str(), e );
-            this->notifyQualified( "error", eObj );
-        }
-
-        *out << "BU" << i << "," << monitoringInfo << endl;
     }
 }
 
@@ -5015,20 +3675,6 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable("TTCci_OrbitSource",   &TTCci_OrbitSource_);
   s->fireItemAvailable("TTCci_TriggerSource", &TTCci_TriggerSource_);
   s->fireItemAvailable("TTCci_BGOSource",     &TTCci_BGOSource_);
-
-  // Parameters to obtain from TF_hyperDAQ
-  TF_triggerMode_ = "UNKNOWN";
-  s->fireItemAvailable("TF_triggerMode", &TF_triggerMode_);
-
-  // FM-related parameters
-  TFConfigId_  = 0;
-  CSCConfigId_ = 0;
-  s->fireItemAvailable("TF_FM_URL"                 , &TF_FM_URL_                  );
-  s->fireItemAvailable("CSC_FM_URL"		   , &CSC_FM_URL_                 );
-  s->fireItemAvailable("RegexMatchingTFConfigName" , &RegexMatchingTFConfigName_  );
-  s->fireItemAvailable("RegexMatchingCSCConfigName", &RegexMatchingCSCConfigName_ );
-  s->fireItemAvailable("TFConfigId"		   , &TFConfigId_                 );
-  s->fireItemAvailable("CSCConfigId"               , &CSCConfigId_                );
   
     controlDQM_ = false;
     s->fireItemAvailable("controlDQM",&controlDQM_);
@@ -5064,6 +3710,8 @@ vector< map< string,string > > emu::daq::manager::Application::getRUIEventCounts
 {
   vector< map< string,string > > ec;
 
+  emu::soap::Messenger m( this );
+
   vector< xdaq::ApplicationDescriptor* >::iterator rui;
   for ( rui = ruiDescriptors_.begin(); rui!=ruiDescriptors_.end(); ++rui ){
     stringstream appInst;
@@ -5071,7 +3719,9 @@ vector< map< string,string > > emu::daq::manager::Application::getRUIEventCounts
     string       hwName = "chambers"; 
     string       hwMapURL;
     string       count;
-    string       dduError;
+    xdata::UnsignedLong nEventsRead;
+    xdata::String       dduError;
+ 
     try
       {
 	appInst << setfill('0') << setw(2) << (*rui)->getInstance();
@@ -5081,18 +3731,17 @@ vector< map< string,string > > emu::daq::manager::Application::getRUIEventCounts
 	hwMapURL = appDescriptor_->getContextDescriptor()->getURL() + "/" +
 	  hardwareMapping_.toString() + "#RUI." + appInst.str();
 	appURL = getHref( *rui );
-	map <string,string> namesAndTypes;
-	namesAndTypes["nEventsRead"       ] = "unsignedLong";
-	namesAndTypes["persistentDDUError"] = "string";
-	map <string,string> namesAndValues = getScalarParams((*rui), namesAndTypes);
-	count    = namesAndValues["nEventsRead"       ];
-	dduError = namesAndValues["persistentDDUError"];
+
+	m.getParameters( *rui, 
+			 emu::soap::Parameters()
+			 .add( "nEventsRead"       , &nEventsRead )
+			 .add( "persistentDDUError", &dduError    ) );
+	count = nEventsRead.toString();
       }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
-      appURL   = getHref( appDescriptor_ ) + "/control"; // self
-      count    = "UNKNOWN";
-      dduError = "";
+      appURL = getHref( appDescriptor_ ) + "/control"; // self
+      count  = "UNKNOWN";
       LOG4CPLUS_WARN(logger_, "Failed to get event count of emu::daq::rui::Application." << appInst.str()
 		     << " : " << xcept::stdformat_exception_history(e));
       stringstream ss51;
@@ -5108,7 +3757,7 @@ vector< map< string,string > > emu::daq::manager::Application::getRUIEventCounts
     sm[ "hwName"   ] = hwName;
     sm[ "hwMapURL" ] = hwMapURL;
     sm[ "count"    ] = count;
-    sm[ "dduError" ] = dduError;
+    sm[ "dduError" ] = dduError.toString();
     ec.push_back( sm );
   }
 
@@ -5119,24 +3768,25 @@ vector< map< string,string > > emu::daq::manager::Application::getFUEventCounts(
 {
   vector< map< string,string > > ec;
 
-  unsigned int totalProcessed = 0;
+  emu::soap::Messenger m( this );  
+
+  xdata::UnsignedLong totalProcessed = 0;
   vector< xdaq::ApplicationDescriptor* >::iterator fu;
   for ( fu = fuDescriptors_.begin(); fu!=fuDescriptors_.end(); ++fu ){
     stringstream appInst;
     string       appURL;
     string       count;
-    unsigned int nProcessed = 0;
-    stringstream ss;
     try
     {
       appURL  = getHref( *fu );
       appInst << setfill('0') << setw(2) << (*fu)->getInstance();
-      count = getScalarParam( (*fu), "nbEventsProcessed", "unsignedLong" );
-      ss << count;
-      ss >> nProcessed;
-      totalProcessed += nProcessed;
+      
+      xdata::UnsignedLong nProcessed;
+      m.getParameters( *fu, emu::soap::Parameters().add( "nbEventsProcessed", &nProcessed ) );
+      count = nProcessed.toString();
+      if ( ! nProcessed.isNaN() ) totalProcessed = totalProcessed + nProcessed;
     }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
     {
       appURL = getHref( appDescriptor_ ) + "/control"; // self
       count = "UNKNOWN";
@@ -5155,12 +3805,10 @@ vector< map< string,string > > emu::daq::manager::Application::getFUEventCounts(
     sm[ "count"    ] = count;
     ec.push_back( sm );
   }
-  stringstream sst;
-  sst << totalProcessed;
   map< string,string > smt;
   smt[ "appInst"  ] = "Total";
   smt[ "appURL"   ] = getHref( appDescriptor_ ) + "/control";;
-  smt[ "count"    ] = sst.str();
+  smt[ "count"    ] = totalProcessed.toString();
   ec.push_back( smt );
 
   return ec;
@@ -5315,18 +3963,13 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
     out <<   "<th>" << i << "</th>";
   out << "</tr>"                                                       << endl;
 
-  xoap::MessageReference reply;
-
-  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
-
-  xdata::soap::Serializer serializer;
+  emu::soap::Messenger m( this );
 
   // Loop over RUIs and query them for STEP info, and write a table row
   vector< xdaq::ApplicationDescriptor* >::iterator rui;
   for(rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); rui++){
 
     // Get STEP info from emu::daq::rui::Application
-
     xdata::String                      persistentDDUError = "";
     xdata::UnsignedLong                eventsRead  = 0;
     xdata::UnsignedLong                totalCount  = 0;
@@ -5336,32 +3979,17 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
     xdata::Vector<xdata::Boolean>      liveInputs;
 
     try{
-      reply = querySTEP( *rui );
-      std::stringstream ss;
-      reply->writeTo( ss );
-      DOMDocument* doc = parser->parse( ss.str() );
-
-      DOMNode* n;
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("PersistentDDUError") )->item(0);
-      serializer.import( &persistentDDUError, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("EventsRead") )->item(0);
-      serializer.import( &eventsRead, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("TotalCount") )->item(0);
-      serializer.import( &totalCount, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("LowestCount") )->item(0);
-      serializer.import( &lowestCount, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("Counts") )->item(0);
-      serializer.import( &counts, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("Masks") )->item(0);
-      serializer.import( &masks, n );
-      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("LiveInputs") )->item(0);
-      serializer.import( &liveInputs, n );
+      m.extractParameters( m.sendCommand( *rui, "STEPQuery" ),
+			   emu::soap::Parameters()
+			   .add( "PersistentDDUError", &persistentDDUError )
+			   .add( "EventsRead"        , &eventsRead         )
+			   .add( "TotalCount"        , &totalCount         )
+			   .add( "LowestCount"       , &lowestCount        )
+			   .add( "Counts"            , &counts             )
+			   .add( "Masks"             , &masks              )
+			   .add( "LiveInputs"        , &liveInputs         ) );
 
       isFinished &= ( (int) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
-
-      // We're responsible for releasing the memory allocated to DOMDocument
-      doc->release();
-
     } catch( emu::daq::manager::exception::Exception e ){
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
 		      << (*rui)->getClassName() << (*rui)->getInstance() 
@@ -5470,59 +4098,17 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 
   } // for(rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); rui++)
 
-  // Parser must be explicitly removed, or else it stays in the memory
-  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
-
   out << "</table>"                                                 << endl;
 
   return isFinished;
 }
 
-xoap::MessageReference emu::daq::manager::Application::querySTEP( xdaq::ApplicationDescriptor* ruiDescriptor )
-  throw (emu::daq::manager::exception::Exception){
-
-  xoap::MessageReference reply;
-
-  try{
-    
-    // Create query message
-    xoap::MessageReference message = createSimpleSOAPCmdMsg("STEPQuery");
-
-    // Post it
-    reply = appContext_->postSOAP(message, *appDescriptor_, *ruiDescriptor);
-    
-    // Check if the reply indicates a fault occurred
-    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
-    
-    if(replyBody.hasFault())
-      {
-	stringstream oss;
-	oss << "Received fault reply from ";
-	oss << ruiDescriptor->getClassName();
-	oss << ruiDescriptor->getInstance();
-	oss << " : " << replyBody.getFault().getFaultString();
-	XCEPT_RAISE(emu::daq::manager::exception::Exception, oss.str());
-      }
-  } catch(xcept::Exception e){
-    stringstream oss;    
-    oss << "Failed to query STEP info in ";
-    oss << ruiDescriptor->getClassName();
-    oss << ruiDescriptor->getInstance();
-    XCEPT_RETHROW(emu::daq::manager::exception::Exception, oss.str(), e);
-  }
-
-  return reply;
-}
 
 bool emu::daq::manager::Application::isSTEPFinished(){
   // Return TRUE if all DDUs' all live and unmasked inputs have produced the requested number of events.
   bool isFinished = true;
   
-  xoap::MessageReference reply;
-
-  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
-
-  xdata::soap::Serializer serializer;
+  emu::soap::Messenger m( this );
 
   // Loop over RUIs and query them for STEP info
   vector< xdaq::ApplicationDescriptor* >::iterator pos;
@@ -5531,16 +4117,8 @@ bool emu::daq::manager::Application::isSTEPFinished(){
     xdata::UnsignedLong lowestCount = 0;
 
     try{
-      reply = querySTEP( *pos );
-      std::stringstream ss;
-      reply->writeTo( ss );
-      DOMDocument* doc = parser->parse( ss.str() );
-      DOMNodeList* dataNode = doc->getElementsByTagNameNS(xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("LowestCount") );
-      DOMNode* n = dataNode->item(0);
-      serializer.import( &lowestCount, n );
-      // We're responsible for releasing the memory allocated to DOMDocument
-      doc->release();
-//       cout << "Lowest count = " << lowestCount.toString() << endl << ss.str() << endl;
+      m.extractParameters( m.sendCommand( *pos, "STEPQuery" ),
+			   emu::soap::Parameters().add( "LowestCount", &lowestCount ) );
     } catch( emu::daq::manager::exception::Exception e ){
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
 		      << (*pos)->getClassName() << (*pos)->getInstance() 
@@ -5568,8 +4146,6 @@ bool emu::daq::manager::Application::isSTEPFinished(){
     isFinished &= ( (int) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
     
   }
-
-  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 
   return isFinished;
 }
@@ -5617,8 +4193,8 @@ void emu::daq::manager::Application::maskDDUInputs( const bool in, const std::ve
 }
 
 void emu::daq::manager::Application::sendDDUInputMask( const bool                    in, 
-				      const unsigned int            ruiInstance, 
-				      const std::set<unsigned int>& inputs ){
+						       const unsigned int            ruiInstance, 
+						       const std::set<unsigned int>& inputs ){
   // Sends a mask to a RUI exclude or include DDU inputs in the STEP event counts
 
   string commandName = "excludeDDUInputs";
@@ -5638,7 +4214,7 @@ void emu::daq::manager::Application::sendDDUInputMask( const bool               
     return;
   }
 
-  // Transfer inputs into an xdata vector as that can readily be serialized into SOAP
+  // Transfer inputs into an xdata vector to be serialized into SOAP
   xdata::Vector<xdata::UnsignedLong> inputsToMask;
   std::set<unsigned int>::iterator i;
   for( i = inputs.begin(); i != inputs.end(); ++i ){
@@ -5647,69 +4223,21 @@ void emu::daq::manager::Application::sendDDUInputMask( const bool               
 
 
   try{
-
-    xoap::MessageReference message = xoap::createMessage();
-    xoap::SOAPPart soapPart = message->getSOAPPart();
-    xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
-    xoap::SOAPBody body = envelope.getBody();
-
-    xoap::SOAPName cmdName = envelope.createName(commandName, "xdaq", "urn:xdaq-soap:3.0");
-    xoap::SOAPBodyElement bodyElement = body.addBodyElement( cmdName );
-
-    xoap::SOAPName arrayName = envelope.createName("DDUInputs", "xdaq", "urn:xdaq-soap:3.0");
-    xoap::SOAPElement array = bodyElement.addChildElement( arrayName );
-
-    xdata::soap::Serializer serializer;
-    serializer.exportAll(&inputsToMask, dynamic_cast<DOMElement*>(array.getDOMNode()), true);
-
-//     message->writeTo( std::cout ); std::cout << std:: endl;
-
-    xoap::MessageReference reply = appContext_->postSOAP( message, *appDescriptor_, *ruiDescriptor );
-    
-//     reply->writeTo( std::cout ); std::cout << std:: endl;
-
-    // Check if the reply indicates a fault occurred
-    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
-    if(replyBody.hasFault()){
-      LOG4CPLUS_ERROR(logger_, 
-		      "Received fault reply to DDU input mask command from emu::daq::rui::Application instance " 
-		      << ruiInstance << ": " << replyBody.getFault().getFaultString() );
-      stringstream ss58;
-      ss58 <<  
-		      "Received fault reply to DDU input mask command from emu::daq::rui::Application instance " 
-		      << ruiInstance << ": " << replyBody.getFault().getFaultString() ;
-      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss58.str() );
-      this->notifyQualified( "error", eObj );
-    }
-
-  } catch( xdaq::exception::Exception e ){
+    emu::soap::Messenger( this ).sendCommand( ruiDescriptor, commandName, emu::soap::Parameters().add( "DDUInputs", &inputsToMask ) );
+  } catch( xcept::Exception &e ){
     LOG4CPLUS_ERROR(logger_,
 		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
 		    << ": " << xcept::stdformat_exception_history(e) );
     stringstream ss59;
-    ss59 << 
-		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
-		    << ": "  ;
+    ss59 << "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance << ": "  ;
     XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss59.str(), e );
-    this->notifyQualified( "error", eObj );
-  } catch( xoap::exception::Exception e ){
-    LOG4CPLUS_ERROR(logger_,
-		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
-		    << ": " << xcept::stdformat_exception_history(e) );
-    stringstream ss60;
-    ss60 << 
-		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
-		    << ": "  ;
-    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss60.str(), e );
     this->notifyQualified( "error", eObj );
   } catch( ... ){
     LOG4CPLUS_ERROR(logger_,
-		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
-		    << ": Unknown exception." );
+		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance << ": Unknown exception." );
     stringstream ss61;
-    ss61 << 
-		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
-		    << ": Unknown exception." ;
+    ss61 << "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
+	 << ": Unknown exception." ;
     XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss61.str() );
     this->notifyQualified( "error", eObj );
   }
@@ -5741,19 +4269,23 @@ void emu::daq::manager::Application::getMnemonicNames(){
 
   hardwareMnemonics_.clear();
 
+  emu::soap::Messenger m( this );
+
   vector< xdaq::ApplicationDescriptor* >::iterator pos;
   
   for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
     {
       stringstream app;
       int instance = (*pos)->getInstance();
-      app << (*pos)->getClassName() << instance;
+      app << (*pos)->getClassName() << "." << instance;
       try
 	{
-	  hardwareMnemonics_[instance] = getScalarParam(*pos,"hardwareMnemonic","string");
+	  xdata::String hwm;
+	  m.getParameters( *pos, emu::soap::Parameters().add( "hardwareMnemonic", &hwm ) );
+	  hardwareMnemonics_[instance] = hwm.toString();
 	  LOG4CPLUS_DEBUG(logger_,"Got mnemonic name from " + app.str() + ": " + hardwareMnemonics_[instance] );
 	}
-      catch(xcept::Exception e)
+      catch(xcept::Exception &e)
 	{
 	  LOG4CPLUS_ERROR(logger_,
 			  "Failed to get mnemonic name from " << app.str() << ": " 
@@ -5874,7 +4406,7 @@ void emu::daq::manager::Application::writeRunInfo(){
   if ( abortedRun_ ) return;
 
   // If it's not a debug run, it should normally have been booked. Inform the user that it somehow wasn't.
-  if ( !isBookedRunNumber_ ){ 
+  if ( !bool(isBookedRunNumber_) ){ 
     LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
     stringstream ss66;
     ss66 <<  "Nothing written to run database as no run number was booked.";
@@ -5892,7 +4424,7 @@ void emu::daq::manager::Application::writeRunInfo(){
     //
     name      = "run_type";
     value     = runType_.value_;
-    if (  isBookedRunNumber_ ){
+    if (  bool(isBookedRunNumber_) ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -5913,16 +4445,19 @@ void emu::daq::manager::Application::writeRunInfo(){
       }
     }
 
+    emu::soap::Messenger m( this );
+
     //
     // start time
     //
     string runStartTime("UNKNOWN");
     try
       {
-	runStartTime = getScalarParam(taDescriptors_[0],"runStartTime","string");
-	runStartTime = reformatTime( runStartTime );
+	xdata::String startTime;
+	m.getParameters( taDescriptors_[0], emu::soap::Parameters().add( "runStartTime", &startTime ) );
+	runStartTime = reformatTime( startTime.toString() );
       }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
       {
 	LOG4CPLUS_ERROR(logger_,"Failed to get time of run start from TA0: " << 
 			xcept::stdformat_exception_history(e) );
@@ -5933,7 +4468,7 @@ void emu::daq::manager::Application::writeRunInfo(){
       }
     name      = "start_time";
     value     = runStartTime;
-    if (  isBookedRunNumber_ ){
+    if (  bool(isBookedRunNumber_) ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -5960,10 +4495,11 @@ void emu::daq::manager::Application::writeRunInfo(){
     string runStopTime("UNKNOWN");
     try
       {
-	runStopTime = getScalarParam(taDescriptors_[0],"runStopTime","string");
-	runStopTime = reformatTime( runStopTime );
+	xdata::String stopTime;
+	m.getParameters( taDescriptors_[0], emu::soap::Parameters().add( "runStopTime", &stopTime ) );
+	runStopTime = reformatTime( stopTime.toString() );
       }
-    catch(xcept::Exception e)
+    catch(xcept::Exception &e)
       {
 	LOG4CPLUS_ERROR(logger_,"Failed to get time of stopping the run from TA0: " << 
 			xcept::stdformat_exception_history(e) );
@@ -5974,7 +4510,7 @@ void emu::daq::manager::Application::writeRunInfo(){
       }
     name      = "stop_time";
     value     = runStopTime;
-    if (  isBookedRunNumber_ ){
+    if (  bool(isBookedRunNumber_) ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6002,7 +4538,7 @@ void emu::daq::manager::Application::writeRunInfo(){
     getTriggerSources();
     name  = "clock_source";
     value = TTCci_ClockSource_.toString();
-    if (  isBookedRunNumber_ && runInfo_ != NULL ){
+    if (  bool(isBookedRunNumber_) && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6024,7 +4560,7 @@ void emu::daq::manager::Application::writeRunInfo(){
     }
     name  = "orbit_source";
     value = TTCci_OrbitSource_.toString();
-    if (  isBookedRunNumber_ && runInfo_ != NULL ){
+    if (  bool(isBookedRunNumber_) && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6046,7 +4582,7 @@ void emu::daq::manager::Application::writeRunInfo(){
     }
     name  = "trigger_source";
     value = TTCci_TriggerSource_.toString();
-    if (  isBookedRunNumber_ && runInfo_ != NULL ){
+    if (  bool(isBookedRunNumber_) && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6066,7 +4602,7 @@ void emu::daq::manager::Application::writeRunInfo(){
     }
     name  = "BGO_source";
     value = TTCci_BGOSource_.toString();
-    if (  isBookedRunNumber_ && runInfo_ != NULL ){
+    if (  bool(isBookedRunNumber_) && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6095,7 +4631,7 @@ void emu::daq::manager::Application::writeRunInfo(){
       int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
       name      = "built_events";
       value     = counts.at(nFUs)["count"]; // the last element is the sum of all FUs' event counts
-      if (  isBookedRunNumber_ && runInfo_ != NULL ){
+      if (  bool(isBookedRunNumber_) && runInfo_ != NULL ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
 	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6126,7 +4662,7 @@ void emu::daq::manager::Application::writeRunInfo(){
     for ( int rui=0; rui<nRUIs; ++rui ){
       name  = "EmuRUI"+counts.at(rui)["appInst"];
       value = counts.at(rui)["count"];
-      if (  isBookedRunNumber_ && runInfo_ != NULL ){
+      if (  bool(isBookedRunNumber_) && runInfo_ != NULL ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
 	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6212,84 +4748,72 @@ xoap::MessageReference emu::daq::manager::Application::onReset(xoap::MessageRefe
 	return createReply(message);
 }
 
-xoap::MessageReference emu::daq::manager::Application::onQueryDAQState(xoap::MessageReference message)
-  throw (xoap::exception::Exception)
-{
-  xoap::MessageReference      reply = createReply(message);
-
-  xoap::SOAPEnvelope       envelope = reply->getSOAPPart().getEnvelope();
-  xoap::SOAPName            xsiType = envelope.createName("type",
-							  "xsi",
-							  "http://www.w3.org/1999/XMLSchema-instance");
-  xoap::SOAPName       daqStateName = envelope.createName( "daqState" );
-  xoap::SOAPBody               body = envelope.getBody();
-  xoap::SOAPElement daqStateElement = body.addBodyElement( daqStateName );
-  daqStateElement.addAttribute( xsiType, "xsd:string" );
-
-  daqState_ = getDAQState();
-
-  daqStateElement.addTextNode( daqState_.toString() );
-
-  return reply;
-}
 
 xoap::MessageReference emu::daq::manager::Application::onQueryRunSummary(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
   // Create reply message
   xoap::MessageReference reply = xoap::createMessage();
-  xoap::SOAPEnvelope  envelope = reply->getSOAPPart().getEnvelope();
-  xoap::SOAPBody          body = envelope.getBody();
-  xdata::soap::Serializer serializer;
 
-  // Start and end times
-  string runNumber("UNKNOWN");
-  string maxNumEvents("UNKNOWN");
-  string runStartTime("UNKNOWN");
-  string runStopTime("UNKNOWN");
-  getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
-  xdata::String start_time = runStartTime; // xdata can readily be serialized into SOAP...
-  xdata::String stop_time  = runStopTime;
-  xdata::UnsignedLong run_number; run_number.fromString( runNumber );
-  xoap::SOAPName name = envelope.createName("start_time", "xdaq", "urn:xdaq-soap:3.0");
-  xoap::SOAPBodyElement bodyElement = body.addBodyElement( name );
-  serializer.exportAll(&start_time, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
-  name = envelope.createName("stop_time", "xdaq", "urn:xdaq-soap:3.0");
-  bodyElement = body.addBodyElement( name );
-  serializer.exportAll(&stop_time, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
-  name = envelope.createName("run_number", "xdaq", "urn:xdaq-soap:3.0");
-  bodyElement = body.addBodyElement( name );
-  serializer.exportAll(&run_number, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+  try{
+    // Start and end times
+    string runNumber("UNKNOWN");
+    string maxNumEvents("UNKNOWN");
+    string runStartTime("UNKNOWN");
+    string runStopTime("UNKNOWN");
+    getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
+    xdata::String start_time = runStartTime; // xdata can readily be serialized into SOAP...
+    xdata::String stop_time  = runStopTime;
+    xdata::UnsignedLong run_number; run_number.fromString( runNumber );
+
+    // FU event count
+    xdata::UnsignedLong built_events( 0 );
+    vector< map< string,string > > counts = getFUEventCounts();
+    if ( counts.size() > 0 ){
+      int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
+      built_events.fromString( counts.at(nFUs)["count"] ); // the last element is the sum of all FUs' event counts
+    }
+
+    // RUI event counts and instances
+    counts = getRUIEventCounts();
+    int nRUIs = counts.size();
+    xdata::Vector<xdata::UnsignedLong> rui_counts; // xdata can readily be serialized into SOAP...
+    xdata::Vector<xdata::UnsignedLong> rui_instances; // xdata can readily be serialized into SOAP...
+    for( int iRUI=0; iRUI<nRUIs; ++iRUI ){
+      xdata::UnsignedLong c; c.fromString( counts.at(iRUI)["count"]   );
+      xdata::UnsignedLong i; i.fromString( counts.at(iRUI)["appInst"] );
+      rui_counts   .push_back( c );
+      rui_instances.push_back( i );
+    }
+
+    xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+    emu::soap::Messenger( this ).includeParameters( reply,
+						    &body,
+						    emu::soap::Parameters()
+						    .add( "start_time"   , &start_time    )
+						    .add( "stop_time"    , &stop_time     )
+						    .add( "run_number"   , &run_number    )
+						    .add( "built_events" , &built_events  )
+						    .add( "rui_counts"   , &rui_counts    )
+						    .add( "rui_instances", &rui_instances ) );
   
-  // FU event count
-  xdata::String built_events = "0";
-  vector< map< string,string > > counts = getFUEventCounts();
-  if ( counts.size() > 0 ){
-    int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
-    built_events = counts.at(nFUs)["count"]; // the last element is the sum of all FUs' event counts
+  } 
+  catch( xcept::Exception &e ){
+    LOG4CPLUS_ERROR(logger_, "Failed to create run summary: " << xcept::stdformat_exception_history(e) );
+    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, "Failed to create run summary: ", e );
+    this->notifyQualified( "error", eObj );
+    XCEPT_RETHROW(xoap::exception::Exception, "Failed to create run summary: ", e);  
   }
-  name = envelope.createName("built_events", "xdaq", "urn:xdaq-soap:3.0");
-  bodyElement = body.addBodyElement( name );
-  serializer.exportAll(&built_events, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
-  
-  // RUI event counts and instances
-  counts = getRUIEventCounts();
-  int nRUIs = counts.size();
-  xdata::Vector<xdata::String> rui_counts; // xdata can readily be serialized into SOAP...
-  xdata::Vector<xdata::String> rui_instances; // xdata can readily be serialized into SOAP...
-  for( int iRUI=0; iRUI<nRUIs; ++iRUI ){
-    rui_counts.push_back( counts.at(iRUI)["count"] );
-    rui_instances.push_back( counts.at(iRUI)["appInst"] );
+  catch( std::exception &e ){
+    LOG4CPLUS_ERROR(logger_, "Failed to create run summary: " << e.what());
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, string("Failed to create run summary: ") + e.what());
+    this->notifyQualified( "error", eObj );
+    XCEPT_RAISE(xoap::exception::Exception, string("Failed to create run summary: ") + e.what());
   }
-  name = envelope.createName("rui_counts", "xdaq", "urn:xdaq-soap:3.0");
-  bodyElement = body.addBodyElement( name );
-  serializer.exportAll(&rui_counts, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
-  name = envelope.createName("rui_instances", "xdaq", "urn:xdaq-soap:3.0");
-  bodyElement = body.addBodyElement( name );
-  serializer.exportAll(&rui_instances, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
-  
+
   return reply;
 }
+
 
 void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
@@ -6320,7 +4844,7 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
       {
 	configureDAQ();
       }
-    catch(xcept::Exception ex)
+    catch(xcept::Exception &ex)
       {
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to configure EmuDAQ", ex);
@@ -6331,7 +4855,7 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
 	{
 	  controlDQM( "Configure" );
 	}
-      catch(xcept::Exception ex)
+      catch(xcept::Exception &ex)
 	{
 	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 			"Failed to configure the EmuMonitors of DQM", ex);
@@ -6342,7 +4866,7 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
       {
 	getMnemonicNames();
       }
-    catch(xcept::Exception ex)
+    catch(xcept::Exception &ex)
       {
 	LOG4CPLUS_ERROR(logger_, 
 		       "Failed to get mnemonic names from emu::daq::rui::Applications: " 
@@ -6392,7 +4916,7 @@ void emu::daq::manager::Application::enableAction(toolbox::Event::Reference e)
       {
 	startDAQ();
       }
-    catch(xcept::Exception ex)
+    catch(xcept::Exception &ex)
       {
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to enable EmuDAQ", ex);
@@ -6403,7 +4927,7 @@ void emu::daq::manager::Application::enableAction(toolbox::Event::Reference e)
 	{
 	  controlDQM( "Enable" );
 	}
-      catch(xcept::Exception ex)
+      catch(xcept::Exception &ex)
 	{
 	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 			"Failed to enable the EmuMonitors of DQM", ex);
@@ -6429,7 +4953,7 @@ void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
       {
 	stopDAQ();
       }
-    catch(xcept::Exception ex)
+    catch(xcept::Exception &ex)
       {
 	stringstream ss;
 	ss << "Failed to stop EmuDAQ: " << xcept::stdformat_exception_history(ex);
@@ -6457,7 +4981,7 @@ void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
 	{
 	  controlDQM( "Halt" );
 	}
-      catch(xcept::Exception ex)
+      catch(xcept::Exception &ex)
 	{
 	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 			"Failed to halt the EmuMonitors of DQM", ex);
@@ -6475,7 +4999,7 @@ void emu::daq::manager::Application::reConfigureAction(toolbox::Event::Reference
       {
 	stopDAQ();
       }
-    catch(xcept::Exception ex)
+    catch(xcept::Exception &ex)
       {
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to stop EmuDAQ before reconfiguration", ex);
@@ -6487,7 +5011,7 @@ void emu::daq::manager::Application::reConfigureAction(toolbox::Event::Reference
       {
 	configureDAQ();
       }
-    catch(xcept::Exception ex)
+    catch(xcept::Exception &ex)
       {
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to reconfigure EmuDAQ", ex);
@@ -6519,7 +5043,7 @@ void emu::daq::manager::Application::resetAction()
       {
 	resetDAQ();
       }
-    catch(xcept::Exception ex)
+    catch(xcept::Exception &ex)
       {
 	stringstream ss;
 	ss << "Failed to reset EmuDAQ: " << xcept::stdformat_exception_history(ex);
@@ -6537,7 +5061,7 @@ void emu::daq::manager::Application::resetAction()
 	{
 	  controlDQM( "Halt" );
 	}
-      catch(xcept::Exception ex)
+      catch(xcept::Exception &ex)
 	{
 // 	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 // 			"Failed to configure the EmuMonitors of DQM", ex);
