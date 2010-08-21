@@ -405,6 +405,15 @@ namespace emu{
       ///
       /// @return The fault in plain text format.
       ///
+      /// Example:
+      /// \code
+      ///    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
+      ///    if ( replyBody.hasFault() ){
+      ///      xoap::SOAPFault fault = replyBody.getFault();
+      ///      std::cout << emu::soap::Messenger( this ).faultToPlainText( &fault );
+      ///    }
+      /// \endcode
+      ///
       std::string faultToPlainText( xoap::SOAPFault* fault );
 
       /// 
@@ -413,6 +422,15 @@ namespace emu{
       /// @param fault SOAP fault.
       ///
       /// @return An \c xcept::Exception object.
+      ///
+      /// Example:
+      /// \code
+      ///    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
+      ///    if ( replyBody.hasFault() ){
+      ///      xoap::SOAPFault fault = replyBody.getFault();
+      ///      throw emu::soap::Messenger( this ).faultToException( &fault );
+      ///    }
+      /// \endcode
       ///
       xcept::Exception faultToException( xoap::SOAPFault* fault );      
 
@@ -443,15 +461,6 @@ namespace emu{
       /// @return Element of the SOAP fault in plain text format.
       ///
       std::string faultElementToPlainText( xoap::SOAPElement* elem, const int indentDepth );
-
-      /// 
-      /// Recursively converts an element of the SOAP fault and its descendents into a stack of \c xcept::ExceptionInformation . 
-      /// 
-      /// @param elem Element of the SOAP fault.
-      /// @param eStack A stack of \c xcept::ExceptionInformation .
-      /// @param level Level of nestedness of \c elem .
-      ///
-      void faultElementToException( xoap::SOAPElement* elem, std::vector<xcept::ExceptionInformation> &eStack, int level );
 
     public:
       static const emu::soap::Attributes               noAttributes; ///< An empty container of attributes.

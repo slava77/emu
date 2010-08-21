@@ -11,6 +11,8 @@
 #include "xoap/domutils.h"
 #include "xdata/soap/Serializer.h"
 
+#include "xdaq/XceptSerializer.h"
+
 #include <algorithm>
 
 // For emu::soap::Messenger::postSOAP
@@ -579,80 +581,38 @@ emu::soap::Messenger::faultElementToPlainText( xoap::SOAPElement* elem, const in
 
 xcept::Exception
 emu::soap::Messenger::faultToException( xoap::SOAPFault* fault ){
+
   try{
-
-    // First create a stack of exception history out of the nested errors in the SOAP reply
-    std::vector<xcept::ExceptionInformation> history;
-    history.push_back( xcept::ExceptionInformation() );
-    std::vector<xcept::ExceptionInformation>::iterator e = history.begin();
-    e->setProperty( "faultcode" , fault->getFaultCode() );
-    e->setProperty( "identifier", "Fault SOAP reply" );
-    e->setProperty( "module"    , string("SOAP fault code: ")+fault->getFaultCode() );
-    e->setProperty( "message"   , fault->getFaultString() );
     if ( fault->hasDetail() ){
-      if ( fault->getDetail().getChildElements().size() > 0 ) faultElementToException( &fault->getDetail().getChildElements()[0], history, 0 );
+      xcept::Exception ex;
+      xdaq::XceptSerializer::importFrom( fault->getDetail().getDOM(), ex );
+      return ex;
     }
-
-    // Print history for debugging
-    //   int level = 0;
-    //   for ( e=history.begin(); e!=history.end(); ++e ){
-    //     cout << "### Stack level " << level++ << "###  ";
-    //     std::map<std::string, std::string> properties = e->getProperties();
-    //     for ( std::map<std::string, std::string>::iterator p=properties.begin(); p!=properties.end(); ++p ) cout << p->first << ":" << p->second << "  ";
-    //     cout << endl;
-    //   }
-
-    // Reverse history
-    std::vector<xcept::ExceptionInformation> reversedHistory;
-    for ( std::vector<xcept::ExceptionInformation>::reverse_iterator rh = history.rbegin(); rh != history.rend(); ++rh ){
-      reversedHistory.push_back( *rh );
+    else{
+      stringstream ss;
+      ss << "Fault code: " << fault->getFaultCode() << ", message: " << fault->getFaultString();
+      XCEPT_DECLARE( xcept::Exception, ex, ss.str() );
+      return ex;
     }
-    // Create exception and attach reversed history to it
-    xcept::Exception nested;
-    nested.getHistory() = reversedHistory;
-    return nested;
-
   }
   catch( xcept::Exception &e ){
     std::stringstream ss;
-    ss << "Failed to convert SOAPFault to plain text : ";
+    ss << "Failed to convert SOAPFault to xcept::Exception : ";
     XCEPT_RETHROW( xcept::Exception, ss.str(), e );
   }
   catch( std::exception &e ){
     std::stringstream ss;
-    ss << "Failed to convert SOAPFault to plain text : " << e.what();
+    ss << "Failed to convert SOAPFault to xcept::Exception : " << e.what();
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   catch(...){
     std::stringstream ss;
-    ss << "Failed to convert SOAPFault to plain text : Unknown exception.";
+    ss << "Failed to convert SOAPFault to xcept::Exception : Unknown exception.";
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
 
 }
 
-void
-emu::soap::Messenger::faultElementToException( xoap::SOAPElement* elem, 
-					  std::vector<xcept::ExceptionInformation> &history, 
-					  int level ){
-  std::string name  = elem->getElementName().getLocalName();
-  std::string value = elem->getValue();
-  if ( elem->getDOMNode()->hasChildNodes() ){
-    if ( elem->getDOMNode()->getFirstChild()->getNodeType() == DOMNode::TEXT_NODE ){
-      if ( xoap::XMLCh2String( elem->getDOMNode()->getFirstChild()->getNodeValue() ).size() > 0 ){
-	history[level].setProperty( name, value );
-      }
-    }
-    else{
-      std::vector<xoap::SOAPElement> children = elem->getChildElements();
-      // Add to stack a new exception
-      history.push_back( xcept::ExceptionInformation() );
-      for ( std::vector<xoap::SOAPElement>::iterator c=children.begin(); c!=children.end(); ++c ){
-	faultElementToException( &*c, history, level+1 );
-      }
-    }
-  }
-}
 
 xoap::MessageReference
 emu::soap::Messenger::postSOAP( xoap::MessageReference message, 
