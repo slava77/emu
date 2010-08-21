@@ -380,87 +380,174 @@ emu::soap::Messenger::addAttributes( xoap::MessageReference message, xoap::SOAPE
 
 void 
 emu::soap::Messenger::includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, emu::soap::Parameters &parameters ){
-  // Include all requested parameters in parent element
-  string parentNamespaceURI;
-  string parentNamespacePrefix;
-  if ( parameters.getUsePrefix() ){
-    parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
-    parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
-  }
-  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  xdata::soap::Serializer serializer;
-  emu::soap::Parameters::const_iterator p;
-  for ( p=parameters.begin(); p!=parameters.end(); ++p ){
-    xoap::SOAPName    propertyName    = envelope.createName( p->first, parentNamespacePrefix, parentNamespaceURI );
-    xoap::SOAPElement propertyElement = parent->addChildElement( propertyName );
-    serializer.exportAll( p->second.first, dynamic_cast<DOMElement*>( propertyElement.getDOMNode() ), false );
-    if ( p->second.second != NULL ){
-      addAttributes( message, &propertyElement, *p->second.second );
+  try{
+
+    // Include all requested parameters in parent element
+    string parentNamespaceURI;
+    string parentNamespacePrefix;
+    if ( parameters.getUsePrefix() ){
+      parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
+      parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
     }
+    xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+    xdata::soap::Serializer serializer;
+    emu::soap::Parameters::const_iterator p;
+    for ( p=parameters.begin(); p!=parameters.end(); ++p ){
+      xoap::SOAPName    propertyName    = envelope.createName( p->first, parentNamespacePrefix, parentNamespaceURI );
+      xoap::SOAPElement propertyElement = parent->addChildElement( propertyName );
+      serializer.exportAll( p->second.first, dynamic_cast<DOMElement*>( propertyElement.getDOMNode() ), false );
+      if ( p->second.second != NULL ){
+	addAttributes( message, &propertyElement, *p->second.second );
+      }
+    }
+
+  }
+  catch( xcept::Exception &e ){
+    std::stringstream ss;
+    ss << "Failed to include parameters " << parameters
+    << " in message ";
+    XCEPT_RETHROW( xcept::Exception, ss.str(), e );
+  }
+  catch( std::exception &e ){
+    std::stringstream ss;
+    ss << "Failed to include parameters " << parameters
+       << " in message : " << e.what();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch(...){
+    std::stringstream ss;
+    ss << "Failed to include parameters " << parameters
+       << " in message : Unknown exception.";
+    XCEPT_RAISE( xcept::Exception, ss.str() );
   }
 }
 
 void 
 emu::soap::Messenger::includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, const emu::soap::Parameters &parameters ){
-  // Include all requested parameters in parent element
-  string parentNamespaceURI;
-  string parentNamespacePrefix;
-  if ( parameters.getUsePrefix() ){
-    parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
-    parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
-  }
-  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  xdata::soap::Serializer serializer;
-  emu::soap::Parameters::const_iterator p;
-  for ( p=parameters.begin(); p!=parameters.end(); ++p ){
-    xoap::SOAPName    propertyName    = envelope.createName( p->first, parentNamespacePrefix, parentNamespaceURI );
-    xoap::SOAPElement propertyElement = parent->addChildElement( propertyName );
-    serializer.exportAll( p->second.first, dynamic_cast<DOMElement*>( propertyElement.getDOMNode() ), false );
-    if ( p->second.second != NULL ){
-      addAttributes( message, &propertyElement, *p->second.second );
+  try{
+
+    // Include all requested parameters in parent element
+    string parentNamespaceURI;
+    string parentNamespacePrefix;
+    if ( parameters.getUsePrefix() ){
+      parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
+      parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
     }
+    xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+    xdata::soap::Serializer serializer;
+    emu::soap::Parameters::const_iterator p;
+    for ( p=parameters.begin(); p!=parameters.end(); ++p ){
+      xoap::SOAPName    propertyName    = envelope.createName( p->first, parentNamespacePrefix, parentNamespaceURI );
+      xoap::SOAPElement propertyElement = parent->addChildElement( propertyName );
+      serializer.exportAll( p->second.first, dynamic_cast<DOMElement*>( propertyElement.getDOMNode() ), false );
+      if ( p->second.second != NULL ){
+	addAttributes( message, &propertyElement, *p->second.second );
+      }
+    }
+
+  }
+  catch( xcept::Exception &e ){
+    std::stringstream ss;
+    ss << "Failed to include parameters " << parameters
+    << " in message ";
+    XCEPT_RETHROW( xcept::Exception, ss.str(), e );
+  }
+  catch( std::exception &e ){
+    std::stringstream ss;
+    ss << "Failed to include parameters " << parameters
+       << " in message : " << e.what();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch(...){
+    std::stringstream ss;
+    ss << "Failed to include parameters " << parameters
+       << " in message : Unknown exception.";
+    XCEPT_RAISE( xcept::Exception, ss.str() );
   }
 }
 
 void
 emu::soap::Messenger::extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters, const string &parametersNamespaceURI ){
-  // Parse reply and deserialize the requested parameters
-  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
-  xdata::soap::Serializer serializer;
+  try{
 
-  string s;
-  reply->writeTo( s );
-  DOMDocument* doc = parser->parse( s );
-  for ( emu::soap::Parameters::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
-    DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( ( parametersNamespaceURI.size()>0 ? parametersNamespaceURI.c_str(): "*" ) ), 
-					      xoap::XStr( p->first.c_str() ) 
-					      )->item(0);
-    if ( n != NULL ){
-      serializer.import( p->second.first, n );
+    // Parse reply and deserialize the requested parameters
+    xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
+    xdata::soap::Serializer serializer;
+
+    string s;
+    reply->writeTo( s );
+    DOMDocument* doc = parser->parse( s );
+    for ( emu::soap::Parameters::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
+      DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( ( parametersNamespaceURI.size()>0 ? parametersNamespaceURI.c_str(): "*" ) ), 
+						xoap::XStr( p->first.c_str() ) 
+						)->item(0);
+      if ( n != NULL ){
+	serializer.import( p->second.first, n );
+      }
+      else{
+	std::stringstream ss;
+	ss << "Failed to extract parameter '" << p->first << "' from ParameterGetResponse SOAP message ";
+	XCEPT_RAISE( xcept::Exception, ss.str() );
+      }
     }
-    else{
-      std::stringstream ss;
-      ss << "Failed to extract parameter '" << p->first << "' from ParameterGetResponse SOAP message ";
-      XCEPT_RAISE( xcept::Exception, ss.str() );
-    }
+
+    // We're responsible for releasing the memory allocated to DOMDocument
+    doc->release();
+    // Do not destroy parser as other threads may be using it.
+    //xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
+
   }
-
-  // We're responsible for releasing the memory allocated to DOMDocument
-  doc->release();
-  // Do not destroy parser as other threads may be using it.
-  //xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
+  catch( xcept::Exception &e ){
+    std::stringstream ss;
+    ss << "Failed to extract parameters " << parameters
+       << " in namespace " << parametersNamespaceURI;
+    XCEPT_RETHROW( xcept::Exception, ss.str(), e );
+  }
+  catch( std::exception &e ){
+    std::stringstream ss;
+    ss << "Failed to extract parameters " << parameters
+       << " in namespace " << parametersNamespaceURI
+       << ": " << e.what();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch(...){
+    std::stringstream ss;
+    ss << "Failed to extract parameters " << parameters
+       << " in namespace " << parametersNamespaceURI
+       << ": Unknown exception.";
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
 }
 
 std::string 
 emu::soap::Messenger::faultToPlainText( xoap::SOAPFault* fault ){
   std::stringstream ss;
-  ss << std::endl 
-     << "code:      " << fault->getFaultCode() << std::endl
-     << "summary:   " << fault->getFaultString() << std::endl;
-  if ( fault->hasDetail() ){
-    xoap::SOAPElement detail = fault->getDetail();
-    ss << faultElementToPlainText( &detail, 0 );
+
+  try{
+    ss << std::endl 
+       << "code:      " << fault->getFaultCode() << std::endl
+       << "summary:   " << fault->getFaultString() << std::endl;
+    if ( fault->hasDetail() ){
+      xoap::SOAPElement detail = fault->getDetail();
+      ss << faultElementToPlainText( &detail, 0 );
+    }
   }
+  catch( xcept::Exception &e ){
+    std::stringstream ss;
+    ss << "Failed to convert SOAPFault to plain text : ";
+    XCEPT_RETHROW( xcept::Exception, ss.str(), e );
+  }
+  catch( std::exception &e ){
+    std::stringstream ss;
+    ss << "Failed to convert SOAPFault to plain text : " << e.what();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch(...){
+    std::stringstream ss;
+    ss << "Failed to convert SOAPFault to plain text : Unknown exception.";
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+
   return ss.str();
 }
 
@@ -492,36 +579,56 @@ emu::soap::Messenger::faultElementToPlainText( xoap::SOAPElement* elem, const in
 
 xcept::Exception
 emu::soap::Messenger::faultToException( xoap::SOAPFault* fault ){
-  // First create a stack of exception history out of the nested errors in the SOAP reply
-  std::vector<xcept::ExceptionInformation> history;
-  history.push_back( xcept::ExceptionInformation() );
-  std::vector<xcept::ExceptionInformation>::iterator e = history.begin();
-  e->setProperty( "faultcode" , fault->getFaultCode() );
-  e->setProperty( "identifier", "Fault SOAP reply" );
-  e->setProperty( "module"    , string("SOAP fault code: ")+fault->getFaultCode() );
-  e->setProperty( "message"   , fault->getFaultString() );
-  if ( fault->hasDetail() ){
-    if ( fault->getDetail().getChildElements().size() > 0 ) faultElementToException( &fault->getDetail().getChildElements()[0], history, 0 );
+  try{
+
+    // First create a stack of exception history out of the nested errors in the SOAP reply
+    std::vector<xcept::ExceptionInformation> history;
+    history.push_back( xcept::ExceptionInformation() );
+    std::vector<xcept::ExceptionInformation>::iterator e = history.begin();
+    e->setProperty( "faultcode" , fault->getFaultCode() );
+    e->setProperty( "identifier", "Fault SOAP reply" );
+    e->setProperty( "module"    , string("SOAP fault code: ")+fault->getFaultCode() );
+    e->setProperty( "message"   , fault->getFaultString() );
+    if ( fault->hasDetail() ){
+      if ( fault->getDetail().getChildElements().size() > 0 ) faultElementToException( &fault->getDetail().getChildElements()[0], history, 0 );
+    }
+
+    // Print history for debugging
+    //   int level = 0;
+    //   for ( e=history.begin(); e!=history.end(); ++e ){
+    //     cout << "### Stack level " << level++ << "###  ";
+    //     std::map<std::string, std::string> properties = e->getProperties();
+    //     for ( std::map<std::string, std::string>::iterator p=properties.begin(); p!=properties.end(); ++p ) cout << p->first << ":" << p->second << "  ";
+    //     cout << endl;
+    //   }
+
+    // Reverse history
+    std::vector<xcept::ExceptionInformation> reversedHistory;
+    for ( std::vector<xcept::ExceptionInformation>::reverse_iterator rh = history.rbegin(); rh != history.rend(); ++rh ){
+      reversedHistory.push_back( *rh );
+    }
+    // Create exception and attach reversed history to it
+    xcept::Exception nested;
+    nested.getHistory() = reversedHistory;
+    return nested;
+
+  }
+  catch( xcept::Exception &e ){
+    std::stringstream ss;
+    ss << "Failed to convert SOAPFault to plain text : ";
+    XCEPT_RETHROW( xcept::Exception, ss.str(), e );
+  }
+  catch( std::exception &e ){
+    std::stringstream ss;
+    ss << "Failed to convert SOAPFault to plain text : " << e.what();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch(...){
+    std::stringstream ss;
+    ss << "Failed to convert SOAPFault to plain text : Unknown exception.";
+    XCEPT_RAISE( xcept::Exception, ss.str() );
   }
 
-  // Print history for debugging
-  //   int level = 0;
-  //   for ( e=history.begin(); e!=history.end(); ++e ){
-  //     cout << "### Stack level " << level++ << "###  ";
-  //     std::map<std::string, std::string> properties = e->getProperties();
-  //     for ( std::map<std::string, std::string>::iterator p=properties.begin(); p!=properties.end(); ++p ) cout << p->first << ":" << p->second << "  ";
-  //     cout << endl;
-  //   }
-
-  // Reverse history
-  std::vector<xcept::ExceptionInformation> reversedHistory;
-  for ( std::vector<xcept::ExceptionInformation>::reverse_iterator rh = history.rbegin(); rh != history.rend(); ++rh ){
-    reversedHistory.push_back( *rh );
-  }
-  // Create exception and attach reversed history to it
-  xcept::Exception nested;
-  nested.getHistory() = reversedHistory;
-  return nested;
 }
 
 void
