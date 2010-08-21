@@ -368,6 +368,14 @@ namespace emu{
       /// @param parent Parent element to include the parameters in.
       /// @param parameters Parameters to include.
       ///
+      /// Example for including parameters in a message:
+      /// \code
+      ///      xoap::MessageReference reply = xoap::createMessage();
+      ///      xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+      ///      xdata::UnsignedLong built_events = count;
+      ///      emu::soap::Messenger( this ).includeParameters( reply, &body, emu::soap::Parameters().add( "built_events", &built_events ) );
+      /// \endcode
+      ///
       void includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, const emu::soap::Parameters &parameters );
 
       /// 
