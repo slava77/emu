@@ -2,7 +2,6 @@
 #define __emu_supervisor_Application_h__
 
 #include "emu/base/Supervised.h"
-#include "emu/soap/Messenger.h"
 
 #include <string>
 #include <deque>
