@@ -146,7 +146,7 @@ namespace emu{
       void setParameters( const string &className, const unsigned int instance, const emu::soap::Parameters &parameters );
 
       /// 
-      /// Sets the specified parameters in all applications of \c className in the default zone.
+      /// Sets the specified parameters in all applications of \c className in the default zone. If no applications of \c className are found, it will do nothing.
       /// 
       /// @param className Class name of the target application(s).
       /// @param parameters The parameters to set.
@@ -206,9 +206,9 @@ namespace emu{
       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
                                           const std::string &commandNamespaceURI,
                                           const std::string &command, 
-                                          const emu::soap::Parameters &parameters = noParameters,
-                                          const emu::soap::Attributes &attributes = noAttributes,
-                                          const vector<emu::soap::Attachment> &attachments = noAttachments );
+                                          const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
+                                          const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
+                                          const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
 
       ///
       /// Sends a command to the target application given by its class name and instance.
@@ -228,12 +228,12 @@ namespace emu{
       xoap::MessageReference sendCommand( const string &className, const unsigned int instance, 
                                           const std::string &commandNamespaceURI,
                                           const std::string &command, 
-                                          const emu::soap::Parameters &parameters = noParameters,
-                                          const emu::soap::Attributes &attributes = noAttributes,
-                                          const vector<emu::soap::Attachment> &attachments = noAttachments );
+                                          const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
+                                          const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
+                                          const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
 
       ///
-      /// Sends a command to all applications of \c className in the default zone.
+      /// Sends a command to all applications of \c className in the default zone. If no applications of \c className are found, it will do nothing.
       /// 
       /// @param className Class name of the target application(s).
       /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
@@ -247,9 +247,9 @@ namespace emu{
       void sendCommand( const string &className,
                         const std::string &commandNamespaceURI,
                         const std::string &command, 
-                        const emu::soap::Parameters &parameters = noParameters,
-                        const emu::soap::Attributes &attributes = noAttributes,
-                        const vector<emu::soap::Attachment> &attachments = noAttachments );
+                        const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
+                        const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
+                        const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
 
 
 
@@ -293,9 +293,9 @@ namespace emu{
       ///
       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
                                           const std::string &command, 
-                                          const emu::soap::Parameters &parameters = noParameters,
-                                          const emu::soap::Attributes &attributes = noAttributes,
-                                          const vector<emu::soap::Attachment> &attachments = noAttachments );
+                                          const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
+                                          const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
+                                          const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
 
       ///
       /// Sends a command to the target application given by its class name and instance.
@@ -313,12 +313,12 @@ namespace emu{
       ///
       xoap::MessageReference sendCommand( const string &className, const unsigned int instance, 
                                           const std::string &command, 
-                                          const emu::soap::Parameters &parameters = noParameters,
-                                          const emu::soap::Attributes &attributes = noAttributes,
-                                          const vector<emu::soap::Attachment> &attachments = noAttachments );
+                                          const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
+                                          const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
+                                          const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
 
       ///
-      /// Sends a command to all applications of \c className in the default zone.
+      /// Sends a command to all applications of \c className in the default zone. If no applications of \c className are found, it will do nothing.
       /// 
       /// @param className Class name of the target application(s).
       /// @param command Command.
@@ -330,109 +330,10 @@ namespace emu{
       ///
       void sendCommand( const string &className,
                         const std::string &command, 
-                        const emu::soap::Parameters &parameters = noParameters,
-                        const emu::soap::Attributes &attributes = noAttributes,
-                        const vector<emu::soap::Attachment> &attachments = noAttachments );
+                        const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
+                        const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
+                        const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
 
-
-      /// 
-      /// Adds attachments to a SOAP message.
-      /// 
-      /// @param message SOAP message reference.
-      /// @param attachments Attachments to add.
-      ///
-      void addAttachments( xoap::MessageReference message, const vector<emu::soap::Attachment> &attachments );
-
-      /// 
-      /// Adds attributes to an element in a SOAP message.
-      /// 
-      /// @param message SOAP message reference.
-      /// @param element Element to add the attributes to.
-      /// @param attributes Attributes to add.
-      ///
-      void addAttributes( xoap::MessageReference message, xoap::SOAPElement* element, const emu::soap::Attributes &attributes );
-
-      /// 
-      /// Include parameters as child elements in a parent element.
-      /// 
-      /// @param message SOAP message reference.
-      /// @param parent Parent element to include the parameters in.
-      /// @param parameters Parameters to include.
-      ///
-      void includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, emu::soap::Parameters &parameters );
-
-      /// 
-      /// Include parameters as child elements in a parent element.
-      /// 
-      /// @param message SOAP message reference.
-      /// @param parent Parent element to include the parameters in.
-      /// @param parameters Parameters to include.
-      ///
-      /// Example for including parameters in a message:
-      /// \code
-      ///      xoap::MessageReference reply = xoap::createMessage();
-      ///      xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
-      ///      xdata::UnsignedLong built_events = count;
-      ///      emu::soap::Messenger( this ).includeParameters( reply, &body, emu::soap::Parameters().add( "built_events", &built_events ) );
-      /// \endcode
-      ///
-      void includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, const emu::soap::Parameters &parameters );
-
-      /// 
-      /// Parses a SOAP reply to extract the specified parameters.
-      /// 
-      /// @param reply SOAP message reference.
-      /// @param parameters Parameters to extract.
-      /// @param parametersNamespaceURI Parameters' namespace URI (empty by default, in which case any namespace will match).
-      /// 
-      /// Example for sending a command and extracting parameters from the reply:
-      /// \code
-      ///       xdata::String                start_time;
-      ///       xdata::String                stop_time;
-      ///       xdata::Vector<xdata::String> rui_counts;
-      ///       m.extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ),
-      ///                            emu::soap::Parameters().add( "start_time", &start_time ) 
-      ///                                                   .add( "stop_time" , &stop_time  ) 
-      ///                                                   .add( "rui_counts", &rui_counts ) );
-      /// \endcode
-      ///
-      void extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters, const string &parametersNamespaceURI="" );
-
-      /// 
-      /// Converts a SOAP fault reply to plain text.
-      /// 
-      /// @param fault SOAP fault.
-      ///
-      /// @return The fault in plain text format.
-      ///
-      /// Example:
-      /// \code
-      ///    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
-      ///    if ( replyBody.hasFault() ){
-      ///      xoap::SOAPFault fault = replyBody.getFault();
-      ///      std::cout << emu::soap::Messenger( this ).faultToPlainText( &fault );
-      ///    }
-      /// \endcode
-      ///
-      std::string faultToPlainText( xoap::SOAPFault* fault );
-
-      /// 
-      /// Converts a SOAP fault reply to an \c xcept::Exception object that XDAQ applications are supposed to throw.
-      /// 
-      /// @param fault SOAP fault.
-      ///
-      /// @return An \c xcept::Exception object.
-      ///
-      /// Example:
-      /// \code
-      ///    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
-      ///    if ( replyBody.hasFault() ){
-      ///      xoap::SOAPFault fault = replyBody.getFault();
-      ///      throw emu::soap::Messenger( this ).faultToException( &fault );
-      ///    }
-      /// \endcode
-      ///
-      xcept::Exception faultToException( xoap::SOAPFault* fault );      
 
       /// 
       /// Sends a SOAP message to a target specified by its URL.
@@ -462,10 +363,6 @@ namespace emu{
       ///
       std::string faultElementToPlainText( xoap::SOAPElement* elem, const int indentDepth );
 
-    public:
-      static const emu::soap::Attributes               noAttributes; ///< An empty container of attributes.
-      static const emu::soap::Parameters               noParameters; ///< An empty container of parameters.
-      static const std::vector<emu::soap::Attachment> noAttachments; ///< An empty container of attachments.
     private:
       xdaq::Application *application_; ///< Pointer to the parent XDAQ application.
     };

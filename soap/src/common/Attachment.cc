@@ -1,5 +1,7 @@
 #include "emu/soap/Attachment.h"
 
+const std::vector<emu::soap::Attachment> emu::soap::Attachment::none = std::vector<emu::soap::Attachment>();
+
 using namespace std;
 
 emu::soap::Attachment::Attachment() :

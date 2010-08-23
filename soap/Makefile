@@ -23,6 +23,7 @@ Sources = \
 	Attributes.cc \
 	Parameters.cc \
         Messenger.cc \
+        ToolBox.cc \
 	version.cc
 
 IncludeDirs = \
