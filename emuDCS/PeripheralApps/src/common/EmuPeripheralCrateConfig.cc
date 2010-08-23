@@ -19,7 +19,6 @@ const std::string       CFEB_VERIFY_FILENAME = "cfeb/cfeb_verify.svf";
 const std::string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
 const std::string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
 const std::string       VMECC_FIRMWARE_DIR = "vcc"; 
-//const std::string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
@@ -157,6 +156,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
       dmb_vme_firmware_ok[i][j] = -1;
       dmb_control_firmware_ok[i][j] = -1;
       dmbcfg_ok[i][j]  = -1;
+      dmb_config_ok[i][j]  = -1;
       alctcfg_ok[i][j]  = -1;
       alct_lvmb_current_ok[i][j]  = -1;
       alct_adc_current_ok[i][j]  = -1;
@@ -203,6 +203,10 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesConfigurationFull, "CheckCratesConfigurationFull");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
+  //
+  //---------------------------------
+  // bind check firmware
+  //---------------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::PowerOnFixCFEB, "PowerOnFixCFEB");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckFirmware, "CheckFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::FixCFEB, "FixCFEB");
@@ -2497,6 +2501,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       dmb_vme_firmware_ok[i][j] = 0;
       dmb_control_firmware_ok[i][j] = 0;
       dmbcfg_ok[i][j]  = 0;
+      dmb_config_ok[i][j]  = 0;
       alctcfg_ok[i][j]  = 0;
       tmbcfg_ok[i][j]  = 0;
       alct_lvmb_current_ok[i][j]  = 0;
@@ -2582,11 +2587,20 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	    cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] += (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
 	  }
 	  //
-	  // check if the configuration of the CFEBs are OK...
-	  thisDMB->CheckCFEBsConfiguration();
+	  // check if the configuration of the CFEBs and DMBs are OK...
+	  // in particular, check if the "smoking gun" for firmware loss is OK...
+	  //
+	  thisDMB->checkDAQMBXMLValues();   //this has the CFEB check implicit in it
+	  //
+	  // greg, put in cfeb firmware version check in CFEB config check
+	  // greg, split up CFEBs in config check
+	  if ( thisDMB->GetDAQMBSmokingGunIsOK() ) {
+	    dmb_config_ok[current_crate_][chamber_index]++;
+	  }
+	  //
 	  for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
 	    int calling_index = cfeb_index+1;
-	    if ( thisDMB->GetSmokingGunIsOK(calling_index) )  {   // in particular, check if the "smoking gun" for firmware loss is OK...
+	    if ( thisDMB->GetSmokingGunIsOK(calling_index) )  {   
 	      cfeb_config_ok[current_crate_][chamber_index][cfeb_index]++;
 	    }
 	    //	    std::cout << "smoking gun CFEB " << calling_index << " = " << cfeb_config_ok[current_crate_][chamber_index][cfeb_index];
@@ -2753,7 +2767,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       }
       //
       if (
-	  tmbcfg_ok[crate_index][chamber_index]       != number_of_checks_ || 
+	  //tmbcfg_ok[crate_index][chamber_index]       != number_of_checks_ || 
 	  tmb_firmware_ok[crate_index][chamber_index] != number_of_checks_  
 	  ) {
 	crate_to_reload.push_back(crate_index);
@@ -2798,27 +2812,31 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	loaded_ok.push_back(-1);
       }
       //  
-      // The following will always check ME1/3, because the dmbcfg check will never pass for ME1/3, see above
-      if (dmbcfg_ok[crate_index][chamber_index] != number_of_checks_ ) {
+      if (
+	  //dmb_control_firmware_ok[crate_index][chamber_index] < number_of_checks_ ||
+	  dmb_config_ok[crate_index][chamber_index]   < number_of_checks_ 
+	  ) {
+	crate_to_reload.push_back(crate_index);
+	slot_to_reload.push_back(dslot);
+	component_to_reload.push_back(DMB_CONTROL_LABEL);
 	//
-	if (dmb_control_firmware_ok[crate_index][chamber_index] < number_of_checks_ ) {
-	  crate_to_reload.push_back(crate_index);
-	  slot_to_reload.push_back(dslot);
-	  component_to_reload.push_back(DMB_CONTROL_LABEL);
-	  //
-	  std::ostringstream problem_label;
-	  problem_label << "DMB Control"; 
-	  component_string.push_back(problem_label.str());
-	  //
-	  std::ostringstream reason;
-	  if (dmb_control_firmware_ok[crate_index][chamber_index]     < number_of_checks_ ) {
-	    int number_of_bad_readings = number_of_checks_ - dmb_control_firmware_ok[crate_index][chamber_index];
-	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
-	  }
-	  //
-	  reason_for_reload.push_back(reason.str());
-	  loaded_ok.push_back(-1);
+	std::ostringstream problem_label;
+	problem_label << "DMB Control FPGA"; 
+	component_string.push_back(problem_label.str());
+	//
+	std::ostringstream reason;
+	//	if (dmb_control_firmware_ok[crate_index][chamber_index]     < number_of_checks_ ) {
+	//	  int number_of_bad_readings = number_of_checks_ - dmb_control_firmware_ok[crate_index][chamber_index];
+	//	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
+	//	}
+	//
+	if (dmb_config_ok[crate_index][chamber_index] < number_of_checks_ ) {
+	  int number_of_bad_readings = number_of_checks_ - dmb_config_ok[crate_index][chamber_index];
+	  reason << "Config bits wrong, " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
+	//
+	reason_for_reload.push_back(reason.str());
+	loaded_ok.push_back(-1);
       }
       //
       for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
@@ -2951,6 +2969,11 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
   //
   MyHeader(in,out,"Check System Firmware");
   //
+  std::string GoToMainPage = toolbox::toString("/%s/MainPage",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",GoToMainPage) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Go back to Yellow Page").set("style","color:black") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  //
   char buf[200];
   //
   //  *out << cgicc::br();
@@ -2970,10 +2993,35 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
   //    *out << cgicc::br();
   //  }
   //
+  *out << cgicc::br();
+  //
+  *out << cgicc::table().set("border","2");
+  //
+  *out << cgicc::tr();
+  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::b(" --> DO NOT CHECK FIRMWARE DURING A GLOBAL RUN <-- ").set("style","color:red");
+  *out << cgicc::td() << std::endl;
+  *out << cgicc::tr() << std::endl;
+  //
+  *out << cgicc::tr();
+  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::b(" --> STOP XMAS MONITORING BEFORE FIRMWARE CHECK <-- ").set("style","color:blue");
+  *out << cgicc::td() << std::endl;
+  *out << cgicc::tr() << std::endl;
+  //
+  *out << cgicc::tr();
+  *out << cgicc::td().set("ALIGN","center");
   std::string CheckFirmware = toolbox::toString("/%s/CheckFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckFirmware) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Check firmware in CFEBs and ALCTs").set("style","color:black") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check firmware in DMBs, CFEBs and ALCTs").set("style","color:black") << std::endl ;
   *out << cgicc::form() << std::endl ;
+  *out << cgicc::td() << std::endl;
+  *out << cgicc::tr() << std::endl;
+  //
+  *out << cgicc::table();
+  //
+  //
+  *out << cgicc::br();
   //
   int initial_crate = current_crate_;
   //
@@ -3025,7 +3073,8 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
       //
       if (thisChamber->GetExpectedConfigProblemTMB()   && problem_component == TMB_LABEL         ) known_problem = true;
       if (thisChamber->GetExpectedConfigProblemALCT()  && problem_component == ALCT_LABEL        ) known_problem = true;
-      if (thisChamber->GetExpectedConfigProblemDMB()   && problem_component == DMB_CONTROL_LABEL ) known_problem = true;
+      if (thisChamber->GetExpectedConfigProblemDMB()   &&(problem_component == DMB_CONTROL_LABEL||
+							  problem_component == DMB_VME_LABEL)    ) known_problem = true;
       if (thisChamber->GetExpectedConfigProblemCFEB1() && problem_component == CFEB_LABEL[0]     ) known_problem = true;
       if (thisChamber->GetExpectedConfigProblemCFEB2() && problem_component == CFEB_LABEL[1]     ) known_problem = true;
       if (thisChamber->GetExpectedConfigProblemCFEB3() && problem_component == CFEB_LABEL[2]     ) known_problem = true;
@@ -3215,9 +3264,48 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
       //
     } else if (problem_component == DMB_VME_LABEL) {
       //
+      DAQMB * thisDMB = dmbVector[chamber_index];
+      std::cout << "DMB Load VME Firmware in slot " << thisDMB->slot() << std::endl;
+      //
+      if (thisDMB && thisDMB->slot()!=25) {
+	//
+	thisCCB->hardReset();
+	//
+	std::string crate=thisCrate->GetLabel();
+	int slot=thisDMB->slot();
+	int dmbID=brddb->CrateToDMBID(crate,slot);
+	//
+	unsigned short int dword[2];	
+	dword[0]=dmbID&0x03ff;
+	dword[1]=0xDB00;
+	std::cout<<" The DMB number is set to: " << dword[0] << " from database lookup: " << dmbID << std::endl;
+	char * outp=(char *)dword;
+	//  
+	thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
+	//
+	::sleep(1);
+	thisCCB->hardReset(); //disable this when testing the random_trigger
+      }
+      loaded_ok[problem_index] = 0;
       //
     } else if (problem_component == DMB_CONTROL_LABEL) {
       //
+      DAQMB * thisDMB = dmbVector[chamber_index];
+      std::cout << "DMB Load Control FPGA Firmware in slot " << thisDMB->slot() << std::endl;
+      //
+      if (thisDMB && thisDMB->slot()!=25) {
+	//
+	thisCCB->hardReset();
+	//
+	unsigned short int dword[2];
+	dword[0]=0;
+	char *outp=(char *)dword;
+	thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
+	//
+	::sleep(5);
+	thisCCB->hardReset();
+      }
+      loaded_ok[problem_index] = 0;
       //
     } else if (problem_component == CFEB_LABEL[0] ||
 	       problem_component == CFEB_LABEL[1] ||

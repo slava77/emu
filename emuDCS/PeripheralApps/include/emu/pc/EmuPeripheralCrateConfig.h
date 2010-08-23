@@ -573,6 +573,7 @@ private:
   int tmb_firmware_ok[60][9];
   int dmb_vme_firmware_ok[60][9];
   int dmb_control_firmware_ok[60][9];
+  int dmb_config_ok[60][9];
   int cfeb_firmware_ok[60][9][5];
   int cfeb_config_ok[60][9][5];
   //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.7 2010/03/03 20:33:19 liu Exp $
+// $Id: DAQMB.h,v 1.8 2010/08/23 11:24:25 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.8  2010/08/23 11:24:25  rakness
+// add DMB Control and FPGA firmware check
+//
 // Revision 1.7  2010/03/03 20:33:19  liu
 // adjust CFEB calib timing by Stan
 //
@@ -560,6 +563,7 @@ public:
   void configure() ;
   bool checkDAQMBXMLValues();
   inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
+  inline bool GetDAQMBSmokingGunIsOK() { return dmb_smoking_gun_status_; }
   //
   ///Check the configuration of the CFEBs vs. the database...
   void CheckCFEBsConfiguration(bool print_errors);
@@ -723,6 +727,7 @@ public:
   //
   bool cfeb_config_status_[5];
   bool smoking_gun_status_[5];
+  bool dmb_smoking_gun_status_;
   //
   int failed_checkvme_;
   int power_mask_;
