@@ -48,6 +48,8 @@
 #include "emu/supervisor/exception/Exception.h"
 #include "emu/supervisor/alarm/Alarm.h"
 #include "emu/base/Alarm.h"
+#include "emu/soap/ToolBox.h"
+#include "emu/soap/Messenger.h"
 
 using namespace std;
 using namespace cgicc;
@@ -720,7 +722,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     m.sendCommand( "emu::pc::EmuPeripheralCrateManager", calib_params_[index].bag.command_ );
 
     xdata::String attributeValue( "Start" );
-    m.sendCommand( "LTCControl", "Cyclic", emu::soap::Messenger::noParameters, emu::soap::Attributes().add( "Param", &attributeValue ) );
+    m.sendCommand( "LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
     sendCalibrationStatus( iRun, nRuns, step_counter_, calib_params_[index].bag.loop_ );
 
     sleep( calib_params_[index].bag.delay_ );
@@ -985,7 +987,7 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
       m.sendCommand( "LTCControl", "Enable" );
     }
     xdata::String attributeValue( "Stop" );
-    m.sendCommand( "LTCControl", "Cyclic", emu::soap::Messenger::noParameters, emu::soap::Attributes().add( "Param", &attributeValue ) );
+    m.sendCommand( "LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
 
     // Enable TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
@@ -1335,18 +1337,18 @@ std::string emu::supervisor::Application::OpGetStateCell(){
 
   try{
     xdata::String state;
-    m.extractParameters( m.sendCommand( tf_descr_, "OpGetState", "urn:ts-soap:3.0", 
-					emu::soap::Parameters()
-					.add( "operation", &TFCellOpName_ ),
-					emu::soap::Attributes()
-					.setUsePrefix( false )
-					.add( "async", &async )
-					.add( "cid"  , &cid   )
-					.add( "sid"  , &sid   )
-					),
-			 emu::soap::Parameters().add( "payload", &state ),
-			 "urn:ts-soap:3.0"
-			 );
+    emu::soap::extractParameters( m.sendCommand( tf_descr_, "OpGetState", "urn:ts-soap:3.0", 
+						 emu::soap::Parameters()
+						 .add( "operation", &TFCellOpName_ ),
+						 emu::soap::Attributes()
+						 .setUsePrefix( false )
+						 .add( "async", &async )
+						 .add( "cid"  , &cid   )
+						 .add( "sid"  , &sid   )
+						 ),
+				  emu::soap::Parameters().add( "payload", &state ),
+				  "urn:ts-soap:3.0"
+				  );
     return ( state == "" ? "UNKNOWN" : state );
   } 
   catch( xcept::Exception& e ){
@@ -1971,13 +1973,13 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     xdata::Vector<xdata::String> rui_instances;
 
     try{
-      m.extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ),
-			   emu::soap::Parameters()                  
-			   .add( "start_time"   , &start_time     ) 
-			   .add( "stop_time"    , &stop_time      ) 
-			   .add( "built_events" , &built_events   ) 
-			   .add( "rui_counts"   , &rui_counts     ) 
-			   .add( "rui_instances", &rui_instances  ) );
+      emu::soap::extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ),
+				    emu::soap::Parameters()                  
+				    .add( "start_time"   , &start_time     ) 
+				    .add( "stop_time"    , &stop_time      ) 
+				    .add( "built_events" , &built_events   ) 
+				    .add( "rui_counts"   , &rui_counts     ) 
+				    .add( "rui_instances", &rui_instances  ) );
     }
     catch( xcept::Exception e ){
       LOG4CPLUS_WARN( logger_, "Run summary unknown: " << xcept::stdformat_exception_history(e) );

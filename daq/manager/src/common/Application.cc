@@ -20,6 +20,7 @@
 #include "emu/base/ApplicationStatusFact.h"
 #include "emu/daq/manager/FactTypes.h"
 
+#include "emu/soap/ToolBox.h"
 #include "emu/soap/Messenger.h"
 
 #include <math.h>
@@ -3979,15 +3980,15 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
     xdata::Vector<xdata::Boolean>      liveInputs;
 
     try{
-      m.extractParameters( m.sendCommand( *rui, "STEPQuery" ),
-			   emu::soap::Parameters()
-			   .add( "PersistentDDUError", &persistentDDUError )
-			   .add( "EventsRead"        , &eventsRead         )
-			   .add( "TotalCount"        , &totalCount         )
-			   .add( "LowestCount"       , &lowestCount        )
-			   .add( "Counts"            , &counts             )
-			   .add( "Masks"             , &masks              )
-			   .add( "LiveInputs"        , &liveInputs         ) );
+      emu::soap::extractParameters( m.sendCommand( *rui, "STEPQuery" ),
+				    emu::soap::Parameters()
+				    .add( "PersistentDDUError", &persistentDDUError )
+				    .add( "EventsRead"        , &eventsRead         )
+				    .add( "TotalCount"        , &totalCount         )
+				    .add( "LowestCount"       , &lowestCount        )
+				    .add( "Counts"            , &counts             )
+				    .add( "Masks"             , &masks              )
+				    .add( "LiveInputs"        , &liveInputs         ) );
 
       isFinished &= ( (int) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
     } catch( emu::daq::manager::exception::Exception e ){
@@ -4117,8 +4118,8 @@ bool emu::daq::manager::Application::isSTEPFinished(){
     xdata::UnsignedLong lowestCount = 0;
 
     try{
-      m.extractParameters( m.sendCommand( *pos, "STEPQuery" ),
-			   emu::soap::Parameters().add( "LowestCount", &lowestCount ) );
+      emu::soap::extractParameters( m.sendCommand( *pos, "STEPQuery" ),
+				    emu::soap::Parameters().add( "LowestCount", &lowestCount ) );
     } catch( emu::daq::manager::exception::Exception e ){
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
 		      << (*pos)->getClassName() << (*pos)->getInstance() 
@@ -4787,16 +4788,16 @@ xoap::MessageReference emu::daq::manager::Application::onQueryRunSummary(xoap::M
     }
 
     xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
-    emu::soap::Messenger( this ).includeParameters( reply,
-						    &body,
-						    emu::soap::Parameters()
-						    .add( "start_time"   , &start_time    )
-						    .add( "stop_time"    , &stop_time     )
-						    .add( "run_number"   , &run_number    )
-						    .add( "built_events" , &built_events  )
-						    .add( "rui_counts"   , &rui_counts    )
-						    .add( "rui_instances", &rui_instances ) );
-  
+    emu::soap::includeParameters( reply,
+				  &body,
+				  emu::soap::Parameters()
+				  .add( "start_time"   , &start_time    )
+				  .add( "stop_time"    , &stop_time     )
+				  .add( "run_number"   , &run_number    )
+				  .add( "built_events" , &built_events  )
+				  .add( "rui_counts"   , &rui_counts    )
+				  .add( "rui_instances", &rui_instances ) );
+    
   } 
   catch( xcept::Exception &e ){
     LOG4CPLUS_ERROR(logger_, "Failed to create run summary: " << xcept::stdformat_exception_history(e) );
