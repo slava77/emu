@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.64 2010/03/03 20:33:19 liu Exp $
+// $Id: DAQMB.cc,v 3.65 2010/08/23 11:24:25 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.65  2010/08/23 11:24:25  rakness
+// add DMB Control and FPGA firmware check
+//
 // Revision 3.64  2010/03/03 20:33:19  liu
 // adjust CFEB calib timing by Stan
 //
@@ -486,6 +489,7 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
     cfeb_config_status_[cfeb] = false;
     smoking_gun_status_[cfeb] = false;
   }
+  dmb_smoking_gun_status_ = false;
   //
   theChamber->SetDMB(this);
   //
@@ -758,113 +762,12 @@ bool DAQMB::checkDAQMBXMLValues() {
     //
     calctrl_fifomrst();
     //
-    // move the following lines to CheckCFEBsConfiguration();
-    // *** This part is for Buck_Flash (Parallel Memory) *****
-    //    int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
-    //
-    // cfebs_readstatus();
-    //
-    //check the comp_timing, comp_mode, Pre_block_end and Extr_l1A latency setting
-    //get the initial value first:
-    //    killinput_=GetKillInput();
-    //    cfeb_clk_delay_=GetCfebClkDelay();
-    //    xfinelatency_=GetxFineLatency();
-    //    xlatency_=GetxLatency();
-    //
-    /*
-      for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-      for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
-      std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
-      if ((((febstat_[lfeb][2])&0x1f)!=comp_mode_bits) ||
-      ((((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3))!=pre_block_end_)||
-      (((febstat_[lfeb][3]>>1)&0x03)!=xlatency_)){
-      cfebmatch=false;
-      std::cout << " *** FAILED Buck_Flash check " << std::endl;
-      std::cout << "comp_mode_bits old " << hex << (febstat_[lfeb][2]&0x1f) <<" new " << comp_mode_bits << dec << std::endl;
-      std::cout << " pre_block_end old " << (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3)) << " new " << pre_block_end_ << std::endl;
-      std::cout << " xlatency old " << ((febstat_[lfeb][3]>>1)&0x03) << " new " << xlatency_ << std::endl;
-      }
-      }
-    */
     // Check what the CFEB configuration status is...
     CheckCFEBsConfiguration(print_errors);
     for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
       int cfeb_index = lfeb + 1;
       cfebmatch &= GetCFEBConfigIsOK(cfeb_index);
     }
-    //
-    /* move the following to CheckCFEBsConfiguration();
-    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-      //
-      //    for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
-      //    std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
-      //
-      int comp_mode_bits_old = febstat_[lfeb][2]&0x1f;
-      int pre_block_end_old  = (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3));
-      int xlatency_old       = ((febstat_[lfeb][3]>>1)&0x03);
-      //    
-      std::ostringstream tested_value1;
-      tested_value1 << "CFEB " << (lfeb+1) << " comp_mode_bits";
-      cfebmatch &= compareValues(tested_value1.str(), comp_mode_bits_old, comp_mode_bits, print_errors);
-      //
-      std::ostringstream tested_value2;
-      tested_value2 << "CFEB " << (lfeb+1) << " pre_block_end";
-      cfebmatch &= compareValues(tested_value2.str(), pre_block_end_old, pre_block_end_, print_errors);
-      //
-      std::ostringstream tested_value3;
-      tested_value3 << "CFEB " << (lfeb+1) << " xlatency";
-      cfebmatch &= compareValues(tested_value3.str(), xlatency_old, xlatency_, print_errors);
-      //
-    }
-    //
-    //
-    //check the comp_dac setting...
-    //
-    // The reference threshold (3.590V) is the most uncertain number.  
-    // Therefore, we set a threshold on this comparison to check for gross errors
-    //
-    const float comparison_threshold = 100;
-    //
-    float compthresh[5];
-    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)  compthresh[lfeb]=adcplus(2,lfeb);
-    //
-    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-      //
-      //as the monitor show that CFEB +5V is only 4.9V, the 3550 is used instead of 3590
-      float read_threshold_in_mV = (3550. - compthresh[lfeb]);
-      float set_threshold_in_mV  = (set_comp_thresh_ * 1000.);
-      //
-      std::ostringstream tested_value;
-      tested_value << "CFEB " << (lfeb+1) << " set_comp_thresh";
-      cfebmatch &= compareValues(tested_value.str(),read_threshold_in_mV,set_threshold_in_mV,comparison_threshold, print_errors);
-    }
-    */
-    //
-    /*
-      int secondread=0;
-      SECONDREAD:
-      float compthresh[5];
-      for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
-      int ibad=0;
-      for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-      //as the monitor show that CFEB +5 is only 4.9V, the 3550 is used instead of 3590
-      int read_threshold_in_mV = (int) (3550. - compthresh[lfeb]);
-      int set_threshold_in_mV  = (int) (set_comp_thresh_ * 1000.);
-      std::cout << "****************** [read,set] thresh (mV) = [" << read_threshold_in_mV << "," << set_threshold_in_mV << "]" 
-      << std::endl;
-      if( abs(read_threshold_in_mV - set_threshold_in_mV) > comparison_threshold ) ibad=ibad+1;
-      }
-      //
-      if(ibad>0){
-      std::cout << " *** FAILED Comparator Threshold check " << std::endl; 
-      cfebmatch=false;
-      if(secondread==0){
-      //        calctrl_global();
-      secondread=1;
-      goto SECONDREAD;
-      }
-      }
-    */ // finished moving the following to CheckCFEBsConfiguration();
     //
     //
     // ***  This part is related to the SFM (Serial Flash Memory) ****
@@ -882,32 +785,47 @@ bool DAQMB::checkDAQMBXMLValues() {
     //
     char dmbstatus[11];
     dmb_readstatus(dmbstatus);
+    //
     //check the DMB setting with the current setup
-    /*
-      if ((CableDelay_!=cable_delay_)||
-      (CrateID_!=crate_id_)||
-      (CfebClkDelay_!=cfeb_clk_delay_)||
-      (XLatency_!=xlatency_)||
-      (KillInput_!=killinput_)||
-      (XFineLatency_!=xfinelatency_) ){
-      cfebmatch=false;
-      std::cout << "*** FAILED SFM flash check " << std::endl;
-      std::cout << " CableDelay old " << CableDelay_ << " new " << cable_delay_ <<std::endl;
-      std::cout << " CrateID old " << CrateID_ << " new " << crate_id_ << std::endl;
-      std::cout << " CFEBClkDelay old " << CfebClkDelay_ << " new " << cfeb_clk_delay_ << std::endl;
-      std::cout << " xlatency old " << XLatency_ << " new " << xlatency_ << std::endl;
-      std::cout << " xfinelatency old " << XFineLatency_ << " new " << xfinelatency_ << std::endl;
-      std::cout << " killinput old " << KillInput_ << " new " << killinput_ << std::endl;
-      }
-    */
     cfebmatch &= compareValues("DAQMB CableDelays"    ,CableDelay_  ,cable_delay_   ,print_errors);
     cfebmatch &= compareValues("DAQMB CrateID"        ,CrateID_     ,crate_id_      ,print_errors);
     cfebmatch &= compareValues("DAQMB feb_clock_delay",CfebClkDelay_,cfeb_clk_delay_,print_errors);
-    //    cfebmatch &= compareValues("DAQMB xLatency"       ,XLatency_    ,xlatency_      ,print_errors);
     cfebmatch &= compareValues("DAQMB xFineLatency"   ,XFineLatency_,xfinelatency_  ,print_errors);
     cfebmatch &= compareValues("DAQMB kill_input"     ,KillInput_   ,killinput_     ,print_errors);
     cfebmatch &= CheckVMEFirmwareVersion();
     cfebmatch &= CheckControlFirmwareVersion();
+    //
+    // Check to see if all the configuration parameters are set high...  
+    // This is a "smoking gun" that the firmware needs to be reloaded on this DMB...
+    dmb_smoking_gun_status_ = true;
+    //
+    if (compareValues("DAQMB CableDelays" , CableDelay_  , 0x0, false) &&
+	compareValues("DAQMB CrateID"     , CrateID_     , 0x0, false) &&
+	compareValues("DAQMB xFineLatency", XFineLatency_, 0x0, false) &&
+	compareValues("DAQMB kill_input"  , KillInput_   , 0x0, false) ) {
+      //
+      dmb_smoking_gun_status_ = false; 
+      //std::cout << "DAQMB ... Gun is smoking...." << std::endl;
+      //
+      // Nullify this check if the values are, in fact, **intentionally** set low...
+      if ( cable_delay_ == 0x0 && crate_id_ == 0x0 && XFineLatency_ == 0x0 && killinput_ == 0x0 ) {
+	dmb_smoking_gun_status_ = true;
+      }
+    }
+    //
+    if (compareValues("DAQMB CableDelays" , CableDelay_  , 0xff, false) &&
+	compareValues("DAQMB CrateID"     , CrateID_     , 0x7f, false) &&
+	compareValues("DAQMB xFineLatency", XFineLatency_,  0xf, false) &&
+	compareValues("DAQMB kill_input"  , KillInput_   ,  0x7, false) ) {
+      //
+      dmb_smoking_gun_status_ = false; 
+      //std::cout << "DAQMB ... Gun is smoking...." << std::endl;
+      //
+      // Nullify this check if the values are, in fact, **intentionally** set high...
+      if ( cable_delay_ == 0xff && crate_id_ == 0x7f && XFineLatency_ == 0xf && killinput_ == 0x7 ) {
+	dmb_smoking_gun_status_ = true;
+      }
+    }
     //
   }
   //
@@ -995,6 +913,8 @@ void DAQMB::CheckCFEBsConfiguration(bool print_errors) {
     tested_value << "CFEB " << (lfeb+1) << " set_comp_thresh";
     cfeb_config_status_[lfeb] &= compareValues(tested_value.str(),read_threshold_in_mV,set_threshold_in_mV,comparison_threshold, print_errors);
   }
+  //
+  //  greg, put in the CFEB firmware version here
   //
   return;
 }
