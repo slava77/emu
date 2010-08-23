@@ -133,10 +133,7 @@ private:
   void onI2OClientCreditMsg(toolbox::mem::Reference *bufRef);
   xoap::MessageReference onSOAPClientCreditMsg( xoap::MessageReference msg )
     throw (xoap::exception::Exception);
-  string extractParametersFromSOAPClientCreditMsg( xoap::MessageReference msg, unsigned int& instance, int& credits, int& prescaling )
-    throw (emu::daq::rui::exception::Exception);
-  xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg )
-    throw( emu::daq::rui::exception::Exception );
+  xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg );
   void addDataForClients(const int   runNumber, 
 			 const int   runStartUTC,
 			 const int   nEventsRead,
@@ -205,33 +202,12 @@ private:
 							   const string            appClass)
     throw (emu::daq::rui::exception::Exception);
 
-  xoap::MessageReference createParameterGetSOAPMsg(const string appClass,
-						   const string paramName,
-						   const string paramType)
-    throw (emu::daq::rui::exception::Exception);
-
-  DOMNode *findNode(DOMNodeList *nodeList,
-		    const string nodeLocalName)
-    throw (emu::daq::rui::exception::Exception);
-
-  string extractScalarParameterValueFromSoapMsg(xoap::MessageReference msg,
-						const string           paramName)
-    throw (emu::daq::rui::exception::Exception);
-  
-  string getScalarParam(xdaq::ApplicationDescriptor* appDescriptor,
-			const string                 paramName,
-			const string                 paramType)
-    throw (emu::daq::rui::exception::Exception);
-
   time_t toUnixTime( const std::string YYMMDD_hhmmss_UTC );
 
   void getRunInfo() throw (emu::daq::rui::exception::Exception);
 
   emu::base::Fact           findFact( const emu::base::Component& component, const string& factType );
   emu::base::FactCollection findFacts();
-
-  xoap::MessageReference onReset(xoap::MessageReference msg)
-    throw (xoap::exception::Exception);
 
     /**
      * Pointer to the descriptor of the RUBuilderTester application.
@@ -565,38 +541,43 @@ private:
     /**
      * SOAP Callback used to process an Fsm SOAP command.
      */
-    xoap::MessageReference processSoapFsmCmd(xoap::MessageReference msg)
-    throw (xoap::exception::Exception);
+    xoap::MessageReference onConfigure(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onEnable(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onHalt(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onFail(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onReset(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
 
     /**
      * Extracts the name of the command represented by the specified SOAP
      * message.
      */
-    string extractCmdNameFromSoapMsg(xoap::MessageReference msg)
-    throw (emu::daq::rui::exception::Exception);
+    // string extractCmdNameFromSoapMsg(xoap::MessageReference msg)
+    // throw (emu::daq::rui::exception::Exception);
 
     /**
      * Creates a SOAP response message to a state machine state change request.
      */
-    xoap::MessageReference createFsmResponseMsg
-    (
-        const string cmd,
-        const string state
-    )
-    throw (emu::daq::rui::exception::Exception);
+    // xoap::MessageReference createFsmResponseMsg
+    // (
+    //     const string cmd,
+    //     const string state
+    // )
+    // throw (emu::daq::rui::exception::Exception);
 
     /**
      * Processes the specified command for the finite state machine.
      */
     void processFsmCommand(const string cmdName)
     throw (emu::daq::rui::exception::Exception);
-
-    xoap::MessageReference createSimpleSOAPCmdMsg( const string cmdName )
-      throw (emu::daq::rui::exception::Exception);
-
-    void sendFSMEventToApp( const string                 eventName,
-			    xdaq::ApplicationDescriptor* appDescriptor )
-      throw (emu::daq::rui::exception::Exception);
 
     void startATCP()
       throw (emu::daq::rui::exception::Exception);
@@ -716,6 +697,7 @@ private:
         xdaq::ApplicationDescriptor *destination
     );
 
+  // void getParameters( xdaq::ApplicationDescriptor *target, emu::soap::Parameters &parameters );
 };
 
 }}} // namespace emu::daq::rui
