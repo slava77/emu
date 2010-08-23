@@ -134,6 +134,8 @@ namespace emu{
       ///
       emu::soap::Attachment& setContentLocation( const string& location    );
 
+      static const std::vector<emu::soap::Attachment> none; ///< An empty container of attachments.
+
     private:
       const char   *content_; ///< Pointer to the data.
       unsigned int  contentLength_; ///< Data length in bytes.

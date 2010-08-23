@@ -79,6 +79,7 @@ namespace emu{
       ///
       xdata::Serializable* getValue( const string &name );
 
+      static const emu::soap::Attributes none;  ///< An empty container of attributes.
     private:
       bool usePrefix_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
     };

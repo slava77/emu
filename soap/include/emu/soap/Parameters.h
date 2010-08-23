@@ -89,6 +89,8 @@ namespace emu{
       ///
       const emu::soap::Attributes* getAttributes( const string &name ) const;
 
+      static const emu::soap::Parameters none; ///< An empty container of parameters.
+
     private:
       bool usePrefix_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
     };

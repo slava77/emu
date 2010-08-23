@@ -1,5 +1,7 @@
 #include "emu/soap/Parameters.h"
 
+const emu::soap::Parameters emu::soap::Parameters::none  = emu::soap::Parameters();
+
 using namespace std;
 
 emu::soap::Parameters::Parameters() : usePrefix_( true ){}

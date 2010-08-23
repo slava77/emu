@@ -1,5 +1,7 @@
 #include "emu/soap/Attributes.h"
 
+const emu::soap::Attributes emu::soap::Attributes::none  = emu::soap::Attributes();
+
 using namespace std;
 
 emu::soap::Attributes::Attributes() : usePrefix_( true ){}
