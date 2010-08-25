@@ -203,6 +203,63 @@ namespace emu{
       ///                       attachments );
       /// \endcode
       ///
+      /// A complete illustration with output printed below.
+      /// \code
+      ///    // Attributes of the parameter tags
+      ///    xdata::String param1Attr1( "param1Attr1Value" );
+      ///    xdata::String param1Attr2( "param1Attr2Value" );
+      ///    emu::soap::Attributes param1Attributes;
+      ///    param1Attributes.add( "param1Attr1Name", &param1Attr1 ).add( "param1Attr2Name", &param1Attr2 ).setUsePrefix( false );
+      ///    xdata::String param2Attr( "param2AttrValue" );
+      ///    emu::soap::Attributes param2Attributes;
+      ///    param2Attributes.add( "param2AttrName", &param2Attr );
+      ///
+      ///    // Parameters
+      ///    xdata::String param1( "param1Value" );
+      ///    xdata::Double param2( 1.234567 );
+      ///    xdata::Vector<xdata::Integer> param3;
+      ///    param3.push_back( xdata::Integer( 123 ) );
+      ///    param3.push_back( xdata::Integer( 456 ) );
+      ///    param3.push_back( xdata::Integer( 789 ) );
+      ///        
+      ///    // Attributes of the command tag
+      ///    xdata::String  commandAttr1( "commandAttr1Value" );
+      ///    xdata::Integer commandAttr2( 2 );
+      ///
+      ///    // Command message
+      ///    emu::soap::Messenger( this ).sendCommand( "command",
+      ///                                              "urn:emu-soap:example", // Omit this argument get the standard "urn:xdaq-soap:3.0"
+      ///                                              emu::soap::Parameters()
+      ///                                                .add( "param1Name", &param1, &param1Attributes )
+      ///                                                .add( "param2Name", &param2, &param2Attributes )
+      ///                                                .add( "param3Name", &param3                    ),
+      ///                                              emu::soap::Attributes()
+      ///                                                .add( "commandAttr1Name", &commandAttr1 )
+      ///                                                .add( "commandAttr2Name", &commandAttr2 ) );
+      /// \endcode
+      /// This produces the following XML:
+      /// \code
+      ///<soap-env:Envelope 
+      ///    soap-env:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" 
+      ///    xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
+      ///    xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+      ///    xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+      ///    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      ///  <soap-env:Header/>
+      ///  <soap-env:Body>
+      ///    <xdaq:command xdaq:commandAttr1Name="commandAttr1Value" xdaq:commandAttr2Name="2" xmlns:xdaq="urn:emu-soap:example">
+      ///      <xdaq:param1Name param1Attr1Name="param1Attr1Value" param1Attr2Name="param1Attr2Value" xsi:type="xsd:string">param1Value</xdaq:param1Name>
+      ///      <xdaq:param2Name xdaq:param2AttrName="param2AttrValue" xsi:type="xsd:double">1.234567e+00</xdaq:param2Name>
+      ///      <xdaq:param3Name soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+      ///        <xdaq:item soapenc:position="[0]" xsi:type="xsd:integer">123</xdaq:item>
+      ///        <xdaq:item soapenc:position="[1]" xsi:type="xsd:integer">456</xdaq:item>
+      ///        <xdaq:item soapenc:position="[2]" xsi:type="xsd:integer">789</xdaq:item>
+      ///      </xdaq:param3Name>
+      ///    </xdaq:command>
+      ///  </soap-env:Body>
+      ///</soap-env:Envelope>
+      /// \endcode
+      ///
       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
                                           const std::string &commandNamespaceURI,
                                           const std::string &command, 
@@ -291,7 +348,7 @@ namespace emu{
       ///                       attachments );
       /// \endcode
       ///
-      xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
+       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
                                           const std::string &command, 
                                           const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
                                           const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
