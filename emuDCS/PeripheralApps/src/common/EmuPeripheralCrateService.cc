@@ -43,6 +43,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateService::ChamberOff, "ChamberOff");
   xgi::bind(this,&EmuPeripheralCrateService::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this,&EmuPeripheralCrateService::FastConfigOne, "FastConfigOne");
+  xgi::bind(this,&EmuPeripheralCrateService::FlashHistory, "FlashHistory");
   xgi::bind(this,&EmuPeripheralCrateService::ForEmuPage1, "ForEmuPage1");
   xgi::bind(this,&EmuPeripheralCrateService::SwitchBoard, "SwitchBoard"); 
   //
@@ -166,6 +167,11 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Crates Power-up Init") << std::endl ;
   *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+
+  *out << cgicc::td();
+  std::string FlashH = toolbox::toString("/%s/FlashHistory",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::a("[Read Flash History]").set("href",FlashH).set("target","_blank") << std::endl;
   *out << cgicc::td();
 
   *out << cgicc::table();
@@ -685,6 +691,35 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
      *out << "Unknown command" << std::endl;
      std::cout << "Unknown command: " << command_name << " " << command_argu << std::endl;
   }
+}
+
+void EmuPeripheralCrateService::FlashHistory(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+     ParsingXML();
+
+     if(GuiButton_)
+     {
+        msgHandler("Button:  Read Flash History");
+        emu::pc::EmuTStore * myTStore = GetEmuTStore();
+        if(!myTStore)
+        {  std::cout << "Can't create object EmuTStore" << std::endl;
+           *out << "Can't create object EmuTStore" << std::endl;
+           return;
+        }
+//        *out << cgicc::textarea().set("name","commands").set("WRAP","OFF").set("rows","20").set("cols","100");
+        std::vector<std::string> configKeys, configTimes;
+        int in_flash_items=myTStore->readFlashList( configKeys, configTimes, (endcap_side==1)?"plus":"minus");
+        *out << "  key        time" << std::endl;
+        for(int i=0;i<in_flash_items; i++)
+        {
+            *out << configKeys[i]+"  "+configTimes[i] << std::endl;
+        }
+        *out << "Total in FLASH " << in_flash_items << std::endl;
+//        *out << cgicc::textarea();
+        configKeys.clear();
+        configTimes.clear();
+     }
 }
 
  }  // namespace emu::pc
