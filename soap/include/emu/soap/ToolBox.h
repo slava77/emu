@@ -217,6 +217,13 @@ namespace emu{
       ///
       std::string faultElementToPlainText( xoap::SOAPElement* elem, const int indentDepth );
 
+      /// 
+      /// Workaround to repair the message serialized from xdata (see ticket https://svnweb.cern.ch/trac/cmsos/ticket/1008)
+      /// \todo{ Remove once a fixed XDAQ version (>=v10.1.0) is deployed. } 
+      ///
+      /// @param message 
+      ///
+      void repairDOM( xoap::MessageReference message );
   }
 }
 

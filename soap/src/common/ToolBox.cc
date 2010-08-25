@@ -232,6 +232,13 @@ emu::soap::extractParameters( xoap::MessageReference reply, emu::soap::Parameter
        << ": " << e.what();
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
+  catch( DOMException &e ){
+    std::stringstream ss;
+    ss << "Failed to extract parameters " << parameters
+       << " in namespace " << parametersNamespaceURI
+       << ": " << e.getMessage();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
   catch(...){
     std::stringstream ss;
     ss << "Failed to extract parameters " << parameters
@@ -368,4 +375,48 @@ emu::soap::createFaultReply( const string& code, const string& reason, xcept::Ex
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   return faultReply;
+}
+
+void
+emu::soap::repairDOM( xoap::MessageReference message ){
+  // TODO: Remove emu::soap::repairDOM once a fixed XDAQ version (>=v10.1.0) is deployed.
+  try{
+    // Get all elements:
+    DOMNodeList* nodes = ( dynamic_cast<DOMElement*>( message->getSOAPPart().getEnvelope().getBody().getDOMNode() ) )->getElementsByTagName( xoap::XStr( "*" ) );
+    // Loop over all elements:
+    for ( XMLSize_t i=0; i < nodes->getLength(); ++i ){
+      if ( nodes->item( i )->hasAttributes() ){
+	DOMElement* element = dynamic_cast<DOMElement*>( nodes->item( i ) );
+	// If 'type' attribute is not associated with any namespace, replace it:
+	if ( element->getAttributeNode  (                                  xoap::XStr( "xsi:type" ) ) != NULL &&
+	     element->getAttributeNodeNS( xoap::XStr( XSI_NAMESPACE_URI ), xoap::XStr( "type"     ) ) == NULL    ){
+	  DOMAttr *condemnedAttribute = element->getAttributeNode( xoap::XStr( "xsi:type" ) );
+	  std::string type = xoap::XMLCh2String( condemnedAttribute->getValue() );
+	  element->removeAttributeNode( condemnedAttribute );
+	  element->setAttributeNS( xoap::XStr( XSI_NAMESPACE_URI ), xoap::XStr( "xsi:type" ), xoap::XStr( type ) );
+	}
+      }
+    }
+  }
+  catch( xcept::Exception &e ){
+    std::stringstream ss;
+    ss << "Failed to repair DOM of SOAP message : ";
+    XCEPT_RETHROW( xcept::Exception, ss.str(), e );
+  }
+  catch( std::exception &e ){
+    std::stringstream ss;
+    ss << "Failed to repair DOM of SOAP message : "<< e.what();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch( DOMException &e ){
+    std::stringstream ss;
+    ss << "Failed to repair DOM of SOAP message : "<< e.getMessage();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch(...){
+    std::stringstream ss;
+    ss << "Failed to repair DOM of SOAP message: Unknown exception.";
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  
 }
