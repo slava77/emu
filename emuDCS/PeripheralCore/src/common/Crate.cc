@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.71 2010/07/28 13:26:56 liu Exp $
+// $Id: Crate.cc,v 3.72 2010/08/25 19:45:41 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.72  2010/08/25 19:45:41  liu
+// read TMB voltages in VME jumbo packet
+//
 // Revision 3.71  2010/07/28 13:26:56  liu
 // add TMB's DCS-reading mask
 //
@@ -813,6 +816,41 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
     }
   }
   *buf2 = (TOTAL_DCS_COUNTERS)*myDmbs.size();
+  *(buf2+1) = flag;
+  return;
+}
+
+void Crate::MonitorTCS(int cycle, char * buf, unsigned mask) 
+{
+  // flag  bits 13-10:  if !=0, bad TMB/DMB # (1-9)
+  // flag  bit pattern 8-0:  for each TMB/DMB
+  //                1   good reading
+  //                0   bad reading or no reading (skipped/masked)
+
+  int rn, TOTAL_DCS_COUNTERS=16; // aligned at 4 bytes (integer)
+  short *buf2, flag=0;
+  unsigned tmask;
+
+  tmask = mask & 0x1FF;
+  buf2=(short *)buf;
+  *buf2 = 0;
+  for(int i=0; i<= TOTAL_DCS_COUNTERS*9; i++) buf2[i]=0;
+  vmeController()->SetUseDelay(true);
+  std::vector<TMB*> myTmbs = this->tmbs();
+  for(unsigned i =0; i < myTmbs.size(); ++i) 
+  {
+    if(IsAlive() && (tmask & (1<<i))==0)
+    {  
+        rn=myTmbs[i]->DCSvoltages(buf+4+i*2*TOTAL_DCS_COUNTERS);
+        if( rn>0) flag |= (1<<i);
+        else if(rn<0) 
+        {  
+           flag &= 0x3FF; 
+           flag |= ((i+1)<<10);
+        }
+    }
+  }
+  *buf2 = (TOTAL_DCS_COUNTERS)*myTmbs.size();
   *(buf2+1) = flag;
   return;
 }

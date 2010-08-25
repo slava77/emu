@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.97 2010/08/04 12:09:02 rakness Exp $
+// $Id: TMB.cc,v 3.98 2010/08/25 19:45:41 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.98  2010/08/25 19:45:41  liu
+// read TMB voltages in VME jumbo packet
+//
 // Revision 3.97  2010/08/04 12:09:02  rakness
 // clean up ADC voltage readings
 //
@@ -8755,6 +8758,58 @@ int TMB::DCSreadAll(char *data)
   tr |= (tt & 1);
   memcpy(data, &tr, 2);
   return 2;
+}
+
+int TMB::DCSvoltages(char *databuf) 
+{
+  /* read TMB voltages and currents */
+  const int total_chips=14;
+  const unsigned adc_adr=0x24;
+  const unsigned short chip_sel=0x500, base_value=0x400, clock_bit=0x40, data_bit=0x80;
+  unsigned short data_in, data_out, adc_out[16], ttbuf[256];
+  int vchip;
+  bool badtag;
+
+  if(checkvme_fail()) return 0;
+  for(int chip=0; chip<= total_chips; chip++)
+  {
+     vchip = (chip==total_chips)?0:chip;
+     write_later(adc_adr, chip_sel);
+     vme_delay(100); /* 100 usec delay is necessary */
+     /* shift in chip ID, 4 bits MSB; also shift out 4 bits of data */
+     for(int j=0; j<4; j++)
+     {
+        data_in = ((vchip>>(3-j))&1) ? data_bit : 0;
+        write_later(adc_adr, base_value | data_in);
+        write_later(adc_adr, base_value | data_in | clock_bit);
+        read_later(adc_adr);
+     }
+     /* shift out the rest 8 bits of data */
+     for(int j=0; j<8; j++)
+     {
+        write_later(adc_adr, base_value);
+        write_later(adc_adr, base_value | clock_bit);
+        read_later(adc_adr);
+     }
+  }
+  write_now(adc_adr, chip_sel, (char *)&ttbuf);
+  for(int chip=0; chip< total_chips; chip++)
+  {
+     /* combin 12 bits into an ADC value */
+     badtag=false;
+     data_out=0;
+     for(int j=0; j<12; j++)
+     {
+         data_out = data_out<<1;
+         data_out |= ((ttbuf[12+chip*12+j]>>5) & 1);
+         if(ttbuf[12+chip*12+j]==0xBAAD) badtag=true;
+         /* the first 12 words are extra ( same as chip=0 ) */ 
+     }
+     adc_out[chip]=(badtag?0:data_out);
+  }
+  memcpy(databuf, adc_out, total_chips*2);
+  
+  return total_chips;
 }
 //
 bool TMB::checkvme_fail() 
