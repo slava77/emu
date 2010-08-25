@@ -70,6 +70,9 @@ emu::soap::Messenger::setParameters( xdaq::ApplicationDescriptor *target, const 
     // Add parameters as child elements to 'properties'
     includeParameters( message, &propertiesElement, parameters );
 
+    // Repair message
+    emu::soap::repairDOM( message );
+
     // Send message
     string s;
     message->writeTo( s );
@@ -147,6 +150,9 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
 
     // Create SOAP message
     xoap::MessageReference message = createMessage( command, commandNamespaceURI, parameters, attributes, attachments );
+
+    // Repair message
+    emu::soap::repairDOM( message );
 
     // Send message
     string s;
@@ -281,6 +287,9 @@ emu::soap::Messenger::getParameters( xdaq::ApplicationDescriptor *target, emu::s
 
     // Add parameters as child elements to 'properties'
     includeParameters( message, &propertiesElement, parameters );
+
+    // Repair message
+    emu::soap::repairDOM( message );
 
     // Send message
     string s;
