@@ -303,6 +303,13 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 is->fireItemAvailable("DCSchamber",new xdata::UnsignedShort(0));
                 is->fireItemAvailable("DCSitime",new xdata::UnsignedInteger32(0));
                 is->fireItemAvailable("DCSstime",new xdata::TimeVal);
+
+            // for TMB temps, voltages
+                is->fireItemAvailable("TMBvolts",new xdata::Vector<xdata::Float>());
+                is->fireItemAvailable("TMBcrate",new xdata::UnsignedShort(0));
+                is->fireItemAvailable("TMBchamber",new xdata::UnsignedShort(0));
+                is->fireItemAvailable("TMBitime",new xdata::UnsignedInteger32(0));
+                is->fireItemAvailable("TMBstime",new xdata::TimeVal);
          }
      Monitor_Ready_=true;
 }
@@ -467,6 +474,46 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    int badboard= buf2[1]>>10;
                    if(badboard>0 && badboard<10) 
                       std::cout << "Bad DMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl; 
+                }
+
+                /* TMB voltages */
+                now_crate-> MonitorTCS(cycle, buf, tcs_mask[i]);
+                if(buf2[0])
+                {
+                   // std::cout << "Crate " << i << " TCS counters " << buf2[0] << std::endl;
+                   xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("TMBvolts"));
+                   if(dmbdata->size()==0)
+                      for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0.);
+                   for(unsigned ii=0; ii<buf2[0]; ii++)
+                   {   unsigned short rdv = buf2[ii+2];
+                       // unsigned boardid=ii/16;
+                       unsigned vindex = ii%16;
+                       if(rdv > 0xFFF) rdv = 0;
+                       if(vindex<14)
+                       {
+                          if(vindex==0)  rdv *= 2; /* 5.0V ch: 1mV -> 2mV */
+                          if(vindex>4 && vindex<10)  rdv *= 5; /* current ch: 200 mV -> 1 Amp */
+                          (*dmbdata)[ii] = 0.001*rdv;  /* ADC values are in millivolts */
+                       }
+                       else
+                       {  /* ALCT Temps */
+                          rdv = rdv & 0x3FF;
+                          float Vout= (float)(rdv)*1.225/1023.0;
+                          if(Vout<1.225)
+                              (*dmbdata)[ii] =100.0*(Vout-0.75)+25.0;
+                          else
+                              (*dmbdata)[ii] = -500.0;
+                       }
+                   }
+                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TMBcrate"));
+                   *counter16 = 1;
+                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TMBchamber"));
+                   *counter16 = buf2[1];
+                   counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("TMBitime"));
+                   *counter32 = time(NULL);
+                   int badboard= buf2[1]>>10;
+                   if(badboard>0 && badboard<10) 
+                      std::cout << "Bad TMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl; 
                 }
              }
              else if( cycle==1)
@@ -1662,6 +1709,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
     { 
         // for masks
         dcs_mask.push_back(0);
+        tcs_mask.push_back(0);
         tmb_mask.push_back(0);
         dmb_mask.push_back(0);
 
@@ -2679,24 +2727,27 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
 
            // status bit pattern:
-           //   bit 0 (value  1):  misc. errors
-           //       1 (value  2):  chamber power off from Configuration DB
-           //       2 (value  4):  data corrupted (in infospace or during transimission)
-           //       3 (value  8):  VCC not accessible
-           //       4 (value 16):  Reading error
-           //       5 (value 32):  crate OFF
-           //       6 (value 64):  module which caused reading trouble
+           //   bit 0 (value   1):  misc. errors
+           //       1 (value   2):  chamber power off from Configuration DB
+           //       2 (value   4):  data corrupted (in infospace or during transimission)
+           //       3 (value   8):  VCC not accessible
+           //       4 (value  16):  DMB Reading error
+           //       5 (value  32):  crate OFF
+           //       6 (value  64):  this DMB module caused reading trouble
+           //       7 (value 128):  TMB reading error
+           //       8 (value 256):  this TMB module caused reading trouble
 
   unsigned int readtime;
   unsigned short crateok, good_chamber;
   float val;
   std::vector<DAQMB*> myVector;
   int TOTAL_DCS_COUNTERS=48;
+  int TOTAL_TMB_VOLTAGES=16;
   xdata::InfoSpace * is;
   std::string mac;
   int ip, slot, ch_state;
   unsigned int bad_module;
-  bool gooddata;
+  bool gooddata, goodtmb;
 
   if(!Monitor_Ready_)
   {  //  X2P will trigger the start of monitoring.
@@ -2753,6 +2804,13 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         if (counter16==NULL) good_chamber= 0; 
            else good_chamber = (*counter16);
      }
+     xdata::Vector<xdata::Float> *tmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("TMBvolts"));
+     if(tmbdata==NULL || tmbdata->size()==0)
+     {  goodtmb=false;
+     }
+     else
+     {  goodtmb=true;
+     }
      mac=crateVector[i]->vmeController()->GetMAC(0);
      ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
      ch_state=0;
@@ -2786,6 +2844,18 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            if(ch_state==0)
            { 
               val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
+              *out << " " << val;
+           }
+           else
+           {
+              *out << " -2.";
+           }             
+        }
+        for(int k=0; k<TOTAL_TMB_VOLTAGES-1; k++) 
+        {  
+           if(goodtmb)
+           { 
+              val= (*tmbdata)[j*TOTAL_TMB_VOLTAGES+k];
               *out << " " << val;
            }
            else
