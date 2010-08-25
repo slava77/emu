@@ -38,7 +38,6 @@ namespace emu{
       ///
       /// Creates a message with optional parameters, attributes and attachments.
       /// 
-      /// @param className Class name of the target application(s).
       /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
       /// @param command Command.
       /// @param parameters Optional parameters.
@@ -58,7 +57,6 @@ namespace emu{
       ///
       /// Creates a message with optional parameters, attributes and attachments. Use the overloaded version if the command namespace URI is not the standard XDAQ one.
       /// 
-      /// @param className Class name of the target application(s).
       /// @param command Command.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
