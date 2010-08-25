@@ -2778,6 +2778,10 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            {  
               *out << " -2.";
            }
+           for(int k=0; k<TOTAL_TMB_VOLTAGES-1; k++) 
+           {  
+              *out << " -2.";
+           }
            *out << " -50";  // as end-of-line marker
            *out << std::endl;
         }
