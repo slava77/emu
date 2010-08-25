@@ -291,6 +291,27 @@ private:
      */
     void bindFsmSoapCallbacks();
 
+    xoap::MessageReference onConfigure(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onEnable(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onSuspend(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onResume(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onHalt(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onFail(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
+    xoap::MessageReference onReset(xoap::MessageReference msg)
+      throw (xoap::exception::Exception);
+
     /**
      * Binds the I2O callbacks of the application.
      */
@@ -354,40 +375,11 @@ private:
     string serializableBooleanToString(xdata::Serializable *s);
 
     /**
-     * SOAP Callback used to process an Fsm SOAP command.
-     */
-    xoap::MessageReference processSoapFsmCmd(xoap::MessageReference msg)
-    throw (xoap::exception::Exception);
-
-    /**
-     * Extracts the name of the command represented by the specified SOAP
-     * message.
-     */
-    string extractCmdNameFromSoapMsg(xoap::MessageReference msg)
-    throw (emu::daq::ta::exception::Exception);
-
-    /**
-     * Creates a SOAP response message to a state machine state change request.
-     */
-    xoap::MessageReference createFsmResponseMsg
-    (
-        const string cmd,
-        const string state
-    )
-    throw (emu::daq::ta::exception::Exception);
-
-    /**
      * Processes the specified command for the finite state machine.
      */
     void processFsmCommand(const string cmdName)
     throw (emu::daq::ta::exception::Exception);
 
-    xoap::MessageReference createSimpleSOAPCmdMsg( const string cmdName )
-      throw (emu::daq::ta::exception::Exception);
-
-    void sendFSMEventToApp( const string                 eventName,
-			    xdaq::ApplicationDescriptor* appDescriptor )
-      throw (emu::daq::ta::exception::Exception);
 
     void startATCP()
       throw (emu::daq::ta::exception::Exception);
@@ -518,24 +510,6 @@ private:
   ///
   vector< xdaq::ApplicationDescriptor* > getAppDescriptors(xdaq::Zone *zone,
 							   const string appClass)
-    throw (emu::daq::ta::exception::Exception);
-
-  string getScalarParam(xdaq::ApplicationDescriptor* appDescriptor,
-			const string                 paramName,
-			const string                 paramType)
-    throw (emu::daq::ta::exception::Exception);
-
-  string extractScalarParameterValueFromSoapMsg(xoap::MessageReference msg,
-						const string           paramName)
-    throw (emu::daq::ta::exception::Exception);
-
-  xoap::MessageReference createParameterGetSOAPMsg(const string appClass,
-						   const string paramName,
-						   const string paramType)
-    throw (emu::daq::ta::exception::Exception);
-
-  DOMNode *findNode(DOMNodeList *nodeList,
-		    const string nodeLocalName)
     throw (emu::daq::ta::exception::Exception);
 
 };
