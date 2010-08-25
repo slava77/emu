@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.6 2009/12/08 11:41:39 liu Exp $
+// $Id: Crate.h,v 1.7 2010/08/25 19:45:41 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.7  2010/08/25 19:45:41  liu
+// read TMB voltages in VME jumbo packet
+//
 // Revision 1.6  2009/12/08 11:41:39  liu
 // sort chambers within a crate if they are in random order
 //
@@ -156,6 +159,7 @@ public:
   void MonitorTMB(int cycle, char * buf, unsigned mask=0);
   void MonitorDMB(int cycle, char * buf, unsigned mask=0);
   void MonitorDCS(int cycle, char * buf, unsigned mask=0);
+  void MonitorTCS(int cycle, char * buf, unsigned mask=0);
 
 private:
 

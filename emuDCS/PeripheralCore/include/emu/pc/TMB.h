@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.14 2010/08/04 12:09:01 rakness Exp $
+// $Id: TMB.h,v 1.15 2010/08/25 19:45:41 liu Exp $
 // $Log: TMB.h,v $
+// Revision 1.15  2010/08/25 19:45:41  liu
+// read TMB voltages in VME jumbo packet
+//
 // Revision 1.14  2010/08/04 12:09:01  rakness
 // clean up ADC voltage readings
 //
@@ -2104,6 +2107,7 @@ public:
   int ConvertToHexAscii(int value_to_convert); /// convert the argument to its "hex-ascii" value:  i.e.  2007 -> 0x2007
   //
   int DCSreadAll(char *data); /// read out all DCS values (Temperatures and LVs)
+  int DCSvoltages(char *data); /// read out crate low voltages and currents
   bool checkvme_fail(); /// true=no vme access (whatever reason) 
   //
   FILE *pfile;
