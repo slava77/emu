@@ -47,7 +47,7 @@ namespace emu{
       ///
       /// @return The message reference.
       ///
-      /// See the overloaded version of this method for examples.
+      /// See the overloaded version of this method for examples, and also emus::soap::Messenger::sendCommand (which takes the same arguments) for a complete illustration.
       ///
       xoap::MessageReference createMessage( const std::string &command, 
 					    const std::string &commandNamespaceURI,
@@ -79,7 +79,7 @@ namespace emu{
       /// }
       /// \endcode
       /// 
-      /// See the overloaded version of this method for examples.
+      /// See emus::soap::Messenger::sendCommand (which takes the same arguments) for a complete illustration.
       ///
       xoap::MessageReference createMessage( const std::string &command, 
 					    const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
