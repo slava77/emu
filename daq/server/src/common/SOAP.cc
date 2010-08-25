@@ -5,6 +5,7 @@
 #include "pt/SOAPMessenger.h"
 
 #include "emu/daq/server/SOAP.h"
+#include "emu/soap/ToolBox.h"
 
 emu::daq::server::SOAP::SOAP( xdaq::Application                    *parentApp,
 			      const string                          clientName,
@@ -134,103 +135,47 @@ void emu::daq::server::SOAP::makeLastBlockCompleteEvent(){
 void emu::daq::server::SOAP::createMessage()
   throw ( xoap::exception::Exception )
 {
-  messageReference_ = xoap::createMessage();
-
-  xoap::SOAPPart soap = messageReference_->getSOAPPart();
-  xoap::SOAPEnvelope envelope = soap.getEnvelope();
-                        
-  envelope.addNamespaceDeclaration ("xsi",
-				    "http://www.w3.org/1999/XMLSchema-instance");
-  envelope.addNamespaceDeclaration ("xsd",
-				    "http://www.w3.org/1999/XMLSchema");
-
-  //   envelope.addNamespaceDeclaration("soapenc",
-  // 				   "http://schemas.xmlsoap.org/soap/encoding/");
-                        
-  xoap::SOAPName xsiType = envelope.createName("type",
-					       "xsi",
-					       "http://www.w3.org/1999/XMLSchema-instance");
-  xoap::SOAPName encodingStyle = envelope.createName("encodingStyle",
-						     "soap-env",
-						     "http://schemas.xmlsoap.org/soap/envelope/");
-
-  xoap::SOAPBody body = envelope.getBody();
-
-
-
-  xoap::SOAPName command = envelope.createName("onEmuDataMessage",
-					       "xdaq", 
-					       "urn:xdaq-soap:3.0");
-  xoap::SOAPElement bodyElement = body.addBodyElement(command);
-  bodyElement.addAttribute(encodingStyle,
-			   "http://schemas.xmlsoap.org/soap/encoding/");
-
-  xoap::SOAPName    name        = envelope.createName( "serverName" );
-  xoap::SOAPElement nameElement = bodyElement.addChildElement( name );
-  nameElement.addAttribute( xsiType, "xsd:string" );
-  nameElement.addTextNode( parentApp_->getApplicationDescriptor()->getClassName() );
-
-  xoap::SOAPName    instance        = envelope.createName( "serverInstance" );
-  xoap::SOAPElement instanceElement = bodyElement.addChildElement( instance );
-  instanceElement.addAttribute( xsiType, "xsd:int" );
-  stringstream ins; ins << parentApp_->getApplicationDescriptor()->getInstance();
-  instanceElement.addTextNode( ins.str() );
-
-  xoap::SOAPName    runnum        = envelope.createName( "runNumber" );
-  xoap::SOAPElement runnumElement = bodyElement.addChildElement( runnum );
-  runnumElement.addAttribute( xsiType, "xsd:int" );
-  stringstream rn; rn << runNumber_;
-  runnumElement.addTextNode( rn.str() );
-
-  xoap::SOAPName    runstart        = envelope.createName( "runStartUTC" );
-  xoap::SOAPElement runstartElement = bodyElement.addChildElement( runstart );
-  runstartElement.addAttribute( xsiType, "xsd:int" );
-  stringstream rs; rs << runStartUTC_;
-  runstartElement.addTextNode( rs.str() );
-
-  xoap::SOAPName    errorflag        = envelope.createName( "errorFlag" );
-  xoap::SOAPElement errorflagElement = bodyElement.addChildElement( errorflag );
-  errorflagElement.addAttribute( xsiType, "xsd:int" );
-  stringstream ef; ef << errorFlag_;
-  errorflagElement.addTextNode( ef.str() );
-
-  xoap::SOAPName    credits        = envelope.createName( "nEventCreditsHeld" );
-  xoap::SOAPElement creditsElement = bodyElement.addChildElement( credits );
-  creditsElement.addAttribute( xsiType, "xsd:int" );
-  creditsElement.addTextNode( nEventCreditsHeld_->toString() );
-
-  //     }
-  //   catch(xoap::exception::Exception& xe)
-  //     {
-  //       XCEPT_RETHROW (xgi::exception::Exception, "Could not create SOAP message: ", xe); 
-  // //       LOG4CPLUS_ERROR(logger_,
-  // // 		      "Could not create SOAP message: " << 
-  // // 		      xcept::stdformat_exception_history(xe));
-  //     }
+  try{
+    xdata::String  serverName    ( parentApp_->getApplicationDescriptor()->getClassName() );
+    xdata::Integer serverInstance( parentApp_->getApplicationDescriptor()->getInstance()  );
+    xdata::Integer runNumber     ( runNumber_                                             );
+    xdata::Integer runStartUTC   ( runStartUTC_                                           );
+    xdata::Integer errorFlag     ( errorFlag_                                             );
+    
+    messageReference_ = emu::soap::createMessage( "onEmuDataMessage", 
+						  emu::soap::Parameters()
+						  .add( "serverName    "   , &serverName         )
+						  .add( "serverInstance"   , &serverInstance     )
+						  .add( "runNumber"        , &runNumber          )
+						  .add( "runStartUTC"      , &runStartUTC        )
+						  .add( "errorFlag"        , &errorFlag          )
+						  .add( "nEventCreditsHeld",  nEventCreditsHeld_ ) );
+  }
+  catch( xcept::Exception &e ){
+    XCEPT_RETHROW( xoap::exception::Exception , "Failed to create server reply SOAP message: ", e );
+  }
+  catch( ... ){
+    XCEPT_RAISE( xoap::exception::Exception , "Failed to create server reply SOAP message: Unknown exception." );
+  }
 }
 
 void emu::daq::server::SOAP::fillMessage( char* const        data,
 					  const unsigned int dataLength )
   throw( xoap::exception::Exception )
 {
-  //   try
-  //     {
-
-  xoap::AttachmentPart* attachment = 
-    messageReference_->createAttachmentPart( data, dataLength, contentType_ );
-  attachment->setContentEncoding( contentEncoding_ );
-  attachment->setContentId( contentId_ );
-  attachment->setContentLocation( contentLocation_ );
-
-  messageReference_->addAttachmentPart(attachment);
-  //     }
-  //   catch(xoap::exception::Exception& xe)
-  //     {
-  //       LOG4CPLUS_ERROR(logger_,
-  // 		      "Could not attach data to SOAP message: " << 
-  // 		      xcept::stdformat_exception_history(xe));
-  //     }
+  try{
+    std::vector<emu::soap::Attachment> attachments;
+    attachments.push_back( emu::soap::Attachment( dataLength, data ).setContentType( "application/octet-stream" ).setContentEncoding( "binary" ) );
+    emu::soap::addAttachments( messageReference_, attachments );
+  }
+  catch( xcept::Exception &e ){
+    XCEPT_RETHROW( xoap::exception::Exception , "Failed to add attachment to server reply SOAP message: ", e );
+  }
+  catch( ... ){
+    XCEPT_RAISE( xoap::exception::Exception , "Failed to add attachment to server reply SOAP message: Unknown exception." );
+  }
 }
+
 
 xoap::MessageReference emu::daq::server::SOAP::getOldestMessagePendingTransmission(){
 
@@ -308,31 +253,6 @@ void emu::daq::server::SOAP::sendData()
     messages_.pop_front();
 
   }
-
-  //   // To an arbitrary external address
-  //   pt::Address::Reference destAddress  = pt::getPeerTransportAgent()
-  //     ->createAddress("URL_REMEMBERED", 
-  // 		    "soap");
-  //   pt::Address::Reference localAddress = pt::getPeerTransportAgent()
-  //     ->createAddress(appContext_->getContextDescriptor()->getURL(), 
-  // 		    "soap");
-
-  //   // These two lines cannot be merged, since a reference that is a temporary object
-  //   // would delete the contained object pointer immediately after use.
-
-  //   pt::Messenger::Reference mr = pt::getPeerTransportAgent()->getMessenger(destAddress,localAddress);
-  //   pt::SOAPMessenger& m = dynamic_cast<pt::SOAPMessenger&>(*mr);
-
-  //   // fill the SOAPAction field with the value remembered
-  //   msg->getMimeHeaders()->setHeader("SOAPAction", "ACTION_REMEMBERED");
-
-  //   xoap::MessageReference r = m.send( msg );
-  
-  //   xoap::SOAPBody rb = r->getSOAPPart().getEnvelope().getBody();
-  //   if (rb.hasFault())
-  //     {
-  //       LOG4CPLUS_ERROR (logger_, rb.getFault().getFaultString());
-  //     }
 
 }
 
