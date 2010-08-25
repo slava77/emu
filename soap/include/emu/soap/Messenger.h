@@ -187,7 +187,7 @@ namespace emu{
       ///        // Send another command with attributes
       ///        xdata::String s("Start");
       ///        m.sendCommand( targetDescriptor, "Cyclic",
-      ///                       emu::soap::Messenger::noParameters, 
+      ///                       emu::soap::Parameters::none, 
       ///                       emu::soap::Attributes().add( "Param", &s ) );
       ///
       ///        // Send yet another command with attachments 
@@ -198,8 +198,8 @@ namespace emu{
       ///        attachments.push_back( emu::soap::Attachment( dataLength1, data1 ).setContentType( "text/plain" ).setContentEncoding( "8bit" ) );
       ///        attachments.push_back( emu::soap::Attachment( dataLength2, data2 ).setContentType( "application/octet-stream" ).setContentEncoding( "binary" ) );
       ///        m.sendCommand( targetDescriptor, "SeeAttachments", 
-      ///                       emu::soap::Messenger::noParameters,
-      ///                       emu::soap::Messenger::noAttributes,
+      ///                       emu::soap::Parameters::none,
+      ///                       emu::soap::Attributes::none,
       ///                       attachments );
       /// \endcode
       ///
@@ -275,7 +275,7 @@ namespace emu{
       ///        // Send another command with attributes
       ///        xdata::String s("Start");
       ///        m.sendCommand( targetDescriptor, "Cyclic",
-      ///                       emu::soap::Messenger::noParameters, 
+      ///                       emu::soap::Parameters::none, 
       ///                       emu::soap::Attributes().add( "Param", &s ) );
       ///
       ///        // Send yet another command with attachments 
@@ -286,8 +286,8 @@ namespace emu{
       ///        attachments.push_back( emu::soap::Attachment( dataLength1, data1 ).setContentType( "text/plain" ).setContentEncoding( "8bit" ) );
       ///        attachments.push_back( emu::soap::Attachment( dataLength2, data2 ).setContentType( "application/octet-stream" ).setContentEncoding( "binary" ) );
       ///        m.sendCommand( targetDescriptor, "SeeAttachments", 
-      ///                       emu::soap::Messenger::noParameters,
-      ///                       emu::soap::Messenger::noAttributes,
+      ///                       emu::soap::Parameters::none,
+      ///                       emu::soap::Attributes::none,
       ///                       attachments );
       /// \endcode
       ///
