@@ -170,8 +170,8 @@ namespace emu{
       /// Sends a command to the target application given by its descriptor.
       /// 
       /// @param target The application descriptor of the target.
-      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
       /// @param command Command.
+      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
@@ -262,8 +262,8 @@ namespace emu{
       /// \endcode
       ///
       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
-                                          const std::string &commandNamespaceURI,
                                           const std::string &command, 
+                                          const std::string &commandNamespaceURI,
                                           const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
                                           const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
                                           const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
@@ -273,8 +273,8 @@ namespace emu{
       /// 
       /// @param className Class name of the target application.
       /// @param instance Instance of the target application.
-      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
       /// @param command Command.
+      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
@@ -284,8 +284,8 @@ namespace emu{
       /// See the overloaded version of this method for examples.
       ///
       xoap::MessageReference sendCommand( const string &className, const unsigned int instance, 
-                                          const std::string &commandNamespaceURI,
                                           const std::string &command, 
+                                          const std::string &commandNamespaceURI,
                                           const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
                                           const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
                                           const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
@@ -294,8 +294,8 @@ namespace emu{
       /// Sends a command to all applications of \c className in the default zone. If no applications of \c className are found, it will do nothing.
       /// 
       /// @param className Class name of the target application(s).
-      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
       /// @param command Command.
+      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
@@ -303,8 +303,8 @@ namespace emu{
       /// See the overloaded version of this method for examples.
       ///
       void sendCommand( const string &className,
-                        const std::string &commandNamespaceURI,
                         const std::string &command, 
+                        const std::string &commandNamespaceURI,
                         const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
                         const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
                         const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
