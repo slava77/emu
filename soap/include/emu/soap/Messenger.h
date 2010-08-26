@@ -205,7 +205,7 @@ namespace emu{
       ///
       /// A complete illustration with output printed below.
       /// \code
-      ///    // Attributes of the parameter tags
+      ///    // Attributes of the parameter tags:
       ///    xdata::String param1Attr1( "param1Attr1Value" );
       ///    xdata::String param1Attr2( "param1Attr2Value" );
       ///    emu::soap::Attributes param1Attributes;
@@ -214,21 +214,22 @@ namespace emu{
       ///    emu::soap::Attributes param2Attributes;
       ///    param2Attributes.add( "param2AttrName", &param2Attr );
       ///
-      ///    // Parameters
+      ///    // Parameters:
       ///    xdata::String param1( "param1Value" );
       ///    xdata::Double param2( 1.234567 );
       ///    xdata::Vector<xdata::Integer> param3;
-      ///    param3.push_back( xdata::Integer( 123 ) );
-      ///    param3.push_back( xdata::Integer( 456 ) );
-      ///    param3.push_back( xdata::Integer( 789 ) );
+      ///    param3.push_back( 123 );
+      ///    param3.push_back( 456 );
+      ///    param3.push_back( 789 );
       ///        
-      ///    // Attributes of the command tag
+      ///    // Attributes of the command tag:
       ///    xdata::String  commandAttr1( "commandAttr1Value" );
       ///    xdata::Integer commandAttr2( 2 );
       ///
-      ///    // Command message
-      ///    emu::soap::Messenger( this ).sendCommand( "command",
-      ///                                              "urn:emu-soap:example", // Omit this argument get the standard "urn:xdaq-soap:3.0"
+      ///    // Create and send the command message:
+      ///    emu::soap::Messenger( this ).sendCommand( targetDescriptor,
+      ///                                              "command",
+      ///                                              "urn:emu-soap:example", // Omit this argument to get the standard "urn:xdaq-soap:3.0" namespace URI
       ///                                              emu::soap::Parameters()
       ///                                                .add( "param1Name", &param1, &param1Attributes )
       ///                                                .add( "param2Name", &param2, &param2Attributes )
