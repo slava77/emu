@@ -1256,6 +1256,7 @@ void EmuTStore::readALCT(const std::string &connectionID, const std::string &emu
       if (*column == "ALCT_TESTPULSE_AMPLITUDE"      ) {alct_->SetTestpulseAmplitude(IntValue);                   }
       if (*column == "ALCT_TESTPULSE_INVERT"         ) {alct_->Set_InvertPulse(StrgValue);                        }
       if (*column == "ALCT_TESTPULSE_DIRECTION"      ) {alct_->Set_PulseDirection(StrgValue);                     }
+      if (*column == "ALCT_ZERO_SUPPRESS"            ) {alct_->SetAlctZeroSuppress(IntValue);                     }
       if (*column == "ALCT_CONFIG_ID"                ) {alct_config_id_ = StrgValue;                              }
       
       if(verbose) std::cout << *column + ": " + StrgValue << std::endl;
