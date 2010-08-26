@@ -2055,6 +2055,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows,ALCTController
   std::string ALCT_TESTPULSE_INVERT("ALCT_TESTPULSE_INVERT");
   std::string ALCT_TRIG_INFO_EN("ALCT_TRIG_INFO_EN");
   std::string ALCT_TRIG_MODE("ALCT_TRIG_MODE");
+  std::string ALCT_ZERO_SUPPRESS("ALCT_ZERO_SUPPRESS");
   std::string CHAMBER_TYPE("CHAMBER_TYPE");
   
   xdata::UnsignedShort     _alct_accel_mode                = TStore_thisALCT->GetWriteAlctAmode();
@@ -2090,6 +2091,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows,ALCTController
   //std::cout << "ALCT_TESTPULSE_INVERT read: " << _alct_testpulse_invert << std::endl;
   xdata::UnsignedShort     _alct_trig_info_en              = TStore_thisALCT->GetWriteTriggerInfoEnable();
   xdata::UnsignedShort     _alct_trig_mode                 = TStore_thisALCT->GetWriteTriggerMode();
+  xdata::UnsignedShort     _alct_zero_suppress             = TStore_thisALCT->GetAlctZeroSuppress();
   xdata::String            _chamber_type                   = TStore_thisALCT->GetChamberType();
   
   #ifdef debugV
@@ -2159,6 +2161,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows,ALCTController
   newRows.setValueAt(rowId, ALCT_TESTPULSE_INVERT,          _alct_testpulse_invert);
   newRows.setValueAt(rowId, ALCT_TRIG_INFO_EN,              _alct_trig_info_en);
   newRows.setValueAt(rowId, ALCT_TRIG_MODE,                 _alct_trig_mode);
+  newRows.setValueAt(rowId, ALCT_ZERO_SUPPRESS,             _alct_zero_suppress);
   newRows.setValueAt(rowId, CHAMBER_TYPE,                   _chamber_type);
 }
 
@@ -3132,6 +3135,7 @@ void EmuPCrateConfigTStore::readALCT(const std::string &connectionID, const std:
 	//std::cout << "ALCT_TESTPULSE_INVERT read as: " << alct_->Get_InvertPulse() << std::endl;
 	      }
       if (*column == "ALCT_TESTPULSE_DIRECTION"      ) {alct_->Set_PulseDirection(StrgValue);                     }
+      if (*column == "ALCT_ZERO_SUPPRESS"            ) {alct_->SetAlctZeroSuppress(IntValue);                     }
       if (*column == "ALCT_CONFIG_ID"                ) {alct_config_id_ = StrgValue;                              }
       
       //std::cout << *column + ": " + StrgValue << std::endl;
