@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.40 2010/07/18 16:41:47 liu Exp $
+// $Id: EmuDim.cc,v 1.41 2010/08/26 19:16:45 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -448,7 +448,7 @@ int EmuDim::FillChamber(char *buff, int source)
    label=buff;
 //   std::cout << "Found chamber " << label << " with number " << chnumb << std::endl; 
    content = endstr+1;
-   if(strlen(content)>430) std::cout<< label << " WARNING " << content << std::endl;
+   if(strlen(content)>500) std::cout<< label << " WARNING " << content << std::endl;
    if(chnumb>=0 && chnumb <TOTAL_CHAMBERS)
    {   chamb[chnumb].SetLabel(label);
        chamb[chnumb].Fill(content, source);
@@ -598,7 +598,7 @@ void EmuDim::StartDim()
          dim_lv_name = pref + "LV_1_" + chamb[i].GetLabel(); 
          dim_temp_name = pref + "TEMP_1_" + chamb[i].GetLabel(); 
 
-         LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:8;I:2",
+         LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:8;F:14;I:2",
            &(EmuDim_lv[i]), sizeof(LV_1_DimBroker));
          TEMP_1_Service[i]= new DimService(dim_temp_name.c_str(),"F:7;I:2",
            &(EmuDim_temp[i]), sizeof(TEMP_1_DimBroker));

@@ -3,6 +3,17 @@
 
 // adapted from Valeri Sytnik's e2p program
 
+// status bit pattern (Aug. 2010):
+//   bit 0 (value   1):  misc. errors
+//       1 (value   2):  chamber power off from Configuration DB
+//       2 (value   4):  data corrupted (in infospace or during transimission)
+//       3 (value   8):  VCC not accessible
+//       4 (value  16):  DMB Reading error
+//       5 (value  32):  crate OFF
+//       6 (value  64):  this DMB module caused VCC reading trouble
+//       7 (value 128):  TMB Reading error
+//       8 (value 256):  this TMB module caused VCC reading trouble                                                                                        
+
 #define CFEB_NUMBER 5
 
 typedef struct{
@@ -26,10 +37,29 @@ typedef struct{
 }ALCT_LV;
 
 typedef struct{
+  float v50;
+  float v33;
+  float v15C;
+  float v15T;
+  float v10T;
+  float c50;
+  float c33;
+  float c15C;
+  float c15T;
+  float cRAT;
+  float vRAT;
+  float vREF;
+  float vGND;
+  float vMAX;
+}TMB_LV;
+                
+                
+typedef struct{
 
   CFEB_LV cfeb;
   ALCT_LV alct;
-
+  TMB_LV  tmb;
+  
   int update_time;
   int status;
 
@@ -70,6 +100,5 @@ typedef struct{
   int status;
   
 }DDU_1_DimBroker;
-
 
 #endif
