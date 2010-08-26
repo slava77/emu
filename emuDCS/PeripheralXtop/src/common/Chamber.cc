@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.17 2010/07/18 16:41:47 liu Exp $
+// $Id: Chamber.cc,v 1.18 2010/08/26 19:16:45 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.18  2010/08/26 19:16:45  liu
+// add TMB voltages
+//
 // Revision 1.17  2010/07/18 16:41:47  liu
 // new PVSS-X2P protocol
 //
@@ -87,7 +90,7 @@ void Chamber::Fill(char *buffer, int source)
            i = atoi(item);
            states[idx] = i; 
        }
-       else if(idx<52)
+       else if(idx<67)
        {  
            y=strtof(item,NULL);
            values[idx-3]=y;
@@ -98,7 +101,7 @@ void Chamber::Fill(char *buffer, int source)
 
    if(source==0)
    {  
-      if(idx!=51 || values[47]!=(-50.))
+      if(idx!=66 || values[62]!=(-50.))
       {   std::cout << label_ << " BAD...total " << idx << " last one " << values[47] << std::endl;
           corruption = true;
       }
@@ -159,6 +162,21 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->alct.c55 = data[17];
       dim_lv->alct.c56 = data[18];
    
+      dim_lv->tmb.v50  = data[47];
+      dim_lv->tmb.v33  = data[48];
+      dim_lv->tmb.v15C = data[49];
+      dim_lv->tmb.v15T = data[50];
+      dim_lv->tmb.v10T = data[51];
+      dim_lv->tmb.c50  = data[52];
+      dim_lv->tmb.c33  = data[53];
+      dim_lv->tmb.c15C = data[54];
+      dim_lv->tmb.c15T = data[55];
+      dim_lv->tmb.cRAT = data[56];
+      dim_lv->tmb.vRAT = data[57];
+      dim_lv->tmb.vREF = data[58];
+      dim_lv->tmb.vGND = data[59];
+      dim_lv->tmb.vMAX = data[60];
+
    dim_lv->update_time = info[1];
    dim_lv->status = this_st;
 
