@@ -2527,9 +2527,9 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
 	//
 	SetCurrentCrate(crate_index);
-	//
-	std::cout << "CCB Hard Reset for " << thisCrate->GetLabel() << std::endl;
-	//
+        //
+        std::cout << "CCB Hard Reset for " << thisCrate->GetLabel() << std::endl;
+        //
 	if (!thisCrate->IsAlive()) continue;
 	//
 	thisCCB->hardReset();
@@ -11392,20 +11392,17 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","Write CCB") << std::endl ;
   *out << cgicc::form() << cgicc::br() << std::endl ;
   //
+  std::string ReadTTCRegister =
+    toolbox::toString("/%s/ReadTTCRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::a("[Read TTCrx Registers]").set("href",ReadTTCRegister).set("target","_blank") << std::endl;
+  //
+  *out << cgicc::br() << cgicc::br() << std::endl;
   std::string HardReset =
     toolbox::toString("/%s/HardReset",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",HardReset) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","HardReset");
   *out << cgicc::form() << std::endl ;
   //
-  *out << cgicc::br();
-  std::string ReadTTCRegister =
-    toolbox::toString("/%s/ReadTTCRegister",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",ReadTTCRegister) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","ReadTTCRegister");
-  *out << cgicc::form() << std::endl ;
-  //
-  *out << cgicc::br();
   *out << cgicc::br();
   //
   //  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_021508.svf";
@@ -14628,10 +14625,13 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   void EmuPeripheralCrateConfig::ReadTTCRegister(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
+      std::ostringstream OutputTxt;
     //
+      OutputTxt.str(""); //clear the output string
+      thisCCB->RedirectOutput(&OutputTxt);
       thisCCB->PrintTTCrxRegs();
-    //
-    this->CCBUtils(in,out);
+      thisCCB->RedirectOutput(&std::cout);
+      *out << OutputTxt.str();
     //
   }
   //
