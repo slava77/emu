@@ -170,8 +170,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   }
   //
   firmware_checked_ = 0;
-  number_of_hard_resets_ = 1;
-  number_of_checks_ = 2;
+  number_of_checks_ = 4;
+  number_of_hard_resets_ = number_of_checks_ - 1;
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateConfig::MainPage, "MainPage");
@@ -2527,6 +2527,9 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
 	//
 	SetCurrentCrate(crate_index);
+	//
+	std::cout << "CCB Hard Reset for " << thisCrate->GetLabel() << std::endl;
+	//
 	if (!thisCrate->IsAlive()) continue;
 	//
 	thisCCB->hardReset();
