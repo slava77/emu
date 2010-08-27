@@ -103,9 +103,6 @@ bSem_(toolbox::BSem::FULL)
     // Fill the application's monitorable info space
     putParamsIntoInfoSpace(stdMonitorParams_, monitoringInfoSpace_);
 
-    //
-    // Emu-specific stuff
-    //
     workLoopFactory_ = toolbox::task::getWorkLoopFactory();
 
     runStartUTC_ = 0;
@@ -233,7 +230,6 @@ xoap::MessageReference emu::daq::fu::Application::processSOAPClientCreditMsg( xo
 
 xoap::MessageReference emu::daq::fu::Application::onSOAPClientCreditMsg( xoap::MessageReference msg )
   throw (xoap::exception::Exception)
-  // EMu-specific stuff
 {
 
   stringstream ss;
@@ -316,7 +312,6 @@ xoap::MessageReference emu::daq::fu::Application::onSOAPClientCreditMsg( xoap::M
 }
 
 void emu::daq::fu::Application::onI2OClientCreditMsg(toolbox::mem::Reference *bufRef)
-  // EMu-specific stuff
 {
     I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME *msg =
         (I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME*)bufRef->getDataLocation();
@@ -555,9 +550,6 @@ vector< pair<string, xdata::Serializable*> > emu::daq::fu::Application::initAndG
     params.push_back(pair<string,xdata::Serializable *>
         ("nbEventsBeforeExit", &nbEventsBeforeExit_));
 
-    //
-    // EMu-specific stuff
-    //
     pathToDataOutFile_   = "/tmp";
     fileSizeInMegaBytes_ = 2;
     params.push_back(pair<string,xdata::Serializable *>
@@ -607,9 +599,6 @@ vector< pair<string, xdata::Serializable*> > emu::daq::fu::Application::initAndG
     params.push_back(pair<string,xdata::Serializable *>
         ("nbEventsProcessed", &nbEventsProcessed_));
 
-    //
-    // EMu-specific stuff
-    //
     params.push_back(pair<string,xdata::Serializable *>
 		     ("runNumber", &runNumber_ ));
 
@@ -793,7 +782,7 @@ xoap::MessageReference emu::daq::fu::Application::onReset(xoap::MessageReference
   }
 }
 
-void emu::daq::fu::Application::moveToFailedState(){ // Emu-specific
+void emu::daq::fu::Application::moveToFailedState(){
   try
     {
       // Move to the failed state
@@ -1109,9 +1098,6 @@ throw (toolbox::fsm::exception::Exception)
         XCEPT_RAISE(toolbox::fsm::exception::Exception, s);
     }
 
-    //
-    // EMu-specific stuff
-    //
 
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
@@ -1320,7 +1306,6 @@ void emu::daq::fu::Application::bindI2oCallbacks()
         XDAQ_ORGANIZATION_ID
     );
 
-  // EMu-specific stuff
   i2o::bind(this, &emu::daq::fu::Application::onI2OClientCreditMsg, I2O_EMUCLIENT_CODE, XDAQ_ORGANIZATION_ID );
 }
 
@@ -1678,9 +1663,6 @@ throw (emu::daq::fu::exception::Exception)
     U32 buResourceId = block->buResourceId;
 
 
-    //
-    // EMu-specific stuff
-    //
     char         *startOfPayload = (char*) bufRef->getDataLocation() 
       + sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
     unsigned long  sizeOfPayload =         bufRef->getDataSize()
@@ -1859,9 +1841,6 @@ throw (emu::daq::fu::exception::Exception)
 
 
 void emu::daq::fu::Application::printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader )
-  //
-  // EMu-specific stuff
-  //
 {
   if ( !bufRef )
     {

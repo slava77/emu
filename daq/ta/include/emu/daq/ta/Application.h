@@ -187,9 +187,6 @@ private:
      */
     xdata::UnsignedLong triggerSourceId_;
 
-  //
-  // EMu-specific stuff
-  //
     xdata::String       runStartTime_; ///< runs start time
     xdata::String       runStopTime_; ///< run stop time
     xdata::UnsignedLong runNumber_; ///< run number

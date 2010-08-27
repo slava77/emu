@@ -57,9 +57,6 @@ public:
 
 private:
 
-    //
-    // EMu-specific stuff
-    //
   toolbox::task::WorkLoopFactory *workLoopFactory_;
   bool serverLoopAction(toolbox::task::WorkLoop *wl);
 
@@ -283,9 +280,6 @@ private:
     /////////////////////////////////////////////////////////////
 
 
-    //
-    // EMu-specific stuff
-    //
     xdata::String       pathToDataOutFile_;   ///< the path to the file to write the data into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_; ///< when the file size exceeds this, no more events will be written to it (no file written if <=0)
     xdata::UnsignedLong runNumber_;           ///< run number to be obtained from EmuTA
