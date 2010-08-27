@@ -19,7 +19,7 @@
 #include "xdata/Integer.h"
 #include "xdata/ItemEvent.h"
 
-/* // EMu-specific stuff */
+
 #include "emu/daq/reader/Base.h"
 #include "emu/daq/server/Base.h"
 #include "emu/daq/server/i2oMsg.h"
@@ -52,8 +52,6 @@ public:
 
 
 private:
-
-  // EMu-specific stuff
 
   bool serverLoopAction(toolbox::task::WorkLoop *wl);
 
@@ -395,9 +393,6 @@ private:
      */
     xdata::UnsignedLong threshold_;
 
-    //
-    // EMu-specific stuff
-    //
     xdata::String       pathToDataOutFile_;    // the path to the file to write the data into (no file written if "")
     xdata::String       pathToBadEventsFile_;    // the path to the file to write the bad events into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_;  // when the file size exceeds this, no more events will be written to it (no file written if <=0)
@@ -548,9 +543,6 @@ private:
       throw (xoap::exception::Exception);
 
     xoap::MessageReference onHalt(xoap::MessageReference msg)
-      throw (xoap::exception::Exception);
-
-    xoap::MessageReference onFail(xoap::MessageReference msg)
       throw (xoap::exception::Exception);
 
     xoap::MessageReference onReset(xoap::MessageReference msg)

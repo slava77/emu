@@ -15,16 +15,9 @@
 #include "xdaq/NamespaceURI.h"
 #include "xdaq/exception/ApplicationNotFound.h"
 #include "xgi/Method.h"
-#include "xoap/domutils.h"
-#include "xoap/MessageFactory.h"
-#include "xoap/MessageReference.h"
-#include "xoap/Method.h"
-#include "xoap/SOAPBody.h"
-#include "xoap/SOAPBodyElement.h"
-#include "xoap/SOAPEnvelope.h"
 
 #include <unistd.h>
-// EMu-specific stuff
+
 #include "toolbox/mem/CommittedHeapAllocator.h"
 #include "toolbox/net/URL.h"
 #include "emu/daq/reader/RawDataFile.h"
@@ -118,9 +111,6 @@ throw (xdaq::exception::Exception) :
     xgi::bind(this, &emu::daq::rui::Application::css           , "styles.css");
     xgi::bind(this, &emu::daq::rui::Application::defaultWebPage, "Default"   );
 
-    //
-    // EMu-specific
-    //
     deviceReader_          = NULL;
     fileWriter_            = NULL;
     rateLimiter_           = NULL;
@@ -229,7 +219,6 @@ xoap::MessageReference emu::daq::rui::Application::processSOAPClientCreditMsg( x
 
 xoap::MessageReference emu::daq::rui::Application::onSOAPClientCreditMsg( xoap::MessageReference msg )
   throw (xoap::exception::Exception)
-  // EMu-specific stuff
 {
 
   stringstream ss;
@@ -311,7 +300,6 @@ xoap::MessageReference emu::daq::rui::Application::onSOAPClientCreditMsg( xoap::
 }
 
 void emu::daq::rui::Application::onI2OClientCreditMsg(toolbox::mem::Reference *bufRef)
-  // EMu-specific stuff
 {
     I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME *msg =
         (I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME*)bufRef->getDataLocation();
@@ -524,7 +512,6 @@ time_t emu::daq::rui::Application::toUnixTime( const std::string YYMMDD_hhmmss_U
 
 
 void emu::daq::rui::Application::getRunInfo()
-  // EMu-specific stuff
   // Gets the run number and maximum number of events from TA
 throw (emu::daq::rui::exception::Exception)
 {
@@ -761,9 +748,6 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     params.push_back(pair<string,xdata::Serializable *>
         ("threshold", &threshold_));
 
-    //
-    // EMu-specific stuff
-    //
     maxEvents_ = 0;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("maxEvents", &maxEvents_));
@@ -847,9 +831,6 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
         ("eventNumber", &eventNumber_));
 
 
-    //
-    // EMu-specific stuff
-    //
     nEventsRead_ = 0;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("nEventsRead", &nEventsRead_));
