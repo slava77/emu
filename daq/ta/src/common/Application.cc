@@ -270,7 +270,7 @@ vector< pair<string, xdata::Serializable*> > emu::daq::ta::Application::initAndG
     params.push_back(pair<string,xdata::Serializable *>
         ("triggerSourceId", &triggerSourceId_));
 
-    // Emu specific
+
     runStartTime_ = "YYMMDD_hhmmss_UTC";
     runStopTime_  = "YYMMDD_hhmmss_UTC";
     runNumber_    = 1;
@@ -1116,9 +1116,6 @@ throw (emu::daq::ta::exception::Exception)
 }
 
 void emu::daq::ta::Application::printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader )
-  //
-  // EMu-specific stuff
-  //
 {
   if( printMessageHeader )
     {

@@ -3821,7 +3821,7 @@ void emu::daq::manager::Application::printEventCountsTable
     xgi::Output              *out,
     string                    title,
     vector< map< string,string > >   counts 
-) // Emu specific
+)
 {
     const int superColWidth = 3; // [columns]
     int nCounts = counts.size();
