@@ -3522,14 +3522,14 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   std::string SetRadioactivityTrigger = toolbox::toString("/%s/SetRadioactivityTrigger",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",SetRadioactivityTrigger) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","SetRadioactivityTrigger") << std::endl ;
-  *out << cgicc::form() << cgicc::br() << std::endl ;;
+  *out << cgicc::form() << std::endl ;;
   *out << cgicc::td();
   //
   *out << cgicc::td();
   std::string SetTTCDelays = toolbox::toString("/%s/SetTTCDelays",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",SetTTCDelays) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","SetTTCDelays") << std::endl ;
-  *out << cgicc::form() << cgicc::br() << std::endl ;;
+  *out << cgicc::form() << std::endl ;;
   *out << cgicc::td();
   //
   *out << cgicc::table() << std::endl ;
@@ -3594,12 +3594,12 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
     std::string StopPRBS = toolbox::toString("/%s/StopPRBS",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",StopPRBS) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Stop PRBS test").set("style","color:red") << std::endl ;
-    *out << cgicc::form() << cgicc::br() << std::endl ;;
+    *out << cgicc::form() << std::endl ;;
   } else {
     std::string StartPRBS = toolbox::toString("/%s/StartPRBS",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",StartPRBS) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Start PRBS test").set("style","color:blue") << std::endl ;
-    *out << cgicc::form() << cgicc::br() << std::endl ;;
+    *out << cgicc::form()<< std::endl ;;
   }
   //
   *out << cgicc::fieldset();
@@ -3617,7 +3617,7 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   std::string MeasureAllTMBVoltages = toolbox::toString("/%s/MeasureAllTMBVoltages",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",MeasureAllTMBVoltages) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Measure All TMB Voltages") << std::endl ;
-  *out << cgicc::form() << cgicc::br() << std::endl ;
+  *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
   *out << cgicc::td();
