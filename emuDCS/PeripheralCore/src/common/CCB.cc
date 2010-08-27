@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.40 2010/07/28 13:13:49 rakness Exp $
+// $Id: CCB.cc,v 3.41 2010/08/27 19:51:29 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.41  2010/08/27 19:51:29  liu
+// send PrintTTCRegister output to screen
+//
 // Revision 3.40  2010/07/28 13:13:49  rakness
 // make fine delay computation public
 //
@@ -1040,87 +1043,88 @@ void CCB::init() {
   //
 }
 void CCB::PrintTTCrxRegs(){
+  //
+  (*MyOutput_) << "Register 0 " ;
+  (*MyOutput_) << ReadTTCrxReg(0);
+  (*MyOutput_) << " (fine delay)" << std::endl;
+  //
+  (*MyOutput_) << "Register 1 " ;
+  (*MyOutput_) << ReadTTCrxReg(1);
+  (*MyOutput_) << " (fine delay)" << std::endl;
+      //
+  (*MyOutput_) << "Register 2 " ;
+  (*MyOutput_) << ReadTTCrxReg(2);
+  (*MyOutput_) << " (coarse delay)" <<std::endl;
+  //
+  (*MyOutput_) << "Register 3 " ;
+  (*MyOutput_) << ReadTTCrxReg(3);
+  (*MyOutput_) << " (control)" << std::endl << std::endl;
+  //
+  (*MyOutput_) << "Register 8 " ;
+  (*MyOutput_) << ReadTTCrxReg(8);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 9 " ;
+  (*MyOutput_) << ReadTTCrxReg(9);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 10 " ;
+  (*MyOutput_) << ReadTTCrxReg(10);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 11 " ;
+  (*MyOutput_) << ReadTTCrxReg(11);
+  (*MyOutput_) << std::endl << std::endl;
+  //
+  (*MyOutput_) << "Register 16 " ;
+  (*MyOutput_) << ReadTTCrxReg(16);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 17 " ;
+  (*MyOutput_) << ReadTTCrxReg(17);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 18 " ;
+  (*MyOutput_) << ReadTTCrxReg(18);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 19 " ;
+  (*MyOutput_) << ReadTTCrxReg(19);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 20 " ;
+  (*MyOutput_) << ReadTTCrxReg(20);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 21 " ;
+  (*MyOutput_) << ReadTTCrxReg(21);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 22 " ;
+  (*MyOutput_) << ReadTTCrxReg(22);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 24 " ;
+  (*MyOutput_) << ReadTTCrxReg(24);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 25 " ;
+  (*MyOutput_) << ReadTTCrxReg(25);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 26 " ;
+  (*MyOutput_) << ReadTTCrxReg(26);
+  (*MyOutput_) << std::endl;
+      //
+  (*MyOutput_) << "Register 27 " ;
+  (*MyOutput_) << ReadTTCrxReg(27);
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "Register 28 " ;
+  (*MyOutput_) << ReadTTCrxReg(28);
+  (*MyOutput_) << std::endl;
+
   std::cout << "PrintTTCrxRegs Using ReadTTCrxID_ "<< ReadTTCrxID_ << std::endl;
-  //
-  std::cout << "Register 0 " ;
-  std::cout << ReadTTCrxReg(0);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 1 " ;
-  std::cout << ReadTTCrxReg(1);
-  std::cout << std::endl;
-      //
-  std::cout << "Register 2 " ;
-  std::cout << ReadTTCrxReg(2);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 3 " ;
-  std::cout << ReadTTCrxReg(3);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 8 " ;
-  std::cout << ReadTTCrxReg(8);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 9 " ;
-  std::cout << ReadTTCrxReg(9);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 10 " ;
-  std::cout << ReadTTCrxReg(10);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 11 " ;
-  std::cout << ReadTTCrxReg(11);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 16 " ;
-  std::cout << ReadTTCrxReg(16);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 17 " ;
-  std::cout << ReadTTCrxReg(17);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 18 " ;
-  std::cout << ReadTTCrxReg(18);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 19 " ;
-  std::cout << ReadTTCrxReg(19);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 20 " ;
-  std::cout << ReadTTCrxReg(20);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 21 " ;
-  std::cout << ReadTTCrxReg(21);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 22 " ;
-  std::cout << ReadTTCrxReg(22);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 24 " ;
-  std::cout << ReadTTCrxReg(24);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 25 " ;
-  std::cout << ReadTTCrxReg(25);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 26 " ;
-  std::cout << ReadTTCrxReg(26);
-  std::cout << std::endl;
-      //
-  std::cout << "Register 27 " ;
-  std::cout << ReadTTCrxReg(27);
-  std::cout << std::endl;
-  //
-  std::cout << "Register 28 " ;
-  std::cout << ReadTTCrxReg(28);
-  std::cout << std::endl;
 
   // I2C access could leave the CCB in FPGA mode
   setCCBMode(CCB::DLOG);
