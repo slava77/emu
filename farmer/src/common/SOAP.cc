@@ -26,7 +26,7 @@
 
 
 xoap::MessageReference emu::farmer::utils::createStartXdaqExeSOAPMsg( const string& host, const int port, const string& user, 
-								      const string& jid,
+								      const string& jid, const string& pathToExecutive,
 								      map<string,string> environmentVariables )
   throw (xcept::Exception){
   xoap::MessageReference message = xoap::createMessage();
@@ -38,7 +38,7 @@ xoap::MessageReference emu::farmer::utils::createStartXdaqExeSOAPMsg( const stri
     xoap::SOAPName name = envelope.createName("startXdaqExe", "xdaq", "urn:xdaq-soap:3.0");
     xoap::SOAPBodyElement bodyelement = envelope.getBody().addBodyElement(name);
     name = envelope.createName("execPath", "", "");
-    bodyelement.addAttribute( name, environmentVariables["XDAQ_ROOT"]+"/bin/xdaq.exe" );
+    bodyelement.addAttribute( name, pathToExecutive );
     name = envelope.createName("argv", "", "");
     stringstream ssport; ssport << port;
     bodyelement.addAttribute( name, string("-h ") + host + " -p " + ssport.str() );

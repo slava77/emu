@@ -233,6 +233,21 @@ public:
   void setEnvironmentString( const string& environmentString );
 
 
+  ///
+  /// get path to executive
+  ///
+  /// @return path to the executable for this process
+  ///
+  string getPathToExecutive(){ return pathToExecutive_; }
+
+  ///
+  /// set path to executive
+  ///
+  /// @param pathToExecutive path to the executable for this process
+  ///
+  void setPathToExecutive( const string& pathToExecutive ){ pathToExecutive_ = pathToExecutive; }
+
+
   /// print summary of this process (for debugging purposes only)
 
   ///
@@ -276,6 +291,9 @@ private:
 
   ///the URL (http://ip_number:port/appURN) of the JobControl app in charge of this process
   string jobControlURI_;
+
+  /// the path to the executable
+  string pathToExecutive_;
 
   /// the environment string for this process
   string environmentString_;
