@@ -116,10 +116,6 @@
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
 	  <controlDQM xsi:type="xsd:boolean">false</controlDQM>
 	  <hardwareMapping xsi:type="xsd:string">/emu/farmer/xml/RUI-to-chamber_mapping.xml</hardwareMapping>
-	  <TF_FM_URL xsi:type="xsd:string">http://UNKNOWN.cms:12000</TF_FM_URL>
-	  <CSC_FM_URL xsi:type="xsd:string">http://cmsrc-csc.cms:12000</CSC_FM_URL>
-	  <RegexMatchingTFConfigName xsi:type="xsd:string">UNKNOWN</RegexMatchingTFConfigName>
-	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*/Local/.*|.*/Global/.*</RegexMatchingCSCConfigName>
 	  <expertSystemURL xsi:type="xsd:string">http://csc-expert.cms:8080/cdw/factcollection</expertSystemURL>
 	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	</properties>

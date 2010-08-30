@@ -155,6 +155,7 @@ emu::farmer::Application::createExecutives(){
 							 pd->second.getPort(),
 							 pd->second.getUser(),
 							 pd->second.getJid(),
+							 pd->second.getPathToExecutive(),
 							 pd->second.getEnvironmentVariables() );
 	xoap::MessageReference reply = 
 	  emu::farmer::utils::postSOAP( message, 
@@ -655,9 +656,11 @@ void emu::farmer::Application::createProcessDescriptors()
 	  XalanDOMString X_port("port");
 	  XalanDOMString X_urn ("urn" );
 	  XalanDOMString X_name("className");
+	  XalanDOMString X_pathToExecutive( "pathToExecutive" );
 	  XalanDOMString X_environmentString ( "environmentString" );
 	  XalanDOMString X_unixUser ( "unixUser" );
 	  XalanDOMString X_configFile ( "configFile" );
+	  stringstream exe;
 	  stringstream env;
 	  stringstream user;
 	  stringstream uri;
@@ -671,6 +674,7 @@ void emu::farmer::Application::createProcessDescriptors()
 	  }
 	  else if ( node->getNodeName() == XalanDOMString("XdaqExecutive") ){
 	    name << executiveClass_.toString();
+	    exe  << node->getAttributes()->getNamedItem( X_pathToExecutive )->getNodeValue();
 	    env  << node->getAttributes()->getNamedItem( X_environmentString )->getNodeValue();
 	    user << node->getAttributes()->getNamedItem( X_unixUser )->getNodeValue();
 	    // Get config file
@@ -698,6 +702,7 @@ void emu::farmer::Application::createProcessDescriptors()
 	  }
 	  emu::farmer::ProcessDescriptor pd( uri.str() );
 	  pd.setName( name.str() );
+	  pd.setPathToExecutive( exe.str() );
 	  pd.setEnvironmentString( env.str() );
 	  pd.setUser( user.str() );
 	  pd.setXdaqConfigPath( configFile.str() );
