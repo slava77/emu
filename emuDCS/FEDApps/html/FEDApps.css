@@ -604,3 +604,43 @@ tr.title {
 	font-weight: bold;
 }
 
+/* Commander Macro Buttons */
+#ddu_macro1 {
+	background-color: #C99;
+}
+
+#ddu_macro2 {
+	background-color: #CC9;
+}
+
+#ddu_macro3 {
+	background-color: #9C9;
+}
+
+#ddu_macro4 {
+	background-color: #99C;
+}
+
+#ddu_macro5 {
+	background-color: #C9C;
+}
+
+#ddu_macro6 {
+	background-color: #999;
+}
+
+#ddu_macro7 {
+	background-color: #CCF;
+}
+
+#ddu_macro8 {
+	background-color: #CFC;
+}
+
+#ddu_macro9 {
+	background-color: #FFC;
+}
+
+#ddu_macro10 {
+	background-color: #FCC;
+}

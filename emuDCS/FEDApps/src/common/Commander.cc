@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.27 2010/08/13 03:00:07 paste Exp $
+* $Id: Commander.cc,v 1.28 2010/08/30 17:24:29 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -295,37 +295,48 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("class", "tier1") << std::endl;
 	*out << cgicc::button("Set Flash Board ID")
 		.set("id", "ddu_flash_boardid_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "1") << std::endl;
 	*out << cgicc::button("Set Flash RUI Number")
 		.set("id", "ddu_flash_rui_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "3")  << std::endl;
 	*out << cgicc::button("Set KillFiber")
 		.set("id", "ddu_killfiber_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "4")  << std::endl;
 	*out << cgicc::button("Set Flash KillFiber")
 		.set("id", "ddu_flash_killfiber_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "5") << std::endl;
 	*out << cgicc::button("Set GbE Prescale")
 		.set("id", "ddu_gbe_prescale_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "6") << std::endl;
 	*out << cgicc::button("Set FMM Status")
 		.set("id", "ddu_fmm_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "12") << std::endl;
 	*out << cgicc::button("Set Fake L1 Passthrough")
 		.set("id", "ddu_fake_l1_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "42") << std::endl;
 	*out << cgicc::button("Set Flash GbE Thresholds")
 		.set("id", "ddu_flash_gbe_thresholds_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "43") << std::endl;
 	*out << cgicc::button("Set Bunch-Crossing Orbit")
 		.set("id", "ddu_bxorbit_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "49") << std::endl;
 	*out << cgicc::button("Set Input Register")
 		.set("id", "ddu_input_reg_dialog")
-		.set("class", "ddu_button") << std::endl;
-	*out << cgicc::button("DDU Resets")
+		.set("class", "ddu_button ddu_edit")
+		.set("reg", "57") << std::endl;
+/*	*out << cgicc::button("DDU Resets")
 		.set("id", "ddu_reset_dialog")
-		.set("class", "ddu_button") << std::endl;
+		.set("class", "ddu_button ddu_edit") << std::endl;
+*/
 	*out << cgicc::div() << std::endl;
 
 
@@ -340,70 +351,110 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("id", "all_ddu_registers") << std::endl;
 	*out << cgicc::button("Select No DDU Registers")
 		.set("id", "no_ddu_registers") << std::endl;
+	*out << cgicc::button("Select Voltages")
+		.set("id", "ddu_macro1")
+		.set("class", "ddu_macro")
+		.set("macro", "1") << std::endl;
+	*out << cgicc::button("Select Temperatures")
+		.set("id", "ddu_macro2")
+		.set("class", "ddu_macro")
+		.set("macro", "2")  << std::endl;
+	*out << cgicc::button("Select Control FPGA Status")
+		.set("id", "ddu_macro3")
+		.set("class", "ddu_macro")
+		.set("macro", "3")  << std::endl;
+	*out << cgicc::button("Select Input FPGA Status (Fibers 0-7)")
+		.set("id", "ddu_macro4")
+		.set("class", "ddu_macro")
+		.set("macro", "4")  << std::endl;
+	*out << cgicc::button("Select Input FPGA Status (Fibers 8-14)")
+		.set("id", "ddu_macro5")
+		.set("class", "ddu_macro")
+		.set("macro", "5")  << std::endl;
+	*out << cgicc::button("Select Diagnostic Traps")
+		.set("id", "ddu_macro6")
+		.set("class", "ddu_macro")
+		.set("macro", "6")  << std::endl;
+	*out << cgicc::button("Select Counters")
+		.set("id", "ddu_macro7")
+		.set("class", "ddu_macro")
+		.set("macro", "7")  << std::endl;
+	*out << cgicc::button("Select Flash Registers")
+		.set("id", "ddu_macro8")
+		.set("class", "ddu_macro")
+		.set("macro", "8")  << std::endl;
+	*out << cgicc::button("Select Configuration Registers")
+		.set("id", "ddu_macro9")
+		.set("class", "ddu_macro")
+		.set("macro", "9")  << std::endl;
+	*out << cgicc::button("Select Per-Fiber Registers")
+		.set("id", "ddu_macro10")
+		.set("class", "ddu_macro")
+		.set("macro", "10")  << std::endl;
 	*out << cgicc::div() << std::endl;
 
 	std::vector<Register> DDURegisters;
-	DDURegisters.push_back(Register("Flash Board ID", "1"));
-	DDURegisters.push_back(Register("RUI Number", "2"));
-	DDURegisters.push_back(Register("Flash RUI Number", "3"));
-	DDURegisters.push_back(Register("KillFiber", "4"));
-	DDURegisters.push_back(Register("Flash KillFiber", "5"));
-	DDURegisters.push_back(Register("GbE Prescale", "6"));
+	DDURegisters.push_back(Register("Flash Board ID", "1", "ddu_macro8"));
+	DDURegisters.push_back(Register("RUI Number", "2", "ddu_macro3 ddu_macro9"));
+	DDURegisters.push_back(Register("Flash RUI Number", "3", "ddu_macro8 ddu_macro9"));
+	DDURegisters.push_back(Register("KillFiber", "4", "ddu_macro3 ddu_macro9"));
+	DDURegisters.push_back(Register("Flash KillFiber", "5", "ddu_macro8 ddu_macro9"));
+	DDURegisters.push_back(Register("GbE Prescale", "6", "ddu_macro9"));
 
-	DDURegisters.push_back(Register("DDUFPGA L1A Scaler", "7"));
-	DDURegisters.push_back(Register("INFPGA0 L1A Scaler (fibers 0-3)", "8"));
-	DDURegisters.push_back(Register("INFPGA0 L1A Scaler (fibers 4-7)", "9"));
-	DDURegisters.push_back(Register("INFPGA1 L1A Scaler (fibers 8-11)", "10"));
-	DDURegisters.push_back(Register("INFPGA1 L1A Scaler (fibers 12-14)", "11"));
+	DDURegisters.push_back(Register("DDUFPGA L1A Scaler", "7", "ddu_macro3 ddu_macro7 ddu_macro9"));
+	DDURegisters.push_back(Register("INFPGA0 L1A Scaler (fibers 0-3)", "8", "ddu_macro4 ddu_macro7"));
+	DDURegisters.push_back(Register("INFPGA0 L1A Scaler (fibers 4-7)", "9", "ddu_macro4 ddu_macro7"));
+	DDURegisters.push_back(Register("INFPGA1 L1A Scaler (fibers 8-11)", "10", "ddu_macro5 ddu_macro7"));
+	DDURegisters.push_back(Register("INFPGA1 L1A Scaler (fibers 12-14)", "11", "ddu_macro5 ddu_macro7"));
 
-	DDURegisters.push_back(Register("FMM Register", "12"));
-	DDURegisters.push_back(Register("Per-Fiber Error Status", "13"));
-	DDURegisters.push_back(Register("Per-Fiber Advanced Error Status", "14"));
-	DDURegisters.push_back(Register("Per-Fiber FMM Busy", "15"));
-	DDURegisters.push_back(Register("Per-Fiber FMM Busy History", "16"));
-	DDURegisters.push_back(Register("Per-Fiber FMM Full Warning", "17"));
-	DDURegisters.push_back(Register("Per-Fiber FMM Full Warning History", "18"));
-	DDURegisters.push_back(Register("Per-Fiber FMM Lost Sync", "19"));
-	DDURegisters.push_back(Register("Per-Fiber FMM Error", "20"));
+	DDURegisters.push_back(Register("FMM Register", "12", "ddu_macro3 ddu_macro9"));
+	DDURegisters.push_back(Register("Per-Fiber Error Status", "13", "ddu_macro3 ddu_macro9"));
+	DDURegisters.push_back(Register("Per-Fiber Advanced Error Status", "14", "ddu_macro3 ddu_macro9"));
+	DDURegisters.push_back(Register("Per-Fiber FMM Busy", "15", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber FMM Busy History", "16", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber FMM Full Warning", "17", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber FMM Full Warning History", "18", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber FMM Lost Sync", "19", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber FMM Error", "20", "ddu_macro3 ddu_macro10"));
 
-	DDURegisters.push_back(Register("DDUFPGA Status", "21"));
-	DDURegisters.push_back(Register("DDUFPGA Diagnostic Trap", "22"));
-	DDURegisters.push_back(Register("Per-Fiber DDUFPGA FIFO-Full", "23"));
-	DDURegisters.push_back(Register("Per-Fiber CRC Error", "24"));
-	DDURegisters.push_back(Register("Per-Fiber Transmit Error", "25"));
-	DDURegisters.push_back(Register("Per-Fiber DMB Error", "26"));
-	DDURegisters.push_back(Register("Per-Fiber TMB Error", "27"));
-	DDURegisters.push_back(Register("Per-Fiber ALCT Error", "28"));
-	DDURegisters.push_back(Register("Per-Fiber Lost-In-Event Error", "29"));
-	DDURegisters.push_back(Register("Per-Fiber Input Corruption History", "30"));
-	DDURegisters.push_back(Register("Per-Fiber DMB Live", "31"));
-	DDURegisters.push_back(Register("Per-Fiber DMB Live at First Event", "32"));
-	DDURegisters.push_back(Register("Per-Fiber Warning Status", "33"));
+	DDURegisters.push_back(Register("DDUFPGA Status", "21", "ddu_macro3 ddu_macro9"));
+	DDURegisters.push_back(Register("DDUFPGA Diagnostic Trap", "22", "ddu_macro3 ddu_macro6"));
+	DDURegisters.push_back(Register("Per-Fiber DDUFPGA FIFO-Full", "23", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber CRC Error", "24", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber Transmit Error", "25", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber DMB Error", "26", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber TMB Error", "27", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber ALCT Error", "28", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber Lost-In-Event Error", "29", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber Input Corruption History", "30", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber DMB Live", "31", "ddu_macro3 ddu_macro9 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber DMB Live at First Event", "32", "ddu_macro3 ddu_macro10"));
+	DDURegisters.push_back(Register("Per-Fiber Warning Status", "33", "ddu_macro3 ddu_macro10"));
 
-	DDURegisters.push_back(Register("Temperature 0", "34"));
-	DDURegisters.push_back(Register("Temperature 1", "35"));
-	DDURegisters.push_back(Register("Temperature 2", "36"));
-	DDURegisters.push_back(Register("Temperature 3", "37"));
-	DDURegisters.push_back(Register("Voltage 1.5", "38"));
-	DDURegisters.push_back(Register("Voltage 2.5 (1)", "39"));
-	DDURegisters.push_back(Register("Voltage 2.5 (2)", "40"));
-	DDURegisters.push_back(Register("Voltage 3.3", "41"));
+	DDURegisters.push_back(Register("Temperature 0", "34", "ddu_macro2"));
+	DDURegisters.push_back(Register("Temperature 1", "35", "ddu_macro2"));
+	DDURegisters.push_back(Register("Temperature 2", "36", "ddu_macro2"));
+	DDURegisters.push_back(Register("Temperature 3", "37", "ddu_macro2"));
+	DDURegisters.push_back(Register("Voltage 1.5", "38", "ddu_macro1"));
+	DDURegisters.push_back(Register("Voltage 2.5 (1)", "39", "ddu_macro1"));
+	DDURegisters.push_back(Register("Voltage 2.5 (2)", "40", "ddu_macro1"));
+	DDURegisters.push_back(Register("Voltage 3.3", "41", "ddu_macro1"));
 
-	DDURegisters.push_back(Register("Fake L1 Passthrough", "42"));
-	DDURegisters.push_back(Register("Flash GbE FIFO Thresholds", "43"));
-	DDURegisters.push_back(Register("InRD Status", "44"));
-	DDURegisters.push_back(Register("Error Bus Register A", "45"));
-	DDURegisters.push_back(Register("Error Bus Register B", "46"));
-	DDURegisters.push_back(Register("Error Bus Register C", "47"));
-	DDURegisters.push_back(Register("Maximum L1A-to-Data Timeout", "48"));
-	DDURegisters.push_back(Register("Bunch-Crossing Orbit", "49"));
-	DDURegisters.push_back(Register("DDUFPGA Output Status", "50"));
-	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 1", "51"));
-	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 2", "52"));
-	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 3", "53"));
+	DDURegisters.push_back(Register("Fake L1 Passthrough", "42", "ddu_macro3"));
+	DDURegisters.push_back(Register("Flash GbE FIFO Thresholds", "43", "ddu_macro8"));
+	DDURegisters.push_back(Register("InRD Status", "44", "ddu_macro3"));
+	DDURegisters.push_back(Register("Error Bus Register A", "45", "ddu_macro3"));
+	DDURegisters.push_back(Register("Error Bus Register B", "46", "ddu_macro3"));
+	DDURegisters.push_back(Register("Error Bus Register C", "47", "ddu_macro3"));
+	DDURegisters.push_back(Register("Maximum L1A-to-Data Timeout", "48", "ddu_macro3"));
+	DDURegisters.push_back(Register("Bunch-Crossing Orbit", "49", "ddu_macro3"));
+	DDURegisters.push_back(Register("DDUFPGA Output Status", "50", "ddu_macro3"));
+	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 1", "51", "ddu_macro3"));
+	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 2", "52", "ddu_macro3"));
+	DDURegisters.push_back(Register("DDUFPGA Input FIFO Status 3", "53", "ddu_macro3"));
 	DDURegisters.push_back(Register("Serial Status", "54"));
 	DDURegisters.push_back(Register("Parallel Status", "55"));
-	DDURegisters.push_back(Register("Switches", "56"));
+	DDURegisters.push_back(Register("Switches", "56", "ddu_macro3"));
 
 	DDURegisters.push_back(Register("Input Register 0", "57"));
 	DDURegisters.push_back(Register("Input Register 1", "58"));
@@ -414,47 +465,47 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 	DDURegisters.push_back(Register("Test Register 3", "63"));
 	DDURegisters.push_back(Register("Test Register 4", "64"));
 
-	DDURegisters.push_back(Register("INFPGA0 Status", "65"));
-	DDURegisters.push_back(Register("INFPGA0 Diagnostic Trap", "66"));
-	DDURegisters.push_back(Register("INFPGA0 Fiber Status (fibers 0-7)", "67"));
-	DDURegisters.push_back(Register("INFPGA0 DMB Sync (fibers 0-7)", "68"));
-	DDURegisters.push_back(Register("INFPGA0 FIFO Status (fibers 0-7)", "69"));
-	DDURegisters.push_back(Register("INFPGA0 FIFO Full (fibers 0-7)", "70"));
-	DDURegisters.push_back(Register("INFPGA0 Link Receive Error (fibers 0-7)", "71"));
-	DDURegisters.push_back(Register("INFPGA0 Link Transmit Error (fibers 0-7)", "72"));
-	DDURegisters.push_back(Register("INFPGA0 Timeout Error (fibers 0-7)", "73"));
-	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 0-1)", "74"));
-	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 2-3)", "75"));
-	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 4-5)", "76"));
-	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 6-7)", "77"));
-	DDURegisters.push_back(Register("INFPGA0 Memory Free (fibers 0-7)", "78"));
-	DDURegisters.push_back(Register("INFPGA0 Minimum Memory Free (fibers 0-7)", "79"));
-	DDURegisters.push_back(Register("INFPGA0 Lost-In-Event (fibers 0-7)", "80"));
-	DDURegisters.push_back(Register("INFPGA0 \"C\" Code (fibers 0-7)", "81"));
-	DDURegisters.push_back(Register("INFPGA0 DMB Warning (fibers 0-7)", "82"));
-	DDURegisters.push_back(Register("INFPGA0 Fiber Diagnostic Register 0 (fibers 0-7)", "83"));
-	DDURegisters.push_back(Register("INFPGA0 Fiber Diagnostic Register 1 (fibers 0-7)", "84"));
+	DDURegisters.push_back(Register("INFPGA0 Status", "65", "ddu_macro4 ddu_macro9"));
+	DDURegisters.push_back(Register("INFPGA0 Diagnostic Trap", "66", "ddu_macro4 ddu_macro6"));
+	DDURegisters.push_back(Register("INFPGA0 Fiber Status (fibers 0-7)", "67", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 DMB Sync (fibers 0-7)", "68", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 FIFO Status (fibers 0-7)", "69", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 FIFO Full (fibers 0-7)", "70", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 Link Receive Error (fibers 0-7)", "71", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 Link Transmit Error (fibers 0-7)", "72", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 Timeout Error (fibers 0-7)", "73", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 0-1)", "74", "ddu_macro4"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 2-3)", "75", "ddu_macro4"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 4-5)", "76", "ddu_macro4"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Active (fibers 6-7)", "77", "ddu_macro4"));
+	DDURegisters.push_back(Register("INFPGA0 Memory Free (fibers 0-7)", "78", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 Minimum Memory Free (fibers 0-7)", "79", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 Lost-In-Event (fibers 0-7)", "80", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 \"C\" Code (fibers 0-7)", "81", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 DMB Warning (fibers 0-7)", "82", "ddu_macro4 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA0 Fiber Diagnostic Register 0 (fibers 0-7)", "83", "ddu_macro4"));
+	DDURegisters.push_back(Register("INFPGA0 Fiber Diagnostic Register 1 (fibers 0-7)", "84", "ddu_macro4"));
 
-	DDURegisters.push_back(Register("INFPGA1 Status", "85"));
-	DDURegisters.push_back(Register("INFPGA1 Diagnostic Trap", "86"));
-	DDURegisters.push_back(Register("INFPGA1 Fiber Status (fibers 8-14)", "87"));
-	DDURegisters.push_back(Register("INFPGA1 DMB Sync (fibers 8-14)", "88"));
-	DDURegisters.push_back(Register("INFPGA1 FIFO Status (fibers 8-14)", "89"));
-	DDURegisters.push_back(Register("INFPGA1 FIFO Full (fibers 8-14)", "90"));
-	DDURegisters.push_back(Register("INFPGA1 Link Receive Error (fibers 8-14)", "91"));
-	DDURegisters.push_back(Register("INFPGA1 Link Transmit Error (fibers 8-14)", "92"));
-	DDURegisters.push_back(Register("INFPGA1 Timeout Error (fibers 8-14)", "93"));
-	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 8-9)", "94"));
-	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 10-11)", "95"));
-	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 12-13)", "96"));
-	DDURegisters.push_back(Register("INFPGA1 Memory Active (fiber 14)", "97"));
-	DDURegisters.push_back(Register("INFPGA1 Memory Free (fibers 8-14)", "98"));
-	DDURegisters.push_back(Register("INFPGA1 Minimum Memory Free (fibers 8-14)", "99"));
-	DDURegisters.push_back(Register("INFPGA1 Lost-In-Event (fibers 8-14)", "100"));
-	DDURegisters.push_back(Register("INFPGA1 \"C\" Code (fibers 8-14)", "101"));
-	DDURegisters.push_back(Register("INFPGA1 DMB Warning (fibers 8-14)", "102"));
-	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Register 0 (fibers 8-14)", "103"));
-	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Register 1 (fibers 8-14)", "104"));
+	DDURegisters.push_back(Register("INFPGA1 Status", "85", "ddu_macro5 ddu_macro9"));
+	DDURegisters.push_back(Register("INFPGA1 Diagnostic Trap", "86", "ddu_macro5 ddu_macro6"));
+	DDURegisters.push_back(Register("INFPGA1 Fiber Status (fibers 8-14)", "87", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 DMB Sync (fibers 8-14)", "88", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 FIFO Status (fibers 8-14)", "89", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 FIFO Full (fibers 8-14)", "90", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 Link Receive Error (fibers 8-14)", "91", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 Link Transmit Error (fibers 8-14)", "92", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 Timeout Error (fibers 8-14)", "93", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 8-9)", "94", "ddu_macro5"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 10-11)", "95", "ddu_macro5"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Active (fibers 12-13)", "96", "ddu_macro5"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Active (fiber 14)", "97", "ddu_macro5"));
+	DDURegisters.push_back(Register("INFPGA1 Memory Free (fibers 8-14)", "98", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 Minimum Memory Free (fibers 8-14)", "99", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 Lost-In-Event (fibers 8-14)", "100", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 \"C\" Code (fibers 8-14)", "101", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 DMB Warning (fibers 8-14)", "102", "ddu_macro5 ddu_macro10"));
+	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Register 0 (fibers 8-14)", "103", "ddu_macro5"));
+	DDURegisters.push_back(Register("INFPGA1 Fiber Diagnostic Register 1 (fibers 8-14)", "104", "ddu_macro5"));
 
 	// Print the table of registers
 	*out << cgicc::div()
@@ -4289,7 +4340,7 @@ std::string emu::fed::Commander::printRegisterTable(const std::vector<Register> 
 		out << cgicc::td()
 			.set("class", "checkbox") << std::endl;
 		out << cgicc::input()
-			.set("class", id + "_checkbox")
+			.set("class", id + "_checkbox " + myRegister.style)
 			.set("type", "checkbox")
 			.set("id", id + "_" + myRegister.id + "_checkbox")
 			.set("name", myRegister.id) << std::endl;
@@ -4297,8 +4348,7 @@ std::string emu::fed::Commander::printRegisterTable(const std::vector<Register> 
 		out << cgicc::td()
 			.set("class", "register") << std::endl;
 		out << cgicc::label()
-			.set("for", id + "_" + myRegister.id + "_checkbox")
-			.set("class", myRegister.style) << std::endl;
+			.set("for", id + "_" + myRegister.id + "_checkbox") << std::endl;
 		out << myRegister.description << std::endl;
 		out << cgicc::label() << std::endl;
 		out << cgicc::td() << std::endl;

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: commander.js,v 1.9 2010/04/21 13:19:25 paste Exp $
+* $Id: commander.js,v 1.10 2010/08/30 17:24:29 paste Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -49,6 +49,15 @@ Event.observe(window, "load", function(event) {
 			var crate = el.readAttribute("crate");
 			$$(".dcc_checkbox").each(function(element2) {
 				if (element2.readAttribute("crate") == crate) element2.checked = false;
+			});
+		});
+	});
+	$$(".ddu_macro").each(function(element) {
+		element.observe("click", function(ev) {
+			var el = ev.element();
+			var macro = el.readAttribute("macro");
+			$$(".ddu_macro" + macro).each(function(element2) {
+				element2.checked = true;
 			});
 		});
 	});
@@ -201,6 +210,27 @@ Event.observe(window, "load", function(event) {
 		params.set("reg", registers);
 		var url = URL + "/DisplayRegisters?" + params.toQueryString();
 		document.location.href = url;
+	});
+
+	// Edit a DDU register
+	$$("ddu_edit").each( function(e) {
+		e.observe("click", function(ev) {
+			// The crates/slots to read
+			var ruis = new Array();
+			$$(".ddu_checkbox").each( function(element) {
+				if (element.checked == true) {
+					ruis.push(element.readAttribute("rui"));
+				}
+			});
+
+			// Build a URL from the registers
+			var params = new Hash();
+			params.set("board", "ddu");
+			params.set("rui", ruis);
+			params.set("reg", ev.element().readAttribute("reg"));
+			var url = URL + "/EditDDURegister?" + params.toQueryString();
+			document.location.href = url;
+		});
 	});
 
 	$("dcc_display_button").observe("click", function(ev) {
