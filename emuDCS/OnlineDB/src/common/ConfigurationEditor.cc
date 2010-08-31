@@ -55,6 +55,8 @@ namespace db {
 	  dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
 	  config_type_ = "GLOBAL";
 	  config_desc_ = "manual entry";
+          crateRealNames.clear();
+          for(int i=0;i<65;i++) crateRealNames.push_back("");
   }
   
   ConfigurationEditor::~ConfigurationEditor() {
@@ -1808,7 +1810,8 @@ void ConfigurationEditor::clearCachedDiff() {
 
 
 std::string ConfigurationEditor::crateIdentifierString(int crateID) {
-	return crateIdentifierString(to_string(crateID)); //add space to the end so that when looping over keys beginning with this crate ID, we don't confuse e.g. 1 with 11
+        if(crateID>=0 && crateID<=60 && crateRealNames[crateID]!="") return "crate "+crateRealNames[crateID]+" ";
+	else return crateIdentifierString(to_string(crateID)); //add space to the end so that when looping over keys beginning with this crate ID, we don't confuse e.g. 1 with 11
 }
 
 std::string ConfigurationEditor::crateIdentifierString(const std::string &crateID) {
@@ -1821,6 +1824,10 @@ xdata::Table &ConfigurationEditor::getCachedTable(const std::string &insertViewN
 
 xdata::Table &ConfigurationEditor::getCachedDiff(const std::string &insertViewName,const std::string &identifier/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
 	return getCachedTableFrom(currentDiff,insertViewName,identifier);
+}
+
+void ConfigurationEditor::fillCrateRealName(int id, std::string name) {
+        if(id<65) crateRealNames[id]=name;
 }
 
 }

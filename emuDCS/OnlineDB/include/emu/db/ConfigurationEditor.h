@@ -190,6 +190,7 @@ std::string viewID_;
 	void setConfigurationDirectory(const std::string &configurationDirectory);
 	std::string fullConfigurationDirectory();
 	void createCredentialString();
+        void fillCrateRealName(int id, std::string name);
   std::string config_type_;
   std::string config_desc_;
   std::string xmlpath_;
@@ -231,6 +232,9 @@ std::string viewID_;
   std::map<std::string,std::vector<std::string> > tableNames;
   //and this is just a list of the 'top level' tables which are immediately in the crate.
   std::vector<std::string> topLevelTables;
+
+  std::vector<std::string> crateRealNames;
+  
 };
 
 // Convert to string

@@ -2339,6 +2339,7 @@ void EmuPCrateConfigTStore::readPeripheralCrate(const std::string &connectionID,
     VMEController * controller = new VMEController();    
     Crate * crate = new Crate(crateid,controller);
     crate->SetLabel(label);
+    fillCrateRealName(crateid, label);
 
     endcap->addCrate(crate);
     xdata::Table thisCrate;
