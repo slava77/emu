@@ -68,6 +68,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateLV, "DCSCrateLV");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateCUR, "DCSCrateCUR");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateTemp, "DCSCrateTemp");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateTMB, "DCSCrateTMB");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSStatSel, "DCSStatSel");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSChamSel, "DCSChamSel");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateSel, "DCSCrateSel");
@@ -1127,6 +1128,15 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::td();
     //
+    *out << cgicc::td();
+    //
+    std::string DCSCrateTMB = toolbox::toString("/%s/DCSCrateTMB",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",DCSCrateTMB).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB Voltages").set("name",crateVector[DCS_this_crate_no_]->GetLabel()) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
     *out << cgicc::table();
     //
     *out << cgicc::fieldset();
@@ -1648,6 +1658,94 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
   *out << cgicc::table();
   //
     
+}
+
+void EmuPeripheralCrateMonitor::DCSCrateTMB(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+  int TOTAL_DCS_COUNTERS=16, Total_count=14;
+  float lv_max[14]={5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5};
+  float lv_min[14]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  float val;
+
+  if(!Monitor_Ready_) return;
+  //
+  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  //
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  //
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
+  //
+  Page=cgiEnvi.getQueryString();
+  std::string crate_name=Page.substr(0,Page.find("=", 0) );
+  std::vector<TMB*> myVector;
+  int mycrate=0;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(crate_name==crateVector[i]->GetLabel())
+     {  myVector = crateVector[i]->tmbs();
+        mycrate = i;
+     }
+  }
+  *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+  *out << cgicc::br() << cgicc::b("<center> TMB Voltages and Currents </center>") << std::endl;
+
+  xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
+
+  xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("TMBvolts"));
+  if(dcsdata==NULL || dcsdata->size()==0) return;
+
+  *out << cgicc::table().set("border","1").set("align","center");
+  //
+  *out <<cgicc::td();
+  *out <<cgicc::td();
+  //
+  for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
+    *out <<cgicc::td();
+    *out << crateVector[mycrate]->GetChamber(myVector[tmb])->GetLabel();
+    *out <<cgicc::td();
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  for (int count=0; count<Total_count; count++) {
+    //
+    for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(tmb==0) {
+        *out << TVCounterName[count] ;
+	*out <<cgicc::td() << cgicc::td();
+      }
+      *out << std::setprecision(2) << std::fixed;
+      val=(*dcsdata)[tmb*TOTAL_DCS_COUNTERS+count];
+      if(val<0.)    
+         *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+      else if(val > lv_max[count] || val < lv_min[count])
+         *out << cgicc::span().set("style","color:red") << val << cgicc::span();
+      else 
+         *out << val;  
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+  }
+  //
+  *out << cgicc::table();
+  //
 }
 
   void EmuPeripheralCrateMonitor::CrateSelection(xgi::Input * in, xgi::Output * out ) 
@@ -3431,6 +3529,9 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     DCounterName.clear();
     OCounterName.clear();    
     IsErrCounter.clear();
+    LVCounterName.clear();
+    TECounterName.clear();
+    TVCounterName.clear();
     //
 
     TCounterName.push_back( "ALCT: alct0 valid pattern flag received                 "); // 0 --
@@ -3600,6 +3701,21 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TECounterName.push_back( "CFEB5 Temp");  // 5
     TECounterName.push_back( "ALCT  Temp");  // 
     TECounterName.push_back( "TMB Temp  ");  // 7
+
+    TVCounterName.push_back( "V 5.0 ");  // 0
+    TVCounterName.push_back( "V 3.3 ");  //
+    TVCounterName.push_back( "V 1.5Core ");  //
+    TVCounterName.push_back( "V 1.5TT ");  // 3
+    TVCounterName.push_back( "V 1.0TT ");  //
+    TVCounterName.push_back( "I (5.0V)");  //
+    TVCounterName.push_back( "I (3.3V)");  // 6
+    TVCounterName.push_back( "I (1.5Core)");  //
+    TVCounterName.push_back( "I (1.5TT) ");  //
+    TVCounterName.push_back( "I (RAT) ");  // 9
+    TVCounterName.push_back( "V (RAT) ");  //
+    TVCounterName.push_back( "V REF  ");  //
+    TVCounterName.push_back( "V GND  ");  // 12
+    TVCounterName.push_back( "V MAX  ");  //
 
     for(unsigned i=0; i<TCounterName.size(); i++)
     { 
