@@ -133,6 +133,7 @@ protected:
   std::vector< std::string> OCounterName;
   std::vector< std::string> LVCounterName;
   std::vector< std::string> TECounterName;
+  std::vector< std::string> TVCounterName;
   std::vector<int> IsErrCounter;
   //
   EmuEndcap * emuEndcap_;
@@ -208,6 +209,7 @@ private:
   void DCSCrateCUR(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DCSCrateTemp(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DCSChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSCrateTMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // for EmuPage1
   //
