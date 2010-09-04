@@ -328,6 +328,7 @@
       <view label="Communicator">
 	<guard label="Communicator +" type="^emu::fed::Communicator" notifier="^http://csc-fed1"/> 
 	<guard label="Communicator -" type="^emu::fed::Communicator" notifier="^http://csc-fed2"/> 
+	<guard label="Communicator TF" type="^emu::fed::Communicator" notifier="^http://csc-tf"/> 
       </view>
       <view label="Monitor">
 	<guard label="Monitor +" type="^emu::fed::Monitor" notifier="^http://csc-fed1"/> 
