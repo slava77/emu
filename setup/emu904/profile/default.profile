@@ -79,4 +79,7 @@
 	<xp:Module>${XDAQ_ROOT}/lib/libxmasutils.so</xp:Module>
 	<xp:Module>${XDAQ_ROOT}/lib/libwsbrokerutils.so</xp:Module>
 	<xp:Module>${XDAQ_ROOT}/lib/libxmassensor.so</xp:Module>
+
+        <!-- Emus' own SOAP Messenger -->
+        <xp:Module>${XDAQ_ROOT}/lib/libemusoap.so</xp:Module>
 </xp:Profile>
