@@ -21,6 +21,9 @@
   <!-- It's either DQM_TF_File or empty-->
   <xsl:param name="FARM"/>
 
+  <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param>
+  <!-- <xsl:param name="EMULIBDIR">${XDAQ_ROOT}/lib</xsl:param> -->
+
   <xsl:param name="PORT_OFFSET">
     <xsl:if test="$FARM!='DQM_TF_File'">0</xsl:if>
     <xsl:if test="$FARM='DQM_TF_File'">10</xsl:if>
@@ -130,8 +133,8 @@
 	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	</properties>
       </xc:Application>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqmanager.so</xc:Module>
+      <xc:Module>${EMULIBDIR}/libemubase.so</xc:Module>
+      <xc:Module>${EMULIBDIR}/libemudaqmanager.so</xc:Module>
     </xc:Context>
   </xsl:template>
   
@@ -161,7 +164,7 @@
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderevm.so</xc:Module>
       <xc:Application instance="0" class="emu::daq::ta::Application" network="atcp1" id="17"/>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqta.so</xc:Module>
+      <xc:Module>${EMULIBDIR}/libemudaqta.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -189,9 +192,9 @@
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqserver.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqwriter.so</xc:Module>
+	  <xc:Module>${EMULIBDIR}/libemudaqreader.so</xc:Module>
+	  <xc:Module>${EMULIBDIR}/libemudaqserver.so</xc:Module>
+	  <xc:Module>${EMULIBDIR}/libemudaqwriter.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="rubuilder::ru::Application" network="atcp1" id="14">
 	    <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
 	      <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
@@ -209,7 +212,7 @@
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]"></clientsClassName>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqfu.so</xc:Module>
+	  <xc:Module>${EMULIBDIR}/libemudaqfu.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="emu::daq::rui::Application" network="atcp1" id="18">
 	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::rui::Application">
 	      <passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
@@ -241,8 +244,8 @@
 	      <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqrui.so</xc:Module>
+	  <xc:Module>${EMULIBDIR}/libemubase.so</xc:Module>
+	  <xc:Module>${EMULIBDIR}/libemudaqrui.so</xc:Module>
 	</xc:Context>
 
     </xsl:for-each>
