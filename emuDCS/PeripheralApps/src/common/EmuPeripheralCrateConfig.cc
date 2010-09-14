@@ -3521,7 +3521,7 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::td();
   std::string SetRadioactivityTrigger = toolbox::toString("/%s/SetRadioactivityTrigger",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",SetRadioactivityTrigger) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","SetRadioactivityTrigger") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Enable single-layer trigger") << std::endl ;
   *out << cgicc::form() << std::endl ;;
   *out << cgicc::td();
   //
@@ -3860,10 +3860,16 @@ void EmuPeripheralCrateConfig::SetRadioactivityTrigger(xgi::Input * in, xgi::Out
 	  thisTMB->SetMinHitsPattern(1);
 	  thisTMB->WriteRegister(0x70);
 	  //
+	  // set the number of BX's that a CFEB channel must be ON in order for TMB to be labeled as "bad"
+	  int initial_cfeb_badbits_nbx = thisTMB->GetCFEBBadBitsNbx();
+	  thisTMB->SetCFEBBadBitsNbx(20);
+	  thisTMB->WriteRegister(0x124);
+	  //
 	  // Do not send triggers to the SP in this mode... it is too large of rate...
-	  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
-	  thisTMB->SetMpcOutputEnable(0);
-	  thisTMB->WriteRegister(0x86);
+	  //	  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
+	  //	  thisTMB->SetMpcOutputEnable(0);
+	  //	  thisTMB->WriteRegister(0x86);
+	  //
 	  //
 	  // Reset the software back to the initial values.  Leave the hardware in radioactivity mode...
 	  thisALCT->SetPretrigNumberOfLayers(initial_alct_nplanes_hit_pretrig);
@@ -3872,7 +3878,9 @@ void EmuPeripheralCrateConfig::SetRadioactivityTrigger(xgi::Input * in, xgi::Out
 	  thisTMB->SetHsPretrigThresh(initial_clct_nplanes_hit_pretrig);
 	  thisTMB->SetMinHitsPattern(initial_clct_nplanes_hit_pattern);
 	  //
-	  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+	  thisTMB->SetCFEBBadBitsNbx(initial_cfeb_badbits_nbx);
+	  //
+	  //	  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
 	}
       }
     }
