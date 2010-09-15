@@ -19,8 +19,6 @@ namespace emu {
 /////////////////////////////////////////////////////////////////////
 EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s): EmuPeripheralCrateBase(s)
 {	
-  MyController = 0;
-  //
   crates_checked = 0;
   all_crates_ok = -1;
   for (int i=0; i<60; i++) {

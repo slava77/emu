@@ -40,7 +40,6 @@
 
 // My Stuff
 
-#include "emu/pc/EmuController.h"
 #include "emu/pc/VMEController.h"
 #include "emu/pc/Crate.h"
 #include "emu/pc/DAQMB.h"
@@ -114,21 +113,20 @@ protected:
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  emu::pc::EmuController * MyController;
-  emu::pc::EmuTStore * myTStore;
+  EmuTStore * myTStore;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
   //
-  emu::pc::VMECC* vmecc;
-  emu::pc::CCB* thisCCB ;
-  emu::pc::ALCTController *alct ;
-  emu::pc::RAT * rat;
-  emu::pc::MPC * thisMPC;
+  VMECC* vmecc;
+  CCB* thisCCB ;
+  ALCTController *alct ;
+  RAT * rat;
+  MPC * thisMPC;
   emu::db::BoardsDB *brddb;
-  emu::pc::CrateUtilities myCrateTest;
+  CrateUtilities myCrateTest;
   std::stringstream CrateTestsOutput;
-  emu::pc::ChamberUtilities MyTest[10][30];
+  ChamberUtilities MyTest[10][30];
   std::ostringstream ChamberTestsOutput[10][30];
   std::ostringstream ALCT_TMB_communicationOutput[10][30];
   std::ostringstream OutputStringDMBStatus[10];
@@ -148,12 +146,12 @@ protected:
   //
   int CCBRegisterRead_, CCBRegisterValue_, CCBRegisterWrite_, CCBWriteValue_;
   int MPCRegisterRead_, MPCRegisterValue_, MPCRegisterWrite_, MPCWriteValue_;
-  std::vector<emu::pc::TMB*>   tmbVector;
-  std::vector<emu::pc::TMBTester>   tmbTestVector;
-  std::vector<emu::pc::DAQMB*> dmbVector;
-  std::vector<emu::pc::Crate*> crateVector;
-  std::vector<emu::pc::Chamber*> chamberVector;
-  emu::pc::Crate *thisCrate;
+  std::vector<TMB*>   tmbVector;
+  std::vector<TMBTester>   tmbTestVector;
+  std::vector<DAQMB*> dmbVector;
+  std::vector<Crate*> crateVector;
+  std::vector<Chamber*> chamberVector;
+  Crate *thisCrate;
   std::string CalibrationCfebTimeEvent_;
   int CFEBid_[10][5];
   int TMB_, DMB_,RAT_;
@@ -186,7 +184,7 @@ protected:
 
   enum VCC_PAGES {VCC_CMNTSK, VCC_VME, VCC_FRMUTIL, VCC_CNFG, VCC_MAC,
    VCC_FIFO, VCC_PKTSND, VCC_PKTRCV, VCC_MISC} VCC_UTIL_curr_page;
-  emu::pc::Crate *VCC_UTIL_curr_crate;
+  Crate *VCC_UTIL_curr_crate;
   std::string VCC_UTIL_curr_crate_name;
   std::string VCC_UTIL_curr_color;
   std::string VCC_UTIL_acc_cntrl;
@@ -228,8 +226,8 @@ protected:
   std::string VCC_UTIL_CR_dflt_cnum;
   std::string VCC_UTIL_CR_curr_dflt;
   std::string VCC_UTIL_CR_ser_num;
-  emu::pc::CNFG_t VCC_UTIL_CR_to;
-  emu::pc::CNFG_t VCC_UTIL_CR_from;
+  CNFG_t VCC_UTIL_CR_to;
+  CNFG_t VCC_UTIL_CR_from;
   std::string VCC_UTIL_MAC_ena_dis;
   std::string VCC_UTIL_MAC_wrt_dev;
   std::string VCC_UTIL_MAC_wrt_mcast1;
@@ -286,7 +284,7 @@ protected:
   std::string VCC_UTIL_PKTRCV_rbk_data;
   
   //
-  emu::pc::EmuEndcap * emuEndcap_;
+  EmuEndcap * emuEndcap_;
   //
 public:
   //
@@ -546,7 +544,7 @@ private:
   //
   void DefineFirmwareFilenames();
   //
-  std::vector<emu::pc::TMBTester> InitTMBTests(emu::pc::Crate *);
+  std::vector<TMBTester> InitTMBTests(Crate *);
   void CheckPeripheralCrateConfiguration(int full_check=0);
   void CheckPeripheralCrateFirmware();
   bool prbs_test_;

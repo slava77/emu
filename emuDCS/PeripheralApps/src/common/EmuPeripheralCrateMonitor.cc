@@ -23,7 +23,6 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   //
   DisplayRatio_ = false;
   AutoRefresh_  = true;
-  MyController = 0;
   total_min = 0;
   total_max = 0;
   O_T_min = 0.;

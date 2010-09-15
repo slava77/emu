@@ -43,7 +43,6 @@
 
 // My Stuff
 
-#include "emu/pc/EmuController.h"
 #include "emu/pc/VMEController.h"
 #include "emu/pc/Crate.h"
 #include "emu/pc/DAQMB.h"
@@ -85,7 +84,6 @@ protected:
   bool AutoRefresh_;
   //
   std::string xmlFile;
-  EmuController * MyController;
   //
   CCB* thisCCB ;
   ALCTController *alct ;
