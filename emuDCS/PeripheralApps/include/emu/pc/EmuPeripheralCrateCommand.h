@@ -40,7 +40,6 @@
 
 // My Stuff
 
-#include "emu/pc/EmuController.h"
 #include "emu/pc/VMEController.h"
 #include "emu/pc/Crate.h"
 #include "emu/pc/DAQMB.h"
@@ -230,19 +229,18 @@ protected:
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  emu::pc::EmuController * MyController;
-  emu::pc::EmuTStore * myTStore;
+  EmuTStore * myTStore;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
   //
-  emu::pc::CCB* thisCCB ;
-  emu::pc::ALCTController *alct ;
-  emu::pc::RAT * rat;
-  emu::pc::MPC * thisMPC;
-  emu::pc::CrateUtilities myCrateTest;
+  CCB* thisCCB ;
+  ALCTController *alct ;
+  RAT * rat;
+  MPC * thisMPC;
+  CrateUtilities myCrateTest;
   std::ostringstream CrateTestsOutput;
-  emu::pc::ChamberUtilities MyTest[10][30];
+  ChamberUtilities MyTest[10][30];
   std::ostringstream ChamberTestsOutput[10][30];
   std::ostringstream OutputStringDMBStatus[10];
   std::ostringstream OutputStringTMBStatus[10];
@@ -258,12 +256,12 @@ protected:
   int tmb_vme_ready;
   //
   int CCBRegisterValue_;
-  std::vector<emu::pc::TMB*>   tmbVector;
-  std::vector<emu::pc::TMBTester>   tmbTestVector;
-  std::vector<emu::pc::DAQMB*> dmbVector;
-  std::vector<emu::pc::Crate*> crateVector;
-  std::vector<emu::pc::Chamber*> chamberVector;
-  emu::pc::Crate *thisCrate;
+  std::vector<TMB*>   tmbVector;
+  std::vector<TMBTester>   tmbTestVector;
+  std::vector<DAQMB*> dmbVector;
+  std::vector<Crate*> crateVector;
+  std::vector<Chamber*> chamberVector;
+  Crate *thisCrate;
   std::string Operator_;
   std::string RunNumber_;
   int Counter_;
@@ -290,7 +288,7 @@ protected:
   int tmb_check_ok[60][9];
   int dmb_check_ok[60][9];
   //
-  emu::pc::EmuEndcap * emuEndcap_;
+  EmuEndcap * emuEndcap_;
   //
 public:
   //

@@ -32,7 +32,6 @@
 
 // My Stuff
 
-#include "emu/pc/EmuController.h"
 #include "emu/pc/Crate.h"
 #include "emu/pc/DAQMB.h"
 #include "emu/pc/TMB.h"
@@ -62,17 +61,16 @@ protected:
   xdata::String xmlFile_;
   //
   std::string xmlFile;
-  emu::pc::EmuController * MyController;
-  emu::pc::EmuTStore * myTStore;
+  EmuTStore * myTStore;
   //
-  emu::pc::CCB* thisCCB ;
-  emu::pc::MPC * thisMPC;
+  CCB* thisCCB ;
+  MPC * thisMPC;
   //
-  std::vector<emu::pc::TMB*>   tmbVector;
-  std::vector<emu::pc::DAQMB*> dmbVector;
-  std::vector<emu::pc::Crate*> crateVector;
-  std::vector<emu::pc::Chamber*> chamberVector;
-  emu::pc::Crate *thisCrate;
+  std::vector<TMB*>   tmbVector;
+  std::vector<DAQMB*> dmbVector;
+  std::vector<Crate*> crateVector;
+  std::vector<Chamber*> chamberVector;
+  Crate *thisCrate;
   std::string RunNumber_;
 
   int parsed;
@@ -88,7 +86,7 @@ protected:
   int endcap_side;
   bool Monitor_On_, Monitor_Ready_;
   //
-  emu::pc::EmuEndcap * emuEndcap_;
+  EmuEndcap * emuEndcap_;
   //
 public:
   //

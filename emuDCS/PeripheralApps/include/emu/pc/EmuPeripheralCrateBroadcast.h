@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.3 2009/10/16 07:45:23 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.4 2010/09/15 18:25:15 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -56,7 +56,6 @@
 #include "toolbox/task/TimerFactory.h"
 #include "toolbox/TimeInterval.h"
 
-#include "emu/pc/EmuController.h"
 #include "emu/pc/VMEController.h"
 #include "emu/pc/Crate.h"
 #include "emu/pc/CrateUtilities.h"
@@ -144,7 +143,6 @@ public:
 private:
 
   int calsetup;
-  emu::pc::EmuController * MyController;
   emu::pc::VMECC* vmecc;
   emu::pc::Crate * broadcastCrate;
   emu::pc::DAQMB * broadcastDMB;

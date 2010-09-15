@@ -118,7 +118,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //
   DisplayRatio_ = false;
   AutoRefresh_  = true;
-  MyController = 0;
   //thisTMB = 0;
   //thisDMB = 0;
   thisCCB = 0;
