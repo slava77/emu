@@ -26,6 +26,9 @@ Sources=\
         EmuPeripheralCrateBase.cc \
 	EmuPeripheralCrateBroadcast.cc \
         EmuPeripheralCrateConfig.cc \
+        EmuPeripheralCrateConfig_VCC.cc \
+        EmuPeripheralCrateConfig_CCBMPC.cc \
+        EmuPeripheralCrateConfig_DMB.cc \
         EmuPeripheralCrateCommand.cc \
         EmuPeripheralCrateMonitor.cc \
         EmuPeripheralCrateTimer.cc \
