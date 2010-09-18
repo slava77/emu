@@ -62,12 +62,21 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
   LOG4CPLUS_DEBUG( getApplicationLogger(), "Activated work loop " << workLoopName.str() );
   sendFactsSignature_   = toolbox::task::bind( this, &emu::base::FactFinder::sendFactsInWorkLoop, "sendFactsInWorkLoop" );
 
+  stringstream timerName;
+  timerName << "FactFinderTimer." << getApplicationDescriptor()->getClassName() << "." << getApplicationDescriptor()->getInstance();
   if ( periodInSec > 0 ){
-    toolbox::task::Timer * timer = toolbox::task::getTimerFactory()->createTimer("PeriodicFactFinding");
-    toolbox::TimeInterval interval(periodInSec,0); // period in sec 
-    toolbox::TimeVal start;
-    start = toolbox::TimeVal::gettimeofday();
-    timer->scheduleAtFixedRate( start, this, interval,  0, "" );
+    try{
+      toolbox::task::Timer * timer = toolbox::task::getTimerFactory()->createTimer( timerName.str() );
+      toolbox::TimeInterval interval(periodInSec,0); // period in sec 
+      toolbox::TimeVal start( toolbox::TimeVal::gettimeofday() + toolbox::TimeVal( 2, 0 ) ); // start in 2 seconds from now
+      timer->scheduleAtFixedRate( start, this, interval,  0, "" );
+    } catch(xcept::Exception& e){
+      stringstream ss;
+      ss << "Failed to create " << timerName << " , therefore no scheduled fact finding will be done: " << xcept::stdformat_exception_history(e);
+      LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() );
+      XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+      this->notifyQualified( "error", eObj );
+    }
   }
 }
 
