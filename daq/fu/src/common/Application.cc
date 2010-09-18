@@ -121,39 +121,6 @@ bSem_(toolbox::BSem::FULL)
 	       "onClientCreditMessage", XDAQ_NS_URI);
 
     LOG4CPLUS_INFO(logger_, "End of constructor");
-
-    // Attributes of the parameter tags
-    xdata::String param1Attr1( "param1Attr1Value" );
-    xdata::String param1Attr2( "param1Attr2Value" );
-    emu::soap::Attributes param1Attributes;
-    param1Attributes.add( "param1Attr1Name", &param1Attr1 ).add( "param1Attr2Name", &param1Attr2 ).setUsePrefix( false );
-    xdata::String param2Attr( "param2AttrValue" );
-    emu::soap::Attributes param2Attributes;
-    param2Attributes.add( "param2AttrName", &param2Attr );
-
-    // Parameters
-    xdata::String param1( "param1Value" );
-    xdata::Double param2( 1.234567 );
-    xdata::Vector<xdata::Integer> param3;
-    param3.push_back( 123 );
-    param3.push_back( 456 );
-    param3.push_back( 789 );
-	
-    // Attributes of the command tag
-    xdata::String  commandAttr1( "commandAttr1Value" );
-    xdata::Integer commandAttr2( 2 );
-
-    // Command message
-    xoap::MessageReference message = emu::soap::createMessage( "command",
-							       "urn:emu-soap:example", // Omit this argument to get the standard "urn:xdaq-soap:3.0"
-							       emu::soap::Parameters()
-							         .add( "param1Name", &param1, &param1Attributes )
-							         .add( "param2Name", &param2, &param2Attributes )
-							         .add( "param3Name", &param3                    ),
-							       emu::soap::Attributes()
-							         .add( "commandAttr1Name", &commandAttr1 )
-							         .add( "commandAttr2Name", &commandAttr2 ) );
-    std::cout << std::endl; message->writeTo( std::cout ); std::cout << std::endl; std::cout.flush();
 }
 
 
