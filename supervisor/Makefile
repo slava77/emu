@@ -20,6 +20,7 @@ Link=""
 
 Sources = \
 	Application.cc \
+	RunInfo.cc \
 	version.cc
 
 IncludeDirs = \
