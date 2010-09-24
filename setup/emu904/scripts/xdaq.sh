@@ -3,30 +3,47 @@
 # The xdaq process is started with the profile specified by the environment variable XDAQ_PROFILE.
 # If XDAQ_PROFILE is not set, the profile is selected by the standard rules rules.
 
-# Wait SLEEP seconds after crash before restarting process
-SLEEP=5
+#                            I M P O R T A N T
+#                            =================
+# In order for auto-restart to work properly in this script, 
+# xdaqexec.startmode=1
+# must be set in $CATALINA_HOME/webapps/rcms/WEB-INF/conf/RCMSExpert.properties
+# so that, after crashing, the restarted xdaq::executive can be configured.
 
-# <Length of TIME array> invocations should not happen within a time span of MIN_TIMESPAN seconds
-MIN_TIMESPAN=3600
+# Wait SLEEP seconds after crash before relaunching process
+SLEEP=3
+
+# <Length of TIME array> starts should not happen within a time span of MIN_TIMESPAN seconds
+MIN_TIMESPAN=1800
 
 NOW=$(date +"%s")
 # The array (ring buffer) of the last few invocation times:
 TIMES=( $NOW $NOW $NOW $NOW $NOW )
 
+echo "This script was invoked by the command:"
+echo $0 "$@"
+echo
+echo "The shell environment:"
+set
+echo
+
 for (( I=1 ;; I++ )); do
-    echo "****************"
-    echo "* Invocation $I"
-    echo "****************"
+    echo "***********"
+    echo "* Start $I *"
+    echo "***********"
     TIMES[$I%5+1]=$(date +"%s")
     ORDERED_TIMES=( $(echo ${(on)TIMES}) )
     ((TIMESPAN=${ORDERED_TIMES[-1]}-${ORDERED_TIMES[1]}))
-    echo "Time span of last "$( [[ $I -lt ${#TIMES} ]] && echo $I || echo ${#TIMES} )" invocations: " $TIMESPAN " seconds"
+    echo "Time span of last "$( [[ $I -lt ${#TIMES} ]] && echo $I || echo ${#TIMES} )" (re)starts: " $TIMESPAN " seconds"
     if [[ $TIMESPAN -lt $MIN_TIMESPAN && $I -ge ${#TIMES} ]]; then
 	echo "******************************************"
 	echo "* Been crashing too frequently. Exiting. *"
 	echo "******************************************"
 	exit 1
     fi
+    echo Invoking command:
+    echo ${XDAQ_ROOT}/bin/xdaq.exe ${XDAQ_PROFILE:+"-e $XDAQ_PROFILE"} "$@"
+    echo
     ${XDAQ_ROOT}/bin/xdaq.exe ${XDAQ_PROFILE:+"-e $XDAQ_PROFILE"} "$@"
     /bin/sleep $SLEEP
 done
