@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.3 2010/09/22 12:48:33 durkin Exp $
+* $Id: IRQThreadManager.cc,v 1.4 2010/09/24 13:08:43 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -450,7 +450,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				
 					unsigned int cscStatus = myDDU->readCSCStatus();
 					unsigned int advStatus = myDDU->readAdvancedFiberErrors(); // Technically this is the only thing I should be reading (so sayeth Jason)
-					unsigned int xorStatus = advStatus^lastDDUError[myDDU->slot()];
+					unsigned int combinedStatus = cscStatus | advStatus;
+					unsigned int xorStatus = combinedStatus^lastDDUError[myDDU->slot()];
 					
 					// Emergency check to see if a reset has occurred!
 					// This checks if any bits have been turned off.  Example:
@@ -463,10 +464,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					 *  ----
 					 *  0100
 					 */
-					bool doReset = (xorStatus & (~advStatus));
+					bool doReset = (xorStatus & (~combinedStatus));
 					
 					// The number of bits set high in advStatus tells me the number of CSCs requesting a resync.  Count those now.
-					std::bitset<16> statusBits(advStatus);
+					std::bitset<16> statusBits(combinedStatus);
 					nErrors[slot] = statusBits.count();
 					
 					// Sometimes an interrupt does not have any errors to report.  Ignore these.
@@ -614,7 +615,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					pthread_mutex_unlock(&(locdata->applicationMutex));
 					
 					// Record the error in an accessable history of errors.
-					lastDDUError[myDDU->slot()] = advStatus;
+					lastDDUError[myDDU->slot()] = combinedStatus;
 					
 					// Just in case there is some bizarre error at this point that causes this to
 					// overflow...
