@@ -2091,7 +2091,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows,ALCTController
   //std::cout << "ALCT_TESTPULSE_INVERT read: " << _alct_testpulse_invert << std::endl;
   xdata::UnsignedShort     _alct_trig_info_en              = TStore_thisALCT->GetWriteTriggerInfoEnable();
   xdata::UnsignedShort     _alct_trig_mode                 = TStore_thisALCT->GetWriteTriggerMode();
-  xdata::UnsignedShort     _alct_zero_suppress             = TStore_thisALCT->GetAlctZeroSuppress();
+  xdata::UnsignedShort     _alct_zero_suppress             = TStore_thisALCT->GetWriteAlctZeroSuppress();
   xdata::String            _chamber_type                   = TStore_thisALCT->GetChamberType();
   
   #ifdef debugV
