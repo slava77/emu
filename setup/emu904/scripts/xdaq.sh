@@ -13,12 +13,13 @@
 # Wait SLEEP seconds after crash before relaunching process
 SLEEP=3
 
-# <Length of TIME array> starts should not happen within a time span of MIN_TIMESPAN seconds
+# N_STARTS starts should not happen within a time span of MIN_TIMESPAN seconds
+N_STARTS=5
 MIN_TIMESPAN=1800
 
 NOW=$(date +"%s")
 # The array (ring buffer) of the last few invocation times:
-TIMES=( $NOW $NOW $NOW $NOW $NOW )
+TIMES=( $(for (( I=1; I<$N_STARTS; I++ )); do print $NOW; done) )
 
 echo "This script was invoked by the command:"
 echo $0 "$@"
