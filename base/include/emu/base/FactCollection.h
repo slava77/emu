@@ -19,7 +19,7 @@ namespace emu { namespace base {
     enum Source_t { DCS=0,
 		    LOCAL_DQM,
 		    LOCAL_DAQ,
-		    Xmas,
+		    XMAS,
 		    FED,
 		    nSources };
 
