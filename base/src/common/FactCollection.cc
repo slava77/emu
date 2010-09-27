@@ -3,11 +3,11 @@
 
 using namespace std;
 
-const char* emu::base::FactCollection::sources_[] = { "DCS",
-						      "LOCAL_DQM",
-						      "LOCAL_DAQ",
-						      "Xmas",
-						      "FED" };
+const char* emu::base::FactCollection::sources_[] = { "DCSFactService",
+						      "LocalDQMFactService",
+						      "LocalDAQFactService",
+						      "FEDFactService",
+						      "XmasFactService" };
 
 emu::base::FactCollection&
 emu::base::FactCollection::setRequestId( const int r ){
