@@ -8884,6 +8884,26 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
 	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
 	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(4)
 	      << std::endl;
+      LogFile << "cfeb0_rxd_int_delay   " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(0)
+	      << std::endl;
+      LogFile << "cfeb1_rxd_int_delay   " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(1)
+	      << std::endl;
+      LogFile << "cfeb2_rxd_int_delay   " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(2)
+	      << std::endl;
+      LogFile << "cfeb3_rxd_int_delay   " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(3)
+	      << std::endl;
+      LogFile << "cfeb4_rxd_int_delay   " 
+	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
+	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(4)
+	      << std::endl;
       LogFile << "alct_tx_clock_delay   " 
 	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
 	      << std::setw(5) << MyTest[i][current_crate_].GetALCTtxPhaseTest()

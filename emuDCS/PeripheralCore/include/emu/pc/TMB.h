@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.15 2010/08/25 19:45:41 liu Exp $
+// $Id: TMB.h,v 1.16 2010/09/29 03:44:56 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.16  2010/09/29 03:44:56  rakness
+// first attempt to handle the special CFEB timing region
+//
 // Revision 1.15  2010/08/25 19:45:41  liu
 // read TMB voltages in VME jumbo packet
 //
@@ -756,6 +759,7 @@ public:
   //!cfeb0_tof_delay = [0-15] (2ns)
   inline void SetCfeb0TOFDelay(int cfeb0_tof_delay) { cfeb0_tof_delay_ = cfeb0_tof_delay; }
   inline int  GetCfeb0TOFDelay() { return cfeb0_tof_delay_; }
+  inline int  GetReadCfeb0TOFDelay() { return read_cfeb0_tof_delay_; }
   //
   //------------------------------------------------------------------
   //0X1A = ADR_DDD2:  3D3444 Chip 2 Delays, 1 step = 2ns
@@ -763,18 +767,22 @@ public:
   //!cfeb1_tof_delay = [0-15] (2ns)
   inline void SetCfeb1TOFDelay(int cfeb1_tof_delay) { cfeb1_tof_delay_ = cfeb1_tof_delay; }
   inline int  GetCfeb1TOFDelay() { return cfeb1_tof_delay_; }
+  inline int  GetReadCfeb1TOFDelay() { return read_cfeb1_tof_delay_; }
   //
   //!cfeb2_tof_delay = [0-15] (2ns)
   inline void SetCfeb2TOFDelay(int cfeb2_tof_delay) { cfeb2_tof_delay_ = cfeb2_tof_delay; }
   inline int  GetCfeb2TOFDelay(){return cfeb2_tof_delay_;}
+  inline int  GetReadCfeb2TOFDelay() { return read_cfeb2_tof_delay_; }
   //
   //!cfeb3_tof_delay = [0-15] (2ns)
   inline void SetCfeb3TOFDelay(int cfeb3_tof_delay) { cfeb3_tof_delay_ = cfeb3_tof_delay; }
   inline int  GetCfeb3TOFDelay() { return cfeb3_tof_delay_; }
+  inline int  GetReadCfeb3TOFDelay() { return read_cfeb3_tof_delay_; }
   //
   //!cfeb4_tof_delay = [0-15] (2ns)
   inline void SetCfeb4TOFDelay(int cfeb4_tof_delay) { cfeb4_tof_delay_ = cfeb4_tof_delay; }
   inline int  GetCfeb4TOFDelay() { return cfeb4_tof_delay_; }
+  inline int  GetReadCfeb4TOFDelay() { return read_cfeb4_tof_delay_; }
   //
   //------------------------------------------------------------------
   //0X24 = ADR_ADC:  ADC + power comparator

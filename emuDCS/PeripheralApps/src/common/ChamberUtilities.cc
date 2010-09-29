@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.35 2010/08/19 11:18:27 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.36 2010/09/29 03:44:56 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.36  2010/09/29 03:44:56  rakness
+// first attempt to handle the special CFEB timing region
+//
 // Revision 1.35  2010/08/19 11:18:27  rakness
 // fix bug to pick the correct posneg in CFEBrx scan
 //
@@ -399,6 +402,7 @@ ChamberUtilities::ChamberUtilities(){
   for( int i=0; i<5; i++) {
     CFEBrxPhase_[i]  = -1;
     CFEBrxPosneg_[i] = -1;
+    cfeb_rxd_int_delay[i] = -1;
   }
   ALCTtxPhase_       = -1;
   ALCTrxPhase_       = -1;
@@ -817,17 +821,80 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
   int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
   int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
   int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
-  int initial_cfeb0_phase  = thisTMB->GetCfeb0RxClockDelay();                          //0x112
-  int initial_cfeb1_phase  = thisTMB->GetCfeb1RxClockDelay();                          //0x114
-  int initial_cfeb2_phase  = thisTMB->GetCfeb2RxClockDelay();                          //0x116
-  int initial_cfeb3_phase  = thisTMB->GetCfeb3RxClockDelay();                          //0x118
-  int initial_cfeb4_phase  = thisTMB->GetCfeb4RxClockDelay();                          //0x11a
-  int initial_cfeb0_posneg = thisTMB->GetCfeb0RxPosNeg();                              //0x112
-  int initial_cfeb1_posneg = thisTMB->GetCfeb1RxPosNeg();                              //0x114
-  int initial_cfeb2_posneg = thisTMB->GetCfeb2RxPosNeg();                              //0x116
-  int initial_cfeb3_posneg = thisTMB->GetCfeb3RxPosNeg();                              //0x118
-  int initial_cfeb4_posneg = thisTMB->GetCfeb4RxPosNeg();                              //0x11a
   //
+  int initial_cfeb_phase[5] = {};
+  initial_cfeb_phase[0]  = thisTMB->GetCfeb0RxClockDelay();                          //0x112
+  initial_cfeb_phase[1]  = thisTMB->GetCfeb1RxClockDelay();                          //0x114
+  initial_cfeb_phase[2]  = thisTMB->GetCfeb2RxClockDelay();                          //0x116
+  initial_cfeb_phase[3]  = thisTMB->GetCfeb3RxClockDelay();                          //0x118
+  initial_cfeb_phase[4]  = thisTMB->GetCfeb4RxClockDelay();                          //0x11a
+  //
+  int initial_cfeb_posneg[5] = {};
+  initial_cfeb_posneg[0] = thisTMB->GetCfeb0RxPosNeg();                              //0x112
+  initial_cfeb_posneg[1] = thisTMB->GetCfeb1RxPosNeg();                              //0x114
+  initial_cfeb_posneg[2] = thisTMB->GetCfeb2RxPosNeg();                              //0x116
+  initial_cfeb_posneg[3] = thisTMB->GetCfeb3RxPosNeg();                              //0x118
+  initial_cfeb_posneg[4] = thisTMB->GetCfeb4RxPosNeg();                              //0x11a
+  //
+  int initial_cfeb_rxd_int_delay[5] = {};
+  initial_cfeb_rxd_int_delay[0] = thisTMB->GetCFEB0RxdIntDelay();
+  initial_cfeb_rxd_int_delay[1] = thisTMB->GetCFEB1RxdIntDelay();
+  initial_cfeb_rxd_int_delay[2] = thisTMB->GetCFEB2RxdIntDelay();
+  initial_cfeb_rxd_int_delay[3] = thisTMB->GetCFEB3RxdIntDelay();
+  initial_cfeb_rxd_int_delay[4] = thisTMB->GetCFEB4RxdIntDelay();
+  //
+  int read_cfeb_tof_delay[5] = {};
+  thisTMB->ReadRegister(vme_ddd1_adr);
+  thisTMB->ReadRegister(vme_ddd2_adr);
+  read_cfeb_tof_delay[0] = thisTMB->GetReadCfeb0TOFDelay();
+  read_cfeb_tof_delay[1] = thisTMB->GetReadCfeb1TOFDelay();
+  read_cfeb_tof_delay[2] = thisTMB->GetReadCfeb2TOFDelay();
+  read_cfeb_tof_delay[3] = thisTMB->GetReadCfeb3TOFDelay();
+  read_cfeb_tof_delay[4] = thisTMB->GetReadCfeb4TOFDelay();
+  //
+  int write_cfeb_tof_delay[5] = {};
+  write_cfeb_tof_delay[0] = thisTMB->GetCfeb0TOFDelay();
+  write_cfeb_tof_delay[1] = thisTMB->GetCfeb1TOFDelay();
+  write_cfeb_tof_delay[2] = thisTMB->GetCfeb2TOFDelay();
+  write_cfeb_tof_delay[3] = thisTMB->GetCfeb3TOFDelay();
+  write_cfeb_tof_delay[4] = thisTMB->GetCfeb4TOFDelay();
+  //
+  for (int i=0; i<5; i++) {
+    if (read_cfeb_tof_delay[i] != write_cfeb_tof_delay[i]) {
+      (*MyOutput_) << "WARNING: Read cfeb" << i << "_tof_delay = " << read_cfeb_tof_delay[i] 
+		   << " which does not equal desired value = " << write_cfeb_tof_delay[i] 
+		   << std::endl;
+      std::cout    << "WARNING: Read cfeb" << i << "_tof_delay = " << read_cfeb_tof_delay[i] 
+		   << " which does not equal desired value = " << write_cfeb_tof_delay[i] 
+		   << std::endl;
+    }
+      
+  }
+  //
+  const int max_special_region = 20;
+  const int min_special_region = 11;
+  const int special_region_posneg = 1;
+  //
+  bool in_special_region_before[5] = {};
+  for (int i=0; i<5; i++) {
+    if (initial_cfeb_posneg[i] == special_region_posneg &&
+	initial_cfeb_phase[i] > min_special_region      &&
+	initial_cfeb_phase[i] < max_special_region      ) {
+      //
+      in_special_region_before[i] = true;
+      //
+      (*MyOutput_) << "Before the scan:  cfeb" << i << "delay=" << initial_cfeb_phase[i] 
+		   << " and cfeb " << i << "posneg=" << initial_cfeb_posneg[i] 
+		   << " --> in the special region" << std::endl;
+      std::cout    << "Before the scan:  cfeb" << i << "delay=" << initial_cfeb_phase[i] 
+		   << " and cfeb " << i << "posneg=" << initial_cfeb_posneg[i] 
+		   << " --> in the special region" << std::endl;
+      //
+    } else {
+      //
+      in_special_region_before[i] = false;
+    }
+  }
   //
   // Enable this TMB for this test
   thisTMB->SetClctPatternTrigEnable(1);
@@ -1075,6 +1142,13 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
     if (debug_ >= 5) std::cout << std::endl;
   }
   //
+  (*MyOutput_) << "CFEB TOF delay values for this scan..." << std::endl;
+  (*MyOutput_) << " cfeb0_tof_delay = " << std::dec << read_cfeb_tof_delay[0] << std::endl;
+  (*MyOutput_) << " cfeb1_tof_delay = " << std::dec << read_cfeb_tof_delay[1] << std::endl;
+  (*MyOutput_) << " cfeb2_tof_delay = " << std::dec << read_cfeb_tof_delay[2] << std::endl;
+  (*MyOutput_) << " cfeb3_tof_delay = " << std::dec << read_cfeb_tof_delay[3] << std::endl;
+  (*MyOutput_) << " cfeb4_tof_delay = " << std::dec << read_cfeb_tof_delay[4] << std::endl;
+  //
   // Print number of muons found versus cfeb[0-4]delay for each CFEB for each posneg
   //
   for (int posneg=0; posneg<2; posneg++) {
@@ -1177,6 +1251,63 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
     }
   }
   //
+  bool in_special_region_after[5] = {};
+  for (int i=0; i<5; i++) {
+    if (CFEBrxPosneg_[i] == special_region_posneg &&
+	CFEBrxPhase_[i] > min_special_region      &&
+	CFEBrxPhase_[i] < max_special_region      ) {
+      //
+      in_special_region_after[i] = true;
+      (*MyOutput_) << "After the scan:  cfeb" << i << "delay=" << CFEBrxPhase_[i] 
+		   << " and cfeb " << i << "posneg=" << CFEBrxPosneg_[i] 
+		   << " --> in the special region" << std::endl;
+
+      //
+    } else {
+      //
+      in_special_region_after[i] = false;
+    }
+  }
+  //
+  // Now we have to handle the cases which made the transition into or out of the special region...
+  //
+  for (int i=0; i<5; i++) {
+    //
+    cfeb_rxd_int_delay[i] = -1;
+    //
+    if (in_special_region_before[i] == true && 
+	in_special_region_after[i] == false &&
+	CFEBrxPhase_[i] >= 0                 ) { //OK phase
+      //
+      cfeb_rxd_int_delay[i] = initial_cfeb_rxd_int_delay[i] + 1;
+      //
+      (*MyOutput_) << "... scan moved from in to out of the special region... add 1 to cfeb" 
+		   << i << "_rxd_int_delay..." << std::endl;
+      std::cout    << "... scan moved from in to out of the special region... add 1 to cfeb" 
+		   << i << "_rxd_int_delay..." << std::endl;
+    }
+    //
+    if (in_special_region_before[i] == false && 
+	in_special_region_after[i] == true   &&
+	CFEBrxPhase_[i] >= 0                 ) { //OK phase
+      //
+      cfeb_rxd_int_delay[i] = initial_cfeb_rxd_int_delay[i] - 1;
+      //
+      (*MyOutput_) << "... scan moved from out to into the special region... subtract 1 from cfeb" 
+		   << i << "_rxd_int_delay..." << std::endl;
+      std::cout    << "... scan moved from out to into the special region... subtract 1 from cfeb" 
+		   << i << "_rxd_int_delay..." << std::endl;
+      //
+      if (cfeb_rxd_int_delay[i] < 0 ) {
+	cfeb_rxd_int_delay[i] = -999;
+	(*MyOutput_) << "WARNING:  cfeb_rxd_int_delay is < 0..." << std::endl;
+	std::cout    << "WARNING:  cfeb_rxd_int_delay is < 0..." << std::endl;
+      }
+      //
+    }
+    
+  }
+  //
   // return to initial values:
   //
   me11_pulsing_ = 0;
@@ -1230,28 +1361,28 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
     //
     (*MyOutput_) << "Reverting back to original cfeb[0-4]delay phase values..." << std::endl;
     //
-    thisTMB->SetCfeb0RxClockDelay(initial_cfeb0_phase);
-    thisTMB->SetCfeb0RxPosNeg(initial_cfeb0_posneg);
+    thisTMB->SetCfeb0RxClockDelay(initial_cfeb_phase[0]);
+    thisTMB->SetCfeb0RxPosNeg(initial_cfeb_posneg[0]);
     thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb0_rxd_adr);
     //
-    thisTMB->SetCfeb1RxClockDelay(initial_cfeb1_phase);
-    thisTMB->SetCfeb1RxPosNeg(initial_cfeb1_posneg);
+    thisTMB->SetCfeb1RxClockDelay(initial_cfeb_phase[1]);
+    thisTMB->SetCfeb1RxPosNeg(initial_cfeb_posneg[1]);
     thisTMB->WriteRegister(phaser_cfeb1_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb1_rxd_adr);
     //
-    thisTMB->SetCfeb2RxClockDelay(initial_cfeb2_phase);
-    thisTMB->SetCfeb2RxPosNeg(initial_cfeb2_posneg);
+    thisTMB->SetCfeb2RxClockDelay(initial_cfeb_phase[2]);
+    thisTMB->SetCfeb2RxPosNeg(initial_cfeb_posneg[2]);
     thisTMB->WriteRegister(phaser_cfeb2_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb2_rxd_adr);
     //
-    thisTMB->SetCfeb3RxClockDelay(initial_cfeb3_phase);
-    thisTMB->SetCfeb3RxPosNeg(initial_cfeb3_posneg);
+    thisTMB->SetCfeb3RxClockDelay(initial_cfeb_phase[3]);
+    thisTMB->SetCfeb3RxPosNeg(initial_cfeb_posneg[3]);
     thisTMB->WriteRegister(phaser_cfeb3_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb3_rxd_adr);
     //
-    thisTMB->SetCfeb4RxClockDelay(initial_cfeb4_phase);
-    thisTMB->SetCfeb4RxPosNeg(initial_cfeb4_posneg);
+    thisTMB->SetCfeb4RxClockDelay(initial_cfeb_phase[4]);
+    thisTMB->SetCfeb4RxPosNeg(initial_cfeb_posneg[4]);
     thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
     //
