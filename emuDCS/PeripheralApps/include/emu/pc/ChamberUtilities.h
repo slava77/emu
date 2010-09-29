@@ -224,6 +224,7 @@ public:
   // Get parameters from test summary results (not xml parameters):
   inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB] ; }
   inline int  GetCFEBrxPosnegTest(int CFEB){ return CFEBrxPosneg_[CFEB] ; }
+  inline int  GetCFEBrxdIntDelayTest(int CFEB) { return cfeb_rxd_int_delay[CFEB] ; }
   inline int  GetALCTrxPhaseTest()         { return ALCTrxPhase_ ; }
   inline int  GetALCTtxPhaseTest()         { return ALCTtxPhase_ ; }
   inline int  GetAlctRxPosNegTest()        { return ALCTrxPosNeg_ ; }
@@ -314,6 +315,7 @@ private:
   //
   int CFEBrxPhase_[5];
   int CFEBrxPosneg_[5];
+  int cfeb_rxd_int_delay[5];
   int ALCTtxPhase_;
   int ALCTrxPhase_;
   int ALCTrxPosNeg_;
