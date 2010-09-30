@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.72 2010/08/25 19:45:41 liu Exp $
+// $Id: Crate.cc,v 3.73 2010/09/30 20:57:19 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.73  2010/09/30 20:57:19  liu
+// update monitoring
+//
 // Revision 3.72  2010/08/25 19:45:41  liu
 // read TMB voltages in VME jumbo packet
 //
@@ -807,12 +810,14 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
     if(IsAlive() && (tmask & (1<<i))==0 && chamber_on)
     {  
         rn=myTmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS+46*2);
+/* move this to TMB cycle 
         if( rn>0) flag |= (1<<i);
         else if(rn<0) 
         {  
            flag &= 0x3FF; 
            flag |= ((i+1)<<10);
         }
+*/
     }
   }
   *buf2 = (TOTAL_DCS_COUNTERS)*myDmbs.size();
