@@ -1663,8 +1663,8 @@ void EmuPeripheralCrateMonitor::DCSCrateTMB(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
   int TOTAL_DCS_COUNTERS=16, Total_count=14;
-  float lv_max[14]={5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5};
-  float lv_min[14]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  float lv_max[14]={5.3, 3.5, 1.6, 1.6, 1.1, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5};
+  float lv_min[14]={4.7, 3.1, 1.4, 1.4, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   float val;
 
   if(!Monitor_Ready_) return;
