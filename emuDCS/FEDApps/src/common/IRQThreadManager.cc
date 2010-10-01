@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.4 2010/09/24 13:08:43 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.5 2010/10/01 19:55:11 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -417,14 +417,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			//locdata->tickTime[crateNumber] = tickText;
 
 			try {
+
 				// I know this means the TF DDU will use interrupts, but we'll deal with that hurdle when we come to it.
 				if (myCrate->getController()->waitIRQ(1000) == false) {
 					pthread_testcancel();
-
-					LOG4CPLUS_DEBUG(logger, "VME Device: " << myCrate->getController()->getDevice());
-					LOG4CPLUS_DEBUG(logger, "VME link: " << myCrate->getController()->getLink());
-					LOG4CPLUS_DEBUG(logger, "CAEN BHandle: " << myCrate->getController()->getBHandle() << " fake: " <<
-						myCrate->getController()->isFake());
 
 					// INTERRUPT!
 					// Read out the error information into a local variable.
@@ -671,10 +667,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					for (std::map<unsigned int, unsigned int>::const_iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); ++iCount) {
 						totalErrors += iCount->second;
 					}
-					
+
 					if (totalErrors >= locdata->fmmErrorThreshold) {
 						LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this system greater than " << locdata->fmmErrorThreshold);
-						if (!myCrate->isTrackFinder()) myCrate->getBroadcastDDU()->disableFMM();
+						if (!myCrate->isTrackFinder()) myCrate->getBroadcastDDU()->enableFMM();
+						// Briefly release the FMMs.
 					}
 					
 					pthread_mutex_unlock(&locdata->errorCountMutex);
@@ -713,13 +710,13 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						if (myDDU != NULL) {
 
 							// Check if the last DDU's error is now different from what it was before
-							if (myDDU->readAdvancedFiberErrors() < lastDDUError[lastDDU]) {
+							if (myDDU->readFiberErrors() < lastDDUError[lastDDU]) {
 								LOG4CPLUS_INFO(logger, "Reset detected on crate " << crateNumber << ": checking again to make sure...");
 
 								usleep(100);
 								pthread_testcancel();
 
-								if (myDDU->readAdvancedFiberErrors() < lastDDUError[lastDDU]) {
+								if (myDDU->readFiberErrors() < lastDDUError[lastDDU]) {
 									LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << crateNumber);
 									
 									emu::base::TypedFact<emu::fed::DDUFMMResetFact> fact;
