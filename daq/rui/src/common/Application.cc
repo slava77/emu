@@ -645,7 +645,11 @@ throw (emu::daq::rui::exception::Exception)
         fsm_.addStateTransition('R', 'E', "Enable"   , this,
             &emu::daq::rui::Application::enableAction);
         fsm_.addStateTransition('H', 'H', "Halt"     , this,
-            &emu::daq::rui::Application::haltAction);
+            &emu::daq::rui::Application::noAction);
+        fsm_.addStateTransition('R', 'R', "Configure", this,
+            &emu::daq::rui::Application::noAction);
+        fsm_.addStateTransition('E', 'E', "Enable"   , this,
+            &emu::daq::rui::Application::noAction);
         fsm_.addStateTransition('R', 'H', "Halt"     , this,
             &emu::daq::rui::Application::haltAction);
         fsm_.addStateTransition('E', 'H', "Halt"     , this,
@@ -1304,6 +1308,14 @@ emu::daq::rui::Application::startATCP()
   
 }
 
+void emu::daq::rui::Application::noAction(toolbox::Event::Reference e)
+  throw (toolbox::fsm::exception::Exception)
+{
+  // Inaction...
+  LOG4CPLUS_WARN(getApplicationLogger(), e->type() 
+		 << " attempted when already " 
+		 << fsm_.getStateName(fsm_.getCurrentState()));
+}
 
 void emu::daq::rui::Application::configureAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
