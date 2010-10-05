@@ -381,6 +381,9 @@ private:
     void startATCP()
       throw (emu::daq::ta::exception::Exception);
 
+    void noAction(toolbox::Event::Reference e)
+      throw (toolbox::fsm::exception::Exception);
+
     /**
      * Callback implementing the action to be executed on the
      * Halted->Ready transition.
