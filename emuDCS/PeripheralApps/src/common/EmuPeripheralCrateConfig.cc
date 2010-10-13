@@ -218,6 +218,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::StopPRBS, "StopPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetRadioactivityTrigger, "SetRadioactivityTrigger");
+  xgi::bind(this,&EmuPeripheralCrateConfig::SetRadioactivityTriggerALCTOnly, "SetRadioactivityTriggerALCTOnly");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetTTCDelays, "SetTTCDelays");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureAllTMBVoltages, "MeasureAllTMBVoltages");
   //
@@ -3524,6 +3525,13 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::td();
   //
   *out << cgicc::td();
+  std::string SetRadioactivityTriggerALCTOnly = toolbox::toString("/%s/SetRadioactivityTriggerALCTOnly",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SetRadioactivityTriggerALCTOnly) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Enable single-layer trigger - ALCT only") << std::endl ;
+  *out << cgicc::form() << std::endl ;;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
   std::string SetTTCDelays = toolbox::toString("/%s/SetTTCDelays",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",SetTTCDelays) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","SetTTCDelays") << std::endl ;
@@ -3879,6 +3887,47 @@ void EmuPeripheralCrateConfig::SetRadioactivityTrigger(xgi::Input * in, xgi::Out
 	  thisTMB->SetCFEBBadBitsNbx(initial_cfeb_badbits_nbx);
 	  //
 	  //	  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+	}
+      }
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  this->ExpertToolsPage(in,out);
+}
+//
+void EmuPeripheralCrateConfig::SetRadioactivityTriggerALCTOnly(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Configure all crates to have the Radioactivity Trigger for ALCT only" << std::endl;
+  //
+  int initial_crate = current_crate_;
+  //
+  if(total_crates_>0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      if ( crateVector[crate_number]->IsAlive() ) {
+	//
+	SetCurrentCrate(crate_number);
+	//
+	for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	  //
+	  // std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	  //
+	  TMB * thisTMB = tmbVector[tmb];
+	  ALCTController * thisALCT = thisTMB->alctController();
+	  //
+	  int initial_alct_nplanes_hit_pretrig = thisALCT->GetPretrigNumberOfLayers();
+	  int initial_alct_nplanes_hit_pattern = thisALCT->GetPretrigNumberOfPattern();
+	  thisALCT->SetPretrigNumberOfLayers(1);
+	  thisALCT->SetPretrigNumberOfPattern(1);
+	  thisALCT->WriteConfigurationReg();
+	  //
+	  // Reset the software back to the initial values.  Leave the hardware in radioactivity mode...
+	  thisALCT->SetPretrigNumberOfLayers(initial_alct_nplanes_hit_pretrig);
+	  thisALCT->SetPretrigNumberOfPattern(initial_alct_nplanes_hit_pattern);
+	  //
 	}
       }
     }
