@@ -844,8 +844,17 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     //
 
     try {
-      m.setParameters( "emu::daq::manager::Application", emu::soap::Parameters().add( "maxNumberOfEvents", &nevents_ ).add( "runType", &run_type_ ) );
+      // Tell DAQ Manager the run type, number of events, and whether global DAQ is running the show.
+      xdata::Boolean isGlobalInControl( true );
+      if ( isCalibrationMode() || bool( controlTFCellOp_ ) ) isGlobalInControl = false;
+      m.setParameters( "emu::daq::manager::Application", 
+		       emu::soap::Parameters()
+		       .add( "maxNumberOfEvents", &nevents_          )
+		       .add( "runType"          , &run_type_         )
+		       .add( "isGlobalInControl", &isGlobalInControl )
+		       );
     } catch (xcept::Exception ignored) {}
+
     
     // Configure local DAQ first as its FSM is driven asynchronously,
     // and it will probably finish the transition by the time the others do.
@@ -903,11 +912,6 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     // If necessary, wait a bit for DAQ to finish configuring
     waitForDAQToExecute("Configure", 10, true);
 
-    // Tell DAQ Manager whether global DAQ is running the show.
-    xdata::Boolean isGlobalInControl( true );
-    if ( isCalibrationMode() || bool( controlTFCellOp_ ) ) isGlobalInControl = false;
-    m.setParameters( "emu::daq::manager::Application", emu::soap::Parameters().add( "isGlobalInControl", &isGlobalInControl ) );
-       
     state_table_.refresh();
     if (!state_table_.isValidState("Configured")) {
       stringstream ss;
