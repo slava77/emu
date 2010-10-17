@@ -843,17 +843,25 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     // Configure
     //
 
+    // Tell DAQ Manager the run type, number of events, and whether global DAQ is running the show.
+    xdata::Boolean isGlobalInControl( true );
+    if ( isCalibrationMode() || bool( controlTFCellOp_ ) ) isGlobalInControl = false;
     try {
-      // Tell DAQ Manager the run type, number of events, and whether global DAQ is running the show.
-      xdata::Boolean isGlobalInControl( true );
-      if ( isCalibrationMode() || bool( controlTFCellOp_ ) ) isGlobalInControl = false;
+      LOG4CPLUS_INFO( logger_, "Sending to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
+		      << ", runType " << run_type_.toString()
+		      << ", isGlobalInControl " << isGlobalInControl.toString() );
       m.setParameters( "emu::daq::manager::Application", 
 		       emu::soap::Parameters()
 		       .add( "maxNumberOfEvents", &nevents_          )
 		       .add( "runType"          , &run_type_         )
 		       .add( "isGlobalInControl", &isGlobalInControl )
 		       );
-    } catch (xcept::Exception ignored) {}
+    } catch (xcept::Exception& e) {
+      LOG4CPLUS_WARN( logger_, "Failed to send to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
+		      << ", runType " << run_type_.toString()
+		      << ", isGlobalInControl " << isGlobalInControl.toString() 
+		      << ": " << xcept::stdformat_exception_history(e) );
+    }
 
     
     // Configure local DAQ first as its FSM is driven asynchronously,
