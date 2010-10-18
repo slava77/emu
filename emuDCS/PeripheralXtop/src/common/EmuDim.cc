@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.41 2010/08/26 19:16:45 liu Exp $
+// $Id: EmuDim.cc,v 1.42 2010/10/18 21:37:12 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -783,7 +783,7 @@ int EmuDim::PowerUp()
        if(crate_state[i]==1) upcrates++;
    }
    if(upcrates==0) return 0;
-   std::cout << getLocalDateTime() << " Start Power Up" << std::endl;
+   std::cout << getLocalDateTime() << " Start Power Up " << upcrates << " crate(s)." << std::endl;
    // make sure Xmas stopped before power-up
    XmasLoader->reload(xmas_stop);
    for(int i=0; i<TOTAL_CRATES; i++)
@@ -794,6 +794,7 @@ int EmuDim::PowerUp()
          std::string confirm = "INITIALIZING;" + crate_name[i];              
          strcpy(pvssrespond.command, confirm.c_str());
          Confirmation_Service->updateService();
+         std::cout << getLocalDateTime() << " Start Power-up Init crate " << crate_name[i] << std::endl;
          BlueLoader->reload(blue_info+"?POWERUP="+crate_name[i]);
          // check return message
          if(BlueLoader->Content_Size() > 27)
@@ -810,9 +811,15 @@ int EmuDim::PowerUp()
               confirm = "INIT_FAILED;" + crate_name[i];              
               std::cout << getLocalDateTime() << " Init failed: " << crate_name[i] << std::endl;
            }
-           strcpy(pvssrespond.command, confirm.c_str());
-           Confirmation_Service->updateService();
          }
+         else
+         {
+            std::cout << "Blue Page returns bad message with total length: " << BlueLoader->Content_Size() << std::endl;
+            confirm = "INIT_FAILED;" + crate_name[i];              
+            std::cout << getLocalDateTime() << " Init failed: " << crate_name[i] << std::endl;
+         }
+         strcpy(pvssrespond.command, confirm.c_str());
+         Confirmation_Service->updateService();
       }
    }
    return 0;
