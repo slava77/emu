@@ -843,23 +843,30 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     // Configure
     //
 
-    // Tell DAQ Manager the run type, number of events, and whether global DAQ is running the show.
+    // Tell DAQ Manager the run type, number of events, whether to write bad events only 
+    // and whether global DAQ is running the show.
+    // Keep the two parameters isGlobalInControl and writeBadEventsOnly separate 
+    // as later we may need to write all events even when global DAQ is in control
+    // (in centrally started calibration runs).
     xdata::Boolean isGlobalInControl( true );
     if ( isCalibrationMode() || bool( controlTFCellOp_ ) ) isGlobalInControl = false;
     try {
       LOG4CPLUS_INFO( logger_, "Sending to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
 		      << ", runType " << run_type_.toString()
-		      << ", isGlobalInControl " << isGlobalInControl.toString() );
+		      << ", isGlobalInControl " << isGlobalInControl.toString()
+		      << ", writeBadEventsOnly " << isGlobalInControl.toString() );
       m.setParameters( "emu::daq::manager::Application", 
 		       emu::soap::Parameters()
-		       .add( "maxNumberOfEvents", &nevents_          )
-		       .add( "runType"          , &run_type_         )
-		       .add( "isGlobalInControl", &isGlobalInControl )
+		       .add( "maxNumberOfEvents" , &nevents_          )
+		       .add( "runType"           , &run_type_         )
+		       .add( "isGlobalInControl" , &isGlobalInControl )
+		       .add( "writeBadEventsOnly", &isGlobalInControl )
 		       );
     } catch (xcept::Exception& e) {
       LOG4CPLUS_WARN( logger_, "Failed to send to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
 		      << ", runType " << run_type_.toString()
 		      << ", isGlobalInControl " << isGlobalInControl.toString() 
+		      << ", writeBadEventsOnly " << isGlobalInControl.toString() 
 		      << ": " << xcept::stdformat_exception_history(e) );
     }
 
