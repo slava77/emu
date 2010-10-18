@@ -123,13 +123,13 @@
 <!-- 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbUser</runDbUserFile> -->
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
-	  <controlDQM xsi:type="xsd:boolean">false</controlDQM>
 	  <hardwareMapping xsi:type="xsd:string">emu/config/EmuDAQ/RUI-to-chamber_mapping_bdg904.xml</hardwareMapping>
-	  <expertSystemURL xsi:type="xsd:string">http://emuslice12:18080/cdw/factcollection</expertSystemURL>
+	  <expertSystemURL xsi:type="xsd:string">http://emulab02:18080/cdw/factcollection</expertSystemURL>
 	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusupervisor.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqmanager.so</xc:Module>
     </xc:Context>
   </xsl:template>
@@ -225,7 +225,6 @@
 	      <hardwareMnemonic xsi:type="xsd:string"><xsl:if test="@instance='0'">TF</xsl:if><xsl:if test="@instance!='0'">chambers</xsl:if></hardwareMnemonic>
 	      <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	      <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
-	      <pathToBadEventsFile xsi:type="xsd:string"></pathToBadEventsFile>
 	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:string" soapenc:position="[0]"><xsl:if test="@instance='0'">EmuTFMonitor</xsl:if><xsl:if test="@instance!='0'">EmuMonitor</xsl:if></item>
