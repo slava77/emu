@@ -124,7 +124,7 @@
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
 	  <hardwareMapping xsi:type="xsd:string">emu/config/EmuDAQ/RUI-to-chamber_mapping_bdg904.xml</hardwareMapping>
-	  <expertSystemURL xsi:type="xsd:string">http://emulab02:18080/cdw/factcollection</expertSystemURL>
+	  <expertSystemURL xsi:type="xsd:string">http://emulab02.cern.ch:18080/cdw/factcollection</expertSystemURL>
 	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	</properties>
       </xc:Application>
