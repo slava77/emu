@@ -13,9 +13,10 @@ Project = emu
 Package = daq/manager
 
 Sources = \
-	Application.cc \
 	AppStates.cc \
+	Watchdog.cc \
 	FactTypes.cc \
+	Application.cc \
 	version.cc
 
 IncludeDirs = \
