@@ -23,6 +23,9 @@
 #include "emu/soap/ToolBox.h"
 #include "emu/soap/Messenger.h"
 
+#include "toolbox/task/TimerFactory.h"
+#include "toolbox/TimeInterval.h" 
+
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
@@ -103,6 +106,23 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
     fsm_.reset();
 
     state_ = fsm_.getStateName(fsm_.getCurrentState());
+
+    watchdog_ = new emu::daq::manager::Watchdog( this );
+
+    stringstream timerName;
+    timerName << "DAQWatchdog." << getApplicationDescriptor()->getClassName() << "." << getApplicationDescriptor()->getInstance();
+    try{
+      toolbox::task::Timer * timer = toolbox::task::getTimerFactory()->createTimer( timerName.str() );
+      toolbox::TimeInterval interval( 5 ,0 ); // period in sec
+      toolbox::TimeVal start( toolbox::TimeVal::gettimeofday() + toolbox::TimeVal( 2, 0 ) ); // start in 2 seconds from now
+      timer->scheduleAtFixedRate( start, this, interval,  0, "" );
+    } catch(xcept::Exception& e){
+      stringstream ss;
+      ss << "Failed to create " << timerName << " , therefore no scheduled check of state of DAQ applications will be done: " << xcept::stdformat_exception_history(e);
+      LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() );
+      XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+      this->notifyQualified( "error", eObj );
+    }
 
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
@@ -245,50 +265,6 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         this->notifyQualified( "warning", eObj );
     }
 
-    try
-    {
-        dqmMonitorDescriptors_ = getAppDescriptors(zone_, "EmuMonitor");
-    }
-    catch(emu::daq::manager::exception::Exception e)
-    {
-        dqmMonitorDescriptors_.clear();
-
-        // Log only a warning as EmuMonitorss may not exist
-        LOG4CPLUS_WARN(logger_,
-            "Failed to get application descriptors for class EmuMonitor"
-            << " : " << xcept::stdformat_exception_history(e));
-        stringstream ss6;
-        ss6 << 
-            "Failed to get application descriptors for class EmuMonitor"
-            << " : " ;
-        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss6.str(), e );
-        this->notifyQualified( "warning", eObj );
-    }
-
-    vector< xdaq::ApplicationDescriptor* > dqmTFMonitorDescriptors_; // There's only one, but anyway
-    try
-    {
-        dqmTFMonitorDescriptors_ = getAppDescriptors(zone_, "EmuTFMonitor");
-    }
-    catch(emu::daq::manager::exception::Exception e)
-    {
-        dqmTFMonitorDescriptors_.clear();
-
-        // Log only a warning as EmuMonitorss may not exist
-        LOG4CPLUS_WARN(logger_,
-            "Failed to get application descriptors for class EmuTFMonitor"
-            << " : " << xcept::stdformat_exception_history(e));
-        stringstream ss7;
-        ss7 << 
-            "Failed to get application descriptors for class EmuTFMonitor"
-            << " : " ;
-        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss7.str(), e );
-        this->notifyQualified( "warning", eObj );
-    }
-
-    // Append EmuTFMonitor's descriptor to EmuTFMonitors'
-    dqmMonitorDescriptors_.insert(dqmMonitorDescriptors_.end(),
-				  dqmTFMonitorDescriptors_.begin(), dqmTFMonitorDescriptors_.end());
 }
 
 
@@ -646,13 +622,10 @@ throw (xgi::exception::Exception)
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
     *out << "<td>"                                                   << endl;
-    //printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
     statesTableToHtml( out, "DAQ applications", daqContexts_, currentAppStates_ );
     *out << "</td>"                                                   << endl;
     *out << "<td width=\"16\"/>"                                      << endl;
     *out << "<td>"                                                   << endl;
-//     queryAppStates( dqmAppStates_ );
-//     printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
     *out << "</td>"                                                   << endl;
     *out << "</tr>"                                                   << endl;
     *out << "</table>"                                               << endl;
@@ -1191,7 +1164,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       *out << " alt=\"maximum number of events\""                    << endl;
       *out << " value=\"" << maxNumberOfEvents_.toString() << "\""   << endl;
       *out << " size=\"10\""                                         << endl;
-      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
+      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""     << endl;
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
 
@@ -1202,9 +1175,21 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       *out << " title=\"If checked, events will be built.\""         << endl;
       *out << " alt=\"build events\""                                << endl;
       if ( buildEvents_.value_ ) *out << " checked"                  << endl;
-      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
+      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""     << endl;
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
+
+      *out << "Write bad events only: "                              << endl;
+      *out << "<input"                                               << endl;
+      *out << " type=\"checkbox\""                                   << endl;
+      *out << " name=\"writeBadEventsOnly\""                         << endl;
+      *out << " title=\"If checked, only bad events (with some neighboring events) will be written to file. To be used in global runs.\""  << endl;
+      *out << " alt=\"writeBadEventsOnly\""                          << endl;
+      if ( writeBadEventsOnly_.value_ ) *out << " checked"           << endl;
+      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""     << endl;
+      *out << "/>  "                                                 << endl;
+      *out << "<br>"                                                 << endl;
+
     }
     else{ // in a state other than halted
       *out << "<table border=\"0\" rules=\"none\" width=\"100%\">"   << endl;
@@ -1240,6 +1225,8 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       }
       *out << "</td></tr>"                                           << endl;
       *out << "  <tr><td>Build events:</td><td>" << buildEvents_ .toString();
+      *out << "</td></tr>"                                           << endl;
+      *out << "  <tr><td>Write bad events only:</td><td>" << writeBadEventsOnly_.toString();
       *out << "</td></tr>"                                           << endl;
       *out << "</table>"                                             << endl;
       *out << "</td>"                                                << endl;
@@ -1304,32 +1291,10 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       }
       
 
-      *out << "<input"                                                   << endl;
-      *out << " type=\"checkbox\""                                       << endl;
-      *out << " name=\"controldqm\""                                     << endl;
-      *out << " title=\"If checked, DQM's state will be changed too.\""  << endl;
-      *out << " alt=\"control dqm\""                                     << endl;
-      if ( controlDQM_.value_ ) *out << " checked"                       << endl;
-      if ( supervisedMode_.value_ ) *out << " disabled=\"true\""             << endl;
-      *out << "/>  "                                                     << endl;
-      *out << " DQM too"                                                 << endl;
-    *out << "</td>"                                                     << endl;
+    *out << "</td>"                                                      << endl;
 
-    // Direct DQM control buttons (useful after DQM crash and restart).
-    *out << "<td>"                                                     << endl;
-      *out << "<fieldset style=\"float:right\">"                         << endl;
-      *out << "	 <legend>DQM direct control</legend>"                    << endl;
-      *out << "<input class=\"button\" type=\"submit\" name=\"command\"" << endl;
-      *out << " value=\"configure DQM\""                                 << endl;
-      *out << "/>"                                                       << endl;
-      *out << "<input class=\"button\" type=\"submit\" name=\"command\"" << endl;
-      *out << " value=\"start DQM\""                                     << endl;
-      *out << "/>"                                                       << endl;
-      *out << "<input class=\"button\" type=\"submit\" name=\"command\"" << endl;
-      *out << " value=\"stop DQM\""                                      << endl;
-      *out << "/>"                                                       << endl;
-      *out << "</fieldset>"                                              << endl;
-    *out << "<tr>"                                                     << endl;
+    *out << "<td/>"                                                      << endl;
+    *out << "<tr>"                                                       << endl;
     *out << "</table>"                                                   << endl;
        
 
@@ -1354,13 +1319,10 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
     *out << "<table border=\"0\">"                                       << endl;
     *out << "<tr valign=\"top\">"                                        << endl;
     *out << "<td>"                                                       << endl;
-//     printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
     statesTableToHtml( out, "DAQ applications", daqContexts_, currentAppStates_ );
     *out << "</td>"                                                      << endl;
     *out << "<td width=\"16\"/>"                                         << endl;
     *out << "<td>"                                                       << endl;
-//     queryAppStates( dqmAppStates_ );
-//     printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
     *out << "</td>"                                                      << endl;
     *out << "</tr>"                                                      << endl;
     *out << "</table>"                                                   << endl;
@@ -1647,10 +1609,6 @@ emu::daq::manager::Application::findFacts() {
 
 void emu::daq::manager::Application::setParametersForSupervisedMode(){
   // Prepare for obeying Central Run Control commands
-//   runType_                = "Monitor";
-//   maxNumberOfEvents_      = -1;
-//   buildEvents_            = false;
-  controlDQM_             = false;
   globalRunNumber_        = runNumber_.toString();
   isBookedRunNumber_      = true;
 }
@@ -1829,13 +1787,11 @@ throw (xgi::exception::Exception)
 //       cout << fe->getName() << " " << fe->getValue() << endl;
 //     cout << "---------------------------------" << endl;
 
-    // Check if DQM needs controlling
+    // Check if only bad events are to be written to file.
     // Apparently the query string does not even include the checkbox element if it's not checked...
-    // Set controlDQM_ later, if and only if a DAQ control button was pressed.
-    bool controlDQM_checked = false;
     for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
-      if ( fe->getName() == "controldqm" && fe->getValue() == "on" ){
-	controlDQM_checked = true;
+      if ( fe->getName() == "writeBadEventsOnly" && fe->getValue() == "on" ){
+	writeBadEventsOnly_ = true;
 	break;
       }
 
@@ -1863,7 +1819,7 @@ throw (xgi::exception::Exception)
 		  runType_.fromString( fe->getValue() );
 		}
 	      }
-	    // buildEvents will be queried by emu::daq::rui::Applications
+
 	    // Apparently the query string does not even include the checkbox element if it's not checked...
 	    buildEvents_ = false;
 	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
@@ -1881,9 +1837,6 @@ throw (xgi::exception::Exception)
 	      maxNumberOfEvents_.fromString( maxNumEvents );
 	    }
 
-            // Set controlDQM_ if and only if a DAQ control button was pressed.
-	    controlDQM_ = controlDQM_checked;
-
 	    // Obviously, global cannot be in control if command is issued from web page
 	    isGlobalInControl_ = false;
 
@@ -1891,16 +1844,10 @@ throw (xgi::exception::Exception)
 	  }
 	else if ( (cmdName == "start") && fsm_.getCurrentState() == 'C' )
 	  {
-            // Set controlDQM_ if and only if a DAQ control button was pressed.
-	    controlDQM_ = controlDQM_checked;
-
 	    fireEvent("Enable");
 	  }
         else if( cmdName == "stop" )
 	  {
-            // Set controlDQM_ if and only if a DAQ control button was pressed.
-	    controlDQM_ = controlDQM_checked;
-
 	    // Obviously, global cannot be in control if command is issued from web page
 	    isGlobalInControl_ = false;
 
@@ -1908,9 +1855,6 @@ throw (xgi::exception::Exception)
 	  }
         else if( cmdName == "reset" )
 	  {
-            // Set controlDQM_ if and only if a DAQ control button was pressed.
-	    controlDQM_ = controlDQM_checked;
-
 	    // Obviously, global cannot be in control if command is issued from web page
 	    isGlobalInControl_ = false;
 
@@ -1919,8 +1863,6 @@ throw (xgi::exception::Exception)
 	      fsm_.reset();
 	    }
 	    catch( toolbox::fsm::exception::Exception e ){
-// 	      XCEPT_RETHROW(xgi::exception::Exception,
-// 			    "Failed to reset FSM: ", e);
 	      LOG4CPLUS_ERROR(logger_, "Failed to reset FSM: " << 
 			      xcept::stdformat_exception_history(e) );
 	      stringstream ss23;
@@ -1929,18 +1871,6 @@ throw (xgi::exception::Exception)
 	      this->notifyQualified( "error", eObj );
 	    }
 	    fireEvent("Halt");
-	  }
-        else if( cmdName == "configure DQM" )
-	  {
-	    controlDQM( "Configure" );
-	  }
-        else if( cmdName == "start DQM" )
-	  {
-	    controlDQM( "Enable" );
-	  }
-        else if( cmdName == "stop DQM" )
-	  {
-	    controlDQM( "Halt" );
 	  }
     }
 
@@ -2512,53 +2442,7 @@ void emu::daq::manager::Application::configureDAQ()
 	}
     }
 
-    // If the TA is present then start it as an imaginary trigger
-    if ( taDescriptors_.size() ){
-      if ( taDescriptors_.size() > 1 ){
-	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
-		       " TA instances found. Will use TA0.");
-	stringstream ss30;
-	ss30 << "The embarassment of riches: " << taDescriptors_.size() <<
-		       " TA instances found. Will use TA0.";
-	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss30.str() );
-	this->notifyQualified( "warning", eObj );
-      }
-
-      try
-	{
-	  emu::soap::Messenger( this ).setParameters( taDescriptors_[0], 
-						      emu::soap::Parameters()
-						      .add( "runNumber"     , &runNumber_         )
-						      .add( "maxNumTriggers", &maxNumberOfEvents_ ) );
-	  LOG4CPLUS_INFO(logger_,
-			 "Set run number to " + runNumber_.toString() + 
-			 ", maximum number of events to " + maxNumberOfEvents_.toString() );
-	}
-      catch(xcept::Exception &e)
-	{
-	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set run number to " + runNumber_.toString() + 
-			", maximum number of events to " + maxNumberOfEvents_.toString(), 
-			e);
-	}
-
-        try
-        {
-            configureTrigger();
-        }
-        catch(xcept::Exception &e)
-        {
-            XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-                "Failed to configure trigger", e);
-        }
-    }
-    else{
-      LOG4CPLUS_ERROR(logger_,"No TA found.");
-      stringstream ss31;
-      ss31 << "No TA found.";
-      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss31.str() );
-      this->notifyQualified( "error", eObj );
-    }
+    configureTA();
 
     if ( buildEvents_.value_ ){
       try
@@ -2577,12 +2461,14 @@ void emu::daq::manager::Application::configureDAQ()
     {
         try
         {
-            configureFedBuilder();
+	  for( vector<xdaq::ApplicationDescriptor*>::const_iterator rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); ++rui ){
+	    configureRUI( *rui );
+	  }
         }
         catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-                "Failed to configure FED builder", e);
+                "Failed to configure RUIs", e);
         }
     }
 
@@ -2679,7 +2565,7 @@ throw (emu::daq::manager::exception::Exception)
 	}
       try
         {
-            startTrigger();
+            enableTA();
         }
       catch(xcept::Exception &e)
         {
@@ -2705,12 +2591,14 @@ throw (emu::daq::manager::exception::Exception)
     {
         try
         {
-            startFedBuilder();
+	  for( vector<xdaq::ApplicationDescriptor*>::const_iterator rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); ++rui ){
+	    enableRUI( *rui );
+	  }
         }
         catch(xcept::Exception &e)
         {
             XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-                "Failed to start FED builder", e);
+                "Failed to enable RUIs: ", e);
         }
     }
 
@@ -2842,34 +2730,8 @@ throw (emu::daq::manager::exception::Exception)
 }
 
 
-void emu::daq::manager::Application::configureTrigger()
-throw (emu::daq::manager::exception::Exception)
-{
-    //////////////////
-    // Configure TA //
-    //////////////////
 
-    try
-    {
-        emu::soap::Messenger( this ).sendCommand( taDescriptors_[0], "Configure" );
-    }
-    catch(xcept::Exception &e)
-    {
-        stringstream oss;
-        string       s;
-
-        oss << "Failed to configure ";
-        oss << taDescriptors_[0]->getClassName();
-        oss << taDescriptors_[0]->getInstance();
-        s = oss.str();
-
-        XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-    }
-}
-
-void emu::daq::manager::Application::startTrigger()
-throw (emu::daq::manager::exception::Exception)
-{
+void emu::daq::manager::Application::enableTA(){
     /////////////////
     // Enable TA   //
     /////////////////
@@ -3033,81 +2895,118 @@ throw (emu::daq::manager::exception::Exception)
 }
 
 
-void emu::daq::manager::Application::startFedBuilder()
-throw (emu::daq::manager::exception::Exception)
-{
-    vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
-
-
-    /////////////////
-    // Enable RUIs //
-    /////////////////
-
-    for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
+void emu::daq::manager::Application::enableRUI( xdaq::ApplicationDescriptor* ruiDescriptor ){
+  try
     {
-        try
-        {
-            emu::soap::Messenger( this ).sendCommand( *pos, "Enable" );
-        }
-        catch(xcept::Exception &e)
-        {
-            stringstream oss;
-            string       s;
-
-            oss << "Failed to enable ";
-            oss << (*pos)->getClassName() << (*pos)->getInstance();
-            s = oss.str();
-
-            XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-        }
+      emu::soap::Messenger( this ).sendCommand( ruiDescriptor, "Enable" );
+    }
+  catch(xcept::Exception &e)
+    {
+      stringstream oss;
+      string       s;
+      
+      oss << "Failed to enable ";
+      oss << ruiDescriptor->getClassName() << ruiDescriptor->getInstance();
+      s = oss.str();
+      
+      XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
     }
 }
 
-void emu::daq::manager::Application::configureFedBuilder()
-throw (emu::daq::manager::exception::Exception)
-{
-    emu::soap::Messenger m( this );
-    vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
-
-
-    ////////////////////
-    // Configure RUIs //
-    ////////////////////
-
-    for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
-    {
-      stringstream app;
-      app << (*pos)->getClassName() << (*pos)->getInstance();
-      try
-	{
-	  m.setParameters( *pos, 
-			   emu::soap::Parameters()
-			   .add( "runType"              , &runType_     )
-			   .add( "passDataOnToRUBuilder", &buildEvents_ ) );
-	  LOG4CPLUS_INFO(logger_,"Set run type for " + app.str() + " to " + runType_.toString() + ", event building " + buildEvents_.toString());
-	}
-      catch(xcept::Exception &e)
-	{
-	  XCEPT_RETHROW(emu::daq::manager::exception::Exception,
-			"Failed to set run type for " + app.str() + " to " + runType_.toString() + ", event building " + buildEvents_.toString(), e);
-	}
-      
-      try
-        {
-	    m.sendCommand( *pos, "Configure" );
-        }
-      catch(xcept::Exception &e)
-        {
-            stringstream oss;
-            string       s;
-
-            oss << "Failed to configure ";
-            oss << (*pos)->getClassName() << (*pos)->getInstance();
-            s = oss.str();
-
-            XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
-        }
+void
+emu::daq::manager::Application::configureTA(){
+  // If the TA is present then start it as an imaginary trigger
+  if ( taDescriptors_.size() ){
+    if ( taDescriptors_.size() > 1 ){
+      LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
+		     " TA instances found. Will use TA0.");
+      stringstream ss30;
+      ss30 << "The embarassment of riches: " << taDescriptors_.size() <<
+	" TA instances found. Will use TA0.";
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss30.str() );
+      this->notifyQualified( "warning", eObj );
     }
+    
+    try
+      {
+	emu::soap::Messenger( this ).setParameters( taDescriptors_[0], 
+						    emu::soap::Parameters()
+						    .add( "runNumber"     , &runNumber_         )
+						    .add( "maxNumTriggers", &maxNumberOfEvents_ ) );
+	LOG4CPLUS_INFO(logger_,
+		       "Set run number to " + runNumber_.toString() + 
+		       ", maximum number of events to " + maxNumberOfEvents_.toString() );
+      }
+    catch(xcept::Exception &e)
+      {
+	XCEPT_RETHROW(emu::daq::manager::exception::Exception,
+		      "Failed to set run number to " + runNumber_.toString() + 
+		      ", maximum number of events to " + maxNumberOfEvents_.toString(), 
+		      e);
+      }
+    
+    try
+      {
+        emu::soap::Messenger( this ).sendCommand( taDescriptors_[0], "Configure" );
+      }
+    catch(xcept::Exception &e)
+      {
+        stringstream oss;
+        string       s;
+	
+        oss << "Failed to configure ";
+        oss << taDescriptors_[0]->getClassName();
+        oss << taDescriptors_[0]->getInstance();
+        s = oss.str();
+
+        XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
+      }
+  }
+  else{
+    LOG4CPLUS_ERROR(logger_,"No TA found.");
+    stringstream ss31;
+    ss31 << "No TA found.";
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss31.str() );
+    this->notifyQualified( "error", eObj );
+  }
+}
+
+void emu::daq::manager::Application::configureRUI( xdaq::ApplicationDescriptor* ruiDescriptor ){
+    emu::soap::Messenger m( this );
+
+    stringstream app;
+    app << ruiDescriptor->getClassName() << ruiDescriptor->getInstance();
+    try
+      {
+	m.setParameters( ruiDescriptor, 
+			 emu::soap::Parameters()
+			 .add( "runType"              , &runType_     )
+			 .add( "writeBadEventsOnly"   , &writeBadEventsOnly_ )
+			 .add( "passDataOnToRUBuilder", &buildEvents_ ) );
+	LOG4CPLUS_INFO(logger_,"Set run type for " + app.str() + " to " + runType_.toString() + ", event building " + buildEvents_.toString());
+      }
+    catch(xcept::Exception &e)
+      {
+	XCEPT_RETHROW(emu::daq::manager::exception::Exception,
+		      "Failed to set run type for " + app.str() + " to " + runType_.toString() + ", event building " + buildEvents_.toString(), e);
+      }
+    
+    try
+      {
+	m.sendCommand( ruiDescriptor, "Configure" );
+      }
+    catch(xcept::Exception &e)
+      {
+	stringstream oss;
+	string       s;
+	
+	oss << "Failed to configure ";
+	oss << ruiDescriptor->getClassName() << ruiDescriptor->getInstance();
+	s = oss.str();
+	
+	XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
+      }
+
 }
 
 
@@ -3260,34 +3159,6 @@ throw (emu::daq::manager::exception::Exception)
 	    }
 	}
     }
-}
-
-void emu::daq::manager::Application::controlDQM( const string action )
-  throw (emu::daq::manager::exception::Exception)
-{
-  // EmuMonitors of DQM
-  vector< xdaq::ApplicationDescriptor* >::iterator mon;
-  for( mon = dqmMonitorDescriptors_.begin(); mon != dqmMonitorDescriptors_.end(); ++mon ){
-
-    try
-      {
-	emu::soap::Messenger( this ).sendCommand( *mon, action );
-      }
-    catch(xcept::Exception &e)
-      {
-	// Don't raise exception here. Go on to try to deal with the others.
-	LOG4CPLUS_ERROR(logger_, "Failed to " << action << " " 
-			<< (*mon)->getClassName() << (*mon)->getInstance() << " "
-			<< xcept::stdformat_exception_history(e));
-	stringstream ss34;
-	ss34 <<  "Failed to " << action << " " 
-			<< (*mon)->getClassName() << (*mon)->getInstance() << " "
-			;
-	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss34.str(), e );
-	this->notifyQualified( "error", eObj );
-      }
-  }
- 
 }
 
 
@@ -3663,8 +3534,8 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable("calibNRuns"    ,    &calibNRuns_       );
   s->fireItemAvailable("calibStepIndex",    &calibStepIndex_   );
   s->fireItemAvailable("calibNSteps"   ,    &calibNSteps_      );
-
-//     s->addItemChangedListener("runNumber",this);
+  
+  //s->addItemChangedListener("isGlobalInControl",this);
 
 
   // Parameters to obtain from TTCciControl
@@ -3677,8 +3548,8 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable("TTCci_TriggerSource", &TTCci_TriggerSource_);
   s->fireItemAvailable("TTCci_BGOSource",     &TTCci_BGOSource_);
   
-    controlDQM_ = false;
-    s->fireItemAvailable("controlDQM",&controlDQM_);
+    writeBadEventsOnly_ = true;
+    s->fireItemAvailable("writeBadEventsOnly",&writeBadEventsOnly_);
 
     daqState_ = "UNKNOWN";
     s->fireItemAvailable("daqState",&daqState_);
@@ -4851,18 +4722,6 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
 		      "Failed to configure EmuDAQ", ex);
       }
 
-    if ( controlDQM_.value_ ){
-      try
-	{
-	  controlDQM( "Configure" );
-	}
-      catch(xcept::Exception &ex)
-	{
-	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-			"Failed to configure the EmuMonitors of DQM", ex);
-	}
-    }
-
     try
       {
 	getMnemonicNames();
@@ -4923,18 +4782,6 @@ void emu::daq::manager::Application::enableAction(toolbox::Event::Reference e)
 		      "Failed to enable EmuDAQ", ex);
       }
 
-    if ( controlDQM_.value_ ){
-      try
-	{
-	  controlDQM( "Enable" );
-	}
-      catch(xcept::Exception &ex)
-	{
-	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-			"Failed to enable the EmuMonitors of DQM", ex);
-	}
-    }
-
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
@@ -4976,18 +4823,6 @@ void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
 	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss82.str() );
 	this->notifyQualified( "error", eObj );
       }
-
-    if ( controlDQM_.value_ ){
-      try
-	{
-	  controlDQM( "Halt" );
-	}
-      catch(xcept::Exception &ex)
-	{
-	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-			"Failed to halt the EmuMonitors of DQM", ex);
-	}
-    }
 
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -5056,25 +4891,6 @@ void emu::daq::manager::Application::resetAction()
 	this->notifyQualified( "error", eObj );
       }
 
-    if ( controlDQM_.value_ ){
-      // DQM's EmuMonitors cannot be reset. Halt them instead.
-      try
-	{
-	  controlDQM( "Halt" );
-	}
-      catch(xcept::Exception &ex)
-	{
-// 	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-// 			"Failed to configure the EmuMonitors of DQM", ex);
-	  LOG4CPLUS_ERROR(logger_, "Failed to configure the EmuMonitors of DQM" <<
-			  xcept::stdformat_exception_history(ex) );
-	  stringstream ss85;
-	  ss85 <<  "Failed to configure the EmuMonitors of DQM";
-	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss85.str(), ex );
-	  this->notifyQualified( "error", eObj );
-	}
-    }
-
 }
 
 bool emu::daq::manager::Application::configureActionInWorkLoop(toolbox::task::WorkLoop *wl){
@@ -5122,6 +4938,9 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
     if ( state_ == "Halted" || state_ == "Enabled" || state_ == "Failed" )
     sendFact( "emu::daq::manager::Application", LocalDAQStatusFact::getTypeName() );
   }
+  // else if ( e.itemName() == "isGlobalInControl" && e.type() == "ItemChangedEvent" ){
+  //   writeBadEventsOnly_ = isGlobalInControl_.value_;
+  // }
 
   LOG4CPLUS_INFO(logger_, 
 		 "Received an InfoSpace event" <<
@@ -5131,6 +4950,99 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
 		 " Type of serializable: " << e.item()->type() );
 }
 
+void
+emu::daq::manager::Application::configureRestartedApps(){
+  // Get the halted apps, which were presumably restarted.
+  vector<string> halted; // sysnonyms of "Halted"
+  halted.push_back( "Halted" );
+  set<xdaq::ApplicationDescriptor*> haltedApps( watchdog_->getAppsInStates( halted ) );
+  // First configure the TA, if it's been restarted
+  if ( taDescriptors_.size() > 0 && haltedApps.find( taDescriptors_.at(0) )!=haltedApps.end() ){
+    configureTA();
+    stringstream ss;
+    ss << "Watchdog configured " << taDescriptors_.at(0)->getClassName() << "." << taDescriptors_.at(0)->getInstance();
+    LOG4CPLUS_WARN( logger_, ss.str() );
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  }
+  // Then configure the RUIs that have been restarted
+  for( vector<xdaq::ApplicationDescriptor*>::const_iterator rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); ++rui ){
+    if ( haltedApps.find( *rui )!=haltedApps.end() ){
+      configureRUI( *rui );
+      stringstream ss;
+      ss << "Watchdog configured " << (*rui)->getClassName() << "." << (*rui)->getInstance();
+      LOG4CPLUS_WARN( logger_, ss.str() );
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss.str() );
+      this->notifyQualified( "warning", eObj );
+    }
+  }
+}
+
+void
+emu::daq::manager::Application::enableRestartedApps(){
+  // Get the configured apps, which were presumably restarted.
+  vector<string> configured; // sysnonyms of "Configured"
+  configured.push_back( "Configured" );
+  configured.push_back( "Ready"      );
+  set<xdaq::ApplicationDescriptor*> configuredApps( watchdog_->getAppsInStates( configured ) );
+  // First configure the TA, if it's been restarted
+  if ( taDescriptors_.size() > 0 && configuredApps.find( taDescriptors_.at(0) )!=configuredApps.end() ){
+    enableTA();
+    stringstream ss;
+    ss << "Watchdog enabled" << taDescriptors_.at(0)->getClassName() << "." << taDescriptors_.at(0)->getInstance();
+    LOG4CPLUS_WARN( logger_, ss.str() );
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  }
+  // Then configure the RUIs that have been restarted
+  for( vector<xdaq::ApplicationDescriptor*>::const_iterator rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); ++rui ){
+    if ( configuredApps.find( *rui )!=configuredApps.end() ){
+      enableRUI( *rui );
+      stringstream ss;
+      ss << "Watchdog enabled " << (*rui)->getClassName() << "." << (*rui)->getInstance();
+      LOG4CPLUS_WARN( logger_, ss.str() );
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss.str() );
+      this->notifyQualified( "warning", eObj );
+    }
+  }
+}
+
+void
+emu::daq::manager::Application::timeExpired(toolbox::task::TimerEvent& e){
+  // Send out the watchdog to look for restarted applications and herd them back to the proper FSM state.
+
+  vector<string> halted;
+  halted.push_back( "Halted" );
+  vector<string> configured;
+  configured.push_back( "Configured" );
+  configured.push_back( "Ready"      );
+  LOG4CPLUS_INFO( logger_, "Time expired for event " << e.type() );
+  try{
+    switch(fsm_.getCurrentState()){
+  case 'H': // Halted
+    break;
+    case 'C': // Configured
+      watchdog_->patrol();
+      LOG4CPLUS_INFO( logger_, "Watchdog after patrol" << endl << *watchdog_ );
+      if ( watchdog_->getAppsInStates( halted ).size() > 0 ) configureRestartedApps();
+      break;
+    case 'E': // Enabled
+      watchdog_->patrol();
+      LOG4CPLUS_INFO( logger_, "Watchdog after first patrol" << endl << *watchdog_ );
+      if ( watchdog_->getAppsInStates( halted ).size() > 0 ) configureRestartedApps();
+      watchdog_->patrol();
+      LOG4CPLUS_INFO( logger_, "Watchdog after second patrol" << endl << *watchdog_ );
+      if ( watchdog_->getAppsInStates( configured ).size() > 0 ) enableRestartedApps();
+      break;
+    default:
+      break;
+    }
+  } catch( xcept::Exception& e ){
+    LOG4CPLUS_ERROR( logger_, "Watchdog failed to execute scheduled patrol: " << xcept::stdformat_exception_history(e) );
+    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, "Watchdog failed to execute scheduled patrol: ", e );
+    this->notifyQualified( "error", eObj );
+  }
+}
 
 /**
  * Provides the factory method for the instantiation of emu::daq::manager::Application
