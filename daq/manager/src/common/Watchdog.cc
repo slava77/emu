@@ -10,6 +10,7 @@ emu::daq::manager::Watchdog::Watchdog( emu::daq::manager::Application *owner )
 
 void
 emu::daq::manager::Watchdog::insertAllApps( emu::daq::manager::AppStates& appStates ){
+  std::cout << "[emu::daq::manager::Watchdog::insertAllApps] application_->buildEvents_.value_ = " << application_->buildEvents_.value_ << std::endl; std::cout.flush();
   if ( application_->buildEvents_.value_ ){ 
     appStates.insertApps( application_->evmDescriptors_.begin(), application_->evmDescriptors_.end() );
     appStates.insertApps( application_->buDescriptors_ .begin(), application_->buDescriptors_ .end() );
