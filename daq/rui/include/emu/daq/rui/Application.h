@@ -27,6 +27,7 @@
 #include "emu/daq/writer/RateLimiter.h"
 #include "emu/daq/rui/i2oFirstEventNumberMsg.h"
 #include "emu/daq/rui/STEPEventCounter.h"
+#include "emu/daq/rui/EventBufferRing.h"
 #include "emu/base/FactFinder.h"
 
 using namespace std;
@@ -148,15 +149,24 @@ private:
   xdata::UnsignedLong                 nEventsRead_;
   xdata::String                       persistentDDUError_;
   emu::daq::writer::RawDataFile       *fileWriter_;
-  emu::daq::writer::RawDataFile       *badEventsFileWriter_;
   int                                 nReadingPassesInEvent_;
   bool                                insideEvent_;
   unsigned short                      errorFlag_;
+  bool                                ableToWriteToDisk_;
+
   // file writing rate limiter
   emu::daq::writer::RateLimiter       *rateLimiter_;
   xdata::UnsignedLong                 fileWritingRateLimitInHz_;
   xdata::UnsignedLong                 fileWritingRateSampleSize_;
   xdata::Boolean                      fileWritingVetoed_;
+
+  // managing bad events and their context
+  xdata::Boolean                      writeBadEventsOnly_; ///< If TRUE, only the bad events are to be written to files, with a limited context.
+  xdata::UnsignedLong                 nToWriteBeforeBadEvent_; ///< Number of events to write as bad event's leading context.
+  xdata::UnsignedLong                 nToWriteAfterBadEvent_; ///< Number of events to write as bad event's trailing context.
+  bool                                isBadEvent_; ///< This event is bad.
+  unsigned long                       countSinceBadEvent_; ///< Number of events read so far since the last bad event.
+  emu::daq::rui::EventBufferRing      eventBufferRing_; ///< Buffer to store the bad event and its leading context.
 
   // In STEP runs, count on each DDU input the number of events it's contributed to with data
   bool                                isSTEPRun_;
@@ -177,7 +187,8 @@ private:
   bool interestingDDUErrorBitPattern(char* const data, const int dataLength);
 //   unsigned short incrementPassesCounter( const unsigned short errorFlag );
   void printData(std::ostream& os, char* data, const int dataLength);
-  void writeDataToFile(  char* const data, const int dataLength, const bool newEvent=false );
+  void writeDataToFile( const char* const data, const int dataLength, const bool newEvent=false );
+  void writeDataWithContextToFile(  char* const data, const int dataLength, const bool newEvent );
 
   void printBlocks( deque<toolbox::mem::Reference*> d );
   void fillBlock(toolbox::mem::Reference *bufRef,
@@ -394,7 +405,6 @@ private:
     xdata::UnsignedLong threshold_;
 
     xdata::String       pathToDataOutFile_;    // the path to the file to write the data into (no file written if "")
-    xdata::String       pathToBadEventsFile_;    // the path to the file to write the bad events into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_;  // when the file size exceeds this, no more events will be written to it (no file written if <=0)
     xdata::Integer      maxEvents_;            // stop reading from DDU after this many events
     xdata::Boolean      passDataOnToRUBuilder_;// it true, data is sent to the event builder
