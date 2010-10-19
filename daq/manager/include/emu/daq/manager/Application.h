@@ -59,12 +59,14 @@ public:
 
 private:
 
-  emu::daq::manager::Watchdog* watchdog_;
-
     /**
      * The logger of this application.
      */
     Logger logger_;
+
+  bool inFSMTransition_;
+
+  emu::daq::manager::Watchdog* watchdog_;
 
     /**
      * Used to access the I2O address map without a function call.
