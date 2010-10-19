@@ -114,13 +114,13 @@
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile> -->
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
-	  <controlDQM xsi:type="xsd:boolean">false</controlDQM>
 	  <hardwareMapping xsi:type="xsd:string">/emu/farmer/xml/RUI-to-chamber_mapping.xml</hardwareMapping>
 	  <expertSystemURL xsi:type="xsd:string">http://csc-expert.cms:8080/cdw/factcollection</expertSystemURL>
 	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libemusupervisor.so</xc:Module>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqmanager.so</xc:Module>
     </xc:Context>
   </xsl:template>
@@ -209,7 +209,6 @@
 	    <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
 	    <!-- 	  <pathToRUIDataOutFile xsi:type="xsd:string">/tmp</pathToRUIDataOutFile> -->
 	    <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
-	    <pathToBadEventsFile xsi:type="xsd:string"></pathToBadEventsFile>
 	    <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 	      <item xsi:type="xsd:string" soapenc:position="[0]">EmuTFMonitor</item>
 	    </clientsClassName>
@@ -288,7 +287,6 @@
 	      <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	      <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
 	      <!-- 	      <pathToRUIDataOutFile xsi:type="xsd:string">/tmp</pathToRUIDataOutFile> -->
-	      <pathToBadEventsFile xsi:type="xsd:string"></pathToBadEventsFile>
 	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
