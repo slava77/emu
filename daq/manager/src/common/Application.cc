@@ -102,6 +102,8 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
     fsm_.addStateTransition('H', 'H', "Halt",      this, &emu::daq::manager::Application::noAction);
     fsm_.addStateTransition('E', 'E', "Enable",    this, &emu::daq::manager::Application::noAction);
 
+    fsm_.setFailedStateTransitionChanged(this, &emu::daq::manager::Application::stateChanged);
+
     fsm_.setInitialState('H');
     fsm_.reset();
 
@@ -1485,6 +1487,7 @@ emu::daq::manager::Application::findFact( const emu::base::Component& component,
     daqState_ = currentAppStates_.getCombinedState();
     emu::base::TypedFact<LocalDAQStatusFact> ds;
     ds.setRun( runNumber_.toString() )
+      .setComponent( component )
       .setSeverity( emu::base::Fact::INFO )
       .setDescription( "The status of the local DAQ." )
       .setParameter( LocalDAQStatusFact::runType,          runType_.toString()                       )
@@ -1512,6 +1515,7 @@ emu::daq::manager::Application::findFact( const emu::base::Component& component,
 		string ruiState = s->second; 
 		emu::base::TypedFact<emu::base::ApplicationStatusFact> as;
 		as.setRun( runNumber_.toString() )
+		  .setComponent( component )
 		  .setParameter( emu::base::ApplicationStatusFact::state, ruiState );
 		if  ( ruiState == "UNKNOWN" ) 
 		  as.setSeverity( emu::base::Fact::FATAL )
@@ -1535,6 +1539,7 @@ emu::daq::manager::Application::findFact( const emu::base::Component& component,
       string daqManagerState = fsm_.getStateName(fsm_.getCurrentState());
       emu::base::TypedFact<emu::base::ApplicationStatusFact> as;
       as.setRun( runNumber_.toString() )
+	.setComponent( component )
 	.setParameter( emu::base::ApplicationStatusFact::state, daqManagerState );
       if ( daqManagerState == "Failed"  )
 	as.setSeverity( emu::base::Fact::FATAL )
@@ -4921,6 +4926,7 @@ void emu::daq::manager::Application::stateChanged(toolbox::fsm::FiniteStateMachi
         throw (toolbox::fsm::exception::Exception)
 {
 	emu::base::Supervised::stateChanged(fsm);
+	appInfoSpace_->fireItemValueChanged( "stateName" );
 }
 
 void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
@@ -4938,6 +4944,8 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
     if ( state_ == "Halted" || state_ == "Enabled" || state_ == "Failed" )
     sendFact( "emu::daq::manager::Application", LocalDAQStatusFact::getTypeName() );
   }
+
+  // Commented out because this may happen too late, and then the RUIs won't be configured properly:
   // else if ( e.itemName() == "isGlobalInControl" && e.type() == "ItemChangedEvent" ){
   //   writeBadEventsOnly_ = isGlobalInControl_.value_;
   // }
