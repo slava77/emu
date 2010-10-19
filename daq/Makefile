@@ -12,7 +12,7 @@ Authors="Steven Murray, Karoly banicz"
 Link=""
 PACKAGE_VER_MAJOR=9
 PACKAGE_VER_MINOR=12
-PACKAGE_VER_PATCH=0
+PACKAGE_VER_PATCH=1
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 include $(XDAQ_ROOT)/config/mfRPM.rules

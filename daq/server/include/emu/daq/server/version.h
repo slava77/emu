@@ -5,7 +5,7 @@
 
 namespace emudaqserver {
 	const std::string package     = "emudaqserver";
-	const std::string versions    = "09.12.00";
+	const std::string versions    = "09.12.01";
 	const std::string description = "Emu (CSC) DAQ servers";
 
 	const std::string summary     = "emu/daq/server";
