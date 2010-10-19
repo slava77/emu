@@ -38,9 +38,7 @@ emu::daq::rui::Application::Application(xdaq::ApplicationStub *s)
 throw (xdaq::exception::Exception) :
   xdaq::WebApplication(s),
   emu::base::FactFinder( s, emu::base::FactCollection::LOCAL_DAQ, 0 ),
-
   logger_(Logger::getInstance(generateLoggerName())),
-
   applicationBSem_(toolbox::BSem::FULL)
 
 {
@@ -114,12 +112,12 @@ throw (xdaq::exception::Exception) :
     deviceReader_          = NULL;
     fileWriter_            = NULL;
     rateLimiter_           = NULL;
-    badEventsFileWriter_   = NULL;
     nReadingPassesInEvent_ = 0;
     insideEvent_           = false;
     errorFlag_             = 0;
     previousEventNumber_   = 0;
     runStartUTC_           = 0;
+    ableToWriteToDisk_     = true;
 
     // bind SOAP client credit message callback
     xoap::bind(this, &emu::daq::rui::Application::onSOAPClientCreditMsg, 
@@ -770,12 +768,9 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
 
 
     pathToDataOutFile_   = "";
-    pathToBadEventsFile_ = "";
     fileSizeInMegaBytes_ = 2;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("pathToRUIDataOutFile"  , &pathToDataOutFile_   ));
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("pathToBadEventsFile"   , &pathToBadEventsFile_ ));
     params.push_back(pair<string,xdata::Serializable *>
 		     ("ruiFileSizeInMegaBytes", &fileSizeInMegaBytes_ ));
     passDataOnToRUBuilder_ = true;
@@ -795,6 +790,13 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
 		     ("fileWritingRateLimitInHz", &fileWritingRateLimitInHz_ ));
     params.push_back(pair<string,xdata::Serializable *>
 		     ("fileWritingRateSampleSize", &fileWritingRateSampleSize_ ));
+
+    writeBadEventsOnly_     = true;
+    nToWriteBeforeBadEvent_ = 10;
+    nToWriteAfterBadEvent_  = 100;
+    params.push_back( pair<string,xdata::Serializable *>( "writeBadEventsOnly"    , &writeBadEventsOnly_     ) );
+    params.push_back( pair<string,xdata::Serializable *>( "nToWriteBeforeBadEvent", &nToWriteBeforeBadEvent_ ) );
+    params.push_back( pair<string,xdata::Serializable *>( "nToWriteAfterBadEvent" , &nToWriteAfterBadEvent_  ) );
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
       clientName_.push_back("");
@@ -1407,6 +1409,16 @@ throw (toolbox::fsm::exception::Exception)
     }
     if ( isSTEPRun_ ) STEPEventCounter_.reset();
 
+    // Managing bad events and their context
+    if ( writeBadEventsOnly_.value_ ){
+      LOG4CPLUS_INFO(logger_, "Writing bad events only and " << nToWriteBeforeBadEvent_.toString() << " events before and " << nToWriteAfterBadEvent_.toString() << " after.")
+      // Set the size of the buffer ring storing the events preceeding the bad one
+      eventBufferRing_.setSize( nToWriteBeforeBadEvent_.value_ );
+      eventBufferRing_.emptyEventBuffers();
+      // A countSinceBadEvent_ below nToWriteAfterBadEvent_ would trigger writing a trailing context to file.
+      countSinceBadEvent_ = nToWriteAfterBadEvent_.value_+1;
+    }
+
 }
 
 
@@ -1598,12 +1610,6 @@ throw (toolbox::fsm::exception::Exception)
       fileWriter_->endRun( runStopTime_.toString() );
       delete fileWriter_;
       fileWriter_ = NULL;
-    }
-    if ( badEventsFileWriter_ ){
-      badEventsFileWriter_->endRun( runStopTime_.toString() );
-      if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
-      delete badEventsFileWriter_;
-      badEventsFileWriter_ = NULL;
     }
     // Destroy rate limiter, too.
     if ( rateLimiter_ ){
@@ -2157,18 +2163,6 @@ void emu::daq::rui::Application::createFileWriters(){
 	delete fileWriter_;
 	fileWriter_ = NULL;
       }
-    if ( badEventsFileWriter_ )
-      {
-	LOG4CPLUS_WARN( logger_, "Terminating leftover bad event file writer." );
-	stringstream ss38;
-	ss38 <<  "Terminating leftover bad event file writer." ;
-	XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss38.str() );
-	this->notifyQualified( "warning", eObj );
-	badEventsFileWriter_->endRun();
-	if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
-	delete badEventsFileWriter_;
-	badEventsFileWriter_ = NULL;
-      }
     // Destroy rate limiter, too, if any.
     if ( rateLimiter_ )
       {
@@ -2217,50 +2211,79 @@ void emu::daq::rui::Application::createFileWriters(){
 	    this->notifyQualified( "fatal", eObj );
 	    moveToFailedState( ss40.str() );
 	  }
-	  if ( pathToBadEventsFile_ != string("") && 
-	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
-	    {
-	      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
-// 	      badEventsFileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), "EmuRUI", instance_, emudaqrui::versions, &logger_ );
-	      badEventsFileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_, 
-									pathToDataOutFile_.toString(), 
-									u.getHost(), "EmuRUI", instance_, emudaqrui::versions, &logger_ );
-	    }
-	  if ( badEventsFileWriter_ ){
-	    try{
-	      badEventsFileWriter_->startNewRun( runNumber_.value_, 
-						 isBookedRunNumber_.value_, 
-						 runStartTime_, 
-						 string("BadEvents") );
-	    }
-	    catch(string e){
-	      LOG4CPLUS_ERROR( logger_, e );
-	      stringstream ss41;
-	      ss41 <<  e ;
-	      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss41.str() );
-	      this->notifyQualified( "error", eObj );
-	      // Don't moveToFailedState, bad events file is not worth stopping the run for.
-	    }
-	  }
 }
 
-void emu::daq::rui::Application::writeDataToFile(  char* const data, const int dataLength, const bool newEvent ){
+void emu::daq::rui::Application::writeDataToFile( const char* const data, const int dataLength, const bool newEvent ){
   if ( fileWriter_ ){
     try{
       if ( newEvent ){
 	fileWriter_->startNewEvent();
 	if ( rateLimiter_ ) fileWritingVetoed_ = ! rateLimiter_->acceptEvent();
       }
-      if ( ! fileWritingVetoed_.value_ ) fileWriter_->writeData( data, dataLength );
+      if ( ! fileWritingVetoed_.value_ ){
+	fileWriter_->writeData( data, dataLength );
+	ableToWriteToDisk_ = true;
+      }
     } catch(string e) {
-      LOG4CPLUS_FATAL( logger_, e );
-      stringstream ss42;
-      ss42 <<  e ;
-      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss42.str() );
-      this->notifyQualified( "fatal", eObj );
-      moveToFailedState( ss42.str() );
+      stringstream ss;
+      ss <<  e ;
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss.str() );
+      // Move to failed state unless we're writing bad events only:
+      if ( writeBadEventsOnly_.value_ ){
+	// Cry only once, the first time:
+	if ( ableToWriteToDisk_ ){
+	  LOG4CPLUS_ERROR( logger_, e );
+	  this->notifyQualified( "error", eObj );
+	  ableToWriteToDisk_ = false;
+	}
+      }
+      else{
+	LOG4CPLUS_FATAL( logger_, e );
+	this->notifyQualified( "fatal", eObj );
+	moveToFailedState( ss.str() );
+      }
     }
   }
+}
+
+void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, const int dataLength, const bool newEvent ){
+  if ( writeBadEventsOnly_.value_ ){
+    // We're to write bad events only (and their context).
+    // Add data to the buffer ring:
+    if ( countSinceBadEvent_ <= nToWriteAfterBadEvent_ ){
+      // We're still writing the trailing context of the bad event.
+      // Write this data block to file unconditionally:
+      writeDataToFile( data, dataLength, newEvent );
+      // Increment the counter of events read since the last bad event if this data block belongs to a new event:
+      if ( newEvent ) countSinceBadEvent_++;
+      LOG4CPLUS_WARN(logger_, "Writing bad event trailing context, event +" << countSinceBadEvent_ );
+    } // if ( countSinceBadEvent_ <= nToWriteAfterBadEvent_ )
+    else{
+      // We're no longer writing the trailing context.
+      // Store every event in the buffer as they may need to be written as the leading context of a bad event to come:
+      eventBufferRing_.addData( dataLength, data, newEvent );
+      if ( isBadEvent_ ){
+	// LOG4CPLUS_INFO(logger_, "Found bad event.");
+	// Turns out this is a bad event.
+	// (isBadEvent_ can only be set TRUE once the trailer has been read in, i.e., the event is complete.)
+	// Get the bad event and its preceeding events and write them to file as the leading context:
+	list<const emu::daq::rui::EventBuffer*> ebl( eventBufferRing_.getEventBuffers() );
+	int countToBadEvent = ebl.size();
+	for ( list<const emu::daq::rui::EventBuffer*>::const_iterator i=ebl.begin(); i!=ebl.end(); ++i ){
+	  writeDataToFile( (*i)->getEvent(), (int) (*i)->getEventSize(), true );
+	  LOG4CPLUS_WARN(logger_, "Writing bad event leading context, event -" << --countToBadEvent );
+	}
+	// Clear the buffer holding the bad event and the ones preceeding it:
+	eventBufferRing_.emptyEventBuffers();
+	// Zero the counter of events read since the last bad event:
+	countSinceBadEvent_ = 0;
+      } // if ( isBadEvent_ )
+    } // if ( countSinceBadEvent_ <= nToWriteAfterBadEvent_ ) else
+  } // if ( writeBadEventsOnly_.value_ )
+  else{
+    // We're to write all events unconditionally.
+    writeDataToFile( data, dataLength, newEvent );
+  } // if ( writeBadEventsOnly_.value_ ) else
 }
 
 int emu::daq::rui::Application::continueConstructionOfSuperFrag()
@@ -2392,13 +2415,15 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 
   if ( data!=NULL ){
 
+    isBadEvent_ = false;
+
     dataLength = deviceReader_->dataLength();
     if ( dataLength>0 ) {
 
       bool header  = hasHeader(data,dataLength);
       bool trailer = hasTrailer(data,dataLength);
 
-      if ( trailer && inputDataFormatInt_ == emu::daq::reader::Base::DDU ) interestingDDUErrorBitPattern(data,dataLength);
+      if ( trailer && inputDataFormatInt_ == emu::daq::reader::Base::DDU ) isBadEvent_ = interestingDDUErrorBitPattern(data,dataLength);
 
 //       stringstream ss;
 //       ss << "Inside event: " << insideEvent_
@@ -2433,7 +2458,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 
       if ( insideEvent_ ) {
 
-	writeDataToFile( data, dataLength, header );
+	writeDataWithContextToFile( data, dataLength, header );
 
 	if ( header ){
 	  LOG4CPLUS_WARN(logger_, 
@@ -2510,7 +2535,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 // 	  this->notifyQualified( "warning", eObj );
 	}
 
-	writeDataToFile( data, dataLength, header || trailer );
+	writeDataWithContextToFile( data, dataLength, header || trailer );
 
 	if ( header ){
 	  // Get the new event number.
@@ -3069,22 +3094,15 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
   // At this point dataLength should no longer contain Ethernet padding.
 
   // Check for interesting error bit patterns (defined by J. Gilmore):
-  // 1) Critical Error = Sync Reset or Hard Reset required
-  //        TTS out of sync or in error   -OR-
-  //        DDU Trailer-1 bit 47
-  //    ----> Persistent, these bits stay set for all events until
-  //         RESET occurs.
-  // 2) Error Detected = bad event  (no reset)
+  // 1) Error Detected = bad event  (no reset)
   //        DDU Trailer-1 bit 46
   //    ----> Only set for the single event with a detected error.
-  // 3) Warning = Buffer Near Full (no reset)
-  //        DDU Trailer-1 bit 31  -OR-
+  // 2) Warning = Buffer Near Full (no reset)
   //        TTS overflow warning
   //    ----> Remains set until the condition abates.
-  // 4) Special Warning (Rare & Interesting occurence, no reset)
+  // 3) Special Warning (Rare & Interesting occurence, no reset)
   //        DDU Trailer-1 bit 45
-  //    ----> Remains set until the condition abates; may be assosiated
-  //         with 1) or 2) above.
+  //    ----> Remains set until the condition abates; 
 
   bool foundError = false;
   const unsigned long DDUTrailerLength = 24; // bytes
@@ -3093,94 +3111,37 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
   
   // TTS/FMM status defined in C.D.F.
   const short FED_Overflow  = 0x0010;
-  const short FED_OutOfSync = 0x0020;
-  const short FED_Error     = 0x00C0;
+  //const short FED_OutOfSync = 0x0020;
+  //const short FED_Error     = 0x00C0;
 
   // 1)
-  if ( trailerShortWord[8] & FED_OutOfSync            ||
-       (trailerShortWord[8] & FED_Error) == FED_Error || // FED_Error has 2 bits set!!!
-       trailerShortWord[6] & 0x8000           ) { // DDU Trailer-1 bit 47
-    if ( persistentDDUError_.toString().size() == 0 ){
-      stringstream ss;
-      ss << "DDU error: Sync or Hard Reset required. First in event "
-	 << deviceReader_->eventNumber()
-	 << " (after " << nEventsRead_+1 << " read)";
-      persistentDDUError_ = ss.str();
-    }
-//     LOG4CPLUS_ERROR(logger_, "Critical DDU error in "
-//        << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
-//        << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
-//        << deviceReader_->eventNumber()
-//        << " (" << nEventsRead_+1 << " read)");
-//     stringstream ss66;
-//     ss66 <<  "Critical DDU error in "
-//        << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
-//        << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
-//        << deviceReader_->eventNumber()
-//        << " (" << nEventsRead_+1 << " read)";
-//     XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss66.str() );
-//     this->notifyQualified( "error", eObj );
-    // << " FED_OutOfSync: " << short(trailerShortWord[8] & FED_OutOfSync)
-    // << " FED_Error: " << short(trailerShortWord[8] & FED_Error) 
-    // << " DDU Trailer-1 bit 47: " << short(trailerShortWord[6] & 0x8000) );
+  if ( trailerShortWord[6] & 0x4000 ) {    // DDU Trailer-1 bit 46
+    LOG4CPLUS_ERROR(logger_,
+    		    "DDU error: bad event read from " 
+    		    << deviceReader_->getName()
+    		    << ". (bit T-1:46) Event "
+    		    << deviceReader_->eventNumber()
+    		    << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
   // 2)
-  if ( trailerShortWord[6] & 0x4000 ) {    // DDU Trailer-1 bit 46
-//     LOG4CPLUS_ERROR(logger_,
-// 		    "DDU error: bad event read from " 
-// 		    << deviceReader_->getName()
-// 		    << ". (bit T-1:46) Event "
-// 		    << deviceReader_->eventNumber()
-// 		    << " (" << nEventsRead_ << " read)");
-//     stringstream ss67;
-//     ss67 << 
-// 		    "DDU error: bad event read from " 
-// 		    << deviceReader_->getName()
-// 		    << ". (bit T-1:46) Event "
-// 		    << deviceReader_->eventNumber()
-// 		    << " (" << nEventsRead_ << " read)";
-//     XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss67.str() );
-//     this->notifyQualified( "error", eObj );
+  if ( trailerShortWord[8] & FED_Overflow ) {
+    LOG4CPLUS_WARN(logger_,
+    		   "DDU buffer near Full in "
+    		   << deviceReader_->getName() 
+    		   << ". (bit T:4) Event "
+    		   << deviceReader_->eventNumber()
+    		   << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
   // 3)
-  if ( trailerShortWord[8] & FED_Overflow ||
-       trailerShortWord[5] & 0x8000          ) {  // DDU Trailer-1 bit 31
-//     LOG4CPLUS_WARN(logger_,
-// 		   "DDU buffer near Full in "
-// 		   << deviceReader_->getName() 
-// 		   << ". (bit T:4|T-1:31) Event "
-// 		   << deviceReader_->eventNumber()
-// 		   << " (" << nEventsRead_ << " read)");
-//     stringstream ss68;
-//     ss68 << 
-// 		   "DDU buffer near Full in "
-// 		   << deviceReader_->getName() 
-// 		   << ". (bit T:4|T-1:31) Event "
-// 		   << deviceReader_->eventNumber()
-// 		   << " (" << nEventsRead_ << " read)";
-//     XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss68.str() );
-//     this->notifyQualified( "warning", eObj );
-    foundError = true;
-  }
-  // 4)
   if ( trailerShortWord[6] & 0x2000 ) {      // DDU Trailer-1 bit 45
-//     LOG4CPLUS_WARN(logger_,
-// 		   "DDU special warning in "
-// 		   << deviceReader_->getName() 
-// 		   << ". (bit T-1:45) Event "
-// 		   << deviceReader_->eventNumber()
-// 		   << " (" << nEventsRead_ << " read)");
-//     stringstream ss69;
-//     ss69 << 
-// 		   "DDU special warning in "
-// 		   << deviceReader_->getName() 
-// 		   << ". (bit T-1:45) Event "
-// 		   << deviceReader_->eventNumber()
-// 		   << " (" << nEventsRead_ << " read)";
-//     XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss69.str() );
-//     this->notifyQualified( "warning", eObj );
+    LOG4CPLUS_WARN(logger_,
+    		   "DDU special warning in "
+    		   << deviceReader_->getName() 
+    		   << ". (bit T-1:45) Event "
+    		   << deviceReader_->eventNumber()
+    		   << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
 
