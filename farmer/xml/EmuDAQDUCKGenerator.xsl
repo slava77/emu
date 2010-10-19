@@ -31,7 +31,7 @@
     <xsl:if test="$FARM='DQM_Display'">DQM/DQM_Display</xsl:if>
   </xsl:param>
   <!-- <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param> -->
-  <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/share/emu904/scripts/xdaq.sh</xsl:param>
+  <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/share/emu/scripts/xdaq.sh</xsl:param>
   <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu PATH=/bin:/usr/bin</xsl:param>
   <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/nfshome0/cscdqm LD_LIBRARY_PATH=/nfshome0/cscdqm/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu ROOTSYS=/nfshome0/cscdqm/root</xsl:param>
 
