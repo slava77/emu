@@ -2,6 +2,8 @@
 #define __emu_daq_manager_Application_h__
 
 #include "emu/daq/manager/exception/Exception.h"
+#include "emu/daq/manager/Watchdog.h"
+#include "emu/daq/manager/AppStates.h"
 #include "i2o/i2oDdmLib.h"
 #include "i2o/utils/AddressMap.h"
 #include "toolbox/mem/MemoryPoolFactory.h"
@@ -24,8 +26,6 @@
 
 #include <string>
 
-#include "emu/daq/manager/AppStates.h"
-
 using namespace std;
 
 namespace emu { namespace daq { namespace manager {
@@ -36,6 +36,8 @@ class Application
     public emu::base::FactFinder,
     public xdata::ActionListener
 {
+
+  friend class Watchdog;
 
 public:
 
@@ -56,6 +58,8 @@ public:
     void onException(xcept::Exception &e);
 
 private:
+
+  emu::daq::manager::Watchdog* watchdog_;
 
     /**
      * The logger of this application.
@@ -249,6 +253,7 @@ private:
   xdata::Vector<xdata::String> runTypes_; // all possible run types
   xdata::String runType_; // the current run type
   xdata::Boolean isGlobalInControl_;
+  xdata::Boolean writeBadEventsOnly_;
   xdata::Boolean buildEvents_;
   xdata::String daqState_; // the combined state of the DAQ applications
   xdata::UnsignedLong calibRunIndex_;
@@ -287,14 +292,9 @@ private:
   map<int,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]
   void printDAQState( xgi::Output *out, string state );
 
-  vector< xdaq::ApplicationDescriptor* > dqmMonitorDescriptors_;
-  set<string> dqmContexts_; // all different DQM contexts with apps controlled by emu::daq::manager::Application
-  vector< pair<xdaq::ApplicationDescriptor*, string> > dqmAppStates_;
-  xdata::Boolean controlDQM_;
-  void controlDQM( const string action )
-    throw (emu::daq::manager::exception::Exception);
-
   virtual void actionPerformed(xdata::Event & received ); // inherited from xdata::ActionListener
+  void configureRestartedApps();
+  void enableRestartedApps();
 
   // For driving the FSM by asynchronous SOAP.
   toolbox::task::WorkLoop *workLoop_;
@@ -441,12 +441,14 @@ private:
     throw (emu::daq::manager::exception::Exception);
 
     /**
+     * Configures the imaginary trigger, i.e. the TA.
+     */
+    void configureTA();
+
+    /**
      * Starts the imaginary trigger, i.e. the TA.
      */
-    void configureTrigger()
-    throw (emu::daq::manager::exception::Exception);
-    void startTrigger()
-    throw (emu::daq::manager::exception::Exception);
+    void enableTA();
 
     /**
      * Starts just the RU builder, i.e. the BUs, EVM and RUs.
@@ -454,15 +456,17 @@ private:
     void configureRuBuilder()
       throw (emu::daq::manager::exception::Exception);
     void startRuBuilder()
-    throw (emu::daq::manager::exception::Exception);
+      throw (emu::daq::manager::exception::Exception);
 
     /**
-     * Starts the imaginary FED builder, i.e. the RUIs.
+     * Configures a RUI.
      */
-    void configureFedBuilder()
-    throw (emu::daq::manager::exception::Exception);
-    void startFedBuilder()
-    throw (emu::daq::manager::exception::Exception);
+    void configureRUI( xdaq::ApplicationDescriptor* ruiDescriptor );
+
+    /**
+     * Starts a RUI.
+     */
+    void enableRUI( xdaq::ApplicationDescriptor* ruiDescriptor );
 
     /**
      * Starts the imaginary filter farm, i.e. the FUs.
@@ -561,6 +565,7 @@ public:
 private:
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception);
+  void timeExpired(toolbox::task::TimerEvent& e);
 
 };
 
