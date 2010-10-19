@@ -16,6 +16,8 @@ Sources = \
 	STEPEventCounter.cc \
 	Application.cc \
 	FactTypes.cc \
+	EventBuffer.cc \
+	EventBufferRing.cc \
 	version.cc
 
 IncludeDirs = \
