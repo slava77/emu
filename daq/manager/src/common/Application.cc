@@ -39,6 +39,8 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
     emu::base::WebReporter(s),
     emu::base::FactFinder( s, emu::base::FactCollection::LOCAL_DAQ, 0 ),
     logger_(Logger::getInstance(generateLoggerName())),
+    inFSMTransition_( false ),
+    watchdog_( NULL ),
     runInfo_(NULL)
 {
     i2oAddressMap_ = i2o::utils::getAddressMap();
@@ -107,15 +109,15 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
     fsm_.setInitialState('H');
     fsm_.reset();
 
-    state_ = fsm_.getStateName(fsm_.getCurrentState());
+    inFSMTransition_ = false;
 
-    watchdog_ = new emu::daq::manager::Watchdog( this );
+    state_ = fsm_.getStateName(fsm_.getCurrentState());
 
     stringstream timerName;
     timerName << "DAQWatchdog." << getApplicationDescriptor()->getClassName() << "." << getApplicationDescriptor()->getInstance();
     try{
       toolbox::task::Timer * timer = toolbox::task::getTimerFactory()->createTimer( timerName.str() );
-      toolbox::TimeInterval interval( 5 ,0 ); // period in sec
+      toolbox::TimeInterval interval( 30, 0 ); // period in sec
       toolbox::TimeVal start( toolbox::TimeVal::gettimeofday() + toolbox::TimeVal( 2, 0 ) ); // start in 2 seconds from now
       timer->scheduleAtFixedRate( start, this, interval,  0, "" );
     } catch(xcept::Exception& e){
@@ -4695,6 +4697,8 @@ xoap::MessageReference emu::daq::manager::Application::onQueryRunSummary(xoap::M
 void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {
+  inFSMTransition_ = true;
+
   // Simulate slow transition
   //::sleep(15);
   // Simulate crash
@@ -4723,6 +4727,7 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
       }
     catch(xcept::Exception &ex)
       {
+	inFSMTransition_ = false;
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to configure EmuDAQ", ex);
       }
@@ -4749,11 +4754,14 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
 
 
   LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+
+  inFSMTransition_ = false;
 }
 
 void emu::daq::manager::Application::enableAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
+  inFSMTransition_ = true;
 
     if ( supervisedMode_.value_ ){
       setParametersForSupervisedMode();
@@ -4783,11 +4791,13 @@ void emu::daq::manager::Application::enableAction(toolbox::Event::Reference e)
       }
     catch(xcept::Exception &ex)
       {
+	inFSMTransition_ = false;
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to enable EmuDAQ", ex);
       }
 
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+    inFSMTransition_ = false;
 }
 
 void emu::daq::manager::Application::disableAction(toolbox::Event::Reference e)
@@ -4801,6 +4811,7 @@ void emu::daq::manager::Application::disableAction(toolbox::Event::Reference e)
 void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
+  inFSMTransition_ = true;
 
     try
       {
@@ -4808,6 +4819,7 @@ void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
       }
     catch(xcept::Exception &ex)
       {
+	inFSMTransition_ = false;
 	stringstream ss;
 	ss << "Failed to stop EmuDAQ: " << xcept::stdformat_exception_history(ex);
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
@@ -4830,11 +4842,14 @@ void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
       }
 
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+
+    inFSMTransition_ = false;
 }
 
 void emu::daq::manager::Application::reConfigureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
+  inFSMTransition_ = true;
 
     try
       {
@@ -4842,6 +4857,7 @@ void emu::daq::manager::Application::reConfigureAction(toolbox::Event::Reference
       }
     catch(xcept::Exception &ex)
       {
+	inFSMTransition_ = false;
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to stop EmuDAQ before reconfiguration", ex);
       }
@@ -4854,11 +4870,14 @@ void emu::daq::manager::Application::reConfigureAction(toolbox::Event::Reference
       }
     catch(xcept::Exception &ex)
       {
+	inFSMTransition_ = false;
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to reconfigure EmuDAQ", ex);
       }
 
   LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+
+  inFSMTransition_ = false;
 }
 
 void emu::daq::manager::Application::noAction(toolbox::Event::Reference e)
@@ -4895,6 +4914,8 @@ void emu::daq::manager::Application::resetAction()
 	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss84.str() );
 	this->notifyQualified( "error", eObj );
       }
+
+    inFSMTransition_ = false;
 
 }
 
@@ -5019,6 +5040,12 @@ void
 emu::daq::manager::Application::timeExpired(toolbox::task::TimerEvent& e){
   // Send out the watchdog to look for restarted applications and herd them back to the proper FSM state.
 
+  // Hold back the watchdog while daq::manager is in state transitions
+  if ( inFSMTransition_ ) return;
+
+  // Watchdog cannot be constructed in app's constructor as it needs some exported parameters to have been set already.
+  if ( watchdog_ == NULL ) watchdog_ = new emu::daq::manager::Watchdog( this );
+
   vector<string> halted;
   halted.push_back( "Halted" );
   vector<string> configured;
@@ -5032,15 +5059,15 @@ emu::daq::manager::Application::timeExpired(toolbox::task::TimerEvent& e){
     case 'C': // Configured
       watchdog_->patrol();
       LOG4CPLUS_INFO( logger_, "Watchdog after patrol" << endl << *watchdog_ );
-      if ( watchdog_->getAppsInStates( halted ).size() > 0 ) configureRestartedApps();
+      if ( watchdog_->getAppsInStates( halted ).size() > 0 && !inFSMTransition_  ) configureRestartedApps();
       break;
     case 'E': // Enabled
       watchdog_->patrol();
       LOG4CPLUS_INFO( logger_, "Watchdog after first patrol" << endl << *watchdog_ );
-      if ( watchdog_->getAppsInStates( halted ).size() > 0 ) configureRestartedApps();
+      if ( watchdog_->getAppsInStates( halted ).size() > 0 && !inFSMTransition_ ) configureRestartedApps();
       watchdog_->patrol();
       LOG4CPLUS_INFO( logger_, "Watchdog after second patrol" << endl << *watchdog_ );
-      if ( watchdog_->getAppsInStates( configured ).size() > 0 ) enableRestartedApps();
+      if ( watchdog_->getAppsInStates( configured ).size() > 0 && !inFSMTransition_ ) enableRestartedApps();
       break;
     default:
       break;
