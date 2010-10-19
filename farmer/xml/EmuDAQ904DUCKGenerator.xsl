@@ -38,7 +38,8 @@
     <xsl:if test="$FARM!='DQM_TF_File'">0</xsl:if>
     <xsl:if test="$FARM='DQM_TF_File'">10</xsl:if>
   </xsl:param>
-  <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param>
+  <!-- <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param> -->
+  <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/share/emu904/scripts/xdaq.sh</xsl:param>
   <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 PATH=/bin:/usr/bin</xsl:param>
   <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 ROOTSYS=/home/cscdaq/root</xsl:param>
 
