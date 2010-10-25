@@ -2050,19 +2050,22 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
     // retrieve data from inforspace
     xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[idx]);
     xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
-    unsigned short csra1=0,csra2=0,csra3=0,csrm0=0,brstr=0,dtstr=0,qploc=0,ttcrd=0,qperr=0;
+    unsigned short csra1=0,csra2=0,csra3=0,csrm0=0,brstr1=0,brstr2=0,dtstr=0,qploc=0,ttcrd=0,qperr=0;
+    unsigned brstr=0;
     if(!ccbdata) continue;
     if(ccbdata->size()>12)
     {
-      csra1=(*ccbdata)[0];
+      csra1=(*ccbdata)[0];  // CCB CSRA1
       csra2=(*ccbdata)[1];
       csra3=(*ccbdata)[2];
-      brstr=(*ccbdata)[9];
+      brstr1=(*ccbdata)[8];
+      brstr2=(*ccbdata)[9];
       dtstr=(*ccbdata)[10];
-      csrm0=(*ccbdata)[11];
+      csrm0=(*ccbdata)[11];  // MPC CSR0
       qploc=(*ccbdata)[15];
       ttcrd=(*ccbdata)[16];
       qperr=(*ccbdata)[17];
+      brstr = brstr1 + (brstr2<<16);
     }
     //
     for(unsigned int count=0; count<TOTAL_COUNTS; count++) {
