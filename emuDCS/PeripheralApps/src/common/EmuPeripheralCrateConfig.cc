@@ -178,7 +178,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigOneCrate, "ConfigOneCrate");
   //
   //------------------------------------------------------
-  // bind buttons -> other pages
+  // bind buttons -> Crate Configuration pages
   //------------------------------------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBStatus, "TMBStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBTests,  "TMBTests");
@@ -233,14 +233,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::setRawConfFile, "setRawConfFile");
   xgi::bind(this,&EmuPeripheralCrateConfig::UploadConfFile, "UploadConfFile");
   xgi::bind(this,&EmuPeripheralCrateConfig::DefineConfiguration, "DefineConfiguration");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ReadCCBRegister, "ReadCCBRegister");
-  xgi::bind(this,&EmuPeripheralCrateConfig::WriteCCBRegister, "WriteCCBRegister");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ReadMPCRegister, "ReadMPCRegister");
-  xgi::bind(this,&EmuPeripheralCrateConfig::WriteMPCRegister, "WriteMPCRegister");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
-  xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
+
   xgi::bind(this,&EmuPeripheralCrateConfig::testTMB, "testTMB");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CCBLoadFirmware, "CCBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateConfiguration, "CrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateTests, "CrateTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
@@ -262,7 +256,19 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForCrate,"QuickScanForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForSystem,"QuickScanForSystem");
   //
+  //-----------------------------------------------
+  // CCB & MPC routines
+  //-----------------------------------------------
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadCCBRegister, "ReadCCBRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::WriteCCBRegister, "WriteCCBRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadMPCRegister, "ReadMPCRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::WriteMPCRegister, "WriteMPCRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBLoadFirmware, "CCBLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBConfig, "CCBConfig");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPCConfig, "MPCConfig");
   //
   //-----------------------------------------------
   // VME Controller routines
@@ -482,6 +488,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MPCWriteValue_ = -1;
   //
   CalibrationState_ = "None";
+  standalone_ = false;
   //
   for (int i=0; i<9; i++) {
     able_to_load_alct[i] = -1;  
@@ -505,6 +512,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   this->getApplicationInfoSpace()->fireItemAvailable("CalibrationState", &CalibrationState_);
   this->getApplicationInfoSpace()->fireItemAvailable("Calibtype", &CalibType_);
   this->getApplicationInfoSpace()->fireItemAvailable("Calibnumber", &CalibNumber_);
+  this->getApplicationInfoSpace()->fireItemAvailable("Standalone", &standalone);
   
   // for XMAS minotoring:
 
@@ -833,6 +841,8 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
       *out << cgicc::span() << std::endl ;
     }
     //
+    *out << cgicc::br() << cgicc::hr() <<std::endl;
+
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:yellow");
     *out << std::endl;
     *out << cgicc::legend((("Logging"))).set("style","color:blue") ;
@@ -1062,6 +1072,12 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
     total_crates_=crateVector.size();
     if(total_crates_<=0) return false;
     this_crate_no_=0;
+
+    std::string lab_mode=standalone;
+    if(lab_mode=="True" || lab_mode=="TRUE" || lab_mode=="true" || lab_mode=="Yes" || lab_mode=="YES" || lab_mode=="yes")
+    {    standalone_ = true;
+         std::cout << "PeripheralCrateConfig started in Standalone mode." << std::endl;
+    }
 
     for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
       //

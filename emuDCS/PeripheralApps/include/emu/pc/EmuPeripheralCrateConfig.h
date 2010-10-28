@@ -81,6 +81,8 @@ protected:
 
   xdata::String xmlFile_;
   xdata::String CalibrationState_;
+  xdata::String standalone;
+  bool standalone_;
   //
   xdata::String CCBFirmware_;
   xdata::String MPCFirmware_;
@@ -456,6 +458,7 @@ private:
   void WriteMPCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCMask(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void MPCConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // CCB utils
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -464,6 +467,7 @@ private:
   void CCBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadTTCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void HardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CCBConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // synchronization functions
   void ChamberTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
