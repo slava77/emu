@@ -148,6 +148,13 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::a("[Read TTCrx Registers]").set("href",ReadTTCRegister).set("target","_blank") << std::endl;
   //
   *out << cgicc::br() << cgicc::br() << std::endl;
+  std::string ccbConfig =
+    toolbox::toString("/%s/CCBConfig",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ccbConfig) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","CCB Configure");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br() << std::endl;
   std::string HardReset =
     toolbox::toString("/%s/HardReset",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",HardReset) << std::endl ;
@@ -194,6 +201,13 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
     //
     this->CCBUtils(in,out);
     //
+  }
+  //
+  void EmuPeripheralCrateConfig::CCBConfig(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    thisCCB->configure();
+    this->CCBUtils(in,out);
   }
   //
 //////////////////////////////////////////////////
@@ -360,6 +374,13 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","Write MPC") << std::endl ;
   *out << cgicc::form() << cgicc::br() << std::endl ;
   //
+  *out << cgicc::br() << cgicc::br() << std::endl;
+  std::string mpcConfig =
+    toolbox::toString("/%s/MPCConfig",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",mpcConfig) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","MPC Configure");
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  //
   MPCFirmware_ = FirmwareDir_+"mpc/"+"mpc2004_100808.svf";
   //
   std::string MPCLoadFirmware = toolbox::toString("/%s/MPCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -393,6 +414,13 @@ void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * ou
   this->MPCUtils(in,out);
   //
 }
+
+  void EmuPeripheralCrateConfig::MPCConfig(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    thisMPC->configure();
+    this->MPCUtils(in,out);
+  }
 
   //
   void EmuPeripheralCrateConfig::ReadCCBRegister(xgi::Input * in, xgi::Output * out ) 
