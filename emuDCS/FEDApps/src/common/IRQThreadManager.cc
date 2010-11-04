@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.5 2010/10/01 19:55:11 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.6 2010/11/04 18:46:01 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -721,7 +721,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 									
 									emu::base::TypedFact<emu::fed::DDUFMMResetFact> fact;
 									std::ostringstream component;
-									component << "FEDCrate " << crateNumber;
+									component << "FEDCrate" << crateNumber;
 									fact.setComponentId(component.str())
 										.setSeverity(emu::base::Fact::DEBUG)
 										.setDescription("FED crate reset detection")
