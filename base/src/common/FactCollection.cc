@@ -6,8 +6,8 @@ using namespace std;
 const char* emu::base::FactCollection::sources_[] = { "DCSFactService",
 						      "LocalDQMFactService",
 						      "LocalDAQFactService",
-						      "FEDFactService",
-						      "XmasFactService" };
+						      "XmasFactService", 
+						      "FEDFactService" };
 
 emu::base::FactCollection&
 emu::base::FactCollection::setRequestId( const int r ){
