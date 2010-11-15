@@ -239,8 +239,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateTests, "CrateTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
-//  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
-//  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
+  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
+  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigIDSelection, "ConfigIDSelection");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate,"MeasureL1AsAndDAVsForCrate");
@@ -626,15 +626,16 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td(); lsd*/
 
-// remove Power-up Init from here, use the one in Service (Blue) instead
-/*
-  *out << cgicc::td();
-  std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Crates Power-up Init") << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-*/
+// for non-standalone mode, use the one in Service (Blue) instead
+  if(standalone_) 
+  {
+     *out << cgicc::td();
+     std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","Crates Power-up Init") << std::endl ;
+     *out << cgicc::form() << std::endl ;
+     *out << cgicc::td();
+  }
 
   *out << cgicc::td();
   std::string PowerOnFixCFEB = toolbox::toString("/%s/PowerOnFixCFEB",getApplicationDescriptor()->getURN().c_str());
@@ -734,16 +735,17 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::br() << cgicc::br() << cgicc::table().set("border","0");
     //
 
-// remove Power-up Init from here, use the one in Service (Blue) instead
-/*
-    *out << cgicc::td();
-    std::string FastConfigOne = toolbox::toString("/%s/FastConfigOne",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",FastConfigOne) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Power-up Init") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    *out << cgicc::td();
-*/
-    //
+// for non-standalone mode, use the one in Service (Blue) instead
+    if(standalone_)
+    {
+       *out << cgicc::td();
+       std::string FastConfigOne = toolbox::toString("/%s/FastConfigOne",getApplicationDescriptor()->getURN().c_str());
+       *out << cgicc::form().set("method","GET").set("action",FastConfigOne) << std::endl ;
+       *out << cgicc::input().set("type","submit").set("value","Power-up Init") << std::endl ;
+       *out << cgicc::form() << std::endl ;
+       *out << cgicc::td();
+    }
+
     //    *out << cgicc::td();
     //    std::string ConfigOneCr = toolbox::toString("/%s/ConfigOneCrate",getApplicationDescriptor()->getURN().c_str());
     //    *out << cgicc::form().set("method","GET").set("action",ConfigOneCr) << std::endl ;
@@ -952,15 +954,21 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
   void EmuPeripheralCrateConfig::FastConfigCrates(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     std::cout << "Button: FastConfigCrates" << std::endl;
-     ConfigureInit(2);
+     if(standalone_)
+     {  
+        std::cout << "Button: FastConfigCrates" << std::endl;
+        ConfigureInit(2);
+     }
      this->Default(in,out);
   }
 
   void EmuPeripheralCrateConfig::FastConfigOne(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     thisCrate->configure(2);
+     if(standalone_)
+     {  
+        thisCrate->configure(2);
+     }
      this->Default(in,out);
   }
 
