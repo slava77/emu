@@ -27,37 +27,6 @@ public:
   inline int  GetMpcTMBTestResult() { return MpcTMBTestResult; }             //result of the non-"safe window" scan
   inline void SetMpcTMBTestResult(int result) { MpcTMBTestResult = result; }
   //
-  void CreateTstoreTables();
-  void DumpTstoreTables();
-  //
-  inline std::vector< std::string> GetPeriphTable(){
-    return periph_table;
-  }
-  //
-  inline std::vector< std::string> GetCSCTable(int number){
-    return csc_table[number];
-  }
-  //
-  inline std::vector< std::string> GetTmbTable(int number){
-    return tmb_table[number];
-  }
-  //
-  inline std::vector< std::string> GetDmbTable(int number){
-    return dmb_table[number];
-  }
-  // 
-  inline std::vector< std::string> GetAlctTable(int number){
-    return alct_table[number];
-  }
-  //
-  inline std::vector< std::vector< std::string> > GetAfebTable(){
-    return afeb_table;
-  }
-  //
-  inline std::vector< std::vector< std::string> > GetCfebTable(){
-    return cfeb_table;
-  }
-  //
  private:
   //
   bool debug_;
@@ -66,13 +35,6 @@ public:
   std::ostream * MyOutput_ ;
   //
   Crate * myCrate_;
-  std::vector< std::string> periph_table;
-  std::vector< std::string> csc_table[9];
-  std::vector< std::string> tmb_table[9];
-  std::vector< std::string> dmb_table[9];
-  std::vector< std::string> alct_table[9];
-  std::vector< std::vector< std::string> > afeb_table;
-  std::vector< std::vector< std::string> > cfeb_table;
   //
 };
 
