@@ -8193,6 +8193,29 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
   std::string CFEBVerify = FirmwareDir_+CFEB_VERIFY_FILENAME;
   CFEBVerify_ = CFEBVerify;
   CFEBFirmware_ = CFEBFirmware;
+
+  //  create filename for CCB & MPC
+    int year  = (thisCCB->GetExpectedFirmwareYear())%100;
+    int month = thisCCB->GetExpectedFirmwareMonth();
+    int day   = thisCCB->GetExpectedFirmwareDay();
+    char ccbdate[7];
+    sprintf(ccbdate,"%02u%02u%02u",month,day,year);
+    std::ostringstream CCBFirmware;
+    CCBFirmware << FirmwareDir_ << "ccb/ccb2004p_" << ccbdate << ".svf";
+    CCBFirmware_ = CCBFirmware.str();
+
+    year  = (thisMPC->GetExpectedFirmwareYear())%100;
+    month = thisMPC->GetExpectedFirmwareMonth();
+    day   = thisMPC->GetExpectedFirmwareDay();
+    char mpcdate[7];
+    sprintf(mpcdate,"%02u%02u%02u",month,day,year);
+    std::ostringstream MPCFirmware;
+    MPCFirmware << FirmwareDir_ << "mpc/mpc2004_" << mpcdate << ".svf";
+    MPCFirmware_ = MPCFirmware.str();
+
+  //  std::cout << "CCB firmware name: " << CCBFirmware_ << std::endl;
+  //  std::cout << "MPC firmware name: " << MPCFirmware_ << std::endl;
+
   //
   //create filename for TMB, ALCT, and RAT firmware based on expected dates...
   for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
@@ -8203,10 +8226,10 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     //
     TMB * thisTMB = tmbVector[tmb];
     //
-    int year  = thisTMB->GetExpectedTmbFirmwareYear();
-    int month = thisTMB->GetExpectedTmbFirmwareMonth();
-    int day   = thisTMB->GetExpectedTmbFirmwareDay();
-    char tmbdate[8];
+    year  = thisTMB->GetExpectedTmbFirmwareYear();
+    month = thisTMB->GetExpectedTmbFirmwareMonth();
+    day   = thisTMB->GetExpectedTmbFirmwareDay();
+    char tmbdate[9];
     sprintf(tmbdate,"%04u%02u%02u",year,month,day);
     //
     std::ostringstream TMBFirmware;
@@ -8232,7 +8255,7 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     month = thisALCT->GetExpectedFastControlMonth();
     day   = thisALCT->GetExpectedFastControlDay()  ;
     //
-    char alctdate[8];
+    char alctdate[9];
     sprintf(alctdate,"%4u%02u%02u",year,month,day);
     //
     // pre-DAQ06 format
@@ -8304,7 +8327,7 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     //    std::cout << "ALCT " << tmb << " load " << ALCTFirmware_[tmb].toString() << std::endl;
     //    std::cout << "ALCT " << tmb << " read " << ALCTReadback_[tmb].toString() << std::endl;
     //
-    char date[8];
+    char date[9];
     sprintf(date,"%4u%02u%02u",
 	    thisTMB->GetExpectedRatFirmwareYear() ,
 	    thisTMB->GetExpectedRatFirmwareMonth(),
