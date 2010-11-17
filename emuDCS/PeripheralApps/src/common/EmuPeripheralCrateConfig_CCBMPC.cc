@@ -163,17 +163,13 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
-  //  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_021508.svf";
-  // we use the 5 march 2007 version for commissioning:
-  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_030507.svf";
-  //
   std::string CCBLoadFirmware =
     toolbox::toString("/%s/CCBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CCBLoadFirmware) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load CCB Firmware") << std::endl ;
   //    sprintf(buf,"%d",ccb);
   //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  *out << CCBFirmware_.toString();
+  *out << CCBFirmware_;
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::fieldset();
@@ -187,8 +183,8 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
     int debugMode(0);
     int jch(6);
     int verify(1);
-    printf("Programming CCB using %s\n", CCBFirmware_.toString().c_str());
-    int status = thisCCB->svfLoad(&jch,CCBFirmware_.toString().c_str(),debugMode, verify);
+    printf("Programming CCB using %s\n", CCBFirmware_.c_str());
+    int status = thisCCB->svfLoad(&jch,CCBFirmware_.c_str(),debugMode, verify);
     if (status >= 0){
       std::cout << "=== Programming finished"<< std::endl;
       std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
@@ -381,12 +377,10 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","MPC Configure");
   *out << cgicc::form() << cgicc::br() << std::endl ;
   //
-  MPCFirmware_ = FirmwareDir_+"mpc/"+"mpc2004_100808.svf";
-  //
   std::string MPCLoadFirmware = toolbox::toString("/%s/MPCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",MPCLoadFirmware) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load MPC Firmware") << std::endl ;
-  *out << MPCFirmware_.toString();
+  *out << MPCFirmware_;
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::fieldset();
@@ -399,8 +393,8 @@ void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * ou
   int debugMode(0);
   int jch(6);
   int verify(1);
-  printf("Programming MPC using %s\n", MPCFirmware_.toString().c_str());
-  int status = thisMPC->svfLoad(&jch,MPCFirmware_.toString().c_str(),debugMode, verify);
+  printf("Programming MPC using %s\n", MPCFirmware_.c_str());
+  int status = thisMPC->svfLoad(&jch,MPCFirmware_.c_str(),debugMode, verify);
   if (status >= 0){
     std::cout << "=== Programming finished"<< std::endl;
     std::cout << "=== " << status << " Verify Errors  occured" << std::endl;

@@ -84,8 +84,8 @@ protected:
   xdata::String standalone;
   bool standalone_;
   //
-  xdata::String CCBFirmware_;
-  xdata::String MPCFirmware_;
+  std::string CCBFirmware_;
+  std::string MPCFirmware_;
   xdata::String TMBFirmware_[10];
   xdata::String DMBFirmware_;
   xdata::String DMBVmeFirmware_;
