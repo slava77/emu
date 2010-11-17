@@ -25,6 +25,7 @@ echo "This script was invoked by the command:"
 echo $0 "$@"
 echo
 echo "The shell environment:"
+limit
 set
 echo
 
