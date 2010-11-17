@@ -5,8 +5,8 @@
 	<!-- Compulsory  Plugins -->
 	<xp:Application class="executive::Application" id="0"  service="executive" network="local">
 		<properties xmlns="urn:xdaq-application:Executive" xsi:type="soapenc:Struct">
-		  <!-- 			<logUrl xsi:type="xsd:string">console</logUrl> -->
-			<logUrl xsi:type="xsd:string">xml://csc-daq.cms:3334</logUrl>
+		        <logUrl xsi:type="xsd:string">console</logUrl>
+			<!-- <logUrl xsi:type="xsd:string">xml://csc-daq.cms:3334</logUrl> -->
 			<logLevel xsi:type="xsd:string">INFO</logLevel>
 		</properties>
 	</xp:Application>
