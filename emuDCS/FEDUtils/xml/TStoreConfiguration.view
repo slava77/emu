@@ -19,6 +19,7 @@
 		<tstore:maptype source="bool" column="^ENABLE_.*"/>
 		<tstore:maptype source="bool" column="INVERT_CCB_COMMAND_SIG.*"/>
 		<tstore:maptype source="bool" column="KILLED"/>
+		<tstore:maptype source="bool" column="IGNOREERR"/>
 		<tstore:maptype source="bool" column=".*SLINK"/>
 		<tstore:maptype source="bool" column=".*BIT.*"/>
 		<tstore:maptype source="bool" column="TTCRX_NOT_READY"/>
@@ -60,7 +61,7 @@
 			<sql:parameter name="DDU_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
-			<![CDATA[select EMU_FED_DDU_FIBERS.FIBER_ID, EMU_FED_DDU_FIBERS.FIBER_NUMBER, EMU_FED_DDU_FIBERS.KILLED, EMU_FED_DDU_FIBERS.CHAMBER_NAME from EMU_FED_DDUS, EMU_FED_DDU_FIBERS where EMU_FED_DDU_FIBERS.RUI = EMU_FED_DDUS.RUI and EMU_FED_DDU_FIBERS.KEY = EMU_FED_DDUS.KEY and EMU_FED_DDUS.ID = $DDU_ID]]>
+			<![CDATA[select EMU_FED_DDU_FIBERS.FIBER_ID, EMU_FED_DDU_FIBERS.FIBER_NUMBER, EMU_FED_DDU_FIBERS.KILLED, EMU_FED_DDU_FIBERS.IGNOREERR, EMU_FED_DDU_FIBERS.CHAMBER_NAME from EMU_FED_DDUS, EMU_FED_DDU_FIBERS where EMU_FED_DDU_FIBERS.RUI = EMU_FED_DDUS.RUI and EMU_FED_DDU_FIBERS.KEY = EMU_FED_DDUS.KEY and EMU_FED_DDUS.ID = $DDU_ID]]>
 		</sql:query>
 		
 		<!-- Select the DCCs on a certain system given a certain crate ID -->
@@ -228,7 +229,7 @@
 			<sql:parameter name="RUI" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
-			<![CDATA[select oldconfig.CHAMBER "CHAMBER $OLD_KEY",newconfig.CHAMBER "CHAMBER $NEW_KEY", oldconfig.FIBER_NUMBER, oldconfig.KILLED "KILLED $OLD_KEY",newconfig.KILLED "KILLED $NEW_KEY" from EMU_FED_DDU_FIBERS oldconfig,EMU_FED_DDU_FIBERS newconfig where oldconfig.KEY=$OLD_KEY and oldconfig.RUI=$RUI and newconfig.KEY=$NEW_KEY and newconfig.RUI=$RUI and oldconfig.fiber_number=newconfig.fiber_number and (oldconfig.CHAMBER!=newconfig.CHAMBER or  oldconfig.KILLED!=newconfig.KILLED)]]>
+			<![CDATA[select oldconfig.CHAMBER "CHAMBER $OLD_KEY",newconfig.CHAMBER "CHAMBER $NEW_KEY", oldconfig.FIBER_NUMBER, oldconfig.KILLED "KILLED $OLD_KEY", newconfig.KILLED "KILLED $NEW_KEY", oldconfig.IGNOREERR "IGNOREERR $OLD_KEY", newconfig.IGNOREERR "IGNOREERR $NEW_KEY" from EMU_FED_DDU_FIBERS oldconfig,EMU_FED_DDU_FIBERS newconfig where oldconfig.KEY=$OLD_KEY and oldconfig.RUI=$RUI and newconfig.KEY=$NEW_KEY and newconfig.RUI=$RUI and oldconfig.fiber_number=newconfig.fiber_number and (oldconfig.CHAMBER!=newconfig.CHAMBER or  oldconfig.KILLED!=newconfig.KILLED or  oldconfig.IGNOREERR!=newconfig.IGNOREERR)]]>
 		</sql:query> 
 
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="ddu_diff">
@@ -269,6 +270,7 @@ and (
 		and (
 			oldfiber.CHAMBER!=newfiber.CHAMBER
 			or oldfiber.KILLED!=newfiber.KILLED
+			or oldfiber.IGNOREERR!=newfiber.IGNOREERR
 		)
 	)
 )
@@ -505,6 +507,7 @@ and (
 			<tstore:column name="FIBER_NUMBER" type="unsigned short"/>
 			<tstore:column name="CHAMBER" type="string"/>
 			<tstore:column name="KILLED" type="bool"/>
+			<tstore:column name="IGNOREERR" type="bool"/>
 			<tstore:column name="KEY" type="unsigned int 64"/>
 			<tstore:foreignkey references="EMU_FED_CONFIGURATIONS">
 				<tstore:keycolumn column="KEY" references="ID"/>

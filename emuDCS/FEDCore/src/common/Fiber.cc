@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.cc,v 1.7 2010/02/04 21:08:32 paste Exp $
+* $Id: Fiber.cc,v 1.8 2010/11/30 10:08:11 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Fiber.h"
 
@@ -15,14 +15,15 @@ plusMinus_(0),
 station_(0),
 ring_(0),
 number_(0),
-killed_(false)
+killed_(false),
+ignoreErr_(false)
 {
 
 }
 
 
 
-emu::fed::Fiber::Fiber(const unsigned int &fiberNumber, const std::string &name, const bool &killed):
+emu::fed::Fiber::Fiber(const unsigned int &fiberNumber, const std::string &name, const bool &killed, const bool &ignoreErr):
 fiberNumber_(fiberNumber),
 name_("???"),
 endcap_("?"),
@@ -30,14 +31,15 @@ plusMinus_(0),
 station_(0),
 ring_(0),
 number_(0),
-killed_(killed)
+killed_(killed),
+ignoreErr_(ignoreErr)
 {
 	parseName_(name);
 }
 
 
 
-emu::fed::Fiber::Fiber(const unsigned int &fiberNumber, const unsigned int &plusMinus, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed):
+emu::fed::Fiber::Fiber(const unsigned int &fiberNumber, const unsigned int &plusMinus, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed, const bool &ignoreErr):
 fiberNumber_(fiberNumber),
 name_("???"),
 endcap_("?"),
@@ -45,7 +47,8 @@ plusMinus_(plusMinus),
 station_(station),
 ring_(ring),
 number_(number),
-killed_(killed)
+killed_(killed),
+ignoreErr_(ignoreErr)
 {
 	if (plusMinus == 1) endcap_ = "+";
 	else if (plusMinus == 2) endcap_ = "-";
@@ -54,7 +57,7 @@ killed_(killed)
 
 
 
-emu::fed::Fiber::Fiber(const unsigned int &fiberNumber, const std::string &endcap, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed):
+emu::fed::Fiber::Fiber(const unsigned int &fiberNumber, const std::string &endcap, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed, const bool &ignoreErr):
 fiberNumber_(fiberNumber),
 name_("???"),
 endcap_(endcap),
@@ -62,7 +65,8 @@ plusMinus_(0),
 station_(station),
 ring_(ring),
 number_(number),
-killed_(killed)
+killed_(killed),
+ignoreErr_(ignoreErr)
 {
 	if (endcap == "+") plusMinus_ = 1;
 	else if (endcap == "-") plusMinus_ = 2;

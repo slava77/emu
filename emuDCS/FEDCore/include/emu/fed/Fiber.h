@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.h,v 1.6 2010/02/04 21:08:32 paste Exp $
+* $Id: Fiber.h,v 1.7 2010/11/30 10:10:15 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBER_H__
 #define __EMU_FED_FIBER_H__
@@ -21,13 +21,13 @@ namespace emu {
 			Fiber();
 
 			/** Constructor to build using the name of the fiber **/
-			Fiber(const unsigned int &fifoNumber, const std::string &name = "", const bool &killed = false);
+			Fiber(const unsigned int &fifoNumber, const std::string &name = "", const bool &killed = false, const bool &ignoreErr = false);
 
 			/** Constructor used to set all the variables **/
-			Fiber(const unsigned int &fifoNumber, const unsigned int &plusMinus, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed = false);
+			Fiber(const unsigned int &fifoNumber, const unsigned int &plusMinus, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed = false, const bool &ignoreErr = false);
 
 			/** Constructor with a string for the endcap **/
-			Fiber(const unsigned int &fifoNumber, const std::string &endcap, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed);
+			Fiber(const unsigned int &fifoNumber, const std::string &endcap, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed, const bool &ignoreErr = false);
 
 			/** @returns the fiber input number. **/
 			inline unsigned int getFiberNumber() { return fiberNumber_; }
@@ -63,6 +63,12 @@ namespace emu {
 			/** Sets whether or not the DDU should be configured to kill this fiber **/
 			inline void setKilled(const bool &killed) { killed_ = killed; }
 
+			/** @returns whether or not random DDU errors should be ignored **/
+			inline bool ignoreErr() { return ignoreErr_; }
+
+			/** Sets whether or not random DDU errors should be ignored **/
+			inline void setIgnoreErr(const bool &ignoreErr) { ignoreErr_ = ignoreErr; }
+
 		private:
 
 			/** Parse out the name string and set the corresponding values. **/
@@ -94,6 +100,9 @@ namespace emu {
 
 			/// Whether or not this fiber is killed
 			bool killed_;
+
+			/// Ignore rare random errors from DDU boards to decrease FMM error rate
+			bool ignoreErr_;
 
 		};
 

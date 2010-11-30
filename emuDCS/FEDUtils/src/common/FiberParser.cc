@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberParser.cc,v 1.6 2009/12/10 16:30:04 paste Exp $
+* $Id: FiberParser.cc,v 1.7 2010/11/30 10:04:45 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/FiberParser.h"
 
@@ -30,6 +30,15 @@ throw (emu::fed::exception::ParseException)
 		error << "Unable to parse KILLED from element";
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
+	
+	bool ignoreErr;
+	try {
+		ignoreErr = parser.extract<bool>("IGNOREERR");
+	} catch (emu::fed::exception::ParseException &e) {
+		std::ostringstream error;
+		error << "Unable to parse IGNOREERR from element";
+		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
+	}
 
 	// This is optional
 	std::string chamberName = "+0/0/00";
@@ -53,7 +62,7 @@ throw (emu::fed::exception::ParseException)
 	}
 	
 	// Set names now.
-	return new Fiber(fiberNumber, endcap, station, ring, number, killed);
+	return new Fiber(fiberNumber, endcap, station, ring, number, killed, ignoreErr);
 	
 }
 
@@ -70,6 +79,8 @@ throw (emu::fed::exception::ParseException)
 		Parser::insert(fiberElement, "FIBER_NUMBER", fiber->getFiberNumber());
 		if (fiber->isKilled()) Parser::insert(fiberElement, "KILLED", 1);
 		else Parser::insert(fiberElement, "KILLED", 0);
+		if (fiber->ignoreErr()) Parser::insert(fiberElement, "IGNOREERR", 1);
+		else Parser::insert(fiberElement, "IGNOREERR", 0);
 		Parser::insert(fiberElement, "CHAMBER", fiber->getName());
 		
 		return fiberElement;
