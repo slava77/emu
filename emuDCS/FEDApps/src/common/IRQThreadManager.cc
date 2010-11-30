@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.6 2010/11/04 18:46:01 banicz Exp $
+* $Id: IRQThreadManager.cc,v 1.7 2010/11/30 09:57:59 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -447,6 +447,19 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					unsigned int cscStatus = myDDU->readCSCStatus();
 					unsigned int advStatus = myDDU->readAdvancedFiberErrors(); // Technically this is the only thing I should be reading (so sayeth Jason)
 					unsigned int combinedStatus = cscStatus | advStatus;
+					unsigned int ignBits = 0;
+					for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
+						if ( myDDU->getFiber(iFiber)->ignoreErr()) {
+							ignBits = ignBits | (1<<iFiber);
+							LOG4CPLUS_DEBUG(logger, "Fiber ignored: " << iFiber);
+						}
+					}
+					if (ignBits != 0) {
+						ignBits = ~ignBits;  // Complement so ignored bits are 0.
+						combinedStatus = combinedStatus & ignBits;
+						// Turn off bits in combinedStatus corresponding to fibers set to
+						// be ignored.
+					}
 					unsigned int xorStatus = combinedStatus^lastDDUError[myDDU->slot()];
 					
 					// Emergency check to see if a reset has occurred!
@@ -462,9 +475,12 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					 */
 					bool doReset = (xorStatus & (~combinedStatus));
 					
-					// The number of bits set high in advStatus tells me the number of CSCs requesting a resync.  Count those now.
+					// The number of bits set high in combinedStatus tells me the number of CSCs requesting a resync.  Count them.
 					std::bitset<16> statusBits(combinedStatus);
-					nErrors[slot] = statusBits.count();
+					unsigned int numBits = statusBits.count();
+					if (combinedStatus >= 32768 && numBits > 0)
+						--numBits;	// Bit 15 (top bit) is meaningless, so if it's set, ignore it.
+					nErrors[slot] = numBits;
 					
 					// Sometimes an interrupt does not have any errors to report.  Ignore these.
 					if (!xorStatus) {
@@ -631,7 +647,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						std::ostringstream alarmName;
 						alarmName << "IRQThreadFiber" << crateNumber << "_" << myDDU->slot() << "_" << iFiber;
 						// Skip it if it is already killed or if it didn't cause a problem
-						if (!(liveFibers & (1<<iFiber)) || !(xorStatus & (1<<iFiber))) {
+						// or if it's set to be ignored
+						if (!(liveFibers & (1<<iFiber)) || !(xorStatus & (1<<iFiber)) ||
+								myDDU->getFiber(iFiber)->ignoreErr()) {
 							MY_REVOKE_ALARM(alarmName.str());
 							continue;
 						} else { // REPORT TO SENTENEL!

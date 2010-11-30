@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.14 2010/05/31 14:05:19 paste Exp $
+* $Id: FiberDBAgent.cc,v 1.15 2010/11/30 10:04:45 cvuosalo Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -52,6 +52,7 @@ throw (emu::fed::exception::DBException)
 			xdata::UnsignedShort fiber_number = getValue<xdata::UnsignedShort>(*iRow, "FIBER_NUMBER");
 			xdata::String chamber = getValue<xdata::String>(*iRow, "CHAMBER");
 			xdata::Boolean killed = getValue<xdata::Boolean>(*iRow, "KILLED");
+			xdata::Boolean ignoreErr = getValue<xdata::Boolean>(*iRow, "IGNOREERR");
 			// Don't want to kill myself here
 			if ((xdata::UnsignedShortT) fiber_number > 14) XCEPT_RAISE(emu::fed::exception::DBException, "Fiber number is too large");
 			
@@ -70,7 +71,7 @@ throw (emu::fed::exception::DBException)
 			}
 			
 			// Set names now.
-			returnMe.push_back(new Fiber(fiber_number, endcap, station, ring, number, killed));
+			returnMe.push_back(new Fiber(fiber_number, endcap, station, ring, number, killed, ignoreErr));
 		}
 	} catch (emu::fed::exception::DBException &e) {
 		std::ostringstream error;
@@ -101,6 +102,7 @@ throw (emu::fed::exception::DBException)
 		table.addColumn("FIBER_NUMBER", "unsigned short");
 		table.addColumn("CHAMBER", "string");
 		table.addColumn("KILLED", "bool");
+		table.addColumn("IGNOREERR", "bool");
 		
 		for (std::vector<Fiber *>::const_iterator iFiber = fiberVector.begin(); iFiber != fiberVector.end(); ++iFiber) {
 			// Make a new row
@@ -110,11 +112,13 @@ throw (emu::fed::exception::DBException)
 			xdata::UnsignedShort fiberNumber = (*iFiber)->getFiberNumber();
 			xdata::String chamber = (*iFiber)->getName();
 			xdata::Boolean killed = (*iFiber)->isKilled();
+			xdata::Boolean ignoreErr = (*iFiber)->ignoreErr();
 			iRow->setField("KEY", key);
 			iRow->setField("RUI", rui);
 			iRow->setField("FIBER_NUMBER", fiberNumber);
 			iRow->setField("CHAMBER", chamber);
 			iRow->setField("KILLED", killed);
+			iRow->setField("IGNOREERR", ignoreErr);
 			
 		}
 		
