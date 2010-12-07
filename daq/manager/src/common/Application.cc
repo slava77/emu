@@ -4660,7 +4660,11 @@ xoap::MessageReference emu::daq::manager::Application::onQueryRunSummary(xoap::M
     xdata::Vector<xdata::UnsignedLong> rui_instances; // xdata can readily be serialized into SOAP...
     for( int iRUI=0; iRUI<nRUIs; ++iRUI ){
       xdata::UnsignedLong c; c.fromString( counts.at(iRUI)["count"]   );
-      xdata::UnsignedLong i; i.fromString( counts.at(iRUI)["appInst"] );
+      stringstream ss;
+      ss << counts.at(iRUI)["appInst"];
+      unsigned int appInst;
+      ss >> appInst;
+      xdata::UnsignedLong i( appInst );
       rui_counts   .push_back( c );
       rui_instances.push_back( i );
     }
