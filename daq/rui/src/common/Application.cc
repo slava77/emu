@@ -2256,7 +2256,7 @@ void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, 
       writeDataToFile( data, dataLength, newEvent );
       // Increment the counter of events read since the last bad event if this data block belongs to a new event:
       if ( newEvent ) countSinceBadEvent_++;
-      LOG4CPLUS_WARN(logger_, "Writing bad event trailing context, event +" << countSinceBadEvent_ );
+      //LOG4CPLUS_WARN(logger_, "Writing bad event trailing context, event +" << countSinceBadEvent_ );
     } // if ( countSinceBadEvent_ <= nToWriteAfterBadEvent_ )
     else{
       // We're no longer writing the trailing context.
@@ -2271,7 +2271,7 @@ void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, 
 	int countToBadEvent = ebl.size();
 	for ( list<const emu::daq::rui::EventBuffer*>::const_iterator i=ebl.begin(); i!=ebl.end(); ++i ){
 	  writeDataToFile( (*i)->getEvent(), (int) (*i)->getEventSize(), true );
-	  LOG4CPLUS_WARN(logger_, "Writing bad event leading context, event -" << --countToBadEvent );
+	  //LOG4CPLUS_WARN(logger_, "Writing bad event leading context, event -" << --countToBadEvent );
 	}
 	// Clear the buffer holding the bad event and the ones preceeding it:
 	eventBufferRing_.emptyEventBuffers();
@@ -3116,32 +3116,32 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
 
   // 1)
   if ( trailerShortWord[6] & 0x4000 ) {    // DDU Trailer-1 bit 46
-    LOG4CPLUS_ERROR(logger_,
-    		    "DDU error: bad event read from " 
-    		    << deviceReader_->getName()
-    		    << ". (bit T-1:46) Event "
-    		    << deviceReader_->eventNumber()
-    		    << " (" << nEventsRead_ << " read)");
+//     LOG4CPLUS_ERROR(logger_,
+//     		    "DDU error: bad event read from " 
+//     		    << deviceReader_->getName()
+//     		    << ". (bit T-1:46) Event "
+//     		    << deviceReader_->eventNumber()
+//     		    << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
   // 2)
   if ( trailerShortWord[8] & FED_Overflow ) {
-    LOG4CPLUS_WARN(logger_,
-    		   "DDU buffer near Full in "
-    		   << deviceReader_->getName() 
-    		   << ". (bit T:4) Event "
-    		   << deviceReader_->eventNumber()
-    		   << " (" << nEventsRead_ << " read)");
+//     LOG4CPLUS_WARN(logger_,
+//     		   "DDU buffer near Full in "
+//     		   << deviceReader_->getName() 
+//     		   << ". (bit T:4) Event "
+//     		   << deviceReader_->eventNumber()
+//     		   << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
   // 3)
   if ( trailerShortWord[6] & 0x2000 ) {      // DDU Trailer-1 bit 45
-    LOG4CPLUS_WARN(logger_,
-    		   "DDU special warning in "
-    		   << deviceReader_->getName() 
-    		   << ". (bit T-1:45) Event "
-    		   << deviceReader_->eventNumber()
-    		   << " (" << nEventsRead_ << " read)");
+//     LOG4CPLUS_WARN(logger_,
+//     		   "DDU special warning in "
+//     		   << deviceReader_->getName() 
+//     		   << ". (bit T-1:45) Event "
+//     		   << deviceReader_->eventNumber()
+//     		   << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
 
