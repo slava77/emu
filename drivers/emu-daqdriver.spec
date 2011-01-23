@@ -4,8 +4,8 @@
 
 Summary: CMS Emu local DAQ Gbit drivers for kernel %{kernel_version}
 Name: emu-daqdriver
-Version: 1.3.0
-Release: 1
+Version: 1.4.0
+Release: 1.slc4
 License: none
 Group: none
 URL: none
@@ -34,7 +34,6 @@ done
 
 
 %install
-[[ ${RPM_BUILD_ROOT} != "/" ]] && rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/lib/modules/$(uname -r)/kernel/drivers/net
 cp %{workingDir}/e1000hook/e1000-7.0.39/src/e1000h.ko $RPM_BUILD_ROOT/lib/modules/$(uname -r)/kernel/drivers/net/
 for N in 2 3 4 5; do
@@ -42,21 +41,25 @@ for N in 2 3 4 5; do
 done
 mkdir -p $RPM_BUILD_ROOT/usr/local/bin
 cp %{workingDir}/script/load_daq_drivers.sh $RPM_BUILD_ROOT/usr/local/bin
-
+touch %{_topdir}/BUILD/ChangeLog
+touch %{_topdir}/BUILD/README
+touch %{_topdir}/BUILD/MAINTAINER
 
 %clean
 [[ ${RPM_BUILD_ROOT} != "/" ]] && rm -rf $RPM_BUILD_ROOT
 
 
 %files
-%defattr(755,root,root,-)
+%defattr(744,root,root,-)
 /lib/modules/%{kernel_version}/kernel/drivers/net/e1000h.ko
 /lib/modules/%{kernel_version}/kernel/drivers/net/eth_hook_2.ko
 /lib/modules/%{kernel_version}/kernel/drivers/net/eth_hook_3.ko
 /lib/modules/%{kernel_version}/kernel/drivers/net/eth_hook_4.ko
 /lib/modules/%{kernel_version}/kernel/drivers/net/eth_hook_5.ko
 /usr/local/bin/load_daq_drivers.sh
-
+# Files required by Quattor
+%defattr(644,root,root,755)
+%doc MAINTAINER ChangeLog README
 
 %post
 # Have load_daq_drivers.sh invoked on booting
@@ -84,7 +87,6 @@ sed -i -e "/\/usr\/local\/bin\/load_daq_drivers.sh/d" /etc/rc.d/rc.local
 # Update module dependencies
 /sbin/depmod
 
-
-%changelog
-* Mon Jul 13 2009 cscdaq common account <cscdaq@srv-C2C04-22.cms> - emu-daqdriver
-- Initial build.
+#%changelog
+#* Mon Jul 13 2009 cscdaq common account <cscdaq@srv-C2C04-22.cms> - emu-daqdriver
+#- Initial build.
