@@ -4,8 +4,8 @@
 
 Summary: CMS Emu local DAQ Gbit drivers for kernel %{kernel_version} to be used in bdg 904
 Name: emu-daqdriver904
-Version: 2.0.0
-Release: 1
+Version: 2.0.1
+Release: 1.slc4
 License: none
 Group: none
 URL: none
