@@ -4,7 +4,7 @@
 
 Summary: CMS Emu local DAQ Gbit drivers for kernel %{kernel_version}
 Name: emu-daqdriver
-Version: 1.5.0
+Version: 1.6.0
 Release: 1.slc4
 License: none
 Group: none
@@ -20,24 +20,6 @@ BuildRoot: /tmp/%{name}-%{version}-%{release}-root
 
 
 %pre
-# To be executed on a local DAQ node only
-for ALIAS in csc-daq0{1..9} csc-daq10; do
-    if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
-
-        # Bring down the interfaces
-        for N in 2 3 4 5; do
-            /sbin/ifconfig eth${N} down
-        done
-
-        # Unload old modules
-        [[ $(/sbin/lsmod | grep -c '^e1000h ') -eq 0 ]] || /sbin/modprobe -r e1000h
-
-        # Unload the standard Intel driver.
-        # The standard Intel driver seems to be loaded by the system if it recognizes _any_ Intel NIC.
-        [[ $(/sbin/lsmod | grep -c '^e1000 ') -eq 0 ]] || /sbin/modprobe -r e1000
-
-    fi
-done
 
 %install
 mkdir -p $RPM_BUILD_ROOT/lib/modules/$(uname -r)/kernel/drivers/net
@@ -68,38 +50,19 @@ touch %{_topdir}/BUILD/MAINTAINER
 %doc MAINTAINER ChangeLog README
 
 %post
-# To be executed on a local DAQ node only
-for ALIAS in csc-daq0{1..9} csc-daq10; do
-    if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
+# Have load_daq_drivers.sh invoked on booting
+sed -i -e "/\/usr\/local\/bin\/load_daq_drivers.sh/d" /etc/rc.d/rc.local
+echo "[[ -x /usr/local/bin/load_daq_drivers.sh ]] && /usr/local/bin/load_daq_drivers.sh" >> /etc/rc.d/rc.local
 
-    # Have load_daq_drivers.sh invoked on booting
-    sed -i -e "/\/usr\/local\/bin\/load_daq_drivers.sh/d" /etc/rc.d/rc.local
-    echo "[[ -x /usr/local/bin/load_daq_drivers.sh ]] && /usr/local/bin/load_daq_drivers.sh" >> /etc/rc.d/rc.local
-
-    # Load new modules
-    /usr/local/bin/load_daq_drivers.sh
-
-    fi
-done
+# Load new modules
+/usr/local/bin/load_daq_drivers.sh
 
 %preun
-# To be executed on a local DAQ node only
-for ALIAS in csc-daq0{1..9} csc-daq10; do
-    if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
+# Unload modules
+[[ $(/sbin/lsmod | grep -c e1000h) -eq 0 ]] || /sbin/modprobe -r e1000h
 
-    # Bring down the interfaces
-    for N in 2 3 4 5; do
-        /sbin/ifconfig eth${N} down
-    done
-
-    # Unload modules
-    [[ $(/sbin/lsmod | grep -c e1000h) -eq 0 ]] || /sbin/modprobe -r e1000h
-
-    # Stop loading daq drivers at boot time.
-    sed -i -e "/\/usr\/local\/bin\/load_daq_drivers.sh/d" /etc/rc.d/rc.local
-
-    fi
-done
+# Stop loading daq drivers at boot time.
+sed -i -e "/\/usr\/local\/bin\/load_daq_drivers.sh/d" /etc/rc.d/rc.local
 
 %postun
 # Update module dependencies
