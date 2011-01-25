@@ -1,4 +1,4 @@
-// $Id: ClientChannel.cc,v 1.3 2011/01/25 17:36:47 banicz Exp $
+// $Id: ClientChannel.cc,v 1.4 2011/01/25 18:32:18 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -29,8 +29,8 @@
 /* Amount of seconds to wait after an HTTP request has be sent until a response byte is received */
 #define HTTP_RESPONSE_TIMEOUT_SEC 30
 
-pt::http::ClientChannel::ClientChannel(pt::Address::Reference address) 
-	throw (pt::http::exception::Exception): http::Channel (address)
+pt::http::ClientChannel::ClientChannel(pt::Address::Reference address, unsigned long httpResponseTimeoutSec) 
+	throw (pt::http::exception::Exception): http::Channel (address), httpResponseTimeoutSec_(httpResponseTimeoutSec)
 {
 	connected_ = false;
 }
@@ -65,7 +65,8 @@ void pt::http::ClientChannel::connect()  throw (pt::http::exception::Exception)
 			// Send and receive timeouts to avoid endless blocking in case of pathologic errors, hard to 5 seconds
 			//
 			struct timeval tv;
-			tv.tv_sec = HTTP_RESPONSE_TIMEOUT_SEC;
+			//tv.tv_sec = HTTP_RESPONSE_TIMEOUT_SEC;
+			tv.tv_sec = httpResponseTimeoutSec_;
 			tv.tv_usec = 0;
 			
 			if (setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0)

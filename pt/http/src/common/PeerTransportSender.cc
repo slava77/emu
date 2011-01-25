@@ -1,4 +1,4 @@
-// $Id: PeerTransportSender.cc,v 1.2 2011/01/25 17:36:47 banicz Exp $
+// $Id: PeerTransportSender.cc,v 1.3 2011/01/25 18:32:18 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -17,7 +17,7 @@
 #include "toolbox/BSem.h"
 #include <string>
 
-pt::http::PeerTransportSender::PeerTransportSender(Logger & logger): logger_(logger)
+pt::http::PeerTransportSender::PeerTransportSender(Logger & logger, unsigned long httpResponseTimeoutSec): logger_(logger), httpResponseTimeoutSec_(httpResponseTimeoutSec)
 {
 	sync_  = new toolbox::BSem(toolbox::BSem::EMPTY);
 	mutex_ = new toolbox::BSem(toolbox::BSem::FULL);
@@ -53,7 +53,7 @@ pt::Messenger::Reference pt::http::PeerTransportSender::getMessenger (pt::Addres
 			try 
 			{	
 				// create remote messenger
-				http::SOAPMessenger* m = new http::SOAPMessenger(logger_, destination, local);
+			        http::SOAPMessenger* m = new http::SOAPMessenger(logger_, destination, local, httpResponseTimeoutSec_ );
 				return pt::Messenger::Reference(m);
 			}
 			catch(pt::http::exception::Exception & e)
