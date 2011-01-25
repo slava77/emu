@@ -1,4 +1,4 @@
-// $Id: Utils.cc,v 1.2 2010/01/30 16:51:31 banicz Exp $
+// $Id: Utils.cc,v 1.3 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -199,8 +199,6 @@ char* pt::http::Utils::receiveBodyFrom (pt::http::Channel * in, size_t* size)
 char * pt::http::Utils::receiveFrom(pt::http::Channel * in, size_t * size, std::string* header)  
 	throw (pt::http::exception::Exception)
 {
-  //std::cout << "======= pt::http::Utils::receiveFrom =======" << std::endl; std::cout.flush();
-
 	char* buffer = new char[ReadSegmentSize];
 	ssize_t available = ReadSegmentSize;
 	ssize_t dataOffset = 0;
@@ -530,10 +528,7 @@ char * pt::http::Utils::receiveFrom(pt::http::Channel * in, size_t * size, std::
 	std::string message;
 	iss >> method >> code >> message >> std::ws;
 
-	//std::cout << "======= HTTP code: " << code << " =======" << std::endl; std::cout.flush();
-
-// 	if(code==200 || code==202) 
-	if(code==200 || code==202 || code==500) 
+	if(code==200 || code==202) 
 	{
 		return buffer;
 	}
@@ -637,8 +632,7 @@ std::string & boundaryStr, size_t len, char* headers)
 	header << port;
         header << "\r\n";
         header << "Connection: keep-alive\r\n";
-        //header << "Content-type: multipart/related; type=\"application/soap+xml\"; boundary=\"";
-        header << "Content-type: multipart/related; type=\"text/xml\"; boundary=\"";
+        header << "Content-type: multipart/related; type=\"application/soap+xml\"; boundary=\"";
         header << boundaryStr;
         header << "\"\r\n";
         header << "Content-Length: ";
@@ -650,9 +644,6 @@ std::string & boundaryStr, size_t len, char* headers)
         // header += "\r\nSOAPAction: \"\"\r\n";
         header << "Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\r\n";
         header << "Content-Description: XDAQ SOAP with attachments.\r\n\r\n";
-
-	//std::cout << "======= pt::http::Utils::writeHttpPostMIMEHeader =======" << std::endl;// << header.str() << std::endl;
-
 
 	out->send((char*)header.str().c_str(),header.str().size());
                         
@@ -671,16 +662,12 @@ void pt::http::Utils::writeHttpPostHeader(pt::http::Channel * out,char * path, c
 	header << host;
 	header << ":";
 	header << port;
-// 	header << "\r\nConnection: keep-alive\r\nContent-type: application/soap+xml; charset=utf-8\r\nContent-length: ";
-	header << "\r\nConnection: keep-alive\r\nContent-type: text/xml; charset=utf-8\r\nContent-length: ";
+	header << "\r\nConnection: keep-alive\r\nContent-type: application/soap+xml; charset=utf-8\r\nContent-length: ";
 	header << len;
 	header << "\r\n";
 	
 	header << headers;
 	header << "Content-Description: XDAQ SOAP.\r\n\r\n";
-
-	//std::cout << "======= pt::http::Utils::writeHttpPostHeader =======" << std::endl << header.str() << std::endl;
-
 	out->send((char*)header.str().c_str(),header.str().size());
 }
 
@@ -697,8 +684,7 @@ std::string & boundaryStr, size_t len)
 	header << port;
 	header << "\r\n";
 	header << "Connection: keep-alive\r\n";
-// 	header << "Content-Type: multipart/related; type=\"application/soap+xml\"; boundary=\"";
-	header << "Content-Type: multipart/related; type=\"text/xml\"; boundary=\"";
+	header << "Content-Type: multipart/related; type=\"application/soap+xml\"; boundary=\"";
 	header << boundaryStr;
 	header << "\"\r\n";
 	header << "Content-Length: ";
@@ -707,9 +693,6 @@ std::string & boundaryStr, size_t len)
 	header << "Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\r\n";
 	header << "Content-Description: Reply from XDAQ with attachments.";
 	header << "\r\n\r\n";
-
-	//std::cout << "======= pt::http::Utils::writeHttpReplyMIMEHeader =======" << std::endl << header.str() << std::endl;
-
 	out->send((char*)header.str().c_str(),header.str().size());                 
 }		
 
@@ -738,9 +721,6 @@ void pt::http::Utils::replyHeaderTo(pt::http::Channel * out, unsigned int code, 
 	header << "Content-Length: ";
 	header << len;
 	header << "\r\n";
-
-	//std::cout << "======= pt::http::Utils::replyHeaderTo =======" << std::endl << header.str() << std::endl;
-
 	out->send((char*)header.str().c_str(),header.str().size());
 }
 
@@ -752,11 +732,9 @@ void pt::http::Utils::writeHttpReplyHeader(pt::http::Channel * out, char * path,
 	//
 	std::stringstream header;
 
-// 	header << "HTTP/1.1 200 OK\r\nContent-Type: application/soap+xml; charset=\"utf-8\"\r\nContent-Length: ";
-	header << "HTTP/1.1 200 OK\r\nContent-Type: text/xml; charset=\"utf-8\"\r\nContent-Length: ";
+	header << "HTTP/1.1 200 OK\r\nContent-Type: application/soap+xml; charset=\"utf-8\"\r\nContent-Length: ";
 	header << len;
 	header << "\r\n\r\n";
-	//std::cout << "======= pt::http::Utils::writeHttpReplyHeader =======" << std::endl << header.str() << std::endl;
 	out->send((char*)header.str().c_str(),header.str().size());
 }
 

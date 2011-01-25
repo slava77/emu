@@ -1,4 +1,4 @@
-// $Id: ReceiverLoop.h,v 1.1 2010/01/30 15:53:06 banicz Exp $
+// $Id: ReceiverLoop.h,v 1.2 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -13,6 +13,7 @@
 #ifndef _pt_http_ReceiverLoop_h_
 #define _pt_http_ReceiverLoop_h_
 
+#include <map>
 #include <vector>
 #include <sys/select.h>
 
@@ -30,6 +31,7 @@
 #include "log4cplus/logger.h"
 #include "xdata/InfoSpace.h"
 #include "xdata/UnsignedInteger32.h"
+#include "xdaq/Object.h"
 
 using namespace log4cplus;
 
@@ -38,13 +40,13 @@ namespace pt
 namespace http
 {
 
-class ReceiverLoop: public toolbox::lang::Class, http::Channel
+class ReceiverLoop: public xdaq::Object, public toolbox::lang::Class, http::Channel
 {
 	enum { MaxNoChannels = 1024 };
 
 	public:
 	
-	ReceiverLoop(pt::Address::Reference address, Logger & logger, xdata::InfoSpace * is) 
+	ReceiverLoop(xdaq::Application* owner, pt::Address::Reference address, Logger & logger, xdata::InfoSpace * is) 
 		throw (pt::http::exception::Exception);
 	
 	~ReceiverLoop();
@@ -112,9 +114,8 @@ class ReceiverLoop: public toolbox::lang::Class, http::Channel
 	pt::HTAccessSecurityPolicy *  policy_;
 	xdata::InfoSpace * is_;
 	
-	std::string aliasName_;
-	std::string aliasPath_;
 	xdata::UnsignedInteger32T requestCounter_;
+	std::map<std::string, std::string> aliases_;
 };
 
 }

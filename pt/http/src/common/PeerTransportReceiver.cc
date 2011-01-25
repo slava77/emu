@@ -1,4 +1,4 @@
-// $Id: PeerTransportReceiver.cc,v 1.1 2010/01/30 15:53:19 banicz Exp $
+// $Id: PeerTransportReceiver.cc,v 1.2 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -14,8 +14,8 @@
 #include <iostream>
 #include "xgi/Listener.h"
 
-pt::http::PeerTransportReceiver::PeerTransportReceiver(Logger & logger, xdata::InfoSpace* is)
-	: logger_(logger), is_(is)
+pt::http::PeerTransportReceiver::PeerTransportReceiver( xdaq::Application* owner, Logger & logger, xdata::InfoSpace* is)
+	:xdaq::Object(owner), logger_(logger), is_(is)
 {
 }
 
@@ -134,7 +134,7 @@ void pt::http::PeerTransportReceiver::config( pt::Address::Reference address) th
 	}
 	
 	// Create a new receiver loop
-	http::ReceiverLoop* loop = new http::ReceiverLoop(address, logger_, is_);
+	http::ReceiverLoop* loop = new http::ReceiverLoop(this->getOwnerApplication(),address, logger_, is_);
 	
 	// attempt to add listener if present
 	if ( this->isExistingListener("soap") ) 

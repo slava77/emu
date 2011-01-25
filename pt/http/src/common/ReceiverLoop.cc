@@ -1,4 +1,4 @@
-// $Id: ReceiverLoop.cc,v 1.1 2010/01/30 15:53:19 banicz Exp $
+// $Id: ReceiverLoop.cc,v 1.2 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -13,6 +13,7 @@
 #include "pt/http/ReceiverLoop.h"
 #include "pt/http/Address.h"
 #include "pt/http/Utils.h"
+#include "pt/http/Alias.h"
 #include "pt/http/exception/Exception.h"
 #include "pt/http/exception/CannotConnect.h"
 #include "pt/exception/Exception.h"
@@ -48,6 +49,8 @@
 #include "toolbox/string.h"
 #include "toolbox/TimeVal.h"
 #include "toolbox/Runtime.h"
+#include "toolbox/net/Utils.h"
+#include "toolbox/stl.h"
 #include "cgicc/HTTPStatusHeader.h"
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTTPResponseHeader.h"
@@ -84,35 +87,66 @@ using namespace log4cplus;
 using namespace log4cplus::helpers;
 using namespace log4cplus::spi;
 
-pt::http::ReceiverLoop::ReceiverLoop(pt::Address::Reference address, Logger & logger, xdata::InfoSpace* is) 
+pt::http::ReceiverLoop::ReceiverLoop(xdaq::Application* owner, pt::Address::Reference address, Logger & logger, xdata::InfoSpace* is) 
 	throw (pt::http::exception::Exception) : 
-	pt::http::Channel(address), logger_(logger), is_(is), requestCounter_(0)
+	xdaq::Object(owner),pt::http::Channel(address), logger_(logger), is_(is), requestCounter_(0)
 {
 
 	try
-	{
-		aliasName_ = dynamic_cast<xdata::String*>(is_->find("aliasName"))->toString();
-		aliasPath_ = dynamic_cast<xdata::String*>(is_->find("aliasPath"))->toString();		
-	} 
-	catch (xdata::exception::Exception& e)
-	{
-		// no alias declaration found
-		aliasName_ = "";
-		aliasPath_ = "";
-	}
+		{			
 
-	// substitute environmental variables 
-	std::vector<std::string> paths = toolbox::getRuntime()->expandPathName(aliasPath_);
-	if (paths.size() == 1)
-	{
-		aliasPath_ = paths[0];
-	}
-	else
-	{
-		std::stringstream msg;
-		msg << "Alias path '" << aliasPath_ << "' is ambiguous";
-		XCEPT_RAISE (pt::http::exception::Exception, msg.str());
-	}
+
+			try 
+			{ 
+        			xdata::String aliasName = dynamic_cast<xdata::String*>(is_->find("aliasName"))->toString(); 
+        			xdata::String aliasPath = dynamic_cast<xdata::String*>(is_->find("aliasPath"))->toString();           
+
+				std::vector<std::string> paths = toolbox::getRuntime()->expandPathName(aliasPath);
+                        	if (paths.size() == 1)
+                       		{
+					aliases_[aliasName.toString()] = paths[0];
+					//std::cout << "----->" << aliases_[aliasName] << " and --->>>" << aliasName.toString() << std::endl;
+                        	}
+                        	else
+                        	{
+                                	std::stringstream msg;
+                                	msg << "Alias path '" << aliasPath.toString() << "' is ambiguous";
+                                	XCEPT_RAISE (pt::http::exception::Exception, msg.str());
+                        	}
+
+			}  
+			catch (xdata::exception::Exception& e) 
+			{ 
+         			//ignore  
+ 			} 
+
+
+			xdata::Vector< xdata::Bag<pt::http::Alias> >* aliases = dynamic_cast<xdata::Vector< xdata::Bag<pt::http::Alias> >*>(is_->find("aliases"));
+			xdata::Vector< xdata::Bag<pt::http::Alias> >::iterator ci;
+			for (ci = aliases->begin(); ci != aliases->end(); ++ci)
+			{
+				std::vector<std::string> paths = toolbox::getRuntime()->expandPathName( (*ci).bag.path.toString());
+				if (paths.size() == 1)
+				{
+					//(*ci).bag.path = paths[0];
+					aliases_[(*ci).bag.name.toString()] = paths[0];
+				}
+				else
+				{
+					std::stringstream msg;
+					msg << "Alias path '" << (*ci).bag.path.toString() << "' is ambiguous";
+					XCEPT_RAISE (pt::http::exception::Exception, msg.str());
+				}
+
+				LOG4CPLUS_INFO (logger_, "Setting alias of [" << (*ci).bag.name.toString() << "] to [" << aliases_[(*ci).bag.name] << "]");
+			}
+		}
+		catch (xdata::exception::Exception& e)
+		{
+			// no alias declaration found
+			LOG4CPLUS_INFO (logger_, "aliases not found in configuration");
+		}
+
 
 	try
 	{		
@@ -1031,14 +1065,21 @@ void pt::http::ReceiverLoop::onRequest(const std::string & ip, const std::string
 			if ( script == "" )
 			{
 				std::string filename;
+				filename = httpRootDir_ + url;
+
+				//std::cout << " default path:" << filename << std::endl;
+
 				// if an alias is defined,  and found after the "/", use it
-				if ((aliasName_ != "") && (url.find(aliasName_) == 1))
+				for (std::map<std::string,std::string>::iterator i = aliases_.begin(); i != aliases_.end(); i++ )
 				{
-					filename = aliasPath_ + url.substr(aliasName_.size() + 1);
-				}
-				else
-				{
-					filename = httpRootDir_ + url;
+					//std::cout << "matching alias for:" << (*i).first << " on path :" << (*i).second << " url:" << url << std::endl;
+					//std::cout << " find position: " << url.find((*i).first) << std::endl;
+					if ( ((*i).first != "" ) && (url.find((*i).first) == 0)  )
+					{
+						filename = (*i).second  +  url.substr(((*i).first).size());	
+						//std::cout << " override  path:" << filename << std::endl;
+						break;
+					}
 				}
 				
 				// If there is a '?' character, chop everything including this character
@@ -1116,7 +1157,13 @@ void pt::http::ReceiverLoop::onRequest(const std::string & ip, const std::string
 					s << out.getHTTPResponseHeader();
 					this->reply((char*)s.str().c_str(), s.tellp() );
 					this->reply((char*)out.str().c_str(), out.tellp() );
-					// keep connection open
+					// keep connection open if requested by client
+					 std::map<std::string,std::string, std::less<std::string> >::iterator hi = headers.find("connection");
+                			if ( (hi == headers.end()) ||  ((*hi).second.find("keep-alive") == std::string::npos) )
+                			{
+				 		//std::cout << "user did not use keep alive"  << std::endl;
+                        			this->close();
+                			}
 				}
 				else
 				{
@@ -1163,7 +1210,43 @@ void pt::http::ReceiverLoop::onRequest(const std::string & ip, const std::string
 			}
 		}
 	}
-	
+
+/*
+ // Add XDAQ powered
+        std::string pattern = "<html";
+         std::cout << "Find pattern" << std::endl;
+	const std::vector<std::string>& heads = out.getHTTPResponseHeader().getHeaders();
+	for (std::vector<std::string>::const_iterator hi = heads.begin(); hi != heads.end(); hi++ )
+	{
+		if ( (toolbox::stl::cifind((*hi),"text/html") != std::string::npos ) 
+			&& (toolbox::stl::cifind((*hi),"content-type") != std::string::npos ) 
+			&&  ( toolbox::stl::cifind(out.str(), pattern) != std::string::npos ))
+        	{
+		#define QUOTE(str) #str
+		#define EXPAND_AND_QUOTE(str) QUOTE(str)
+		#define RELEASE EXPAND_AND_QUOTE(PACKAGE_RELEASE)
+
+		std::string release = RELEASE;
+		toolbox::TimeVal copyrightDate = toolbox::TimeVal::gettimeofday();
+		std::string home = this->getOwnerApplication()->getApplicationDescriptor()->getContextDescriptor()->getURL();
+                out << "<div style=\"height: 35px\"/> <div style=\"background: transparent; font: normal 13px Verdana,Arial,'Bitstream Vera Sans',Helvetica,sans-serif;bottom: 0;position: fixed;width: 100%;clear: both;color: #bbb;font-size: 10px;border-top: 1px solid;height: 35px;padding: .25em 0;\"  lang=\"en\" xml:lang=\"en\">";
+                out << "<hr style=\"display: none\"/>";
+                out << "<a style=\"border: 0; float: left;\" href=\"" << home << "\"  target=\"_blank\">";
+                out << "<img STYLE=\"position:relative; TOP:-15px; LEFT:0px; border: none;\" src=\"/pt/http/images/XDAQLogoPoweredNew.png\" alt=\"XDAQ Powered\"/></a>";
+                out << "<p style=\"background: transparent; margin: 0; float: left; margin-left: 1em; padding: 0 1em;border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;\">";
+                out << "Powered by <a style=\"color: #bbb;\" href=\"http://xdaq.web.cern.ch/\"  target=\"_blank\"><strong>XDAQ release n. " << release << "</strong></a> - Copyright &copy; " <<  copyrightDate.toString("%Y",toolbox::TimeVal::gmt) << " CERN<br/>";
+                out << "Designed by "; 
+		out <<  "<a href=\"mailto:Matthew.Bowen@cern.ch\">M. Bowen</a>";
+		out <<  " <a href=\"mailto:Luciano.Orsini@cern.ch\">L. B. Orsini</a>";
+		out <<  " <a href=\"mailto:Andrea.Petrucci@cern.ch\">A. Petrucci</a></p>";
+                out << "<p style=\"background: transparent; margin: 0;float: right; text-align: right; border: .25em 10; padding-right: 15px;\">Visit the CMS XDAQ source project at<br /><a style=\"color: #bbb;\" href=\"http://xdaq.web.cern.ch/\"  target=\"_blank\">http://xdaq.web.cern.ch/</a></p></div>";
+		break;
+
+        	}
+	}
+        //
+*/
+
 	// if there's something in the out stream, put the "Content-Length" header
 	size_t contentLength = 0;
 	if (out.tellp() != std::ostringstream::pos_type(std::ostringstream::off_type(-1)))
@@ -1245,12 +1328,40 @@ bool pt::http::ReceiverLoop::authenticateUser(xgi::Input * in, xgi::Output * out
 		cgicc::Cgicc cgi(in);
 
 		const cgicc::CgiEnvironment& env = cgi.getEnvironment();
-		std::string remoteuser = env.getRemoteUser();
 		std::string serversw = env.getServerSoftware();
 		std::string clientsw = env.getUserAgent();
 		std::string authtype = env.getAuthType();
 
-		if(remoteuser.empty()) 
+		std::string remoteuser = "";
+		std::string authdetails = "";
+
+		const std::vector<cgicc::HTTPCookie> & cookieList = env.getCookieList();
+		
+		// first check if cookie is valid
+		for ( std::vector<cgicc::HTTPCookie>::const_iterator iter = cookieList.begin() ; iter != cookieList.end() ; iter++)
+		{
+			if( (*iter).getName() == "xdaq-auth")
+			{
+				authdetails = (*iter).getValue();
+				// std::cout << "Received cookie value: " << authdetails << std::endl;
+				unsigned int decodedLength;
+				XMLCh* decoded = Base64::decode(xoap::XStr(authdetails), &decodedLength);
+				remoteuser = xoap::XMLCh2String(decoded);
+			}
+		}
+
+                if(remoteuser.empty() || !dynamic_cast<pt::HTAccessSecurityPolicy*>(policy)->checkAuth(remoteuser))
+		{
+			// cookie invalid, look if auth details have been specified
+			remoteuser = env.getRemoteUser();
+			unsigned int encodedLength;
+			XMLByte* encoded = Base64::encode((const XMLByte*)remoteuser.c_str(), remoteuser.length(), &encodedLength, NULL);
+			authdetails = xoap::XMLCh2String((const XMLCh*)encoded);
+		}
+
+		in->putenv("REMOTE_USER", remoteuser);
+
+		if(remoteuser.empty() || !dynamic_cast<pt::HTAccessSecurityPolicy*>(policy)->checkAuth(remoteuser)) 
 		{
 			//std::cout << "----> requesting authentication" << std::endl;
 			out->getHTTPResponseHeader().getStatusCode(401);
@@ -1285,46 +1396,17 @@ bool pt::http::ReceiverLoop::authenticateUser(xgi::Input * in, xgi::Output * out
 		}
 		else // check credentials
 		{
-			
-			//std::cout << "----> check credentials:" << remoteuser << std::endl;
-			bool authorized =  dynamic_cast<pt::HTAccessSecurityPolicy*>(policy)->checkAuth(remoteuser);
-			if ( ! authorized )
+			std::string hostname = toolbox::net::getDNSHostName(toolbox::net::getHostName());
+
+			std::string domainname = "";
+			std::string::size_type pos = hostname.find(".");
+			if(pos != std::string::npos)
 			{
-				//std::cout << "---->invalid credentials requesting authentication" << std::endl;
-				out->getHTTPResponseHeader().getStatusCode(401);
-				out->getHTTPResponseHeader().getReasonPhrase("Unauthorized");
-				out->getHTTPResponseHeader().addHeader("WWW-Authenticate", "Basic realm=\"cgicc\"");
-
-				// do not add html data: browsers should not display this anyway
-				//  they should request user/password from the user and re-emit
-				//  the same request, only with the authentification info added
-				//  to the request 
-				*out << cgicc::HTMLDoctype( cgicc::HTMLDoctype::eStrict) << std::endl;
-				*out << cgicc::html().set("lang", "EN").set("dir", "LTR") << std::endl;
-				*out << cgicc::head() << std::endl;
-
-				*out << cgicc::title("401 Authorization Required")  << std::endl;
-				*out << cgicc::head() << std::endl;
-				*out << cgicc::body() << std::endl;
-
-				*out << cgicc::h1("401 Authorization Required") << std::endl;
-				*out << cgicc::p() << "This server could not verify that you are "
-				<< "authorized to access the document requested. Either you "
-				<< "supplied the wrong credentials (e.g., bad password), or "
-				<< "your browser doesn't understand how to supply the "
-				<< "credentials required." << cgicc::p();
-				*out << cgicc::hr() << std::endl;
-				*out << cgicc::address() << "GNU cgicc \"server\" version " << cgi.getVersion()
-				<<  cgicc::address() << std::endl;
-				//std::cout << "---->invalid credentials requesting authentication end" << std::endl;
-				return false;
-
+				domainname = hostname.substr(pos);
 			}
-			else
-			{
-				return true;
-			}
-			
+
+			out->getHTTPResponseHeader().setCookie(cgicc::HTTPCookie("xdaq-auth", authdetails, "", domainname, 1800, "/", true));
+			return true;
 		}
 	}
 	catch(const std::exception& e) 

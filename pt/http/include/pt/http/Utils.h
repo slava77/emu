@@ -1,4 +1,4 @@
-// $Id: Utils.h,v 1.1 2010/01/30 15:53:06 banicz Exp $
+// $Id: Utils.h,v 1.2 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *

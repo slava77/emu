@@ -1,4 +1,4 @@
-// $Id: PeerTransportSender.cc,v 1.1 2010/01/30 15:53:19 banicz Exp $
+// $Id: PeerTransportSender.cc,v 1.2 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -39,7 +39,10 @@ pt::Messenger::Reference pt::http::PeerTransportSender::getMessenger (pt::Addres
 	if (((destination->getService()  == "soap")) && ((local->getService() == "soap")) &&
 		(destination->getProtocol()  == "http") && (local->getProtocol() == "http"))
 	{
-		if (destination->equals(local))
+		pt::http::Address & da = dynamic_cast<pt::http::Address &>(*destination);
+		pt::http::Address & la = dynamic_cast<pt::http::Address &>(*local);
+		if (( da.getHost() == la.getHost() ) && ( da.getPort() == la.getPort()) )
+//		if (destination->equals(local))
 		{
 			// create a local messenger
 			http::SOAPLoopbackMessenger* m = new http::SOAPLoopbackMessenger(logger_, destination, local);
