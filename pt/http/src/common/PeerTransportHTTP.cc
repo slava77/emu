@@ -1,4 +1,4 @@
-// $Id: PeerTransportHTTP.cc,v 1.1 2010/01/30 15:53:19 banicz Exp $
+// $Id: PeerTransportHTTP.cc,v 1.2 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -22,12 +22,13 @@ pt::http::PeerTransportHTTP::PeerTransportHTTP(xdaq::ApplicationStub * s)
 	getApplicationDescriptor()->setAttribute("icon","/pt/images/PeerTransport64x64.gif");
 	getApplicationDescriptor()->setAttribute("icons","/pt/images");
 	
-	getApplicationInfoSpace()->fireItemAvailable("aliasName",&aliasName_);
-	getApplicationInfoSpace()->fireItemAvailable("aliasPath",&aliasPath_);	
+	getApplicationInfoSpace()->fireItemAvailable("aliasName",&aliasName_); 
+	getApplicationInfoSpace()->fireItemAvailable("aliasPath",&aliasPath_);
+	getApplicationInfoSpace()->fireItemAvailable("aliases",&aliases_);
 	getApplicationInfoSpace()->fireItemAvailable("documentRoot", &documentRoot_);
 	
 	pts_ = new pt::http::PeerTransportSender(getApplicationLogger());
-	ptr_ = new pt::http::PeerTransportReceiver(getApplicationLogger(), getApplicationInfoSpace());
+	ptr_ = new pt::http::PeerTransportReceiver(this,getApplicationLogger(), getApplicationInfoSpace());
 	pt::PeerTransportAgent* pta = pt::getPeerTransportAgent();
 	pta->addPeerTransport(pts_);
 	pta->addPeerTransport(ptr_);	

@@ -1,4 +1,4 @@
-// $Id: PeerTransportReceiver.h,v 1.1 2010/01/30 15:53:06 banicz Exp $
+// $Id: PeerTransportReceiver.h,v 1.2 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -20,6 +20,7 @@
 #include "pt/exception/Exception.h"
 #include "pt/http/Address.h"
 #include "pt/http/ReceiverLoop.h"
+#include "xdaq/Object.h"
 
 
 #include "log4cplus/logger.h"
@@ -34,11 +35,11 @@ namespace http
 //! There is only one peer transport receiver. It has a number of ReceiverLoop
 //! objects, one per receiver port
 //
-class PeerTransportReceiver: public pt::PeerTransportReceiver
+class PeerTransportReceiver: public xdaq::Object, public pt::PeerTransportReceiver
 {
 	public:
 	
-	PeerTransportReceiver(Logger & logger, xdata::InfoSpace * is);
+	PeerTransportReceiver(xdaq::Application* owner, Logger & logger, xdata::InfoSpace * is);
 	~PeerTransportReceiver();
 	
 	pt::TransportType getType();

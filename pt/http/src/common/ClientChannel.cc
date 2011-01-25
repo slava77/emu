@@ -1,4 +1,4 @@
-// $Id: ClientChannel.cc,v 1.2 2010/05/18 14:08:07 banicz Exp $
+// $Id: ClientChannel.cc,v 1.3 2011/01/25 17:36:47 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -27,7 +27,7 @@
 #include "config/PackageInfo.h"
 
 /* Amount of seconds to wait after an HTTP request has be sent until a response byte is received */
-#define HTTP_RESPONSE_TIMEOUT_SEC 600
+#define HTTP_RESPONSE_TIMEOUT_SEC 30
 
 pt::http::ClientChannel::ClientChannel(pt::Address::Reference address) 
 	throw (pt::http::exception::Exception): http::Channel (address)
