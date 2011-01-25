@@ -1,4 +1,4 @@
-// $Id: SOAPMessenger.cc,v 1.2 2011/01/25 17:36:47 banicz Exp $
+// $Id: SOAPMessenger.cc,v 1.3 2011/01/25 18:32:18 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -21,9 +21,9 @@
 #include "xoap/exception/Exception.h"
 #include "pt/http/exception/Exception.h"
 
-pt::http::SOAPMessenger::SOAPMessenger(Logger & logger, pt::Address::Reference destination, pt::Address::Reference local) 
+pt::http::SOAPMessenger::SOAPMessenger(Logger & logger, pt::Address::Reference destination, pt::Address::Reference local, unsigned long httpResponseTimeoutSec) 
 throw (pt::http::exception::Exception ) :
-	logger_(logger)
+	logger_(logger), httpResponseTimeoutSec_(httpResponseTimeoutSec)
 {
 	// Check for address correct already done in PeerTRansportSender::getMessenger()
 	//
@@ -34,7 +34,7 @@ throw (pt::http::exception::Exception ) :
 	try 
 	{
 		//local_ = dynamic_cast<http::Address*>(local);
-		channel_ = new http::ClientChannel(destination_);
+	        channel_ = new http::ClientChannel(destination_, httpResponseTimeoutSec_);
 	}
 	catch (pt::http::exception::Exception & e )
 	{

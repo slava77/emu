@@ -1,4 +1,4 @@
-// $Id: Channel.h,v 1.2 2011/01/25 17:36:47 banicz Exp $
+// $Id: Channel.h,v 1.3 2011/01/25 18:32:18 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -74,7 +74,7 @@ class ClientChannel: public Channel
 {
 	public:
 	
-	ClientChannel(pt::Address::Reference address) throw (pt::http::exception::Exception);
+	ClientChannel(pt::Address::Reference address, unsigned long httpResponseTimeoutSec) throw (pt::http::exception::Exception);
 	
 	//! connect channel according configuration
 	void connect() throw (pt::http::exception::Exception);
@@ -97,6 +97,7 @@ class ClientChannel: public Channel
 	private:
 	
 		bool connected_;
+                unsigned long httpResponseTimeoutSec_;
 };
 }
 

@@ -1,4 +1,4 @@
-// $Id: SOAPMessenger.h,v 1.2 2011/01/25 17:36:47 banicz Exp $
+// $Id: SOAPMessenger.h,v 1.3 2011/01/25 18:32:18 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -33,7 +33,7 @@ namespace http
 	{
 		public:
 			
-			SOAPMessenger(Logger & logger, pt::Address::Reference destination, pt::Address::Reference local)
+			SOAPMessenger(Logger & logger, pt::Address::Reference destination, pt::Address::Reference local, unsigned long httpResponseTimeoutSec)
 			    throw (pt::http::exception::Exception);
 			
 			//! Destructor only deletes channel object
@@ -51,6 +51,7 @@ namespace http
 			pt::Address::Reference local_;
 			pt::Address::Reference destination_;
 			Logger logger_;
+                        unsigned long httpResponseTimeoutSec_;
 	};
 
 }

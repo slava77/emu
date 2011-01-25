@@ -1,4 +1,4 @@
-// $Id: PeerTransportHTTP.h,v 1.2 2011/01/25 17:36:47 banicz Exp $
+// $Id: PeerTransportHTTP.h,v 1.3 2011/01/25 18:32:18 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -18,6 +18,7 @@
 #include "pt/http/PeerTransportSender.h"
 #include "pt/http/PeerTransportReceiver.h"
 #include "xdata/String.h"
+#include "xdata/UnsignedLong.h"
 
 namespace pt
 {
@@ -47,6 +48,7 @@ class PeerTransportHTTP: public xdaq::Application
 	xdata::String documentRoot_;
 	xdata::String aliasName_;
 	xdata::String aliasPath_;
+        xdata::UnsignedLong httpResponseTimeoutSec_;
 
 };
 }
