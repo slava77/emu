@@ -106,7 +106,28 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
 
     fsm_.setFailedStateTransitionChanged(this, &emu::daq::manager::Application::stateChanged);
 
-    fsm_.setInitialState('H');
+    // Set the inital state according to the combined state of the DAQ (useful if DAQ Manager crashes and is restarted)
+    char initialState = 'H';
+    try{
+      queryAppStates();
+      string combinedState = currentAppStates_.getCombinedState();
+
+      stringstream ss;
+      ss << "Current state of the DAQ is " << combinedState;
+      cout << ss.str() << endl << flush;
+      LOG4CPLUS_INFO( getApplicationLogger(), ss.str() );
+
+      if      ( combinedState == "Ready"   ) initialState = 'C';
+      else if ( combinedState == "Enabled" ) initialState = 'E';
+    }
+    catch(xcept::Exception& e){
+      stringstream ss;
+      ss << "Failed to query the DAQ state. The DAQ Manager's state will be 'Halted' at its construction." << xcept::stdformat_exception_history(e);
+      LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+      XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+      this->notifyQualified( "warning", eObj );      
+    }
+    fsm_.setInitialState( initialState );
     fsm_.reset();
 
     inFSMTransition_ = false;
@@ -123,9 +144,9 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
     } catch(xcept::Exception& e){
       stringstream ss;
       ss << "Failed to create " << timerName << " , therefore no scheduled check of state of DAQ applications will be done: " << xcept::stdformat_exception_history(e);
-      LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() );
+      LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
       XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
-      this->notifyQualified( "error", eObj );
+      this->notifyQualified( "warning", eObj );
     }
 
     LOG4CPLUS_INFO(logger_, "End of constructor");
