@@ -2201,7 +2201,7 @@ void emu::daq::rui::Application::createFileWriters(){
 	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
 							 isBookedRunNumber_.value_,
 							 runStartTime_, 
-							 runType_ );
+							 ( writeBadEventsOnly_.value_ ? "BadEvents" : runType_ ) );
 	  }
 	  catch(string e){
 	    LOG4CPLUS_FATAL( logger_, e );
@@ -2268,7 +2268,6 @@ void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, 
 	// (isBadEvent_ can only be set TRUE once the trailer has been read in, i.e., the event is complete.)
 	// Get the bad event and its preceeding events and write them to file as the leading context:
 	list<const emu::daq::rui::EventBuffer*> ebl( eventBufferRing_.getEventBuffers() );
-	int countToBadEvent = ebl.size();
 	for ( list<const emu::daq::rui::EventBuffer*>::const_iterator i=ebl.begin(); i!=ebl.end(); ++i ){
 	  writeDataToFile( (*i)->getEvent(), (int) (*i)->getEventSize(), true );
 	  //LOG4CPLUS_WARN(logger_, "Writing bad event leading context, event -" << --countToBadEvent );
