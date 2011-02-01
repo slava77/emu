@@ -1,9 +1,7 @@
 #ifndef DcsDimStructures_h
 #define DcsDimStructures_h
 
-// adapted from Valeri Sytnik's e2p program
-
-// status bit pattern (Aug. 2010):
+// status bit pattern (Jan. 2011):
 //   bit 0 (value   1):  misc. errors
 //       1 (value   2):  chamber power off from Configuration DB
 //       2 (value   4):  data corrupted (in infospace or during transimission)
@@ -13,6 +11,8 @@
 //       6 (value  64):  this DMB module caused VCC reading trouble
 //       7 (value 128):  TMB Reading error
 //       8 (value 256):  this TMB module caused VCC reading trouble                                                                                        
+//       9 (value 512):  chamber lost Analog power
+//      10 (val  1024):  chamber lost Digital power
 
 #define CFEB_NUMBER 5
 
