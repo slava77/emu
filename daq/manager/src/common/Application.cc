@@ -95,12 +95,12 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
     fsm_.addState('E', "Enabled",    this, &emu::daq::manager::Application::stateChanged);
     
     fsm_.addStateTransition('H', 'C', "Configure", this, &emu::daq::manager::Application::configureAction);
-    fsm_.addStateTransition('C', 'C', "Configure", this, &emu::daq::manager::Application::reConfigureAction);
+    fsm_.addStateTransition('C', 'C', "Configure", this, &emu::daq::manager::Application::noAction);
     fsm_.addStateTransition('C', 'E', "Enable",    this, &emu::daq::manager::Application::enableAction);
     fsm_.addStateTransition('E', 'C', "Disable",   this, &emu::daq::manager::Application::noAction);
     fsm_.addStateTransition('C', 'H', "Halt",      this, &emu::daq::manager::Application::haltAction);
     fsm_.addStateTransition('E', 'H', "Halt",      this, &emu::daq::manager::Application::haltAction);
-    
+    fsm_.addStateTransition('H', 'E', "Enable",    this, &emu::daq::manager::Application::noAction);    
     fsm_.addStateTransition('H', 'H', "Halt",      this, &emu::daq::manager::Application::noAction);
     fsm_.addStateTransition('E', 'E', "Enable",    this, &emu::daq::manager::Application::noAction);
 
@@ -4909,15 +4909,14 @@ void emu::daq::manager::Application::noAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
   // Inaction...
-  LOG4CPLUS_WARN(getApplicationLogger(), e->type() 
-		 << " attempted when already " 
-		 << fsm_.getStateName(fsm_.getCurrentState()));
-  //   stringstream ss83;
-  //   ss83 << e->type() 
-  //        << " attempted when already " 
-  //        << fsm_.getStateName(fsm_.getCurrentState());
-  //   XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss83.str() );
-  //   this->notifyQualified( "warning", eObj );
+  stringstream ss;
+  ss << e->type() 
+     << " attempted when in " 
+     << fsm_.getStateName(fsm_.getCurrentState())
+     << " state.";
+  LOG4CPLUS_WARN(getApplicationLogger(), ss.str() );
+  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss.str() );
+  this->notifyQualified( "warning", eObj );
 }
 
 void emu::daq::manager::Application::resetAction()
