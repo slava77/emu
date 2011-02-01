@@ -981,9 +981,18 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     }
     
     try {
+      if (state_table_.getState("emu::daq::manager::Application", 0) == "Halted" &&
+        isDAQManagerControlled("Configure")                                        ) {
+	m.setParameters( "emu::daq::manager::Application", emu::soap::Parameters().add( "maxNumberOfEvents", &nevents_ ) );
+	m.sendCommand( "emu::daq::manager::Application", 0, "Configure" );
+	if ( isCommandFromWeb_ ) waitForDAQToExecute("Configure", 60, true);
+	else                     waitForDAQToExecute("Configure", 2);
+      }
       if ( isDAQManagerControlled("Enable") ) {
 	m.setParameters( "emu::daq::manager::Application", emu::soap::Parameters().add( "runNumber", &run_number_ ) );
 	m.sendCommand( "emu::daq::manager::Application", 0, "Enable" );
+	if ( isCommandFromWeb_ ) waitForDAQToExecute("Enable", 60, true);
+	else                     waitForDAQToExecute("Enable", 2);
       }
     } catch (xcept::Exception ignored) {}
     
@@ -1057,6 +1066,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     try {
       if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
       if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
+      else                     waitForDAQToExecute("Halt", 3);
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
 
@@ -1124,6 +1134,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     try {
       if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
       if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
+      else                     waitForDAQToExecute("Halt", 3);
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
 
@@ -1602,11 +1613,16 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
   xdata::Boolean supervisedMode;
   xdata::Boolean configuredInSupervisedMode;
   xdata::String  daqState;
-  m.getParameters( "emu::daq::manager::Application", 0,
-		   emu::soap::Parameters()
-		   .add( "supervisedMode"            , &supervisedMode             )
-		   .add( "configuredInSupervisedMode", &configuredInSupervisedMode )
-		   .add( "daqState"                  , &daqState                   ) );
+  try {
+    m.getParameters( "emu::daq::manager::Application", 0,
+		     emu::soap::Parameters()
+		     .add( "supervisedMode"            , &supervisedMode             )
+		     .add( "configuredInSupervisedMode", &configuredInSupervisedMode )
+		     .add( "daqState"                  , &daqState                   ) );
+  }
+  catch (xcept::Exception &ignored){
+    return false;
+  }
 
   // No point in sending any command when DAQ is in an irregular state (failed, indefinite, ...)
   if ( daqState.toString() != "Halted"  && daqState.toString() != "Ready" && 
