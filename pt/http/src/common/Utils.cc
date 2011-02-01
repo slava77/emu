@@ -1,4 +1,4 @@
-// $Id: Utils.cc,v 1.4 2011/01/25 18:32:19 banicz Exp $
+// $Id: Utils.cc,v 1.5 2011/02/01 12:08:00 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -530,8 +530,7 @@ char * pt::http::Utils::receiveFrom(pt::http::Channel * in, size_t * size, std::
 
 	//std::cout << "======= HTTP code: " << code << " =======" << std::endl; std::cout.flush();
 
-// 	if(code==200 || code==202) 
-	if(code==200 || code==202 || code==500) 
+	if(code==200 || code==202) 
 	{
 		return buffer;
 	}
