@@ -825,7 +825,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       state_table_.refresh();
       if (state_table_.getState("emu::daq::manager::Application", 0) != "Halted") {
 	if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
-	waitForDAQToExecute("Halt", 10, true);
+	waitForDAQToExecute("Halt", 10);
       }
        
       if (state_table_.getState("TTCciControl", 0) != "Halted") {
@@ -924,8 +924,6 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 		else
 		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalCFEB");
     }   
-    // If necessary, wait a bit for DAQ to finish configuring
-    waitForDAQToExecute("Configure", 10, true);
 
     state_table_.refresh();
     if (!state_table_.isValidState("Configured")) {
@@ -983,17 +981,9 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     }
     
     try {
-      if (state_table_.getState("emu::daq::manager::Application", 0) == "Halted" &&
-	  isDAQManagerControlled("Configure")                                        ) {
-	m.setParameters( "emu::daq::manager::Application", emu::soap::Parameters().add( "maxNumberOfEvents", &nevents_ ) );
-	m.sendCommand( "emu::daq::manager::Application", 0, "Configure" );
-	waitForDAQToExecute("Configure", 10, true);
-      }
-      
       if ( isDAQManagerControlled("Enable") ) {
 	m.setParameters( "emu::daq::manager::Application", emu::soap::Parameters().add( "runNumber", &run_number_ ) );
 	m.sendCommand( "emu::daq::manager::Application", 0, "Enable" );
-	waitForDAQToExecute("Enable", 10, true);
       }
     } catch (xcept::Exception ignored) {}
     
@@ -1063,13 +1053,13 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
       m.sendCommand( "TTCciControl", "Halt" );
       cout << "    Halt TTCciControl: " << sw.read() << endl;
     }
-    
+        
     try {
       if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
       if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
-    
+
     m.sendCommand( "emu::fed::Manager", "Disable" );
     cout << "    Disable emu::fed::Manager: " << sw.read() << endl;
     m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Disable" );
