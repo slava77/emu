@@ -1,4 +1,4 @@
-// $Id: PeerTransportSender.cc,v 1.4 2011/02/02 12:52:30 banicz Exp $
+// $Id: PeerTransportSender.cc,v 1.5 2011/02/02 23:09:38 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -21,7 +21,7 @@ pt::http::PeerTransportSender::PeerTransportSender(Logger & logger, xdata::Unsig
 {
 	sync_  = new toolbox::BSem(toolbox::BSem::EMPTY);
 	mutex_ = new toolbox::BSem(toolbox::BSem::FULL);
-	std::cout << "pt::http::PeerTransportSender::PeerTransportSender httpResponseTimeoutSec_ = " << (unsigned long)(*httpResponseTimeoutSec_) << std::endl << std::flush;
+	//std::cout << "pt::http::PeerTransportSender::PeerTransportSender httpResponseTimeoutSec_ = " << (unsigned long)(*httpResponseTimeoutSec_) << std::endl << std::flush;
 }
 
 pt::http::PeerTransportSender::~PeerTransportSender()
