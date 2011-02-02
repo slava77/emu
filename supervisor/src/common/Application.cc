@@ -1,7 +1,7 @@
 // Application.cc
 
 #include "emu/supervisor/Application.h"
-#include "emu/supervisor/StopWatch.h"
+#include "emu/base/Stopwatch.h"
 
 #include <sstream>
 #include <set>
@@ -1041,7 +1041,8 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
   emu::soap::Messenger m( this );
 
   try {
-    StopWatch sw;
+    emu::base::Stopwatch sw;
+    sw.start();
     state_table_.refresh();
     cout << "Timing in stopAction: " << endl
 	 << "    state table: " << state_table_
@@ -1100,7 +1101,8 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
   emu::soap::Messenger m( this );
 
   try {
-    StopWatch sw;
+    emu::base::Stopwatch sw;
+    sw.start();
     state_table_.refresh();
     cout << "Timing in haltAction: " << endl
 	 << "    state table: " << state_table_
