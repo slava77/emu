@@ -1,4 +1,4 @@
-// $Id: version.h,v 1.8 2011/01/25 18:32:18 banicz Exp $
+// $Id: version.h,v 1.9 2011/02/02 12:54:43 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -23,7 +23,7 @@
 // #define PTHTTP_VERSION_MINOR 12
 // #define PTHTTP_VERSION_PATCH 2
 #define EMUPTHTTP_VERSION_MAJOR 2
-#define EMUPTHTTP_VERSION_MINOR 0
+#define EMUPTHTTP_VERSION_MINOR 1
 #define EMUPTHTTP_VERSION_PATCH 0
 // If any previous versions available E.g. #define EMUPTHTTP_PREVIOUS_VERSIONS "3.8.0,3.8.1"
 #undef EMUPTHTTP_PREVIOUS_VERSIONS
