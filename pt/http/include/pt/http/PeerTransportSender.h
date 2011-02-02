@@ -1,4 +1,4 @@
-// $Id: PeerTransportSender.h,v 1.3 2011/01/25 18:32:18 banicz Exp $
+// $Id: PeerTransportSender.h,v 1.4 2011/02/02 12:52:30 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -34,7 +34,7 @@ class PeerTransportSender: public pt::PeerTransportSender
 {
 	public:
 	
-        PeerTransportSender(Logger & logger, unsigned long httpResponseTimeoutSec);
+        PeerTransportSender(Logger & logger, xdata::UnsignedLong* httpResponseTimeoutSec);
 	
 	virtual ~PeerTransportSender();
 	
@@ -60,7 +60,7 @@ class PeerTransportSender: public pt::PeerTransportSender
  	toolbox::BSem * sync_;
 	toolbox::BSem * mutex_;
 	Logger logger_;
-        unsigned long httpResponseTimeoutSec_;
+        xdata::UnsignedLong* httpResponseTimeoutSec_;
 };
 
 }

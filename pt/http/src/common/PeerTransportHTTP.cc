@@ -1,4 +1,4 @@
-// $Id: PeerTransportHTTP.cc,v 1.3 2011/01/25 18:32:18 banicz Exp $
+// $Id: PeerTransportHTTP.cc,v 1.4 2011/02/02 12:52:30 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -28,7 +28,7 @@ pt::http::PeerTransportHTTP::PeerTransportHTTP(xdaq::ApplicationStub * s)
 	getApplicationInfoSpace()->fireItemAvailable("documentRoot", &documentRoot_);
 	getApplicationInfoSpace()->fireItemAvailable("httpResponseTimeoutSec", &httpResponseTimeoutSec_);
 	
-	pts_ = new pt::http::PeerTransportSender(getApplicationLogger(), (unsigned long)(httpResponseTimeoutSec_) );
+	pts_ = new pt::http::PeerTransportSender(getApplicationLogger(), &httpResponseTimeoutSec_ );
 	ptr_ = new pt::http::PeerTransportReceiver(this,getApplicationLogger(), getApplicationInfoSpace());
 	pt::PeerTransportAgent* pta = pt::getPeerTransportAgent();
 	pta->addPeerTransport(pts_);
