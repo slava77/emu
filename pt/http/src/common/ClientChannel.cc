@@ -1,4 +1,4 @@
-// $Id: ClientChannel.cc,v 1.4 2011/01/25 18:32:18 banicz Exp $
+// $Id: ClientChannel.cc,v 1.5 2011/02/02 12:52:30 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -29,10 +29,11 @@
 /* Amount of seconds to wait after an HTTP request has be sent until a response byte is received */
 #define HTTP_RESPONSE_TIMEOUT_SEC 30
 
-pt::http::ClientChannel::ClientChannel(pt::Address::Reference address, unsigned long httpResponseTimeoutSec) 
-	throw (pt::http::exception::Exception): http::Channel (address), httpResponseTimeoutSec_(httpResponseTimeoutSec)
+pt::http::ClientChannel::ClientChannel(pt::Address::Reference address, xdata::UnsignedLong* httpResponseTimeoutSec) 
+  throw (pt::http::exception::Exception): http::Channel (address, httpResponseTimeoutSec)
 {
 	connected_ = false;
+	std::cout << "pt::http::ClientChannel::ClientChannel httpResponseTimeoutSec_ = " << (unsigned long)(*httpResponseTimeoutSec_) << std::endl << std::flush;
 }
 
 bool pt::http::ClientChannel::isConnected()  throw (pt::http::exception::Exception)
@@ -66,9 +67,11 @@ void pt::http::ClientChannel::connect()  throw (pt::http::exception::Exception)
 			//
 			struct timeval tv;
 			//tv.tv_sec = HTTP_RESPONSE_TIMEOUT_SEC;
-			tv.tv_sec = httpResponseTimeoutSec_;
+			tv.tv_sec = (unsigned long)(*httpResponseTimeoutSec_);
 			tv.tv_usec = 0;
 			
+			std::cout << "pt::http::ClientChannel::connect recreating socket with tv.tv_sec = " << tv.tv_sec << std::endl << std::flush;
+
 			if (setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0)
   			{
 				XCEPT_RAISE (pt::http::exception::Exception, strerror(errno));
@@ -97,6 +100,7 @@ void pt::http::ClientChannel::connect()  throw (pt::http::exception::Exception)
 			XCEPT_RAISE (pt::http::exception::Exception, strerror(errno));
 		}
 		connected_ = true;
+		std::cout << "pt::http::ClientChannel::connect successfully connected" << std::endl << std::flush;
 	}	
 }
 	

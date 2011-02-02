@@ -1,4 +1,4 @@
-// $Id: Channel.cc,v 1.2 2011/01/25 17:36:47 banicz Exp $
+// $Id: Channel.cc,v 1.3 2011/02/02 12:52:30 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -26,7 +26,7 @@
 #include <netdb.h>
 #include "config/PackageInfo.h"
 
-pt::http::Channel::Channel(pt::Address::Reference address) throw (pt::http::exception::Exception): mutex_(toolbox::BSem::FULL)
+pt::http::Channel::Channel(pt::Address::Reference address, xdata::UnsignedLong* httpResponseTimeoutSec) throw (pt::http::exception::Exception): mutex_(toolbox::BSem::FULL), httpResponseTimeoutSec_(httpResponseTimeoutSec)
 {	
 	http::Address& a = dynamic_cast<http::Address&>(*address);
 		
@@ -54,6 +54,22 @@ pt::http::Channel::Channel(pt::Address::Reference address) throw (pt::http::exce
 		XCEPT_RAISE (pt::http::exception::Exception, strerror(errno));
   	}
 	
+	// Send and receive timeouts to avoid endless blocking in case of pathologic errors, hard to 5 seconds
+	//
+	// Set timeout. For ReceiverLoop, it shouldn't be set, therefore it constructs pt::http::Channel with no timeout.
+	if ( httpResponseTimeoutSec_ ){
+	  struct timeval tv;
+	  tv.tv_sec = (unsigned long)(*httpResponseTimeoutSec_);
+	  tv.tv_usec = 0;
+	  std::cout << "pt::http::ClientChannel::connect creating socket with tv.tv_sec = " << tv.tv_sec << std::endl << std::flush;
+	  
+	  if (setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0)
+	    {
+	      XCEPT_RAISE (pt::http::exception::Exception, strerror(errno));
+	    }
+	}			
+
+
 #if OS_VERSION_CODE < OS_VERSION(2,6,0)
 #warning "Linux Kernel version smaller than 2.6, using TCP_NODELAY flag for HTTP communication"
 

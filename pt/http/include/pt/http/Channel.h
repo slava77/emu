@@ -1,4 +1,4 @@
-// $Id: Channel.h,v 1.3 2011/01/25 18:32:18 banicz Exp $
+// $Id: Channel.h,v 1.4 2011/02/02 12:52:30 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -20,6 +20,8 @@
 
 #include "toolbox/BSem.h"
 
+#include "xdata/UnsignedLong.h"
+
 namespace pt
 {
 namespace http
@@ -29,7 +31,7 @@ class Channel
 {
 	public:
 	
-	Channel(pt::Address::Reference address) throw (pt::http::exception::Exception);
+	Channel(pt::Address::Reference address, xdata::UnsignedLong* httpResponseTimeoutSec=NULL) throw (pt::http::exception::Exception);
 		
 	virtual ~Channel();
 	
@@ -65,6 +67,7 @@ class Channel
 	socklen_t sockaddressSize_;
 	int socket_;
 	toolbox::BSem mutex_;
+        xdata::UnsignedLong* httpResponseTimeoutSec_;
 	
 	
 };
@@ -74,7 +77,7 @@ class ClientChannel: public Channel
 {
 	public:
 	
-	ClientChannel(pt::Address::Reference address, unsigned long httpResponseTimeoutSec) throw (pt::http::exception::Exception);
+	ClientChannel(pt::Address::Reference address, xdata::UnsignedLong* httpResponseTimeoutSec) throw (pt::http::exception::Exception);
 	
 	//! connect channel according configuration
 	void connect() throw (pt::http::exception::Exception);
@@ -97,7 +100,6 @@ class ClientChannel: public Channel
 	private:
 	
 		bool connected_;
-                unsigned long httpResponseTimeoutSec_;
 };
 }
 
