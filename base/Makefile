@@ -28,6 +28,7 @@ Sources = \
 	FactFinder.cc \
 	Component.cc \
 	ApplicationStatusFact.cc \
+	Stopwatch.cc \
 	version.cc
 
 IncludeDirs = \
