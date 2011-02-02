@@ -1,4 +1,4 @@
-// $Id: Channel.cc,v 1.3 2011/02/02 12:52:30 banicz Exp $
+// $Id: Channel.cc,v 1.4 2011/02/02 23:09:38 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -61,7 +61,7 @@ pt::http::Channel::Channel(pt::Address::Reference address, xdata::UnsignedLong* 
 	  struct timeval tv;
 	  tv.tv_sec = (unsigned long)(*httpResponseTimeoutSec_);
 	  tv.tv_usec = 0;
-	  std::cout << "pt::http::ClientChannel::connect creating socket with tv.tv_sec = " << tv.tv_sec << std::endl << std::flush;
+	  //std::cout << "pt::http::ClientChannel::connect creating socket with tv.tv_sec = " << tv.tv_sec << std::endl << std::flush;
 	  
 	  if (setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0)
 	    {

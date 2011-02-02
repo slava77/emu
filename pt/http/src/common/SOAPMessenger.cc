@@ -1,4 +1,4 @@
-// $Id: SOAPMessenger.cc,v 1.4 2011/02/02 12:52:30 banicz Exp $
+// $Id: SOAPMessenger.cc,v 1.5 2011/02/02 23:09:38 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -25,7 +25,7 @@ pt::http::SOAPMessenger::SOAPMessenger(Logger & logger, pt::Address::Reference d
 throw (pt::http::exception::Exception ) :
 	logger_(logger), httpResponseTimeoutSec_(httpResponseTimeoutSec)
 {
-  std::cout << "pt::http::SOAPMessenger::SOAPMessenger httpResponseTimeoutSec_ = " << (unsigned long)(*httpResponseTimeoutSec_) << std::endl << std::flush;
+        //std::cout << "pt::http::SOAPMessenger::SOAPMessenger httpResponseTimeoutSec_ = " << (unsigned long)(*httpResponseTimeoutSec_) << std::endl << std::flush;
 
 	// Check for address correct already done in PeerTRansportSender::getMessenger()
 	//
