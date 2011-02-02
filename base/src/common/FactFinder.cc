@@ -47,7 +47,9 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
     factFinderBSem_( toolbox::BSem::FULL ),
     source_( source ),
     maxQueueLength_( 1000 ),
-    targetDescriptor_( NULL ){
+    targetDescriptor_( NULL ),
+    stopwatch_( new emu::base::Stopwatch() ),
+    moratoriumAfterTimeout_( 60 ){
   xoap::bind( this, &emu::base::FactFinder::onFactRequest, "factRequestCollection",  ESD_NS_URI );
 
   expertSystemURL_         = "";//"http://emuslice12:8080/FactCollectionInputService/FactCollectionInput";
@@ -207,7 +209,7 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
     xoap::SOAPElement exSysOperationElement = body.addBodyElement( exSysOperationName );
     xoap::SOAPElement collectionElement = exSysOperationElement.addChildElement( factCollectionName );
     // string logLevel = getApplicationContext()->getLogLevel();
-    if ( isFactFinderInDebugMode_.value_ ){
+    if ( false ){// TODO: redo after test: ( isFactFinderInDebugMode_.value_ ){
       // Add the optional serviceInstructions element in order to use strict service with synchronous connection for debugging.
       xoap::SOAPName serverInstructionsName = envelope.createName("serviceInstructions", "service", ESIS_NS_URI);
       xoap::SOAPName asyncAttributeName   = envelope.createName("async"  , "", "");
@@ -351,16 +353,29 @@ emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
     isToBeResubmitted |= ( factRequestCollections_.size() > 0 );
   }
 
-  // Send facts (one at a time)
+  bool isMoratoriumImposed = false;
+
+  // Send facts (one at a time).
   if ( factsToSend_.size() ){
-    if ( isFactFinderInDebugMode_.value_ ) cout << "   Sending fact:" << endl << factsToSend_.front();
-    bool isSent = sendFactsInSOAP( factsToSend_.front() );
-    if ( isSent ) factsToSend_.pop_front(); // delete it only if it's been sent
+    // Check if a SOAP timeout has occurred recently. If so, skip sending this time. The moratorium on sending is moratoriumAfterTimeout_ seconds long.
+    if ( stopwatch_->read() > moratoriumAfterTimeout_ ){
+      if ( isFactFinderInDebugMode_.value_ ) cout << "   Sending fact:" << endl << factsToSend_.front();
+      bool isSent = sendFactsInSOAP( factsToSend_.front() );
+      if ( isSent ) factsToSend_.pop_front(); // delete it only if it's been sent
+    }
+    else{
+      isMoratoriumImposed = true;
+    }
     isToBeResubmitted |= ( factsToSend_.size() > 0 );
-    isToBeResubmitted &= isSent; // try on next sendFacts if sending failed now
   }
 
   factFinderBSem_.give();
+
+  // If a moratorium is being imposed, wait a bit before resubmitting.
+  if ( isMoratoriumImposed ){
+    LOG4CPLUS_WARN( getApplicationLogger(), "A " << moratoriumAfterTimeout_ << "s moratorium was started on sending further facts following a SOAP timeout " << stopwatch_->read() << "s ago." );
+    ::sleep( 10 );
+  }
 
   if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInWorkLoop ***" << endl;
   return isToBeResubmitted;
@@ -391,9 +406,7 @@ emu::base::FactFinder::sendFactsInSOAP( const emu::base::FactCollection& facts )
     xoap::MessageReference msg = createFactsSOAP( facts );
 
     //xoap::MessageReference reply = getApplicationContext()->postSOAP( msg, *getApplicationDescriptor(), *targetDescriptor_ );
-    //xoap::MessageReference reply = postSOAP( msg, "http://emuslice12:9080/cdw/getparametercollection", "cdw/getParameterCollection" );
     xoap::MessageReference reply = postSOAP( msg, expertSystemURL_, "" );
-    //xoap::MessageReference reply = postSOAP( msg, "http://localhost:7000/FactCollectionInputService/FactCollectionInput", "FactCollectionInputService/FactCollectionInput" );
 
     if ( isFactFinderInDebugMode_.value_ ) { cout << "SOAP reply received:" << endl; reply->writeTo( cout ); cout << endl; cout.flush(); }
 
@@ -419,6 +432,7 @@ emu::base::FactFinder::sendFactsInSOAP( const emu::base::FactCollection& facts )
 //       }
       XCEPT_RAISE(xcept::Exception, ss.str());
     }
+    if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInSOAP ***" << endl << flush;
     return true; // sending successful
   } catch(xcept::Exception& e){
     stringstream ss;
@@ -439,7 +453,7 @@ emu::base::FactFinder::sendFactsInSOAP( const emu::base::FactCollection& facts )
     XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
     this->notifyQualified( "warning", eObj );
   }
-  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInSOAP ***" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInSOAP ***" << endl << flush;
   return false; // failed to send
 }
 
@@ -571,6 +585,8 @@ emu::base::FactFinder::postSOAP( xoap::MessageReference message,
 	}
       catch (pt::exception::Exception& pte)
 	{
+	  // We land here if the connection times out. Start the stopwatch to time a moratorium on sending.
+	  stopwatch_->start();
 	  XCEPT_RETHROW (xcept::Exception, "Failed to post SOAP message", pte);
 	}
       catch(std::exception& se)
