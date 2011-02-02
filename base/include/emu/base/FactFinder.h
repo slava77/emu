@@ -3,6 +3,7 @@
 
 #include "emu/base/FactRequest.h"
 #include "emu/base/FactCollection.h"
+#include "emu/base/Stopwatch.h"
 
 #include "xdaq/WebApplication.h"
 
@@ -50,8 +51,8 @@ namespace emu { namespace base {
       throw (xoap::exception::Exception);
   
   protected:
-    xdata::String  expertSystemURL_;
-    xdata::Boolean isFactFinderInDebugMode_;
+    xdata::String  expertSystemURL_; ///< The URL of the expert system. Exported infospace parameter.
+    xdata::Boolean isFactFinderInDebugMode_; ///< If TRUE, debug messages are printed to stdout, and the expert system replies synchronously and doesn't store the facts. Exported infospace parameter.
 
     toolbox::task::WorkLoop *factWorkLoop_;
     toolbox::task::ActionSignature *factRequestSignature_;
@@ -62,8 +63,8 @@ namespace emu { namespace base {
     void sendFact( const emu::base::Component& component, const string& factType );
     pair<time_t,string> getLocalDateTime();
   
-    virtual emu::base::Fact           findFact ( const emu::base::Component& component, const string& factType ) = 0;
-    virtual emu::base::FactCollection findFacts() = 0;
+    virtual emu::base::Fact           findFact ( const emu::base::Component& component, const string& factType ) = 0; ///< Find a fact specified by component and type. To be implemented by the derived class.
+    virtual emu::base::FactCollection findFacts() = 0; ///< Find all facts. To be implemented by the derived class.
 
   private:
     void                              timeExpired(toolbox::task::TimerEvent& e);
@@ -77,12 +78,14 @@ namespace emu { namespace base {
     string                            getSOAPFaultCode( xoap::SOAPFault soapFault );
     void                              findTargetDescriptor();
 
-    toolbox::BSem                            factFinderBSem_;
-    emu::base::FactCollection::Source_t      source_;    
-    unsigned int                             maxQueueLength_;
-    deque<emu::base::FactRequestCollection>  factRequestCollections_;
-    deque<emu::base::FactCollection>         factsToSend_;
-    xdaq::ApplicationDescriptor             *targetDescriptor_;
+    toolbox::BSem                            factFinderBSem_; ///< Mutex for access to member containers factRequestCollections_ and factsToSend_
+    emu::base::FactCollection::Source_t      source_; ///< Source type of the derived application.
+    unsigned int                             maxQueueLength_; ///< Let at most this many fact requests or facts accumulate.
+    deque<emu::base::FactRequestCollection>  factRequestCollections_; ///< The container of fact requests received.
+    deque<emu::base::FactCollection>         factsToSend_; ///< The container of facts to send.
+    xdaq::ApplicationDescriptor             *targetDescriptor_;	///< The app descriptor of the expert system.
+    emu::base::Stopwatch                    *stopwatch_; ///< A stopwatch to time the moratirium on sending following a SOAP timeout.
+    time_t                                   moratoriumAfterTimeout_; ///< The moratoriumin seconds on sending further facts following a SOAP timeout.
   };
 
 }} // namespace emu::base
