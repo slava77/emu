@@ -45,8 +45,28 @@ namespace emu { namespace base {
   public:
     XDAQ_INSTANTIATOR();
 
+    /// 
+    /// Ctor.
+    /// @param stub XDAQ application stub.
+    /// @param source Source type of the application.
+    /// @param periodInSec Period in seconds of regular scheduled fact finding. If 0, no periodic fact finding will be scheduled.
+    ///
+    /// @return 
+    ///
     FactFinder( xdaq::ApplicationStub *stub, emu::base::FactCollection::Source_t source, int periodInSec=0 )
       throw (xcept::Exception);
+
+    /// 
+    /// Dtor.
+    ///
+    ~FactFinder();
+
+    /// 
+    /// Callback on receiving fact request SOAP.
+    /// @param message SOAP to send.
+    ///
+    /// @return SOAP reply. 
+    ///
     xoap::MessageReference onFactRequest( xoap::MessageReference message )
       throw (xoap::exception::Exception);
   
@@ -86,6 +106,7 @@ namespace emu { namespace base {
     xdaq::ApplicationDescriptor             *targetDescriptor_;	///< The app descriptor of the expert system.
     emu::base::Stopwatch                    *stopwatch_; ///< A stopwatch to time the moratirium on sending following a SOAP timeout.
     time_t                                   moratoriumAfterTimeout_; ///< The moratoriumin seconds on sending further facts following a SOAP timeout.
+    bool                                     isDisabled_; ///< If TRUE, sending facts is diabled.
   };
 
 }} // namespace emu::base
