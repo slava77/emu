@@ -18,6 +18,7 @@
 		 	<documentRoot xsi:type="xsd:string">${XDAQ_DOCUMENT_ROOT}</documentRoot>
 			<aliasName xsi:type="xsd:string">log</aliasName>
 			<aliasPath xsi:type="xsd:string">/var/log</aliasPath>
+			<httpResponseTimeoutSec xsi:type="xsd:unsignedLong">30</httpResponseTimeoutSec>
 		</properties>
 	</xp:Application>
 	<xp:Module>${XDAQ_ROOT}/lib/libemupthttp.so</xp:Module>
