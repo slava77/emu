@@ -26,6 +26,7 @@ namespace emu { namespace base {
     const string& getSource() const { return source_; }
     const string& getRequestId() const { return requestId_; }
     const vector<emu::base::Fact>& getFacts() const { return facts_; }
+    const size_t size() const { return facts_.size(); }
     emu::base::FactCollection& addFact( emu::base::Fact& fact ){ facts_.push_back( fact );  return *this; }
     emu::base::FactCollection& setRequestId( const int r );
     emu::base::FactCollection& setRequestId( const string& r ){ requestId_ = r; return *this; }
