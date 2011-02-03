@@ -49,10 +49,11 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
     maxQueueLength_( 1000 ),
     targetDescriptor_( NULL ),
     stopwatch_( new emu::base::Stopwatch() ),
-    moratoriumAfterTimeout_( 60 ){
+    moratoriumAfterTimeout_( 60 ),
+    isDisabled_( false ){
   xoap::bind( this, &emu::base::FactFinder::onFactRequest, "factRequestCollection",  ESD_NS_URI );
 
-  expertSystemURL_         = "";//"http://emuslice12:8080/FactCollectionInputService/FactCollectionInput";
+  expertSystemURL_         = "";
   isFactFinderInDebugMode_ = false;
   getApplicationInfoSpace()->fireItemAvailable( "expertSystemURL"        ,  &expertSystemURL_         );
   getApplicationInfoSpace()->fireItemAvailable( "isFactFinderInDebugMode",  &isFactFinderInDebugMode_ );
@@ -80,6 +81,10 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
       this->notifyQualified( "error", eObj );
     }
   }
+}
+
+emu::base::FactFinder::~FactFinder(){
+  delete stopwatch_;
 }
 
 xoap::MessageReference
@@ -338,35 +343,94 @@ emu::base::FactFinder::sendFact( const emu::base::Component& component, const st
 
 bool
 emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
-  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::sendFactsInWorkLoop" << endl;
+  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::sendFactsInWorkLoop" << endl << flush;
   bool isToBeResubmitted = false;
 
   factFinderBSem_.take();
 
-  // First handle the requests (one at a time)
-  if ( factRequestCollections_.size() ){
-    if ( isFactFinderInDebugMode_.value_ ) cout << "   Handling request:" << endl << factRequestCollections_.front();
-    emu::base::FactCollection factCollection = collectFacts( factRequestCollections_.front() );
-    // Explicitly requested facts jump sending queue:
-    factsToSend_.push_front( factCollection );
-    factRequestCollections_.pop_front();
-    isToBeResubmitted |= ( factRequestCollections_.size() > 0 );
+  // Check format of expert system's URL, and disable sending if it's wrong.
+  try{
+    toolbox::net::URL u( expertSystemURL_ );
+    isDisabled_ = false;
+  }
+  catch (toolbox::net::exception::MalformedURL& mu){
+    XCEPT_DECLARE_NESTED( xcept::Exception, eObj, "Sending facts will be disabled: ", mu );
+    LOG4CPLUS_WARN( getApplicationLogger(),  xcept::stdformat_exception_history(eObj) );
+    this->notifyQualified( "warning", eObj );
+    isDisabled_ = true;
+  }
+  
+  // If disabled, return and do not resubmit.
+  if ( isDisabled_ ){
+    if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInWorkLoop ***" << endl << flush;
+    factFinderBSem_.give();
+    return false;
   }
 
   bool isMoratoriumImposed = false;
 
-  // Send facts (one at a time).
-  if ( factsToSend_.size() ){
-    // Check if a SOAP timeout has occurred recently. If so, skip sending this time. The moratorium on sending is moratoriumAfterTimeout_ seconds long.
-    if ( stopwatch_->read() > moratoriumAfterTimeout_ ){
-      if ( isFactFinderInDebugMode_.value_ ) cout << "   Sending fact:" << endl << factsToSend_.front();
-      bool isSent = sendFactsInSOAP( factsToSend_.front() );
-      if ( isSent ) factsToSend_.pop_front(); // delete it only if it's been sent
+  try{
+    // First handle the requests (one at a time)
+    if ( factRequestCollections_.size() ){
+      if ( isFactFinderInDebugMode_.value_ ) cout << "   Handling request:" << endl << factRequestCollections_.front();
+      emu::base::FactCollection factCollection = collectFacts( factRequestCollections_.front() );
+      // Explicitly requested facts jump sending queue:
+      if ( factCollection.size() > 0 ) factsToSend_.push_front( factCollection );
+      factRequestCollections_.pop_front();
+      isToBeResubmitted |= ( factRequestCollections_.size() > 0 );
     }
-    else{
-      isMoratoriumImposed = true;
+  } catch(xcept::Exception& e){
+    stringstream ss;
+    ss << "Failed to collect requested facts: " << xcept::stdformat_exception_history(e);
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  } catch( exception& e ){
+    stringstream ss;
+    ss << "Failed to collect requested facts: " << e.what();
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  } catch( ... ){
+    stringstream ss;
+    ss << "Failed to collect requested facts: Unexpected exception.";
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  }
+
+  try{
+    // Send facts (one at a time).
+    if ( factsToSend_.size() ){
+      // Check if a SOAP timeout has occurred recently. If so, skip sending this time. The moratorium on sending is moratoriumAfterTimeout_ seconds long.
+      if ( stopwatch_->read() > moratoriumAfterTimeout_ ){
+	if ( isFactFinderInDebugMode_.value_ ) cout << "   Sending fact:" << endl << factsToSend_.front();
+	bool isSent = sendFactsInSOAP( factsToSend_.front() );
+	if ( isSent ) factsToSend_.pop_front(); // delete it only if it's been sent
+      }
+      else{
+	isMoratoriumImposed = true;
+      }
+      isToBeResubmitted |= ( factsToSend_.size() > 0 );
     }
-    isToBeResubmitted |= ( factsToSend_.size() > 0 );
+  } catch(xcept::Exception& e){
+    stringstream ss;
+    ss << "Failed to send facts: " << xcept::stdformat_exception_history(e);
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  } catch( exception& e ){
+    stringstream ss;
+    ss << "Failed to send facts: " << e.what();
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  } catch( ... ){
+    stringstream ss;
+    ss << "Failed to send facts: Unexpected exception.";
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
   }
 
   factFinderBSem_.give();
@@ -384,16 +448,36 @@ emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
 emu::base::FactCollection
 emu::base::FactFinder::collectFacts( const FactRequestCollection& requestCollection ) {
   emu::base::FactCollection fc;
-  fc.setRequestId( requestCollection.getRequestId() ).setSource( source_ );
-  vector<emu::base::FactRequest>::const_iterator fr;
-  for ( fr = requestCollection.getRequests().begin(); fr != requestCollection.getRequests().end(); ++fr ){
-    emu::base::Fact f = findFact( fr->getComponent(), fr->getFactType() );
-    // Discard untyped fact (which has no name, indicating failure of fact-finding):
-    if ( f.getName().size() > 0 ){
-      // Set the component id in case the user forgot to:
-      f.setComponent( fr->getComponent() );
-      fc.addFact( f );
+  try{
+    fc.setRequestId( requestCollection.getRequestId() ).setSource( source_ );
+    vector<emu::base::FactRequest>::const_iterator fr;
+    for ( fr = requestCollection.getRequests().begin(); fr != requestCollection.getRequests().end(); ++fr ){
+      emu::base::Fact f = findFact( fr->getComponent(), fr->getFactType() );
+      // Discard untyped fact (which has no name, indicating failure of fact-finding):
+      if ( f.getName().size() > 0 ){
+	// Set the component id in case the user forgot to:
+	f.setComponent( fr->getComponent() );
+	fc.addFact( f );
+      }
     }
+  } catch(xcept::Exception& e){
+    stringstream ss;
+    ss << "Failed to collect requested facts: " << xcept::stdformat_exception_history(e);
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  } catch( exception& e ){
+    stringstream ss;
+    ss << "Failed to collect requested facts: " << e.what();
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+  } catch( ... ){
+    stringstream ss;
+    ss << "Failed to collect requested facts: Unexpected exception.";
+    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
   }
   return fc;
 }
@@ -585,7 +669,12 @@ emu::base::FactFinder::postSOAP( xoap::MessageReference message,
 	}
       catch (pt::exception::Exception& pte)
 	{
-	  // We land here if the connection times out. Start the stopwatch to time a moratorium on sending.
+	  // We land here if any of the following occurs:
+	  // * Connection times out.
+	  // * Host cannot be resolved.
+	  // * Connection is refused (e.g., because of wrong port number).
+	  // * HTTP status code 404 (Not found) (e.g., in reply to http://emulab02.cern.ch:8080/cdw/wrongservice)
+	  // Start the stopwatch to time a moratorium on sending.
 	  stopwatch_->start();
 	  XCEPT_RETHROW (xcept::Exception, "Failed to post SOAP message", pte);
 	}
