@@ -1319,6 +1319,27 @@ void VMEController::RestoreReset_jtag()
   //
 }
 
+void VMEController::CycleIdle_jtag(int cycles)
+{
+  int i, k;
+  unsigned short int d[3];
+  char tmp[2];
+  unsigned short int *ptr;
+  unsigned short int clkon=(1<<TCK_);
+  // const unsigned short int TMS=(1<<TMS_);
+  ptr=(unsigned short int *)add_ucla;
+  std::cout << "Cycle JTAG IDLE (TMS=0) " << cycles << " times." << std::endl;
+  //
+  // std::cout << "ptr="<<ptr<< " pvme= " <<pvme<< std::endl;
+  //
+  d[0]=pvme;d[1]=pvme|clkon;d[2]=pvme;
+  for(i=1;i<=cycles; i++)  
+  {
+     for(k=0;k<3;k++)VME_controller((k==2 && i==cycles)?3:1,ptr,d+k,tmp);
+  }
+  //
+}
+
 void VMEController::goToScanLevel(){
 }
 

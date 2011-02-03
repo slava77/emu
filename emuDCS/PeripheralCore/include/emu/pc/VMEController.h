@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: VMEController.h,v 1.3 2011/02/03 14:15:05 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 1.3  2011/02/03 14:15:05  liu
+// add new function to cycle JTAG state machine at Idle
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -264,6 +267,7 @@ public:
   void RestoreIdle_alct();
   void RestoreIdle_jtag();
   void RestoreReset_jtag();
+  void CycleIdle_jtag(int cycles);
   void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
   void scan_jtag(int reg, const char *snd, int cnt, char *rcv,int ird);
   //
