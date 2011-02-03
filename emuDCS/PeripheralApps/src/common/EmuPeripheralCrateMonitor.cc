@@ -2836,10 +2836,12 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            //       6 (value  64):  this DMB module caused reading trouble
            //       7 (value 128):  TMB reading error
            //       8 (value 256):  this TMB module caused reading trouble
+           //       9 (value 512):  chamber lost Analog power 
+           //      10 (val  1024):  chamber lost Digital power 
 
   unsigned int readtime;
   unsigned short crateok, good_chamber;
-  float val;
+  float val, V7;
   std::vector<DAQMB*> myVector;
   int TOTAL_DCS_COUNTERS=48;
   int TOTAL_TMB_VOLTAGES=16;
@@ -2939,13 +2941,20 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         // the module which probably caused reading trouble
         if(gooddata && ch_state>0 && bad_module==j+1) ch_state |= 64;
 
+        /* Analog power */
+        V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+38];
+        if((ch_state & 0x7F)==0 && V7<0.5) ch_state |= 512;
+        /* Digital power */
+        V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+39];
+        if((ch_state & 0x7F)==0 && V7<0.5) ch_state |= 1024;
         *out << " " << ch_state; 
 
         *out << " " << readtime << " " << ip;
         *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
         {  
-           if(ch_state==0)
+           /* for error conditions on bits 0-8, don't send data */
+           if((ch_state & 0x1FF)==0)
            { 
               val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
               *out << " " << val;
