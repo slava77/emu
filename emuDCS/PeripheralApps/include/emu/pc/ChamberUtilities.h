@@ -185,6 +185,8 @@ public:
   void bit_to_array(int data, int * array, const int size) ;
   inline int RoundOff(float RealNumber) { return ( (int) (RealNumber + 0.5) ); }
   inline int RoundOffForEvenWindowWidths(float RealNumber) { return ((int) RealNumber); }
+  float determine_average_with_wraparound(int val1, int val2, int val3, int val4, int val5, const int max_val);
+  float special_region_function(float signed_rx);
   //
   //
   // Following should be deprecated?

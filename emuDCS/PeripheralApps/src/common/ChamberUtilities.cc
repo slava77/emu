@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.36 2010/09/29 03:44:56 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.37 2011/02/04 11:27:22 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.37  2011/02/04 11:27:22  rakness
+// update CFEB rx timing scan to handle the special region of 1bx timing shifts
+//
 // Revision 1.36  2010/09/29 03:44:56  rakness
 // first attempt to handle the special CFEB timing region
 //
@@ -871,30 +874,6 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
       
   }
   //
-  const int max_special_region = 20;
-  const int min_special_region = 11;
-  const int special_region_posneg = 1;
-  //
-  bool in_special_region_before[5] = {};
-  for (int i=0; i<5; i++) {
-    if (initial_cfeb_posneg[i] == special_region_posneg &&
-	initial_cfeb_phase[i] > min_special_region      &&
-	initial_cfeb_phase[i] < max_special_region      ) {
-      //
-      in_special_region_before[i] = true;
-      //
-      (*MyOutput_) << "Before the scan:  cfeb" << i << "delay=" << initial_cfeb_phase[i] 
-		   << " and cfeb " << i << "posneg=" << initial_cfeb_posneg[i] 
-		   << " --> in the special region" << std::endl;
-      std::cout    << "Before the scan:  cfeb" << i << "delay=" << initial_cfeb_phase[i] 
-		   << " and cfeb " << i << "posneg=" << initial_cfeb_posneg[i] 
-		   << " --> in the special region" << std::endl;
-      //
-    } else {
-      //
-      in_special_region_before[i] = false;
-    }
-  }
   //
   // Enable this TMB for this test
   thisTMB->SetClctPatternTrigEnable(1);
@@ -1251,61 +1230,48 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
     }
   }
   //
-  bool in_special_region_after[5] = {};
-  for (int i=0; i<5; i++) {
-    if (CFEBrxPosneg_[i] == special_region_posneg &&
-	CFEBrxPhase_[i] > min_special_region      &&
-	CFEBrxPhase_[i] < max_special_region      ) {
-      //
-      in_special_region_after[i] = true;
-      (*MyOutput_) << "After the scan:  cfeb" << i << "delay=" << CFEBrxPhase_[i] 
-		   << " and cfeb " << i << "posneg=" << CFEBrxPosneg_[i] 
-		   << " --> in the special region" << std::endl;
+  // Now we have set CFEB TOF, and have measured RX and POSNEG.  Let's see if
+  // This combination of parameters is in the "special region"...
+  //
+  float average_rx = determine_average_with_wraparound(CFEBrxPhase_[0],
+						       CFEBrxPhase_[1],
+						       CFEBrxPhase_[2],
+						       CFEBrxPhase_[3],
+						       CFEBrxPhase_[4],
+						       MaxTimeDelay);
+  //
+  // determined signed_rx with the following algorithm...
+  if (CFEBrxPosneg_[0] == 0) average_rx = -average_rx;
+  //
+  bool in_special_region = false;
+  //
+  float TOF = (float) write_cfeb_tof_delay[0];
+  float function_value = special_region_function(average_rx);
+  //
+  if (TOF > function_value) {
+    in_special_region = true;
+    (*MyOutput_) << "--> Function evaluated at " << average_rx << " = " << function_value 
+		 << " is less than TOF (" << TOF 
+		 << ") ==> in the special region" << std::endl;
 
-      //
-    } else {
-      //
-      in_special_region_after[i] = false;
-    }
-  }
-  //
-  // Now we have to handle the cases which made the transition into or out of the special region...
-  //
-  for (int i=0; i<5; i++) {
+    std::cout    << "--> Function evaluated at " << average_rx << " = " << function_value 
+		 << " is less than TOF (" << TOF 
+		 << ") ==> in the special region" << std::endl;
     //
-    cfeb_rxd_int_delay[i] = -1;
-    //
-    if (in_special_region_before[i] == true && 
-	in_special_region_after[i] == false &&
-	CFEBrxPhase_[i] >= 0                 ) { //OK phase
-      //
-      cfeb_rxd_int_delay[i] = initial_cfeb_rxd_int_delay[i] + 1;
-      //
-      (*MyOutput_) << "... scan moved from in to out of the special region... add 1 to cfeb" 
-		   << i << "_rxd_int_delay..." << std::endl;
-      std::cout    << "... scan moved from in to out of the special region... add 1 to cfeb" 
-		   << i << "_rxd_int_delay..." << std::endl;
-    }
-    //
-    if (in_special_region_before[i] == false && 
-	in_special_region_after[i] == true   &&
-	CFEBrxPhase_[i] >= 0                 ) { //OK phase
-      //
+    for (int i=0; i<5; i++) {
       cfeb_rxd_int_delay[i] = initial_cfeb_rxd_int_delay[i] - 1;
       //
-      (*MyOutput_) << "... scan moved from out to into the special region... subtract 1 from cfeb" 
-		   << i << "_rxd_int_delay..." << std::endl;
-      std::cout    << "... scan moved from out to into the special region... subtract 1 from cfeb" 
-		   << i << "_rxd_int_delay..." << std::endl;
+      (*MyOutput_) << "... cfebN_rxd_int_delay goes from " << initial_cfeb_rxd_int_delay[i]
+		   << " -> " << cfeb_rxd_int_delay[i] << std::endl;
+      std::cout    << "... cfebN_rxd_int_delay goes from " << initial_cfeb_rxd_int_delay[i]
+		   << " -> " << cfeb_rxd_int_delay[i] << std::endl;
       //
       if (cfeb_rxd_int_delay[i] < 0 ) {
-	cfeb_rxd_int_delay[i] = -999;
-	(*MyOutput_) << "WARNING:  cfeb_rxd_int_delay is < 0..." << std::endl;
-	std::cout    << "WARNING:  cfeb_rxd_int_delay is < 0..." << std::endl;
+  	cfeb_rxd_int_delay[i] = -999;
+  	(*MyOutput_) << "WARNING:  cfeb_rxd_int_delay is < 0..." << std::endl;
+  	std::cout    << "WARNING:  cfeb_rxd_int_delay is < 0..." << std::endl;
       }
-      //
     }
-    
   }
   //
   // return to initial values:
@@ -1396,6 +1362,68 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
   thisMPC->RedirectOutput(MyOutput_);
   //
   return;
+}
+//
+float ChamberUtilities::determine_average_with_wraparound(int val1, 
+							  int val2, 
+							  int val3, 
+							  int val4, 
+							  int val5, 
+							  const int max_value ) {
+  int vector_of_vals[50] = {};
+
+  // fill the vector with the values we want to average
+  for (int i=0; i<max_value; i++) {
+    if (i==val1) vector_of_vals[i] += 1;
+    if (i==val2) vector_of_vals[i] += 1;
+    if (i==val3) vector_of_vals[i] += 1;
+    if (i==val4) vector_of_vals[i] += 1;
+    if (i==val5) vector_of_vals[i] += 1;
+  }
+  
+  // if a value is near the wrap-around edge (i.e., 0), correct it
+  int i=0;
+  while (vector_of_vals[i]>0) {
+    vector_of_vals[i+max_value]=vector_of_vals[i];
+    vector_of_vals[i] = 0;
+    i++;
+  }
+  //
+  // determine the mean index value...
+  float MeanN = 0.;
+  float Mean = 0.;
+  //
+  for (int index=0; index<2*max_value; index++){ 
+    if ( vector_of_vals[index] > 0  ) {
+      Mean += ((float) index) * ((float) vector_of_vals[index])  ; 
+      MeanN += (float) vector_of_vals[index] ; 
+    }
+  }     
+  //
+  Mean /= MeanN;
+  //
+  if (Mean > max_value)  
+    Mean -= max_value ;
+  // 
+  return Mean;
+}
+//
+float ChamberUtilities::special_region_function(float signed_rx) {
+  //
+  float f = 99999.;
+  //
+  if (signed_rx > -25. && signed_rx < 2.) {
+    f = -0.43 * signed_rx + 5.;
+    //
+  } else if (signed_rx >= 2. && signed_rx <= 13.) {
+    f = 7.;
+    //
+  } else if (signed_rx > 13. && signed_rx < 25. ) {
+    f = 0.4 * signed_rx -5.5;
+    //
+  }
+  //
+  return f;
 }
 //
 int ChamberUtilities::Find_alct_rx_with_ALCT_to_TMB_evenodd() {
