@@ -1328,7 +1328,7 @@ void VMEController::CycleIdle_jtag(int cycles)
   unsigned short int clkon=(1<<TCK_);
   // const unsigned short int TMS=(1<<TMS_);
   ptr=(unsigned short int *)add_ucla;
-  std::cout << "Cycle JTAG IDLE (TMS=0) " << cycles << " times." << std::endl;
+  if(cycles>1) std::cout << "Cycle JTAG IDLE (TMS=0) " << cycles << " times." << std::endl;
   //
   // std::cout << "ptr="<<ptr<< " pvme= " <<pvme<< std::endl;
   //
