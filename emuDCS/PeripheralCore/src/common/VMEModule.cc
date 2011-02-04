@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.23 2010/05/05 11:46:58 liu Exp $
+// $Id: VMEModule.cc,v 3.24 2011/02/04 11:45:23 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.24  2011/02/04 11:45:23  liu
+// modified the behaviour of RUNTEST, STATE; changed progress indicator
+//
 // Revision 3.23  2010/05/05 11:46:58  liu
 // make some stdout prints optional
 //
@@ -385,7 +388,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   // === SDR,SIR Go to RunTestIdle after scan
   // char tms_post[4]={ 0, 1, 1, 0 };
   char tdi_post[4]={ 0, 0, 0, 0 };
-  int total_packages ;
+  int total_packages, one_pct;
   int send_packages ;
   
   total_packages = 0 ;
@@ -412,6 +415,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   
   printf("=== Programming Design with %s through JTAG chain %d\n",downfile, jchan);  
   printf("=== Have to send %d DATA packages \n",total_packages) ;
+  one_pct=(total_packages+99)/100;
   
   this->start(); 
 // turn on delay, otherwise the VCC's FIFO full
@@ -738,17 +742,9 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	    }	    
 	    //
 	    send_packages++ ;
-	    printf("%c[0m", '\033');
-	    printf("%c[1m", '\033');
-	    //printf("%c[2;50H", '\033');
-	    if ( send_packages == 1 )   {
-	      printf("%c7", '\033');
-	    }
-	    printf("%c8", '\033'); 
-	    printf(" Sending %d/%d ",send_packages,total_packages) ;
-	    printf("%c8", '\033'); 
-	    printf("%c[0m", '\033');
-	    if ( send_packages == total_packages ) printf("\n") ;
+            if ( (send_packages%one_pct)==0 ) 
+               std::cout << "Sending " << send_packages/one_pct << "%..." << std::endl;
+	    if ( send_packages == total_packages ) std::cout << "Done!" << std::endl;
 	  //
 	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, verify); 
 	  //
@@ -927,25 +923,41 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	  // === Handling RUNTEST ===
 	  else if(strcmp(Word[0],"RUNTEST")==0)
 	    {
-	      sscanf(Word[1],"%d",&pause);
-	      //printf("RUNTEST:  %d\n",pause);
-              theController->sleep_vme(pause);
-	      //usleep(pause+100);
-	      // InsertDelayJTAG(pause,MYMICROSECONDS);
+	       sscanf(Word[1],"%d",&pause);
+	       // printf("RUNTEST:  %d\n",pause);
+               if( pause<20 && (pause%10)>0 )
+               {
+                  // std::cout << "STATE: cycle idle state" << std::endl;
+                  theController->CycleIdle_jtag(pause);
+               }
+               else
+               {
+
+                   if(pause>1000000)
+                  {
+                    // printf("pause %d seconds. ", (pause+1000)/1000000);
+                     ::sleep((pause+1000)/1000000);
+                  }
+                  else
+                  {
+                     theController->sleep_vme(pause);
+                  }
+	       //usleep(pause+100);
+	       // InsertDelayJTAG(pause,MYMICROSECONDS);
+               }
 	    }
 	  // === Handling STATE ===
-	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0))
+	  else if((strcmp(Word[0],"STATE")==0))
 	    {
-	      if(strcmp(Word[2],"IDLE;")==0)
-		{
-		  if(db) std::cout << "STATE: goto reset idle state" << std::endl;
+          // the following different statements in SVF file:
+          //   1)  STATE RESET; 
+          //   2)  STATE IDLE;
+          //   3)  STATE RESET IDLE;
+          //   4)  STATE RESET; STATE IDLE;
+          // all imply the same action: 
+          //    ==> bring the TAP to RESET state, then to IDLE state which is required
+          // for all other actions. And this action is exactly RestoreIdle().
 		  RestoreIdle();
-		} 
-	    }
-	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET;")==0))
-	    {
-	      if(db) std::cout << "STATE: goto reset state" << std::endl;
-	      RestoreReset();
 	    }
 	  else if(strcmp(Word[0],"TRST")==0)
 	    {
@@ -963,6 +975,9 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	    }
 	}
     }
+  // At the end of downloading, bring JTAG to RESET state.
+  // Not absolutely necessary if it is always followed by a Hard-Reset.
+  RestoreReset();
   this->endDevice();
   // turn off delay.
   theController->SetUseDelay(false);
