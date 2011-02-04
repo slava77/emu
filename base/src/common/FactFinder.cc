@@ -214,7 +214,7 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
     xoap::SOAPElement exSysOperationElement = body.addBodyElement( exSysOperationName );
     xoap::SOAPElement collectionElement = exSysOperationElement.addChildElement( factCollectionName );
     // string logLevel = getApplicationContext()->getLogLevel();
-    if ( false ){// TODO: redo after test: ( isFactFinderInDebugMode_.value_ ){
+    if ( isFactFinderInDebugMode_.value_ ){
       // Add the optional serviceInstructions element in order to use strict service with synchronous connection for debugging.
       xoap::SOAPName serverInstructionsName = envelope.createName("serviceInstructions", "service", ESIS_NS_URI);
       xoap::SOAPName asyncAttributeName   = envelope.createName("async"  , "", "");
