@@ -18,7 +18,8 @@
   <!-- If it is set to 'Y', events will be built; if 'N', events will not be built. -->
   <xsl:param name="BUILD"/>
 
-  <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param>
+<!--   <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param> -->
+  <xsl:param name="EMULIBDIR">${XDAQ_ROOT}/lib</xsl:param>
   <xsl:param name="LIBDIR">${XDAQ_ROOT}/lib</xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
