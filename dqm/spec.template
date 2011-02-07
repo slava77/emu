@@ -31,6 +31,8 @@ Source: http://xdaq.web.cern.ch/xdaq/dist/%{_packagename}/%{_packagename}-%{_ver
 URL: %{_url}
 BuildRoot: %{_tmppath}/%{_packagename}-%{_version}-%{_release}-buildroot
 Prefix: %{_prefix}
+Requires: emu-ROOT = 5.28.0
+#AutoReq: 0
 
 %description
 __description__

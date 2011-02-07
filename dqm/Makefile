@@ -20,7 +20,7 @@ Summary="The Emu (CSC) Local DQM"
 Authors="Victor Barashko, Khristian Kotov"
 Link="http://www.phys.ufl.edu/emu/csc/dqm"
 PACKAGE_VER_MAJOR=1
-PACKAGE_VER_MINOR=0
+PACKAGE_VER_MINOR=2
 PACKAGE_VER_PATCH=0
 
 include $(XDAQ_ROOT)/config/Makefile.rules
@@ -30,9 +30,9 @@ include $(XDAQ_ROOT)/config/mfRPM.rules
 Packages=\
 	dqm/cmssw \
 	dqm/common \
-	dqm/utils \
 	dqm/cscanalyzer \
 	dqm/cscmonitor \
+	dqm/utils \
 	dqm/cscdisplay \
 	dqm/tfanalyzer \
         dqm/tfmonitor \
