@@ -2941,12 +2941,15 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         // the module which probably caused reading trouble
         if(gooddata && ch_state>0 && bad_module==j+1) ch_state |= 64;
 
-        /* Analog power */
-        V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+38];
-        if((ch_state & 0x7F)==0 && V7<0.5) ch_state |= 512;
-        /* Digital power */
-        V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+39];
-        if((ch_state & 0x7F)==0 && V7<0.5) ch_state |= 1024;
+        if((ch_state & 0x7F)==0) 
+        {
+            /* Analog power */
+            V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+38];
+            if(V7<1.0) ch_state |= 512;
+            /* Digital power */
+            V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+39];
+            if(V7<1.0) ch_state |= 1024;
+        }
         *out << " " << ch_state; 
 
         *out << " " << readtime << " " << ip;
