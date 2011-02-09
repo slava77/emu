@@ -2840,7 +2840,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            //      10 (val  1024):  chamber lost Digital power 
 
   unsigned int readtime;
-  unsigned short crateok, good_chamber;
+  unsigned short crateok, good_chamber=0;
   float val, V7;
   std::vector<DAQMB*> myVector;
   int TOTAL_DCS_COUNTERS=48;
@@ -2863,6 +2863,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
+     mac=crateVector[i]->vmeController()->GetMAC(0);
+     ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
      if(crate_off[i])
      {  // for OFF crates, send -2. in all fields, timestamp is current
         myVector = crateVector[i]->daqmbs();
@@ -2907,7 +2909,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         if (counter16==NULL) crateok= 0; 
            else crateok = (*counter16);
         counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCSchamber"));
-        if (counter16==NULL) good_chamber= 0; 
+        if (counter16==NULL) good_chamber= 0;
            else good_chamber = (*counter16);
      }
      xdata::Vector<xdata::Float> *tmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("TMBvolts"));
@@ -2917,8 +2919,6 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      else
      {  goodtmb=true;
      }
-     mac=crateVector[i]->vmeController()->GetMAC(0);
-     ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
      ch_state=0;
      bad_module = (good_chamber>>10) & 0xF;
 
