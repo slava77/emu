@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.65 2010/08/23 11:24:25 rakness Exp $
+// $Id: DAQMB.cc,v 3.66 2011/02/09 15:10:36 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.66  2011/02/09 15:10:36  liu
+// fix compiler warnings
+//
 // Revision 3.65  2010/08/23 11:24:25  rakness
 // add DMB Control and FPGA firmware check
 //
@@ -5413,13 +5416,14 @@ int DAQMB::memchk(enum DEVTYPE devnum)
     rcvbuf[i] = 0;
   }
   //
+  ierr=0;
   ierr2=0;
   char snd[40];
   for(int j=0;j<32;j++)snd[j]=0xff;
   wrtfifo(1,16,snd);
   char rcv[40];
   readfifo(1,16,rcv);
-  ierr2+=ierr;
+  ierr2+=ierr;   /* this doesn't make any sense! ierr never got value before */
   (*MyOutput_) << " ierr " << ierr << ierr2 << std::endl;
   wrtfifox(devnum,0x0000);
   ierr=readfifox_chk(devnum,0x0000);
