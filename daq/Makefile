@@ -2,6 +2,7 @@ BUILD_HOME:=$(shell pwd)/../..
 
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
+include $(BUILD_HOME)/emu/rpm_version
 
 Project=emu
 Package=daq
@@ -10,9 +11,6 @@ Description="The Emu (CSC) local DAQ"
 Summary="The Emu (CSC) local DAQ"
 Authors="Steven Murray, Karoly banicz"
 Link=""
-PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=13
-PACKAGE_VER_PATCH=00
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 include $(XDAQ_ROOT)/config/mfRPM.rules
