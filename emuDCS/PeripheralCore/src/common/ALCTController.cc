@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.63 2010/07/29 15:34:31 rakness Exp $
+// $Id: ALCTController.cc,v 3.64 2011/02/10 11:45:44 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.64  2011/02/10 11:45:44  rakness
+// readout registers to diagnose possible testpulser problems
+//
 // Revision 3.63  2010/07/29 15:34:31  rakness
 // add ALCT zero-suppression option (if =0, is backwards compatible w/old firmware)
 //
@@ -734,6 +737,17 @@ void ALCTController::PrintALCTConfiguration() {
   //
   PrintCollisionPatternMask();
   //
+  // The following are ALCT registers are not touched in the configuration...
+  // ... but read them out to diagnose possible problems with the testpulse
+  //
+  PrintTestpulsePowerSwitchReg_();
+  //
+  PrintTestpulseGroupMask_();
+  //
+  PrintTestpulseStripMask_();
+  //
+  PrintTriggerRegister_();
+  //
   return;
 }
 //
@@ -754,6 +768,20 @@ void ALCTController::ReadALCTConfiguration() {
   ReadHotChannelMask();
   //
   ReadCollisionPatternMask();
+  //
+  // The following are ALCT registers are not touched in the configuration...
+  // ... but read them out to diagnose possible problems with the testpulse
+  //
+  ReadTestpulsePowerSwitchReg_();
+  //
+  ReadTestpulseGroupMask_();
+  //
+  ReadTestpulseStripMask_();
+  //
+  ReadTriggerRegister_();
+  //
+  // There is no way to read the testpulse amplitude back from the DAC...
+  //  ReadTestpulseAmplitude_();
   //
   return;
 }
