@@ -221,6 +221,11 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::SetRadioactivityTriggerALCTOnly, "SetRadioactivityTriggerALCTOnly");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetTTCDelays, "SetTTCDelays");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureAllTMBVoltages, "MeasureAllTMBVoltages");
+  xgi::bind(this,&EmuPeripheralCrateConfig::SetTwoLayerTriggerForSystem, "SetTwoLayerTriggerForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForSystem,"MeasureL1AsAndDAVsForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem,"MeasureALCTTMBRxTxForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForSystem,"MeasureCFEBTMBRxForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForSystem,"QuickScanForSystem");
   //
   //------------------------------
   // bind crate utilities
@@ -245,16 +250,13 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate,"MeasureL1AsAndDAVsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber,"MeasureL1AsAndDAVsForChamber");
-  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForSystem,"MeasureL1AsAndDAVsForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsForCrate,"MeasureL1AsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureDAVsForCrate,"MeasureDAVsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForCrate,"MeasureALCTTMBRxTxForCrate");
-  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem,"MeasureALCTTMBRxTxForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForCrate,"MeasureCFEBTMBRxForCrate");
-  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForSystem,"MeasureCFEBTMBRxForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::SetTwoLayerTriggerForCrate, "SetTwoLayerTriggerForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForChamber,"QuickScanForChamber");
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForCrate,"QuickScanForCrate");
-  xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForSystem,"QuickScanForSystem");
   //
   //-----------------------------------------------
   // CCB & MPC routines
@@ -1661,6 +1663,19 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   std::string ALCTBC0ScanForCrate = toolbox::toString("/%s/ALCTBC0ScanForCrate",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ALCTBC0ScanForCrate) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Synchronize ALCT BC0 for crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td();
+  *out << "Other cratewide utilities" << std::endl;
+  *out << cgicc::td();  
+  //
+  *out << cgicc::td();
+  std::string SetTwoLayerTriggerForCrate = toolbox::toString("/%s/SetTwoLayerTriggerForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SetTwoLayerTriggerForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Enable two-layer trigger for crate") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
@@ -3549,6 +3564,13 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::td();
   //
   *out << cgicc::td();
+  std::string SetTwoLayerTriggerForSystem = toolbox::toString("/%s/SetTwoLayerTriggerForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SetTwoLayerTriggerForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Enable two-layer trigger") << std::endl ;
+  *out << cgicc::form() << std::endl ;;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
   std::string SetRadioactivityTriggerALCTOnly = toolbox::toString("/%s/SetRadioactivityTriggerALCTOnly",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",SetRadioactivityTriggerALCTOnly) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Enable single-layer trigger - ALCT only") << std::endl ;
@@ -3919,6 +3941,90 @@ void EmuPeripheralCrateConfig::SetRadioactivityTrigger(xgi::Input * in, xgi::Out
   SetCurrentCrate(initial_crate);
   //
   this->ExpertToolsPage(in,out);
+}
+//
+void EmuPeripheralCrateConfig::SetTwoLayerTrigger(int tmb) {
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  ALCTController * thisALCT = thisTMB->alctController();
+  //
+  int initial_alct_nplanes_hit_pretrig = thisALCT->GetPretrigNumberOfLayers();
+  int initial_alct_nplanes_hit_pattern = thisALCT->GetPretrigNumberOfPattern();
+  thisALCT->SetPretrigNumberOfLayers(2);
+  thisALCT->SetPretrigNumberOfPattern(2);
+  thisALCT->WriteConfigurationReg();
+  //
+  int initial_clct_nplanes_hit_pretrig = thisTMB->GetHsPretrigThresh();
+  int initial_clct_nplanes_hit_pattern = thisTMB->GetMinHitsPattern();
+  thisTMB->SetHsPretrigThresh(2);
+  thisTMB->SetMinHitsPattern(2);
+  thisTMB->WriteRegister(0x70);
+  //
+  // set the number of BX's that a CFEB channel must be ON in order for TMB to be labeled as "bad"
+  int initial_cfeb_badbits_nbx = thisTMB->GetCFEBBadBitsNbx();
+  thisTMB->SetCFEBBadBitsNbx(20);
+  thisTMB->WriteRegister(0x124);
+  //
+  // Do not send triggers to the SP in this mode... it is too large of rate...
+  //	  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
+  //	  thisTMB->SetMpcOutputEnable(0);
+  //	  thisTMB->WriteRegister(0x86);
+  //
+  //
+  // Reset the software back to the initial values.  Leave the hardware in radioactivity mode...
+  thisALCT->SetPretrigNumberOfLayers(initial_alct_nplanes_hit_pretrig);
+  thisALCT->SetPretrigNumberOfPattern(initial_alct_nplanes_hit_pattern);
+  //
+  thisTMB->SetHsPretrigThresh(initial_clct_nplanes_hit_pretrig);
+  thisTMB->SetMinHitsPattern(initial_clct_nplanes_hit_pattern);
+  //
+  thisTMB->SetCFEBBadBitsNbx(initial_cfeb_badbits_nbx);
+  //
+  //	  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+  //
+  return;
+}
+void EmuPeripheralCrateConfig::SetTwoLayerTriggerForSystem(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Configure all crates to trigger on 2-layers ALCT*CLCT" << std::endl;
+  //
+  int initial_crate = current_crate_;
+  //
+  if(total_crates_>0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      if ( crateVector[crate_number]->IsAlive() ) {
+	//
+	SetCurrentCrate(crate_number);
+	//
+	for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	  // std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	  SetTwoLayerTrigger(tmb);
+	}
+      }
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  this->ExpertToolsPage(in,out);
+}
+//
+void EmuPeripheralCrateConfig::SetTwoLayerTriggerForCrate(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Configure all chambers in this crate to trigger on 2-layers ALCT*CLCT" << std::endl;
+  //
+  if ( crateVector[current_crate_]->IsAlive() ) {
+    //
+    for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+      // std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+      SetTwoLayerTrigger(tmb);
+    }
+  }
+  //
+  this->CrateConfiguration(in,out);
 }
 //
 void EmuPeripheralCrateConfig::SetRadioactivityTriggerALCTOnly(xgi::Input * in, xgi::Output * out )

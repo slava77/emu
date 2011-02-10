@@ -542,10 +542,13 @@ private:
   void StartPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void StopPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetRadioactivityTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void SetTwoLayerTriggerForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void SetTwoLayerTriggerForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetRadioactivityTriggerALCTOnly(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetTTCDelays(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureAllTMBVoltages(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
+  void SetTwoLayerTrigger(int tmb);
   //
   void DefineFirmwareFilenames();
   //
