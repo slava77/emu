@@ -5,7 +5,7 @@
 
 namespace emudaqta {
 	const std::string package     = "emudaqta";
-	const std::string versions    = "09.13.00";
+	const std::string versions    = "10.00.00";
 	const std::string description = "Emu (CSC) Trigger Adapter";
 
 	const std::string summary     = "emu/daq/ta";
