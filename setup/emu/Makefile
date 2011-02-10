@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.23 2011/02/04 09:28:44 banicz Exp $
+# $Id: Makefile,v 1.24 2011/02/10 09:12:47 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -25,14 +25,11 @@ BUILD_HOME:=$(shell pwd)/../../..
 
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
+include $(BUILD_HOME)/emu/rpm_version
 
 PackageName=emu
 Project=emu
 Package=setup/$(PackageName)
-
-PACKAGE_VER_MAJOR=09
-PACKAGE_VER_MINOR=13
-PACKAGE_VER_PATCH=00
 
 Summary=Setup data for the Emu (CSC) cluster at Cessy
 
