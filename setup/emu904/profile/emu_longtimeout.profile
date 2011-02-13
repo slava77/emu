@@ -17,7 +17,7 @@
 		 	<documentRoot xsi:type="xsd:string">${XDAQ_DOCUMENT_ROOT}</documentRoot>
 			<aliasName xsi:type="xsd:string">log</aliasName>
 			<aliasPath xsi:type="xsd:string">/var/log</aliasPath>
-			<httpResponseTimeoutSec xsi:type="xsd:unsignedLong">30</httpResponseTimeoutSec>
+			<httpResponseTimeoutSec xsi:type="xsd:unsignedLong">600</httpResponseTimeoutSec>
 		</properties>
 	</xp:Application>
         <!-- Emus' own http library with configurable timeout and SOAP 1.1-compliant content type (text/xml) -->
