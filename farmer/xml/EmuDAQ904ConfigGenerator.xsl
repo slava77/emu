@@ -21,8 +21,8 @@
   <!-- It's either DQM_TF_File or empty-->
   <xsl:param name="FARM"/>
 
-  <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param>
-  <!-- <xsl:param name="EMULIBDIR">${XDAQ_ROOT}/lib</xsl:param> -->
+  <!-- <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param> -->
+  <xsl:param name="EMULIBDIR">${XDAQ_ROOT}/lib</xsl:param>
 
   <xsl:param name="PORT_OFFSET">
     <xsl:if test="$FARM!='DQM_TF_File'">0</xsl:if>
@@ -124,8 +124,8 @@
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
 	  <hardwareMapping xsi:type="xsd:string">emu/config/EmuDAQ/RUI-to-chamber_mapping_bdg904.xml</hardwareMapping>
-	  <expertSystemURL xsi:type="xsd:string">http://emulab02.cern.ch:18080/cdw/factcollection</expertSystemURL>
-	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
+	  <expertSystemURL xsi:type="xsd:string">http://emulab02.cern.ch:8080/cdw/factcollection</expertSystemURL>
+	  <isFactFinderInDebugMode xsi:type="xsd:boolean">true</isFactFinderInDebugMode>
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
@@ -235,8 +235,8 @@
 	      <poolSizeForClient xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0x4000000</item>
 	      </poolSizeForClient>
-	      <expertSystemURL xsi:type="xsd:string">http://emuslice12:18080/cdw/factcollection</expertSystemURL>
-	      <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
+	      <expertSystemURL xsi:type="xsd:string">http://emuslice12:8080/cdw/factcollection</expertSystemURL>
+	      <isFactFinderInDebugMode xsi:type="xsd:boolean">true</isFactFinderInDebugMode>
 	    </properties>
 	  </xc:Application>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
@@ -263,8 +263,8 @@
 	</properties>
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
-      <xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscdisplay.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmcscdisplay.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -281,8 +281,8 @@
 	</properties>
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
-      <xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmtfdisplay.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmtfdisplay.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -300,7 +300,7 @@
 	</properties>
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
-      <xc:Module>${XDAQ_ROOT}/lib/libemudaqreader.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
       <xc:Application instance="0" class="EmuTFMonitor" id="1400" network="atcp1" group="dqm">
 	<properties xmlns="urn:xdaq-application:EmuTFMonitor" xsi:type="soapenc:Struct">
 	  <readoutMode xsi:type="xsd:string">external</readoutMode>
@@ -325,8 +325,8 @@
 	  <binCheckMask xsi:type="xsd:unsignedInt">0xFFFB7BF6</binCheckMask>
 	</properties>
       </xc:Application>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmtfanalyzer.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmtfmonitor.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmtfanalyzer.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmtfmonitor.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -355,7 +355,7 @@
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
-	  <xc:Module>${XDAQ_ROOT}/lib/libemudaqreader.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="EmuMonitor" id="{$APP_ID}" network="atcp1" group="dqm">
 	    <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct">
 	      <readoutMode xsi:type="xsd:string">external</readoutMode>
@@ -379,8 +379,8 @@
               <binCheckMask xsi:type="xsd:unsignedInt">0x16EBF7F6</binCheckMask>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscanalyzer.so</xc:Module>
-          <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscmonitor.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmcscanalyzer.so</xc:Module>
+          <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmcscmonitor.so</xc:Module>
 	</xc:Context>
 <!--       </xsl:if> -->
     </xsl:for-each>

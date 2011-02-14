@@ -14,7 +14,7 @@
 
   <!-- Parameter DIR is to be set from the command line. -->
   <!-- It's the system directory containing the XDAQ configuration files. -->
-  <xsl:param name="DIR">/home/cscdev/config/conf_generator/r9/out</xsl:param>
+  <xsl:param name="DIR">/home/cscdev/config/conf_generator/r10/out</xsl:param>
 
   <!-- Parameter NAME is to be set from the command line. -->
   <!-- It's the name of the XDAQ configuration file (without path or extension) -->
@@ -24,8 +24,8 @@
   <!-- It's either DAQ or DQM or DQM_Display-->
   <xsl:param name="FARM"/>
 
-  <xsl:param name="FM_USER">cscdev</xsl:param>
-  <!-- <xsl:param name="FM_USER">cscpro</xsl:param> -->
+  <!-- <xsl:param name="FM_USER">cscdev</xsl:param> -->
+  <xsl:param name="FM_USER">cscpro</xsl:param>
 
   <xsl:param name="CONFIG_FILE"><xsl:value-of select="$DIR"/>/<xsl:value-of select="$NAME"/>.xml</xsl:param>
   <xsl:param name="FM_CONFIG_PATH">
@@ -38,10 +38,18 @@
     <xsl:if test="$FARM!='DQM_TF_File'">0</xsl:if>
     <xsl:if test="$FARM='DQM_TF_File'">10</xsl:if>
   </xsl:param>
-  <!-- <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param> -->
-  <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/share/emu904/scripts/xdaq.sh</xsl:param>
-  <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 PATH=/bin:/usr/bin</xsl:param>
-  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 ROOTSYS=/home/cscdaq/root</xsl:param>
+  <xsl:param name="PATHTOEXECUTIVE">
+    <xsl:if test="$FM_USER='cscdev'">/home/cscdaq/TriDAS/emu/setup/emu904/scripts/xdaq_autorestart.sh</xsl:if>
+    <xsl:if test="$FM_USER='cscpro'">/opt/xdaq/share/emu904/scripts/xdaq_autorestart.sh</xsl:if>
+  </xsl:param>
+  <xsl:param name="DAQ_ENVIRONMENTSTRING">
+    <xsl:if test="$FM_USER='cscdev'">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 PATH=/bin:/usr/bin XDAQ_PROFILE=/home/cscdaq/TriDAS/emu/setup/emu904/profile/emu.profile</xsl:if>
+    <xsl:if test="$FM_USER='cscpro'">HOME=/home/cscdaq LD_LIBRARY_PATH=/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 PATH=/bin:/usr/bin XDAQ_PROFILE=/opt/xdaq/share/emu904/profile/emu.profile</xsl:if>
+  </xsl:param>
+  <xsl:param name="DQM_ENVIRONMENTSTRING">
+    <xsl:if test="$FM_USER='cscdev'">HOME=/home/cscdaq LD_LIBRARY_PATH=/home/cscdaq/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share BUILD_HOME=/home/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 ROOTSYS=/home/cscdaq/root XDAQ_PROFILE=/home/cscdaq/TriDAS/emu/setup/emu904/profile/emu.profile</xsl:if>
+    <xsl:if test="$FM_USER='cscpro'">HOME=/home/cscdaq LD_LIBRARY_PATH=/opt/cern/root_v5.28.00/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu904 ROOTSYS=/opt/cern/root_v5.28.00 XDAQ_PROFILE=/opt/xdaq/share/emu904/profile/emu.profile</xsl:if>
+  </xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 
