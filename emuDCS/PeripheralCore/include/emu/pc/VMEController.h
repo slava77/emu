@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.3 2011/02/03 14:15:05 liu Exp $
+// $Id: VMEController.h,v 1.4 2011/02/22 12:26:30 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 1.4  2011/02/22 12:26:30  liu
+// remove obsolete scan_alct() and RestoreIdle_alct()
+//
 // Revision 1.3  2011/02/03 14:15:05  liu
 // add new function to cycle JTAG state machine at Idle
 //
@@ -264,11 +267,9 @@ public:
   void goToScanLevel();
   void release_plev();
   void sdly();
-  void RestoreIdle_alct();
   void RestoreIdle_jtag();
   void RestoreReset_jtag();
   void CycleIdle_jtag(int cycles);
-  void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
   void scan_jtag(int reg, const char *snd, int cnt, char *rcv,int ird);
   //
   void  sleep_vme(const char *outbuf);   // time in usec
