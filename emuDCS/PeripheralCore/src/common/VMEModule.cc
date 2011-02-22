@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.24 2011/02/04 11:45:23 liu Exp $
+// $Id: VMEModule.cc,v 3.25 2011/02/22 12:26:31 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.25  2011/02/22 12:26:31  liu
+// remove obsolete scan_alct() and RestoreIdle_alct()
+//
 // Revision 3.24  2011/02/04 11:45:23  liu
 // modified the behaviour of RUNTEST, STATE; changed progress indicator
 //
@@ -242,11 +245,7 @@ void VMEModule::new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
 
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
   theController->start( theSlot, boardType() );
-  if(boardType()==TMB_ENUM )
-    theController->scan_jtag(reg, snd, cnt, rcv, ird);
-  else if (boardType()==MPC_ENUM )
-    theController->scan_jtag(reg, snd, cnt, rcv, ird);
-  else if (boardType()==CCB_ENUM )
+  if(boardType()==TMB_ENUM || boardType()==MPC_ENUM || boardType()==CCB_ENUM)
     theController->scan_jtag(reg, snd, cnt, rcv, ird);
   else
     theController->scan(reg, snd, cnt, rcv, ird);
@@ -259,16 +258,18 @@ void VMEModule::scan_reset(int reg,const char *snd,int cnt,char *rcv,int ird) {
 
 void VMEModule::RestoreIdle() {
   theController->start( theSlot, boardType() );
-  if(boardType()==TMB_ENUM)
-    theController->RestoreIdle_alct();
-  if(boardType()==MPC_ENUM)
+  if(boardType()==TMB_ENUM || boardType()==MPC_ENUM || boardType()==CCB_ENUM)
     theController->RestoreIdle_jtag();
+  else
+    theController->RestoreIdle();
 }
 
 void VMEModule::RestoreReset() {
   theController->start( theSlot, boardType() );
-  if(boardType()==MPC_ENUM)
+  if(boardType()==TMB_ENUM || boardType()==MPC_ENUM || boardType()==CCB_ENUM)
     theController->RestoreReset_jtag();
+  else
+    theController->RestoreIdle_reset();
 }
 
 void VMEModule::SetupJtag() {
@@ -284,22 +285,13 @@ void VMEModule::SetupJtag() {
     theController->SetupTDI(0);
     theController->SetupTDO(7);
   }
-  if(boardType()==MPC_ENUM){
+  else if(boardType()==MPC_ENUM || boardType()==CCB_ENUM){
     theController->SetupJtagBaseAddress(0x0);
     theController->SetupTCK(7);
     theController->SetupTMS(6);
     theController->SetupTDI(5);
     theController->SetupTDO(0);
   }
-  if(boardType()==CCB_ENUM){
-    theController->SetupJtagBaseAddress(0x0);
-    theController->SetupTCK(7);
-    theController->SetupTMS(6);
-    theController->SetupTDI(5);
-    theController->SetupTDO(0);
-  }
-  //
-  //
 }
 
 void VMEModule::InitJTAG(int port) {
