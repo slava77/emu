@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.25 2011/02/22 12:26:31 liu Exp $
+// $Id: VMEModule.cc,v 3.26 2011/02/23 11:42:04 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.26  2011/02/23 11:42:04  liu
+// updated svfLoad, added PROM read back functions
+//
 // Revision 3.25  2011/02/22 12:26:31  liu
 // remove obsolete scan_alct() and RestoreIdle_alct()
 //
@@ -354,7 +357,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   unsigned char sndhdr[MAXBUFSIZE],sndtdr[MAXBUFSIZE], sndhir[MAXBUFSIZE], sndtir[MAXBUFSIZE];
   unsigned char hdrsmask[MAXBUFSIZE],tdrsmask[MAXBUFSIZE], hirsmask[MAXBUFSIZE], tirsmask[MAXBUFSIZE];
   FILE *dwnfp;
-  char buf[MAXBUFSIZE], buf2[256];
+  char buf[MAXBUFSIZE+200], buf2[256];
   //  char buf[8192],buf2[256];
   char *Word[256],*lastn;
   const char *downfile;
@@ -362,8 +365,8 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   int jchan;
   //  unsigned char sndvalue;
   //  fpos_t ftdi_pos, fsmask_pos;
-  unsigned char send_tmp;//, rcv_tmp;
-  int i,j,Count,nbytes,nbits,nframes,step_mode,pause;
+  unsigned char send_tmp, tmp;
+  int i,j,Count,nbytes,tbytes, nbits,nframes,step_mode,pause;
   int hdrbits = 0, tdrbits = 0, hirbits = 0, tirbits = 0;
   int hdrbytes = 0, tdrbytes = 0, hirbytes = 0, tirbytes = 0; 
   int nowrit, cmpflag, errcntr;
@@ -382,6 +385,8 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   char tdi_post[4]={ 0, 0, 0, 0 };
   int total_packages, one_pct;
   int send_packages ;
+  bool readprom=false;
+  int read_packages=0, repeat=1, total_read=0;
   
   total_packages = 0 ;
   send_packages = 0 ;
@@ -401,7 +406,13 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   while (fgets(buf,256,dwnfp) != NULL) 
     {
       Parse(buf, &Count, &(Word[0]));
-      if( strcmp(Word[0],"SDR")==0 ) total_packages++ ;
+      if( strcmp(Word[0],"SDR")==0 ) 
+         total_packages++ ;
+      else if( strcmp(Word[0],"READ")==0)
+      {
+         total_read++;
+         readprom=true;
+      }
     }
   fseek(dwnfp, 0, SEEK_SET);
   
@@ -462,15 +473,6 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	  bzero(sndbuf, sizeof(sndbuf));
 	  bzero(rcvbuf, sizeof(rcvbuf));
 	  
-	  /*
-	    for(i=0;i<MAXBUFSIZE;i++)
-	    {
-	    snd[i]=0;
-	    cmpbuf[i]=0;
-	    sndbuf[i]=0;
-	    rcvbuf[i]=0;
-	    }
-	  */
 	  Parse(buf, &Count, &(Word[0]));
 	  count=count+1;
 	  cmpflag=0;
@@ -481,7 +483,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	      sscanf(Word[1],"%d",&hdrbits);
 	      hdrbytes=(hdrbits)?(hdrbits-1)/8+1:0;
 	    if (db)	  
-	      printf("Sending %d bits of Header Data\n", hdrbits);
+	      printf("Sending %d bits of Data Header\n", hdrbits);
 	    // if (db>3)          printf("HDR: Num of bits - %d, num of bytes - %d\n",hdrbits,hdrbytes);
 	    for(i=2;i<Count;i+=2)
 	      {
@@ -523,12 +525,10 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	  // === Handling HIR ===
 	  else if(strcmp(Word[0],"HIR")==0)
 	    {
-	      // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	      // cmpflag=1;    //disable the comparison for no TDO SDR
 	      sscanf(Word[1],"%d",&hirbits);
 	      hirbytes=(hirbits)?(hirbits-1)/8+1:0;
 	      if (db)	  
-		printf("Sending %d bits of Header Data\n", hirbits);
+		printf("Sending %d bits of Instruction Header\n", hirbits);
 	      // if (db>3)          printf("HIR: Num of bits - %d, num of bytes - %d\n",hirbits,hirbytes);
 	      for(i=2;i<Count;i+=2)
 		{
@@ -570,12 +570,10 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	  // === Handling TDR ===
 	  else if(strcmp(Word[0],"TDR")==0)
 	    {
-	      // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	      // cmpflag=1;    //disable the comparison for no TDO SDR
 	      sscanf(Word[1],"%d",&tdrbits);
 	      tdrbytes=(tdrbits)?(tdrbits-1)/8+1:0;
 	      if (db)	  
-		printf("Sending %d bits of Tailer Data\n", tdrbits);
+		printf("Sending %d bits of Data Tailer\n", tdrbits);
 	      // if (db>3)          printf("TDR: Num of bits - %d, num of bytes - %d\n",tdrbits,tdrbytes);
 	      for(i=2;i<Count;i+=2)
 	      {
@@ -614,15 +612,13 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	      }
 	    }
 	  
-	  // === Handling TDR ===
-	  else if(strcmp(Word[0],"TIR")==0)
-	  {
-	    // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	    // cmpflag=1;    //disable the comparison for no TDO SDR
+	  // === Handling TIR ===
+	 else if(strcmp(Word[0],"TIR")==0)
+	 {
 	    sscanf(Word[1],"%d",&tirbits);
 	    tirbytes=(tirbits)?(tirbits-1)/8+1:0;
 	    if (db)	  
-	      printf("Sending %d bits of Tailer Data\n", tdrbits);
+	      printf("Sending %d bits of Instruction Tailer\n", tdrbits);
 	    // if (db>3)          printf("TIR: Num of bits - %d, num of bytes - %d\n",tirbits,tirbytes);
 	    for(i=2;i<Count;i+=2)
 	      {
@@ -659,15 +655,16 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 		      }
 		  }
 	      }
-	  }
-	  // === Handling SDR ===
-	  else if(strcmp(Word[0],"SDR")==0)
-	    {
+	 }
+	 // === Handling SDR ===
+	 else if(strcmp(Word[0],"SDR")==0)
+	 {
 	      //std::cout << "SDR" << std::endl;
 	      for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
 	      // cmpflag=1;    //disable the comparison for no TDO SDR
 	    sscanf(Word[1],"%d",&nbits);
-	    nbytes=(nbits)?(nbits-1)/8+1:0;
+	    nbytes=(nbits+7)/8;
+            tbytes=(hdrbits+nbits+tdrbits+7)/8;
 	    if (db)	  printf("Sending %d bits Data\n", nbits);
 	    // if (db>3)          printf("SDR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
 	    for(i=2;i<Count;i+=2)
@@ -719,81 +716,89 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	      }
 	    for(i=0;i<4;i++)sndbuf[nbits+3]=tdi_post[i];         
 	    nframes=nbits+7;
-          // Put send SDR here
-	    for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
+            // Put send SDR here
+	    for (i=0; i< tbytes; i++)
 	      realsnd[i] = 0;
 	    if (hdrbytes>0) {
 	      for (i=0;i<hdrbytes;i++)
 		realsnd[i]=sndhdr[i];
 	    }
 	    for (i=0;i<nbits;i++)
-	    realsnd[(i+hdrbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hdrbits)%8);
+ 	      realsnd[(i+hdrbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hdrbits)%8);
 	    if (tdrbytes>0) {
 	      for (i=0;i<tdrbits;i++)
 		realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
 	    }	    
 	    //
 	    send_packages++ ;
-            if ( (send_packages%one_pct)==0 ) 
-               std::cout << "Sending " << send_packages/one_pct << "%..." << std::endl;
-	    if ( send_packages == total_packages ) std::cout << "Done!" << std::endl;
-	  //
-	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, verify); 
-	  //
+            if(!readprom)
+            {
+               if ( (send_packages%one_pct)==0 ) 
+                  std::cout << "Sending " << std::dec << send_packages/one_pct << "%..." << std::endl;
+	       if ( send_packages == total_packages ) std::cout << "Done!" << std::endl;
+            }
+	    //
+	    this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, verify); 
+	    //
 	    if (db)
 	    {	
 	      printf("SDR Sent Data: ");
-	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
+	      for (i=0; i< tbytes; i++) 
 		printf("%02X",realsnd[i]);
 	      printf("\n");
 	      //
 	      printf("SDR Readback Data: ");
-	      for (i=0; i< nbytes; i++) 
+	      for (i=0; i< tbytes; i++) 
 		printf("%02X",rcv[i]);
 	      printf("\n");
 	    }		    
 	    //
-	  if (verify && cmpflag==1)
+	    if (verify && cmpflag==1)
 	    {     
-	      /*
-		for(i=0;i<nbytes;i++)
-		{
-		rcv_tmp = 0;
-		for(j=0;j<8;j++)
-		{
-		if ((i*8+j) < nbits)
-		{
-		rcv_tmp |= ((rcvbuf[i*8+j+3]<<7) &0x80); 
-		}
-		rcv_tmp = rcv_tmp >> (j<7);
-		
-		}	
-		rcv[nbytes-1-i] = rcv_tmp;		
-		}
-	      */
-	      for(i=0;i<nbytes;i++)
-		{
-		  if (((rcv[i]^expect[i]) & rmask[i])!=0)
-		    {
+               if(hdrbits>0)
+               {
+                  //   1. expend bytes into bits
+   	          for(i=0;i<tbytes;i++)
+	          {
+                      tmp=rcv[i];
+                      for(j=0; j<8; j++)
+                      {
+                          buf[i*8+j]=tmp&1;
+                          tmp >>= 1;
+                      }
+                  }
+                  //   2. put bits (without HDR & TDR) back into bytes
+                  int rcvindex=0;
+	          for(i=0;i<nbytes;i++)
+	          {
+                      tmp=0;
+                      for(j=7; j>=0; j--)
+                      {
+                          tmp <<= 1;
+                          tmp |= (buf[i*8+j+hdrbits]&1);
+                      }
+                      rcv[rcvindex++]=tmp;
+                  }
+               } //end of removing HDR & TDR           
+
+	       for(i=0;i<nbytes;i++)
+	       {
+		   if (((rcv[i]^expect[i]) & rmask[i])!=0)
+		   {
 		      if(db) printf("SDR read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
 		      errcntr++;
-		    }
-		}	
+		   }
+	       }	
 	    }
-	  /*         if (cmpflag==1)
-		     {
-		     for(i=3;i<nbits+3;i++) printf("%d",rcvbuf[i]);
-		     printf("\n");
-		     }
-	  */       
-          }
+         }
         // === Handling SIR ===
         else if(strcmp(Word[0],"SIR")==0)
           {
 	    for(i=0;i<4;i++)sndbuf[i]=tdi_pre_sir[i];
 	    // cmpflag=1;    //disable the comparison for no TDO SDR
 	    sscanf(Word[1],"%d",&nbits);
-	    nbytes=(nbits)?(nbits-1)/8+1:0;
+	    nbytes=(nbits+7)/8;
+            tbytes=(hirbits+nbits+tirbits+7)/8;
 	    if (db)	  printf("Sending %d bits of Command\n",nbits);
 	    // if (db>3)          printf("SIR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
 	    for(i=2;i<Count;i+=2)
@@ -846,7 +851,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	    for(i=0;i<4;i++)sndbuf[nbits+4]=tdi_post[i];
 	    nframes=nbits+8;
 	    // Put send SIR here
-	    for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
+	    for (i=0; i< tbytes;  i++)
 	      realsnd[i] = 0;
 	    if (hirbytes>0) {
 	      for (i=0;i<hirbytes;i++)
@@ -863,60 +868,69 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	    //	   
 	    if (db)
 	    { 	printf("SIR Send Data: ");
-	    for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
-	      printf("%02X",realsnd[i]);
-	    printf("\n");
-	    printf("SIR Readback Data: ");
-	    for (i=0; i< nbytes;  i++)
-	      printf("%02X",rcv[i]);
-	    printf("\n");
+	        for (i=0; i< tbytes;  i++)
+	           printf("%02X",realsnd[i]);
+	        printf("\n");
+
+	        printf("SIR Readback Data: ");
+	        for (i=0; i< nbytes;  i++)
+	           printf("%02X",rcv[i]);
+	        printf("\n");
 	    }
 	    //
 	    if (verify && cmpflag==1)
-	      {
-		/*               for(i=0;i<nbytes;i++)
-				 {
-				 rcv_tmp = 0;
-				 for(j=0;j<8;j++)
-				 {
-				 if ((i*8+j) < nbits)
-				 {
-				 rcv_tmp |= ((rcvbuf[i*8+j+4]<<7) &0x80);
-				 }
-				 rcv_tmp = rcv_tmp >> (j<7);
-				 
-				 }
-				 rcv[nbytes-1-i] = rcv_tmp;
-				 }
-		*/
-		if (db>4){                printf("SIR Readback Data:\n");
-                //for(i=0;i<nbytes;i++) printf("%02X",rcv[i]);
-		for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) printf("%02X",rcv[i]);
-                printf("\n");
-		}
-		
+	    {
+               if(hirbits>0)
+               {
+                  //   1. expend bytes into bits
+   	          for(i=0;i<tbytes;i++)
+	          {
+                      tmp=rcv[i];
+                      for(j=0; j<8; j++)
+                      {
+                          buf[i*8+j]=tmp&1;
+                          tmp >>= 1;
+                      }
+                  }
+                  //   2. put bits (without HIR & TIR) back into bytes
+                  int rcvindex=0;
+	          for(i=0;i<nbytes;i++)
+	          {
+                      tmp=0;
+                      for(j=7; j>=0; j--)
+                      {
+                          tmp <<= 1;
+                          tmp |= (buf[i*8+j+hirbits]&1);
+                      }
+                      rcv[rcvindex++]=tmp;
+                  }
+               } //end of removing HIR & TIR           
+
                 for(i=0;i<nbytes;i++)
-		  {
+		{
 		    if (((rcv[i]^expect[i]) & rmask[i])!=0)
-		      {
+		    {
 			if(db) printf("SIR read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
                 	errcntr++;
-		      }
-		  }
-	      }
-	    /*
-	      if (cmpflag==1)
-	      {
-	      for(i=4;i<nbits+4;i++) printf("%d",rcvbuf[i]);
-	      printf("\n");
-	      }
-	    */   
+		    }
+		}
+	    }
           }
 	  // === Handling RUNTEST ===
 	  else if(strcmp(Word[0],"RUNTEST")==0)
-	    {
+	  {
+	    // printf("RUNTEST:  %d\n",pause);
+            if (Count>1 && strcmp(Word[2],"SEC")==0)
+            {
+               //  if it is not "xxxxE-6 SEC", we have to use float number
+               //  float fpause=0.;
+               //  sscanf(Word[1],"%g",&fpause);
+               sscanf(Word[1],"%d",&pause);
+               if(pause>5) ::usleep(pause-5);
+            }
+            else
+            {
 	       sscanf(Word[1],"%d",&pause);
-	       // printf("RUNTEST:  %d\n",pause);
                if( pause<20 && (pause%10)>0 )
                {
                   // std::cout << "STATE: cycle idle state" << std::endl;
@@ -924,20 +938,20 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
                }
                else
                {
-
-                   if(pause>1000000)
+                  if(pause>=1000000)
                   {
-                    // printf("pause %d seconds. ", (pause+1000)/1000000);
-                     ::sleep((pause+1000)/1000000);
+                     // printf("pause %d seconds. ", pause/1000000);
+                     ::sleep(pause/1000000);
                   }
-                  else
+                  else if(pause>5)
                   {
-                     theController->sleep_vme(pause);
+                     // sending a VME command needs more than 5 micro-sec,
+                     // we can safely ignore those short delays
+                     ::usleep(pause-5);
                   }
-	       //usleep(pause+100);
-	       // InsertDelayJTAG(pause,MYMICROSECONDS);
                }
-	    }
+            }
+	  }
 	  // === Handling STATE ===
 	  else if((strcmp(Word[0],"STATE")==0))
 	    {
@@ -965,6 +979,62 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	    {
 	    //	   printf("ENDDR\n");
 	    }
+	  // === Handling READ ===
+	  else if(strcmp(Word[0],"READ")==0)
+	  {
+	    for(i=0;i<3;i++) sndbuf[i]=tdi_pre_sdr[i];
+ 	    sscanf(Word[1],"%d",&nbits);
+            if (Count>2 && strcmp(Word[2],"REPEAT")==0) sscanf(Word[3],"%d",&repeat);
+            if(repeat<=1) repeat=1;
+            for(int jj=0; jj<repeat; jj++)
+            {
+               if(jj>0) ::usleep(50);
+               nbytes=(nbits-1)/8+1;
+               tbytes=(hdrbits+nbits+tdrbits-1)/8+1;
+	       for (i=0; i< tbytes; i++)   realsnd[i] = 0;
+	       read_packages++ ;
+               std::cout << "Reading " << std::dec << read_packages << "..." << std::endl;
+	       this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, verify); 
+	       if (db)
+	       {	
+	           printf("Readback Data: ");
+	           for (i=0; i< tbytes; i++)  printf("%02X",rcv[i]);
+	           printf("\n");
+	       }		    
+	       // Next to extract real bitstream  (remove HDR and TDR bits if any)
+               if(hdrbits==0)
+               {
+                   for(i=0;i<nbytes;i++)
+                   {
+                      bitstream[bitbufindex++]=rcv[i];
+                   }
+               }
+               else
+               {
+                  //   1. expend bytes into bits
+   	          for(i=0;i<tbytes;i++)
+	          {
+                      tmp=rcv[i];
+                      for(j=0; j<8; j++)
+                      {
+                          buf[i*8+j]=tmp&1;
+                          tmp >>= 1;
+                      }
+                  }
+                  //   2. put bits (without HDR & TDR) back into bytes
+	          for(i=0;i<nbytes;i++)
+	          {
+                      tmp=0;
+                      for(j=7; j>=0; j--)
+                      {
+                          tmp <<= 1;
+                          tmp |= (buf[i*8+j+hdrbits]&1);
+                      }
+                      bitstream[bitbufindex++]=tmp;
+                  }
+               } //end of extracting bitstream           
+            }  // end of repeat
+	  } //end of READ
 	}
     }
   // At the end of downloading, bring JTAG to RESET state.
@@ -974,10 +1044,13 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   // turn off delay.
   theController->SetUseDelay(false);
 
+  if(readprom && bitbufindex>0)
+  {
+      std::cout << "Total read back " <<  bitbufindex << " bytes from PROM." << std::endl;
+  }
   fclose(dwnfp);
   return errcntr; 
 }
-
 
 // ====
 // SVF File Parser module
@@ -1026,8 +1099,7 @@ int VMEModule::new_vme(char fcn, unsigned vme,
    return theController->new_vme(fcn, vme, data, rcv, when);
 }
 
-// The following functions just demonstrate how to use new_vme().
-//   I prefer to directly call new_vme() to build jumbo packet. Liu
+// The following 5 wrapper functions can be used to build jumbo packet.
  
 void VMEModule::write_later(unsigned  address, unsigned short data) 
 {
@@ -1054,6 +1126,75 @@ void VMEModule::vme_delay(unsigned short data)
   new_vme(VME_DELAY, 0, data, NULL, LATER);
 }
 
+int VMEModule::read_prom(const char * vrffile, const char * mcsfile)
+{
+   int tmp=0;
+
+   bitstream=(char *)malloc(16*1024*1024);
+   if(bitstream==NULL)
+   {   
+       std::cout << "ERROR: failed to allocate memory! Aborting..." << std::endl;
+       return -1;
+   }
+   bitfile=fopen(mcsfile, "w");
+   if(bitfile==NULL) 
+   {  
+       std::cout << "ERROR: failed to create mcs file " << mcsfile << "! Aborting..."<< std::endl;
+       free (bitstream);
+       return -2;
+   }
+   bitbufindex=0;
+   svfLoad(&tmp, vrffile, 0, 1);
+   if(bitbufindex>0) 
+   {    write_mcs(bitstream, bitbufindex, bitfile);
+        std::cout << bitbufindex << " bytes of PROM image written to " << mcsfile << std::endl;
+   }      
+   fclose(bitfile);
+   free(bitstream);   
+   return 0;
+}
+
+void VMEModule::write_mcs(char *buf, int nbytes, FILE *outf)
+{
+   int segment=0, block=0, byte_index=0, total_blk, crc, i,j;
+   int MAXBLOCK=4096;
+   char tmp;
+
+   total_blk=nbytes/16;
+   if(nbytes%16>0) total_blk++;
+   for (i=0; i<total_blk; i++)
+   {
+       if(block==0) 
+       {  
+          crc = 2+4+segment+(segment>>8);
+          crc = ~crc+1;
+          fprintf(outf, ":02000004%04X%02X\n", segment&0xFFFF, crc&0xFF);
+       }
+       fprintf(outf, ":10%04X00", (byte_index & 0xFFFF));
+       crc=0x10+byte_index+(byte_index>>8);
+       for(j=0;j<16;j++) 
+       {
+            if(byte_index>=nbytes) tmp=0xFF;
+            else tmp=buf[byte_index++];
+            fprintf(outf, "%02X", tmp&0xFF);
+            crc += tmp;
+       }
+       crc = ~crc+1;
+       fprintf(outf, "%02X\n", crc&0xFF);
+       if(byte_index>=nbytes)
+       {
+            fprintf(outf, ":00000001FF\n");
+            break;
+       }
+       block++;
+       if(block==MAXBLOCK) 
+       {   
+            block=0;
+            segment++;
+       }
+   }
+
+}
 
   } // namespace emu::pc
 } // namespace emu

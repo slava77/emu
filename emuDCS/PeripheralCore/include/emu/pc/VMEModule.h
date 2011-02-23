@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: VMEModule.h,v 1.3 2011/02/23 11:42:05 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.3  2011/02/23 11:42:05  liu
+// updated svfLoad, added PROM read back functions
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -171,6 +174,8 @@ public:
   int eth_read_previous();
   int eth_read_timeout(int rd_tmo);
   int LeftToRead();
+  int read_prom(const char *vfyfile, const char *mcsfile );
+  void write_mcs(char *buf, int nbytes, FILE *outf);
 
 protected:
   //
@@ -210,6 +215,10 @@ protected:
   char rcvbuf2[1024];
   char cmd[1024];
   //
+  // for PROM read back
+  FILE *bitfile;
+  char *bitstream;
+  int bitbufindex;
 };
   } // namespace emu::pc
 } // namespace emu
