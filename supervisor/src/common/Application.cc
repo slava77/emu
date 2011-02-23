@@ -87,7 +87,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   run_type_("Monitor"), run_number_(1), runSequenceNumber_(0),
   daq_mode_("UNKNOWN"), ttc_source_(""),
   rcmsStateNotifier_(getApplicationLogger(), getApplicationDescriptor(), getApplicationContext()),
-  TFCellOpState_(""), TFCellOpName_("EmuLocal"), TFCellClass_("Cell"), TFCellInstance_(8), 
+  TFCellOpState_(""), TFCellOpName_("Configuration"), TFCellClass_("Cell"), TFCellInstance_(8), 
   wl_semaphore_(toolbox::BSem::EMPTY), quit_calibration_(false),
   daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
   nevents_(-1),
@@ -809,15 +809,9 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       TFCellOpState_ = OpGetStateCell();
       if ( TFCellOpState_.toString() != "UNKNOWN" ){
-	// Reset csctf-cell operation before killing it to allow it to stop in an orderly fashion
+	// Reset csctf-cell operation
 	OpResetCell();
 	waitForTFCellOpToReach("halted",60);
-      }
-      // Kill leftover csctf-cell operation
-      sendCommandCellOpkill();
-      if ( waitForTFCellOpToReach("UNKNOWN",60) ){
-	// Creating csctf-cell operation
-	sendCommandCellOpInit();
       }
     }
 
@@ -1108,13 +1102,13 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
 	 << "    state table: " << state_table_
 	 << "    state_table_.refresh: " << sw.read() << endl;
     
-    // Stop and destroy TF Cell operation
+    // Stop and reset TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       sendCommandCell("stop");
       waitForTFCellOpToReach("configured",60);
       cout << "    stop TFCellOp: " << sw.read() << endl;
-      sendCommandCellOpkill();
-      cout << "    kill TFCellOp: " << sw.read() << endl;
+      OpResetCell();
+      cout << "    reset TFCellOp: " << sw.read() << endl;
     }
 
     if (state_table_.getState("LTCControl", 0) != "Halted") {
@@ -1262,34 +1256,6 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
 
 //////////////////////////////////////////////////////////////////////
 
-void emu::supervisor::Application::sendCommandCellOpInit(){
-  if ( tf_descr_ == NULL ) return;
-
-  emu::soap::Messenger m( this );
-
-  xdata::String async( "false" ); 
-  xdata::String cid( "10" );
-  xdata::String sid( "73" );
-  xdata::String operation( "Configuration" );
-
-  try{
-    emu::soap::Attributes operationAttr;
-    operationAttr.setUsePrefix( "false" ).add( "opId", &TFCellOpName_ );
-    m.sendCommand( tf_descr_, "OpInit", "urn:ts-soap:3.0",
-		   emu::soap::Parameters()
-		   .add( "operation", &operation, &operationAttr ),
-		   emu::soap::Attributes()
-		   .setUsePrefix( false )
-		   .add( "async", &async )
-		   .add( "cid"  , &cid   )
-		   .add( "sid"  , &sid   )
-		   );
-  } 
-  catch( xcept::Exception& e ){
-    LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to init TF Cell Operation " << xcept::stdformat_exception_history(e) );
-  }
-}
-
 
 void emu::supervisor::Application::sendCommandCell(string command){
   if ( tf_descr_ == NULL ) return;
@@ -1317,36 +1283,10 @@ void emu::supervisor::Application::sendCommandCell(string command){
 		   );
   } 
   catch( xcept::Exception& e ){
-    LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to send command '" << command << "' << to TF Cell " << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to send command '" << command << "' to TF Cell " << xcept::stdformat_exception_history(e) );
   }
 }
  
-
-void emu::supervisor::Application::sendCommandCellOpkill(){
-  if ( tf_descr_ == NULL ) return;
-
-  emu::soap::Messenger m( this );
-
-  xdata::String async( "false" ); 
-  xdata::String cid( "10" );
-  xdata::String sid( "73" );
-
-  try{
-    m.sendCommand( tf_descr_, "OpKill", "urn:ts-soap:3.0",
-		   emu::soap::Parameters()
-		   .add( "operation", &TFCellOpName_ ),
-		   emu::soap::Attributes()
-		   .setUsePrefix( false )
-		   .add( "async", &async )
-		   .add( "cid"  , &cid   )
-		   .add( "sid"  , &sid   )
-		   );
-  } 
-  catch( xcept::Exception& e ){
-    LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to kill TF Cell Operation " << xcept::stdformat_exception_history(e) );
-  }
-}
-
 
 std::string emu::supervisor::Application::OpGetStateCell(){
   if ( tf_descr_ == NULL ) return "";
