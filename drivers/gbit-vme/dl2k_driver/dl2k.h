@@ -702,7 +702,7 @@ static struct pci_device_id rio_pci_tbl[] = {
 MODULE_DEVICE_TABLE (pci, rio_pci_tbl);
 #define TX_TIMEOUT  (4*HZ)
 #define PACKET_SIZE		1536
-#define MAX_JUMBO		8000
+#define MAX_JUMBO		9000
 #define RIO_IO_SIZE             340
 #define DEFAULT_RXC		5
 #define DEFAULT_RXT		750

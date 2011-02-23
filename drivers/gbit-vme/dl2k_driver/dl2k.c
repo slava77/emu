@@ -225,14 +225,16 @@ rio_probe1 (struct pci_dev *pdev, const struct pci_device_id *ent)
 				np->an_enable = 1;
 			}
 		}
-		if (jumbo[card_idx] != 0) {
 			np->jumbo = 1;
 			dev->mtu = MAX_JUMBO;
+/*  enable JUMBO by default, the command line option "jumbo" no longer works
+		if (jumbo[card_idx] != 0) {
 		} else {
 			np->jumbo = 0;
 			if (mtu[card_idx] > 0 && mtu[card_idx] < PACKET_SIZE)
 				dev->mtu = mtu[card_idx];
 		}
+*/
 		np->vlan = (vlan[card_idx] > 0 && vlan[card_idx] < 4096) ?
 		    vlan[card_idx] : 0;
 		if (rx_coalesce > 0 && rx_timeout > 0) {
