@@ -11,6 +11,8 @@ function load_daq_drivers(){
     # spy channel readout. If the built-in NIC (for eth0) also happened to be
     # Intel, we would need the modified e1000, but now we have a Broadcom
     # built-in NIC.
+    # Also, make sure eth{2,3,4,5} are alias for e1000h and not e1000
+    [[ -f /etc/modprobe.conf ]] && sed -i.bak -e 's/^alias eth\([2345]\) e1000$/alias eth\1 e1000h/g' /etc/modprobe.conf
     [[ $(/sbin/lsmod | grep -c '^e1000 ') -eq 0 ]] || /sbin/modprobe -r e1000
 
     # Bring down the interfaces
