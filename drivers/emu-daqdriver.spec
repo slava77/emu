@@ -4,7 +4,7 @@
 
 Summary: CMS Emu local DAQ Gbit drivers for kernel %{kernel_version}
 Name: emu-daqdriver
-Version: 1.6.0
+Version: 1.7.0
 Release: 1.slc4
 License: none
 Group: none
