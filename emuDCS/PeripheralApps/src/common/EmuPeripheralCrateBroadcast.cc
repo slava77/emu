@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.53 2010/06/16 16:19:48 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.54 2011/02/25 14:08:37 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -40,8 +40,8 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   DmbControlFPGAFirmwareFile_       = FirmwareDir_+"dmb/dmb6cntl_pro.svf";
   DmbVmeFPGAFirmwareFile_           = FirmwareDir_+"dmb/dmb6vme_pro.svf";
   CfebFPGAFirmwareFile_             = FirmwareDir_+"cfeb/cfeb_pro.svf";
-  CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
-  MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_100808.svf";
+//  CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
+//  MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_100808.svf";
   //
   number_of_layers_pretrig_ = 2;
   number_of_layers_pattern_ = 4;
@@ -353,6 +353,25 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << RATFirmwareFile_ << std::endl;
   *out << cgicc::form()<<std::endl;
   //
+  //  create filename for CCB & MPC
+    int year  = (broadcastCCB->GetExpectedFirmwareYear())%100;
+    int month = broadcastCCB->GetExpectedFirmwareMonth();
+    int day   = broadcastCCB->GetExpectedFirmwareDay();
+    char ccbdate[7];
+    sprintf(ccbdate,"%02u%02u%02u",month,day,year);
+    std::ostringstream CCBFirmware;
+    CCBFirmware << FirmwareDir_ << "ccb/ccb2004p_" << ccbdate << ".svf";
+    CCBFirmwareFile_ = CCBFirmware.str();
+
+    year  = (broadcastMPC->GetExpectedFirmwareYear())%100;
+    month = broadcastMPC->GetExpectedFirmwareMonth();
+    day   = broadcastMPC->GetExpectedFirmwareDay();
+    char mpcdate[7];
+    sprintf(mpcdate,"%02u%02u%02u",month,day,year);
+    std::ostringstream MPCFirmware;
+    MPCFirmware << FirmwareDir_ << "mpc/mpc2004_" << mpcdate << ".svf";
+    MPCFirmwareFile_ = MPCFirmware.str();
+ 
   std::string LoadMPCFirmware = toolbox::toString("/%s/LoadMPCFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadMPCFirmware) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load MPC Firmware") << std::endl ;
@@ -714,42 +733,45 @@ void EmuPeripheralCrateBroadcast::LoadRATFirmware(xgi::Input * in, xgi::Output *
   this->LoadDMBCFEBFPGAFirmware(in, out);
 }
 //
-void EmuPeripheralCrateBroadcast::LoadMPCFirmware(xgi::Input * in, xgi::Output * out )  {
+void EmuPeripheralCrateBroadcast::LoadMPCFirmware(xgi::Input * in, xgi::Output * out )  
+{
   //
   // load the MPC firmware
   //
   if (broadcastMPC) {
     std::cout <<" Loading all MPCs with firmware from " << MPCFirmwareFile_ << std::endl;
-  } else {
+
+    int debugMode(0);
+    int jch(0);
+    int verify(0);
+    //
+    broadcastMPC->svfLoad(&jch,MPCFirmwareFile_.c_str(),debugMode,verify);
+  //
+  } else 
+  {
     std::cout <<" No broadcast MPC exists" << std::endl;
   }
-  //
-  int debugMode(0);
-  int jch(6);
-  int verify(0);
-  //
-  broadcastMPC->svfLoad(&jch,MPCFirmwareFile_.c_str(),debugMode,verify);
-  //
   in=NULL;
   this->LoadDMBCFEBFPGAFirmware(in, out);
 }
 //
-void EmuPeripheralCrateBroadcast::LoadCCBFirmware(xgi::Input * in, xgi::Output * out )  {
+void EmuPeripheralCrateBroadcast::LoadCCBFirmware(xgi::Input * in, xgi::Output * out )  
+{
   //
   // load the CCB firmware
   //
   if (broadcastCCB) {
     std::cout <<" Loading all CCBs with firmware from " << CCBFirmwareFile_ << std::endl;
-  } else {
+    //
+    int debugMode(0);
+    int jch(0);
+    int verify(0);
+    //
+    broadcastCCB->svfLoad(&jch,CCBFirmwareFile_.c_str(),debugMode,verify);
+  } else 
+  {
     std::cout <<" No broadcast CCB exists" << std::endl;
   }
-  //
-  int debugMode(0);
-  int jch(6);
-  int verify(0);
-  //
-  broadcastCCB->svfLoad(&jch,CCBFirmwareFile_.c_str(),debugMode,verify);
-  //
   in=NULL;
   this->LoadDMBCFEBFPGAFirmware(in, out);
 }
