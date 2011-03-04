@@ -236,7 +236,7 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onFastLoop (xoap::MessageRefer
 {
   // std::cout << "SOAP Fast Loop" << std::endl;
   fast_count++;
-  if(fast_on)
+  if(Monitor_On_ && Monitor_Ready_ && fast_on)
   {   time_t thistime = ::time(NULL);
       if(old_time) read_interval = thistime - old_time;
       old_time = thistime;
@@ -250,7 +250,7 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onSlowLoop (xoap::MessageRefer
 {
   // std::cout << "SOAP Slow Loop" << std::endl;
   slow_count++;
-  if(slow_on) 
+  if(Monitor_On_ && Monitor_Ready_ && slow_on) 
   {  
       PublishEmuInfospace(2);
       new_data_ = true;
@@ -263,7 +263,7 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onExtraLoop (xoap::MessageRefe
 {
   // std::cout << "SOAP Extra Loop" << std::endl;
   extra_count++;
-  if(extra_on) PublishEmuInfospace(3);
+  if(Monitor_On_ && Monitor_Ready_ && extra_on) PublishEmuInfospace(3);
   return createReply(message);
 }
 
