@@ -34,7 +34,8 @@ Sources=\
 	Chamber.cc \
 	EMUjtag.cc \
 	EmuEndcap.cc \
-        EmuLogger.cc
+        EmuLogger.cc \
+        PROBLEM.cc
 
 IncludeDirs = 
 
