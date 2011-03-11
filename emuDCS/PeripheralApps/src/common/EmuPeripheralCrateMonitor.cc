@@ -1,6 +1,7 @@
 // $Id: EmuPeripheralCrateMonitor.cc
 
 #include "emu/pc/EmuPeripheralCrateMonitor.h"
+#include "emu/pc/PROBLEM.h"
 
 #include <string>
 #include <vector>
@@ -49,6 +50,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::XmlOutput, "XmlOutput");
   xgi::bind(this,&EmuPeripheralCrateMonitor::SwitchBoard, "SwitchBoard");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::Problems, "Problems");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateMonitor::TCounterSelection, "TCounterSelection");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCounterSelection, "DCounterSelection");
@@ -671,6 +673,15 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     std::string beamView = toolbox::toString("/%s/BeamView",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",beamView).set("target","_blank") << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Beam Monitor").set("name", "BeamView") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+
+    *out << cgicc::td();
+    std::string problems = toolbox::toString("/%s/Problems",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",problems).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","All Problems").set("name", "Problems") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
@@ -2848,7 +2859,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   xdata::InfoSpace * is;
   std::string mac;
   int ip, slot, ch_state;
-  unsigned int bad_module;
+  unsigned int bad_module, ccbbits;
   bool gooddata, goodtmb;
 
   if(!Monitor_Ready_)
@@ -2878,6 +2889,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            *out << " 32";
 
            *out << " " << time(NULL) << " " << ip;
+           *out << " 0 0";
            for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
            {  
               *out << " -2.";
@@ -2919,6 +2931,17 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      else
      {  goodtmb=true;
      }
+     xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
+     if(ccbdata==NULL || ccbdata->size()==0)
+     {  ccbbits=0;
+     }
+     else
+     {
+        unsigned short csra2= (*ccbdata)[1];
+        unsigned short csra3= (*ccbdata)[2];
+        ccbbits= (csra3<<16)+csra2;
+     }
+
      ch_state=0;
      bad_module = (good_chamber>>10) & 0xF;
 
@@ -2929,8 +2952,11 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         int imask= 0x3F & (myVector[j]->GetPowerMask());
         bool chamber_off = (imask==0x3F);
         slot = myVector[j]->slot();
+        int dmbN = slot/2;
+        if(dmbN>5) dmbN--;
         ip = (ip & 0xff) + slot*256;
-        *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        std::string cscname=crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << cscname;
 
         ch_state=0;
         if (chamber_off) ch_state |= 2;
@@ -2953,6 +2979,15 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         *out << " " << ch_state; 
 
         *out << " " << readtime << " " << ip;
+
+// CCB bits and FPGA bits
+        int alctbit=(ccbbits>>dmbN)&1;
+        int tmbbit=(ccbbits>>dmbN+9)&1;
+        int dmbbit=1-((ccbbits>>(dmbN+18))&1);   // DM: 1=OK, 0=BAD
+        if(cscname.substr(3,3)=="1/3") dmbbit=0;  // ME1/3 DMB bit is not valid
+        int confbit=alctbit+(tmbbit<<1)+(dmbbit<<2);
+        *out << " " << confbit << " 0";
+
         *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
         {  
@@ -3535,6 +3570,166 @@ void EmuPeripheralCrateMonitor::check_controllers()
         crateVector[i]->CheckController();
     }
     controller_checked_ = true;
+}
+
+void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) 
+{
+  //
+  MyHeader(in,out,"List of All Problems");
+  //
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  //
+  int confbit, prob_crate;
+  Crate *now_crate=0;
+  std::vector<DAQMB*> myDmbs;
+  std::vector<PROBLEM *> problist;
+
+  problist.clear();
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+/*
+  1. Known Prolbems from DB
+  2. Problems from CCB Configuration bits
+  3. Problems from DCS readings
+  4. Problems from TMB counters
+  5. Problems from configuration checks
+  6. Problems from FPGA checks
+*/
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     prob_crate = i+1+(endcap_side<0?30:0);
+     now_crate=crateVector[i];
+     if(now_crate==NULL)
+     {  
+        continue;
+     }
+     if(crate_off[i])
+     { 
+        PROBLEM *prob=new PROBLEM();
+        prob->crate(prob_crate);
+        prob->module(ProbModule_CRATE);
+        prob->source(ProbSource_USER);
+        prob->type(ProbType_SKIP);
+        problist.push_back(prob);
+        continue;
+     }
+     xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
+     if(ccbdata==NULL || ccbdata->size()==0) return;
+     myDmbs = now_crate->daqmbs();
+     for(unsigned int dmbn=0; dmbn<myDmbs.size(); dmbn++)
+     {
+        int mask=myDmbs[dmbn]->GetPowerMask();
+        if(mask==0x3F)
+        {
+           int slot=myDmbs[dmbn]->slot();
+           int cscN=slot/2;
+           if(cscN>5) cscN--;
+           PROBLEM *prob=new PROBLEM();
+           prob->crate(prob_crate);
+           prob->source(ProbSource_CONFDB);
+           prob->type(ProbType_OFF);
+           prob->module(ProbModule_FEB);
+           prob->chamber(cscN);
+           problist.push_back(prob);
+        }
+     }
+
+     unsigned short csra2= (*ccbdata)[1];
+     unsigned short csra3= (*ccbdata)[2];
+     unsigned ccbbits= (csra3<<16)+csra2;
+     *out <<cgicc::tr() << std::endl;
+     // "ALCT (0=OK)" 
+     for (int count=1; count<=9; count++)
+     {
+        int slot=count*2;
+        if(count>5) slot += 2;
+        Chamber* chmb =now_crate->GetChamber(slot);
+        if(chmb==NULL) continue;
+        confbit=(ccbbits>>count)&0x1;
+        if(confbit!=0)
+        {
+           PROBLEM *prob=new PROBLEM();
+           prob->crate(prob_crate);
+           prob->source(ProbSource_CCBBIT);
+           prob->type(ProbType_DIFF);
+           prob->module(ProbModule_FEB);
+           prob->chamber(count);
+           prob->sub_mod(ProbSubMod_ALCT);
+           problist.push_back(prob);
+        }
+    
+     }
+     // "TMB (0=OK)"
+     for (int count=1; count<=9; count++)
+     {
+        unsigned int slot=count*2;
+        if(count>5) slot += 2;
+        TMB* mytmb =now_crate->GetTMB(slot);
+        if(mytmb==NULL) continue;
+        confbit = (ccbbits>>(count+9))&0x1;
+        if(confbit!=0)
+        {
+           PROBLEM *prob=new PROBLEM();
+           prob->crate(prob_crate);
+           prob->source(ProbSource_CCBBIT);
+           prob->type(ProbType_DIFF);
+           prob->module(ProbModule_TMB);
+           prob->chamber(count);
+           problist.push_back(prob);
+        }
+      }
+      // "DMB (1=OK)"
+      for (int count=1; count<=9; count++)
+      {
+        unsigned slot=count*2+1;
+        if(count>5) slot += 2;
+        DAQMB* mydmb =now_crate->GetDAQMB(slot);
+        if(mydmb==NULL) continue;
+        confbit= (ccbbits>>(count+18))&0x1;
+        std::string cscname=now_crate->GetChamber(mydmb)->GetLabel();
+        if(confbit!=1 && cscname.substr(3,3)!="1/3")
+        {
+           PROBLEM *prob=new PROBLEM();
+           prob->crate(prob_crate);
+           prob->source(ProbSource_CCBBIT);
+           prob->type(ProbType_DIFF);
+           prob->module(ProbModule_DMB);
+           prob->chamber(count);
+           problist.push_back(prob);
+        }
+      }  
+  }
+  *out << "<pre>" << std::endl;
+  *out << "Off chambers in Configuration DB" << std::endl;
+  for(unsigned int i=0;i<problist.size(); i++)
+  {
+
+     if(problist[i]->source()==ProbSource_CONFDB && problist[i]->type()>0)
+     {
+        *out << "Crate=" << problist[i]->crate() << ", Chamber=" << problist[i]->chamber() << std::endl;
+     }
+  }
+  *out << std::endl <<  "Problems in CCB Configuration bits" << std::endl;
+  for(unsigned int i=0;i<problist.size(); i++)
+  {
+     if(problist[i]->source()==ProbSource_CCBBIT && problist[i]->type()>0)
+     {
+        *out << "Crate=" << problist[i]->crate() << ", Chamber=" << problist[i]->chamber() << ", Module=" << problist[i]->module() << std::endl;
+     }
+  }
+  *out << "</pre>" << std::endl;
 }
 
 void EmuPeripheralCrateMonitor::InitCounterNames()
