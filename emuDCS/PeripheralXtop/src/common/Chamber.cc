@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.19 2011/03/11 13:43:13 liu Exp $
+// $Id: Chamber.cc,v 1.20 2011/03/11 14:05:32 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.20  2011/03/11 14:05:32  liu
+// update comments
+//
 // Revision 1.19  2011/03/11 13:43:13  liu
 // added 7 volts and CCB configuration bits
 //
@@ -183,9 +186,7 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
    dim_lv->A7v = data[38];
    dim_lv->D7v = data[39];
    dim_lv->CCB_bits = info[3];
-std::cout << "CCB: " << info[3] << std::endl;
    dim_lv->FPGA_bits = info[4];
-std::cout << "FPGA: " << info[4] << std::endl;
    dim_lv->update_time = info[1];
    dim_lv->status = this_st;
 
