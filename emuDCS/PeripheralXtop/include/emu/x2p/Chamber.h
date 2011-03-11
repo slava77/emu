@@ -37,8 +37,8 @@ private:
   int active_;
   bool dataok_, ready_, corruption;
 
-  int states[4];
-  float values[75];
+  int states[8];
+  float values[85];
 
   // DIM
   LV_1_DimBroker dim_lv;

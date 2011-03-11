@@ -59,12 +59,17 @@ typedef struct{
   CFEB_LV cfeb;
   ALCT_LV alct;
   TMB_LV  tmb;
-  
+
+  float A7v;
+  float D7v;
+
+  int CCB_bits;
+  int FPGA_bits;
+
   int update_time;
   int status;
 
 }LV_1_DimBroker;
-
 
 
 typedef struct{

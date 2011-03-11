@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.42 2010/10/18 21:37:12 liu Exp $
+// $Id: EmuDim.cc,v 1.43 2011/03/11 13:43:13 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -295,9 +295,6 @@ void EmuDim::MyHeader(xgi::Input * in, xgi::Output * out, std::string title )
   //
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
   *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-  //
-  //*out << cgicc::title(title) << std::endl;
-  //*out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << h2(title) << std::endl;
   //
   cgicc::Cgicc cgi(in);
   //
@@ -598,7 +595,7 @@ void EmuDim::StartDim()
          dim_lv_name = pref + "LV_1_" + chamb[i].GetLabel(); 
          dim_temp_name = pref + "TEMP_1_" + chamb[i].GetLabel(); 
 
-         LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:8;F:14;I:2",
+         LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:8;F:16;I:4",
            &(EmuDim_lv[i]), sizeof(LV_1_DimBroker));
          TEMP_1_Service[i]= new DimService(dim_temp_name.c_str(),"F:7;I:2",
            &(EmuDim_temp[i]), sizeof(TEMP_1_DimBroker));

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.18 2010/08/26 19:16:45 liu Exp $
+// $Id: Chamber.cc,v 1.19 2011/03/11 13:43:13 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.19  2011/03/11 13:43:13  liu
+// added 7 volts and CCB configuration bits
+//
 // Revision 1.18  2010/08/26 19:16:45  liu
 // add TMB voltages
 //
@@ -85,15 +88,15 @@ void Chamber::Fill(char *buffer, int source)
    item=strtok_r(start, sep, &last);
    while(item)
    {
-       if(idx<3) 
+       if(idx<5) 
        {
            i = atoi(item);
            states[idx] = i; 
        }
-       else if(idx<67)
+       else if(idx<69)
        {  
            y=strtof(item,NULL);
-           values[idx-3]=y;
+           values[idx-5]=y;
        }
        idx++;
        item=strtok_r(NULL, sep, &last);
@@ -101,8 +104,8 @@ void Chamber::Fill(char *buffer, int source)
 
    if(source==0)
    {  
-      if(idx!=66 || values[62]!=(-50.))
-      {   std::cout << label_ << " BAD...total " << idx << " last one " << values[47] << std::endl;
+      if(idx!=68 || values[62]!=(-50.))
+      {   std::cout << label_ << " BAD...total " << idx << " last one " << values[62] << std::endl;
           corruption = true;
       }
       else 
@@ -177,6 +180,12 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->tmb.vGND = data[59];
       dim_lv->tmb.vMAX = data[60];
 
+   dim_lv->A7v = data[38];
+   dim_lv->D7v = data[39];
+   dim_lv->CCB_bits = info[3];
+std::cout << "CCB: " << info[3] << std::endl;
+   dim_lv->FPGA_bits = info[4];
+std::cout << "FPGA: " << info[4] << std::endl;
    dim_lv->update_time = info[1];
    dim_lv->status = this_st;
 
