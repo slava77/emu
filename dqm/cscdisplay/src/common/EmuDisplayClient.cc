@@ -28,12 +28,13 @@ EmuDisplayClient::EmuDisplayClient(xdaq::ApplicationStub* stub)
 throw (xdaq::exception::Exception)
     : xdaq::WebApplication(stub),
     emu::base::WebReporter(stub),
+    emu::base::FactFinder(stub, emu::base::FactCollection::LOCAL_DQM, 0),
     Task("EmuDisplayClient"),
     monitorClass_("EmuMonitor"),
     imageFormat_("png"),
     imagePath_("images"),
     viewOnly_(true),
-    debug(false),
+    useExSys(false),
     BaseDir("/csc_data/dqm"),
     refImagePath("ref.plots"),
     saveResultsDelay(20),
@@ -97,6 +98,9 @@ throw (xdaq::exception::Exception)
   getApplicationInfoSpace()->fireItemAvailable("saveResultsDelay",&saveResultsDelay);
   getApplicationInfoSpace()->addItemChangedListener ("saveResultsDelay", this);
 
+  getApplicationInfoSpace()->fireItemAvailable("useExSys",&useExSys);
+  getApplicationInfoSpace()->addItemChangedListener ("useExSys", this);
+
 
   book();
   // === Initialize ROOT system
@@ -105,7 +109,7 @@ throw (xdaq::exception::Exception)
 
   gStyle->SetPalette(1,0);
 
- 
+
   eventDisplay = new EventDisplay();
 
   monitors = getAppsList(monitorClass_);
@@ -651,7 +655,8 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
 void EmuDisplayClient::saveNodesResults()
 {
   std::string action = "saveResults";
-  LOG4CPLUS_INFO (getApplicationLogger(), "Save Nodes Results");
+  std::string tstamp = emu::dqm::utils::getDateTime();;
+  LOG4CPLUS_INFO (getApplicationLogger(), "Save Nodes Results at " << tstamp);
   if (!monitors.empty())
     {
       std::set<xdaq::ApplicationDescriptor*>::iterator mon;
@@ -667,11 +672,10 @@ void EmuDisplayClient::saveNodesResults()
 
 
               xoap::SOAPElement command = body.addBodyElement(commandName );
-              /*
+
               xoap::SOAPName timeStamp = envelope.createName("TimeStamp", "", "");
-              xoap::SOAPElement folderElement = command.addChildElement(folderName);
-              folderElement.addTextNode(tstamp);
-              */
+              xoap::SOAPElement timeStampElement = command.addChildElement(timeStamp);
+              timeStampElement.addTextNode(tstamp);
 
               // LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
               xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *(*mon));
@@ -1119,7 +1123,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
 
         }
 
-	// if (cnv) delete cnv;
+      // if (cnv) delete cnv;
     }
   else
     {
@@ -1913,7 +1917,40 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
             nodesStatus[nodename]["dataSource"] = dataSource;
 
 
+            if (useExSys)
+              {
+
+                //*** Prepare Facts Collection for EmuMonitor Statuses ***//
+
+                // Convert DateTime string to format supported by Expert System
+                time_t tnow = time(NULL);
+                struct tm* tm_p = localtime(&tnow);
+                strptime(stateChangeTime.c_str(), "%Y-%m-%d %H:%M:%S %Z", tm_p);
+                tnow = mktime(tm_p);
+                if (tnow != (time_t)-1)
+                  {
+                    stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
+                  }
+                emu::base::Component comp(nodename);
+                CSCDqmFact fact = CSCDqmFact(runNumber, comp, "EmuMonitorFact");
+                fact.addParameter("state", state)
+                .addParameter("stateChangeTime",stateChangeTime)
+                .addParameter("dqmEvents", events)
+                .addParameter("dqmRate", dataRate)
+                .addParameter("cscRate", cscRate)
+                .addParameter("cscDetected", cscDetected)
+                .addParameter("cscUnpacked", cscUnpacked)
+                .setSeverity("INFO")
+                .setRun(runNumber);
+                addFact(fact);
+              }
+
+
           }
+
+        // Send EmuMonitor nodes facts to expert system
+        if (useExSys) emu::base::FactFinder::sendFacts();
+
 
         LOG4CPLUS_DEBUG (getApplicationLogger(), "DQM Nodes Statuses are updated");
         nodesStatus.setTimeStamp(time(NULL));
@@ -2549,6 +2586,14 @@ int EmuDisplayClient::svc()
           generateSummaryReport(curRunNumber, report);
           dqm_report.clearReport();
           dqm_report = report;
+
+          // Send DQM report facts to expert system
+          if (useExSys)
+            {
+              int nFacts = prepareReportFacts(curRunNumber);
+              if (nFacts>0) emu::base::FactFinder::sendFacts();
+            }
+
           appBSem_.give();
         }
       if (counter % (6*saveResultsDelay) == 0)
@@ -2562,4 +2607,37 @@ int EmuDisplayClient::svc()
 
     }
   return 0;
+}
+
+emu::base::Fact EmuDisplayClient::findFact(const emu::base::Component& component, const std::string& factType)
+{
+  for (std::list<emu::base::Fact>::iterator iFact = collectedFacts.begin(); iFact != collectedFacts.end(); ++iFact)
+    {
+      // Return only the last stored fact that matches the component and fact type
+      if (iFact->getComponent() == component && iFact->getName() == factType)
+        {
+          emu::base::Fact foundFact = *iFact;
+          collectedFacts.erase(iFact);
+          return foundFact;
+        }
+    }
+
+  // std::ostringstream error;
+  // error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
+  // XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
+  // notifyQualified("WARN", e);
+  // LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+
+  return emu::base::Fact();
+}
+
+emu::base::FactCollection EmuDisplayClient::findFacts()
+{
+  emu::base::FactCollection fc;
+  for (std::list<emu::base::Fact>::iterator iFact = collectedFacts.begin(); iFact != collectedFacts.end(); ++iFact)
+    {
+      fc.addFact(*iFact);
+    }
+  collectedFacts.clear();
+  return fc;
 }

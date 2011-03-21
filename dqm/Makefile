@@ -20,7 +20,7 @@ Summary="The Emu (CSC) Local DQM"
 Authors="Victor Barashko, Khristian Kotov"
 Link="http://www.phys.ufl.edu/emu/csc/dqm"
 PACKAGE_VER_MAJOR=1
-PACKAGE_VER_MINOR=2
+PACKAGE_VER_MINOR=3
 PACKAGE_VER_PATCH=0
 
 include $(XDAQ_ROOT)/config/Makefile.rules
@@ -36,7 +36,7 @@ Packages=\
 	dqm/cscdisplay \
 	dqm/tfanalyzer \
         dqm/tfmonitor \
-        dqm/tfdisplay # \
+        dqm/tfdisplay \
 	dqm/calibration
 
 include $(XDAQ_ROOT)/config/Makefile.rules

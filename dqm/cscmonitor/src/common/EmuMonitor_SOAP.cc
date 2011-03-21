@@ -198,13 +198,7 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
     {
 
       xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
-      if (rb.hasFault() )
-        {
-          xoap::SOAPFault fault = rb.getFault();
-          std::string errmsg = "DQMNode: ";
-          errmsg += fault.getFaultString();
-          XCEPT_RAISE(xoap::exception::Exception, errmsg);
-        }
+      std::string tstamp = "";
 
       xoap::MessageReference msg = xoap::createMessage();
       xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
@@ -216,22 +210,44 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
       xoap::SOAPName monitorNode = envelope.createName("DQMNode", "", "");
       xoap::SOAPElement monitorNodeElement = command.addChildElement(monitorNode);
       xoap::SOAPName nodeID("id","","");
-      monitorNodeElement.addAttribute(nodeID,localTid.toString()); 
+      monitorNodeElement.addAttribute(nodeID,localTid.toString());
 
-      uint32_t rate = rateMeter->getRate("averageRate");
-      if ((plotter_ != NULL)
-          && (fsm_.getCurrentState() == 'E')
-          && (fSaveROOTFile_ == xdata::Boolean(true))
-          && (sessionEvents_ > xdata::UnsignedInteger(0))
-          && (timer_ != NULL)
-          && (!timer_->isActive())
-	  )
+      if (rb.hasFault() )
         {
-          timer_->setPlotter(plotter_);
-          timer_->setROOTFileName(getROOTFileName());
-          timer_->activate();
+          xoap::SOAPFault fault = rb.getFault();
+          std::string errmsg = "DQMNode: ";
+          errmsg += fault.getFaultString();
+          XCEPT_RAISE(xoap::exception::Exception, errmsg);
         }
+      else
+        {
+          std::vector<xoap::SOAPElement> content = rb.getChildElements (commandName);
+          for (std::vector<xoap::SOAPElement>::iterator n_itr = content.begin();
+               n_itr != content.end(); ++n_itr)
+            {
+              xoap::SOAPName timeStampTag ("TimeStamp", "", "");
+              std::vector<xoap::SOAPElement> timeStampElement = n_itr->getChildElements (timeStampTag );
+              for (std::vector<xoap::SOAPElement>::iterator f_itr = timeStampElement.begin();
+                   f_itr != timeStampElement.end(); ++f_itr)
+                {
+                  tstamp = f_itr->getValue();
 
+                  uint32_t rate = rateMeter->getRate("averageRate");
+                  if ((plotter_ != NULL)
+                      && (fsm_.getCurrentState() == 'E')
+                      && (fSaveROOTFile_ == xdata::Boolean(true))
+                      && (sessionEvents_ > xdata::UnsignedInteger(0))
+                      && (timer_ != NULL)
+                      && (!timer_->isActive())
+                     )
+                    {
+                      timer_->setPlotter(plotter_);
+                      timer_->setROOTFileName(getROOTFileName(tstamp));
+                      timer_->activate();
+                    }
+                }
+            }
+        }
       appBSem_.give();
       return msg;
     }

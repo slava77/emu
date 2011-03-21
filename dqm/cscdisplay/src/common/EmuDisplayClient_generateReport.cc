@@ -1063,3 +1063,79 @@ DQMReport EmuDisplayClient::mergeNodesReports(std::map<uint32_t, DQMReport> rep_
 
   return merged_report;
 }
+
+// == Prepare DQM Report facts to send to Expert System
+int EmuDisplayClient::prepareReportFacts(std::string runname)
+{
+
+  int nFacts=0;
+  T_DQMReport::iterator itr;
+  vector<ReportEntry>::iterator err_itr;
+
+
+  T_DQMReport& report = dqm_report.getReport();
+
+
+  for (itr = report.begin(); itr != report.end(); ++itr)
+    {
+      if (itr->first.find("EMU") == 0)
+        {
+          emu::base::Component comp("ME");
+          for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
+            {
+              CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
+              std::string testID = err_itr->testID;
+              if (testID == "") testID = "INFO";
+              fact.addParameter("testId", testID)
+                .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+                .setDescription(err_itr->descr)
+                .setRun(runname);
+              addFact(fact);
+              nFacts++;
+
+            }
+        }
+    }
+
+  for (itr = report.begin(); itr != report.end(); ++itr)
+    {
+      if (itr->first.find("DDU") == 0)
+        {
+          emu::base::Component comp( std::string(itr->first).erase( std::string(itr->first).find('_'),1) );
+          for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
+            {
+              CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
+              fact.addParameter("testId", err_itr->testID)
+                .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+                .setDescription(err_itr->descr)
+                .setRun(runname);
+              addFact(fact);
+              nFacts++;
+
+            }
+        }
+    }
+
+  for (itr = report.begin(); itr != report.end(); ++itr)
+    {
+      if (itr->first.find("ME") == 0)
+        {
+          emu::base::Component comp(itr->first);
+          for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
+            {
+              CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
+              fact.addParameter("testId", err_itr->testID)
+                .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+                .setDescription(err_itr->descr)
+                .setRun(runname);
+              addFact(fact);
+              nFacts++;
+
+            }
+        }
+    }
+
+  return nFacts;
+
+
+}

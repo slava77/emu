@@ -182,7 +182,7 @@ protected:
   xoap::MessageReference saveResults (xoap::MessageReference msg) throw (xoap::exception::Exception);
 
   // Construct ROOT output file name
-  std::string getROOTFileName();
+  std::string getROOTFileName(std::string tstamp="");
 
 private:
 
