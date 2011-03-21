@@ -1931,6 +1931,9 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
                   {
                     stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
                   }
+		st.clear();
+	        st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
+		nodename = st.str();
                 emu::base::Component comp(nodename);
                 CSCDqmFact fact = CSCDqmFact(runNumber, comp, "EmuMonitorFact");
                 fact.addParameter("state", state)

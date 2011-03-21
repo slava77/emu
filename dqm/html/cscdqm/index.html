@@ -162,9 +162,10 @@
 	.SEVERITY_TOLERABLE {background-color: lightpink; font-weight: bold;}
 	.SEVERITY_SEVERE  {background-color: orange; font-weight: bold;}
 	.SEVERITY_CRITICAL  {background-color: red; font-weight: bold;}
-	.SEVERITY_KNOWN_PROBLEMS {background-color: #9090FF; font-weight: bold;}
+	.SEVERITY_REPEATING_PROBLEM {background-color: #9090FF; font-weight: bold;}
+	.SEVERITY_KNOWN_PROBLEM {background-color: magenta; font-weight: bold;}
 	.SEVERITY_NO_DATA {background-color: #8C8C8C; font-weight: bold;}
-	
+	.SEVERITY_FILTERED {background-color: #CCCCCC; font-weight: bold;}
 	li.sshow_list { font-size:8pt; font-family:Arial; margin: 0;}
 	
 	table.dqm_report {
@@ -211,7 +212,7 @@
 	td.node_info {background-color: white; text-align: center; }
 	
 	#csctable_div, #hwtable_div, #runs_div, #tests_div, #csccounters_div,
-	#local_runs, #global_runs, #online_runs, #ddutable_div, #report_div
+	#local_runs, #global_runs, #online_runs, #ddutable_div, #report_div, #known_problems_div
 	{
 		padding: 1px;
 		border-style: solid;
@@ -232,7 +233,7 @@
 		float: left;
 	}
 	
-	#hwtable_div, #csccounters_div, #ddutable_div, #report_div {
+	#hwtable_div, #csccounters_div, #ddutable_div, #report_div, #known_problems_div {
 		max-height: 350px;
 	}
 	
@@ -288,6 +289,9 @@
 	}
 	
 </style>
+<link type="text/css" href="redir?url=mojozoom.css" rel="stylesheet" /> 
+<script type="text/javascript" src="redir?url=mojozoom.js"></script>  
+<script type="text/javascript" src="redir?url=floatlayer.js"></script>  
 <script type="text/javascript">
 
 // var baseURL="http://cms-csc.web.cern.ch/cms-csc/DQM/DAQ/plots/merged/";
@@ -305,6 +309,7 @@ var CSCMap="redir?url=csc_map.js";
 var DDUMap="redir?url=ddu_csc_map.js";
 var VMEMap="redir?url=vme_pc_map.js";
 var TestsMap="redir?url=tests_map.js";
+var KnownProblemsList="redir?url=known_problems.js";
 // var RunsList="redir?url=runs_list.js";
 var RunsList="getRunsList";
 
@@ -340,6 +345,8 @@ var CSCMAP=false;
 var CSC_LIST=false;
 var DDUMAP=false;
 var NODES_LIST=false;
+var KNOWN_PROBLEMS=false;
+var fShowKnownProblems=true;
 
 var CSC_COUNTERS=false;
 var TESTS_MAP=false;
@@ -389,6 +396,7 @@ var totalDQMevents=0;
 var totalCSCblocks=0;
 var totalDQMrate=0;
 var totalCSCrate=0;
+var selSeverityFilter="NONE";
 
 var DQM_SEVERITY = 
 	[
@@ -397,8 +405,10 @@ var DQM_SEVERITY =
 	{"name": "TOLERABLE", "color": "lightpink", "descr": "Tolerable Issue. Check status periodically. Report if switched to higher severity level." },
 	{"name": "SEVERE", "color": "orange", "descr": "Severe Problem. Check status periodically. Report if switched to higher severity level"},
 	{"name": "CRITICAL", "color": "red", "descr": "Important Problem. Consult with CEO and Hardware Experts."},
-	{"name": "KNOWN_PROBLEMS", "color": "#9090FF", "descr": "Re-appearring Problem wrt selected comparison Run."},
-	{"name": "NO_DATA", "color": "#8C8C8C", "descr": "No Events data for DDU or CSC. Check with official disabled CSCs list."}
+	{"name": "REPEATING_PROBLEM", "color": "#9090FF", "descr": "Repeating Problem wrt selected comparison Run."},
+	{"name": "KNOWN_PROBLEM", "color": "magenta", "descr": "Acknowledged by Expert Problem."},
+	{"name": "NO_DATA", "color": "#8C8C8C", "descr": "No Events data for DDU or CSC. Check with official disabled CSCs list."},
+	{"name": "FILTERED", "color": "#CCCCCC", "descr": "Problems are not shown because of applied filter."}
 	];
 
 var CSC_TYPES = [
@@ -501,17 +511,25 @@ function loadPlot() {
 						"legend {border-style: solid;border-width: 1px;background-color:  #C0C0FF;}</style>");
 						generator.document.write('</head><body>');
 						generator.document.write("<fieldset><legend><span class='winTitle'>"+title+"</span></legend>");
-						generator.document.write("<IMAGE NAME='test' SRC='"+imgurl+"'>");
+						generator.document.write("<img NAME='test' id='dqmplot' SRC='"+imgurl+"' >");
 						generator.document.write("</fieldset>");
 						// generator.document.write('<p><a href="javascript:self.close()">Close</a> the popup.</p>');
 						generator.document.write('</body></html>');
 						generator.document.close();
+						
 					  } 
 					  catch (exc){
 					}
 				} else {
-					out += "<a target=blank href=\'"+zoomimage+"\'><IMAGE NAME='test' SRC='"+imgurl+"'></a>";
+				    // out += "<div id='dqmplot_zoom' style='width:300px;height:300px;border:1px solid black;left:20px;top:20px;'></div> ";
+					out += "<a target=blank href=\'"+zoomimage+"\'><img id='dqmplot' src='"+imgurl+"' ></a>";
 				}
+				
+				
+					 /*document.getElementById("dqmplot_zoom"),  
+					150, 300,  
+					true  
+				);  */
 				
 				if (fShowReference) {
 					try {
@@ -548,12 +566,44 @@ function loadPlot() {
 	if (o_obj) o_obj.innerHTML = out;
 	o_obj = document.getElementById("plot_title");
 	if (o_obj) o_obj.innerHTML = title;
+	
+	/*
+	 var oo = document.getElementById("dqmplot");
+	 if (oo) 
+	 {
+		// addlog("Image is Loaded", "info");
+		
+		new FloatLayer('dqmplot_zoom',15,15,10);
+		
+		MojoZoom.makeZoomable(  
+					document.getElementById("dqmplot"),   
+					zoomimage,
+					document.getElementById("dqmplot_zoom"),
+					300,300,false); 	
+		detach("dqmplot_zoom");
+	}
+	*/
+					
 	return false;
+}
+
+function detach(id){
+	lay  = document.getElementById(id);
+	
+ 	left = getXCoord(lay);
+	top  = getYCoord(lay);
+	if (lay) addlog("found " + id+ " " + left + " "+ top, "info");
+ 	lay.style.position = 'absolute';
+ 	lay.style.top      = top;
+ 	lay.style.left     = left;
+ 	getFloatLayer(id).initialize();
+ 	alignFloatLayers();
 }
 
 function updatePlots() {
 	if (fAutoUpdatePlot) {
 		loadPlot();
+		
 		setTimeout('updatePlots()',updateImageInterval);
 	}
 }
@@ -1616,7 +1666,11 @@ function setTestsStatus(id)
 								var t_obj = document.getElementById(testPlot);
 								if (t_obj) {
 									if ( ((id.search("ME") >=0) || ((id.search("DDU") >=0) && fCompareDDUs))
-										&& isProblemKnown(id, entry)) sev_idx = 5; // KNOWN problem
+										&& isProblemRepeating(id, entry)) sev_idx = 5; // REPEATING problem
+									if (fShowKnownProblems) {
+									if ( ((id.search("ME") >=0) || ((id.search("DDU") >=0) && fCompareDDUs))
+										&& isProblemKnown(id, entry)) sev_idx = 6; // KNOWN problem
+									}
 									t_obj.style.background = DQM_SEVERITY[sev_idx].color;
 								}
 								// descr_str = entry.descr + " " +testPlot;
@@ -1631,9 +1685,46 @@ function setTestsStatus(id)
 		}
 	}
 	out += "</table></td><td style='border: 0px black solid;'>";
-	out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Compared to Run " + selRefRun + "</b></th></tr>";
+	
+	
+	
+	if (KNOWN_PROBLEMS) {
+		out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Known as</b></th></tr>";
+		var repentry = findReportEntry(KNOWN_PROBLEMS.report, id);
+		if (repentry) {	
+			
+			if (repentry.list && repentry.list.length) {
+				var err_list = repentry.list;
+				
+				for (var j=0; j< err_list.length; j++) {
+					var entry = err_list[j];
+					if (entry) {
+						
+						//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
+						
+						var sev_idx = parseInt(entry.severity);
+						
+						var sev_name = DQM_SEVERITY[sev_idx].name;
+						var sev_str = "";
+						if ( sev_idx > 0) {
+							sev_str = "<span class='SEVERITY_"+sev_name+"'>" + sev_name + "</span>";
+						} 
+												
+						var descr_str = entry.descr;
+						
+						out += "<tr><td>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
+					}
+				}
+			}							
+		}
+		out += "</table>";
+	}
+	
+	out += "</td><td style='border: 0px black solid;'>";
+	
 	
 	if (REF_DQM_REPORT) {
+		out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Compared to Run " + selRefRun + "</b></th></tr>";
 		var repentry = findReportEntry(REF_DQM_REPORT.report, id);
 		if (repentry) {	
 			
@@ -1661,11 +1752,13 @@ function setTestsStatus(id)
 				}
 			}							
 		}
+		out += "</table>";
 	}
 	
 	
 	
-	out + "</table></td></tr></table>";
+	
+	out += "</td></tr></table>";
 	rep_div = document.getElementById("report_entry_div");
 	if (rep_div) rep_div.innerHTML = out;						
 
@@ -1705,6 +1798,38 @@ function add_show_icon()
 
 function isProblemKnown(id, entry)
 {
+	if (KNOWN_PROBLEMS) {
+		ref_report = KNOWN_PROBLEMS.report;
+		if (ref_report && ref_report.length) {
+			for (var i = 0; i < ref_report.length; i++) {
+				if (ref_report[i]) {
+					if (id == ref_report[i].objID)
+						{
+							// return true;
+							if (ref_report[i].list && ref_report[i].list.length) {
+								var err_list = ref_report[i].list;
+							
+								for (var j=0; j< err_list.length; j++) {
+									var ref_entry = err_list[j];
+									if (ref_entry) {
+										
+										if (entry.testID == ref_entry.testID)
+										{
+											return true;
+										}
+									}
+								}
+							}
+						}
+				}
+			}
+		}		
+	}
+	return false;
+}
+
+function isProblemRepeating(id, entry)
+{
 	if (REF_DQM_REPORT) {
 		ref_report = REF_DQM_REPORT.report;
 		if (ref_report && ref_report.length) {
@@ -1735,14 +1860,14 @@ function isProblemKnown(id, entry)
 	return false;
 }
 
-function loadDQMReport(id)
+function loadDQMReport(id, rep)
 {
 				
 	obj = document.getElementById(id);
 	if (obj) {
 		out = "";
 		
-		if (DQM_REPORT) {
+		if (rep) {
 			/// if (reportWindow && !reportWindow.closed) openReportInWindow();
 			// var fullUrl = ResultsFolder+RunNumber+".plots/" + TextReport;	
 			// var out = "<b>DQM Summary Report for Run: <a href='" + fullUrl + "'>" + DQM_REPORT.run + "</a><br> (generated on "+DQM_REPORT.genDate+")</b>";
@@ -1751,7 +1876,129 @@ function loadDQMReport(id)
 			out += "<table class='dqm_report'>";
 			
 			// addlog("DQM report #entries: " + DQM_REPORT.report.length, "info");
-			report = DQM_REPORT.report;
+			report = rep.report;
+			if (report && report.length) {
+				for (var i = 0; i < report.length; i++) {
+					if (report[i]) {
+						var obj_sev = -1;
+						var err_cnt = 0;
+						var filtered = true;
+						var n_out = "<tr><th class='repScope' colspan=5><b>" + report[i].name + "</b></th></tr>";
+						if (report[i].list && report[i].list.length) {
+							err_list = report[i].list;
+							
+							for (var j=0; j< err_list.length; j++) {
+								var isFiltered = true;
+								var entry = err_list[j];
+								if (entry) {
+									
+									//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
+									
+									var sev_idx = parseInt(entry.severity);
+									
+									var isRepeating = false;
+									var isKnown = false;
+									
+									
+									if ( ((report[i].objID.search("ME") >=0) 
+										|| ((report[i].objID.search("DDU") >=0) && fCompareDDUs)) ) 
+									{
+								
+										isRepeating = isProblemRepeating(report[i].objID, entry);
+										if (isRepeating) sev_idx=5; // REPEATING problem
+									
+										isKnown = isProblemKnown(report[i].objID, entry);
+										if (fShowKnownProblems) {
+											if (isKnown ) sev_idx = 6; // KNOWN problem
+										}
+									}	
+									
+									var sev_name = DQM_SEVERITY[entry.severity].name;
+									
+									if (selSeverityFilter == "NONE" || selSeverityFilter == sev_name ) { err_cnt++; isFiltered = false; }									
+									
+									if (isFiltered)  {  continue};
+									
+									filtered = false; 
+									
+									if (sev_idx > obj_sev) obj_sev = sev_idx;
+									
+									var sev_str = "";
+									
+									if ( sev_idx > 0) {
+										sev_str = "<span>" + sev_name + "</span>";
+									} 
+									
+									
+									var descr_str = entry.descr;
+									if (entry.testID != "") {
+										var testInfo = findTestPlotInfo(entry.testID);
+										if (testInfo) {
+											var testFolder = getFolderName(report[i].objID, testInfo.testScope);//getFolder()
+											var testPlot = testInfo.testPlot + ".png";
+											// descr_str = entry.descr + " " +testPlot;
+											descr_str = "<a href='' onClick='Folder=\""+testFolder+"\";Scope=\""+testInfo.testScope+"\";Canvas=\""+testPlot+"\";return updateBrowserPage(\""+testPlot+"\",false,3)'>"+add_show_icon()+ entry.descr + "</a> ";
+										}
+										
+									}
+									if ((sev_idx > 0 && !isFiltered) || (selSeverityFilter == "NONE")) {
+									n_out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td>";
+									var known = "<td></td>";
+									var repeating = "<td></td>";
+									if (isKnown) known = "<td class='SEVERITY_KNOWN_PROBLEM'>KNOWN</td>";
+									if (isRepeating) repeating = "<td class='SEVERITY_REPEATING_PROBLEM'>REPEATING</td>";
+									n_out += known+repeating+"</tr>";
+									}
+									
+								}
+							}
+						}	
+						n_out += "</tr>";
+						if (err_cnt >0 ) out += n_out;
+						// var sev_name = DQM_SEVERITY[obj_sev].name;
+						// if (selSeverityFilter == sev_name) {
+						if (filtered) obj_sev = 8;
+						setEntryStatus(report[i].objID, obj_sev);
+						// }
+					// addlog(DQM_REPORT.report[i].objID, "info");
+					// setEntryStatus(DQM_REPORT.report[i]);
+					}
+				}
+			} else {
+				out = "DQM Report file for Run:" + RunName +" is empty";
+				addlog(out, "warn");
+			}
+			out += "</table>";
+		
+		} else {
+			out = "DQM Report file for Run:" + RunName +" not found";
+			addlog(out, "warn");
+		}		
+		obj.innerHTML=out;
+		// DQMReport = out;
+		setTestsStatus(getCSCId(selFolder));
+		
+	}
+}
+
+
+function loadKnownProblems(id, rep)
+{
+				
+	obj = document.getElementById(id);
+	if (obj) {
+		out = "";
+		
+		if (rep) {
+			/// if (reportWindow && !reportWindow.closed) openReportInWindow();
+			// var fullUrl = ResultsFolder+RunNumber+".plots/" + TextReport;	
+			// var out = "<b>DQM Summary Report for Run: <a href='" + fullUrl + "'>" + DQM_REPORT.run + "</a><br> (generated on "+DQM_REPORT.genDate+")</b>";
+				// <a href='' onClick='openReportInWindow();return false;'>[Open]</a></h5>";
+			out += printReportLegend();
+			out += "<table class='dqm_report'>";
+			
+			// addlog("DQM report #entries: " + DQM_REPORT.report.length, "info");
+			report = rep.report;
 			if (report && report.length) {
 				for (var i = 0; i < report.length; i++) {
 					if (report[i]) {
@@ -1761,19 +2008,22 @@ function loadDQMReport(id)
 							err_list = report[i].list;
 							
 							for (var j=0; j< err_list.length; j++) {
+								isFiltered = true;
 								var entry = err_list[j];
 								if (entry) {
 									
 									//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
 									
 									var sev_idx = parseInt(entry.severity);
-									if (((report[i].objID.search("ME") >=0) || ((report[i].objID.search("DDU") >=0) && fCompareDDUs))
-										&& isProblemKnown(report[i].objID, entry)) sev_idx = 5; // KNOWN problem
+									
+																			
+									var sev_name = DQM_SEVERITY[sev_idx].name;
+									
+									if (selSeverityFilter == "NONE" || selSeverityFilter == sev_name) isFiltered = false;
+									if (isFiltered) continue;
+									
 									if (sev_idx > obj_sev) obj_sev = sev_idx;
 									
-									
-									
-									var sev_name = DQM_SEVERITY[sev_idx].name;
 									var sev_str = "";
 									
 									if ( sev_idx > 0) {
@@ -1797,7 +2047,10 @@ function loadDQMReport(id)
 							}
 						}	
 						out += "</tr>";
-						setEntryStatus(report[i].objID, obj_sev);
+						// var sev_name = DQM_SEVERITY[obj_sev].name;
+						// if (selSeverityFilter == sev_name) {
+							// setEntryStatus(report[i].objID, obj_sev);
+						// }
 					// addlog(DQM_REPORT.report[i].objID, "info");
 					// setEntryStatus(DQM_REPORT.report[i]);
 					}
@@ -1814,7 +2067,7 @@ function loadDQMReport(id)
 		}		
 		obj.innerHTML=out;
 		// DQMReport = out;
-		setTestsStatus(getCSCId(selFolder));
+		// setTestsStatus(getCSCId(selFolder));
 		
 	}
 }
@@ -1998,14 +2251,14 @@ function getDQMReport()
 				reply = reply.replace(/,]/g,"]");
 				reply = reply.replace("var ","");
 				window.eval(reply);				
-				loadDQMReport("report_div");
+				loadDQMReport("report_div", DQM_REPORT);
 				
 				
 	    	} else if (req.status==404) {
 				DQM_REPORT = false;
 				addlog("Can not load " + fullUrl, 'warn');
 				// loadTextReport("report_div");
-				loadDQMReport("report_div");
+				loadDQMReport("report_div", DQM_REPORT);
 	    	}
 						
 		}
@@ -2022,7 +2275,7 @@ function getRefDQMReport(run)
 	
 	if (run == "noref") {
 		REF_DQM_REPORT = false;
-		loadDQMReport("report_div");
+		loadDQMReport("report_div", DQM_REPORT);
 		return false;
 	}
 	
@@ -2057,14 +2310,14 @@ function getRefDQMReport(run)
 				reply = reply.replace("var ","");
 				window.eval(reply);
 				// addlog("Loaded report for " + run, "debug");
-				loadDQMReport("report_div");
+				loadDQMReport("report_div", DQM_REPORT);
 				
 				
 	    	} else if (req.status==404) {
 				REF_DQM_REPORT = false;
 				addlog("Can not load " + fullUrl, 'warn');
 				// loadTextReport("report_div");
-				loadDQMReport("report_div");
+				loadDQMReport("report_div", DQM_REPORT);
 	    	}
 						
 		}
@@ -2374,6 +2627,7 @@ function updateBrowserPage(id, f_select, idx)
 	selectObject(id, f_select, idx);
 	// addlog(selected_list[idx].id, "debug");
 	loadPlot();
+	
 	return false; 
 }
 
@@ -2443,7 +2697,20 @@ function selectCompareDDUMode()
 		} else {
 			fCompareDDUs=false;
 		}
-		loadDQMReport("report_div");
+		loadDQMReport("report_div", DQM_REPORT);
+	}
+}
+
+function selectShowKnownMode()
+{
+	var obj = document.getElementById("showknown");
+	if (obj) {
+		if (obj.checked) {
+			fShowKnownProblems=true;
+		} else {
+			fShowKnownProblems=false;
+		}
+		loadDQMReport("report_div", DQM_REPORT);
 	}
 }
 
@@ -2743,6 +3010,106 @@ function clearShowList(id, list)
 	
 }
 
+function setupFilters()
+{
+	// "test_type_filter"
+	// "problem_severity_filter"
+	
+	if (TESTS_MAP && TESTS_MAP.bindings.length) {
+		test_type_filter = document.getElementById("test_type_filter");
+					
+		if (test_type_filter) {
+			test_type_filter.options.length = 0;
+			var isSelected = false;
+		
+			try {						
+				test_type_filter.add(new Option("No Filter", "NONE", false, isSelected), null);
+				test_type_filter.add(new Option("Custom Filter", "CUSTOM", false, isSelected), null);
+			}
+			catch(e){ //in IE, try the below version instead of add()
+				test_type_filter.add(new Option("No Filter", "NONE", test_type, false, isSelected));
+				test_type_filter.add(new Option("Custom Filter", "CUSTOM", test_type, false, isSelected));
+			}
+			test_type_filter.options[0].title = "No Filter";
+			test_type_filter.options[1].title = "Custom Filter";
+			
+			for (var i = 0; i < TESTS_MAP.bindings.length; i++) {
+				map_entry = TESTS_MAP.bindings[i];
+				if (map_entry && map_entry.testID ) { 
+					test_type = map_entry.testID;
+					try {						
+						test_type_filter.add(new Option(test_type, test_type, false, isSelected), null); //add new option to end of "sample"					
+					}
+					catch(e){ //in IE, try the below version instead of add()
+						test_type_filter.add(new Option(test_type, test_type, false, isSelected));
+					}
+					test_type_filter.options[test_type_filter.options.length-1].title = test_type;
+				}
+			}
+			
+		}
+	}
+	
+	if (DQM_SEVERITY && DQM_SEVERITY.length) {
+		severity_filter = document.getElementById("problem_severity_filter");
+					
+		if (severity_filter) {
+			severity_filter.options.length = 0;
+			var isSelected = false;
+			try {						
+					severity_filter.add(new Option("No Filter", "NONE", false, true), null);
+					// severity_filter.add(new Option("Custom Filter", "CUSTOM", false, isSelected), null);
+				}
+			catch(e){ //in IE, try the below version instead of add()
+					severity_filter.add(new Option("No Filter", "NONE", false, true));
+					// severity_filter.add(new Option("Custom Filter", "CUSTOM", false, isSelected));
+			}
+			severity_filter.options[0].title = "No Filter";
+			// severity_filter.options[1].title = "Custom Filter";
+			for (var i = 1; i < DQM_SEVERITY.length-4; i++) {
+				entry = DQM_SEVERITY[i];
+				if (entry && entry.name ) { 
+					severity = entry.name;
+					try {						
+						severity_filter.add(new Option(severity, severity, false, isSelected), null);
+						
+					}
+					catch(e){ //in IE, try the below version instead of add()
+						severity_filter.add(new Option(severity, severity, false, isSelected));						
+					}
+					severity_filter.options[severity_filter.options.length-1].title = entry.descr;
+				}
+			}
+			
+		}
+	}
+	
+}
+
+
+function setTestTypeFilter()
+{
+	var selObj = document.getElementById("test_type_filter");
+	if (selObj) {
+		var selIdx = selObj.selectedIndex;
+		selTestTypeFilter = selObj.options[selIdx].value;		
+		addlog(selTestTypeFilter, "debug");
+		// getRefDQMReport(selRefRun);
+	}
+}
+		
+function setProblemSeverityFilter()
+{
+	var selObj = document.getElementById("problem_severity_filter");
+	if (selObj) {
+		var selIdx = selObj.selectedIndex;
+		selSeverityFilter = selObj.options[selIdx].value;	
+		
+		// addlog(selSeverityFilter, "debug");
+		loadDQMReport("report_div", DQM_REPORT);
+		// getRefDQMReport(selRefRun);
+	}
+}
 
 
 function setSelectedTab(obj)
@@ -2765,6 +3132,8 @@ function setSelectedTab(obj)
 	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "none";
+	div_obj = get_element("known_problems_div");
+	div_obj.style.display = "none";
    }
    else if (obj.title == "hw_view") {
 	div_obj = get_element("csctable_div");
@@ -2776,6 +3145,8 @@ function setSelectedTab(obj)
 	div_obj = get_element("report_div");
 	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("known_problems_div");
 	div_obj.style.display = "none";
    }
    else if (obj.title == "ddu_view") {
@@ -2789,6 +3160,8 @@ function setSelectedTab(obj)
 	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "none";
+	div_obj = get_element("known_problems_div");
+	div_obj.style.display = "none";
    }
    else if (obj.title == "report_view") {
 	div_obj = get_element("csctable_div");
@@ -2801,6 +3174,8 @@ function setSelectedTab(obj)
 	div_obj.style.display = "";
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "none";
+	div_obj = get_element("known_problems_div");
+	div_obj.style.display = "none";
    }
    else if (obj.title == "csccounters_view") {
 	div_obj = get_element("csctable_div");
@@ -2812,6 +3187,22 @@ function setSelectedTab(obj)
 	div_obj = get_element("report_div");
 	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
+	div_obj.style.display = "";
+	div_obj = get_element("known_problems_div");
+	div_obj.style.display = "none";
+   }
+   else if (obj.title == "known_problems_view") {
+	div_obj = get_element("csctable_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("hwtable_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("ddutable_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("report_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("csccounters_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("known_problems_div");
 	div_obj.style.display = "";
    }
    return false;
@@ -2858,7 +3249,7 @@ get_element = document.all ?
 
 </script>
 </head>
-<body>
+<body onresize="alignFloatLayers()" onscroll="alignFloatLayers()">
 
 <script type="text/javascript">
 	if (navigator.userAgent.toLowerCase().indexOf('msie') != -1) isIE=true;
@@ -2870,6 +3261,7 @@ get_element = document.all ?
 	document.write('<script src="', baseURL+DDUMap, '" type="text/javascript"><\/script>');
 	document.write('<script src="', baseURL+VMEMap, '" type="text/javascript"><\/script>');
 	document.write('<script src="', baseURL+TestsMap, '" type="text/javascript"><\/script>');
+	document.write('<script src="', baseURL+KnownProblemsList, '" type="text/javascript"><\/script>');
 	
 //-->
 </script>
@@ -2906,7 +3298,25 @@ get_element = document.all ?
 			<label>Compare to:</label>
 			<select id="compare_selection" onChange="setCompareRun();">
 			</select><br>
-			<span title='Check to Enable DDUs Comparison'><label>DDUs Comparison</label> <input type=checkbox  id="dducompare" onclick="selectCompareDDUMode()"></span>
+			<span title='Check to Enable DDUs Comparison'><label>DDUs Comparison</label> <input type=checkbox  id="dducompare" onclick="selectCompareDDUMode()"></span><br>
+			<span title='Check to Show Known Problems'><label>Show Known Problems</label> <input checked type=checkbox  id="showknown" onclick="selectShowKnownMode()"></span><br>
+		</div>
+		<div title="Display Filters for DQM Reports">
+			<span title="Select Problem Severity Level Filter">
+			<label>Problem Severity Filter:</label>
+			<select  id="problem_severity_filter" onChange="setProblemSeverityFilter();"></select>
+			</span><!--br>
+			<span title="Select Problem/Test Type Filter">
+			<label>Problem Types Filter:</label><br>
+			<select  id="test_type_filter" onChange="setTestTypeFilter();"></select>
+			</span-->
+
+			<script type="text/javascript">			
+			<!--//
+				// setSelectedResultsFolder();
+				setupFilters();
+			//-->
+			</script>
 		</div>
 		<script type="text/javascript">			
 			<!--//
@@ -2986,7 +3396,7 @@ get_element = document.all ?
 			<tr>
 				<td colspan=3>
 				
-				<script type="text/javascript"> 
+				<script type="text/javascript">
 			<!--//
 				initSlideShowList();
 				
@@ -3055,7 +3465,8 @@ get_element = document.all ?
 				<li title="hw_view" onClick="return setSelectedTab(this);"><a href="" title="VME Crate/DMB Slot View Table">VME/DMB Table</a></li>
 				<li title="ddu_view"  onClick="return setSelectedTab(this);"><a href="" title="DDU to CSC Mapping">DDU/CSC Map</a></li>
 				<li title="csccounters_view"  onClick="return setSelectedTab(this);"><a href="" title="CSC Efficiencies Counters">CSC Counters</a></li>
-				<li title="report_view"  onClick="return setSelectedTab(this);"><a href="#" title="DQM Quality Checks Summary Report">Summary Report</a></li>
+				<li title="report_view"  onClick="return setSelectedTab(this);"><a href="" title="DQM Quality Checks Summary Report">Summary Report</a></li>
+				<li title="known_problems_view"  onClick="return setSelectedTab(this);"><a href="" title="DQM Known and Acknowledged Problems">Known Problems</a></li>
 				</ul>
 			</div>
 			
@@ -3093,6 +3504,13 @@ get_element = document.all ?
 				<script type="text/javascript">
 				<!--//
 					getDQMReport();
+				//-->
+				</script>				
+			</div>
+			<div id="known_problems_div" style="display: none;">
+				<script type="text/javascript">
+				<!--//
+					loadKnownProblems("known_problems_div", KNOWN_PROBLEMS);
 				//-->
 				</script>				
 			</div>
