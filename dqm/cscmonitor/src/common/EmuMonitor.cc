@@ -687,7 +687,7 @@ std::string EmuMonitor::getROOTFileName(std::string tstamp)
         {
 	  // Timstamp for saved file name
 	  std::string ts = tstamp;
-	  if (ts != "") ts = emu::dqm::utils::getDateTime();
+	  if (ts == "") ts = emu::dqm::utils::getDateTime();
           std::ostringstream st;
           st.clear();
           st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << "EmuRUI";
