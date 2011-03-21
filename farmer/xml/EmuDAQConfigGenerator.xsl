@@ -334,14 +334,17 @@
     <xc:Context url="http://csc-dqm.cms:20550">
       <xc:Application class="EmuDisplayClient" id="1450" instance="0" network="local">
 	<properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
-	<monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
-        <imageFormat xsi:type="xsd:string">png</imageFormat>
-        <baseDir xsi:type="xsd:string">/nfshome0/cscdqm/config/cscdqm</baseDir>
-	<resultsDir xsi:type="xsd:string">/data/dqm/online</resultsDir>
-        <viewOnly xsi:type="xsd:boolean">false</viewOnly>
-        <xmlCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMBooking.xml</xmlCfgFile>
-        <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
-        <cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
+	  <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
+	  <imageFormat xsi:type="xsd:string">png</imageFormat>
+	  <baseDir xsi:type="xsd:string">/nfshome0/cscdqm/config/cscdqm</baseDir>
+	  <resultsDir xsi:type="xsd:string">/data/dqm/online</resultsDir>
+	  <viewOnly xsi:type="xsd:boolean">false</viewOnly>
+	  <xmlCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMBooking.xml</xmlCfgFile>
+	  <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+	  <cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
+	  <expertSystemURL xsi:type="xsd:string">http://csc-expert.cms:8080/cdw/factcollection</expertSystemURL>
+	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
+	  <useExSys xsi:type="xsd:boolean">true</useExSys>
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
