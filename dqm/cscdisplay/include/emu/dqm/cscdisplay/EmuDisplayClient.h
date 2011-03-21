@@ -35,6 +35,7 @@
 #include <TKey.h>
 
 #include "emu/base/WebReporter.h"
+#include "emu/base/FactFinder.h"
 
 #include "DQM/CSCMonitorModule/interface/CSCDQM_Summary.h"
 
@@ -45,6 +46,7 @@
 #include "emu/dqm/common/EmuDQM_AppParameters.h"
 #include "emu/dqm/common/CSCReadoutMappingFromFile.h"
 #include "emu/dqm/common/CSCReport.h"
+#include "emu/dqm/common/CSCDqmFact.h"
 
 typedef std::map<std::string, std::set<int> > MapType;
 typedef std::map<std::string, std::map<std::string, std::string> >Counters;
@@ -118,6 +120,7 @@ using namespace toolbox;
 
 class EmuDisplayClient : 
 	public emu::base::WebReporter,
+	public emu::base::FactFinder,
 	xdata::ActionListener,
 	Task
 {
@@ -161,6 +164,9 @@ public:
   Counters requestCSCCounters(xdaq::ApplicationDescriptor* monitor);
   DQMReport requestReport(xdaq::ApplicationDescriptor* monitor);
   std::set<std::string> requestFoldersList(xdaq::ApplicationDescriptor* dest);
+
+  emu::base::Fact findFact(const emu::base::Component& component, const std::string& factType);
+  emu::base::FactCollection findFacts();
 
 
 protected:
@@ -240,7 +246,12 @@ protected:
   bool isDQMReportFileAvailable(std::string runname);
   bool isCSCCountersFileAvailable(std::string runname);
 
-  // report generation
+  int prepareReportFacts(std::string runname);
+  inline void addFact(const emu::base::Fact &fact) {
+                                collectedFacts.push_back(fact);
+                        }
+
+
   int svc();
 
 private:
@@ -285,16 +296,20 @@ private:
   xdata::String imagePath_;
   xdata::Boolean viewOnly_;
   xdata::Boolean debug;
+  xdata::Boolean useExSys; // Use Expert System
   xdata::String BaseDir;
   xdata::String ResultsDir;
   xdata::String refImagePath;     
-  xdata::UnsignedInteger saveResultsDelay; // Time delay for sending saveResults command to Monitors
+  xdata::UnsignedInteger saveResultsDelay; // Time delay for sending saveResults command to Monitors 
+ 
 
   FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
   CSCCounters cscCounters; // == CSC Counters from EmuMonitor nodes
   DQMNodesStatus nodesStatus; // == DQM Monitoring Nodes Statuses
   BSem appBSem_;
   struct timeval bsem_tout;
+
+  std::list<emu::base::Fact> collectedFacts;
 
 
 

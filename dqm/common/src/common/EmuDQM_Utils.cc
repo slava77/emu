@@ -7,14 +7,14 @@ namespace dqm
 namespace utils
 {
 
-
-std::string now(time_t tstamp)
+std::string now(time_t tstamp, const char* format)
 {
   char buf[255];
   time_t now = tstamp;
   if (tstamp == 0) now=time(NULL);
   const struct tm * timeptr = localtime(&now);
-  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", timeptr);
+  strftime(buf, sizeof(buf),format, timeptr);
+  // strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", timeptr);
   std::string time = std::string(buf);
   if (time.find("\n",0) != std::string::npos)
     time = time.substr(0,time.find("\n",0));
@@ -27,9 +27,30 @@ std::string now(time_t tstamp)
 
 };
 
+
 std::string now()
 {
   return now(0);
+}
+
+
+std::string getDateTime()
+{
+  time_t t;
+  struct tm *tm;
+
+  time ( &t );
+  tm = gmtime ( &t ); // Unversal Coordinated Time
+
+  std::stringstream ss;
+  ss << std::setfill('0') << std::setw(2) << tm->tm_year%100
+  << std::setfill('0') << std::setw(2) << tm->tm_mon+1
+  << std::setfill('0') << std::setw(2) << tm->tm_mday      << "_"
+  << std::setfill('0') << std::setw(2) << tm->tm_hour
+  << std::setfill('0') << std::setw(2) << tm->tm_min
+  << std::setfill('0') << std::setw(2) << 0       << "_UTC";
+
+  return ss.str();
 }
 
 int getNumStrips(std::string cscID)

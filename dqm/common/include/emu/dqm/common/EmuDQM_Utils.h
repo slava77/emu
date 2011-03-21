@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 #include <sstream>
+#include <iomanip>
 
 #include <TString.h>
 
@@ -17,8 +18,9 @@ namespace dqm
 namespace utils
 {
 
-std::string now(time_t tstamp);
+std::string now(time_t tstamp, const char* format="%Y-%m-%d %H:%M:%S %Z");
 std::string now();
+std::string getDateTime();
 int getNumStrips(std::string cscID);
 int getNumCFEBs(std::string cscID);
 int getNumWireGroups(std::string cscID);

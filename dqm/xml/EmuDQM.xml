@@ -296,6 +296,9 @@
         <xmlCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMBooking.xml</xmlCfgFile>
         <xmlCanvasesCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
 	<cscMapFile xsi:type="xsd:string">/home/dqm/config/csc_map.txt</cscMapFile>
+	<expertSystemURL xsi:type="xsd:string">http://cosmic3.phys.ufl.edu:8080/cdw/factcollection</expertSystemURL>
+        <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
+        <useExSys xsi:type="xsd:boolean">true</useExSys>
       </properties>
     </xc:Application>
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>

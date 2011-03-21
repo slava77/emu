@@ -10,27 +10,6 @@
 #include "emu/dqm/cscmonitor/EmuMonitor.h"
 #include <time.h>
 
-
-std::string getDateTime()
-{
-  time_t t;
-  struct tm *tm;
-
-  time ( &t );
-  tm = gmtime ( &t ); // Unversal Coordinated Time
-
-  std::stringstream ss;
-  ss << std::setfill('0') << std::setw(2) << tm->tm_year%100
-  << std::setfill('0') << std::setw(2) << tm->tm_mon+1
-  << std::setfill('0') << std::setw(2) << tm->tm_mday      << "_"
-  << std::setfill('0') << std::setw(2) << tm->tm_hour
-  << std::setfill('0') << std::setw(2) << tm->tm_min
-  << std::setfill('0') << std::setw(2) << 0       << "_UTC";
-
-  return ss.str();
-}
-
-
 XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
 
 // == EmuMonitor Constructor == //
@@ -681,7 +660,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
   appBSem_.give();
 }
 
-std::string EmuMonitor::getROOTFileName()
+std::string EmuMonitor::getROOTFileName(std::string tstamp)
 {
   std::string histofile="dqm_results";
   std::string path=outputROOTFile_;
@@ -702,14 +681,17 @@ std::string EmuMonitor::getROOTFileName()
             histofile.erase(histofile.rfind("."), histofile.size());
         }
     }
-  if (readoutMode_.toString() == "external")
+  else if (readoutMode_.toString() == "external")
     {
       if (serversClassName_.toString() != "")
         {
+	  // Timstamp for saved file name
+	  std::string ts = tstamp;
+	  if (ts != "") ts = emu::dqm::utils::getDateTime();
           std::ostringstream st;
           st.clear();
           st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << "EmuRUI";
-          st << std::setw(2) << std::setfill('0') << appTid_ << "_" << getDateTime();
+          st << std::setw(2) << std::setfill('0') << appTid_ << "_" << ts;
           histofile = st.str();
         }
     }
