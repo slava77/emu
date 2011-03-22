@@ -125,7 +125,7 @@
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
 	  <hardwareMapping xsi:type="xsd:string">emu/config/EmuDAQ/RUI-to-chamber_mapping_bdg904.xml</hardwareMapping>
 	  <expertSystemURL xsi:type="xsd:string">http://emulab02.cern.ch:8080/cdw/factcollection</expertSystemURL>
-	  <isFactFinderInDebugMode xsi:type="xsd:boolean">true</isFactFinderInDebugMode>
+	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
@@ -236,7 +236,7 @@
 		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0x4000000</item>
 	      </poolSizeForClient>
 	      <expertSystemURL xsi:type="xsd:string">http://emuslice12:8080/cdw/factcollection</expertSystemURL>
-	      <isFactFinderInDebugMode xsi:type="xsd:boolean">true</isFactFinderInDebugMode>
+	      <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	    </properties>
 	  </xc:Application>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
@@ -252,14 +252,17 @@
     <xc:Context url="http://emudaq02.cern.ch:20550">
       <xc:Application class="EmuDisplayClient" id="1450" instance="0" network="local">
 	<properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
-	<monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
-        <imageFormat xsi:type="xsd:string">png</imageFormat>
-        <baseDir xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/cscdqm</baseDir>
-	<resultsDir xsi:type="xsd:string">/data/dqm/online</resultsDir>
-        <viewOnly xsi:type="xsd:boolean">false</viewOnly>
-        <xmlCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/emuDQMBooking.xml</xmlCfgFile>
-        <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/emuDQMCanvases.xml</xmlCanvasesCfgFile>
-        <cscMapFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/csc_map.txt</cscMapFile>
+	  <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
+	  <imageFormat xsi:type="xsd:string">png</imageFormat>
+	  <baseDir xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/cscdqm</baseDir>
+	  <resultsDir xsi:type="xsd:string">/data/dqm/online</resultsDir>
+	  <viewOnly xsi:type="xsd:boolean">false</viewOnly>
+	  <xmlCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/emuDQMBooking.xml</xmlCfgFile>
+	  <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+	  <cscMapFile xsi:type="xsd:string">/home/cscdaq/config/EmuDQM/csc_map.txt</cscMapFile>
+	  <expertSystemURL xsi:type="xsd:string">http://emulab02.cern.ch:8080/cdw/factcollection</expertSystemURL>
+	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
+	  <useExSys xsi:type="xsd:boolean">true</useExSys>
 	</properties>
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
