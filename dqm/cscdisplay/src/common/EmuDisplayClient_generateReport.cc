@@ -531,6 +531,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
       if (csc_cntr)
         {
+	  csc_avg_events = csc_evt_cntr/csc_cntr;
           int hot_cscs = 0;
           int low_cscs = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr)));
