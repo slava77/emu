@@ -158,6 +158,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 {"objID": "ME-2/2/27", "name": "ME-2/2/27", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB5 DAV 2.000%", "severity": "2"}
 ]},
+{"objID": "ME-2/2/31", "name": "ME-2/2/31", "list": [
+        {"testID": "CSC_CFEB_SCA_NOISY_CHANNEL", "scope": "CSC", "descr": "CFEB Hot/Noisy SCA channel: CFEB3 Layer1 Ch#33 (occupancy 3.7 times > average)", "severity": "2"}
+]},
 {"objID": "ME-3/1/03", "name": "ME-3/1/03", "list": [
         {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer2 (9.211% < 20.0% from average)", "severity": "3"},
         {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer2 (4.644% < 20.0% from avierage)", "severity": "3"}

@@ -30,6 +30,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
 
   std::map<std::string, uint32_t> csc_stats;
+  std::map<std::string, bool> deadALCT;
+  std::map<std::string, bool> deadCLCT;
+
   hname = "DMB_Reporting";
   me = findME("EMU", hname,  sourcedir);
 
@@ -292,8 +295,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 float fract=z*100;
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("No ALCT Data: %.1f%%",fract);
+		    deadALCT[cscName]=true;
 
+                    std::string diag=Form("No ALCT Data: %.1f%%",fract);
                     dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
                   }
                 else
@@ -330,8 +334,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 float fract=z*100;
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("No CLCT Data: %.1f%%",fract);
+		    deadCLCT[cscName]=true;
 
+                    std::string diag=Form("No CLCT Data: %.1f%%",fract);
                     dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
                   }
                 else
@@ -842,7 +847,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
               TH1F* h = reinterpret_cast<TH1F*>(me);
               double ent = h->GetEntries();
 	      // For ME11 if occupancy histo is empty then HV segment is OFF                    
-              if (((int)csc_stats[cscName] > 20*nWireGroups) && ME11 && (ent==0))
+              if (((int)csc_stats[cscName] > 20*nWireGroups) && ME11 && (ent==0) && !deadALCT[cscName])
                 {
                         std::string diag=Form("No HV: Segment%d Layer%d", 1, ilayer );
                         dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
