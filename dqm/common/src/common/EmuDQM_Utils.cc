@@ -170,6 +170,17 @@ std::map<std::string, int> getCSCTypeToBinMap()
 
 }
 
+std::string getCSCTypeName(int id)
+{
+   
+   std::map<std::string, int> tmap = getCSCTypeToBinMap();
+   for (std::map<std::string,int>::iterator it= tmap.begin(); it != tmap.end(); ++it)
+	{
+		if (it->second == id) return it->first;
+	}
+  return "";
+}
+
 
 std::string getCSCTypeLabel(int endcap, int station, int ring )
 {

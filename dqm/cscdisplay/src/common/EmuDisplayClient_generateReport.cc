@@ -162,14 +162,14 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 {
                   double fract=((double)stats_itr->second)/ddu_avg_events;
                   std::string dduName=stats_itr->first;
-                  if (fract > 1.2)
+                  if (fract > 5)
                     {
                       std::string diag=Form("Hot readout DDU: %d events, %.f times more than average DDU events counter (avg events=%d)",
                                             stats_itr->second, fract, ddu_avg_events);
                       dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "ALL_HOT_DDU_IN_READOUT"));
                       hot_ddus++;
                     }
-                  else if (fract < 0.8)
+                  else if (fract < 0.2)
                     {
                       std::string diag=Form("Low readout DDU: %d events, %f fraction of average DDU events counter (avg events=%d)",
                                             stats_itr->second, fract, ddu_avg_events);
@@ -228,8 +228,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   uint32_t events = ddu_stats[dduName];
                   double fract=(((double)stats_itr->second)/events)*100;
                   DQM_SEVERITY severity=NONE;
-                  if (fract >= 80.) severity=CRITICAL;
-                  else if (fract >= 50.) severity=SEVERE;
+                  if (fract >= 50.) severity=SEVERE;
                   else if (fract >20.) severity=TOLERABLE;
                   else severity=MINOR;
                   std::string diag=Form("DDU Trailer Error Status: %d events, (%f%%)",
@@ -486,78 +485,105 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
   uint32_t csc_cntr = 0;
   uint32_t csc_avg_events = 0;
   std::map<std::string, uint32_t> csc_stats;
-  hname = "DMB_Reporting";
+
+  hname = "CSC_Reporting";
   me = findME("EMU", hname);
 
   if (me)
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
-      for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
-        for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
-          {
-            uint32_t cnt = uint32_t(h->GetBinContent(i, j));
-            if (cnt>0)
-              {
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                csc_stats[cscName] = cnt;
-                csc_evt_cntr+=cnt;
-                csc_cntr++;
+      int n_csc_types = int(h->GetYaxis()->GetXmax());
+      std::vector<uint32_t> csc_type_stats(n_csc_types);
+      std::vector<uint32_t> csc_type_avg_events(n_csc_types);
+      std::vector<uint32_t> csc_type_cntr(n_csc_types);
+      for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
+        {
+          TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum());
+          for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+            {
+              std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+              uint32_t cnt = uint32_t(h->GetBinContent(i, j+1));
 
-              }
-          }
+              if (cnt>0)
+                {
+                  csc_type_stats[j] += cnt;
+                  csc_type_cntr[j]++;
+                  csc_stats[cscName] = cnt;
+                  csc_evt_cntr+=cnt;
+                  csc_cntr++;
+
+                  h_tmp->Fill(cnt);
+
+                  //    std::cout << cscName << ": #Events: " << cnt << std::endl;
+
+                }
+            }
+          csc_type_avg_events[j] = (uint32_t)h_tmp->GetMean();
+          delete h_tmp;
+          std::string diag=Form("%s: Total #Events: %d, Average #Events per CSC: %d, Active CSCs: %d",
+                                (emu::dqm::utils::getCSCTypeName(j)).c_str(),
+                                csc_type_stats[j],
+                                csc_type_avg_events[j],
+                                csc_type_cntr[j] );
+          dqm_report.addEntry("EMU Summary", entry.fillEntry(diag));
+
+        }
+
       if (csc_cntr)
         {
           int hot_cscs = 0;
           int low_cscs = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr)));
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of CSC events: %d ", csc_evt_cntr)));
-          csc_avg_events=csc_evt_cntr/csc_cntr;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Average number of events per CSC: %d ", csc_avg_events)));
-          if (csc_avg_events >= 300)   // Detect Hot/Low eff chambers if average number of events is reasonable (>500)
+
+
+          for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
             {
-              for (stats_itr=csc_stats.begin(); stats_itr != csc_stats.end(); ++stats_itr)
+
+              for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
                 {
-                  double fract=((double)stats_itr->second)/csc_avg_events;
-                  std::string cscName=stats_itr->first;
-                  if (fract >= 5.)
+                  std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
                     {
-                      std::string diag=Form("Hot chamber: %d events, %.f times more than average events counter (avg events=%d)",
-                                            stats_itr->second, fract, csc_avg_events);
-                      dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE, "CSC_HOT_CHAMBER"));
-                      hot_cscs++;
-                    }
-                  else if (fract < 0.05)
-                    {
-                      std::string diag=Form("Low efficiency chamber: %d events, %f fraction of average events counter (avg events=%d)",
-                                            stats_itr->second, fract, csc_avg_events);
-                      dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE, "CSC_LOW_EFF_CHAMBER"));
-                      low_cscs++;
+                      double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
+                      if (fract >= 5.)
+                        {
+                          std::string diag=Form("Hot chamber: %d events, %.f times more than %s type average events counter (avg events=%d",
+                                                csc_stats[cscName], fract,
+                                                (emu::dqm::utils::getCSCTypeName(j)).c_str(),
+                                                csc_type_avg_events[j]);
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
+                          hot_cscs++;
+                        }
+                      else if (round(100.*fract)/100. < 0.05)
+                        {
+                          std::string diag=Form("Low efficiency chamber: %d events, %f fraction of %s type average events counter (avg events=%d)",
+                                                csc_stats[cscName], fract,
+                                                (emu::dqm::utils::getCSCTypeName(j)).c_str(),
+                                                csc_type_avg_events[j]);
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_LOW_EFF_CHAMBER"));
+                          low_cscs++;
+                        }
+
                     }
                 }
+
             }
 
           if (hot_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Hot CSCs", hot_cscs), CRITICAL, "ALL_HOT_CHAMBERS"));
-          if (low_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Low Efficiency CSCs", low_cscs), SEVERE, "ALL_LOW_EFF_CHAMBERS"));
-
-
+          if (low_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Low Efficiency CSCs", low_cscs), TOLERABLE, "ALL_LOW_EFF_CHAMBERS"));
         }
-      else
-        {
-          dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr), CRITICAL, "ALL_CHAMBERS_WITHOUT_DATA"));
-        }
+
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+	if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
     }
 
-  /*
-  if (ddu_evt_cntr) {
-    float events_ratio = float(csc_evt_cntr)/ddu_evt_cntr;
-    report["EMU Summary"].push_back(Form("CSC/DDU Events Ratio: %f", events_ratio));
-  }
-  */
+
+
+
   // == Check for chambers with Format Errors
   hname =  "DMB_Format_Errors_Fract";
   me = findME("EMU", hname);
@@ -780,7 +806,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 float fract=z*100;
                 std::string diag=Form("No ALCT Data: %.1f%%",fract);
 
-  //              dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
+                //              dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
               }
 
           }
@@ -805,7 +831,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 float fract=z*100;
                 std::string diag=Form("No CLCT Data: %.1f%%",fract);
 
-    //            dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
+                //            dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
               }
 
           }
@@ -830,7 +856,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 float fract=z*100;
                 std::string diag=Form("No CFEB Data: %.1f%%",fract);
 
-      //          dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
+                //          dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
               }
 
           }
@@ -865,7 +891,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
                 std::string diag=Form("L1A out of sync: %d events (%.3f%%)",events, fract);
 
-        //        dqm_report.addEntry(cscName, entry.fillEntry(diag,severity, "CSC_WITH_L1A_OUT_OF_SYNC"));
+                //        dqm_report.addEntry(cscName, entry.fillEntry(diag,severity, "CSC_WITH_L1A_OUT_OF_SYNC"));
 
                 MonitorElement* me3 = 0;
 
@@ -890,7 +916,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                           {
                             diag=Form("L1A out of sync: %s",(l1a_histos[k].first).c_str());
 
-          //                  dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_L1A_OUT_OF_SYNC"));
+                            //                  dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_L1A_OUT_OF_SYNC"));
                           }
                       }
 
@@ -930,7 +956,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
                 std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, fract);
 
-    //            dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_BWORDS"));
+                //            dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_BWORDS"));
               }
 
           }
@@ -962,7 +988,10 @@ std::string EmuDisplayClient::getReportJSON(std::string runname)
   T_DQMReport& report = dqm_report.getReport();
 
   std::stringstream out;
-  out << "var DQM_REPORT = { \"run\": \"" << runname << "\", \"genDate\": \"" << emu::dqm::utils::now() <<  "\", \"report\":\n[" << std::endl;
+  out << "var DQM_REPORT = { \"run\": \"" << runname 
+	<< "\", \"genDate\": \"" << emu::dqm::utils::now() 
+	<< "\", \"version\": \"" << dqm_report.getVersion()
+	<<  "\", \"report\":\n[" << std::endl;
 
 
   for (itr = report.begin(); itr != report.end(); ++itr)
@@ -1087,9 +1116,9 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
               std::string testID = err_itr->testID;
               if (testID == "") testID = "INFO";
               fact.addParameter("testId", testID)
-                .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
-                .setDescription(err_itr->descr)
-                .setRun(runname);
+              .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+              .setDescription(err_itr->descr)
+              .setRun(runname);
               addFact(fact);
               nFacts++;
 
@@ -1106,9 +1135,9 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
             {
               CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
               fact.addParameter("testId", err_itr->testID)
-                .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
-                .setDescription(err_itr->descr)
-                .setRun(runname);
+              .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+              .setDescription(err_itr->descr)
+              .setRun(runname);
               addFact(fact);
               nFacts++;
 
@@ -1125,9 +1154,9 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
             {
               CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
               fact.addParameter("testId", err_itr->testID)
-                .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
-                .setDescription(err_itr->descr)
-                .setRun(runname);
+              .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+              .setDescription(err_itr->descr)
+              .setRun(runname);
               addFact(fact);
               nFacts++;
 

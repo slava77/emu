@@ -276,6 +276,7 @@
 	td.node {width: 24px; background-color: white; text-align: center; }
 	td.td_status {background-color: white; text-align: center}
 	th.repScope {padding: 0 0 0 4px; text-align: left; font-size:10pt;  font-weight: bold; background-color: #AFAFFF; }
+	th.repInfo {padding: 0 0 0 4px; text-align: left; font-size:10pt;  background-color: #AFAFAF; }
 	
 	table.page_layout {
 		
@@ -1876,6 +1877,9 @@ function loadDQMReport(id, rep)
 			out += "<table class='dqm_report'>";
 			
 			// addlog("DQM report #entries: " + DQM_REPORT.report.length, "info");
+			var n_out= "";
+			if (rep.run && rep.genDate) 
+			    n_out += "<tr><th class='repInfo' colspan=5><b>DQM Report for Run '" + rep.run + "' generated on '"+ rep.genDate + "' with Analysis Ver. " + rep.version  + "</b></th></tr>";
 			report = rep.report;
 			if (report && report.length) {
 				for (var i = 0; i < report.length; i++) {
@@ -1883,7 +1887,7 @@ function loadDQMReport(id, rep)
 						var obj_sev = -1;
 						var err_cnt = 0;
 						var filtered = true;
-						var n_out = "<tr><th class='repScope' colspan=5><b>" + report[i].name + "</b></th></tr>";
+						n_out += "<tr><th class='repScope' colspan=5><b>" + report[i].name + "</b></th></tr>";
 						if (report[i].list && report[i].list.length) {
 							err_list = report[i].list;
 							
