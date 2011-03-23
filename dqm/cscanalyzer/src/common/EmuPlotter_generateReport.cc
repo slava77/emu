@@ -705,6 +705,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
       if (csc_cntr)
         {
+          csc_avg_events = csc_evt_cntr/csc_cntr;
           int hot_cscs = 0;
           int low_cscs = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr)));
