@@ -1262,7 +1262,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                     {
                       if (!isBeam || (isBeam && !ME11 && icfeb!=4)) // Usual occupancy check algorithm for cosmic runs
                         {
-                          if ((z < 5) || (z < round(0.5*avg_cfeb_occup)))
+                          if ((z < 5) || (z < round(0.4*avg_cfeb_occup)))
                             {
                               std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                               lowEffCFEBs[icfeb]=1;
