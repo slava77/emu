@@ -655,31 +655,50 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
   uint32_t csc_cntr = 0;
   uint32_t csc_avg_events = 0;
   std::map<std::string, uint32_t> csc_stats;
-  hname = "DMB_Reporting";
+
+  hname = "CSC_Reporting";
   me = findME("EMU", hname,  sourcedir);
 
   if (me)
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
-      TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum());
-      for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
-        for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
-          {
-            uint32_t cnt = uint32_t(h->GetBinContent(i, j));
-            if (cnt>0)
-              {
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                csc_stats[cscName] = cnt;
-                csc_evt_cntr+=cnt;
-                csc_cntr++;
-                h_tmp->Fill(cnt);
+      int n_csc_types = int(h->GetYaxis()->GetXmax());
+      std::vector<uint32_t> csc_type_stats(n_csc_types);
+      std::vector<uint32_t> csc_type_avg_events(n_csc_types);
+      std::vector<uint32_t> csc_type_cntr(n_csc_types);
+      for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
+        {
+          TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum());
+          for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+            {
+              std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+              uint32_t cnt = uint32_t(h->GetBinContent(i, j+1));
 
-              }
-          }
+              if (cnt>0)
+                {
+                  csc_type_stats[j] += cnt;
+                  csc_type_cntr[j]++;
+                  csc_stats[cscName] = cnt;
+                  csc_evt_cntr+=cnt;
+                  csc_cntr++;
 
-      csc_avg_events = (uint32_t)h_tmp->GetMean();
-      delete h_tmp;
+                  h_tmp->Fill(cnt);
+
+                  //	std::cout << cscName << ": #Events: " << cnt << std::endl;
+
+                }
+            }
+          csc_type_avg_events[j] = (uint32_t)h_tmp->GetMean();
+          delete h_tmp;
+          std::string diag=Form("%s: Total #Events: %d, Average #Events per CSC: %d, Active CSCs: %d",
+                                (emu::dqm::utils::getCSCTypeName(j)).c_str(),
+                                csc_type_stats[j],
+                                csc_type_avg_events[j],
+                                csc_type_cntr[j] );
+          dqm_report.addEntry("EMU Summary", entry.fillEntry(diag));
+
+        }
+
 
       if (csc_cntr)
         {
@@ -687,40 +706,46 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
           int low_cscs = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr)));
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of CSC events: %d ", csc_evt_cntr)));
-          // csc_avg_events=csc_evt_cntr/csc_cntr;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Average number of events per CSC: %d ", csc_avg_events)));
-          if (csc_avg_events >= 300)   // Detect Hot/Low eff chambers if average number of events is reasonable (>500)
+
+
+          for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
             {
-              for (stats_itr=csc_stats.begin(); stats_itr != csc_stats.end(); ++stats_itr)
+
+              for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
                 {
-                  double fract=((double)stats_itr->second)/csc_avg_events;
-                  std::string cscName=stats_itr->first;
-                  if (fract >= 5.)
+                  std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
                     {
-                      std::string diag=Form("Hot chamber: %d events, %.f times more than average events counter (avg events=%d)",
-                                            stats_itr->second, fract, csc_avg_events);
-                      dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
-                      hot_cscs++;
-                    }
-                  else if (fract < 0.05)
-                    {
-                      std::string diag=Form("Low efficiency chamber: %d events, %f fraction of average events counter (avg events=%d)",
-                                            stats_itr->second, fract, csc_avg_events);
-                      dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_LOW_EFF_CHAMBER"));
-                      low_cscs++;
+                      double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
+                      if (fract >= 5.)
+                        {
+                          std::string diag=Form("Hot chamber: %d events, %.f times more than %s type average events counter (avg events=%d",
+                                                csc_stats[cscName], fract,
+                                                (emu::dqm::utils::getCSCTypeName(j)).c_str(),
+                                                csc_type_avg_events[j]);
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
+                          hot_cscs++;
+                        }
+                      else if (round(100.*fract)/100. < 0.05)
+                        {
+                          std::string diag=Form("Low efficiency chamber: %d events, %f fraction of %s type average events counter (avg events=%d)",
+                                                csc_stats[cscName], fract,
+                                                (emu::dqm::utils::getCSCTypeName(j)).c_str(),
+                                                csc_type_avg_events[j]);
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_LOW_EFF_CHAMBER"));
+                          low_cscs++;
+                        }
+
                     }
                 }
+
             }
 
           if (hot_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Hot CSCs", hot_cscs), CRITICAL, "ALL_HOT_CHAMBERS"));
           if (low_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Low Efficiency CSCs", low_cscs), TOLERABLE, "ALL_LOW_EFF_CHAMBERS"));
-
-
         }
-      else
-        {
-          dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr), CRITICAL, "ALL_CHAMBERS_WITHOUT_DATA"));
-        }
+
 
       if (me) delete me;
 
@@ -730,12 +755,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
-  /*
-  if (ddu_evt_cntr) {
-    float events_ratio = float(csc_evt_cntr)/ddu_evt_cntr;
-    report["EMU Summary"].push_back(Form("CSC/DDU Events Ratio: %f", events_ratio));
-  }
-  */
+
   // == Check for chambers with Format Errors
   hname =  "DMB_Format_Errors_Fract";
   me = findME("EMU", hname,  sourcedir);
@@ -745,6 +765,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       TH2F* h1 = reinterpret_cast<TH2F*>(me);
       TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
           {
@@ -758,11 +779,14 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 uint32_t events =  uint32_t(h2->GetBinContent(i, j));
 
                 float fract=round(z*100);
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                DQM_SEVERITY severity=MINOR;
+                uint32_t csc_events = csc_stats[cscName];
+                if (csc_events>min_events)
+                  {
+                    if (fract >= 80.) severity=CRITICAL;
+                    else if (fract >= 10.) severity=SEVERE;
+                    else if (fract > 1.) severity=TOLERABLE;
+                  }
                 std::string diag=Form("Format Errors: %d events (%.3f%%))",events, z*100);
                 dqm_report.addEntry(cscName,entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
 
@@ -784,11 +808,13 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
                             float fract=round(z*100);
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
+                            DQM_SEVERITY severity=MINOR;
+                            if (csc_events>min_events)
+                              {
+                                if (fract >= 80.) severity=CRITICAL;
+                                else if (fract >= 10.) severity=SEVERE;
+                                else if (fract > 1.) severity=TOLERABLE;
+                              }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("\tFormat Errors: %s %d events (%.3f%%)",error_type.c_str(), events, z*100));
                             // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
@@ -819,6 +845,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       TH2F* h1 = reinterpret_cast<TH2F*>(me);
       TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
           {
@@ -830,13 +857,16 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t events =  uint32_t(h2->GetBinContent(i, j));
+                uint32_t csc_events = csc_stats[cscName];
 
                 float fract=round(z*100);
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                DQM_SEVERITY severity=MINOR;
+                if (csc_events>min_events)
+                  {
+                    if (fract >= 80.) severity=CRITICAL;
+                    else if (fract >= 10.) severity=SEVERE;
+                    else if (fract > 1.) severity=TOLERABLE;
+                  }
                 std::string diag=Form("DMB-Input FIFO Full: %d events (%.3f%%)",events, z*100);
                 dqm_report.addEntry(cscName, entry.fillEntry(diag, severity,"CSC_WITH_INPUT_FIFO_FULL"));
 
@@ -858,11 +888,13 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
                             float fract=round(z*100);
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
+                            DQM_SEVERITY severity=MINOR;
+                            if (csc_events>min_events)
+                              {
+                                if (fract >= 80.) severity=CRITICAL;
+                                else if (fract >= 10.) severity=SEVERE;
+                                else if (fract > 1.) severity=TOLERABLE;
+                              }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("DMB-Input FIFO Full: %s %d events (%.3f%%)",error_type.c_str(), events, z*.100));
                             // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
@@ -888,6 +920,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       TH2F* h1 = reinterpret_cast<TH2F*>(me);
       TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
           {
@@ -899,13 +932,16 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t events =  uint32_t(h2->GetBinContent(i, j));
+                uint32_t csc_events = csc_stats[cscName];
 
                 float fract=round(z*100);
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                DQM_SEVERITY severity=MINOR;
+                if (csc_events>min_events)
+                  {
+                    if (fract >= 80.) severity=CRITICAL;
+                    else if (fract >= 10.) severity=SEVERE;
+                    else if (fract > 1.) severity=TOLERABLE;
+                  }
                 std::string diag=Form("DMB-Input Timeout: %d events (%.3f%%)",events, z*100);
                 dqm_report.addEntry(cscName, entry.fillEntry(diag,severity, "CSC_WITH_INPUT_TIMEOUT"));
 
@@ -927,11 +963,13 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
                             float fract=round(z*100);
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
+                            DQM_SEVERITY severity=MINOR;
+                            if (csc_events>min_events)
+                              {
+                                if (fract >= 80.) severity=CRITICAL;
+                                else if (fract >= 10.) severity=SEVERE;
+                                else if (fract > 1.) severity=TOLERABLE;
+                              }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("DMB-Input Timeout: %s %d events (%.3f%%)",error_type.c_str(), events, z*100));
                             // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
@@ -955,26 +993,40 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
             double z = h->GetBinContent(i, j);
-            if (round(z*100)>95)
+            if (round(z*100)>95.)
               {
                 csc_cntr++;
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
                 float fract=z*100;
-                std::string diag=Form("No ALCT Data: %.1f%%",fract);
+                if (csc_events>min_events)
+                  {
+                    std::string diag=Form("No ALCT Data: %.1f%%",fract);
 
-                dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
+                  }
+                else
+                  {
+                    if (csc_events > 10)
+                      {
+                        std::string diag=Form("No ALCT Data (low stats): %.1f%%",fract);
+
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_WITHOUT_ALCT"));
+                      }
+                  }
               }
 
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without ALCT data", csc_cntr), NONE, "ALL_CHAMBERS_WITHOUT_ALCT"));
       if (me) delete me;
-
     }
+
 
   // == Check for missing CLCT data blocks
   me = findME("EMU", "DMB_wo_CLCT_Fract",  sourcedir);
@@ -982,25 +1034,38 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
             double z = h->GetBinContent(i, j);
-            if (round(z*100)>95)
+            if (round(z*100)>95.)
               {
                 csc_cntr++;
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
                 float fract=z*100;
-                std::string diag=Form("No CLCT Data: %.1f%%",fract);
+                if (csc_events>min_events)
+                  {
+                    std::string diag=Form("No CLCT Data: %.1f%%",fract);
 
-                dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
+                  }
+                else
+                  {
+                    if (csc_events > 10)
+                      {
+                        std::string diag=Form("No CLCT Data (low stats): %.1f%%",fract);
+
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CLCT"));
+                      }
+                  }
               }
 
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without CLCT data", csc_cntr), NONE, "ALL_CHAMBERS_WITHOUT_CLCT"));
       if (me) delete me;
-
     }
 
   // == Check for missing CFEB data blocks
@@ -1009,27 +1074,39 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
             double z = h->GetBinContent(i, j);
-            if (round(z*100)>95)
+            if (round(z*100)>95.)
               {
                 csc_cntr++;
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
                 float fract=z*100;
-                std::string diag=Form("No CFEB Data: %.1f%%",fract);
+                if (csc_events>min_events)
+                  {
+                    std::string diag=Form("No CFEB Data: %.1f%%",fract);
 
-                dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
+                  }
+                else
+                  {
+                    if (csc_events > 10)
+                      {
+                        std::string diag=Form("No CFEB Data (low stats): %.1f%%",fract);
+
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CFEB"));
+                      }
+                  }
               }
 
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without CFEB data", csc_cntr),NONE,"ALL_CHAMBERS_WITHOUT_CFEB"));
       if (me) delete me;
-
     }
-
 
   // == Check for chambers with L1A out of sync
   me = findME("EMU", "DMB_L1A_out_of_sync_Fract",  sourcedir);
@@ -1039,6 +1116,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       TH2F* h = reinterpret_cast<TH2F*>(me);
       TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
+      uint32_t min_events=50;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -1049,12 +1127,15 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 uint32_t events = uint32_t(h2->GetBinContent(i, j));
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
                 float fract=round(z*100);
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                DQM_SEVERITY severity=MINOR;
+                if (csc_events>min_events)
+                  {
+                    if (fract >= 80.) severity=CRITICAL;
+                    else if (fract >= 10.) severity=SEVERE;
+                    else if (fract > 1.) severity=TOLERABLE;
+                  }
 
                 std::string diag=Form("L1A out of sync: %d events (%.3f%%)",events, z*100);
 
@@ -1070,7 +1151,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   }
                 l1a_histos.push_back(make_pair( "ALCT","ALCT_DMB_L1A_diff") );
                 l1a_histos.push_back(make_pair( "CLCT","CLCT_DMB_L1A_diff") );
-                l1a_histos.push_back(make_pair( "DMB","DMB_DDU_L1A_diff") );
+                l1a_histos.push_back(make_pair( "DDU","DMB_DDU_L1A_diff") );
 
                 // -- Find which board has L1A out of sync
                 for (uint32_t k = 0; k < l1a_histos.size(); k++)
@@ -1092,6 +1173,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
               }
 
           }
+
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with L1A out of sync", csc_cntr),NONE,"ALL_CHAMBERS_WITH_L1A_OUT_OF_SYNC"));
       if (me) delete me;
       if (me2) delete me2;
@@ -1107,6 +1189,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
       int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName);
       bool ME11 = emu::dqm::utils::isME11(cscName);
+      bool isBeam = false; // Assume that this is Cosmic run and not Beam
+
       // int nStrips = emu::dqm::utils::getNumStrips(cscName);
       int nWireGroups = emu::dqm::utils::getNumWireGroups(cscName);
       std::vector<int> deadCFEBs(5,0);
@@ -1122,10 +1206,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
         }
 
       std::vector< std::pair<int,int> > hvSegMap = emu::dqm::utils::getHVSegmentsMap(cscName);
-
-      //    bool isme11 = isME11(cscName);
-
-      // int deadALCT=0;
 
 
       // -- CFEBs DAV checks
@@ -1143,40 +1223,64 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
               double avg_cfeb_occup = 0;
               TH1F* h_tmp = new TH1F("temp", "temp", 100, h->GetMinimum(), h->GetMaximum()+1);
               double val=0;
+
+
               for (int icfeb=0; icfeb< nCFEBs; icfeb++)
                 {
                   val = round(h->GetBinContent(icfeb+1));
                   cfebs.push_back(val);
-                  h_tmp->Fill(val);
+                  if (!ME11 || (ME11 && icfeb!=4) ) h_tmp->Fill(val);
 
                 }
               avg_cfeb_occup = round(h_tmp->GetMean());
-              // std::cout << "Mean: " << cscName << " " << avg_cfeb_occup << std::endl;
+
               delete h_tmp;
+
+
+              // Try to detect Beam run using ME11 CFEB DAV pattern (CFEB5 should ~ 4times higher than average
+              if (ME11 && ((avg_cfeb_occup*2.5)<cfebs[4])) isBeam = true;
+
 
               for (int icfeb=0; icfeb< nCFEBs; icfeb++)
                 {
                   double z=cfebs[icfeb];
-                  if ((z < 5) || (z < 0.6*avg_cfeb_occup))
-                    {
-                      //	    uint32_t events = uint32_t(h1->GetBinContent(icfeb+1));
 
-                      if (z==0)
-                        {
-                          std::string diag=Form("CFEB Dead: CFEB%d DAV %.3f%%", icfeb+1, z);
-                          deadCFEBs[icfeb]=1;    // Mark this CFEB as dead
-                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_WITH_LOW_CFEB_DAV_EFF"));
-                        }
-                      else
-                        {
-                          std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
-                          lowEffCFEBs[icfeb]=1;
-                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITH_LOW_CFEB_DAV_EFF"));
-                        }
+                  if (z==0)
+                    {
+                      std::string diag=Form("CFEB Dead: CFEB%d DAV %.3f%%", icfeb+1, z);
+                      deadCFEBs[icfeb]=1;    // Mark this CFEB as dead
+                      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_WITH_LOW_CFEB_DAV_EFF"));
                       badCFEBs[icfeb]=1;
                       nbadCFEBs ++;
-
                     }
+
+                  else
+                    {
+                      if (!isBeam || (isBeam && !ME11 && icfeb!=4)) // Usual occupancy check algorithm for cosmic runs
+                        {
+                          if ((z < 5) || (z < round(0.5*avg_cfeb_occup)))
+                            {
+                              std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
+                              lowEffCFEBs[icfeb]=1;
+                              dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITH_LOW_CFEB_DAV_EFF"));
+                              badCFEBs[icfeb]=1;
+                              nbadCFEBs ++;
+                            }
+                        }
+                      else if (ME11 && icfeb == 4)
+                        {
+                          // if (ME11 && isBeam) std::cout << cscName << " Beam Run detected" << std::endl;
+                          if ((z < round(avg_cfeb_occup*4)*0.5))
+                            {
+                              std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
+                              lowEffCFEBs[icfeb]=1;
+                              dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITH_LOW_CFEB_DAV_EFF"));
+                              badCFEBs[icfeb]=1;
+                              nbadCFEBs ++;
+                            }
+                        }
+                    }
+
                 }
             }
 
@@ -1231,6 +1335,15 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                               // std::cout << cscName << " " << diag << std::endl;
                             }
                         }
+                    }
+                  else
+                    {
+                      if ( (nentries == 0) && ((int)csc_stats[cscName] >= (10*16*nActiveCFEBs)) && !ME11 )
+                        for (int icfeb=0; icfeb < nCFEBs; icfeb++)
+                          {
+                            std::string diag=Form("CFEB No SCA Data: CFEB%d Layer%d", icfeb+1, ilayer);
+                            dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE,"CSC_CFEB_NO_SCA_DATA"));
+                          }
                     }
 
                   if ( nentries >= (10*16*nActiveCFEBs) )
@@ -1313,7 +1426,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 {
                   TH1F* h = reinterpret_cast<TH1F*>(me);
                   int nentries = (int)h->GetEntries();
-                  double allCompsum = h->Integral();
+                  double allCompsum = 0; // h->Integral();
                   std::vector<double> Compsums;
                   Compsums.clear();
                   int noComps = 0;
@@ -1332,11 +1445,17 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                           if (badCFEBs[icfeb] ==1 )
                             {
                               Compsums.push_back(0.0);
+                              noComps++;
                               continue;
                             }// Skip dead CFEBs
 
                           double cfeb_comp_sum = h->Integral(icfeb*32, (icfeb+1)*32-1);
+
+                          // Don't count ME11 CFEB5 occupancy during Beam
+                          if (!isBeam || (isBeam && ME11 && (icfeb!=4) )) allCompsum += cfeb_comp_sum;
+
                           Compsums.push_back(cfeb_comp_sum);
+
                           // std::cout << "CFEB" << (icfeb+1) << ": " << cfeb_comp_sum << ", ";
                           if (cfeb_comp_sum == 0 && (lowEffCFEBs[icfeb] != 1))
                             {
@@ -1345,6 +1464,10 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                               dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_NO_COMPARATORS_DATA"));
                               noComps++;
                               // std::cout << cscName << " " << diag << std::endl;
+                            }
+                          else
+                            {
+                              if (isBeam && ME11 && (icfeb==4)) noComps++; // Don't count ME11 CFEB5 occupancy during Beam
                             }
 
                         }
@@ -1364,41 +1487,63 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                             {
                               if (Compsums[icfeb])
                                 {
+                                  if ( !isBeam || (isBeam && !ME11 && icfeb!=4) )
+                                    { // Standard occupancy check logic for Cosmic run
 
-                                  if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
-                                    {
-                                      std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
-                                                            (Compsums[icfeb]/avg_comp_occupancy)*100., low_comp_thresh*100 );
-                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
-                                      // std::cout << cscName << " "  << diag << std::endl;
-                                    }
-
-                                  if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
-                                    {
-                                      std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,
-                                                            Compsums[icfeb]/avg_comp_occupancy, high_comp_thresh);
-                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY"));
-                                      //  std::cout << cscName << " " << diag << std::endl;
-                                    }
-
-                                  for (int ch=1; ch <=32; ch++)
-                                    {
-                                      double ch_val = h->GetBinContent(ch+icfeb*32-1);
-                                      if (ch_val > 5*avg_comp_ch_occupancy)
+                                      if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                                         {
-                                          std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)",
-                                                                  icfeb+1, ilayer, ch+icfeb*32,
-                                                                  ch_val/avg_comp_ch_occupancy);
-                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY_CHANNEL"));
-                                          // std::cout << cscName << " " << diag << std::endl;
+                                          std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
+                                                                (Compsums[icfeb]/avg_comp_occupancy)*100., low_comp_thresh*100 );
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                                          // std::cout << cscName << " "  << diag << std::endl;
                                         }
-                                      /*
-                                        if (ch_val == 0 && !isLowEff && (lowEffCFEBs[icfeb] != 1)) {
-                                        std::string diag = Form("Dead SCA channel: CFEB%d Layer%d Ch#%d", icfeb+1, ilayer, ch);
-                                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE));
-                                        std::cout << cscName << " " << diag << std::endl;
+
+                                      if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
+                                        {
+                                          std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,
+                                                                Compsums[icfeb]/avg_comp_occupancy, high_comp_thresh);
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY"));
+                                          //  std::cout << cscName << " " << diag << std::endl;
                                         }
-                                      */
+
+                                      for (int ch=1; ch <=32; ch++)
+                                        {
+                                          double ch_val = h->GetBinContent(ch+icfeb*32-1);
+                                          if (ch_val > 8*avg_comp_ch_occupancy)
+                                            {
+                                              std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)",
+                                                                      icfeb+1, ilayer, ch+icfeb*32,
+                                                                      ch_val/avg_comp_ch_occupancy);
+                                              dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY_CHANNEL"));
+                                              // std::cout << cscName << " " << diag << std::endl;
+                                            }
+                                        }
+                                    }
+                                  else   // Occupancy check logic for ME11 CFEB5 with Beam run
+                                    {
+                                      if (ME11 && icfeb==4)
+                                        {
+                                          low_comp_thresh = 2;
+                                          high_comp_thresh = 8;
+                                          if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
+                                            {
+                                              std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
+                                                                    (Compsums[icfeb]/avg_comp_occupancy)*100., low_comp_thresh*100 );
+                                              dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                                              // std::cout << cscName << " "  << diag << std::endl;
+                                            }
+
+                                          if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
+                                            {
+                                              // std::cout << cscName << " " << Compsums[icfeb] << " " << avg_comp_occupancy << std::endl;
+                                              std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,
+                                                                    Compsums[icfeb]/avg_comp_occupancy, high_comp_thresh);
+                                              dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY"));
+                                              //  std::cout << cscName << " " << diag << std::endl;
+                                            }
+                                        }
+
+
                                     }
                                 }
                             }
@@ -1423,7 +1568,17 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
             {
               TH1F* h = reinterpret_cast<TH1F*>(me);
               double ent = h->GetEntries();
-              if (ent > 10*nWireGroups)
+
+	      // For ME11 if occupancy histo is empty then HV segment is OFF			
+	      if (((int)csc_stats[cscName] > 20*nWireGroups) && ME11 && (ent==0))
+		{
+			std::string diag=Form("No HV: Segment%d Layer%d", 1, ilayer );
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
+			
+		}
+
+
+              if ( ent > 20*nWireGroups)
                 {
 
                   double avg_anode_occup = 0;
@@ -1536,14 +1691,14 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 uint32_t events = uint32_t(h2->GetBinContent(i, j));
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                float fract=z*100;
+                float fract=round(z*100);
                 DQM_SEVERITY severity=NONE;
                 if (fract >= 80.) severity=CRITICAL;
                 else if (fract >= 10.) severity=SEVERE;
                 else if (fract > 1.) severity=TOLERABLE;
                 else severity=MINOR;
 
-                std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, fract);
+                std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, z*100);
 
                 dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_BWORDS"));
               }
@@ -1583,6 +1738,8 @@ void EmuPlotter::showReport()
 
 
   LOG4CPLUS_WARN(logger_, "<=== Automatically generated DQM Report ===>");
+
+  LOG4CPLUS_WARN(logger_, "<--- Analysis Version " << dqm_report.getVersion() << " ---> ");
   for (itr = report.begin(); itr != report.end(); ++itr)
     {
       if (itr->first.find("EMU") == 0)
@@ -1801,6 +1958,7 @@ void EmuPlotter::saveReport(std::string filename, std::string runname)
   std::ofstream out(filename.c_str());
   LOG4CPLUS_INFO(logger_, " Saving DQM report to " << filename);
   out << "<=== Automatically generated at " << emu::dqm::utils::now() << " DQM Report ===>" << std::endl;
+  out << "<--- Analysis Version " << dqm_report.getVersion() << " ---> "<< std::endl;
 
 
   out << std::endl;
@@ -1867,7 +2025,10 @@ void EmuPlotter::saveReportJSON(std::string filename, std::string runname)
 
   std::ofstream out(filename.c_str());
   LOG4CPLUS_INFO(logger_, " Saving JSON DQM report to " << filename);
-  out << "var DQM_REPORT = { \"run\": \"" << std::string(basename((char *)(runname.c_str()))) << "\", \"genDate\": \"" << emu::dqm::utils::now() <<  "\", \"report\":\n[" << std::endl;
+  out << "var DQM_REPORT = { \"run\": \"" << std::string(basename((char *)(runname.c_str()))) 
+	<< "\", \"genDate\": \"" << emu::dqm::utils::now() 
+	<< "\", \"version\": \"" << dqm_report.getVersion()
+	<<  "\", \"report\":\n[" << std::endl;
 
 
   for (itr = report.begin(); itr != report.end(); ++itr)

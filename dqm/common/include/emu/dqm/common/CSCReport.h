@@ -4,6 +4,9 @@
 #include <string>
 #include <map>
 
+// define Qaulity Checks Anaysis Version
+#define QCHECK_VER "2.0"
+
 typedef enum
 {
   NONE = 0,
@@ -77,6 +80,7 @@ typedef class DQMReport
 public:
   DQMReport()
   {
+    ver = QCHECK_VER;
     _report.clear();
   }
   void addEntry(ReportObjID id, ReportEntry entry)
@@ -96,8 +100,11 @@ public:
   {
     _report.clear();
   }
+
+  std::string getVersion() const { return ver;}
 private:
   T_DQMReport _report;
+  std::string ver;
 } DQMReport;
 
 #endif

@@ -27,6 +27,7 @@ int getNumWireGroups(std::string cscID);
 std::vector< std::pair<int,int> > getHVSegmentsMap(std::string cscID);
 int getHVSegmentNumber(std::string cscID, uint32_t iseg);
 bool isME11(std::string cscID);
+std::string getCSCTypeName(int id);
 std::string getCSCTypeLabel(int endcap, int station, int ring );
 std::string getCSCName(std::string cscID, int& crate, int& slot, int& CSCtype, int& CSCposition );
 std::map<std::string, int> getCSCTypeToBinMap();
