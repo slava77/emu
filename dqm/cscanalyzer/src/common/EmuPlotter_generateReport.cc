@@ -655,6 +655,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
   uint32_t csc_cntr = 0;
   uint32_t csc_avg_events = 0;
   std::map<std::string, uint32_t> csc_stats;
+  
+  std::map<std::string, bool> deadALCT;
+  std::map<std::string, bool> deadCLCT;
 
   hname = "CSC_Reporting";
   me = findME("EMU", hname,  sourcedir);
@@ -1007,8 +1010,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 float fract=z*100;
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("No ALCT Data: %.1f%%",fract);
+		    deadALCT[cscName] = true;
 
+                    std::string diag=Form("No ALCT Data: %.1f%%",fract);
                     dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
                   }
                 else
@@ -1048,8 +1052,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 float fract=z*100;
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("No CLCT Data: %.1f%%",fract);
+		    deadCLCT[cscName] = true;
 
+                    std::string diag=Form("No CLCT Data: %.1f%%",fract);
                     dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
                   }
                 else
@@ -1185,7 +1190,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       int crate=0, slot =0;
       uint32_t min_events = 300;
-      //    std::cout << getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition) << std::endl;
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
       int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName);
       bool ME11 = emu::dqm::utils::isME11(cscName);
@@ -1570,7 +1574,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
               double ent = h->GetEntries();
 
 	      // For ME11 if occupancy histo is empty then HV segment is OFF			
-	      if (((int)csc_stats[cscName] > 20*nWireGroups) && ME11 && (ent==0))
+	      if (((int)csc_stats[cscName] > 20*nWireGroups) && ME11 && (ent==0) && !deadALCT[cscName])
 		{
 			std::string diag=Form("No HV: Segment%d Layer%d", 1, ilayer );
                         dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
