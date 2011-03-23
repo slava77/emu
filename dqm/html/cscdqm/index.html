@@ -1878,8 +1878,11 @@ function loadDQMReport(id, rep)
 			
 			// addlog("DQM report #entries: " + DQM_REPORT.report.length, "info");
 			var n_out= "";
-			if (rep.run && rep.genDate) 
-			    n_out += "<tr><th class='repInfo' colspan=5><b>DQM Report for Run '" + rep.run + "' generated on '"+ rep.genDate + "' with Analysis Ver. " + rep.version  + "</b></th></tr>";
+			if (rep.run && rep.genDate) { 
+			    var a_ver = rep.version;
+			    if (!rep.version) a_ver = "1.0";
+			    n_out += "<tr><th class='repInfo' colspan=5><b>DQM Report for Run '" + rep.run + "' generated on '"+ rep.genDate + "' with Analysis Ver. " + a_ver  + "</b></th></tr>";
+			}
 			report = rep.report;
 			if (report && report.length) {
 				for (var i = 0; i < report.length; i++) {
