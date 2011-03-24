@@ -1728,8 +1728,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
   showReport();
   path = (path.size()?path+"/":"");
-  saveReport(path+"dqm_report.txt", runname);
-  saveReportJSON(path+"dqm_report.js", runname);
+  saveReport(path+"dqm_report_v"+dqm_report.getVersion()+".txt", runname);
+  saveReportJSON(path+"dqm_report_v"+dqm_report.getVersion()+".js", runname);
   return 0;
 }
 

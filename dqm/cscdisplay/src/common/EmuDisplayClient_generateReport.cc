@@ -531,7 +531,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
       if (csc_cntr)
         {
-	  csc_avg_events = csc_evt_cntr/csc_cntr;
+          csc_avg_events = csc_evt_cntr/csc_cntr;
           int hot_cscs = 0;
           int low_cscs = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr)));
@@ -579,7 +579,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-	if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
     }
 
 
@@ -989,10 +989,10 @@ std::string EmuDisplayClient::getReportJSON(std::string runname)
   T_DQMReport& report = dqm_report.getReport();
 
   std::stringstream out;
-  out << "var DQM_REPORT = { \"run\": \"" << runname 
-	<< "\", \"genDate\": \"" << emu::dqm::utils::now() 
-	<< "\", \"version\": \"" << dqm_report.getVersion()
-	<<  "\", \"report\":\n[" << std::endl;
+  out << "var DQM_REPORT = { \"run\": \"" << runname
+  << "\", \"genDate\": \"" << emu::dqm::utils::now()
+  << "\", \"version\": \"" << dqm_report.getVersion()
+  <<  "\", \"report\":\n[" << std::endl;
 
 
   for (itr = report.begin(); itr != report.end(); ++itr)

@@ -298,9 +298,9 @@ void EmuDisplayClient::getCSCList (xgi::Input * in, xgi::Output * out)  throw (x
       if (stateInputElement != cgi.getElements().end())
         {
           runname = (*stateInputElement).getValue();
-          //       std::cout << runname << std::endl;
         }
 
+      (out->getHTTPResponseHeader()).addHeader("Content-Type ","text/javascript");
       if (runname.find("Online") != std::string::npos || runname =="")
         {
           *out << "var CSC_LIST=[";
@@ -430,6 +430,7 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
       runname = (*stateInputElement).getValue();
       //       std::cout << runname << std::endl;
     }
+  (out->getHTTPResponseHeader()).addHeader("Content-Type ","text/javascript");
 
   if (runname.find("Online") != std::string::npos || runname =="")
     {
@@ -495,11 +496,11 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
 
 }
 
-bool EmuDisplayClient::isDQMReportFileAvailable(std::string runname)
+bool EmuDisplayClient::isDQMReportFileAvailable(std::string runname, std::string ver)
 {
   struct stat attrib;                   // create a file attribute structure
   std::string runplots = runname+".plots";
-  std::string report_file = "dqm_report.js";
+  std::string report_file = "dqm_report"+ver+".js";
   if (stat((ResultsDir.toString()+"/"+runplots+"/"+report_file).c_str(), &attrib) == 0) return true;
   else return false;
 }
@@ -511,6 +512,7 @@ void EmuDisplayClient::getDQMReport (xgi::Input * in, xgi::Output * out)  throw 
 
   std::string runname="";
 
+  std::string ver = "_v"+dqm_report.getVersion();
   cgicc::Cgicc cgi(in);
   cgicc::const_form_iterator stateInputElement = cgi.getElement("run");
   if (stateInputElement != cgi.getElements().end())
@@ -519,6 +521,7 @@ void EmuDisplayClient::getDQMReport (xgi::Input * in, xgi::Output * out)  throw 
       //       std::cout << runname << std::endl;
     }
 
+  (out->getHTTPResponseHeader()).addHeader("Content-Type ","application/json");
   if (runname.find("Online") != std::string::npos || runname =="")
     {
       /*
@@ -530,7 +533,29 @@ void EmuDisplayClient::getDQMReport (xgi::Input * in, xgi::Output * out)  throw 
     }
   else
     {
-      if (isDQMReportFileAvailable(runname))
+      // Try to load latest analysis version of DQM report
+      if (isDQMReportFileAvailable(runname, ver))
+        {
+          ifstream report;
+          report.open( (ResultsDir.toString()+"/"+runname+".plots/dqm_report"+ver+".js").c_str());
+          if (report)
+            {
+              *out << report.rdbuf();
+            }
+          else
+            {
+              // == Empty map
+              *out << "var DQM_REPORT = { \"run\": \"" << runname
+              << "\", \"genDate\": \"" << emu::dqm::utils::now()
+              << "\", \"version\": \"" << dqm_report.getVersion() << "\"};";
+            }
+          report.close();
+          // Read CSC list from available file
+          appBSem_.give();
+          return;
+        }
+      // Try to load initial (1.0) analysis version of DQM report
+      else if (isDQMReportFileAvailable(runname))
         {
           ifstream report;
           report.open( (ResultsDir.toString()+"/"+runname+".plots/dqm_report.js").c_str());
@@ -541,16 +566,21 @@ void EmuDisplayClient::getDQMReport (xgi::Input * in, xgi::Output * out)  throw 
           else
             {
               // == Empty map
-              *out << "var DQM_REPORT = { \"run\": \"" << runname << "\", \"genDate\": \"" << emu::dqm::utils::now() << "\"};";
+              *out << "var DQM_REPORT = { \"run\": \"" << runname
+              << "\", \"genDate\": \"" << emu::dqm::utils::now()
+              << "\", \"version\": \"" << dqm_report.getVersion() << "\"};";
             }
           report.close();
           // Read CSC list from available file
           appBSem_.give();
           return;
         }
+      // No saved report file found. Return empty report
       else
         {
-          *out << "var DQM_REPORT = { \"run\": \"" << runname << "\", \"genDate\": \"" << emu::dqm::utils::now() << "\"};";
+          *out << "var DQM_REPORT = { \"run\": \"" << runname
+          << "\", \"genDate\": \"" << emu::dqm::utils::now()
+          << "\", \"version\": \"" << dqm_report.getVersion() << "\"};";
         }
 
     }
@@ -573,6 +603,10 @@ void EmuDisplayClient::redir (xgi::Input * in, xgi::Output * out)  throw (xgi::e
     {
       url = (*urlInputElement).getValue();
     }
+
+  // Set MIME type for javascript files
+  if (url.find(".js") != std::string::npos)
+    (out->getHTTPResponseHeader()).addHeader("Content-Type ","text/javascript");
 
   ifstream f;
   f.open( (BaseDir.toString()+"/"+url).c_str());
@@ -726,6 +760,7 @@ void EmuDisplayClient::getTestsList (xgi::Input * in, xgi::Output * out)  throw 
   // == TODO: Request or load actual tests list
   ifstream map;
   map.open( (BaseDir.toString()+"/canvases_list.js").c_str());
+  (out->getHTTPResponseHeader()).addHeader("Content-Type ","text/javascript");
   if (map)
     {
       *out << map.rdbuf();
@@ -778,6 +813,7 @@ void EmuDisplayClient::getRunsList (xgi::Input * in, xgi::Output * out)  throw (
   std::vector<std::string> runs_list = readRunsList();
   struct stat attrib;                   // create a file attribute structure
 
+  (out->getHTTPResponseHeader()).addHeader("Content-Type ","text/javascript");
   *out << "var RUNS=[" << std::endl;
   for (unsigned i=0; i <runs_list.size(); i++)
     {
@@ -794,6 +830,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 {
 
   appBSem_.take();
+  (out->getHTTPResponseHeader()).addHeader("Content-Type ","text/javascript");
   *out << "var NODES_LIST=[" << std::endl;
   *out << "['Node','State','Run Number','DAQ Events','DQM Events','Rate (Evt/s)','Detected CSCs', 'Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last event timestamp']," << std::endl;
 
@@ -1931,9 +1968,9 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
                   {
                     stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
                   }
-		st.clear();
-	        st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
-		nodename = st.str();
+                st.str("");
+                st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
+                nodename = st.str();
                 emu::base::Component comp(nodename);
                 CSCDqmFact fact = CSCDqmFact(runNumber, comp, "EmuMonitorFact");
                 fact.addParameter("state", state)
