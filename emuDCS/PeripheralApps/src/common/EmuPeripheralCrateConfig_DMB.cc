@@ -1836,6 +1836,36 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
+  *out << cgicc::table().set("border","1");
+  //
+  *out << cgicc::td();
+  sprintf(buf,"Analog  7.5V = %3.2f ",(value=thisDMB->lowv_adc(5,6))/1000.);
+  if ( value/1000. < 5.0 ||
+       value/1000. > 7.5*1.5 ) {
+    *out << cgicc::span().set("style","color:red");
+  } else {
+    *out << cgicc::span().set("style","color:green");  
+  }
+  *out << buf ;
+  *out << cgicc::span();
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  sprintf(buf,"Digital  7.5V = %3.2f ",(value=thisDMB->lowv_adc(5,7))/1000.);
+  if ( value/1000. < 5.0 ||
+       value/1000. > 7.5*1.5 ) {
+    *out << cgicc::span().set("style","color:red");
+  } else {
+    *out << cgicc::span().set("style","color:green");  
+  }
+  *out << buf ;
+  *out << cgicc::span();
+  *out << cgicc::td();
+  //
+  *out << cgicc::table();
+  //
+  *out << cgicc::br();
+  //
   *out << cgicc::table().set("border","1");;
   //
   *out << cgicc::td();
