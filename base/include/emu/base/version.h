@@ -5,11 +5,11 @@
 
 namespace emubase {
 	const std::string package     = "emubase";
-	const std::string versions    = "10.00.00";
+	const std::string versions    = "10.00.01";
 	const std::string description = "Emu (CSC) applications' base classes";
 
 	const std::string summary     = "emu/base";
-	const std::string authors     = "Ichiro Suzuki";
+	const std::string authors     = "Karoly Banicz, Angela Brett, Ichiro Suzuki";
 	const std::string link        = "http://localhost:20000/";
 
 	config::PackageInfo getPackageInfo();

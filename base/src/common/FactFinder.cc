@@ -8,6 +8,7 @@
 #include "emu/base/FactFinder.h"
 
 #include <exception>
+#include <unistd.h> // for usleep
 
 #include "xcept/tools.h"
 #include "xdaq/NamespaceURI.h"
@@ -44,6 +45,7 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
 #else
   : xdaq::WebApplication( stub ),
 #endif
+    expertSystemURL_( "NOT_YET_KNOWN" ), // From this value we know it hasn't been configured yet.
     factFinderBSem_( toolbox::BSem::FULL ),
     source_( source ),
     maxQueueLength_( 1000 ),
@@ -53,7 +55,6 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
     isDisabled_( false ){
   xoap::bind( this, &emu::base::FactFinder::onFactRequest, "factRequestCollection",  ESD_NS_URI );
 
-  expertSystemURL_         = "";
   isFactFinderInDebugMode_ = false;
   getApplicationInfoSpace()->fireItemAvailable( "expertSystemURL"        ,  &expertSystemURL_         );
   getApplicationInfoSpace()->fireItemAvailable( "isFactFinderInDebugMode",  &isFactFinderInDebugMode_ );
@@ -61,9 +62,11 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
   stringstream workLoopName;
   workLoopName << getApplicationDescriptor()->getClassName() << "." << getApplicationDescriptor()->getInstance();
   factWorkLoop_ = toolbox::task::getWorkLoopFactory()->getWorkLoop( workLoopName.str(), "waiting" );
-  factWorkLoop_->activate();
-  LOG4CPLUS_DEBUG( getApplicationLogger(), "Activated work loop " << workLoopName.str() );
-  sendFactsSignature_   = toolbox::task::bind( this, &emu::base::FactFinder::sendFactsInWorkLoop, "sendFactsInWorkLoop" );
+  sendFactsSignature_  = toolbox::task::bind( this, &emu::base::FactFinder::sendFactsInWorkLoop, "sendFactsInWorkLoop" );
+  // We do not submit task "sendFactsInWorkLoop" yet as "expertSystemURL" is not yet known inside the constructor.
+  // It is going to be submitted once (and from then on resubmitted by itself) if the workloop is not active yet.
+  // At the same time, the workloop is going to be activated and the active workloop will mean the task has been submitted.
+  // Therefore we do not activate the workloop here, either.
 
   stringstream timerName;
   timerName << "FactFinderTimer." << getApplicationDescriptor()->getClassName() << "." << getApplicationDescriptor()->getInstance();
@@ -107,8 +110,13 @@ emu::base::FactFinder::onFactRequest( xoap::MessageReference message )
     LOG4CPLUS_WARN( getApplicationLogger(), "Incoming request queue full. Discarding the oldest request." );
   }
   factFinderBSem_.give();
+
   // Handle them in another thread:
-  factWorkLoop_->submit( sendFactsSignature_ );
+  if ( ! isDisabled_ && ! factWorkLoop_->isActive() ){
+    factWorkLoop_->activate();
+    if ( isFactFinderInDebugMode_.value_ ) cout << "Activated work loop " << factWorkLoop_->getName() << endl << flush;
+    factWorkLoop_->submit( sendFactsSignature_ );
+  }
 
   if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::onFactRequest ***" << endl;
   return emu::base::FactFinder::createRequestAcknowlegdementSOAP();
@@ -286,33 +294,17 @@ emu::base::FactFinder::sendFacts(){
   }
   factFinderBSem_.give();
   // Send them in another thread:
-  factWorkLoop_->submit( sendFactsSignature_ );
+  if ( ! isDisabled_ && ! factWorkLoop_->isActive() ){
+    factWorkLoop_->activate();
+    if ( isFactFinderInDebugMode_.value_ ) cout << "Activated work loop " << factWorkLoop_->getName() << endl << flush;
+    factWorkLoop_->submit( sendFactsSignature_ );
+  }
 }
 
 void
 emu::base::FactFinder::sendFact( const string& componentId, const string& factType ){
-  // Get the fact:
-  emu::base::Fact fact( findFact( componentId, factType ) );
-  // Bail out if untyped fact (which has no name) is returned, indicating failure of fact-finding:
-  if ( fact.getName().size() == 0 ) return;
-  // Set the component id in case the user forgot to:
-  fact.setComponentId( componentId );
-  // Wrap fact in a fact collection:
-  emu::base::FactCollection facts;
-  facts.setSource( source_ );
-  facts.addFact( fact );
-  // Queue them for sending:
-  factFinderBSem_.take();
-  factsToSend_.push_back( facts );
-  if ( isFactFinderInDebugMode_.value_ ) cout << endl << endl << "factsToSend_.size() = " << factsToSend_.size() << endl << endl;
-  // If queue is too long, drop the oldest facts:
-  while ( factsToSend_.size() > maxQueueLength_ ){ 
-    factsToSend_.pop_front();
-    LOG4CPLUS_WARN( getApplicationLogger(), "Outgoing fact queue full. Discarding the oldest fact." );
-  }
-  factFinderBSem_.give();
-  // Send them in another thread:
-  factWorkLoop_->submit( sendFactsSignature_ );
+  emu::base::Component component( componentId );
+  sendFact( component, factType );
 }
 
 void
@@ -338,15 +330,26 @@ emu::base::FactFinder::sendFact( const emu::base::Component& component, const st
   }
   factFinderBSem_.give();
   // Send them in another thread:
-  factWorkLoop_->submit( sendFactsSignature_ );
+  if ( ! isDisabled_ && ! factWorkLoop_->isActive() ){
+    factWorkLoop_->activate();
+    if ( isFactFinderInDebugMode_.value_ ) cout << "Activated work loop " << factWorkLoop_->getName() << endl << flush;
+    factWorkLoop_->submit( sendFactsSignature_ );
+  }
 }
 
 bool
 emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
-  if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::sendFactsInWorkLoop" << endl << flush;
+  //if ( isFactFinderInDebugMode_.value_ ) cout << "*** emu::base::FactFinder::sendFactsInWorkLoop" << endl << flush;
   bool isToBeResubmitted = false;
 
   factFinderBSem_.take();
+
+  // Check whether expertSystemURL_ has already been assigned the value given in the configuration.
+  if ( expertSystemURL_.toString() == "NOT_YET_KNOWN" ){
+    // Configuration has apparently not yet taken place. Come back later.
+    factFinderBSem_.give();
+    return true;
+  }
 
   // Check format of expert system's URL, and disable sending if it's wrong.
   try{
@@ -362,75 +365,80 @@ emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
   
   // If disabled, return and do not resubmit.
   if ( isDisabled_ ){
-    if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInWorkLoop ***" << endl << flush;
+    //if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInWorkLoop ***" << endl << flush;
     factFinderBSem_.give();
     return false;
   }
 
   bool isMoratoriumImposed = false;
 
-  try{
-    // First handle the requests (one at a time)
-    if ( factRequestCollections_.size() ){
-      if ( isFactFinderInDebugMode_.value_ ) cout << "   Handling request:" << endl << factRequestCollections_.front();
-      emu::base::FactCollection factCollection = collectFacts( factRequestCollections_.front() );
-      // Explicitly requested facts jump sending queue:
-      if ( factCollection.size() > 0 ) factsToSend_.push_front( factCollection );
-      factRequestCollections_.pop_front();
-      isToBeResubmitted |= ( factRequestCollections_.size() > 0 );
+  // First handle the requests (one at a time)
+  if ( factRequestCollections_.size() ){
+    if ( isFactFinderInDebugMode_.value_ ) cout << "   Handling request:" << endl << factRequestCollections_.front();
+    emu::base::FactCollection factCollection;
+
+    try{
+      factCollection = collectFacts( factRequestCollections_.front() );
+    } catch(xcept::Exception& e){
+      stringstream ss;
+      ss << "Failed to collect requested facts: " << xcept::stdformat_exception_history(e);
+      LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+      XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+      this->notifyQualified( "warning", eObj );
+    } catch( exception& e ){
+      stringstream ss;
+      ss << "Failed to collect requested facts: " << e.what();
+      LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+      XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+      this->notifyQualified( "warning", eObj );
+    } catch( ... ){
+      stringstream ss;
+      ss << "Failed to collect requested facts: Unexpected exception.";
+      LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+      XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+      this->notifyQualified( "warning", eObj );
     }
-  } catch(xcept::Exception& e){
-    stringstream ss;
-    ss << "Failed to collect requested facts: " << xcept::stdformat_exception_history(e);
-    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
-    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
-    this->notifyQualified( "warning", eObj );
-  } catch( exception& e ){
-    stringstream ss;
-    ss << "Failed to collect requested facts: " << e.what();
-    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
-    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
-    this->notifyQualified( "warning", eObj );
-  } catch( ... ){
-    stringstream ss;
-    ss << "Failed to collect requested facts: Unexpected exception.";
-    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
-    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
-    this->notifyQualified( "warning", eObj );
+
+    // Explicitly requested facts jump sending queue:
+    if ( factCollection.size() > 0 ) factsToSend_.push_front( factCollection );
+    factRequestCollections_.pop_front();
+    isToBeResubmitted |= ( factRequestCollections_.size() > 0 );
   }
 
-  try{
-    // Send facts (one at a time).
-    if ( factsToSend_.size() ){
-      // Check if a SOAP timeout has occurred recently. If so, skip sending this time. The moratorium on sending is moratoriumAfterTimeout_ seconds long.
-      if ( stopwatch_->read() > moratoriumAfterTimeout_ ){
-	if ( isFactFinderInDebugMode_.value_ ) cout << "   Sending fact:" << endl << factsToSend_.front();
+  // Send facts (one at a time).
+  if ( factsToSend_.size() ){
+    // Check if a SOAP timeout has occurred recently. If so, skip sending this time. The moratorium on sending is moratoriumAfterTimeout_ seconds long.
+    if ( stopwatch_->read() > moratoriumAfterTimeout_ ){
+      if ( isFactFinderInDebugMode_.value_ ) cout << "   Sending fact:" << endl << factsToSend_.front();
+
+      try{
 	bool isSent = sendFactsInSOAP( factsToSend_.front() );
 	if ( isSent ) factsToSend_.pop_front(); // delete it only if it's been sent
+      } catch(xcept::Exception& e){
+	stringstream ss;
+	ss << "Failed to send facts: " << xcept::stdformat_exception_history(e);
+	LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+	XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+	this->notifyQualified( "warning", eObj );
+      } catch( exception& e ){
+	stringstream ss;
+	ss << "Failed to send facts: " << e.what();
+	LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+	XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+	this->notifyQualified( "warning", eObj );
+      } catch( ... ){
+	stringstream ss;
+	ss << "Failed to send facts: Unexpected exception.";
+	LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
+	XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
+	this->notifyQualified( "warning", eObj );
       }
-      else{
-	isMoratoriumImposed = true;
-      }
-      isToBeResubmitted |= ( factsToSend_.size() > 0 );
+
     }
-  } catch(xcept::Exception& e){
-    stringstream ss;
-    ss << "Failed to send facts: " << xcept::stdformat_exception_history(e);
-    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
-    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
-    this->notifyQualified( "warning", eObj );
-  } catch( exception& e ){
-    stringstream ss;
-    ss << "Failed to send facts: " << e.what();
-    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
-    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
-    this->notifyQualified( "warning", eObj );
-  } catch( ... ){
-    stringstream ss;
-    ss << "Failed to send facts: Unexpected exception.";
-    LOG4CPLUS_WARN( getApplicationLogger(), ss.str() );
-    XCEPT_DECLARE( xcept::Exception, eObj, ss.str() );
-    this->notifyQualified( "warning", eObj );
+    else{
+      isMoratoriumImposed = true;
+    }
+    isToBeResubmitted |= ( factsToSend_.size() > 0 );
   }
 
   factFinderBSem_.give();
@@ -441,8 +449,10 @@ emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
     ::sleep( 10 );
   }
 
-  if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInWorkLoop ***" << endl;
-  return isToBeResubmitted;
+  //if ( isFactFinderInDebugMode_.value_ ) cout << "emu::base::FactFinder::sendFactsInWorkLoop ***" << endl;
+  // return isToBeResubmitted;
+  ::usleep( 5000 );
+  return true;
 }
 
 emu::base::FactCollection
