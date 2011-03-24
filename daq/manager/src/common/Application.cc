@@ -4980,6 +4980,13 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
 
   xdata::ItemEvent& e = dynamic_cast<xdata::ItemEvent&>(received);
   
+  LOG4CPLUS_INFO(logger_, 
+		 "Received an InfoSpace event" <<
+		 " Event type: " << e.type() <<
+		 " Event name: " << e.itemName() <<
+		 " Serializable: " << std::hex << e.item() << std::dec <<
+		 " Type of serializable: " << e.item()->type() );
+
   if      ( e.itemName() == "daqState"       && e.type() == "ItemRetrieveEvent" ){ daqState_ = getDAQState();        }
   else if ( e.itemName() == "STEPFinished"   && e.type() == "ItemRetrieveEvent" ){ STEPFinished_ = isSTEPFinished(); }
   else if ( e.itemName() == "supervisedMode" && e.type() == "ItemChangedEvent"  ){
@@ -4995,12 +5002,6 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
   //   writeBadEventsOnly_ = isGlobalInControl_.value_;
   // }
 
-  LOG4CPLUS_INFO(logger_, 
-		 "Received an InfoSpace event" <<
-		 " Event type: " << e.type() <<
-		 " Event name: " << e.itemName() <<
-		 " Serializable: " << std::hex << e.item() << std::dec <<
-		 " Type of serializable: " << e.item()->type() );
 }
 
 void
