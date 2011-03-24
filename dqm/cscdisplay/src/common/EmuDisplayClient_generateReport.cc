@@ -136,6 +136,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       TH1F* h = reinterpret_cast<TH1F*>(me);
 
+      TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum()+1);
+
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         {
           uint32_t cnt = uint32_t(h->GetBinContent(i));
@@ -145,16 +147,20 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               std::string dduName = Form("DDU_%02d", i);
               ddu_stats[dduName] = cnt;
               ddu_evt_cntr+=cnt;
+              h_tmp->Fill(cnt);
 
             }
         }
+      ddu_avg_events = (uint32_t)h_tmp->GetMean();
+      delete h_tmp;
+
       if (ddu_cntr)
         {
           int hot_ddus = 0;
           int low_ddus = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs in Readout", ddu_cntr),NONE,"ALL_DDU_IN_READOUT"));
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of DDU events: %d ", ddu_evt_cntr),NONE,"ALL_DDU_EVENTS_COUNTER"));
-          ddu_avg_events=ddu_evt_cntr/ddu_cntr;
+//          ddu_avg_events=ddu_evt_cntr/ddu_cntr;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Average number of events per DDU: %d ", ddu_avg_events),NONE));
           if (ddu_avg_events >= 500)   // Detect different efficiency DDUs if average number of events is reasonable (>500)
             {
@@ -554,7 +560,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
                       if (fract >= 5.)
                         {
-                          std::string diag=Form("Hot chamber: %d events, %.f times more than %s type average events counter (avg events=%d",
+                          std::string diag=Form("Hot chamber: %d events, %.f times more than %s type average events counter (avg events=%d)",
                                                 csc_stats[cscName], fract,
                                                 (emu::dqm::utils::getCSCTypeName(j)).c_str(),
                                                 csc_type_avg_events[j]);
@@ -563,7 +569,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                         }
 		      if (csc_stats[cscName] > 20*csc_avg_events)
                         {
-                          std::string diag=Form("Hot chamber: %d events, %.f times more than system average events counter (avg events=%d",
+                          std::string diag=Form("Hot chamber: %d events, %.f times more than system average events counter (avg events=%d)",
 						csc_stats[cscName], csc_stats[cscName]/(1.*csc_avg_events),
                                                 (int)csc_avg_events);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
