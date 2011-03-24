@@ -669,9 +669,10 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       std::vector<uint32_t> csc_type_stats(n_csc_types);
       std::vector<uint32_t> csc_type_avg_events(n_csc_types);
       std::vector<uint32_t> csc_type_cntr(n_csc_types);
+      TH1F* h_tmp1 = new TH1F("temp1", "temp1", 1000, h->GetMinimum(), h->GetMaximum()+1);
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         {
-          TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum());
+          TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum()+1);
           for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
             {
               std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
@@ -684,7 +685,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   csc_stats[cscName] = cnt;
                   csc_evt_cntr+=cnt;
                   csc_cntr++;
-
+		  h_tmp1->Fill(cnt);
                   h_tmp->Fill(cnt);
 
                   //	std::cout << cscName << ": #Events: " << cnt << std::endl;
@@ -702,15 +703,17 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
         }
 
+      csc_avg_events = (uint32_t)h_tmp1->GetMean();
+      delete h_tmp1; 
 
-      if (csc_cntr)
+      if (csc_cntr && csc_avg_events)
         {
-          csc_avg_events = csc_evt_cntr/csc_cntr;
+          // csc_avg_events = csc_evt_cntr/csc_cntr;
           int hot_cscs = 0;
           int low_cscs = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr)));
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of CSC events: %d ", csc_evt_cntr)));
-          dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Average number of events per CSC: %d ", csc_avg_events)));
+          dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Average number of events per CSC: %d", csc_avg_events)));
 
 
           for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
@@ -728,6 +731,14 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                                 csc_stats[cscName], fract,
                                                 (emu::dqm::utils::getCSCTypeName(j)).c_str(),
                                                 csc_type_avg_events[j]);
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
+                          hot_cscs++;
+                        }
+		      else if (csc_stats[cscName] >= 20*csc_avg_events)
+                        {
+                          std::string diag=Form("Hot chamber: %d events, %.f times more than system average events counter (avg events=%d",
+						csc_stats[cscName], csc_stats[cscName]/(1.*csc_avg_events),
+                                                (int)csc_avg_events);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
                           hot_cscs++;
                         }

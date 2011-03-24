@@ -1083,7 +1083,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
 
     }
 
-  LOG4CPLUS_INFO (getApplicationLogger(), "Request for : " << folder << "/" << objname);
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Request for : " << folder << "/" << objname);
 
   EmuMonitoringCanvas* cnv = NULL;
 

@@ -495,10 +495,11 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       int n_csc_types = int(h->GetYaxis()->GetXmax());
       std::vector<uint32_t> csc_type_stats(n_csc_types);
       std::vector<uint32_t> csc_type_avg_events(n_csc_types);
+      TH1F* h_tmp1 = new TH1F("temp1", "temp1", 1000, h->GetMinimum(), h->GetMaximum()+1);
       std::vector<uint32_t> csc_type_cntr(n_csc_types);
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         {
-          TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum());
+          TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum()+1);
           for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
             {
               std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
@@ -513,6 +514,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   csc_cntr++;
 
                   h_tmp->Fill(cnt);
+		  h_tmp1->Fill(cnt);
 
                   //    std::cout << cscName << ": #Events: " << cnt << std::endl;
 
@@ -529,9 +531,11 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
         }
 
+      csc_avg_events = (uint32_t)h_tmp1->GetMean();
+      delete h_tmp1;
       if (csc_cntr)
         {
-          csc_avg_events = csc_evt_cntr/csc_cntr;
+          // csc_avg_events = csc_evt_cntr/csc_cntr;
           int hot_cscs = 0;
           int low_cscs = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr)));
@@ -554,6 +558,14 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                                                 csc_stats[cscName], fract,
                                                 (emu::dqm::utils::getCSCTypeName(j)).c_str(),
                                                 csc_type_avg_events[j]);
+                          dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
+                          hot_cscs++;
+                        }
+		      if (csc_stats[cscName] > 20*csc_avg_events)
+                        {
+                          std::string diag=Form("Hot chamber: %d events, %.f times more than system average events counter (avg events=%d",
+						csc_stats[cscName], csc_stats[cscName]/(1.*csc_avg_events),
+                                                (int)csc_avg_events);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
                           hot_cscs++;
                         }
