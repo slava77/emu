@@ -290,9 +290,6 @@
 	}
 	
 </style>
-<link type="text/css" href="redir?url=mojozoom.css" rel="stylesheet" /> 
-<script type="text/javascript" src="redir?url=mojozoom.js"></script>  
-<script type="text/javascript" src="redir?url=floatlayer.js"></script>  
 <script type="text/javascript">
 
 // var baseURL="http://cms-csc.web.cern.ch/cms-csc/DQM/DAQ/plots/merged/";
@@ -568,37 +565,7 @@ function loadPlot() {
 	o_obj = document.getElementById("plot_title");
 	if (o_obj) o_obj.innerHTML = title;
 	
-	/*
-	 var oo = document.getElementById("dqmplot");
-	 if (oo) 
-	 {
-		// addlog("Image is Loaded", "info");
-		
-		new FloatLayer('dqmplot_zoom',15,15,10);
-		
-		MojoZoom.makeZoomable(  
-					document.getElementById("dqmplot"),   
-					zoomimage,
-					document.getElementById("dqmplot_zoom"),
-					300,300,false); 	
-		detach("dqmplot_zoom");
-	}
-	*/
-					
 	return false;
-}
-
-function detach(id){
-	lay  = document.getElementById(id);
-	
- 	left = getXCoord(lay);
-	top  = getYCoord(lay);
-	if (lay) addlog("found " + id+ " " + left + " "+ top, "info");
- 	lay.style.position = 'absolute';
- 	lay.style.top      = top;
- 	lay.style.left     = left;
- 	getFloatLayer(id).initialize();
- 	alignFloatLayers();
 }
 
 function updatePlots() {
@@ -647,16 +614,6 @@ function addlog(message, level)
 		Log.push(entry);
 		showLog();
 	}
-/*	var logd = document.getElementById("log");
-	if (logd) {
-        log_text = logd.innerHTML;
-		
-        msg = '<tr><td class="log">'+getTime()+'</td><td><span class="log" id=\"'+level+'\">'+level.toUpperCase()+ '</span></td><td><span class="log">' +message+'</span></td></tr><br>' + log_text;
-		//msg = '<li class="log" id=\"'+level+'\">'+level.toUpperCase()+ ": " +message+'</li>' + log_text;
-		logd.innerHTML = msg;
-	}
-	return false;
-	*/
 }
 
 function showLog()
@@ -699,12 +656,6 @@ function clearLog()
 {
 	Log.length = 0;
 	showLog();
-/*	var logd = document.getElementById("log");
-	if (logd) {
-        logd.innerHTML = "";
-	}
-	return false;
-	*/
 }
 function resetCSCTable(c_table)
 {
@@ -3255,7 +3206,7 @@ get_element = document.all ?
 
 </script>
 </head>
-<body onresize="alignFloatLayers()" onscroll="alignFloatLayers()">
+<body>
 
 <script type="text/javascript">
 	if (navigator.userAgent.toLowerCase().indexOf('msie') != -1) isIE=true;

@@ -318,45 +318,45 @@ bool EmuDisplayClient::bookCanvas(std::map<std::string, MECanvases_List >&  List
 
 bool EmuDisplayClient::readME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, TFile* rootsrc)
 {
-/*
-  std::string rootfile = ResultsDir.toString()+"/"+run+".root";
-  struct stat attrib;                   // create a file attribute structure
-  std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), run+".root");
-  if (r_itr != runsList.end())
+  /*
+    std::string rootfile = ResultsDir.toString()+"/"+run+".root";
+    struct stat attrib;                   // create a file attribute structure
+    std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), run+".root");
+    if (r_itr != runsList.end())
+      {
+        if (stat(rootfile.c_str(), &attrib) == 0)    // Folder exists
+          {
+            TFile* rootsrc = TFile::Open( rootfile.c_str());
+  */
+  if (!rootsrc)
     {
-      if (stat(rootfile.c_str(), &attrib) == 0)    // Folder exists
-        {
-          TFile* rootsrc = TFile::Open( rootfile.c_str());
-*/
-          if (!rootsrc)
-            {
-              // LOG4CPLUS_ERROR (getApplicationLogger(), "Unable to open " << rootfile.c_str());
-              return false;
-            }
+      // LOG4CPLUS_ERROR (getApplicationLogger(), "Unable to open " << rootfile.c_str());
+      return false;
+    }
 
-          if (!rootsrc->cd("DQMData"))
-            {
-              LOG4CPLUS_ERROR (getApplicationLogger(), "No histos folder in file");
+  if (!rootsrc->cd("DQMData"))
+    {
+      LOG4CPLUS_ERROR (getApplicationLogger(), "No histos folder in file");
 //              rootsrc->Close();
 //              rootsrc = NULL;
-              return false;
-            }
-          LOG4CPLUS_DEBUG(getApplicationLogger(), "Trying to Read " << Folder << "/" << mo->getFullName() << " object" );
-          TDirectory *sourcedir = gDirectory;
+      return false;
+    }
+  LOG4CPLUS_DEBUG(getApplicationLogger(), "Trying to Read " << Folder << "/" << mo->getFullName() << " object" );
+  TDirectory *sourcedir = gDirectory;
 
-          TObject *obj = sourcedir->Get((Folder+"/"+mo->getFullName()).c_str());
-          if (obj != NULL)
-            {
-              LOG4CPLUS_DEBUG(getApplicationLogger(), "Successfully Read " << Folder << "/" << mo->getFullName() << " object");
-              mo->setObject(reinterpret_cast<MonitorElement*>(obj->Clone()));
-              return true;
-            }
-          else
-            {
-              LOG4CPLUS_WARN(getApplicationLogger(), "Unable to Read " << Folder << "/" << mo->getFullName() << " object");
+  TObject *obj = sourcedir->Get((Folder+"/"+mo->getFullName()).c_str());
+  if (obj != NULL)
+    {
+      LOG4CPLUS_DEBUG(getApplicationLogger(), "Successfully Read " << Folder << "/" << mo->getFullName() << " object");
+      mo->setObject(reinterpret_cast<MonitorElement*>(obj->Clone()));
+      return true;
+    }
+  else
+    {
+      LOG4CPLUS_WARN(getApplicationLogger(), "Unable to Read " << Folder << "/" << mo->getFullName() << " object");
 //              rootsrc->Close();
 //              rootsrc = NULL;
-            }
+    }
 //        }
 
 //    }

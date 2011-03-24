@@ -243,7 +243,7 @@ protected:
   DQMNodesStatus updateNodesStatus();
   std::vector<std::string> readRunsList();
   bool isCSCListFileAvailable(std::string runname);
-  bool isDQMReportFileAvailable(std::string runname);
+  bool isDQMReportFileAvailable(std::string runname, std::string ver="");
   bool isCSCCountersFileAvailable(std::string runname);
 
   int prepareReportFacts(std::string runname);
