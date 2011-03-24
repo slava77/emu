@@ -183,14 +183,13 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
     int debugMode(0);
     int jch(6);
     int verify(1);
-    printf("Programming CCB using %s\n", CCBFirmware_.c_str());
+    std::cout << getLocalDateTime() << " Programming CCB using " << CCBFirmware_ << std::endl;
     int status = thisCCB->svfLoad(&jch,CCBFirmware_.c_str(),debugMode, verify);
     if (status >= 0){
-      std::cout << "=== Programming finished"<< std::endl;
-      std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
+      std::cout << getLocalDateTime() << " Programming finished with " << status << " Verify Errors occured" << std::endl;
     }
     else{
-      std::cout << "=== Fatal Error. Exiting with " <<  status << std::endl;
+      std::cout << getLocalDateTime() << " Fatal Error. Exiting with " <<  status << std::endl;
     }
     //
     //    thisCCB->hardReset();
@@ -393,14 +392,13 @@ void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * ou
   int debugMode(0);
   int jch(6);
   int verify(1);
-  printf("Programming MPC using %s\n", MPCFirmware_.c_str());
+  std::cout << getLocalDateTime() << " Programming MPC using " << MPCFirmware_ << std::endl;
   int status = thisMPC->svfLoad(&jch,MPCFirmware_.c_str(),debugMode, verify);
   if (status >= 0){
-    std::cout << "=== Programming finished"<< std::endl;
-    std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
+    std::cout << getLocalDateTime() << " Programming finished with " << status << " Verify Errors occured" << std::endl;
   }
   else{
-    std::cout << "=== Fatal Error. Exiting with " <<  status << std::endl;
+    std::cout << getLocalDateTime() << " Fatal Error. Exiting with " <<  status << std::endl;
   }
   //
   //thisCCB->hardReset();
