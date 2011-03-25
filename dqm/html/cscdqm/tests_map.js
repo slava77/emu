@@ -44,6 +44,7 @@ var TESTS_MAP = {
 	{"testID": "CSC_CFEB_SCA_LOW_EFF", "testPlot": "CFEB/CFEB_SCA_Active_Strips_Occupancy", "testScope": "CSC"},
 	{"testID": "CSC_CFEB_SCA_NOISY", "testPlot": "CFEB/CFEB_SCA_Active_Strips_Occupancy", "testScope": "CSC"},
 	{"testID": "CSC_CFEB_SCA_NOISY_CHANNEL", "testPlot": "CFEB/CFEB_SCA_Active_Strips_Occupancy", "testScope": "CSC"},
+	{"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "testPlot": "CFEB/CFEB_SCA_Active_Strips_Occupancy", "testScope": "CSC"},
 	{"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "testPlot": "TMB/TMB-CLCT_Cathode_Comparator_Hit_Occupancy_per_Half_Strip", "testScope": "CSC"},
 	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "testPlot": "TMB/TMB-CLCT_Cathode_Comparator_Hit_Occupancy_per_Half_Strip", "testScope": "CSC"},
 	{"testID": "CSC_CFEB_COMPARATORS_NOISY", "testPlot": "TMB/TMB-CLCT_Cathode_Comparator_Hit_Occupancy_per_Half_Strip", "testScope": "CSC"},
