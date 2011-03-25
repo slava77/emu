@@ -539,7 +539,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                     {
                       if (!isBeam || (isBeam && !ME11 && icfeb!=4)) // Usual occupancy check algorithm for cosmic runs
                         {
-                          if ((z < 5) || (z < round(0.4*avg_cfeb_occup)))
+                          if ((round(z) < 5.) || (round(z) < 0.4*avg_cfeb_occup))
                             {
                               std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                               lowEffCFEBs[icfeb]=1;
@@ -551,7 +551,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                       else if (ME11 && icfeb == 4)
                         {
                           // if (ME11 && isBeam) std::cout << cscName << " Beam Run detected" << std::endl;
-                          if ((z < round(avg_cfeb_occup*4)*0.5))
+                          if (round(z) < avg_cfeb_occup*2)
                             {
                               std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                               lowEffCFEBs[icfeb]=1;
@@ -589,7 +589,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                   SCAsums.clear();
                   int noSCAs = 0;
                   double low_sca_thresh = 0.2;
-                  double high_sca_thresh = 2.5;
+                  double high_sca_thresh = 3;
 
                   if ( nentries >= (10*16*nActiveCFEBs) )
                     {
@@ -647,7 +647,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                     {
                                       std::string diag=Form("CFEB Low SCA Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
                                                             (cfeb_sca_sum/avg_sca_occupancy)*100., low_sca_thresh*100 );
-                                      dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE, "CSC_CFEB_SCA_LOW_EFF"));
+                                      dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_CFEB_SCA_LOW_EFF"));
                                       // std::cout << cscName << " "  << diag << std::endl;
                                       isLowEff = true;
                                     }
@@ -849,7 +849,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 	      // For ME11 if occupancy histo is empty then HV segment is OFF                    
               if (((int)csc_stats[cscName] > 20*nWireGroups) && ME11 && (ent==0) && !deadALCT[cscName])
                 {
-                        std::string diag=Form("No HV: Segment%d Layer%d", 1, ilayer );
+                        std::string diag=Form("No HV at Segment%d Layer%d", 1, ilayer );
                         dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
                         
                 }
@@ -879,10 +879,10 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                   delete h_tmp;
                   for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++)
                     {
-                      double z=hvsegs[hvseg];
-                      if (z < 0.3)
+		      double z=hvsegs[hvseg];
+                      if (round(z*100.)/100. < 0.15 )
                         {
-                          std::string diag=Form("No HV: Segment%d Layer%d", hvseg+1, ilayer );
+                          std::string diag=Form("No HV at Segment%d Layer%d, Anode Occupancy: %.2f%%", hvseg+1, ilayer, z );
                           dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
                           no_hv_segments.push_back(hvseg);
                         }
@@ -914,7 +914,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                       int hvseg = emu::dqm::utils::getHVSegmentNumber(cscName, iseg);
                       int afeb = iseg*3+(ilayer+1)/2;
 
-                      if ( (z < 0.2)
+                      if ( (z < 0.15)
                            && (find(no_hv_segments.begin(), no_hv_segments.end(), hvseg ) == no_hv_segments.end())
                            && (find(noisy_hv_segments.begin(), noisy_hv_segments.end(), hvseg ) == noisy_hv_segments.end()))
                         {

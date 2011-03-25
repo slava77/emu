@@ -82,6 +82,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 {"objID": "ME+4/1/07", "name": "ME+4/1/07", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB5 DAV 0.000%", "severity": "3"}
 ]},
+{"objID": "ME+4/1/14", "name": "ME+4/1/14", "list": [
+        {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB2 Layer4 Ch#3", "severity": "1"}
+]},
 {"objID": "ME+4/1/15", "name": "ME+4/1/15", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB5 DAV 0.000%", "severity": "3"}
 ]},
@@ -147,6 +150,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 {"objID": "ME-2/1/06", "name": "ME-2/1/06", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3"}
 ]},
+{"objID": "ME-2/1/17", "name": "ME-2/1/17", "list": [
+        {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB3 Layer2 Ch#1", "severity": "1"}
+]},
 {"objID": "ME-2/2/03", "name": "ME-2/2/03", "list": [
         {"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0%", "severity": "4"},
         {"testID": "CSC_WITHOUT_CLCT", "scope": "CSC", "descr": "No CLCT Data: 100.0%", "severity": "4"},
@@ -160,6 +166,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 ]},
 {"objID": "ME-2/2/31", "name": "ME-2/2/31", "list": [
         {"testID": "CSC_CFEB_SCA_NOISY_CHANNEL", "scope": "CSC", "descr": "CFEB Hot/Noisy SCA channel: CFEB3 Layer1 Ch#33 (occupancy 3.7 times > average)", "severity": "2"}
+]},
+{"objID": "ME-2/2/32", "name": "ME-2/2/32", "list": [
+        {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB1 Layer5 Ch#1", "severity": "1"}
 ]},
 {"objID": "ME-3/1/03", "name": "ME-3/1/03", "list": [
         {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer2 (9.211% < 20.0% from average)", "severity": "3"},
@@ -183,6 +192,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 ]},
 {"objID": "ME-3/2/03", "name": "ME-3/2/03", "list": [
 	{"testID": "CSC_NO_HV_SEGMENT", "scope": "CSC", "descr": "No HV: Segment1 Layer5", "severity": "2"}
+]},
+{"objID": "ME-3/2/15", "name": "ME-3/2/15", "list": [
+        {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB4 Layer6 Ch#16", "severity": "1"}
 ]},
 {"objID": "ME-3/2/30", "name": "ME-3/2/30", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB1 DAV 2.000%", "severity": "2"}
