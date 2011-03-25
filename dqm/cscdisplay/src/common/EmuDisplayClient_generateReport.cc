@@ -520,7 +520,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   csc_cntr++;
 
                   h_tmp->Fill(cnt);
-		  h_tmp1->Fill(cnt);
+                  h_tmp1->Fill(cnt);
 
                   //    std::cout << cscName << ": #Events: " << cnt << std::endl;
 
@@ -551,6 +551,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
           for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
             {
+              bool isHotCSCPresent = false;  // Is there hot CSC present in ring, which could screw up other chamber efficiency
 
               for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
                 {
@@ -566,16 +567,28 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                                                 csc_type_avg_events[j]);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
                           hot_cscs++;
+                          isHotCSCPresent = true;
                         }
-		      if (csc_stats[cscName] > 20*csc_avg_events)
+                      else if (csc_stats[cscName] >= 20*csc_avg_events)
                         {
                           std::string diag=Form("Hot chamber: %d events, %.f times more than system average events counter (avg events=%d)",
-						csc_stats[cscName], csc_stats[cscName]/(1.*csc_avg_events),
+                                                csc_stats[cscName], csc_stats[cscName]/(1.*csc_avg_events),
                                                 (int)csc_avg_events);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
                           hot_cscs++;
+                          isHotCSCPresent = true;
                         }
-                      else if (round(100.*fract)/100. < 0.05)
+
+                    }
+                }
+
+              for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+                {
+                  std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
+                    {
+                      double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
+                      if ((round(100.*fract)/100. < 0.05) && !isHotCSCPresent)
                         {
                           std::string diag=Form("Low efficiency chamber: %d events, %f fraction of %s type average events counter (avg events=%d)",
                                                 csc_stats[cscName], fract,

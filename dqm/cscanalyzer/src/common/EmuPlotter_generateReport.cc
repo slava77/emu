@@ -716,6 +716,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
           for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
             {
 
+              bool isHotCSCPresent = false;  // Is there hot CSC present in ring, which could screw up other chamber efficiency
+
               for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
                 {
                   std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
@@ -730,6 +732,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                                 csc_type_avg_events[j]);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
                           hot_cscs++;
+                          isHotCSCPresent = true;
                         }
                       else if (csc_stats[cscName] >= 20*csc_avg_events)
                         {
@@ -738,8 +741,19 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                                 (int)csc_avg_events);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
                           hot_cscs++;
+                          isHotCSCPresent = true;
                         }
-                      else if (round(100.*fract)/100. < 0.05)
+
+                    }
+                }
+
+              for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+                {
+                  std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
+                    {
+                      double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
+                      if ((round(100.*fract)/100. < 0.05) && !isHotCSCPresent)
                         {
                           std::string diag=Form("Low efficiency chamber: %d events, %f fraction of %s type average events counter (avg events=%d)",
                                                 csc_stats[cscName], fract,
@@ -751,6 +765,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
                     }
                 }
+
+
 
             }
 
