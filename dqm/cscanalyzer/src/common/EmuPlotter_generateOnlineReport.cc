@@ -482,7 +482,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
       // int deadALCT=0;
       if (csc_stats[cscName] < min_events)
         {
-          std::string diag=Form("Not enough events for per-CSC checks (%d events, needs > %d)", csc_stats[cscName], min_events);
+          std::string diag=Form("Not enough events for per-chamber checks (%d events, needs > %d)", csc_stats[cscName], min_events);
           dqm_report.addEntry(cscName, entry.fillEntry(diag,NONE));
           continue;
         }
