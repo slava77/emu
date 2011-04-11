@@ -724,7 +724,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
                     {
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
-                      if (fract >= 5.)
+                      if (fract >= 10.)
                         {
                           std::string diag=Form("Hot chamber: %d events, %.f times more than %s type average events counter (avg events=%d)",
                                                 csc_stats[cscName], fract,
@@ -1021,7 +1021,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
-      uint32_t min_events=50;
+      uint32_t min_events=100;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -1063,7 +1063,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
-      uint32_t min_events=50;
+      uint32_t min_events=100;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -1104,7 +1104,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
-      uint32_t min_events=50;
+      uint32_t min_events=100;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -1339,7 +1339,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   SCAsums.clear();
                   int noSCAs = 0;
                   double low_sca_thresh = 0.2;
-                  double high_sca_thresh = 3.;
+                  double high_sca_thresh = 5.;
 
                   if ( nentries >= (10*16*nActiveCFEBs) )
                     {
