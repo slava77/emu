@@ -559,7 +559,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
                     {
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
-                      if (fract >= 5.)
+                      if (fract >= 10.)
                         {
                           std::string diag=Form("Hot chamber: %d events, %.f times more than %s type average events counter (avg events=%d)",
                                                 csc_stats[cscName], fract,
