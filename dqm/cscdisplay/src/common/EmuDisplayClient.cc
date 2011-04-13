@@ -1842,6 +1842,8 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
 {
   //  if (time(NULL)- nodesStatus.getTimeStamp()>10)
   {
+    prevNodesStatus.clear();
+    prevNodesStatus = nodesStatus;
     nodesStatus.clear();
 
     //      std::set<xdaq::ApplicationDescriptor*>  ruis = getAppsList("EmuRUI","default");
@@ -1994,11 +1996,86 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
 
         LOG4CPLUS_DEBUG (getApplicationLogger(), "DQM Nodes Statuses are updated");
         nodesStatus.setTimeStamp(time(NULL));
+        syncMonitorsStates();
       }
   }
   return nodesStatus;
 }
 
+// == Automatically Syncronize EmuMonitors running states to prevailing State
+//    Allows auto-enabling of restarted EmuMonitors
+int EmuDisplayClient::syncMonitorsStates()
+{
+
+  if (!monitors.empty())
+    {
+      std::map<std::string, int> stateStats;
+      std::set<xdaq::ApplicationDescriptor*>::iterator mon;
+      for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
+        {
+          if ((*mon) == NULL) continue;
+
+          std::ostringstream st;
+          st << (*mon)->getClassName() << "-" << (*mon)->getInstance();
+          std::string nodename = st.str();
+
+          stateStats[nodesStatus[nodename]["stateName"]]++;
+
+        }
+
+      std::string action = "Halt";
+      std::string state = "Halted";
+
+      //==  Find prevailing state (State priority Enabled>Ready>Halted)
+      if ( (stateStats["Enabled"] >= stateStats["Halted"])
+           && (stateStats["Enabled"] >= stateStats["Ready"]) )
+        {
+          action = "Enable";
+          state = "Enabled";
+        }
+      else if ( (stateStats["Ready"] >= stateStats["Halted"])
+                && (stateStats["Ready"] > stateStats["Enabled"]) )
+        {
+          action = "Configure";
+          state = "Ready";
+        }
+      else if ( (stateStats["Halted"] > stateStats["Enabled"])
+                && (stateStats["Halted"] > stateStats["Ready"]) )
+        {
+          action = "Halt";
+          state = "Halted";
+        }
+
+      for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
+        {
+
+          if ((*mon) == NULL) continue;
+
+          std::ostringstream st;
+          st << (*mon)->getClassName() << "-" << (*mon)->getInstance();
+          std::string nodename = st.str();
+          if (nodesStatus[nodename]["stateName"] != state 
+		&& nodesStatus[nodename]["stateName"] != "NA")
+            {
+              LOG4CPLUS_INFO(getApplicationLogger(), "Syncing " << nodename << " state to " << state);
+              try
+                {
+                  emu::dqm::sendFSMEventToApp(action, getApplicationContext(), getApplicationDescriptor(),*mon);
+                }
+              catch (xcept::Exception e)
+                {
+                  // Don't raise exception here. Go on to try to deal with the others.
+                  LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to " << action << " "
+                                  << (*mon)->getClassName() << (*mon)->getInstance() << " "
+                                  << xcept::stdformat_exception_history(e));
+                }
+            }
+
+        }
+
+    }
+  return 0;
+}
 
 Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
 {

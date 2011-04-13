@@ -246,6 +246,7 @@ protected:
   bool isDQMReportFileAvailable(std::string runname, std::string ver="");
   bool isCSCCountersFileAvailable(std::string runname);
 
+  int syncMonitorsStates();
   int prepareReportFacts(std::string runname);
   inline void addFact(const emu::base::Fact &fact) {
                                 collectedFacts.push_back(fact);
@@ -306,6 +307,7 @@ private:
   FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
   CSCCounters cscCounters; // == CSC Counters from EmuMonitor nodes
   DQMNodesStatus nodesStatus; // == DQM Monitoring Nodes Statuses
+  DQMNodesStatus prevNodesStatus;// == Saved copy of previous DQM Monitoring Nodes Statuses
   BSem appBSem_;
   struct timeval bsem_tout;
 
