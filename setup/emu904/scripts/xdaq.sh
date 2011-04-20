@@ -9,6 +9,10 @@ echo "The shell environment:"
 limit
 set
 echo
+echo Checking for orphaned process by
+echo ${0%${0##*/}}killOrphanedXDAQ.sh "$@"
+${0%${0##*/}}killOrphanedXDAQ.sh "$@"
+echo
 echo Invoking command:
 echo ${XDAQ_ROOT}/bin/xdaq.exe ${XDAQ_PROFILE:+"-e $XDAQ_PROFILE"} "$@"
 echo
