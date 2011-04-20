@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.7 2010/11/30 09:57:59 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.8 2011/04/20 12:12:56 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -666,7 +666,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					// Discover the error counts from this thread.
 					pthread_mutex_lock(&locdata->errorCountMutex);
 					
-					// Log all errors in persisting array...
+					locdata->errorFiberNames[crateNumber].clear(); // Clear out list that contains previous chambers in error.
+
+					// Log new chamber errors in persisting array.
 					for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 						if (xorBits[iFiber]) {
 							locdata->errorFiberNames[crateNumber].push_back(myDDU->getFiber(iFiber)->getName());
