@@ -20,6 +20,7 @@
 
 #include "toolbox/mem/CommittedHeapAllocator.h"
 #include "toolbox/net/URL.h"
+#include "toolbox/task/TimerFactory.h"
 #include "emu/daq/reader/RawDataFile.h"
 #include "emu/daq/reader/Spy.h"
 #include "emu/daq/server/I2O.h"
@@ -127,6 +128,9 @@ throw (xdaq::exception::Exception) :
     xoap::bind(this, &emu::daq::rui::Application::onSTEPQuery       ,"STEPQuery"       , XDAQ_NS_URI);
     xoap::bind(this, &emu::daq::rui::Application::onExcludeDDUInputs,"excludeDDUInputs", XDAQ_NS_URI);
     xoap::bind(this, &emu::daq::rui::Application::onIncludeDDUInputs,"includeDDUInputs", XDAQ_NS_URI);
+
+    // bind termination SOAP message
+    xoap::bind(this, &emu::daq::rui::Application::onTerminate, "Terminate", XDAQ_NS_URI);
 
     // Memory pool for i2o messages to emu::daq::ta::Application
     stringstream ruiTaPoolName;
@@ -1006,6 +1010,51 @@ xoap::MessageReference emu::daq::rui::Application::onReset(xoap::MessageReferenc
     this->notifyQualified( "error", eObj );
     XCEPT_RAISE(xoap::exception::Exception, s);
   }
+}
+
+xoap::MessageReference emu::daq::rui::Application::onTerminate(xoap::MessageReference msg){
+  const int terminationDelay = 5; // seconds to allow log messages to be sent before termination
+  std::multimap<std::string, std::string, std::less<std::string> >& allHeaders = msg->getMimeHeaders()->getAllHeaders();
+  std::multimap<std::string, std::string, std::less<std::string> >::iterator i;
+  std::string user_agent("");
+  std::string host("");
+  for (i = allHeaders.begin(); i != allHeaders.end(); i++){
+    if ( i->first == "user-agent" ) user_agent = i->second;
+    if ( i->first ==       "host" )       host = i->second;
+  }
+  stringstream ss;
+  ss << "Received SOAP command from " << user_agent 
+     << " on " << host 
+     << " to terminate process. Exiting in " << terminationDelay << " seconds.";
+
+  stringstream timerName;
+  timerName << "TerminationTimer." << getApplicationDescriptor()->getClassName() 
+	    <<                 "." << getApplicationDescriptor()->getInstance();
+  try{
+    toolbox::task::Timer *timer = toolbox::task::getTimerFactory()->createTimer( timerName.str() );
+    toolbox::TimeVal start( toolbox::TimeVal::gettimeofday() + toolbox::TimeVal( terminationDelay, 0 ) );
+    timer->schedule( this, start, 0, timerName.str() );
+    LOG4CPLUS_FATAL(logger_, ss.str());
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss.str() );
+    this->notifyQualified( "fatal", eObj );
+  } catch(xcept::Exception& e){
+    ss.str() = "";
+    ss << "Received SOAP command from " << user_agent 
+       << " on " << host
+       << ", but failed to create " << timerName.str() 
+       << " , therefore this process will not be terminated. ";
+    LOG4CPLUS_ERROR( getApplicationLogger(), ss.str()+xcept::stdformat_exception_history(e) );
+    XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj1, ss.str(), e );
+    this->notifyQualified( "error", eObj1 );
+    XCEPT_RETHROW(xoap::exception::Exception, ss.str(), e);
+  }
+  
+  return emu::soap::createMessage( "TerminateResponse" );
+}
+
+void
+emu::daq::rui::Application::timeExpired(toolbox::task::TimerEvent& e){
+  exit(0);
 }
 
 
