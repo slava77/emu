@@ -190,16 +190,6 @@ private:
     throw (emu::daq::manager::exception::Exception);
 
     /**
-     * Creates the CSS file for this application.
-     */
-    void css
-    (
-        xgi::Input  *in,
-        xgi::Output *out
-    )
-    throw (xgi::exception::Exception);
-
-    /**
      * The default web page of the application.
      */
     void defaultWebPage(xgi::Input *in, xgi::Output *out)
@@ -210,6 +200,9 @@ private:
      */
     void controlWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
+
+    void webRedirect(xgi::Input *in, xgi::Output *out)
+      throw (xgi::exception::Exception);
 
   vector<emu::base::WebReportItem> materialToReportOnPage1();
 
@@ -274,9 +267,9 @@ private:
   vector< map< string,string > > getFUEventCounts();
   void printEventCountsTable( xgi::Output              *out,
 			      string                    title,
-			      vector< map< string,string > > counts );
+			      vector< map< string,string > > counts, 
+			      bool                      control );
   string getDateTime();
-  string ageOfPageClock();
   void   getRunInfoFromTA( string* runnum, string* maxevents, string* starttime, string* stoptime );
   string reformatTime( string time );
   vector< pair<xdaq::ApplicationDescriptor*, string> > daqAppStates_;
@@ -335,7 +328,7 @@ private:
     /**
      * Processes the form sent from the control web page.
      */
-    void processCommandForm(xgi::Input *in)
+    void processCommandForm(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
 
     /**
