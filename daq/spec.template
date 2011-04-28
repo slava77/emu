@@ -127,7 +127,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/lib
 %{_prefix}/etc
 %{_prefix}/htdocs/%{_project}/%{_package}/*/images
-# %{_prefix}/htdocs/%{_project}/%{_package}/*/html
+%{_prefix}/htdocs/%{_project}/%{_package}/*/html
 # %{_prefix}/htdocs/%{_project}/%{_package}/*/xml
 %{_prefix}/htdocs/%{_project}/%{_package}/xml
 
