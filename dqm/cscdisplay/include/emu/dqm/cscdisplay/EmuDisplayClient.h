@@ -248,6 +248,7 @@ protected:
 
   int syncMonitorsStates();
   int prepareReportFacts(std::string runname);
+  int updateNodesStatusFacts();
   inline void addFact(const emu::base::Fact &fact) {
                                 collectedFacts.push_back(fact);
                         }
