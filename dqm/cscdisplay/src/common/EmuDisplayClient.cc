@@ -861,15 +861,12 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
               applink = nitr->second["appLink"];
 
             }
+
           if ((itr = nitr->second.find("stateName")) != nitr->second.end())
             {
               state = nitr->second["stateName"];
             }
 
-          if (!viewOnly_)
-            {
-              applink += "/showControl";
-            }
           if (state == "")
             {
               state = "Unknown/Dead";
@@ -884,7 +881,6 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
                 }
             }
 
-
           if ((itr = nitr->second.find("runNumber")) != nitr->second.end())
             {
               runNumber = nitr->second["runNumber"];
@@ -894,7 +890,6 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
             {
               events = nitr->second["sessionEvents"];
             }
-
 
           if ((itr = nitr->second.find("averageRate")) != nitr->second.end())
             {
@@ -951,6 +946,115 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 
 }
 
+int EmuDisplayClient::updateNodesStatusFacts()
+{
+  int nFacts = 0;
+  if (!nodesStatus.empty())
+    {
+      DQMNodesStatus::iterator nitr;
+      for (nitr=nodesStatus.begin(); nitr != nodesStatus.end(); ++nitr)
+        {
+          std::string nodename = nitr->first;
+          std::map<std::string, std::string>::iterator itr;
+
+          std::string state =  "NA";
+          std::string stateChangeTime = "NA";
+          std::string runNumber   = "NA";
+          std::string events = "0";
+          std::string dataRate   = "0";
+          std::string cscUnpacked   = "0";
+          std::string cscDetected   = "0";
+          std::string cscRate   = "0";
+
+          if ((itr = nitr->second.find("stateName")) != nitr->second.end())
+            {
+              state = nitr->second["stateName"];
+            }
+
+          if (state == "")
+            {
+              state = "Unknown/Dead";
+              continue;
+            }
+          else
+            {
+              if ((itr = nitr->second.find("stateChangeTime")) != nitr->second.end())
+                {
+                  stateChangeTime = nitr->second["stateChangeTime"];
+                  state += " at " + stateChangeTime;
+                }
+            }
+
+          if ((itr = nitr->second.find("runNumber")) != nitr->second.end())
+            {
+              runNumber = nitr->second["runNumber"];
+            }
+
+          if ((itr = nitr->second.find("sessionEvents")) != nitr->second.end())
+            {
+              events = nitr->second["sessionEvents"];
+            }
+
+          if ((itr = nitr->second.find("averageRate")) != nitr->second.end())
+            {
+              dataRate = nitr->second["averageRate"];
+            }
+
+          if ((itr = nitr->second.find("cscUnpacked")) != nitr->second.end())
+            {
+              cscUnpacked = nitr->second["cscUnpacked"];
+            }
+
+          if ((itr = nitr->second.find("cscDetected")) != nitr->second.end())
+            {
+              cscDetected = nitr->second["cscDetected"];
+            }
+
+          if ((itr = nitr->second.find("cscRate")) != nitr->second.end())
+            {
+              cscRate = nitr->second["cscRate"];
+            }
+
+          if ((itr = nitr->second.find("nodename")) != nitr->second.end())
+            {
+              nodename = nitr->second["nodename"];
+            }
+
+
+          //*** Prepare Facts Collection for EmuMonitor Statuses ***//
+
+          // Convert DateTime string to format supported by Expert System
+          time_t tnow = time(NULL);
+          struct tm* tm_p = localtime(&tnow);
+          strptime(stateChangeTime.c_str(), "%Y-%m-%d %H:%M:%S %Z", tm_p);
+          tnow = mktime(tm_p);
+          if (tnow != (time_t)-1)
+            {
+              stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
+            }
+          emu::base::Component comp(nodename);
+          CSCDqmFact fact = CSCDqmFact(runNumber, comp, "EmuMonitorFact");
+          fact.addParameter("state", state)
+          .addParameter("stateChangeTime",stateChangeTime)
+          .addParameter("dqmEvents", events)
+          .addParameter("dqmRate", dataRate)
+          .addParameter("cscRate", cscRate)
+          .addParameter("cscDetected", cscDetected)
+          .addParameter("cscUnpacked", cscUnpacked)
+          .setSeverity("INFO")
+          .setRun(runNumber);
+          addFact(fact);
+
+	  nFacts++;
+
+        }
+
+      // Send EmuMonitor nodes facts to expert system
+      emu::base::FactFinder::sendFacts();
+
+    }
+  return nFacts;
+}
 
 
 TCanvas* EmuDisplayClient::getMergedCanvas(std::vector<TObject*>& canvases)
@@ -1954,12 +2058,13 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
             nodesStatus[nodename]["readoutMode"] = readoutMode;
             nodesStatus[nodename]["nDAQevents"] = nDAQevents;
             nodesStatus[nodename]["dataSource"] = dataSource;
-
-
+	    st.str("");                       
+            st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
+	    nodesStatus[nodename]["nodename"] = st.str();
+	    /*
             if (useExSys)
               {
 
-                //*** Prepare Facts Collection for EmuMonitor Statuses ***//
 
                 // Convert DateTime string to format supported by Expert System
                 time_t tnow = time(NULL);
@@ -1986,12 +2091,12 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
                 .setRun(runNumber);
                 addFact(fact);
               }
-
+	    */
 
           }
 
         // Send EmuMonitor nodes facts to expert system
-        if (useExSys) emu::base::FactFinder::sendFacts();
+        // if (useExSys) emu::base::FactFinder::sendFacts();
 
 
         LOG4CPLUS_DEBUG (getApplicationLogger(), "DQM Nodes Statuses are updated");
@@ -2054,8 +2159,8 @@ int EmuDisplayClient::syncMonitorsStates()
           std::ostringstream st;
           st << (*mon)->getClassName() << "-" << (*mon)->getInstance();
           std::string nodename = st.str();
-          if (nodesStatus[nodename]["stateName"] != state 
-		&& nodesStatus[nodename]["stateName"] != "NA")
+          if (nodesStatus[nodename]["stateName"] != state
+              && nodesStatus[nodename]["stateName"] != "NA")
             {
               LOG4CPLUS_INFO(getApplicationLogger(), "Syncing " << nodename << " state to " << state);
               try
@@ -2696,6 +2801,13 @@ int EmuDisplayClient::svc()
 
       if (counter % 3 == 0)
         {
+          if (useExSys)
+            {
+              appBSem_.take();
+              updateNodesStatusFacts();
+              appBSem_.give();
+            }
+
           appBSem_.take();
           DQMReport report;
           LOG4CPLUS_DEBUG (getApplicationLogger(), "Generating DQM Report");
@@ -2704,11 +2816,14 @@ int EmuDisplayClient::svc()
           dqm_report.clearReport();
           dqm_report = report;
 
-          // Send DQM report facts to expert system
-          if (useExSys)
+          if (counter % 12 == 0) // Updates in 2 min
             {
-              int nFacts = prepareReportFacts(curRunNumber);
-              if (nFacts>0) emu::base::FactFinder::sendFacts();
+              // Send DQM report facts to expert system
+              if (useExSys)
+                {
+                  int nFacts = prepareReportFacts(curRunNumber);
+                  if (nFacts>0) emu::base::FactFinder::sendFacts();
+                }
             }
 
           appBSem_.give();

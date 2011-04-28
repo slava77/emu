@@ -1184,6 +1184,9 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
           emu::base::Component comp(itr->first);
           for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
             {
+	      // Skip not enough statistics entries 
+	      if (err_itr->descr.find("Not enough events for") != std::string::npos) continue;
+
               CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
               fact.addParameter("testId", err_itr->testID)
               .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
