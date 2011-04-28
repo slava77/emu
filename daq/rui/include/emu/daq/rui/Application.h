@@ -9,6 +9,7 @@
 #include "toolbox/task/Action.h"
 #include "toolbox/task/WorkLoop.h"
 #include "toolbox/task/WorkLoopFactory.h"
+#include "toolbox/task/Timer.h"
 #include "xdaq/ApplicationGroup.h"
 #include "xdaq/WebApplication.h"
 #include "xdata/Double.h"
@@ -557,6 +558,10 @@ private:
 
     xoap::MessageReference onReset(xoap::MessageReference msg)
       throw (xoap::exception::Exception);
+
+    xoap::MessageReference onTerminate(xoap::MessageReference msg);
+
+    void timeExpired(toolbox::task::TimerEvent& e);
 
     /**
      * Extracts the name of the command represented by the specified SOAP
