@@ -2991,8 +2991,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
         {  
-           /* for error conditions on bits 0-8, don't send data */
-           if((ch_state & 0x1FF)==0)
+           /* for error conditions on bits 0,2-8, don't send data */
+           if((ch_state & 0x1FD)==0)
            { 
               val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
               *out << " " << val;
