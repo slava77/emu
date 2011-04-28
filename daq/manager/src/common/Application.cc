@@ -5,6 +5,7 @@
 #include "emu/daq/rui/STEPEventCounter.h"
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTTPPlainHeader.h"
+#include "cgicc/HTTPResponseHeader.h"
 #include "xcept/tools.h"
 #include "xdaq/NamespaceURI.h"
 #include "xdaq/exception/ApplicationNotFound.h"
@@ -59,7 +60,6 @@ emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
     getAllAppDescriptors();
 
     // Bind web interface
-    xgi::bind(this, &emu::daq::manager::Application::css           , "styles.css");
     xgi::bind(this, &emu::daq::manager::Application::defaultWebPage, "Default"   );
     xgi::bind(this, &emu::daq::manager::Application::controlWebPage, "control"   );
     xgi::bind(this, &emu::daq::manager::Application::commandWebPage, "command"   );
@@ -348,76 +348,20 @@ throw (emu::daq::manager::exception::Exception)
 }
 
 
-void emu::daq::manager::Application::css
-(
-    xgi::Input  *in,
-    xgi::Output *out
-)
-throw (xgi::exception::Exception)
-{
-    out->getHTTPResponseHeader().addHeader("Content-Type", "text/css");
-
-    *out << "body"                                                     << endl;
-    *out << "{"                                                        << endl;
-    *out << "background-color: white;"                                 << endl;
-    *out << "font-family: Arial;"                                      << endl;
-    *out << "}"                                                        << endl;
-    *out                                                               << endl;
-    *out << "input.button"                                             << endl;
-    *out << "{"                                                        << endl;
-    *out << "color: white;"                                            << endl;
-    *out << "background-color: #222288;"                               << endl;
-    *out << "border-color: #222288;"                                   << endl;
-    *out << "font-family: Arial;"                                      << endl;
-    *out << "font-weight: bold;";
-    *out << "}"                                                        << endl;
-    *out                                                               << endl;
-    *out << ".app_links"                                               << endl;
-    *out << "{"                                                        << endl;
-    *out << "font-size: 14px;"                                         << endl;
-    *out << "line-height: 14px;"                                       << endl;
-    *out << "}"                                                        << endl;
-    *out                                                               << endl;
-    *out << "table.params th"                                          << endl;
-    *out << "{"                                                        << endl;
-    *out << "color: white;"                                            << endl;
-    *out << "background-color: #AAAAFF;"                               << endl;
-    *out << "}"                                                        << endl;
-    *out << "table.params th a"                                        << endl;
-    *out << "{"                                                        << endl;
-    *out << "color: white;"                                            << endl;
-    *out << "}"                                                        << endl;
-
-    *out << "a.with_popup .popup {"                                    << endl;
-    *out << "	display: none;"                                        << endl;
-    *out << "}"                                                        << endl;
-    *out                                                               << endl;
-    *out << "a.with_popup:hover .popup{"                               << endl;
-    *out << "	display: inline;"                                      << endl;
-    *out << "}"                                                        << endl;
-
-    *out << "td.masked {";
-    *out << "background-color: #cccccc;";
-    *out << "}"                                                        << endl;
-
-    *out << "td.notFinished {";
-    *out << "font-weight: bold;";
-    *out << "color: #ff0000;";
-    *out << "}"                                                        << endl;
-}
-
-
 void emu::daq::manager::Application::defaultWebPage(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
 {
-  daqState_ = getDAQState();
+    // Recycle commands may be issued from here, too. Therefore:
+    processCommandForm(in, out);
+
+    daqState_ = getDAQState();
 
     *out << "<html>"                                                   << endl;
 
     *out << "<head>"                                                   << endl;
     *out << "<meta http-equiv=\"Refresh\" content=\"5\">"              << endl;
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
-    *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
+    *out << " href=\"/emu/daq/manager/html/emudaqmanager.css\"/>"      << endl;
     *out << "<title>"                                                  << endl;
     *out << "Local DAQ " << daqState_.toString()                       << endl;
 //     *out << xmlClass_ << instance_                                     << endl;
@@ -425,7 +369,7 @@ throw (xgi::exception::Exception)
 //         << emudaqmanager::versions 
 // 	 << endl;
     *out << "</title>"                                                 << endl;
-    *out << ageOfPageClock();
+    *out << "<script type=\"text/javascript\" src=\"/emu/daq/manager/html/emudaqmanager.js\"></script>" << endl;
     *out << "</head>"                                                  << endl;
 
     *out << "<body onload=\"countSeconds()\">"                         << endl;
@@ -630,17 +574,18 @@ throw (xgi::exception::Exception)
     *out << "</tr>"                                                  << endl;
     *out << "</table>"                                               << endl;
 
+    *out << "</form>"                                                  << endl;
 
     // Display RUIs' and FUs' event counts
     if ( runType_.toString().find("STEP",0) != string::npos ){
       *out << STEPCountsTable.str();
     }
     else{
-      printEventCountsTable( out, "Events read by emu::daq::rui::Applications"    , getRUIEventCounts() );
+      printEventCountsTable( out, "Events read by emu::daq::rui::Applications"    , getRUIEventCounts(), false );
     }
     *out << "<br/>"                                                  << endl;
     if ( runType_.toString().find("STEP",0) == string::npos && buildEvents_.value_ ){
-      printEventCountsTable( out, "Events processed by emu::daq::fu::Applications", getFUEventCounts()  );
+      printEventCountsTable( out, "Events processed by emu::daq::fu::Applications", getFUEventCounts() , false );
       *out << "<br/>"                                                  << endl;
     }
 
@@ -732,10 +677,10 @@ throw (xgi::exception::Exception)
 
     }// if ( buildEvents_.value_ )
 
-    *out << "</form>"                                                  << endl;
     *out << "</body>"                                                  << endl;
 
     *out << "</html>"                                                  << endl;
+
 }
 
 
@@ -755,24 +700,6 @@ void emu::daq::manager::Application::printAppInstanceLinks
     }
 }
 
-string emu::daq::manager::Application::ageOfPageClock(){
-  stringstream ss;
-  ss << "<script type=\"text/javascript\">"                        << endl;
-  ss << "   ageOfPage=0"                                           << endl;
-  ss << "   function countSeconds(){"                              << endl;
-  ss << "      hours=Math.floor(ageOfPage/3600)"                   << endl;
-  ss << "      minutes=Math.floor(ageOfPage/60)%60"                << endl;
-  ss << "      age=\"\""                                           << endl;
-  ss << "      if (hours) age+=hours+\" h \""                      << endl;
-  ss << "      if (minutes) age+=minutes+\" m \""                  << endl;
-  ss << "      age+=ageOfPage%60+\" s \""                          << endl;
-  ss << "      document.getElementById('ageOfPage').innerHTML=age" << endl;
-  ss << "      ageOfPage=ageOfPage+1"                              << endl;
-  ss << "      setTimeout('countSeconds()',1000)"                  << endl;
-  ss << "   }"                                                     << endl;
-  ss << "</script>"                                                << endl;
-  return ss.str();
-}
 
 void emu::daq::manager::Application::controlWebPage(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
@@ -788,6 +715,21 @@ throw (xgi::exception::Exception)
   *out << "    <frame src=\"comment\"/>"                             << endl;
   *out << "  </frameset>"                                            << endl;
   *out << "</html>"                                                  << endl;
+}
+
+void emu::daq::manager::Application::webRedirect(xgi::Input *in, xgi::Output *out)
+  throw (xgi::exception::Exception)
+{
+  string url = in->getenv("PATH_TRANSLATED");
+  
+  cgicc::HTTPResponseHeader &header = out->getHTTPResponseHeader();
+  
+  header.getStatusCode(303);
+  header.getReasonPhrase("See Other");
+  header.addHeader("Location", url.substr(0, url.find("?")));
+  // cout << "PATH_TRANSLATED " << url << endl << flush;
+  // cout << "PATH_INFO " << in->getenv("PATH_INFO") << endl << flush;
+  // cout << "Redirecting to " << url.substr(0, url.find("?")) << endl << flush;
 }
 
 void emu::daq::manager::Application::printUserComments( xgi::Output *out ){
@@ -955,7 +897,7 @@ throw (xgi::exception::Exception)
 
   *out << "<head>"                                                   << endl;
   *out << "<link type=\"text/css\" rel=\"stylesheet\"";
-  *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
+  *out << " href=\"/emu/daq/manager/html/emudaqmanager.css\"/>"     << endl;
   *out << "<title>"                                                  << endl;
   *out << "Comments"                                                 << endl;
   *out << "</title>"                                                 << endl;
@@ -1048,7 +990,7 @@ throw (xgi::exception::Exception)
 void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
-    processCommandForm(in);
+  processCommandForm(in, out);
 
     daqState_ = getDAQState();
 
@@ -1060,13 +1002,13 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
      *out << "<meta http-equiv=\"refresh\" content=\"5\">"              << endl;
     }
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
-    *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
+    *out << " href=\"/emu/daq/manager/html/emudaqmanager.css\"/>"      << endl;
     *out << "<title>"                                                  << endl;
     *out << "Emu Local DAQ " << daqState_.toString()                               << endl;
 //     *out << xmlClass_ << instance_ << " Version " << emudaqmanager::versions
 //         << " CONTROL" << endl;
     *out << "</title>"                                                 << endl;
-    *out << ageOfPageClock();
+    *out << "<script type=\"text/javascript\" src=\"/emu/daq/manager/html/emudaqmanager.js\"></script>" << endl;
     *out << "</head>"                                                  << endl;
 
     *out << "<body onload=\"countSeconds()\">"                         << endl;
@@ -1326,17 +1268,17 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
     *out << "<br>"                                                       << endl;
     *out << "<br>"                                                       << endl;
 
+    *out << "</form>"                                                    << endl;
+
     if ( runType_.toString().find("STEP",0) != string::npos )
       *out << STEPCountsTable.str();
     else
-      printEventCountsTable( out, "Events read by emu::daq::rui::Applications", getRUIEventCounts() );
+      printEventCountsTable( out, "Events read by emu::daq::rui::Applications", getRUIEventCounts(), true );
     *out << "<br/>"                                                      << endl;
     if ( runType_.toString().find("STEP",0) == string::npos && buildEvents_.value_ ){
-      printEventCountsTable( out, "Events processed by emu::daq::fu::Applications", getFUEventCounts()  );      
+      printEventCountsTable( out, "Events processed by emu::daq::fu::Applications", getFUEventCounts(), false );      
       *out << "<br/>"                                                    << endl;
     }
-
-    *out << "</form>"                                                    << endl;
 
     *out << "<br/>"                                                      << endl;
     *out << "<br/>"                                                      << endl;
@@ -1803,7 +1745,7 @@ int emu::daq::manager::Application::stringToInt( const string* const s ){
   return i;
 }
 
-void emu::daq::manager::Application::processCommandForm(xgi::Input *in)
+void emu::daq::manager::Application::processCommandForm(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
 {
     cgicc::Cgicc         cgi(in);
@@ -1811,20 +1753,18 @@ throw (xgi::exception::Exception)
     std::vector<cgicc::FormEntry> fev = cgi.getElements();
     std::vector<cgicc::FormEntry>::iterator fe;
 
-//     for ( fe=fev.begin(); fe!=fev.end(); ++fe )
-//       cout << fe->getName() << " " << fe->getValue() << endl;
-//     cout << "---------------------------------" << endl;
+    if ( fev.size() ) webRedirect(in, out);
 
-    // Check if only bad events are to be written to file.
-    // Apparently the query string does not even include the checkbox element if it's not checked...
-    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
-      if ( fe->getName() == "writeBadEventsOnly" && fe->getValue() == "on" ){
-	writeBadEventsOnly_ = true;
-	break;
-      }
+    //const cgicc::CgiEnvironment& env = cgi.getEnvironment();
+    //cout << "QueryString: \"" << env.getQueryString() << "\"" << endl << flush;
+
+    // for ( fe=fev.begin(); fe!=fev.end(); ++fe )
+    //   cout << "name: " << fe->getName() << " value: \"" << fe->getValue() << "\"" << " value size: " << fe->getValue().size() << endl << flush;
+    // cout << "---------------------------------" << endl << flush;
+
 
     // If there is a command from the html form
-    cgicc::form_iterator cmdElement    = cgi.getElement("command");
+    cgicc::form_iterator cmdElement = cgi.getElement("command");
     if(cmdElement != cgi.getElements().end())
     {
         string cmdName = (*cmdElement).getValue();
@@ -1849,12 +1789,9 @@ throw (xgi::exception::Exception)
 	      }
 
 	    // Apparently the query string does not even include the checkbox element if it's not checked...
-	    buildEvents_ = false;
-	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
-	      if ( fe->getName() == "buildevents" && fe->getValue() == "on" ){
-		buildEvents_ = true;
-		break;
-	      }
+	    cgicc::form_iterator buildEventsElement = cgi.getElement("buildevents");
+	    buildEvents_ = ( buildEventsElement != cgi.getElements().end() );
+
 	    // Emu: set run number to 1. If booking is successful, it will be replaced by the booked one.
 	    runNumber_ = 1;
 
@@ -1864,6 +1801,10 @@ throw (xgi::exception::Exception)
 	      purgeIntNumberString( &maxNumEvents );
 	      maxNumberOfEvents_.fromString( maxNumEvents );
 	    }
+
+	    // Check if only bad events are to be written to file.
+	    cgicc::form_iterator writeBadEventsOnlyElement = cgi.getElement("writeBadEventsOnly");
+	    writeBadEventsOnly_ = ( writeBadEventsOnlyElement != cgi.getElements().end() );
 
 	    // Obviously, global cannot be in control if command is issued from web page
 	    isGlobalInControl_ = false;
@@ -1917,8 +1858,25 @@ throw (xgi::exception::Exception)
 	    maskDDUInputs( false, fev );
 	  }
       }
-}
 
+    // If there is a request to recycle (i.e., to terminate to be then restarted automatically) an RUI process:
+    cmdElement = cgi.getElement("recycle");
+    if( cmdElement != cgi.getElements().end() )
+      {
+        stringstream ss( (*cmdElement).getValue() );
+	int ruiInstance;
+	ss >> ruiInstance;
+	cout << "Recycle RUI " << ruiInstance << endl << flush;
+	try{
+	  emu::soap::Messenger( this ).sendCommand( "emu::daq::rui::Application", ruiInstance, "Terminate" );
+	}
+	catch(xcept::Exception &e){
+	  ss.str() = "";
+	  ss << "Failed to recycle emu::daq::rui::Application." << (*cmdElement).getValue();
+	  XCEPT_RETHROW( xgi::exception::Exception, ss.str(), e );
+	}
+      }
+}
 
 void emu::daq::manager::Application::printParamsTables
 (
@@ -3717,17 +3675,20 @@ vector< map< string,string > > emu::daq::manager::Application::getFUEventCounts(
 
 void emu::daq::manager::Application::printEventCountsTable
 (
-    xgi::Output              *out,
-    string                    title,
-    vector< map< string,string > >   counts 
+    xgi::Output                      *out,
+    string                           title,
+    vector< map< string,string > >   counts,
+    bool                             control
 )
 {
-    const int superColWidth = 3; // [columns]
+    const int superColWidth = ( control ? 4 : 3 ); // [columns]
     int nCounts = counts.size();
     if ( nCounts == 0 ) return;
     int nSuperCols = 6;
     if ( nCounts < nSuperCols ) nSuperCols = nCounts;
     int nRows = nCounts/nSuperCols + (nCounts%nSuperCols?1:0);
+
+    if ( control ) *out << "<form name=\"countTable\" method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
 
     *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">"   << endl;
 
@@ -3776,40 +3737,31 @@ void emu::daq::manager::Application::printEventCountsTable
 
 	  *out << "  <td align=\"right\" style=\"padding:0 15px 0 5px;\">"<< endl;
 	  if ( iCount < nCounts ){
-// 	    if ( counts[iCount].find("dduError") != counts[iCount].end() ){ // have element for DDU error
-// 	      if ( counts[iCount]["dduError"].size() > 0 ){ // DDU in error
-// 		string href   = getHref( appDescriptor_ ) + "/control"; // self
-// 		string target = "_self";
-// 		try{
-// 		  href   = getHref( zone_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
-// 		  target = "_blank";
-// 		}
-// 		catch(...){
-// 		  href = getHref( appDescriptor_ ) + "/control"; // self
-// 		  target = "_self";
-// 		}
-// 		*out << "      <a href=\"" << href << "\""
-// 		     <<         " title=\"" << counts[iCount]["dduError"] << "\""
-// 		     <<         " style=\"color:#ffffff;"
-// 		     <<                  "background-color:#000000;"
-// 		     <<                  "text-decoration:underline blink\""
-// 		     <<         " target=\"" << target << "\">"
-// 		     <<           counts[iCount]["count"] << "</a>"    << endl;
-// 	      }
-// 	      else{ // DDU OK
-// 		*out << "    " << counts[iCount]["count"]              << endl;
-// 	      }
-// 	    }
-// 	    else{ // no element for DDU error
 	      *out << "    " << counts[iCount]["count"]                << endl;
-// 	    }
 	  }
 	  *out << "  </td>"                                            << endl;
+
+	  if ( control ){
+	    *out << "  <td align=\"right\" style=\"padding:0 15px 0 5px;\">"<< endl;
+	    if ( iCount < nCounts ){
+	      *out << "<input"
+		   << " class=\"button\""
+		   << " type=\"submit\""
+		   << " value=\"&#x2672;\""
+		   << " name=\"" << counts[iCount]["appInst"] << "\""
+		   << " onclick=\"onRecycle( '" << counts[iCount]["appInst"] << "' )\""
+		   << " title=\"Recycle " << counts[iCount]["appName"]
+		   << "."                 << counts[iCount]["appInst"]
+		   << ". This may take a couple of minutes.\"/>"            << endl;
+	    }
+	    *out << "  </td>"                                               << endl;
+	  } // if ( control )
       } // for (int superCol=0; superCol<nSuperCols; superCol++){
       *out << "</tr>"                                                  << endl;
     } // for (int row=0; row<nRows; row++){
 
     *out << "</table>"                                                 << endl;
+    if ( control ) *out << "</form>"                                                  << endl;
 }
 
 bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bool control ){
@@ -3821,6 +3773,8 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 
   // Nothing to do if not in STEP run.
   if ( runType_.toString().find("STEP",0) == string::npos ) return isFinished;
+
+  if ( control ) out << "<form name=\"STEPCountsTable\" method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
 
   out << "<table frame=\"void\" rules=\"rows cols\" class=\"params\">" << endl;
   
@@ -3999,6 +3953,8 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
   } // for(rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); rui++)
 
   out << "</table>"                                                 << endl;
+
+  if ( control ) out << "</form>"                                   << endl;
 
   return isFinished;
 }
