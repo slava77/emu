@@ -1,6 +1,6 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.15 2010/08/13 03:00:07 paste Exp $
-\*****************************************************************************/
+* $Id: EmuFCrateHyperDAQ.cc,v 1.16 2011/04/29 13:52:42 cvuosalo Exp $
+*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
 #include <fstream>
@@ -57,9 +57,10 @@ Application(stub)
 	xgi::bind(this,&emu::fed::EmuFCrateHyperDAQ::DCCTextLoad, "DCCTextLoad");
 	
 	xgi::bind(this,&emu::fed::EmuFCrateHyperDAQ::DDUVoltMon,"DDUVoltMon");
-
-	getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
-
+	xgi::bind(this,&emu::fed::EmuFCrateHyperDAQ::NormalStart,"NormalStart");
+	xgi::bind(this,&emu::fed::EmuFCrateHyperDAQ::EmergencyStart,"EmergencyStart");
+   	getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
+        StartType=0;
 }
 
 
@@ -144,7 +145,21 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		std::vector<std::string> jsFileNames;
 		jsFileNames.push_back("errorFlasher.js");
 		*out << Header(sTitle.str(),jsFileNames);
+		if(StartType==0){      //StartType allows Emergency loading without writes to MPROM thus avoiding berrs
+                  *out << "If a DCC has the MPROM FPGA now loaded you have to use emergency start, and go directly to MPROM (emergency load). If the process write to MPROM FPGA when it isn't loaded a berr will happen and the crate will have to be power cycled."<< std::endl; 
+                  *out << cgicc::br() << std::endl; 
+		  std::ostringstream location;
+		  location << "/" + getApplicationDescriptor()->getURN() << "/NormalStart";
+		  *out << cgicc::a("Start in Normal Mode")
+		    .set("href",location.str());
+		  *out << cgicc::br() << std::endl;
+		  std::ostringstream location2;
+		  location2 << "/" + getApplicationDescriptor()->getURN() << "/EmergencyStart";
+		  *out << cgicc::a("Start in Emergency Load  Mode")
+		    .set("href",location2.str());
+		  *out << cgicc::br() << std::endl;
 
+                }else{
 
 		// Check for errors in crates.  Should only have crate numbers 1-5,
 		// and there should not be more than one crate with a given number.
@@ -413,11 +428,18 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			// First, determine the status of the DCC.
 			//myCrate->getVMEController()->CAEN_err_reset();
-			unsigned short int statush = (*iDCC)->readStatusHigh();
-			unsigned short int statusl = (*iDCC)->readStatusLow();
+		  //BGB comment out readStatusHigh and Low for case when FPGA is unprogrammed
+		  unsigned short int statush;
+                  unsigned short int statusl;  
+		    if(StartType==1){
+			statush = (*iDCC)->readStatusHigh();
+			statusl = (*iDCC)->readStatusLow();
+		    }else{
+                        statush = 0x2bad;
+		        statusl = 0x0bad;
+                    }  
 			//unsigned short int rdfifoinuse = (*iDCC)->readFIFOInUse();
 			std::string status;
-			// Pretty colors!
 			std::string statusClass = "ok";
 			std::string dccStatus = "green";
 			if ((statush&0xf000)==0x2000) {
@@ -638,6 +660,7 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::fieldset() << std::endl;
 
 		*out << Footer();
+		} //StartType
 
 	} catch (xcept::Exception &e) {
 		std::ostringstream error;
@@ -1124,7 +1147,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		// Check to make sure the on-disk header looks like it should for that
 		//  particular PROM
 		if ( diskPROMCodes[iprom] >> 24 != dduPROMHeaders[iprom] ) {
-			diskTable(iprom + 1,1) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+			diskTable(iprom + 1,1) << "1ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
 			diskTable(iprom + 1,1).setClass("bad");
 		} else {
 			diskTable(iprom + 1,1) << std::hex << diskVersion;
@@ -4898,7 +4921,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 			// Can't have bogus files
 			if (!inFile.is_open()) {
 				LOG4CPLUS_ERROR(getApplicationLogger(), "Cannot open file " << fileName);
-				diskTable(iprom + 1,1) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+				diskTable(iprom + 1,1) << "2ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
 				diskTable(iprom + 1,1).setClass("bad");
 			} else {
 				
@@ -4910,7 +4933,8 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 					getline(inFile, myLine);
 					
 					// Only care about one particular command:  instruction 0xfd
-					if (myLine.find("SIR 8 TDI (fd)") != std::string::npos) {
+                                        if(dccPROMNames[iprom]=="MPROM"){
+					if (myLine.find("SIR 16 TDI (0006)") != std::string::npos) {
 						// The next line contains the usercode.
 						// Make sure there is a next line.
 						if (inFile.eof()) break;
@@ -4930,6 +4954,29 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 
 						break;
 					}
+                                        } 
+                                        else if(dccPROMNames[iprom]=="INPROM"){
+                                        if (myLine.find("SIR 16 TDI (fd)") != std::string::npos) {
+					  // The next line contains the usercode.                                                                                       
+					  // Make sure there is a next line.                                                                                            
+					  if (inFile.eof()) break;
+
+					  getline(inFile, myLine);
+
+					  std::stringstream lineStream(myLine);
+					  std::string parsedLine;
+					  lineStream >> parsedLine; // SDR                                                                                              
+					  lineStream >> parsedLine; // 32                                                                                               
+					  lineStream >> parsedLine; // TDI                                                                                              
+					  lineStream >> parsedLine; // (########)                                                                                       
+
+					  parsedLine = parsedLine.substr(1,8);
+
+					  sscanf(parsedLine.c_str(), "%08lx", &diskVersion);
+
+					  break;
+                                        }
+                                        }
 				}
 				
 				inFile.close();
@@ -4947,8 +4994,9 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 			std::stringstream diskVersionString;
 			diskVersionString << std::hex << diskVersion;
 			std::string diskHeader( diskVersionString.str(), 0, 3 );
+			// diskHeader="dcc";
 			if ( diskHeader != "dcc" ) {
-				diskTable(iprom + 1,1) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+				diskTable(iprom + 1,1) << "3ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
 				diskTable(iprom + 1,1).setClass("bad");
 			} else {
 				diskTable(iprom + 1,1) << std::hex << diskVersion;
@@ -5050,12 +5098,27 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 				//	slotTable(iDCC + 1,2 + 2*iprom) << "MPROM has no usercode";
 				//	slotTable(iDCC + 1,2 + 2*iprom).setClass("undefined");
 				//} else {
-				uint32_t idCode = myDCC->readIDCode(dccPROMTypes[iprom]);
+			  //BGB comment out reading IDCode for unprogrammed FPGA
+				uint32_t idCode;
+                                if(StartType==1){
+                                  idCode = myDCC->readIDCode(dccPROMTypes[iprom]);
+                                }else{
+				  idCode = 0x05f0500f;
+                                }
 				slotTable(iDCC + 1,1 + 2*iprom) << std::hex << idCode;
 				
-				uint32_t userCode = myDCC->readUserCode(dccPROMTypes[iprom]);
+			  //BGB comment out reading UserCode for unprogrammed FPGA
+				uint32_t userCode;
+                                if(StartType==1){
+				  int kk=0; // three trys your out
+
+                                  while((((userCode= myDCC->readUserCode(dccPROMTypes[iprom]))&0xfff0000f)!=0xdcc00001)&&kk<3){
+				    LOG4CPLUS_DEBUG(getApplicationLogger(),"userCode DCC  " << std::hex <<  userCode << "promtype " << iprom << " " << dccPROMTypes[iprom] << " " << (userCode&0xfff0000f)  << std::dec);kk++;
+                                  }
+                                }else{
+				  userCode = 0xdbadc0de;
+                                } 
 				slotTable(iDCC + 1,2 + 2*iprom) << std::hex << userCode;
-				
 				// Check for consistency
 				slotTable(iDCC + 1,1 + 2*iprom).setClass("none");
 				slotTable(iDCC + 1,2 + 2*iprom).setClass("ok");
@@ -5331,10 +5394,14 @@ void emu::fed::EmuFCrateHyperDAQ::DCCSendBroadcast(xgi::Input *in, xgi::Output *
 
 			LOG4CPLUS_INFO(getApplicationLogger(),"Loading file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << (*iDCC)->slot() << "...");
 			
+                        
 			(*iDCC)->loadPROM(devType[type],(char *) filename.c_str(), "", "");
-
+                        
+                        if(type==2){StartType=1;type=1;} 
+                        usleep(1000000);  
+  
 			// Check the usercode.
-			if (devType[type] != RESET) {
+			if (devType[type] != 25) {
 				uint32_t checkCode = (*iDCC)->readUserCode(devType[type]);
 				if (checkCode != version[type]) {
 					std::ostringstream error;
@@ -6471,7 +6538,23 @@ void emu::fed::EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input *in, xgi::Output *out)
 	}
 }
 
+void emu::fed::EmuFCrateHyperDAQ::NormalStart(xgi::Input *in, xgi::Output *out)
+{
+  StartType=1;
+  std::ostringstream redirect;
+  redirect << "mainPage?crate=" << crateVector_[0]->number();
+  return webRedirect(out, redirect.str());
+  //return Default(in,out);
+}
 
+void emu::fed::EmuFCrateHyperDAQ::EmergencyStart(xgi::Input *in, xgi::Output *out)
+{
+  StartType=2;
+  std::ostringstream redirect;
+  redirect << "mainPage?crate=" << crateVector_[0]->number();
+  return webRedirect(out, redirect.str());
+  // return Default(in,out);
+}
 
 void emu::fed::EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input *in, xgi::Output *out)
 {
