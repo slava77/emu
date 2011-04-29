@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.12 2010/08/13 02:53:00 paste Exp $
+* $Id: VMEModule.cc,v 1.13 2011/04/29 13:41:37 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -713,6 +713,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 	try {
 		// Now start parsing the file.  Read lines until we have an eof.
+   	        int Reprg = 0;  //BGB flag for reprogram command
 		std::string myStartString = startString;
 		for (boost::split_iterator<std::string::const_iterator> iLine = boost::make_split_iterator(data, boost::first_finder("\n", boost::is_iequal())); iLine != boost::split_iterator<std::string::const_iterator>(); ++iLine) {
 
@@ -721,7 +722,8 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 			// At this point, increment the number of lines parsed and update the percentage
 			++linesParsed;
-			if (debug) std::cerr << "This is line " << linesParsed << "/" << nLines << " " << (unsigned int) ((float) linesParsed / (float) nLines * 100.) << "%" << std::endl;
+			// (debug) 
+                        if(linesParsed%4000==0)std::cerr << "This is line " << linesParsed << "/" << nLines << " " << (unsigned int) ((float) linesParsed / (float) nLines * 100.) << "%" << std::endl;
 			firmwarePercentMap_[dev] = (unsigned int) ((float) linesParsed / (float) nLines * 100.);
 
 			// Start after a particular command
@@ -872,7 +874,19 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 					// The number of bits matches that of the command bus.
 					//std::clog << "Attempting commandCycle with dev " << dev << " data " << myData[0] << std::endl;
+ 				        if(Reprg==1){
+				          if(myLine.find("SIR 16 TDI (ffff)")!=std::string::npos) {
+				            usleep(1000000);std::cerr << " Bypass PROM; sleep 1 second " <<linesParsed << std::endl;
+				            Reprg = 0;
+				          }
+				        }
+				        if(myLine.find("SIR 16 TDI (00ee)")!=std::string::npos) Reprg = 1;
+
 					commandCycle(dev, myData[0], debug);
+
+					if(Reprg == 1) {
+					  usleep(1000000);std::cerr << " loading fpga so sleep 1 second " <<linesParsed << std::endl;
+                                        }
 
 					continue;
 
@@ -903,9 +917,13 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 				// Only use usleep if the number of microseconds is greater than 50.
 				// Below that, we don't have the kind of resolution we need to be accurate,
 				// and it's not like it matters much anyway.
-				if (time >= 50) {
+                                if(time<100000000)std::cerr<<" Sleep for " << time/1000000 <<" seconds "<< std::endl;
+                                if(dev==15&&time<100000000){time=time*2;} //double time for MPROM due to load problems, in the future we should speed this up -LSD  
+ 				if (time >= 50) {
 					usleep(time);
-				}
+				}else{
+                                        usleep(1);
+                                }
 
 				if (debug) {
 					gettimeofday(&endTime,NULL);
