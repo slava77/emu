@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.73 2010/09/30 20:57:19 liu Exp $
+// $Id: Crate.cc,v 3.74 2011/04/29 02:03:48 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.74  2011/04/29 02:03:48  liu
+// read DMB even if chamber is off
+//
 // Revision 3.73  2010/09/30 20:57:19  liu
 // update monitoring
 //
@@ -797,7 +800,7 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
     int imask= 0x3F & (myDmbs[i]->GetPowerMask());
     bool chamber_on = (imask!=0x3F);
 
-    if(IsAlive() && (dmask & (1<<i))==0 && chamber_on)
+    if(IsAlive() && (dmask & (1<<i))==0)
     {  
         rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
         if( rn>0) flag |= (1<<i);
