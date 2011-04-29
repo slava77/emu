@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 1.4 2009/07/01 14:54:03 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 1.5 2011/04/29 13:52:42 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_EMUFCRATEHYPERDAQ_H__
 #define __EMU_FED_EMUFCRATEHYPERDAQ_H__
@@ -140,6 +140,14 @@ namespace emu {
 			/** Live DDU voltage monitoring page. **/
 			void DDUVoltMon(xgi::Input *in, xgi::Output *out);
 
+                        //** normal start mode **//
+                        void NormalStart(xgi::Input *in, xgi::Output *out);
+
+                        //** emergency load start mode **// 
+                         void EmergencyStart(xgi::Input *in, xgi::Output *out);
+
+			 //** start flag **//
+                         int StartType; 
 		private:
 			
 			/** Actually configures the application to talk to the apporpriate crate
