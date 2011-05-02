@@ -33,7 +33,8 @@ Sources=\
         EmuPeripheralCrateMonitor.cc \
         EmuPeripheralCrateTimer.cc \
         EmuPeripheralCrateManager.cc \
-        EmuPeripheralCrateService.cc
+        EmuPeripheralCrateService.cc \
+        EmuCompareMcsFiles.cc
 
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
