@@ -981,7 +981,7 @@ int EmuDisplayClient::updateNodesStatusFacts()
               if ((itr = nitr->second.find("stateChangeTime")) != nitr->second.end())
                 {
                   stateChangeTime = nitr->second["stateChangeTime"];
-                  state += " at " + stateChangeTime;
+                  // state += " at " + stateChangeTime;
                 }
             }
 

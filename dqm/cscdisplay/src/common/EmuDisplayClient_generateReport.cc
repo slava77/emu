@@ -1130,12 +1130,14 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
 {
 
   int nFacts=0;
+  std::string severity="INFO";
   T_DQMReport::iterator itr;
   vector<ReportEntry>::iterator err_itr;
 
 
   T_DQMReport& report = dqm_report.getReport();
 
+  
 
   for (itr = report.begin(); itr != report.end(); ++itr)
     {
@@ -1147,8 +1149,10 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
               CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
               std::string testID = err_itr->testID;
               if (testID == "") testID = "INFO";
+              if (err_itr->severity == 0) severity = "INFO";
+	      else severity = DQM_SEVERITY_STR[err_itr->severity];
               fact.addParameter("testId", testID)
-              .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+              .setSeverity(severity)
               .setDescription(err_itr->descr)
               .setRun(runname);
               addFact(fact);
@@ -1166,8 +1170,10 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
           for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
             {
               CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
+  	      if (err_itr->severity == 0) severity = "INFO";
+              else severity = DQM_SEVERITY_STR[err_itr->severity];
               fact.addParameter("testId", err_itr->testID)
-              .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+              .setSeverity(severity)
               .setDescription(err_itr->descr)
               .setRun(runname);
               addFact(fact);
@@ -1188,8 +1194,10 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
 	      if (err_itr->descr.find("Not enough events for") != std::string::npos) continue;
 
               CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
+	      if (err_itr->severity == 0) severity = "INFO";
+              else severity = DQM_SEVERITY_STR[err_itr->severity];
               fact.addParameter("testId", err_itr->testID)
-              .setSeverity(DQM_SEVERITY_STR[err_itr->severity])
+              .setSeverity(severity)
               .setDescription(err_itr->descr)
               .setRun(runname);
               addFact(fact);
