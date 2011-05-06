@@ -20,9 +20,15 @@ function jsonToTable( jsonURL ){
       if ( contextRow.context.lastIndexOf(':9999') > 0 ){
 	$.each( contextRow.diskUsage.rows, function(j,fsRow){ 
 	  if ( fsRow.fileSystem == '/data' ){
-	    var host = contextRow.context.match('^http://([^:]+):[0-9]+')[1];
-	    disks.push( new Disk( host, '/data', fsRow.sampleTime, fsRow.state, 
-				  fsRow.usePercent, (1.-0.01*fsRow.usePercent)*fsRow.totalMB ) );
+	    try{
+	      // Select local DAQ farm machines that read out DDUs
+	      var matches = contextRow.context.match('^http://([cC][sS][cC]-[cC]2[dD]08-(0[1-9]|10)(.cms)?):[0-9]+');
+	      if ( matches.length > 1 ){
+		disks.push( new Disk( matches[1], '/data', fsRow.sampleTime, fsRow.state, 
+				      fsRow.usePercent, (1.-0.01*fsRow.usePercent)*fsRow.totalMB ) );
+	      }
+	    }
+	    catch(e){}
 	  }
 	});
       }
