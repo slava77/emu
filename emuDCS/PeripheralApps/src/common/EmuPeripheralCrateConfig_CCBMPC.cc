@@ -172,6 +172,14 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << CCBFirmware_;
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::br();
+  //
+  std::string CCBreadFirmware =
+    toolbox::toString("/%s/CCBReadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CCBreadFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Read CCB Firmware in MCS format") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  //
   *out << cgicc::fieldset();
   //
 }
@@ -197,6 +205,20 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
     this->CCBUtils(in,out);
     //
   }
+
+void EmuPeripheralCrateConfig::CCBReadFirmware(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::string mcsfile="/tmp/CCB_"+ ThisCrateID_ + ".mcs";
+  std::string jtagfile=XMLDIR+"/ccb.vrf";
+  std::cout << getLocalDateTime() << " Reading CCB firmware; saving as " << mcsfile << std::endl;
+
+  thisCCB->read_prom(jtagfile.c_str(),mcsfile.c_str());
+  //
+  this->CCBUtils(in,out);
+  //
+}
+
   //
   void EmuPeripheralCrateConfig::CCBConfig(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -382,6 +404,14 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << MPCFirmware_;
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::br();
+  //
+  std::string MPCreadFirmware =
+    toolbox::toString("/%s/MPCReadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MPCreadFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Read MPC Firmware in MCS format") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  //
   *out << cgicc::fieldset();
   //
 }
@@ -402,6 +432,19 @@ void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * ou
   }
   //
   //thisCCB->hardReset();
+  //
+  this->MPCUtils(in,out);
+  //
+}
+
+void EmuPeripheralCrateConfig::MPCReadFirmware(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::string mcsfile="/tmp/MPC_"+ ThisCrateID_ + ".mcs";
+  std::string jtagfile=XMLDIR+"/mpc.vrf";
+  std::cout << getLocalDateTime() << " Reading MPC firmware; saving as " << mcsfile << std::endl;
+
+  thisMPC->read_prom(jtagfile.c_str(),mcsfile.c_str());
   //
   this->MPCUtils(in,out);
   //

@@ -70,6 +70,7 @@ class EmuPeripheralCrateConfig: public EmuPeripheralCrateBase
   //
 protected:
   //
+  std::string XMLDIR;
   xdata::UnsignedLong runNumber_;
   xdata::UnsignedLong maxNumTriggers_;
   //
@@ -421,6 +422,8 @@ private:
   void forceScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void readoutScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TriggerTestInjectCLCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void TMBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ALCTReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // VCC utils
   void VCCHeader(xgi::Input * in, xgi::Output * out, std::string title, std::string heading ) throw (xgi::exception::Exception); 
@@ -459,6 +462,7 @@ private:
   void MPCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCMask(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MPCReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // CCB utils
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -468,6 +472,7 @@ private:
   void ReadTTCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void HardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CCBConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void CCBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // synchronization functions
   void ChamberTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
