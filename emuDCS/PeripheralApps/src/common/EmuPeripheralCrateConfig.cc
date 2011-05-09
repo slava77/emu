@@ -114,6 +114,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //
   FirmwareDir_ = getenv("HOME");
   FirmwareDir_ += "/firmware/";
+  XMLDIR = "/opt/xdaq/htdocs/emu/emuDCS/PeripheralApps/xml";
   //
   DisplayRatio_ = false;
   AutoRefresh_  = true;
@@ -271,6 +272,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBLoadFirmware, "CCBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBConfig, "CCBConfig");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCConfig, "MPCConfig");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBReadFirmware, "CCBReadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPCReadFirmware, "MPCReadFirmware");
   //
   //-----------------------------------------------
   // VME Controller routines
@@ -373,6 +376,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBResetSyncError, "TMBResetSyncError");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBRawHits, "TMBRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTRawHits, "ALCTRawHits");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadFirmware, "TMBReadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ALCTReadFirmware, "ALCTReadFirmware");
   //
   //----------------------------
   // Bind logging methods
@@ -8265,6 +8270,40 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
+  //////////////////////////////////////////////
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "TMB firmware";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string TMBreadFirmware = toolbox::toString("/%s/TMBReadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBreadFirmware) ;
+  *out << cgicc::input().set("type","submit").set("value","Read back TMB firmware") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  *out << cgicc::td();
+  //
+  //////////////////////////////////////////////
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "ALCT firmware";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string ALCTreadFirmware = toolbox::toString("/%s/ALCTReadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCTreadFirmware) ;
+  *out << cgicc::input().set("type","submit").set("value","Read back ALCT firmware") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  *out << cgicc::td();
+  //
   //--------------------------------------------------------
   *out << cgicc::table();
   //
@@ -8286,6 +8325,85 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset();
 
 }
+//
+void EmuPeripheralCrateConfig::TMBReadFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  int tmb;
+  if(name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl ;
+    tmb=-1;
+  }
+  //
+  TMB * thisTMB=NULL;
+  if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
+  if(thisTMB)
+  {
+    std::string chambername= thisCrate->GetChamber(thisTMB)->GetLabel();
+    chambername.replace(6,1,"_");
+    chambername.replace(4,1,"_");
+    std::string mcsfile="/tmp/TMB_"+ chambername + ".mcs";
+    std::string jtagfile=XMLDIR+"/tmb.vrf";
+    // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
+    thisCCB->setCCBMode(CCB::VMEFPGA);
+      //
+    std::cout  << getLocalDateTime() <<  "Reading back TMB firmware from slot " << thisTMB->slot() << std::endl;
+      //
+    thisTMB->setup_jtag(ChainTmbMezz);
+    thisTMB->read_prom(jtagfile.c_str(),mcsfile.c_str());
+
+    // Put CCB back into DLOG mode to listen to TTC commands...
+    thisCCB->setCCBMode(CCB::DLOG);
+  }
+  //
+  this->TMBUtils(in,out);
+}
+//
+void EmuPeripheralCrateConfig::ALCTReadFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  int tmb;
+  if(name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl ;
+    tmb=-1;
+  }
+  //
+  TMB * thisTMB=NULL;
+  if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
+  if(thisTMB)
+  {
+    std::string chambername= thisCrate->GetChamber(thisTMB)->GetLabel();
+    chambername.replace(6,1,"_");
+    chambername.replace(4,1,"_");
+    std::string mcsfile="/tmp/ALCT_"+ chambername + ".mcs";
+    std::string jtagfile=XMLDIR+"/alct_small.vrf";
+    // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
+    thisCCB->setCCBMode(CCB::VMEFPGA);
+      //
+    std::cout  << getLocalDateTime() <<  "Reading back ALCT firmware from slot " << thisTMB->slot() << std::endl;
+      //
+    thisTMB->setup_jtag(ChainAlctFastMezz);
+    thisTMB->read_prom(jtagfile.c_str(),mcsfile.c_str());
+
+    // Put CCB back into DLOG mode to listen to TTC commands...
+    thisCCB->setCCBMode(CCB::DLOG);
+  }
+  //
+  this->TMBUtils(in,out);
+}
+
 //
 void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
   //
