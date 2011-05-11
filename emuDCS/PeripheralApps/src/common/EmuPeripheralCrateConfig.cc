@@ -8358,6 +8358,14 @@ void EmuPeripheralCrateConfig::TMBReadFirmware(xgi::Input * in, xgi::Output * ou
     thisTMB->setup_jtag(ChainTmbMezz);
     thisTMB->read_prom(jtagfile.c_str(),mcsfile.c_str());
 
+    // enable VME access to TMB FPGA
+    // from function ClearTMBBootReg()
+        short unsigned int BootReg;
+        thisTMB->tmb_get_boot_reg(&BootReg);
+        BootReg &= 0xff7f;                    // Give JTAG chain to the FPGA to configure ALCT on hard reset
+        BootReg &= 0xf7ff;                    // Allow FPGA access to the VME register
+        thisTMB->tmb_set_boot_reg(BootReg);
+
     // Put CCB back into DLOG mode to listen to TTC commands...
     thisCCB->setCCBMode(CCB::DLOG);
   }
@@ -8388,7 +8396,13 @@ void EmuPeripheralCrateConfig::ALCTReadFirmware(xgi::Input * in, xgi::Output * o
     chambername.replace(6,1,"_");
     chambername.replace(4,1,"_");
     std::string mcsfile="/tmp/ALCT_"+ chambername + ".mcs";
-    std::string jtagfile=XMLDIR+"/alct_small.vrf";
+    std::string jtagfile;
+    ALCTController * thisALCT = thisTMB->alctController();
+    int alctsize=thisALCT->GetFastControlAlctType();
+    if(alctsize>384)
+       jtagfile=XMLDIR+"/alct_big.vrf";
+    else
+       jtagfile=XMLDIR+"/alct_small.vrf";
     // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
     thisCCB->setCCBMode(CCB::VMEFPGA);
       //
