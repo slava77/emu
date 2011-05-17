@@ -317,6 +317,7 @@ private:
 
   std::map<std::string,uint32_t> nDMBEvents;
   std::map<uint32_t,uint32_t> L1ANumbers;
+  std::map<uint32_t,bool> fNotFirstEvent;
 
   uint32_t L1ANumber;
   uint32_t BXN;

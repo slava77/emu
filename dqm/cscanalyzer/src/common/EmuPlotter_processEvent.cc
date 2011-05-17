@@ -303,7 +303,12 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   L1ANumber = L1ANumbers[dduID];
   LOG4CPLUS_DEBUG(logger_,dduTag << " Header L1A Number = " << std::dec << L1ANumber);
   int L1A_inc = L1ANumber - L1ANumber_previous_event;
-  if (!fFirstEvent)
+
+  /** Handle 24-bit L1A roll-over maximum value case **/
+  if ( L1A_inc < 0 ) L1A_inc = 0xFFFFFF + L1A_inc;
+
+  // if (!fFirstEvent)
+  if (fNotFirstEvent[dduID]) 
     {
       if (isMEvalid(dduME, "L1A_Increment", mo)) mo->Fill(L1A_inc);
 
@@ -536,6 +541,8 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if (isMEvalid(dduME,"DMB_unpacked_vs_DAV",mo)) mo->Fill(dmb_active_header, unpackedDMBcount);
 
   fFirstEvent = false;
+  /** First event per DDU **/
+  fNotFirstEvent[dduID] = true;
   appBSem_.give();
 }
 
