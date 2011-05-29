@@ -44,6 +44,9 @@ import rcms.fm.app.cscLevelOne.gui.GuiStatePanel;
 import rcms.fm.app.cscLevelOne.gui.GuiSubdetPanel;
 import rcms.fm.resource.QualifiedResource;
 import rcms.fm.resource.qualifiedresource.FunctionManager;
+import rcms.fm.resource.qualifiedresource.XdaqExecutive;
+import rcms.fm.resource.qualifiedresource.JobControl;
+import rcms.fm.resource.qualifiedresource.XdaqExecutiveConfiguration;
 import rcms.resourceservice.db.resource.config.ConfigProperty;
 import rcms.resourceservice.db.resource.fm.FunctionManagerResource;
 import rcms.util.logger.RCMSLogger;
@@ -181,6 +184,61 @@ public class MyUtil {
 	}
 
 	
+	/**
+	 * Kill orphaned XDAQ executives
+	 */
+	public void killOrphanedExecutives() {
+	    String pathToOrphanHandler = myGetRscConfElement( "pathToOrphanHandler" );
+	    if ( pathToOrphanHandler == null ){
+		logger.warn("No orphan handler script found in the configuration of this Function Manager.");
+		return;
+	    }
+	    if ( pathToOrphanHandler == "" ){
+		logger.warn("No orphan handler script found in the configuration of this Function Manager.");
+		return;
+	    }
+
+	    System.out.println("Orphan handler script '"+pathToOrphanHandler+"' will be used.");
+	    logger.debug("Orphan handler script '"+pathToOrphanHandler+"' will be used.");
+	    
+	    List<QualifiedResource> jobcontrols = functionManager.getQualifiedGroup().seekQualifiedResourcesOfType(new JobControl());
+	    for (QualifiedResource jc: jobcontrols) {
+		try{
+		    List<String> orphanHandlingJIDs = new ArrayList<String>();
+		    List<QualifiedResource> executives = functionManager.getQualifiedGroup().seekQualifiedResourcesOfType(new XdaqExecutive());
+		    for (QualifiedResource exe: executives){
+			// We assume a single jobcontrol on each host and compare host names only:
+			if ( jc.getURL().getHost().equals( exe.getURL().getHost() ) ){
+			    // This doesn't seem to work: String user = ((XdaqExecutive)exe).getJobUserName();
+			    // Get the user name indirectly::
+			    XdaqExecutiveConfiguration conf = ((XdaqExecutive)exe).getXdaqExecutiveConfiguration();
+			    if ( conf != null ){
+				String user = conf.getUserName();
+				String args = Integer.toString( exe.getURL().getPort() );
+				String environment = "USER=" + user;
+				String jid = pathToOrphanHandler + "_" + Integer.toString( exe.getURL().getPort() );
+				((JobControl)jc).start(pathToOrphanHandler,args,environment,user,jid);
+				logger.debug("Issued to JobControl " + jc.getURL() + " the command: " + environment + " " + pathToOrphanHandler + " " + args + ", jid=" + jid );
+				orphanHandlingJIDs.add( jid );
+			    }
+			    else{
+				logger.error( "XdaqExecutiveConfiguration is null for " + exe.toString() ); 
+			    }
+			}
+		    }
+		    // Allow the script some time to do its dirty job:
+		    wait( 1000 );
+		    // Clean up orphan-handling job entries
+		    for ( String jid : orphanHandlingJIDs ){
+			logger.debug("Killing orphan handling job " + jid + " of JobControl " + jc.getURL() );
+			((JobControl)jc).killJid( jid );
+		    }
+		} catch (Exception e) {
+		    logger.error( "Failed to execute orphan handler on JobControl " + jc.getURL(), e);
+		}
+	    }
+	}
+
 	/**
 	 * Set HWCFG_KEY and HWCFG_TRG_NAME parameters
 	 */
