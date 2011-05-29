@@ -43,11 +43,6 @@ for (( I=1 ;; I++ )); do
 	echo "******************************************"
 	exit 1
     fi
-    echo
-    echo Checking for orphaned process by
-    echo ${0%${0##*/}}killOrphanedXDAQ.sh "$@"
-    ${0%${0##*/}}killOrphanedXDAQ.sh "$@"
-    echo
     echo Invoking command:
     echo ${XDAQ_ROOT}/bin/xdaq.exe ${XDAQ_PROFILE:+"-e $XDAQ_PROFILE"} "$@"
     echo
