@@ -1,6 +1,7 @@
 package rcms.fm.app.cscLevelOne;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import rcms.fm.app.cscLevelOne.util.MyUtil;
 import rcms.fm.fw.parameter.CommandParameter;
@@ -99,6 +100,8 @@ public class MyFunctionManager extends UserFunctionManager {
 
 		System.out.println("createAction called.");
 		logger.debug("createAction called.");
+
+		_myUtil.killOrphanedExecutives();
 
 		System.out.println("createAction executed.");
 		logger.debug("createAction executed.");
