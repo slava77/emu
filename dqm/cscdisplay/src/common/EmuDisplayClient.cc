@@ -1726,7 +1726,7 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
           std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
           std::list<xoap::AttachmentPart*>::iterator iter;
           // if (reply->countAttachments()>1) std::cout << reply->countAttachments() << std::endl;
-          if (attachments.size() == 0) LOG4CPLUS_WARN (getApplicationLogger(), "Received empty object " << folder << "/" << objname);
+          // if (attachments.size() == 0) LOG4CPLUS_WARN (getApplicationLogger(), "Received empty object " << folder << "/" << objname);
           if (attachments.size() > 1)
             {
               LOG4CPLUS_WARN (getApplicationLogger(), "Received corrupted objects " << folder << "/" << objname);
@@ -1844,7 +1844,7 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
           LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestCanvas: \"" << folder << "/" << objname << "\" reply from " << d->getClassName() << " ID" << d->getLocalId());
           std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
           std::list<xoap::AttachmentPart*>::iterator iter;
-          if (attachments.size() == 0) LOG4CPLUS_WARN (getApplicationLogger(), "Received empty object " << folder << "/" << objname);
+          // if (attachments.size() == 0) LOG4CPLUS_WARN (getApplicationLogger(), "Received empty object " << folder << "/" << objname);
 
           for (iter = attachments.begin(); iter != attachments.end(); iter++)
             {
