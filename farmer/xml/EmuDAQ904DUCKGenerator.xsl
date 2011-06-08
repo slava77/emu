@@ -62,6 +62,9 @@
 		       sourceURL="http://emuslice02.cern.ch:12000/functionmanagers/cscLevelOneFM.jar"
 		       className="rcms.fm.app.cscLevelOne.MyFunctionManager"
 		       role="CSC" >
+	<property name="pathToOrphanHandler" type="String">
+	  <value>/opt/xdaq/share/emu904/scripts/killOrphanedXDAQ.sh</value>
+	</property>
 	<xsl:call-template name="JobControls"/>
 	<xsl:if test="$FARM='DAQ'">
 	  <xsl:call-template name="DAQManager"/>
