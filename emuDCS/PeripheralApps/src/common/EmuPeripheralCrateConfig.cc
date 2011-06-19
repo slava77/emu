@@ -1265,6 +1265,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
 void EmuPeripheralCrateConfig::CrateTests(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  if(!parsed) ParsingXML();  
   MyHeader(in,out,"CrateTests");
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
@@ -2565,7 +2566,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
     //
     // send hard reset from CCB to load FPGA's from EEPROM's in all electronics modules.  
     // If the user does not request a hard reset, just read the values
-    if (number_of_hard_resets_>0 && hard_reset_index > 0 ){ //do not send a hard reset on the first iteration...
+    if (number_of_hard_resets_>0){
       //
       for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
 	//
@@ -4242,6 +4243,7 @@ void EmuPeripheralCrateConfig::TmbMPCTest(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
+  if(!parsed) ParsingXML();
   myCrateTest.SetCrate(thisCrate);
   //
   myCrateTest.RedirectOutput(&CrateTestsOutput);
@@ -4258,6 +4260,7 @@ void EmuPeripheralCrateConfig::MPCSafeWindowScan(xgi::Input * in, xgi::Output * 
   //
   cgicc::Cgicc cgi(in);
   //
+  if(!parsed) ParsingXML();
   //CrateUtilities myCrateTest;
   myCrateTest.SetCrate(thisCrate);
   //
