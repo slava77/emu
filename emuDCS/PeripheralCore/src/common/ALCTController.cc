@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.64 2011/02/10 11:45:44 rakness Exp $
+// $Id: ALCTController.cc,v 3.65 2011/06/24 11:37:26 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.65  2011/06/24 11:37:26  rakness
+// configure the ALCT testpulse powerswitch to be OFF at runtime
+//
 // Revision 3.64  2011/02/10 11:45:44  rakness
 // readout registers to diagnose possible testpulser problems
 //
@@ -657,9 +660,14 @@ void ALCTController::configure(int c) {
   //  PrintAsicDelays();
   //  PrintAsicPatterns();
   //
-  // The following are ALCT registers which should not be changed in the configuration...
+  // The default setting for the testpulse power register when the FPGA powers up is OFF.
+  // However, it has been seen that from time to time a random testpulse power register
+  // will be ON.  Therefore, here we explicitly set the power register OFF so that the 
+  // FPGA is not free to do what it wants.
+  // Note:  the testpulser can be turned on after configure by using SetUpPulsing(...).
   //
-  //  WriteTestpulsePowerSwitchReg_();
+  SetPowerUpTestpulsePowerSwitchReg_();
+  WriteTestpulsePowerSwitchReg_();
   //    PrintTestpulsePowerSwitchReg_();
   //
   //  WriteTestpulseAmplitude_();
@@ -983,6 +991,8 @@ void ALCTController::CheckALCTConfiguration(int max_number_of_reads) {
 				   write_collision_pattern_mask_reg_[index],
 				   print_errors);      
       }
+    //
+    config_ok &= compareValues("ALCT Testpulse Power Switch",read_testpulse_power_setting_,write_testpulse_power_setting_,print_errors);
     //
     alct_configuration_status_ = (int) config_ok;
   }
