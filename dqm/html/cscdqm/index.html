@@ -373,6 +373,7 @@ var loopFoldersFirst = true;
 var fAutoUpdatePlot = false;
 var fShowReference = false;
 var fCompareDDUs = false;
+var fMarkLowStatErrs = true;
 var selFolder="";
 var selNode="";
 var selRefRun="";
@@ -1688,7 +1689,7 @@ function setTestsStatus(id)
 					if (entry) {
 						
 						//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
-						
+					et
 						var sev_idx = parseInt(entry.severity);
 						
 						var sev_name = DQM_SEVERITY[sev_idx].name;
@@ -1915,7 +1916,10 @@ function loadDQMReport(id, rep)
 						// var sev_name = DQM_SEVERITY[obj_sev].name;
 						// if (selSeverityFilter == sev_name) {
 						if (filtered) obj_sev = 8;
-						setEntryStatus(report[i].objID, obj_sev);
+                                                if ( (obj_sev > 0) 
+							|| ((obj_sev == 0 ) && (entry.testID=="")) 
+							|| ((obj_sev == 0 ) && (entry.testID!="") && fMarkLowStatErrs) ) 
+							setEntryStatus(report[i].objID, obj_sev);
 						// }
 					// addlog(DQM_REPORT.report[i].objID, "info");
 					// setEntryStatus(DQM_REPORT.report[i]);
@@ -2658,6 +2662,19 @@ function selectCompareDDUMode()
 	}
 }
 
+function selectMarkLowStatsErrs()
+{
+        var obj = document.getElementById("marklowstats");
+        if (obj) {
+                if (obj.checked) {
+                        fMarkLowStatErrs=true;
+                } else {
+                        fMarkLowStatErrs=false;
+                }
+                loadDQMReport("report_div", DQM_REPORT);
+        }
+}
+
 function selectShowKnownMode()
 {
 	var obj = document.getElementById("showknown");
@@ -3255,8 +3272,9 @@ get_element = document.all ?
 			<label>Compare to:</label>
 			<select id="compare_selection" onChange="setCompareRun();">
 			</select><br>
-			<span title='Check to Enable DDUs Comparison'><label>DDUs Comparison</label> <input type=checkbox  id="dducompare" onclick="selectCompareDDUMode()"></span><br>
-			<span title='Check to Show Known Problems'><label>Show Known Problems</label> <input checked type=checkbox  id="showknown" onclick="selectShowKnownMode()"></span><br>
+			<span title='Check to Enable DDUs Comparison'><label>DDUs Comparison</label> <input type=checkbox  id="dducompare" onclick="selectCompareDDUMode();"></span><br>
+			<span title='Check to Show Known Problems'><label>Show Known Problems</label> <input checked type=checkbox  id="showknown" onclick="selectShowKnownMode();"></span><br>
+			<span title='Check to Mark Low Stats Errors'><label>Mark Low Stats Errors</label> <input checked type=checkbox  id="marklowstats" onclick="selectMarkLowStatsErrs();"></span><br>
 		</div>
 		<div title="Display Filters for DQM Reports">
 			<span title="Select Problem Severity Level Filter">

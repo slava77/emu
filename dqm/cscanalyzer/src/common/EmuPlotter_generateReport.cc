@@ -394,7 +394,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   DQM_SEVERITY severity=NONE;
                   if (fract >= 50.) severity=SEVERE;
                   else if (fract >20.) severity=TOLERABLE;
-                  else severity=MINOR;
+                  else if (fract > 1.) severity=MINOR;
                   std::string diag=Form("DDU Trailer Error Status: %d events, (%f%%)",
                                         stats_itr->second, fract);
                   dqm_report.addEntry(dduName, entry.fillEntry(diag, severity, "DDU_WITH_TRAILER_ERRORS"));
@@ -448,7 +448,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   if (fract >= 20.) severity=CRITICAL;
                   else if (fract >= 10.) severity=SEVERE;
                   else if (fract >5.) severity=TOLERABLE;
-                  else severity=MINOR;
+                  else if (fract >0.1) severity=MINOR;
                   std::string diag=Form("DDU Detected Format Errors: %d events, (%f%%)",
                                         stats_itr->second, fract);
                   dqm_report.addEntry(dduName, entry.fillEntry(diag, severity,"DDU_WITH_FORMAT_ERRORS"));
@@ -806,14 +806,15 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t events =  uint32_t(h2->GetBinContent(i, j));
 
-                float fract=round(z*100);
-                DQM_SEVERITY severity=MINOR;
+                float fract=z*100;
+                DQM_SEVERITY severity=NONE;
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
                     if (fract >= 80.) severity=CRITICAL;
                     else if (fract >= 10.) severity=SEVERE;
-                    else if (fract > 1.) severity=TOLERABLE;
+                    else if (fract > 2.) severity=TOLERABLE;
+		    else if (fract > 0.1) severity=MINOR;
                   }
                 std::string diag=Form("Format Errors: %d events (%.3f%%))",events, z*100);
                 dqm_report.addEntry(cscName,entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
@@ -835,13 +836,14 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                         if (z>0)
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
-                            float fract=round(z*100);
-                            DQM_SEVERITY severity=MINOR;
+                            float fract=z*100;
+                            DQM_SEVERITY severity=NONE;
                             if (csc_events>min_events)
                               {
                                 if (fract >= 80.) severity=CRITICAL;
                                 else if (fract >= 10.) severity=SEVERE;
-                                else if (fract > 1.) severity=TOLERABLE;
+                                else if (fract > 2.) severity=TOLERABLE;
+				else if (fract > 0.1) severity=MINOR;
                               }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("\tFormat Errors: %s %d events (%.3f%%)",error_type.c_str(), events, z*100));
@@ -1722,12 +1724,14 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 uint32_t events = uint32_t(h2->GetBinContent(i, j));
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                float fract=round(z*100);
+                float fract=z*100;
                 DQM_SEVERITY severity=NONE;
+	        if (events > 10) {
                 if (fract >= 80.) severity=CRITICAL;
                 else if (fract >= 10.) severity=SEVERE;
                 else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                else if (fract > 0.1) severity=MINOR;
+		}
 
                 std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, z*100);
 
