@@ -357,6 +357,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadCrateALCTFirmware, "LoadCrateALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadRATFirmware, "LoadRATFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::EraseRATFirmware, "EraseRATFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBPrintCounters, "TMBPrintCounters");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBResetCounters, "TMBResetCounters");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBCounterForFixedTime, "TMBCounterForFixedTime");
@@ -7978,13 +7979,33 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   if (rat) {
     *out << "RAT: " << cgicc::br() << std::endl;
-    *out << "firmware version = " << RATFirmware_[tmb].toString() ;
+    *out << "firmware version = " << RATFirmware_[tmb].toString() << cgicc::br() << std::endl;
+    *out << "firmware erase version = " << RATFirmwareErase_.toString() << cgicc::br() << std::endl;
+
+    *out << cgicc::table().set("border","0");
+
+    *out << cgicc::td().set("ALIGN","left");
     std::string LoadRATFirmware = toolbox::toString("/%s/LoadRATFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadRATFirmware) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Step 1) Load RAT Firmware") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td().set("ALIGN","center");
+    *out << "... or ...";
+    *out << cgicc::td();
+    //
+    *out << cgicc::td().set("ALIGN","left");
+    std::string EraseRATFirmware = toolbox::toString("/%s/EraseRATFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",EraseRATFirmware) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Step 1) Erase RAT Firmware") << std::endl ;
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
     //
     *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Step 2) CCB hard reset") << std::endl ;
@@ -8579,6 +8600,12 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     //
     RATFirmware_[tmb] = RATFirmware.str();
     //    std::cout << "RAT " << tmb << " load " << RATFirmware_[tmb].toString() << std::endl;
+    //
+    std::ostringstream RATFirmwareErase; 
+    RATFirmwareErase << FirmwareDir_ << "rat/eraserat.svf";
+    //
+    RATFirmwareErase_ = RATFirmwareErase.str();
+    //    std::cout << "RAT firmware erase " << RATFirmwareErase_.toString() << std::endl;
   }
   //
   return;
@@ -9048,6 +9075,52 @@ void EmuPeripheralCrateConfig::LoadRATFirmware(xgi::Input * in, xgi::Output * ou
   int debugMode(0);
   int jch(7);
   int status = rat->SVFLoad(&jch,RATFirmware_[tmb].toString().c_str(),debugMode);
+  //
+  thisTMB->enableAllClocks();
+  //
+  if (status >= 0){
+    std::cout << "=== Programming finished"<< std::endl;
+    //    std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
+  }
+  else{
+    std::cout << "=== Fatal Error. Exiting with " <<  status << std::endl;
+  }
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::EraseRATFirmware(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "Not tmb" << std::endl ;
+    tmb = TMB_;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  //
+  std::cout << "Erasing RAT firmware " << std::endl;
+  //
+  rat = thisTMB->getRAT();
+  if (!rat) {
+    std::cout << "No RAT present" << std::endl;
+    return;
+  }
+  //
+  thisTMB->disableAllClocks();
+  //
+  int debugMode(0);
+  int jch(7);
+  int status = rat->SVFLoad(&jch,RATFirmwareErase_.toString().c_str(),debugMode);
   //
   thisTMB->enableAllClocks();
   //
