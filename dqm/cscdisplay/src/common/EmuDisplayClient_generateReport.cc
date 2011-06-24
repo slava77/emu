@@ -236,7 +236,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   DQM_SEVERITY severity=NONE;
                   if (fract >= 50.) severity=SEVERE;
                   else if (fract >20.) severity=TOLERABLE;
-                  else severity=MINOR;
+                  else if (fract > 1.) severity=MINOR;
                   std::string diag=Form("DDU Trailer Error Status: %d events, (%f%%)",
                                         stats_itr->second, fract);
                   dqm_report.addEntry(dduName, entry.fillEntry(diag, severity, "DDU_WITH_TRAILER_ERRORS"));
@@ -289,7 +289,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   if (fract >= 20.) severity=CRITICAL;
                   else if (fract >= 10.) severity=SEVERE;
                   else if (fract >5.) severity=TOLERABLE;
-                  else severity=MINOR;
+                  else if (fract >0.1) severity=MINOR;
                   std::string diag=Form("DDU Detected Format Errors: %d events, (%f%%)",
                                         stats_itr->second, fract);
                   dqm_report.addEntry(dduName, entry.fillEntry(diag, severity,"DDU_WITH_FORMAT_ERRORS"));

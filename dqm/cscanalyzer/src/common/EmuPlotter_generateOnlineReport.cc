@@ -77,14 +77,15 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t events =  uint32_t(h2->GetBinContent(i, j));
 
-                float fract=round(z*100);
-                DQM_SEVERITY severity=MINOR;
+                float fract=z*100;
+                DQM_SEVERITY severity=NONE;
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
                     if (fract >= 80.) severity=CRITICAL;
                     else if (fract >= 10.) severity=SEVERE;
-                    else if (fract > 1.) severity=TOLERABLE;
+                    else if (fract > 2.) severity=TOLERABLE;
+		    else if (fract > 0.1) severity=MINOR;
                   }
                 std::string diag=Form("Format Errors: %d events (%.3f%%)",events, z*100);
                 dqm_report.addEntry(cscName,entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
@@ -106,13 +107,14 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                         if (z>0)
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
-                            float fract=round(z*100);
+                            float fract=z*100;
                             DQM_SEVERITY severity=MINOR;
                             if (csc_events>min_events)
                               {
                                 if (fract >= 80.) severity=CRITICAL;
                                 else if (fract >= 10.) severity=SEVERE;
-                                else if (fract > 1.) severity=TOLERABLE;
+                                else if (fract > 2.) severity=TOLERABLE;
+				else if (fract > 0.1) severity=MINOR;
                               }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("\tFormat Errors: %s %d events (%.3f%%)",error_type.c_str(), events, z*100));
@@ -964,12 +966,12 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 uint32_t events = uint32_t(h2->GetBinContent(i, j));
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                float fract=round(z*100);
+                float fract=z*100;
                 DQM_SEVERITY severity=NONE;
                 if (fract >= 80.) severity=CRITICAL;
                 else if (fract >= 10.) severity=SEVERE;
                 else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
+                else if (fract > 0.1) severity=MINOR;
 
                 std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, z*100);
 

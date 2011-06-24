@@ -473,7 +473,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
             {
               //      int alct_dmb_l1a_diff = (int)((dmbHeader->l1a()&0xF)-alctHeader->L1Acc());
               int alct_dmb_l1a_diff = (int)(alctHeader->L1Acc()%64-dmbHeader->l1a()%64);
-              if (alct_dmb_l1a_diff != 0) L1A_out_of_sync = true;
+              if (alct_dmb_l1a_diff != 0) {
+		L1A_out_of_sync = true;
+		// LOG4CPLUS_WARN(logger_,eTag << cscTag << "ALCT-DMB L1 difference: " << alct_dmb_l1a_diff);
+	      }
               if (alct_dmb_l1a_diff < -32) mo->Fill(alct_dmb_l1a_diff + 64);
               else
                 {
