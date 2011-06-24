@@ -91,6 +91,7 @@ protected:
   xdata::String DMBFirmware_;
   xdata::String DMBVmeFirmware_;
   xdata::String RATFirmware_[10];
+  xdata::String RATFirmwareErase_;
   xdata::String ALCTFirmware_[10];
   xdata::String ALCTReadback_[10];
   xdata::String CFEBFirmware_;
@@ -403,6 +404,7 @@ private:
   void LoadALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadCrateALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void EraseRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBDumpAllRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBClearUserProms(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UnjamTMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
