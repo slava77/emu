@@ -217,8 +217,8 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   state_table_.addApplication("emu::fed::Manager");
   state_table_.addApplication("emu::pc::EmuPeripheralCrateManager");
   state_table_.addApplication("emu::daq::manager::Application");
-  state_table_.addApplication("TTCciControl");
-  state_table_.addApplication("LTCControl");
+  state_table_.addApplication("ttc::TTCciControl");
+  state_table_.addApplication("ttc::LTCControl");
   
   // last_log_.size(N_LOG_MESSAGES);
   
@@ -243,12 +243,12 @@ void emu::supervisor::Application::getAppDescriptors(){
 
   try {
     ttc_descr_ = getApplicationContext()->getDefaultZone()
-      ->getApplicationDescriptor("TTCciControl", 0);
+      ->getApplicationDescriptor("ttc::TTCciControl", 0);
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
-    LOG4CPLUS_ERROR(logger_, "Failed to get application descriptor for TTCciControl. "
+    LOG4CPLUS_ERROR(logger_, "Failed to get application descriptor for ttc::TTCciControl. "
 		    << xcept::stdformat_exception_history(e));
     stringstream ss;
-    ss <<  "Failed to get application descriptor for TTCciControl. ";
+    ss <<  "Failed to get application descriptor for ttc::TTCciControl. ";
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
@@ -722,7 +722,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     m.sendCommand( "emu::pc::EmuPeripheralCrateManager", calib_params_[index].bag.command_ );
 
     xdata::String attributeValue( "Start" );
-    m.sendCommand( "LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+    m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
     sendCalibrationStatus( iRun, nRuns, step_counter_, calib_params_[index].bag.loop_ );
 
     sleep( calib_params_[index].bag.delay_ );
@@ -822,12 +822,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 	waitForDAQToExecute("Halt", 10);
       }
        
-      if (state_table_.getState("TTCciControl", 0) != "Halted") {
-	m.sendCommand( "TTCciControl", "Halt" );
+      if (state_table_.getState("ttc::TTCciControl", 0) != "Halted") {
+	m.sendCommand( "ttc::TTCciControl", "Halt" );
       }
-      if (state_table_.getState("LTCControl", 0) != "Halted") {
-	m.sendCommand( "LTCControl", "Halt" );
-	// Allow LTCControl some time to halt:
+      if (state_table_.getState("ttc::LTCControl", 0) != "Halted") {
+	m.sendCommand( "ttc::LTCControl", "Halt" );
+	// Allow ttc::LTCControl some time to halt:
 	::sleep(2);
       }
     } catch (xcept::Exception ignored) {}
@@ -902,15 +902,15 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     // Configure TTC
     int index = getCalibParamIndex(run_type_);
     if (index >= 0) {
-      m.setParameters( "TTCciControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
+      m.setParameters( "ttc::TTCciControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
     }
-    m.sendCommand( "TTCciControl", "Configure" );    
+    m.sendCommand( "ttc::TTCciControl", "Configure" );    
     
     // Configure LTC
     if (index >= 0) {
-      m.setParameters( "LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
+      m.setParameters( "ttc::LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
     }
-    m.sendCommand( "LTCControl", "Configure" );
+    m.sendCommand( "ttc::LTCControl", "Configure" );
 
     if (isCalibrationMode()) {
 		if (isAlctCalibrationMode())
@@ -992,14 +992,14 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     
     state_table_.refresh();
     
-    if (state_table_.getState("TTCciControl", 0) != "Enabled") {
-      m.sendCommand( "TTCciControl", "Enable" );
+    if (state_table_.getState("ttc::TTCciControl", 0) != "Enabled") {
+      m.sendCommand( "ttc::TTCciControl", "Enable" );
     }
-    if (state_table_.getState("LTCControl", 0) != "Enabled") {
-      m.sendCommand( "LTCControl", "Enable" );
+    if (state_table_.getState("ttc::LTCControl", 0) != "Enabled") {
+      m.sendCommand( "ttc::LTCControl", "Enable" );
     }
     xdata::String attributeValue( "Stop" );
-    m.sendCommand( "LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+    m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
 
     // Enable TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
@@ -1049,13 +1049,13 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
       cout << "    stop TFCellOp: " << sw.read() << endl;
     }
 
-    if (state_table_.getState("LTCControl", 0) != "Halted") {
-      m.sendCommand( "LTCControl", "Halt" );
-      cout << "    Halt LTCControl: " << sw.read() << endl;
+    if (state_table_.getState("ttc::LTCControl", 0) != "Halted") {
+      m.sendCommand( "ttc::LTCControl", "Halt" );
+      cout << "    Halt ttc::LTCControl: " << sw.read() << endl;
     }
-    if (state_table_.getState("TTCciControl", 0) != "Halted") {
-      m.sendCommand( "TTCciControl", "Halt" );
-      cout << "    Halt TTCciControl: " << sw.read() << endl;
+    if (state_table_.getState("ttc::TTCciControl", 0) != "Halted") {
+      m.sendCommand( "ttc::TTCciControl", "Halt" );
+      cout << "    Halt ttc::TTCciControl: " << sw.read() << endl;
     }
         
     try {
@@ -1069,9 +1069,9 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     cout << "    Disable emu::fed::Manager: " << sw.read() << endl;
     m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Disable" );
     cout << "    Disable emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
-    m.sendCommand( "TTCciControl", "Configure" );
+    m.sendCommand( "ttc::TTCciControl", "Configure" );
     cout << "    Configure TTCci: " << sw.read() << endl;
-    m.sendCommand( "LTCControl", "Configure" );
+    m.sendCommand( "ttc::LTCControl", "Configure" );
     cout << "    Configure LTC: " << sw.read() << endl;
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Stop was issued from the web interface
@@ -1111,14 +1111,14 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
       cout << "    reset TFCellOp: " << sw.read() << endl;
     }
 
-    if (state_table_.getState("LTCControl", 0) != "Halted") {
-      m.sendCommand( "LTCControl", "Halt" );
-      cout << "    Halt LTCControl: " << sw.read() << endl;
+    if (state_table_.getState("ttc::LTCControl", 0) != "Halted") {
+      m.sendCommand( "ttc::LTCControl", "Halt" );
+      cout << "    Halt ttc::LTCControl: " << sw.read() << endl;
     }
 
-    if (state_table_.getState("TTCciControl", 0) != "Halted") {
-      m.sendCommand( "TTCciControl", "Halt" );
-      cout << "    Halt TTCciControl: " << sw.read() << endl;
+    if (state_table_.getState("ttc::TTCciControl", 0) != "Halted") {
+      m.sendCommand( "ttc::TTCciControl", "Halt" );
+      cout << "    Halt ttc::TTCciControl: " << sw.read() << endl;
     }
 
     m.sendCommand( "emu::fed::Manager", "Halt" );
@@ -1728,7 +1728,7 @@ bool emu::supervisor::Application::StateTable::isValidState(string expected) con
 		     && !app_->controlTFCellOp_.value_ 
 		     && app_->run_type_ == "Monitor" ) continue;
 
-		if (klass == "TTCciControl" || klass == "LTCControl") {
+		if (klass == "ttc::TTCciControl" || klass == "ttc::LTCControl") {
 			if (expected == "Configured") { checked = "Ready"; }
 		}
 
@@ -2038,7 +2038,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     xdata::String TriggerSource = "UNKNOWN";
     xdata::String BGOSource     = "UNKNOWN";
     try{
-      m.getParameters( "TTCciControl", 2,
+      m.getParameters( "ttc::TTCciControl", 2,
 		       emu::soap::Parameters()
 		       .add( "ClockSource"  , &ClockSource   ) 
 		       .add( "OrbitSource"  , &OrbitSource   ) 
@@ -2046,10 +2046,10 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
 		       .add( "BGOSource"    , &BGOSource     ) );
     }
     catch(xcept::Exception e){
-      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 2: " << 
+      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from ttc::TTCciControl: " << 
 		      xcept::stdformat_exception_history(e) );
       stringstream ss30;
-      ss30 << "Failed to get trigger sources from TTCciControl 2: ";
+      ss30 << "Failed to get trigger sources from ttc::TTCciControl: ";
       XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss30.str(), e );
       this->notifyQualified( "error", eObj );
     }
