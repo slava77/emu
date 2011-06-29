@@ -139,7 +139,7 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p /var/log/emu
 chown root:csc /var/log/emu
 chmod 775 /var/log/emu
-/sbin/chkconfig --add xdaqd 
+# /sbin/chkconfig --add xdaqd  #Let the watchdog (EmuServiceGuard) start xdaqd services instead
 /sbin/service crond restart
 
 %preun
@@ -148,7 +148,7 @@ exists=`/sbin/chkconfig --list | grep xdaqd`
 if [ x"$exists" != x ] ; then
 /sbin/chkconfig --del xdaqd  > /dev/null 2>&1
 fi
-
+/sbin/service xdaqd stop
 fi
 
 %postun
