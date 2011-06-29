@@ -15,8 +15,8 @@
 	<xp:Application class="pt::http::PeerTransportHTTP" id="1"  network="local">
 		<properties xmlns="urn:xdaq-application:pt::http::PeerTransportHTTP" xsi:type="soapenc:Struct">
 		 	<documentRoot xsi:type="xsd:string">${XDAQ_DOCUMENT_ROOT}</documentRoot>
-			<aliasName xsi:type="xsd:string">emu</aliasName>
-			<aliasPath xsi:type="xsd:string">${BUILD_HOME}/emu</aliasPath>
+			<aliasName xsi:type="xsd:string">/log</aliasName>
+			<aliasPath xsi:type="xsd:string">/var/log</aliasPath>
 		</properties>
 	</xp:Application>
 	<xp:Module>${XDAQ_ROOT}/lib/libpthttp.so</xp:Module>
