@@ -60,6 +60,7 @@ mkdir -p $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/{broker,conf,flash,net
 mkdir -p $RPM_BUILD_ROOT/etc
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/bin
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs
 
@@ -71,6 +72,9 @@ fi
 
 if [ -s %{_packagedir}/xdaqd ]; then 
 	install -m 755 %{_packagedir}/xdaqd $RPM_BUILD_ROOT/etc/init.d
+fi
+if [ -s %{_packagedir}/xdaqd ]; then 
+	install -m 644 %{_packagedir}/emu.logrotate $RPM_BUILD_ROOT/etc/logrotate.d
 fi
 if [ -d %{_packagedir}/scripts ]; then 
 	cd %{_packagedir}/scripts; \
@@ -135,6 +139,7 @@ rm -rf $RPM_BUILD_ROOT
 /etc/*.zone
 /etc/*.services
 /etc/cron.d/*.cron
+/etc/logrotate.d/emu.logrotate
 
 %dir
 %{_prefix}/share
@@ -145,11 +150,14 @@ rm -rf $RPM_BUILD_ROOT
 #%doc MAINTAINER ChangeLog README
 
 %post
+mkdir -p /var/log/emu
+chown root:csc /var/log/emu
+chmod 775 /var/log/emu
 # Configure SLP
 if [ -x %{_prefix}/share/%{_packagename}/scripts/configureslp.sh ]; then
 	%{_prefix}/share/%{_packagename}/scripts/configureslp.sh %{_prefix}/share/%{_packagename}/conf/slp.DA.conf
 fi
-/sbin/chkconfig --add xdaqd 
+# /sbin/chkconfig --add xdaqd #Let the watchdog (EmuServiceGuard) start xdaqd services instead
 /sbin/chkconfig --add slp
 /sbin/service crond restart
 
@@ -160,6 +168,7 @@ exists=`/sbin/chkconfig --list | grep xdaqd`
 if [ x"$exists" != x ] ; then
 /sbin/chkconfig --del xdaqd  > /dev/null 2>&1
 fi
+/sbin/service xdaqd stop
 
 exists=`/sbin/chkconfig --list | grep slp`
 if [ x"$exists" != x ] ; then
