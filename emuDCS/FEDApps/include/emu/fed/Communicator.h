@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.12 2010/08/13 03:00:07 paste Exp $
+* $Id: Communicator.h,v 1.13 2011/06/30 14:00:18 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -101,6 +101,17 @@ namespace emu {
 			inline void sendFact(const std::string &name) {
 				FactFinder::sendFact(std::string(""), name);
 			}
+
+		protected:
+
+			/** Sends a reset to the DCC in the crate, which also
+			* resets the DDU.
+			*
+			*	@param iCrate is the crate to reset
+			*
+			**/
+			void resetCrate(std::vector<Crate *>::iterator iCrate)
+			throw (toolbox::fsm::exception::Exception);
 
 		private:
 

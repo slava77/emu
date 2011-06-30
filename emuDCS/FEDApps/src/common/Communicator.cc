@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.37 2010/08/13 03:00:07 paste Exp $
+* $Id: Communicator.cc,v 1.38 2011/06/30 14:00:18 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -390,6 +390,34 @@ void emu::fed::Communicator::webReconfigure(xgi::Input *in, xgi::Output *out)
 }
 
 
+void emu::fed::Communicator::resetCrate(std::vector<Crate *>::iterator iCrate)
+throw (toolbox::fsm::exception::Exception)
+{
+	// Only reset if we have a DCC in the crate.
+	std::vector<DCC *> dccs = (*iCrate)->getDCCs();
+
+	// Don't reset crate 5 (TF)
+	if (dccs.size() > 0 && !(*iCrate)->isTrackFinder()) {
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "HARD RESET THROUGH DCC!");
+		try {
+			dccs[0]->crateHardReset();
+			REVOKE_ALARM("CommunicatorResetCrate", NULL);
+		} catch (emu::fed::exception::DCCException &e) {
+			std::ostringstream error;
+			error << "Hard reset through DCC in crate " <<
+				(*iCrate)->getNumber() << " slot " << dccs[0]->slot() <<
+				" has failed";
+			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+			std::ostringstream tag;
+			tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " <<
+				dccs[0]->getFMMID();
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException,
+				"CommunicatorResetCrate", "WARN", error.str(), tag.str(),
+				NULL, e);
+		}
+	}
+}
+
 
 void emu::fed::Communicator::configureAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
@@ -415,26 +443,7 @@ throw (toolbox::fsm::exception::Exception)
 	// The hard reset here is just a precaution.  It costs almost nothing as far as time is concerned, and it might help to clear up problems before configure.
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
-		// Only reset if we have a DCC in the crate.
-		std::vector<DCC *> dccs = (*iCrate)->getDCCs();
-
-		// Don't reset crate 5 (TF)
-		if (dccs.size() > 0 && !(*iCrate)->isTrackFinder()) {
-			LOG4CPLUS_DEBUG(getApplicationLogger(), "HARD RESET THROUGH DCC!");
-			try {
-				dccs[0]->crateHardReset();
-				REVOKE_ALARM("CommunicatorConfigureDCCReset", NULL);
-			} catch (emu::fed::exception::DCCException &e) {
-				std::ostringstream error;
-				error << "Hard reset through DCC in crate " << (*iCrate)->getNumber() << " slot " << dccs[0]->slot() << " has failed";
-				LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-				std::ostringstream tag;
-				tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << dccs[0]->getFMMID();
-				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCCReset", "WARN", error.str(), tag.str(), NULL, e);
-				// Not an error--we could still be able to configure properly.
-				//XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-			}
-		}
+		resetCrate(iCrate);
 
 		// Now we do the configure.  This is big.
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuring crate " << (*iCrate)->getNumber());
@@ -1038,6 +1047,13 @@ void emu::fed::Communicator::disableAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Disable");
+
+	if (runType_ == "global") {
+		for (std::vector<Crate *>::iterator iCrate = crateVector_.begin();
+				iCrate != crateVector_.end(); iCrate++)
+			resetCrate(iCrate);
+	} else LOG4CPLUS_DEBUG(getApplicationLogger(),
+		"Disable action:  Not performing reset because run is not global");
 
 	try {
 		TM_->endThreads();

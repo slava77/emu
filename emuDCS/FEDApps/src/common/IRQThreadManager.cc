@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.8 2011/04/20 12:12:56 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.9 2011/06/30 14:00:18 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -297,6 +297,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	
 	// A local count of the number or errors for this crate, indexed by slot
 	std::map<unsigned int, unsigned int> nErrors;
+
+	// A local list of the fibers in error for this crate, indexed by slot
+	std::map<unsigned int, std::vector<std::string> > errFibersBySlot;
 	
 	// Whether or not the debugging trap has been sprung on a given DDU
 	std::map<unsigned int, bool> trapSprung;
@@ -337,6 +340,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		pthread_mutex_unlock(&locdata->errorCountMutex);
 		
 		nErrors.clear();
+		errFibersBySlot.clear();
 		trapSprung.clear();
 		lastDDUError.clear();
 		lastDDU = 0;
@@ -666,12 +670,30 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					// Discover the error counts from this thread.
 					pthread_mutex_lock(&locdata->errorCountMutex);
 					
-					locdata->errorFiberNames[crateNumber].clear(); // Clear out list that contains previous chambers in error.
+					// Clear out list that contains previous chambers in error for crate.
+					locdata->errorFiberNames[crateNumber].clear();
 
-					// Log new chamber errors in persisting array.
+					// Clear out list that contains previous chambers in error for slot.
+					errFibersBySlot[slot].clear();
+
+					// Save new chamber errors for this slot.
 					for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 						if (xorBits[iFiber]) {
-							locdata->errorFiberNames[crateNumber].push_back(myDDU->getFiber(iFiber)->getName());
+							errFibersBySlot[slot].push_back(myDDU->getFiber(iFiber)->getName());
+							// locdata->errorFiberNames[crateNumber].push_back(myDDU->getFiber(iFiber)->getName());
+						}
+					}
+					// Copy error fibers from slot array to external crate list.
+					// This way the bad fibers for other slots are restored to the
+					// external list, while the bad fibers for the current slot are reset
+					// to the current fibers in error.
+					for (std::map<unsigned int, std::vector<std::string> >::iterator
+							iCount = errFibersBySlot.begin(); iCount != errFibersBySlot.end();
+							++iCount) {
+						for (std::vector<std::string>::const_iterator iName =
+								iCount->second.begin(); iName != iCount->second.end();
+								iName++) {
+							locdata->errorFiberNames[crateNumber].push_back(*iName);
 						}
 					}
 					
@@ -689,7 +711,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					}
 
 					if (totalErrors >= locdata->fmmErrorThreshold) {
-						LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this system greater than " << locdata->fmmErrorThreshold);
+						LOG4CPLUS_INFO(logger,
+							"FMMs will be released because the total number of CSCs in an error state on this system greater than " <<
+							locdata->fmmErrorThreshold);
 						if (!myCrate->isTrackFinder()) myCrate->getBroadcastDDU()->enableFMM();
 						// Briefly release the FMMs.
 					}
