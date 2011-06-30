@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 1.3 2010/05/21 12:15:20 liu Exp $
+// $Id: MPC.h,v 1.4 2011/06/30 21:26:36 liu Exp $
 // $Log: MPC.h,v $
+// Revision 1.4  2011/06/30 21:26:36  liu
+// add setDelay function
+//
 // Revision 1.3  2010/05/21 12:15:20  liu
 // add MPC mask
 //
@@ -156,7 +159,7 @@ class MPC : public VMEModule, public EmuLogger {
   //
   /// address is usually one of the above enums.  theBaseAddress
   /// defined in the constructor automatically added
-  void read_fifo(char address, char * data);
+  void read_fifo(unsigned address, char * data);
 
   void read_fifos();
   void read_fifosA();
@@ -171,6 +174,8 @@ class MPC : public VMEModule, public EmuLogger {
   void read_status();
 
   void setTLK2501TxMode(int);
+
+  void setDelay(int delay);
 
   void SoftReset() ;
   //
