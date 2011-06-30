@@ -912,13 +912,13 @@ void EmuPeripheralCrateMonitor::MyHeader(xgi::Input * in, xgi::Output * out, std
 //
 void EmuPeripheralCrateMonitor::Default(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
+  *out << "<head> <meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\"> </head>" <<std::endl;
 }
 //
 //
 void EmuPeripheralCrateMonitor::DCSDefault(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"DCSMain"<<"\">" <<std::endl;
+  *out << "<head> <meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"DCSMain"<<"\"> </head>" <<std::endl;
 }
 //
 

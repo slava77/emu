@@ -1,4 +1,4 @@
-// $Id: EmuCompareMcsFiles.cc,v 1.1 2011/05/02 13:47:22 liu Exp $
+// $Id: EmuCompareMcsFiles.cc,v 1.2 2011/06/30 22:00:09 liu Exp $
 
 #include "emu/pc/EmuCompareMcsFiles.h"
 
@@ -54,13 +54,14 @@ void EmuCompareMcsFiles::SwitchBoard(xgi::Input * in, xgi::Output * out )
   if (command_name=="FAST")
   {
      int interval = atoi(command_argu.c_str());
+     std::cout << "Received " << interval << std::endl;
   }
 }
 
 void EmuCompareMcsFiles::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/"
-       <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
+  *out << "<head> <meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/"
+       <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\"> </head>" <<std::endl;
 }
 
 
