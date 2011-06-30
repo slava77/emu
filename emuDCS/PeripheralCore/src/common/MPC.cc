@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.18 2010/05/21 12:15:20 liu Exp $
+// $Id: MPC.cc,v 3.19 2011/06/30 21:26:36 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.19  2011/06/30 21:26:36  liu
+// add setDelay function
+//
 // Revision 3.18  2010/05/21 12:15:20  liu
 // add MPC mask
 //
@@ -262,10 +265,10 @@ int MPC::CheckConfig()
    return (int) config_ok;
 }
 
-void MPC::read_fifo(char address, char * data) {
-  //data[0] = 0x00;
-  //data[1] = 0x00;
-  do_vme(VME_READ, address, NULL, data, NOW); 
+void MPC::read_fifo(unsigned address, char * data) {
+  // each item in the FIFO occupies two words
+  read_later(address); 
+  read_now(address, data);
 }
 
 void MPC::read_fifosA() {
@@ -274,58 +277,58 @@ void MPC::read_fifosA() {
   //
   std::cout.fill('0');
   //
-  read_fifo(FIFO_A1a, data);  
+  read_now(FIFO_A1a, data);  
   (*MyOutput_) << "MPC: FIFO-A1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A1b, data);
+  read_now(FIFO_A1b, data);
   (*MyOutput_) << "MPC: FIFO-A1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A2a, data);
+  read_now(FIFO_A2a, data);
   (*MyOutput_) << "MPC: FIFO-A2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A2b, data);
+  read_now(FIFO_A2b, data);
   (*MyOutput_) << "MPC: FIFO-A2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A3a, data);
+  read_now(FIFO_A3a, data);
   (*MyOutput_) << "MPC: FIFO-A3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A3b, data);
+  read_now(FIFO_A3b, data);
   (*MyOutput_) << "MPC: FIFO-A3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A4a, data);
+  read_now(FIFO_A4a, data);
   (*MyOutput_) << "MPC: FIFO-A4a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A4b, data);
+  read_now(FIFO_A4b, data);
   (*MyOutput_) << "MPC: FIFO-A4b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A5a, data);
+  read_now(FIFO_A5a, data);
   (*MyOutput_) << "MPC: FIFO-A5a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A5b, data);
+  read_now(FIFO_A5b, data);
   (*MyOutput_) << "MPC: FIFO-A5b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A6a, data);
+  read_now(FIFO_A6a, data);
   (*MyOutput_) << "MPC: FIFO-A6a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A6b, data);
+  read_now(FIFO_A6b, data);
   (*MyOutput_) << "MPC: FIFO-A6b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A7a, data);
+  read_now(FIFO_A7a, data);
   (*MyOutput_) << "MPC: FIFO-A7a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A7b, data);
+  read_now(FIFO_A7b, data);
   (*MyOutput_) << "MPC: FIFO-A7b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A8a, data);
+  read_now(FIFO_A8a, data);
   (*MyOutput_) << "MPC: FIFO-A8a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A8b, data);
+  read_now(FIFO_A8b, data);
   (*MyOutput_) << "MPC: FIFO-A8b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A9a, data);
+  read_now(FIFO_A9a, data);
   (*MyOutput_) << "MPC: FIFO-A9a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
-  read_fifo(FIFO_A9b, data);
+  read_now(FIFO_A9b, data);
   (*MyOutput_) << "MPC: FIFO-A9b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
 }
@@ -337,71 +340,75 @@ void MPC::read_fifos() {
   (*MyOutput_) << "MPC:  Read FIFO-B" << std::endl;
   char data[100];
   //read_fifo(STATUS, data);
-  read_fifo(CSR3, data);
+  read_now(CSR3, data);
   std::cout.fill('0');
-  (*MyOutput_) << "FIFO status " << std::hex << data << std::endl;
+  (*MyOutput_) << "begin FIFO status " << std::hex << std::setw(2) << (data[1]&0xFF) << std::setw(2)<< (data[0]&0xFF) << std::endl;
   std::cout.fill(' ');
   //bool full_fifoa=(data[1]&0x0001);
   //bool empty_fifoa=(data[1]&0x0002)>>1;
   //bool full_fifob=(data[1]&0x0004)>>2;
-  bool empty_fifob=(data[1]&0x0008)>>3;
+  bool empty_fifob=(data[0]&0x0008)>>3;
   //
   unsigned long Lct0,Lct1, Lct2;
-  Lct0=0;Lct1=0;Lct2=0;
+  // Lct0=0;Lct1=0;Lct2=0;
+  int items=0;
   //
-  if(empty_fifob) {
+  if(empty_fifob) 
+  {
     (*MyOutput_) << "MPC: FIFO-B is empty!" << std::endl;
     return;
-  } else {
+  } 
+  while(items<=256 && !empty_fifob)
+  {
     (*MyOutput_) << "MPC: 1st Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B1, data);
-    Lct0 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
+    Lct0 = ((data[1]&0x00ff) << 8) | (data[0]&0x00ff) ;
+    Lct0 = (Lct0<<16) | ((data[3]&0x00ff) << 8) | (data[2]&0x00ff) ;
+    FIFOBLct0.push_back(Lct0);
     (*MyOutput_) << std::hex;
     std::cout.fill('0');
-    (*MyOutput_) << "MPC: FIFO-B1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
-    read_fifo(FIFO_B1, data);
-    Lct0 = (Lct0<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    FIFOBLct0.push_back(Lct0);
-    (*MyOutput_) << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff)  << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B1a = 0x" << std::setw(2) << (data[1]&0x00ff) << std::setw(2) << (data[0]&0x00ff) << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[3]&0x00ff) << std::setw(2) << (data[2]&0x00ff)  << std::endl;
     (*MyOutput_) << "MPC: LCT0     = 0x" << std::setw(8) << Lct0 << std::endl ;
     //
     (*MyOutput_) << "MPC: 2nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B2, data);
-    Lct1 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    (*MyOutput_) << "MPC: FIFO-B2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
-    read_fifo(FIFO_B2, data);
-    Lct1 = (Lct1<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    (*MyOutput_) << "MPC: FIFO-B2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    Lct1 = ((data[1]&0x00ff) << 8) | (data[0]&0x00ff) ;
+    Lct1 = (Lct1<<16) | ((data[3]&0x00ff) << 8) | (data[2]&0x00ff) ;
     FIFOBLct1.push_back(Lct1);
+    (*MyOutput_) << "MPC: FIFO-B2a = 0x" << std::setw(2) << (data[1]&0x00ff) << std::setw(2) << (data[0]&0x00ff) << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B2b = 0x" << std::setw(2) << (data[3]&0x00ff) << std::setw(2) << (data[2]&0x00ff) << std::endl;
     (*MyOutput_) << "MPC: LCT1     = 0x" << std::setw(8) << Lct1 << std::endl ;
     //
     (*MyOutput_) << "MPC: 3nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B3, data);
-    Lct2 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    (*MyOutput_) << "MPC: FIFO-B3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
-    read_fifo(FIFO_B3, data);
-    Lct2 = (Lct2<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    (*MyOutput_) << "MPC: FIFO-B3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) <<(data[1]&0x00ff) << std::endl;
+    Lct2 = ((data[1]&0x00ff) << 8) | (data[0]&0x00ff) ;
+    Lct2 = (Lct2<<16) | ((data[3]&0x00ff) << 8) | (data[2]&0x00ff) ;
     FIFOBLct2.push_back(Lct2);
+    (*MyOutput_) << "MPC: FIFO-B3a = 0x" << std::setw(2) << (data[1]&0x00ff) << std::setw(2) << (data[0]&0x00ff) << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B3b = 0x" << std::setw(2) << (data[3]&0x00ff) << std::setw(2) << (data[2]&0x00ff) << std::endl;
     (*MyOutput_) << "MPC: LCT2     = 0x" << std::setw(8) << Lct2 << std::endl ;
     std::cout.fill(' ');
     (*MyOutput_) << std::dec;    
     //
-    read_fifos();
-    //
+    read_now(CSR3, data);
+    empty_fifob=(data[0]&0x0008)>>3;
+    items++;
   }
   //
-  read_fifo(CSR3, data);
-  (*MyOutput_) << "FIFO status = " << std::hex << data << std::endl;
+  read_now(CSR3, data);
+  std::cout.fill('0');
+  (*MyOutput_) << "end FIFO status " << std::hex << std::setw(2) << (data[1]&0xFF) << std::setw(2)<< (data[0]&0xFF) << std::endl;
+  std::cout.fill(' ');
   //
 }
 
 void MPC::read_csr0() {
   char data[100];
-  read_fifo(CSR0,data);
+  read_now(CSR0,data);
   (*MyOutput_).fill('0');
   (*MyOutput_) << "MPC: data read from CSR0: 0x" << std::hex 
-       << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff)
+       << std::setw(2) << (data[1]&0x00ff) << std::setw(2) << (data[0]&0x00ff)
        << std::dec << std::endl;
   (*MyOutput_).fill(' ');
 }
@@ -421,15 +428,15 @@ void MPC::read_status() {
   //Check FIFO Status:
   char data[100];
   //read_fifo(STATUS, data);
-  read_fifo(CSR3, data);
+  read_now(CSR3, data);
   std::cout.fill('0');
-  (*MyOutput_) << "MPC: FIFO status = 0x" << std::hex << std::setw(2) << (data[0]&0x00ff)
-       << std::setw(2) << (data[1]&0x00ff) << std::dec << std::endl;
+  (*MyOutput_) << "MPC: FIFO status = 0x" << std::hex << std::setw(2) << (data[1]&0x00ff)
+       << std::setw(2) << (data[0]&0x00ff) << std::dec << std::endl;
   std::cout.fill(' ');
-  bool full_fifoa=(data[1]&0x0001);
-  bool empty_fifoa=(data[1]&0x0002)>>1;
-  bool full_fifob=(data[1]&0x0004)>>2;
-  bool empty_fifob=(data[1]&0x0008)>>3;
+  bool full_fifoa=(data[0]&0x0001);
+  bool empty_fifoa=(data[0]&0x0002)>>1;
+  bool full_fifob=(data[0]&0x0004)>>2;
+  bool empty_fifob=(data[0]&0x0008)>>3;
 
   if (full_fifoa>0)  (*MyOutput_) << "MPC: FIFO_A is Full"  << std::endl;
   if (empty_fifoa>0) (*MyOutput_) << "MPC: FIFO_A is Empty" << std::endl;
@@ -875,6 +882,12 @@ void MPC::setTransparentMode(){
   do_vme(VME_WRITE, addr, data, NULL, NOW);
 }
 
+void MPC::setDelay(int delay)
+{
+      int value = ReadRegister(CSR2);
+      value = (value & 0x00ff) | ((delay<<8)&0xff00);
+      WriteRegister(CSR2,value);
+}
 
 void MPC::start() {
 #ifdef debugV
