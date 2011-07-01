@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.3 2011/02/23 11:42:05 liu Exp $
+// $Id: VMEModule.h,v 1.4 2011/07/01 03:19:38 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.4  2011/07/01 03:19:38  liu
+// new JTAG functions
+//
 // Revision 1.3  2011/02/23 11:42:05  liu
 // updated svfLoad, added PROM read back functions
 //
@@ -187,7 +190,7 @@ protected:
   /// meant to replace things like rice_vme and tmb_vme
   void do_vme(char fcn, char vme,const char *snd,char *rcv, int wrt);
   
-  /// these things are wrapped inot VMEController so the
+  /// these things are wrapped into VMEController so the
   /// appropriate start() and end() routines are called
   /// maybe change these to HAL interface someday?
   void devdo(DEVTYPE dev,int ncmd,const  char *cmd,int nbuf,
@@ -202,6 +205,9 @@ protected:
   void CloseJTAG();
   void SetupJtag();
   void SendOutput(std::string,std::string = "INFO");
+  void shift_state(int cnt, int mask);
+  void shift_bits(int reg,const char *snd, int cnt, char *rcv,int ird);
+  void scan_word(int reg,const char *snd, int cnt, char *rcv,int ird);
   
   Crate * theCrate_;
   VMEController * theController;
