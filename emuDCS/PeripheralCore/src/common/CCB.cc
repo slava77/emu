@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.41 2010/08/27 19:51:29 liu Exp $
+// $Id: CCB.cc,v 3.42 2011/07/01 01:42:13 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.42  2011/07/01 01:42:13  liu
+// update
+//
 // Revision 3.41  2010/08/27 19:51:29  liu
 // send PrintTTCRegister output to screen
 //
@@ -382,7 +385,7 @@ void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
   }
   for(int j=0;j<Num_pulse;j++){
     (*MyOutput_) << "Pulsing..."<<std::endl;
-    theController->sleep_vme(pulse_delay);
+    if(pulse_delay>0) theController->sleep_vme(pulse_delay);
     //
     sndbuf[0]=0x00;
     sndbuf[1]=0x00;
