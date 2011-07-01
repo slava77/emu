@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.26 2011/02/23 11:42:04 liu Exp $
+// $Id: VMEModule.cc,v 3.27 2011/07/01 03:37:20 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.27  2011/07/01 03:37:20  liu
+// new JTAG functions
+//
 // Revision 3.26  2011/02/23 11:42:04  liu
 // updated svfLoad, added PROM read back functions
 //
@@ -349,6 +352,24 @@ bool VMEModule::exist(){
   return theController->exist( theSlot );
 }
 
+void VMEModule::scan_word(int reg,const char *snd, int cnt, char *rcv,int ird)
+{
+  theController->start( theSlot, boardType() );
+  theController->scan_word(reg, snd, cnt, rcv, ird);
+}
+
+void VMEModule::shift_bits(int reg,const char *snd, int cnt, char *rcv,int ird)
+{
+  theController->start( theSlot, boardType() );
+  theController->shift_bits(reg, snd, cnt, rcv, ird);
+}
+
+void VMEModule::shift_state(int cnt, int mask)
+{
+   theController->start( theSlot, boardType() );
+   theController->shift_state( cnt, mask);
+}
+
 int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 {
   int MAXBUFSIZE=8200;
@@ -419,10 +440,11 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   printf("=== Programming Design with %s through JTAG chain %d\n",downfile, jchan);  
   printf("=== Have to send %d DATA packages \n",total_packages) ;
   one_pct=(total_packages+99)/100;
+  if(one_pct<=0) one_pct=1;
   
   this->start(); 
 // turn on delay, otherwise the VCC's FIFO full
-  theController->SetUseDelay(true);
+  theController->SetUseDelay(false);
   count=0; 
   nowrit=1;
   step_mode=0;
@@ -442,7 +464,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	      if(lastn!=0)lastn[0]='\0';
 	      memcpy(buf2,buf,256);
 	      Parse(buf2, &Count, &(Word[0]));
-	      if(( strcmp(Word[0],"SDR")==0) || (strcmp(Word[0],"SIR")==0))
+	      if(( strcmp(Word[0],"SDR")==0) || (strcmp(Word[0],"SIR")==0) || (strcmp(Word[0],"SWR")==0) || (strcmp(Word[0],"SBR")==0) || (strcmp(Word[0],"SER")==0))
 		{
 		  sscanf(Word[1],"%d",&nbits);
 		  if (nbits>MAXBUFSIZE) // === Handle Big Bitstreams
@@ -657,8 +679,10 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	      }
 	 }
 	 // === Handling SDR ===
-	 else if(strcmp(Word[0],"SDR")==0)
+	 else if(strcmp(Word[0],"SDR")==0 || strcmp(Word[0],"SWR")==0)
 	 {
+            bool word_by_word=false;
+            if(strcmp(Word[0],"SWR")==0) word_by_word=true; 
 	      //std::cout << "SDR" << std::endl;
 	      for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
 	      // cmpflag=1;    //disable the comparison for no TDO SDR
@@ -738,7 +762,10 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	       if ( send_packages == total_packages ) std::cout << "Done!" << std::endl;
             }
 	    //
-	    this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, verify); 
+            if(word_by_word)
+              this->scan_word(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, (verify>0 && cmpflag>0)?1:0);
+            else
+	      this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, (verify>0 && cmpflag>0)?1:0); 
 	    //
 	    if (db)
 	    {	
@@ -864,7 +891,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 		realsnd[(i+hirbits+nbits)/8] |= (sndtir[i/8] >> (i%8)) << ((i+hirbits+nbits)%8);
 	    }
 	    //
-	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, verify); 
+	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, (verify>0 && cmpflag>0)?1:0); 
 	    //	   
 	    if (db)
 	    { 	printf("SIR Send Data: ");
@@ -938,6 +965,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
                }
                else
                {
+                  pause /= 2;
                   if(pause>=1000000)
                   {
                      // printf("pause %d seconds. ", pause/1000000);
@@ -982,7 +1010,6 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	  // === Handling READ ===
 	  else if(strcmp(Word[0],"READ")==0)
 	  {
-	    for(i=0;i<3;i++) sndbuf[i]=tdi_pre_sdr[i];
  	    sscanf(Word[1],"%d",&nbits);
             if (Count>2 && strcmp(Word[2],"REPEAT")==0) sscanf(Word[3],"%d",&repeat);
             if(repeat<=1) repeat=1;
@@ -1035,6 +1062,150 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
                } //end of extracting bitstream           
             }  // end of repeat
 	  } //end of READ
+	 // === Handling SBR & SER===
+	 else if(strcmp(Word[0],"SBR")==0 || strcmp(Word[0],"SER")==0)
+	 {
+	      //std::cout << "SBR/SER" << std::endl;
+            int exit_state=0;
+            if(strcmp(Word[0],"SER")==0) exit_state=1;
+	    sscanf(Word[1],"%d",&nbits);
+	    nbytes=(nbits+7)/8;
+            tbytes=(hdrbits+nbits+tdrbits+7)/8;
+	    if (db)	  printf("Sending %d bits Data\n", nbits);
+	    for(i=2;i<Count;i+=2)
+	      {
+	      if(strcmp(Word[i],"TDI")==0)
+		{
+		  for(j=0;j<nbytes;j++)
+		    {
+		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&snd[j]);
+		      //                printf("%2X",snd[j]);
+		    }
+		  //                printf("\n%d\n",nbytes);
+		}
+	      if(strcmp(Word[i],"SMASK")==0)
+		{
+		  for(j=0;j<nbytes;j++)
+		    {
+		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&smask[j]);
+		    }
+		}
+	      if(strcmp(Word[i],"TDO")==0)
+		{
+		  //if (db>2)             cmpflag=1;
+		  cmpflag=1;
+		  for(j=0;j<nbytes;j++)
+		    {
+		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&expect[j]);
+		    }
+		}
+	      if(strcmp(Word[i],"MASK")==0)
+		{
+		  for(j=0;j<nbytes;j++)
+		    {
+		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+		    }
+		}
+	      }
+            // Put send SDR here
+	    for (i=0; i< tbytes; i++)
+	      realsnd[i] = 0;
+	    if (hdrbytes>0) {
+	      for (i=0;i<hdrbytes;i++)
+		realsnd[i]=sndhdr[i];
+	    }
+	    for (i=0;i<nbits;i++)
+ 	      realsnd[(i+hdrbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hdrbits)%8);
+	    if (tdrbytes>0) {
+	      for (i=0;i<tdrbits;i++)
+		realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
+	    }	    
+	    //
+	    send_packages++ ;
+            if(!readprom)
+            {
+               if ( (send_packages%one_pct)==0 ) 
+                  std::cout << "Sending " << std::dec << send_packages/one_pct << "%..." << std::endl;
+	       if ( send_packages == total_packages ) std::cout << "Done!" << std::endl;
+            }
+	    //
+	    this->shift_bits(exit_state, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, verify); 
+	    //
+	    if (db)
+	    {	
+	      printf("SBR Sent Data: ");
+	      for (i=0; i< tbytes; i++) 
+		printf("%02X",realsnd[i]);
+	      printf("\n");
+	      //
+	      printf("SBR Readback Data: ");
+	      for (i=0; i< tbytes; i++) 
+		printf("%02X",rcv[i]);
+	      printf("\n");
+	    }		    
+	    //
+	    if (verify && cmpflag==1)
+	    {     
+               if(hdrbits>0)
+               {
+                  //   1. expend bytes into bits
+   	          for(i=0;i<tbytes;i++)
+	          {
+                      tmp=rcv[i];
+                      for(j=0; j<8; j++)
+                      {
+                          buf[i*8+j]=tmp&1;
+                          tmp >>= 1;
+                      }
+                  }
+                  //   2. put bits (without HDR & TDR) back into bytes
+                  int rcvindex=0;
+	          for(i=0;i<nbytes;i++)
+	          {
+                      tmp=0;
+                      for(j=7; j>=0; j--)
+                      {
+                          tmp <<= 1;
+                          tmp |= (buf[i*8+j+hdrbits]&1);
+                      }
+                      rcv[rcvindex++]=tmp;
+                  }
+               } //end of removing HDR & TDR           
+
+	       for(i=0;i<nbytes;i++)
+	       {
+		   if (((rcv[i]^expect[i]) & rmask[i])!=0)
+		   {
+		      if(db) printf("SBR read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
+		      errcntr++;
+		   }
+	       }	
+	    }
+         }
+	 // === Handling SST ===
+	 else if(strcmp(Word[0],"SST")==0)
+	 {
+	      //std::cout << "SST" << std::endl;
+	    sscanf(Word[1],"%d",&nbits);
+	    tbytes=(nbits+7)/8;
+	    if (db)	  printf("Sending %d bits Data\n", nbits);
+            int sndint;
+	    for(i=2;i<Count;i+=2)
+	      {
+	      if(strcmp(Word[i],"TMS")==0)
+		{
+		    sscanf(&Word[i+1][1],"%8X",&sndint);
+		}
+	      }
+	    this->shift_state(nbits, sndint); 
+	    //
+	    if (db)
+	    {	
+	      printf("SST Sent Data: ");
+              printf("%08X\n",sndint);
+	    }		    
+	    //
+         }
 	}
     }
   // At the end of downloading, bring JTAG to RESET state.
