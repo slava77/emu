@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.43 2011/03/11 13:43:13 liu Exp $
+// $Id: EmuDim.cc,v 1.44 2011/07/02 05:00:16 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -693,9 +693,19 @@ void EmuDim::CheckCommand()
 {
    if(LV_1_Command==NULL) return;
    bool start_powerup=false;
-   while(LV_1_Command->getNext())
+   int more_command=0;
+   std::string cmnd="";
+   try 
+     {
+        more_command = LV_1_Command->getNext();
+        if (more_command>0) cmnd = LV_1_Command->getString();
+     } catch (...) 
+     {   
+        std::cout << getLocalDateTime() << " Get Dim Command error" << std::endl;
+        // more_command = 0; 
+     }
+   while(more_command>0)
    {
-      std::string cmnd = LV_1_Command->getString();
       std::cout << getLocalDateTime() << " Dim Command:" << cmnd << std::endl;
       if(cmnd.substr(0,10)=="STOP_SLOW_")
       {
@@ -766,6 +776,16 @@ void EmuDim::CheckCommand()
          start_powerup=true;
       }
       // all other commands are ignored
+      more_command=0;
+      try 
+        {
+           more_command = LV_1_Command->getNext();
+           if (more_command>0) cmnd = LV_1_Command->getString();
+        } catch (...) 
+        {   
+           std::cout << getLocalDateTime() << " Get Dim Command error" << std::endl;
+           // more_command = 0; 
+        }
    }
    if(start_powerup) PowerUp();
 }
