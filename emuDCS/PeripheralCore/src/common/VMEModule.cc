@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.27 2011/07/01 03:37:20 liu Exp $
+// $Id: VMEModule.cc,v 3.28 2011/07/02 15:41:00 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.28  2011/07/02 15:41:00  liu
+// restore default/longer delay value in SVFload
+//
 // Revision 3.27  2011/07/01 03:37:20  liu
 // new JTAG functions
 //
@@ -965,7 +968,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
                }
                else
                {
-                  pause /= 2;
+                  // pause /= 2;
                   if(pause>=1000000)
                   {
                      // printf("pause %d seconds. ", pause/1000000);
