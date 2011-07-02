@@ -919,6 +919,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalCFEB");
     }   
 
+    // By now the local must have finished configuring:
+    try{
+      if ( isDAQManagerControlled("Configure") ) waitForDAQToExecute("Configure", 5, true);
+    } catch (xcept::Exception ignored) {}
+
+
     state_table_.refresh();
     if (!state_table_.isValidState("Configured")) {
       stringstream ss;
@@ -1553,13 +1559,13 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
 {
   emu::soap::Messenger m( this );
   xdata::Boolean supervisedMode;
-  xdata::Boolean configuredInSupervisedMode;
+  // xdata::Boolean configuredInSupervisedMode;
   xdata::String  daqState;
   try {
     m.getParameters( "emu::daq::manager::Application", 0,
 		     emu::soap::Parameters()
 		     .add( "supervisedMode"            , &supervisedMode             )
-		     .add( "configuredInSupervisedMode", &configuredInSupervisedMode )
+		     // .add( "configuredInSupervisedMode", &configuredInSupervisedMode )
 		     .add( "daqState"                  , &daqState                   ) );
   }
   catch (xcept::Exception &ignored){
@@ -1583,7 +1589,7 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
   if ( ! bool( supervisedMode ) ) { return false; }
   
   // And don't send any other command when DAQ was configured in unsupervised mode, either.
-  if ( command != "Configure" && !bool( configuredInSupervisedMode ) ) { return false; }
+  // if ( command != "Configure" && !bool( configuredInSupervisedMode ) ) { return false; }
 
   return true;
 
