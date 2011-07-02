@@ -845,8 +845,7 @@ throw (xgi::exception::Exception)
 	      // Warn him if we are in a locally configured run.
 	      warningsToDisplay_ = "<p><span style=\"color:#ff0000; font-weight:bold; text-decoration:blink\">Warning</span>:";
 	      warningsToDisplay_ += "You have chosen <em>supervised mode</em> (i.e., handed over the control to [CSC Supervisor | CSC Function Manager | Central Run Control]) in a run configured in <em>unsupervised mode</em> (i.e., by CSC Shift from this web page). ";
-	      warningsToDisplay_ += "Such runs can only be stopped in <em>unsupervised mode</em>. ";
-	      warningsToDisplay_ += "Consider going back to <em>unsupervised mode</em>.</p>";
+	      warningsToDisplay_ += "The current local run will be automatically stopped in sync with the global run, and the subsequent local runs will also be automatically started and stopped in sync with the global ones.";
 	    }
 	    else{
 	      warningsToDisplay_ = "";
@@ -4268,6 +4267,16 @@ void emu::daq::manager::Application::writeRunInfo(){
     ss66 <<  "Nothing written to run database as no run number was booked.";
     XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss66.str() );
     this->notifyQualified( "warning", eObj );
+  }
+
+  // If no runInfo, this run must have been booked by the Supervisor or the FM. We're not supposed to write anything then.
+  if (  runInfo_ == NULL ){ 
+    stringstream ss;
+    ss <<  "Nothing written to run database by emu::daq::Manager as this run was not booked by emu::daq::Manager.";
+    LOG4CPLUS_WARN(logger_, ss.str() );
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss.str() );
+    this->notifyQualified( "warning", eObj );
+    return;
   }
 
 
