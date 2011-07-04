@@ -919,9 +919,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalCFEB");
     }   
 
-    // By now the local must have finished configuring:
+    // By now the local DAQ must have finished configuring. Checking it is practically only needed
+    // in tests when the local DAQ Manager is the only supervised app. We certainly don't need to do it
+    // in global runs.
     try{
-      if ( isDAQManagerControlled("Configure") ) waitForDAQToExecute("Configure", 5, true);
+      if ( runType != "global" ) 
+	if ( isDAQManagerControlled("Configure") ) waitForDAQToExecute("Configure", 5, true);
     } catch (xcept::Exception ignored) {}
 
 
