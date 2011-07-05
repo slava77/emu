@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.38 2011/06/30 14:00:18 cvuosalo Exp $
+* $Id: Communicator.cc,v 1.39 2011/07/05 14:40:19 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -1053,7 +1053,7 @@ throw (toolbox::fsm::exception::Exception)
 				iCrate != crateVector_.end(); iCrate++)
 			resetCrate(iCrate);
 	} else LOG4CPLUS_DEBUG(getApplicationLogger(),
-		"Disable action:  Not performing reset because run is not global");
+		"Disable action:  Not performing reset because run is not global: " << runType_.toString());
 
 	try {
 		TM_->endThreads();
