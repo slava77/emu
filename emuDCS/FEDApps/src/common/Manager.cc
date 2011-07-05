@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.21 2010/04/19 15:30:36 paste Exp $
+* $Id: Manager.cc,v 1.22 2011/07/05 13:01:26 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -435,6 +435,17 @@ throw (toolbox::fsm::exception::Exception)
 		notifyQualified("WARN", e2);
 
 		fireEvent("Halt");
+	}
+
+	try{
+	        setParameter("emu::fed::Communicator","runType","xsd:string",runType_.toString());
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "In configuring, Manager failed to set run type for Communicators";
+		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+		XCEPT_DECLARE_NESTED(emu::fed::exception::FSMException, e2, error.str(), e);
+		notifyQualified("FATAL", e2);
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e2);
 	}
 
 	try{
