@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.13 2011/06/30 14:00:18 cvuosalo Exp $
+* $Id: Communicator.h,v 1.14 2011/07/06 12:27:00 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -111,6 +111,11 @@ namespace emu {
 			*
 			**/
 			void resetCrate(std::vector<Crate *>::iterator iCrate)
+			throw (toolbox::fsm::exception::Exception);
+
+			/** Configures the FED crates
+			**/
+			void configureCrates()
 			throw (toolbox::fsm::exception::Exception);
 
 		private:
