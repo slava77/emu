@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.39 2011/07/05 14:40:19 cvuosalo Exp $
+* $Id: Communicator.cc,v 1.40 2011/07/06 12:27:14 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -398,7 +398,7 @@ throw (toolbox::fsm::exception::Exception)
 
 	// Don't reset crate 5 (TF)
 	if (dccs.size() > 0 && !(*iCrate)->isTrackFinder()) {
-		LOG4CPLUS_DEBUG(getApplicationLogger(), "HARD RESET THROUGH DCC!");
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "HARD RESET THROUGH DCC!  Crate " << (*iCrate)->getNumber());
 		try {
 			dccs[0]->crateHardReset();
 			REVOKE_ALARM("CommunicatorResetCrate", NULL);
@@ -419,27 +419,9 @@ throw (toolbox::fsm::exception::Exception)
 }
 
 
-void emu::fed::Communicator::configureAction(toolbox::Event::Reference event)
+void emu::fed::Communicator::configureCrates()
 throw (toolbox::fsm::exception::Exception)
 {
-
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Configure");
-
-	LOG4CPLUS_INFO(getApplicationLogger(), "Configuring Communicator application using mode " << configMode_.toString());
-
-	// Configure the software so it knows to what it is talking
-	try {
-		// Under no circumstances do you configure software if you are enabled.
-		if (crateVector_.empty() || state_ != "Enabled") softwareConfigure();
-		REVOKE_ALARM("CommunicatorConfigurator", NULL);
-	} catch (emu::fed::exception::ConfigurationException &e) {
-		std::ostringstream error;
-		error << "Unable to properly configure the Communicator software: " << e.what();
-		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigurator", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-	}
-
 	// The hard reset here is just a precaution.  It costs almost nothing as far as time is concerned, and it might help to clear up problems before configure.
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
@@ -701,7 +683,7 @@ throw (toolbox::fsm::exception::Exception)
 
 		// Resync the crate to check DCC status
 		if (myDCCs.size() > 0 && !(*iCrate)->isTrackFinder()) {
-			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!");
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!  Crate " << (*iCrate)->getNumber());
 			try {
 				myDCCs[0]->crateResync();
 				REVOKE_ALARM("CommunicatorConfigureResync", NULL);
@@ -825,6 +807,29 @@ throw (toolbox::fsm::exception::Exception)
 	}
 }
 
+
+void emu::fed::Communicator::configureAction(toolbox::Event::Reference event)
+throw (toolbox::fsm::exception::Exception)
+{
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Configure");
+
+	LOG4CPLUS_INFO(getApplicationLogger(), "Configuring Communicator application using mode " << configMode_.toString());
+
+	// Configure the software so it knows to what it is talking
+	try {
+		// Under no circumstances do you configure software if you are enabled.
+		if (crateVector_.empty() || state_ != "Enabled") softwareConfigure();
+		REVOKE_ALARM("CommunicatorConfigurator", NULL);
+	} catch (emu::fed::exception::ConfigurationException &e) {
+		std::ostringstream error;
+		error << "Unable to properly configure the Communicator software: " << e.what();
+		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigurator", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+	}
+	configureCrates();
+}
 
 
 void emu::fed::Communicator::enableAction(toolbox::Event::Reference event)
@@ -1049,11 +1054,11 @@ throw (toolbox::fsm::exception::Exception)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Disable");
 
 	if (runType_ == "global") {
-		for (std::vector<Crate *>::iterator iCrate = crateVector_.begin();
-				iCrate != crateVector_.end(); iCrate++)
-			resetCrate(iCrate);
+		LOG4CPLUS_DEBUG(getApplicationLogger(),
+			"Disable action:  Configuring crates to ensure they are ready for a new run");
+		configureCrates();
 	} else LOG4CPLUS_DEBUG(getApplicationLogger(),
-		"Disable action:  Not performing reset because run is not global: " << runType_.toString());
+		"Disable action:  Not configuring crates because run is not global: " << runType_.toString());
 
 	try {
 		TM_->endThreads();
