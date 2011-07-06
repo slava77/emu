@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.9 2011/06/30 14:00:18 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.10 2011/07/06 12:27:44 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -755,13 +755,13 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 							// Check if the last DDU's error is now different from what it was before
 							if (myDDU->readFiberErrors() < lastDDUError[lastDDU]) {
-								LOG4CPLUS_INFO(logger, "Reset detected on crate " << crateNumber << ": checking again to make sure...");
+								LOG4CPLUS_INFO(logger, "Resync detected on crate " << crateNumber << ": checking again to make sure...");
 
 								usleep(100);
 								pthread_testcancel();
 
 								if (myDDU->readFiberErrors() < lastDDUError[lastDDU]) {
-									LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << crateNumber);
+									LOG4CPLUS_INFO(logger, "Resync confirmed on crate " << crateNumber);
 									
 									emu::base::TypedFact<emu::fed::DDUFMMResetFact> fact;
 									std::ostringstream component;
@@ -779,7 +779,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 									
 								} else {
 									
-									LOG4CPLUS_INFO(logger, "No reset.  Continuing as normal.");
+									LOG4CPLUS_INFO(logger, "No resync.  Continuing as normal.");
 									
 								}
 								
