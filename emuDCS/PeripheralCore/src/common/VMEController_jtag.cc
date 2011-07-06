@@ -1038,10 +1038,10 @@ void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ir
    //  reg=0: instruction
    //  reg=1: data
    //
-   for(i=reg; i<4; i++)
+   for(i=reg; i<6; i++)
    {
      d=pvme;
-     if(i<2) d |=TMS;
+     if(i>(reg+1) && i<4) d |=TMS;
      for(j=0;j<3;j++)
      {  
         // each shift needs 3 VME writes, the 2nd one with TCK on:
