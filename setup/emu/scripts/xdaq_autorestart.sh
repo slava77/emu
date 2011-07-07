@@ -23,6 +23,7 @@ TIMES=( $(for (( I=1; I<$N_STARTS; I++ )); do print $NOW; done) )
 
 echo "This script was invoked by the command:"
 echo $0 "$@"
+echo "at $(date)"
 echo
 echo "The shell environment:"
 limit
@@ -45,6 +46,7 @@ for (( I=1 ;; I++ )); do
     fi
     echo Invoking command:
     echo ${XDAQ_ROOT}/bin/xdaq.exe ${XDAQ_PROFILE:+"-e $XDAQ_PROFILE"} "$@"
+    echo "at $(date)"
     echo
     ${XDAQ_ROOT}/bin/xdaq.exe ${XDAQ_PROFILE:+"-e $XDAQ_PROFILE"} "$@"
     /bin/sleep $SLEEP
