@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.24 2011/02/10 09:12:47 banicz Exp $
+# $Id: Makefile,v 1.25 2011/07/07 14:08:05 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -55,6 +55,6 @@ clean:
 
 include $(XDAQ_ROOT)/config/mfSetupRPM.rules
 
-csctfrpm:
+triggerrpm:
 	mkdir -p rpm/{BUILD,RPMS}
-	rpmbuild -bb -vv emu-csctf.spec
+	rpmbuild -bb -vv emu-trigger.spec
