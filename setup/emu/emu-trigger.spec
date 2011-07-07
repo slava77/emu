@@ -2,10 +2,10 @@
 %define _topdir %{workingDir}/rpm
 %define XDAQ_ROOT /opt/xdaq
 
-Summary: Configuration files to run the FED processes in the 'emu' zone on csc-tf. To be installed on csc-tf exclusively.
-Name: emu-csctf
+Summary: Configuration files and scripts needed for emu to run processes on csc-tf and csc-ttc.
+Name: emu-trigger
 Version: 1.0.0
-Release: 1
+Release: 1.cmsos10.slc4
 License: none
 Group: none
 URL: none
@@ -13,9 +13,9 @@ Source0: cvs
 BuildRoot: /tmp/%{name}-%{version}-%{release}-root
 
 %description
-Configuration files to run the FED processes in the 'emu' zone on csc-tf.
-It doesn't set up xdaqd as that is run in a trigger zone on csc-tf.
-To be installed on csc-tf exclusively.
+Configuration files and scripts needed for emu to run processes on csc-tf and csc-ttc.
+It doesn't set up xdaqd or similar as that is run in a trigger zone on the trigger nodes.
+To be installed on trigger nodes exclusively.
 
 %prep
 
@@ -46,5 +46,5 @@ done
 
 
 %changelog
-* Thu Aug 13 2009 cscdaq common account <cscdaq@csc-C2D07-08.cms> - csctf-1
+* Thu Jul 7 2011 cscdaq common account <cscdaq@csc-C2D08-11.cms>
 - Initial build.
