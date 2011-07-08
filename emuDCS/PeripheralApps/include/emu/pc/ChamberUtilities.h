@@ -57,6 +57,7 @@ public:
   void CFEBTiming();
   void CFEBTiming_with_Posnegs();
   void CFEBTiming_without_Posnegs();
+  void CFEBTiming_with_Posnegs_ME11a();
   //
   /// RAT -> TMB communication delays
   int  RatTmbDelayScan();

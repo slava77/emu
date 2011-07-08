@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.37 2011/02/04 11:27:22 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.38 2011/07/08 13:56:06 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.38  2011/07/08 13:56:06  rakness
+// add a function to measure CFEB-TMB timing on ME1/1a independently
+//
 // Revision 1.37  2011/02/04 11:27:22  rakness
 // update CFEB rx timing scan to handle the special region of 1bx timing shifts
 //
@@ -475,6 +478,7 @@ ChamberUtilities::~ChamberUtilities(){
 void ChamberUtilities::CFEBTiming(){
   //
   return CFEBTiming_with_Posnegs();
+  //  return CFEBTiming_with_Posnegs_ME11a();
 }
 //
 void ChamberUtilities::CFEBTiming_without_Posnegs(){
@@ -1259,6 +1263,544 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(){
 		 << ") ==> in the special region" << std::endl;
     //
     for (int i=0; i<5; i++) {
+      cfeb_rxd_int_delay[i] = initial_cfeb_rxd_int_delay[i] - 1;
+      //
+      (*MyOutput_) << "... cfebN_rxd_int_delay goes from " << initial_cfeb_rxd_int_delay[i]
+		   << " -> " << cfeb_rxd_int_delay[i] << std::endl;
+      std::cout    << "... cfebN_rxd_int_delay goes from " << initial_cfeb_rxd_int_delay[i]
+		   << " -> " << cfeb_rxd_int_delay[i] << std::endl;
+      //
+      if (cfeb_rxd_int_delay[i] < 0 ) {
+  	cfeb_rxd_int_delay[i] = -999;
+  	(*MyOutput_) << "WARNING:  cfeb_rxd_int_delay is < 0..." << std::endl;
+  	std::cout    << "WARNING:  cfeb_rxd_int_delay is < 0..." << std::endl;
+      }
+    }
+  }
+  //
+  // return to initial values:
+  //
+  me11_pulsing_ = 0;
+  //
+  thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
+  thisTMB->WriteRegister(seq_trig_en_adr);
+  //
+  thisTMB->SetTmbAllowClct(initial_clct_trig_enable);
+  thisTMB->WriteRegister(tmb_trig_adr);
+  //
+  thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
+  thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
+  thisTMB->WriteRegister(seq_clct_adr);
+  //
+  thisTMB->SetIgnoreCcbStartStop(initial_ignore_ccb_startstop);
+  thisTMB->WriteRegister(ccb_trig_adr);
+  //
+  thisTMB->SetEnableLayerTrigger(initial_layer_trig_enable);
+  thisTMB->WriteRegister(layer_trg_mode_adr);
+  //
+  if (use_measured_values_) { 
+    //
+    (*MyOutput_) << "Setting cfeb[0-4]delay phases to measured values..." << std::endl;
+    //
+    thisTMB->SetCfeb0RxClockDelay(CFEBrxPhase_[0]);
+    thisTMB->SetCfeb0RxPosNeg(CFEBrxPosneg_[0]);
+    thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb0_rxd_adr);
+    //
+    thisTMB->SetCfeb1RxClockDelay(CFEBrxPhase_[1]);
+    thisTMB->SetCfeb1RxPosNeg(CFEBrxPosneg_[1]);
+    thisTMB->WriteRegister(phaser_cfeb1_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb1_rxd_adr);
+    //
+    thisTMB->SetCfeb2RxClockDelay(CFEBrxPhase_[2]);
+    thisTMB->SetCfeb2RxPosNeg(CFEBrxPosneg_[2]);
+    thisTMB->WriteRegister(phaser_cfeb2_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb2_rxd_adr);
+    //
+    thisTMB->SetCfeb3RxClockDelay(CFEBrxPhase_[3]);
+    thisTMB->SetCfeb3RxPosNeg(CFEBrxPosneg_[3]);
+    thisTMB->WriteRegister(phaser_cfeb3_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb3_rxd_adr);
+    //
+    thisTMB->SetCfeb4RxClockDelay(CFEBrxPhase_[4]);
+    thisTMB->SetCfeb4RxPosNeg(CFEBrxPosneg_[4]);
+    thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
+    //
+  } else {
+    //
+    (*MyOutput_) << "Reverting back to original cfeb[0-4]delay phase values..." << std::endl;
+    //
+    thisTMB->SetCfeb0RxClockDelay(initial_cfeb_phase[0]);
+    thisTMB->SetCfeb0RxPosNeg(initial_cfeb_posneg[0]);
+    thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb0_rxd_adr);
+    //
+    thisTMB->SetCfeb1RxClockDelay(initial_cfeb_phase[1]);
+    thisTMB->SetCfeb1RxPosNeg(initial_cfeb_posneg[1]);
+    thisTMB->WriteRegister(phaser_cfeb1_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb1_rxd_adr);
+    //
+    thisTMB->SetCfeb2RxClockDelay(initial_cfeb_phase[2]);
+    thisTMB->SetCfeb2RxPosNeg(initial_cfeb_posneg[2]);
+    thisTMB->WriteRegister(phaser_cfeb2_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb2_rxd_adr);
+    //
+    thisTMB->SetCfeb3RxClockDelay(initial_cfeb_phase[3]);
+    thisTMB->SetCfeb3RxPosNeg(initial_cfeb_posneg[3]);
+    thisTMB->WriteRegister(phaser_cfeb3_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb3_rxd_adr);
+    //
+    thisTMB->SetCfeb4RxClockDelay(initial_cfeb_phase[4]);
+    thisTMB->SetCfeb4RxPosNeg(initial_cfeb_posneg[4]);
+    thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
+    //
+  }
+  //
+  comparing_with_clct_ = false;
+  //
+  thisTMB->RedirectOutput(MyOutput_);
+  thisDMB->RedirectOutput(MyOutput_);
+  thisCCB_->RedirectOutput(MyOutput_);
+  thisMPC->RedirectOutput(MyOutput_);
+  //
+  return;
+}
+//
+//
+void ChamberUtilities::CFEBTiming_with_Posnegs_ME11a(){
+  //
+  if (debug_) {
+    std::cout << "**************************************" << std::endl;
+    std::cout << "ME1/1A:  Find cfeb4delay with Posnegs:" << std::endl;
+    std::cout << "**************************************" << std::endl;
+  }
+  (*MyOutput_) << "*************************************" << std::endl;
+  (*MyOutput_) << "ME1/1A:  Find cfeb4delay with Posnegs:" << std::endl;
+  (*MyOutput_) << "*************************************" << std::endl;
+  //
+  // send output to std::cout except for the essential information 
+  thisTMB->RedirectOutput(&std::cout);
+  thisDMB->RedirectOutput(&std::cout);
+  thisCCB_->RedirectOutput(&std::cout);
+  thisMPC->RedirectOutput(&std::cout);
+  //
+  // Set up for this test...
+  // Get initial values:
+  int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
+  int initial_clct_trig_enable              = thisTMB->GetTmbAllowClct();             //0x86
+  int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
+  int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
+  int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
+  int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
+  //
+  int initial_cfeb_phase[5] = {};
+  initial_cfeb_phase[0]  = thisTMB->GetCfeb0RxClockDelay();                          //0x112
+  initial_cfeb_phase[1]  = thisTMB->GetCfeb1RxClockDelay();                          //0x114
+  initial_cfeb_phase[2]  = thisTMB->GetCfeb2RxClockDelay();                          //0x116
+  initial_cfeb_phase[3]  = thisTMB->GetCfeb3RxClockDelay();                          //0x118
+  initial_cfeb_phase[4]  = thisTMB->GetCfeb4RxClockDelay();                          //0x11a
+  //
+  int initial_cfeb_posneg[5] = {};
+  initial_cfeb_posneg[0] = thisTMB->GetCfeb0RxPosNeg();                              //0x112
+  initial_cfeb_posneg[1] = thisTMB->GetCfeb1RxPosNeg();                              //0x114
+  initial_cfeb_posneg[2] = thisTMB->GetCfeb2RxPosNeg();                              //0x116
+  initial_cfeb_posneg[3] = thisTMB->GetCfeb3RxPosNeg();                              //0x118
+  initial_cfeb_posneg[4] = thisTMB->GetCfeb4RxPosNeg();                              //0x11a
+  //
+  int initial_cfeb_rxd_int_delay[5] = {};
+  initial_cfeb_rxd_int_delay[0] = thisTMB->GetCFEB0RxdIntDelay();
+  initial_cfeb_rxd_int_delay[1] = thisTMB->GetCFEB1RxdIntDelay();
+  initial_cfeb_rxd_int_delay[2] = thisTMB->GetCFEB2RxdIntDelay();
+  initial_cfeb_rxd_int_delay[3] = thisTMB->GetCFEB3RxdIntDelay();
+  initial_cfeb_rxd_int_delay[4] = thisTMB->GetCFEB4RxdIntDelay();
+  //
+  int read_cfeb_tof_delay[5] = {};
+  thisTMB->ReadRegister(vme_ddd1_adr);
+  thisTMB->ReadRegister(vme_ddd2_adr);
+  read_cfeb_tof_delay[0] = thisTMB->GetReadCfeb0TOFDelay();
+  read_cfeb_tof_delay[1] = thisTMB->GetReadCfeb1TOFDelay();
+  read_cfeb_tof_delay[2] = thisTMB->GetReadCfeb2TOFDelay();
+  read_cfeb_tof_delay[3] = thisTMB->GetReadCfeb3TOFDelay();
+  read_cfeb_tof_delay[4] = thisTMB->GetReadCfeb4TOFDelay();
+  //
+  int write_cfeb_tof_delay[5] = {};
+  write_cfeb_tof_delay[0] = thisTMB->GetCfeb0TOFDelay();
+  write_cfeb_tof_delay[1] = thisTMB->GetCfeb1TOFDelay();
+  write_cfeb_tof_delay[2] = thisTMB->GetCfeb2TOFDelay();
+  write_cfeb_tof_delay[3] = thisTMB->GetCfeb3TOFDelay();
+  write_cfeb_tof_delay[4] = thisTMB->GetCfeb4TOFDelay();
+  //
+  for (int i=0; i<5; i++) {
+    if (read_cfeb_tof_delay[i] != write_cfeb_tof_delay[i]) {
+      (*MyOutput_) << "WARNING: Read cfeb" << i << "_tof_delay = " << read_cfeb_tof_delay[i] 
+		   << " which does not equal desired value = " << write_cfeb_tof_delay[i] 
+		   << std::endl;
+      std::cout    << "WARNING: Read cfeb" << i << "_tof_delay = " << read_cfeb_tof_delay[i] 
+		   << " which does not equal desired value = " << write_cfeb_tof_delay[i] 
+		   << std::endl;
+    }
+      
+  }
+  //
+  //
+  // Enable this TMB for this test
+  thisTMB->SetClctPatternTrigEnable(1);
+  thisTMB->WriteRegister(seq_trig_en_adr);
+  //
+  thisTMB->SetTmbAllowClct(1);
+  thisTMB->WriteRegister(tmb_trig_adr);
+  //
+  thisTMB->SetHsPretrigThresh(5);
+  thisTMB->SetMinHitsPattern(5);
+  thisTMB->WriteRegister(seq_clct_adr);
+  //
+  thisTMB->SetIgnoreCcbStartStop(0);
+  thisTMB->WriteRegister(ccb_trig_adr);
+  //
+  thisTMB->SetEnableLayerTrigger(0);
+  thisTMB->WriteRegister(layer_trg_mode_adr);
+  //
+  comparing_with_clct_ = true;
+  thisTMB->StartTTC();
+  ::sleep(1);
+  //
+  //
+  const int MaxTimeDelay=25;
+  //
+  int Muons[5][2][MaxTimeDelay] = {};
+  int NoMuons[5][2][MaxTimeDelay] = {};
+  //
+
+  for (int posneg=0; posneg<2; posneg++) {
+    //
+    // set the same value of posneg for all CFEB's...
+    thisTMB->SetCfeb0RxPosNeg(posneg);
+    thisTMB->SetCfeb1RxPosNeg(posneg);
+    thisTMB->SetCfeb2RxPosNeg(posneg);
+    thisTMB->SetCfeb3RxPosNeg(posneg);
+    thisTMB->SetCfeb4RxPosNeg(posneg);
+    //
+    for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
+      //
+      if (debug_) std::cout << "Next event:  posneg=" << std::dec << posneg << ", TimeDelay=" << TimeDelay << std::endl;
+      //
+      thisTMB->SetCfeb0RxClockDelay(TimeDelay);
+      thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb0_rxd_adr);
+      //
+      thisTMB->SetCfeb1RxClockDelay(TimeDelay);
+      thisTMB->WriteRegister(phaser_cfeb1_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb1_rxd_adr);
+      //
+      thisTMB->SetCfeb2RxClockDelay(TimeDelay);
+      thisTMB->WriteRegister(phaser_cfeb2_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb2_rxd_adr);
+      //
+      thisTMB->SetCfeb3RxClockDelay(TimeDelay);
+      thisTMB->WriteRegister(phaser_cfeb3_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb3_rxd_adr);
+      //
+      thisTMB->SetCfeb4RxClockDelay(TimeDelay);
+      thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
+      //
+      //
+      int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
+      //
+      int last_pulsed_halfstrip[5] = {};
+      int random_halfstrip[5] = {};
+      //
+      for (int Nmuons=0; Nmuons<2; Nmuons++){
+	//
+	for (int List=0; List<5; List++){
+	  //
+	  usleep(50);
+	  //
+	  // To prevent problems with data persisting in the TMB registers, 
+	  // generate a random halfstrip to pulse which is not the same as the 
+	  // last valid halfstrip for this CFEB. 
+	  // In addition, this should be away from the edges of the CFEB...
+	  while (random_halfstrip[List] == last_pulsed_halfstrip[List] ) {
+	    random_halfstrip[List] = (int) (rand()/(RAND_MAX+0.01)*10);  // random number between 0 and 10
+	  	    random_halfstrip[List] += 13;                                 // translate to between 13 and 23
+		    //  	    random_halfstrip[List] = 10;                                 // translate to between 13 and 23
+	  }
+	  //
+	  // Now need to map the CFEB numbering into the ME1/1 numbering
+	  //
+	  int pulsed_halfstrip = -1;
+	  //
+	  if ( thisTMB->GetTMBFirmwareCompileType() == 0xa ) {   // normal TMB compile type
+	    //
+	    me11_pulsing_ = 0;
+	    //
+	    pulsed_halfstrip = List*32 + random_halfstrip[List];
+	    //
+	  } else if ( thisTMB->GetTMBFirmwareCompileType() == 0xc ) {  // plus endcap ME1/1
+	    //
+	    me11_pulsing_ = 1;
+	    //
+	    pulsed_halfstrip = List*32 + random_halfstrip[List];
+	    if (List == 4) 
+	      pulsed_halfstrip = 159 - random_halfstrip[List];
+	    //
+	  } else if ( thisTMB->GetTMBFirmwareCompileType() == 0xd ) {  // minus endcap ME1/1
+	    //
+	    me11_pulsing_ = 1;
+	    //
+	    pulsed_halfstrip = 127 - (List*32 + random_halfstrip[List]);
+	    if (List == 4)
+	      pulsed_halfstrip = 128 + random_halfstrip[List];
+	  }
+	  //
+	  PulseCFEB(random_halfstrip[List],CLCTInputList[List]);	
+	  //
+	  usleep(50);
+	  //
+	  if (debug_) {
+	    std::cout << "CFEB pulsed:" << List      
+		      << ", halfstrip in CFEB =" << random_halfstrip[List]
+		      << ", halfstrip in chamber =" << pulsed_halfstrip
+		      << ", Nmuons=" << Nmuons 
+		      << std::endl;
+	  }
+	  //
+	  int clct0patternId    = thisTMB->GetCLCT0PatternId();
+	  int clct0nhit         = thisTMB->GetCLCT0Nhit();
+	  int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
+	  if (debug_) {
+	    std::cout << "TMB:   clct0patternId=" << std::dec << clct0patternId
+		      << ", clct0hstp=" << clct0keyHalfStrip      
+		      << ", nHits =" << clct0nhit;
+	  }
+	  //
+	  //	int clct1patternId    = thisTMB->GetCLCT1PatternId();
+	  //	int clct1nhit         = thisTMB->GetCLCT1Nhit();
+	  //	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
+	  //
+	  if ( clct0patternId <= 3 && clct0keyHalfStrip == pulsed_halfstrip && clct0nhit == 6 ) {
+	    Muons[List][posneg][TimeDelay]++;
+	    if (debug_) std::cout << " found" << std::endl;
+	    last_pulsed_halfstrip[List] = random_halfstrip[List];
+	  } else {
+	    NoMuons[List][posneg][TimeDelay]+=10;
+	    if (debug_) std::cout << " NOT found" << std::endl;
+	  }
+	  //	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 && clct1cfeb == List ) 
+	  //	  Muons[clct1cfeb][TimeDelay]++;
+	} // for (CFEBList)
+      }  // for (NMuons)
+    }  //for (TimeDelay)
+  }  //for (posneg)
+  //
+  // Perform the analysis for each CFEB for each posneg
+  //
+  int windows_per_cfeb[5][2] = {};
+  int total_number_of_windows[2] = {};
+  //
+  // First:  figure out how many "good windows" each CFEB has for each posneg
+  for (int posneg=0; posneg<2; posneg++) {
+    for (int CFEBs=0; CFEBs<5; CFEBs++) {
+      window_analysis(NoMuons[CFEBs][posneg],MaxTimeDelay);
+      windows_per_cfeb[CFEBs][posneg] += window_counter + 1;
+      total_number_of_windows[posneg] += window_counter + 1;
+    }
+  }
+  //
+  // Next:  determine the average value for each CFEB for each posneg
+  //
+  int TimeDelay;
+  //
+  int MuonsWork[5][2][2*MaxTimeDelay] = {};
+  //
+  // Build-up the data including wrap-around
+  for (int posneg=0; posneg<2; posneg++) {
+    for (int CFEBs=0; CFEBs<5; CFEBs++) {
+      for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
+	MuonsWork[CFEBs][posneg][TimeDelay] = Muons[CFEBs][posneg][TimeDelay] ;
+      }
+    }
+  }
+  //
+  for (int posneg=0; posneg<2; posneg++) {
+    for (int CFEBs=0; CFEBs<5; CFEBs++) {
+      TimeDelay=0;
+      while (Muons[CFEBs][posneg][TimeDelay]>0) {
+	MuonsWork[CFEBs][posneg][TimeDelay+MaxTimeDelay] = Muons[CFEBs][posneg][TimeDelay] ;
+	MuonsWork[CFEBs][posneg][TimeDelay] = 0 ;
+	TimeDelay++;
+      }
+    }
+  }
+  //
+  if (debug_ >= 5) {
+    for (int posneg=0; posneg<2; posneg++) {    
+      std::cout << "TimeDelay Fixed for Delay Wrapping, posneg = " << posneg << std::endl ;
+      std::cout << "TimeDelay " ;
+      for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) 
+	std::cout << std::setw(4) << TimeDelay ;
+      std::cout << std::endl;
+      for (int CFEBs=0; CFEBs<5; CFEBs++) {
+	std::cout << "CFEB Id=" << CFEBs << " " ;
+	for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++){ 
+	  std::cout << std::setw(4) << MuonsWork[CFEBs][posneg][TimeDelay] ;
+	}     
+	std::cout << std::endl ;
+      }   
+      std::cout << std::endl ;
+    }
+  }
+  //
+  //
+  //
+  // Determine the mean value
+  //
+  float CFEBMeanN[5][2], CFEBMean[5][2];
+  //
+  for( int j=0; j<2; j++) {
+    for( int i=0; i<5; i++) {
+      CFEBMean[i][j]  = 0 ;
+      CFEBMeanN[i][j] = 0 ;
+    }
+  }
+  //
+  for (int posneg=0; posneg<2; posneg++) {    
+    for (int CFEBs=0; CFEBs<5; CFEBs++) {
+      for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++){ 
+	if ( MuonsWork[CFEBs][posneg][TimeDelay] > 0  ) {
+	  CFEBMean[CFEBs][posneg]  += ((float) TimeDelay) * ((float) MuonsWork[CFEBs][posneg][TimeDelay])  ; 
+	  CFEBMeanN[CFEBs][posneg] += (float) MuonsWork[CFEBs][posneg][TimeDelay] ; 
+	}
+      }     
+    }   
+  }
+  //
+  for (int posneg=0; posneg<2; posneg++) {    
+    for( int CFEBs=0; CFEBs<5; CFEBs++) {
+      if (CFEBMeanN[CFEBs][posneg] > 0) {
+	CFEBMean[CFEBs][posneg] /= CFEBMeanN[CFEBs][posneg] ;
+      } else {
+	CFEBMean[CFEBs][posneg] = -999;
+      }
+      if (CFEBMean[CFEBs][posneg] > (MaxTimeDelay-1) ) 
+	CFEBMean[CFEBs][posneg] -= MaxTimeDelay ;
+      if (debug_ >= 5) std::cout << "posneg " << posneg << ", CFEB" << CFEBs << " mean delay = " << CFEBMean[CFEBs][posneg] ;
+    }
+    if (debug_ >= 5) std::cout << std::endl;
+  }
+  //
+  (*MyOutput_) << "CFEB TOF delay values for this scan..." << std::endl;
+  (*MyOutput_) << " cfeb0_tof_delay = " << std::dec << read_cfeb_tof_delay[0] << std::endl;
+  (*MyOutput_) << " cfeb1_tof_delay = " << std::dec << read_cfeb_tof_delay[1] << std::endl;
+  (*MyOutput_) << " cfeb2_tof_delay = " << std::dec << read_cfeb_tof_delay[2] << std::endl;
+  (*MyOutput_) << " cfeb3_tof_delay = " << std::dec << read_cfeb_tof_delay[3] << std::endl;
+  (*MyOutput_) << " cfeb4_tof_delay = " << std::dec << read_cfeb_tof_delay[4] << std::endl;
+  //
+  // Print number of muons found versus cfeb[0-4]delay for each CFEB for each posneg
+  //
+  for (int posneg=0; posneg<2; posneg++) {
+    (*MyOutput_) << "posneg = " << std::dec << posneg << " gives a total of " 
+		 << total_number_of_windows[posneg] << " good windows..." << std::endl;
+    std::cout    << "posneg = " << std::dec << posneg << " gives a total of " 
+		 << total_number_of_windows[posneg] << " good windows..." << std::endl;
+    (*MyOutput_) << "TimeDelay " ;
+    std::cout << "TimeDelay " ;
+    for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) {
+      (*MyOutput_) << std::setw(4) << TimeDelay ;
+      std::cout << std::setw(4) << TimeDelay ;
+    }
+    (*MyOutput_) << std::endl ;
+    std::cout    << std::endl ;
+    for (int CFEBs=0; CFEBs<5; CFEBs++) {
+      (*MyOutput_) << "CFEB Id=" << CFEBs << " " ;
+      std::cout    << "CFEB Id=" << CFEBs << " " ;
+      for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
+	(*MyOutput_) << std::setw(4) << Muons[CFEBs][posneg][TimeDelay] ;
+	std::cout    << std::setw(4) << Muons[CFEBs][posneg][TimeDelay] ;
+      }     
+      (*MyOutput_) << std::endl ;
+      std::cout    << std::endl ;
+    }   
+    (*MyOutput_) << std::endl ;
+    std::cout    << std::endl ;
+  }
+  //
+  // pick the posneg value which has 1 window per CFEB
+  //
+  int good_scan[2] = {};
+  int bad_cfeb[2] = {};
+  //
+  for (int posneg=0; posneg<2; posneg++) {
+    //
+    bad_cfeb[posneg] = -1;
+    //
+    for (int CFEBs=4; CFEBs<5; CFEBs++) {  //ONLY PAY ATTENTION TO CFEB4
+      if (windows_per_cfeb[CFEBs][posneg] == 1) {  // if there is one window in this CFEB, it is a good scan for this CFEB
+	good_scan[posneg]++;                  // count the number of CFEBs which have a good scan
+      } else {
+	bad_cfeb[posneg] = CFEBs;             // if there is a bad one, tag it (if there are multiple bad, it will not be selected) 
+      }
+    }
+  }
+  //
+  int pick_posneg = -1;
+  int special_cfeb = -1;
+  //
+  for (int posneg=0; posneg<2; posneg++) {
+    //
+    if (good_scan[posneg] == 1) {  //ONLY PAY ATTENTION TO CFEB4
+      pick_posneg = posneg;
+      break;
+    } else {
+      special_cfeb = bad_cfeb[posneg];
+    }
+  }
+  //
+  if (pick_posneg < 0) {          //bad scan
+    //
+    (*MyOutput_) << "Not enough good windows for these CFEBs" << std::endl;
+    std::cout    << "Not enough good windows for these CFEBs" << std::endl;
+    //
+  } else {                        //ONLY PAY ATTENTION TO CFEB4
+    //
+    for (int CFEBs=4; CFEBs<5; CFEBs++) {
+      CFEBrxPhase_[CFEBs] = RoundOff(CFEBMean[CFEBs][pick_posneg]);
+      CFEBrxPosneg_[CFEBs] = pick_posneg;
+      (*MyOutput_) << "Best value is cfeb" << CFEBs << "delay = " << CFEBrxPhase_[CFEBs] << std::endl;
+      std::cout    << "Best value is cfeb" << CFEBs << "delay = " << CFEBrxPhase_[CFEBs] << std::endl;
+    }
+    for (int CFEBs=4; CFEBs<5; CFEBs++) {
+      (*MyOutput_) << "Best value is cfeb" << CFEBs << "posneg = " << CFEBrxPosneg_[CFEBs] << std::endl;
+      std::cout    << "Best value is cfeb" << CFEBs << "posneg = " << CFEBrxPosneg_[CFEBs] << std::endl;
+    }
+  } 
+  //
+  // Now we have set CFEB TOF, and have measured RX and POSNEG.  Let's see if
+  // This combination of parameters is in the "special region"...
+  //
+  float average_rx = (float) CFEBrxPhase_[4];
+  //
+  // determined signed_rx with the following algorithm...
+  if (CFEBrxPosneg_[4] == 0) average_rx = -average_rx;
+  //
+  bool in_special_region = false;
+  //
+  float TOF = (float) write_cfeb_tof_delay[4];
+  float function_value = special_region_function(average_rx);
+  //
+  if (TOF > function_value) {
+    in_special_region = true;
+    (*MyOutput_) << "--> Function evaluated at " << average_rx << " = " << function_value 
+		 << " is less than TOF (" << TOF 
+		 << ") ==> in the special region" << std::endl;
+
+    std::cout    << "--> Function evaluated at " << average_rx << " = " << function_value 
+		 << " is less than TOF (" << TOF 
+		 << ") ==> in the special region" << std::endl;
+    //
+    for (int i=4; i<5; i++) {
       cfeb_rxd_int_delay[i] = initial_cfeb_rxd_int_delay[i] - 1;
       //
       (*MyOutput_) << "... cfebN_rxd_int_delay goes from " << initial_cfeb_rxd_int_delay[i]
