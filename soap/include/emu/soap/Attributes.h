@@ -13,6 +13,7 @@
 #include <sstream>
 #include <map>
 #include "xdata/Serializable.h"
+#include "emu/soap/QualifiedName.h"
 
 namespace emu{
   namespace soap{
@@ -21,7 +22,7 @@ namespace emu{
     ///
     /// A container class to pass multiple SOAP attributes in.
     ///
-    class Attributes : public map< string, xdata::Serializable* >{
+    class Attributes : public map< QualifiedName, xdata::Serializable*, less<QualifiedName> >{
     public:
 
       /// 
@@ -41,18 +42,18 @@ namespace emu{
       ///
       /// Sets whether namespace prefix is to be used.
       ///
-      /// @param usePrefix True if namespace prefix is to be inherited from parent element. False if prefix is to be omitted.
+      /// @param usePrefixOfParent True if namespace prefix is to be inherited from parent element. False if prefix is to be omitted.
       ///
       /// @return Ref. to the Attributes object itself.
       ///
-      emu::soap::Attributes& setUsePrefix( bool usePrefix );
+      emu::soap::Attributes& setUsePrefixOfParent( bool usePrefixOfParent );
 
       /// 
       /// Gets whether namespace prefix is to be used.
       ///
       /// @return True if namespace prefix is to be inherited from parent element. False if prefix is to be omitted.
       ///
-      bool getUsePrefix() const;
+      bool getUsePrefixOfParent() const;
 
       /// 
       /// Adds an \c xdata object and its name.
@@ -61,7 +62,10 @@ namespace emu{
       ///
       /// @return Ref. to the Attributes object itself. 
       ///
-      emu::soap::Attributes& add( const std::string &name, xdata::Serializable* value );
+      emu::soap::Attributes& add( const std::string &name, 
+				  xdata::Serializable* value, 
+				  const std::string &namespaceURI = emptyString,
+				  const std::string &prefix = emptyString );
 
       /// 
       /// Gets the type of data named \c name .
@@ -69,7 +73,7 @@ namespace emu{
       ///
       /// @return Type of the data as returned by \c xdata.
       ///
-      string getType( const string &name ) const;
+      string getType( const string &name, const string& namespaceURI = emptyString ) const;
 
       /// 
       /// Gets the \c xdata object holding data named \c name .
@@ -77,11 +81,12 @@ namespace emu{
       ///
       /// @return Pointer to the \c xdata object holding data named \c name .
       ///
-      xdata::Serializable* getValue( const string &name );
+      xdata::Serializable* getValue( const string &name, const string& namespaceURI = emptyString );
 
       static const emu::soap::Attributes none;  ///< An empty container of attributes.
+      static const string emptyString;  ///< An empty string.
     private:
-      bool usePrefix_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
+      bool usePrefixOfParent_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
     };
 
   }

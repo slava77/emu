@@ -209,7 +209,7 @@ namespace emu{
       ///    xdata::String param1Attr1( "param1Attr1Value" );
       ///    xdata::String param1Attr2( "param1Attr2Value" );
       ///    emu::soap::Attributes param1Attributes;
-      ///    param1Attributes.add( "param1Attr1Name", &param1Attr1 ).add( "param1Attr2Name", &param1Attr2 ).setUsePrefix( false );
+      ///    param1Attributes.add( "param1Attr1Name", &param1Attr1 ).add( "param1Attr2Name", &param1Attr2 ).setUsePrefixOfParent( false );
       ///    xdata::String param2Attr( "param2AttrValue" );
       ///    emu::soap::Attributes param2Attributes;
       ///    param2Attributes.add( "param2AttrName", &param2Attr );

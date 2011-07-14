@@ -42,18 +42,18 @@ namespace emu{
       ///
       /// Sets whether namespace prefix is to be used.
       ///
-      /// @param usePrefix True if namespace prefix is to be inherited from parent element. False if prefix is to be omitted.
+      /// @param usePrefixOfParent True if namespace prefix is to be inherited from parent element. False if prefix is to be omitted.
       ///
       /// @return Ref. to the Parameters object itself.
       ///
-      emu::soap::Parameters& setUsePrefix( bool usePrefix );
+      emu::soap::Parameters& setUsePrefixOfParent( bool usePrefixOfParent );
 
       /// 
       /// Gets whether namespace prefix is to be used.
       ///
       /// @return True if namespace prefix is to be inherited from parent element. False if prefix is to be omitted.
       ///
-      bool getUsePrefix() const;
+      bool getUsePrefixOfParent() const;
 
       /// 
       /// Adds an \c xdata object and its name.
@@ -92,7 +92,7 @@ namespace emu{
       static const emu::soap::Parameters none; ///< An empty container of parameters.
 
     private:
-      bool usePrefix_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
+      bool usePrefixOfParent_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
     };
 
   }
