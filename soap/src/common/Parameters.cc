@@ -4,17 +4,17 @@ const emu::soap::Parameters emu::soap::Parameters::none  = emu::soap::Parameters
 
 using namespace std;
 
-emu::soap::Parameters::Parameters() : usePrefix_( true ){}
+emu::soap::Parameters::Parameters() : usePrefixOfParent_( true ){}
 
 emu::soap::Parameters&
-emu::soap::Parameters::setUsePrefix( bool usePrefix ){
-  usePrefix_ = usePrefix;
+emu::soap::Parameters::setUsePrefixOfParent( bool usePrefixOfParent ){
+  usePrefixOfParent_ = usePrefixOfParent;
   return *this;
 }
 
 bool
-emu::soap::Parameters::getUsePrefix() const {
-  return usePrefix_;
+emu::soap::Parameters::getUsePrefixOfParent() const {
+  return usePrefixOfParent_;
 }
 
 emu::soap::Parameters&

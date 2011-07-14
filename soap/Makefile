@@ -19,6 +19,7 @@ Authors="Karoly Banicz"
 Link=""
 
 Sources = \
+	QualifiedName.cc \
 	Attachment.cc \
 	Attributes.cc \
 	Parameters.cc \

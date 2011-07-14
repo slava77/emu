@@ -89,14 +89,21 @@ emu::soap::addAttributes( xoap::MessageReference message, xoap::SOAPElement* ele
   // Add attributes to element
   string elementNamespaceURI;
   string elementNamespacePrefix;
-  if ( attributes.getUsePrefix() ){
+  if ( attributes.getUsePrefixOfParent() ){
     elementNamespaceURI    = xoap::XMLCh2String( element->getDOMNode()->getNamespaceURI() );
     elementNamespacePrefix = xoap::XMLCh2String( element->getDOMNode()->getPrefix()       );
   }
   xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
   for ( emu::soap::Attributes::const_iterator a=attributes.begin(); a!=attributes.end(); ++a ){
-    xoap::SOAPName attrName = envelope.createName( a->first, elementNamespacePrefix, elementNamespaceURI );
-    element->addAttribute( attrName, a->second->toString() );
+    if ( a->first.getNamespaceURI().size() > 0 ){
+      element->addNamespaceDeclaration( a->first.getPrefix(), a->first.getNamespaceURI() );
+      xoap::SOAPName attrName = envelope.createName( a->first.getName(), a->first.getPrefix(), a->first.getNamespaceURI() );
+      element->addAttribute( attrName, a->second->toString() );
+    }
+    else{
+      xoap::SOAPName attrName = envelope.createName( a->first.getName(), elementNamespacePrefix, elementNamespaceURI );
+      element->addAttribute( attrName, a->second->toString() );
+    }
   }
 }
 
@@ -107,7 +114,7 @@ emu::soap::includeParameters( xoap::MessageReference message, xoap::SOAPElement*
     // Include all requested parameters in parent element
     string parentNamespaceURI;
     string parentNamespacePrefix;
-    if ( parameters.getUsePrefix() ){
+    if ( parameters.getUsePrefixOfParent() ){
       parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
       parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
     }
@@ -151,7 +158,7 @@ emu::soap::includeParameters( xoap::MessageReference message, xoap::SOAPElement*
     // Include all requested parameters in parent element
     string parentNamespaceURI;
     string parentNamespacePrefix;
-    if ( parameters.getUsePrefix() ){
+    if ( parameters.getUsePrefixOfParent() ){
       parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
       parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
     }
