@@ -1,8 +1,8 @@
 #include "emu/soap/Parameters.h"
 
-const emu::soap::Parameters emu::soap::Parameters::none  = emu::soap::Parameters();
-
 using namespace std;
+
+const emu::soap::Parameters emu::soap::Parameters::none  = emu::soap::Parameters();
 
 emu::soap::Parameters::Parameters() : usePrefixOfParent_( true ){}
 
@@ -18,28 +18,30 @@ emu::soap::Parameters::getUsePrefixOfParent() const {
 }
 
 emu::soap::Parameters&
-emu::soap::Parameters::add( const std::string &name, xdata::Serializable* value, emu::soap::Attributes *attributes ){
+emu::soap::Parameters::add( const emu::soap::QualifiedName& name, 
+			    xdata::Serializable* value, 
+			    emu::soap::Attributes *attributes ){
   insert( make_pair( name, make_pair( value, attributes ) ) );
   return *this;
 }
 
 string
-emu::soap::Parameters::getType( const string &name ) const {
-  map< string, pair< xdata::Serializable*, const emu::soap::Attributes* > >::const_iterator i = find( name );
+emu::soap::Parameters::getType( const emu::soap::QualifiedName& name ) const {
+  map< QualifiedName, pair< xdata::Serializable*, const emu::soap::Attributes* > >::const_iterator i = find( name );
   if ( i != end() ) return i->second.first->type();
   return string();
 }
 
 xdata::Serializable*
-emu::soap::Parameters::getValue( const string &name ) {
-  map< string, pair< xdata::Serializable*, const emu::soap::Attributes* > >::const_iterator i = find( name );
+emu::soap::Parameters::getValue( const emu::soap::QualifiedName& name ) {
+  map< QualifiedName, pair< xdata::Serializable*, const emu::soap::Attributes* > >::const_iterator i = find( name );
   if ( i != end() ) return i->second.first;
   return NULL;
 }
 
 const emu::soap::Attributes* 
-emu::soap::Parameters::getAttributes( const string &name ) const {
-  map< string, pair< xdata::Serializable*, const emu::soap::Attributes* > >::const_iterator i = find( name );
+emu::soap::Parameters::getAttributes( const emu::soap::QualifiedName& name ) const {
+  map< QualifiedName, pair< xdata::Serializable*, const emu::soap::Attributes* > >::const_iterator i = find( name );
   if ( i != end() ) return i->second.second;
   return NULL;  
 }

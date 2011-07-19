@@ -16,8 +16,7 @@
 #include <algorithm>
 
 xoap::MessageReference 
-emu::soap::createMessage( const std::string &command, 
-			  const std::string &commandNamespaceURI,
+emu::soap::createMessage( const emu::soap::QualifiedName &command, 
 			  const emu::soap::Parameters &parameters,
 			  const emu::soap::Attributes &attributes,
 			  const vector<emu::soap::Attachment> &attachments ){
@@ -31,8 +30,12 @@ emu::soap::createMessage( const std::string &command,
     envelope.addNamespaceDeclaration( "soapenc", SOAPENC_NAMESPACE_URI );
 
     // Add command
-    xoap::SOAPBody        body       = envelope.getBody();
-    xoap::SOAPName        cmdName    = envelope.createName( command, "xdaq", commandNamespaceURI ); // Prefix must be "xdaq" for LTC... :-(
+    xoap::SOAPBody body    = envelope.getBody();
+     // Command's prefix _must_ be "xdaq" for LTC so let it default to that... :-(
+    xoap::SOAPName cmdName = 
+      envelope.createName( command.getName().c_str(), 
+			   ( command.getPrefix().size() ? command.getPrefix().c_str() : "xdaq" ),
+			   ( command.getNamespaceURI().size() ? command.getNamespaceURI().c_str() : XDAQ_NS_URI ) );
     xoap::SOAPBodyElement cmdElement = body.addBodyElement( cmdName );
 
     // Add attributes (if any) to command
@@ -64,13 +67,6 @@ emu::soap::createMessage( const std::string &command,
 
 }
 
-xoap::MessageReference 
-emu::soap::createMessage( const std::string &command,
-			  const emu::soap::Parameters &parameters,
-			  const emu::soap::Attributes &attributes,
-			  const vector<emu::soap::Attachment> &attachments ){
-  return emu::soap::createMessage( command, XDAQ_NS_URI, parameters, attributes, attachments );
-}
 
 void 
 emu::soap::addAttachments( xoap::MessageReference message, const vector<emu::soap::Attachment> &attachments ){
@@ -122,7 +118,18 @@ emu::soap::includeParameters( xoap::MessageReference message, xoap::SOAPElement*
     xdata::soap::Serializer serializer;
     emu::soap::Parameters::const_iterator p;
     for ( p=parameters.begin(); p!=parameters.end(); ++p ){
-      xoap::SOAPName    propertyName    = envelope.createName( p->first, parentNamespacePrefix, parentNamespaceURI );
+      xoap::SOAPName propertyName = ( p->first.getNamespaceURI().size() > 0
+				      ?
+				      // Explixit namespace specified.
+				      envelope.createName( p->first.getName(),
+							   p->first.getPrefix(),
+							   p->first.getNamespaceURI() )
+				      :
+				      // No namespace specified, use default namespace.
+				      envelope.createName( p->first.getName(), 
+							   parentNamespacePrefix, 
+							   parentNamespaceURI )
+				      );
       xoap::SOAPElement propertyElement = parent->addChildElement( propertyName );
       serializer.exportAll( p->second.first, dynamic_cast<DOMElement*>( propertyElement.getDOMNode() ), false );
       if ( p->second.second != NULL ){
@@ -166,7 +173,18 @@ emu::soap::includeParameters( xoap::MessageReference message, xoap::SOAPElement*
     xdata::soap::Serializer serializer;
     emu::soap::Parameters::const_iterator p;
     for ( p=parameters.begin(); p!=parameters.end(); ++p ){
-      xoap::SOAPName    propertyName    = envelope.createName( p->first, parentNamespacePrefix, parentNamespaceURI );
+      xoap::SOAPName propertyName = ( p->first.getNamespaceURI().size() > 0
+				      ?
+				      // Explixit namespace specified.
+				      envelope.createName( p->first.getName(),
+							   p->first.getPrefix(),
+							   p->first.getNamespaceURI() )
+				      :
+				      // No namespace specified, use default namespace.
+				      envelope.createName( p->first.getName(), 
+							   parentNamespacePrefix, 
+							   parentNamespaceURI )
+				      );
       xoap::SOAPElement propertyElement = parent->addChildElement( propertyName );
       serializer.exportAll( p->second.first, dynamic_cast<DOMElement*>( propertyElement.getDOMNode() ), false );
       if ( p->second.second != NULL ){
@@ -208,7 +226,7 @@ emu::soap::extractParameters( xoap::MessageReference reply, emu::soap::Parameter
     DOMDocument* doc = parser->parse( s );
     for ( emu::soap::Parameters::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
       DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( ( parametersNamespaceURI.size()>0 ? parametersNamespaceURI.c_str(): "*" ) ), 
-						xoap::XStr( p->first.c_str() ) 
+						xoap::XStr( p->first.getName().c_str() ) 
 						)->item(0);
       if ( n != NULL ){
 	serializer.import( p->second.first, n );

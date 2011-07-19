@@ -3,7 +3,7 @@
 /// @author cscdaq common account <cscdaq@csc-C2D08-11.cms>
 /// @date   Thu Jul 15 08:46:40 2010
 /// 
-/// @brief  A container class to pass multiple SOAP attributes and attributes in.
+/// @brief  A container class to pass multiple SOAP attributes in.
 /// 
 /// 
 ///
@@ -57,36 +57,33 @@ namespace emu{
 
       /// 
       /// Adds an \c xdata object and its name.
-      /// @param name The name of the data.
+      /// @param name Qualified XML name of the data.
       /// @param value Pointer to the \c xdata object.
       ///
       /// @return Ref. to the Attributes object itself. 
       ///
-      emu::soap::Attributes& add( const std::string &name, 
-				  xdata::Serializable* value, 
-				  const std::string &namespaceURI = emptyString,
-				  const std::string &prefix = emptyString );
+      emu::soap::Attributes& add( const emu::soap::QualifiedName& name, 
+				  xdata::Serializable* value );
 
       /// 
       /// Gets the type of data named \c name .
-      /// @param name Name of the data.
+      /// @param name Qualified XML name of the data.
       ///
       /// @return Type of the data as returned by \c xdata.
       ///
-      string getType( const string &name, const string& namespaceURI = emptyString ) const;
+      string getType( const emu::soap::QualifiedName& name ) const;
 
       /// 
       /// Gets the \c xdata object holding data named \c name .
-      /// @param name Name of the data.
+      /// @param name Qualified XML name of the data.
       ///
       /// @return Pointer to the \c xdata object holding data named \c name .
       ///
-      xdata::Serializable* getValue( const string &name, const string& namespaceURI = emptyString );
+      xdata::Serializable* getValue( const emu::soap::QualifiedName& name );
 
       static const emu::soap::Attributes none;  ///< An empty container of attributes.
-      static const string emptyString;  ///< An empty string.
     private:
-      bool usePrefixOfParent_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
+      bool usePrefixOfParent_; ///< A flag to set the default namespace behavior. It is used if and only if no namespace is specified explicitly. If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
     };
 
   }

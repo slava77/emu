@@ -170,8 +170,7 @@ namespace emu{
       /// Sends a command to the target application given by its descriptor.
       /// 
       /// @param target The application descriptor of the target.
-      /// @param command Command.
-      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
+      /// @param command Qualified XML name of the command. If no namespace is specified, it can be given as a simple character string, and it will be automatically type converted to an \c emu::soap::QualifiedName object. Also, if no namespace is specified, the namespace will defualt to the standard XDAQ SOAP one.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
@@ -221,6 +220,7 @@ namespace emu{
       ///    param3.push_back( 123 );
       ///    param3.push_back( 456 );
       ///    param3.push_back( 789 );
+      ///    xdata::Integer param4( -4444 );
       ///        
       ///    // Attributes of the command tag:
       ///    xdata::String  commandAttr1( "commandAttr1Value" );
@@ -228,42 +228,41 @@ namespace emu{
       ///
       ///    // Create and send the command message:
       ///    emu::soap::Messenger( this ).sendCommand( targetDescriptor,
-      ///                                              "command",
-      ///                                              "urn:emu-soap:example", // Omit this argument to get the standard "urn:xdaq-soap:3.0" namespace URI
+      ///                                              emu::soap::QualifiedName( "command", "urn:emu-soap:example", "emu-soap" ),
       ///                                              emu::soap::Parameters()
       ///                                                .add( "param1Name", &param1, &param1Attributes )
       ///                                                .add( "param2Name", &param2, &param2Attributes )
       ///                                                .add( "param3Name", &param3                    ),
+      /// 					         .add( emu::soap::QualifiedName( "param4Name", "p4URI", "p4" ), &param4 ),
       ///                                              emu::soap::Attributes()
       ///                                                .add( "commandAttr1Name", &commandAttr1 )
       ///                                                .add( "commandAttr2Name", &commandAttr2 ) );
       /// \endcode
       /// This produces the following XML:
       /// \code
-      ///<soap-env:Envelope 
-      ///    soap-env:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" 
-      ///    xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
-      ///    xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
-      ///    xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-      ///    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      ///  <soap-env:Header/>
-      ///  <soap-env:Body>
-      ///    <xdaq:command xdaq:commandAttr1Name="commandAttr1Value" xdaq:commandAttr2Name="2" xmlns:xdaq="urn:emu-soap:example">
-      ///      <xdaq:param1Name param1Attr1Name="param1Attr1Value" param1Attr2Name="param1Attr2Value" xsi:type="xsd:string">param1Value</xdaq:param1Name>
-      ///      <xdaq:param2Name xdaq:param2AttrName="param2AttrValue" xsi:type="xsd:double">1.234567e+00</xdaq:param2Name>
-      ///      <xdaq:param3Name soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
-      ///        <xdaq:item soapenc:position="[0]" xsi:type="xsd:integer">123</xdaq:item>
-      ///        <xdaq:item soapenc:position="[1]" xsi:type="xsd:integer">456</xdaq:item>
-      ///        <xdaq:item soapenc:position="[2]" xsi:type="xsd:integer">789</xdaq:item>
-      ///      </xdaq:param3Name>
-      ///    </xdaq:command>
-      ///  </soap-env:Body>
-      ///</soap-env:Envelope>
+      /// <soap-env:Envelope soap-env:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" 
+      /// 		   xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
+      /// 		   xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+      /// 		   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+      /// 		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      ///   <soap-env:Header/>
+      ///   <soap-env:Body>
+      ///     <emu-soap:command emu-soap:commandAttr1Name="commandAttr1Value" emu-soap:commandAttr2Name="2" xmlns:emu-soap="urn:emu-soap:example">
+      ///       <emu-soap:param1Name param1Attr1Name="param1Attr1Value" param1Attr2Name="param1Attr2Value" xsi:type="xsd:string">param1Value</emu-soap:param1Name>
+      ///       <emu-soap:param2Name emu-soap:param2AttrName="param2AttrValue" xsi:type="xsd:double">1.234567e+00</emu-soap:param2Name>
+      ///       <emu-soap:param3Name soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+      /// 	<emu-soap:item soapenc:position="[0]" xsi:type="xsd:integer">123</emu-soap:item>
+      /// 	<emu-soap:item soapenc:position="[1]" xsi:type="xsd:integer">456</emu-soap:item>
+      /// 	<emu-soap:item soapenc:position="[2]" xsi:type="xsd:integer">789</emu-soap:item>
+      ///       </emu-soap:param3Name>
+      ///       <p4:param4Name xmlns:p4="p4URI" xsi:type="xsd:integer">-4444</p4:param4Name>
+      ///     </emu-soap:command>
+      ///   </soap-env:Body>
+      /// </soap-env:Envelope>
       /// \endcode
       ///
       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
-                                          const std::string &command, 
-                                          const std::string &commandNamespaceURI,
+					  const emu::soap::QualifiedName &command,
                                           const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
                                           const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
                                           const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
@@ -273,8 +272,7 @@ namespace emu{
       /// 
       /// @param className Class name of the target application.
       /// @param instance Instance of the target application.
-      /// @param command Command.
-      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
+      /// @param command Qualified XML name of the command. If no namespace is specified, it can be given as a simple character string, and it will be automatically type converted to an \c emu::soap::QualifiedName object. Also, if no namespace is specified, the namespace will defualt to the standard XDAQ SOAP one.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
@@ -284,8 +282,7 @@ namespace emu{
       /// See the overloaded version of this method for examples.
       ///
       xoap::MessageReference sendCommand( const string &className, const unsigned int instance, 
-                                          const std::string &command, 
-                                          const std::string &commandNamespaceURI,
+                                          const emu::soap::QualifiedName &command, 
                                           const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
                                           const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
                                           const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
@@ -294,8 +291,7 @@ namespace emu{
       /// Sends a command to all applications of \c className in the default zone. If no applications of \c className are found, it will do nothing.
       /// 
       /// @param className Class name of the target application(s).
-      /// @param command Command.
-      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
+      /// @param command Qualified XML name of the command. If no namespace is specified, it can be given as a simple character string, and it will be automatically type converted to an \c emu::soap::QualifiedName object. Also, if no namespace is specified, the namespace will defualt to the standard XDAQ SOAP one.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
@@ -303,91 +299,7 @@ namespace emu{
       /// See the overloaded version of this method for examples.
       ///
       void sendCommand( const string &className,
-                        const std::string &command, 
-                        const std::string &commandNamespaceURI,
-                        const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
-                        const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
-                        const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
-
-
-
-
-
-      ///
-      /// Sends a command to the target application given by its descriptor.
-      /// 
-      /// @param target The application descriptor of the target.
-      /// @param command Command.
-      /// @param parameters Optional parameters.
-      /// @param attributes Optional attributes of the command.
-      /// @param attachments Optional attachments.
-      ///
-      /// @return The reply.
-      ///
-      /// Examples:
-      /// \code
-      ///        // Send a simple command
-      ///        emu::soap::Messenger m( this );
-      ///        m.sendCommand( targetDescriptor, "Configure" );
-      ///	 
-      ///        // Send another command with attributes
-      ///        xdata::String s("Start");
-      ///        m.sendCommand( targetDescriptor, "Cyclic",
-      ///                       emu::soap::Parameters::none, 
-      ///                       emu::soap::Attributes().add( "Param", &s ) );
-      ///
-      ///        // Send yet another command with attachments 
-      ///        char* data1 = "Text\0"; unsigned int dataLength1 = 5;
-      ///        double d = 1.23456789;
-      ///        char* data2 = (char*)( &d ); unsigned int dataLength2 = sizeof( double ) / sizeof( char );
-      ///        std::vector<emu::soap::Attachment> attachments;
-      ///        attachments.push_back( emu::soap::Attachment( dataLength1, data1 ).setContentType( "text/plain" ).setContentEncoding( "8bit" ) );
-      ///        attachments.push_back( emu::soap::Attachment( dataLength2, data2 ).setContentType( "application/octet-stream" ).setContentEncoding( "binary" ) );
-      ///        m.sendCommand( targetDescriptor, "SeeAttachments", 
-      ///                       emu::soap::Parameters::none,
-      ///                       emu::soap::Attributes::none,
-      ///                       attachments );
-      /// \endcode
-      ///
-       xoap::MessageReference sendCommand( xdaq::ApplicationDescriptor *target, 
-                                          const std::string &command, 
-                                          const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
-                                          const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
-                                          const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
-
-      ///
-      /// Sends a command to the target application given by its class name and instance.
-      /// 
-      /// @param className Class name of the target application.
-      /// @param instance Instance of the target application.
-      /// @param command Command.
-      /// @param parameters Optional parameters.
-      /// @param attributes Optional attributes of the command.
-      /// @param attachments Optional attachments.
-      ///
-      /// @return The reply.
-      ///
-      /// See the overloaded version of this method for examples.
-      ///
-      xoap::MessageReference sendCommand( const string &className, const unsigned int instance, 
-                                          const std::string &command, 
-                                          const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
-                                          const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
-                                          const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
-
-      ///
-      /// Sends a command to all applications of \c className in the default zone. If no applications of \c className are found, it will do nothing.
-      /// 
-      /// @param className Class name of the target application(s).
-      /// @param command Command.
-      /// @param parameters Optional parameters.
-      /// @param attributes Optional attributes of the command.
-      /// @param attachments Optional attachments.
-      ///
-      /// See the overloaded version of this method for examples.
-      ///
-      void sendCommand( const string &className,
-                        const std::string &command, 
+			const emu::soap::QualifiedName &command, 
                         const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
                         const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
                         const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
