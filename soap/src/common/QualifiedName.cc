@@ -12,6 +12,11 @@ emu::soap::QualifiedName::QualifiedName( const string& name, const string& names
   , prefix_      ( prefix       )
 {}
 
+emu::soap::QualifiedName::QualifiedName( const char* name )
+  : name_        ( name )
+  , namespaceURI_( ""   )
+  , prefix_      ( ""   )
+{}
 
 int emu::soap::QualifiedName::operator<( const QualifiedName& other ) const {
   // This method is used by std::map, and is needed to ensure that no duplicate attributes can be added to elements.
@@ -26,5 +31,7 @@ int emu::soap::QualifiedName::operator<( const QualifiedName& other ) const {
 int emu::soap::QualifiedName::operator==( const QualifiedName& other ) const {
   // This method may not be needed. std::map doesn't seem to use it. (It only uses operator<.)
   // If the names and the namespace URIs are the same, they are equal, regardless of the prefix.
+  cout << *this << " == " << other << " ? " 
+       << ( name_ == other.getName() && namespaceURI_ == other.getNamespaceURI() ? 1 : 0 ) << endl;
   return ( name_ == other.getName() && namespaceURI_ == other.getNamespaceURI() ? 1 : 0 );
 }

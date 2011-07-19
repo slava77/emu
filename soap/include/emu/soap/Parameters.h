@@ -13,6 +13,7 @@
 #include <sstream>
 #include <map>
 #include "xdata/Serializable.h"
+#include "emu/soap/QualifiedName.h"
 #include "emu/soap/Attributes.h"
 
 namespace emu{
@@ -22,7 +23,7 @@ namespace emu{
     ///
     /// A container class to pass multiple SOAP parameters with their attributes in.
     ///
-    class Parameters : public map< string, pair< xdata::Serializable*, const emu::soap::Attributes* > >{
+    class Parameters : public map< QualifiedName, pair< xdata::Serializable*, const emu::soap::Attributes* > >{
     public:
 
       /// 
@@ -57,42 +58,44 @@ namespace emu{
 
       /// 
       /// Adds an \c xdata object and its name.
-      /// @param name The name of the data.
+      /// @param name Qualified XML name of the data.
       /// @param value Pointer to the \c xdata object.
       /// @param attributes Pointer to the \c emu::soap::Attributes object.
       ///
       /// @return Ref. to the Parameters object itself. 
       ///
-      emu::soap::Parameters& add( const std::string &name, xdata::Serializable* value, emu::soap::Attributes* attributes=NULL );
+      emu::soap::Parameters& add( const emu::soap::QualifiedName& name, 
+				  xdata::Serializable* value,
+				  emu::soap::Attributes* attributes=NULL );
 
       /// 
       /// Gets the type of data named \c name .
-      /// @param name Name of the data.
+      /// @param name Qualified XML name of the data.
       ///
       /// @return Type of the data as returned by \c xdata.
       ///
-      string getType( const string &name ) const;
+      string getType( const emu::soap::QualifiedName& name ) const;
 
       /// 
       /// Gets the \c xdata object holding data named \c name .
-      /// @param name Name of the data.
+      /// @param name Qualified XML name of the data.
       ///
       /// @return Pointer to the \c xdata object holding data named \c name .
       ///
-      xdata::Serializable* getValue( const string &name );
+      xdata::Serializable* getValue( const emu::soap::QualifiedName& name );
 
       /// 
       /// Gets the attributes of the named parameter.
-      /// @param name Name of parameter.
+      /// @param name Qualified XML name of parameter.
       ///
       /// @return Pointer to the attributes of the named parameter.
       ///
-      const emu::soap::Attributes* getAttributes( const string &name ) const;
+      const emu::soap::Attributes* getAttributes( const emu::soap::QualifiedName& name ) const;
 
       static const emu::soap::Parameters none; ///< An empty container of parameters.
 
     private:
-      bool usePrefixOfParent_; ///< If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
+      bool usePrefixOfParent_; ///< A flag to set the default namespace behaviour. It is used if and only if no namespace is specified explicitly. If true, the namespace prefix of the parent element will be used. Otherwise no namespace prefix will be used.
     };
 
   }

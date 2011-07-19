@@ -136,10 +136,10 @@ emu::soap::Messenger::setParameters( const string &className, const emu::soap::P
   }
 }
 
+
 xoap::MessageReference
 emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
-				   const std::string &command,
-				   const std::string &commandNamespaceURI,
+				   const emu::soap::QualifiedName &command,
 				   const emu::soap::Parameters &parameters,
 				   const emu::soap::Attributes &attributes,
 				   const vector<emu::soap::Attachment> &attachments ){
@@ -149,7 +149,7 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
   try{
 
     // Create SOAP message
-    xoap::MessageReference message = createMessage( command, commandNamespaceURI, parameters, attributes, attachments );
+    xoap::MessageReference message = createMessage( command, parameters, attributes, attachments );
 
     // Repair message
     emu::soap::repairDOM( message );
@@ -201,19 +201,17 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
 xoap::MessageReference
 emu::soap::Messenger::sendCommand( const string &className, 
 				   const unsigned int instance,
-				   const std::string &command, 
-				   const std::string &commandNamespaceURI,
+				   const emu::soap::QualifiedName &command, 
 				   const emu::soap::Parameters &parameters,
 				   const emu::soap::Attributes &attributes,
 				   const vector<emu::soap::Attachment> &attachments ){
   xdaq::ApplicationDescriptor* target = getAppDescriptor( className, instance );
-  return sendCommand( target, command, commandNamespaceURI, parameters, attributes, attachments );
+  return sendCommand( target, command, parameters, attributes, attachments );
 }
 
 void
 emu::soap::Messenger::sendCommand( const string &className, 
-				   const std::string &command, 
-				   const std::string &commandNamespaceURI,
+				   const emu::soap::QualifiedName &command, 
 				   const emu::soap::Parameters &parameters,
 				   const emu::soap::Attributes &attributes,
 				   const vector<emu::soap::Attachment> &attachments ){
@@ -225,41 +223,9 @@ emu::soap::Messenger::sendCommand( const string &className,
   }
 
   for ( std::set<xdaq::ApplicationDescriptor *>::iterator app = apps.begin(); app != apps.end(); ++app ) {
-    sendCommand( *app, command, commandNamespaceURI, parameters, attributes, attachments );
+    sendCommand( *app, command, parameters, attributes, attachments );
   }
 }
-
-xoap::MessageReference
-emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
-				   const std::string &command,
-				   const emu::soap::Parameters &parameters,
-				   const emu::soap::Attributes &attributes,
-				   const vector<emu::soap::Attachment> &attachments ){
-  // Use XDAQ_NS_URI if no command namespace URI is specified:
-  return sendCommand( target, command, XDAQ_NS_URI, parameters, attributes, attachments );
-}
-
-xoap::MessageReference
-emu::soap::Messenger::sendCommand( const string &className, 
-				   const unsigned int instance,
-				   const std::string &command, 
-				   const emu::soap::Parameters &parameters,
-				   const emu::soap::Attributes &attributes,
-				   const vector<emu::soap::Attachment> &attachments ){
-  // Use XDAQ_NS_URI if no command namespace URI is specified:
-  return sendCommand( className, instance, command, XDAQ_NS_URI, parameters, attributes, attachments );
-}
-
-void
-emu::soap::Messenger::sendCommand( const string &className, 
-				   const std::string &command, 
-				   const emu::soap::Parameters &parameters,
-				   const emu::soap::Attributes &attributes,
-				   const vector<emu::soap::Attachment> &attachments ){
-  // Use XDAQ_NS_URI if no command namespace URI is specified:
-  return sendCommand( className, command, XDAQ_NS_URI, parameters, attributes, attachments );
-}
-
 
 
 void

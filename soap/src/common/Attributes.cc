@@ -3,7 +3,6 @@
 using namespace std;
 
 const emu::soap::Attributes emu::soap::Attributes::none  = emu::soap::Attributes();
-const string emu::soap::Attributes::emptyString = string();
 
 
 emu::soap::Attributes::Attributes() : usePrefixOfParent_( true ){}
@@ -20,24 +19,22 @@ emu::soap::Attributes::getUsePrefixOfParent() const {
 }
 
 emu::soap::Attributes&
-emu::soap::Attributes::add( const std::string &name, 
-			    xdata::Serializable* value, 
-			    const std::string &prefix, 
-			    const std::string &namespaceURI ){
-  insert( make_pair( QualifiedName( name, prefix, namespaceURI ), value ) );
+emu::soap::Attributes::add( const emu::soap::QualifiedName& name, 
+			    xdata::Serializable* value ){
+  insert( make_pair( name, value ) );
   return *this;
 }
 
 string
-emu::soap::Attributes::getType( const string &name, const string& namespaceURI ) const {
-  map< QualifiedName, xdata::Serializable* >::const_iterator i = find( QualifiedName( name, namespaceURI ) );
+emu::soap::Attributes::getType( const emu::soap::QualifiedName& name ) const {
+  map< QualifiedName, xdata::Serializable* >::const_iterator i = find( name );
   if ( i != end() ) return i->second->type();
   return string();
 }
 
 xdata::Serializable*
-emu::soap::Attributes::getValue( const string& name, const string& namespaceURI ) {
-  map< QualifiedName, xdata::Serializable* >::const_iterator i = find( QualifiedName( name, namespaceURI ) );
+emu::soap::Attributes::getValue( const emu::soap::QualifiedName& name ) {
+  map< QualifiedName, xdata::Serializable* >::const_iterator i = find( name );
   if ( i != end() ) return i->second;
   return NULL;
 }

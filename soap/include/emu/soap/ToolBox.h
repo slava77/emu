@@ -38,8 +38,7 @@ namespace emu{
       ///
       /// Creates a message with optional parameters, attributes and attachments.
       /// 
-      /// @param command Command.
-      /// @param commandNamespaceURI The namespace URI for the command. If it's the standard XDAQ one, the overloaded method without this argument can be used, too.
+      /// @param command Qualified XML name of the command. If no namespace is specified, it can be given as a simple character string, and it will be automatically type converted to an \c emu::soap::QualifiedName object. Also, if no namespace is specified, the namespace will defualt to the standard XDAQ SOAP one.
       /// @param parameters Optional parameters.
       /// @param attributes Optional attributes of the command.
       /// @param attachments Optional attachments.
@@ -48,41 +47,11 @@ namespace emu{
       ///
       /// See the overloaded version of this method for examples, and also emus::soap::Messenger::sendCommand (which takes the same arguments) for a complete illustration.
       ///
-      xoap::MessageReference createMessage( const std::string &command, 
-					    const std::string &commandNamespaceURI,
+      xoap::MessageReference createMessage( const emu::soap::QualifiedName &command, 
 					    const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
 					    const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
 					    const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
 
-      ///
-      /// Creates a message with optional parameters, attributes and attachments. Use the overloaded version if the command namespace URI is not the standard XDAQ one.
-      /// 
-      /// @param command Command.
-      /// @param parameters Optional parameters.
-      /// @param attributes Optional attributes of the command.
-      /// @param attachments Optional attachments.
-      ///
-      /// @return The message reference.
-      ///
-      /// Example:
-      /// \code
-      /// xoap::MessageReference onSOAPCommand( xoap::MessageReference msg ){
-      ///   try{
-      ///     // Do whatever the command tells you to do here.
-      ///     xoap::MessageReference reply = emu::soap::createMessage( "SOAPCommandResponse" );
-      ///     return reply;
-      ///   }catch( xcept::Exception &e ){
-      ///     XCEPT_RETHROW(xoap::exception::Exception, "Failed to create 'SOAPCommandResponse' reply to SOAP command.", e);
-      ///   }
-      /// }
-      /// \endcode
-      /// 
-      /// See emus::soap::Messenger::sendCommand (which takes the same arguments) for a complete illustration.
-      ///
-      xoap::MessageReference createMessage( const std::string &command, 
-					    const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
-					    const emu::soap::Attributes &attributes = emu::soap::Attributes::none,
-					    const vector<emu::soap::Attachment> &attachments = emu::soap::Attachment::none );
 
       /// 
       /// Adds attachments to a SOAP message.
