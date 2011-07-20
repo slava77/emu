@@ -40,13 +40,17 @@ emu::soap::Attributes::getValue( const emu::soap::QualifiedName& name ) {
 }
 
 ostream&
-operator<<( ostream& os,  const emu::soap::Attributes& attributes ){
-  emu::soap::Attributes::const_iterator p;  
+emu::soap::operator<<( ostream& os,  const emu::soap::Attributes& attributes ){
+  emu::soap::Attributes::const_iterator p;
   for ( p=attributes.begin(); p!=attributes.end(); ++p ){
-      os << "(name:"   << p->first
-	 << " type:'"  << p->second->type()
-	 << "' value:'" << p->second->toString()
-	 << "') ";
+    emu::soap::Attributes::const_iterator pp = p;
+    ++pp;
+    os << ( p == attributes.begin() ? "[" : "" )
+       << "(name:'"   << p->first
+       << "' type:'"  << p->second->type()
+       << "' value:'" << p->second->toString()
+       << "')"
+       << ( pp == attributes.end() ? "]" : ", " );
   }
   return os;
 }

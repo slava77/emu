@@ -17,6 +17,16 @@ namespace emu{
   namespace soap{
     using namespace std;
 
+    class QualifiedName;
+
+    /// 
+    /// Insertion operator for formatted text output.
+    /// @param os  The \c ostream object.
+    /// @param qualifiedName The \c qualifiedName object to be serialized.
+    ///
+    /// @return  Ref. to the \c ostream object itself.
+    ///
+    ostream& operator<<( ostream& os, const emu::soap::QualifiedName& qualifiedName );
 
     /// 
     ///  A fully qualified XML name with namespace and prefix.
@@ -25,17 +35,13 @@ namespace emu{
     public:
 
       /// 
-      /// Insertion operator for formatted text output.
+      /// Insertion operator for formatted text output is our friend.
       /// @param os  The \c ostream object.
       /// @param qualifiedName The \c qualifiedName object to be serialized.
       ///
       /// @return  Ref. to the \c ostream object itself.
       ///
-      friend ostream& operator<<( ostream& os, const emu::soap::QualifiedName& qualifiedName ){
-	os << qualifiedName.getPrefix() << ":" << qualifiedName.getName() 
-	   << " xmlns:" << qualifiedName.getPrefix() << "=\"" << qualifiedName.getNamespaceURI() << "\"";
-	return os;
-      }
+      friend ostream& operator<<( ostream& os, const emu::soap::QualifiedName& qualifiedName );
 
       /// 
       /// Ctor.
@@ -97,4 +103,5 @@ namespace emu{
 
   }
 }
+
 #endif

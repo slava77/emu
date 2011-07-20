@@ -35,3 +35,9 @@ int emu::soap::QualifiedName::operator==( const QualifiedName& other ) const {
        << ( name_ == other.getName() && namespaceURI_ == other.getNamespaceURI() ? 1 : 0 ) << endl;
   return ( name_ == other.getName() && namespaceURI_ == other.getNamespaceURI() ? 1 : 0 );
 }
+
+ostream& emu::soap::operator<<( ostream& os, const emu::soap::QualifiedName& qualifiedName ){
+  os << qualifiedName.prefix_ << ":" << qualifiedName.name_
+     << " xmlns:" << qualifiedName.prefix_ << "=\"" << qualifiedName.namespaceURI_ << "\"";
+  return os;
+}
