@@ -719,7 +719,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     if (quit_calibration_) { break; }
     LOG4CPLUS_DEBUG(logger_, "calibrationAction: " << step_counter_);
     
-    m.sendCommand( "emu::pc::EmuPeripheralCrateManager", calib_params_[index].bag.command_ );
+    m.sendCommand( "emu::pc::EmuPeripheralCrateManager", calib_params_[index].bag.command_.toString() );
 
     xdata::String attributeValue( "Start" );
     m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
@@ -1278,14 +1278,15 @@ void emu::supervisor::Application::sendCommandCell(string command){
 
   try{
     emu::soap::Attributes paramAttr;
-    paramAttr.setUsePrefix( false ).add( "name", &paramName );
-    m.sendCommand( tf_descr_, "OpSendCommand", "urn:ts-soap:3.0", 
+    paramAttr.setUsePrefixOfParent( false ).add( "name", &paramName );
+    m.sendCommand( tf_descr_, 
+		   emu::soap::QualifiedName( "OpSendCommand", "urn:ts-soap:3.0", "ts-soap" ),
 		   emu::soap::Parameters()
 		   .add( "operation", &TFCellOpName_ )
 		   .add( "command"  , &commandName   )
 		   .add( "param"    , &tf_key_       , &paramAttr ),
 		   emu::soap::Attributes()
-		   .setUsePrefix( false )
+		   .setUsePrefixOfParent( false )
 		   .add( "async", &async )
 		   .add( "cid"  , &cid   )
 		   .add( "sid"  , &sid   )
@@ -1308,11 +1309,12 @@ std::string emu::supervisor::Application::OpGetStateCell(){
 
   try{
     xdata::String state;
-    emu::soap::extractParameters( m.sendCommand( tf_descr_, "OpGetState", "urn:ts-soap:3.0", 
+    emu::soap::extractParameters( m.sendCommand( tf_descr_, 
+						 emu::soap::QualifiedName( "OpGetState", "urn:ts-soap:3.0", "ts-soap" ),
 						 emu::soap::Parameters()
 						 .add( "operation", &TFCellOpName_ ),
 						 emu::soap::Attributes()
-						 .setUsePrefix( false )
+						 .setUsePrefixOfParent( false )
 						 .add( "async", &async )
 						 .add( "cid"  , &cid   )
 						 .add( "sid"  , &sid   )
@@ -1339,11 +1341,12 @@ void emu::supervisor::Application::OpResetCell(){
   xdata::String sid( "73" );
 
   try{
-    m.sendCommand( tf_descr_, "OpReset", "urn:ts-soap:3.0",
+    m.sendCommand( tf_descr_, 
+		   emu::soap::QualifiedName( "OpReset", "urn:ts-soap:3.0", "ts-soap" ),
 		   emu::soap::Parameters()
 		   .add( "operation", &TFCellOpName_ ),
 		   emu::soap::Attributes()
-		   .setUsePrefix( false )
+		   .setUsePrefixOfParent( false )
 		   .add( "async", &async )
 		   .add( "cid"  , &cid   )
 		   .add( "sid"  , &sid   )
@@ -1779,9 +1782,9 @@ void emu::supervisor::Application::StateTable::webOutput(xgi::Output *out, strin
 	*out << tbody() << table() << endl;
 }
 
-ostream& emu::supervisor::operator<<( ostream& os, const emu::supervisor::Application::StateTable& st ){
-  os << endl << "emu::supervisor::Application(0) " << st.app_->fsm_.getCurrentState() << endl;
-  for (vector<pair<xdaq::ApplicationDescriptor *, string> >::const_iterator i = st.table_.begin(); i != st.table_.end(); ++i) {
+ostream& operator<<( ostream& os, const emu::supervisor::Application::StateTable& st ){
+  os << endl << "emu::supervisor::Application(0) " << st.getApplication()->getFSM()->getCurrentState() << endl;
+  for (vector<pair<xdaq::ApplicationDescriptor *, string> >::const_iterator i = st.getTable()->begin(); i != st.getTable()->end(); ++i) {
     os << i->first->getClassName() << "(" << i->first->getInstance() << ") " << i->second << endl;
   }
   return os;
