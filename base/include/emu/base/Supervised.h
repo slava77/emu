@@ -17,6 +17,8 @@ public:
 	Supervised(xdaq::ApplicationStub *stub)
 	  throw (xdaq::exception::Exception);
 
+        toolbox::fsm::FiniteStateMachine* getFSM(){ return &fsm_; }
+
 protected:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);

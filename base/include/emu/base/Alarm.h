@@ -7,6 +7,7 @@
 #include "log4cplus/logger.h"
 #include "xcept/tools.h"
 #include "xdata/InfoSpace.h"
+#include "xdata/InfoSpaceFactory.h"
 #include "sentinel/utils/Alarm.h"
 
 /// Macro to raise alarm to Sentinel.
@@ -75,7 +76,7 @@ namespace emu { namespace base {
 		xdaq::Application *owner,
 		Logger *logger ){
       // Get info space for alarms:
-      xdata::InfoSpace* is = xdata::InfoSpace::get("urn:xdaq-sentinel:alarms");
+      xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
       // Declare an exception that will be the alarm:
       alarmType ex( name, message, file, line, function );
       // Set 'tag' property:
@@ -125,7 +126,7 @@ namespace emu { namespace base {
 		      log4cplus::Logger *logger,
 		      nestedExceptionType &nestedException ){
       // Get info space for alarms:
-      xdata::InfoSpace* is = xdata::InfoSpace::get("urn:xdaq-sentinel:alarms");
+      xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
       // Declare an exception that will be the alarm:
       alarmType ex( name, message, file, line, function, nestedException );
       // Set 'tag' property:
@@ -166,7 +167,7 @@ namespace emu { namespace base {
 		 xdaq::Application *owner,
 		 Logger *logger ){
       // Get info space for alarms:
-      xdata::InfoSpace* is = xdata::InfoSpace::get("urn:xdaq-sentinel:alarms");
+      xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
       try {
 	// See if this alarm has already been raised:
 	sentinel::utils::Alarm *alarm = dynamic_cast<sentinel::utils::Alarm*>(is->find( name ));
