@@ -11,7 +11,7 @@
 #define __emu_soap_Parameters_h__
 
 #include <sstream>
-#include <map>
+#include <vector>
 #include "xdata/Serializable.h"
 #include "emu/soap/QualifiedName.h"
 #include "emu/soap/Attributes.h"
@@ -20,10 +20,20 @@ namespace emu{
   namespace soap{
     using namespace std;
 
+    class Parameters;
+    /// 
+    /// Insertion operator for formatted text output.
+    /// @param os The \c ostream object.
+    /// @param parameters The \c Parameters object to be serialized.
+    ///
+    /// @return Ref. to the \c ostream object itself.
+    ///
+    ostream& operator<<( ostream& os, const emu::soap::Parameters& parameters );
+
     ///
     /// A container class to pass multiple SOAP parameters with their attributes in.
     ///
-    class Parameters : public map< QualifiedName, pair< xdata::Serializable*, const emu::soap::Attributes* > >{
+    class Parameters : public vector< pair< QualifiedName, pair< xdata::Serializable*, const emu::soap::Attributes* > > >{
     public:
 
       /// 
@@ -32,13 +42,13 @@ namespace emu{
       Parameters();
 
       /// 
-      /// Insertion operator for formatted text output.
+      /// Insertion operator for formatted text output is our friend.
       /// @param os The \c ostream object.
       /// @param parameters The \c Parameters object to be serialized.
       ///
       /// @return Ref. to the \c ostream object itself.
       ///
-      friend ostream& operator<<( ostream& os,  const emu::soap::Parameters& parameters );
+      friend ostream& operator<<( ostream& os, const emu::soap::Parameters& parameters );
 
       ///
       /// Sets whether namespace prefix is to be used.
@@ -70,27 +80,27 @@ namespace emu{
 
       /// 
       /// Gets the type of data named \c name .
-      /// @param name Qualified XML name of the data.
+      /// @param name index Index of the parameter.
       ///
       /// @return Type of the data as returned by \c xdata.
       ///
-      string getType( const emu::soap::QualifiedName& name ) const;
+      string getType( const size_t index ) const;
 
       /// 
       /// Gets the \c xdata object holding data named \c name .
-      /// @param name Qualified XML name of the data.
+      /// @param name index Index of the parameter.
       ///
       /// @return Pointer to the \c xdata object holding data named \c name .
       ///
-      xdata::Serializable* getValue( const emu::soap::QualifiedName& name );
+      xdata::Serializable* getValue( const size_t index );
 
       /// 
       /// Gets the attributes of the named parameter.
-      /// @param name Qualified XML name of parameter.
+      /// @param index Index of the parameter.
       ///
       /// @return Pointer to the attributes of the named parameter.
       ///
-      const emu::soap::Attributes* getAttributes( const emu::soap::QualifiedName& name ) const;
+      const emu::soap::Attributes* getAttributes( const size_t index ) const;
 
       static const emu::soap::Parameters none; ///< An empty container of parameters.
 

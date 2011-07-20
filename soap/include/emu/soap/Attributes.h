@@ -19,6 +19,17 @@ namespace emu{
   namespace soap{
     using namespace std;
 
+    class Attributes;
+
+    /// 
+    /// Insertion operator for formatted text output.
+    /// @param os The \c ostream object.
+    /// @param attributes The \c Attributes object to be serialized.
+    ///
+    /// @return Ref. to the \c ostream object itself.
+    ///
+    ostream& operator<<( ostream& os, const emu::soap::Attributes& attributes );
+
     ///
     /// A container class to pass multiple SOAP attributes in.
     ///
@@ -31,13 +42,13 @@ namespace emu{
       Attributes();
 
       /// 
-      /// Insertion operator for formatted text output.
+      /// Insertion operator for formatted text output is our friend.
       /// @param os The \c ostream object.
       /// @param attributes The \c Attributes object to be serialized.
       ///
       /// @return Ref. to the \c ostream object itself.
       ///
-      friend ostream& operator<<( ostream& os,  const emu::soap::Attributes& attributes );
+      friend ostream& operator<<( ostream& os, const emu::soap::Attributes& attributes );
 
       ///
       /// Sets whether namespace prefix is to be used.
