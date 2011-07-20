@@ -29,7 +29,6 @@ public:
 
   class StateTable;
   friend class emu::supervisor::Application::StateTable;
-  friend ostream& operator<<( ostream& os, const emu::supervisor::Application::StateTable& table );
 
 	XDAQ_INSTANTIATOR();
 
@@ -221,7 +220,8 @@ private: // XDAQ parameters
 
 	class StateTable
 	{
-	  friend ostream& emu::supervisor::operator<<( ostream& os, const emu::supervisor::Application::StateTable& table );
+	  friend ostream& operator<<( ostream& os, const emu::supervisor::Application::StateTable& st );
+
 	public:
 		StateTable(Application *app);
 		void addApplication(string klass);
@@ -231,6 +231,7 @@ private: // XDAQ parameters
 		void webOutput(xgi::Output *out, string sv_state)
 				throw (xgi::exception::Exception);
 	        Application* getApplication() const { return app_; }
+	        const vector<pair<xdaq::ApplicationDescriptor *, string> >* getTable() const { return &table_; }
 
 	private:
 		Application *app_;
