@@ -48,42 +48,31 @@
 <!--       <td style="background-color: #ffffff;">2048</td> -->
 <!--     </tr></table> -->
 
+<!--     <table id="paletteTable" class="palette"><tr> -->
+<!--       <td style="background-color: #220022; color: #220022;">-1</td> -->
+<!--       <td style="background-color: #000000;">0</td> -->
+<!--       <td style="background-color: #222200;">1</td> -->
+<!--       <td style="background-color: #333300;">2</td> -->
+<!--       <td style="background-color: #555500;">4</td> -->
+<!--       <td style="background-color: #777700;">8</td> -->
+<!--       <td style="background-color: #999900;">16</td> -->
+<!--       <td style="background-color: #bbbb00;">32</td> -->
+<!--       <td style="background-color: #dddd00;">64</td> -->
+<!--       <td style="background-color: #ffff00;">128</td> -->
+<!--     </tr></table> -->
+
     <table id="paletteTable" class="palette"><tr>
       <td style="background-color: #220022; color: #220022;">-1</td>
       <td style="background-color: #000000;">0</td>
-      <td style="background-color: #222200;">1</td>
-      <td style="background-color: #333300;">2</td>
-      <td style="background-color: #555500;">4</td>
-      <td style="background-color: #777700;">8</td>
-      <td style="background-color: #999900;">16</td>
-      <td style="background-color: #bbbb00;">32</td>
-      <td style="background-color: #dddd00;">64</td>
-      <td style="background-color: #ffff00;">128</td>
+      <td style="background-color: #000022;">1</td>
+      <td style="background-color: #000033;">2</td>
+      <td style="background-color: #000055;">4</td>
+      <td style="background-color: #000077;">8</td>
+      <td style="background-color: #000099;">16</td>
+      <td style="background-color: #0000bb;">32</td>
+      <td style="background-color: #0000dd;">64</td>
+      <td style="background-color: #0000ff;">128</td>
     </tr></table>
-
-<!--     <table id="paletteTable" class="palette"><tr> -->
-<!--       <td style="background-color: #000000;">0</td> -->
-<!--       <td style="background-color: #002200;">1</td> -->
-<!--       <td style="background-color: #003300;">2</td> -->
-<!--       <td style="background-color: #005500;">4</td> -->
-<!--       <td style="background-color: #007700;">8</td> -->
-<!--       <td style="background-color: #009900;">16</td> -->
-<!--       <td style="background-color: #00bb00;">32</td> -->
-<!--       <td style="background-color: #00dd00;">64</td> -->
-<!--       <td style="background-color: #00ff00;">128</td> -->
-<!--     </tr></table> -->
-
-<!--     <table id="paletteTable" class="palette"><tr> -->
-<!--       <td style="background-color: #000000;">0</td> -->
-<!--       <td style="background-color: #000022;">1</td> -->
-<!--       <td style="background-color: #000033;">2</td> -->
-<!--       <td style="background-color: #000055;">4</td> -->
-<!--       <td style="background-color: #000077;">8</td> -->
-<!--       <td style="background-color: #000099;">16</td> -->
-<!--       <td style="background-color: #0000bb;">32</td> -->
-<!--       <td style="background-color: #0000dd;">64</td> -->
-<!--       <td style="background-color: #0000ff;">128</td> -->
-<!--     </tr></table> -->
 
 <!--     <table id="paletteTable" class="palette"><tr> -->
 <!--       <td style="background-color: #000000;">0</td> -->
