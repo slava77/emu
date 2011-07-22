@@ -134,10 +134,10 @@ function onMouseDownOnFollowButton(){
     var follow_edge2 = document.getElementById("follow_edge2");
     if ( !following ){
 	// Start following
-	follow_rect.setAttribute( 'fill', '#dddddd' );
-	follow_edge1.setAttribute( 'fill', '#888888' );
-	follow_edge2.setAttribute( 'fill', '#ffffff' );
-	follow_text.setAttribute( 'fill', 'black' );
+	follow_rect.setAttribute( 'fill', '#333333' );
+	follow_edge1.setAttribute( 'fill', '#111111' );
+	follow_edge2.setAttribute( 'fill', '#888888' );
+	follow_text.setAttribute( 'fill', '#eeeeee' );
 	follow_text.setAttribute( 'title', 'click to stop following last point' );
 	follow_rect.setAttribute( 'title', 'click to stop following last point' );
 	follow_text.firstChild.nodeValue = 'freeze'

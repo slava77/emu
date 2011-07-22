@@ -1,35 +1,38 @@
 * {margin:0}
 * {padding:0}
-body { background-color:#eeeeee; }
-table { width: 100%; background-color:#ffffff; border-collapse: separate; }
-td, th { color:#000000; font-size:90%; }
-th { background-color:#dddddd; width:5%; }
-td { background-color:#eeeeee; text-align:center; }
+body { background-color:#111111; }
+table { width: 100%; background-color:#000000; border-collapse: separate; }
+td, th { color:#eeeeee; font-size:90%; }
+th { background-color:#444444; width:5%; }
+td { background-color:#111111; text-align:center; }
 .layout { width: 100%; height: 100%; background-color: transparent; padding: 0px; border-collapse: collapse; }
-th.title { background-color:#dddddd; width: 100%; }
+th.title { background-color:#444444; width: 100%; }
 td.time { font-size:70%; }
-td.Halted, td.halted { background-color:#9999FF; }
-td.Ready, td.ready { background-color:#FFFF44; }
-td.Configured, td.configured { background-color:#FFFF44; }
+td.Halted, td.halted { background-color:#7777FF; }
+td.Ready, td.ready { background-color:#dddd00; }
+td.Configured, td.configured { background-color:#dddd00; }
 td.suspended { background-color:#99CC66; }
-td.Enabled, td.enabled { background-color:#22dd22; }
-td.ON { background-color:#22dd22; }
-td.Calibration { background-color:#22dd22; }
-td.Failed { background-color:#FF9999; }
-td.UNKNOWN, td.Unknown { background-color:#FF9999; }
-td.INDEFINITE, td.Indefinite { background-color:#FF9999; }
-td.OFF { background-color:#FF9999; }
-td.NA { background-color:#FF9999; }
-table.root { width: 100%; border-collapse: collapse; background-color:#ffffff; }
-table.root td { color:#000000; }
-a:link,a:active,a:visited { color:#333333; }
-a:hover { color:#ff9900; font-weight:bold; }
-a.forLog:link,a.forLog:active,a.forLog:visited { color:#2222ff; }
-a.forLog:hover { color:#ff9900; font-weight:bold; }
+td.Enabled, td.enabled { background-color:#33cc33; }
+td.ON { background-color:#33cc33; }
+td.Calibration { background-color:#33cc33; }
+td.Failed { background-color:#ff4444; }
+td.UNKNOWN, td.Unknown { background-color:#ff4444; }
+td.INDEFINITE, td.Indefinite { background-color:#ff4444; }
+td.OFF { background-color:#ff4444; }
+td.NA { background-color:#ff4444; }
+table.root { width: 100%; border-collapse: collapse; background-color:#000000; }
+table.root td { color:#eeeeee; }
+a:link,a:active,a:visited { color:#ffffff; }
+a:hover { color:#ffbb00; } /* font-weight:bold; } */
+/* a.forLog:link,a.forLog:active,a.forLog:visited { color:#7777ff; } */
+/* a.forLog:hover { color:#ff9900; } */
 .fresh { opacity:1.0; }
 .aging { opacity:0.5; }
 .stale { opacity:0.3; }
 table.stale td.time { text-decoration:blink; }
-td.WARN { background-color:#FFFF44; }
-td.ERROR { background-color:#FF9999; }
+td.WARN { background-color:#dddd00; }
+td.ERROR { background-color:#ff4444; }
+td.WARN a:link { color:#222222; }
+td.WARN a:visited { color:#222222; }
+td.WARN a:active { color:#222222; }
 svg { vertical-align: middle; text-align:center; }
