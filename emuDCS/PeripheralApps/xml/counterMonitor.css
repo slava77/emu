@@ -1,7 +1,7 @@
 body { background-color:#222222; }
 
 table.counts { width: 100%; }
-table.counts td, th { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; }
+table.counts td, th { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; font-size:small; }
 table.counts th { color:#aaaaaa; background-color:#333333; }
 table.counts th.sum { color:#666666; text-align: right; padding: 0px 8px 0px 8px; }
 table.counts td { text-align: right; color: #888888; }
