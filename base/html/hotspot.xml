@@ -4,9 +4,9 @@
     <url host="csc-daq.cms" port="9941" service="las" description="soap services"/>
   </service>
   <service name="spotlight">
-    <url host="csc-daq.cms" port="9979" service="sentinel-spotlight" description="alarm db"/>
-    <url host="l1ts-csctf.cms" port="5010" service="sentinel-spotlight" description="alarm db"/>
-    <!-- 		<url host="emuslice02.cern.ch" port="9979" service="sentinel-spotlight" description="alarm db"/> -->
+    <url host="csc-daq.cms" port="9979" service="sentinel-spotlight" description="readonly"/>
+    <url host="l1ts-csctf.cms" port="5010" service="sentinel-spotlight" description="readonly"/>
+    <!-- 		<url host="emuslice02.cern.ch" port="9979" service="sentinel-spotlight" description="readonly"/> -->
   </service>
 
   <service name="wseventing">
@@ -343,8 +343,8 @@
 	<guard label="Command -" type="^emu::pc::EmuPeripheralCrateCommand" notifier="^http://csc-pc2"/>
       </view>
       <view label="Timer">
-	<guard label="Timer +" type="^emu::pc::EmuPeripheralCrateTimer" notifier="^http://csc-dcs-pc1"/>/> 
-	<guard label="Timer -" type="^emu::pc::EmuPeripheralCrateTimer" notifier="^http://csc-dcs-pc2"/>/> 
+	<guard label="Timer +" type="^emu::pc::EmuPeripheralCrateTimer" notifier="^http://csc-dcs-pc1"/>
+	<guard label="Timer -" type="^emu::pc::EmuPeripheralCrateTimer" notifier="^http://csc-dcs-pc2"/>
       </view>
       <view label="Monitor">
 	<guard label="Monitor +" type="^emu::pc::EmuPeripheralCrateMonitor" notifier="^http://csc-dcs-pc1"/> 
