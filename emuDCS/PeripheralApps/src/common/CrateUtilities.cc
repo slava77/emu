@@ -18,7 +18,7 @@ namespace emu {
 CrateUtilities::CrateUtilities() : MpcTMBTestResult(-1), myCrate_(0)
 {
   //
-  debug_ = false;
+  debug_ = true;
   if(debug_) std::cout << "CrateUtilities" << std::endl ;
   //
   MyOutput_ = &std::cout ;
@@ -77,8 +77,9 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
       // clear the vectors of read out LCTs
       (myCrate_->mpc())->ResetFIFOBLct();
       //
-      int NFrames = myTmbs.size();
-      if (NFrames > 5 ) NFrames = 5;
+//      int NFrames = myTmbs.size();
+//      if (NFrames > 5 ) NFrames = 5;
+      int NFrames = 5;
       //
       for (unsigned i=0; i<myTmbs.size(); i++) {
 	myTmbs[i]->InjectMPCData(NFrames,0,0); //Random Data
@@ -229,7 +230,7 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
 	  std::cout << "FAIL on LCT 1" << std::endl;
 	}
 	//
-	if ( (InjectedLCT[2]|0x800) == (MPCLct2|0x800) ) {
+	if ( (InjectedLCT.size()<3) || (InjectedLCT[2]|0x800) == (MPCLct2|0x800) ) {
 	  NFound[delay] ++;
 	  N_LCTs_found_this_pass++;
 	} else {
