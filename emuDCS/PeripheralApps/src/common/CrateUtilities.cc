@@ -18,7 +18,7 @@ namespace emu {
 CrateUtilities::CrateUtilities() : MpcTMBTestResult(-1), myCrate_(0)
 {
   //
-  debug_ = true;
+  debug_ = false;
   if(debug_) std::cout << "CrateUtilities" << std::endl ;
   //
   MyOutput_ = &std::cout ;
@@ -44,6 +44,7 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
   //
   int NFound[255] = {};
   //
+  int tmb_mask = myCrate_->mpc()->ReadMask();
   for (int delay=min_delay; delay<=max_delay; delay++) {
     //
     myCrate_->mpc()->SoftReset();
@@ -62,28 +63,27 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
     //
     std::vector <unsigned long int> InjectedCSCId;
     //
+    int NFrames = 5;
     int nloop;
     for(nloop = 0; nloop<Nloop; nloop++) {
       //
-      std::cout << "Begin Event " << nloop << std::endl;
+      std::cout << "Begin Loop " << nloop << std::endl;
       //
       std::vector <TMB*> myTmbs = myCrate_->tmbs();
-      //
-      // clear the vectors of input LCTs
-      for (unsigned i=0; i<myTmbs.size(); i++) {
-	(myTmbs[i]->ResetInjectedLCT());
-      }
       //
       // clear the vectors of read out LCTs
       (myCrate_->mpc())->ResetFIFOBLct();
       //
-//      int NFrames = myTmbs.size();
-//      if (NFrames > 5 ) NFrames = 5;
-      int NFrames = 5;
-      //
       for (unsigned i=0; i<myTmbs.size(); i++) {
-	myTmbs[i]->InjectMPCData(NFrames,0,0); //Random Data
-	//      myTmbs[i]->ReadBackMpcRAM(NFrames)
+	 int TMBslot = myTmbs[i]->slot();
+         int tmb_num = TMBslot/2;
+         if(tmb_num>5) tmb_num--;
+         int tmbmaskbit = tmb_mask & (1<<(9-tmb_num));
+         if(tmbmaskbit==0)
+	 {  myTmbs[i]->ResetInjectedLCT(); // clear the vectors of input LCTs
+	    myTmbs[i]->InjectMPCData(NFrames,0,0); // inject Random Data
+	   //      myTmbs[i]->ReadBackMpcRAM(NFrames)
+         }
       }
       //
       //  myCrate_->ccb()->FireCCBMpcInjector();
@@ -121,9 +121,12 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
 	//
 	for (unsigned i=0; i<myTmbs.size(); i++) {
 	  int TMBslot = myTmbs[i]->slot();
+          int tmb_num = TMBslot/2;
+          if(tmb_num>5) tmb_num--;
+          int tmbmaskbit = tmb_mask & (1<<(9-tmb_num));
 	  if (debug_)
 	    std::cout << "slot = " << std::dec << TMBslot << "..." << std::endl;
-	  if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
+	  if ( tmbmaskbit==0 && (myTmbs[i]->GetInjectedLct0()).size()>0 ) {
 	    //
 	    // MPC algorithm picks the LCT according to:
             // 1) the highest quality
