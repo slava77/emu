@@ -1272,6 +1272,10 @@ void EmuPeripheralCrateConfig::CrateTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
   //
+  *out << cgicc::pre();
+  *out << "Use MPC_Utilities to mask out unwanted TMBs (Hard Reset will clear the masks)" << std::endl;
+  *out << cgicc::pre();
+  //
   std::string TmbMPCTest = toolbox::toString("/%s/TmbMPCTest",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TmbMPCTest) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Crate TMB/MPC test") << std::endl ;
