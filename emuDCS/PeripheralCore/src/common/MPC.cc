@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.19 2011/06/30 21:26:36 liu Exp $
+// $Id: MPC.cc,v 3.20 2011/07/28 16:28:38 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.20  2011/07/28 16:28:38  liu
+// update comments
+//
 // Revision 3.19  2011/06/30 21:26:36  liu
 // add setDelay function
 //
@@ -512,6 +515,8 @@ void MPC::WriteMask(int mask)
   unsigned short raw;
   unsigned data;
 
+  (*MyOutput_) << "write MPC mask : " << std::hex << mask << std::dec << std::endl;
+
   data=0;
   for(int i=0; i<9; i++)
   {
@@ -524,7 +529,6 @@ void MPC::WriteMask(int mask)
   raw = (data>>16)&3;
   write_now(CSR8, raw, rcvbuf);
 
-  (*MyOutput_) << "MPC mask set to: " << std::hex << mask << std::dec << std::endl;
 }
 
 
