@@ -483,6 +483,8 @@ private:
   void setDataReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void Automatic(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CFEBTimingME11b(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CFEBTimingME11a(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBL1aTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ALCTL1aTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //  void ALCTvpf(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

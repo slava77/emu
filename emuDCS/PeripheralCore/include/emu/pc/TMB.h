@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.16 2010/09/29 03:44:56 rakness Exp $
+// $Id: TMB.h,v 1.17 2011/08/01 17:13:59 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.17  2011/08/01 17:13:59  rakness
+// automatically handle special region before/after and ME1/1a, ME1/1b, normal chambers separately
+//
 // Revision 1.16  2010/09/29 03:44:56  rakness
 // first attempt to handle the special CFEB timing region
 //
@@ -892,6 +895,7 @@ public:
   //!ignore_ccb_startstop = 1 = ignore ttc_trig_start, ttc_trig_stop
   inline void SetIgnoreCcbStartStop(int ignore_ccb_startstop) { ignore_ccb_startstop_ = ignore_ccb_startstop; }
   inline int  GetIgnoreCcbStartStop() { return ignore_ccb_startstop_; }
+  inline int  GetReadIgnoreCcbStartStop() { return read_ignore_ccb_startstop_; }
   //
   //!internal_l1a_delay_vme = [0-255]
   inline void SetInternalL1aDelay(int internal_l1a_delay_vme) { internal_l1a_delay_vme_ = internal_l1a_delay_vme; }
@@ -1083,6 +1087,7 @@ public:
   //!clct_pat_trig_en = 1 = CLCT Pattern = pretrigger
   inline void SetClctPatternTrigEnable(int clct_pat_trig_en) { clct_pat_trig_en_ = clct_pat_trig_en; }
   inline int  GetClctPatternTrigEnable() { return clct_pat_trig_en_; }
+  inline int  GetReadClctPatternTrigEnable() { return read_clct_pat_trig_en_; }
   //
   //!alct_pat_trig_en = 1 = ALCT Pattern = pretrigger
   inline void SetAlctPatternTrigEnable(int alct_pat_trig_en) { alct_pat_trig_en_ = alct_pat_trig_en; }
@@ -1192,6 +1197,7 @@ public:
   //!hit_thresh = [0-6] = 1/2-strip pretrigger threshold
   inline void SetHsPretrigThresh(int hit_thresh) { hit_thresh_ = hit_thresh; }
   inline int  GetHsPretrigThresh() { return hit_thresh_; }
+  inline int  GetReadHsPretrigThresh() { return read_hit_thresh_; }
   //
   //!aff_thresh = [0-6] = minimum number of hits needed on CLCT pretrigger pattern to send Active FEB Flag to DMB
   inline void SetActiveFebFlagThresh(int aff_thresh) { aff_thresh_ = aff_thresh; } 
@@ -1201,6 +1207,7 @@ public:
   //!min_hits_pattern = minimum number of layers needed to match for pattern trigger
   inline void SetMinHitsPattern(int min_hits_pattern){ min_hits_pattern_ = min_hits_pattern; }
   inline int  GetMinHitsPattern() { return min_hits_pattern_ ;}
+  inline int  GetReadMinHitsPattern() { return read_min_hits_pattern_ ;}
   //
   //!drift_delay = [0-3] = drift delay between TMB pretrigger and CLCT pattern trigger
   inline void SetDriftDelay(int drift_delay) { drift_delay_ = drift_delay; }
@@ -1311,6 +1318,7 @@ public:
   //!tmb_allow_clct = 1 = CLCT only trigger
   inline void SetTmbAllowClct(int tmb_allow_clct) { tmb_allow_clct_ = tmb_allow_clct; }
   inline int  GetTmbAllowClct() { return tmb_allow_clct_; }
+  inline int  GetReadTmbAllowClct() { return read_tmb_allow_clct_; }
   //
   //!tmb_allow_match = 1 = ALCT*CLCT trigger
   inline void SetTmbAllowMatch(int tmb_allow_match) { tmb_allow_match_ = tmb_allow_match; }
@@ -1616,6 +1624,7 @@ public:
   //!layer_trigger_en = 1 = enable layer trigger mode
   inline void SetEnableLayerTrigger(int layer_trigger_en) { layer_trigger_en_ = layer_trigger_en; } 
   inline int  GetEnableLayerTrigger() { return layer_trigger_en_; } 
+  inline int  GetReadEnableLayerTrigger() { return read_layer_trigger_en_; } 
   //
   //!layer_trig_thresh = [0-6] = number of layers required for layer trigger
   inline void SetLayerTriggerThreshold(int layer_trig_thresh) { layer_trig_thresh_ = layer_trig_thresh; }
