@@ -54,10 +54,11 @@ public:
   //
   // clock phases...
   ///  CFEB -> TMB communication delays
-  void CFEBTiming();
-  void CFEBTiming_with_Posnegs();
+  enum CFEBTiming_scanType {normal_scan, me11b_scan, me11a_scan};  
+  void CFEBTiming();                           //default is normal_scan
+  void CFEBTiming(CFEBTiming_scanType);
+  void CFEBTiming_with_Posnegs(CFEBTiming_scanType);
   void CFEBTiming_without_Posnegs();
-  void CFEBTiming_with_Posnegs_ME11a();
   //
   /// RAT -> TMB communication delays
   int  RatTmbDelayScan();
@@ -186,7 +187,12 @@ public:
   void bit_to_array(int data, int * array, const int size) ;
   inline int RoundOff(float RealNumber) { return ( (int) (RealNumber + 0.5) ); }
   inline int RoundOffForEvenWindowWidths(float RealNumber) { return ((int) RealNumber); }
+  bool inSpecialRegion(int cfeb0tof,int cfeb1tof,int cfeb2tof,int cfeb3tof,int cfeb4tof,
+		       int cfeb0rx ,int cfeb1rx ,int cfeb2rx ,int cfeb3rx ,int cfeb4rx ,
+		       int cfeb0pn ,int cfeb1pn ,int cfeb2pn ,int cfeb3pn ,int cfeb4pn ,
+		       CFEBTiming_scanType scanType);
   float determine_average_with_wraparound(int val1, int val2, int val3, int val4, int val5, const int max_val);
+  float determine_average_with_wraparound(int val1, int val2, int val3, int val4, const int max_val);
   float special_region_function(float signed_rx);
   //
   //
