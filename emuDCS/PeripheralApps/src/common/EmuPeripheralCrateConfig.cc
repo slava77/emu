@@ -4373,6 +4373,17 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::table();
     //
+  } else if ( (alct->GetChamberType()).find("ME13") != std::string::npos ) {
+    //
+    std::string CFEBTimingME11b = toolbox::toString("/%s/CFEBTimingME11b",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CFEBTimingME11b) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","ME1/3 - Scan CFEB rx phases") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
   } else {
     std::string CFEBTiming = toolbox::toString("/%s/CFEBTiming",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CFEBTiming) << std::endl ;
