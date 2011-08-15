@@ -33,7 +33,6 @@ CrateUtilities::~CrateUtilities(){
 }
 //
 void CrateUtilities::MpcTMBTest(int Nloop) {
-  myCrate_->mpc()->setDelay(0x30);  /* same as the default value in the firmware */
   MpcTMBTest(Nloop, 0, 0);  //default is no scan for "safe window"
   return;
 }
@@ -44,12 +43,14 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
   //
   int NFound[255] = {};
   //
+  myCrate_->mpc()->SoftReset();
+  myCrate_->mpc()->configure();
+    //    myCrate_->mpc()->read_csr0();
+  if(min_delay==0 && max_delay==0) 
+     myCrate_->mpc()->setDelay(0x30);  /* same as the default value in the firmware */
   int tmb_mask = myCrate_->mpc()->ReadMask();
   for (int delay=min_delay; delay<=max_delay; delay++) {
     //
-    myCrate_->mpc()->SoftReset();
-    myCrate_->mpc()->configure();
-    //    myCrate_->mpc()->read_csr0();
     //
     if (delay) {
       std::cout << "Delay value = " << delay << std::endl;
