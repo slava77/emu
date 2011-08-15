@@ -613,7 +613,7 @@ private:
   int number_of_tmb_firmware_errors[9];
   int able_to_load_alct[9];
   //
-  bool print_stuff;
+  bool print_config_check_output;
   char date_and_time_[13];
   //
 };
