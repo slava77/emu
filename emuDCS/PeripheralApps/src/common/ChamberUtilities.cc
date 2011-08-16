@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.39 2011/08/01 17:13:59 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.40 2011/08/16 11:44:39 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.40  2011/08/16 11:44:39  rakness
+// fix bug at max edge of window to evaluate in determining average
+//
 // Revision 1.39  2011/08/01 17:13:59  rakness
 // automatically handle special region before/after and ME1/1a, ME1/1b, normal chambers separately
 //
@@ -1219,7 +1222,9 @@ float ChamberUtilities::determine_average_with_wraparound(int val1,
   //
   Mean /= MeanN;
   //
-  if (Mean > max_value)  
+  float max_to_compare = (float) max_value - 0.1;
+
+  if (Mean > max_to_compare)  
     Mean -= max_value ;
   // 
   return Mean;
@@ -1261,7 +1266,9 @@ float ChamberUtilities::determine_average_with_wraparound(int val1,
   //
   Mean /= MeanN;
   //
-  if (Mean > max_value)  
+  float max_to_compare = (float) max_value - 0.1;
+
+  if (Mean > max_to_compare)  
     Mean -= max_value ;
   // 
   return Mean;
