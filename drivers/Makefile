@@ -14,7 +14,7 @@ all:
 	@echo "   pcvme"
 	@echo "   pcvmerpm"
 	@echo "For example, to compile the local DAQ drivers and pack them in an RPM:"
-	@echo "   make daqdriver daqdriverrpm"
+	@echo "   make daqdriverrpm"
 	@echo "Exiting."
 	@exit 1
 
@@ -37,7 +37,7 @@ daqdriver:
 	(cd $$i; make); \
 	done
 
-daqdriverrpm:
+daqdriverrpm:	daqdriver
 	mkdir -p rpm/{BUILD,RPMS}
 	rpmbuild -bb -vv emu-daqdriver.spec
 
@@ -52,7 +52,7 @@ daqdriver904:
 	(cd $$i; make); \
 	done
 
-daqdriverrpm904:
+daqdriverrpm904:	daqdriver904
 	mkdir -p rpm/{BUILD,RPMS}
 	rpmbuild -bb -vv emu-daqdriver904.spec
 
@@ -67,6 +67,6 @@ pcvme:
 	(cd $$i; make); \
 	done
 
-pcvmerpm:
+pcvmerpm:	pcvme
 	mkdir -p rpm/{BUILD,RPMS}
 	rpmbuild -bb -vv emu-pcvme.spec
