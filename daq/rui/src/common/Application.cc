@@ -844,6 +844,9 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     nEventsRead_ = 0;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("nEventsRead", &nEventsRead_));
+    badEventCount_ = 0;
+    params.push_back(pair<string,xdata::Serializable *> ("badEventCount", &badEventCount_));
+
     persistentDDUError_ = "";
     params.push_back(pair<string,xdata::Serializable *>
 		     ("persistentDDUError", &persistentDDUError_));
@@ -1461,13 +1464,13 @@ throw (toolbox::fsm::exception::Exception)
     // Managing bad events and their context
     if ( writeBadEventsOnly_.value_ ){
       LOG4CPLUS_INFO(logger_, "Writing bad events only and " << nToWriteBeforeBadEvent_.toString() << " events before and " << nToWriteAfterBadEvent_.toString() << " after.")
-      // Set the size of the buffer ring storing the events preceeding the bad one
+      // Set the size of the buffer ring storing the events preceding the bad one
       eventBufferRing_.setSize( nToWriteBeforeBadEvent_.value_ );
       eventBufferRing_.emptyEventBuffers();
       // A countSinceBadEvent_ below nToWriteAfterBadEvent_ would trigger writing a trailing context to file.
       countSinceBadEvent_ = nToWriteAfterBadEvent_.value_+1;
     }
-
+    badEventCount_ = 0;
 }
 
 
@@ -2315,13 +2318,17 @@ void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, 
 	// LOG4CPLUS_INFO(logger_, "Found bad event.");
 	// Turns out this is a bad event.
 	// (isBadEvent_ can only be set TRUE once the trailer has been read in, i.e., the event is complete.)
-	// Get the bad event and its preceeding events and write them to file as the leading context:
-	list<const emu::daq::rui::EventBuffer*> ebl( eventBufferRing_.getEventBuffers() );
-	for ( list<const emu::daq::rui::EventBuffer*>::const_iterator i=ebl.begin(); i!=ebl.end(); ++i ){
-	  writeDataToFile( (*i)->getEvent(), (int) (*i)->getEventSize(), true );
-	  //LOG4CPLUS_WARN(logger_, "Writing bad event leading context, event -" << --countToBadEvent );
+	++badEventCount_;
+	// Write this bad event to file if and only if it passes prescaling:
+	if ( badEventCount_.passesPrescaling() ){
+	  // Get the bad event and its preceding events and write them to file as the leading context:
+	  list<const emu::daq::rui::EventBuffer*> ebl( eventBufferRing_.getEventBuffers() );
+	  for ( list<const emu::daq::rui::EventBuffer*>::const_iterator i=ebl.begin(); i!=ebl.end(); ++i ){
+	    writeDataToFile( (*i)->getEvent(), (int) (*i)->getEventSize(), true );
+	    //LOG4CPLUS_WARN(logger_, "Writing bad event leading context, event -" << --countToBadEvent );
+	  }
 	}
-	// Clear the buffer holding the bad event and the ones preceeding it:
+	// Clear the buffer holding the bad event and the ones preceding it:
 	eventBufferRing_.emptyEventBuffers();
 	// Zero the counter of events read since the last bad event:
 	countSinceBadEvent_ = 0;
