@@ -28,6 +28,7 @@
 #include "emu/daq/writer/RateLimiter.h"
 #include "emu/daq/rui/i2oFirstEventNumberMsg.h"
 #include "emu/daq/rui/STEPEventCounter.h"
+#include "emu/daq/rui/BadEventCount.h"
 #include "emu/daq/rui/EventBufferRing.h"
 #include "emu/base/FactFinder.h"
 
@@ -168,6 +169,7 @@ private:
   bool                                isBadEvent_; ///< This event is bad.
   unsigned long                       countSinceBadEvent_; ///< Number of events read so far since the last bad event.
   emu::daq::rui::EventBufferRing      eventBufferRing_; ///< Buffer to store the bad event and its leading context.
+  emu::daq::rui::BadEventCount        badEventCount_; ///< Bad event count with progressive prescaler
 
   // In STEP runs, count on each DDU input the number of events it's contributed to with data
   bool                                isSTEPRun_;

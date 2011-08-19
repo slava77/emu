@@ -14,6 +14,7 @@ Package = daq/rui
 
 Sources = \
 	STEPEventCounter.cc \
+	BadEventCount.cc \
 	Application.cc \
 	FactTypes.cc \
 	EventBuffer.cc \
