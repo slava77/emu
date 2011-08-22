@@ -4,7 +4,7 @@
 
 Summary: Configuration files and scripts needed for emu to run processes on csc-tf and csc-ttc.
 Name: emu-trigger
-Version: 1.0.0
+Version: 1.0.1
 Release: 1.cmsos10.slc4
 License: none
 Group: none
@@ -39,9 +39,10 @@ done
 %{XDAQ_ROOT}/share/emu/flash
 %{XDAQ_ROOT}/share/emu/profile
 %{XDAQ_ROOT}/share/emu/pulser
-%{XDAQ_ROOT}/share/emu/scripts
 %{XDAQ_ROOT}/share/emu/sensor
 %{XDAQ_ROOT}/share/emu/xplore
+%defattr(755,root,root,755)
+%{XDAQ_ROOT}/share/emu/scripts
 %doc
 
 
