@@ -1722,7 +1722,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetGridx>1</SetGridx>
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetYLabels>1='No Errors'|2='Any Error'|14='Unidentified buffer'|15='DDU Trailer bit error flag from hardware'|16='DDU Header Missing'|17='DDU Trailer Missing (overflow)'|18='DDU Trailer Missing (2 headers in a row)'|</SetYLabels>
+		<SetYLabels>1='No Errors'|2='Any Error'|3='End of Event Missing'|4='Timeout'|5='Packets Missing'|6='Loop Overwrite'|7='Buffer Overwrite'|8='Oversized'|14='Unidentified buffer'|15='DDU Trailer bit error flag from hardware'|16='DDU Header Missing'|17='DDU Trailer Missing (overflow)'|18='DDU Trailer Missing (2 headers in a row)'|</SetYLabels>
 		<SetLeftMargin>0.3</SetLeftMargin>
 	</Histogram>
 	<!-- Histogram>
