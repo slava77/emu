@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 1.4 2011/06/30 21:26:36 liu Exp $
+// $Id: MPC.h,v 1.5 2011/08/25 21:08:57 liu Exp $
 // $Log: MPC.h,v $
+// Revision 1.5  2011/08/25 21:08:57  liu
+// add functions for new (Virtex 5) MPC
+//
 // Revision 1.4  2011/06/30 21:26:36  liu
 // add setDelay function
 //
@@ -217,6 +220,7 @@ class MPC : public VMEModule, public EmuLogger {
   void setTransparentMode();
   void setTransparentMode(unsigned int);
   void setSorterMode();
+  void check_generation();
 
  protected:
   /// MPC base address should always correspond to VME Slot 12 (=0x600000)
@@ -234,6 +238,8 @@ class MPC : public VMEModule, public EmuLogger {
     CSR0 = 0x00, CSR1 = 0xAA, CSR2 = 0xAC,
     CSR3 = 0xAE, CSR4 = 0xB8, CSR5 = 0xBA,
     CSR6 = 0xBC, CSR7 = 0xCA, CSR8 = 0xCC,
+    // permanent TMB mask register in new MPC
+    CSRM = 0x06,
     /// L1-accept counter (read only)
     L1ACC = 0xB0,
     /// Transmit 511 words from all FIFO_A in test-mode (write only)
@@ -268,6 +274,7 @@ class MPC : public VMEModule, public EmuLogger {
   int expected_firmware_day_;
   int expected_firmware_month_; 
   int expected_firmware_year_;
+  int mpc_generation;
   //
 };
 
