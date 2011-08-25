@@ -41,16 +41,15 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
   //
   // Allows for scan over "safe window"
   //
-  int NFound[255] = {};
+     int NFound[255] = {};
   //
-  myCrate_->mpc()->SoftReset();
-  myCrate_->mpc()->configure();
-    //    myCrate_->mpc()->read_csr0();
   if(min_delay==0 && max_delay==0) 
-     myCrate_->mpc()->setDelay(0x30);  /* same as the default value in the firmware */
+        myCrate_->mpc()->setDelay(0x30);  /* same as the default value in the firmware */
   int tmb_mask = myCrate_->mpc()->ReadMask();
-  for (int delay=min_delay; delay<=max_delay; delay++) {
+  for (int delay=min_delay; delay<=max_delay; delay++)
+  {
     //
+    myCrate_->mpc()->SoftReset();
     //
     if (delay) {
       std::cout << "Delay value = " << delay << std::endl;
@@ -58,8 +57,9 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
     }
     //
     myCrate_->mpc()->read_fifos();   //read FIFOB to clear it
-    //    myCrate_->mpc()->read_csr0();
     //
+    std::vector <TMB*> myTmbs = myCrate_->tmbs();
+
     int sequential_events_with_fifob_empty=0;
     //
     std::vector <unsigned long int> InjectedCSCId;
@@ -70,7 +70,6 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
       //
       std::cout << "Begin Loop " << nloop << std::endl;
       //
-      std::vector <TMB*> myTmbs = myCrate_->tmbs();
       //
       // clear the vectors of read out LCTs
       (myCrate_->mpc())->ResetFIFOBLct();
@@ -90,6 +89,7 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
       //  myCrate_->ccb()->FireCCBMpcInjector();
       myCrate_->ccb()->injectTMBPattern();
       //
+      ::usleep(50);
       myCrate_->mpc()->read_fifos();
       //
       if (((myCrate_->mpc())->GetFIFOBLct0()).size() == 0 ) {
