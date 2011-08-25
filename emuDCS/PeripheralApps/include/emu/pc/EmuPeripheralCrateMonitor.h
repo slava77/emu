@@ -144,6 +144,7 @@ protected:
   time_t old_time;
   int read_interval;
   int TOTAL_TMB_COUNTERS;      
+  xdata::TimeVal last_read_time;
 public:
   //
   XDAQ_INSTANTIATOR();

@@ -553,6 +553,8 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    if(badboard>0 && badboard<10)
                       std::cout << "Bad DAQMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl;
                 }
+                toolbox::TimeVal currentTime;
+                last_read_time = (xdata::TimeVal)currentTime.gettimeofday();
              }
                // is->fireGroupChanged(names, this);
           }
@@ -2629,9 +2631,7 @@ void EmuPeripheralCrateMonitor::DatabaseOutput(xgi::Input * in, xgi::Output * ou
   //
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
   *out << "<emuCounters dateTime=\"";
-  toolbox::TimeVal currentTime;
-  xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
-  *out << now_time.toString();
+  *out << last_read_time.toString();
   *out << "\" version=\"1.1\">" << std::endl;
 
 //  *out << "  <sample name=\"cumulative\" delta_t=\"1000\">" << std::endl;
@@ -2713,9 +2713,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
   *out << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/emuDCS/PeripheralApps/xml/counterMonitor_XSL.xml\"?>" << std::endl;
   *out << "<emuCounters dateTime=\"";
-  toolbox::TimeVal currentTime;
-  xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
-  *out << now_time.toString();
+  *out << last_read_time.toString();
   *out << "\">" << std::endl;
 
   *out << "  <sample name=\"sliding\" delta_t=\"" << read_interval << "\">" << std::endl;
