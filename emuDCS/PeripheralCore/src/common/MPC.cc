@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.20 2011/07/28 16:28:38 liu Exp $
+// $Id: MPC.cc,v 3.21 2011/08/25 21:08:57 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.21  2011/08/25 21:08:57  liu
+// add functions for new (Virtex 5) MPC
+//
 // Revision 3.20  2011/07/28 16:28:38  liu
 // update comments
 //
@@ -189,6 +192,7 @@ MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),EmuLogger(),
   expected_firmware_month_ = 999;
   expected_firmware_year_  = 999;
   //
+  mpc_generation = 0; // unknown
   MyOutput_ = &std::cout ;
 }
 
@@ -224,6 +228,7 @@ void MPC::configure() {
 
   SendOutput("MPC : configure()","INFO");
 
+  check_generation();
   ReadRegister(CSR0);
 
   addr = CSR0;
@@ -495,15 +500,31 @@ int MPC::ReadMask()
 
   int data, mask;
 
-  read_later(CSR7);
-  read_now(CSR8, (char *) &data);
+  if(mpc_generation>2 || mpc_generation<1) check_generation();
 
-  mask=0;
-  for(int i=0; i<9; i++)
+  if(mpc_generation==1)
   {
-     mask = mask << 1;
-     if((data&3)==3) mask |= 1;
-     data = data >> 2;
+     read_later(CSR7);
+     read_now(CSR8, (char *) &data);
+
+     mask=0;
+     for(int i=0; i<9; i++)
+     {
+        mask = mask << 1;
+        if((data&3)==3) mask |= 1;
+        data = data >> 2;
+     }
+  }
+  else if(mpc_generation==2)
+  {
+     read_now(CSR7, (char *) &data);
+     mask=0;
+     for(int i=0; i<9; i++)
+     {
+        mask = mask << 1;
+        if((data&1)==0) mask |= 1;
+        data = data >> 1;
+     }
   }
 
   (*MyOutput_) << "read MPC mask :" << std::hex << mask << std::dec << std::endl;
@@ -517,20 +538,58 @@ void MPC::WriteMask(int mask)
 
   (*MyOutput_) << "write MPC mask : " << std::hex << mask << std::dec << std::endl;
 
-  data=0;
-  for(int i=0; i<9; i++)
-  {
-     data = data << 2;
-     if(mask&1) data |= 3;
-     mask = mask >> 1;
-  }
-  raw = data&0xFFFF;
-  write_later(CSR7, raw);
-  raw = (data>>16)&3;
-  write_now(CSR8, raw, rcvbuf);
+  if(mpc_generation>2 || mpc_generation<1) check_generation();
 
+  if(mpc_generation==1)
+  {
+     data=0;
+     for(int i=0; i<9; i++)
+     {
+        data = data << 2;
+        if(mask&1) data |= 3;
+        mask = mask >> 1;
+     }
+     raw = data&0xFFFF;
+     write_later(CSR7, raw);
+     raw = (data>>16)&3;
+     write_now(CSR8, raw, rcvbuf);
+  }
+  else if(mpc_generation==2)
+  {
+     raw=0;
+     for(int i=0; i<9; i++)
+     {
+        raw = raw << 1;
+        if((mask&1)==0) raw |= 1;
+        mask = mask >> 1;
+     }
+     write_now(CSRM, raw, rcvbuf);
+  }
 }
 
+void MPC::check_generation()
+{
+  unsigned short old_data[2], data_test, data_cmp;
+
+  read_later(CSRM);
+  read_now(CSR7, (char *) &old_data);
+
+  // figure out which MPC (old Virtex-E or  new Virtex 5) is in use
+  data_test = (old_data[1]==0x56AB)?0x65BA:0x56AB;
+  write_now(CSRM, data_test, NULL);
+  read_now(CSR7, (char *) &data_cmp);
+
+  if(data_cmp==data_test)
+  {  
+     mpc_generation=2; 
+     write_now(CSRM, old_data[0], NULL); 
+  }  
+  else
+  {
+     mpc_generation=1;
+     write_now(CSR7, old_data[1], NULL);
+  }
+}
 
 void MPC::injectSP(){
 
