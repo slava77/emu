@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.10 2011/07/06 12:27:44 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.11 2011/08/26 16:37:52 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -481,6 +481,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					
 					// The number of bits set high in combinedStatus tells me the number of CSCs requesting a resync.  Count them.
 					std::bitset<16> statusBits(combinedStatus);
+					std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
 					unsigned int numBits = statusBits.count();
 					if (combinedStatus >= 32768 && numBits > 0)
 						--numBits;	// Bit 15 (top bit) is meaningless, so if it's set, ignore it.
@@ -488,7 +489,16 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					
 					// Sometimes an interrupt does not have any errors to report.  Ignore these.
 					if (!xorStatus) {
-						LOG4CPLUS_WARN(logger, "IRQ detected on crate " << crateNumber << " slot " << slot << " with no new errors.  Ignoring.");
+						std::ostringstream logMsg, debugMsg;
+						logMsg << "IRQ detected on crate " << crateNumber << " slot " << slot << " but there are no ";
+						if (combinedStatus != 0) {
+							logMsg << "new ";
+							debugMsg << "Bits for repeated chamber errors being ignored -- ADV Status: " << statusBitString;
+						} else logMsg << "errors to report. Ignoring.";
+						LOG4CPLUS_WARN(logger, logMsg);
+						if (combinedStatus != 0)
+							LOG4CPLUS_DEBUG(logger, debugMsg);
+						// LOG4CPLUS_WARN(logger, "IRQ detected on crate " << crateNumber << " slot " << slot << " with no new errors.  Ignoring.");
 						continue;
 					}
 					
@@ -525,7 +535,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					std::bitset<16> cscBits(cscStatus);
 					
 					std::string cscBitString = cscBits.to_string<char, char_traits<char>, allocator<char> >();
-					std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
 					std::string xorBitString = xorBits.to_string<char, char_traits<char>, allocator<char> >();
 					
 					LOG4CPLUS_INFO(logger, "Decoded information follows" << std::endl
@@ -676,9 +685,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					// Clear out list that contains previous chambers in error for slot.
 					errFibersBySlot[slot].clear();
 
-					// Save new chamber errors for this slot.
+					// Get list of chamber errors for this slot.
 					for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-						if (xorBits[iFiber]) {
+						if (statusBits[iFiber]) {
 							errFibersBySlot[slot].push_back(myDDU->getFiber(iFiber)->getName());
 							// locdata->errorFiberNames[crateNumber].push_back(myDDU->getFiber(iFiber)->getName());
 						}
@@ -851,7 +860,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 										std::pair<std::string, std::string> fifoDecoded = DCCDebugger::decodeFIFOStatus(dccFIFOStatus, (*iFIFO)->getNumber());
 										if (fifoDecoded.second != "green") {
 											std::ostringstream error;
-											error << "FIFO " << (*iFIFO)->getNumber() << " (DDU " << (*iFIFO)->getRUI() << ") status for DCC in crate " << crateNumber << " is now " <<  fifoDecoded.first;
+											error << "FIFO " << (*iFIFO)->getNumber() << " (DDU " << (*iFIFO)->getRUI() << ") status for DCC in crate " << crateNumber << " is now " <<  fifoDecoded.second;
 
 											std::ostringstream tag;
 											tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber << " RUI " << (*iFIFO)->getRUI();
@@ -889,7 +898,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 										std::pair<std::string, std::string> slinkDecoded = DCCDebugger::decodeSLinkStatus(dccSLinkStatus, iLink);
 										if (slinkDecoded.second != "ok") {
 											std::ostringstream error;
-											error << "SLink " << iLink << " status for DCC in crate " << crateNumber << " is now " <<  slinkDecoded.first;
+											error << "SLink " << iLink << " status for DCC in crate " << crateNumber << " is now " <<  slinkDecoded.second;
 
 											std::ostringstream tag;
 											tag << "FMM " << (*iDCC)->getFMMID() << " FEDcrate " << crateNumber;
