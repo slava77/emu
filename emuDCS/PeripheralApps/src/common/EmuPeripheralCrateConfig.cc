@@ -13,6 +13,8 @@
 namespace emu {
   namespace pc {
 
+typedef std::vector<CFEB>::iterator CFEBItr;
+
 const std::string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
 const std::string       CFEB_VERIFY_FILENAME = "cfeb/cfeb_verify.svf";
 //
@@ -143,6 +145,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
       bc0_sync[i][j] = -1;
     }
   }
+	total_bad_cfeb_bits = -1;
+	total_good_cfeb_bits = -1;
   //
   crates_firmware_ok = -1;
   for (int i=0; i<60; i++) {
@@ -335,6 +339,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBHardResetFromDMBPage, "CCBHardResetFromDMBPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBReadFirmware, "CFEBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBLoadFirmwareID, "CFEBLoadFirmwareID");
+  xgi::bind(this,&EmuPeripheralCrateConfig::RdVfyCFEBVirtexDMB, "RdVfyCFEBVirtexDMB");
+  xgi::bind(this,&EmuPeripheralCrateConfig::RdVfyCFEBVirtexExpT, "RdVfyCFEBVirtexExpT");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBCheckConfiguration, "DMBCheckConfiguration");
   //
   //-----------------------------------------------
@@ -2640,7 +2646,6 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  alct_firmware_ok[current_crate_][chamber_index]        += (int) thisALCT->CheckFirmwareDate();
 	  dmb_vme_firmware_ok[current_crate_][chamber_index]     += (int) thisDMB->CheckVMEFirmwareVersion();
 	  dmb_control_firmware_ok[current_crate_][chamber_index] += (int) thisDMB->CheckControlFirmwareVersion();
-	  typedef std::vector<CFEB>::iterator CFEBItr;
 	  for(CFEBItr cfebItr = thisCFEBs.begin(); cfebItr != thisCFEBs.end(); ++cfebItr) {
 	    int cfeb_index = (*cfebItr).number();
 	    cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] += (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
@@ -3725,7 +3730,6 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
     crate_firmware_ok[current_crate_] &= dmb_control_firmware_ok[current_crate_][chamber_index];
     //
     std::vector<CFEB> cfebs = thisDMB->cfebs() ;
-    typedef std::vector<CFEB>::iterator CFEBItr;
     //
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
       //
@@ -3791,12 +3795,32 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::form() << std::endl ;;
   *out << cgicc::td();
   //
+  *out << cgicc::td();
+  std::string RdVfyCFEBVirtexExpT = toolbox::toString("/%s/RdVfyCFEBVirtexExpT",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",RdVfyCFEBVirtexExpT) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check CFEB FPGAs") << std::endl ;
+  *out << cgicc::form() << std::endl ;;
+  *out << cgicc::td();
+  //
   *out << cgicc::table() << std::endl ;
   //
   *out << cgicc::fieldset();
   //
-  *out << cgicc::br();
   //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Result of CFEB firmware check").set("style","color:blue") << std::endl ;
+	if (total_bad_cfeb_bits >= 0) {
+		*out << "CFEB FPGA check:  Total bad bits =  " << std::dec << total_bad_cfeb_bits;
+		*out << ", total good bits = " << total_good_cfeb_bits;
+		*out << cgicc::br() << std::endl;
+		*out << "See latest cfebvirtex_check.log in ~/firmware/status_check for more details";
+		*out << cgicc::br() << std::endl;
+		total_bad_cfeb_bits = -1;	// Display only once.
+	}
+	*out << cgicc::br() << std::endl;
+	*out << cgicc::fieldset();
+	//
+  *out << cgicc::br();
   //  ///////////////////////
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("Determine online synchronization parameters").set("style","color:blue") << std::endl ;
@@ -4179,6 +4203,101 @@ void EmuPeripheralCrateConfig::SetTTCDelays(xgi::Input * in, xgi::Output * out )
   //
   this->ExpertToolsPage(in,out);
 }
+
+
+void EmuPeripheralCrateConfig::ScanCFEBVirtex(DAQMB *const thisDMB,
+	Chamber *const thisChamber, std::ofstream &LogFileCheckCFEBVtx,
+	const std::string &checkDir)
+	throw (xgi::exception::Exception)
+{
+	std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
+	for (CFEBItr cfebItr = thisCFEBs.begin(); cfebItr != thisCFEBs.end(); ++cfebItr) {
+		int cfeb_index = cfebItr->number();
+		thisDMB->rdbkvirtex(cfebItr->scamDevice());
+		int cbits[10]; // Bigger than necessary
+		thisDMB->vtx_cmpfiles(checkDir, cbits);
+		LogFileCheckCFEBVtx << "CFEB virtex " << thisCrate->GetLabel() << ", ";
+		LogFileCheckCFEBVtx << (thisChamber->GetLabel()).c_str() << " CFEB " << cfeb_index;
+		LogFileCheckCFEBVtx << " correct bits " << cbits[0];
+		LogFileCheckCFEBVtx << ", bad bits " << cbits[1];
+		LogFileCheckCFEBVtx << ".  (masked bits " << cbits[2] << ")" << std::endl;
+		total_bad_cfeb_bits += cbits[1];
+		total_good_cfeb_bits += cbits[0];
+	}
+}
+
+
+void EmuPeripheralCrateConfig::RdVfyCFEBVirtex(const int dmbIndex)
+  throw (xgi::exception::Exception) {
+// get the date and time of this check:
+  time_t rawtime;
+  struct tm *timeinfo;
+  //
+  time(&rawtime);
+  timeinfo = localtime(&rawtime);
+  //
+  int yearAD = timeinfo->tm_year + 1900;
+  int month_counting_from_one = timeinfo->tm_mon + 1;
+  int day = timeinfo->tm_mday;
+  int hour = timeinfo->tm_hour;
+  int minute = timeinfo->tm_min;
+  sprintf(date_and_time_,"%4u%02u%02u_%02u%02u",yearAD,month_counting_from_one,day,hour,minute);
+  const char * crate_name = crateVector[0]->GetLabel().c_str();
+  char endcap_side = crate_name[3];
+  char filename[200];
+	std::string logDir = FirmwareDir_;
+	logDir += "/status_check";
+  sprintf(filename, "%s/%s_%c_cfebvirtex_check.log", logDir.c_str(), date_and_time_, endcap_side);
+  std::ofstream LogFileCheckCFEBVtx;
+  LogFileCheckCFEBVtx.open(filename);
+	std::string checkDir = FirmwareDir_;
+	checkDir += "/cfeb/status_check";
+	total_bad_cfeb_bits = 0;	// For screen output
+	total_good_cfeb_bits = 0;	// For screen output
+	if (dmbIndex >= 0) {
+		DAQMB *thisDMB = dmbVector[dmbIndex];
+		Chamber *thisChamber = chamberVector[dmbIndex];
+		ScanCFEBVirtex(thisDMB, thisChamber, LogFileCheckCFEBVtx, checkDir);
+	} else {
+		for (unsigned crate_number = 0; crate_number < crateVector.size(); crate_number++) {
+			//
+			SetCurrentCrate(crate_number);
+			//
+			for (unsigned int chamber_index = 0; chamber_index < dmbVector.size(); chamber_index++) {
+				Chamber *thisChamber = chamberVector[chamber_index];
+				DAQMB *thisDMB = dmbVector[chamber_index];
+				ScanCFEBVirtex(thisDMB, thisChamber, LogFileCheckCFEBVtx, checkDir);
+			}
+		}
+	}
+  LogFileCheckCFEBVtx.close();
+}
+
+void EmuPeripheralCrateConfig::RdVfyCFEBVirtexDMB(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception)
+{
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    DMB_ = dmb;
+  } else {
+    dmb = DMB_;
+  }
+  RdVfyCFEBVirtex(dmb);
+	this->DMBUtils(in, out);
+}
+
+
+void EmuPeripheralCrateConfig::RdVfyCFEBVirtexExpT(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception)
+{
+  RdVfyCFEBVirtex(-1);  // -1 means scan all crates
+  this->ExpertToolsPage(in, out);
+}
+
 //
 void EmuPeripheralCrateConfig::MeasureAllTMBVoltages(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {

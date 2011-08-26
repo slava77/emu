@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.8 2010/08/23 11:24:25 rakness Exp $
+// $Id: DAQMB.h,v 1.9 2011/08/26 16:31:57 cvuosalo Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.9  2011/08/26 16:31:57  cvuosalo
+// Adding CFEB FPGA check to Expert Tools and DMB Utils pages
+//
 // Revision 1.8  2010/08/23 11:24:25  rakness
 // add DMB Control and FPGA firmware check
 //
@@ -579,7 +582,7 @@ public:
   bool checkvme_fail();
 
   int cfeb_testjtag_shift(int icfeb,char *out);
-  int vtx_cmpfiles(char *fname,int *cbits);
+	void vtx_cmpfiles(const std::string fileDir, int cbits[]);
   void set_chans_mode(int schan,int mode);
   void set_chans_by4(int schan,int mode);
   void small_configure();
