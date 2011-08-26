@@ -58,7 +58,7 @@ SRCS_RAW      = $(SRCRAW_PATH)/bitset_append.cc \
 	$(SRCRAW_PATH)/CSCTMBHeader2007.cc $(SRCRAW_PATH)/CSCTMBHeader2007_rev0x50c3.cc \
 	$(SRCRAW_PATH)/CSCTMBScope.cc $(SRCRAW_PATH)/CSCTMBData.cc $(SRCRAW_PATH)/CSCTMBTrailer.cc \
 	$(SRCRAW_PATH)/CSCCLCTData.cc $(SRCRAW_PATH)/CSCBadCFEBWord.cc $(SRCRAW_PATH)/CSCBadCFEBTimeSlice.cc \
-	$(SRCRAW_PATH)/CSCRPCData.cc 
+	$(SRCRAW_PATH)/CSCRPCData.cc $(SRCRAW_PATH)/CSCTMBBlockedCFEB.cc $(SRCRAW_PATH)/CSCTMBMiniScope.cc
 OBJS_RAW      = $(addprefix $(ODIR)/, $(notdir $(SRCS_RAW:%.cc=%.o)))
 
 # CMSSW DQMServices/QualityTests
