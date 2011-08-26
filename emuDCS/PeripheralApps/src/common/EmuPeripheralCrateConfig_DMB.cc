@@ -893,6 +893,17 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
+  *out << cgicc::td();
+  std::string RdVfyCFEBVirtexDMB = toolbox::toString("/%s/RdVfyCFEBVirtexDMB",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",RdVfyCFEBVirtexDMB) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check CFEB FPGAs") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;;
+  *out << cgicc::td();
+	*out << cgicc::br() << std::endl;
+  //
+	//
   std::string CCBHardResetFromDMBPage = toolbox::toString("/%s/CCBHardResetFromDMBPage",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromDMBPage) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","CCB hard reset") << std::endl ;
@@ -903,6 +914,15 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form().set("method","GET") << std::endl ;
   *out << cgicc::pre();
   *out << cgicc::textarea().set("name","CrateTestDMBOutput").set("rows","50").set("cols","150").set("WRAP","OFF");
+	if (total_bad_cfeb_bits >= 0) {
+		*out << "CFEB FPGA check:  Total bad bits =  " << std::dec << total_bad_cfeb_bits;
+		*out << ", total good bits = " << total_good_cfeb_bits;
+		*out << std::endl;
+		*out << "See latest cfebvirtex_check.log in ~/firmware/status_check for more details";
+		*out << std::endl;
+		total_bad_cfeb_bits = -1;	// Turn off display for next time.
+	}
+	*out << std::endl;
   *out << OutputStringDMBStatus[dmb].str() << std::endl ;
   *out << cgicc::textarea();
   OutputStringDMBStatus[dmb].str("");

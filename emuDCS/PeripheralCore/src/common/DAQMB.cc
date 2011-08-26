@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.66 2011/02/09 15:10:36 liu Exp $
+// $Id: DAQMB.cc,v 3.67 2011/08/26 16:31:57 cvuosalo Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.67  2011/08/26 16:31:57  cvuosalo
+// Adding CFEB FPGA check to Expert Tools and DMB Utils pages
+//
 // Revision 3.66  2011/02/09 15:10:36  liu
 // fix compiler warnings
 //
@@ -6138,11 +6141,88 @@ int DAQMB::cfeb_testjtag_shift(int icfeb,char *out){
 }
 
 
-int DAQMB::vtx_cmpfiles(char *fname,int *cbits){
-  int err=0;
-  cbits[0]=0;cbits[1]=0;
-  return err;
+void DAQMB::vtx_cmpfiles(const std::string fileDir, int cbits[]) {
+	const unsigned int arrSiz = 36;
+	const unsigned int wordframe = 12;
+	const unsigned int clbframe = 1323;
+  char line[arrSiz], linecmp[arrSiz], linemask[arrSiz], last[arrSiz];
+  FILE *cmpfile, *rbkfile, *maskfile;
+  int gbits=0;
+	int bbits=0;
+  int mskbits=0;
+  std::string filename = "rbk.dat"; // Located in current directory
+  rbkfile = fopen(filename.c_str(),"r");
+  if (rbkfile == 0) {
+		(*MyOutput_) << "Open rbk.dat failed. End vtx_cmpfiles.\n";
+    return;
+  }
+  filename = fileDir;
+  filename += "/cmp.dat";
+  cmpfile=fopen(filename.c_str(),"r");
+  if (cmpfile == 0) {
+		(*MyOutput_) << "Open cmp.dat failed. End vtx_cmpfiles.\n";
+    return;
+  }
+  filename = fileDir;
+  filename += "/msk.dat";
+  maskfile=fopen(filename.c_str(),"r");
+  if (maskfile == 0) {
+		(*MyOutput_) << "Open msk.dat failed. End vtx_cmpfiles.\n";
+    return;
+  }
+  //jump to the beginning of COMPARE file, rbt file, skip the header,
+  // dummy/sync words, and command word, and one pad word
+
+  for (int i=0;i<19;i++)
+		fgets(linecmp, arrSiz, cmpfile);
+
+  //Jump to the begining of readback data file, one pad frame and
+  // one additional pad word
+  // it is also offset by one bit ?????
+  fgets(line, arrSiz, rbkfile);
+  for (unsigned int i = 0; i < wordframe + 2; i++) {
+    fgets(last, arrSiz, rbkfile);
+    for (int j = 0; j < 31; j++)
+			line[j] = line[j+1];
+    line[31]=last[0];
+  }
+  // Jump to the beginning of MASK file, skip the header, Dummy/Sync words
+  // and CLB frame readback command set, 32 bytes
+  for (int i = 0; i < 22; i++)
+		fgets(linemask,arrSiz,maskfile);
+
+  int totwords = wordframe * (clbframe - 1) - 2;
+  for (int i = 0; i < totwords; i++) {
+    fgets(linecmp, arrSiz, cmpfile);
+    for(int j = 0; j < 32; j++)
+			line[j] = last[j];
+    fgets(last, arrSiz, rbkfile);
+    for(int j = 0; j < 31; j++)
+			line[j] = line[j+1];
+    if (i == totwords - 1)
+			last[0] = '0';
+    line[31] = last[0];
+    fgets(linemask, arrSiz, maskfile);
+    for (int j = 0; j < 32; j++) {
+      if (line[j] != linecmp[j] && linemask[j] == '0') {
+        linemask[j] = '1';
+        bbits++;
+      } else {
+        gbits++;
+      }
+      if (linemask[j] == '1')
+				mskbits++;
+    }
+  }
+  (*MyOutput_) << " bbits " << bbits << " mskbits " << mskbits << std::endl;
+  cbits[0] = gbits;
+  cbits[1] = bbits;
+  cbits[2] = mskbits;
+  fclose(cmpfile);
+  fclose(rbkfile);
+  fclose(maskfile);
 }
+
 
 void DAQMB::set_chans_mode(int schan,int mode)
 {

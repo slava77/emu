@@ -390,6 +390,11 @@ private:
   void CCBHardResetFromDMBPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void CFEBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBLoadFirmwareID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+	void ScanCFEBVirtex(DAQMB *const thisDMB, Chamber *const thisChamber, std::ofstream &LogFileCheckCFEBVtx,
+		const std::string &checkDir) throw (xgi::exception::Exception);
+  void RdVfyCFEBVirtex(const int dmbIndex) throw (xgi::exception::Exception); 
+  void RdVfyCFEBVirtexDMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void RdVfyCFEBVirtexExpT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBTurnOn(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
   // TMB utils
@@ -574,6 +579,8 @@ private:
   int dmb_check_ok[60][9];
   int time_since_reset[60][9];
   int bc0_sync[60][9];
+	int total_bad_cfeb_bits;
+	int total_good_cfeb_bits;
   //
   void SaveTestSummary();
   void SaveLog();
