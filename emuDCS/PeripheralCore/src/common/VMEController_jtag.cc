@@ -1038,10 +1038,10 @@ void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ir
    //  reg=0: instruction
    //  reg=1: data
    //
-   for(i=reg; i<6; i++)
+   for(i=reg; i<4; i++)
    {
      d=pvme;
-     if(i>(reg+1) && i<4) d |=TMS;
+     if(i<2) d |=TMS;
      for(j=0;j<3;j++)
      {  
         // each shift needs 3 VME writes, the 2nd one with TCK on:
@@ -1145,13 +1145,13 @@ void VMEController::RestoreIdle_jtag()
   //
   d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;
   
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-  for(k=0;k<3;k++)VME_controller((k==2)?3:1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller((k==2)?3:1,ptr,d+k,tmp);
   //
 }
 
@@ -1167,13 +1167,13 @@ void VMEController::RestoreReset_jtag()
   ptr=(unsigned short int *)add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
-  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
-  for(k=0;k<3;k++)VME_controller((k==2)?3:1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller((k==2)?3:1,ptr,d+k,tmp);
   //d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-  //for(k=0;k<3;k++)VME_controller((k==2)?3:1,ptr,d+k,tmp);
+  //for(k=0;k<3;k++)vme_controller((k==2)?3:1,ptr,d+k,tmp);
   //
 }
 
