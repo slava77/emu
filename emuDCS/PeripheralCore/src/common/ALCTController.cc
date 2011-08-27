@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.65 2011/06/24 11:37:26 rakness Exp $
+// $Id: ALCTController.cc,v 3.66 2011/08/27 07:17:46 cvuosalo Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.66  2011/08/27 07:17:46  cvuosalo
+// bring Jtag to Idle in the userPROM
+//
 // Revision 3.65  2011/06/24 11:37:26  rakness
 // configure the ALCT testpulse powerswitch to be OFF at runtime
 //
@@ -634,6 +637,21 @@ void ALCTController::configure(int c) {
   //
   (*MyOutput_) << dump.str() << std::endl;
   tmb_->SendOutput(dump.str(),"INFO");
+
+  if(c!= 2) 
+  {
+  // For the userPROM: bring the ALCT Fast/Slow FPGA Jtag machines to Idle.
+  // The code here looks redundant, but the userPROM is neat.
+    tmb_->setup_jtag(ChainAlctFastFpga);
+    tmb_->SetALCTOkVMEWriteAddress(true);
+    tmb_->RestoreIdle();    
+    tmb_->SetALCTOkVMEWriteAddress(false);
+
+    tmb_->setup_jtag(ChainAlctSlowFpga);
+    tmb_->SetALCTOkVMEWriteAddress(true);
+    tmb_->RestoreIdle(); 
+    tmb_->SetALCTOkVMEWriteAddress(false);
+  }
   //
   WriteStandbyRegister_();    //turn on AFEBs first to give them time to power on before thresholds and delays are written to them
   //  ReadStandbyRegister_();
