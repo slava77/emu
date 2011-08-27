@@ -209,7 +209,7 @@
 	    <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	    <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
 	    <!-- 	  <pathToRUIDataOutFile xsi:type="xsd:string">/tmp</pathToRUIDataOutFile> -->
-	    <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
+	    <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">500</xsl:if></ruiFileSizeInMegaBytes>
 	    <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 	      <item xsi:type="xsd:string" soapenc:position="[0]">EmuTFMonitor</item>
 	    </clientsClassName>
@@ -272,7 +272,7 @@
 	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::fu::Application">
 	      <buInstNb xsi:type="xsd:unsignedLong"><xsl:value-of select="@instance"/></buInstNb>
 	      <pathToDataOutFile xsi:type="xsd:string">/data</pathToDataOutFile>
-	      <fileSizeInMegaBytes xsi:type="xsd:unsignedLong">200</fileSizeInMegaBytes>
+	      <fileSizeInMegaBytes xsi:type="xsd:unsignedLong">500</fileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]"></clientsClassName>
 	    </properties>
 	  </xc:Application>
@@ -288,7 +288,7 @@
 	      <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	      <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
 	      <!-- 	      <pathToRUIDataOutFile xsi:type="xsd:string">/tmp</pathToRUIDataOutFile> -->
-	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
+	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">500</xsl:if></ruiFileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
 	      </clientsClassName>
