@@ -1133,6 +1133,7 @@ void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ir
 void VMEController::RestoreIdle_jtag()
 {
 // LIU, Aug 27, 2011: using vme_controller() instead of VME_controller()
+
   int k;
   unsigned short int d[3];
   char tmp[2];
