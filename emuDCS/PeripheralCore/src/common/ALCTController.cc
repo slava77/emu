@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.66 2011/08/27 07:17:46 cvuosalo Exp $
+// $Id: ALCTController.cc,v 3.67 2011/08/27 07:32:52 liu Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.67  2011/08/27 07:32:52  liu
+// correct comments, 3.66  was by liu
+//
 // Revision 3.66  2011/08/27 07:17:46  cvuosalo
 // bring Jtag to Idle in the userPROM
 //
@@ -642,6 +645,7 @@ void ALCTController::configure(int c) {
   {
   // For the userPROM: bring the ALCT Fast/Slow FPGA Jtag machines to Idle.
   // The code here looks redundant, but the userPROM is neat.
+
     tmb_->setup_jtag(ChainAlctFastFpga);
     tmb_->SetALCTOkVMEWriteAddress(true);
     tmb_->RestoreIdle();    
