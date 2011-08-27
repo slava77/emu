@@ -808,8 +808,11 @@ void emu::farmer::Application::editorWebPage(xgi::Input *in, xgi::Output *out)
       else if ( actionNameValue["Action"] == "Generate" ){
 	// Generate files and list them.
 
+	// Create outputDir_ if it doesn't exist
+	string makeOutputDirectory( string( "mkdir -p " ) + outputDir_.toString() );
+	emu::farmer::utils::execShellCommand( makeOutputDirectory );
+
 	// Save edited RUI mapping to file
-	// TODO: create outputDir_ if it doesn't exist
 	fstream ruiMappingFile( (outputDir_.toString()+"/RUI-to-computer_mapping.xml").c_str(), fstream::out );
 	ruiMappingFile.write( editedMapping_.c_str(), editedMapping_.size() );
 	ruiMappingFile.close();
