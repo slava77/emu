@@ -1782,7 +1782,7 @@ void emu::supervisor::Application::StateTable::webOutput(xgi::Output *out, strin
 	*out << tbody() << table() << endl;
 }
 
-ostream& operator<<( ostream& os, const emu::supervisor::Application::StateTable& st ){
+ostream& emu::supervisor::operator<<( ostream& os, const emu::supervisor::Application::StateTable& st ){
   os << endl << "emu::supervisor::Application(0) " << st.getApplication()->getFSM()->getCurrentState() << endl;
   for (vector<pair<xdaq::ApplicationDescriptor *, string> >::const_iterator i = st.getTable()->begin(); i != st.getTable()->end(); ++i) {
     os << i->first->getClassName() << "(" << i->first->getInstance() << ") " << i->second << endl;
