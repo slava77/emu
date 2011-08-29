@@ -1145,11 +1145,20 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
   runNumber_ = msg->runNumber;
   runStartUTC_ = msg->runStartUTC;
 
+  // DDU File readout errors
   if ( errorFlag==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
   if ( errorFlag==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
   if ( errorFlag==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
   if ( errorFlag==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
   if ( errorFlag==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
+ 
+  // DDU Spy mode readout errors
+  if ( errorFlag==emu::daq::reader::Spy::EndOfEventMissing ) 	status |= 0x0004;
+  if ( errorFlag==emu::daq::reader::Spy::Timeout )		status |= 0x0008;
+  if ( errorFlag==emu::daq::reader::Spy::PacketsMissing )	status |= 0x0010;
+  if ( errorFlag==emu::daq::reader::Spy::LoopOverwrite )	status |= 0x0020;
+  if ( errorFlag==emu::daq::reader::Spy::BufferOverwrite )	status |= 0x0040;
+  if ( errorFlag==emu::daq::reader::Spy::Oversized )		status |= 0x0080;; 
 
   /*
     if (eventsReceived_%200 == 0) {
@@ -1194,7 +1203,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
   std::set<xdaq::ApplicationDescriptor*>::iterator pos;
   for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos)
     {
-      if (eventsReceived_ > xdata::UnsignedInteger(1000))
+      if (eventsReceived_ > xdata::UnsignedInteger(5000))
         {
           uint32_t newRate = averageRate_;
           if (newRate>10) newRate=(newRate/10)*10;

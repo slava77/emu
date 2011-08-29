@@ -22,6 +22,8 @@ var TESTS_MAP = {
 	{"testID": "ALL_CHAMBERS_WITHOUT_CFEB", "testPlot": "EMU_Test11_CSC_wo_Data_Blocks", "testScope": "EMU"},
 	{"testID": "ALL_CHAMBERS_WITH_L1A_OUT_OF_SYNC", "testPlot": "EMU_Test11_CSC_wo_Data_Blocks", "testScope": "EMU"},
 	{"testID": "ALL_CHAMBERS_WITH_BWORDS", "testPlot": "EMU_Test11_CSC_wo_Data_Blocks", "testScope": "EMU"},
+	{"testID": "ALL_CHAMBERS_ALCT_TIMING", "testPlot": "EMU_Test14_ALCT_Timing", "testScope": "EMU"},
+	{"testID": "ALL_CHAMBERS_CLCT_TIMING", "testPlot": "EMU_Test15_CLCT_Timing", "testScope": "EMU"},
 
 	{"testID": "DDU_WITH_TRAILER_ERRORS", "testPlot": "DDU_Error_Status_from_DDU_Trailer", "testScope": "DDU"},
 	{"testID": "DDU_WITH_FORMAT_ERRORS", "testPlot": "EMU_Test04_DDU_Format_Errors", "testScope": "EMU"},
@@ -52,6 +54,8 @@ var TESTS_MAP = {
 	{"testID": "CSC_ALCT_NO_ANODE_DATA", "testPlot": "ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group", "testScope": "CSC"},
 	{"testID": "CSC_ALCT_AFEB_NOISY", "testPlot": "ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group", "testScope": "CSC"},
 	{"testID": "CSC_NO_HV_SEGMENT", "testPlot": "ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group", "testScope": "CSC"},
+        {"testID": "CSC_ALCT_TIMING", "testPlot": "ALCT/ALCT_ALCT0_BXN_and_ALCT_L1A_BXN_Synchronization", "testScope": "CSC"},
+	{"testID": "CSC_CLCT_TIMING", "testPlot": "TMB/TMB-CLCT_CLCT0_BXN_and_TMB_L1A_BXN_Synchronization", "testScope": "CSC"}
 
 	]
 } 

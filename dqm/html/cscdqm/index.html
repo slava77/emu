@@ -1588,7 +1588,12 @@ function findReportEntry(report, id)
 function setTestsStatus(id)
 {
 	loadTestsList (TREE_ITEMS, "tests_div");
-	var out = "<table class='page_layout' style='border: 0px black solid;'><tr style='border: 0px black solid;'><td style='border: 0px black solid;'><table class='dqm_report'><tr><th class='repScope' colspan=2><b>Run " + RunName + " Status for " + id + "</b></th></tr>";
+	var out = "<table class='page_layout' style='border: 0px black solid;'><tr style='border: 0px black solid;'><td style='border: 0px black solid;'><table class='dqm_report'><tr><th class='repScope' colspan=2><b>Run " + RunName + " Status for " + id + "</b></th>";	
+        if (KNOWN_PROBLEMS)
+                out += "<th class='repScope' colspan=2><b>Known as</b></th>";
+	if (REF_DQM_REPORT) 
+                out += "<th class='repScope' colspan=2><b>Compared to Run " + selRefRun + "</b></th>";
+	out += "</tr>";
 	if (DQM_REPORT && DQM_REPORT.report.length) {
 		var repentry = findReportEntry(DQM_REPORT.report, id);
 		if (repentry) {	
@@ -1598,6 +1603,7 @@ function setTestsStatus(id)
 				
 				for (var j=0; j< err_list.length; j++) {
 					var entry = err_list[j];
+					var known_entry = "";
 					if (entry) {
 						
 						//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
@@ -1622,7 +1628,11 @@ function setTestsStatus(id)
 										&& isProblemRepeating(id, entry)) sev_idx = 5; // REPEATING problem
 									if (fShowKnownProblems) {
 									if ( ((id.search("ME") >=0) || ((id.search("DDU") >=0) && fCompareDDUs))
-										&& isProblemKnown(id, entry)) sev_idx = 6; // KNOWN problem
+										&& isProblemKnown(id, entry)) {
+										// sev_idx = 6; // KNOWN problem
+										t_obj.style.border = "2px solid magenta";
+										known_entry = getKnownProblemEntry(id, entry);
+										}
 									}
 									t_obj.style.background = DQM_SEVERITY[sev_idx].color;
 								}
@@ -1631,7 +1641,19 @@ function setTestsStatus(id)
 							}
 							
 						}
-						out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
+						out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td>"
+						if (known_entry != "" ) {
+							var sev_idx = parseInt(known_entry.severity);
+                                                
+                                                	var sev_str = DQM_SEVERITY[sev_idx].name;
+                                                	if ( sev_idx > 0) {
+
+                                                	var descr_str = known_entry.descr;
+
+                                                	out += "<td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td>";
+							}
+						}
+					        out +="</tr>";
 					}
 				}
 			}							
@@ -1640,7 +1662,7 @@ function setTestsStatus(id)
 	out += "</table></td><td style='border: 0px black solid;'>";
 	
 	
-	
+/*	
 	if (KNOWN_PROBLEMS) {
 		out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Known as</b></th></tr>";
 		var repentry = findReportEntry(KNOWN_PROBLEMS.report, id);
@@ -1708,7 +1730,7 @@ function setTestsStatus(id)
 		out += "</table>";
 	}
 	
-	
+*/	
 	
 	
 	out += "</td></tr></table>";
@@ -1717,7 +1739,7 @@ function setTestsStatus(id)
 
 }
 
-function setEntryStatus(objname, severity)
+function setEntryStatus(objname, severity, hasKnown)
 {
 	if (objname) {
 		
@@ -1729,6 +1751,9 @@ function setEntryStatus(objname, severity)
 			if (m_obj) {
 				// addlog(objname + " " + severity, "debug");
 				m_obj.style.background = DQM_SEVERITY[severity].color;			
+				if (hasKnown) { m_obj.style.border = "2px solid magenta"; }
+				else m_obj.style.border = "";
+				
 			}			
 		}
 		if (objname.search("ME") >= 0) {			
@@ -1736,6 +1761,8 @@ function setEntryStatus(objname, severity)
 			if (m_obj) {
 				// addlog(objname + " " + severity, "debug");
 				m_obj.style.background = DQM_SEVERITY[severity].color;			
+				if (hasKnown) { m_obj.style.border = "2px solid magenta"; }
+				else m_obj.style.border = "";
 			}
 		}
 	}
@@ -1748,6 +1775,38 @@ function add_show_icon()
 	return "<span class='show_icon'>[Q]</span> ";
 }
 
+
+function getKnownProblemEntry(id, entry)
+{
+	if (KNOWN_PROBLEMS) {
+                ref_report = KNOWN_PROBLEMS.report;
+                if (ref_report && ref_report.length) {
+                        for (var i = 0; i < ref_report.length; i++) {
+                                if (ref_report[i]) {
+                                        if (id == ref_report[i].objID)
+                                                {
+                                                        // return true;
+                                                        if (ref_report[i].list && ref_report[i].list.length) {
+                                                                var err_list = ref_report[i].list;
+                                                        
+                                                                for (var j=0; j< err_list.length; j++) {
+                                                                        var ref_entry = err_list[j];
+                                                                        if (ref_entry) {
+                                                                                
+                                                                                if (entry.testID == ref_entry.testID)
+                                                                                {
+                                                                                        return ref_entry;
+                                                                                }
+                                                                        }
+                                                                }
+                                                        }
+                                                }
+                                }
+                        }
+                }               
+        }
+        return "";
+}
 
 function isProblemKnown(id, entry)
 {
@@ -1841,6 +1900,7 @@ function loadDQMReport(id, rep)
 						var obj_sev = -1;
 						var err_cnt = 0;
 						var filtered = true;
+						var hasKnown = false;
 						var n_out = "<tr><th class='repScope' colspan=5><b>" + report[i].name + "</b></th></tr>";
 						if (report[i].list && report[i].list.length) {
 							err_list = report[i].list;
@@ -1867,7 +1927,7 @@ function loadDQMReport(id, rep)
 									
 										isKnown = isProblemKnown(report[i].objID, entry);
 										if (fShowKnownProblems) {
-											if (isKnown ) sev_idx = 6; // KNOWN problem
+											if (isKnown ) hasKnown = true;// sev_idx = 6; // KNOWN problem
 										}
 									}	
 									
@@ -1919,7 +1979,7 @@ function loadDQMReport(id, rep)
                                                 if ( (obj_sev > 0) 
 							|| ((obj_sev == 0 ) && (entry.testID=="")) 
 							|| ((obj_sev == 0 ) && (entry.testID!="") && fMarkLowStatErrs) ) 
-							setEntryStatus(report[i].objID, obj_sev);
+							setEntryStatus(report[i].objID, obj_sev, hasKnown);
 						// }
 					// addlog(DQM_REPORT.report[i].objID, "info");
 					// setEntryStatus(DQM_REPORT.report[i]);
