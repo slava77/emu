@@ -896,6 +896,67 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
 
 
+  
+  // == Check for missing ALCT Timing issues
+  me = findME("EMU", "CSC_ALCT0_BXN_rms");
+  if (me)
+    {
+      TH2F* h = reinterpret_cast<TH2F*>(me);
+      int csc_cntr=0;
+      uint32_t min_events=200;
+      double rms_limit = 1.9;
+      for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
+          for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+          {
+            double z = h->GetBinContent(i, j+1);
+            if (z > rms_limit)
+              {
+                csc_cntr++;
+                std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+                uint32_t csc_events = csc_stats[cscName];
+                if (csc_events>min_events)
+                  {
+                    std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.1f ( >%.1f )",z, rms_limit);
+             
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_ALCT_TIMING"));
+                  } 
+              }
+
+          }
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with ALCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_ALCT_TIMING"));
+    }
+
+
+  // == Check for missing CLCT Timing issues
+  me = findME("EMU", "CSC_CLCT0_BXN_rms");
+  if (me)
+    {
+      TH2F* h = reinterpret_cast<TH2F*>(me);
+      int csc_cntr=0;
+      uint32_t min_events=200;
+      double rms_limit = 2.35;
+      for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
+          for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+          {
+            double z = h->GetBinContent(i, j+1);
+            if (z > rms_limit)
+              {
+                csc_cntr++;
+                std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+                uint32_t csc_events = csc_stats[cscName];
+                if (csc_events>min_events)
+                  {
+                    std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.1f ( >%.1f )",z, rms_limit);
+                    
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CLCT_TIMING"));
+                  } 
+              }
+
+          }
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CLCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_CLCT_TIMING"));
+    }
+
+
   // == Check for chambers with L1A out of sync
   me = findME("EMU", "DMB_L1A_out_of_sync_Fract");
   me2 = findME("EMU", "DMB_L1A_out_of_sync");
