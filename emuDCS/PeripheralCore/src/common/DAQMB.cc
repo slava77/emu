@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.67 2011/08/26 16:31:57 cvuosalo Exp $
+// $Id: DAQMB.cc,v 3.68 2011/09/01 15:54:30 cvuosalo Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.68  2011/09/01 15:54:30  cvuosalo
+// Added check to CFEB FPGA test for bad read
+//
 // Revision 3.67  2011/08/26 16:31:57  cvuosalo
 // Adding CFEB FPGA check to Expert Tools and DMB Utils pages
 //
@@ -6150,17 +6153,38 @@ void DAQMB::vtx_cmpfiles(const std::string fileDir, int cbits[]) {
   int gbits=0;
 	int bbits=0;
   int mskbits=0;
+
+  cbits[0] = -1; // -1 indicates failure. Reset below.
+
   std::string filename = "rbk.dat"; // Located in current directory
   rbkfile = fopen(filename.c_str(),"r");
   if (rbkfile == 0) {
 		(*MyOutput_) << "Open rbk.dat failed. End vtx_cmpfiles.\n";
     return;
   }
+	bool all1 = true, all0 = true;
+  while ((all0 || all1) && fgets(line, arrSiz, rbkfile) != NULL) {
+		unsigned int ind = 0;
+		do {
+			if (line[ind] == '0') {
+				if (all1)
+					all1 = false;
+			} else if (all0)
+				all0 = false;
+			++ind;
+		} while (ind < arrSiz - 1 && (all0 || all1));
+	}
+  if (all0 || all1) {
+		fclose(rbkfile);
+		return;
+	}
+	rewind(rbkfile);
   filename = fileDir;
   filename += "/cmp.dat";
   cmpfile=fopen(filename.c_str(),"r");
   if (cmpfile == 0) {
 		(*MyOutput_) << "Open cmp.dat failed. End vtx_cmpfiles.\n";
+		fclose(rbkfile);
     return;
   }
   filename = fileDir;
@@ -6168,6 +6192,8 @@ void DAQMB::vtx_cmpfiles(const std::string fileDir, int cbits[]) {
   maskfile=fopen(filename.c_str(),"r");
   if (maskfile == 0) {
 		(*MyOutput_) << "Open msk.dat failed. End vtx_cmpfiles.\n";
+		fclose(rbkfile);
+		fclose(cmpfile);
     return;
   }
   //jump to the beginning of COMPARE file, rbt file, skip the header,
