@@ -4213,16 +4213,26 @@ void EmuPeripheralCrateConfig::ScanCFEBVirtex(DAQMB *const thisDMB,
 	std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
 	for (CFEBItr cfebItr = thisCFEBs.begin(); cfebItr != thisCFEBs.end(); ++cfebItr) {
 		int cfeb_index = cfebItr->number();
-		thisDMB->rdbkvirtex(cfebItr->scamDevice());
 		int cbits[10]; // Bigger than necessary
-		thisDMB->vtx_cmpfiles(checkDir, cbits);
+		unsigned int tries = 0;
+		do {
+			cbits[0] = 0;
+			thisDMB->rdbkvirtex(cfebItr->scamDevice());
+			thisDMB->vtx_cmpfiles(checkDir, cbits);
+			++tries;
+		// Try once more on failed read
+		} while (tries <= 1 && cbits[0] == -1);
 		LogFileCheckCFEBVtx << "CFEB virtex " << thisCrate->GetLabel() << ", ";
-		LogFileCheckCFEBVtx << (thisChamber->GetLabel()).c_str() << " CFEB " << cfeb_index;
-		LogFileCheckCFEBVtx << " correct bits " << cbits[0];
-		LogFileCheckCFEBVtx << ", bad bits " << cbits[1];
-		LogFileCheckCFEBVtx << ".  (masked bits " << cbits[2] << ")" << std::endl;
-		total_bad_cfeb_bits += cbits[1];
-		total_good_cfeb_bits += cbits[0];
+		LogFileCheckCFEBVtx << (thisChamber->GetLabel()).c_str() << " CFEB " << cfeb_index + 1;
+		if (cbits[0] == -1)
+			LogFileCheckCFEBVtx << " Communications problem -- bad read" <<  std::endl;
+		else {
+			LogFileCheckCFEBVtx << " correct bits " << cbits[0];
+			LogFileCheckCFEBVtx << ", bad bits " << cbits[1];
+			LogFileCheckCFEBVtx << ".  (masked bits " << cbits[2] << ")" << std::endl;
+			total_bad_cfeb_bits += cbits[1];
+			total_good_cfeb_bits += cbits[0];
+		}
 	}
 }
 
