@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.11 2011/08/26 16:37:52 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.12 2011/09/01 15:55:14 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -455,7 +455,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
 						if ( myDDU->getFiber(iFiber)->ignoreErr()) {
 							ignBits = ignBits | (1<<iFiber);
-							LOG4CPLUS_DEBUG(logger, "Fiber ignored: " << iFiber);
+							LOG4CPLUS_DEBUG(logger, "Chamber set to be ignored: " << myDDU->getFiber(iFiber)->getName());
 						}
 					}
 					if (ignBits != 0) {
@@ -495,9 +495,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							logMsg << "new ";
 							debugMsg << "Bits for repeated chamber errors being ignored -- ADV Status: " << statusBitString;
 						} else logMsg << "errors to report. Ignoring.";
-						LOG4CPLUS_WARN(logger, logMsg);
+						LOG4CPLUS_WARN(logger, logMsg.str());
 						if (combinedStatus != 0)
-							LOG4CPLUS_DEBUG(logger, debugMsg);
+							LOG4CPLUS_DEBUG(logger, debugMsg.str());
 						// LOG4CPLUS_WARN(logger, "IRQ detected on crate " << crateNumber << " slot " << slot << " with no new errors.  Ignoring.");
 						continue;
 					}
