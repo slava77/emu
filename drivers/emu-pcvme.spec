@@ -19,8 +19,9 @@ BuildRoot: /tmp/%{name}-%{version}-%{release}-root
 %build
 
 %pre
-[[ -x /etc/rc.d/init.d/pcratedriver ]] && /etc/rc.d/init.d/pcratedriver stop
-return 0
+if [[ -x /etc/rc.d/init.d/pcratedriver ]]; then
+	/etc/rc.d/init.d/pcratedriver stop
+fi
 
 
 %install
@@ -32,8 +33,9 @@ cp %{workingDir}/gbit-vme/eth_hook_jtag_simple/eth_hook.ko $RPM_BUILD_ROOT/lib/m
 cp %{workingDir}/script/pcratedriver $RPM_BUILD_ROOT/etc/rc.d/init.d
 
 %clean
-[[ ${RPM_BUILD_ROOT} != "/" ]] && rm -rf $RPM_BUILD_ROOT
-return 0
+if [[ ${RPM_BUILD_ROOT} != "/" ]]; then
+	rm -rf $RPM_BUILD_ROOT
+fi
 
 %files
 %defattr(744,root,root,-)
@@ -46,8 +48,9 @@ return 0
 /etc/rc.d/init.d/pcratedriver start
 
 %preun
-[[ -x /etc/rc.d/init.d/pcratedriver ]] && /etc/rc.d/init.d/pcratedriver stop
-return 0
+if [[ -x /etc/rc.d/init.d/pcratedriver ]]; then
+	/etc/rc.d/init.d/pcratedriver stop
+fi
 
 %postun
 /sbin/chkconfig --del pcratedriver 
