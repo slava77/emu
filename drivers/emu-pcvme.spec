@@ -4,7 +4,7 @@
 
 Summary: CMS Emu Peripheral Controller Gbit driver for kernel %{kernel_version}
 Name: emu-pcvme
-Version: 1.0.0
+Version: 1.0.1
 Release: 1.slc4
 License: none
 Group: none
@@ -20,6 +20,8 @@ BuildRoot: /tmp/%{name}-%{version}-%{release}-root
 
 %pre
 [[ -x /etc/rc.d/init.d/pcratedriver ]] && /etc/rc.d/init.d/pcratedriver stop
+return 0
+
 
 %install
 [[ ${RPM_BUILD_ROOT} != "/" ]] && rm -rf $RPM_BUILD_ROOT
@@ -31,7 +33,7 @@ cp %{workingDir}/script/pcratedriver $RPM_BUILD_ROOT/etc/rc.d/init.d
 
 %clean
 [[ ${RPM_BUILD_ROOT} != "/" ]] && rm -rf $RPM_BUILD_ROOT
-
+return 0
 
 %files
 %defattr(744,root,root,-)
@@ -45,6 +47,7 @@ cp %{workingDir}/script/pcratedriver $RPM_BUILD_ROOT/etc/rc.d/init.d
 
 %preun
 [[ -x /etc/rc.d/init.d/pcratedriver ]] && /etc/rc.d/init.d/pcratedriver stop
+return 0
 
 %postun
 /sbin/chkconfig --del pcratedriver 
