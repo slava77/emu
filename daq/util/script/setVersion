@@ -12,7 +12,7 @@ EOF
 
 [[ $# -lt 2 ]] && { printHelp; echo; echo "Argument missing. Exiting."; exit 1; }
 
-VERSION_FILES=( $(print $2/**/*ersion.{h,cc}) )
+VERSION_FILES=( $(print $2/**/*ersion.(h|cc)) )
 
 for VERSION_FILE in $VERSION_FILES; do
     if [[ $( grep -c '\(.*\)versions\([ ]*\)=\([ ]*\)\"\([^ ]*\)\"[ ]*' $VERSION_FILE ) -ge 1 ]]; then
