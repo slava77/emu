@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.12 2011/09/01 15:55:14 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.13 2011/09/02 14:04:45 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -494,7 +494,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						if (combinedStatus != 0) {
 							logMsg << "new ";
 							debugMsg << "Bits for repeated chamber errors being ignored -- ADV Status: " << statusBitString;
-						} else logMsg << "errors to report. Ignoring.";
+						}
+						logMsg << "errors to report. Ignoring.";
 						LOG4CPLUS_WARN(logger, logMsg.str());
 						if (combinedStatus != 0)
 							LOG4CPLUS_DEBUG(logger, debugMsg.str());
