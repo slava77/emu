@@ -4213,6 +4213,9 @@ void EmuPeripheralCrateConfig::ScanCFEBVirtex(DAQMB *const thisDMB,
 	std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
 	for (CFEBItr cfebItr = thisCFEBs.begin(); cfebItr != thisCFEBs.end(); ++cfebItr) {
 		int cfeb_index = cfebItr->number();
+		std::cout << "CFEB virtex " << thisCrate->GetLabel() << ", ";
+		std::cout << (thisChamber->GetLabel()).c_str() << " CFEB " << cfeb_index + 1;
+		std::cout << std::endl;
 		int cbits[10]; // Bigger than necessary
 		unsigned int tries = 0;
 		do {

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.68 2011/09/01 15:54:30 cvuosalo Exp $
+// $Id: DAQMB.cc,v 3.69 2011/09/02 14:07:55 cvuosalo Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.69  2011/09/02 14:07:55  cvuosalo
+// Added additional diagnostics for CFEB FPGA check
+//
 // Revision 3.68  2011/09/01 15:54:30  cvuosalo
 // Added check to CFEB FPGA test for bad read
 //
@@ -6166,11 +6169,14 @@ void DAQMB::vtx_cmpfiles(const std::string fileDir, int cbits[]) {
   while ((all0 || all1) && fgets(line, arrSiz, rbkfile) != NULL) {
 		unsigned int ind = 0;
 		do {
-			if (line[ind] == '0') {
-				if (all1)
-					all1 = false;
-			} else if (all0)
-				all0 = false;
+			// Skip whitespace
+			if (line[ind] != '\n' && line[ind] != ' ') {
+				if (line[ind] == '0') {
+					if (all1)
+						all1 = false;
+				} else if (all0)
+					all0 = false;
+			}
 			++ind;
 		} while (ind < arrSiz - 1 && (all0 || all1));
 	}
@@ -6218,6 +6224,7 @@ void DAQMB::vtx_cmpfiles(const std::string fileDir, int cbits[]) {
 		fgets(linemask,arrSiz,maskfile);
 
   int totwords = wordframe * (clbframe - 1) - 2;
+	(*MyOutput_) << " Bad bits in word:bit format" << std::endl;
   for (int i = 0; i < totwords; i++) {
     fgets(linecmp, arrSiz, cmpfile);
     for(int j = 0; j < 32; j++)
@@ -6233,6 +6240,7 @@ void DAQMB::vtx_cmpfiles(const std::string fileDir, int cbits[]) {
       if (line[j] != linecmp[j] && linemask[j] == '0') {
         linemask[j] = '1';
         bbits++;
+				(*MyOutput_) << i << ":" << j << " ";
       } else {
         gbits++;
       }
@@ -6240,6 +6248,8 @@ void DAQMB::vtx_cmpfiles(const std::string fileDir, int cbits[]) {
 				mskbits++;
     }
   }
+	if (bbits > 0)
+		(*MyOutput_) << std::endl;
   (*MyOutput_) << " bbits " << bbits << " mskbits " << mskbits << std::endl;
   cbits[0] = gbits;
   cbits[1] = bbits;
