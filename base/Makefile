@@ -19,7 +19,7 @@ Authors="Ichiro Suzuki, Karoly Banicz"
 Link=""
 
 Sources = \
-        Supervised.cc \
+	Supervised.cc \
 	WebReporter.cc \
 	WebReportItem.cc \
 	Fact.cc \
@@ -29,6 +29,13 @@ Sources = \
 	Component.cc \
 	ApplicationStatusFact.cc \
 	Stopwatch.cc \
+	Cgi.cc \
+	DOM.cc \
+	String.cc \
+	Xalan.cc \
+	System.cc \
+	SimpleTimer.cc \
+	SerializableFactory.cc \
 	version.cc
 
 IncludeDirs = \
@@ -58,8 +65,12 @@ ExternalObjects =
 DynamicLibrary = emubase
 StaticLibrary =
 
-TestLibraries=
-TestExecutables=
+TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer \
+	mimetic logxmlappender logudpappender asyncresolv config \
+	uuid xalan-c xalanMsg xoapfilter emubase
+
+TestExecutables= \
+	testSystem.cc
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 include $(XDAQ_ROOT)/config/mfRPM.rules
