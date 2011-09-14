@@ -2327,11 +2327,11 @@ void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, 
 	    writeDataToFile( (*i)->getEvent(), (int) (*i)->getEventSize(), true );
 	    //LOG4CPLUS_WARN(logger_, "Writing bad event leading context, event -" << --countToBadEvent );
 	  }
-	}
+	  // Zero the counter of events read since the last bad event:
+	  countSinceBadEvent_ = 0;
+	} // if ( badEventCount_.passesPrescaling() )
 	// Clear the buffer holding the bad event and the ones preceding it:
 	eventBufferRing_.emptyEventBuffers();
-	// Zero the counter of events read since the last bad event:
-	countSinceBadEvent_ = 0;
       } // if ( isBadEvent_ )
     } // if ( countSinceBadEvent_ <= nToWriteAfterBadEvent_ ) else
   } // if ( writeBadEventsOnly_.value_ )
