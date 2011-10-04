@@ -213,7 +213,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("maxSavedEvents",	&maxEvents_);
   getApplicationInfoSpace()->fireItemAvailable("nSavedEvents",   	&nSavedEvents_);
   getApplicationInfoSpace()->fireItemAvailable("outputDataFile",	&outputDataFile_);
-  getApplicationInfoSpace()->fireItemAvailable("fileSizeInMegaBytes",	&outputDataFile_);
+  getApplicationInfoSpace()->fireItemAvailable("fileSizeInMegaBytes",	&fileSizeInMegaBytes_);
 
 
   getApplicationInfoSpace()->addItemChangedListener ("cscMapFile", 	this);
@@ -1314,7 +1314,7 @@ void EmuMonitor::configureReadout()
                       "Configure Readout for internal mode");
       destroyDeviceReader();
       createDeviceReader();
-//      createFileWriter();
+      // createFileWriter();
     }
   else if (readoutMode_.toString() == "external")
     {
@@ -1424,13 +1424,7 @@ void EmuMonitor::createFileWriter()
 {
 
   // Just in case there's a writer, terminate it in an orderly fashion
-  if ( fileWriter_ )
-    {
-      LOG4CPLUS_WARN(logger_, "Terminating leftover file writer." );
-      fileWriter_->endRun();
-      delete fileWriter_;
-      fileWriter_ = NULL;
-    }
+  destroyFileWriter();
 
   nSavedEvents_ = 0;
 
@@ -1441,7 +1435,7 @@ void EmuMonitor::createFileWriter()
       toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
       fileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_,
           outputDataFile_.toString(),
-          u.getHost(), "DQM", appTid_, emudqmcscmonitor::versions, &logger_ );
+          u.getHost(), "EmuMonitor", appTid_, emudqmcscmonitor::versions, &logger_ );
     }
 
 
@@ -1452,7 +1446,7 @@ void EmuMonitor::createFileWriter()
       if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_,
             true,
             emu::dqm::utils::getDateTime(runStartUTC_),
-            "EmuMonitor" );
+            "DQM" );
 	 LOG4CPLUS_INFO(logger_, "File writer created." );
     }
   catch (std::string e)
