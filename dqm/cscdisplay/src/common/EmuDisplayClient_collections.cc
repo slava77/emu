@@ -5,7 +5,7 @@ void EmuDisplayClient::clearMECollection(std::map<std::string, ME_List > & colle
   std::map<std::string, ME_List >::iterator itr;
   for (itr = collection.begin(); itr != collection.end(); ++itr)
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(),"Clean ME Collection " << itr->first );
+      LOG4CPLUS_DEBUG(logger_,"Clean ME Collection " << itr->first );
       clearMECollection(itr->second);
     }
 
@@ -31,7 +31,7 @@ void EmuDisplayClient::printMECollection(ME_List & collection)
   int i = 0;
   for (ME_List_iterator itr = collection.begin(); itr != collection.end(); ++itr)
     {
-      LOG4CPLUS_INFO(getApplicationLogger(), ++i << ":" << itr->first << ":" << itr->second->getFullName());
+      LOG4CPLUS_INFO(logger_, ++i << ":" << itr->first << ":" << itr->second->getFullName());
     }
 
 }
@@ -41,7 +41,7 @@ void EmuDisplayClient::clearCanvasesCollection(std::map<std::string, MECanvases_
   std::map<std::string, MECanvases_List >::iterator citr;
   for (citr = collection.begin(); citr != collection.end(); ++citr)
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(),"Clean Canvases Collection " << citr->first );
+      LOG4CPLUS_DEBUG(logger_,"Clean Canvases Collection " << citr->first );
       clearCanvasesCollection(citr->second);
     }
 
@@ -54,7 +54,7 @@ void EmuDisplayClient::printCanvasesCollection(std::map<std::string, MECanvases_
   std::map<std::string, MECanvases_List >::iterator citr;
   for (citr = collection.begin(); citr != collection.end(); ++citr)
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(),"Print Canvases Collection " << citr->first );
+      LOG4CPLUS_DEBUG(logger_,"Print Canvases Collection " << citr->first );
       printCanvasesCollection(citr->second);
     }
 
@@ -68,7 +68,7 @@ void EmuDisplayClient::clearCanvasesCollection(MECanvases_List & collection)
     {
       for (MECanvases_List_iterator itr = collection.begin(); itr != collection.end(); ++itr)
         {
-          LOG4CPLUS_DEBUG(getApplicationLogger(),"Clean " << itr->first );
+          LOG4CPLUS_DEBUG(logger_,"Clean " << itr->first );
           if (itr->second) delete itr->second;
         }
       collection.clear();
@@ -81,7 +81,7 @@ void EmuDisplayClient::printCanvasesCollection(MECanvases_List & collection)
   int i = 0;
   for (MECanvases_List_iterator itr = collection.begin(); itr != collection.end(); ++itr)
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(), ++i << ":" << itr->first << ":" << itr->second->getFullName());
+      LOG4CPLUS_DEBUG(logger_, ++i << ":" << itr->first << ":" << itr->second->getFullName());
     }
 
 }
@@ -131,7 +131,7 @@ bool EmuDisplayClient::isMEValid(std::map<std::string, ME_List >&  List, std::st
   std::map<std::string, ME_List >::iterator f_itr = List.find(Folder);
   if (f_itr != List.end())
     {
-      // LOG4CPLUS_INFO(getApplicationLogger(), "Found Folder: '" << Folder << "'");
+      // LOG4CPLUS_INFO(logger_, "Found Folder: '" << Folder << "'");
       ME_List& OList = f_itr->second;
       if (OList.empty())
         {
@@ -143,19 +143,19 @@ bool EmuDisplayClient::isMEValid(std::map<std::string, ME_List >&  List, std::st
       if (o_itr != OList.end() && (o_itr->second != 0))
         {
           mo = o_itr->second;
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Found Object: '" << Name << "'");
+          // LOG4CPLUS_INFO(logger_, "Found Object: '" << Name << "'");
           return true;
         }
       else
         {
-          // LOG4CPLUS_DEBUG(getApplicationLogger(), "Can not find Object: '" << Name << "'");
+          // LOG4CPLUS_DEBUG(logger_, "Can not find Object: '" << Name << "'");
           mo = 0;
           return false;
         }
     }
   else
     {
-      // LOG4CPLUS_DEBUG(getApplicationLogger(), "Can not find Folder: '" << Folder << "'");
+      // LOG4CPLUS_DEBUG(logger_, "Can not find Folder: '" << Folder << "'");
       mo = 0;
       return false;
     }
@@ -211,7 +211,7 @@ bool EmuDisplayClient::bookME(std::map<std::string, ME_List >&  List,
               newFList[Name]=obj;
               List.insert(make_pair(Folder, newFList));
             }
-          //  LOG4CPLUS_INFO(getApplicationLogger(), "Booked Object: '" << Folder << " " << Name << "'");
+          //  LOG4CPLUS_INFO(logger_, "Booked Object: '" << Folder << " " << Name << "'");
           return true;
         }
     }
@@ -233,7 +233,7 @@ bool EmuDisplayClient::isCanvasValid(std::map<std::string, MECanvases_List >&  L
   std::map<std::string, MECanvases_List >::iterator f_itr = List.find(Folder);
   if (f_itr != List.end())
     {
-      // LOG4CPLUS_INFO(getApplicationLogger(), "Found Folder: '" << Folder << "'");
+      // LOG4CPLUS_INFO(logger_, "Found Folder: '" << Folder << "'");
       MECanvases_List& CList = f_itr->second;
       if (CList.empty())
         {
@@ -245,19 +245,19 @@ bool EmuDisplayClient::isCanvasValid(std::map<std::string, MECanvases_List >&  L
       if (c_itr != CList.end() && (c_itr->second != 0))
         {
           cnv = c_itr->second;
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Found Canvas: '" << Name << "'");
+          // LOG4CPLUS_INFO(logger_, "Found Canvas: '" << Name << "'");
           return true;
         }
       else
         {
-          // LOG4CPLUS_DEBUG(getApplicationLogger(), "Can not find Canvas: '" << Name << "'");
+          // LOG4CPLUS_DEBUG(logger_, "Can not find Canvas: '" << Name << "'");
           cnv = 0;
           return false;
         }
     }
   else
     {
-      // LOG4CPLUS_DEBUG(getApplicationLogger(), "Can not find Folder: '" << Folder << "'");
+      // LOG4CPLUS_DEBUG(logger_, "Can not find Folder: '" << Folder << "'");
       cnv = 0;
       return false;
     }
@@ -307,7 +307,7 @@ bool EmuDisplayClient::bookCanvas(std::map<std::string, MECanvases_List >&  List
               newFList[Name]=obj;
               List.insert(make_pair(Folder, newFList));
             }
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Booked Canvas: '" << Folder << " " << Name << "'");
+          // LOG4CPLUS_INFO(logger_, "Booked Canvas: '" << Folder << " " << Name << "'");
           return true;
         }
     }
@@ -318,50 +318,32 @@ bool EmuDisplayClient::bookCanvas(std::map<std::string, MECanvases_List >&  List
 
 bool EmuDisplayClient::readME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, TFile* rootsrc)
 {
-  /*
-    std::string rootfile = ResultsDir.toString()+"/"+run+".root";
-    struct stat attrib;                   // create a file attribute structure
-    std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), run+".root");
-    if (r_itr != runsList.end())
-      {
-        if (stat(rootfile.c_str(), &attrib) == 0)    // Folder exists
-          {
-            TFile* rootsrc = TFile::Open( rootfile.c_str());
-  */
   if (!rootsrc)
     {
-      // LOG4CPLUS_ERROR (getApplicationLogger(), "Unable to open " << rootfile.c_str());
+      // LOG4CPLUS_ERROR (logger_, "Unable to open " << rootfile.c_str());
       return false;
     }
 
   if (!rootsrc->cd("DQMData"))
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "No histos folder in file");
-//              rootsrc->Close();
-//              rootsrc = NULL;
+      LOG4CPLUS_ERROR (logger_, "No histos folder in file");
       return false;
     }
-  LOG4CPLUS_DEBUG(getApplicationLogger(), "Trying to Read " << Folder << "/" << mo->getFullName() << " object" );
+  LOG4CPLUS_DEBUG(logger_, "Trying to Read " << Folder << "/" << mo->getFullName() << " object" );
   TDirectory *sourcedir = gDirectory;
 
   TObject *obj = sourcedir->Get((Folder+"/"+mo->getFullName()).c_str());
   if (obj != NULL)
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(), "Successfully Read " << Folder << "/" << mo->getFullName() << " object");
+      LOG4CPLUS_DEBUG(logger_, "Successfully Read " << Folder << "/" << mo->getFullName() << " object");
       mo->setObject(reinterpret_cast<MonitorElement*>(obj->Clone()));
-      return true;
     }
   else
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), "Unable to Read " << Folder << "/" << mo->getFullName() << " object");
-//              rootsrc->Close();
-//              rootsrc = NULL;
+      LOG4CPLUS_WARN(logger_, "Unable to Read " << Folder << "/" << mo->getFullName() << " object");
     }
-//        }
 
-//    }
-
-  return false;
+  return true;
 }
 
 bool EmuDisplayClient::updateME(std::string Folder, std::string Name, EmuMonitoringObject*& mo, TFile* runname)
@@ -376,7 +358,7 @@ bool EmuDisplayClient::updateME(std::string Folder, std::string Name, EmuMonitor
   std::map<std::string, std::set<int> >::iterator itr = foldersMap.find(Folder);
   if ((itr == foldersMap.end()) || itr->second.empty())
     {
-      if (debug) LOG4CPLUS_WARN (getApplicationLogger(), "Can not locate request node for " << Folder);
+      if (debug) LOG4CPLUS_WARN (logger_, "Can not locate request node for " << Folder);
       return false;
     }
 
@@ -413,7 +395,7 @@ bool EmuDisplayClient::updateME(std::string Folder, std::string Name, EmuMonitor
         }
       else
         {
-          if (debug) LOG4CPLUS_WARN(getApplicationLogger(), "Can not update Objects: '" << Folder << " " << Name << "' from DQM Node #" << nodeID  );
+          if (debug) LOG4CPLUS_WARN(logger_, "Can not update Objects: '" << Folder << " " << Name << "' from DQM Node #" << nodeID  );
         }
     }
 
@@ -460,7 +442,7 @@ void EmuDisplayClient::updateEfficiencyHistos(TFile* runname)
 
   summary.Reset();
 
-  //  LOG4CPLUS_INFO(getApplicationLogger(), "Updating Efficiency Histos");
+  //  LOG4CPLUS_INFO(logger_, "Updating Efficiency Histos");
 
   if (bookME(nodeTag, "CSC_Reporting",title, mo))
     {

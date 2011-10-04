@@ -1722,7 +1722,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetGridx>1</SetGridx>
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetYLabels>1='No Errors'|2='Any Error'|3='End of Event Missing'|4='Timeout'|5='Packets Missing'|6='Loop Overwrite'|7='Buffer Overwrite'|8='Oversized'|14='Unidentified buffer'|15='DDU Trailer bit error flag from hardware'|16='DDU Header Missing'|17='DDU Trailer Missing (overflow)'|18='DDU Trailer Missing (2 headers in a row)'|</SetYLabels>
+		<SetYLabels>1='No Errors'|2='Any Error'|3='End of Event Missing'|4='Timeout'|5='Packets Missing'|6='Loop Overwrite'|7='Buffer Overwrite'|8='Oversized'|12='Extra words between DDU Trailer and DDU Header'|13='DDU Header Incomplete'|14='Unidentified buffer'|15='DDU Trailer bit error flag from hardware'|16='DDU Header Missing'|17='DDU Trailer Missing (overflow)'|18='DDU Trailer Missing (2 headers in a row)'|</SetYLabels>
 		<SetLeftMargin>0.3</SetLeftMargin>
 	</Histogram>
 	<!-- Histogram>
@@ -1782,6 +1782,30 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetStats>0</SetStats>
 		<SetYLabels>1='0'|2='1'|3='2'|4='3'|5='4'|6='5'|7='6'|8='7'|9='8'|10='9'|11='10'|12='11-30'|13='31-100'|14='101-300'|15='301-1000'|16='1k-3k'|17='3k-10k'|18='10k-30k'|19='30k-100k'|20='&gt;100k'|</SetYLabels>
 	</Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>All_DDUs_Output_Path_Status</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>45</XMax>
+                <XBins>44</XBins>
+                <XTitle>DDU IDs</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>DDU Output Path Status</Title>
+                <SetNdivisionsX>44</SetNdivisionsX>
+                <SetLabelSizeX>0.03</SetLabelSizeX>
+                <SetLabelSizeY>0.04</SetLabelSizeY>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='No Errors'|2='Any Error'|3='DCC Link is Not ready: 01'|4='GbE/SPY FIFO is Not Empty: 02'|5='GbE/SPY Path was Not Enabled: 03'|6='GbE/SPY FIFO is Full: 04'|7='Not Ready is set by DDU S-Link: 05'|8='Link Full (LFF) is set by DDU S-Link: 06'|9='DAQ Wait is set by DCC/S-Link: 07'|10='DDU Buffer Overflow caused by DAQ Wait: 08'|11='GbE/SPY Fiber Connection Error: 09'|12='GbE/SPY FIFO Always Empty: 10'|13='GbE/SPY Event skipped to prevent overflow: 11'|14='GbE/SPY FIFO Overflow occured: 12'|15='DDU S-Link Never Ready: 13'|16='Link Full (LFF) was asserted by S-Link: 14'|17='DAQ Wait was asserted by S-Link or DCC: 15'|18='DDU Output-Limited Buffer Overflow: 16'|
+		</SetYLabels>
+                <SetLeftMargin>0.3</SetLeftMargin>
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>EMU</Prefix>
@@ -1797,8 +1821,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Trailer Status Errors</Title>
 		<SetNdivisionsX>44</SetNdivisionsX>
-		<SetLabelSizeX>0.015</SetLabelSizeX>
-		<SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+		<SetLabelSizeY>0.035</SetLabelSizeY>
 		<SetStats>0</SetStats>
 		<SetGridx>1</SetGridx>
 		<SetGridy>1</SetGridy>
@@ -1828,7 +1852,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='No Errors'|2=' Any errors: 00'|3=' DDU Trailer Missing: 01'|4=' DDU Header Missing: 02'|5=' DDU CRC Error: 03'|6=' DDU Word Count Error: 04'|7=' DMB Trailer Missing: 05'|8=' DMB Header Missing: 06'|9=' ALCT Trailer Missing: 07'|10=' ALCT Header Missing: 08'|11=' ALCT Word Count Error: 09'|12='ALCT CRC Error: 10'|13='ALCT Trailer Bit Error: 11'|14='TMB Trailer Missing: 12'|15='TMB Header Missing: 13'|16='TMB Word Count Error: 14'|17='TMB CRC Error: 15'|18='CFEB Word Count Per Sample Error: 16'|19='CFEB Sample Count Error: 17'|20='CFEB CRC Error: 18'|21='DDU Event Size Limit Error: 19'|22='C-Words: 20'|23='ALCT DAV Error: 21'|24='TMB DAV Error: 22'|25='CFEB DAV Error: 23'|26='DMB Active Error: 24'|27='DCC Trailer Missing: 25'|28='DCC Header Missing: 26'|29='DMB DAV vs. DMB Active mismatch Error: 27'|30='Extra words between DDU Hdr and 1st DMB Hdr: 28'|</SetYLabels>
-		<SetLeftMargin>0.3</SetLeftMargin>
+		<SetLeftMargin>0.32</SetLeftMargin>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -1977,6 +2001,30 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='No Errors'|2='Any Input'|3='1'|4='2'|5='3'|6='4'|7='5'|8='6'|9='7'|10='8'|11='9'|12='10'|13='11'|14='12'|15='13'|16='14'|17='15'|</SetYLabels>
 	</Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>All_DDUs_DMB_FIFO_Full</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>1</XMin>
+                <XMax>45</XMax>
+                <XBins>44</XBins>
+                <XTitle>DDU IDs</XTitle>
+                <YMin>0</YMin>
+                <YMax>17</YMax>
+                <YBins>17</YBins>
+                <YTitle>Inputs</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>DDU Inputs DMBs in FIFO Full State</Title>
+                <SetNdivisionsX>44</SetNdivisionsX>
+                <SetNdivisionsY>17</SetNdivisionsY>
+                <SetLabelSizeX>0.03</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='No Errors'|2='Any Input'|3='1'|4='2'|5='3'|6='4'|7='5'|8='6'|9='7'|10='8'|11='9'|12='10'|13='11'|14='12'|15='13'|16='14'|17='15'|</SetYLabels>
+        </Histogram>
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>EMU</Prefix>
@@ -2141,6 +2189,29 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XBins>15</XBins>
 		<SetNdivisionsX>15</SetNdivisionsX>
 	</Histogram>
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>DDU</Prefix>
+                <Name>DMB_FIFO_Full</Name>
+                <SetOption>bar1</SetOption>
+                <XMin>1</XMin>
+                <XMax>16</XMax>
+                <XBins>15</XBins>
+                <XTitle>DMB</XTitle>
+                <YTitle>Efficiency (% of total number of events)</YTitle>
+                <SetOptStat>emro</SetOptStat>
+                <Title>FIFO Full State</Title>
+                <SetNdivisionsX>15</SetNdivisionsX>
+        </Histogram>
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>DDU</Prefix>
+                <Name>DMB_FIFO_Full_Rate</Name>
+                <XMin>1</XMin>
+                <XMax>16</XMax>
+                <XBins>15</XBins>
+                <SetNdivisionsX>15</SetNdivisionsX>
+        </Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>DDU</Prefix>
@@ -2304,7 +2375,49 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetYLabels>1='DMB or CFEB CRC error: 01'|2='DMB or CFEB L1A Match error: 02'|3='Fiber Connection changed: 03'|4='Sync Lost was detected by DDU: 04'|5='Two Single Bit-Vote Errors: 05'|6='TMB or ALCT CRC error: 06'|7='Timeout Error: 07'|8='Lost CSC End of Data occurred: 08'|9='Lost Control word in event: 09'|10='CSC Error detected: 10'|11='DDU Clock-DLL error: 11'|12='64-bit alignment error: 12'|13='DAQ FIFO Near Full: 13'|14='DDU Single Event Warning: 14'|15='DDU Single Event Error: 15'|16='DDU Critical Error: 16'|17='TMB/ALCT-DDU L1A Mismatch: 17'|18='TMB/ALCT Word Count Error: 18'|19='ALCT Error: 19'|20='TMB Error: 20'|21='S-Link Not Ready: 21'|22='S-Link Full Bit Present: 22'|23='DDU Input Detected error: 23'|24='One Single Bit-Vote Error: 24'|25='No Live Fibers: 25'|26='Data Stuck in FIFO: 26'|27='L1A-FIFO Full: 27'|28='Wrong First Word: 28'|29='CFEB Count Error occurred: 29'|30='No Good DMB CRC: 30'|31='DDU-CFEB L1 Number Mismatch occurred: 31'|32='CSC LCT/DAV Mismatch occurred: 32'|</SetYLabels>
 		<SetLeftMargin>0.6</SetLeftMargin>
 		<SetXLabels>1='Number of Events'|</SetXLabels>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 	</Histogram>
+
+	<Histogram>
+                <Type>h1</Type> 
+                <Prefix>DDU</Prefix>
+                <Name>Output_Path_Status_Frequency</Name>
+                <SetOption>texthbar1</SetOption>
+                <XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+                <YTitle>Frequency (%)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>DDU Output Path Status Frequency</Title>
+        </Histogram>
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>DDU</Prefix>
+                <Name>Output_Path_Status_Rate</Name>
+                <XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+        </Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>DDU</Prefix>
+                <Name>Output_Path_Status_Table</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>1</XMax>
+                <XBins>1</XBins>
+                <YMin>0</YMin>
+                <YMax>16</YMax>
+                <YBins>16</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>DDU Output Path Status Table</Title>
+	        <SetYLabels>1='DCC Link is Not ready: 01'|2='GbE/SPY FIFO is Not Empty: 02'|3='GbE/SPY Path was Not Enabled: 03'|4='GbE/SPY FIFO is Full: 04'|5='Not Ready is set by DDU S-Link: 05'|6='Link Full (LFF) is set by DDU S-Link: 06'|7='DAQ Wait is set by DCC/S-Link: 07'|8='DDU Buffer Overflow caused by DAQ Wait: 08'|9='GbE/SPY Fiber Connection Error: 09'|10='GbE/SPY FIFO Always Empty: 10'|11='GbE/SPY Event skipped to prevent overflow: 11'|12='GbE/SPY FIFO Overflow occured: 12'|13='DDU S-Link Never Ready: 13'|14='Link Full (LFF) was asserted by S-Link: 14'|15='DAQ Wait was asserted by S-Link or DCC: 15'|16='DDU Output-Limited Buffer Overflow: 16'|
+                </SetYLabels>
+                <SetLeftMargin>0.6</SetLeftMargin>
+                <SetXLabels>1='Number of Events'|</SetXLabels>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+        </Histogram>
+
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>DDU</Prefix>
@@ -3220,7 +3333,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMin>0</XMin>
                 <XMax>1</XMax>
                 <XBins>1</XBins>
-                <XTitle>Number of events</XTitle>
+                <XTitle>Frequency (%)</XTitle>
                 <YMin>0</YMin>
                 <YMax>19</YMax>
                 <YBins>19</YBins>
@@ -3300,7 +3413,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMin>0</XMin>
                 <XMax>1</XMax>
                 <XBins>1</XBins>
-                <XTitle>Number of events</XTitle>
+                <XTitle>Frequency (%)</XTitle>
                 <YMin>0</YMin>
                 <YMax>23</YMax>
                 <YBins>23</YBins>

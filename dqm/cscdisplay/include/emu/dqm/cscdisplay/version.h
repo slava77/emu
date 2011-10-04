@@ -17,17 +17,18 @@
 
 #include "config/PackageInfo.h"
 
-namespace EmuDisplayClient
+namespace emudqmcscdisplay
 {
-const std::string package  =  "emuDQM/emuDisplayClient";
-const std::string versions =  "1.0";
-const std::string description = "CMS Emu DQM Display Client";
-const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
-const std::string authors = "Victor Barashko <barvic@ufl.edu>";
-const std::string summary = "Emu DQM Display Client Application";
-config::PackageInfo getPackageInfo();
-void checkPackageDependencies() throw (config::PackageInfo::VersionException);
-std::set<std::string, std::less<std::string> > getPackageDependencies();
+	const std::string package  =  "emudqmcscdisplay";
+	const std::string versions =  "10.04.01";
+	const std::string description = "Emu CSC DQM Display Client";
+	const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
+	const std::string authors = "Victor Barashko <barvic@ufl.edu>";
+	const std::string summary = "Emu CSC DQM Display Client Application";
+	config::PackageInfo getPackageInfo();
+	void checkPackageDependencies() 
+		throw (config::PackageInfo::VersionException);
+	std::set<std::string, std::less<std::string> > getPackageDependencies();
 }
 
 #endif

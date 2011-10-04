@@ -30,6 +30,7 @@ throw (xdaq::exception::Exception)
     emu::base::WebReporter(stub),
     emu::base::FactFinder(stub, emu::base::FactCollection::LOCAL_DQM, 0),
     Task("EmuDisplayClient"),
+    logger_(Logger::getInstance(generateLoggerName())),
     monitorClass_("EmuMonitor"),
     imageFormat_("png"),
     imagePath_("images"),
@@ -44,93 +45,110 @@ throw (xdaq::exception::Exception)
 
   appBSem_.take();
 
-  bsem_tout.tv_sec=10;
-  bsem_tout.tv_usec=0;
-  xmlHistosBookingCfgFile_ = "";
-  xmlCanvasesCfgFile_ = "";
-  cscMapFile_ =  "";
+  bsem_tout.tv_sec		= 10;
+  bsem_tout.tv_usec		= 0;
+  xmlHistosBookingCfgFile_ 	= "";
+  xmlCanvasesCfgFile_ 		= "";
+  cscMapFile_ 			= "";
 
-  curRunNumber = "";
-  tmap = emu::dqm::utils::getCSCTypeToBinMap();
+  curRunNumber 			= "";
+  tmap 				= emu::dqm::utils::getCSCTypeToBinMap();
 
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
 
 
   // Bind CGI callbacks
-  xgi::bind(this, &EmuDisplayClient::getRefPlot, "getRefPlot");
-  xgi::bind(this, &EmuDisplayClient::getPlot, "getPlot");
-  xgi::bind(this, &EmuDisplayClient::getNodesStatus, "getNodesStatus");
-  xgi::bind(this, &EmuDisplayClient::getCSCList, "getCSCList");
-  xgi::bind(this, &EmuDisplayClient::getTestsList, "getTestsList");
-  xgi::bind(this, &EmuDisplayClient::getRunsList, "getRunsList");
-  xgi::bind(this, &EmuDisplayClient::getCSCCounters, "getCSCCounters");
-  xgi::bind(this, &EmuDisplayClient::getDQMReport, "getDQMReport");
-  xgi::bind(this, &EmuDisplayClient::controlDQM, "controlDQM");
-  xgi::bind(this, &EmuDisplayClient::redir, "redir");
+  xgi::bind(this, &EmuDisplayClient::getRefPlot, 	"getRefPlot");
+  xgi::bind(this, &EmuDisplayClient::getPlot, 		"getPlot");
+  xgi::bind(this, &EmuDisplayClient::getNodesStatus, 	"getNodesStatus");
+  xgi::bind(this, &EmuDisplayClient::getCSCList, 	"getCSCList");
+  xgi::bind(this, &EmuDisplayClient::getTestsList, 	"getTestsList");
+  xgi::bind(this, &EmuDisplayClient::getRunsList, 	"getRunsList");
+  xgi::bind(this, &EmuDisplayClient::getCSCCounters, 	"getCSCCounters");
+  xgi::bind(this, &EmuDisplayClient::getDQMReport, 	"getDQMReport");
+  xgi::bind(this, &EmuDisplayClient::controlDQM, 	"controlDQM");
+  xgi::bind(this, &EmuDisplayClient::redir, 		"redir");
 
 
-  getApplicationInfoSpace()->fireItemAvailable("monitorClass",&monitorClass_);
+  getApplicationInfoSpace()->fireItemAvailable("monitorClass",	&monitorClass_);
   getApplicationInfoSpace()->addItemChangedListener ("monitorClass", this);
 
-  getApplicationInfoSpace()->fireItemAvailable("imageFormat",&imageFormat_);
+  getApplicationInfoSpace()->fireItemAvailable("imageFormat",	&imageFormat_);
   getApplicationInfoSpace()->addItemChangedListener ("imageFormat", this);
 
-  getApplicationInfoSpace()->fireItemAvailable("imagePath",&imagePath_);
+  getApplicationInfoSpace()->fireItemAvailable("imagePath",	&imagePath_);
 
-  getApplicationInfoSpace()->fireItemAvailable("viewOnly",&viewOnly_);
+  getApplicationInfoSpace()->fireItemAvailable("viewOnly",	&viewOnly_);
   getApplicationInfoSpace()->addItemChangedListener ("viewOnly", this);
 
-  getApplicationInfoSpace()->fireItemAvailable("baseDir",&BaseDir);
-  getApplicationInfoSpace()->fireItemAvailable("resultsDir",&ResultsDir);
+  getApplicationInfoSpace()->fireItemAvailable("baseDir",	&BaseDir);
+  getApplicationInfoSpace()->fireItemAvailable("resultsDir",	&ResultsDir);
 
-  getApplicationInfoSpace()->fireItemAvailable("debug",&debug);
+  getApplicationInfoSpace()->fireItemAvailable("debug",		&debug);
   getApplicationInfoSpace()->addItemChangedListener ("debug", this);
 
-  getApplicationInfoSpace()->fireItemAvailable("xmlCfgFile",&xmlHistosBookingCfgFile_);
+  getApplicationInfoSpace()->fireItemAvailable("xmlCfgFile",	&xmlHistosBookingCfgFile_);
   getApplicationInfoSpace()->addItemChangedListener ("xmlCfgFile", this);
 
-  getApplicationInfoSpace()->fireItemAvailable("xmlCanvasesCfgFile",&xmlCanvasesCfgFile_);
+  getApplicationInfoSpace()->fireItemAvailable("xmlCanvasesCfgFile",	&xmlCanvasesCfgFile_);
   getApplicationInfoSpace()->addItemChangedListener ("xmlCanvasesCfgFile", this);
 
-  getApplicationInfoSpace()->fireItemAvailable("cscMapFile",&cscMapFile_);
+  getApplicationInfoSpace()->fireItemAvailable("cscMapFile",	&cscMapFile_);
   getApplicationInfoSpace()->addItemChangedListener ("cscMapFile", this);
 
-  getApplicationInfoSpace()->fireItemAvailable("saveResultsDelay",&saveResultsDelay);
+  getApplicationInfoSpace()->fireItemAvailable("saveResultsDelay",	&saveResultsDelay);
   getApplicationInfoSpace()->addItemChangedListener ("saveResultsDelay", this);
 
-  getApplicationInfoSpace()->fireItemAvailable("useExSys",&useExSys);
+  getApplicationInfoSpace()->fireItemAvailable("useExSys",	&useExSys);
   getApplicationInfoSpace()->addItemChangedListener ("useExSys", this);
 
+  // book();
 
-  book();
   // === Initialize ROOT system
   if (!gApplication)
     TApplication::CreateApplication();
 
   gStyle->SetPalette(1,0);
 
-
   eventDisplay = new EventDisplay();
 
   monitors = getAppsList(monitorClass_);
+
   readRunsList();
 
   updateNodesStatus();
   updateFoldersMap();
   updateCSCCounters();
+
   /*
   dqm_report.clearReport();
   dqm_report = updateNodesReports();
   generateSummaryReport(curRunNumber, dqm_report);
   */
+
   this->activate();
 
   appBSem_.give();
 }
 
+std::string EmuDisplayClient::generateLoggerName()
+{
+    xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
+    string                      appClass       = appDescriptor->getClassName();
+    unsigned long               appInstance    = appDescriptor->getInstance();
+    stringstream                oss;
+    string                      loggerName;
+
+
+    oss << appClass << "." << setfill('0') << std::setw(2) << appInstance;
+    loggerName = oss.str();
+
+    return loggerName;
+}
+
 void EmuDisplayClient::cleanup()
 {
-  LOG4CPLUS_WARN(getApplicationLogger(),"Cleanup Called" );
+  LOG4CPLUS_WARN(logger_, "Cleanup Called" );
 
   clearCanvasesCollection(MECanvases);
   clearMECollection(MEs);
@@ -150,7 +168,7 @@ EmuDisplayClient::~EmuDisplayClient()
 
 bool EmuDisplayClient::onError ( xcept::Exception& ex, void * context )
 {
-  LOG4CPLUS_INFO (getApplicationLogger(),"onError: " << ex.what());
+  LOG4CPLUS_INFO (logger_, "onError: " << ex.what());
   return false;
 }
 
@@ -164,13 +182,13 @@ void EmuDisplayClient::actionPerformed (xdata::Event& e)
 
       if ( item == "monitorClass")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "monitor Class : " << monitorClass_.toString());
+          LOG4CPLUS_INFO(logger_, "monitor Class : " << monitorClass_.toString());
           monitors.clear();
           monitors = getAppsList(monitorClass_);
         }
       else if ( item == "xmlCfgFile")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(),
+          LOG4CPLUS_INFO(logger_,
                          "Histograms Booking XML Config File for plotter : " << xmlHistosBookingCfgFile_.toString());
           clearMECollection(MEs);
           loadXMLBookingInfo(xmlHistosBookingCfgFile_.toString());
@@ -178,21 +196,21 @@ void EmuDisplayClient::actionPerformed (xdata::Event& e)
         }
       else if ( item == "xmlCanvasesCfgFile")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(),
+          LOG4CPLUS_INFO(logger_,
                          "Canvases XML Config File for plotter : " << xmlCanvasesCfgFile_.toString());
           clearCanvasesCollection(MECanvases);
           loadXMLCanvasesInfo(xmlCanvasesCfgFile_.toString());
         }
       else if ( item == "cscMapFile")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(),
+          LOG4CPLUS_INFO(logger_,
                          "CSC Mapping File for plotter : " << cscMapFile_.toString());
           setCSCMapFile(cscMapFile_.toString());
 
         }
       else if ( item == "saveResultsDelay")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(),
+          LOG4CPLUS_INFO(logger_,
                          "Save Nodes Results request delay : " << saveResultsDelay.toString() <<"min");
 
         }
@@ -232,12 +250,12 @@ FoldersMap EmuDisplayClient::readFoldersMap(std::string run)
           TFile* rootsrc = TFile::Open( rootfile.c_str());
           if (!rootsrc)
             {
-              LOG4CPLUS_ERROR (getApplicationLogger(), "Unable to open " << rootfile.c_str());
+              LOG4CPLUS_ERROR (logger_, "Unable to open " << rootfile.c_str());
               return folders;
             }
           if (!rootsrc->cd("DQMData"))
             {
-              LOG4CPLUS_ERROR (getApplicationLogger(), "No histos folder in file");
+              LOG4CPLUS_ERROR (logger_, "No histos folder in file");
               rootsrc->Close();
               rootsrc=NULL;
               return folders;
@@ -397,7 +415,7 @@ void EmuDisplayClient::getCSCList (xgi::Input * in, xgi::Output * out)  throw (x
     }
   catch (xoap::exception::Exception &e)
     {
-      if (debug) LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to getCSCList: "
+      if (debug) LOG4CPLUS_ERROR(logger_, "Failed to getCSCList: "
                                    << xcept::stdformat_exception_history(e));
     }
 
@@ -457,7 +475,7 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
         }
       catch (xoap::exception::Exception &e)
         {
-          if (debug) LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to getCSCCounters: "
+          if (debug) LOG4CPLUS_ERROR(logger_, "Failed to getCSCCounters: "
                                        << xcept::stdformat_exception_history(e));
 
         }
@@ -640,7 +658,7 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
   if (actionInputElement != cgi.getElements().end())
     {
       action = (*actionInputElement).getValue();
-      LOG4CPLUS_INFO(getApplicationLogger(), "Action request: " << action << " from " << user_host);
+      LOG4CPLUS_INFO(logger_, "Action request: " << action << " from " << user_host);
     }
 
   cgicc::const_form_iterator nodeInputElement = cgi.getElement("node");
@@ -672,7 +690,7 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
                   //      XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
 
                   // Don't raise exception here. Go on to try to deal with the others.
-                  LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to " << action << " "
+                  LOG4CPLUS_ERROR(logger_, "Failed to " << action << " "
                                   << (*mon)->getClassName() << (*mon)->getInstance() << " "
                                   << xcept::stdformat_exception_history(e));
                 }
@@ -690,7 +708,7 @@ void EmuDisplayClient::saveNodesResults()
 {
   std::string action = "saveResults";
   std::string tstamp = emu::dqm::utils::getDateTime();;
-  LOG4CPLUS_INFO (getApplicationLogger(), "Save Nodes Results at " << tstamp);
+  LOG4CPLUS_INFO (logger_, "Save Nodes Results at " << tstamp);
   if (!monitors.empty())
     {
       std::set<xdaq::ApplicationDescriptor*>::iterator mon;
@@ -711,7 +729,7 @@ void EmuDisplayClient::saveNodesResults()
               xoap::SOAPElement timeStampElement = command.addChildElement(timeStamp);
               timeStampElement.addTextNode(tstamp);
 
-              // LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
+              // LOG4CPLUS_DEBUG (logger_, "Sending saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
               xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *(*mon));
 
               xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
@@ -726,7 +744,7 @@ void EmuDisplayClient::saveNodesResults()
                 }
               else
                 {
-                  //		  LOG4CPLUS_INFO (getApplicationLogger(), "Sent saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
+                  //		  LOG4CPLUS_INFO (logger_, "Sent saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
                 }
 
 
@@ -742,7 +760,7 @@ void EmuDisplayClient::saveNodesResults()
               //      XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
 
               // Don't raise exception here. Go on to try to deal with the others.
-              LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to send " << action << " "
+              LOG4CPLUS_ERROR(logger_, "Failed to send " << action << " "
                               << (*mon)->getClassName() << (*mon)->getInstance() << " "
                               << xcept::stdformat_exception_history(e));
             }
@@ -784,7 +802,7 @@ vector<std::string> EmuDisplayClient::readRunsList()
 
   if ((dp  = opendir(ResultsDir.toString().c_str())) == NULL)
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "Error(" << errno << ") opening " << ResultsDir.toString());
+      LOG4CPLUS_ERROR (logger_, "Error(" << errno << ") opening " << ResultsDir.toString());
     }
   else
     {
@@ -1094,7 +1112,7 @@ TCanvas* EmuDisplayClient::getMergedCanvas(std::vector<TObject*>& canvases)
                               (reinterpret_cast<TH1*>(obj))->Add(reinterpret_cast<TH1*>(obj2));
                               double max1=reinterpret_cast<TH1*>(obj)->GetMaximum();
                               double min1=reinterpret_cast<TH1*>(obj)->GetMinimum();
-                              // LOG4CPLUS_INFO(getApplicationLogger(), obj->GetName() << " " << max1 << " " << min1 << " " << max2 << " " << min2);
+                              // LOG4CPLUS_INFO(logger_, obj->GetName() << " " << max1 << " " << min1 << " " << max2 << " " << min2);
                               if ((max1 == min1) && (max1 == 0))
                                 {
                                   reinterpret_cast<TH1*>(obj)->SetMaximum(reinterpret_cast<TH1*>(obj)->GetMinimum()+0.01);
@@ -1166,7 +1184,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
       std::map<std::string, std::set<int> >::iterator itr = foldersMap.find(folder);
       if ((itr == foldersMap.end()) || itr->second.empty())
         {
-          if (debug) LOG4CPLUS_WARN (getApplicationLogger(), "Can not locate request node for " << folder);
+          if (debug) LOG4CPLUS_WARN (logger_, "Can not locate request node for " << folder);
           appBSem_.give();
           return;
         }
@@ -1187,7 +1205,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
 
     }
 
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Request for : " << folder << "/" << objname);
+  LOG4CPLUS_DEBUG (logger_, "Request for : " << folder << "/" << objname);
 
   EmuMonitoringCanvas* cnv = NULL;
 
@@ -1208,7 +1226,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
             }
           else
             {
-              LOG4CPLUS_ERROR (getApplicationLogger(), "Can not book " << p_itr->first << " object " << p_itr->second);
+              LOG4CPLUS_ERROR (logger_, "Can not book " << p_itr->first << " object " << p_itr->second);
             };
           //usleep(200000);
         }
@@ -1224,7 +1242,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
           cnv->reset();
           //      const time_t t = cnv->getTimestamp();
           //std::cout << asctime(localtime(&t)) << std::endl;
-          // LOG4CPLUS_INFO (getApplicationLogger(), "All objects for Canvas " << objname << " are booked");
+          // LOG4CPLUS_INFO (logger_, "All objects for Canvas " << objname << " are booked");
           cnv->setCanvasWidth(width);
           cnv->setCanvasHeight(height);
 
@@ -1253,13 +1271,13 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
               (out->getHTTPResponseHeader()).addHeader("Content-Type ","image/png");
               out->write(data, size);
 
-              // LOG4CPLUS_INFO (getApplicationLogger(), "Show plot: \"" << folder << "/" << objname << "\" for " << user_host);
+              // LOG4CPLUS_INFO (logger_, "Show plot: \"" << folder << "/" << objname << "\" for " << user_host);
               free (data);
               if (img!=NULL) delete img;
             }
           else
             {
-              LOG4CPLUS_ERROR (getApplicationLogger(), "Can not draw empty canvas object");
+              LOG4CPLUS_ERROR (logger_, "Can not draw empty canvas object");
             }
 
         }
@@ -1268,7 +1286,7 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
     }
   else
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "Can not book canvas");
+      LOG4CPLUS_ERROR (logger_, "Can not book canvas");
     }
 
   if (rootsrc != NULL)
@@ -1280,117 +1298,6 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
   appBSem_.give();
 
 }
-
-/*
-void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
-{
-
-  appBSem_.take();
-  cgicc::Cgicc cgi(in);
-  int width=1200;
-  int height=900;
-  std::string objname = "";
-  std::string folder = "";
-
-  std::string user_host = in->getenv("REMOTE_HOST");
-
-
-  cgicc::const_form_iterator stateInputElement = cgi.getElement("objectName");
-  if (stateInputElement != cgi.getElements().end())
-    {
-      objname = (*stateInputElement).getValue();
-    }
-
-  stateInputElement = cgi.getElement("folder");
-  if (stateInputElement != cgi.getElements().end())
-    {
-      folder = (*stateInputElement).getValue();
-    }
-
-  stateInputElement = cgi.getElement("imageWidth");
-  if (stateInputElement != cgi.getElements().end())
-    {
-      width = (*stateInputElement).getIntegerValue();
-    }
-
-  stateInputElement = cgi.getElement("imageHeight");
-  if (stateInputElement != cgi.getElements().end())
-    {
-      height = (*stateInputElement).getIntegerValue();
-    }
-
-
-  std::map<std::string, std::set<int> >::iterator itr = foldersMap.find(folder);
-  if ((itr == foldersMap.end()) || itr->second.empty())
-    {
-      LOG4CPLUS_WARN (getApplicationLogger(), "Can not locate request node for " << folder);
-      appBSem_.give();
-      return;
-    }
-
-
-  LOG4CPLUS_INFO (getApplicationLogger(), "Request for : " << folder << "/" << objname);
-
-  EmuMonitoringCanvas* cnv = NULL;
-
-
-  if (bookCanvas(folder, objname, emu::dqm::utils::genCSCTitle(folder), cnv))
-    {
-
-      bool fUpdated = updateCanvas(folder, objname, emu::dqm::utils::genCSCTitle(folder), cnv);
-
-      if (fUpdated)
-        {
-          // Update Efficiency plots
-          if (objname.find("EMU_Status") != std::string::npos) updateEfficiencyHistos();
-
-          cnv->reset();
-          //      const time_t t = cnv->getTimestamp();
-          //std::cout << asctime(localtime(&t)) << std::endl;
-          // LOG4CPLUS_INFO (getApplicationLogger(), "All objects for Canvas " << objname << " are booked");
-          cnv->setCanvasWidth(width);
-          cnv->setCanvasHeight(height);
-          cnv->setRunNumber(curRunNumber);
-
-          cnv->Draw(MEs[folder],true);
-
-
-          TCanvas* cnv_obj =cnv->getCanvasObject();
-          if (cnv_obj != 0)
-            {
-              TImage *img = TImage::Create ();
-              char   *data = NULL;
-              int    size = 0;
-              img->FromPad(cnv->getCanvasObject());
-              std::string imgname=BaseDir.toString()+"/"+imagePath_.toString()+"/"+folder+"_"+objname+"."+imageFormat_.toString();
-              //cnv->Print(imgname.c_str());
-              //img->ReadImage(imgname.c_str());
-              img->Gray(false);
-              img->GetImageBuffer(&data, &size, TImage::kPng);
-
-              (out->getHTTPResponseHeader()).addHeader("Content-Type ","image/png");
-              out->write(data, size);
-
-              // LOG4CPLUS_INFO (getApplicationLogger(), "Show plot: \"" << folder << "/" << objname << "\" for " << user_host);
-              free (data);
-              if (img!=NULL) delete img;
-            }
-          else
-            {
-              LOG4CPLUS_ERROR (getApplicationLogger(), "Can not draw empty canvas object");
-            }
-
-        }
-
-    }
-  else
-    {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "Can not book canvas");
-    }
-  appBSem_.give();
-
-}
-*/
 
 void EmuDisplayClient::getRefPlot (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
@@ -1428,7 +1335,7 @@ void EmuDisplayClient::getRefPlot (xgi::Input * in, xgi::Output * out)  throw (x
   struct stat stats;
   if (stat(plotpath.c_str(), &stats)<0)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), plotpath << ": " <<
+      LOG4CPLUS_WARN(logger_, plotpath << ": " <<
                      strerror(errno));
     }
   else
@@ -1442,7 +1349,7 @@ void EmuDisplayClient::getRefPlot (xgi::Input * in, xgi::Output * out)  throw (x
   (out->getHTTPResponseHeader()).addHeader("Content-Type ","image/png");
   out->write(data, size);
 
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Show Reference plot: \"" << folder << "/" << plot << "\" for " << user_host);
+  LOG4CPLUS_DEBUG (logger_, "Show Reference plot: \"" << folder << "/" << plot << "\" for " << user_host);
   free (data);
   delete img;
 
@@ -1470,7 +1377,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
       xoap::SOAPElement command = body.addBodyElement(commandName );
 
       if (monitor == NULL) return bmap;
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestObjectsList to " << monitor->getClassName() << " ID" << monitor->getLocalId());
+      LOG4CPLUS_DEBUG (logger_, "Sending requestObjectsList to " << monitor->getClassName() << " ID" << monitor->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *monitor);
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
       if (rb.hasFault() )
@@ -1483,7 +1390,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
         }
       else
         {
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestObjectsList reply from " << monitor->getClassName() << " ID" << monitor->getLocalId());
+          LOG4CPLUS_DEBUG (logger_, "Received requestObjectsList reply from " << monitor->getClassName() << " ID" << monitor->getLocalId());
           //	  std::map<std::string, std::list<std::string> > bmap;
           std::list<std::string> olist;
           vector<xoap::SOAPElement> content = rb.getChildElements ();
@@ -1545,7 +1452,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
     }
   catch (xoap::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       // handle exception
       return bmap;
     }
@@ -1560,7 +1467,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
     }
 
 
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Objects List is updated");
+  LOG4CPLUS_DEBUG (logger_, "Monitoring Objects List is updated");
   return bmap;
 }
 
@@ -1583,7 +1490,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
       xoap::SOAPElement command = body.addBodyElement(commandName );
 
       if (monitor == NULL) return bmap;
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestCanvasesList to " << monitor->getClassName() << " ID" << monitor->getLocalId());
+      LOG4CPLUS_DEBUG (logger_, "Sending requestCanvasesList to " << monitor->getClassName() << " ID" << monitor->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *monitor);
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
       if (rb.hasFault() )
@@ -1596,7 +1503,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
         }
       else
         {
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestCanvasesList reply from " << monitor->getClassName() << " ID" << monitor->getLocalId());
+          LOG4CPLUS_DEBUG (logger_, "Received requestCanvasesList reply from " << monitor->getClassName() << " ID" << monitor->getLocalId());
           //	  std::map<std::string, std::list<std::string> > bmap;
           std::list<std::string> olist;
           vector<xoap::SOAPElement> content = rb.getChildElements ();
@@ -1647,24 +1554,24 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
     }
   catch (xoap::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       // handle exception
       return bmap;
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return bmap;
       // handle exception
     }
   catch (pt::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return bmap;
     }
 
 
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Canvases List is updated");
+  LOG4CPLUS_DEBUG (logger_, "Monitoring Canvases List is updated");
   return bmap;
 }
 
@@ -1694,7 +1601,7 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
 
       xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
       if (d==NULL) return buf;
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestObjects to " << d->getClassName() << " ID" << d->getLocalId());
+      LOG4CPLUS_DEBUG (logger_, "Sending requestObjects to " << d->getClassName() << " ID" << d->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *d);
       /*
             std::cout << std::endl;
@@ -1722,14 +1629,14 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
                       fout.close();
                 */
 
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestObjects reply from " << d->getClassName() << " ID" << d->getLocalId());
+          LOG4CPLUS_DEBUG (logger_, "Received requestObjects reply from " << d->getClassName() << " ID" << d->getLocalId());
           std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
           std::list<xoap::AttachmentPart*>::iterator iter;
           // if (reply->countAttachments()>1) std::cout << reply->countAttachments() << std::endl;
-          // if (attachments.size() == 0) LOG4CPLUS_WARN (getApplicationLogger(), "Received empty object " << folder << "/" << objname);
+          // if (attachments.size() == 0) LOG4CPLUS_WARN (logger_, "Received empty object " << folder << "/" << objname);
           if (attachments.size() > 1)
             {
-              LOG4CPLUS_WARN (getApplicationLogger(), "Received corrupted objects " << folder << "/" << objname);
+              LOG4CPLUS_WARN (logger_, "Received corrupted objects " << folder << "/" << objname);
               /*
                         std::ofstream fout("/csc_data/soap_dump.txt", ios::app);
                         std::string dump="";
@@ -1762,32 +1669,32 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
     }
   catch (xoap::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       if (buf) delete buf;
       return NULL;
       // handle exception
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       if (buf) delete buf;
       return NULL;
       // handle exception
     }
   catch (pt::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       if (buf) delete buf;
       return NULL;
     }
   catch (xcept::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       if (buf) delete buf;
       return NULL;
     }
 
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Object is updated");
+  LOG4CPLUS_DEBUG (logger_, "Monitoring Object is updated");
   return buf;
 }
 
@@ -1822,7 +1729,7 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
 
       xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
       if (d==NULL) return buf;
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestCanvas: \"" << folder << "/" << objname << "\" to " << d->getClassName() << " ID" << d->getLocalId());
+      LOG4CPLUS_DEBUG (logger_, "Sending requestCanvas: \"" << folder << "/" << objname << "\" to " << d->getClassName() << " ID" << d->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *d);
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
       /*
@@ -1841,10 +1748,10 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
         }
       else
         {
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestCanvas: \"" << folder << "/" << objname << "\" reply from " << d->getClassName() << " ID" << d->getLocalId());
+          LOG4CPLUS_DEBUG (logger_, "Received requestCanvas: \"" << folder << "/" << objname << "\" reply from " << d->getClassName() << " ID" << d->getLocalId());
           std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
           std::list<xoap::AttachmentPart*>::iterator iter;
-          // if (attachments.size() == 0) LOG4CPLUS_WARN (getApplicationLogger(), "Received empty object " << folder << "/" << objname);
+          // if (attachments.size() == 0) LOG4CPLUS_WARN (logger_, "Received empty object " << folder << "/" << objname);
 
           for (iter = attachments.begin(); iter != attachments.end(); iter++)
             {
@@ -1863,24 +1770,24 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
     }
   catch (xoap::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return buf;
       // handle exception
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return buf;
       // handle exception
     }
   catch (pt::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return buf;
     }
 
 
-  // LOG4CPLUS_INFO (getApplicationLogger(), "Monitoring Canvas is updated");
+  // LOG4CPLUS_INFO (logger_, "Monitoring Canvas is updated");
   return buf;
 }
 
@@ -1893,7 +1800,7 @@ FoldersMap EmuDisplayClient::updateFoldersMap()
         {
 
 
-          // LOG4CPLUS_INFO (getApplicationLogger(), "Start Monitoring Folders List updating");
+          // LOG4CPLUS_INFO (logger_, "Start Monitoring Folders List updating");
           std::set<xdaq::ApplicationDescriptor*>::iterator pos;
 
           for (pos=monitors.begin(); pos!=monitors.end(); ++pos)
@@ -1907,7 +1814,7 @@ FoldersMap EmuDisplayClient::updateFoldersMap()
                   if (*litr != "") foldersMap[*litr].insert(nodeID);
                 }
             }
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Folders List is updated");
+          LOG4CPLUS_DEBUG (logger_, "Monitoring Folders List is updated");
           foldersMap.setTimeStamp(time(NULL));
         }
     }
@@ -1934,7 +1841,7 @@ CSCCounters EmuDisplayClient::updateCSCCounters()
                   cscCounters[citr->first] = citr->second;
                 }
             }
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "CSC Counters are updated");
+          LOG4CPLUS_DEBUG (logger_, "CSC Counters are updated");
           cscCounters.setTimeStamp(time(NULL));
         }
     }
@@ -2043,7 +1950,7 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
               }
             catch (xcept::Exception e)
               {
-                if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+                if (debug) LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
               }
 
             nodesStatus[nodename]["appLink"] = applink;
@@ -2099,7 +2006,7 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
         // if (useExSys) emu::base::FactFinder::sendFacts();
 
 
-        LOG4CPLUS_DEBUG (getApplicationLogger(), "DQM Nodes Statuses are updated");
+        LOG4CPLUS_DEBUG (logger_, "DQM Nodes Statuses are updated");
         nodesStatus.setTimeStamp(time(NULL));
         syncMonitorsStates();
       }
@@ -2162,7 +2069,7 @@ int EmuDisplayClient::syncMonitorsStates()
           if (nodesStatus[nodename]["stateName"] != state
               && nodesStatus[nodename]["stateName"] != "NA")
             {
-              LOG4CPLUS_INFO(getApplicationLogger(), "Syncing " << nodename << " state to " << state);
+              LOG4CPLUS_INFO(logger_, "Syncing " << nodename << " state to " << state);
               try
                 {
                   emu::dqm::sendFSMEventToApp(action, getApplicationContext(), getApplicationDescriptor(),*mon);
@@ -2170,7 +2077,7 @@ int EmuDisplayClient::syncMonitorsStates()
               catch (xcept::Exception e)
                 {
                   // Don't raise exception here. Go on to try to deal with the others.
-                  LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to " << action << " "
+                  LOG4CPLUS_ERROR(logger_, "Failed to " << action << " "
                                   << (*mon)->getClassName() << (*mon)->getInstance() << " "
                                   << xcept::stdformat_exception_history(e));
                 }
@@ -2196,7 +2103,7 @@ Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
       xoap::SOAPName commandName = envelope.createName("requestCSCCounters","xdaq", "urn:xdaq-soap:3.0");
       xoap::SOAPName originator ("originator", "", "");
       xoap::SOAPElement command = body.addBodyElement(commandName );
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestCSCCounters to " << dest->getClassName() << " ID" << dest->getLocalId());
+      LOG4CPLUS_DEBUG (logger_, "Sending requestCSCCounters to " << dest->getClassName() << " ID" << dest->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *dest);
 
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
@@ -2210,7 +2117,7 @@ Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
         }
       else
         {
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestCSCCounters reply from " << dest->getClassName() << " ID" << dest->getLocalId());
+          LOG4CPLUS_DEBUG (logger_, "Received requestCSCCounters reply from " << dest->getClassName() << " ID" << dest->getLocalId());
 
           vector<xoap::SOAPElement> content = rb.getChildElements ();
           xoap::SOAPName nodeTag ("DQMNode", "", "");
@@ -2232,7 +2139,7 @@ Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
                        f_itr != cscElement.end(); ++f_itr)
                     {
                       std::string csc = f_itr->getValue();
-                      // LOG4CPLUS_INFO (getApplicationLogger(), f_itr->getValue());
+                      // LOG4CPLUS_INFO (logger_, f_itr->getValue());
                       vector<xoap::SOAPElement> objElement = f_itr->getChildElements();
 
                       for (vector<xoap::SOAPElement>::iterator o_itr = objElement.begin();
@@ -2244,7 +2151,7 @@ Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
                           if (value != "")
                             {
                               clist[csc][tag]=value;
-                              //	LOG4CPDEBUGINFO (getApplicationLogger(),o_itr->getElementName().getLocalName() << "="<< value);
+                              //	LOG4CPDEBUGINFO (logger_,o_itr->getElementName().getLocalName() << "="<< value);
                             }
 
                         }
@@ -2260,24 +2167,24 @@ Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
     }
   catch (xoap::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return clist;
       // handle exception
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return clist;
       // handle exception
     }
   catch (pt::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       clist.clear();
       return clist;
     }
 
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "CSC Counters are updated");
+  LOG4CPLUS_DEBUG (logger_, "CSC Counters are updated");
 
 
   return clist;
@@ -2299,7 +2206,7 @@ std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDes
       xoap::SOAPElement command = body.addBodyElement(commandName );
 
 
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestFoldersList to " << dest->getClassName() << " ID" << dest->getLocalId());
+      LOG4CPLUS_DEBUG (logger_, "Sending requestFoldersList to " << dest->getClassName() << " ID" << dest->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *dest);
 
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
@@ -2313,7 +2220,7 @@ std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDes
         }
       else
         {
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestFoldersList reply from " << dest->getClassName() << " ID" << dest->getLocalId());
+          LOG4CPLUS_DEBUG (logger_, "Received requestFoldersList reply from " << dest->getClassName() << " ID" << dest->getLocalId());
 
           vector<xoap::SOAPElement> content = rb.getChildElements ();
           xoap::SOAPName nodeTag ("DQMNode", "", "");
@@ -2345,25 +2252,25 @@ std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDes
     }
   catch (xoap::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return flist;
       // handle exception
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return flist;
       // handle exception
     }
   catch (pt::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       flist.clear();
       return flist;
     }
 
 
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Folders List is updated");
+  LOG4CPLUS_DEBUG (logger_, "Monitoring Folders List is updated");
   return flist;
 }
 
@@ -2381,7 +2288,7 @@ DQMReport  EmuDisplayClient::requestReport(xdaq::ApplicationDescriptor* dest)
       xoap::SOAPName originator ("originator", "", "");
       xoap::SOAPElement command = body.addBodyElement(commandName );
 
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestReport to " << dest->getClassName() << " ID" << dest->getLocalId());
+      LOG4CPLUS_DEBUG (logger_, "Sending requestReport to " << dest->getClassName() << " ID" << dest->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *dest);
 
       /*
@@ -2401,7 +2308,7 @@ DQMReport  EmuDisplayClient::requestReport(xdaq::ApplicationDescriptor* dest)
         }
       else
         {
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestReport reply from " << dest->getClassName() << " ID" << dest->getLocalId());
+          LOG4CPLUS_DEBUG (logger_, "Received requestReport reply from " << dest->getClassName() << " ID" << dest->getLocalId());
 
           vector<xoap::SOAPElement> content = rb.getChildElements ();
           xoap::SOAPName nodeTag ("DQMNode", "", "");
@@ -2427,7 +2334,7 @@ DQMReport  EmuDisplayClient::requestReport(xdaq::ApplicationDescriptor* dest)
                       xoap::SOAPName runName = envelope.createName("run","","");
                       xoap::SOAPName genDate = envelope.createName("genDate","","");
 
-                      LOG4CPLUS_DEBUG(getApplicationLogger(),"node:" << s_nodeID
+                      LOG4CPLUS_DEBUG(logger_,"node:" << s_nodeID
                                       << " run: " <<  f_itr->getAttributeValue(runName)
                                       << " genDate: " << f_itr->getAttributeValue(genDate));
 
@@ -2450,7 +2357,7 @@ DQMReport  EmuDisplayClient::requestReport(xdaq::ApplicationDescriptor* dest)
                           xoap::SOAPName objName = envelope.createName("name","","");
                           std::string s_objID = o_itr->getAttributeValue(objID);
                           std::string s_objName =  o_itr->getAttributeValue(objName);
-                          LOG4CPLUS_DEBUG(getApplicationLogger(),"objID: " << s_objID
+                          LOG4CPLUS_DEBUG(logger_,"objID: " << s_objID
                                           << " name: " << s_objName);
 
                           // Loop over report entries for objects
@@ -2465,7 +2372,7 @@ DQMReport  EmuDisplayClient::requestReport(xdaq::ApplicationDescriptor* dest)
                               std::string s_testID = e_itr->getAttributeValue(testID);
                               std::string s_descr =  e_itr->getAttributeValue(descr);
                               std::string s_severity =  e_itr->getAttributeValue(severity);
-                              LOG4CPLUS_DEBUG(getApplicationLogger(), "testID: " << s_testID
+                              LOG4CPLUS_DEBUG(logger_, "testID: " << s_testID
                                               << " descr: " << s_descr
                                               << " severity: " << s_severity);
                               int sev = 0;
@@ -2492,24 +2399,24 @@ DQMReport  EmuDisplayClient::requestReport(xdaq::ApplicationDescriptor* dest)
     }
   catch (xoap::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return report;
       // handle exception
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return report;
       // handle exception
     }
   catch (pt::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
       return report;
     }
 
 
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Report is updated");
+  LOG4CPLUS_DEBUG (logger_, "Monitoring Report is updated");
   return report;
 }
 
@@ -2528,7 +2435,7 @@ std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::Stri
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(),
+      LOG4CPLUS_ERROR (logger_,
                        "No Applications with class name " << className.toString() <<
                        "found." << xcept::stdformat_exception_history(e));
       return applist;
@@ -2548,7 +2455,7 @@ DQMReport EmuDisplayClient::updateNodesReports()
   DQMReport report;
   if (!monitors.empty())
     {
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Start Reports updating");
+      LOG4CPLUS_DEBUG (logger_, "Start Reports updating");
       std::set<xdaq::ApplicationDescriptor*>::iterator pos;
 
       std::map<uint32_t,DQMReport> rep_lists;
@@ -2561,7 +2468,7 @@ DQMReport EmuDisplayClient::updateNodesReports()
 
 //      dqm_report.clearReport();
       report = mergeNodesReports(rep_lists);
-      LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Reports are updated");
+      LOG4CPLUS_DEBUG (logger_, "Monitoring Reports are updated");
     }
 
   return report;
@@ -2777,7 +2684,7 @@ std::string EmuDisplayClient::getHref(xdaq::ApplicationDescriptor *appDescriptor
 
 int EmuDisplayClient::svc()
 {
-  LOG4CPLUS_INFO (getApplicationLogger(), "Starting Nodes Requestor task...");
+  LOG4CPLUS_INFO (logger_, "Starting Nodes Requestor task...");
   int counter=0;
   while (1)
     {
@@ -2810,7 +2717,7 @@ int EmuDisplayClient::svc()
 
           appBSem_.take();
           DQMReport report;
-          LOG4CPLUS_DEBUG (getApplicationLogger(), "Generating DQM Report");
+          LOG4CPLUS_DEBUG (logger_, "Generating DQM Report");
           report = updateNodesReports();
           generateSummaryReport(curRunNumber, report);
           dqm_report.clearReport();
@@ -2858,7 +2765,7 @@ emu::base::Fact EmuDisplayClient::findFact(const emu::base::Component& component
   // error << "Failed to find fact of type \"" << factType << "\" on component \"" << component << "\" requested by expert system";
   // XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e, error.str());
   // notifyQualified("WARN", e);
-  // LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+  // LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
 
   return emu::base::Fact();
 }

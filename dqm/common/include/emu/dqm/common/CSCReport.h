@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-// define Qaulity Checks Anaysis Version
+// Quality Checks Analysis Version
 #define QCHECK_VER "2.0"
 
 typedef enum

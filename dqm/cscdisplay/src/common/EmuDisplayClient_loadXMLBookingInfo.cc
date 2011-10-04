@@ -4,18 +4,18 @@ using namespace XERCES_CPP_NAMESPACE;
 
 int EmuDisplayClient::loadXMLBookingInfo(std::string xmlFile)
 {
-  LOG4CPLUS_INFO(getApplicationLogger(), "Loading Booking Info from XML file: "  <<  xmlFile)
+  LOG4CPLUS_INFO(logger_, "Loading Booking Info from XML file: "  <<  xmlFile)
 
   if (xmlFile == "")
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "Histo Booking Invalid configuration file: " << xmlFile);
+      LOG4CPLUS_ERROR (logger_, "Histo Booking Invalid configuration file: " << xmlFile);
       return 1;
     }
 
   struct stat stats;
   if (stat(xmlFile.c_str(), &stats)<0)
     {
-      LOG4CPLUS_ERROR(getApplicationLogger(),xmlFile << ": " <<
+      LOG4CPLUS_ERROR(logger_, xmlFile << ": " <<
                       strerror(errno));
       return 1;
     }
@@ -35,13 +35,13 @@ int EmuDisplayClient::loadXMLBookingInfo(std::string xmlFile)
   DOMNodeList *l = doc->getElementsByTagName( XMLString::transcode("Booking") );
   if ( l->getLength() != 1 )
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "There is not exactly one Booking node in configuration");
+      LOG4CPLUS_ERROR (logger_, "There is not exactly one Booking node in configuration");
       return 1;
     }
   DOMNodeList *itemList = doc->getElementsByTagName( XMLString::transcode("Histogram") );
   if ( itemList->getLength() == 0 )
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "There no histograms to book");
+      LOG4CPLUS_ERROR (logger_, "There no histograms to book");
       return 1;
     }
   EmuMonitoringObject * obj = NULL;
@@ -84,7 +84,7 @@ EmuMonitoringObject* EmuDisplayClient::createME(DOMNode* MEInfo)
             {
               const XMLCh *xmlChar =  children->item(i)->getFirstChild()->getNodeValue();
               char *textChar = XMLString::transcode(xmlChar);
-              LOG4CPLUS_INFO (getApplicationLogger(),"Found histogram: "<<textChar);
+              LOG4CPLUS_INFO (logger_, "Found histogram: "<<textChar);
               XMLString::release(&textChar);
             }
           XMLString::release(&compXmlCh);

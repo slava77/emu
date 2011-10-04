@@ -24,14 +24,10 @@
 
 // Application include section
 
-// emu/emuDAQ - based readout for XDAQ6
-// #include "EmuFileReader.h"
-// #include "EmuSpyReader.h"
-
-// emu/daq - based readout for XDAQ7
+// emu/daq - based readout for XDAQ
+#include "emu/daq/writer/RawDataFile.h"
 #include "emu/daq/reader/RawDataFile.h"
 #include "emu/daq/reader/Spy.h"
-
 
 #include "emu/dqm/cscanalyzer/EmuPlotter.h"
 
@@ -331,39 +327,72 @@ int main(int argc, char **argv)
           // We will count everything. So counters...
           long t0 = time(0);
           uint32_t cnt=0;
-
-          // Looping through Events
+/*
+          char buf[100000];
           while (ddu.readNextEvent())
             {
-              cnt++;
+              memset(buf, 0, 100000);
+              int buf_len=ddu.dataLength();
+              memcpy(buf, ddu.data(), buf_len);
+	      int status = 0;
+	      cnt++;
+              for (int i=0; i<3; i++)
+                {
 
-              // Check the status of the reader. If something goes wrong - skip event
-              int status = 0;
-              if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
-              if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
-              if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
-              if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
-              if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
-              /*
-                      if( ddu.getErrorFlag()==EmuFileReader::Type2 ) status |= 0x8000;
-                      if( ddu.getErrorFlag()==EmuFileReader::Type3 ) status |= 0x4000;
-                      if( ddu.getErrorFlag()==EmuFileReader::Type4 ) status |= 0x2000;
-                      if( ddu.getErrorFlag()==EmuFileReader::Type5 ) status |= 0x1000;
-                      if( ddu.getErrorFlag()==EmuFileReader::Type6 ) status |= 0x0800;
-              */
-              if (status) continue;
+                  if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
+                  if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
+                  if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
+                  if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
+                  if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
+                  if (status) continue;
+                  if (ddu.readNextEvent())
+                    {
+                      memcpy(buf+buf_len, ddu.data(),ddu.dataLength());
+                      buf_len += ddu.dataLength();
+                    }
 
-              // Fill in histograms if appropriate
+
+                }
+
               if ( cnt >= startEvent && cnt <= (startEvent + NumberOfEvents) )
                 {
-                  LOG4CPLUS_DEBUG (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
-                  plotter->processEvent(ddu.data(), ddu.dataLength(), status, node);
+                  LOG4CPLUS_INFO (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
+                  plotter->processEvent(buf, buf_len-32, status, node);
                   if (cnt%1000 == 0) LOG4CPLUS_INFO (logger, "Processed Events: "<< dec << cnt);
                 }
 
               if ( (cnt + 1) > (startEvent + NumberOfEvents) ) break;
             }
+*/
 
+        
+                    // Looping through Events
+                    while (ddu.readNextEvent())
+                      {
+                        cnt++;
+
+                        // Check the status of the reader. If something goes wrong - skip event
+                        int status = 0;
+                        if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
+                        if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
+                        if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
+                        if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
+                        if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
+                        if (status) continue;
+
+
+                        // Fill in histograms if appropriate
+                        if ( cnt >= startEvent && cnt <= (startEvent + NumberOfEvents) )
+                          {
+                            LOG4CPLUS_INFO (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
+                            plotter->processEvent(ddu.data(), ddu.dataLength(), status, node);
+                            if (cnt%1000 == 0) LOG4CPLUS_INFO (logger, "Processed Events: "<< dec << cnt);
+                          }
+
+                        if ( (cnt + 1) > (startEvent + NumberOfEvents) ) break;
+                      }
+          
+	
           // Provide some run stats
           long t1 = time(0);
           if ( (t1 - t0) > 0 )

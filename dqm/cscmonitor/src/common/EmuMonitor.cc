@@ -7,21 +7,24 @@
  * For the list of contributors see CREDITS.   			         *
  *************************************************************************/
 
-#include "emu/dqm/cscmonitor/EmuMonitor.h"
 #include <time.h>
+
+#include "emu/dqm/cscmonitor/EmuMonitor.h"
+#include "emu/dqm/cscmonitor/version.h"
 
 XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
 
 // == EmuMonitor Constructor == //
 EmuMonitor::EmuMonitor(xdaq::ApplicationStub* c)
 throw(xdaq::exception::Exception)
-    :xdaq::WebApplication(c)
-    ,Task("EmuMonitor")
-    ,appBSem_(BSem::FULL)
-    ,isReadoutActive(false)
+    :xdaq::WebApplication(c),
+    Task("EmuMonitor"),
+    logger_(Logger::getInstance(generateLoggerName())),
+    appBSem_(toolbox::BSem::FULL),
+    isReadoutActive(false)
 {
 
-  LOG4CPLUS_INFO(this->getApplicationLogger(),"Constructor called");
+  LOG4CPLUS_INFO(logger_,"Constructor called");
 
   /*
       getApplicationDescriptor()->setAttribute("icon",
@@ -29,66 +32,66 @@ throw(xdaq::exception::Exception)
   */
 
   appBSem_.take();
-  plotter_ = NULL;
+  plotter_ 	= NULL;
   deviceReader_ = NULL;
-  pool_ = NULL;
+  pool_ 	= NULL;
+
   initProperties();
   setMemoryPool();
 
-  timer_ = new EmuMonitorTimerTask();
-  pmeter_ = new toolbox::PerformanceMeter();
-  pmeterCSC_ = new toolbox::PerformanceMeter();
-  rateMeter = new RateMeter<xdata::UnsignedInteger>();
-  rateMeter->addSampler("averageRate", &sessionEvents_);
-  rateMeter->addSampler("cscRate", &cscUnpacked_);
-  // rateMeter->activate();
+  timer_ 	= new EmuMonitorTimerTask();
+  pmeter_ 	= new toolbox::PerformanceMeter();
+  pmeterCSC_ 	= new toolbox::PerformanceMeter();
+  rateMeter 	= new RateMeter<xdata::UnsignedInteger>();
+
+  rateMeter->addSampler ( "averageRate",&sessionEvents_);
+  rateMeter->addSampler ( "cscRate", 	&cscUnpacked_);
 
   errorHandler_ = toolbox::exception::bind (this, &EmuMonitor::onError, "onError");
 
   defineFSM();
   defineWebSM();
 
-  stateName_ = wsm_.getStateName(wsm_.getCurrentState());
+  stateName_ 	   = wsm_.getStateName(wsm_.getCurrentState());
   stateChangeTime_ = emu::dqm::utils::now();
-  lastEventTime_ = "---";
+  lastEventTime_   = "---";
 
   bindI2Ocallbacks();
   bindSOAPcallbacks();
   bindCGIcallbacks();
 
-  appTid_ = this->getApplicationDescriptor()->getInstance();
   appDescriptor_   = getApplicationDescriptor();
   appContext_      = getApplicationContext();
-  zone_   = appContext_->getDefaultZone();
+  appTid_ 	   = appDescriptor_->getInstance();
+  zone_   	   = appContext_->getDefaultZone();
+
+  // Initialize ROOT engine
   if (!gApplication)
     TApplication::CreateApplication();
 
   appBSem_.give();
 }
 
-EmuMonitor::~EmuMonitor()
+std::string EmuMonitor::generateLoggerName()
 {
-  /*
-    destroyDeviceReader();
-    if (plotter_) delete plotter_;
-    if (timer_) {
-    if (timer_->isActive()) timer_->kill();
-    delete timer_;
-    }
-    if (pmeter_) delete pmeter_;
-    if (pmeterCSC_) delete pmeterCSC_;
-    if (rateMeter) {
-    if (rateMeter->isActive()) rateMeter->kill();
-    delete rateMeter;
-    }
-  */
+  xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
+  string                      appClass       = appDescriptor->getClassName();
+  unsigned long               appInstance    = appDescriptor->getInstance();
+  stringstream                oss;
+  string                      loggerName;
 
+
+  oss << appClass << "." << setfill('0') << std::setw(2) << appInstance;
+  loggerName = oss.str();
+
+  return loggerName;
 }
+
 
 // == Application Error Handler == //
 bool EmuMonitor::onError ( xcept::Exception& ex, void * context )
 {
-  LOG4CPLUS_ERROR(this->getApplicationLogger(), "onError: " << ex.what());
+  LOG4CPLUS_ERROR(logger_, "onError: " << ex.what());
   return false;
 }
 
@@ -97,7 +100,7 @@ bool EmuMonitor::onError ( xcept::Exception& ex, void * context )
 void EmuMonitor::initProperties()
 {
 
-  LOG4CPLUS_DEBUG(this->getApplicationLogger(),"initProperties called");
+  LOG4CPLUS_DEBUG(logger_, "initProperties called");
 
   sTimeout 		= 3;
   plotterSaveTimer_ 	= 120;
@@ -138,7 +141,7 @@ void EmuMonitor::initProperties()
   serversClassName_ 	= "EmuRUI";
   serverTIDs_.clear();
   daqGroup_		= "default";
-  // serverTIDs_.push_back(0);
+
   collectorsClassName_	= "EmuDisplayServer";
   collectorID_		= 0;
   transport_            = "i2o";
@@ -155,89 +158,110 @@ void EmuMonitor::initProperties()
   keepRunning           = false;
   loopFileReadout_	= false;
 
-  getApplicationInfoSpace()->fireItemAvailable("totalEvents",&totalEvents_);
-  getApplicationInfoSpace()->fireItemAvailable("sessionEvents",&sessionEvents_);
-  getApplicationInfoSpace()->fireItemAvailable("dataBw",&dataBw_);
-  getApplicationInfoSpace()->fireItemAvailable("dataLatency",&dataLatency_);
-  getApplicationInfoSpace()->fireItemAvailable("dataRate",&dataRate_);
-  getApplicationInfoSpace()->fireItemAvailable("averageRate",&averageRate_);
-  getApplicationInfoSpace()->fireItemAvailable("cscRate",&cscRate_);
-  getApplicationInfoSpace()->fireItemAvailable("cscUnpacked",&cscUnpacked_);
-  getApplicationInfoSpace()->fireItemAvailable("cscDetected",&cscDetected_);
-  getApplicationInfoSpace()->fireItemAvailable("runNumber",&runNumber_);
+  fileSizeInMegaBytes_  = 200;
+  outputDataFile_	= "/tmp";
+  enableDataWrite_	= false;
+  maxEvents_		= -1;
+  nSavedEvents_		= 0;
+  ableToWriteToDisk_	= true;
 
-  getApplicationInfoSpace()->fireItemAvailable("readoutMode",&readoutMode_);
-  getApplicationInfoSpace()->fireItemAvailable("transport",&transport_);
-  getApplicationInfoSpace()->fireItemAvailable("collectorsClassName",&collectorsClassName_);
-  getApplicationInfoSpace()->fireItemAvailable("collectorID",&collectorID_);
+  getApplicationInfoSpace()->fireItemAvailable("totalEvents",		&totalEvents_);
+  getApplicationInfoSpace()->fireItemAvailable("sessionEvents",		&sessionEvents_);
+  getApplicationInfoSpace()->fireItemAvailable("dataBw",		&dataBw_);
+  getApplicationInfoSpace()->fireItemAvailable("dataLatency",		&dataLatency_);
+  getApplicationInfoSpace()->fireItemAvailable("dataRate",		&dataRate_);
+  getApplicationInfoSpace()->fireItemAvailable("averageRate",		&averageRate_);
+  getApplicationInfoSpace()->fireItemAvailable("cscRate",		&cscRate_);
+  getApplicationInfoSpace()->fireItemAvailable("cscUnpacked",		&cscUnpacked_);
+  getApplicationInfoSpace()->fireItemAvailable("cscDetected",		&cscDetected_);
+  getApplicationInfoSpace()->fireItemAvailable("runNumber",		&runNumber_);
 
-  getApplicationInfoSpace()->fireItemAvailable("committedPoolSize",&committedPoolSize_);
-  getApplicationInfoSpace()->fireItemAvailable("serversClassName", &serversClassName_);
-  getApplicationInfoSpace()->fireItemAvailable("serverTIDs", &serverTIDs_);
-  getApplicationInfoSpace()->fireItemAvailable("nEventCredits",    &nEventCredits_);
-  getApplicationInfoSpace()->fireItemAvailable("prescalingFactor", &prescalingFactor_);
+  getApplicationInfoSpace()->fireItemAvailable("readoutMode",		&readoutMode_);
+  getApplicationInfoSpace()->fireItemAvailable("transport",		&transport_);
+  getApplicationInfoSpace()->fireItemAvailable("collectorsClassName",	&collectorsClassName_);
+  getApplicationInfoSpace()->fireItemAvailable("collectorID",		&collectorID_);
 
-  getApplicationInfoSpace()->fireItemAvailable("inputDataFormat", &inputDataFormat_);
-  getApplicationInfoSpace()->fireItemAvailable("inputDeviceType", &inputDeviceType_);
-  getApplicationInfoSpace()->fireItemAvailable("inputDeviceName", &inputDeviceName_);
+  getApplicationInfoSpace()->fireItemAvailable("committedPoolSize",	&committedPoolSize_);
+  getApplicationInfoSpace()->fireItemAvailable("serversClassName", 	&serversClassName_);
+  getApplicationInfoSpace()->fireItemAvailable("serverTIDs", 		&serverTIDs_);
+  getApplicationInfoSpace()->fireItemAvailable("nEventCredits", 	&nEventCredits_);
+  getApplicationInfoSpace()->fireItemAvailable("prescalingFactor", 	&prescalingFactor_);
 
-  getApplicationInfoSpace()->fireItemAvailable("xmlCfgFile",&xmlHistosBookingCfgFile_);
-  getApplicationInfoSpace()->fireItemAvailable("xmlCanvasesCfgFile",&xmlCanvasesCfgFile_);
-  getApplicationInfoSpace()->fireItemAvailable("plotterSaveTimer",&plotterSaveTimer_);
-  getApplicationInfoSpace()->fireItemAvailable("outputROOTFile",&outputROOTFile_);
-  getApplicationInfoSpace()->fireItemAvailable("fSaveROOTFile",&fSaveROOTFile_);
-  getApplicationInfoSpace()->fireItemAvailable("outputImagesPath",&outputImagesPath_);
-  getApplicationInfoSpace()->fireItemAvailable("dduCheckMask",&dduCheckMask_);
-  getApplicationInfoSpace()->fireItemAvailable("binCheckMask",&binCheckMask_);
-  getApplicationInfoSpace()->fireItemAvailable("cscMapFile",&cscMapFile_);
+  getApplicationInfoSpace()->fireItemAvailable("inputDataFormat", 	&inputDataFormat_);
+  getApplicationInfoSpace()->fireItemAvailable("inputDeviceType", 	&inputDeviceType_);
+  getApplicationInfoSpace()->fireItemAvailable("inputDeviceName", 	&inputDeviceName_);
 
-  getApplicationInfoSpace()->fireItemAvailable("useAltFileReader",&useAltFileReader_);
-  getApplicationInfoSpace()->fireItemAvailable("loopFileReadout",&loopFileReadout_);
-  getApplicationInfoSpace()->fireItemAvailable("stateName",&stateName_);
-  getApplicationInfoSpace()->fireItemAvailable("stateChangeTime",&stateChangeTime_);
-  getApplicationInfoSpace()->fireItemAvailable("lastEventTime",&lastEventTime_);
-  getApplicationInfoSpace()->fireItemAvailable("nDAQEvents",&nDAQEvents_);
-  getApplicationInfoSpace()->fireItemAvailable("daqGroup",&daqGroup_);
-  getApplicationInfoSpace()->addItemChangedListener ("cscMapFile", this);
+  getApplicationInfoSpace()->fireItemAvailable("xmlCfgFile",		&xmlHistosBookingCfgFile_);
+  getApplicationInfoSpace()->fireItemAvailable("xmlCanvasesCfgFile",	&xmlCanvasesCfgFile_);
+  getApplicationInfoSpace()->fireItemAvailable("plotterSaveTimer",	&plotterSaveTimer_);
+  getApplicationInfoSpace()->fireItemAvailable("outputROOTFile",	&outputROOTFile_);
+  getApplicationInfoSpace()->fireItemAvailable("fSaveROOTFile",		&fSaveROOTFile_);
+  getApplicationInfoSpace()->fireItemAvailable("outputImagesPath",	&outputImagesPath_);
+  getApplicationInfoSpace()->fireItemAvailable("dduCheckMask",		&dduCheckMask_);
+  getApplicationInfoSpace()->fireItemAvailable("binCheckMask",		&binCheckMask_);
+  getApplicationInfoSpace()->fireItemAvailable("cscMapFile",		&cscMapFile_);
 
-  getApplicationInfoSpace()->addItemChangedListener ("readoutMode", this);
-  getApplicationInfoSpace()->addItemChangedListener ("transport", this);
+  getApplicationInfoSpace()->fireItemAvailable("useAltFileReader",	&useAltFileReader_);
+  getApplicationInfoSpace()->fireItemAvailable("loopFileReadout",	&loopFileReadout_);
+  getApplicationInfoSpace()->fireItemAvailable("stateName",		&stateName_);
+  getApplicationInfoSpace()->fireItemAvailable("stateChangeTime",	&stateChangeTime_);
+  getApplicationInfoSpace()->fireItemAvailable("lastEventTime",		&lastEventTime_);
+  getApplicationInfoSpace()->fireItemAvailable("nDAQEvents",		&nDAQEvents_);
+  getApplicationInfoSpace()->fireItemAvailable("daqGroup",		&daqGroup_);
+
+  getApplicationInfoSpace()->fireItemAvailable("enableDataWrite",	&enableDataWrite_);
+  getApplicationInfoSpace()->fireItemAvailable("maxSavedEvents",	&maxEvents_);
+  getApplicationInfoSpace()->fireItemAvailable("nSavedEvents",   	&nSavedEvents_);
+  getApplicationInfoSpace()->fireItemAvailable("outputDataFile",	&outputDataFile_);
+  getApplicationInfoSpace()->fireItemAvailable("fileSizeInMegaBytes",	&outputDataFile_);
+
+
+  getApplicationInfoSpace()->addItemChangedListener ("cscMapFile", 	this);
+  getApplicationInfoSpace()->addItemChangedListener ("readoutMode", 	this);
+  getApplicationInfoSpace()->addItemChangedListener ("transport", 	this);
   getApplicationInfoSpace()->addItemChangedListener ("collectorsClassName", this);
-  //  getApplicationInfoSpace()->addItemChangedListener ("committedPoolSize",this);
   getApplicationInfoSpace()->addItemChangedListener ("serversClassName", this);
   getApplicationInfoSpace()->addItemChangedListener ("serverTIDs", this);
-  getApplicationInfoSpace()->addItemChangedListener ("nEventCredits",    this);
-  getApplicationInfoSpace()->addItemChangedListener ("prescalingFactor", this);
+  getApplicationInfoSpace()->addItemChangedListener ("nEventCredits",   this);
+  getApplicationInfoSpace()->addItemChangedListener ("prescalingFactor",this);
 
   getApplicationInfoSpace()->addItemChangedListener ("inputDataFormat", this);
   getApplicationInfoSpace()->addItemChangedListener ("inputDeviceType", this);
   getApplicationInfoSpace()->addItemChangedListener ("inputDeviceName", this);
 
-  getApplicationInfoSpace()->addItemChangedListener ("xmlCfgFile", this);
+  getApplicationInfoSpace()->addItemChangedListener ("xmlCfgFile", 	this);
   getApplicationInfoSpace()->addItemChangedListener ("xmlCanvasesCfgFile", this);
-  getApplicationInfoSpace()->addItemChangedListener ("outputROOTFile", this);
-  getApplicationInfoSpace()->addItemChangedListener ("fSaveROOTFile", this);
+  getApplicationInfoSpace()->addItemChangedListener ("outputROOTFile", 	this);
+  getApplicationInfoSpace()->addItemChangedListener ("fSaveROOTFile", 	this);
   getApplicationInfoSpace()->addItemChangedListener ("plotterSaveTimer", this);
-  getApplicationInfoSpace()->addItemChangedListener ("dduCheckMask", this);
-  getApplicationInfoSpace()->addItemChangedListener ("binCheckMask", this);
-  getApplicationInfoSpace()->addItemChangedListener ("daqGroup", this);
+  getApplicationInfoSpace()->addItemChangedListener ("dduCheckMask", 	this);
+  getApplicationInfoSpace()->addItemChangedListener ("binCheckMask", 	this);
+  getApplicationInfoSpace()->addItemChangedListener ("daqGroup", 	this);
 
   getApplicationInfoSpace()->addItemChangedListener ("useAltFileReader", this);
   getApplicationInfoSpace()->addItemChangedListener ("loopFileReadout", this);
 
-  getApplicationInfoSpace()->addItemRetrieveListener ("totalEvents", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("sessionEvents", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("dataBw", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("dataLatency", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("dataRate", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("averageRate", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("stateName", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("cscRate", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("nDAQEvents", this);
+  getApplicationInfoSpace()->addItemChangedListener ("fileSizeInMegaBytes", this);
+  getApplicationInfoSpace()->addItemChangedListener ("enableDataWrite", this);
+  getApplicationInfoSpace()->addItemChangedListener ("maxSavedEvents", this);
+  getApplicationInfoSpace()->addItemChangedListener ("outputDataFile", this);
+
+
+  getApplicationInfoSpace()->addItemRetrieveListener ("totalEvents", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("sessionEvents", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("dataBw", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("dataLatency", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("dataRate", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("averageRate", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("stateName", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("cscRate", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("nDAQEvents", 	this);
   getApplicationInfoSpace()->addItemRetrieveListener ("serversClassName", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("stateChangeTime", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("lastEventTime", this);
-  getApplicationInfoSpace()->addItemRetrieveListener ("readoutMode", this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("lastEventTime", 	this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("readoutMode", 	this);
+
+  getApplicationInfoSpace()->addItemRetrieveListener ("nSavedEvents", this);
 
 };
 
@@ -284,19 +308,19 @@ void EmuMonitor::setMemoryPool()
     }
   try
     {
-      LOG4CPLUS_INFO (this->getApplicationLogger(), "Committed pool size is " << (uint32_t) committedPoolSize_);
+      LOG4CPLUS_INFO (logger_, "Committed pool size is " << (uint32_t) committedPoolSize_);
       toolbox::mem::CommittedHeapAllocator* a = new toolbox::mem::CommittedHeapAllocator(committedPoolSize_);
       toolbox::net::URN urn ("toolbox-mem-pool", "EmuMonitor_EMU_MsgPool");
       pool_ = toolbox::mem::getMemoryPoolFactory()->createPool(urn, a);
-      //            LOG4CPLUS_INFO (this->getApplicationLogger(), "Set high watermark to 90% and low watermark to 70%");
-      LOG4CPLUS_INFO (this->getApplicationLogger(), "Set event credit message buffer's high watermark to 70%");
+      //            LOG4CPLUS_INFO (logger_, "Set high watermark to 90% and low watermark to 70%");
+      LOG4CPLUS_INFO (logger_, "Set event credit message buffer's high watermark to 70%");
       pool_->setHighThreshold ( (uint32_t) (committedPoolSize_ * 0.7));
       //            pool_->setLowThreshold ((uint32_t) (committedPoolSize_ * 0.7));
       //  hasSet_committedPoolSize_ = true;
     }
   catch (toolbox::mem::exception::Exception & e)
     {
-      LOG4CPLUS_FATAL (this->getApplicationLogger(), toolbox::toString("Could not set up memory pool, %s (exiting thread)", e.what()));
+      LOG4CPLUS_FATAL (logger_, toolbox::toString("Could not set up memory pool, %s (exiting thread)", e.what()));
       return;
     }
 
@@ -315,8 +339,7 @@ void EmuMonitor::setupPlotter()
             {
               usleep(1000000);
               timeout++;
-              LOG4CPLUS_WARN (this->getApplicationLogger(),
-                              "Waiting to finish saving of results... " << timeout);
+              LOG4CPLUS_WARN (logger_, "Waiting to finish saving of results... " << timeout);
             }
           timer_->kill();
         }
@@ -326,7 +349,6 @@ void EmuMonitor::setupPlotter()
       plotter_ = NULL;
     }
 
-//  plotter_ = new EmuPlotter(this->getApplicationLogger());
   plotter_ = new EmuPlotter(Logger::getInstance(Form("EmuPlotter.%d", appTid_)));
 
   plotter_->setLogLevel(WARN_LOG_LEVEL);
@@ -347,40 +369,47 @@ void EmuMonitor::bindI2Ocallbacks()
 // == Bind SOAP Callbacks == //
 void EmuMonitor::bindSOAPcallbacks()
 {
-  // == Bind SOAP callbacks for control messages
-  xoap::bind (this, &EmuMonitor::fireEvent, "Configure", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::fireEvent, "Enable", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::fireEvent, "Halt", XDAQ_NS_URI);
-  xoap::bind(this, &EmuMonitor::onReset,    "Reset", XDAQ_NS_URI);
 
-  xoap::bind (this, &EmuMonitor::requestObjectsList, "requestObjectsList", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::requestObjects, "requestObjects", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::requestCanvasesList, "requestCanvasesList", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::requestCanvas, "requestCanvas", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::requestFoldersList, "requestFoldersList", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::requestCSCCounters, "requestCSCCounters", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::requestReport, "requestReport", XDAQ_NS_URI);
-  xoap::bind (this, &EmuMonitor::saveResults, "saveResults", XDAQ_NS_URI);
+  // == Bind SOAP callbacks for control messages
+  xoap::bind (this, &EmuMonitor::fireEvent, "Configure",XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::fireEvent, "Enable", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::fireEvent, "Halt", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::onReset,   "Reset", 	XDAQ_NS_URI);
+
+  xoap::bind (this, &EmuMonitor::requestObjectsList, 	"requestObjectsList", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::requestObjects, 	"requestObjects", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::requestCanvasesList, 	"requestCanvasesList", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::requestCanvas, 	"requestCanvas", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::requestFoldersList, 	"requestFoldersList", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::requestCSCCounters, 	"requestCSCCounters", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::requestReport, 	"requestReport", 	XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::saveResults, 		"saveResults", 		XDAQ_NS_URI);
+
 }
 
 // == Bind CGI Callbacks ==//
 void EmuMonitor::bindCGIcallbacks()
 {
-  xgi::bind(this, &EmuMonitor::dispatch, "dispatch");
-  xgi::bind(this, &EmuMonitor::showStatus, "showStatus");
-  xgi::bind(this, &EmuMonitor::showControl, "showControl");
+
+  xgi::bind(this, &EmuMonitor::dispatch, 	"dispatch");
+  xgi::bind(this, &EmuMonitor::showStatus, 	"showStatus");
+  xgi::bind(this, &EmuMonitor::showControl, 	"showControl");
+
   maxFrameSize_ = sizeof(I2O_EMUMONITOR_CREDIT_MESSAGE_FRAME);
+
 }
 
 
 // == SOAP Callback trigger state change == //
 xoap::MessageReference EmuMonitor::fireEvent (xoap::MessageReference msg) throw (xoap::exception::Exception)
 {
+
   xoap::SOAPPart part = msg->getSOAPPart();
   xoap::SOAPEnvelope env = part.getEnvelope();
   xoap::SOAPBody body = env.getBody();
   DOMNode* node = body.getDOMNode();
   DOMNodeList* bodyList = node->getChildNodes();
+
   for (unsigned int i = 0; i < bodyList->getLength(); i++)
     {
       DOMNode* command = bodyList->item(i);
@@ -391,13 +420,13 @@ xoap::MessageReference EmuMonitor::fireEvent (xoap::MessageReference msg) throw 
 
           try
             {
-              LOG4CPLUS_INFO(this->getApplicationLogger(), "Received FSM Command : " << commandName);
+              LOG4CPLUS_INFO(logger_, "Received FSM Command : " << commandName);
               toolbox::Event::Reference e(new toolbox::Event(commandName, this));
               fsm_.fireEvent(e);
               // Synchronize Web state machine
               wsm_.setInitialState(fsm_.getCurrentState());
 
-              LOG4CPLUS_INFO(this->getApplicationLogger(), "Current FSM State : " << fsm_.getStateName(fsm_.getCurrentState()));
+              LOG4CPLUS_INFO(logger_, "Current FSM State : " << fsm_.getStateName(fsm_.getCurrentState()));
               stateChangeTime_ = emu::dqm::utils::now();
             }
           catch (toolbox::fsm::exception::Exception & e)
@@ -455,40 +484,40 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
       std::string item = dynamic_cast<xdata::ItemRetrieveEvent&>(e).itemName();
       if ( item == "totalEvents")
         {
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Total Events : " << totalEvents_.toString());
+          LOG4CPLUS_DEBUG(logger_, "Total Events : " << totalEvents_.toString());
         }
       else if ( item == "dataBw")
         {
           dataBw_ = toolbox::toString("%.2f",pmeter_->bandwidth());
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Data Bandwidth: " << dataBw_.toString());
+          LOG4CPLUS_DEBUG(logger_, "Data Bandwidth: " << dataBw_.toString());
         }
       else if ( item == "dataLatency")
         {
           dataRate_ =  toolbox::toString("%f",pmeter_->latency());
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Data Latency: " << dataLatency_.toString());
+          LOG4CPLUS_DEBUG(logger_, "Data Latency: " << dataLatency_.toString());
         }
       else if ( item == "dataRate")
         {
 
           dataRate_ = toolbox::toString("%.2f",pmeter_->rate());
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Data Rate: " << dataRate_.toString());
+          LOG4CPLUS_DEBUG(logger_, "Data Rate: " << dataRate_.toString());
         }
       else if ( item == "averageRate")
         {
           averageRate_ = rateMeter->getRate("averageRate");
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Average Data Rate: " << averageRate_.toString());
+          LOG4CPLUS_DEBUG(logger_, "Average Data Rate: " << averageRate_.toString());
         }
       else if ( item == "cscRate")
         {
 
           cscRate_ = rateMeter->getRate("cscRate");
           //        cscRate_ = toolbox::toString("%.2f",pmeterCSC_->rate());
-          // LOG4CPLUS_INFO(getApplicationLogger(), "Data Rate: " << dataRate_.toString());
+          LOG4CPLUS_DEBUG(logger_, "Data Rate: " << dataRate_.toString());
         }
       else if ( item == "stateName")
         {
           stateName_ = wsm_.getStateName(wsm_.getCurrentState());
-          // LOG4CPLUS_INFO(getApplicationLogger(), "State: " << stateName_.toString());
+          LOG4CPLUS_DEBUG(logger_, "State: " << stateName_.toString());
         }
       else if ( item == "nDAQEvents")
         {
@@ -505,7 +534,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
             catch(xcept::Exception e)
             {
             count    = 0;
-            LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get event count from EmuRUI" << (*pos)->getInstance()
+            LOG4CPLUS_WARN(logger_, "Failed to get event count from EmuRUI" << (*pos)->getInstance()
             << " : " << xcept::stdformat_exception_history(e));
             }
             nDAQEvents_ = nDAQEvents_ + count;
@@ -518,76 +547,95 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
   if (e.type() == "ItemChangedEvent")
     {
       std::string item = dynamic_cast<xdata::ItemChangedEvent&>(e).itemName();
-      // std::cout << item << std::endl;
 
       if ( item == "readoutMode")
         {
-          LOG4CPLUS_INFO(this->getApplicationLogger(), "Readout Mode : " << readoutMode_.toString());
+          LOG4CPLUS_INFO(logger_, "Readout Mode : " << readoutMode_.toString());
           disableReadout();
           configureReadout();
         }
       else if ( item == "committedPoolSize")
         {
-          LOG4CPLUS_INFO(this->getApplicationLogger(),
+          LOG4CPLUS_INFO(logger_,
                          toolbox::toString("EmuMonitor's Tid: %d",
                                            i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor())) );
           setMemoryPool();
         }
       else if ( item == "serversClassName")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Data Servers Class Name : " << serversClassName_.toString());
+          LOG4CPLUS_INFO(logger_, "Data Servers Class Name : " << serversClassName_.toString());
           getDataServers(serversClassName_);
         }
       else if ( item == "serverTIDs" || item == "daqGroup")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "List of Servers TIDs changed : ");
+          LOG4CPLUS_INFO(logger_, "List of Servers TIDs changed : ");
           getDataServers(serversClassName_);
         }
 
       else if ( item == "collectorsClassName")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Collectors Class Name : " << collectorsClassName_.toString());
+          LOG4CPLUS_INFO(logger_, "Collectors Class Name : " << collectorsClassName_.toString());
           getCollectors(collectorsClassName_);
         }
       else if ( item == "inputDeviceType")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Input Device Type : " << inputDeviceType_.toString());
+          LOG4CPLUS_INFO(logger_, "Input Device Type : " << inputDeviceType_.toString());
           // destroyDeviceReader();
           // createDeviceReader();
         }
       else if ( item == "nEventCredits")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Events Credits : " << nEventCredits_.toString());
-          defEventCredits_=nEventCredits_;
+          LOG4CPLUS_INFO(logger_, "Events Credits : " << nEventCredits_.toString());
+          defEventCredits_ =	nEventCredits_;
         }
       else if ( item == "prescalingFactor")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Prescaling Factor : " << prescalingFactor_.toString());
+          LOG4CPLUS_INFO(logger_, "Prescaling Factor : " << prescalingFactor_.toString());
           // destroyDeviceReader();
           // createDeviceReader();
         }
 
       else if ( item == "inputDeviceName")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Input Device Name : " << inputDeviceName_.toString());
+          LOG4CPLUS_INFO(logger_, "Input Device Name : " << inputDeviceName_.toString());
           // destroyDeviceReader();
           // createDeviceReader();
         }
       else if ( item == "inputDataFormat")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Input Data Format : " << inputDataFormat_.toString());
+          LOG4CPLUS_INFO(logger_, "Input Data Format : " << inputDataFormat_.toString());
           // destroyDeviceReader();
           // createDeviceReader();
         }
       else if ( item == "useAltFileReader")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Use Alt File Reader : " << useAltFileReader_.toString());
+          LOG4CPLUS_DEBUG(logger_, "Use Alt File Reader : " << useAltFileReader_.toString());
           // destroyDeviceReader();
           // createDeviceReader();
         }
+      else if ( item == "enableDataWrite")
+        {
+          LOG4CPLUS_INFO(logger_,
+                         "Event Data Writing : " << enableDataWrite_.toString());
+        }
+      else if ( item == "maxSavedEvents")
+        {
+          LOG4CPLUS_INFO(logger_,
+                         "Max number of events to write : " << maxEvents_.toString());
+        }
+      else if ( item == "outputDataFile")
+        {
+          LOG4CPLUS_INFO(logger_,
+                         "Output path for data writing : " << outputDataFile_.toString());
+        }
+      else if ( item == "fileSizeInMegaBytes")
+        {
+          LOG4CPLUS_INFO(logger_,
+                         "Data file maximum size in MBytes : " << fileSizeInMegaBytes_.toString());
+        }
       else if ( item == "plotterSaveTimer")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Plotter Save Timer : " << plotterSaveTimer_.toString());
+          LOG4CPLUS_INFO(logger_, "Plotter Save Timer : " << plotterSaveTimer_.toString());
           if ((plotterSaveTimer_>xdata::Integer(0))
               && (timer_ != NULL))
             {
@@ -597,7 +645,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
       else if ( item == "binCheckMask")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Binary Checks Mask : 0x" << std::hex << std::uppercase << binCheckMask_ << std::dec);
+          LOG4CPLUS_INFO(logger_, "Binary Checks Mask : 0x" << std::hex << std::uppercase << binCheckMask_ << std::dec);
           if (binCheckMask_ >= xdata::UnsignedInteger(0)
               && (plotter_ != NULL))
             {
@@ -607,7 +655,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
       else if ( item == "dduCheckMask")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "DDU Checks Mask : 0x" << std::hex << std::uppercase << dduCheckMask_ << std::dec);
+          LOG4CPLUS_INFO(logger_, "DDU Checks Mask : 0x" << std::hex << std::uppercase << dduCheckMask_ << std::dec);
           if (dduCheckMask_ >= xdata::UnsignedInteger(0)
               && (plotter_ != NULL))
             {
@@ -617,7 +665,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
       else if ( item == "outputROOTFile")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Output ROOT File : " << outputROOTFile_.toString());
+          LOG4CPLUS_INFO(logger_, "Output ROOT File : " << outputROOTFile_.toString());
           if (outputROOTFile_.toString().length()
               && (plotter_ != NULL))
             {
@@ -627,7 +675,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
       else if ( item == "xmlCfgFile")
         {
 
-          LOG4CPLUS_INFO(getApplicationLogger(),
+          LOG4CPLUS_INFO(logger_,
                          "Histograms Booking XML Config File for plotter : " << xmlHistosBookingCfgFile_.toString());
           if (plotter_ != NULL)
             {
@@ -637,7 +685,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
       else if ( item == "xmlCanvasesCfgFile")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(),
+          LOG4CPLUS_INFO(logger_,
                          "Canvases XML Config File for plotter : " << xmlCanvasesCfgFile_.toString());
           if (plotter_ != NULL)
             {
@@ -647,7 +695,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
       else if ( item == "cscMapFile")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(),
+          LOG4CPLUS_INFO(logger_,
                          "CSC Mapping File for plotter : " << cscMapFile_.toString());
           if (plotter_ != NULL)
             {
@@ -685,9 +733,9 @@ std::string EmuMonitor::getROOTFileName(std::string tstamp)
     {
       if (serversClassName_.toString() != "")
         {
-	  // Timstamp for saved file name
-	  std::string ts = tstamp;
-	  if (ts == "") ts = emu::dqm::utils::getDateTime();
+          // Timstamp for saved file name
+          std::string ts = tstamp;
+          if (ts == "") ts = emu::dqm::utils::getDateTime();
           std::ostringstream st;
           st.clear();
           st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << "EmuRUI";
@@ -710,7 +758,6 @@ void EmuMonitor::getDataServers(xdata::String className)
       if (serverTIDs_.size() > 0)
         {
           std::set<xdaq::ApplicationDescriptor*> tmpdataservers_;
-          //	tmpdataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
           xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup(daqGroup_);
           tmpdataservers_  = g->getApplicationDescriptors(className.toString().c_str());
           std::set<xdaq::ApplicationDescriptor*>::iterator pos;
@@ -729,18 +776,16 @@ void EmuMonitor::getDataServers(xdata::String className)
           xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup(daqGroup_);
           dataservers_  = g->getApplicationDescriptors(className.toString().c_str());
 
-          //	dataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
         }
       if (dataservers_.size() == 0)
         {
-          LOG4CPLUS_ERROR (getApplicationLogger(),
+          LOG4CPLUS_ERROR (logger_,
                            "No " << className.toString() << " Data Servers matching serverTIDs list found.");
         }
-      //hasSet_serversClassName_ = true;
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(),
+      LOG4CPLUS_ERROR (logger_,
                        "No Data Servers with class name " << className.toString() <<
                        "found. EmuMonitor cannot be configured." <<
                        xcept::stdformat_exception_history(e));
@@ -757,15 +802,13 @@ void EmuMonitor::getCollectors(xdata::String className)
   try
     {
       collectors_.clear();
-      // collectors_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
       xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
       collectors_  =    g->getApplicationDescriptors(className.toString().c_str());
 
-      //hasSet_serversClassName_ = true;
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(),
+      LOG4CPLUS_ERROR (logger_,
                        "No Collectors with class name " << className.toString() <<
                        "found. EmuMonitor cannot be configured." <<
                        xcept::stdformat_exception_history(e));
@@ -783,7 +826,7 @@ void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fs
 
   //  startATCP();
   doConfigure();
-  LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from "
+  LOG4CPLUS_INFO(logger_, e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
@@ -801,7 +844,7 @@ throw (emu::dqm::monitor::exception::Exception)
     }
   catch (emu::dqm::monitor::exception::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get atcp descriptors : "
+      LOG4CPLUS_WARN(logger_, "Failed to get atcp descriptors : "
                      + xcept::stdformat_exception_history(e) );
       atcpDescriptors.clear();
     }
@@ -869,10 +912,6 @@ void EmuMonitor::doStop()
   appBSem_.take();
   if (plotter_ != NULL && isReadoutActive)
     {
-      /*
-         if (timer_ != NULL && timer_->isActive())
-         timer_->kill();
-      */
       if (rateMeter != NULL && rateMeter->isActive())
         {
           rateMeter->kill();
@@ -886,20 +925,10 @@ void EmuMonitor::doStop()
               timer_->setPlotter(plotter_);
               timer_->setROOTFileName(getROOTFileName());
               timer_->activate();
-              /*
-                            int timeout=0;
-                            while (!timer_->isActive() && timeout < 3)
-                              {
-                                usleep(1000000);
-                                timeout++;
-                                LOG4CPLUS_INFO (getApplicationLogger(),
-                                                "Waiting to start saving of results... " << timeout);
-                              }
-              */
             }
         }
+      destroyFileWriter();
     }
-  //  disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
   appBSem_.give();
@@ -921,16 +950,17 @@ void EmuMonitor::doConfigure()
         {
           usleep(1000000);
           timeout++;
-          LOG4CPLUS_WARN (getApplicationLogger(),
+          LOG4CPLUS_WARN (logger_,
                           "Waiting to finish saving of results... " << timeout);
         }
       if (timer_->isActive())
         {
-          LOG4CPLUS_ERROR (getApplicationLogger(),
+          LOG4CPLUS_ERROR (logger_,
                            "Timeout waiting for saving of results. Killing save process." << timeout);
           timer_->kill();
         }
     }
+
 
   appBSem_.take();
   setupPlotter();
@@ -939,30 +969,26 @@ void EmuMonitor::doConfigure()
     {
       if (outputROOTFile_.toString().length())
         {
-          LOG4CPLUS_INFO (getApplicationLogger(),
+          LOG4CPLUS_INFO (logger_,
                           "plotter::outputROOTFile: " << outputROOTFile_.toString());
           plotter_->setHistoFile(outputROOTFile_);
         }
       if (dduCheckMask_ >= xdata::UnsignedInteger(0))
         {
-          LOG4CPLUS_INFO (getApplicationLogger(),
+          LOG4CPLUS_INFO (logger_,
                           "plotter::dduCheckMask: 0x" << std::hex << std::uppercase << strtoul((dduCheckMask_.toString()).c_str(),NULL,0));
           plotter_->setDDUCheckMask(dduCheckMask_);
         }
       if (binCheckMask_ >= xdata::UnsignedInteger(0))
         {
-          LOG4CPLUS_INFO (getApplicationLogger(),
+          LOG4CPLUS_INFO (logger_,
                           "plotter::binCheckMask: 0x" << std::hex << std::uppercase << strtoul((binCheckMask_.toString()).c_str(),NULL,0));
           plotter_->setBinCheckMask(binCheckMask_);
         }
 
       plotter_->book();
     }
-  /*
-    if (plotterSaveTimer_>xdata::Integer(0)) {
-    timer_->setTimer(plotterSaveTimer_);
-    }
-  */
+
   configureReadout();
 
   /// Try to start ATCP only if readoutMode is set to External
@@ -1008,7 +1034,7 @@ void  EmuMonitor::doStart()
 void EmuMonitor::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
 {
   doStop();
-  LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from "
+  LOG4CPLUS_INFO(logger_, e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
@@ -1017,13 +1043,13 @@ void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::
   if (fsm_.getCurrentState() == 'E') return;
   if (fsm_.getCurrentState() == 'H') doConfigure();
   doStart();
-  LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from "
+  LOG4CPLUS_INFO(logger_, e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
 void EmuMonitor::noAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
 {
-  LOG4CPLUS_WARN(getApplicationLogger(), "Attempt of invalid FSM state change to " <<  e->type()
+  LOG4CPLUS_WARN(logger_, "Attempt of invalid FSM state change to " <<  e->type()
                  << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()) << ". Ignored.");
   fsm_.setInitialState(fsm_.getCurrentState());
@@ -1080,9 +1106,8 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
   creditsHeld_ = ((I2O_EMU_DATA_MESSAGE_FRAME*)bufRef->getDataLocation())->nEventCreditsHeld;
   if (fsm_.getCurrentState() != 'E' || !isReadoutActive)
     {
-      // LOG4CPLUS_WARN(getApplicationLogger(),"Dropping received Data. Not in Enabled state.");
-
-      // LOG4CPLUS_WARN(getApplicationLogger(),"EmuRUI holding " << creditsHeld_ << " event credits");
+      // LOG4CPLUS_WARN(logger_,"Dropping received Data. Not in Enabled state.");
+      // LOG4CPLUS_WARN(logger_,"EmuRUI holding " << creditsHeld_ << " event credits");
       bufRef->release();
       return;
     }
@@ -1108,7 +1133,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
 
   if ((runNumber_ != msg->runNumber) || (runStartUTC_ != msg->runStartUTC))
     {
-      LOG4CPLUS_INFO(getApplicationLogger(),"Detected Run Number switch. Resetting Monitor...");
+      LOG4CPLUS_INFO(logger_,"Detected Run Number switch. Resetting Monitor...");
       //" from " << runNumber_ << " to " << msg->runNumber<< ". Resetting Monitor...");
       if (plotter_ != NULL)
         {
@@ -1120,12 +1145,12 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
                 {
                   usleep(1000000);
                   timeout++;
-                  LOG4CPLUS_WARN (getApplicationLogger(),
+                  LOG4CPLUS_WARN (logger_,
                                   "Waiting to finish saving of results... " << timeout);
                 }
               if (timer_->isActive())
                 {
-                  LOG4CPLUS_ERROR (getApplicationLogger(),
+                  LOG4CPLUS_ERROR (logger_,
                                    "Timeout waiting for saving of results. Killing save process." << timeout);
                   timer_->kill();
                 }
@@ -1141,9 +1166,15 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
           cscDetected_ = 0;
           plotter_->reset();
         }
+
+      destroyFileWriter();
+
+      runNumber_ = msg->runNumber;
+      runStartUTC_ = msg->runStartUTC;
+
+      if (enableDataWrite_ == xdata::Boolean(true)) createFileWriter();
+
     }
-  runNumber_ = msg->runNumber;
-  runStartUTC_ = msg->runStartUTC;
 
   // DDU File readout errors
   if ( errorFlag==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
@@ -1151,25 +1182,18 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
   if ( errorFlag==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
   if ( errorFlag==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
   if ( errorFlag==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
- 
+
   // DDU Spy mode readout errors
   if ( errorFlag==emu::daq::reader::Spy::EndOfEventMissing ) 	status |= 0x0004;
   if ( errorFlag==emu::daq::reader::Spy::Timeout )		status |= 0x0008;
   if ( errorFlag==emu::daq::reader::Spy::PacketsMissing )	status |= 0x0010;
   if ( errorFlag==emu::daq::reader::Spy::LoopOverwrite )	status |= 0x0020;
   if ( errorFlag==emu::daq::reader::Spy::BufferOverwrite )	status |= 0x0040;
-  if ( errorFlag==emu::daq::reader::Spy::Oversized )		status |= 0x0080;; 
-
-  /*
-    if (eventsReceived_%200 == 0) {
-    time_t nowmark=time(NULL);
-    averageRate_ = sessionEvents_/(nowmark-startmark);
-    }
-  */
+  if ( errorFlag==emu::daq::reader::Spy::Oversized )		status |= 0x0080;;
 
   if (eventsReceived_%1000 == 0)
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(),
+      LOG4CPLUS_DEBUG(logger_,
                       // "Received " << bufRef->getDataSize() <<
                       "Received evt#" << eventsReceived_ << " (req: " << eventsRequested_ << ")" <<
                       sizeOfPayload << " bytes, run " << msg->runNumber << ", start time " << msg->runStartUTC <<
@@ -1179,21 +1203,19 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
                       ", still holding " << creditsHeld_ << " event credits, " <<
                       "pool size " << dataMessages_.size());
       /*
-        LOG4CPLUS_INFO(getApplicationLogger(),
+        LOG4CPLUS_INFO(logger_,
         "==> Average rate: " << averageRate_ << " evt/sec");
-        LOG4CPLUS_INFO(getApplicationLogger(),
+        LOG4CPLUS_INFO(logger_,
         "==> Current rate: " << pmeter_->rate() << " evt/sec");
       */
     }
 
-  //  if (status == 0)
   processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, appTid_);
 
   // Free the Emu data message
   bufRef->release();
   dataMessages_.erase( dataMessages_.begin() );
   appBSem_.give();
-  //  eventsReceived_++;
 }
 
 // == Send an I2O token message to all servers == //
@@ -1209,7 +1231,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
           if (newRate>10) newRate=(newRate/10)*10;
           if ((newRate>=defEventCredits_) && (newRate <=500))
             {
-              LOG4CPLUS_DEBUG (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
+              LOG4CPLUS_DEBUG (logger_, "Adjusting nEventCredits to " << newRate);
               nEventCredits_ = newRate;
             }
         }
@@ -1238,7 +1260,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
           frame->prescalingFactor = prescalingFactor_;
 
           ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
-          LOG4CPLUS_DEBUG(getApplicationLogger(),
+          LOG4CPLUS_DEBUG(logger_,
                           "Sending credit #" << creditMsgsSent_ << " to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
                           //                                   << ". maxFrameSize=" << maxFrameSize_
                          );
@@ -1246,7 +1268,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
         }
       catch (toolbox::mem::exception::Exception & me)
         {
-          LOG4CPLUS_FATAL (getApplicationLogger(), xcept::stdformat_exception_history(me));
+          LOG4CPLUS_FATAL (logger_, xcept::stdformat_exception_history(me));
           return 1; // error
         }
       catch (xdaq::exception::Exception & e)
@@ -1264,14 +1286,14 @@ int EmuMonitor::sendDataRequest(uint32_t last)
                 }
               catch (xdaq::exception::Exception & re)
                 {
-                  LOG4CPLUS_WARN (getApplicationLogger(), xcept::stdformat_exception_history(re));
+                  LOG4CPLUS_WARN (logger_, xcept::stdformat_exception_history(re));
                 }
             }
 
           if (!retryOK)
             {
-              LOG4CPLUS_FATAL (getApplicationLogger(), "Frame send failed after 3 times.");
-              LOG4CPLUS_FATAL (getApplicationLogger(), xcept::stdformat_exception_history(e));
+              LOG4CPLUS_FATAL (logger_, "Frame send failed after 3 times.");
+              LOG4CPLUS_FATAL (logger_, xcept::stdformat_exception_history(e));
               ref->release();
               return 1; // error
             }
@@ -1284,22 +1306,25 @@ int EmuMonitor::sendDataRequest(uint32_t last)
 void EmuMonitor::configureReadout()
 {
   sessionEvents_=0;
+//  destroyFileWriter();
+
   if (readoutMode_.toString() == "internal")
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(),
+      LOG4CPLUS_DEBUG(logger_,
                       "Configure Readout for internal mode");
       destroyDeviceReader();
       createDeviceReader();
+//      createFileWriter();
     }
   else if (readoutMode_.toString() == "external")
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(),
+      LOG4CPLUS_DEBUG(logger_,
                       "Configure Readout for external mode");
       getDataServers(serversClassName_);
     }
   else
     {
-      LOG4CPLUS_ERROR(getApplicationLogger(),
+      LOG4CPLUS_ERROR(logger_,
                       "Unknown Readout Mode: " << readoutMode_.toString()
                       << "Use \"internal\" or \"external\"");
     }
@@ -1339,10 +1364,10 @@ void EmuMonitor::createDeviceReader()
       int inputDataFormatInt_ = -1;
       if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = emu::daq::reader::Base::DDU;
       else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = emu::daq::reader::Base::DCC;
-      else     LOG4CPLUS_ERROR(getApplicationLogger(),
+      else     LOG4CPLUS_ERROR(logger_,
                                  "No such data format: " << inputDataFormat_.toString() <<
                                  "Use \"DDU\" or \"DCC\"");
-      LOG4CPLUS_INFO(getApplicationLogger(),
+      LOG4CPLUS_INFO(logger_,
                      "Creating " << inputDeviceType_.toString() <<
                      " reader for " << inputDeviceName_.toString());
       deviceReader_ = NULL;
@@ -1352,7 +1377,7 @@ void EmuMonitor::createDeviceReader()
           struct stat stats;
           if (stat((inputDeviceName_.toString()).c_str(), &stats)<0)
             {
-              LOG4CPLUS_FATAL(getApplicationLogger(), inputDeviceType_.toString() << ": " <<
+              LOG4CPLUS_FATAL(logger_, inputDeviceType_.toString() << ": " <<
                               strerror(errno));
             }
           else
@@ -1362,7 +1387,7 @@ void EmuMonitor::createDeviceReader()
               else if ( inputDeviceType_ == "file" )
                 deviceReader_ = new emu::daq::reader::RawDataFile( inputDeviceName_.toString(), inputDataFormatInt_ );
               // TODO: slink
-              else     LOG4CPLUS_ERROR(getApplicationLogger(),
+              else     LOG4CPLUS_ERROR(logger_,
                                          "Bad device type: " << inputDeviceType_.toString() <<
                                          "Use \"file\", \"spy\", or \"slink\"");
             }
@@ -1374,7 +1399,7 @@ void EmuMonitor::createDeviceReader()
           oss << "Failed to create " << inputDeviceType_.toString()
           << " reader for "      << inputDeviceName_.toString()
           << ": "                << e;
-          LOG4CPLUS_ERROR(getApplicationLogger(), oss.str())
+          LOG4CPLUS_ERROR(logger_, oss.str())
 
           // Don't raise exception as it would be interpreted as FSM transition error
           //      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
@@ -1387,16 +1412,93 @@ void EmuMonitor::destroyDeviceReader()
 {
   if (deviceReader_ != NULL)
     {
-      LOG4CPLUS_DEBUG(getApplicationLogger(),
+      LOG4CPLUS_INFO(logger_,
                       "Destroying reader for " << deviceReader_->getName() );
       delete deviceReader_;
       deviceReader_ = NULL;
     }
 }
 
+
+void EmuMonitor::createFileWriter()
+{
+
+  // Just in case there's a writer, terminate it in an orderly fashion
+  if ( fileWriter_ )
+    {
+      LOG4CPLUS_WARN(logger_, "Terminating leftover file writer." );
+      fileWriter_->endRun();
+      delete fileWriter_;
+      fileWriter_ = NULL;
+    }
+
+  nSavedEvents_ = 0;
+
+  // create new writers if path is not empty
+  if ( outputDataFile_ != std::string("") &&
+       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
+    {
+      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
+      fileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_,
+          outputDataFile_.toString(),
+          u.getHost(), "DQM", appTid_, emudqmcscmonitor::versions, &logger_ );
+    }
+
+
+
+  // inform the file writer about the new run
+  try
+    {
+      if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_,
+            true,
+            emu::dqm::utils::getDateTime(runStartUTC_),
+            "EmuMonitor" );
+	 LOG4CPLUS_INFO(logger_, "File writer created." );
+    }
+  catch (std::string e)
+    {
+      LOG4CPLUS_FATAL( logger_, e );
+    }
+}
+
+void EmuMonitor::destroyFileWriter()
+{
+  // Just in case there's a writer, terminate it in an orderly fashion
+  if ( fileWriter_ )
+    {
+      LOG4CPLUS_WARN(logger_, "Terminating leftover file writer." );
+      fileWriter_->endRun();
+      delete fileWriter_;
+      fileWriter_ = NULL;
+    }
+}
+
+void EmuMonitor::writeDataToFile( const char* const data, const int dataLength )
+{
+  if ( fileWriter_ )
+    {
+      try
+        {
+          fileWriter_->startNewEvent();
+          fileWriter_->writeData( data, dataLength );
+	  ableToWriteToDisk_ = true;
+        }
+      catch (string e)
+        {
+          // Cry only once, the first time:
+          if ( ableToWriteToDisk_ )
+            {
+              LOG4CPLUS_ERROR( logger_, e );
+              ableToWriteToDisk_ = false;
+            }
+        }
+    }
+}
+
+
 int EmuMonitor::svc()
 {
-  LOG4CPLUS_INFO (getApplicationLogger(), "Starting Readout loop...");
+  LOG4CPLUS_INFO (logger_, "Starting Readout loop...");
   //  return 0;
 
   keepRunning = true;
@@ -1412,7 +1514,7 @@ int EmuMonitor::svc()
           readValid = deviceReader_->readNextEvent();
           if ( !keepRunning || !readValid)
             {
-              LOG4CPLUS_ERROR(getApplicationLogger(),
+              LOG4CPLUS_ERROR(logger_,
                               " " << inputDataFormat_.toString() << " " << inputDeviceType_.toString() <<
                               " " << inputDeviceName_.toString() << " read error.");
               if (plotter_ != NULL)
@@ -1466,7 +1568,7 @@ int EmuMonitor::svc()
         {
           if (creditsHeld_ > nEventCredits_)
             {
-              LOG4CPLUS_DEBUG (getApplicationLogger(), "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
+              LOG4CPLUS_DEBUG (logger_, "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
             }
           while ((creditsHeld_ > nEventCredits_) && ( waittime <= timeout ))
             {
@@ -1475,7 +1577,7 @@ int EmuMonitor::svc()
             }
           if (waittime >= timeout)
             {
-              LOG4CPLUS_DEBUG (getApplicationLogger(), toolbox::toString("Timeout waiting for clearing credits."));
+              LOG4CPLUS_DEBUG (logger_, toolbox::toString("Timeout waiting for clearing credits."));
               creditsHeld_ = nEventCredits_;
             }
           waittime=0;
@@ -1487,8 +1589,8 @@ int EmuMonitor::svc()
             }
           if (waittime >= timeout)
             {
-              LOG4CPLUS_DEBUG (getApplicationLogger(), toolbox::toString("Timeout waiting for events from server."));
-              LOG4CPLUS_DEBUG (getApplicationLogger(), "Missed " << (eventsRequested_ - eventsReceived_) << " events");
+              LOG4CPLUS_DEBUG (logger_, toolbox::toString("Timeout waiting for events from server."));
+              LOG4CPLUS_DEBUG (logger_, "Missed " << (eventsRequested_ - eventsReceived_) << " events");
 
               /*
                 time_t nowmark=time(NULL);
@@ -1513,22 +1615,22 @@ int EmuMonitor::svc()
                   // Stop if there is an error in sending
                   if (this->sendDataRequest(0) == 1)
                     {
-                      LOG4CPLUS_FATAL (getApplicationLogger(), toolbox::toString("Error in frameSend. Stopping client."));
+                      LOG4CPLUS_FATAL (logger_, toolbox::toString("Error in frameSend. Stopping client."));
                       // return 1;
                     };
                 }
               catch (pt::tcp::exception::Exception & e)
                 {
-                  LOG4CPLUS_FATAL (getApplicationLogger(), xcept::stdformat_exception_history(e));
+                  LOG4CPLUS_FATAL (logger_, xcept::stdformat_exception_history(e));
                 }
 
             }
           else
             {
-              LOG4CPLUS_DEBUG (getApplicationLogger(), "high threshold is exceeded");
+              LOG4CPLUS_DEBUG (logger_, "high threshold is exceeded");
               while (pool_->isLowThresholdExceeded())
                 {
-                  LOG4CPLUS_INFO (getApplicationLogger(), "yield till low threshold reached");
+                  LOG4CPLUS_INFO (logger_, "yield till low threshold reached");
                   this->yield(1);
                 }
             }
@@ -1549,13 +1651,24 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
       sessionEvents_++;
       if (sessionEvents_ % 5000 == 0)
         {
-          LOG4CPLUS_DEBUG(getApplicationLogger(),
+          LOG4CPLUS_DEBUG(logger_,
                           "Evt# " << sessionEvents_.toString() << ": Readout rate: "
                           << rateMeter->getRate("averageRate") << " Evts/sec;  Unpack rate: "
                           << rateMeter->getRate("cscRate") << " CSCs/sec" ) ;
           //		   << " (Total processed: " << totalEvents_.toString() << ")");
         }
       plotter_->processEvent(data, dataSize, errorFlag, node);
+
+      // -- Write Event Data to file
+      if ( (enableDataWrite_ == xdata::Boolean(true))
+           && ((nSavedEvents_ < maxEvents_) || (maxEvents_ == -1) ) 
+	   && plotter_->isEventToSave() )
+        {
+		LOG4CPLUS_DEBUG(logger_, "Writing to file event# " << sessionEvents_.toString());
+		writeDataToFile( data, dataSize );
+		nSavedEvents_++;
+        }
+
       pmeter_->addSample(dataSize);
       cscUnpacked_ = cscUnpacked_ + plotter_->getUnpackedDMBCount();
       cscDetected_ = plotter_->getDetectedCSCsCount();

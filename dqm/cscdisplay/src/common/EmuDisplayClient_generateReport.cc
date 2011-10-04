@@ -78,7 +78,7 @@ MonitorElement* EmuDisplayClient::findME(std::string tag, std::string name)
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Unable to update " << tag << " " << name);
+      if (debug) LOG4CPLUS_WARN(logger_,"Unable to update " << tag << " " << name);
     }
   return me;
 
@@ -138,7 +138,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
       TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum()+1);
 
-      for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+      // for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+      for (int i=int(h->GetXaxis()->GetXmin()); i<= MAX_DDU; i++) // Check only 36 DDUs
         {
           uint32_t cnt = uint32_t(h->GetBinContent(i));
           if (cnt>0)
@@ -194,7 +195,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
 
@@ -248,7 +249,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
 
@@ -300,7 +301,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
   // Check for DDU Live Inputs
@@ -330,7 +331,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
   // Check for DDU Inputs with Data
@@ -379,7 +380,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
 
@@ -431,7 +432,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
   // Check for DDU Inputs with WARNING state
@@ -482,7 +483,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
 
@@ -610,7 +611,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
 
@@ -671,7 +672,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                             else severity=MINOR;
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("\tFormat Errors: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
-                            // LOG4CPLUS_WARN(getApplicationLogger(), cscTag << ": "<< diag);
+                            // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
 //                            dqm_report.addEntry(cscName, entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
                           }
                       }
@@ -684,7 +685,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
   else
     {
-      if (debug) LOG4CPLUS_WARN(getApplicationLogger(),"Can not find " << hname);
+      if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
 
 
@@ -742,7 +743,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                             else severity=MINOR;
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("DMB-Input FIFO Full: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
-                            // LOG4CPLUS_WARN(getApplicationLogger(), cscTag << ": "<< diag);
+                            // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
 //                            dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_INPUT_FIFO_FULL"));
                           }
                       }
@@ -808,7 +809,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                             else severity=MINOR;
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("DMB-Input Timeout: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
-                            // LOG4CPLUS_WARN(getApplicationLogger(), cscTag << ": "<< diag);
+                            // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
 //                            dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_INPUT_TIMEOUT" ));
                           }
                       }
@@ -916,9 +917,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.1f ( >%.1f )",z, rms_limit);
+                    std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
              
-                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_ALCT_TIMING"));
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
                   } 
               }
 
@@ -934,21 +935,23 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       TH2F* h = reinterpret_cast<TH2F*>(me);
       int csc_cntr=0;
       uint32_t min_events=200;
-      double rms_limit = 2.35;
+      double rms_limit = 2.3;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
           for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
+            std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+            double limit = rms_limit;
+            if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern 
             double z = h->GetBinContent(i, j+1);
-            if (z > rms_limit)
+            if (round(z*10.)/10. > rms_limit)
               {
                 csc_cntr++;
-                std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.1f ( >%.1f )",z, rms_limit);
+                    std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
                     
-                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CLCT_TIMING"));
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
                   } 
               }
 

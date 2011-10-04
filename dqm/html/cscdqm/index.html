@@ -473,7 +473,7 @@ function loadPlot() {
 	// var objname = Canvas.substr(Canvas.search("/"), Canvas.length);
 	var objname = Canvas.substr(0, Canvas.search(".png"));
 	if (objname.search("/") >=0) objname = objname.substr(objname.search("/")+1, objname.length);
-	var timestamp=new Date()
+	var timestamp=new Date();
 	var imgurl=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&run="+RunName+"&timestamp="+timestamp.getTime();
 	var zoomimage=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+1600+"&imageHeight="+1200+"&run="+RunName+"&timestamp="+timestamp.getTime();
 //	var ref_imgurl =baseURL+getRefPlot+"?folder="+Folder+"&plot="+Canvas;

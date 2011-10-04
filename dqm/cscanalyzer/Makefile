@@ -59,6 +59,7 @@ IncludeDirs = $(XdaqIncludeDirs) \
 	$(BUILD_HOME)/emu/dqm/common/include \
 	$(BUILD_HOME)/emu/dqm/common/include/emu/dqm/common \
 	$(BUILD_HOME)/emu/daq/reader/include \
+	$(BUILD_HOME)/emu/daq/writer/include \
 	$(CMSSW) \
 	$(BOOST)
 
@@ -77,7 +78,7 @@ UserExecutableLinkFlags += $(ROOTGLIBS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) emudaqreader
+Libraries = $(XdaqLibraries) emudaqreader emudaqwriter
 
 #
 # Compile the source files and create a shared library

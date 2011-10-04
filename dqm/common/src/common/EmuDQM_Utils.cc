@@ -30,12 +30,12 @@ std::string now()
 }
 
 
-std::string getDateTime()
+std::string getDateTime(time_t tstamp)
 {
-    time_t t;
+    time_t t = tstamp;
     struct tm *tm;
 
-    time ( &t );
+    if (t == 0) time ( &t );
     tm = gmtime ( &t ); // Unversal Coordinated Time
 
     std::stringstream ss;
@@ -127,6 +127,13 @@ bool isME11(std::string cscID)
     } else return false;
 }
 
+bool isME42(std::string cscID)
+{
+    if ((cscID.find("ME+4/2") == 0) || (cscID.find("ME-4/2") ==0 )) {
+        return true;
+    } else return false;
+}   
+
 std::map<std::string, int> getCSCTypeToBinMap()
 {
     std::map<std::string, int> tmap;
@@ -183,7 +190,7 @@ std::string getCSCTypeLabel(int endcap, int station, int ring )
 
 std::string genCSCTitle(std::string tag)
 {
-    std::string title = tag;
+    std::string title = " " + tag;
     if (tag.find("DDU_") != std::string::npos ) {
         int ddu=0;
         int n = sscanf(tag.c_str(), "DDU_%02d", &ddu);
@@ -198,8 +205,10 @@ std::string genCSCTitle(std::string tag)
             title = Form(" Crate ID = %02d. DMB ID = %02d", crate, slot);
         }
 
-
+    } else if (tag.find("EMU") != std::string::npos ) {
+	title = ""; 
     }
+      
     return title;
 }
 

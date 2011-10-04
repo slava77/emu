@@ -63,8 +63,9 @@
 		<Name>EMU_Test03_DDU_Reported_Errors</Name>
 		<Title>EMU Test03 - DDU Reported Errors</Title>
 		<NumPadsX>1</NumPadsX>
-		<NumPadsY>1</NumPadsY>
+		<NumPadsY>2</NumPadsY>
 		<Pad1>All_DDUs_Trailer_Errors</Pad1>
+		<Pad2>All_DDUs_Output_Path_Status</Pad2>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -89,11 +90,12 @@
                 <Type>cnv</Type>
                 <Prefix>EMU</Prefix>
                 <Name>EMU_Test06_DDU_Inputs_in_Error_State</Name>
-                <Title>EMU Test06 - DDU Inputs in ERROR/WARNING State</Title>
+                <Title>EMU Test06 - DDU Inputs in ERROR/WARNING/DMB FIFO Full State</Title>
                 <NumPadsX>1</NumPadsX>
-                <NumPadsY>2</NumPadsY>
+                <NumPadsY>3</NumPadsY>
                 <Pad1>All_DDUs_Inputs_Errors</Pad1>
                 <Pad2>All_DDUs_Inputs_Warnings</Pad2>
+		<Pad3>All_DDUs_DMB_FIFO_Full</Pad3>
         </Canvas>
 	<!-- Canvas>
 		<Type>cnv</Type>
@@ -605,6 +607,16 @@
 		<Pad2>Trailer_ErrorStat_Frequency</Pad2>
 	</Canvas>
 	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>DDU</Prefix>
+                <Name>DDU_Output_Path_Status</Name>
+                <Title>DDU Output Path Status</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>Output_Path_Status_Table</Pad1>
+                <Pad2>Output_Path_Status_Frequency</Pad2>
+        </Canvas>
+	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>DDU</Prefix>
 		<Name>DDU_Connected_and_Active_Inputs</Name>
@@ -1080,6 +1092,19 @@
                 <Folder>DMB</Folder>
         </Canvas>
 
+	 <!-- Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_Test06_FEB_Status_Timeouts_FIFO_L1_pipe</Name>
+                <Title>DMB: Test06 - FEB Status (Timeouts, FIFO, L1 pipe)</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>DMB_FEB_Timeouts</Pad1>
+		<Pad2>DMB_FIFO_stats</Pad2>
+                <Pad3>DMB_L1_Pipe</Pad3>
+		<Folder>DMB</Folder>
+        </Canvas-->
+
 
 	<!--Canvas>
                 <Type>cnv</Type>
@@ -1115,18 +1140,6 @@
 		<NumPadsY>1</NumPadsY>
 		<Pad1>DMB_CFEB_Sync</Pad1>
 		<Folder>DMB</Folder>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>CSC</Prefix>
-		<Name>DMB_FEB_Status_Timeouts__FIFO__L1_pipe</Name>
-		<Title>DMB: FEB Status (Timeouts, FIFO, L1 pipe)</Title>
-		<NumPadsX>2</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>DMB_FEB_Timeouts</Pad1>
-		<Pad3>DMB_L1_Pipe</Pad3>
-		<Folder>DMB</Folder>
-		<Pad4>DMB_FIFO_stats</Pad4>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>

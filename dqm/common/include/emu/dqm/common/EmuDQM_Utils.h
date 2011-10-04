@@ -11,6 +11,8 @@
 
 #include <TString.h>
 
+#define MAX_DDU 36
+
 namespace emu
 {
 namespace dqm
@@ -20,13 +22,14 @@ namespace utils
 
 std::string now(time_t tstamp, const char* format="%Y-%m-%d %H:%M:%S %Z");
 std::string now();
-std::string getDateTime();
+std::string getDateTime(time_t tstamp = 0);
 int getNumStrips(std::string cscID);
 int getNumCFEBs(std::string cscID);
 int getNumWireGroups(std::string cscID);
 std::vector< std::pair<int,int> > getHVSegmentsMap(std::string cscID);
 int getHVSegmentNumber(std::string cscID, uint32_t iseg);
 bool isME11(std::string cscID);
+bool isME42(std::string cscID);
 std::string getCSCTypeName(int id);
 std::string getCSCTypeLabel(int endcap, int station, int ring );
 std::string getCSCName(std::string cscID, int& crate, int& slot, int& CSCtype, int& CSCposition );
