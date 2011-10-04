@@ -170,8 +170,8 @@ public:
 
 
 protected:
-
   
+
   void book();
   void cleanup();
   void saveNodesResults();
@@ -252,65 +252,64 @@ protected:
   inline void addFact(const emu::base::Fact &fact) {
                                 collectedFacts.push_back(fact);
                         }
-
-
   int svc();
+  std::string generateLoggerName();
 
 private:
 
+  Logger 	logger_;
+ 
+  // The list of Monitored Elements
+  std::map<std::string, ME_List > 		MEs;
+  std::map<std::string, MECanvases_List > 	MECanvases;
+
+  std::map<std::string, ME_List > 		MEFactories;
+  std::map<std::string, MECanvases_List > 	MECanvasFactories;
+
+  // CSC summary maps
+  cscdqm::Summary 	summary;
+  ChamberMap 		chamberMap;
+  SummaryMap 		summaryMap;
+  EventDisplay* 	eventDisplay;
+
+  DQMReport 			dqm_report;
+  CSCReadoutMappingFromFile 	cscMapping;
+  std::map<std::string, int> 	tmap;
+  std::vector<std::string> 	runsList;
 
 
-  // == list of Monitored Elements
-  std::map<std::string, ME_List > MEs;
-  std::map<std::string, MECanvases_List > MECanvases;
+  toolbox::exception::HandlerSignature*	 	errorHandler_;
 
-  std::map<std::string, ME_List > MEFactories;
-  std::map<std::string, MECanvases_List > MECanvasFactories;
+  std::set<xdaq::ApplicationDescriptor*> 	getAppsList(xdata::String className, xdata::String group="dqm");
 
-  /** CSC summary map */
-  cscdqm::Summary summary;
-  ChamberMap chamberMap;
-  SummaryMap summaryMap;
-  EventDisplay* eventDisplay;
-
-  DQMReport dqm_report;
-  CSCReadoutMappingFromFile cscMapping;
-  std::map<std::string, int> tmap;
-  std::vector<std::string> runsList;
+  // List of all external data servers tids
+  std::set<xdaq::ApplicationDescriptor*> 	monitors;
 
 
-  toolbox::exception::HandlerSignature  * errorHandler_;
-
-  std::set<xdaq::ApplicationDescriptor*> getAppsList(xdata::String className, xdata::String group="dqm");
-
-  // == Vector of all external data servers tids
-  std::set<xdaq::ApplicationDescriptor*> monitors;
+  xdata::String 	xmlHistosBookingCfgFile_;
+  xdata::String 	xmlCanvasesCfgFile_;
+  xdata::String 	cscMapFile_;
 
 
-  xdata::String xmlHistosBookingCfgFile_;
-  xdata::String xmlCanvasesCfgFile_;
-  xdata::String cscMapFile_;
-
-
-  std::string curRunNumber;
-  xdata::String monitorClass_;
-  xdata::String imageFormat_;
-  xdata::String imagePath_;
-  xdata::Boolean viewOnly_;
-  xdata::Boolean debug;
-  xdata::Boolean useExSys; // Use Expert System
-  xdata::String BaseDir;
-  xdata::String ResultsDir;
-  xdata::String refImagePath;     
-  xdata::UnsignedInteger saveResultsDelay; // Time delay for sending saveResults command to Monitors 
+  std::string 		curRunNumber;
+  xdata::String 	monitorClass_;
+  xdata::String 	imageFormat_;
+  xdata::String 	imagePath_;
+  xdata::Boolean 	viewOnly_;
+  xdata::Boolean 	debug;
+  xdata::Boolean 	useExSys; 		// Use Expert System
+  xdata::String 	BaseDir;
+  xdata::String 	ResultsDir;
+  xdata::String 	refImagePath;     
+  xdata::UnsignedInteger saveResultsDelay; 	// Time delay for sending saveResults command to Monitors 
  
 
-  FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
-  CSCCounters cscCounters; // == CSC Counters from EmuMonitor nodes
-  DQMNodesStatus nodesStatus; // == DQM Monitoring Nodes Statuses
-  DQMNodesStatus prevNodesStatus;// == Saved copy of previous DQM Monitoring Nodes Statuses
-  BSem appBSem_;
-  struct timeval bsem_tout;
+  FoldersMap 		foldersMap; 		// Associate DDUs and CSCs with Monitoring nodes
+  CSCCounters 		cscCounters;	 	// CSC Counters from EmuMonitor nodes
+  DQMNodesStatus 	nodesStatus; 		// DQM Monitoring Nodes Statuses
+  DQMNodesStatus 	prevNodesStatus;	// Saved copy of previous DQM Monitoring Nodes Statuses
+  BSem 			appBSem_;
+  struct timeval 	bsem_tout;
 
   std::list<emu::base::Fact> collectedFacts;
 

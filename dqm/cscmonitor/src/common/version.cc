@@ -8,9 +8,9 @@
 #include "xoap/version.h"
 #include "xdaq/version.h"
 
-GETPACKAGEINFO(EmuMonitor)
+GETPACKAGEINFO(emudqmcscmonitor)
 
-void EmuMonitor::checkPackageDependencies()
+void emudqmcscmonitor::checkPackageDependencies()
 throw (config::PackageInfo::VersionException)
 {
   CHECKDEPENDENCY(toolbox)

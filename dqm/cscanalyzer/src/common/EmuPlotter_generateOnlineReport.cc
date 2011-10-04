@@ -108,7 +108,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                           {
                             uint32_t events = uint32_t(h4->GetBinContent(1, err));
                             float fract=z*100;
-                            DQM_SEVERITY severity=MINOR;
+                            DQM_SEVERITY severity=NONE;
                             if (csc_events>min_events)
                               {
                                 if (fract >= 80.) severity=CRITICAL;
@@ -769,7 +769,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                         {
                                           std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
                                                                 avg_eff, low_comp_thresh);
-                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
                                         }
 
                                       // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
@@ -801,7 +801,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                         {
                                           std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
                                                                 avg_eff, me11_cfeb5_low_comp_thresh);
-                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
                                         }
 
                                       if ( avg_eff >= me11_cfeb5_high_comp_thresh )
@@ -809,7 +809,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                         {
                                           std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f%% > %.1f%% threshold)", icfeb+1, ilayer,
                                                                 avg_eff, me11_cfeb5_high_comp_thresh);
-                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY"));
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY"));
                                         }
                                     }
 

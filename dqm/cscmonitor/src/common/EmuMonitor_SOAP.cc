@@ -9,10 +9,12 @@
 
 #include "emu/dqm/cscmonitor/EmuMonitor.h"
 
+#include "TMessage.h"
+
 xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
   appBSem_.take();
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Monitoring Objects List request");
+  LOG4CPLUS_DEBUG (logger_, "Received Monitoring Objects List request");
   try
     {
       xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
@@ -47,7 +49,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
             usleep(500000); tout++;
             };
             if (tout==sTimeout*2) {
-            LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+            LOG4CPLUS_WARN (logger_, "Plotter is still busy after " << sTimeout << " secs");
             return msg;
             }
           */
@@ -66,7 +68,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
                   xoap::SOAPElement histoElement = histodirElement.addChildElement(histoName);
                   histoElement.addTextNode(hname);
 
-                  //	LOG4CPLUS_INFO(getApplicationLogger(),
+                  //	LOG4CPLUS_INFO(logger_,
                   //	       "ME: " << itr->first << "/" << h_itr->second->getFullName() << " size: " << sizeof(*(h_itr->second->getObject())));
 
                 }
@@ -77,15 +79,15 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
     }
   catch (xoap::exception::Exception &e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xcept::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   appBSem_.give();
   return node;
@@ -96,7 +98,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
 xoap::MessageReference EmuMonitor::requestReport(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
   appBSem_.take();
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Report request");
+  LOG4CPLUS_DEBUG (logger_, "Received Report request");
   try
     {
 
@@ -175,15 +177,15 @@ xoap::MessageReference EmuMonitor::requestReport(xoap::MessageReference node) th
     }
   catch (xoap::exception::Exception &e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xcept::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   appBSem_.give();
   return node;
@@ -193,7 +195,7 @@ xoap::MessageReference EmuMonitor::requestReport(xoap::MessageReference node) th
 xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
   appBSem_.take();
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Save Results request");
+  LOG4CPLUS_DEBUG (logger_, "Received Save Results request");
   try
     {
 
@@ -232,7 +234,7 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
                 {
                   tstamp = f_itr->getValue();
 
-                  uint32_t rate = rateMeter->getRate("averageRate");
+                  // uint32_t rate = rateMeter->getRate("averageRate");
                   if ((plotter_ != NULL)
                       && (fsm_.getCurrentState() == 'E')
                       && (fSaveROOTFile_ == xdata::Boolean(true))
@@ -253,15 +255,15 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
     }
   catch (xoap::exception::Exception &e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xcept::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   appBSem_.give();
   return node;
@@ -273,7 +275,7 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
 xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
   appBSem_.take();
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Folders List request");
+  LOG4CPLUS_DEBUG (logger_, "Received Folders List request");
   try
     {
       xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
@@ -310,7 +312,7 @@ xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference nod
                 };
               if (tout==sTimeout*2)
                 {
-                  LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+                  LOG4CPLUS_WARN (logger_, "Plotter is still busy after " << sTimeout << " secs");
                   return msg;
                 }
           */
@@ -329,15 +331,15 @@ xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference nod
     }
   catch (xoap::exception::Exception &e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xcept::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   appBSem_.give();
   return node;
@@ -348,7 +350,7 @@ xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference nod
 xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
   appBSem_.take();
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Monitoring Objects request");
+  LOG4CPLUS_DEBUG (logger_, "Received Monitoring Objects request");
   try
     {
       xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
@@ -386,7 +388,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
                        };
                      if (tout==sTimeout*2)
                        {
-                         LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+                         LOG4CPLUS_WARN (logger_, "Plotter is still busy after " << sTimeout << " secs");
                          return msg;
                        }
               */
@@ -408,7 +410,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
                       std::map<std::string, ME_List >::iterator melist_itr = MEs.find(folder);
                       if (melist_itr != MEs.end())
                         {
-                          // LOG4CPLUS_WARN (getApplicationLogger(), "Folder: " << folder);
+                          // LOG4CPLUS_WARN (logger_, "Folder: " << folder);
                           if (folder.find("EMU") == 0) plotter_->updateFractionHistos();
                           if (folder.find("CSC_") == 0) plotter_->updateCSCFractionHistos(folder);
                           xoap::SOAPName objectTag ("Object", "", "");
@@ -484,19 +486,19 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
                                               attachment->setContentEncoding("binary");
                                               // std::cout << "size: " <<buf->BufferSize() << ", name: " << folder << "/" << objname << std::endl;
                                               msg->addAttachmentPart(attachment);
-                                              LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending "<<  meobj_itr->second->getFullName());
+                                              LOG4CPLUS_DEBUG (logger_, "Sending "<<  meobj_itr->second->getFullName());
                                               munlock(attch_buf, buf_size);
                                               delete[] attch_buf;
                                               // free(attch_buf);
                                             }
                                           else
                                             {
-                                              LOG4CPLUS_ERROR (getApplicationLogger(), "Cannot allocate buffer for attachment");
+                                              LOG4CPLUS_ERROR (logger_, "Cannot allocate buffer for attachment");
                                             }
                                         }
                                       else
                                         {
-                                          LOG4CPLUS_ERROR (getApplicationLogger(), "Cannot write object to buffer");
+                                          LOG4CPLUS_ERROR (logger_, "Cannot write object to buffer");
                                         }
                                     }
                                 }
@@ -511,15 +513,15 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
     }
   catch (xoap::exception::Exception &e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xcept::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
 
   appBSem_.give();
@@ -529,7 +531,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
   appBSem_.take();
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Monitoring Canvases List request");
+  LOG4CPLUS_DEBUG (logger_, "Received Monitoring Canvases List request");
   xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
   if (rb.hasFault() )
     {
@@ -564,7 +566,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
             };
           if (tout==sTimeout*2)
             {
-              LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+              LOG4CPLUS_WARN (logger_, "Plotter is still busy after " << sTimeout << " secs");
               return msg;
             }
       */
@@ -583,7 +585,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
               xoap::SOAPElement histoElement = histodirElement.addChildElement(histoName);
               histoElement.addTextNode(hname);
 
-              //	LOG4CPLUS_INFO(getApplicationLogger(),
+              //	LOG4CPLUS_INFO(logger_,
               //       "Canvas: " << itr->first << "/" << h_itr->second->getFullName());
 
             }
@@ -597,7 +599,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
 xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
   appBSem_.take();
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Monitoring Canvas request");
+  LOG4CPLUS_DEBUG (logger_, "Received Monitoring Canvas request");
   try
     {
       xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
@@ -636,7 +638,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
                         };
                       if (tout==sTimeout*2)
                         {
-                          LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+                          LOG4CPLUS_WARN (logger_, "Plotter is still busy after " << sTimeout << " secs");
                           return msg;
                         }
               */
@@ -659,7 +661,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
                       // if (melist_itr != MEs.end())
                       if ((cnvlist_itr != MECanvases.end()) && (melist_itr != MEs.end()))
                         {
-                          // LOG4CPLUS_WARN (getApplicationLogger(), "Folder: " << folder);
+                          // LOG4CPLUS_WARN (logger_, "Folder: " << folder);
                           if (folder.find("EMU") == 0) plotter_->updateFractionHistos();
                           if (folder.find("CSC_") == 0) plotter_->updateCSCFractionHistos(folder);
                           xoap::SOAPName objectTag ("Canvas", "", "");
@@ -706,19 +708,19 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
                                   attachment->setContentLocation(folder+"/"+objname);
                                   attachment->setContentEncoding("binary");
                                   msg->addAttachmentPart(attachment);
-                                  LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending "<<  cnv->getFullName());
+                                  LOG4CPLUS_DEBUG (logger_, "Sending "<<  cnv->getFullName());
                                   delete []attch_buf;
                                   // delete cnv;
                                 }
                               else
                                 {
-                                  LOG4CPLUS_WARN (getApplicationLogger(), "Can not find canvas object: " << objname);
+                                  LOG4CPLUS_WARN (logger_, "Can not find canvas object: " << objname);
                                 }
                             }
                         }
                       else
                         {
-                          LOG4CPLUS_WARN (getApplicationLogger(), "Con not find folder: " << folder);
+                          LOG4CPLUS_WARN (logger_, "Con not find folder: " << folder);
                         }
 
                     }
@@ -730,15 +732,15 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
     }
   catch (xoap::exception::Exception &e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xcept::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   appBSem_.give();
   return node;
@@ -748,7 +750,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 xoap::MessageReference EmuMonitor::requestCSCCounters(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
   appBSem_.take();
-  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received CSC Counters request");
+  LOG4CPLUS_DEBUG (logger_, "Received CSC Counters request");
   try
     {
       xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
@@ -794,7 +796,7 @@ xoap::MessageReference EmuMonitor::requestCSCCounters(xoap::MessageReference nod
                     {
                       xdata::String name = c_itr->first;
                       xdata::UnsignedInteger value = c_itr->second;
-                      // LOG4CPLUS_INFO (getApplicationLogger(), csc.toString() << ": " << name.toString() << "=" << value.toString());
+                      // LOG4CPLUS_INFO (logger_, csc.toString() << ": " << name.toString() << "=" << value.toString());
 
                       xoap::SOAPName cntrName = envelope.createName(name, "", "");
                       xoap::SOAPElement cntElement = cscElement.addChildElement(cntrName);
@@ -810,15 +812,15 @@ xoap::MessageReference EmuMonitor::requestCSCCounters(xoap::MessageReference nod
     }
   catch (xoap::exception::Exception &e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xdaq::exception::Exception& e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   catch (xcept::Exception e)
     {
-      LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, xcept::stdformat_exception_history(e));
     }
   appBSem_.give();
   return node;

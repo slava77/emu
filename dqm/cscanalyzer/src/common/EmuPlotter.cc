@@ -14,30 +14,32 @@ EmuPlotter::EmuPlotter(Logger logger):logger_(logger),appBSem_(toolbox::BSem::FU
 
 void EmuPlotter::init()
 {
-  debug = false;
-  xmlHistosBookingCfgFile = "";
-  xmlCanvasesCfgFile = "";
-  cscMapFile = "";
-  tmap = getCSCTypeToBinMap();
-  dduCheckMask = 0xFFFFFFFF;
-  binCheckMask = 0xFFFFFFFF;
-  dduBinCheckMask = 0x02080016;
+  debug 			= false;
+  xmlHistosBookingCfgFile 	= "";
+  xmlCanvasesCfgFile		= "";
+  cscMapFile 			= "";
+  tmap 				= getCSCTypeToBinMap();
+  dduCheckMask 			= 0xFFFFFFFF;
+  binCheckMask 			= 0xFFFFFFFF;
+  dduBinCheckMask 		= 0x02080016;
   reset();
 }
 
 void EmuPlotter::reset()
 {
   appBSem_.take();
-  fFirstEvent = true;
-  nEvents = 0;
-  nBadEvents = 0;
-  nGoodEvents = 0;
-  nCSCEvents = 0;
-  nDetectedCSCs = 0;
-  L1ANumber = 0;
-  BXN = 0;
-  eTag = "";
-  runNumber="";
+  fFirstEvent 			= true;
+  fInterestingEvent 		= false;
+  nEvents 			= 0;
+  nBadEvents 			= 0;
+  nGoodEvents 			= 0;
+  nCSCEvents 			= 0;
+  nDetectedCSCs 		= 0;
+  L1ANumber 			= 0;
+  BXN 				= 0;
+  eTag 				= "";
+  runNumber			= "";
+
   bin_checker.output1().hide();
   bin_checker.output2().hide();
   bin_checker.crcALCT(true);

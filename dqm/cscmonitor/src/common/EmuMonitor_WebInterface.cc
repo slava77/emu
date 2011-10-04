@@ -95,7 +95,7 @@ void EmuMonitor::showStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::ex
 
 void EmuMonitor::InvalidWebAction(xgi::Input * in ) throw (xgi::exception::Exception)
 {
-  LOG4CPLUS_WARN(getApplicationLogger(),"Invalid Web FSM transition. Ignored");
+  LOG4CPLUS_WARN(logger_,"Invalid Web FSM transition. Ignored");
 }
 
 

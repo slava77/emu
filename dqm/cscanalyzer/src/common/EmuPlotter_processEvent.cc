@@ -15,16 +15,17 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
 
   int node = 0; // Set EMU root folder
-  //   int node = nodeNumber;
-  //  std::string nodeTag = Form("EMU_%d",node); // == This emuMonitor node number
 
-  std::string nodeTag = "EMU";
+  std::string nodeTag 		= "EMU";
   std::map<std::string, ME_List >::iterator itr;
-  EmuMonitoringObject *mo = NULL;  // == pointer to MonitoringObject
-  unpackedDMBcount = 0;
+  EmuMonitoringObject *mo 	= NULL;  // == pointer to MonitoringObject
+  EmuMonitoringObject *mo1 	= NULL;  // == pointer to MonitoringObject
+  unpackedDMBcount 		= 0;
 
   nEvents++;
   eTag=Form("Evt# %d: ", nEvents);
+
+  fInterestingEvent		= false;
 
   // == Check and book global node specific histos
   if (MEs.size() == 0 || ((itr = MEs.find(nodeTag)) == MEs.end()))
@@ -42,17 +43,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   // if (isMEvalid(nodeME, "Buffer_Size", mo)) mo->Fill(evtSize);
 
   // ==     Check DDU Readout Error Status
-  /*
-    if (isMEvalid(nodeME, "Readout_Errors", mo)) {
-    if(errorStat != 0) {
-    LOG4CPLUS_WARN(logger_,eTag << "Non-zero Readout Error Status is observed: 0x" << std::hex << errorStat << " mask 0x" << dduCheckMask);
-    for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(0.,i);
-    }
-    else {
-    LOG4CPLUS_DEBUG(logger_,eTag << "Readout Error Status is OK: 0x" << std::hex << errorStat);
-    }
-    }
-  */
   if (isMEvalid(nodeME, "All_Readout_Errors", mo))
     {
       if (errorStat != 0)
@@ -61,10 +51,12 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
           mo->Fill(nodeNumber,1);
           for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(nodeNumber,i+2);
         }
+/*
       else
         {
           mo->Fill(nodeNumber,0);
         }
+*/
     }
 
 
@@ -89,7 +81,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   if (isMEvalid(nodeME, "All_DDUs_Format_Errors", mo))
     {
-      // std::vector<int> DDUs = bin_checker.listOfDDUs();
       std::vector<DDUIdType> DDUs = bin_checker.listOfDDUs();
       for (std::vector<DDUIdType>::iterator ddu_itr = DDUs.begin(); ddu_itr != DDUs.end(); ++ddu_itr)
         {
@@ -105,7 +96,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
                   LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
                   MEs[dduTag] = bookMEs("DDU", dduTag);
                   MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
-                  // printMECollection(MEs[dduTag]);
                   L1ANumbers[dduID] = 0;
                   fFirstEvent = true;
                 }
@@ -115,7 +105,10 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
                 {
                   for (int i=0; i<bin_checker.nERRORS; i++)   // run over all errors
                     {
-                      if ((errs>>i) & 0x1 ) mo->Fill(dduID,i+1);
+                      if ((errs>>i) & 0x1 )
+                        {
+                          mo->Fill(dduID,i+1);
+                        }
                     }
                 }
               else
@@ -148,52 +141,60 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   if (BinaryErrorStatus != 0)
     {
-      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Errors DDU level: 0x" << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask << std::dec << " evtSize:"<<  evtSize);
-      /*
-        if (isMEvalid(nodeME, "BinaryChecker_Errors", mo)) {
-        for(int i=0; i<bin_checker.nERRORS; i++) { // run over all errors
-        if( bin_checker.error(i) ) mo->Fill(0.,i);
-        }
-        }
-      */
-
+      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Errors DDU level: 0x"
+                                  << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask << std::dec << " evtSize:"<<  evtSize);
+      // TODO: Interesting event selection policy
+      fInterestingEvent = true;
     }
   else
     {
-      LOG4CPLUS_DEBUG(logger_,eTag << "Format Errors Status is OK: 0x" << std::hex << BinaryErrorStatus);
+      LOG4CPLUS_DEBUG(logger_,eTag << "Format Errors Status is OK: 0x"
+                      << std::hex << BinaryErrorStatus);
     }
 
 
   if (BinaryWarningStatus != 0)
     {
       if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Warnings DDU level: 0x"
-                     << std::hex << BinaryWarningStatus)
-      /*
-      if (isMEvalid(nodeME, "BinaryChecker_Warnings", mo)) {
-      for(int i=0; i<bin_checker.nWARNINGS; i++) { // run over all warnings
-      if( bin_checker.warning(i) ) mo->Fill(0.,i);
-      }
-      }
-      */
+                                  << std::hex << BinaryWarningStatus)
 
+        // (Ugly) Examiner warnings are reported on Readout Buffer Errors histogram
+        //	  to handle cases, when because of incomplete DDU header we can not identify DDU ID
+        //	  so we will rely on nodeNumber in online mode
+        if (isMEvalid(nodeME, "All_Readout_Errors", mo))
+          {
+	    mo->Fill(nodeNumber,1);
+            if ((BinaryWarningStatus & 0x1) > 0) mo->Fill(nodeNumber,11); // Extra words between DDU Trailer and Header
+            if ((BinaryWarningStatus & 0x2) > 0) mo->Fill(nodeNumber,12); // Incomplete DDU Header
+
+          }
+      // TODO: Interesting event selection policy
+      fInterestingEvent = true;
     }
   else
     {
-      LOG4CPLUS_DEBUG(logger_,eTag << "Format Warnings Status is OK: 0x" << std::hex << BinaryWarningStatus);
+      LOG4CPLUS_DEBUG(logger_,eTag << "Format Warnings Status is OK: 0x"
+                      << std::hex << BinaryWarningStatus);
+
+      // No Readout Errors detected
+      if (isMEvalid(nodeME, "All_Readout_Errors", mo) && (errorStat == 0) ) mo->Fill(nodeNumber,0);
 
     }
 
-  //	Accept or deny event
+  
+
+//	Accept or deny event
   bool EventDenied = false;
-  //	Accept or deny event according to DDU Readout Error and dduCheckMask
+
+//	Accept or deny event according to DDU Readout Error and dduCheckMask
   if (((uint32_t)errorStat & dduCheckMask) > 0)
     {
       if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Readout Error");
       EventDenied = true;
     }
 
-  // if ((BinaryErrorStatus & binCheckMask)>0) {
-  if ((BinaryErrorStatus & dduBinCheckMask)>0)
+// Skip event if not masked binary errors or  binary warning is Incomplete DDU Header
+  if (((BinaryErrorStatus & dduBinCheckMask)>0) || ((BinaryWarningStatus & 0x2) > 0) )
     {
       if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Format Error");
       EventDenied = true;
@@ -202,7 +203,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if ((BinaryErrorStatus != 0) || (BinaryWarningStatus != 0))
     {
       nBadEvents++;
-      //    fillChamberBinCheck(node, EventDenied);
     }
 
   fillChamberBinCheck(node, EventDenied);
@@ -212,26 +212,17 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       appBSem_.give();
       return;
     }
-  else LOG4CPLUS_DEBUG(logger_,eTag << "is accepted");
 
   nGoodEvents++;
 
 
-  // CSCDDUEventData::setDebug(true);
+// CSCDDUEventData::setDebug(true);
+
   int dduID = 0;
   CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
-  // CSCDDUEventData dduData((uint16_t *) data);
 
 
   CSCDDUHeader dduHeader  = dduData.header();
-  /*
-    if (!dduHeader.check()) {
-    LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Header check failed.");
-    return;
-    }
-  */
-  // printb(dduHeader.data());
-  // printb(dduHeader.data()+4);
 
   CSCDDUTrailer dduTrailer = dduData.trailer();
   if (!dduTrailer.check())
@@ -241,9 +232,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       return;
     }
 
-
   dduID = dduHeader.source_id()&0xFF; // Only 8bits are significant; format of DDU id is Dxx
-
 
 
   if (isMEvalid(nodeME, "All_DDUs_in_Readout", mo))
@@ -251,7 +240,11 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       mo->Fill(dduID);
     }
 
-
+// Check and report if DDU ID is greater than 36
+  if (dduID > 36)
+    {
+      LOG4CPLUS_WARN(logger_, "DDU ID" << dduID << " value is outside of normal ID range");
+    }
 
   std::string dduTag = Form("DDU_%02d",dduID);
 
@@ -262,20 +255,20 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
       // printMECollection(MEs[dduTag]);
       L1ANumbers[dduID] = 0;
-      //  L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
       fFirstEvent = true;
     }
 
   ME_List& dduME = MEs[dduTag];
 
-  LOG4CPLUS_DEBUG(logger_,eTag << "Start unpacking " << dduTag);
+  LOG4CPLUS_DEBUG(logger_, eTag << "Start unpacking " << dduTag);
 
   if (isMEvalid(dduME, "Buffer_Size", mo)) mo->Fill(evtSize);
-  // ==     DDU word counter
-  int trl_word_count = 0;
-  trl_word_count = dduTrailer.wordcount();
+
+// ==	DDU word count from trailer
+  int trl_word_count = dduTrailer.wordcount();
   if (isMEvalid(dduME, "Word_Count", mo)) mo->Fill(trl_word_count );
-  LOG4CPLUS_DEBUG(logger_,dduTag << " Trailer Word (64 bits) Count = " << std::dec << trl_word_count);
+  LOG4CPLUS_DEBUG(logger_, dduTag << " Trailer Word (64 bits) Count = " << std::dec << trl_word_count);
+
   if (trl_word_count > 0)
     {
       if (isMEvalid(nodeME, "All_DDUs_Event_Size", mo))
@@ -291,13 +284,12 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   fCloseL1As = dduTrailer.reserved() & 0x1; // Get status if Close L1As bit
   if (fCloseL1As) LOG4CPLUS_DEBUG(logger_,eTag << " Close L1As bit is set");
 
-  // ==     DDU Header bunch crossing number (BXN)
+// ==     DDU Header bunch crossing number (BXN)
   BXN=dduHeader.bxnum();
-  // LOG4CPLUS_WARN(logger_,dduTag << " DDU Header BXN Number = " << std::dec << BXN);
   if (isMEvalid(nodeME, "All_DDUs_BXNs", mo)) mo->Fill(BXN);
   if (isMEvalid(dduME, "BXN", mo)) mo->Fill(BXN);
 
-  // ==     L1A number from DDU Header
+// ==     L1A number from DDU Header
   int L1ANumber_previous_event = L1ANumbers[dduID];
   L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
   L1ANumber = L1ANumbers[dduID];
@@ -307,8 +299,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   /** Handle 24-bit L1A roll-over maximum value case **/
   if ( L1A_inc < 0 ) L1A_inc = 0xFFFFFF + L1A_inc;
 
-  // if (!fFirstEvent)
-  if (fNotFirstEvent[dduID]) 
+  if (fNotFirstEvent[dduID])
     {
       if (isMEvalid(dduME, "L1A_Increment", mo)) mo->Fill(L1A_inc);
 
@@ -354,9 +345,10 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         }
     }
 
-  // ==     Occupancy and number of DMB (CSC) with Data available (DAV) in header of particular DDU
+// ==     Occupancy and number of DMB (CSC) with Data available (DAV) in header of particular DDU
   int dmb_dav_header      = 0;
   int dmb_dav_header_cnt  = 0;
+
 
   int ddu_connected_inputs= 0;
   int ddu_connected_inputs_cnt = 0;
@@ -364,14 +356,17 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   int csc_error_state     = 0;
   int csc_warning_state   = 0;
 
-  //  ==    Number of active DMB (CSC) in header of particular DDU
+  int dmb_fifo_full 	  = 0; // DDU Input DMB FIFO Full
+
+//  ==    Number of active DMB (CSC) in header of particular DDU
   int dmb_active_header   = 0;
 
   dmb_dav_header     = dduHeader.dmb_dav();
+  dmb_fifo_full	     = dduHeader.dmb_full();
   dmb_active_header  = (int)(dduHeader.ncsc()&0xF);
   csc_error_state    = dduTrailer.dmb_full()&0x7FFF; // Only 15 inputs for DDU
   csc_warning_state  = dduTrailer.dmb_warn()&0x7FFF; // Only 15 inputs for DDU
-  ddu_connected_inputs=dduHeader.live_cscs();
+  ddu_connected_inputs = dduHeader.live_cscs();
 
 
   LOG4CPLUS_DEBUG(logger_,dduTag << " Header DMB DAV = 0x" << std::hex << dmb_dav_header);
@@ -439,6 +434,21 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
               mo->Fill(dduID, i+2);
             }
         }
+
+      if ( (dmb_fifo_full>>i) & 0x1 )
+        {
+          if (isMEvalid(dduME, "CSC_DMB_FIFO_Full_Rate", mo))
+            {
+              mo->Fill(i+1);
+              freq = (100.0*mo->GetBinContent(i+1))/nEvents;
+              if (isMEvalid(dduME, "CSC_DMB_FIFO_Full", mo)) mo->SetBinContent(i+1, freq);
+            }
+          if (isMEvalid(nodeME, "All_DDUs_DMB_FIFO_Full", mo))
+            {
+              mo->Fill(dduID, i+2);
+            }
+
+        }
     }
 
   if (isMEvalid(nodeME, "All_DDUs_Average_Live_Inputs", mo))
@@ -475,6 +485,18 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         }
     }
 
+  if (isMEvalid(nodeME, "All_DDUs_DMB_FIFO_Full", mo))
+    {
+      if (dmb_fifo_full>0)
+        {
+          mo->Fill(dduID, 1);    // Any Input
+        }
+      else
+        {
+          mo->Fill(dduID, 0);    // No warnings
+        }
+    }
+
   if (isMEvalid(dduME,"DMB_DAV_Header_Occupancy",mo)) mo->SetEntries(nEvents);
 
   if (isMEvalid(dduME, "DMB_Connected_Inputs", mo)) mo->SetEntries(nEvents);
@@ -485,23 +507,47 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if (isMEvalid(dduME, "DMB_DAV_Header_Count_vs_DMB_Active_Header_Count", mo)) mo->Fill(dmb_active_header,dmb_dav_header_cnt);
 
 
-  // ==     Check binary Error status at DDU Trailer
+// == Check DDU Output Path status in DDU Header
+  uint32_t ddu_output_path_status = dduHeader.output_path_status();
+  LOG4CPLUS_DEBUG(logger_,dduTag << " Output Path Status = 0x" << std::hex << ddu_output_path_status);
+  if (isMEvalid(nodeME, "All_DDUs_Output_Path_Status", mo))
+    {
+      if (ddu_output_path_status)
+        {
+          mo->Fill(dduID,1); // Any Error
+          for (int i=0; i<16; i++)
+            {
+
+              if ((ddu_output_path_status>>i) & 0x1)
+                {
+                  mo->Fill(dduID,i+2); // Fill Summary Histo
+
+                  // Fill per DDU histos
+                  if (isMEvalid(dduME,"Output_Path_Status_Rate", mo1))
+                    {
+                      mo1->Fill(i);
+                      double freq = (100.0*mo1->GetBinContent(i+1))/nEvents;
+                      if (isMEvalid(dduME, "Output_Path_Status_Frequency", mo1)) mo1->SetBinContent(i+1, freq);
+                    }
+                  if (isMEvalid(dduME, "Output_Path_Status_Table", mo1)) mo1->Fill(0.,i);
+                }
+            }
+        }
+      else
+        {
+          mo->Fill(dduID,0); // No Errors
+        }
+
+    }
+
+  if (isMEvalid(dduME,"Output_Path_Status_Table", mo)) mo->SetEntries(nEvents);
+  if (isMEvalid(dduME,"Output_Path_Status_Frequency", mo)) mo->SetEntries(nEvents);
+
+// ==     Check binary Error status at DDU Trailer
   uint32_t trl_errorstat = dduTrailer.errorstat();
   if (dmb_dav_header_cnt==0) trl_errorstat &= ~0x20000000; // Ignore No Good DMB CRC bit of no DMB is present
   LOG4CPLUS_DEBUG(logger_,dduTag << " Trailer Error Status = 0x" << std::hex << trl_errorstat);
-  for (int i=0; i<32; i++)
-    {
-      if ((trl_errorstat>>i) & 0x1)
-        {
-          if (isMEvalid(dduME,"Trailer_ErrorStat_Rate", mo))
-            {
-              mo->Fill(i);
-              double freq = (100.0*mo->GetBinContent(i+1))/nEvents;
-              if (isMEvalid(dduME, "Trailer_ErrorStat_Frequency", mo)) mo->SetBinContent(i+1, freq);
-            }
-          if (isMEvalid(dduME, "Trailer_ErrorStat_Table", mo)) mo->Fill(0.,i);
-        }
-    }
+
   if (isMEvalid(nodeME, "All_DDUs_Trailer_Errors", mo))
     {
       if (trl_errorstat)
@@ -511,7 +557,17 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
             {
               if ((trl_errorstat>>i) & 0x1)
                 {
-                  mo->Fill(dduID,i+2);
+                  mo->Fill(dduID,i+2); // Fill Summary Histo
+
+                  // Fill per DDU histos
+                  if (isMEvalid(dduME,"Trailer_ErrorStat_Rate", mo1))
+                    {
+                      mo1->Fill(i);
+                      double freq = (100.0*mo1->GetBinContent(i+1))/nEvents;
+                      if (isMEvalid(dduME, "Trailer_ErrorStat_Frequency", mo1)) mo1->SetBinContent(i+1, freq);
+                    }
+                  if (isMEvalid(dduME, "Trailer_ErrorStat_Table", mo1)) mo1->Fill(0.,i);
+
                 }
             }
         }
@@ -524,7 +580,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if (isMEvalid(dduME,"Trailer_ErrorStat_Table", mo)) mo->SetEntries(nEvents);
   if (isMEvalid(dduME,"Trailer_ErrorStat_Frequency", mo)) mo->SetEntries(nEvents);
 
-  //      Unpack all founded CSC
+//      Unpack all founded CSC
   std::vector<CSCEventData> chamberDatas;
   chamberDatas.clear();
   chamberDatas = dduData.cscData();
@@ -543,7 +599,9 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   fFirstEvent = false;
   /** First event per DDU **/
   fNotFirstEvent[dduID] = true;
+
   appBSem_.give();
+
 }
 
 
@@ -557,8 +615,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
   EmuMonitoringObject* mo2 = NULL;
   EmuMonitoringObject* mof = NULL;
 
-  // === Check and fill CSC Data Flow
-  // std::map<int,long> payloads = bin_checker.payloadDetailed();
+  // == Check and fill CSC Data Flow
   std::map<CSCIdType, ExaminerStatusType> payloads = bin_checker.payloadDetailed();
   for (std::map<CSCIdType, ExaminerStatusType>::const_iterator chamber=payloads.begin(); chamber!=payloads.end(); chamber++)
     {
@@ -566,8 +623,14 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       int DMBSlot = chamber->first & 0xF;
       std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
 
-      if (CrateID ==255)
+      if (CrateID == 255)
         {
+          continue;
+        }
+
+      if ( (CrateID > 60) || (DMBSlot > 10) || (CrateID <= 0) || (DMBSlot <= 0) )
+        {
+          if (debug) LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
           continue;
         }
 
@@ -581,11 +644,10 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
           MEs[cscTag] = bookMEs("CSC",cscTag);
           MECanvases[cscTag] = bookMECanvases("CSC", cscTag, Form(" Crate ID = %02d. DMB ID = %02d", CrateID, DMBSlot));
           cscCounters[cscTag] = bookCounters();
-          // printMECollection(MEs[cscTag]);
         }
       ME_List& cscME = MEs[cscTag];
 
-      // === Update counters
+      // == Update counters
       nDMBEvents[cscTag]++;
       CSCCounters& trigCnts = cscCounters[cscTag];
       trigCnts["DMB"] = nDMBEvents[cscTag];
@@ -601,6 +663,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       int CSCtype   = 0;
       int CSCposition = 0;
       getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
+
       if ( CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Reporting", mo))
         {
           mo->Fill(CSCposition, CSCtype);
@@ -657,18 +720,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       if (isMEvalid(cscME, "Actual_DMB_CFEB_DAV_Rate", mo)
           && isMEvalid(cscME, "Actual_DMB_CFEB_DAV_Frequency", mof))
         {
-          /*
-            for (int i=0; i<5;i++) {
-            int cfeb_present = (cfeb_dav>>i) & 0x1;
-            cfeb_dav_num += cfeb_present;
-            if (cfeb_present) {
-            mo->Fill(i);
-            }
-            float cfeb_entries = mo->GetBinContent(i+1);
-            mof->SetBinContent(i+1, ((float)cfeb_entries/(float)(DMBEvents)*100.0));
-            }
-            mof->SetEntries((int)DMBEvents);
-          */
+
           if (isMEvalid(cscME, "DMB_CFEB_DAV_Unpacking_Inefficiency", mo1)
               && isMEvalid(cscME, "DMB_CFEB_DAV", mo2))
             {
@@ -681,10 +733,9 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
                       mo1->SetBinContent(i,1, 100.*(1-unpacked_dav_num/actual_dav_num));
                     }
                   mo1->SetEntries((int)DMBEvents);
-                  //	    mo1->getObject()->SetMinimum(0);
-                  //mo1->getObject()->SetMaximum(100.0);
                 }
             }
+
           for (int i=0; i<5; i++)
             {
               int cfeb_present = (cfeb_dav>>i) & 0x1;
@@ -696,6 +747,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
               float cfeb_entries = mo->GetBinContent(i+1);
               mof->SetBinContent(i+1, ((float)cfeb_entries/(float)(DMBEvents)*100.0));
             }
+
           mof->SetEntries((int)DMBEvents);
 
         }
@@ -703,12 +755,13 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       if (isMEvalid(cscME, "Actual_DMB_CFEB_DAV_multiplicity_Rate", mo)
           && isMEvalid(cscME, "Actual_DMB_CFEB_DAV_multiplicity_Frequency", mof))
         {
-          // mo->Fill(cfeb_dav_num);
+
           for (int i=1; i<7; i++)
             {
               float cfeb_entries =  mo->GetBinContent(i);
               mof->SetBinContent(i, ((float)cfeb_entries/(float)(DMBEvents)*100.0));
             }
+
           mof->SetEntries((int)DMBEvents);
 
           if (isMEvalid(cscME, "DMB_CFEB_DAV_multiplicity_Unpacking_Inefficiency", mo1)
@@ -723,19 +776,17 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
                       mo1->SetBinContent(i,1, 100.*(1-unpacked_dav_num/actual_dav_num));
                     }
                   mo1->SetEntries((int)DMBEvents);
-                  // mo1->getObject()->SetMaximum(100.0);
                 }
             }
+
           mo->Fill(cfeb_dav_num);
+
         }
-
-
-
 
 
       if (isMEvalid(cscME, "DMB_CFEB_Active_vs_DAV", mo)) mo->Fill(cfeb_dav,cfeb_active);
 
-      //      Fill Histogram for FEB DAV Efficiency
+      // == Fill Histogram for FEB DAV Efficiency
       if (isMEvalid(cscME, "Actual_DMB_FEB_DAV_Rate", mo))
         {
           if (isMEvalid(cscME, "Actual_DMB_FEB_DAV_Frequency", mo1))
@@ -780,7 +831,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
 
 
       float feb_combination_dav = -1.0;
-      //      Fill Histogram for Different Combinations of FEB DAV Efficiency
+      // == Fill Histogram for Different Combinations of FEB DAV Efficiency
       if (isMEvalid(cscME, "Actual_DMB_FEB_Combinations_DAV_Rate", mo))
         {
           if (alct_dav == 0 && tmb_dav == 0 && cfeb_dav == 0) feb_combination_dav = 0.0; // Nothing
@@ -791,7 +842,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
           if (alct_dav >  0 && tmb_dav >  0 && cfeb_dav == 0) feb_combination_dav = 5.0; // ALCT+TMB
           if (alct_dav >  0 && tmb_dav == 0 && cfeb_dav >  0) feb_combination_dav = 6.0; // ALCT+CFEB
           if (alct_dav >  0 && tmb_dav >  0 && cfeb_dav >  0) feb_combination_dav = 7.0; // ALCT+TMB+CFEB
-          //	mo->Fill(feb_combination_dav);
+
           if (isMEvalid(cscME, "Actual_DMB_FEB_Combinations_DAV_Frequency",mo1))
             {
               for (int i=1; i<9; i++)
@@ -825,7 +876,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
     }
 
 
-  // === Check and fill CSC Data Flow Problems
+  // == Check and fill CSC Data Flow Problems
   std::map<CSCIdType, ExaminerStatusType> statuses = bin_checker.statusDetailed();
   for (std::map<CSCIdType, ExaminerStatusType>::const_iterator chamber=statuses.begin(); chamber!=statuses.end(); chamber++)
     {
@@ -833,27 +884,34 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       int DMBSlot = chamber->first & 0xF;
       std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
 
-      if (CrateID ==255)
+      if (CrateID == 255) continue;
+
+      if ( (CrateID > 60) || (DMBSlot > 10) || (CrateID <= 0) || (DMBSlot <= 0) )
         {
+          if (debug) LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
           continue;
         }
 
       std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
-      if (h_itr == MEs.end() || (MEs.size()==0))
+      if ( h_itr == MEs.end() || (MEs.size() == 0) )
         {
+
           LOG4CPLUS_WARN(logger_, eTag <<
                          "List of MEs for " << cscTag <<  " not found. Booking...");
           LOG4CPLUS_DEBUG(logger_,
                           "Booking Histos for " << cscTag);
-          MEs[cscTag] = bookMEs("CSC",cscTag);
-          MECanvases[cscTag] = bookMECanvases("CSC", cscTag, Form(" Crate ID = %02d. DMB ID = %02d", CrateID, DMBSlot));
-          cscCounters[cscTag] = bookCounters();
-          // printMECollection(MEs[cscTag]);
+
+
+          MEs[cscTag] 		= bookMEs("CSC",cscTag);
+          MECanvases[cscTag] 	= bookMECanvases("CSC", cscTag, Form(" Crate ID = %02d. DMB ID = %02d", CrateID, DMBSlot));
+          cscCounters[cscTag] 	= bookCounters();
+
         }
+
       ME_List& cscME = MEs[cscTag];
 
-      int CSCtype   = 0;
-      int CSCposition = 0;
+      int CSCtype   	= 0;
+      int CSCposition 	= 0;
       getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
 
       if (isMEvalid(cscME, "BinCheck_DataFlow_Problems_Table", mo))
@@ -895,10 +953,9 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
         }
 
 
-      // === CFEB B-Word
+      // == CFEB B-Word
       if (chamber->second & (1<<22))
         {
-          // LOG4CPLUS_WARN(logger_,eTag << cscTag << " CFEB B-Words found ");
 
           if (isMEvalid(nodeME, "DMB_Format_Warnings", mo))
             {
@@ -914,7 +971,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
     }
 
 
-  // === Check and fill CSC Format Errors
+  // == Check and fill CSC Format Errors
   std::map<CSCIdType, ExaminerStatusType> checkerErrors = bin_checker.errorsDetailed();
   for (std::map<CSCIdType, ExaminerStatusType>::const_iterator chamber=checkerErrors.begin(); chamber!=checkerErrors.end(); chamber++)
     {
@@ -924,13 +981,10 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       std::string cscTag(Form("CSC_%03d_%02d", CrateID , DMBSlot));
       std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
 
-      if ((CrateID ==255) ||
-          (chamber->second & 0x80))
-        {
-          continue;    // = Skip chamber detection if DMB header is missing (Error code 6)
-        }
+      if ((CrateID == 255) ||
+          (chamber->second & 0x80)) continue;    // = Skip chamber detection if DMB header is missing (Error code 6)
 
-      if (CrateID>60 || DMBSlot>10)
+      if ( (CrateID > 60) || (DMBSlot > 10) || (CrateID <= 0) || (DMBSlot <= 0) )
         {
           if (debug) LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
           continue;
@@ -1074,39 +1128,6 @@ void EmuPlotter::updateFractionHistos()
   ME_List nodeME; // === Global histos
   nodeME = MEs[nodeTag];
 
-  //  LOG4CPLUS_WARN(logger_, "Update Fraction Histograms");
-
-  /*
-    EmuMonitoringObject *mo = NULL;
-    EmuMonitoringObject *mo1 = NULL;
-    EmuMonitoringObject *mo2 = NULL;
-    EmuMonitoringObject *mo3 = NULL;
-  */
-
-  // ************************************
-  // Collecting all the reporting DMBs and CSCs
-  // ************************************
-  /*
-    if (isMEvalid(nodeME, "DMB_Reporting", mo)
-    && isMEvalid(nodeME, "DMB_Format_Errors", mo1)
-    && isMEvalid(nodeME, "DMB_Unpacked", mo2))
-    {
-    mo->getObject()->Add(mo1->getObject(), mo2->getObject());
-    if (isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo3)) {
-    mo->getObject()->Add(mo3->getObject(), -1);
-    }
-    }
-
-    if (isMEvalid(nodeME, "CSC_Reporting", mo)
-    && isMEvalid(nodeME, "CSC_Format_Errors", mo1)
-    && isMEvalid(nodeME, "CSC_Unpacked", mo2))
-    {
-    mo->getObject()->Add(mo1->getObject(), mo2->getObject());
-    if (isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo3)) {
-    mo->getObject()->Add(mo3->getObject(), -1);
-    }
-    }
-  */
   // ************************************
   // Calculating Fractions
   // ************************************
@@ -1130,32 +1151,6 @@ void EmuPlotter::updateFractionHistos()
   calcFractionHisto(nodeME, "CSC_L1A_out_of_sync_Fract", "CSC_Reporting", "CSC_L1A_out_of_sync");
   calcFractionHisto(nodeME, "DMB_L1A_out_of_sync_Fract", "DMB_Reporting", "DMB_L1A_out_of_sync");
 
-  /*
-    if (isMEvalid(nodeME, "DMB_Format_Warnings_Fract", mo)
-    && isMEvalid(nodeME, "DMB_Format_Warnings", mo1)
-    && isMEvalid(nodeME, "DMB_Unpacked", mo2))
-    {
-    TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
-    tmp->Add(mo1->getObject());
-
-
-    mo->getObject()->Divide(mo1->getObject(), tmp);
-    delete tmp;
-    }
-
-    if (isMEvalid(nodeME, "CSC_Format_Warnings_Fract", mo)
-    && isMEvalid(nodeME, "CSC_Format_Warnings", mo1)
-    && isMEvalid(nodeME, "CSC_Unpacked", mo2))
-    {
-    TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
-    tmp->Add(mo1->getObject());
-    if (isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo3)) {
-    tmp->Add(mo3->getObject(), -1);
-    }
-    mo->getObject()->Divide(mo1->getObject(), tmp);
-    delete tmp;
-    }
-  */
 }
 
 /*
@@ -1240,14 +1235,8 @@ void EmuPlotter::updateEfficiencyHistos()
 
   if (isMEvalid(nodeME, "Physics_EMU", mo))
     {
-
       TH2* tmp=dynamic_cast<TH2*>(mo->getObject());
-      // float rs =
       summary.WriteMap(tmp);
-      // float he = summary.GetEfficiencyHW();
-      // TString title = Form("EMU Status: Physics Efficiency %.2f", rs);
-      // tmp->SetTitle(title);
-
     }
 
 }

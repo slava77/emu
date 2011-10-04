@@ -4,18 +4,18 @@ using namespace XERCES_CPP_NAMESPACE;
 
 int EmuDisplayClient::loadXMLCanvasesInfo(std::string xmlFile)
 {
-  LOG4CPLUS_INFO(getApplicationLogger(), "Loading Booking Info from XML file: "  <<  xmlFile)
+  LOG4CPLUS_INFO(logger_, "Loading Booking Info from XML file: "  <<  xmlFile)
 
   if (xmlFile == "")
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "Canvases Booking Invalid configuration file: " << xmlFile);
+      LOG4CPLUS_ERROR (logger_, "Canvases Booking Invalid configuration file: " << xmlFile);
       return 1;
     }
 
   struct stat stats;
   if (stat(xmlFile.c_str(), &stats)<0)
     {
-      LOG4CPLUS_ERROR(getApplicationLogger(), xmlFile << ": " <<
+      LOG4CPLUS_ERROR(logger_, xmlFile << ": " <<
                       strerror(errno));
       return 1;
     }
@@ -35,13 +35,13 @@ int EmuDisplayClient::loadXMLCanvasesInfo(std::string xmlFile)
   DOMNodeList *l = doc->getElementsByTagName( XMLString::transcode("Canvases") );
   if ( l->getLength() != 1 )
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "There is not exactly one Canvases node in configuration");
+      LOG4CPLUS_ERROR (logger_, "There is not exactly one Canvases node in configuration");
       return 1;
     }
   DOMNodeList *itemList = doc->getElementsByTagName( XMLString::transcode("Canvas") );
   if ( itemList->getLength() == 0 )
     {
-      LOG4CPLUS_ERROR (getApplicationLogger(), "There no canvases to book");
+      LOG4CPLUS_ERROR (logger_, "There no canvases to book");
       return 1;
     }
   EmuMonitoringCanvas * obj = NULL;

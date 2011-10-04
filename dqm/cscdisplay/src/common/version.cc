@@ -7,10 +7,10 @@
 #include "xoap/version.h"
 #include "xdaq/version.h"
 
-GETPACKAGEINFO(EmuDisplayClient)
+GETPACKAGEINFO(emudqmcscdisplay)
 
-void EmuDisplayClient::checkPackageDependencies()
-throw (config::PackageInfo::VersionException)
+void emudqmcscdisplay::checkPackageDependencies()
+	throw (config::PackageInfo::VersionException)
 {
   CHECKDEPENDENCY(toolbox)
   CHECKDEPENDENCY(xoap)
