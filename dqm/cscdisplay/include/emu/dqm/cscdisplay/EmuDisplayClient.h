@@ -139,7 +139,7 @@ public:
   bool onError ( xcept::Exception& ex, void * context );
 
 
-  // Web callback functions
+  // == Web callback functions
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
 
   void getNodesStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
@@ -153,6 +153,7 @@ public:
   void getDQMReport (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
 
   void controlDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void configureDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void redir (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
 
 

@@ -68,6 +68,7 @@ throw (xdaq::exception::Exception)
   xgi::bind(this, &EmuDisplayClient::getDQMReport, 	"getDQMReport");
   xgi::bind(this, &EmuDisplayClient::controlDQM, 	"controlDQM");
   xgi::bind(this, &EmuDisplayClient::redir, 		"redir");
+  xgi::bind(this, &EmuDisplayClient::configureDQM,  "configureDQM");
 
 
   getApplicationInfoSpace()->fireItemAvailable("monitorClass",	&monitorClass_);
@@ -133,17 +134,17 @@ throw (xdaq::exception::Exception)
 
 std::string EmuDisplayClient::generateLoggerName()
 {
-    xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
-    string                      appClass       = appDescriptor->getClassName();
-    unsigned long               appInstance    = appDescriptor->getInstance();
-    stringstream                oss;
-    string                      loggerName;
+  xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
+  string                      appClass       = appDescriptor->getClassName();
+  unsigned long               appInstance    = appDescriptor->getInstance();
+  stringstream                oss;
+  string                      loggerName;
 
 
-    oss << appClass << "." << setfill('0') << std::setw(2) << appInstance;
-    loggerName = oss.str();
+  oss << appClass << "." << setfill('0') << std::setw(2) << appInstance;
+  loggerName = oss.str();
 
-    return loggerName;
+  return loggerName;
 }
 
 void EmuDisplayClient::cleanup()
@@ -674,7 +675,11 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
 
       for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
         {
-          if (node == "ALL")
+          std::stringstream st;
+          st << (*mon)->getClassName() << "-" <<  (*mon)->getInstance();
+          std::string mon_name = st.str();
+          if ( (node == "ALL")
+               || (node == mon_name) )
             {
               try
                 {
@@ -700,6 +705,84 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
 
     }
   updateNodesStatus();
+  appBSem_.give();
+
+}
+
+
+void EmuDisplayClient::configureDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
+{
+
+  appBSem_.take();
+
+  cgicc::Cgicc cgi(in);
+  std::string user_host = in->getenv("REMOTE_HOST");
+
+  std::string param_name  = "";
+  std::string param_type  = "string";
+  std::string param_value = "";
+  std::string node="ALL";
+
+  cgicc::const_form_iterator nodeInputElement = cgi.getElement("node");
+  if (nodeInputElement != cgi.getElements().end())
+    {
+      node = (*nodeInputElement).getValue();
+    }
+
+  cgicc::const_form_iterator paramNameInputElement = cgi.getElement("parameter");
+  if (paramNameInputElement != cgi.getElements().end())
+    {
+      param_name = (*paramNameInputElement).getValue();
+      LOG4CPLUS_INFO(logger_, "parameter: " << param_name );
+    }
+
+  cgicc::const_form_iterator paramTypeInputElement = cgi.getElement("type");
+  if (paramTypeInputElement != cgi.getElements().end())
+    {
+      param_type = (*paramTypeInputElement).getValue();
+      LOG4CPLUS_INFO(logger_, "type: " << param_type );
+    }
+
+  cgicc::const_form_iterator paramValueInputElement = cgi.getElement("value");
+  if (paramValueInputElement != cgi.getElements().end())
+    {
+      param_value = (*paramValueInputElement).getValue();
+      LOG4CPLUS_INFO(logger_, "value: " << param_value );
+    }
+
+
+  if (!monitors.empty())
+    {
+      std::set<xdaq::ApplicationDescriptor*>::iterator mon;
+
+      for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
+        {
+          std::stringstream st;
+          st << (*mon)->getClassName() << "-" <<  (*mon)->getInstance();
+          std::string mon_name = st.str();
+
+          if ( (node == "ALL")
+               || (node == mon_name) )
+
+            {
+              try
+                {
+		  if ((param_name != "") && (param_type != "")) 
+                  emu::dqm::setScalarParam( getApplicationContext(), getApplicationDescriptor(),
+                                            (*mon), param_name, param_type, param_value );
+                }
+              catch (xcept::Exception e)
+                {
+                  // Don't raise exception here. Go on to try to deal with the others.
+                  LOG4CPLUS_ERROR(logger_, "Failed to set " << param_name << "<" << param_type << ">=" << param_value << " "
+                                  << (*mon)->getClassName() << (*mon)->getInstance() << " "
+                                  << xcept::stdformat_exception_history(e));
+                }
+
+            }
+        }
+
+    }
   appBSem_.give();
 
 }
@@ -1063,7 +1146,7 @@ int EmuDisplayClient::updateNodesStatusFacts()
           .setRun(runNumber);
           addFact(fact);
 
-	  nFacts++;
+          nFacts++;
 
         }
 
@@ -1849,6 +1932,8 @@ CSCCounters EmuDisplayClient::updateCSCCounters()
 }
 
 
+
+
 DQMNodesStatus EmuDisplayClient::updateNodesStatus()
 {
   //  if (time(NULL)- nodesStatus.getTimeStamp()>10)
@@ -1965,40 +2050,40 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
             nodesStatus[nodename]["readoutMode"] = readoutMode;
             nodesStatus[nodename]["nDAQevents"] = nDAQevents;
             nodesStatus[nodename]["dataSource"] = dataSource;
-	    st.str("");                       
+            st.str("");
             st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
-	    nodesStatus[nodename]["nodename"] = st.str();
-	    /*
-            if (useExSys)
-              {
+            nodesStatus[nodename]["nodename"] = st.str();
+            /*
+                  if (useExSys)
+                    {
 
 
-                // Convert DateTime string to format supported by Expert System
-                time_t tnow = time(NULL);
-                struct tm* tm_p = localtime(&tnow);
-                strptime(stateChangeTime.c_str(), "%Y-%m-%d %H:%M:%S %Z", tm_p);
-                tnow = mktime(tm_p);
-                if (tnow != (time_t)-1)
-                  {
-                    stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
-                  }
-                st.str("");
-                st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
-                nodename = st.str();
-                emu::base::Component comp(nodename);
-                CSCDqmFact fact = CSCDqmFact(runNumber, comp, "EmuMonitorFact");
-                fact.addParameter("state", state)
-                .addParameter("stateChangeTime",stateChangeTime)
-                .addParameter("dqmEvents", events)
-                .addParameter("dqmRate", dataRate)
-                .addParameter("cscRate", cscRate)
-                .addParameter("cscDetected", cscDetected)
-                .addParameter("cscUnpacked", cscUnpacked)
-                .setSeverity("INFO")
-                .setRun(runNumber);
-                addFact(fact);
-              }
-	    */
+                      // Convert DateTime string to format supported by Expert System
+                      time_t tnow = time(NULL);
+                      struct tm* tm_p = localtime(&tnow);
+                      strptime(stateChangeTime.c_str(), "%Y-%m-%d %H:%M:%S %Z", tm_p);
+                      tnow = mktime(tm_p);
+                      if (tnow != (time_t)-1)
+                        {
+                          stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
+                        }
+                      st.str("");
+                      st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
+                      nodename = st.str();
+                      emu::base::Component comp(nodename);
+                      CSCDqmFact fact = CSCDqmFact(runNumber, comp, "EmuMonitorFact");
+                      fact.addParameter("state", state)
+                      .addParameter("stateChangeTime",stateChangeTime)
+                      .addParameter("dqmEvents", events)
+                      .addParameter("dqmRate", dataRate)
+                      .addParameter("cscRate", cscRate)
+                      .addParameter("cscDetected", cscDetected)
+                      .addParameter("cscUnpacked", cscUnpacked)
+                      .setSeverity("INFO")
+                      .setRun(runNumber);
+                      addFact(fact);
+                    }
+            */
 
           }
 
