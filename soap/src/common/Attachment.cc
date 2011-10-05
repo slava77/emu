@@ -27,3 +27,16 @@ emu::soap::Attachment& emu::soap::Attachment::setContentType    ( const string& 
 emu::soap::Attachment& emu::soap::Attachment::setContentEncoding( const string& encoding    ){ contentEncoding_ = encoding; return *this; }
 emu::soap::Attachment& emu::soap::Attachment::setContentId      ( const string& id          ){ contentId_       = id      ; return *this; }
 emu::soap::Attachment& emu::soap::Attachment::setContentLocation( const string& location    ){ contentLocation_ = location; return *this; }
+
+ostream&
+emu::soap::operator<<( ostream& os,  const emu::soap::Attachment& a ){
+  std::string content(a.getContent(), a.getContentLength());
+  os << "SOAP attachment type=" << a.getContentType()
+     << " encoding="            << a.getContentEncoding()
+     << " id="                  << a.getContentId()
+     << " location="            << a.getContentLocation()
+     << " length="              << a.getContentLength()
+     << " :"                    << endl
+     << a.getContent()          << endl;
+  return os;
+}
