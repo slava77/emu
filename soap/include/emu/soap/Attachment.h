@@ -17,6 +17,16 @@ namespace emu{
   namespace soap{
     using namespace std;
 
+    class Attachment;
+    /// Insertion operator for formatted text output.
+    ///
+    /// @param os The \c ostream object.
+    /// @param attachment The \c Attachment object to be serialized.
+    ///
+    /// @return Ref. to the \c ostream object itself.
+    ///
+    ostream& operator<<( ostream& os,  const emu::soap::Attachment& attachment );
+
     ///
     /// An attachment to a SOAP message.
     ///
