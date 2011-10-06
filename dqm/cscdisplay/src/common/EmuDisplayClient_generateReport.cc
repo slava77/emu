@@ -109,15 +109,10 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
   std::vector<std::string> CSC_folders=getListOfFolders("CSC");
 
 
-//  dqm_report.clearReport();
-
   ReportEntry entry;
 
 
   std::string hname="";
-
-  int CSCtype = 0;
-  int CSCposition = 0;
 
 
   std::map<std::string, uint32_t>::iterator stats_itr;
@@ -325,7 +320,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
           }
       dqm_report.addEntry("EMU Summary", entry.fillEntry(
-		Form("%d DDU Live Inputs detected", ddu_live_inputs),NONE,"ALL_DDU_WITH_LIVE_INPUTS"));
+                            Form("%d DDU Live Inputs detected", ddu_live_inputs),NONE,"ALL_DDU_WITH_LIVE_INPUTS"));
 
     }
   else
@@ -356,7 +351,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
           }
       dqm_report.addEntry("EMU Summary", entry.fillEntry(
-		Form("%d DDU Inputs with Data detected", ddu_inp_w_data),NONE,"ALL_DDU_WITH_DATA"));
+                            Form("%d DDU Inputs with Data detected", ddu_inp_w_data),NONE,"ALL_DDU_WITH_DATA"));
       if (ddu_avg_events >= 500)
         {
           for (stats_itr= ddu_inp_data_stats.begin(); stats_itr !=  ddu_inp_data_stats.end(); ++stats_itr)
@@ -415,8 +410,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       if (ddu_inp_w_errors)
         {
           dqm_report.addEntry("EMU Summary", entry.fillEntry(
-		Form("%d DDU Inputs in ERROR state detected on %d DDUs", 
-			ddu_inp_w_errors, ddu_inp_w_errors_stats.size()),NONE, "ALL_DDU_INPUT_IN_ERROR_STATE"));
+                                Form("%d DDU Inputs in ERROR state detected on %d DDUs",
+                                     ddu_inp_w_errors, ddu_inp_w_errors_stats.size()),NONE, "ALL_DDU_INPUT_IN_ERROR_STATE"));
           if (ddu_avg_events >= 500)   // Detect DDUs Inputs in ERROR state if average number of events is reasonable (>500)
             {
               for (stats_itr= ddu_inp_w_errors_stats.begin(); stats_itr !=  ddu_inp_w_errors_stats.end(); ++stats_itr)
@@ -479,8 +474,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       if (ddu_inp_w_warn)
         {
           dqm_report.addEntry("EMU Summary",entry.fillEntry(
-		Form("%d DDU Inputs in WARNING state detected on %d DDUs", 
-			ddu_inp_w_warn, ddu_inp_w_warn_stats.size()), NONE, "ALL_DDU_INPUT_IN_WARNING_STATE"));
+                                Form("%d DDU Inputs in WARNING state detected on %d DDUs",
+                                     ddu_inp_w_warn, ddu_inp_w_warn_stats.size()), NONE, "ALL_DDU_INPUT_IN_WARNING_STATE"));
           if (ddu_avg_events >= 500)   // Detect DDUs Inputs in ERROR state if average number of events is reasonable (>500)
             {
               for (stats_itr= ddu_inp_w_warn_stats.begin(); stats_itr !=  ddu_inp_w_warn_stats.end(); ++stats_itr)
@@ -546,8 +541,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   h_tmp->Fill(cnt);
                   h_tmp1->Fill(cnt);
 
-                  //    std::cout << cscName << ": #Events: " << cnt << std::endl;
-
                 }
             }
           csc_type_avg_events[j] = (uint32_t)h_tmp->GetMean();
@@ -612,7 +605,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
                     {
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
-		      double avg = round(100.*fract)/100;
+                      double avg = round(100.*fract)/100;
                       if ((avg < 0.05) && !isHotCSCPresent)
                         {
                           std::string diag=Form("Low efficiency chamber: %d events, %f fraction of %s type average events counter (avg events=%d)",
@@ -717,12 +710,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (z>0.95)
               {
                 csc_cntr++;
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                float fract=z*100;
-                std::string diag=Form("No ALCT Data: %.1f%%",fract);
-
-                //              dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
               }
 
           }
@@ -742,12 +729,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (z>0.95)
               {
                 csc_cntr++;
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                float fract=z*100;
-                std::string diag=Form("No CLCT Data: %.1f%%",fract);
-
-                //            dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
               }
 
           }
@@ -767,12 +748,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (z>0.95)
               {
                 csc_cntr++;
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                float fract=z*100;
-                std::string diag=Form("No CFEB Data: %.1f%%",fract);
-
-                //          dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
               }
 
           }
@@ -793,7 +768,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             double z = h->GetBinContent(i, j+1);
-	    double avg = round(z*100.)/100.;
+            double avg = round(z*100.)/100.;
             if (avg > rms_limit)
               {
                 csc_cntr++;
@@ -827,7 +802,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             double limit = rms_limit;
             if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
             double z = h->GetBinContent(i, j+1);
-	    double avg = round(z*100.)/100.;
+            double avg = round(z*100.)/100.;
             if (avg > rms_limit)
               {
                 csc_cntr++;
