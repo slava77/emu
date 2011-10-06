@@ -51,12 +51,12 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
           mo->Fill(nodeNumber,1);
           for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(nodeNumber,i+2);
         }
-/*
-      else
-        {
-          mo->Fill(nodeNumber,0);
-        }
-*/
+      /*
+            else
+              {
+                mo->Fill(nodeNumber,0);
+              }
+      */
     }
 
 
@@ -163,7 +163,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         //	  so we will rely on nodeNumber in online mode
         if (isMEvalid(nodeME, "All_Readout_Errors", mo))
           {
-	    mo->Fill(nodeNumber,1);
+            mo->Fill(nodeNumber,1);
             if ((BinaryWarningStatus & 0x1) > 0) mo->Fill(nodeNumber,11); // Extra words between DDU Trailer and Header
             if ((BinaryWarningStatus & 0x2) > 0) mo->Fill(nodeNumber,12); // Incomplete DDU Header
 
@@ -181,7 +181,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
     }
 
-  
+
 
 //	Accept or deny event
   bool EventDenied = false;
@@ -376,79 +376,68 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   double freq = 0;
   for (int i=0; i<15; ++i)
     {
-      if ((dmb_dav_header>>i) & 0x1)
+
+      if ((dmb_dav_header>>i) & 0x1) dmb_dav_header_cnt++;
+      if (isMEvalid(dduME, "DMB_DAV_Header_Occupancy_Rate", mo))
         {
-          dmb_dav_header_cnt++;
-          if (isMEvalid(dduME, "DMB_DAV_Header_Occupancy_Rate", mo))
-            {
-              mo->Fill(i+1);
-              freq = (100.0*mo->GetBinContent(i+1))/nEvents;
-              if (isMEvalid(dduME, "DMB_DAV_Header_Occupancy", mo)) mo->SetBinContent(i+1,freq);
-            }
-          if (isMEvalid(nodeME, "All_DDUs_Inputs_with_Data", mo))
-            {
-              mo->Fill(dduID, i);
-            }
+          if ((dmb_dav_header>>i) & 0x1) mo->Fill(i+1);
+          freq = (100.0*mo->GetBinContent(i+1))/nEvents;
+          if (isMEvalid(dduME, "DMB_DAV_Header_Occupancy", mo)) mo->SetBinContent(i+1,freq);
+        }
+      if ( ((dmb_dav_header>>i) & 0x1) && isMEvalid(nodeME, "All_DDUs_Inputs_with_Data", mo))
+        {
+          mo->Fill(dduID, i);
         }
 
-      if ( (ddu_connected_inputs>>i) & 0x1 )
+
+      if ( (ddu_connected_inputs>>i) & 0x1 ) ddu_connected_inputs_cnt++;
+      if (isMEvalid(dduME, "DMB_Connected_Inputs_Rate", mo))
         {
-          ddu_connected_inputs_cnt++;
-          if (isMEvalid(dduME, "DMB_Connected_Inputs_Rate", mo))
-            {
-              mo->Fill(i+1);
-              freq = (100.0*mo->GetBinContent(i+1))/nEvents;
-              if (isMEvalid(dduME, "DMB_Connected_Inputs", mo)) mo->SetBinContent(i+1, freq);
-            }
-          if (isMEvalid(nodeME, "All_DDUs_Live_Inputs", mo))
-            {
-              mo->Fill(dduID, i);
-            }
+          if ( (ddu_connected_inputs>>i) & 0x1 ) mo->Fill(i+1);
+          freq = (100.0*mo->GetBinContent(i+1))/nEvents;
+          if (isMEvalid(dduME, "DMB_Connected_Inputs", mo)) mo->SetBinContent(i+1, freq);
+        }
+      if ( ((ddu_connected_inputs>>i) & 0x1 ) && isMEvalid(nodeME, "All_DDUs_Live_Inputs", mo))
+        {
+          mo->Fill(dduID, i);
         }
 
-      if ( (csc_error_state>>i) & 0x1 )
-        {
-          if (isMEvalid(dduME, "CSC_Errors_Rate", mo))
-            {
-              mo->Fill(i+1);
-              freq = (100.0*mo->GetBinContent(i+1))/nEvents;
-              if (isMEvalid(dduME, "CSC_Errors", mo)) mo->SetBinContent(i+1, freq);
-            }
-          if (isMEvalid(nodeME, "All_DDUs_Inputs_Errors", mo))
-            {
-              mo->Fill(dduID, i+2);
-            }
 
+      if (isMEvalid(dduME, "CSC_Errors_Rate", mo))
+        {
+          if ( (csc_error_state>>i) & 0x1 ) mo->Fill(i+1);
+          freq = (100.0*mo->GetBinContent(i+1))/nEvents;
+          if (isMEvalid(dduME, "CSC_Errors", mo)) mo->SetBinContent(i+1, freq);
+        }
+      if ( ((csc_error_state>>i) & 0x1) && isMEvalid(nodeME, "All_DDUs_Inputs_Errors", mo))
+        {
+          mo->Fill(dduID, i+2);
         }
 
-      if ( (csc_warning_state>>i) & 0x1 )
+
+      if (isMEvalid(dduME, "CSC_Warnings_Rate", mo))
         {
-          if (isMEvalid(dduME, "CSC_Warnings_Rate", mo))
-            {
-              mo->Fill(i+1);
-              freq = (100.0*mo->GetBinContent(i+1))/nEvents;
-              if (isMEvalid(dduME,"CSC_Warnings", mo)) mo->SetBinContent(i+1, freq);
-            }
-          if (isMEvalid(nodeME, "All_DDUs_Inputs_Warnings", mo))
-            {
-              mo->Fill(dduID, i+2);
-            }
+          if ( (csc_warning_state>>i) & 0x1 ) mo->Fill(i+1);
+          freq = (100.0*mo->GetBinContent(i+1))/nEvents;
+          if (isMEvalid(dduME,"CSC_Warnings", mo)) mo->SetBinContent(i+1, freq);
+        }
+      if ( ((csc_warning_state>>i) & 0x1 ) && isMEvalid(nodeME, "All_DDUs_Inputs_Warnings", mo))
+        {
+          mo->Fill(dduID, i+2);
         }
 
-      if ( (dmb_fifo_full>>i) & 0x1 )
-        {
-          if (isMEvalid(dduME, "CSC_DMB_FIFO_Full_Rate", mo))
-            {
-              mo->Fill(i+1);
-              freq = (100.0*mo->GetBinContent(i+1))/nEvents;
-              if (isMEvalid(dduME, "CSC_DMB_FIFO_Full", mo)) mo->SetBinContent(i+1, freq);
-            }
-          if (isMEvalid(nodeME, "All_DDUs_DMB_FIFO_Full", mo))
-            {
-              mo->Fill(dduID, i+2);
-            }
 
+      if (isMEvalid(dduME, "CSC_DMB_FIFO_Full_Rate", mo))
+        {
+          if ( (dmb_fifo_full>>i) & 0x1 ) mo->Fill(i+1);
+          freq = (100.0*mo->GetBinContent(i+1))/nEvents;
+          if (isMEvalid(dduME, "CSC_DMB_FIFO_Full", mo)) mo->SetBinContent(i+1, freq);
         }
+      if ( ((dmb_fifo_full>>i) & 0x1 ) && isMEvalid(nodeME, "All_DDUs_DMB_FIFO_Full", mo))
+        {
+          mo->Fill(dduID, i+2);
+        }
+
     }
 
   if (isMEvalid(nodeME, "All_DDUs_Average_Live_Inputs", mo))

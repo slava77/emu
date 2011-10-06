@@ -83,9 +83,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 if (csc_events>min_events)
                   {
                     if (fract >= 80.) severity=CRITICAL;
-                    else if (fract >= 10.) severity=SEVERE;
-                    else if (fract > 2.) severity=TOLERABLE;
-                    else if (fract > 0.1) severity=MINOR;
+                    else if (fract >= 20.) severity=SEVERE;
+                    else if (fract > 5.) severity=TOLERABLE;
+                    else if (fract > 0.5) severity=MINOR;
                   }
                 std::string diag=Form("Format Errors: %d events (%.3f%%)",events, z*100);
                 dqm_report.addEntry(cscName,entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
@@ -112,9 +112,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                             if (csc_events>min_events)
                               {
                                 if (fract >= 80.) severity=CRITICAL;
-                                else if (fract >= 10.) severity=SEVERE;
-                                else if (fract > 2.) severity=TOLERABLE;
-                                else if (fract > 0.1) severity=MINOR;
+                                else if (fract >= 20.) severity=SEVERE;
+                                else if (fract > 5.) severity=TOLERABLE;
+                                else if (fract > 0.5) severity=MINOR;
                               }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("\tFormat Errors: %s %d events (%.3f%%)",error_type.c_str(), events, z*100));
@@ -759,13 +759,14 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                           for (int icfeb=0; icfeb < nCFEBs; icfeb++)
                             {
                               double avg_eff = (100*Compsums[icfeb])/(18.*csc_stats[cscName]);
+			      double avg = round(avg_eff*100.)/100.;
                               if (Compsums[icfeb])
                                 {
                                   if ( !isBeam || (isBeam && ME11 && icfeb!=4) )
                                     { // Standard occupancy check logic for Cosmic run
 
                                       // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
-                                      if ( (avg_eff < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1))
+                                      if ( (avg < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1))
                                         {
                                           std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
                                                                 avg_eff, low_comp_thresh);
@@ -773,7 +774,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                         }
 
                                       // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
-                                      if ( avg_eff >= high_comp_thresh)
+                                      if (avg >= high_comp_thresh)
                                         {
                                           std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f threshold)", icfeb+1, ilayer,
                                                                 avg_eff, high_comp_thresh);
@@ -796,7 +797,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                     {
                                       double me11_cfeb5_low_comp_thresh = 1.9;
                                       double me11_cfeb5_high_comp_thresh = 5.;
-                                      if ( (round(avg_eff*10.)/10. < me11_cfeb5_low_comp_thresh) && (lowEffCFEBs[icfeb] != 1))
+                                      if ( (avg < me11_cfeb5_low_comp_thresh) && (lowEffCFEBs[icfeb] != 1))
                                         // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                                         {
                                           std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
@@ -804,7 +805,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                           dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
                                         }
 
-                                      if ( round(avg_eff*10.)/10. >= me11_cfeb5_high_comp_thresh )
+                                      if ( avg >= me11_cfeb5_high_comp_thresh )
                                         // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
                                         {
                                           std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f%% > %.1f%% threshold)", icfeb+1, ilayer,
@@ -954,9 +955,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 float fract=z*100;
                 DQM_SEVERITY severity=NONE;
                 if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else if (fract > 0.1) severity=MINOR;
+                else if (fract >= 20.) severity=SEVERE;
+                else if (fract > 5.) severity=TOLERABLE;
+                else if (fract > 0.5) severity=MINOR;
 
                 std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, z*100);
 
