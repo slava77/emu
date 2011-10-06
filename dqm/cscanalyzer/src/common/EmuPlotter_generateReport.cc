@@ -1171,12 +1171,14 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
-            double z = h->GetBinContent(i, j+1);
-            double avg = round(z*100.)/100.;
+	     std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+	    double limit = rms_limit;
+            if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
+            double z = h->GetBinContent(i, j+1);		
+            double avg = round(z*10.)/10.;
             if (avg > rms_limit)
               {
                 csc_cntr++;
-                std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
@@ -1207,7 +1209,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
             double limit = rms_limit;
             if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
             double z = h->GetBinContent(i, j+1);
-            double avg = round(z*100.)/100.;
+            double avg = round(z*10.)/10.;
             if (avg > limit)
               {
                 csc_cntr++;
