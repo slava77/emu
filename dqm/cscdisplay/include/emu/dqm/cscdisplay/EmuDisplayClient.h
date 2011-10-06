@@ -310,9 +310,12 @@ private:
   DQMNodesStatus 	nodesStatus; 		// DQM Monitoring Nodes Statuses
   DQMNodesStatus 	prevNodesStatus;	// Saved copy of previous DQM Monitoring Nodes Statuses
   BSem 			appBSem_;
+  BSem			utilBSem_;
   struct timeval 	bsem_tout;
 
   std::list<emu::base::Fact> collectedFacts;
+
+  toolbox::task::ActionSignature *readRunListSignature_;
 
 
 

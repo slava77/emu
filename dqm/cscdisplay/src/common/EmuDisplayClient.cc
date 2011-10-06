@@ -39,7 +39,8 @@ throw (xdaq::exception::Exception)
     BaseDir("/csc_data/dqm"),
     refImagePath("ref.plots"),
     saveResultsDelay(20),
-    appBSem_(BSem::FULL)
+    appBSem_(BSem::FULL),
+    utilBSem_(BSem::FULL)
 {
 
 
@@ -55,6 +56,13 @@ throw (xdaq::exception::Exception)
   tmap 				= emu::dqm::utils::getCSCTypeToBinMap();
 
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
+
+  /*
+  std::stringstream workLoopName;
+  workLoopName << getApplicationDescriptor()->getClassName() << "." << getApplicationDescriptor()->getInstance();
+  factWorkLoop_ = toolbox::task::getWorkLoopFactory()->getWorkLoop( workLoopName.str(), "waiting" );
+  readRunListSignature_  = toolbox::task::bind( this, &emu::dqm::display::readRunList, "readRunList" );
+  */
 
 
   // Bind CGI callbacks

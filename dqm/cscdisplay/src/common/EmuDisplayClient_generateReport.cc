@@ -13,7 +13,6 @@ void EmuDisplayClient::setCSCMapFile(std::string filename)
 
 std::string EmuDisplayClient::getCSCName(std::string cscID, int& crate, int& slot, int& CSCtype, int& CSCposition )
 {
-  //  int crate=0, slot=0;
   std::string cscName="";
   if (sscanf(cscID.c_str(), "CSC_%03d_%02d", &crate , &slot) == 2)
     {
@@ -190,7 +189,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       else
         {
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with data", ddu_cntr),CRITICAL,"ALL_NO_DDU_IN_READOUT"));
-          //      report["EMU Summary"].push_back(Form("%d DDUs with data [critical]", ddu_cntr));
         }
     }
   else
@@ -290,7 +288,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   if (fract >= 20.) severity=CRITICAL;
                   else if (fract >= 10.) severity=SEVERE;
                   else if (fract >5.) severity=TOLERABLE;
-                  else if (fract >0.1) severity=MINOR;
+                  else if (fract >0.5) severity=MINOR;
                   std::string diag=Form("DDU Detected Format Errors: %d events, (%f%%)",
                                         stats_itr->second, fract);
                   dqm_report.addEntry(dduName, entry.fillEntry(diag, severity,"DDU_WITH_FORMAT_ERRORS"));
@@ -326,7 +324,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               }
 
           }
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Live Inputs detected", ddu_live_inputs),NONE,"ALL_DDU_WITH_LIVE_INPUTS"));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(
+		Form("%d DDU Live Inputs detected", ddu_live_inputs),NONE,"ALL_DDU_WITH_LIVE_INPUTS"));
 
     }
   else
@@ -356,7 +355,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               }
 
           }
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Inputs with Data detected", ddu_inp_w_data),NONE,"ALL_DDU_WITH_DATA"));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(
+		Form("%d DDU Inputs with Data detected", ddu_inp_w_data),NONE,"ALL_DDU_WITH_DATA"));
       if (ddu_avg_events >= 500)
         {
           for (stats_itr= ddu_inp_data_stats.begin(); stats_itr !=  ddu_inp_data_stats.end(); ++stats_itr)
@@ -388,6 +388,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
   // Check for DDU Inputs in ERROR state
   uint32_t ddu_inp_w_errors = 0;
   std::map<std::string, uint32_t> ddu_inp_w_errors_stats;
+  std::map<std::string, std::vector<std::pair<uint32_t,double> > > ddu_inp_w_errors_ratio;
   hname = "All_DDUs_Inputs_Errors";
   me = findME("EMU", hname);
 
@@ -395,21 +396,27 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
-        for (int j=3; j<= int(h->GetYaxis()->GetXmax()); j++)
-          {
-            uint32_t cnt = uint32_t(h->GetBinContent(i,j));
-            if (cnt>0)
-              {
-                ddu_inp_w_errors++;
-                std::string dduName = Form("DDU_%02d", i);
-                ddu_inp_w_errors_stats[dduName] |= (1<<(j-3));
+        {
+          double events = h->GetBinContent(i,1) + h->GetBinContent(i,2);
+          for (int j=3; j<= int(h->GetYaxis()->GetXmax()); j++)
+            {
+              uint32_t cnt = uint32_t(h->GetBinContent(i,j));
+              std::string dduName = Form("DDU_%02d", i);
+              if (cnt>0)
+                {
+                  ddu_inp_w_errors++;
+                  ddu_inp_w_errors_stats[dduName] |= (1<<(j-3));
 
-              }
+                }
+              if (events) ddu_inp_w_errors_ratio[dduName].push_back(std::make_pair(cnt, (cnt/events)*100.) );
 
-          }
+            }
+        }
       if (ddu_inp_w_errors)
         {
-          dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Inputs in ERROR state detected on %d DDUs", ddu_inp_w_errors, ddu_inp_w_errors_stats.size()),NONE, "ALL_DDU_INPUT_IN_ERROR_STATE"));
+          dqm_report.addEntry("EMU Summary", entry.fillEntry(
+		Form("%d DDU Inputs in ERROR state detected on %d DDUs", 
+			ddu_inp_w_errors, ddu_inp_w_errors_stats.size()),NONE, "ALL_DDU_INPUT_IN_ERROR_STATE"));
           if (ddu_avg_events >= 500)   // Detect DDUs Inputs in ERROR state if average number of events is reasonable (>500)
             {
               for (stats_itr= ddu_inp_w_errors_stats.begin(); stats_itr !=  ddu_inp_w_errors_stats.end(); ++stats_itr)
@@ -420,8 +427,14 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                     {
                       if ( (err_inputs>>i) & 0x1)
                         {
-                          std::string diag=Form("DDU Input #%d: detected ERROR state",i+1);
-                          dqm_report.addEntry(dduName, entry.fillEntry(diag, TOLERABLE, "DDU_INPUT_IN_ERROR_STATE" ));
+                          DQM_SEVERITY severity=NONE;
+                          double fract = ddu_inp_w_errors_ratio[dduName][i].second;
+                          if (fract >= 50.) severity=SEVERE;
+                          else if (fract >20.) severity=TOLERABLE;
+                          else if (fract > 1.) severity=MINOR;
+                          std::string diag=Form("DDU Input #%d: detected ERROR state in %d events, (%f%%)",i+1,
+                                                ddu_inp_w_errors_ratio[dduName][i].first, fract );
+                          dqm_report.addEntry(dduName, entry.fillEntry(diag, severity, "DDU_INPUT_IN_ERROR_STATE" ));
 
                         }
                     }
@@ -438,6 +451,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
   // Check for DDU Inputs with WARNING state
   uint32_t ddu_inp_w_warn = 0;
   std::map<std::string, uint32_t> ddu_inp_w_warn_stats;
+  std::map<std::string, std::vector<std::pair<uint32_t,double> > > ddu_inp_w_warn_ratio;
   hname = "All_DDUs_Inputs_Warnings";
   me = findME("EMU", hname);
 
@@ -445,21 +459,28 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
-        for (int j=3; j<= int(h->GetYaxis()->GetXmax()); j++)
-          {
-            uint32_t cnt = uint32_t(h->GetBinContent(i,j));
-            if (cnt>0)
-              {
-                ddu_inp_w_warn++;
-                std::string dduName = Form("DDU_%02d", i);
-                ddu_inp_w_warn_stats[dduName] |= (1<<(j-3));
+        {
+          double events = h->GetBinContent(i,1) + h->GetBinContent(i,2);
+          for (int j=3; j<= int(h->GetYaxis()->GetXmax()); j++)
+            {
+              uint32_t cnt = uint32_t(h->GetBinContent(i,j));
+              std::string dduName = Form("DDU_%02d", i);
+              if (cnt>0)
+                {
+                  ddu_inp_w_warn++;
+                  ddu_inp_w_warn_stats[dduName] |= (1<<(j-3));
 
-              }
+                }
+              if (events) ddu_inp_w_warn_ratio[dduName].push_back(std::make_pair(cnt, (cnt/events)*100.) );
 
-          }
+            }
+        }
+
       if (ddu_inp_w_warn)
         {
-          dqm_report.addEntry("EMU Summary",entry.fillEntry(Form("%d DDU Inputs in WARNING state detected on %d DDUs", ddu_inp_w_warn, ddu_inp_w_warn_stats.size()), NONE, "ALL_DDU_INPUT_IN_WARNING_STATE"));
+          dqm_report.addEntry("EMU Summary",entry.fillEntry(
+		Form("%d DDU Inputs in WARNING state detected on %d DDUs", 
+			ddu_inp_w_warn, ddu_inp_w_warn_stats.size()), NONE, "ALL_DDU_INPUT_IN_WARNING_STATE"));
           if (ddu_avg_events >= 500)   // Detect DDUs Inputs in ERROR state if average number of events is reasonable (>500)
             {
               for (stats_itr= ddu_inp_w_warn_stats.begin(); stats_itr !=  ddu_inp_w_warn_stats.end(); ++stats_itr)
@@ -470,7 +491,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                     {
                       if ( (warn_inputs>>i) & 0x1)
                         {
-                          std::string diag=Form("DDU Input #%d: detected WARNING state",i+1);
+                          std::string diag=Form("DDU Input #%d: detected WARNING state in %d events (%f%%)",i+1,
+                                                ddu_inp_w_warn_ratio[dduName][i].first,
+                                                ddu_inp_w_warn_ratio[dduName][i].second);
                           dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "DDU_INPUT_IN_WARNING_STATE"));
 
                         }
@@ -589,7 +612,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
                     {
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
-                      if ((round(100.*fract)/100. < 0.05) && !isHotCSCPresent)
+		      double avg = round(100.*fract)/100;
+                      if ((avg < 0.05) && !isHotCSCPresent)
                         {
                           std::string diag=Form("Low efficiency chamber: %d events, %f fraction of %s type average events counter (avg events=%d)",
                                                 csc_stats[cscName], fract,
@@ -620,11 +644,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
   // == Check for chambers with Format Errors
   hname =  "DMB_Format_Errors_Fract";
   me = findME("EMU", hname);
-  MonitorElement* me2 = findME("EMU", "DMB_Format_Errors");
-  if (me && me2)
+  if (me)
     {
       TH2F* h1 = reinterpret_cast<TH2F*>(me);
-      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
@@ -634,51 +656,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (z>0) // If chamber has format errors
               {
                 csc_cntr++;
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                uint32_t events =  uint32_t(h2->GetBinContent(i, j));
-
-                float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
-                std::string diag=Form("Format Errors: %d events (%.3f%%))",events, fract);
-//                dqm_report.addEntry(cscName,entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
-
-
-                // --- Get Format Errors Details
-                MonitorElement* me3 = findME(cscTag, "BinCheck_Errors_Frequency");
-                MonitorElement* me4 = findME(cscTag, "BinCheck_ErrorStat_Table");
-                if (me3 && me4)
-                  {
-
-                    TH2F* h3 = reinterpret_cast<TH2F*>(me3);
-                    TH2F* h4 = reinterpret_cast<TH2F*>(me4);
-
-                    for (int err=int(h3->GetYaxis()->GetXmin()); err <= int(h3->GetYaxis()->GetXmax()); err++)
-                      {
-                        double z = h3->GetBinContent(1, err);
-
-                        if (z>0)
-                          {
-                            uint32_t events = uint32_t(h4->GetBinContent(1, err));
-                            float fract=z*100;
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
-                            std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
-                            std::string diag=std::string(Form("\tFormat Errors: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
-                            // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
-//                            dqm_report.addEntry(cscName, entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
-                          }
-                      }
-                  }
-                // ---
-
               }
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with Format Errors", csc_cntr),NONE,"ALL_CHAMBERS_WITH_FORMAT_ERRORS"));
@@ -691,11 +668,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
   // == Check for chambers with DMB-Input FIFO Full
   me = findME("EMU", "DMB_input_fifo_full_Fract");
-  me2 = findME("EMU", "DMB_input_fifo_full");
-  if (me && me2)
+  if (me)
     {
       TH2F* h1 = reinterpret_cast<TH2F*>(me);
-      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
@@ -705,51 +680,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (z>0) // If chamber has DMB Input FIFO Full
               {
                 csc_cntr++;
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                uint32_t events =  uint32_t(h2->GetBinContent(i, j));
-
-                float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
-                std::string diag=Form("DMB-Input FIFO Full: %d events (%.3f%%)",events, fract);
-//                dqm_report.addEntry(cscName, entry.fillEntry(diag, severity,"CSC_WITH_INPUT_FIFO_FULL"));
-
-
-                // --- Get Format Errors Details
-                MonitorElement* me3 = findME(cscTag, "BinCheck_DataFlow_Problems_Frequency");
-                MonitorElement* me4 = findME(cscTag, "BinCheck_DataFlow_Problems_Table");
-                if (me3 && me4)
-                  {
-
-                    TH2F* h3 = reinterpret_cast<TH2F*>(me3);
-                    TH2F* h4 = reinterpret_cast<TH2F*>(me4);
-
-                    for (int err=int(h3->GetYaxis()->GetXmin()); err <= 7; err++)
-                      {
-                        double z = h3->GetBinContent(1, err);
-
-                        if (z>0)
-                          {
-                            uint32_t events = uint32_t(h4->GetBinContent(1, err));
-                            float fract=z*100;
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
-                            std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
-                            std::string diag=std::string(Form("DMB-Input FIFO Full: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
-                            // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
-//                            dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_INPUT_FIFO_FULL"));
-                          }
-                      }
-                  }
-                // ---
-
               }
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with DMB-Input FIFO Full", csc_cntr),NONE,"ALL_CHAMBERS_WITH_INPUT_FIFO_FULL"));
@@ -757,11 +687,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
   // == Check for chambers with DMB-Input Timeout
   me = findME("EMU", "DMB_input_timeout_Fract");
-  me2 = findME("EMU", "DMB_input_timeout");
-  if (me && me2)
+  if (me)
     {
       TH2F* h1 = reinterpret_cast<TH2F*>(me);
-      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
       for (int i=int(h1->GetXaxis()->GetXmin()); i<= int(h1->GetXaxis()->GetXmax()); i++)
         for (int j=int(h1->GetYaxis()->GetXmin()); j <= int(h1->GetYaxis()->GetXmax()); j++)
@@ -771,51 +699,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (z>0) // If chamber has DMB Input Timeout
               {
                 csc_cntr++;
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                uint32_t events =  uint32_t(h2->GetBinContent(i, j));
-
-                float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
-                std::string diag=Form("DMB-Input Timeout: %d events (%.3f%%)",events, fract);
-//                dqm_report.addEntry(cscName, entry.fillEntry(diag,severity, "CSC_WITH_INPUT_TIMEOUT"));
-
-
-                // --- Get Format Errors Details
-                MonitorElement* me3 = findME(cscTag, "BinCheck_DataFlow_Problems_Frequency");
-                MonitorElement* me4 = findME(cscTag, "BinCheck_DataFlow_Problems_Table");
-                if (me3 && me4)
-                  {
-
-                    TH2F* h3 = reinterpret_cast<TH2F*>(me3);
-                    TH2F* h4 = reinterpret_cast<TH2F*>(me4);
-
-                    for (int err=8; err<int(h3->GetYaxis()->GetXmax())-2; err++)
-                      {
-                        double z = h3->GetBinContent(1, err);
-
-                        if (z>0)
-                          {
-                            uint32_t events = uint32_t(h4->GetBinContent(1, err));
-                            float fract=z*100;
-                            DQM_SEVERITY severity=NONE;
-                            if (fract >= 80.) severity=CRITICAL;
-                            else if (fract >= 10.) severity=SEVERE;
-                            else if (fract > 1.) severity=TOLERABLE;
-                            else severity=MINOR;
-                            std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
-                            std::string diag=std::string(Form("DMB-Input Timeout: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
-                            // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
-//                            dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_INPUT_TIMEOUT" ));
-                          }
-                      }
-                  }
-                // ---
-
               }
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with DMB-Input Timeouts", csc_cntr), NONE, "ALL_CHAMBERS_WITH_INPUT_TIMEOUT"));
@@ -897,7 +780,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     }
 
 
-  
+
   // == Check for missing ALCT Timing issues
   me = findME("EMU", "CSC_ALCT0_BXN_rms");
   if (me)
@@ -907,10 +790,11 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       uint32_t min_events=200;
       double rms_limit = 1.9;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
-          for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+        for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             double z = h->GetBinContent(i, j+1);
-            if (z > rms_limit)
+	    double avg = round(z*100.)/100.;
+            if (avg > rms_limit)
               {
                 csc_cntr++;
                 std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
@@ -918,9 +802,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 if (csc_events>min_events)
                   {
                     std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
-             
+
                     dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
-                  } 
+                  }
               }
 
           }
@@ -937,22 +821,23 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       uint32_t min_events=200;
       double rms_limit = 2.3;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
-          for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+        for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
             double limit = rms_limit;
-            if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern 
+            if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
             double z = h->GetBinContent(i, j+1);
-            if (round(z*10.)/10. > rms_limit)
+	    double avg = round(z*100.)/100.;
+            if (avg > rms_limit)
               {
                 csc_cntr++;
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
                     std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
-                    
+
                     dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
-                  } 
+                  }
               }
 
           }
@@ -962,11 +847,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
   // == Check for chambers with L1A out of sync
   me = findME("EMU", "DMB_L1A_out_of_sync_Fract");
-  me2 = findME("EMU", "DMB_L1A_out_of_sync");
   if (me)
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
-      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
@@ -975,49 +858,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (z>0)
               {
                 csc_cntr++;
-                uint32_t events = uint32_t(h2->GetBinContent(i, j));
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
-
-                std::string diag=Form("L1A out of sync: %d events (%.3f%%)",events, fract);
-
-                //        dqm_report.addEntry(cscName, entry.fillEntry(diag,severity, "CSC_WITH_L1A_OUT_OF_SYNC"));
-
-                MonitorElement* me3 = 0;
-
-                // Prepare list of L1A histos
-                std::vector<std::pair<std::string, std::string> > l1a_histos;
-                for (int icfeb=0; icfeb<5; icfeb++)
-                  {
-                    l1a_histos.push_back(make_pair( Form("CFEB%d", icfeb+1 ), Form("CFEB%d_DMB_L1A_diff", icfeb) ));
-                  }
-                l1a_histos.push_back(make_pair( "ALCT","ALCT_DMB_L1A_diff") );
-                l1a_histos.push_back(make_pair( "CLCT","CLCT_DMB_L1A_diff") );
-                l1a_histos.push_back(make_pair( "DDU","DMB_DDU_L1A_diff") );
-
-                // -- Find which board has L1A out of sync
-                for (uint32_t k = 0; k < l1a_histos.size(); k++)
-                  {
-                    me3 = findME(cscTag, l1a_histos[k].second);
-                    if (me3)
-                      {
-                        TH1F* h3 = reinterpret_cast<TH1F*>(me3);
-                        if (h3->GetMean() != 0)
-                          {
-                            diag=Form("L1A out of sync: %s",(l1a_histos[k].first).c_str());
-
-                            //                  dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_L1A_OUT_OF_SYNC"));
-                          }
-                      }
-
-                  }
-
               }
 
           }
@@ -1027,11 +867,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
 
   // == Check for chambers with format warnings (CFEB B-Words)
   me = findME("EMU", "DMB_Format_Warnings_Fract");
-  me2 = findME("EMU", "DMB_Format_Warnings");
   if (me)
     {
       TH2F* h = reinterpret_cast<TH2F*>(me);
-      TH2F* h2 = reinterpret_cast<TH2F*>(me2);
       int csc_cntr=0;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
@@ -1040,35 +878,11 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (z>0)
               {
                 csc_cntr++;
-                uint32_t events = uint32_t(h2->GetBinContent(i, j));
-                std::string cscTag(Form("CSC_%03d_%02d", i, j));
-                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                float fract=z*100;
-                DQM_SEVERITY severity=NONE;
-                if (fract >= 80.) severity=CRITICAL;
-                else if (fract >= 10.) severity=SEVERE;
-                else if (fract > 1.) severity=TOLERABLE;
-                else severity=MINOR;
-
-                std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, fract);
-
-                //            dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_BWORDS"));
               }
 
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CFEB B-Words", csc_cntr), NONE, "ALL_CHAMBERS_WITH_BWORDS"));
     }
-  /*
-    int csc_w_problems=0;
-    T_DQMReport& report = dqm_report.getReport();
-    T_DQMReport::iterator itr;
-    for (itr = report.begin(); itr != report.end(); ++itr) {
-      if (itr->first.find("ME") == 0) {
-        csc_w_problems++;
-      }
-    }
-    dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Found %d CSCs with issues of different severity", csc_w_problems)));
-  */
   return 0;
 }
 
@@ -1201,7 +1015,7 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
 
   T_DQMReport& report = dqm_report.getReport();
 
-  
+
 
   for (itr = report.begin(); itr != report.end(); ++itr)
     {
@@ -1214,7 +1028,7 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
               std::string testID = err_itr->testID;
               if (testID == "") testID = "INFO";
               if (err_itr->severity == 0) severity = "INFO";
-	      else severity = DQM_SEVERITY_STR[err_itr->severity];
+              else severity = DQM_SEVERITY_STR[err_itr->severity];
               fact.addParameter("testId", testID)
               .setSeverity(severity)
               .setDescription(err_itr->descr)
@@ -1234,7 +1048,7 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
           for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
             {
               CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
-  	      if (err_itr->severity == 0) severity = "INFO";
+              if (err_itr->severity == 0) severity = "INFO";
               else severity = DQM_SEVERITY_STR[err_itr->severity];
               fact.addParameter("testId", err_itr->testID)
               .setSeverity(severity)
@@ -1254,11 +1068,11 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
           emu::base::Component comp(itr->first);
           for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
             {
-	      // Skip not enough statistics entries 
-	      if (err_itr->descr.find("Not enough events for") != std::string::npos) continue;
+              // Skip not enough statistics entries
+              if (err_itr->descr.find("Not enough events for") != std::string::npos) continue;
 
               CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
-	      if (err_itr->severity == 0) severity = "INFO";
+              if (err_itr->severity == 0) severity = "INFO";
               else severity = DQM_SEVERITY_STR[err_itr->severity];
               fact.addParameter("testId", err_itr->testID)
               .setSeverity(severity)
