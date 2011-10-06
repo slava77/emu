@@ -1176,13 +1176,13 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
             if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
             double z = h->GetBinContent(i, j+1);		
             double avg = round(z*10.)/10.;
-            if (avg > rms_limit)
+            if (avg > limit)
               {
                 csc_cntr++;
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
+                    std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, limit);
 
                     dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
                   }
@@ -1216,7 +1216,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
+                    std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, limit);
 
                     dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
                   }
