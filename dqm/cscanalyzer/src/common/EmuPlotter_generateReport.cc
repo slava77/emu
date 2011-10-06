@@ -292,7 +292,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
       TH1F* h_tmp = new TH1F("temp", "temp", 1000, h->GetMinimum(), h->GetMaximum()+1);
 
-      
+
       // for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
       for (int i=int(h->GetXaxis()->GetXmin()); i<= MAX_DDU; i++) // Check only 36 DDUs
         {
@@ -1183,9 +1183,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
-  	    std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+            std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
             double limit = rms_limit;
-	    if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern 
+            if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
             double z = h->GetBinContent(i, j+1);
             if (round(z*10.)/10. > limit)
               {
@@ -1608,31 +1608,28 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                             }
                                         }
                                     }
-                                  else   // Occupancy check logic for ME11 CFEB5 with Beam run
+                                  else if (ME11 && icfeb==4)  // Occupancy check logic for ME11 CFEB5 with Beam run
                                     {
-                                      if (ME11 && icfeb==4)
+                                      double me11_cfeb5_low_comp_thresh = 1.9;
+                                      double me11_cfeb5_high_comp_thresh = 5.;
+                                      if ( (round(avg_eff*10.)/10. < me11_cfeb5_low_comp_thresh) && (lowEffCFEBs[icfeb] != 1))
+                                        // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                                         {
-                                          double me11_cfeb5_low_comp_thresh = 1.9;
-                                          double me11_cfeb5_high_comp_thresh = 5.;
-                                          if ( (round(avg_eff*10.)/10. < me11_cfeb5_low_comp_thresh) && (lowEffCFEBs[icfeb] != 1))
-                                            // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
-                                            {
-                                              std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
-                                                                    avg_eff, me11_cfeb5_low_comp_thresh);
-                                              dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
-                                            }
-
-                                          if ( round(avg_eff*10.)/10. >= me11_cfeb5_high_comp_thresh )
-                                            // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
-                                            {
-                                              std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f%% > %.1f%% threshold)", icfeb+1, ilayer,
-                                                                    avg_eff, me11_cfeb5_high_comp_thresh);
-                                              dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY"));
-                                            }
+                                          std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
+                                                                avg_eff, me11_cfeb5_low_comp_thresh);
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
                                         }
 
-
+                                      if ( round(avg_eff*10.)/10. >= me11_cfeb5_high_comp_thresh )
+                                        // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
+                                        {
+                                          std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f%% > %.1f%% threshold)", icfeb+1, ilayer,
+                                                                avg_eff, me11_cfeb5_high_comp_thresh);
+                                          dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY"));
+                                        }
                                     }
+
+
                                 }
                             }
                         }
