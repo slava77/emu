@@ -88,6 +88,8 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
             {
               long errs = bin_checker.errorsForDDU(*ddu_itr);
               int dduID = (*ddu_itr)&0xFF;
+  	      // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
+	      if (dduID == 240) dduID = 1;
 
               std::string dduTag = Form("DDU_%02d",dduID);
 
@@ -122,6 +124,8 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       if (bin_checker.errors() == 0)
         {
           int dduID = bin_checker.dduSourceID() & 0xFF;
+          // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
+              if (dduID == 240) dduID = 1;
           std::string dduTag = Form("DDU_%02d",dduID);
 
           if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end()))
@@ -233,6 +237,8 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
     }
 
   dduID = dduHeader.source_id()&0xFF; // Only 8bits are significant; format of DDU id is Dxx
+  // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
+  if (dduID == 240) dduID = 1;
 
 
   if (isMEvalid(nodeME, "All_DDUs_in_Readout", mo))
