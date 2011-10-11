@@ -473,7 +473,7 @@ function loadPlot() {
 	// var objname = Canvas.substr(Canvas.search("/"), Canvas.length);
 	var objname = Canvas.substr(0, Canvas.search(".png"));
 	if (objname.search("/") >=0) objname = objname.substr(objname.search("/")+1, objname.length);
-	var timestamp=new Date();
+	var timestamp=new Date()
 	var imgurl=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&run="+RunName+"&timestamp="+timestamp.getTime();
 	var zoomimage=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+1600+"&imageHeight="+1200+"&run="+RunName+"&timestamp="+timestamp.getTime();
 //	var ref_imgurl =baseURL+getRefPlot+"?folder="+Folder+"&plot="+Canvas;
@@ -1827,6 +1827,8 @@ function isProblemKnown(id, entry)
 										
 										if (entry.testID == ref_entry.testID)
 										{
+											if (ref_entry.obj && entry.descr &&
+                                                                                                (entry.descr.search(ref_entry.obj) != -1 ) )
 											return true;
 										}
 									}
@@ -1897,7 +1899,7 @@ function loadDQMReport(id, rep)
 			if (report && report.length) {
 				for (var i = 0; i < report.length; i++) {
 					if (report[i]) {
-						var obj_sev = -1;
+						var obj_sev = 0;
 						var err_cnt = 0;
 						var filtered = true;
 						var hasKnown = false;
@@ -1939,7 +1941,9 @@ function loadDQMReport(id, rep)
 									
 									filtered = false; 
 									
-									if (sev_idx > obj_sev) obj_sev = sev_idx;
+									if ( (sev_idx > obj_sev) 
+										&& (!fShowKnownProblems || 
+											(fShowKnownProblems && !isKnown)) ) obj_sev = sev_idx;
 									
 									var sev_str = "";
 									
@@ -1959,7 +1963,7 @@ function loadDQMReport(id, rep)
 										}
 										
 									}
-									if ((sev_idx > 0 && !isFiltered) || (selSeverityFilter == "NONE")) {
+									if (((sev_idx > 0) && !isFiltered) || (selSeverityFilter == "NONE")) {
 									n_out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td>";
 									var known = "<td></td>";
 									var repeating = "<td></td>";
@@ -1976,8 +1980,8 @@ function loadDQMReport(id, rep)
 						// var sev_name = DQM_SEVERITY[obj_sev].name;
 						// if (selSeverityFilter == sev_name) {
 						if (filtered) obj_sev = 8;
-                                                if ( (obj_sev > 0) 
-							|| ((obj_sev == 0 ) && (entry.testID=="")) 
+                                                if ( (obj_sev > 0) || hasKnown 
+							|| ((obj_sev == 0 ) && (entry.testID==""))
 							|| ((obj_sev == 0 ) && (entry.testID!="") && fMarkLowStatErrs) ) 
 							setEntryStatus(report[i].objID, obj_sev, hasKnown);
 						// }
@@ -3566,7 +3570,7 @@ get_element = document.all ?
 	</fieldset>
 
 </td></tr>
-<tr style='border: 0px black solid;'><td colspan=2 style='border: 0px black solid;'>
+<tr style='border: 0px black solid;'><td colspan=2 style='border: 0px black solid; display: none'>
 	
 	<fieldset title="Log Window">
 		<legend><a class='winTitle' href='' onClick='return showHide("log");'>Log</a>
