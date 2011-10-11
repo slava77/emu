@@ -421,6 +421,7 @@
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="EmuMonitor" id="{$APP_ID}" network="atcp1" group="dqm">
 	    <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct">
 	      <readoutMode xsi:type="xsd:string">external</readoutMode>
@@ -442,6 +443,9 @@
               <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
               <dduCheckMask xsi:type="xsd:unsignedInt">0xFFFFDFFF</dduCheckMask>
               <binCheckMask xsi:type="xsd:unsignedInt">0x16EBF7F6</binCheckMask>
+	      <enableDataWrite xsi:type="xsd:boolean">true</enableDataWrite>
+	      <maxSavedEvents xsi:type="xsd:integer">5000</maxSavedEvents>
+	      <outputDataFile xsi:type="xsd:string">/data/dqm</outputDataFile>
 	    </properties>
 	  </xc:Application>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmcscanalyzer.so</xc:Module>
