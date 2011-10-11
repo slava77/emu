@@ -48,9 +48,9 @@
 		       sourceURL="http://cmsrc-csc.cms:12000/functionmanagers/cscLevelOneFM.jar"
 		       className="rcms.fm.app.cscLevelOne.MyFunctionManager"
 		       role="CSC" >
-	<property name="pathToOrphanHandler" type="String">
-	  <value>/opt/xdaq/share/emu/scripts/killOrphanedXDAQ.sh</value>
-	</property>
+	<!-- This takes too long, and RCMS times out:	<property name="pathToOrphanHandler" type="String"> -->
+	<!-- 	  <value>/opt/xdaq/share/emu/scripts/killOrphanedXDAQ.sh</value> -->
+	<!-- 	</property> -->
 	<xsl:call-template name="JobControls"/>
 	<xsl:if test="$FARM='DAQ'">
 	  <xsl:call-template name="DAQManager"/>
