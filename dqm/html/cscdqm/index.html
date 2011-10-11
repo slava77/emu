@@ -156,16 +156,13 @@
 	span#error {color: orange; font-weight: bold;}
 	span#warn  {color: orange; font-weight: bold;}
 	
-	.SEVERITY_NONE {background-color: yellowgreen; font-weight: bold;}
-	.SEVERITY_LOW_STAT {background-color: yellowgreen; font-weight: bold;}
-	.SEVERITY_MINOR  {background-color: yellow; font-weight: bold;}
-	.SEVERITY_TOLERABLE {background-color: lightpink; font-weight: bold;}
-	.SEVERITY_SEVERE  {background-color: orange; font-weight: bold;}
-	.SEVERITY_CRITICAL  {background-color: red; font-weight: bold;}
-	.SEVERITY_REPEATING_PROBLEM {background-color: #9090FF; font-weight: bold;}
-	.SEVERITY_KNOWN_PROBLEM {background-color: magenta; font-weight: bold;}
-	.SEVERITY_NO_DATA {background-color: #8C8C8C; font-weight: bold;}
-	.SEVERITY_FILTERED {background-color: #CCCCCC; font-weight: bold;}
+	span.SEVERITY_NONE {background-color: yellowgreen; font-weight: bold;}
+	span.SEVERITY_MINOR  {background-color: yellow; font-weight: bold;}
+	span.SEVERITY_TOLERABLE {background-color: lightpink; font-weight: bold;}
+	span.SEVERITY_SEVERE  {background-color: orange; font-weight: bold;}
+	span.SEVERITY_CRITICAL  {background-color: red; font-weight: bold;}
+	span.SEVERITY_KNOWN_PROBLEMS {background-color: #9090FF; font-weight: bold;}
+	
 	li.sshow_list { font-size:8pt; font-family:Arial; margin: 0;}
 	
 	table.dqm_report {
@@ -212,7 +209,7 @@
 	td.node_info {background-color: white; text-align: center; }
 	
 	#csctable_div, #hwtable_div, #runs_div, #tests_div, #csccounters_div,
-	#local_runs, #global_runs, #online_runs, #ddutable_div, #report_div, #known_problems_div
+	#local_runs, #global_runs, #online_runs, #ddutable_div, #report_div
 	{
 		padding: 1px;
 		border-style: solid;
@@ -233,7 +230,7 @@
 		float: left;
 	}
 	
-	#hwtable_div, #csccounters_div, #ddutable_div, #report_div, #known_problems_div {
+	#hwtable_div, #csccounters_div, #ddutable_div, #report_div {
 		max-height: 350px;
 	}
 	
@@ -276,7 +273,6 @@
 	td.node {width: 24px; background-color: white; text-align: center; }
 	td.td_status {background-color: white; text-align: center}
 	th.repScope {padding: 0 0 0 4px; text-align: left; font-size:10pt;  font-weight: bold; background-color: #AFAFFF; }
-	th.repInfo {padding: 0 0 0 4px; text-align: left; font-size:10pt;  background-color: #AFAFAF; }
 	
 	table.page_layout {
 		
@@ -307,7 +303,6 @@ var CSCMap="redir?url=csc_map.js";
 var DDUMap="redir?url=ddu_csc_map.js";
 var VMEMap="redir?url=vme_pc_map.js";
 var TestsMap="redir?url=tests_map.js";
-var KnownProblemsList="redir?url=known_problems.js";
 // var RunsList="redir?url=runs_list.js";
 var RunsList="getRunsList";
 
@@ -343,8 +338,6 @@ var CSCMAP=false;
 var CSC_LIST=false;
 var DDUMAP=false;
 var NODES_LIST=false;
-var KNOWN_PROBLEMS=false;
-var fShowKnownProblems=true;
 
 var CSC_COUNTERS=false;
 var TESTS_MAP=false;
@@ -372,8 +365,6 @@ var fOpenExternal=false;
 var loopFoldersFirst = true;
 var fAutoUpdatePlot = false;
 var fShowReference = false;
-var fCompareDDUs = false;
-var fMarkLowStatErrs = true;
 var selFolder="";
 var selNode="";
 var selRefRun="";
@@ -395,19 +386,15 @@ var totalDQMevents=0;
 var totalCSCblocks=0;
 var totalDQMrate=0;
 var totalCSCrate=0;
-var selSeverityFilter="NONE";
 
 var DQM_SEVERITY = 
 	[
-	{"name": "LOW_STAT", "color": "yellowgreen", "descr": "Not Enough Statistics to perform Quality Test. Wait for more events."},
-	{"name": "MINOR", "color": "yellow", "descr": "Minor Issue. Could be ignored."},
-	{"name": "TOLERABLE", "color": "lightpink", "descr": "Tolerable Issue. Check status periodically. Report if switched to higher severity level." },
-	{"name": "SEVERE", "color": "orange", "descr": "Severe Problem. Check status periodically. Report if switched to higher severity level"},
-	{"name": "CRITICAL", "color": "red", "descr": "Important Problem. Consult with CEO and Hardware Experts."},
-	{"name": "REPEATING_PROBLEM", "color": "#9090FF", "descr": "Repeating Problem wrt selected comparison Run."},
-	{"name": "KNOWN_PROBLEM", "color": "magenta", "descr": "Acknowledged by Expert Problem."},
-	{"name": "NO_DATA", "color": "#8C8C8C", "descr": "No Events data for DDU or CSC. Check with official disabled CSCs list."},
-	{"name": "FILTERED", "color": "#CCCCCC", "descr": "Problems are not shown because of applied filter."}
+	{"name": "NONE", "color": "yellowgreen"},
+	{"name": "MINOR", "color": "yellow"},
+	{"name": "TOLERABLE", "color": "lightpink"},
+	{"name": "SEVERE", "color": "orange"},
+	{"name": "CRITICAL", "color": "red"},
+	{"name": "KNOWN_PROBLEMS", "color": "#9090FF"}
 	];
 
 var CSC_TYPES = [
@@ -462,7 +449,7 @@ function printReportLegend()
 	var out = "<table class='dqm_report'><tr>";
 	out += "<td><b>Severity legend:</b> ";
 	for (var i=0; i<DQM_SEVERITY.length; i++) {
-		out += " <span title='"+DQM_SEVERITY[i].descr+"' class='SEVERITY_"+DQM_SEVERITY[i].name+"'>" + DQM_SEVERITY[i].name + "</span> ";
+		out += " <span class='SEVERITY_"+DQM_SEVERITY[i].name+"'>" + DQM_SEVERITY[i].name + "</span> ";
 	}
 	out += "</td></tr></table>";
 	return out; 
@@ -477,9 +464,7 @@ function loadPlot() {
 	var imgurl=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&run="+RunName+"&timestamp="+timestamp.getTime();
 	var zoomimage=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+1600+"&imageHeight="+1200+"&run="+RunName+"&timestamp="+timestamp.getTime();
 //	var ref_imgurl =baseURL+getRefPlot+"?folder="+Folder+"&plot="+Canvas;
-	var ref = "ref";
-	if (selRefRun && selRefRun!="noref") ref = selRefRun;
-	var ref_imgurl=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&run="+ref+"&timestamp="+timestamp.getTime();
+	var ref_imgurl=baseURL+getPlot+"?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&run=ref&timestamp="+timestamp.getTime();
 	var out = "";
 	var title = "Plots";
 	// addlog(Folder +"/"+objname, "info"); 
@@ -510,25 +495,17 @@ function loadPlot() {
 						"legend {border-style: solid;border-width: 1px;background-color:  #C0C0FF;}</style>");
 						generator.document.write('</head><body>');
 						generator.document.write("<fieldset><legend><span class='winTitle'>"+title+"</span></legend>");
-						generator.document.write("<img NAME='test' id='dqmplot' SRC='"+imgurl+"' >");
+						generator.document.write("<IMAGE NAME='test' SRC='"+imgurl+"'>");
 						generator.document.write("</fieldset>");
 						// generator.document.write('<p><a href="javascript:self.close()">Close</a> the popup.</p>');
 						generator.document.write('</body></html>');
 						generator.document.close();
-						
 					  } 
 					  catch (exc){
 					}
 				} else {
-				    // out += "<div id='dqmplot_zoom' style='width:300px;height:300px;border:1px solid black;left:20px;top:20px;'></div> ";
-					out += "<a target=blank href=\'"+zoomimage+"\'><img id='dqmplot' src='"+imgurl+"' ></a>";
+					out += "<a target=blank href=\'"+zoomimage+"\'><IMAGE NAME='test' SRC='"+imgurl+"'></a>";
 				}
-				
-				
-					 /*document.getElementById("dqmplot_zoom"),  
-					150, 300,  
-					true  
-				);  */
 				
 				if (fShowReference) {
 					try {
@@ -565,14 +542,12 @@ function loadPlot() {
 	if (o_obj) o_obj.innerHTML = out;
 	o_obj = document.getElementById("plot_title");
 	if (o_obj) o_obj.innerHTML = title;
-	
 	return false;
 }
 
 function updatePlots() {
 	if (fAutoUpdatePlot) {
 		loadPlot();
-		
 		setTimeout('updatePlots()',updateImageInterval);
 	}
 }
@@ -615,6 +590,16 @@ function addlog(message, level)
 		Log.push(entry);
 		showLog();
 	}
+/*	var logd = document.getElementById("log");
+	if (logd) {
+        log_text = logd.innerHTML;
+		
+        msg = '<tr><td class="log">'+getTime()+'</td><td><span class="log" id=\"'+level+'\">'+level.toUpperCase()+ '</span></td><td><span class="log">' +message+'</span></td></tr><br>' + log_text;
+		//msg = '<li class="log" id=\"'+level+'\">'+level.toUpperCase()+ ": " +message+'</li>' + log_text;
+		logd.innerHTML = msg;
+	}
+	return false;
+	*/
 }
 
 function showLog()
@@ -657,6 +642,12 @@ function clearLog()
 {
 	Log.length = 0;
 	showLog();
+/*	var logd = document.getElementById("log");
+	if (logd) {
+        logd.innerHTML = "";
+	}
+	return false;
+	*/
 }
 function resetCSCTable(c_table)
 {
@@ -1393,8 +1384,7 @@ function loadTestsList(r_list, id)
 					folder = t_map[list];			
 					for (var entry in folder) {
 						// <td><input type=checkbox id='cb_"+entry+"'></td>
-						out += "<tr><td id =\""+entry+"\"><a class='add_to_list' href='' onClick='addToTestsShowList(\"Custom\",\""+entry+"\",\""+folder[entry]+"\" ,\""+scope+"\");return false;'>[+]</a>";
-						// out += "<tr></td><td><a class='add_to_list' href='' onClick='addToTestsShowList(\"Custom\",\""+entry+"\",\""+folder[entry]+"\" ,\""+scope+"\");return false;'>[+]</a>";
+						out += "<tr></td><td><a class='add_to_list' href='' onClick='addToTestsShowList(\"Custom\",\""+entry+"\",\""+folder[entry]+"\" ,\""+scope+"\");return false;'>[+]</a>";
 						out += "</a><a class='test_item' href='' id =\""+entry+"\"  onClick='Canvas=\""+entry+"\";Scope=\""+scope+"\";return updateBrowserPage(\""+entry+"\",false,3)'>"+folder[entry]+"</a></td></tr>";			 				
 						if (scope=="CSC" ) { 
 							addToTestsShowList("All CSC Tests", entry, folder[entry], scope);
@@ -1588,12 +1578,7 @@ function findReportEntry(report, id)
 function setTestsStatus(id)
 {
 	loadTestsList (TREE_ITEMS, "tests_div");
-	var out = "<table class='page_layout' style='border: 0px black solid;'><tr style='border: 0px black solid;'><td style='border: 0px black solid;'><table class='dqm_report'><tr><th class='repScope' colspan=2><b>Run " + RunName + " Status for " + id + "</b></th>";	
-        if (KNOWN_PROBLEMS)
-                out += "<th class='repScope' colspan=2><b>Known as</b></th>";
-	if (REF_DQM_REPORT) 
-                out += "<th class='repScope' colspan=2><b>Compared to Run " + selRefRun + "</b></th>";
-	out += "</tr>";
+	var out = "<table class='dqm_report'><tr><th class='repScope' colspan=3><b>Status for " + id + "</b></th></tr>";
 	if (DQM_REPORT && DQM_REPORT.report.length) {
 		var repentry = findReportEntry(DQM_REPORT.report, id);
 		if (repentry) {	
@@ -1603,17 +1588,16 @@ function setTestsStatus(id)
 				
 				for (var j=0; j< err_list.length; j++) {
 					var entry = err_list[j];
-					var known_entry = "";
 					if (entry) {
 						
 						//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
 						
 						var sev_idx = parseInt(entry.severity);
-						
+						if ((id.search("ME") >=0) && isProblemKnown(id, entry)) sev_idx = 5; // KNOWN problem
 						var sev_name = DQM_SEVERITY[sev_idx].name;
 						var sev_str = "";
 						if ( sev_idx > 0) {
-							sev_str = "<span>" + sev_name + "</span>";
+							sev_str = "<span class='SEVERITY_"+sev_name+"'>" + sev_name + "</span>";
 						} 
 												
 						var descr_str = entry.descr;
@@ -1624,16 +1608,6 @@ function setTestsStatus(id)
 								var testPlot = testInfo.testPlot + ".png";
 								var t_obj = document.getElementById(testPlot);
 								if (t_obj) {
-									if ( ((id.search("ME") >=0) || ((id.search("DDU") >=0) && fCompareDDUs))
-										&& isProblemRepeating(id, entry)) sev_idx = 5; // REPEATING problem
-									if (fShowKnownProblems) {
-									if ( ((id.search("ME") >=0) || ((id.search("DDU") >=0) && fCompareDDUs))
-										&& isProblemKnown(id, entry)) {
-										// sev_idx = 6; // KNOWN problem
-										t_obj.style.border = "2px solid magenta";
-										known_entry = getKnownProblemEntry(id, entry);
-										}
-									}
 									t_obj.style.background = DQM_SEVERITY[sev_idx].color;
 								}
 								// descr_str = entry.descr + " " +testPlot;
@@ -1641,105 +1615,19 @@ function setTestsStatus(id)
 							}
 							
 						}
-						out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td>"
-						if (known_entry != "" ) {
-							var sev_idx = parseInt(known_entry.severity);
-                                                
-                                                	var sev_str = DQM_SEVERITY[sev_idx].name;
-                                                	if ( sev_idx > 0) {
-
-                                                	var descr_str = known_entry.descr;
-
-                                                	out += "<td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td>";
-							}
-						}
-					        out +="</tr>";
-					}
-				}
-			}							
-		}
-	}
-	out += "</table></td><td style='border: 0px black solid;'>";
-	
-	
-/*	
-	if (KNOWN_PROBLEMS) {
-		out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Known as</b></th></tr>";
-		var repentry = findReportEntry(KNOWN_PROBLEMS.report, id);
-		if (repentry) {	
-			
-			if (repentry.list && repentry.list.length) {
-				var err_list = repentry.list;
-				
-				for (var j=0; j< err_list.length; j++) {
-					var entry = err_list[j];
-					if (entry) {
-						
-						//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
-						
-						var sev_idx = parseInt(entry.severity);
-						
-						var sev_name = DQM_SEVERITY[sev_idx].name;
-						var sev_str = "";
-						if ( sev_idx > 0) {
-							sev_str = "<span class='SEVERITY_"+sev_name+"'>" + sev_name + "</span>";
-						} 
-												
-						var descr_str = entry.descr;
-						
 						out += "<tr><td>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
 					}
 				}
 			}							
 		}
-		out += "</table>";
 	}
-	
-	out += "</td><td style='border: 0px black solid;'>";
-	
-	
-	if (REF_DQM_REPORT) {
-		out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Compared to Run " + selRefRun + "</b></th></tr>";
-		var repentry = findReportEntry(REF_DQM_REPORT.report, id);
-		if (repentry) {	
-			
-			if (repentry.list && repentry.list.length) {
-				var err_list = repentry.list;
-				
-				for (var j=0; j< err_list.length; j++) {
-					var entry = err_list[j];
-					if (entry) {
-						
-						//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
-					et
-						var sev_idx = parseInt(entry.severity);
-						
-						var sev_name = DQM_SEVERITY[sev_idx].name;
-						var sev_str = "";
-						if ( sev_idx > 0) {
-							sev_str = "<span class='SEVERITY_"+sev_name+"'>" + sev_name + "</span>";
-						} 
-												
-						var descr_str = entry.descr;
-						
-						out += "<tr><td>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
-					}
-				}
-			}							
-		}
-		out += "</table>";
-	}
-	
-*/	
-	
-	
-	out += "</td></tr></table>";
+	out += "</table>";
 	rep_div = document.getElementById("report_entry_div");
 	if (rep_div) rep_div.innerHTML = out;						
 
 }
 
-function setEntryStatus(objname, severity, hasKnown)
+function setEntryStatus(objname, severity)
 {
 	if (objname) {
 		
@@ -1751,9 +1639,6 @@ function setEntryStatus(objname, severity, hasKnown)
 			if (m_obj) {
 				// addlog(objname + " " + severity, "debug");
 				m_obj.style.background = DQM_SEVERITY[severity].color;			
-				if (hasKnown) { m_obj.style.border = "2px solid magenta"; }
-				else m_obj.style.border = "";
-				
 			}			
 		}
 		if (objname.search("ME") >= 0) {			
@@ -1761,8 +1646,6 @@ function setEntryStatus(objname, severity, hasKnown)
 			if (m_obj) {
 				// addlog(objname + " " + severity, "debug");
 				m_obj.style.background = DQM_SEVERITY[severity].color;			
-				if (hasKnown) { m_obj.style.border = "2px solid magenta"; }
-				else m_obj.style.border = "";
 			}
 		}
 	}
@@ -1772,77 +1655,11 @@ function setEntryStatus(objname, severity, hasKnown)
 
 function add_show_icon()
 {
-	return "<span class='show_icon'>[Q]</span> ";
+	return "<span class='show_icon'>[?]</span> ";
 }
 
-
-function getKnownProblemEntry(id, entry)
-{
-	if (KNOWN_PROBLEMS) {
-                ref_report = KNOWN_PROBLEMS.report;
-                if (ref_report && ref_report.length) {
-                        for (var i = 0; i < ref_report.length; i++) {
-                                if (ref_report[i]) {
-                                        if (id == ref_report[i].objID)
-                                                {
-                                                        // return true;
-                                                        if (ref_report[i].list && ref_report[i].list.length) {
-                                                                var err_list = ref_report[i].list;
-                                                        
-                                                                for (var j=0; j< err_list.length; j++) {
-                                                                        var ref_entry = err_list[j];
-                                                                        if (ref_entry) {
-                                                                                
-                                                                                if (entry.testID == ref_entry.testID)
-                                                                                {
-                                                                                        return ref_entry;
-                                                                                }
-                                                                        }
-                                                                }
-                                                        }
-                                                }
-                                }
-                        }
-                }               
-        }
-        return "";
-}
 
 function isProblemKnown(id, entry)
-{
-	if (KNOWN_PROBLEMS) {
-		ref_report = KNOWN_PROBLEMS.report;
-		if (ref_report && ref_report.length) {
-			for (var i = 0; i < ref_report.length; i++) {
-				if (ref_report[i]) {
-					if (id == ref_report[i].objID)
-						{
-							// return true;
-							if (ref_report[i].list && ref_report[i].list.length) {
-								var err_list = ref_report[i].list;
-							
-								for (var j=0; j< err_list.length; j++) {
-									var ref_entry = err_list[j];
-									if (ref_entry) {
-										
-										if (entry.testID == ref_entry.testID)
-										{
-											if (ref_entry.obj && entry.descr &&
-                                                                                                (entry.descr.search(ref_entry.obj) != -1 ) )
-											return true;
-										}
-									}
-								}
-							}
-						}
-				}
-			}
-		}		
-	}
-	return false;
-}
-
-function isProblemRepeating(id, entry)
 {
 	if (REF_DQM_REPORT) {
 		ref_report = REF_DQM_REPORT.report;
@@ -1874,14 +1691,13 @@ function isProblemRepeating(id, entry)
 	return false;
 }
 
-function loadDQMReport(id, rep)
+function loadDQMReport(id)
 {
 				
 	obj = document.getElementById(id);
 	if (obj) {
 		out = "";
-		
-		if (rep) {
+		if (DQM_REPORT) {
 			/// if (reportWindow && !reportWindow.closed) openReportInWindow();
 			// var fullUrl = ResultsFolder+RunNumber+".plots/" + TextReport;	
 			// var out = "<b>DQM Summary Report for Run: <a href='" + fullUrl + "'>" + DQM_REPORT.run + "</a><br> (generated on "+DQM_REPORT.genDate+")</b>";
@@ -1890,140 +1706,7 @@ function loadDQMReport(id, rep)
 			out += "<table class='dqm_report'>";
 			
 			// addlog("DQM report #entries: " + DQM_REPORT.report.length, "info");
-			if (rep.run && rep.genDate) { 
-			    var a_ver = rep.version;
-			    if (!rep.version) a_ver = "1.0";
-			    out += "<tr><th class='repInfo' colspan=5><b>DQM Report for Run '" + rep.run + "' generated on '"+ rep.genDate + "' with Analysis Ver. " + a_ver  + "</b></th></tr>";
-			}
-			report = rep.report;
-			if (report && report.length) {
-				for (var i = 0; i < report.length; i++) {
-					if (report[i]) {
-						var obj_sev = 0;
-						var err_cnt = 0;
-						var filtered = true;
-						var hasKnown = false;
-						var n_out = "<tr><th class='repScope' colspan=5><b>" + report[i].name + "</b></th></tr>";
-						if (report[i].list && report[i].list.length) {
-							err_list = report[i].list;
-							
-							for (var j=0; j< err_list.length; j++) {
-								var isFiltered = true;
-								var entry = err_list[j];
-								if (entry) {
-									
-									//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
-									
-									var sev_idx = parseInt(entry.severity);
-									
-									var isRepeating = false;
-									var isKnown = false;
-									
-									
-									if ( ((report[i].objID.search("ME") >=0) 
-										|| ((report[i].objID.search("DDU") >=0) && fCompareDDUs)) ) 
-									{
-								
-										isRepeating = isProblemRepeating(report[i].objID, entry);
-										if (isRepeating) sev_idx=5; // REPEATING problem
-									
-										isKnown = isProblemKnown(report[i].objID, entry);
-										if (fShowKnownProblems) {
-											if (isKnown ) hasKnown = true;// sev_idx = 6; // KNOWN problem
-										}
-									}	
-									
-									var sev_name = DQM_SEVERITY[entry.severity].name;
-									
-									if (selSeverityFilter == "NONE" || selSeverityFilter == sev_name ) { err_cnt++; isFiltered = false; }									
-									
-									if (isFiltered)  {  continue};
-									
-									filtered = false; 
-									
-									if ( (sev_idx > obj_sev) 
-										&& (!fShowKnownProblems || 
-											(fShowKnownProblems && !isKnown)) ) obj_sev = sev_idx;
-									
-									var sev_str = "";
-									
-									if ( sev_idx > 0) {
-										sev_str = "<span>" + sev_name + "</span>";
-									} 
-									
-									
-									var descr_str = entry.descr;
-									if (entry.testID != "") {
-										var testInfo = findTestPlotInfo(entry.testID);
-										if (testInfo) {
-											var testFolder = getFolderName(report[i].objID, testInfo.testScope);//getFolder()
-											var testPlot = testInfo.testPlot + ".png";
-											// descr_str = entry.descr + " " +testPlot;
-											descr_str = "<a href='' onClick='Folder=\""+testFolder+"\";Scope=\""+testInfo.testScope+"\";Canvas=\""+testPlot+"\";return updateBrowserPage(\""+testPlot+"\",false,3)'>"+add_show_icon()+ entry.descr + "</a> ";
-										}
-										
-									}
-									if (((sev_idx > 0) && !isFiltered) || (selSeverityFilter == "NONE")) {
-									n_out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td>";
-									var known = "<td></td>";
-									var repeating = "<td></td>";
-									if (isKnown) known = "<td class='SEVERITY_KNOWN_PROBLEM'>KNOWN</td>";
-									if (isRepeating) repeating = "<td class='SEVERITY_REPEATING_PROBLEM'>REPEATING</td>";
-									n_out += known+repeating+"</tr>";
-									}
-									
-								}
-							}
-						}	
-						n_out += "</tr>";
-						if (err_cnt >0 ) out += n_out;
-						// var sev_name = DQM_SEVERITY[obj_sev].name;
-						// if (selSeverityFilter == sev_name) {
-						if (filtered) obj_sev = 8;
-                                                if ( (obj_sev > 0) || hasKnown 
-							|| ((obj_sev == 0 ) && (entry.testID==""))
-							|| ((obj_sev == 0 ) && (entry.testID!="") && fMarkLowStatErrs) ) 
-							setEntryStatus(report[i].objID, obj_sev, hasKnown);
-						// }
-					// addlog(DQM_REPORT.report[i].objID, "info");
-					// setEntryStatus(DQM_REPORT.report[i]);
-					}
-				}
-			} else {
-				out = "DQM Report file for Run:" + RunName +" is empty";
-				addlog(out, "warn");
-			}
-			out += "</table>";
-		
-		} else {
-			out = "DQM Report file for Run:" + RunName +" not found";
-			addlog(out, "warn");
-		}		
-		obj.innerHTML=out;
-		// DQMReport = out;
-		setTestsStatus(getCSCId(selFolder));
-		
-	}
-}
-
-
-function loadKnownProblems(id, rep)
-{
-				
-	obj = document.getElementById(id);
-	if (obj) {
-		out = "";
-		
-		if (rep) {
-			/// if (reportWindow && !reportWindow.closed) openReportInWindow();
-			// var fullUrl = ResultsFolder+RunNumber+".plots/" + TextReport;	
-			// var out = "<b>DQM Summary Report for Run: <a href='" + fullUrl + "'>" + DQM_REPORT.run + "</a><br> (generated on "+DQM_REPORT.genDate+")</b>";
-				// <a href='' onClick='openReportInWindow();return false;'>[Open]</a></h5>";
-			out += printReportLegend();
-			out += "<table class='dqm_report'>";
-			
-			// addlog("DQM report #entries: " + DQM_REPORT.report.length, "info");
-			report = rep.report;
+			report = DQM_REPORT.report;
 			if (report && report.length) {
 				for (var i = 0; i < report.length; i++) {
 					if (report[i]) {
@@ -2033,26 +1716,22 @@ function loadKnownProblems(id, rep)
 							err_list = report[i].list;
 							
 							for (var j=0; j< err_list.length; j++) {
-								isFiltered = true;
 								var entry = err_list[j];
 								if (entry) {
 									
 									//out += "<tr><td></td><td>" + entry.descr + "</td><td>"+entry.severity+"</td></tr>";
 									
 									var sev_idx = parseInt(entry.severity);
-									
-																			
-									var sev_name = DQM_SEVERITY[sev_idx].name;
-									
-									if (selSeverityFilter == "NONE" || selSeverityFilter == sev_name) isFiltered = false;
-									if (isFiltered) continue;
-									
+									if ((report[i].objID.search("ME") >=0) && isProblemKnown(report[i].objID, entry)) sev_idx = 5; // KNOWN problem
 									if (sev_idx > obj_sev) obj_sev = sev_idx;
 									
+									
+									
+									var sev_name = DQM_SEVERITY[sev_idx].name;
 									var sev_str = "";
 									
 									if ( sev_idx > 0) {
-										sev_str = "<span>" + sev_name + "</span>";
+										sev_str = "<span class='SEVERITY_"+sev_name+"'>" + sev_name + "</span>";
 									} 
 									
 									
@@ -2067,15 +1746,12 @@ function loadKnownProblems(id, rep)
 										}
 										
 									}
-									out += "<tr><td class='SEVERITY_"+sev_name+"'>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
+									out += "<tr><td>" + sev_str+ "</td><td>"+ descr_str + "</td></tr>";
 								}
 							}
 						}	
 						out += "</tr>";
-						// var sev_name = DQM_SEVERITY[obj_sev].name;
-						// if (selSeverityFilter == sev_name) {
-							// setEntryStatus(report[i].objID, obj_sev);
-						// }
+						setEntryStatus(report[i].objID, obj_sev);
 					// addlog(DQM_REPORT.report[i].objID, "info");
 					// setEntryStatus(DQM_REPORT.report[i]);
 					}
@@ -2089,26 +1765,10 @@ function loadKnownProblems(id, rep)
 		} else {
 			out = "DQM Report file for Run:" + RunName +" not found";
 			addlog(out, "warn");
-		}		
+		}
 		obj.innerHTML=out;
 		// DQMReport = out;
-		// setTestsStatus(getCSCId(selFolder));
-		
 	}
-}
-
-function getCSCId(id)
-{
-	if (selFolder.search("CSC_") >= 0) {
-		var str_id = selFolder.split("_");
-		if (str_id.length == 3) {
-			crate = "crate" + str_id[1].replace(/^[0]+/g,"");;			
-			slot = "slot" + str_id[2].replace(/^[0]+/g,"");
-			// addlog(crate + "/" +slot, "debug");
-			return findCSCFromMap(crate, slot);
-		}
-	} 
-	return selFolder;
 }
 
 function setCompareRun() {
@@ -2129,33 +1789,23 @@ function loadRunsList(r_list)
 	out += "<tr><td><a href='' id='Online' onClick='RunName=\"Online\";getTestsList();getCSCCounters();loadCSCList(\"Online\");return false;'>Online</a></td><td></td></tr>";
 	if (r_list) {
 		compare_list = document.getElementById("compare_selection");
-		
 		if (compare_list) {
 			compare_list.options.length = 0;
-			var isSelected = false;
-			
 			try {
-					if (selRefRun == "noref") isSelected = true;
-					compare_list.add(new Option("Don't compare", "noref",false, isSelected), null)					
-					isSelected = false;
-					if (selRefRun == "ref") isSelected = true;
-					compare_list.add(new Option("Default Reference Run", "ref", false, isSelected), null) //add new option to end of "sample"					
+					compare_list.add(new Option("Don't compare", "noref"), null)
+					compare_list.add(new Option("Reference", "ref"), null) //add new option to end of "sample"					
 				}
 			catch(e){ //in IE, try the below version instead of add()
-					if (selRefRun == "noref") isSelected = true;
 					compare_list.add(new Option("Don't compare", "noref"));
-					isSelected = false;
-					if (selRefRun == "ref") isSelected = true;
-					compare_list.add(new Option("Default Reference Run", "ref", false, isSelected));
+					compare_list.add(new Option("Reference", "ref"));
 				}
 				if (selRefRun == "") {
 					selRefRun = "noref";
-					// getRefDQMReport(selRefRun);
+					getRefDQMReport(selRefRun);
 				}
 			}
 		// addlog("runs", "info");
 		for (var i = 0; i< r_list.length; i++) {
-			isSelected = false;
 			child = [];		
 			child=r_list[i];
 			if (!child) continue;
@@ -2167,16 +1817,13 @@ function loadRunsList(r_list)
 			// if (i==0) RunNumber = run_num;
 			// addlog(run_descr, "info");
 			out += "<tr><td><a href='' id='"+run_num+"' onClick='RunName=\""+run_num+"\";getTestsList();getCSCCounters();loadCSCList(\""+run_num+"\");return false;'>"+run_num+"</a></td><td>"+run_time+"</td></tr>";
-			if (selRefRun == run_num) isSelected = true;
 			if (compare_list)
 				{
-					try 
-					{
-						
-						compare_list.add(new Option(run_num, run_num, false, isSelected), null) //add new option to end of "sample"					
+					try {
+						compare_list.add(new Option(run_num, run_num), null) //add new option to end of "sample"					
 					}
 					catch(e){ //in IE, try the below version instead of add()
-						compare_list.add(new Option(run_num, run_num, false, isSelected));
+						compare_list.add(new Option(run_num, run_num));
 					}
 					
 				
@@ -2276,14 +1923,14 @@ function getDQMReport()
 				reply = reply.replace(/,]/g,"]");
 				reply = reply.replace("var ","");
 				window.eval(reply);				
-				loadDQMReport("report_div", DQM_REPORT);
+				loadDQMReport("report_div");
 				
 				
 	    	} else if (req.status==404) {
 				DQM_REPORT = false;
 				addlog("Can not load " + fullUrl, 'warn');
 				// loadTextReport("report_div");
-				loadDQMReport("report_div", DQM_REPORT);
+				loadDQMReport("report_div");
 	    	}
 						
 		}
@@ -2297,12 +1944,6 @@ function getRefDQMReport(run)
 {
 	
 	var fullUrl = baseURL + JSONReport+"?run="+run;
-	
-	if (run == "noref") {
-		REF_DQM_REPORT = false;
-		loadDQMReport("report_div", DQM_REPORT);
-		return false;
-	}
 	
 	
 	var req=false;
@@ -2335,14 +1976,14 @@ function getRefDQMReport(run)
 				reply = reply.replace("var ","");
 				window.eval(reply);
 				// addlog("Loaded report for " + run, "debug");
-				loadDQMReport("report_div", DQM_REPORT);
+				loadDQMReport("report_div");
 				
 				
 	    	} else if (req.status==404) {
 				REF_DQM_REPORT = false;
 				addlog("Can not load " + fullUrl, 'warn');
 				// loadTextReport("report_div");
-				loadDQMReport("report_div", DQM_REPORT);
+				loadDQMReport("report_div");
 	    	}
 						
 		}
@@ -2652,7 +2293,6 @@ function updateBrowserPage(id, f_select, idx)
 	selectObject(id, f_select, idx);
 	// addlog(selected_list[idx].id, "debug");
 	loadPlot();
-	
 	return false; 
 }
 
@@ -2713,52 +2353,12 @@ function selectPlotMode()
 	}
 }
 
-function selectCompareDDUMode()
-{
-	var obj = document.getElementById("dducompare");
-	if (obj) {
-		if (obj.checked) {
-			fCompareDDUs=true;
-		} else {
-			fCompareDDUs=false;
-		}
-		loadDQMReport("report_div", DQM_REPORT);
-	}
-}
-
-function selectMarkLowStatsErrs()
-{
-        var obj = document.getElementById("marklowstats");
-        if (obj) {
-                if (obj.checked) {
-                        fMarkLowStatErrs=true;
-                } else {
-                        fMarkLowStatErrs=false;
-                }
-                loadDQMReport("report_div", DQM_REPORT);
-        }
-}
-
-function selectShowKnownMode()
-{
-	var obj = document.getElementById("showknown");
-	if (obj) {
-		if (obj.checked) {
-			fShowKnownProblems=true;
-		} else {
-			fShowKnownProblems=false;
-		}
-		loadDQMReport("report_div", DQM_REPORT);
-	}
-}
-
 function selectShowReferenceMode()
 {
 	var obj = document.getElementById("showReference");
 	if (obj) {
 		if (obj.checked) {
 			fShowReference=true;
-			loadPlot();
 		} else {
 			fShowReference=false;
 		}
@@ -3048,106 +2648,6 @@ function clearShowList(id, list)
 	
 }
 
-function setupFilters()
-{
-	// "test_type_filter"
-	// "problem_severity_filter"
-	
-	if (TESTS_MAP && TESTS_MAP.bindings.length) {
-		test_type_filter = document.getElementById("test_type_filter");
-					
-		if (test_type_filter) {
-			test_type_filter.options.length = 0;
-			var isSelected = false;
-		
-			try {						
-				test_type_filter.add(new Option("No Filter", "NONE", false, isSelected), null);
-				test_type_filter.add(new Option("Custom Filter", "CUSTOM", false, isSelected), null);
-			}
-			catch(e){ //in IE, try the below version instead of add()
-				test_type_filter.add(new Option("No Filter", "NONE", test_type, false, isSelected));
-				test_type_filter.add(new Option("Custom Filter", "CUSTOM", test_type, false, isSelected));
-			}
-			test_type_filter.options[0].title = "No Filter";
-			test_type_filter.options[1].title = "Custom Filter";
-			
-			for (var i = 0; i < TESTS_MAP.bindings.length; i++) {
-				map_entry = TESTS_MAP.bindings[i];
-				if (map_entry && map_entry.testID ) { 
-					test_type = map_entry.testID;
-					try {						
-						test_type_filter.add(new Option(test_type, test_type, false, isSelected), null); //add new option to end of "sample"					
-					}
-					catch(e){ //in IE, try the below version instead of add()
-						test_type_filter.add(new Option(test_type, test_type, false, isSelected));
-					}
-					test_type_filter.options[test_type_filter.options.length-1].title = test_type;
-				}
-			}
-			
-		}
-	}
-	
-	if (DQM_SEVERITY && DQM_SEVERITY.length) {
-		severity_filter = document.getElementById("problem_severity_filter");
-					
-		if (severity_filter) {
-			severity_filter.options.length = 0;
-			var isSelected = false;
-			try {						
-					severity_filter.add(new Option("No Filter", "NONE", false, true), null);
-					// severity_filter.add(new Option("Custom Filter", "CUSTOM", false, isSelected), null);
-				}
-			catch(e){ //in IE, try the below version instead of add()
-					severity_filter.add(new Option("No Filter", "NONE", false, true));
-					// severity_filter.add(new Option("Custom Filter", "CUSTOM", false, isSelected));
-			}
-			severity_filter.options[0].title = "No Filter";
-			// severity_filter.options[1].title = "Custom Filter";
-			for (var i = 1; i < DQM_SEVERITY.length-4; i++) {
-				entry = DQM_SEVERITY[i];
-				if (entry && entry.name ) { 
-					severity = entry.name;
-					try {						
-						severity_filter.add(new Option(severity, severity, false, isSelected), null);
-						
-					}
-					catch(e){ //in IE, try the below version instead of add()
-						severity_filter.add(new Option(severity, severity, false, isSelected));						
-					}
-					severity_filter.options[severity_filter.options.length-1].title = entry.descr;
-				}
-			}
-			
-		}
-	}
-	
-}
-
-
-function setTestTypeFilter()
-{
-	var selObj = document.getElementById("test_type_filter");
-	if (selObj) {
-		var selIdx = selObj.selectedIndex;
-		selTestTypeFilter = selObj.options[selIdx].value;		
-		addlog(selTestTypeFilter, "debug");
-		// getRefDQMReport(selRefRun);
-	}
-}
-		
-function setProblemSeverityFilter()
-{
-	var selObj = document.getElementById("problem_severity_filter");
-	if (selObj) {
-		var selIdx = selObj.selectedIndex;
-		selSeverityFilter = selObj.options[selIdx].value;	
-		
-		// addlog(selSeverityFilter, "debug");
-		loadDQMReport("report_div", DQM_REPORT);
-		// getRefDQMReport(selRefRun);
-	}
-}
 
 
 function setSelectedTab(obj)
@@ -3170,8 +2670,6 @@ function setSelectedTab(obj)
 	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "none";
-	div_obj = get_element("known_problems_div");
-	div_obj.style.display = "none";
    }
    else if (obj.title == "hw_view") {
 	div_obj = get_element("csctable_div");
@@ -3183,8 +2681,6 @@ function setSelectedTab(obj)
 	div_obj = get_element("report_div");
 	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
-	div_obj.style.display = "none";
-	div_obj = get_element("known_problems_div");
 	div_obj.style.display = "none";
    }
    else if (obj.title == "ddu_view") {
@@ -3198,8 +2694,6 @@ function setSelectedTab(obj)
 	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "none";
-	div_obj = get_element("known_problems_div");
-	div_obj.style.display = "none";
    }
    else if (obj.title == "report_view") {
 	div_obj = get_element("csctable_div");
@@ -3212,8 +2706,6 @@ function setSelectedTab(obj)
 	div_obj.style.display = "";
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "none";
-	div_obj = get_element("known_problems_div");
-	div_obj.style.display = "none";
    }
    else if (obj.title == "csccounters_view") {
 	div_obj = get_element("csctable_div");
@@ -3225,22 +2717,6 @@ function setSelectedTab(obj)
 	div_obj = get_element("report_div");
 	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
-	div_obj.style.display = "";
-	div_obj = get_element("known_problems_div");
-	div_obj.style.display = "none";
-   }
-   else if (obj.title == "known_problems_view") {
-	div_obj = get_element("csctable_div");
-	div_obj.style.display = "none";
-	div_obj = get_element("hwtable_div");
-	div_obj.style.display = "none";
-	div_obj = get_element("ddutable_div");
-	div_obj.style.display = "none";
-	div_obj = get_element("report_div");
-	div_obj.style.display = "none";
-	div_obj = get_element("csccounters_div");
-	div_obj.style.display = "none";
-	div_obj = get_element("known_problems_div");
 	div_obj.style.display = "";
    }
    return false;
@@ -3299,7 +2775,6 @@ get_element = document.all ?
 	document.write('<script src="', baseURL+DDUMap, '" type="text/javascript"><\/script>');
 	document.write('<script src="', baseURL+VMEMap, '" type="text/javascript"><\/script>');
 	document.write('<script src="', baseURL+TestsMap, '" type="text/javascript"><\/script>');
-	document.write('<script src="', baseURL+KnownProblemsList, '" type="text/javascript"><\/script>');
 	
 //-->
 </script>
@@ -3332,30 +2807,10 @@ get_element = document.all ?
 		<div id="runs_list">
 			
 		</div>
-		<div id="compare_list" title="Compare selected Run DQM Results to other Runs">	
-			<label>Compare to:</label>
+		<div id="compare_list">	
+			<label>Compare Report to:</label>
 			<select id="compare_selection" onChange="setCompareRun();">
-			</select><br>
-			<span title='Check to Enable DDUs Comparison'><label>DDUs Comparison</label> <input type=checkbox  id="dducompare" onclick="selectCompareDDUMode();"></span><br>
-			<span title='Check to Show Known Problems'><label>Show Known Problems</label> <input checked type=checkbox  id="showknown" onclick="selectShowKnownMode();"></span><br>
-			<span title='Check to Mark Low Stats Errors'><label>Mark Low Stats Errors</label> <input checked type=checkbox  id="marklowstats" onclick="selectMarkLowStatsErrs();"></span><br>
-		</div>
-		<div title="Display Filters for DQM Reports">
-			<span title="Select Problem Severity Level Filter">
-			<label>Problem Severity Filter:</label>
-			<select  id="problem_severity_filter" onChange="setProblemSeverityFilter();"></select>
-			</span><!--br>
-			<span title="Select Problem/Test Type Filter">
-			<label>Problem Types Filter:</label><br>
-			<select  id="test_type_filter" onChange="setTestTypeFilter();"></select>
-			</span-->
-
-			<script type="text/javascript">			
-			<!--//
-				// setSelectedResultsFolder();
-				setupFilters();
-			//-->
-			</script>
+			</select>
 		</div>
 		<script type="text/javascript">			
 			<!--//
@@ -3435,7 +2890,7 @@ get_element = document.all ?
 			<tr>
 				<td colspan=3>
 				
-				<script type="text/javascript">
+				<script type="text/javascript"> 
 			<!--//
 				initSlideShowList();
 				
@@ -3504,8 +2959,7 @@ get_element = document.all ?
 				<li title="hw_view" onClick="return setSelectedTab(this);"><a href="" title="VME Crate/DMB Slot View Table">VME/DMB Table</a></li>
 				<li title="ddu_view"  onClick="return setSelectedTab(this);"><a href="" title="DDU to CSC Mapping">DDU/CSC Map</a></li>
 				<li title="csccounters_view"  onClick="return setSelectedTab(this);"><a href="" title="CSC Efficiencies Counters">CSC Counters</a></li>
-				<li title="report_view"  onClick="return setSelectedTab(this);"><a href="" title="DQM Quality Checks Summary Report">Summary Report</a></li>
-				<li title="known_problems_view"  onClick="return setSelectedTab(this);"><a href="" title="DQM Known and Acknowledged Problems">Known Problems</a></li>
+				<li title="report_view"  onClick="return setSelectedTab(this);"><a href="#" title="DQM Quality Checks Summary Report">Summary Report</a></li>
 				</ul>
 			</div>
 			
@@ -3546,13 +3000,6 @@ get_element = document.all ?
 				//-->
 				</script>				
 			</div>
-			<div id="known_problems_div" style="display: none;">
-				<script type="text/javascript">
-				<!--//
-					loadKnownProblems("known_problems_div", KNOWN_PROBLEMS);
-				//-->
-				</script>				
-			</div>
 		</div>
 		
 	</fieldset>
@@ -3570,7 +3017,7 @@ get_element = document.all ?
 	</fieldset>
 
 </td></tr>
-<tr style='border: 0px black solid;'><td colspan=2 style='border: 0px black solid; display: none'>
+<tr style='border: 0px black solid;'><td colspan=2 style='border: 0px black solid;'>
 	
 	<fieldset title="Log Window">
 		<legend><a class='winTitle' href='' onClick='return showHide("log");'>Log</a>
