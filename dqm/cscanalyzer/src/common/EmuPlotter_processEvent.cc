@@ -51,12 +51,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
           mo->Fill(nodeNumber,1);
           for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(nodeNumber,i+2);
         }
-      /*
-            else
-              {
-                mo->Fill(nodeNumber,0);
-              }
-      */
     }
 
 
@@ -84,48 +78,47 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       std::vector<DDUIdType> DDUs = bin_checker.listOfDDUs();
       for (std::vector<DDUIdType>::iterator ddu_itr = DDUs.begin(); ddu_itr != DDUs.end(); ++ddu_itr)
         {
-          if (*ddu_itr != 0xFFF)
+          long errs = bin_checker.errorsForDDU(*ddu_itr);
+          int dduID = (*ddu_itr)&0xFF;
+
+	  
+
+          // Trying to remap unknown DDU ID to online node number, to handle missing DDU Header errors
+          if (*ddu_itr == 0xFFF)  dduID = nodeNumber;
+
+          // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
+          if (dduID == 240) dduID = 1;
+
+          std::string dduTag = Form("DDU_%02d",dduID);
+
+          if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end()))
             {
-              long errs = bin_checker.errorsForDDU(*ddu_itr);
-              int dduID = (*ddu_itr)&0xFF;
-  	      // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
-	      if (dduID == 240) dduID = 1;
+              LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
+              MEs[dduTag] = bookMEs("DDU", dduTag);
+              MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
+              L1ANumbers[dduID] = 0;
+              fFirstEvent = true;
+            }
 
-              std::string dduTag = Form("DDU_%02d",dduID);
 
-              if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end()))
+          if (errs != 0)
+            {
+              for (int i=0; i<bin_checker.nERRORS; i++)   // run over all errors
                 {
-                  LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
-                  MEs[dduTag] = bookMEs("DDU", dduTag);
-                  MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
-                  L1ANumbers[dduID] = 0;
-                  fFirstEvent = true;
-                }
-
-
-              if (errs != 0)
-                {
-                  for (int i=0; i<bin_checker.nERRORS; i++)   // run over all errors
+                  if ((errs>>i) & 0x1 )
                     {
-                      if ((errs>>i) & 0x1 )
-                        {
-                          mo->Fill(dduID,i+1);
-                        }
+                      mo->Fill(dduID,i+1);
                     }
-                }
-              else
-                {
-                  // mo->Fill(dduID,0);
                 }
             }
         }
 
-      /* Temporary tweak for cases when there were no DDU errors  */
+      /* Handle cases when there were no DDU errors  */
       if (bin_checker.errors() == 0)
         {
           int dduID = bin_checker.dduSourceID() & 0xFF;
           // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
-              if (dduID == 240) dduID = 1;
+          if (dduID == 240) dduID = 1;
           std::string dduTag = Form("DDU_%02d",dduID);
 
           if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end()))
@@ -141,7 +134,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         }
 
     }
-
 
   if (BinaryErrorStatus != 0)
     {
@@ -237,9 +229,15 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
     }
 
   dduID = dduHeader.source_id()&0xFF; // Only 8bits are significant; format of DDU id is Dxx
+
+  if (debug) {
+        if ( (nodeNumber != 0) && (dduID != 240) && (dduID != nodeNumber) )
+        LOG4CPLUS_WARN(logger_, eTag << "DDU ID " << dduID << " mismatch with EmuMonitor instance number" << nodeNumber);
+   }
+
+
   // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
   if (dduID == 240) dduID = 1;
-
 
   if (isMEvalid(nodeME, "All_DDUs_in_Readout", mo))
     {
