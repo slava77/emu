@@ -7,11 +7,25 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 {"objID": "ME+1/1/07", "name": "ME+1/1/07", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
 ]},
+{"objID": "ME+1/1/08", "name": "ME+1/1/08", "list": [
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB1 Layer3 (Lowered HV)", "severity": "2", "obj": "CFEB1 Layer3"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB2 Layer3 (Lowered HV)", "severity": "2", "obj": "CFEB2 Layer3"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer3 (Lowered HV)", "severity": "2", "obj": "CFEB3 Layer3"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer3 (Lowered HV)", "severity": "2", "obj": "CFEB4 Layer3"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB5 Layer3 (Lowered HV)", "severity": "2", "obj": "CFEB5 Layer3"}
+]},
 {"objID": "ME+1/1/20", "name": "ME+1/1/20", "list": [
 	{"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0%", "severity": "4", "obj": "ALCT"}
 ]},
 {"objID": "ME+1/1/31", "name": "ME+1/1/31", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
+]},
+{"objID": "ME+1/1/33", "name": "ME+1/1/33", "list": [ 
+	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB1 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB1 Layer6"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB2 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB2 Layer6"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB3 Layer6"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB4 Layer6"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB5 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB5 Layer6"}
 ]},
 {"objID": "ME+1/2/18", "name": "ME+1/2/18", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB2 DAV 0.000%", "severity": "3", "obj": "CFEB2"}
@@ -110,13 +124,40 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 {"objID": "ME+4/1/15", "name": "ME+4/1/15", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB5 DAV 0.000%", "severity": "3", "obj": "CFEB5"}
 ]},
+{"objID": "ME+4/2/09", "name": "ME+4/2/09", "list": [
+        {"testID": "CSC_CLCT_TIMING", "scope": "CSC", "descr": "CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS >2.11", "severity": "3", "obj": "CLCT"}
+]},
+{"objID": "ME+4/2/10", "name": "ME+4/2/09", "list": [
+        {"testID": "CSC_CLCT_TIMING", "scope": "CSC", "descr": "CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS >2.11", "severity": "3", "obj": "CLCT"}
+]},
+{"objID": "ME+4/2/11", "name": "ME+4/2/09", "list": [
+        {"testID": "CSC_CLCT_TIMING", "scope": "CSC", "descr": "CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS >2.11", "severity": "3", "obj": "CLCT"}
+]},
+{"objID": "ME+4/2/12", "name": "ME+4/2/09", "list": [
+        {"testID": "CSC_CLCT_TIMING", "scope": "CSC", "descr": "CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS >2.11", "severity": "3", "obj": "CLCT"}
+]},
+{"objID": "ME+4/2/13", "name": "ME+4/2/09", "list": [
+        {"testID": "CSC_CLCT_TIMING", "scope": "CSC", "descr": "CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS >2.11", "severity": "3", "obj": "CLCT"}
+]},
 {"objID": "ME-1/1/01", "name": "ME-1/1/01", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB5 DAV 0.000%", "severity": "3", "obj": "CFEB5"}
 ]},
 {"objID": "ME-1/1/02", "name": "ME-1/1/02", "list": [ 
         {"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0%", "severity": "4", "obj": "ALCT"}
 ]},
+{"objID": "ME-1/1/05", "name": "ME-1/1/05", "list": [
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB1 Layer2 (Lowered HV)", "severity": "2", "obj": "CFEB1 Layer2"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB2 Layer2 (Lowered HV)", "severity": "2", "obj": "CFEB2 Layer2"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer2 (Lowered HV)", "severity": "2", "obj": "CFEB3 Layer2"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer2 (Lowered HV)", "severity": "2", "obj": "CFEB4 Layer2"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB5 Layer2 (Lowered HV)", "severity": "2", "obj": "CFEB5 Layer2"}
+]},
 {"objID": "ME-1/1/07", "name": "ME-1/1/07", "list": [
+	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB1 Layer5 (Lowered HV)", "severity": "2", "obj": "CFEB1 Layer5"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB2 Layer5 (Lowered HV)", "severity": "2", "obj": "CFEB2 Layer5"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer5 (Lowered HV)", "severity": "2", "obj": "CFEB3 Layer5"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer5 (Lowered HV)", "severity": "2", "obj": "CFEB4 Layer5"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB5 Layer5 (Lowered HV)", "severity": "2", "obj": "CFEB5 Layer5"},	
 	{"testID": "CSC_NO_HV_SEGMENT", "scope": "CSC", "descr": "No HV: Segment1 Layer5", "severity": "2", "obj": "Segment1 Layer5"}
 ]},
 {"objID": "ME-1/1/11", "name": "ME-1/1/11", "list": [
@@ -140,9 +181,15 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB1 DAV 2.000%", "severity": "2", "obj": "CFEB1"}
 ]},
 {"objID": "ME-1/1/25", "name": "ME-1/1/25", "list": [
+	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB1 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB1 Layer6"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB2 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB2 Layer6"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB3 Layer6"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB4 Layer6"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB5 Layer6 (Lowered HV)", "severity": "2", "obj": "CFEB5 Layer6"},
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB4 DAV 0.000%", "severity": "3", "obj": "CFEB4"}
 ]},
 {"objID": "ME-1/1/26", "name": "ME-1/1/26", "list": [
+	{"testID": "CSC_WITH_L1A_OUT_OF_SYNC", "scope": "CSC", "descr": "L1A out of sync", "severity": "2", "obj": "events"},
         {"testID": "CSC_WITH_L1A_OUT_OF_SYNC", "scope": "CSC", "descr": "L1A out of sync: CFEB1", "severity": "2", "obj": "CFEB1"},
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
 ]},
