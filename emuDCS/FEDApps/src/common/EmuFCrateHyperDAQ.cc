@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.16 2011/04/29 13:52:42 cvuosalo Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.17 2011/10/12 17:19:01 banicz Exp $
 *****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -236,7 +236,7 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			//myCrate->getVMEController()->CAEN_err_reset();
 			// Do a fast FMM status check
 			//unsigned short int DDU_FMM = (((*iDDU)->vmepara_status()>>8)&0x000F);
-			unsigned short int DDU_FMM = (*iDDU)->readRealFMM();
+			unsigned short int DDU_FMM = ( StartType==1 ? (*iDDU)->readRealFMM() : 0 );
 			//unsigned short int DDU_FMM = 8; // DEBUG
 			// Mark the status with pretty colors
 			std::string fmmClass = "green";
@@ -256,8 +256,8 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			// Check for CSC status
 			//unsigned short int status = (*iDDU)->vmepara_CSCstat();
-			unsigned int fibersWithErrors = (*iDDU)->readCSCStatus();
-			unsigned int advancedErrors = (*iDDU)->readAdvancedFiberErrors();
+			unsigned int fibersWithErrors = ( StartType==1 ? (*iDDU)->readCSCStatus() : 0 );
+			unsigned int advancedErrors = ( StartType==1 ? (*iDDU)->readAdvancedFiberErrors() : 0 );
 			//unsigned short int status = 0; // DEBUG
 			// Mark the status with pretty colors
 			std::string cscClass = "green";
@@ -299,7 +299,7 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				.set("class","none")
 				.set("style","border-bottom: 1px solid #000;")
 				.set("colspan","5");
-			*out << "DDU L1As: " << std::dec << (*iDDU)->readL1Scaler(DDUFPGA);
+			*out << "DDU L1As: " << std::dec << ( StartType==1 ? (*iDDU)->readL1Scaler(DDUFPGA) : 0 );
 			*out << cgicc::td() << std::endl;
 			*out << cgicc::tr() << std::endl;
 
@@ -314,8 +314,12 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			*out << cgicc::td() << std::endl;
 
 			// Knowing which chambers are actually alive is a good thing.
-			long int liveFibers = ((*iDDU)->readFiberStatus(INFPGA0)&0x000000ff) | (((*iDDU)->readFiberStatus(INFPGA1)&0x000000ff)<<8);
-			long int killFiber = (*iDDU)->readKillFiber();
+			long int liveFibers = ( StartType==1 ? 
+						((*iDDU)->readFiberStatus(INFPGA0)&0x000000ff) | (((*iDDU)->readFiberStatus(INFPGA1)&0x000000ff)<<8) :
+						0 );
+			long int killFiber = ( StartType==1 ?
+					       (*iDDU)->readKillFiber() :
+					       0 );
 
 			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 				std::string chamberClass = "ok";
@@ -1257,7 +1261,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		slotTable(iDDU + 1,1) << myCrate->getRUI(myDDU->slot());
 
 		try {
-			slotTable(iDDU + 1,2) << myDDU->readFlashBoardID();
+			if ( StartType==1 ) slotTable(iDDU + 1,2) << myDDU->readFlashBoardID();
 		} catch (emu::fed::exception::DDUException &e) {
 			*out << printException(e);
 		}
@@ -1268,7 +1272,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 			uint32_t fpgaCode = 0;
 			
 			try {
-				promCode = myDDU->readUserCode(dduPROMTypes[iprom]);
+				if ( StartType==1 ) promCode = myDDU->readUserCode(dduPROMTypes[iprom]);
 			} catch (emu::fed::exception::DDUException &e) {
 				*out << printException(e);
 			}
@@ -1276,7 +1280,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 
 			if (dduPROMNames[iprom] != "VMEPROM") {
 				try {
-					fpgaCode = myDDU->readUserCode(dduFPGATypes[iprom]);
+					if ( StartType==1 ) fpgaCode = myDDU->readUserCode(dduFPGATypes[iprom]);
 				} catch (emu::fed::exception::DDUException &e) {
 					*out << printException(e);
 				}
@@ -1667,7 +1671,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *
 
 					// Now check to see if the usercode matches.
 					if (!broadcast) {
-						int32_t checkUserCode = (*iDDU)->readUserCode(devType[iProm]);
+						int32_t checkUserCode = ( StartType==1 ? (*iDDU)->readUserCode(devType[iProm]) : 0 );
 						
 						if ((checkUserCode & 0xffffff00) != (version[iProm] & 0xffffff00)) {
 							LOG4CPLUS_ERROR(getApplicationLogger(), "PROM load failed to " << promName[iProm] << ": expected version " << std::hex << version[iProm] << std::dec << ", read back " << std::hex << checkUserCode << std::dec);
@@ -1681,7 +1685,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *
 					(*iDDU)->loadPROM(devType[iProm], fileName);
 
 					// Now check to see if the usercode matches.
-					uint32_t checkUserCode = (*iDDU)->readUserCode(devType[iProm]);
+					uint32_t checkUserCode = ( StartType==1 ? (*iDDU)->readUserCode(devType[iProm]) : 0 );
 
 					if (checkUserCode != version[iProm]) {
 						LOG4CPLUS_ERROR(getApplicationLogger(), "PROM load failed to " << promName[iProm] << ": expected version " << std::hex << version[iProm] << std::dec << ", read back " << std::hex << checkUserCode << std::dec);
