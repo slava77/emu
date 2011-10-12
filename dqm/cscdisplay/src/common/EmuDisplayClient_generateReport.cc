@@ -772,7 +772,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
             double z = h->GetBinContent(i, j+1);
             double avg = round(z*10.)/10.;
-            if (avg > rms_limit)
+            if (avg > limit)
               {
                 csc_cntr++;
                 uint32_t csc_events = csc_stats[cscName];
@@ -805,7 +805,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
             double z = h->GetBinContent(i, j+1);
             double avg = round(z*10.)/10.;
-            if (avg > rms_limit)
+            if (avg > limit)
               {
                 csc_cntr++;
                 uint32_t csc_events = csc_stats[cscName];
