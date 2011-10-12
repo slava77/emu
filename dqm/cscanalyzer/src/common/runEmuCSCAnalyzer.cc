@@ -384,7 +384,7 @@ int main(int argc, char **argv)
                         // Fill in histograms if appropriate
                         if ( cnt >= startEvent && cnt <= (startEvent + NumberOfEvents) )
                           {
-                            LOG4CPLUS_INFO (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
+                            LOG4CPLUS_DEBUG (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
                             plotter->processEvent(ddu.data(), ddu.dataLength(), status, node);
                             if (cnt%1000 == 0) LOG4CPLUS_INFO (logger, "Processed Events: "<< dec << cnt);
                           }
