@@ -1182,7 +1182,9 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
   if ( (errorFlag & emu::daq::reader::Spy::PacketsMissing) 	> 0 )	status |= 0x0010;
   if ( (errorFlag & emu::daq::reader::Spy::LoopOverwrite) 	> 0 )	status |= 0x0020;
   if ( (errorFlag & emu::daq::reader::Spy::BufferOverwrite) 	> 0 )	status |= 0x0040;
-  if ( (errorFlag & emu::daq::reader::Spy::Oversized) 		> 0 )	status |= 0x0080;;
+  if ( (errorFlag & emu::daq::reader::Spy::Oversized) 		> 0 )	status |= 0x0080;
+  if ( (errorFlag & emu::daq::reader::Spy::HeaderMissing)       > 0 )   status |= 0x0100;
+  if ( (errorFlag & emu::daq::reader::Spy::TrailerMissing)      > 0 )   status |= 0x0200;
 
   if (eventsReceived_%1000 == 0)
     {
