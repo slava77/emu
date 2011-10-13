@@ -1176,20 +1176,13 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
 
     }
 
-  // DDU File readout errors
-  if ( errorFlag==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
-  if ( errorFlag==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
-  if ( errorFlag==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
-  if ( errorFlag==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
-  if ( errorFlag==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
-
   // DDU Spy mode readout errors
-  if ( errorFlag==emu::daq::reader::Spy::EndOfEventMissing ) 	status |= 0x0004;
-  if ( errorFlag==emu::daq::reader::Spy::Timeout )		status |= 0x0008;
-  if ( errorFlag==emu::daq::reader::Spy::PacketsMissing )	status |= 0x0010;
-  if ( errorFlag==emu::daq::reader::Spy::LoopOverwrite )	status |= 0x0020;
-  if ( errorFlag==emu::daq::reader::Spy::BufferOverwrite )	status |= 0x0040;
-  if ( errorFlag==emu::daq::reader::Spy::Oversized )		status |= 0x0080;;
+  if ( (errorFlag & emu::daq::reader::Spy::EndOfEventMissing) 	> 0 ) 	status |= 0x0004;
+  if ( (errorFlag & emu::daq::reader::Spy::Timeout) 		> 0 )	status |= 0x0008;
+  if ( (errorFlag & emu::daq::reader::Spy::PacketsMissing) 	> 0 )	status |= 0x0010;
+  if ( (errorFlag & emu::daq::reader::Spy::LoopOverwrite) 	> 0 )	status |= 0x0020;
+  if ( (errorFlag & emu::daq::reader::Spy::BufferOverwrite) 	> 0 )	status |= 0x0040;
+  if ( (errorFlag & emu::daq::reader::Spy::Oversized) 		> 0 )	status |= 0x0080;;
 
   if (eventsReceived_%1000 == 0)
     {
@@ -1527,11 +1520,11 @@ int EmuMonitor::svc()
             {
               uint32_t errorFlag = deviceReader_->getErrorFlag();
               uint32_t status=0;
-              if ( errorFlag==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
-              if ( errorFlag==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
-              if ( errorFlag==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
-              if ( errorFlag==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
-              if ( errorFlag==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
+              if ( errorFlag == emu::daq::reader::RawDataFile::Type2) 	status |= 0x8000;
+              if ( errorFlag == emu::daq::reader::RawDataFile::Type3) 	status |= 0x4000;
+              if ( errorFlag == emu::daq::reader::RawDataFile::Type4) 	status |= 0x2000;
+              if ( errorFlag == emu::daq::reader::RawDataFile::Type5) 	status |= 0x1000;
+              if ( errorFlag == emu::daq::reader::RawDataFile::Type6) 	status |= 0x0800;
               appBSem_.take();
               processEvent(deviceReader_->data(), deviceReader_->dataLength(), status, appTid_);
               appBSem_.give();

@@ -6,7 +6,7 @@
 namespace emudqmcscmonitor 
 {
 const std::string package     = "emudqmcscmonitor";
-const std::string versions    = "10.04.01";
+const std::string versions    = "10.04.02";
 const std::string description = "EMU CSC Data Monitoring Module";
 const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
 const std::string authors = "Victor Barashko <barvic@ufl.edu>";
