@@ -775,9 +775,9 @@ void EmuDisplayClient::configureDQM (xgi::Input * in, xgi::Output * out)  throw 
             {
               try
                 {
-		  if ((param_name != "") && (param_type != "")) 
-                  emu::dqm::setScalarParam( getApplicationContext(), getApplicationDescriptor(),
-                                            (*mon), param_name, param_type, param_value );
+                  if ((param_name != "") && (param_type != ""))
+                    emu::dqm::setScalarParam( getApplicationContext(), getApplicationDescriptor(),
+                                              (*mon), param_name, param_type, param_value );
                 }
               catch (xcept::Exception e)
                 {
@@ -919,17 +919,28 @@ void EmuDisplayClient::getRunsList (xgi::Input * in, xgi::Output * out)  throw (
 {
   appBSem_.take();
   // == TODO: Read list of available DQM results root files from resultsDir
-  std::vector<std::string> runs_list = readRunsList();
-  struct stat attrib;                   // create a file attribute structure
 
+  ifstream runs_list;
+  runs_list.open( (ResultsDir.toString()+"/runs_list.js").c_str());
   (out->getHTTPResponseHeader()).addHeader("Content-Type ","text/javascript");
-  *out << "var RUNS=[" << std::endl;
-  for (unsigned i=0; i <runs_list.size(); i++)
+  if (runs_list)
     {
-      stat((ResultsDir.toString()+"/"+runs_list[i]).c_str(), &attrib);            // get the attributes of afile.txt
-      *out << "['" << runs_list[i] << " (" << emu::dqm::utils::now(attrib.st_mtime) << ")" << "']," << std::endl;
+      *out << runs_list.rdbuf();
     }
-  *out << "]" << std::endl;
+  else
+    {
+      std::vector<std::string> runs_list = readRunsList();
+      struct stat attrib;                   // create a file attribute structure
+
+      (out->getHTTPResponseHeader()).addHeader("Content-Type ","text/javascript");
+      *out << "var RUNS=[" << std::endl;
+      for (unsigned i=0; i <runs_list.size(); i++)
+        {
+          stat((ResultsDir.toString()+"/"+runs_list[i]).c_str(), &attrib);            // get the attributes of afile.txt
+          *out << "['" << runs_list[i] << " (" << emu::dqm::utils::now(attrib.st_mtime) << ")" << "']," << std::endl;
+        }
+      *out << "]" << std::endl;
+    }
   appBSem_.give();
 }
 

@@ -1,48 +1,44 @@
 #include "emu/dqm/cscanalyzer/EmuPlotter.h"
 
-// == Prints four 16-bits words in Hex
-void printb(unsigned short* buf)
-{
-  for (int i=0; i<4; i++)
-    cout << " " << setw(4)<< setfill('0') << hex << buf[i];
-  cout << dec << std::endl;
-};
-
+/**
+ * @fn void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t errorStat, int32_t nodeNumber)
+ * @brief Process DDU event data buffer
+ * 	@param data - pointer to DDU event data buffer
+ * 	@param evtSize - size of event buffer in bytes
+ * 	@param errorStat - readout errors status from the data reader (file or Spy mode)
+ * 	@param nodeNumber - optional calling module node number (EmuMonitor instance in online, 0 in offline mode)
+ */
 void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t errorStat, int32_t nodeNumber)
 {
-  appBSem_.take();
-  //	LOG4CPLUS_INFO(logger_ , "processing event data");
 
+  appBSem_.take();
 
   int node = 0; // Set EMU root folder
 
   std::string nodeTag 		= "EMU";
   std::map<std::string, ME_List >::iterator itr;
-  EmuMonitoringObject *mo 	= NULL;  // == pointer to MonitoringObject
-  EmuMonitoringObject *mo1 	= NULL;  // == pointer to MonitoringObject
+  EmuMonitoringObject *mo 	= NULL;  ///< pointer to MonitoringObject
+  EmuMonitoringObject *mo1 	= NULL;  ///< pointer to 2nd MonitoringObject
   unpackedDMBcount 		= 0;
 
   nEvents++;
   eTag=Form("Evt# %d: ", nEvents);
 
-  fInterestingEvent		= false;
+  fInterestingEvent		= false; ///< flag to mark selected event for saving into file
 
-  // == Check and book global node specific histos
+  ///**  Check and book global node specific histos
   if (MEs.size() == 0 || ((itr = MEs.find(nodeTag)) == MEs.end()))
     {
       LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << nodeTag << " not found. Booking...");
       MEs["EMU"] = bookMEs("EMU","EMU_Summary");
       MECanvases["EMU"] = bookMECanvases("EMU","EMU");
-      // printMECollection(MEs[nodeTag]);
     }
 
-  ME_List& nodeME = MEs[nodeTag]; // === Global histos specific for this emuMonitor node
-
-
+  ME_List& nodeME = MEs[nodeTag]; ///< Global histos specific for this emuMonitor node
 
   // if (isMEvalid(nodeME, "Buffer_Size", mo)) mo->Fill(evtSize);
 
-  // ==     Check DDU Readout Error Status
+  ///**  Check DDU Readout Error Status
   if (isMEvalid(nodeME, "All_Readout_Errors", mo))
     {
       if (errorStat != 0)
@@ -53,16 +49,24 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         }
     }
 
+  ///**  Accept or skip event according to DDU Readout Error and dduCheckMask
+  if ((errorStat & dduCheckMask) > 0)
+    {
+      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Readout Error");
+      appBSem_.give();
+      return;
+    }
 
 
-  //	Binary check of the buffer
+
+  ///**	Binary check of the buffer
   uint32_t BinaryErrorStatus = 0, BinaryWarningStatus = 0;
   LOG4CPLUS_DEBUG(logger_,eTag << "Start binary checking of buffer...");
   const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
   bin_checker.setMask(binCheckMask);
   if ( bin_checker.check(tmp,evtSize/sizeof(short)) < 0 )
     {
-      //   No ddu trailer found - force checker to summarize errors by adding artificial trailer
+      ///**  No ddu trailer found - force checker to summarize errors by adding artificial trailer
       const uint16_t dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
       tmp = dduTrailer;
       bin_checker.check(tmp,uint32_t(4));
@@ -81,12 +85,10 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
           long errs = bin_checker.errorsForDDU(*ddu_itr);
           int dduID = (*ddu_itr)&0xFF;
 
-	  
-
-          // Trying to remap unknown DDU ID to online node number, to handle missing DDU Header errors
+          ///** Trying to remap unknown DDU ID to online node number, to handle missing DDU Header errors
           if (*ddu_itr == 0xFFF)  dduID = nodeNumber;
 
-          // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
+          ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
           if (dduID == 240) dduID = 1;
 
           std::string dduTag = Form("DDU_%02d",dduID);
@@ -100,7 +102,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
               fFirstEvent = true;
             }
 
-
           if (errs != 0)
             {
               for (int i=0; i<bin_checker.nERRORS; i++)   // run over all errors
@@ -113,11 +114,11 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
             }
         }
 
-      /* Handle cases when there were no DDU errors  */
+      ///** Handle cases when there were no DDU errors 
       if (bin_checker.errors() == 0)
         {
           int dduID = bin_checker.dduSourceID() & 0xFF;
-          // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
+          ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
           if (dduID == 240) dduID = 1;
           std::string dduTag = Form("DDU_%02d",dduID);
 
@@ -126,7 +127,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
               LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
               MEs[dduTag] = bookMEs("DDU",dduTag);
               MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
-              // printMECollection(MEs[dduTag]);
               L1ANumbers[dduID] = 0;
               fFirstEvent = true;
             }
@@ -139,7 +139,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
     {
       if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Errors DDU level: 0x"
                                   << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask << std::dec << " evtSize:"<<  evtSize);
-      // TODO: Interesting event selection policy
+      ///** TODO: Interesting event selection policy
       fInterestingEvent = true;
     }
   else
@@ -154,7 +154,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Warnings DDU level: 0x"
                                   << std::hex << BinaryWarningStatus)
 
-        // (Ugly) Examiner warnings are reported on Readout Buffer Errors histogram
+        ///** (Ugly) Examiner warnings are reported on Readout Buffer Errors histogram
         //	  to handle cases, when because of incomplete DDU header we can not identify DDU ID
         //	  so we will rely on nodeNumber in online mode
         if (isMEvalid(nodeME, "All_Readout_Errors", mo))
@@ -164,7 +164,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
             if ((BinaryWarningStatus & 0x2) > 0) mo->Fill(nodeNumber,12); // Incomplete DDU Header
 
           }
-      // TODO: Interesting event selection policy
+      ///** TODO: Interesting event selection policy
       fInterestingEvent = true;
     }
   else
@@ -172,24 +172,25 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       LOG4CPLUS_DEBUG(logger_,eTag << "Format Warnings Status is OK: 0x"
                       << std::hex << BinaryWarningStatus);
 
-      // No Readout Errors detected
+      ///** No Readout Errors detected
       if (isMEvalid(nodeME, "All_Readout_Errors", mo) && (errorStat == 0) ) mo->Fill(nodeNumber,0);
 
     }
 
 
 
-//	Accept or deny event
-  bool EventDenied = false;
+  bool EventDenied = false; ///< Accept or deny event flag
 
-//	Accept or deny event according to DDU Readout Error and dduCheckMask
-  if (((uint32_t)errorStat & dduCheckMask) > 0)
-    {
-      if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Readout Error");
-      EventDenied = true;
-    }
+  /*
+  //	Accept or deny event according to DDU Readout Error and dduCheckMask
+    if (((uint32_t)errorStat & dduCheckMask) > 0)
+      {
+        if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Readout Error");
+        EventDenied = true;
+      }
+  */
 
-// Skip event if not masked binary errors or  binary warning is Incomplete DDU Header
+  ///** Skip event if not masked binary errors or  binary warning is Incomplete DDU Header
   if (((BinaryErrorStatus & dduBinCheckMask)>0) || ((BinaryWarningStatus & 0x2) > 0) )
     {
       if (debug) LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Format Error");
@@ -228,15 +229,16 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       return;
     }
 
-  dduID = dduHeader.source_id()&0xFF; // Only 8bits are significant; format of DDU id is Dxx
+  dduID = dduHeader.source_id()&0xFF; /// Only 8bits are significant; format of DDU id is Dxx
 
-  if (debug) {
-        if ( (nodeNumber != 0) && (dduID != 240) && (dduID != nodeNumber) )
+  if (debug)
+    {
+      if ( (nodeNumber != 0) && (dduID != 240) && (dduID != nodeNumber) )
         LOG4CPLUS_WARN(logger_, eTag << "DDU ID " << dduID << " mismatch with EmuMonitor instance number" << nodeNumber);
-   }
+    }
 
 
-  // -- Fix for b904 TF DDU. remap ID 760 (248) to 1
+  ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
   if (dduID == 240) dduID = 1;
 
   if (isMEvalid(nodeME, "All_DDUs_in_Readout", mo))
@@ -244,7 +246,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       mo->Fill(dduID);
     }
 
-// Check and report if DDU ID is greater than 36
+  ///** Check and report if DDU ID is greater than 36
   if (dduID > 36)
     {
       LOG4CPLUS_WARN(logger_, "DDU ID" << dduID << " value is outside of normal ID range");
@@ -257,7 +259,6 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
       MEs[dduTag] = bookMEs("DDU",dduTag);
       MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
-      // printMECollection(MEs[dduTag]);
       L1ANumbers[dduID] = 0;
       fFirstEvent = true;
     }
@@ -268,7 +269,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   if (isMEvalid(dduME, "Buffer_Size", mo)) mo->Fill(evtSize);
 
-// ==	DDU word count from trailer
+  ///** DDU word count from trailer
   int trl_word_count = dduTrailer.wordcount();
   if (isMEvalid(dduME, "Word_Count", mo)) mo->Fill(trl_word_count );
   LOG4CPLUS_DEBUG(logger_, dduTag << " Trailer Word (64 bits) Count = " << std::dec << trl_word_count);
@@ -288,19 +289,19 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   fCloseL1As = dduTrailer.reserved() & 0x1; // Get status if Close L1As bit
   if (fCloseL1As) LOG4CPLUS_DEBUG(logger_,eTag << " Close L1As bit is set");
 
-// ==     DDU Header bunch crossing number (BXN)
+  ///** DDU Header bunch crossing number (BXN)
   BXN=dduHeader.bxnum();
   if (isMEvalid(nodeME, "All_DDUs_BXNs", mo)) mo->Fill(BXN);
   if (isMEvalid(dduME, "BXN", mo)) mo->Fill(BXN);
 
-// ==     L1A number from DDU Header
+  ///** L1A number from DDU Header
   int L1ANumber_previous_event = L1ANumbers[dduID];
   L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
   L1ANumber = L1ANumbers[dduID];
   LOG4CPLUS_DEBUG(logger_,dduTag << " Header L1A Number = " << std::dec << L1ANumber);
   int L1A_inc = L1ANumber - L1ANumber_previous_event;
 
-  /** Handle 24-bit L1A roll-over maximum value case **/
+  ///** Handle 24-bit L1A roll-over maximum value case
   if ( L1A_inc < 0 ) L1A_inc = 0xFFFFFF + L1A_inc;
 
   if (fNotFirstEvent[dduID])
@@ -349,7 +350,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         }
     }
 
-// ==     Occupancy and number of DMB (CSC) with Data available (DAV) in header of particular DDU
+  ///** Occupancy and number of DMB (CSC) with Data available (DAV) in header of particular DDU
   int dmb_dav_header      = 0;
   int dmb_dav_header_cnt  = 0;
 
@@ -362,7 +363,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   int dmb_fifo_full 	  = 0; // DDU Input DMB FIFO Full
 
-//  ==    Number of active DMB (CSC) in header of particular DDU
+  ///**Number of active DMB (CSC) in header of particular DDU
   int dmb_active_header   = 0;
 
   dmb_dav_header     = dduHeader.dmb_dav();
@@ -500,7 +501,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if (isMEvalid(dduME, "DMB_DAV_Header_Count_vs_DMB_Active_Header_Count", mo)) mo->Fill(dmb_active_header,dmb_dav_header_cnt);
 
 
-// == Check DDU Output Path status in DDU Header
+  ///** Check DDU Output Path status in DDU Header
   uint32_t ddu_output_path_status = dduHeader.output_path_status();
   LOG4CPLUS_DEBUG(logger_,dduTag << " Output Path Status = 0x" << std::hex << ddu_output_path_status);
   if (isMEvalid(nodeME, "All_DDUs_Output_Path_Status", mo))
@@ -536,7 +537,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if (isMEvalid(dduME,"Output_Path_Status_Table", mo)) mo->SetEntries(nEvents);
   if (isMEvalid(dduME,"Output_Path_Status_Frequency", mo)) mo->SetEntries(nEvents);
 
-// ==     Check binary Error status at DDU Trailer
+  ///** Check binary Error status at DDU Trailer
   uint32_t trl_errorstat = dduTrailer.errorstat();
   if (dmb_dav_header_cnt==0) trl_errorstat &= ~0x20000000; // Ignore No Good DMB CRC bit of no DMB is present
   LOG4CPLUS_DEBUG(logger_,dduTag << " Trailer Error Status = 0x" << std::hex << trl_errorstat);
@@ -573,7 +574,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if (isMEvalid(dduME,"Trailer_ErrorStat_Table", mo)) mo->SetEntries(nEvents);
   if (isMEvalid(dduME,"Trailer_ErrorStat_Frequency", mo)) mo->SetEntries(nEvents);
 
-//      Unpack all founded CSC
+  ///** Unpack all founded CSC
   std::vector<CSCEventData> chamberDatas;
   chamberDatas.clear();
   chamberDatas = dduData.cscData();
