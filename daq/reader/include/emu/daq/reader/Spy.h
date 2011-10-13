@@ -18,7 +18,9 @@ namespace emu { namespace daq { namespace reader {
       PacketsMissing    = 0x0004,	///< one or more ethernet packets didn't make it
       LoopOverwrite     = 0x0008,	///< packet info ring buffer has bitten its own tail
       BufferOverwrite   = 0x0010,	///< data ring buffer has bitten its own tail
-      Oversized         = 0x0020	///< too big an event
+      Oversized         = 0x0020,	///< too big an event
+      HeaderMissing     = 0x0040,	///< FED header is missing; set by emu::daq::rui
+      TrailerMissing    = 0x0080	///< FED trailer is missing; set by emu::daq::rui
     };
 
     /// constructor
