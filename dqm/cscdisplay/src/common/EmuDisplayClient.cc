@@ -250,9 +250,9 @@ FoldersMap EmuDisplayClient::readFoldersMap(std::string run)
   std::string runplots = run+".plots";
   std::string csc_list = "csc_list.js";
   struct stat attrib;                   // create a file attribute structure
-  std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), run+".root");
-  if (r_itr != runsList.end())
-    {
+  // std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), run+".root");
+  // if (r_itr != runsList.end())
+  //  {
       if (stat(rootfile.c_str(), &attrib) == 0)    // Folder exists
         {
           // std::cout << "Found run " << run << std::endl;
@@ -297,7 +297,7 @@ FoldersMap EmuDisplayClient::readFoldersMap(std::string run)
 
         }
 
-    }
+    // }
 
   return folders;
 }
@@ -1296,14 +1296,14 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
     {
       std::string rootfile = ResultsDir.toString()+"/"+runname+".root";
       struct stat attrib;                   // create a file attribute structure
-      std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), runname+".root");
-      if (r_itr != runsList.end())
-        {
+      // std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), runname+".root");
+      // if (r_itr != runsList.end())
+      //  {
           if (stat(rootfile.c_str(), &attrib) == 0)    // Folder exists
             {
               rootsrc = TFile::Open( rootfile.c_str());
             }
-        }
+      //  }
 
     }
 
