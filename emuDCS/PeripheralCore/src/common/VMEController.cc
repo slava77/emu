@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.59 2009/11/11 10:36:55 liu Exp $
+// $Id: VMEController.cc,v 3.60 2011/10/14 16:22:21 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.60  2011/10/14 16:22:21  liu
+// change the 2nd argument of vme_controller from pointer to unsigned int
+//
 // Revision 3.59  2009/11/11 10:36:55  liu
 // work around patch for VCC code 306 problem
 //
@@ -602,8 +605,7 @@ void VMEController::do_vme(char fcn, char vme,
 
 unsigned short int it[1]; 
 unsigned short int tmp[1]={0x0000};
-unsigned short int *ptr_rice;
-unsigned long add_rice;
+unsigned int add_rice;
 int itwr[2]={1,3};
 int itrd[2]={2,2};
 char ttt;
@@ -611,18 +613,17 @@ char ttt;
 //printf("in VMEController::do_vme. fcn=%d, baseadd=%08X\n",fcn,vmeadd);
  if(fcn==15)return;
  add_rice=vmeadd|(unsigned char)vme;
- ptr_rice=(unsigned short int *)add_rice;
  if(fcn==2){
-   //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
+   //printf(" rice VME W:%08x %04x \n",add_rice,it[0]);
    //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
    it[0]=snd[1]&0x00ff;
    it[0]=it[0]|((snd[0]<<8)&0xff00);
-   vme_controller(itwr[when],ptr_rice,it,rcv);
+   vme_controller(itwr[when],add_rice,it,rcv);
  }
  //
  if(fcn==1 ){
-   //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
-   vme_controller(itrd[when],ptr_rice,tmp,rcv);
+   //printf(" rice VME R: %08x %04x \n",add_rice,*rcv);
+   vme_controller(itrd[when],add_rice,tmp,rcv);
    //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
    ttt=rcv[0];
    rcv[0]=rcv[1];
@@ -633,49 +634,45 @@ char ttt;
  if(fcn==5){ // Need this to speak to the TMB bootregister MvdM
    //
    add_rice=vmeadd|0x70000;
-   ptr_rice=(unsigned short int *)add_rice;
    //
-   //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
-   vme_controller(itrd[when],ptr_rice,tmp,rcv);
+   //printf(" rice VME R: %08x %04x \n",add_rice,*rcv);
+   vme_controller(itrd[when],add_rice,tmp,rcv);
    //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
    ttt=rcv[0];
    rcv[0]=rcv[1];
    rcv[1]=ttt;
    //
-   //std::cout << "ptr " << ptr_rice << std::endl;
+   //std::cout << "ptr " << add_rice << std::endl;
    //
  }
  //
  if(fcn==6){ // Need this to speak to the TMB bootregister MvdM
    //
-   //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
+   //printf(" rice VME W:%08x %04x \n",add_rice,it[0]);
    //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
    it[0]=snd[1]&0x00ff;
    it[0]=it[0]|((snd[0]<<8)&0xff00);
    //
    add_rice=vmeadd|0x70000;
-   ptr_rice=(unsigned short int *)add_rice;
    //
-   vme_controller(itwr[when],ptr_rice,it,rcv);
+   vme_controller(itwr[when],add_rice,it,rcv);
  }
  //
  if(fcn==3) sleep_vme(snd); // sleep 
- if(fcn==4) handshake_vme(); // handshake
+ // if(fcn==4) handshake_vme(); // handshake
 }
 
 int VMEController::new_vme(char fcn, unsigned vme, unsigned short data, char *rcv, int when) 
 {
   // in new_vme: both VME READ and WRITE commands can be buffered
 
-  unsigned short int *ptr_rice;
-  unsigned long add_rice;
+  unsigned int add_rice;
   int itrd[2]={0,2};
 
   if(fcn<1 || fcn>3) return -1;
   add_rice=vmeadd | vme;
-  ptr_rice=(unsigned short int *)add_rice;
   if(fcn==1 || fcn==2)
-     return VME_controller(itrd[when]+fcn-1, ptr_rice, &data, rcv);
+     return vme_controller(itrd[when]+fcn-1, add_rice, &data, rcv);
   else if(fcn==3) 
      sleep_vme((int)data);  
   return 0;
@@ -795,7 +792,7 @@ void VMEController::sdly()
   unsigned short int tmp2[2]={0,0};
   tmp2[0]=50;  // 50x16=800ns delay
   //  cout <<" sdly() called "<<endl;
-  vme_controller(6,NULL,tmp2,tmp);
+  vme_controller(6,0,tmp2,tmp);
 }
 
 
@@ -810,7 +807,7 @@ void  VMEController::sleep_vme(const char *outbuf)   // time in usec
   tmp_time >>= 4; // in 16 nsec
   tmp2[0]=tmp_time & 0xffff;
   tmp2[1]=(tmp_time >> 16) & 0xffff;
-  vme_controller(6,NULL,tmp2,tmp);
+  vme_controller(6,0,tmp2,tmp);
 }
 
 void  VMEController::sleep_vme(int time) // time in usec
@@ -821,33 +818,7 @@ void  VMEController::sleep_vme(int time) // time in usec
   tmp_time=((time+1)/2)*125;   // in 16ns
   tmp2[0]=tmp_time & 0xffff;
   tmp2[1]=(tmp_time >> 16) & 0xffff;
-  vme_controller(6,NULL,tmp2,tmp);
-}
-
-void VMEController::handshake_vme()
-{
-/* no such thing as handshake. The following code is meaningless.
-
-  char tmp[1]={0x00};
-  unsigned short int tmp2[1]={0x0000};
-  unsigned short int *ptr;
-  add_control_r=msk_control_r;   
-  ptr=(unsigned short int *)add_control_r;
-  vme_controller(4,ptr,tmp2,tmp);
-  vme_controller(5,ptr,tmp2,tmp);
-
-*/
-}
-
-void VMEController::flush_vme()
-{
-  // should never been used.
-  //char tmp[1]={0x00};
-  //unsigned short int tmp2[1]={0x0000};
-  //unsigned short int *ptr;
-  // printf(" flush buffers to VME \n");
-  //vme_controller(4,ptr,tmp2,tmp); // flush
-  //
+  vme_controller(6,0,tmp2,tmp);
 }
 
 int VMEController::eth_reset(int ethsocket)
@@ -1202,15 +1173,14 @@ bool VMEController::exist(int slot)
 { 
    unsigned char tmp[3000]={0, 0};
 //   bool v_return;
-   unsigned short int tmp2[1]={0x0000}, *ptr;
+   unsigned short int tmp2[1]={0x0000};
 
    if(slot<1 || slot>21) return 0;
    if(slot==1) return SelfTest();
    int add_ptr = slot<<19;
    if(slot%2==1 && slot!=13) add_ptr += 0x6024;
 
-   ptr=(unsigned short int *)add_ptr;
-   int rt=VME_controller(2,ptr,tmp2,(char *)tmp);
+   int rt=VME_controller(2,add_ptr,tmp2,(char *)tmp);
    if(rt<0) return false;
    if(DEBUG) printf("read back: %02X%02X\n", tmp[1]&0xff, tmp[0]&0xff);
 /*
@@ -1293,7 +1263,7 @@ void VMEController::get_macaddr(int realport)
 }
 
 //
-int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
+int VMEController::VME_controller(int irdwr,unsigned int ptr,unsigned short int *data,char *rcv)
 {
   /* irdwr:   
      0 bufread
@@ -1333,7 +1303,6 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
   unsigned char return_type;
   int size,nwrtn;
   int i;
-  unsigned long int ptrt;
 
   static int istrt=0;  
 
@@ -1350,7 +1319,7 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
       printf("vme_control: %02x %04x%04x", irdwr, data[1], data[0]);
     else
     {
-      printf("vme_control: %02x %08lx",irdwr, (unsigned long int)ptr);
+      printf("vme_control: %02x %08x",irdwr, ptr);
       if(irdwr==1 || irdwr==3) printf(" %04X",data[0]);
     }
     printf("\n");
@@ -1375,16 +1344,15 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
   /* skip zero delay */
   if(irdwr==6 && data[0]==0 && data[1]==0) return 0;
 
-  ptrt=(unsigned long int)ptr;
   // Jinghua Liu:
   // VME address higher than 0xC00000 is for broadcasting,
   // READ is not allowed in the software. 
-  if((irdwr==0 || irdwr==2) && ptrt >= 0xC00000) return 0;
+  if((irdwr==0 || irdwr==2) && ptr >= 0xC00000) return 0;
 
   // Jinghua Liu: 
   // to prevent the OSU controller hanging up on invalid VME address
-  if(irdwr<=3 && ptrt<0x80000) 
-      {  printf("VME ADDRESS ERROR: %06lX\n",ptrt);
+  if(irdwr<=3 && ptr<0x80000) 
+      {  printf("VME ADDRESS ERROR: %06X\n",ptr);
          return -10;
       }
   //printf("vme_control: %02x %08x ",irdwr, (unsigned long int)ptr);
@@ -1409,9 +1377,9 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
   } 
   if(irdwr<=3){
     wbuf[nwbuf+2]=0x00;
-    wbuf[nwbuf+3]=(ptrt&0xff0000)>>16;
-    wbuf[nwbuf+4]=(ptrt&0xff00)>>8;
-    wbuf[nwbuf+5]=(ptrt&0xff);
+    wbuf[nwbuf+3]=(ptr&0xff0000)>>16;
+    wbuf[nwbuf+4]=(ptr&0xff00)>>8;
+    wbuf[nwbuf+5]=(ptr&0xff);
     // Jinghua Liu: no byte swap for CCB,MPC,TMB 
 //    wbuf[nwbuf+6]=(*data&0xff);
 //    wbuf[nwbuf+7]=(*data&0xff00)>>8;
@@ -1498,7 +1466,7 @@ READETH:
     size=eth_read();
     if(size<10)
         { if(vcc_error306) printf(" EWI 306 packets: %d\n", vcc_error306);
-          printf(" ERROR: no data read back from crate %02X, address %08lX\n", hw_dest_addr[5]&0xff, ptrt);
+          printf(" ERROR: no data read back from crate %02X, address %08X\n", hw_dest_addr[5]&0xff, ptr);
           error_count++;
           if(DEBUG) {
             int schar_status=ioctl(theSocket,SCHAR_INQR);
@@ -1568,20 +1536,20 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
                {  // special patch for VCC's type 306 error packets
                   if(vcc_error306==0) 
                   {  reset();
-                     printf("EWI 306 packet from %d, crate %02X, address %08lX\n", irdwr, hw_dest_addr[5]&0xff, ptrt);
+                     printf("EWI 306 packet from %d, crate %02X, address %08X\n", irdwr, hw_dest_addr[5]&0xff, ptr);
                   }
                   ++vcc_error306;
                }
                else
                {
                   printf("EWI packet %02X, %02X%02X, ", return_type&0xff, r_datat[0]&0xff, r_datat[1]&0xff);
-                  printf("type: %d, source: %d, code: %d from %d, crate %02X, address %08lX\n", EWI, Source_ID, error_type, irdwr, hw_dest_addr[5]&0xff, ptrt);
+                  printf("type: %d, source: %d, code: %d from %d, crate %02X, address %08X\n", EWI, Source_ID, error_type, irdwr, hw_dest_addr[5]&0xff, ptr);
                }
              }
           }
           else
           { 
-             printf("Error: wrong return data type: %d from %d %08lX\n", return_type, irdwr, ptrt);
+             printf("Error: wrong return data type: %d from %d %08X\n", return_type, irdwr, ptr);
           }
 //
 // Need to discard all error/warning/info packets!
@@ -1633,9 +1601,9 @@ void VMEController::Clear_VmeWriteVecs() {
   return;
 }
 //
-int VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv) {
+int VMEController::vme_controller(int irdwr,unsigned int ptr,unsigned short int *data,char *rcv) {
   //
-  int address = ( (int)ptr ) & 0xff;
+  int address = ptr & 0xff;
   //
   if ( Get_FillVmeWriteVecs()     &&  
        (irdwr == 1 || irdwr == 3) &&
