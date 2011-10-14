@@ -3356,7 +3356,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMin>0</XMin>
                 <XMax>1</XMax>
                 <XBins>1</XBins>
-                <XTitle>Frequency (%)</XTitle>
+                <XTitle>Ratio</XTitle>
                 <YMin>0</YMin>
                 <YMax>19</YMax>
                 <YBins>19</YBins>
@@ -3436,7 +3436,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMin>0</XMin>
                 <XMax>1</XMax>
                 <XBins>1</XBins>
-                <XTitle>Frequency (%)</XTitle>
+                <XTitle>Ratio</XTitle>
                 <YMin>0</YMin>
                 <YMax>23</YMax>
                 <YBins>23</YBins>
