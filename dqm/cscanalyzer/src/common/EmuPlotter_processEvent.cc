@@ -89,7 +89,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
           if (*ddu_itr == 0xFFF)  dduID = nodeNumber;
 
           ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
-          if (dduID == 240) dduID = 1;
+          if (dduID == 248) dduID = 1;
 
           std::string dduTag = Form("DDU_%02d",dduID);
 
@@ -119,7 +119,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         {
           int dduID = bin_checker.dduSourceID() & 0xFF;
           ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
-          if (dduID == 240) dduID = 1;
+          if (dduID == 248) dduID = 1;
           std::string dduTag = Form("DDU_%02d",dduID);
 
           if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end()))
@@ -233,13 +233,13 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   if (debug)
     {
-      if ( (nodeNumber != 0) && (dduID != 240) && (dduID != nodeNumber) )
+      if ( (nodeNumber != 0) && (dduID != 248) && (dduID != nodeNumber) )
         LOG4CPLUS_WARN(logger_, eTag << "DDU ID " << dduID << " mismatch with EmuMonitor instance number" << nodeNumber);
     }
 
 
   ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
-  if (dduID == 240) dduID = 1;
+  if (dduID == 248) dduID = 1;
 
   if (isMEvalid(nodeME, "All_DDUs_in_Readout", mo))
     {
