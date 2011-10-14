@@ -2478,6 +2478,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
       bool header  = hasHeader(data,dataLength);
       bool trailer = hasTrailer(data,dataLength);
 
+      // Update errorFlag:
+      if ( !header  ) errorFlag_ |= emu::daq::reader::Spy::HeaderMissing;
+      if ( !trailer ) errorFlag_ |= emu::daq::reader::Spy::TrailerMissing;
+
       if ( trailer && inputDataFormatInt_ == emu::daq::reader::Base::DDU ) isBadEvent_ = interestingDDUErrorBitPattern(data,dataLength);
 
 //       stringstream ss;
@@ -2516,19 +2520,11 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 	writeDataWithContextToFile( data, dataLength, header );
 
 	if ( header ){
-	  LOG4CPLUS_WARN(logger_, 
-			  "No trailer in event " << eventNumber_ << 
-			  " ("             << nEventsRead_ <<
-			  " so far) from " << inputDeviceName_.toString() <<
-			  ", size: "       << dataLength );
-	  // 	  stringstream ss49;
-	  // 	  ss49 <<  
-	  // 			  "No trailer in event " << eventNumber_ << 
-	  // 			  " ("             << nEventsRead_ <<
-	  // 			  " so far) from " << inputDeviceName_.toString() <<
-	  // 			  ", size: "       << dataLength ;
-	  // 	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss49.str() );
-	  // 	  this->notifyQualified( "warning", eObj );
+	  // LOG4CPLUS_WARN(logger_, 
+	  // 		  "No trailer in event " << eventNumber_ << 
+	  // 		  " ("             << nEventsRead_ <<
+	  // 		  " so far) from " << inputDeviceName_.toString() <<
+	  // 		  ", size: "       << dataLength );
 
 	  // Prepare the old block(s) to be sent out. 
 	  // They will be assumed to belong to the previous known event number.
@@ -2574,21 +2570,13 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
       } // if ( insideEvent_ )
       else {
 
-	if ( !header && trailer ){
-	  LOG4CPLUS_WARN(logger_, 
-			  "No header in event " << eventNumber_ << 
-			  " ("             << nEventsRead_ <<
-			  " so far) from " << inputDeviceName_.toString() <<
-			  ", size: "       << dataLength );
-// 	  stringstream ss51;
-// 	  ss51 <<  
-// 			  "No header in event " << eventNumber_ << 
-// 			  " ("             << nEventsRead_ <<
-// 			  " so far) from " << inputDeviceName_.toString() <<
-// 			  ", size: "       << dataLength ;
-// 	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss51.str() );
-// 	  this->notifyQualified( "warning", eObj );
-	}
+	// if ( !header && trailer ){
+	//   LOG4CPLUS_WARN(logger_, 
+	// 		  "No header in event " << eventNumber_ << 
+	// 		  " ("             << nEventsRead_ <<
+	// 		  " so far) from " << inputDeviceName_.toString() <<
+	// 		  ", size: "       << dataLength );
+	// }
 
 	writeDataWithContextToFile( data, dataLength, header || trailer );
 
@@ -2631,8 +2619,6 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 
       // Store this data to be sent to clients (if any)
       addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
-      // TO DO: handle abnormal cases too
-      if ( trailer ) errorFlag_ = 0;
 
     } // if ( dataLength>0 )
 
