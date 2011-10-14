@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.17 2011/08/01 17:13:59 rakness Exp $
+// $Id: TMB.h,v 1.18 2011/10/14 17:42:17 liu Exp $
 // $Log: TMB.h,v $
+// Revision 1.18  2011/10/14 17:42:17  liu
+// fix warnings for GCC4
+//
 // Revision 1.17  2011/08/01 17:13:59  rakness
 // automatically handle special region before/after and ME1/1a, ME1/1b, normal chambers separately
 //
@@ -484,7 +487,6 @@ public:
   void alct_vpf_delay(unsigned short int time);
   void mpc_delay(unsigned short int time);
   void read_delays();
-  void reset();
   //void scan_rx_clock();
   void trgmode(int choice);
   void SetALCTPatternTrigger();

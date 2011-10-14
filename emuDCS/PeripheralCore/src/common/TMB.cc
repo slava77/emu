@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.98 2010/08/25 19:45:41 liu Exp $
+// $Id: TMB.cc,v 3.99 2011/10/14 17:42:12 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.99  2011/10/14 17:42:12  liu
+// fix warnings for GCC4
+//
 // Revision 3.98  2010/08/25 19:45:41  liu
 // read TMB voltages in VME jumbo packet
 //
@@ -3428,13 +3431,6 @@ void TMB::read_delays()
   printf(" delay register is: %02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
 }
 
-
-void TMB::reset() {
-  sndbuf[0]=0x41;
-  sndbuf[1]=0x90;
-  tmb_vme(VME_READ,0x70000,sndbuf,rcvbuf,NOW);
-  printf("Bootstrap %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff ) ;
-}
 //
 void TMB::DumpAddress(int address){
   //
@@ -3669,7 +3665,7 @@ int TMB::tmb_get_boot_reg(unsigned short int* value) {
   //char sndbuf[2];
   //char rcvbuf[2];
   //
-  tmb_vme(VME_READ | VME_BOOT_REG, 0x70000, sndbuf, rcvbuf, NOW ); // Send read request
+  tmb_vme(VME_READ | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW ); // Send read request
   //
   //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );
   //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );

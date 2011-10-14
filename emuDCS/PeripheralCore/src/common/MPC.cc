@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.21 2011/08/25 21:08:57 liu Exp $
+// $Id: MPC.cc,v 3.22 2011/10/14 17:42:14 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.22  2011/10/14 17:42:14  liu
+// fix warnings for GCC4
+//
 // Revision 3.21  2011/08/25 21:08:57  liu
 // add functions for new (Virtex 5) MPC
 //
@@ -498,7 +501,7 @@ int MPC::ReadMask()
   // bit=1 if both LCT0 & LCT1 are disabled 
   // bit=0 if either LCT is enabled
 
-  int data, mask;
+  int data, mask=0;
 
   if(mpc_generation>2 || mpc_generation<1) check_generation();
 
