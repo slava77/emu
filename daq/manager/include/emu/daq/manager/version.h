@@ -5,7 +5,7 @@
 
 namespace emudaqmanager {
 	const std::string package     = "emudaqmanager";
-	const std::string versions    = "10.04.01";
+	const std::string versions    = "10.04.02";
 	const std::string description = "Emu (CSC) Local DAQ Manager";
 
 	const std::string summary     = "emu/daq/manager";
