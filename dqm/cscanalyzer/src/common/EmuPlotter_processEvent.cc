@@ -114,7 +114,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
             }
         }
 
-      ///** Handle cases when there were no DDU errors 
+      ///** Handle cases when there were no DDU errors
       if (bin_checker.errors() == 0)
         {
           int dduID = bin_checker.dduSourceID() & 0xFF;
@@ -506,6 +506,14 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   LOG4CPLUS_DEBUG(logger_,dduTag << " Output Path Status = 0x" << std::hex << ddu_output_path_status);
   if (isMEvalid(nodeME, "All_DDUs_Output_Path_Status", mo))
     {
+
+      EmuMonitoringObject* mo_DDU_Output_Path_Status_Rate  = 0;
+      isMEvalid(dduME, "Output_Path_Status_Rate" , mo_DDU_Output_Path_Status_Rate);
+      EmuMonitoringObject* mo_DDU_Output_Path_Status_Frequency  = 0;
+      isMEvalid(dduME, "Output_Path_Status_Frequency" , mo_DDU_Output_Path_Status_Frequency);
+      EmuMonitoringObject* mo_DDU_Output_Path_Status_Table  = 0;
+      isMEvalid(dduME, "Output_Path_Status_Table" , mo_DDU_Output_Path_Status_Table);
+
       if (ddu_output_path_status)
         {
           mo->Fill(dduID,1); // Any Error
@@ -517,13 +525,14 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
                   mo->Fill(dduID,i+2); // Fill Summary Histo
 
                   // Fill per DDU histos
-                  if (isMEvalid(dduME,"Output_Path_Status_Rate", mo1))
-                    {
-                      mo1->Fill(i);
-                      double freq = (100.0*mo1->GetBinContent(i+1))/nEvents;
-                      if (isMEvalid(dduME, "Output_Path_Status_Frequency", mo1)) mo1->SetBinContent(i+1, freq);
-                    }
-                  if (isMEvalid(dduME, "Output_Path_Status_Table", mo1)) mo1->Fill(0.,i);
+                  if (mo_DDU_Output_Path_Status_Rate)  mo_DDU_Output_Path_Status_Rate->Fill(i);
+                  if (mo_DDU_Output_Path_Status_Table) mo_DDU_Output_Path_Status_Table->Fill(0.,i);
+                }
+
+              if (mo_DDU_Output_Path_Status_Rate)
+                {
+                  double freq = (100.0*mo_DDU_Output_Path_Status_Rate->GetBinContent(i+1))/nEvents;
+                  if (mo_DDU_Output_Path_Status_Frequency) mo_DDU_Output_Path_Status_Frequency->SetBinContent(i+1, freq);
                 }
             }
         }
@@ -544,6 +553,14 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
   if (isMEvalid(nodeME, "All_DDUs_Trailer_Errors", mo))
     {
+
+      EmuMonitoringObject* mo_DDU_Trailer_ErrorStat_Rate  = 0;
+      isMEvalid(dduME, "Trailer_ErrorStat_Rate" , mo_DDU_Trailer_ErrorStat_Rate);
+      EmuMonitoringObject* mo_DDU_Trailer_ErrorStat_Frequency  = 0;
+      isMEvalid(dduME, "Trailer_ErrorStat_Frequency" , mo_DDU_Trailer_ErrorStat_Frequency);
+      EmuMonitoringObject* mo_DDU_Trailer_ErrorStat_Table  = 0;
+      isMEvalid(dduME, "Trailer_ErrorStat_Table" , mo_DDU_Trailer_ErrorStat_Table);
+
       if (trl_errorstat)
         {
           mo->Fill(dduID,1); // Any Error
@@ -554,14 +571,14 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
                   mo->Fill(dduID,i+2); // Fill Summary Histo
 
                   // Fill per DDU histos
-                  if (isMEvalid(dduME,"Trailer_ErrorStat_Rate", mo1))
-                    {
-                      mo1->Fill(i);
-                      double freq = (100.0*mo1->GetBinContent(i+1))/nEvents;
-                      if (isMEvalid(dduME, "Trailer_ErrorStat_Frequency", mo1)) mo1->SetBinContent(i+1, freq);
-                    }
-                  if (isMEvalid(dduME, "Trailer_ErrorStat_Table", mo1)) mo1->Fill(0.,i);
+                  if (mo_DDU_Trailer_ErrorStat_Rate)  mo_DDU_Trailer_ErrorStat_Rate->Fill(i);
+                  if (mo_DDU_Trailer_ErrorStat_Table) mo_DDU_Trailer_ErrorStat_Table->Fill(0.,i);
 
+                }
+              if (mo_DDU_Trailer_ErrorStat_Rate)
+                {
+                  double freq = (100.0*mo1->GetBinContent(i+1))/nEvents;
+                  if (mo_DDU_Trailer_ErrorStat_Frequency) mo_DDU_Trailer_ErrorStat_Frequency->SetBinContent(i+1, freq);
                 }
             }
         }
@@ -569,6 +586,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         {
           mo->Fill(dduID,0); // No Errors
         }
+
     }
 
   if (isMEvalid(dduME,"Trailer_ErrorStat_Table", mo)) mo->SetEntries(nEvents);
