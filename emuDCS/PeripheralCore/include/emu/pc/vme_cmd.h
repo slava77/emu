@@ -1,14 +1,14 @@
 int ife;
 
-// unsigned long vmeadd_tmp;
-unsigned long add_i,add_d,add_dh,add_ds,add_dt,add_sw,add_sr,add_rst,add_r;
-unsigned long add_loww,add_lowr,add_lowwpr,add_lowrpr,add_lowrs,add_lowws;
-unsigned long add_reset,add_cdac, add_vmefpga;
-unsigned long add_adcw,add_adcr,add_adcrbb,add_adcws,add_adcrs;
-unsigned long add_fifo_w00,add_fifo_w01,add_fifo_w10,add_fifo_w11,add_fifo_rln,add_fifo_rli,add_fifo_rhn,add_fifo_rhi,add_fifo_ws,add_fifo_rs,add_fifo_i;
-unsigned long add_bucip,add_bucl,add_bucf,add_bucr,add_buci,add_buce;
-unsigned long add_control_r,add_control_w;
-unsigned long add_ucla;
+// unsigned int vmeadd_tmp;
+unsigned int add_i,add_d,add_dh,add_ds,add_dt,add_sw,add_sr,add_rst,add_r;
+unsigned int add_loww,add_lowr,add_lowwpr,add_lowrpr,add_lowrs,add_lowws;
+unsigned int add_reset,add_cdac, add_vmefpga;
+unsigned int add_adcw,add_adcr,add_adcrbb,add_adcws,add_adcrs;
+unsigned int add_fifo_w00,add_fifo_w01,add_fifo_w10,add_fifo_w11,add_fifo_rln,add_fifo_rli,add_fifo_rhn,add_fifo_rhi,add_fifo_ws,add_fifo_rs,add_fifo_i;
+unsigned int add_bucip,add_bucl,add_bucf,add_bucr,add_buci,add_buce;
+unsigned int add_control_r,add_control_w;
+unsigned int add_ucla;
 
 unsigned long msk00={0x00000000};
 unsigned long msk01={0x00001000};

@@ -210,8 +210,7 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
     add_vmefpga=vmeadd|msk00;
     if (cmd[0]==0x01) {  //read
       add_vmefpga=add_vmefpga+((cmd[1]<<2)&0xfc);
-      unsigned long int testadd=add_vmefpga;
-      unsigned short int * ptr=(unsigned short int *)testadd;
+      unsigned int ptr=add_vmefpga;
       unsigned short int testdata[2]; 
       testdata[0]=0; testdata[1]=0;
       vme_controller(2,ptr,testdata,outbuf);
@@ -402,12 +401,12 @@ int byte,bit;
 unsigned short int tird[3]={3,1,3};
 unsigned short int tmp[2]={0x0000};
 unsigned short int *data;
-unsigned short int *ptr_i;
-unsigned short int *ptr_d;
-unsigned short int *ptr_dh;
-unsigned short int *ptr_ds;
-unsigned short int *ptr_dt;
-unsigned short int *ptr_r;
+unsigned int ptr_i;
+unsigned int ptr_d;
+unsigned int ptr_dh;
+unsigned int ptr_ds;
+unsigned int ptr_dt;
+unsigned int ptr_r;
  
 if(cnt==0)return;
 
@@ -427,7 +426,7 @@ if(cnt==0)return;
  if(reg==0){
    add_i=add_i&msk_clr;
    add_i=add_i|(cnt2<<8);
-   ptr_i=(unsigned short int*)add_i;
+   ptr_i=add_i;
    bit=cnt; 
    // xif(bit>8)*ptr_i=*data;
    // xif(bit<=8)*ptr_i=((*data)>>8);
@@ -446,7 +445,7 @@ if(cnt==0)return;
    if(byte==0||(byte==1&&bit==0)){
      add_d=add_d&msk_clr;
      add_d=add_d|(cnt2<<8);
-     ptr_d=(unsigned short int *)add_d; 
+     ptr_d=add_d; 
      // printf(" 2 VME W: %08x %04x \n",ptr_d,*data);
      // xif(bit>8|byte==1)*ptr_d=*data;
      // xif(bit<=8&byte!=1)*ptr_d=((*data)>>8);
@@ -454,7 +453,7 @@ if(cnt==0)return;
      vme_controller(tird[ird],ptr_d,data,rcv);
      //  printf("2 VME W: %08x %04x \n",ptr_dh,*data);
      if(ird==1){
-       ptr_r=(unsigned short int *)add_r;
+       ptr_r=add_r;
        // x*data2=*ptr_r;
        // printf(" R %08x \n",ptr_r);
        vme_controller(2,ptr_r,tmp,rcv);
@@ -463,30 +462,30 @@ if(cnt==0)return;
    }
    add_dh=add_dh&msk_clr;
    add_dh=add_dh|0x0f00;
-   ptr_dh=(unsigned short int *)add_dh;
+   ptr_dh=add_dh;
    // printf(" 3 VME W: %08x %04x \n",ptr_dh,*data);
   vme_controller(1,ptr_dh,data,rcv);
   // x*ptr_dh=*data;
   data=data+1;
   if(ird==1){       
-     ptr_r=(unsigned short int *)add_r;
+     ptr_r=add_r;
      // printf("3 R %08x \n",ptr_r);
      vme_controller(0,ptr_r,tmp,rcv);
      // x*data2=*ptr_r; 
      // printf(" rddata %04x \n",*data2);
   }
   add_ds=add_ds&msk_clr;
-  ptr_ds=(unsigned short int *)add_ds;
+  ptr_ds=add_ds;
   for(i=0;i<byte-1;i++){
     if(i==(byte-2)&&bit==0){
       add_dt=add_dt&msk_clr;
       add_dt=add_dt|0x0f00;
-      ptr_dt=(unsigned short int *)add_dt;
+      ptr_dt=add_dt;
       // printf("4 VME W: %08x %04x \n",ptr_dt,*data);
       vme_controller(tird[ird],ptr_dt,data,rcv);
       // x*ptr_dt=*data;
       if(ird==1){
-        ptr_r=(unsigned short int *)add_r;
+        ptr_r=add_r;
 	//  printf("4 R %08x \n",ptr_r);
         vme_controller(2,ptr_r,data,rcv);
         // x*data2=*ptr_r;  
@@ -496,13 +495,13 @@ if(cnt==0)return;
     }else{
       add_ds=add_ds&msk_clr;
       add_ds=add_ds|0x0f00;
-      ptr_ds=(unsigned short *)add_ds;
+      ptr_ds=add_ds;
       // printf("5 VME W: %08x %04x \n",ptr_ds,*data);
       vme_controller(1,ptr_ds,data,rcv);
       // x*ptr_ds=*data;
       data=data+1;
       if(ird==1){
-        ptr_r=(unsigned short int *)add_r;
+        ptr_r=add_r;
         // printf(" R %08x \n",ptr_r);
         vme_controller(0,ptr_r,tmp,rcv);
         // x*data2=*ptr_r; 
@@ -513,14 +512,14 @@ if(cnt==0)return;
   cnt2=bit-1;
   add_dt=add_dt&msk_clr;
   add_dt=add_dt|(cnt2<<8);
-  ptr_dt=(unsigned short int *)add_dt; 
+  ptr_dt=add_dt; 
   // printf("6 VME W: %08x %04x \n",ptr_dt,*data);
   // xif(bit>8)*ptr_dt=*data;
   // xif(bit<=8)*ptr_dt=*data>>8;
   // if(bit<=8)*data=*data>>8;
   vme_controller(tird[ird],ptr_dt,data,rcv);
   if(ird==1){
-     ptr_r=(unsigned short int *)add_r;
+     ptr_r=add_r;
      // printf(" R %08x \n",ptr_r);
      vme_controller(2,ptr_r,tmp,rcv);
      // x*data2=*ptr_r; 
@@ -600,8 +599,8 @@ void VMEController::RestoreIdle()
 {
  char tmp[2]={0x00,0x00};
  unsigned short int tmp2[1]={0x0000};
-unsigned short int *ptr_rst;
- ptr_rst=(unsigned short *)add_rst;
+unsigned int ptr_rst;
+ ptr_rst=add_rst;
  // printf(" call restore idle %08x %08x \n",ptr_rst,add_rst);
   vme_controller(3,ptr_rst,tmp2,tmp);
 
@@ -623,19 +622,19 @@ void VMEController::RestoreIdle_reset()
 {
 unsigned short int one[1]={0x01};
 char tmp[2]={0x00,0x00};
-unsigned short int *ptr;
+unsigned int ptr;
  int i;
- ptr=(unsigned short int *)add_reset;
+ ptr=add_reset;
  for(i=0;i<5;i++){vme_controller(3,ptr,one,tmp);sdly();}
 }
 
 void VMEController::load_cdac(const char *snd)
 {
- static unsigned short int *ptr;
+ unsigned int ptr;
  unsigned short int data1,data2;
  char tmp[2]={0x00,0x00};
 
- ptr=(unsigned short int *)add_cdac;
+ ptr=add_cdac;
  // n = readline(sockfd,val,4);
  data1=((snd[1]&0x0f)<<8)|(snd[0]&0xff);
  data1=(data1<<1)|0xc000;
@@ -662,7 +661,7 @@ void VMEController::vme_adc(int ichp,int ichn,char *rcv)
 
  char adcreg[5]={0x00,0x0e,0x0d,0x0b,0x07};
 
- unsigned short int *ptr;
+ unsigned int ptr;
  unsigned short int val[2];
  unsigned short int tmp[2]={0x0000,0x0000}; 
  // printf(" enter vme_adc \n");
@@ -670,20 +669,20 @@ void VMEController::vme_adc(int ichp,int ichn,char *rcv)
       val[0]=adcreg[ichp];
       val[1]=adcbyt[ichp-1][ichn];
       if(val[0]==0){ 
-         ptr=(unsigned short int *)add_adcrs;
+         ptr=add_adcrs;
 	 vme_controller(2,ptr,tmp,rcv);     //*ptr=*data;  
          return;
        }
-       ptr=(unsigned short int *)add_adcws;
+       ptr=add_adcws;
        // printf(" select register%08x  %02x \n",ptr,val[0]&0xff);
 	 vme_controller(3,ptr,&val[0],rcv);     //*ptr=val[0];  
-         ptr=(unsigned short int *)add_adcw;
+         ptr=add_adcw;
          // printf(" adc write %08x %02x \n",ptr,val[1]&0xff);
 	 vme_controller(3,ptr,&val[1],rcv);    // *ptr=val[1]; 
       if(val[0]!=0x07){
-          ptr=(unsigned short int *)add_adcr;
+          ptr=add_adcr;
       }else{
-          ptr=(unsigned short int *)add_adcrbb;
+          ptr=add_adcrbb;
       }
       vme_controller(2,ptr,tmp,rcv);     //*data=*ptr;  
 
@@ -692,7 +691,7 @@ void VMEController::vme_adc(int ichp,int ichn,char *rcv)
 
 void VMEController::buckflash(const char *cmd,int nbuf,const char *inbuf,char *rcv)
 {
- unsigned short int *ptr;
+ unsigned int ptr;
  unsigned short int tmp[1];
  unsigned short int data[2];
  char *line2;
@@ -700,35 +699,35 @@ void VMEController::buckflash(const char *cmd,int nbuf,const char *inbuf,char *r
  //printf(" entering buckflash cmd %d  \n",cmd[0);
 
  if(cmd[0]==0){
-   ptr=(unsigned short int *)add_bucip;
+   ptr=add_bucip;
    // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1]);
    tmp[0]=cmd[1];
    vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
    return;
  }
  if(cmd[0]==2){
-   ptr=(unsigned short int *)add_bucf;
+   ptr=add_bucf;
    // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1]);
    tmp[0]=cmd[1];
    vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
    return;
  }
  if(cmd[0]==4){
-   ptr=(unsigned short int *)add_buci; 
+   ptr=add_buci; 
    // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1])
    tmp[0]=cmd[1]; 
    vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
    return;
  }
  if(cmd[0]==5){
-   ptr=(unsigned short int *)add_buce; 
+   ptr=add_buce; 
    // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1])
    tmp[0]=cmd[1]; 
    vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
    return;
  }
  if(cmd[0]==1){
-   ptr=(unsigned short int *)add_bucl;
+   ptr=add_bucl;
    for(i=0;i<(nbuf/8)-1;i++){ 
      line2=(char *)inbuf+i-1;
      // data=(unsigned short int *)line2;
@@ -747,7 +746,7 @@ void VMEController::buckflash(const char *cmd,int nbuf,const char *inbuf,char *r
  }
  if(cmd[0]==3){
    //  fprintf(fplog," buckflash about to read \n");
-   ptr=(unsigned short int *)add_bucr;
+   ptr=add_bucr;
    for(i=0;i<nbuf/8;i++){
      vme_controller(0,ptr,tmp,rcv);    
    }
@@ -759,41 +758,41 @@ void VMEController::buckflash(const char *cmd,int nbuf,const char *inbuf,char *r
 /*
 void VMEController::buckflash(const char *cmd,const char *inbuf,char *rcv)
 {
- unsigned short int *ptr;
+ unsigned int ptr;
  unsigned short int tmp[1];
  unsigned short int *data;
  char *line2;
  int n,m,nleft,i;
  if(cmd[0]==0){
-   ptr=(unsigned short int *)add_bucip;
+   ptr=add_bucip;
    // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1]);
    tmp[0]=cmd[1];
    vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
    return;
  }
  if(cmd[0]==2){
-   ptr=(unsigned short int *)add_bucf;
+   ptr=add_bucf;
    // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1]);
    tmp[0]=cmd[1];
    vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
    return;
  }
  if(cmd[0]==4){
-   ptr=(unsigned short int *)add_buci; 
+   ptr=add_buci; 
    // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1])
    tmp[0]=cmd[1]; 
    vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
    return;
  }
  if(cmd[0]==5){
-   ptr=(unsigned short int *)add_buce; 
+   ptr=add_buce; 
    // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1])
    tmp[0]=cmd[1]; 
    vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
    return;
  }
  if(cmd[0]==1){
-   ptr=(unsigned short int *)add_bucl;
+   ptr=add_bucl;
    for(i=0;i<294;i++){ 
      line2=(char *)inbuf+i-1;
      printf("%d\n",line2);
@@ -809,7 +808,7 @@ void VMEController::buckflash(const char *cmd,const char *inbuf,char *rcv)
  }
  if(cmd[0]==3){
    //  fprintf(fplog," buckflash about to read \n");
-   ptr=(unsigned short int *)add_bucr;
+   ptr=add_bucr;
    for(i=0;i<290;i++){
      vme_controller(0,ptr,tmp,rcv);    
    }
@@ -832,7 +831,7 @@ void VMEController::lowvolt(int ichp,int ichn,char *rcv)
  };
 
  char lowvreg[10]={0x10,0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x11,0x12};
- unsigned short int *ptr;
+ unsigned int ptr;
  unsigned short int val[2];
  unsigned short int tmp[2]={0x0000,0x0000}; 
 
@@ -845,25 +844,25 @@ void VMEController::lowvolt(int ichp,int ichn,char *rcv)
         val[1]=ichn;
       }
       if(val[0]==0x10){
-         ptr=(unsigned short int *)add_lowrs;
+         ptr=add_lowrs;
 	 vme_controller(2,ptr,tmp,rcv);     //*ptr=*data;  
          return;
        }
        if(val[0]==0x12){ 
-         ptr=(unsigned short int *)add_lowrpr;
+         ptr=add_lowrpr;
       	 vme_controller(2,ptr,tmp,rcv);     //*ptr=*data;  
          return;
        }
        if(val[0]==0x11){ 
-         ptr=(unsigned short int *)add_lowwpr;
+         ptr=add_lowwpr;
  	 vme_controller(3,ptr,&val[1],rcv);    // *ptr=val[1]; 
          return;
        } 
-       ptr=(unsigned short int *)add_lowws;
+       ptr=add_lowws;
        vme_controller(3,ptr,&val[0],rcv);     //*ptr=val[0];   
-       ptr=(unsigned short int *)add_loww;
+       ptr=add_loww;
        vme_controller(3,ptr,&val[1],rcv);    // *ptr=val[1]; 
-       ptr=(unsigned short int *)add_lowr; 
+       ptr=add_lowr; 
        vme_controller(2,ptr,tmp,rcv);     //*data=*ptr;  
 }
 
@@ -878,10 +877,10 @@ unsigned short int x02[1]={0x02};
 unsigned short int x03[1]={0x03};
 unsigned short int ival,ival2;
 unsigned short int *data;
-unsigned short int *ptr;
+unsigned int ptr;
 
  if(cnt==0)return;
- ptr=(unsigned short int *)add_reset;
+ ptr=add_reset;
  data=(unsigned short int *) snd;
  // printf("scan_reset %d %d %02x %02x \n",reg,cnt,snd[1]&0xff,snd[0]&0xff);
 
@@ -942,7 +941,7 @@ void  VMEController::daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int
 {
  int i;
  unsigned short int *data;
- unsigned short int *ptr;
+ unsigned int ptr;
  unsigned short int tird[4]={1,0,1,0};
  unsigned short int fifo[1];
  unsigned short int tmp[2]={0x0000,0x0000}; 
@@ -951,7 +950,7 @@ void  VMEController::daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int
  if(tird[irdwr]==0){
    // printf("  read %d 16 bit words \n",nbyte/2);
           data=(unsigned short int  *)buf;
-          ptr=(unsigned short int *)add_fifo_rli;
+          ptr=add_fifo_rli;
           for(i=0;i<nbyte/2-1;i++){
 	     vme_controller(0,ptr,data,(char *)rcv); //*data=*ptr;  
              // printf("fifo R %d %08x \n",i,ptr); 
@@ -969,20 +968,20 @@ void  VMEController::daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int
       if(ififo==5)fifo[0]=0x10;  //fifo5
       if(ififo==6)fifo[0]=0x20;  //fifo6
       if(ififo==7)fifo[0]=0x40;  //fifo7    
-      ptr=(unsigned short int *)add_fifo_ws;
+      ptr=add_fifo_ws;
       vme_controller(1,ptr,fifo,(char *)rcv);   
       // printf("  write %d 16 bit words \n",nbyte/2);
           data=(unsigned short int *)buf;
-          ptr=(unsigned short int *)add_fifo_w00;
+          ptr=add_fifo_w00;
           for(i=0;i<nbyte/2-1;i++){
 	     vme_controller(1,ptr,data,(char *)rcv);     //*ptr=*data; 
              // printf("     fifo W %d %08x %04x \n",i,ptr,*data); 
              data=data+1; 
           }
-          ptr=(unsigned short int *)add_fifo_w01; /* last word bit */
+          ptr=add_fifo_w01; /* last word bit */
 	       //  printf("last fifo W %d %08x %04x \n",i,ptr,*data); 
 	  vme_controller(1,ptr,data,(char *)rcv); //*ptr=*data;
-          ptr=(unsigned short int *)add_fifo_ws;
+          ptr=add_fifo_ws;
 	  vme_controller(3,ptr,tmp,(char *)rcv); //*ptr=0x00;
       } 
 }
@@ -992,13 +991,13 @@ void VMEController::setuse()
 {
 char tmp[2]={0x00,0x00};
  unsigned short int tmp2[1];
-unsigned short int *ptrreg;
+unsigned int ptr;
 
- ptrreg=(unsigned short int *) add_sw;
+ ptr = add_sw;
  tmp2[0]=feuse;
 // for (int iloop=0;iloop<30;iloop++) sdly();
  usleep(1000);
- vme_controller(3,ptrreg,tmp2,tmp);
+ vme_controller(3,ptr,tmp2,tmp);
 // for (int iloop=0;iloop<30;iloop++) sdly();
  usleep(1000);
  // x*ptrreg=feuse;
@@ -1011,13 +1010,13 @@ void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ir
   const unsigned short int TCK=(1<<TCK_);
   const unsigned short int TMS=(1<<TMS_);
   unsigned short int ival, d, dd;
-  unsigned short int *ptr;
+  unsigned int ptr;
   unsigned char *rcv2, bdata, *data, mytmp[MAXLINE];
   int buff_mode;
   
  if(cnt<0 || reg<0 || reg>1)return;
  for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
- ptr=(unsigned short int *)add_ucla;
+ ptr=add_ucla;
  rcv2=(unsigned char *)rcv;
  data=(unsigned char *)snd;
  
@@ -1137,10 +1136,10 @@ void VMEController::RestoreIdle_jtag()
   int k;
   unsigned short int d[3];
   char tmp[2];
-  unsigned short int *ptr;
+  unsigned int ptr;
   unsigned short int clkon=(1<<TCK_);
   const unsigned short int TMS=(1<<TMS_);
-  ptr=(unsigned short int *)add_ucla;
+  ptr=add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   //
   // std::cout << "ptr="<<ptr<< " pvme= " <<pvme<< std::endl;
@@ -1163,10 +1162,10 @@ void VMEController::RestoreReset_jtag()
   int k;
   unsigned short int d[3];
   char tmp[2];
-  unsigned short int *ptr;
+  unsigned int ptr;
   unsigned short int clkon=(1<<TCK_);
   const unsigned short int TMS=(1<<TMS_);
-  ptr=(unsigned short int *)add_ucla;
+  ptr=add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;
   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,tmp);
@@ -1184,10 +1183,10 @@ void VMEController::CycleIdle_jtag(int cycles)
   int i, k;
   unsigned short int d[3];
   char tmp[2];
-  unsigned short int *ptr;
+  unsigned int ptr;
   unsigned short int clkon=(1<<TCK_);
   // const unsigned short int TMS=(1<<TMS_);
-  ptr=(unsigned short int *)add_ucla;
+  ptr=add_ucla;
   if(cycles>1) std::cout << "Cycle JTAG IDLE (TMS=0) " << cycles << " times." << std::endl;
   //
   // std::cout << "ptr="<<ptr<< " pvme= " <<pvme<< std::endl;
@@ -1195,7 +1194,7 @@ void VMEController::CycleIdle_jtag(int cycles)
   d[0]=pvme;d[1]=pvme|clkon;d[2]=pvme;
   for(i=1;i<=cycles; i++)  
   {
-     for(k=0;k<3;k++)VME_controller((k==2 && i==cycles)?3:1,ptr,d+k,tmp);
+     for(k=0;k<3;k++)vme_controller((k==2 && i==cycles)?3:1,ptr,d+k,tmp);
   }
   //
 }
@@ -1389,8 +1388,8 @@ void VMEController::new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,cons
     add_vmefpga=vmeadd|msk00;
     if (cmd[0]==0x01) {  //read
       add_vmefpga=add_vmefpga+((cmd[1]<<2)&0xfc);
-      unsigned long int testadd=add_vmefpga;
-      unsigned short int * ptr=(unsigned short int *)testadd;
+      unsigned int testadd=add_vmefpga;
+      unsigned int ptr=testadd;
       unsigned short int testdata[2]; 
       testdata[0]=0; testdata[1]=0;
       vme_controller(2,ptr,testdata,outbuf);
@@ -1514,12 +1513,12 @@ int tird[2]={0, 2};
 int tiwt[2]={1, 3};
 unsigned short int tmp[2]={0x0000};
 unsigned short int *data;
-unsigned short int *ptr_i;
-unsigned short int *ptr_d;
-unsigned short int *ptr_dh;
-unsigned short int *ptr_ds;
-unsigned short int *ptr_dt;
-unsigned short int *ptr_r;
+unsigned int ptr_i;
+unsigned int ptr_d;
+unsigned int ptr_dh;
+unsigned int ptr_ds;
+unsigned int ptr_dt;
+unsigned int ptr_r;
  
  if(cnt==0)return;
  if(when!=0) when=1;
@@ -1541,7 +1540,7 @@ unsigned short int *ptr_r;
  if(reg==0){
    add_i=add_i&msk_clr;
    add_i=add_i|(cnt2<<8);
-   ptr_i=(unsigned short int*)add_i;
+   ptr_i=add_i;
    bit=cnt; 
    // xif(bit>8)*ptr_i=*data;
    // xif(bit<=8)*ptr_i=((*data)>>8);
@@ -1560,7 +1559,7 @@ unsigned short int *ptr_r;
    if(byte==0||(byte==1&&bit==0)){
      add_d=add_d&msk_clr;
      add_d=add_d|(cnt2<<8);
-     ptr_d=(unsigned short int *)add_d; 
+     ptr_d=add_d; 
      // printf(" 2 VME W: %08x %04x \n",ptr_d,*data);
      // xif(bit>8|byte==1)*ptr_d=*data;
      // xif(bit<=8&byte!=1)*ptr_d=((*data)>>8);
@@ -1568,7 +1567,7 @@ unsigned short int *ptr_r;
      vme_controller(tiwt[when],ptr_d,data,rcv);
      //  printf("2 VME W: %08x %04x \n",ptr_dh,*data);
      if(ird==1){
-       ptr_r=(unsigned short int *)add_r;
+       ptr_r=add_r;
        // x*data2=*ptr_r;
        // printf(" R %08x \n",ptr_r);
        vme_controller(tird[when],ptr_r,tmp,rcv);
@@ -1577,30 +1576,30 @@ unsigned short int *ptr_r;
    }
    add_dh=add_dh&msk_clr;
    add_dh=add_dh|0x0f00;
-   ptr_dh=(unsigned short int *)add_dh;
+   ptr_dh=add_dh;
    // printf(" 3 VME W: %08x %04x \n",ptr_dh,*data);
   vme_controller(1,ptr_dh,data,rcv);
   // x*ptr_dh=*data;
   data=data+1;
   if(ird==1){       
-     ptr_r=(unsigned short int *)add_r;
+     ptr_r=add_r;
      // printf("3 R %08x \n",ptr_r);
      vme_controller(0,ptr_r,tmp,rcv);
      // x*data2=*ptr_r; 
      // printf(" rddata %04x \n",*data2);
   }
   add_ds=add_ds&msk_clr;
-  ptr_ds=(unsigned short int *)add_ds;
+  ptr_ds=add_ds;
   for(i=0;i<byte-1;i++){
     if(i==(byte-2)&&bit==0){
       add_dt=add_dt&msk_clr;
       add_dt=add_dt|0x0f00;
-      ptr_dt=(unsigned short int *)add_dt;
+      ptr_dt=add_dt;
       // printf("4 VME W: %08x %04x \n",ptr_dt,*data);
       vme_controller(tiwt[when],ptr_dt,data,rcv);
       // x*ptr_dt=*data;
       if(ird==1){
-        ptr_r=(unsigned short int *)add_r;
+        ptr_r=add_r;
 	//  printf("4 R %08x \n",ptr_r);
         vme_controller(tird[when],ptr_r,data,rcv);
         // x*data2=*ptr_r;  
@@ -1610,13 +1609,13 @@ unsigned short int *ptr_r;
     }else{
       add_ds=add_ds&msk_clr;
       add_ds=add_ds|0x0f00;
-      ptr_ds=(unsigned short *)add_ds;
+      ptr_ds=add_ds;
       // printf("5 VME W: %08x %04x \n",ptr_ds,*data);
       vme_controller(1,ptr_ds,data,rcv);
       // x*ptr_ds=*data;
       data=data+1;
       if(ird==1){
-        ptr_r=(unsigned short int *)add_r;
+        ptr_r=add_r;
         // printf(" R %08x \n",ptr_r);
         vme_controller(0,ptr_r,tmp,rcv);
         // x*data2=*ptr_r; 
@@ -1627,14 +1626,14 @@ unsigned short int *ptr_r;
   cnt2=bit-1;
   add_dt=add_dt&msk_clr;
   add_dt=add_dt|(cnt2<<8);
-  ptr_dt=(unsigned short int *)add_dt; 
+  ptr_dt=add_dt; 
   // printf("6 VME W: %08x %04x \n",ptr_dt,*data);
   // xif(bit>8)*ptr_dt=*data;
   // xif(bit<=8)*ptr_dt=*data>>8;
   // if(bit<=8)*data=*data>>8;
   vme_controller(tiwt[when],ptr_dt,data,rcv);
   if(ird==1){
-     ptr_r=(unsigned short int *)add_r;
+     ptr_r=add_r;
      // printf(" R %08x \n",ptr_r);
      vme_controller(tird[when],ptr_r,tmp,rcv);
      // x*data2=*ptr_r; 
@@ -1651,12 +1650,12 @@ void VMEController::shift_bits(int reg,const char *snd, int cnt, char *rcv,int i
   const unsigned short int TCK=(1<<TCK_);
   const unsigned short int TMS=(1<<TMS_);
   unsigned short int ival, d, dd;
-  unsigned short int *ptr;
+  unsigned int ptr;
   unsigned char *rcv2, bdata, *data, mytmp[MAXLINE];
   
   if(cnt<0 || reg<0 || reg>1)return;
   for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
-  ptr=(unsigned short int *)add_ucla;
+  ptr=add_ucla;
   rcv2=(unsigned char *)rcv;
   data=(unsigned char *)snd;
  
@@ -1738,11 +1737,11 @@ void VMEController::shift_state(int cnt, int mask)
   const unsigned short int TCK=(1<<TCK_);
   const unsigned short int TMS=(1<<TMS_);
   unsigned short int ival, d, dd;
-  unsigned short int *ptr;
+  unsigned int ptr;
   unsigned char mytmp[1000];
   
   if(cnt<0 || cnt>32)return;
-  ptr=(unsigned short int *)add_ucla;
+  ptr=add_ucla;
  
   if (DEBUG) {
       printf("shift_state: cnt=%d, tms=%08x\n", cnt, mask);
@@ -1772,13 +1771,13 @@ void VMEController::scan_word(int reg,const char *snd, int cnt, char *rcv,int ir
   const unsigned short int TCK=(1<<TCK_);
   const unsigned short int TMS=(1<<TMS_);
   unsigned short int ival, d, dd;
-  unsigned short int *ptr;
+  unsigned int ptr;
   unsigned char *rcv2, bdata, *data, mytmp[MAXLINE];
   int buff_mode;
   
  if(cnt<0 || reg<0 || reg>1)return;
  for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
- ptr=(unsigned short int *)add_ucla;
+ ptr=add_ucla;
  rcv2=(unsigned char *)rcv;
  data=(unsigned char *)snd;
  

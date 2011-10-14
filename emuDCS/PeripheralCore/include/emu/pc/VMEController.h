@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.5 2011/07/01 03:19:38 liu Exp $
+// $Id: VMEController.h,v 1.6 2011/10/14 16:22:21 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 1.6  2011/10/14 16:22:21  liu
+// change the 2nd argument of vme_controller from pointer to unsigned int
+//
 // Revision 1.5  2011/07/01 03:19:38  liu
 // new JTAG functions
 //
@@ -371,10 +374,10 @@ private:
   int plev;
   int idevo;
   int board; //board type
-  unsigned long add_ucla; // current VME address for JTAG
-  unsigned long vmeadd; // current VME base address for the module
+  unsigned int add_ucla; // current VME address for JTAG
+  unsigned int vmeadd; // current VME base address for the module
   unsigned short int pvme; // value for ALCT JTAG register (0x70000)
-  unsigned long vmeaddo;
+  unsigned int vmeaddo;
   int feuse;
   int ucla_ldev;
   long int packet_delay;
@@ -397,11 +400,9 @@ private:
   //void buckflash(const char *cmd,const char *inbuf,char *rcv);
   void buckflash(const char *cmd,int nbuf,const char *inbuf,char *rcv);
   void lowvolt(int ichp,int ichn,char *rcv);
-  void handshake_vme();
-  void flush_vme();
   void daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
-  int vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
-  int VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
+  int vme_controller(int irdwr,unsigned int ptr,unsigned short int *data,char *rcv);
+  int VME_controller(int irdwr,unsigned int ptr,unsigned short int *data,char *rcv);
   void dump_outpacket(int nvme);
   int eth_reset(int ethsocket);
   void mrst_ff();
