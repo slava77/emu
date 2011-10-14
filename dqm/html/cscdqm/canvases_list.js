@@ -27,6 +27,7 @@ var TREE_ITEMS = [
            ['DMBs DAV and Unpacked vs DMBs Active','DDU_DMBs_DAV_and_Unpacked_vs_DMBs_Active.png'],
 	   ['Output Path Status', 'DDU_Output_Path_Status.png'],
            ['Error Status from DDU Trailer','DDU_Error_Status_from_DDU_Trailer.png'],
+	   ['Ouput Path Status from DDU Header','DDU_Output_Path_Status.png'],
            ['Event Buffer Size and DDU Word Count','DDU_Event_Buffer_Size_and_DDU_Word_Count.png'],
            ['L1A and BXN Counters','DDU_L1A_and_BXN_Counters.png'],
            ['State of CSCs','DDU_State_of_CSCs.png'],
