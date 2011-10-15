@@ -1,4 +1,4 @@
-// $Id: PCConfigEditor.cc,v 1.1 2011/09/09 16:04:44 khotilov Exp $
+// $Id: PCConfigEditor.cc,v 1.2 2011/10/15 00:19:42 khotilov Exp $
 
 #include "emu/db/PCConfigEditor.h"
 #include "emu/db/TStoreRequest.h"
@@ -116,7 +116,8 @@ void PCConfigEditor::my_test()
 
   //std::map<std::string, emu::db::ConfigTable> tab = h.definitionsTree();
 
-  emu::db::TStoreReadWriter tstore_rw(&h, this, dbUserAndPassword_, 0);
+  //emu::db::TStoreReadWriter tstore_rw(&h, this, dbUserAndPassword_, 0);
+  emu::db::TStoreReadWriter tstore_rw(&h, this, "", 0);
   //test.readIDs("minus");
 
   xdata::UnsignedInteger64 maxid = tstore_rw.readMaxID("minus");
@@ -125,6 +126,14 @@ void PCConfigEditor::my_test()
   xdata::UnsignedInteger64 flashid = tstore_rw.readLastConfigIdFlashed("minus");
   std::cout<<"The latest flashed id: "<<flashid.toString()<<std::endl;
   //tstore_rw.writeFlashTime(maxid);
+
+  std::vector<std::string> all_ids = tstore_rw.readIDs(2, 20);
+  std::cout<<"all ids:"<<std::endl;
+  for (size_t i=0; i<all_ids.size(); ++i) std::cout<<" "<<all_ids[i];
+  std::cout<<std::endl;
+
+  std::vector<std::pair< std::string, std::string> > flash_list = tstore_rw.readFlashList("minus");
+  for (size_t i=0; i<flash_list.size(); ++i) std::cout<<" f: "<<flash_list[i].first<<" \t "<<flash_list[i].second<<std::endl;
 
   tstore_rw.read(maxid);
   //tstore_rw.write();return;

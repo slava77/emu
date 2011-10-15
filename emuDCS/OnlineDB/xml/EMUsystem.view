@@ -1062,7 +1062,7 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
 
     <!-- TABLE: EMU_FLASH_WRITE -->
 
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="flash_list">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="list_flash_write">
       <sql:parameter name="SIDE">
         <![CDATA[]]>
       </sql:parameter> 
