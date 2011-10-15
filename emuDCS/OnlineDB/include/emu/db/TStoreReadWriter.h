@@ -25,15 +25,22 @@ public:
    * @param db_credentials The database credentials (in the "username/password" format).
    * @instance             The instance of tstore (-1 means find first available)
    **/
-  TStoreReadWriter(ConfigHierarchy* hierarchy, xdaq::Application *application, const std::string &db_credentials, int instance = 0);
+  TStoreReadWriter(ConfigHierarchy* hierarchy, xdaq::Application *application, const std::string &db_credentials = "", int instance = 0);
 
   /// Default destructor
   ~TStoreReadWriter() {};
 
-  /** Read a vector of configuration ids (maximum of 50 last ids)
+  /** Read a vector of configuration ids (maximum last n ids)
    * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
+   * @param n  how many ids to read (starting from max id in descending order)
    */
-  std::vector<xdata::UnsignedInteger64> readIDs(const std::string &subsystem = "") throw (emu::exception::ConfigurationException);
+  std::vector<xdata::UnsignedInteger64> readIDs(const std::string &subsystem = "", int n = 50) throw (emu::exception::ConfigurationException);
+
+  /** Read a vector of configuration : special version for PCrate setup
+   * @param side  1="plus" 2="minus"
+   * @param n  how many ids to read (starting from max id in descending order)
+   */
+  std::vector<std::string> readIDs(int side, int n = 50) throw (emu::exception::ConfigurationException);
 
   /** Read the last configuration ID
    * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
@@ -61,6 +68,12 @@ public:
    * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
    */
   xdata::UnsignedInteger64 readLastConfigIdFlashed(const std::string &subsystem = "") throw (emu::exception::ConfigurationException);
+
+  /** Read the list of flash id & time pairs
+   * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
+   * @return vector of <id, time> pairs
+   */
+  std::vector<std::pair< std::string, std::string> > readFlashList(const std::string &subsystem = "") throw (emu::exception::ConfigurationException);
 
   /** Writes the time of configuration flashing (in fact, the time when it is called) into a designated DB table
    * \param ID     the DB key of configuration that was flashed

@@ -1,9 +1,10 @@
-// $Id: TStoreReadWriter.cc,v 1.1 2011/09/09 16:04:45 khotilov Exp $
+// $Id: TStoreReadWriter.cc,v 1.2 2011/10/15 00:19:42 khotilov Exp $
 
 #include "emu/db/TStoreReadWriter.h"
 #include "emu/db/TStoreAgent.h"
 
 #include "emu/utils/SimpleTimer.h"
+#include "emu/utils/System.h"
 
 #include "xdata/TableIterator.h"
 #include "xdata/UnsignedShort.h"
@@ -24,10 +25,23 @@ TStoreReadWriter::TStoreReadWriter(ConfigHierarchy* hierarchy, xdaq::Application
 , instance_(instance)
 {
   hierarchy_ = hierarchy;
+
+  if (db_credentials_.empty())
+  {
+    try
+    {
+      std::string home_dir = getenv("HOME");
+      db_credentials_ = toolbox::trim(emu::utils::readFile(home_dir + "/dbuserfile.txt"));
+    }
+    catch (xcept::Exception & e)
+    {
+      XCEPT_RETHROW(emu::exception::FileException, "No db_credentials provided and cannot open $HOME/dbuserfile.txt " + std::string(e.what()), e);
+    }
+  }
 }
 
 
-std::vector<xdata::UnsignedInteger64> TStoreReadWriter::readIDs(const std::string &subsystem)
+std::vector<xdata::UnsignedInteger64> TStoreReadWriter::readIDs(const std::string &subsystem, int n)
 throw (emu::exception::ConfigurationException)
 {
   std::vector<xdata::UnsignedInteger64> result;
@@ -40,6 +54,10 @@ throw (emu::exception::ConfigurationException)
   //set up parameter name and value
   std::map< std::string, std::string > parameters;
   if (!subsystem.empty())  parameters["SIDE"] = subsystem;
+
+  std::ostringstream maxRows;
+  maxRows << n;
+  parameters["MAX"] = maxRows.str();
 
   TStoreAgent tstore(application_, hierarchy_->tstoreViewID(), instance_);
   try  { tstore.connect(db_credentials_); }
@@ -64,6 +82,22 @@ throw (emu::exception::ConfigurationException)
     result.push_back(id);
   }
 
+  return result;
+}
+
+
+std::vector<std::string> TStoreReadWriter::readIDs(int side, int n)
+throw (emu::exception::ConfigurationException)
+{
+  std::string subsystem = "";
+  if (side==1) subsystem = "plus";
+  if (side==2) subsystem = "minus";
+  if (subsystem.empty())
+    XCEPT_RAISE(emu::exception::ConfigurationException, "TStoreReadWriter::readIDs: side argument is not 1 or 2: " + toolbox::toString("%d", side));
+
+  std::vector<std::string> result;
+  std::vector<xdata::UnsignedInteger64> ids = readIDs(subsystem, n);
+  for (size_t i=0; i<ids.size(); ++i) result.push_back( ids[i].toString());
   return result;
 }
 
@@ -392,7 +426,7 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-xdata::UnsignedInteger64 TStoreReadWriter::readLastConfigIdFlashed(const std::string &side)
+xdata::UnsignedInteger64 TStoreReadWriter::readLastConfigIdFlashed(const std::string &subsystem)
 throw (emu::exception::ConfigurationException)
 {
   xdata::UnsignedInteger64 result;
@@ -405,7 +439,7 @@ throw (emu::exception::ConfigurationException)
 
   //set up parameter name and value
   std::map< std::string, std::string > parameters;
-  if (!side.empty())  parameters["SIDE"] = side;
+  if (!subsystem.empty())  parameters["SIDE"] = subsystem;
 
   TStoreAgent tstore(application_, hierarchy_->tstoreViewID(), instance_);
   try { tstore.connect(db_credentials_); }
@@ -425,6 +459,48 @@ throw (emu::exception::ConfigurationException)
 
   std::string id_field_name = hierarchy_->idFieldNameOfFlashTable();
   result.fromString(table.getValueAt(0, id_field_name)->toString());
+
+  return result;
+}
+
+
+std::vector<std::pair< std::string, std::string> > TStoreReadWriter::readFlashList(const std::string &subsystem)
+throw (emu::exception::ConfigurationException)
+{
+  std::vector<std::pair< std::string, std::string> > result;
+
+  // find out the query name from the top level table type:
+  std::string query_name = toolbox::tolower(hierarchy_->typeOfFlashTable());
+  //if (side.empty()) query_name = "latest_" + query_name;
+  //else query_name += ;
+  query_name = "list_" + query_name;
+
+  //set up parameter name and value
+  std::map< std::string, std::string > parameters;
+  if (!subsystem.empty())  parameters["SIDE"] = subsystem;
+
+  TStoreAgent tstore(application_, hierarchy_->tstoreViewID(), instance_);
+  try { tstore.connect(db_credentials_); }
+  catch (emu::exception::DBException &e)
+  {
+    XCEPT_RETHROW(emu::exception::DBException, "Cannot connect to TStore: " + std::string(e.what()), e);
+  }
+
+  xdata::Table table;
+  try { table = tstore.query(query_name, parameters); }
+  catch (emu::exception::DBException &e)
+  {
+    tstore.disconnect();
+    XCEPT_RETHROW(emu::exception::DBException, "Cannot get configuration ID: " + std::string(e.what()), e);
+  }
+  tstore.disconnect();
+
+  std::string id_field_name = hierarchy_->idFieldNameOfFlashTable();
+  std::string time_field_name = hierarchy_->timeFieldNameOfFlashTable();
+  for (size_t row = 0; row < table.getRowCount(); ++row)
+  {
+    result.push_back( std::make_pair(table.getValueAt(row, id_field_name)->toString(), table.getValueAt(row, time_field_name)->toString()));
+  }
 
   return result;
 }
