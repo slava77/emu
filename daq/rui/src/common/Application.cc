@@ -137,13 +137,6 @@ throw (xdaq::exception::Exception) :
     ruiTaPoolName << "EmuRUI" << instance_ << "-to-EmuTA";
     ruiTaPool_ = createHeapAllocatorMemoryPool(poolFactory_, ruiTaPoolName.str());
 
-//     // DEBUG START
-//     visitCount_rwl = 0;
-//     visitCount_swl = 0;
-//     ec_rwl = new EmuClock(100);
-//     ec_swl = new EmuClock(100);
-//     // DEBUG END
-
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
 
@@ -396,55 +389,6 @@ xdaq::ApplicationDescriptor *emu::daq::rui::Application::getRUBuilderTester
     return appDescriptor;
 }
 
-// vector< xdaq::ApplicationDescriptor* > emu::daq::rui::Application::getAppDescriptors(xdaq::Zone *zone,
-// 										     const string            appClass)
-//   throw (emu::daq::rui::exception::Exception)
-// {
-//     vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
-//     set< xdaq::ApplicationDescriptor* > descriptors;
-//     xdaq::ApplicationDescriptor *descriptor = 0;
-//     int nbApps = 0;
-
-
-//     try
-//     {
-//         descriptors = zone->getApplicationDescriptors(appClass);
-//     }
-//     catch(xdaq::exception::ApplicationDescriptorNotFound e)
-//     {
-//         string s;
-
-//         s = "Failed to get application descriptors for class: " + appClass;
-
-//         XCEPT_RETHROW(emu::daq::rui::exception::Exception, s, e);
-//     }
-
-//     nbApps = descriptors.size();
-
-//     // Fill application descriptors in instance order
-//     for(int i=0; i<nbApps; i++)
-//     {
-//         try
-//         {
-//             descriptor = zone->getApplicationDescriptor(appClass, i);
-//         }
-// 	catch(xdaq::exception::ApplicationDescriptorNotFound e)
-//         {
-//             stringstream oss;
-//             string s;
-
-//             oss << "Failed to get the application descriptor of ";
-//             oss << appClass << i;
-//             s = oss.str();
-
-//             XCEPT_RETHROW(emu::daq::rui::exception::Exception, s, e);
-//         }
-
-//         orderedDescriptors.push_back(descriptor);
-//     }
-
-//     return orderedDescriptors;
-// }
 
 vector< xdaq::ApplicationDescriptor* > emu::daq::rui::Application::getAppDescriptors
 (
@@ -842,10 +786,15 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
 
 
     nEventsRead_ = 0;
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("nEventsRead", &nEventsRead_));
+    params.push_back(pair<string,xdata::Serializable *>("nEventsRead", &nEventsRead_));
+    nReadingPasses_ = 0;
+    params.push_back(pair<string,xdata::Serializable *>("nReadingPasses", &nReadingPasses_));
+    maxNBlocksInEvent_ = 0;
+    params.push_back(pair<string,xdata::Serializable *>("maxNBlocksInEvent", &maxNBlocksInEvent_));
+    nEventsOfMultipleBlocks_ = 0;
+    params.push_back(pair<string,xdata::Serializable *>("nEventsOfMultipleBlocks", &nEventsOfMultipleBlocks_));
     badEventCount_ = 0;
-    params.push_back(pair<string,xdata::Serializable *> ("badEventCount", &badEventCount_));
+    params.push_back(pair<string,xdata::Serializable *>("badEventCount", &badEventCount_));
 
     persistentDDUError_ = "";
     params.push_back(pair<string,xdata::Serializable *>
@@ -2048,20 +1997,6 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 	  // Find out from which work loop we dropped in here
 	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
 	    if ( clients_[iClient]->workLoop == wl ){
-// 	      // DEBUG START
-// 	      visitCount_swl++;
-// 	      if ( ec_swl->timeIsUp() ){
-// 		std::cout << "  " << clients_[iClient]->workLoopName 
-// 			  << "   readout loop: " << visitCount_rwl
-// 			  << "   server loop: " << visitCount_swl
-// 			  << std::endl << std::flush;
-// 		LOG4CPLUS_INFO(logger_,
-// 			       "  " << clients_[iClient]->workLoopName 
-// 			       << "   readout loop: " << visitCount_rwl
-// 			       << "   server loop: " << visitCount_swl
-// 			       );
-// 	      }
-// 	      // DEBUG END
 // 	      LOG4CPLUS_INFO(logger_, "Sending data from " << clients_[iClient]->workLoopName << " ("<< wl << ")");
 	      clients_[iClient]->server->sendData();
 	    break;
@@ -2428,7 +2363,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
     return extraPauseForOtherThreads;
   }
 
-  errorFlag_ |= deviceReader_->getErrorFlag();
+  errorFlag_ = deviceReader_->getErrorFlag();
 
   if ( nBytesRead < 8 ){
     LOG4CPLUS_ERROR(logger_, 
@@ -2443,6 +2378,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
   }
 
   nReadingPassesInEvent_++;
+  nReadingPasses_++;
 
   if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && nReadingPassesInEvent_ == 1 ) {
     // first event started --> a new run
@@ -2518,6 +2454,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
       if ( insideEvent_ ) {
 
 	writeDataWithContextToFile( data, dataLength, header );
+
+	// Count events that it took more than one pass to read out (and will thus be sent on in more than one block)
+	if ( nReadingPassesInEvent_ > maxNBlocksInEvent_.value_ ) maxNBlocksInEvent_ = nReadingPassesInEvent_;
+	if ( nReadingPassesInEvent_ > 1 ) nEventsOfMultipleBlocks_++;
 
 	if ( header ){
 	  // LOG4CPLUS_WARN(logger_, 
