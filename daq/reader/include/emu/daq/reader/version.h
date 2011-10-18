@@ -5,7 +5,7 @@
 
 namespace emudaqreader {
 	const std::string package     = "emudaqreader";
-	const std::string versions    = "10.04.02";
+	const std::string versions    = "10.04.03";
 	const std::string description = "Emu (CSC) DAQ readers";
 
 	const std::string summary     = "emu/daq/reader";
