@@ -149,9 +149,12 @@ private:
   void moveToFailedState( const string reason );
 
   xdata::UnsignedLong                 nEventsRead_;
+  xdata::UnsignedLong                 nReadingPasses_; ///< Total number of reading passes so far.
+  xdata::UnsignedLong                 maxNBlocksInEvent_; ///< Max number of reading passes (blocks) in any event so far.
+  xdata::UnsignedLong                 nEventsOfMultipleBlocks_;	///< Number of events read out in more than one pass (and thus put in multiple blocks).
   xdata::String                       persistentDDUError_;
   emu::daq::writer::RawDataFile       *fileWriter_;
-  int                                 nReadingPassesInEvent_;
+  unsigned long                       nReadingPassesInEvent_;
   bool                                insideEvent_;
   unsigned short                      errorFlag_;
   bool                                ableToWriteToDisk_;
