@@ -1177,14 +1177,14 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
     }
 
   // DDU Spy mode readout errors
-  if ( (errorFlag & emu::daq::reader::Spy::EndOfEventMissing) 	> 0 ) 	status |= 0x0004;
-  if ( (errorFlag & emu::daq::reader::Spy::Timeout) 		> 0 )	status |= 0x0008;
-  if ( (errorFlag & emu::daq::reader::Spy::PacketsMissing) 	> 0 )	status |= 0x0010;
-  if ( (errorFlag & emu::daq::reader::Spy::LoopOverwrite) 	> 0 )	status |= 0x0020;
-  if ( (errorFlag & emu::daq::reader::Spy::BufferOverwrite) 	> 0 )	status |= 0x0040;
-  if ( (errorFlag & emu::daq::reader::Spy::Oversized) 		> 0 )	status |= 0x0080;
-  if ( (errorFlag & emu::daq::reader::Spy::HeaderMissing)       > 0 )   status |= 0x0100;
-  if ( (errorFlag & emu::daq::reader::Spy::TrailerMissing)      > 0 )   status |= 0x0200;
+  if ( (errorFlag & emu::daq::reader::Spy::EndOfEventMissing) 	> 0 ) 	status |= 0x0001;
+  if ( (errorFlag & emu::daq::reader::Spy::Timeout) 		> 0 )	status |= 0x0002;
+  if ( (errorFlag & emu::daq::reader::Spy::PacketsMissing) 	> 0 )	status |= 0x0004;
+  if ( (errorFlag & emu::daq::reader::Spy::LoopOverwrite) 	> 0 )	status |= 0x0008;
+  if ( (errorFlag & emu::daq::reader::Spy::BufferOverwrite) 	> 0 )	status |= 0x0010;
+  if ( (errorFlag & emu::daq::reader::Spy::Oversized) 		> 0 )	status |= 0x0020;
+  if ( (errorFlag & emu::daq::reader::Spy::HeaderMissing)       > 0 )   status |= 0x0040;
+  if ( (errorFlag & emu::daq::reader::Spy::TrailerMissing)      > 0 )   status |= 0x0080;
 
   if (eventsReceived_%1000 == 0)
     {
@@ -1493,6 +1493,7 @@ int EmuMonitor::svc()
   keepRunning = true;
   bool readValid = true;
   startmark=time(NULL);
+  uint32_t ecnt = 0;
   sleep(1);
 
   while (keepRunning && readValid)
@@ -1528,6 +1529,11 @@ int EmuMonitor::svc()
               if ( errorFlag == emu::daq::reader::RawDataFile::Type5) 	status |= 0x1000;
               if ( errorFlag == emu::daq::reader::RawDataFile::Type6) 	status |= 0x0800;
               appBSem_.take();
+
+	      ///** error status test code
+              ecnt++;
+              // status = ecnt % 256;
+
               processEvent(deviceReader_->data(), deviceReader_->dataLength(), status, appTid_);
               appBSem_.give();
               /*
