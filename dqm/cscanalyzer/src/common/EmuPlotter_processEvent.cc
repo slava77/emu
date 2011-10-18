@@ -18,7 +18,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   std::string nodeTag 		= "EMU";
   std::map<std::string, ME_List >::iterator itr;
   EmuMonitoringObject *mo 	= NULL;  ///< pointer to MonitoringObject
-  EmuMonitoringObject *mo1 	= NULL;  ///< pointer to 2nd MonitoringObject
+  // EmuMonitoringObject *mo1 	= NULL;  ///< pointer to 2nd MonitoringObject
   unpackedDMBcount 		= 0;
 
   nEvents++;
@@ -577,7 +577,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
                 }
               if (mo_DDU_Trailer_ErrorStat_Rate)
                 {
-                  double freq = (100.0*mo1->GetBinContent(i+1))/nEvents;
+                  double freq = (100.0*mo_DDU_Trailer_ErrorStat_Rate->GetBinContent(i+1))/nEvents;
                   if (mo_DDU_Trailer_ErrorStat_Frequency) mo_DDU_Trailer_ErrorStat_Frequency->SetBinContent(i+1, freq);
                 }
             }

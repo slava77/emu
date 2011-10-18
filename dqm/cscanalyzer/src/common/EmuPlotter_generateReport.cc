@@ -946,7 +946,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                 else if (fract > 1.) severity=TOLERABLE;
                               }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
-                            std::string diag=std::string(Form("DMB-Input FIFO Full: %s %d events (%.3f%%)",error_type.c_str(), events, z*.100));
+                            std::string diag=std::string(Form("DMB-Input FIFO Full: %s %d events (%.3f%%)",error_type.c_str(), events, z*100));
                             // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
                             dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_INPUT_FIFO_FULL"));
                           }
