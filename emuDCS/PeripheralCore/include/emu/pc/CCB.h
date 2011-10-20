@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.4 2010/07/28 13:14:01 rakness Exp $
+// $Id: CCB.h,v 1.5 2011/10/20 19:24:41 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.5  2011/10/20 19:24:41  liu
+// add signal_csrb2 function and remove obsolete functions
+//
 // Revision 1.4  2010/07/28 13:14:01  rakness
 // make fine delay computation public
 //
@@ -283,24 +286,8 @@ public:
   int CLK_INIT_FLAG; 
   int CCB_CSR1_SAV;
   
-  //code used by DCS
-  
-  void cmd_source_to_ttcrx();
-  void cmd_source_to_vme();
-  void sync_reset_csr2();
-  void soft_reset_all_csr2();      //+
-  void soft_reset_dmb_csr2();      //+
-  void soft_reset_tmb_csr2();      //+
-  void soft_reset_mpc_csr2();      //+ not used
+  void signal_csrb2(int cmd);
 
-  void hard_reset_all_csr2(); //+
-  void hard_reset_alct_csr2();    //
-  void hard_reset_dmb_csr2();     //
-  void hard_reset_tmb_csr2();     //
-  void hard_reset_mpc_csr2();    //
-  void hard_reset_ccb_csr2();    // new function of ccb 2004
-
-  void hard_reset_all();
   void hard_reset_alct();    //+
   void hard_reset_dmb();     //+
   void hard_reset_tmb();     //+
@@ -313,7 +300,6 @@ public:
   void soft_reset_dmb();
   void soft_reset_tmb();
   void soft_reset_mpc();
-  void soft_reset_all();
   void l1a_and_trig();
   
   void DumpAddress(int);
@@ -373,6 +359,7 @@ private:
   static const unsigned int enableL1aCounter   = 0x96;
   //
   static const unsigned int CRATE_HARD_RESET = 0x60;
+  static const unsigned int CRATE_SOFT_RESET = 0x6a;
   static const unsigned int DMB_CFEB_CAL0 = 0x8a;
   static const unsigned int DMB_CFEB_CAL1 = 0x8c;
   static const unsigned int DMB_CFEB_CAL2 = 0x8e;
