@@ -480,6 +480,7 @@ private:
   void HardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CCBConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void CCBSignals(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // synchronization functions
   void ChamberTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
