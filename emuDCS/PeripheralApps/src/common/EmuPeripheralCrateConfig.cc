@@ -275,6 +275,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBLoadFirmware, "CCBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBConfig, "CCBConfig");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBSignals, "CCBSignals");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCConfig, "MPCConfig");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBReadFirmware, "CCBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCReadFirmware, "MPCReadFirmware");

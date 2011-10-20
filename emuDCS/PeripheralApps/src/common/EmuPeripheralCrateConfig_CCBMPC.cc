@@ -107,8 +107,42 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  std::vector <std::string> SignalName; 
   char Name[100];
   char buf[200];
+  SignalName.push_back(" ");
+  SignalName.push_back("BC0");  // 1
+  SignalName.push_back("OC0");
+  SignalName.push_back("L1 Reset (Resync)");
+  SignalName.push_back("Hard Reset");
+  SignalName.push_back(" ");  // 5
+  SignalName.push_back("Start Trigger");
+  SignalName.push_back("Stop Trigger");
+  SignalName.push_back("Test Enable");
+  SignalName.push_back("Private Gap");
+  SignalName.push_back("Private Orbit");  // 0A
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back("CCB hard reset");  // 0f
+  SignalName.push_back("TMB hard reset");  // 10
+  SignalName.push_back("ALCT hard reset"); 
+  SignalName.push_back("DMB hard reset");
+  SignalName.push_back("MPC hard reset");
+  SignalName.push_back("DMB CFEB calibrate0"); // 14
+  SignalName.push_back("DMB CFEB calibrate1"); // 15
+  SignalName.push_back("DMB CFEB calibrate2");  // 16
+  SignalName.push_back("DMB CFEB initiate");
+  SignalName.push_back("ALCT ADB pulse Sync");  // 18
+  SignalName.push_back("ALCT ADB pulse Async");  // 19
+  SignalName.push_back("CLCT ext trigger");
+  SignalName.push_back("ALCT ext trigger");
+  SignalName.push_back("Soft Reset");       // 1C
+  SignalName.push_back("DMB soft reset");
+  SignalName.push_back("TMB soft reset");
+  SignalName.push_back("MPC soft reset");  // 1F
+
   sprintf(Name,"CCB utilities, crate=%s, slot=%d",ThisCrateID_.c_str(),thisCCB->slot());
   //
   MyHeader(in,out,Name);
@@ -148,6 +182,41 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::a("[Read TTCrx Registers]").set("href",ReadTTCRegister).set("target","_blank") << std::endl;
   //
   *out << cgicc::br() << cgicc::br() << std::endl;
+
+  // Begin select signal
+  // Config listbox
+  *out << cgicc::form().set("action",
+		     "/" + getApplicationDescriptor()->getURN() + "/CCBSignals") << std::endl;
+  
+  int n_keys = SignalName.size();
+  
+  *out << "Choose Singal: " << std::endl;
+  *out << cgicc::select().set("name", "runtype") << std::endl;
+  
+  int selected_index = 0;
+  char sbuf[20];
+  for (int i = 0; i < n_keys; ++i) {
+    sprintf(sbuf,"%d",i);
+    if (i == selected_index) {
+      *out << cgicc::option()
+	.set("value", sbuf)
+	.set("selected", "");
+    } else {
+      *out << cgicc::option()
+	.set("value", sbuf);
+    }
+    *out << SignalName[i] << cgicc::option() << std::endl;
+  }
+
+  *out << cgicc::select() << std::endl;
+  
+  *out << cgicc::input().set("type", "submit")
+    .set("name", "command")
+    .set("value", "Generate Signal") << std::endl;
+  *out << cgicc::form() << cgicc::br() << std::endl;
+     
+  //End select signal
+
   std::string ccbConfig =
     toolbox::toString("/%s/CCBConfig",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ccbConfig) << std::endl ;
@@ -226,6 +295,19 @@ void EmuPeripheralCrateConfig::CCBReadFirmware(xgi::Input * in, xgi::Output * ou
     thisCCB->configure();
     this->CCBUtils(in,out);
   }
+
+  void EmuPeripheralCrateConfig::CCBSignals(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     cgicc::Cgicc cgi(in);
+
+     std::string in_value = cgi.getElement("runtype")->getValue(); 
+     int sig=atoi(in_value.c_str());
+     std::cout << "Generating CCB signal: " << sig << std::endl;
+     if(sig>0 && sig<=0x3F) thisCCB->signal_csrb2(sig);
+     this->CCBUtils(in,out);
+  }
+
   //
 //////////////////////////////////////////////////
 // MPC methods
