@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.h,v 1.5 2010/03/25 14:16:37 liu Exp $
+// $Id: EmuPeripheralCrateBase.h,v 1.6 2011/10/21 22:42:08 liu Exp $
 
 #ifndef _EmuPeripheralCrateBase_h_
 #define _EmuPeripheralCrateBase_h_
@@ -23,9 +23,18 @@
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include <string>
 #include "xdata/String.h"
+#include "xdata/UnsignedInteger64.h"
 #include "emu/pc/EmuEndcap.h"
 #include "emu/pc/XMLParser.h"
-#include "emu/pc/EmuTStore.h"
+
+#include "emu/db/TableDefinitions.h"
+#include "emu/db/PCConfigHierarchy.h"
+#include "emu/db/ConfigTable.h"
+#include "emu/db/ConfigRow.h"  
+#include "emu/db/ConfigTree.h" 
+#include "emu/db/TStoreReadWriter.h"
+#include "emu/db/EmuEndcapConfigWrapper.h"
+
 
 namespace emu {
   namespace pc {
@@ -61,7 +70,7 @@ protected:
   std::string getLocalDateTime();
   bool CommonParser(std::string XML_or_DB, std::string xmlFile);
   inline EmuEndcap *GetEmuEndcap() { return activeEndcap_; }
-  EmuTStore *GetEmuTStore();
+  emu::db::TStoreReadWriter *GetEmuTStore();
   inline int Xml_or_Db() { return xml_or_db_; }
   inline std::string GetRealKey() { return real_key_; }
   //
@@ -73,7 +82,7 @@ private:
   std::string real_key_;
   EmuEndcap * activeEndcap_;
   XMLParser * activeParser_;
-  EmuTStore * activeTStore_;
+  emu::db::TStoreReadWriter* activeTStore_;
 };
 
   } // namespace emu::pc

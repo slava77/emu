@@ -699,24 +699,24 @@ void EmuPeripheralCrateService::FlashHistory(xgi::Input * in, xgi::Output * out 
      if(GuiButton_)
      {
         msgHandler("Button:  Read Flash History");
-        emu::pc::EmuTStore * myTStore = GetEmuTStore();
+        myTStore = GetEmuTStore();
         if(!myTStore)
-        {  std::cout << "Can't create object EmuTStore" << std::endl;
-           *out << "Can't create object EmuTStore" << std::endl;
+        {  std::cout << "Can't create object TStoreReadWriter" << std::endl;
+           *out << "Can't create object TStoreReadWriter" << std::endl;
            return;
         }
 //        *out << cgicc::textarea().set("name","commands").set("WRAP","OFF").set("rows","20").set("cols","100");
-        std::vector<std::string> configKeys, configTimes;
-        int in_flash_items=myTStore->readFlashList( configKeys, configTimes, (endcap_side==1)?"plus":"minus");
+        std::vector<std::pair< std::string, std::string> > flash_list;
+        flash_list = myTStore->readFlashList((endcap_side==1)?"plus":"minus");
         *out << "  key        time" << std::endl;
-        for(int i=0;i<in_flash_items; i++)
+
+        for(unsigned int i=0;i<flash_list.size(); i++)
         {
-            *out << configKeys[i]+"  "+configTimes[i] << std::endl;
+            *out << flash_list[i].first+"  "+flash_list[i].second.substr(0,19) << std::endl;
         }
-        *out << "Total in FLASH " << in_flash_items << std::endl;
+        *out << "Total in FLASH " << flash_list.size() << std::endl;
 //        *out << cgicc::textarea();
-        configKeys.clear();
-        configTimes.clear();
+        flash_list.clear();
      }
 }
 
