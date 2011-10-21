@@ -35,7 +35,6 @@ Sources=\
 	XMLReadWriter.cc \
 	EmuEndcapConfigWrapper.cc \
 	ConfigEditor.cc \
-	PCConfigEditor.cc \
 	OnlineDBVersion.cc
 
 #       TStoreFixer.cc \
