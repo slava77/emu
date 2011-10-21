@@ -58,7 +58,6 @@
 #include "emu/pc/VMECC.h"
 // #include "emu/pc/EMU_CC_constants.h"
 #include "emu/db/BoardsDB.h"
-#include "emu/pc/EmuTStore.h"
 //
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -117,7 +116,7 @@ protected:
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  EmuTStore * myTStore;
+  emu::db::TStoreReadWriter * myTStore;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;

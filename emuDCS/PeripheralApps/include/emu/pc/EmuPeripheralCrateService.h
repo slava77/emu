@@ -38,7 +38,6 @@
 #include "emu/pc/CCB.h"
 #include "emu/pc/MPC.h"
 #include "emu/pc/EmuEndcap.h"
-#include "emu/pc/EmuTStore.h"
 //
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -61,7 +60,7 @@ protected:
   xdata::String xmlFile_;
   //
   std::string xmlFile;
-  EmuTStore * myTStore;
+  emu::db::TStoreReadWriter * myTStore;
   //
   CCB* thisCCB ;
   MPC * thisMPC;

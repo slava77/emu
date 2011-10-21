@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.26 2010/06/16 16:19:48 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.27 2011/10/21 22:42:09 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -20,7 +20,6 @@
 #include <unistd.h> // for sleep()
 #include <sstream>
 #include <cstdlib>
-#include "emu/pc/EmuTStore.h"
 
 //using namespace cgicc;
 //using namespace std;
@@ -336,18 +335,20 @@ void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)
 {
   if(need_init)
   {
-     EmuTStore *myTStore = new EmuTStore(this);
+     emu::db::TStoreReadWriter *myTStore = GetEmuTStore();
      if(myTStore)
      {    
        try 
        {
-          InFlash_plus = myTStore->getLastConfigIdUsed("plus");
-          InFlash_minus = myTStore->getLastConfigIdUsed("minus");
+          xdata::UnsignedInteger64 flashid64 = myTStore->readLastConfigIdFlashed("plus");
+          InFlash_plus = flashid64.toString();
+          flashid64 = myTStore->readLastConfigIdFlashed("minus");
+          InFlash_minus = flashid64.toString();
        }
        catch (...) { }
      }
      else
-     {  std::cout << "Can't create object EmuTStore" << std::endl;
+     {  std::cout << "Can't create object TStoreReadWriter" << std::endl;
      }
      need_init = false;
      delete myTStore;

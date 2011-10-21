@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.8 2010/03/25 14:16:43 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.9 2011/10/21 22:42:09 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -256,6 +256,7 @@ std::string EmuPeripheralCrateBase::getLocalDateTime(){
 bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string configKey)
 {
   std::string Valid_key, InFlash_key;
+  xdata::UnsignedInteger64 Valid_key_64, InFlash_key_64;
 //  EmuEndcap* myEndcap_=NULL;
   int use_flash=0;
     //
@@ -295,10 +296,10 @@ bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string con
   {
     //
     LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration DB");
-    // from TStore    
-    if(!activeTStore_) activeTStore_ = new EmuTStore(this);
+    
+    if(!activeTStore_) GetEmuTStore();
     if(!activeTStore_)
-    {  std::cout << "Can't create object EmuTStore" << std::endl;
+    {  std::cout << "Can't create object TStoreReadWriter" << std::endl;
        return false;  
     }
 
@@ -306,16 +307,19 @@ bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string con
     {
        try 
        {
-          InFlash_key = activeTStore_->getLastConfigIdUsed( (configKey=="-1")?"plus":"minus" );
+          InFlash_key_64 = activeTStore_->readLastConfigIdFlashed((configKey=="-1")?"plus":"minus" );
+          InFlash_key = InFlash_key_64.toString();
        } catch (...) {}
 
        if (InFlash_key=="") return false;
        use_flash=2;
        Valid_key = InFlash_key;
+       Valid_key_64 = InFlash_key_64;
     }   
-    else
+    else if( configKey!="")
     {  
        Valid_key = configKey;
+       Valid_key_64 = atoi(configKey.c_str());
     }
 
     if( Valid_key != "" && Valid_key != real_key_)
@@ -325,7 +329,10 @@ bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string con
           delete activeEndcap_ ;
        }
        std::cout << "Configuration ID: " << Valid_key << std::endl;
-       activeEndcap_ = activeTStore_->getConfiguredEndcap(Valid_key);   
+       activeTStore_->read(Valid_key_64);
+       emu::db::ConfigTree tree_from_db(activeTStore_->configTables());
+       emu::db::EmuEndcapConfigWrapper wrapper_from_db(&tree_from_db);
+       activeEndcap_ = wrapper_from_db.getConfiguredEndcap();   
        if(!activeEndcap_) 
         {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
            return false;
@@ -343,9 +350,13 @@ bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string con
   }
 }
 
-EmuTStore *EmuPeripheralCrateBase::GetEmuTStore()
+emu::db::TStoreReadWriter *EmuPeripheralCrateBase::GetEmuTStore()
 { 
-    if(!activeTStore_) activeTStore_ = new EmuTStore(this);
+    if(!activeTStore_)
+    {
+         emu::db::PCConfigHierarchy *h= new emu::db::PCConfigHierarchy("/opt/xdaq/htdocs/emu/emuDCS/OnlineDB/xml/EMUsystem.view");
+         activeTStore_ = new emu::db::TStoreReadWriter(h, this, "", 0);
+    }
     return activeTStore_; 
 }
  

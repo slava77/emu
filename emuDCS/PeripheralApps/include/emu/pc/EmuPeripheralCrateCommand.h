@@ -55,7 +55,6 @@
 #include "emu/pc/CrateUtilities.h"
 #include "emu/pc/CalibDAQ.h"
 #include "emu/pc/EmuEndcap.h"
-#include "emu/pc/EmuTStore.h"
 //
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -229,7 +228,6 @@ protected:
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  EmuTStore * myTStore;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
