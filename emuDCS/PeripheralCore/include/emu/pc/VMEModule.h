@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.4 2011/07/01 03:19:38 liu Exp $
+// $Id: VMEModule.h,v 1.5 2011/10/28 18:13:37 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.5  2011/10/28 18:13:37  liu
+// add DDU class
+//
 // Revision 1.4  2011/07/01 03:19:38  liu
 // new JTAG functions
 //
@@ -147,7 +150,7 @@ public:
   /// you want to end() by hand
   void endDevice();
   
-  enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM, VMECC_ENUM };
+  enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM, VMECC_ENUM, DDU_ENUM };
   virtual unsigned int boardType() const = 0;
   virtual bool SelfTest() = 0;
   virtual void init() = 0;

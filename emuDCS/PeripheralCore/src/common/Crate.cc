@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.74 2011/04/29 02:03:48 liu Exp $
+// $Id: Crate.cc,v 3.75 2011/10/28 18:13:37 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.75  2011/10/28 18:13:37  liu
+// add DDU class
+//
 // Revision 3.74  2011/04/29 02:03:48  liu
 // read DMB even if chamber is off
 //
@@ -293,6 +296,7 @@
 #include "emu/pc/ALCTController.h"
 #include "emu/pc/Chamber.h"
 #include "emu/pc/VMECC.h"
+#include "emu/pc/DDU.h"
 
 namespace emu {
   namespace pc {
@@ -412,6 +416,15 @@ std::vector<ALCTController *> Crate::alcts() const {
       ALCTController * alct = tmb->alctController();
       if( alct != 0 ) result.push_back(alct);
     }
+  }
+  return result;
+}
+
+std::vector<DDU *> Crate::ddus() const {
+  std::vector<DDU *> result;
+  for(unsigned i = 0; i < theModules.size(); ++i) {
+    DDU * ddu = dynamic_cast<DDU *>(theModules[i]);
+    if(ddu != 0) result.push_back(ddu);
   }
   return result;
 }
