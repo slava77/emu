@@ -58,6 +58,7 @@
 #include "emu/pc/VMECC.h"
 // #include "emu/pc/EMU_CC_constants.h"
 #include "emu/db/BoardsDB.h"
+#include "emu/pc/DDU.h"
 //
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -154,6 +155,7 @@ protected:
   std::vector<DAQMB*> dmbVector;
   std::vector<Crate*> crateVector;
   std::vector<Chamber*> chamberVector;
+  std::vector<DDU*> dduVector;
   Crate *thisCrate;
   std::string CalibrationCfebTimeEvent_;
   int CFEBid_[10][5];
@@ -350,6 +352,7 @@ private:
   void CCBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DDUStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // Crate tests
   void CrateTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -480,6 +483,9 @@ private:
   void CCBConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBSignals(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  //
+  // DDU utils
+  void DDUUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // synchronization functions
   void ChamberTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
