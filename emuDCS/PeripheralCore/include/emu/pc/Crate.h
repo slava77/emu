@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.7 2010/08/25 19:45:41 liu Exp $
+// $Id: Crate.h,v 1.8 2011/10/28 18:13:37 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.8  2011/10/28 18:13:37  liu
+// add DDU class
+//
 // Revision 1.7  2010/08/25 19:45:41  liu
 // read TMB voltages in VME jumbo packet
 //
@@ -116,6 +119,7 @@ class CCB;
 class MPC;
 class Chamber;
 class VMECC;
+class DDU;
 
 class Crate {
 public:
@@ -145,6 +149,7 @@ public:
   std::vector<TMB *> tmbs() const;
   std::vector<ALCTController *> alcts() const;
   std::vector<Chamber *> chambers();
+  std::vector<DDU *> ddus() const;
   //
   VMECC * vmecc() const;
   CCB * ccb() const;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.9 2009/03/25 10:19:41 liu Exp $
+// $Id: Chamber.cc,v 3.10 2011/10/28 18:13:37 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.10  2011/10/28 18:13:37  liu
+// add DDU class
+//
 // Revision 3.9  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -105,6 +108,8 @@ Chamber::Chamber(Crate * csc):
   expected_config_problem_dmb_   = 0;
   //
   csc->AddChamber(this);
+  thisTMB=NULL;
+  thisDMB=NULL;
 }
 //
 Chamber::~Chamber(){
