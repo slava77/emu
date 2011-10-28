@@ -195,6 +195,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBUtils, "CCBUtils");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCStatus, "MPCStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCUtils, "MPCUtils");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DDUStatus, "DDUStatus");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DDUUtils, "DDUUtils");
   //
   //---------------------------------
   // bind check crate configuration
@@ -1148,6 +1150,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
     tmbVector = thisCrate->tmbs();
     dmbVector = thisCrate->daqmbs();
     chamberVector = thisCrate->chambers();
+    dduVector = thisCrate->ddus();
     //  
     tmbTestVector = InitTMBTests(thisCrate);
     //
@@ -1517,6 +1520,31 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
 	*out << cgicc::td();
 	std::string MPCUtils = toolbox::toString("/%s/MPCUtils?mpc=%d",getApplicationDescriptor()->getURN().c_str(),ii);
 	*out << cgicc::a("MPC Utils").set("href",MPCUtils) << std::endl;
+	*out << cgicc::td();
+      }
+    }
+    //
+    //----------------------------------
+    // Display DDU buttons, if it exists
+    //----------------------------------
+    //
+    for (unsigned int i=0; i<dduVector.size(); i++) {
+      //
+      int slot = dduVector[i]->slot();
+      if(slot == ii) {
+	//
+	*out << cgicc::td();
+	*out << "DDU" ;
+	*out << cgicc::td();
+	//
+	*out << cgicc::td();
+	std::string DDUStatus = toolbox::toString("/%s/DDUStatus?ddu=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("DDU Status").set("href",DDUStatus) << std::endl;
+	*out << cgicc::td();
+	//
+	*out << cgicc::td();
+	std::string DDUUtils = toolbox::toString("/%s/DDUUtils?ddu=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	*out << cgicc::a("DDU Utils").set("href",DDUUtils) << std::endl;
 	*out << cgicc::td();
       }
     }

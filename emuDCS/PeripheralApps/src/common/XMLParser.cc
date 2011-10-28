@@ -19,6 +19,7 @@
 #include "emu/pc/Crate.h"
 #include "emu/pc/EmuEndcap.h"
 #include "emu/pc/VMECC.h"
+#include "emu/pc/DDU.h"
 
 namespace emu {
   namespace pc {
@@ -285,6 +286,17 @@ void XMLParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
 //  }
     mpc_->SetBoardID(theCrate->CrateID());
  
+}
+
+void XMLParser::DDUParser(xercesc::DOMNode * pNode, Crate * theCrate)
+{
+  int slot;
+
+  parseNode(pNode);
+
+  fillInt("slot", slot);
+//  DDU * ddu_ = new DDU(theCrate, slot);  
+  new DDU(theCrate, slot);  
 }
 
 void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theChamber, xercesc::DOMNode * pNodeGlobal)
@@ -1027,6 +1039,10 @@ void XMLParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuEndcap * endcap
     
     if (strcmp("MPC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
        MPCParser(pNode3, crate);
+    }
+
+    if (strcmp("DDU",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+       DDUParser(pNode3, crate);
     }
     
     pNode3 = pNode3->getNextSibling();

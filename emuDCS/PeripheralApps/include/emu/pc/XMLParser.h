@@ -28,6 +28,7 @@ public:
   bool VCCParser(xercesc::DOMNode * pNode, Crate * crate);
   void CCBParser(xercesc::DOMNode * pNode, Crate * crate);
   void MPCParser(xercesc::DOMNode * pNode, Crate * crate);
+  void DDUParser(xercesc::DOMNode * pNode, Crate * crate);
   void TMBParser(xercesc::DOMNode * pNode, Crate * crate, Chamber * chamber, xercesc::DOMNode * pNodeGlobal);
   void DAQMBParser(xercesc::DOMNode * pNode, Crate * crate, Chamber * chamber);
   void CSCParser(xercesc::DOMNode * pNode, Crate * crate, xercesc::DOMNode * pNodeGlobal);
