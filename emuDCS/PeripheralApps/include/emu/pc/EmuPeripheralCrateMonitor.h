@@ -145,6 +145,9 @@ protected:
   int read_interval;
   int TOTAL_TMB_COUNTERS;      
   xdata::TimeVal last_read_time;
+  unsigned short ccbmpcreg[60][4];
+  bool first_read;
+  
 public:
   //
   XDAQ_INSTANTIATOR();
