@@ -31,10 +31,10 @@ private:
   I2O_TID                                     tid_; ///< target id of this server
 
   /// queue of data waiting to be sent
-  deque<pair<toolbox::mem::Reference*,bool> > dataBlocks_;
+  deque<pair<toolbox::mem::Reference*,PositionInEvent_t> > messageQueue_;
 
-  /// number of \b events already in the queue of data waiting to be sent (=< \ref dataBlocks_ .size())
-  unsigned int                                nEventsInQueue;
+  /// number of \b events already in the queue of data waiting to be sent (=< \ref messageQueue_ .size())
+  unsigned int                                nEventsInQueue_;
 
   /// Finds target id of client.
   void   findClientTid();
@@ -43,15 +43,23 @@ private:
   void   createCommittedHeapAllocatorMemoryPool()
     throw ( xcept::Exception );
 
-  /// Appends a block to the queue waiting to be transmitted.
-
-  /// @param data pointer to data
-  /// @param dataLength lengh of data in bytes
-  /// @param completesEvent \c TRUE if this is the last block of the event
+  /// Creates a message and fills it with the data and metadata
   ///
-  void   appendNewBlock( char*               data, 
-			 const unsigned long dataLength, 
-			 const bool          completesEvent )
+  /// @param bufRef pointer to the memory containing the message
+  /// @param runNumber run number
+  /// @param runStartUTC start time (Unix epoch) of run
+  /// @param position position of data inside the event
+  /// @param errorFlag error flag
+  /// @param data pointer to the data
+  /// @param dataLength data size in bytes
+  ///
+  void createMessage( toolbox::mem::Reference *bufRef,
+		      const int               runNumber, 
+		      const int               runStartUTC,
+		      const PositionInEvent_t position, 
+		      const unsigned short    errorFlag, 
+		      char* const             data, 
+		      const size_t            dataLength )
     throw ( xcept::Exception );
 
   /// Fills block with data.
@@ -61,16 +69,37 @@ private:
   /// @param dataLength lengh of data in bytes
   ///
   void   fillBlock( toolbox::mem::Reference *bufRef,
-		    char*                    data,
-		    const unsigned int       dataLength )
+		    const int               runNumber, 
+		    const int               runStartUTC,
+		    const PositionInEvent_t position, 
+		    const unsigned short    errorFlag, 
+		    char* const             data, 
+		    const size_t            dataLength )
     throw ( xcept::Exception );
 
   /// Includes in the message the number of event credits still held.
 
   /// @param bufRef  reference to memory block block
-  /// @param completesEvent \c TRUE if this is the last block of the event
+  /// @param position position of data in the event (at start, middle, or end)
   ///
-  void insertNumberOfCreditsHeld( toolbox::mem::Reference *bufRef, bool completesEvent  );
+  void insertNumberOfCreditsHeld( toolbox::mem::Reference *bufRef, const PositionInEvent_t position );
+
+  ///
+  /// Checks if the message queue contains at least one end of event.
+  ///
+  /// @return \c TRUE if the message queue contains at least one end of event, \c FALSE otherwise
+  ///
+  bool isEventEndInQueue();
+
+  /// 
+  /// Sends the first (oldest) message in the queue, and then removes it.
+  ///
+  void sendNextMessageInQueue();
+
+  /// 
+  /// Find the data block that ends the event, merge the messages up to that block into one single message, remove them from the message queue, and send the merged message instead.
+  ///
+  void sendMergedEventMessage();
 
 public:
 
@@ -105,25 +134,25 @@ public:
 
   /// @param runNumber run number
   /// @param nEvents number of events read/processed by the parent application
-  /// @param completesEvent \c TRUE if this is the last block of the event
+  /// @param position position of data in the event (at start, middle, or end)
   /// @param errorFlag error flag to be transmitted along with the data
   /// @param data data
   /// @param dataLength data length in bytes
   ///
-  void   addData( const int            runNumber, 
-		  const int            runStartUTC,
-		  const int            nEvents, 
-		  const bool           completesEvent, 
-		  const unsigned short errorFlag, 
-		  char*                data, 
-		  const int            dataLength );
+  void   addData( const int               runNumber, 
+		  const int               runStartUTC,
+		  const int               nEvents, 
+		  const PositionInEvent_t position, 
+		  const unsigned short    errorFlag, 
+		  char*                   data, 
+		  const size_t            dataLength );
 
   /// Transmits data to client.
   void   sendData()
     throw ( xcept::Exception );
 
   /// Marks the last block as last of event.
-  void makeLastBlockCompleteEvent();
+  void makeLastBlockEndEvent();
 
   /// accessor of target id of client
 
@@ -133,7 +162,25 @@ public:
 
   /// dummy in I2O server
   xoap::MessageReference getOldestMessagePendingTransmission(){ xoap::MessageReference m; m=NULL; return m; }
-};
 
+
+  string errorFlagToString( U16 errorFlag );
+
+
+  template <typename T>
+  std::string binaryFrom( const T& t )
+  {
+    std::stringstream ss;
+    for ( size_t i = sizeof( T ); i > 0; --i ){
+      if ( i < sizeof( T ) ) ss << " ";
+      for ( size_t j = 8; j > 0; --j ){
+	size_t k = 8*(i-1) + j-1;
+	ss << bool( t & ( T( 1 ) << k ) );
+      }
+    }
+    return ss.str();
+  }
+  
+};
 }}} // namespace emu::daq::server
 #endif

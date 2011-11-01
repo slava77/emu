@@ -46,13 +46,13 @@ void emu::daq::server::SOAP::createMIMEInfo(){
   contentEncoding_ = "binary";
 }
 
-void emu::daq::server::SOAP::addData( const int            runNumber, 
-				      const int            runStartUTC,
-				      const int            nEvents, 
-				      const bool           completesEvent, 
-				      const unsigned short errorFlag, 
-				      char*                data, 
-				      const int            dataLength ){
+void emu::daq::server::SOAP::addData( const int               runNumber, 
+				      const int               runStartUTC,
+				      const int               nEvents, 
+				      const PositionInEvent_t position, 
+				      const unsigned short    errorFlag, 
+				      char*                   data, 
+				      const size_t            dataLength ){
 
   LOG4CPLUS_DEBUG(logger_, name_ << " has " << messages_.size() <<
 		  " messages at event " << nEvents <<
@@ -84,7 +84,7 @@ void emu::daq::server::SOAP::addData( const int            runNumber,
       runNumber_   = runNumber;
       runStartUTC_ = runStartUTC;
       errorFlag_   = errorFlag;
-      appendData( data, dataLength, completesEvent );
+      appendData( data, dataLength, position );
     }
     catch( xoap::exception::Exception& xe ){
       LOG4CPLUS_ERROR(logger_,
@@ -95,9 +95,9 @@ void emu::daq::server::SOAP::addData( const int            runNumber,
   }
 }
 
-void emu::daq::server::SOAP::appendData( char* const         data, 
-					 const unsigned long dataLength, 
-					 const bool          completesEvent )
+void emu::daq::server::SOAP::appendData( char* const             data, 
+					 const size_t            dataLength, 
+					 const PositionInEvent_t position )
   throw( xoap::exception::Exception )
 {
 
@@ -114,7 +114,7 @@ void emu::daq::server::SOAP::appendData( char* const         data,
   fillMessage( data, dataLength );
 
   // Append message to queue if complete
-  if ( completesEvent ){
+  if ( position & emu::daq::server::endsEvent ){
     messages_.push_back( messageReference_ );
     //     messageReference_          = NULL;
     messageReference_ = xoap::MessageReference(NULL);
@@ -122,7 +122,7 @@ void emu::daq::server::SOAP::appendData( char* const         data,
   }
 }
 
-void emu::daq::server::SOAP::makeLastBlockCompleteEvent(){
+void emu::daq::server::SOAP::makeLastBlockEndEvent(){
   // First check if a message has already been in the making.
   if ( messageReference_.isNull() ) return;
   // There will be no more data added to this message. (Apperently this event ended incomplete.)
@@ -159,8 +159,8 @@ void emu::daq::server::SOAP::createMessage()
   }
 }
 
-void emu::daq::server::SOAP::fillMessage( char* const        data,
-					  const unsigned int dataLength )
+void emu::daq::server::SOAP::fillMessage( char* const  data,
+					  const size_t dataLength )
   throw( xoap::exception::Exception )
 {
   try{
