@@ -4,7 +4,8 @@ using namespace XERCES_CPP_NAMESPACE;
 
 int EmuPlotter::loadXMLBookingInfo(std::string xmlFile)
 {
-  LOG4CPLUS_INFO(logger_, "Loading Booking Info from XML file: "  <<  xmlFile)
+
+  LOG4CPLUS_INFO(logger_, "Loading Booking Info from XML file: "  <<  xmlFile);
 
   if (xmlFile == "")
     {

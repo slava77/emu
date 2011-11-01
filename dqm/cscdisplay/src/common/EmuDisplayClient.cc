@@ -1355,18 +1355,16 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
             cnv->setRunNumber(runname);
 
           cnv->Draw(MEs[folder],true);
-
-
+	 
           TCanvas* cnv_obj =cnv->getCanvasObject();
           if (cnv_obj != 0)
             {
               TImage *img = TImage::Create ();
               char   *data = NULL;
               int    size = 0;
-              img->FromPad(cnv->getCanvasObject());
+
+              img->FromPad(cnv_obj);
               std::string imgname=BaseDir.toString()+"/"+imagePath_.toString()+"/"+folder+"_"+objname+"."+imageFormat_.toString();
-              //cnv->Print(imgname.c_str());
-              //img->ReadImage(imgname.c_str());
               img->Gray(false);
               img->GetImageBuffer(&data, &size, TImage::kPng);
 

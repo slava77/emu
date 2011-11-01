@@ -152,7 +152,7 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   if (BinaryWarningStatus != 0)
     {
       if (debug) LOG4CPLUS_WARN(logger_,eTag << "Format Warnings DDU level: 0x"
-                                  << std::hex << BinaryWarningStatus)
+                                  << std::hex << BinaryWarningStatus);
 
         ///** (Ugly) Examiner warnings are reported on Readout Buffer Errors histogram
         //	  to handle cases, when because of incomplete DDU header we can not identify DDU ID
