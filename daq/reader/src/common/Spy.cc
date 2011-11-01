@@ -413,8 +413,8 @@ int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
     oversizedCount++;
   }
 
-  // Pack the number of packets into the upper byte of theErrorFlag
-  theErrorFlag |= packets << 8; 
+  // Pack the number of packets into the lower 4 bits of the upper byte of theErrorFlag
+  theErrorFlag |= ( packets > 15 ? 15 : packets ) << 8; 
 
   // Periodically write out counters for debugging purposes
   if ( ec->timeIsUp() ){
