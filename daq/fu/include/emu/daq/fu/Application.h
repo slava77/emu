@@ -124,7 +124,7 @@ private:
   void addDataForClients(const int   runNumber, 
 			 const int   runStartUTC,
 			 const int   nEventsRead,
-			 const bool  completesEvent, 
+			 const emu::daq::server::PositionInEvent_t position, 
 			 char* const data, 
 			 const int   dataLength );
   void moveToFailedState();
