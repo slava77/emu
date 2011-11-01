@@ -1342,17 +1342,17 @@ bool emu::daq::fu::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 
 
 void emu::daq::fu::Application::addDataForClients( const int   runNumber,
-			       const int   runStartUTC,
-			       const int   nEventsRead,
-			       const bool  completesEvent, 
-			       char* const data, 
-			       const int   dataLength ){
+						   const int   runStartUTC,
+						   const int   nEventsRead,
+						   const emu::daq::server::PositionInEvent_t position,
+						   char* const data, 
+						   const int   dataLength ){
   unsigned short dummyErrorFlag = 0; // We don't have the error info amy more at this point.
   for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
     clients_[iClient]->server->addData( runNumber,
 					runStartUTC,
 					nEventsRead, 
-					completesEvent,
+					position,
 					dummyErrorFlag,
 					data, 
 					dataLength );
@@ -1629,6 +1629,14 @@ throw (emu::daq::fu::exception::Exception)
         superFragmentIsLastOfEvent && blockIsLastOfSuperFragment;
     U32 buResourceId = block->buResourceId;
 
+    // Position of data in the event:
+    emu::daq::server::PositionInEvent_t positionInEvent = emu::daq::server::continuesEvent;                       // It's somewhere inside unless...
+    if ( block->superFragmentNb == 0 && block->blockNb == 0 ){
+      positionInEvent = (emu::daq::server::PositionInEvent_t)( positionInEvent | emu::daq::server::startsEvent ); // ...it's at the beginning...
+    }
+    if ( blockIsLastOfEvent ){
+      positionInEvent = (emu::daq::server::PositionInEvent_t)( positionInEvent | emu::daq::server::endsEvent );   // ...and/or at the end.
+    }
 
     char         *startOfPayload = (char*) bufRef->getDataLocation() 
       + sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
@@ -1723,7 +1731,7 @@ throw (emu::daq::fu::exception::Exception)
       addDataForClients( runNumber_.value_,
 			 runStartUTC_,
 			 nbEventsProcessed_.value_,
-			 blockIsLastOfEvent,
+			 positionInEvent,
 			 startOfPayload,
 			 sizeOfPayload );
 
