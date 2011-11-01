@@ -296,11 +296,14 @@
         <xmlCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMBooking.xml</xmlCfgFile>
         <xmlCanvasesCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
 	<cscMapFile xsi:type="xsd:string">/home/dqm/config/csc_map.txt</cscMapFile>
+	<saveResultsDelay xsi:type="xsd:unsignedInt">20</saveResultsDelay>
 	<expertSystemURL xsi:type="xsd:string">http://cosmic3.phys.ufl.edu:8080/cdw/factcollection</expertSystemURL>
-        <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
-        <useExSys xsi:type="xsd:boolean">true</useExSys>
+	<isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
+	<useExSys xsi:type="xsd:boolean">false</useExSys>
       </properties>
     </xc:Application>
+    <!--xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module-->
+    <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscdisplay.so</xc:Module>
   </xc:Context>
@@ -316,7 +319,10 @@
         <viewOnly xsi:type="xsd:boolean">false</viewOnly>
       </properties>
     </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
+    
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+    <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmtfdisplay.so</xc:Module>
   </xc:Context>
 
@@ -376,7 +382,8 @@
        </properties> 
      </xc:Application> 
      <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module> 
-     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module> 
+     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
+     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqwriter.so</xc:Module> 
      <xc:Application instance="1" class="EmuMonitor" id="1401" network="atcp1" group="dqm"> 
        <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct"> 
          <readoutMode xsi:type="xsd:string">internal</readoutMode> 
@@ -400,6 +407,9 @@
          <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader> 
          <dduCheckMask xsi:type="xsd:unsignedInt">0xFFFFDFFF</dduCheckMask> 
          <binCheckMask xsi:type="xsd:unsignedInt">0xFFFB7BF6</binCheckMask>
+         <enableDataWrite xsi:type="xsd:boolean">true</enableDataWrite>
+         <maxSavedEvents xsi:type="xsd:integer">5000</maxSavedEvents>
+         <outputDataFile xsi:type="xsd:string">/csc_data</outputDataFile>
        </properties> 
      </xc:Application> 
      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscanalyzer.so</xc:Module> 
@@ -418,6 +428,7 @@
      </xc:Application>
      <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
+     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqwriter.so</xc:Module>
      <xc:Application instance="2" class="EmuMonitor" id="1402" network="atcp1" group="dqm">
        <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct">
          <readoutMode xsi:type="xsd:string">internal</readoutMode>
@@ -425,6 +436,7 @@
         <!-- inputDeviceName xsi:type="xsd:string">/csc_data/csc_00070088_EmuRUI02_Monitor_000.raw</inputDeviceName-->
 	<!--inputDeviceName xsi:type="xsd:string">/csc_data/70088/Node2.raw</inputDeviceName-->
 	<inputDeviceName xsi:type="xsd:string">/csc_data/csc_00098687_EmuRUI18_Monitor_000.raw</inputDeviceName>
+	<!-- inputDeviceName xsi:type="xsd:string">/home/dqm/csc_122909/csc_00122909_EmuRUI35_Monitor_000.raw</inputDeviceName-->
          <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
          <nEventCredits xsi:type="xsd:unsignedInt">200</nEventCredits>
          <prescalingFactor xsi:type="xsd:unsignedInt">1</prescalingFactor>
@@ -441,6 +453,9 @@
          <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
          <dduCheckMask xsi:type="xsd:unsignedInt">0xFFFFDFFF</dduCheckMask>
          <binCheckMask xsi:type="xsd:unsignedInt">0x16EBF7F6</binCheckMask>
+         <enableDataWrite xsi:type="xsd:boolean">true</enableDataWrite>
+	 <maxSavedEvents xsi:type="xsd:integer">5000</maxSavedEvents>
+	 <outputDataFile xsi:type="xsd:string">/csc_data</outputDataFile>
        </properties>
      </xc:Application>
      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscanalyzer.so</xc:Module>
