@@ -138,11 +138,11 @@ private:
   void addDataForClients(const int   runNumber, 
 			 const int   runStartUTC,
 			 const int   nEventsRead,
-			 const bool  completesEvent, 
+			 const emu::daq::server::PositionInEvent_t position, 
 			 const unsigned short errorFlag, 
 			 char* const data, 
 			 const int   dataLength );
-  void makeClientsLastBlockCompleteEvent();
+  void makeClientsLastBlockEndEvent();
   void insertEmptySuperFragments( const unsigned long fromEventNumber, const unsigned long toEventNumber )
     throw (emu::daq::rui::exception::Exception);
   void ensureContiguousEventNumber();
