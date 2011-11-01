@@ -1383,6 +1383,10 @@ throw (toolbox::fsm::exception::Exception)
       this->notifyQualified( "warning", eObj );
     }
 
+    nReadingPasses_          = 0;
+    maxNBlocksInEvent_       = 0;
+    nEventsOfMultipleBlocks_ = 0;
+
     nReadingPassesInEvent_ = 0;
     insideEvent_           = false;
     errorFlag_             = 0;
@@ -1933,26 +1937,26 @@ bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
       }
 
       // Pass data on to clients
-      try {
-	// Run the servers too in the readout thread.
-	for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
-	  // Service only I2O clients here in the readout loop as I2O messages
-	  // are non-blocking (fire & forget).
-	  if ( clientProtocol_.elementAt( iClient )->toString() == "I2O" ){
+      // Run the servers too in the readout thread.
+      for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	// Service only I2O clients here in the readout loop as I2O messages
+	// are non-blocking (fire & forget).
+	if ( clientProtocol_.elementAt( iClient )->toString() == "I2O" ){
+	  try {
 	    clients_[iClient]->server->sendData();
 	  }
+	  catch(xcept::Exception &e) {
+	    LOG4CPLUS_WARN(logger_, "emu::daq::rui::Application" << instance_ 
+			   << " failed to send data to its client via I2O: "
+			   << " : " << xcept::stdformat_exception_history(e));
+	    stringstream ss31;
+	    ss31 <<  "emu::daq::rui::Application" << instance_ 
+		 << " failed to send data to its client via I2O: "
+		 << " : " ;
+	    XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss31.str(), e );
+	    this->notifyQualified( "warning", eObj );
+	  }
 	}
-      }
-      catch(xcept::Exception &e) {
-	LOG4CPLUS_WARN(logger_, "emu::daq::rui::Application" << instance_ 
-		       << " failed to send data to its client via I2O: "
-		       << " : " << xcept::stdformat_exception_history(e));
-	stringstream ss31;
-	ss31 <<  "emu::daq::rui::Application" << instance_ 
-		       << " failed to send data to its client via I2O: "
-		       << " : " ;
-	XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss31.str(), e );
-	this->notifyQualified( "warning", eObj );
       }
 
       break;
@@ -2040,20 +2044,20 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 
 
 void emu::daq::rui::Application::addDataForClients( const int   runNumber, 
-				const int   runStartUTC,
-			        const int   nEventsRead,
-			        const bool  completesEvent, 
-				const unsigned short errorFlag, 
-			        char* const data, 
-			        const int   dataLength ){
+						    const int   runStartUTC,
+						    const int   nEventsRead,
+						    const emu::daq::server::PositionInEvent_t position,
+						    const unsigned short errorFlag, 
+						    char* const data, 
+						    const int   dataLength ){
   for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
-    clients_[iClient]->server->addData( runNumber, runStartUTC, nEventsRead, completesEvent, 
+    clients_[iClient]->server->addData( runNumber, runStartUTC, nEventsRead, position, 
 					errorFlag, data, dataLength );
 }
 
-void emu::daq::rui::Application::makeClientsLastBlockCompleteEvent(){
+void emu::daq::rui::Application::makeClientsLastBlockEndEvent(){
   for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
-    clients_[iClient]->server->makeLastBlockCompleteEvent();
+    clients_[iClient]->server->makeLastBlockEndEvent();
 }
 
 
@@ -2414,6 +2418,15 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
       bool header  = hasHeader(data,dataLength);
       bool trailer = hasTrailer(data,dataLength);
 
+      // Position of data in the event:
+      emu::daq::server::PositionInEvent_t positionInEvent = emu::daq::server::continuesEvent; // It's somewhere inside unless...
+      if ( header ){
+	positionInEvent = (emu::daq::server::PositionInEvent_t)( positionInEvent | emu::daq::server::startsEvent ); // ...it's at the beginning...
+      }
+      if ( trailer ){
+	positionInEvent = (emu::daq::server::PositionInEvent_t)( positionInEvent | emu::daq::server::endsEvent );   // ...and/or at the end.
+      }
+
       // Update errorFlag:
       if ( !header  ) errorFlag_ |= emu::daq::reader::Spy::HeaderMissing;
       if ( !trailer ) errorFlag_ |= emu::daq::reader::Spy::TrailerMissing;
@@ -2429,7 +2442,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 // 	 << " Header: " << header
 // 	 << " Trailer: " << trailer;
 //       if ( inputDeviceType_ == "spy"  ){
-// 	ss << " Packets: " << ( errorFlag_ >> 8 );
+// 	ss << " Packets: " << ( ( errorFlag_ && 0x0F00 ) >> 8 );
 // 	if ( errorFlag_ & 0x00ff ){
 // 	  ss << " Errors: "
 // 	     << (errorFlag_ & emu::daq::reader::Spy::EndOfEventMissing ? "EndOfEventMissing " : "" )
@@ -2472,7 +2485,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 	  previousEventNumber_ = eventNumber_;
 	  nEventsRead_++;
 	  // Mark the last block for clients
-	  makeClientsLastBlockCompleteEvent();
+	  makeClientsLastBlockEndEvent();
 	  // Get the new event number.
 	  eventNumber_ = deviceReader_->eventNumber();
 	  // Ensure there's no gap in the events by inserting dummy super-fragments if necessary.
@@ -2558,7 +2571,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
       } // if ( insideEvent_ ) else
 
       // Store this data to be sent to clients (if any)
-      addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+      addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, positionInEvent, errorFlag_, data, dataLength );
 
     } // if ( dataLength>0 )
 
@@ -2703,11 +2716,17 @@ int emu::daq::rui::Application::continueSTEPRun()
     dataLength = deviceReader_->dataLength();
     if ( dataLength>0 ) {
 
-
       bool header  = hasHeader(data,dataLength);
       bool trailer = hasTrailer(data,dataLength);
 
-//       if (header) printData( cout, data, 24 ); // print the DDU header only
+      // Position of data in the event:
+      emu::daq::server::PositionInEvent_t positionInEvent = emu::daq::server::continuesEvent; // It's somewhere inside unless...
+      if ( header ){
+	positionInEvent = (emu::daq::server::PositionInEvent_t)( positionInEvent | emu::daq::server::startsEvent ); // ...it's at the beginning...
+      }
+      if ( trailer ){
+	positionInEvent = (emu::daq::server::PositionInEvent_t)( positionInEvent | emu::daq::server::endsEvent );   // ...and/or at the end.
+      }
 
       if ( header ) nEventsRead_++;
 
@@ -2730,7 +2749,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 // 	 << " Trailer: " << trailer
 // 	 << " STEP counts: " << STEPEventCounter_.print();
 //       if ( inputDeviceType_ == "spy"  ){
-// 	ss << " Packets: " << ( errorFlag_ >> 8 );
+// 	ss << " Packets: " << ( ( errorFlag_ && 0x0F00 ) >> 8 );
 // 	if ( errorFlag_ & 0x00ff ){
 // 	  ss << " Errors: "
 // 	     << (errorFlag_ & emu::daq::reader::Spy::EndOfEventMissing ? "EndOfEventMissing " : "" )
@@ -2760,7 +2779,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 	if ( !header && !trailer ){
 	  writeDataToFile( data, dataLength );
 	  // Store this data to be sent to clients (if any)
-	  addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	  addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, positionInEvent, errorFlag_, data, dataLength );
 	} // if ( !header && !trailer )
 
 	else if ( header && !trailer ){
@@ -2779,7 +2798,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 // 	  this->notifyQualified( "warning", eObj );
 
 	  // Mark the last block for clients
-	  makeClientsLastBlockCompleteEvent();
+	  makeClientsLastBlockEndEvent();
 	  insideEvent_ = false;
 	  if ( STEPEventCounter_.isNeededEvent( data ) ){
 	    writeDataToFile( data, dataLength, true );
@@ -2788,7 +2807,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 	    // New event started, reset counter of passes
 	    nReadingPassesInEvent_ = 1;
 	    // Store this data to be sent to clients (if any)
-	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, positionInEvent, errorFlag_, data, dataLength );
 	    insideEvent_ = true;
 	  }
 	} // if ( header && !trailer )
@@ -2797,7 +2816,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 	  writeDataToFile( data, dataLength );
 	  insideEvent_ = false;
 	  // Store this data to be sent to clients (if any)
-	  addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	  addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, positionInEvent, errorFlag_, data, dataLength );
 	} // if ( !header && trailer )
 
 	else if ( header && trailer ){
@@ -2816,7 +2835,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 // 	  this->notifyQualified( "warning", eObj );
 
 	  // Mark the last block for clients
-	  makeClientsLastBlockCompleteEvent();
+	  makeClientsLastBlockEndEvent();
 	  if ( STEPEventCounter_.isNeededEvent( data ) ){
 	    writeDataToFile( data, dataLength, true );
 	    // Get the new event number.
@@ -2824,7 +2843,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 	    // New event started and ended, reset counter of passes
 	    nReadingPassesInEvent_ = 0;
 	    // Store this data to be sent to clients (if any)
-	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, positionInEvent, errorFlag_, data, dataLength );
 	  }
 	  insideEvent_ = false;
 	} // if ( header && trailer )
@@ -2857,7 +2876,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 	    // New event started, reset counter of passes
 	    nReadingPassesInEvent_ = 1;
 	    // Store this data to be sent to clients (if any)
-	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, positionInEvent, errorFlag_, data, dataLength );
 	    insideEvent_ = true;
 	  }
 	} // if ( header && !trailer )
@@ -2886,7 +2905,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 	    // New event started and ended, reset counter of passes
 	    nReadingPassesInEvent_ = 0;
 	    // Store this data to be sent to clients (if any)
-	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, positionInEvent, errorFlag_, data, dataLength );
 	  }
 	  insideEvent_ = false;
 	} // if ( header && trailer )
@@ -3042,13 +3061,27 @@ bool emu::daq::rui::Application::hasTrailer( char* const data, const int dataLen
   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
 //   std::cout << "inputDataFormatInt ?=? emu::daq::reader::Base::DDU " << inputDataFormatInt_ << " ?=? " << emu::daq::reader::Base::DDU << std::endl << std::flush;
   if ( inputDataFormatInt_ == emu::daq::reader::Base::DDU ){
-    if ( dataLength < DDUTrailerLength ) return false; // can the data be split in the trailer???
-    int start = (dataLength - DDUTrailerLength) / 2;
-    trailerFound = ( shortData[start+0] == 0x8000 &&
-		     shortData[start+1] == 0x8000 &&
-		     shortData[start+2] == 0xffff &&
-		     shortData[start+3] == 0x8000 &&
-		     ( shortData[start+11] & 0xf000 ) == 0xa000 );
+    if ( dataLength >= DDUTrailerLength ){
+      // All three 64-bit trailer words must be found
+      const int start = (dataLength - DDUTrailerLength) / 2;
+      trailerFound = ( shortData[start+0] == 0x8000 &&
+		       shortData[start+1] == 0x8000 &&
+		       shortData[start+2] == 0xffff &&
+		       shortData[start+3] == 0x8000 &&
+		       ( shortData[start+11] & 0xf000 ) == 0xa000 );
+    }
+    else if ( dataLength == 2 * DDUTrailerLength / 3 || dataLength == DDUTrailerLength / 3 ){
+      // Only the last one or two 64-bit trailer words can possibly be here.
+      // Only the last 64-bit trailer word has a 4-bit-long fixed part. Not much to go by, but if the data
+      // is this short, it must be the rump of a trailer. Let's see if the hard coded bits are indeed there:
+      const int start = (dataLength - DDUTrailerLength/3) / 2;
+      trailerFound = ( ( shortData[start+3] & 0xf000 ) == 0xa000 );
+    }
+    else{
+      // This should never happen: data length is not integer multiple of 64 bits...
+      trailerFound = false;
+    }
+
 //     stringstream ss;
 //     ss <<
 //       " shortData[start+0] " << std::hex << std::setw(4) << shortData[start+0] <<
