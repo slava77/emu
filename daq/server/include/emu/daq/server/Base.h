@@ -19,6 +19,12 @@ namespace emu{
   namespace daq{
     namespace server{
 
+      enum PositionInEvent_t { 
+	continuesEvent = 0,	///< If data block is neither at the beginning nor at the end of the event.
+	startsEvent    = 1,	///< If data block is at the beginning of the event.
+	endsEvent      = 2	///< If data block is at the end of the event.
+      };	      		///< Position of data block in the event.
+
 /// Base class for data servers.
 
 /// Receives event credits from client. If \ref sendDataOnRequestOnly_ is TRUE, transmits as many events
@@ -108,13 +114,13 @@ public:
   void   addCredits( const int nCredits, const int prescaling );
 
   /// not documented here
-  virtual void   addData(   const int            runNumber, 
-			    const int            runStartUTC,
-			    const int            nEvents, 
-			    const bool           completesEvent, 
-			    const unsigned short errorFlag, 
-			    char*                data, 
-			    const int            dataLength )=0;
+  virtual void   addData(   const int               runNumber, 
+			    const int               runStartUTC,
+			    const int               nEvents, 
+			    const PositionInEvent_t position, 
+			    const unsigned short    errorFlag, 
+			    char*                   data, 
+			    const size_t            dataLength )=0;
 //     throw ( xcept::Exception )=0;
 
   /// not documented here
@@ -128,7 +134,7 @@ public:
   bool   dataIsPendingTransmission(){ return dataIsPendingTransmission_; }
 
   /// not documented here
-  virtual void makeLastBlockCompleteEvent()=0;
+  virtual void makeLastBlockEndEvent()=0;
 
   /// not documented here
   virtual xoap::MessageReference getOldestMessagePendingTransmission()=0;

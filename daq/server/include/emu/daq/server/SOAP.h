@@ -49,11 +49,11 @@ private:
 
   /// @param data pointer to data
   /// @param dataLength length of data in bytes
-  /// @param completesEvent \c TRUE if this is the last block of the event
+  /// @param position position of data in the event (at start, middle, or end)
   ///
-  void   appendData( char* const         data, 
-		     const unsigned long dataLength, 
-		     const bool          completesEvent )
+  void   appendData( char*                   data, 
+		     const size_t            dataLength, 
+		     const PositionInEvent_t position )
     throw( xoap::exception::Exception );
 
   /// Adds data as attachment to SOAP message.
@@ -97,18 +97,18 @@ public:
 
   /// @param runNumber run number
   /// @param nEvents number of events read/processed by the parent application
-  /// @param completesEvent \c TRUE if this is the last block of the event
+  /// @param position position of data in the event (at start, middle, or end)
   /// @param errorFlag error flag to be transmitted along with the data
   /// @param data data
   /// @param dataLength data length in bytes
   ///
-  void   addData( const int            runNumber,
-		  const int            runStartUTC,
-		  const int            nEvents, 
-		  const bool           completesEvent, 
-		  const unsigned short errorFlag, 
-		  char*                data, 
-		  const int            dataLength );
+  void   addData( const int               runNumber,
+		  const int               runStartUTC,
+		  const int               nEvents, 
+		  const PositionInEvent_t position, 
+		  const unsigned short    errorFlag, 
+		  char*                   data, 
+		  const size_t            dataLength );
 
   /// Transmits data to client.
   void   sendData()
@@ -118,7 +118,7 @@ public:
   unsigned long getClientTid(){ return( (unsigned long)0 ); }
 
   /// Marks the last block as last of event.
-  void makeLastBlockCompleteEvent();
+  void makeLastBlockEndEvent();
 
   /// Gets reference to the message in the queue that's been waiting for the longest time and will be sent first.
 
