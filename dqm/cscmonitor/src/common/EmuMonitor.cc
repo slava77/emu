@@ -1394,7 +1394,7 @@ void EmuMonitor::createDeviceReader()
           oss << "Failed to create " << inputDeviceType_.toString()
           << " reader for "      << inputDeviceName_.toString()
           << ": "                << e;
-          LOG4CPLUS_ERROR(logger_, oss.str())
+          LOG4CPLUS_ERROR(logger_, oss.str());
 
           // Don't raise exception as it would be interpreted as FSM transition error
           //      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());

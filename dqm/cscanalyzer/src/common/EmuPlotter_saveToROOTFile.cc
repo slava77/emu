@@ -2,10 +2,11 @@
 
 void EmuPlotter::saveToROOTFile(std::string filename)
 {
-  LOG4CPLUS_WARN(logger_, "Saving MEs to ROOT File... " << filename)
+  LOG4CPLUS_WARN(logger_, "Saving MEs to ROOT File... " << filename);
+
   if (filename == "")
     {
-      LOG4CPLUS_ERROR(logger_, "Empty ROOT file name ")
+      LOG4CPLUS_ERROR(logger_, "Empty ROOT file name ");
       return;
     }
 
@@ -45,10 +46,12 @@ void EmuPlotter::saveToROOTFile(std::string filename)
 
 void EmuPlotter::saveCanvasesToROOTFile(std::string filename)
 {
-  LOG4CPLUS_WARN(logger_, "Saving Canvases to ROOT File... " << filename)
+
+  LOG4CPLUS_WARN(logger_, "Saving Canvases to ROOT File... " << filename);
+
   if (filename == "")
     {
-      LOG4CPLUS_ERROR(logger_, "Empty ROOT file name ")
+      LOG4CPLUS_ERROR(logger_, "Empty ROOT file name ");
       return;
     }
 

@@ -8,8 +8,8 @@ include ../config/site.mk
 
 # ROOT Config
 ROOTCFLAGS    = $(shell root-config --cflags)
-ROOTLIBS      = $(shell root-config --libs)
-ROOTGLIBS     = $(shell root-config --glibs)
+ROOTLIBS      = $(shell root-config --libs) 
+ROOTGLIBS     = $(shell root-config --glibs) 
 
 
 include $(XDAQ_ROOT)/config/mfAutoconf.rules

@@ -3,7 +3,8 @@
 void EmuPlotter::saveImages(std::string path, std::string format, int width, int height, std::string runname)
 {
 
-  LOG4CPLUS_INFO(logger_, "Saving MEs as "<<format<< " images to " << path)
+  LOG4CPLUS_INFO(logger_, "Saving MEs as "<<format<< " images to " << path);
+
   if (format == "")
     {
       format = DEFAULT_IMAGE_FORMAT;
@@ -75,7 +76,8 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
 void EmuPlotter::saveCanvasImages(std::string path, std::string format, int width, int height, std::string runname)
 {
 
-  LOG4CPLUS_WARN(logger_, "Saving MEs as "<<format<< " images to to " << path)
+  LOG4CPLUS_WARN(logger_, "Saving MEs as "<<format<< " images to to " << path);
+
   if (format == "")
     {
       format = DEFAULT_IMAGE_FORMAT;
