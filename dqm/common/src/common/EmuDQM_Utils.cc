@@ -51,24 +51,31 @@ std::string getDateTime(time_t tstamp)
 
 int getNumStrips(std::string cscID)
 {
-    if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )) return 64;
-    else return 80;
+  if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )
+      || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") == 0 )) return 64;
+  else return 80;
 }
 
 int getNumCFEBs(std::string cscID)
 {
-    if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )) return 4;
-    else return 5;
+  if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )
+      || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0 )) return 4;
+  else return 5;
 }
 
 int getNumWireGroups(std::string cscID)
 {
-    if ( (cscID.find("ME+4/1") == 0) || (cscID.find("ME-4/1") ==0)
-            || (cscID.find("ME+3/1") == 0) || (cscID.find("ME-3/1") == 0) ) return 96;
-    else if ( (cscID.find("ME+2/1") == 0) || (cscID.find("ME-2/1") ==0)) return 112;
-    else if ( (cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0)) return 48;
-    else if ( (cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0)) return 32;
-    else return 64;
+  if ( (cscID.find("ME+4/1") == 0) || (cscID.find("ME-4/1") ==0)
+       || (cscID.find("ME+3/1") == 0) || (cscID.find("ME-3/1") == 0)
+       || (cscID.find("ME+4.1") == 0) || (cscID.find("ME-4.1") ==0)
+       || (cscID.find("ME+3.1") == 0) || (cscID.find("ME-3.1") == 0)) return 96;
+  else if ( (cscID.find("ME+2/1") == 0) || (cscID.find("ME-2/1") ==0)
+            || (cscID.find("ME+2.1") == 0) || (cscID.find("ME-2.1") ==0)) return 112;
+  else if ( (cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0)
+            || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0)) return 48;
+  else if ( (cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0)
+            || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0)) return 32;
+  else return 64;
 }
 
 std::vector< std::pair<int,int> > getHVSegmentsMap(std::string cscID)
