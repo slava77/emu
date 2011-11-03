@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.43 2011/10/20 19:24:40 liu Exp $
+// $Id: CCB.cc,v 3.44 2011/11/03 20:52:38 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.44  2011/11/03 20:52:38  liu
+// new ReadConfigBits function
+//
 // Revision 3.43  2011/10/20 19:24:40  liu
 // add signal_csrb2 function and remove obsolete functions
 //
@@ -865,48 +868,38 @@ int CCB::ReadRegister(int reg){
   //
   //printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
-  DecodeRegister_(reg,value);
-  //
   return value;
   //
 }
 
-void CCB::DecodeRegister_(unsigned int address, int value) {
-  //
-  if (address == CSRA2) {
-    //
-    read_mpc_cfg_done_ = value & 0x1;
-    //
-    for (int i=0; i < 9; i++) {
-      int shift = i + 1;
-      read_alct_cfg_done_[i] = (value >> shift) & 0x1;
-    }
-    //
-    for (int i=0; i < 6; i++) {
-      int shift = i + 10;
-      read_tmb_cfg_done_[i]  = (value >> shift) & 0x1;
-    }
-    //
-  } else if (address == CSRA3) {
-    //
-    for (int i=6; i < 9; i++) {
-      int shift = i - 6;
-      read_tmb_cfg_done_[i]  = (value >> shift) & 0x1;
-    }
-    //
-    for (int i=0; i < 9; i++) {
-      int shift = i + 3;
-      read_dmb_cfg_done_[i]  = (value >> shift) & 0x1;
-    }
-    //
-    read_ccb_fpga_ready_  = (value >> 12) & 0x1;
-    read_ttcrx_ready_     = (value >> 13) & 0x1;
-    read_qpll_lock_       = (value >> 14) & 0x1;
-    read_eprom_config_ok_ = (value >> 15) & 0x1;
-    //
-  }
-  //
-  return;
+void CCB::ReadConfigBits()
+{
+   int readback=ReadRegister(CSRA2) | (ReadRegister(CSRA3)<<16);
+  
+   read_mpc_cfg_done_= readback & 1;
+   readback = readback >>1;
+   for (int i=0; i < 9; i++) 
+   {
+      read_alct_cfg_done_[i] = readback & 1;
+      readback = readback >>1;
+   }
+   for (int i=0; i < 9; i++) 
+   {
+      read_tmb_cfg_done_[i] = readback & 1;
+      readback = readback >>1;
+   }
+   for (int i=0; i < 9; i++) 
+   {
+      read_dmb_cfg_done_[i] = readback & 1;
+      readback = readback >>1;
+   }
+
+   read_ccb_fpga_ready_ = readback & 1;
+   read_ttcrx_ready_     = (readback>>1) & 1;
+   read_qpll_lock_       = (readback>>2) & 1;
+   read_eprom_config_ok_ = (readback>>3) & 1;
+
+   return;
 }
 
 void CCB::enableL1() {
@@ -1207,18 +1200,10 @@ int CCB::CheckConfig(int full_check)
   bool config_ok = true;
   //
   // check TTCrx ready and QPLL locked
-  rx=ReadRegister(CSRA3);
+  ReadConfigBits();
   //
   config_ok &= compareValues("CCB TTCrx",read_ttcrx_ready_,expected_ttcrx_ready_);
   config_ok &= compareValues("CCB QPLL lock",read_qpll_lock_,expected_qpll_lock_);
-  //
-  //  if((rx & 0x6000) != 0x2000) 
-  //  {  std::cout << "CCB_Check_Config: TTCrx or QPLL in wrong state " 
-  //               << std::hex << (rx&0xffff) << std::dec << std::endl;
-  //     return 0;
-  //  }
-  //
-  //
   //
   // For a safe version of CheckConfig, full_check==0 to avoid reading TTCrx registers 
   // as I2C access would set the CCB in FPGA mode
@@ -1267,17 +1252,11 @@ int CCB::CheckConfig(int full_check)
   config_ok &= compareValues("CCB DLOG mode",read_value,expected_value);
   //
   //Check component FPGA programming done
-  ReadRegister(CSRA2);
-  ReadRegister(CSRA3);
-  //
   config_ok &= compareValues("CCB FPGA programmed",read_ccb_fpga_ready_,expected_ccb_fpga_ready_);
-  config_ok &= compareValues("MPC FPGA programmed",read_mpc_cfg_done_  ,expected_mpc_cfg_done_  );
-  //
-  //  if((rx & 1) == 0) 
-  //  {  std::cout << "CCB_Check_Config: CCB not in DLOG mode" << std::endl;
-  //     return 0;
-  //  }
-  //
+
+  // this check is unnecessary, the MPC should be checked in MPC class
+  // config_ok &= compareValues("MPC FPGA programmed",read_mpc_cfg_done_  ,expected_mpc_cfg_done_  );
+
   return (int) config_ok;
 }
 // 

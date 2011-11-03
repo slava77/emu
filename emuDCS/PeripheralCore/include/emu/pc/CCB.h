@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.5 2011/10/20 19:24:41 liu Exp $
+// $Id: CCB.h,v 1.6 2011/11/03 20:52:39 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.6  2011/11/03 20:52:39  liu
+// new ReadConfigBits function
+//
 // Revision 1.5  2011/10/20 19:24:41  liu
 // add signal_csrb2 function and remove obsolete functions
 //
@@ -240,6 +243,8 @@ public:
   inline void SetExpectedFirmwareYear(int year) {expected_firmware_year_ = year;}
   inline int  GetExpectedFirmwareYear() { return expected_firmware_year_;}
   //
+  void ReadConfigBits();
+  //
   void PrintTTCrxRegs();
   bool l1Enabled() const {return l1enabled_;}
   void enableL1();
@@ -322,8 +327,6 @@ protected:
   enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
 private:
-  //
-  void DecodeRegister_(unsigned int address, int value);
   //
   //-- Control and Status Registers for CCB2004
   //   group A: discrete logic
