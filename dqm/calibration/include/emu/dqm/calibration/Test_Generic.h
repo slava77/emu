@@ -43,6 +43,7 @@
 
 
 #include "emu/dqm/common/ConsumerCanvas.hh"
+#include "emu/dqm/common/EmuDQM_Utils.h"
 typedef ConsumerCanvas MonitoringCanvas;
 
 #include "emu/dqm/common/CSCReadoutMappingFromFile.h"
@@ -64,7 +65,9 @@ typedef ConsumerCanvas MonitoringCanvas;
 
 #define NLAYERS 6
 #define MAX_STRIPS 80
+#define MAX_WIREGROUPS 112
 #define SCA_CELLS 96
+#define MAX_ALCT_TIMEBINS 32
 
 // Invalid/Bad Value for constants
 #define BAD_VALUE -999.0
@@ -136,6 +139,7 @@ typedef struct ddu_stats
   int csc_evt_cntr;
   int strip;
   int dac;
+  int layer;
 
 } ddu_stats;
 
@@ -199,8 +203,32 @@ typedef struct XtalkData
 //        pulse_fit fit[TIME_STEPS][NLAYERS][MAX_STRIPS];
 } XtalkData;
 
+
+typedef struct delay_step
+{
+   int cnt;
+   double tavg;
+   double terr;
+/*
+   int max_t;
+   int lmax_t;
+   int rmax_t;
+*/
+   int tbins[MAX_ALCT_TIMEBINS];
+   
+} delay_step;
+
+#define DELAY_SCAN_STEPS 16
+typedef struct DelayScanData
+{
+  int Nbins;
+  int Nlayers;
+  delay_step content[DELAY_SCAN_STEPS][NLAYERS][MAX_WIREGROUPS];
+} DelayScanData;
+
 typedef std::map<std::string, GainData> cscGainData;
 typedef std::map<std::string, XtalkData> cscXtalkData;
+typedef std::map<std::string, DelayScanData> cscDelayScanData;
 
 
 // == Base Class for Emu Tests
@@ -254,7 +282,7 @@ public:
 protected:
   std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
   std::string getCSCTypeLabel(int endcap, int station, int ring );
-  int getNumStrips(std::string cscID);
+  // int getNumStrips(std::string cscID);
   void saveCSCList();
   void doBinCheck();
 

@@ -2,6 +2,7 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
+using namespace emu::dqm::utils;
 
 time_sample Test_Generic::CalculateCorrectedPulseAmplitude(pulse_fit& fit)
 {
@@ -34,12 +35,13 @@ time_sample Test_Generic::CalculateCorrectedPulseAmplitude(pulse_fit& fit)
   return peak_time;
 }
 
-
+/*
 int Test_Generic::getNumStrips(std::string cscID)
 {
   if ((cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0 )) return 64;
   else return 80;
 }
+*/
 
 Test_Generic::Test_Generic(std::string dfile): dataFile(dfile), logger(Logger::getInstance("Generic"))
 {
@@ -76,7 +78,7 @@ std::string timestr(time_t* t)
 
 };
 
-
+/*
 std::map<std::string, int> getCSCTypeToBinMap()
 {
   std::map<std::string, int> tmap;
@@ -101,7 +103,7 @@ std::map<std::string, int> getCSCTypeToBinMap()
   return tmap;
 
 }
-
+*/
 void Test_Generic::fillCrateMap(CSCCrateMap* mapobj)
 {
   if (!fillCrateMapSQLite(mapobj))
@@ -775,6 +777,8 @@ int applyParameters(TH1* object, bookParams& params)
               object->GetYaxis()->CenterLabels(true);
             }
         }
+
+
       if ((itr = params.find("SetTickLengthX")) != params.end())
         {
           std::string st = itr->second;
@@ -896,7 +900,7 @@ void Test_Generic::bookCommonHistos()
             {
               ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
             }
-          if (cnvtype == "cfeb_cnv")
+          if ((cnvtype == "cfeb_cnv") || (cnvtype == "afeb_cnv"))
             {
               /*
                   // = Set actual number of strips depending on Chamber type
@@ -974,6 +978,7 @@ void Test_Generic::bookCommonHistos()
 void Test_Generic::bookTestsForCSC(std::string cscID)
 {
   MonHistos cschistos;
+  cschistos.clear();
   TestCanvases csccnvs;
   char *stopstring;
 
@@ -1020,11 +1025,54 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
             {
               ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
             }
-          if (cnvtype == "cfeb_cnv")
+          if (params["XScale"] != "") 
+	    {
+		if (params["XScale"] == "wires") 
+		{
+		   xmin=0;
+		   xmax=getNumWireGroups(cscID);
+		   xbins=getNumWireGroups(cscID);
+		}
+		if (params["XScale"] == "strips")
+                {
+                   xmin=0;
+                   xmax=getNumStrips(cscID);
+                   xbins=getNumStrips(cscID);
+                }
+		// params["SetNdivisionsX"]=Form("%d",(int)xbins);;
+            }
+
+	  if (params["YScale"] != "")
             {
+                if (params["YScale"] == "wires")
+                {
+                   ymin=0;
+                   ymax=getNumWireGroups(cscID);
+                   ybins=getNumWireGroups(cscID);
+                }
+                if (params["YScale"] == "strips")
+                {
+                   ymin=0;
+                   ymax=getNumStrips(cscID);
+                   ybins=getNumStrips(cscID);
+                }
+		// params["SetNdivisionsY"]=Form("%d",(int)ybins);
+            }
+
+          if ((cnvtype == "cfeb_cnv") || (cnvtype == "afeb_cnv"))
+            {
+	     if (cnvtype == "cfeb_cnv") {
               // = Set actual number of strips depending on Chamber type
               xbins = getNumStrips(cscID);
               xmax = getNumStrips(cscID);
+              }
+	     if (cnvtype == "afeb_cnv") {
+              // = Set actual number of wiregroups depending on Chamber type
+              xbins = getNumWireGroups(cscID);
+              xmax = getNumWireGroups(cscID);
+              }
+	     
+
 
               if (params["Low0Limit"] != "")
                 {
@@ -1409,7 +1457,8 @@ void Test_Generic::finish()
               gStyle->SetPalette(1,0);
               //	m_itr->second->Draw();
 
-              cnv->SetHistoObject(m_itr->second);
+	      // if (m_itr->second != NULL) 
+	      cnv->SetHistoObject(m_itr->second);
 
               // Set results code for user histograms
               r_itr = rcodes.find(subtestID);

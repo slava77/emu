@@ -2,6 +2,7 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
+using namespace emu::dqm::utils;
 
 Test_CFEB03::Test_CFEB03(std::string dfile): Test_Generic(dfile)
 {
