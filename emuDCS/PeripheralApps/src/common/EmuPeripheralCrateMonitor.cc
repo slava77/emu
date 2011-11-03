@@ -156,7 +156,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   dmb_mask.clear();
   vcc_reset.clear();
   crate_off.clear();
-  first_read=true;
+  for(unsigned i=0; i<60; i++) first_read[i]=true;
 
   parsed=0;
 }
@@ -184,7 +184,7 @@ void EmuPeripheralCrateMonitor::ReadingOn()
          PCsendCommand("MonitorStart","emu::pc::EmuPeripheralCrateTimer");
          Monitor_On_=true;
          msgHandler("Monitor Reading On", 1);
-         first_read=true;
+         for(unsigned i=0; i<60; i++) first_read[i]=true;
      }
      fireEvent("Enable");
 }
@@ -381,24 +381,36 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                     if(ccbdata->size()==0) 
                        for(unsigned ii=0; ii<buf2[0]; ii++) ccbdata->push_back(0);
                     for(unsigned ii=0; ii<buf2[0]; ii++) (*ccbdata)[ii] = buf2[ii+1];
-                    if(first_read)
+                    if(first_read[i])
                     {
                         ccbmpcreg[i][0] = buf2[1];
                         ccbmpcreg[i][1] = buf2[2];
                         ccbmpcreg[i][2] = buf2[3];
                         ccbmpcreg[i][3] = buf2[12];
-                        first_read=false;
+                        first_read[i]=false;
                     }
                     else
                     {
                         if((ccbmpcreg[i][0]&1) != (buf2[1] &1)) 
+                        {
                            std::cout << "Crate "+cratename+" CCB CSRA1 changed from " << std::hex << ccbmpcreg[i][0] << " to " << buf2[1] << " at " << getLocalDateTime() << std::endl;
+                           ccbmpcreg[i][0] = buf2[1];
+                        }
                         if((ccbmpcreg[i][1]) != (buf2[2])) 
+                        {
                            std::cout << "Crate "+cratename+" CCB CSRA2 changed from " << std::hex << ccbmpcreg[i][1] << " to " << buf2[2] << " at " << getLocalDateTime() << std::endl;
+                           ccbmpcreg[i][1] = buf2[2];
+                        }
                         if((ccbmpcreg[i][2]) != (buf2[3])) 
+                        {
                            std::cout << "Crate "+cratename+" CCB CSRA3 changed from " << std::hex << ccbmpcreg[i][2] << " to " << buf2[3] << " at " << getLocalDateTime() << std::endl;
+                           ccbmpcreg[i][2] = buf2[3];
+                        }
                         if((ccbmpcreg[i][3]) != (buf2[12])) 
+                        {
                            std::cout << "Crate "+cratename+" MPC CSR0 changed from " << std::hex << ccbmpcreg[i][3] << " to " << buf2[12] << " at " << getLocalDateTime() << std::endl;
+                           ccbmpcreg[i][3] = buf2[12];
+                        }
                         std::cout << std::dec;
                     }
                 }
