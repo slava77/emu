@@ -2,6 +2,7 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
+using namespace emu::dqm::utils;
 
 //= For debug purposes =//
 static int F_LAYER=1;

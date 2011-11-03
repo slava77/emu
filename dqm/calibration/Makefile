@@ -31,7 +31,10 @@ Sources=\
 	Test_Generic.cc \
 	Test_CFEB02.cc \
 	Test_CFEB03.cc \
-	Test_CFEB04.cc
+	Test_CFEB04.cc \
+	Test_AFEB05.cc \
+	Test_AFEB06.cc \
+	Test_AFEB07.cc
 	
 
 

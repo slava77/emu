@@ -2,6 +2,8 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
+using namespace emu::dqm::utils;
+
 /**
  * @brief Constructor for Test CFEB04: Amplifier Gain
  * @param dfile Events Data file name
