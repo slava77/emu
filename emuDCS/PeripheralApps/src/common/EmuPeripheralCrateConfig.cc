@@ -2640,11 +2640,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       mpc_firmware_ok[current_crate_] = thisCrate->mpc()->CheckFirmwareDate();
       //
       // read the "FPGA configuration done" bits which have been sent to the CCB
-      const int CSRA3=0x04;
-      thisCCB->ReadRegister(CSRA3);
-      //
-      const int CSRA2=0x02;
-      thisCCB->ReadRegister(CSRA2);
+      thisCCB->ReadConfigBits();
       //
       // check TMB, DMB, ALCT, and CFEB's attached to this chamber...
       for (unsigned int chamber_index=0; chamber_index<dmbVector.size(); chamber_index++) {
