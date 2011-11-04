@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.9 2011/10/21 22:42:09 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.10 2011/11/04 15:55:43 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -235,19 +235,22 @@ std::string EmuPeripheralCrateBase::getAttrFromSOAP(xoap::MessageReference messa
         return value;
 }
 
-std::string EmuPeripheralCrateBase::getLocalDateTime(){
+std::string EmuPeripheralCrateBase::getLocalDateTime(bool AsFileName){
   time_t t;
   struct tm *tm;
 
   time( &t );
   tm = localtime( &t );
+  std::string gap0 = "-";
+  std::string gap1 = (AsFileName) ? gap0 : " ";
+  std::string gap2 = (AsFileName) ? gap0 : ":";
 
   std::stringstream ss;
-  ss << std::setfill('0') << std::setw(4) << tm->tm_year+1900 << "-"
-     << std::setfill('0') << std::setw(2) << tm->tm_mon+1     << "-"
-     << std::setfill('0') << std::setw(2) << tm->tm_mday      << " "
-     << std::setfill('0') << std::setw(2) << tm->tm_hour      << ":"
-     << std::setfill('0') << std::setw(2) << tm->tm_min       << ":"
+  ss << std::setfill('0') << std::setw(4) << tm->tm_year+1900 << gap0
+     << std::setfill('0') << std::setw(2) << tm->tm_mon+1     << gap0
+     << std::setfill('0') << std::setw(2) << tm->tm_mday      << gap1
+     << std::setfill('0') << std::setw(2) << tm->tm_hour      << gap2
+     << std::setfill('0') << std::setw(2) << tm->tm_min       << gap2
      << std::setfill('0') << std::setw(2) << tm->tm_sec;
 
   return ss.str();
