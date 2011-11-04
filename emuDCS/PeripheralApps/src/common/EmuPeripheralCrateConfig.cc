@@ -3495,9 +3495,26 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 	this->PowerOnFixCFEB(in,out);
       }
       //
+      // to read the ALCT's PROM content and save as a .mcs file
+
+      std::string chambername= thisCrate->GetChamber(thisTMB)->GetLabel();
+      chambername.replace(6,1,"_");
+      chambername.replace(4,1,"_");
+      std::string mcsfile="/tmp/ALCT_"+ chambername + "_" + getLocalDateTime(true) + ".mcs";
+      std::string jtagfile;
+      int alctsize=thisALCT->GetFastControlAlctType();
+      if(alctsize>384)
+         jtagfile=XMLDIR+"/alct_big.vrf";
+      else
+         jtagfile=XMLDIR+"/alct_small.vrf";
       //
+
       // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
       thisCCB->setCCBMode(CCB::VMEFPGA);
+      std::cout  << getLocalDateTime() <<  "Reading back ALCT PROM from slot " << thisTMB->slot() << std::endl;
+      //
+      thisTMB->setup_jtag(ChainAlctFastMezz);
+      thisTMB->read_prom(jtagfile.c_str(),mcsfile.c_str());
       //
       LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
       //
