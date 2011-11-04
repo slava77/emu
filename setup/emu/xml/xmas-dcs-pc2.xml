@@ -49,7 +49,7 @@
 
 		<xc:Application class="tstore::TStore" id="120" instance="0" network="local">
 		  <properties xmlns="urn:xdaq-application:TStore" xsi:type="soapenc:Struct">
-		    <configurationRootDirectory xsi:type="xsd:string">/opt/xdaq/htdocs/emu/emuDCS/PeripheralApps/xml</configurationRootDirectory>
+		    <configurationRootDirectory xsi:type="xsd:string">/opt/xdaq/htdocs/emu/emuDCS/OnlineDB/xml</configurationRootDirectory>
 		  </properties>
 		</xc:Application>
 		<xc:Module>/opt/xdaq/lib/libxalanMsg.so</xc:Module>
