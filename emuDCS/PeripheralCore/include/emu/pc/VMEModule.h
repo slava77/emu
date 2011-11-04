@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.5 2011/10/28 18:13:37 liu Exp $
+// $Id: VMEModule.h,v 1.6 2011/11/04 20:05:52 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.6  2011/11/04 20:05:52  liu
+// change svfLoad interface
+//
 // Revision 1.5  2011/10/28 18:13:37  liu
 // add DDU class
 //
@@ -157,7 +160,7 @@ public:
   virtual void configure() = 0;
   
   void Parse(char *buf,int *Count,char **Word);
-  int  svfLoad(int*, const char *, int, int verify=0);
+  int  svfLoad(int, const char *, int, int verify=0);
   
   VMEController* getTheController();
   

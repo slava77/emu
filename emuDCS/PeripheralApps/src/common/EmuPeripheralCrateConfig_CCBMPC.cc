@@ -258,10 +258,10 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   {
     //
     int debugMode(0);
-    int jch(6);
+    int jch(0);
     int verify(1);
     std::cout << getLocalDateTime() << " Programming CCB using " << CCBFirmware_ << std::endl;
-    int status = thisCCB->svfLoad(&jch,CCBFirmware_.c_str(),debugMode, verify);
+    int status = thisCCB->svfLoad(jch,CCBFirmware_.c_str(),debugMode, verify);
     if (status >= 0){
       std::cout << getLocalDateTime() << " Programming finished with " << status << " Verify Errors occured" << std::endl;
     }
@@ -502,10 +502,10 @@ void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * ou
   throw (xgi::exception::Exception) {
   //
   int debugMode(0);
-  int jch(6);
+  int jch(0);
   int verify(1);
   std::cout << getLocalDateTime() << " Programming MPC using " << MPCFirmware_ << std::endl;
-  int status = thisMPC->svfLoad(&jch,MPCFirmware_.c_str(),debugMode, verify);
+  int status = thisMPC->svfLoad(jch,MPCFirmware_.c_str(),debugMode, verify);
   if (status >= 0){
     std::cout << getLocalDateTime() << " Programming finished with " << status << " Verify Errors occured" << std::endl;
   }
