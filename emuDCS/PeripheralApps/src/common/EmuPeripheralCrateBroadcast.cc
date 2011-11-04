@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.54 2011/02/25 14:08:37 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.55 2011/11/04 20:05:53 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -745,7 +745,7 @@ void EmuPeripheralCrateBroadcast::LoadMPCFirmware(xgi::Input * in, xgi::Output *
     int jch(0);
     int verify(0);
     //
-    broadcastMPC->svfLoad(&jch,MPCFirmwareFile_.c_str(),debugMode,verify);
+    broadcastMPC->svfLoad(jch,MPCFirmwareFile_.c_str(),debugMode,verify);
   //
   } else 
   {
@@ -767,7 +767,7 @@ void EmuPeripheralCrateBroadcast::LoadCCBFirmware(xgi::Input * in, xgi::Output *
     int jch(0);
     int verify(0);
     //
-    broadcastCCB->svfLoad(&jch,CCBFirmwareFile_.c_str(),debugMode,verify);
+    broadcastCCB->svfLoad(jch,CCBFirmwareFile_.c_str(),debugMode,verify);
   } else 
   {
     std::cout <<" No broadcast CCB exists" << std::endl;

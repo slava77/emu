@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.28 2011/07/02 15:41:00 liu Exp $
+// $Id: VMEModule.cc,v 3.29 2011/11/04 20:05:52 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.29  2011/11/04 20:05:52  liu
+// change svfLoad interface
+//
 // Revision 3.28  2011/07/02 15:41:00  liu
 // restore default/longer delay value in SVFload
 //
@@ -373,7 +376,7 @@ void VMEModule::shift_state(int cnt, int mask)
    theController->shift_state( cnt, mask);
 }
 
-int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
+int VMEModule::svfLoad(int jch, const char *fn, int db, int verify )
 {
   int MAXBUFSIZE=8200;
   unsigned char snd[MAXBUFSIZE], rcv[MAXBUFSIZE], expect[MAXBUFSIZE],rmask[MAXBUFSIZE],smask[MAXBUFSIZE],cmpbuf[MAXBUFSIZE];
@@ -414,7 +417,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
   
   total_packages = 0 ;
   send_packages = 0 ;
-  jchan = *jch;
+  jchan = jch;
   downfile = fn;
   errcntr = 0;
   if (downfile==NULL)    downfile="default.svf";
@@ -1318,7 +1321,7 @@ int VMEModule::read_prom(const char * vrffile, const char * mcsfile)
        return -2;
    }
    bitbufindex=0;
-   svfLoad(&tmp, vrffile, 0, 1);
+   svfLoad(tmp, vrffile, 0, 1);
    if(bitbufindex>0) 
    {    write_mcs(bitstream, bitbufindex, bitfile);
         std::cout << bitbufindex << " bytes of PROM image written to " << mcsfile << std::endl;
