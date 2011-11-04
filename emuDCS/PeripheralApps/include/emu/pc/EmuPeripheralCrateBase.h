@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.h,v 1.6 2011/10/21 22:42:08 liu Exp $
+// $Id: EmuPeripheralCrateBase.h,v 1.7 2011/11/04 15:55:44 liu Exp $
 
 #ifndef _EmuPeripheralCrateBase_h_
 #define _EmuPeripheralCrateBase_h_
@@ -67,7 +67,7 @@ protected:
   xoap::MessageReference PCcreateCommandSOAPwithAttr(std::string command, std::string tag, std::string attr);
   int PCsendCommandwithAttr(std::string command, std::string tag, std::string attr, std::string klass, int instance = -1) 
                         throw (xoap::exception::Exception, xdaq::exception::Exception);
-  std::string getLocalDateTime();
+  std::string getLocalDateTime(bool AsFileName = false);
   bool CommonParser(std::string XML_or_DB, std::string xmlFile);
   inline EmuEndcap *GetEmuEndcap() { return activeEndcap_; }
   emu::db::TStoreReadWriter *GetEmuTStore();
