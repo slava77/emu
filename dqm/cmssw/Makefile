@@ -176,5 +176,5 @@ _cleanall:
 clean:
 	@rm -f $(LDIR)/*.a $(LDIR)/*.so $(ODIR)/*.o *.o program core*
 
-_installall:
-install:
+install: makedirs libs
+_installall: install
