@@ -91,7 +91,7 @@ public:
 
   // === Fills the data coming in.  unpacks the data into the METBRawFormat
   //     data structures and calls the appropriate fill() routine below.
-  void processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
+  void processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0, int32_t nBlocks = 0);
   void processChamber(const CSCEventData& data,int32_t nodeID, int32_t dduID);
 
   void setHistoFile(std::string hfile)

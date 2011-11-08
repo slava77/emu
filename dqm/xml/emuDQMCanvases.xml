@@ -34,8 +34,9 @@
 		<Name>EMU_Test00_Readout_Buffer_Errors</Name>
 		<Title>EMU Test00 - Readout Buffer Errors</Title>
 		<NumPadsX>1</NumPadsX>
-		<NumPadsY>1</NumPadsY>
+		<NumPadsY>2</NumPadsY>
 		<Pad1>All_Readout_Errors</Pad1>
+		<Pad2>All_Readout_Data_Blocks</Pad2>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>

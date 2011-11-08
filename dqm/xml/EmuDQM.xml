@@ -27,7 +27,7 @@
   </i2o:protocol>
 
 <!--EmuDAQManager-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20200">
+  <xc:Context url="http://pccmsdqm02.cern.ch:20200">
     <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>     
     <xc:Module>${XDAQ_ROOT}/lib/libsentinelutils.so</xc:Module>
@@ -88,8 +88,8 @@
   </xc:Context>
 
 <!--EVM and EmuTA-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20201">
-    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20251" service="i2o" network="atcp1"/>
+  <xc:Context url="http://pccmsdqm02.cern.ch:20201">
+    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20251" service="i2o" network="atcp1"/>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -110,8 +110,8 @@
   </xc:Context>
 
 <!--RUI 0-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20300">
-    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20350" service="i2o" network="atcp1"/>
+  <xc:Context url="http://pccmsdqm02.cern.ch:20300">
+    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20350" service="i2o" network="atcp1"/>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -168,8 +168,8 @@
   </xc:Context>
 
 <!--RUI 1-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20301">
-    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20351" service="i2o" network="atcp1"/>
+  <xc:Context url="http://pccmsdqm02.cern.ch:20301">
+    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20351" service="i2o" network="atcp1"/>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -226,8 +226,8 @@
   </xc:Context>
 
 <!--RUI 2-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20302">
-    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20352" service="i2o" network="atcp1"/>
+  <xc:Context url="http://pccmsdqm02.cern.ch:20302">
+    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20352" service="i2o" network="atcp1"/>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -284,7 +284,7 @@
   </xc:Context>
 
 <!--EmuDisplayClient-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20550">
+  <xc:Context url="http://pccmsdqm02.cern.ch:20550">
     <xc:Application class="EmuDisplayClient" id="1450" instance="0" network="local">
       <properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
         <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
@@ -309,7 +309,7 @@
   </xc:Context>
 
 <!--EmuTFDisplayClient-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20560">
+  <xc:Context url="http://pccmsdqm02.cern.ch:20560">
     <xc:Application class="EmuTFDisplayClient" id="1460" instance="0" network="local">
       <properties xmlns="urn:xdaq-application:EmuTFDisplayClient" xsi:type="soapenc:Struct">
         <monitorClass xsi:type="xsd:string">EmuTFMonitor</monitorClass>
@@ -327,8 +327,8 @@
   </xc:Context>
 
 <!--EmuTFMonitor 0-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20500">
-    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20600" service="i2o" network="atcp1"/>
+  <xc:Context url="http://pccmsdqm02.cern.ch:20500">
+    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20600" service="i2o" network="atcp1"/>
       <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
        <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -372,8 +372,8 @@
 
 
 <!--EmuMonitor 1-->
-   <xc:Context url="http://cms-dqm03.phys.ufl.edu:20501"> 
-     <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20601" service="i2o" network="atcp1"/> 
+   <xc:Context url="http://pccmsdqm02.cern.ch:20501"> 
+     <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20601" service="i2o" network="atcp1"/> 
 	<xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
        <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct"> 
@@ -417,8 +417,8 @@
    </xc:Context>
 
 <!--EmuMonitor 2-->
-   <xc:Context url="http://cms-dqm03.phys.ufl.edu:20502">
-     <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20602" service="i2o" network="atcp1"/>
+   <xc:Context url="http://pccmsdqm02.cern.ch:20502">
+     <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20602" service="i2o" network="atcp1"/>
         <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
        <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">

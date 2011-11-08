@@ -21,7 +21,7 @@ Authors="Victor Barashko, Khristian Kotov"
 Link="http://www.phys.ufl.edu/emu/csc/dqm"
 PACKAGE_VER_MAJOR=1
 PACKAGE_VER_MINOR=3
-PACKAGE_VER_PATCH=11
+PACKAGE_VER_PATCH=15
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 include $(XDAQ_ROOT)/config/mfRPM.rules

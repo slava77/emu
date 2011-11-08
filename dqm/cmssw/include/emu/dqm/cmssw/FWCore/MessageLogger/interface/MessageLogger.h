@@ -126,7 +126,7 @@ private:
       explicit LogDebug(std::string const &id) : LocalLogger(id) { }
 
       ~LogDebug() {
-        LOG4CPLUS_DEBUG(logger, getStr())
+        LOG4CPLUS_DEBUG(logger, getStr());
       }
 
   };
