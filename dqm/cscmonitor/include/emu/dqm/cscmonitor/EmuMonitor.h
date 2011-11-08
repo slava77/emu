@@ -159,7 +159,7 @@ protected:
   void 	failurePage(xgi::Output * out, xgi::exception::Exception & e)  throw (xgi::exception::Exception);
 
   // Process Event data
-  void 	processEvent(const char * data, int32_t dataSize, uint32_t errorFlag, int32_t node=0);
+  void 	processEvent(const char * data, int32_t dataSize, uint32_t errorFlag, int32_t node=0, int32_t nBlocks=0);
 
   void 	updateList(xdata::Integer);
   void 	updateObjects(xdata::Integer);

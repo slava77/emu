@@ -1176,7 +1176,10 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
 
     }
 
+  int32_t nBlocks = (errorFlag >> 12)&0xF; /// Number of reconstructed event data blocks
+
   // DDU Spy mode readout errors
+
   if ( (errorFlag & emu::daq::reader::Spy::EndOfEventMissing) 	> 0 ) 	status |= 0x0001;
   if ( (errorFlag & emu::daq::reader::Spy::Timeout) 		> 0 )	status |= 0x0002;
   if ( (errorFlag & emu::daq::reader::Spy::PacketsMissing) 	> 0 )	status |= 0x0004;
@@ -1205,7 +1208,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
       */
     }
 
-  processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, appTid_);
+  processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, appTid_, nBlocks);
 
   // Free the Emu data message
   bufRef->release();
@@ -1637,7 +1640,7 @@ int EmuMonitor::svc()
 
 
 // == Process Event data == //
-void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFlag, int node)
+void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFlag, int node, int32_t nBlocks)
 {
 
   if (plotter_ != NULL)
@@ -1652,7 +1655,7 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
                           << rateMeter->getRate("cscRate") << " CSCs/sec" ) ;
           //		   << " (Total processed: " << totalEvents_.toString() << ")");
         }
-      plotter_->processEvent(data, dataSize, errorFlag, node);
+      plotter_->processEvent(data, dataSize, errorFlag, node, nBlocks);
 
       // -- Write Event Data to file
       if ( (enableDataWrite_ == xdata::Boolean(true))

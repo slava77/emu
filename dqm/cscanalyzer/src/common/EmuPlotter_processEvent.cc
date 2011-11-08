@@ -8,7 +8,7 @@
  * 	@param errorStat - readout errors status from the data reader (file or Spy mode)
  * 	@param nodeNumber - optional calling module node number (EmuMonitor instance in online, 0 in offline mode)
  */
-void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t errorStat, int32_t nodeNumber)
+void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t errorStat, int32_t nodeNumber, int32_t nBlocks)
 {
 
   appBSem_.take();
@@ -37,6 +37,11 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   ME_List& nodeME = MEs[nodeTag]; ///< Global histos specific for this emuMonitor node
 
   // if (isMEvalid(nodeME, "Buffer_Size", mo)) mo->Fill(evtSize);
+
+  if (isMEvalid(nodeME, "All_Readout_Data_Blocks", mo))
+     {
+	mo->Fill(nodeNumber, nBlocks);
+     }
 
   ///**  Check DDU Readout Error Status
   if (isMEvalid(nodeME, "All_Readout_Errors", mo))
