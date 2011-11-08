@@ -82,6 +82,7 @@
 	<xp:Module>${XDAQ_ROOT}/lib/libwsbrokerutils.so</xp:Module>
 	<xp:Module>${XDAQ_ROOT}/lib/libxmassensor.so</xp:Module>
 
+	<!-- emu::base uses Xalan -->
         <xp:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xp:Module>
         <xp:Module>${XDAQ_ROOT}/lib/libxalanMsg.so</xp:Module>
 	<!-- Emus' own SOAP Messenger -->
