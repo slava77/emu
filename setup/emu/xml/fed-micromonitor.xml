@@ -13,6 +13,7 @@
 		<xc:Module>${XDAQ_ROOT}/lib/libsentinelutils.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
+                <xc:Module>${XDAQ_ROOT}/lib/libEmuPeripheralCore.so</xc:Module>      
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuOnlineDB.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuFEDCore.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuFEDUtils.so</xc:Module>
@@ -30,6 +31,7 @@
 		<xc:Module>${XDAQ_ROOT}/lib/libsentinelutils.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
+                <xc:Module>${XDAQ_ROOT}/lib/libEmuPeripheralCore.so</xc:Module>      
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuOnlineDB.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuFEDCore.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuFEDUtils.so</xc:Module>
@@ -47,6 +49,7 @@
 		<xc:Module>${XDAQ_ROOT}/lib/libsentinelutils.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libemubase.so</xc:Module>
+                <xc:Module>${XDAQ_ROOT}/lib/libEmuPeripheralCore.so</xc:Module>      
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuOnlineDB.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuFEDCore.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/lib/libEmuFEDUtils.so</xc:Module>
