@@ -1,5 +1,7 @@
 # Schema definition for CSC Peripheral Crate configuration files
 
+# For more on RELAX NG compact syntax, see http://relaxng.org/compact-tutorial-20030326.html
+
 # HOW TO USE THIS FILE
 # ====================
 # 
@@ -40,7 +42,7 @@ attlist.PeripheralCrate &=
    attribute label { text }
 VCC = element VCC { attlist.VCC }
 attlist.VCC &= 
-    attribute eth_port { xsd:unsignedInt }, # TODO: types
+    attribute eth_port { xsd:unsignedInt },
     attribute MAC_addr { xsd:string { pattern="[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}" } },
     attribute MCAST_1 { xsd:string { pattern="[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}" } },
     attribute MCAST_2 { xsd:string { pattern="[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}" } },
@@ -148,7 +150,7 @@ attlist.TMB &=
    attribute layer3_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
    attribute layer4_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
    attribute layer5_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
-   attribute enable_alct_tx { xsd:unsignedInt }, # TODO: check types below
+   attribute enable_alct_tx { xsd:unsignedInt },
    attribute cfeb_enable_source { xsd:unsignedInt },
    attribute enableCLCTInputs_reg68 { xsd:unsignedInt },
    attribute rpc_mask_all { xsd:unsignedInt },
@@ -161,6 +163,7 @@ attlist.TMB &=
    attribute l1a_allow_notmb { xsd:unsignedInt },
    attribute l1a_allow_nol1a { xsd:unsignedInt },
    attribute l1a_allow_alct_only { xsd:unsignedInt },
+   attribute l1a_priority_enable  { "0" | "1" },
    attribute rpc0_raw_delay { xsd:unsignedInt },
    attribute rpc1_raw_delay { xsd:unsignedInt },
    attribute rpc1_rat_delay { xsd:unsignedInt },
@@ -199,15 +202,19 @@ attlist.TMB &=
    attribute cfeb2_rxd_int_delay { xsd:unsignedInt },
    attribute cfeb3_rxd_int_delay { xsd:unsignedInt },
    attribute cfeb4_rxd_int_delay { xsd:unsignedInt },
-   attribute cfeb_badbits_block { xsd:unsignedInt }
+   attribute cfeb_badbits_block { xsd:unsignedInt },
+   attribute cfeb_badbits_readout { "0" | "1" },
+   attribute miniscope_enable { "0" | "1" }
 
 ALCT = element ALCT { attlist.ALCT, AnodeChannel* }
 attlist.ALCT &=
-   (( attribute chamber_type { "ME11" },
-      attribute alct_firmware_negat_posit { "n" | "p" },
-      attribute alct_firmware_backward_forward { "b" | "f" } ) 
+   (
+      ( attribute chamber_type { "ME11" }
+       ,attribute alct_firmware_negat_posit { "n" | "p" }
+       ,attribute alct_firmware_backward_forward { "b" | "f" }
+      )
     | 
-      attribute chamber_type {
+      ( attribute chamber_type {
          "ME11"
        | "ME12"
        | "ME13"
@@ -218,6 +225,10 @@ attlist.ALCT &=
        | "ME41"
        | "ME42"
       }
+       # Sometimes these are included as empty attributes:
+       ,attribute alct_firmware_negat_posit { "" }?
+       ,attribute alct_firmware_backward_forward { "" }?
+      )
    ),
    attribute alct_firmware_month { xsd:unsignedByte { minInclusive="1" maxInclusive="12" } },
    attribute alct_firmware_day { xsd:unsignedByte { minInclusive="1" maxInclusive="31" } },
@@ -237,7 +248,7 @@ attlist.ALCT &=
    attribute alct_ccb_enable { xsd:unsignedInt },
    attribute alct_accel_mode { xsd:unsignedInt },
    attribute alct_bxn_offset { xsd:unsignedInt },
-   attribute alct_send_empty { xsd:unsignedInt }, # TODO: check types below
+   attribute alct_send_empty { xsd:unsignedInt },
    attribute alct_nplanes_hit_accel_pretrig { xsd:unsignedInt },
    attribute alct_nplanes_hit_accel_pattern { xsd:unsignedInt },
    attribute alct_fifo_mode { xsd:unsignedInt },
@@ -246,7 +257,8 @@ attlist.ALCT &=
    attribute alct_sn_select { xsd:unsignedInt },
    attribute alct_testpulse_amplitude { xsd:unsignedInt },
    attribute alct_testpulse_invert { "on" | "off" },
-   attribute alct_testpulse_direction { "strips" | "afebs" }
+   attribute alct_testpulse_direction { "strips" | "afebs" },
+   attribute alct_zero_suppress { "0" | "1" }
 AnodeChannel = element AnodeChannel { attlist.AnodeChannel, empty }
 attlist.AnodeChannel &=
    attribute afeb_number { xsd:unsignedInt },
@@ -279,11 +291,19 @@ attlist.DAQMB &=
 CFEB = element CFEB { attlist.CFEB, empty }
 attlist.CFEB &= 
    attribute cfeb_number { "0" | "1" | "2" | "3" | "4" },
-   attribute cfeb_firmware_tag { xsd:hexBinary }, # TODO: check types below
-   attribute kill_chip0 { xsd:hexBinary },
-   attribute kill_chip1 { xsd:hexBinary },
-   attribute kill_chip2 { xsd:hexBinary },
-   attribute kill_chip3 { xsd:hexBinary },
-   attribute kill_chip4 { xsd:hexBinary },
-   attribute kill_chip5 { xsd:hexBinary }
+   attribute cfeb_firmware_tag { xsd:hexBinary },
+   # xsd:hexBinary would be correct...
+   # attribute kill_chip0 { xsd:hexBinary },
+   # attribute kill_chip1 { xsd:hexBinary },
+   # attribute kill_chip2 { xsd:hexBinary },
+   # attribute kill_chip3 { xsd:hexBinary },
+   # attribute kill_chip4 { xsd:hexBinary },
+   # attribute kill_chip5 { xsd:hexBinary }
+   # ...but sometimes an odd number of hexadecimal digits are written:
+   attribute kill_chip0 { xsd:string { pattern="[0-9a-fA-F]+" } },
+   attribute kill_chip1 { xsd:string { pattern="[0-9a-fA-F]+" } },
+   attribute kill_chip2 { xsd:string { pattern="[0-9a-fA-F]+" } },
+   attribute kill_chip3 { xsd:string { pattern="[0-9a-fA-F]+" } },
+   attribute kill_chip4 { xsd:string { pattern="[0-9a-fA-F]+" } },
+   attribute kill_chip5 { xsd:string { pattern="[0-9a-fA-F]+" } }
 start = EmuSystem
