@@ -33,7 +33,6 @@ Sources=\
 	TStoreReadWriter.cc \
 	TranslatorKludgeXMLvsDB.cc \
 	XMLReadWriter.cc \
-	EmuEndcapConfigWrapper.cc \
 	ConfigEditor.cc \
 	OnlineDBVersion.cc
 

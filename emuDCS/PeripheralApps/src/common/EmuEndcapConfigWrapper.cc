@@ -1,6 +1,6 @@
-// $Id: EmuEndcapConfigWrapper.cc,v 1.1 2011/09/09 16:04:44 khotilov Exp $
+// $Id: EmuEndcapConfigWrapper.cc,v 1.1 2011/11/11 19:10:40 liu Exp $
 
-#include "emu/db/EmuEndcapConfigWrapper.h"
+#include "emu/pc/EmuEndcapConfigWrapper.h"
 #include "emu/utils/SimpleTimer.h"
 
 #include "emu/pc/CCB.h"
@@ -22,27 +22,27 @@
 #include "xdata/String.h"
 
 
-namespace emu { namespace db {
+namespace emu { namespace pc {
 
 
-EmuEndcapConfigWrapper::EmuEndcapConfigWrapper(ConfigTree *tree)
+EmuEndcapConfigWrapper::EmuEndcapConfigWrapper(emu::db::ConfigTree *tree)
 : verbose_(0)
 , tree_(tree)
 {}
 
 
-emu::pc::EmuEndcap * EmuEndcapConfigWrapper::getConfiguredEndcap(bool verbosity)
+EmuEndcap * EmuEndcapConfigWrapper::getConfiguredEndcap(bool verbosity)
 throw (emu::exception::ConfigurationException)
 {
   emu::utils::SimpleTimer timer;
 
   verbose_ = verbosity;
 
-  emu::pc::EmuEndcap * endcap = new emu::pc::EmuEndcap();
+  EmuEndcap * endcap = new EmuEndcap();
   std::cout << "######## Empty EmuEndcap is created." << std::endl;
 
-  std::vector<ConfigRow *> pcrates = tree_->head()->children();
-  for (std::vector<ConfigRow *>::iterator icrate = pcrates.begin(); icrate != pcrates.end(); icrate++)
+  std::vector<emu::db::ConfigRow *> pcrates = tree_->head()->children();
+  for (std::vector<emu::db::ConfigRow *>::iterator icrate = pcrates.begin(); icrate != pcrates.end(); icrate++)
   {
     if ((*icrate)->type() == "PeripheralCrate")
     {
@@ -59,7 +59,7 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readPeripheralCrate(ConfigRow *conf, emu::pc::EmuEndcap * endcap)
+void EmuEndcapConfigWrapper::readPeripheralCrate(emu::db::ConfigRow *conf, EmuEndcap * endcap)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== Peripheral Crate ====" << std::endl;
@@ -69,13 +69,13 @@ throw (emu::exception::ConfigurationException)
 
   if(verbose_) std::cout <<"  crateID:"<<crateid<< " label: "<< label<< std::endl;
   
-  emu::pc::VMEController * controller = new emu::pc::VMEController();
-  emu::pc::Crate * crate = new emu::pc::Crate(crateid,controller);
+  VMEController * controller = new VMEController();
+  Crate * crate = new Crate(crateid,controller);
   crate->SetLabel(label);
   endcap->addCrate(crate);
 
-  std::vector<ConfigRow *> kids = conf->children();
-  for (std::vector<ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
+  std::vector<emu::db::ConfigRow *> kids = conf->children();
+  for (std::vector<emu::db::ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
   {
     std::string type = (*kid)->type();
     if (type == "VCC")
@@ -103,14 +103,14 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readVCC(ConfigRow *conf, emu::pc::Crate * theCrate)
+void EmuEndcapConfigWrapper::readVCC(emu::db::ConfigRow *conf, Crate * theCrate)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== VCC ====" << std::endl;
 
   // add VMECC(VMEModule in slot 1) to crate
-  emu::pc::VMECC * vcc = new emu::pc::VMECC(theCrate, 1);
-  emu::pc::VMEController * vmec = theCrate->vmeController();
+  VMECC * vcc = new VMECC(theCrate, 1);
+  VMEController * vmec = theCrate->vmeController();
 
   std::string mac = getString(conf, "MAC_addr");
   vmec->SetMAC(0,mac);
@@ -155,12 +155,12 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readCSC(ConfigRow *conf, emu::pc::Crate * theCrate)
+void EmuEndcapConfigWrapper::readCSC(emu::db::ConfigRow *conf, Crate * theCrate)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== CSC chamber ====" << std::endl;
 
-  emu::pc::Chamber * csc_ = new emu::pc::Chamber(theCrate);
+  Chamber * csc_ = new Chamber(theCrate);
 
   if (conf->has("LABEL"))         csc_->SetLabel( getString(conf, "LABEL"));
   if (conf->has("KNOWN_PROBLEM")) csc_->SetProblemDescription( getString(conf, "KNOWN_PROBLEM"));
@@ -172,8 +172,8 @@ throw (emu::exception::ConfigurationException)
     t.writeTo(std::cout); std::cout<< std::endl;
   }
 
-  std::vector<ConfigRow *> kids = conf->children();
-  for (std::vector<ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
+  std::vector<emu::db::ConfigRow *> kids = conf->children();
+  for (std::vector<emu::db::ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
   {
     std::string type = (*kid)->type();
     if (type == "DAQMB")
@@ -194,13 +194,13 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readCCB(ConfigRow *conf, emu::pc::Crate * theCrate)
+void EmuEndcapConfigWrapper::readCCB(emu::db::ConfigRow *conf, Crate * theCrate)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== CCB ====" << std::endl;
 
   // add CCB(slot 13) to crate
-  emu::pc::CCB * ccb_ = new emu::pc::CCB(theCrate, 13);
+  CCB * ccb_ = new CCB(theCrate, 13);
 
   if (conf->has("CCBmode"))            ccb_->SetTTCmode( getInt(conf, "CCBmode"));
   if (conf->has("l1aDelay"))           ccb_->Setl1adelay( getInt(conf, "l1aDelay"));
@@ -220,13 +220,13 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readMPC(ConfigRow *conf, emu::pc::Crate * theCrate)
+void EmuEndcapConfigWrapper::readMPC(emu::db::ConfigRow *conf, Crate * theCrate)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== MPC ====" << std::endl;
 
   // add MPC(slot 12) to crate
-  emu::pc::MPC * mpc_ = new emu::pc::MPC(theCrate, 12);
+  MPC * mpc_ = new MPC(theCrate, 12);
 
   if (conf->has("serializermode"))     mpc_->SetTLK2501TxMode( getInt(conf, "serializermode"));
   if (conf->has("TransparentMode"))    mpc_->SetTransparentMode( getInt(conf, "TransparentMode"));
@@ -243,7 +243,7 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readDAQMB(ConfigRow *conf, emu::pc::Crate * theCrate, emu::pc::Chamber * theChamber)
+void EmuEndcapConfigWrapper::readDAQMB(emu::db::ConfigRow *conf, Crate * theCrate, Chamber * theChamber)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== DAQMB ====" << std::endl;
@@ -253,7 +253,7 @@ throw (emu::exception::ConfigurationException)
   {
     XCEPT_RAISE(emu::exception::ConfigurationException, std::string("Failed to get DAQMB slot") );
   }
-  emu::pc::DAQMB * daqmb_ = new emu::pc::DAQMB(theCrate, theChamber, slot);
+  DAQMB * daqmb_ = new DAQMB(theCrate, theChamber, slot);
   daqmb_->SetCrateId(theCrate->CrateID());
 
   if (conf->has("CALIBRATION_LCT_DELAY"))   daqmb_->SetCalibrationLctDelay( getInt(conf, "CALIBRATION_LCT_DELAY"));
@@ -313,8 +313,8 @@ throw (emu::exception::ConfigurationException)
     t.writeTo(std::cout); std::cout<< std::endl;
   }
 
-  std::vector<ConfigRow *> kids = conf->children();
-  for (std::vector<ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
+  std::vector<emu::db::ConfigRow *> kids = conf->children();
+  for (std::vector<emu::db::ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
   {
     std::string type = (*kid)->type();
     if (type == "CFEB")
@@ -331,14 +331,14 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readCFEB(ConfigRow *conf, emu::pc::DAQMB * theDaqmb)
+void EmuEndcapConfigWrapper::readCFEB(emu::db::ConfigRow *conf, DAQMB * theDaqmb)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== CFEB ====" << std::endl;
 
   int number = getInt(conf, "CFEB_NUMBER");
   if(verbose_) std::cout << "CFEB(" << number << ")" << std::endl;
-  emu::pc::CFEB cfeb(number);
+  CFEB cfeb(number);
 
   theDaqmb->SetExpectedCFEBFirmwareTag(number, getStringAsLongInt(conf, "CFEB_FIRMWARE_TAG"));
 
@@ -378,7 +378,7 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readTMB(ConfigRow *conf, emu::pc::Crate * theCrate, emu::pc::Chamber * theChamber)
+void EmuEndcapConfigWrapper::readTMB(emu::db::ConfigRow *conf, Crate * theCrate, Chamber * theChamber)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== DAQMB ====" << std::endl;
@@ -388,7 +388,7 @@ throw (emu::exception::ConfigurationException)
   {
     XCEPT_RAISE(emu::exception::ConfigurationException, std::string("Failed to get TMB slot") );
   }
-  emu::pc::TMB * tmb_ = new emu::pc::TMB(theCrate, theChamber, slot);
+  TMB * tmb_ = new TMB(theCrate, theChamber, slot);
 
   if (conf->has("TMB_FIRMWARE_MONTH"))         tmb_->SetExpectedTmbFirmwareMonth( getInt(conf, "TMB_FIRMWARE_MONTH"));
   if (conf->has("TMB_FIRMWARE_DAY"))           tmb_->SetExpectedTmbFirmwareDay( getInt(conf, "TMB_FIRMWARE_DAY"));
@@ -524,8 +524,8 @@ throw (emu::exception::ConfigurationException)
     t.writeTo(std::cout); std::cout<< std::endl;
   }
 
-  std::vector<ConfigRow *> kids = conf->children();
-  for (std::vector<ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
+  std::vector<emu::db::ConfigRow *> kids = conf->children();
+  for (std::vector<emu::db::ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
   {
     std::string type = (*kid)->type();
     if (type == "ALCT")
@@ -542,15 +542,15 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readALCT(ConfigRow *conf, emu::pc::TMB * theTmb)
+void EmuEndcapConfigWrapper::readALCT(emu::db::ConfigRow *conf, TMB * theTmb)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== ALCT ====" << std::endl;
 
   std::string chamberType = getString(conf, "CHAMBER_TYPE");
 
-  emu::pc::ALCTController * alct_ = new emu::pc::ALCTController(theTmb, chamberType);
-  emu::pc::RAT * rat_ = new emu::pc::RAT(theTmb);
+  ALCTController * alct_ = new ALCTController(theTmb, chamberType);
+  RAT * rat_ = new RAT(theTmb);
   theTmb->SetAlct(alct_); //store alct_ pointer in theTmb
   theTmb->SetRat(rat_); //store rat_  in theTmb
 
@@ -593,8 +593,8 @@ throw (emu::exception::ConfigurationException)
     std::cout << "#### ALCT added ####"<< std::endl;
   }
 
-  std::vector<ConfigRow *> kids = conf->children();
-  for (std::vector<ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
+  std::vector<emu::db::ConfigRow *> kids = conf->children();
+  for (std::vector<emu::db::ConfigRow *>::iterator kid = kids.begin(); kid != kids.end(); kid++)
   {
     std::string type = (*kid)->type();
     if (type == "AnodeChannel")
@@ -611,7 +611,7 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-void EmuEndcapConfigWrapper::readAnodeChannel(ConfigRow *conf, emu::pc::ALCTController * theAlct)
+void EmuEndcapConfigWrapper::readAnodeChannel(emu::db::ConfigRow *conf, ALCTController * theAlct)
 throw (emu::exception::ConfigurationException)
 {
   if(verbose_) std::cout << "==== AFEB ====" << std::endl;
@@ -632,14 +632,14 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-std::string EmuEndcapConfigWrapper::getString(ConfigRow *conf, std::string columnName)
+std::string EmuEndcapConfigWrapper::getString(emu::db::ConfigRow *conf, std::string columnName)
 throw (emu::exception::ConfigurationException)
 {
   return conf->getCastValue<xdata::String>(columnName).toString();
 }
 
 
-int EmuEndcapConfigWrapper::getInt(ConfigRow *conf, std::string columnName)
+int EmuEndcapConfigWrapper::getInt(emu::db::ConfigRow *conf, std::string columnName)
 throw (emu::exception::ConfigurationException)
 {
   // All integers in PC configuration are actually stored as unsigned shorts
@@ -649,14 +649,14 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-float EmuEndcapConfigWrapper::getFloat(ConfigRow *conf, std::string columnName)
+float EmuEndcapConfigWrapper::getFloat(emu::db::ConfigRow *conf, std::string columnName)
 throw (emu::exception::ConfigurationException)
 {
   return (float) conf->getCastValue<xdata::Float>(columnName);
 }
 
 
-int EmuEndcapConfigWrapper::getHexStringAsInt(ConfigRow *conf, std::string columnName)
+int EmuEndcapConfigWrapper::getHexStringAsInt(emu::db::ConfigRow *conf, std::string columnName)
 throw (emu::exception::ConfigurationException)
 {
   int result;
@@ -666,7 +666,7 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-long int EmuEndcapConfigWrapper::getStringAsLongInt(ConfigRow *conf, std::string columnName)
+long int EmuEndcapConfigWrapper::getStringAsLongInt(emu::db::ConfigRow *conf, std::string columnName)
 throw (emu::exception::ConfigurationException)
 {
   long int result;
@@ -676,7 +676,7 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-long long int EmuEndcapConfigWrapper::getStringAsLongLongInt(ConfigRow *conf, std::string columnName)
+long long int EmuEndcapConfigWrapper::getStringAsLongLongInt(emu::db::ConfigRow *conf, std::string columnName)
 throw (emu::exception::ConfigurationException)
 {
   long long int result;

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.10 2011/11/04 15:55:43 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.11 2011/11/11 19:10:40 liu Exp $
 
 #include "emu/pc/EmuPeripheralCrateBase.h"
 
@@ -334,7 +334,7 @@ bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string con
        std::cout << "Configuration ID: " << Valid_key << std::endl;
        activeTStore_->read(Valid_key_64);
        emu::db::ConfigTree tree_from_db(activeTStore_->configTables());
-       emu::db::EmuEndcapConfigWrapper wrapper_from_db(&tree_from_db);
+       EmuEndcapConfigWrapper wrapper_from_db(&tree_from_db);
        activeEndcap_ = wrapper_from_db.getConfiguredEndcap();   
        if(!activeEndcap_) 
         {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
