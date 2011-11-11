@@ -34,7 +34,8 @@ Sources=\
         EmuPeripheralCrateTimer.cc \
         EmuPeripheralCrateManager.cc \
         EmuPeripheralCrateService.cc \
-        EmuCompareMcsFiles.cc
+        EmuCompareMcsFiles.cc \
+        EmuEndcapConfigWrapper.cc
 
 IncludeDirs = \
         $(XDAQ_ROOT)/include \

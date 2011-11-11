@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.h,v 1.7 2011/11/04 15:55:44 liu Exp $
+// $Id: EmuPeripheralCrateBase.h,v 1.8 2011/11/11 19:10:40 liu Exp $
 
 #ifndef _EmuPeripheralCrateBase_h_
 #define _EmuPeripheralCrateBase_h_
@@ -33,7 +33,7 @@
 #include "emu/db/ConfigRow.h"  
 #include "emu/db/ConfigTree.h" 
 #include "emu/db/TStoreReadWriter.h"
-#include "emu/db/EmuEndcapConfigWrapper.h"
+#include "emu/pc/EmuEndcapConfigWrapper.h"
 
 
 namespace emu {
