@@ -77,9 +77,9 @@ void EmuPeripheralCrateConfig::DDUStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::pre();
   //
-  sprintf(buf,"DDU Board ID : %d ",thisDDU->readFlashBoardID());
+  sprintf(buf,"DDU Board ID (decimal) : %d ",thisDDU->readFlashBoardID());
   *out << buf << cgicc::br();
-  sprintf(buf,"DDU RUI ID   : %d ", thisDDU->readFlashRUI());
+  sprintf(buf,"DDU RUI ID (decimal)   : %d ", thisDDU->readFlashRUI());
   *out << buf << cgicc::br();
   *out << "---------------------------------------";
   *out << cgicc::br();
@@ -118,11 +118,11 @@ void EmuPeripheralCrateConfig::DDUStatus(xgi::Input * in, xgi::Output * out )
   {
      *out << cgicc::br() << cgicc::table().set("border","1").set("align","left");
      *out << std::setprecision(2) << std::fixed;
-     *out <<cgicc::td() << "Voltages (V)" << cgicc::td();
+     *out <<cgicc::td() << "Temperatures (C)" << cgicc::td();
      for(unsigned i=0; i<4; i++)
         *out <<cgicc::td() << temps[i] << cgicc::td();
      *out << cgicc::tr() << std::endl;
-     *out <<cgicc::td() << "Temperatures (C)" << cgicc::td();
+     *out <<cgicc::td() << "Voltages (V)" << cgicc::td();
      for(unsigned i=4; i<8; i++)
         *out <<cgicc::td() << temps[i] << cgicc::td();
      *out << cgicc::tr() << std::endl;
