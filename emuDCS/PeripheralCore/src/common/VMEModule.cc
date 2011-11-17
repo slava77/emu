@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.29 2011/11/04 20:05:52 liu Exp $
+// $Id: VMEModule.cc,v 3.30 2011/11/17 00:13:44 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.30  2011/11/17 00:13:44  liu
+// clear buffer before read PROM
+//
 // Revision 3.29  2011/11/04 20:05:52  liu
 // change svfLoad interface
 //
@@ -1313,6 +1316,7 @@ int VMEModule::read_prom(const char * vrffile, const char * mcsfile)
        std::cout << "ERROR: failed to allocate memory! Aborting..." << std::endl;
        return -1;
    }
+   bzero(bitstream, 16*1024*1024);
    bitfile=fopen(mcsfile, "w");
    if(bitfile==NULL) 
    {  
