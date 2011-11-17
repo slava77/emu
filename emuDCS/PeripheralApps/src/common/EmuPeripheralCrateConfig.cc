@@ -3502,8 +3502,9 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
       chambername.replace(4,1,"_");
       std::string mcsfile="/tmp/ALCT_"+ chambername + "_" + getLocalDateTime(true) + ".mcs";
       std::string jtagfile;
+      thisALCT->ReadFastControlId();
       int alctsize=thisALCT->GetFastControlAlctType();
-      if(alctsize>384)
+      if(alctsize>3)
          jtagfile=XMLDIR+"/alct_big.vrf";
       else
          jtagfile=XMLDIR+"/alct_small.vrf";
@@ -8752,8 +8753,9 @@ void EmuPeripheralCrateConfig::ALCTReadFirmware(xgi::Input * in, xgi::Output * o
     std::string mcsfile="/tmp/ALCT_"+ chambername + ".mcs";
     std::string jtagfile;
     ALCTController * thisALCT = thisTMB->alctController();
+    thisALCT->ReadFastControlId();
     int alctsize=thisALCT->GetFastControlAlctType();
-    if(alctsize>384)
+    if(alctsize>3)
        jtagfile=XMLDIR+"/alct_big.vrf";
     else
        jtagfile=XMLDIR+"/alct_small.vrf";
