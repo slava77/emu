@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.44 2011/11/03 20:52:38 liu Exp $
+// $Id: CCB.cc,v 3.45 2011/11/28 23:44:00 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.45  2011/11/28 23:44:00  liu
+// more log messages
+//
 // Revision 3.44  2011/11/03 20:52:38  liu
 // new ReadConfigBits function
 //
@@ -1199,6 +1202,7 @@ int CCB::CheckConfig(int full_check)
   //
   bool config_ok = true;
   //
+  std::cout << "CCB: configuration check..." << std::endl;
   // check TTCrx ready and QPLL locked
   ReadConfigBits();
   //
@@ -1246,6 +1250,7 @@ int CCB::CheckConfig(int full_check)
   }
   // check CCB in DLOG mode
   rx=ReadRegister(CSRA1);
+  std::cout << "CCB CSRA1 value: " << std::hex << (rx & 0xFFFF) << std::dec << std::endl;
   //
   read_value = (rx&0x1);
   expected_value = 1;
@@ -1336,6 +1341,7 @@ void CCB::setCCBMode(CCB2004Mode_t mode){
        sndbuf[1]=tmpb1[1] & 0xFE;
        do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
     }
+    std::cout << "CCB mode set to TTCrqFPGA" << std::endl;
     break;
   case VMEFPGA:
     sndbuf[0]=0x00;
@@ -1349,11 +1355,13 @@ void CCB::setCCBMode(CCB2004Mode_t mode){
        sndbuf[1]=tmpb1[1] | 0x01;
        do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
     }
+    std::cout << "CCB mode set to VMEFPGA" << std::endl;
     break;
   case DLOG:
     sndbuf[0]=0x00;
     sndbuf[1]=0x0F;
     do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    std::cout << "CCB mode set to DLOG" << std::endl;
     break;
   default:
     std::cerr << "Warning: unkown CCB2004 operation mode. Using DLOG instead" << std::endl;
