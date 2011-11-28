@@ -2137,7 +2137,7 @@ void EmuPeripheralCrateConfig::CheckTimeSinceHardReset(xgi::Input * in, xgi::Out
   throw (xgi::exception::Exception) {
   cgicc::CgiEnvironment cgiEnvi(in);
   //
-  std::cout << "Check time since TMBs last received hard resets... " << std::endl; 
+  std::cout << getLocalDateTime() << " Button: Check time since TMBs last received hard resets... " << std::endl; 
   //
   int initialcrate=current_crate_;
   //
@@ -2168,7 +2168,7 @@ void EmuPeripheralCrateConfig::CheckBC0Synchronization(xgi::Input * in, xgi::Out
   throw (xgi::exception::Exception) {
   cgicc::CgiEnvironment cgiEnvi(in);
   //
-  std::cout << "Check BC0 synchronization at TMBs... " << std::endl; 
+  std::cout << getLocalDateTime() << " Button: Check BC0 synchronization at TMBs... " << std::endl; 
   //
   int initialcrate=current_crate_;
   //
@@ -2201,7 +2201,7 @@ void EmuPeripheralCrateConfig::CheckBC0Synchronization(xgi::Input * in, xgi::Out
 void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
-  std::cout << "Button:  Check Configuration of All Active Crates" << std::endl;
+  std::cout << getLocalDateTime() << " Button:  Check Configuration of All Active Crates" << std::endl;
   //
   int initialcrate=current_crate_;
   //
@@ -2292,7 +2292,7 @@ void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Ou
 void EmuPeripheralCrateConfig::CheckCratesConfigurationFull(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
-  std::cout << "Button:  Check Configuration of All Active Crates including TTCrx" << std::endl;
+  std::cout << getLocalDateTime() << " Button:  Check Configuration of All Active Crates including TTCrx" << std::endl;
   //
   int initialcrate=current_crate_;
   //
@@ -2407,7 +2407,7 @@ void EmuPeripheralCrateConfig::CheckCrateFirmware(xgi::Input * in, xgi::Output *
 // Another method which would be better in another class... let's make it work, first....
 void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration(int full_check) {
   //
-  std::cout << "Hardware configuration check for " << thisCrate->GetLabel() << std::endl;
+  std::cout << getLocalDateTime() << " Hardware configuration check for " << thisCrate->GetLabel() << std::endl;
   //  OutputCheckConfiguration << "Hardware configuration check for " << thisCrate->GetLabel() << "..." << std::endl;
   //
   crate_check_ok[current_crate_] = 1;
@@ -2569,6 +2569,7 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration(int full_check)
 void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
+  std::cout << getLocalDateTime() << " Button: Check Firmware" << std::endl;
   std::cout << "Checking System Firmware " << std::dec << number_of_checks_ << " times..." << std::endl;
   //
   //Reset the values of peripheral crate configuration check
@@ -3512,7 +3513,7 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 
       // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
       thisCCB->setCCBMode(CCB::VMEFPGA);
-      std::cout  << getLocalDateTime() <<  "Reading back ALCT PROM from slot " << thisTMB->slot() << std::endl;
+      std::cout  << getLocalDateTime() << " Reading back ALCT PROM from slot " << thisTMB->slot() << std::endl;
       //
       thisTMB->setup_jtag(ChainAlctFastMezz);
       thisTMB->read_prom(jtagfile.c_str(),mcsfile.c_str());
@@ -8762,7 +8763,7 @@ void EmuPeripheralCrateConfig::ALCTReadFirmware(xgi::Input * in, xgi::Output * o
     // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
     thisCCB->setCCBMode(CCB::VMEFPGA);
       //
-    std::cout  << getLocalDateTime() <<  "Reading back ALCT firmware from slot " << thisTMB->slot() << std::endl;
+    std::cout  << getLocalDateTime() << " Reading back ALCT firmware from slot " << thisTMB->slot() << std::endl;
       //
     thisTMB->setup_jtag(ChainAlctFastMezz);
     thisTMB->read_prom(jtagfile.c_str(),mcsfile.c_str());
