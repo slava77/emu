@@ -441,8 +441,7 @@ int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
 }
 
 int emu::daq::reader::Spy::readDCC(unsigned short*& buf) {
-  // TODO
-  return -1;
+  return readDDU( buf );
 }
 
 int emu::daq::reader::Spy::dataLengthWithoutPadding( const unsigned short* data, const int dataLength ){
