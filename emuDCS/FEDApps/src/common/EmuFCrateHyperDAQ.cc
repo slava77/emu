@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.17 2011/10/12 17:19:01 banicz Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.18 2011/12/02 15:25:59 cvuosalo Exp $
 *****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -4937,7 +4937,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 					getline(inFile, myLine);
 					
 					// Only care about one particular command:  instruction 0xfd
-                                        if(dccPROMNames[iprom]=="MPROM"){
+          if(dccPROMNames[iprom]=="MPROM"){
 					if (myLine.find("SIR 16 TDI (0006)") != std::string::npos) {
 						// The next line contains the usercode.
 						// Make sure there is a next line.
@@ -4958,9 +4958,10 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 
 						break;
 					}
-                                        } 
-                                        else if(dccPROMNames[iprom]=="INPROM"){
-                                        if (myLine.find("SIR 16 TDI (fd)") != std::string::npos) {
+					} 
+					else if(dccPROMNames[iprom]=="INPROM"){
+					if (myLine.find("SIR 16 TDI (fd)") != std::string::npos ||
+							myLine.find("SIR 8 TDI (fd)") != std::string::npos) {
 					  // The next line contains the usercode.                                                                                       
 					  // Make sure there is a next line.                                                                                            
 					  if (inFile.eof()) break;
@@ -4977,6 +4978,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 					  parsedLine = parsedLine.substr(1,8);
 
 					  sscanf(parsedLine.c_str(), "%08lx", &diskVersion);
+						LOG4CPLUS_DEBUG(getApplicationLogger(), "Found inprom version " << diskVersion);
 
 					  break;
                                         }
