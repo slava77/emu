@@ -8,6 +8,7 @@ Test_AFEB05::Test_AFEB05(std::string dfile): Test_Generic(dfile)
 {
   testID = "AFEB05";
   nExpectedEvents = 6000;
+  nEvents=500;
   dduID=0;
   //  binCheckMask=0x16CFF3F6;
   binCheckMask=0x1FEBF3F6;
@@ -144,6 +145,7 @@ void Test_AFEB05::analyze(const char * data, int32_t dataSize, uint32_t errorSta
       {
         LOG4CPLUS_DEBUG(logger, "No LTC/TTC double L1A bug in data");
         ltc_bug=1;
+	nEvents = 1000;
       }
     else
       {
@@ -298,9 +300,9 @@ void Test_AFEB05::finishCSC(std::string cscID)
             {
               for (int j=0; j<getNumWireGroups(cscID); j++)
                 {
-                  r01.content[i][j] = (double)(r01.cnts[i][j])/500.;
-                  r02.content[i][j] = (double)(r02.cnts[i][j])/500.;
-                  r03.content[i][j] = (double)(r03.cnts[i][j])/500.;
+                  r01.content[i][j] = (double)(r01.cnts[i][j])/nEvents;
+                  r02.content[i][j] = (double)(r02.cnts[i][j])/nEvents;
+                  r03.content[i][j] = (double)(r03.cnts[i][j])/nEvents;
                 }
             }
 
