@@ -1,7 +1,13 @@
 #ifndef _LOG4CPLUS_COLORLAYOUT_HEADER_
 #define _LOG4CPLUS_COLORLAYOUT_HEADER_
 
-#include <log4cplus/config.h>
+#include <log4cplus/version.h>
+
+#if LOG4CPLUS_VERSION >= LOG4CPLUS_MAKE_VERSION(1,0,4)
+#include <log4cplus/config.hxx>
+#else
+#include <log4cplus/config.hxx>
+#endif
 #include <log4cplus/loglevel.h>
 #include <log4cplus/streams.h>
 #include <log4cplus/tstring.h>
