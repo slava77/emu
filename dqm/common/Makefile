@@ -15,7 +15,8 @@ ROOTGLIBS     = $(shell root-config --glibs)
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
-CCFlags= -g -Wall -O3 -march=prescott -mtune=prescott
+# CCFlags= -g -Wall -O3 -march=prescott -mtune=prescott
+CCFlags += -O3
 
 #
 # Packages to be built

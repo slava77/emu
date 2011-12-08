@@ -37,6 +37,8 @@ class AbstractFunction
 
 public:
 
+  virtual ~AbstractFunction();
+
   /**
    * @brief  Virtual transformation function to be implemented in
    * transformation class.
