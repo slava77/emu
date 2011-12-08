@@ -1,7 +1,13 @@
 #ifndef _LOG4CPLUS_COLORLAYOUT_HEADER_
 #define _LOG4CPLUS_COLORLAYOUT_HEADER_
 
+#include <xdaq/version.h>
+
+#if XDAQ_VERSION_CODE >= PACKAGE_VERSION_CODE(3,34,0)
+#include <log4cplus/config.hxx>
+#else
 #include <log4cplus/config.h>
+#endif
 #include <log4cplus/loglevel.h>
 #include <log4cplus/streams.h>
 #include <log4cplus/tstring.h>

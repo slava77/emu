@@ -92,7 +92,7 @@ private:
   int extractValue( const std::string& val )
   {
 
-#if defined(HAVE_SSTREAM)
+#if defined(HAVE_SSTREAM1)
     std::istringstream is(val);
 #elif defined(HAVE_STRSTREAM)
     std::istrstream is(val.c_str());

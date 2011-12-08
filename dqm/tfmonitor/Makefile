@@ -12,7 +12,7 @@ include ../config/site.mk
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
-CCFlags= -g  -Wall -O1
+#CCFlags= -g  -Wall -O1
 
 #
 # Packages to be built

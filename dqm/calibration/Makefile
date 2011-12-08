@@ -16,8 +16,8 @@ include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 #DebugFlags=
-CFlags+= 
-CCFlags= -g -O1 -Wall
+#CFlags+= 
+#CCFlags= -g -O1 -Wall
 #
 # Packages to be built
 #

@@ -103,7 +103,7 @@ ValuesConstraint<T>::ValuesConstraint(std::vector<T>& allowed)
   for ( unsigned int i = 0; i < _allowed.size(); i++ )
     {
 
-#if defined(HAVE_SSTREAM)
+#if defined(HAVE_SSTREAM1)
       std::ostringstream os;
 #elif defined(HAVE_STRSTREAM)
       std::ostrstream os;
