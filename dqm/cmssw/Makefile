@@ -2,10 +2,13 @@
 include ../config/compdef.mk
 include ../config/site.mk
 include ../config/xdaq.mk
+include $(XDAQ_ROOT)/config/mfAutoconf.rules
+include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 CXX     = g++
 
-CXXFLAGS  = -g -pedantic -Wno-long-long -Wall -O3 -march=prescott -DDQMLOCAL
+#CXXFLAGS  = -g -pedantic -Wno-long-long -Wall -O3 -fPIC -DDQMLOCAL
+CXXFLAGS = $(CCFlags) -O3 -DDQMLOCAL -pedantic -Wno-long-long
 #-fPIC
 
 LOG4CPLUS = $(XDAQ_ROOT)/include
