@@ -17,7 +17,8 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 #DebugFlags=
 #CFlags+= -O2
-CCFlags= -g -Wall -O3 -march=prescott
+#CCFlags= -g -Wall -O3 -march=prescott
+CCFlags+= -O3 
 #
 # Packages to be built
 #
