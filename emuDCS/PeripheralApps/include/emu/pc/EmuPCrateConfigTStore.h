@@ -62,14 +62,14 @@ public:
 	 std::string displayName(const std::string &configName,const std::string &identifier,xdata::Table &data);
 void sumChanges(TableChangeSummary &allChanges,TableChangeSummary &changesToThisTable);
   
-void EmuPCrateConfigTStore::SelectTestSummaryFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void EmuPCrateConfigTStore::parseTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void EmuPCrateConfigTStore::applyTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+void SelectTestSummaryFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void parseTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void applyTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void readConfigFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
  void SelectConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SetTypeDesc(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void EmuPCrateConfigTStore::getConfigIds(std::vector<std::string> &configIDs,const std::string endcap_side) throw (xcept::Exception);
+  void getConfigIds(std::vector<std::string> &configIDs,const std::string endcap_side) throw (xcept::Exception);
   // Communication with TStore
   void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &new_emu_config_id,xdata::Table &results) throw (xcept::Exception);
   void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,xdata::Table &results) throw (xcept::Exception);
@@ -109,7 +109,7 @@ void simpleCrateDiff(const std::string &queryViewName,const std::string &connect
   void readVCC(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
   void readCCB(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
   void readMPC(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
-void EmuPCrateConfigTStore::diffCSC(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_periph_config_id, const std::string &new_emu_config_id, const std::string &new_periph_config_id,int crateID) throw (xcept::Exception); 
+void diffCSC(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_periph_config_id, const std::string &new_emu_config_id, const std::string &new_periph_config_id,int crateID) throw (xcept::Exception); 
  void readCSC(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
 void diffDAQMB(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_csc_config_id, const std::string &new_emu_config_id, const std::string &new_csc_config_id,const std::string &chamberID) throw (xcept::Exception);
 void readDAQMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception);
