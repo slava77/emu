@@ -14,7 +14,6 @@
 #include "xdata/Bag.h"
 #include "xdata/String.h"
 #include "xdata/Integer.h"
-#include "xdata/UnsignedLong.h"
 #include "xdata/UnsignedInteger.h"
 #include "xgi/Method.h"
 #include "emu/supervisor/RunInfo.h"
@@ -117,8 +116,8 @@ private: // XDAQ parameters
 
         xdata::Boolean isInCalibrationSequence_; /// An automatic sequence of calibration runs is being executed.
 	xdata::String run_type_;
-	xdata::UnsignedLong run_number_;
-	xdata::UnsignedLong runSequenceNumber_;
+	xdata::UnsignedInteger run_number_;
+	xdata::UnsignedInteger runSequenceNumber_;
 
 	xdata::Vector<xdata::String> config_keys_;
 	xdata::Vector<xdata::Bag<CalibParam> > calib_params_;

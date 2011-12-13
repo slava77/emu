@@ -39,8 +39,6 @@
 #include "xdaq/exception/Exception.h"
 #include "xdaq/ApplicationGroup.h"
 #include "xdaq/XceptSerializer.h"
-#include "xdata/UnsignedShort.h" 
-#include "xdata/UnsignedLong.h" 
 #include "xdata/Float.h" 
 #include "xdata/Double.h" 
 #include "xdata/Boolean.h"
@@ -767,10 +765,10 @@ bool emu::supervisor::Application::calibrationSequencer(toolbox::task::WorkLoop 
 void emu::supervisor::Application::sendCalibrationStatus( unsigned int iRun, unsigned int nRuns, unsigned int iStep, unsigned int nSteps ){
   emu::soap::Messenger m(this);
   
-  xdata::UnsignedLong calibNRuns    ( nRuns  );
-  xdata::UnsignedLong calibNSteps   ( nSteps );
-  xdata::UnsignedLong calibRunIndex ( iRun   );
-  xdata::UnsignedLong calibStepIndex( iStep  );
+  xdata::UnsignedInteger calibNRuns    ( nRuns  );
+  xdata::UnsignedInteger calibNSteps   ( nSteps );
+  xdata::UnsignedInteger calibRunIndex ( iRun   );
+  xdata::UnsignedInteger calibStepIndex( iStep  );
 
   try{
     if ( daq_descr_ != NULL ) daq_descr_ = m.getAppDescriptor( "emu::daq::manager::Application", 0 );
