@@ -257,6 +257,8 @@ private: // XDAQ parameters
 	} last_log_;
 };
 
+    ostream& operator<<( ostream& os, const emu::supervisor::Application::StateTable& st );
+
 }} // namespace emu::supervisor
 
 #endif

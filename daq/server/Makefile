@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2011/01/17 12:32:14 banicz Exp $
+# $Id: Makefile,v 1.3 2011/12/13 17:28:53 banicz Exp $
 
 ##
 #
@@ -24,6 +24,7 @@ Sources = \
 IncludeDirs = \
 	$(XDAQ_ROOT)/include \
 	$(XDAQ_ROOT)/include/$(XDAQ_OS) \
+	$(BUILD_HOME)/emu/daq/reader/include \
 	$(BUILD_HOME)/emu/daq/server/include \
 	$(BUILD_HOME)/emu/soap/include
 

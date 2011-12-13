@@ -15,6 +15,7 @@
 #include "xdaq/NamespaceURI.h"
 #include "xdaq/exception/ApplicationNotFound.h"
 #include "xgi/Method.h"
+#include "xdata/InfoSpaceFactory.h"
 
 #include <unistd.h>
 
@@ -94,7 +95,7 @@ throw (xdaq::exception::Exception) :
     monitoringInfoSpaceName_ =
         generateMonitoringInfoSpaceName(xmlClass_, instance_);
     monitoringInfoSpace_ =
-        xdata::InfoSpace::get(monitoringInfoSpaceName_);
+        xdata::getInfoSpaceFactory()->get(monitoringInfoSpaceName_);
 
     // Fill the application's default info space
     putParamsIntoInfoSpace(stdConfigParams_ , appInfoSpace_);
@@ -1416,7 +1417,7 @@ throw (toolbox::fsm::exception::Exception)
 
     // Managing bad events and their context
     if ( writeBadEventsOnly_.value_ ){
-      LOG4CPLUS_INFO(logger_, "Writing bad events only and " << nToWriteBeforeBadEvent_.toString() << " events before and " << nToWriteAfterBadEvent_.toString() << " after.")
+      LOG4CPLUS_INFO(logger_, "Writing bad events only and " << nToWriteBeforeBadEvent_.toString() << " events before and " << nToWriteAfterBadEvent_.toString() << " after.");
       // Set the size of the buffer ring storing the events preceding the bad one
       eventBufferRing_.setSize( nToWriteBeforeBadEvent_.value_ );
       eventBufferRing_.emptyEventBuffers();

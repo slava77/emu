@@ -48,7 +48,9 @@ namespace emu { namespace daq { namespace manager {
     time_t timeOfUpdate_;
     map<xdaq::ApplicationDescriptor*, string> appStates_;
   };
-  
+
+  ostream& operator<<( ostream& os,  emu::daq::manager::AppStates& as );
+
 }}} // namespace emu::daq::manager
 
 #endif
