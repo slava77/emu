@@ -25,6 +25,8 @@ namespace emu { namespace daq { namespace manager {
 	emu::daq::manager::AppStates previousAppStates_;
       };
 
+      ostream& operator<<( ostream& os,  emu::daq::manager::Watchdog& wd );
+
 }}} // namespace emu::daq::manager
 
 #endif

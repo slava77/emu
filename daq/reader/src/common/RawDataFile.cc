@@ -2,7 +2,9 @@
 #include <iostream>
 #include <fcntl.h>  // for open()
 #include <unistd.h> // for read(), close()
-#include <errno.h>  // for errno
+#include <cerrno>  // for errno
+#include <cstring>  // for strerror
+#include <cstdlib>  // for abort
 #include <stdexcept>   // std::runtime_error
 
 emu::daq::reader::RawDataFile::RawDataFile( std::string filename, int format, bool debug )
@@ -39,7 +41,7 @@ void emu::daq::reader::RawDataFile::open(std::string filename) {
    // Abort in case of any failure
    if (theFileDescriptor == -1) {
      if ( theDebugMode ){
-       std::cerr << "emu::daq::reader::RawDataFile: FATAL in open - " << std::strerror(errno) << std::endl;
+       std::cerr << "emu::daq::reader::RawDataFile: FATAL in open - " << strerror(errno) << std::endl;
        std::cerr << "emu::daq::reader::RawDataFile will abort!!!" << std::endl;
        abort();
      }

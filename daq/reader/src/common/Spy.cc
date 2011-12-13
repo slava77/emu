@@ -5,7 +5,9 @@
 #include <string>
 #include <fcntl.h>  // for open()
 #include <unistd.h> // for read(), close()
-#include <errno.h>  // for errno
+#include <cerrno>  // for errno
+#include <cstring>  // for strerror
+#include <cstdlib>  // for abort
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include "schar.h"

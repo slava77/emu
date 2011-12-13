@@ -15,6 +15,7 @@
 #include "xdaq/NamespaceURI.h"
 #include "xdaq/exception/ApplicationNotFound.h"
 #include "xgi/Method.h"
+#include "xdata/InfoSpaceFactory.h"
 
 #include <netinet/in.h>
 
@@ -86,7 +87,7 @@ bSem_(toolbox::BSem::FULL)
     monitoringInfoSpaceName_ =
         generateMonitoringInfoSpaceName(xmlClass_, instance_);
     monitoringInfoSpace_ =
-        xdata::InfoSpace::get(monitoringInfoSpaceName_);
+        xdata::getInfoSpaceFactory()->get(monitoringInfoSpaceName_);
 
     // Fill the application's default info space
     putParamsIntoInfoSpace(stdConfigParams_ , appInfoSpace_);

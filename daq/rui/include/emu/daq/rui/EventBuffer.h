@@ -29,6 +29,8 @@ namespace emu { namespace daq { namespace rui {
 	static const size_t maxBufferSize_ = 0x100000; ///< Maximum size the buffer may grow to. (1 MB)
       };
 
+      ostream& operator<<( ostream& os, const emu::daq::rui::EventBuffer& eb );
+
 }}} // namespace emu::daq::rui
 
 #endif

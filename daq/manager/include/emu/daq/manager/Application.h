@@ -30,6 +30,8 @@ using namespace std;
 
 namespace emu { namespace daq { namespace manager {
 
+      class Watchdog;
+
 class Application 
   : public emu::base::Supervised,
     public emu::base::WebReporter,

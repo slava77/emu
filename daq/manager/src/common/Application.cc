@@ -1245,8 +1245,8 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       // (if emu::daq::manager::Application is in 'failed' state, we should already have one).
       // Also, if emu::daq::manager::Application is in "Halted" state, but DAQ is not (because emu::daq::manager::Application 
       // was restarted, for example), allow DAQ to be reset. 
-      if ( fsm_.getCurrentState() != 'F' && daqState_.toString() == "Failed" ||
-	   ( fsm_.getCurrentState() == 'H' && daqState_.toString() != "Halted" ) ){
+      if ( ( fsm_.getCurrentState() != 'F' && daqState_.toString() == "Failed" ) ||
+	   ( fsm_.getCurrentState() == 'H' && daqState_.toString() != "Halted" )    ){
 	  *out << "<input"                                               << endl;
 	  *out << " class=\"button\""                                    << endl;
 	  *out << " type=\"submit\""                                     << endl;

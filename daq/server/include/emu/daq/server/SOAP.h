@@ -61,8 +61,8 @@ private:
   /// @param data pointer to data
   /// @param dataLength length of data in bytes
   ///
-  void   fillMessage( char* const        data,
-		      const unsigned int dataLength )
+  void   fillMessage( char* const  data,
+		      const size_t dataLength )
     throw( xoap::exception::Exception );
 
 public:
