@@ -56,7 +56,7 @@ string emu::farmer::ProcessDescriptor::getNormalizedHost() const {
   return u.getHost();
 }
 
-int emu::farmer::ProcessDescriptor::getPort() const {
+unsigned int emu::farmer::ProcessDescriptor::getPort() const {
   // This should never throw as at this point URL_ has already been tested for format
   toolbox::net::URL u( URL_ );
   return u.getPort();

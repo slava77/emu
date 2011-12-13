@@ -353,7 +353,7 @@ DOMNode* emu::farmer::utils::findNode( DOMNodeList *nodeList, const string& node
 {
     DOMNode            *node = 0;
     string             name  = "";
-    unsigned int       i     = 0;
+    XMLSize_t          i     = 0;
 
     for(i=0; i<nodeList->getLength(); i++)
     {

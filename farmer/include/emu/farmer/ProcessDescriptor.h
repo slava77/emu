@@ -117,7 +117,7 @@ public:
   ///
   /// @return port of this process
   ///
-  int getPort() const;
+  unsigned int getPort() const;
 
 
   /// set the JobControl responsible for this process
