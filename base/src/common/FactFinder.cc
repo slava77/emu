@@ -45,8 +45,8 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
 #else
   : xdaq::WebApplication( stub ),
 #endif
+    factFinderBSem_( toolbox::BSem::EMPTY ),
     expertSystemURL_( "NOT_YET_KNOWN" ), // From this value we know it hasn't been configured yet.
-    factFinderBSem_( toolbox::BSem::FULL ),
     source_( source ),
     maxQueueLength_( 1000 ),
     targetDescriptor_( NULL ),
@@ -84,6 +84,7 @@ emu::base::FactFinder::FactFinder( xdaq::ApplicationStub *stub, emu::base::FactC
       this->notifyQualified( "error", eObj );
     }
   }
+  factFinderBSem_.give();
 }
 
 emu::base::FactFinder::~FactFinder(){
@@ -114,7 +115,6 @@ emu::base::FactFinder::onFactRequest( xoap::MessageReference message )
   // Handle them in another thread:
   if ( ! isDisabled_ && ! factWorkLoop_->isActive() ){
     factWorkLoop_->activate();
-    if ( isFactFinderInDebugMode_.value_ ) cout << "Activated work loop " << factWorkLoop_->getName() << endl << flush;
     factWorkLoop_->submit( sendFactsSignature_ );
   }
 
@@ -296,7 +296,6 @@ emu::base::FactFinder::sendFacts(){
   // Send them in another thread:
   if ( ! isDisabled_ && ! factWorkLoop_->isActive() ){
     factWorkLoop_->activate();
-    if ( isFactFinderInDebugMode_.value_ ) cout << "Activated work loop " << factWorkLoop_->getName() << endl << flush;
     factWorkLoop_->submit( sendFactsSignature_ );
   }
 }
@@ -332,7 +331,6 @@ emu::base::FactFinder::sendFact( const emu::base::Component& component, const st
   // Send them in another thread:
   if ( ! isDisabled_ && ! factWorkLoop_->isActive() ){
     factWorkLoop_->activate();
-    if ( isFactFinderInDebugMode_.value_ ) cout << "Activated work loop " << factWorkLoop_->getName() << endl << flush;
     factWorkLoop_->submit( sendFactsSignature_ );
   }
 }
@@ -345,7 +343,7 @@ emu::base::FactFinder::sendFactsInWorkLoop( toolbox::task::WorkLoop *wl ){
   factFinderBSem_.take();
 
   // Check whether expertSystemURL_ has already been assigned the value given in the configuration.
-  if ( expertSystemURL_.toString() == "NOT_YET_KNOWN" ){
+  if ( expertSystemURL_ == "NOT_YET_KNOWN" ){
     // Configuration has apparently not yet taken place. Come back later.
     factFinderBSem_.give();
     return true;
