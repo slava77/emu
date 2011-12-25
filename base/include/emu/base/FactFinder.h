@@ -70,6 +70,9 @@ namespace emu { namespace base {
     xoap::MessageReference onFactRequest( xoap::MessageReference message )
       throw (xoap::exception::Exception);
   
+  private:
+    toolbox::BSem                            factFinderBSem_; ///< Mutex for access to member containers factRequestCollections_ and factsToSend_
+
   protected:
     xdata::String  expertSystemURL_; ///< The URL of the expert system. Exported infospace parameter.
     xdata::Boolean isFactFinderInDebugMode_; ///< If TRUE, debug messages are printed to stdout, and the expert system replies synchronously and doesn't store the facts. Exported infospace parameter.
@@ -98,7 +101,6 @@ namespace emu { namespace base {
     string                            getSOAPFaultCode( xoap::SOAPFault soapFault );
     void                              findTargetDescriptor();
 
-    toolbox::BSem                            factFinderBSem_; ///< Mutex for access to member containers factRequestCollections_ and factsToSend_
     emu::base::FactCollection::Source_t      source_; ///< Source type of the derived application.
     unsigned int                             maxQueueLength_; ///< Let at most this many fact requests or facts accumulate.
     deque<emu::base::FactRequestCollection>  factRequestCollections_; ///< The container of fact requests received.
@@ -106,7 +108,7 @@ namespace emu { namespace base {
     xdaq::ApplicationDescriptor             *targetDescriptor_;	///< The app descriptor of the expert system.
     emu::base::Stopwatch                    *stopwatch_; ///< A stopwatch to time the moratirium on sending following a SOAP timeout.
     time_t                                   moratoriumAfterTimeout_; ///< The moratoriumin seconds on sending further facts following a SOAP timeout.
-    bool                                     isDisabled_; ///< If TRUE, sending facts is diabled.
+    bool                                     isDisabled_; ///< If TRUE, sending facts is disabled.
   };
 
 }} // namespace emu::base
