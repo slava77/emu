@@ -5,7 +5,7 @@
 
 namespace emudaqfu {
 	const std::string package     = "emudaqfu";
-	const std::string versions    = "10.06.00";
+	const std::string versions    = "10.06.01";
 	const std::string description = "Emu (CSC) Filter Unit";
 
 	const std::string summary     = "emu/daq/fu";
