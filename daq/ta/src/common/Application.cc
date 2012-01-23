@@ -84,10 +84,11 @@ bSem_(toolbox::BSem::FULL)
     stdMonitorParams_ = initAndGetStdMonitorParams();
 
     // Create info space for monitoring
-    monitoringInfoSpaceName_ =
-        generateMonitoringInfoSpaceName(xmlClass_, instance_);
-    monitoringInfoSpace_ =
-        xdata::getInfoSpaceFactory()->get(monitoringInfoSpaceName_);
+    monitoringInfoSpaceName_ = generateMonitoringInfoSpaceName(xmlClass_, instance_);
+    if ( xdata::getInfoSpaceFactory()->hasItem(monitoringInfoSpaceName_) )
+      monitoringInfoSpace_ = xdata::getInfoSpaceFactory()->get(monitoringInfoSpaceName_);
+    else
+      monitoringInfoSpace_ = xdata::getInfoSpaceFactory()->create(monitoringInfoSpaceName_);
 
     // Fill the application's default info space
     putParamsIntoInfoSpace(stdConfigParams_ , appInfoSpace_);
