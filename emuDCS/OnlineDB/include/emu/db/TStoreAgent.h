@@ -6,7 +6,6 @@
 #include "xdata/Table.h"
 #include "xdata/UnsignedInteger64.h"
 
-#include "emu/soap/Attributes.h"
 #include "emu/exception/Exception.h"
 
 namespace emu { namespace db {
@@ -81,16 +80,6 @@ public:
   };
 
 protected:
-
-  /// Send a SOAP message to a TStore instance
-  xoap::MessageReference sendSOAPMessage(const xoap::MessageReference &message) throw (emu::exception::SOAPException);
-
-  /// Send a SOAP message to a TStore instance defined by a ApplicationDescriptor pointer
-  xoap::MessageReference sendSOAPMessage(const xoap::MessageReference &message,
-                                         xdaq::ApplicationDescriptor *app) throw (emu::exception::SOAPException);
-
-  ///
-  xoap::MessageReference sendSOAPMessage(const std::string &command_name, emu::soap::Attributes& attributes) throw (emu::exception::SOAPException);
 
   /// The application context from which to send the SOAP messages
   xdaq::Application *application_;
