@@ -1,4 +1,4 @@
-// $Id: TStoreReadWriter.cc,v 1.2 2011/10/15 00:19:42 khotilov Exp $
+// $Id: TStoreReadWriter.cc,v 1.3 2012/01/24 18:40:57 khotilov Exp $
 
 #include "emu/db/TStoreReadWriter.h"
 #include "emu/db/TStoreAgent.h"
@@ -25,6 +25,11 @@ TStoreReadWriter::TStoreReadWriter(ConfigHierarchy* hierarchy, xdaq::Application
 , instance_(instance)
 {
   hierarchy_ = hierarchy;
+
+  if (hierarchy_->notForDB())
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "TStoreReadWriter was given ConfigHierarchy that was not supposed to be used with DB!");
+  }
 
   if (db_credentials_.empty())
   {

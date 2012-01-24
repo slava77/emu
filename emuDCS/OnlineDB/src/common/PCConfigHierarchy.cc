@@ -1,4 +1,4 @@
-// $Id: PCConfigHierarchy.cc,v 1.1 2011/09/09 16:04:44 khotilov Exp $
+// $Id: PCConfigHierarchy.cc,v 1.2 2012/01/24 18:40:57 khotilov Exp $
 
 #include "emu/db/PCConfigHierarchy.h"
 #include "emu/db/ConfigTable.h"
@@ -27,12 +27,18 @@ std::string PCConfigHierarchy::timeFieldNameOfFlashTable_;
 
 PCConfigHierarchy::PCConfigHierarchy(const std::string & tstore_conf, TruncateLevel truncate_level)
 : ConfigHierarchy()
+, has_DDU_(0)
 {
   def_ = new TableDefinitions(tstore_conf, prefix_);
   if (!def_->valid())
   {
     std::cout<<std::endl<<" * * * * * * WARNING: TableDefinitions is not vaild!!! * * * * * *"<<std::endl<<std::endl;
   }
+
+  // for the test-stand configuration, TStore configuration must have DDU table definition
+  if (def_->tableDefinition("DDU") != 0)  has_DDU_ = true;
+  if (has_DDU_) setNotForDB();
+
   truncate_level_ = truncate_level;
   init();
 }
@@ -131,6 +137,7 @@ xdata::UnsignedInteger64 PCConfigHierarchy::id(const std::string &type, xdata::U
   if (type == "TMB")   return parent_id + 2000;
   if (type == "ALCT")  return parent_id + 100;
   if (type == "AnodeChannel") return parent_id + (number+1);
+  if (type == "DDU")   return parent_id + 140000;
   return 0;
 }
 
@@ -211,6 +218,7 @@ void PCConfigHierarchy::init()
     if (tr > 1) types_.push_back("MPC");
     if (tr > 1) types_.push_back("VCC");
     if (tr > 1) types_.push_back("CSC");
+    if (tr > 1 && has_DDU_) types_.push_back("DDU");
     if (tr > 2) types_.push_back("DAQMB");
     if (tr > 3) types_.push_back("CFEB");
     if (tr > 2) types_.push_back("TMB");
@@ -225,6 +233,7 @@ void PCConfigHierarchy::init()
     if (tr > 1) addChildTypeName("PeripheralCrate", "MPC");
     if (tr > 1) addChildTypeName("PeripheralCrate", "VCC");
     if (tr > 1) addChildTypeName("PeripheralCrate", "CSC");
+    if (tr > 1 && has_DDU_) addChildTypeName("PeripheralCrate", "DDU");
     if (tr > 2) addChildTypeName("CSC", "DAQMB");
     if (tr > 3) addChildTypeName("DAQMB", "CFEB");
     if (tr > 2) addChildTypeName("CSC", "TMB");
@@ -237,6 +246,7 @@ void PCConfigHierarchy::init()
     if (tr > 1) typeParent_["MPC"] = "PeripheralCrate";
     if (tr > 1) typeParent_["VCC"] = "PeripheralCrate";
     if (tr > 1) typeParent_["CSC"] = "PeripheralCrate";
+    if (tr > 1 && has_DDU_) typeParent_["DDU"] = "PeripheralCrate";
     if (tr > 2) typeParent_["DAQMB"] = "CSC";
     if (tr > 3) typeParent_["CFEB"] = "DAQMB";
     if (tr > 2) typeParent_["TMB"] = "CSC";
@@ -250,6 +260,7 @@ void PCConfigHierarchy::init()
     if (tr > 1) idFieldNames_["MPC"] = "mpc_config_id";
     if (tr > 1) idFieldNames_["VCC"] = "vcc_config_id";
     if (tr > 1) idFieldNames_["CSC"] = "csc_config_id";
+    if (tr > 1 && has_DDU_) idFieldNames_["DDU"] = "ddu_config_id";
     if (tr > 2) idFieldNames_["DAQMB"] = "daqmb_config_id";
     if (tr > 3) idFieldNames_["CFEB"] = "cfeb_config_id";
     if (tr > 2) idFieldNames_["TMB"] = "tmb_config_id";
