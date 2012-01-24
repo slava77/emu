@@ -1,4 +1,4 @@
-// $Id: PCConfigEditor.cc,v 1.2 2011/10/15 00:19:42 khotilov Exp $
+// $Id: PCConfigEditor.cc,v 1.3 2012/01/24 19:16:43 khotilov Exp $
 
 #include "emu/db/PCConfigEditor.h"
 #include "emu/db/TStoreRequest.h"
@@ -38,7 +38,7 @@
 #include "emu/db/ConfigRow.h"
 #include "emu/db/ConfigTree.h"
 #include "emu/db/TStoreReadWriter.h"
-#include "emu/db/EmuEndcapConfigWrapper.h"
+#include "emu/pc/EmuEndcapConfigWrapper.h"
 #include "emu/db/XMLReadWriter.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::db::PCConfigEditor)
@@ -160,7 +160,7 @@ void PCConfigEditor::my_test()
   //xml.write(&(tstore_rw.configTables()));
 
 
-  emu::db::EmuEndcapConfigWrapper wrapper_from_db(&tree_from_db);
+  emu::pc::EmuEndcapConfigWrapper wrapper_from_db(&tree_from_db);
   EmuEndcap * emue = wrapper_from_db.getConfiguredEndcap();
   //delete emue;
 
