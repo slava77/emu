@@ -37,7 +37,7 @@ public:
   /** Write the configuration
    * \param tree  a pointer to the ConfigTree to write; if NULL, writes information from the current datamap_
    */
-  virtual bool write(ConfigTree *tree = 0) throw (emu::exception::ConfigurationException) = 0;
+  virtual bool write(ConfigTree *tree) throw (emu::exception::ConfigurationException) = 0;
 
   /// a reference to ConfigTables map
   inline std::map<std::string, ConfigTable> & configTables() { return datamap_; }

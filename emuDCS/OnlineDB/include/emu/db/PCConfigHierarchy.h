@@ -86,11 +86,13 @@ public:
   /// Is useful, e.g., when reading older xml's which have no information about the endcap side.
   xdata::UnsignedInteger64 defaultIdForSubsystem(const std::string &subsystem) const;
 
+
   /// the ID field of a firmware flash times table
   std::string idFieldNameOfFlashTable() const {return idFieldNameOfFlashTable_;}
 
   /// the time field of a firmware flash times table
   std::string timeFieldNameOfFlashTable() const {return timeFieldNameOfFlashTable_;}
+
 
 protected:
 
@@ -119,6 +121,9 @@ private:
 
   /// a helper for the definitionsTree method
   void definitionsTreeRecursive(const std::string &type, std::map<std::string, ConfigTable> &tree);
+
+  /// if the hierarchy has DDU type of boards in it (for test stand)
+  bool has_DDU_;
 };
 
 }}
