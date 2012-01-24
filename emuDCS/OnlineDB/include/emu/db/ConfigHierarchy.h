@@ -26,7 +26,7 @@ public:
   enum TruncateLevel {TRUNCATE_0 = 0, TRUNCATE_1, TRUNCATE_2, TRUNCATE_3, TRUNCATE_4, TRUNCATE_5, NOT_TRUNCATE};
 
   /// trivial constructor
-  ConfigHierarchy(): def_(0), truncate_level_(NOT_TRUNCATE) {}
+  ConfigHierarchy(): def_(0), truncate_level_(NOT_TRUNCATE), not_for_db_(0) {}
 
   /// trivial destructor
   virtual ~ConfigHierarchy() {}
@@ -95,11 +95,20 @@ public:
   /// default configuration id for some specific subsystem. Is useful, e.g., when reading xml which has no information about subsystem.
   virtual xdata::UnsignedInteger64 defaultIdForSubsystem(const std::string &subsystem) const = 0;
 
+
   /// the ID field of a firmware flash times table
   virtual std::string idFieldNameOfFlashTable() const = 0;
 
   /// the time field of a firmware flash times table
   virtual std::string timeFieldNameOfFlashTable() const = 0;
+
+
+  /// indicates if the hierarchy cannot be used with DB, but only with XML
+  bool notForDB() const {return not_for_db_; }
+
+  /// forbid the use of hierarchy with DB (still can use with XML)
+  void setNotForDB(bool flag = true) { not_for_db_ = flag;}
+
 
   // ----- printing -----
   
@@ -115,6 +124,9 @@ protected:
 
   /// indicates after which level of configuration tree to truncate the hierarchy
   TruncateLevel truncate_level_;
+
+  /// flag indicating that hierarchy cannot be used with DB
+  bool not_for_db_;
 };
 
 

@@ -1,8 +1,7 @@
-// $Id: TStoreAgent.cc,v 1.1 2011/09/09 16:04:44 khotilov Exp $
+// $Id: TStoreAgent.cc,v 1.2 2012/01/24 18:33:24 khotilov Exp $
 
 #include "emu/db/TStoreAgent.h"
 #include "emu/db/TStoreCommand.h"
-#include "emu/soap/Messenger.h"
 
 #include "tstore/client/Client.h"
 #include "tstore/client/AttachmentUtils.h"

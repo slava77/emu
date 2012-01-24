@@ -30,8 +30,16 @@ public:
   /// Default destructor
   virtual ~XMLReadWriter() {};
 
+  /** Change the name of XML file.
+   * Is useful, e.g., when you read configuration from one file, and then want to write to a different one.
+   */
+  void setFileName(const std::string &filename) { filename_ = filename; }
+
   /** Read the configuration
    * @param id    configuration ID to assign to read in data
+   * Note that it is sometimes important to follow conventions for configuration ID.
+   * E.g., for PCrates, configuration ID is expected to be 7 digits with the 1st digit encoding the endcap side (1="plus", 2="minus").
+   * And for PCrates the endcap side would matter when you would want to read configuration from XML and to write it into DB.
    */
   virtual bool read(xdata::UnsignedInteger64 id) throw (emu::exception::ConfigurationException);
 
@@ -44,7 +52,7 @@ public:
   /** Write the configuration
    * \param tree  a pointer to the ConfigTree to write; if NULL, writes ConfigTree filled from the current datamap_
    */
-  virtual bool write(ConfigTree *tree = 0) throw (emu::exception::ConfigurationException);
+  virtual bool write(ConfigTree *tree) throw (emu::exception::ConfigurationException);
 
   /** Make XML configuration as a std::string
    * \param tree  a pointer to the ConfigTree to use; if NULL, uses ConfigTree filled from the current datamap_
