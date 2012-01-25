@@ -72,10 +72,20 @@ void emu::daq::reader::Spy::open(std::string filename) {
  
 #ifdef USE_DDU2004
   // MemoryMapped DDU2004 readout
-  buf_start = (char *)mmap(NULL,BIGPHYS_PAGES_2*PAGE_SIZE,PROT_READ,MAP_PRIVATE,theFileDescriptor,0);
+  // buf_start = (char *)mmap(NULL,BIGPHYS_PAGES_2*PAGE_SIZE,PROT_READ,MAP_PRIVATE,theFileDescriptor,0);
+  // Kernel 2.6.18 rejects MAP_PRIVATE as invalid argument. Use MAP_SHARED instead:
+  buf_start = (char *)mmap(NULL,BIGPHYS_PAGES_2*PAGE_SIZE,PROT_READ,MAP_SHARED,theFileDescriptor,0);
   if ( theDebugMode ){
     if (buf_start==MAP_FAILED) {
       std::cerr << "emu::daq::reader::Spy::open: FATAL in memorymap - " << std::strerror(errno) << std::endl;
+      std::cerr << "theFileDescriptor " << theFileDescriptor
+		<< "  BIGPHYS_PAGES_2 "<< BIGPHYS_PAGES_2
+		<< "  PAGE_SIZE       "<< PAGE_SIZE	 
+		<< "  PROT_READ       "<< PROT_READ	 
+		<< "  MAP_PRIVATE     "<< MAP_PRIVATE
+		<< std::endl;
+      std::cerr << "mmap(void *__addr, size_t __len, int __prot, int __flags, int __fd, __off_t __offset)" << std::endl
+		<< "mmap(NULL, " << BIGPHYS_PAGES_2*PAGE_SIZE << ", " << PROT_READ << ", " << MAP_PRIVATE<< ", "<< theFileDescriptor << ", 0)" << std::endl;
       std::cerr << "emu::daq::reader::Spy::open will abort!!!" << std::endl;
       abort();
     }
@@ -195,7 +205,7 @@ void emu::daq::reader::Spy::resetAndEnable(){
   theDeviceIsResetAndEnabled = true;
 }
 
-int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
+int emu::daq::reader::Spy::readDDU(uint16_t*& buf) {
 
   theLogMessage = "";
 //-------------------------------------------------------------------//
@@ -218,17 +228,17 @@ int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
   while (true){
 
     // Get the write pointer (relative to buf_start) of the kernel driver.
-    buf_pnt_kern=*(unsigned long int *)(buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS);
+    buf_pnt_kern=*(uint64_t *)(buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS);
 
-//     // START DEBUG
-//     if ( ec1->timeIsUp() ){
-//       std::cout << " v:" << std::setw(10) << visitCount
-//                 << " idle loop count=" << iloop
-//                 << " buf_pnt_kern=" << buf_pnt_kern
-//                 << " buf_pnt=" << buf_pnt
-//                 << std::endl << std::flush;
-//     }
-//     // END DEBUG
+    // // START DEBUG
+    // if ( ec1->timeIsUp() ){
+    //   std::cout << " v:" << std::setw(10) << visitCount
+    //             << " idle loop count=" << iloop
+    //             << " buf_pnt_kern=" << buf_pnt_kern
+    //             << " buf_pnt=" << buf_pnt
+    //             << std::endl << std::flush;
+    // }
+    // // END DEBUG
 
     // If no data for a long time, abort.
     if(iloop>20000){timeout=1; timeoutCount++; theErrorFlag|=Timeout; break;}
@@ -241,7 +251,7 @@ int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
     iloop=0;
 
     // From the current entry of the packet info ring,...
-    ring_loop_kern= *(unsigned short int *)(ring_start+ring_pnt*RING_ENTRY_LENGTH);
+    ring_loop_kern= *(uint16_t *)(ring_start+ring_pnt*RING_ENTRY_LENGTH);
     // ...get the missing packet flag,...
     pmissing=ring_loop_kern&0x8000;
     // ...the end-of-event flag,...
@@ -249,10 +259,10 @@ int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
     // ...the reset ("loop-back") counter,...
     ring_loop_kern=ring_loop_kern&0x3fff;
     // ...and the length of data in bytes.
-    length=*(unsigned short int *)(ring_start+ring_pnt*RING_ENTRY_LENGTH+4);
+    length=*(uint16_t *)(ring_start+ring_pnt*RING_ENTRY_LENGTH+4);
 
     // Get the reset counter from the first entry of the packet info ring...
-    ring_loop_kern2=*(unsigned short int *)ring_start;
+    ring_loop_kern2=*(uint16_t *)ring_start;
     ring_loop_kern2=0x3fff&ring_loop_kern2;
 
 //     // START DEBUG
@@ -433,7 +443,7 @@ int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
   }
 
   //MAINEND:
-  buf=(unsigned short*)buf_data;
+  buf=(uint16_t*)buf_data;
 
   theDataLength = dataLengthWithoutPadding( buf, len );
 
@@ -442,11 +452,11 @@ int emu::daq::reader::Spy::readDDU(unsigned short*& buf) {
   return len;
 }
 
-int emu::daq::reader::Spy::readDCC(unsigned short*& buf) {
+int emu::daq::reader::Spy::readDCC(uint16_t*& buf) {
   return readDDU( buf );
 }
 
-int emu::daq::reader::Spy::dataLengthWithoutPadding( const unsigned short* data, const int dataLength ){
+int emu::daq::reader::Spy::dataLengthWithoutPadding( const uint16_t* data, const int dataLength ){
   // Get the data length without the padding that may have been added by Gbit Ethernet.
 
   // Jason Gilmore:

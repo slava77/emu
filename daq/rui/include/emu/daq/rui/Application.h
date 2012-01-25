@@ -15,9 +15,10 @@
 #include "xdata/Double.h"
 #include "xdata/InfoSpace.h"
 #include "xdata/String.h"
-#include "xdata/UnsignedLong.h"
+#include "xdata/UnsignedInteger32.h"
+#include "xdata/UnsignedInteger64.h"
+#include "xdata/Integer64.h"
 #include "xdata/Vector.h"
-#include "xdata/Integer.h"
 #include "xdata/ItemEvent.h"
 
 
@@ -58,27 +59,26 @@ private:
 
   bool serverLoopAction(toolbox::task::WorkLoop *wl);
 
-  int runStartUTC_; /// Unix UTC run start time 
+  uint32_t runStartUTC_; /// Unix UTC run start time 
 
-  static const unsigned int maxDevices_ = 5; // max possible number of input devices
-  static const unsigned int maxClients_ = 5; // max possible number of clients
+  static const uint32_t maxClients_ = 5; // max possible number of clients
 
-  xdata::Vector<xdata::String>       clientName_;
-  xdata::Vector<xdata::UnsignedLong> clientInstance_;
-  xdata::Vector<xdata::Boolean>      clientPersists_; // whether its server needs to be (re)created on config
-  xdata::Vector<xdata::String>       clientProtocol_;
-  xdata::Vector<xdata::UnsignedLong> clientPoolSize_;
-  xdata::Vector<xdata::UnsignedLong> prescaling_;
-  xdata::Vector<xdata::Boolean>      onRequest_;
-  xdata::Vector<xdata::UnsignedLong> creditsHeld_;
+  xdata::Vector<xdata::String>            clientName_;
+  xdata::Vector<xdata::UnsignedInteger32> clientInstance_;
+  xdata::Vector<xdata::Boolean>           clientPersists_; // whether its server needs to be (re)created on config
+  xdata::Vector<xdata::String>            clientProtocol_;
+  xdata::Vector<xdata::UnsignedInteger64> clientPoolSize_;
+  xdata::Vector<xdata::UnsignedInteger64> prescaling_;
+  xdata::Vector<xdata::Boolean>           onRequest_;
+  xdata::Vector<xdata::UnsignedInteger64> creditsHeld_;
   struct Client {
     xdata::String                  *name;
-    xdata::UnsignedLong            *instance;
+    xdata::UnsignedInteger32       *instance;
     xdata::Boolean                 *persists;
-    xdata::UnsignedLong            *poolSize;
-    xdata::UnsignedLong            *prescaling;
+    xdata::UnsignedInteger64       *poolSize;
+    xdata::UnsignedInteger64       *prescaling;
     xdata::Boolean                 *onRequest;
-    xdata::UnsignedLong            *creditsHeld;
+    xdata::UnsignedInteger64       *creditsHeld;
     emu::daq::server::Base         *server;
     toolbox::task::WorkLoop        *workLoop;
     string                          workLoopName;
@@ -96,13 +96,13 @@ private:
 	    string                          wln="",
 	    bool                            wls=false,
 	    toolbox::task::ActionSignature* wla=NULL   ){
-      name                    = dynamic_cast<xdata::String*>      ( n );
-      instance                = dynamic_cast<xdata::UnsignedLong*>( i );
-      persists                = dynamic_cast<xdata::Boolean*>     ( e );
-      poolSize                = dynamic_cast<xdata::UnsignedLong*>( s );
-      prescaling              = dynamic_cast<xdata::UnsignedLong*>( p );
-      onRequest               = dynamic_cast<xdata::Boolean*>     ( r );
-      creditsHeld             = dynamic_cast<xdata::UnsignedLong*>( c );
+      name                    = dynamic_cast<xdata::String*>           ( n );
+      instance                = dynamic_cast<xdata::UnsignedInteger32*>( i );
+      persists                = dynamic_cast<xdata::Boolean*>          ( e );
+      poolSize                = dynamic_cast<xdata::UnsignedInteger64*>( s );
+      prescaling              = dynamic_cast<xdata::UnsignedInteger64*>( p );
+      onRequest               = dynamic_cast<xdata::Boolean*>          ( r );
+      creditsHeld             = dynamic_cast<xdata::UnsignedInteger64*>( c );
       server                  = S;
       workLoop                = wl;
       workLoopName            = wln;
@@ -117,10 +117,8 @@ private:
   xdata::String                       hardwareMnemonic_;     // mnemonic name for the piece of hardware to read
   xdata::String                       inputDeviceType_;      // spy, slink or file
   xdata::String                       inputDataFormat_;      // "DDU" or "DCC"
-// here it gets overwritten in TF DDU(!?!?); move it away:   int                                 inputDataFormatInt_;   // emu::daq::reader::Base::DDU or emu::daq::reader::Base::DCC
-  int dummy_;
-  int                                 inputDataFormatInt_;   // emu::daq::reader::Base::DDU or emu::daq::reader::Base::DCC
-  unsigned int                        previousEventNumber_;
+  uint32_t                            inputDataFormatInt_;   // emu::daq::reader::Base::DDU or emu::daq::reader::Base::DCC
+  uint64_t                            previousEventNumber_;
 
   void createFileWriters();
   void createDeviceReader();
@@ -129,48 +127,48 @@ private:
 //   void destroyDeviceReaders();
   void createServers();
   void destroyServers();
-  bool createI2OServer( string clientName, unsigned int clientInstance );
-  bool createSOAPServer( string clientName, unsigned int clientInstance, bool persistent=true );
+  bool createI2OServer( string clientName, uint32_t clientInstance );
+  bool createSOAPServer( string clientName, uint32_t clientInstance, bool persistent=true );
   void onI2OClientCreditMsg(toolbox::mem::Reference *bufRef);
   xoap::MessageReference onSOAPClientCreditMsg( xoap::MessageReference msg )
     throw (xoap::exception::Exception);
   xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg );
-  void addDataForClients(const int   runNumber, 
-			 const int   runStartUTC,
-			 const int   nEventsRead,
+  void addDataForClients(const uint32_t runNumber, 
+			 const uint32_t runStartUTC,
+			 const uint64_t nEventsRead,
 			 const emu::daq::server::PositionInEvent_t position, 
-			 const unsigned short errorFlag, 
+			 const uint16_t errorFlag, 
 			 char* const data, 
-			 const int   dataLength );
+			 const size_t   dataLength );
   void makeClientsLastBlockEndEvent();
-  void insertEmptySuperFragments( const unsigned long fromEventNumber, const unsigned long toEventNumber )
+  void insertEmptySuperFragments( const uint64_t fromEventNumber, const uint64_t toEventNumber )
     throw (emu::daq::rui::exception::Exception);
   void ensureContiguousEventNumber();
   void moveToFailedState( const string reason );
 
-  xdata::UnsignedLong                 nEventsRead_;
-  xdata::UnsignedLong                 nReadingPasses_; ///< Total number of reading passes so far.
-  xdata::UnsignedLong                 maxNBlocksInEvent_; ///< Max number of reading passes (blocks) in any event so far.
-  xdata::UnsignedLong                 nEventsOfMultipleBlocks_;	///< Number of events read out in more than one pass (and thus put in multiple blocks).
+  xdata::UnsignedInteger64                 nEventsRead_;
+  xdata::UnsignedInteger64                 nReadingPasses_; ///< Total number of reading passes so far.
+  xdata::UnsignedInteger64                 maxNBlocksInEvent_; ///< Max number of reading passes (blocks) in any event so far.
+  xdata::UnsignedInteger64                 nEventsOfMultipleBlocks_;	///< Number of events read out in more than one pass (and thus put in multiple blocks).
   xdata::String                       persistentDDUError_;
   emu::daq::writer::RawDataFile       *fileWriter_;
-  unsigned long                       nReadingPassesInEvent_;
+  uint64_t                            nReadingPassesInEvent_;
   bool                                insideEvent_;
-  unsigned short                      errorFlag_;
+  uint16_t                            errorFlag_;
   bool                                ableToWriteToDisk_;
 
   // file writing rate limiter
   emu::daq::writer::RateLimiter       *rateLimiter_;
-  xdata::UnsignedLong                 fileWritingRateLimitInHz_;
-  xdata::UnsignedLong                 fileWritingRateSampleSize_;
+  xdata::UnsignedInteger64            fileWritingRateLimitInHz_;
+  xdata::UnsignedInteger64            fileWritingRateSampleSize_;
   xdata::Boolean                      fileWritingVetoed_;
 
   // managing bad events and their context
   xdata::Boolean                      writeBadEventsOnly_; ///< If TRUE, only the bad events are to be written to files, with a limited context.
-  xdata::UnsignedLong                 nToWriteBeforeBadEvent_; ///< Number of events to write as bad event's leading context.
-  xdata::UnsignedLong                 nToWriteAfterBadEvent_; ///< Number of events to write as bad event's trailing context.
+  xdata::UnsignedInteger64            nToWriteBeforeBadEvent_; ///< Number of events to write as bad event's leading context.
+  xdata::UnsignedInteger64            nToWriteAfterBadEvent_; ///< Number of events to write as bad event's trailing context.
   bool                                isBadEvent_; ///< This event is bad.
-  unsigned long                       countSinceBadEvent_; ///< Number of events read so far since the last bad event.
+  uint64_t                            countSinceBadEvent_; ///< Number of events read so far since the last bad event.
   emu::daq::rui::EventBufferRing      eventBufferRing_; ///< Buffer to store the bad event and its leading context.
   emu::daq::rui::BadEventCount        badEventCount_; ///< Bad event count with progressive prescaler
 
@@ -186,21 +184,19 @@ private:
   xoap::MessageReference maskDDUInputs( const bool in, const xoap::MessageReference msg )
     throw (xoap::exception::Exception);
 
-  bool hasHeader( char* const data, const int dataLength );
-  bool hasTrailer( char* const data, const int dataLength );
-//   int  getDDUDataLengthWithoutPadding(char* const data, const int dataLength);
-//   int  getDCCDataLengthWithoutPadding(char* const data, const int dataLength);
-  bool interestingDDUErrorBitPattern(char* const data, const int dataLength);
-//   unsigned short incrementPassesCounter( const unsigned short errorFlag );
-  void printData(std::ostream& os, char* data, const int dataLength);
-  void writeDataToFile( const char* const data, const int dataLength, const bool newEvent=false );
-  void writeDataWithContextToFile(  char* const data, const int dataLength, const bool newEvent );
+  bool hasHeader( char* const data, const size_t dataLength );
+  bool hasTrailer( char* const data, const size_t dataLength );
+  bool interestingDDUErrorBitPattern(char* const data, const size_t dataLength);
+
+  void printData(std::ostream& os, char* data, const size_t dataLength);
+  void writeDataToFile( const char* const data, const size_t dataLength, const bool newEvent=false );
+  void writeDataWithContextToFile(  char* const data, const size_t dataLength, const bool newEvent );
 
   void printBlocks( deque<toolbox::mem::Reference*> d );
   void fillBlock(toolbox::mem::Reference *bufRef,
 		 const char*              data,
-		 const unsigned int       dataLength,
-		 const unsigned long      eventNumber 
+		 const size_t             dataLength,
+		 const uint64_t           eventNumber 
 		 )
     throw (emu::daq::rui::exception::Exception);
 
@@ -210,7 +206,7 @@ private:
   vector< xdaq::ApplicationDescriptor* > taDescriptors_;
   void getTidOfEmuTA()
     throw ( xcept::Exception );
-  void sendEventNumberToTA( unsigned long firstEventNumber )
+  void sendEventNumberToTA( uint64_t firstEventNumber )
     throw ( xcept::Exception );
 
   vector< xdaq::ApplicationDescriptor* > getAppDescriptors(xdaq::Zone *zone,
@@ -306,7 +302,7 @@ private:
     /**
      * The instance number of the application.
      */
-    unsigned long instance_;
+    uint32_t instance_;
 
     /**
      * The application's URN.
@@ -385,7 +381,7 @@ private:
      * Exported read/write parameter specifying the size of an event data I2O
      * message frame.
      */
-    xdata::UnsignedLong dataBufSize_;
+    xdata::UnsignedInteger64 dataBufSize_;
 
     /**
      * Exported read/write parameter specifiying the size of payload per FED
@@ -393,7 +389,7 @@ private:
      *
      * fedPayloadSize is in bytes.
      */
-    xdata::UnsignedLong fedPayloadSize_;
+    xdata::UnsignedInteger64 fedPayloadSize_;
 
     /**
      * Exported read/write parameter specifiying the source id of each FED
@@ -402,19 +398,19 @@ private:
      * The size of this vector specifies the number of FEDs that supply data
      * to a single super-fragment.
      */
-    xdata::Vector<xdata::UnsignedLong> fedSourceIds_;
+    xdata::Vector<xdata::UnsignedInteger64> fedSourceIds_;
 
     /**
      * Exported read/write parameter specifying the threshold of the event data
      * pool between the EmuRUI and RU.
      */
-    xdata::UnsignedLong threshold_;
+    xdata::UnsignedInteger64 threshold_;
 
     xdata::String       pathToDataOutFile_;    // the path to the file to write the data into (no file written if "")
-    xdata::UnsignedLong fileSizeInMegaBytes_;  // when the file size exceeds this, no more events will be written to it (no file written if <=0)
-    xdata::Integer      maxEvents_;            // stop reading from DDU after this many events
+    xdata::UnsignedInteger64 fileSizeInMegaBytes_;  // when the file size exceeds this, no more events will be written to it (no file written if <=0)
+    xdata::Integer64    maxEvents_;            // stop reading from DDU after this many events
     xdata::Boolean      passDataOnToRUBuilder_;// it true, data is sent to the event builder
-    xdata::UnsignedLong runNumber_;            // run number to be obtained from TA
+    xdata::UnsignedInteger32 runNumber_;            // run number to be obtained from TA
     xdata::Boolean      isBookedRunNumber_;    // whether or not this run number was booked in the database
     xdata::String       runStartTime_;         // run start time to be included in the file name
     xdata::String       runStopTime_;          // run stop time to be included in the metafile
@@ -440,7 +436,7 @@ private:
      * Exported read-only parameter specifying the event number of the next
      * dummy super-fragment to be created.
      */
-    xdata::UnsignedLong eventNumber_;
+    xdata::UnsignedInteger64 eventNumber_;
 
     /////////////////////////////////////////////////////////////
     // End of exported parameters used for monitoring          //
@@ -478,16 +474,6 @@ private:
      */
     void defineFsm()
     throw (emu::daq::rui::exception::Exception);
-
-    /**
-     * Returns the name of the info space that contains exported parameters
-     * for monitoring.
-     */
-    string generateMonitoringInfoSpaceName
-    (
-        const string        appClass,
-        const unsigned long appInstance
-    );
 
     /**
      * Initialises and returns the application's standard configuration
@@ -634,7 +620,7 @@ private:
     /**
      * Returns the name of the memory pool between the EmuRUI and RU.
      */
-    string createRuiRuPoolName(const unsigned long emuRUIInstance);
+    string createRuiRuPoolName(const uint32_t emuRUIInstance);
 
     /**
      * Returns a "HeapAllocator" memory pool with the specified name.
@@ -655,8 +641,7 @@ private:
     /**
      * The behaviour of the EmuRUI when it is enabled.
      */
-/*     void processAndCommunicate(); */
-    int processAndCommunicate(); //BK
+    int32_t processAndCommunicate();
 
     /**
      * Tries to send the next super-fragment block to the RU.
@@ -671,10 +656,10 @@ private:
      * Continues the construction of the dummy super-fragment.
      */
 //     void continueConstructionOfSuperFrag()
-    int continueConstructionOfSuperFrag()
+    int32_t continueConstructionOfSuperFrag()
     throw (emu::daq::rui::exception::Exception);
 
-    int continueSTEPRun()
+    int32_t continueSTEPRun()
     throw (emu::daq::rui::exception::Exception);
 
     /**
@@ -682,7 +667,7 @@ private:
      * under contruction.
      */
 //     void appendNewBlockToSuperFrag()
-    void appendNewBlockToSuperFrag( const char* data, const unsigned long dataLength, const unsigned long eventNumber )
+    void appendNewBlockToSuperFrag( const char* data, const size_t dataLength, const uint64_t eventNumber )
     throw (emu::daq::rui::exception::Exception);
 
     /**

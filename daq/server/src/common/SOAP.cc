@@ -48,9 +48,9 @@ void emu::daq::server::SOAP::createMIMEInfo(){
 
 void emu::daq::server::SOAP::addData( const int               runNumber, 
 				      const int               runStartUTC,
-				      const int               nEvents, 
+				      const uint64_t          nEvents, 
 				      const PositionInEvent_t position, 
-				      const unsigned short    errorFlag, 
+				      const uint16_t          errorFlag, 
 				      char*                   data, 
 				      const size_t            dataLength ){
 

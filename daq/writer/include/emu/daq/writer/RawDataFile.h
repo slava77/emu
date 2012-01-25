@@ -1,6 +1,8 @@
 #ifndef _emu_daq_writer_RawDataFile_h_
 #define _emu_daq_writer_RawDataFile_h_
 
+#include <stdint.h>
+
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -47,23 +49,23 @@ namespace emu { namespace daq { namespace writer {
   class RawDataFile{
 
   private:
-    unsigned int      maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened
+    uint32_t      maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened
     string            pathToFile_;	///< direcory where the file is to be written
     string            host_;          ///< host name
     string            appName_;	///< name of application producing the data
-    unsigned int      appInstance_;	///< instance of application producing the data
+    uint32_t      appInstance_;	///< instance of application producing the data
     string            appVersion_;    ///< version of application producing the data
     log4cplus::Logger logger_;	///< logger
     string            runStartTime_;	///< date and time of start of run
     string            runStopTime_;	///< date and time of end of run
     string            runType_;	///< run type
-    unsigned int      runNumber_;	///< run number
+    uint32_t      runNumber_;	///< run number
     bool              isBookedRunNumber_; ///< whether or not this run number was booked with the database
-    unsigned int      bytesInFileCounter_; ///< number of bytes written into this file so far
-    unsigned int      eventsInFileCounter_; ///< number of events written into this file so far
-    unsigned int      filesInRunCounter_; ///< number of files written in this run so far
-    unsigned int      bytesInRunCounter_; ///< number of bytes written in this run so far
-    unsigned int      eventsInRunCounter_; ///< number of events written in this run so far
+    uint64_t          bytesInFileCounter_; ///< number of bytes written into this file so far
+    uint64_t          eventsInFileCounter_; ///< number of events written into this file so far
+    uint64_t          filesInRunCounter_; ///< number of files written in this run so far
+    uint64_t          bytesInRunCounter_; ///< number of bytes written in this run so far
+    uint64_t          eventsInRunCounter_; ///< number of events written in this run so far
     string            fileName_;	///< file name
     string            markerFileName_; ///< name of marker file [ <em>file_name_base</em>.<tt>is_closed</tt> ]
     string            metaFileName_; ///< name of metadata file [ <em>file_name_base</em>.<tt>meta</tt> ]
@@ -83,9 +85,6 @@ namespace emu { namespace daq { namespace writer {
 
     /// Writes a <em>file_name_base</em>.<tt>meta</tt> metadata file to make CASTOR happy.
     void writeMetaFile();
-
-    /// Converts an unsigned integer to std:string
-    string toString( unsigned int i );
 
     /// Converts time given as string to Unix time
 
@@ -117,11 +116,11 @@ namespace emu { namespace daq { namespace writer {
     /// @param app name of application producing the data
     /// @param logger logger
     ///
-    RawDataFile(const unsigned int maxFileSize, 
+    RawDataFile(const uint32_t maxFileSize, 
 		const string pathToFile, 
 		const string host, 
 		const string appName, 
-		const unsigned int appInstance, 
+		const uint32_t appInstance, 
 		const string appVersion, 
 		const log4cplus::Logger* logger);
 
@@ -175,13 +174,13 @@ namespace emu { namespace daq { namespace writer {
 
     /// @return run number
     ///
-    unsigned int getRunNumber(){ return runNumber_; }
+    uint32_t getRunNumber(){ return runNumber_; }
 
     /// accessor of number of events written in this run
 
     /// @return number of events written in this run
     ///
-    unsigned int getNumberOfEventsWritten(){ return eventsInRunCounter_; }
+    uint64_t getNumberOfEventsWritten(){ return eventsInRunCounter_; }
   };
 
 }}} // namespace emu::daq::writer

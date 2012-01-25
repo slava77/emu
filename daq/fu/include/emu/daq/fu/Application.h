@@ -1,6 +1,8 @@
 #ifndef __emu_daq_fu_Application_h__
 #define __emu_daq_fu_Application_h__
 
+#include <stdint.h>
+
 #include "i2o/i2oDdmLib.h"
 #include "i2o/utils/AddressMap.h"
 #include "toolbox/BSem.h"
@@ -12,7 +14,8 @@
 #include "xdata/Double.h"
 #include "xdata/InfoSpace.h"
 #include "xdata/String.h"
-#include "xdata/UnsignedLong.h"
+#include "xdata/UnsignedInteger32.h"
+#include "xdata/UnsignedInteger64.h"
 #include "xdata/Vector.h"
 
 #include "toolbox/task/Action.h"
@@ -60,26 +63,26 @@ private:
   toolbox::task::WorkLoopFactory *workLoopFactory_;
   bool serverLoopAction(toolbox::task::WorkLoop *wl);
 
-  int runStartUTC_; /// Unix UTC run start time 
+  uint32_t runStartUTC_; /// Unix UTC run start time 
 
-  static const unsigned int maxClients_ = 5; // max possible number of clients
+  static const size_t maxClients_ = 5; // max possible number of clients
 
   xdata::Vector<xdata::String>       clientName_;
-  xdata::Vector<xdata::UnsignedLong> clientInstance_;
+  xdata::Vector<xdata::UnsignedInteger32> clientInstance_;
   xdata::Vector<xdata::Boolean>      clientPersists_; // whether its server needs to be (re)created on config
   xdata::Vector<xdata::String>       clientProtocol_;
-  xdata::Vector<xdata::UnsignedLong> clientPoolSize_;
-  xdata::Vector<xdata::UnsignedLong> prescaling_;
+  xdata::Vector<xdata::UnsignedInteger64> clientPoolSize_;
+  xdata::Vector<xdata::UnsignedInteger64> prescaling_;
   xdata::Vector<xdata::Boolean>      onRequest_;
-  xdata::Vector<xdata::UnsignedLong> creditsHeld_;
+  xdata::Vector<xdata::UnsignedInteger64> creditsHeld_;
   struct Client {
     xdata::String                  *name;
-    xdata::UnsignedLong            *instance;
+    xdata::UnsignedInteger32       *instance;
     xdata::Boolean                 *persists;
-    xdata::UnsignedLong            *poolSize;
-    xdata::UnsignedLong            *prescaling;
+    xdata::UnsignedInteger64       *poolSize;
+    xdata::UnsignedInteger64       *prescaling;
     xdata::Boolean                 *onRequest;
-    xdata::UnsignedLong            *creditsHeld;
+    xdata::UnsignedInteger64       *creditsHeld;
     emu::daq::server::Base         *server;
     toolbox::task::WorkLoop        *workLoop;
     string                          workLoopName;
@@ -97,13 +100,13 @@ private:
 	    string                          wln="",
 	    bool                            wls=false,
 	    toolbox::task::ActionSignature* wla=NULL   ){
-      name                    = dynamic_cast<xdata::String*>      ( n );
-      instance                = dynamic_cast<xdata::UnsignedLong*>( i );
-      persists                = dynamic_cast<xdata::Boolean*>     ( e );
-      poolSize                = dynamic_cast<xdata::UnsignedLong*>( s );
-      prescaling              = dynamic_cast<xdata::UnsignedLong*>( p );
-      onRequest               = dynamic_cast<xdata::Boolean*>     ( r );
-      creditsHeld             = dynamic_cast<xdata::UnsignedLong*>( c );
+      name                    = dynamic_cast<xdata::String*>           ( n );
+      instance                = dynamic_cast<xdata::UnsignedInteger32*>( i );
+      persists                = dynamic_cast<xdata::Boolean*>          ( e );
+      poolSize                = dynamic_cast<xdata::UnsignedInteger64*>( s );
+      prescaling              = dynamic_cast<xdata::UnsignedInteger64*>( p );
+      onRequest               = dynamic_cast<xdata::Boolean*>          ( r );
+      creditsHeld             = dynamic_cast<xdata::UnsignedInteger64*>( c );
       server                  = S;
       workLoop                = wl;
       workLoopName            = wln;
@@ -115,18 +118,18 @@ private:
 
   void createServers();
   void destroyServers();
-  bool createI2OServer( string clientName, unsigned int clientInstance );
-  bool createSOAPServer( string clientName, unsigned int clientInstance, bool persistent=true );
+  bool createI2OServer( string clientName, uint32_t clientInstance );
+  bool createSOAPServer( string clientName, uint32_t clientInstance, bool persistent=true );
   void onI2OClientCreditMsg(toolbox::mem::Reference *bufRef);
   xoap::MessageReference onSOAPClientCreditMsg( xoap::MessageReference msg )
     throw (xoap::exception::Exception);
   xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg );
-  void addDataForClients(const int   runNumber, 
-			 const int   runStartUTC,
-			 const int   nEventsRead,
+  void addDataForClients(const uint32_t runNumber, 
+			 const uint32_t runStartUTC,
+			 const uint64_t nEventsRead,
 			 const emu::daq::server::PositionInEvent_t position, 
 			 char* const data, 
-			 const int   dataLength );
+			 const size_t dataLength );
   void moveToFailedState();
   emu::daq::writer::RawDataFile *fileWriter_;
   void printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader=false );
@@ -173,17 +176,6 @@ private:
     Logger logger_;
 
     /**
-     * The name of the info space that contains exported parameters used for
-     * monitoring.
-     */
-    string monitoringInfoSpaceName_;
-
-    /**
-     * Info space that contains exported parameters used for monitoring.
-     */
-    xdata::InfoSpace *monitoringInfoSpace_;
-
-    /**
      * The finite state machine of the application.
      */
     toolbox::fsm::FiniteStateMachine fsm_;
@@ -226,7 +218,7 @@ private:
     /**
      * The instance number of the application.
      */
-    unsigned long instance_;
+    uint32_t instance_;
 
     /**
      * The application's URN.
@@ -281,27 +273,27 @@ private:
 
 
     xdata::String       pathToDataOutFile_;   ///< the path to the file to write the data into (no file written if "")
-    xdata::UnsignedLong fileSizeInMegaBytes_; ///< when the file size exceeds this, no more events will be written to it (no file written if <=0)
-    xdata::UnsignedLong runNumber_;           ///< run number to be obtained from EmuTA
+    xdata::UnsignedInteger64 fileSizeInMegaBytes_; ///< when the file size exceeds this, no more events will be written to it (no file written if <=0)
+    xdata::UnsignedInteger32 runNumber_;           ///< run number to be obtained from EmuTA
     xdata::Boolean      isBookedRunNumber_;   ///< whether or not this run number was booked in the database, to be obtained from EmuTA
     xdata::String       runStartTime_;        ///< run start time to be included in the file name, to be obtained from EmuTA
     xdata::String       runStopTime_;         ///< run stop time to be included in the metafile, to be obtained from EmuTA
     xdata::String       runType_;             ///< run type to be included in the file name
 
-    xdata::UnsignedLong CSCConfigId_;         ///< unique id of CSC configuration obtained from CSC Function Manager
-    xdata::UnsignedLong TFConfigId_;          ///< unique id of Track Finder configuration obtained from TF Function Manager
+    xdata::UnsignedInteger32 CSCConfigId_;         ///< unique id of CSC configuration obtained from CSC Function Manager
+    xdata::UnsignedInteger32 TFConfigId_;          ///< unique id of Track Finder configuration obtained from TF Function Manager
 
     /**
      * Exported read/write parameter - The instance number of BU that the FU
      * will request events from.
      */
-    xdata::UnsignedLong buInstNb_;
+    xdata::UnsignedInteger64 buInstNb_;
 
     /**
      * Exported read/write parameter - Number of requests the FU should keep
      * outstanding between itself and the BU servicing its requests.
      */
-    xdata::UnsignedLong nbOutstandingRqsts_;
+    xdata::UnsignedInteger32 nbOutstandingRqsts_;
 
     /**
      * Exported read-only parameter specifying whether or not the FU should
@@ -317,7 +309,7 @@ private:
      * FU should sleep when simulating the time taken by a real FU to process
      * an event.
      */
-    xdata::UnsignedLong sleepIntervalUsec_;
+    xdata::UnsignedInteger32 sleepIntervalUsec_;
 
     /**
      * Exported read/write parameter specifying the number of events before the
@@ -328,7 +320,7 @@ private:
      * ability to tolerate a FU crashing.  A FU is configured to call exit when
      * it is to emulate a crash.
      */
-    xdata::UnsignedLong nbEventsBeforeExit_;
+    xdata::UnsignedInteger32 nbEventsBeforeExit_;
 
     /////////////////////////////////////////////////////////////
     // End of exported parameters used for configuration       //
@@ -350,7 +342,7 @@ private:
      * processed since it was last
      * configured.
      */
-    xdata::UnsignedLong nbEventsProcessed_;
+    xdata::UnsignedInteger64 nbEventsProcessed_;
 
     //////////////////////////////////////////////////////////
     // End of exported parameters used for monitoring       //
@@ -370,7 +362,7 @@ private:
     /**
      * Current block number of the super-fragment under construction.
      */
-    unsigned int blockNb_;
+    uint32_t blockNb_;
 
     /**
      * True if a fault has been detected in the event data.
@@ -399,7 +391,7 @@ private:
     string generateMonitoringInfoSpaceName
     (
         const string        appClass,
-        const unsigned long appInstance
+        const uint32_t      appInstance
     );
 
     /**
@@ -536,7 +528,7 @@ private:
     /**
      * Creates and then sends an I2O_BU_ALLOCATE_MESSAGE_FRAME to the BU.
      */
-    void allocateNEvents(const int n)
+    void allocateNEvents(const uint32_t n)
     throw (emu::daq::fu::exception::Exception);
 
     /**
@@ -549,7 +541,7 @@ private:
         toolbox::mem::Pool              *pool,
         const I2O_TID                   taTid,
         const I2O_TID                   buTid,
-        const int                       nbEvents
+        const uint32_t                  nbEvents
     )
     throw (emu::daq::fu::exception::Exception);
 
@@ -577,7 +569,7 @@ private:
      * Returns the name of the memory pool used for creating FU to BU I2O
      * control messages.
      */
-    string createI2oPoolName(const unsigned long emuFUInstance);
+    string createI2oPoolName(const uint32_t emuFUInstance);
 
     /**
      * Returns a "HeapAllocator" memory pool with the specified name.

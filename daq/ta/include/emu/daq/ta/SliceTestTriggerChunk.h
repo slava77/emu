@@ -1,31 +1,33 @@
 #ifndef _emu_daq_ta_SliceTestTriggerChunk_h_
 #define _emu_daq_ta_SliceTestTriggerChunk_h_
 
+#include <stdint.h>
+
 namespace emu { namespace daq { namespace ta {
 
 // copied from hcal/consumer/include/SliceTestTriggerChunk.hh
 struct SliceTestTriggerChunk {
-  unsigned int h1a; // CDF
-  unsigned int h1b; // HEADER
-  unsigned int h2a; // WORDS 
-  unsigned int h2b; //
-  unsigned int triggerWord;
-  unsigned int triggerNumber;
-  unsigned int triggerTime_usec;
-  unsigned int triggerTime_base;
-  unsigned int spillNumber;
-  unsigned int runNumber;
+  int32_t  h1a; // CDF
+  int32_t  h1b; // HEADER
+  int32_t  h2a; // WORDS 
+  int32_t  h2b; //
+  int32_t  triggerWord;
+  int32_t  triggerNumber;
+  int32_t  triggerTime_usec;
+  int32_t  triggerTime_base;
+  int32_t  spillNumber;
+  int32_t  runNumber;
   char runNumberSequenceId[16];
-  unsigned int orbitNumber;
-  unsigned int bunchNumber;
-  unsigned int eventStatus; 
-  unsigned int filler1;
-  unsigned int t1a;   // CDF TRAILER
-  unsigned int t2a;   // WORD
+  int32_t  orbitNumber;
+  int32_t  bunchNumber;
+  int32_t  eventStatus; 
+  int32_t  filler1;
+  int32_t  t1a;   // CDF TRAILER
+  int32_t  t2a;   // WORD
 };
 
-static const unsigned int SliceTestTriggerChunk_SourceId = 1;
-static const unsigned int SliceTestTriggerChunk_endOfRun = 0x0002;
+static const int32_t  SliceTestTriggerChunk_SourceId = 1;
+static const int32_t  SliceTestTriggerChunk_endOfRun = 0x0002;
 
 }}} // namespace emu::daq::ta
 

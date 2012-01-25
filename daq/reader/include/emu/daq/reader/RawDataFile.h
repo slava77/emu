@@ -1,6 +1,8 @@
 #ifndef __EMU_DAQ_READER_RAWDATAFILE_H__
 #define __EMU_DAQ_READER_RAWDATAFILE_H__
 
+#include <stdint.h>
+
 #include "emu/daq/reader/Base.h"
 
 namespace emu { namespace daq { namespace reader {
@@ -44,7 +46,7 @@ namespace emu { namespace daq { namespace reader {
     ///
     /// @return number of bytes read
     ///
-    int             readDDU( unsigned short*& buf );
+    int             readDDU( uint16_t*& buf );
 
     /// Reads DCC data (<b>not implemented</b>).
 
@@ -52,7 +54,7 @@ namespace emu { namespace daq { namespace reader {
     ///
     /// @return number of bytes read
     ///
-    int             readDCC( unsigned short*& buf );
+    int             readDCC( uint16_t*& buf );
 
     /// Reads from file.
 
@@ -60,16 +62,16 @@ namespace emu { namespace daq { namespace reader {
     ///
     /// @return number of bytes read
     ///
-    int 		  read( unsigned short* &buf);
+    int 		  read( uint16_t* &buf);
 
     //KK
   private:
-    unsigned short raw_event[200000]; ///< buffer
+    uint16_t raw_event[200000]; ///< buffer
 
-    unsigned long long word_0, word_1, word_2; ///< To remember some history
-    unsigned long long file_buffer[4000];      ///< Read data block for efficiency
+    uint64_t word_0, word_1, word_2; ///< To remember some history
+    uint64_t file_buffer[4000];      ///< Read data block for efficiency
 
-    unsigned long long *end, *file_buffer_end; ///< where it stopped last time and where its end is
+    uint64_t *end, *file_buffer_end; ///< where it stopped last time and where its end is
 
   public:
     /// error types

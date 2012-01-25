@@ -1,6 +1,8 @@
 #ifndef __emu_daq_ta_Application_h__
 #define __emu_daq_ta_Application_h__
 
+#include <stdint.h>
+
 #include "emu/daq/ta/TriggerGenerator.h"
 #include "emu/daq/ta/exception/Exception.h"
 #include "i2o/i2oDdmLib.h"
@@ -14,8 +16,9 @@
 #include "xdata/Double.h"
 #include "xdata/InfoSpace.h"
 #include "xdata/String.h"
-#include "xdata/UnsignedLong.h"
-#include "xdata/Integer.h"
+#include "xdata/UnsignedInteger32.h"
+#include "xdata/UnsignedInteger64.h"
+#include "xdata/Integer64.h"
 
 
 using namespace std;
@@ -72,17 +75,6 @@ private:
     Logger logger_;
 
     /**
-     * The name of the info space that contains exported parameters used for
-     * monitoring.
-     */
-    string monitoringInfoSpaceName_;
-
-    /**
-     * Info space that contains exported parameters used for monitoring.
-     */
-    xdata::InfoSpace *monitoringInfoSpace_;
-
-    /**
      * Binary semaphore used to protect the emu::daq::ta::Application from multithreaded access.
      */
     toolbox::BSem bSem_;
@@ -136,7 +128,7 @@ private:
     /**
      * The instance number of the application.
      */
-    unsigned long instance_;
+    uint32_t instance_;
 
     /**
      * The application's URN.
@@ -185,13 +177,13 @@ private:
      * Exported read/write parameter specifying the trigger source id that is
      * to be put into each dummy trigger.
      */
-    xdata::UnsignedLong triggerSourceId_;
+    xdata::UnsignedInteger32 triggerSourceId_;
 
     xdata::String       runStartTime_; ///< runs start time
     xdata::String       runStopTime_; ///< run stop time
-    xdata::UnsignedLong runNumber_; ///< run number
+    xdata::UnsignedInteger32 runNumber_; ///< run number
     xdata::Boolean      isBookedRunNumber_; ///< \c TRUE if run number is booked with run info database
-    xdata::Integer      maxNumTriggers_; ///< maximum number of triggers (-1 if unlimited)
+    xdata::Integer64    maxNumTriggers_; ///< maximum number of triggers (-1 if unlimited)
 
 
     ////////////////////////////////////////////////////////
@@ -217,12 +209,12 @@ private:
      * Exported read-only parameter specifying the number of trigger credits
      * currently held by the emu::daq::ta::Application.
      */
-    xdata::UnsignedLong nbCreditsHeld_;
+    xdata::UnsignedInteger64 nbCreditsHeld_;
 
     /**
      * Exported read-only parameter specifying the next trigger event number.
      */
-    xdata::UnsignedLong eventNumber_;
+    xdata::UnsignedInteger64 eventNumber_;
 
     //////////////////////////////////////////////////////////
     // End of exported parameters used for monitoring       //
@@ -252,7 +244,7 @@ private:
     string generateMonitoringInfoSpaceName
     (
         const string        appClass,
-        const unsigned long appInstance
+        const uint32_t      appInstance
     );
 
     /**
@@ -353,23 +345,23 @@ private:
     )
     throw (xgi::exception::Exception);
 
-  /// Serializes xdata scalar into std::string.
-    string serializableScalarToString(xdata::Serializable *s);
+  // /// Serializes xdata scalar into std::string.
+  //   string serializableScalarToString(xdata::Serializable *s);
 
-  /// Serializes xdata unsigned long into std::string.
-    string serializableUnsignedLongToString(xdata::Serializable *s);
+  // /// Serializes xdata unsigned long into std::string.
+  //   string serializableUnsignedLongToString(xdata::Serializable *s);
 
-  /// Serializes xdata integer into std::string.
-    string serializableIntegerToString(xdata::Serializable *s);
+  // /// Serializes xdata integer into std::string.
+  //   string serializableIntegerToString(xdata::Serializable *s);
 
-  /// Serializes xdata double into std::string.
-    string serializableDoubleToString(xdata::Serializable *s);
+  // /// Serializes xdata double into std::string.
+  //   string serializableDoubleToString(xdata::Serializable *s);
 
-  /// Serializes xdata string into std::string.
-    string serializableStringToString(xdata::Serializable *s);
+  // /// Serializes xdata string into std::string.
+  //   string serializableStringToString(xdata::Serializable *s);
 
-  /// Serializes xdata boolean into std::string.
-    string serializableBooleanToString(xdata::Serializable *s);
+  // /// Serializes xdata boolean into std::string.
+  //   string serializableBooleanToString(xdata::Serializable *s);
 
     /**
      * Processes the specified command for the finite state machine.
@@ -449,7 +441,7 @@ private:
     /**
      * Sends n triggers to the EVM.
      */
-    void sendNTriggers(const unsigned int n)
+    void sendNTriggers(const uint64_t n)
     throw (emu::daq::ta::exception::Exception);
 
     /**
@@ -478,10 +470,10 @@ private:
         xdaq::ApplicationDescriptor *destination
     );
 
-  unsigned int nEmuRUIs_;                  ///< The number of EmuRUIs. They should all vote for the first event number.
-  unsigned int nVotesForFirstEventNumber_; ///< Counts how many EmuRUIs have sent the L1A number of the first event it read out.
-  unsigned int biggestFirstEventNumber_;   ///< The biggest of the first event numbers reported by EmuRUIs.
-  unsigned int smallestFirstEventNumber_;  ///< The smallest of the first event numbers reported by EmuRUIs.
+  uint64_t nEmuRUIs_;                  ///< The number of EmuRUIs. They should all vote for the first event number.
+  uint64_t nVotesForFirstEventNumber_; ///< Counts how many EmuRUIs have sent the L1A number of the first event it read out.
+  uint64_t biggestFirstEventNumber_;   ///< The biggest of the first event numbers reported by EmuRUIs.
+  uint64_t smallestFirstEventNumber_;  ///< The smallest of the first event numbers reported by EmuRUIs.
 
   /// Callback on receiving I2O message with first read event number
 

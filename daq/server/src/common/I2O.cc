@@ -20,7 +20,7 @@ emu::daq::server::I2O::I2O( xdaq::Application                    *parentApp,
 			     creditsHeld,
 			     logger       ),
     i2oExceptionHandler_( i2oExceptionHandler ),
-    poolSize_           (  dynamic_cast<xdata::UnsignedLong*>( poolSize ) )
+    poolSize_           (  dynamic_cast<xdata::UnsignedInteger64*>( poolSize ) )
 {
   tid_ = i2o::utils::getAddressMap()->getTid(appDescriptor_);
   findClientTid();
@@ -76,12 +76,12 @@ void emu::daq::server::I2O::createCommittedHeapAllocatorMemoryPool()
         toolbox::net::URN urn("toolbox-mem-pool", poolName_);
         allocator_ = new toolbox::mem::CommittedHeapAllocator(poolSize_->value_);
         pool_ = poolFactory_->createPool(urn, allocator_);
-	pool_->setHighThreshold ( (unsigned long) (*poolSize_ * 0.7));
+	pool_->setHighThreshold ( (size_t) (*poolSize_ * 0.7));
 	LOG4CPLUS_INFO(logger_, 
 		       name_ << " server created " << 
 		       poolName_ << " of " << 
 		       *poolSize_ << " bytes. High threshold at " << 
-		       (unsigned long) (*poolSize_ * 0.7));
+		       (size_t) (*poolSize_ * 0.7));
     }
     catch (xcept::Exception e)
     {
@@ -100,9 +100,9 @@ void emu::daq::server::I2O::createCommittedHeapAllocatorMemoryPool()
 
 void emu::daq::server::I2O::addData( const int               runNumber, 
 				     const int               runStartUTC,
-				     const int               nEvents, 
+				     const uint64_t          nEvents, 
 				     const PositionInEvent_t position, 
-				     const unsigned short    errorFlag, 
+				     const uint16_t          errorFlag, 
 				     char*                   data, 
 				     const size_t            dataLength ){
     LOG4CPLUS_DEBUG(logger_, poolName_ << 
@@ -160,15 +160,14 @@ void emu::daq::server::I2O::createMessage( toolbox::mem::Reference *bufRef,
 					   const int               runNumber, 
 					   const int               runStartUTC,
 					   const PositionInEvent_t position, 
-					   const unsigned short    errorFlag, 
+					   const uint16_t          errorFlag, 
 					   char* const             data, 
 					   const size_t            dataLength )
   throw ( xcept::Exception )
 {
     bufRef = 0;
 
-    unsigned long dataBufSize = sizeof(I2O_EMU_DATA_MESSAGE_FRAME) 
-                                + dataLength;
+    size_t dataBufSize = sizeof(I2O_EMU_DATA_MESSAGE_FRAME) + dataLength;
 
     // Get a free block from the pool
     try
@@ -217,7 +216,7 @@ void emu::daq::server::I2O::fillBlock( toolbox::mem::Reference *bufRef,
 				       const int               runNumber, 
 				       const int               runStartUTC,
 				       const PositionInEvent_t position, 
-				       const unsigned short    errorFlag, 
+				       const uint16_t          errorFlag, 
 				       char* const             data, 
 				       const size_t            dataLength )
   throw ( xcept::Exception )
@@ -361,8 +360,8 @@ void emu::daq::server::I2O::sendMergedEventMessage(){
   // Find the data block that ends the event and combine the information up to that block:
   deque<pair<toolbox::mem::Reference*,emu::daq::server::PositionInEvent_t> >::iterator messagePastEventEnd = messageQueue_.begin();
   size_t totalDataSizeInBytes = 0;
-  unsigned short combinedErrorFlag = 0x0000;
-  unsigned short totalNumberOfPackets = 0;
+  uint16_t combinedErrorFlag = 0x0000;
+  uint16_t totalNumberOfPackets = 0;
   for ( deque<pair<toolbox::mem::Reference*,emu::daq::server::PositionInEvent_t> >::iterator msg = messageQueue_.begin(); msg != messageQueue_.end(); ++msg ){
     I2O_MESSAGE_FRAME*          stdMsgFrame = (I2O_MESSAGE_FRAME*)          msg->first->getDataLocation();
     I2O_EMU_DATA_MESSAGE_FRAME* emuMsgFrame = (I2O_EMU_DATA_MESSAGE_FRAME*) msg->first->getDataLocation();

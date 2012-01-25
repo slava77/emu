@@ -2,6 +2,7 @@
 #define __EMU_DAQ_READER_BASE_H__
 
 #include "emu/daq/reader/DDUHeader.h"
+#include <stdint.h>
 
 #include <iostream>
 #include <string>
@@ -22,9 +23,9 @@ protected:
   int             theFormat;     ///< DDU or DCC
   bool            theDebugMode;  ///< if \c TRUE , prints debug messages to stdout
   bool            theDeviceIsResetAndEnabled; ///< to know whether it is already reset and enabled
-  unsigned short  theErrorFlag;  ///< for DQM
+  uint16_t        theErrorFlag;  ///< for DQM
   std::string     theLogMessage; ///< in case anybody is interested...
-  unsigned short* theBuffer;     ///< buffer containing event data
+  uint16_t*       theBuffer;     ///< buffer containing event data
   int             theDataLength; ///< in bytes; size of the actual data, without filler words
   int             theNumberOfReadBytes; ///< what we read in; may contain data and filler words as well!
 
@@ -82,7 +83,7 @@ public:
   std::string  getName()         { return theName;           }
 
   /// accessor of the error flag
-  unsigned short getErrorFlag()  { return theErrorFlag;      }
+  uint16_t getErrorFlag()  { return theErrorFlag;      }
 
   /// accessor of the log message
   std::string  getLogMessage()   { return theLogMessage;     }
@@ -90,9 +91,9 @@ public:
   /// not documented here
   virtual void resetAndEnable()=0;
   /// not documented here
-  virtual int  readDDU( unsigned short*& buf )=0;
+  virtual int  readDDU( uint16_t*& buf )=0;
   /// not documented here
-  virtual int  readDCC( unsigned short*& buf )=0;
+  virtual int  readDCC( uint16_t*& buf )=0;
 };
 
 }}} // namespace emu::daq::reader

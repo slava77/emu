@@ -26,11 +26,10 @@ namespace emu { namespace daq { namespace manager {
     emu::daq::manager::AppStates& operator=( const map<xdaq::ApplicationDescriptor*, string>& appStates );
     map<xdaq::ApplicationDescriptor*, string> getAppStates() const { return appStates_; }
     time_t getUnixTimeOfUpdate() const { return timeOfUpdate_; }
-    string getTimeOfUpdate() const;
     set<xdaq::ApplicationDescriptor*> getApps() const;
     set<xdaq::ApplicationDescriptor*> getAppsInState( const string& state ) const;
-    string getCombinedState() const;
     time_t getAgeInSeconds() const;
+    string getCombinedState() const;
     bool isEmpty() const; /// Empty if it contains no apps or any app it contains has no state assigned to it.
     void clear();
     
@@ -44,12 +43,15 @@ namespace emu { namespace daq { namespace manager {
     }
     
   private:
+    string getTimeOfUpdate() const; /// Not thread safe. Only invoke it from within thread-safe methods.
+    time_t getAgeInSec() const; /// Not thread safe. Only invoke it from within thread-safe methods.
+
     mutable toolbox::BSem bSem_; // exempt from constness
     time_t timeOfUpdate_;
     map<xdaq::ApplicationDescriptor*, string> appStates_;
   };
 
-  ostream& operator<<( ostream& os,  emu::daq::manager::AppStates& as );
+  ostream& operator<<( ostream& os, emu::daq::manager::AppStates& as );
 
 }}} // namespace emu::daq::manager
 

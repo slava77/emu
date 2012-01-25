@@ -40,25 +40,25 @@ emu::daq::fu::EmuEventHeaderTrailer::EmuEventHeaderTrailer( bool calibration, bo
   if ( TFPresent ) header_[1] |= 0x0080;
 }
 
-void emu::daq::fu::EmuEventHeaderTrailer::setL1ACounter( unsigned int L1ACounter ){
-  header_[2]  = (unsigned short) ( 0x0000FFFF &   L1ACounter         );
+void emu::daq::fu::EmuEventHeaderTrailer::setL1ACounter( uint32_t L1ACounter ){
+  header_[2]  = (uint16_t) ( 0x0000FFFF &   L1ACounter         );
   header_[3] &= 0xFF00; // zero L1ACounter part, keeping the rest
-  header_[3] |= (unsigned short) ( 0x000000FF & ( L1ACounter >> 16 ) );
+  header_[3] |= (uint16_t) ( 0x000000FF & ( L1ACounter >> 16 ) );
 }
 
-void emu::daq::fu::EmuEventHeaderTrailer::setDDUCount( unsigned short DDUCount ){
+void emu::daq::fu::EmuEventHeaderTrailer::setDDUCount( uint16_t DDUCount ){
   header_[1] &= 0xFF80; // zero DDU count part
   header_[1] |= 0x007F & DDUCount;
 }
 
-void emu::daq::fu::EmuEventHeaderTrailer::setCSCConfigId( unsigned int CSCConfigId ){
-  trailer_[0] = (unsigned short) ( 0x0000FFFF &   CSCConfigId         );
-  trailer_[1] = (unsigned short) ( 0x0000FFFF & ( CSCConfigId >> 16 ) );
+void emu::daq::fu::EmuEventHeaderTrailer::setCSCConfigId( uint32_t CSCConfigId ){
+  trailer_[0] = (uint16_t) ( 0x0000FFFF &   CSCConfigId         );
+  trailer_[1] = (uint16_t) ( 0x0000FFFF & ( CSCConfigId >> 16 ) );
 }
 
-void emu::daq::fu::EmuEventHeaderTrailer::setTFConfigId( unsigned int TFConfigId ){
+void emu::daq::fu::EmuEventHeaderTrailer::setTFConfigId( uint32_t TFConfigId ){
   trailer_[4] &= 0x000F; // zero non-fixed part
-  trailer_[4] |= (unsigned short) ( 0x0000FFF0 & ( TFConfigId <<  4 ) );
-  trailer_[5]  = (unsigned short) ( 0x0000FFFF & ( TFConfigId >> 12 ) );
-  trailer_[6]  = (unsigned short) ( 0x0000FFFF & ( TFConfigId >> 28 ) );
+  trailer_[4] |= (uint16_t) ( 0x0000FFF0 & ( TFConfigId <<  4 ) );
+  trailer_[5]  = (uint16_t) ( 0x0000FFFF & ( TFConfigId >> 12 ) );
+  trailer_[6]  = (uint16_t) ( 0x0000FFFF & ( TFConfigId >> 28 ) );
 }

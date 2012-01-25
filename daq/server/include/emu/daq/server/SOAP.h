@@ -104,9 +104,9 @@ public:
   ///
   void   addData( const int               runNumber,
 		  const int               runStartUTC,
-		  const int               nEvents, 
+		  const uint64_t          nEvents, 
 		  const PositionInEvent_t position, 
-		  const unsigned short    errorFlag, 
+		  const uint16_t          errorFlag, 
 		  char*                   data, 
 		  const size_t            dataLength );
 
@@ -115,7 +115,7 @@ public:
     throw ( xcept::Exception );
 
   /// dummy in SOAP client
-  unsigned long getClientTid(){ return( (unsigned long)0 ); }
+  I2O_TID getClientTid(){ return( (I2O_TID)0 ); }
 
   /// Marks the last block as last of event.
   void makeLastBlockEndEvent();

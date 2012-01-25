@@ -1,11 +1,13 @@
 #ifndef __emu_daq_rui_BadEventCount_h__
 #define __emu_daq_rui_BadEventCount_h__
 
-#include "xdata/UnsignedLong.h"
+#include <stdint.h>
+
+#include "xdata/UnsignedInteger64.h"
 
 namespace emu { namespace daq { namespace rui {
 
-      class BadEventCount : public xdata::UnsignedLong{
+      class BadEventCount : public xdata::UnsignedInteger64{
 
       public:
 	/// 
@@ -14,7 +16,7 @@ namespace emu { namespace daq { namespace rui {
 	///
 	/// @return 
 	///
-	BadEventCount( const unsigned long i = 0 ) : xdata::UnsignedLong( i ){}
+	BadEventCount( const uint64_t i = 0 ) : xdata::UnsignedInteger64( i ){}
 	/// 
 	/// Progressive prescaler used to prevent writing too many bad events to file and filling up the disk.
 	///

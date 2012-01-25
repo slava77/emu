@@ -9,7 +9,7 @@ emu::daq::rui::STEPEventCounter::STEPEventCounter(){
   reset();
 }
 
-void emu::daq::rui::STEPEventCounter::initialize( const unsigned int requestedEvents, char* const DDUHeader ){
+void emu::daq::rui::STEPEventCounter::initialize( const uint64_t requestedEvents, char* const DDUHeader ){
   // Sets number of requested events, live DDU inputs and zeros all counters.
   requestedEvents_ = requestedEvents;
   neededEvents_ = 0;
@@ -69,22 +69,22 @@ bool emu::daq::rui::STEPEventCounter::isNeededEvent( char* const DDUHeader ){
   return isNeeded;
 }
 
-unsigned int emu::daq::rui::STEPEventCounter::getLowestCount() const {
+uint64_t emu::daq::rui::STEPEventCounter::getLowestCount() const {
   if ( isInitialized_ ){
-    unsigned int lowestCount = 0x7fffffff; // When cast to int, this should still be positive.
+    uint64_t lowestCount = 0x7fffffffffffffff; // When cast to int, this should still be positive.
     bool allExcluded = true;
     for ( int i=0; i<maxDDUInputs_; ++i ){
       allExcluded &= ( !isLiveInput_[i] || isMaskedInput_[i]);
       if ( isLiveInput_[i] && ! isMaskedInput_[i] )
 	if ( count_[i] < lowestCount ) lowestCount = count_[i];
     }
-    if ( allExcluded ) return 0x7fffffff; // When cast to int, this should still be positive.
+    if ( allExcluded ) return 0x7fffffffffffffff; // When cast to int, this should still be positive.
     return lowestCount;
   }
   return 0;
 }
 
-unsigned int emu::daq::rui::STEPEventCounter::getCount( const int dduInputIndex ) const {
+uint64_t emu::daq::rui::STEPEventCounter::getCount( const int dduInputIndex ) const {
   if ( 0 <= dduInputIndex && dduInputIndex < maxDDUInputs_ ) return count_[dduInputIndex];
   return 0;
 }

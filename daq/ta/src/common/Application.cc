@@ -83,20 +83,9 @@ bSem_(toolbox::BSem::FULL)
     stdConfigParams_  = initAndGetStdConfigParams();
     stdMonitorParams_ = initAndGetStdMonitorParams();
 
-    // Create info space for monitoring
-    monitoringInfoSpaceName_ = generateMonitoringInfoSpaceName(xmlClass_, instance_);
-    if ( xdata::getInfoSpaceFactory()->hasItem(monitoringInfoSpaceName_) )
-      monitoringInfoSpace_ = xdata::getInfoSpaceFactory()->get(monitoringInfoSpaceName_);
-    else
-      monitoringInfoSpace_ = xdata::getInfoSpaceFactory()->create(monitoringInfoSpaceName_);
-
     // Fill the application's default info space
     putParamsIntoInfoSpace(stdConfigParams_ , appInfoSpace_);
     putParamsIntoInfoSpace(stdMonitorParams_, appInfoSpace_);
-
-    // Fill the application's monitorable info space
-    putParamsIntoInfoSpace(stdMonitorParams_, monitoringInfoSpace_);
-
     
     bindFsmSoapCallbacks();
     bindI2oCallbacks();
@@ -116,7 +105,7 @@ string emu::daq::ta::Application::generateLoggerName()
 {
     xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
     string                      appClass       = appDescriptor->getClassName();
-    unsigned long               appInstance    = appDescriptor->getInstance();
+    uint32_t                    appInstance    = appDescriptor->getInstance();
     stringstream                oss;
     string                      loggerName;
 
@@ -247,22 +236,6 @@ throw (emu::daq::ta::exception::Exception)
         XCEPT_RETHROW(emu::daq::ta::exception::Exception,
             "Failed to reset FSM", e);
     }
-}
-
-
-string emu::daq::ta::Application::generateMonitoringInfoSpaceName
-(
-    const string        appClass,
-    const unsigned long appInstance
-)
-{
-    stringstream oss;
-    string       name;
-
-    oss << "urn:xdaq-monitorable:" << appClass << ":" << appInstance;
-    name = oss.str();
-
-    return name;
 }
 
 
@@ -701,7 +674,7 @@ throw (xgi::exception::Exception)
 
         // Value
         *out << "    <td>"                                             << endl;
-        *out << "      " << serializableScalarToString(pos->second)    << endl;
+        *out << "      " << pos->second->toString()                    << endl;
         *out << "    </td>"                                            << endl;
 
         *out << "  </tr>"                                              << endl;
@@ -711,62 +684,62 @@ throw (xgi::exception::Exception)
 }
 
 
-string emu::daq::ta::Application::serializableScalarToString(xdata::Serializable *s)
-{
-    if(s->type() == "unsigned long") return serializableUnsignedLongToString(s);
-    if(s->type() == "int"          ) return serializableIntegerToString(s);
-    if(s->type() == "double"       ) return serializableDoubleToString(s);
-    if(s->type() == "string"       ) return serializableStringToString(s);
-    if(s->type() == "bool"         ) return serializableBooleanToString(s);
+// string emu::daq::ta::Application::serializableScalarToString(xdata::Serializable *s)
+// {
+//     if(s->type() == "unsigned long") return serializableUnsignedLongToString(s);
+//     if(s->type() == "int"          ) return serializableIntegerToString(s);
+//     if(s->type() == "double"       ) return serializableDoubleToString(s);
+//     if(s->type() == "string"       ) return serializableStringToString(s);
+//     if(s->type() == "bool"         ) return serializableBooleanToString(s);
 
-    return "Unsupported type";
-}
-
-
-string emu::daq::ta::Application::serializableUnsignedLongToString(xdata::Serializable *s)
-{
-    xdata::UnsignedLong *v = dynamic_cast<xdata::UnsignedLong*>(s);
-
-    return v->toString();
-}
-
-string emu::daq::ta::Application::serializableIntegerToString(xdata::Serializable *s)
-{
-    xdata::Integer *v = dynamic_cast<xdata::Integer*>(s);
-
-    return v->toString();
-}
+//     return "Unsupported type";
+// }
 
 
-string emu::daq::ta::Application::serializableDoubleToString(xdata::Serializable *s)
-{
-    xdata::Double *v = dynamic_cast<xdata::Double*>(s);
+// string emu::daq::ta::Application::serializableUnsignedLongToString(xdata::Serializable *s)
+// {
+//     xdata::UnsignedLong *v = dynamic_cast<xdata::UnsignedLong*>(s);
 
-    return v->toString();
-}
+//     return v->toString();
+// }
 
+// string emu::daq::ta::Application::serializableIntegerToString(xdata::Serializable *s)
+// {
+//     xdata::Integer *v = dynamic_cast<xdata::Integer*>(s);
 
-string emu::daq::ta::Application::serializableStringToString(xdata::Serializable *s)
-{
-    xdata::String *v  = dynamic_cast<xdata::String*>(s);
-    string        str = v->toString();
-
-
-    if(str == "")
-    {
-        str = "\"\"";
-    }
-
-    return str;
-}
+//     return v->toString();
+// }
 
 
-string emu::daq::ta::Application::serializableBooleanToString(xdata::Serializable *s)
-{
-    xdata::Boolean *v = dynamic_cast<xdata::Boolean*>(s);
+// string emu::daq::ta::Application::serializableDoubleToString(xdata::Serializable *s)
+// {
+//     xdata::Double *v = dynamic_cast<xdata::Double*>(s);
 
-    return v->toString();
-}
+//     return v->toString();
+// }
+
+
+// string emu::daq::ta::Application::serializableStringToString(xdata::Serializable *s)
+// {
+//     xdata::String *v  = dynamic_cast<xdata::String*>(s);
+//     string        str = v->toString();
+
+
+//     if(str == "")
+//     {
+//         str = "\"\"";
+//     }
+
+//     return str;
+// }
+
+
+// string emu::daq::ta::Application::serializableBooleanToString(xdata::Serializable *s)
+// {
+//     xdata::Boolean *v = dynamic_cast<xdata::Boolean*>(s);
+
+//     return v->toString();
+// }
 
 
 void emu::daq::ta::Application::processFsmCommand(const string cmdName)
@@ -797,18 +770,18 @@ throw (emu::daq::ta::exception::Exception)
 
 string emu::daq::ta::Application::getDateTime(){
   time_t t;
-  struct tm *tm;
+  struct tm tm;
 
   time ( &t );
-  tm = gmtime ( &t ); // Unversal Coordinated Time
+  gmtime_r( &t, &tm ); // Unversal Coordinated Time (reentrant version for thread safety)
 
   stringstream ss;
-  ss << setfill('0') << setw(2) << tm->tm_year%100
-     << setfill('0') << setw(2) << tm->tm_mon+1
-     << setfill('0') << setw(2) << tm->tm_mday      << "_"
-     << setfill('0') << setw(2) << tm->tm_hour
-     << setfill('0') << setw(2) << tm->tm_min
-     << setfill('0') << setw(2) << tm->tm_sec       << "_UTC";
+  ss << setfill('0') << setw(2) << tm.tm_year%100
+     << setfill('0') << setw(2) << tm.tm_mon+1
+     << setfill('0') << setw(2) << tm.tm_mday      << "_"
+     << setfill('0') << setw(2) << tm.tm_hour
+     << setfill('0') << setw(2) << tm.tm_min
+     << setfill('0') << setw(2) << tm.tm_sec       << "_UTC";
 
   return ss.str();
 }
@@ -1061,21 +1034,21 @@ throw (toolbox::fsm::exception::Exception)
     }
 }
 
-void emu::daq::ta::Application::sendNTriggers(const unsigned int n)
+void emu::daq::ta::Application::sendNTriggers(const uint64_t n)
 throw (emu::daq::ta::exception::Exception)
 {
     toolbox::mem::Reference *bufRef = 0;
-    unsigned int            i       = 0;
+    uint64_t                i       = 0;
 
 
     for(i=0; 
 	i<n && ( maxNumTriggers_.value_ < 0 || 
-		 eventNumber_.value_    < biggestFirstEventNumber_ + (unsigned long)(maxNumTriggers_.value_) ); 
+		 eventNumber_.value_    < biggestFirstEventNumber_ + maxNumTriggers_.value_ ); 
 	i++)
     {
       // In the builder the trigger number must match the data event number. As the latter wraps around 2^24,
       // so too must the trigger number:
-      unsigned int eventNumber = eventNumber_.value_ % 0x1000000;
+       uint64_t eventNumber = eventNumber_.value_ % 0x1000000;
         bufRef = triggerGenerator_.generate
         (
             poolFactory_,            // poolFactory
@@ -1146,12 +1119,12 @@ void emu::daq::ta::Application::printBlock( toolbox::mem::Reference *bufRef, boo
     }
   char         *startOfPayload = (char*) bufRef->getDataLocation() 
     + sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
-  unsigned long  sizeOfPayload =         bufRef->getDataSize()
+  size_t  sizeOfPayload =         bufRef->getDataSize()
     - sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
-  unsigned short * shorts = reinterpret_cast<unsigned short *>(startOfPayload);
-  int nshorts = sizeOfPayload / sizeof(unsigned short);
+  uint16_t* shorts = reinterpret_cast<uint16_t *>(startOfPayload);
+  size_t nshorts = sizeOfPayload / sizeof(uint16_t);
   std::cout<<std::hex;
-  for(int i = 0; i < nshorts; i+=4)
+  for(size_t i = 0; i < nshorts; i+=4)
     {
       std::cout << "      ";
       std::cout.width(4); std::cout.fill('0');    
@@ -1242,7 +1215,7 @@ void emu::daq::ta::Application::firstEventNumberMsg(toolbox::mem::Reference *buf
 
     I2O_TID tid;
     string name;
-    int instance;
+    uint32_t instance;
 
     bSem_.take();
 
@@ -1389,7 +1362,7 @@ throw (emu::daq::ta::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
     set< xdaq::ApplicationDescriptor* > descriptors;
-    int nbApps = 0;
+    set< xdaq::ApplicationDescriptor* >::size_type nbApps = 0;
 
     try
     {
@@ -1409,7 +1382,7 @@ throw (emu::daq::ta::exception::Exception)
     // Fill application descriptors in instance order allowing non-contiguous numbering
     while( !descriptors.empty() ){
       // Find app with smallest instance number
-      unsigned int minInstance = 99999;
+      uint32_t minInstance = 99999;
       set< xdaq::ApplicationDescriptor* >::iterator adOfSmallest;
       set< xdaq::ApplicationDescriptor* >::iterator ad;
       for ( ad=descriptors.begin(); ad!=descriptors.end(); ++ad )
