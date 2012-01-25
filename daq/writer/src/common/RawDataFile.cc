@@ -99,14 +99,6 @@ void emu::daq::writer::RawDataFile::writeMetaFile(){
   fs_->close();
 }
 
-string emu::daq::writer::RawDataFile::toString( unsigned int i ){
-  /// Converts an unsigned integer to std:string
-  ostringstream oss;
-  oss << i;
-  return oss.str();
-}
-
-
 time_t emu::daq::writer::RawDataFile::toUnixTime( const std::string YYMMDD_hhmmss_UTC ){
   /// Converts time given as string to Unix time
   if ( YYMMDD_hhmmss_UTC.size() < 17 ) return time_t(0);
@@ -137,11 +129,11 @@ std::string emu::daq::writer::RawDataFile::nameStream(){
   else return streamName+string("20")+runStartTime_.substr(0,2);
 }
 
-emu::daq::writer::RawDataFile::RawDataFile(const unsigned int maxFileSize, 
+emu::daq::writer::RawDataFile::RawDataFile(const uint32_t maxFileSize, 
 					   const string pathToFile, 
 					   const string host, 
 					   const string appName, 
-					   const unsigned int appInstance, 
+					   const uint32_t appInstance, 
 					   const string appVersion, 
 					   const log4cplus::Logger* logger)
   :maxFileSize_         (maxFileSize)

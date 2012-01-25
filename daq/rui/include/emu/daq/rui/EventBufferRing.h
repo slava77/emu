@@ -26,6 +26,8 @@ namespace emu { namespace daq { namespace rui {
 	Ring<emu::daq::rui::EventBuffer*>::iterator current_; ///< Points to the event buffer that's currently being filled
       };
 
+      ostream& operator<<( ostream& os, emu::daq::rui::EventBufferRing& ebr );
+
 }}} // namespace emu::daq::rui
 
 #endif

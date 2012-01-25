@@ -12,9 +12,9 @@ emu::daq::server::Base::Base( xdaq::Application                    *parentApp,
   :parentApp_                    (  parentApp ),
    clientName_                   (  clientName ),
    clientInstance_               (  clientInstance ),
-   prescaling_                   (  dynamic_cast<xdata::UnsignedLong*>( prescaling  ) ),
-   sendDataOnRequestOnly_        (  dynamic_cast<xdata::Boolean*>     ( onRequest   ) ),
-   nEventCreditsHeld_            (  dynamic_cast<xdata::UnsignedLong*>( creditsHeld ) ),
+   prescaling_                   (  dynamic_cast<xdata::UnsignedInteger64*>( prescaling  ) ),
+   sendDataOnRequestOnly_        (  dynamic_cast<xdata::Boolean*>          ( onRequest   ) ),
+   nEventCreditsHeld_            (  dynamic_cast<xdata::UnsignedInteger64*>( creditsHeld ) ),
    logger_                       ( *logger )
 {
   name_            = createName();

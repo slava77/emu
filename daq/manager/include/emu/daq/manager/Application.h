@@ -1,6 +1,8 @@
 #ifndef __emu_daq_manager_Application_h__
 #define __emu_daq_manager_Application_h__
 
+#include <stdint.h>
+
 #include "emu/daq/manager/exception/Exception.h"
 #include "emu/daq/manager/Watchdog.h"
 #include "emu/daq/manager/AppStates.h"
@@ -12,8 +14,9 @@
 #include "xdata/Boolean.h"
 #include "xdata/InfoSpace.h"
 #include "xdata/String.h"
-#include "xdata/UnsignedLong.h"
-#include "xdata/Integer.h"
+#include "xdata/UnsignedInteger32.h"
+#include "xdata/UnsignedInteger64.h"
+#include "xdata/Integer64.h"
 #include "xdata/Vector.h"
 #include "emu/supervisor/RunInfo.h"
 #include "emu/base/Supervised.h"
@@ -108,7 +111,7 @@ private:
     /**
      * The instance number of the application.
      */
-    unsigned long instance_;
+    uint32_t instance_;
 
     /**
      * The application's URN.
@@ -244,21 +247,20 @@ private:
   xdata::Boolean isBookedRunNumber_;
   bool abortedRun_; // The run is aborted if it is never started (only configured).
 
-  xdata::UnsignedLong runNumber_;
-  xdata::UnsignedLong runSequenceNumber_;
-  xdata::Integer maxNumberOfEvents_;
+  xdata::UnsignedInteger32 runNumber_;
+  xdata::UnsignedInteger32 runSequenceNumber_;
+  xdata::Integer64 maxNumberOfEvents_;
   xdata::Vector<xdata::String> runTypes_; // all possible run types
   xdata::String runType_; // the current run type
   xdata::Boolean isGlobalInControl_;
   xdata::Boolean writeBadEventsOnly_;
   xdata::Boolean buildEvents_;
   xdata::String daqState_; // the combined state of the DAQ applications
-  xdata::UnsignedLong calibRunIndex_;
-  xdata::UnsignedLong calibNRuns_;
-  xdata::UnsignedLong calibStepIndex_;
-  xdata::UnsignedLong calibNSteps_;
-  int stringToInt( const string* const s );
-  int purgeIntNumberString( string* s );
+  xdata::UnsignedInteger32 calibRunIndex_;
+  xdata::UnsignedInteger32 calibNRuns_;
+  xdata::UnsignedInteger32 calibStepIndex_;
+  xdata::UnsignedInteger32 calibNSteps_;
+  uint32_t purgeIntNumberString( string* s );
 
   xdata::String hardwareMapping_; // file of the hardware mapping (path relative to XDAQ_ROOT
 
@@ -286,7 +288,7 @@ private:
 			   AppStates &as )
     throw (xgi::exception::Exception);
   void getMnemonicNames();
-  map<int,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]
+  map<uint32_t,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]
   void printDAQState( xgi::Output *out, string state );
 
   virtual void actionPerformed(xdata::Event & received ); // inherited from xdata::ActionListener
@@ -316,7 +318,7 @@ private:
   bool printSTEPCountsTable( stringstream& out, bool control );
   bool isSTEPFinished();
   void maskDDUInputs( const bool in, const std::vector<cgicc::FormEntry>& fev );
-  void sendDDUInputMask( const bool in, const unsigned int ruiInstance, const std::set<unsigned int>& inputs );
+  void sendDDUInputMask( const bool in, const uint32_t ruiInstance, const std::set<uint32_t>& inputs );
 
 
   // FM-specific stuff
@@ -324,8 +326,8 @@ private:
   xdata::String CSC_FM_URL_; /// (base) URL (http://host:port) of CSC Funtion Manager
   xdata::String RegexMatchingTFConfigName_; /// regular expression matching the name of the Track Finder configuration
   xdata::String RegexMatchingCSCConfigName_; /// regular expression matching the name of the CSC configuration
-  xdata::UnsignedLong TFConfigId_; /// unique id of the Track Finder configuration
-  xdata::UnsignedLong CSCConfigId_; /// unique id of the CSC configuration
+  xdata::UnsignedInteger32 TFConfigId_; /// unique id of the Track Finder configuration
+  xdata::UnsignedInteger32 CSCConfigId_; /// unique id of the CSC configuration
 
     /**
      * Processes the form sent from the control web page.

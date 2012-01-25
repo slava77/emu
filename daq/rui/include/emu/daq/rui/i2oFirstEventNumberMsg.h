@@ -8,7 +8,7 @@
 
 typedef struct _I2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME {
   I2O_PRIVATE_MESSAGE_FRAME PvtMessageFrame;
-  unsigned long firstEventNumber;
+  U64 firstEventNumber;
 } I2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME, *PI2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME;
 
 #endif

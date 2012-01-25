@@ -157,7 +157,7 @@ string emu::daq::manager::Application::generateLoggerName()
 {
     xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
     string                      appClass       = appDescriptor->getClassName();
-    unsigned long               appInstance    = appDescriptor->getInstance();
+    uint32_t                    appInstance    = appDescriptor->getInstance();
     stringstream                oss;
     string                      loggerName;
 
@@ -309,7 +309,7 @@ throw (emu::daq::manager::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
     set< xdaq::ApplicationDescriptor* > descriptors;
-    int nbApps = 0;
+    set< xdaq::ApplicationDescriptor* >::size_type nbApps = 0;
 
 
     try
@@ -330,7 +330,7 @@ throw (emu::daq::manager::exception::Exception)
     // Fill application descriptors in instance order allowing non-contiguous numbering
     while( !descriptors.empty() ){
       // Find app with smallest instance number
-      unsigned int minInstance = 99999;
+      uint32_t minInstance = 99999;
       set< xdaq::ApplicationDescriptor* >::iterator adOfSmallest;
       set< xdaq::ApplicationDescriptor* >::iterator ad;
       for ( ad=descriptors.begin(); ad!=descriptors.end(); ++ad )
@@ -1112,7 +1112,7 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
       *out << " size=\"1\""                                          ;
       if ( supervisedMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 ;
-      for ( unsigned int iType=0; iType<runTypes_.elements(); ++iType ){
+      for ( size_t iType=0; iType<runTypes_.elements(); ++iType ){
 	xdata::String* runtype = dynamic_cast<xdata::String*>(runTypes_.elementAt(iType));
 	*out << "<option value=\"" << runtype->toString() << "\"";
 	if ( runtype->toString() == runType_.toString() )
@@ -1395,15 +1395,15 @@ emu::daq::manager::Application::materialToReportOnPage1(){
                                              controlURL ) );
 
   // Min and max RUI counts
-  int maxCount = -1;
-  int minCount = 2000000000;
-  int minCountIndex = -1;
-  int maxCountIndex = -1;
+  int64_t maxCount = -1;
+  int64_t minCount = 2000000000;
+  int64_t minCountIndex = -1;
+  int64_t maxCountIndex = -1;
   vector< map< string,string > > counts = getRUIEventCounts();
-  for ( unsigned int iRUI=0; iRUI<counts.size(); ++iRUI ){
+  for ( size_t iRUI=0; iRUI<counts.size(); ++iRUI ){
     stringstream ss;
     ss << counts.at(iRUI)["count"];
-    int count;
+    int64_t count;
     ss >> count;
     if ( count < minCount ) { minCount = count; minCountIndex = iRUI; }
     if ( count > maxCount ) { maxCount = count; maxCountIndex = iRUI; }
@@ -1467,7 +1467,7 @@ emu::daq::manager::Application::findFact( const emu::base::Component& component,
     if ( component.isMatchedBy( "^(emu::daq::rui::Application|RUI)([0-9]+)$", matches ) ) {
       if ( matches.size() == 3 ){
 	stringstream iss( matches[2] );
-	unsigned int instance;
+	uint32_t instance;
 	iss >> instance;
 	queryAppStates();
 	daqState_ = currentAppStates_.getCombinedState();
@@ -1594,8 +1594,8 @@ void emu::daq::manager::Application::getRunInfoFromTA( string* runnum, string* m
 	this->notifyQualified( "warning", eObj );
       }
 
-      xdata::UnsignedLong runNumber;
-      xdata::Integer      maxNumTriggers;
+      xdata::UnsignedInteger32 runNumber;
+      xdata::Integer64    maxNumTriggers;
       xdata::String       runStartTime;
       xdata::String       runStopTime;
       try
@@ -1724,9 +1724,9 @@ void emu::daq::manager::Application::getTriggerSources()
 }
 
 
-int emu::daq::manager::Application::purgeIntNumberString( string* s ){
+uint32_t emu::daq::manager::Application::purgeIntNumberString( string* s ){
   // Emu: purge string of all non-numeric characters
-  int nCharactersErased = 0;
+  uint32_t nCharactersErased = 0;
   for ( string::size_type i = s->find_first_not_of("-0123456789",0); 
 	i != string::npos; 
 	i = s->find_first_not_of("-0123456789",i) ){
@@ -1734,14 +1734,6 @@ int emu::daq::manager::Application::purgeIntNumberString( string* s ){
     nCharactersErased++;
   }
   return nCharactersErased;
-}
-
-int emu::daq::manager::Application::stringToInt( const string* const s ){
-  int i;
-  stringstream ss;
-  ss << *s;
-  ss >> i;
-  return i;
 }
 
 void emu::daq::manager::Application::processCommandForm(xgi::Input *in, xgi::Output *out)
@@ -1863,7 +1855,7 @@ throw (xgi::exception::Exception)
     if( cmdElement != cgi.getElements().end() )
       {
         stringstream ss( (*cmdElement).getValue() );
-	int ruiInstance;
+	uint32_t ruiInstance;
 	ss >> ruiInstance;
 	cout << "Recycle RUI " << ruiInstance << endl << flush;
 	try{
@@ -1886,7 +1878,7 @@ void emu::daq::manager::Application::printParamsTables
 )
 throw (xgi::exception::Exception)
 {
-    int                           nbApps         = appDescriptors.size();
+  vector< xdaq::ApplicationDescriptor* >::size_type nbApps = appDescriptors.size();
     xdaq::ApplicationDescriptor   *appDescriptor = 0;
     vector< pair<string,string> > params;
 
@@ -1894,7 +1886,7 @@ throw (xgi::exception::Exception)
     *out << "<table border=\"0\">"                                     << endl;
     *out << "<tr>"                                                     << endl;
 
-    for(int i=0; i<nbApps; i++)
+    for(vector< xdaq::ApplicationDescriptor* >::size_type i=0; i<nbApps; i++)
     {
         // Put space between each table of application statistics
         if(i != 0)
@@ -1940,9 +1932,9 @@ void emu::daq::manager::Application::printParamsTable
 throw (xgi::exception::Exception)
 {
     string        className = appDescriptor->getClassName();
-    unsigned long instance  = appDescriptor->getInstance();
+    uint32_t      instance  = appDescriptor->getInstance();
     string        href      = getHref(appDescriptor);
-    int           nbRows    = params.size();
+    vector< pair<string,string> >::size_type nbRows = params.size();
 
 
     *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">"  << endl;
@@ -1957,7 +1949,7 @@ throw (xgi::exception::Exception)
     *out << "  </th>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
 
-    for(int row=0; row<nbRows; row++)
+    for(size_t row=0; row<nbRows; row++)
     {
         *out << "<tr>"                                                 << endl;
         *out << "  <td>"                                               << endl;
@@ -1992,7 +1984,7 @@ vector< pair<string,string> > emu::daq::manager::Application::getEventNbFromEVM
 )
 throw (emu::daq::manager::exception::Exception)
 {
-  xdata::UnsignedInteger eventNb;
+  xdata::UnsignedInteger64 eventNb;
   vector< pair<string,string> > params;
 
   try
@@ -2015,8 +2007,8 @@ vector< vector< pair<string,string> > > emu::daq::manager::Application::getStats
     vector< xdaq::ApplicationDescriptor* > &appDescriptors
 )
 {
-    unsigned int                            nbApps = appDescriptors.size();
-    unsigned int                            i      = 0;
+    vector< xdaq::ApplicationDescriptor* >::size_type nbApps = appDescriptors.size();
+    vector< xdaq::ApplicationDescriptor* >::size_type i      = 0;
     vector< vector< pair<string,string> > > stats;
 
 
@@ -2037,9 +2029,9 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
     vector< pair<string,string> > stats;
     xdata::String                 s                          = "";
     xdata::Double                 deltaT                     = 0.0;
-    xdata::UnsignedLong           deltaN                     = 0;
+    xdata::UnsignedInteger64           deltaN                     = 0;
     xdata::Double                 deltaSumOfSquares          = 0.0;
-    xdata::UnsignedLong           deltaSumOfSizes            = 0;
+    xdata::UnsignedInteger64           deltaSumOfSizes            = 0;
 
     bool successfullyRetrieved = false;
 
@@ -2080,7 +2072,7 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
 	stats.push_back( pair<string,string>( "throughput", "DIV BY 0" ) );
 	stats.push_back( pair<string,string>( "rate"      , "DIV BY 0" ) );
       }
-      if ( int(deltaN) != 0 ){
+      if ( uint64_t(deltaN) != 0 ){
 	xdata::Double average = deltaSumOfSizes / deltaN / 1000.0;
 	double meanOfSquares = deltaSumOfSquares / ((double)deltaN);
 	double mean          = ((double)deltaSumOfSizes) / ((double)deltaN);
@@ -3421,9 +3413,6 @@ throw (emu::daq::manager::exception::Exception)
 void emu::daq::manager::Application::stopTrigger()
 throw (emu::daq::manager::exception::Exception)
 {
-    vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
-
-
     /////////////
     // Halt TA //
     /////////////
@@ -3438,7 +3427,7 @@ throw (emu::daq::manager::exception::Exception)
         string       s;
 
         oss << "Failed to halt ";
-        oss << (*pos)->getClassName() << (*pos)->getInstance();
+        oss << taDescriptors_[0]->getClassName() << taDescriptors_[0]->getInstance();
         s = oss.str();
 
         XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
@@ -3576,7 +3565,7 @@ vector< map< string,string > > emu::daq::manager::Application::getRUIEventCounts
     string       hwName = "chambers"; 
     string       hwMapURL;
     string       count;
-    xdata::UnsignedLong nEventsRead;
+    xdata::UnsignedInteger64 nEventsRead;
     xdata::String       dduError;
  
     try
@@ -3627,7 +3616,7 @@ vector< map< string,string > > emu::daq::manager::Application::getFUEventCounts(
 
   emu::soap::Messenger m( this );  
 
-  xdata::UnsignedLong totalProcessed = 0;
+  xdata::UnsignedInteger64 totalProcessed = 0;
   vector< xdaq::ApplicationDescriptor* >::iterator fu;
   for ( fu = fuDescriptors_.begin(); fu!=fuDescriptors_.end(); ++fu ){
     stringstream appInst;
@@ -3638,7 +3627,7 @@ vector< map< string,string > > emu::daq::manager::Application::getFUEventCounts(
       appURL  = getHref( *fu );
       appInst << setfill('0') << setw(2) << (*fu)->getInstance();
       
-      xdata::UnsignedLong nProcessed;
+      xdata::UnsignedInteger64 nProcessed;
       m.getParameters( *fu, emu::soap::Parameters().add( "nbEventsProcessed", &nProcessed ) );
       count = nProcessed.toString();
       if ( ! nProcessed.isNaN() ) totalProcessed = totalProcessed + nProcessed;
@@ -3680,12 +3669,12 @@ void emu::daq::manager::Application::printEventCountsTable
     bool                             control
 )
 {
-    const int superColWidth = ( control ? 4 : 3 ); // [columns]
-    int nCounts = counts.size();
+    const size_t superColWidth = ( control ? 4 : 3 ); // [columns]
+    size_t nCounts = counts.size();
     if ( nCounts == 0 ) return;
-    int nSuperCols = 6;
+    size_t nSuperCols = 6;
     if ( nCounts < nSuperCols ) nSuperCols = nCounts;
-    int nRows = nCounts/nSuperCols + (nCounts%nSuperCols?1:0);
+    size_t nRows = nCounts/nSuperCols + (nCounts%nSuperCols?1:0);
 
     if ( control ) *out << "<form name=\"countTable\" method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
 
@@ -3699,11 +3688,11 @@ void emu::daq::manager::Application::printEventCountsTable
     *out << "  </th>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
 
-    for (int row=0; row<nRows; row++){
+    for (size_t row=0; row<nRows; row++){
       *out << "<tr>"                                                   << endl;
-      for (int superCol=0; superCol<nSuperCols; superCol++){
-// 	int iCount = superCol * nRows + row;
-	int iCount = row * nSuperCols + superCol;
+      for (size_t superCol=0; superCol<nSuperCols; superCol++){
+// 	size_t iCount = superCol * nRows + row;
+	size_t iCount = row * nSuperCols + superCol;
 
 	  if ( iCount < nCounts ){
 	    *out << "  <th align=\"center\">"                          << endl;
@@ -3755,9 +3744,9 @@ void emu::daq::manager::Application::printEventCountsTable
 	    }
 	    *out << "  </td>"                                               << endl;
 	  } // if ( control )
-      } // for (int superCol=0; superCol<nSuperCols; superCol++){
+      } // for (size_t superCol=0; superCol<nSuperCols; superCol++){
       *out << "</tr>"                                                  << endl;
-    } // for (int row=0; row<nRows; row++){
+    } // for (size_t row=0; row<nRows; row++){
 
     *out << "</table>"                                                 << endl;
     if ( control ) *out << "</form>"                                                  << endl;
@@ -3812,7 +3801,7 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
   out <<   "<th/><th/>";
   out <<   "<th>read</th>";
   out <<   "<th>accepted</th>";
-  for ( unsigned int i = 0; i < emu::daq::rui::STEPEventCounter::maxDDUInputs_; ++i )
+  for ( uint32_t i = 0; i < emu::daq::rui::STEPEventCounter::maxDDUInputs_; ++i )
     out <<   "<th>" << i << "</th>";
   out << "</tr>"                                                       << endl;
 
@@ -3824,10 +3813,10 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 
     // Get STEP info from emu::daq::rui::Application
     xdata::String                      persistentDDUError = "";
-    xdata::UnsignedLong                eventsRead  = 0;
-    xdata::UnsignedLong                totalCount  = 0;
-    xdata::UnsignedLong                lowestCount = 0;
-    xdata::Vector<xdata::UnsignedLong> counts;
+    xdata::UnsignedInteger64                eventsRead  = 0;
+    xdata::UnsignedInteger64                totalCount  = 0;
+    xdata::UnsignedInteger64                lowestCount = 0;
+    xdata::Vector<xdata::UnsignedInteger64> counts;
     xdata::Vector<xdata::Boolean>      masks;
     xdata::Vector<xdata::Boolean>      liveInputs;
 
@@ -3842,7 +3831,7 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 				    .add( "Masks"             , &masks              )
 				    .add( "LiveInputs"        , &liveInputs         ) );
 
-      isFinished &= ( (int) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
+      isFinished &= ( (int64_t) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
     } catch( emu::daq::manager::exception::Exception e ){
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
 		      << (*rui)->getClassName() << (*rui)->getInstance() 
@@ -3916,14 +3905,14 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
     out << "  </td>"                                              << endl;
 
     // The remaining 15 columns: event count on each DDU input
-    for ( unsigned int i = 0; i < counts.elements(); ++i ){
+    for ( size_t i = 0; i < counts.elements(); ++i ){
       stringstream DDUInput;
       DDUInput << "EmuRUI." << (*rui)->getInstance() << "." << i;
       out << "  <td align=\"right\"";
       if ( masks.elementAt(i)->toString() == "true" ) 
 	out <<     "class=\"masked\"";
       else if ( liveInputs.elementAt(i)->toString() == "true" &&
-		(int) ( dynamic_cast<xdata::UnsignedLong*> ( counts.elementAt(i)) )->value_ < maxNumberOfEvents_.value_ )
+		(int64_t) ( dynamic_cast<xdata::UnsignedInteger64*> ( counts.elementAt(i)) )->value_ < maxNumberOfEvents_.value_ )
 	out <<     "class=\"notFinished\"";
       out <<   ">";
       
@@ -3945,7 +3934,7 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 	out <<        "/>";
       }
       out <<   "</td>"                                            << endl;
-    } // for ( unsigned int i = 0; i < counts.elements(); ++i )
+    } // for ( size_t i = 0; i < counts.elements(); ++i )
 
     out << "</tr>"                                                << endl;
 
@@ -3969,7 +3958,7 @@ bool emu::daq::manager::Application::isSTEPFinished(){
   vector< xdaq::ApplicationDescriptor* >::iterator pos;
   for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++){
 
-    xdata::UnsignedLong lowestCount = 0;
+    xdata::UnsignedInteger64 lowestCount = 0;
 
     try{
       emu::soap::extractParameters( m.sendCommand( *pos, "STEPQuery" ),
@@ -3998,7 +3987,7 @@ bool emu::daq::manager::Application::isSTEPFinished(){
       isFinished = false;
     }
 
-    isFinished &= ( (int) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
+    isFinished &= ( (int64_t) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
     
   }
 
@@ -4011,7 +4000,7 @@ void emu::daq::manager::Application::maskDDUInputs( const bool in, const std::ve
   // Collect the RUI instances and DDU input indices that are to be masked
   //
 
-  std::map< unsigned int, std::set<unsigned int> > instanceToInputs; // an RUI_instance --> [DDU inputs] map
+  std::map< uint32_t, std::set<uint32_t> > instanceToInputs; // an RUI_instance --> [DDU inputs] map
 
   std::vector<cgicc::FormEntry>::const_iterator fe;
   for ( fe=fev.begin(); fe!=fev.end(); ++fe ){
@@ -4020,12 +4009,12 @@ void emu::daq::manager::Application::maskDDUInputs( const bool in, const std::ve
       toolbox::regx_match( fe->getName(), "^EmuRUI.([0-9]{1,2}).([0-9]{1,2})$", matches ); // ...because this crashes if no match.
       stringstream instance( matches[1] );
       stringstream input   ( matches[2] );
-      unsigned int ins; instance >> ins;
-      unsigned int inp; input    >> inp;
-      std::map< unsigned int, std::set<unsigned int> >::iterator i = instanceToInputs.find( ins );
+      uint32_t ins; instance >> ins;
+      uint32_t inp; input    >> inp;
+      std::map< uint32_t, std::set<uint32_t> >::iterator i = instanceToInputs.find( ins );
       if ( i == instanceToInputs.end() ){
 	// First selected input of this instance
-	std::set<unsigned int> inputs;
+	std::set<uint32_t> inputs;
 	inputs.insert( inp );
 	instanceToInputs[ins] = inputs;
       }
@@ -4040,7 +4029,7 @@ void emu::daq::manager::Application::maskDDUInputs( const bool in, const std::ve
   // Loop over RUIs that have inputs selected and send them their list
   //
 
-  std::map< unsigned int, std::set<unsigned int> >::iterator i;
+  std::map< uint32_t, std::set<uint32_t> >::iterator i;
   for ( i = instanceToInputs.begin(); i!= instanceToInputs.end(); ++i ){
     sendDDUInputMask( in, i->first, i->second );
   }
@@ -4048,8 +4037,8 @@ void emu::daq::manager::Application::maskDDUInputs( const bool in, const std::ve
 }
 
 void emu::daq::manager::Application::sendDDUInputMask( const bool                    in, 
-						       const unsigned int            ruiInstance, 
-						       const std::set<unsigned int>& inputs ){
+						       const uint32_t            ruiInstance, 
+						       const std::set<uint32_t>& inputs ){
   // Sends a mask to a RUI exclude or include DDU inputs in the STEP event counts
 
   string commandName = "excludeDDUInputs";
@@ -4070,8 +4059,8 @@ void emu::daq::manager::Application::sendDDUInputMask( const bool               
   }
 
   // Transfer inputs into an xdata vector to be serialized into SOAP
-  xdata::Vector<xdata::UnsignedLong> inputsToMask;
-  std::set<unsigned int>::iterator i;
+  xdata::Vector<xdata::UnsignedInteger32> inputsToMask;
+  std::set<uint32_t>::iterator i;
   for( i = inputs.begin(); i != inputs.end(); ++i ){
     inputsToMask.push_back( *i );
   }
@@ -4103,18 +4092,18 @@ void emu::daq::manager::Application::sendDDUInputMask( const bool               
 
 string emu::daq::manager::Application::getDateTime(){
   time_t t;
-  struct tm *tm;
+  struct tm tm;
 
   time ( &t );
-  tm = gmtime ( &t );
+  gmtime_r( &t, &tm ); // reentrant version for thread safety
 
   stringstream ss;
-  ss << setfill('0') << setw(4) << tm->tm_year+1900 << "-"
-     << setfill('0') << setw(2) << tm->tm_mon+1     << "-"
-     << setfill('0') << setw(2) << tm->tm_mday      << " "
-     << setfill('0') << setw(2) << tm->tm_hour      << ":"
-     << setfill('0') << setw(2) << tm->tm_min       << ":"
-     << setfill('0') << setw(2) << tm->tm_sec       << " UTC";
+  ss << setfill('0') << setw(4) << tm.tm_year+1900 << "-"
+     << setfill('0') << setw(2) << tm.tm_mon+1     << "-"
+     << setfill('0') << setw(2) << tm.tm_mday      << " "
+     << setfill('0') << setw(2) << tm.tm_hour      << ":"
+     << setfill('0') << setw(2) << tm.tm_min       << ":"
+     << setfill('0') << setw(2) << tm.tm_sec       << " UTC";
 
   return ss.str();
 }
@@ -4131,7 +4120,7 @@ void emu::daq::manager::Application::getMnemonicNames(){
   for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
     {
       stringstream app;
-      int instance = (*pos)->getInstance();
+      uint32_t instance = (*pos)->getInstance();
       app << (*pos)->getClassName() << "." << instance;
       try
 	{
@@ -4493,7 +4482,7 @@ void emu::daq::manager::Application::writeRunInfo(){
     //
     vector< map< string,string > > counts = getFUEventCounts();
     if ( counts.size() > 0 ){
-      int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
+      size_t nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
       name      = "built_events";
       value     = counts.at(nFUs)["count"]; // the last element is the sum of all FUs' event counts
       if (  bool(isBookedRunNumber_) && runInfo_ != NULL ){
@@ -4523,8 +4512,8 @@ void emu::daq::manager::Application::writeRunInfo(){
     //
     counts.clear();
     counts = getRUIEventCounts();
-    int nRUIs = counts.size();
-    for ( int rui=0; rui<nRUIs; ++rui ){
+    size_t nRUIs = counts.size();
+    for ( size_t rui=0; rui<nRUIs; ++rui ){
       name  = "EmuRUI"+counts.at(rui)["appInst"];
       value = counts.at(rui)["count"];
       if (  bool(isBookedRunNumber_) && runInfo_ != NULL ){
@@ -4629,28 +4618,28 @@ xoap::MessageReference emu::daq::manager::Application::onQueryRunSummary(xoap::M
     getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
     xdata::String start_time = runStartTime; // xdata can readily be serialized into SOAP...
     xdata::String stop_time  = runStopTime;
-    xdata::UnsignedLong run_number; run_number.fromString( runNumber );
+    xdata::UnsignedInteger32 run_number; run_number.fromString( runNumber );
 
     // FU event count
-    xdata::UnsignedLong built_events( 0 );
+    xdata::UnsignedInteger64 built_events( 0 );
     vector< map< string,string > > counts = getFUEventCounts();
     if ( counts.size() > 0 ){
-      int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
+      size_t nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
       built_events.fromString( counts.at(nFUs)["count"] ); // the last element is the sum of all FUs' event counts
     }
 
     // RUI event counts and instances
     counts = getRUIEventCounts();
-    int nRUIs = counts.size();
-    xdata::Vector<xdata::UnsignedLong> rui_counts; // xdata can readily be serialized into SOAP...
-    xdata::Vector<xdata::UnsignedLong> rui_instances; // xdata can readily be serialized into SOAP...
-    for( int iRUI=0; iRUI<nRUIs; ++iRUI ){
-      xdata::UnsignedLong c; c.fromString( counts.at(iRUI)["count"]   );
+    size_t nRUIs = counts.size();
+    xdata::Vector<xdata::UnsignedInteger64> rui_counts; // xdata can readily be serialized into SOAP...
+    xdata::Vector<xdata::UnsignedInteger32> rui_instances; // xdata can readily be serialized into SOAP...
+    for( size_t iRUI=0; iRUI<nRUIs; ++iRUI ){
+      xdata::UnsignedInteger64 c; c.fromString( counts.at(iRUI)["count"]   );
       stringstream ss;
       ss << counts.at(iRUI)["appInst"];
-      unsigned int appInst;
+      uint32_t appInst;
       ss >> appInst;
-      xdata::UnsignedLong i( appInst );
+      xdata::UnsignedInteger32 i( appInst );
       rui_counts   .push_back( c );
       rui_instances.push_back( i );
     }
@@ -5044,8 +5033,8 @@ emu::daq::manager::Application::timeExpired(toolbox::task::TimerEvent& e){
   LOG4CPLUS_INFO( logger_, "Time expired for event " << e.type() );
   try{
     switch(fsm_.getCurrentState()){
-  case 'H': // Halted
-    break;
+    case 'H': // Halted
+      break;
     case 'C': // Configured
       watchdog_->patrol();
       LOG4CPLUS_INFO( logger_, "Watchdog after patrol" << endl << *watchdog_ );

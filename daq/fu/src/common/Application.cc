@@ -91,19 +91,9 @@ bSem_(toolbox::BSem::FULL)
     stdConfigParams_  = initAndGetStdConfigParams();
     stdMonitorParams_ = initAndGetStdMonitorParams();
 
-    // Create info space for monitoring
-    monitoringInfoSpaceName_ = generateMonitoringInfoSpaceName(xmlClass_, instance_);
-    if ( xdata::getInfoSpaceFactory()->hasItem(monitoringInfoSpaceName_) )
-      monitoringInfoSpace_ = xdata::getInfoSpaceFactory()->get(monitoringInfoSpaceName_);
-    else
-      monitoringInfoSpace_ = xdata::getInfoSpaceFactory()->create(monitoringInfoSpaceName_);
-
     // Fill the application's default info space
     putParamsIntoInfoSpace(stdConfigParams_ , appInfoSpace_);
     putParamsIntoInfoSpace(stdMonitorParams_, appInfoSpace_);
-
-    // Fill the application's monitorable info space
-    putParamsIntoInfoSpace(stdMonitorParams_, monitoringInfoSpace_);
 
     workLoopFactory_ = toolbox::task::getWorkLoopFactory();
 
@@ -130,7 +120,7 @@ string emu::daq::fu::Application::generateLoggerName()
 {
     xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
     string                      appClass       = appDescriptor->getClassName();
-    unsigned long               appInstance    = appDescriptor->getInstance();
+    uint32_t                    appInstance    = appDescriptor->getInstance();
     stringstream                oss;
     string                      loggerName;
 
@@ -375,7 +365,7 @@ xdaq::ApplicationDescriptor *emu::daq::fu::Application::getRUBuilderTester
 }
 
 
-string emu::daq::fu::Application::createI2oPoolName(const unsigned long emuFUInstance)
+string emu::daq::fu::Application::createI2oPoolName(const uint32_t emuFUInstance)
 {
     stringstream oss;
     string       s;
@@ -481,22 +471,6 @@ throw (emu::daq::fu::exception::Exception)
 }
 
 
-string emu::daq::fu::Application::generateMonitoringInfoSpaceName
-(
-    const string        appClass,
-    const unsigned long appInstance
-)
-{
-    stringstream oss;
-    string       name;
-
-    oss << "urn:xdaq-monitorable:" << appClass << ":" << appInstance;
-    name = oss.str();
-
-    return name;
-}
-
-
 vector< pair<string, xdata::Serializable*> > emu::daq::fu::Application::initAndGetStdConfigParams()
 {
     vector< pair<string, xdata::Serializable*> > params;
@@ -530,7 +504,7 @@ vector< pair<string, xdata::Serializable*> > emu::daq::fu::Application::initAndG
 		     ("runType", &runType_));
 
 
-    for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
+    for( size_t iClient=0; iClient<maxClients_; ++iClient ) {
       clientName_.push_back("");
       clientInstance_.push_back(0);
       clientProtocol_.push_back("I2O");
@@ -571,7 +545,7 @@ vector< pair<string, xdata::Serializable*> > emu::daq::fu::Application::initAndG
     params.push_back(pair<string,xdata::Serializable *>
 		     ("runNumber", &runNumber_ ));
 
-    for( unsigned int iClient=0; iClient<maxClients_; ++iClient ){ 
+    for( size_t iClient=0; iClient<maxClients_; ++iClient ){ 
       creditsHeld_.push_back(0);
       clientPersists_.push_back(true);
     }
@@ -812,12 +786,12 @@ void emu::daq::fu::Application::destroyServers(){
   clients_.clear();
 }
 
-bool emu::daq::fu::Application::createI2OServer( string clientName, unsigned int clientInstance  ){
+bool emu::daq::fu::Application::createI2OServer( string clientName, uint32_t clientInstance  ){
   bool created = false;
-  unsigned int iClient = clients_.size();
+  size_t iClient = clients_.size();
   if ( iClient < maxClients_ ){
     *(dynamic_cast<xdata::String*>       ( clientName_.elementAt( iClient )     )) = clientName;
-    *(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
+    *(dynamic_cast<xdata::UnsignedInteger32*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
     *(dynamic_cast<xdata::String*>       ( clientProtocol_.elementAt( iClient ) )) = "I2O";
     *(dynamic_cast<xdata::Boolean*>      ( clientPersists_.elementAt( iClient ) )) = true;
     emu::daq::server::I2O* s = new emu::daq::server::I2O( this,
@@ -843,12 +817,12 @@ bool emu::daq::fu::Application::createI2OServer( string clientName, unsigned int
   return created;
 }
 
-bool emu::daq::fu::Application::createSOAPServer( string clientName,  unsigned int clientInstance, bool persistent ){
+bool emu::daq::fu::Application::createSOAPServer( string clientName,  uint32_t clientInstance, bool persistent ){
   bool created = false;
-  unsigned int iClient = clients_.size();
+  size_t iClient = clients_.size();
   if ( iClient < maxClients_ ){
     *(dynamic_cast<xdata::String*>       (     clientName_.elementAt( iClient ) )) = clientName;
-    *(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
+    *(dynamic_cast<xdata::UnsignedInteger32*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
     *(dynamic_cast<xdata::String*>       ( clientProtocol_.elementAt( iClient ) )) = "SOAP";
     *(dynamic_cast<xdata::Boolean*>      ( clientPersists_.elementAt( iClient ) )) = persistent;
     emu::daq::server::SOAP* s = new emu::daq::server::SOAP( this,
@@ -883,12 +857,12 @@ bool emu::daq::fu::Application::createSOAPServer( string clientName,  unsigned i
 
 
 void emu::daq::fu::Application::createServers(){
-  for ( unsigned int iClient=0; iClient<clientName_.elements(); ++iClient ){
+  for ( size_t iClient=0; iClient<clientName_.elements(); ++iClient ){
     xdata::Boolean *persists = dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt(iClient) );
     // (Re)create it only if it has a name and is not a temporary server created on the fly
     if ( clientName_.elementAt(iClient)->toString() != "" && persists->value_ ){
-      unsigned int clientInstance = 
-	(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) ))->value_;
+      uint32_t clientInstance = 
+	(dynamic_cast<xdata::UnsignedInteger32*> ( clientInstance_.elementAt( iClient ) ))->value_;
       LOG4CPLUS_INFO(logger_,
 		     clientName_.elementAt(iClient)->toString() << clientInstance << 
 		     "\'s server being created" );
@@ -1081,7 +1055,7 @@ throw (toolbox::fsm::exception::Exception)
 	fileWriter_ = NULL;
       }
     // create new writer if path is not empty
-    if ( pathToDataOutFile_ != string("") && (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 ){
+    if ( pathToDataOutFile_ != string("") && (xdata::UnsignedInteger64) fileSizeInMegaBytes_ > (uint64_t) 0 ){
       toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
       fileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_, 
 						       pathToDataOutFile_.toString(), 
@@ -1123,7 +1097,7 @@ throw (toolbox::fsm::exception::Exception)
     }
 
     // server loops
-    for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+    for ( size_t iClient=0; iClient<clients_.size(); ++iClient ){
       // Start separate server loops for SOAP servers only as SOAP messaging is synchronous
       // and therefore blocking. (I2O messages don't block, they just "fire & forget".)
       if ( clientProtocol_.elementAt( iClient )->toString() == "SOAP" )
@@ -1191,7 +1165,7 @@ throw (toolbox::fsm::exception::Exception)
 	      clients_[iClient]->workLoopStarted = true;
 	    } // if( ! clients_[iClient]->workLoopStarted )
 	} // if ( clientProtocol_.elementAt( iClient )->toString() == "SOAP" )
-    } // for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
+    } // for ( size_t iClient=0; iClient<clients_.size(); ++iClient )
 
 }
 
@@ -1299,7 +1273,7 @@ bool emu::daq::fu::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
             break;
         case 'E':  // Enabled
 	  // Find out from which work loop we dropped in here
-	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	  for ( size_t iClient=0; iClient<clients_.size(); ++iClient ){
 	    if ( clients_[iClient]->workLoop == wl ){
 // 	      LOG4CPLUS_DEBUG(logger_, "Sending data from " << clients_[iClient]->workLoopName << " ("<< wl << ")");
 	      clients_[iClient]->server->sendData();
@@ -1343,14 +1317,14 @@ bool emu::daq::fu::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 }
 
 
-void emu::daq::fu::Application::addDataForClients( const int   runNumber,
-						   const int   runStartUTC,
-						   const int   nEventsRead,
+void emu::daq::fu::Application::addDataForClients( const uint32_t runNumber,
+						   const uint32_t runStartUTC,
+						   const uint64_t nEventsRead,
 						   const emu::daq::server::PositionInEvent_t position,
 						   char* const data, 
-						   const int   dataLength ){
-  unsigned short dummyErrorFlag = 0; // We don't have the error info amy more at this point.
-  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
+						   const size_t dataLength ){
+  uint16_t dummyErrorFlag = 0; // We don't have the error info amy more at this point.
+  for ( size_t iClient=0; iClient<clients_.size(); ++iClient )
     clients_[iClient]->server->addData( runNumber,
 					runStartUTC,
 					nEventsRead, 
@@ -1642,7 +1616,7 @@ throw (emu::daq::fu::exception::Exception)
 
     char         *startOfPayload = (char*) bufRef->getDataLocation() 
       + sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
-    unsigned long  sizeOfPayload =         bufRef->getDataSize()
+    size_t        sizeOfPayload =         bufRef->getDataSize()
       - sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
     bool blockIsFirstOfSuperFragment = block->blockNb         == 0;
     bool superFragmentIsFirstOfEvent = block->superFragmentNb == 0;
@@ -1695,8 +1669,8 @@ throw (emu::daq::fu::exception::Exception)
 	emuEventHeaderTrailer_->setL1ACounter( block->eventNumber );
 	// One superfragment (the first) is the trigger, which must be subtracted
 	emuEventHeaderTrailer_->setDDUCount( block->nbSuperFragmentsInEvent - 1 );
-	emuEventHeaderTrailer_->setCSCConfigId( (xdata::UnsignedLongT) CSCConfigId_ );
-	emuEventHeaderTrailer_->setTFConfigId( (xdata::UnsignedLongT) TFConfigId_ );
+	emuEventHeaderTrailer_->setCSCConfigId( (xdata::UnsignedInteger32) CSCConfigId_ );
+	emuEventHeaderTrailer_->setTFConfigId( (xdata::UnsignedInteger32) TFConfigId_ );
 	try{
 	  fileWriter_->writeData( (const char*) emuEventHeaderTrailer_->header(),
 				  emuEventHeaderTrailer_->headerSize() );
@@ -1827,10 +1801,10 @@ void emu::daq::fu::Application::printBlock( toolbox::mem::Reference *bufRef, boo
 
   char         *startOfPayload = (char*) bufRef->getDataLocation() 
     + sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
-  unsigned long  sizeOfPayload =         bufRef->getDataSize()
+  size_t         sizeOfPayload =         bufRef->getDataSize()
     - sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
-  unsigned short * shorts = reinterpret_cast<unsigned short *>(startOfPayload);
-  int nshorts = sizeOfPayload / sizeof(unsigned short);
+  uint16_t * shorts = reinterpret_cast<uint16_t *>(startOfPayload);
+  size_t nshorts = sizeOfPayload / sizeof(uint16_t);
 
   if( printMessageHeader )
     {
@@ -1846,7 +1820,7 @@ void emu::daq::fu::Application::printBlock( toolbox::mem::Reference *bufRef, boo
 	", length " << sizeOfPayload << " bytes" << endl;
     }
   std::cout<<std::hex;
-  for(int i = 0; i < nshorts; i+=4)
+  for(size_t i = 0; i < nshorts; i+=4)
     {
       std::cout << "      ";
       std::cout.width(4); std::cout.fill('0');
@@ -1889,7 +1863,7 @@ void emu::daq::fu::Application::releaseSuperFragment()
 }
 
 
-void emu::daq::fu::Application::allocateNEvents(const int n)
+void emu::daq::fu::Application::allocateNEvents(const uint32_t n)
 throw (emu::daq::fu::exception::Exception)
 {
     toolbox::mem::Reference *bufRef = createBuAllocateMsg
@@ -1932,7 +1906,7 @@ toolbox::mem::Reference *emu::daq::fu::Application::createBuAllocateMsg
     toolbox::mem::Pool              *pool,
     const I2O_TID                   taTid,
     const I2O_TID                   buTid,
-    const int                       nbEvents
+    const uint32_t                  nbEvents
 )
 throw (emu::daq::fu::exception::Exception)
 {
@@ -1974,7 +1948,7 @@ throw (emu::daq::fu::exception::Exception)
     msg->n                   = nbEvents;
 
     // The EmuFU can specify a transaction id for each individual event requested
-    for(int i=0; i<nbEvents; i++)
+    for(uint32_t i=0; i<nbEvents; i++)
     {
         msg->allocate[i].fuTransactionId = 1234; // Dummy value
         msg->allocate[i].fset            = 0;    // IGNORED!!!
@@ -2245,7 +2219,7 @@ throw (emu::daq::fu::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
     set< xdaq::ApplicationDescriptor* > descriptors;
-    int nbApps = 0;
+    size_t nbApps = 0;
 
     try
     {
@@ -2265,7 +2239,7 @@ throw (emu::daq::fu::exception::Exception)
     // Fill application descriptors in instance order allowing non-contiguous numbering
     while( !descriptors.empty() ){
       // Find app with smallest instance number
-      unsigned int minInstance = 99999;
+      uint32_t minInstance = 99999;
       set< xdaq::ApplicationDescriptor* >::iterator adOfSmallest;
       set< xdaq::ApplicationDescriptor* >::iterator ad;
       for ( ad=descriptors.begin(); ad!=descriptors.end(); ++ad )

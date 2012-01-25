@@ -1,7 +1,7 @@
 #include <iostream>
 #include <emu/daq/writer/RateLimiter.h>
 
-emu::daq::writer::RateLimiter::RateLimiter( const int limitInHz, const int sampleSize ) :
+emu::daq::writer::RateLimiter::RateLimiter( const uint64_t limitInHz, const uint64_t sampleSize ) :
   limitInHz_( limitInHz ),
   sampleSize_( sampleSize ),
   timeStamps_( new timeval[sampleSize] ),
@@ -9,7 +9,7 @@ emu::daq::writer::RateLimiter::RateLimiter( const int limitInHz, const int sampl
   lastTimeIndex_( 0 ),
   eventCount_( 0 )
 {
-  if ( limitInHz_ >= 0 ) minTimeSpanInMicrosec_ = int( 1000000 * double(sampleSize) / double(limitInHz) );
+  if ( limitInHz_ >= 0 ) minTimeSpanInMicrosec_ = uint64_t( 1000000 * double(sampleSize) / double(limitInHz) );
   else                   minTimeSpanInMicrosec_ = 0; // This means no limit.
   endOfVetoPeriod_.tv_sec  = 0;
   endOfVetoPeriod_.tv_usec = 0;
@@ -40,8 +40,8 @@ bool emu::daq::writer::RateLimiter::acceptEvent(){
   // 				   << "   eventCount " << eventCount_
   // 				   << std::endl;
 
-  if ( eventCount_ == 0x8fffffff ){ eventCount_ = 0; } // assumes 32-bit integer
-  else                            { eventCount_++; }
+  if ( eventCount_ == 0x8fffffffffffffff ){ eventCount_ = 0; } // assumes 64-bit integer
+  else                                    { eventCount_++; }
 
   lastTimeIndex_++;
   lastTimeIndex_ = ( lastTimeIndex_ % sampleSize_ );

@@ -69,17 +69,16 @@ emu::daq::manager::AppStates::getAppsInState( const string& state ) const {
 
 string
 emu::daq::manager::AppStates::getTimeOfUpdate() const {
-  struct tm *tm;
-  tm = localtime( &timeOfUpdate_ );
-    
-  stringstream ss;
-  ss << setfill('0') << setw(4) << tm->tm_year+1900 << "-"
-     << setfill('0') << setw(2) << tm->tm_mon+1     << "-"
-     << setfill('0') << setw(2) << tm->tm_mday      << " "
-     << setfill('0') << setw(2) << tm->tm_hour      << ":"
-     << setfill('0') << setw(2) << tm->tm_min       << ":"
-     << setfill('0') << setw(2) << tm->tm_sec;
+  struct tm lt;
+  localtime_r( &timeOfUpdate_, &lt ); // reentrant version for thread safety
 
+  stringstream ss;
+  ss << setfill('0') << setw(4) << lt.tm_year+1900 << "-"
+     << setfill('0') << setw(2) << lt.tm_mon+1     << "-"
+     << setfill('0') << setw(2) << lt.tm_mday      << " "
+     << setfill('0') << setw(2) << lt.tm_hour      << ":"
+     << setfill('0') << setw(2) << lt.tm_min       << ":"
+     << setfill('0') << setw(2) << lt.tm_sec;
   return ss.str();
 }
 
@@ -123,9 +122,19 @@ emu::daq::manager::AppStates::getCombinedState() const {
 
 time_t
 emu::daq::manager::AppStates::getAgeInSeconds() const {
+  bSem_.take();
+  time_t ageInSec = getAgeInSec();
+  bSem_.give();
+  return ageInSec;
+}
+
+time_t
+emu::daq::manager::AppStates::getAgeInSec() const {
+  time_t ageInSec;
   time_t now;
   time( &now );
-  return ( now - timeOfUpdate_ );
+  ageInSec = now - timeOfUpdate_;
+  return ageInSec;
 }
 
 bool
@@ -151,11 +160,11 @@ emu::daq::manager::AppStates::clear(){
 }
 
 ostream&
-emu::daq::manager::operator<<( ostream& os,  emu::daq::manager::AppStates& as ){
+emu::daq::manager::operator<<( ostream& os, emu::daq::manager::AppStates& as ){
   as.bSem_.take();
   os << "Application states updated at " << as.getTimeOfUpdate()
      << " (" << as.timeOfUpdate_
-     << "), " << as.getAgeInSeconds()
+     << "), " << as.getAgeInSec()
      << " seconds ago:" << endl;
   map<xdaq::ApplicationDescriptor*, string>::const_iterator s;  
   for ( s=as.appStates_.begin(); s!=as.appStates_.end(); ++s ){

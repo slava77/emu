@@ -7,9 +7,10 @@
 #include "xdaq/WebApplication.h"
 #include "xdata/InfoSpace.h"
 #include "xdata/String.h"
-#include "xdata/UnsignedLong.h"
+#include "xdata/UnsignedInteger64.h"
 #include "xdata/Boolean.h"
 
+#include "i2o/i2oDdmLib.h"
 
 #include "xoap/MessageReference.h"
 
@@ -45,16 +46,16 @@ protected:
   xdaq::ApplicationDescriptor                *clientDescriptor_; ///< application descriptor of client of this server
 
 
-  xdata::UnsignedLong                        *prescaling_; ///< if prescaling is \e n, only every <em>n</em>th event will be sent
+  xdata::UnsignedInteger64                   *prescaling_; ///< if prescaling is \e n, only every <em>n</em>th event will be sent
   xdata::Boolean                             *sendDataOnRequestOnly_; ///< if true, data is sent only if credits have been received
-  xdata::UnsignedLong                        *nEventCreditsHeld_; ///< number of events (from client) yet to be transmitted
+  xdata::UnsignedInteger64                   *nEventCreditsHeld_; ///< number of events (from client) yet to be transmitted
   bool                                        dataIsPendingTransmission_; ///< TRUE if having data scheduled for transmission
 
   Logger                                      logger_; ///< logger
 
   int                                         runNumber_; ///< run number to be transmitted along with the data
   int                                         runStartUTC_; ///< UTC run start time to be transmitted along with the data
-  unsigned short                              errorFlag_; ///< error flag to be transmitted along with the data
+  uint16_t                                    errorFlag_; ///< error flag to be transmitted along with the data
 
   /// Creates server name.
   string         createName();
@@ -104,7 +105,7 @@ public:
   xdaq::ApplicationDescriptor* getClientDescriptor(){ return clientDescriptor_; }
 
   /// not documented here
-  virtual unsigned long getClientTid()=0;
+  virtual I2O_TID getClientTid()=0;
 
   /// Adds event credits.
 
@@ -116,9 +117,9 @@ public:
   /// not documented here
   virtual void   addData(   const int               runNumber, 
 			    const int               runStartUTC,
-			    const int               nEvents, 
+			    const uint64_t          nEvents, 
 			    const PositionInEvent_t position, 
-			    const unsigned short    errorFlag, 
+			    const uint16_t          errorFlag, 
 			    char*                   data, 
 			    const size_t            dataLength )=0;
 //     throw ( xcept::Exception )=0;

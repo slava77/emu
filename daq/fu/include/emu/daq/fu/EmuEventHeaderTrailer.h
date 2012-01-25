@@ -1,6 +1,8 @@
 #ifndef __emu_daq_fu_EmuEventHeaderTrailer_h__
 #define __emu_daq_fu_EmuEventHeaderTrailer_h__
 
+#include <stdint.h>
+
 #include "emu/daq/server/Base.h"
 
 namespace emu { namespace daq { namespace fu {
@@ -22,32 +24,32 @@ namespace emu { namespace daq { namespace fu {
     
     /// @return pointer to the header
     ///
-    unsigned short* header(){ return header_; }
+    uint16_t* header(){ return header_; }
     /// accessor of trailer
     
     /// @return pointer to the trailer
     ///
-    unsigned short* trailer(){ return trailer_; }
+    uint16_t* trailer(){ return trailer_; }
     /// accessor of header size
     
     /// @return header size
     ///
-    unsigned int    headerSize(){ return headerSize_; }
+    size_t    headerSize(){ return headerSize_; }
     /// accessor of trailer size
     
     /// @return trailer size
     ///
-    unsigned int    trailerSize(){ return trailerSize_; }
+    size_t    trailerSize(){ return trailerSize_; }
     /// modifier of DDU count
     
     /// @param DDU count
     ///
-    void setDDUCount( unsigned short DDUCount );
+    void setDDUCount( uint16_t DDUCount );
     /// modifier of L1A counter
     
     /// @param L1A counter
     ///
-    void setL1ACounter( unsigned int L1ACounter );
+    void setL1ACounter( uint32_t L1ACounter );
     /// modifier of CSC configuration id
     
     /// @param CSC configuration id
@@ -55,7 +57,7 @@ namespace emu { namespace daq { namespace fu {
     /// in practice it's unlikely to ever grow beyond ~20 bits, so the 56-bit field 
     /// should be more than enough for it.
     ///  
-    void setCSCConfigId( unsigned int CSCConfigId );
+    void setCSCConfigId( uint32_t CSCConfigId );
     /// modifier of Track Finder configuration id
     
     /// @param Track Finder configuration id
@@ -63,13 +65,13 @@ namespace emu { namespace daq { namespace fu {
     /// in practice it's unlikely to ever grow beyond ~20 bits, so the 52-bit field 
     /// should be more than enough for it.
     ///  
-    void setTFConfigId( unsigned int TFConfigId );
+    void setTFConfigId( uint32_t TFConfigId );
   private:
     static const unsigned int version_ = 1; ///< version number to be incremented by 1 every time something is changed
-    static const unsigned int headerSize_ = 16; ///< header size in bytes
-    static const unsigned int trailerSize_ = 16; ///< trailer size in bytes
-    unsigned short header_[headerSize_/2]; ///< the header
-    unsigned short trailer_[trailerSize_/2]; ///< the trailer
+    static const size_t headerSize_ = 16; ///< header size in bytes
+    static const size_t trailerSize_ = 16; ///< trailer size in bytes
+    uint16_t header_[headerSize_/2]; ///< the header
+    uint16_t trailer_[trailerSize_/2]; ///< the trailer
 
     struct Client{
       emu::daq::server::Base *server;

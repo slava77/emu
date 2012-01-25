@@ -1,6 +1,7 @@
 #ifndef __EMU_DAQ_READER_SPY_H__
 #define __EMU_DAQ_READER_SPY_H__
 
+#include <stdint.h>
 #include "emu/daq/reader/Base.h"
 #include "emu/daq/reader/Clock.h"
 
@@ -63,23 +64,23 @@ namespace emu { namespace daq { namespace reader {
     // new additions for MemoryMapped DDU
     char *buf_data;		///< pointer to data to be read from ring buffer
     char *buf_start;		///< pointer to start of data ring buffer
-    unsigned long int buf_pnt;	///< read pointer (index; number of bytes) w.r.t. the beginning of data ring buffer
-    unsigned long int buf_end;	///< end of data ring buffer w.r.t its beginning
-    unsigned long int buf_eend;	///< index in data ring buffer beyond which an event may not fit any more
-    unsigned long int buf_pnt_kern; ///< kernel's write pointer (index; number of bytes) w.r.t. the beginning of data ring buffer
+    uint64_t buf_pnt;	///< read pointer (index; number of bytes) w.r.t. the beginning of data ring buffer
+    uint64_t buf_end;	///< end of data ring buffer w.r.t its beginning
+    uint64_t buf_eend;	///< index in data ring buffer beyond which an event may not fit any more
+    uint64_t buf_pnt_kern; ///< kernel's write pointer (index; number of bytes) w.r.t. the beginning of data ring buffer
 
     char *ring_start;		///< pointer to start of packet info ring buffer 
-    unsigned long int ring_size;	///< size of packet info ring buffer
-    unsigned long int ring_pnt;	///< read pointer (index; number of bytes) w.r.t. the beginning of packet info ring buffer
-    unsigned short ring_loop;		///< the number of times the reading of the data ring buffer has looped back
-    unsigned short ring_loop_kern;         ///< the number of times the writing of the data ring buffer has looped back as obtained from the current entry of the packet info ring
-    unsigned short ring_loop_kern2;        ///< the number of times the writing of the data ring buffer has looped back as obtained from the first entry of the packet info ring
-    unsigned short timeout;  ///< timeout waiting for event
-    unsigned short packets; ///< number of packets in event
-    unsigned short pmissing;    ///< packets are  missing at beginning
-    unsigned short pmissing_prev; ///< packets are missing at end
-    unsigned short end_event;   ///< end of event seen
-    unsigned short overwrite;   ///< overwrite
+    uint64_t ring_size;	///< size of packet info ring buffer
+    uint64_t ring_pnt;	///< read pointer (index; number of bytes) w.r.t. the beginning of packet info ring buffer
+    uint16_t ring_loop;		///< the number of times the reading of the data ring buffer has looped back
+    uint16_t ring_loop_kern;         ///< the number of times the writing of the data ring buffer has looped back as obtained from the current entry of the packet info ring
+    uint16_t ring_loop_kern2;        ///< the number of times the writing of the data ring buffer has looped back as obtained from the first entry of the packet info ring
+    uint16_t timeout;  ///< timeout waiting for event
+    uint16_t packets; ///< number of packets in event
+    uint16_t pmissing;    ///< packets are  missing at beginning
+    uint16_t pmissing_prev; ///< packets are missing at end
+    uint16_t end_event;   ///< end of event seen
+    uint16_t overwrite;   ///< overwrite
 
     char *tail_start;		///< not used
 
@@ -105,7 +106,7 @@ namespace emu { namespace daq { namespace reader {
     ///
     /// @return number of bytes read
     ///
-    int   readDDU(unsigned short*& buf);
+    int   readDDU(uint16_t*& buf);
 
     /// Reads DCC data (<b>not implemented</b>).
 
@@ -113,7 +114,7 @@ namespace emu { namespace daq { namespace reader {
     ///
     /// @return number of bytes read
     ///
-    int   readDCC(unsigned short*& buf);
+    int   readDCC(uint16_t*& buf);
 
     /// Strips data of ethernet filler words.
 
@@ -122,7 +123,7 @@ namespace emu { namespace daq { namespace reader {
     ///
     /// @return length in bytes of data stripped of ethernet filler words
     ///
-    int   dataLengthWithoutPadding( const unsigned short* data, const int dataLength );
+    int   dataLengthWithoutPadding( const uint16_t* data, const int dataLength );
   };
 }}} // namespace emu::daq::reader
 

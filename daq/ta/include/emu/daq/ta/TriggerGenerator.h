@@ -1,6 +1,8 @@
 #ifndef __emu_daq_ta_TriggerGenerator_h__
 #define __emu_daq_ta_TriggerGenerator_h__
 
+#include <stdint.h>
+
 #include "emu/daq/ta/exception/Exception.h"
 #include "i2o/i2oDdmLib.h"
 #include "i2o/Method.h"
@@ -34,7 +36,7 @@ public:
         toolbox::mem::Pool              *pool,
         const I2O_TID                   initiatorAddress,
         const I2O_TID                   targetAddress,
-        const unsigned long             triggerSourceId,
+        const uint32_t                  triggerSourceId,
         const U32                       eventNumber,
         const U32                       runNumber
     )

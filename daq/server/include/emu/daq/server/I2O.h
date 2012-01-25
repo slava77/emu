@@ -3,11 +3,10 @@
 
 #include "i2o/Method.h"
 #include "xcept/tools.h"
-#include "i2o/i2oDdmLib.h"
-//#include "emu/emuDAQ/emuClient/include/i2oEmuClientMsg.h"
 #include "toolbox/mem/CommittedHeapAllocator.h"
 #include "toolbox/mem/MemoryPoolFactory.h"
 #include "i2o/utils/AddressMap.h"
+#include "xdata/UnsignedInteger64.h"
 
 #include "emu/daq/server/i2oMsg.h"
 #include "emu/daq/server/Base.h"
@@ -26,7 +25,7 @@ private:
   toolbox::mem::CommittedHeapAllocator       *allocator_; ///< allocate fixed size memory
   toolbox::mem::MemoryPoolFactory            *poolFactory_; ///< memory pool factory
   toolbox::mem::Pool                         *pool_; ///< memory pool
-  xdata::UnsignedLong                        *poolSize_; ///< committed memory pool size for data sent to client
+  xdata::UnsignedInteger64                   *poolSize_; ///< committed memory pool size for data sent to client
   I2O_TID                                     clientTid_; ///< target id of client
   I2O_TID                                     tid_; ///< target id of this server
 
@@ -57,7 +56,7 @@ private:
 		      const int               runNumber, 
 		      const int               runStartUTC,
 		      const PositionInEvent_t position, 
-		      const unsigned short    errorFlag, 
+		      const uint16_t          errorFlag, 
 		      char* const             data, 
 		      const size_t            dataLength )
     throw ( xcept::Exception );
@@ -72,7 +71,7 @@ private:
 		    const int               runNumber, 
 		    const int               runStartUTC,
 		    const PositionInEvent_t position, 
-		    const unsigned short    errorFlag, 
+		    const uint16_t          errorFlag, 
 		    char* const             data, 
 		    const size_t            dataLength )
     throw ( xcept::Exception );
@@ -141,9 +140,9 @@ public:
   ///
   void   addData( const int               runNumber, 
 		  const int               runStartUTC,
-		  const int               nEvents, 
+		  const uint64_t          nEvents, 
 		  const PositionInEvent_t position, 
-		  const unsigned short    errorFlag, 
+		  const uint16_t          errorFlag, 
 		  char*                   data, 
 		  const size_t            dataLength );
 
@@ -158,7 +157,7 @@ public:
 
   /// @return target id of client
   ///
-  unsigned long getClientTid(){ return clientTid_; }
+  I2O_TID getClientTid(){ return clientTid_; }
 
   /// dummy in I2O server
   xoap::MessageReference getOldestMessagePendingTransmission(){ xoap::MessageReference m; m=NULL; return m; }

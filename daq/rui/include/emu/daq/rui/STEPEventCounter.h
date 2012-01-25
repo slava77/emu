@@ -1,7 +1,8 @@
 #ifndef __emu_daq_rui_STEPEventCounter_h__
 #define __emu_daq_rui_STEPEventCounter_h__
 
-#include "xdata/UnsignedLong.h"
+#include <stdint.h>
+
 #include "xdata/Vector.h"
 #include "xdata/Boolean.h"
 #include <string>
@@ -14,13 +15,13 @@ namespace emu { namespace daq { namespace rui {
   public:
     enum { maxDDUInputs_ = 15 };
     STEPEventCounter();
-    void         initialize( const unsigned int requestedEvents, char* const DDUHeader );
+    void         initialize( const uint64_t requestedEvents, char* const DDUHeader );
     bool         isInitialized() const { return isInitialized_; }
     void         reset();
     bool         isNeededEvent( char* const DDUHeader );
-    unsigned int getLowestCount() const;
-    unsigned int getCount( const int dduInputIndex ) const;
-    unsigned int getNEvents() const{ return neededEvents_; }
+    uint64_t     getLowestCount() const;
+    uint64_t     getCount( const int dduInputIndex ) const;
+    uint64_t     getNEvents() const{ return neededEvents_; }
     bool         isLiveInput( const int dduInputIndex ) const;
     bool         isMaskedInput( const int dduInputIndex ) const;
     void         maskInput( const int dduInputIndex );
@@ -29,11 +30,11 @@ namespace emu { namespace daq { namespace rui {
 
   private:
     enum { offsetNonEmptyDDUInputsField_  = 18, offsetLiveDDUInputsField_ = 22 }; // from the start of DDU header1 [bytes]
-    unsigned int requestedEvents_;
-    unsigned int neededEvents_; // the total number of events needed so far
+    uint64_t     requestedEvents_;
+    uint64_t     neededEvents_; // the total number of events needed so far
     bool         isLiveInput_[maxDDUInputs_]; // this is obtained from the DDU header
     bool         isMaskedInput_[maxDDUInputs_]; // this the user can set
-    unsigned int count_[maxDDUInputs_];
+    uint64_t     count_[maxDDUInputs_];
     bool         isInitialized_;
   };
 

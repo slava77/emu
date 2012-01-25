@@ -6,14 +6,13 @@
 #include "toolbox/mem/MemoryPoolFactory.h"
 #include <time.h>
 
-
 toolbox::mem::Reference *emu::daq::ta::TriggerGenerator::generate
 (
     toolbox::mem::MemoryPoolFactory *poolFactory,
     toolbox::mem::Pool              *pool,
     const I2O_TID                   initiatorAddress,
     const I2O_TID                   targetAddress,
-    const unsigned long             triggerSourceId,
+    const uint32_t                  triggerSourceId,
     const U32                       eventNumber,
     const U32                       runNumber
 )
@@ -23,7 +22,7 @@ throw (emu::daq::ta::exception::Exception)
     I2O_MESSAGE_FRAME                  *stdMsg     = 0;
     I2O_PRIVATE_MESSAGE_FRAME          *pvtMsg     = 0;
     I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME *block      = 0;
-    unsigned long                      bufSize     = 0;
+    size_t                             bufSize     = 0;
     char                               *payload    = 0;
 //     frlh_t                             *frlHeader  = 0;
 //     fedh_t                             *fedHeader  = 0;

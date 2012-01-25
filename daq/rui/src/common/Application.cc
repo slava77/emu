@@ -91,19 +91,9 @@ throw (xdaq::exception::Exception) :
     stdConfigParams_  = initAndGetStdConfigParams();
     stdMonitorParams_ = initAndGetStdMonitorParams();
 
-    // Create info space for monitoring
-    monitoringInfoSpaceName_ = generateMonitoringInfoSpaceName(xmlClass_, instance_);
-    if ( xdata::getInfoSpaceFactory()->hasItem(monitoringInfoSpaceName_) )
-      monitoringInfoSpace_ = xdata::getInfoSpaceFactory()->get(monitoringInfoSpaceName_);
-    else
-      monitoringInfoSpace_ = xdata::getInfoSpaceFactory()->create(monitoringInfoSpaceName_);
-
     // Fill the application's default info space
     putParamsIntoInfoSpace(stdConfigParams_ , appInfoSpace_);
     putParamsIntoInfoSpace(stdMonitorParams_, appInfoSpace_);
-
-    // Fill the application's monitorable info space
-    putParamsIntoInfoSpace(stdMonitorParams_, monitoringInfoSpace_);
 
     bindFsmSoapCallbacks();
     bindI2oCallbacks();
@@ -147,7 +137,7 @@ string emu::daq::rui::Application::generateLoggerName()
 {
     xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
     string                      appClass       = appDescriptor->getClassName();
-    unsigned long               appInstance    = appDescriptor->getInstance();
+    uint32_t                    appInstance    = appDescriptor->getInstance();
     stringstream                oss;
     string                      loggerName;
 
@@ -401,7 +391,7 @@ throw (emu::daq::rui::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
     set< xdaq::ApplicationDescriptor* > descriptors;
-    int nbApps = 0;
+    size_t nbApps = 0;
 
     try
     {
@@ -421,7 +411,7 @@ throw (emu::daq::rui::exception::Exception)
     // Fill application descriptors in instance order allowing non-contiguous numbering
     while( !descriptors.empty() ){
       // Find app with smallest instance number
-      unsigned int minInstance = 99999;
+      uint32_t minInstance = 99999;
       set< xdaq::ApplicationDescriptor* >::iterator adOfSmallest;
       set< xdaq::ApplicationDescriptor* >::iterator ad;
       for ( ad=descriptors.begin(); ad!=descriptors.end(); ++ad )
@@ -524,7 +514,7 @@ throw (emu::daq::rui::exception::Exception)
 
 }
 
-string emu::daq::rui::Application::createRuiRuPoolName(const unsigned long emuRUIInstance)
+string emu::daq::rui::Application::createRuiRuPoolName(const uint32_t emuRUIInstance)
 {
     stringstream oss;
     string       s;
@@ -667,22 +657,6 @@ throw (emu::daq::rui::exception::Exception)
 }
 
 
-string emu::daq::rui::Application::generateMonitoringInfoSpaceName
-(
-    const string        appClass,
-    const unsigned long appInstance
-)
-{
-    stringstream oss;
-    string       name;
-
-    oss << "urn:xdaq-monitorable:" << appClass << ":" << appInstance;
-    name = oss.str();
-
-    return name;
-}
-
-
 vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAndGetStdConfigParams()
 {
     vector< pair<string, xdata::Serializable*> > params;
@@ -748,7 +722,7 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     params.push_back( pair<string,xdata::Serializable *>( "nToWriteBeforeBadEvent", &nToWriteBeforeBadEvent_ ) );
     params.push_back( pair<string,xdata::Serializable *>( "nToWriteAfterBadEvent" , &nToWriteAfterBadEvent_  ) );
 
-    for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
+    for( size_t iClient=0; iClient<maxClients_; ++iClient ) {
       clientName_.push_back("");
       clientInstance_.push_back(0);
       clientProtocol_.push_back("I2O");
@@ -806,7 +780,7 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     params.push_back(pair<string,xdata::Serializable *>
 		     ("fileWritingVetoed", &fileWritingVetoed_ ));
 
-    for( unsigned int iClient=0; iClient<maxClients_; ++iClient ){ 
+    for( size_t iClient=0; iClient<maxClients_; ++iClient ){ 
       creditsHeld_.push_back(0);
       clientPersists_.push_back(true);
     }
@@ -967,7 +941,7 @@ xoap::MessageReference emu::daq::rui::Application::onReset(xoap::MessageReferenc
 }
 
 xoap::MessageReference emu::daq::rui::Application::onTerminate(xoap::MessageReference msg){
-  const int terminationDelay = 5; // seconds to allow log messages to be sent before termination
+  const int32_t terminationDelay = 5; // seconds to allow log messages to be sent before termination
   std::multimap<std::string, std::string, std::less<std::string> >& allHeaders = msg->getMimeHeaders()->getAllHeaders();
   std::multimap<std::string, std::string, std::less<std::string> >::iterator i;
   std::string user_agent("");
@@ -1050,7 +1024,7 @@ void emu::daq::rui::Application::destroyDeviceReader(){
 void emu::daq::rui::Application::createDeviceReader(){
 
   // Create readers
-  inputDataFormatInt_ = -1;
+  inputDataFormatInt_ = 999999;
   if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = emu::daq::reader::Base::DDU;
   else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = emu::daq::reader::Base::DCC;
   else{
@@ -1081,7 +1055,7 @@ void emu::daq::rui::Application::createDeviceReader(){
     }
     try {
       if      ( inputDeviceType_ == "spy"  )
-	deviceReader_ = new emu::daq::reader::Spy(  inputDeviceName_.toString(), inputDataFormatInt_ );
+	deviceReader_ = new emu::daq::reader::Spy(  inputDeviceName_.toString(), inputDataFormatInt_, false );
       else if ( inputDeviceType_ == "file" )
 	deviceReader_ = new emu::daq::reader::RawDataFile( inputDeviceName_.toString(), inputDataFormatInt_ );
       // TODO: slink
@@ -1129,14 +1103,14 @@ void emu::daq::rui::Application::destroyServers(){
   clients_.clear();
 }
 
-bool emu::daq::rui::Application::createI2OServer( string clientName, unsigned int clientInstance  ){
+bool emu::daq::rui::Application::createI2OServer( string clientName, uint32_t clientInstance  ){
   bool created = false;
-  unsigned int iClient = clients_.size();
+  size_t iClient = clients_.size();
   if ( iClient < maxClients_ ){
-    *(dynamic_cast<xdata::String*>       ( clientName_.elementAt( iClient )     )) = clientName;
-    *(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
-    *(dynamic_cast<xdata::String*>       ( clientProtocol_.elementAt( iClient ) )) = "I2O";
-    *(dynamic_cast<xdata::Boolean*>      ( clientPersists_.elementAt( iClient ) )) = true;
+    *(dynamic_cast<xdata::String*>            ( clientName_.elementAt( iClient )     )) = clientName;
+    *(dynamic_cast<xdata::UnsignedInteger32*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
+    *(dynamic_cast<xdata::String*>            ( clientProtocol_.elementAt( iClient ) )) = "I2O";
+    *(dynamic_cast<xdata::Boolean*>           ( clientPersists_.elementAt( iClient ) )) = true;
     emu::daq::server::I2O* s = new emu::daq::server::I2O( this,
 							  i2oExceptionHandler_,
 							  clientName_.elementAt(iClient)->toString(),
@@ -1160,14 +1134,14 @@ bool emu::daq::rui::Application::createI2OServer( string clientName, unsigned in
   return created;
 }
 
-bool emu::daq::rui::Application::createSOAPServer( string clientName,  unsigned int clientInstance, bool persistent ){
+bool emu::daq::rui::Application::createSOAPServer( string clientName,  uint32_t clientInstance, bool persistent ){
   bool created = false;
-  unsigned int iClient = clients_.size();
+  size_t iClient = clients_.size();
   if ( iClient < maxClients_ ){
-    *(dynamic_cast<xdata::String*>       (     clientName_.elementAt( iClient ) )) = clientName;
-    *(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
-    *(dynamic_cast<xdata::String*>       ( clientProtocol_.elementAt( iClient ) )) = "SOAP";
-    *(dynamic_cast<xdata::Boolean*>      ( clientPersists_.elementAt( iClient ) )) = persistent;
+    *(dynamic_cast<xdata::String*>          (     clientName_.elementAt( iClient ) )) = clientName;
+    *(dynamic_cast<xdata::UnsignedInteger*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
+    *(dynamic_cast<xdata::String*>          ( clientProtocol_.elementAt( iClient ) )) = "SOAP";
+    *(dynamic_cast<xdata::Boolean*>         ( clientPersists_.elementAt( iClient ) )) = persistent;
     emu::daq::server::SOAP* s = new emu::daq::server::SOAP( this,
 							    clientName_.elementAt(iClient)->toString(),
 							    clientInstance,
@@ -1201,12 +1175,12 @@ bool emu::daq::rui::Application::createSOAPServer( string clientName,  unsigned 
 
 
 void emu::daq::rui::Application::createServers(){
-  for ( unsigned int iClient=0; iClient<clientName_.elements(); ++iClient ){
+  for ( size_t iClient=0; iClient<clientName_.elements(); ++iClient ){
     xdata::Boolean *persists = dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt(iClient) );
     // (Re)create it only if it has a name and is not a temporary server created on the fly
     if ( clientName_.elementAt(iClient)->toString() != "" && persists->value_ ){
-      unsigned int clientInstance = 
-	(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) ))->value_;
+      uint32_t clientInstance = 
+	(dynamic_cast<xdata::UnsignedInteger32*> ( clientInstance_.elementAt( iClient ) ))->value_;
       LOG4CPLUS_INFO(logger_,
 		     clientName_.elementAt(iClient)->toString() << clientInstance << 
 		     "\'s server being created" );
@@ -1504,7 +1478,7 @@ throw (toolbox::fsm::exception::Exception)
     }
 
     // server loops
-    for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+    for ( size_t iClient=0; iClient<clients_.size(); ++iClient ){
       // Start separate server loops for SOAP servers only as SOAP messaging is synchronous
       // and therefore blocking. (I2O messages don't block, they just "fire & forget".)
       if ( clientProtocol_.elementAt( iClient )->toString() == "SOAP" )
@@ -1572,7 +1546,7 @@ throw (toolbox::fsm::exception::Exception)
 	      clients_[iClient]->workLoopStarted = true;
 	    } // if( ! clients_[iClient]->workLoopStarted )
 	} // if ( clientProtocol_.elementAt( iClient )->toString() == "SOAP" )
-    } // for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
+    } // for ( size_t iClient=0; iClient<clients_.size(); ++iClient )
 
 }
 
@@ -1888,7 +1862,7 @@ throw (xgi::exception::Exception)
 bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
 {
   bool isToBeRescheduled    = true;
-  int  pauseForOtherThreads = 0;
+  int32_t  pauseForOtherThreads = 0;
   applicationBSem_.take();
 
   toolbox::fsm::State state = fsm_.getCurrentState();
@@ -1940,7 +1914,7 @@ bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
 
       // Pass data on to clients
       // Run the servers too in the readout thread.
-      for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+      for ( size_t iClient=0; iClient<clients_.size(); ++iClient ){
 	// Service only I2O clients here in the readout loop as I2O messages
 	// are non-blocking (fire & forget).
 	if ( clientProtocol_.elementAt( iClient )->toString() == "I2O" ){
@@ -1975,7 +1949,7 @@ bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
 
   applicationBSem_.give();
 
-  if ( pauseForOtherThreads > 0 ) usleep( (unsigned int) pauseForOtherThreads );
+  if ( pauseForOtherThreads > 0 ) usleep( (uint32_t) pauseForOtherThreads );
 
   // Reschedule this action code
   return isToBeRescheduled;
@@ -1985,7 +1959,7 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 {
     try
     {
-      int  pauseForOtherThreads = 0;
+      int32_t  pauseForOtherThreads = 0;
 
       applicationBSem_.take();
 
@@ -2001,7 +1975,7 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 	  break;
         case 'E':  // Enabled
 	  // Find out from which work loop we dropped in here
-	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	  for ( size_t iClient=0; iClient<clients_.size(); ++iClient ){
 	    if ( clients_[iClient]->workLoop == wl ){
 // 	      LOG4CPLUS_INFO(logger_, "Sending data from " << clients_[iClient]->workLoopName << " ("<< wl << ")");
 	      clients_[iClient]->server->sendData();
@@ -2022,7 +1996,7 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 
 	applicationBSem_.give();
 
-	if ( pauseForOtherThreads > 0 ) usleep( (unsigned int) pauseForOtherThreads );
+	if ( pauseForOtherThreads > 0 ) usleep( (uint32_t) pauseForOtherThreads );
 
     }
     catch(xcept::Exception &e)
@@ -2045,27 +2019,27 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 }
 
 
-void emu::daq::rui::Application::addDataForClients( const int   runNumber, 
-						    const int   runStartUTC,
-						    const int   nEventsRead,
+void emu::daq::rui::Application::addDataForClients( const uint32_t runNumber, 
+						    const uint32_t runStartUTC,
+						    const uint64_t nEventsRead,
 						    const emu::daq::server::PositionInEvent_t position,
-						    const unsigned short errorFlag, 
+						    const uint16_t errorFlag, 
 						    char* const data, 
-						    const int   dataLength ){
-  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
+						    const size_t dataLength ){
+  for ( size_t iClient=0; iClient<clients_.size(); ++iClient )
     clients_[iClient]->server->addData( runNumber, runStartUTC, nEventsRead, position, 
 					errorFlag, data, dataLength );
 }
 
 void emu::daq::rui::Application::makeClientsLastBlockEndEvent(){
-  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
+  for ( size_t iClient=0; iClient<clients_.size(); ++iClient )
     clients_[iClient]->server->makeLastBlockEndEvent();
 }
 
 
-int emu::daq::rui::Application::processAndCommunicate()
+int32_t emu::daq::rui::Application::processAndCommunicate()
 {
-  int pauseForOtherThreads = 0;
+  int32_t pauseForOtherThreads = 0;
 
     if( blocksArePendingTransmission_ )
     {
@@ -2165,7 +2139,7 @@ void emu::daq::rui::Application::createFileWriters(){
 
 	  // create new writers if path is not empty
 	  if ( pathToDataOutFile_ != string("") && 
-	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
+	       (xdata::UnsignedInteger64) fileSizeInMegaBytes_ > (uint64_t) 0 )
 	    {
 	      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
 	      fileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_, 
@@ -2206,7 +2180,7 @@ void emu::daq::rui::Application::createFileWriters(){
 	  }
 }
 
-void emu::daq::rui::Application::writeDataToFile( const char* const data, const int dataLength, const bool newEvent ){
+void emu::daq::rui::Application::writeDataToFile( const char* const data, const size_t dataLength, const bool newEvent ){
   if ( fileWriter_ ){
     try{
       if ( newEvent ){
@@ -2239,7 +2213,7 @@ void emu::daq::rui::Application::writeDataToFile( const char* const data, const 
   }
 }
 
-void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, const int dataLength, const bool newEvent ){
+void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, const size_t dataLength, const bool newEvent ){
   if ( writeBadEventsOnly_.value_ ){
     // We're to write bad events only (and their context).
     // Add data to the buffer ring:
@@ -2265,7 +2239,7 @@ void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, 
 	  // Get the bad event and its preceding events and write them to file as the leading context:
 	  list<const emu::daq::rui::EventBuffer*> ebl( eventBufferRing_.getEventBuffers() );
 	  for ( list<const emu::daq::rui::EventBuffer*>::const_iterator i=ebl.begin(); i!=ebl.end(); ++i ){
-	    writeDataToFile( (*i)->getEvent(), (int) (*i)->getEventSize(), true );
+	    writeDataToFile( (*i)->getEvent(), (*i)->getEventSize(), true );
 	    //LOG4CPLUS_WARN(logger_, "Writing bad event leading context, event -" << --countToBadEvent );
 	  }
 	  // Zero the counter of events read since the last bad event:
@@ -2282,17 +2256,17 @@ void emu::daq::rui::Application::writeDataWithContextToFile(  char* const data, 
   } // if ( writeBadEventsOnly_.value_ ) else
 }
 
-int emu::daq::rui::Application::continueConstructionOfSuperFrag()
+int32_t emu::daq::rui::Application::continueConstructionOfSuperFrag()
   throw (emu::daq::rui::exception::Exception){
 
   // Possible return values
-  const int extraPauseForOtherThreads   = 5000; // [microsecond]
-  const int noExtraPauseForOtherThreads = 0;    // [microsecond]
-  const int notToBeRescheduled          = -1;
+  const int32_t extraPauseForOtherThreads   = 5000; // [microsecond]
+  const int32_t noExtraPauseForOtherThreads = 0;    // [microsecond]
+  const int32_t notToBeRescheduled          = -1;
 
-  unsigned int nBytesRead = 0;
+  uint64_t nBytesRead = 0;
 
-  if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) 
+  if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (uint64_t) maxEvents_.value_ ) 
     return notToBeRescheduled;
 
 //   //DEBUG_START
@@ -2306,7 +2280,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
   if (deviceReader_ == NULL) return notToBeRescheduled;
 
   // Prepare to read the first first event if we have not yet done so:
-  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && ! deviceReader_->isResetAndEnabled() ){
+  if ( (xdata::UnsignedInteger64) nEventsRead_ == (uint64_t) 0 && ! deviceReader_->isResetAndEnabled() ){
     try{
       deviceReader_->resetAndEnable();
     }
@@ -2340,7 +2314,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 
     if ( deviceReader_->getLogMessage().length() > 0 )
       LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
-  } // if ( nEventsRead_ == (unsigned long) 0 )
+  } // if ( nEventsRead_ == 0 )
 
     // See if there's something to read and then read it:
   try{
@@ -2386,7 +2360,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
   nReadingPassesInEvent_++;
   nReadingPasses_++;
 
-  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && nReadingPassesInEvent_ == 1 ) {
+  if ( (xdata::UnsignedInteger64) nEventsRead_ == (uint64_t) 0 && nReadingPassesInEvent_ == 1 ) {
     // first event started --> a new run
 
     insideEvent_ = false;
@@ -2406,7 +2380,7 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
   }
 
   char* data;
-  int   dataLength  = 0;
+  size_t dataLength  = 0;
 
   data = deviceReader_->data();
 
@@ -2435,34 +2409,34 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 
       if ( trailer && inputDataFormatInt_ == emu::daq::reader::Base::DDU ) isBadEvent_ = interestingDDUErrorBitPattern(data,dataLength);
 
-//       stringstream ss;
-//       ss << "Inside event: " << insideEvent_
-// 	 << " Last L1A: " << eventNumber_
-// 	 << " N read: " << nEventsRead_.toString()
-// 	 << " This L1A: " << deviceReader_->eventNumber()
-// 	 << " Length: " << dataLength
-// 	 << " Header: " << header
-// 	 << " Trailer: " << trailer;
-//       if ( inputDeviceType_ == "spy"  ){
-// 	ss << " Packets: " << ( ( errorFlag_ && 0x0F00 ) >> 8 );
-// 	if ( errorFlag_ & 0x00ff ){
-// 	  ss << " Errors: "
-// 	     << (errorFlag_ & emu::daq::reader::Spy::EndOfEventMissing ? "EndOfEventMissing " : "" )
-// 	     << (errorFlag_ & emu::daq::reader::Spy::Timeout ? "Timeout " : "" )
-// 	     << (errorFlag_ & emu::daq::reader::Spy::PacketsMissing ? "PacketsMissing " : "" )
-// 	     << (errorFlag_ & emu::daq::reader::Spy::LoopOverwrite ? "LoopOverwrite " : "" )
-// 	     << (errorFlag_ & emu::daq::reader::Spy::BufferOverwrite ? "BufferOverwrite " : "" )
-// 	     << (errorFlag_ & emu::daq::reader::Spy::Oversized ? "Oversized" : "" );
-// 	  LOG4CPLUS_WARN(logger_, ss.str());
-// 	  stringstream ss48;
-// 	  ss48 <<  ss.str();
-// 	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss48.str() );
-// 	  this->notifyQualified( "warning", eObj );
-//  	}
-// 	else{
-// 	  LOG4CPLUS_INFO(logger_, ss.str());
-// 	}
-//       }
+      stringstream ss;
+      ss << "Inside event: " << insideEvent_
+	 << " Last L1A: " << eventNumber_
+	 << " N read: " << nEventsRead_.toString()
+	 << " This L1A: " << deviceReader_->eventNumber()
+	 << " Length: " << dataLength
+	 << " Header: " << header
+	 << " Trailer: " << trailer;
+      if ( inputDeviceType_ == "spy"  ){
+	ss << " Packets: " << ( ( errorFlag_ && 0x0F00 ) >> 8 );
+	if ( errorFlag_ & 0x00ff ){
+	  ss << " Errors: "
+	     << (errorFlag_ & emu::daq::reader::Spy::EndOfEventMissing ? "EndOfEventMissing " : "" )
+	     << (errorFlag_ & emu::daq::reader::Spy::Timeout ? "Timeout " : "" )
+	     << (errorFlag_ & emu::daq::reader::Spy::PacketsMissing ? "PacketsMissing " : "" )
+	     << (errorFlag_ & emu::daq::reader::Spy::LoopOverwrite ? "LoopOverwrite " : "" )
+	     << (errorFlag_ & emu::daq::reader::Spy::BufferOverwrite ? "BufferOverwrite " : "" )
+	     << (errorFlag_ & emu::daq::reader::Spy::Oversized ? "Oversized" : "" );
+	//   LOG4CPLUS_WARN(logger_, ss.str());
+	//   stringstream ss48;
+	//   ss48 <<  ss.str();
+	//   XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss48.str() );
+	//   this->notifyQualified( "warning", eObj );
+ 	}
+	// else{
+	  LOG4CPLUS_INFO(logger_, ss.str());
+	// }
+      }
 
 //       printData(ss,data,dataLength);
 
@@ -2595,23 +2569,23 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 
 }
 
-int emu::daq::rui::Application::continueSTEPRun()
+int32_t emu::daq::rui::Application::continueSTEPRun()
   throw (emu::daq::rui::exception::Exception){
 
   // Possible return values
-  const int extraPauseForOtherThreads   = 5000; // [microsecond]
-  const int noExtraPauseForOtherThreads = 0;    // [microsecond]
-  const int notToBeRescheduled          = -1;
+  const int32_t extraPauseForOtherThreads   = 5000; // [microsecond]
+  const int32_t noExtraPauseForOtherThreads = 0;    // [microsecond]
+  const int32_t notToBeRescheduled          = -1;
 
-  unsigned int nBytesRead = 0;
+  uint64_t nBytesRead = 0;
 
-  if ( maxEvents_.value_ >= 0 && STEPEventCounter_.getLowestCount() >= (unsigned long) maxEvents_.value_ )
+  if ( maxEvents_.value_ >= 0 && STEPEventCounter_.getLowestCount() >= (uint64_t) maxEvents_.value_ )
     return notToBeRescheduled;
 
   if (deviceReader_ == NULL) return notToBeRescheduled;
 
   // Prepare to read the first event if we have not yet done so:
-  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && ! deviceReader_->isResetAndEnabled() ){
+  if ( (xdata::UnsignedInteger64) nEventsRead_ == (uint64_t) 0 && ! deviceReader_->isResetAndEnabled() ){
     try{
       deviceReader_->resetAndEnable();
     }
@@ -2644,7 +2618,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 
     if ( deviceReader_->getLogMessage().length() > 0 )
       LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
-  } // if ( nEventsRead_ == (unsigned long) 0 )
+  } // if ( nEventsRead_ == 0 )
 
     // See if there's something to read and then read it:
   try{
@@ -2689,7 +2663,7 @@ int emu::daq::rui::Application::continueSTEPRun()
 
   nReadingPassesInEvent_++;
 
-  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && nReadingPassesInEvent_ == 1 ) {
+  if ( (xdata::UnsignedInteger64) nEventsRead_ == (uint64_t) 0 && nReadingPassesInEvent_ == 1 ) {
     // first event started --> a new run
 
     insideEvent_ = false;
@@ -2709,7 +2683,7 @@ int emu::daq::rui::Application::continueSTEPRun()
   }
 
   char* data;
-  int   dataLength  = 0;
+  size_t dataLength  = 0;
 
   data = deviceReader_->data();
 
@@ -2735,9 +2709,9 @@ int emu::daq::rui::Application::continueSTEPRun()
       if ( trailer && inputDataFormatInt_ == emu::daq::reader::Base::DDU ) interestingDDUErrorBitPattern(data,dataLength);
 
       if ( header && ! STEPEventCounter_.isInitialized() ){
-	unsigned int maxEvents;
-	if ( maxEvents_.value_ < 0 ) maxEvents = 0xffffffff;
-	else                         maxEvents = (unsigned int) maxEvents_.value_;
+	uint64_t maxEvents;
+	if ( maxEvents_.value_ < 0 ) maxEvents = 0xffffffffffffffff;
+	else                         maxEvents = (uint64_t) maxEvents_.value_;
 	STEPEventCounter_.initialize( maxEvents, data );
       }
 
@@ -2934,7 +2908,7 @@ void emu::daq::rui::Application::ensureContiguousEventNumber(){
   // Don't do it if this is the first event read (i.e., previous event number is zero)
   if ( previousEventNumber_ == 0 ) return;
 
-  const unsigned int maxL1A = 0xffffff;
+  const uint64_t maxL1A = 0xffffff;
 
   try{
 
@@ -2970,11 +2944,11 @@ void emu::daq::rui::Application::ensureContiguousEventNumber(){
   }
 }
 
-void emu::daq::rui::Application::insertEmptySuperFragments( const unsigned long fromEventNumber, const unsigned long toEventNumber )
+void emu::daq::rui::Application::insertEmptySuperFragments( const uint64_t fromEventNumber, const uint64_t toEventNumber )
   throw (emu::daq::rui::exception::Exception){
 
   const char* data     = NULL;
-  const int dataLength = 0;
+  const size_t dataLength = 0;
 
   LOG4CPLUS_WARN(logger_, "Inserting " << toEventNumber-fromEventNumber+1 
 		 << " empty events (" << fromEventNumber << " through " << toEventNumber << ")");  
@@ -2984,13 +2958,13 @@ void emu::daq::rui::Application::insertEmptySuperFragments( const unsigned long 
 //   XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss65.str() );
 //   this->notifyQualified( "warning", eObj );
 
-  for ( unsigned long eventNumber = fromEventNumber; eventNumber <= toEventNumber; ++eventNumber ){
+  for ( uint64_t eventNumber = fromEventNumber; eventNumber <= toEventNumber; ++eventNumber ){
     appendNewBlockToSuperFrag( data, dataLength, eventNumber );
     nEventsRead_++;
     previousEventNumber_ = eventNumber;
 
 // //DEBUG_START
-//     const int DBGdataLength = 8;
+//     const int32_t DBGdataLength = 8;
 //     char DBGdata[DBGdataLength] = {'a','b','c','d','e','f','g','h'};
 //     appendNewBlockToSuperFrag( &DBGdata[0], DBGdataLength, eventNumber );
 // //DEBUG_END
@@ -2998,11 +2972,11 @@ void emu::daq::rui::Application::insertEmptySuperFragments( const unsigned long 
 
 }
 
-void emu::daq::rui::Application::printData(std::ostream& os, char* data, const int dataLength){
-  unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
+void emu::daq::rui::Application::printData(std::ostream& os, char* data, const size_t dataLength){
+  uint16_t *shortData = reinterpret_cast<uint16_t *>(data);
   os << "_________________________________" << endl;
   os << "                +3   +2   +1   +0" << endl;
-  for(int i = 0; i < dataLength/2; i+=4)
+  for(size_t i = 0; i < dataLength/2; i+=4)
     {
       os << std::dec;
       os.width(8); os.fill(' ');
@@ -3022,12 +2996,12 @@ void emu::daq::rui::Application::printData(std::ostream& os, char* data, const i
   os.width(0);
 }
 
-bool emu::daq::rui::Application::hasHeader( char* const data, const int dataLength ){
+bool emu::daq::rui::Application::hasHeader( char* const data, const size_t dataLength ){
   // By now data must have been stripped of any filler words.
-  const int DDUHeaderLength = 24; // bytes
-  const int DCCHeaderLength = 16; // bytes
+  const size_t DDUHeaderLength = 24; // bytes
+  const size_t DCCHeaderLength = 16; // bytes
   bool headerFound = false;
-  unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
+  uint16_t *shortData = reinterpret_cast<uint16_t *>(data);
 
   if ( inputDataFormatInt_ == emu::daq::reader::Base::DDU ){
     if ( dataLength < DDUHeaderLength ) return false; // can the data be split in the header???
@@ -3055,17 +3029,17 @@ bool emu::daq::rui::Application::hasHeader( char* const data, const int dataLeng
   return headerFound;
 }
 
-bool emu::daq::rui::Application::hasTrailer( char* const data, const int dataLength ){
+bool emu::daq::rui::Application::hasTrailer( char* const data, const size_t dataLength ){
   // By now data must have been stripped of any filler words.
-  const int DDUTrailerLength = 24; // bytes
-  const int DCCTrailerLength = 16; // bytes
+  const size_t DDUTrailerLength = 24; // bytes
+  const size_t DCCTrailerLength = 16; // bytes
   bool trailerFound = false;
-  unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
+  uint16_t *shortData = reinterpret_cast<uint16_t *>(data);
 //   std::cout << "inputDataFormatInt ?=? emu::daq::reader::Base::DDU " << inputDataFormatInt_ << " ?=? " << emu::daq::reader::Base::DDU << std::endl << std::flush;
   if ( inputDataFormatInt_ == emu::daq::reader::Base::DDU ){
     if ( dataLength >= DDUTrailerLength ){
       // All three 64-bit trailer words must be found
-      const int start = (dataLength - DDUTrailerLength) / 2;
+      const size_t start = (dataLength - DDUTrailerLength) / 2;
       trailerFound = ( shortData[start+0] == 0x8000 &&
 		       shortData[start+1] == 0x8000 &&
 		       shortData[start+2] == 0xffff &&
@@ -3076,7 +3050,7 @@ bool emu::daq::rui::Application::hasTrailer( char* const data, const int dataLen
       // Only the last one or two 64-bit trailer words can possibly be here.
       // Only the last 64-bit trailer word has a 4-bit-long fixed part. Not much to go by, but if the data
       // is this short, it must be the rump of a trailer. Let's see if the hard coded bits are indeed there:
-      const int start = (dataLength - DDUTrailerLength/3) / 2;
+      const size_t start = (dataLength - DDUTrailerLength/3) / 2;
       trailerFound = ( ( shortData[start+3] & 0xf000 ) == 0xa000 );
     }
     else{
@@ -3097,7 +3071,7 @@ bool emu::daq::rui::Application::hasTrailer( char* const data, const int dataLen
   }
   else if ( inputDataFormatInt_ == emu::daq::reader::Base::DCC ){
     if ( dataLength < DCCTrailerLength ) return false; // can the data be split in the trailer???
-    int start = (dataLength - DCCTrailerLength) / 2;
+    size_t start = (dataLength - DCCTrailerLength) / 2;
     trailerFound = ( (shortData[start+3] & 0xff00) == 0xef00 &&
 		     (shortData[start+4] & 0x000f) == 0x0003 &&
 		     (shortData[start+7] & 0xff00) == 0xaf00    );
@@ -3106,7 +3080,7 @@ bool emu::daq::rui::Application::hasTrailer( char* const data, const int dataLen
 }
 
 
-bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data, const int dataLength){
+bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data, const size_t dataLength){
   // At this point dataLength should no longer contain Ethernet padding.
 
   // Check for interesting error bit patterns (defined by J. Gilmore):
@@ -3121,14 +3095,14 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
   //    ----> Remains set until the condition abates; 
 
   bool foundError = false;
-  const unsigned long DDUTrailerLength = 24; // bytes
-  unsigned short *trailerShortWord =
-    reinterpret_cast<unsigned short*>( data + dataLength - DDUTrailerLength );
+  const size_t DDUTrailerLength = 24; // bytes
+  uint16_t *trailerShortWord =
+    reinterpret_cast<uint16_t*>( data + dataLength - DDUTrailerLength );
   
   // TTS/FMM status defined in C.D.F.
-  const short FED_Overflow  = 0x0010;
-  //const short FED_OutOfSync = 0x0020;
-  //const short FED_Error     = 0x00C0;
+  const uint16_t FED_Overflow  = 0x0010;
+  //const uint16_t  FED_OutOfSync = 0x0020;
+  //const uint16_t  FED_Error     = 0x00C0;
 
   // 1)
   if ( trailerShortWord[6] & 0x4000 ) {    // DDU Trailer-1 bit 46
@@ -3164,12 +3138,12 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
   return foundError;
 }
 
-void emu::daq::rui::Application::appendNewBlockToSuperFrag( const char* data, const unsigned long dataLength, const unsigned long eventNumber )
+void emu::daq::rui::Application::appendNewBlockToSuperFrag( const char* data, const size_t dataLength, const uint64_t eventNumber )
 throw (emu::daq::rui::exception::Exception)
 {
     toolbox::mem::Reference *bufRef = 0;
 
-    unsigned long dataBufSize = sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME) 
+    size_t dataBufSize = sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME) 
                                 + dataLength;
 
     // Get a free block from the RUI/RU pool
@@ -3231,14 +3205,14 @@ void emu::daq::rui::Application::printBlocks( deque<toolbox::mem::Reference*> d 
 void emu::daq::rui::Application::fillBlock(
     toolbox::mem::Reference *bufRef,
     const char*              data,
-    const unsigned int       dataLength,
-    const unsigned long      eventNumber
+    const size_t             dataLength,
+    const uint64_t           eventNumber
 )
 throw (emu::daq::rui::exception::Exception)
 {
     char         *blockAddr        = 0;
     char         *fedAddr          = 0;
-    unsigned int i2oMessageSize    = 0;
+    size_t i2oMessageSize    = 0;
 
     ///////////////////////////////////////////////////////////
     // Calculate addresses of block, FRL header and FED data //
@@ -3312,7 +3286,7 @@ void emu::daq::rui::Application::finalizeSuperFragment()
      I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME *block  = 0;
 
      // Count and number blocks belonging to current event
-     int blockCount = 0;
+     size_t blockCount = 0;
      for(pos=superFragBlocks_.begin(); pos!=superFragBlocks_.end(); ++pos){
        bufRef = *pos;
        block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
@@ -3416,10 +3390,10 @@ void emu::daq::rui::Application::getTidOfEmuTA()
 }
 
 
-void emu::daq::rui::Application::sendEventNumberToTA( unsigned long firstEventNumber )
+void emu::daq::rui::Application::sendEventNumberToTA( uint64_t firstEventNumber )
   throw ( xcept::Exception ){
 
-  const unsigned long frameSize = sizeof(I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME) + sizeof(firstEventNumber);
+  const size_t frameSize = sizeof(I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME) + sizeof(firstEventNumber);
 
   toolbox::mem::Reference *ref = 0;
   try 
@@ -3463,7 +3437,7 @@ void emu::daq::rui::Application::sendEventNumberToTA( unsigned long firstEventNu
       this->notifyQualified( "warning", eObj );
       // Retry 3 times
       bool retryOK = false;
-      for (int k = 0; k < 3; k++)
+      for (int32_t k = 0; k < 3; k++)
 	{
 	  try
 	    {
@@ -3495,12 +3469,12 @@ xoap::MessageReference emu::daq::rui::Application::onSTEPQuery( xoap::MessageRef
 
   try{
     // Transfer STEP info into xdata as those can readily be serialized into SOAP
-    xdata::UnsignedLong                totalCount  = STEPEventCounter_.getNEvents();
-    xdata::UnsignedLong                lowestCount = STEPEventCounter_.getLowestCount();
-    xdata::Vector<xdata::UnsignedLong> counts;
-    xdata::Vector<xdata::Boolean>      masks;
-    xdata::Vector<xdata::Boolean>      liveInputs;
-    for( unsigned int iInput=0; iInput < emu::daq::rui::STEPEventCounter::maxDDUInputs_; ++iInput ){
+    xdata::UnsignedInteger64                totalCount  = STEPEventCounter_.getNEvents();
+    xdata::UnsignedInteger64                lowestCount = STEPEventCounter_.getLowestCount();
+    xdata::Vector<xdata::UnsignedInteger64> counts;
+    xdata::Vector<xdata::Boolean>           masks;
+    xdata::Vector<xdata::Boolean>           liveInputs;
+    for( uint32_t iInput=0; iInput < emu::daq::rui::STEPEventCounter::maxDDUInputs_; ++iInput ){
       counts.push_back( STEPEventCounter_.getCount( iInput ) );
       masks.push_back( STEPEventCounter_.isMaskedInput( iInput ) );
       liveInputs.push_back( STEPEventCounter_.isLiveInput( iInput ) );
@@ -3554,11 +3528,11 @@ xoap::MessageReference emu::daq::rui::Application::maskDDUInputs( const bool in,
 
   try{
 
-    xdata::Vector<xdata::UnsignedLong> DDUInputs;
+    xdata::Vector<xdata::UnsignedInteger32> DDUInputs;
     emu::soap::extractParameters( msg, emu::soap::Parameters().add( "DDUInputs", &DDUInputs ) );
 
-    for ( unsigned int i = 0; i < DDUInputs.elements(); ++i ){
-      int dduInputIndex = (int)( dynamic_cast<xdata::UnsignedLong*> ( DDUInputs.elementAt(i)) )->value_;
+    for ( size_t i = 0; i < DDUInputs.elements(); ++i ){
+      int32_t dduInputIndex = ( dynamic_cast<xdata::UnsignedInteger32*> ( DDUInputs.elementAt(i)) )->value_;
       if ( in ) STEPEventCounter_.unmaskInput( dduInputIndex );
       else      STEPEventCounter_.maskInput( dduInputIndex );
     }
@@ -3582,7 +3556,7 @@ emu::daq::rui::Application::findFact( const emu::base::Component& component, con
   component_id << xmlClass_ << setfill('0') << setw(2) << instance_;
 
   string state = fsm_.getStateName(fsm_.getCurrentState());
-  unsigned int nEventsWritten = 0;
+  uint64_t nEventsWritten = 0;
   if ( fileWriter_ ) nEventsWritten = fileWriter_->getNumberOfEventsWritten();
 
   if ( factType == RUIStatusFact::getTypeName() 
@@ -3622,7 +3596,7 @@ emu::daq::rui::Application::findFacts() {
   component_id << xmlClass_ << setfill('0') << setw(2) << instance_;
 
   string state = fsm_.getStateName(fsm_.getCurrentState());
-  unsigned int nEventsWritten = 0;
+  uint64_t nEventsWritten = 0;
   if ( fileWriter_ ) nEventsWritten = fileWriter_->getNumberOfEventsWritten();
 
   cout << "Run number " << runNumber_.value_ << " " << runNumber_.toString() << endl;

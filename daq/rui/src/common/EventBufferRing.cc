@@ -89,7 +89,7 @@ ostream& emu::daq::rui::operator<<( ostream& os, emu::daq::rui::EventBufferRing&
 
 // int main( int argc, char** argv ){
 //   char *data = "abcd";
-//   unsigned int size = 4;
+//   size_t size = 4;
 
 //   emu::daq::rui::EventBufferRing ebr;
 //   ebr.setSize(5);

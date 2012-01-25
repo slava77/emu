@@ -15,7 +15,7 @@ emu::daq::reader::RawDataFile::RawDataFile( std::string filename, int format, bo
   open( filename );
   theDeviceIsResetAndEnabled = true; // file reader won't need resetting and enabling
 //KK
-  end = (file_buffer_end = file_buffer + sizeof(file_buffer)/sizeof(unsigned long long));
+  end = (file_buffer_end = file_buffer + sizeof(file_buffer)/sizeof(uint64_t));
   bzero(raw_event,  sizeof(raw_event)  );
   bzero(file_buffer,sizeof(file_buffer));
   word_0=0; word_1=0; word_2=0;
@@ -56,7 +56,7 @@ void emu::daq::reader::RawDataFile::close() {
 }
 
 
-int emu::daq::reader::RawDataFile::readDDU(unsigned short*& buf) {
+int emu::daq::reader::RawDataFile::readDDU(uint16_t*& buf) {
 	int size=0;
         do {
                 if( (size = read(buf)) == 0 ) break;
@@ -68,21 +68,21 @@ int emu::daq::reader::RawDataFile::readDDU(unsigned short*& buf) {
 
 //KK
 // #include <stdexcept>   // std::runtime_error
-int emu::daq::reader::RawDataFile::read(unsigned short*& buf) {
+int emu::daq::reader::RawDataFile::read(uint16_t*& buf) {
 	// Check for abnormal situation
 	if( end>file_buffer_end || end<file_buffer ) throw ( std::runtime_error("Error reading file.") );
 	if( !theFileDescriptor ) throw ( std::runtime_error("No file is open.") );
 
-	unsigned long long *start = end;
-	unsigned short     *event = raw_event;
+	uint64_t *start = end;
+	uint16_t *event = raw_event;
 
 	eventStatus = 0;
 	size_t dduWordCount = 0;
 	end = 0;
 
 	while( !end && dduWordCount<50000 ){
-		unsigned long long *dduWord = start;
-		unsigned long long preHeader = 0;
+		uint64_t *dduWord = start;
+		uint64_t preHeader = 0;
 
 		// Did we reach end of current buffer and want to read next block?
 		// If it was first time and we don't have file buffer then we won't get inside
@@ -120,12 +120,12 @@ int emu::daq::reader::RawDataFile::read(unsigned short*& buf) {
 		if( preHeader ){
 			// Need to account first word of DDU Header
 			memcpy(event,&preHeader,sizeof(preHeader));
-			event += sizeof(preHeader)/sizeof(unsigned short);
+			event += sizeof(preHeader)/sizeof(uint16_t);
 		}
 
 		// Take care of the rest
-		memcpy(event,start,(dduWord-start)*sizeof(unsigned long long));
-		event += (dduWord-start)*sizeof(unsigned long long)/sizeof(unsigned short);
+		memcpy(event,start,(dduWord-start)*sizeof(uint64_t));
+		event += (dduWord-start)*sizeof(uint64_t)/sizeof(uint16_t);
 
 		// If reach max length
 		if( dduWordCount==50000 ){ end = dduWord; break; }
@@ -136,10 +136,10 @@ int emu::daq::reader::RawDataFile::read(unsigned short*& buf) {
 			if( length==-1 ) throw ( std::runtime_error("Error of reading") );
 			if( length== 0 ){
 				eventStatus |= EndOfStream;
-				end = (file_buffer_end = file_buffer + sizeof(file_buffer)/sizeof(unsigned long long));
+				end = (file_buffer_end = file_buffer + sizeof(file_buffer)/sizeof(uint64_t));
 				break;
 			}
-			file_buffer_end = file_buffer + length/sizeof(unsigned long long);
+			file_buffer_end = file_buffer + length/sizeof(uint64_t);
 
 			// Will start from the beginning of new buffer next time we read it
 			start = file_buffer;
@@ -149,14 +149,14 @@ int emu::daq::reader::RawDataFile::read(unsigned short*& buf) {
 	if( !end ) eventStatus |= DDUoversize;
 	if( !(eventStatus&Header) && !(eventStatus&Trailer) && !(eventStatus&FFFF) ) eventStatus |= Unknown;
 
-	buf = (/*const*/ unsigned short*)raw_event;
+	buf = (/*const*/ uint16_t*)raw_event;
 	theErrorFlag = eventStatus;
 	return (eventStatus&FFFF?event-raw_event-4:event-raw_event)*2;
 }
 //KKend
 
 
-int emu::daq::reader::RawDataFile::readDCC(unsigned short*& buf) {
+int emu::daq::reader::RawDataFile::readDCC(uint16_t*& buf) {
   // TODO
   return -1;
 }
