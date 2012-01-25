@@ -1,6 +1,7 @@
 #include "emu/soap/ToolBox.h"
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
+#include "xoap/SOAPSerializer.h"
 
 #include "xdata/soap/NamespaceURI.h"
 #define XSD_NAMESPACE_URI "http://www.w3.org/2001/XMLSchema"
@@ -400,6 +401,39 @@ emu::soap::createFaultReply( const string& code, const string& reason, xcept::Ex
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   return faultReply;
+}
+
+std::string
+emu::soap::toStringWithoutAttachments( xoap::MessageReference message ){
+  std::string result;
+  try{
+    if ( message->getEnvelope() != NULL ){
+      xoap::SOAPSerializer s( result );
+      s.serialize( message->getEnvelope() );
+    }
+  }
+  catch( xcept::Exception &e ){
+    std::stringstream ss;
+    ss << "Failed to serialize SOAP message without attachment : ";
+    XCEPT_RETHROW( xcept::Exception, ss.str(), e );
+  }
+  catch( std::exception &e ){
+    std::stringstream ss;
+    ss << "Failed to serialize SOAP message without attachment : "<< e.what();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch( DOMException &e ){
+    std::stringstream ss;
+    ss << "Failed to serialize SOAP message without attachment : "<< e.getMessage();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch(...){
+    std::stringstream ss;
+    ss << "Failed to serialize SOAP message without attachment: Unknown exception.";
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+
+  return result;
 }
 
 void

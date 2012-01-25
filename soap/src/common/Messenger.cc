@@ -74,12 +74,9 @@ emu::soap::Messenger::setParameters( xdaq::ApplicationDescriptor *target, const 
     emu::soap::repairDOM( message );
 
     // Send message
-    string s;
-    message->writeTo( s );
-    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << s << endl << "]]>" );
+    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( message ) << endl << "]]>" );
     xoap::MessageReference reply = application_->getApplicationContext()->postSOAP( message, *application_->getApplicationDescriptor(), *target );
-    reply->writeTo( s );
-    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Received:" << endl << "<![CDATA[" << endl << s << endl << "]]>" );
+    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Received:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( reply ) << endl << "]]>" );
     
     // Check reply for fault
     xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
@@ -155,12 +152,9 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
     emu::soap::repairDOM( message );
 
     // Send message
-    string s;
-    message->writeTo( s );
-    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << s << endl << "]]>" );
+    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( message ) << endl << "]]>" );
     reply = application_->getApplicationContext()->postSOAP( message, *application_->getApplicationDescriptor(), *target );
-    reply->writeTo( s );
-    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Received:" << endl << "<![CDATA[" << endl << s << endl << "]]>" );
+    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Received:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( reply ) << endl << "]]>" );
     
     // Check reply for fault
     xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
@@ -258,13 +252,9 @@ emu::soap::Messenger::getParameters( xdaq::ApplicationDescriptor *target, emu::s
     emu::soap::repairDOM( message );
 
     // Send message
-    string s;
-    message->writeTo( s );
-    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << s << endl << "]]>" );
+    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( message ) << endl << "]]>" );
     xoap::MessageReference reply = application_->getApplicationContext()->postSOAP( message, *application_->getApplicationDescriptor(), *target );
-    s = "";
-    reply->writeTo( s );
-    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Received:" << endl << "<![CDATA[" << endl << s << endl << "]]>" );
+    LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Received:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( reply ) << endl << "]]>" );
     
     // Check reply for fault
     xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
