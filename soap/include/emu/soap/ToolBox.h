@@ -184,6 +184,14 @@ namespace emu{
       ///
       std::string faultElementToPlainText( xoap::SOAPElement* elem, const int indentDepth );
 
+      /// Writes the message into a string omitting the attachments.
+      ///
+      /// @param message Message to be serialized.
+      ///
+      /// @return The string containing the serialized message.
+      ///
+      std::string toStringWithoutAttachments( xoap::MessageReference message );
+
       /// 
       /// Workaround to repair the message serialized from xdata (see ticket https://svnweb.cern.ch/trac/cmsos/ticket/1008)
       /// \todo{ Remove once a fixed XDAQ version (>=v10.1.0) is deployed. } 
