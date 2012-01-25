@@ -15,7 +15,6 @@
 #include "xdata/String.h"
 #include "xdata/Integer.h"
 #include "xdata/UnsignedInteger.h"
-#include "xdata/UnsignedLong.h"
 #include "xgi/Method.h"
 #include "emu/supervisor/RunInfo.h"
 #include "xdaq2rc/RcmsStateNotifier.h"
@@ -117,7 +116,7 @@ private: // XDAQ parameters
 
         xdata::Boolean isInCalibrationSequence_; /// An automatic sequence of calibration runs is being executed.
 	xdata::String run_type_;
-	xdata::UnsignedLong    run_number_;
+	xdata::UnsignedInteger run_number_;
 	xdata::UnsignedInteger runSequenceNumber_;
 
 	xdata::Vector<xdata::String> config_keys_;
