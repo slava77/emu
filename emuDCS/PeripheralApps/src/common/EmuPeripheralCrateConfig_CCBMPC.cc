@@ -76,15 +76,12 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   thisCCB->RedirectOutput(&std::cout);
   //
   *out << cgicc::br() << "CCB Mode = ";
-  int ccb_mode = thisCCB->GetCCBmode();
-  switch(ccb_mode) {
-  case CCB::TTCrqFPGA:
-    *out << "TTCrgFPGA" << std::endl;
+  int ccb_mode = thisCCB->ReadRegister(0);
+  switch(ccb_mode & 1) {
+  case 0:
+    *out << "FPGA" << std::endl;
     break;
-  case CCB::VMEFPGA:
-    *out << "VMEFPGA" << std::endl;
-    break;
-  case CCB::DLOG:
+  case 1:
     *out << "DLOG" << std::endl;
     break;
   default:
@@ -92,7 +89,7 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
     break;
   }
   //
-  *out << cgicc::br() << "CSRA1 =  " << std::hex << thisCCB->ReadRegister(0) << std::endl;
+  *out << cgicc::br() << "CSRA1 =  " << std::hex << ccb_mode << std::endl;
   *out << cgicc::br() << "CSRA2 =  " << std::hex << thisCCB->ReadRegister(2) << std::endl;
   *out << cgicc::br() << "CSRA3 =  " << std::hex << thisCCB->ReadRegister(4) << std::endl;
   *out << cgicc::br() << "CSRB1 =  " << std::hex << thisCCB->ReadRegister(0x20) << std::endl;

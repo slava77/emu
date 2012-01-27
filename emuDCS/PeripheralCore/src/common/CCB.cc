@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.45 2011/11/28 23:44:00 liu Exp $
+// $Id: CCB.cc,v 3.46 2012/01/27 21:32:16 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.46  2012/01/27 21:32:16  liu
+// clean Get/SetCCBmode functions
+//
 // Revision 3.45  2011/11/28 23:44:00  liu
 // more log messages
 //
@@ -322,6 +325,7 @@ CCB::CCB(Crate * theCrate ,int slot)
   TTC(NO_TTC),
   CLK_INIT_FLAG(0),
   mCCBMode(CCB::DLOG),
+  xmlCCBMode(-1),
   BX_Orbit_(924),
   SPS25ns_(0),
   l1aDelay_(0),
@@ -1191,7 +1195,7 @@ void CCB::configure() {
 
   // PrintTTCrxRegs();
   // Set the CCB mode  
-  setCCBMode((CCB2004Mode_t)mCCBMode);
+  setCCBMode((CCB2004Mode_t)xmlCCBMode);
   //
 }
 
@@ -1368,6 +1372,7 @@ void CCB::setCCBMode(CCB2004Mode_t mode){
     sndbuf[0]=0x00;
     sndbuf[1]=0x0F;
     do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    mode=DLOG;
   }
   mCCBMode=mode;
 }

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.6 2011/11/03 20:52:39 liu Exp $
+// $Id: CCB.h,v 1.7 2012/01/27 21:32:15 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.7  2012/01/27 21:32:15  liu
+// clean Get/SetCCBmode functions
+//
 // Revision 1.6  2011/11/03 20:52:39  liu
 // new ReadConfigBits function
 //
@@ -208,8 +211,8 @@ public:
   inline void SetTTCmode(int mode)   {TTC       = mode;}
   inline int  GetTTCmode()   {return TTC;}
   //
-  inline void SetCCBmode(int mode)   {mCCBMode  = mode;}
-  inline int  GetCCBmode()   {return mCCBMode;}
+  inline void SetCCBmode(int mode)   {xmlCCBMode  = mode;}
+  inline int  GetCCBmode()   {return xmlCCBMode;}
   //
   inline void SetBxOrbit(int orbit)  {BX_Orbit_ = orbit;}
   inline int  GetBxOrbit()  { return BX_Orbit_ ;}
@@ -323,7 +326,8 @@ public:
   //code used by DCS
 
 protected:
-  int mCCBMode;
+  int mCCBMode;  // current CCB hardware Mode
+  int xmlCCBMode;  // required CCB Mode from configuration DB or XML
   enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
 private:
