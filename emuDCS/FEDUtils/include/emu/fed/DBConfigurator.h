@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.h,v 1.6 2010/05/31 14:05:18 paste Exp $
+* $Id: DBConfigurator.h,v 1.7 2012/01/30 17:06:55 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBCONFIGURATOR_H__
 #define __EMU_FED_DBCONFIGURATOR_H__
@@ -25,7 +25,7 @@ namespace emu {
 			*	@param username The database username.
 			*	@param password The database password.
 			**/
-			DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password, xdata::UnsignedInteger64 &key, xdata::Integer &instance = -1);
+			DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password, xdata::UnsignedInteger64 &key, xdata::Integer &instance);
 			
 			/** Destructor **/
 			virtual ~DBConfigurator() {};
