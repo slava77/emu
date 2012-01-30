@@ -764,8 +764,8 @@ bool FEDConfigurationEditor::columnIsDatabaseOnly(const std::string &columnName,
 }
 
 bool FEDConfigurationEditor::canChangeColumn(const std::string &columnName,const std::string &tableName) {
-	unsigned int numberPosition;
-	if ((numberPosition=columnName.find("_NUMBER"))!=std::string::npos) return false; //this check should also be put in columnIsUniqueIdentifier
+	if (columnName.find("_NUMBER") != std::string::npos)
+		return false; //this check should also be put in columnIsUniqueIdentifier
 	if (columnIsUniqueIdentifier(columnName,tableName)) return false;
 	return !columnIsDatabaseOnly(columnName,tableName);
 }
