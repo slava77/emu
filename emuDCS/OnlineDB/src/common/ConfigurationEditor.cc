@@ -1177,7 +1177,7 @@ std::string ConfigurationEditor::copyAttributesToTable(xdata::Table &table,const
 					std::cout << "setting " << columnName << " to " << stringValue << std::endl;
 					xdata::Serializable *value=table.getValueAt(rowIndex,columnName);
 					setValueFromString(value,stringValue);
-					unsigned int numberPosition;
+					size_t numberPosition;
 					if ((numberPosition=columnName.find("_NUMBER"))!=std::string::npos) {
 						identifier=columnName.substr(0,numberPosition)+" "+stringValue;
 						std::cout << "identifier for column "+columnName+" is "+identifier << std::endl;
@@ -1199,7 +1199,7 @@ std::string ConfigurationEditor::uniqueIdentifierForRow(xdata::Table &table,cons
 	std::string identifier;
 	for (std::vector<std::string>::iterator column=columns.begin();column!=columns.end();++column) {
 		xdata::Serializable *value=table.getValueAt(rowIndex,*column);
-		unsigned int numberPosition;
+		size_t numberPosition;
 		if ((numberPosition=(*column).find("_NUMBER"))!=std::string::npos) {
 			identifier=(*column).substr(0,numberPosition)+" "+value->toString();
 			std::cout << "identifier for column "+*column+" is "+identifier << std::endl;
