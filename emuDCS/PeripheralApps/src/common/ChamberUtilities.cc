@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.40 2011/08/16 11:44:39 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.41 2012/01/30 16:46:29 cvuosalo Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.41  2012/01/30 16:46:29  cvuosalo
+// Fix compiling warning about uninitiailized variable
+//
 // Revision 1.40  2011/08/16 11:44:39  rakness
 // fix bug at max edge of window to evaluate in determining average
 //
@@ -6029,7 +6032,7 @@ float ChamberUtilities::AverageHistogram(int * histogram, int min_value, int max
   //
   /// determine the best value by slowly reducing the range over which the average is computed
   //
-  float average;
+  float average = -999.0;
   //
   const int max_width = 7;
   bool first_time = true;
@@ -6058,8 +6061,10 @@ float ChamberUtilities::AverageHistogram(int * histogram, int min_value, int max
     if (average > 0) {          // Good determination of average, reduce the width and compute again
       //
       width -= 2;
-      min_value = ((int) (0.5 + (average - ((float) width)*0.5) ) ) >? min_value;  //maximum of lower value and min_value
-      max_value = ((int) (0.5 + (average + ((float) width)*0.5) ) ) <? max_value;  //minimum of lower value and min_value
+      min_value = std::max(((int) (0.5 + (average - ((float) width)*0.5) ) ), min_value);  //maximum of lower value and min_value
+      max_value = std::min(((int) (0.5 + (average + ((float) width)*0.5) ) ), max_value);  //minimum of lower value and min_value
+      // min_value = ((int) (0.5 + (average - ((float) width)*0.5) ) ) >? min_value;  //maximum of lower value and min_value
+      // max_value = ((int) (0.5 + (average + ((float) width)*0.5) ) ) <? max_value;  //minimum of lower value and min_value
       //
     } else {                    // Bad determination of average, get out of loop....
       //
