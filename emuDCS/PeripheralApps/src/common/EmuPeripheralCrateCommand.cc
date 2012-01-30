@@ -1026,6 +1026,9 @@ int EmuPeripheralCrateCommand::read_test_config(char* xmlFile, test_config_struc
 	test_map["21"] = &map21;
 	test_map["30"] = &map30;
 
+	cur_map = test_map["11"];
+  // Initialize -- probably gets overwritten
+
 	std::cout << "Loading test configuration from XML file: "  <<  step_config << std::endl;
 
 	if (step_config == "") 
