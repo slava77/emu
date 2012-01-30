@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.13 2011/04/29 13:41:37 cvuosalo Exp $
+* $Id: VMEModule.cc,v 1.14 2012/01/30 17:05:01 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -718,7 +718,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		for (boost::split_iterator<std::string::const_iterator> iLine = boost::make_split_iterator(data, boost::first_finder("\n", boost::is_iequal())); iLine != boost::split_iterator<std::string::const_iterator>(); ++iLine) {
 
 			// Each line is a command (or comment)
-			std::string myLine = boost::copy_iterator_range<std::string>(*iLine);
+			std::string myLine = boost::copy_range<std::string>(*iLine);
 
 			// At this point, increment the number of lines parsed and update the percentage
 			++linesParsed;
@@ -779,7 +779,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 				}
 
 				// Get the next line and staple it on.
-				myLine += boost::copy_iterator_range<std::string>(*iLine);
+				myLine += boost::copy_range<std::string>(*iLine);
 			}
 
 			if (debug) std::cerr << myLine << std::flush << std::endl;
