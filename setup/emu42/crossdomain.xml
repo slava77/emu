@@ -1,0 +1,6 @@
+<!-- http://www.foo.com/crossdomain.xml -->
+<cross-domain-policy>
+    <allow-access-from domain="*.cern.ch"/>
+    <allow-access-from domain="*.cmsdaqpreseries"/>
+    <allow-access-from domain="*.cms"/>
+</cross-domain-policy>
