@@ -1,0 +1,16 @@
+<?xml version='1.0'?>
+<xmas:sensor xmlns:xmas="http://xdaq.web.cern.ch/xdaq/xsd/2006/xmas-10">
+    <xmas:monitor   xmlns:xlink="http://www.w3.org/1999/xlink">
+        <xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/processInfo.flash#urn:xdaq-flashlist:processInfo"/>
+
+        <xmas:sampler tag="emu-metric" type="urn:xmas-sampler:instant">
+        </xmas:sampler>
+    </xmas:monitor>
+    <xmas:monitor   xmlns:xlink="http://www.w3.org/1999/xlink">
+        <xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/diskInfo.flash#urn:xdaq-flashlist:diskInfo"/>
+
+        <xmas:sampler tag="emu-metric" type="urn:xmas-sampler:instant">
+        </xmas:sampler>
+    </xmas:monitor>
+
+</xmas:sensor>
