@@ -1,6 +1,7 @@
 DAQSUBDIRS= e1000hook/eth_hook_2_nobigphysxxx e1000hook/eth_hook_3_nobigphysxxx e1000hook/eth_hook_4_nobigphysxxx e1000hook/eth_hook_5_nobigphysxxx e1000hook/e1000-7.0.39/src
 DAQSUBDIRS904= dl2khook/eth_hook_2_nobigphysxxx dl2khook/dl2k_driver
 PCVMEDIRS= gbit-vme/eth_hook_jtag_simple gbit-vme/dl2k_driver
+PCVMESLC5DIRS= gbit-vme-slc5/eth_hook_jtag_simple gbit-vme-slc5/dl2k_driver
 DAQPCVMESUBDIRS= dlk2-daq-pcvme/dl2k_driver dlk2-daq-pcvme/eth_hook_3_nobigphysxxx dlk2-daq-pcvme/eth_hook_jtag_simple
 SUBDIRS=$(DAQSUBDIRS) $(DAQSUBDIRS904) $(PCVMEDIRS) $(DAQPCVMESUBDIRS)
 
@@ -14,6 +15,8 @@ all:
 	@echo "   daqdriverrpm904"
 	@echo "   pcvme"
 	@echo "   pcvmerpm"
+	@echo "   pcvmeslc5"
+	@echo "   pcvmeslc5rpm"
 	@echo "   daqpcvme"
 	@echo "   daqpcvmerpm"
 	@echo "For example, to compile the local DAQ drivers and pack them in an RPM:"
@@ -61,9 +64,9 @@ daqdriverrpm904:	daqdriver904
 
 
 
-###########################
+###################################
 # Perihperal Controller Gbit driver
-###########################
+###################################
 pcvme:
 	@for i in $(PCVMEDIRS); do \
         echo "make in $$i..."; \
@@ -73,6 +76,20 @@ pcvme:
 pcvmerpm:	pcvme
 	mkdir -p rpm/{BUILD,RPMS}
 	rpmbuild -bb -vv emu-pcvme.spec
+
+
+############################################
+# Perihperal Controller Gbit driver for SLC5
+############################################
+pcvmeslc5:
+	@for i in $(PCVMESLC5DIRS); do \
+        echo "make in $$i..."; \
+	(cd $$i; make); \
+	done
+
+pcvmeslc5rpm:	pcvmeslc5
+	mkdir -p rpm/{BUILD,RPMS}
+	rpmbuild -bb -vv emu-pcvme-slc5.spec
 
 
 ####################################

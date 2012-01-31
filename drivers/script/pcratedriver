@@ -9,7 +9,7 @@
 #-------------------------------------------------------------------------
 
 # Execute exclusively on these hosts:
-HOSTALIASES=( csc-pc1 csc-pc2 csc-dcs-pc1 csc-dcs-pc2 )
+HOSTALIASES=( csc-pc1 csc-pc2 csc-dcs-pc1 csc-dcs-pc2 vmepc-e1x07-21-01 )
 
 function sameHosts(){
     IP1=$(host $1)
