@@ -816,8 +816,10 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     try {
       state_table_.refresh();
       if (state_table_.getState("emu::daq::manager::Application", 0) != "Halted") {
-	if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
-	waitForDAQToExecute("Halt", 10);
+	if ( isDAQManagerControlled("Halt") ){
+	  m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
+	  waitForDAQToExecute("Halt", 10);
+	}
       }
        
       if (state_table_.getState("ttc::TTCciControl", 0) != "Halted") {
@@ -1135,9 +1137,11 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     cout << "    Halt emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
     
     try {
-      if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
-      if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
-      else                     waitForDAQToExecute("Halt", 3);
+      if ( isDAQManagerControlled("Halt") ){
+	m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
+	if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
+	else                     waitForDAQToExecute("Halt", 3);
+      }
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
 
@@ -1910,6 +1914,9 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
 
   // Don't write about debug runs:
   if ( run_type_.toString() == "Debug" ) return;
+
+  // If DAQ Manager is absent, we have nothing to do here:
+  if ( ! isDAQManagerControlled("Halt") ) return;
 
   // emu::daq::manager::Application's FSM is asynchronous. Wait for it.
   if ( ! waitForDAQToExecute("Halt", 10, true ) ){
