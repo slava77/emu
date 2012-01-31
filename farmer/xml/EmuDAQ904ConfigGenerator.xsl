@@ -21,8 +21,8 @@
   <!-- It's either DQM_TF_File or empty-->
   <xsl:param name="FARM"/>
 
-  <!-- <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param> -->
-  <xsl:param name="EMULIBDIR">${XDAQ_ROOT}/lib</xsl:param>
+  <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param>
+  <!-- <xsl:param name="EMULIBDIR">${XDAQ_ROOT}/lib</xsl:param> -->
 
   <xsl:param name="PORT_OFFSET">
     <xsl:if test="$FARM!='DQM_TF_File'">0</xsl:if>
@@ -193,7 +193,6 @@
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="rubuilder::ru::Application" network="atcp1" id="14">
 	    <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
-	      <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
@@ -230,7 +229,7 @@
 		<item xsi:type="xsd:string" soapenc:position="[0]"><xsl:if test="@instance='0'">EmuTFMonitor</xsl:if><xsl:if test="@instance!='0'">EmuMonitor</xsl:if></item>
 	      </clientsClassName>
 	      <clientsInstance xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
-		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]"><xsl:value-of select="@instance"/></item>
+		<item xsi:type="xsd:unsignedInt" soapenc:position="[0]"><xsl:value-of select="@instance"/></item>
 	      </clientsInstance>
 	      <poolSizeForClient xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0x4000000</item>
