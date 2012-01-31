@@ -193,7 +193,6 @@
 	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
 	<xc:Application instance="0" class="rubuilder::ru::Application" network="atcp1" id="14">
 	  <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
-	    <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
 	  </properties>
 	</xc:Application>
 	<xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
@@ -214,7 +213,7 @@
 	      <item xsi:type="xsd:string" soapenc:position="[0]">EmuTFMonitor</item>
 	    </clientsClassName>
 	    <clientsInstance xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
-	      <item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0</item>
+	      <item xsi:type="xsd:unsignedInt" soapenc:position="[0]">0</item>
 	    </clientsInstance>
 	    <fileWritingRateLimitInHz xsi:type="xsd:unsignedLong">2000</fileWritingRateLimitInHz>
 	    <expertSystemURL xsi:type="xsd:string">http://csc-expert.cms:8080/cdw/factcollection</expertSystemURL>
@@ -261,7 +260,6 @@
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="rubuilder::ru::Application" network="atcp1" id="14">
 	    <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
-	      <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
