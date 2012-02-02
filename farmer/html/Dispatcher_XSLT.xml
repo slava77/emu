@@ -33,9 +33,12 @@
 	  opacity:0.6;
 	  }
 	  td.Halted     { text-align: center; background-color:#4444dd; }
+	  td.halted     { text-align: center; background-color:#4444dd; }
 	  td.Ready      { text-align: center; background-color:#dddd44; }
 	  td.Configured { text-align: center; background-color:#dddd44; }
+	  td.configured { text-align: center; background-color:#dddd44; }
 	  td.Enabled    { text-align: center; background-color:#44dd44; }
+	  td.enabled    { text-align: center; background-color:#44dd44; }
 	  td.Running    { text-align: center; background-color:#44dd44; }
 	  td.ON         { text-align: center; background-color:#44dd44; }
 	  td.Initial    { text-align: center; background-color:#4444aa; }
