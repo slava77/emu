@@ -14,6 +14,7 @@
 #include "xdata/Bag.h"
 #include "xdata/String.h"
 #include "xdata/Integer.h"
+#include "xdata/Integer64.h"
 #include "xdata/UnsignedInteger.h"
 #include "xgi/Method.h"
 #include "emu/supervisor/RunInfo.h"
@@ -194,7 +195,7 @@ private: // XDAQ parameters
 
         bool waitForDAQToExecute( const string command, const unsigned int seconds, const bool poll = false );
 
-	xdata::Integer nevents_;
+	xdata::Integer64 nevents_;
 	unsigned int step_counter_;
 
 	string error_message_;
