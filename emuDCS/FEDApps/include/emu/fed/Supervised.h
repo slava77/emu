@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Supervised.h,v 1.5 2010/02/17 21:20:24 paste Exp $
+* $Id: Supervised.h,v 1.6 2012/02/02 12:44:48 banicz Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SUPERVISED_H__
 #define __EMU_FED_SUPERVISED_H__
@@ -71,7 +71,7 @@ namespace emu {
 		protected:
 
 			/// The run number of the current run.  Useful for log files.
-			xdata::UnsignedLong runNumber_;
+			xdata::UnsignedInteger runNumber_;
 
 			/// The type of run (local, global, calibration).  Useful for modifying the configuration parameters of the DDUs and DCCs.
 			xdata::String runType_;
