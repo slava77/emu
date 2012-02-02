@@ -822,11 +822,11 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 	}
       }
        
-      if (state_table_.getState("ttc::TTCciControl", 0) != "Halted") {
-	m.sendCommand( "ttc::TTCciControl", "Halt" );
+      if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
+	m.sendCommand( "ttc::TTCciControl", "reset" );
       }
-      if (state_table_.getState("ttc::LTCControl", 0) != "Halted") {
-	m.sendCommand( "ttc::LTCControl", "Halt" );
+      if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
+	m.sendCommand( "ttc::LTCControl", "reset" );
 	// Allow ttc::LTCControl some time to halt:
 	::sleep(2);
       }
@@ -904,13 +904,13 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     if (index >= 0) {
       m.setParameters( "ttc::TTCciControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
     }
-    m.sendCommand( "ttc::TTCciControl", "Configure" );    
+    m.sendCommand( "ttc::TTCciControl", "configure" );    
     
     // Configure LTC
     if (index >= 0) {
       m.setParameters( "ttc::LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
     }
-    m.sendCommand( "ttc::LTCControl", "Configure" );
+    m.sendCommand( "ttc::LTCControl", "configure" );
 
     if (isCalibrationMode()) {
 		if (isAlctCalibrationMode())
@@ -1001,11 +1001,11 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     
     state_table_.refresh();
     
-    if (state_table_.getState("ttc::TTCciControl", 0) != "Enabled") {
-      m.sendCommand( "ttc::TTCciControl", "Enable" );
+    if (state_table_.getState("ttc::TTCciControl", 0) != "enabled") {
+      m.sendCommand( "ttc::TTCciControl", "enable" );
     }
-    if (state_table_.getState("ttc::LTCControl", 0) != "Enabled") {
-      m.sendCommand( "ttc::LTCControl", "Enable" );
+    if (state_table_.getState("ttc::LTCControl", 0) != "enabled") {
+      m.sendCommand( "ttc::LTCControl", "enable" );
     }
     xdata::String attributeValue( "Stop" );
     m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
@@ -1058,13 +1058,13 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
       cout << "    stop TFCellOp: " << sw.read() << endl;
     }
 
-    if (state_table_.getState("ttc::LTCControl", 0) != "Halted") {
-      m.sendCommand( "ttc::LTCControl", "Halt" );
-      cout << "    Halt ttc::LTCControl: " << sw.read() << endl;
+    if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
+      m.sendCommand( "ttc::LTCControl", "reset" );
+      cout << "    Halt (reset) ttc::LTCControl: " << sw.read() << endl;
     }
-    if (state_table_.getState("ttc::TTCciControl", 0) != "Halted") {
-      m.sendCommand( "ttc::TTCciControl", "Halt" );
-      cout << "    Halt ttc::TTCciControl: " << sw.read() << endl;
+    if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
+      m.sendCommand( "ttc::TTCciControl", "reset" );
+      cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
     }
         
     try {
@@ -1078,9 +1078,9 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     cout << "    Disable emu::fed::Manager: " << sw.read() << endl;
     m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Disable" );
     cout << "    Disable emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
-    m.sendCommand( "ttc::TTCciControl", "Configure" );
+    m.sendCommand( "ttc::TTCciControl", "configure" );
     cout << "    Configure TTCci: " << sw.read() << endl;
-    m.sendCommand( "ttc::LTCControl", "Configure" );
+    m.sendCommand( "ttc::LTCControl", "configure" );
     cout << "    Configure LTC: " << sw.read() << endl;
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Stop was issued from the web interface
@@ -1120,14 +1120,14 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
       cout << "    reset TFCellOp: " << sw.read() << endl;
     }
 
-    if (state_table_.getState("ttc::LTCControl", 0) != "Halted") {
-      m.sendCommand( "ttc::LTCControl", "Halt" );
-      cout << "    Halt ttc::LTCControl: " << sw.read() << endl;
+    if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
+      m.sendCommand( "ttc::LTCControl", "reset" );
+      cout << "    Halt (reset) ttc::LTCControl: " << sw.read() << endl;
     }
 
-    if (state_table_.getState("ttc::TTCciControl", 0) != "Halted") {
-      m.sendCommand( "ttc::TTCciControl", "Halt" );
-      cout << "    Halt ttc::TTCciControl: " << sw.read() << endl;
+    if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
+      m.sendCommand( "ttc::TTCciControl", "reset" );
+      cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
     }
 
     m.sendCommand( "emu::fed::Manager", "Halt" );
@@ -1743,7 +1743,7 @@ bool emu::supervisor::Application::StateTable::isValidState(string expected) con
 		     && app_->run_type_ == "Monitor" ) continue;
 
 		if (klass == "ttc::TTCciControl" || klass == "ttc::LTCControl") {
-			if (expected == "Configured") { checked = "Ready"; }
+			if (expected == "Configured") { checked = "configured"; }
 		}
 
 		if (i->second != checked) {
