@@ -2500,7 +2500,7 @@ e1000_tso(struct e1000_adapter *adapter, struct e1000_tx_ring *tx_ring,
 	uint8_t ipcss, ipcso, tucss, tucso, hdr_len;
 	int err;
 
-	if (skb_shinfo(skb)->tso_size) {
+	if (skb_shinfo(skb)->gso_size) {
 		if (skb_header_cloned(skb)) {
 			err = pskb_expand_head(skb, 0, 0, GFP_ATOMIC);
 			if (err)
@@ -2508,7 +2508,7 @@ e1000_tso(struct e1000_adapter *adapter, struct e1000_tx_ring *tx_ring,
 		}
 
 		hdr_len = ((skb->h.raw - skb->data) + (skb->h.th->doff << 2));
-		mss = skb_shinfo(skb)->tso_size;
+		mss = skb_shinfo(skb)->gso_size;
 		if (skb->protocol == ntohs(ETH_P_IP)) {
 			skb->nh.iph->tot_len = 0;
 			skb->nh.iph->check = 0;
@@ -2627,7 +2627,7 @@ e1000_tx_map(struct e1000_adapter *adapter, struct e1000_tx_ring *tx_ring,
 		 * tso gets written back prematurely before the data is fully
 		 * DMA'd to the controller */
 		if (!skb->data_len && tx_ring->last_tx_tso &&
-		    !skb_shinfo(skb)->tso_size) {
+		    !skb_shinfo(skb)->gso_size) {
 			tx_ring->last_tx_tso = 0;
 			size -= 4;
 		}
@@ -2875,7 +2875,7 @@ e1000_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
 	}
 
 #ifdef NETIF_F_TSO
-	mss = skb_shinfo(skb)->tso_size;
+	mss = skb_shinfo(skb)->gso_size;
 	/* The controller does a simple calculation to
 	 * make sure there is enough room in the FIFO before
 	 * initiating the DMA for each buffer.  The calc is:
@@ -2925,7 +2925,7 @@ e1000_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
 #ifdef NETIF_F_TSO
 	/* Controller Erratum workaround */
 	if (!skb->data_len && tx_ring->last_tx_tso &&
-	    !skb_shinfo(skb)->tso_size)
+	    !skb_shinfo(skb)->gso_size)
 		count++;
 #endif
 
@@ -3655,7 +3655,7 @@ e1000_clean_rx_irq(struct e1000_adapter *adapter,
 	int cleaned_count = 0;
 	boolean_t cleaned = FALSE;
 
-        printk(KERN_INFO " entered tx interupt \n");
+	//    printk(KERN_INFO " entered tx interupt \n");
 	i = rx_ring->next_to_clean;
 	rx_desc = E1000_RX_DESC(*rx_ring, i);
 	buffer_info = &rx_ring->buffer_info[i];
@@ -3776,18 +3776,18 @@ e1000_clean_rx_irq(struct e1000_adapter *adapter,
 		//netif_rx(skb);
 		//#endif
 		//#endif /* CONFIG_E1000_NAPI */
-                printk(KERN_INFO " just before netif_rx_hook \n"); 
+                printk(KERN_INFO " just before netif_rx_hook %s \n",netdev->name); 
 		if(strcmp(netdev->name,"eth2")==0){
-                   netif_rx_hook_2(skb);
-		   /*                }else if(strcmp(netdev->name,"eth3")==0){
-                   netif_rx_hook_3(skb);
+		  netif_rx_hook_2(skb);
+		}else if(strcmp(netdev->name,"eth3")==0){
+		  netif_rx_hook_3(skb);
                 }else if(strcmp(netdev->name,"eth4")==0){
                    netif_rx_hook_4(skb);
                 }else if(strcmp(netdev->name,"eth5")==0){
-		netif_rx_hook_5(skb);  */
-		 }else{
+		   netif_rx_hook_5(skb);
+		}else{
                    netif_rx(skb);
-		 }
+		}
 
 		netdev->last_rx = jiffies;
 
@@ -3843,7 +3843,7 @@ e1000_clean_rx_irq_ps(struct e1000_adapter *adapter,
 	rx_desc = E1000_RX_DESC_PS(*rx_ring, i);
 	staterr = le32_to_cpu(rx_desc->wb.middle.status_error);
 	buffer_info = &rx_ring->buffer_info[i];
-
+	//  printk(KERN_INFO " just entering iterrupt 2 \n");
 	while (staterr & E1000_RXD_STAT_DD) {
 		ps_page = &rx_ring->ps_page[i];
 		ps_page_dma = &rx_ring->ps_page_dma[i];
@@ -3946,18 +3946,18 @@ copydone:
 		if (likely(rx_desc->wb.upper.header_status &
 			   cpu_to_le16(E1000_RXDPS_HDRSTAT_HDRSP)))
 			adapter->rx_hdr_split++;
-
+		//	printk(KERN_INFO " just before netif_rx_hook 2 %s \n",netdev->name);
                 if(strcmp(netdev->name,"eth2")==0){
-		   netif_rx_hook_2(skb);
+		  netif_rx_hook_2(skb);
 	        }else if(strcmp(netdev->name,"eth3")==0){
-                   netif_rx_hook_3(skb);
-                }else if(strcmp(netdev->name,"eth4")==0){
-                   netif_rx_hook_4(skb);
-                }else if(strcmp(netdev->name,"eth5")==0){
-                   netif_rx_hook_5(skb);  
+		  netif_rx_hook_3(skb);
+		}else if(strcmp(netdev->name,"eth4")==0){
+                  netif_rx_hook_4(skb);
+		}else if(strcmp(netdev->name,"eth5")==0){
+                  netif_rx_hook_5(skb);
                 }else{
 		  netif_receive_skb(skb);
-                }        
+		}        
 		
 // #ifdef CONFIG_E1000_NAPI
 // #ifdef NETIF_F_HW_VLAN_TX

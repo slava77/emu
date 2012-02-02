@@ -159,10 +159,11 @@ KVER := $(shell $(CC) $(CFLAGS) -E -dM $(VERSION_FILE) | grep UTS_RELEASE | \
 
 KKVER := $(shell echo $(KVER) | \
          awk '{ if ($$0 ~ /2\.[4-9]\./) print "1"; else print "0"}')
-ifeq ($(KKVER), 0)
-  $(error *** Aborting the build. \
-          *** This driver is not supported on kernel versions older than 2.4.0)
-endif
+
+#ifeq ($(KKVER), 0)
+#  $(error *** Aborting the build. \
+#          *** This driver is not supported on kernel versions older than 2.4.0)
+#endif
 
 # set the install path
 INSTDIR := /lib/modules/$(KVER)/kernel/drivers/net/e1000h
@@ -316,4 +317,4 @@ uninstall:
 .PHONY: clean install
 
 clean:
-	rm -rf $(TARGET) $(TARGET:.ko=.o) $(TARGET:.ko=.mod.c) $(TARGET:.ko=.mod.o) $(CFILES:.c=.o) $(MANFILE).gz .*cmd .tmp_versions
+	rm -rf $(TARGET) $(TARGET:.ko=.o) $(TARGET:.ko=.mod.c) $(TARGET:.ko=.mod.o) $(CFILES:.c=.o) $(MANFILE).gz .*cmd .tmp_versions Module.markers Module.symvers

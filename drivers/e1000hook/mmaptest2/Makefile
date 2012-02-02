@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-obj-m	:= eth_hook_3.o
+obj-m	:= mmap.o
 
 else
 KDIR	:= /lib/modules/$(shell uname -r)/build
