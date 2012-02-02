@@ -1,7 +1,8 @@
+/* #define DEBUG_PRINT */
 
 /*    S. Durkin
  *	a simple character/memory map device driver (schar)
- *    intercepting ethernet packets through netif_rx
+*    intercepting ethernet packets through netif_rx
  */
 
 /* memory management taken from the linux video camera firewire interface
@@ -28,7 +29,7 @@ see:
 #  define MODULE
 #endif
 
-#include <linux/config.h>
+// #include <linux/config.h>
 
 #include <linux/module.h>
 
@@ -69,7 +70,7 @@ see:
 
 
 #include "schar.h"
-#define VMALLOC_VMADDR(x) ((unsigned long)(x))
+//#define VMALLOC_VMADDR(x) ((unsigned long)(x))
 
 
 #define SCHAR_MAJOR_4 234
@@ -77,7 +78,7 @@ see:
 /* settable parameters */
 static char *schar_name = NULL;
 
-
+/* See /lib/modules/$(uname -r)/build/include/linux/skbuff.h for the definition of struct sk_buff */
 
 /* forward declarations for _fops */
 int cleanup_exit2_4(void);
@@ -92,11 +93,9 @@ static int schar_ioctl_4(struct inode *inode, struct file *file, unsigned int cm
 static int schar_open_4(struct inode *inode, struct file *file);
 static int schar_release_4(struct inode *inode, struct file *file); 
 void schar_reset_4(void);
-static inline unsigned long uvirt_to_kva(pgd_t *pgd, unsigned long adr);
-static inline unsigned long kvirt_to_pa(unsigned long adr);
-static void rvnail(char *mem,unsigned long size);
-static void rvunnail(char *mem,unsigned long size);
-static int do_rv_mmap(struct vm_area_struct *vma,const char *adr, unsigned long size);
+static void rvnail(int *mem,unsigned long size);
+static void rvunnail(int *mem,unsigned long size);
+//static int do_rv_mmap(struct vm_area_struct *vma,const char *adr, unsigned long size);
 
 EXPORT_SYMBOL(netif_rx_hook_4);
 
@@ -151,6 +150,8 @@ static ctl_table schar_root_dir_4[] = {
 
 #include "eth_hook_4.h"
 
+int i;
+static int *vmalloc_area; 
 static long int LEN;
 static char *buf_start_4;
 static char *buf_end_4;
@@ -172,6 +173,7 @@ static unsigned short int proc_last_pmissing_4;
 static unsigned long int proc_rfirst_4=0;
 static unsigned long int proc_rsum_4;
 static unsigned long int proc_rate_4=0;
+static unsigned long int proc_previousjiffies_4;
 
 static unsigned short int proc_tpackets_4;
 static unsigned long int proc_tbytesL_4;
@@ -184,21 +186,25 @@ static int flag_rate_4={1};       // turn on rate monitoring
 static spinlock_t eth_lock;
 
 /* module parameters and descriptions */
-MODULE_PARM(schar_name, "s");
-MODULE_PARM_DESC(schar_name, "Name of device");
-MODULE_DESCRIPTION("schar 2, Sample character with ethernet hook");
-MODULE_AUTHOR("S. Durkin");
+//MODULE_PARM(schar_name);
+//MODULE_PARM_DESC(schar_name, "Name of device");
+MODULE_DESCRIPTION("schar 4, Sample character with ethernet hook");
+MODULE_AUTHOR("S. Durkin <durkin@mps.ohio-state.edu>");
 MODULE_LICENSE("Dual BSD/GPL");
 int init_module2_4(void)
 { 
-  static int *vbuf;
   printk(KERN_INFO "LSD: enter init_module2 \n");
   LEN=BIGPHYS_PAGES_4*PAGE_SIZE;
+  printk(KERN_INFO "LSD: BIGPHYS_PAGES %d PAGE_SIZE %ld \n",BIGPHYS_PAGES_4,PAGE_SIZE);
   printk(KERN_INFO "LSD: LEN %ld \n",LEN);
-  vbuf=(int *)vmalloc_32(LEN);
-  rvnail((char *)vbuf,LEN);
-  buf_start_4=(char *)vbuf;
-  if (!buf_start_4){
+  if((vmalloc_area=(int *)vmalloc_32(LEN))==NULL){
+    printk(KERN_INFO " Can't allocate memory \n");
+    return -ENOMEM;
+  }
+  printk(KERN_INFO " vmalloc allocated \n");
+  rvnail(vmalloc_area,LEN);
+  buf_start_4=(char *)vmalloc_area;
+    if (!buf_start_4){
         printk(KERN_INFO " eth_hook_4 asked for too much memory!\n");
         printk(KERN_INFO " decrease BIGPHYS_PAGES_4 !\n");
   } 
@@ -215,8 +221,8 @@ int init_module2_4(void)
 
 int cleanup_exit2_4(void)
 {
-   rvunnail(buf_start_4,LEN);
-   vfree(buf_start_4);
+  rvunnail(vmalloc_area,LEN);
+   vfree(vmalloc_area);
   return 0;
 }
 
@@ -224,19 +230,41 @@ int netif_rx_hook_4(struct sk_buff *skb)
 {
 int i,icnt;
 unsigned short int packet_count;
+// unsigned short int gucount;
 unsigned short int missing_mask;
 unsigned short int eevent_mask;
 unsigned short int end1,end2,end3,end4;
 unsigned long flags;
+int DMB_trailer_length;
  
   spin_lock_irqsave(&eth_lock,flags);
   
+/* // write data to buffer memory */
+/*   icnt=(skb->len+SKB_EXTRA)>>2; */
+/* #ifdef DEBUG_PRINT */
+/*   printk(KERN_INFO "ETH4 icnt %d len %d \n",icnt,skb->len); */
+/* #endif */
+/*   for(i=0;i<icnt;i++){ */
+/*     *(unsigned long int *)(buf_pnt_4+i*4)=*(unsigned long int *)(skb->data+i*4+SKB_OFFSET); */
+/*   } */
+
 // write data to buffer memory
-  icnt=(skb->len+SKB_EXTRA)>>2;
-  //printk(KERN_INFO " icnt %d len %d \n",icnt,skb->len);
-    for(i=0;i<icnt;i++){
-    *(unsigned long int *)(buf_pnt_4+i*4)=*(unsigned long int *)(skb->data+i*4+SKB_OFFSET);
+  icnt=(skb->len+SKB_EXTRA)>>3; // Divide by 2^3 as sizeof( unsigned long int ) = 8 on 64-bit systems
+#ifdef DEBUG_PRINT
+  printk(KERN_INFO "ETH4 icnt %d len %d \n",icnt,skb->len);
+#endif
+  for(i=0;i<icnt;i++){
+    *(unsigned long int *)(buf_pnt_4+i*8)=*(unsigned long int *)(skb->data+i*8+SKB_OFFSET);
   }
+
+/* // write data to buffer memory */
+/*   icnt=(skb->len+SKB_EXTRA)>>2; */
+/* #ifdef DEBUG_PRINT */
+/*   printk(KERN_INFO "ETH4 icnt %d len %d \n",icnt,skb->len); */
+/* #endif */
+/*   for(i=0;i<icnt;i++){ */
+/*     *(unsigned int *)(buf_pnt_4+i*4)=*(unsigned int *)(skb->data+i*4+SKB_OFFSET); */
+/*   } */
 
 // calculate count and bytes for proc 
    proc_rpackets_4=proc_rpackets_4+1;  
@@ -247,22 +275,31 @@ unsigned long flags;
    }
 // calculate rate for proc
    if(flag_rate_4==1){
-      proc_rsum_4=proc_rsum_4+skb->len+SKB_EXTRA;
-      if(jiffies%HZ!=0)proc_rfirst_4=0;
-      if(jiffies%HZ==0&&proc_rfirst_4==0){
-	proc_rate_4=(proc_rsum_4<<3);
-        proc_rsum_4=0;
-        proc_rfirst_4=1;
-      }
+     proc_rsum_4 += skb->len+SKB_EXTRA;
+     if ( proc_rfirst_4==0 ){
+       proc_previousjiffies_4 = get_jiffies_64();
+       proc_rfirst_4=1;
+     }
+     else{
+       long int delta_jiffies = get_jiffies_64() - proc_previousjiffies_4;
+       if ( delta_jiffies > HZ ){ // Update ~every second
+	 proc_rate_4 = (double)( HZ * proc_rsum_4<<3 ) / delta_jiffies;
+	 proc_previousjiffies_4 = get_jiffies_64();
+	 proc_rsum_4 = 0;
+       }
+     }
    }
-
-
 
 // check packet counter for missing packets from DDU
    missing_mask=0x0000;
    if(flag_pmissing_4==1){
    packet_count=*(unsigned short int *)(skb->data+skb->len+8+SKB_OFFSET);
-   // printk(KERN_INFO "LSD: packet count %04x \n",packet_count);
+   /* packet_count=*(unsigned short int *)(skb->data+skb->len+12+SKB_OFFSET); */
+   /*   for (igu=-10;igu<10;igu+=2) {
+     gucount=*(unsigned short int *)(skb->data+skb->len+8+SKB_OFFSET+igu);
+     printk(KERN_INFO " packet count %d  %04x \n",igu,gucount );
+   }
+   */
    if(proc_last_pmissing_4+1!=packet_count){
      if(ring_pnt_4!=0||ring_loop_4!=0){
         if(proc_last_pmissing_4==0xffff){
@@ -275,22 +312,44 @@ unsigned long flags;
    proc_last_pmissing_4=packet_count;
    }
 
+#ifdef DEBUG_PRINT
+   // DEBUG START
+   printk(KERN_INFO "ETH4 Length %d, flag_eevent %d, packet_count %04x\n",skb->len,flag_eevent_4,packet_count);
+   printk(KERN_INFO "ETH4  ");
+   for(i=90;i>=0;i-=2)
+     printk("%+4d ",-i);
+   printk("\n");
+   printk(KERN_INFO "ETH4  ");
+   for(i=90;i>=0;i-=2)
+     printk("%04x ",*(unsigned short int*)(skb->data+skb->len-i));
+   printk("\n");
+   // DEBUG END
+#endif
+
    // check for end of event 0x8000 0xffff 0x8000 0x8000
    eevent_mask=0x0000;
    if(flag_eevent_4==1){
      // printk(KERN_INFO "ETH4  ");
-     // TODO: There must be a way to calculate offset from other parameters... In the meantime:
-     const int offset = -6; // the end of packet is at skb->data + skb->len + offset
-     unsigned char *end_of_packet = skb->data + skb->len + offset;
+     unsigned char *end_of_packet = skb->data + SKB_OFFSET + skb->len + SKB_EXTRA;
      // First see if this is minimum-length packet.
-     if ( skb->len+SKB_EXTRA-2 == 64 ){
+     if ( skb->len+SKB_EXTRA == 64 ){
        // This is a minimum-length packet. This may mean either that it contains an entire
        // empty DDU event (48 bytes DDU header+trailer + 16 bytes ethernet filler words)
        // or that it contains the rump of a long event.
        // In either case, it _must_ contain the end of an event.
        eevent_mask=0x4000;
-       // printk("minimum-length packet ends event");
-     } // if ( skb->len+SKB_EXTRA-2 == 64 )
+
+#ifdef DEBUG_PRINT
+       const int DDU_trailer_length = 24; // bytes
+       end1=*(unsigned short int *)(end_of_packet-DDU_trailer_length+0);
+       end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2);
+       end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4);
+       end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6);
+       printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x\n",end1,end2,end3,end4);
+
+       printk(KERN_INFO "ETH4  minimum-length packet ends event\n");
+#endif
+     } // if ( skb->len+SKB_EXTRA == 64 )
      else{
        // Not a minimum-length packet.
        // First look for the end-of-event unique word of the DDU trailer.
@@ -300,10 +359,15 @@ unsigned long flags;
        end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2);
        end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4);
        end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6);
+#ifdef DEBUG_PRINT
+       printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x\n",end1,end2,end3,end4);
+#endif
        if((end1==0x8000)&&(end2==0x8000)&&(end3==0xffff)&&(end4==0x8000)){
 	 // Caught a DDU trailer
 	 eevent_mask=0x4000;
-	 // printk("DDU EoE");
+#ifdef DEBUG_PRINT
+	 printk(KERN_INFO "ETH4  DDU EoE\n");
+#endif
        }
        else{
 	 // Then look for the end-of-event unique word of the DCC trailer.
@@ -316,23 +380,29 @@ unsigned long flags;
 	   eevent_mask=0x4000;
 	   // printk("DCC EoE");
 	 }
+	 //  for(i=0;i<50;i++){
+         //    end1=*(unsigned short int *)(end_of_packet-16+i);
+         //    printk(KERN_INFO "dmb %d %ld %04x \n",i,end_of_packet-50+i,end1);
+	 // }
 	 // Finally, look for the end-of-event unique word of the DMB trailer.
 	 // TODO: proper offsets must be found for DMB
-	 /* end1=*(unsigned short int *)(end_of_packet-???); */
-	 /* end2=*(unsigned short int *)(end_of_packet-???); */
-	 /* if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000))eevent_mask=0x4000; */
+	 DMB_trailer_length=16;
+	 end1=*(unsigned short int *)(end_of_packet-DMB_trailer_length+24); 
+	 end2=*(unsigned short int *)(end_of_packet-DMB_trailer_length+26); 
+	 //  printk(KERN_INFO "%04x %04x  \n",end1,end2);  
+         if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000))eevent_mask=0x4000; 
        }
        // printk("\n");
-     } // if ( skb->len+SKB_EXTRA-2 == 64 ) else
-   } // if(flag_eevent_2==1)
+     } // if ( skb->len+SKB_EXTRA == 64 ) else
+   } // if(flag_eevent_4==1)
 
 // write data to ring buffer
-     *(unsigned short int *)(ring_start_4+ring_pnt_4*RING_ENTRY_LENGTH)=ring_loop_4|(missing_mask|eevent_mask);
-          *(unsigned short int *)(ring_start_4+ring_pnt_4*RING_ENTRY_LENGTH+4)=skb->len+SKB_EXTRA-2;
+   *(unsigned short int *)(ring_start_4+ring_pnt_4*RING_ENTRY_LENGTH)=ring_loop_4|(missing_mask|eevent_mask);
+   *(unsigned short int *)(ring_start_4+ring_pnt_4*RING_ENTRY_LENGTH+4)=skb->len+SKB_EXTRA;
 
 // increment ring and buf pointers
    ring_pnt_4=ring_pnt_4+1;  
-   buf_pnt_4=buf_pnt_4+skb->len+SKB_EXTRA-2; 
+   buf_pnt_4=buf_pnt_4+skb->len+SKB_EXTRA; 
 
  //update ring and buf pointers
  // if((buf_pnt_4 > buf_end_4)||(ring_pnt_4>=ring_size_4)){
@@ -373,11 +443,11 @@ unsigned long int pagsiz;
 	/* make sure that the command is really one of schar's */
 	if (_IOC_TYPE(cmd) != SCHAR_IOCTL_BASE)
 		return -ENOTTY;
-        printk(KERN_INFO " cmd %d \n",cmd);		
+	// printk(KERN_INFO " cmd %d \n",cmd);		
 	switch (cmd) {
 
 	case SCHAR_RESET: {
-		  printk(KERN_INFO "ioct:l SCHAR_RESET \n");
+	  //  printk(KERN_INFO "ioct:l SCHAR_RESET \n");
 		  schar_reset_4();
 		return 0;
 		}
@@ -439,7 +509,7 @@ static int schar_read_proc_4(ctl_table *ctl, int write, struct file *file,
 	len += sprintf(schar_proc_string_4+len, "  recieve\t\t%ld packets\n",proc_rpackets_4);
       len += sprintf(schar_proc_string_4+len, "  receive    \t\t\t%04d%09ld bytes\n",proc_rbytesH_4,proc_rbytesL_4); 
       len += sprintf(schar_proc_string_4+len, "  memory  \t\t\t%09ld bytes\n",(BIGPHYS_PAGES_4*PAGE_SIZE));
-      len += sprintf(schar_proc_string_4+len, "  rate  \t\t\t%6ld KBits/s \n",proc_rate_4/1000);
+      len += sprintf(schar_proc_string_4+len, "  rate  \t\t\t%6ld kbits/s \n",proc_rate_4/1000);
       len += sprintf(schar_proc_string_4+len, "  loop %d count %ld\n\n",ring_loop_4,ring_pnt_4);
 	len += sprintf(schar_proc_string_4+len, " TRANSMIT: \n");
       len += sprintf(schar_proc_string_4+len, "  transmit\t\t%d packets \n",proc_tpackets_4);
@@ -630,12 +700,43 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
 
 static int schar_mmap_4(struct file *filp, struct vm_area_struct *vma)
 {
-	printk(KERN_INFO "enter mmap \n");
-        lock_kernel();
-	do_rv_mmap(vma, (char *)vma->vm_start, 
-		   (unsigned long)(vma->vm_end-vma->vm_start));
-	unlock_kernel();
-        return 0; 
+  int ret;
+  long length = vma->vm_end - vma->vm_start;
+  unsigned long start = vma->vm_start;
+  char *vmalloc_area_ptr = (char *)vmalloc_area;
+  unsigned long pfn;
+  lock_kernel();
+  printk(KERN_INFO " entering mmap \n");
+  if (!buf_start_4) {
+    printk(KERN_INFO " Data was not initialized");
+    unlock_kernel();
+    return -EINVAL;
+  }
+
+  /* check length - do not allow larger mappings than the number of
+       pages allocated */
+  if (length > BIGPHYS_PAGES_4*PAGE_SIZE){
+    printk(KERN_INFO " Page allocation problem %ld %ld \n",length,BIGPHYS_PAGES_4*PAGE_SIZE);
+    unlock_kernel();      
+     return -EIO;
+  }
+
+        /* loop over all pages, map it page individually */
+  while (length > 0) {
+           pfn = vmalloc_to_pfn(vmalloc_area_ptr);
+           if ((ret = remap_pfn_range(vma, start, pfn, PAGE_SIZE,
+                                      PAGE_SHARED)) < 0) {
+	     printk(KERN_INFO "do_rvmmap BAD RETURN %ld %ld ret %d \n",length,BIGPHYS_PAGES_4*PAGE_SIZE,ret);
+             printk(KERN_INFO " this can happen if MEM_SHARED is not used by calling process ! \n");
+             unlock_kernel();
+             return ret;
+           }
+           start += PAGE_SIZE;
+           vmalloc_area_ptr += PAGE_SIZE;
+           length -= PAGE_SIZE;
+  }
+  unlock_kernel();
+  return 0;
 }
 
 
@@ -661,106 +762,79 @@ proc_tbytesH_4=0;
 
 }
 
-/* memory management taken from the linux video camera firewire interface 
 
-/usr/src/linux/drivers/ieee1394/video1394.c
+/* LSD rework of mmap handiling for Kernel > 2.6.10 */
 
-*/
-
-static inline unsigned long uvirt_to_kva(pgd_t *pgd, unsigned long adr)
+static void rvnail(int *mem,unsigned long size)
 {
-  unsigned long ret = 0UL;
-  pmd_t *pmd;
-  pte_t *ptep, pte;
-  
-  if (!pgd_none(*pgd)) {
-    pmd = pmd_offset(pgd, adr);
-    if (!pmd_none(*pmd)) {
-      ptep = pte_offset_kernel(pmd, adr);
-      pte = *ptep;
-      if(pte_present(pte)) {
-	ret = (unsigned long) page_address(pte_page(pte));
-	ret |= (adr & (PAGE_SIZE - 1));
-      }
-    }
-  }
-  //  printk(KERN_INFO "uv2kva(%lx-->%lx) \n", adr, ret);
-  return ret;
-}
-
-static inline unsigned long kvirt_to_pa(unsigned long adr) 
-{
-  unsigned long va, kva, ret;
-
-  va = VMALLOC_VMADDR(adr);
-  kva = uvirt_to_kva(pgd_offset_k(va), va);
-  ret = __pa(kva);
-  //  printk(KERN_INFO "kv2pa(%lx-->%lx) \n", adr, ret);
-  return ret;
-}
-
-static void rvnail(char *mem,unsigned long size)
-{
-  unsigned long adr, page;
+  int i;
   printk(KERN_INFO " before vrnail %ld \n",size);      
   if (mem) 
     {
-      memset(mem, 0, size);  
-			    
-      adr=(unsigned long) mem;
-      while (size > 0) 
-	{
-	  page = kvirt_to_pa(adr);
-	  SetPageReserved(virt_to_page(__va(page)));
-	  adr+=PAGE_SIZE;
-	  size-=PAGE_SIZE;
-	}
-      printk(KERN_INFO " pages have been nailed \n");
+      // memset(mem, 0, size);  
+      /* reserve the pages */			    
+      for (i = 0; i < size; i+= PAGE_SIZE) {
+	SetPageReserved(vmalloc_to_page((void *)(((unsigned long)mem) + i)));
+      }
+      printk(KERN_INFO " pages have been nailed %ld \n",size);
     } 
   return ;
 }
 
 
 
-static void rvunnail(char *mem, unsigned long size)
+static void rvunnail(int *mem, unsigned long size)
 {
-  unsigned long adr, page;
+  int i;
         
   if (mem) 
     {
-      adr=(unsigned long) mem;
-      while (size > 0) 
-	{
-	  page = kvirt_to_pa(adr);
-	  ClearPageReserved(virt_to_page(__va(page)));
-	  adr+=PAGE_SIZE;
-	  size-=PAGE_SIZE;
-	}
-      printk(" pages have been unnailed \n");
+ /* unreserve the pages */
+      for (i = 0; i < size; i+= PAGE_SIZE) {
+	ClearPageReserved(vmalloc_to_page((void *)(((unsigned long)mem) + i)));
+      }
+      printk(" pages have been unnailed %ld \n",size);
     }
 }
 
 
-static int do_rv_mmap(struct vm_area_struct *vma,const char *adr, unsigned long size)
+
+
+
+/* static int do_rv_mmap(struct vm_area_struct *vma,const char *adr, unsigned long size)
 {
-  unsigned long start=(unsigned long) adr;
-  unsigned long page,pos;
+  int i;
+  int ret;
+  long length = vma->vm_end - vma->vm_start;
+  unsigned long start = vma->vm_start;
+  char *vmalloc_area_ptr = (char *)buf_start_4;
+  unsigned long pfn;
+  for(i=0;i<100;i++)printk(KERN_INFO " %d %02x \n",i,buf_start_4[i]);
+  printk(KERN_INFO " mmap to user space called \n");
   if (!buf_start_4) {
     printk(KERN_INFO " Data was not initialized");
     return -EINVAL;
   }
 
-  pos=(unsigned long)buf_start_4;
-  while (size > 0) {
-    page = kvirt_to_pa(pos);
-    if (remap_page_range(vma,start, page, PAGE_SIZE, PAGE_SHARED))
-      return -EAGAIN;
-    start+=PAGE_SIZE;
-    pos+=PAGE_SIZE;
-    size-=PAGE_SIZE;
+  if (length > size){
+    printk(KERN_INFO " Page allocation problem %ld %ld \n",length,size);      
+     return -EIO;
   }
+
+  if(length>0) {
+           pfn = vmalloc_to_pfn(vmalloc_area_ptr);
+           if ((ret = remap_pfn_range(vma, start, pfn, PAGE_SIZE,
+                                      PAGE_SHARED)) < 0) {
+	     printk(KERN_INFO "do_rvmmap BAD RETURN %ld %ld \n",length,size);
+                   return ret;
+           }
+           start += PAGE_SIZE;
+           vmalloc_area_ptr += PAGE_SIZE;
+           length -= PAGE_SIZE;
+  }
+  printk(KERN_INFO " return 0 \n");
   return 0;
-}
+} */
 
  
 module_init(ethinit_module);
