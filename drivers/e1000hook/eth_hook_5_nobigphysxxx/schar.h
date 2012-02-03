@@ -15,9 +15,9 @@
 #define SCHAR_EEVENT		_IOR(SCHAR_IOCTL_BASE, 4, int)
 
 /* definitions used by DDUReadout */
-#define SCHAR_END  		_IOR(SCHAR_IOCTL_BASE, 1, 0)
-#define SCHAR_BLOCKON		_IOR(SCHAR_IOCTL_BASE, 2, 0)
-#define SCHAR_BLOCKOFF		_IOR(SCHAR_IOCTL_BASE, 3, 0)
+#define SCHAR_END  		_IOR(SCHAR_IOCTL_BASE, 1, int)
+#define SCHAR_BLOCKON		_IOR(SCHAR_IOCTL_BASE, 2, int)
+#define SCHAR_BLOCKOFF		_IOR(SCHAR_IOCTL_BASE, 3, int)
 
 
 //#define DEBUG
