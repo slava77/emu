@@ -1,8 +1,8 @@
 #!/bin/zsh
-# Check for dead xdaqd services and resurrect them.
+# Check for dead emud services and resurrect them.
 
 PATTERN="s/[^']*'\([^']*\)'[^']*/\1/"
-/sbin/service xdaqd status | while read LINE; do
+/sbin/service emud status | while read LINE; do
     SERVICE=$(echo $LINE | sed -e $PATTERN)
-    [[ $LINE == *FAILED* ]] && /sbin/service xdaqd start $SERVICE
+    [[ $LINE == *FAILED* ]] && /sbin/service emud start $SERVICE
 done

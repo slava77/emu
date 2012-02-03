@@ -35,9 +35,9 @@ __description__
 
 
 %pre
-exists=`/sbin/chkconfig --list | grep xdaqd`
+exists=`/sbin/chkconfig --list | grep emud`
 if [ x"$exists" != x ] ; then
-/sbin/chkconfig --del xdaqd  > /dev/null 2>&1
+/sbin/chkconfig --del emud  > /dev/null 2>&1
 fi
 
 #%setup 
@@ -63,10 +63,10 @@ if [ -s %{_packagedir}/%{_packagename}.setup ]; then
 	install -m 755 %{_packagedir}/%{_packagename}.setup $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}
 fi
 
-if [ -s %{_packagedir}/xdaqd ]; then 
-	install -m 755 %{_packagedir}/xdaqd $RPM_BUILD_ROOT/etc/init.d
+if [ -s %{_packagedir}/emud ]; then 
+	install -m 755 %{_packagedir}/emud $RPM_BUILD_ROOT/etc/init.d
 fi
-if [ -s %{_packagedir}/xdaqd ]; then 
+if [ -s %{_packagedir}/emud ]; then 
 	install -m 644 %{_packagedir}/emu.logrotate $RPM_BUILD_ROOT/etc/logrotate.d
 fi
 if [ -d %{_packagedir}/scripts ]; then 
@@ -121,7 +121,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_prefix}/htdocs
-/etc/init.d/xdaqd
+/etc/init.d/emud
 /etc/*.zone
 /etc/*.services
 /etc/cron.d/*.cron
@@ -139,16 +139,16 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p /var/log/emu
 chown root:csc /var/log/emu
 chmod 775 /var/log/emu
-# /sbin/chkconfig --add xdaqd  #Let the watchdog (EmuServiceGuard) start xdaqd services instead
+# /sbin/chkconfig --add emud  #Let the watchdog (EmuServiceGuard) start emud services instead
 /sbin/service crond restart
 
 %preun
 if [ "$1" = "0" ] ; then # last uninstall
-exists=`/sbin/chkconfig --list | grep xdaqd`
+exists=`/sbin/chkconfig --list | grep emud`
 if [ x"$exists" != x ] ; then
-/sbin/chkconfig --del xdaqd  > /dev/null 2>&1
+/sbin/chkconfig --del emud  > /dev/null 2>&1
 fi
-/sbin/service xdaqd stop
+/sbin/service emud stop
 fi
 
 %postun

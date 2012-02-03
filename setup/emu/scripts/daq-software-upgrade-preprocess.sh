@@ -13,13 +13,13 @@ log() {
 log "Preprocessing before Quattor managed software upgrade" 
 
 #
-# Step 1, stop xdaqd deamon
+# Step 1, stop emud deamon
 #
-if [ -e /etc/init.d/xdaqd ]; then
-	log "Stopping xdaqd programs" 
-	/sbin/service xdaqd stop >> $LOGFILE
+if [ -e /etc/init.d/emud ]; then
+	log "Stopping emud programs" 
+	/sbin/service emud stop >> $LOGFILE
 else
-	log "xdaqd daemon script not found, killing processes manually" 
+	log "emud daemon script not found, killing processes manually" 
 fi
 
 #
