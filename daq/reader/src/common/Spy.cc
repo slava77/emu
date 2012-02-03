@@ -10,6 +10,7 @@
 #include <cstdlib>  // for abort
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <sys/user.h> // for PAGE_SIZE
 #include "schar.h"
 #include "eth_hook_2.h"
 #include <stdexcept>   // std::runtime_error
