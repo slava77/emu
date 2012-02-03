@@ -24,7 +24,7 @@ BEGIN {
 			}
 		}
 
-		if ( (found != 0  ) || (service[2] == "default") || ( service[2] == "xdaqd")) {
+		if ( (found != 0  ) || (service[2] == "default") || ( service[2] == "emud")) {
 			print "Creating ",filename;
 
 			command = "host " $1;

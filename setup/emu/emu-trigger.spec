@@ -14,7 +14,7 @@ BuildRoot: /tmp/%{name}-%{version}-%{release}-root
 
 %description
 Configuration files and scripts needed for emu to run processes on csc-tf and csc-ttc.
-It doesn't set up xdaqd or similar as that is run in a trigger zone on the trigger nodes.
+It doesn't set up emud or similar as that is run in a trigger zone on the trigger nodes.
 To be installed on trigger nodes exclusively.
 
 %prep

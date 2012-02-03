@@ -37,12 +37,12 @@ else
 fi
 
 #
-# Step 3, start xdaqd deamon
+# Step 3, start emud deamon
 #
-if [ -e /etc/init.d/xdaqd ]; then
-	/sbin/service xdaqd start >> $LOGFILE
+if [ -e /etc/init.d/emud ]; then
+	/sbin/service emud start >> $LOGFILE
 else
-	log "ERROR - xdaqd daemon script not found, cannot continue"
+	log "ERROR - emud daemon script not found, cannot continue"
 fi
 
 #

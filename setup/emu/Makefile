@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.25 2011/07/07 14:08:05 banicz Exp $
+# $Id: Makefile,v 1.26 2012/02/03 17:55:07 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -45,12 +45,12 @@ default: all
 
 all:
 	echo $(PackageName)  >  etc/xdaq.zone
-	scripts/instantiateXML.awk "argument=conf/xdaqd.conf.in" hosts.setup
+	scripts/instantiateXML.awk "argument=conf/emud.conf.in" hosts.setup
 
 _cleanall: clean
 
 clean:
-	-rm -f conf/xdaqd.*.conf
+	-rm -f conf/emud.*.conf
 	-rm -f etc/xdaq.zone
 
 include $(XDAQ_ROOT)/config/mfSetupRPM.rules

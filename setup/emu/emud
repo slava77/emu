@@ -2,16 +2,16 @@
 #
 # chkconfig: 345 99 01
 # description: starts and stops xdaq service processes (RedHat Linux)	
-# proccessname: xdaqd
+# proccessname: emud
 #
-# config:      /etc/xdaqd.conf
+# config:      /etc/emud.conf
 
 
 # Source function library.
 if [ -f /etc/init.d/functions ] ; then
 	. /etc/init.d/functions
 else
-    echo -n 'ERROR xdaqd: Could not find /etc/init.d/functions, stopping'
+    echo -n 'ERROR emud: Could not find /etc/init.d/functions, stopping'
     exit -1
 fi
 
@@ -66,16 +66,16 @@ fi
 # Default values
 
 # If a commandline service is provided, it can override
-# the default values in xdaqd.conf
+# the default values in emud.conf
 
 CONF_DIR=/opt/xdaq/share/`cat /etc/xdaq.zone`/conf
 
 
 HOSTNAME=`hostname -f | tr A-Z a-z`
-if [ -s ${CONF_DIR}/xdaqd.${HOSTNAME}.conf ] ; then
-. ${CONF_DIR}/xdaqd.${HOSTNAME}.conf
+if [ -s ${CONF_DIR}/emud.${HOSTNAME}.conf ] ; then
+. ${CONF_DIR}/emud.${HOSTNAME}.conf
 else
-. ${CONF_DIR}/xdaqd.conf
+. ${CONF_DIR}/emud.conf
 fi
 
 if [ $# -ge 2 ]; then
@@ -104,7 +104,7 @@ LD_LIBRARY_PATH=${XDAQ_ROOT}/lib:${XDAQ_EXTERN_LIBRARY_PATH}
 # A function to start a program.
 # $1 is the service name, not the process name 'xdaq.exe', e.g. 'psx'
 #
-xdaqdDaemon() {
+emudDaemon() {
 	# Test syntax.
 	local gotbase= force=
 	local base= user=root nice= bg= pid=
@@ -157,10 +157,10 @@ xdaqdDaemon() {
 		modified_before_reboot ${PID_DIR}/${base}.pid
 
 		if [ $? -eq 0 ]; then
-			logger -t xdaqd "File" ${PID_DIR}/${base}.pid "was modified before reboot, is invalid and will be removed"
+			logger -t emud "File" ${PID_DIR}/${base}.pid "was modified before reboot, is invalid and will be removed"
 			rm ${PID_DIR}/${base}.pid
 		else
-			logger -t xdaqd "File" ${PID_DIR}/${base}.pid "was modified after reboot, is valid and will be used to detect if the process is running"
+			logger -t emud "File" ${PID_DIR}/${base}.pid "was modified after reboot, is valid and will be used to detect if the process is running"
 		fi
 
 		local line p
@@ -197,7 +197,7 @@ xdaqdDaemon() {
 	[ "$?" -eq 0 ] && success $"$base startup" || failure $"$base startup"
 }
 
-xdaqdStatus() {
+emudStatus() {
 	local base=${1##*/}
 	local pid
 
@@ -236,7 +236,7 @@ xdaqdStatus() {
 }
 
 # A function to stop a program.
-xdaqdKillProc() {
+emudKillProc() {
         RC=0
         # Test syntax.
         if [ "$#" -eq 0 ]; then
@@ -324,7 +324,7 @@ for C in ${STARTUP_LIST}; do
 		export CONFIGURATION
 		. ${CONF_DIR}/${C}.conf
 	else
-	    echo 'ERROR xdaqd: Could not find '${CONF_DIR}'/'${C}'.conf or '${CONF_DIR}'/'${CONFIGURATION}'.conf, stopping'
+	    echo 'ERROR emud: Could not find '${CONF_DIR}'/'${C}'.conf or '${CONF_DIR}'/'${CONFIGURATION}'.conf, stopping'
 	    exit -1
 	fi
 
@@ -338,13 +338,13 @@ for C in ${STARTUP_LIST}; do
 	    chmod -f 777 $PID_DIR
 	fi
 
-	XDAQD_OUT=/var/log/xdaqd_${CONFIGURATION}.out
+	XDAQD_OUT=/var/log/emud_${CONFIGURATION}.out
 	export XDAQD_OUT
 
 	export XDAQ_ROOT
 	export LD_LIBRARY_PATH
 
-	# First parameter is after 'service xdaqd configuration'
+	# First parameter is after 'service emud configuration'
 	# e.g. 'service xdad tstore status' -> 'status' is $2
 	#
 	case "$1" in
@@ -411,10 +411,10 @@ for C in ${STARTUP_LIST}; do
 	    # Redirect stdout and stderr to one log file.
 	    args="$args >>& ${XDAQ_LOG}"
 
-	    xdaqdDaemon $args
+	    emudDaemon $args
 
 	    sleep 1
-	    xdaqdStatus ${CONFIGURATION}
+	    emudStatus ${CONFIGURATION}
 	    if [ $? -eq 0 ]; then
     		echo `date` ": Started XDAQ service '"${CONFIGURATION}"'" >> ${XDAQD_OUT}
 	    else
@@ -425,7 +425,7 @@ for C in ${STARTUP_LIST}; do
 	'stop')
 	    #stop xdaq
 	    echo -n $"Stopping XDAQ service '"${CONFIGURATION}"': "
-	    xdaqdKillProc ${CONFIGURATION}
+	    emudKillProc ${CONFIGURATION}
 	    if [ $? -eq 0 ]; then
     		echo `date` ": Stopped XDAQ service '"${CONFIGURATION}"'" >> ${XDAQD_OUT}
 	    else
@@ -442,7 +442,7 @@ for C in ${STARTUP_LIST}; do
 	    ;;
 	'status')
 	    echo -n "Status of XDAQ service '"${CONFIGURATION}"': "
-	    xdaqdStatus ${CONFIGURATION}
+	    emudStatus ${CONFIGURATION}
 	    echo
 	    ;;
 	*)
