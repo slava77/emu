@@ -10,8 +10,8 @@ TDR 0 ;
 HDR 0 ;
 // SIR 13 TDI (1fff) SMASK (1fff) TDO (0101) MASK (0303) ;
 TIR 5 TDI (1f) SMASK (1f) ;
-HIR 8 TDI (ff) SMASK (ff) ;
-HDR 1 TDI (00) SMASK (01) ;
+HIR 0 TDI (ff) SMASK (ff) ;
+HDR 0 TDI (00) SMASK (01) ;
 TDR 1 TDI (00) SMASK (01) ;
 //Loading device with 'idcode' instruction.
 SIR 8 TDI (fe) ;
