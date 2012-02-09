@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.30 2011/11/17 00:13:44 liu Exp $
+// $Id: VMEModule.cc,v 3.31 2012/02/09 12:34:05 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.31  2012/02/09 12:34:05  liu
+// turn on vme package delay in svfLoad
+//
 // Revision 3.30  2011/11/17 00:13:44  liu
 // clear buffer before read PROM
 //
@@ -453,7 +456,7 @@ int VMEModule::svfLoad(int jch, const char *fn, int db, int verify )
   
   this->start(); 
 // turn on delay, otherwise the VCC's FIFO full
-  theController->SetUseDelay(false);
+  theController->SetUseDelay(true);
   count=0; 
   nowrit=1;
   step_mode=0;
