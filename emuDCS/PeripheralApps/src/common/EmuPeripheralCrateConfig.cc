@@ -20,7 +20,9 @@ const std::string       CFEB_VERIFY_FILENAME = "cfeb/cfeb_verify.svf";
 //
 const std::string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
 const std::string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
-//
+
+const std::string	ALCT_SLOW_FIRMWARE_FILENAME = "alct/slow/slow_control3_verify_noabstime.svf";
+ //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
 //    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/type[A,C,D]/tmb.xsvf   <-- N.B. xsvf format for TMB
@@ -388,6 +390,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTRawHits, "ALCTRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadFirmware, "TMBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTReadFirmware, "ALCTReadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTSlowFirmware, "LoadALCTSlowFirmware");
   //
   //----------------------------
   // Bind logging methods
@@ -8127,7 +8130,6 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << "TMB: " << cgicc::br() << std::endl;
   *out << "firmware version = " << TMBFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
-  *out << cgicc::br();
   //
   *out << "Step 1)  Disable DCS monitoring to crates, and TURN OFF ALCTs" << cgicc::br() << std::endl;
   //
@@ -8227,8 +8229,6 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   if (alct) {
     *out << "ALCT: " << cgicc::br() << std::endl;
     *out << "firmware version = " << ALCTFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
-    //
-    *out << cgicc::br() << std::endl;
     //
     *out << "Step 1)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
     //
@@ -8342,6 +8342,28 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::input().set("type","submit").set("value","Step 2) CCB hard reset") << std::endl ;
     *out << cgicc::form() << std::endl ;
 
+  }
+  //
+  *out << cgicc::br() << std::endl;
+  *out << cgicc::br() << std::endl;
+  //
+  if (alct) {
+    *out << "ALCT Slow Control: " << cgicc::br() << std::endl;
+    *out << "firmware version = " << FirmwareDir_ + ALCT_SLOW_FIRMWARE_FILENAME << cgicc::br() << std::endl;
+    //
+    *out << "Step 1)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
+    //
+    //
+    std::string LoadALCTslowFirmware = toolbox::toString("/%s/LoadALCTSlowFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadALCTslowFirmware) << std::endl ;
+    sprintf(buf,"Step 2) Load Slow Control Firmware for ALCT in slot %d",tmbVector[tmb]->slot());
+    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Step 3) CCB hard reset") << std::endl ;
+    *out << cgicc::form() << std::endl ;
   }
   //
   *out << cgicc::fieldset();
@@ -8765,6 +8787,41 @@ void EmuPeripheralCrateConfig::ALCTReadFirmware(xgi::Input * in, xgi::Output * o
       //
     thisTMB->setup_jtag(ChainAlctFastMezz);
     thisTMB->read_prom(jtagfile.c_str(),mcsfile.c_str());
+
+    // Put CCB back into DLOG mode to listen to TTC commands...
+    thisCCB->setCCBMode(CCB::DLOG);
+  }
+  //
+  this->TMBUtils(in,out);
+}
+//
+void EmuPeripheralCrateConfig::LoadALCTSlowFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  int tmb;
+  if(name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl ;
+    tmb=-1;
+  }
+  //
+  TMB * thisTMB=NULL;
+  if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
+  if(thisTMB)
+  {
+    std::string chambername = thisCrate->GetChamber(thisTMB)->GetLabel();
+    std::string svffile = FirmwareDir_ + ALCT_SLOW_FIRMWARE_FILENAME;
+    thisCCB->setCCBMode(CCB::VMEFPGA);
+      //
+    std::cout  << getLocalDateTime() << " Download ALCT Slow Control firmware to " << chambername << std::endl;
+      //
+    thisTMB->setup_jtag(ChainAlctSlowMezz);
+    thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
 
     // Put CCB back into DLOG mode to listen to TTC commands...
     thisCCB->setCCBMode(CCB::DLOG);
