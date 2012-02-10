@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.18 2011/12/02 15:25:59 cvuosalo Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.19 2012/02/10 20:00:08 cvuosalo Exp $
 *****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -5452,6 +5452,17 @@ void emu::fed::EmuFCrateHyperDAQ::DCCSendBroadcast(xgi::Input *in, xgi::Output *
 }
 
 
+static unsigned long int convRate(const uint16_t rawRate) {
+	// Top 2 bits are 16 times multiplier
+	unsigned long int count = rawRate & 0x3fff;
+	int highbits = ((rawRate & 0xc000) >> 14);
+	count *=  (unsigned long int) pow(16, highbits); // high bit multiplier
+	count = count * 8;  // counter increments every 64 bits (8 bytes)
+	double val = (double) count / 1.06; // Read at 1.06 Hz
+	return ((unsigned long int) (val + 0.5));	// Round to nearest integer
+}
+
+
 
 void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 {
@@ -5617,27 +5628,27 @@ void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 
 		// Get rates for each FIFO, Slink1 first.
 		for (int iFifo = 0; iFifo < 5; iFifo++) {
+			dccValue = convRate(myDCC->readRate(iFifo + 1));
 			ratesTable(iFifo+2,0) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo+1) << ")";
-			dccValue = myDCC->readRate(iFifo+1);
 			ratesTable(iFifo+2,1) << std::dec << dccValue << " bytes/s";
 			ratesTable(iFifo+2,1).setClass("none");
 		}
 
 		ratesTable(7,0) << "S-Link 1";
-		dccValue = myDCC->readRate(0);
+		dccValue = convRate(myDCC->readRate(0));
 		ratesTable(7,1) << std::dec << dccValue << " bytes/s";
 		ratesTable(7,1).setClass("none");
 
 		// Get rates for each FIFO, Slink2 second.
 		for (int iFifo = 5; iFifo < 10; iFifo++) {
 			ratesTable(iFifo+3,0) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo+2) << ")";
-			dccValue = myDCC->readRate(iFifo+2);
+			dccValue = convRate(myDCC->readRate(iFifo+2));
 			ratesTable(iFifo+3,1) << std::dec << dccValue << " bytes/s";
 			ratesTable(iFifo+3,1).setClass("none");
 		}
 
 		ratesTable(13,0) << "S-Link 2";
-		dccValue = myDCC->readRate(6);
+		dccValue = convRate(myDCC->readRate(6));
 		ratesTable(13,1) << std::dec << dccValue << " bytes/s";
 		ratesTable(13,1).setClass("none");
 
@@ -5856,6 +5867,69 @@ void emu::fed::EmuFCrateHyperDAQ::DCCExpert(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::br()
 			.set("style","display: none") << std::endl;
 
+/* stan added routines Feb 9, 2012 */
+
+                // DCC Out of Sync on L1A Mismatches
+
+		*out << cgicc::fieldset()
+			.set("class","expert") << std::endl;
+		*out << cgicc::div()
+			.set("class","legend") << std::endl;
+		*out << "L1A mis-match OutofSync FMM" << cgicc::div() << std::endl;
+
+		*out << cgicc::form()
+			.set("method","GET")
+			.set("action",dccTextLoad) << std::endl;
+                *out << cgicc::input().set("type","submit").set("value","disable")<<std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","command")
+			.set("value","8") << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","slot")
+			.set("value",dccVal) << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","crate")
+			.set("value",crateVal) << std::endl;
+		*out << cgicc::form() << std::endl;
+
+		*out << cgicc::form()
+			.set("method","GET")
+			.set("action",dccTextLoad) << std::endl; 
+                        *out << cgicc::input().set("type","submit").set("value","enable")<<std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","command")
+			.set("value","9") << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","slot")
+			.set("value",dccVal) << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","crate")
+			.set("value",crateVal) << std::endl;
+		*out << cgicc::form() << std::endl;
+
+		unsigned long int currentrOutofSync =  myDCC->readOutofSyncEnableDisable();;
+		*out << cgicc::div("Current state 0=enable; 1=disable : ")
+			.set("style","font-weight: bold; display: inline;");
+		*out << cgicc::div()
+			.set("style","display: inline;");
+		*out << std::showbase << std::dec << currentrOutofSync << cgicc::div() << std::endl;
+		*out << cgicc::br() << std::endl;
+		unsigned long int currentOutofSync =  myDCC->readNumberOfL1AMismatches();;
+		*out << cgicc::div("Current L1A mis-match counter value: ")
+			.set("style","font-weight: bold; display: inline;");
+		*out << cgicc::div()
+			.set("style","display: inline;");
+		*out << std::showbase << std::dec << currentOutofSync << cgicc::div() << std::endl;
+		*out << cgicc::fieldset() << std::endl;
+		*out << cgicc::br()
+			.set("style","display: none") << std::endl;
+/* end stan added routines Feb 9, 2012 */
 
 		// DCC Software Switch
 		*out << cgicc::fieldset()
@@ -6506,10 +6580,21 @@ void emu::fed::EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input *in, xgi::Output *out)
 			myDCC->writeSoftwareSwitch(uploadValue);
 			break;
 
+/* stan added routines Feb 9, 2012 */
+
 		case (7): // set FMM register
 			myDCC->writeFMM(uploadValue);
 			break;
 
+		case (8): // disable out of sync fmm on L1A mismatch
+		        myDCC->writeDisableOutOfSyncOnL1AMismatch(0x0000);
+                        break;
+
+		case (9): // enable out of sync fmm on L1A mismatch
+		        myDCC->writeEnableOutOfSyncOnL1AMismatch(0x0000);
+                        break;
+
+/* end stan added routines Feb 9, 2012 */
 		default:
 
 			break;
