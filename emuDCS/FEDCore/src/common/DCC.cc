@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.11 2010/08/13 02:53:00 paste Exp $
+* $Id: DCC.cc,v 1.12 2012/02/10 19:58:43 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -471,7 +471,82 @@ throw (emu::fed::exception::DCCException)
 	}
 }
 
+/* stan added routines Feb 9, 2012 */
 
+void emu::fed::DCC::writeDisableOutOfSyncOnL1AMismatch(const uint16_t value)
+throw (emu::fed::exception::DCCException)
+{
+	try {
+		std::vector<uint16_t> myData(1, value);
+		writeRegister(MCTRL, 0x0b, 16, myData, true);
+		std::cout << " disable out of sync fmm " << std::endl;
+		return;
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DCC";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "FMM " << fmm_id_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+void emu::fed::DCC::writeEnableOutOfSyncOnL1AMismatch(const uint16_t value)
+throw (emu::fed::exception::DCCException)
+{
+	try {
+		std::vector<uint16_t> myData(1, value);
+		writeRegister(MCTRL, 0x0c, 16, myData, true);
+		std::cout << "enable out of sync fmm " << std::endl; 
+		return;
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DCC";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "FMM " << fmm_id_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+const uint16_t emu::fed::DCC::readNumberOfL1AMismatches()
+throw (emu::fed::exception::DCCException)
+{
+	try {
+		return readRegister(MCTRL, 0x0d, 16, true)[0];
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DCC";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "FMM " << fmm_id_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+const uint16_t emu::fed::DCC::readOutofSyncEnableDisable()
+throw (emu::fed::exception::DCCException)
+{
+	try {
+		return readRegister(MCTRL, 0x0b, 16, true)[0];
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DCC";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "FMM " << fmm_id_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+
+/* end stan added routines Fedb 9, 2012 */
 
 const uint32_t emu::fed::DCC::readIDCode(const enum DEVTYPE dev)
 throw (emu::fed::exception::DCCException)

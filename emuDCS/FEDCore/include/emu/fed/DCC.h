@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.13 2010/08/13 02:53:00 paste Exp $
+* $Id: DCC.h,v 1.14 2012/02/10 19:58:43 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -316,7 +316,20 @@ namespace emu {
 			 **/
 			void writeFakeL1A(const uint16_t value)
 			throw (emu::fed::exception::DCCException);
-
+/* stan added routines Feb 9, 2012 */
+                        /* */
+                        void writeDisableOutOfSyncOnL1AMismatch(const uint16_t value)
+                        throw (emu::fed::exception::DCCException);
+                        /* */
+                        void writeEnableOutOfSyncOnL1AMismatch(const uint16_t value)
+                        throw (emu::fed::exception::DCCException);
+                        /* */
+                        const uint16_t readNumberOfL1AMismatches()
+                        throw (emu::fed::exception::DCCException);
+                        /* */
+                        const uint16_t readOutofSyncEnableDisable()
+                        throw (emu::fed::exception::DCCException);
+/* end stan added routines Feb 9, 2012 */
 			/** @return the ID code from the given PROM chip.
 			 *
 			 * @param dev the device from which to read the ID code.
