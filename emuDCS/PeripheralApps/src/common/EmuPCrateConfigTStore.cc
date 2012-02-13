@@ -2543,7 +2543,7 @@ void EmuPCrateConfigTStore::readCCB(const std::string &connectionID, const std::
       }
       StrgValue=value->toString();
 
-      if (*column == "CCBMODE")           {ccb_->SetTTCmode(IntValue);}
+      if (*column == "CCBMODE")           {ccb_->SetCCBmode(IntValue);}
       if (*column == "L1ADELAY")          {ccb_->Setl1adelay(IntValue);}
       if (*column == "TTCRXID")           {ccb_->SetTTCrxID(IntValue);}
       if (*column == "TTCRXCOARSEDELAY")  {ccb_->SetTTCrxCoarseDelay(IntValue);}
