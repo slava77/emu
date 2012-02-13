@@ -1,4 +1,4 @@
-// $Id: PCConfigEditor.cc,v 1.3 2012/01/24 19:16:43 khotilov Exp $
+// $Id: PCConfigEditor.cc,v 1.4 2012/02/13 10:52:37 liu Exp $
 
 #include "emu/db/PCConfigEditor.h"
 #include "emu/db/TStoreRequest.h"
@@ -3159,7 +3159,7 @@ void PCConfigEditor::readCCB(
       }
       StrgValue = value->toString();
 
-      if (*column == "CCBMODE")            ccb_->SetTTCmode(IntValue);
+      if (*column == "CCBMODE")            ccb_->SetCCBmode(IntValue);
       if (*column == "L1ADELAY")           ccb_->Setl1adelay(IntValue);
       if (*column == "TTCRXID")            ccb_->SetTTCrxID(IntValue);
       if (*column == "TTCRXCOARSEDELAY")   ccb_->SetTTCrxCoarseDelay(IntValue);

@@ -1,4 +1,4 @@
-// $Id: EmuEndcapConfigWrapper.cc,v 1.1 2011/11/11 19:10:40 liu Exp $
+// $Id: EmuEndcapConfigWrapper.cc,v 1.2 2012/02/13 10:48:25 liu Exp $
 
 #include "emu/pc/EmuEndcapConfigWrapper.h"
 #include "emu/utils/SimpleTimer.h"
@@ -202,7 +202,7 @@ throw (emu::exception::ConfigurationException)
   // add CCB(slot 13) to crate
   CCB * ccb_ = new CCB(theCrate, 13);
 
-  if (conf->has("CCBmode"))            ccb_->SetTTCmode( getInt(conf, "CCBmode"));
+  if (conf->has("CCBmode"))            ccb_->SetCCBmode( getInt(conf, "CCBmode"));
   if (conf->has("l1aDelay"))           ccb_->Setl1adelay( getInt(conf, "l1aDelay"));
   if (conf->has("TTCrxID"))            ccb_->SetTTCrxID( getInt(conf, "TTCrxID"));
   if (conf->has("TTCrxCoarseDelay"))   ccb_->SetTTCrxCoarseDelay( getInt(conf, "TTCrxCoarseDelay"));
