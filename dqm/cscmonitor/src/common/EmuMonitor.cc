@@ -35,6 +35,7 @@ throw(xdaq::exception::Exception)
   plotter_ 	= NULL;
   deviceReader_ = NULL;
   pool_ 	= NULL;
+  fileWriter_   = NULL;
 
   initProperties();
   setMemoryPool();
