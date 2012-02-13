@@ -291,7 +291,7 @@
 		<item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
 	      </clientsClassName>
 	      <clientsInstance xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
-		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]"><xsl:value-of select="@instance"/></item>
+		<item xsi:type="xsd:unsignedInt" soapenc:position="[0]"><xsl:value-of select="@instance"/></item>
 	      </clientsInstance>
 	      <poolSizeForClient xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0x4000000</item>
