@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.69 2011/09/02 14:07:55 cvuosalo Exp $
+// $Id: DAQMB.cc,v 3.70 2012/02/13 13:27:25 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.70  2012/02/13 13:27:25  liu
+// fix CFEB firmware downloading bug
+//
 // Revision 3.69  2011/09/02 14:07:55  cvuosalo
 // Added additional diagnostics for CFEB FPGA check
 //
@@ -3328,11 +3331,16 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
     devstr=geo[dv].nam;
     dwnfp    = fopen(downfile,"r");
-    if(dwnfp==NULL) std::cout << "Can't open firmware file " << downfile << std::endl;
+    if(dwnfp==NULL)
+     {   std::cout << "Can't open firmware file " << downfile << std::endl;
+         return;
+     }
     fpout=fopen("/tmp/eprom.bit","w");
     chmod("/tmp/eprom.bit",S_IRUSR| S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-    if(fpout==NULL) std::cout << "Can't open eprom.bit file"<< std::endl;
-    
+    if(fpout==NULL)
+     {   std::cout << "Can't open eprom.bit file"<< std::endl;
+         return;
+     }
     printf("Programming Design %s with %s\n",devstr,downfile);
     //
     char bogobuf[8192];
@@ -3341,6 +3349,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     FILE *bogodwnfp=fopen(downfile,"r");
     while (fgets(bogobuf,256,bogodwnfp) != NULL)
       if (strrchr(bogobuf,';')!=0) nlines++;
+    fclose(bogodwnfp);
     float percent;
     while (fgets(buf,256,dwnfp) != NULL)  {
       percent = (float)line/(float)nlines;
@@ -3605,6 +3614,11 @@ ipass == 3 - load only the stuff after the board number
   //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
   devstr=geo[dv].nam;
   dwnfp    = fopen(downfile,"r");
+    if(dwnfp==NULL)
+     {   std::cout << "Can't open firmware file " << downfile << std::endl;
+         return;
+     }
+ 
     fpout=fopen("/tmp/eprom.bit","w");
     chmod("/tmp/eprom.bit",S_IRUSR| S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
   printf("Programming Design %s with %s\n",devstr,downfile);
