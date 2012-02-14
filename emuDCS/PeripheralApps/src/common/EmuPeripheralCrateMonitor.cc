@@ -3314,6 +3314,12 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      if (command_argu=="FAST") fast_on = false;
      else if (command_argu=="SLOW") slow_on = false;
      else if (command_argu=="EXTRA") extra_on = false;
+     else if (command_argu=="ALL")
+     {
+         fast_on = false;
+         slow_on = false;
+         extra_on = false;
+     }
      std::cout << "SwitchBoard: " << command_argu << " LOOP disabled" << " at " << getLocalDateTime() << std::endl;
   }
   else if (command_name=="LOOPON")
@@ -3321,6 +3327,12 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      if (command_argu=="FAST") fast_on = true;
      else if (command_argu=="SLOW") slow_on = true;
      else if (command_argu=="EXTRA") extra_on = true;
+     else if (command_argu=="ALL")
+     {
+         fast_on = true;
+         slow_on = true;
+         extra_on = true;
+     }
      std::cout << "SwitchBoard: " << command_argu << " LOOP enabled" << " at " << getLocalDateTime() << std::endl;
   }
   else if (command_name=="VCCRESET")
