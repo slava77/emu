@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.70 2012/02/13 13:27:25 liu Exp $
+// $Id: DAQMB.cc,v 3.71 2012/02/14 09:46:13 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.71  2012/02/14 09:46:13  liu
+// fix FPGA & PROM ID bugs
+//
 // Revision 3.70  2012/02/13 13:27:25  liu
 // fix CFEB firmware downloading bug
 //
@@ -2000,7 +2003,7 @@ bool DAQMB::CheckVMEFirmwareVersion() {
 bool DAQMB::CheckControlFirmwareVersion() {
   //
   bool check_ok = false;
-  if ( mbfpgauser() == (unsigned long int) GetExpectedControlFirmwareTag() ) {
+  if ( mbfpgauser() == (unsigned int) GetExpectedControlFirmwareTag() ) {
     check_ok = true;
   } else {
     (*MyOutput_) << "expected DMB control =" << std::dec << GetExpectedControlFirmwareTag() << std::endl;
@@ -2016,15 +2019,15 @@ bool DAQMB::CheckCFEBFirmwareVersion(const CFEB & cfeb) {
   //
   int cfeb_index = cfeb.number();
   //
-  //  std::cout << "expected CFEB[" << cfeb_index << "] = 0x" << std::hex << GetExpectedCFEBFirmwareTag(cfeb_index) << std::endl;
-  //  std::cout << "read     CFEB[" << cfeb_index << "] = 0x" << std::hex << febfpgauser(cfeb) << std::endl;
+    std::cout << "expected CFEB[" << cfeb_index << "] = 0x" << std::hex << GetExpectedCFEBFirmwareTag(cfeb_index) << std::endl;
+    std::cout << "read     CFEB[" << cfeb_index << "] = 0x" << std::hex << febfpgauser(cfeb) << std::endl;
   //
-  return ( febfpgauser(cfeb) == (unsigned long int) GetExpectedCFEBFirmwareTag(cfeb_index) );
+  return ( febfpgauser(cfeb) == (unsigned int) GetExpectedCFEBFirmwareTag(cfeb_index) );
 }
 //
 //
-unsigned long int DAQMB::febpromuser(const CFEB & cfeb)
-{ unsigned long int ibrd;
+unsigned int DAQMB::febpromuser(const CFEB & cfeb)
+{ unsigned int ibrd;
   DEVTYPE dv = cfeb.promDevice();
   printf("%d \n",dv);
   cmd[0]=PROM_USERCODE;
@@ -2050,7 +2053,7 @@ unsigned long int DAQMB::febpromuser(const CFEB & cfeb)
   return ibrd;
 }
 
-unsigned long int  DAQMB::febpromid(const CFEB & cfeb)
+unsigned int  DAQMB::febpromid(const CFEB & cfeb)
 {
   DEVTYPE dv = cfeb.promDevice();
   cmd[0]=PROM_IDCODE;
@@ -2064,16 +2067,16 @@ unsigned long int  DAQMB::febpromid(const CFEB & cfeb)
   rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
   rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
   rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
-  unsigned long int ibrd=unpack_ibrd();
+  unsigned int ibrd=unpack_ibrd();
   cmd[0]=PROM_BYPASS;
   sndbuf[0]=0;
   devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
   return ibrd;
 }
 
-unsigned long int  DAQMB::febfpgauser(const CFEB & cfeb)
+unsigned int  DAQMB::febfpgauser(const CFEB & cfeb)
 {
-  unsigned long int ibrd;
+  unsigned int ibrd;
   DEVTYPE dv = cfeb.scamDevice();
   cmd[0]=VTX_USERCODE;
   sndbuf[0]=0xFF;
@@ -2091,7 +2094,7 @@ unsigned long int  DAQMB::febfpgauser(const CFEB & cfeb)
   return ibrd;
 }
 
-unsigned long int  DAQMB::febfpgaid(const CFEB & cfeb)
+unsigned int  DAQMB::febfpgaid(const CFEB & cfeb)
 {
   DEVTYPE dv = cfeb.scamDevice();
   cmd[0]=VTX_IDCODE;
@@ -2104,16 +2107,16 @@ unsigned long int  DAQMB::febfpgaid(const CFEB & cfeb)
   (*MyOutput_) << " The FPGA Chip IDCODE is " << std::hex << 
     (0xff&rcvbuf[3]) << (0xff&rcvbuf[2]) << (0xff&rcvbuf[1]) << (0xff&rcvbuf[0]) << std::endl;
   // RPW not sure about this
-  unsigned long ibrd = unpack_ibrd();
+  unsigned ibrd = unpack_ibrd();
   cmd[0]=VTX_BYPASS;
   sndbuf[0]=0;
   devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
   return ibrd;
 }
 
-unsigned long int DAQMB::mbpromuser(int prom)
+unsigned int DAQMB::mbpromuser(int prom)
 {
-unsigned long int ibrd;
+unsigned int ibrd;
 DEVTYPE dv;
  
 
@@ -2139,9 +2142,9 @@ DEVTYPE dv;
 
 }
 
-unsigned long int  DAQMB::mbpromid(int prom)
+unsigned int  DAQMB::mbpromid(int prom)
 {
-unsigned long int ibrd;
+unsigned int ibrd;
 DEVTYPE dv;
  
 
@@ -2161,7 +2164,7 @@ DEVTYPE dv;
 }
 
 
-unsigned long int  DAQMB::mbfpgauser()
+unsigned int  DAQMB::mbfpgauser()
 {
  
   DEVTYPE dv=MCTRL;
@@ -2172,17 +2175,17 @@ unsigned long int  DAQMB::mbfpgauser()
   sndbuf[3]=0xFF;
   sndbuf[4]=0xFF;
   devdo(dv,6,cmd,32,sndbuf,rcvbuf,1);
-  unsigned long int ibrd=unpack_ibrd();
+  unsigned int ibrd=unpack_ibrd();
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
   return ibrd;
 }
 
-unsigned long int  DAQMB::mbfpgaid()
+unsigned int  DAQMB::mbfpgaid()
 {
   //
-  unsigned long int ibrd;
+  unsigned int ibrd;
   //
   ibrd=0;
   DEVTYPE dv=MCTRL;
@@ -4218,7 +4221,7 @@ void DAQMB::shift_all(int mode) {
 }
 
 
-unsigned long int DAQMB::unpack_ibrd() const {
+unsigned int DAQMB::unpack_ibrd() const {
   int ibrd=0x00000000;
   return ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)
       |((rcvbuf[3]&0xff)<<24)|ibrd;

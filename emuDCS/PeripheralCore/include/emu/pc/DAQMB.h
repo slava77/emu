@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.9 2011/08/26 16:31:57 cvuosalo Exp $
+// $Id: DAQMB.h,v 1.10 2012/02/14 09:46:14 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.10  2012/02/14 09:46:14  liu
+// fix FPGA & PROM ID bugs
+//
 // Revision 1.9  2011/08/26 16:31:57  cvuosalo
 // Adding CFEB FPGA check to Expert Tools and DMB Utils pages
 //
@@ -357,14 +360,14 @@ public:
   void lowv_onoff(char c);
   unsigned int lowv_rdpwrreg(); 
 // DAQMB prom readbacks
-  unsigned long int febpromuser(const CFEB &);
-  unsigned long int febpromid(const CFEB &);
-  unsigned long int febfpgauser(const CFEB &);
-  unsigned long int febfpgaid(const CFEB &);
-  unsigned long int mbpromuser(int prom);
-  unsigned long int mbpromid(int prom);
-  unsigned long int mbfpgauser();
-  unsigned long int mbfpgaid();
+  unsigned int febpromuser(const CFEB &);
+  unsigned int febpromid(const CFEB &);
+  unsigned int febfpgauser(const CFEB &);
+  unsigned int febfpgaid(const CFEB &);
+  unsigned int mbpromuser(int prom);
+  unsigned int mbpromid(int prom);
+  unsigned int mbfpgauser();
+  unsigned int mbfpgaid();
   void vmefpgaid();
 // DAQMB fifo write and reads
   void wrtfifo(int fifo,int nsndfifo,char* sndfifo);
@@ -593,7 +596,7 @@ public:
   //
 public:
   // unpacks rcvbuf from FPGA operations
-  unsigned long int unpack_ibrd() const;
+  unsigned int unpack_ibrd() const;
   unsigned int unpack_ival() const;
 
 
