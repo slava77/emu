@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.72 2012/02/14 09:50:32 liu Exp $
+// $Id: DAQMB.cc,v 3.73 2012/02/14 09:59:22 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.73  2012/02/14 09:59:22  liu
+// comment out some debug info
+//
 // Revision 3.72  2012/02/14 09:50:32  liu
 // *** empty log message ***
 //
@@ -2022,8 +2025,8 @@ bool DAQMB::CheckCFEBFirmwareVersion(const CFEB & cfeb) {
   //
   int cfeb_index = cfeb.number();
   //
-    std::cout << "expected CFEB[" << cfeb_index << "] = 0x" << std::hex << GetExpectedCFEBFirmwareTag(cfeb_index) << std::endl;
-    std::cout << "read     CFEB[" << cfeb_index << "] = 0x" << std::hex << febfpgauser(cfeb) << std::endl;
+  //  std::cout << "expected CFEB[" << cfeb_index << "] = 0x" << std::hex << GetExpectedCFEBFirmwareTag(cfeb_index) << std::endl;
+  //  std::cout << "read     CFEB[" << cfeb_index << "] = 0x" << std::hex << febfpgauser(cfeb) << std::endl;
   //
   return ( febfpgauser(cfeb) == (unsigned int) GetExpectedCFEBFirmwareTag(cfeb_index) );
 }
