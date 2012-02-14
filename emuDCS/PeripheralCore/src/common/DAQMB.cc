@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.71 2012/02/14 09:46:13 liu Exp $
+// $Id: DAQMB.cc,v 3.72 2012/02/14 09:50:32 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.72  2012/02/14 09:50:32  liu
+// *** empty log message ***
+//
 // Revision 3.71  2012/02/14 09:46:13  liu
 // fix FPGA & PROM ID bugs
 //
@@ -4222,7 +4225,7 @@ void DAQMB::shift_all(int mode) {
 
 
 unsigned int DAQMB::unpack_ibrd() const {
-  int ibrd=0x00000000;
+  unsigned int ibrd=0x00000000;
   return ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)
       |((rcvbuf[3]&0xff)<<24)|ibrd;
 }
