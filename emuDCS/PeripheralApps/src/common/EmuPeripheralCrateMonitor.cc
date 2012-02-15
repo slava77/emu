@@ -330,10 +330,10 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       char buf[8000];
       xdata::UnsignedInteger32 *counter32;
       xdata::UnsignedShort *counter16;
-      unsigned long *buf4;
+      unsigned int *buf4;
       unsigned short *buf2;
       buf2=(unsigned short *)buf;
-      buf4=(unsigned long *)buf;
+      buf4=(unsigned int *)buf;
       bool dmbpoweroff[9];
 
       if(cycle<1 || cycle>3) return;
