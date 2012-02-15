@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.18 2011/10/14 17:42:17 liu Exp $
+// $Id: TMB.h,v 1.19 2012/02/15 10:16:42 liu Exp $
 // $Log: TMB.h,v $
+// Revision 1.19  2012/02/15 10:16:42  liu
+// fix TMB counters for 64bit
+//
 // Revision 1.18  2011/10/14 17:42:17  liu
 // fix warnings for GCC4
 //
@@ -2191,7 +2194,7 @@ private:
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
   static const int MaxCounter = 79;
-  long int FinalCounter[MaxCounter+20];
+  int FinalCounter[MaxCounter+20];
   int alct_sent_to_tmb_counter_index_;
   int ecc_trigger_path_one_error_counter_index_;
   int ecc_trigger_path_two_errors_counter_index_;
