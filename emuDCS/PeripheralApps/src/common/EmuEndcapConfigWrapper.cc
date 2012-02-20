@@ -1,4 +1,4 @@
-// $Id: EmuEndcapConfigWrapper.cc,v 1.2 2012/02/13 10:48:25 liu Exp $
+// $Id: EmuEndcapConfigWrapper.cc,v 1.3 2012/02/20 12:41:47 liu Exp $
 
 #include "emu/pc/EmuEndcapConfigWrapper.h"
 #include "emu/utils/SimpleTimer.h"
@@ -227,6 +227,7 @@ throw (emu::exception::ConfigurationException)
 
   // add MPC(slot 12) to crate
   MPC * mpc_ = new MPC(theCrate, 12);
+  mpc_->SetBoardID(theCrate->CrateID());
 
   if (conf->has("serializermode"))     mpc_->SetTLK2501TxMode( getInt(conf, "serializermode"));
   if (conf->has("TransparentMode"))    mpc_->SetTransparentMode( getInt(conf, "TransparentMode"));
