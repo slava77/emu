@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.22 2011/10/14 17:42:14 liu Exp $
+// $Id: MPC.cc,v 3.23 2012/02/20 13:05:07 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.23  2012/02/20 13:05:07  liu
+// include Board ID in Configuration Check
+//
 // Revision 3.22  2011/10/14 17:42:14  liu
 // fix warnings for GCC4
 //
@@ -259,7 +262,7 @@ void MPC::configure() {
 int MPC::CheckConfig()
 {
    int rx;
-   rx=ReadRegister(0);
+   rx=ReadRegister(CSR0);
    //
    int read_value = rx & 0x8201;
    int expected_value = 0x0200;
@@ -267,6 +270,10 @@ int MPC::CheckConfig()
    bool config_ok = true;
    //
    config_ok &= compareValues("MPC Register CSR0",read_value,expected_value); 
+
+   // check Board ID ( same as Crate ID)
+   int read_boardid = ((rx>>1)&0xF) | ((rx>>6)&0x30);
+   config_ok &= compareValues("MPC Board ID", read_boardid, BoardId_);
    //
    //   if((rx & 0x8201) != 0x0200) 
    //   {  std::cout << "MPC_Check_Config: Register CSR0 wrong " 
