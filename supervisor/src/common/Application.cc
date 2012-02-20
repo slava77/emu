@@ -1742,8 +1742,11 @@ bool emu::supervisor::Application::StateTable::isValidState(string expected) con
 		     && !app_->controlTFCellOp_.value_ 
 		     && app_->run_type_ == "Monitor" ) continue;
 
+		// TTC/LTC have their own peculiar state names. Translate them:
 		if (klass == "ttc::TTCciControl" || klass == "ttc::LTCControl") {
+			if (expected == "Halted"    ) { checked = "halted";     }
 			if (expected == "Configured") { checked = "configured"; }
+			if (expected == "Enabled"   ) { checked = "enabled";    }
 		}
 
 		if (i->second != checked) {
