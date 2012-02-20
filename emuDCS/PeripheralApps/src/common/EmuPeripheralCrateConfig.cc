@@ -769,13 +769,17 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
        *out << cgicc::td();
     }
 
-    //    *out << cgicc::td();
-    //    std::string ConfigOneCr = toolbox::toString("/%s/ConfigOneCrate",getApplicationDescriptor()->getURN().c_str());
-    //    *out << cgicc::form().set("method","GET").set("action",ConfigOneCr) << std::endl ;
-    //    *out << cgicc::input().set("type","submit").set("value","Write FLASH to Crate") << std::endl ;
-    //    *out << cgicc::form() << std::endl ;
-    //    *out << cgicc::td();
-    //
+// enable "Write FLASH" in certain cases
+    if(standalone_ || (xml_or_db==0) || (Valid_config_ID==InFlash_config_ID))
+    {
+        *out << cgicc::td();
+        std::string ConfigOneCr = toolbox::toString("/%s/ConfigOneCrate",getApplicationDescriptor()->getURN().c_str());
+        *out << cgicc::form().set("method","GET").set("action",ConfigOneCr) << std::endl ;
+        *out << cgicc::input().set("type","submit").set("value","Write FLASH to Crate") << std::endl ;
+        *out << cgicc::form() << std::endl ;
+        *out << cgicc::td();
+    }
+
     *out << cgicc::td();
     std::string CrateDumpConfiguration = toolbox::toString("/%s/CrateDumpConfiguration",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CrateDumpConfiguration) << std::endl ;
