@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.73 2012/02/14 09:59:22 liu Exp $
+// $Id: DAQMB.cc,v 3.74 2012/02/20 14:41:56 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.74  2012/02/20 14:41:56  liu
+// avoid compiler warning
+//
 // Revision 3.73  2012/02/14 09:59:22  liu
 // comment out some debug info
 //
@@ -2140,7 +2143,7 @@ DEVTYPE dv;
       sndbuf[0]=0;
       devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
 
-      printf("from mbpromuser: %08lX %02X %02X %02X %02X\n",ibrd,rcvbuf[0],rcvbuf[1],rcvbuf[2],rcvbuf[3]);
+      printf("from mbpromuser: %08X %02X %02X %02X %02X\n",ibrd,rcvbuf[0],rcvbuf[1],rcvbuf[2],rcvbuf[3]);
       if (((0xff&rcvbuf[0])!=0xff)||((0xff&rcvbuf[1])!=0xff)||
           ((0xff&rcvbuf[2])!=0xff)||((0xff&rcvbuf[3])!=0xff)) return ibrd;
   }
