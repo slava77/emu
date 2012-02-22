@@ -2889,7 +2889,6 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   int TOTAL_DCS_COUNTERS=48;
   int TOTAL_TMB_VOLTAGES=16;
   xdata::InfoSpace * is;
-  std::string mac;
   int ip, slot, ch_state;
   unsigned int bad_module, ccbbits;
   bool gooddata, goodtmb;
@@ -2906,8 +2905,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     mac=crateVector[i]->vmeController()->GetMAC(0);
-     ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
+     ip=crateVector[i]->CrateID();
      if(crate_off[i])
      {  // for OFF crates, send -2. in all fields, timestamp is current
         myVector = crateVector[i]->daqmbs();
@@ -3313,7 +3311,7 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   {
      if (command_argu=="FAST") fast_on = false;
      else if (command_argu=="SLOW") slow_on = false;
-     else if (command_argu=="EXTRA") extra_on = false;
+     else if (command_argu=="EXTRA") extra_on = false;     
      else if (command_argu=="ALL")
      {
          fast_on = false;
@@ -3762,7 +3760,20 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
 
      if(problist[i]->source()==ProbSource_CONFDB && problist[i]->type()>0)
      {
-        *out << "Crate=" << problist[i]->crate() << ", Chamber=" << problist[i]->chamber() << std::endl;
+        int cr=problist[i]->crate();
+        int chb=problist[i]->chamber();
+        if(cr>0 & chb>0)
+        {
+           Crate * thiscr=crateVector[cr-1];
+           if(thiscr)
+           {
+              std::string crname=thiscr->GetLabel();
+              std::string chbname=thiscr->GetChamberName(chb);
+              *out << "Crate=" << crname << ", Chamber=" << chbname << std::endl;  
+           }
+           else
+             *out << "Crate=" << problist[i]->crate() << ", Chamber=" << problist[i]->chamber() << std::endl;
+        }
      }
   }
   *out << std::endl <<  "Problems in CCB Configuration bits" << std::endl;
@@ -3770,7 +3781,28 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
   {
      if(problist[i]->source()==ProbSource_CCBBIT && problist[i]->type()>0)
      {
-        *out << "Crate=" << problist[i]->crate() << ", Chamber=" << problist[i]->chamber() << ", Module=" << problist[i]->module() << std::endl;
+        int cr=problist[i]->crate();
+        int chb=problist[i]->chamber();
+        int md=problist[i]->module();
+        if(cr>0 & chb>0)
+        {
+           Crate * thiscr=crateVector[cr-1];
+           if(thiscr)
+           {
+              std::string crname=thiscr->GetLabel();
+              std::string chbname=thiscr->GetChamberName(chb);
+              *out << "Crate=" << crname << ", Chamber=" << chbname;
+           }
+           else
+           {
+              *out << "Crate=" << problist[i]->crate() << ", Chamber=" << problist[i]->chamber();
+           }
+           if(md==6)
+              *out << ", Module = ALCT " << std::endl;
+           if(md>0 && md<6)
+              *out << ", Module = DMB/CFEB " << std::endl;
+
+        }
      }
   }
   *out << "</pre>" << std::endl;
