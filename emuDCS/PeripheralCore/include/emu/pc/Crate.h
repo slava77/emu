@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.8 2011/10/28 18:13:37 liu Exp $
+// $Id: Crate.h,v 1.9 2012/02/22 17:53:23 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.9  2012/02/22 17:53:23  liu
+// new function to return Chamber name
+//
 // Revision 1.8  2011/10/28 18:13:37  liu
 // add DDU class
 //
@@ -159,6 +162,7 @@ public:
   Chamber * GetChamber(DAQMB *dmb);
   TMB * GetTMB(unsigned int slot);
   DAQMB * GetDAQMB(unsigned int slot);
+  std::string GetChamberName(int n);
   void PowerOff();
   void MonitorCCB(int cycle, char * buf);
   void MonitorTMB(int cycle, char * buf, unsigned mask=0);
