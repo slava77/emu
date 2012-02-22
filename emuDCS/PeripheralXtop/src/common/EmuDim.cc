@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.44 2011/07/02 05:00:16 liu Exp $
+// $Id: EmuDim.cc,v 1.45 2012/02/22 10:24:15 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -819,6 +819,7 @@ int EmuDim::PowerUp()
            if(strncmp(BlueLoader->Content(), "Power Up Successful",19)==0)
            {
               crate_state[i] = 0;
+              upcrates--;
               confirm = "INIT_IS_DONE;" + crate_name[i];              
               std::cout << getLocalDateTime() << " Return: " << confirm << std::endl;
               XmasLoader->reload(xmas_info+"?CRATEON="+crate_name[i]);
@@ -839,6 +840,8 @@ int EmuDim::PowerUp()
          Confirmation_Service->updateService();
       }
    }
+   // if Xmas was on before power-up, then resume it after all crates finished
+   if(upcrates==0 && Suspended_==false) XmasLoader->reload(xmas_start);
    return 0;
 }
 
