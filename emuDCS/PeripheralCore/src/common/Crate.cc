@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.75 2011/10/28 18:13:37 liu Exp $
+// $Id: Crate.cc,v 3.76 2012/02/22 17:53:23 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.76  2012/02/22 17:53:23  liu
+// new function to return Chamber name
+//
 // Revision 3.75  2011/10/28 18:13:37  liu
 // add DDU class
 //
@@ -662,6 +665,17 @@ int Crate::CheckController()
   Chamber * Crate::GetChamber(TMB * tmb)   {  return GetChamber(tmb->slot()); }
 
   Chamber * Crate::GetChamber(DAQMB * dmb)   {  return GetChamber(dmb->slot()); }
+
+  std::string Crate::GetChamberName(int n)
+  {
+     /* n=1   the 1st chamber, slots 2&3 for a full crate */
+
+     std::string rt="";
+     std::vector<Chamber*> mychambers=chambers();
+     if(n<=0 || (unsigned)n > mychambers.size()) return rt;
+     if(mychambers[n-1]) rt=mychambers[n-1]->GetLabel();
+     return rt;
+  }
 
   TMB * Crate::GetTMB(unsigned int slot)
   {
