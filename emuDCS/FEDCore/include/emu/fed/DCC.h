@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.14 2012/02/10 19:58:43 cvuosalo Exp $
+* $Id: DCC.h,v 1.15 2012/02/23 13:18:44 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -330,6 +330,17 @@ namespace emu {
                         const uint16_t readOutofSyncEnableDisable()
                         throw (emu::fed::exception::DCCException);
 /* end stan added routines Feb 9, 2012 */
+/* start CRC error routines Feb 23, 2012 */
+                        /* */
+                        void writeDisableCRCErrOnL1AMismatch(const uint16_t value)
+                        throw (emu::fed::exception::DCCException);
+                        /* */
+                        void writeEnableCRCErrOnL1AMismatch(const uint16_t value)
+                        throw (emu::fed::exception::DCCException);
+                        /* */
+                        const uint16_t readCRCErrEnableDisable()
+                        throw (emu::fed::exception::DCCException);
+/* end CRC error routines Feb 23, 2012 */
 			/** @return the ID code from the given PROM chip.
 			 *
 			 * @param dev the device from which to read the ID code.

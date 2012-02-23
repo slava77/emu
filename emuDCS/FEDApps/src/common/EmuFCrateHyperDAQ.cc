@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.19 2012/02/10 20:00:08 cvuosalo Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.20 2012/02/23 13:18:45 cvuosalo Exp $
 *****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -5875,7 +5875,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCExpert(xgi::Input *in, xgi::Output *out)
 			.set("class","expert") << std::endl;
 		*out << cgicc::div()
 			.set("class","legend") << std::endl;
-		*out << "L1A mis-match OutofSync FMM" << cgicc::div() << std::endl;
+		*out << "L1A mismatch OutofSync FMM" << cgicc::div() << std::endl;
 
 		*out << cgicc::form()
 			.set("method","GET")
@@ -5914,14 +5914,15 @@ void emu::fed::EmuFCrateHyperDAQ::DCCExpert(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::form() << std::endl;
 
 		unsigned long int currentrOutofSync =  myDCC->readOutofSyncEnableDisable();;
-		*out << cgicc::div("Current state 0=enable; 1=disable : ")
+		currentrOutofSync =  currentrOutofSync & 1;  // Look at bit 1
+		*out << cgicc::div("Current state (0=enabled, 1=disabled): ")
 			.set("style","font-weight: bold; display: inline;");
 		*out << cgicc::div()
 			.set("style","display: inline;");
 		*out << std::showbase << std::dec << currentrOutofSync << cgicc::div() << std::endl;
 		*out << cgicc::br() << std::endl;
 		unsigned long int currentOutofSync =  myDCC->readNumberOfL1AMismatches();;
-		*out << cgicc::div("Current L1A mis-match counter value: ")
+		*out << cgicc::div("Current L1A mismatch counter value: ")
 			.set("style","font-weight: bold; display: inline;");
 		*out << cgicc::div()
 			.set("style","display: inline;");
@@ -5930,6 +5931,64 @@ void emu::fed::EmuFCrateHyperDAQ::DCCExpert(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::br()
 			.set("style","display: none") << std::endl;
 /* end stan added routines Feb 9, 2012 */
+/* start CRC error routines Feb 23, 2012 */
+
+                // DCC generates CRC error on L1A mismatch enable/disable
+
+		*out << cgicc::fieldset()
+			.set("class","expert") << std::endl;
+		*out << cgicc::div()
+			.set("class","legend") << std::endl;
+		*out << "CRC error on L1A mismatch" << cgicc::div() << std::endl;
+
+		*out << cgicc::form()
+			.set("method","GET")
+			.set("action",dccTextLoad) << std::endl;
+                *out << cgicc::input().set("type","submit").set("value","disable")<<std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","command")
+			.set("value","10") << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","slot")
+			.set("value",dccVal) << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","crate")
+			.set("value",crateVal) << std::endl;
+		*out << cgicc::form() << std::endl;
+
+		*out << cgicc::form()
+			.set("method","GET")
+			.set("action",dccTextLoad) << std::endl; 
+                        *out << cgicc::input().set("type","submit").set("value","enable")<<std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","command")
+			.set("value","11") << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","slot")
+			.set("value",dccVal) << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","crate")
+			.set("value",crateVal) << std::endl;
+		*out << cgicc::form() << std::endl;
+
+		unsigned long int currentrCRCErr =  myDCC->readCRCErrEnableDisable();
+		currentrCRCErr =  currentrCRCErr >> 1;	// Look at bit 2
+		*out << cgicc::div("Current state (0=disabled, 1=enabled): ")
+			.set("style","font-weight: bold; display: inline;");
+		*out << cgicc::div()
+			.set("style","display: inline;");
+		*out << std::showbase << std::dec << currentrCRCErr << cgicc::div() << std::endl;
+		// *out << cgicc::br() << std::endl;
+		*out << cgicc::fieldset() << std::endl;
+		*out << cgicc::br()
+			.set("style","display: none") << std::endl;
+/* end CRC error routines Feb 23, 2012 */
 
 		// DCC Software Switch
 		*out << cgicc::fieldset()
@@ -6595,6 +6654,15 @@ void emu::fed::EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input *in, xgi::Output *out)
                         break;
 
 /* end stan added routines Feb 9, 2012 */
+
+		case (10): // disable CRC error on L1A mismatch
+		        myDCC->writeDisableCRCErrOnL1AMismatch(0x0000);
+                        break;
+
+		case (11): // enable CRC error on L1A mismatch
+		        myDCC->writeEnableCRCErrOnL1AMismatch(0x0000);
+                        break;
+
 		default:
 
 			break;
