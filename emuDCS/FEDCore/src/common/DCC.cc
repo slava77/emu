@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.12 2012/02/10 19:58:43 cvuosalo Exp $
+* $Id: DCC.cc,v 1.13 2012/02/23 13:18:45 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -547,6 +547,69 @@ throw (emu::fed::exception::DCCException)
 
 
 /* end stan added routines Fedb 9, 2012 */
+
+
+/* start CRC error on OOS Fed 23, 2012 */
+
+void emu::fed::DCC::writeDisableCRCErrOnL1AMismatch(const uint16_t value)
+throw (emu::fed::exception::DCCException)
+{
+	try {
+		std::vector<uint16_t> myData(1, value);
+		writeRegister(MCTRL, 0x0f, 16, myData, true);
+		std::cout << " disable CRC error " << std::endl;
+		return;
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DCC";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "FMM " << fmm_id_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+void emu::fed::DCC::writeEnableCRCErrOnL1AMismatch(const uint16_t value)
+throw (emu::fed::exception::DCCException)
+{
+	try {
+		std::vector<uint16_t> myData(1, value);
+		writeRegister(MCTRL, 0x0e, 16, myData, true);
+		std::cout << "enable CRC error " << std::endl; 
+		return;
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DCC";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "FMM " << fmm_id_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+const uint16_t emu::fed::DCC::readCRCErrEnableDisable()
+throw (emu::fed::exception::DCCException)
+{
+	try {
+		return readRegister(MCTRL, 0x0b, 16, true)[0];
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DCC";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "FMM " << fmm_id_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+}
+
+
+
+/* end CRC error on OOS Fed 23, 2012 */
+
 
 const uint32_t emu::fed::DCC::readIDCode(const enum DEVTYPE dev)
 throw (emu::fed::exception::DCCException)
