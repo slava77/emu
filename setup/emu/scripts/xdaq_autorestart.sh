@@ -13,7 +13,7 @@
 # Wait SLEEP seconds after crash before relaunching process
 SLEEP=3
 
-# N_STARTS starts should not happen within a time span of MIN_TIMESPAN seconds
+# N_STARTS or more starts should not happen within a time span of MIN_TIMESPAN seconds
 N_STARTS=5
 MIN_TIMESPAN=1800
 
@@ -34,7 +34,7 @@ for (( I=1 ;; I++ )); do
     echo "***********"
     echo "* Start $I *"
     echo "***********"
-    TIMES[$I%5+1]=$(date +"%s")
+    TIMES[${I}%${N_STARTS}+1]=$(date +"%s")
     ORDERED_TIMES=( $(echo ${(on)TIMES}) )
     ((TIMESPAN=${ORDERED_TIMES[-1]}-${ORDERED_TIMES[1]}))
     echo "Time span of last "$( [[ $I -lt ${#TIMES} ]] && echo $I || echo ${#TIMES} )" (re)starts: " $TIMESPAN " seconds"
