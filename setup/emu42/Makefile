@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2012/02/27 19:57:47 banicz Exp $
+# $Id: Makefile,v 1.3 2012/02/27 20:21:02 banicz Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -32,7 +32,7 @@ Package=setup/$(PackageName)
 
 PACKAGE_VER_MAJOR=1
 PACKAGE_VER_MINOR=0
-PACKAGE_VER_PATCH=1
+PACKAGE_VER_PATCH=2
 
 Summary=Setup data for the CMS ME-4/2 production
 
