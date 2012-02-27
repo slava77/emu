@@ -2,7 +2,7 @@
 # This script kills the orphaned XDAQ process that is listening on the port given as its argument.
 
 # Example:
-# USER=cscdaq killOrphanedXDAQ.sh 20200
+# USER=cscme42 killOrphanedXDAQ.sh 20200
 
 PORT=$1
 LOGFILE=/tmp/killOrphanedXDAQ_${USER-unknownUser}.log

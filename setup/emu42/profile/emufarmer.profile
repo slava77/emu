@@ -81,8 +81,8 @@
       <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::farmer::Application">
 	<generatingCommand xsi:type="xsd:string">cd /opt/xdaq/htdocs/emu/farmer/xml &amp;&amp; ./generateConfigs.sh</generatingCommand>
 	<uploadingCommand  xsi:type="xsd:string">RCMS_HOME=/home/cscpro/RunControl /home/cscpro/bin/duckLoader --usc55 </uploadingCommand>
-	<outputDir xsi:type="xsd:string">/home/cscdaq/config/farmer/out</outputDir>
-	<rs3UserFile xsi:type="xsd:string">/home/cscdaq/config/.rs3User</rs3UserFile>
+	<outputDir xsi:type="xsd:string">/home/cscme42/config/farmer/out</outputDir>
+	<rs3UserFile xsi:type="xsd:string">/home/cscme42/config/.rs3User</rs3UserFile>
 	<jobControlClass xsi:type="xsd:string">jobcontrol::Application</jobControlClass>
 	<executiveClass  xsi:type="xsd:string">executive::Application</executiveClass>
       </properties>
