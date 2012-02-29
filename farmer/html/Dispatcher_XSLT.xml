@@ -217,7 +217,7 @@
       <body>
 	<a class="header" href="Default" title="Go to main page.">Main</a>|<a class="header" href="Editor" title="Edit (and generate) DAQ/DQM configuration.">Generator</a>|<a class="header" href="Selector" title="Select .duck file.">Selector</a>|<span class="current">Dispatcher</span>
 	<hr/>
-	<h4 style="color:#666666;"><xsl:value-of select="//comment()[1]"/></h4>
+	<!-- <h4 style="color:#666666;"><xsl:value-of select="//comment()[1]"/></h4> -->
 	<xsl:call-template name="Operate"/>
 	<br/>
 	<br/>
