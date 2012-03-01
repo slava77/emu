@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   if (getenv("HOME") && string(getenv("HOME")).size())
     cfgDir=getenv("HOME"); //+"/config/";
 
-  cfgDir+="/config/";
+  cfgDir+="/config";
   if (getenv("DQMCONFIG") && string(getenv("DQMCONFIG")).size()) cfgDir=getenv("DQMCONFIG");
   /*
   	std::string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
@@ -85,14 +85,14 @@ int main(int argc, char **argv)
   	std::string xmlTestCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuTests.xml";
   	std::string masksCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuChanMasks.xml";
   */
-  std::string xmlHistosBookingCfg = "file://" + cfgDir + "emuDQMBooking.xml";
-  std::string xmlCanvasesCfg = "file://" + cfgDir + "emuDQMCanvases.xml";
-  std::string cscMapFile = cfgDir+"csc_map.txt";
-  std::string xmlTestCfg = "file://" + cfgDir +"emuTests.xml";
-  std::string masksCfg = "file://" + cfgDir + "emuChanMasks.xml";
+  std::string xmlHistosBookingCfg = "file://" + cfgDir + "/emuDQMBooking.xml";
+  std::string xmlCanvasesCfg = "file://" + cfgDir + "/emuDQMCanvases.xml";
+  std::string cscMapFile = cfgDir+"/csc_map.txt";
+  std::string xmlTestCfg = "file://" + cfgDir +"/emuTests.xml";
+  std::string masksCfg = "file://" + cfgDir + "/emuChanMasks.xml";
   std::string datafile = "";
   std::string histofile = "dqm_results.root";
-  std::string SQLiteDB = cfgDir+"csc_map.db";
+  std::string SQLiteDB = cfgDir+"/csc_map.db";
 
   std::string plotsdir = "images";	// Output images path
   std::string imgFormat = "png"; 	// Output image format
@@ -156,37 +156,37 @@ int main(int argc, char **argv)
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test CFEB02: Pedestals and Noise");
       test_analyzer = new Test_CFEB02(datafile);
-      xmlTestCfg = "file://" + cfgDir +"emuTest_CFEB02.xml";
+      xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB02.xml";
     }
   else if (datafile.find("CFEB_CrossTalk") != std::string::npos)
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test CFEB03: Pulse Response and Cross Talks");
       test_analyzer = new Test_CFEB03(datafile);
-      xmlTestCfg = "file://" + cfgDir +"emuTest_CFEB03.xml";
+      xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB03.xml";
     }
   else if (datafile.find("CFEB_Gains") != std::string::npos)
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test CFEB04: Amplifier Gain");
       test_analyzer = new Test_CFEB04(datafile);
-      xmlTestCfg = "file://" + cfgDir +"emuTest_CFEB04.xml";
+      xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB04.xml";
     }
   else if (datafile.find("ALCT_Connectivity") != std::string::npos)
     { 
       LOG4CPLUS_INFO(logger, "Detected data for Test AFEB05: Connectivity");
       test_analyzer = new Test_AFEB05(datafile);
-      xmlTestCfg = "file://" + cfgDir +"emuTest_AFEB05.xml";
+      xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB05.xml";
     } 
   else if (datafile.find("ALCT_Thresholds") != std::string::npos)
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test AFEB06: Thresholds and Analog Noise");
       test_analyzer = new Test_AFEB06(datafile);
-      xmlTestCfg = "file://" + cfgDir +"emuTest_AFEB06.xml";
+      xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB06.xml";
     }
   else if (datafile.find("ALCT_Delays") != std::string::npos)
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test AFEB07: AFEB-ALCT Time Delays");
       test_analyzer = new Test_AFEB07(datafile);
-      xmlTestCfg = "file://" + cfgDir +"emuTest_AFEB07.xml";
+      xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB07.xml";
     }
   else
     {
