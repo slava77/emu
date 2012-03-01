@@ -77,6 +77,7 @@ int main(int argc, char **argv)
     cfgDir=getenv("HOME"); //+"/config/";
 
   cfgDir+="/config/";
+  if (getenv("DQMCONFIG") && string(getenv("DQMCONFIG")).size()) cfgDir=getenv("DQMCONFIG");
   /*
   	std::string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
           std::string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
