@@ -931,12 +931,12 @@ function TrackFinderFromJson(){
     var msg = '';
     $.each( json.table.rows, function(i,row){
       if ( i == 0 ){
-	msg += 'FSM_STATE.rows.length='+row.FSM_STATE.rows.length+'   EMUPAGEONE_RATES.rows.length='+row.EMUPAGEONE_RATES.rows.length;
+	msg += 'EMUPAGEONE_FSM_t.rows.length='+row.EMUPAGEONE_FSM_t.rows.length+'   EMUPAGEONE_RATES_t.rows.length='+row.EMUPAGEONE_RATES_t.rows.length;
 	var validConfPatterns = ['^EmuLocal$','^Configuration$'];
 	var foundGlobalConf = false;
 	var foundLocalConf  = false;
 	for ( p=0; p<validConfPatterns.length; p++ ){
-	  $.each( row.FSM_STATE.rows, function(j,configRow){
+	  $.each( row.EMUPAGEONE_FSM_t.rows, function(j,configRow){
 	    if ( configRow['id'].search(validConfPatterns[p])==0 ){
 	      $('#td_value_state').attr( 'class', configRow['state'] );
 	      $('#a_value_state').text( configRow['state'] );
@@ -952,10 +952,10 @@ function TrackFinderFromJson(){
 	if ( !foundGlobalConf && !foundLocalConf ){
 	  $('#td_value_state').attr( 'class', 'UNKNOWN' );
 	  $('#a_value_state').text( 'UNKNOWN' );
-	  $('#a_value_state').attr( 'title', (row.FSM_STATE.rows.length==0?'No operation found. (This is normal IF the TF Cell has been restarted in this run.)':' Only invalid operation found.') );
+	  $('#a_value_state').attr( 'title', (row.EMUPAGEONE_FSM_t.rows.length==0?'No operation found. (This is normal IF the TF Cell has been restarted in this run.)':' Only invalid operation found.') );
 	  $('#td_value_confkey').attr( 'class', 'UNKNOWN' );
 	  $('#a_value_confkey').text( 'UNKNOWN' );
-	  $('#a_value_confkey').attr( 'title', (row.FSM_STATE.rows.length==0?'No operation found. (This is normal IF the TF Cell has been restarted in this run.)':' Only invalid operation found.') );
+	  $('#a_value_confkey').attr( 'title', (row.EMUPAGEONE_FSM_t.rows.length==0?'No operation found. (This is normal IF the TF Cell has been restarted in this run.)':' Only invalid operation found.') );
 	}
 // 	if ( foundGlobalConf && foundLocalConf ){
 // 	  $('#td_value_state').attr( 'class', 'INDEFINITE' );
@@ -965,7 +965,7 @@ function TrackFinderFromJson(){
 // 	  $('#a_value_confkey').text( 'INDEFINITE' );
 // 	  $('#a_value_confkey').attr( 'title', 'Both global and local operations found. Click to destroy \"EmuLocal\", or consult the Trigger shifter to have the global one destroyed.' );
 // 	}
-	$.each( row.EMUPAGEONE_RATES.rows, function(j,ratesRow){ 
+	$.each( row.EMUPAGEONE_RATES_t.rows, function(j,ratesRow){ 
 	  if ( j == 0 ){
 	    var graphPoint = { name:'total SP input rate [Hz]', time:time, value:ratesRow['Total SPs Rate'] };
 	    appendPoint( graphPoint );
