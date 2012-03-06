@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.20 2012/02/23 13:18:45 cvuosalo Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.21 2012/03/06 20:39:22 cvuosalo Exp $
 *****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -5458,7 +5458,7 @@ static unsigned long int convRate(const uint16_t rawRate) {
 	int highbits = ((rawRate & 0xc000) >> 14);
 	count *=  (unsigned long int) pow(16, highbits); // high bit multiplier
 	count = count * 8;  // counter increments every 64 bits (8 bytes)
-	double val = (double) count / 1.06; // Read at 1.06 Hz
+	double val = (double) count * 1.06; // Read at 1.06 Hz
 	return ((unsigned long int) (val + 0.5));	// Round to nearest integer
 }
 
