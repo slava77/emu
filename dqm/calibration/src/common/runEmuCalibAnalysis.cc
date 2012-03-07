@@ -6,6 +6,8 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <sys/resource.h>
+
 #include "log4cplus/logger.h"
 #include "log4cplus/consoleappender.h"
 #include "log4cplus/helpers/appenderattachableimpl.h"
@@ -105,6 +107,20 @@ int main(int argc, char **argv)
 
   uint32_t node=0;
 
+  // Try to set unlimited stack size (needed for Test CFEB04 - Gains)
+  struct rlimit rl;
+  int result;
+  result = getrlimit(RLIMIT_STACK, &rl);
+  if (result == 0)
+    {
+	rl.rlim_cur = RLIM_INFINITY;
+ 	result = setrlimit(RLIMIT_STACK, &rl);
+            if (result != 0)
+            {
+                fprintf(stderr, "setrlimit returned result = %d\n", result);
+            }
+    }
+
   switch (argc)
     {
     case 7:
@@ -129,6 +145,7 @@ int main(int argc, char **argv)
                       strerror(errno));
       exit(-1);
     }
+
 
   emu::daq::reader::RawDataFile ddu(datafile.c_str(), emu::daq::reader::Base::DDU);
 //	EmuFileReader ddu(datafile.c_str(), EmuReader::DDU);
