@@ -76,12 +76,12 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
 
   int fTextFont = 132; ///< Times New Roman
 
-  theTitlePad = new TPaveText(.02,.95,.98,.98,"brNDC");
+  theTitlePad = new TPaveText(.01,.94,.99,.99,"brNDC");
   theTitlePad->SetFillColor(theColorWhite);
   theTitlePad->SetBorderSize(0);
   theTitlePad->SetTextFont(fTextFont);
   theTitlePad->SetTextSize(0.04);
-  theTitlePad->SetTextAlign(23);
+  theTitlePad->SetTextAlign(22);
   theTitlePad->AddText(title.c_str());
 
   double fY0  = 0.01;
