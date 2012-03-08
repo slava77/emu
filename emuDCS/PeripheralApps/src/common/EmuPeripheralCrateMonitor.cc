@@ -204,12 +204,14 @@ void EmuPeripheralCrateMonitor::ReadingOff()
 void EmuPeripheralCrateMonitor::MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
      ReadingOn();
+     PCsendCommandwithAttr("SoapInfo", "MonitorState", "ON", "emu::x2p::EmuDim");
      this->Default(in,out);
 }
 
 void EmuPeripheralCrateMonitor::MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
      ReadingOff();
+     PCsendCommandwithAttr("SoapInfo", "MonitorState", "OFF", "emu::x2p::EmuDim");
      this->Default(in,out);
 }
 
