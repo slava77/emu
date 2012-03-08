@@ -100,6 +100,27 @@
                 <High1Limit>5</High1Limit>
         </TestResult>
 
+        <TestResult>
+                <Test>CFEB04</Test>
+                <Type>cfeb_board_cnv</Type>
+                <Title>R06 - Test Pulse Peak Timing</Title>
+                <Prefix>CSC</Prefix>
+                <Name>R06</Name>
+                <XMin>0</XMin>
+                <XMax>5</XMax>
+                <XBins>5</XBins>
+                <XTitle>CFEB ID</XTitle>
+                <YMin>0</YMin>
+                <YMax>400</YMax>
+                <YBins>400</YBins>
+                <YTitle>Test Pulse Peak Time</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>50</Low0Limit>
+                <High0Limit>350</High0Limit>
+                <High1Limit>400</High1Limit>
+        </TestResult>
+
+
 
 	<TestResult>
                 <Test>CFEB04</Test>
