@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.45 2012/02/22 10:24:15 liu Exp $
+// $Id: EmuDim.cc,v 1.46 2012/03/08 14:45:21 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -40,6 +40,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   xgi::bind(this,&EmuDim::MainPage, "MainPage");
   //
   current_state_ = 0;
+  xmas_state_ = 0;
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateDimFile_);
   getApplicationInfoSpace()->fireItemAvailable("BadChamberFileName", &BadChamberFile_);
   getApplicationInfoSpace()->fireItemAvailable("XmasDcsUrl", &XmasDcsUrl_ );
@@ -93,7 +94,17 @@ xoap::MessageReference EmuDim::SoapStop (xoap::MessageReference message)
 xoap::MessageReference EmuDim::SoapInfo (xoap::MessageReference message) 
   throw (xoap::exception::Exception) 
 {
-     if(inited)
+   if(inited)
+   {
+     std::string xmasst=getAttrFromSOAP(message, "MonitorState");
+     if(xmasst!="")
+     {
+        xmas_state_ = 1;
+        if(xmasst=="ON" || xmasst=="on")   xmas_state_ = 2;
+        if(xmasst=="OFF" || xmasst=="off")  xmas_state_ = 4;   
+        std::cout << getLocalDateTime() << " Xmas Report: state changed to " << xmasst << std::endl;
+     }
+     else
      {
         std::string cratename=getAttrFromSOAP(message, "CrateUp");
         int i=CrateToNumber( cratename.c_str() );
@@ -107,7 +118,8 @@ xoap::MessageReference EmuDim::SoapInfo (xoap::MessageReference message)
             Confirmation_Service->updateService();
         }
      }
-     return createReply(message);
+   }
+   return createReply(message);
 }
 
 void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
@@ -586,6 +598,10 @@ void EmuDim::StartDim()
    std::string dim_lv_name, dim_temp_name, dim_ddu_name, dim_command, dim_server, pref;
 
    pref=TestPrefix_;
+
+   XMAS_1_Service= new DimService("XMAS_X2P","I:3",
+           &EmuDim_xmas, sizeof(XMAS_1_DimBroker));
+   
    while(i < TOTAL_CHAMBERS)
    {
       if(chamb[i].Ready())
