@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.15 2010/07/18 16:41:47 liu Exp $
+// $Id: EmuDim.h,v 1.16 2012/03/08 14:18:46 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -130,7 +130,10 @@ private:
   LV_1_DimBroker EmuDim_lv[TOTAL_CHAMBERS];
   TEMP_1_DimBroker EmuDim_temp[TOTAL_CHAMBERS];
   DDU_1_DimBroker EmuDim_ddu[TOTAL_DDUS];
+  CRATE_1_DimBroker EmuDim_crate[TOTAL_CRATES];
+  XMAS_1_DimBroker EmuDim_xmas;
   DimService *LV_1_Service[TOTAL_CHAMBERS], *TEMP_1_Service[TOTAL_CHAMBERS], *DDU_1_Service[TOTAL_DDUS];
+  DimService *CRATE_1_Service[TOTAL_CRATES], *XMAS_1_Service;
   DimCommand *LV_1_Command;
 //
 // below for return commands to PVSS:
@@ -147,9 +150,10 @@ private:
   bool Monitor_On_, Monitor_Ready_, In_Monitor_, Suspended_;
   toolbox::task::Timer * timer_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
-  int current_state_;
+  int current_state_, xmas_state_;
   int heartbeat, readin_, read_timeout;
   time_t readtime_;
+
 
   std::string xmas_root, xmas_load, xmas_start, xmas_stop, xmas_info;
   std::string blue_root, blue_info, fedc_root, fedc_load;

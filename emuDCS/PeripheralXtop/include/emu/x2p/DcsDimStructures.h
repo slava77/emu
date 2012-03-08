@@ -76,6 +76,26 @@ typedef struct{
 
 }LV_1_DimBroker;
 
+                
+typedef struct{
+
+  int VCC_info;
+  int CCB_info;
+  int MPC_info;
+  int Crate_info;
+  int update_time;
+
+}CRATE_1_DimBroker;
+
+                
+typedef struct{
+
+  int XMAS_info;
+  int X2P_info;
+  int update_time;
+
+}XMAS_1_DimBroker;
+
 
 typedef struct{
 
