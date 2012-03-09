@@ -2,8 +2,8 @@
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <TestResult>
 		<Test>AFEB06</Test>
-                <Type>afeb_cnv</Type>
-		<Title>R01 - Noise for 29.8 fC out of limits </Title>
+                <Type>wires_cnv</Type>
+		<Title>R01 - AFEB Noise for 20 fC out of limits </Title>
                 <Prefix>CSC</Prefix>
                 <Name>R01</Name>
                 <XMin>0</XMin>
@@ -13,7 +13,7 @@
                 <YMin>0</YMin>
                 <YMax>10</YMax>
                 <YBins>50</YBins>
-                <YTitle>Efficiency</YTitle>
+                <YTitle>Noise, DAC Counts</YTitle>
 		<Low1Limit>0.5</Low1Limit>
 		<Low0Limit>0.5</Low0Limit>
 		<High0Limit>4.0</High0Limit>
@@ -21,14 +21,14 @@
         </TestResult>
  	<TestResult>
                 <Test>AFEB06</Test>
-                <Type>afeb_cnv</Type>
-                <Title>R02 - Thresholds for 29.8 fC </Title>
+                <Type>wires_cnv</Type>
+                <Title>R02 - AFEB Thresholds for 20 fC </Title>
                 <Prefix>CSC</Prefix>
                 <Name>R02</Name>
                 <XMin>0</XMin>
                 <XMax>112</XMax>
                 <XBins>112</XBins>
-                <XTitle>Wire Group Number</XTitle>
+                <XTitle>Threshold, DAC Counts</XTitle>
                 <YMin>0</YMin>
                 <YMax>80</YMax>
                 <YBins>80</YBins>
@@ -39,25 +39,166 @@
                 <High1Limit>50</High1Limit>
         </TestResult>
 
-	<TestResult>
+	<!--TestResult>
                 <Test>AFEB06</Test>
                 <Type>afeb_cnv</Type>
-                <Title>R03 - Non-Pair-Plane Crosstalk </Title>
+                <Title>R03 - Optimal DAC1 values  per chip for 20 fC threshold </Title>
                 <Prefix>CSC</Prefix>
                 <Name>R03</Name>
+                <XMin>0</XMin>
+                <XMax>42</XMax>
+                <XBins>42</XBins>
+                <XTitle>AFEB</XTitle>
+                <YMin>0</YMin>
+                <YMax>80</YMax>
+                <YBins>80</YBins>
+                <YTitle>Threshold, DAC Counts</YTitle> 
+                <Low1Limit>3.5</Low1Limit>
+                <Low0Limit>3.5</Low0Limit>
+                <High0Limit>50</High0Limit>
+                <High1Limit>50</High1Limit>
+        </TestResult-->
+
+	<TestResult>
+                <Test>AFEB06</Test>
+                <Type>wires_cnv</Type>
+                <Title>R04 - AFEB Thresholds Offset for 20 fC </Title>
+                <Prefix>CSC</Prefix>
+                <Name>R04</Name>
+                <XMin>0</XMin>
+                <XMax>112</XMax>
+                <XBins>112</XBins>
+                <XTitle>Offset, DAC Counts</XTitle>
+                <YMin>-10</YMin>
+                <YMax>10</YMax>
+                <YBins>40</YBins>
+                <YTitle>Probability</YTitle>
+                <Low1Limit>-8.0</Low1Limit>
+                <Low0Limit>-8.0</Low0Limit>
+                <High0Limit>8.0</High0Limit>
+                <High1Limit>8.0</High1Limit>
+        </TestResult>
+
+	<TestResult>
+                <Test>AFEB06</Test>
+                <Type>wires_cnv</Type>
+                <Title>R05 - AFEB Noise for 40 fC out of limits </Title>  
+                <Prefix>CSC</Prefix>
+                <Name>R05</Name>
                 <XMin>0</XMin>
                 <XMax>112</XMax>
                 <XBins>112</XBins>
                 <XTitle>Wire Group Number</XTitle>
-                <YMin>-0.05</YMin>
-                <YMax>0.3</YMax>
-                <YBins>35</YBins>
-                <YTitle>Probability</YTitle>
-                <Low1Limit>0.0</Low1Limit>
-                <Low0Limit>0.0</Low0Limit>
-                <High0Limit>0.05</High0Limit>
-                <High1Limit>0.05</High1Limit>
+                <YMin>0</YMin>
+                <YMax>10</YMax>
+                <YBins>50</YBins>
+                <YTitle>Noise, DAC Counts</YTitle>
+                <Low1Limit>0.5</Low1Limit>
+                <Low0Limit>0.5</Low0Limit>
+                <High0Limit>4.0</High0Limit>
+                <High1Limit>4.0</High1Limit>
         </TestResult>
+        <TestResult>
+                <Test>AFEB06</Test>
+                <Type>wires_cnv</Type>
+                <Title>R06 - AFEB Thresholds for 40 fC </Title>
+                <Prefix>CSC</Prefix>
+                <Name>R06</Name>
+                <XMin>0</XMin>
+                <XMax>112</XMax>
+                <XBins>112</XBins>
+                <XTitle>Wire Group Number</XTitle>
+                <YMin>0</YMin>
+                <YMax>100</YMax>
+                <YBins>100</YBins>
+                <YTitle>Threshold, DAC Counts</YTitle>
+                <Low1Limit>20</Low1Limit>
+                <Low0Limit>20</Low0Limit>
+                <High0Limit>80</High0Limit>
+                <High1Limit>80</High1Limit>
+        </TestResult>
+
+        <TestResult>
+                <Test>AFEB06</Test>
+                <Type>wires_cnv</Type>
+                <Title>R08 - AFEB Thresholds Offsets for 40 fC </Title>
+                <Prefix>CSC</Prefix>
+                <Name>R08</Name>
+                <XMin>0</XMin>
+                <XMax>112</XMax>
+                <XBins>112</XBins>
+                <XTitle>Wire Group Number</XTitle>
+                <YMin>-10</YMin>
+                <YMax>10</YMax>
+                <YBins>40</YBins>
+                <YTitle>Offset, DAC Counts</YTitle>
+                <Low1Limit>-8.0</Low1Limit>
+                <Low0Limit>-8.0</Low0Limit>
+                <High0Limit>8.0</High0Limit>
+                <High1Limit>8.0</High1Limit>
+        </TestResult>
+
+	<TestResult>
+                <Test>AFEB06</Test>
+                <Type>wires_cnv</Type>
+                <Title>R09 - AFEB Thresholds Slopes </Title>
+                <Prefix>CSC</Prefix>
+                <Name>R09</Name>
+                <XMin>0</XMin>
+                <XMax>112</XMax>
+                <XBins>112</XBins>
+                <XTitle>Wire Group Number</XTitle>
+                <YMin>0.5</YMin>
+                <YMax>2</YMax>
+                <YBins>30</YBins>
+                <YTitle>Slope, DACthr/fC</YTitle>
+                <Low1Limit>0.9</Low1Limit>
+                <Low0Limit>0.9</Low0Limit>
+                <High0Limit>1.6</High0Limit>
+                <High1Limit>1.6</High1Limit>
+        </TestResult>
+
+	<TestResult>
+                <Test>AFEB06</Test>
+                <Type>wires_cnv</Type>
+                <Title>R11 - Calculated AFEB Thresholds for 20 fC </Title>
+                <Prefix>CSC</Prefix>
+                <Name>R11</Name>
+                <XMin>0</XMin>
+                <XMax>112</XMax>
+                <XBins>112</XBins>
+                <XTitle>Wire Group Number</XTitle>
+                <YMin>-10</YMin>
+                <YMax>80</YMax>
+                <YBins>180</YBins>
+                <YTitle>Threshold, DAC Counts</YTitle>
+                <Low1Limit>-8</Low1Limit>
+                <Low0Limit>-8</Low0Limit>
+                <High0Limit>30</High0Limit>
+                <High1Limit>30</High1Limit>
+        </TestResult>
+
+	<TestResult>
+                <Test>AFEB06</Test>
+                <Type>wires_cnv</Type>
+                <Title>R12 - Calculated AFEB Offsets for 20 fC </Title>
+                <Prefix>CSC</Prefix>
+                <Name>R12</Name>
+                <XMin>0</XMin>
+                <XMax>112</XMax>
+                <XBins>112</XBins>
+                <XTitle>Wire Group Number</XTitle>
+                <YMin>-11</YMin>
+                <YMax>11</YMax>
+                <YBins>44</YBins>
+                <YTitle>Offset, DAC Counts</YTitle>
+                <Low1Limit>-8</Low1Limit>
+                <Low0Limit>-8</Low0Limit>
+                <High0Limit>8</High0Limit>
+                <High1Limit>8</High1Limit>
+        </TestResult>
+
+
 
 
 	<TestResult>
@@ -102,6 +243,28 @@ TMB DAV Error'|19='CFEB DAV Error'|20='DMB Active Error'|</SetXLabels>
 		<SetMaximum>1000</SetMaximum>
 		<XScale>wires</XScale>
         </TestResult>
+
+        <TestResult>
+                <Test>AFEB06</Test>
+                <Type>h2</Type>
+                <Title>V02 - Raw Hit Time Bin Occupancy</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V02</Name>
+                <XMin>0</XMin>
+                <XMax>112</XMax>
+                <XBins>112</XBins>
+                <XTitle>Wire Group</XTitle>
+                <YMin>0</YMin>
+                <YMax>192</YMax>
+                <YBins>192</YBins>
+                <YTitle>Time Bins</YTitle>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOption>colz</SetOption>
+                <XScale>wires</XScale>
+        </TestResult>
+
+
 
         <TestResult>
                 <Test>AFEB06</Test>

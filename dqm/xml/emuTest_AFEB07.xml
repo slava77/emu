@@ -2,7 +2,7 @@
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <TestResult>
 		<Test>AFEB07</Test>
-                <Type>afeb_cnv</Type>
+                <Type>wires_cnv</Type>
 		<Title>R01 - Intercept </Title>
                 <Prefix>CSC</Prefix>
                 <Name>R01</Name>
@@ -21,7 +21,7 @@
         </TestResult>
  	<TestResult>
                 <Test>AFEB07</Test>
-                <Type>afeb_cnv</Type>
+                <Type>wires_cnv</Type>
                 <Title>R02 - Slope </Title>
                 <Prefix>CSC</Prefix>
                 <Name>R02</Name>
@@ -41,7 +41,7 @@
 
 	<TestResult>
                 <Test>AFEB07</Test>
-                <Type>afeb_cnv</Type>
+                <Type>wires_cnv</Type>
                 <Title>R03 - Chi-squared of fir </Title>
                 <Prefix>CSC</Prefix>
                 <Name>R03</Name>

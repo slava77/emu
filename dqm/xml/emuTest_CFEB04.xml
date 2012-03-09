@@ -2,7 +2,7 @@
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <TestResult>
 		<Test>CFEB04</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
 		<Title>R01 - Gain slope A (ADC/DAC)</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R01</Name>
@@ -22,7 +22,7 @@
 
 	<!--TestResult>
                 <Test>CFEB04</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R02 - Gain intercept B (ADC)</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R02</Name>
@@ -42,7 +42,7 @@
 
 	<TestResult>
                 <Test>CFEB04</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R03 - Gain non-linearity</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R03</Name>
@@ -62,7 +62,7 @@
 
 	<TestResult>
                 <Test>CFEB04</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R04 - Saturation (ADC)</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R04</Name>
@@ -82,7 +82,7 @@
 
 	<TestResult>
                 <Test>CFEB04</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R05 - Normalized gains for data analysis</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R05</Name>
@@ -102,7 +102,7 @@
 
         <TestResult>
                 <Test>CFEB04</Test>
-                <Type>cfeb_board_cnv</Type>
+                <Type>cfeb_cnv</Type>
                 <Title>R06 - Test Pulse Peak Timing</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R06</Name>

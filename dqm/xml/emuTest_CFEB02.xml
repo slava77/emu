@@ -2,7 +2,7 @@
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <TestResult>
 		<Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
 		<Title>R01 - overall pedestals</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R01</Name>
@@ -22,7 +22,7 @@
 
 	<TestResult>
                 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R02 - overall noise</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R02</Name>
@@ -42,7 +42,7 @@
 
 	<TestResult>
                 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R03 - RMS of SCA pedestals</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R03</Name>
@@ -62,7 +62,7 @@
 
 	<TestResult>
                 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R04 - P12 pedestal</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R04</Name>
@@ -82,7 +82,7 @@
 
 	<TestResult>
                 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R05 - P12 noise</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R05</Name>
@@ -102,7 +102,7 @@
 
 	 <TestResult>
                 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R06 - P345 pedestal</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R06</Name>
@@ -122,7 +122,7 @@
 
         <TestResult>
                 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R07 - P345 noise</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R07</Name>
@@ -142,7 +142,7 @@
 
 	<TestResult>
                 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R08 - C(12)(12) covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R08</Name>
@@ -163,7 +163,7 @@
 
 	<TestResult>
 		<Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R09 - C(12)3 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R09</Name>
@@ -183,7 +183,7 @@
 
 	<TestResult>
         	<Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R10 - C(12)4 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R10</Name>
@@ -203,7 +203,7 @@
 
 	<TestResult>
 	        <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R11 - C(12)5 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R11</Name>
@@ -223,7 +223,7 @@
 
 	<TestResult>
 	        <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R12 - C33 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R12</Name>
@@ -243,7 +243,7 @@
 
 	<TestResult>
 		<Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R13 - C34 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R13</Name>
@@ -263,7 +263,7 @@
 
 	<TestResult>
 		 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R14 - C35 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R14</Name>
@@ -283,7 +283,7 @@
 
 	<TestResult>
                  <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R15 - C44 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R15</Name>
@@ -304,7 +304,7 @@
 
 	<TestResult>
                  <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R16 - C45 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R16</Name>
@@ -324,7 +324,7 @@
 
 	<TestResult>
                 <Test>CFEB02</Test>
-                <Type>cfeb_cnv</Type>
+                <Type>strips_cnv</Type>
                 <Title>R17 - C55 covariance matrix element</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R17</Name>
