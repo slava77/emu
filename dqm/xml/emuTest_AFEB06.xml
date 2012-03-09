@@ -28,15 +28,15 @@
                 <XMin>0</XMin>
                 <XMax>112</XMax>
                 <XBins>112</XBins>
-                <XTitle>Threshold, DAC Counts</XTitle>
+                <XTitle>Wire Group Number</XTitle>
                 <YMin>0</YMin>
                 <YMax>80</YMax>
                 <YBins>80</YBins>
-                <YTitle>Probability</YTitle>
-                <Low1Limit>3.5</Low1Limit>
-                <Low0Limit>3.5</Low0Limit>
-                <High0Limit>50</High0Limit>
-                <High1Limit>50</High1Limit>
+                <YTitle>Threshold, DAC Counts</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>2</Low0Limit>
+                <High0Limit>25</High0Limit>
+                <High1Limit>30</High1Limit>
         </TestResult>
 
 	<!--TestResult>
@@ -68,11 +68,11 @@
                 <XMin>0</XMin>
                 <XMax>112</XMax>
                 <XBins>112</XBins>
-                <XTitle>Offset, DAC Counts</XTitle>
+                <XTitle>Wire Group Number</XTitle>
                 <YMin>-10</YMin>
                 <YMax>10</YMax>
                 <YBins>40</YBins>
-                <YTitle>Probability</YTitle>
+                <YTitle>Offset, DAC Counts</YTitle>
                 <Low1Limit>-8.0</Low1Limit>
                 <Low0Limit>-8.0</Low0Limit>
                 <High0Limit>8.0</High0Limit>
@@ -112,10 +112,10 @@
                 <YMax>100</YMax>
                 <YBins>100</YBins>
                 <YTitle>Threshold, DAC Counts</YTitle>
-                <Low1Limit>20</Low1Limit>
-                <Low0Limit>20</Low0Limit>
-                <High0Limit>80</High0Limit>
-                <High1Limit>80</High1Limit>
+                <Low1Limit>10</Low1Limit>
+                <Low0Limit>10</Low0Limit>
+                <High0Limit>60</High0Limit>
+                <High1Limit>60</High1Limit>
         </TestResult>
 
         <TestResult>
@@ -173,8 +173,8 @@
                 <YBins>180</YBins>
                 <YTitle>Threshold, DAC Counts</YTitle>
                 <Low1Limit>-8</Low1Limit>
-                <Low0Limit>-8</Low0Limit>
-                <High0Limit>30</High0Limit>
+                <Low0Limit>0</Low0Limit>
+                <High0Limit>25</High0Limit>
                 <High1Limit>30</High1Limit>
         </TestResult>
 
@@ -188,8 +188,8 @@
                 <XMax>112</XMax>
                 <XBins>112</XBins>
                 <XTitle>Wire Group Number</XTitle>
-                <YMin>-11</YMin>
-                <YMax>11</YMax>
+                <YMin>-12</YMin>
+                <YMax>12</YMax>
                 <YBins>44</YBins>
                 <YTitle>Offset, DAC Counts</YTitle>
                 <Low1Limit>-8</Low1Limit>
