@@ -571,18 +571,18 @@ void Test_AFEB06::finishCSC(std::string cscID)
             // requires the exact number of AFEBs in the threshold config file
             // (Madorsky 12/07/03)
 
-            if ((cscID.find("ME+4/1") == 0) || (cscID.find("ME-4/1") == 0) ||
-		(cscID.find("ME+3/1") == 0) || (cscID.find("ME-3/1") == 0) ||
-		(cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") == 0) )
+            if ((cscID.find("ME+4.1") == 0) || (cscID.find("ME-4.1") == 0) ||
+		(cscID.find("ME+3.1") == 0) || (cscID.find("ME-3.1") == 0) ||
+		(cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") == 0) )
             {
                 for (int iafeb = 0; iafeb < 6; iafeb++)
                 {
-                    res_out << "\t" << std::setw(2)<< (iafeb+1) << "\t" << std::setw(2) << (int)r13.content[0][iafeb] << std::endl;
+                    res_out << std::setw(5) <<  (iafeb+1) << "\t" << std::setw(4) << (int)r13.content[0][iafeb] << std::endl;
                 }
 
                 for (int iafeb = 0; iafeb < nAFEBs; iafeb++)
                 {
-                    res_out << "\t" << std::setw(2)<< (iafeb+7) << "\t" << std::setw(2) << (int)r13.content[0][iafeb] << std::endl;
+                    res_out << std::setw(5)<< (iafeb+7) << "\t" << std::setw(4) << (int)r13.content[0][iafeb] << std::endl;
                 }
             }
             else
@@ -590,7 +590,7 @@ void Test_AFEB06::finishCSC(std::string cscID)
 
                 for (int iafeb = 0; iafeb < nAFEBs; iafeb++)
                 {
-                    res_out << "\t" << std::setw(2)<< (iafeb+1) << "\t" << std::setw(2) << (int)r13.content[0][iafeb] << std::endl;
+                    res_out << std::setw(5)<< (iafeb+1) << "\t" << std::setw(4) << (int)r13.content[0][iafeb] << std::endl;
                 }
             }
 
