@@ -5,6 +5,7 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
 
   theName  = name.c_str();
   theTitle = title.c_str();
+  cnvType = "";
 
 // Set graphs ranges
   theNbinsx = Nbinsx;
@@ -70,7 +71,7 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   theRightHighHighLine->SetLineWidth(theLineWidth);
   theRightHighHighLine->SetLineStyle(theLineStyle);
 
-  theMainCanvas = new TCanvas(theName, theTitle, 1200,800);
+  theMainCanvas = new TCanvas(theName.c_str(), theTitle.c_str(), 1200,800);
   theMainCanvas->SetFillColor(theColorWhite);
   theMainCanvas->SetBorderSize(0);
 
@@ -277,14 +278,14 @@ TestCanvas_6gr1h::~TestCanvas_6gr1h ()
   delete theLeftHisto[5];
 }
 
-const char*  TestCanvas_6gr1h::GetTitle (void)
+std::string  TestCanvas_6gr1h::GetTitle (void)
 {
 
   return theTitle;
 
 }
 
-const char*  TestCanvas_6gr1h::GetName (void)
+std::string  TestCanvas_6gr1h::GetName (void)
 {
 
   return theName;
@@ -294,8 +295,8 @@ const char*  TestCanvas_6gr1h::GetName (void)
 void TestCanvas_6gr1h::SetTitle (std::string text)
 {
 
-  theTitle = text.c_str();
-  theTitlePad->GetLine(0)->SetText(0.0, 0.0, theTitle);
+  theTitle = text;
+  theTitlePad->GetLine(0)->SetText(0.0, 0.0, theTitle.c_str());
 
 }
 
@@ -624,6 +625,16 @@ void TestCanvas_6gr1h::Draw (void)
 void TestCanvas_6gr1h::SetCanvasSize(uint32_t w, uint32_t h)
 {
   if (theMainCanvas) theMainCanvas->SetCanvasSize(w,h);
+}
+
+void TestCanvas_6gr1h::SetCanvasType(std::string cnvtype)
+{ 
+  cnvType = cnvtype;
+}
+
+std::string const TestCanvas_6gr1h::GetCanvasType()
+{
+   return cnvType;
 }
 
 void TestCanvas_6gr1h::SaveAs (std::string file_name)

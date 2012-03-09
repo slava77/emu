@@ -61,7 +61,7 @@ typedef ConsumerCanvas MonitoringCanvas;
 #include <TLinearFitter.h>
 #include <TVector.h>
 
-#define ANALYSIS_VER "1.0 (CMSSW_3_1_0)"
+#define ANALYSIS_VER "2.0"
 
 #define NLAYERS 6
 #define MAX_STRIPS 80
@@ -226,9 +226,29 @@ typedef struct DelayScanData
   delay_step content[DELAY_SCAN_STEPS][NLAYERS][MAX_WIREGROUPS];
 } DelayScanData;
 
-typedef std::map<std::string, GainData> cscGainData;
-typedef std::map<std::string, XtalkData> cscXtalkData;
-typedef std::map<std::string, DelayScanData> cscDelayScanData;
+typedef struct TPeakData{
+       int Nbins;
+       int Nlayers;
+       dac_step content[NLAYERS][MAX_STRIPS/16];
+} TPeakData;
+
+
+typedef struct AFEBCalibParams
+{
+
+  int Nbins;
+  int Nlayers;
+  double capacitances[3*MAX_WIREGROUPS/8];
+  double gains[3*MAX_WIREGROUPS/8];
+} AFEBCalibParams;
+
+
+typedef std::map<std::string, TPeakData> 	cscTPeakData;
+typedef std::map<std::string, GainData> 	cscGainData;
+typedef std::map<std::string, XtalkData> 	cscXtalkData;
+typedef std::map<std::string, DelayScanData> 	cscDelayScanData;
+typedef std::map<std::string, AFEBCalibParams>    cscAFEBCalibParams;
+
 
 
 // == Base Class for Emu Tests
@@ -275,6 +295,11 @@ public:
   void setSQLiteDBName(std::string filename)
   {
     SQLiteDB = filename;
+  }
+
+  void setAFEBCalibFolder(std::string path)
+  {
+    cscAFEBCalibFolder = path;
   }
 
   time_sample CalculateCorrectedPulseAmplitude(pulse_fit& fit);
@@ -331,6 +356,7 @@ protected:
   std::string configFile;
   std::string masksFile;
   std::string SQLiteDB;
+  std::string cscAFEBCalibFolder;
   uint32_t imgW, imgH;
 
   std::map<std::string, TH2F*> hFormatErrors;

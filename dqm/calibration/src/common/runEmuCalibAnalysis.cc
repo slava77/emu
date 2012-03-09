@@ -95,6 +95,7 @@ int main(int argc, char **argv)
   std::string datafile = "";
   std::string histofile = "dqm_results.root";
   std::string SQLiteDB = cfgDir+"/csc_map.db";
+  std::string cscAFEBCalibFolder = cfgDir+"/afeb_thresholds/";
 
   std::string plotsdir = "images";	// Output images path
   std::string imgFormat = "png"; 	// Output image format
@@ -217,6 +218,8 @@ int main(int argc, char **argv)
   test_analyzer->setCSCMapFile(cscMapFile);
   test_analyzer->setConfigFile(xmlTestCfg);
   test_analyzer->setMasksFile(masksCfg);
+  test_analyzer->setAFEBCalibFolder(cscAFEBCalibFolder);
+
   Logger::getInstance("CSCRawUnpacking").setLogLevel(OFF_LOG_LEVEL);
 
   if (datafile.find(".bin") != std::string::npos)

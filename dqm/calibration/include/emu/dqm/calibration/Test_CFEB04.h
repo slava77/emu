@@ -31,6 +31,7 @@ protected:
   void analyzeCSC(const CSCEventData& data);
   void finishCSC(std::string cscID);
   bool checkResults(std::string cscID);
+  double fivePoleFitTime( int tmax,  double* adc, double t_peak);
 
   std::map<std::string, uint32_t> l1a_cntrs;
   std::map<std::string, test_step> test_steps;
@@ -43,6 +44,7 @@ protected:
   std::map<int, std::map<std::string, test_step> > htree;
   bool fSwitch;
   cscGainData gdata;
+  cscTPeakData tpdata;	// Pulse Peaking Time 
 
 };
 

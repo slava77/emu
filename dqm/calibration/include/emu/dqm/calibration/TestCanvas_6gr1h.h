@@ -56,8 +56,11 @@
 class TestCanvas_6gr1h: public TCanvas
 {
 
-  const char * theName;
-  const char * theTitle;
+  // const char * theName;
+  // const char * theTitle;
+  std::string theName;
+  std::string theTitle; 
+  std::string cnvType; 
 
   int theNbinsx;   ///< Number of bins along X axis of graphs
   double theXlow; ///< Low edge of first bin along X axis of graphs
@@ -149,9 +152,11 @@ class TestCanvas_6gr1h: public TCanvas
 public:
   TestCanvas_6gr1h (std::string , std::string , Int_t, Double_t, Double_t, Int_t, Double_t, Double_t);
   ~TestCanvas_6gr1h ();
-  const char* GetName(void);                           ///< Get name of canvas
-  const char* GetTitle(void);                          ///< Get title of canvas
+  std::string GetName(void);                           ///< Get name of canvas
+  std::string GetTitle(void);                          ///< Get title of canvas
   void SetCanvasSize(uint32_t, uint32_t);              ///< Set canvas size
+  void SetCanvasType(std::string);
+  std::string const GetCanvasType();
   void SetTitle (std::string);                         ///< Set title of canvas
   void SetXTitle (std::string);                        ///< Set x-title of graphs (see canvas layout above)
   void SetYTitle (std::string);                        ///< Set y-title of graphs (see canvas layout above)
@@ -183,6 +188,7 @@ public:
   int Write (void);                                  ///< Write this object to the current directory
   int Write (std::string);                           ///< Write this object with new name to the current directory
   TH1* GetHisto(void);
+ 
 };
 
 

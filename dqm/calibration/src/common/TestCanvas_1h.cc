@@ -625,6 +625,5 @@ int TestCanvas_1h::Write (void)
 
 TH1* TestCanvas_1h::GetHisto (void)
 {
-
   return theSummaryHisto;
 }

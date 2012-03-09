@@ -39,6 +39,7 @@ void Test_CFEB03::initCSC(std::string cscID)
   memset(cfebdata.cnts, 0, sizeof (cfebdata.cnts));
 
   test_step tstep;
+  memset(&tstep, 0 , sizeof (tstep));
   tstep.active_strip=0;
   tstep.dac_step=1;
   tstep.evt_cnt=0;
