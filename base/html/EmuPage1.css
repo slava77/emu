@@ -1,8 +1,8 @@
 * {margin:0}
 * {padding:0}
 body { background-color:#111111; }
-table { width: 100%; background-color:#000000; border-collapse: separate; }
-td, th { color:#eeeeee; font-size:90%; }
+table { width: 100%; background-color:#000000; border-collapse: separate; border-color: transparent;}
+td, th { color:#eeeeee; font-size:90%;  border-color: transparent;}
 th { background-color:#444444; width:5%; }
 td { background-color:#111111; text-align:center; }
 .layout { width: 100%; height: 100%; background-color: transparent; padding: 0px; border-collapse: collapse; }
