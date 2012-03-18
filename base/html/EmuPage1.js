@@ -25,13 +25,10 @@ var monitorables = null;
 var xAxis;
 var yAxis;
 
-var XmlDoc = document.implementation.createDocument("", "", null);
-XmlDoc.addEventListener("load", xmlDocLoaded, false);
-
+var XmlDoc    = null;
 var Clock     = null;
 var Subsystem = null;
-// var XmlUrl    = document.URL;
-var DataURL   = null; // = document.URL;
+var DataURL   = null;
 
 var ProgBar = null;
 
@@ -121,7 +118,7 @@ function onMouseDownOnPad(e){
     dragStart = { x:e.pageX, y:e.pageY };
     if ( document.body ) document.body.style.cursor = 'move';
     dragging = true;
-    graph_element.transform.animVal.consolidate();
+    graph_element.transform.baseVal.consolidate();
     oldTransform = graph_element.getAttribute( "transform" );
     if (span1_element) span1_element.innerHTML = 'mousedown: ' + oldTransform + xAxis.print() + '   ' + yAxis.print();
     printSvgSvg();
@@ -192,7 +189,6 @@ function onMouseUp(e){
     //var msg = 'mouseup: ';
     if ( graph_element ){
 	 graph_element.transform.baseVal.consolidate();
-	 graph_element.transform.animVal.consolidate();
     }
     //msg += ' readout: ' + graph_element.getAttribute("transform") + ' or ' + printTransforms( graph_element.transform.baseVal ) +'   ' + printTransforms( graph_element.transform.animVal );
     if (span2_element) span2_element.innerHTML = xAxis.print() + '   ' + yAxis.print(); 
@@ -207,6 +203,7 @@ function printTransforms( transformList ){
 }
 
 function printSvgMatrix( matrix ){
+  if ( matrix != null ){
     return printedList =  
 	'(' + matrix.a +
 	' ' + matrix.b +
@@ -215,6 +212,8 @@ function printSvgMatrix( matrix ){
 	' ' + matrix.e +
 	' ' + matrix.f +
 	    ')';
+  }
+  return 'NO MATRIX';
 }
 
 
@@ -286,7 +285,6 @@ function scale( xFactor, yFactor ){
     var yToOrigin = 0;
     if ( graph_element.transform.animVal.numberOfItems ){
 	graph_element.transform.baseVal.consolidate();
-	graph_element.transform.animVal.consolidate();
 	try{ var matrix = graph_element.transform.animVal.getItem(0).matrix; } catch(ex){}// { alert(ex); }
 	xToOrigin = matrix.e/matrix.a;
 	yToOrigin = matrix.f/matrix.d;
@@ -321,7 +319,6 @@ function displayAxes(){
 function redrawAxes(){
   if ( graph_element ){
     graph_element.transform.baseVal.consolidate();
-    graph_element.transform.animVal.consolidate();
     if ( graph_element.transform.animVal.numberOfItems ){
 	var matrix = graph_element.transform.animVal.getItem(0).matrix
 	xAxis.transform( matrix );
@@ -450,11 +447,9 @@ function Axis(loValue,hiValue,nLabels,isX,loSVG,hiSVG,svgPerPixel){
     this.pixelToValue = function( pixel, formatted ){
 	var svgMatrix = svg_element.getScreenCTM();
 	g_element.transform.baseVal.consolidate();
-	g_element.transform.animVal.consolidate();
 	var gMatrix = g_element.transform.baseVal.getItem(0).matrix;
 	var graphMatrix = null;
 	graph_element.transform.baseVal.consolidate();
-	graph_element.transform.animVal.consolidate();
 	if ( graph_element.transform.animVal.numberOfItems){
 	    graphMatrix = graph_element.transform.animVal.getItem(0).matrix
 	}
@@ -704,25 +699,24 @@ function ProgressBar( containing_td_element ){
 // XML data access
 //================
 
-
-function autoReloadXmlDoc(){
-    XmlDoc.load( DataURL );
-    setTimeout('autoReloadXmlDoc()', pageRefreshPeriod);
-}
-
-function xmlDocLoaded(e){
-    //alert('xmlDocLoaded: event type '+e.type+' target '+e.target);
-    var xmlIsOK = false;
-    try{
-	xmlIsOK = valuesFromXml();
-    } catch(e) {
-      //alert('Caught exception thrown from valuesFromXml: '+e.message);
-    }
-    if ( xmlIsOK ){
+function requestStateChanged(e){
+  if ( this.readyState == 4 ){
+    XmlDoc = this.responseXML;
+    //console.log(DataURL+" loaded, ForEmuPage1 tags: "+XmlDoc.getElementsByTagName('ForEmuPage1').length);
+    if ( valuesFromXml() ){
 	clearTimeout(Clock);
 	ageOfPageClock(0);
 	redrawAxes();
     }
+  }
+}
+
+function autoReloadXmlDoc(){
+  var req = new XMLHttpRequest();
+  req.open("GET", DataURL, true);
+  req.onreadystatechange=requestStateChanged
+  req.send(null);
+  setTimeout('autoReloadXmlDoc()', pageRefreshPeriod);
 }
 
 function findArrayElementByName( name, array ){
@@ -731,6 +725,7 @@ function findArrayElementByName( name, array ){
 }
 
 function valuesFromXml(){
+  if ( XmlDoc == null ) return false;
     var rootElement = XmlDoc.getElementsByTagName('ForEmuPage1');
     if ( !rootElement.length ) return false;
     document.getElementById('td_localDateTime').innerHTML = rootElement[0].getAttribute('localDateTime');
