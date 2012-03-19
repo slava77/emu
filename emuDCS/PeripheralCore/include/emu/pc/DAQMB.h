@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.10 2012/02/14 09:46:14 liu Exp $
+// $Id: DAQMB.h,v 1.11 2012/03/19 22:52:36 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.11  2012/03/19 22:52:36  liu
+// for Khritian Kotov: CFEB firmware fix
+//
 // Revision 1.10  2012/02/14 09:46:14  liu
 // fix FPGA & PROM ID bugs
 //
@@ -388,6 +391,7 @@ public:
   void preamp_initx();
 // DAQMB program proms (electronics experts only)
   void epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
+  int  check_eprom_readback(const char *rbkfile, const char *expfile);
   void epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
   void epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum, int ipass);
   void epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
@@ -660,6 +664,12 @@ public:
   inline int GetFirmwareRevision(){ return fwrv_; }
   inline int GetKillFlatClk(){return killflatclk_;}
   void load_feb_clk_delay();           
+
+  // get statistics on bad bits from the check_eprom_readback
+  inline unsigned int GetNumberOfBadReadbackBits(void) const { return NBBTOT; } 
+  inline int GetWordWithBadReadbackBit(unsigned int badbit) const { if( badbit < NBB ) return NBBwrd[badbit]; else return -1; } 
+  inline int GetBadReadbackBitPosition(unsigned int badbit) const { if( badbit < NBB ) return NBBbit[badbit]; else return -1; } 
+  inline int GetBadReadbackBitType    (unsigned int badbit) const { if( badbit < NBB ) return NBBtyp[badbit]; else return -1; } 
             
  private:
   //
@@ -737,6 +747,8 @@ public:
   //
   int failed_checkvme_;
   int power_mask_;
+  // statistics from check_eprom_readback on bad bits: typ=0 1->0 typ=1 0->1
+  unsigned int NBB,NBBwrd[20],NBBbit[20],NBBtyp[20],NBBTOT;
 }; 
 
   } // namespace emu::pc

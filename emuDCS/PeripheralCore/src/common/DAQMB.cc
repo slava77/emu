@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.74 2012/02/20 14:41:56 liu Exp $
+// $Id: DAQMB.cc,v 3.75 2012/03/19 22:52:37 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.75  2012/03/19 22:52:37  liu
+// for Khritian Kotov: CFEB firmware fix
+//
 // Revision 3.74  2012/02/20 14:41:56  liu
 // avoid compiler warning
 //
@@ -3304,6 +3307,75 @@ void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *
     fclose(fpout);
     fclose(dwnfp);
   }
+}
+
+// routine comparing the readback eprom snapshot against the reference firmware file
+int DAQMB::check_eprom_readback(const char *rbkfile, const char *expfile){
+  char buf[128];
+  int i,j;
+  char bexp,bgot,btyp;
+  int wrds=0;
+  FILE *exp;
+  FILE *got;
+  char texp[4],tgot[4];
+  NBB=0;
+  NBBTOT=0;
+  exp=fopen(expfile,"r");
+  if (exp == NULL) {
+    std::cout<<"Open "<<expfile<<" failed. End check_prom_readback"<<std::endl;
+    return -1;
+  }
+  got = fopen(rbkfile,"r");
+  if (got == NULL) {
+    std::cout<<"Open "<<rbkfile<<" failed. End check_prom_readback."<<std::endl;
+    return -1;
+  }
+  while (fgets(buf,128,got) != NULL){
+    sscanf(buf,"%hhx %hhx %hhx %hhx",&tgot[0],&tgot[1],&tgot[2],&tgot[3]);
+    fgets(buf,128,exp);
+    sscanf(buf,"%hhx %hhx %hhx %hhx",&texp[0],&texp[1],&texp[2],&texp[3]);
+    // we must ignore 7th-bit mismatch for every 128th word 
+    if( ((wrds+1)%128)==0 ){
+      tgot[3] = tgot[3] & 0x7F;
+      texp[3] = texp[3] & 0x7F;
+    }
+    for(i=0;i<4;i++){
+      // compare the reference and readback words
+      if( tgot[i]!=texp[i] ){
+          if(i==0)
+              std::cout<<std::setw(6)<<std::setfill('0')<<wrds<<"  got: "<<std::hex
+                  <<std::setw(2)<<(tgot[0]&0xff)
+                  <<std::setw(2)<<(tgot[1]&0xff)
+                  <<std::setw(2)<<(tgot[2]&0xff)
+                  <<std::setw(2)<<(tgot[3]&0xff)
+                  <<" expect: "
+                  <<std::setw(2)<<(texp[0]&0xff)
+                  <<std::setw(2)<<(texp[1]&0xff)
+                  <<std::setw(2)<<(texp[2]&0xff)
+                  <<std::setw(2)<<(texp[3]&0xff)
+                  <<std::dec<<std::setfill(' ')<<std::endl;
+//        printf("%6d  1 %02x%02x%02x%02x 2 %02x%02x%02x%02x\n",wrds,tgot[0]&0xff,tgot[1]&0xff,tgot[2]&0xff,tgot[3]&0xff,texp[0]&0xff,texp[1]&0xff,texp[2]&0xff,texp[3]&0xff);
+        for(j=0;j<16;j++){
+          bexp=(texp[i]>>j)&0x01;
+          bgot=(tgot[i]>>j)&0x01;
+          if(bexp!=bgot){
+            NBBTOT++;
+            btyp=bgot;
+            if(NBB<20){
+              NBBwrd[NBB]=wrds;
+              NBBbit[NBB]=4*i+16-j+1;
+              NBBtyp[NBB]=btyp;
+              NBB++;
+            }
+          }
+        }
+      }
+    }
+    wrds++;
+  }
+  std::cout<< NBBTOT << " errors were found in the readback firmware file" << std::endl;
+        // << (NBBTOT>NBB?" (reported words above contain first 20)":"") <<std::endl;
+  return 0;
 }
 
 void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
