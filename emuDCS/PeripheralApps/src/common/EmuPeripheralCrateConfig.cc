@@ -17,9 +17,15 @@ typedef std::vector<CFEB>::iterator CFEBItr;
 
 const std::string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
 const std::string       CFEB_VERIFY_FILENAME = "cfeb/cfeb_verify.svf";
+const std::string       CFEB_COMPARE_FILENAME = "cfeb/eprom_cfeb.cmp";
 //
-const std::string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
+const std::string       DMB_FIRMWARE_FILENAME   = "dmb/dmb6cntl_pro.svf";
+const std::string       DMB_VERIFY_FILENAME     = "dmb/dmb_mprom_verify.svf";
+const std::string       DMB_COMPARE_FILENAME    = "dmb/eprom_dmb_mprom.cmp";
+
 const std::string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
+const std::string       DMBVME_VERIFY_FILENAME   = "dmb/dmb_vprom_verify.svf";
+const std::string       DMBVME_COMPARE_FILENAME  = "dmb/eprom_dmb_vprom.cmp";
 
 const std::string	ALCT_SLOW_FIRMWARE_FILENAME = "alct/slow/slow_control3_verify_noabstime.svf";
  //
@@ -8838,14 +8844,24 @@ void EmuPeripheralCrateConfig::LoadALCTSlowFirmware(xgi::Input * in, xgi::Output
 void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
   //
   std::string DMBFirmware = FirmwareDir_+DMB_FIRMWARE_FILENAME;
+  std::string DMBVerify   = FirmwareDir_+DMB_VERIFY_FILENAME;
+  std::string DMBCompare  = FirmwareDir_+DMB_COMPARE_FILENAME;
   DMBFirmware_ = DMBFirmware;
+  DMBVerify_   = DMBVerify;
+  DMBCompare_  = DMBCompare;
   //
   std::string DMBVmeFirmware = FirmwareDir_+DMBVME_FIRMWARE_FILENAME;
+  std::string DMBVmeVerify   = FirmwareDir_+DMBVME_VERIFY_FILENAME;
+  std::string DMBVmeCompare  = FirmwareDir_+DMBVME_COMPARE_FILENAME;
   DMBVmeFirmware_ = DMBVmeFirmware;
+  DMBVmeVerify_   = DMBVmeVerify;
+  DMBVmeCompare_  = DMBVmeCompare;
   //
   std::string CFEBFirmware = FirmwareDir_+CFEB_FIRMWARE_FILENAME;
   std::string CFEBVerify = FirmwareDir_+CFEB_VERIFY_FILENAME;
+  std::string CFEBCompare = FirmwareDir_+CFEB_COMPARE_FILENAME;
   CFEBVerify_ = CFEBVerify;
+  CFEBCompare_ = CFEBCompare;
   CFEBFirmware_ = CFEBFirmware;
 
   //  create filename for CCB & MPC

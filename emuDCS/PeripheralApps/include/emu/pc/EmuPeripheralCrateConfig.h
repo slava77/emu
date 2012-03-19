@@ -89,13 +89,18 @@ protected:
   std::string MPCFirmware_;
   xdata::String TMBFirmware_[10];
   xdata::String DMBFirmware_;
+  xdata::String DMBVerify_;
+  xdata::String DMBCompare_;
   xdata::String DMBVmeFirmware_;
+  xdata::String DMBVmeVerify_;
+  xdata::String DMBVmeCompare_;
   xdata::String RATFirmware_[10];
   xdata::String RATFirmwareErase_;
   xdata::String ALCTFirmware_[10];
   xdata::String ALCTReadback_[10];
   xdata::String CFEBFirmware_;
   xdata::String CFEBVerify_;
+  xdata::String CFEBCompare_;
   std::string FirmwareDir_ ;
   //
   xdata::String curlCommand_;         // the curl command's full path

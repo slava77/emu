@@ -1192,12 +1192,13 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
     thisCCB->hardReset();
     //
     if (thisDMB) {
+      // check the CFEB EPROM firmware first
       //
       std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
       //
       ::sleep(1);
       //
-      if (dmbNumber == -1 ) {
+      if (dmbNumber == -1 ) { // This, actually, is a CFEB number, not DMB
 	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
 	  std::ostringstream dum;
 	  dum << "Verifying CFEB firmware for DMB=" << dmb << " CFEB="<< i << std::endl;
@@ -1207,6 +1208,22 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
 	  CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	  char * outp=(char *)dword;   // recast dword
 	  thisDMB->epromload_verify(thisCFEBs[i].promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
+	  // create a report from the results above 
+	  std::ostringstream logs;
+	  int erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",CFEBCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
+	  if(erropen>=0){
+	     logs<<" Total number of bad bits: "<<thisDMB->GetNumberOfBadReadbackBits()<<std::endl;
+	     for(unsigned int bit=0; bit<thisDMB->GetNumberOfBadReadbackBits() && bit<20; bit++ ){
+	        logs << " broken word position: " << std::setw(6) << thisDMB->GetWordWithBadReadbackBit(bit)
+	             << ", bad bit position: " << thisDMB->GetBadReadbackBitPosition(bit)
+	             << ", bad bit type (type=0 1->0 type=1 0->1): "<< thisDMB->GetBadReadbackBitType(bit)
+	             << std::endl;
+	     }
+             if( thisDMB->GetNumberOfBadReadbackBits()>20 ) logs << "  only first 20 bad CFEB firmware bits were reported above " << std::endl;
+	  } else {
+	     logs << " file error in check_eprom_readback" << std::endl;
+	  }
+	  LOG4CPLUS_INFO(getApplicationLogger(), logs.str());
 	}
       } else {
 	std::cout << "Verifying CFEB firmware for DMB=" << dmb << " CFEB="<< dmbNumber << std::endl;
@@ -1217,9 +1234,72 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
 	    CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	    char * outp=(char *)dword;   // recast dword
 	    thisDMB->epromload_verify(thisCFEBs[i].promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
+	    // create a report from the results above 
+	    std::ostringstream logs;
+	    int erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",CFEBCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
+	    if(erropen>=0){
+	       logs<<" Total number of bad bits: "<<thisDMB->GetNumberOfBadReadbackBits()<<std::endl;
+	       for(unsigned int bit=0; bit<thisDMB->GetNumberOfBadReadbackBits() && bit<20; bit++ ){
+	          logs << " broken word position: " << std::setw(6) << thisDMB->GetWordWithBadReadbackBit(bit)
+	               << ", bad bit position: " << thisDMB->GetBadReadbackBitPosition(bit)
+	               << ", bad bit type (type=0 1->0 type=1 0->1): "<< thisDMB->GetBadReadbackBitType(bit)
+	               << std::endl;
+	       }
+               if( thisDMB->GetNumberOfBadReadbackBits()>20 ) logs << "  only first 20 bad CFEB firmware bits were reported above " << std::endl;
+	    } else {
+	       logs << " file error in check_eprom_readback" << std::endl;
+	    }
+	    LOG4CPLUS_INFO(getApplicationLogger(), logs.str());
 	  }
 	}
       }
+/*
+      //
+      // check the DMB MPROM firmware
+      std::cout << "Verifying DMB MPROM firmware for DMB=" << dmb << std::endl;
+      unsigned short int dword[2];
+      dword[0]=thisDMB->mbpromuser(1);
+      char * outp=(char *)dword;   // recast dword
+      thisDMB->epromload_verify(MPROM, DMBVerify_.toString().c_str(), 1, outp);    // dmb mprom
+      // create a report from the results above 
+      std::ostringstream logs;
+      int erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",DMBCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
+      if(erropen>=0){
+         logs<<" Total number of bad bits: "<<thisDMB->GetNumberOfBadReadbackBits()<<std::endl;
+         for(unsigned int bit=0; bit<thisDMB->GetNumberOfBadReadbackBits() && bit<20; bit++ ){
+            logs << " broken word position: " << std::setw(6) << thisDMB->GetWordWithBadReadbackBit(bit)
+                 << ", bad bit position: " << thisDMB->GetBadReadbackBitPosition(bit)
+                 << ", bad bit type (type=0 1->0 type=1 0->1): "<< thisDMB->GetBadReadbackBitType(bit)
+                 << std::endl;
+         }
+         if( thisDMB->GetNumberOfBadReadbackBits()>20 ) logs << "  only first 20 bad DMB MPROM firmware bits were reported above " << std::endl;
+      } else {
+         logs << " file error in check_eprom_readback" << std::endl;
+      }
+      LOG4CPLUS_INFO(getApplicationLogger(), logs.str());
+
+      // check the DMB MPROM firmware
+      std::cout << "Verifying DMB VPROM firmware for DMB=" << dmb << std::endl;
+      dword[0]=thisDMB->mbpromuser(0);
+      outp=(char *)dword;   // recast dword
+      thisDMB->epromload_verify(VPROM, DMBVmeVerify_.toString().c_str(), 1, outp);    // dmb mprom
+      // create a report from the results above 
+      std::ostringstream logs2;
+      erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",DMBCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
+      if(erropen>=0){
+         logs2<<" Total number of bad bits: "<<thisDMB->GetNumberOfBadReadbackBits()<<std::endl;
+         for(unsigned int bit=0; bit<thisDMB->GetNumberOfBadReadbackBits() && bit<20; bit++ ){
+            logs2 << " broken word position: " << std::setw(6) << thisDMB->GetWordWithBadReadbackBit(bit)
+                 << ", bad bit position: " << thisDMB->GetBadReadbackBitPosition(bit)
+                 << ", bad bit type (type=0 1->0 type=1 0->1): "<< thisDMB->GetBadReadbackBitType(bit)
+                 << std::endl;
+         }
+         if( thisDMB->GetNumberOfBadReadbackBits()>20 ) logs2 << "  only first 20 bad DMB VPROM firmware bits were reported above " << std::endl;
+      } else {
+         logs2 << " file error in check_eprom_readback" << std::endl;
+      }
+      LOG4CPLUS_INFO(getApplicationLogger(), logs2.str());
+*/
     }
     ::sleep(1);
     thisCCB->hardReset();
