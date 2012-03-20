@@ -46,10 +46,10 @@ emu::soap::operator<<( ostream& os,  const emu::soap::Attributes& attributes ){
     emu::soap::Attributes::const_iterator pp = p;
     ++pp;
     os << ( p == attributes.begin() ? "[" : "" )
-       << "(name:'"   << p->first
-       << "' type:'"  << p->second->type()
-       << "' value:'" << p->second->toString()
-       << "')"
+       << "(name:'"   << p->first << "'"
+       << " type:'"  << p->second->type() << "'"
+       << " value:'" << p->second->toString() << "'"
+       << ")"
        << ( pp == attributes.end() ? "]" : ", " );
   }
   return os;
