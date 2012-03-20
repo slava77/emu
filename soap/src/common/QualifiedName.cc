@@ -37,7 +37,16 @@ int emu::soap::QualifiedName::operator==( const QualifiedName& other ) const {
 }
 
 ostream& emu::soap::operator<<( ostream& os, const emu::soap::QualifiedName& qualifiedName ){
-  os << qualifiedName.prefix_ << ":" << qualifiedName.name_
-     << " xmlns:" << qualifiedName.prefix_ << "=\"" << qualifiedName.namespaceURI_ << "\"";
+  if ( qualifiedName.prefix_.size() > 0 ){
+    os << qualifiedName.prefix_ << ":";
+  }
+  os << qualifiedName.name_;
+  if ( qualifiedName.namespaceURI_.size() > 0 ){
+    os << " xmlns";
+    if ( qualifiedName.prefix_.size() > 0 ){
+      os << ":" << qualifiedName.prefix_;
+    }
+    os << "=\"" << qualifiedName.namespaceURI_ << "\"";
+  }
   return os;
 }
