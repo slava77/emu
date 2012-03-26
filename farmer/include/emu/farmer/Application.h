@@ -57,7 +57,17 @@ private:
   ///
   /// 
   ///
+  xdata::String outputDirOwner_;
+
+  ///
+  /// 
+  ///
   xdata::String rs3UserFile_;
+
+  ///
+  /// 
+  ///
+  xdata::String rs3UserFileOwner_;
 
   ///
   /// 

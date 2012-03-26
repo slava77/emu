@@ -99,14 +99,18 @@ void emu::farmer::Application::exportParams(){
   xdata::InfoSpace *s = getApplicationInfoSpace();;
 
   outputDir_         = "/tmp/farmer/out";
+  outputDirOwner_    = "cscdaq";
   rs3UserFile_       = "/nfshome0/cscdaq/config/.rs3User";
-  generatingCommand_ = "cd /opt/xdaq/htdocs/emu/farmer/xml && ./generateConfigs.sh";
+  rs3UserFileOwner_  = "cscdaq";
+  generatingCommand_ = "cd /opt/xdaq/htdocs/emu/farmer/xml && sudo -u cscdaq ./generateConfigs.sh";
   uploadingCommand_  = "RCMS_HOME=/nfshome0/cscpro/RunControl /nfshome0/cscpro/bin/duckLoader --usc55 ";
   jobControlClass_   = "jobcontrol::Application";
   executiveClass_    = "executive::Application";
 
   s->fireItemAvailable( "outputDir"        , &outputDir_         );
+  s->fireItemAvailable( "outputDirOwner"   , &outputDirOwner_    );
   s->fireItemAvailable( "rs3UserFile"      , &rs3UserFile_       );
+  s->fireItemAvailable( "rs3UserFileOwner" , &rs3UserFileOwner_  );
   s->fireItemAvailable( "generatingCommand", &generatingCommand_ );
   s->fireItemAvailable( "uploadingCommand" , &uploadingCommand_  );
   s->fireItemAvailable( "jobControlClass"  , &jobControlClass_   );
@@ -400,6 +404,8 @@ emu::farmer::Application::getRS3UserInfo()
   throw( xcept::Exception ){
   string pw;
   try{
+    // First give permissions to read
+    emu::farmer::utils::execShellCommand( string( "sudo -u " ) + rs3UserFileOwner_.toString() + " 644 " + rs3UserFile_.toString() );
     fstream fs( rs3UserFile_.toString().c_str(), ios::in );
     fs >> pw;
     fs.close();
@@ -408,6 +414,8 @@ emu::farmer::Application::getRS3UserInfo()
       ss << "RS3 user info file \"" <<  rs3UserFile_.toString() << "\" is empty?!";
       XCEPT_RAISE( xcept::Exception, ss.str() );
     }
+    // Done reading, revoke read permissions
+    emu::farmer::utils::execShellCommand( string( "sudo -u " ) + rs3UserFileOwner_.toString() + " 600 " + rs3UserFile_.toString() );
   }catch( xcept::Exception& e ){
     stringstream ss;
     ss << "Failed to get RS3 user info from file \"" <<  rs3UserFile_.toString() << "\": ";
@@ -808,14 +816,15 @@ void emu::farmer::Application::editorWebPage(xgi::Input *in, xgi::Output *out)
       else if ( actionNameValue["Action"] == "Generate" ){
 	// Generate files and list them.
 
-	// Create outputDir_ if it doesn't exist
-	string makeOutputDirectory( string( "mkdir -p " ) + outputDir_.toString() );
-	emu::farmer::utils::execShellCommand( makeOutputDirectory );
-
-	// Save edited RUI mapping to file
-	fstream ruiMappingFile( (outputDir_.toString()+"/RUI-to-computer_mapping.xml").c_str(), fstream::out );
+	// Save edited RUI mapping to file to /tmp, which is writeable by all.
+	fstream ruiMappingFile( "/tmp/RUI-to-computer_mapping.xml", fstream::out );
 	ruiMappingFile.write( editedMapping_.c_str(), editedMapping_.size() );
 	ruiMappingFile.close();
+
+	// Create outputDir_ if it doesn't exist and copy the edited RUI mapping file to it:
+	string prepareOutputDirectory( string( "sudo -u " ) + outputDirOwner_.toString() + " mkdir -p "                            + outputDir_.toString() +
+				           " && sudo -u "   + outputDirOwner_.toString() + " cp /tmp/RUI-to-computer_mapping.xml " + outputDir_.toString() );
+	emu::farmer::utils::execShellCommand( prepareOutputDirectory );
 
 	//generateConfigFiles();
 	// Xalan doesn't seem to handle the function "document('')" properly for the XSL to process itself. 
