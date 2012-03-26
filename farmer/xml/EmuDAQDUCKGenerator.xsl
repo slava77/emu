@@ -33,9 +33,9 @@
   <!-- <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param> -->
   <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/share/emu/scripts/xdaq_autorestart.sh</xsl:param>
 
-  <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86_64_slc5 XDAQ_OS=linux XDAQ_ZONE=emu XDAQ_PROFILE=/opt/xdaq/share/emu/profile/default_emupthttp.profile PATH=/bin:/usr/bin</xsl:param>
+  <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86_64_slc5 XDAQ_OS=linux XDAQ_ZONE=emu XDAQ_PROFILE=/opt/xdaq/share/emu/profile/default.profile PATH=/bin:/usr/bin</xsl:param>
 
-  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/nfshome0/cscdqm LD_LIBRARY_PATH=/opt/cern/root_v5.32.00/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86_64_slc5 XDAQ_OS=linux XDAQ_ZONE=emu XDAQ_PROFILE=/opt/xdaq/share/emu/profile/default_emupthttp.profile ROOTSYS=/opt/cern/root_v5.32.00</xsl:param>
+  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/nfshome0/cscdqm LD_LIBRARY_PATH=/opt/cern/root_v5.32.00/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86_64_slc5 XDAQ_OS=linux XDAQ_ZONE=emu XDAQ_PROFILE=/opt/xdaq/share/emu/profile/default.profile ROOTSYS=/opt/cern/root_v5.32.00</xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 

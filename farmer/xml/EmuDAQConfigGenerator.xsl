@@ -109,8 +109,8 @@
 	  <buildEvents xsi:type="xsd:boolean"><xsl:if test="$BUILD='N'">false</xsl:if><xsl:if test="$BUILD='Y'">true</xsl:if></buildEvents>
 	  <runType xsi:type="xsd:string">Monitor</runType>
 	  <supervisedMode xsi:type="xsd:boolean">true</supervisedMode>
-	  <runDbBookingCommand xsi:type="xsd:string">/nfshome0/cscdaq/bin/java -jar /nfshome0/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
-	  <runDbWritingCommand xsi:type="xsd:string">/nfshome0/cscdaq/bin/java -jar /nfshome0/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
+	  <runDbBookingCommand xsi:type="xsd:string">/usr/bin/java -jar /nfshome0/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
+	  <runDbWritingCommand xsi:type="xsd:string">/usr/bin/java -jar /nfshome0/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
 	  <runDbAddress xsi:type="xsd:string">jdbc:oracle:thin:@cmsonr1-v.cms:10121/cms_rcms.cern.ch</runDbAddress>
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile> -->
@@ -120,6 +120,10 @@
 	  <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	</properties>
       </xc:Application>
+      <!-- emu::base uses Xalan -->
+      <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
+      <xc:Module>${XDAQ_ROOT}/lib/libxalanMsg.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusupervisor.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqmanager.so</xc:Module>
@@ -156,6 +160,7 @@
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderevm.so</xc:Module>
       <xc:Application instance="0" class="emu::daq::ta::Application" network="atcp1" id="17"/>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqta.so</xc:Module>
     </xc:Context>
   </xsl:template>
@@ -188,6 +193,7 @@
 	</xc:Application>
 	<xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
 	
+	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
 	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
 	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqserver.so</xc:Module>
 	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
@@ -220,6 +226,10 @@
 	    <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	  </properties>
 	</xc:Application>
+	<!-- emu::base uses Xalan -->
+	<xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
+	<xc:Module>${XDAQ_ROOT}/lib/libxalanMsg.so</xc:Module>
+	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
 	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
 	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqrui.so</xc:Module>
       </xc:Context>
@@ -255,6 +265,7 @@
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
 
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqserver.so</xc:Module>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
@@ -301,6 +312,9 @@
 	      <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
 	    </properties>
 	  </xc:Application>
+	  <!-- emu::base uses Xalan -->
+	  <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
+	  <xc:Module>${XDAQ_ROOT}/lib/libxalanMsg.so</xc:Module>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqrui.so</xc:Module>
 	</xc:Context>
@@ -321,6 +335,10 @@
 	  <viewOnly xsi:type="xsd:boolean">false</viewOnly>
 	</properties>
       </xc:Application>
+      <!-- emu::base uses Xalan -->
+      <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
+      <xc:Module>${XDAQ_ROOT}/lib/libxalanMsg.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmtfdisplay.so</xc:Module>
     </xc:Context>
@@ -345,6 +363,10 @@
 	  <useExSys xsi:type="xsd:boolean">true</useExSys>
 	</properties>
       </xc:Application>
+      <!-- emu::base uses Xalan -->
+      <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
+      <xc:Module>${XDAQ_ROOT}/lib/libxalanMsg.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudqmcscdisplay.so</xc:Module>
     </xc:Context>
@@ -364,6 +386,7 @@
 	</properties>
       </xc:Application>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libptatcp.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
       <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
       <xc:Application instance="0" class="EmuTFMonitor" id="1400" network="atcp1" group="dqm">
 	<properties xmlns="urn:xdaq-application:EmuTFMonitor" xsi:type="soapenc:Struct">
@@ -418,6 +441,7 @@
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemusoap.so</xc:Module>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
 	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="EmuMonitor" id="{$APP_ID}" network="atcp1" group="dqm">
