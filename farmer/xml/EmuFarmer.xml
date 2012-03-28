@@ -15,7 +15,7 @@
 	<outputDir xsi:type="xsd:string">/nfshome0/cscdaq/config/farmer/out</outputDir>
 	<outputDirOwner xsi:type="xsd:string">cscdaq</outputDirOwner>
 	<rs3UserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.rs3User</rs3UserFile>
-	<rs3UserOwner xsi:type="xsd:string">cscdaq</rs3UserOwner>
+	<rs3UserFileOwner xsi:type="xsd:string">cscdaq</rs3UserFileOwner>
 	<jobControlClass xsi:type="xsd:string">jobcontrol::Application</jobControlClass>
 	<executiveClass  xsi:type="xsd:string">executive::Application</executiveClass>
       </properties>
