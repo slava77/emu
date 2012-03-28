@@ -26,7 +26,7 @@
 
 
 xoap::MessageReference emu::farmer::utils::createStartXdaqExeSOAPMsg( const string& host, const int port, const string& user, 
-								      const string& jid, const string& pathToExecutive,
+								      const string& jid, const string& pathToExecutive, const string& logLevel,
 								      map<string,string> environmentVariables )
   throw (xcept::Exception){
   xoap::MessageReference message = xoap::createMessage();
@@ -41,7 +41,7 @@ xoap::MessageReference emu::farmer::utils::createStartXdaqExeSOAPMsg( const stri
     bodyelement.addAttribute( name, pathToExecutive );
     name = envelope.createName("argv", "", "");
     stringstream ssport; ssport << port;
-    bodyelement.addAttribute( name, string("-h ") + host + " -p " + ssport.str() );
+    bodyelement.addAttribute( name, string("-h ") + host + " -p " + ssport.str() + " -l " + logLevel );
     name = envelope.createName("user", "", "");
     bodyelement.addAttribute( name, user );
     name = envelope.createName("jid", "", "");

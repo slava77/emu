@@ -10,7 +10,7 @@ using namespace std;
 namespace emu { namespace farmer { namespace utils {
 
   xoap::MessageReference createStartXdaqExeSOAPMsg( const string& host, const int port, const string& user,
-						    const string& jid, const string& pathToExecutive, 
+						    const string& jid, const string& pathToExecutive, const string& logLevel,
 						    map<string,string> environmentVariables )
     throw (xcept::Exception);
 

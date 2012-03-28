@@ -160,6 +160,7 @@ emu::farmer::Application::createExecutives(){
 							 pd->second.getUser(),
 							 pd->second.getJid(),
 							 pd->second.getPathToExecutive(),
+							 pd->second.getLogLevel(),
 							 pd->second.getEnvironmentVariables() );
 	xoap::MessageReference reply = 
 	  emu::farmer::utils::postSOAP( message, 
@@ -667,11 +668,13 @@ void emu::farmer::Application::createProcessDescriptors()
 	  XalanDOMString X_pathToExecutive( "pathToExecutive" );
 	  XalanDOMString X_environmentString ( "environmentString" );
 	  XalanDOMString X_unixUser ( "unixUser" );
+	  XalanDOMString X_logLevel ( "logLevel" );
 	  XalanDOMString X_configFile ( "configFile" );
 	  stringstream exe;
 	  stringstream env;
 	  stringstream user;
 	  stringstream uri;
+	  stringstream logLevel;
 	  stringstream configFile;
 	  uri << "http://" << node->getAttributes()->getNamedItem( X_hostname )->getNodeValue()
 	      << ":"       << node->getAttributes()->getNamedItem( X_port     )->getNodeValue()
@@ -685,6 +688,7 @@ void emu::farmer::Application::createProcessDescriptors()
 	    exe  << node->getAttributes()->getNamedItem( X_pathToExecutive )->getNodeValue();
 	    env  << node->getAttributes()->getNamedItem( X_environmentString )->getNodeValue();
 	    user << node->getAttributes()->getNamedItem( X_unixUser )->getNodeValue();
+	    logLevel << node->getAttributes()->getNamedItem( X_logLevel )->getNodeValue();
 	    // Get config file
 	    for ( unsigned int iChild = 0; iChild < node->getChildNodes()->getLength(); ++iChild ){
 	      if ( node->getChildNodes()->item( iChild )->getNodeName() == X_configFile ){
@@ -714,6 +718,7 @@ void emu::farmer::Application::createProcessDescriptors()
 	  pd.setEnvironmentString( env.str() );
 	  pd.setUser( user.str() );
 	  pd.setXdaqConfigPath( configFile.str() );
+	  pd.setLogLevel( logLevel.str() );
 	  //pd.print( cout );
 	  processDescriptors_[ uri.str() ] = pd;
 	}

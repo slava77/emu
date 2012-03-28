@@ -247,6 +247,18 @@ public:
   ///
   void setPathToExecutive( const string& pathToExecutive ){ pathToExecutive_ = pathToExecutive; }
 
+  /// 
+  /// get log level
+  ///
+  /// @return log level string
+  ///
+  string getLogLevel() const { return logLevel_; }
+
+  /// set log level
+  ///
+  /// @param logLevel log level string
+  ///
+  void setLogLevel( const string& logLevel ){ logLevel_ = logLevel; }
 
   /// print summary of this process (for debugging purposes only)
 
@@ -303,6 +315,9 @@ private:
 
   /// the full path to the XDAQ configuration XML file
   string xdaqConfigPath_;
+
+  /// log level
+  string logLevel_;
 
   /// whether or not this process is selected for action on the web page
   bool   selected_;
