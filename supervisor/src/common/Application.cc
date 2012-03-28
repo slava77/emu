@@ -1145,6 +1145,12 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
 
+    // Issue a resync now to make sure L1A is reset to zero in the FEDs in case a global run follows.
+    // In a global run, when backpressure is not ignored, this would fail (see http://cmsonline.cern.ch/cms-elog/756961).
+    // By resynching through LTC, we make sure it's only done in local runs. 
+    // The following command will do nothing if no ttc::LTCControl application is found.
+    m.sendCommand( "ttc::LTCControl", "resync" );
+
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Halt was issued from the web interface
     if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
 
