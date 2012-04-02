@@ -5,11 +5,11 @@
 
 namespace emusupervisor {
 	const std::string package     = "emusupervisor";
-	const std::string versions    = "11.01.01";
+	const std::string versions    = "11.01.02";
 	const std::string description = "Emu (CSC) Supervisor";
 
 	const std::string summary     = "emu/supervisor";
-	const std::string authors     = "Ichiro Suzuki";
+	const std::string authors     = "Ichiro Suzuki, K. Banicz";
 	const std::string link        = "http://localhost:20000/";
 
 	config::PackageInfo getPackageInfo();
