@@ -1149,9 +1149,8 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     // In a global run, when backpressure is not ignored, this would fail (see http://cmsonline.cern.ch/cms-elog/756961).
     // By resynching through LTC, we make sure it's only done in local runs. 
     // The following command will do nothing if no ttc::LTCControl application is found.
-    // No SOAP for resync in LTC?! m.sendCommand( "ttc::LTCControl", "resync" );
-    // Then try sending resync via the TTCcis:
-    // No SOAP for resync in TTCci either?! m.sendCommand( "ttc::TTCciControl", "resync" );
+    xdata::String attributeValue( "resync" );
+    m.sendCommand( "ttc::LTCControl", "ExecuteSequence", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Halt was issued from the web interface
     if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
