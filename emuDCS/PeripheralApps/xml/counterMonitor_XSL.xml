@@ -290,7 +290,7 @@
       <svg:polygon points="300,0 220,-30 220,30" fill="#aaaaaa" opacity="1."/>
       <svg:line x1="0" y1="0" x2=  "0" y2="-300" stroke="#aaaaaa" stroke-width="10" opacity="1."/>
       <svg:polygon points="0,-300 -30,-220 30,-220" fill="#aaaaaa" opacity="1."/>
-      <svg:circle r="30" stroke="#aaaaaa" stroke-width="10" fill="aaaaaa"/>
+      <svg:circle r="30" stroke="#aaaaaa" stroke-width="10" fill="#aaaaaa"/>
       <svg:circle r="5"  stroke="#aaaaaa" stroke-width="10" fill="none"/>
       <svg:text transform="translate(300, 0)" font-size="100" fill="#aaaaaa">X</svg:text>
       <svg:text transform="translate(0,-300)" font-size="100" fill="#aaaaaa">Y</svg:text>
