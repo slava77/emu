@@ -6,6 +6,7 @@
   <xsl:template name="pageParameters">
     <application name="emu::daq::manager::Application"     pageRefreshPeriodInMSec="10000" graph="show"/>
     <application name="xmas::las::Application"             pageRefreshPeriodInMSec="21000" graph="none"/>
+    <application name="xmas::slash2g::Application"         pageRefreshPeriodInMSec="21000" graph="none"/>
     <application name="emu::fed::Manager"                  pageRefreshPeriodInMSec="11000" graph="show"/>
     <application name="emu::pc::EmuPeripheralCrateMonitor" pageRefreshPeriodInMSec="13000" graph="none"/>
     <application name="emu::pc::EmuPeripheralCrateManager" pageRefreshPeriodInMSec="15000" graph="none"/>
@@ -17,17 +18,23 @@
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
         <title>Report for EmuPage1 from <xsl:if test="monitorable[@name='title']"><xsl:value-of select="monitorable[@name='title']/@value"/></xsl:if><xsl:if test="not(monitorable[@name='title'])"><xsl:value-of select="@application"/></xsl:if> at <xsl:value-of select="@localDateTime"/></title>
-	<link rel="stylesheet" type="text/css" href="/emu/base/html/EmuPage1.css"/>
-	<script type="text/javascript" src="/emu/base/html/EmuPage1.js"/>
-<!-- 	<link rel="stylesheet" type="text/css" href="/emu/base/html/_dev_/EmuPage1.css"/> -->
-<!-- 	<script type="text/javascript" src="/emu/base/html/_dev_/EmuPage1.js"/> -->
-        <xsl:if test="@application = 'xmas::las::Application'"><script type="text/javascript" src="/emu/base/html/jquery-1.3.2.min.js"/></xsl:if>
+	<xsl:choose>
+	  <xsl:when test="@application = 'xmas::las::Application' or @application = 'xmas::slash2g::Application'">
+	    <link rel="stylesheet" type="text/css" href="/jobcontrol/emu/base/html/EmuPage1.css"/>
+	    <script type="text/javascript" src="/jobcontrol/emu/base/html/EmuPage1.js"/>
+	    <script type="text/javascript" src="/jobcontrol/emu/base/html/jquery-1.3.2.min.js"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <link rel="stylesheet" type="text/css" href="/emu/base/html/EmuPage1.css"/>
+	    <script type="text/javascript" src="/emu/base/html/EmuPage1.js"/>
+	  </xsl:otherwise>
+	</xsl:choose>
       </head>
       <xsl:variable name="APPLICATION"><xsl:value-of select="@application"/></xsl:variable>
       <xsl:variable name="REFRESH_PERIOD"><xsl:value-of select="document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@pageRefreshPeriodInMSec"/></xsl:variable>
       <xsl:variable name="DATA_URL">
-	<xsl:if test="@application != 'xmas::las::Application'">document.URL</xsl:if>
-	<xsl:if test="child::monitorable[@name='title' and @value='Local DAQ disks']">"http://csc-daq00.cms:9941/urn:xdaq-application:lid=100/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:diskInfo"</xsl:if>
+	<xsl:if test="@application != 'xmas::las::Application' and @application != 'xmas::slash2g::Application'">document.URL</xsl:if>
+	<xsl:if test="child::monitorable[@name='title' and @value='Local DAQ disks']">"http://csc-daq.cms:8888/emulas/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:diskInfo"</xsl:if>
 	<xsl:if test="child::monitorable[@name='title' and @value='CSC Track Finder']">"http://csc-tf.cms:5005/urn:xdaq-application:service=las/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:csctf_emupageone"</xsl:if>
       </xsl:variable>
     <xsl:variable name="TITLEID">a_value_<xsl:value-of select="count(//monitorable[@name='title']/preceding::monitorable)"/></xsl:variable>
@@ -169,7 +176,7 @@
 	    </tr>
 	  </xsl:if>
 
-	  <xsl:if test="@application = 'xmas::las::Application'">
+	  <xsl:if test="@application = 'xmas::las::Application' or @application = 'xmas::slash2g::Application'">
 	    <tr><th colspan="2" class="title">
 	      <xsl:if test="monitorable[@name='title']">
 		<a id="a_value_title" target="_blank">
