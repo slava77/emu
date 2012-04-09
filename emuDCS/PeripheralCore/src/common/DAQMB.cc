@@ -1,8 +1,16 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.75 2012/03/19 22:52:37 liu Exp $
+// $Id: DAQMB.cc,v 3.76 2012/04/09 15:25:28 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.76  2012/04/09 15:25:28  liu
+// update for Khristian Kotov
+//
 // Revision 3.75  2012/03/19 22:52:37  liu
 // for Khritian Kotov: CFEB firmware fix
+//
+// $Id: DAQMB.cc,v 3.76 2012/04/09 15:25:28 liu Exp $
+// $Log: DAQMB.cc,v $
+// Revision 3.76  2012/04/09 15:25:28  liu
+// update for Khristian Kotov
 //
 // Revision 3.74  2012/02/20 14:41:56  liu
 // avoid compiler warning
@@ -3045,7 +3053,7 @@ void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *
   DEVTYPE devstp,dv;
   char *devstr;
   FILE *dwnfp,*fpout;
-  char buf[8192],buf2[256];
+  char buf[16384],buf2[256];
   char *Word[256],*lastn;
   int Count,j,nbits,nbytes,pause,xtrbits;
   int tmp,cmpflag;
@@ -3188,15 +3196,18 @@ void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *
 	 } 
 	 //  Data readback comparison here:
 	 std::cout << " Data readback ntypes "<<nbytes<<std::endl;
-         if(nbytes==512){
+         if(nbytes==512 || nbytes==1024){
 	   rmask[511]=rmask[511]&0x7f; //do not compare bit 7 for the very last byte
 	 for (int i=0;i<nbytes;i++) {
 	   printf("%02x",rcvbuf[i]&0xff);
-	   //   tmp=(rcvbuf[i]>>3)&0x1F;
-	   //  rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0); 
+            if( devnum==F1PROM ||
+                devnum==F2PROM ||
+                devnum==F3PROM ||
+                devnum==F4PROM ||
+                devnum==F5PROM ){
               tmp=(rcvbuf[i]>>1)&0x7F;
 	      rcvbuf[i]=tmp | (rcvbuf[i+1]<<7&0x80);
-
+            }
 	  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1) 
 		printf("\n GU *** read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); 
 	 }
