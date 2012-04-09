@@ -1253,12 +1253,12 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
 	  }
 	}
       }
-/*
+
       //
       // check the DMB MPROM firmware
       std::cout << "Verifying DMB MPROM firmware for DMB=" << dmb << std::endl;
       unsigned short int dword[2];
-      dword[0]=thisDMB->mbpromuser(1);
+      dword[0]=0;
       char * outp=(char *)dword;   // recast dword
       thisDMB->epromload_verify(MPROM, DMBVerify_.toString().c_str(), 1, outp);    // dmb mprom
       // create a report from the results above 
@@ -1278,14 +1278,16 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
       }
       LOG4CPLUS_INFO(getApplicationLogger(), logs.str());
 
-      // check the DMB MPROM firmware
+      // check the DMB VPROM firmware
       std::cout << "Verifying DMB VPROM firmware for DMB=" << dmb << std::endl;
+
       dword[0]=thisDMB->mbpromuser(0);
+      dword[1]=0xdb00;
       outp=(char *)dword;   // recast dword
       thisDMB->epromload_verify(VPROM, DMBVmeVerify_.toString().c_str(), 1, outp);    // dmb mprom
       // create a report from the results above 
       std::ostringstream logs2;
-      erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",DMBCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
+      erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",DMBVmeCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
       if(erropen>=0){
          logs2<<" Total number of bad bits: "<<thisDMB->GetNumberOfBadReadbackBits()<<std::endl;
          for(unsigned int bit=0; bit<thisDMB->GetNumberOfBadReadbackBits() && bit<20; bit++ ){
@@ -1299,7 +1301,7 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
          logs2 << " file error in check_eprom_readback" << std::endl;
       }
       LOG4CPLUS_INFO(getApplicationLogger(), logs2.str());
-*/
+
     }
     ::sleep(1);
     thisCCB->hardReset();
