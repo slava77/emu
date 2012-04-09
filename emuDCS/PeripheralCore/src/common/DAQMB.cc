@@ -1,16 +1,14 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.76 2012/04/09 15:25:28 liu Exp $
+// $Id: DAQMB.cc,v 3.77 2012/04/09 15:30:33 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.77  2012/04/09 15:30:33  liu
+// fix CVS header
+//
 // Revision 3.76  2012/04/09 15:25:28  liu
 // update for Khristian Kotov
 //
 // Revision 3.75  2012/03/19 22:52:37  liu
 // for Khritian Kotov: CFEB firmware fix
-//
-// $Id: DAQMB.cc,v 3.76 2012/04/09 15:25:28 liu Exp $
-// $Log: DAQMB.cc,v $
-// Revision 3.76  2012/04/09 15:25:28  liu
-// update for Khristian Kotov
 //
 // Revision 3.74  2012/02/20 14:41:56  liu
 // avoid compiler warning
