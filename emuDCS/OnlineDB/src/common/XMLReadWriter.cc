@@ -1,4 +1,4 @@
-// $Id: XMLReadWriter.cc,v 1.1 2011/09/09 16:04:45 khotilov Exp $
+// $Id: XMLReadWriter.cc,v 1.2 2012/04/11 21:19:41 khotilov Exp $
 
 #include "emu/db/XMLReadWriter.h"
 #include "emu/utils/IO.h"
@@ -184,10 +184,12 @@ throw (emu::exception::ConfigurationException)
 
     if (definition.find(attr_name) == definition.end())
     {
-      std::ostringstream error;
-      error << "Attribute name " << attr << " is not in definition:"<<std::endl;
-      datamap_[type].writeTo(error); error<<std::endl;
-      XCEPT_RAISE(emu::exception::ConfigurationException, error.str());
+      //std::ostringstream error;
+      std::cout << "Attribute name " << attr_name <<"="<<value << " is not in definition:"<<std::endl;
+      datamap_[type].writeTo(std::cout);
+      std::cout<<std::endl<<"... skipping the attribute ..."<<std::endl;
+      continue;
+      //XCEPT_RAISE(emu::exception::ConfigurationException, error.str());
     }
     std::string column_type = definition[attr_name];
     if (DBG) std::cout<<" ("<<column_type<<")"<<std::endl;
