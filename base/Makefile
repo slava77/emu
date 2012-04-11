@@ -29,13 +29,13 @@ Sources = \
 	Component.cc \
 	ApplicationStatusFact.cc \
 	Stopwatch.cc \
-	Cgi.cc \
-	DOM.cc \
-	String.cc \
-	Xalan.cc \
-	System.cc \
-	SimpleTimer.cc \
-	SerializableFactory.cc \
+	utils/Cgi.cc \
+	utils/DOM.cc \
+	utils/String.cc \
+	utils/Xalan.cc \
+	utils/System.cc \
+	utils/SimpleTimer.cc \
+	utils/SerializableFactory.cc \
 	version.cc
 
 IncludeDirs = \
@@ -70,7 +70,8 @@ TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer 
 	uuid xalan-c xalanMsg xoapfilter emubase
 
 TestExecutables= \
-	testSystem.cc
+	testSystem.cc \
+	testException.cc
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 include $(XDAQ_ROOT)/config/mfRPM.rules
