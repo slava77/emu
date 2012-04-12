@@ -3652,7 +3652,7 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
 */
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     prob_crate = i+1+(endcap_side<0?30:0);
+     prob_crate = i+1+(endcap_side<0?30:0);  // Plus 1-30, Minus 31-60
      now_crate=crateVector[i];
      if(now_crate==NULL)
      {  
@@ -3763,6 +3763,7 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
      if(problist[i]->source()==ProbSource_CONFDB && problist[i]->type()>0)
      {
         int cr=problist[i]->crate();
+        if(cr>30) cr -= 30;   // for Minus Endcap
         int chb=problist[i]->chamber();
         if(cr>0 & chb>0)
         {
@@ -3784,6 +3785,7 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
      if(problist[i]->source()==ProbSource_CCBBIT && problist[i]->type()>0)
      {
         int cr=problist[i]->crate();
+        if(cr>30) cr -= 30;   // for Minus Endcap
         int chb=problist[i]->chamber();
         int md=problist[i]->module();
         if(cr>0 & chb>0)
