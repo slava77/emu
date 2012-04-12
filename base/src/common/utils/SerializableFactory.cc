@@ -1,6 +1,7 @@
-// $Id: SerializableFactory.cc,v 1.1 2012/04/11 21:34:47 khotilov Exp $
+// $Id: SerializableFactory.cc,v 1.2 2012/04/12 05:26:53 khotilov Exp $
 
 #include "emu/utils/SerializableFactory.h"
+#include "emu/exception/Exception.h"
 
 #include "xdata/Table.h"
 #include "xdata/UnsignedLong.h"
@@ -16,6 +17,7 @@
 #include "xdata/String.h"
 #include "xdata/Boolean.h"
 #include "xdata/TimeVal.h"
+#include "toolbox/string.h"
 
 #include <iostream>
 
@@ -41,11 +43,10 @@ SerializableFactory::SerializableFactory()
 
 
 xdata::Serializable * SerializableFactory::operator()(const std::string & type, const std::string & value)
-throw (xcept::Exception)
 {
   xdata::Serializable * result = 0;
 
-  std::map<std::string, SerializableIndex>::iterator idx = lut_.find(type);
+  std::map<std::string, SerializableIndex>::iterator idx = lut_.find(toolbox::tolower(type));
   if (idx == lut_.end()) return result;
 
   try
