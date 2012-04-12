@@ -21,32 +21,46 @@ std::string serializeDOM(DOMNode* node);
 /**
  *
  */
-void setNodeValue(DOMNode* node, const std::string& value);
+void setNodeValue(DOMNode* node,
+                  const std::string& value);
 
 /**
  *
  */
-std::string appendToSelectedNode(const std::string XML, const std::string xPathToNode, const std::string xmlFragment) throw (xcept::Exception);
+std::string appendToSelectedNode(const std::string &XML,
+                                 const std::string &xPathToNode,
+                                 const std::string &xmlFragment);
 
 /**
  *
  */
-std::string setSelectedNodeValue(const std::string XML, const std::string xPathToNode, const std::string value) throw (xcept::Exception);
+std::string setSelectedNodeValue(const std::string &XML,
+                                 const std::string &xPathToNode,
+                                 const std::string &value);
 /**
  *
  */
-std::string setSelectedNodesValues(const std::string XML, const std::map< std::string, std::string >& values) throw (xcept::Exception);
+std::string setSelectedNodesValues(const std::string &XML,
+                                   const std::map< std::string, std::string >& values);
 
 /**
  *
  */
-std::string getSelectedNodeValue(const std::string& XML, const std::string xpath) throw (xcept::Exception);
+std::string getSelectedNodeValue(const std::string& XML,
+                                 const std::string &xpath);
 
 /**
  *
  */
-std::vector< std::pair< std::string, std::string > >
-getSelectedNodesValues(const std::string& XML, const std::string xpath) throw (xcept::Exception);
+std::vector< std::pair< std::string, std::string > > getSelectedNodesValues(const std::string& XML,
+                                                                            const std::string &xpath);
+
+
+/**
+ *
+ */
+std::string getSelectedNode(const std::string &XML,
+                            const std::string &xpath);
 
 XALAN_USING_XALAN(XalanNode)
 
