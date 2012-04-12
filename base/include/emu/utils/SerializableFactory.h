@@ -4,7 +4,6 @@
 #include <string>
 #include <map>
 
-#include "xcept/Exception.h"
 #include "xdata/Serializable.h"
 
 namespace emu { namespace utils {
@@ -21,9 +20,9 @@ public:
   /// Constructor. It just fills the lookup table.
   SerializableFactory();
 
-  /// The main factory method implemented as an overloaded () operator.
+  /// The main factory method.
   /// Caller is responsible for deleting the returned object.
-  xdata::Serializable * operator()(const std::string & type, const std::string & value) throw (xcept::Exception);
+  xdata::Serializable * operator()(const std::string & type, const std::string & value);
 
 private:
 
