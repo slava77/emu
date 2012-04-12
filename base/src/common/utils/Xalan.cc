@@ -1,11 +1,12 @@
-// $Id: Xalan.cc,v 1.1 2012/04/11 21:34:47 khotilov Exp $
+// $Id: Xalan.cc,v 1.2 2012/04/12 05:24:27 khotilov Exp $
 
 #include "emu/utils/Xalan.h"
+#include "emu/exception/Exception.h"
 
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/util/XMLException.hpp>
-#include "xercesc/sax/SAXParseException.hpp"
+#include <xercesc/sax/SAXParseException.hpp>
 
 #include <xalanc/XalanTransformer/XalanTransformer.hpp>
 #include <xalanc/PlatformSupport/XSLException.hpp>
@@ -16,8 +17,8 @@
 #include <xalanc/XPath/XPathEvaluator.hpp>
 #include <xalanc/XalanSourceTree/XalanSourceTreeDOMSupport.hpp>
 #include <xalanc/DOMSupport/XalanDocumentPrefixResolver.hpp>
-#include "xalanc/XercesParserLiaison/XercesDOMSupport.hpp"
-#include "xalanc/XercesParserLiaison/XercesParserLiaison.hpp"
+#include <xalanc/XercesParserLiaison/XercesDOMSupport.hpp>
+#include <xalanc/XercesParserLiaison/XercesParserLiaison.hpp>
 
 #include "xoap/domutils.h" // for XMLCh2String
 
@@ -25,8 +26,9 @@
 #include <exception>
 
 
-int emu::utils::transformStreams(std::istream& source, std::istream& stylesheet, std::ostream& target)
-throw( xcept::Exception )
+int emu::utils::transformStreams(std::istream& source,
+                                 std::istream& stylesheet,
+                                 std::ostream& target)
 {
   XALAN_USING_XALAN( XSLException );
   int result = 1;
@@ -50,8 +52,8 @@ throw( xcept::Exception )
     if (result != 0)
     {
       std::stringstream ss;
-      ss << "Error: " << theXalanTransformer.getLastError();
-      XCEPT_RAISE( xcept::Exception, ss.str());
+      ss << "Error: couldn't transform " << theXalanTransformer.getLastError();
+      XCEPT_RAISE( emu::exception::XMLException, ss.str());
     }
 
     // Terminate Xalan...
@@ -61,7 +63,7 @@ throw( xcept::Exception )
   }
   catch (xcept::Exception& e)
   {
-    XCEPT_RETHROW( xcept::Exception, "XSLT transformation failed: ", e);
+    XCEPT_RETHROW( emu::exception::XMLException, "XSLT transformation failed: ", e);
   }
   catch (XSLException& e)
   {
@@ -69,25 +71,26 @@ throw( xcept::Exception )
     std::stringstream ss;
     ss << "XSLT transformation failed: XSLException type: " << XalanDOMString(e.getType()) << ", message: "
         << e.getMessage();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (std::exception& e)
   {
     std::stringstream ss;
     ss << "XSLT transformation failed: " << e.what();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (...)
   {
-    XCEPT_RAISE( xcept::Exception, "XSLT transformation failed: Unknown exception.");
+    XCEPT_RAISE( emu::exception::UndefinedException, "XSLT transformation failed: Unknown exception.");
   }
   return result;
 }
 
 
-int emu::utils::transformWithParams( std::istream& source, std::istream& stylesheet, std::ostream& target,
+int emu::utils::transformWithParams( std::istream& source,
+                                     std::istream& stylesheet,
+                                     std::ostream& target,
                                      const std::map< std::string, std::string >& params)
-throw( xcept::Exception )
 {
   XALAN_USING_XALAN( XSLException );
   int result = 1;
@@ -119,8 +122,8 @@ throw( xcept::Exception )
     if (result != 0)
     {
       std::stringstream ss;
-      ss << "Error: " << theXalanTransformer.getLastError();
-      XCEPT_RAISE( xcept::Exception, ss.str());
+      ss << "Error: couldn't transform " << theXalanTransformer.getLastError();
+      XCEPT_RAISE( emu::exception::XMLException, ss.str());
     }
 
     // Terminate Xalan...
@@ -130,24 +133,24 @@ throw( xcept::Exception )
   }
   catch (xcept::Exception& e)
   {
-    XCEPT_RETHROW( xcept::Exception, "XSLT transformation failed: ", e);
+    XCEPT_RETHROW( emu::exception::XMLException, "XSLT transformation failed: ", e);
   }
   catch (XSLException& e)
   {
     XALAN_USING_XALAN(XalanDOMString)
     std::stringstream ss;
     ss << "XSLT transformation failed: XSLException type: " << XalanDOMString(e.getType()) << ", message: " << e.getMessage();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (std::exception& e)
   {
     std::stringstream ss;
     ss << "XSLT transformation failed: " << e.what();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (...)
   {
-    XCEPT_RAISE( xcept::Exception, "XSLT transformation failed: Unknown exception.");
+    XCEPT_RAISE( emu::exception::UndefinedException, "XSLT transformation failed: Unknown exception.");
   }
   return result;
 }
@@ -156,7 +159,7 @@ throw( xcept::Exception )
 XALAN_USING_XALAN(XalanDocument)
 
 
-std::string emu::utils::serialize( const XalanNode* node ) throw( xcept::Exception )
+std::string emu::utils::serialize( const XalanNode* node )
 {
   XALAN_USING_XALAN(XalanStdOutputStream);
   XALAN_USING_XALAN(XalanOutputStreamPrintWriter);
@@ -176,9 +179,9 @@ std::string emu::utils::serialize( const XalanNode* node ) throw( xcept::Excepti
 XALAN_USING_XALAN(XalanNode)
 
 
-XalanNode*
-emu::utils::getSingleNode( XalanDocument* document, XalanNode* contextNode, const std::string xPath )
-throw( xcept::Exception )
+XalanNode* emu::utils::getSingleNode( XalanDocument* document,
+                                      XalanNode* contextNode,
+                                      const std::string &xPath )
 {
   XALAN_USING_XALAN(XalanNode);
   XalanNode* theNode;
@@ -202,33 +205,37 @@ throw( xcept::Exception )
     XALAN_USING_XALAN(XalanDOMString);
     theNode = theEvaluator.selectSingleNode(theDOMSupport, contextNode,
                                             XalanDOMString(xPath.c_str()).c_str(), thePrefixResolver);
-    XMLPlatformUtils::Terminate();
     XPathEvaluator::terminate();
+    // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
+    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // "The termination call is currently optional, to aid those dynamically loading the parser
+    // to clean up before exit, or to avoid spurious reports from leak detectors."
+    // XMLPlatformUtils::Terminate();
   }
   catch (xcept::Exception& e)
   {
     std::stringstream ss;
     ss << "XPath selection failed for '" << xPath << "': ";
-    XCEPT_RETHROW( xcept::Exception, ss.str(), e);
+    XCEPT_RETHROW( emu::exception::XMLException, ss.str(), e);
   }
   catch (XSLException& e)
   {
     XALAN_USING_XALAN(XalanDOMString)
     std::stringstream ss;
     ss << "XPath selection failed for '" << xPath << "': XSLException type: " << XalanDOMString(e.getType()) << ", message: " << e.getMessage();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (std::exception& e)
   {
     std::stringstream ss;
     ss << "XPath selection failed for '" << xPath << "': " << e.what();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (...)
   {
     std::stringstream ss;
     ss << "XPath selection failed for '" << xPath << "': Unknown exception.";
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::UndefinedException, ss.str());
   }
   return theNode;
 }
@@ -237,8 +244,10 @@ throw( xcept::Exception )
 XALAN_USING_XALAN(NodeRefList)
 
 
-void emu::utils::getNodes( NodeRefList& resultNodeList, XalanDocument* document, XalanNode* contextNode, const std::string xPath )
-throw( xcept::Exception )
+void emu::utils::getNodes( NodeRefList& resultNodeList,
+                           XalanDocument* document,
+                           XalanNode* contextNode,
+                           const std::string &xPath )
 {
   XALAN_USING_XALAN(XSLException);
 
@@ -260,38 +269,42 @@ throw( xcept::Exception )
     theEvaluator.selectNodeList(resultNodeList, theDOMSupport, contextNode,
                                 XalanDOMString(xPath.c_str()).c_str(), thePrefixResolver);
     XPathEvaluator::terminate();
-    XMLPlatformUtils::Terminate();
+    // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
+    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // "The termination call is currently optional, to aid those dynamically loading the parser
+    // to clean up before exit, or to avoid spurious reports from leak detectors."
+    // XMLPlatformUtils::Terminate();
   }
   catch (xcept::Exception& e)
   {
     std::stringstream ss;
     ss << "XPath selection failed for '" << xPath << "': ";
-    XCEPT_RETHROW( xcept::Exception, ss.str(), e);
+    XCEPT_RETHROW( emu::exception::XMLException, ss.str(), e);
   }
   catch (XSLException& e)
   {
     XALAN_USING_XALAN(XalanDOMString)
     std::stringstream ss;
     ss << "XPath selection failed for '" << xPath << "': XSLException type: " << XalanDOMString(e.getType()) << ", message: " << e.getMessage();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (std::exception& e)
   {
     std::stringstream ss;
     ss << "XPath selection failed for '" << xPath << "': " << e.what();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (...)
   {
     std::stringstream ss;
     ss << "XPath selection failed for '" << xPath << "': Unknown exception.";
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::UndefinedException, ss.str());
   }
 }
 
 
-std::string emu::utils::serializeSelectedNode( const std::string& XML, const std::string xPath )
-throw( xcept::Exception )
+std::string emu::utils::serializeSelectedNode( const std::string& XML,
+                                               const std::string& xPath )
 {
   std::string serializedNode;
 
@@ -321,52 +334,56 @@ throw( xcept::Exception )
 
     serializedNode = serialize(getSingleNode(document, document, xPath));
 
-    XMLPlatformUtils::Terminate();
+    // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
+    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // "The termination call is currently optional, to aid those dynamically loading the parser
+    // to clean up before exit, or to avoid spurious reports from leak detectors."
+    // XMLPlatformUtils::Terminate();
   }
   catch (SAXParseException& e)
   {
     std::stringstream ss;
     ss << "Failed to serialize selected node: " << xoap::XMLCh2String(e.getMessage());
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (XMLException& e)
   {
     std::stringstream ss;
     ss << "Failed to serialize selected node: " << xoap::XMLCh2String(e.getMessage());
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (DOMException& e)
   {
     std::stringstream ss;
     ss << "Failed to serialize selected node: " << xoap::XMLCh2String(e.getMessage());
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (XalanDOMException& e)
   {
     std::stringstream ss;
     ss << "Failed to serialize selected node: exception code " << e.getExceptionCode();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (XSLException& e)
   {
     XALAN_USING_XALAN(XalanDOMString)
     std::stringstream ss;
     ss << "Failed to serialize selected node: XSLException type: " << XalanDOMString(e.getType()) << ", message: " << e.getMessage();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (xcept::Exception& e)
   {
-    XCEPT_RETHROW( xcept::Exception, "Failed to serialize selected node: ", e);
+    XCEPT_RETHROW( emu::exception::XMLException, "Failed to serialize selected node: ", e);
   }
   catch (std::exception& e)
   {
     std::stringstream ss;
     ss << "Failed to serialize selected node: " << e.what();
-    XCEPT_RAISE( xcept::Exception, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, ss.str());
   }
   catch (...)
   {
-    XCEPT_RAISE( xcept::Exception, "Failed to serialize selected node: Unknown exception.");
+    XCEPT_RAISE( emu::exception::UndefinedException, "Failed to serialize selected node: Unknown exception.");
   }
   
   return serializedNode;
