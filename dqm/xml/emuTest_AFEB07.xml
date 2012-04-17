@@ -10,14 +10,14 @@
                 <XMax>112</XMax>
                 <XBins>112</XBins>
                 <XTitle>Wire Group Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>120</YMax>
+                <YMin>140</YMin>
+                <YMax>260</YMax>
                 <YBins>120</YBins>
-                <YTitle>Intercept</YTitle>
-		<Low1Limit>60</Low1Limit>
-		<Low0Limit>60</Low0Limit>
-		<High0Limit>90</High0Limit>
-		<High1Limit>90</High1Limit>
+                <YTitle>Intercept, ns</YTitle>
+		<Low1Limit>150</Low1Limit>
+		<Low0Limit>150</Low0Limit>
+		<High0Limit>250</High0Limit>
+		<High1Limit>250</High1Limit>
         </TestResult>
  	<TestResult>
                 <Test>AFEB07</Test>
@@ -33,16 +33,16 @@
                 <YMax>4</YMax>
                 <YBins>40</YBins>
                 <YTitle>Slope</YTitle>
-                <Low1Limit>1.5</Low1Limit>
+                <Low1Limit>1.4</Low1Limit>
                 <Low0Limit>1.5</Low0Limit>
-                <High0Limit>2.5</High0Limit>
+                <High0Limit>2.4</High0Limit>
                 <High1Limit>2.5</High1Limit>
         </TestResult>
 
 	<TestResult>
                 <Test>AFEB07</Test>
                 <Type>wires_cnv</Type>
-                <Title>R03 - Chi-squared of fir </Title>
+                <Title>R03 - Chi-squared of fit</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R03</Name>
                 <XMin>0</XMin>
