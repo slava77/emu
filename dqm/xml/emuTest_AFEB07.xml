@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Config>
+		<ExpectedEvents>12800</ExpectedEvents>
+		<Description>AFEB Delays</Description>
+	</Config>
         <TestResult>
 		<Test>AFEB07</Test>
                 <Type>wires_cnv</Type>
