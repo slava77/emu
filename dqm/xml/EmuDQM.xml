@@ -27,7 +27,7 @@
   </i2o:protocol>
 
 <!--EmuDAQManager-->
-  <xc:Context url="http://pccmsdqm02.cern.ch:20200">
+  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20200">
     <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>     
     <xc:Module>${XDAQ_ROOT}/lib/libsentinelutils.so</xc:Module>
@@ -88,8 +88,8 @@
   </xc:Context>
 
 <!--EVM and EmuTA-->
-  <xc:Context url="http://pccmsdqm02.cern.ch:20201">
-    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20251" service="i2o" network="atcp1"/>
+  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20201">
+    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20251" service="i2o" network="atcp1"/>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -110,8 +110,8 @@
   </xc:Context>
 
 <!--RUI 0-->
-  <xc:Context url="http://pccmsdqm02.cern.ch:20300">
-    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20350" service="i2o" network="atcp1"/>
+  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20300">
+    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20350" service="i2o" network="atcp1"/>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -168,8 +168,8 @@
   </xc:Context>
 
 <!--RUI 1-->
-  <xc:Context url="http://pccmsdqm02.cern.ch:20301">
-    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20351" service="i2o" network="atcp1"/>
+  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20301">
+    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20351" service="i2o" network="atcp1"/>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -226,8 +226,8 @@
   </xc:Context>
 
 <!--RUI 2-->
-  <xc:Context url="http://pccmsdqm02.cern.ch:20302">
-    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20352" service="i2o" network="atcp1"/>
+  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20302">
+    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20352" service="i2o" network="atcp1"/>
     <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -284,18 +284,18 @@
   </xc:Context>
 
 <!--EmuDisplayClient-->
-  <xc:Context url="http://pccmsdqm02.cern.ch:20550">
+  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20550">
     <xc:Application class="EmuDisplayClient" id="1450" instance="0" network="local">
       <properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
         <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
         <imageFormat xsi:type="xsd:string">png</imageFormat>
         <!-- imagePath xsi:type="xsd:string">/tmp/images</imagePath-->
-        <baseDir xsi:type="xsd:string">/home/dqm/config/cscdqm</baseDir>
+        <baseDir xsi:type="xsd:string">/home/cscdqm/config/cscdqm</baseDir>
         <resultsDir xsi:type="xsd:string">/csc_data/results/dqm</resultsDir>
         <viewOnly xsi:type="xsd:boolean">false</viewOnly>
-        <xmlCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMBooking.xml</xmlCfgFile>
-        <xmlCanvasesCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
-	<cscMapFile xsi:type="xsd:string">/home/dqm/config/csc_map.txt</cscMapFile>
+        <xmlCfgFile xsi:type="xsd:string">/home/cscdqm/config/emuDQMBooking.xml</xmlCfgFile>
+        <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+	<cscMapFile xsi:type="xsd:string">/home/cscdqm/config/csc_map.txt</cscMapFile>
 	<saveResultsDelay xsi:type="xsd:unsignedInt">20</saveResultsDelay>
 	<expertSystemURL xsi:type="xsd:string">http://cosmic3.phys.ufl.edu:8080/cdw/factcollection</expertSystemURL>
 	<isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
@@ -309,13 +309,13 @@
   </xc:Context>
 
 <!--EmuTFDisplayClient-->
-  <xc:Context url="http://pccmsdqm02.cern.ch:20560">
+  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20560">
     <xc:Application class="EmuTFDisplayClient" id="1460" instance="0" network="local">
       <properties xmlns="urn:xdaq-application:EmuTFDisplayClient" xsi:type="soapenc:Struct">
         <monitorClass xsi:type="xsd:string">EmuTFMonitor</monitorClass>
         <imageFormat xsi:type="xsd:string">png</imageFormat>
         <!-- imagePath xsi:type="xsd:string">/tmp/images</imagePath-->
-        <baseDir xsi:type="xsd:string">/home/dqm/config/tfdqm</baseDir>
+        <baseDir xsi:type="xsd:string">/home/cscdqm/config/tfdqm</baseDir>
         <viewOnly xsi:type="xsd:boolean">false</viewOnly>
       </properties>
     </xc:Application>
@@ -327,8 +327,8 @@
   </xc:Context>
 
 <!--EmuTFMonitor 0-->
-  <xc:Context url="http://pccmsdqm02.cern.ch:20500">
-    <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20600" service="i2o" network="atcp1"/>
+  <xc:Context url="http://cms-dqm03.phys.ufl.edu:20500">
+    <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20600" service="i2o" network="atcp1"/>
       <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
     <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
        <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -352,9 +352,9 @@
          <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
            <item xsi:type="xsd:unsignedInt" soapenc:position="[0]">1000</item>
          </serverTIDs>
-         <xmlCfgFile xsi:type="xsd:string">/home/dqm/config/CSCTF_histograms.xml</xmlCfgFile>
-         <xmlCanvasesCfgFile xsi:type="xsd:string">/home/dqm/config/CSCTF_canvases.xml</xmlCanvasesCfgFile>
-         <cscMapFile xsi:type="xsd:string">/home/dqm/config/csc_map.txt</cscMapFile>
+         <xmlCfgFile xsi:type="xsd:string">/home/cscdqm/config/CSCTF_histograms.xml</xmlCfgFile>
+         <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdqm/config/CSCTF_canvases.xml</xmlCanvasesCfgFile>
+         <cscMapFile xsi:type="xsd:string">/home/cscdqm/config/csc_map.txt</cscMapFile>
          <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
          <outputROOTFile xsi:type="xsd:string">/csc_data/results/</outputROOTFile>
          <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
@@ -372,8 +372,8 @@
 
 
 <!--EmuMonitor 1-->
-   <xc:Context url="http://pccmsdqm02.cern.ch:20501"> 
-     <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20601" service="i2o" network="atcp1"/> 
+   <xc:Context url="http://cms-dqm03.phys.ufl.edu:20501"> 
+     <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20601" service="i2o" network="atcp1"/> 
 	<xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
        <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct"> 
@@ -398,9 +398,9 @@
          <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]"> 
            <item xsi:type="xsd:unsignedInt" soapenc:position="[0]">1010</item> 
          </serverTIDs> 
-         <xmlCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMBooking.xml</xmlCfgFile> 
-         <xmlCanvasesCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile> 
-         <cscMapFile xsi:type="xsd:string">/home/dqm/config/csc_map.txt</cscMapFile> 
+         <xmlCfgFile xsi:type="xsd:string">/home/cscdqm/config/emuDQMBooking.xml</xmlCfgFile> 
+         <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile> 
+         <cscMapFile xsi:type="xsd:string">/home/cscdqm/config/csc_map.txt</cscMapFile> 
          <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile> 
          <outputROOTFile xsi:type="xsd:string">/csc_data/results/</outputROOTFile> 
          <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
@@ -410,6 +410,7 @@
          <enableDataWrite xsi:type="xsd:boolean">true</enableDataWrite>
          <maxSavedEvents xsi:type="xsd:integer">5000</maxSavedEvents>
          <outputDataFile xsi:type="xsd:string">/csc_data</outputDataFile>
+	 <loopFileReadout xsi:type="xsd:boolean">true</loopFileReadout>
        </properties> 
      </xc:Application> 
      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscanalyzer.so</xc:Module> 
@@ -417,8 +418,8 @@
    </xc:Context>
 
 <!--EmuMonitor 2-->
-   <xc:Context url="http://pccmsdqm02.cern.ch:20502">
-     <xc:Endpoint hostname="pccmsdqm02.cern.ch" protocol="atcp" port="20602" service="i2o" network="atcp1"/>
+   <xc:Context url="http://cms-dqm03.phys.ufl.edu:20502">
+     <xc:Endpoint hostname="cms-dqm03.phys.ufl.edu" protocol="atcp" port="20602" service="i2o" network="atcp1"/>
         <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
        <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
@@ -436,7 +437,7 @@
         <!-- inputDeviceName xsi:type="xsd:string">/csc_data/csc_00070088_EmuRUI02_Monitor_000.raw</inputDeviceName-->
 	<!--inputDeviceName xsi:type="xsd:string">/csc_data/70088/Node2.raw</inputDeviceName-->
 	<inputDeviceName xsi:type="xsd:string">/csc_data/csc_00098687_EmuRUI18_Monitor_000.raw</inputDeviceName>
-	<!-- inputDeviceName xsi:type="xsd:string">/home/dqm/csc_122909/csc_00122909_EmuRUI35_Monitor_000.raw</inputDeviceName-->
+	<!-- inputDeviceName xsi:type="xsd:string">/home/cscdqm/csc_122909/csc_00122909_EmuRUI35_Monitor_000.raw</inputDeviceName-->
          <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
          <nEventCredits xsi:type="xsd:unsignedInt">200</nEventCredits>
          <prescalingFactor xsi:type="xsd:unsignedInt">1</prescalingFactor>
@@ -444,9 +445,9 @@
          <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
            <item xsi:type="xsd:unsignedInt" soapenc:position="[0]">1020</item>
          </serverTIDs>
-         <xmlCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMBooking.xml</xmlCfgFile>
-         <xmlCanvasesCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
-         <cscMapFile xsi:type="xsd:string">/home/dqm/config/csc_map.txt</cscMapFile>
+         <xmlCfgFile xsi:type="xsd:string">/home/cscdqm/config/emuDQMBooking.xml</xmlCfgFile>
+         <xmlCanvasesCfgFile xsi:type="xsd:string">/home/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+         <cscMapFile xsi:type="xsd:string">/home/cscdqm/config/csc_map.txt</cscMapFile>
          <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
          <outputROOTFile xsi:type="xsd:string">/csc_data/results/</outputROOTFile>
          <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
@@ -456,6 +457,7 @@
          <enableDataWrite xsi:type="xsd:boolean">true</enableDataWrite>
 	 <maxSavedEvents xsi:type="xsd:integer">5000</maxSavedEvents>
 	 <outputDataFile xsi:type="xsd:string">/csc_data</outputDataFile>
+	 <loopFileReadout xsi:type="xsd:boolean">true</loopFileReadout>
        </properties>
      </xc:Application>
      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscanalyzer.so</xc:Module>

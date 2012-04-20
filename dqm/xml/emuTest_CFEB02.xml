@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Config>
+                <ExpectedEvents>15000</ExpectedEvents>
+                <Description>CFEB Pedestals and Noise</Description>
+        </Config>
         <TestResult>
 		<Test>CFEB02</Test>
                 <Type>strips_cnv</Type>

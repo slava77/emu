@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Config>
+                <ExpectedEvents>4000</ExpectedEvents>
+                <Description>CFEB Pulse Response and Cross Talks</Description>
+        </Config>
         <TestResult>
 		<Test>CFEB03</Test>
                 <Type>strips_cnv</Type>
