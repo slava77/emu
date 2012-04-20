@@ -5,6 +5,9 @@ include ../config/xdaq.mk
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
+Project=emu
+Package=dqm/cmssw
+
 CXX     = g++
 
 #CXXFLAGS  = -g -pedantic -Wno-long-long -Wall -O3 -fPIC -DDQMLOCAL
@@ -179,5 +182,11 @@ _cleanall:
 clean:
 	@rm -f $(LDIR)/*.a $(LDIR)/*.so $(ODIR)/*.o *.o program core*
 
-install: makedirs libs
-_installall: install
+install: makedirs libs 
+	$(Install) -p $(LDIR)/lib*.a $(LDIR)/lib*.so  $(LibInstallDir)/
+
+# _installall: install
+MakeFilename=Makefile
+include $(XDAQ_ROOT)/config/Makefile.rules
+
+
