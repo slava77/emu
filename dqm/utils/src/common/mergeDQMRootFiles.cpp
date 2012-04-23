@@ -131,8 +131,12 @@ void MergeObjects( TDirectory *target, TFile *source)
 	TH1 *h2 = (TH1*)target->Get( h1->GetName() );
 
 	if ( h2 ) {
+	  TList list;
+	  list.Add(h2);
 	  cout << "+Merging histogram " << obj->GetName() << endl;
-	  h1->Add( h2 );
+	  // h1->Add( h2 );
+	  h1->Merge(&list);
+	  list.Clear();
 	  delete h2; // don't know if this is necessary, i.e. if
 
 	} 

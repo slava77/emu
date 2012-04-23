@@ -107,40 +107,40 @@ void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception
   // xdata::InfoSpace::iterator itr;
   std::map<std::string, xdata::Serializable*, std::less<std::string> > *params_list = getApplicationInfoSpace();
   std::map<std::string, xdata::Serializable*, std::less<std::string> >::iterator itr;
-  *out 	<< "<table border>"
-  << "<tr>"
-  << "<th colspan=3 bgcolor=#7F7FFF>" << "Parameters List" << "</th>"
-  << "</tr>"
-  << "<tr>"
-  << "<th>" << "Name" << "</th>"
-  << "<th>" << "Type" << "</th>"
-  << "<th>" << "Value" << "</th>"
-  << "</tr>" << std::endl;
+  *out  << "<table border>"
+        << "<tr>"
+        << "<th colspan=3 bgcolor=#7F7FFF>" << "Parameters List" << "</th>"
+        << "</tr>"
+        << "<tr>"
+        << "<th>" << "Name" << "</th>"
+        << "<th>" << "Type" << "</th>"
+        << "<th>" << "Value" << "</th>"
+        << "</tr>" << std::endl;
   for (itr=params_list->begin(); itr != params_list->end(); ++itr)
+  {
+    if (itr->second->type() == "properties") continue;
+    *out << "<tr>" << std::endl;
+    *out << "<td>" << itr->first << "</td>" << std::endl;
+    *out << "<td>" << itr->second->type() << "</td>" << std::endl;
+    if (itr->second->type() == "vector")
     {
-      if (itr->second->type() == "properties") continue;
-      *out << "<tr>" << std::endl;
-      *out << "<td>" << itr->first << "</td>" << std::endl;
-      *out << "<td>" << itr->second->type() << "</td>" << std::endl;
-      if (itr->second->type() == "vector")
-        {
-          *out << "<td>";
-          // =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset)
-          /*
-          for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
-          *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
-          }
-          */
-          *out << "</td>" << std::endl;
-        }
-      else
-        {
-          *out << "<td>" << itr->second->toString() << "</td>" << std::endl;
-        }
-
-      *out << "</tr>" << std::endl;
+      *out << "<td>";
+      // =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset)
+      /*
+      for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
+      *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
+      }
+      */
+      *out << "</td>" << std::endl;
     }
-  *out 	<< "</table>" << std::endl;
+    else
+    {
+      *out << "<td>" << itr->second->toString() << "</td>" << std::endl;
+    }
+
+    *out << "</tr>" << std::endl;
+  }
+  *out  << "</table>" << std::endl;
 }
 /*
   std::string EmuMonitor::ageOfPageClock(){
@@ -204,22 +204,22 @@ void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Ex
   *out << "<tr>" << std::endl;
   std::set<std::string>::iterator i;
   for ( i = allInputs.begin(); i != allInputs.end(); i++)
+  {
+    *out << "<td>";
+    *out << cgicc::form().set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;
+
+    if ( possibleInputs.find(*i) != possibleInputs.end() )
     {
-      *out << "<td>";
-      *out << cgicc::form().set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;
-
-      if ( possibleInputs.find(*i) != possibleInputs.end() )
-        {
-          *out << cgicc::input().set("type", "submit").set("name", "StateInput").set("value", (*i) );
-        }
-      else
-        {
-          *out << cgicc::input() .set("type", "submit").set("name", "StateInput").set("value", (*i) ).set("disabled", "true");
-        }
-
-      *out << cgicc::form();
-      *out << "</td>" << std::endl;
+      *out << cgicc::input().set("type", "submit").set("name", "StateInput").set("value", (*i) );
     }
+    else
+    {
+      *out << cgicc::input() .set("type", "submit").set("name", "StateInput").set("value", (*i) ).set("disabled", "true");
+    }
+
+    *out << cgicc::form();
+    *out << "</td>" << std::endl;
+  }
 
   *out << "</tr>" << std::endl;
   *out << "</table>" << std::endl;

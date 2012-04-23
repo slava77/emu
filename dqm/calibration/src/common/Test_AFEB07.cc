@@ -4,7 +4,7 @@ using namespace XERCES_CPP_NAMESPACE;
 
 using namespace emu::dqm::utils;
 
-static char* F_CSC = "ME+4.1.01";
+static char* F_CSC = "ME+3.2.20";
 
 Test_AFEB07::Test_AFEB07(std::string dfile): Test_Generic(dfile)
 {
@@ -98,7 +98,7 @@ void Test_AFEB07::analyze(const char * data, int32_t dataSize, uint32_t errorSta
     if (bin_checker.errors() != 0)
     {
         // std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors()
-        // 	<< " mask:0x" << std::hex << binCheckMask << std::dec << std::endl;
+        //  << " mask:0x" << std::hex << binCheckMask << std::dec << std::endl;
         doBinCheck();
         //    return;
     }
@@ -151,12 +151,12 @@ void Test_AFEB07::analyze(const char * data, int32_t dataSize, uint32_t errorSta
     if (DDUstats[dduID].evt_cntr == 8)
         if  (DDUstats[dduID].empty_evt_cntr==0)
         {
-            LOG4CPLUS_DEBUG(logger, "No LTC/TTC double L1A bug in data");
+            LOG4CPLUS_INFO(logger, "No LTC/TTC double L1A bug in data");
             ltc_bug=1;
         }
         else
         {
-            LOG4CPLUS_DEBUG(logger, "Found LTC/TTC double L1A bug in data");
+            LOG4CPLUS_WARN(logger, "Found LTC/TTC double L1A bug in data");
         }
 
 
@@ -204,7 +204,7 @@ void Test_AFEB07::analyzeCSC(const CSCEventData& data)
     std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
     // std::string cscID(Form("CSC_%03d_%02d", data.dmbHeader().crateID(), data.dmbHeader().dmbID()));
     // == Do not process unmapped CSCs and ME1/1 chambers
-    if ((cscID == "") || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0) ) return;
+    if ((cscID == "") /* || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0) */) return;
 
 
     cscTestData::iterator td_itr = tdata.find(cscID);
@@ -233,7 +233,7 @@ void Test_AFEB07::analyzeCSC(const CSCEventData& data)
     int curr_delay = DDUstats[dduID].dac;
     if (curr_delay >= DELAY_SCAN_STEPS)
     {
-        LOG4CPLUS_ERROR(logger, cscID << ": Delay Valueis out of range " << curr_delay);
+        LOG4CPLUS_ERROR(logger, cscID << ": Delay Value is out of range " << curr_delay);
         return;
     }
 
@@ -304,11 +304,11 @@ void Test_AFEB07::finishCSC(std::string cscID)
         TestData& cscdata= td_itr->second;
 
         TestData2D& mask = cscdata["_MASK"];
-        /*
+        
         TestData2D& r01 = cscdata["R01"];
         TestData2D& r02 = cscdata["R02"];
         TestData2D& r03 = cscdata["R03"];
-        */
+        
 
         MonHistos& cschistos = mhistos[cscID];
 
@@ -318,6 +318,19 @@ void Test_AFEB07::finishCSC(std::string cscID)
 
         if (itr != cscmap.end())
         {
+
+	    int nwires = getNumWireGroups(cscID);
+	    double cable_delay[nwires];
+	    int csc_type = getChamberCableIndex(cscID);
+	    double delay_offset = getChamberDelayOffset(cscID);
+            double bmax, btemp, mtemp, chisq;
+	
+
+	    for (int iwg = 0; iwg < nwires; iwg++) 
+	    {
+		cable_delay[iwg] = cable_del[csc_type][iwg/8] + delay_offset; 
+	    }
+
 
             DelayScanData& dsdata = dscan_data[cscID];
 
@@ -336,117 +349,49 @@ void Test_AFEB07::finishCSC(std::string cscID)
 
             for (int i=0; i<NLAYERS; i++)
             {
+		// std::cout << cscID << Form(": ly%d ", i+1);
                 for (int j=0; j<getNumWireGroups(cscID); j++)
                 {
+		    int ndelays = 0;
+		    // std::cout << Form("wg%d -> ", j+1);
                     for (int k=0; k<DELAY_SCAN_STEPS; k++)
                     {
-                        int max = -1;
-                        int lmax = 0;
-                        int rmax = 0;
-                        int max_t = -1;
-                        int lmax_t = -1;
-                        int rmax_t = -1;
-                        double tavg = -1;
-                        double terr = 1;
-                        for (int t = 0; t < MAX_ALCT_TIMEBINS; t++)
+			double sum = 0.;
+			double w_sum = 0.;
+			double e_sum = 1.;
+			for (int t = 0; t < MAX_ALCT_TIMEBINS; t++)
                         {
-                            if (dsdata.content[k][i][j].tbins[t] > max)
-                            {
-                                max = dsdata.content[k][i][j].tbins[t];
-                                max_t = t;
+			   sum += dsdata.content[k][i][j].tbins[t];
+			   w_sum += dsdata.content[k][i][j].tbins[t]*(t+1);
+			   if (dsdata.content[k][i][j].tbins[t]) e_sum = e_sum*dsdata.content[k][i][j].tbins[t];
+			   
+                        }
+			if ( sum > 0 ) ndelays = k+1;
 
-                            }
-                            if ((cscID == F_CSC) && i==1 && j==10) {
-                                f << dsdata.content[k][i][j].tbins[t] << " ";
-                            }
-                        }
-                        if ((cscID == F_CSC) && i==1 && j==10) {
-                            f << std::endl;
-                        }
-                        if (max_t == 0) {
-                            rmax_t = 1;
-                            rmax = dsdata.content[k][i][j].tbins[rmax_t];
-                            lmax = 0;
-                        }
-                        else if (max_t == MAX_ALCT_TIMEBINS-1) {
-                            lmax_t = MAX_ALCT_TIMEBINS-2;
-                            lmax = dsdata.content[k][i][j].tbins[lmax_t];
-                            rmax = 0;
-                        }
-                        //                      else if (dsdata.content[k][i][j].tbins[max_t-1] > dsdata.content[k][i][j].tbins[max_t+1]) nmax_t = max_t - 1;
-                        else {
-                            lmax_t = max_t - 1;
-                            lmax = dsdata.content[k][i][j].tbins[lmax_t];
-                            rmax_t = max_t + 1;
-                            rmax = dsdata.content[k][i][j].tbins[rmax_t];
-                        }
+			double tavg = w_sum/sum - 1;
+			double terr = sqrt(e_sum / sum) / sum;
 
-                        double sum = lmax + max + rmax ;
-                        if (sum > 0)
-                        {
-                            tavg = (lmax_t * lmax + max_t * max +
-                                    rmax_t * rmax) / sum;
-                            double total = 0.;
-                            for (int m=0; m < MAX_ALCT_TIMEBINS-2 ; m++) total += dsdata.content[k][i][j].tbins[m];
-                            if (total)
-                            {
-                                double x = sum / total;
-                                if (x < 0.85)
-                                    LOG4CPLUS_ERROR(logger, cscID << Form(": Too wide timebin histogram for Layer %d, Wiregroup %d: "
-                                                                          "%f = %f / %f\n", i+1, j+1, x, sum, total));
-                                if (x > 1.00)
-                                    LOG4CPLUS_ERROR(logger, cscID << Form(": ??? Wrong ratio for Layer %d, Wiregroup %d: "
-                                                                          "%f = %f / %f\n", i+1, j+1, x, sum, total));
-                            }
-
-                            // terr = sqrt(dsdata.content[k][i][j].tbins[max_t] * dsdata.content[k][i][j].tbins[nmax_t] / sum) / sum;
-                            if (lmax == 0) lmax = 1;
-                            if (rmax == 0) rmax = 1;
-                            if (max == 0) max == 1;
-                            terr = sqrt(lmax * max * rmax / sum) / sum;
-                            if (terr <= 0) terr = 0.001;
-                        }
-                        else
-                        {
-                            LOG4CPLUS_ERROR(logger, cscID <<  Form(": No histogram entries for Layer %d, Wiregroup %d",i+1, j+1));
-                            tavg = -1;
-                            terr = 1;
-                        }
-                        /*
-                                dsdata.content[k][i][j].max_t = max_t;
-                                dsdata.content[k][i][j].lmax_t = lmax_t;
-                        dsdata.content[k][i][j].rmax_t = rmax_t;
-                        */
                         dsdata.content[k][i][j].tavg = tavg;
                         dsdata.content[k][i][j].terr = terr;
                         v03->Fill(k, tavg);
-                        /*
-                                              std::cout << cscID << Form(": ly%d wg%d dly%d max_t=%d, lmax_t=%d, rmax_t=%d, tavg=%.2f, terr=%.3f", i+1, j+1, k, max_t, lmax_t, rmax_t, tavg, terr) << std::endl;
-
-                        		      for (int t = 0; t < MAX_ALCT_TIMEBINS; t++)
-                                                {
-                                                  if (dsdata.content[k][i][j].tbins[t] > 0)
-                                                    {
-                        				std::cout << t << ":" << dsdata.content[k][i][j].tbins[t] << ", ";
-                                                    }
-                                                }
-                        		     std:: cout  << std::endl;
-                        */
-
-
-                        /*
-                                      r01.content[i][j] = (double)(r01.cnts[i][j])/500.;
-                                      r02.content[i][j] = (double)(r02.cnts[i][j])/500.;
-                                      r03.content[i][j] = (double)(r03.cnts[i][j])/500.;
-                        */
                     }
-                    std::cout << cscID << Form(": ly%d wg%d -> ", i+1, j+1);
+
+		    fitit( dsdata, i, j , ndelays, &mtemp, &btemp, &chisq);
+
+		    r01.content[i][j] = (btemp * 25.) - cable_delay[j];
+                    r02.content[i][j] = mtemp * 25.;
+                    r03.content[i][j] = chisq;
+
+                    // std::cout << Form("%.2f %.2f %f; ", r01.content[i][j], r02.content[i][j], r03.content[i][j]);
+		    /*
                     for (int k=0; k<DELAY_SCAN_STEPS; k++)
                     {
-                        std::cout << Form("d%d=%.2f, ",k, dsdata.content[k][i][j].tavg);
+                        std::cout << Form("d%d=%.2f, %f; ",k, dsdata.content[k][i][j].tavg, dsdata.content[k][i][j].terr);
                     }
-                    std::cout << endl;
+                    std::cout << std::endl;
+		    */
                 }
+		// std::cout << std::endl;
             }
             if (cscID == F_CSC) {
                 f.close();
@@ -482,6 +427,57 @@ bool Test_AFEB07::checkResults(std::string cscID)
 }
 
 /* Linear fit */
+
+void  Test_AFEB07::fitit(DelayScanData& dsdata, int layer, int wire , int npoints, double *emm, double* bee, double* chisq)
+{
+
+  int       j;
+  double    denom, weight;
+  double    sum, sumx, sumx2, sumy, sumxy;
+  double    resid[DELAY_SCAN_STEPS], yfit[DELAY_SCAN_STEPS];
+
+  sum = 0;
+  sumx = 0;
+  sumx2 = 0;
+  sumy = 0;
+  sumxy = 0;
+
+  for (j = 0; j < npoints; j++)
+    {
+    double yerr = dsdata.content[j][layer][wire].terr;
+    double y = dsdata.content[j][layer][wire].tavg;
+    double x = j;
+    weight = 1 / (yerr * yerr);
+    sum = sum + 1. * weight;
+    sumx = sumx + x * weight;
+    sumx2 = sumx2 + x * x * weight;
+    sumy = sumy + y * weight;
+    sumxy = sumxy + x * y * weight;
+    }
+
+  denom = sumx2 * sum - sumx * sumx;
+  if (denom == 0)
+    {
+    printf("### Denominator is zero in fit ###\n");
+    *chisq = -999;
+    return;
+    }
+
+  *emm = (sumxy * sum - sumx * sumy) / denom;
+  *bee = (sumx2 * sumy - sumx * sumxy) / denom;
+
+  *chisq = 0;
+  for (j = 0; j < npoints; j++)
+    {
+    double yerr = dsdata.content[j][layer][wire].terr;
+    double y = dsdata.content[j][layer][wire].tavg;
+    double x = j;
+    yfit[j] = *emm * x + *bee;
+    resid[j] = y - yfit[j];
+    *chisq += (resid[j] / yerr) * (resid[j] / yerr);
+    }
+}
+
 /*
 void fitit(float *x, float *y, float *yerr, int npoints, float *emm,
            float *bee, float *chisq)
@@ -530,3 +526,33 @@ void fitit(float *x, float *y, float *yerr, int npoints, float *emm,
   return;
   }
 */
+
+
+///* Return index in array of chamber types cables
+int Test_AFEB07::getChamberCableIndex(std::string cscID)
+{
+    if  ( (cscID.find("ME+4/1") == 0) || (cscID.find("ME-4/1") ==0)
+            || (cscID.find("ME+4.1") == 0) || (cscID.find("ME-4.1") ==0) ) return 6;
+    else if ( (cscID.find("ME+3.1") == 0) || (cscID.find("ME-3.1") == 0)
+              || (cscID.find("ME+3/1") == 0) || (cscID.find("ME-3/1") == 0)) return 4;
+    else if ( (cscID.find("ME+2/1") == 0) || (cscID.find("ME-2/1") ==0)
+              || (cscID.find("ME+2.1") == 0) || (cscID.find("ME-2.1") ==0)) return 3;
+    else if ( (cscID.find("ME+1/2") == 0) || (cscID.find("ME-1/2") ==0)
+              || (cscID.find("ME+1.2") == 0) || (cscID.find("ME-1.2") ==0)) return 1;
+    else if ( (cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0)
+              || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0)) return 2;
+    else if ( (cscID.find("ME+2/2") == 0) || (cscID.find("ME-2/2") ==0)
+              || (cscID.find("ME+2.2") == 0) || (cscID.find("ME-2.2") ==0)
+              || (cscID.find("ME+3/2") == 0) || (cscID.find("ME-3/2") ==0)
+              || (cscID.find("ME+3.2") == 0) || (cscID.find("ME-3.2") ==0)
+              || (cscID.find("ME+4/2") == 0) || (cscID.find("ME-4/2") ==0)
+              || (cscID.find("ME+4.2") == 0) || (cscID.find("ME-4.2") ==0)) return 5;
+    else return 0; // ME 1/1 ?? cable delay
+}
+
+///* Return delay offset for chamber
+double Test_AFEB07::getChamberDelayOffset(std::string cscID)
+{
+   return 0;
+}
+

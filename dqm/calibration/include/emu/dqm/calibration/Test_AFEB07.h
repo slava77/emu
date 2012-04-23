@@ -17,6 +17,17 @@
 
 #define ACTIVETBINS_LIMIT           1 // Reject After Pulsing
 
+float cable_del[7][14] = // 6 is the number of different chamber types, 14 is max AFEB group number 
+{ 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   // Dummy
+    {3.0, 3.0, 1.6, 1.6, 0, 0, 0, 1.6, 0, 0, 0, 0, 0, 0}, // ME1.2
+    {4.6, 1.6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},       // ME1.3
+    {1.4, 1.4, 1.4, 1.4, 0, 0, 0, 0, 0, 0, 0, 0, 1.4, 1.4},       // M2.1
+    {1.4, 1.4, 0, 0, 0, 0, 0, 0, 0, 0, 1.4, 1.4, 0, 0},   // ME3.1
+    {10.7, 10.7, 7.7, 7.7, 3.0, 3.0, 0, 0, 0, 0, 0, 0, 0, 0}, // ME234.2
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 1.4, 1.4, 1.4, 0, 0}  // ME4.1
+};
+
 class Test_AFEB07: public Test_Generic
 {
 public:
@@ -29,6 +40,10 @@ protected:
   void analyzeCSC(const CSCEventData& data);
   void finishCSC(std::string cscID);
   bool checkResults(std::string cscID);
+
+  int getChamberCableIndex(std::string cscID);
+  double getChamberDelayOffset(std::string cscID);
+  void  fitit(DelayScanData& dsdata, int layer, int wire , int npoints, double *emm, double* bee, double* chisq);
 
   std::map<std::string, uint32_t> l1a_cntrs;
   std::map<int, int> dduL1A;

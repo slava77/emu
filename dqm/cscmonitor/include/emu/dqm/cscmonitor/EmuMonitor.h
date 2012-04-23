@@ -200,6 +200,7 @@ private:
 
   void setMemoryPool();
   void setupPlotter();
+  void resetMonitor();
 
   void printParametersTable( xgi::Output * out ) throw (xgi::exception::Exception);
 

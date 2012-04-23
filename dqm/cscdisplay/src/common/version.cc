@@ -10,7 +10,7 @@
 GETPACKAGEINFO(emudqmcscdisplay)
 
 void emudqmcscdisplay::checkPackageDependencies()
-	throw (config::PackageInfo::VersionException)
+throw (config::PackageInfo::VersionException)
 {
   CHECKDEPENDENCY(toolbox)
   CHECKDEPENDENCY(xoap)

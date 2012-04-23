@@ -8,12 +8,12 @@ ME_List EmuPlotter::bookCommon(int nodeNumber)
   ME_List_iterator itr;
   ME_List& factory = MEFactories["EMU"];
   for (itr = factory.begin(); itr != factory.end(); ++itr)
-    {
-      EmuMonitoringObject * obj = new EmuMonitoringObject(*itr->second);
-      obj->setPrefix(prefix);
-      commonMEs[obj->getName()] = obj;
-      // commonMEs.insert(pair<string, EmuMonitoringObject>(obj.getName(),obj));
-    }
+  {
+    EmuMonitoringObject * obj = new EmuMonitoringObject(*itr->second);
+    obj->setPrefix(prefix);
+    commonMEs[obj->getName()] = obj;
+    // commonMEs.insert(pair<string, EmuMonitoringObject>(obj.getName(),obj));
+  }
 
   return commonMEs;
 }
@@ -25,12 +25,12 @@ ME_List EmuPlotter::bookDDU(int dduNumber)
   ME_List_iterator itr;
   ME_List& factory = MEFactories["DDU"];
   for (itr = factory.begin(); itr != factory.end(); ++itr)
-    {
-      EmuMonitoringObject* obj = new EmuMonitoringObject(*itr->second);
-      obj->setPrefix(prefix);
-      dduMEs[obj->getName()] = obj;
-      // dduMEs.insert(pair<string, EmuMonitoringObject>(obj.getName(),obj));
-    }
+  {
+    EmuMonitoringObject* obj = new EmuMonitoringObject(*itr->second);
+    obj->setPrefix(prefix);
+    dduMEs[obj->getName()] = obj;
+    // dduMEs.insert(pair<string, EmuMonitoringObject>(obj.getName(),obj));
+  }
 
   return dduMEs;
 }
@@ -44,12 +44,12 @@ ME_List EmuPlotter::bookChamber(int chamberID)
   ME_List_iterator itr;
   ME_List& factory = MEFactories["CSC"];
   for (itr = factory.begin(); itr != factory.end(); ++itr)
-    {
-      EmuMonitoringObject* obj = new EmuMonitoringObject(*itr->second);
-      obj->setPrefix(prefix);
-      chamberMEs[obj->getName()] = obj;
-      // chamberMEs.insert(pair<string, EmuMonitoringObject>(obj.getName(),obj));
-    }
+  {
+    EmuMonitoringObject* obj = new EmuMonitoringObject(*itr->second);
+    obj->setPrefix(prefix);
+    chamberMEs[obj->getName()] = obj;
+    // chamberMEs.insert(pair<string, EmuMonitoringObject>(obj.getName(),obj));
+  }
 
   CSCCounters& trigCnts = cscCntrs[prefix];
   trigCnts["ALCT"] = 0;
