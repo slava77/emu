@@ -84,7 +84,6 @@ namespace emu { namespace base {
     void sendFacts();
     void sendFact( const string& componentId,             const string& factType );
     void sendFact( const emu::base::Component& component, const string& factType );
-    pair<time_t,string> getLocalDateTime();
   
     virtual emu::base::Fact           findFact ( const emu::base::Component& component, const string& factType ) = 0; ///< Find a fact specified by component and type. To be implemented by the derived class.
     virtual emu::base::FactCollection findFacts() = 0; ///< Find all facts. To be implemented by the derived class.
