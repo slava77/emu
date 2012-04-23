@@ -62,18 +62,18 @@ emu::base::WebReporter::ForEmuPage1(xgi::Input *in, xgi::Output *out)
 pair<time_t,string> 
 emu::base::WebReporter::getLocalDateTime(){
   time_t t;
-  struct tm *tm;
+  struct tm tm;
     
   time( &t );
-  tm = localtime( &t );
+  localtime_r( &t, &tm ); // reentrant version for thread safety
     
   stringstream ss;
-  ss << setfill('0') << setw(4) << tm->tm_year+1900 << "-"
-     << setfill('0') << setw(2) << tm->tm_mon+1     << "-"
-     << setfill('0') << setw(2) << tm->tm_mday      << " "
-     << setfill('0') << setw(2) << tm->tm_hour      << ":"
-     << setfill('0') << setw(2) << tm->tm_min       << ":"
-     << setfill('0') << setw(2) << tm->tm_sec;
+  ss << setfill('0') << setw(4) << tm.tm_year+1900 << "-"
+     << setfill('0') << setw(2) << tm.tm_mon+1     << "-"
+     << setfill('0') << setw(2) << tm.tm_mday      << " "
+     << setfill('0') << setw(2) << tm.tm_hour      << ":"
+     << setfill('0') << setw(2) << tm.tm_min       << ":"
+     << setfill('0') << setw(2) << tm.tm_sec;
     
   return make_pair( t, ss.str() );
 }
