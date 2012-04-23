@@ -104,18 +104,18 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   int fIndexLeftPad;
   std::string fTitleLeftPad;
   for (fIndexLeftPad = 0; fIndexLeftPad < NLAYERS; fIndexLeftPad++)
-    {
-      fTitleLeftPad = Form("Pad_Layer_%d", fIndexLeftPad + 1);
-      theLeftPad[fIndexLeftPad] = new TPad(fTitleLeftPad.c_str(), fTitleLeftPad.c_str(),
-                                           fX1, fY1+(NLAYERS - fIndexLeftPad - 1)*(fY2-fY1)/NLAYERS,
-                                           fX2, fY1+(NLAYERS - fIndexLeftPad)*(fY2-fY1)/NLAYERS+fYd);
-      theLeftPad[fIndexLeftPad]->SetFillColor(theColorWhite);
-      theLeftPad[fIndexLeftPad]->SetBorderSize(0);
-      theLeftPad[fIndexLeftPad]->SetRightMargin(0.0);
-      theLeftPad[fIndexLeftPad]->SetLeftMargin(0.07);
-      theLeftPad[fIndexLeftPad]->SetTopMargin(0.05);
-      theLeftPad[fIndexLeftPad]->SetBottomMargin(0.0);
-    }
+  {
+    fTitleLeftPad = Form("Pad_Layer_%d", fIndexLeftPad + 1);
+    theLeftPad[fIndexLeftPad] = new TPad(fTitleLeftPad.c_str(), fTitleLeftPad.c_str(),
+                                         fX1, fY1+(NLAYERS - fIndexLeftPad - 1)*(fY2-fY1)/NLAYERS,
+                                         fX2, fY1+(NLAYERS - fIndexLeftPad)*(fY2-fY1)/NLAYERS+fYd);
+    theLeftPad[fIndexLeftPad]->SetFillColor(theColorWhite);
+    theLeftPad[fIndexLeftPad]->SetBorderSize(0);
+    theLeftPad[fIndexLeftPad]->SetRightMargin(0.0);
+    theLeftPad[fIndexLeftPad]->SetLeftMargin(0.07);
+    theLeftPad[fIndexLeftPad]->SetTopMargin(0.05);
+    theLeftPad[fIndexLeftPad]->SetBottomMargin(0.0);
+  }
 
   theRightBottomPad = new TPad("theRightBottomPad","theRightBottomPad",.59,.01,.99,.611);
   theRightBottomPad->SetFillColor(theColorWhite);
@@ -170,28 +170,28 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   int fIndexLeftHisto;
   std::string fTitleLeftHisto;
   for (fIndexLeftHisto = 0; fIndexLeftHisto < NLAYERS; fIndexLeftHisto++)
-    {
-      fTitleLeftHisto = Form("Layer_%d", fIndexLeftHisto + 1);
-      theLeftHisto[fIndexLeftHisto] = new TH2F((name+"_"+fTitleLeftHisto).c_str(), fTitleLeftHisto.c_str(), theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
+  {
+    fTitleLeftHisto = Form("Layer_%d", fIndexLeftHisto + 1);
+    theLeftHisto[fIndexLeftHisto] = new TH2F((name+"_"+fTitleLeftHisto).c_str(), fTitleLeftHisto.c_str(), theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
 
-      theLeftHisto[fIndexLeftHisto]->GetXaxis()->CenterTitle(true);
-      theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitle("Title X");
-      theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitleFont(fTextFont);
-      theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitleSize(0.0);
-      theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitleOffset(0.7);
-      theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetNdivisions(516);
-      theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetLabelSize(0.0);
-      theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTickLength(0.04);
+    theLeftHisto[fIndexLeftHisto]->GetXaxis()->CenterTitle(true);
+    theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitle("Title X");
+    theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitleFont(fTextFont);
+    theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitleSize(0.0);
+    theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitleOffset(0.7);
+    theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetNdivisions(516);
+    theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetLabelSize(0.0);
+    theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTickLength(0.04);
 
-      theLeftHisto[fIndexLeftHisto]->GetYaxis()->CenterTitle(true);
-      theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTitle(fTitleLeftHisto.c_str());
-      theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTitleFont(fTextFont);
-      theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTitleSize(0.16);
-      theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTitleOffset(0.20);
-      theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetNdivisions(410);
-      theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetLabelSize(0.1);
-      theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTickLength(0.02);
-    }
+    theLeftHisto[fIndexLeftHisto]->GetYaxis()->CenterTitle(true);
+    theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTitle(fTitleLeftHisto.c_str());
+    theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTitleFont(fTextFont);
+    theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTitleSize(0.16);
+    theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTitleOffset(0.20);
+    theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetNdivisions(410);
+    theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetLabelSize(0.1);
+    theLeftHisto[fIndexLeftHisto]->GetYaxis()->SetTickLength(0.02);
+  }
 
 
   double fMarkerSize = 0.5; ///< Marker size
@@ -202,72 +202,72 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   int   fEmptyTriangleUpMarkerStyle   = 26; ///< Empty triangle up marker (Empty triangle down not implemented)
 
   for (int fNlayer = 0; fNlayer < NLAYERS; fNlayer++)
-    {
-      theGraphGreenSolid[fNlayer] = new TGraph();
-      theGraphGreenSolid[fNlayer]->SetMarkerColor(theColorGreenDark);
-      theGraphGreenSolid[fNlayer]->SetMarkerStyle(fSolidCircleMarkerStyle);
-      theGraphGreenSolid[fNlayer]->SetMarkerSize(fMarkerSize);
+  {
+    theGraphGreenSolid[fNlayer] = new TGraph();
+    theGraphGreenSolid[fNlayer]->SetMarkerColor(theColorGreenDark);
+    theGraphGreenSolid[fNlayer]->SetMarkerStyle(fSolidCircleMarkerStyle);
+    theGraphGreenSolid[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphYellowSolid[fNlayer] = new TGraph();
-      theGraphYellowSolid[fNlayer]->SetMarkerColor(theColorYellowDark);
-      theGraphYellowSolid[fNlayer]->SetMarkerStyle(fSolidCircleMarkerStyle);
-      theGraphYellowSolid[fNlayer]->SetMarkerSize(fMarkerSize);
+    theGraphYellowSolid[fNlayer] = new TGraph();
+    theGraphYellowSolid[fNlayer]->SetMarkerColor(theColorYellowDark);
+    theGraphYellowSolid[fNlayer]->SetMarkerStyle(fSolidCircleMarkerStyle);
+    theGraphYellowSolid[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphRedSolid[fNlayer] = new TGraph();
-      theGraphRedSolid[fNlayer]->SetMarkerColor(theColorRedDark);
-      theGraphRedSolid[fNlayer]->SetMarkerStyle(fSolidCircleMarkerStyle);
-      theGraphRedSolid[fNlayer]->SetMarkerSize(fMarkerSize);
+    theGraphRedSolid[fNlayer] = new TGraph();
+    theGraphRedSolid[fNlayer]->SetMarkerColor(theColorRedDark);
+    theGraphRedSolid[fNlayer]->SetMarkerStyle(fSolidCircleMarkerStyle);
+    theGraphRedSolid[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphRedSolidTriangleUp[fNlayer] = new TGraph();
-      theGraphRedSolidTriangleUp[fNlayer]->SetMarkerColor(theColorRedDark);
-      theGraphRedSolidTriangleUp[fNlayer]->SetMarkerStyle(fSolidTriangleUpMarkerStyle);
-      theGraphRedSolidTriangleUp[fNlayer]->SetMarkerSize(fMarkerSize);
+    theGraphRedSolidTriangleUp[fNlayer] = new TGraph();
+    theGraphRedSolidTriangleUp[fNlayer]->SetMarkerColor(theColorRedDark);
+    theGraphRedSolidTriangleUp[fNlayer]->SetMarkerStyle(fSolidTriangleUpMarkerStyle);
+    theGraphRedSolidTriangleUp[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphRedSolidTriangleDown[fNlayer] = new TGraph();
-      theGraphRedSolidTriangleDown[fNlayer]->SetMarkerColor(theColorRedDark);
-      theGraphRedSolidTriangleDown[fNlayer]->SetMarkerStyle(fSolidTriangleDownMarkerStyle);
-      theGraphRedSolidTriangleDown[fNlayer]->SetMarkerSize(fMarkerSize);
+    theGraphRedSolidTriangleDown[fNlayer] = new TGraph();
+    theGraphRedSolidTriangleDown[fNlayer]->SetMarkerColor(theColorRedDark);
+    theGraphRedSolidTriangleDown[fNlayer]->SetMarkerStyle(fSolidTriangleDownMarkerStyle);
+    theGraphRedSolidTriangleDown[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphGreenEmpty[fNlayer] = new TGraph();
-      theGraphGreenEmpty[fNlayer]->SetMarkerColor(theColorGreenDark);
-      theGraphGreenEmpty[fNlayer]->SetMarkerStyle(fEmptyCircleMarkerStyle);
-      theGraphGreenEmpty[fNlayer]->SetMarkerSize(fMarkerSize);
+    theGraphGreenEmpty[fNlayer] = new TGraph();
+    theGraphGreenEmpty[fNlayer]->SetMarkerColor(theColorGreenDark);
+    theGraphGreenEmpty[fNlayer]->SetMarkerStyle(fEmptyCircleMarkerStyle);
+    theGraphGreenEmpty[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphYellowEmpty[fNlayer] = new TGraph();
-      theGraphYellowEmpty[fNlayer]->SetMarkerColor(theColorYellowDark);
-      theGraphYellowEmpty[fNlayer]->SetMarkerStyle(fEmptyCircleMarkerStyle);
-      theGraphYellowEmpty[fNlayer]->SetMarkerSize(fMarkerSize);
+    theGraphYellowEmpty[fNlayer] = new TGraph();
+    theGraphYellowEmpty[fNlayer]->SetMarkerColor(theColorYellowDark);
+    theGraphYellowEmpty[fNlayer]->SetMarkerStyle(fEmptyCircleMarkerStyle);
+    theGraphYellowEmpty[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphRedEmpty[fNlayer] = new TGraph();
-      theGraphRedEmpty[fNlayer]->SetMarkerColor(theColorRedDark);
-      theGraphRedEmpty[fNlayer]->SetMarkerStyle(fEmptyCircleMarkerStyle);
-      theGraphRedEmpty[fNlayer]->SetMarkerSize(fMarkerSize);
+    theGraphRedEmpty[fNlayer] = new TGraph();
+    theGraphRedEmpty[fNlayer]->SetMarkerColor(theColorRedDark);
+    theGraphRedEmpty[fNlayer]->SetMarkerStyle(fEmptyCircleMarkerStyle);
+    theGraphRedEmpty[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphRedEmptyTriangleUp[fNlayer] = new TGraph();
-      theGraphRedEmptyTriangleUp[fNlayer]->SetMarkerColor(theColorRedDark);
-      theGraphRedEmptyTriangleUp[fNlayer]->SetMarkerStyle(fEmptyTriangleUpMarkerStyle);
-      theGraphRedEmptyTriangleUp[fNlayer]->SetMarkerSize(fMarkerSize);
+    theGraphRedEmptyTriangleUp[fNlayer] = new TGraph();
+    theGraphRedEmptyTriangleUp[fNlayer]->SetMarkerColor(theColorRedDark);
+    theGraphRedEmptyTriangleUp[fNlayer]->SetMarkerStyle(fEmptyTriangleUpMarkerStyle);
+    theGraphRedEmptyTriangleUp[fNlayer]->SetMarkerSize(fMarkerSize);
 
-      theGraphRedEmptyTriangleDown[fNlayer] = new TGraph();
-      theGraphRedEmptyTriangleDown[fNlayer]->SetMarkerColor(theColorRedDark);
-      theGraphRedEmptyTriangleDown[fNlayer]->SetMarkerStyle(fEmptyTriangleUpMarkerStyle);
-      theGraphRedEmptyTriangleDown[fNlayer]->SetMarkerSize(fMarkerSize);
-    }
+    theGraphRedEmptyTriangleDown[fNlayer] = new TGraph();
+    theGraphRedEmptyTriangleDown[fNlayer]->SetMarkerColor(theColorRedDark);
+    theGraphRedEmptyTriangleDown[fNlayer]->SetMarkerStyle(fEmptyTriangleUpMarkerStyle);
+    theGraphRedEmptyTriangleDown[fNlayer]->SetMarkerSize(fMarkerSize);
+  }
 }
 
 TestCanvas_6gr1h::~TestCanvas_6gr1h ()
 {
   delete theMainCanvas;
   delete theTitlePad;
-//	delete theLeftPadBackground;
-// 	delete theLeftPad[5];
-// 	delete theLeftPad[4];
-// 	delete theLeftPad[3];
-// 	delete theLeftPad[2];
-// 	delete theLeftPad[1];
-// 	delete theLeftPad[0];
-// 	delete theRightBottomPad;
-// 	delete theRightTopPad;
+//  delete theLeftPadBackground;
+//  delete theLeftPad[5];
+//  delete theLeftPad[4];
+//  delete theLeftPad[3];
+//  delete theLeftPad[2];
+//  delete theLeftPad[1];
+//  delete theLeftPad[0];
+//  delete theRightBottomPad;
+//  delete theRightTopPad;
   delete theRightHisto;
   delete theLeftHistoBackground;
   delete theLeftHisto[0];
@@ -422,89 +422,89 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
   int fNlayer;
   int fNbin;
   for (fNlayer = 0; fNlayer < data.Nlayers; fNlayer++)
+  {
+    for (fNbin = 0; fNbin < data.Nbins; fNbin++)
     {
-      for (fNbin = 0; fNbin < data.Nbins; fNbin++)
+      fX[fNbin] = fNbin;
+      fY[fNbin] = data.content[fNlayer][fNbin];
+
+      // if (fY[fNbin] == -999.) continue;
+
+      theRightHisto->Fill(fY[fNbin]);
+
+      if (fY[fNbin] <= theHighLimit && fY[fNbin] >= theLowLimit)
+      {
+        if (mask.content[fNlayer][fNbin] == 0)
         {
-          fX[fNbin] = fNbin;
-          fY[fNbin] = data.content[fNlayer][fNbin];
-
-          // if (fY[fNbin] == -999.) continue;
-
-          theRightHisto->Fill(fY[fNbin]);
-
-          if (fY[fNbin] <= theHighLimit && fY[fNbin] >= theLowLimit)
-            {
-              if (mask.content[fNlayer][fNbin] == 0)
-                {
-                  theGraphGreenSolid[fNlayer]->SetPoint(theGraphGreenSolid[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
-                }
-              else
-                {
-                  if (!fIsEmpty) fIsEmpty = true;
-                  theGraphGreenEmpty[fNlayer]->SetPoint(theGraphGreenEmpty[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
-                }
-
-            }
-          if ((fY[fNbin] > theHighLimit && fY[fNbin] <= theHighHighLimit) || (fY[fNbin] >= theLowLowLimit && fY[fNbin] < theLowLimit))
-            {
-              if (mask.content[fNlayer][fNbin] == 0)
-                {
-                  if (!fIsYellowSolid) fIsYellowSolid = true;
-                  theGraphYellowSolid[fNlayer]->SetPoint(theGraphYellowSolid[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
-                }
-              else
-                {
-                  if (!fIsEmpty) fIsEmpty = true;
-                  theGraphYellowEmpty[fNlayer]->SetPoint(theGraphYellowEmpty[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
-                }
-            }
-          if ((fY[fNbin] > theHighHighLimit && fY[fNbin] <= theYup) || (fY[fNbin] >= theYlow && fY[fNbin] < theLowLowLimit))
-            {
-
-              fNOutOfLimits = fNOutOfLimits + 1;
-              if (mask.content[fNlayer][fNbin] == 0)
-                {
-                  if (!fIsRedSolid) fIsRedSolid = true;
-                  theGraphRedSolid[fNlayer]->SetPoint(theGraphRedSolid[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
-                }
-              else
-                {
-                  if (!fIsEmpty) fIsEmpty = true;
-                  theGraphRedEmpty[fNlayer]->SetPoint(theGraphRedEmpty[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
-                }
-            }
-          if (fY[fNbin] > theYup)
-            {
-
-              fNOutOfLimits = fNOutOfLimits + 1;
-              if (mask.content[fNlayer][fNbin] == 0)
-                {
-                  if (!fIsRedSolid) fIsRedSolid = true;
-                  theGraphRedSolidTriangleUp[fNlayer]->SetPoint(theGraphRedSolidTriangleUp[fNlayer]->GetN(), fX[fNbin], theYup);
-                }
-              else
-                {
-                  if (!fIsEmpty) fIsEmpty = true;
-                  theGraphRedEmptyTriangleUp[fNlayer]->SetPoint(theGraphRedEmptyTriangleUp[fNlayer]->GetN(), fX[fNbin], theYup);
-                }
-            }
-          if (fY[fNbin] < theYlow)
-            {
-
-              fNOutOfLimits = fNOutOfLimits + 1;
-              if (mask.content[fNlayer][fNbin] == 0)
-                {
-                  if (!fIsRedSolid) fIsRedSolid = true;
-                  theGraphRedSolidTriangleDown[fNlayer]->SetPoint(theGraphRedSolidTriangleDown[fNlayer]->GetN(), fX[fNbin], theYlow);
-                }
-              else
-                {
-                  if (!fIsEmpty) fIsEmpty = true;
-                  theGraphRedEmptyTriangleDown[fNlayer]->SetPoint(theGraphRedEmptyTriangleDown[fNlayer]->GetN(), fX[fNbin], theYlow);
-                }
-            }
+          theGraphGreenSolid[fNlayer]->SetPoint(theGraphGreenSolid[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
         }
+        else
+        {
+          if (!fIsEmpty) fIsEmpty = true;
+          theGraphGreenEmpty[fNlayer]->SetPoint(theGraphGreenEmpty[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
+        }
+
+      }
+      if ((fY[fNbin] > theHighLimit && fY[fNbin] <= theHighHighLimit) || (fY[fNbin] >= theLowLowLimit && fY[fNbin] < theLowLimit))
+      {
+        if (mask.content[fNlayer][fNbin] == 0)
+        {
+          if (!fIsYellowSolid) fIsYellowSolid = true;
+          theGraphYellowSolid[fNlayer]->SetPoint(theGraphYellowSolid[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
+        }
+        else
+        {
+          if (!fIsEmpty) fIsEmpty = true;
+          theGraphYellowEmpty[fNlayer]->SetPoint(theGraphYellowEmpty[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
+        }
+      }
+      if ((fY[fNbin] > theHighHighLimit && fY[fNbin] <= theYup) || (fY[fNbin] >= theYlow && fY[fNbin] < theLowLowLimit))
+      {
+
+        fNOutOfLimits = fNOutOfLimits + 1;
+        if (mask.content[fNlayer][fNbin] == 0)
+        {
+          if (!fIsRedSolid) fIsRedSolid = true;
+          theGraphRedSolid[fNlayer]->SetPoint(theGraphRedSolid[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
+        }
+        else
+        {
+          if (!fIsEmpty) fIsEmpty = true;
+          theGraphRedEmpty[fNlayer]->SetPoint(theGraphRedEmpty[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
+        }
+      }
+      if (fY[fNbin] > theYup)
+      {
+
+        fNOutOfLimits = fNOutOfLimits + 1;
+        if (mask.content[fNlayer][fNbin] == 0)
+        {
+          if (!fIsRedSolid) fIsRedSolid = true;
+          theGraphRedSolidTriangleUp[fNlayer]->SetPoint(theGraphRedSolidTriangleUp[fNlayer]->GetN(), fX[fNbin], theYup);
+        }
+        else
+        {
+          if (!fIsEmpty) fIsEmpty = true;
+          theGraphRedEmptyTriangleUp[fNlayer]->SetPoint(theGraphRedEmptyTriangleUp[fNlayer]->GetN(), fX[fNbin], theYup);
+        }
+      }
+      if (fY[fNbin] < theYlow)
+      {
+
+        fNOutOfLimits = fNOutOfLimits + 1;
+        if (mask.content[fNlayer][fNbin] == 0)
+        {
+          if (!fIsRedSolid) fIsRedSolid = true;
+          theGraphRedSolidTriangleDown[fNlayer]->SetPoint(theGraphRedSolidTriangleDown[fNlayer]->GetN(), fX[fNbin], theYlow);
+        }
+        else
+        {
+          if (!fIsEmpty) fIsEmpty = true;
+          theGraphRedEmptyTriangleDown[fNlayer]->SetPoint(theGraphRedEmptyTriangleDown[fNlayer]->GetN(), fX[fNbin], theYlow);
+        }
+      }
     }
+  }
 
 // Add information (total number of entries and number of enries out of limits) to TextPad
   std::string fsEntries = Form("%.0f",theRightHisto->GetEntries());
@@ -535,25 +535,25 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
 
   int theFillColor = theColorWhite;
   if (!fIsYellowSolid && !fIsRedSolid && !fIsEmpty)
-    {
-      theFillColor = theColorGreenLight;
-      fQualityTest = 1;
-    }
+  {
+    theFillColor = theColorGreenLight;
+    fQualityTest = 1;
+  }
   if (fIsYellowSolid)
-    {
-      theFillColor = theColorYellowLight;
-      fQualityTest = 2;
-    }
+  {
+    theFillColor = theColorYellowLight;
+    fQualityTest = 2;
+  }
   if (!fIsRedSolid && !fIsYellowSolid && fIsEmpty)
-    {
-      theFillColor = theColorBlueLight;
-      fQualityTest = 3;
-    }
+  {
+    theFillColor = theColorBlueLight;
+    fQualityTest = 3;
+  }
   if (fIsRedSolid)
-    {
-      theFillColor = theColorRedLight;
-      fQualityTest = 4;
-    }
+  {
+    theFillColor = theColorRedLight;
+    fQualityTest = 4;
+  }
 
   theMainCanvas->SetFillColor(theFillColor);
 
@@ -567,10 +567,10 @@ void TestCanvas_6gr1h::Draw (void)
   theStyle = new TStyle("Style", "Style");
   theStyle->SetOptStat(0);
   theStyle->SetOptTitle(0);
-//	theStyle->SetCanvasColor(theFillColor);
-//	theStyle->SetFillColor(theColorWhite);
+//  theStyle->SetCanvasColor(theFillColor);
+//  theStyle->SetFillColor(theColorWhite);
   theStyle->cd();
-// 	theMainCanvas->UseCurrentStyle();
+//  theMainCanvas->UseCurrentStyle();
 
   theMainCanvas->cd();
   theTitlePad->Draw();
@@ -595,29 +595,29 @@ void TestCanvas_6gr1h::Draw (void)
 
   int fNlayer;
   for (fNlayer = NLAYERS - 1; fNlayer >= 0; fNlayer--)
-    {
-      theMainCanvas->cd();
-      theLeftPad[fNlayer]->Draw();
-      theLeftPad[fNlayer]->cd();
-      theLeftHisto[fNlayer]->Draw();
+  {
+    theMainCanvas->cd();
+    theLeftPad[fNlayer]->Draw();
+    theLeftPad[fNlayer]->cd();
+    theLeftHisto[fNlayer]->Draw();
 
-      theLowLine->Draw();
-      theLowLowLine->Draw();
-      theHighLine->Draw();
-      theHighHighLine->Draw();
+    theLowLine->Draw();
+    theLowLowLine->Draw();
+    theHighLine->Draw();
+    theHighHighLine->Draw();
 
-      if (theGraphGreenSolid[fNlayer]->GetN()           > 0) theGraphGreenSolid[fNlayer]->Draw("P");
-      if (theGraphYellowSolid[fNlayer]->GetN()          > 0) theGraphYellowSolid[fNlayer]->Draw("P");
-      if (theGraphRedSolid[fNlayer]->GetN()             > 0) theGraphRedSolid[fNlayer]->Draw("P");
-      if (theGraphRedSolidTriangleUp[fNlayer]->GetN()   > 0) theGraphRedSolidTriangleUp[fNlayer]->Draw("P");
-      if (theGraphRedSolidTriangleDown[fNlayer]->GetN() > 0) theGraphRedSolidTriangleDown[fNlayer]->Draw("P");
+    if (theGraphGreenSolid[fNlayer]->GetN()           > 0) theGraphGreenSolid[fNlayer]->Draw("P");
+    if (theGraphYellowSolid[fNlayer]->GetN()          > 0) theGraphYellowSolid[fNlayer]->Draw("P");
+    if (theGraphRedSolid[fNlayer]->GetN()             > 0) theGraphRedSolid[fNlayer]->Draw("P");
+    if (theGraphRedSolidTriangleUp[fNlayer]->GetN()   > 0) theGraphRedSolidTriangleUp[fNlayer]->Draw("P");
+    if (theGraphRedSolidTriangleDown[fNlayer]->GetN() > 0) theGraphRedSolidTriangleDown[fNlayer]->Draw("P");
 
-      if (theGraphGreenEmpty[fNlayer]->GetN()           > 0) theGraphGreenEmpty[fNlayer]->Draw("P");
-      if (theGraphYellowEmpty[fNlayer]->GetN()          > 0) theGraphYellowEmpty[fNlayer]->Draw("P");
-      if (theGraphRedEmpty[fNlayer]->GetN()             > 0) theGraphRedEmpty[fNlayer]->Draw("P");
-      if (theGraphRedEmptyTriangleUp[fNlayer]->GetN()   > 0) theGraphRedEmptyTriangleUp[fNlayer]->Draw("P");
-      if (theGraphRedEmptyTriangleDown[fNlayer]->GetN() > 0) theGraphRedEmptyTriangleDown[fNlayer]->Draw("P");
-    }
+    if (theGraphGreenEmpty[fNlayer]->GetN()           > 0) theGraphGreenEmpty[fNlayer]->Draw("P");
+    if (theGraphYellowEmpty[fNlayer]->GetN()          > 0) theGraphYellowEmpty[fNlayer]->Draw("P");
+    if (theGraphRedEmpty[fNlayer]->GetN()             > 0) theGraphRedEmpty[fNlayer]->Draw("P");
+    if (theGraphRedEmptyTriangleUp[fNlayer]->GetN()   > 0) theGraphRedEmptyTriangleUp[fNlayer]->Draw("P");
+    if (theGraphRedEmptyTriangleDown[fNlayer]->GetN() > 0) theGraphRedEmptyTriangleDown[fNlayer]->Draw("P");
+  }
 
   theMainCanvas->Update();
 }
@@ -628,13 +628,13 @@ void TestCanvas_6gr1h::SetCanvasSize(uint32_t w, uint32_t h)
 }
 
 void TestCanvas_6gr1h::SetCanvasType(std::string cnvtype)
-{ 
+{
   cnvType = cnvtype;
 }
 
 std::string const TestCanvas_6gr1h::GetCanvasType()
 {
-   return cnvType;
+  return cnvType;
 }
 
 void TestCanvas_6gr1h::SaveAs (std::string file_name)
@@ -646,10 +646,10 @@ int TestCanvas_6gr1h::Write (std::string newName)
 {
   int fNBuffer = 0;
   if (theMainCanvas)
-    {
-      fNBuffer = theMainCanvas->Write(newName.c_str(),TObject::kOverwrite);
-    }
-//	theStyle->Write();
+  {
+    fNBuffer = theMainCanvas->Write(newName.c_str(),TObject::kOverwrite);
+  }
+//  theStyle->Write();
   return fNBuffer;
 }
 
@@ -657,10 +657,10 @@ int TestCanvas_6gr1h::Write (void)
 {
   int fNBuffer = 0;
   if (theMainCanvas)
-    {
-      fNBuffer = theMainCanvas->Write(theMainCanvas->GetName(),TObject::kOverwrite);
-    }
-//	theStyle->Write();
+  {
+    fNBuffer = theMainCanvas->Write(theMainCanvas->GetName(),TObject::kOverwrite);
+  }
+//  theStyle->Write();
   return fNBuffer;
 }
 

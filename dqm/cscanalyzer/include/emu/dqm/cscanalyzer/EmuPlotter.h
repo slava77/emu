@@ -141,6 +141,11 @@ public:
     runNumber=num;
   }
 
+  void setCheckMapping(bool flag)
+  {
+     fCheckMapping = flag;
+  }
+
   void saveHistos() {};
 
   void saveToROOTFile(std::string filename);
@@ -191,9 +196,12 @@ public:
     Logger::getInstance("CSCRawUnpacking").setLogLevel(level);
   }
   void setUnpackingDebug(bool flag)
-  {/*CSCDDUEventData::setDebug(flag);*/}
+  { /*CSCDDUEventData::setDebug(flag);*/
+  }
 
-  void setDebug(bool flag) { debug = flag;}
+  void setDebug(bool flag) {
+    debug = flag;
+  }
 
   bool isMEvalid(ME_List&, std::string, EmuMonitoringObject* & );
   MonitorElement* findME(std::string tag, std::string name, TDirectory* rootfolder=NULL);
@@ -246,12 +254,20 @@ public:
   void updateCSCHistos();
   void updateCSCFractionHistos (std::string cscTag="");
 
-  bool isEventToSave() const { return fInterestingEvent; }
+  bool isEventToSave() const {
+    return fInterestingEvent;
+  }
 
   void reset();
-  void lock() { appBSem_.take(); }
-  void lock ( struct timeval * timeout ) { appBSem_.take(timeout); }
-  void unlock() { appBSem_.give(); }
+  void lock() {
+    appBSem_.take();
+  }
+  void lock ( struct timeval * timeout ) {
+    appBSem_.take(timeout);
+  }
+  void unlock() {
+    appBSem_.give();
+  }
 
 protected:
 
@@ -287,70 +303,71 @@ protected:
   std::string getCSCTypeLabel(int endcap, int station, int ring );
 
 private:
-  
-  bool 	debug;
+
+  bool  debug;
 
   // == list of Monitored Elements
-  std::map<std::string, ME_List >		MEs;
-  std::map<std::string, MECanvases_List > 	MECanvases;
+  std::map<std::string, ME_List >   MEs;
+  std::map<std::string, MECanvases_List >   MECanvases;
 
-  std::map<std::string, ME_List > 		MEFactories;
-  std::map<std::string, MECanvases_List > 	MECanvasFactories;
+  std::map<std::string, ME_List >     MEFactories;
+  std::map<std::string, MECanvases_List >   MECanvasFactories;
 
-  std::map<std::string,uint32_t> 		nDMBEvents;
-  std::map<uint32_t,uint32_t> 			L1ANumbers;
-  std::map<uint32_t,bool> 			fNotFirstEvent;
+  std::map<std::string,uint32_t>    nDMBEvents;
+  std::map<uint32_t,uint32_t>       L1ANumbers;
+  std::map<uint32_t,bool>       fNotFirstEvent;
 
-  uint32_t 		L1ANumber;
-  uint32_t 		BXN;
-  uint32_t 		evtSize;
+  uint32_t    L1ANumber;
+  uint32_t    BXN;
+  uint32_t    evtSize;
 
-  uint32_t 		unpackedDMBcount;
-  uint32_t 		nEvents;
-  uint32_t 		nGoodEvents;
-  uint32_t 		nBadEvents;
-  uint32_t 		nCSCEvents;
-  uint32_t 		nDetectedCSCs;
+  uint32_t    unpackedDMBcount;
+  uint32_t    nEvents;
+  uint32_t    nGoodEvents;
+  uint32_t    nBadEvents;
+  uint32_t    nCSCEvents;
+  uint32_t    nDetectedCSCs;
 
-  Logger 		logger_;
+  Logger    logger_;
 
-  CSCDCCExaminer 	bin_checker;
+  CSCDCCExaminer  bin_checker;
 
-  uint32_t 		dduCheckMask;
-  uint32_t 		binCheckMask;
-  uint32_t 		dduBinCheckMask; // Set this as constant
-  std::string 		runNumber;
+  uint32_t    dduCheckMask;
+  uint32_t    binCheckMask;
+  uint32_t    dduBinCheckMask; // Set this as constant
+  std::string     runNumber;
 
-  bool 			fListModified;
-  std::string 		HistoFile;
-  bool 			fSaveHistos;
-  int 			SaveTimer;
-  int 			fStopTimer;
-  bool 			fFirstEvent;
-  bool 			fCloseL1As; // Close L1A bit from DDU Trailer
-  bool 			fInterestingEvent;
+  bool      fListModified;
+  std::string     HistoFile;
+  bool      fSaveHistos;
+  int       SaveTimer;
+  int       fStopTimer;
+  bool      fFirstEvent;
+  bool      fCloseL1As; // Close L1A bit from DDU Trailer
+  bool      fInterestingEvent;
+  bool 	    fCheckMapping;
 
-  std::string 		xmlHistosBookingCfgFile;
-  std::string 		xmlCanvasesCfgFile;
-  std::string 		xmlKillBitsCfgFile;
-  std::string 		cscMapFile;
+  std::string     xmlHistosBookingCfgFile;
+  std::string     xmlCanvasesCfgFile;
+  std::string     xmlKillBitsCfgFile;
+  std::string     cscMapFile;
 
-  CSCReadoutMappingFromFile 	cscMapping;
-  std::map<std::string, int> 	tmap;
-  std::string 			eTag;
-  std::map<std::string, CSCCounters> 	cscCounters;
+  CSCReadoutMappingFromFile   cscMapping;
+  std::map<std::string, int>  tmap;
+  std::string       eTag;
+  std::map<std::string, CSCCounters>  cscCounters;
 
   /** CSC summary map */
-  cscdqm::Summary 	summary;
-  ChamberMap		chamberMap;
-  SummaryMap 		summaryMap;
-  EventDisplay 		eventDisplay;
+  cscdqm::Summary   summary;
+  ChamberMap    chamberMap;
+  SummaryMap    summaryMap;
+  EventDisplay    eventDisplay;
 
 
   std::map<std::string, std::vector<std::string> > report;
-  DQMReport 		dqm_report;
+  DQMReport     dqm_report;
 
-  toolbox::BSem 	appBSem_;
+  toolbox::BSem   appBSem_;
 
 };
 
