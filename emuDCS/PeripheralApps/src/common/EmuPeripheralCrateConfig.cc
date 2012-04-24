@@ -1,4 +1,5 @@
 #include "emu/pc/EmuPeripheralCrateConfig.h"
+#include "emu/utils/System.h"
 
 #include <string>
 #include <vector>
@@ -565,6 +566,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
 
 void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) 
 {
+  // perform possible environment variable expansions in the configuration file name:
+  xmlFile_.fromString(emu::utils::performExpansions(xmlFile_));
+
   //
   std::string LoggerName = getApplicationLogger().getName() ;
   std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
