@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.76 2012/02/22 17:53:23 liu Exp $
+// $Id: Crate.cc,v 3.77 2012/04/24 14:42:16 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.77  2012/04/24 14:42:16  liu
+// add new functions to delete VMEModule and Chamber from Crate
+//
 // Revision 3.76  2012/02/22 17:53:23  liu
 // new function to return Chamber name
 //
@@ -332,8 +335,16 @@ void Crate::addModule(VMEModule * module) {
   theModules[module->slot()] = module;
 }
 
+void Crate::deleteModule(VMEModule * module) {
+  if(module)  theModules[module->slot()] = 0;
+}
+
 void Crate::AddChamber(Chamber * chamber) {
   theChambers.push_back(chamber);
+}
+
+void Crate::deleteChamber() {
+  theChambers.pop_back();
 }
 
 #if 0

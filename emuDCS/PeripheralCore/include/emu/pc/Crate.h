@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.9 2012/02/22 17:53:23 liu Exp $
+// $Id: Crate.h,v 1.10 2012/04/24 14:42:16 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.10  2012/04/24 14:42:16  liu
+// add new functions to delete VMEModule and Chamber from Crate
+//
 // Revision 1.9  2012/02/22 17:53:23  liu
 // new function to return Chamber name
 //
@@ -136,7 +139,9 @@ public:
   int configure(int, int ID=0);
   void init();
   void addModule(VMEModule * module);
+  void deleteModule(VMEModule * module);
   void AddChamber(Chamber * chamber);
+  void deleteChamber();
   void DumpConfiguration();
   int CheckController();
   //
