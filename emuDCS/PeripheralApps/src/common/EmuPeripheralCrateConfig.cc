@@ -1995,13 +1995,16 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("Configuration Status").set("style","color:blue") << std::endl ;
   //
-  if (all_crates_ok >= 0) {
-    //
+  if (all_crates_ok >= 0) 
+  {  
+     // all_crates_ok == -1 means not checked yet
+     // all_crates_ok >= 0 means at least checked once, so show any problems here
+
     for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
       //
       SetCurrentCrate(crate_number);
       //
-      if ( !crate_check_ok[current_crate_] ) {
+      if ( crate_check_ok[current_crate_]==0 ) {
 	//
 	//    OutputCheckConfiguration << "Problem summary for Crate " << thisCrate->GetLabel() << "..." << std::endl;
 	//
@@ -2106,13 +2109,12 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
 	    OutputCheckConfiguration                << std::endl;
 	    //
 	  } 
-	}
-	} else if (crate_check_ok[current_crate_] == -1) {
+	}  // end chamber for-loop
+      } else if (crate_check_ok[current_crate_] == -1) {
 	//
-	*out << cgicc::span().set("style","color:blue");
-	*out                     << crateVector[crate_number]->GetLabel() << " Not checked" << cgicc::br();
+	*out << cgicc::span().set("style","color:red");
+	*out                     << crateVector[crate_number]->GetLabel() << " Not checked" << cgicc::br() << cgicc::span() << std::endl ;
 	OutputCheckConfiguration << crateVector[crate_number]->GetLabel() << " Not checked" << std::endl;
-	*out << cgicc::span() << std::endl ;
       }
 
     }
@@ -2144,6 +2146,7 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
     //
   }
   print_config_check_output = false;
+  OutputCheckConfiguration.clear();
 }
 //
 void EmuPeripheralCrateConfig::CheckTimeSinceHardReset(xgi::Input * in, xgi::Output * out )
@@ -3283,7 +3286,7 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
       //
       SetCurrentCrate(crate_number);
       //
-      if ( !crate_check_ok[current_crate_] ) {
+      if ( crate_check_ok[current_crate_]==0 ) {
 	//
 	//    OutputCheckConfiguration << "Problem summary for Crate " << thisCrate->GetLabel() << "..." << std::endl;
 	//
@@ -3388,13 +3391,12 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 	    OutputCheckConfiguration                << std::endl;
 	    //
 	  } 
-	}
-	} else if (crate_check_ok[current_crate_] == -1) {
+	} // end chamber for-loop
+      } else if (crate_check_ok[current_crate_] == -1) {
 	//
-	*out << cgicc::span().set("style","color:blue");
-	*out                     << crateVector[crate_number]->GetLabel() << " Not checked" << cgicc::br();
+	*out << cgicc::span().set("style","color:red");
+	*out                     << crateVector[crate_number]->GetLabel() << " Not checked" << cgicc::br() << cgicc::span() << std::endl ;
 	OutputCheckConfiguration << crateVector[crate_number]->GetLabel() << " Not checked" << std::endl;
-	*out << cgicc::span() << std::endl ;
       }
     }
   }
@@ -3422,6 +3424,7 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
     //
   }
   print_config_check_output = false;
+  OutputCheckConfiguration.clear();
   //
   SetCurrentCrate(initial_crate);
   //
@@ -9146,7 +9149,9 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   thisTMB->ProgramTMBProms();
   thisTMB->ClearXsvfFilename();
   //
+  thisCrate->deleteModule(thisTMB);
   delete thisTMB;
+  thisCrate->deleteChamber();
   //
   if (!typeA_only) {
     for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? 9 : tmbVector.size());ntmb++) {
