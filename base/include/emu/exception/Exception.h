@@ -79,7 +79,7 @@ public:
 
     out << "<table class=\"Xcept\">";
     out << "<tr><th colspan=\"3\">Exception stack</th></tr>";
-    out << "<tr><th style=\"width: 1%;\">#</th><th style=\"text-align: left;\">message</th><th style=\"text-align: left;\">type</th><th style=\"text-align: left;\">raised at</th></tr>";
+    out << "<tr><th style=\"width: 1%;\">#</th><th style=\"text-align: left;\">type</th><th style=\"text-align: left;\">message</th><th style=\"text-align: left;\">raised at</th></tr>";
 
     std::vector<xcept::ExceptionInformation> & history = getHistory();
     std::vector<xcept::ExceptionInformation>::reverse_iterator i = history.rbegin();
