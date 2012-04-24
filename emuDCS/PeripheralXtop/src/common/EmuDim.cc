@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.46 2012/03/08 14:45:21 liu Exp $
+// $Id: EmuDim.cc,v 1.47 2012/04/24 14:40:40 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -41,6 +41,12 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   //
   current_state_ = 0;
   xmas_state_ = 0;
+  blue_state_ = 0;
+  yp_state_ = 0;
+  old_x2p_state = 0;
+  old_xmas_state = 0;
+  old_blue_state = 0;
+  old_yp_state = 0;
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateDimFile_);
   getApplicationInfoSpace()->fireItemAvailable("BadChamberFileName", &BadChamberFile_);
   getApplicationInfoSpace()->fireItemAvailable("XmasDcsUrl", &XmasDcsUrl_ );
@@ -135,6 +141,15 @@ void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
 
      // always check DimCommand
      CheckCommand();
+
+     // update states
+     if(xmas_state_ != old_xmas_state)
+     {
+         EmuDim_xmas.XMAS_info = xmas_state_;
+         EmuDim_xmas.update_time = (int) time(NULL);
+         XMAS_1_Service->updateService();
+         old_xmas_state=xmas_state_;
+     }
 
      // check reading timeout
      if(strncmp(name.c_str(),"EmuDimCmnd",13)==0) 
@@ -599,7 +614,11 @@ void EmuDim::StartDim()
 
    pref=TestPrefix_;
 
-   XMAS_1_Service= new DimService("XMAS_X2P","I:3",
+   std::string xmas_server = pref + "XMAS_X2P";
+   EmuDim_xmas.XMAS_info=0;
+   EmuDim_xmas.X2P_info=0;
+   EmuDim_xmas.update_time= (int) time(NULL);
+   XMAS_1_Service= new DimService(xmas_server.c_str(),"I:3",
            &EmuDim_xmas, sizeof(XMAS_1_DimBroker));
    
    while(i < TOTAL_CHAMBERS)
