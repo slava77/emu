@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.47 2012/04/24 14:40:40 liu Exp $
+// $Id: EmuDim.cc,v 1.48 2012/04/26 15:41:51 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -802,7 +802,6 @@ void EmuDim::CheckCommand()
          if(!Suspended_)
          {
             XmasLoader->reload(xmas_stop);
-            Suspended_ = true;  
          }
       }
       else if(cmnd.substr(0,13)=="EXECUTE_POWER")
