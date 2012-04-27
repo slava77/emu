@@ -1207,6 +1207,7 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
 	  dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
 	  CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	  char * outp=(char *)dword;   // recast dword
+	  unlink("/tmp/eprom.bit");
 	  thisDMB->epromload_verify(thisCFEBs[i].promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
 	  // create a report from the results above 
 	  std::ostringstream logs;
@@ -1233,6 +1234,7 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
 	    dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
 	    CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	    char * outp=(char *)dword;   // recast dword
+	    unlink("/tmp/eprom.bit");
 	    thisDMB->epromload_verify(thisCFEBs[i].promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
 	    // create a report from the results above 
 	    std::ostringstream logs;
@@ -1260,6 +1262,7 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
       unsigned short int dword[2];
       dword[0]=0;
       char * outp=(char *)dword;   // recast dword
+      unlink("/tmp/eprom.bit");
       thisDMB->epromload_verify(MPROM, DMBVerify_.toString().c_str(), 1, outp);    // dmb mprom
       // create a report from the results above 
       std::ostringstream logs;
@@ -1284,6 +1287,7 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
       dword[0]=thisDMB->mbpromuser(0);
       dword[1]=0xdb00;
       outp=(char *)dword;   // recast dword
+      unlink("/tmp/eprom.bit");
       thisDMB->epromload_verify(VPROM, DMBVmeVerify_.toString().c_str(), 1, outp);    // dmb mprom
       // create a report from the results above 
       std::ostringstream logs2;
