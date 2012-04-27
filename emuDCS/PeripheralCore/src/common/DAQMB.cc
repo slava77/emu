@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.77 2012/04/09 15:30:33 liu Exp $
+// $Id: DAQMB.cc,v 3.78 2012/04/27 15:48:42 kkotov Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.78  2012/04/27 15:48:42  kkotov
+//
+// Safeguard preventing the library to crash on a missing file in smuload_verify
+//
 // Revision 3.77  2012/04/09 15:30:33  liu
 // fix CVS header
 //
@@ -3079,7 +3083,15 @@ void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *
     //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
     devstr=geo[dv].nam;
     dwnfp    = fopen(downfile,"r");
+    if(dwnfp==NULL)
+     {   std::cout << "Can't open firmware file " << downfile << std::endl;
+         return;
+     }
     fpout=fopen("/tmp/eprom.bit","w");
+    if(fpout==NULL)
+     {   std::cout << "Can't open eprom.bit file"<< std::endl;
+         return;
+     }
     chmod("/tmp/eprom.bit",S_IRUSR| S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
     //
