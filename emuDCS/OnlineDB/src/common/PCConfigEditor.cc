@@ -1,8 +1,9 @@
-// $Id: PCConfigEditor.cc,v 1.4 2012/02/13 10:52:37 liu Exp $
+// $Id: PCConfigEditor.cc,v 1.5 2012/04/30 23:54:55 khotilov Exp $
 
 #include "emu/db/PCConfigEditor.h"
 #include "emu/db/TStoreRequest.h"
 #include "emu/pc/XMLParser.h"
+#include "emu/db/ConfigIDInfo.h"
 
 #include <time.h>
 #include "toolbox/TimeInterval.h"
@@ -91,6 +92,10 @@ PCConfigEditor::PCConfigEditor(xdaq::ApplicationStub * s) throw (xdaq::exception
 
 void PCConfigEditor::my_test()
 {
+  using std::cout;
+  using std::endl;
+  using std::string;
+
   /*
   emu::pc::PCConfigurationsDBAgent test(this, "plus");
   test.connect(dbUserAndPassword_);
@@ -134,6 +139,31 @@ void PCConfigEditor::my_test()
 
   std::vector<std::pair< std::string, std::string> > flash_list = tstore_rw.readFlashList("minus");
   for (size_t i=0; i<flash_list.size(); ++i) std::cout<<" f: "<<flash_list[i].first<<" \t "<<flash_list[i].second<<std::endl;
+
+
+  std::vector<ConfigIDInfo> id_infos = tstore_rw.readFlashIDInfos("minus");
+  cout<<"------- flash id infos minus:"<<endl;
+  for (size_t i=0; i<id_infos.size(); ++i) cout<<id_infos[i] <<endl;
+
+  id_infos = tstore_rw.readFlashIDInfos("plus");
+  cout<<"------- flash id infos plus:"<<endl;
+  for (size_t i=0; i<id_infos.size(); ++i) cout<<id_infos[i] <<endl;
+
+  id_infos = tstore_rw.readIDInfos("minus");
+  cout<<"------- id infos minus:"<<endl;
+  for (size_t i=0; i<id_infos.size(); ++i) cout<<id_infos[i] <<endl;
+  id_infos = tstore_rw.readIDInfos("plus");
+  cout<<"------- id infos plus:"<<endl;
+  for (size_t i=0; i<id_infos.size(); ++i) cout<<id_infos[i] <<endl;
+
+  cout<<"encoded description:"<<endl;
+  cout<<ConfigIDInfo::encodeDescription("short short","long long long long long long long long")<<endl;
+
+  cout<<ConfigIDInfo("id","tw","tf","short short","long long long long long long long long")<<endl;
+  cout<<ConfigIDInfo("id","tw","tf","short short\nlong long long long long long long long")<<endl;
+  cout<<ConfigIDInfo("id","tw","tf","short")<<endl;
+  cout<<ConfigIDInfo("id","tw","tf","")<<endl;
+
 
   tstore_rw.read(maxid);
   //tstore_rw.write();return;
