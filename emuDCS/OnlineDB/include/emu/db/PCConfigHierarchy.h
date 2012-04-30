@@ -65,6 +65,9 @@ public:
   /// the DB write time field name (this is a field in the head table)
   std::string timeFieldName() const {return timeFieldName_;}
 
+  /// name of the description field name (this is a field in the head table)
+  std::string descriptionFieldName() const { return descriptionFieldName_; }
+
   /** returns an assembled tree of empty but properly defined ConfigTables
    * that already have all the parent-children relationship hierarchically set up
    */
@@ -107,6 +110,7 @@ protected:
   static std::string idFieldNameHead_;
   static std::map<std::string, std::string > idFieldNames_;
   static std::string timeFieldName_;
+  static std::string descriptionFieldName_;
 
   static std::string typeOfFlashTable_;
   static std::string idFieldNameOfFlashTable_;
