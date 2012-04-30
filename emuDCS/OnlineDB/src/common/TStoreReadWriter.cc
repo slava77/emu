@@ -1,4 +1,4 @@
-// $Id: TStoreReadWriter.cc,v 1.3 2012/01/24 18:40:57 khotilov Exp $
+// $Id: TStoreReadWriter.cc,v 1.4 2012/04/30 23:53:46 khotilov Exp $
 
 #include "emu/db/TStoreReadWriter.h"
 #include "emu/db/TStoreAgent.h"
@@ -16,7 +16,7 @@
 #define DBG 0
 
 namespace emu {	namespace db {
-	
+
 
 TStoreReadWriter::TStoreReadWriter(ConfigHierarchy* hierarchy, xdaq::Application *application, const std::string & db_credentials, int instance)
 : ConfigReadWriter()
@@ -46,10 +46,10 @@ TStoreReadWriter::TStoreReadWriter(ConfigHierarchy* hierarchy, xdaq::Application
 }
 
 
-std::vector<xdata::UnsignedInteger64> TStoreReadWriter::readIDs(const std::string &subsystem, int n)
+std::vector<ConfigIDInfo> TStoreReadWriter::readIDInfos(const std::string &subsystem, int n)
 throw (emu::exception::ConfigurationException)
 {
-  std::vector<xdata::UnsignedInteger64> result;
+  std::vector<ConfigIDInfo> result;
 
   // find out the query name from the top level table type:
   std::string query_name = toolbox::tolower(hierarchy_->typeOfHead());
@@ -79,14 +79,28 @@ throw (emu::exception::ConfigurationException)
   }
   tstore.disconnect();
 
-  std::string id_field_name = hierarchy_->idFieldNameOfHead();
-  for (xdata::Table::iterator ir = table.begin(); ir != table.end(); ir++)
+  for (size_t row = 0; row < table.getRowCount(); ++row)
   {
-    xdata::UnsignedInteger64 id;
-    id.fromString(ir->getField(id_field_name)->toString());
-    result.push_back(id);
+    result.push_back( ConfigIDInfo(table, row, hierarchy_) );
   }
 
+  return result;
+}
+
+
+std::vector<xdata::UnsignedInteger64> TStoreReadWriter::readIDs(const std::string &subsystem, int n)
+throw (emu::exception::ConfigurationException)
+{
+  std::vector<xdata::UnsignedInteger64> result;
+
+  std::vector<ConfigIDInfo> id_infos = readIDInfos(subsystem, n);
+
+  for (size_t i = 0; i < id_infos.size(); ++i)
+  {
+    xdata::UnsignedInteger64 id;
+    id.fromString(id_infos[i].id());
+    result.push_back(id);
+  }
   return result;
 }
 
@@ -100,9 +114,13 @@ throw (emu::exception::ConfigurationException)
   if (subsystem.empty())
     XCEPT_RAISE(emu::exception::ConfigurationException, "TStoreReadWriter::readIDs: side argument is not 1 or 2: " + toolbox::toString("%d", side));
 
+  std::vector<ConfigIDInfo> id_infos = readIDInfos(subsystem, n);
+
   std::vector<std::string> result;
-  std::vector<xdata::UnsignedInteger64> ids = readIDs(subsystem, n);
-  for (size_t i=0; i<ids.size(); ++i) result.push_back( ids[i].toString());
+  for (size_t i = 0; i < id_infos.size(); ++i)
+  {
+    result.push_back(id_infos[i].id());
+  }
   return result;
 }
 
@@ -372,8 +390,8 @@ throw (emu::exception::ConfigurationException)
             error<<(*tfield).first<<" ";
           }
           error<<std::endl;
-          XCEPT_RAISE(emu::exception::ConfigurationException, std::string(
-                      "Table definitions (above): as read from TStore != as read from TStore configuration view!!!"));
+          XCEPT_RAISE(emu::exception::ConfigurationException, error.str() +
+                      "Table definitions (above): as read from TStore != as read from TStore configuration view!!!");
         }
 
         //      copy the data
@@ -469,10 +487,10 @@ throw (emu::exception::ConfigurationException)
 }
 
 
-std::vector<std::pair< std::string, std::string> > TStoreReadWriter::readFlashList(const std::string &subsystem)
+std::vector<ConfigIDInfo> TStoreReadWriter::readFlashIDInfos(const std::string &subsystem)
 throw (emu::exception::ConfigurationException)
 {
-  std::vector<std::pair< std::string, std::string> > result;
+  std::vector<ConfigIDInfo> result;
 
   // find out the query name from the top level table type:
   std::string query_name = toolbox::tolower(hierarchy_->typeOfFlashTable());
@@ -500,13 +518,26 @@ throw (emu::exception::ConfigurationException)
   }
   tstore.disconnect();
 
-  std::string id_field_name = hierarchy_->idFieldNameOfFlashTable();
-  std::string time_field_name = hierarchy_->timeFieldNameOfFlashTable();
   for (size_t row = 0; row < table.getRowCount(); ++row)
   {
-    result.push_back( std::make_pair(table.getValueAt(row, id_field_name)->toString(), table.getValueAt(row, time_field_name)->toString()));
+    result.push_back( ConfigIDInfo(table, row, hierarchy_) );
   }
 
+  return result;
+}
+
+
+std::vector<std::pair< std::string, std::string> > TStoreReadWriter::readFlashList(const std::string &subsystem)
+throw (emu::exception::ConfigurationException)
+{
+  std::vector<std::pair< std::string, std::string> > result;
+
+  std::vector<ConfigIDInfo> id_infos = readFlashIDInfos(subsystem);
+
+  for (size_t i = 0; i < id_infos.size(); ++i)
+  {
+    result.push_back( std::make_pair(id_infos[i].id(), id_infos[i].timeOfFlash() ));
+  }
   return result;
 }
 

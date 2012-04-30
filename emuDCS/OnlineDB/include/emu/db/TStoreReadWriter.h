@@ -5,13 +5,15 @@
 #include <string>
 
 #include "emu/db/ConfigReadWriter.h"
+#include "emu/db/ConfigIDInfo.h"
 #include "emu/exception/Exception.h"
 
 #include "xdaq/Application.h"
 #include "xdata/Integer.h"
 
 namespace emu {	namespace db {
-	
+
+
 /** @class TStoreReadWriter
  *  An implementation of TStore reader/writer
  */
@@ -29,6 +31,13 @@ public:
 
   /// Default destructor
   ~TStoreReadWriter() {};
+
+  /** Read a vector of ConfigIDInfo (maximum last n ids)
+   * Do not include any flash write time information into ConfigIDInfo.
+   * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
+   * @param n  how many ids to read (starting from max id in descending order)
+   */
+  std::vector<ConfigIDInfo> readIDInfos(const std::string &subsystem = "", int n = 50) throw (emu::exception::ConfigurationException);
 
   /** Read a vector of configuration ids (maximum last n ids)
    * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
@@ -68,6 +77,13 @@ public:
    * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
    */
   xdata::UnsignedInteger64 readLastConfigIdFlashed(const std::string &subsystem = "") throw (emu::exception::ConfigurationException);
+
+  /** Read a vector of ConfigIDInfo that includes flash write times information.
+   * The order is descending by flash write date.
+   * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
+   * @return vector of ConfigIDInfo's
+   */
+  std::vector<ConfigIDInfo> readFlashIDInfos(const std::string &subsystem = "") throw (emu::exception::ConfigurationException);
 
   /** Read the list of flash id & time pairs
    * @param subsystem   e.g., for PCrates, the subsystem = endcap side  and it has to be set
