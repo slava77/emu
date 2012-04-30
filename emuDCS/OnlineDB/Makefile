@@ -17,6 +17,7 @@ Description="Database related EMU code"
 
 
 Sources=\
+	OnlineDBVersion.cc \
 	BoardsDB.cc \
 	ConnectionsDB.cc \
 	ConnectionsGUI.cc \
@@ -28,17 +29,14 @@ Sources=\
 	ConfigTable.cc \
 	ConfigRow.cc \
 	ConfigTree.cc \
+	ConfigIDInfo.cc \
 	TStoreCommand.cc \
 	TStoreAgent.cc \
 	TStoreReadWriter.cc \
 	TranslatorKludgeXMLvsDB.cc \
 	XMLReadWriter.cc \
-	ConfigEditor.cc \
-	OnlineDBVersion.cc
-
-#       TStoreFixer.cc \
-#       DBID.cc \
-#       PeripheralDBID.cc \
+	ConfigEditor.cc
+#	PCConfigEditor.cc
 
 
 IncludeDirs = \
@@ -79,7 +77,8 @@ TestExecutables= \
 	testTableDefinitions.cc \
 	testConfigRow.cc \
 	testConfigTree.cc \
-	testPCConfigHierarchy.cc
+	testPCConfigHierarchy.cc \
+	testXMLReadWriter.cc
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 include $(XDAQ_ROOT)/config/mfRPM.rules
