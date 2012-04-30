@@ -1,4 +1,4 @@
-// $Id: PCConfigHierarchy.cc,v 1.2 2012/01/24 18:40:57 khotilov Exp $
+// $Id: PCConfigHierarchy.cc,v 1.3 2012/04/30 23:43:56 khotilov Exp $
 
 #include "emu/db/PCConfigHierarchy.h"
 #include "emu/db/ConfigTable.h"
@@ -23,6 +23,7 @@ std::string PCConfigHierarchy::timeFieldName_;
 std::string PCConfigHierarchy::typeOfFlashTable_;
 std::string PCConfigHierarchy::idFieldNameOfFlashTable_;
 std::string PCConfigHierarchy::timeFieldNameOfFlashTable_;
+std::string PCConfigHierarchy::descriptionFieldName_;
 
 
 PCConfigHierarchy::PCConfigHierarchy(const std::string & tstore_conf, TruncateLevel truncate_level)
@@ -268,6 +269,7 @@ void PCConfigHierarchy::init()
     if (tr > 4) idFieldNames_["AnodeChannel"] = "afeb_config_id";
 
     timeFieldName_ = "emu_config_time";
+    descriptionFieldName_ = "description";
 
     typeOfFlashTable_ = "FLASH_WRITE";
     idFieldNameOfFlashTable_ = "config_id";

@@ -71,6 +71,9 @@ public:
   /// the DB write time field name (this is a field in the head table)
   virtual std::string timeFieldName() const = 0;
 
+  /// name of the description field name (this is a field in the head table)
+  virtual std::string descriptionFieldName() const = 0;
+
   /// accessor for the TableDefinitions object
   virtual TableDefinitions * definitions() {return def_;}
 
