@@ -100,8 +100,7 @@ namespace emu{
       /// Parses a SOAP reply to extract the specified parameters.
       /// 
       /// @param reply SOAP message reference.
-      /// @param parameters Parameters to extract.
-      /// @param parametersNamespaceURI Parameters' namespace URI (empty by default, in which case any namespace will match).
+      /// @param parameters Parameters to extract. If a parameter has no namespace URI defined, any namespace will match it.
       /// 
       /// Example for sending a command and extracting parameters from the reply:
       /// \code
@@ -114,7 +113,7 @@ namespace emu{
       ///                                                   .add( "rui_counts", &rui_counts ) );
       /// \endcode
       ///
-      void extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters, const string &parametersNamespaceURI="" );
+      void extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters );
 
       /// 
       /// Converts a SOAP fault reply to plain text.

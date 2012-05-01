@@ -215,7 +215,7 @@ emu::soap::includeParameters( xoap::MessageReference message, xoap::SOAPElement*
 }
 
 void
-emu::soap::extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters, const string &parametersNamespaceURI ){
+emu::soap::extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters ){
   try{
 
     // Parse reply and deserialize the requested parameters
@@ -226,7 +226,8 @@ emu::soap::extractParameters( xoap::MessageReference reply, emu::soap::Parameter
     reply->writeTo( s );
     DOMDocument* doc = parser->parse( s );
     for ( emu::soap::Parameters::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
-      DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( ( parametersNamespaceURI.size()>0 ? parametersNamespaceURI.c_str(): "*" ) ), 
+      // If this parameter has no namespace URI defined, let any namespace match in the search:
+      DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr( ( p->first.getNamespaceURI().size()>0 ? p->first.getNamespaceURI().c_str(): "*" ) ), 
 						xoap::XStr( p->first.getName().c_str() ) 
 						)->item(0);
       if ( n != NULL ){
@@ -247,28 +248,24 @@ emu::soap::extractParameters( xoap::MessageReference reply, emu::soap::Parameter
   }
   catch( xcept::Exception &e ){
     std::stringstream ss;
-    ss << "Failed to extract parameters " << parameters
-       << " in namespace " << parametersNamespaceURI;
+    ss << "Failed to extract parameters " << parameters;
     XCEPT_RETHROW( xcept::Exception, ss.str(), e );
   }
   catch( std::exception &e ){
     std::stringstream ss;
     ss << "Failed to extract parameters " << parameters
-       << " in namespace " << parametersNamespaceURI
        << ": " << e.what();
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   catch( DOMException &e ){
     std::stringstream ss;
     ss << "Failed to extract parameters " << parameters
-       << " in namespace " << parametersNamespaceURI
        << ": " << e.getMessage();
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   catch(...){
     std::stringstream ss;
     ss << "Failed to extract parameters " << parameters
-       << " in namespace " << parametersNamespaceURI
        << ": Unknown exception.";
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
