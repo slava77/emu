@@ -1328,8 +1328,7 @@ std::string emu::supervisor::Application::OpGetStateCell(){
 						 .add( "cid"  , &cid   )
 						 .add( "sid"  , &sid   )
 						 ),
-				  emu::soap::Parameters().add( "payload", &state ),
-				  "urn:ts-soap:3.0"
+				  emu::soap::Parameters().add( emu::soap::QualifiedName( "payload", "urn:ts-soap:3.0" ), &state )
 				  );
     return ( state == "" ? "UNKNOWN" : state );
   } 

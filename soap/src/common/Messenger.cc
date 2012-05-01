@@ -264,8 +264,12 @@ emu::soap::Messenger::getParameters( xdaq::ApplicationDescriptor *target, emu::s
       throw faultToException( &fault );
     }
 
+    // Set all parameters' namespace URI. (They will be looked for in this namespace when extracted from the reply.)
+    for ( emu::soap::Parameters::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
+      p->first.setNamespaceURI( targetAppNamespaceURI );
+    }
     // Parse reply to deserialize parameters
-    extractParameters( reply, parameters, string( XDAQ_APP_URN_BASE ) + target->getClassName() );
+    extractParameters( reply, parameters );
 
   }
   catch( xcept::Exception &e ){
