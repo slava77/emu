@@ -94,6 +94,14 @@ namespace emu{
       ///
       int operator==( const QualifiedName& other ) const;
 
+      /// 
+      /// Set the namespace URI.
+      /// @param namespaceURI Namespace URI.
+      ///
+      /// @return Reference to this instance of QualifiedName.
+      ///
+      QualifiedName& setNamespaceURI( const string& namespaceURI ){ namespaceURI_ = namespaceURI; return *this; }
+
     private:
       string name_;		///< XML name.
       string namespaceURI_;	///< XML namespace URI.
