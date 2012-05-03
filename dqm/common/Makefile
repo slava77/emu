@@ -61,7 +61,7 @@ Libraries = $(XdaqLibraries)
 # Compile the source files and create a shared library
 #
 DynamicLibrary = emudqmcommon
-StaticLibrary = emudqmcommon_sa
+StaticLibrary = emudqmcommon
 
 MakeFilename=Makefile
 include $(XDAQ_ROOT)/config/Makefile.rules
