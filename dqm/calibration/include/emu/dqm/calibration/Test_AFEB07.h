@@ -15,7 +15,10 @@
 #include <TProfile.h>
 #include <TFile.h>
 
-#define ACTIVETBINS_LIMIT           1 // Reject After Pulsing
+#define ACTIVETBINS_LIMIT         1 // Reject After Pulsing
+#define SLOPE_LOWER_LIMIT       1.5 
+#define SLOPE_UPPER_LIMIT       2.5
+#define CHISQ_UPPER_LIMIT      80.0 
 
 float cable_del[7][14] = // 6 is the number of different chamber types, 14 is max AFEB group number 
 { 
