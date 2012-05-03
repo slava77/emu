@@ -636,7 +636,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
           }
 
 
-          if ( nentries >= (10*16*nActiveCFEBs) )
+          if ( nentries >= (25*16*nActiveCFEBs) )
           {
             if (nActiveCFEBs - noSCAs > 0)
             { // Check that still active CFEBs present
@@ -655,9 +655,14 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
                   if ( (cfeb_sca_sum < low_sca_thresh*avg_sca_occupancy) && (lowEffCFEBs[icfeb] != 1))
                   {
-                    std::string diag=Form("CFEB Low SCA Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
-                                          (cfeb_sca_sum/avg_sca_occupancy)*100., low_sca_thresh*100 );
-                    dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_CFEB_SCA_LOW_EFF"));
+                    if (cfeb_sca_sum < 0.01*avg_sca_occupancy) {
+                      std::string diag=Form("CFEB No SCA Data: CFEB%d Layer%d", icfeb+1, ilayer);
+                      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE,"CSC_CFEB_SCA_LOW_EFF"));
+                    } else {
+                      std::string diag=Form("CFEB Low SCA Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
+                                            (cfeb_sca_sum/avg_sca_occupancy)*100., low_sca_thresh*100 );
+                      dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_CFEB_SCA_LOW_EFF"));
+                    }
                     // std::cout << cscName << " "  << diag << std::endl;
                     isLowEff = true;
                   }
@@ -784,7 +789,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
           }
 
 
-          if ( nentries >= (5*32*nActiveCFEBs) )
+          if ( nentries >= (25*32*nActiveCFEBs) )
           {
             if (nActiveCFEBs - noComps > 0)
             { // Check that still active CFEBs present
@@ -802,9 +807,14 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                     // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                     if ( (avg < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1) && (!loweredHVsegment[ilayer-1]) )
                     {
-                      std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
-                                            avg_eff, low_comp_thresh);
-                      dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                      if (avg < 0.01) {
+                        std::string diag=Form("CFEB No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                      } else {
+                        std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
+                                              avg_eff, low_comp_thresh);
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                      }
                     }
 
                     // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
