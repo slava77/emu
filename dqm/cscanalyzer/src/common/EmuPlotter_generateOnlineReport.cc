@@ -573,8 +573,14 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
     int nActiveCFEBs = nCFEBs-nbadCFEBs;
 
+    // List of layers with lowered HV for ME11
+    std::vector<bool> loweredHVsegment(6,false);
+
     if  (nActiveCFEBs > 0)
     { // Expecting active CFEBs
+
+      double avgSCAlayer=0;
+      std::vector<double> layerSCAsums;
 
       // -- CFEB SCA Occupancies Checks
       for (int ilayer=1; ilayer<=6; ilayer++)
@@ -587,6 +593,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
           TH1D* h = reinterpret_cast<TH1D*>(me);
           int nentries = (int)h->GetEntries();
           double allSCAsum = h->Integral();
+          layerSCAsums.push_back(allSCAsum);
+          avgSCAlayer += allSCAsum;
           std::vector<double> SCAsums;
           SCAsums.clear();
           int noSCAs = 0;
@@ -605,13 +613,13 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 continue; // Skip already known bad CFEBs
               }
 
-              double cfeb_sca_sum = h->Integral(icfeb*16, (icfeb+1)*16-1);
+              double cfeb_sca_sum = h->Integral(icfeb*16+1, (icfeb+1)*16);
               SCAsums.push_back(cfeb_sca_sum);
 
               if (cfeb_sca_sum == 0)
               {
                 std::string diag=Form("CFEB No SCA Data: CFEB%d Layer%d", icfeb+1, ilayer);
-                dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL,"CSC_CFEB_NO_SCA_DATA"));
+                dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE,"CSC_CFEB_NO_SCA_DATA"));
                 noSCAs++;
                 // std::cout << cscName << " " << diag << std::endl;
               }
@@ -686,7 +694,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                     {
                       double ch_thresh = 0.10;
                       if ( ((ch == 1) && (icfeb == 0))
-                           || ((ch == 16) && (icfeb == nCFEBs-1)) ) ch_thresh = 0.01; /// First and Last strips have lower occupancy
+                           || ((ch == 16) && (icfeb == nCFEBs-1)) ) ch_thresh = 0.0; /// First and Last strips have lower occupancy
                       // if (ch_val == 0 && !isLowEff && (lowEffCFEBs[icfeb] != 1))
                       if ((ch_ratio < ch_thresh) && !isLowEff && (lowEffCFEBs[icfeb] != 1))
                       {
@@ -706,6 +714,20 @@ int EmuPlotter::generateOnlineReport(std::string runname)
         }
 
       }
+
+      //* Try to detect lowered ME11 HV segment
+      avgSCAlayer/=6;
+      for (unsigned int i=0; i < layerSCAsums.size(); i++)
+      {
+        double fract = layerSCAsums[i]/avgSCAlayer;
+        if (ME11 && (fract > 0.1) && fract < 0.8 )
+        {
+          std::string diag = Form("Lowered HV Segment: Layer%d (SCA efficiency %.2f of average)", i+1, fract);
+          dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_LOWERED_HV_SEGMENT"));
+          loweredHVsegment[i] = true;
+        }
+      }
+
     }
 
     if  (nActiveCFEBs > 0)
@@ -739,7 +761,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 continue;
               }// Skip dead CFEBs
 
-              double cfeb_comp_sum = h->Integral(icfeb*32, (icfeb+1)*32-1);
+              double cfeb_comp_sum = h->Integral(icfeb*32+1, (icfeb+1)*32);
 
               // Don't count ME11 CFEB5 occupancy during Beam
               if (!isBeam || (isBeam && ME11 && (icfeb!=4) )) allCompsum += cfeb_comp_sum;
@@ -750,7 +772,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
               {
 
                 std::string diag=Form("CFEB No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);
-                dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_NO_COMPARATORS_DATA"));
+                dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_NO_COMPARATORS_DATA"));
                 noComps++;
               }
               else
@@ -778,7 +800,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                   { // Standard occupancy check logic for Cosmic run
 
                     // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
-                    if ( (avg < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1))
+                    if ( (avg < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1) && (!loweredHVsegment[ilayer-1]) )
                     {
                       std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
                                             avg_eff, low_comp_thresh);
@@ -807,9 +829,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                   }
                   else if (ME11 && icfeb==4)  // Occupancy check logic for ME11 CFEB5 with Beam run
                   {
-                    double me11_cfeb5_low_comp_thresh = 1.9;
+                    double me11_cfeb5_low_comp_thresh = 1.7;
                     double me11_cfeb5_high_comp_thresh = 5.;
-                    if ( (avg < me11_cfeb5_low_comp_thresh) && (lowEffCFEBs[icfeb] != 1))
+                    if ( (avg < me11_cfeb5_low_comp_thresh) && (lowEffCFEBs[icfeb] != 1) && (!loweredHVsegment[ilayer-1]) )
                       // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                     {
                       std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
@@ -894,7 +916,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
           for (int32_t iseg=0; iseg < nWireGroups/8; iseg++)
           {
-            double val = (h->Integral(iseg*8, (iseg+1)*8-1)/(8*ent))*100;
+            double val = (h->Integral(iseg*8+1, (iseg+1)*8)/(8*ent))*100;
             afebs.push_back(val);
             if (val>anode_max) anode_max=val;
             // std::cout << cscName << " ly" << ilayer << " ent:" <<   ent << " seg" << iseg << " " << val << std::endl;

@@ -15,7 +15,8 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
         {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB5 Layer3 (Lowered HV)", "severity": "2", "obj": "CFEB5 Layer3"}
 ]},
 {"objID": "ME+1/1/20", "name": "ME+1/1/20", "list": [
-	{"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0%", "severity": "4", "obj": "ALCT"}
+	{"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0%", "severity": "4", "obj": "ALCT"},
+	{"testID": "CSC_CLCT_TIMING", "scope": "CSC", "descr": "CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS > 2.11 because of dead ALCT", "severity": "3", "obj": "CLCT"}
 ]},
 {"objID": "ME+1/1/31", "name": "ME+1/1/31", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
@@ -283,7 +284,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 {"objID": "ME-3/1/03", "name": "ME-3/1/03", "list": [
 	{"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0%", "severity": "4", "obj": "ALCT"},
         {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer2 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer2"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer2 ( < 20.0% from avierage)", "severity": "2", "obj": "CFEB3 Layer2"}
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer2 ( < 20.0% from avierage)", "severity": "2", "obj": "CFEB3 Layer2"},
+        {"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB3 Layer2", "severity": "3", "obj": "CFEB3 Layer2"},
+        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB3 Layer2", "severity": "3", "obj": "CFEB3 Layer2"}
 ]},
 {"objID": "ME-3/1/09", "name": "ME-3/1/09", "list": [
         {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB5 Layer6", "severity": "2", "obj": "CFEB5 Layer6"},

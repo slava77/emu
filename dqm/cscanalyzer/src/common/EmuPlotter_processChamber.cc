@@ -123,8 +123,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     return;
   }
 
-  // std::cout << "DDU" << cscMapping.dduId(cid) << " " << cscName << std::endl;
-
   double DMBEvents  = 0.0;
   DMBEvents = nDMBEvents[cscTag];
 
@@ -1198,7 +1196,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           isMEvalid(nodeME, "CSC_CFEB_Comparators_Time_rms", mo_CSC_CFEB_Comparators_Time_rms);
           for (int nCFEB = 0; nCFEB < N_CFEBs; ++nCFEB)
           {
-            // std::cout << eTag << " CFEB" << nCFEB+1 << " ";
             for (int nLayer=1; nLayer<=6; nLayer++)
             {
               // std::cout << "ly" <<  nLayer << " ";
@@ -1212,8 +1209,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
               {
                 // =VB= Fix to get correct half-strip
                 int hstrip = 2*(compOutDataItr->getStrip()-1)+compOutDataItr->getComparator();
-                // std::cout << "hs" << hstrip << ",";
-
 
                 vector<int> tbins_clct = compOutDataItr->getTimeBinsOn();
                 int tbin_clct = (int)compOutDataItr->getTimeBin();
@@ -1229,6 +1224,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
                 for (uint32_t n=0; n < tbins_clct.size(); n++)
                 {
+
                   tbin_clct = tbins_clct[n];
                   if (hstrip != hstrip_previous || (tbin_clct != tbin_clct_previous + 1 && tbin_clct != tbin_clct_previous - 1) )
                   {
@@ -1281,7 +1277,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
               }
             }
 
-            // std::cout << std::endl;
           }
           if (mo_CFEB_Comparators_TimeSamples)
           {

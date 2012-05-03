@@ -122,6 +122,10 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
   uint32_t ddu_cntr = 0;
   uint32_t ddu_avg_events = 0;
 
+  int CSCtype = 0;
+  int CSCposition = 0;
+
+
   std::map<std::string, uint32_t> ddu_stats;
   hname = "All_DDUs_in_Readout";
   MonitorElement* me = findME("EMU", hname);
@@ -701,7 +705,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
   }
 
   // == Check for missing ALCT data blocks
-  me = findME("EMU", "CSC_wo_ALCT_Fract");
+  me = findME("EMU", "DMB_wo_ALCT_Fract");
   if (me)
   {
     TH2D* h = reinterpret_cast<TH2D*>(me);
@@ -714,7 +718,10 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
         if (round(z*100)>95.)
         {
           csc_cntr++;
-          std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+          // std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+	  std::string cscTag(Form("CSC_%03d_%02d", i, j));
+          std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+          deadALCT[cscName]=false;
           uint32_t csc_events = csc_stats[cscName];
           if (csc_events>min_events)
           {
@@ -843,6 +850,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
             }
           }
+        } else {
+
         }
 
       }

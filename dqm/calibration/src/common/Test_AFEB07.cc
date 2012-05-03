@@ -295,6 +295,7 @@ void Test_AFEB07::finishCSC(std::string cscID)
     MonHistos& cschistos = mhistos[cscID];
 
     TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
+    TH2F* v04 = reinterpret_cast<TH2F*>(cschistos["V04"]);
 
     CSCtoHWmap::iterator itr = cscmap.find(cscID);
 
@@ -331,7 +332,6 @@ void Test_AFEB07::finishCSC(std::string cscID)
       }
       */
 
-      int nbad = 0;
       for (int i=0; i<NLAYERS; i++)
       {
         // std::cout << cscID << Form(": ly%d ", i+1);
@@ -339,6 +339,7 @@ void Test_AFEB07::finishCSC(std::string cscID)
         {
           int ndelays = 0;
           // std::cout << Form("wg%d -> ", j+1);
+	  int nbad = 0;
           for (int k=0; k<DELAY_SCAN_STEPS; k++)
           {
             double sum = 0.;
@@ -359,34 +360,57 @@ void Test_AFEB07::finishCSC(std::string cscID)
               }
             }
 
-            if (active_tbins > 5) {
-              LOG4CPLUS_WARN(logger, Form("%s: Delay setting %d - Too many active timebins (%d) Layer %d, Wiregroup %d", cscID.c_str(), k, active_tbins, i+1, j+1 ));
+
+            ///* Find start and end timebins with data
+            int t_start = -1;
+            int t_end = -1;
+            for (int t = ((t_max>=5)?(t_max-3):0); t < ((t_max<(MAX_ALCT_TIMEBINS-3))?(t_max+3):MAX_ALCT_TIMEBINS); t++)
+            {
+              if  (dsdata.content[k][i][j].tbins[t] > 0) {
+                t_end = t;
+                if (t_start <0) t_start = t;
+              }
+
             }
 
-            if ( (t_max < 2) || (t_max > MAX_ALCT_TIMEBINS -2))
-            {
-              LOG4CPLUS_WARN(logger, Form("%s: Delay setting %d - BAD Timing (peak timebin %d) Layer %d, Wiregroup %d", cscID.c_str(), k, t_max, i+1, j+1 ));
+            ///* Warn and skip empty
+            if (t_start < 0 || t_end < 0) {
+              LOG4CPLUS_WARN(logger, Form("%s: Delay setting %d -  No Entries in Layer %d, Wiregroup %d", cscID.c_str(), k, i+1, j+1 ));
+	      nbad++;
               continue;
             }
-	   /*
-            for (int t = t_max-2; t < t_max+2; t++)
-            {
-              sum += dsdata.content[k][i][j].tbins[t];
-              w_sum += dsdata.content[k][i][j].tbins[t]*(t);
-              e_sum += dsdata.content[k][i][j].tbins[t]*(t)*(t);
 
-            }
+	    /*
+            std::cout << Form("%s: delay %2d layer %d, wg %3d - t_max %2d, t_start %2d, t_end %2d, width %2d",
+                              cscID.c_str(), k, i+1, j+1, t_max, t_start, t_end, (t_end - t_start) ) << std::endl;
 	    */
-	    
-            for (int t = 0; t < MAX_ALCT_TIMEBINS; t++)
+
+            if (t_end - t_start > 4) {
+              LOG4CPLUS_WARN(logger, Form("%s: Delay setting %d - Too many active timebins (%d) Layer %d, Wiregroup %d",
+                                          cscID.c_str(), k, t_end -t_start, i+1, j+1 ));
+	       
+            }
+
+            v04->Fill(k, (t_end - t_start) );
+
+            for (int t = t_start; t <= t_end; t++)
             {
               sum += dsdata.content[k][i][j].tbins[t];
               w_sum += dsdata.content[k][i][j].tbins[t]*(t);
               e_sum += dsdata.content[k][i][j].tbins[t]*(t)*(t);
-              if (dsdata.content[k][i][j].tbins[t]) active_tbins++;
 
             }
-	    
+
+            /*
+                   for (int t = 0; t < MAX_ALCT_TIMEBINS; t++)
+                   {
+                     sum += dsdata.content[k][i][j].tbins[t];
+                     w_sum += dsdata.content[k][i][j].tbins[t]*(t);
+                     e_sum += dsdata.content[k][i][j].tbins[t]*(t)*(t);
+                     if (dsdata.content[k][i][j].tbins[t]) active_tbins++;
+
+                   }
+             */
 
 
             if ( sum > 0 )
@@ -396,11 +420,6 @@ void Test_AFEB07::finishCSC(std::string cscID)
               tavg = w_sum/sum;
               terr = sqrt( (e_sum / sum) - tavg*tavg) / sqrt(sum);
 
-            } else {
-
-              LOG4CPLUS_WARN(logger, Form("%s: Delay setting %d - No histogram entries for Layer %d, Wiregroup %d", cscID.c_str(), k, i+1, j+1 ));
-              nbad++;
-
             }
 
             dsdata.content[k][i][j].tavg = tavg;
@@ -408,6 +427,11 @@ void Test_AFEB07::finishCSC(std::string cscID)
             v03->Fill(k, tavg);
           }
 
+	  if (nbad > 2) {
+		LOG4CPLUS_WARN(logger, Form("%s: Too many empty entries for delay settings (%d times) in Layer %d, Wiregroup %d. Skipping.", 
+			cscID.c_str(), nbad, i+1, j+1 ));
+		continue;
+	  }
           fitit( dsdata, i, j , ndelays, &mtemp, &btemp, &chisq);
 
           /* Convert time measurements from timebins to ns (25 ns / timebin), and correct
