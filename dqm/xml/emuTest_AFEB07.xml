@@ -99,7 +99,7 @@ TMB DAV Error'|19='CFEB DAV Error'|20='DMB Active Error'|</SetXLabels>
                 <YMin>0</YMin>
                 <YMax>6</YMax>
                 <YBins>6</YBins>
-                <YTitle>Number of Hits</YTitle>
+                <YTitle>Layer #</YTitle>
                 <SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
                 <SetOption>colz</SetOption>
@@ -141,6 +141,25 @@ TMB DAV Error'|19='CFEB DAV Error'|20='DMB Active Error'|</SetXLabels>
                 <YMax>12</YMax>
                 <YBins>120</YBins>
                 <YTitle>Time Bin</YTitle>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOption>colz</SetOption>
+        </TestResult>
+
+	<TestResult>
+                <Test>AFEB07</Test>
+                <Type>h2</Type>
+                <Title>V04 - Active Time Bins per Delay Setting</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V04</Name>
+                <XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+                <XTitle>Delay</XTitle>
+                <YMin>1</YMin>
+                <YMax>33</YMax>
+                <YBins>32</YBins>
+                <YTitle>Active Time Bins</YTitle>
                 <SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
                 <SetOption>colz</SetOption>

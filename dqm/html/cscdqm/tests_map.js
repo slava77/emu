@@ -31,6 +31,7 @@ var TESTS_MAP = {
 	{"testID": "DDU_INPUT_IN_ERROR_STATE", "testPlot": "DDU_State_of_CSCs", "testScope": "DDU"},
 	{"testID": "DDU_INPUT_IN_WARNING_STATE", "testPlot": "DDU_State_of_CSCs", "testScope": "DDU"},
 
+        {"testID": "CSC_NO_DATA", "testPlot": "EMU_Test08_Reporting_Unpacked_CSCs", "testScope": "EMU"},
 	{"testID": "CSC_HOT_CHAMBER", "testPlot": "EMU_Test08_Reporting_Unpacked_CSCs", "testScope": "EMU"},
 	{"testID": "CSC_LOW_EFF_CHAMBER", "testPlot": "EMU_Test08_Reporting_Unpacked_CSCs", "testScope": "EMU"},
 	{"testID": "CSC_WITH_FORMAT_ERRORS", "testPlot": "DMB/DMB_Test01_Binary_Examiner_Report", "testScope": "CSC"},
@@ -55,7 +56,8 @@ var TESTS_MAP = {
 	{"testID": "CSC_ALCT_AFEB_NOISY", "testPlot": "ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group", "testScope": "CSC"},
 	{"testID": "CSC_NO_HV_SEGMENT", "testPlot": "ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group", "testScope": "CSC"},
         {"testID": "CSC_ALCT_TIMING", "testPlot": "ALCT/ALCT_ALCT0_BXN_and_ALCT_L1A_BXN_Synchronization", "testScope": "CSC"},
-	{"testID": "CSC_CLCT_TIMING", "testPlot": "TMB/TMB-CLCT_CLCT0_BXN_and_TMB_L1A_BXN_Synchronization", "testScope": "CSC"}
+	{"testID": "CSC_CLCT_TIMING", "testPlot": "TMB/TMB-CLCT_CLCT0_BXN_and_TMB_L1A_BXN_Synchronization", "testScope": "CSC"},
+	{"testID": "CSC_LOWERED_HV_SEGMENT", "testPlot": "CFEB/CFEB_SCA_Active_Strips_Occupancy","testScope": "CSC"}
 
 	]
 } 

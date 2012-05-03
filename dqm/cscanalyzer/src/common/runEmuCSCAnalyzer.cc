@@ -442,11 +442,11 @@ int main(int argc, char **argv)
       }
       else if (f_recalcFractHistos)
       {
-	LOG4CPLUS_INFO (logger, "Recalculating Fraction and Efficiency Histograms from ROOT file " << histofile);
-	plotter->loadFromROOTFile(histofile, false);
+        LOG4CPLUS_INFO (logger, "Recalculating Fraction and Efficiency Histograms from ROOT file " << histofile);
+        plotter->loadFromROOTFile(histofile, false);
         plotter->updateFractionHistos();
-	plotter->updateEfficiencyHistos();
-	plotter->updateCSCHistos();
+        plotter->updateEfficiencyHistos();
+        plotter->updateCSCHistos();
         plotter->saveToROOTFile(std::string(histofile+".new"));
 
       }
