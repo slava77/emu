@@ -15,8 +15,8 @@
                 <XBins>112</XBins>
                 <XTitle>Wire Group Number</XTitle>
                 <YMin>140</YMin>
-                <YMax>260</YMax>
-                <YBins>120</YBins>
+                <YMax>280</YMax>
+                <YBins>140</YBins>
                 <YTitle>Intercept, ns</YTitle>
 		<Low1Limit>150</Low1Limit>
 		<Low0Limit>150</Low0Limit>
@@ -120,7 +120,7 @@ TMB DAV Error'|19='CFEB DAV Error'|20='DMB Active Error'|</SetXLabels>
                 <YMin>0</YMin>
                 <YMax>192</YMax>
                 <YBins>192</YBins>
-                <YTitle>Time Bins</YTitle>
+                <YTitle>(32 x Layer) + Time Bins</YTitle>
                 <SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
                 <SetOption>colz</SetOption>
