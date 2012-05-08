@@ -4,8 +4,6 @@ using namespace XERCES_CPP_NAMESPACE;
 
 using namespace emu::dqm::utils;
 
-static char* F_CSC = "ME+3.2.20";
-
 Test_AFEB07::Test_AFEB07(std::string dfile): Test_Generic(dfile)
 {
   testID = "AFEB07";
@@ -253,12 +251,18 @@ void Test_AFEB07::analyzeCSC(const CSCEventData& data)
           int wg = wireDigisItr->getWireGroup();
           v01->Fill(wg-1, nLayer-1);
           vector<int> tbins = wireDigisItr->getTimeBinsOn();
+	  int disc_on = 0;
+          int prev_tbin = -1;
           for (uint32_t n=0; n < tbins.size(); n++)
           {
-            if (n < ACTIVETBINS_LIMIT) {
+            if ((disc_on==0) && (n < ACTIVETBINS_LIMIT)) {
               v02->Fill(wg-1, (nLayer-1)*32+tbins[n]);
               dsdata.content[curr_delay][nLayer-1][wg-1].tbins[tbins[n]]++;
+	      // printf("activebins %d, ALCT[%d,][%d,] tbin %d, event %d \n",n+1,nLayer,wg,tbins[n],nCSCEvents[cscID]);
+	      disc_on = 1;
             }
+	    if ((prev_tbin >=0) && (tbins[n] != (prev_tbin+1)) ) disc_on = 0;
+	    prev_tbin = tbins[n];
 
           }
           dsdata.content[curr_delay][nLayer-1][wg-1].cnt++;
@@ -325,12 +329,6 @@ void Test_AFEB07::finishCSC(std::string cscID)
       CSCMapItem::MapItem mapitem = cratemap->item(id);
 
 
-      /*
-      std::ofstream f;
-      if (cscID == F_CSC) {
-        f.open("dump.txt", std::ios::app);
-      }
-      */
 
       for (int i=0; i<NLAYERS; i++)
       {
@@ -338,10 +336,11 @@ void Test_AFEB07::finishCSC(std::string cscID)
         for (int j=0; j<getNumWireGroups(cscID); j++)
         {
           int ndelays = 0;
-          // std::cout << Form("wg%d -> ", j+1);
+          // std::cout << Form("ly%d wg%d\n", i+1, j+1);
 	  int nbad = 0;
           for (int k=0; k<DELAY_SCAN_STEPS; k++)
           {
+            // std::cout << Form("dly%2d", k+1);
             double sum = 0.;
             double w_sum = 0.;
             double e_sum = 0.;
@@ -353,18 +352,20 @@ void Test_AFEB07::finishCSC(std::string cscID)
             int t_max=0;
             for (int t = 0; t < MAX_ALCT_TIMEBINS; t++)
             {
+	      // std::cout << Form(" %3d", dsdata.content[k][i][j].tbins[t]);
               if (dsdata.content[k][i][j].tbins[t]) active_tbins++;
               if (dsdata.content[k][i][j].tbins[t] >= n_max) {
                 n_max = dsdata.content[k][i][j].tbins[t];
                 t_max = t;
               }
             }
+	    // std::cout << std::endl;
 
 
             ///* Find start and end timebins with data
             int t_start = -1;
             int t_end = -1;
-            for (int t = ((t_max>=5)?(t_max-3):0); t < ((t_max<(MAX_ALCT_TIMEBINS-3))?(t_max+3):MAX_ALCT_TIMEBINS); t++)
+            for (int t = ((t_max>=3)?(t_max-3):0); t < ((t_max<(MAX_ALCT_TIMEBINS-3))?(t_max+3):MAX_ALCT_TIMEBINS); t++)
             {
               if  (dsdata.content[k][i][j].tbins[t] > 0) {
                 t_end = t;
@@ -401,17 +402,6 @@ void Test_AFEB07::finishCSC(std::string cscID)
 
             }
 
-            /*
-                   for (int t = 0; t < MAX_ALCT_TIMEBINS; t++)
-                   {
-                     sum += dsdata.content[k][i][j].tbins[t];
-                     w_sum += dsdata.content[k][i][j].tbins[t]*(t);
-                     e_sum += dsdata.content[k][i][j].tbins[t]*(t)*(t);
-                     if (dsdata.content[k][i][j].tbins[t]) active_tbins++;
-
-                   }
-             */
-
 
             if ( sum > 0 )
             {
@@ -441,15 +431,6 @@ void Test_AFEB07::finishCSC(std::string cscID)
           r02.content[i][j] = mtemp * 25.;
           r03.content[i][j] = chisq;
 
-
-          /*
-                          std::cout << Form("%.2f %.2f %f; ", r01.content[i][j], r02.content[i][j], r03.content[i][j]);
-                          for (int k=0; k<DELAY_SCAN_STEPS; k++)
-                          {
-                              std::cout << Form("d%d=%.2f, %f; ",k, dsdata.content[k][i][j].tavg, dsdata.content[k][i][j].terr);
-                          }
-                          std::cout << std::endl;
-          */
         }
         // std::cout << std::endl;
       }
@@ -558,15 +539,11 @@ void Test_AFEB07::finishCSC(std::string cscID)
         if (ngood[chip] > 0) d[chip] = ((bmax + avg) - b_avg[chip])
                                          / m_avg[chip];
         else d[chip] = -1;
+        // std::cout << Form("chip%d bmax:%.f avg:%.f b_avg:%.f m_avg:%.f dchip:%.f\n", chip, bmax, avg, b_avg[chip], m_avg[chip], d[chip]);
         idelay[chip] = rint(d[chip]);
       }
 
 
-      /*
-      if (cscID == F_CSC) {
-        f.close();
-      }
-      */
 
       ///* == Save results to text files
       std::string rpath = "Test_"+testID+"/"+outDir;
@@ -583,29 +560,6 @@ void Test_AFEB07::finishCSC(std::string cscID)
               << " ----------------------------------------------------------" << std::endl;
 
 
-      /*
-          // if chamber type 1/3, 3/1 or 4/1 - add 6 dummy AFEBs in front of all the rest
-          // in file test_13_13.result, because ALCT slow control library
-          // requires the exact number of AFEBs in the threshold config file
-          // (Madorsky 12/07/03)
-
-          if ((cscID.find("ME+4.1") == 0) || (cscID.find("ME-4.1") == 0) ||
-              (cscID.find("ME+3.1") == 0) || (cscID.find("ME-3.1") == 0) ||
-              (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") == 0) )
-          {
-            for (int iafeb = 0; iafeb < 6; iafeb++)
-            {
-              res_out << std::setw(5) <<  (iafeb+1) << "\t" << std::setw(4) << (int)r13.content[0][iafeb] << std::endl;
-            }
-
-            for (int iafeb = 0; iafeb < nAFEBs; iafeb++)
-            {
-              res_out << std::setw(5)<< (iafeb+7) << "\t" << std::setw(4) << (int)r13.content[0][iafeb] << std::endl;
-            }
-          }
-          else
-      */
-      {
 
         for (int iafeb = 0; iafeb < nAFEBs; iafeb++)
         {
@@ -613,7 +567,6 @@ void Test_AFEB07::finishCSC(std::string cscID)
           res_out << Form("  %2d     %2d     %5.2f    %6.2f      %2d         %6.2f",
                           iafeb+1, ngood[iafeb], m_avg[iafeb], b_avg[iafeb], idelay[iafeb], y) << std::endl;
         }
-      }
 
       res_out << "\n# " << now() << std::endl;
       res_out.close();
@@ -694,56 +647,6 @@ void  Test_AFEB07::fitit(DelayScanData& dsdata, int layer, int wire , int npoint
   }
 }
 
-/*
-void fitit(float *x, float *y, float *yerr, int npoints, float *emm,
-           float *bee, float *chisq)
-  {
-
-  int       j;
-  double    denom, weight;
-  double    sum, sumx, sumx2, sumy, sumxy;
-  double    resid[MAX_POINTS], yfit[MAX_POINTS];
-
-  sum = 0;
-  sumx = 0;
-  sumx2 = 0;
-  sumy = 0;
-  sumxy = 0;
-
-  for (j = 0; j < npoints; j++)
-    {
-    weight = 1 / (yerr[j] * yerr[j]);
-    sum = sum + 1. * weight;
-    sumx = sumx + x[j] * weight;
-    sumx2 = sumx2 + x[j] * x[j] * weight;
-    sumy = sumy + y[j] * weight;
-    sumxy = sumxy + x[j] * y[j] * weight;
-    }
-
-  denom = sumx2 * sum - sumx * sumx;
-  if (denom == 0)
-    {
-    printf("### Denominator is zero in fit ###\n");
-    *chisq = -999;
-    return;
-    }
-
-  *emm = (sumxy * sum - sumx * sumy) / denom;
-  *bee = (sumx2 * sumy - sumx * sumxy) / denom;
-
-  *chisq = 0;
-  for (j = 0; j < npoints; j++)
-    {
-    yfit[j] = *emm * x[j] + *bee;
-    resid[j] = y[j] - yfit[j];
-    *chisq += (resid[j] / yerr[j]) * (resid[j] / yerr[j]);
-    }
-
-  return;
-  }
-*/
-
-
 ///* Return index in array of chamber types cables
 int Test_AFEB07::getChamberCableIndex(std::string cscID)
 {
@@ -766,7 +669,7 @@ int Test_AFEB07::getChamberCableIndex(std::string cscID)
   else return 0; // ME 1/1 ?? cable delay
 }
 
-///* Return delay offset for chamber
+///* Return delay offset for chamber cable 
 double Test_AFEB07::getChamberDelayOffset(std::string cscID)
 {
   return 0;
