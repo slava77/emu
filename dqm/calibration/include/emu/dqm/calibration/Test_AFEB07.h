@@ -15,7 +15,7 @@
 #include <TProfile.h>
 #include <TFile.h>
 
-#define ACTIVETBINS_LIMIT         3 // Reject After Pulsing
+#define ACTIVETBINS_LIMIT         2 // Reject After Pulsing
 #define SLOPE_LOWER_LIMIT       1.5 
 #define SLOPE_UPPER_LIMIT       2.5
 #define CHISQ_UPPER_LIMIT      80.0 
