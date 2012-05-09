@@ -1,8 +1,10 @@
+#include <iostream>
 #include <stdio.h>
 #include <iomanip>
 #include <unistd.h> 
 #include <string>
 #include <sstream>
+#include <algorithm>
 //
 #include "emu/pc/CrateUtilities.h"
 #include "emu/pc/MPC.h"

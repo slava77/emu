@@ -12,6 +12,7 @@ not crate and slot in their GUIs
 
 #include "emu/db/ConnectionsDB.h"
 
+#include <stdio.h>
 #include <string>
 #include <vector>
 #include <stdexcept>

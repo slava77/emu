@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.23 2012/02/20 13:05:07 liu Exp $
+// $Id: MPC.cc,v 3.24 2012/05/09 20:59:00 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.24  2012/05/09 20:59:00  liu
+// fix missing standard header files
+//
 // Revision 3.23  2012/02/20 13:05:07  liu
 // include Board ID in Configuration Check
 //
@@ -174,6 +177,7 @@
 //-----------------------------------------------------------------------
 #include <iostream>
 #include <iomanip> 
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>

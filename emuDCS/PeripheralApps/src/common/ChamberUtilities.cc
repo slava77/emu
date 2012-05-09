@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.41 2012/01/30 16:46:29 cvuosalo Exp $
+// $Id: ChamberUtilities.cc,v 1.42 2012/05/09 20:59:00 liu Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.42  2012/05/09 20:59:00  liu
+// fix missing standard header files
+//
 // Revision 1.41  2012/01/30 16:46:29  cvuosalo
 // Fix compiling warning about uninitiailized variable
 //
@@ -370,6 +373,7 @@
 //
 //
 #include <stdio.h>
+#include <stdlib.h>
 #include <iomanip>
 #include <cmath>
 #include <unistd.h> 
