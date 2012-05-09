@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.78 2012/04/27 15:48:42 kkotov Exp $
+// $Id: DAQMB.cc,v 3.79 2012/05/09 20:59:00 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.79  2012/05/09 20:59:00  liu
+// fix missing standard header files
+//
 // Revision 3.78  2012/04/27 15:48:42  kkotov
 //
 // Safeguard preventing the library to crash on a missing file in smuload_verify
@@ -455,6 +458,8 @@
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <cmath>
 #include <unistd.h>
 #include <iomanip>

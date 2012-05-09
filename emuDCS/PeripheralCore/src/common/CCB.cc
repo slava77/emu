@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.46 2012/01/27 21:32:16 liu Exp $
+// $Id: CCB.cc,v 3.47 2012/05/09 20:59:00 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.47  2012/05/09 20:59:00  liu
+// fix missing standard header files
+//
 // Revision 3.46  2012/01/27 21:32:16  liu
 // clean Get/SetCCBmode functions
 //
@@ -304,6 +307,7 @@
 //-----------------------------------------------------------------------
 #include "emu/pc/CCB.h"
 #include "emu/pc/VMEController.h"
+#include <stdio.h>
 #include <iostream>
 #include <iomanip>
 #include <sstream>

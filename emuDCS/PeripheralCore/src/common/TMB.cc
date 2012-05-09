@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.99 2011/10/14 17:42:12 liu Exp $
+// $Id: TMB.cc,v 3.100 2012/05/09 20:59:00 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.100  2012/05/09 20:59:00  liu
+// fix missing standard header files
+//
 // Revision 3.99  2011/10/14 17:42:12  liu
 // fix warnings for GCC4
 //
@@ -530,6 +533,8 @@
 #include <iomanip>
 #include <cstdio>
 #include <sstream>
+#include <stdlib.h>
+#include <string.h>
 #include<math.h>
 
 #include "emu/pc/TMB_constants.h"

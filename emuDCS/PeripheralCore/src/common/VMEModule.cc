@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.31 2012/02/09 12:34:05 liu Exp $
+// $Id: VMEModule.cc,v 3.32 2012/05/09 20:59:00 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.32  2012/05/09 20:59:00  liu
+// fix missing standard header files
+//
 // Revision 3.31  2012/02/09 12:34:05  liu
 // turn on vme package delay in svfLoad
 //
@@ -185,6 +188,8 @@
 #include <cmath>
 #include <string>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <iostream>
 #include <unistd.h> // read and write
 // #include "emu/pc/EMU_JTAG_constants.h"

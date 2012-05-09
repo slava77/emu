@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.60 2011/10/14 16:22:21 liu Exp $
+// $Id: VMEController.cc,v 3.61 2012/05/09 20:59:00 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.61  2012/05/09 20:59:00  liu
+// fix missing standard header files
+//
 // Revision 3.60  2011/10/14 16:22:21  liu
 // change the 2nd argument of vme_controller from pointer to unsigned int
 //
@@ -293,6 +296,8 @@
 #include <cmath>
 #include <string>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <iostream>
 #include <unistd.h> // read and write
 #include <fcntl.h>

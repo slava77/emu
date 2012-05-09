@@ -10,6 +10,7 @@ parse and use xml board data bases.
 
 #include "emu/db/BoardsDB.h"
 
+#include <stdio.h>
 #include <string>
 #include <vector>
 #include <stdexcept>

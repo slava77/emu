@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <time.h>
+#include <string.h>
 //
 #include "emu/pc/TMB.h"
 #include "emu/pc/TMB_constants.h"
