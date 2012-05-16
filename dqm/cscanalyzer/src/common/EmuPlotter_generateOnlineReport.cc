@@ -812,7 +812,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                         dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
                       } else {
                         std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
-                                              avg_eff, low_comp_thresh);
+                                              avg, low_comp_thresh);
                         dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
                       }
                     }
@@ -845,7 +845,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                       // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                     {
                       std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
-                                            avg_eff, me11_cfeb5_low_comp_thresh);
+                                            avg, me11_cfeb5_low_comp_thresh);
                       dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
                     }
 
@@ -853,7 +853,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                       // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
                     {
                       std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f%% > %.1f%% threshold)", icfeb+1, ilayer,
-                                            avg_eff, me11_cfeb5_high_comp_thresh);
+                                            avg, me11_cfeb5_high_comp_thresh);
                       dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY"));
                     }
                   }
