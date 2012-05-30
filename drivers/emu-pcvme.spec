@@ -4,7 +4,7 @@
 
 Summary: CMS Emu Peripheral Controller Gbit driver for kernel %{kernel_version}
 Name: emu-pcvme
-Version: 1.0.1
+Version: 1.0.2
 Release: 1.slc4
 License: none
 Group: none
@@ -53,7 +53,6 @@ if [[ -x /etc/rc.d/init.d/pcratedriver ]]; then
 fi
 
 %postun
-/sbin/chkconfig --del pcratedriver 
 
 %changelog
 * Sun Aug 16 2009 --
