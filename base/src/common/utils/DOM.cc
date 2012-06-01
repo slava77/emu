@@ -1,4 +1,4 @@
-// $Id: DOM.cc,v 1.2 2012/04/12 05:24:27 khotilov Exp $
+// $Id: DOM.cc,v 1.3 2012/06/01 14:00:14 banicz Exp $
 
 #include "emu/utils/DOM.h"
 #include "emu/utils/Xalan.h"
@@ -896,4 +896,146 @@ std::string emu::utils::getNodeValue( const XalanNode* const node )
     }
   }
   return value.str();
+}
+
+
+std::string emu::utils::removeSelectedNode( const std::string& XML, 
+					    const std::string& xpath )
+{
+
+  std::string modifiedXML;
+
+  XALAN_USING_XALAN(XalanDOMString)
+  XALAN_USING_XALAN(XalanDocument)
+  XALAN_USING_XALAN(XalanDocumentPrefixResolver)
+  XALAN_USING_XALAN(XalanNode)
+  XALAN_USING_XALAN(XercesDOMSupport)
+  XALAN_USING_XALAN(XercesDOMWrapperParsedSource)
+  XALAN_USING_XALAN(XercesDocumentWrapper)
+  XALAN_USING_XALAN(XercesParserLiaison)
+  XALAN_USING_XALAN(XalanElement)
+  XALAN_USING_XERCES(DOMNode)
+  XALAN_USING_XERCES(DOMAttr)
+  XALAN_USING_XERCES(SAXParseException)
+
+  XALAN_USING_XALAN(XalanDOMException)
+  XALAN_USING_XALAN(XSLException)
+
+  XALAN_USING_XERCES(XMLPlatformUtils)
+  XALAN_USING_XALAN(XPathEvaluator)
+
+  try
+  {
+    // Namespaces won't work if these are not initialized:
+    XMLPlatformUtils::Initialize();
+    XPathEvaluator::initialize();
+    
+    XercesDOMSupport theDOMSupport;
+    XercesParserLiaison theLiaison(theDOMSupport);
+    theLiaison.setDoNamespaces(true); // although it seems to be already set...
+    theLiaison.setBuildWrapperNodes(true);
+    theLiaison.setBuildMaps(true);
+    
+    // Create an input source that represents a local file...
+    // const XalanDOMString    theFileName(XML.c_str());
+    // const LocalFileInputSource      theInputSource(theFileName.c_str());
+    const char* const id = "removeSelectedNode";
+    MemBufInputSource theInputSource( (const XMLByte*) XML.c_str(), (unsigned int) XML.size(), id );
+    XalanDocument* xalan_document = theLiaison.parseXMLStream( theInputSource );
+    // cout << "Original XML from Xalan" << endl << emu::utils::serialize( xalan_document ) << endl;
+    XercesDocumentWrapper* docWrapper = theLiaison.mapDocumentToWrapper(xalan_document);
+    
+    XalanDocumentPrefixResolver thePrefixResolver( docWrapper );
+    
+    XPathEvaluator theEvaluator;
+    
+    XALAN_USING_XALAN(NodeRefList);
+
+    XalanDOMString xpathXalan( xpath.c_str() );
+
+    NodeRefList nodes;
+    nodes = theEvaluator.selectNodeList( nodes,
+    					 theDOMSupport,
+    					 xalan_document,
+    					 xpathXalan.data(),
+    					 thePrefixResolver );
+
+    // Convert Xalan nodes into DOM nodes
+    std::vector<DOMNode*> DOMNodes;
+    for ( XalanDOMString::size_type i=0; i<nodes.getLength(); ++i ){
+      DOMNode* node = const_cast<DOMNode*>( docWrapper->mapNode( nodes.item(i) ) );
+      if ( node ) DOMNodes.push_back( node );
+    }
+    
+    // Remove DOM nodes
+    DOMDocument *domDoc = const_cast<DOMDocument*>( docWrapper->getXercesDocument() );
+    for ( std::vector<DOMNode*>::iterator dn = DOMNodes.begin(); dn != DOMNodes.end(); ++dn ){
+      switch ( (*dn)->getNodeType() ){
+      case DOMNode::ELEMENT_NODE:
+      case DOMNode::TEXT_NODE:
+	(*dn)->getParentNode()->removeChild( *dn );
+	break;
+      case DOMNode::ATTRIBUTE_NODE:
+	DOMAttr *attr = dynamic_cast<DOMAttr*>(*dn);
+	attr->getOwnerElement()->removeAttributeNode( attr );
+	break;
+      }
+    }
+
+    modifiedXML = emu::utils::serializeDOM( domDoc );
+    // cout << "Modified XML from DOM" << endl << modifiedXML << endl;
+
+    XPathEvaluator::terminate();
+    // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
+    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // "The termination call is currently optional, to aid those dynamically loading the parser 
+    // to clean up before exit, or to avoid spurious reports from leak detectors."
+    // XMLPlatformUtils::Terminate();
+  }
+  catch( SAXParseException& e )
+  {
+    std::stringstream ss;
+    ss << "Failed to remove selected node: " << xoap::XMLCh2String( e.getMessage() );
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch( XMLException& e )
+  {
+    std::stringstream ss;
+    ss << "Failed to remove selected node: " << xoap::XMLCh2String( e.getMessage() );
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch( DOMException& e )
+  {
+    std::stringstream ss;
+    ss << "Failed to remove selected node: " << xoap::XMLCh2String( e.getMessage() );
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch( XalanDOMException& e )
+  {
+    std::stringstream ss;
+    ss << "Failed to remove selected node: exception code " << e.getExceptionCode();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch( XSLException& e )
+  {
+    std::stringstream ss;
+    ss << "Failed to remove selected node: XSLException type: " << XalanDOMString( e.getType() ) << ", message: " << e.getMessage();
+    XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch( xcept::Exception& e )
+  {
+    XCEPT_RETHROW( xcept::Exception, "Failed to remove selected node: ", e );
+  }
+  catch( std::exception& e )
+  {
+      std::stringstream ss; 
+      ss << "Failed to remove selected node: " << e.what();
+      XCEPT_RAISE( xcept::Exception, ss.str() );
+  }
+  catch(...)
+  {
+    XCEPT_RAISE( xcept::Exception, "Failed to remove selected node: Unknown exception." );
+  }
+  
+  return modifiedXML;
 }

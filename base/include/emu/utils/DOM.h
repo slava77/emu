@@ -69,6 +69,15 @@ XALAN_USING_XALAN(XalanNode)
  */
 std::string getNodeValue(const XalanNode* const node);
 
+    /// Removes node(s) selected by an XPath expression.
+    ///
+    /// @param XML Original XML.
+    /// @param xpath XPath expression specifying the node(s) to be removed.
+    ///
+    /// @return Modified XML.
+    ///
+std::string removeSelectedNode( const std::string& XML, 
+				const std::string& xpath );
 }}
 
 #endif
