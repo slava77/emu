@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.14 2012/01/30 17:02:18 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.15 2012/06/02 19:05:41 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -168,7 +168,7 @@ throw (emu::fed::exception::FMMThreadException)
 			throw e2;
 		} else {
 			MY_REVOKE_ALARM("IRQThreadStart");
-			LOG4CPLUS_DEBUG(logger, "Started thread: " << threadVector_[iThread].second);
+			LOG4CPLUS_INFO(logger, "Started thread: " << threadVector_[iThread].second);
 		}
 	}
 }
@@ -250,6 +250,65 @@ throw (emu::fed::exception::FMMThreadException)
 
 	LOG4CPLUS_INFO(logger, "Removing appender");
 	logger.removeAllAppenders();
+}
+
+static std::string mkBitStr(uint16_t bits)
+{
+	std::bitset<16> setOBits(bits);
+	return (setOBits.to_string<char, char_traits<char>, allocator<char> >());
+}
+
+
+static void checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::Logger &logger)
+{
+	static long int index = 1, delay = 1;
+	bool statRep = false;
+	std::ostringstream statusMsg, busyFibers, warnFibers, warnNowFibers, errFibers, oosFibers;
+	statusMsg <<     "DDU statuses            ";
+	busyFibers << 	 "Fibers that had Busy    ";
+	warnFibers << 	 "Fibers that had Warning ";
+	warnNowFibers << "Fibers now in Warning   ";
+	errFibers <<     "Fibers now in Error     ";
+	oosFibers <<     "Fibers now in OOS       ";
+	for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+		emu::fed::DDU *myDDU = (*iDDU);
+		if (myDDU != NULL) {
+			uint16_t ruiNum = myDDU->getRUI();
+			uint8_t fmmStat = myDDU->readRealFMM();
+			std::pair<std::string, std::string> fmmStrStat = emu::fed::DDUDebugger::RealFMM(fmmStat);
+			// uint16_t paraStat = myDDU->readParallelStatus();
+			statusMsg << std::setw(3) << ruiNum << " " << fmmStrStat.first << "        ";
+			// statusMsg << std::hex << paraStat << " ";
+			uint16_t busyStat = myDDU->readBusyHistory();
+			uint16_t warnHStat = myDDU->readWarningHistory();
+			uint16_t warnNStat = myDDU->readFMMFullWarning();
+			uint16_t errStat = myDDU->readFMMError();
+			uint16_t oosStat = myDDU->readFMMLostSync();
+			if (statRep == false)
+				statRep = (busyStat | warnHStat | warnNStat | errStat | oosStat);
+			busyFibers << mkBitStr(busyStat) << " ";
+			warnFibers << mkBitStr(warnHStat) << " ";
+			warnNowFibers << mkBitStr(warnNStat) << " ";
+			errFibers << mkBitStr(errStat) << " ";
+			oosFibers << mkBitStr(oosStat) << " ";
+			/*
+			busyFibers << mkBitStr(myDDU->readBusyHistory()) << " ";
+			warnFibers << mkBitStr(myDDU->readWarningHistory()) << " ";
+			warnNowFibers << mkBitStr(myDDU->readFullWarning()) << " ";
+			errFibers << mkBitStr(myDDU->readFMMError()) << " ";
+			oosFibers << mkBitStr(myDDU->readFMMLostSync()) << " ";
+			*/
+		}
+	}
+	if (statRep && index++ >= delay) {
+		if (delay > 500) {
+			delay = 1;
+			index = 1;
+		} else delay *= 2;
+		LOG4CPLUS_DEBUG(logger, endl << statusMsg.str() << endl << warnNowFibers.str()
+			<< endl << warnFibers.str() << endl
+			<< busyFibers.str() << endl << oosFibers.str() << endl << errFibers.str() << endl);
+	}
 }
 
 
@@ -455,7 +514,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
 						if ( myDDU->getFiber(iFiber)->ignoreErr()) {
 							ignBits = ignBits | (1<<iFiber);
-							LOG4CPLUS_DEBUG(logger, "Chamber set to be ignored: " << myDDU->getFiber(iFiber)->getName());
+							if (combinedStatus & (1<<iFiber))
+								LOG4CPLUS_DEBUG(logger, "Chamber in error but set to be ignored: " << myDDU->getFiber(iFiber)->getName());
 						}
 					}
 					if (ignBits != 0) {
@@ -496,7 +556,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							debugMsg << "Bits for repeated chamber errors being ignored -- ADV Status: " << statusBitString;
 						}
 						logMsg << "errors to report. Ignoring.";
-						LOG4CPLUS_WARN(logger, logMsg.str());
+						LOG4CPLUS_INFO(logger, logMsg.str());
 						if (combinedStatus != 0)
 							LOG4CPLUS_DEBUG(logger, debugMsg.str());
 						// LOG4CPLUS_WARN(logger, "IRQ detected on crate " << crateNumber << " slot " << slot << " with no new errors.  Ignoring.");
@@ -806,10 +866,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 					// Do TF-related checks
 					if (myCrate->isTrackFinder()) {
-
-						
-
+						// Nothing to do currently.
 					} else { // Do DCC-related checks
+
+						checkDDUStatus(dduVector, logger);
 
 						for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
 								
