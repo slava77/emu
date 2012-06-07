@@ -1,4 +1,4 @@
-// $Id: DOM.cc,v 1.3 2012/06/01 14:00:14 banicz Exp $
+// $Id: DOM.cc,v 1.4 2012/06/07 15:46:00 banicz Exp $
 
 #include "emu/utils/DOM.h"
 #include "emu/utils/Xalan.h"
@@ -302,6 +302,7 @@ std::string emu::utils::setSelectedNodeValue( const std::string &XML,
   XALAN_USING_XALAN(XalanDocument)
   XALAN_USING_XALAN(XalanDocumentPrefixResolver)
   XALAN_USING_XALAN(XalanNode)
+  XALAN_USING_XALAN(NodeRefList);
   XALAN_USING_XALAN(XercesDOMSupport)
   XALAN_USING_XALAN(XercesDOMWrapperParsedSource)
   XALAN_USING_XALAN(XercesDocumentWrapper)
@@ -341,31 +342,22 @@ std::string emu::utils::setSelectedNodeValue( const std::string &XML,
     
     XPathEvaluator theEvaluator;
     
-    XalanNode* xalan_node = theEvaluator.selectSingleNode(theDOMSupport, xalan_document,
-                                                          XalanDOMString(xPathToNode.c_str()).c_str(),
-                                                          thePrefixResolver);
-    if (xalan_node)
+    NodeRefList nodes;
+    nodes = theEvaluator.selectNodeList(nodes, theDOMSupport, xalan_document, 
+					XalanDOMString(xPathToNode.c_str()).c_str(), 
+					thePrefixResolver);
+
+    for (XalanDOMString::size_type i = 0; i < nodes.getLength(); ++i)
     {
-      // XalanDOMString nodeName = xalan_node->getNodeName();
-      // std::cout << "Found node " << nodeName << std::endl;
-      
-      DOMNode* node = const_cast< DOMNode* >(docWrapper->mapNode(xalan_node) );
+      DOMNode* node = const_cast< DOMNode* >(docWrapper->mapNode( nodes.item(i) ) );
       if ( node )
       {
-        // cout << "---------" << endl;
-        // cout << "   node->getNodeName()  " << xoap::XMLCh2String( node->getNodeName() )  << endl;
-        // cout << "   node->getNodeValue() " << xoap::XMLCh2String( node->getNodeValue() ) << endl;
-        // cout << "   node->getNodeType()  " << node->getNodeType()   << endl;
-
         emu::utils::setNodeValue( node, value );
-
-        // cout << "   node->getNodeValue() " << xoap::XMLCh2String( node->getNodeValue() ) << endl;
-
-        DOMDocument *domDoc = const_cast<DOMDocument*>( docWrapper->getXercesDocument() );
-        modifiedXML = emu::utils::serializeDOM( domDoc );
-        // cout << "modifiedXML" << endl << modifiedXML << endl;
       }
     }
+
+    DOMDocument *domDoc = const_cast<DOMDocument*>( docWrapper->getXercesDocument() );
+    modifiedXML = emu::utils::serializeDOM( domDoc );
 
     XPathEvaluator::terminate();
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
@@ -434,6 +426,7 @@ std::string emu::utils::setSelectedNodesValues(const std::string &XML,
   XALAN_USING_XALAN(XalanDocument)
   XALAN_USING_XALAN(XalanDocumentPrefixResolver)
   XALAN_USING_XALAN(XalanNode)
+  XALAN_USING_XALAN(NodeRefList);
   XALAN_USING_XALAN(XercesDOMSupport)
   XALAN_USING_XALAN(XercesDOMWrapperParsedSource)
   XALAN_USING_XALAN(XercesDocumentWrapper)
@@ -472,32 +465,24 @@ std::string emu::utils::setSelectedNodesValues(const std::string &XML,
     XalanDocumentPrefixResolver thePrefixResolver(docWrapper);
     
     XPathEvaluator theEvaluator;
-    
+
     std::map< std::string, std::string >::const_iterator v;
     for (v = values.begin(); v != values.end(); ++v)
     {
-      XalanNode* xalan_node = theEvaluator.selectSingleNode(theDOMSupport, xalan_document,
-                                                            XalanDOMString(v->first.c_str()).c_str(),
-                                                            thePrefixResolver);
-      if (xalan_node)
+      NodeRefList nodes;
+      nodes = theEvaluator.selectNodeList(nodes, theDOMSupport, xalan_document, 
+					  XalanDOMString(v->first.c_str()).c_str(), 
+					  thePrefixResolver);
+
+      for (XalanDOMString::size_type i = 0; i < nodes.getLength(); ++i)
       {
-        // XalanDOMString nodeName = xalan_node->getNodeName();
-        // std::cout << "Found node " << nodeName << std::endl;
-
-        DOMNode* node = const_cast< DOMNode* >(docWrapper->mapNode(xalan_node) );
-        if ( node )
-        {
-          // cout << "---------" << endl;
-          // cout << "   node->getNodeName()  " << xoap::XMLCh2String( node->getNodeName() )  << endl;
-          // cout << "   node->getNodeValue() " << xoap::XMLCh2String( node->getNodeValue() ) << endl;
-          // cout << "   node->getNodeType()  " << node->getNodeType()   << endl;
-
-          emu::utils::setNodeValue( node, v->second );
-
-          // cout << "   node->getNodeValue() " << xoap::XMLCh2String( node->getNodeValue() ) << endl;
-        }
+	DOMNode* node = const_cast< DOMNode* >(docWrapper->mapNode( nodes.item(i) ) );
+	if ( node )
+	{
+	  emu::utils::setNodeValue( node, v->second );
+	}
       }
-
+      
     } // for ( v = values.begin(); v != values.end(); ++v )
 
     DOMDocument *domDoc = const_cast< DOMDocument* >(docWrapper->getXercesDocument() );

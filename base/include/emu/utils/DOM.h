@@ -31,15 +31,27 @@ std::string appendToSelectedNode(const std::string &XML,
                                  const std::string &xPathToNode,
                                  const std::string &xmlFragment);
 
-/**
- *
- */
+    /// Set the value of the node(s) selected by an XPath expression.
+    ///
+    /// @param XML Original XML string.
+    /// @param xPathToNode XPath expression selecting the targeted node(s).
+    /// @param value Value to set the node(s) to.
+    ///
+    /// @return Modified XML string.
+    ///
 std::string setSelectedNodeValue(const std::string &XML,
                                  const std::string &xPathToNode,
                                  const std::string &value);
-/**
- *
- */
+
+    /// Set the value of the node(s) selected by a set of XPath expressions.
+    /// The XPath expressions should match disjunct sets of nodes, or else the result will be
+    /// hard to predict as they are applied in an alphabetical order.
+    ///
+    /// @param XML Original XML string.
+    /// @param values XPath expression and value pairs.
+    ///
+    /// @return Modified XML string.
+    ///
 std::string setSelectedNodesValues(const std::string &XML,
                                    const std::map< std::string, std::string >& values);
 
