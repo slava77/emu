@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.17 2012/04/24 14:40:40 liu Exp $
+// $Id: EmuDim.h,v 1.18 2012/06/11 03:30:44 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -153,6 +153,7 @@ private:
   int current_state_, xmas_state_, blue_state_, yp_state_; 
   int old_x2p_state, old_xmas_state, old_blue_state, old_yp_state;
   int heartbeat, readin_, read_timeout;
+  int lastread_ch;
   time_t readtime_;
 
 

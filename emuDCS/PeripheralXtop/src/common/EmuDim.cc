@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.48 2012/04/26 15:41:51 liu Exp $
+// $Id: EmuDim.cc,v 1.49 2012/06/11 03:30:45 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -35,6 +35,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
   heartbeat = 0;
   readin_ = 0;
   read_timeout = 0;
+  lastread_ch = -1;
 
   xgi::bind(this,&EmuDim::Default, "Default");
   xgi::bind(this,&EmuDim::MainPage, "MainPage");
@@ -410,6 +411,10 @@ int EmuDim::ReadFromXmas()
    // then fill the structure
    ch=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), 0);
    std::cout << "Cycle " << heartbeat << " read " << ch << " Chambers and ";
+   // if no chamber info read back, report Xmas state as error
+   if(ch>0 && (xmas_state_ & 0x100)) xmas_state_ &= 0xfffffeff;
+   if(ch==0 && lastread_ch==0) xmas_state_ |= 0x100;
+   lastread_ch=ch;
    // 
    readin_=3;
    readtime_=time(NULL);
