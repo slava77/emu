@@ -18,6 +18,17 @@
 //   bit 0 (value   1):  ALCT
 //       1 (value   2):  TMB
 //       2 (value   4):  DMB & CFEB (for chamber type ME1/3, always set to 0)
+//
+// XMAS info bit pattern (April 2012):
+//     ==0:    no action or ignored
+//     !=0:
+//         lowest byte (bit 0-7)  is state indicator
+//               1:     Unknown
+//               2:     ON
+//               4:     OFF
+//         second byte (bit 8-15) is error
+//               1: (total value 256):  fatal error
+//
 
 #define CFEB_NUMBER 5
 
