@@ -39,31 +39,40 @@ std::string appendToSelectedNode(const std::string &XML,
     ///
     /// @return Modified XML string.
     ///
-std::string setSelectedNodeValue(const std::string &XML,
-                                 const std::string &xPathToNode,
-                                 const std::string &value);
+std::string setSelectedNodesValues(const std::string &XML,
+				   const std::string &xPathToNode,
+				   const std::string &value);
 
     /// Set the value of the node(s) selected by a set of XPath expressions.
     /// The XPath expressions should match disjunct sets of nodes, or else the result will be
     /// hard to predict as they are applied in an alphabetical order.
     ///
     /// @param XML Original XML string.
-    /// @param values XPath expression and value pairs.
+    /// @param values Container of XPath expression and value pairs.
     ///
     /// @return Modified XML string.
     ///
 std::string setSelectedNodesValues(const std::string &XML,
                                    const std::map< std::string, std::string >& values);
 
-/**
- *
- */
+    /// Get the value of the \e first node selected by an XPath expression.
+    /// If \e all selected values need to be returned, use the method \c getSelectedNodesValues.
+    ///
+    /// @param XML Original XML string.
+    /// @param xpath XPath expression selecting the targeted node.
+    ///
+    /// @return Value of the selected node.
+    ///
 std::string getSelectedNodeValue(const std::string& XML,
                                  const std::string &xpath);
 
-/**
- *
- */
+    /// Get the values of all the nodes selected by a set of XPath expressions.
+    ///
+    /// @param XML Original XML string.
+    /// @param xpath Container of XPath expression and value pairs.
+    ///
+    /// @return Container of name and value pairs of all selected nodes.
+    ///
 std::vector< std::pair< std::string, std::string > > getSelectedNodesValues(const std::string& XML,
                                                                             const std::string &xpath);
 

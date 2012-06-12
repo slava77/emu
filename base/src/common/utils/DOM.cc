@@ -1,4 +1,4 @@
-// $Id: DOM.cc,v 1.4 2012/06/07 15:46:00 banicz Exp $
+// $Id: DOM.cc,v 1.5 2012/06/12 21:50:01 banicz Exp $
 
 #include "emu/utils/DOM.h"
 #include "emu/utils/Xalan.h"
@@ -290,9 +290,9 @@ std::string emu::utils::appendToSelectedNode( const std::string &XML,
 }
 
 
-std::string emu::utils::setSelectedNodeValue( const std::string &XML,
-                                              const std::string &xPathToNode,
-                                              const std::string &value )
+std::string emu::utils::setSelectedNodesValues( const std::string &XML,
+						const std::string &xPathToNode,
+						const std::string &value )
 {
   // Based on the idea in http://www.opensubscriber.com/message/xalan-c-users@xml.apache.org/2655850.html
 
