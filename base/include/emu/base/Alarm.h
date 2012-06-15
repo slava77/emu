@@ -1,6 +1,8 @@
 #ifndef _emu_base_Alarm_h_
 #define _emu_base_Alarm_h_
-
+#define GCC_VERSION ( __GNUC__            * 10000 +		\
+		      __GNUC_MINOR__      * 100   +		\
+		      __GNUC_PATCHLEVEL__           )
 #include <string>
 
 #include "xdaq/Application.h"
@@ -9,6 +11,8 @@
 #include "xdata/InfoSpace.h"
 #include "xdata/InfoSpaceFactory.h"
 #include "sentinel/utils/Alarm.h"
+
+#include <cxxabi.h>
 
 /// Macro to raise alarm to Sentinel.
 ///
@@ -75,30 +79,45 @@ namespace emu { namespace base {
 		const string function,
 		xdaq::Application *owner,
 		Logger *logger ){
-      // Get info space for alarms:
-      xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
-      // Declare an exception that will be the alarm:
-      alarmType ex( name, message, file, line, function );
-      // Set 'tag' property:
-      ex.setProperty( "tag", tag );
-      // Create an xdata container for it, specifying severity and owner:
-      sentinel::utils::Alarm *alarm = new sentinel::utils::Alarm(severity, ex, owner);
-      try {
-	// Name and emit it:
-	is->fireItemAvailable ( name, alarm );
-      } catch( xdata::exception::Exception e ){
-	// Log failure to emit alarm:
-	if ( logger ){
-	  LOG4CPLUS_WARN((*logger), "Failed to emit alarm \"" << name << "\" from " << function << " at "
-			 << file << ":" << line << " : " << xcept::stdformat_exception_history(e) );
+      try 
+	{
+	  // Get info space for alarms:
+	  xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
+	  // Declare an exception that will be the alarm:
+	  alarmType ex( name, message, file, line, function );
+	  // Set 'tag' property:
+	  ex.setProperty( "tag", tag );
+	  // Create an xdata container for it, specifying severity and owner:
+	  sentinel::utils::Alarm *alarm = new sentinel::utils::Alarm(severity, ex, owner);
+	  // Name and emit it:
+	  if ( is && alarm ) is->fireItemAvailable ( name, alarm );
+	} 
+      catch( xdata::exception::Exception& e )
+	{
+	  // Log failure to emit alarm:
+	  if ( logger ){
+	    LOG4CPLUS_WARN((*logger), "Failed to emit alarm \"" << name << "\" from " << function << " at "
+			   << file << ":" << line << " : " << xcept::stdformat_exception_history(e) );
+	  }
+	} 
+#if GCC_VERSION >= 40300
+      catch( abi::__forced_unwind& )
+      	// This is needed for pthread not to abort on cancellation because of "exception not rethrown".
+      	{
+      	  throw;
+      	}
+#endif
+      catch( ... )
+	{
+	  // Log failure to emit alarm:
+	  if ( logger ){
+	    LOG4CPLUS_WARN((*logger), "Failed to emit alarm \"" << name << "\" from " << function << " at "
+			   << file << ":" << line << " : Unknown exception." );
+#if GCC_VERSION < 40300
+	  throw;
+#endif
+	  }
 	}
-      } catch( ... ){
-	// Log failure to emit alarm:
-	if ( logger ){
-	  LOG4CPLUS_WARN((*logger), "Failed to emit alarm \"" << name << "\" from " << function << " at "
-			 << file << ":" << line << " : Unknown exception." );
-	}
-      }
     }
 
     /// Raise alarm of \c alarmType.
@@ -125,30 +144,45 @@ namespace emu { namespace base {
 		      xdaq::Application *owner,
 		      log4cplus::Logger *logger,
 		      nestedExceptionType &nestedException ){
-      // Get info space for alarms:
-      xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
-      // Declare an exception that will be the alarm:
-      alarmType ex( name, message, file, line, function, nestedException );
-      // Set 'tag' property:
-      ex.setProperty( "tag", tag );
-      // Create an xdata container for it, specifying severity and owner:
-      sentinel::utils::Alarm *alarm = new sentinel::utils::Alarm(severity, ex, owner);
-      try {
-	// Name and emit it:
-	is->fireItemAvailable ( name, alarm );
-      } catch( xdata::exception::Exception e ){
-	// Log failure to emit alarm:
-	if ( logger ){
-	  LOG4CPLUS_WARN((*logger), "Failed to emit alarm \"" << name << "\" from " << function << " at "
-			 << file << ":" << line << " : " << xcept::stdformat_exception_history(e) );
+      try 
+	{
+	  // Get info space for alarms:
+	  xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
+	  // Declare an exception that will be the alarm:
+	  alarmType ex( name, message, file, line, function, nestedException );
+	  // Set 'tag' property:
+	  ex.setProperty( "tag", tag );
+	  // Create an xdata container for it, specifying severity and owner:
+	  sentinel::utils::Alarm *alarm = new sentinel::utils::Alarm(severity, ex, owner);
+	  // Name and emit it:
+	  if ( is && alarm ) is->fireItemAvailable ( name, alarm );
+	} 
+      catch( xdata::exception::Exception& e )
+	{
+	  // Log failure to emit alarm:
+	  if ( logger ){
+	    LOG4CPLUS_WARN((*logger), "Failed to emit alarm \"" << name << "\" from " << function << " at "
+			   << file << ":" << line << " : " << xcept::stdformat_exception_history(e) );
+	  }
+	} 
+#if GCC_VERSION >= 40300
+      catch( abi::__forced_unwind& )
+      	// This is needed for pthread not to abort on cancellation because of "exception not rethrown".
+      	{
+      	  throw;
+      	}
+#endif
+      catch( ... )
+	{
+	  // Log failure to emit alarm:
+	  if ( logger ){
+	    LOG4CPLUS_WARN((*logger), "Failed to emit alarm \"" << name << "\" from " << function << " at "
+			   << file << ":" << line << " : Unknown exception." );
+	  }
+#if GCC_VERSION < 40300
+	  throw;
+#endif
 	}
-      } catch( ... ){
-	// Log failure to emit alarm:
-	if ( logger ){
-	  LOG4CPLUS_WARN((*logger), "Failed to emit alarm \"" << name << "\" from " << function << " at "
-			 << file << ":" << line << " : Unknown exception." );
-	}
-      }
     }
 
     /// Revoke an alarm identified by @param name
@@ -166,29 +200,46 @@ namespace emu { namespace base {
 		 const string function,
 		 xdaq::Application *owner,
 		 Logger *logger ){
-      // Get info space for alarms:
-      xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
-      try {
-	// See if this alarm has already been raised:
-	sentinel::utils::Alarm *alarm = dynamic_cast<sentinel::utils::Alarm*>(is->find( name ));
-	// If it has already been raised, revoke and delete it:
-	if ( alarm ){
-	  is->fireItemRevoked( name, owner );
-	  delete alarm;
+      try 
+	{
+	  // Get info space for alarms:
+	  xdata::InfoSpace* is = xdata::getInfoSpaceFactory()->get("urn:xdaq-sentinel:alarms");
+	  if ( is ){
+	    // See if this alarm has already been raised:
+	    sentinel::utils::Alarm *alarm = dynamic_cast<sentinel::utils::Alarm*>(is->find( name ));
+	    // If it has already been raised, revoke and delete it:
+	    if ( alarm ){
+	      is->fireItemRevoked( name, owner );
+	      delete alarm;
+	    }
+	  }
+	} 
+      catch( xdata::exception::Exception& e )
+	{
+	  // Log failure to revoke alarm:
+	  if ( logger ){
+	    LOG4CPLUS_WARN((*logger), "Failed to revoke alarm \"" << name << "\" from " << function << " at "
+			   << file << ":" << line << " : " << xcept::stdformat_exception_history(e) );
+	  }
+	} 
+#if GCC_VERSION >= 40300
+      catch( abi::__forced_unwind& )
+      	// This is needed for pthread not to abort on cancellation because of "exception not rethrown".
+      	{
+      	  throw;
+      	}
+#endif
+      catch( ... )
+	{
+	  // Log failure to revoke alarm:
+	  if ( logger ){
+	    LOG4CPLUS_WARN((*logger), "Failed to revoke alarm \"" << name << "\" from " << function << " at "
+			   << file << ":" << line << " : Unknown exception." );
+#if GCC_VERSION < 40300
+	  throw;
+#endif
+	  }
 	}
-      } catch( xdata::exception::Exception e ){
-	// Log failure to revoke alarm:
-	if ( logger ){
-	  LOG4CPLUS_WARN((*logger), "Failed to revoke alarm \"" << name << "\" from " << function << " at "
-			 << file << ":" << line << " : " << xcept::stdformat_exception_history(e) );
-	}
-      } catch( ... ){
-	// Log failure to revoke alarm:
-	if ( logger ){
-	  LOG4CPLUS_WARN((*logger), "Failed to revoke alarm \"" << name << "\" from " << function << " at "
-			 << file << ":" << line << " : Unknown exception." );
-	}
-      }
     }
 
   };
