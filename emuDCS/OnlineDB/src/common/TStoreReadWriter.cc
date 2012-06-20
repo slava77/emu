@@ -1,4 +1,4 @@
-// $Id: TStoreReadWriter.cc,v 1.4 2012/04/30 23:53:46 khotilov Exp $
+// $Id: TStoreReadWriter.cc,v 1.5 2012/06/20 22:44:25 khotilov Exp $
 
 #include "emu/db/TStoreReadWriter.h"
 #include "emu/db/TStoreAgent.h"
@@ -68,14 +68,22 @@ throw (emu::exception::ConfigurationException)
   try  { tstore.connect(db_credentials_); }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot connect to TStore: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot connect to TStore: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot connect to TStore (unknown exception)");
   }
 
   xdata::Table table;
   try { table = tstore.query(query_name, parameters); }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot get configuration IDs: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot get configuration IDs: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot get configuration IDs (unknown exception)");
   }
   tstore.disconnect();
 
@@ -143,7 +151,11 @@ throw (emu::exception::ConfigurationException)
   try  { tstore.connect(db_credentials_); }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot connect to TStore: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot connect to TStore: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot connect to TStore (unknown exception)");
   }
 
   xdata::Table table;
@@ -151,7 +163,11 @@ throw (emu::exception::ConfigurationException)
   catch (emu::exception::DBException &e)
   {
     tstore.disconnect();
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot get configuration IDs: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot get configuration max ID: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot get configuration max ID (unknown exception)");
   }
   tstore.disconnect();
 
@@ -178,7 +194,11 @@ throw (emu::exception::ConfigurationException)
   try  { tstore.connect(db_credentials_); }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot connect to TStore: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot connect to TStore: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot connect to TStore (unknown exception)");
   }
 
   // prepare empty tables
@@ -287,7 +307,11 @@ throw (emu::exception::ConfigurationException)
   }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot get configuration IDs: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot read configuration: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot read configuration (unknown exception)");
   }
   tstore.disconnect();
   std::cout<<std::endl;
@@ -329,6 +353,10 @@ throw (emu::exception::ConfigurationException)
   catch (emu::exception::DBException &e)
   {
     XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot connect to TStore: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot connect to TStore (unknown exception)");
   }
 
   std::vector<std::string> types = hierarchy_->types();
@@ -431,7 +459,11 @@ throw (emu::exception::ConfigurationException)
   }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Error during writing to DB: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Error during writing to DB: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Error during writing to DB (unknown exception)");
   }
   tstore.disconnect();
 
@@ -468,7 +500,11 @@ throw (emu::exception::ConfigurationException)
   try { tstore.connect(db_credentials_); }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot connect to TStore: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot connect to TStore: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot connect to TStore (unknown exception)");
   }
 
   xdata::Table table;
@@ -476,7 +512,11 @@ throw (emu::exception::ConfigurationException)
   catch (emu::exception::DBException &e)
   {
     tstore.disconnect();
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot get configuration ID: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot get last configuration ID flashed: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot get last configuration ID flashed (unknown exception)");
   }
   tstore.disconnect();
 
@@ -506,7 +546,11 @@ throw (emu::exception::ConfigurationException)
   try { tstore.connect(db_credentials_); }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot connect to TStore: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot connect to TStore: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot connect to TStore (unknown exception)");
   }
 
   xdata::Table table;
@@ -514,7 +558,11 @@ throw (emu::exception::ConfigurationException)
   catch (emu::exception::DBException &e)
   {
     tstore.disconnect();
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot get configuration ID: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot read flash IDInfos: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot read flash IDInfos (unknown exception)");
   }
   tstore.disconnect();
 
@@ -561,7 +609,11 @@ throw (emu::exception::ConfigurationException)
   try  { tstore.connect(db_credentials_); }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Cannot connect to TStore: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Cannot connect to TStore: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Cannot connect to TStore (unknown exception)");
   }
 
   xdata::Table dtable = tstore.definition(type);
@@ -581,7 +633,11 @@ throw (emu::exception::ConfigurationException)
   }
   catch (emu::exception::DBException &e)
   {
-    XCEPT_RETHROW(emu::exception::DBException, "Error during writing to DB: " + std::string(e.what()), e);
+    XCEPT_RETHROW(emu::exception::ConfigurationException, "Error during writing flash time to DB: " + std::string(e.what()), e);
+  }
+  catch (...)
+  {
+    XCEPT_RAISE(emu::exception::ConfigurationException, "Error during writing flash time to DB (unknown exception)");
   }
   tstore.disconnect();
 
