@@ -530,6 +530,161 @@ if(cnt==0)return;
  }
 }
 
+void VMEController::scan_dmb_headtail(int reg,const char *snd,int cnt,char *rcv,int ird,int headtail, int when)
+{
+int i;
+int cnt2;
+int byte,bit;
+int tird[2]={0, 2};
+int tiwt[2]={1, 3};
+unsigned short int tmp[2]={0x0000};
+unsigned short int *data;
+unsigned int ptr_i;
+unsigned int ptr_d;
+unsigned int ptr_dh;
+unsigned int ptr_ds;
+unsigned int ptr_dt;
+unsigned int ptr_r;
+ 
+ if(cnt==0)return;
+ if(when!=0) when=1;
+ if(ird==1 && reg==1) tiwt[1]=1;  // if READ is needed, then WRITEs are all buffered 
+
+   if (DEBUG) {
+      printf("scan: reg=%d, cnt=%d, ird=%d, when=%d, Send %02x %02x\n", reg, cnt, ird, when, snd[0]&0xff, snd[1]&0xff);
+        }
+
+ cnt2=cnt-1;
+ data=(unsigned short int *) snd;
+
+ /* instr */
+
+ //std::cout << "scan.vmeadd="<<std::hex<<vmeadd<<std::endl;
+ //std::cout << "scan.add_r="<<std::hex<<add_r<<std::endl;
+ //std::cout << "scan.add_i="<<std::hex<<add_i<<std::endl;
+
+ if(reg==0){
+   add_i=add_i&msk_clr;
+   add_i=add_i|(cnt2<<8);
+   ptr_i=add_i;
+   bit=cnt; 
+   // xif(bit>8)ptr_i=*data;
+   // xif(bit<=8)ptr_i=((*data)>>8);
+   // if(bit<=8)*data=((*data)>>8);
+   // printf(" 1 VME W: %08x %04x \n",ptr_i,*data);
+   vme_controller(tiwt[when],ptr_i,data,rcv);
+   return;
+ }
+
+ /* data */
+
+  if(reg==1){
+   byte=cnt/16;
+   bit=cnt-byte*16;
+   // printf(" bit byte %d %d %d %d \n",bit,byte,ird,when);
+   if(byte==0||(byte==1&&bit==0)){
+     add_ds=add_ds&msk_clr;
+     add_ds=add_ds|(cnt2<<8);
+     ptr_ds=add_ds; 
+     // printf(" 2 VME W: %08x %04x \n",ptr_d,*data);
+     // xif(bit>8|byte==1)ptr_d=*data;
+     // xif(bit<=8&byte!=1)ptr_d=((*data)>>8);
+     // if(bit<=8&byte!=1)*data=((*data)>>8);
+     vme_controller(tiwt[when],ptr_ds,data,rcv);
+     //  printf("2 VME W: %08x %04x \n",ptr_dh,*data);
+     if(ird==1){
+       ptr_r=add_r;
+       // x*data2=ptr_r;
+       // printf(" R %08x \n",ptr_r);
+       vme_controller(tird[when],ptr_r,tmp,rcv);
+     }
+     return;
+   }
+   if(headtail==3){
+     add_dh=add_dh&msk_clr;
+     add_dh=add_dh|0x0f00;
+     ptr_dh=add_dh;
+     vme_controller(1,ptr_dh,data,rcv);
+   }else{
+     add_ds=add_ds&msk_clr;
+     add_ds=add_ds|0x0f00;
+     ptr_ds=add_ds;
+     vme_controller(1,ptr_ds,data,rcv);
+   }
+  // x*ptr_dh=*data;
+  data=data+1;
+  if(ird==1){       
+     ptr_r=add_r;
+     // printf("3 R %08x \n",ptr_r);
+     vme_controller(0,ptr_r,tmp,rcv);
+     // x*data2=ptr_r; 
+     // printf(" rddata %04x \n",*data2);
+  }
+  add_ds=add_ds&msk_clr;
+  ptr_ds=add_ds;
+  for(i=0;i<byte-1;i++){
+    if(i==(byte-2)&&bit==0){
+      if(headtail==1){
+        add_dt=add_dt&msk_clr;
+        add_dt=add_dt|0x0f00;
+        ptr_dt=add_dt;
+        vme_controller(tiwt[when],ptr_dt,data,rcv);
+      }else{
+        add_ds=add_ds&msk_clr;
+        add_ds=add_ds|0x0f00;
+        ptr_ds=add_ds;
+        vme_controller(tiwt[when],ptr_ds,data,rcv);
+      }
+      // x*ptr_dt=*data;
+      if(ird==1){
+        ptr_r=add_r;
+	//  printf("4 R %08x \n",ptr_r);
+        vme_controller(tird[when],ptr_r,data,rcv);
+        // x*data2=ptr_r;  
+        // printf(" rddata %04x \n",*data2);
+      }
+      return;
+    }else{
+      add_ds=add_ds&msk_clr;
+      add_ds=add_ds|0x0f00;
+      ptr_ds=add_ds;
+      // printf("5 VME W: %08x %04x \n",ptr_ds,*data);
+      vme_controller(1,ptr_ds,data,rcv);
+      // x*ptr_ds=*data;
+      data=data+1;
+      if(ird==1){
+        ptr_r=add_r;
+        // printf(" R %08x \n",ptr_r);
+        vme_controller(0,ptr_r,tmp,rcv);
+        // x*data2=ptr_r; 
+	// printf(" rddata %04x \n",*data2);
+      }
+    }
+  }
+  cnt2=bit-1;
+  if(headtail==1){
+    add_dt=add_dt&msk_clr;
+    add_dt=add_dt|(cnt2<<8);
+    ptr_dt=add_dt; 
+    vme_controller(tiwt[when],ptr_dt,data,rcv);
+  }else{
+    add_ds=add_ds&msk_clr;
+    add_ds=add_ds|(cnt2<<8);
+    ptr_ds=add_ds; 
+    vme_controller(tiwt[when],ptr_ds,data,rcv);
+  }
+  if(ird==1){
+     ptr_r=add_r;
+     // printf(" R %08x \n",ptr_r);
+     vme_controller(tird[when],ptr_r,tmp,rcv);
+     // x*data2=ptr_r; 
+     // printf(" rddata %04x \n",*data2);
+  }
+
+  return;
+ }
+}
+
 void VMEController::initDevice(int idev) {
   //if(debugV)cout << "InitDevice " << idev << " " <<(int) feuse << endl;
   //cout << "InitDevice " << idev << " " <<(int) feuse << endl;

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.11 2012/03/19 22:52:36 liu Exp $
+// $Id: DAQMB.h,v 1.12 2012/06/20 08:45:00 kkotov Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.12  2012/06/20 08:45:00  kkotov
+//
+// New faster DMB/CFEB EPROM readback routines
+//
 // Revision 1.11  2012/03/19 22:52:36  liu
 // for Khritian Kotov: CFEB firmware fix
 //
@@ -391,7 +395,8 @@ public:
   void preamp_initx();
 // DAQMB program proms (electronics experts only)
   void epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
-  int  check_eprom_readback(const char *rbkfile, const char *expfile);
+	void epromread(DEVTYPE devnum);
+	int  check_eprom_readback(const char *rbkfile, const char *expfile);
   void epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
   void epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum, int ipass);
   void epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);

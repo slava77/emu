@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.6 2011/10/14 16:22:21 liu Exp $
+// $Id: VMEController.h,v 1.7 2012/06/20 08:45:00 kkotov Exp $
 // $Log: VMEController.h,v $
+// Revision 1.7  2012/06/20 08:45:00  kkotov
+//
+// New faster DMB/CFEB EPROM readback routines
+//
 // Revision 1.6  2011/10/14 16:22:21  liu
 // change the 2nd argument of vme_controller from pointer to unsigned int
 //
@@ -262,6 +266,7 @@ public:
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
   void new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
   void scan_dmb(int reg,const char *snd,int cnt2,char *rcv,int ird, int when);
+  void scan_dmb_headtail(int reg,const char *snd,int cnt,char *rcv,int ird,int headtail, int when);
   void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
   //
   void initDevice(int idev);
