@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.27 2011/10/21 22:42:09 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.28 2012/06/20 22:54:13 khotilov Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -345,7 +345,14 @@ void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)
           flashid64 = myTStore->readLastConfigIdFlashed("minus");
           InFlash_minus = flashid64.toString();
        }
-       catch (...) { }
+       catch (emu::exception::ConfigurationException &e)
+       {
+         msgHandler("Could not read last flashed configIDs: " + std::string(e.what()));
+       }
+       catch (...)
+       {
+         msgHandler("Could not read last flashed configIDs (unknown exception)");
+       }
      }
      else
      {  std::cout << "Can't create object TStoreReadWriter" << std::endl;
