@@ -183,6 +183,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //
   firmware_checked_ = 0;
   number_of_checks_ = 4;
+  number_of_fw_readbacks = 25;
   number_of_hard_resets_ = number_of_checks_ - 1;
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::Default, "Default");
@@ -2655,7 +2656,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       //
       SetCurrentCrate(crate_index);
       if (!thisCrate->IsAlive()) continue;
-      //
+//
       // check CCB and MPC firmware versions by reading the FPGA ID's
       ccb_firmware_ok[current_crate_] = thisCrate->ccb()->CheckFirmwareDate();
       mpc_firmware_ok[current_crate_] = thisCrate->mpc()->CheckFirmwareDate();
@@ -2955,8 +2956,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	if (
 	    //	    cfeb_firmware_ok[crate_index][chamber_index][cfeb_index] < number_of_checks_ ||
 	    cfeb_config_ok[crate_index][chamber_index][cfeb_index]   < number_of_checks_ ||
-	    cfeb_current_ok[crate_index][chamber_index][cfeb_index]  < number_of_checks_ 
-	    ) {
+	    cfeb_current_ok[crate_index][chamber_index][cfeb_index]  < number_of_checks_ ) {
 	  crate_to_reload.push_back(crate_index);
 	  slot_to_reload.push_back(dslot);
 	  component_to_reload.push_back(CFEB_LABEL[cfeb_index]);
@@ -3209,16 +3209,21 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 	//
 	*out << cgicc::td() << reason_for_reload[problem_index] << cgicc::td();
 	//
+
 	*out << cgicc::td();
 	std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
 	if (loaded_ok[problem_index] < 0) {
 	  *out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:blue") << std::endl ;
-	} else if (loaded_ok[problem_index] == 0) {
+  } else if (loaded_ok[problem_index] == 0) {
 	  *out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:green") << std::endl ;
 	} else if (loaded_ok[problem_index] > 0) {
 	  *out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:red") << std::endl ;
 	}
+
+  *out << "N readbacks" << std::endl;
+  sprintf(buf,"%d",number_of_fw_readbacks);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","readback") << std::endl ;
 	sprintf(buf,"%d",problem_crate);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
 	sprintf(buf,"%d",within_crate_problem_index);
@@ -3439,7 +3444,14 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
   std::cout << "Entered FixCFEB" << std::endl;
   cgicc::Cgicc cgi(in);
   //
-  cgicc::form_iterator name1 = cgi.getElement("ncrt");
+  cgicc::form_iterator name0 = cgi.getElement("readback");
+  int n_readbacks = 0;
+  if(name0 != cgi.getElements().end()) {
+    n_readbacks = cgi["readback"]->getIntegerValue();
+    std::cout << "readback = " << n_readbacks << std::endl;
+  }
+
+	cgicc::form_iterator name1 = cgi.getElement("ncrt");
   int crate_index;
   if(name1 != cgi.getElements().end()) {
     crate_index = cgi["ncrt"]->getIntegerValue();
@@ -3597,6 +3609,26 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 	std::cout<<" The DMB number is set to: " << dword[0] << " from database lookup: " << dmbID << std::endl;
 	char * outp=(char *)dword;
 	//  
+	for(int readback=0; readback<n_readbacks; readback++){
+     unlink("/tmp/eprom.bit");
+     thisDMB->epromread(VPROM);
+     std::ostringstream logs;
+     int erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",DMBVmeCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
+     if(erropen>=0){
+        logs<<" Total number of bad bits: "<<thisDMB->GetNumberOfBadReadbackBits()<<std::endl;
+        for(unsigned int bit=0; bit<thisDMB->GetNumberOfBadReadbackBits() && bit<20; bit++ ){
+           logs << " broken word position: " << std::setw(6) << thisDMB->GetWordWithBadReadbackBit(bit)
+                << ", bad bit position: " << thisDMB->GetBadReadbackBitPosition(bit)
+                << ", bad bit type (type=0 1->0 type=1 0->1): "<< thisDMB->GetBadReadbackBitType(bit)
+                << std::endl;
+        }
+        if( thisDMB->GetNumberOfBadReadbackBits()>20 ) logs << "  only first 20 bad CFEB firmware bits were reported above " << std::endl;
+     } else {
+        logs << " file error in check_eprom_readback" << std::endl;
+     }
+    LOG4CPLUS_INFO(getApplicationLogger(), logs.str());
+	}
+
 	thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
 	//
 	::sleep(1);
@@ -3616,6 +3648,27 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 	unsigned short int dword[2];
 	dword[0]=0;
 	char *outp=(char *)dword;
+	//
+	for(int readback=0; readback<n_readbacks; readback++){
+     unlink("/tmp/eprom.bit");
+     thisDMB->epromread(MPROM);
+     std::ostringstream logs;
+     int erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",DMBCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
+     if(erropen>=0){
+        logs<<" Total number of bad bits: "<<thisDMB->GetNumberOfBadReadbackBits()<<std::endl;
+        for(unsigned int bit=0; bit<thisDMB->GetNumberOfBadReadbackBits() && bit<20; bit++ ){
+           logs << " broken word position: " << std::setw(6) << thisDMB->GetWordWithBadReadbackBit(bit)
+                << ", bad bit position: " << thisDMB->GetBadReadbackBitPosition(bit)
+                << ", bad bit type (type=0 1->0 type=1 0->1): "<< thisDMB->GetBadReadbackBitType(bit)
+                << std::endl;
+        }
+        if( thisDMB->GetNumberOfBadReadbackBits()>20 ) logs << "  only first 20 bad CFEB firmware bits were reported above " << std::endl;
+     } else {
+        logs << " file error in check_eprom_readback" << std::endl;
+     }
+    LOG4CPLUS_INFO(getApplicationLogger(), logs.str());
+	}
+
 	thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
 	//
 	::sleep(5);
@@ -3640,8 +3693,28 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 	  dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
 	  CFEBid_[chamber_index][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	  char * outp=(char *)dword;   // recast dword
-	  thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
-	  thisCCB->hardReset(); 
+		for(int readback=0; readback<n_readbacks; readback++){
+          unlink("/tmp/eprom.bit");
+          thisDMB->epromread(thisCFEBs[i].promDevice());
+          std::ostringstream logs;
+          int erropen = thisDMB->check_eprom_readback("/tmp/eprom.bit",CFEBCompare_.toString().c_str()); // hardcoded file name; bad, but I didn't start it //KK
+          if(erropen>=0){
+             logs<<" Total number of bad bits: "<<thisDMB->GetNumberOfBadReadbackBits()<<std::endl;
+             for(unsigned int bit=0; bit<thisDMB->GetNumberOfBadReadbackBits() && bit<20; bit++ ){
+                logs << " broken word position: " << std::setw(6) << thisDMB->GetWordWithBadReadbackBit(bit)
+                     << ", bad bit position: " << thisDMB->GetBadReadbackBitPosition(bit)
+                     << ", bad bit type (type=0 1->0 type=1 0->1): "<< thisDMB->GetBadReadbackBitType(bit)
+                     << std::endl;
+             }
+             if( thisDMB->GetNumberOfBadReadbackBits()>20 ) logs << "  only first 20 bad CFEB firmware bits were reported above " << std::endl;
+          } else {
+             logs << " file error in check_eprom_readback" << std::endl;
+          }
+          LOG4CPLUS_INFO(getApplicationLogger(), logs.str());
+		}
+
+		thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
+		thisCCB->hardReset(); 
 	}
       }
       loaded_ok[problem_index] = 0;

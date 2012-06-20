@@ -610,6 +610,7 @@ private:
   int dmb_config_ok[60][9];
   int cfeb_firmware_ok[60][9][5];
   int cfeb_config_ok[60][9][5];
+  int number_of_fw_readbacks;
   //
   int tmbcfg_ok[60][9];
   int dmbcfg_ok[60][9];
