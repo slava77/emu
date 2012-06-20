@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.79 2012/05/09 20:59:00 liu Exp $
+// $Id: DAQMB.cc,v 3.80 2012/06/20 08:45:01 kkotov Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.80  2012/06/20 08:45:01  kkotov
+//
+// New faster DMB/CFEB EPROM readback routines
+//
 // Revision 3.79  2012/05/09 20:59:00  liu
 // fix missing standard header files
 //
@@ -3335,6 +3339,309 @@ void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *
   }
 }
 
+void DAQMB::epromread(DEVTYPE devnum){
+  // read back eprom for VPROM,MPROM,F1PROM-F5PROM
+  int data_amount;
+  int nbits,totbits;
+  char tmp;
+  int pause,xtrbits;
+  char * devstr;
+  DEVTYPE devstp,dv;
+  char savbuf[513];
+  FILE *fpout;
+  //
+  std::cout << "New epromload LSD (no chk svf file) " << std::endl;
+  //
+  if(devnum==ALL){
+    devnum=F1PROM;
+    devstp=F5PROM;
+  }
+  else {
+    devstp=devnum;
+  }
+  //
+  for(int k=devnum;k<=devstp;k++){
+    dv=(DEVTYPE)k;
+    xtrbits=geo[dv].sxtrbits;
+    devstr=geo[dv].nam;
+    if(geo[dv].jchan==4)data_amount=511;
+    if(geo[dv].jchan==1)data_amount=255;
+    if(geo[dv].jchan==3)data_amount=2047;
+    printf(" geo.jchan %d \n",geo[dv].jchan);
+    fflush(stdout);  
+    fpout=fopen("/tmp/eprom.bit","w");
+    chmod("/tmp/eprom.bit",S_IRUSR| S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    //Loading device with 'idcode' instruction.
+    nbits=8;
+    sndbuf[0]=0xfe;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    nbits=32;
+    for(int i=0;i<4;i++)sndbuf[i]=0x00;
+    printf(" LSD SDR %d %02x %02x %02x %02x 1 \n",nbits+xtrbits,sndbuf[0]&0xff,sndbuf[1]&0xff,sndbuf[2]&0xff,sndbuf[3]&0xff);
+    scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,1);
+    for(int i=0;i<5;i++){
+      savbuf[i]=rcvbuf[i];
+    }
+    printf("idcode:");
+    for(int i=0;i<4;i++){
+      tmp=(savbuf[i]>>1)&0x7f;
+      savbuf[i]=tmp|(savbuf[i+1]<<7&0x80);
+    }
+    for(int i=0;i<4;i++)printf("%02x",savbuf[3-i]&0xff);
+    printf("\n"); 
+    //Loading device with 'conld' instruction.
+    nbits=8;
+    sndbuf[0]=0xf0;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    pause=110000;
+    if(pause<100000)pause=2*pause+100;
+    if (pause>65535) {
+            sndbuf[0]=255;
+            sndbuf[1]=255;
+            for (int looppause=0;looppause<pause/65536;looppause++) {
+              devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+              usleep(65535);}
+            pause=65535;
+    }
+    sndbuf[0]=pause-(pause/256)*256;
+    sndbuf[1]=pause/256;
+    devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+    usleep(pause);
+    
+     //Check for Read/Write Protect.
+    nbits=8;
+    sndbuf[0]=0xff;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    printf("r/w protect %02x \n",rcvbuf[0]&0xff);
+
+    //Loading device with 'idcode' instruction.
+    nbits=8;
+    sndbuf[0]=0xfe;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    nbits=32;
+    for(int i=0;i<4;i++)sndbuf[i]=0x00;
+    printf(" LSD SDR %d %02x %02x %02x %02x 1 \n",nbits+xtrbits,sndbuf[0]&0xff,sndbuf[1]&0xff,sndbuf[2]&0xff,sndbuf[3]&0xff);
+    scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,1);
+    for(int i=0;i<5;i++){
+      savbuf[i]=rcvbuf[i];
+    }
+    printf("idcode:");
+    for(int i=0;i<4;i++){
+      tmp=(savbuf[i]>>1)&0x7f;
+      savbuf[i]=tmp|(savbuf[i+1]<<7&0x80);
+    }
+    for(int i=0;i<4;i++)printf("%02x",savbuf[3-i]&0xff);
+    printf("\n"); 
+
+    //Loading device with 'conld' instruction.
+    nbits=8;
+    sndbuf[0]=0xf0;
+     printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    pause=110000;
+    if(pause<100000)pause=2*pause+100;
+    if (pause>65535) {
+            sndbuf[0]=255;
+            sndbuf[1]=255;
+            for (int looppause=0;looppause<pause/65536;looppause++) {
+              devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+              usleep(65535);}
+            pause=65535;
+    }
+    sndbuf[0]=pause-(pause/256)*256;
+    sndbuf[1]=pause/256;
+    devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+    usleep(pause);
+
+    
+     //Check for Read/Write Protect.
+    nbits=8;
+    sndbuf[0]=0xff;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    printf("r/w protect %02x \n",rcvbuf[0]&0xff);
+
+    //Loading device with 'bypass' instruction.
+    nbits=8;
+    sndbuf[0]=0xff;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+
+
+    //Loading device with 'ispen' instruction.
+    nbits=8;
+    sndbuf[0]=0xe8;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    nbits=6;
+    for(int i=0;i<1;i++)sndbuf[i]=0x34;
+    printf(" LSD SDR %d %02x %02x %02x %02x 1 \n",nbits+xtrbits,sndbuf[0]&0xff,sndbuf[1]&0xff,sndbuf[2]&0xff,sndbuf[3]&0xff);
+    scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,1);
+    printf("ispen %02x \n",rcvbuf[0]&0xff);
+
+    //Loading device with 'ispen' instruction.
+    nbits=8;
+    sndbuf[0]=0xe8;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    nbits=6;
+    for(int i=0;i<1;i++)sndbuf[i]=0x34;
+    printf(" LSD SDR %d %02x %02x %02x %02x 1 \n",nbits+xtrbits,sndbuf[0]&0xff,sndbuf[1]&0xff,sndbuf[2]&0xff,sndbuf[3]&0xff);
+    scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,1);
+    printf("ispen %02x \n",rcvbuf[0]&0xff);
+
+    //Loading device with 'conld' instruction.
+    nbits=8;
+    sndbuf[0]=0xf0;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    pause=110000;
+    if(pause<100000)pause=2*pause+100;
+    if (pause>65535) {
+            sndbuf[0]=255;
+            sndbuf[1]=255;
+            for (int looppause=0;looppause<pause/65536;looppause++) {
+              devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+              usleep(65535);}
+            pause=65535;
+    }
+    sndbuf[0]=pause-(pause/256)*256;
+    sndbuf[1]=pause/256;
+    devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+    usleep(pause);
+
+    //Loading device with 'ispen' instruction.
+    nbits=8;
+    sndbuf[0]=0xe8;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    nbits=6;
+    for(int i=0;i<1;i++)sndbuf[i]=0x34;
+    printf(" LSD SDR %d %02x %02x %02x %02x 1 \n",nbits+xtrbits,sndbuf[0]&0xff,sndbuf[1]&0xff,sndbuf[2]&0xff,sndbuf[3]&0xff);
+    scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,1);
+    printf("ispen %02x \n",rcvbuf[0]&0xff);
+
+    // Loading device with a 'faddr' instruction.
+    nbits=8;
+    sndbuf[0]=0xeb;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    nbits=16;
+    for(int i=0;i<4;i++)sndbuf[i]=0x00;
+    printf(" LSD SDR %d %02x %02x %02x %02x 1 \n",nbits+xtrbits,sndbuf[0]&0xff,sndbuf[1]&0xff,sndbuf[2]&0xff,sndbuf[3]&0xff);
+     scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,1);
+    pause=10;
+    if(pause<100000)pause=2*pause+100;
+    if (pause>65535) {
+            sndbuf[0]=255;
+            sndbuf[1]=255;
+            for (int looppause=0;looppause<pause/65536;looppause++) {
+              devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+              usleep(65535);}
+            pause=65535;
+    }
+    sndbuf[0]=pause-(pause/256)*256;
+    sndbuf[1]=pause/256;
+    devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+    usleep(pause);
+
+
+    // Loading device with a 'fvfy0' instruction.
+    nbits=8;
+    sndbuf[0]=0xef;
+    printf(" LSD SIR %d %02x %02x 0 \n",nbits,sndbuf[0]&0xff,sndbuf[1]&0xff);
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    pause=10;
+    if(pause<100000)pause=2*pause+100;
+    if (pause>65535) {
+            sndbuf[0]=255;
+            sndbuf[1]=255;
+            for (int looppause=0;looppause<pause/65536;looppause++) {
+              devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+              usleep(65535);}
+            pause=65535;
+    }
+    sndbuf[0]=pause-(pause/256)*256;
+    sndbuf[1]=pause/256;
+    devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+    usleep(pause);
+
+
+    //4096x256 for cfeb
+    //4096x1024 for dmb mprom
+    nbits=4096;
+    for(int i=0;i<513;i++)sndbuf[i]=0x00;
+    printf(" LSD SDR %d %02x %02x %02x %02x 1 \n",nbits+xtrbits,sndbuf[0]&0xff,sndbuf[1]&0xff,sndbuf[2]&0xff,sndbuf[3]&0xff);
+    totbits=4096;
+    scan_dmb_headtail(DATA_REG,sndbuf,totbits,rcvbuf,1,3,1);
+    printf(" raw:");
+    for(int i=0;i<512;i++){
+      savbuf[i]=rcvbuf[i];
+      printf("%02x ",rcvbuf[i]&0xFF);
+    }
+    printf("\n"); 
+    for(int j=0;j<data_amount;j++){
+       totbits=4096;
+       scan_dmb_headtail(DATA_REG,sndbuf,totbits,rcvbuf,1,0,1);
+       savbuf[512]=rcvbuf[0];
+       for(int i=0;i<512;i++){
+         if(geo[dv].jchan==1){
+           tmp=(savbuf[i]>>1)&0x7f;
+           savbuf[i]=tmp|(savbuf[i+1]<<7&0x80);
+         }
+         fprintf(fpout," %02X",savbuf[i]&0xFF);
+         if(i%4==3)fprintf(fpout,"\n");
+       }
+       for(int i=0;i<512;i++)savbuf[i]=rcvbuf[i];
+    }
+    scan_dmb_headtail(DATA_REG,sndbuf,totbits,rcvbuf,1,1,1);
+    savbuf[512]=0xff;
+    for(int i=0;i<512;i++){
+      if(geo[dv].jchan==1){
+        tmp=(savbuf[i]>>1)&0x7f;
+        savbuf[i]=tmp|(savbuf[i+1]<<7&0x80);
+      }
+      fprintf(fpout," %02X",savbuf[i]&0xFF);
+      if(i%4==3)fprintf(fpout,"\n");
+      } 
+
+    //Loading device with 'conld' instruction.
+    nbits=8;
+    sndbuf[0]=0xf0;
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    pause=110000;
+    if(pause<100000)pause=2*pause+100;
+    if (pause>65535) {
+            sndbuf[0]=255;
+            sndbuf[1]=255;
+            for (int looppause=0;looppause<pause/65536;looppause++) {
+              devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+              usleep(65535);}
+            pause=65535;
+    }
+    sndbuf[0]=pause-(pause/256)*256;
+    sndbuf[1]=pause/256;
+    devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+    usleep(pause);
+
+    //Loading device with 'bypass' instruction.
+    nbits=8;
+    sndbuf[0]=0xff;
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    nbits=8;
+    sndbuf[0]=0xff;
+    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+    //SDR 1 TDI (00) SMASK (01) ;
+    nbits=1;
+    for(int i=0;i<2;i++)sndbuf[i]=0x00;
+    scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,1);
+    fclose(fpout); 
+  }
+}
 // routine comparing the readback eprom snapshot against the reference firmware file
 int DAQMB::check_eprom_readback(const char *rbkfile, const char *expfile){
   char buf[128];

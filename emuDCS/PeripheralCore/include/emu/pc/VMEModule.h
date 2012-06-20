@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.6 2011/11/04 20:05:52 liu Exp $
+// $Id: VMEModule.h,v 1.7 2012/06/20 08:45:00 kkotov Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.7  2012/06/20 08:45:00  kkotov
+//
+// New faster DMB/CFEB EPROM readback routines
+//
 // Revision 1.6  2011/11/04 20:05:52  liu
 // change svfLoad interface
 //
@@ -204,8 +208,10 @@ protected:
   void new_devdo(DEVTYPE dev,int ncmd,const  char *cmd,int nbuf,
 	     const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
-  void scan_reset(int reg,const char *snd,int cnt2,char *rcv,int ird);
-  void RestoreIdle();
+	void scan_reset(int reg,const char *snd,int cnt2,char *rcv,int ird);
+	void scan_reset_headtail(int reg,const char *snd,int cnt,char *rcv,int headtail,int ird);
+	void scan_dmb_headtail(int reg,const char *snd,int cnt,char *rcv,int ird,int headtail,int when);
+	void RestoreIdle();
   void RestoreReset();
   void InitJTAG(int port);
   void CloseJTAG();

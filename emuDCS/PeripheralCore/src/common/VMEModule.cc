@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.32 2012/05/09 20:59:00 liu Exp $
+// $Id: VMEModule.cc,v 3.33 2012/06/20 08:45:01 kkotov Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.33  2012/06/20 08:45:01  kkotov
+//
+// New faster DMB/CFEB EPROM readback routines
+//
 // Revision 3.32  2012/05/09 20:59:00  liu
 // fix missing standard header files
 //
@@ -277,6 +281,11 @@ void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
 void VMEModule::scan_reset(int reg,const char *snd,int cnt,char *rcv,int ird) {
   theController->start( theSlot, boardType());
   theController->scan_reset(reg, snd, cnt, rcv, ird);
+}
+
+void VMEModule::scan_dmb_headtail(int reg,const char *snd,int cnt,char *rcv,int ird,int headtail, int when) {
+  theController->start( theSlot, boardType());
+  theController->scan_dmb_headtail(reg, snd, cnt, rcv, ird, headtail, when);
 }
 
 void VMEModule::RestoreIdle() {
