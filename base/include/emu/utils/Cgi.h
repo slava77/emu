@@ -11,7 +11,7 @@ namespace emu { namespace utils {
 /**
  * select elements from cgi response with names regex-mathcing the namePattern
  */
-std::map<std::string,std::string> selectFromQueryString( std::vector<cgicc::FormEntry>& fev, const std::string namePattern );
+std::multimap<std::string,std::string> selectFromQueryString( std::vector<cgicc::FormEntry>& fev, const std::string namePattern );
 
 /**
  * Redirect for the action not to be repeated if the 'reload' button is hit.

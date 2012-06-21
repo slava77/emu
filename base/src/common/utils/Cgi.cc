@@ -1,4 +1,4 @@
-// $Id: Cgi.cc,v 1.2 2012/04/12 05:20:09 khotilov Exp $
+// $Id: Cgi.cc,v 1.3 2012/06/21 12:22:03 banicz Exp $
 
 #include "emu/utils/Cgi.h"
 
@@ -11,10 +11,10 @@
 #include <iostream>
 
 
-std::map<std::string, std::string>
+std::multimap<std::string, std::string>
 emu::utils::selectFromQueryString( std::vector<cgicc::FormEntry>& fev, const std::string namePattern )
 {
-  std::map< std::string, std::string > nameValue;
+  std::multimap< std::string, std::string > nameValue;
   try
   {
     std::vector< cgicc::FormEntry >::const_iterator fe;
@@ -44,7 +44,7 @@ emu::utils::selectFromQueryString( std::vector<cgicc::FormEntry>& fev, const std
         XCEPT_RAISE( xcept::Exception, ss.str());
       }
 
-      if (isMatched) nameValue[fe->getName()] = fe->getValue();
+      if (isMatched) nameValue.insert( std::pair< std::string, std::string >( fe->getName(), fe->getValue() ) );
     }
   }
   catch (xcept::Exception& e)
