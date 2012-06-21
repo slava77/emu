@@ -15,11 +15,11 @@ namespace emu { namespace utils {
 template< typename T >
 std::ostream& operator<<(std::ostream& os, const std::vector< T >& t)
 {
-  std::cout << "[";
+  os << "[";
   typename std::vector< T >::const_iterator it;
   for (it = t.begin(); it != t.end(); ++it)
-    std::cout << *it << (it + 1 != t.end() ? "," : "");
-  std::cout << "]";
+    os << *it << (it + 1 != t.end() ? "," : "");
+  os << "]";
   return os;
 }
 
@@ -29,11 +29,14 @@ std::ostream& operator<<(std::ostream& os, const std::vector< T >& t)
 template < typename T >
 std::ostream& operator<<(std::ostream& os, const std::set<T>& t)
 {
-  std::cout << "{";
-  typename std::set<T>::iterator it, iti;
-  for ( it = iti = t.begin(), ++iti; it != t.end(); ++it, ++iti )
-    std::cout << *it << (iti != t.end() ? "," : "");
-  std::cout << "}";
+  os << "{";
+  if ( t.size() )
+    {
+      typename std::set<T>::iterator it, iti;
+      for ( it = iti = t.begin(), ++iti; it != t.end(); ++it, ++iti )
+	os << *it << (iti != t.end() ? "," : "");
+    }
+  os << "}";
   return os;
 }
 
@@ -43,7 +46,7 @@ std::ostream& operator<<(std::ostream& os, const std::set<T>& t)
 template< typename T1, typename T2 >
 std::ostream& operator<<(std::ostream& os, const std::pair< T1, T2 >& t)
 {
-  std::cout << "(" << t.first << "|" << t.second << ")";
+  os << "(" << t.first << "|" << t.second << ")";
   return os;
 }
 
@@ -53,11 +56,31 @@ std::ostream& operator<<(std::ostream& os, const std::pair< T1, T2 >& t)
 template< typename T1, typename T2 >
 std::ostream& operator<<(std::ostream& os, const std::map< T1, T2 >& t)
 {
-  std::cout << "(";
-  typename std::map< T1, T2 >::const_iterator it, iti;
-  for (it = iti = t.begin(), ++iti; it != t.end(); ++it, ++iti)
-    std::cout << it->first << "->" << it->second << (iti != t.end() ? "," : "");
-  std::cout << ")";
+  os << "(";
+  if ( t.size() )
+    {
+      typename std::map< T1, T2 >::const_iterator it, iti;
+      for (it = iti = t.begin(), ++iti; it != t.end(); ++it, ++iti)
+	os << it->first << "->" << it->second << (iti != t.end() ? "," : "");
+    }
+  os << ")";
+  return os;
+}
+
+/**
+ * quick multimap dump
+ */
+template< typename T1, typename T2 >
+std::ostream& operator<<(std::ostream& os, const std::multimap< T1, T2 >& t)
+{
+  os << "(";
+  if ( t.size() )
+    {
+      typename std::multimap< T1, T2 >::const_iterator it, iti;
+      for (it = iti = t.begin(), ++iti; it != t.end(); ++it, ++iti)
+	os << it->first << "->" << it->second << (iti != t.end() ? "," : "");
+    }
+  os << ")";
   return os;
 }
 
@@ -67,13 +90,13 @@ std::ostream& operator<<(std::ostream& os, const std::map< T1, T2 >& t)
 template < typename T >
 std::ostream& operator<<(std::ostream& os, const std::valarray<T>& t)
 {
-  std::cout << "[";
+  os << "[";
   size_t i=0;
   while( i+1 < t.size() ){
-    std::cout << t[i] << ", ";
+    os << t[i] << ", ";
     ++i;
   }
-  std::cout << t[i] << "]";
+  os << t[i] << "]";
   return os;
 }
 
