@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.40 2011/07/06 12:27:14 cvuosalo Exp $
+* $Id: Communicator.cc,v 1.41 2012/06/22 15:23:24 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -683,9 +683,9 @@ throw (toolbox::fsm::exception::Exception)
 
 		// Resync the crate to check DCC status
 		if (myDCCs.size() > 0 && !(*iCrate)->isTrackFinder()) {
-			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!  Crate " << (*iCrate)->getNumber());
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC IGNORING BACKPRESSURE.  Crate " << (*iCrate)->getNumber());
 			try {
-				myDCCs[0]->crateResync();
+				myDCCs[0]->crateResync(true);	// true == ignore backpressure
 				REVOKE_ALARM("CommunicatorConfigureResync", NULL);
 			} catch (emu::fed::exception::DCCException &e) {
 				std::ostringstream error;

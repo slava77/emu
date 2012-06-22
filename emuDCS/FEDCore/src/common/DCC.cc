@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.13 2012/02/23 13:18:45 cvuosalo Exp $
+* $Id: DCC.cc,v 1.14 2012/06/22 15:22:44 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -922,12 +922,16 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::crateResync()
+void emu::fed::DCC::crateResync(bool ignoreBackPress) // Param defaults to false
 throw (emu::fed::exception::DCCException)
 {
 	try {
 		uint16_t switchCache = readSoftwareSwitch();
-		writeSoftwareSwitch(0x1000);
+		uint16_t newSwStat = 0x1000;	// Means allow TTC command
+		if (ignoreBackPress)
+			newSwStat = 0x7000;
+			// Adds ignore backpressure SLink 0 & 1, bits 13 & 14
+		writeSoftwareSwitch(newSwStat);
 		writeTTCCommand(0x3);
 		sleep((unsigned int) 1);
 		writeSoftwareSwitch(switchCache);
