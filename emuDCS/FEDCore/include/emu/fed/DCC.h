@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.15 2012/02/23 13:18:44 cvuosalo Exp $
+* $Id: DCC.h,v 1.16 2012/06/22 15:22:44 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -371,7 +371,7 @@ namespace emu {
 			throw (emu::fed::exception::DCCException);
 
 			/** Sync reset the crate through a TTC-override command. **/
-			void crateResync()
+			void crateResync(bool ignoreBackPress = false)
 			throw (emu::fed::exception::DCCException);
 
 			/** @returns the slot number of the DDU corresponding to the given input FIFO
