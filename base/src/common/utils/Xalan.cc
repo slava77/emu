@@ -1,4 +1,4 @@
-// $Id: Xalan.cc,v 1.2 2012/04/12 05:24:27 khotilov Exp $
+// $Id: Xalan.cc,v 1.3 2012/06/22 21:04:10 banicz Exp $
 
 #include "emu/utils/Xalan.h"
 #include "emu/exception/Exception.h"
@@ -56,10 +56,11 @@ int emu::utils::transformStreams(std::istream& source,
       XCEPT_RAISE( emu::exception::XMLException, ss.str());
     }
 
-    // Terminate Xalan...
-    XalanTransformer::terminate();
-    // Clean up the ICU, if it's integrated...
-    XalanTransformer::ICUCleanUp();
+    // Do not terminate. Other threads may still use it.
+    // // Terminate Xalan...
+    // XalanTransformer::terminate();
+    // // Clean up the ICU, if it's integrated...
+    // XalanTransformer::ICUCleanUp();
   }
   catch (xcept::Exception& e)
   {
@@ -126,10 +127,11 @@ int emu::utils::transformWithParams( std::istream& source,
       XCEPT_RAISE( emu::exception::XMLException, ss.str());
     }
 
-    // Terminate Xalan...
-    XalanTransformer::terminate();
-    // Clean up the ICU, if it's integrated...
-    XalanTransformer::ICUCleanUp();
+    // Do not terminate. Other threads may still use it.
+    // // Terminate Xalan...
+    // XalanTransformer::terminate();
+    // // Clean up the ICU, if it's integrated...
+    // XalanTransformer::ICUCleanUp();
   }
   catch (xcept::Exception& e)
   {
@@ -205,7 +207,9 @@ XalanNode* emu::utils::getSingleNode( XalanDocument* document,
     XALAN_USING_XALAN(XalanDOMString);
     theNode = theEvaluator.selectSingleNode(theDOMSupport, contextNode,
                                             XalanDOMString(xPath.c_str()).c_str(), thePrefixResolver);
-    XPathEvaluator::terminate();
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser
@@ -268,7 +272,10 @@ void emu::utils::getNodes( NodeRefList& resultNodeList,
     XALAN_USING_XALAN(XalanDOMString);
     theEvaluator.selectNodeList(resultNodeList, theDOMSupport, contextNode,
                                 XalanDOMString(xPath.c_str()).c_str(), thePrefixResolver);
-    XPathEvaluator::terminate();
+
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser

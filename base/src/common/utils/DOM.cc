@@ -1,4 +1,4 @@
-// $Id: DOM.cc,v 1.5 2012/06/12 21:50:01 banicz Exp $
+// $Id: DOM.cc,v 1.6 2012/06/22 21:04:10 banicz Exp $
 
 #include "emu/utils/DOM.h"
 #include "emu/utils/Xalan.h"
@@ -234,7 +234,9 @@ std::string emu::utils::appendToSelectedNode( const std::string &XML,
       }
     }
 
-    XPathEvaluator::terminate();
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser
@@ -359,7 +361,9 @@ std::string emu::utils::setSelectedNodesValues( const std::string &XML,
     DOMDocument *domDoc = const_cast<DOMDocument*>( docWrapper->getXercesDocument() );
     modifiedXML = emu::utils::serializeDOM( domDoc );
 
-    XPathEvaluator::terminate();
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser
@@ -489,7 +493,9 @@ std::string emu::utils::setSelectedNodesValues(const std::string &XML,
     modifiedXML = emu::utils::serializeDOM(domDoc);
     // cout << "modifiedXML" << endl << modifiedXML << endl;
 
-    XPathEvaluator::terminate();
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser
@@ -595,7 +601,9 @@ std::string emu::utils::getSelectedNodeValue( const std::string &XML,
                                                           XalanDOMString(xpath.c_str()).c_str(), thePrefixResolver);
     value = emu::utils::getNodeValue(node);
 
-    XPathEvaluator::terminate();
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser
@@ -701,7 +709,9 @@ std::vector< std::pair<std::string, std::string> > emu::utils::getSelectedNodesV
                          emu::utils::getNodeValue(nodes.item(i))));
     }
 
-    XPathEvaluator::terminate();
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser
@@ -812,7 +822,9 @@ std::string emu::utils::getSelectedNode(const std::string &XML,
       }
     }
 
-    XPathEvaluator::terminate();
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser
@@ -970,7 +982,9 @@ std::string emu::utils::removeSelectedNode( const std::string& XML,
     modifiedXML = emu::utils::serializeDOM( domDoc );
     // cout << "Modified XML from DOM" << endl << modifiedXML << endl;
 
-    XPathEvaluator::terminate();
+    // Do not terminate. Other threads may still use it.
+    // XPathEvaluator::terminate();
+
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
     // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
     // "The termination call is currently optional, to aid those dynamically loading the parser 
