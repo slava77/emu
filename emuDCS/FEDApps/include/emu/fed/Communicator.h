@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.14 2011/07/06 12:27:00 cvuosalo Exp $
+* $Id: Communicator.h,v 1.15 2012/06/25 13:15:07 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -139,6 +139,15 @@ namespace emu {
 			int readTTSBits(const unsigned int crate, const unsigned int slot)
 			throw (emu::fed::exception::TTSException);
 			
+			/** Checks the FIFO and L1A status of the DCC
+			*
+			*	@param crateNum:  FED crate number
+			*	@param myDCCs: list of DCCs in this crate (should be 1)
+			*	@param exceptions: list of exceptions to be added to
+			* */
+			void chkDCCstatus(const unsigned int crateNum,
+				std::vector<DCC *> &myDCCs, std::vector<xcept::Exception> &exceptions);
+
 			/// The target crate for TTS tests.
 			xdata::UnsignedInteger ttsCrate_;
 			

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.41 2012/06/22 15:23:24 cvuosalo Exp $
+* $Id: Communicator.cc,v 1.42 2012/06/25 13:15:07 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -419,13 +419,99 @@ throw (toolbox::fsm::exception::Exception)
 }
 
 
+void emu::fed::Communicator::chkDCCstatus(const unsigned int crateNum,
+	std::vector<DCC *> &myDCCs, std::vector<xcept::Exception> &exceptions)
+{
+	// Check the status of the DCCs
+	for (std::vector<DCC *>::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); ++iDCC) {
+		try {
+			// Now that the DCC is set up properly, we can check the status.
+			uint16_t dccL1A = (*iDCC)->readStatusLow(); // should be all 0
+			uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2ffX
+
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC Status for crate " << crateNum << ", slot " << std::dec << (*iDCC)->slot() << ": L1A: " << dccL1A << ", status: " << std::hex << status << std::dec);
+
+			if (dccL1A) {
+				std::ostringstream error;
+				error << "L1A for DCC in crate " << std::dec << crateNum << ", slot " << (*iDCC)->slot() << " not reset";
+				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+				std::ostringstream tag;
+				tag << "FEDCrate " << crateNum << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2);
+				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorCheckDCC", "ERROR", error.str(), tag.str(), NULL);
+				XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
+				exceptions.push_back(e2);
+			}
+			if ((status & 0xfff0) != 0x8ff0) {
+				std::ostringstream error;
+				error << "Status for DCC in crate " << std::dec << crateNum << ", slot " << (*iDCC)->slot() << " not reset: " << std::endl;
+
+				std::multimap<std::string, std::string> fmmStatus = DCCDebugger::FMMStatus((status >> 12) & 0xf);
+				
+				error << "FMM status: ";
+				for (std::multimap<std::string, std::string>::const_iterator iStatus = fmmStatus.begin(); ;) {
+					error << iStatus->second << std::endl;
+					if (++iStatus != fmmStatus.end())
+						error << ", ";
+					else break;
+				}
+				error << "; SLink status: ";
+
+				std::multimap<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStatus(status & 0xf);
+				for (std::multimap<std::string, std::string>::const_iterator iStatus = sLinkStatus.begin(); ;) {
+					error << iStatus->second << std::endl;
+					if (++iStatus != sLinkStatus.end())
+						error << ", ";
+					else break;
+				}
+				error << "; FIFO status: ";
+
+				std::multimap<std::string, std::string> inFIFOStatus = DCCDebugger::FIFOStatus((status >> 8) & 0xff);
+				for (std::multimap<std::string, std::string>::const_iterator iStatus = inFIFOStatus.begin(); ;) {
+					error << iStatus->second << std::endl;
+					if (++iStatus != inFIFOStatus.end())
+						error << ", ";
+					else break;
+				}
+
+				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+				std::ostringstream tag;
+				tag << "FEDCrate " << crateNum << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2);
+				RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorCheckDCC", "ERROR", error.str(), tag.str(), NULL);
+				//FIXME for local running, if S-Link is not ignored, this will probably fail
+				//XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
+				//exceptions.push_back(e2);
+			}
+
+		} catch (emu::fed::exception::DCCException &e) {
+			std::ostringstream error;
+			error << "Exception in communicating to DCC in crate " << crateNum << ", slot " << (*iDCC)->slot();
+			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+			std::ostringstream tag;
+			tag << "FEDCrate " << crateNum << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2);
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorCheckDCC", "ERROR", error.str(), tag.str(), NULL, e);
+			XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
+			exceptions.push_back(e2);
+		}
+		// LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC " << (*iDCC)->getFMMID() << " status checks out");
+		// Redundant
+	}
+}
+
+
 void emu::fed::Communicator::configureCrates()
 throw (toolbox::fsm::exception::Exception)
 {
+	std::vector<xcept::Exception> exceptions;
+
 	// The hard reset here is just a precaution.  It costs almost nothing as far as time is concerned, and it might help to clear up problems before configure.
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
+		std::vector<DCC *> myDCCs = (*iCrate)->getDCCs();
+		chkDCCstatus((*iCrate)->getNumber(), myDCCs, exceptions);
+
 		resetCrate(iCrate);
+
+		chkDCCstatus((*iCrate)->getNumber(), myDCCs, exceptions);
 
 		// Now we do the configure.  This is big.
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuring crate " << (*iCrate)->getNumber());
@@ -440,6 +526,7 @@ throw (toolbox::fsm::exception::Exception)
 			tag << "FEDCrate " << (*iCrate)->getNumber();
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigure", "ERROR", error.str(), tag.str(), NULL, e);
 			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+			// Previous, minor exceptions from chkDCCstatus() lost if this major exception occurs.
 		}
 	}
 
@@ -458,7 +545,6 @@ throw (toolbox::fsm::exception::Exception)
 	//	 -->> definitely need to ignore some bits though!  see the masks
 
 	// Store exceptions when checking and report them all at the end
-	std::vector<xcept::Exception> exceptions;
 
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
@@ -681,6 +767,8 @@ throw (toolbox::fsm::exception::Exception)
 
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << (*iCrate)->getNumber() << " fully configured");
 
+		chkDCCstatus((*iCrate)->getNumber(), myDCCs, exceptions);
+
 		// Resync the crate to check DCC status
 		if (myDCCs.size() > 0 && !(*iCrate)->isTrackFinder()) {
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC IGNORING BACKPRESSURE.  Crate " << (*iCrate)->getNumber());
@@ -697,85 +785,10 @@ throw (toolbox::fsm::exception::Exception)
 				XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
 				exceptions.push_back(e2);
 			}
-
 		}
-
-		// Check the status of the DCCs
-		for (std::vector<DCC *>::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); ++iDCC) {
-			try {
-				// Now that the DCC is set up properly, we can check the status.
-				uint16_t dccL1A = (*iDCC)->readStatusLow(); // should be all 0
-				uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2ffX
-
-				LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC Status for crate " << (*iCrate)->getNumber() << ", slot " << std::dec << (*iDCC)->slot() << ": L1A: " << dccL1A << ", status: " << std::hex << status << std::dec);
-
-				if (dccL1A) {
-					std::ostringstream error;
-					error << "L1A for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset";
-					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-					std::ostringstream tag;
-					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2);
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorCheckDCC", "ERROR", error.str(), tag.str(), NULL);
-					XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
-					exceptions.push_back(e2);
-				}
-				if ((status & 0xfff0) != 0x8ff0) {
-					std::ostringstream error;
-					error << "Status for DCC in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot() << " not reset: " << std::endl;
-
-					std::multimap<std::string, std::string> fmmStatus = DCCDebugger::FMMStatus((status >> 12) & 0xf);
-					
-					error << "FMM status: ";
-					for (std::multimap<std::string, std::string>::const_iterator iStatus = fmmStatus.begin(); ;) {
-						error << iStatus->second << std::endl;
-						if (++iStatus != fmmStatus.end())
-							error << ", ";
-						else break;
-					}
-					error << "; SLink status: ";
-
-					std::multimap<std::string, std::string> sLinkStatus = DCCDebugger::SLinkStatus(status & 0xf);
-					for (std::multimap<std::string, std::string>::const_iterator iStatus = sLinkStatus.begin(); ;) {
-						error << iStatus->second << std::endl;
-						if (++iStatus != sLinkStatus.end())
-							error << ", ";
-						else break;
-					}
-					error << "; FIFO status: ";
-
-					std::multimap<std::string, std::string> inFIFOStatus = DCCDebugger::FIFOStatus((status >> 8) & 0xff);
-					for (std::multimap<std::string, std::string>::const_iterator iStatus = inFIFOStatus.begin(); ;) {
-						error << iStatus->second << std::endl;
-						if (++iStatus != inFIFOStatus.end())
-							error << ", ";
-						else break;
-					}
-
-					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-					std::ostringstream tag;
-					tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2);
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorCheckDCC", "ERROR", error.str(), tag.str(), NULL);
-					//FIXME for local running, if S-Link is not ignored, this will probably fail
-					//XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
-					//exceptions.push_back(e2);
-				}
-
-			} catch (emu::fed::exception::DCCException &e) {
-				std::ostringstream error;
-				error << "Exception in communicating to DCC in crate " << (*iCrate)->getNumber() << ", slot " << (*iDCC)->slot();
-				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-				std::ostringstream tag;
-				tag << "FEDCrate " << (*iCrate)->getNumber() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2);
-				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorCheckDCC", "ERROR", error.str(), tag.str(), NULL, e);
-				XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
-				exceptions.push_back(e2);
-			}
-			LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC " << (*iDCC)->getFMMID() << " status checks out");
-		}
+		chkDCCstatus((*iCrate)->getNumber(), myDCCs, exceptions);
 		REVOKE_ALARM("CommunicatorConfigureDCC", NULL);
-
 	}
-
 	// Make an FSM fact
 	emu::base::TypedFact<emu::fed::FEDFSMFact> fact;
 	fact.setComponentId(systemName_.toString())
