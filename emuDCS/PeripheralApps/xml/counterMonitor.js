@@ -61,11 +61,31 @@ function onSampleOrCounterSwitch(){
     scale();
 }
 
+function chamberArea( chamberName ){
+  // See Muon TDR, p145
+  var station = chamberName.substr(3,1);
+  var ring    = chamberName.substr(5,1);
+  if ( station == '1' ){
+    if ( ring == '1' ) return 0.51772; // 1.505 * ( 0.201 + 0.487 ) / 2 m^2
+    if ( ring == '2' ) return 1.08727; // 1.635 * ( 0.511 + 0.819 ) / 2 m^2
+    if ( ring == '3' ) return 1.35590; // 1.735 * ( 0.630 + 0.933 ) / 2 m^2
+    return 0.; // should never happen
+  }
+  
+  if ( ring == '2' ) return 3.11212; // 3.215 * ( 0.666 + 1.270 ) / 2 m^2
+
+  if ( station == '2' ) return 1.69860; // 1.900 * ( 0.534 + 1.254 ) / 2 m^2
+  if ( station == '3' ) return 1.57164; // 1.680 * ( 0.617 + 1.254 ) / 2 m^2
+  if ( station == '4' ) return 1.45425; // 1.500 * ( 0.685 + 1.254 ) / 2 m^2
+  return 0.; // should never happen
+}
+
 function valuesFromXmlToTable( xmlDoc ){
     try{
 	//var str = '';
 	var sampleName=getSelectedRadio('sampleSelector');
 	var counterName=getSelectedRadio('counterSelector');
+	var unitName=getSelectedRadio('unitSelector');
 	if ( !counterName ) counterName = getSelectedListItem('counterSelector');
 	//alert(counterName);
 	var samples=xmlDoc.getElementsByTagName('sample');
@@ -75,9 +95,11 @@ function valuesFromXmlToTable( xmlDoc ){
 		delta_t=samples[s].getAttribute('delta_t');
 		var counts=samples[s].getElementsByTagName('count');
 		for (c=0;c<counts.length;c++){
-		    var td = document.getElementById( 'td_'+counts[c].getAttribute('chamber') );
+		    var chamberName = counts[c].getAttribute('chamber');
+		    var td = document.getElementById( 'td_'+ chamberName );
 		    //str += td.innerHTML +' :  '+ counts[c].getAttribute(counterName) + ' :  '+ counts[c].getAttribute('chamber') + '\n';
-		    td.innerHTML = counts[c].getAttribute(counterName);
+		    if ( unitName == 'density' ) td.innerHTML = ( counts[c].getAttribute(counterName) / chamberArea( chamberName ) ).toPrecision(3);
+		    else                         td.innerHTML =   counts[c].getAttribute(counterName);
 		}
 	    }
 	}
@@ -93,6 +115,7 @@ function valuesFromXmlToTable( xmlDoc ){
 }
 
 function sumOverRingsChambers(){
+    var unitName=getSelectedRadio('unitSelector');
     var sum_endcap = 0;
     var th = document.getElementById('countsTableParent').getElementsByTagName('th');
     for (t=0;t<th.length;t++){
@@ -100,11 +123,13 @@ function sumOverRingsChambers(){
 	    var sum_ring = 0;
 	    var cells = th[t].parentNode.cells;
 	    for ( c=th[t].cellIndex+1; c<cells.length; c++ ) sum_ring += Math.max(0,Number(cells[c].innerHTML)); // Exclude negative values (no access) from sum.
-	    th[t].innerHTML = sum_ring;
+	    if ( unitName == 'density' ) th[t].innerHTML = ( sum_ring / cells.length ).toPrecision(3);
+	    else                         th[t].innerHTML =   sum_ring;
 	    sum_endcap += sum_ring;
 	}
     }
-    document.getElementById('sum_endcap').innerHTML = sum_endcap;
+    if ( unitName == 'density' ) document.getElementById('sum_endcap').innerHTML = '';
+    else                         document.getElementById('sum_endcap').innerHTML = sum_endcap;
 }
 
 function getSelectedRadio( name ){

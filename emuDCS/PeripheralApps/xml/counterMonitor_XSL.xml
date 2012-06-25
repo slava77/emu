@@ -195,8 +195,7 @@
     <xsl:param name="RING"/>
     <xsl:param name="COLS"/>
     <xsl:if test="$MAX>=$COUNT">
-      <xsl:variable name="CHAMBER_NAME"><xsl:value-of
-      select="$RING"/>/<xsl:value-of select="$COUNT"/></xsl:variable>
+      <xsl:variable name="CHAMBER_NAME"><xsl:value-of select="$RING"/>/<xsl:value-of select="$COUNT"/></xsl:variable>
       <td name="td_count">
 	<xsl:attribute name="id">td_<xsl:value-of select="$CHAMBER_NAME"/></xsl:attribute>
 	<xsl:attribute name="colspan"><xsl:value-of select="$COLS"/></xsl:attribute>
@@ -217,7 +216,7 @@
       <tr>
 	<th/>
 	<!-- 	<th>&#931;</th> -->
-	<th>Sum</th>
+	<th>Ring</th>
 	<xsl:call-template name="loop_th">
 	  <xsl:with-param name="COUNT">1</xsl:with-param>
 	  <xsl:with-param name="MAX">18</xsl:with-param>
@@ -348,6 +347,7 @@
 		    <th>&#916;t [s]</th>
 		    <th colspan="1">Counter</th>
 		    <th colspan="2">Sample</th>
+		    <th colspan="2">Units</th>
 		    <th colspan="2">Refresh</th>
 		    <th colspan="3">Scale</th>
 		  </tr>
@@ -362,21 +362,17 @@
 			<option value="lct" title="Local Charged Track" selected="selected">LCT</option>
 			<option value="l1a" title="Level-1 Accept">L1A</option>
 		      </select>
-
-<!-- 		      ALCT <input type="radio" name="counterSelector" value="alct" onclick="onSampleOrCounterSwitch()" title="Show ALCT counts."/> -->
-<!-- 		      </td><td> -->
-<!-- 		      CLCT <input type="radio" name="counterSelector" value="clct" onclick="onSampleOrCounterSwitch()" title="Show CLCT counts."/> -->
-<!-- 		      </td><td> -->
-<!-- 		      LCT  <input type="radio" name="counterSelector" value= "lct" checked="checked" onclick="onSampleOrCounterSwitch()" title="Show LCT counts."/> -->
-<!-- 		      </td><td> -->
-<!-- 		      L1A  <input type="radio" name="counterSelector" value= "l1a" onclick="onSampleOrCounterSwitch()" title="Show L1A counts."/> -->
-
 		    </td>
 		    <td>
 		      instantaneous <input type="radio" name="sampleSelector" value="sliding" checked="checked" onclick="onSampleOrCounterSwitch()" title="Counts during the last few seconds."/>
 		      </td><td>
 		      cumulative <input type="radio" name="sampleSelector" value="cumulative" onclick="onSampleOrCounterSwitch()" title="Count since the last reset."/>
 <!-- 		      <input type="button" id="resetCumulative" name="reset" value="reset" title="Reset the cumulative counter now."/> -->
+		    </td>
+		    <td>
+		      count <input type="radio" name="unitSelector" value="count" checked="checked" onclick="onSampleOrCounterSwitch()" title="Count."/>
+		      </td><td>
+		      count / m&#xb2; <input type="radio" name="unitSelector" value="density" onclick="onSampleOrCounterSwitch()" title="Count per square meter."/>
 		    </td>
 		    <td>
 		      auto <input type="checkbox" id="autoRefresh" checked="checked" onclick="autoLoadCountsXML()" title="Automatic refreshing of counters."/>
