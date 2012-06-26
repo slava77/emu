@@ -5,7 +5,7 @@
 
 namespace emusoap {
 	const std::string package     = "emusoap";
-	const std::string versions    = "11.02.01";
+	const std::string versions    = "11.03.00";
 	const std::string description = "SOAP messenger class for Emu (CSC) XDAQ applications";
 
 	const std::string summary     = "emu/soap";
