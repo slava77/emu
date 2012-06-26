@@ -457,7 +457,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
     MonHistos& cschistos = mhistos[cscID];
     TH2F* v01 = reinterpret_cast<TH2F*>(cschistos["V01"]);
     TH2F* v05 = reinterpret_cast<TH2F*>(cschistos["V05"]);
-    TH2F* v06 = reinterpret_cast<TH2F*>(cschistos["V06"]);
+    TH1F* v06 = reinterpret_cast<TH1F*>(cschistos["V06"]);
 
     ResultsCodes& rcodes = rescodes[cscID];
 

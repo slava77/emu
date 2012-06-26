@@ -196,7 +196,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
       for (unsigned int tbin=0; tbin<spPtr->header().nTBINs(); tbin++)
         {
 
-          TH2F *SE = (TH2F*)tf.get("SE",sp);
+          TH1F *SE = (TH1F*)tf.get("SE",sp);
           if ( SE )
             {
               if ( spPtr->record(tbin).SEs()&0x1   ) SE->Fill(0);
@@ -215,7 +215,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
               if ( spPtr->record(tbin).SEs()&0x2000) SE->Fill(13);
               if ( spPtr->record(tbin).SEs()&0x4000) SE->Fill(14);
             }
-          TH2F *SM = (TH2F*)tf.get("SM",sp);
+          TH1F *SM = (TH1F*)tf.get("SM",sp);
           if ( SM )
             {
               if ( spPtr->record(tbin).SMs()&0x1   ) SM->Fill(0);
@@ -234,7 +234,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
               if ( spPtr->record(tbin).SMs()&0x2000) SM->Fill(13);
               if ( spPtr->record(tbin).SMs()&0x4000) SM->Fill(14);
             }
-          TH2F *AF = (TH2F*)tf.get("AF",sp);
+          TH1F *AF = (TH1F*)tf.get("AF",sp);
           if ( AF )
             {
               if ( spPtr->record(tbin).AFs()&0x1   ) AF->Fill(0);
@@ -255,7 +255,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
               if ( spPtr->record(tbin).AFs()&0x8000) AF->Fill(15);
               if ( spPtr->record(tbin).AFs()&0x10000) AF->Fill(16);
             }
-          TH2F *BX = (TH2F*)tf.get("BX",sp);
+          TH1F *BX = (TH1F*)tf.get("BX",sp);
           if ( BX )
             {
               if ( spPtr->record(tbin).BXs()&0x1   ) BX->Fill(0);
