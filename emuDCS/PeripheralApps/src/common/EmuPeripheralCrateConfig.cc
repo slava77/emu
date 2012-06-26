@@ -399,6 +399,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadFirmware, "TMBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTReadFirmware, "ALCTReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTSlowFirmware, "LoadALCTSlowFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::LoadSpartan6ALCTFirmware, "LoadSpartan6ALCTFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::LoadVirtex6TMBFirmware, "LoadVirtex6TMBFirmware");
+
   //
   //----------------------------
   // Bind logging methods
@@ -8456,6 +8459,31 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << std::endl ;
   }
   //
+  if (standalone_) {
+    *out << cgicc::br() << std::endl;
+    *out << cgicc::br() << std::endl;
+    *out << "ME11 New Elctronics:" << cgicc::br() << std::endl;
+    *out << "new TMB firmware version = " << FirmwareDir_ + "tmb/tmb_me11_virtex6.svf" << cgicc::br() << std::endl;
+    *out << "new ALCT firmware version = " << FirmwareDir_ + "alct/alct_mez_spartan6.svf" << cgicc::br() << std::endl;
+
+    std::string LoadVirtex6TMBFirmware = toolbox::toString("/%s/LoadVirtex6TMBFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadVirtex6TMBFirmware) << std::endl ;
+    sprintf(buf,"Load TMB Virtex 6 Firmware in slot %d",tmbVector[tmb]->slot());
+    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+
+    std::string LoadSpartan6ALCTFirmware = toolbox::toString("/%s/LoadSpartan6ALCTFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadSpartan6ALCTFirmware) << std::endl ;
+    sprintf(buf,"Load ALCT Spartan 6 Firmware in slot %d",tmbVector[tmb]->slot());
+    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+
+  }
+  //
   *out << cgicc::fieldset();
   //
   *out << cgicc::br() << std::endl;
@@ -8918,6 +8946,91 @@ void EmuPeripheralCrateConfig::LoadALCTSlowFirmware(xgi::Input * in, xgi::Output
   }
   //
   this->TMBUtils(in,out);
+}
+//
+void EmuPeripheralCrateConfig::LoadVirtex6TMBFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+if(standalone_)
+{
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  int tmb;
+  if(name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl ;
+    tmb=-1;
+  }
+  //
+  TMB * thisTMB=NULL;
+  if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
+  if(thisTMB)
+  {
+    std::string svffile = FirmwareDir_ + "tmb/tmb_me11_virtex6.svf";
+    // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
+    thisCCB->setCCBMode(CCB::VMEFPGA);
+      //
+    std::cout  << getLocalDateTime() <<  "Write TMB ME11 (Virtex 6) firmware to slot " << thisTMB->slot() << std::endl;
+      //
+    thisTMB->setup_jtag(ChainTmbMezz);
+    thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
+
+    // enable VME access to TMB FPGA
+    // from function ClearTMBBootReg()
+        short unsigned int BootReg;
+        thisTMB->tmb_get_boot_reg(&BootReg);
+        BootReg &= 0xff7f;                    // Give JTAG chain to the FPGA to configure ALCT on hard reset
+        BootReg &= 0xf7ff;                    // Allow FPGA access to the VME register
+        thisTMB->tmb_set_boot_reg(BootReg);
+
+    // Put CCB back into DLOG mode to listen to TTC commands...
+    thisCCB->setCCBMode(CCB::DLOG);
+  }
+  //
+}
+this->TMBUtils(in,out);
+}
+
+//
+void EmuPeripheralCrateConfig::LoadSpartan6ALCTFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+if(standalone_)
+{  
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  int tmb;
+  if(name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl ;
+    tmb=-1;
+  }
+  //
+  TMB * thisTMB=NULL;
+  if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
+  if(thisTMB)
+  {
+    std::string svffile = FirmwareDir_ + "alct/alct_mez_spartan6.svf";
+    // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
+    thisCCB->setCCBMode(CCB::VMEFPGA);
+      //
+    std::cout  << getLocalDateTime() <<  "Write new ALCT Mezzanine (Spartan 6) firmware to slot " << thisTMB->slot() << std::endl;
+      //
+    thisTMB->setup_jtag(ChainAlctFastMezz);
+    thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
+
+    // Put CCB back into DLOG mode to listen to TTC commands...
+    thisCCB->setCCBMode(CCB::DLOG);
+  }
+  //
+}
+this->TMBUtils(in,out);
 }
 
 //
