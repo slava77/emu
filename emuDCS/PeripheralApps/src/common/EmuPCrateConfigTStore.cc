@@ -230,7 +230,7 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out)
   *out << form() << endl;
   *out << cgicc::td() << endl;
 
-#if 1
+#if 0
   //This recreates the tables in the database, it only needs to be done for the initial setup or if the database structure changes,
   //so we don't want to do it by accident.
 
