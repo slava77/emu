@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.42 2012/06/25 13:15:07 cvuosalo Exp $
+* $Id: Communicator.cc,v 1.43 2012/06/26 20:22:32 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -501,17 +501,17 @@ void emu::fed::Communicator::chkDCCstatus(const unsigned int crateNum,
 void emu::fed::Communicator::configureCrates()
 throw (toolbox::fsm::exception::Exception)
 {
-	std::vector<xcept::Exception> exceptions;
+	std::vector<xcept::Exception> unused;
 
 	// The hard reset here is just a precaution.  It costs almost nothing as far as time is concerned, and it might help to clear up problems before configure.
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
 		std::vector<DCC *> myDCCs = (*iCrate)->getDCCs();
-		chkDCCstatus((*iCrate)->getNumber(), myDCCs, exceptions);
+		chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
 
 		resetCrate(iCrate);
 
-		chkDCCstatus((*iCrate)->getNumber(), myDCCs, exceptions);
+		chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
 
 		// Now we do the configure.  This is big.
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuring crate " << (*iCrate)->getNumber());
@@ -526,7 +526,6 @@ throw (toolbox::fsm::exception::Exception)
 			tag << "FEDCrate " << (*iCrate)->getNumber();
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigure", "ERROR", error.str(), tag.str(), NULL, e);
 			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-			// Previous, minor exceptions from chkDCCstatus() lost if this major exception occurs.
 		}
 	}
 
@@ -545,6 +544,7 @@ throw (toolbox::fsm::exception::Exception)
 	//	 -->> definitely need to ignore some bits though!  see the masks
 
 	// Store exceptions when checking and report them all at the end
+	std::vector<xcept::Exception> exceptions;
 
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
@@ -767,7 +767,7 @@ throw (toolbox::fsm::exception::Exception)
 
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << (*iCrate)->getNumber() << " fully configured");
 
-		chkDCCstatus((*iCrate)->getNumber(), myDCCs, exceptions);
+		chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
 
 		// Resync the crate to check DCC status
 		if (myDCCs.size() > 0 && !(*iCrate)->isTrackFinder()) {
