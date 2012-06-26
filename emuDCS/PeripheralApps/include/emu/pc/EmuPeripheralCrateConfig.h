@@ -439,6 +439,8 @@ private:
   void TMBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ALCTReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void LoadALCTSlowFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void LoadVirtex6TMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
+  void LoadSpartan6ALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // VCC utils
   void VCCHeader(xgi::Input * in, xgi::Output * out, std::string title, std::string heading ) throw (xgi::exception::Exception); 
