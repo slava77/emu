@@ -52,16 +52,32 @@
       </sql:parameter>
 		<![CDATA[select EMU_CONFIG_ID from (select EMU_CONFIG_ID from EMU_CONFIGURATION where EMU_ENDCAP_SIDE='$SIDE' order by EMU_CONFIG_ID desc) where rownum<=$MAX]]>
 	</sql:query>
+    
     <!-- TABLE: EMU_CONFIGURATION -->
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="configuration">
       <sql:table name="EMU_CONFIGURATION"/>
     </sql:insert>
+
     <sql:query xmlns:sql="urn:tstore-view-SQL" name="configuration">
       <sql:parameter name="EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
       <![CDATA[select * from EMU_CONFIGURATION where EMU_CONFIG_ID=$EMU_CONFIG_ID]]>
     </sql:query>
+
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="configuration_ids_side">
+      <sql:parameter name="SIDE">
+        <![CDATA[]]>
+      </sql:parameter>
+      <sql:parameter name="MAX">
+        <![CDATA[50]]>
+      </sql:parameter>
+      <![CDATA[select
+EMU_CONFIG_ID, EMU_CONFIG_TIME, DESCRIPTION from
+  (select EMU_CONFIG_ID, EMU_CONFIG_TIME, DESCRIPTION from EMU_CONFIGURATION where EMU_ENDCAP_SIDE='$SIDE' order by EMU_CONFIG_ID desc)
+where rownum<=$MAX]]>
+    </sql:query>
+
     
     <!-- TABLE: EMU_PERIPHERALCRATE -->
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate">
