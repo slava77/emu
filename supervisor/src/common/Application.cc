@@ -892,13 +892,6 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       } 
     }
 
-    xdata::String runType( "global" );
-    if      ( isCalibrationMode()     ) runType = "calibration";
-    else if ( controlTFCellOp_.value_ ) runType = "local";
-    m.setParameters( "emu::fed::Manager", emu::soap::Parameters().add( "runType", &runType ) );
-    // Configure FED
-    m.sendCommand( "emu::fed::Manager", "Configure" );
-
     // Configure TTC
     int index = getCalibParamIndex(run_type_);
     if (index >= 0) {
@@ -911,6 +904,13 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       m.setParameters( "ttc::LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
     }
     m.sendCommand( "ttc::LTCControl", "configure" );
+
+    xdata::String runType( "global" );
+    if      ( isCalibrationMode()     ) runType = "calibration";
+    else if ( controlTFCellOp_.value_ ) runType = "local";
+    m.setParameters( "emu::fed::Manager", emu::soap::Parameters().add( "runType", &runType ) );
+    // Configure FED
+    m.sendCommand( "emu::fed::Manager", "Configure" );
 
     if (isCalibrationMode()) {
 		if (isAlctCalibrationMode())
