@@ -1,10 +1,11 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.21 2012/03/06 20:39:22 cvuosalo Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.22 2012/06/27 15:10:32 cvuosalo Exp $
 *****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
 #include <fstream>
 #include <iomanip>
+#include <unistd.h>
 
 #include "cgicc/HTMLClasses.h"
 #include "emu/fed/DDUDebugger.h"
@@ -3945,6 +3946,30 @@ void emu::fed::EmuFCrateHyperDAQ::DDUExpert(xgi::Input *in, xgi::Output *out)
 			.set("value","Set Value") << std::endl;
 		expertTable(3,3) << cgicc::form() << std::endl;
 		
+		expertTable(3,4) << cgicc::form()
+			.set("method", "GET")
+			.set("action", dduTextLoad) << std::endl;
+		expertTable(3,4) << cgicc::input()
+			.set("name", "slot")
+			.set("type", "hidden")
+			.set("value", dduVal) << std::endl;
+		expertTable(3,4) << cgicc::input()
+			.set("type", "hidden")
+			.set("name", "crate")
+			.set("value", crateVal) << std::endl;
+		expertTable(3,4) << cgicc::input()
+			.set("name","command")
+			.set("type","hidden")
+			.set("value","19") << std::endl;
+		expertTable(3,4) << std::hex << cgicc::input()
+			.set("name","textdata")
+			.set("size","10")
+			.set("ENCTYPE","multipart/form-data")
+			.set("value", "0") << std::endl;
+		expertTable(3,4) << cgicc::input()
+			.set("type","submit")
+			.set("value","Set 0xF0EC period (ms)") << std::endl;
+		expertTable(3,4) << cgicc::form() << std::endl;
 		
 		expertTable(4,0) << "Switches";
 		expertTable(4,1) << std::showbase << std::hex << (myDDU->readSwitches() & 0xff);
@@ -4805,6 +4830,21 @@ void emu::fed::EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input *in, xgi::Output *out)
 
 		case (18): // Load FMM
 			myDDU->writeFMM( uploadValue );
+			break;
+
+		case (19): // Briefly set FMM error
+			myDDU->writeFMM( 0xf0ec );
+			if (uploadValue > 0) {
+				unsigned int timesecs = uploadValue / 1000;
+				// uploadValue is milliseconds, timeusecs is microseconds
+				// timeusecs is not allowed more than 1 second
+				useconds_t timeusecs = (uploadValue % 1000) * 1000;
+				if (timeusecs > 0)
+					(void) usleep(timeusecs);
+				if (timesecs > 0)
+					(void) sleep(timesecs);
+			}
+			myDDU->writeFMM( 0xfed0 );
 			break;
 
 		default:
