@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.80 2012/06/20 08:45:01 kkotov Exp $
+// $Id: DAQMB.cc,v 3.81 2012/06/28 18:59:51 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.81  2012/06/28 18:59:51  liu
+// fix CFEB firmware downloading bug by closing the file after use
+//
 // Revision 3.80  2012/06/20 08:45:01  kkotov
 //
 // New faster DMB/CFEB EPROM readback routines
@@ -3110,6 +3113,7 @@ void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *
     FILE *bogodwnfp=fopen(downfile,"r");
     while (fgets(bogobuf,256,bogodwnfp) != NULL)
       if (strrchr(bogobuf,';')!=0) nlines++;
+    fclose(bogodwnfp);
     float percent;
     while (fgets(buf,256,dwnfp) != NULL)  {
       percent = (float)line/(float)nlines;
@@ -4054,6 +4058,7 @@ ipass == 3 - load only the stuff after the board number
   FILE *bogodwnfp=fopen(downfile,"r");
   while (fgets(bogobuf,256,bogodwnfp) != NULL) 
     if (strrchr(bogobuf,';')!=0) nlines++;
+  fclose(bogodwnfp);
   float percent;
   while (fgets(buf,256,dwnfp) != NULL)  {
     percent = (float)line/(float)nlines;
