@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.2 2010/08/13 03:00:07 paste Exp $
+* $Id: IRQThreadManager.h,v 1.3 2012/06/29 11:12:31 banicz Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -12,6 +12,7 @@
 #include "emu/base/Alarm.h"
 #include "emu/fed/IRQData.h"
 
+#if GCC_VERSION >= 40300
 // My own versions of Karoly's macros
 #define MY_RAISE_ALARM( TYPE, NAME, SEVERITY, MESSAGE, TAG) \
 emu::base::Alarm<TYPE>().raise( NAME, SEVERITY, MESSAGE, TAG, __FILE__, __LINE__, __FUNCTION__, application_, NULL )
@@ -21,6 +22,11 @@ emu::base::Alarm<TYPE>().raiseNested( NAME, SEVERITY, MESSAGE, TAG, __FILE__, __
 
 #define MY_REVOKE_ALARM( NAME ) \
 emu::base::Alarm<xcept::Exception>().revoke( NAME, __FILE__, __LINE__, __FUNCTION__, application_, NULL )
+#else
+#define MY_RAISE_ALARM( TYPE, NAME, SEVERITY, MESSAGE, TAG)
+#define MY_RAISE_ALARM_NESTED( TYPE, NAME, SEVERITY, MESSAGE, TAG, NESTED_EXCEPTION )
+#define MY_REVOKE_ALARM( NAME )
+#endif
 
 
 namespace emu {
