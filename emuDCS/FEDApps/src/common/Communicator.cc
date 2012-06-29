@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.44 2012/06/29 11:12:32 banicz Exp $
+* $Id: Communicator.cc,v 1.45 2012/06/29 12:13:28 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -519,11 +519,11 @@ throw (toolbox::fsm::exception::Exception)
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
 		std::vector<DCC *> myDCCs = (*iCrate)->getDCCs();
-		chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
+		// chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
 
 		resetCrate(iCrate);
 
-		chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
+		// chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
 
 		// Now we do the configure.  This is big.
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuring crate " << (*iCrate)->getNumber());
@@ -821,7 +821,7 @@ throw (toolbox::fsm::exception::Exception)
 
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << (*iCrate)->getNumber() << " fully configured");
 
-		chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
+		// chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
 
 		// Resync the crate to check DCC status
 		if (myDCCs.size() > 0 && !(*iCrate)->isTrackFinder()) {
