@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.47 2012/05/09 20:59:00 liu Exp $
+// $Id: CCB.cc,v 3.48 2012/07/06 00:49:35 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.48  2012/07/06 00:49:35  liu
+// add functions used by STEP
+//
 // Revision 3.47  2012/05/09 20:59:00  liu
 // fix missing standard header files
 //
@@ -1681,7 +1684,79 @@ void CCB::l1a_and_trig(){
   //2004
   do_vme(VME_WRITE,0x54,sndbuf,rcvbuf,NOW); // base+0x3c
 }
+
+// code used by STEP
 //
+void CCB::EnableL1aFromVme()
+{
+	// enable L1A and clct_pretrig from VME command
+	unsigned csrb1 = 0x1aed; // also disable all other trigger sources
+	WriteRegister(CSRB1, csrb1);
+}
+
+void CCB::EnableL1aFromTmbL1aReq()
+{
+	// enable L1A from TMB L1A request line. 
+	// clct_pretrig is not enabled since TMB will generate LCT for CFEBs
+	unsigned csrb1 = 0x1edd; // also disable all other trigger sources
+	WriteRegister(CSRB1, csrb1);
+}
+
+void CCB::EnableL1aFromSyncAdb()
+{
+	// enable L1A and clct_pretrig from ALCT sync test pulse
+	unsigned csrb1 = 0x12fd; // also disable all other trigger sources
+	WriteRegister(CSRB1, csrb1);
+}
+
+void CCB::EnableL1aFromASyncAdb()
+{
+	// enable L1A and clct_pretrig from ALCT Async test pulse
+	unsigned csrb1 = 0x0afd; // also disable all other trigger sources
+	WriteRegister(CSRB1, csrb1);
+}
+
+void CCB::EnableL1aFromDmbCfebCalibX()
+{
+	// enable L1A and clct_pretrig from any of dmb_cfeb_calib signals
+	unsigned csrb1 = 0x1af9; // also disable all other trigger sources
+	WriteRegister(CSRB1, csrb1);
+}
+
+void CCB::DisableL1a()
+{
+	// kill all triggers
+	unsigned csrb1 = 0xffff;
+	WriteRegister(CSRB1, csrb1);
+}
+
+void CCB::GenerateL1A()
+{
+	WriteRegister(L1ATrigger, 0); // generate L1A and pretriggers
+}
+
+void CCB::GenerateDmbCfebCalib0()
+{
+	// CFEB test pulse
+	WriteRegister(DMB_CFEB_CAL0, 0);
+}
+
+void CCB::GenerateDmbCfebCalib1()
+{
+	// CFEB inject
+	WriteRegister(DMB_CFEB_CAL1, 0);
+}
+
+void CCB::SetExtTrigDelay(unsigned delay)
+{
+	unsigned csrb5 = ReadRegister(CSRB5);
+	csrb5 &= 0xff;
+	//shifts delay by additional 128 (delay in UFL)
+	//change from 8 to 7 (shift by 64) 
+	csrb5 |= (delay << 7);
+	WriteRegister(CSRB5, csrb5);
+	
+}
 
   } // namespace emu::pc
   } // namespace emu
