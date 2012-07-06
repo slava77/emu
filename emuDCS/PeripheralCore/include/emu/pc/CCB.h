@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.7 2012/01/27 21:32:15 liu Exp $
+// $Id: CCB.h,v 1.8 2012/07/06 00:49:34 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.8  2012/07/06 00:49:34  liu
+// add functions used by STEP
+//
 // Revision 1.7  2012/01/27 21:32:15  liu
 // clean Get/SetCCBmode functions
 //
@@ -323,7 +326,17 @@ public:
   inline int GetReadDMBConfigDone(int dmb_index) { return read_dmb_cfg_done_[dmb_index]; }
   inline int GetExpectedDMBConfigDone() { return expected_dmb_cfg_done_; }
   //
-  //code used by DCS
+  //code used by STEP
+  void EnableL1aFromVme();
+  void EnableL1aFromTmbL1aReq();
+  void EnableL1aFromSyncAdb();
+  void EnableL1aFromASyncAdb();
+  void EnableL1aFromDmbCfebCalibX();
+  void DisableL1a();
+  void GenerateL1A();
+  void GenerateDmbCfebCalib0();
+  void GenerateDmbCfebCalib1();
+  void SetExtTrigDelay(unsigned delay);
 
 protected:
   int mCCBMode;  // current CCB hardware Mode
@@ -358,6 +371,7 @@ private:
   static const unsigned int CSRB18  = 0x42;
   //
   static const unsigned int L1Reset    = 0x50;
+  static const unsigned int L1ATrigger = 0x54;
   static const unsigned int TTCrxReset = 0x5c;
   //
   static const unsigned int readL1aCounterLSB  = 0x90;
