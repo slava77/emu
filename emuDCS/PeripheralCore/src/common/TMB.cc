@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.100 2012/05/09 20:59:00 liu Exp $
+// $Id: TMB.cc,v 3.101 2012/07/06 01:42:53 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.101  2012/07/06 01:42:53  liu
+// add function used by STEP
+//
 // Revision 3.100  2012/05/09 20:59:00  liu
 // fix missing standard header files
 //
@@ -8822,7 +8825,18 @@ bool TMB::checkvme_fail()
    if(i<=0) return true;  // if VCC problem, or TMB time-out
    return (data[1] & 0x40)==0 ;  // if TMB vme access disabled
 }
+
 //
+// code used by STEP
+//
+void TMB::EnableClctExtTrig()
+{
+  // note: this one only enables CLCT Ext Trig bit, no change to the other bits.
+  //
+  SetClctExtTrigEnable(1);
+  int data_to_write = FillTMBRegister(seq_trig_en_adr);
+  WriteRegister(seq_trig_en_adr, data_to_write);
+}
 
 } // namespace emu::pc  
 } // namespace emu  
