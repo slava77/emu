@@ -639,6 +639,9 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
     int CrateID = (chamber->first>>4) & 0xFF;
     int DMBSlot = chamber->first & 0xF;
     int dduID = bin_checker.dduSourceID() & 0xFF;
+    ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
+    if (dduID == 248) dduID = 1;
+
     std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
 
     if (CrateID == 255)
