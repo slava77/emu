@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.19 2012/02/15 10:16:42 liu Exp $
+// $Id: TMB.h,v 1.20 2012/07/06 01:42:52 liu Exp $
 // $Log: TMB.h,v $
+// Revision 1.20  2012/07/06 01:42:52  liu
+// add function used by STEP
+//
 // Revision 1.19  2012/02/15 10:16:42  liu
 // fix TMB counters for 64bit
 //
@@ -2131,6 +2134,8 @@ public:
   int DCSreadAll(char *data); /// read out all DCS values (Temperatures and LVs)
   int DCSvoltages(char *data); /// read out crate low voltages and currents
   bool checkvme_fail(); /// true=no vme access (whatever reason) 
+
+  void EnableClctExtTrig();  // used by STEP
   //
   FILE *pfile;
   int ucla_ldev;
