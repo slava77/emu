@@ -222,6 +222,7 @@ protected:
   xdata::UnsignedInteger 	binCheckMask_;
   xdata::UnsignedInteger 	dduCheckMask_;
   xdata::Boolean 		fSaveROOTFile_;
+  xdata::Boolean		fCheckMapping_;  	// Enable or disable DDU-CSC mapping checks
   xdata::String 		daqGroup_;
 
   // == File Writer 
