@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.81 2012/06/28 18:59:51 liu Exp $
+// $Id: DAQMB.cc,v 3.82 2012/07/10 15:27:57 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.82  2012/07/10 15:27:57  liu
+// add function used by STEP
+//
 // Revision 3.81  2012/06/28 18:59:51  liu
 // fix CFEB firmware downloading bug by closing the file after use
 //
@@ -6795,6 +6798,51 @@ void DAQMB::load_feb_clk_delay()
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+}
+
+// code used by STEP
+//
+void DAQMB::trighalfx(int ihalf)
+{
+    int hs[6];
+    int i,j,k,pln,crd;
+    int chan[5][6][16];
+    for(i=0;i<5;i++)
+    {
+		for(j=0;j<6;j++)
+		{
+			for(k=0;k<16;k++)
+			{
+				chan[i][j][k]=NORM_RUN;
+			}
+		}
+    }
+    for(i=0;i<6;i+=2)
+    {
+		hs[i]=ihalf;
+		hs[i+1]=ihalf;
+    }
+    for(crd=0;crd<5;crd++)
+    {
+		for(pln=0;pln<6;pln++)
+		{
+			halfset(crd,pln,hs[pln],chan);
+		}
+    }
+    for(i=0;i<5;i++)
+    {
+		for(j=0;j<6;j++)
+		{
+			for(k=0;k<16;k++)
+			{
+				printf(" %d",chan[i][j][k]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+    }
+    printf(" chan filled \n");
+    chan2shift(chan);
 }
 
 //
