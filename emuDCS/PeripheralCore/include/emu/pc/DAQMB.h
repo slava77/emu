@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.12 2012/06/20 08:45:00 kkotov Exp $
+// $Id: DAQMB.h,v 1.13 2012/07/10 15:27:57 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.13  2012/07/10 15:27:57  liu
+// add function used by STEP
+//
 // Revision 1.12  2012/06/20 08:45:00  kkotov
 //
 // New faster DMB/CFEB EPROM readback routines
@@ -675,7 +678,10 @@ public:
   inline int GetWordWithBadReadbackBit(unsigned int badbit) const { if( badbit < NBB ) return NBBwrd[badbit]; else return -1; } 
   inline int GetBadReadbackBitPosition(unsigned int badbit) const { if( badbit < NBB ) return NBBbit[badbit]; else return -1; } 
   inline int GetBadReadbackBitType    (unsigned int badbit) const { if( badbit < NBB ) return NBBtyp[badbit]; else return -1; } 
-            
+
+  // code used by STEP
+  void trighalfx(int ihalf);
+           
  private:
   //
   int shift_array_[5][6][16];
