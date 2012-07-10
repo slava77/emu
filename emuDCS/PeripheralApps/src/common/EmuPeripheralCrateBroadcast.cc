@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.55 2011/11/04 20:05:53 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.56 2012/07/10 15:29:26 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -892,30 +892,6 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalALCT (xoap::Messa
   In_Broadcast_ = false;
   return createReply(message);
   //
-}
-//
-
-void EmuPeripheralCrateBroadcast::ccb_EnableL1aFromSyncAdb(CCB *ccb)
-{
-	// enable L1A and clct_pretrig from ALCT sync test pulse
-	unsigned csrb1 = 0x12fd; // also disable all other trigger sources
-	ccb->WriteRegister(0x20, csrb1);
-}
-
-void EmuPeripheralCrateBroadcast::ccb_SetExtTrigDelay(CCB *ccb, unsigned delay)
-{
-	unsigned csrb5 = ccb->ReadRegister(0x28);
-	csrb5 &= 0xff;
-	csrb5 |= (delay << 8);
-	ccb->WriteRegister(0x28, csrb5);
-	
-}
-
-void EmuPeripheralCrateBroadcast::tmb_EnableClctExtTrig(TMB * tmb)
-{
-	tmb->SetClctExtTrigEnable(1);
-    int data_to_write = tmb->FillTMBRegister(0x68);
-    tmb->WriteRegister(0x68 ,data_to_write);
 }
 
 xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalALCTConnectivity (xoap::MessageReference message) 
