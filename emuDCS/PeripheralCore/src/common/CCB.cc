@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.48 2012/07/06 00:49:35 liu Exp $
+// $Id: CCB.cc,v 3.49 2012/07/10 15:25:25 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.49  2012/07/10 15:25:25  liu
+// bug fix in SetExtTrigDelay for STEP
+//
 // Revision 3.48  2012/07/06 00:49:35  liu
 // add functions used by STEP
 //
@@ -1751,9 +1754,7 @@ void CCB::SetExtTrigDelay(unsigned delay)
 {
 	unsigned csrb5 = ReadRegister(CSRB5);
 	csrb5 &= 0xff;
-	//shifts delay by additional 128 (delay in UFL)
-	//change from 8 to 7 (shift by 64) 
-	csrb5 |= (delay << 7);
+        csrb5 |= (delay << 8);
 	WriteRegister(CSRB5, csrb5);
 	
 }
