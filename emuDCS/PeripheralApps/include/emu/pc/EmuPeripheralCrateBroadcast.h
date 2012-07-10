@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.4 2010/09/15 18:25:15 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.5 2012/07/10 15:29:26 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -134,11 +134,6 @@ public:
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void dummyAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
-
-// from XTEP
-  void ccb_EnableL1aFromSyncAdb(CCB *ccb);
-  void ccb_SetExtTrigDelay(CCB *ccb, unsigned delay);
-  void tmb_EnableClctExtTrig(TMB * tmb);
 
 private:
 
