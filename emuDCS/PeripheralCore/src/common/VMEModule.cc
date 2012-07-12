@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.33 2012/06/20 08:45:01 kkotov Exp $
+// $Id: VMEModule.cc,v 3.34 2012/07/12 13:06:26 ahart Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.34  2012/07/12 13:06:26  ahart
+//
+// Modified to accomodate DCFEB and ODAQMB.
+//
 // Revision 3.33  2012/06/20 08:45:01  kkotov
 //
 // New faster DMB/CFEB EPROM readback routines
@@ -210,6 +214,26 @@
 namespace emu {
   namespace pc {
 
+VMEModule::VMEModule(Crate * theCrate, int newslot,int dcfeb): 
+  theSlot(newslot)
+{
+  // Don't want to register DCFEB in VMEModule
+  theCrate_ = theCrate;
+  //
+#ifdef debugV
+  std::cout << "creating VMEModule in crate " << theCrate->CrateID() << std::endl;
+#endif
+  //
+  theController = theCrate->vmeController();
+  printf(" don't call addModule \n");fflush(stdout);   
+  // theCrate->addModule(this);  // don't register DCFEB in VMEModule
+  //
+#ifdef debugV
+  std::cout << "Done VMEModule in crate " << theCrate->CrateID() << std::endl;
+#endif
+  //
+}
+
 VMEModule::VMEModule(Crate * theCrate, int newslot): 
   theSlot(newslot)
 {
@@ -270,6 +294,19 @@ void VMEModule::new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
   theController->new_devdo(dev, ncmd, cmd, nbuf, inbuf, outbuf, irdsnd);
 }
 
+void VMEModule::DCFEBEPROM_read(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
+                     const char *inbuf,char *outbuf,int ird,int wrt,int init) {
+  //printf("VMEModule::devdo\n");
+  //std::cout << "VMEModule. Setting slot=" << theSlot << std::endl;
+  theController->start( theSlot, boardType() );
+  if(boardType()==DCFEB_ENUM)theController->DCFEBEPROM_read(dev, ncmd, cmd, nbuf, inbuf, outbuf, ird,wrt,init);
+}
+
+void VMEModule::SendRUNTESTClks(unsigned long int clks){
+  theController->start( theSlot, boardType() );
+  if(boardType()==DMB_ENUM)theController->SendRUNTESTClks(clks);
+}
+
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
   theController->start( theSlot, boardType() );
   if(boardType()==TMB_ENUM || boardType()==MPC_ENUM || boardType()==CCB_ENUM)
@@ -283,9 +320,19 @@ void VMEModule::scan_reset(int reg,const char *snd,int cnt,char *rcv,int ird) {
   theController->scan_reset(reg, snd, cnt, rcv, ird);
 }
 
+void VMEModule::scan_reset_headtail(int reg,const char *snd,int cnt,char *rcv,int headtail,int ird) {
+  theController->start( theSlot, boardType());
+  theController->scan_reset_headtail(reg, snd, cnt, rcv, headtail, ird);
+}
+
 void VMEModule::scan_dmb_headtail(int reg,const char *snd,int cnt,char *rcv,int ird,int headtail, int when) {
   theController->start( theSlot, boardType());
   theController->scan_dmb_headtail(reg, snd, cnt, rcv, ird, headtail, when);
+}
+
+void VMEModule::scan_dmb(int reg,const char *snd,int cnt,char *rcv,int ird, int when){
+    theController->start( theSlot, boardType());
+    theController->scan_dmb(reg, snd, cnt, rcv, ird,when);
 }
 
 void VMEModule::RestoreIdle() {

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.10 2012/04/24 14:42:16 liu Exp $
+// $Id: Crate.h,v 1.11 2012/07/12 13:05:02 ahart Exp $
 // $Log: Crate.h,v $
+// Revision 1.11  2012/07/12 13:05:02  ahart
+//
+// Modified to accomodate DCFEB and ODAQMB.
+//
 // Revision 1.10  2012/04/24 14:42:16  liu
 // add new functions to delete VMEModule and Chamber from Crate
 //
@@ -121,6 +125,7 @@ class VMEController;
 class ALCTController;
 class TMB;
 class DAQMB;
+class ODAQMB;
 class CCB;
 class MPC;
 class Chamber;
@@ -154,6 +159,7 @@ public:
 
   /// uses RTTI to find types
   std::vector<DAQMB *> daqmbs() const;
+  std::vector<ODAQMB *> odaqmbs() const;
   std::vector<TMB *> tmbs() const;
   std::vector<ALCTController *> alcts() const;
   std::vector<Chamber *> chambers();
@@ -165,8 +171,10 @@ public:
   Chamber * GetChamber(int slot);
   Chamber * GetChamber(TMB *tmb);
   Chamber * GetChamber(DAQMB *dmb);
+  Chamber * GetChamber(ODAQMB *odmb);
   TMB * GetTMB(unsigned int slot);
   DAQMB * GetDAQMB(unsigned int slot);
+  ODAQMB * GetODAQMB(unsigned int slot);
   std::string GetChamberName(int n);
   void PowerOff();
   void MonitorCCB(int cycle, char * buf);

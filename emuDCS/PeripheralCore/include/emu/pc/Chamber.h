@@ -12,10 +12,12 @@ namespace emu {
 
 class TMB;
 class DAQMB;
+class ODAQMB;
 class CCB;
 class ALCTController;
 class MPC;
 class CFEB;
+class DCFEB;
 class Crate;
 
 class Chamber {
@@ -30,6 +32,8 @@ public:
   //
   inline void SetDMB(DAQMB* myDMB) {thisDMB = myDMB; }
   inline DAQMB* GetDMB(){ return thisDMB; }
+  inline void SetODMB(ODAQMB* myODMB) {thisODMB = myODMB; }
+  inline ODAQMB* GetODMB(){ return thisODMB; }
   inline void SetCCB(CCB* myCCB)   {thisCCB_ = myCCB; }
   inline void SetMPC(MPC* myMPC)   {thisMPC = myMPC; }
   //
@@ -76,6 +80,7 @@ private:
   //
   TMB * thisTMB ;
   DAQMB * thisDMB ;
+  ODAQMB * thisODMB ;
   CCB * thisCCB_ ;
   ALCTController *alct ;
   MPC * thisMPC;
@@ -95,7 +100,9 @@ private:
   //
   std::vector <TMB> tmbs_;
   std::vector <CFEB> cfebs_;
+  std::vector <DCFEB> dcfebs_;
   std::vector <DAQMB> dmbs_;
+  std::vector <ODAQMB> odmbs_;
   //
 };
 

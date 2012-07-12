@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.77 2012/04/24 14:42:16 liu Exp $
+// $Id: Crate.cc,v 3.78 2012/07/12 13:06:27 ahart Exp $
 // $Log: Crate.cc,v $
+// Revision 3.78  2012/07/12 13:06:27  ahart
+//
+// Modified to accomodate DCFEB and ODAQMB.
+//
 // Revision 3.77  2012/04/24 14:42:16  liu
 // add new functions to delete VMEModule and Chamber from Crate
 //
@@ -295,6 +299,7 @@
 #include "emu/pc/VMEModule.h"
 #include "emu/pc/VMEController.h"
 #include "emu/pc/DAQMB.h"
+#include "emu/pc/ODAQMB.h"
 #include "emu/pc/TMB.h"
 #include "emu/pc/MPC.h"
 #include "emu/pc/CCB.h"
@@ -353,6 +358,7 @@ void Crate::deleteChamber() {
 std::vector<ChamberUtilities> Crate::chamberUtilsMatch() const {
   //
   std::vector<DAQMB *> dmbVector = daqmbs();
+  std::vector<ODAQMB *> odmbVector = odaqmbs();
   std::vector<TMB *>   tmbVector = tmbs();
   std::vector<ChamberUtilities>   result;
   //
@@ -366,6 +372,20 @@ std::vector<ChamberUtilities> Crate::chamberUtilsMatch() const {
 	chamber.SetMPC(this->mpc());
 	chamber.SetCCB(this->ccb());
 	result.push_back(chamber);
+      }
+      //
+    }
+  }
+  for( int i=0; i< odmbVector.size(); i++) {
+    for( int j=0; j< tmbVector.size(); j++) {
+      //
+      if ( (tmbVector[j]->slot()+1) == (odmbVector[i]->slot()) ) {
+        ChamberUtilities chamber ;
+        chamber.SetTMB(tmbVector[j]);
+        chamber.SetODMB(odmbVector[i]);
+        chamber.SetMPC(this->mpc());
+        chamber.SetCCB(this->ccb());
+        result.push_back(chamber);
       }
       //
     }
@@ -412,6 +432,14 @@ std::vector<DAQMB *> Crate::daqmbs() const {
   return result;
 }
 
+std::vector<ODAQMB *> Crate::odaqmbs() const {
+  std::vector<ODAQMB *> result;
+  for(unsigned i = 0; i < theModules.size(); ++i) {
+    ODAQMB * odaqmb = dynamic_cast<ODAQMB *>(theModules[i]);
+    if(odaqmb != 0) result.push_back(odaqmb);
+  }
+  return result;
+}
 
 std::vector<TMB *> Crate::tmbs() const {
   std::vector<TMB *> result;
@@ -508,6 +536,11 @@ void Crate::DumpConfiguration() {
     std::cout << (*myDmbs[i]) << std::endl;
   }
   //
+  std::vector<ODAQMB*> myODmbs = this->odaqmbs();
+  for(unsigned i =0; i < myODmbs.size(); ++i) {
+    std::cout << "ODAQMB = " << i << std::endl;
+    std::cout << (*myODmbs[i]) << std::endl;
+  }
 }
 
 void Crate::PowerOff() 
@@ -516,6 +549,11 @@ void Crate::PowerOff()
   std::cout << "turn OFF all chambers in Crate " << label_  << std::endl;
   for (unsigned dmb=0; dmb<myDmbs.size(); dmb++) {
     myDmbs[dmb]->lowv_onoff(0);
+  }
+  std::vector<ODAQMB*> myODmbs = this->odaqmbs();
+  std::cout << "turn OFF all chambers in Crate " << label_  << std::endl;
+  for (unsigned dmb=0; dmb<myODmbs.size(); dmb++) {
+    myODmbs[dmb]->lowv_onoff(0);
   }
 }
 
@@ -536,6 +574,7 @@ int Crate::configure(int c, int ID) {
   vmeController()->SetLife(true);
 
   std::vector<DAQMB*> myDmbs = this->daqmbs();
+  std::vector<ODAQMB*> myODmbs = this->odaqmbs();
 
   std::cout << " HardReset, then lowv_onoff " << std::endl;
   ccb->hardReset();
@@ -553,6 +592,20 @@ int Crate::configure(int c, int ID) {
     //    std::cout << "DMB slot " << myDmbs[dmb]->slot() 
     //	      << " call calctrl_fifomrst " << std::endl;
     //    myDmbs[dmb]->calctrl_fifomrst();
+  }
+  for (unsigned dmb=0; dmb<myODmbs.size(); dmb++) {
+    std::cout << "DDMB slot " << myODmbs[dmb]->slot()
+              << " turn ON chamber..." << std::endl;
+    if(!IsAlive())
+      {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
+      return -1;
+      }
+    myODmbs[dmb]->lowv_onoff(0x3f);
+    //                                                                                                                  
+    // The following is not needed, since DMB includes FIFO clear in hard reset                                         
+    //    std::cout << "DMB slot " << myDmbs[dmb]->slot()                                                               
+    //        << " call calctrl_fifomrst " << std::endl;                                                                
+    //    myDmbs[dmb]->calctrl_fifomrst();                                                                              
   }
   ::sleep(2);
 
@@ -613,6 +666,17 @@ int Crate::configure(int c, int ID) {
       myDmbs[i]->configure();
     }
   }
+  for(unsigned i =0; i < myODmbs.size(); ++i) {
+    if (myODmbs[i]->slot()<22){
+      if(!IsAlive())
+	{  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
+	return -1;
+	}
+      myODmbs[i]->restoreCFEBIdle();
+      myODmbs[i]->restoreMotherboardIdle();
+      myODmbs[i]->configure();
+    }
+  }
   return 0;
   //  
 }
@@ -635,6 +699,11 @@ void Crate::init() {
     myDmbs[i]->init();
   }
   //  
+  std::vector<ODAQMB*> myODmbs = this->odaqmbs();
+  for(unsigned i =0; i < myODmbs.size(); ++i) {
+    myODmbs[i]->init();
+  }
+  //
   if(mpc) mpc->init();
   //
 }
@@ -669,6 +738,8 @@ int Crate::CheckController()
      for(unsigned i=0; i < theChambers.size(); i++)
      {  if( (theChambers[i]->GetTMB() && theChambers[i]->GetTMB()->slot()==slotN) || 
            (theChambers[i]->GetDMB() && theChambers[i]->GetDMB()->slot()==slotN) ) return theChambers[i];
+        if( (theChambers[i]->GetTMB() && theChambers[i]->GetTMB()->slot()==slotN) || 
+           (theChambers[i]->GetODMB() && theChambers[i]->GetODMB()->slot()==slotN) ) return theChambers[i];
      }
      return (Chamber *) 0x0;
   }
@@ -676,6 +747,8 @@ int Crate::CheckController()
   Chamber * Crate::GetChamber(TMB * tmb)   {  return GetChamber(tmb->slot()); }
 
   Chamber * Crate::GetChamber(DAQMB * dmb)   {  return GetChamber(dmb->slot()); }
+
+  Chamber * Crate::GetChamber(ODAQMB * odmb)   {  return GetChamber(odmb->slot()); }
 
   std::string Crate::GetChamberName(int n)
   {
@@ -697,6 +770,12 @@ int Crate::CheckController()
   DAQMB * Crate::GetDAQMB(unsigned int slot)
   {
     if(slot < theModules.size() && (slot%2)==1) return dynamic_cast<DAQMB *>(theModules[slot]);
+    else return NULL;
+  }
+
+  ODAQMB * Crate::GetODAQMB(unsigned int slot)
+  {
+    if(slot < theModules.size() && (slot%2)==1) return dynamic_cast<ODAQMB *>(theModules[slot]);
     else return NULL;
   }
 
