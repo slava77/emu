@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.8 2012/07/06 00:49:34 liu Exp $
+// $Id: CCB.h,v 1.9 2012/07/12 13:18:52 ahart Exp $
 // $Log: CCB.h,v $
+// Revision 1.9  2012/07/12 13:18:52  ahart
+//
+// Modified to accomodate DCFEB and ODAQMB.
+//
 // Revision 1.8  2012/07/06 00:49:34  liu
 // add functions used by STEP
 //
@@ -426,6 +430,10 @@ private:
   int read_ttcrx_ready_    ;
   int read_qpll_lock_      ;
   int read_eprom_config_ok_;
+
+ public:
+  void inject_delay_l1a(int l1a_delay);
+  void enablet();
 };
 
 

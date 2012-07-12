@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.49 2012/07/10 15:25:25 liu Exp $
+// $Id: CCB.cc,v 3.50 2012/07/12 13:18:52 ahart Exp $
 // $Log: CCB.cc,v $
+// Revision 3.50  2012/07/12 13:18:52  ahart
+//
+// Modified to accomodate DCFEB and ODAQMB.
+//
 // Revision 3.49  2012/07/10 15:25:25  liu
 // bug fix in SetExtTrigDelay for STEP
 //
@@ -1757,6 +1761,40 @@ void CCB::SetExtTrigDelay(unsigned delay)
         csrb5 |= (delay << 8);
 	WriteRegister(CSRB5, csrb5);
 	
+}
+
+// for DMBTest
+void CCB::inject_delay_l1a(int l1a_delay)
+{
+  //  setCCBMode(CCB::VMEFPGA);
+  sndbuf[0]=0xDF;
+  sndbuf[1]=0xFB;
+  do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+
+  sndbuf[0]=(l1a_delay>>8)&0xff;
+  sndbuf[1]=l1a_delay&0xff;
+  //  printf(" l1a_delay %d %02x %02x \n",l1a_delay,sndbuf[0]&0xff,sndbuf[1]&0xff);
+  do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,NOW);
+
+  usleep(5000);
+
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  do_vme(VME_WRITE,DMB_CFEB_CAL1,sndbuf,rcvbuf,NOW);
+  usleep(5000);
+  // setCCBMode(CCB::DLOG);
+}
+
+void CCB::enablet() {
+  setCCBMode(CCB::VMEFPGA);
+  syncReset();
+  usleep(50000);
+  reset_bxevt();
+  startTrigger();
+  usleep(10000);
+  bx0();
+  usleep(10000);
+  setCCBMode(CCB::DLOG);
 }
 
   } // namespace emu::pc
