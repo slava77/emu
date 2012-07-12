@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: geom.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: geom.h,v 1.3 2012/07/12 13:05:02 ahart Exp $
 // $Log: geom.h,v $
+// Revision 1.3  2012/07/12 13:05:02  ahart
+//
+// Modified to accomodate DCFEB and ODAQMB.
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -69,7 +73,31 @@ static GEOM geo[] = {
 {"TCTRL",4,VTX_BYPASS,3,1,2,{31,-32},1, 0xff},
 {"EPROM",2,PROM_BYPASS,8,1,0,{0,0},0, 0xff},
 {"ECTRL",3,VTX_BYPASS,5,1,0,{0,0},0, 0xff},
-{"DRESET",11,PROM_BYPASS,8,1,0,{0,0},0, 0x99}
+{"DRESET",11,PROM_BYPASS,8,1,0,{0,0},0, 0x99},
+{"F1DCFEBM",1,VTX_BYPASS,10,1,0,{0,0}, 0, 0x01},
+{"F2DCFEBM",1,VTX_BYPASS,10,1,0,{0,0}, 0, 0x02},
+{"F3DCFEBM",1,VTX_BYPASS,10,1,0,{0,0}, 0, 0x04},
+{"F4DCFEBM",1,VTX_BYPASS,10,1,0,{0,0},0, 0x08},
+{"F5DCFEBM",1,VTX_BYPASS,10,1,0,{0,0},0, 0x10},
+{"F6DCFEBM",1,VTX_BYPASS,10,1,0,{0,0},0, 0x20},
+{"F7DCFEBM",1,VTX_BYPASS,10,1,0,{0,0},0, 0x40},
+{"FADCFEBM",1,VTX_BYPASS,10,1,0,{0,0},0, 0x7F},
+{"OMCTRL",2,VTX_BYPASS,10,1,0,{0,0},0, 0xff},
+{"OCDAC", 5,0,10,0,0,{0,0},0, 0xff},
+{"OMADC", 6,0,10,0,0,{0,0},0, 0xff},
+{"OFIFO1",7,0,10,0,0,{0,0},0, 0x01},
+{"OFIFO2",7,0,10,0,0,{0,0},0, 0x02},
+{"OFIFO3",7,0,10,0,0,{0,0},0, 0x04},
+{"OFIFO4",7,0,10,0,0,{0,0},0, 0x08},
+{"OFIFO5",7,0,10,0,0,{0,0},0, 0x10},
+{"OFIFO6",7,0,10,0,0,{0,0},0, 0x20},
+{"OFIFO7",7,0,10,0,0,{0,0},0, 0x40},
+{"OFIFO8",7,0,10,0,0,{0,0},0, 0x40},
+{"OFIFO9",7,0,10,0,0,{0,0},0, 0x40},
+{"OLOWVOLT", 8,0,10,0,0,{0,0},0, 0xff},
+{"OSTATUS",  9,0,10,0,0,{0,0},0, 0xff},
+{"OBUCSHF", 10,0,10,0,0,{0,0},0, 0xff},
+{"ORESET",11,PROM_BYPASS,10,1,0,{0,0},0, 0x99}
 };
 #define NUMDEV (sizeof (geo) / sizeof (struct GEOM))
 

@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.7 2012/06/20 08:45:00 kkotov Exp $
+// $Id: VMEController.h,v 1.8 2012/07/12 13:05:01 ahart Exp $
 // $Log: VMEController.h,v $
+// Revision 1.8  2012/07/12 13:05:01  ahart
+//
+// Modified to accomodate DCFEB and ODAQMB.
+//
 // Revision 1.7  2012/06/20 08:45:00  kkotov
 //
 // New faster DMB/CFEB EPROM readback routines
@@ -264,10 +268,13 @@ public:
   /// JTAG stuff
   void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
+  void SendRUNTESTClks(unsigned long int nclks);
   void new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
   void scan_dmb(int reg,const char *snd,int cnt2,char *rcv,int ird, int when);
   void scan_dmb_headtail(int reg,const char *snd,int cnt,char *rcv,int ird,int headtail, int when);
+  void DCFEBEPROM_read(DEVTYPE dv,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int ird,int snd,int init);
   void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
+  void scan_reset_headtail(int reg, const char *snd, int cnt2, char *rcv, int headtail,int ird);
   //
   void initDevice(int idev);
   void RestoreIdle();

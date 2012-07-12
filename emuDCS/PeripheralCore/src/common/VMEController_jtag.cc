@@ -23,6 +23,7 @@
 #include "emu/pc/vme_cmd.h"
 
 #define debugV 0
+#define MAX_DATA 7800
 
 /* register 1-7 special commands 0x10-rs 0x11-w feb power 0x12-r febpower */
 
@@ -72,12 +73,15 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
   }
   //
   if(idev==1){
-    if(dev==1||dev==7)feuse=0x01;
-    if(dev==2||dev==8)feuse=0x02;
-    if(dev==3||dev==9)feuse=0x04;
-    if(dev==4||dev==10)feuse=0x08;
-    if(dev==5||dev==11)feuse=0x10;
+    if(dev==1||dev==7||dev==36)feuse=0x01;
+    if(dev==2||dev==8||dev==37)feuse=0x02;
+    if(dev==3||dev==9||dev==38)feuse=0x04;
+    if(dev==4||dev==10||dev==39)feuse=0x08;
+    if(dev==5||dev==11||dev==40)feuse=0x10;
     if(dev==6||dev==12)feuse=0x1F;
+    if(dev==41)feuse=0x20;
+    if(dev==42)feuse=0x40;
+    if(dev==43)feuse=0x7F;
     if(feuseo!=feuse)init=1;
     feuseo=feuse;
   }
@@ -393,6 +397,84 @@ if(idev<=4||idev==11){
  }
 }
 
+    // needed for new DCFEB promloading
+void VMEController::SendRUNTESTClks(unsigned long int nclks){
+  unsigned int ptr_ds;
+  unsigned short int data[2]={0x000,0x0000};
+  char rcv[8];  
+  unsigned long int words;
+  float timetune={1.000000001}; // fraction of timer
+  float timer;
+  int sleeptime;
+  int bit;
+  int big,pkt,left;
+  int maxsize,numbigpackets,leftoverpacket;
+  int cnt2;
+  unsigned long int finalbits,finalbits2;
+  unsigned long int nclks2=nclks;
+  if(nclks==100000)nclks2=5000;
+  if(nclks==1000000)nclks2=50000;
+  words=nclks2/16;
+  maxsize=MAX_DATA/4;   // maximum number of words one can transfer                              
+  numbigpackets=words/maxsize;
+  leftoverpacket=words-numbigpackets*maxsize;
+  bit=nclks2-numbigpackets*maxsize*16-leftoverpacket*16;
+  // printf(" nclks2 %ld nwords %ld numbigpackets %d leftoverpacket %d bit %d \n",nclks2,words,numbigpackets,leftoverpacket,bit);                                                                   
+    finalbits=0;
+    finalbits2=0;
+    for(big=0;big<numbigpackets;big++){
+      for(pkt=0;pkt<maxsize;pkt++){
+	add_ds=add_ds&msk_clr;
+	add_ds=add_ds|0x0f00;
+	ptr_ds=add_ds;
+	if(pkt<maxsize-1){
+          vme_controller(1,ptr_ds,data,rcv);
+          finalbits2=finalbits2+16;
+	}else{
+	  vme_controller(3,ptr_ds,data,rcv);
+	  timer=maxsize*16*timetune;
+          sleeptime=(int)timer;
+          finalbits2=finalbits2+16; 
+	  finalbits=finalbits+maxsize*16;
+	  //  printf(" 0 VME W: %08x %04x \n",ptr_ds,*data);
+	  // printf(" runtest data sent so sleep %d \n",sleeptime);fflush(stdout);
+	  usleep(sleeptime);
+	}
+      }
+    }
+    for(left=0;left<leftoverpacket;left++){
+      add_ds=add_ds&msk_clr;
+      add_ds=add_ds|0x0f00;
+      ptr_ds=add_ds;
+      finalbits2=finalbits2+16;
+      if(left<leftoverpacket-1){
+	vme_controller(1,ptr_ds,data,rcv);
+      }else{
+	if(bit==0)vme_controller(3,ptr_ds,data,rcv);
+	if(bit!=0)vme_controller(1,ptr_ds,data,rcv);
+	timer=leftoverpacket*16*timetune;
+        sleeptime=(int)timer;
+	finalbits=finalbits+leftoverpacket*16;
+        //	printf(" 1 VME W: %08x %04x \n",ptr_ds,*data); 
+      }
+    }
+    if(leftoverpacket==0)sleeptime=10;
+    if(bit!=0){
+      cnt2=bit-1;
+      finalbits=finalbits+bit;
+      finalbits2=finalbits2+bit;
+      add_ds=add_ds&msk_clr;
+      add_ds=add_ds|(cnt2<<8);
+      ptr_ds=add_ds;
+      vme_controller(3,ptr_ds,data,rcv); // last one
+      // printf("2 VME W: %08x %04x \n",ptr_ds,*data); 
+    }
+    if(nclks2!=finalbits2||nclks2!=finalbits)printf(" problem in sendRUNTESTclks %ld %ld %ld \n",nclks2,finalbits,finalbits2);
+    printf(" runtest data sent total clks %ld sleep %d \n",finalbits2,sleeptime);fflush(stdout);
+    usleep(sleeptime);
+    //  printf(" out if sendRUNTESTclks \n");
+}
+
 void VMEController::scan(int reg,const char *snd,int cnt,char *rcv,int ird)
 {
 int i;
@@ -540,7 +622,6 @@ int tiwt[2]={1, 3};
 unsigned short int tmp[2]={0x0000};
 unsigned short int *data;
 unsigned int ptr_i;
-unsigned int ptr_d;
 unsigned int ptr_dh;
 unsigned int ptr_ds;
 unsigned int ptr_dt;
@@ -1034,6 +1115,81 @@ unsigned short int ival,ival2;
 unsigned short int *data;
 unsigned int ptr;
 
+ if(cnt==0)return;
+ ptr=add_reset;
+ data=(unsigned short int *) snd;
+ // printf("scan_reset %d %d %02x %02x \n",reg,cnt,snd[1]&0xff,snd[0]&0xff);
+
+ /* instr */
+
+ if(reg==0){
+    vme_controller(1,ptr,x00,rcv);sdly();
+    vme_controller(1,ptr,x00,rcv);sdly();
+    vme_controller(1,ptr,x01,rcv);sdly();
+    vme_controller(1,ptr,x01,rcv);sdly();
+    vme_controller(1,ptr,x00,rcv);sdly();
+    vme_controller(1,ptr,x00,rcv);sdly();
+ }
+
+ /* data */
+
+ if(reg==1){ 
+    vme_controller(1,ptr,x00,rcv);sdly();
+    vme_controller(1,ptr,x00,rcv);sdly();
+    vme_controller(1,ptr,x01,rcv);sdly();
+    vme_controller(1,ptr,x00,rcv);sdly();
+    vme_controller(1,ptr,x00,rcv);sdly();
+ }
+ byte=cnt/16;
+ bit=cnt-byte*16;
+ for(i=0;i<byte;i++){
+   for(j=0;j<16;j++){
+      ival=*data>>j;
+      ival2=ival&0x01;
+      if(i!=byte-1|bit!=0|j!=15){
+        if(ival2==0){vme_controller(1,ptr,x00,rcv);sdly();}
+        if(ival2==1){vme_controller(1,ptr,x02,rcv);sdly();}
+      }else{
+        if(ival2==0){vme_controller(1,ptr,x01,rcv);sdly();}
+        if(ival2==1){vme_controller(1,ptr,x03,rcv);sdly();}
+      }
+   }
+   data=data+1;
+ }  
+ for(j=0;j<bit;j++){
+   ival=*data>>j;
+   ival2=ival&0x01;
+   if(j<bit-1){
+     if(ival2==0){vme_controller(1,ptr,x00,rcv);sdly();}
+     if(ival2==1){vme_controller(1,ptr,x02,rcv);sdly();}
+
+   }else{
+     if(ival2==0){vme_controller(1,ptr,x01,rcv);sdly();}
+     if(ival2==1){vme_controller(1,ptr,x03,rcv);sdly();}
+   }
+ }
+  vme_controller(1,ptr,x01,rcv);sdly();       
+  vme_controller(3,ptr,x00,rcv);sdly();       
+
+}
+
+void  VMEController::scan_reset_headtail(int reg,const char *snd, int cnt,char *rcv,int headtail,int ird)
+{
+int i,j;
+int byte,bit;
+unsigned short int x00[1]={0x00};
+unsigned short int x01[1]={0x01};
+unsigned short int x02[1]={0x02};
+unsigned short int x03[1]={0x03};
+unsigned short int ival,ival2;
+unsigned short int *data;
+unsigned int ptr;
+ if(headtail==3)x01[1]=0x01;
+ if(headtail==3)x03[1]=0x03;
+ if(headtail==0)x01[1]=0x00;
+ if(headtail==0)x03[1]=0x02;
+ if(headtail==3)x01[1]=0x01;
+ if(headtail==3)x03[1]=0x03;
  if(cnt==0)return;
  ptr=add_reset;
  data=(unsigned short int *) snd;
@@ -2066,6 +2222,32 @@ void VMEController::scan_word(int reg,const char *snd, int cnt, char *rcv,int ir
      }
   }
 }
+
+void VMEController::DCFEBEPROM_read(DEVTYPE dv,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int ird,int snd,int init)
+{
+  if(init==1){
+    if(dv==36)feuse=0x01;
+    if(dv==37)feuse=0x02;
+    if(dv==38)feuse=0x04;
+    if(dv==39)feuse=0x08;
+    if(dv==40)feuse=0x10;
+    if(dv==41)feuse=0x20;
+    if(dv==42)feuse=0x40;
+    if(dv==43)feuse=0x1F;
+    add_i=vmeadd|msk01|msk_i;
+    add_d=vmeadd|msk01|msk_d;
+    add_dh=vmeadd|msk01|msk_dh;
+    add_ds=vmeadd|msk01|msk_ds;
+    add_dt=vmeadd|msk01|msk_dt;
+    add_rst=vmeadd|msk01|msk_rst;
+    add_sw=vmeadd|msk01|msk_sw;
+    add_sr=vmeadd|msk01|msk_sr;
+    add_r=vmeadd|msk01|msk_r;
+    setuse();
+    }
+    scan_dmb(INSTR_REG,cmd,ncmd,outbuf,0,0);
+    scan_dmb(DATA_REG,inbuf,nbuf,outbuf,ird,snd);
+ }
 
 } // namespace emu::pc  
 } // namespace emu  
