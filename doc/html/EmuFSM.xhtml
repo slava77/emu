@@ -9,6 +9,8 @@
       table.transition th { background-color: #666666; text-align: center; padding: 0px 4px 0px 4px; color:#eeeeee; }
       table.transition th.title { background-color: #333333; }
       table.transition td { background-color: #ffffff; text-align: center; padding: 0px 4px 0px 4px; color:#0000dd; font-weight: bold; }
+      table.transition th.remarks { background-color: #888888; }
+      table.transition td.remarks { background-color: #eeeeee; text-align: left; padding: 0px 4px 0px 4px; color:#000000; font-weight: normal; font-size: x-small;}
       table.sequence   { background-color: #000000;  border-color: #333333; border-collapse: separate; border-spacing: 1px 1px; }
       table.sequence   th { background-color: #666666; text-align: center; padding: 0px 4px 0px 4px; color:#eeeeee; }
       table.sequence   th.title { background-color: #333333; }
@@ -150,7 +152,7 @@ function tooltip(e, o) {
   </head>
   <body onload="onLoadPage()">
     <h1>Emu FSM Transitions</h1>
-    <h2 id="version">EmuLib v9.12</h2>
+    <h2 id="version">EmuLib v11.3</h2>
 
     <h3>Legend</h3>
 
@@ -497,7 +499,7 @@ function tooltip(e, o) {
     <a name="supervisor_configure"/>
     <table id="supervisor_configure" class="transition">
       <tr>
-	<th class="title" colspan="8">Supervisor Configure</th>
+	<th class="title" colspan="9">Supervisor Configure</th>
       </tr>
       <tr>
 	<th></th>
@@ -508,6 +510,7 @@ function tooltip(e, o) {
 	<th>TF Cell</th>
 	<th>FED Manager</th>
 	<th>DAQ Manager</th>
+	<th class="remarks">remarks</th>
       </tr>
       <tr>
 	<th>1</th>
@@ -518,6 +521,7 @@ function tooltip(e, o) {
 	<td>(<a class="conditional" title="If leftover instance exists in a local run." href="#tf_reset">Reset</a>)<span class="condition">local</span>, (<a class="conditional"  title="If leftover instance exists in a local run." href="#tf_kill">Kill</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>2</th>
@@ -528,6 +532,7 @@ function tooltip(e, o) {
 	<td>(<a class="conditional" title="If in a local run." href="#tf_init">Init</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>3</th>
@@ -538,26 +543,29 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td>(<a class="conditional" title="If DAQ is not in halted state yet." href="#daq_halt">Halt</a>)</td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>4</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
 	<td></td>
-	<td>(<a class="conditional" title="If TTCci is not in halted state yet." href="#ttcci_halt">Halt</a>)</td>
+	<td>(<a class="conditional" title="If TTCci is not in halted state yet." href="#ttcci_reset">reset</a>)</td>
 	<td></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>5</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
-	<td>(<a class="conditional" title="If LTC is not in halted state yet." href="#ltc_halt">Halt</a>)</td>
+	<td>(<a class="conditional" title="If LTC is not in halted state yet." href="#ltc_reset">reset</a>)</td>
 	<td></td>
 	<td></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>6</th>
@@ -568,7 +576,8 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td><span title="Set parameter" class="setPar">&rarr;{maxNumberOfEvents, runType, isGlobalInControl, writeBadEventsOnly}</span> <a href="#daq_configure">Configure</a></td>
-      </tr>
+ 	<td class="remarks"></td>
+     </tr>
       <tr>
 	<th>7</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
@@ -578,6 +587,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>8</th>
@@ -588,19 +598,10 @@ function tooltip(e, o) {
 	<td>(<a class="conditional" title="If in a local run." href="#tf_configure">Configure</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>9</th>
-	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
-	<td></td>
-	<td></td>
-	<td></td>
-	<td></td>
-	<td><span title="Set parameter" class="setPar">&rarr;{runType}</span> <a href="#fed_configure">Configure</a></td>
-	<td></td>
-      </tr>
-      <tr>
-	<th>10</th>
 	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
 	<td></td>
@@ -608,16 +609,29 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
+      </tr>
+      <tr>
+	<th>10</th>
+	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{configuration}</span> <a href="#ltc_configure">Configure</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>11</th>
-	<td>(<a class="conditional" title="If action on component fails." href="#supervisor_fail">Fail</a>)</td>
-	<td></td>
-	<td><span title="Get parameter" class="getPar">{runType}&rarr;</span> <span title="Set parameter" class="setPar">&rarr;{configuration}</span> <a href="#ltc_configure">Configure</a></td>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
 	<td></td>
 	<td></td>
 	<td></td>
+	<td><span title="Set parameter" class="setPar">&rarr;{runType}</span> <a href="#fed_configure">Configure</a></td>
+	<td></td>
+	<td class="remarks">TTC/LTC must be configured before the FED to make sure no L1As arrive while the FED is configured.</td>
       </tr>
       <tr>
 	<th>12</th>
@@ -628,6 +642,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>13</th>
@@ -638,6 +653,7 @@ function tooltip(e, o) {
 	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
 	<td><span title="Get parameter" class="getPar">{state}&rarr;</span></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
     </table>
 
@@ -781,7 +797,7 @@ function tooltip(e, o) {
 	<th>2</th>
 	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
-	<td><a href="#ltc_halt">Halt</a></td>
+	<td><a href="#ltc_reset">reset</a></td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -792,7 +808,7 @@ function tooltip(e, o) {
 	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
 	<td></td>
-	<td><a href="#ttcci_halt">Halt</a></td>
+	<td><a href="#ttcci_reset">reset</a></td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -854,7 +870,7 @@ function tooltip(e, o) {
     <a name="supervisor_halt"/>
     <table id="supervisor_halt" class="transition">
       <tr>
-	<th class="title" colspan="8">Supervisor Halt</th>
+	<th class="title" colspan="9">Supervisor Halt</th>
       </tr>
       <tr>
 	<th></th>
@@ -865,6 +881,7 @@ function tooltip(e, o) {
 	<th>TF Cell</th>
 	<th>FED Manager</th>
 	<th>DAQ Manager</th>
+	<th class="remarks">remarks</th>
       </tr>
       <tr>
 	<th>1</th>
@@ -875,6 +892,7 @@ function tooltip(e, o) {
 	<td>(<a class="conditional" title="If in a local run." href="#tf_stop">Stop</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>2</th>
@@ -885,26 +903,29 @@ function tooltip(e, o) {
 	<td>(<a class="conditional" title="If in a local run." href="#tf_kill">Kill</a>)<span class="condition">local</span></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>3</th>
 	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
-	<td><a href="#ltc_halt">Halt</a></td>
+	<td><a href="#ltc_reset">reset</a></td>
 	<td></td>
 	<td></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>4</th>
 	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
 	<td></td>
 	<td></td>
-	<td><a href="#tttci_halt">Halt</a></td>
+	<td><a href="#ttcci_reset">reset</a></td>
 	<td></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>5</th>
@@ -915,6 +936,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td><a href="#fed_halt">Halt</a></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>6</th>
@@ -925,6 +947,7 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td></td>
+	<td class="remarks"></td>
       </tr>
       <tr>
 	<th>7</th>
@@ -935,6 +958,18 @@ function tooltip(e, o) {
 	<td></td>
 	<td></td>
 	<td><a href="#daq_halt">Halt</a></td>
+	<td class="remarks"></td>
+      </tr>
+      <tr>
+	<th>8</th>
+	<td>(<a class="conditional" href="#supervisor_fail">Fail</a>)</td>
+	<td></td>
+	<td><a href="#ltc_resync">resync</a></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td class="remarks">Issue a resync to make sure L1A is reset to zero in the FEDs in case a global run follows.</td>
       </tr>
     </table>
 
@@ -1380,18 +1415,21 @@ function tooltip(e, o) {
     <a name="ltc_configure"/>
     <table id="ltc_configure" class="transition">
       <tr>
-	<th class="title" colspan="3">LTC Configure</th>
+	<th class="title" colspan="2">LTC Configure</th>
       </tr>
-      <tr>
-	<th></th>
-	<th>aComponent</th>
-	<th>anotherComponent</th>
-      </tr>
-      <tr>
-	<th>1</th>
-	<td></td>
-	<td><a href="#ltc_someaction">SomeAction</a></td>
-      </tr>
+      <tr><th></th><th>LTC</th></tr>
+      <tr><th> 1</th><td>NewRun                </td></tr>
+      <tr><th> 2</th><td>Cyclic StopAll        </td></tr>
+      <tr><th> 3</th><td>DisableL1A            </td></tr>
+      <tr><th> 4</th><td>ResetCounters All     </td></tr>
+      <tr><th> 5</th><td>Cyclic StartPermanent </td></tr>
+      <tr><th> 6</th><td>mSleep 100            </td></tr>
+      <tr><th> 7</th><td>BGO OC0               </td></tr>
+      <tr><th> 8</th><td>mSleep 100            </td></tr>
+      <tr><th> 9</th><td>BGO EC0               </td></tr>
+      <tr><th>10</th><td>mSleep 100            </td></tr>
+      <tr><th>11</th><td>Periodic 1            </td></tr>
+      <tr><th>12</th><td>Periodic Off          </td></tr>
     </table>
 
     <br/>
@@ -1399,37 +1437,44 @@ function tooltip(e, o) {
     <a name="ltc_enable"/>
     <table id="ltc_enable" class="transition">
       <tr>
-	<th class="title" colspan="3">LTC Enable</th>
+	<th class="title" colspan="2">LTC Enable</th>
       </tr>
-      <tr>
-	<th></th>
-	<th>aComponent</th>
-	<th>anotherComponent</th>
-      </tr>
-      <tr>
-	<th>1</th>
-	<td></td>
-	<td><a href="#ltc_someaction">SomeAction</a></td>
-      </tr>
+      <tr><th></th><th>LTC</th></tr>
+      <tr><th> 1</th><td>BGO Resync  </td></tr>
+      <tr><th> 2</th><td>mSleep 100  </td></tr>
+      <tr><th> 3</th><td>BGO EC0     </td></tr>
+      <tr><th> 4</th><td>mSleep 100  </td></tr>
+      <tr><th> 5</th><td>EnableL1A   </td></tr>
+      <tr><th> 6</th><td>BGO Start   </td></tr>
+      <tr><th> 7</th><td>mSleep 100  </td></tr>
+      <tr><th> 8</th><td>Cyclic Start</td></tr>
     </table>
 
     <br/>
 
-    <a name="ltc_halt"/>
-    <table id="ltc_halt" class="transition">
+    <a name="ltc_reset"/>
+    <table id="ltc_reset" class="transition">
       <tr>
-	<th class="title" colspan="3">LTC Halt</th>
+	<th class="title">LTC reset</th>
       </tr>
+      <tr><td class="remarks">Just sets the state to 'halted'.</td></tr>
+    </table>
+
+    <br/>
+
+    <a name="ltc_resync"/>
+    <table id="ltc_resync" class="transition">
       <tr>
-	<th></th>
-	<th>aComponent</th>
-	<th>anotherComponent</th>
+	<th class="title" colspan="2">LTC resync</th>
       </tr>
-      <tr>
-	<th>1</th>
-	<td></td>
-	<td><a href="#ltc_someaction">SomeAction</a></td>
-      </tr>
+      <tr><th></th><th>LTC</th></tr>
+      <tr><th> 1</th><td>DisableL1A           </td></tr>
+      <tr><th> 2</th><td>Cyclic StopAll       </td></tr>
+      <tr><th> 3</th><td>mSleep 100           </td></tr>
+      <tr><th> 4</th><td>BGO Resync           </td></tr>
+      <tr><th> 5</th><td>mSleep 500           </td></tr>
+      <tr><th> 6</th><td>Cyclic StartPermanent</td></tr>
+      <tr><th> 7</th><td>BGO EC0              </td></tr>
     </table>
 
 
@@ -1439,18 +1484,20 @@ function tooltip(e, o) {
     <a name="ttcci_configure"/>
     <table id="ttcci_configure" class="transition">
       <tr>
-	<th class="title" colspan="3">TTCci Configure</th>
+	<th class="title" colspan="2">TTCci configure</th>
       </tr>
-      <tr>
-	<th></th>
-	<th>aComponent</th>
-	<th>anotherComponent</th>
-      </tr>
-      <tr>
-	<th>1</th>
-	<td></td>
-	<td><a href="#ttcci_someaction">SomeAction</a></td>
-      </tr>
+      <tr><th></th><th>TTCci</th></tr>
+      <tr><th> 1</th><td>DisableL1A           </td></tr>
+      <tr><th> 2</th><td>ResetCounters        </td></tr>
+      <tr><th> 3</th><td>SendLongBDATA 196608 </td></tr>
+      <tr><th> 4</th><td>mSleep 100           </td></tr>
+      <tr><th> 5</th><td>BGO HardReset        </td></tr>
+      <tr><th> 6</th><td>mSleep 500           </td></tr>
+      <tr><th> 7</th><td>BGO Resynch          </td></tr>
+      <tr><th> 8</th><td>mSleep 100           </td></tr>
+      <tr><th> 9</th><td>Periodic 1           </td></tr>
+      <tr><th>10</th><td>Periodic Off         </td></tr>
+      <tr><th>11</th><td>EnableL1A            </td></tr>
     </table>
 
     <br/>
@@ -1458,37 +1505,22 @@ function tooltip(e, o) {
     <a name="ttcci_enable"/>
     <table id="ttcci_enable" class="transition">
       <tr>
-	<th class="title" colspan="3">TTCci Enable</th>
+	<th class="title" colspan="2">TTCci enable</th>
       </tr>
-      <tr>
-	<th></th>
-	<th>aComponent</th>
-	<th>anotherComponent</th>
-      </tr>
-      <tr>
-	<th>1</th>
-	<td></td>
-	<td><a href="#ttcci_someaction">SomeAction</a></td>
-      </tr>
+      <tr><th></th><th>TTCci</th></tr>
+      <tr><th> 1</th><td>EnableL1A </td></tr>
+      <tr><th> 2</th><td>mSleep 100</td></tr>
+      <tr><th> 3</th><td>BGO Start </td></tr>
     </table>
 
     <br/>
 
-    <a name="ttcci_halt"/>
-    <table id="ttcci_halt" class="transition">
+    <a name="ttcci_reset"/>
+    <table id="ttcci_reset" class="transition">
       <tr>
-	<th class="title" colspan="3">TTCci Halt</th>
+	<th class="title">TTCci reset</th>
       </tr>
-      <tr>
-	<th></th>
-	<th>aComponent</th>
-	<th>anotherComponent</th>
-      </tr>
-      <tr>
-	<th>1</th>
-	<td></td>
-	<td><a href="#ttcci_someaction">SomeAction</a></td>
-      </tr>
+      <tr><td class="remarks">Just sets the state to 'halted'.</td></tr>
     </table>
 
 
