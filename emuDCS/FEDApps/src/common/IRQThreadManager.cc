@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.15 2012/06/02 19:05:41 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.16 2012/07/19 10:15:24 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -252,6 +252,7 @@ throw (emu::fed::exception::FMMThreadException)
 	logger.removeAllAppenders();
 }
 
+
 static std::string mkBitStr(uint16_t bits)
 {
 	std::bitset<16> setOBits(bits);
@@ -259,7 +260,55 @@ static std::string mkBitStr(uint16_t bits)
 }
 
 
-static void checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::Logger &logger)
+// Sets DDU into Error for 3.1 seconds to request that GT send a hard reset.
+// If a request was made in the last 10 minutes, no new request is made.
+// Returns true if the hard reset was requested, false if no request was made
+// because there was already a request in the last 10 minutes.
+// The only reason this function is a member function is so it can call sendFacts,
+// which only a friend class like IRQThreadManager can call.
+
+bool emu::fed::IRQThreadManager::setDDUerror(emu::fed::DDU *myDDU, log4cplus::Logger &logger,
+	const unsigned int crateNumber, emu::fed::IRQData *const locdata)
+{
+	static time_t lastErrTm = -1;
+	if (lastErrTm < 0 || (time(NULL) - lastErrTm) > 600) {	// 10 minutes between Errors
+		lastErrTm = time(NULL);
+		myDDU->writeFMM( 0xf0ec );
+		(void) usleep(100000);	// 100000 usec = 0.1 second
+		(void) sleep(3);	// 3 seconds
+		// 3.1 seconds total wait to allow GT to see Error and cause hard reset
+		myDDU->writeFMM( 0xfed0 );
+		uint16_t ruiNum = myDDU->getRUI();
+		LOG4CPLUS_ERROR(logger, endl << "DDU RUI #" << ruiNum <<
+			" stuck in warning. Setting DDU Error to request hard reset from GT." << endl);
+		// Make and send the fact to the expert system
+		emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
+		std::ostringstream component;
+		component << "DDU " << ruiNum;
+		fact.setComponentId(component.str())
+			.setSeverity(emu::base::Fact::ERROR)
+			.setDescription("DDU stuck in Warning -- hard reset requested")
+			.setParameter(emu::fed::DDUFMMIRQFact::crateNumber, crateNumber)
+			.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot())
+			.setParameter(emu::fed::DDUFMMIRQFact::resetRequested, true);
+			
+		pthread_mutex_lock(&(locdata->applicationMutex));
+		emu::fed::Communicator *application = locdata->application;
+		application->storeFact(fact);
+		application->sendFacts();
+		pthread_mutex_unlock(&(locdata->applicationMutex));
+		return (true);
+	}
+	return (false);
+}
+
+
+// Checks if any DDU is in Warning, and if so, requests a hard reset.
+// See setDDUerror above for more details.
+// The only reason checkDDUStatus is a member function is so it can call setDDUerror.
+
+void emu::fed::IRQThreadManager::checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::Logger &logger,
+	const unsigned int crateNumber, emu::fed::IRQData *const locdata)
 {
 	static long int index = 1, delay = 1;
 	bool statRep = false;
@@ -270,6 +319,7 @@ static void checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::L
 	warnNowFibers << "Fibers now in Warning   ";
 	errFibers <<     "Fibers now in Error     ";
 	oosFibers <<     "Fibers now in OOS       ";
+	emu::fed::DDU *dduInWarn = NULL;
 	for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 		emu::fed::DDU *myDDU = (*iDDU);
 		if (myDDU != NULL) {
@@ -284,8 +334,11 @@ static void checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::L
 			uint16_t warnNStat = myDDU->readFMMFullWarning();
 			uint16_t errStat = myDDU->readFMMError();
 			uint16_t oosStat = myDDU->readFMMLostSync();
-			if (statRep == false)
-				statRep = (busyStat | warnHStat | warnNStat | errStat | oosStat);
+			if (statRep == false) {
+				statRep = (fmmStat == 0x1);	// 0x1 means Warning
+				// statRep = (busyStat | warnHStat | warnNStat | errStat | oosStat);
+				dduInWarn = myDDU;
+			}
 			busyFibers << mkBitStr(busyStat) << " ";
 			warnFibers << mkBitStr(warnHStat) << " ";
 			warnNowFibers << mkBitStr(warnNStat) << " ";
@@ -300,14 +353,23 @@ static void checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::L
 			*/
 		}
 	}
-	if (statRep && index++ >= delay) {
-		if (delay > 500) {
-			delay = 1;
-			index = 1;
-		} else delay *= 2;
-		LOG4CPLUS_DEBUG(logger, endl << statusMsg.str() << endl << warnNowFibers.str()
-			<< endl << warnFibers.str() << endl
-			<< busyFibers.str() << endl << oosFibers.str() << endl << errFibers.str() << endl);
+	static bool got1Warn = false;
+	if (statRep) {
+		if (index++ >= delay) {
+			if (delay > 1000) {
+				delay = 1;
+				index = 1;
+			} else delay *= 2;
+			LOG4CPLUS_WARN(logger, endl << statusMsg.str() << endl << warnNowFibers.str()
+				<< endl << warnFibers.str() << endl);
+				// << busyFibers.str() << endl << oosFibers.str() << endl << errFibers.str() << endl);
+		}
+		// On second Warning, set Error
+		if (got1Warn && dduInWarn != NULL && setDDUerror(dduInWarn, logger, crateNumber, locdata))
+			delay = index = 1;	// Reset delay if hard reset requested.
+		got1Warn = true;
+	} else if (got1Warn) {
+		got1Warn = false;
 	}
 }
 
@@ -869,7 +931,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						// Nothing to do currently.
 					} else { // Do DCC-related checks
 
-						checkDDUStatus(dduVector, logger);
+						checkDDUStatus(dduVector, logger, crateNumber, locdata);
 
 						for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
 								
