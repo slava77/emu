@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.17 2012/07/23 12:09:21 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.18 2012/07/23 14:35:00 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -431,6 +431,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	// A local tally of what the last SLink error on a given DCC was.
 	std::map<unsigned int, unsigned int> lastSLinkError;
 
+	DDUWarnMon dduWarnMonitor;
+
 	// Continue unless someone tells us to stop.
 	while (1) { // Always looping until the thread is canceled
 
@@ -446,9 +448,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		// Immediate check for cancel
 		pthread_testcancel();
-		
-
-		DDUWarnMon dduWarnMonitor;
 		
 		// Clear the stored number of errors
 		unsigned int totalErrors;
