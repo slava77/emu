@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.18 2012/07/23 14:35:00 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.19 2012/07/23 15:25:35 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -446,8 +446,12 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		//  check DCCs
 		// (if at any point a reset is detected, immediately restart the loop)
 
+		LOG4CPLUS_DEBUG(logger, "Starting outer loop for crate " << crateNumber);
+
 		// Immediate check for cancel
 		pthread_testcancel();
+
+		LOG4CPLUS_DEBUG(logger, "Passed cancel test for crate " << crateNumber);
 		
 		// Clear the stored number of errors
 		unsigned int totalErrors;
