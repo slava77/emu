@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.19 2012/07/23 15:25:35 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.20 2012/07/23 16:28:37 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -450,8 +450,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		// Immediate check for cancel
 		pthread_testcancel();
-
-		LOG4CPLUS_DEBUG(logger, "Passed cancel test for crate " << crateNumber);
 		
 		// Clear the stored number of errors
 		unsigned int totalErrors;
@@ -543,6 +541,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			//tm *tickInfo = localtime(&tick);
 			//std::string tickText(asctime(tickInfo));
 			//locdata->tickTime[crateNumber] = tickText;
+
+			// If other thread has reset, then reset this thread, too.
+			if (locdata->resetCount)
+				break;
 
 			try {
 
