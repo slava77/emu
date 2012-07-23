@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.5 2012/07/23 12:09:21 cvuosalo Exp $
+* $Id: IRQThreadManager.h,v 1.6 2012/07/23 17:59:31 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -114,7 +114,8 @@ namespace emu {
 					index_(1), delay_(1), got1Warn_(false), lastErrTm_(-1)
 				{}
 
-				~DDUWarnMon();
+				~DDUWarnMon()
+				{}
 
 				/// Checks if a DDU is in Warning, and, if so, requests a hard reset.
 				void checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::Logger &logger,
