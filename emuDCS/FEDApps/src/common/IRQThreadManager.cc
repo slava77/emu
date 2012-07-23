@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.16 2012/07/19 10:15:24 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.17 2012/07/23 12:09:21 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -267,12 +267,11 @@ static std::string mkBitStr(uint16_t bits)
 // The only reason this function is a member function is so it can call sendFacts,
 // which only a friend class like IRQThreadManager can call.
 
-bool emu::fed::IRQThreadManager::setDDUerror(emu::fed::DDU *myDDU, log4cplus::Logger &logger,
+bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, log4cplus::Logger &logger,
 	const unsigned int crateNumber, emu::fed::IRQData *const locdata)
 {
-	static time_t lastErrTm = -1;
-	if (lastErrTm < 0 || (time(NULL) - lastErrTm) > 600) {	// 10 minutes between Errors
-		lastErrTm = time(NULL);
+	if (lastErrTm_ < 0 || (time(NULL) - lastErrTm_) > 600) {	// 10 minutes between Errors
+		lastErrTm_ = time(NULL);
 		myDDU->writeFMM( 0xf0ec );
 		(void) usleep(100000);	// 100000 usec = 0.1 second
 		(void) sleep(3);	// 3 seconds
@@ -307,10 +306,9 @@ bool emu::fed::IRQThreadManager::setDDUerror(emu::fed::DDU *myDDU, log4cplus::Lo
 // See setDDUerror above for more details.
 // The only reason checkDDUStatus is a member function is so it can call setDDUerror.
 
-void emu::fed::IRQThreadManager::checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::Logger &logger,
+void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::Logger &logger,
 	const unsigned int crateNumber, emu::fed::IRQData *const locdata)
 {
-	static long int index = 1, delay = 1;
 	bool statRep = false;
 	std::ostringstream statusMsg, busyFibers, warnFibers, warnNowFibers, errFibers, oosFibers;
 	statusMsg <<     "DDU statuses            ";
@@ -353,23 +351,22 @@ void emu::fed::IRQThreadManager::checkDDUStatus(std::vector<emu::fed::DDU *> &dd
 			*/
 		}
 	}
-	static bool got1Warn = false;
 	if (statRep) {
-		if (index++ >= delay) {
-			if (delay > 1000) {
-				delay = 1;
-				index = 1;
-			} else delay *= 2;
+		if (index_++ >= delay_) {
+			if (delay_ > 1000) {
+				delay_ = 1;
+				index_ = 1;
+			} else delay_ *= 2;
 			LOG4CPLUS_WARN(logger, endl << statusMsg.str() << endl << warnNowFibers.str()
 				<< endl << warnFibers.str() << endl);
 				// << busyFibers.str() << endl << oosFibers.str() << endl << errFibers.str() << endl);
 		}
 		// On second Warning, set Error
-		if (got1Warn && dduInWarn != NULL && setDDUerror(dduInWarn, logger, crateNumber, locdata))
-			delay = index = 1;	// Reset delay if hard reset requested.
-		got1Warn = true;
-	} else if (got1Warn) {
-		got1Warn = false;
+		if (got1Warn_ && dduInWarn != NULL && setDDUerror(dduInWarn, logger, crateNumber, locdata))
+			delay_ = index_ = 1;	// Reset delay_ if hard reset requested.
+		got1Warn_ = true;
+	} else if (got1Warn_) {
+		got1Warn_ = false;
 	}
 }
 
@@ -449,6 +446,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		// Immediate check for cancel
 		pthread_testcancel();
+		
+
+		DDUWarnMon dduWarnMonitor;
 		
 		// Clear the stored number of errors
 		unsigned int totalErrors;
@@ -931,7 +931,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						// Nothing to do currently.
 					} else { // Do DCC-related checks
 
-						checkDDUStatus(dduVector, logger, crateNumber, locdata);
+						dduWarnMonitor.checkDDUStatus(dduVector, logger, crateNumber, locdata);
 
 						for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); ++iDCC) {
 								
