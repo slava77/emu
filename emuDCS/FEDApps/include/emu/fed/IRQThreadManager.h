@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.4 2012/07/19 10:15:23 cvuosalo Exp $
+* $Id: IRQThreadManager.h,v 1.5 2012/07/23 12:09:21 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -95,13 +95,33 @@ namespace emu {
 			/// The application from where to send the SOAP messages
 			emu::fed::Communicator *application_;
 		
-			/// Checks if a DDU is in Warning, and, if so, requests a hard reset.
-			static void checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::Logger &logger,
-				const unsigned int crateNumber, emu::fed::IRQData *const locdata);
+			class DDUWarnMon {
 
-			/// Sets a DDU into Error briefly to request a hard reset from the GT.
-			static bool setDDUerror(emu::fed::DDU *myDDU, log4cplus::Logger &logger,
-				const unsigned int crateNumber, emu::fed::IRQData *const locdata);
+				protected:
+
+				long int index_;
+				long int delay_;
+				bool got1Warn_;
+				time_t lastErrTm_;
+
+				/// Sets a DDU into Error briefly to request a hard reset from the GT.
+				bool setDDUerror(emu::fed::DDU *myDDU, log4cplus::Logger &logger,
+					const unsigned int crateNumber, emu::fed::IRQData *const locdata);
+
+				public:
+
+				DDUWarnMon() :
+					index_(1), delay_(1), got1Warn_(false), lastErrTm_(-1)
+				{}
+
+				~DDUWarnMon();
+
+				/// Checks if a DDU is in Warning, and, if so, requests a hard reset.
+				void checkDDUStatus(std::vector<emu::fed::DDU *> &dduVector, log4cplus::Logger &logger,
+					const unsigned int crateNumber, emu::fed::IRQData *const locdata);
+
+			};
+			friend class DDUWarnMon;
 		};
 
 	}
