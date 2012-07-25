@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.20 2012/07/23 16:28:37 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.21 2012/07/25 11:56:44 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -283,7 +283,7 @@ bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, l
 		// Make and send the fact to the expert system
 		emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
 		std::ostringstream component;
-		component << "DDU " << ruiNum;
+		component << "DDU" << setfill('0') << setw(2) << ruiNum;
 		fact.setComponentId(component.str())
 			.setSeverity(emu::base::Fact::ERROR)
 			.setDescription("DDU stuck in Warning -- hard reset requested")
@@ -745,7 +745,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					// Make and send the fact to the expert system
 					emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
 					std::ostringstream component;
-					component << "DDU" << myDDU->getRUI();
+					component << "DDU" << setfill('0') << setw(2) << myDDU->getRUI();
 					fact.setComponentId(component.str())
 						.setSeverity(emu::base::Fact::WARN)
 						.setDescription("DDU FMM IRQ information")
