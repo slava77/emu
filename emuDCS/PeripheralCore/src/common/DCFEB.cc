@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DCFEB.cc,v 1.1 2012/07/12 12:59:17 ahart Exp $
+// $Id: DCFEB.cc,v 1.2 2012/07/26 07:43:52 ahart Exp $
 // $Log: DCFEB.cc,v $
+// Revision 1.2  2012/07/26 07:43:52  ahart
+// Increase sleeps during firmware programming and add functions for loading timing constants to the EPROM.
+//
 // Revision 1.1  2012/07/12 12:59:17  ahart
 //
 // First commit of new files for the DCFEB.
@@ -2406,6 +2409,7 @@ int DCFEB::epromload_mcs(const char *fn,int loadlowhigh)
             cur_blk_addr = nxt_blk_addr;
             epromdirect_disablefifo();
             //usleep(2000000);
+            epromdirect_erasepolling();
           }
 	  else {
             epromdirect_loadaddress(uaddr,laddr,0);
@@ -4000,11 +4004,11 @@ void DCFEB::programvirtex6(const char *mcsfile){
 	    val=0;
 	    if(init==0){
 	      scan_dmb_headtail(DATA_REG,buf,totbits,rtn_ptr,0,3,1);
-	      usleep(2000);
+	      usleep(3000);
 	      init=1;
 	    }else{
 	      scan_dmb_headtail(DATA_REG,buf,totbits,rtn_ptr,0,0,1);
-	      usleep(2000);
+	      usleep(3000);
 	    }
 	}
       }
@@ -4371,6 +4375,64 @@ int DCFEB::dcfeb_testjtag_shift(char *out){
     return ierr;
 }
 
+void DCFEB::configure() {
+  bool changed = false;
+  char bytesToLoad[44], dt[2];
+
+  dt[0] = dt[1] = 0;
+  int dthresh = int (4095 * ((3.5 - comp_thresh_cfeb_[number_]) / 3.5));
+  for (int i = 0; i < 8; i++)
+    {
+      dt[0] |= ((dthresh >> (i + 7)) & 1) << (7 - i);
+      dt[1] |= ((dthresh >> i) & 1) << (6 - i);
+    }
+  dt[0] = ((dt[1] << 7) & 0x80) + ((dt[0] >> 1) & 0x7f);
+  dt[1] = dt[1] >> 1;
+
+  for (int i = 0; i < 44; i++)
+    bytesToLoad[i] = 0;
+  epromread_parameters (3, 22, (unsigned short int *) bytesToLoad);
+  changed = bytesToLoad[36] != comp_mode_cfeb_[number_]
+         || bytesToLoad[37] != comp_timing_cfeb_[number_]
+         || bytesToLoad[38] != dt[0]
+         || bytesToLoad[39] != dt[1]
+         || bytesToLoad[40] != pipeline_length_[number_]
+         || bytesToLoad[41] != trigger_clk_phase_[number_]
+         || bytesToLoad[42] != daq_clk_phase_[number_];
+
+  printf ("current values of parameters in parameter block 3:\n");
+  printf ("  comp_mode: %d\n", bytesToLoad[36]);
+  printf ("  comp_timing: %d\n", bytesToLoad[37]);
+  printf ("  comp_thresh: %d\n", (bytesToLoad[38] & 0x00ff) | (bytesToLoad[39] & 0xff00));
+  printf ("  pipeline_length: %d\n", bytesToLoad[40]);
+  printf ("  trigger_clk_phase: %d\n", bytesToLoad[41]);
+  printf ("  daq_clk_phase: %d\n", bytesToLoad[42]);
+
+  if (changed)
+    {
+      bytesToLoad[36] = comp_mode_cfeb_[number_];
+      bytesToLoad[37] = comp_timing_cfeb_[number_];
+      bytesToLoad[38] = dt[0];
+      bytesToLoad[39] = dt[1];
+      bytesToLoad[40] = pipeline_length_[number_];
+      bytesToLoad[41] = trigger_clk_phase_[number_];
+      bytesToLoad[42] = daq_clk_phase_[number_];
+      bytesToLoad[43] = 0;
+
+      printf ("parameters from configuration file do not match currently stored values\n");
+      epromload_parameters (3, 22, (unsigned short int *) bytesToLoad);
+
+      printf ("  new values of parameters in parameter block 3:\n");
+      printf ("    comp_mode: %d\n", bytesToLoad[36]);
+      printf ("    comp_timing: %d\n", bytesToLoad[37]);
+      printf ("    comp_thresh: %d\n", (bytesToLoad[38] & 0x00ff) | (bytesToLoad[39] & 0xff00));
+      printf ("    pipeline_length: %d\n", bytesToLoad[40]);
+      printf ("    trigger_clk_phase: %d\n", bytesToLoad[41]);
+      printf ("    daq_clk_phase: %d\n", bytesToLoad[42]);
+    }
+  else
+    printf ("parameters in configuration file match currently stored values\n");
+}
 
 
   } // namespace emu::pc

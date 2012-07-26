@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DCFEB.h,v 1.1 2012/07/12 12:59:16 ahart Exp $
+// $Id: DCFEB.h,v 1.2 2012/07/26 07:43:52 ahart Exp $
 // $Log: DCFEB.h,v $
+// Revision 1.2  2012/07/26 07:43:52  ahart
+// Increase sleeps during firmware programming and add functions for loading timing constants to the EPROM.
+//
 // Revision 1.1  2012/07/12 12:59:16  ahart
 //
 // First commit of new files for the DCFEB.
@@ -27,6 +30,7 @@
 #define DCFEB_h
 #include <iostream>
 #include <vector>
+#include <cstring>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -172,9 +176,23 @@ public:
   void BuckeyeShiftTest(int nchips,char chip_mask,char *pat);
   void dcfeb_raw_shift(char febbuf[7][4]);
   int dcfeb_testjtag_shift(char *out);
+
+  void SetCompModeCfeb(int cfeb, int value){comp_mode_cfeb_[cfeb]=value;}  //xcfeb
+  void SetCompTimingCfeb(int cfeb, int value){comp_timing_cfeb_[cfeb]=value;} //xcfeb
+  void SetCompThresholdsCfeb(int cfeb, float value){comp_thresh_cfeb_[cfeb]=value;} //xcfeb
+  void SetPipelineLengthCfeb(int cfeb, int value){pipeline_length_[cfeb]=value;} //xcfeb
+  void SetTriggerClkPhaseCfeb(int cfeb, int value){trigger_clk_phase_[cfeb]=value;} //xcfeb
+  void SetDaqClkPhaseCfeb(int cfeb, int value){daq_clk_phase_[cfeb]=value;} //xcfeb
+
 private:
   int number_;
   std::vector<BuckeyeChip> buckeyeChips_;
+  int comp_mode_cfeb_[7];
+  int comp_timing_cfeb_[7];
+  float comp_thresh_cfeb_[7];
+  int pipeline_length_[7];
+  int trigger_clk_phase_[7];
+  int daq_clk_phase_[7];
 };
 
   } // namespace emu::pc
