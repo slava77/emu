@@ -1025,25 +1025,26 @@ void XMLParser::ODAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber
               printf(" about to call DCFEB \n");fflush(stdout); 
 	      DCFEB dcfeb(theCrate,slot,number);
               printf(" return from DCFEB in XMLParser\n");fflush(stdout);
-//fg explicitly prevend the parser from interpreting the following 5 options ...
-//	      int ivalue;
-//	      if ( fillInt("comp_mode",ivalue)){
-//		odaqmb_->SetCompModeCfeb(number,ivalue);
-//	      }
-//	      if ( fillInt("comp_timing",ivalue)){
-//		odaqmb_->SetCompTimingCfeb(number,ivalue);
-//	      }
-//	      int fvalue;
-//	      if ( fillInt("comp_threshold",fvalue)){
-//		odaqmb_->SetCompThresholdsCfeb(number,fvalue);
-//	      }
-//	      if ( fillInt("pre_block_end",ivalue)){
-//		odaqmb_->SetPreBlockEndCfeb(number,ivalue);
-//	      }
-//	      if ( fillInt("L1A_extra",ivalue)){
-//		odaqmb_->SetL1aExtraCfeb(number,ivalue);
-//	      }
-//fg
+	      int ivalue;
+	      if ( fillInt("comp_mode",ivalue)){
+		dcfeb.SetCompModeCfeb(number,ivalue);
+	      }
+	      if ( fillInt("comp_timing",ivalue)){
+		dcfeb.SetCompTimingCfeb(number,ivalue);
+	      }
+	      float fvalue;
+	      if ( fillFloat("set_comp_thresh",fvalue)){
+		dcfeb.SetCompThresholdsCfeb(number,fvalue);
+	      }
+	      if ( fillInt("pipeline_length",ivalue)){
+		dcfeb.SetPipelineLengthCfeb(number,ivalue);
+	      }
+	      if ( fillInt("trigger_clk_phase",ivalue)){
+		dcfeb.SetTriggerClkPhaseCfeb(number,ivalue);
+	      }
+	      if ( fillInt("daq_clk_phase",ivalue)){
+		dcfeb.SetDaqClkPhaseCfeb(number,ivalue);
+	      }
 	      if (fillLongIntX("cfeb_firmware_tag", long_value) ) 
 		odaqmb_->SetExpectedCFEBFirmwareTag(number,long_value);
 	      //
