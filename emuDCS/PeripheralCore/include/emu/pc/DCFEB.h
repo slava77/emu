@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DCFEB.h,v 1.2 2012/07/26 07:43:52 ahart Exp $
+// $Id: DCFEB.h,v 1.3 2012/07/26 07:57:37 ahart Exp $
 // $Log: DCFEB.h,v $
+// Revision 1.3  2012/07/26 07:57:37  ahart
+// Get rid of empty definition of configure in the header.
+//
 // Revision 1.2  2012/07/26 07:43:52  ahart
 // Increase sleeps during firmware programming and add functions for loading timing constants to the EPROM.
 //
@@ -69,7 +72,7 @@ public:
   unsigned int boardType() const {return DCFEB_ENUM;}
   void end(){};
   void init(){};
-  void configure(){};
+  void configure();
   bool SelfTest(){return true;};
 
   static const int layers[6];
