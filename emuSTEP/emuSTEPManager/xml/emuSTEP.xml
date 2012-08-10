@@ -16,9 +16,9 @@
 	<xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
 	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
 	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemusupervisor.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/emu/emuSTEP/emuSTEPConfigRead/lib/linux/x86_slc4/libemuSTEPConfigRead.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/emu/emuSTEP/emuSTEPApplication/lib/linux/x86_slc4/libemuSTEPApplication.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/emu/emuSTEP/emuSTEPManager/lib/linux/x86_slc4/libemuSTEPManager.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemuSTEPConfigRead.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemuSTEPApplication.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemuSTEPManager.so</xc:Module>
   </xc:Context>
   
   <xc:Context url="http://emu42fastprod01.cern.ch:30001">
@@ -32,14 +32,14 @@
 	
   	<xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
 	<!-- <xc:Module>${XDAQ_ROOT}/lib/libCAENVME.so</xc:Module> -->
-	<xc:Module>${BUILD_HOME}/x86_slc4/lib/libemubase.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/x86_slc4/lib/libEmuPeripheralCore.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/x86_slc4/lib/libEmuOnlineDB.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/x86_slc4/lib/libEmuPeripheralApps.so</xc:Module>
-	<!-- <xc:Module>${BUILD_HOME}/x86_slc4/lib/libEmuFEDCore.so</xc:Module> -->
-	<xc:Module>${BUILD_HOME}/x86_slc4/lib/libemuSTEPConfigRead.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/x86_slc4/lib/libemuSTEPApplication.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/emu/emuSTEP/emuSTEPTests/lib/linux/x86_slc4/libemuSTEPTests.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPeripheralCore.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuOnlineDB.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPeripheralApps.so</xc:Module>
+	<!-- <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuFEDCore.so</xc:Module> -->
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemuSTEPConfigRead.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemuSTEPApplication.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemuSTEPTests.so</xc:Module>
 
   </xc:Context>
 
