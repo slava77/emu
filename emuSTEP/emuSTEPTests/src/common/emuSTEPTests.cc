@@ -29,6 +29,8 @@
 
 #include "xcept/tools.h"
 
+#include "log4cplus/helpers/sleep.h" // sleepmillis()y
+
 // #include "emu/fed/DDU.h"
 // #include "emu/fed/VMELock.h"
 
