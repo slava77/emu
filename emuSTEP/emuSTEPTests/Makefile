@@ -6,7 +6,6 @@
 
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
-include /home/cscdev/xdaq10/TriDAS/emu/emuSTEP/emuSTEPTests/mfDefs.$(XDAQ_OS)
 
 # these variables will disappear soon ...
 
