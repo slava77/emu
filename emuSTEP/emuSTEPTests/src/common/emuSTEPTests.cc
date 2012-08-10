@@ -869,7 +869,7 @@ void emuSTEPTests::test_17()
 		  //dmb->setcaldelay (k * tcs.t17.delay_step + tcs.t17.delay_first);
 		  ::usleep(nsleep);
 		  cout<<"after calibration delay"<<endl;
-		  sleepmillis(400);
+		  log4cplus::helpers::sleepmillis(400);
 		  std::cout<<"ccb l1a delay "<<ccb->Getl1adelay()<<std::endl;
 			
 		  LOG4CPLUS_INFO(getApplicationLogger(), "time was set to: " << timesetting<<" delay_first/step "<<tcs.t17.delay_first<<"/"<<tcs.t17.delay_step<<" strip "<<i);
@@ -880,7 +880,7 @@ void emuSTEPTests::test_17()
 			{
 				ccb_GenerateDmbCfebCalib0(ccb); // pulse
 				::usleep(100);
-				sleepmillis(1);
+				log4cplus::helpers::sleepmillis(1);
 				if (j % 100 == 0) 
 					cout << "\rPulses: " << setw(3) << setfill(' ') << j << flush;
 				if (quit)
@@ -1254,7 +1254,7 @@ void emuSTEPTests::test_25()
 	  cout<<"reg 90/reg92 b "<<(ccb->ReadRegister(0x90) & 0xffff)<<"/"<<ccb->ReadRegister(0x90)<<"/"<<(ccb->ReadRegister(0x92) & 0xffff)<<"/"<<ccb->ReadRegister(0x92)<<endl;
 	  ccb->WriteRegister(0x20, csrb1);
 	  gettimeofday(&start,NULL);
-	  sleepmillis(i*250);
+	  log4cplus::helpers::sleepmillis(i*250);
 	  csrb1=0x1af9;
 	  ccb->WriteRegister(0x20, csrb1);
 	  //ccb->WriteRegister(0x98, 1);
