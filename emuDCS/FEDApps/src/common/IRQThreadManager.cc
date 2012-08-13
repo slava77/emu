@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.21 2012/07/25 11:56:44 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.22 2012/08/13 15:25:41 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -268,7 +268,8 @@ static std::string mkBitStr(uint16_t bits)
 // which only a friend class like IRQThreadManager can call.
 
 bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, log4cplus::Logger &logger,
-	const unsigned int crateNumber, emu::fed::IRQData *const locdata)
+	const unsigned int crateNumber, emu::fed::IRQData *const locdata,
+	const std::string &warnFibers)
 {
 	if (lastErrTm_ < 0 || (time(NULL) - lastErrTm_) > 600) {	// 10 minutes between Errors
 		lastErrTm_ = time(NULL);
@@ -288,8 +289,8 @@ bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, l
 			.setSeverity(emu::base::Fact::ERROR)
 			.setDescription("DDU stuck in Warning -- hard reset requested")
 			.setParameter(emu::fed::DDUFMMIRQFact::crateNumber, crateNumber)
-			.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot())
-			.setParameter(emu::fed::DDUFMMIRQFact::resetRequested, true);
+			// .setParameter(emu::fed::DDUFMMIRQFact::fibersInWarning, warnFibers)
+			.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot());
 			
 		pthread_mutex_lock(&(locdata->applicationMutex));
 		emu::fed::Communicator *application = locdata->application;
@@ -362,7 +363,8 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 				// << busyFibers.str() << endl << oosFibers.str() << endl << errFibers.str() << endl);
 		}
 		// On second Warning, set Error
-		if (got1Warn_ && dduInWarn != NULL && setDDUerror(dduInWarn, logger, crateNumber, locdata))
+		if (got1Warn_ && dduInWarn != NULL &&
+				setDDUerror(dduInWarn, logger, crateNumber, locdata, warnNowFibers.str()))
 			delay_ = index_ = 1;	// Reset delay_ if hard reset requested.
 		got1Warn_ = true;
 	} else if (got1Warn_) {
@@ -450,12 +452,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		// Immediate check for cancel
 		pthread_testcancel();
-		
-		// Clear the stored number of errors
-		unsigned int totalErrors;
-		for (std::map<unsigned int, unsigned int>::const_iterator iError = nErrors.begin(); iError != nErrors.end(); ++iError) {
-			totalErrors += iError->second;
-		}
 		
 		pthread_mutex_lock(&locdata->errorCountMutex);
 		locdata->errorCount[crateNumber] = 0;
@@ -611,20 +607,27 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
 					unsigned int numBits = statusBits.count();
 					if (combinedStatus >= 32768 && numBits > 0)
-						--numBits;	// Bit 15 (top bit) is meaningless, so if it's set, ignore it.
+						--numBits;	// Bit 15 (top bit) tells if DDU is in error, so if it's set, ignore it.
 					nErrors[slot] = numBits;
 					
+					xorStatus = xorStatus & combinedStatus;
+					// And with combinedStatus to get only new chamber errors, not any that turned off.
+
+					xorStatus = xorStatus & 0x7fff;
+					// Turn off high bit that represents DDU error. We only want to count chamber errors.
+
 					// Sometimes an interrupt does not have any errors to report.  Ignore these.
 					if (!xorStatus) {
 						std::ostringstream logMsg, debugMsg;
 						logMsg << "IRQ detected on crate " << crateNumber << " slot " << slot << " but there are no ";
-						if (combinedStatus != 0) {
+						if ((combinedStatus  & 0x7fff) != 0) {
+							// Ignore high bit that represents DDU error. We only want to count chamber errors.
 							logMsg << "new ";
-							debugMsg << "Bits for repeated chamber errors being ignored -- ADV Status: " << statusBitString;
+							debugMsg << "Bits for repeated chamber errors being ignored -- Combined Status: " << statusBitString;
 						}
 						logMsg << "errors to report. Ignoring.";
 						LOG4CPLUS_INFO(logger, logMsg.str());
-						if (combinedStatus != 0)
+						if ((combinedStatus  & 0x7fff) != 0)
 							LOG4CPLUS_DEBUG(logger, debugMsg.str());
 						// LOG4CPLUS_WARN(logger, "IRQ detected on crate " << crateNumber << " slot " << slot << " with no new errors.  Ignoring.");
 						continue;
@@ -670,7 +673,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						<< "Slot       : " << myDDU->getSlot() << std::endl
 						<< "RUI        : " << myDDU->getRUI() << std::endl
 						<< "CSC Status : " << cscBitString << std::endl
-						<< "ADV Status : " << statusBitString << std::endl
+						<< "Cmb Status : " << statusBitString << std::endl
 						<< "XOR Status : " << xorBitString << std::endl
 						<< "DDU error  : " << ((cscStatus & 0x8000) == 0x8000) << std::endl
 						<< "Fibers     : " << fiberErrors.str() << std::endl
@@ -741,33 +744,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						infpga0Stream << "Diagnostic trap information unavailable";
 						infpga1Stream << "Diagnostic trap information unavailable";
 					}
-
-					// Make and send the fact to the expert system
-					emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
-					std::ostringstream component;
-					component << "DDU" << setfill('0') << setw(2) << myDDU->getRUI();
-					fact.setComponentId(component.str())
-						.setSeverity(emu::base::Fact::WARN)
-						.setDescription("DDU FMM IRQ information")
-						.setParameter(emu::fed::DDUFMMIRQFact::crateNumber, crateNumber)
-						.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot())
-						/*.setParameter(emu::fed::DDUFMMIRQFact::rui, myDDU->getRUI())*/
-						.setParameter(emu::fed::DDUFMMIRQFact::hardError, hardError)
-						.setParameter(emu::fed::DDUFMMIRQFact::syncError, syncError)
-						.setParameter(emu::fed::DDUFMMIRQFact::resetRequested, resetWanted)
-						.setParameter(emu::fed::DDUFMMIRQFact::fiberStatus, cscStatus)
-						.setParameter(emu::fed::DDUFMMIRQFact::advancedFiberStatus, advStatus)
-						.setParameter(emu::fed::DDUFMMIRQFact::xorStatus, xorStatus)
-						.setParameter(emu::fed::DDUFMMIRQFact::ddufpgaDebugTrap, ddufpgaStream.str())
-						.setParameter(emu::fed::DDUFMMIRQFact::infpga0DebugTrap, infpga0Stream.str())
-						.setParameter(emu::fed::DDUFMMIRQFact::infpga1DebugTrap, infpga1Stream.str());
-						
-					pthread_mutex_lock(&(locdata->applicationMutex));
-					application_->storeFact(fact);
-					application_->sendFacts();
-					pthread_mutex_unlock(&(locdata->applicationMutex));
 					
-					// Record the error in an accessable history of errors.
+					// Record the error in an accessible history of errors.
 					lastDDUError[myDDU->slot()] = combinedStatus;
 					
 					// Just in case there is some bizarre error at this point that causes this to
@@ -793,7 +771,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 								myDDU->getFiber(iFiber)->ignoreErr()) {
 							MY_REVOKE_ALARM(alarmName.str());
 							continue;
-						} else { // REPORT TO SENTENEL!
+						} else { // REPORT TO SENTINEL!
 							std::ostringstream error;
 							error << "Fiber error read on crate " << crateNumber << " slot " << myDDU->slot() << " fiber " << iFiber << " (" << myDDU->getFiber(iFiber)->getName() << ")";
 							LOG4CPLUS_ERROR(logger, error.str());
@@ -843,20 +821,57 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					
 					// Now count all the errors from all the threads
 					unsigned int totalErrors = 0;
+					bool fmmsReleased = false;
 					for (std::map<unsigned int, unsigned int>::const_iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); ++iCount) {
 						totalErrors += iCount->second;
 					}
 
 					if (totalErrors >= locdata->fmmErrorThreshold) {
 						LOG4CPLUS_INFO(logger,
-							"FMMs will be released because the total number of CSCs in an error state on this system greater than " <<
-							locdata->fmmErrorThreshold);
-						if (!myCrate->isTrackFinder()) myCrate->getBroadcastDDU()->enableFMM();
-						// Briefly release the FMMs.
+							"Releasing FMMs because total errors on this endcap = " << totalErrors << " is >= threshold of " <<
+							locdata->fmmErrorThreshold << std::endl);
+						if (!myCrate->isTrackFinder()) {
+							myCrate->getBroadcastDDU()->enableFMM();
+							// Briefly release the FMMs.
+							fmmsReleased = true;
+						}
+					} else {
+						LOG4CPLUS_DEBUG(logger, "Total errors on this endcap = " << totalErrors 
+							<< " is less than FMM error threshold of " <<
+							locdata->fmmErrorThreshold << std::endl);
 					}
 					
 					pthread_mutex_unlock(&locdata->errorCountMutex);
 					
+					// Make and send the fact to the expert system
+					emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
+					std::ostringstream component;
+					component << "DDU" << setfill('0') << setw(2) << myDDU->getRUI();
+					fact.setComponentId(component.str())
+						.setSeverity(emu::base::Fact::ERROR)
+						.setDescription("DDU FMM IRQ information")
+						.setParameter(emu::fed::DDUFMMIRQFact::crateNumber, crateNumber)
+						.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot())
+						.setParameter(emu::fed::DDUFMMIRQFact::hardError, hardError)
+						.setParameter(emu::fed::DDUFMMIRQFact::syncError, syncError)
+						.setParameter(emu::fed::DDUFMMIRQFact::resetRequested, resetWanted)
+						.setParameter(emu::fed::DDUFMMIRQFact::fiberStatus, combinedStatus)
+						// .setParameter(emu::fed::DDUFMMIRQFact::fiberStatusStr, statusBitString)
+						// .setParameter(emu::fed::DDUFMMIRQFact::fibersInErr, fiberErrors.str())
+						// .setParameter(emu::fed::DDUFMMIRQFact::chambersInErr, chamberErrors.str())
+						// .setParameter(emu::fed::DDUFMMIRQFact::totalErrs, totalErrors)
+						// .setParameter(emu::fed::DDUFMMIRQFact::errThreshold, locdata->fmmErrorThreshold)
+						// .setParameter(emu::fed::DDUFMMIRQFact::fmmsReleased, fmmsReleased)
+						.setParameter(emu::fed::DDUFMMIRQFact::ddufpgaDebugTrap, ddufpgaStream.str())
+						.setParameter(emu::fed::DDUFMMIRQFact::infpga0DebugTrap, infpga0Stream.str())
+						.setParameter(emu::fed::DDUFMMIRQFact::infpga1DebugTrap, infpga1Stream.str());
+						
+					pthread_mutex_lock(&(locdata->applicationMutex));
+					application_->storeFact(fact);
+					application_->sendFacts();
+					pthread_mutex_unlock(&(locdata->applicationMutex));
+
+
 					MY_REVOKE_ALARM("IRQThreadGeneralError");
 					
 					pthread_testcancel();
