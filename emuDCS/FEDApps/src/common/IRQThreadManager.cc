@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.22 2012/08/13 15:25:41 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.23 2012/08/13 17:05:08 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -678,9 +678,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						<< "DDU error  : " << ((cscStatus & 0x8000) == 0x8000) << std::endl
 						<< "Fibers     : " << fiberErrors.str() << std::endl
 						<< "Chambers   : " << chamberErrors.str() << std::endl
-						<< "Hard Error : " << hardError << std::endl
-						<< "Sync Error : " << syncError << std::endl
-						<< "Wants Reset: " << resetWanted);
+						<< "Hard reset needed      : " << hardError << std::endl
+						<< "Resync needed          : " << syncError << std::endl
+						<< "Reset or resync needed : " << resetWanted);
 					
 					//LOG4CPLUS_INFO(logger, cscsWithHardError << " CSCs on this DDU have hard errors");
 					//LOG4CPLUS_INFO(logger, cscsWithSyncError << " CSCs on this DDU have sync errors");
