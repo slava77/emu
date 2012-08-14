@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.24 2012/08/14 11:37:06 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.25 2012/08/14 16:27:29 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -312,7 +312,7 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 {
 	bool statRep = false;
 	std::ostringstream statusMsg, busyFibers, warnFibers, warnNowFibers, errFibers, oosFibers;
-	std::stringstream chamberWarns;
+	std::stringstream chamberWarns, fiberWarns;
 	statusMsg <<     "DDU statuses            ";
 	busyFibers << 	 "Fibers that had Busy    ";
 	warnFibers << 	 "Fibers that had Warning ";
@@ -357,7 +357,9 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 				if (warnBits[iFiber]) {
 					if (moreFibers) {
 						chamberWarns << ", ";
+						fiberWarns << ", ";
 					}
+					fiberWarns << iFiber;
 					chamberWarns << myDDU->getFiber(iFiber)->getName();
 					moreFibers = true;
 				}
@@ -373,7 +375,7 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 			LOG4CPLUS_WARN(logger, endl << statusMsg.str() << endl << warnNowFibers.str()
 				<< endl << warnFibers.str() << endl);
 				// << busyFibers.str() << endl << oosFibers.str() << endl << errFibers.str() << endl);
-			if (index_ == 4 && dduInWarn != NULL) {
+			if (index_ == 5 && dduInWarn != NULL) {
 				uint16_t ruiNum = dduInWarn->getRUI();
 				// Make and send the fact to the expert system
 				emu::base::TypedFact<emu::fed::DDUStuckInWarningFact> fact;
@@ -381,10 +383,10 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 				component << "DDU" << setfill('0') << setw(2) << ruiNum;
 				fact.setComponentId(component.str())
 					.setSeverity(emu::base::Fact::ERROR)
-					.setDescription("More than one DDU-stuck-in-Warning incidents occurred within 10 minutes")
+					.setDescription("More than one DDU-stuck-in-Warning incident occurred within 10 minutes")
 					.setParameter(emu::fed::DDUStuckInWarningFact::hardResetRequested, false)
 					.setParameter(emu::fed::DDUStuckInWarningFact::chambersInWarning, chamberWarns.str())
-					.setParameter(emu::fed::DDUStuckInWarningFact::fibersInWarning, warnNowFibers.str());
+					.setParameter(emu::fed::DDUStuckInWarningFact::fibersInWarning, fiberWarns.str());
 				pthread_mutex_lock(&(locdata->applicationMutex));
 				emu::fed::Communicator *application = locdata->application;
 				application->storeFact(fact);
@@ -394,7 +396,7 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 		}
 		// On second Warning, set Error
 		if (got1Warn_ && dduInWarn != NULL &&
-				setDDUerror(dduInWarn, logger, crateNumber, locdata, warnNowFibers.str(), chamberWarns.str()))
+				setDDUerror(dduInWarn, logger, crateNumber, locdata, fiberWarns.str(), chamberWarns.str()))
 			delay_ = index_ = 1;	// Reset delay_ if hard reset requested.
 		got1Warn_ = true;
 	} else if (got1Warn_) {
