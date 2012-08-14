@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.23 2012/08/13 17:05:08 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.24 2012/08/14 11:37:06 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -269,7 +269,7 @@ static std::string mkBitStr(uint16_t bits)
 
 bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, log4cplus::Logger &logger,
 	const unsigned int crateNumber, emu::fed::IRQData *const locdata,
-	const std::string &warnFibers)
+	const std::string &warnFibers, const std::string &warnChambers)
 {
 	if (lastErrTm_ < 0 || (time(NULL) - lastErrTm_) > 600) {	// 10 minutes between Errors
 		lastErrTm_ = time(NULL);
@@ -282,15 +282,15 @@ bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, l
 		LOG4CPLUS_ERROR(logger, endl << "DDU RUI #" << ruiNum <<
 			" stuck in warning. Setting DDU Error to request hard reset from GT." << endl);
 		// Make and send the fact to the expert system
-		emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
+		emu::base::TypedFact<emu::fed::DDUStuckInWarningFact> fact;
 		std::ostringstream component;
 		component << "DDU" << setfill('0') << setw(2) << ruiNum;
 		fact.setComponentId(component.str())
 			.setSeverity(emu::base::Fact::ERROR)
 			.setDescription("DDU stuck in Warning -- hard reset requested")
-			.setParameter(emu::fed::DDUFMMIRQFact::crateNumber, crateNumber)
-			// .setParameter(emu::fed::DDUFMMIRQFact::fibersInWarning, warnFibers)
-			.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot());
+			.setParameter(emu::fed::DDUStuckInWarningFact::hardResetRequested, true)
+			.setParameter(emu::fed::DDUStuckInWarningFact::chambersInWarning, warnChambers)
+			.setParameter(emu::fed::DDUStuckInWarningFact::fibersInWarning, warnFibers);
 			
 		pthread_mutex_lock(&(locdata->applicationMutex));
 		emu::fed::Communicator *application = locdata->application;
@@ -312,6 +312,7 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 {
 	bool statRep = false;
 	std::ostringstream statusMsg, busyFibers, warnFibers, warnNowFibers, errFibers, oosFibers;
+	std::stringstream chamberWarns;
 	statusMsg <<     "DDU statuses            ";
 	busyFibers << 	 "Fibers that had Busy    ";
 	warnFibers << 	 "Fibers that had Warning ";
@@ -350,6 +351,17 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 			errFibers << mkBitStr(myDDU->readFMMError()) << " ";
 			oosFibers << mkBitStr(myDDU->readFMMLostSync()) << " ";
 			*/
+			std::bitset<16> warnBits(warnNStat);
+			bool moreFibers = false;
+			for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
+				if (warnBits[iFiber]) {
+					if (moreFibers) {
+						chamberWarns << ", ";
+					}
+					chamberWarns << myDDU->getFiber(iFiber)->getName();
+					moreFibers = true;
+				}
+			}
 		}
 	}
 	if (statRep) {
@@ -361,10 +373,28 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 			LOG4CPLUS_WARN(logger, endl << statusMsg.str() << endl << warnNowFibers.str()
 				<< endl << warnFibers.str() << endl);
 				// << busyFibers.str() << endl << oosFibers.str() << endl << errFibers.str() << endl);
+			if (index_ == 4 && dduInWarn != NULL) {
+				uint16_t ruiNum = dduInWarn->getRUI();
+				// Make and send the fact to the expert system
+				emu::base::TypedFact<emu::fed::DDUStuckInWarningFact> fact;
+				std::ostringstream component;
+				component << "DDU" << setfill('0') << setw(2) << ruiNum;
+				fact.setComponentId(component.str())
+					.setSeverity(emu::base::Fact::ERROR)
+					.setDescription("More than one DDU-stuck-in-Warning incidents occurred within 10 minutes")
+					.setParameter(emu::fed::DDUStuckInWarningFact::hardResetRequested, false)
+					.setParameter(emu::fed::DDUStuckInWarningFact::chambersInWarning, chamberWarns.str())
+					.setParameter(emu::fed::DDUStuckInWarningFact::fibersInWarning, warnNowFibers.str());
+				pthread_mutex_lock(&(locdata->applicationMutex));
+				emu::fed::Communicator *application = locdata->application;
+				application->storeFact(fact);
+				application->sendFacts();
+				pthread_mutex_unlock(&(locdata->applicationMutex));
+			}
 		}
 		// On second Warning, set Error
 		if (got1Warn_ && dduInWarn != NULL &&
-				setDDUerror(dduInWarn, logger, crateNumber, locdata, warnNowFibers.str()))
+				setDDUerror(dduInWarn, logger, crateNumber, locdata, warnNowFibers.str(), chamberWarns.str()))
 			delay_ = index_ = 1;	// Reset delay_ if hard reset requested.
 		got1Warn_ = true;
 	} else if (got1Warn_) {
@@ -656,10 +686,16 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					std::bitset<16> xorBits(xorStatus);
 					
 					std::stringstream fiberErrors, chamberErrors;
+					bool moreFibers = false;
 					for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
 						if (xorBits[iFiber]) {
-							fiberErrors << iFiber << " ";
-							chamberErrors << myDDU->getFiber(iFiber)->getName() << " ";
+							if (moreFibers) {
+								fiberErrors << ", ";
+								chamberErrors << ", ";
+							}
+							fiberErrors << iFiber;
+							chamberErrors << myDDU->getFiber(iFiber)->getName();
+							moreFibers = true;
 						}
 					}
 					
@@ -844,27 +880,24 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					pthread_mutex_unlock(&locdata->errorCountMutex);
 					
 					// Make and send the fact to the expert system
-					emu::base::TypedFact<emu::fed::DDUFMMIRQFact> fact;
+					emu::base::TypedFact<emu::fed::DDUFMMErrorFact> fact;
 					std::ostringstream component;
 					component << "DDU" << setfill('0') << setw(2) << myDDU->getRUI();
 					fact.setComponentId(component.str())
 						.setSeverity(emu::base::Fact::ERROR)
 						.setDescription("DDU FMM IRQ information")
-						.setParameter(emu::fed::DDUFMMIRQFact::crateNumber, crateNumber)
-						.setParameter(emu::fed::DDUFMMIRQFact::slotNumber, myDDU->getSlot())
-						.setParameter(emu::fed::DDUFMMIRQFact::hardError, hardError)
-						.setParameter(emu::fed::DDUFMMIRQFact::syncError, syncError)
-						.setParameter(emu::fed::DDUFMMIRQFact::resetRequested, resetWanted)
-						.setParameter(emu::fed::DDUFMMIRQFact::fiberStatus, combinedStatus)
-						// .setParameter(emu::fed::DDUFMMIRQFact::fiberStatusStr, statusBitString)
-						// .setParameter(emu::fed::DDUFMMIRQFact::fibersInErr, fiberErrors.str())
-						// .setParameter(emu::fed::DDUFMMIRQFact::chambersInErr, chamberErrors.str())
-						// .setParameter(emu::fed::DDUFMMIRQFact::totalErrs, totalErrors)
-						// .setParameter(emu::fed::DDUFMMIRQFact::errThreshold, locdata->fmmErrorThreshold)
-						// .setParameter(emu::fed::DDUFMMIRQFact::fmmsReleased, fmmsReleased)
-						.setParameter(emu::fed::DDUFMMIRQFact::ddufpgaDebugTrap, ddufpgaStream.str())
-						.setParameter(emu::fed::DDUFMMIRQFact::infpga0DebugTrap, infpga0Stream.str())
-						.setParameter(emu::fed::DDUFMMIRQFact::infpga1DebugTrap, infpga1Stream.str());
+						.setParameter(emu::fed::DDUFMMErrorFact::hardResetRequested, hardError)
+						.setParameter(emu::fed::DDUFMMErrorFact::resyncRequested, syncError)
+						.setParameter(emu::fed::DDUFMMErrorFact::combinedStatus, combinedStatus)
+						.setParameter(emu::fed::DDUFMMErrorFact::combinedStatusStr, statusBitString)
+						.setParameter(emu::fed::DDUFMMErrorFact::fibersInError, fiberErrors.str())
+						.setParameter(emu::fed::DDUFMMErrorFact::chambersInError, chamberErrors.str())
+						.setParameter(emu::fed::DDUFMMErrorFact::numChambersInErrorForEndcap, totalErrors)
+						.setParameter(emu::fed::DDUFMMErrorFact::fmmErrorThreshold, locdata->fmmErrorThreshold)
+						.setParameter(emu::fed::DDUFMMErrorFact::fmmsReleased, fmmsReleased)
+						.setParameter(emu::fed::DDUFMMErrorFact::ddufpgaDebugTrap, ddufpgaStream.str())
+						.setParameter(emu::fed::DDUFMMErrorFact::infpga0DebugTrap, infpga0Stream.str())
+						.setParameter(emu::fed::DDUFMMErrorFact::infpga1DebugTrap, infpga1Stream.str());
 						
 					pthread_mutex_lock(&(locdata->applicationMutex));
 					application_->storeFact(fact);

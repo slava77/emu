@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.6 2012/07/23 17:59:31 cvuosalo Exp $
+* $Id: IRQThreadManager.h,v 1.7 2012/08/14 11:38:10 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -106,7 +106,8 @@ namespace emu {
 
 				/// Sets a DDU into Error briefly to request a hard reset from the GT.
 				bool setDDUerror(emu::fed::DDU *myDDU, log4cplus::Logger &logger,
-					const unsigned int crateNumber, emu::fed::IRQData *const locdata);
+					const unsigned int crateNumber, emu::fed::IRQData *const locdata,
+					const std::string &warnFibers, const std::string &warnChambers);
 
 				public:
 
