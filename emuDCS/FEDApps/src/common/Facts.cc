@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Facts.cc,v 1.3 2012/08/14 11:37:06 cvuosalo Exp $
+* $Id: Facts.cc,v 1.4 2012/08/14 12:53:42 cvuosalo Exp $
 \*****************************************************************************/
 
 #include "emu/fed/Facts.h"
@@ -13,7 +13,7 @@ const char* const emu::fed::DDUFMMIRQFact::parameterNames_[] = {"crateNumber", "
 const char* const emu::fed::DDUFMMResetFact::typeName_ = "DDUFMMResetFact";
 const char* const emu::fed::DDUFMMResetFact::parameterNames_[] = {"crateNumber"};
 
-const char* const emu::fed::DDUFMMErrorFact::typeName_ = "DDUFMMErrorFact";
+const char* const emu::fed::DDUFMMErrorFact::typeName_ = "DduFmmErrorFact";
 const char* const emu::fed::DDUFMMErrorFact::parameterNames_[] = {
 	"hardResetRequested",
 	"resyncRequested",
@@ -29,7 +29,7 @@ const char* const emu::fed::DDUFMMErrorFact::parameterNames_[] = {
 	"fibersInError"
 };
 
-const char* const emu::fed::DDUStuckInWarningFact::typeName_ = "DDUStuckInWarningFact";
+const char* const emu::fed::DDUStuckInWarningFact::typeName_ = "DduStuckInWarningFact";
 const char* const emu::fed::DDUStuckInWarningFact::parameterNames_[] = {
 	"hardResetRequested",
 	"chambersInWarning",
