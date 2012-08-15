@@ -182,10 +182,13 @@ _cleanall:
 clean:
 	@rm -f $(LDIR)/*.a $(LDIR)/*.so $(ODIR)/*.o *.o program core*
 
+_installall: makedirs libs
+	$(Install) -p $(LDIR)/lib*.a $(LDIR)/lib*.so  $(LibInstallDir)/ 
+
 install: makedirs libs 
 	$(Install) -p $(LDIR)/lib*.a $(LDIR)/lib*.so  $(LibInstallDir)/
 
-# _installall: install
+
 MakeFilename=Makefile
 include $(XDAQ_ROOT)/config/Makefile.rules
 
