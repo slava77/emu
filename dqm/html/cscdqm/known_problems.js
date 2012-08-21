@@ -64,7 +64,8 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
         {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer3", "severity": "3", "obj": "CFEB2 Layer3"},
         {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer4", "severity": "3", "obj": "CFEB2 Layer4"},
         {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer5", "severity": "3", "obj": "CFEB2 Layer5"},
-        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer6", "severity": "3", "obj": "CFEB2 Layer6"}
+        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer6", "severity": "3", "obj": "CFEB2 Layer6"},
+	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB2 DAV 0.000%", "severity": "3", "obj": "CFEB2"}
 ]},
 
 {"objID": "ME+1/2/26", "name": "ME+1/2/26", "list": [ 
@@ -234,6 +235,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 	{"testID": "CSC_ALCT_AFEB_NOISY", "scope": "CSC", "descr": "Noisy Anodes Segment: AFEB5 Layer4", "severity": "2", "obj": "AFEB5 Layer4"},
 	{"testID": "CSC_ALCT_AFEB_NOISY", "scope": "CSC", "descr": "Noisy Anodes Segment: AFEB8 Layer4", "severity": "2", "obj": "AFEB8 Layer4"}
 ]},
+{"objID": "ME-1/1/17", "name": "ME-1/1/17", "list": [
+        {"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0%", "severity": "4", "obj": "ALCT"}
+]},   
 {"objID": "ME-1/1/20", "name": "ME-1/1/20", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB4 DAV 0.000%", "severity": "3", "obj": "CFEB4"}
 ]},
@@ -281,8 +285,14 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 {"objID": "ME-1/1/22", "name": "ME-1/1/22", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB2 DAV 0.000%", "severity": "3", "obj": "CFEB2"}
 ]},
+{"objID": "ME-1/2/22", "name": "ME-1/2/22", "list": [
+        {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB3 DAV 0.000%", "severity": "3", "obj": "CFEB3"}
+]},
 {"objID": "ME-1/2/33", "name": "ME-1/2/33", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB1 DAV", "severity": "2", "obj": "CFEB1"}
+]},
+{"objID": "ME-1/3/03", "name": "ME-1/3/03", "list": [
+        {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
 ]},
 {"objID": "ME-1/3/12", "name": "ME-1/3/12", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB3 DAV", "severity": "2", "obj": "CFEB3"}
@@ -333,7 +343,8 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 ]},
 {"objID": "ME-3/1/09", "name": "ME-3/1/09", "list": [
         {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB5 Layer6", "severity": "2", "obj": "CFEB5 Layer6"},
-	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB5 Layer6 ( < 0.2% threshold)", "severity": "2", "obj": "CFEB5 Layer6"}
+	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB5 Layer6 ( < 0.2% threshold)", "severity": "2", "obj": "CFEB5 Layer6"},
+	{"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB5 Layer6", "severity": "3", "obj": "CFEB5 Layer6"}
 ]},
 {"objID": "ME-3/1/11", "name": "ME-3/1/11", "list": [
         {"testID": "CSC_CFEB_COMPARATORS_NOISY", "scope": "CSC", "descr": "CFEB Hot/Noisy CFEB Comparators: CFEB4 Layer2 ( > 2.5 times from average)", "severity": "3", "obj": "CFEB4 Layer2"},
