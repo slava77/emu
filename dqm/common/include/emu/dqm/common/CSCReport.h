@@ -8,13 +8,13 @@
 #define QCHECK_VER "2.0"
 
 typedef enum
-{
+{ 
   NONE = 0,
   MINOR,
   TOLERABLE,
   SEVERE,
   CRITICAL,
-} DQM_SEVERITY;
+} DQM_SEVERITY; // IMPORTANT: If this is changed, please change emu::base::Fact::Severity_t accordingly.
 
 static const char* DQM_SEVERITY_STR[CRITICAL+1] =
 {

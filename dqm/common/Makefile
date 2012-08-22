@@ -30,7 +30,8 @@ Sources=\
 	EmuDQM_AppParameters.cc \
 	EmuMonitoringObject.cc \
 	EmuMonitoringCanvas.cc \
-	CSCReadoutMappingFromFile.cc 
+	CSCReadoutMappingFromFile.cc \
+	CSCDqmFact.cc
 
 
 Executables =
