@@ -1,4 +1,5 @@
 #include "emu/base/Fact.h"
+
 #include <iostream>
 #include <iomanip>
 #include <time.h>
@@ -6,14 +7,15 @@
 using namespace std;
 
 const char* const emu::base::Fact::units_[]         = { "AMPERE", "VOLT", "METER" };
-const char* const emu::base::Fact::severities_[]    = { "DEBUG",
-							"INFO",
+const char* const emu::base::Fact::severities_[]    = { "NONE",
 							"MINOR",
 							"TOLERABLE",
-							"WARN",
-							"ERROR",
 							"SEVERE",
 							"CRITICAL",
+							"DEBUG",
+							"INFO",
+							"WARN",
+							"ERROR",
 							"FATAL" };
 
 emu::base::Fact::Fact()
@@ -56,32 +58,52 @@ ostream& emu::base::operator<<( ostream& os, emu::base::Fact& f ){
      << "   Run            " << f.getRun           () << endl
      << "   Severity       " << f.getSeverity      () << endl
      << "   Description    " << f.getDescription   () << endl;
-  map<string,string> parameters = f.getParameters();
-  map<string,string>::iterator p;
+
+  emu::base::Fact::Parameters_t parameters = f.getParameters();
+  emu::base::Fact::Parameters_t::iterator p;
+
   unsigned int maxNameLength = 0;
-  for ( p = parameters.begin(); p != parameters.end(); ++p ) 
+  for ( p = parameters.begin(); p != parameters.end(); ++p ){
     if ( p->first.size() > maxNameLength ) maxNameLength = p->first.size();
-  for ( p = parameters.begin(); p != parameters.end(); ++p )
-    os << "   "                                << p->first 
-       << string(3+maxNameLength-p->first.size(),' ') << p->second
-       << endl;
+  }
+
+  for ( p = parameters.begin(); p != parameters.end(); ++p ){
+    os << "   " << p->first 
+       << string(3+maxNameLength-p->first.size(),' ')
+       << "[";
+    for (vector<string>::const_iterator s = p->second.begin(); s != p->second.end(); ++s){
+      os << *s << (s + 1 != p->second.end() ? "," : "");
+    }
+    os << "]" << endl;
+  }
+
   return os;
 }
 
 ostream& emu::base::operator<<( ostream& os, const emu::base::Fact& f ){
+
   os << "   Name           " << f.getName          () << endl
      << "   Time           " << f.getTime          () << endl
      << "   Component      " << f.getComponent     () << endl
      << "   Run            " << f.getRun           () << endl
      << "   Severity       " << f.getSeverity      () << endl
      << "   Description    " << f.getDescription   () << endl;
-  map<string,string>::const_iterator p;
+
+  emu::base::Fact::Parameters_t::const_iterator p;
+
   unsigned int maxNameLength = 0;
-  for ( p = f.getParameters().begin(); p != f.getParameters().end(); ++p )
+  for ( p = f.getParameters().begin(); p != f.getParameters().end(); ++p ){
     if ( p->first.size() > maxNameLength ) maxNameLength = p->first.size();
-  for ( p = f.getParameters().begin(); p != f.getParameters().end(); ++p )
-    os << "   "                                << p->first 
-       << string(3+maxNameLength-p->first.size(),' ') << p->second
-       << endl;
+  }
+
+  for ( p = f.getParameters().begin(); p != f.getParameters().end(); ++p ){
+    os << "   " << p->first 
+       << string(3+maxNameLength-p->first.size(),' ')
+       << "[";
+    for (vector<string>::const_iterator s = p->second.begin(); s != p->second.end(); ++s){
+      os << *s << (s + 1 != p->second.end() ? "," : "");
+    }
+    os << "]" << endl;
+  }
   return os;
 }

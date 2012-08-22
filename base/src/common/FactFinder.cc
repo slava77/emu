@@ -250,11 +250,20 @@ emu::base::FactFinder::createFactsSOAP( const emu::base::FactCollection& factCol
       if ( f->getSeverity()   .size() ) factElement.addChildElement( severityName    ).addTextNode( f->getSeverity()   .c_str() );
       if ( f->getDescription().size() ) factElement.addChildElement( descriptionName ).addTextNode( f->getDescription().c_str() );
 
-      map<string,string>::const_iterator p;
+      emu::base::Fact::Parameters_t::const_iterator p;
       for ( p = f->getParameters().begin(); p != f->getParameters().end(); ++p ){
 	xoap::SOAPName    parameterName    = envelope.createName(p->first.c_str(), "esd", ESD_NS_URI);
 	xoap::SOAPElement parameterElement = factElement.addChildElement( parameterName );
-	parameterElement.addTextNode( p->second.c_str() );
+	if ( p->second.size() == 1 ){ // scalar parameter
+	  parameterElement.addTextNode( p->second.at( 0 ).c_str() );
+	}
+	else if ( p->second.size() > 1 ){ // array parameter
+	  xoap::SOAPName arrayElementName = envelope.createName("arrayElement", "esd", ESD_NS_URI);
+	  for (vector<string>::const_iterator s = p->second.begin(); s != p->second.end(); ++s){
+	    xoap::SOAPElement arrayElementElement = parameterElement.addChildElement( arrayElementName );
+	    arrayElementElement.addTextNode( s->c_str() );
+	  }
+	}
       }
 
     }
