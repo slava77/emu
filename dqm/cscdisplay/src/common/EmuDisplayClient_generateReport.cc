@@ -1,4 +1,5 @@
 #include "emu/dqm/cscdisplay/EmuDisplayClient.h"
+#include "emu/base/TypedFact.h"
 
 #include <TClass.h>
 
@@ -1038,18 +1039,15 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
       emu::base::Component comp("ME");
       for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
       {
-        CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
-        std::string testID = err_itr->testID;
-        if (testID == "") testID = "INFO";
-        if (err_itr->severity == 0) severity = "INFO";
-        else severity = DQM_SEVERITY_STR[err_itr->severity];
-        fact.addParameter("testId", testID)
-        .setSeverity(severity)
-        .setDescription(err_itr->descr)
-        .setRun(runname);
+	emu::base::TypedFact<DqmReportFact> fact;
+	fact
+	  .setRun( runname )
+	  .setComponent( comp )
+	  .setSeverity( err_itr->severity == NONE ? emu::base::Fact::INFO : (emu::base::Fact::Severity_t) err_itr->severity )
+	  .setDescription( err_itr->descr )
+	  .setParameter( DqmReportFact::testId, err_itr->testID );
         addFact(fact);
         nFacts++;
-
       }
     }
   }
@@ -1061,16 +1059,15 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
       emu::base::Component comp( std::string(itr->first).erase( std::string(itr->first).find('_'),1) );
       for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)
       {
-        CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
-        if (err_itr->severity == 0) severity = "INFO";
-        else severity = DQM_SEVERITY_STR[err_itr->severity];
-        fact.addParameter("testId", err_itr->testID)
-        .setSeverity(severity)
-        .setDescription(err_itr->descr)
-        .setRun(runname);
+	emu::base::TypedFact<DqmReportFact> fact;
+	fact
+	  .setRun( runname )
+	  .setComponent( comp )
+	  .setSeverity( err_itr->severity == NONE ? emu::base::Fact::INFO : (emu::base::Fact::Severity_t) err_itr->severity )
+	  .setDescription( err_itr->descr )
+	  .setParameter( DqmReportFact::testId, err_itr->testID );
         addFact(fact);
         nFacts++;
-
       }
     }
   }
@@ -1084,17 +1081,15 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
       {
         // Skip not enough statistics entries
         if (err_itr->descr.find("Not enough events for") != std::string::npos) continue;
-
-        CSCDqmFact fact = CSCDqmFact(runname, comp, "DqmReportFact");
-        if (err_itr->severity == 0) severity = "INFO";
-        else severity = DQM_SEVERITY_STR[err_itr->severity];
-        fact.addParameter("testId", err_itr->testID)
-        .setSeverity(severity)
-        .setDescription(err_itr->descr)
-        .setRun(runname);
+	emu::base::TypedFact<DqmReportFact> fact;
+	fact
+	  .setRun( runname )
+	  .setComponent( comp )
+	  .setSeverity( err_itr->severity == NONE ? emu::base::Fact::INFO : (emu::base::Fact::Severity_t) err_itr->severity )
+	  .setDescription( err_itr->descr )
+	  .setParameter( DqmReportFact::testId, err_itr->testID );
         addFact(fact);
         nFacts++;
-
       }
     }
   }

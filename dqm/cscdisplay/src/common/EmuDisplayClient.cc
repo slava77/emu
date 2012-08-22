@@ -4,7 +4,7 @@
 
 
 #include "emu/dqm/cscdisplay/EmuDisplayClient.h"
-
+#include "emu/base/TypedFact.h"
 
 #include "xgi/Method.h"
 #include "i2o/Method.h"
@@ -1153,20 +1153,21 @@ int EmuDisplayClient::updateNodesStatusFacts()
         stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
       }
       emu::base::Component comp(nodename);
-      CSCDqmFact fact = CSCDqmFact(runNumber, comp, "EmuMonitorFact");
-      fact.addParameter("state", state)
-      .addParameter("stateChangeTime",stateChangeTime)
-      .addParameter("dqmEvents", events)
-      .addParameter("dqmRate", dataRate)
-      .addParameter("cscRate", cscRate)
-      .addParameter("cscDetected", cscDetected)
-      .addParameter("cscUnpacked", cscUnpacked)
-      .setSeverity("INFO")
-      .setRun(runNumber);
+      emu::base::TypedFact<EmuMonitorFact> fact;
+      fact
+	.setRun( runNumber )
+	.setComponent( comp )
+	.setSeverity( emu::base::Fact::INFO )
+	.setDescription( "The status of the local DQM." )
+	.setParameter( EmuMonitorFact::state          , state           )
+	.setParameter( EmuMonitorFact::stateChangeTime, stateChangeTime )
+	.setParameter( EmuMonitorFact::dqmEvents      , events          )
+	.setParameter( EmuMonitorFact::dqmRate        , dataRate        )
+	.setParameter( EmuMonitorFact::cscRate        , cscRate         )
+	.setParameter( EmuMonitorFact::cscDetected    , cscDetected     )
+	.setParameter( EmuMonitorFact::cscUnpacked    , cscUnpacked     );
       addFact(fact);
-
       nFacts++;
-
     }
 
     // Send EmuMonitor nodes facts to expert system
