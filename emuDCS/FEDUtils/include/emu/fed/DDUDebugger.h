@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.h,v 1.9 2010/03/08 22:19:49 paste Exp $
+* $Id: DDUDebugger.h,v 1.10 2012/08/27 14:45:11 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDUDEBUGGER_H__
 #define __EMU_FED_DDUDEBUGGER_H__
@@ -38,6 +38,8 @@ namespace emu {
 
 			/** Reads from method DDU::readDebugTrap(DDUFPGA) **/
 			std::vector<std::string> DDUDebugTrap(const std::vector<uint16_t> &lcode, DDU *thisDDU);
+
+			unsigned int readErrors(DDU *const thisDDU, std::vector<std::string> &out, std::stringstream &outStream);
 		
 			/** Reads from method DDU::readKillFiber() **/
 			std::map<std::string, std::string> KillFiber(const uint32_t &stat);

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.25 2012/08/14 16:27:29 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.26 2012/08/27 14:45:09 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -312,7 +312,7 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 {
 	bool statRep = false;
 	std::ostringstream statusMsg, busyFibers, warnFibers, warnNowFibers, errFibers, oosFibers;
-	std::stringstream chamberWarns, fiberWarns;
+	std::stringstream chamberWarns, fiberWarns, subErrs;
 	statusMsg <<     "DDU statuses            ";
 	busyFibers << 	 "Fibers that had Busy    ";
 	warnFibers << 	 "Fibers that had Warning ";
@@ -344,6 +344,10 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 			warnNowFibers << mkBitStr(warnNStat) << " ";
 			errFibers << mkBitStr(errStat) << " ";
 			oosFibers << mkBitStr(oosStat) << " ";
+
+			std::vector<std::string> unused;
+			DDUDebugger::readErrors(myDDU, unused, subErrs);
+			subErrs << " ";
 			/*
 			busyFibers << mkBitStr(myDDU->readBusyHistory()) << " ";
 			warnFibers << mkBitStr(myDDU->readWarningHistory()) << " ";
@@ -373,7 +377,7 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 				index_ = 1;
 			} else delay_ *= 2;
 			LOG4CPLUS_WARN(logger, endl << statusMsg.str() << endl << warnNowFibers.str()
-				<< endl << warnFibers.str() << endl);
+				<< endl << warnFibers.str() << endl << subErrs.str() << endl);
 				// << busyFibers.str() << endl << oosFibers.str() << endl << errFibers.str() << endl);
 			if (index_ == 5 && dduInWarn != NULL) {
 				uint16_t ruiNum = dduInWarn->getRUI();

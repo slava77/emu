@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.14 2010/05/31 14:05:18 paste Exp $
+* $Id: DDUDebugger.cc,v 1.15 2012/08/27 14:45:11 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -290,45 +290,9 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::EBRegister(const uint8
 }
 
 
-
-std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(const std::vector<uint16_t> &lcode, DDU *thisDDU)
+unsigned int emu::fed::DDUDebugger::readErrors(DDU *const thisDDU, std::vector<std::string> &out, std::stringstream &outStream)
 {
-
-	std::vector<std::string> out;
-	std::stringstream outStream;
-
-	// First, spit out the full status.
-
-	std::string debugNames[12] = {
-		"o-stat",
-		"fifo-full",
-		"fifo-c",
-		"fifo-b",
-		"fifo-a",
-		"in-stat",
-		"c-code",
-		"er-c",
-		"er-b",
-		"er-a",
-		"32-bit stat high",
-		"32-bit stat low"
-	};
-
-	// Pop out the decoded register.
-	bool noError = true;
-	for (unsigned int iBits = 0; iBits < 12; iBits++) {
-		if (lcode[11 - iBits]) noError = false;
-		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << lcode[11 - iBits];
-		out.push_back(outStream.str());
-		outStream.str("");
-	}
-	
-	// If nothing here is set, we can return instantly
-	if (noError) {
-		return out;
-	}
-
-	// Next, spit out the funky fiber information.
+	// Spit out the funky fiber information.
 	const unsigned long int CSCStat = thisDDU->readCSCStatus();
 	if (CSCStat & 0x7fff) {
 		outStream << "FMM errors detected on fiber(s) ";
@@ -391,6 +355,48 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(const std::vector<
 		out.push_back(outStream.str());
 		outStream.str("");
 	}
+	return (DMBError);
+}
+
+
+std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(const std::vector<uint16_t> &lcode, DDU *thisDDU)
+{
+
+	std::vector<std::string> out;
+	std::stringstream outStream;
+
+	// First, spit out the full status.
+
+	std::string debugNames[12] = {
+		"o-stat",
+		"fifo-full",
+		"fifo-c",
+		"fifo-b",
+		"fifo-a",
+		"in-stat",
+		"c-code",
+		"er-c",
+		"er-b",
+		"er-a",
+		"32-bit stat high",
+		"32-bit stat low"
+	};
+
+	// Pop out the decoded register.
+	bool noError = true;
+	for (unsigned int iBits = 0; iBits < 12; iBits++) {
+		if (lcode[11 - iBits]) noError = false;
+		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << lcode[11 - iBits];
+		out.push_back(outStream.str());
+		outStream.str("");
+	}
+	
+	// If nothing here is set, we can return instantly
+	if (noError) {
+		return out;
+	}
+
+	const unsigned int DMBError = readErrors(thisDDU, out, outStream);
 
 	std::vector<uint16_t> inTrap[2];
 	bool inTrapSet[2] = {
