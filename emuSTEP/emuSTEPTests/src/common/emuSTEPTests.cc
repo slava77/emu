@@ -1211,25 +1211,29 @@ void emuSTEPTests::test_25()
 	LOG4CPLUS_INFO(getApplicationLogger(), "Starting STEP test: 25, max events: " << max_events_);
 	prepare_to_test();
 
-	usleep(100);
-	alct->configure();
 
-	usleep(100);
-	string time;
-	ofstream timestampfile;
-	timestampfile.open("/home/cscme42/test_25.txt");
-
-
+	time_t rawtime;
+	
+	struct tm* timestamp;
+	time (& rawtime);
+	timestamp=localtime(&rawtime);
+	char filename_appendix[80];
+	cout<<"time now "<<endl;
         // enable L1A counter:
         ccb->WriteRegister(0x96, 0);
-	
+	ofstream timestampfile;
+        strftime (filename_appendix,80,"%y%m%d_%H%M%S",timestamp);
+	char* char_start="/home/cscme42/STEP/data/test_results/test_25_";
+	char* char_end=".txt";
+	char* filename= (char*)malloc(strlen(char_start) + strlen(filename_appendix)  + strlen(char_end));
+	sprintf(filename,"%s%s%s",char_start,filename_appendix,char_end);
+	timestampfile.open(filename);	
 	int event_counter=0;
 	 cout<< "at start evt "<<event_counter +1<<" pretrig-layer "<<alct->GetPretrigNumberOfLayers()<<" pretrig-pattern "<<alct->GetPretrigNumberOfPattern()<<endl;
 
-	 //usleep (100);
+	 timestampfile<<"#time in musec      event counts\n";
 
-	for (int i=0;i<tcs.t25.trig_settings;i++){
-	  //do for each trigger setting
+	 for (int i=0;i<tcs.t25.trig_settings;i++){
 	  if(i==0){
 	    alct->SetPretrigNumberOfLayers (1);
 	  }else{
@@ -1237,38 +1241,41 @@ void emuSTEPTests::test_25()
 	  }
 	  alct->SetPretrigNumberOfPattern (i+1);
 	  alct->WriteConfigurationReg();
-	  //unsigned l1a_counter_low_bits=0x0;
-	  //unsigned l1a_counter_high_bits=0x0;
-	  //unsigned l1a_counter=0x0;
+	  if(i==1){
+	    log4cplus::helpers::sleepmillis(50000);
+	  }else{
+	    log4cplus::helpers::sleepmillis(20000);
+	  }
 
-	  //int l1a_counter_low_bits=0;
-	  //int l1a_counter_high_bits=0;
-	  //int l1a_counter=0;
+	  ccb->WriteRegister(0x94,0);
+	  ccb->WriteRegister(0x90,0);
+	  ccb->WriteRegister(0x92,0);
 
 	  unsigned csrb1=0x1edd;
 	  ccb->WriteRegister(0x96, 0);
 
 	  struct timeval start,end;
-	  ccb->WriteRegister(0x94,0);
-	  ccb->WriteRegister(0x90,0);
-	  ccb->WriteRegister(0x92,0);
-	  //ccb->WriteRegister(0x96, 0);
-	  cout<<"reg 90/reg92 b "<<(ccb->ReadRegister(0x90) & 0xffff)<<"/"<<ccb->ReadRegister(0x90)<<"/"<<(ccb->ReadRegister(0x92) & 0xffff)<<"/"<<ccb->ReadRegister(0x92)<<endl;
+	  cout<<"reg 90/reg92 b "<<(ccb->ReadRegister(0x90) & 0xfffff)<<"/"<<ccb->ReadRegister(0x90)<<"/"<<(ccb->ReadRegister(0x92) & 0xfffff)<<"/"<<ccb->ReadRegister(0x92)<<" pretrig-layer "<<alct->GetPretrigNumberOfLayers()<<" pretrig-pattern "<<alct->GetPretrigNumberOfPattern()<<endl;
 	  ccb->WriteRegister(0x20, csrb1);
 	  gettimeofday(&start,NULL);
-	  log4cplus::helpers::sleepmillis(i*250);
+	  if(i==0){
+	    log4cplus::helpers::sleepmillis(5000);
+	  }else{
+	    log4cplus::helpers::sleepmillis((i+1)*10000);
+	  }
 	  csrb1=0x1af9;
 	  ccb->WriteRegister(0x20, csrb1);
 	  //ccb->WriteRegister(0x98, 1);
 	  gettimeofday(&end,NULL);
-	  unsigned l1a_counter_low_bits = ccb->ReadRegister(0x90) & 0xffff; // read lower 16 bits
-	  unsigned l1a_counter_high_bits = ccb->ReadRegister(0x92) & 0xffff; // read higher 16 bits
+	  unsigned l1a_counter_low_bits = ccb->ReadRegister(0x90) & 0xfffff; // read lower 16 bits
+	  unsigned l1a_counter_high_bits = ccb->ReadRegister(0x92) & 0xfffff; // read higher 16 bits
 	  unsigned l1a_counter = l1a_counter_low_bits | (l1a_counter_high_bits << 16); // merge into counter
 	  cout<<"reg 90/reg92 a "<<(ccb->ReadRegister(0x90) & 0xffff)<<"/"<<ccb->ReadRegister(0x90)<<"/"<<(ccb->ReadRegister(0x92) & 0xffff)<<"/"<<ccb->ReadRegister(0x92)<<"/"<<(l1a_counter_low_bits | (l1a_counter_high_bits << 16))<<endl;
 	  cout<<"msecs "<<end.tv_sec*1000-start.tv_sec*1000+end.tv_usec/1000.-start.tv_usec/1000.<<endl;
-	  timestampfile<<"msecs "<<end.tv_sec*1000-start.tv_sec*1000+end.tv_usec/1000.-start.tv_usec/1000.<<"\n";
+	  timestampfile<<end.tv_sec*1000-start.tv_sec*1000+end.tv_usec/1000.-start.tv_usec/1000.<<" "<<l1a_counter<<"\n";
 	  cout<<"l1a_counter_low/high/counter "<<l1a_counter_low_bits<<"/"<<l1a_counter_high_bits<<"/"<<l1a_counter<<endl;
 	}
+
 	timestampfile.close();
 	finish_test();
 	LOG4CPLUS_INFO(getApplicationLogger(), "Test 25 finished");
