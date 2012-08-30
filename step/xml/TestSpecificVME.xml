@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+  <test id="11">
+  </test>
+
+  <test id="12"><!-- OK -->
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@CCBmode"                           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@l1aDelay"                          value="150"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_l1a_delay"           value="143"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_trig_mode"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_to_alct_data_delay"        value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@dmb_tx_delay"                  value="2"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@xFineLatency"                value="7"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_send_empty"          value="1"/><!-- important -->
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@alct_dav_cable_delay"        value="3"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_rx_clock_delay"           value="22"/>
+  </test>
+
+  <test id="13"><!-- OK -->
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@CCBmode"                           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@l1aDelay"                          value="155"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_bxn_offset"          value="115"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_fifo_tbins"          value="31"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_l1a_delay"           value="146"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_send_empty"          value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_trig_mode"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_bx0_delay"                value="9"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_pretrig_enable"           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_rx_clock_delay"           value="22"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_pretrig_enable"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_readout_without_trig"     value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_trig_enable"              value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@match_trig_enable"             value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_l1a_delay"                 value="119"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_to_alct_data_delay"        value="0"/>
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@alct_dav_cable_delay"        value="3"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@xFineLatency"                value="7"/>
+  </test>
+
+  <test id="14"> <!-- OK, same as test 13 except for CCB/@l1aDelay -->
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@CCBmode"                           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@l1aDelay"                          value="163"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_bxn_offset"          value="115"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_fifo_tbins"          value="31"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_l1a_delay"           value="146"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_send_empty"          value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_trig_mode"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_bx0_delay"                value="9"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_pretrig_enable"           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_rx_clock_delay"           value="22"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_pretrig_enable"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_readout_without_trig"     value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_trig_enable"              value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@match_trig_enable"             value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_l1a_delay"                 value="119"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_to_alct_data_delay"        value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@alct_dav_cable_delay"        value="3"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@xFineLatency"                value="7"/>
+  </test>
+
+  <test id="15">
+    <!-- <set xpath=""                value=""/> -->
+    <!-- <set xpath=""                value=""/> -->
+    <!-- <set xpath=""                value=""/> -->
+  </test>
+  <test id="16">
+  </test>
+  <test id="17">
+  </test>
+  <test id="17b">
+  </test>
+  <test id="19">
+  </test>
+  <test id="21">
+  </test>
+  <test id="25">
+  </test>
+
+</settings>
