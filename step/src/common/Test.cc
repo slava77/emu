@@ -83,8 +83,8 @@ void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId ) 
   if ( testId == "17b" ) return &emu::step::Test::_17b;
   if ( testId == "18"  ) return &emu::step::Test::_18;
   if ( testId == "19"  ) return &emu::step::Test::_19;
-  if ( testId == "21"  ) return &emu::step::Test::_11;
-  if ( testId == "25"  ) return &emu::step::Test::_15;
+  if ( testId == "21"  ) return &emu::step::Test::_21;
+  if ( testId == "25"  ) return &emu::step::Test::_25;
   return 0;
 }
 
@@ -654,10 +654,12 @@ void emu::step::Test::_16(){
 	  //cout << "    Layers " << iLayerPair*2+1 << " and  " << iLayerPair*2+2 << endl << flush;
 
 	  // reprogram standby register to enable 2 layers at a time
-	  int standby_fmask[] = {066, 055, 033};
-	  int astandby;
+	  const int standby_fmask[nLayerPairs] = {066, 055, 033};
 	  for (int lct_chip = 0; lct_chip < alct->MaximumUserIndex() / 6; lct_chip++){
-	      astandby = standby_fmask[iLayerPair];
+	      int astandby = standby_fmask[iLayerPair];
+	      if ( pLogger_ ){
+		LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to " << hex << astandby << dec );
+	      }
 	      for (int afeb = 0; afeb < 6; afeb++){
 		  alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
 	      }
@@ -761,7 +763,7 @@ void emu::step::Test::_17(){
 	    bsem_.take();
 	    iEvent_++;
 	    bsem_.give();
-	    if (iPulse % 100 == 0) {
+	    if (iPulse % events_per_delay == 0) {
 	      if ( pLogger_ ){
 		stringstream ss;
 		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
@@ -853,7 +855,7 @@ void emu::step::Test::_17b(){
 	    bsem_.take();
 	    iEvent_++;
 	    bsem_.give();
-	    if (iPulse % 100 == 0) {
+	    if (iPulse % events_per_pulsedac == 0) {
 	      if ( pLogger_ ){
 		stringstream ss;
 		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
@@ -948,14 +950,14 @@ void emu::step::Test::_19(){
 	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
 
 	for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp ){
-	  double dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
-	  (*dmb)->set_dac( 0, double(dac) * 5. / 4096. ); // dac values in t19 assume 12-bit DAC
+	  float dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
+	  (*dmb)->set_dac( 0, dac * 5. / 4096. ); // dac values in t19 assume 12-bit DAC
 	  // calculate thresh_first based on current dac value
-	  thresh_first = max( 0., dac * scale_turnoff / 16 - range_turnoff );
+	  thresh_first = max( int64_t( 0 ), (int64_t)(dac * scale_turnoff / 16 - range_turnoff) );
 
 	  for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold ){
 	    // set cfeb thresholds (for the entire test)
-	    double threshold = (double)( iThreshold * thresh_step + thresh_first ) / 1000.;
+	    float threshold = (float)( iThreshold * thresh_step + thresh_first ) / 1000.;
 	    (*dmb)->set_comp_thresh( threshold );
     
 	    (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
@@ -966,14 +968,14 @@ void emu::step::Test::_19(){
 	      bsem_.take();
 	      iEvent_++;
 	      bsem_.give();
-	      if (iPulse % 100 == 0) {
+	      if (iPulse % events_per_thresh == 0) {
 		if ( pLogger_ ){
 		  stringstream ss;
 		  ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
 		     << ", DMB " << dmb-dmbs.begin()+1 << "/" << dmbs.size() << " in slot " << (*dmb)->slot()
 		     << ", strip " << iStrip+1 << "/" << strips_per_run
 		     << ", amplitude " << iAmp+1 << "/" << dmb_tpamps_per_strip
-		     << ", threshold " << iThreshold+1 << "/" << threshs_per_tpamp
+		     << ", threshold=" << threshold << " " << iThreshold+1 << "/" << threshs_per_tpamp
 		     << ", pulses " << iPulse << "/" << events_per_thresh << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
 		  LOG4CPLUS_INFO( *pLogger_, ss.str() );
 		}
@@ -1000,7 +1002,7 @@ void emu::step::Test::_21(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 starting" ); }
   uint64_t dmb_test_pulse_amp = parameters_["dmb_test_pulse_amp"];
   uint64_t cfeb_threshold = parameters_["cfeb_threshold"];
-  uint64_t events_per_hstrip  = parameters_["events_per_hstrip "];
+  uint64_t events_per_hstrip  = parameters_["events_per_hstrip"];
   uint64_t hstrips_per_run = parameters_["hstrips_per_run"];
   uint64_t hstrip_first = parameters_["hstrip_first"];
   uint64_t hstrip_step = parameters_["hstrip_step"];
@@ -1037,8 +1039,8 @@ void emu::step::Test::_21(){
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      (*dmb)->set_dac( (double)dmb_test_pulse_amp * 5. / 256., 0 ); // set inject amplitude - first parameter (same for the entire test) // TODO: via XML
-      (*dmb)->set_comp_thresh( (double)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test) // TODO: via XML
+      (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 256., 0 ); // set inject amplitude - first parameter (same for the entire test) // TODO: via XML
+      (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test) // TODO: via XML
       (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT // TODO: via XML
 
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
@@ -1199,127 +1201,3 @@ void emu::step::Test::_fake(){
   bsem_.give();
   cout << "emu::step::Test::_fake returning" << endl << flush;
 }
-
-// void emu::step::Test::ccb_EnableL1aFromVme(emu::pc::CCB *ccb)
-// {
-// 	// enable L1A and clct_pretrig from VME command in CCB
-// 	unsigned csrb1 = 0x1aed; // also disable all other trigger sources
-// 	ccb->WriteRegister(CSRB1, csrb1);
-// }
-
-// void emu::step::Test::ccb_EnableL1aFromTmbL1aReq(emu::pc::CCB *ccb)
-// {
-// 	// enable L1A from TMB L1A request line. 
-// 	// clct_pretrig is not enabled since TMB will generate LCT for CFEBs
-// 	unsigned csrb1 = 0x1edd; // also disable all other trigger sources
-// 	ccb->WriteRegister(CSRB1, csrb1);
-// }
-
-// void emu::step::Test::ccb_EnableL1aFromSyncAdb(emu::pc::CCB *ccb)
-// {
-// 	// enable L1A and clct_pretrig from ALCT sync test pulse
-// 	unsigned csrb1 = 0x12fd; // also disable all other trigger sources
-// 	ccb->WriteRegister(CSRB1, csrb1);
-// }
-
-// void emu::step::Test::ccb_EnableL1aFromASyncAdb(emu::pc::CCB *ccb)
-// {
-// 	// enable L1A and clct_pretrig from ALCT Async test pulse
-// 	unsigned csrb1 = 0x0afd; // also disable all other trigger sources
-// 	ccb->WriteRegister(CSRB1, csrb1);
-// 	cout<<"enable asynch pulse L1A "<<csrb1<<endl;
-// }
-
-// void emu::step::Test::ccb_EnableL1aFromDmbCfebCalibX(emu::pc::CCB *ccb)
-// {
-// 	// enable L1A and clct_pretrig from any of dmb_cfeb_calib signals
-// 	unsigned csrb1 = 0x1af9; // also disable all other trigger sources
-// 	ccb->WriteRegister(CSRB1, csrb1);
-// }
-
-// void emu::step::Test::ccb_DisableL1a(emu::pc::CCB *ccb)
-// {
-// 	// kill all triggers
-// 	unsigned csrb1 = 0xffff;
-// 	ccb->WriteRegister(CSRB1, csrb1);
-// }
-
-// void emu::step::Test::ccb_GenerateL1A(emu::pc::CCB *ccb)
-// {
-// 	ccb->WriteRegister(Gen_L1A_ExtTrg, 0); // generate L1A and pretriggers
-// }
-
-// void emu::step::Test::ccb_GenerateDmbCfebCalib0(emu::pc::CCB *ccb)
-// {
-// 	// CFEB test pulse
-// 	ccb->WriteRegister(Gen_DMB_CFEB_Cal0, 0);
-// }
-
-// void emu::step::Test::ccb_GenerateDmbCfebCalib1(emu::pc::CCB *ccb)
-// {
-// 	// CFEB inject
-// 	ccb->WriteRegister(Gen_DMB_CFEB_Cal1, 0);
-// }
-
-// void emu::step::Test::ccb_SetExtTrigDelay(emu::pc::CCB *ccb, unsigned delay)
-// {
-// 	unsigned csrb5 = ccb->ReadRegister(CSRB5);
-// 	csrb5 &= 0xff;
-// 	//shifts delay by additional 128 (delay in UFL)
-// 	//change from 8 to 7 (shift by 64) 
-// 	csrb5 |= (delay << 7);
-// 	ccb->WriteRegister(CSRB5, csrb5);
-	
-// }
-
-// void emu::step::Test::tmb_EnableClctExtTrig(emu::pc::TMB * tmb)
-// {
-//   tmb->SetClctExtTrigEnable(1);
-//   int data_to_write = tmb->FillTMBRegister(0x68);
-//   tmb->WriteRegister(0x68 ,data_to_write);
-//   cout<<"enable CLCT ext trig"<<endl;
-// }
-
-
-// void emu::step::Test::dmb_trighalfx(emu::pc::DAQMB* dmb, int ihalf)
-// {
-//     int hs[6];
-//     int i,j,k,pln,crd;
-//     int chan[5][6][16];
-//     for(i=0;i<5;i++)
-//     {
-// 		for(j=0;j<6;j++)
-// 		{
-// 			for(k=0;k<16;k++)
-// 			{
-// 				chan[i][j][k]=NORM_RUN;
-// 			}
-// 		}
-//     }
-//     for(i=0;i<6;i+=2)
-//     {
-// 		hs[i]=ihalf;
-// 		hs[i+1]=ihalf;
-//     }
-//     for(crd=0;crd<5;crd++)
-//     {
-// 		for(pln=0;pln<6;pln++)
-// 		{
-// 			dmb->halfset(crd,pln,hs[pln],chan);
-// 		}
-//     }
-//     for(i=0;i<5;i++)
-//     {
-// 		for(j=0;j<6;j++)
-// 		{
-// 			for(k=0;k<16;k++)
-// 			{
-// 				printf(" %d",chan[i][j][k]);
-// 			}
-// 			printf("\n");
-// 		}
-// 		printf("\n");
-//     }
-//     printf(" chan filled \n");
-//     dmb->chan2shift(chan);
-// }
