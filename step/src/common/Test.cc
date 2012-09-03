@@ -132,6 +132,8 @@ void emu::step::Test::configureCrates(){
        // Perform a Hard-Reset to all modules in the crate and ensure configuration is uploaded to eproms
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
       (*crate)->ccb()->HardReset_crate();
+      // Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
+      ::sleep( 1 );
       // Set ccb mode once more separately, as it is screwed up inside ccb->configure
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA ) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
       (*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA );
@@ -566,7 +568,7 @@ void emu::step::Test::_15(){
       cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
       (*crate)->ccb()->EnableL1aFromVme();
-      (*crate)->ccb()->SetExtTrigDelay( 1 ); // TODO: make configurable
+      (*crate)->ccb()->SetExtTrigDelay( 0 ); // TODO: make configurable
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
@@ -635,7 +637,7 @@ void emu::step::Test::_16(){
       //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
       (*crate)->ccb()->EnableL1aFromSyncAdb();
-      (*crate)->ccb()->SetExtTrigDelay( 40 ); // TODO: make configurable
+      (*crate)->ccb()->SetExtTrigDelay( 20 ); // TODO: make configurable
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
@@ -645,7 +647,8 @@ void emu::step::Test::_16(){
 	uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them
 	alct->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
 
-	(*tmb)->EnableClctExtTrig();
+      	(*tmb)->EnableClctExtTrig();
+
 	alct->SetInvertPulse_(ON);    
 	alct->FillTriggerRegister_();
 	alct->WriteTriggerRegister_();
@@ -658,10 +661,13 @@ void emu::step::Test::_16(){
 	  for (int lct_chip = 0; lct_chip < alct->MaximumUserIndex() / 6; lct_chip++){
 	      int astandby = standby_fmask[iLayerPair];
 	      if ( pLogger_ ){
-		LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to " << hex << astandby << dec );
+		LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to 0x" << hex << astandby << dec );
 	      }
 	      for (int afeb = 0; afeb < 6; afeb++){
 		  alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
+		  // if ( pLogger_ ){
+		  //   LOG4CPLUS_INFO( *pLogger_, "alct->SetStandbyRegister_( " << lct_chip*6 + afeb << ", 0x" << hex << ( (astandby >> afeb) & 1 ) << dec << " )" );
+		  // }
 	      }
 	  }
 	  alct->WriteStandbyRegister_();
@@ -733,7 +739,7 @@ void emu::step::Test::_17(){
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    (*crate)->ccb()->SetExtTrigDelay( 34 ); // TODO: make configurable
+    (*crate)->ccb()->SetExtTrigDelay( 17 ); // TODO: make configurable
     
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
@@ -825,7 +831,7 @@ void emu::step::Test::_17b(){
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    (*crate)->ccb()->SetExtTrigDelay( 34 ); // TODO: make configurable
+    (*crate)->ccb()->SetExtTrigDelay( 17 ); // TODO: make configurable
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
@@ -934,7 +940,7 @@ void emu::step::Test::_19(){
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX(); // TODO: via XML
-    (*crate)->ccb()->SetExtTrigDelay( 38 ); // TODO: via XML
+    (*crate)->ccb()->SetExtTrigDelay( 19 ); // TODO: via XML
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
@@ -1035,7 +1041,7 @@ void emu::step::Test::_21(){
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX(); // TODO: via XML
-    (*crate)->ccb()->SetExtTrigDelay( 34 ); // TODO: via XML
+    (*crate)->ccb()->SetExtTrigDelay( 17 ); // TODO: via XML
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
