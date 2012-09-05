@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 1.5 2011/08/25 21:08:57 liu Exp $
+// $Id: MPC.h,v 1.6 2012/09/05 22:34:46 liu Exp $
 // $Log: MPC.h,v $
+// Revision 1.6  2012/09/05 22:34:46  liu
+// introduce HardwareVersion attribute
+//
 // Revision 1.5  2011/08/25 21:08:57  liu
 // add functions for new (Virtex 5) MPC
 //
@@ -202,6 +205,9 @@ class MPC : public VMEModule, public EmuLogger {
   inline void SetExpectedFirmwareYear(int year) {expected_firmware_year_ = year;}
   inline int  GetExpectedFirmwareYear() { return expected_firmware_year_;}
   //
+  inline void SetHardwareVersion(int version) {hardware_version_ = version;}
+  inline int GetHardwareVersion() {return hardware_version_;}
+  //
   /// used by GUIs
   void executeCommand(std::string command);
 
@@ -275,6 +281,7 @@ class MPC : public VMEModule, public EmuLogger {
   int expected_firmware_month_; 
   int expected_firmware_year_;
   int mpc_generation;
+  int hardware_version_;
   //
 };
 

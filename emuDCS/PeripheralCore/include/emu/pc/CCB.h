@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.10 2012/09/05 21:53:07 liu Exp $
+// $Id: CCB.h,v 1.11 2012/09/05 22:34:46 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.11  2012/09/05 22:34:46  liu
+// introduce HardwareVersion attribute
+//
 // Revision 1.10  2012/09/05 21:53:07  liu
 // make register names public
 //
@@ -256,6 +259,9 @@ public:
   inline void SetExpectedFirmwareYear(int year) {expected_firmware_year_ = year;}
   inline int  GetExpectedFirmwareYear() { return expected_firmware_year_;}
   //
+  inline void SetHardwareVersion(int version) {hardware_version_ = version;}
+  inline int GetHardwareVersion() {return hardware_version_;}
+
   void ReadConfigBits();
   //
   void PrintTTCrxRegs();
@@ -345,10 +351,8 @@ public:
   void GenerateDmbCfebCalib1();
   void SetExtTrigDelay(unsigned delay);
 
-protected:
-  int mCCBMode;  // current CCB hardware Mode
-  int xmlCCBMode;  // required CCB Mode from configuration DB or XML
-  enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
+  void inject_delay_l1a(int l1a_delay);
+  void enablet();
 
 public:
   //
@@ -391,6 +395,11 @@ public:
   static const unsigned int readL1aCounterMSB  = 0x92;
   static const unsigned int resetL1aCounter    = 0x94;
   static const unsigned int enableL1aCounter   = 0x96;
+
+protected:
+  int mCCBMode;  // current CCB hardware Mode
+  int xmlCCBMode;  // required CCB Mode from configuration DB or XML
+  enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
 private:
 
@@ -437,9 +446,7 @@ private:
   int read_qpll_lock_      ;
   int read_eprom_config_ok_;
 
- public:
-  void inject_delay_l1a(int l1a_delay);
-  void enablet();
+  int hardware_version_;
 };
 
 
