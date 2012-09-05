@@ -1089,7 +1089,6 @@ void emu::step::Test::_21(){
 }
 
 void emu::step::Test::_25(){
-  // TODO: update trigger counting procedure (see CVS)
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_25 starting" ); }
 
   uint64_t trig_settings       = parameters_["trig_settings"];
@@ -1117,14 +1116,13 @@ void emu::step::Test::_25(){
   // Apply settings
   //
 
+  string dateTime( emu::utils::getDateTime( true ) );
+
   struct timeval start, end;
 
   usleep(100);
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-
-      (*crate)->ccb()->WriteRegister( 0x96, 0 ); // enable L1A counter // NEEDED???
-      ::usleep(100); // NEEDED???
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
@@ -1134,9 +1132,13 @@ void emu::step::Test::_25(){
 	::usleep(100);
 
 	stringstream timeStampFileName;
+	timeStampFileName << "Test25_"  << (*crate)->GetLabel()
+			  << "_TMBslot" << (*tmb)->slot()
+			  << "_"        << dateTime
+			  << ".txt";
 	ofstream timeStampFile;
 	timeStampFile.open( timeStampFileName.str().c_str() );
-
+	timeStampFile << "#time in musec      event counts" << endl;
 	for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting ){
 
 	  if ( iTriggerSetting == 0 ){
@@ -1148,24 +1150,28 @@ void emu::step::Test::_25(){
 	  alct->SetPretrigNumberOfPattern( iTriggerSetting + 1 );
 	  alct->WriteConfigurationReg();
 
-	  (*crate)->ccb()->WriteRegister( 0x96, 0 ); // enable L1A counter
-	  (*crate)->ccb()->WriteRegister( 0x94, 0 ); // zero L1A counter
+	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 1 ? 50000 : 20000 ) );
 
-	  (*crate)->ccb()->WriteRegister( 0x20, 0x1edd ); // CSRB1=0x20, 0x1edd->enable CCB to send L1A on TMB request
+	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::enableL1aCounter, 0 );
+	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::resetL1aCounter , 0 ); // zero L1A counter
+
+	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1edd ); // CSRB1=0x20, 0x1edd->enable CCB to send L1A on TMB request
 	  gettimeofday( &start, NULL );
-	  log4cplus::helpers::sleepmillis( iTriggerSetting * 250 );
-	  (*crate)->ccb()->WriteRegister( 0x20, 0x1af9 ); // CSRB1=0x20, 0x1af9->disable CCB to send L1A on TMB request
+	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 1 ? 5000 : (iTriggerSetting+1)*10000 ) );
+	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1af9 ); // CSRB1=0x20, 0x1af9->disable CCB to send L1A on TMB request
 	  gettimeofday( &end, NULL );
-
-	  timeStampFile << "msecs " << end.tv_sec*1000 - start.tv_sec*1000 + end.tv_usec/1000. - start.tv_usec/1000. <<endl;
 
 	  bsem_.take();
 	  iEvent_++;
 	  bsem_.give();
 
-	  uint32_t l1a_counter_low_bits  = (*crate)->ccb()->ReadRegister( 0x90 ) & 0xffff; // read lower 16 bits
-	  uint32_t l1a_counter_high_bits = (*crate)->ccb()->ReadRegister( 0x92 ) & 0xffff; // read higher 16 bits
-	  uint32_t l1a_counter           = l1a_counter_low_bits | (l1a_counter_high_bits << 16); // merge into counter
+	  uint32_t l1a_counter_LSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterLSB ) & 0xffff; // read lower 16 bits
+	  uint32_t l1a_counter_MSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterMSB ) & 0xffff; // read higher 16 bits
+	  uint32_t l1a_counter     = l1a_counter_LSB | (l1a_counter_MSB << 16); // merge into counter
+	  timeStampFile 
+	    << ( end.tv_sec - start.tv_sec) * 1000 + ( end.tv_usec - start.tv_usec ) / 1000. 
+	    << " " << l1a_counter << endl;
+
 	  if ( pLogger_ ){
 	    stringstream ss;
 	    ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
@@ -1176,6 +1182,8 @@ void emu::step::Test::_25(){
 	  }
 	  
 	} // for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting )
+
+	timeStampFile.close();
 
       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
