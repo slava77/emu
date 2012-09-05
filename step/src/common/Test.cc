@@ -948,8 +948,6 @@ void emu::step::Test::_19(){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
       tmb->EnableClctExtTrig(); // TODO: via XML
       
-      setUpDMB( *dmb );
-
       for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
 	(*dmb)->buck_shift();
