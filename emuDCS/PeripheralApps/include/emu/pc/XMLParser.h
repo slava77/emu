@@ -31,7 +31,6 @@ public:
   void DDUParser(xercesc::DOMNode * pNode, Crate * crate);
   void TMBParser(xercesc::DOMNode * pNode, Crate * crate, Chamber * chamber, xercesc::DOMNode * pNodeGlobal);
   void DAQMBParser(xercesc::DOMNode * pNode, Crate * crate, Chamber * chamber);
-  void ODAQMBParser(xercesc::DOMNode * pNode, Crate * crate, Chamber * chamber);
   void CSCParser(xercesc::DOMNode * pNode, Crate * crate, xercesc::DOMNode * pNodeGlobal);
   Crate * VMEParser(xercesc::DOMNode * pNode);
   void PeripheralCrateParser(xercesc::DOMNode *pNode,EmuEndcap * endcap,xercesc::DOMNode *pNodeGlobal);
