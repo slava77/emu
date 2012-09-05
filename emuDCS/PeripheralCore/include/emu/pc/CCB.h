@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.9 2012/07/12 13:18:52 ahart Exp $
+// $Id: CCB.h,v 1.10 2012/09/05 21:53:07 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.10  2012/09/05 21:53:07  liu
+// make register names public
+//
 // Revision 1.9  2012/07/12 13:18:52  ahart
 //
 // Modified to accomodate DCFEB and ODAQMB.
@@ -347,7 +350,7 @@ protected:
   int xmlCCBMode;  // required CCB Mode from configuration DB or XML
   enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
-private:
+public:
   //
   //-- Control and Status Registers for CCB2004
   //   group A: discrete logic
@@ -378,16 +381,19 @@ private:
   static const unsigned int L1ATrigger = 0x54;
   static const unsigned int TTCrxReset = 0x5c;
   //
-  static const unsigned int readL1aCounterLSB  = 0x90;
-  static const unsigned int readL1aCounterMSB  = 0x92;
-  static const unsigned int resetL1aCounter    = 0x94;
-  static const unsigned int enableL1aCounter   = 0x96;
-  //
   static const unsigned int CRATE_HARD_RESET = 0x60;
   static const unsigned int CRATE_SOFT_RESET = 0x6a;
   static const unsigned int DMB_CFEB_CAL0 = 0x8a;
   static const unsigned int DMB_CFEB_CAL1 = 0x8c;
   static const unsigned int DMB_CFEB_CAL2 = 0x8e;
+  //
+  static const unsigned int readL1aCounterLSB  = 0x90;
+  static const unsigned int readL1aCounterMSB  = 0x92;
+  static const unsigned int resetL1aCounter    = 0x94;
+  static const unsigned int enableL1aCounter   = 0x96;
+
+private:
+
   // maybe these should be static, common to all CCBs?
   // I think this one really belongs in the DDU section...
   int BX_Orbit_;
