@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.13 2012/07/10 15:27:57 liu Exp $
+// $Id: DAQMB.h,v 1.14 2012/09/05 22:34:46 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.14  2012/09/05 22:34:46  liu
+// introduce HardwareVersion attribute
+//
 // Revision 1.13  2012/07/10 15:27:57  liu
 // add function used by STEP
 //
@@ -603,7 +606,10 @@ public:
   void small_configure();
   void testlink(enum DEVTYPE devnum);
   void varytmbdavdelay(int delay);  
-
+  //
+  inline void SetHardwareVersion(int version) {hardware_version_ = version;}
+  inline int GetHardwareVersion() {return hardware_version_;}
+      
   //
   //
 public:
@@ -760,6 +766,8 @@ public:
   int power_mask_;
   // statistics from check_eprom_readback on bad bits: typ=0 1->0 typ=1 0->1
   unsigned int NBB,NBBwrd[20],NBBbit[20],NBBtyp[20],NBBTOT;
+
+  int hardware_version_;
 }; 
 
   } // namespace emu::pc

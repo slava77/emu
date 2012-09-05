@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 1.4 2010/07/29 15:34:31 rakness Exp $
+// $Id: ALCTController.h,v 1.5 2012/09/05 22:34:45 liu Exp $
 // $Log: ALCTController.h,v $
+// Revision 1.5  2012/09/05 22:34:45  liu
+// introduce HardwareVersion attribute
+//
 // Revision 1.4  2010/07/29 15:34:31  rakness
 // add ALCT zero-suppression option (if =0, is backwards compatible w/old firmware)
 //
@@ -243,6 +246,9 @@ class ALCTController : public EmuLogger
   void CheckALCTConfiguration();                        // this method calls the above method with a fixed maximum number of reads
   inline int GetALCTConfigurationStatus() { return alct_configuration_status_; }
   inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
+  //
+  inline void SetHardwareVersion(int version) {hardware_version_ = version;}
+  inline int GetHardwareVersion() {return hardware_version_;}    
   //
   bool CheckFirmwareDate();
   //
@@ -682,6 +688,7 @@ private:
   TMB * tmb_ ;
   int debug_;
   //
+  int hardware_version_;
   int alct_configuration_status_;
   int number_of_configuration_reads_;
   //

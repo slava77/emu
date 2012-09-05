@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.20 2012/07/06 01:42:52 liu Exp $
+// $Id: TMB.h,v 1.21 2012/09/05 22:34:46 liu Exp $
 // $Log: TMB.h,v $
+// Revision 1.21  2012/09/05 22:34:46  liu
+// introduce HardwareVersion attribute
+//
 // Revision 1.20  2012/07/06 01:42:52  liu
 // add function used by STEP
 //
@@ -497,6 +500,9 @@ public:
   void trgmode(int choice);
   void SetALCTPatternTrigger();
   void SetCLCTPatternTrigger();
+  //
+  inline void SetHardwareVersion(int version) {hardware_version_ = version;}
+  inline int GetHardwareVersion() {return hardware_version_;}
   //
   //!read the Firmware date from the TMB
   int  FirmwareDate();
@@ -3489,6 +3495,7 @@ private:
   //-----------
   int h25_firmware_version_date_code_ ;
   //
+  int hardware_version_;
 };
 
   } // namespace emu::pc

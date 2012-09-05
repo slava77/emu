@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: CFEB.h,v 1.3 2012/09/05 22:34:46 liu Exp $
 // $Log: CFEB.h,v $
+// Revision 1.3  2012/09/05 22:34:46  liu
+// introduce HardwareVersion attribute
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -41,10 +44,14 @@ public:
   
   std::vector<BuckeyeChip> buckeyeChips() const {return buckeyeChips_;}
   char chipMask() const;
-
+  //
+  inline void SetHardwareVersion(int version) {hardware_version_ = version;}
+  inline int GetHardwareVersion() {return hardware_version_;}
+        
 private:
   int number_;
   std::vector<BuckeyeChip> buckeyeChips_;
+  int hardware_version_;     
 };
 
 
