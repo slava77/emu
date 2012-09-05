@@ -93,7 +93,7 @@ dac_first = 0.2, dac_step = 0.25
         <test>                  19       </test>
         <scale_turnoff>         12   </scale_turnoff>
         <range_turnoff>         20   </range_turnoff>
-        <events_per_thresh>     10  </events_per_thresh>
+        <events_per_thresh>     15   </events_per_thresh>
         <threshs_per_tpamp>     35   </threshs_per_tpamp>
         <thresh_first>          0    </thresh_first> 
         <thresh_step>           3    </thresh_step>
