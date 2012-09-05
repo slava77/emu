@@ -36,10 +36,7 @@ Sources=\
 	EmuEndcap.cc \
         EmuLogger.cc \
         PROBLEM.cc \
-        DDU.cc \
-	DCFEB.cc \
-	ODAQMB.cc \
-	EPROMBadBit_SVFFileFix.cc
+        DDU.cc
 
 IncludeDirs = 
 

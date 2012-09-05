@@ -1,9 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.8 2012/07/12 13:05:01 ahart Exp $
+// $Id: VMEModule.h,v 1.9 2012/09/05 21:39:11 liu Exp $
 // $Log: VMEModule.h,v $
-// Revision 1.8  2012/07/12 13:05:01  ahart
-//
-// Modified to accomodate DCFEB and ODAQMB.
+// Revision 1.9  2012/09/05 21:39:11  liu
+// remove ODMB class
 //
 // Revision 1.7  2012/06/20 08:45:00  kkotov
 //
@@ -149,7 +148,6 @@ public:
   /// rather than a number
   /// automatically registers itself with the Crate
   VMEModule(Crate *, int );
-  VMEModule(Crate *, int, int );
   virtual ~VMEModule() {};
   int crate();
   int slot() const {return theSlot;}
@@ -162,7 +160,7 @@ public:
   /// you want to end() by hand
   void endDevice();
   
-  enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM, VMECC_ENUM, DDU_ENUM, ODMB_ENUM, DCFEB_ENUM };
+  enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM, VMECC_ENUM, DDU_ENUM };
   virtual unsigned int boardType() const = 0;
   virtual bool SelfTest() = 0;
   virtual void init() = 0;
@@ -212,16 +210,11 @@ protected:
 	     const char *inbuf,char *outbuf,int irdsnd);
   void new_devdo(DEVTYPE dev,int ncmd,const  char *cmd,int nbuf,
 	     const char *inbuf,char *outbuf,int irdsnd);
-  void DCFEBEPROM_read(DEVTYPE dv,int ncmd,const char *cmd,int nbuf,
-             const char *inbuf,char *outbuf,int ird,int snd,int init);
-  void SendRUNTESTClks(unsigned long int clks);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
 	void scan_reset(int reg,const char *snd,int cnt2,char *rcv,int ird);
 	void scan_reset_headtail(int reg,const char *snd,int cnt,char *rcv,int headtail,int ird);
-	void scan_dmb(int reg,const char *snd,int cnt2,char *rcv,int ird, int when);
 	void scan_dmb_headtail(int reg,const char *snd,int cnt,char *rcv,int ird,int headtail,int when);
 	void RestoreIdle();
-
   void RestoreReset();
   void InitJTAG(int port);
   void CloseJTAG();

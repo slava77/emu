@@ -1,9 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.11 2012/07/12 13:06:27 ahart Exp $
+// $Id: Chamber.cc,v 3.12 2012/09/05 21:39:11 liu Exp $
 // $Log: Chamber.cc,v $
-// Revision 3.11  2012/07/12 13:06:27  ahart
-//
-// Modified to accomodate DCFEB and ODAQMB.
+// Revision 3.12  2012/09/05 21:39:11  liu
+// remove ODMB class
 //
 // Revision 3.10  2011/10/28 18:13:37  liu
 // add DDU class
@@ -87,13 +86,11 @@
 //
 #include "emu/pc/Chamber.h"
 #include "emu/pc/DAQMB.h"
-#include "emu/pc/ODAQMB.h"
 #include "emu/pc/TMB.h"
 #include "emu/pc/CCB.h"
 #include "emu/pc/MPC.h"
 #include "emu/pc/ALCTController.h"
 #include "emu/pc/CFEB.h"
-#include "emu/pc/DCFEB.h"
 #include "emu/pc/Crate.h"
 //
 
