@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xml" href="/jobcontrol/emu/base/html/EmuPage1_XSL.xml"?>
-<ForEmuPage1 application="xmas::slash2g::Application" url="http://csc-daq.cms:8888/jobcontrol">
-  <monitorable name="title" value="Local DAQ disks" nameDescription="" valueDescription="Click to see complete list of local DAQ disk usage." nameURL="/" valueURL="/jobcontrol/emu/base/html/DAQ_Disks.html"/>
-  <monitorable name="usage" value="" nameDescription="Max local data usage in percent. Click to see all disks." valueDescription="Click to see complete list of local DAQ disk usage." nameURL="/jobcontrol/emu/base/html/DAQ_Disks.html" valueURL="/jobcontrol/emu/base/html/DAQ_Disks.html"/>
+<?xml-stylesheet type="text/xml" href="/emu/base/html/EmuPage1_XSL.xml"?>
+<ForEmuPage1 application="xmas::slash2g::Application" url="http://csc-daq.cms:9999">
+  <monitorable name="title" value="Local DAQ disks" nameDescription="" valueDescription="Click to see complete list of local DAQ disk usage." nameURL="/" valueURL="/emu/base/html/DAQ_Disks.html"/>
+  <monitorable name="usage" value="" nameDescription="Max local data usage in percent. Click to see all disks." valueDescription="Click to see complete list of local DAQ disk usage." nameURL="/emu/base/html/DAQ_Disks.html" valueURL="/emu/base/html/DAQ_Disks.html"/>
 </ForEmuPage1>
