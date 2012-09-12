@@ -1299,6 +1299,8 @@ void emu::daq::rui::Application::noAction(toolbox::Event::Reference e)
 void emu::daq::rui::Application::configureAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
+  logMessageCounter_.reset();
+
   // ATCP must be started explicitly
   try{
     startATCP();
@@ -1922,15 +1924,15 @@ bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
 	    clients_[iClient]->server->sendData();
 	  }
 	  catch(xcept::Exception &e) {
-	    LOG4CPLUS_WARN(logger_, "emu::daq::rui::Application" << instance_ 
-			   << " failed to send data to its client via I2O: "
-			   << " : " << xcept::stdformat_exception_history(e));
-	    stringstream ss31;
-	    ss31 <<  "emu::daq::rui::Application" << instance_ 
-		 << " failed to send data to its client via I2O: "
-		 << " : " ;
-	    XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss31.str(), e );
-	    this->notifyQualified( "warning", eObj );
+	    stringstream msg;
+	    msg << "emu::daq::rui::Application" << instance_ << " failed to send data to its client via I2O: ";
+	    if ( logMessageCounter_.isToBeLogged( msg.str() ) ){
+	      stringstream ss;
+	      ss << "[Occurrence " << logMessageCounter_.getCount( msg.str() ) << "] " << msg.str();
+	      LOG4CPLUS_WARN(logger_, ss.str() << xcept::stdformat_exception_history(e) );
+	      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss.str(), e );
+	      this->notifyQualified( "warning", eObj );
+	    }
 	  }
 	}
       }
