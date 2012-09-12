@@ -31,6 +31,7 @@
 #include "emu/daq/rui/STEPEventCounter.h"
 #include "emu/daq/rui/BadEventCount.h"
 #include "emu/daq/rui/EventBufferRing.h"
+#include "emu/daq/rui/LogMessageCounter.h"
 #include "emu/base/FactFinder.h"
 
 using namespace std;
@@ -236,6 +237,13 @@ private:
      * The logger of this application.
      */
     Logger logger_;
+
+  /// 
+  /// Counter and progressive prescaler of log messages.
+  ///
+  /// @return 
+  ///
+    LogMessageCounter logMessageCounter_;
 
     /**
      * Binary semaphore used to protect the internal data structures of the
