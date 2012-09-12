@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.26 2012/08/27 14:45:09 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.27 2012/09/12 08:50:55 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -261,9 +261,9 @@ static std::string mkBitStr(uint16_t bits)
 
 
 // Sets DDU into Error for 3.1 seconds to request that GT send a hard reset.
-// If a request was made in the last 10 minutes, no new request is made.
+// If a request was made in the last 10 seconds, no new request is made.
 // Returns true if the hard reset was requested, false if no request was made
-// because there was already a request in the last 10 minutes.
+// because there was already a request in the last 10 seconds.
 // The only reason this function is a member function is so it can call sendFacts,
 // which only a friend class like IRQThreadManager can call.
 
@@ -271,7 +271,7 @@ bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, l
 	const unsigned int crateNumber, emu::fed::IRQData *const locdata,
 	const std::string &warnFibers, const std::string &warnChambers)
 {
-	if (lastErrTm_ < 0 || (time(NULL) - lastErrTm_) > 600) {	// 10 minutes between Errors
+	if (lastErrTm_ < 0 || (time(NULL) - lastErrTm_) > 10) {	// 10 seconds between Errors
 		lastErrTm_ = time(NULL);
 		myDDU->writeFMM( 0xf0ec );
 		(void) usleep(100000);	// 100000 usec = 0.1 second
@@ -387,7 +387,7 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 				component << "DDU" << setfill('0') << setw(2) << ruiNum;
 				fact.setComponentId(component.str())
 					.setSeverity(emu::base::Fact::ERROR)
-					.setDescription("More than one DDU-stuck-in-Warning incident occurred within 10 minutes")
+					.setDescription("More than one DDU-stuck-in-Warning incident occurred within 10 seconds")
 					.setParameter(emu::fed::DDUStuckInWarningFact::hardResetRequested, false)
 					.setParameter(emu::fed::DDUStuckInWarningFact::chambersInWarning, chamberWarns.str())
 					.setParameter(emu::fed::DDUStuckInWarningFact::fibersInWarning, fiberWarns.str());
