@@ -822,6 +822,15 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::br();
+  //
+  std::string DMBConfigure = toolbox::toString("/%s/DMBConfigure",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",DMBConfigure) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Configure DMB+CFEBs") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
   *out << cgicc::fieldset() << cgicc::br();
   //  
   //
@@ -1532,6 +1541,31 @@ void EmuPeripheralCrateConfig::DMBCheckConfiguration(xgi::Input * in, xgi::Outpu
   thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
   thisDMB->checkDAQMBXMLValues();
   thisDMB->RedirectOutput(&std::cout);
+  //
+  this->DMBUtils(in,out);
+  //
+}
+
+void EmuPeripheralCrateConfig::DMBConfigure(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << getLocalDateTime() << " DMBConfigure  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  //
+  // this is copied from Crate->configure(), part of WRITE FLASH action
+  thisDMB->restoreCFEBIdle();
+  thisDMB->restoreMotherboardIdle();
+  thisDMB->configure();
   //
   this->DMBUtils(in,out);
   //
