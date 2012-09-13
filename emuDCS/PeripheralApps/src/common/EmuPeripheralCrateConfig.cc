@@ -243,6 +243,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem,"MeasureALCTTMBRxTxForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForSystem,"MeasureCFEBTMBRxForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForSystem,"QuickScanForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::UpdateInFlashKey, "UpdateInFlashKey");
   //
   //------------------------------
   // bind crate utilities
@@ -355,6 +356,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::RdVfyCFEBVirtexDMB, "RdVfyCFEBVirtexDMB");
   xgi::bind(this,&EmuPeripheralCrateConfig::RdVfyCFEBVirtexExpT, "RdVfyCFEBVirtexExpT");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBCheckConfiguration, "DMBCheckConfiguration");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DMBConfigure, "DMBConfigure");
   //
   //-----------------------------------------------
   // TMB tests
@@ -4046,10 +4048,51 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   //
   *out << cgicc::table() << std::endl ;
   //
-  *out << cgicc::fieldset();
+  *out << cgicc::fieldset() << cgicc::br();
   //
+  if(xml_or_db==1)
+  {
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+    *out << cgicc::legend("Update In-Flash Config ID").set("style","color:red") << std::endl ;  
+    *out << "Current In-Flash Config ID is: " << InFlash_config_ID << std::endl << cgicc::br();
+    *out << "If click this button, the In-Flash Config ID in database will be updated to: " << Valid_config_ID << std::endl << cgicc::br() << cgicc::br();  
+    std::string ChangeInFlashKey = toolbox::toString("/%s/UpdateInFlashKey",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",ChangeInFlashKey) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Update In-Flash Config ID") << std::endl ;
+    *out << cgicc::form() << std::endl << cgicc::br() ;
+    *out << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl << cgicc::br();
+    *out << "After click this button, please make sure the affected Crate(s) are properly configured!!!" << std::endl << cgicc::br();  
+    *out << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+    *out << cgicc::fieldset();
+  }
   SetCurrentCrate(initial_crate);
   //
+}
+
+void EmuPeripheralCrateConfig::UpdateInFlashKey(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Update In-Flash ID" << std::endl;
+  std::cout << getLocalDateTime() << " In-Flash ID changed to: " << InFlash_config_ID << std::endl;
+    // record this action in configuration database as WRITE FLASH
+    // TO DO: really should treat this action as a different one, as this one doesn't update any hardware
+    if(xml_or_db==1)
+    {
+        InFlash_config_ID = Valid_config_ID;
+        try 
+        {
+           xdata::UnsignedInteger64 id_64 = atoi(Valid_config_ID.c_str());
+           myTStore->writeFlashTime(id_64);
+           std::cout << getLocalDateTime() << " UPDATE IN-FLASH ID recorded in database. Configuration ID changed to: " << Valid_config_ID << std::endl;
+        }
+        catch( const std::exception & e )
+        {
+           std::cout << "Failed to write the configuration database!" << std::endl;
+        }
+    }
+  
+  //
+  this->ExpertToolsPage(in, out);
 }
 //
 void EmuPeripheralCrateConfig::StartPRBS(xgi::Input * in, xgi::Output * out )
@@ -8462,7 +8505,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   if (standalone_) {
     *out << cgicc::br() << std::endl;
     *out << cgicc::br() << std::endl;
-    *out << "ME11 New Elctronics:" << cgicc::br() << std::endl;
+    *out << "ME11 New Electronics:" << cgicc::br() << std::endl;
     *out << "new TMB firmware version = " << FirmwareDir_ + "tmb/tmb_me11_virtex6.svf" << cgicc::br() << std::endl;
     *out << "new ALCT firmware version = " << FirmwareDir_ + "alct/alct_mez_spartan6.svf" << cgicc::br() << std::endl;
 

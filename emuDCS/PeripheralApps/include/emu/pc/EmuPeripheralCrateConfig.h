@@ -386,6 +386,7 @@ private:
   //
   // DMB utils
   void DMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DMBConfigure(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DMBCheckConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MakeReference(xgi::Input * in , xgi::Output * out );
   void DMBTurnOff(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -575,10 +576,12 @@ private:
   void SetRadioactivityTriggerALCTOnly(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetTTCDelays(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureAllTMBVoltages(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void UpdateInFlashKey(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   void SetTwoLayerTrigger(int tmb);
   //
   void DefineFirmwareFilenames();
+
   //
   std::vector<TMBTester> InitTMBTests(Crate *);
   void CheckPeripheralCrateConfiguration(int full_check=0);
