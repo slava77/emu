@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.50 2012/07/12 13:18:52 ahart Exp $
+// $Id: CCB.cc,v 3.51 2012/09/13 03:47:59 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.51  2012/09/13 03:47:59  liu
+// update CCB configure()
+//
 // Revision 3.50  2012/07/12 13:18:52  ahart
 //
 // Modified to accomodate DCFEB and ODAQMB.
@@ -1168,6 +1171,10 @@ void CCB::configure() {
      disableL1();
   //  std::cout << ReadRegister(0x0) << std::endl;
   //
+  // print out TTCrx registers before reset
+  for(int i=0; i<4; i++)
+     std::cout << "Register " << i << ":  " << ReadTTCrxReg(i) << std::endl;
+         
   HardResetTTCrx();
   ::usleep(1000);
   // need to read the TTCrxID before TTCrx registers can be touched
@@ -1207,7 +1214,8 @@ void CCB::configure() {
   if((rx&0xff) != 0xB3) 
      std::cout << "ERROR: TTCrx Control register readback " << std::hex << (rx&0xff) << std::endl; 
 
-  // PrintTTCrxRegs();
+  // write a special tag to CSRB4
+  WriteRegister(CSRB4, 0xCCB0+(TTCrxID_&0xF)); 
   // Set the CCB mode  
   setCCBMode((CCB2004Mode_t)xmlCCBMode);
   //
