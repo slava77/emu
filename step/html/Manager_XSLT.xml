@@ -61,7 +61,7 @@
       </tr>
       <tr>
 	<td>
-	  <input type="submit" name="fsm" value="Configure" class="submit" title="Configure for the selected mode.">
+	  <input type="submit" name="fsm" value="Configure" class="submit" title="Configure for the selected test(s) and crate(s).">
 	    <xsl:if test="@state!='Halted'"><xsl:attribute name="disabled">disabled</xsl:attribute></xsl:if>
 	  </input>
 	</td>
