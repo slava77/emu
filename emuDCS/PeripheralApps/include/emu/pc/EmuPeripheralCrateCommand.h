@@ -276,6 +276,7 @@ protected:
   
   bool Monitor_On_, Monitor_Ready_;
   //
+  bool ccb_checked_;
   bool controller_checked_;
   int current_crate_;
   int all_crates_ok;;
@@ -335,6 +336,7 @@ private:
   void SetCurrentCrate(int crate);
   void CheckPeripheralCrateConfiguration();
   void check_controllers();
+  int VerifyCCBs();
 
   // alct calibration Madorsky
   int read_test_config(char* xmlFile, test_config_struct * tcs);
