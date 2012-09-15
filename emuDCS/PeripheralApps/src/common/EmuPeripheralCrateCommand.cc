@@ -556,12 +556,12 @@ int EmuPeripheralCrateCommand::VerifyCCBs()
     // add extra controller check before checking config for each crate
     bool cr = (crateVector[i]->vmeController()->SelfTest()) && (crateVector[i]->vmeController()->exist(13));
     crateVector[i]->SetLife( cr );
-    if(!cr) OutputCheckConfiguration << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
+    if(!cr) OutputCheckConfiguration << getLocalDateTime()<< " Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
     if ( crateVector[i]->IsAlive() ) {
-      OutputCheckConfiguration << "Check CCB in Crate " << crateVector[i]->GetLabel() << std::endl;
+      OutputCheckConfiguration << getLocalDateTime()<< " Check CCB in Crate " << crateVector[i]->GetLabel() << std::endl;
       //
       crateVector[i]->ccb()->RedirectOutput(&OutputCheckConfiguration);  
-      ccb_check_ok[i] = crateVector[i]->ccb()->CheckConfig();
+      ccb_check_ok[i] = crateVector[i]->ccb()->CheckConfig(1);
       if(ccb_check_ok[i]==0) 
       {
          crateVector[i]->ccb()->configure();
@@ -574,25 +574,12 @@ int EmuPeripheralCrateCommand::VerifyCCBs()
   }
   SetCurrentCrate(initialcrate);
   //
-  //Output the errors to a file...
-  time_t rawtime;
-  time(&rawtime);
+  //Output the logs to a file...
   //
-  std::string buf;
-  std::string time_dump = ctime(&rawtime);
-  std::string time = time_dump.substr(0,time_dump.length()-1);
-  //
-  while( time.find(" ",0) != std::string::npos ) {
-    //
-    int thispos = time.find(" ",0);
-    time.replace(thispos,1,"_");
-    //
-  }
-  //
-  buf = "/tmp/CCB_ConfigurationCheckLogFile"+time+".log";
+  std::string logfilename = "/tmp/CCB_ConfigurationCheck_"+getLocalDateTime(true)+".log";
   //
   std::ofstream LogFileCheckConfiguration;
-  LogFileCheckConfiguration.open(buf.c_str());
+  LogFileCheckConfiguration.open(logfilename.c_str());
   LogFileCheckConfiguration << OutputCheckConfiguration.str() ;
   LogFileCheckConfiguration.close();
 
