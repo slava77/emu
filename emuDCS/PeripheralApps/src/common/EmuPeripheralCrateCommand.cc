@@ -136,6 +136,7 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   Monitor_On_ = false;
   Monitor_Ready_ = false;
 
+  ccb_checked_ = false;
   controller_checked_ = false;
   global_config_states[0]="UnConfigured";
   global_config_states[2]="Configuring";
@@ -325,7 +326,15 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigure (xoap::MessageRefe
   //
   if(!parsed) ParsingXML();
 
-  current_config_state_=(GlobalRun_?1:VerifyCratesConfiguration());
+//  current_config_state_=(GlobalRun_?1:VerifyCratesConfiguration());
+//
+// Liu Sept. 12, 2012:  Only do CCB check on the first Configure after initial
+//
+  if(!ccb_checked_)
+  {
+     current_config_state_=VerifyCCBs();
+     ccb_checked_ = true;
+  }
   //
   return createReply(message);
 }
@@ -528,6 +537,66 @@ void EmuPeripheralCrateCommand::CheckCratesConfiguration(xgi::Input * in, xgi::O
   VerifyCratesConfiguration();
   //
   this->Default(in, out);
+}
+
+int EmuPeripheralCrateCommand::VerifyCCBs()
+{
+  if(!parsed) ParsingXML();
+
+  if(total_crates_<=0) return 0;
+  if(!controller_checked_) check_controllers();
+  //
+  OutputCheckConfiguration.str(""); //clear the output string
+  int initialcrate=current_crate_;
+  //
+  all_crates_ok = 1;
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    // add extra controller check before checking config for each crate
+    bool cr = (crateVector[i]->vmeController()->SelfTest()) && (crateVector[i]->vmeController()->exist(13));
+    crateVector[i]->SetLife( cr );
+    if(!cr) OutputCheckConfiguration << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
+    if ( crateVector[i]->IsAlive() ) {
+      OutputCheckConfiguration << "Check CCB in Crate " << crateVector[i]->GetLabel() << std::endl;
+      //
+      crateVector[i]->ccb()->RedirectOutput(&OutputCheckConfiguration);  
+      ccb_check_ok[i] = crateVector[i]->ccb()->CheckConfig();
+      if(ccb_check_ok[i]==0) 
+      {
+         crateVector[i]->ccb()->configure();
+         ccb_check_ok[i] = crateVector[i]->ccb()->CheckConfig();
+      }
+      crateVector[i]->ccb()->RedirectOutput(&std::cout);
+      //
+      all_crates_ok &= ccb_check_ok[i];
+    }
+  }
+  SetCurrentCrate(initialcrate);
+  //
+  //Output the errors to a file...
+  time_t rawtime;
+  time(&rawtime);
+  //
+  std::string buf;
+  std::string time_dump = ctime(&rawtime);
+  std::string time = time_dump.substr(0,time_dump.length()-1);
+  //
+  while( time.find(" ",0) != std::string::npos ) {
+    //
+    int thispos = time.find(" ",0);
+    time.replace(thispos,1,"_");
+    //
+  }
+  //
+  buf = "/tmp/CCB_ConfigurationCheckLogFile"+time+".log";
+  //
+  std::ofstream LogFileCheckConfiguration;
+  LogFileCheckConfiguration.open(buf.c_str());
+  LogFileCheckConfiguration << OutputCheckConfiguration.str() ;
+  LogFileCheckConfiguration.close();
+
+  return all_crates_ok;
 }
 
 
