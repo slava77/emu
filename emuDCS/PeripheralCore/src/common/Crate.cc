@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.79 2012/09/05 21:39:11 liu Exp $
+// $Id: Crate.cc,v 3.80 2012/09/15 03:09:23 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.80  2012/09/15 03:09:23  liu
+// add reading CCB general purpose register in monitoring
+//
 // Revision 3.79  2012/09/05 21:39:11  liu
 // remove ODMB class
 //
@@ -705,7 +708,7 @@ int Crate::CheckController()
 
 void Crate::MonitorCCB(int cycle, char * buf) 
 {
-  int  TOTAL_CCB_COUNTERS=18;
+  int  TOTAL_CCB_COUNTERS=19;
 
   short *buf2=(short *)buf;
   for(int i=0; i<= TOTAL_CCB_COUNTERS; i++) buf2[i]=0;
@@ -731,7 +734,8 @@ void Crate::MonitorCCB(int cycle, char * buf)
   mpc->read_later(0xCC);
   ccb->read_later(0x4A);
   ccb->read_later(0x4C);
-  int rb=ccb->read_now(0x4E, buf+2);
+  ccb->read_later(0x4E);
+  int rb=ccb->read_now(0x26, buf+2);
   if(rb>0)  buf2[0]=TOTAL_CCB_COUNTERS;
 }
 
