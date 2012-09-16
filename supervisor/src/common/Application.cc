@@ -913,10 +913,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     m.sendCommand( "emu::fed::Manager", "Configure" );
 
     if (isCalibrationMode()) {
+      m.setResponseTimeout( 600 ); // Allow PCrates ample time to be configured for calibration run.
 		if (isAlctCalibrationMode())
 		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalALCT" );
 		else
 		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalCFEB");
+      m.resetResponseTimeout(); // Reset response timeout to default value.
     }   
 
     // By now the local DAQ must have finished configuring. Checking it is practically only needed
