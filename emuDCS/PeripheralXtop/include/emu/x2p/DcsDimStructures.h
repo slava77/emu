@@ -18,6 +18,7 @@
 //   bit 0 (value   1):  ALCT
 //       1 (value   2):  TMB
 //       2 (value   4):  DMB & CFEB (for chamber type ME1/3, always set to 0)
+//       7 (value 128):  CCB tag readback wrong, probably not configured
 //
 // XMAS info bit pattern (April 2012):
 //     ==0:    no action or ignored
