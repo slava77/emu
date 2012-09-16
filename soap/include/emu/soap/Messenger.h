@@ -50,6 +50,24 @@ namespace emu{
       ///
       Messenger( xdaq::Application *parent );
 
+      /// Set the response timeout.
+      ///
+      /// @param timeoutInSec The response timeout in seconds.
+      ///
+      /// @return A reference to this object.
+      ///
+      Messenger& setResponseTimeout( const uint64_t timeoutInSec ){
+	httpResponseTimeoutSec_ = timeoutInSec;
+	return *this;
+      }
+
+      /// Reset the response timeout to the default value defined in .
+      ///
+      ///
+      /// @return A reference to this object.
+      ///
+      Messenger& resetResponseTimeout(){ return setResponseTimeout( 0 ); }
+
       /// 
       /// Finds the application descriptor of an application given by its class name and instance.
       /// 
@@ -334,7 +352,8 @@ namespace emu{
       std::string faultElementToPlainText( xoap::SOAPElement* elem, const int indentDepth );
 
     private:
-      xdaq::Application *application_; ///< Pointer to the parent XDAQ application.
+      xdaq::Application *application_;  ///< Pointer to the parent XDAQ application.
+      uint32_t httpResponseTimeoutSec_; ///< HTTP response timeout in seconds. If it is set to 0, the default XDAQ timeout is applied, which is defined in pt::http::ClientChannel
     };
 
   }

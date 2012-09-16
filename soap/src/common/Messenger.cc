@@ -26,7 +26,8 @@
 emu::soap::Messenger::Messenger(){}
 
 emu::soap::Messenger::Messenger( xdaq::Application *parent ) :
-  application_( parent )
+  application_( parent ),
+  httpResponseTimeoutSec_( 0 )
 {}
 
 xdaq::ApplicationDescriptor* emu::soap::Messenger::getAppDescriptor( const std::string &className, const unsigned int instance ){
@@ -70,8 +71,8 @@ emu::soap::Messenger::setParameters( xdaq::ApplicationDescriptor *target, const 
     // Add parameters as child elements to 'properties'
     includeParameters( message, &propertiesElement, parameters );
 
-    // Repair message
-    emu::soap::repairDOM( message );
+    // Set the response timeout if different from the default value.
+    if ( httpResponseTimeoutSec_ > 0 ) emu::soap::setResponseTimeout( message, httpResponseTimeoutSec_ );
 
     // Send message
     LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( message ) << endl << "]]>" );
@@ -148,8 +149,8 @@ emu::soap::Messenger::sendCommand( xdaq::ApplicationDescriptor *target,
     // Create SOAP message
     xoap::MessageReference message = createMessage( command, parameters, attributes, attachments );
 
-    // Repair message
-    emu::soap::repairDOM( message );
+    // Set the response timeout if different from the default value.
+    if ( httpResponseTimeoutSec_ > 0 ) emu::soap::setResponseTimeout( message, httpResponseTimeoutSec_ );
 
     // Send message
     LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( message ) << endl << "]]>" );
@@ -248,8 +249,8 @@ emu::soap::Messenger::getParameters( xdaq::ApplicationDescriptor *target, emu::s
     // Add parameters as child elements to 'properties'
     includeParameters( message, &propertiesElement, parameters );
 
-    // Repair message
-    emu::soap::repairDOM( message );
+    // Set the response timeout if different from the default value.
+    if ( httpResponseTimeoutSec_ > 0 ) emu::soap::setResponseTimeout( message, httpResponseTimeoutSec_ );
 
     // Send message
     LOG4CPLUS_DEBUG( application_->getApplicationLogger(), "Sending:" << endl << "<![CDATA[" << endl << toStringWithoutAttachments( message ) << endl << "]]>" );
