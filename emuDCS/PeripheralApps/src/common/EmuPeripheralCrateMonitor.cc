@@ -337,6 +337,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       buf2=(unsigned short *)buf;
       buf4=(unsigned int *)buf;
       bool dmbpoweroff[9];
+      unsigned short ccbtag;
 
       if(cycle<1 || cycle>3) return;
       if(total_crates_<=0) return;
@@ -414,6 +415,11 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                            ccbmpcreg[i][3] = buf2[12];
                         }
                         std::cout << std::dec;
+                    }
+                    ccbtag=buf2[19] & 0xFFF0;
+                    if(ccbtag !=0xCCB0)
+                    {
+                        std::cout << "Crate "+cratename+" CCB tag wrong: " << std::hex << ccbtag << std::dec << "; CCB not configured properly!" << std::endl; 
                     }
                 }
              }
@@ -2885,7 +2891,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            //      10 (val  1024):  chamber lost Digital power 
 
   unsigned int readtime;
-  unsigned short crateok, good_chamber=0;
+  unsigned short crateok, good_chamber=0, ccbtag;
   float val, V7;
   std::vector<DAQMB*> myVector;
   int TOTAL_DCS_COUNTERS=48;
@@ -2963,15 +2969,20 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      else
      {  goodtmb=true;
      }
+
      xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
      if(ccbdata==NULL || ccbdata->size()==0)
-     {  ccbbits=0;
+     {  
+        // If CCB data not available or not read out yet, assume they (bits and tag) are OK
+        ccbbits=0x0FF80000;
+        ccbtag= 0xCCB0;
      }
      else
      {
         unsigned short csra2= (*ccbdata)[1];
         unsigned short csra3= (*ccbdata)[2];
         ccbbits= (csra3<<16)+csra2;
+        ccbtag= (*ccbdata)[18];
      }
 
      ch_state=0;
@@ -3018,6 +3029,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         int dmbbit=1-((ccbbits>>(dmbN+18))&1);   // DM: 1=OK, 0=BAD
         if(cscname.substr(3,3)=="1/3") dmbbit=0;  // ME1/3 DMB bit is not valid
         int confbit=alctbit+(tmbbit<<1)+(dmbbit<<2);
+//   CCB bit 7 (value 128) for every chamber is the same and is for CCB itself
+        if((ccbtag&0xFFFF0)!=0xCCB0) confbit += 128; 
         *out << " " << confbit << " 0";
 
         *out << std::setprecision(4) << std::fixed;
