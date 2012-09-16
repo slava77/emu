@@ -45,7 +45,7 @@ namespace emu{
       ///
       /// @return The message reference.
       ///
-      /// See the overloaded version of this method for examples, and also emus::soap::Messenger::sendCommand (which takes the same arguments) for a complete illustration.
+      /// See emus::soap::Messenger::sendCommand (which takes the same arguments) for a complete illustration.
       ///
       xoap::MessageReference createMessage( const emu::soap::QualifiedName &command, 
 					    const emu::soap::Parameters &parameters = emu::soap::Parameters::none,
@@ -191,13 +191,12 @@ namespace emu{
       ///
       std::string toStringWithoutAttachments( xoap::MessageReference message );
 
-      /// 
-      /// Workaround to repair the message serialized from xdata (see ticket https://svnweb.cern.ch/trac/cmsos/ticket/1008)
-      /// \todo{ Remove once a fixed XDAQ version (>=v10.1.0) is deployed. } 
+      /// Set the timeout (in seconds) of the response to \e message.
       ///
-      /// @param message 
+      /// @param message The message.
+      /// @param timeoutInSec The response timeout in seconds.
       ///
-      void repairDOM( xoap::MessageReference message );
+      void setResponseTimeout( xoap::MessageReference message, const uint64_t timeoutInSec );
   }
 }
 
