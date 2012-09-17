@@ -1162,7 +1162,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   }
                 else
                   {
-                    if ((csc_events > 50 0) && (z == 1.))
+                    if ((csc_events > 50) && (z == 1.))
                       {
                         std::string diag=Form("No CFEB Data (low stats): %.1f%%",fract);
 
