@@ -17,6 +17,7 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 # CCFlags= -g -Wall -O3 -march=prescott -mtune=prescott
 CCFlags += -O3 
+Standalone=no
 
 #
 # Packages to be built
@@ -61,8 +62,14 @@ Libraries = $(XdaqLibraries)
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary = emudqmcommon
-StaticLibrary = emudqmcommon
+ifeq ($(Standalone),no)
+        DynamicLibrary = emudqmcommon
+        StaticLibrary = emudqmcommon
+else
+        DynamicLibrary = emudqmcommon
+        StaticLibrary = emudqmcommon_sa
+endif
+
 
 MakeFilename=Makefile
 include $(XDAQ_ROOT)/config/Makefile.rules
