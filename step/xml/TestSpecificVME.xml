@@ -163,7 +163,7 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb4delay"                    value="23"/>
   </test>
 
-  <test id="19"><!-- OK, same as test 17 plus a few more -->
+  <test id="19"><!-- OK, same as test 17 plus a few more and cfebNposneg and cfebN_rxd_int_delay -->
     <set xpath="//EmuSystem/PeripheralCrate/CCB/@CCBmode"                           value="1"/>
     <set xpath="//EmuSystem/PeripheralCrate/CCB/@l1aDelay"                          value="156"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@xFineLatency"                value="7"/>
@@ -199,6 +199,21 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_rx_clock_delay"           value="22"/> <!-- important!!! -->
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_posneg"                   value="1"/>  <!-- important!!! -->
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@miniscope_enable"              value="1"/>  <!-- important!!! -->
+
+    <!-- cfeb0posneg has to be 1 or else we have excessive noiseL -->
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb0posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb1posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb2posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb3posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb4posneg"                   value="1"/>
+    <!-- cfeb0_rxd_int_delay has to be 0 or else we have excessive noise that grows toward on side -->
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb0_rxd_int_delay"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb1_rxd_int_delay"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb2_rxd_int_delay"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb3_rxd_int_delay"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb4_rxd_int_delay"           value="0"/>
+    <!-- <set xpath="/"                value=""/> -->
+
   </test>
 
   <test id="21">
