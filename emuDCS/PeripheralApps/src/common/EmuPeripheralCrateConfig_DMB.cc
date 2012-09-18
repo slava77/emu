@@ -843,6 +843,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","DMB CONTROL Load Firmware") << std::endl ;
   sprintf(buf,"%d",dmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << DMBFirmware_.toString();
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br();
@@ -852,6 +853,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","DMB Vme Load Firmware") << std::endl ;
   sprintf(buf,"%d",dmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << DMBVmeFirmware_.toString();
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br();
