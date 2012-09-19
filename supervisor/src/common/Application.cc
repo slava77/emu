@@ -320,8 +320,13 @@ xoap::MessageReference emu::supervisor::Application::onSetTTS(xoap::MessageRefer
   throw (xoap::exception::Exception)
 {
   isCommandFromWeb_ = false;
-  fireEvent("SetTTS");
-  
+  try{
+    fireEvent("SetTTS");
+  }
+  catch( toolbox::fsm::exception::Exception& e ){
+    XCEPT_RETHROW( xoap::exception::Exception, "SetTTS failed", e );
+  }
+
   return createReply(message);
 }
 
@@ -574,8 +579,13 @@ void emu::supervisor::Application::webStart(xgi::Input *in, xgi::Output *out)
   // only when requested by the user from the web page,
   // and not by the FunctionManager via SOAP.
   bookRunNumber();
-  
-  fireEvent("Start");
+
+  try{
+    fireEvent("Start");
+  }
+  catch( toolbox::fsm::exception::Exception& e ){
+    XCEPT_RETHROW( xgi::exception::Exception, "Start failed", e );
+  }
   
   keep_refresh_ = true;
   webRedirect(in, out);
@@ -590,7 +600,12 @@ void emu::supervisor::Application::webStop(xgi::Input *in, xgi::Output *out)
 {
   isCommandFromWeb_ = true;
 
-  fireEvent("Stop");
+  try{
+    fireEvent("Stop");
+  }
+  catch( toolbox::fsm::exception::Exception& e ){
+    XCEPT_RETHROW( xgi::exception::Exception, "Stop failed", e );
+  }
   
   keep_refresh_ = true;
   webRedirect(in, out);
@@ -602,7 +617,12 @@ void emu::supervisor::Application::webHalt(xgi::Input *in, xgi::Output *out)
   isCommandFromWeb_ = true;
   quit_calibration_ = true;
   
-  fireEvent("Halt");
+  try{
+    fireEvent("Halt");
+  }
+  catch( toolbox::fsm::exception::Exception& e ){
+    XCEPT_RETHROW( xgi::exception::Exception, "Halt failed", e );
+  }
 
   keep_refresh_ = true;
   webRedirect(in, out);
@@ -625,7 +645,12 @@ void emu::supervisor::Application::webSetTTS(xgi::Input *in, xgi::Output *out)
   tts_bits_.fromString(getCGIParameter(in, "tts_bits"));
   
   if (error_message_.empty()) {
-    fireEvent("SetTTS");
+    try{
+      fireEvent("SetTTS");
+    }
+    catch( toolbox::fsm::exception::Exception& e ){
+      XCEPT_RETHROW( xgi::exception::Exception, "SetTTS failed", e );
+    }
   }
   
   webRedirect(in, out);
