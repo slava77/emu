@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.22 2011/07/05 13:01:26 banicz Exp $
+* $Id: Manager.cc,v 1.23 2012/09/20 19:32:54 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -529,7 +529,7 @@ throw (toolbox::fsm::exception::Exception)
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
 		notifyQualified("FATAL", e);
-		throw e;
+		XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str() );
 	} else if (underlyingStates == "Unknown") {
 		try {
 			fireEvent("Unknown");
