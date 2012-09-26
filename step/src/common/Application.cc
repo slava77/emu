@@ -27,8 +27,12 @@ emu::step::Application::Application( xdaq::ApplicationStub *s ) :
   fsm_.addStateTransition('H', 'F', "Fail",      this, &emu::step::Application::failAction);
   fsm_.addStateTransition('C', 'F', "Fail",      this, &emu::step::Application::failAction);
   fsm_.addStateTransition('E', 'F', "Fail",      this, &emu::step::Application::failAction);
-  
+  // Make "Failed" state impervious to all commands but "Reset":
   fsm_.addStateTransition('F', 'H', "Reset",     this, &emu::step::Application::resetAction);
+  fsm_.addStateTransition('F', 'F', "Configure", this, &emu::step::Application::noAction);    
+  fsm_.addStateTransition('F', 'F', "Enable",    this, &emu::step::Application::noAction);
+  fsm_.addStateTransition('F', 'F', "Stop",      this, &emu::step::Application::noAction);
+  fsm_.addStateTransition('F', 'F', "Halt",      this, &emu::step::Application::noAction);
   
   fsm_.setStateName('F', "Failed");
   
