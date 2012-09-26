@@ -259,14 +259,20 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 }
 
 void emu::step::Test::_11(){
-  cout << "emu::step::Test::_11" << endl;
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_11 starting" ); }
   
-  // Passive test, progress should be monitored in local DAQ. (TODO)
+  // Passive test, progress should be monitored in local DAQ.
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     (*crate)->ccb()->EnableL1aFromTmbL1aReq();
     if ( isToStop_ ) return;
+  }
+
+  // Let's stay here until we're told to stop. Only then should we go on to disable trigger.
+  while( true ){
+    if ( isToStop_ ) return;
+    ::sleep( 1 );
   }
 }
 
@@ -890,13 +896,18 @@ void emu::step::Test::_17b(){
 void emu::step::Test::_18(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_18 starting" ); }
 
-  // Passive test, progress should be monitored in local DAQ. (TODO)
+  // Passive test, progress should be monitored in local DAQ.
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     (*crate)->ccb()->EnableL1aFromTmbL1aReq(); // TODO: via XML params?
   }
 
+  // Let's stay here until we're told to stop. Only then should we go on to disable trigger.
+  while( true ){
+    if ( isToStop_ ) return;
+    ::sleep( 1 );
+  }
 }
 
 void emu::step::Test::_19(){
@@ -1155,10 +1166,12 @@ void emu::step::Test::_25(){
 	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::enableL1aCounter, 0 );
 	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::resetL1aCounter , 0 ); // zero L1A counter
 
-	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1edd ); // CSRB1=0x20, 0x1edd->enable CCB to send L1A on TMB request
+	  // (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1edd ); // CSRB1=0x20; enable CCB to send L1A on TMB request; same as CCB::EnableL1aFromTmbL1aReq
+	  (*crate)->ccb()->EnableL1aFromTmbL1aReq();
 	  gettimeofday( &start, NULL );
 	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 1 ? 5000 : (iTriggerSetting+1)*10000 ) );
-	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1af9 ); // CSRB1=0x20, 0x1af9->disable CCB to send L1A on TMB request
+	  // (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1af9 ); // CSRB1=0x20; disable CCB to send L1A on TMB request; same as CCB::EnableL1aFromDmbCfebCalibX
+	  (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
 	  gettimeofday( &end, NULL );
 
 	  bsem_.take();
