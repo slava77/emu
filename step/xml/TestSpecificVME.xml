@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
   <test id="11">
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@CCBmode"                           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@l1aDelay"                          value="108"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_nplanes_hit_pretrig"          value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_nplanes_hit_pattern"          value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_trig_enable"          value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@match_trig_enable"          value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@request_l1a"          value="1"/>
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
   </test>
 
   <test id="12"><!-- OK -->
