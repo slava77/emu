@@ -254,7 +254,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       // Configure all Tester apps
       //
       xdata::String             runType = string( ( (bool) isCurrentTestPassive_ ) ? "STEP_" : "Test_" ) + testId.toString();
-      xdata::Integer  maxNumberOfEvents = -1; // unlimited if negative
+      xdata::Integer  maxNumberOfEvents = ( ( (bool) isCurrentTestPassive_ ) ? (int) testParameters.getNEvents() : -1 ); // unlimited if negative
       xdata::Boolean writeBadEventsOnly = false;
       m.setParameters( "emu::daq::manager::Application", 
 		       emu::soap::Parameters()
@@ -504,7 +504,7 @@ void emu::step::Manager::waitForTestsToFinish( const bool isTestPassive ){
       // For passive tests, query the local DAQ
       xdata::Boolean STEPFinished;
       m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "STEPFinished", &STEPFinished ) );
-      allFinished &= (bool) STEPFinished;
+      allFinished = (bool) STEPFinished;
       if ( STEPFinished ){ LOG4CPLUS_INFO( logger_, "STEP is done."); }
     }
     else{
