@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.11 2012/09/05 22:34:46 liu Exp $
+// $Id: CCB.h,v 1.12 2012/09/26 22:14:33 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.12  2012/09/26 22:14:33  liu
+// add new methods and change CCB configure
+//
 // Revision 1.11  2012/09/05 22:34:46  liu
 // introduce HardwareVersion attribute
 //
@@ -316,6 +319,8 @@ public:
   void hard_reset_dmb();     //+
   void hard_reset_tmb();     //+
   void hard_reset_mpc();     //+
+  void hard_reset_ccb();
+  void soft_reset_ccb();
 
   void EnableL1aCounter();
   void ResetL1aCounter();

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.51 2012/09/13 03:47:59 liu Exp $
+// $Id: CCB.cc,v 3.52 2012/09/26 22:14:19 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.52  2012/09/26 22:14:19  liu
+// add new methods and change CCB configure
+//
 // Revision 3.51  2012/09/13 03:47:59  liu
 // update CCB configure()
 //
@@ -1151,13 +1154,11 @@ void CCB::configure() {
   //
   SendOutput("CCB : configure()","INFO");
   //
+  hard_reset_ccb();
+  ::usleep(100000);  // wait 100ms
   // report firmware version
   firmwareVersion();
   printFirmwareVersion();
-  //  
-  //  std::cout << ReadRegister(0x0) << std::endl;
-  hardReset();
-  //  std::cout << ReadRegister(0x0) << std::endl;
 
   setCCBMode(CCB::VMEFPGA);  
 
@@ -1666,6 +1667,20 @@ void CCB::hard_reset_mpc(){
 // Hard MPC reset:
 // 2004
   do_vme(VME_WRITE,0x68,sndbuf,rcvbuf,NOW); // correct: 11/13/2003 base+0x32  data to write : anything
+}
+
+void CCB::hard_reset_ccb(){
+/// Hard reset CCB FPGA by writting CSRA2, data to write : anything
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  do_vme(VME_WRITE,CSRA2,sndbuf,rcvbuf,NOW);
+}
+
+void CCB::soft_reset_ccb(){
+/// soft reset CCB FPGA by writting CSRA3, data to write : anything
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  do_vme(VME_WRITE,CSRA3,sndbuf,rcvbuf,NOW);
 }
 
 void CCB::soft_reset_dmb(){
