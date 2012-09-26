@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.35 2012/09/05 21:39:11 liu Exp $
+// $Id: VMEModule.cc,v 3.36 2012/09/26 22:15:16 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.36  2012/09/26 22:15:16  liu
+// update SVF loading
+//
 // Revision 3.35  2012/09/05 21:39:11  liu
 // remove ODMB class
 //
@@ -987,7 +990,7 @@ int VMEModule::svfLoad(int jch, const char *fn, int db, int verify )
             else
             {
 	       sscanf(Word[1],"%d",&pause);
-               if( pause<20 && (pause%10)>0 )
+               if( pause<20 || (pause%10)>0 )
                {
                   // std::cout << "STATE: cycle idle state" << std::endl;
                   theController->CycleIdle_jtag(pause);
