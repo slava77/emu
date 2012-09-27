@@ -8,7 +8,7 @@
 #include "emu/pc/Crate.h"
 #include "emu/pc/CCB.h"
 #include "emu/pc/TMB.h"
-#include "emu/pc/ODAQMB.h"
+#include "emu/pc/DAQMB.h"
 #include "emu/pc/DDU.h"
 #include "emu/pc/ALCTController.h"
 
