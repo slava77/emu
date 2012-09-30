@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.8 2012/07/12 13:05:01 ahart Exp $
+// $Id: VMEController.h,v 1.9 2012/09/30 21:19:42 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 1.9  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 1.8  2012/07/12 13:05:01  ahart
 //
 // Modified to accomodate DCFEB and ODAQMB.
@@ -264,6 +267,8 @@ public:
   inline void SetLife(bool life) { alive_=life; }
   inline bool IsAlive() { return alive_; }
 
+  int vme_controller(int irdwr,unsigned int ptr,unsigned short int *data,char *rcv);
+  int VME_controller(int irdwr,unsigned int ptr,unsigned short int *data,char *rcv);
  
   /// JTAG stuff
   void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
@@ -413,8 +418,6 @@ private:
   void buckflash(const char *cmd,int nbuf,const char *inbuf,char *rcv);
   void lowvolt(int ichp,int ichn,char *rcv);
   void daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
-  int vme_controller(int irdwr,unsigned int ptr,unsigned short int *data,char *rcv);
-  int VME_controller(int irdwr,unsigned int ptr,unsigned short int *data,char *rcv);
   void dump_outpacket(int nvme);
   int eth_reset(int ethsocket);
   void mrst_ff();

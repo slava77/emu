@@ -72,6 +72,9 @@ public:
   inline int GetExpectedConfigProblemDMB()   { return expected_config_problem_dmb_  ; }
   //
   //
+  inline void SetTotalCfebs(int total)   { TotalCfebs_=total; }
+  inline int GetTotalCfebs()   { return TotalCfebs_; }
+
 private:
   //
   TMB * thisTMB ;
@@ -81,6 +84,7 @@ private:
   MPC * thisMPC;
   Crate * crate_;
   //
+  int TotalCfebs_;  // total number of CFEBs on chamber 
   std::string label_;
   std::string problem_description_;
   int problem_mask_;
@@ -93,9 +97,9 @@ private:
   int expected_config_problem_cfeb5_;
   int expected_config_problem_dmb_  ;
   //
-  std::vector <TMB> tmbs_;
-  std::vector <CFEB> cfebs_;
-  std::vector <DAQMB> dmbs_;
+  // std::vector <TMB> tmbs_;
+  // std::vector <CFEB> cfebs_;
+  // std::vector <DAQMB> dmbs_;
   //
 };
 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.101 2012/07/06 01:42:53 liu Exp $
+// $Id: TMB.cc,v 3.102 2012/09/30 21:19:42 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.102  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 3.101  2012/07/06 01:42:53  liu
 // add function used by STEP
 //
@@ -560,6 +563,7 @@ TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   rat_(0),
   csc_(theChamber)
 {
+  hardware_version_=0;
   //
   debug_ = false;
   //

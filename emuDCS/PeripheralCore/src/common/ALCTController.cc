@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.67 2011/08/27 07:32:52 liu Exp $
+// $Id: ALCTController.cc,v 3.68 2012/09/30 21:19:42 liu Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.68  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 3.67  2011/08/27 07:32:52  liu
 // correct comments, 3.66  was by liu
 //
@@ -380,6 +383,7 @@ namespace emu {
 
 ALCTController::ALCTController(TMB * tmb, std::string chamberType) :  EmuLogger() 
 {
+  hardware_version_ = 0;
   tmb_ = tmb;
   //
 #ifdef debugV

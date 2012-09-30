@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.82 2012/07/10 15:27:57 liu Exp $
+// $Id: DAQMB.cc,v 3.83 2012/09/30 21:19:42 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.83  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 3.82  2012/07/10 15:27:57  liu
 // add function used by STEP
 //
@@ -523,7 +526,8 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   tmb_dav_counter_(-1), alct_dav_counter_(-1),
   failed_checkvme_(-1), power_mask_(0)
 {
-  //
+   hardware_version_=0;
+   //
    //get the initial value first:
    killinput_=GetKillInput();
    cfeb_clk_delay_=GetCfebClkDelay();
@@ -6845,6 +6849,58 @@ void DAQMB::trighalfx(int ihalf)
     chan2shift(chan);
 }
 
+void DAQMB::write_cfeb_selector(int cfeb_mask)
+{
+  char temp[4];
+  unsigned short mask = cfeb_mask&0xFF;
+  write_now(WRITE_CFEB_SELECTOR, mask, temp);
+}
+
+int DAQMB::read_cfeb_selector()
+{
+  int mask;
+  read_now(READ_CFEB_SELECTOR, (char *)&mask);
+  mask &=0xFF;
+  return mask;
+}
+
+void DAQMB::cfeb_do(int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
+{
+  int DEBUG=0;
+  int CFEB_DEV=1;
+  char tmp[2];
+  unsigned short int ishft,temp;
+
+  /* irdsnd for jtag
+          irdsnd = 0 no read, later
+          irdsnd = 1 no read, now
+          irdsnd = 2    read, later
+          irdsnd = 3    read, now
+  */
+  if (DEBUG) {
+      printf("dcfeb_do: ncmd=%d, nbuf=%d, irdsnd=%d, Cmd %02x %02x\n", 
+              ncmd, nbuf, irdsnd, cmd[0]&0xff, cmd[1]&0xff);
+   }
+
+//       setuse();
+
+   if(ncmd<0)
+   { // Reset Jtag State Machine
+     Jtag_Ohio(CFEB_DEV, 0, tmp,-1, tmp, 0, (irdsnd&1));
+     return;
+   }
+   if(ncmd>0) Jtag_Ohio(CFEB_DEV, 0, cmd,ncmd,outbuf,0,(nbuf>0)?0:(irdsnd&1));
+//   if(ncmd>0 && nbuf>0) sleep_vme(200); 
+   if(nbuf>0) Jtag_Ohio(CFEB_DEV, 1,inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&1);
+   if((irdsnd&1)==1 && nbuf%16!=0)
+   {
+     ishft=16-nbuf%16;
+     temp=((outbuf[nbuf/8+1]<<8)&0xff00)|(outbuf[nbuf/8]&0xff);
+     temp=(temp>>ishft);
+     outbuf[nbuf/8+1]=(temp&0xff00)>>8;
+     outbuf[nbuf/8]=temp&0x00ff;
+   }
+}
 //
 //
 } // namespace emu::pc
