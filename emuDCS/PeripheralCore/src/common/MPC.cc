@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.24 2012/05/09 20:59:00 liu Exp $
+// $Id: MPC.cc,v 3.25 2012/09/30 21:19:42 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.25  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 3.24  2012/05/09 20:59:00  liu
 // fix missing standard header files
 //
@@ -193,6 +196,7 @@ MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),EmuLogger(),
 {
   std::cout << "MPC: in crate=" << this->crate() 
 	    << " slot=" << this->slot() << std::endl;
+  hardware_version_=0;
   //
   read_firmware_day_   = 9999;
   read_firmware_month_ = 9999;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.cc,v 3.2 2009/03/25 10:19:41 liu Exp $
+// $Id: CFEB.cc,v 3.3 2012/09/30 21:19:42 liu Exp $
 // $Log: CFEB.cc,v $
+// Revision 3.3  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 3.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -32,12 +35,14 @@ CFEB::CFEB(int number, std::vector<BuckeyeChip> buckeyes) :
   number_(number),
   buckeyeChips_(buckeyes)
 {
+  hardware_version_=0;
 }
 
 
 CFEB::CFEB(int number) :
   number_(number)
 {
+  hardware_version_=0;
   for(unsigned i = 0; i < 6; ++i) {
     buckeyeChips_.push_back(BuckeyeChip(i));
   }

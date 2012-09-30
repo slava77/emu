@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.9 2012/09/05 21:39:11 liu Exp $
+// $Id: VMEModule.h,v 1.10 2012/09/30 21:19:42 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.10  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 1.9  2012/09/05 21:39:11  liu
 // remove ODMB class
 //
@@ -223,6 +226,10 @@ protected:
   void shift_state(int cnt, int mask);
   void shift_bits(int reg,const char *snd, int cnt, char *rcv,int ird);
   void scan_word(int reg,const char *snd, int cnt, char *rcv,int ird);
+
+  // Liu--2012, Sept.
+  // new Jtag routine to bypass VMEController_jtag 
+  void Jtag_Ohio(int dev, int reg,const char *snd,int cnt,char *rcv,int ird, int when); 
   
   Crate * theCrate_;
   VMEController * theController;

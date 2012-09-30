@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.14 2012/09/05 22:34:46 liu Exp $
+// $Id: DAQMB.h,v 1.15 2012/09/30 21:19:42 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.15  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 1.14  2012/09/05 22:34:46  liu
 // introduce HardwareVersion attribute
 //
@@ -288,6 +291,9 @@ public:
 
 // DAQMB constants&resets
 
+  static const unsigned int WRITE_CFEB_SELECTOR=0x1020;
+  static const unsigned int READ_CFEB_SELECTOR=0x1024;
+  
   friend std::ostream & operator<<(std::ostream & os, DAQMB & daqmb);
 
   void trigset2(int, int [] );
@@ -687,6 +693,10 @@ public:
 
   // code used by STEP
   void trighalfx(int ihalf);
+  
+  void write_cfeb_selector(int cfeb_mask);
+  int read_cfeb_selector();
+  void cfeb_do(int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd); 
            
  private:
   //

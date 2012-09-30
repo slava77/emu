@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.52 2012/09/26 22:14:19 liu Exp $
+// $Id: CCB.cc,v 3.53 2012/09/30 21:19:42 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.53  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 3.52  2012/09/26 22:14:19  liu
 // add new methods and change CCB configure
 //
@@ -357,6 +360,7 @@ CCB::CCB(Crate * theCrate ,int slot)
 {
   MyOutput_ = &std::cout ;
   //
+  hardware_version_=0;
   ReadTTCrxID_ = -1;
   read_firmware_day_   = 9999;
   read_firmware_month_ = 9999;

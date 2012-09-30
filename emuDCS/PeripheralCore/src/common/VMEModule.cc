@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.36 2012/09/26 22:15:16 liu Exp $
+// $Id: VMEModule.cc,v 3.37 2012/09/30 21:19:42 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.37  2012/09/30 21:19:42  liu
+// update for ME11 new electronics
+//
 // Revision 3.36  2012/09/26 22:15:16  liu
 // update SVF loading
 //
@@ -1400,6 +1403,127 @@ void VMEModule::write_mcs(char *buf, int nbytes, FILE *outf)
 
 }
 
+void VMEModule::Jtag_Ohio(int dev, int reg,const char *snd,int cnt,char *rcv,int ird, int when)
+{
+// dev= device ID (0-0xF), bits 15-12 of VME address
+// reg = 0 instruction shift;
+//     = 1, data shift;
+// when = 0  send vme packet LATER; 
+//      = 1  send vme packet NOW;
+int DEBUG=0;
+int i;
+int cnt2;
+int byte,bit;
+int tird[2]={0, 2};
+int tiwt[2]={1, 3};
+unsigned short int tmp[2]={0x0000};
+unsigned short int *data;
+unsigned int ptr_i;
+unsigned int ptr_d;
+unsigned int ptr_dh;
+unsigned int ptr_ds;
+unsigned int ptr_dt;
+unsigned int ptr_r;
+ 
+ if(dev<0 || dev>0xF) return;
+ if(cnt==0)return;
+ if(when!=0) when=1;
+ if(ird==1 && reg==1) tiwt[1]=1;  // if READ is needed, then WRITEs are all buffered 
+
+   if (DEBUG) {
+      printf("Jtag_Ohio: dev=%d, reg=%d, cnt=%d, ird=%d, when=%d, Send %02x %02x\n",
+              dev, reg, cnt, ird, when, snd[0]&0xff, snd[1]&0xff);
+   }
+
+ unsigned vme_base=(theSlot<<19)+(dev<<12);
+ unsigned add_ds=vme_base;
+ unsigned add_dh=vme_base+4;
+ unsigned add_dt=vme_base+8;
+ unsigned add_d=vme_base+0xC;
+ unsigned add_r=vme_base+0x14;
+ unsigned add_i=vme_base+0x1C;
+ unsigned add_reset=vme_base+0x18;
+ cnt2=cnt-1;
+ data=(unsigned short int *) snd;
+
+ /* instr */
+
+ if(reg==0){
+   if(cnt<0) 
+   { 
+     // cnt==-1   treated as Reset JTAG State Machine
+     // data to write: anything
+     ptr_i=add_reset;
+   }
+   else
+   {
+     ptr_i=add_i|(cnt2<<8);
+   }
+   theController->VME_controller(tiwt[when],ptr_i,data,rcv);
+   return;
+ }
+
+ /* data */
+
+ if(reg==1){
+   byte=cnt/16;
+   bit=cnt-byte*16;
+   // printf(" bit byte %d %d \n",bit,byte);
+   if(byte==0||(byte==1&&bit==0)){
+     // single write
+     ptr_d=add_d|(cnt2<<8);
+     theController->VME_controller(tiwt[when],ptr_d,data,rcv);
+     if(ird==1){
+       ptr_r=add_r;
+       theController->VME_controller(tird[when],ptr_r,tmp,rcv);
+     }
+     return;
+   }
+   // below for multiple writes
+   // step 1. write 1 full word with header, no trailer 
+   ptr_dh=add_dh|0x0f00;
+   theController->VME_controller(1,ptr_dh,data,rcv);
+   data=data+1;
+   if(ird==1){       
+     ptr_r=add_r;
+     theController->VME_controller(0,ptr_r,tmp,rcv);
+   }
+   ptr_ds=add_ds;
+   for(i=0;i<byte-1;i++){
+     if(i==(byte-2)&&bit==0){
+       // if this is the last full word with no more extra bits
+       // step 3. write 1 full word with trailer
+       ptr_dt=add_dt|0x0f00;
+       theController->VME_controller(tiwt[when],ptr_dt,data,rcv);
+       if(ird==1){
+          ptr_r=add_r;
+          theController->VME_controller(tird[when],ptr_r,data,rcv);
+       }
+       return;
+     }else{
+       // middle part
+       // step 2. write 1 full word only, no header or trailer
+       ptr_ds=add_ds|0x0f00;
+       theController->VME_controller(1,ptr_ds,data,rcv);
+       data=data+1;
+       if(ird==1){
+         ptr_r=add_r;
+         theController->VME_controller(0,ptr_r,tmp,rcv);
+       }
+     }
+   }
+   // if the last few bits smaller than a full word
+   // step 4. write bits with trailer
+   cnt2=bit-1;
+   ptr_dt=add_dt|(cnt2<<8);
+   theController->VME_controller(tiwt[when],ptr_dt,data,rcv);
+   if(ird==1){
+     ptr_r=add_r;
+     theController->VME_controller(tird[when],ptr_r,tmp,rcv);
+   }
+   return;
+ }
+}
+
   } // namespace emu::pc
 } // namespace emu
-

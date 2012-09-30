@@ -209,12 +209,17 @@ bool XMLParser::VCCParser(xercesc::DOMNode *pNode, Crate * theCrate)
 
 void XMLParser::CCBParser(xercesc::DOMNode *pNode, Crate * theCrate)
 {
-  int slot, mode, BxOrbit, SPS25ns, delay, ID;
+  int value, slot, mode, BxOrbit, SPS25ns, delay, ID;
 
   parseNode(pNode);
 
   if(!fillInt("slot", slot)) slot = 13;;
   CCB * ccb_ = new CCB(theCrate, slot);
+
+  if(fillInt("hardware_version", value)){
+    ccb_->SetHardwareVersion(value);   
+  }
+              
   if ( fillInt("TTCmode", mode) ) {
     ccb_->SetTTCmode(mode);
   }
@@ -259,6 +264,10 @@ void XMLParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
   if(!fillInt("slot", slot)) slot = 12;
   MPC * mpc_ = new MPC(theCrate, slot);
   
+  if(fillInt("hardware_version", value)) {
+    mpc_->SetHardwareVersion(value);   
+  }
+
   if(fillInt("serializermode",value)){
     mpc_->SetTLK2501TxMode(value);
   }
@@ -327,6 +336,9 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     // need still to put in 
     //   . ddd_oe mask
     int value;
+
+    if (fillInt("hardware_version", value)) { tmb_->SetHardwareVersion(value);  }     
+              
     //////////////////////////////
     // Expected Firmware tags:
     //////////////////////////////
@@ -637,6 +649,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
 	////////////////////////////////////////////////////////
 	// Expected firmware tags
 	////////////////////////////////////////////////////////
+        if (fillInt("hardware_version",   value)) { alct_->SetHardwareVersion(value);          }                      
 	if (fillInt("alct_firmware_day"  ,value)) { alct_->SetExpectedFastControlDay(value);   }
 	if (fillInt("alct_firmware_month",value)) { alct_->SetExpectedFastControlMonth(value); }
 	if (fillInt("alct_firmware_year" ,value)) { alct_->SetExpectedFastControlYear(value);  }
@@ -727,17 +740,19 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
 void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theChamber)
 {
   int slot = 0;
+  int NCFEB = 0;
 
   parseNode(pNode);
 
-  fillInt("slot", slot);
-  if(slot == 0) {
-    std::cerr << "No slot specified for DMB! " << std::endl;
-  } else {
+    fillInt("slot", slot);
+    if(slot == 0) {
+      std::cerr << "No slot specified for DMB! " << std::endl;
+      return;
+    } 
     //
     DAQMB * daqmb_ = new DAQMB(theCrate,theChamber,slot);  
     //
-    int delay;
+    int ivalue, delay;
 //     if ( fillInt("feb_dav_delay", delay)){
 //       daqmb_->SetFebDavDelay(delay);
 //     }
@@ -753,6 +768,9 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 //     if(fillInt("ALCT_dav_delay", delay)){
 //       daqmb_->SetAlctDavDelay(delay);
 //     }
+    if(fillInt("hardware_version", ivalue)){
+      daqmb_->SetHardwareVersion(ivalue);
+    }
     if(fillInt("calibration_LCT_delay", delay)){
       daqmb_->SetCalibrationLctDelay(delay);
     }
@@ -840,7 +858,7 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 	  parseNode(daughterNode);
 	  if(fillInt("cfeb_number", number)){
 	    //daqmb_->SendOutput("CFEB");
-	    if ( number <5 ){
+	    if ( number <7 ){
 	      CFEB cfeb(number);
 //fg explicitly prevend the parser from interpreting the following 5 options ...
 //	      int ivalue;
@@ -861,6 +879,10 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 //		daqmb_->SetL1aExtraCfeb(number,ivalue);
 //	      }
 //fg
+              if(fillInt("hardware_version", ivalue)){
+                 cfeb.SetHardwareVersion(ivalue);   
+              }
+              
 	      if (fillLongIntX("cfeb_firmware_tag", long_value) ) 
 		daqmb_->SetExpectedCFEBFirmwareTag(number,long_value);
 	      //
@@ -888,15 +910,16 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 	      } 	      
 	      //
 	      daqmb_->cfebs_.push_back(cfeb);
+              NCFEB++;
 	    } else {
-	      std::cout << "ERROR: CFEB range 0-4" <<std::endl;
+	      std::cout << "ERROR: CFEB range 0-6" <<std::endl;
 	    }
 	  }
 	}
       }
       daughterNode = daughterNode->getNextSibling();
     }
-  }
+    theChamber->SetTotalCfebs(NCFEB);
 }
 
 void XMLParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate, xercesc::DOMNode * pNodeGlobal)
