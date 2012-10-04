@@ -1149,7 +1149,7 @@ void emu::step::Test::_25(){
 			  << ".txt";
 	ofstream timeStampFile;
 	timeStampFile.open( timeStampFileName.str().c_str() );
-	timeStampFile << "#time in musec      event counts" << endl;
+	timeStampFile << "#time [ms]\tevent counts" << endl;
 	for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting ){
 
 	  if ( iTriggerSetting == 0 ){
@@ -1169,7 +1169,7 @@ void emu::step::Test::_25(){
 	  // (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1edd ); // CSRB1=0x20; enable CCB to send L1A on TMB request; same as CCB::EnableL1aFromTmbL1aReq
 	  (*crate)->ccb()->EnableL1aFromTmbL1aReq();
 	  gettimeofday( &start, NULL );
-	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 1 ? 5000 : (iTriggerSetting+1)*10000 ) );
+	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 0 ? 5000 : (iTriggerSetting+1)*10000 ) );
 	  // (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1af9 ); // CSRB1=0x20; disable CCB to send L1A on TMB request; same as CCB::EnableL1aFromDmbCfebCalibX
 	  (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
 	  gettimeofday( &end, NULL );
@@ -1183,7 +1183,7 @@ void emu::step::Test::_25(){
 	  uint32_t l1a_counter     = l1a_counter_LSB | (l1a_counter_MSB << 16); // merge into counter
 	  timeStampFile 
 	    << ( end.tv_sec - start.tv_sec) * 1000 + ( end.tv_usec - start.tv_usec ) / 1000. 
-	    << " " << l1a_counter << endl;
+	    << "\t\t" << l1a_counter << endl;
 
 	  if ( pLogger_ ){
 	    stringstream ss;
