@@ -263,14 +263,14 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
 		       .add( "writeBadEventsOnly", &writeBadEventsOnly ) );
       m.sendCommand( "emu::daq::manager::Application", "Configure" );      
       m.sendCommand( "emu::step::Tester", "Configure" );
-      waitForDAQToExecute( "Configure", 3 );
+      waitForDAQToExecute( "Configure", 10 );
       configuration_->setTestStatus( testId, "running" );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
       //
       // Enable all Tester apps
       //
       m.sendCommand( "emu::daq::manager::Application", "Enable" );
-      waitForDAQToExecute( "Enable", 3 );
+      waitForDAQToExecute( "Enable", 10 );
       m.sendCommand( "emu::step::Tester", "Enable" );
       waitForTestsToFinish( (bool) isCurrentTestPassive_ );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
@@ -279,7 +279,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       //
       m.sendCommand( "emu::step::Tester", "Halt" );
       m.sendCommand( "emu::daq::manager::Application", "Halt" );
-      waitForDAQToExecute( "Halt", 3 );
+      waitForDAQToExecute( "Halt", 10 );
       configuration_->setTestStatus( testId, "done" );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
     }
