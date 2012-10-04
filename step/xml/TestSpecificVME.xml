@@ -16,6 +16,8 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_l1a_delay"           value="146"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_l1a_delay"                 value="119"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@rat_tmb_delay"                 value="9"/>
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_pretrig_enable"           value="1"/>
     <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
   </test>
 
@@ -283,7 +285,31 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb4_rxd_int_delay"           value="0"/>
   </test>
 
-  <test id="25">
+  <test id="25"><!-- same as tes 11, plus some -->
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@CCBmode"                           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@l1aDelay"                          value="108"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_nplanes_hit_pretrig" value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_nplanes_hit_pattern" value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_trig_enable"              value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@match_trig_enable"             value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@request_l1a"                   value="1"/>
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_rx_clock_delay"           value="23"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_tx_clock_delay"           value="11"/>
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_l1a_delay"           value="146"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_l1a_delay"                 value="119"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@rat_tmb_delay"                 value="9"/>
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_pretrig_enable"           value="1"/>
+
+    <!-- These below are not in test 11 -->
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@alct_dav_cable_delay"        value="3"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_to_alct_data_delay"        value="0"/><!-- important!!! -->
+    <set xpath="/EmuSystem/PeripheralCrate/CSC/TMB/@clct_readout_without_trig"      value="0"/>
+
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
   </test>
 
 </settings>
