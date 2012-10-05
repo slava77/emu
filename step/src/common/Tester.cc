@@ -73,6 +73,7 @@ void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
     loadFiles();
     string selectedVMESettingsXML = selectCrates( vmeSettingsXML_ );
     test_ = new Test( testId_,
+		      group_,
 		      testParametersXML_,
 		      selectedVMESettingsXML,
 		      specialVMESettingsXML_,
