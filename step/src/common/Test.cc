@@ -22,12 +22,14 @@
 using namespace emu::utils;
 
 emu::step::Test::Test( const string& id, 
+		       const string& group,
 		       const string& testParametersXML, 
 		       const string& generalSettingsXML,
 		       const string& specialSettingsXML,
 		       const bool    isFake,
 		       Logger*       pLogger               )
   : TestParameters( id, testParametersXML, pLogger )
+  , group_( group )
   , isFake_( isFake )
   , isToStop_( false )
   , iEvent_( 0 )
@@ -111,11 +113,19 @@ void emu::step::Test::createEndcap( const string& generalSettingsXML,
   string VME_XML = utils::setSelectedNodesValues( generalSettingsXML, valuesMap );
 
   // Save XML in file:
-  string fileName( "VME_Test_" + id_ + ".xml" );
+  string fileName( "VME_" + withoutChars( " \t:;<>'\",?/~`!@#$%^&*()=[]|\\", group_ ) + "_Test" + id_ + ".xml" );
   utils::writeFile( fileName, VME_XML );
 
   // Parse it (Endcap will be created in the process):
   parser_.parseFile( fileName.c_str() );
+}
+
+string emu::step::Test::withoutChars( const string& chars, const string& str ){
+  // Remove characters listed in chars from str.
+  string s( str );
+  size_t pos = 0;
+  while( ( pos = s.find_first_of( chars, pos ) ) != string::npos ) s.erase( pos, 1 );
+  return s;
 }
 
 void emu::step::Test::configureCrates(){
@@ -1149,6 +1159,9 @@ void emu::step::Test::_25(){
 			  << ".txt";
 	ofstream timeStampFile;
 	timeStampFile.open( timeStampFileName.str().c_str() );
+	timeStampFile << "#crate    :\t" << (*crate)->GetLabel() << endl;
+	timeStampFile << "#TMB slot :\t" << (*tmb)->slot() << endl;
+	timeStampFile << "#chamber  :\t" << (*tmb)->getChamber()->GetLabel() << endl;
 	timeStampFile << "#time [ms]\tevent counts" << endl;
 	for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting ){
 

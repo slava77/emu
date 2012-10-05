@@ -50,22 +50,22 @@ namespace emu{
       
       static const string workLoopType_; ///< the type of the work loop
       string workLoopName_;              ///< the name of the work loop
-      xdata::String  group_;
-      xdata::String  testParametersFileName_;
-      xdata::String  vmeSettingsFileName_;
-      xdata::String  specialVMESettingsFileName_;
-      xdata::String  testId_;
-      xdata::Boolean fakeTests_; ///< if true, the software just fakes the tests, no attempt is made to access hardware
-      xdata::Boolean testDone_; ///< if true, the test has been executed or aborted
-      xdata::Vector<xdata::String> crateIds_;
+      xdata::String  group_; ///< name of the VME crate group that this emu::step::Tester instance handles
+      xdata::String  testParametersFileName_; ///< name of file containing the XML of the parameters of the test
+      xdata::String  vmeSettingsFileName_; ///< name of file containing the XML of the PCrate and on-chamber electronics settings
+      xdata::String  specialVMESettingsFileName_; ///< name of file containing the XML of the PCrate and on-chamber electronics settings specific to the tests
+      xdata::String  testId_;	///< test id
+      xdata::Boolean fakeTests_; ///< if \em true, the software just fakes the tests, no attempt is made to access hardware
+      xdata::Boolean testDone_; ///< if \em true, the test has been executed or aborted
+      xdata::Vector<xdata::String> crateIds_; ///< ids of crates that this emu::step::Tester instance handles
       xdata::Double  progress_;	///< progress in percent of the ongoing test
 
       Test* test_;
       toolbox::task::WorkLoop *workLoop_; ///< work loop for the test procedure to be executed in a separate thread
       toolbox::task::ActionSignature *testSignature_;
-      string testParametersXML_;
-      string vmeSettingsXML_;
-      string specialVMESettingsXML_;
+      string testParametersXML_; ///< XML of the parameters of the test
+      string vmeSettingsXML_;	///< XML of the PCrate and on-chamber electronics settings
+      string specialVMESettingsXML_; ///< XML of the PCrate and on-chamber electronics settings specific to the tests
     };
   }
 }
