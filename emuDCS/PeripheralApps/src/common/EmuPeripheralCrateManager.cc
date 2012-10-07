@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.28 2012/06/20 22:54:13 khotilov Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.29 2012/10/07 13:32:15 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -360,10 +360,13 @@ void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)
      need_init = false;
      delete myTStore;
   }
+  time_t t;
+  time(&t);
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
        << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << std::endl
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
        <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
+       <<         "\" localUnixTime=\"" << t
        <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << std::endl;
 
     *out << "  <monitorable name=\"" << "title"
