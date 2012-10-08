@@ -153,6 +153,7 @@ protected:
   int tmb_vme_ready;
   int crate_controller_status;
   //
+  long CFEBDataIn_, CFEBDataOut_;
   int CCBRegisterRead_, CCBRegisterValue_, CCBRegisterWrite_, CCBWriteValue_;
   int MPCRegisterRead_, MPCRegisterValue_, MPCRegisterWrite_, MPCWriteValue_;
   std::vector<TMB*>   tmbVector;
@@ -404,6 +405,9 @@ private:
   void RdVfyCFEBVirtexDMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void RdVfyCFEBVirtexExpT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBTurnOn(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CFEBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CFEBFunction(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+    
   //
   // TMB utils
   void TMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

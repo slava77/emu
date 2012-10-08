@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: JTAG_constants.h,v 1.2 2012/07/12 13:05:01 ahart Exp $
+// $Id: JTAG_constants.h,v 1.3 2012/10/08 02:35:05 liu Exp $
 // $Log: JTAG_constants.h,v $
+// Revision 1.3  2012/10/08 02:35:05  liu
+// DCFEB update
+//
 // Revision 1.2  2012/07/12 13:05:01  ahart
 //
 // Modified to accomodate DCFEB and ODAQMB.
@@ -123,7 +126,10 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define VTX_HIGHZ 0x0A
 #define VTX_JSTART 0x0C
 #define VTX_BYPASS 0x1F
+
 /* SCAM-FPGA modes (Virtex FPGA) */
+/* CFEB (Virtex) uses only 0-11 */
+/* DCFEB extension: 12 and above */
 #define NORM_MODE  0
 #define RESET_MODE 1
 #define STATUS_CS 2  //Just shift, no update                                                                                            
@@ -140,18 +146,19 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define FADC_SHIFT 14
 #define Pipeline_Restrt 15
 #define Pipeline_Depth 16
-#define Bit_Slip_Odd 17
-#define Bit_Slip_Even 18
-#define Chip_Sel 19
+#define TTC_SOURCE 17
+#define CALIB_EXTERNAL 18
+#define CALIB_INTERNAL 19
 #define Pipeline_NSAMPLE 20
-#define EPROM_mcs 21
-#define EPROM_read_mcs 22
-#define EPROM_status_mcs 23
-#define EPROM_timer_mcs 24
-#define EPROM_reset_mcs 25
-#define EPROM_disablefifo_mcs 26
-#define EPROM_enablefifo_mcs 27
-
+#define EPROM_bpi_write 21
+#define EPROM_bpi_read 22
+#define EPROM_bpi_status 23
+#define EPROM_bpi_timer 24
+#define EPROM_bpi_reset 25
+#define EPROM_bpi_disable 26
+#define EPROM_bpi_enable 27
+#define FINE_DELAY 28
+#define TMB_TRANSMIT_MODE 29
 
 /* VIRTEX6 fpga scan instructions */
 #define VTX6_EXTEST 0x3C0
@@ -272,7 +279,8 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define XPROM_Clear_Status 0x1C
 
 
+#define READ_YES 2
+#define NOOP_YES 4
+#define NO_BYPASS 8
 
 #endif
-
-
