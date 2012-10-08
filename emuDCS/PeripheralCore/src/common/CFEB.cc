@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.cc,v 3.3 2012/09/30 21:19:42 liu Exp $
+// $Id: CFEB.cc,v 3.4 2012/10/08 18:03:55 liu Exp $
 // $Log: CFEB.cc,v $
+// Revision 3.4  2012/10/08 18:03:55  liu
+// DCFEB update
+//
 // Revision 3.3  2012/09/30 21:19:42  liu
 // update for ME11 new electronics
 //
@@ -58,5 +61,9 @@ char CFEB::chipMask() const {
   return chip_mask;
 }
 
+int CFEB::SelectorBit()
+{
+  return  (1<<number_);
+}
   } // namespace emu::pc
   } // namespace emu

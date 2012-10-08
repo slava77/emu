@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.h,v 1.3 2012/09/05 22:34:46 liu Exp $
+// $Id: CFEB.h,v 1.4 2012/10/08 18:04:00 liu Exp $
 // $Log: CFEB.h,v $
+// Revision 1.4  2012/10/08 18:04:00  liu
+// DCFEB update
+//
 // Revision 1.3  2012/09/05 22:34:46  liu
 // introduce HardwareVersion attribute
 //
@@ -47,6 +50,7 @@ public:
   //
   inline void SetHardwareVersion(int version) {hardware_version_ = version;}
   inline int GetHardwareVersion() {return hardware_version_;}
+  int SelectorBit();
         
 private:
   int number_;
