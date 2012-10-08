@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.16 2012/10/08 02:35:05 liu Exp $
+// $Id: DAQMB.h,v 1.17 2012/10/08 22:04:44 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.17  2012/10/08 22:04:44  liu
+// DCFEB update
+//
 // Revision 1.16  2012/10/08 02:35:05  liu
 // DCFEB update
 //
@@ -742,7 +745,7 @@ public:
   void epromload_parameters(int paramblock,int nval,unsigned short int  *val);
   void epromread_parameters(int paramblock,int nval,unsigned short int  *val);         
 
-  void dcfeb_readfirmware_mcs(CFEB & cfeb, char *filename);
+  void dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename);
   void dcfeb_configure(CFEB & cfeb);
   void dcfeb_test_dummy(CFEB & cfeb, int test);
 

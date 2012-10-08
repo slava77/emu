@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.84 2012/10/08 02:35:05 liu Exp $
+// $Id: DAQMB.cc,v 3.85 2012/10/08 22:04:44 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.85  2012/10/08 22:04:44  liu
+// DCFEB update
+//
 // Revision 3.84  2012/10/08 02:35:05  liu
 // DCFEB update
 //
@@ -2219,10 +2222,10 @@ bool DAQMB::CheckVMEFirmwareVersion() {
   if ( GetFirmwareVersion() == GetExpectedVMEFirmwareTag() ) {
     check_ok = true; 
   } else { 
-    (*MyOutput_) << "expected DMB VME =" << std::dec << GetExpectedVMEFirmwareTag() << std::endl;
-    (*MyOutput_) << "read     DMB VME =" << std::dec << GetFirmwareVersion() << std::endl;
-    std::cout    << "expected DMB VME =" << std::dec << GetExpectedVMEFirmwareTag() << std::endl;
-    std::cout    << "read     DMB VME =" << std::dec << GetFirmwareVersion() << std::endl;
+    (*MyOutput_) << "expected DMB VME =" << std::hex << GetExpectedVMEFirmwareTag() << std::endl;
+    (*MyOutput_) << "read     DMB VME =" << std::hex << GetFirmwareVersion() << std::endl;
+    std::cout    << "expected DMB VME =" << std::hex << GetExpectedVMEFirmwareTag() << std::endl;
+    std::cout    << "read     DMB VME =" << std::hex << GetFirmwareVersion() << std::endl;
   }
   //
   return check_ok;
@@ -2234,10 +2237,10 @@ bool DAQMB::CheckControlFirmwareVersion() {
   if ( mbfpgauser() == (unsigned int) GetExpectedControlFirmwareTag() ) {
     check_ok = true;
   } else {
-    (*MyOutput_) << "expected DMB control =" << std::dec << GetExpectedControlFirmwareTag() << std::endl;
-    (*MyOutput_) << "read     DMB VME =" << std::dec << mbfpgauser() << std::endl;
-    std::cout    << "expected DMB VME =" << std::dec << GetExpectedControlFirmwareTag() << std::endl;
-    std::cout    << "read     DMB VME =" << std::dec << mbfpgauser() << std::endl;
+    (*MyOutput_) << "expected DMB Control =" << std::hex << GetExpectedControlFirmwareTag() << std::endl;
+    (*MyOutput_) << "read     DMB Control =" << std::hex << mbfpgauser() << std::endl;
+    std::cout    << "expected DMB Control =" << std::hex << GetExpectedControlFirmwareTag() << std::endl;
+    std::cout    << "read     DMB Control =" << std::hex << mbfpgauser() << std::endl;
   }
   return check_ok;
   //
@@ -2254,7 +2257,10 @@ bool DAQMB::CheckCFEBFirmwareVersion(CFEB & cfeb) {
 }
 //
 unsigned int DAQMB::febpromuser(CFEB & cfeb)
-{ unsigned int ibrd;
+{ unsigned int ibrd=0;
+  int hversion=cfeb.GetHardwareVersion();
+if(hversion<=1)
+{
   DEVTYPE dv = cfeb.promDevice();
   printf("%d \n",dv);
   cmd[0]=PROM_USERCODE;
@@ -2277,10 +2283,15 @@ unsigned int DAQMB::febpromuser(CFEB & cfeb)
     if (((0xff&rcvbuf[0])!=0xff)||((0xff&rcvbuf[1])!=0xff)||
         ((0xff&rcvbuf[2])!=0xff)||((0xff&rcvbuf[3])!=0xff)) return ibrd;
   }
+}
   return ibrd;
 }
 
 unsigned int  DAQMB::febpromid(CFEB & cfeb)
+{
+  unsigned int ibrd=0;
+  int hversion=cfeb.GetHardwareVersion();
+if(hversion<=1)
 {
   DEVTYPE dv = cfeb.promDevice();
   cmd[0]=PROM_IDCODE;
@@ -2294,10 +2305,11 @@ unsigned int  DAQMB::febpromid(CFEB & cfeb)
   rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
   rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
   rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
-  unsigned int ibrd=unpack_ibrd();
+  ibrd=unpack_ibrd();
   cmd[0]=PROM_BYPASS;
   sndbuf[0]=0;
   devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+}
   return ibrd;
 }
 
@@ -7610,7 +7622,7 @@ void DAQMB::epromread_parameters(int paramblock,int nwords,unsigned short int  *
   dcfeb_bpi_disable();
 }
 
-void DAQMB::dcfeb_readfirmware_mcs(CFEB & cfeb, char *filename)
+void DAQMB::dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename)
 {
 
    unsigned fulladdr=0, uaddr, laddr;
@@ -7728,19 +7740,6 @@ void DAQMB::dcfeb_test_dummy(CFEB & cfeb, int test)
 // This dummy function can be used in various tests instead of creating a new function which would
 // require to recompile everything in PeripheralCore & PeripheralApps
 
-// test: dump eprom's parameter block 3
-  char bufout[2048];
-  int i, j;
-
-  write_cfeb_selector(cfeb.SelectorBit());
-  epromread_parameters (3, 1024, (unsigned short *)bufout);
-  for(i=0; i<128; i++)
-  {
-    printf("%02X0: ", i&0xFF);
-    for(j=0; j<16; j++)
-      printf("%02X ", (bufout[i*16+j])&0xFF);
-    printf("\n");
-  }
 }
 
 
