@@ -661,10 +661,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
            sprintf(buf, "DCFEB %d : VIRTEX-6 monitor: Temp=%5.2f (C); Vccin=%5.2f V; Vccaux=%5.2f V.", cfeb_index, mon[0], mon[1], mon[2]);
            *out << buf << cgicc::br() << std::endl;
            *out << "DCFEB " << cfeb_index << " : Status Register: " << std::hex << thisDMB->dcfeb_read_status(*cfebItr);
-           *out << ";  BPI status: " << thisDMB->dcfeb_bpi_status()  << std::dec;
-           std::cout << "Print DCFEB configure info" << std::endl;
-           thisDMB->dcfeb_configure(*cfebItr);
-           
+           *out << ";  BPI status: " << thisDMB->dcfeb_bpi_status()  << std::dec;           
         }
      }
      //
@@ -745,7 +742,7 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   std::string dmbstring =
       toolbox::toString("%d",dmb);
   std::string CFEBFunct =
-      toolbox::toString("/%s/CFEBFunction",getApplicationDescriptor()->getURN().c_str(),dmb);
+      toolbox::toString("/%s/CFEBFunction",getApplicationDescriptor()->getURN().c_str());
 
   *out << cgicc::h1("This is a debug tool for EXPERTS ONLY!!") << cgicc::br() << std::endl;
   
@@ -810,6 +807,32 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
     //
      //
   *out << cgicc::fieldset();
+  //
+  std::string CFEBreadfirm =
+      toolbox::toString("/%s/DCFEBReadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("action", CFEBreadfirm) << std::endl;
+  
+  *out << "Choose CFEB: " << std::endl;
+  *out << cgicc::select().set("name", "cfeb") << std::endl;
+  
+  for (unsigned i = 0; i < cfebs.size(); ++i) {
+    sprintf(sbuf,"%d",i);
+    if (i == 0) {
+      *out << cgicc::option()
+	.set("value", sbuf)
+	.set("selected", "");
+    } else {
+      *out << cgicc::option()
+	.set("value", sbuf);
+    }
+    *out << "CFEB " << cfebs[i].number()+1 << cgicc::option() << std::endl;
+  }
+
+  *out << cgicc::select() << std::endl;
+  *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
+  *out << cgicc::input().set("type", "submit")
+    .set("name", "command")
+    .set("value", "Read back DCFEB firmware") << cgicc::br() << std::endl;
 
 }
 
@@ -884,7 +907,44 @@ void EmuPeripheralCrateConfig::CFEBFunction(xgi::Input * in, xgi::Output * out )
      this->CFEBUtils(in,out);                               
 }
 
-//
+void EmuPeripheralCrateConfig::DCFEBReadFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception)
+{
+
+  cgicc::Cgicc cgi(in);
+
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Not dmb" << std::endl ;
+    dmb = DMB_;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+
+     std::string cfeb_value = cgi.getElement("cfeb")->getValue(); 
+     unsigned icfeb=atoi(cfeb_value.c_str());
+     std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+     if(icfeb<0 || icfeb>cfebs.size()) icfeb=0;
+     std::string chambername= thisCrate->GetChamber(thisDMB)->GetLabel();
+     chambername.replace(6,1,"_");
+     chambername.replace(4,1,"_");
+     std::string mcsfile="/tmp/DCFEB_"+chambername+"_C"+cfeb_value+".mcs";
+                
+
+     std::cout << getLocalDateTime() << " DCFEB firmware read back from DMB: " << dmb << " CFEB " << cfebs[icfeb].number()+1 << std::endl;
+
+     thisDMB->dcfeb_readfirmware_mcs(cfebs[icfeb], mcsfile.c_str());
+     
+     std::cout << getLocalDateTime() << " DCFEB firmware read back finished." << std::endl;
+     this->CFEBUtils(in,out);           
+                    
+}
+  
 void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
