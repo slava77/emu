@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.37 2012/09/30 21:19:42 liu Exp $
+// $Id: VMEModule.cc,v 3.38 2012/10/08 02:35:05 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.38  2012/10/08 02:35:05  liu
+// DCFEB update
+//
 // Revision 3.37  2012/09/30 21:19:42  liu
 // update for ME11 new electronics
 //
@@ -1407,7 +1410,9 @@ void VMEModule::Jtag_Ohio(int dev, int reg,const char *snd,int cnt,char *rcv,int
 {
 // dev= device ID (0-0xF), bits 15-12 of VME address
 // reg = 0 instruction shift;
-//     = 1, data shift;
+//     = 1  data shift;
+// ird = 0  no TDO read
+//     = 1  read TDO
 // when = 0  send vme packet LATER; 
 //      = 1  send vme packet NOW;
 int DEBUG=0;

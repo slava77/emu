@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.15 2012/09/30 21:19:42 liu Exp $
+// $Id: DAQMB.h,v 1.16 2012/10/08 02:35:05 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.16  2012/10/08 02:35:05  liu
+// DCFEB update
+//
 // Revision 1.15  2012/09/30 21:19:42  liu
 // update for ME11 new electronics
 //
@@ -379,10 +382,10 @@ public:
   void lowv_onoff(char c);
   unsigned int lowv_rdpwrreg(); 
 // DAQMB prom readbacks
-  unsigned int febpromuser(const CFEB &);
-  unsigned int febpromid(const CFEB &);
-  unsigned int febfpgauser(const CFEB &);
-  unsigned int febfpgaid(const CFEB &);
+  unsigned int febpromuser(CFEB &);
+  unsigned int febpromid(CFEB &);
+  unsigned int febfpgauser(CFEB &);
+  unsigned int febfpgaid(CFEB &);
   unsigned int mbpromuser(int prom);
   unsigned int mbpromid(int prom);
   unsigned int mbfpgauser();
@@ -434,7 +437,7 @@ public:
   //
   inline void SetExpectedCFEBFirmwareTag(int cfeb_index, long int tag) { expected_cfeb_firmware_tag_[cfeb_index] = tag; }
   inline unsigned long int GetExpectedCFEBFirmwareTag(int cfeb_index)  { return expected_cfeb_firmware_tag_[cfeb_index]; }
-  bool CheckCFEBFirmwareVersion(const CFEB & cfeb_to_check);
+  bool CheckCFEBFirmwareVersion(CFEB & cfeb_to_check);
   //
   //
   void SetFebDavDelay(int delay){feb_dav_delay_ = delay;}
@@ -592,10 +595,8 @@ public:
   inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
   inline bool GetDAQMBSmokingGunIsOK() { return dmb_smoking_gun_status_; }
   //
-  ///Check the configuration of the CFEBs vs. the database...
-  void CheckCFEBsConfiguration(bool print_errors);
   /// Check the configuration of the CFEBs vs. the database... (default not to print out the errors)
-  void CheckCFEBsConfiguration();
+  void CheckCFEBsConfiguration(bool print_errors=false);
   //
   /// Get the status of a specific CFEB after having checked it...
   inline bool GetCFEBConfigIsOK(int CFEBIndexCountingFromOne) { return cfeb_config_status_[CFEBIndexCountingFromOne - 1]; }
@@ -694,10 +695,57 @@ public:
   // code used by STEP
   void trighalfx(int ihalf);
   
+  // code for DCFEB
   void write_cfeb_selector(int cfeb_mask);
   int read_cfeb_selector();
-  void cfeb_do(int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd); 
-           
+  void cfeb_do(int ncmd,void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd); 
+  void dcfeb_core(int jfunc, int nbit, void *inbuf, char *outbuf, int option);
+  void dcfeb_fpga_call(int inst, unsigned data, char *outbuf);
+  std::vector<float> dcfeb_fpga_monitor(CFEB & cfeb);
+  void dcfeb_hub(CFEB & cfeb, int jfunc, int nbit, void *inbuf, char *outbuf, int option);
+  void dcfeb_sys_reset(CFEB & cfeb);
+  unsigned dcfeb_read_status(CFEB & cfeb);
+  unsigned dcfeb_write_status(CFEB & cfeb, unsigned status);
+  void FADC_SetMask(CFEB & cfeb, short int mask);
+  void FADC_Initialize(CFEB & cfeb);
+  void FADC_ShiftData(CFEB & cfeb, unsigned bits);
+  void Pipeline_Restart(CFEB & cfeb);
+  void Set_PipelineDepth(CFEB & cfeb, short int depth);
+  void Set_NSAMPLE(CFEB & cfeb, int nsample);
+  unsigned short dcfeb_fine_delay(CFEB & cfeb, unsigned short delay);
+  void dcfeb_set_comp_thresh_bc(float thresh);
+  void dcfeb_buck_shift_ext_bc(int nstrip);
+  void dcfeb_buck_shift_comp_bc(int nstrip);
+  void BuckeyeShift(int chip_mask, char shft_bits[6][6], char *shft_out=NULL);
+
+  // DCFEB BPI-->EPROM access rountines
+  void dcfeb_XPROM_do(unsigned short command);
+  unsigned short dcfeb_bpi_status();
+  unsigned dcfeb_bpi_readtimer();
+  void dcfeb_bpi_reset();
+  void dcfeb_bpi_disable();
+  void dcfeb_bpi_enable();
+
+  void epromdirect_noop();
+  void epromdirect_lock();
+  void epromdirect_unlock();
+  void epromdirect_timerstart();
+  void epromdirect_timerstop();
+  void epromdirect_timerreset(); 
+  void epromdirect_clearstatus(); 
+  void epromdirect_unlockerase(); 
+  void epromdirect_loadaddress(unsigned short uaddress, unsigned short laddress);
+  void epromdirect_manual(int cnt, unsigned short *manbuf);
+  void epromdirect_bufferprogram(unsigned nwords, unsigned short *prm_dat);
+  void epromdirect_read(unsigned nwords, unsigned short *pdata);
+
+  void epromload_parameters(int paramblock,int nval,unsigned short int  *val);
+  void epromread_parameters(int paramblock,int nval,unsigned short int  *val);         
+
+  void dcfeb_readfirmware_mcs(CFEB & cfeb, char *filename);
+  void dcfeb_configure(CFEB & cfeb);
+  void dcfeb_test_dummy(CFEB & cfeb, int test);
+
  private:
   //
   int shift_array_[5][6][16];

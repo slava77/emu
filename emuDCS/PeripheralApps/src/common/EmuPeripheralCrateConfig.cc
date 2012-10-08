@@ -357,6 +357,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::RdVfyCFEBVirtexExpT, "RdVfyCFEBVirtexExpT");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBCheckConfiguration, "DMBCheckConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBConfigure, "DMBConfigure");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CFEBUtils, "CFEBUtils");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CFEBFunction, "CFEBFunction");
   //
   //-----------------------------------------------
   // TMB tests

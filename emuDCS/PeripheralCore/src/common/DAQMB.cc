@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.83 2012/09/30 21:19:42 liu Exp $
+// $Id: DAQMB.cc,v 3.84 2012/10/08 02:35:05 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.84  2012/10/08 02:35:05  liu
+// DCFEB update
+//
 // Revision 3.83  2012/09/30 21:19:42  liu
 // update for ME11 new electronics
 //
@@ -892,12 +895,6 @@ bool DAQMB::checkDAQMBXMLValues() {
   //
 }
 //
-void DAQMB::CheckCFEBsConfiguration() {
-  // default to not print out the errors...
-  CheckCFEBsConfiguration(false);
-  return;
-}
-//
 void DAQMB::CheckCFEBsConfiguration(bool print_errors) {
   //
   cfebs_readstatus();
@@ -1099,7 +1096,11 @@ void DAQMB::setdavdelay(int dword)
 
 void DAQMB::fxpreblkend(int dword)
 {
-  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
+  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) 
+  {
+  int hversion=cfebs_[icfeb].GetHardwareVersion();
+  if(hversion<=1)
+  {
     DEVTYPE dv = cfebs_[icfeb].scamDevice();
     std::cout << "Setting dv= " << dv << " to " << std::dec << dword << std::endl;
     cmd[0]=VTX_USR1;
@@ -1113,6 +1114,11 @@ void DAQMB::fxpreblkend(int dword)
     sndbuf[0]=0;
     devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
   }
+  else if (hversion==2)
+  {
+      dcfeb_hub(cfebs_[icfeb], PREBLKEND, 4, &dword, rcvbuf, NOW);
+  }  
+  }
 }
 
 void DAQMB::LctL1aDelay(int dword) // Set cfeb latency (0=2.9us,1=3.3us,2=3.7us,3=4.1us)
@@ -1124,6 +1130,9 @@ void DAQMB::LctL1aDelay(int dword) // Set cfeb latency (0=2.9us,1=3.3us,2=3.7us,
 
 void DAQMB::LctL1aDelay(int dword,unsigned icfeb) // Set cfeb latency (0=2.9us,1=3.3us,2=3.7us,3=4.1us)
 {
+  int hversion=cfebs_[icfeb].GetHardwareVersion();
+  if(hversion<=1)
+  {
   DEVTYPE dv = cfebs_[icfeb].scamDevice();
   cmd[0]=VTX_USR1;
   sndbuf[0]=LCTL1ADELAY;
@@ -1135,6 +1144,11 @@ void DAQMB::LctL1aDelay(int dword,unsigned icfeb) // Set cfeb latency (0=2.9us,1
   cmd[0]=VTX_BYPASS;
   sndbuf[0]=0;
   devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
+  }
+  else if (hversion==2)
+  {
+      dcfeb_hub(cfebs_[icfeb], LCTL1ADELAY, 2, &dword, rcvbuf, NOW);
+  }  
 }
 
 
@@ -1176,10 +1190,15 @@ void DAQMB::calctrl_global()
 
 
 void DAQMB::restoreCFEBIdle() {
-  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
-    DEVTYPE dv = cfebs_[icfeb].scamDevice();
-    devdo(dv,-1,cmd,0,sndbuf,rcvbuf,2);
-  }
+// Liu Oct. 1, 2012
+// Set all CFEB's JTAG state machines
+   char temp[4];
+   write_cfeb_selector(0x7f);
+   write_now(0x1018, 0, temp);
+//  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
+//    DEVTYPE dv = cfebs_[icfeb].scamDevice();
+//    devdo(dv,-1,cmd,0,sndbuf,rcvbuf,2);
+//  }
 }
 
 
@@ -1191,7 +1210,11 @@ void DAQMB::restoreMotherboardIdle() {
 
 void  DAQMB::set_comp_mode(int dword)
 {
-  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
+  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) 
+  {
+    int hversion=cfebs_[icfeb].GetHardwareVersion();
+    if(hversion<=1)
+    {
       DEVTYPE dv = cfebs_[icfeb].scamDevice();
       
       cmd[0]=VTX_USR1;
@@ -1204,26 +1227,38 @@ void  DAQMB::set_comp_mode(int dword)
       cmd[0]=VTX_BYPASS;
       sndbuf[0]=0;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+    }
+    else if (hversion==2)
+    {
+      dcfeb_hub(cfebs_[icfeb], COMP_MODE, 5, &dword, rcvbuf, NOW);
+    }  
   }
-  (*MyOutput_) << "calling set_comp_mode " << dword << std::endl;
+  (*MyOutput_) << "calling set_comp_mode " << std::hex << (dword & 0x1F) << std::dec << std::endl;
 }
 
 void DAQMB::set_comp_thresh_bc(float thresh)
 {
-char dt[2];
-// 
-/* digitize voltages */
-// 
- int dthresh=int(4095*((3.5-thresh)/3.5)); 
- dt[0]=0;
- dt[1]=0;
- for(int i=0;i<8;i++){
-   dt[0]|=((dthresh>>(i+7))&1)<<(7-i);
-   dt[1]|=((dthresh>>i)&1)<<(6-i);
- }
- dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
- dt[1]=dt[1]>>1;
- //
+ // Liu, Sept. 2012
+ // This is temporary solution to avoid the broadcast for CFEBs going to DCFEBs 
+ // if CFEBs and DCFEBs mixed in one DMB, it won't work
+ // TODO......
+ int hversion=cfebs_[0].GetHardwareVersion();
+ if(hversion<=1)
+ {            
+   char dt[2];
+   // 
+   /* digitize voltages */
+   // 
+   int dthresh=int(4095*((3.5-thresh)/3.5)); 
+   dt[0]=0;
+   dt[1]=0;
+   for(int i=0;i<8;i++){
+     dt[0]|=((dthresh>>(i+7))&1)<<(7-i);
+     dt[1]|=((dthresh>>i)&1)<<(6-i);
+   }
+   dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
+   dt[1]=dt[1]>>1;
+   //
    DEVTYPE dv = FASCAM;
    cmd[0]=VTX_USR1;
    sndbuf[0]=COMP_DAC;
@@ -1240,7 +1275,34 @@ char dt[2];
    devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
    usleep(20);
  }
-//
+ else if (hversion==2)
+ {
+   dcfeb_set_comp_thresh_bc(thresh);
+ }
+}
+
+void DAQMB::dcfeb_set_comp_thresh_bc(float thresh)
+{
+   char dt[2];
+   // 
+   /* digitize voltages */
+   // 
+   int dthresh=int(4095*((3.5-thresh)/3.5)); 
+   dt[0]=0;
+   dt[1]=0;
+   for(int i=0;i<8;i++){
+     dt[0]|=((dthresh>>(i+7))&1)<<(7-i);
+     dt[1]|=((dthresh>>i)&1)<<(6-i);
+   }
+   dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
+   dt[1]=dt[1]>>1;
+   //
+   // enable all DCFEBs for broadcast
+   write_cfeb_selector(0x7F);
+   dcfeb_core(COMP_DAC, 15, dt, rcvbuf, NOW|NOOP_YES);
+   usleep(20);
+}
+
 void DAQMB::set_comp_thresh(float thresh)
 {
 char dt[2];
@@ -1262,7 +1324,11 @@ char dt[2];
  //   (*MyOutput_) << i << " CFEB number" << cfebs_[i].number() << std::endl;
  // }
  //
- for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
+ for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) 
+ {
+  int hversion=cfebs_[icfeb].GetHardwareVersion();
+  if(hversion<=1)
+  {
    DEVTYPE dv = cfebs_[icfeb].scamDevice();
    cmd[0]=VTX_USR1;
    sndbuf[0]=COMP_DAC;
@@ -1277,6 +1343,11 @@ char dt[2];
    devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
    cmd[0]=VTX_BYPASS;
    devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+  }
+  else if (hversion==2)
+  {
+   dcfeb_hub(cfebs_[icfeb], COMP_DAC, 15, dt, rcvbuf, NOW|NOOP_YES);
+  }          
    usleep(20);
  }
 }
@@ -1299,24 +1370,32 @@ char dt[2];
  //
  (*MyOutput_) << "Set_comp_thresh.icfeb=" << cfebs_[icfeb].number() << " thresh=" << thresh << std::endl;
  //
- DEVTYPE dv = cfebs_[icfeb].scamDevice();
- //
- (*MyOutput_) << "cfeb= " << icfeb << std::endl;
- (*MyOutput_) << "dv= " << dv << std::endl;
- //
- cmd[0]=VTX_USR1;
- sndbuf[0]=COMP_DAC;
- devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
- cmd[0]=VTX_USR2;
- sndbuf[0]=dt[0];
- sndbuf[1]=dt[1];
- sndbuf[2]=0x00; 
- devdo(dv,5,cmd,15,sndbuf,rcvbuf,0);
- cmd[0]=VTX_USR1;
- sndbuf[0]=NOOP;
- devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
- cmd[0]=VTX_BYPASS;
- devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+  int hversion=cfebs_[icfeb].GetHardwareVersion();
+  if(hversion<=1)
+  {
+    DEVTYPE dv = cfebs_[icfeb].scamDevice();
+    //
+    //(*MyOutput_) << "cfeb= " << icfeb << std::endl;
+    //(*MyOutput_) << "dv= " << dv << std::endl;
+    //
+    cmd[0]=VTX_USR1;
+    sndbuf[0]=COMP_DAC;
+    devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=VTX_USR2;
+    sndbuf[0]=dt[0];
+    sndbuf[1]=dt[1];
+    sndbuf[2]=0x00; 
+    devdo(dv,5,cmd,15,sndbuf,rcvbuf,0);
+    cmd[0]=VTX_USR1;
+    sndbuf[0]=NOOP;
+    devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=VTX_BYPASS;
+    devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+  }
+  else if (hversion==2)
+  {
+    dcfeb_hub(cfebs_[icfeb], COMP_DAC, 15, dt, rcvbuf, NOW|NOOP_YES);
+  }          
  usleep(20);
 }
 //
@@ -1443,6 +1522,13 @@ void DAQMB::trigsetx(int *hp, int CFEBInput)
 //broadcast buckeye shift on DMB/CFEB level for external channel
 void DAQMB::buck_shift_ext_bc(int nstrip)
 {
+ // Liu, Sept. 2012
+ // This is temporary solution to avoid the broadcast for CFEBs going to DCFEBs 
+ // if CFEBs and DCFEBs mixed in one DMB, it won't work
+ // TODO......
+ int hversion=cfebs_[0].GetHardwareVersion();
+ if(hversion<=1)
+ {            
   char shft_bits[6]={0,0,0,0,0,0};
 
   //external cap mode: 100
@@ -1473,11 +1559,41 @@ void DAQMB::buck_shift_ext_bc(int nstrip)
   devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
 
   ::usleep(200);
+ }
+ else if (hversion==2)
+ {
+   dcfeb_buck_shift_ext_bc(nstrip);
+ }
+}
+
+//broadcast buckeye shift on DMB/DCFEB level for external channel
+void DAQMB::dcfeb_buck_shift_ext_bc(int nstrip)
+{
+  char shft_bits[6]={0,0,0,0,0,0};
+
+  //external cap mode: 100
+  //When shift, it shift strip 1 first, and low bit first
+  int i=(15-nstrip)*3+2;
+  if ((nstrip >= 0) && (nstrip < 16)) shft_bits[i/8]=((1<<(i%8))&0xff);
+
+  // enable all DCFEBs for broadcast
+  write_cfeb_selector(0x7F);
+  sndbuf[0]=0;    //set the mask to 0 will enable broadcast
+  dcfeb_core(CHIP_MASK, 6, sndbuf, rcvbuf, NOW|NO_BYPASS);
+  dcfeb_core(CHIP_SHFT, 48,shft_bits, rcvbuf, NOW|NOOP_YES);
+  ::usleep(200);
 }
 
 //broadcast buckeye shift on DMB/CFEB level for comparator
 void DAQMB::buck_shift_comp_bc(int nstrip)
 {
+ // Liu, Sept. 2012
+ // This is temporary solution to avoid the broadcast for CFEBs going to DCFEBs 
+ // if CFEBs and DCFEBs mixed in one DMB, it won't work
+ // TODO......
+ int hversion=cfebs_[0].GetHardwareVersion();
+ if(hversion<=1)
+ {            
   char shft_bitsa[6]={0,0,0,0,0,0};
   char shft_bitsb[6]={0,0,0,0,0,0};
 
@@ -1534,6 +1650,57 @@ void DAQMB::buck_shift_comp_bc(int nstrip)
   devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
 
   ::usleep(200);
+ }
+ else if (hversion==2)
+ {
+   dcfeb_buck_shift_comp_bc(nstrip);
+ }
+}
+
+//broadcast buckeye shift on DMB/DCFEB level for comparator
+void DAQMB::dcfeb_buck_shift_comp_bc(int nstrip)
+{
+  char shft_bitsa[6]={0,0,0,0,0,0};
+  char shft_bitsb[6]={0,0,0,0,0,0};
+
+  //small_cap  =1
+  //medium_cap =2
+  //large_cap  =3
+  //When shift, it shift strip 1 first, and low bit first
+  int i=(15-nstrip)*3;
+  long long patterna=0x99; //132 for layer 1,3,5 (channel 15 first)
+  long long patternb=0x5a; //231 for layer 2,4,6 (channel 15 first)
+  if ((nstrip >= 0) && (nstrip < 16)) {
+    long long pattern=0;
+    pattern=(patterna<<i)>>3;
+    if (i==0) pattern=pattern|(patterna<<45);
+    if (i==45) pattern=pattern|(patterna>>6);
+    for (int j=0;j<6;j++) {
+      shft_bitsa[j]=(pattern>>(j*8))&0xff;
+    }
+    pattern=0;
+    pattern=(patternb<<i)>>3;
+    if (i==0) pattern=pattern|(patternb<<45);
+    if (i==45) pattern=pattern|(patternb>>6);
+    for (int j=0;j<6;j++) {
+      shft_bitsb[j]=(pattern>>(j*8))&0xff;
+    }
+  }
+
+  // enable all DCFEBs for broadcast
+  write_cfeb_selector(0x7F);
+  sndbuf[0]=0x3F;    //set the mask to 111111 as the patterns are different for different buckeyes
+  dcfeb_core(CHIP_MASK, 6, sndbuf, rcvbuf, NOW|NO_BYPASS);
+  //shift in 48*6 bits
+  for (int j=0;j<18;j++) {
+    sndbuf[j]=(shft_bitsb[j%6])&0xff;
+  }
+  for (int j=18;j<36;j++) {
+    sndbuf[j]=(shft_bitsa[j%6])&0xff;
+  }
+  dcfeb_core(CHIP_SHFT, 288, sndbuf, rcvbuf, NOW|NOOP_YES);
+
+  ::usleep(200);
 }
 
 void DAQMB::chan2shift(int chan[5][6][16])
@@ -1576,14 +1743,21 @@ void DAQMB::chan2shift(int chan[5][6][16])
 	 shft_bits[lay][4]=((chan[brdn][lay][2]<<7)|(chan[brdn][lay][3]<<4)|(chan[brdn][lay][4]<<1)|(chan[brdn][lay][5]>>2))&0XFF;
 	 shft_bits[lay][5]=((chan[brdn][lay][0]<<5)|(chan[brdn][lay][1]<<2)|(chan[brdn][lay][2]>>1))&0XFF;
      }
-      cmd[0]=VTX_USR1;
-      sndbuf[0]=CHIP_MASK;
-      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
-      cmd[0]=VTX_USR2;
       chip_mask=0;
       for(i=0;i<6;i++){
 	 chip_mask=chip_mask|(1<<(5-i));
       }
+ // Liu, Sept. 2012
+ // This is temporary solution to avoid the broadcast for CFEBs going to DCFEBs 
+ // if CFEBs and DCFEBs mixed in one DMB, it won't work
+ // TODO......
+      int hversion=cfebs_[icfeb].GetHardwareVersion();
+      if(hversion<=1)
+      {            
+      cmd[0]=VTX_USR1;
+      sndbuf[0]=CHIP_MASK;
+      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+      cmd[0]=VTX_USR2;
       devdo(dv,5,cmd,6,&chip_mask,rcvbuf,0);
       nchips=6;
       cmd[0]=VTX_USR1;
@@ -1604,6 +1778,12 @@ void DAQMB::chan2shift(int chan[5][6][16])
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
       cmd[0]=VTX_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+      }
+      else if (hversion==2)
+      {
+         write_cfeb_selector(cfebs_[icfeb].SelectorBit());
+         BuckeyeShift((int)chip_mask, shft_bits);
+      }
    }
 }
 
@@ -1796,21 +1976,27 @@ void DAQMB::cfebs_readstatus()
 
   std::cout << "DAQMB: cfebs_readstatus" << std::endl;
   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
-    DEVTYPE dv = cfebs_[icfeb].scamDevice();
-    int idv=(int)(dv-F1SCAM); 
-    //iuse[idv]=1;
-    febbuf[idv][0]='\0';
-    febbuf[idv][1]='\0';
-    febbuf[idv][2]='\0';
-    febbuf[idv][3]='\0';
+ // Liu, Sept. 2012
+ // disabled for DCFEBs for now 
+ // TODO......
+    int hversion=cfebs_[icfeb].GetHardwareVersion();
+    if(hversion<=1)
+    {            
+      DEVTYPE dv = cfebs_[icfeb].scamDevice();
+      int idv=(int)(dv-F1SCAM); 
+      //iuse[idv]=1;
+      febbuf[idv][0]='\0';
+      febbuf[idv][1]='\0';
+      febbuf[idv][2]='\0';
+      febbuf[idv][3]='\0';
     //if(iuse[idv]==1){
       std::cout << " dv= " << dv << " STATUS_S " << STATUS_S << std::endl;
-      cmd[0]=VTX2_USR1;
+      cmd[0]=VTX_USR1;
       sndbuf[0]=STATUS_S;
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
       //      cmd[0]=VTX2_BYPASS;
       //      devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
-      cmd[0]=VTX2_USR2;
+      cmd[0]=VTX_USR2;
       sndbuf[0]=0xd5;
       sndbuf[1]=0xee;
       sndbuf[2]=0xdf;
@@ -1841,9 +2027,10 @@ void DAQMB::cfebs_readstatus()
       devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
       printf(" SCA rcvbuf shift *** %02x %02x %02x %02x \n",rcvbuf[3]&0xFF,rcvbuf[2]&0xFF,rcvbuf[1]&0xFF,rcvbuf[0]&0xFF);    */
 
-      cmd[0]=VTX2_BYPASS;
+      cmd[0]=VTX_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
       //}
+    }
   }
   printf("Boards in use              ");
   for(i=0;i<5;i++){
@@ -2056,7 +2243,7 @@ bool DAQMB::CheckControlFirmwareVersion() {
   //
 }
 //
-bool DAQMB::CheckCFEBFirmwareVersion(const CFEB & cfeb) {
+bool DAQMB::CheckCFEBFirmwareVersion(CFEB & cfeb) {
   //
   int cfeb_index = cfeb.number();
   //
@@ -2066,8 +2253,7 @@ bool DAQMB::CheckCFEBFirmwareVersion(const CFEB & cfeb) {
   return ( febfpgauser(cfeb) == (unsigned int) GetExpectedCFEBFirmwareTag(cfeb_index) );
 }
 //
-//
-unsigned int DAQMB::febpromuser(const CFEB & cfeb)
+unsigned int DAQMB::febpromuser(CFEB & cfeb)
 { unsigned int ibrd;
   DEVTYPE dv = cfeb.promDevice();
   printf("%d \n",dv);
@@ -2094,7 +2280,7 @@ unsigned int DAQMB::febpromuser(const CFEB & cfeb)
   return ibrd;
 }
 
-unsigned int  DAQMB::febpromid(const CFEB & cfeb)
+unsigned int  DAQMB::febpromid(CFEB & cfeb)
 {
   DEVTYPE dv = cfeb.promDevice();
   cmd[0]=PROM_IDCODE;
@@ -2115,9 +2301,12 @@ unsigned int  DAQMB::febpromid(const CFEB & cfeb)
   return ibrd;
 }
 
-unsigned int  DAQMB::febfpgauser(const CFEB & cfeb)
+unsigned int  DAQMB::febfpgauser(CFEB & cfeb)
 {
-  unsigned int ibrd;
+  unsigned int ibrd=0;
+  int hversion=cfeb.GetHardwareVersion();
+if(hversion<=1)
+{
   DEVTYPE dv = cfeb.scamDevice();
   cmd[0]=VTX_USERCODE;
   sndbuf[0]=0xFF;
@@ -2131,11 +2320,20 @@ unsigned int  DAQMB::febfpgauser(const CFEB & cfeb)
   cmd[0]=VTX_BYPASS;
   sndbuf[0]=0;
   devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
-  usleep(100);
+}
+else if(hversion==2)
+{
+  write_cfeb_selector(cfeb.SelectorBit());
+  dcfeb_fpga_call(VTX6_USERCODE, 0, (char *)&ibrd);
+}
   return ibrd;
 }
 
-unsigned int  DAQMB::febfpgaid(const CFEB & cfeb)
+unsigned int  DAQMB::febfpgaid(CFEB & cfeb)
+{
+  unsigned ibrd=0;
+  int hversion=cfeb.GetHardwareVersion();
+if(hversion<=1)
 {
   DEVTYPE dv = cfeb.scamDevice();
   cmd[0]=VTX_IDCODE;
@@ -2148,10 +2346,16 @@ unsigned int  DAQMB::febfpgaid(const CFEB & cfeb)
   (*MyOutput_) << " The FPGA Chip IDCODE is " << std::hex << 
     (0xff&rcvbuf[3]) << (0xff&rcvbuf[2]) << (0xff&rcvbuf[1]) << (0xff&rcvbuf[0]) << std::endl;
   // RPW not sure about this
-  unsigned ibrd = unpack_ibrd();
+  ibrd = unpack_ibrd();
   cmd[0]=VTX_BYPASS;
   sndbuf[0]=0;
   devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+}
+else if(hversion==2)
+{
+  write_cfeb_selector(cfeb.SelectorBit());
+  dcfeb_fpga_call(VTX6_IDCODE, 0, (char *)&ibrd);
+}
   return ibrd;
 }
 
@@ -2296,10 +2500,13 @@ int lay,i,j;
 int nchips2;
 char shft_bits[6][6];
 
-  for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) {
-    
-    DEVTYPE dv = cfebItr->scamDevice();
-    int brd=cfebItr->number();
+  for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) 
+  {
+    int hversion=cfebItr->GetHardwareVersion();
+    if(hversion<=1)
+    {            
+      DEVTYPE dv = cfebItr->scamDevice();
+      int brd=cfebItr->number();
       for(lay=0;lay<6;lay++){
         shft_bits[lay][0]=((shift_array[brd][lay][13]<<6)|(shift_array[brd][lay][14]<<3)|shift_array[brd][lay][15])&0XFF;
         shft_bits[lay][1]=((shift_array[brd][lay][10]<<7)|(shift_array[brd][lay][11]<<4)|(shift_array[brd][lay][12]<<1)|(shift_array[brd][lay][13]>>2))&0XFF;
@@ -2338,6 +2545,13 @@ char shft_bits[6][6];
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
       cmd[0]=VTX_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+    }
+    else if (hversion==2)
+    {
+      int chip_mask= cfebItr->chipMask();
+      write_cfeb_selector(cfebItr->SelectorBit());
+      BuckeyeShift((int)chip_mask, shft_bits);
+    }
   }
   //
   ::usleep(200);
@@ -2354,11 +2568,14 @@ int swtchbits = -1;
 char shft_bits[6][6];
   boffset=xtrabits+swtchbits;
 
-  for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) {
-    
-    DEVTYPE dv = cfebItr->scamDevice();
-    int brd=cfebItr->number();
-    printf(" BUCKSHIFT scamdev %d brd %d \n",dv,brd);
+  for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) 
+  {
+    int hversion=cfebItr->GetHardwareVersion();
+    if(hversion<=1)
+    {            
+      DEVTYPE dv = cfebItr->scamDevice();
+      int brd=cfebItr->number();
+      printf(" BUCKSHIFT scamdev %d brd %d \n",dv,brd);
       for(lay=0;lay<6;lay++){
         shft_bits[lay][0]=((shift_array[brd][lay][13]<<6)|(shift_array[brd][lay][14]<<3)|shift_array[brd][lay][15])&0XFF;
         shft_bits[lay][1]=((shift_array[brd][lay][10]<<7)|(shift_array[brd][lay][11]<<4)|(shift_array[brd][lay][12]<<1)|(shift_array[brd][lay][13]>>2))&0XFF;
@@ -2404,6 +2621,13 @@ char shft_bits[6][6];
         shift_out[brd][jj]=shift_out[brd][jj]|((rcvbuf[k-1]>>boffset)&~(~0<<(8-boffset)));
         jj++;
       }
+    }
+    else if (hversion==2)
+    {
+      int chip_mask= cfebItr->chipMask();
+      write_cfeb_selector(cfebItr->SelectorBit());
+      BuckeyeShift(chip_mask, shft_bits, rcvbuf);
+    }
   }
 }
 
@@ -2484,8 +2708,13 @@ char pat[42],chk[42] = {0xBA,0xDF,0xEE,0xD5,0xDE,0xAD};
 void DAQMB::preamp_initx()
 {
 int i,j,nchips2;
-  for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) {
+char shft_bits[6][6];
+for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) 
+{
 
+  int hversion=cfebItr->GetHardwareVersion();
+  if(hversion<=1)
+  {            
     DEVTYPE dv = cfebItr->scamDevice();
 
     cmd[0]=VTX_USR1;
@@ -2511,6 +2740,14 @@ int i,j,nchips2;
     cmd[0]=VTX_BYPASS;
     devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
   }
+  else if (hversion==2)
+  {
+      for(i=0; i<6; i++) for(j=0; i<6; j++) shft_bits[i][j]=0;
+      int chip_mask= cfebItr->chipMask();
+      write_cfeb_selector(cfebItr->SelectorBit());
+      BuckeyeShift(chip_mask, shft_bits);
+  }
+}
   (*MyOutput_) << "done with preamp init " << std::endl;
 }
 
@@ -3352,7 +3589,7 @@ void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *
 
 void DAQMB::epromread(DEVTYPE devnum){
   // read back eprom for VPROM,MPROM,F1PROM-F5PROM
-  int data_amount;
+  int data_amount=0;
   int nbits,totbits;
   char tmp;
   int pause,xtrbits;
@@ -6864,9 +7101,8 @@ int DAQMB::read_cfeb_selector()
   return mask;
 }
 
-void DAQMB::cfeb_do(int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
+void DAQMB::cfeb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd)
 {
-  int DEBUG=0;
   int CFEB_DEV=1;
   char tmp[2];
   unsigned short int ishft,temp;
@@ -6877,21 +7113,18 @@ void DAQMB::cfeb_do(int ncmd,const char *cmd,int nbuf,const char *inbuf,char *ou
           irdsnd = 2    read, later
           irdsnd = 3    read, now
   */
-  if (DEBUG) {
-      printf("dcfeb_do: ncmd=%d, nbuf=%d, irdsnd=%d, Cmd %02x %02x\n", 
-              ncmd, nbuf, irdsnd, cmd[0]&0xff, cmd[1]&0xff);
-   }
-
-//       setuse();
-
    if(ncmd<0)
    { // Reset Jtag State Machine
      Jtag_Ohio(CFEB_DEV, 0, tmp,-1, tmp, 0, (irdsnd&1));
      return;
    }
-   if(ncmd>0) Jtag_Ohio(CFEB_DEV, 0, cmd,ncmd,outbuf,0,(nbuf>0)?0:(irdsnd&1));
+   if(ncmd>0) Jtag_Ohio(CFEB_DEV, 0, (char *)cmd,ncmd, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
 //   if(ncmd>0 && nbuf>0) sleep_vme(200); 
-   if(nbuf>0) Jtag_Ohio(CFEB_DEV, 1,inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&1);
+   if(nbuf>0) Jtag_Ohio(CFEB_DEV, 1,(char *)inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&NOW);
+//
+// Liu Spet. 2012
+// the following is not useful if the packets are buffered
+// TODO
    if((irdsnd&1)==1 && nbuf%16!=0)
    {
      ishft=16-nbuf%16;
@@ -6902,6 +7135,614 @@ void DAQMB::cfeb_do(int ncmd,const char *cmd,int nbuf,const char *inbuf,char *ou
    }
 }
 //
+void DAQMB::dcfeb_fpga_call(int inst, unsigned data, char *outbuf)
+{
+  char temp[4];
+  cfeb_do(10, &inst, 32, &data, outbuf, NOW|READ_YES);
+  int comd=VTX6_BYPASS;
+  cfeb_do(10, &comd, 0, &data, temp, NOW);
+}
+
+std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
+{
+  // only read out first 3 channels
+  
+  std::vector<float> readout;
+  char buf[4]={0,0,0,0};
+  int comd=VTX6_SYSMON;
+  unsigned data, ibrd, adc;
+  float readf;
+
+  readout.clear();
+  int hversion=cfeb.GetHardwareVersion();
+  if(hversion==2)
+  {
+     write_cfeb_selector(cfeb.SelectorBit());
+     comd=VTX6_SYSMON;
+//     this can be used to change register 0x48 to enable more channels
+//     data=0x8483F00;
+//     cfeb_do(10, &comd, 32, &data, rcvbuf, 3);
+     data=0x4000000;
+     cfeb_do(10, &comd, 32, &data, rcvbuf, NOW|READ_YES);
+     for(unsigned i=0; i<3; i++)
+     {
+        data += 0x10000;
+        cfeb_do(0, buf, 32, &data, (char *)&ibrd, NOW|READ_YES);
+        adc = (ibrd>>6)&0x3FF;
+        if(i==0)
+          readf=adc*503.975/1024.0-273.15;
+        else
+          readf=adc*3.0/1024.0;
+        readout.push_back(readf);
+     }
+     comd=VTX6_BYPASS;
+     cfeb_do(10, &comd, 0, &data, rcvbuf, NOW);
+  }
+  return readout;
+}
+
+void DAQMB::dcfeb_core(int jfunc, int nbit,void *inbuf, char *outbuf, int option)
+{
+// option
+//    bit 0   = 0  later
+//            = 1  now
+//    bit 1   = 0  no read
+//            = 2  read
+//    bit 2   = 0  no NOOP
+//            = 4  NOOP
+//    bit 3   = 0  with BYPASS (normal)
+//            = 8  No BYPASS at the end
+
+  char buf[4]={0,0,0,0};
+  int comd;
+
+     comd=VTX6_USR1;
+     buf[0]=jfunc&0xFF;
+     cfeb_do(10, &comd, 8, buf, rcvbuf, LATER);
+     if(nbit>0)
+     {
+        comd=VTX6_USR2;
+        cfeb_do(10, &comd, nbit, inbuf, outbuf, option&0x3);
+        if(option & NOOP_YES) 
+        {
+           comd=VTX6_USR1;
+           buf[0]=NOOP;
+           cfeb_do(10, &comd, 8, buf, rcvbuf, LATER);
+        }
+     }
+     if((option & NO_BYPASS)==0)
+     {
+        comd=VTX6_BYPASS;
+        cfeb_do(10, &comd, 0, buf, rcvbuf, NOW);
+     }
+  return;
+}
 //
+// the only diffrence between dcfeb_hub() and dcfeb_core() is that dcfeb_hub() selects which DCFEB to use
+//
+void DAQMB::dcfeb_hub(CFEB & cfeb, int jfunc, int nbit, void *inbuf, char *outbuf, int option)
+{
+// option
+//    bit 0   = 0  later
+//            = 1  now
+//    bit 1   = 0  no read
+//            = 2  read
+//    bit 2   = 0  no NOOP
+//            = 4  NOOP
+
+  write_cfeb_selector(cfeb.SelectorBit());
+  dcfeb_core(jfunc, nbit, inbuf, outbuf, option);
+  return;
+}
+
+void DAQMB::dcfeb_sys_reset(CFEB & cfeb)
+{
+  char buf[4];
+  dcfeb_hub(cfeb, 1, 0, buf, buf, NOW);
+  return;
+}
+
+unsigned DAQMB::dcfeb_read_status(CFEB & cfeb)
+{
+  unsigned temp;
+  char buf[4]={0xFF,0xFF,0xFF,0xFF};
+  dcfeb_hub(cfeb, 2, 32, buf, (char *)&temp, NOW|READ_YES);
+  return temp;
+}
+void DAQMB::BuckeyeShift(int chip_mask,char shft_bits[6][6], char *shft_out)
+{
+  int lay;
+  int readback=0;
+  if(shft_out != NULL) readback=READ_YES;
+
+  sndbuf[0]=chip_mask&0xFF; 
+  dcfeb_core(CHIP_MASK, 6, sndbuf, rcvbuf, NOW|NO_BYPASS);
+  // shuffle the data to the correct layer (each layer has 6 bytes) 
+    int  j=0;
+      for(int chip=5;chip>=0;chip--){
+	 lay=layers[chip];
+	 for(int i=0;i<6;i++){
+	    sndbuf[j*6+i]=shft_bits[lay][i];
+	 }
+	 j++;
+      }
+  dcfeb_core(CHIP_SHFT, 288, sndbuf, rcvbuf, NOW|NOOP_YES|readback);
+  if(readback)  memcpy(shft_out, rcvbuf, 36);
+}
+
+void DAQMB::FADC_SetMask(CFEB & cfeb, short int mask)
+{
+  unsigned temp;
+  dcfeb_hub(cfeb, FADC_MASK, 12, &mask, (char *)&temp, NOW);
+  return;
+}
+
+void DAQMB::FADC_Initialize(CFEB & cfeb)
+{
+  char tmp[2];
+  dcfeb_hub(cfeb, FADC_INIT, 0, &tmp, tmp, NOW);
+  return;
+}
+
+void DAQMB::FADC_ShiftData(CFEB & cfeb, unsigned bits)
+{
+  unsigned temp;
+  dcfeb_hub(cfeb, FADC_SHIFT, 26, &bits, (char *)&temp, NOW);
+  return;
+}
+
+void DAQMB::Pipeline_Restart(CFEB & cfeb)
+{
+  char tmp[2];
+  dcfeb_hub(cfeb, Pipeline_Restrt, 0, &tmp, tmp, NOW);
+  return;
+}
+
+void DAQMB::Set_PipelineDepth(CFEB & cfeb, short int depth)
+{
+  unsigned temp;
+  dcfeb_hub(cfeb, Pipeline_Depth, 9, &depth, (char *)&temp, NOW);
+  return;
+}
+
+void DAQMB::Set_NSAMPLE(CFEB & cfeb, int nsample)
+{
+  unsigned temp;
+  dcfeb_hub(cfeb, Pipeline_NSAMPLE, 7, &nsample, (char *)&temp, NOW);
+  return;
+}
+
+unsigned short DAQMB::dcfeb_fine_delay(CFEB & cfeb, unsigned short delay)
+{
+  unsigned short temp;
+  dcfeb_hub(cfeb, FINE_DELAY, 4, &delay, (char *)&temp, NOW|READ_YES);
+  return (temp&0xF);
+}
+
+void DAQMB::dcfeb_XPROM_do(unsigned short command)
+{
+  unsigned short temp;
+  dcfeb_core(EPROM_bpi_write, 16, &command, (char *)&temp, NOW);
+  return;
+}
+
+unsigned DAQMB::dcfeb_bpi_readtimer()
+{
+  unsigned temp;
+  char buf[4]={0xFF,0xFF,0xFF,0xFF};
+  dcfeb_core(EPROM_bpi_timer, 32, buf, (char *)&temp, NOW|READ_YES);
+  return temp;
+}
+
+void DAQMB::dcfeb_bpi_reset()
+{
+  unsigned temp;
+  char buf[4];
+  dcfeb_core(EPROM_bpi_reset, 0, buf, (char *)&temp, NOW);
+  return;
+}
+
+void DAQMB::dcfeb_bpi_disable()
+{
+  unsigned temp;
+  char buf[4];
+  dcfeb_core(EPROM_bpi_disable, 0, buf, (char *)&temp, NOW);
+  return;
+}
+
+void DAQMB::dcfeb_bpi_enable()
+{
+  unsigned temp;
+  char buf[4];
+  dcfeb_core(EPROM_bpi_enable, 0, buf, (char *)&temp, NOW);
+  return;
+}
+
+unsigned short DAQMB::dcfeb_bpi_status()
+{
+  /* status register
+     low 8 bits XLINK
+      0-blank write status/multiple work program status
+      1-block protection status
+      2-program suspend status
+      3-vpp status
+      4-program status
+      5-erase/blank check status
+      6-erase/suspend status
+      7-P.E.C. Status
+     high 8 bits Ben
+      0-cmd fifo write error
+      1-cmd fifo read error
+      2-cmd fifo full 
+      3-cmd fifo empty
+      4-rbk fifo write error
+      5-rbk fifo read error
+      6-rbk fifo full 
+      7-rbk fifo empty
+  */  
+  unsigned short temp;
+  char buf[4]={0xFF,0xFF,0xFF,0xFF};
+  dcfeb_core(EPROM_bpi_status, 16, buf, (char *)&temp, NOW|READ_YES);
+  return temp;
+}
+
+void DAQMB::epromdirect_noop() 
+{ dcfeb_XPROM_do(XPROM_NoOp); }
+
+void DAQMB::epromdirect_lock() 
+{ dcfeb_XPROM_do(XPROM_Block_Lock); }
+
+void DAQMB::epromdirect_unlock() 
+{ dcfeb_XPROM_do(XPROM_Block_UnLock); }
+
+void DAQMB::epromdirect_timerstart() 
+{ dcfeb_XPROM_do(XPROM_Timer_Start); } 
+
+void DAQMB::epromdirect_timerstop() 
+{ dcfeb_XPROM_do(XPROM_Timer_Stop); } 
+
+void DAQMB::epromdirect_timerreset() 
+{ dcfeb_XPROM_do(XPROM_Timer_Reset); } 
+
+void DAQMB::epromdirect_clearstatus() 
+{ dcfeb_XPROM_do(XPROM_Clear_Status); }
+
+void DAQMB::epromdirect_unlockerase() 
+{ 
+   unsigned short tmp[2];
+   tmp[0]=XPROM_Block_UnLock;
+   tmp[1]=XPROM_Block_Erase;
+   epromdirect_manual(2, tmp);
+}
+
+void DAQMB::epromdirect_loadaddress(unsigned short uaddr, unsigned short laddr) 
+{ 
+   unsigned short tmp[2];
+   tmp[0]=((uaddr<<5)&0xffe0)|XPROM_Load_Address;
+   tmp[1]=laddr;
+   epromdirect_manual(2, tmp);
+}
+
+void DAQMB::epromdirect_manual(int cnt, unsigned short *manbuf)
+{
+    unsigned short comd, tmp;
+    comd=VTX6_USR1;
+    tmp=EPROM_bpi_write; 
+    cfeb_do(10, &comd, 8, &tmp, rcvbuf, LATER);
+    for(int i=0; i<cnt; i++)
+    {
+      comd=VTX6_USR2;
+      tmp=manbuf[i];
+      cfeb_do(10, &comd, 16, &tmp, rcvbuf, LATER);
+    }
+    comd=VTX6_BYPASS;
+    tmp=0;
+    cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+                                         
+    return;
+}
+
+void DAQMB::epromdirect_bufferprogram(unsigned nwords,unsigned short *prm_dat)
+{
+// nwords max. 11 bits (2048 words)
+    unsigned short comd, tmp;
+    comd=VTX6_USR1;
+    tmp=EPROM_bpi_write; 
+    cfeb_do(10, &comd, 8, &tmp, rcvbuf, LATER);
+    comd=VTX6_USR2;
+    tmp= (((nwords-1)<<5)&0xffe0)|XPROM_Buffer_Program;
+    cfeb_do(10, &comd, 16, &tmp, rcvbuf, LATER);
+    // send data
+    for(unsigned i=0; i<nwords; i++)
+    {
+      comd=VTX6_USR2;
+      tmp=prm_dat[i];
+      cfeb_do(10, &comd, 16, &tmp, rcvbuf, LATER);
+    }
+    comd=VTX6_BYPASS;
+    tmp=0;
+    cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+    return;
+}
+
+
+void DAQMB::epromdirect_read(unsigned nwords, unsigned short *pdata)
+{
+// nwords max. 11 bits (2048 words)
+    int toread, leftover;
+    unsigned short comd, tmp;
+    leftover=nwords;
+    while(leftover>0)
+    {
+      toread = (leftover>16)?16:leftover;
+      leftover -= toread;
+      
+      comd=VTX6_USR1;
+      tmp=EPROM_bpi_write; 
+      cfeb_do(10, &comd, 8, &tmp, rcvbuf, LATER);
+      // how many words (max 16) to read
+      comd=VTX6_USR2;
+      tmp= (((toread-1)<<5)&0xffe0)|XPROM_Read_n;
+      cfeb_do(10, &comd, 16, &tmp, rcvbuf, LATER);
+      comd=VTX6_BYPASS;
+      tmp=0;
+      cfeb_do(10, &comd, 0, &tmp, rcvbuf, LATER);
+      //sleep_vme()
+      vme_delay(20);
+      // enter READ mode
+      comd=VTX6_USR1;
+      tmp=EPROM_bpi_read; 
+      cfeb_do(10, &comd, 8, &tmp, rcvbuf, LATER);
+
+      // read in words
+      comd=VTX6_USR2;
+      tmp= 0;  // NOOP
+      for(int i=0; i<toread; i++)
+      {
+        cfeb_do(10, &comd, 16, &tmp, rcvbuf, READ_YES|LATER);
+      }
+      int sendnow=LATER;
+      if(leftover==0) sendnow=NOW;
+      comd=VTX6_BYPASS;
+      tmp=0;
+      cfeb_do(10, &comd, 0, &tmp, rcvbuf, sendnow);
+    }
+    memcpy(pdata, rcvbuf, nwords*2);
+    return;
+}
+
+// copied from Stan's DCFEB code
+// must select a DCFEB first before calling it
+void DAQMB::epromload_parameters(int paramblock, int nwords, unsigned short int  *val)
+{
+  /*  The highest four blocks in the eprom are parameter banks of
+      length 16k 16 bit words. the starting
+      addresses are:
+
+           block 0  007f 0000
+           block 1  007f 4000
+           block 2  007f 8000
+           block 3  007f c000
+
+     the config program takes up the range
+                    0000 0000
+                    0005 4000
+
+      ref: http://www.xilinx.com/support/documentation/data_sheets/ds617.pdf
+
+                   2-byte words       bytes
+      eprom size     0x00800000        0x01000000
+      mcs size       0x002A0000        0x00540000
+      params addr    0x007f0000        0x00fe0000
+      
+      mcs file addressing is in bytes
+*/
+
+  unsigned int fulladdr;
+  unsigned int uaddr,laddr;
+  unsigned int nxt_blk_addr;
+
+  if(nwords>2048){
+    printf(" Catastrophy:parameter space large rewrite program %d \n",nwords);
+    return;
+  }
+  dcfeb_bpi_reset();
+  dcfeb_bpi_enable();
+  epromdirect_timerstop();
+  epromdirect_timerreset();
+  uaddr=0x007f;  // segment address for parameter blocks
+  laddr=paramblock*0x4000;
+  fulladdr = (uaddr<<16) + laddr;
+  printf(" parameter_write fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+  epromdirect_timerstart();
+
+  epromdirect_loadaddress(uaddr,laddr);
+  // unlock and erase the block
+  epromdirect_unlockerase();
+
+  usleep(400000);
+
+  // program with new data from the beginning of the block
+  epromdirect_bufferprogram(nwords,val);
+  unsigned int sleeep=1984*64+164;
+  usleep(sleeep);
+  
+  nxt_blk_addr=fulladdr+0x4000;
+  uaddr = (nxt_blk_addr >> 16);
+  laddr = nxt_blk_addr &0xffff;
+  // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+  epromdirect_loadaddress(uaddr,laddr);
+  // lock last block
+  epromdirect_lock();
+  dcfeb_bpi_disable();
+  usleep(10);
+}
+
+// must select a DCFEB first before calling it
+void DAQMB::epromread_parameters(int paramblock,int nwords,unsigned short int  *val)
+{
+  /*  The highest four blocks in the eprom are parameter banks of
+      length 16k 16 bit words. The starting
+      addresses are:
+
+           block 0  007f 0000
+           block 1  007f 4000
+           block 2  007f 8000
+           block 3  007f c000
+
+      ref: http://www.xilinx.com/support/documentation/data_sheets/ds617.pdf 
+   */
+  
+  unsigned int uaddr,laddr;
+  if(paramblock<0 || paramblock>3) return;
+  
+  if(nwords>2048){
+    printf(" Catastrophy: parameter space too large: %d\n",nwords);
+    return;
+  }
+  dcfeb_bpi_reset();
+  dcfeb_bpi_enable();
+  uaddr=0x007f;  // segment address for parameter blocks
+  laddr=paramblock*0x4000;
+  printf(" parameter_read fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+  epromdirect_loadaddress(uaddr,laddr);
+  epromdirect_read(nwords,val);
+  dcfeb_bpi_disable();
+}
+
+void DAQMB::dcfeb_readfirmware_mcs(CFEB & cfeb, char *filename)
+{
+
+   unsigned fulladdr=0, uaddr, laddr;
+   unsigned read_size=0x800;
+   unsigned short *buf;
+   FILE *mcsfile;
+   int total_blocks=1344;
+   int filesize=read_size*total_blocks*2;
+   
+   mcsfile=fopen(filename, "w");
+   if(mcsfile==NULL)
+   {
+      std::cout << "Unable to open file to write :" << filename << std::endl;
+      return;
+   }
+
+   write_cfeb_selector(cfeb.SelectorBit());
+   buf=(unsigned short *)malloc(8*1024*1024);
+
+   dcfeb_bpi_reset();
+   dcfeb_bpi_enable();
+   
+   for(int i=0; i< total_blocks; i++)
+   {
+       uaddr = (fulladdr >> 16);
+       laddr = fulladdr &0xffff;
+       epromdirect_loadaddress(uaddr, laddr);
+
+       epromdirect_read(read_size, buf+i*read_size);
+
+       fulladdr += read_size;
+   }
+   dcfeb_bpi_disable();
+
+   write_mcs((char *)buf, filesize, mcsfile);
+   fclose(mcsfile);
+   free(buf);
+   std::cout << " Total " << filesize << " bytes are read back from EPROM and saved in mcs-format file: " << filename << std::endl;
+   return;
+}
+
+void DAQMB::dcfeb_configure(CFEB & cfeb) 
+{
+
+  int number_ = cfeb.number();
+
+// these values should be set in the config xml file:
+  int pipeline_length_[7]={60,60,60,60,60,60,60};
+  int trigger_clk_phase_[7]={0,0,0,0,0,0,0};
+  int daq_clk_phase_[7]={0,0,0,0,0,0,0};
+  
+  write_cfeb_selector(cfeb.SelectorBit());
+  
+  bool changed = false;
+  char bytesToLoad[44], dt[2];
+
+  dt[0] = dt[1] = 0;
+  int dthresh = int (4095 * ((3.5 - comp_thresh_cfeb_[number_]) / 3.5));
+  for (int i = 0; i < 8; i++)
+    {
+      dt[0] |= ((dthresh >> (i + 7)) & 1) << (7 - i);
+      dt[1] |= ((dthresh >> i) & 1) << (6 - i);
+    }
+  dt[0] = ((dt[1] << 7) & 0x80) + ((dt[0] >> 1) & 0x7f);
+  dt[1] = dt[1] >> 1;
+
+  for (int i = 0; i < 44; i++)
+    bytesToLoad[i] = 0;
+  epromread_parameters (3, 22, (unsigned short int *) bytesToLoad);
+  changed = bytesToLoad[36] != comp_mode_cfeb_[number_]
+         || bytesToLoad[37] != comp_timing_cfeb_[number_]
+         || bytesToLoad[38] != dt[0]
+         || bytesToLoad[39] != dt[1]
+         || bytesToLoad[40] != pipeline_length_[number_]
+         || bytesToLoad[41] != trigger_clk_phase_[number_]
+         || bytesToLoad[42] != daq_clk_phase_[number_];
+
+  printf ("current values of parameters in parameter block 3:\n");
+  printf ("  comp_mode: %d\n", bytesToLoad[36]);
+  printf ("  comp_timing: %d\n", bytesToLoad[37]);
+  printf ("  comp_thresh: %d\n", (bytesToLoad[38] & 0x00ff) | (bytesToLoad[39] & 0xff00));
+  printf ("  pipeline_length: %d\n", bytesToLoad[40]);
+  printf ("  trigger_clk_phase: %d\n", bytesToLoad[41]);
+  printf ("  daq_clk_phase: %d\n", bytesToLoad[42]);
+
+  if (changed)
+    {
+      bytesToLoad[36] = comp_mode_cfeb_[number_];
+      bytesToLoad[37] = comp_timing_cfeb_[number_];
+      bytesToLoad[38] = dt[0];
+      bytesToLoad[39] = dt[1];
+      bytesToLoad[40] = pipeline_length_[number_];
+      bytesToLoad[41] = trigger_clk_phase_[number_];
+      bytesToLoad[42] = daq_clk_phase_[number_];
+      bytesToLoad[43] = 0;
+
+      printf ("parameters from configuration file do not match currently stored values\n");
+      epromload_parameters (3, 22, (unsigned short int *) bytesToLoad);
+
+      printf ("  new values of parameters in parameter block 3:\n");
+      printf ("    comp_mode: %d\n", bytesToLoad[36]);
+      printf ("    comp_timing: %d\n", bytesToLoad[37]);
+      printf ("    comp_thresh: %d\n", (bytesToLoad[38] & 0x00ff) | (bytesToLoad[39] & 0xff00));
+      printf ("    pipeline_length: %d\n", bytesToLoad[40]);
+      printf ("    trigger_clk_phase: %d\n", bytesToLoad[41]);
+      printf ("    daq_clk_phase: %d\n", bytesToLoad[42]);
+    }
+  else
+    printf ("parameters in configuration file match currently stored values\n");
+
+}
+
+void DAQMB::dcfeb_test_dummy(CFEB & cfeb, int test)
+{
+// This dummy function can be used in various tests instead of creating a new function which would
+// require to recompile everything in PeripheralCore & PeripheralApps
+
+// test: dump eprom's parameter block 3
+  char bufout[2048];
+  int i, j;
+
+  write_cfeb_selector(cfeb.SelectorBit());
+  epromread_parameters (3, 1024, (unsigned short *)bufout);
+  for(i=0; i<128; i++)
+  {
+    printf("%02X0: ", i&0xFF);
+    for(j=0; j<16; j++)
+      printf("%02X ", (bufout[i*16+j])&0xFF);
+    printf("\n");
+  }
+}
+
+
 } // namespace emu::pc
 } // namespace emu
