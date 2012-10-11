@@ -241,7 +241,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
     xdata::String testId = *dynamic_cast<xdata::String*>( testIds.elementAt( iTest ) );;
     emu::step::TestParameters testParameters( testId.toString(), configuration_->getTestParametersXML(), &logger_ );
     bsem_.take();
-    isCurrentTestPassive_ = ( testParameters.getNEvents() > 0 );
+    isCurrentTestDurationUndefined_ = ( testParameters.getNEvents() > 0 );
     bsem_.give();
 
     try{
@@ -253,8 +253,8 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       //
       // Configure all Tester apps
       //
-      xdata::String             runType = string( ( (bool) isCurrentTestPassive_ ) ? "STEP_" : "Test_" ) + testId.toString();
-      xdata::Integer  maxNumberOfEvents = ( ( (bool) isCurrentTestPassive_ ) ? (int) testParameters.getNEvents() : -1 ); // unlimited if negative
+      xdata::String             runType = string( ( (bool) isCurrentTestDurationUndefined_ ) ? "STEP_" : "Test_" ) + testId.toString();
+      xdata::Integer  maxNumberOfEvents = ( ( (bool) isCurrentTestDurationUndefined_ ) ? (int) testParameters.getNEvents() : -1 ); // unlimited if negative
       xdata::Boolean writeBadEventsOnly = false;
       m.setParameters( "emu::daq::manager::Application", 
 		       emu::soap::Parameters()
@@ -272,7 +272,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       m.sendCommand( "emu::daq::manager::Application", "Enable" );
       waitForDAQToExecute( "Enable", 10 );
       m.sendCommand( "emu::step::Tester", "Enable" );
-      waitForTestsToFinish( (bool) isCurrentTestPassive_ );
+      waitForTestsToFinish( (bool) isCurrentTestDurationUndefined_ );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
       //
       // Halt all Tester apps
@@ -467,48 +467,20 @@ bool emu::step::Manager::waitForDAQToExecute( const string command, const uint64
   return false;
 }
 
-// bool emu::step::Manager::waitForTestersToExecute( const string command, const uint64_t seconds ){
-//   string expectedState;
-//   if      ( command == "Configure" ){ expectedState = "Configured";   }
-//   else if ( command == "Enable"    ){ expectedState = "Enabled"; }
-//   else if ( command == "Halt"      ){ expectedState = "Halted";  }
-//   else                              { return true; }
 
-//   // Poll, and return TRUE if and only if a Tester gets into the expected state before timeout.
-//   emu::soap::Messenger m( this );
-//   xdata::String state;
-//   uint64_t i = 0;
-//   for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin();
-// 	app != testerDescriptors_.end() && i <= seconds; 
-// 	++app, ++i ){
-//     m.getParameters( app->second, emu::soap::Parameters().add( "state", &state ) );
-//     if ( state.toString() != "Halted"  && state.toString() != "Configured" && state.toString() != "Enabled" ){
-//       LOG4CPLUS_ERROR( logger_, app->second->getClassName() << " instance " << app->second->getInstance() 
-// 		       << " (PCrate group '" << app->first << "') "
-// 		       << " is in " << state.toString() << " state." );
-//       return false;
-//     }
-//     if ( state.toString() == expectedState ){ return true; }
-//     ::sleep( 1 );
-//   }
-
-//   LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for the emu::step::Tester applications to get " << expectedState );
-//   return false;
-// }
-
-void emu::step::Manager::waitForTestsToFinish( const bool isTestPassive ){
+void emu::step::Manager::waitForTestsToFinish( const bool isTestDurationUndefined ){
   emu::soap::Messenger m( this );
   while ( true ){
     bool allFinished = true;
-    if ( isTestPassive ){
-      // For passive tests, query the local DAQ
+    if ( isTestDurationUndefined ){
+      // Query the local DAQ
       xdata::Boolean STEPFinished;
       m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "STEPFinished", &STEPFinished ) );
       allFinished = (bool) STEPFinished;
       if ( STEPFinished ){ LOG4CPLUS_INFO( logger_, "STEP is done."); }
     }
     else{
-      // For active tests, query the Tester apps
+      // Query the Tester apps
       for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin();
 	    app != testerDescriptors_.end(); 
 	    ++app ){

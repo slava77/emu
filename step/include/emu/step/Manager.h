@@ -54,7 +54,7 @@ namespace emu { namespace step {
       void updateProgress();
       bool waitForDAQToExecute( const string command, const uint64_t seconds = std::numeric_limits<uint64_t>::max() );
       // bool waitForTestersToExecute( const string command, const uint64_t seconds = std::numeric_limits<uint64_t>::max() );
-      void waitForTestsToFinish( const bool isTestPassive );
+      void waitForTestsToFinish( const bool isTestDurationUndefined );
 
       string applicationURLPath_; ///< the path part of the URL of this application
       static const string namespace_; ///< the namespace for Emu STEP
@@ -65,7 +65,7 @@ namespace emu { namespace step {
       emu::step::Configuration* configuration_;  ///< configuration
       xdata::Vector<xdata::String> crateIds_;
       xdata::Vector<xdata::String> testSequence_;
-      xdata::Boolean isCurrentTestPassive_; ///< TRUE if the current test does not require pulse injections
+      xdata::Boolean isCurrentTestDurationUndefined_; ///< TRUE if the current test needs to accumulate N events, i.e., it's duration is not defined explicitly or by pulse injections
       toolbox::task::WorkLoop *workLoop_; ///< work loop for the test procedure to be executed in a separate thread
       toolbox::task::ActionSignature *testSequenceSignature_;
       map<string,xdaq::ApplicationDescriptor*> testerDescriptors_; ///< peripheral crate group --> emu::step::Tester application descriptor map

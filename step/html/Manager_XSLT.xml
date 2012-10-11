@@ -95,7 +95,7 @@
   </xsl:template>
 
   <xsl:template match="es:testSequence">
-    <table class="testSequence">
+    <table class="testSequence" title="Tests will be executed in the order they're listed here.">
       <tr>
 	<th colspan="3">Sequence of Tests</th>
       </tr>

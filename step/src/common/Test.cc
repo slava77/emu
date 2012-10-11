@@ -87,6 +87,7 @@ void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId ) 
   if ( testId == "19"  ) return &emu::step::Test::_19;
   if ( testId == "21"  ) return &emu::step::Test::_21;
   if ( testId == "25"  ) return &emu::step::Test::_25;
+  if ( testId == "27"  ) return &emu::step::Test::_27;
   return 0;
 }
 
@@ -156,7 +157,8 @@ void emu::step::Test::configureCrates(){
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU at " << *ddu ); }
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU's controller at " << (*ddu)->getTheController() << ", DDU in slot " << (*ddu)->slot() ); }
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFlashKillFiber(1) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
-	(*ddu)->writeFlashKillFiber(1);
+	// (*ddu)->writeFlashKillFiber(1);
+	(*ddu)->writeFlashKillFiber(3); // Enable inputs 1 and 2. TODO: configuration
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeGbEPrescale(0xF0F0) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
 	(*ddu)->writeGbEPrescale(0xF0F0); // TODO: double check this
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFakeL1(0x8787) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
@@ -271,16 +273,22 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 void emu::step::Test::_11(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_11 starting" ); }
   
-  // Passive test, progress should be monitored in local DAQ.
-  
+  uint64_t durationInSec = parameters_["durationInSec"];
+  bsem_.take();
+  nEvents_ = durationInSec;
+  bsem_.give();
+
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     (*crate)->ccb()->EnableL1aFromTmbL1aReq();
     if ( isToStop_ ) return;
   }
 
-  // Let's stay here until we're told to stop. Only then should we go on to disable trigger.
-  while( true ){
+  // Wait for durationInSec
+  while ( iEvent_ < durationInSec ){
+    bsem_.take();
+    iEvent_++;
+    bsem_.give();
     if ( isToStop_ ) return;
     ::sleep( 1 );
   }
@@ -906,7 +914,7 @@ void emu::step::Test::_17b(){
 void emu::step::Test::_18(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_18 starting" ); }
 
-  // Passive test, progress should be monitored in local DAQ.
+  // Test of undefined duration, progress should be monitored in local DAQ.
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
@@ -1215,6 +1223,24 @@ void emu::step::Test::_25(){
 
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
+}
+
+void emu::step::Test::_27(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_27 starting" ); }
+  
+  // Test of undefined duration, progress should be monitored in local DAQ.
+  
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    (*crate)->ccb()->EnableL1aFromTmbL1aReq();
+    if ( isToStop_ ) return;
+  }
+
+  // Let's stay here until we're told to stop. Only then should we go on to disable trigger.
+  while( true ){
+    if ( isToStop_ ) return;
+    ::sleep( 1 );
+  }
 }
 
 void emu::step::Test::_fake(){

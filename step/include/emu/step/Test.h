@@ -85,7 +85,7 @@ namespace emu{
       void _19();
       void _21();
       void _25();
-      void _30();
+      void _27();
       void _fake();
 
     };
