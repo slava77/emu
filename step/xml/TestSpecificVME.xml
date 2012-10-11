@@ -312,4 +312,53 @@
     <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
   </test>
 
+  <test id="27">
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@CCBmode"                           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CCB/@l1aDelay"                          value="108"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_trig_enable"              value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@match_trig_enable"             value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@request_l1a"                   value="1"/>
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_rx_clock_delay"           value="23"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_tx_clock_delay"           value="11"/>
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_l1a_delay"           value="146"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@tmb_l1a_delay"                 value="119"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@rat_tmb_delay"                 value="9"/>
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb_tof_delay"          value="3"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_readout_without_trig"          value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@dmb_tx_delay"          value="2"/>
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
+
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@xFineLatency"                value="7"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@alct_dav_cable_delay"        value="3"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/DAQMB/@cfeb_cable_delay"            value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb0_tof_delay"               value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb1_tof_delay"               value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb2_tof_delay"               value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb3_tof_delay"               value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb4_tof_delay"               value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb0delay"                    value="23"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb1delay"                    value="23"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb2delay"                    value="23"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb3delay"                    value="23"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb4delay"                    value="23"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb0posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb1posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb2posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb3posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb4posneg"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb0_rxd_int_delay"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb1_rxd_int_delay"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb2_rxd_int_delay"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb3_rxd_int_delay"           value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@cfeb4_rxd_int_delay"           value="0"/>
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@"          value=""/> -->
+  </test>
+
 </settings>
