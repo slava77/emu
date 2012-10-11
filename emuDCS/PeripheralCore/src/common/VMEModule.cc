@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.38 2012/10/08 02:35:05 liu Exp $
+// $Id: VMEModule.cc,v 3.39 2012/10/11 21:26:44 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.39  2012/10/11 21:26:44  liu
+// add DCFEB firmware download and readback
+//
 // Revision 3.38  2012/10/08 02:35:05  liu
 // DCFEB update
 //
@@ -207,6 +210,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+#include <sys/time.h>
 #include <unistd.h> // read and write
 // #include "emu/pc/EMU_JTAG_constants.h"
 
@@ -1406,11 +1410,99 @@ void VMEModule::write_mcs(char *buf, int nbytes, FILE *outf)
 
 }
 
+int VMEModule::read_mcs(char *binbuf, FILE *finp)
+{
+   unsigned ext_add, loc_add, dsize, current_ext=0, current_add, index, i, j;
+   char buf[1024], addbuf[5]={0,0,0,0,0}, lenbuf[3]={0,0,0};
+   int finish=0, segmented=0, lines=0, c, n, chksum, crc;
+   int total_read=0;
+
+   rewind(finp);
+   fgets(buf, 1020, finp);
+   while(!finish && !feof(finp))
+   {
+       lines++;
+       if(buf[0]!=':' || buf[7]!='0') continue;
+       switch (buf[8])
+       {
+           case '0':
+               strncpy(lenbuf,buf+1,2);
+               sscanf(lenbuf, "%x", &dsize);
+               strncpy(addbuf,buf+3,4);
+               sscanf(addbuf, "%x", &loc_add);
+               current_add=loc_add + (current_ext<<(segmented?4:16));
+               // crc
+               chksum=dsize+loc_add+(loc_add>>8);
+                   index=current_add;
+                   for(i=0; i<dsize; i++)
+                   {
+                          strncpy(lenbuf, buf+9+i*2, 2);
+                          sscanf(lenbuf, "%x", &c);
+                          chksum += c;
+/*                        
+                          // bit-flip here if to compare with bit file
+                          // not need for JTAG
+                          n=0;
+                          for(j=0;j<8;j++)
+                          {
+                             n <<= 1;
+                             n |= (c & 1);
+                             c >>= 1;
+                          }
+                          // use n instead of c if bit-flip
+*/
+                          binbuf[index+i] = c&0xFF;
+                          total_read++;
+                   }
+               chksum = ~chksum +1;
+               strncpy(lenbuf,buf+dsize*2+9,2);
+               sscanf(lenbuf, "%x", &crc);
+               if((chksum&0xFF)!=(crc&0xFF)) 
+               {
+                  std::cout << "read_mcs aborted!!! CRC error at line " << lines << std::endl;
+                  return -1;
+               }
+               break;
+           case '1':
+               // check csc here
+               finish=1;
+               break;
+           case '2':
+           case '4':
+               if(buf[1]!='0' || buf[2]!='2')
+               {
+                  /* printf("ERROR: invalid type extended address record at line: %d!\n", lines); */
+                  break;
+               }
+               strncpy(addbuf,buf+9,4);
+               sscanf(addbuf, "%x", &ext_add);
+               current_ext=ext_add;
+               segmented = (buf[8]=='2'?1:0);
+               // check crc here
+               strncpy(lenbuf,buf+7,2);
+               sscanf(lenbuf, "%x", &chksum);
+               chksum = chksum+2+ext_add + (ext_add>>8);
+               chksum = (~chksum +1 )&0xFF;
+               strncpy(lenbuf,buf+13,2);
+               sscanf(lenbuf, "%x", &crc);
+               if((chksum&0xFF)!=(crc&0xFF)) 
+               {
+                  std::cout << "read_mcs aborted!!! CRC error or bad address record at line " << lines << std::endl;
+                  return -1;
+               }
+               break;
+       }
+       fgets(buf, 1020, finp);
+   }
+   return total_read;
+}
+
 void VMEModule::Jtag_Ohio(int dev, int reg,const char *snd,int cnt,char *rcv,int ird, int when)
 {
 // dev= device ID (0-0xF), bits 15-12 of VME address
 // reg = 0 instruction shift;
 //     = 1  data shift;
+//     = 2  empty clocks; 
 // ird = 0  no TDO read
 //     = 1  read TDO
 // when = 0  send vme packet LATER; 
@@ -1451,9 +1543,10 @@ unsigned int ptr_r;
  cnt2=cnt-1;
  data=(unsigned short int *) snd;
 
+ if(reg==0)
+ {
  /* instr */
 
- if(reg==0){
    if(cnt<0) 
    { 
      // cnt==-1   treated as Reset JTAG State Machine
@@ -1467,10 +1560,10 @@ unsigned int ptr_r;
    theController->VME_controller(tiwt[when],ptr_i,data,rcv);
    return;
  }
-
+ else if(reg==1)
+ {
  /* data */
 
- if(reg==1){
    byte=cnt/16;
    bit=cnt-byte*16;
    // printf(" bit byte %d %d \n",bit,byte);
@@ -1528,7 +1621,56 @@ unsigned int ptr_r;
    }
    return;
  }
+ else if (reg==2)
+ {
+ /* clocks */
+ /* no need to buffer the commands */
+   unsigned short tmp[2]={0,0};
+   char tmp2[100];
+   int blocks=cnt/16;
+   int extras=cnt%16;
+   if(blocks>0)
+   {
+      ptr_dt=add_ds|0x0f00;
+      for(i=0;i<blocks;i++)
+      { 
+         theController->VME_controller(3,ptr_dt,tmp,tmp2);
+         udelay(16);        
+      }
+   }
+   if(extras>0)
+   {
+      ptr_dt=add_ds|((extras-1)<<8);
+      theController->VME_controller(3,ptr_dt,tmp,tmp2);
+      udelay(extras);
+   }    
+ }
 }
 
+void VMEModule::udelay(long int usec)
+{
+    if(usec>=1000000)
+    {
+// usleep() is OK for long delay (1 sec or more)
+      ::usleep(usec);
+    } else 
+    {
+// this is the most reliable way to get micro-second level delays.
+// usleep() or nanasleep() will typically need 10 msec or even more.
+      struct timeval tp;
+      long usec1, usec2, sec1, sec2;
+      gettimeofday (&tp,NULL);
+      usec1=tp.tv_usec;
+      sec1=tp.tv_sec;
+      do{
+        gettimeofday (&tp,NULL);
+        usec2=tp.tv_usec;
+        sec2=tp.tv_sec;
+        if(sec2>sec1) usec2 += 1000000;
+      } while((usec2-usec1)<usec);
+    }
+    return;
+}
+                              
   } // namespace emu::pc
 } // namespace emu

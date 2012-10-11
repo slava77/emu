@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.85 2012/10/08 22:04:44 liu Exp $
+// $Id: DAQMB.cc,v 3.86 2012/10/11 21:26:44 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.86  2012/10/11 21:26:44  liu
+// add DCFEB firmware download and readback
+//
 // Revision 3.85  2012/10/08 22:04:44  liu
 // DCFEB update
 //
@@ -7133,11 +7136,14 @@ void DAQMB::cfeb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int i
    if(ncmd>0) Jtag_Ohio(CFEB_DEV, 0, (char *)cmd,ncmd, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
 //   if(ncmd>0 && nbuf>0) sleep_vme(200); 
    if(nbuf>0) Jtag_Ohio(CFEB_DEV, 1,(char *)inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&NOW);
+
+// send empty clocks |nbuf|, inbuf & outbuf not used
+   if(nbuf<0) Jtag_Ohio(CFEB_DEV, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
 //
 // Liu Spet. 2012
 // the following is not useful if the packets are buffered
 // TODO
-   if((irdsnd&1)==1 && nbuf%16!=0)
+   if((irdsnd&3)==3 && nbuf%16!=0)
    {
      ishft=16-nbuf%16;
      temp=((outbuf[nbuf/8+1]<<8)&0xff00)|(outbuf[nbuf/8]&0xff);
@@ -7572,12 +7578,12 @@ void DAQMB::epromload_parameters(int paramblock, int nwords, unsigned short int 
   // unlock and erase the block
   epromdirect_unlockerase();
 
-  usleep(400000);
+  udelay(400000);
 
   // program with new data from the beginning of the block
   epromdirect_bufferprogram(nwords,val);
   unsigned int sleeep=1984*64+164;
-  usleep(sleeep);
+  udelay(sleeep);
   
   nxt_blk_addr=fulladdr+0x4000;
   uaddr = (nxt_blk_addr >> 16);
@@ -7587,7 +7593,7 @@ void DAQMB::epromload_parameters(int paramblock, int nwords, unsigned short int 
   // lock last block
   epromdirect_lock();
   dcfeb_bpi_disable();
-  usleep(10);
+  udelay(10);
 }
 
 // must select a DCFEB first before calling it
@@ -7629,9 +7635,11 @@ void DAQMB::dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename)
    unsigned read_size=0x800;
    unsigned short *buf;
    FILE *mcsfile;
-   int total_blocks=1344;
-   int filesize=read_size*total_blocks*2;
-   
+   int total_blocks=1335;
+// int readback_size=read_size*total_blocks*2=5468160; 
+// XC6VLX130T's configuration bitstream (firmware) is exactly 5464972 bytes:
+   const int FIRMWARE_SIZE=5464972;
+
    mcsfile=fopen(filename, "w");
    if(mcsfile==NULL)
    {
@@ -7657,10 +7665,10 @@ void DAQMB::dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename)
    }
    dcfeb_bpi_disable();
 
-   write_mcs((char *)buf, filesize, mcsfile);
+   write_mcs((char *)buf, FIRMWARE_SIZE, mcsfile);
    fclose(mcsfile);
    free(buf);
-   std::cout << " Total " << filesize << " bytes are read back from EPROM and saved in mcs-format file: " << filename << std::endl;
+   std::cout << " Total " << FIRMWARE_SIZE << " bytes are read back from EPROM and saved in mcs-format file: " << filename << std::endl;
    return;
 }
 
@@ -7739,7 +7747,84 @@ void DAQMB::dcfeb_test_dummy(CFEB & cfeb, int test)
 {
 // This dummy function can be used in various tests instead of creating a new function which would
 // require to recompile everything in PeripheralCore & PeripheralApps
+}
 
+void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
+{
+   const int FIRMWARE_SIZE=5464972; // in bytes
+   char *bufin, c;
+   bufin=(char *)malloc(16*1024*1024);
+   if(bufin==NULL)  return;
+   FILE *fin=fopen(mcsfile,"r");
+   if(fin==NULL ) return;
+   int mcssize=read_mcs(bufin, fin);
+   fclose(fin);
+   std::cout << "Read MCS size: " << mcssize << " bytes" << std::endl;
+   if(mcssize<FIRMWARE_SIZE)
+   {
+       std::cout << "Wrong MCS file. Quit..." << std::endl;
+       return;
+   }
+// byte swap
+   for(int i=0; i<FIRMWARE_SIZE/2; i++)
+   {  c=bufin[i*2];
+      bufin[i*2]=bufin[i*2+1];
+      bufin[i*2+1]=c;
+   }
+     write_cfeb_selector(cfeb.SelectorBit());
+     int blocks=FIRMWARE_SIZE/4;  // firmware size must be in units of 32-bit words
+     int p1pct=blocks/100;
+     int j=0, pcnts=0;
+     unsigned short comd, tmp;
+//
+// The IEEE 1532 ISC (In-System-Configuration) procedure is used.       
+// The bitstream doesn't need to be sent in one JTAG package.
+// It is different from Xilinx's Jtag procedure which uses CFG_IN.
+//
+     comd=VTX6_JPROG;
+     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+
+     comd=VTX6_ISC_NOOP; 
+     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+     udelay(200000);
+     comd=VTX6_ISC_ENABLE; 
+     tmp=0;
+     cfeb_do(10, &comd, 5, &tmp, rcvbuf, NOW);
+//    cfeb_do(0, &comd, -200, &tmp, rcvbuf, NOW);
+     udelay(100);
+     comd=VTX6_ISC_PROGRAM; 
+     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+    unsigned value;
+    for(int i=0; i<blocks-1; i++)
+    {
+       cfeb_do(0, &comd, 4*8, bufin+4*i, rcvbuf, NOW);
+       udelay(32);
+       j++;
+       if(j==p1pct)
+       {  pcnts++;
+          if(pcnts<100) std::cout << "Sending " << pcnts <<"%..." << std::endl;
+          j=0;
+       }   
+    }
+    std::cout << "Sending 100%..." << std::endl;
+
+    comd=VTX6_ISC_DISABLE; 
+    cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+//    cfeb_do(0, &comd, -100, &tmp, rcvbuf, NOW);
+    udelay(100);
+    comd=VTX6_BYPASS;
+    cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+
+    comd=VTX6_JSTART;
+    cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+    std::cout <<" Start sending clocks... " << std::endl;
+    cfeb_do(0, &comd, -4000, &tmp, rcvbuf, NOW);
+    //restore idle;
+    cfeb_do(-1, &comd, 0, &tmp, rcvbuf, NOW);    
+    comd=VTX6_BYPASS;
+    cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+    
+    std::cout << "FPGA configuration done!" << std::endl;             
 }
 
 

@@ -729,12 +729,9 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
 
   CFEBDataIn_ = 0;
   //
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-  *out << std::endl;
-  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("DCFEB JTAG Functions").set("style","color:blue") << std::endl ;
   //
-
 
   std::vector<CFEB> cfebs = thisDMB->cfebs() ;
   //
@@ -805,8 +802,10 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
      
   //End select signal
     //
-     //
-  *out << cgicc::fieldset();
+  *out << cgicc::fieldset()<< cgicc::br() << std::endl;
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("DCFEB Firmware").set("style","color:blue") << std::endl ;
   //
   std::string CFEBreadfirm =
       toolbox::toString("/%s/DCFEBReadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -832,7 +831,40 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
   *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "Read back DCFEB firmware") << cgicc::br() << std::endl;
+    .set("value", "Read back DCFEB firmware") << std::endl;
+  *out << cgicc::form() << cgicc::br() << cgicc::hr() << std::endl;
+  
+  std::string CFEBprogfpga =
+      toolbox::toString("/%s/DCFEBProgramFpga",getApplicationDescriptor()->getURN().c_str());
+  *out << "Use this one ONLY if power-cycle failed to recover the FPGA:" << cgicc::br()<< std::endl;
+  *out << cgicc::form().set("action", CFEBprogfpga) << std::endl;
+  
+  *out << "Choose CFEB: " << std::endl;
+  *out << cgicc::select().set("name", "cfeb") << std::endl;
+  
+  for (unsigned i = 0; i < cfebs.size(); ++i) {
+    sprintf(sbuf,"%d",i);
+    if (i == 0) {
+      *out << cgicc::option()
+	.set("value", sbuf)
+	.set("selected", "");
+    } else {
+      *out << cgicc::option()
+	.set("value", sbuf);
+    }
+    *out << "CFEB " << cfebs[i].number()+1 << cgicc::option() << std::endl;
+  }
+
+  *out << cgicc::select() << std::endl;
+  *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
+  *out << cgicc::input().set("type", "submit")
+    .set("name", "command")
+    .set("value", "Program FPGA") << std::endl;
+  *out << cgicc::form() ;
+  *out << FirmwareDir_+"cfeb/me11_dcfeb.mcs"  << cgicc::br() << std::endl;
+    //
+  *out << cgicc::fieldset()<< cgicc::br() << std::endl;
+  //
 
 }
 
@@ -904,7 +936,9 @@ void EmuPeripheralCrateConfig::CFEBFunction(xgi::Input * in, xgi::Output * out )
      thisDMB->dcfeb_hub(cfebs[icfeb], sig, FuncSize[sig], &CFEBDataIn_, (char *)&CFEBDataOut_, 3);
 
      std::cout << "CFEB Data Out: " << std::hex << CFEBDataOut_ << std::dec << std::endl;
+
      this->CFEBUtils(in,out);                               
+     
 }
 
 void EmuPeripheralCrateConfig::DCFEBReadFirmware(xgi::Input * in, xgi::Output * out )
@@ -943,6 +977,42 @@ void EmuPeripheralCrateConfig::DCFEBReadFirmware(xgi::Input * in, xgi::Output * 
      std::cout << getLocalDateTime() << " DCFEB firmware read back finished." << std::endl;
      this->CFEBUtils(in,out);           
                     
+}
+  
+
+void EmuPeripheralCrateConfig::DCFEBProgramFpga(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception)
+{
+
+  cgicc::Cgicc cgi(in);
+
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Not dmb" << std::endl ;
+    dmb = DMB_;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+
+     std::string cfeb_value = cgi.getElement("cfeb")->getValue(); 
+     unsigned icfeb=atoi(cfeb_value.c_str());
+     std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+     if(icfeb<0 || icfeb>cfebs.size()) icfeb=0;
+
+     std::string mcsfile= FirmwareDir_+ "cfeb/me11_dcfeb.mcs";
+                
+     std::cout << getLocalDateTime() << " DCFEB program FPGA on DMB " << dmb << " CFEB " << cfebs[icfeb].number()+1 << std::endl;
+     std::cout << "Use mcs file: " << mcsfile << std::endl;
+
+     thisDMB->dcfeb_program_virtex6(cfebs[icfeb], mcsfile.c_str());
+     
+     std::cout << getLocalDateTime() << " DCFEB program FPGA finished." << std::endl;
+     this->CFEBUtils(in,out);                    
 }
   
 void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out ) 
