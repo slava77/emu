@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
  <STEP_tests>
+   <!-- Tests will be executed in the order they're listed below -->
 
   <test_config>
-        <test>                  11        </test>
-        <events_total>          20000 </events_total>
-        <description>AFEB Counting Noise</description>
+        <test>                  13      </test>
+        <events_per_threshold>  100     </events_per_threshold>
+        <thresholds_per_tpamp>  70      </thresholds_per_tpamp>
+        <threshold_first>           1   </threshold_first>
+        <threshold_step>            1   </threshold_step>
+        <tpamps_per_run>            2   </tpamps_per_run>
+        <tpamp_first>           23      </tpamp_first>
+        <tpamp_step>            18      </tpamp_step> 
+        <description>AFEB Threshold and Analog Noise</description>
   </test_config>
 
   <test_config> 
@@ -21,15 +28,9 @@
   </test_config>
   
   <test_config>
-        <test>                  13      </test>
-        <events_per_threshold>  100     </events_per_threshold>
-        <thresholds_per_tpamp>  70      </thresholds_per_tpamp>
-        <threshold_first>           1   </threshold_first>
-        <threshold_step>            1   </threshold_step>
-        <tpamps_per_run>            2   </tpamps_per_run>
-        <tpamp_first>           23      </tpamp_first>
-        <tpamp_step>            18      </tpamp_step> 
-        <description>AFEB Threshold and Analog Noise</description>
+        <test>                  11        </test>
+        <durationInSec>         30        </durationInSec>
+        <description>AFEB Counting Noise</description>
   </test_config>
 
   <test_config>
@@ -122,6 +123,12 @@ dac_first = 0.2, dac_step = 0.25
         <trig_settings>          6   </trig_settings>
         <events_per_trig_set>  1000  </events_per_trig_set>
         <description>ALCT Trigger</description>
+  </test_config>
+
+  <test_config>
+        <test>                  27        </test>
+        <events_total>          325000 </events_total>
+        <description>High-Statistics Cosmics</description>
   </test_config>
 
 </STEP_tests>

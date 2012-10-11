@@ -88,12 +88,12 @@ void emu::step::TestParameters::extractParameters( const string& testParametersX
 
 void emu::step::TestParameters::calculateNEvents(){
   // For passive tests (i.e., those without pulses), get the number of events to be collected.
-  if      ( id_ == "11" ){
+  if      ( id_ == "18" ){
     nEvents_ = parameters_["events_total"];
   }
-  else if ( id_ == "18" ){
+  else if ( id_ == "27" ){
     nEvents_ = parameters_["events_total"];
   }
   // For active (i.e., pulsed) tests, the number of events to be collected will be calculated at the beginning of the test
-  // as it depends on the number of chambers to be tested. For the time being, keep nEvents_ = 0 for active (pulsed) tests.
+  // as it depends on the number of chambers to be tested. For the time being, keep nEvents_ = 0 for active (pulsed or timed) tests.
 }
