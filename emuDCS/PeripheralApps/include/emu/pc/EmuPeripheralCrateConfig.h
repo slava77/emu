@@ -408,6 +408,7 @@ private:
   void CFEBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBFunction(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DCFEBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DCFEBProgramFpga(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
     
   //
   // TMB utils

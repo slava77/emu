@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.10 2012/09/30 21:19:42 liu Exp $
+// $Id: VMEModule.h,v 1.11 2012/10/11 21:26:45 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.11  2012/10/11 21:26:45  liu
+// add DCFEB firmware download and readback
+//
 // Revision 1.10  2012/09/30 21:19:42  liu
 // update for ME11 new electronics
 //
@@ -195,6 +198,7 @@ public:
   int LeftToRead();
   int read_prom(const char *vfyfile, const char *mcsfile );
   void write_mcs(char *buf, int nbytes, FILE *outf);
+  int read_mcs(char *binbuf, FILE *finp);
 
 protected:
   //
@@ -230,7 +234,8 @@ protected:
   // Liu--2012, Sept.
   // new Jtag routine to bypass VMEController_jtag 
   void Jtag_Ohio(int dev, int reg,const char *snd,int cnt,char *rcv,int ird, int when); 
-  
+  void udelay(long int usec);
+
   Crate * theCrate_;
   VMEController * theController;
   int theSlot;

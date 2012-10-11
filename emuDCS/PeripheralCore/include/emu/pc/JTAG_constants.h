@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: JTAG_constants.h,v 1.3 2012/10/08 02:35:05 liu Exp $
+// $Id: JTAG_constants.h,v 1.4 2012/10/11 21:26:45 liu Exp $
 // $Log: JTAG_constants.h,v $
+// Revision 1.4  2012/10/11 21:26:45  liu
+// add DCFEB firmware download and readback
+//
 // Revision 1.3  2012/10/08 02:35:05  liu
 // DCFEB update
 //
@@ -175,6 +178,10 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define VTX6_JPROG  0x3CB
 #define VTX6_SHUTDN 0x3CD
 #define VTX6_ISC_ENABLE 0x3D0
+#define VTX6_ISC_PROGRAM 0x3D1
+#define VTX6_ISC_NOOP 0x3D4
+#define VTX6_ISC_DISABLE 0x3D7
+
 #define VTX6_ISC_DNA 0x3D7
 #define VTX6_SYSMON 0x3F7
 #define VTX6_BYPASS 0x3FF
