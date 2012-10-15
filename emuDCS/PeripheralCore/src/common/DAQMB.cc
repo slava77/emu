@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.86 2012/10/11 21:26:44 liu Exp $
+// $Id: DAQMB.cc,v 3.87 2012/10/15 16:02:37 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.87  2012/10/15 16:02:37  liu
+// DCFEB firmware loading update
+//
 // Revision 3.86  2012/10/11 21:26:44  liu
 // add DCFEB firmware download and readback
 //
@@ -7649,7 +7652,7 @@ void DAQMB::dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename)
 
    write_cfeb_selector(cfeb.SelectorBit());
    buf=(unsigned short *)malloc(8*1024*1024);
-
+   if(buf==NULL) return;
    dcfeb_bpi_reset();
    dcfeb_bpi_enable();
    
@@ -7749,6 +7752,102 @@ void DAQMB::dcfeb_test_dummy(CFEB & cfeb, int test)
 // require to recompile everything in PeripheralCore & PeripheralApps
 }
 
+void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
+{
+   unsigned int fulladdr;
+   unsigned int uaddr,laddr;
+   unsigned int i, blocks, lastblock;
+
+   const int FIRMWARE_SIZE=5464972/2; // in words
+
+   // each eprom block has 0x10000 words
+   const int BLOCK_SIZE=0x10000; // in words
+
+   // each write call takes 0x800 words
+   const int WRITE_SIZE=0x800;  // in words
+
+// 1. read mcs file
+   char *bufin;
+   bufin=(char *)malloc(16*1024*1024);
+   if(bufin==NULL)  return;
+   unsigned short *bufw= (unsigned short *)bufin;
+   FILE *fin=fopen(mcsfile,"r");
+   if(fin==NULL ) 
+   { 
+      free(bufin);  
+      std::cout << "ERROR: Unable to open MCS file :" << mcsfile << std::endl;
+      return; 
+   }
+   int mcssize=read_mcs(bufin, fin);
+   fclose(fin);
+   std::cout << "Read MCS size: " << mcssize << " bytes" << std::endl;
+   if(mcssize<FIRMWARE_SIZE)
+   {
+       std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
+       free(bufin);
+       return;
+   }
+
+      dcfeb_bpi_reset();
+      dcfeb_bpi_enable();
+      epromdirect_timerstop();
+      epromdirect_timerreset();
+      epromdirect_timerstart();
+// 2. erase eprom
+   blocks=FIRMWARE_SIZE/BLOCK_SIZE;
+   if((FIRMWARE_SIZE%BLOCK_SIZE)>0) blocks++;
+   std::cout << "Erasing EPROM..." << std::endl;
+   for(i=0; i<blocks; i++)
+   {
+      uaddr=i;
+      laddr=0;
+
+      // printf(" eprom_load fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+      epromdirect_loadaddress(uaddr,laddr);
+      // unlock and erase the block
+      epromdirect_unlockerase();
+
+      udelay(1000000);
+   }
+
+// 3. write eprom
+   blocks=FIRMWARE_SIZE/WRITE_SIZE;
+   lastblock=FIRMWARE_SIZE%WRITE_SIZE;
+   int p1pct=blocks/100;
+   int j=0, pcnts=0;
+   if(lastblock>0) blocks++;
+   else lastblock=WRITE_SIZE;
+   std::cout << "Start programming EPROM..." << std::endl;
+   fulladdr=0;
+   for(i=0; i<blocks; i++)  
+   {
+      int nwords=WRITE_SIZE;
+      if(i==blocks-1) nwords=lastblock;
+      uaddr = (fulladdr >> 16);
+      laddr = fulladdr &0xffff;
+      // printf(" load address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+      epromdirect_loadaddress(uaddr,laddr);
+      // program with new data from the beginning of the block
+      epromdirect_bufferprogram(nwords,bufw+i*WRITE_SIZE);
+      udelay(120000);
+      fulladdr += 0x800;
+       j++;
+       if(j==p1pct)
+       {  pcnts++;
+          if(pcnts<100) std::cout << "Sending " << pcnts <<"%..." << std::endl;
+          j=0;
+       }   
+   }
+    std::cout << "Sending 100%..." << std::endl;
+   uaddr = (fulladdr >> 16);
+   laddr = fulladdr &0xffff;
+   // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+   epromdirect_loadaddress(uaddr,laddr);
+   epromdirect_lock();
+   dcfeb_bpi_disable();
+   free(bufin);
+}
+
 void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
 {
    const int FIRMWARE_SIZE=5464972; // in bytes
@@ -7756,13 +7855,19 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
    bufin=(char *)malloc(16*1024*1024);
    if(bufin==NULL)  return;
    FILE *fin=fopen(mcsfile,"r");
-   if(fin==NULL ) return;
+   if(fin==NULL ) 
+   { 
+      free(bufin);  
+      std::cout << "ERROR: Unable to open MCS file :" << mcsfile << std::endl;
+      return; 
+   }
    int mcssize=read_mcs(bufin, fin);
    fclose(fin);
    std::cout << "Read MCS size: " << mcssize << " bytes" << std::endl;
    if(mcssize<FIRMWARE_SIZE)
    {
-       std::cout << "Wrong MCS file. Quit..." << std::endl;
+       std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
+       free(bufin);
        return;
    }
 // byte swap
@@ -7794,7 +7899,6 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
      udelay(100);
      comd=VTX6_ISC_PROGRAM; 
      cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
-    unsigned value;
     for(int i=0; i<blocks-1; i++)
     {
        cfeb_do(0, &comd, 4*8, bufin+4*i, rcvbuf, NOW);
@@ -7825,6 +7929,7 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
     
     std::cout << "FPGA configuration done!" << std::endl;             
+    free(bufin);
 }
 
 

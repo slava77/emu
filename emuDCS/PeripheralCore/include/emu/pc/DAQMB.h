@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.18 2012/10/11 21:26:45 liu Exp $
+// $Id: DAQMB.h,v 1.19 2012/10/15 16:02:37 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.19  2012/10/15 16:02:37  liu
+// DCFEB firmware loading update
+//
 // Revision 1.18  2012/10/11 21:26:45  liu
 // add DCFEB firmware download and readback
 //
@@ -750,6 +753,7 @@ public:
 
   void dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename);
   void dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile);
+  void dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile);
   void dcfeb_configure(CFEB & cfeb);
   void dcfeb_test_dummy(CFEB & cfeb, int test);
 
