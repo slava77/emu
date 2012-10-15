@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.87 2012/10/15 16:02:37 liu Exp $
+// $Id: DAQMB.cc,v 3.88 2012/10/15 20:02:53 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.88  2012/10/15 20:02:53  liu
+// *** empty log message ***
+//
 // Revision 3.87  2012/10/15 16:02:37  liu
 // DCFEB firmware loading update
 //
@@ -7788,6 +7791,7 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
        return;
    }
 
+      write_cfeb_selector(cfeb.SelectorBit());
       dcfeb_bpi_reset();
       dcfeb_bpi_enable();
       epromdirect_timerstop();
