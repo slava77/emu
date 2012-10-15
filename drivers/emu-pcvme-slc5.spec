@@ -4,7 +4,7 @@
 
 Summary: CMS Emu Peripheral Controller Gbit driver for kernel %{kernel_version}
 Name: emu-pcvme
-Version: 1.0.1
+Version: 1.0.2
 Release: 1.slc5
 License: none
 Group: none
