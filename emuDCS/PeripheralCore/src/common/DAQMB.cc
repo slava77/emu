@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.88 2012/10/15 20:02:53 liu Exp $
+// $Id: DAQMB.cc,v 3.89 2012/10/16 22:39:07 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.89  2012/10/16 22:39:07  liu
+// read & write FPGA internal registers
+//
 // Revision 3.88  2012/10/15 20:02:53  liu
 // *** empty log message ***
 //
@@ -7753,6 +7756,9 @@ void DAQMB::dcfeb_test_dummy(CFEB & cfeb, int test)
 {
 // This dummy function can be used in various tests instead of creating a new function which would
 // require to recompile everything in PeripheralCore & PeripheralApps
+     write_cfeb_selector(cfeb.SelectorBit());
+     virtex6_readreg(test);
+     
 }
 
 void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
@@ -7936,6 +7942,39 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
     free(bufin);
 }
 
+
+unsigned DAQMB::virtex6_readreg(int reg)
+{
+   unsigned short comd;
+   unsigned data[7]={0x66AA9955, 4, 0, 4, 4, 4};
+   unsigned *rt, rtv;
+   comd=VTX6_CFG_IN;
+   unsigned ins=((reg&0x1F)<<13)+(1<<27)+(1<<29)+1;
+   data[2]=shuffle32(ins);
+   cfeb_do(10, &comd, 6*32, data, rcvbuf, LATER);
+   comd=VTX6_CFG_OUT;
+   data[0]=0;
+   cfeb_do(10, &comd, 32, data, rcvbuf, NOW|READ_YES);     
+   rt = (unsigned *)rcvbuf;
+   rtv=shuffle32(*rt);
+   // printf("return: %08X\n", rtv);
+   comd=VTX6_BYPASS;
+   cfeb_do(10, &comd, 0, data, rcvbuf, NOW);
+   return rtv;
+}
+
+void DAQMB::virtex6_writereg(int reg, unsigned value)
+{
+   unsigned short comd;
+   unsigned data[6]={0x66AA9955, 4, 0, 0, 4, 4};
+   comd=VTX6_CFG_IN;
+   unsigned ins=((reg&0x1F)<<13)+(2<<27)+(1<<29)+1;
+   data[2]=shuffle32(ins);
+   data[3]=shuffle32(value);
+   cfeb_do(10, &comd, 6*32, data, rcvbuf, NOW);
+   comd=VTX6_BYPASS;
+   cfeb_do(10, &comd, 0, data, rcvbuf, NOW);
+}
 
 } // namespace emu::pc
 } // namespace emu

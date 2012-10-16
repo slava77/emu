@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.39 2012/10/11 21:26:44 liu Exp $
+// $Id: VMEModule.cc,v 3.40 2012/10/16 22:39:07 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.40  2012/10/16 22:39:07  liu
+// read & write FPGA internal registers
+//
 // Revision 3.39  2012/10/11 21:26:44  liu
 // add DCFEB firmware download and readback
 //
@@ -1672,5 +1675,17 @@ void VMEModule::udelay(long int usec)
     return;
 }
                               
+unsigned VMEModule::shuffle32(unsigned a)
+{
+   unsigned b=0;
+   for(int i=0; i<32; i++)
+   {  
+      b <<= 1;   
+      b |= (a&1);
+      a >>= 1;
+   }
+   return b;
+}
+
   } // namespace emu::pc
 } // namespace emu
