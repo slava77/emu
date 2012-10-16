@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.19 2012/10/15 16:02:37 liu Exp $
+// $Id: DAQMB.h,v 1.20 2012/10/16 22:39:07 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.20  2012/10/16 22:39:07  liu
+// read & write FPGA internal registers
+//
 // Revision 1.19  2012/10/15 16:02:37  liu
 // DCFEB firmware loading update
 //
@@ -756,6 +759,8 @@ public:
   void dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile);
   void dcfeb_configure(CFEB & cfeb);
   void dcfeb_test_dummy(CFEB & cfeb, int test);
+  unsigned virtex6_readreg(int reg);
+  void virtex6_writereg(int reg, unsigned value);
 
  private:
   //

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.11 2012/10/11 21:26:45 liu Exp $
+// $Id: VMEModule.h,v 1.12 2012/10/16 22:39:07 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.12  2012/10/16 22:39:07  liu
+// read & write FPGA internal registers
+//
 // Revision 1.11  2012/10/11 21:26:45  liu
 // add DCFEB firmware download and readback
 //
@@ -235,6 +238,7 @@ protected:
   // new Jtag routine to bypass VMEController_jtag 
   void Jtag_Ohio(int dev, int reg,const char *snd,int cnt,char *rcv,int ird, int when); 
   void udelay(long int usec);
+  unsigned shuffle32(unsigned value);
 
   Crate * theCrate_;
   VMEController * theController;
