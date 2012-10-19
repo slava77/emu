@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.27 2012/09/12 08:50:55 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.28 2012/10/19 12:09:11 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -182,7 +182,7 @@ throw (emu::fed::exception::FMMThreadException)
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 
 	if (threadVector_.size() == 0) {
-		LOG4CPLUS_DEBUG(logger, "Threads already stopped.");
+		LOG4CPLUS_INFO(logger, "Threads already stopped.");
 		return;
 	}
 	LOG4CPLUS_INFO(logger, "Gracefully killing off all threads: " << threadVector_.size() );
@@ -194,7 +194,7 @@ throw (emu::fed::exception::FMMThreadException)
 	for (unsigned int iThread=0; iThread < threadVector_.size(); iThread++) {
 
 		Crate *myCrate = threadVector_[iThread].first;
-		LOG4CPLUS_DEBUG(logger, "Killing thread: " << threadVector_[iThread].second << ", " << myCrate );
+		LOG4CPLUS_INFO(logger, "Killing thread: " << threadVector_[iThread].second << ", " << myCrate );
 
 		// Cancel threads first.
 		int err = pthread_cancel(threadVector_[iThread].second);
@@ -669,6 +669,14 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						continue;
 					}
 					
+					pthread_mutex_lock(&locdata->lastErrMutex);
+
+					// Save current fibers in error so other thread can read them
+					locdata->errorHistory[crateNumber][slot][IRQData::CURR_ERR] = combinedStatus & 0x7fff;
+					// Turn off high bit that represents DDU error. We only want to count chamber errors.
+
+					pthread_mutex_unlock(&locdata->lastErrMutex);
+
 					uint32_t l1a = myDDU->readL1Scaler(DDUFPGA); // for debugging purposes
 					
 					// What type of error did I see?
@@ -867,7 +875,21 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					for (std::map<unsigned int, unsigned int>::const_iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); ++iCount) {
 						totalErrors += iCount->second;
 					}
-
+					unsigned int numIgnFibers = 0;
+					// Reduce total error count for chambers that have been in Error twice this run
+					for (IRQData::endcapHistory::const_iterator iCrate = locdata->errorHistory.begin(); iCrate != locdata->errorHistory.end(); ++iCrate) {
+						for (IRQData::crateHistory::const_iterator iSlot = iCrate->second.begin(); iSlot != iCrate->second.end(); ++iSlot ) {
+							std::bitset<16> statusBits(((IRQData::fiberHistory) iSlot->second)[IRQData::SECOND_ERR]);
+							unsigned int numBits = statusBits.count();
+							if (numBits > 0)
+								numIgnFibers += numBits;
+						}
+					}
+					if (numIgnFibers > 0) {
+						totalErrors -= numIgnFibers;
+						LOG4CPLUS_DEBUG(logger,
+							"Ignoring repeated errors, so total errors on this endcap reduced by " << numIgnFibers);
+					}
 					if (totalErrors >= locdata->fmmErrorThreshold) {
 						LOG4CPLUS_INFO(logger,
 							"Releasing FMMs because total errors on this endcap = " << totalErrors << " is >= threshold of " <<
@@ -878,7 +900,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							fmmsReleased = true;
 						}
 					} else {
-						LOG4CPLUS_DEBUG(logger, "Total errors on this endcap = " << totalErrors 
+						LOG4CPLUS_INFO(logger, "Total errors on this endcap = " << totalErrors 
 							<< " is less than FMM error threshold of " <<
 							locdata->fmmErrorThreshold << std::endl);
 					}
@@ -910,6 +932,35 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					application_->sendFacts();
 					pthread_mutex_unlock(&(locdata->applicationMutex));
 
+					std::stringstream firstErrStr, secondErrStr;
+					if (fmmsReleased) {
+						pthread_mutex_lock(&locdata->lastErrMutex);
+
+						for (IRQData::endcapHistory::iterator iCrate = locdata->errorHistory.begin(); iCrate != locdata->errorHistory.end(); ++iCrate) {
+							firstErrStr << "Crate " << iCrate->first << " ";
+							secondErrStr << "Crate " << iCrate->first << " ";
+							for (IRQData::crateHistory::iterator iSlot = iCrate->second.begin(); iSlot != iCrate->second.end(); ++iSlot ) {
+								IRQData::fiberHistory &fibHist = iSlot->second;
+								fibHist[IRQData::SECOND_ERR] = fibHist[IRQData::SECOND_ERR] |
+									(fibHist[IRQData::CURR_ERR] & fibHist[IRQData::FIRST_ERR]);
+								fibHist[IRQData::FIRST_ERR] |= fibHist[IRQData::CURR_ERR];
+								if (fibHist[IRQData::FIRST_ERR] > 0) {
+									std::bitset<16> statusBits(fibHist[IRQData::FIRST_ERR]);
+									std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
+									firstErrStr << " Slot " << iSlot->first << " " << statusBitString << " ";
+								}
+								if (fibHist[IRQData::SECOND_ERR] > 0) {
+									std::bitset<16> statusBits = fibHist[IRQData::SECOND_ERR];
+									std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
+									secondErrStr << " Slot " << iSlot->first << " " << statusBitString << " ";
+								}
+							}
+						}
+						pthread_mutex_unlock(&locdata->lastErrMutex);
+						LOG4CPLUS_DEBUG(logger,
+							"Chambers in error once " << std::endl << firstErrStr.str() <<  std::endl <<
+							"Chambers in error twice " << std::endl << secondErrStr.str() <<  std::endl);
+					}
 
 					MY_REVOKE_ALARM("IRQThreadGeneralError");
 					

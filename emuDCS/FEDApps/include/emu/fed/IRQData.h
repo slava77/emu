@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.2 2010/08/13 03:00:07 paste Exp $
+* $Id: IRQData.h,v 1.3 2012/10/19 12:09:11 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQDATA_H__
 #define __EMU_FED_IRQDATA_H__
@@ -42,6 +42,7 @@ namespace emu {
 				pthread_cond_init(&resetCountCondition, NULL);
 				pthread_mutex_init(&errorCountMutex, NULL);
 				pthread_mutex_init(&applicationMutex, NULL);
+				pthread_mutex_init(&lastErrMutex, NULL);
 			}
 			
 			// Copy constructor
@@ -53,6 +54,7 @@ namespace emu {
 				resetCount = other.resetCount;
 				errorCount = other.errorCount;
 				errorFiberNames = other.errorFiberNames;
+				errorHistory = other.errorHistory;
 				runNumber = other.runNumber;
 				fmmErrorThreshold = other.fmmErrorThreshold;
 				application = other.application;
@@ -62,6 +64,7 @@ namespace emu {
 				pthread_cond_init(&resetCountCondition, NULL);
 				pthread_mutex_init(&errorCountMutex, NULL);
 				pthread_mutex_init(&applicationMutex, NULL);
+				pthread_mutex_init(&lastErrMutex, NULL);
 			}
 			
 			// Asignment operator
@@ -73,6 +76,7 @@ namespace emu {
 				resetCount = other.resetCount;
 				errorCount = other.errorCount;
 				errorFiberNames = other.errorFiberNames;
+				errorHistory = other.errorHistory;
 				runNumber = other.runNumber;
 				fmmErrorThreshold = other.fmmErrorThreshold;
 				application = other.application;
@@ -82,6 +86,7 @@ namespace emu {
 				pthread_cond_init(&resetCountCondition, NULL);
 				pthread_mutex_init(&errorCountMutex, NULL);
 				pthread_mutex_init(&applicationMutex, NULL);
+				pthread_mutex_init(&lastErrMutex, NULL);
 				
 				return *this;
 			}
@@ -92,6 +97,7 @@ namespace emu {
 				pthread_cond_destroy(&resetCountCondition);
 				pthread_mutex_destroy(&errorCountMutex);
 				pthread_mutex_destroy(&applicationMutex);
+				pthread_mutex_destroy(&lastErrMutex);
 			}
 			
 			/// A queue of crates that each thread can pop.  Mutexed.
@@ -111,6 +117,18 @@ namespace emu {
 			/// The names of the fibers that have had an error since reset, indexed by crate number
 			std::map<unsigned int, std::vector<std::string> > errorFiberNames;
 			
+			enum errSteps {CURR_ERR, FIRST_ERR, SECOND_ERR};
+
+			// List of fibers currently in error, last in error, and previously in error
+			typedef std::map<errSteps, unsigned int> fiberHistory;
+			typedef std::map<unsigned int, fiberHistory> crateHistory;
+			typedef std::map<unsigned int, crateHistory > endcapHistory;
+			endcapHistory errorHistory;
+			// std::map<unsigned int, std::map<unsigned int, std::map<errSteps, unsigned int> > > errorHistory;
+
+
+			pthread_mutex_t lastErrMutex;
+
 			/// A mutex to make sure only one thread at a time is talking to the parent application
 			pthread_mutex_t applicationMutex;
 			
