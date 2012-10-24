@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.7 2012/08/14 11:38:10 cvuosalo Exp $
+* $Id: IRQThreadManager.h,v 1.8 2012/10/24 15:14:43 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -95,6 +95,11 @@ namespace emu {
 			/// The application from where to send the SOAP messages
 			emu::fed::Communicator *application_;
 		
+			// Sends fact to expert system about chambers repeatedly in error
+			static void sendRepErrFact(const unsigned int crateNumber,
+				emu::fed::IRQData *const locdata, const std::string &repErrChambers,
+				const unsigned int totRepErrs);
+
 			class DDUWarnMon {
 
 				protected:

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.28 2012/10/19 12:09:11 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.29 2012/10/24 15:14:43 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -406,6 +406,32 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 	} else if (got1Warn_) {
 		got1Warn_ = false;
 	}
+}
+
+
+// The only reason this function is a member function is so it can call sendFacts,
+// which only a friend class like IRQThreadManager can call.
+
+void emu::fed::IRQThreadManager::sendRepErrFact(const unsigned int crateNumber, emu::fed::IRQData *const locdata,
+	const std::string &repErrChambers, const unsigned int totRepErrs)
+{
+	// Make and send the fact to the expert system
+	emu::base::TypedFact<emu::fed::FedRepeatErrorFact> fact;
+	std::ostringstream component;
+	char endcap = '+';
+	if (crateNumber >= 3)
+		endcap = '-';
+	component << "ME" << endcap;
+	fact.setComponentId(component.str())
+		.setSeverity(emu::base::Fact::INFO)
+		.setParameter(emu::fed::FedRepeatErrorFact::chambersInError, repErrChambers)
+		.setParameter(emu::fed::FedRepeatErrorFact::numChambersInError, totRepErrs);
+		
+	emu::fed::Communicator *application = locdata->application;
+	pthread_mutex_lock(&(locdata->applicationMutex));
+	application->storeFact(fact);
+	application->sendFacts();
+	pthread_mutex_unlock(&(locdata->applicationMutex));
 }
 
 
@@ -934,6 +960,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 					std::stringstream firstErrStr, secondErrStr;
 					if (fmmsReleased) {
+						std::stringstream repErrChambers;
+						unsigned int totReppErrs = 0;
+						bool moreFibers = false;
 						pthread_mutex_lock(&locdata->lastErrMutex);
 
 						for (IRQData::endcapHistory::iterator iCrate = locdata->errorHistory.begin(); iCrate != locdata->errorHistory.end(); ++iCrate) {
@@ -953,6 +982,16 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 									std::bitset<16> statusBits = fibHist[IRQData::SECOND_ERR];
 									std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
 									secondErrStr << " Slot " << iSlot->first << " " << statusBitString << " ";
+									for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
+										if (statusBits[iFiber]) {
+											if (moreFibers) {
+												repErrChambers << ", ";
+											}
+											repErrChambers << myDDU->getFiber(iFiber)->getName();
+											totReppErrs++;
+											moreFibers = true;
+										}
+									}
 								}
 							}
 						}
@@ -960,6 +999,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						LOG4CPLUS_DEBUG(logger,
 							"Chambers in error once " << std::endl << firstErrStr.str() <<  std::endl <<
 							"Chambers in error twice " << std::endl << secondErrStr.str() <<  std::endl);
+						if (totReppErrs > 0)
+							sendRepErrFact(crateNumber, locdata, repErrChambers.str(), totReppErrs);
 					}
 
 					MY_REVOKE_ALARM("IRQThreadGeneralError");

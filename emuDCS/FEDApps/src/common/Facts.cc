@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Facts.cc,v 1.4 2012/08/14 12:53:42 cvuosalo Exp $
+* $Id: Facts.cc,v 1.5 2012/10/24 15:14:43 cvuosalo Exp $
 \*****************************************************************************/
 
 #include "emu/fed/Facts.h"
@@ -34,4 +34,10 @@ const char* const emu::fed::DDUStuckInWarningFact::parameterNames_[] = {
 	"hardResetRequested",
 	"chambersInWarning",
 	"fibersInWarning"
+};
+
+const char* const emu::fed::FedRepeatErrorFact::typeName_ = "FedRepeatErrorFact";
+const char* const emu::fed::FedRepeatErrorFact::parameterNames_[] = {
+	"chambersInError",
+	"numChambersInError"
 };
