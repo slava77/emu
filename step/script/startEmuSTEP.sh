@@ -16,6 +16,9 @@ EOF
     esac
 done
 
+# Allow core dumps
+ulimit -c unlimited
+
 # BUILD_HOME, XDAQ_ROOT and ROOTSYS should be set. Their default values are:
 # export BUILD_HOME=${BUILD_HOME:-$PWD/${0:h}/../../..}
 export BUILD_HOME=${BUILD_HOME:-$HOME/CMS/TriDAS}
