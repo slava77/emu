@@ -61,6 +61,7 @@ namespace emu{
       string              group_; ///< Name of the VME crate group that this emu::step::Test instance handles.
       bool                isFake_; ///< If \em true, the test will just be simulated without VME communication.
       bool                isToStop_; ///< Set this to \em true to interrupt the test.
+      string              VME_XML_; ///< The VME configuration XML for this test.
       emu::pc::XMLParser  parser_;
       uint64_t            iEvent_; ///< Progress counter.
       void ( emu::step::Test::* procedure_ )();
@@ -68,6 +69,7 @@ namespace emu{
       void ( emu::step::Test::* getProcedure( const string& testId ) )(); 
       void createEndcap( const string& generalSettingsXML,
 			 const string& specialSettingsXML  );
+      int getDDUInputFiberMask( int crateId, int dduSlot );
       void configureCrates();
       string withoutChars( const string& chars, const string& str );
       void enableTrigger();

@@ -111,11 +111,11 @@ void emu::step::Test::createEndcap( const string& generalSettingsXML,
   vector< pair< string, string > >::const_iterator x, v;
   for ( x = xpaths.begin(), v = values.begin(); x != xpaths.end() && v != values.end(); ++x, ++v ) valuesMap[x->second] = v->second;
   // cout << valuesMap << endl;
-  string VME_XML = utils::setSelectedNodesValues( generalSettingsXML, valuesMap );
+  VME_XML_ = utils::setSelectedNodesValues( generalSettingsXML, valuesMap );
 
   // Save XML in file:
   string fileName( "VME_" + withoutChars( " \t:;<>'\",?/~`!@#$%^&*()=[]|\\", group_ ) + "_Test" + id_ + ".xml" );
-  utils::writeFile( fileName, VME_XML );
+  utils::writeFile( fileName, VME_XML_ );
 
   // Parse it (Endcap will be created in the process):
   parser_.parseFile( fileName.c_str() );
@@ -127,6 +127,18 @@ string emu::step::Test::withoutChars( const string& chars, const string& str ){
   size_t pos = 0;
   while( ( pos = s.find_first_of( chars, pos ) ) != string::npos ) s.erase( pos, 1 );
   return s;
+}
+
+int emu::step::Test::getDDUInputFiberMask( int crateId, int dduSlot ){
+  stringstream xPath;
+  xPath << "//PeripheralCrate[@crateID='" << crateId << "']/DDU[@slot='" << dduSlot << "']/input[@dmbSlot!='']/@number";
+  std::vector< std::pair< std::string, std::string > > usedInputs = utils::getSelectedNodesValues( VME_XML_, xPath.str() );
+  uint16_t mask = 0;
+  for ( std::vector< std::pair< std::string, std::string > >::const_iterator i = usedInputs.begin(); i != usedInputs.end(); ++i ){
+    int inputNumber = utils::stringTo<int>( i->second );
+    if ( 0 <= inputNumber && inputNumber <= 14 ) mask |= ( 0x0001 << inputNumber );
+  }
+  return mask;
 }
 
 void emu::step::Test::configureCrates(){
@@ -156,9 +168,10 @@ void emu::step::Test::configureCrates(){
       for ( vector<emu::pc::DDU*>::iterator ddu = ddus.begin(); ddu != ddus.end(); ++ddu ){
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU at " << *ddu ); }
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU's controller at " << (*ddu)->getTheController() << ", DDU in slot " << (*ddu)->slot() ); }
-	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFlashKillFiber(1) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
+	int dduInputFiberMask = getDDUInputFiberMask( (*crate)->CrateID(), (*ddu)->slot() );
+	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFlashKillFiber(" << dduInputFiberMask << ") in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
 	// (*ddu)->writeFlashKillFiber(1);
-	(*ddu)->writeFlashKillFiber(3); // Enable inputs 1 and 2. TODO: configuration
+	(*ddu)->writeFlashKillFiber( dduInputFiberMask );
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeGbEPrescale(0xF0F0) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
 	(*ddu)->writeGbEPrescale(0xF0F0); // TODO: double check this
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFakeL1(0x8787) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
