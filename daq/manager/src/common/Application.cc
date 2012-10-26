@@ -32,6 +32,7 @@
 #include <time.h>
 #include <iomanip>
 #include <algorithm>
+#include <limits>
 
 emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
   throw (xdaq::exception::Exception) 
@@ -3529,6 +3530,10 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
     s->fireItemAvailable("daqState",&daqState_);
     s->addItemRetrieveListener("daqState",this);
 
+    STEPCount_ = 0;
+    s->fireItemAvailable("STEPCount",&STEPCount_);
+    s->addItemRetrieveListener("STEPCount",this);
+
     STEPFinished_ = false;
     s->fireItemAvailable("STEPFinished",&STEPFinished_);
     s->addItemRetrieveListener("STEPFinished",this);
@@ -3950,8 +3955,10 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 
 bool emu::daq::manager::Application::isSTEPFinished(){
   // Return TRUE if all DDUs' all live and unmasked inputs have produced the requested number of events.
+  // Also record the lowest of any RUI's lowest count.
   bool isFinished = true;
-  
+  uint64_t minCount = numeric_limits<uint64_t>::max();
+
   emu::soap::Messenger m( this );
 
   // Loop over RUIs and query them for STEP info
@@ -3987,10 +3994,12 @@ bool emu::daq::manager::Application::isSTEPFinished(){
       isFinished = false;
     }
 
+    if ( minCount > (uint64_t) lowestCount.value_ ) minCount = (uint64_t) lowestCount.value_;
     isFinished &= ( (int64_t) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
     
   }
 
+  STEPCount_ = minCount;
   return isFinished;
 }
 
@@ -4943,6 +4952,7 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
 
   if      ( e.itemName() == "daqState"       && e.type() == "ItemRetrieveEvent" ){ daqState_ = getDAQState();        }
   else if ( e.itemName() == "STEPFinished"   && e.type() == "ItemRetrieveEvent" ){ STEPFinished_ = isSTEPFinished(); }
+  else if ( e.itemName() == "STEPCount"      && e.type() == "ItemRetrieveEvent" ){ STEPFinished_ = isSTEPFinished(); }
   else if ( e.itemName() == "supervisedMode" && e.type() == "ItemChangedEvent"  ){
     sendFact( "emu::daq::manager::Application", LocalDAQStatusFact::getTypeName() );
   }

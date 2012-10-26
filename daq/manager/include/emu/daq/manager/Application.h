@@ -314,6 +314,7 @@ private:
   string warningsToDisplay_;
 
   // STEP-specific stuff
+  xdata::UnsignedInteger64 STEPCount_; // The lowest of any RUI's lowest count in a STEP run.
   xdata::Boolean STEPFinished_; // set to TRUE when all DDUs' all live and unmasked inputs have produced the requested number of events
   bool printSTEPCountsTable( stringstream& out, bool control );
   bool isSTEPFinished();
