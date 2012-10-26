@@ -9,6 +9,8 @@
 #include "emu/utils/System.h"
 #include "emu/utils/Cgi.h"
 
+#include "xdata/Integer64.h"
+#include "xdata/UnsignedInteger64.h"
 #include "toolbox/task/WorkLoopFactory.h"
 #include "xcept/tools.h"
 
@@ -254,7 +256,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       // Configure all Tester apps
       //
       xdata::String             runType = string( ( (bool) isCurrentTestDurationUndefined_ ) ? "STEP_" : "Test_" ) + testId.toString();
-      xdata::Integer  maxNumberOfEvents = ( ( (bool) isCurrentTestDurationUndefined_ ) ? (int) testParameters.getNEvents() : -1 ); // unlimited if negative
+      xdata::Integer64  maxNumberOfEvents = ( ( (bool) isCurrentTestDurationUndefined_ ) ? (int) testParameters.getNEvents() : -1 ); // unlimited if negative
       xdata::Boolean writeBadEventsOnly = false;
       m.setParameters( "emu::daq::manager::Application", 
 		       emu::soap::Parameters()
@@ -329,6 +331,9 @@ void emu::step::Manager::controlWebPage(xgi::Input *in, xgi::Output *out)
 
   multimap<string,string> action;
   try{
+    // First of all, create configuration if none exists yet:
+    if ( configuration_ == NULL ) createConfiguration();
+
     // Drive FSM?
     action = emu::utils::selectFromQueryString( fev, "^fsm$" );
     if ( action.size() == 1 ){
@@ -346,7 +351,9 @@ void emu::step::Manager::controlWebPage(xgi::Input *in, xgi::Output *out)
 	    fireEvent( "Configure" );
 	  }
 	  else{
-	    LOG4CPLUS_WARN( logger_, "Refused to configure due to an attempt to change a configuration of modification time " << receivedModTime << " while the current configuration's modification time is " << configuration_->getModificationTime() );
+	    stringstream ss;
+	    ss << "Refused to configure due to an attempt to change a configuration of modification time " << receivedModTime << " while the current configuration's modification time is " << configuration_->getModificationTime();
+	    XCEPT_RAISE( xcept::Exception, ss.str() );
 	  }
 	}
 
@@ -382,8 +389,13 @@ void emu::step::Manager::controlWebPage(xgi::Input *in, xgi::Output *out)
     }
 
   } catch ( xcept::Exception& e ){
+    stringstream ss;
+    ss << "Failed to execute " + action.begin()->second;
+    XCEPT_DECLARE_NESTED( xcept::Exception, ee, ss.str(), e );
     bsem_.give();
-    XCEPT_RETHROW( xgi::exception::Exception, string("Failed to execute ") + action.begin()->second, e );
+    moveToFailedState( ee );
+    LOG4CPLUS_ERROR( logger_, xcept::stdformat_exception_history( ee ) );
+    *out << createXMLWebPage();
   }
 
   emu::utils::redirectTo( applicationURLPath_, out );
@@ -422,21 +434,7 @@ string emu::step::Manager::createXMLWebPage(){
   ss << "  </es:application>" << endl;
   ss << "</es:Manager>";
 
-  updateProgress();
   return emu::utils::appendToSelectedNode( ss.str(), "/es:Manager", configuration_->getXML() );
-}
-
-void emu::step::Manager::updateProgress(){
-  map<string,double> groupsProgress;
-  emu::soap::Messenger m( this );
-  xdata::Double progress;
-  for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app )
-    {
-      m.getParameters( app->second, emu::soap::Parameters().add( "progress", &progress ) );
-      groupsProgress[app->first] = double( progress );
-    }
-  // LOG4CPLUS_INFO( logger_, "Progress: " << groupsProgress );
-  configuration_->setTestProgress( groupsProgress );
 }
 
 bool emu::step::Manager::waitForDAQToExecute( const string command, const uint64_t seconds ){
@@ -470,26 +468,44 @@ bool emu::step::Manager::waitForDAQToExecute( const string command, const uint64
 
 void emu::step::Manager::waitForTestsToFinish( const bool isTestDurationUndefined ){
   emu::soap::Messenger m( this );
-  while ( true ){
+  while ( fsm_.getCurrentState() != 'H' ){
     bool allFinished = true;
     if ( isTestDurationUndefined ){
       // Query the local DAQ
-      xdata::Boolean STEPFinished;
-      m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "STEPFinished", &STEPFinished ) );
-      allFinished = (bool) STEPFinished;
-      if ( STEPFinished ){ LOG4CPLUS_INFO( logger_, "STEP is done."); }
+      xdata::Integer64 maxNumberOfEvents;
+      xdata::UnsignedInteger64 STEPCount;
+      m.getParameters( "emu::daq::manager::Application", 0, 
+		       emu::soap::Parameters()
+		       .add( "maxNumberOfEvents", &maxNumberOfEvents )
+		       .add( "STEPCount"        , &STEPCount         ) );
+      if ( (uint64_t) maxNumberOfEvents > 0 ){
+	double progress = 100. * double( STEPCount.value_ ) / double( maxNumberOfEvents.value_ ); // in %
+	// Assign every group the same progress. It would be complicated to attribute, and it wouldn't make much sense anyway.
+	map<string,double> groupsProgress;
+	for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app ) groupsProgress[app->first] = progress;
+	// cout << groupsProgress << endl;
+	configuration_->setTestProgress( groupsProgress );
+      }
+      allFinished = ( (int64_t) STEPCount.value_ >= maxNumberOfEvents );
+      if ( allFinished ){ LOG4CPLUS_INFO( logger_, "STEP is done."); }
     }
     else{
       // Query the Tester apps
-      for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin();
-	    app != testerDescriptors_.end(); 
-	    ++app ){
+      map<string,double> groupsProgress;
+      for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app ){
+	xdata::Double progress;
 	xdata::Boolean testDone;
-	m.getParameters( app->second, emu::soap::Parameters().add( "testDone", &testDone ) );
+	m.getParameters( app->second, 
+			 emu::soap::Parameters()
+			 .add( "progress", &progress )
+			 .add( "testDone", &testDone ) );
+	groupsProgress[app->first] = double( progress );
 	allFinished &= (bool) testDone;
 	// LOG4CPLUS_INFO( logger_, app->first << ( (bool) testDone ? " is done." : " is not yet done." ) );
 	if ( testDone ){ LOG4CPLUS_INFO( logger_, app->first << " is done."); }
       }
+      //cout << groupsProgress << endl;
+      configuration_->setTestProgress( groupsProgress );
     }
     if ( allFinished ) { return; }
     ::sleep( 1 );
