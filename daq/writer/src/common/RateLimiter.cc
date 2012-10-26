@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 #include <emu/daq/writer/RateLimiter.h>
 
 emu::daq::writer::RateLimiter::RateLimiter( const uint64_t limitInHz, const uint64_t sampleSize ) :
@@ -40,8 +41,8 @@ bool emu::daq::writer::RateLimiter::acceptEvent(){
   // 				   << "   eventCount " << eventCount_
   // 				   << std::endl;
 
-  if ( eventCount_ == 0x8fffffffffffffff ){ eventCount_ = 0; } // assumes 64-bit integer
-  else                                    { eventCount_++; }
+  if ( eventCount_ == std::numeric_limits<uint64_t>::max() ){ eventCount_ = 0; }
+  else                                                      { eventCount_++;   }
 
   lastTimeIndex_++;
   lastTimeIndex_ = ( lastTimeIndex_ % sampleSize_ );
