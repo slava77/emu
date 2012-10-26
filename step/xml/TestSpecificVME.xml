@@ -130,7 +130,7 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@miniscope_enable"              value="1"/>  <!-- important!!! -->
   </test>
 
-  <test id="25"><!-- same as tes 11, plus some -->
+  <test id="25"><!-- same as test 11, plus some -->
     <set xpath="//EmuSystem/PeripheralCrate/CCB/@CCBmode"                           value="1"/>
     <set xpath="//EmuSystem/PeripheralCrate/CCB/@l1aDelay"                          value="108"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_nplanes_hit_pretrig" value="1"/>
