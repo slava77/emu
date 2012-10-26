@@ -27,6 +27,7 @@
 #include "emu/daq/server/I2O.h"
 #include "emu/daq/server/SOAP.h"
 #include <sstream>
+#include <limits>
 #include "xdata/soap/Serializer.h"
 #include "xoap/DOMParser.h"
 #include "xoap/DOMParserFactory.h"
@@ -2712,7 +2713,7 @@ int32_t emu::daq::rui::Application::continueSTEPRun()
 
       if ( header && ! STEPEventCounter_.isInitialized() ){
 	uint64_t maxEvents;
-	if ( maxEvents_.value_ < 0 ) maxEvents = 0xffffffffffffffff;
+	if ( maxEvents_.value_ < 0 ) maxEvents = numeric_limits<uint64_t>::max();
 	else                         maxEvents = (uint64_t) maxEvents_.value_;
 	STEPEventCounter_.initialize( maxEvents, data );
       }

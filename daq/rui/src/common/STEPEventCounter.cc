@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <limits>
 
 emu::daq::rui::STEPEventCounter::STEPEventCounter(){
   for ( int i=0; i<maxDDUInputs_; ++i ) isMaskedInput_[i] = false;
@@ -71,14 +72,14 @@ bool emu::daq::rui::STEPEventCounter::isNeededEvent( char* const DDUHeader ){
 
 uint64_t emu::daq::rui::STEPEventCounter::getLowestCount() const {
   if ( isInitialized_ ){
-    uint64_t lowestCount = 0x7fffffffffffffff; // When cast to int, this should still be positive.
+    uint64_t lowestCount = std::numeric_limits<int64_t>::max(); // When cast to signed int, this should still be positive.
     bool allExcluded = true;
     for ( int i=0; i<maxDDUInputs_; ++i ){
       allExcluded &= ( !isLiveInput_[i] || isMaskedInput_[i]);
       if ( isLiveInput_[i] && ! isMaskedInput_[i] )
 	if ( count_[i] < lowestCount ) lowestCount = count_[i];
     }
-    if ( allExcluded ) return 0x7fffffffffffffff; // When cast to int, this should still be positive.
+    if ( allExcluded ) return std::numeric_limits<int64_t>::max(); // When cast to signed int, this should still be positive.
     return lowestCount;
   }
   return 0;
