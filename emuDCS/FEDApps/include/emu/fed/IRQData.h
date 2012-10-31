@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.3 2012/10/19 12:09:11 cvuosalo Exp $
+* $Id: IRQData.h,v 1.4 2012/10/31 11:04:14 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQDATA_H__
 #define __EMU_FED_IRQDATA_H__
@@ -34,6 +34,7 @@ namespace emu {
 			nCrates(0),
 			resetCount(0),
 			runNumber(0),
+			runNumStr("0"),
 			fmmErrorThreshold(0),
 			application(myApplication)
 			{
@@ -50,12 +51,14 @@ namespace emu {
 			{
 
 				crateQueue = other.crateQueue;
+				crateVec = other.crateVec ;
 				nCrates = other.nCrates;
 				resetCount = other.resetCount;
 				errorCount = other.errorCount;
 				errorFiberNames = other.errorFiberNames;
 				errorHistory = other.errorHistory;
 				runNumber = other.runNumber;
+				runNumStr << other.runNumStr.str();
 				fmmErrorThreshold = other.fmmErrorThreshold;
 				application = other.application;
 
@@ -72,12 +75,14 @@ namespace emu {
 			{
 
 				crateQueue = other.crateQueue;
+				crateVec = other.crateVec ;
 				nCrates = other.nCrates;
 				resetCount = other.resetCount;
 				errorCount = other.errorCount;
 				errorFiberNames = other.errorFiberNames;
 				errorHistory = other.errorHistory;
 				runNumber = other.runNumber;
+				runNumStr << other.runNumStr.str();
 				fmmErrorThreshold = other.fmmErrorThreshold;
 				application = other.application;
 
@@ -103,6 +108,7 @@ namespace emu {
 			/// A queue of crates that each thread can pop.  Mutexed.
 			pthread_mutex_t crateQueueMutex;
 			std::queue<Crate *> crateQueue;
+			std::vector<Crate *> crateVec; // Intended as read-only list of crates
 			unsigned int nCrates;
 			
 			/// A count of the number of crates that have reset
@@ -134,6 +140,7 @@ namespace emu {
 			
 			/// The run number to which this particular set of data is assigned
 			unsigned long int runNumber;
+			std::stringstream runNumStr;
 			
 			/// Threshold number of chambers before releasing the FMM signal
 			unsigned int fmmErrorThreshold;
