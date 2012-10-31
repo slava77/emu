@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.30 2012/10/31 11:03:35 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.31 2012/10/31 13:25:39 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -484,6 +484,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	
 	// A local count of the number or errors for this crate, indexed by slot
 	std::map<unsigned int, unsigned int> nErrors;
+	std::map<unsigned int, unsigned int> nIgnFibers;
 
 	// A local list of the fibers in error for this crate, indexed by slot
 	std::map<unsigned int, std::vector<std::string> > errFibersBySlot;
@@ -522,9 +523,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		
 		pthread_mutex_lock(&locdata->errorCountMutex);
 		locdata->errorCount[crateNumber] = 0;
+		locdata->ignErrCnt[crateNumber] = 0;
 		pthread_mutex_unlock(&locdata->errorCountMutex);
 		
 		nErrors.clear();
+		nIgnFibers.clear();
 		errFibersBySlot.clear();
 		trapSprung.clear();
 		lastDDUError.clear();
@@ -676,6 +679,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					if (combinedStatus >= 32768 && numBits > 0)
 						--numBits;	// Bit 15 (top bit) tells if DDU is in error, so if it's set, ignore it.
 					nErrors[slot] = numBits;
+
+					// Count number of fibers in error now that are in dynamic ignore list
+					std::bitset<16> ignFibBits(locdata->errorHistory[crateNumber][slot][IRQData::SECOND_ERR] & combinedStatus);
+					unsigned int numIgnFibBits = ignFibBits.count();
+					nIgnFibers[slot] = numIgnFibBits;
 					
 					xorStatus = xorStatus & combinedStatus;
 					// And with combinedStatus to get only new chamber errors, not any that turned off.
@@ -895,33 +903,31 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					
 					locdata->errorCount[crateNumber] = 0;
 					for (std::map<unsigned int, unsigned int>::iterator iCount = nErrors.begin(); iCount != nErrors.end(); ++iCount) {
-						
 						locdata->errorCount[crateNumber] += iCount->second;
-						
+					}
+					locdata->ignErrCnt[crateNumber] = 0;
+					for (std::map<unsigned int, unsigned int>::iterator iCount = nIgnFibers.begin(); iCount != nIgnFibers.end(); ++iCount) {
+						locdata->ignErrCnt[crateNumber] += iCount->second;
 					}
 					
 					// Now count all the errors from all the threads
-					unsigned int totalErrors = 0;
+					int totalErrors = 0;
+					int numIgnFibers = 0;
 					bool fmmsReleased = false;
 					for (std::map<unsigned int, unsigned int>::const_iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); ++iCount) {
 						totalErrors += iCount->second;
 					}
-					unsigned int numIgnFibers = 0;
-					// Reduce total error count for chambers that have been in Error twice this run
-					for (IRQData::endcapHistory::const_iterator iCrate = locdata->errorHistory.begin(); iCrate != locdata->errorHistory.end(); ++iCrate) {
-						for (IRQData::crateHistory::const_iterator iSlot = iCrate->second.begin(); iSlot != iCrate->second.end(); ++iSlot ) {
-							std::bitset<16> statusBits(((IRQData::fiberHistory) iSlot->second)[IRQData::SECOND_ERR]);
-							unsigned int numBits = statusBits.count();
-							if (numBits > 0)
-								numIgnFibers += numBits;
-						}
+					for (std::map<unsigned int, unsigned int>::const_iterator iCount = locdata->ignErrCnt.begin(); iCount != locdata->ignErrCnt.end(); ++iCount) {
+						numIgnFibers += iCount->second;
 					}
 					if (numIgnFibers > 0) {
 						totalErrors -= numIgnFibers;
+						if (totalErrors  < 0) // Shouldn't happen, but just in case
+							totalErrors = 0;
 						LOG4CPLUS_DEBUG(logger,
 							"Ignoring repeated errors, so total errors on this endcap reduced by " << numIgnFibers);
 					}
-					if (totalErrors >= locdata->fmmErrorThreshold) {
+					if (totalErrors >= (int) locdata->fmmErrorThreshold) {
 						LOG4CPLUS_INFO(logger,
 							"Releasing FMMs because total errors on this endcap = " << totalErrors << " is >= threshold of " <<
 							locdata->fmmErrorThreshold << std::endl);
@@ -984,6 +990,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 										fibHist[IRQData::SECOND_ERR] = fibHist[IRQData::SECOND_ERR] |
 											(fibHist[IRQData::CURR_ERR] & fibHist[IRQData::FIRST_ERR]);
 										fibHist[IRQData::FIRST_ERR] |= fibHist[IRQData::CURR_ERR];
+										fibHist[IRQData::CURR_ERR] = 0;
 										if (fibHist[IRQData::FIRST_ERR] > 0) {
 											std::bitset<16> statusBits(fibHist[IRQData::FIRST_ERR]);
 											std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.4 2012/10/31 11:04:14 cvuosalo Exp $
+* $Id: IRQData.h,v 1.5 2012/10/31 13:25:39 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQDATA_H__
 #define __EMU_FED_IRQDATA_H__
@@ -55,6 +55,7 @@ namespace emu {
 				nCrates = other.nCrates;
 				resetCount = other.resetCount;
 				errorCount = other.errorCount;
+				ignErrCnt= other.ignErrCnt;
 				errorFiberNames = other.errorFiberNames;
 				errorHistory = other.errorHistory;
 				runNumber = other.runNumber;
@@ -79,6 +80,7 @@ namespace emu {
 				nCrates = other.nCrates;
 				resetCount = other.resetCount;
 				errorCount = other.errorCount;
+				ignErrCnt= other.ignErrCnt;
 				errorFiberNames = other.errorFiberNames;
 				errorHistory = other.errorHistory;
 				runNumber = other.runNumber;
@@ -120,6 +122,7 @@ namespace emu {
 			pthread_mutex_t errorCountMutex;
 			/// Indexed by crate number
 			std::map<unsigned int, unsigned int> errorCount;
+			std::map<unsigned int, unsigned int> ignErrCnt;
 			/// The names of the fibers that have had an error since reset, indexed by crate number
 			std::map<unsigned int, std::vector<std::string> > errorFiberNames;
 			
