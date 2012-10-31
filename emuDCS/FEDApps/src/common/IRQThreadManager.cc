@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.29 2012/10/24 15:14:43 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.30 2012/10/31 11:03:35 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -89,12 +89,14 @@ throw (emu::fed::exception::FMMThreadException)
 	logger.addAppender(myAppend);
 
 	data_->runNumber = runNumber;
+	data_->runNumStr << runNumber;
 	// Do not quit the threads immediately.
 	//data_->exit = false;
 
 	// First, load up the data_ object with the crates that I govern.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); ++iThread) {
 		data_->crateQueue.push(threadVector_[iThread].first);
+		data_->crateVec.push_back(threadVector_[iThread].first);
 		data_->nCrates++;
 	}
 
@@ -287,6 +289,7 @@ bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, l
 		component << "DDU" << setfill('0') << setw(2) << ruiNum;
 		fact.setComponentId(component.str())
 			.setSeverity(emu::base::Fact::ERROR)
+			.setRun(locdata->runNumStr.str())
 			.setDescription("DDU stuck in Warning -- hard reset requested")
 			.setParameter(emu::fed::DDUStuckInWarningFact::hardResetRequested, true)
 			.setParameter(emu::fed::DDUStuckInWarningFact::chambersInWarning, warnChambers)
@@ -387,6 +390,7 @@ void emu::fed::IRQThreadManager::DDUWarnMon::checkDDUStatus(std::vector<emu::fed
 				component << "DDU" << setfill('0') << setw(2) << ruiNum;
 				fact.setComponentId(component.str())
 					.setSeverity(emu::base::Fact::ERROR)
+					.setRun(locdata->runNumStr.str())
 					.setDescription("More than one DDU-stuck-in-Warning incident occurred within 10 seconds")
 					.setParameter(emu::fed::DDUStuckInWarningFact::hardResetRequested, false)
 					.setParameter(emu::fed::DDUStuckInWarningFact::chambersInWarning, chamberWarns.str())
@@ -424,6 +428,7 @@ void emu::fed::IRQThreadManager::sendRepErrFact(const unsigned int crateNumber, 
 	component << "ME" << endcap;
 	fact.setComponentId(component.str())
 		.setSeverity(emu::base::Fact::INFO)
+		.setRun(locdata->runNumStr.str())
 		.setParameter(emu::fed::FedRepeatErrorFact::chambersInError, repErrChambers)
 		.setParameter(emu::fed::FedRepeatErrorFact::numChambersInError, totRepErrs);
 		
@@ -939,6 +944,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					component << "DDU" << setfill('0') << setw(2) << myDDU->getRUI();
 					fact.setComponentId(component.str())
 						.setSeverity(emu::base::Fact::ERROR)
+						.setRun(locdata->runNumStr.str())
 						.setDescription("DDU FMM IRQ information")
 						.setParameter(emu::fed::DDUFMMErrorFact::hardResetRequested, hardError)
 						.setParameter(emu::fed::DDUFMMErrorFact::resyncRequested, syncError)
@@ -966,32 +972,45 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						pthread_mutex_lock(&locdata->lastErrMutex);
 
 						for (IRQData::endcapHistory::iterator iCrate = locdata->errorHistory.begin(); iCrate != locdata->errorHistory.end(); ++iCrate) {
-							firstErrStr << "Crate " << iCrate->first << " ";
-							secondErrStr << "Crate " << iCrate->first << " ";
-							for (IRQData::crateHistory::iterator iSlot = iCrate->second.begin(); iSlot != iCrate->second.end(); ++iSlot ) {
-								IRQData::fiberHistory &fibHist = iSlot->second;
-								fibHist[IRQData::SECOND_ERR] = fibHist[IRQData::SECOND_ERR] |
-									(fibHist[IRQData::CURR_ERR] & fibHist[IRQData::FIRST_ERR]);
-								fibHist[IRQData::FIRST_ERR] |= fibHist[IRQData::CURR_ERR];
-								if (fibHist[IRQData::FIRST_ERR] > 0) {
-									std::bitset<16> statusBits(fibHist[IRQData::FIRST_ERR]);
-									std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
-									firstErrStr << " Slot " << iSlot->first << " " << statusBitString << " ";
-								}
-								if (fibHist[IRQData::SECOND_ERR] > 0) {
-									std::bitset<16> statusBits = fibHist[IRQData::SECOND_ERR];
-									std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
-									secondErrStr << " Slot " << iSlot->first << " " << statusBitString << " ";
-									for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
-										if (statusBits[iFiber]) {
-											if (moreFibers) {
-												repErrChambers << ", ";
+							unsigned int currCrateNum = iCrate->first;
+							firstErrStr << "Crate " << currCrateNum << " ";
+							secondErrStr << "Crate " << currCrateNum << " ";
+							for (unsigned int iThread = 0; iThread < locdata->crateVec.size(); ++iThread) {
+								emu::fed::Crate *currCrate = locdata->crateVec[iThread];
+								if (currCrate->number() == currCrateNum) {
+									std::vector<emu::fed::DDU *> currDDUvec = currCrate->getDDUs();
+									for (IRQData::crateHistory::iterator iSlot = iCrate->second.begin(); iSlot != iCrate->second.end(); ++iSlot ) {
+										IRQData::fiberHistory &fibHist = iSlot->second;
+										fibHist[IRQData::SECOND_ERR] = fibHist[IRQData::SECOND_ERR] |
+											(fibHist[IRQData::CURR_ERR] & fibHist[IRQData::FIRST_ERR]);
+										fibHist[IRQData::FIRST_ERR] |= fibHist[IRQData::CURR_ERR];
+										if (fibHist[IRQData::FIRST_ERR] > 0) {
+											std::bitset<16> statusBits(fibHist[IRQData::FIRST_ERR]);
+											std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
+											firstErrStr << " Slot " << iSlot->first << " " << statusBitString << " ";
+										}
+										if (fibHist[IRQData::SECOND_ERR] > 0) {
+											std::bitset<16> statusBits = fibHist[IRQData::SECOND_ERR];
+											std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
+											secondErrStr << " Slot " << iSlot->first << " " << statusBitString << " ";
+											for (std::vector<DDU *>::iterator iDDU = currDDUvec.begin(); iDDU != currDDUvec.end(); ++iDDU) {
+												if ((*iDDU)->slot() ==  iSlot->first) {
+													for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
+														if (statusBits[iFiber]) {
+															if (moreFibers) {
+																repErrChambers << ", ";
+															}
+															repErrChambers << (*iDDU)->getFiber(iFiber)->getName();
+															totReppErrs++;
+															moreFibers = true;
+														}
+													}
+													break; // Done, just needed the right DDU
+												}
 											}
-											repErrChambers << myDDU->getFiber(iFiber)->getName();
-											totReppErrs++;
-											moreFibers = true;
 										}
 									}
+									break; // Done, just need the right crate
 								}
 							}
 						}
@@ -1051,6 +1070,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 									component << "FEDCrate" << crateNumber;
 									fact.setComponentId(component.str())
 										.setSeverity(emu::base::Fact::DEBUG)
+										.setRun(locdata->runNumStr.str())
 										.setDescription("FED crate reset detection")
 										.setParameter(emu::fed::DDUFMMResetFact::crateNumber, crateNumber);
 									pthread_mutex_lock(&(locdata->applicationMutex));
