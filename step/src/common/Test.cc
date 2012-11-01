@@ -408,12 +408,8 @@ void emu::step::Test::_12(){ // OK
   // Count pulses to deliver
   //
 
-  uint64_t nPulses = 0;
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-      nPulses += nStrips * events_per_strip;
-  }
   bsem_.take();
-  nEvents_ = nPulses;
+  nEvents_ = crates.size() * nStrips * events_per_strip;
   bsem_.give();
 
   //
@@ -476,8 +472,105 @@ void emu::step::Test::_12(){ // OK
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_12 (parallel) ending" ); }
 }
 
+// void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p2.2.01/t13.xml
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_13 (serial) starting" ); }
+
+//   uint64_t tpamps_per_run       = parameters_["tpamps_per_run"]; // how many test pulse amplitudes to scan
+//   uint64_t thresholds_per_tpamp = parameters_["thresholds_per_tpamp"]; // number of thresholds to scan with each test pulse amp
+//   uint64_t threshold_first      = parameters_["threshold_first"]; // first thresh
+//   uint64_t threshold_step       = parameters_["threshold_step"]; // threshold step
+//   uint64_t events_per_threshold = parameters_["events_per_threshold"]; // events per each threshold
+//   uint64_t tpamp_first          = parameters_["tpamp_first"];
+//   uint64_t tpamp_step           = parameters_["tpamp_step"];
+
+//   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+//   ostream noBuffer( NULL );
+
+//   //
+//   // Count pulses to deliver
+//   //
+
+//   uint64_t nPulses = 0;
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//     nPulses += (*crate)->tmbs().size() * events_per_threshold * thresholds_per_tpamp * tpamps_per_run;
+//   }
+//   bsem_.take();
+//   nEvents_ = nPulses;
+//   bsem_.give();
+
+//   //
+//   // Deliver pulses
+//   //
+
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//     //if ( (*crate)->IsAlive() ){
+//       //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+
+//       (*crate)->ccb()->EnableL1aFromSyncAdb();
+
+//       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+//       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+// 	//cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
+
+// 	(*tmb)->EnableClctExtTrig();
+
+// 	emu::pc::ALCTController* alct = (*tmb)->alctController();
+
+// 	for ( uint64_t iAmp = 0; iAmp < tpamps_per_run; ++iAmp ){
+// 	  uint64_t amplitude = tpamp_first + iAmp * tpamp_step;
+// 	  uint64_t afebGroupMask = 0x7f;
+// 	  //cout << "    Amplitude " << iAmp << ": " << amplitude << endl << flush;
+
+// 	  for ( uint64_t iThreshold = 0; iThreshold < thresholds_per_tpamp; ++iThreshold ){
+// 	    uint64_t threshold = threshold_first + threshold_step * iThreshold;
+// 	    //cout << "      Threshold " << iThreshold << ": " << threshold << endl << flush;
+	    
+// 	    for ( int64_t c = 0; c <= alct->MaximumUserIndex(); c++){
+// 	      alct->SetAfebThreshold(c, threshold);
+// 	    }
+
+// 	    alct->WriteAfebThresholds();
+	    
+// 	    alct->SetUpPulsing(	amplitude, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
+
+// 	    (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+	    
+// 	    for ( uint64_t iPulse = 1; iPulse <= events_per_threshold; ++iPulse ){
+// 	      (*crate)->ccb()->GenerateAlctAdbSync();
+// 	      usleep(1000);
+// 	      bsem_.take();
+// 	      iEvent_++;
+// 	      bsem_.give();
+// 	      if (iPulse % 100 == 0) {
+// 		if ( pLogger_ ){
+// 		  stringstream ss;
+// 		  ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+// 		     << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
+// 		     << ", amplitude " << iAmp+1 << "/" << tpamps_per_run
+// 		     << ", threshold " << iThreshold+1 << "/" << thresholds_per_tpamp
+// 		     << ", pulses " << iPulse << "/" << events_per_threshold << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+// 		  LOG4CPLUS_INFO( *pLogger_, ss.str() );
+// 		}
+// 	      }
+// 	      if ( isToStop_ ) return;
+// 	    } // for (iPulse = 1; iPulse <= events_per_threshold; ++iPulse)
+// 	    (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+
+// 	  } // for ( uint64_t iThreshold = 0; iThreshold < thresholds_per_tpamp; ++iThreshold )
+
+// 	} // for ( uint64_t iAmp = 0; iAmp < tpamps_per_run; ++iAmp )
+
+//       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+
+//       //} // if ( (*crate)->IsAlive() )
+
+//   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_13 (serial) ending" ); }
+// }
+
 void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p2.2.01/t13.xml
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_13 starting" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_13 (parallel) starting" ); }
 
   uint64_t tpamps_per_run       = parameters_["tpamps_per_run"]; // how many test pulse amplitudes to scan
   uint64_t thresholds_per_tpamp = parameters_["thresholds_per_tpamp"]; // number of thresholds to scan with each test pulse amp
@@ -494,12 +587,8 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
   // Count pulses to deliver
   //
 
-  uint64_t nPulses = 0;
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    nPulses += (*crate)->tmbs().size() * events_per_threshold * thresholds_per_tpamp * tpamps_per_run;
-  }
   bsem_.take();
-  nEvents_ = nPulses;
+  nEvents_ = crates.size() * events_per_threshold * thresholds_per_tpamp * tpamps_per_run;
   bsem_.give();
 
   //
@@ -508,72 +597,156 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     //if ( (*crate)->IsAlive() ){
-      //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+    //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
-      (*crate)->ccb()->EnableL1aFromSyncAdb();
-
-      vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-	//cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
-
-	(*tmb)->EnableClctExtTrig();
-
-	emu::pc::ALCTController* alct = (*tmb)->alctController();
-
-	for ( uint64_t iAmp = 0; iAmp < tpamps_per_run; ++iAmp ){
-	  uint64_t amplitude = tpamp_first + iAmp * tpamp_step;
-	  uint64_t afebGroupMask = 0x7f;
-	  //cout << "    Amplitude " << iAmp << ": " << amplitude << endl << flush;
-
-	  for ( uint64_t iThreshold = 0; iThreshold < thresholds_per_tpamp; ++iThreshold ){
-	    uint64_t threshold = threshold_first + threshold_step * iThreshold;
-	    //cout << "      Threshold " << iThreshold << ": " << threshold << endl << flush;
-	    
-	    for ( int64_t c = 0; c <= alct->MaximumUserIndex(); c++){
-	      alct->SetAfebThreshold(c, threshold);
+    (*crate)->ccb()->EnableL1aFromSyncAdb();
+    
+    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+      (*tmb)->EnableClctExtTrig();
+    }
+    
+    for ( uint64_t iAmp = 0; iAmp < tpamps_per_run; ++iAmp ){
+      uint64_t amplitude = tpamp_first + iAmp * tpamp_step;
+      uint64_t afebGroupMask = 0x7f;
+      //cout << "    Amplitude " << iAmp << ": " << amplitude << endl << flush;
+      
+      for ( uint64_t iThreshold = 0; iThreshold < thresholds_per_tpamp; ++iThreshold ){
+	uint64_t threshold = threshold_first + threshold_step * iThreshold;
+	//cout << "      Threshold " << iThreshold << ": " << threshold << endl << flush;
+	
+	for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+	  emu::pc::ALCTController* alct = (*tmb)->alctController();
+	  for ( int64_t c = 0; c <= alct->MaximumUserIndex(); c++){
+	    alct->SetAfebThreshold(c, threshold);
+	  }
+	  alct->WriteAfebThresholds();
+	  alct->SetUpPulsing(	amplitude, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
+	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+	
+	(*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+	
+	for ( uint64_t iPulse = 1; iPulse <= events_per_threshold; ++iPulse ){
+	  (*crate)->ccb()->GenerateAlctAdbSync();
+	  usleep(1000);
+	  bsem_.take();
+	  iEvent_++;
+	  bsem_.give();
+	  if (iPulse % 100 == 0) {
+	    if ( pLogger_ ){
+	      stringstream ss;
+	      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+		 << ", amplitude " << iAmp+1 << "/" << tpamps_per_run
+		 << ", threshold " << iThreshold+1 << "/" << thresholds_per_tpamp
+		 << ", pulses " << iPulse << "/" << events_per_threshold << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	    }
-
-	    alct->WriteAfebThresholds();
-	    
-	    alct->SetUpPulsing(	amplitude, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
-
-	    (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-	    
-	    for ( uint64_t iPulse = 1; iPulse <= events_per_threshold; ++iPulse ){
-	      (*crate)->ccb()->GenerateAlctAdbSync();
-	      usleep(1000);
-	      bsem_.take();
-	      iEvent_++;
-	      bsem_.give();
-	      if (iPulse % 100 == 0) {
-		if ( pLogger_ ){
-		  stringstream ss;
-		  ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-		     << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
-		     << ", amplitude " << iAmp+1 << "/" << tpamps_per_run
-		     << ", threshold " << iThreshold+1 << "/" << thresholds_per_tpamp
-		     << ", pulses " << iPulse << "/" << events_per_threshold << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
-		  LOG4CPLUS_INFO( *pLogger_, ss.str() );
-		}
-	      }
-	      if ( isToStop_ ) return;
-	    } // for (iPulse = 1; iPulse <= events_per_threshold; ++iPulse)
-	    (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
-
-	  } // for ( uint64_t iThreshold = 0; iThreshold < thresholds_per_tpamp; ++iThreshold )
-
-	} // for ( uint64_t iAmp = 0; iAmp < tpamps_per_run; ++iAmp )
-
-      } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
-
-      //} // if ( (*crate)->IsAlive() )
+	  }
+	  if ( isToStop_ ) return;
+	} // for (iPulse = 1; iPulse <= events_per_threshold; ++iPulse)
+	(*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+	
+      } // for ( uint64_t iThreshold = 0; iThreshold < thresholds_per_tpamp; ++iThreshold )
+      
+    } // for ( uint64_t iAmp = 0; iAmp < tpamps_per_run; ++iAmp )
+    
+    //} // if ( (*crate)->IsAlive() )
 
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_13 (parallel) ending" ); }
 }
 
+// void emu::step::Test::_14(){
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_14 (serial) starting" ); }
+
+//   uint64_t delays_per_run      = parameters_["delays_per_run"];
+//   uint64_t delay_first         = parameters_["delay_first"];
+//   uint64_t delay_step          = parameters_["delay_step"];
+//   uint64_t events_per_delay    = parameters_["events_per_delay"];
+//   uint64_t alct_test_pulse_amp = parameters_["alct_test_pulse_amp"];
+
+//   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+//   ostream noBuffer( NULL );
+
+//   //
+//   // Count pulses to deliver
+//   //
+
+//   uint64_t nPulses = 0;
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//     nPulses += (*crate)->tmbs().size() * delays_per_run * events_per_delay;
+//   }
+//   bsem_.take();
+//   nEvents_ = nPulses;
+//   bsem_.give();
+
+//   //
+//   // Deliver pulses
+//   //
+
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//     // if ( (*crate)->IsAlive() ){
+//       cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+
+//       (*crate)->ccb()->EnableL1aFromASyncAdb();
+
+//       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+//       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+// 	cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
+
+// 	(*tmb)->EnableClctExtTrig();
+
+// 	emu::pc::ALCTController* alct = (*tmb)->alctController();
+// 	uint64_t afebGroupMask = 0x3fff; // all afebs
+// 	alct->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_ASYNC );
+
+// 	for ( uint64_t iDelay = 0; iDelay < delays_per_run; ++iDelay ){
+// 	  uint64_t delay = delay_first + iDelay * delay_step;
+// 	  cout << "    Delay " << iDelay << ": " << delay << endl << flush;
+
+// 	  for ( int64_t c = 0; c <= alct->MaximumUserIndex(); c++){
+// 	    alct->SetAsicDelay(c, delay);
+// 	  }
+	  
+// 	  alct->WriteAsicDelaysAndPatterns();
+	  
+// 	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+	  
+// 	  for ( uint64_t iPulse = 1; iPulse <= events_per_delay; ++iPulse ){
+// 	    (*crate)->ccb()->GenerateAlctAdbASync();
+// 	    usleep(1000);
+// 	    bsem_.take();
+// 	    iEvent_++;
+// 	    bsem_.give();
+// 	    if (iPulse % 100 == 0) {
+// 	      if ( pLogger_ ){
+// 		stringstream ss;
+// 		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+// 		   << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
+// 		   << ", delay " << iDelay+1 << "/" << delays_per_run
+// 		   << ", pulses " << iPulse << "/" << events_per_delay << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+// 		LOG4CPLUS_INFO( *pLogger_, ss.str() );
+// 	      }
+// 	    }
+// 	    if ( isToStop_ ) return;
+// 	  } // for (iPulse = 1; iPulse <= events_per_delay; ++iPulse)
+
+// 	  (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+
+// 	} // for ( uint64_t iDelay = 0; iDelay < tpamps_per_run; ++iDelay )
+
+//       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+
+//     // } // if ( (*crate)->IsAlive() )
+
+//   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_14 (serial) starting" ); }
+// }
+
 void emu::step::Test::_14(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_14 starting" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_14 (parallel) starting" ); }
 
   uint64_t delays_per_run      = parameters_["delays_per_run"];
   uint64_t delay_first         = parameters_["delay_first"];
@@ -588,12 +761,8 @@ void emu::step::Test::_14(){
   // Count pulses to deliver
   //
 
-  uint64_t nPulses = 0;
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    nPulses += (*crate)->tmbs().size() * delays_per_run * events_per_delay;
-  }
   bsem_.take();
-  nEvents_ = nPulses;
+  nEvents_ = crates.size() * delays_per_run * events_per_delay;
   bsem_.give();
 
   //
@@ -609,54 +778,51 @@ void emu::step::Test::_14(){
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
 	cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
-
 	(*tmb)->EnableClctExtTrig();
-
-	emu::pc::ALCTController* alct = (*tmb)->alctController();
 	uint64_t afebGroupMask = 0x3fff; // all afebs
-	alct->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_ASYNC );
-
-	for ( uint64_t iDelay = 0; iDelay < delays_per_run; ++iDelay ){
-	  uint64_t delay = delay_first + iDelay * delay_step;
-	  cout << "    Delay " << iDelay << ": " << delay << endl << flush;
-
-	  for ( int64_t c = 0; c <= alct->MaximumUserIndex(); c++){
-	    alct->SetAsicDelay(c, delay);
-	  }
-	  
-	  alct->WriteAsicDelaysAndPatterns();
-	  
-	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-	  
-	  for ( uint64_t iPulse = 1; iPulse <= events_per_delay; ++iPulse ){
-	    (*crate)->ccb()->GenerateAlctAdbASync();
-	    usleep(1000);
-	    bsem_.take();
-	    iEvent_++;
-	    bsem_.give();
-	    if (iPulse % 100 == 0) {
-	      if ( pLogger_ ){
-		stringstream ss;
-		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-		   << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
-		   << ", delay " << iDelay+1 << "/" << delays_per_run
-		   << ", pulses " << iPulse << "/" << events_per_delay << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
-		LOG4CPLUS_INFO( *pLogger_, ss.str() );
-	      }
-	    }
-	    if ( isToStop_ ) return;
-	  } // for (iPulse = 1; iPulse <= events_per_delay; ++iPulse)
-
-	  (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
-
-	} // for ( uint64_t iDelay = 0; iDelay < tpamps_per_run; ++iDelay )
-
+	(*tmb)->alctController()->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_ASYNC );
       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
-    // } // if ( (*crate)->IsAlive() )
+      for ( uint64_t iDelay = 0; iDelay < delays_per_run; ++iDelay ){
+	uint64_t delay = delay_first + iDelay * delay_step;
+	cout << "    Delay " << iDelay << ": " << delay << endl << flush;
+	
+	for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+	  for ( int64_t c = 0; c <= (*tmb)->alctController()->MaximumUserIndex(); c++ ){
+	    (*tmb)->alctController()->SetAsicDelay(c, delay);
+	  }	  
+	  (*tmb)->alctController()->WriteAsicDelaysAndPatterns();
+	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
+	(*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+	
+	for ( uint64_t iPulse = 1; iPulse <= events_per_delay; ++iPulse ){
+	  (*crate)->ccb()->GenerateAlctAdbASync();
+	  usleep(1000);
+	  bsem_.take();
+	  iEvent_++;
+	  bsem_.give();
+	  if (iPulse % 100 == 0) {
+	    if ( pLogger_ ){
+	      stringstream ss;
+	      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+		 << ", delay " << iDelay+1 << "/" << delays_per_run
+		 << ", pulses " << iPulse << "/" << events_per_delay << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
+	    }
+	  }
+	  if ( isToStop_ ) return;
+	} // for (iPulse = 1; iPulse <= events_per_delay; ++iPulse)
+	
+	(*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+	
+      } // for ( uint64_t iDelay = 0; iDelay < tpamps_per_run; ++iDelay )
+      
+      // } // if ( (*crate)->IsAlive() )
+      
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_14 (parallel) starting" ); }
 }
 
 // void emu::step::Test::_15(){
@@ -739,9 +905,8 @@ void emu::step::Test::_15(){ // OK
   // Count triggers to deliver
   //
 
-  uint64_t nTriggers = crates.size() * events_total;
   bsem_.take();
-  nEvents_ = nTriggers;
+  nEvents_ = crates.size() * events_total;
   bsem_.give();
 
   //
@@ -789,8 +954,108 @@ void emu::step::Test::_15(){ // OK
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_15 (parallel) ending" ); }
 }
 
+// void emu::step::Test::_16(){
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (serial) starting" ); }
+
+//   const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
+//   uint64_t events_per_layer    = parameters_["events_per_layer"];
+//   uint64_t alct_test_pulse_amp = parameters_["alct_test_pulse_amp"];
+  
+//   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+//   ostream noBuffer( NULL );
+
+//   //
+//   // Count pulses to deliver
+//   //
+
+//   uint64_t nTriggers = 0;
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//       nTriggers += (*crate)->tmbs().size() * nLayerPairs * events_per_layer;
+//   }
+//   bsem_.take();
+//   nEvents_ = nTriggers;
+//   bsem_.give();
+
+//   //
+//   // Deliver pulses
+//   //
+
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//     // if ( (*crate)->IsAlive() ){
+//       //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+
+//       (*crate)->ccb()->EnableL1aFromSyncAdb();
+//       (*crate)->ccb()->SetExtTrigDelay( 20 ); // TODO: make configurable
+
+//       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+//       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+// 	//cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
+
+// 	emu::pc::ALCTController* alct = (*tmb)->alctController();
+// 	uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them
+// 	alct->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
+
+//       	(*tmb)->EnableClctExtTrig();
+
+// 	alct->SetInvertPulse_(ON);    
+// 	alct->FillTriggerRegister_();
+// 	alct->WriteTriggerRegister_();
+	
+// 	for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair ){ // layer loop
+// 	  //cout << "    Layers " << iLayerPair*2+1 << " and  " << iLayerPair*2+2 << endl << flush;
+
+// 	  // reprogram standby register to enable 2 layers at a time
+// 	  const int standby_fmask[nLayerPairs] = {066, 055, 033};
+// 	  for (int lct_chip = 0; lct_chip < alct->MaximumUserIndex() / 6; lct_chip++){
+// 	      int astandby = standby_fmask[iLayerPair];
+// 	      if ( pLogger_ ){
+// 		LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to 0x" << hex << astandby << dec );
+// 	      }
+// 	      for (int afeb = 0; afeb < 6; afeb++){
+// 		  alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
+// 		  // if ( pLogger_ ){
+// 		  //   LOG4CPLUS_INFO( *pLogger_, "alct->SetStandbyRegister_( " << lct_chip*6 + afeb << ", 0x" << hex << ( (astandby >> afeb) & 1 ) << dec << " )" );
+// 		  // }
+// 	      }
+// 	  }
+// 	  alct->WriteStandbyRegister_();
+	  
+// 	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+
+// 	  for ( uint64_t iPulse = 1; iPulse <= events_per_layer; ++iPulse ){
+// 	    (*crate)->ccb()->GenerateAlctAdbSync();
+// 	    usleep(10);
+// 	    bsem_.take();
+// 	    iEvent_++;
+// 	    bsem_.give();
+// 	    if (iPulse % 100 == 0) {
+// 	      if ( pLogger_ ){
+// 		stringstream ss;
+// 		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+// 		   << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
+// 		   << ", layer pairs " << iLayerPair+1 << "/" << nLayerPairs
+// 		   << ", pulses " << iPulse << "/" << events_per_layer << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+// 		LOG4CPLUS_INFO( *pLogger_, ss.str() );
+// 	      }
+// 	    }
+// 	    if ( isToStop_ ) return;
+// 	  } // for (iPulse = 1; iPulse <= events_per_layer; ++iPulse)
+
+// 	  (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+
+// 	} // for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
+
+//       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+
+//     // } // if ( (*crate)->IsAlive() )
+
+//   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (serial) ending" ); }
+// }
+
 void emu::step::Test::_16(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 starting" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) starting" ); }
 
   const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
   uint64_t events_per_layer    = parameters_["events_per_layer"];
@@ -803,12 +1068,8 @@ void emu::step::Test::_16(){
   // Count pulses to deliver
   //
 
-  uint64_t nTriggers = 0;
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-      nTriggers += (*crate)->tmbs().size() * nLayerPairs * events_per_layer;
-  }
   bsem_.take();
-  nEvents_ = nTriggers;
+  nEvents_ = crates.size() * nLayerPairs * events_per_layer;
   bsem_.give();
 
   //
@@ -817,75 +1078,73 @@ void emu::step::Test::_16(){
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     // if ( (*crate)->IsAlive() ){
-      //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+    //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+    
+    (*crate)->ccb()->EnableL1aFromSyncAdb();
+    (*crate)->ccb()->SetExtTrigDelay( 20 ); // TODO: make configurable
+    
+    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+      //cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
+      emu::pc::ALCTController* alct = (*tmb)->alctController();
+      uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them
+      alct->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
+      
+      (*tmb)->EnableClctExtTrig();
+      
+      alct->SetInvertPulse_(ON);    
+      alct->FillTriggerRegister_();
+      alct->WriteTriggerRegister_();
+    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
-      (*crate)->ccb()->EnableL1aFromSyncAdb();
-      (*crate)->ccb()->SetExtTrigDelay( 20 ); // TODO: make configurable
-
-      vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+    for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair ){ // layer loop
+      //cout << "    Layers " << iLayerPair*2+1 << " and  " << iLayerPair*2+2 << endl << flush;
+      
       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-	//cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
-
 	emu::pc::ALCTController* alct = (*tmb)->alctController();
-	uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them
-	alct->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
-
-      	(*tmb)->EnableClctExtTrig();
-
-	alct->SetInvertPulse_(ON);    
-	alct->FillTriggerRegister_();
-	alct->WriteTriggerRegister_();
-	
-	for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair ){ // layer loop
-	  //cout << "    Layers " << iLayerPair*2+1 << " and  " << iLayerPair*2+2 << endl << flush;
-
-	  // reprogram standby register to enable 2 layers at a time
-	  const int standby_fmask[nLayerPairs] = {066, 055, 033};
-	  for (int lct_chip = 0; lct_chip < alct->MaximumUserIndex() / 6; lct_chip++){
-	      int astandby = standby_fmask[iLayerPair];
-	      if ( pLogger_ ){
-		LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to 0x" << hex << astandby << dec );
-	      }
-	      for (int afeb = 0; afeb < 6; afeb++){
-		  alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
-		  // if ( pLogger_ ){
-		  //   LOG4CPLUS_INFO( *pLogger_, "alct->SetStandbyRegister_( " << lct_chip*6 + afeb << ", 0x" << hex << ( (astandby >> afeb) & 1 ) << dec << " )" );
-		  // }
-	      }
+	// reprogram standby register to enable 2 layers at a time
+	const int standby_fmask[nLayerPairs] = {066, 055, 033};
+	for (int lct_chip = 0; lct_chip < alct->MaximumUserIndex() / 6; lct_chip++){
+	  int astandby = standby_fmask[iLayerPair];
+	  if ( pLogger_ ){
+	    LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to 0x" << hex << astandby << dec );
 	  }
-	  alct->WriteStandbyRegister_();
-	  
-	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-
-	  for ( uint64_t iPulse = 1; iPulse <= events_per_layer; ++iPulse ){
-	    (*crate)->ccb()->GenerateAlctAdbSync();
-	    usleep(10);
-	    bsem_.take();
-	    iEvent_++;
-	    bsem_.give();
-	    if (iPulse % 100 == 0) {
-	      if ( pLogger_ ){
-		stringstream ss;
-		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-		   << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
-		   << ", layer pairs " << iLayerPair+1 << "/" << nLayerPairs
-		   << ", pulses " << iPulse << "/" << events_per_layer << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
-		LOG4CPLUS_INFO( *pLogger_, ss.str() );
-	      }
-	    }
-	    if ( isToStop_ ) return;
-	  } // for (iPulse = 1; iPulse <= events_per_layer; ++iPulse)
-
-	  (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
-
-	} // for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
-
+	  for (int afeb = 0; afeb < 6; afeb++){
+	    alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
+	  }
+	}
+	alct->WriteStandbyRegister_();
       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
-
+      
+      (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+      
+      for ( uint64_t iPulse = 1; iPulse <= events_per_layer; ++iPulse ){
+	(*crate)->ccb()->GenerateAlctAdbSync();
+	usleep(10);
+	bsem_.take();
+	iEvent_++;
+	bsem_.give();
+	if (iPulse % 100 == 0) {
+	  if ( pLogger_ ){
+	    stringstream ss;
+	    ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+	       << ", layer pairs " << iLayerPair+1 << "/" << nLayerPairs
+	       << ", pulses " << iPulse << "/" << events_per_layer << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
+	  }
+	}
+	if ( isToStop_ ) return;
+      } // for (iPulse = 1; iPulse <= events_per_layer; ++iPulse)
+      
+      (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+      
+    } // for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
+    
     // } // if ( (*crate)->IsAlive() )
 
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) ending" ); }
 }
 
 // void emu::step::Test::_17(){
@@ -1271,12 +1530,116 @@ void emu::step::Test::_18(){
   }
 }
 
+// void emu::step::Test::_19(){
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_19 (serial) starting" ); }
+
+//   uint64_t events_per_thresh    = parameters_["events_per_thresh"];
+//   uint64_t threshs_per_tpamp    = parameters_["threshs_per_tpamp"];
+//   uint64_t thresh_first         = parameters_["thresh_first"];
+//   uint64_t thresh_step          = parameters_["thresh_step"];
+//   uint64_t dmb_tpamps_per_strip = parameters_["dmb_tpamps_per_strip"];
+//   uint64_t dmb_tpamp_first      = parameters_["dmb_tpamp_first"];
+//   uint64_t dmb_tpamp_step       = parameters_["dmb_tpamp_step"];
+//   uint64_t scale_turnoff        = parameters_["scale_turnoff"];
+//   uint64_t range_turnoff        = parameters_["range_turnoff"];
+//   uint64_t strips_per_run       = parameters_["strips_per_run"];
+//   uint64_t strip_first          = parameters_["strip_first"];
+//   uint64_t strip_step           = parameters_["strip_step"];
+  
+//   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+//   ostream noBuffer( NULL );
+
+//   //
+//   // Count pulses to deliver
+//   //
+
+//   uint64_t nPulses = 0;
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
+//     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+//       nPulses += events_per_thresh * threshs_per_tpamp * dmb_tpamps_per_strip * strips_per_run;
+//     }
+//   }
+//   bsem_.take();
+//   nEvents_ = nPulses;
+//   bsem_.give();
+
+//   //
+//   // Deliver pulses
+//   //
+
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    
+//     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX(); // TODO: via XML
+//     (*crate)->ccb()->SetExtTrigDelay( 19 ); // TODO: via XML
+
+//     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
+//     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+
+//       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
+//       tmb->EnableClctExtTrig(); // TODO: via XML
+      
+//       for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
+// 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
+// 	(*dmb)->buck_shift();
+// 	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
+
+// 	for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp ){
+// 	  float dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
+// 	  (*dmb)->set_dac( 0, dac * 5. / 4096. ); // dac values in t19 assume 12-bit DAC
+// 	  // calculate thresh_first based on current dac value
+// 	  thresh_first = max( int64_t( 0 ), (int64_t)(dac * scale_turnoff / 16 - range_turnoff) );
+
+// 	  for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold ){
+// 	    // set cfeb thresholds (for the entire test)
+// 	    float threshold = (float)( iThreshold * thresh_step + thresh_first ) / 1000.;
+// 	    (*dmb)->set_comp_thresh( threshold );
+    
+// 	    (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+
+// 	    for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse ){
+// 	      (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
+// 	      ::usleep( 10 );
+// 	      bsem_.take();
+// 	      iEvent_++;
+// 	      bsem_.give();
+// 	      if (iPulse % events_per_thresh == 0) {
+// 		if ( pLogger_ ){
+// 		  stringstream ss;
+// 		  ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+// 		     << ", DMB " << dmb-dmbs.begin()+1 << "/" << dmbs.size() << " in slot " << (*dmb)->slot()
+// 		     << ", strip " << iStrip+1 << "/" << strips_per_run
+// 		     << ", amplitude " << iAmp+1 << "/" << dmb_tpamps_per_strip
+// 		     << ", threshold=" << threshold << " " << iThreshold+1 << "/" << threshs_per_tpamp
+// 		     << ", pulses " << iPulse << "/" << events_per_thresh << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+// 		  LOG4CPLUS_INFO( *pLogger_, ss.str() );
+// 		}
+// 	      }
+// 	      if ( isToStop_ ) return;
+
+// 	      (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+
+// 	    } // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
+	    
+// 	  } // for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold )
+	  
+// 	} // for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp )
+	
+//       } // for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip )
+
+//     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+
+//   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_19 (serial) ending" ); }
+// }
+
 void emu::step::Test::_19(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_19 starting" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_19 (parallel) starting" ); }
 
   uint64_t events_per_thresh    = parameters_["events_per_thresh"];
   uint64_t threshs_per_tpamp    = parameters_["threshs_per_tpamp"];
-  uint64_t thresh_first         = parameters_["thresh_first"];
+  //uint64_t thresh_first         = parameters_["thresh_first"];
   uint64_t thresh_step          = parameters_["thresh_step"];
   uint64_t dmb_tpamps_per_strip = parameters_["dmb_tpamps_per_strip"];
   uint64_t dmb_tpamp_first      = parameters_["dmb_tpamp_first"];
@@ -1294,15 +1657,8 @@ void emu::step::Test::_19(){
   // Count pulses to deliver
   //
 
-  uint64_t nPulses = 0;
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      nPulses += events_per_thresh * threshs_per_tpamp * dmb_tpamps_per_strip * strips_per_run;
-    }
-  }
   bsem_.take();
-  nEvents_ = nPulses;
+  nEvents_ = crates.size() * events_per_thresh * threshs_per_tpamp * dmb_tpamps_per_strip * strips_per_run;
   bsem_.give();
 
   //
@@ -1314,77 +1670,173 @@ void emu::step::Test::_19(){
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX(); // TODO: via XML
     (*crate)->ccb()->SetExtTrigDelay( 19 ); // TODO: via XML
 
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
       tmb->EnableClctExtTrig(); // TODO: via XML
-      
-      for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
+    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+
+
+    for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
+
+      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
 	(*dmb)->buck_shift();
 	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
-
-	for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp ){
+      } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+      
+      for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp ){
+	
+	vector<uint64_t> first_thresholds; // the first threshold for each DMB
+	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	  float dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
 	  (*dmb)->set_dac( 0, dac * 5. / 4096. ); // dac values in t19 assume 12-bit DAC
-	  // calculate thresh_first based on current dac value
-	  thresh_first = max( int64_t( 0 ), (int64_t)(dac * scale_turnoff / 16 - range_turnoff) );
-
-	  for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold ){
-	    // set cfeb thresholds (for the entire test)
-	    float threshold = (float)( iThreshold * thresh_step + thresh_first ) / 1000.;
-	    (*dmb)->set_comp_thresh( threshold );
-    
-	    (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-
-	    for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse ){
-	      (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
-	      ::usleep( 10 );
-	      bsem_.take();
-	      iEvent_++;
-	      bsem_.give();
-	      if (iPulse % events_per_thresh == 0) {
-		if ( pLogger_ ){
-		  stringstream ss;
-		  ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-		     << ", DMB " << dmb-dmbs.begin()+1 << "/" << dmbs.size() << " in slot " << (*dmb)->slot()
-		     << ", strip " << iStrip+1 << "/" << strips_per_run
-		     << ", amplitude " << iAmp+1 << "/" << dmb_tpamps_per_strip
-		     << ", threshold=" << threshold << " " << iThreshold+1 << "/" << threshs_per_tpamp
-		     << ", pulses " << iPulse << "/" << events_per_thresh << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
-		  LOG4CPLUS_INFO( *pLogger_, ss.str() );
-		}
-	      }
-	      if ( isToStop_ ) return;
-
-	      (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
-
-	    } // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
-	    
-	  } // for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold )
-	  
-	} // for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp )
+	  // calculate first thresholds based on current dac value
+	  first_thresholds.push_back( max( int64_t( 0 ), (int64_t)(dac * scale_turnoff / 16 - range_turnoff) ) );
+	} // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 	
-      } // for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip )
-
-    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
-
+	
+	for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold ){
+	  
+	  vector<uint64_t>::const_iterator first_threshold = first_thresholds.begin();
+	  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+	    // set cfeb thresholds (for the entire test)
+	    float threshold = (float)( iThreshold * thresh_step + *first_threshold ) / 1000.;
+	    (*dmb)->set_comp_thresh( threshold );
+	    ++first_threshold;
+	  } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+	  
+	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+	  
+	  for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse ){
+	    (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
+	    ::usleep( 10 );
+	    bsem_.take();
+	    iEvent_++;
+	    bsem_.give();
+	    if (iPulse % events_per_thresh == 0) {
+	      if ( pLogger_ ){
+		stringstream ss;
+		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+		   << ", strip " << iStrip+1 << "/" << strips_per_run
+		   << ", amplitude " << iAmp+1 << "/" << dmb_tpamps_per_strip
+		   << ", threshold " << " " << iThreshold+1 << "/" << threshs_per_tpamp
+		   << ", pulses " << iPulse << "/" << events_per_thresh << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+		LOG4CPLUS_INFO( *pLogger_, ss.str() );
+	      }
+	    }
+	    if ( isToStop_ ) return;
+	    
+	    (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+	    
+	  } // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
+	  
+	} // for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold )
+	
+      } // for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp )
+      
+    } // for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip )
+    
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
-
+  
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_19 (parallel) ending" ); }
 }
 
+// void emu::step::Test::_21(){
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 (serial) starting" ); }
+//   uint64_t dmb_test_pulse_amp = parameters_["dmb_test_pulse_amp"];
+//   uint64_t cfeb_threshold = parameters_["cfeb_threshold"];
+//   uint64_t events_per_hstrip  = parameters_["events_per_hstrip"];
+//   uint64_t hstrips_per_run = parameters_["hstrips_per_run"];
+//   uint64_t hstrip_first = parameters_["hstrip_first"];
+//   uint64_t hstrip_step = parameters_["hstrip_step"];
+//   // uint64_t  = parameters_[""];
+//   // uint64_t  = parameters_[""];
+//   // uint64_t  = parameters_[""];
+  
+//   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+//   ostream noBuffer( NULL );
+
+//   //
+//   // Count pulses to deliver
+//   //
+
+//   uint64_t nPulses = 0;
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
+//     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+//       nPulses += events_per_hstrip * hstrips_per_run;
+//     }
+//   }
+//   bsem_.take();
+//   nEvents_ = nPulses;
+//   bsem_.give();
+
+//   //
+//   // Deliver pulses
+//   //
+
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    
+//     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX(); // TODO: via XML
+//     (*crate)->ccb()->SetExtTrigDelay( 17 ); // TODO: via XML
+
+//     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
+//     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+//       (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 256., 0 ); // set inject amplitude - first parameter (same for the entire test) // TODO: via XML
+//       (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test) // TODO: via XML
+//       (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT // TODO: via XML
+
+//       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
+//       tmb->EnableClctExtTrig(); // TODO: via XML
+      
+//       for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip ){
+
+// 	int64_t halfStrip = iHalfStrip * hstrip_step + hstrip_first - 1;
+	
+// 	(*dmb)->trighalfx( halfStrip );
+
+// 	(*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+	
+// 	for ( uint64_t iPulse = 1; iPulse <= events_per_hstrip; ++iPulse ){
+// 	  (*crate)->ccb()->GenerateDmbCfebCalib1(); // pulse
+// 	  ::usleep( 10 );
+// 	  bsem_.take();
+// 	  iEvent_++;
+// 	  bsem_.give();
+// 	  if (iPulse % 100 == 0) {
+// 	    if ( pLogger_ ){
+// 	      stringstream ss;
+// 	      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+// 		 << ", DMB " << dmb-dmbs.begin()+1 << "/" << dmbs.size() << " in slot " << (*dmb)->slot()
+// 		 << ", half strip " << iHalfStrip+1 << "/" << hstrips_per_run << " (" << halfStrip << ")"
+// 		 << ", pulses " << iPulse  << "/" << events_per_hstrip << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+// 	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
+// 	    }
+// 	  }
+// 	  if ( isToStop_ ) return;
+	  
+// 	  (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+	  
+// 	} // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
+
+//       } // for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip )
+
+//     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+
+//   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 (serial) ending" ); }
+// }
+
 void emu::step::Test::_21(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 starting" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 (parallel) starting" ); }
   uint64_t dmb_test_pulse_amp = parameters_["dmb_test_pulse_amp"];
   uint64_t cfeb_threshold = parameters_["cfeb_threshold"];
   uint64_t events_per_hstrip  = parameters_["events_per_hstrip"];
   uint64_t hstrips_per_run = parameters_["hstrips_per_run"];
   uint64_t hstrip_first = parameters_["hstrip_first"];
   uint64_t hstrip_step = parameters_["hstrip_step"];
-  // uint64_t  = parameters_[""];
-  // uint64_t  = parameters_[""];
-  // uint64_t  = parameters_[""];
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
@@ -1393,15 +1845,8 @@ void emu::step::Test::_21(){
   // Count pulses to deliver
   //
 
-  uint64_t nPulses = 0;
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      nPulses += events_per_hstrip * hstrips_per_run;
-    }
-  }
   bsem_.take();
-  nEvents_ = nPulses;
+  nEvents_ = crates.size() * events_per_hstrip * hstrips_per_run;
   bsem_.give();
 
   //
@@ -1421,47 +1866,160 @@ void emu::step::Test::_21(){
 
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
       tmb->EnableClctExtTrig(); // TODO: via XML
-      
-      for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip ){
-
-	int64_t halfStrip = iHalfStrip * hstrip_step + hstrip_first - 1;
-	
-	(*dmb)->trighalfx( halfStrip );
-
-	(*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-	
-	for ( uint64_t iPulse = 1; iPulse <= events_per_hstrip; ++iPulse ){
-	  (*crate)->ccb()->GenerateDmbCfebCalib1(); // pulse
-	  ::usleep( 10 );
-	  bsem_.take();
-	  iEvent_++;
-	  bsem_.give();
-	  if (iPulse % 100 == 0) {
-	    if ( pLogger_ ){
-	      stringstream ss;
-	      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-		 << ", DMB " << dmb-dmbs.begin()+1 << "/" << dmbs.size() << " in slot " << (*dmb)->slot()
-		 << ", half strip " << iHalfStrip+1 << "/" << hstrips_per_run << " (" << halfStrip << ")"
-		 << ", pulses " << iPulse  << "/" << events_per_hstrip << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
-	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
-	    }
-	  }
-	  if ( isToStop_ ) return;
-	  
-	  (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
-	  
-	} // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
-
-      } // for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip )
-
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
+    for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip ){
+      
+      int64_t halfStrip = iHalfStrip * hstrip_step + hstrip_first - 1;
+      
+      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+	(*dmb)->trighalfx( halfStrip );
+      } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+      
+      (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+      
+      for ( uint64_t iPulse = 1; iPulse <= events_per_hstrip; ++iPulse ){
+	(*crate)->ccb()->GenerateDmbCfebCalib1(); // pulse
+	::usleep( 10 );
+	bsem_.take();
+	iEvent_++;
+	bsem_.give();
+	if (iPulse % 100 == 0) {
+	  if ( pLogger_ ){
+	    stringstream ss;
+	    ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+	       << ", half strip " << iHalfStrip+1 << "/" << hstrips_per_run << " (" << halfStrip << ")"
+	       << ", pulses " << iPulse  << "/" << events_per_hstrip << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
+	  }
+	}
+	if ( isToStop_ ) return;
+	
+	(*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+	
+      } // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
+      
+    } // for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip )
+    
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
-
+  
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 (parallel) ending" ); }
 }
 
+// void emu::step::Test::_25(){
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_25 (single chamber) starting" ); }
+
+//   uint64_t trig_settings       = parameters_["trig_settings"];
+
+//   ostream noBuffer( NULL );
+
+//   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+
+//   //
+//   // Count settings to apply
+//   //
+
+//   uint64_t nSettings = 0;
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+//     for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+//       nSettings += trig_settings;
+//     }
+//   }
+//   bsem_.take();
+//   nEvents_ = nSettings;
+//   bsem_.give();
+
+//   //
+//   // Apply settings
+//   //
+
+//   string dateTime( emu::utils::getDateTime( true ) );
+
+//   struct timeval start, end;
+
+//   usleep(100);
+
+//   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+//       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+//       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+
+// 	emu::pc::ALCTController* alct = (*tmb)->alctController();
+// 	alct->configure();
+// 	::usleep(100);
+
+// 	stringstream timeStampFileName;
+// 	timeStampFileName << "Test25_"  << (*crate)->GetLabel()
+// 			  << "_TMBslot" << (*tmb)->slot()
+// 			  << "_"        << dateTime
+// 			  << ".txt";
+// 	ofstream timeStampFile;
+// 	timeStampFile.open( timeStampFileName.str().c_str() );
+// 	timeStampFile << "#crate    :\t" << (*crate)->GetLabel() << endl;
+// 	timeStampFile << "#TMB slot :\t" << (*tmb)->slot() << endl;
+// 	timeStampFile << "#chamber  :\t" << (*tmb)->getChamber()->GetLabel() << endl;
+// 	timeStampFile << "#time [ms]\tevent counts" << endl;
+// 	for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting ){
+
+// 	  if ( iTriggerSetting == 0 ){
+// 	    alct->SetPretrigNumberOfLayers( 1 );
+// 	  }
+// 	  else{
+// 	    alct->SetPretrigNumberOfLayers( 2 );
+// 	  }
+// 	  alct->SetPretrigNumberOfPattern( iTriggerSetting + 1 );
+// 	  alct->WriteConfigurationReg();
+
+// 	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 1 ? 50000 : 20000 ) );
+
+// 	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::enableL1aCounter, 0 );
+// 	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::resetL1aCounter , 0 ); // zero L1A counter
+
+// 	  // (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1edd ); // CSRB1=0x20; enable CCB to send L1A on TMB request; same as CCB::EnableL1aFromTmbL1aReq
+// 	  (*crate)->ccb()->EnableL1aFromTmbL1aReq();
+// 	  gettimeofday( &start, NULL );
+// 	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 0 ? 5000 : (iTriggerSetting+1)*10000 ) );
+// 	  // (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1af9 ); // CSRB1=0x20; disable CCB to send L1A on TMB request; same as CCB::EnableL1aFromDmbCfebCalibX
+// 	  (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+// 	  gettimeofday( &end, NULL );
+
+// 	  bsem_.take();
+// 	  iEvent_++;
+// 	  bsem_.give();
+
+// 	  uint32_t l1a_counter_LSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterLSB ) & 0xffff; // read lower 16 bits
+// 	  uint32_t l1a_counter_MSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterMSB ) & 0xffff; // read higher 16 bits
+// 	  uint32_t l1a_counter     = l1a_counter_LSB | (l1a_counter_MSB << 16); // merge into counter
+// 	  timeStampFile 
+// 	    << ( end.tv_sec - start.tv_sec) * 1000 + ( end.tv_usec - start.tv_usec ) / 1000. 
+// 	    << "\t\t" << l1a_counter << endl;
+
+// 	  if ( pLogger_ ){
+// 	    stringstream ss;
+// 	    ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+// 	       << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
+// 	       << ", trigger setting " << iTriggerSetting+1 << "/" << trig_settings
+// 	       << ", L1A " << l1a_counter;
+// 	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
+// 	  }
+	  
+// 	} // for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting )
+
+// 	timeStampFile.close();
+
+//       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+
+//   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+//   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_25 (single chamber) ending" ); }
+// }
+
 void emu::step::Test::_25(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_25 starting" ); }
+  // TODO:
+  // This can be run with one chamber per crate at a time while the other chambers in the crate must be disabled.
+  // In principle, it could be run in parallel in different crates, but only if their data all go into different files...
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_25 (multichamber) starting" ); }
 
   uint64_t trig_settings       = parameters_["trig_settings"];
 
@@ -1496,76 +2054,88 @@ void emu::step::Test::_25(){
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
-      vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
 
-	emu::pc::ALCTController* alct = (*tmb)->alctController();
-	alct->configure();
-	::usleep(100);
+    // Loop over TMBs to test them one by one.
+    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+      
+      // Disable ALCT trigger in all TMBs...
+      for ( vector<emu::pc::TMB*>::iterator t = tmbs.begin(); t != tmbs.end(); ++t ){
+	(*t)->SetAlctPatternTrigEnable( 0 ); // same as alct_pretrig_enable="0" in XML
+	(*t)->SetTmbAllowAlct( 0 );          // same as alct_trig_enable="0" in XML
+      } // for ( vector<emu::pc::TMB*>::iterator t = tmbs.begin(); t != tmbs.end(); ++t )
+      // ...except for the one that's being tested:
+      (*tmb)->SetAlctPatternTrigEnable( 1 ); // same as alct_pretrig_enable="1" in XML
+      (*tmb)->SetTmbAllowAlct( 1 );          // same as alct_trig_enable="1" in XML
 
-	stringstream timeStampFileName;
-	timeStampFileName << "Test25_"  << (*crate)->GetLabel()
-			  << "_TMBslot" << (*tmb)->slot()
-			  << "_"        << dateTime
-			  << ".txt";
-	ofstream timeStampFile;
-	timeStampFile.open( timeStampFileName.str().c_str() );
-	timeStampFile << "#crate    :\t" << (*crate)->GetLabel() << endl;
-	timeStampFile << "#TMB slot :\t" << (*tmb)->slot() << endl;
-	timeStampFile << "#chamber  :\t" << (*tmb)->getChamber()->GetLabel() << endl;
-	timeStampFile << "#time [ms]\tevent counts" << endl;
-	for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting ){
-
-	  if ( iTriggerSetting == 0 ){
-	    alct->SetPretrigNumberOfLayers( 1 );
-	  }
-	  else{
-	    alct->SetPretrigNumberOfLayers( 2 );
-	  }
-	  alct->SetPretrigNumberOfPattern( iTriggerSetting + 1 );
-	  alct->WriteConfigurationReg();
-
-	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 1 ? 50000 : 20000 ) );
-
-	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::enableL1aCounter, 0 );
-	  (*crate)->ccb()->WriteRegister( emu::pc::CCB::resetL1aCounter , 0 ); // zero L1A counter
-
-	  // (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1edd ); // CSRB1=0x20; enable CCB to send L1A on TMB request; same as CCB::EnableL1aFromTmbL1aReq
-	  (*crate)->ccb()->EnableL1aFromTmbL1aReq();
-	  gettimeofday( &start, NULL );
-	  log4cplus::helpers::sleepmillis( ( iTriggerSetting == 0 ? 5000 : (iTriggerSetting+1)*10000 ) );
-	  // (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1af9 ); // CSRB1=0x20; disable CCB to send L1A on TMB request; same as CCB::EnableL1aFromDmbCfebCalibX
-	  (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-	  gettimeofday( &end, NULL );
-
-	  bsem_.take();
-	  iEvent_++;
-	  bsem_.give();
-
-	  uint32_t l1a_counter_LSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterLSB ) & 0xffff; // read lower 16 bits
-	  uint32_t l1a_counter_MSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterMSB ) & 0xffff; // read higher 16 bits
-	  uint32_t l1a_counter     = l1a_counter_LSB | (l1a_counter_MSB << 16); // merge into counter
-	  timeStampFile 
-	    << ( end.tv_sec - start.tv_sec) * 1000 + ( end.tv_usec - start.tv_usec ) / 1000. 
-	    << "\t\t" << l1a_counter << endl;
-
-	  if ( pLogger_ ){
-	    stringstream ss;
-	    ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-	       << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
-	       << ", trigger setting " << iTriggerSetting+1 << "/" << trig_settings
-	       << ", L1A " << l1a_counter;
-	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
-	  }
-	  
-	} // for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting )
-
-	timeStampFile.close();
-
-      } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+      emu::pc::ALCTController* alct = (*tmb)->alctController();
+      alct->configure();
+      ::usleep(100);
+      
+      stringstream timeStampFileName;
+      timeStampFileName << "Test25_"  << (*crate)->GetLabel()
+			<< "_TMBslot" << (*tmb)->slot()
+			<< "_"        << dateTime
+			<< ".txt";
+      ofstream timeStampFile;
+      timeStampFile.open( timeStampFileName.str().c_str() );
+      timeStampFile << "#crate    :\t" << (*crate)->GetLabel() << endl;
+      timeStampFile << "#TMB slot :\t" << (*tmb)->slot() << endl;
+      timeStampFile << "#chamber  :\t" << (*tmb)->getChamber()->GetLabel() << endl;
+      timeStampFile << "#time [ms]\tevent counts" << endl;
+      for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting ){
+	
+	if ( iTriggerSetting == 0 ){
+	  alct->SetPretrigNumberOfLayers( 1 );
+	}
+	else{
+	  alct->SetPretrigNumberOfLayers( 2 );
+	}
+	alct->SetPretrigNumberOfPattern( iTriggerSetting + 1 );
+	alct->WriteConfigurationReg();
+	
+	log4cplus::helpers::sleepmillis( ( iTriggerSetting == 1 ? 50000 : 20000 ) );
+	
+	(*crate)->ccb()->WriteRegister( emu::pc::CCB::enableL1aCounter, 0 );
+	(*crate)->ccb()->WriteRegister( emu::pc::CCB::resetL1aCounter , 0 ); // zero L1A counter
+	
+	// (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1edd ); // CSRB1=0x20; enable CCB to send L1A on TMB request; same as CCB::EnableL1aFromTmbL1aReq
+	(*crate)->ccb()->EnableL1aFromTmbL1aReq();
+	gettimeofday( &start, NULL );
+	log4cplus::helpers::sleepmillis( ( iTriggerSetting == 0 ? 5000 : (iTriggerSetting+1)*10000 ) );
+	// (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, 0x1af9 ); // CSRB1=0x20; disable CCB to send L1A on TMB request; same as CCB::EnableL1aFromDmbCfebCalibX
+	(*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+	gettimeofday( &end, NULL );
+	
+	bsem_.take();
+	iEvent_++;
+	bsem_.give();
+	
+	uint32_t l1a_counter_LSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterLSB ) & 0xffff; // read lower 16 bits
+	uint32_t l1a_counter_MSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterMSB ) & 0xffff; // read higher 16 bits
+	uint32_t l1a_counter     = l1a_counter_LSB | (l1a_counter_MSB << 16); // merge into counter
+	timeStampFile 
+	  << ( end.tv_sec - start.tv_sec) * 1000 + ( end.tv_usec - start.tv_usec ) / 1000. 
+	  << "\t\t" << l1a_counter << endl;
+	
+	if ( pLogger_ ){
+	  stringstream ss;
+	  ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+	     << ", TMB " << tmb-tmbs.begin()+1 << "/" << tmbs.size() << " in slot " << (*tmb)->slot()
+	     << ", trigger setting " << iTriggerSetting+1 << "/" << trig_settings
+	     << ", L1A " << l1a_counter;
+	  LOG4CPLUS_INFO( *pLogger_, ss.str() );
+	}
+	
+      } // for ( uint64_t iTriggerSetting = 0; iTriggerSetting < trig_settings; ++iTriggerSetting )
+      
+      timeStampFile.close();
+      
+    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_25 (multichamber) ending" ); }
 }
 
 void emu::step::Test::_27(){
