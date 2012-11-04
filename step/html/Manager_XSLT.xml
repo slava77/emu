@@ -32,6 +32,12 @@
 	      //alert( event.target.parentNode.parentNode.parentNode+' '+inputs.length );
 	      for (i=0; i&lt;inputs.length; i++) if ( inputs.item(i).type == 'checkbox' ) inputs.item(i).checked = 'checked';
 	  }
+	  function toggleAllChambers( event ){
+	      var tds=event.target.parentNode.parentNode.getElementsByTagName('td');
+	      // The last td in this tr should contain the chambers of this crate:
+	      var inputs=tds[tds.length-1].getElementsByTagName('input');
+	      for (i=0; i&lt;inputs.length; i++) if ( inputs.item(i).type == 'checkbox' ) inputs.item(i).checked = (event.target.checked ? 'checked' : '' );
+	  }
 	</script>
       </head>
       <body>
@@ -188,7 +194,7 @@
     <tr>
       <xsl:if test="/es:Manager/es:application/@state='Halted'">
 	<td>
-	  <input type="checkbox" title="Check to include this crate in the test(s)." value="yes">
+	  <input type="checkbox" onclick="toggleAllChambers( event )" title="Check to include this crate in the test(s)." value="yes">
 	    <!-- for-each: just to set the current node for the templates called by name: -->
 	    <xsl:for-each select="@selected">
 	      <xsl:attribute name="name"><xsl:call-template name="attributeXPath"/></xsl:attribute>
@@ -212,7 +218,23 @@
   </xsl:template>
 
   <xsl:template match="es:chamber">
-    <xsl:value-of select="@label"/><xsl:text> </xsl:text>
+    <xsl:choose>
+      <xsl:when test="/es:Manager/es:application/@state='Halted'">
+	<input type="checkbox" title="Check to include this chamber in the test(s)." value="yes">
+	  <!-- for-each: just to set the current node for the templates called by name: -->
+	  <xsl:for-each select="@selected">
+	    <xsl:attribute name="name"><xsl:call-template name="attributeXPath"/></xsl:attribute>
+	  </xsl:for-each>
+	  <xsl:if test="@selected='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if>
+	</input>
+	<xsl:value-of select="@label"/><xsl:text> </xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:if test="@selected='yes'">
+	  <xsl:value-of select="@label"/><xsl:text> </xsl:text>
+	</xsl:if>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
 </xsl:transform>

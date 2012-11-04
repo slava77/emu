@@ -25,7 +25,7 @@
   </xsl:template>
 
   <xsl:template match="CSC">
-    <es:chamber label="{@label}"/>
+    <es:chamber label="{@label}" selected="yes"/>
   </xsl:template>
 
   

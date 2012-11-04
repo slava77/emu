@@ -44,7 +44,7 @@ namespace emu{
     private:
       void exportParameters();
       void loadFiles();
-      string selectCrates( const string& generalVMESettingsXML );
+      string selectCratesAndChambers( const string& generalVMESettingsXML );
       bool testInWorkLoop( toolbox::task::WorkLoop *wl );
       void actionPerformed( xdata::Event& received );
       
@@ -58,6 +58,7 @@ namespace emu{
       xdata::Boolean fakeTests_; ///< if \em true, the software just fakes the tests, no attempt is made to access hardware
       xdata::Boolean testDone_; ///< if \em true, the test has been executed or aborted
       xdata::Vector<xdata::String> crateIds_; ///< ids of crates that this emu::step::Tester instance handles
+      xdata::Vector<xdata::String> chamberLabels_; ///< labels (names) of chambers that this emu::step::Tester instance handles
       xdata::Double  progress_;	///< progress in percent of the ongoing test
 
       Test* test_;
