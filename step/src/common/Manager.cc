@@ -176,6 +176,12 @@ void emu::step::Manager::haltAction(toolbox::Event::Reference e){
 
 }
 
+void emu::step::Manager::resetAction(toolbox::Event::Reference e){
+  LOG4CPLUS_DEBUG( logger_, "emu::step::Manager::resetAction" );
+  delete configuration_;
+  configuration_ = NULL;
+}
+
 void emu::step::Manager::stopAction(toolbox::Event::Reference e){
   LOG4CPLUS_DEBUG( logger_, "emu::step::Manager::stopAction" );
 
@@ -211,12 +217,14 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
   for ( map<string,xdaq::ApplicationDescriptor*>::const_iterator t = testerDescriptors_.begin(); t != testerDescriptors_.end(); ++t ){
     if ( t->second ){
       try{
-	xdata::Vector<xdata::String> crateIds = configuration_->getCrateIds( t->first );
+	xdata::Vector<xdata::String> crateIds      = configuration_->getCrateIds     ( t->first );
+	xdata::Vector<xdata::String> chamberLabels = configuration_->getChamberLabels( t->first );
 	m.setParameters( t->second, 
 			 emu::soap::Parameters()
 			 .add( "testParametersFileName"    , &testParametersFileName_     )
 			 .add( "specialVMESettingsFileName", &specialVMESettingsFileName_ )
 			 .add( "crateIds"                  , &crateIds                    )
+			 .add( "chamberLabels"             , &chamberLabels               )
 			 );
       }
       catch ( xcept::Exception& e ){

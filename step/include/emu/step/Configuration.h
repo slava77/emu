@@ -26,6 +26,7 @@ namespace emu { namespace step {
 		     xdata::String& testParametersFileName,
 		     const map<string,string>& pCrateSettingsFileNames );
       xdata::Vector<xdata::String> getCrateIds( const string& group ) const;
+      xdata::Vector<xdata::String> getChamberLabels( const string& group ) const;
       xdata::Vector<xdata::String> getTestIds() const;
       string getXML() const { return xml_; }
       string getTestParametersXML() const { return testParametersXML_; }

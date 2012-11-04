@@ -36,6 +36,7 @@ void emu::step::Tester::exportParameters(){
   s->fireItemAvailable( "fakeTests"                 , &fakeTests_                  );
   s->fireItemAvailable( "testDone"                  , &testDone_                   );
   s->fireItemAvailable( "crateIds"                  , &crateIds_                   );
+  s->fireItemAvailable( "chamberLabels"             , &chamberLabels_              );
   s->fireItemAvailable( "progress"                  , &progress_                   );
   // s->fireItemAvailable( "", &_ );
   s->addItemRetrieveListener( "progress", this );
@@ -47,7 +48,10 @@ void emu::step::Tester::loadFiles(){
   specialVMESettingsXML_ = emu::utils::readFile( emu::utils::performExpansions( specialVMESettingsFileName_ ) );
 }
 
-string emu::step::Tester::selectCrates( const string& vmeSettingsXML ){
+string emu::step::Tester::selectCratesAndChambers( const string& vmeSettingsXML ){
+  // If nothing is selected, return empty EmuSystem:
+  if ( crateIds_.elements() == 0 || chamberLabels_.elements() == 0 ) return "<EmuSystem/>";
+
   // Build XPath expression selecting all unwanted crates
   stringstream xpath;
   xpath << "//EmuSystem/PeripheralCrate[";
@@ -56,8 +60,21 @@ string emu::step::Tester::selectCrates( const string& vmeSettingsXML ){
     if ( i+1 < crateIds_.elements() ) xpath << " and ";
   }
   xpath << "]";
-  // cout << "XPath to remove unwanted crates: " << xpath.str() << endl;
   // Remove unwanted crates
+  return emu::utils::removeSelectedNode( vmeSettingsXML, xpath.str() );
+
+  // Reuse xpath variable
+  xpath.clear();
+  xpath.str("");
+
+  // Build XPath expression selecting all unwanted chambers
+  xpath << "//EmuSystem/PeripheralCrate/CSC[";
+  for ( size_t i = 0; i < chamberLabels_.elements(); ++i ){
+    xpath << "@label!='" << ( dynamic_cast<xdata::String*>( chamberLabels_.elementAt(i) ) )->toString() << "'";
+    if ( i+1 < chamberLabels_.elements() ) xpath << " and ";
+  }
+  xpath << "]";
+  // Remove unwanted chambers
   return emu::utils::removeSelectedNode( vmeSettingsXML, xpath.str() );
 }
 
@@ -71,7 +88,7 @@ void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
   // Create the test
   try{
     loadFiles();
-    string selectedVMESettingsXML = selectCrates( vmeSettingsXML_ );
+    string selectedVMESettingsXML = selectCratesAndChambers( vmeSettingsXML_ );
     test_ = new Test( testId_,
 		      group_,
 		      testParametersXML_,
