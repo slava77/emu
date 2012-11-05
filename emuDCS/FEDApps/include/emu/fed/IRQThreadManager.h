@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.8 2012/10/24 15:14:43 cvuosalo Exp $
+* $Id: IRQThreadManager.h,v 1.9 2012/11/05 10:46:01 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -54,7 +54,7 @@ namespace emu {
 			void attachCrate(Crate *crate);
 			
 			/** Begin monitoring with an optional run number. **/
-			void startThreads(const unsigned long int &runNumber = 0)
+			void startThreads(const unsigned int &runNumber = 0)
 			throw (emu::fed::exception::FMMThreadException);
 			
 			/** Stop the threads. **/

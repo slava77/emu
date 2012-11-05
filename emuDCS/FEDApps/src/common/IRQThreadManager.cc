@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.31 2012/10/31 13:25:39 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.32 2012/11/05 10:46:02 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -59,7 +59,7 @@ void emu::fed::IRQThreadManager::attachCrate(Crate *crate)
 
 
 
-void emu::fed::IRQThreadManager::startThreads(const unsigned long int &runNumber)
+void emu::fed::IRQThreadManager::startThreads(const unsigned int &runNumber)
 throw (emu::fed::exception::FMMThreadException)
 {
 
@@ -516,7 +516,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		//  check DCCs
 		// (if at any point a reset is detected, immediately restart the loop)
 
-		LOG4CPLUS_DEBUG(logger, "Starting outer loop for crate " << crateNumber);
+		LOG4CPLUS_DEBUG(logger, "Starting outer loop for crate " << crateNumber <<
+		", run number " << locdata->runNumStr.str());
 
 		// Immediate check for cancel
 		pthread_testcancel();
@@ -758,6 +759,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					std::string xorBitString = xorBits.to_string<char, char_traits<char>, allocator<char> >();
 					
 					LOG4CPLUS_INFO(logger, "Decoded information follows" << std::endl
+						<< "Run number : " << locdata->runNumStr.str() << std::endl
 						<< "FEDCrate   : " << crateNumber << std::endl
 						<< "Slot       : " << myDDU->getSlot() << std::endl
 						<< "RUI        : " << myDDU->getRUI() << std::endl

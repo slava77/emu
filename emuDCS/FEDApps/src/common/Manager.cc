@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.23 2012/09/20 19:32:54 banicz Exp $
+* $Id: Manager.cc,v 1.24 2012/11/05 10:46:02 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -502,7 +502,7 @@ throw (toolbox::fsm::exception::Exception)
 
 	// PGK Now send the run number to the Communicators.
 	try {
-		setParameter("emu::fed::Communicator", "runNumber", "xsd:unsignedLong", runNumber_.toString());
+		setParameter("emu::fed::Communicator", "runNumber", "xsd:unsignedInt", runNumber_.toString());
 	} catch (emu::fed::exception::SOAPException &e) {
 		std::ostringstream error;
 		error << "Unable to send runNumber to Communicators";
