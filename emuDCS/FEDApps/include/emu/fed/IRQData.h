@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.5 2012/10/31 13:25:39 cvuosalo Exp $
+* $Id: IRQData.h,v 1.6 2012/11/05 10:46:01 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQDATA_H__
 #define __EMU_FED_IRQDATA_H__
@@ -142,7 +142,7 @@ namespace emu {
 			pthread_mutex_t applicationMutex;
 			
 			/// The run number to which this particular set of data is assigned
-			unsigned long int runNumber;
+			unsigned int runNumber;
 			std::stringstream runNumStr;
 			
 			/// Threshold number of chambers before releasing the FMM signal
