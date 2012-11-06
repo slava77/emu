@@ -61,7 +61,7 @@ string emu::step::Tester::selectCratesAndChambers( const string& vmeSettingsXML 
   }
   xpath << "]";
   // Remove unwanted crates
-  return emu::utils::removeSelectedNode( vmeSettingsXML, xpath.str() );
+  string selectedCratesOnlyXML( emu::utils::removeSelectedNode( vmeSettingsXML, xpath.str() ) );
 
   // Reuse xpath variable
   xpath.clear();
@@ -75,7 +75,7 @@ string emu::step::Tester::selectCratesAndChambers( const string& vmeSettingsXML 
   }
   xpath << "]";
   // Remove unwanted chambers
-  return emu::utils::removeSelectedNode( vmeSettingsXML, xpath.str() );
+  return emu::utils::removeSelectedNode( selectedCratesOnlyXML, xpath.str() );
 }
 
 void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
