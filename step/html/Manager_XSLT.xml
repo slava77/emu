@@ -38,6 +38,17 @@
 	      var inputs=tds[tds.length-1].getElementsByTagName('input');
 	      for (i=0; i&lt;inputs.length; i++) if ( inputs.item(i).type == 'checkbox' ) inputs.item(i).checked = (event.target.checked ? 'checked' : '' );
 	  }
+	  function toggleChamber( event ){
+	      // Select / deselect the crate if all / no chambers of it are selected
+	      var chambersInSameCrate=event.target.parentNode.getElementsByTagName('input');
+	      var nSelected = 0;
+	      for (i=0; i&lt;chambersInSameCrate.length; i++) 
+		  if ( chambersInSameCrate.item(i).type == 'checkbox' ) 
+		      if ( chambersInSameCrate.item(i).checked ) nSelected++;
+	      // console.log( nSelected );
+	      if ( nSelected == 0 ) event.target.parentNode.parentNode.getElementsByTagName('td').item( 0 ).getElementsByTagName('input').item( 0 ).checked = '';
+	      else if ( nSelected == chambersInSameCrate.length ) event.target.parentNode.parentNode.getElementsByTagName('td').item( 0 ).getElementsByTagName('input').item( 0 ).checked = 'checked';
+	  }
 	</script>
       </head>
       <body>
@@ -220,7 +231,7 @@
   <xsl:template match="es:chamber">
     <xsl:choose>
       <xsl:when test="/es:Manager/es:application/@state='Halted'">
-	<input type="checkbox" title="Check to include this chamber in the test(s)." value="yes">
+	<input type="checkbox" onclick="toggleChamber( event )" title="Check to include this chamber in the test(s)." value="yes">
 	  <!-- for-each: just to set the current node for the templates called by name: -->
 	  <xsl:for-each select="@selected">
 	    <xsl:attribute name="name"><xsl:call-template name="attributeXPath"/></xsl:attribute>
