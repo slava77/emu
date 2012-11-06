@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.45 2012/06/29 12:13:28 cvuosalo Exp $
+* $Id: Communicator.cc,v 1.46 2012/11/06 15:16:27 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -852,6 +852,7 @@ throw (toolbox::fsm::exception::Exception)
 	// Make an FSM fact
 	emu::base::TypedFact<emu::fed::FEDFSMFact> fact;
 	fact.setComponentId(systemName_.toString())
+	        .setRun( runNumber_.toString() )
 		.setParameter(emu::fed::FEDFSMFact::from, state_.toString())
 		.setParameter(emu::fed::FEDFSMFact::to, "Configured")
 		.setParameter(emu::fed::FEDFSMFact::configType, configMode_.toString());
@@ -1095,6 +1096,7 @@ throw (toolbox::fsm::exception::Exception)
 	// Make an FSM fact
 	emu::base::TypedFact<emu::fed::FEDFSMFact> fact;
 	fact.setComponentId(systemName_.toString())
+	        .setRun( runNumber_.toString() )
 		.setParameter(emu::fed::FEDFSMFact::from, state_.toString())
 		.setParameter(emu::fed::FEDFSMFact::to, "Enabled")
 		.setParameter(emu::fed::FEDFSMFact::configType, configMode_.toString());
@@ -1438,6 +1440,7 @@ emu::base::Fact emu::fed::Communicator::findFact(const emu::base::Component& com
 	if (factType == emu::fed::ConfigurationFact::getTypeName()) {
 		emu::base::TypedFact<emu::fed::ConfigurationFact> fact;
 		fact.setComponentId("Communicator")
+         	        .setRun( runNumber_.toString() )
 			.setSeverity(emu::base::Fact::DEBUG)
 			.setDescription("Configuration type of the FED Communicator application")
 			.setParameter(emu::fed::ConfigurationFact::method, configMode_.toString());
