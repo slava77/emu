@@ -88,7 +88,21 @@ xdata::Vector<xdata::String> emu::step::Configuration::getChamberLabels( const s
   vector< pair<string,string> > labels = emu::utils::getSelectedNodesValues( xml_, "//es:peripheralCrate[../@group='" + group + "' ]/es:chamber[@selected='yes']/@label" );
   bsem_.give();  
 
-  cout << "Selected chambers for group " << group << ":     "<< labels << endl;
+  // cout << "Selected chambers for group " << group << ":     "<< labels << endl;
+
+  xdata::Vector<xdata::String> chamberLabels;
+  for ( vector< pair<string,string> >::const_iterator l = labels.begin(); l != labels.end(); ++l ) chamberLabels.push_back( l->second );
+
+  return chamberLabels;
+}
+
+xdata::Vector<xdata::String> emu::step::Configuration::getChamberLabels() const
+{
+  bsem_.take();
+  vector< pair<string,string> > labels = emu::utils::getSelectedNodesValues( xml_, "//es:peripheralCrate/es:chamber[@selected='yes']/@label" );
+  bsem_.give();  
+
+  // cout << "Selected chambers:     " << labels << endl;
 
   xdata::Vector<xdata::String> chamberLabels;
   for ( vector< pair<string,string> >::const_iterator l = labels.begin(); l != labels.end(); ++l ) chamberLabels.push_back( l->second );

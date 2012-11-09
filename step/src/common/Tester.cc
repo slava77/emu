@@ -79,6 +79,7 @@ string emu::step::Tester::selectCratesAndChambers( const string& vmeSettingsXML 
 }
 
 void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
+  LOG4CPLUS_INFO( logger_, "Configuring." );
 
   delete test_;
   test_ = NULL;
@@ -131,9 +132,11 @@ void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
   } catch( xcept::Exception &e ){
     XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to submit test action to work loop.", e );
   }
+  LOG4CPLUS_INFO( logger_, "Configured." );
 }
 
 void emu::step::Tester::enableAction( toolbox::Event::Reference e ){
+  LOG4CPLUS_INFO( logger_, "Enabling." );
   // Execute the test procedure in a separate thread:
   if ( ! workLoop_->isActive() ){
     try{
@@ -147,6 +150,7 @@ void emu::step::Tester::enableAction( toolbox::Event::Reference e ){
 
 void emu::step::Tester::haltAction( toolbox::Event::Reference e ){
   if ( test_ ){
+    LOG4CPLUS_INFO( logger_, "Stopping test " << test_->getId() );
     test_->stop();
   }
   // while ( true ){
@@ -161,8 +165,10 @@ void emu::step::Tester::stopAction( toolbox::Event::Reference e ){
 
 bool emu::step::Tester::testInWorkLoop( toolbox::task::WorkLoop *wl ){
   if ( test_ ){
+    LOG4CPLUS_INFO( logger_, "Executing test " << test_->getId() );
     test_->execute();
     testDone_ = true;
+    LOG4CPLUS_INFO( logger_, "Executed test " << test_->getId() );
   }
   else{
     LOG4CPLUS_ERROR( logger_, "No test has been defined." );

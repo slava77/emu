@@ -173,11 +173,10 @@ void emu::step::Test::configureCrates(){
 	// (*ddu)->writeFlashKillFiber(1);
 	(*ddu)->writeFlashKillFiber( dduInputFiberMask );
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeGbEPrescale(0xF0F0) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
-	(*ddu)->writeGbEPrescale(0xF0F0); // TODO: double check this
+	(*ddu)->writeGbEPrescale(0xF0F0);
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFakeL1(0x8787) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
-	(*ddu)->writeFakeL1(0x8787); // TODO: double check this
+	(*ddu)->writeFakeL1(0x8787);
       }
-      // TODO: prepare DDUs in FED crates.
     }
     else{
       XCEPT_RAISE( xcept::Exception, "Crate " + (*crate)->GetLabel() + " is dead or incommunicado." );
