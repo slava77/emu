@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.15 2012/06/25 13:15:07 cvuosalo Exp $
+* $Id: Communicator.h,v 1.16 2012/11/09 16:31:39 banicz Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -113,6 +113,14 @@ namespace emu {
 			void resetCrate(std::vector<Crate *>::iterator iCrate)
 			throw (toolbox::fsm::exception::Exception);
 
+			/** If \c dduInPassthroughMode_, this sets all DDUs in the specified crate to passthrough mode
+			*
+			*
+			*	@param crate is the crate in which to set the DDUs to passthrough mode
+			*
+			**/
+		        void toggleDDUPassthroughMode( Crate* crate );
+
 			/** Configures the FED crates
 			**/
 			void configureCrates()
@@ -171,6 +179,9 @@ namespace emu {
 			
 			/// The current DCC to S-Link output rates
 			xdata::Float totalDCCOutputRate_;
+
+       		        /// If \e true, the DDUs are to generate a fake L1A on receiving an event.
+		        xdata::Boolean dduInPassthroughMode_;
 			
 			/// The threshold number of chambers required to be in an error state before sending an FMM
 			xdata::UnsignedInteger fmmErrorThreshold_;
