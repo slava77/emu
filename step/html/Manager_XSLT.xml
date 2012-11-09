@@ -25,29 +25,31 @@
 	  function selectNone( event ){
 	      var inputs=event.target.parentNode.parentNode.parentNode.getElementsByTagName('input');
 	      //alert( event.target.parentNode.parentNode.parentNode+' '+inputs.length );
-	      for (i=0; i&lt;inputs.length; i++) if ( inputs.item(i).type == 'checkbox' ) inputs.item(i).checked = '';
+	      for (var i=0; i&lt;inputs.length; i++) if ( inputs.item(i).type == 'checkbox' ) inputs.item(i).checked = '';
 	  }
 	  function selectAll( event ){
 	      var inputs=event.target.parentNode.parentNode.parentNode.getElementsByTagName('input');
 	      //alert( event.target.parentNode.parentNode.parentNode+' '+inputs.length );
-	      for (i=0; i&lt;inputs.length; i++) if ( inputs.item(i).type == 'checkbox' ) inputs.item(i).checked = 'checked';
+	      for (var i=0; i&lt;inputs.length; i++) if ( inputs.item(i).type == 'checkbox' ) inputs.item(i).checked = 'checked';
 	  }
 	  function toggleAllChambers( event ){
 	      var tds=event.target.parentNode.parentNode.getElementsByTagName('td');
-	      // The last td in this tr should contain the chambers of this crate:
-	      var inputs=tds[tds.length-1].getElementsByTagName('input');
-	      for (i=0; i&lt;inputs.length; i++) if ( inputs.item(i).type == 'checkbox' ) inputs.item(i).checked = (event.target.checked ? 'checked' : '' );
+	      for (var i=3; i&lt;tds.length; i++){
+		  tds.item(i).getElementsByTagName('input').item(0).checked = (event.target.checked ? 'checked' : '' );
+	      }
 	  }
 	  function toggleChamber( event ){
 	      // Select / deselect the crate if all / no chambers of it are selected
-	      var chambersInSameCrate=event.target.parentNode.getElementsByTagName('input');
-	      var nSelected = 0;
-	      for (i=0; i&lt;chambersInSameCrate.length; i++) 
-		  if ( chambersInSameCrate.item(i).type == 'checkbox' ) 
-		      if ( chambersInSameCrate.item(i).checked ) nSelected++;
+	      var tdsInSameCrate=event.target.parentNode.parentNode.getElementsByTagName('td');
+	      var isCrateEmpty = true;
+	      for (var i=3; i&lt;tdsInSameCrate.length &amp;&amp; isCrateEmpty; i++){
+		  var inputs = tdsInSameCrate.item(i).getElementsByTagName('input');
+		  if ( inputs.length > 0 ) 
+		      if ( inputs.item(0).checked ) isCrateEmpty = false;
+	      }
 	      // console.log( nSelected );
-	      if ( nSelected == 0 ) event.target.parentNode.parentNode.getElementsByTagName('td').item( 0 ).getElementsByTagName('input').item( 0 ).checked = '';
-	      else if ( nSelected == chambersInSameCrate.length ) event.target.parentNode.parentNode.getElementsByTagName('td').item( 0 ).getElementsByTagName('input').item( 0 ).checked = 'checked';
+	      if ( isCrateEmpty ) event.target.parentNode.parentNode.getElementsByTagName('td').item( 0 ).getElementsByTagName('input').item( 0 ).checked = '';
+	      else                event.target.parentNode.parentNode.getElementsByTagName('td').item( 0 ).getElementsByTagName('input').item( 0 ).checked = 'checked';
 	  }
 	</script>
       </head>
@@ -161,13 +163,13 @@
   <xsl:template mode="control" match="es:peripheralCrates">
     <table class="peripheralCrates">
       <tr>
-	<th colspan="4">Peripheral Crates (<xsl:value-of select="@group"/>)</th>
+	<th colspan="12">Peripheral Crates (<xsl:value-of select="@group"/>)</th>
       </tr>
       <tr>
 	<th>select [<span class="select" title="Click to select none." onclick="selectNone( event )">none</span>|<span class="select" title="Click to select all." onclick="selectAll( event )">all</span>]</th>
 	<th>id</th>
 	<th>name</th>
-	<th>chambers</th>
+	<th colspan="9">chambers</th>
       </tr>
       <xsl:apply-templates select="es:peripheralCrate">
 	<xsl:sort data-type="number" select="@id"/>
@@ -178,7 +180,7 @@
   <xsl:template mode="display" match="es:peripheralCrates">
     <table class="peripheralCrates">
       <tr>
-	<th colspan="3">
+	<th colspan="12">
 	  Peripheral Crates (<xsl:value-of select="@group"/>)
 	  <xsl:if test="/es:Manager/es:configuration/es:testSequence/es:test/@status='running'">
 	    <div class="progressbox">
@@ -193,7 +195,7 @@
       <tr>
 	<th>id</th>
 	<th>name</th>
-	<th>chambers</th>
+	<th colspan="9">chambers</th>
       </tr>
       <xsl:apply-templates select="es:peripheralCrate[@selected='yes']">
 	<xsl:sort data-type="number" select="@id"/>
@@ -220,32 +222,32 @@
       <td class="text">
 	<xsl:value-of select="@label"/>
       </td>
-      <td class="text">
-	<xsl:apply-templates select="es:chamber">
-	  <xsl:sort select="@label"/>
-	</xsl:apply-templates>
-      </td>
+      <xsl:apply-templates select="es:chamber">
+	<xsl:sort select="@label"/>
+      </xsl:apply-templates>
     </tr>
   </xsl:template>
 
   <xsl:template match="es:chamber">
-    <xsl:choose>
-      <xsl:when test="/es:Manager/es:application/@state='Halted'">
-	<input type="checkbox" onclick="toggleChamber( event )" title="Check to include this chamber in the test(s)." value="yes">
-	  <!-- for-each: just to set the current node for the templates called by name: -->
-	  <xsl:for-each select="@selected">
-	    <xsl:attribute name="name"><xsl:call-template name="attributeXPath"/></xsl:attribute>
-	  </xsl:for-each>
-	  <xsl:if test="@selected='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if>
-	</input>
-	<xsl:value-of select="@label"/><xsl:text> </xsl:text>
-      </xsl:when>
-      <xsl:otherwise>
-	<xsl:if test="@selected='yes'">
+    <td class="text">
+      <xsl:choose>
+	<xsl:when test="/es:Manager/es:application/@state='Halted'">
+	  <input type="checkbox" onclick="toggleChamber( event )" title="Check to include this chamber in the test(s)." value="yes">
+	    <!-- for-each: just to set the current node for the templates called by name: -->
+	    <xsl:for-each select="@selected">
+	      <xsl:attribute name="name"><xsl:call-template name="attributeXPath"/></xsl:attribute>
+	    </xsl:for-each>
+	    <xsl:if test="@selected='yes'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if>
+	  </input>
 	  <xsl:value-of select="@label"/><xsl:text> </xsl:text>
-	</xsl:if>
-      </xsl:otherwise>
-    </xsl:choose>
+	</xsl:when>
+	<xsl:otherwise>
+	  <xsl:if test="@selected='yes'">
+	    <xsl:value-of select="@label"/><xsl:text> </xsl:text>
+	  </xsl:if>
+	</xsl:otherwise>
+      </xsl:choose>
+    </td>
   </xsl:template>
 
 </xsl:transform>
