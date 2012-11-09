@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.32 2012/11/05 10:46:02 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.33 2012/11/09 09:57:37 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -525,6 +525,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		pthread_mutex_lock(&locdata->errorCountMutex);
 		locdata->errorCount[crateNumber] = 0;
 		locdata->ignErrCnt[crateNumber] = 0;
+		for (IRQData::crateHistory::iterator iSlot = locdata->errorHistory[crateNumber].begin();
+				iSlot != locdata->errorHistory[crateNumber].end(); ++iSlot )
+			iSlot->second[IRQData::CURR_ERR] = 0;
 		pthread_mutex_unlock(&locdata->errorCountMutex);
 		
 		nErrors.clear();
