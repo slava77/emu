@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.46 2012/11/06 15:16:27 banicz Exp $
+* $Id: Communicator.cc,v 1.47 2012/11/09 16:31:41 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -40,7 +40,8 @@ ttsSlot_(0),
 ttsBits_(0),
 fibersWithErrors_(0),
 totalDCCInputRate_(0),
-totalDCCOutputRate_(0)
+totalDCCOutputRate_(0),
+dduInPassthroughMode_( false )
 {
 
 	// Variables that are to be made available to other applications
@@ -52,6 +53,7 @@ totalDCCOutputRate_(0)
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCInputRate", &totalDCCInputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCOutputRate", &totalDCCOutputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("fmmErrorThreshold", &fmmErrorThreshold_);
+	getApplicationInfoSpace()->fireItemAvailable("dduInPassthroughMode", &dduInPassthroughMode_);
 
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Communicator::webDefault, "Default");
@@ -424,6 +426,30 @@ throw (toolbox::fsm::exception::Exception)
 	}
 }
 
+void emu::fed::Communicator::toggleDDUPassthroughMode( Crate* crate ){
+  if ( bool( dduInPassthroughMode_ ) ){
+    std::vector<DDU*> DDUs = crate->getDDUs();
+    for ( std::vector<DDU *>::iterator iDDU = DDUs.begin(); iDDU != DDUs.end(); ++iDDU ){
+      try{
+	(*iDDU)->writeFakeL1( 0x8787 );
+      }
+      catch( emu::fed::exception::DDUException& e ){
+	stringstream whatswrong;
+	whatswrong << "Failed to set passthrough mode for DDU in crate " << crate->getNumber() << ", slot " << (*iDDU)->slot();
+	XCEPT_RETHROW( emu::fed::exception::Exception, whatswrong.str(), e );
+      }
+      // catch( emu::fed::exception::DDUException& e ){
+      // 	LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to set passthrough mode for DDU in crate " << crate->getNumber() << ", slot " << (*iDDU)->slot() << ": " <<  xcept::stdformat_exception_history(e) );
+      // }
+      // catch( std::exception& e ){
+      // 	LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to set passthrough mode for DDU in crate " << crate->getNumber() << ", slot " << (*iDDU)->slot() << ": " << e.what() );
+      // }
+      // catch( ... ){
+      // 	LOG4CPLUS_DEBUG( getApplicationLogger(), "Failed to set passthrough mode for DDU in crate " << crate->getNumber() << ", slot " << (*iDDU)->slot() << ": unknown exception."  );
+      // }
+    }
+  }
+}
 
 void emu::fed::Communicator::chkDCCstatus(const unsigned int crateNum,
 	std::vector<DCC *> &myDCCs, std::vector<xcept::Exception> &exceptions)
@@ -509,7 +535,6 @@ void emu::fed::Communicator::chkDCCstatus(const unsigned int crateNum,
 	}
 }
 
-
 void emu::fed::Communicator::configureCrates()
 throw (toolbox::fsm::exception::Exception)
 {
@@ -518,7 +543,7 @@ throw (toolbox::fsm::exception::Exception)
 	// The hard reset here is just a precaution.  It costs almost nothing as far as time is concerned, and it might help to clear up problems before configure.
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 
-		std::vector<DCC *> myDCCs = (*iCrate)->getDCCs();
+		// std::vector<DCC *> myDCCs = (*iCrate)->getDCCs();
 		// chkDCCstatus((*iCrate)->getNumber(), myDCCs, unused);
 
 		resetCrate(iCrate);
@@ -528,6 +553,8 @@ throw (toolbox::fsm::exception::Exception)
 		// Now we do the configure.  This is big.
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuring crate " << (*iCrate)->getNumber());
 		try {
+		        toggleDDUPassthroughMode( *iCrate );
+		
 			(*iCrate)->configure();
 #if GCC_VERSION >= 40300
 			REVOKE_ALARM("CommunicatorConfigure", NULL);
