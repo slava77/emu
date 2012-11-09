@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.34 2012/11/09 14:16:13 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.35 2012/11/09 16:29:20 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -262,6 +262,16 @@ static std::string mkBitStr(uint16_t bits)
 }
 
 
+static void setDDUerr(emu::fed::DDU *myDDU)
+{
+	myDDU->writeFMM( 0xf0ec );
+	(void) usleep(100000);	// 100000 usec = 0.1 second
+	(void) sleep(3);	// 3 seconds
+	// 3.1 seconds total wait to allow GT to see Error and cause hard reset
+	myDDU->writeFMM( 0xfed0 );
+}
+
+
 // Sets DDU into Error for 3.1 seconds to request that GT send a hard reset.
 // If a request was made in the last 10 seconds, no new request is made.
 // Returns true if the hard reset was requested, false if no request was made
@@ -275,11 +285,7 @@ bool emu::fed::IRQThreadManager::DDUWarnMon::setDDUerror(emu::fed::DDU *myDDU, l
 {
 	if (lastErrTm_ < 0 || (time(NULL) - lastErrTm_) > 10) {	// 10 seconds between Errors
 		lastErrTm_ = time(NULL);
-		myDDU->writeFMM( 0xf0ec );
-		(void) usleep(100000);	// 100000 usec = 0.1 second
-		(void) sleep(3);	// 3 seconds
-		// 3.1 seconds total wait to allow GT to see Error and cause hard reset
-		myDDU->writeFMM( 0xfed0 );
+		setDDUerr(myDDU);
 		uint16_t ruiNum = myDDU->getRUI();
 		LOG4CPLUS_ERROR(logger, endl << "DDU RUI #" << ruiNum <<
 			" stuck in warning. Setting DDU Error to request hard reset from GT." << endl);
@@ -952,8 +958,14 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							"Releasing FMMs because total errors on this endcap = " << totalErrors << " is >= threshold of " <<
 							locdata->fmmErrorThreshold << std::endl);
 						if (!myCrate->isTrackFinder()) {
-							myCrate->getBroadcastDDU()->enableFMM();
-							// Briefly release the FMMs.
+							if (hardError)
+								myCrate->getBroadcastDDU()->enableFMM();
+								// Briefly release the FMMs.
+							else {
+								setDDUerr(myDDU);	// Ensure DDU sets Error, not Out-of-sync
+								LOG4CPLUS_DEBUG(logger,
+									"Overriding DDU OOS with Error to ensure we receive a hard reset");
+							}
 							fmmsReleased = true;
 						}
 					} else {
