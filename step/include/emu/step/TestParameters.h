@@ -21,6 +21,7 @@ namespace emu{
 		      const string& testParametersXML,
 		      Logger*       pLogger );
       uint64_t getNEvents() const { return nEvents_; }
+      string getId() const { return id_; }
 
     protected:
       toolbox::BSem       bsem_;	///< Binary semaphore.

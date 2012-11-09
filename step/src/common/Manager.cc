@@ -12,11 +12,13 @@
 #include "xdata/Integer64.h"
 #include "xdata/UnsignedInteger64.h"
 #include "toolbox/task/WorkLoopFactory.h"
+#include "toolbox/regex.h"
 #include "xcept/tools.h"
 
 #include <sys/time.h>
 
 #include <cmath>
+#include <iomanip>
 
 using namespace emu::utils;
 
@@ -58,7 +60,8 @@ void emu::step::Manager::createConfiguration(){
   for ( std::set<xdaq::ApplicationDescriptor*>::iterator app = apps.begin(); app != apps.end(); ++app ) {
     xdata::String group;
     xdata::String fileName;
-    m.getParameters( *app, emu::soap::Parameters()
+    m.getParameters( *app,
+		     emu::soap::Parameters()
 		     .add( "group", &group )
 		     .add( "vmeSettingsFileName", &fileName )
 		     );
@@ -72,6 +75,92 @@ void emu::step::Manager::createConfiguration(){
   configuration_ = new emu::step::Configuration( namespace_, 
 						 testParametersFileName_,
 						 pCrateSettingsFileNames );
+  prepareFEDSettings();
+}
+
+string emu::step::Manager::canonicalChamberName( const string& chamberName ){
+  stringstream canonicalName;
+  const string regex("[Mm][Ee]([^/]+)/([^/]+)/([^/]+)");
+
+  vector<string> matches;
+  if ( toolbox::regx_match( chamberName, regex, matches ) && matches.size() == 4 ){
+    //cout << matches << endl;
+    int station = utils::stringTo<int>( matches[1] );
+    int ring    = utils::stringTo<int>( matches[2] );
+    int chamber = utils::stringTo<int>( matches[3] );
+    canonicalName << "ME" << showpos                     << station
+		  << "/"  << noshowpos                   << ring
+		  << "/"  << setfill( '0' ) << setw( 2 ) << chamber;
+  return canonicalName.str();
+  }
+
+  return chamberName;
+}
+
+void emu::step::Manager::prepareFEDSettings(){
+  set<xdaq::ApplicationDescriptor *> apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors( "emu::fed::Communicator" );
+
+  if ( apps.size() == 0 ){
+    LOG4CPLUS_WARN( logger_, "No emu::fed::Communicator applications found. Will look for DDU in the peripheral crate instead." );
+    return;
+  }
+  else{
+    LOG4CPLUS_INFO( logger_, "Found " << apps.size() << "emu::fed::Communicator application(s)." );
+  }
+
+  // Get the FED settings file names
+  set<string> fedSettingsFileNames;
+  emu::soap::Messenger m( this );
+  for ( set<xdaq::ApplicationDescriptor*>::iterator app = apps.begin(); app != apps.end(); ++app ) {
+    xdata::String xmlFileName;
+    m.getParameters( *app, emu::soap::Parameters().add( "xmlFileName", &xmlFileName ) );
+    fedSettingsFileNames.insert( xmlFileName.toString() );
+    LOG4CPLUS_INFO( logger_, "Found " << (*app)->getClassName() << " instance " << (*app)->getInstance() << "' with settings in " << xmlFileName.toString() );
+  }
+
+  // Build XPath expression to unkill tested chambers' fibers in the FED settings files
+  xdata::Vector<xdata::String> chamberLabels = configuration_->getChamberLabels();
+  for ( set<string>::iterator fn = fedSettingsFileNames.begin(); fn != fedSettingsFileNames.end(); ++fn ) {
+    string fedSettingsXML = emu::utils::readFile( emu::utils::performExpansions( *fn ) );
+    // First kill all chambers' fibers...
+    fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber/@KILLED" , "1" );
+    // ...then unkill the tested chambers'
+    for ( size_t iChamber = 0; iChamber < chamberLabels.elements(); ++iChamber ){
+    // In the FED settings XML file, chamber names are zero-padded, but without "ME", e.g., CHAMBER="-1/2/08"
+    // while in the PCrate settings XML file, it's the other way round...
+      fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber[@CHAMBER='" + canonicalChamberName( ( dynamic_cast<xdata::String*>( chamberLabels.elementAt( iChamber ) ) )->toString() ).substr( 2 ) + "']/@KILLED", "0" );
+    }
+    cout << fedSettingsXML << endl;
+    //utils::writeFile( *fn, fedSettingsXML );
+  }
+}
+
+void emu::step::Manager::startFED(){
+  // If we use FED crate(s), we control the FED system here. (If the DDU is in the PCrate, we'll set it up together with it for each individual test.)
+  if ( getApplicationContext()->getDefaultZone()->getApplicationDescriptors( "emu::fed::Communicator" ).size() == 0 ) return;
+
+  emu::soap::Messenger m( this );
+  // Halt all Communicators
+  m.sendCommand( "emu::fed::Communicator", "Halt" );
+  // Configure DDUs in passthrough mode
+  xdata::Boolean dduInPassthroughMode = true;
+  m.setParameters( "emu::fed::Communicator", emu::soap::Parameters().add( "dduInPassthroughMode" , &dduInPassthroughMode ) );
+  m.sendCommand( "emu::fed::Communicator", "Configure" );
+  // Start all Communicators
+  m.sendCommand( "emu::fed::Communicator", "Enable" );
+}
+
+void emu::step::Manager::haltFED(){
+  // If we use FED crate(s), we control the FED system here. (If the DDU is in the PCrate, we'll set it up together with it for each individual test.)
+  if ( getApplicationContext()->getDefaultZone()->getApplicationDescriptors( "emu::fed::Communicator" ).size() == 0 ) return;
+
+  emu::soap::Messenger m( this );
+  // Set flag in Communicators to normal (not passthrough) mode so that on next configure the DDUs are *not* configured for passthrough mode
+  // in case a non-STEP run follows.
+  xdata::Boolean dduInPassthroughMode = false;
+  m.setParameters( "emu::fed::Communicator", emu::soap::Parameters().add( "dduInPassthroughMode" , &dduInPassthroughMode ) );
+  // Halt all Communicators
+  m.sendCommand( "emu::fed::Communicator", "Halt" );
 }
 
 void emu::step::Manager::configureAction(toolbox::Event::Reference e){
@@ -79,15 +168,6 @@ void emu::step::Manager::configureAction(toolbox::Event::Reference e){
 
   configuration_->setTestStatus( "idle" );
 
-  // Remove leftover work loop, if any...
-  // if ( workLoop_->isActive() ){
-  //   try{
-  //     workLoop_->cancel();
-  //     LOG4CPLUS_INFO( logger_, "Cancelled work loop." );
-  //   } catch( xcept::Exception &e ){
-  //     XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to cancel work loop.", e );
-  //   }
-  // }
   try{
     list<toolbox::task::WorkLoop*> workloops = toolbox::task::getWorkLoopFactory()->getWorkLoops();
     LOG4CPLUS_DEBUG( logger_, "Found " << workloops.size() << " work loops." );
@@ -111,6 +191,13 @@ void emu::step::Manager::configureAction(toolbox::Event::Reference e){
     stringstream ss;
     ss << "Failed recreate " << workLoopType_ << " work loop " << workLoopName_;
     XCEPT_RETHROW( toolbox::fsm::exception::Exception, ss.str(), e );
+  }
+
+  // Set up and start the FED
+  try{
+    startFED();
+  } catch( xcept::Exception &e ){
+    XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to start the FED system.", e );
   }
 
   // Schedule test procedure to be executed in a separate thread
@@ -155,25 +242,12 @@ void emu::step::Manager::haltAction(toolbox::Event::Reference e){
     XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to send 'Halt' command to emu::daq::manager::Application", e );
   }
 
-  // stopAction( e );
-
-  // // Remove work loop
-  // try{
-  //   list<toolbox::task::WorkLoop*> workloops = toolbox::task::getWorkLoopFactory()->getWorkLoops();
-  //   LOG4CPLUS_DEBUG( logger_, "Found " << workloops.size() << " work loops." );
-  //   for ( list<toolbox::task::WorkLoop*>::const_iterator wl = workloops.begin(); wl != workloops.end(); ++ wl ){
-  //     LOG4CPLUS_DEBUG( logger_, "Found " << (*wl)->getType() << " work loop " << (*wl)->getName() );
-  //   }
-  //   // It's tricky to find a work loop by name as 
-  //   // toolbox::task::WorkLoopFactory::getWorkLoop(const std::string & name, const std::string & type)
-  //   // creates a work loop named '<name>/<type>' for some reason.
-  //   // Let's just try to remove it blindly instead, and catch the exception it throws if no such work loop exists.
-  //   toolbox::task::getWorkLoopFactory()->removeWorkLoop( workLoopName_, workLoopType_ );
-  //   LOG4CPLUS_INFO( logger_, "Removed " << workLoopType_ << " work loop " << workLoopName_ );
-  // } catch( xcept::Exception &e ){
-  //   LOG4CPLUS_WARN( logger_, "Failed to remove work loop: " << xcept::stdformat_exception_history( e ) );
-  // }
-
+  // Halt the FED
+  try{
+    haltFED();
+  } catch( xcept::Exception &e ){
+    XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to halt the FED system.", e );
+  }
 }
 
 void emu::step::Manager::resetAction(toolbox::Event::Reference e){
@@ -184,25 +258,13 @@ void emu::step::Manager::resetAction(toolbox::Event::Reference e){
 
 void emu::step::Manager::stopAction(toolbox::Event::Reference e){
   LOG4CPLUS_DEBUG( logger_, "emu::step::Manager::stopAction" );
-
   emu::soap::Messenger m( this );
-
   try{
     m.sendCommand( "emu::step::Tester", "Stop" );
     LOG4CPLUS_INFO( logger_, "Sent 'Stop' command to emu::step::Tester applications." );
   } catch( xcept::Exception &e ){
     XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to send 'Stop' command to emu::step::Tester applications.", e );
   }
-	  
-  // // Just stop the task of the work loop without removing the scheduled method
-  // if ( workLoop_->isActive() ){
-  //   try{
-  //     workLoop_->cancel();
-  //     LOG4CPLUS_INFO( logger_, "Cancelled work loop." );
-  //   } catch( xcept::Exception &e ){
-  //     XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to cancel work loop.", e );
-  //   }
-  // }
 }
 
 bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){

@@ -48,6 +48,10 @@ namespace emu { namespace step {
       void exportParameters();
       void bindWebInterface();
       void createConfiguration();
+      string canonicalChamberName( const string& chamberName );
+      void prepareFEDSettings();
+      void startFED();
+      void haltFED();
       bool testSequenceInWorkLoop( toolbox::task::WorkLoop *wl );
       void defaultWebPage( xgi::Input *in, xgi::Output *out );
       void controlWebPage( xgi::Input *in, xgi::Output *out );
