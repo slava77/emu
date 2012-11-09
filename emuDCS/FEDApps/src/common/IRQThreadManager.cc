@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.33 2012/11/09 09:57:37 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.34 2012/11/09 14:16:13 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -695,6 +695,15 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					xorStatus = xorStatus & 0x7fff;
 					// Turn off high bit that represents DDU error. We only want to count chamber errors.
 
+					uint32_t l1a = myDDU->readL1Scaler(DDUFPGA); // for debugging purposes
+					if (doReset == false && l1a > 0) {
+						doReset = (l1a < lastL1A);
+						if (doReset)
+							LOG4CPLUS_DEBUG(logger, "New L1A " << l1a << " is less than previous " << lastL1A
+								<< " -- resync occurred");
+					}
+					lastL1A = l1a;
+
 					// Sometimes an interrupt does not have any errors to report.  Ignore these.
 					if (!xorStatus) {
 						std::ostringstream logMsg, debugMsg;
@@ -709,6 +718,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						if ((combinedStatus  & 0x7fff) != 0)
 							LOG4CPLUS_DEBUG(logger, debugMsg.str());
 						// LOG4CPLUS_WARN(logger, "IRQ detected on crate " << crateNumber << " slot " << slot << " with no new errors.  Ignoring.");
+
+						// Emergency break if we think a reset has happened under our noses.
+						if (doReset || locdata->resetCount)
+							break;
+
 						continue;
 					}
 					
@@ -719,8 +733,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					// Turn off high bit that represents DDU error. We only want to count chamber errors.
 
 					pthread_mutex_unlock(&locdata->lastErrMutex);
-
-					uint32_t l1a = myDDU->readL1Scaler(DDUFPGA); // for debugging purposes
 					
 					// What type of error did I see?
 					bool hardError = (errorData & 0x8000);
@@ -850,8 +862,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					}
 					*/
 					lastDDU = slot;
-					lastL1A = l1a;
-					
 					
 					// Report the names of the bad fibers to hotspot, but ignore killed fibers
 					unsigned int liveFibers = myDDU->readKillFiber();
@@ -925,7 +935,12 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					for (std::map<unsigned int, unsigned int>::const_iterator iCount = locdata->ignErrCnt.begin(); iCount != locdata->ignErrCnt.end(); ++iCount) {
 						numIgnFibers += iCount->second;
 					}
-					if (numIgnFibers > 0) {
+					// If resync occurred, only count errors from current DDU because rest should have been cleared
+					if (doReset) {
+						totalErrors = nErrors[slot] - nIgnFibers[slot];
+						LOG4CPLUS_DEBUG(logger,
+							"Ignoring repeated errors, so errors from current DDU reduced by " <<  nIgnFibers[slot]);
+					} else if (numIgnFibers > 0) {
 						totalErrors -= numIgnFibers;
 						if (totalErrors  < 0) // Shouldn't happen, but just in case
 							totalErrors = 0;
