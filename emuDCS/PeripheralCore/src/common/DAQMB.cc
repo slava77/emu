@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.90 2012/11/15 18:00:41 liu Exp $
+// $Id: DAQMB.cc,v 3.91 2012/11/15 18:12:10 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.91  2012/11/15 18:12:10  liu
+// *** empty log message ***
+//
 // Revision 3.90  2012/11/15 18:00:41  liu
 // bug fix in preamp_initx() and update Virtex6 monitoring
 //
@@ -7905,15 +7908,7 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
       bufin[i*2+1]=c;
    }
      write_cfeb_selector(cfeb.SelectorBit());
-     int bytepp=4;
-     int blocks=FIRMWARE_SIZE/bytepp;  // firmware size must be in units of 32-bit words
-     int lastblock=FIRMWARE_SIZE%bytepp;
-     int bitpp=bytepp*8;
-     if(lastblock>0) 
-     {  blocks++;
-        lastblock *= 8;
-     }
-     else lastblock=bitpp;
+     int blocks=FIRMWARE_SIZE/4;  // firmware size must be in units of 32-bit words
      int p1pct=blocks/100;
      int j=0, pcnts=0;
      unsigned short comd, tmp;
@@ -7937,8 +7932,8 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
      cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
     for(int i=0; i<blocks; i++)
     {
-       cfeb_do(0, &comd, (i==(blocks-1))?lastblock:bitpp, bufin+4*i, rcvbuf, NOW);
-       udelay(bitpp);
+       cfeb_do(0, &comd, 32, bufin+4*i, rcvbuf, NOW);
+       udelay(32);
        j++;
        if(j==p1pct)
        {  pcnts++;
