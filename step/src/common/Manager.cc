@@ -122,6 +122,9 @@ void emu::step::Manager::prepareFEDSettings(){
   xdata::Vector<xdata::String> chamberLabels = configuration_->getChamberLabels();
   for ( set<string>::iterator fn = fedSettingsFileNames.begin(); fn != fedSettingsFileNames.end(); ++fn ) {
     string fedSettingsXML = emu::utils::readFile( emu::utils::performExpansions( *fn ) );
+    if ( fedSettingsXML.size() == 0 ){
+      XCEPT_RAISE( xcept::Exception, *fn + " could not be read in or is empty." );
+    }
     // First kill all chambers' fibers...
     fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber/@KILLED" , "1" );
     // ...then unkill the tested chambers'
