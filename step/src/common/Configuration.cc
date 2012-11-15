@@ -18,11 +18,17 @@ emu::step::Configuration::Configuration( const string& XMLnamespace,
 {
   bsem_.take();
   testParametersXML_ = emu::utils::readFile( emu::utils::performExpansions( testParametersFileName ) );
+  if ( testParametersXML_.size() == 0 ){
+    XCEPT_RAISE( xcept::Exception, testParametersFileName.toString() + " could not be read in or is empty." );
+  }
   for ( map<string,string>::const_iterator p = pCrateSettingsFileNames.begin(); p != pCrateSettingsFileNames.end(); ++p )
     {
       if ( p->first.size() > 0 && p->second.size() > 0 )
 	{
 	  pCrateSettingsXMLs_[p->first] = emu::utils::readFile( emu::utils::performExpansions( p->second ) );
+	  if ( pCrateSettingsXMLs_[p->first].size() == 0 ){
+	    XCEPT_RAISE( xcept::Exception, p->second + " could not be read in or is empty." );
+	  }
 	}
     }
   bsem_.give();
@@ -33,6 +39,9 @@ emu::step::Configuration::Configuration( const string& XMLnamespace,
 void emu::step::Configuration::createXML()
 {
   string xslt( emu::utils::readFile( emu::utils::performExpansions( "${BUILD_HOME}/emu/step/xml/configuration.xsl" ) ) );
+  if ( xslt.size() == 0 ){
+    XCEPT_RAISE( xcept::Exception, "${BUILD_HOME}/emu/step/xml/configuration.xsl could not be read in or is empty." );
+  }
 
   stringstream source;
   stringstream xsl;
