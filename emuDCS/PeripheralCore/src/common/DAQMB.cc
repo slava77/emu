@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.89 2012/10/16 22:39:07 liu Exp $
+// $Id: DAQMB.cc,v 3.90 2012/11/15 18:00:41 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.90  2012/11/15 18:00:41  liu
+// bug fix in preamp_initx() and update Virtex6 monitoring
+//
 // Revision 3.89  2012/10/16 22:39:07  liu
 // read & write FPGA internal registers
 //
@@ -2766,7 +2769,7 @@ for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr)
   }
   else if (hversion==2)
   {
-      for(i=0; i<6; i++) for(j=0; i<6; j++) shft_bits[i][j]=0;
+      for(i=0; i<6; i++) for(j=0; j<6; j++) shft_bits[i][j]=0;
       int chip_mask= cfebItr->chipMask();
       write_cfeb_selector(cfebItr->SelectorBit());
       BuckeyeShift(chip_mask, shft_bits);
@@ -7202,6 +7205,21 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
           readf=adc*3.0/1024.0;
         readout.push_back(readf);
      }
+     data=0x4100000;
+     cfeb_do(10, &comd, 32, &data, rcvbuf, NOW|READ_YES);
+     for(unsigned i=0; i<16; i++)
+     {
+        data += 0x10000;
+        cfeb_do(0, buf, 32, &data, (char *)&ibrd, NOW|READ_YES);
+        adc = (ibrd>>6)&0x3FF;
+        if(i<6 && i!=3)
+          // currents
+          readf=adc*2000./1024.0;
+        else
+          // voltages
+          readf=adc*5.008/1024.0;
+        readout.push_back(readf);
+     }
      comd=VTX6_BYPASS;
      cfeb_do(10, &comd, 0, &data, rcvbuf, NOW);
   }
@@ -7887,7 +7905,15 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
       bufin[i*2+1]=c;
    }
      write_cfeb_selector(cfeb.SelectorBit());
-     int blocks=FIRMWARE_SIZE/4;  // firmware size must be in units of 32-bit words
+     int bytepp=4;
+     int blocks=FIRMWARE_SIZE/bytepp;  // firmware size must be in units of 32-bit words
+     int lastblock=FIRMWARE_SIZE%bytepp;
+     int bitpp=bytepp*8;
+     if(lastblock>0) 
+     {  blocks++;
+        lastblock *= 8;
+     }
+     else lastblock=bitpp;
      int p1pct=blocks/100;
      int j=0, pcnts=0;
      unsigned short comd, tmp;
@@ -7909,10 +7935,10 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
      udelay(100);
      comd=VTX6_ISC_PROGRAM; 
      cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
-    for(int i=0; i<blocks-1; i++)
+    for(int i=0; i<blocks; i++)
     {
-       cfeb_do(0, &comd, 4*8, bufin+4*i, rcvbuf, NOW);
-       udelay(32);
+       cfeb_do(0, &comd, (i==(blocks-1))?lastblock:bitpp, bufin+4*i, rcvbuf, NOW);
+       udelay(bitpp);
        j++;
        if(j==p1pct)
        {  pcnts++;
