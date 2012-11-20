@@ -152,17 +152,7 @@ void emu::step::Test::configureCrates(){
        // (Power-on chambers if not already on) & write flash
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->configure( 0 ) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
       (*crate)->configure( 0 );
-       // Perform a Hard-Reset to all modules in the crate and ensure configuration is uploaded to eproms
-      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
-      (*crate)->ccb()->HardReset_crate();
-      // Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
-      ::sleep( 1 );
-      // Set ccb mode once more separately, as it is screwed up inside ccb->configure
-      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA ) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
-      (*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA );
-      // Disable all triggers 
-      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->DisableL1a() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
-      (*crate)->ccb()->DisableL1a();
+      // Set up the DDU if there's one in this crate
       vector<emu::pc::DDU*> ddus = (*crate)->ddus();
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, ddus.size() << " DDUs" ); }
       for ( vector<emu::pc::DDU*>::iterator ddu = ddus.begin(); ddu != ddus.end(); ++ddu ){
@@ -177,6 +167,17 @@ void emu::step::Test::configureCrates(){
 	if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFakeL1(0x8787) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
 	(*ddu)->writeFakeL1(0x8787);
       }
+      // Perform a Hard-Reset to all modules in the crate and ensure configuration is uploaded to eproms
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
+      (*crate)->ccb()->HardReset_crate();
+      // Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
+      ::sleep( 1 );
+      // Set ccb mode once more separately, as it is screwed up inside ccb->configure
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA ) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
+      (*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA );
+      // Disable all triggers 
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->DisableL1a() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
+      (*crate)->ccb()->DisableL1a();
     }
     else{
       XCEPT_RAISE( xcept::Exception, "Crate " + (*crate)->GetLabel() + " is dead or incommunicado." );
