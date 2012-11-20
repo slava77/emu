@@ -48,7 +48,6 @@ namespace emu { namespace step {
       void exportParameters();
       void bindWebInterface();
       void createConfiguration();
-      string canonicalChamberName( const string& chamberName );
       void prepareFEDSettings();
       void startFED();
       void haltFED();

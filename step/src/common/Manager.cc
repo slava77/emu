@@ -8,6 +8,7 @@
 #include "emu/utils/String.h"
 #include "emu/utils/System.h"
 #include "emu/utils/Cgi.h"
+#include "emu/utils/Chamber.h"
 
 #include "xdata/Integer64.h"
 #include "xdata/UnsignedInteger64.h"
@@ -78,25 +79,6 @@ void emu::step::Manager::createConfiguration(){
   prepareFEDSettings();
 }
 
-string emu::step::Manager::canonicalChamberName( const string& chamberName ){
-  stringstream canonicalName;
-  const string regex("[Mm][Ee]([^/]+)/([^/]+)/([^/]+)");
-
-  vector<string> matches;
-  if ( toolbox::regx_match( chamberName, regex, matches ) && matches.size() == 4 ){
-    //cout << matches << endl;
-    int station = utils::stringTo<int>( matches[1] );
-    int ring    = utils::stringTo<int>( matches[2] );
-    int chamber = utils::stringTo<int>( matches[3] );
-    canonicalName << "ME" << showpos                     << station
-		  << "/"  << noshowpos                   << ring
-		  << "/"  << setfill( '0' ) << setw( 2 ) << chamber;
-  return canonicalName.str();
-  }
-
-  return chamberName;
-}
-
 void emu::step::Manager::prepareFEDSettings(){
   set<xdaq::ApplicationDescriptor *> apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors( "emu::fed::Communicator" );
 
@@ -131,7 +113,7 @@ void emu::step::Manager::prepareFEDSettings(){
     for ( size_t iChamber = 0; iChamber < chamberLabels.elements(); ++iChamber ){
     // In the FED settings XML file, chamber names are zero-padded, but without "ME", e.g., CHAMBER="-1/2/08"
     // while in the PCrate settings XML file, it's the other way round...
-      fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber[@CHAMBER='" + canonicalChamberName( ( dynamic_cast<xdata::String*>( chamberLabels.elementAt( iChamber ) ) )->toString() ).substr( 2 ) + "']/@KILLED", "0" );
+      fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber[@CHAMBER='" + emu::utils::Chamber( ( dynamic_cast<xdata::String*>( chamberLabels.elementAt( iChamber ) ) )->toString() ).name().substr( 2 ) + "']/@KILLED", "0" );
     }
     cout << fedSettingsXML << endl;
     //utils::writeFile( *fn, fedSettingsXML );
