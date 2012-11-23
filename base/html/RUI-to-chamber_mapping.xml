@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <?xml-stylesheet type="text/xml" href="RUI-to-chamber_mapping_XSLT.xml"?>
-<RUI-to-chamber_mapping date="2007-11-08">
+<RUI-to-chamber_mapping date="2012-06-28">
   <RUI instance="0">
     <DDU crate="5" slot="2">
       <input id= "0">
@@ -157,7 +157,8 @@
       <input id="11"><FiberCassette crate="1" pos="4" socket="e"/><PeripheralCrate id="21" VMEcrate="3" VMEslot="19"/><Chamber endcap="+" station="3" type="2" number="19"/></input>
       <input id="12"><FiberCassette crate="1" pos="2" socket="e"/><PeripheralCrate id="3" VMEcrate="3" VMEslot="15"/><Chamber endcap="+" station="1" type="2" number="8"/></input>
       <input id="13"><FiberCassette crate="1" pos="3" socket="f"/><PeripheralCrate id="14" VMEcrate="2" VMEslot="7"/><Chamber endcap="+" station="2" type="1" number="7"/></input>
-      <input id="14"><FiberCassette crate="1" pos="5" socket="e"/><PeripheralCrate id="28" VMEcrate="4" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="25"/></input>
+      <!-- <input id="14"><FiberCassette crate="1" pos="5" socket="e"/><PeripheralCrate id="28" VMEcrate="4" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="25"/></input> -->
+      <input id="14"><FiberCassette crate="8" pos="11" socket="e"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="9"/><Chamber endcap="+" station="4" type="2" number="9"/></input>
     </DDU>
     <DCC fifo="00100" slink="750"/>
   </RUI>
@@ -171,7 +172,8 @@
       <input id="4"><FiberCassette crate="2" pos="1" socket="b"/><PeripheralCrate id="2" VMEcrate="2" VMEslot="11"/><Chamber endcap="+" station="1" type="2" number="4"/></input>
       <input id="5"><FiberCassette crate="2" pos="4" socket="c"/><PeripheralCrate id="21" VMEcrate="3" VMEslot="5"/><Chamber endcap="+" station="3" type="1" number="9"/></input>
       <input id="6"><FiberCassette crate="2" pos="5" socket="c"/><PeripheralCrate id="28" VMEcrate="4" VMEslot="5"/><Chamber endcap="+" station="4" type="1" number="12"/></input>
-      <input id="7"><FiberCassette crate="2" pos="5" socket="a"/><PeripheralCrate id="28" VMEcrate="4" VMEslot="17"/><Chamber endcap="+" station="4" type="2" number="24"/></input>
+      <!-- <input id="7"><FiberCassette crate="2" pos="5" socket="a"/><PeripheralCrate id="28" VMEcrate="4" VMEslot="17"/><Chamber endcap="+" station="4" type="2" number="24"/></input> -->
+      <input id="7"><FiberCassette crate="8" pos="11" socket="d"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="11"/><Chamber endcap="+" station="4" type="2" number="10"/></input>
       <input id="8"><FiberCassette crate="2" pos="2" socket="c"/><PeripheralCrate id="3" VMEcrate="3" VMEslot="5"/><Chamber endcap="+" station="1" type="1" number="7"/></input>
       <input id="9"><FiberCassette crate="2" pos="2" socket="a"/><PeripheralCrate id="3" VMEcrate="3" VMEslot="19"/><Chamber endcap="+" station="1" type="3" number="7"/></input>
       <input id="10"><FiberCassette crate="2" pos="3" socket="b"/><PeripheralCrate id="14" VMEcrate="2" VMEslot="15"/><Chamber endcap="+" station="2" type="2" number="11"/></input>
@@ -346,7 +348,8 @@
       <input id="11"><FiberCassette crate="7" pos="4" socket="e"/><PeripheralCrate id="24" VMEcrate="6" VMEslot="19"/><Chamber endcap="+" station="3" type="2" number="1"/></input>
       <input id="12"><FiberCassette crate="7" pos="2" socket="e"/><PeripheralCrate id="9" VMEcrate="9" VMEslot="15"/><Chamber endcap="+" station="1" type="2" number="26"/></input>
       <input id="13"><FiberCassette crate="7" pos="3" socket="f"/><PeripheralCrate id="17" VMEcrate="5" VMEslot="7"/><Chamber endcap="+" station="2" type="1" number="16"/></input>
-      <input id="14"><FiberCassette crate="7" pos="5" socket="e"/><PeripheralCrate id="25" VMEcrate="1" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="7"/></input>
+      <!-- <input id="14"><FiberCassette crate="7" pos="5" socket="e"/><PeripheralCrate id="25" VMEcrate="1" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="7"/></input> -->
+      <input id="14"><FiberCassette crate="7" pos="11" socket="e"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="13"/></input>
     </DDU>
     <DCC fifo="00100" slink="752"/>
   </RUI>
@@ -409,7 +412,8 @@
       <input id="11"><FiberCassette crate="7" pos="10" socket="e"/><PeripheralCrate id="19" VMEcrate="1" VMEslot="19"/><Chamber endcap="+" station="3" type="2" number="7"/></input>
       <input id="12"><FiberCassette crate="7" pos="8" socket="e"/><PeripheralCrate id="11" VMEcrate="11" VMEslot="15"/><Chamber endcap="+" station="1" type="2" number="32"/></input>
       <input id="13"><FiberCassette crate="7" pos="9" socket="f"/><PeripheralCrate id="18" VMEcrate="6" VMEslot="7"/><Chamber endcap="+" station="2" type="1" number="1"/></input>
-      <input id="14"><FiberCassette crate="7" pos="11" socket="e"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="13"/></input>
+      <!-- <input id="14"><FiberCassette crate="7" pos="11" socket="e"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="13"/></input> -->
+      <input id="14"><FiberCassette crate="7" pos="5" socket="e"/><PeripheralCrate id="25" VMEcrate="1" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="7"/></input>
     </DDU>
     <DCC fifo="01000" slink="753"/>
   </RUI>
@@ -444,14 +448,16 @@
       <input id="4"><FiberCassette crate="8" pos="7" socket="e"/><PeripheralCrate id="10" VMEcrate="10" VMEslot="9"/><Chamber endcap="+" station="1" type="2" number="27"/></input>
       <input id="5"><FiberCassette crate="8" pos="10" socket="f"/><PeripheralCrate id="19" VMEcrate="1" VMEslot="3"/><Chamber endcap="+" station="3" type="1" number="2"/></input>
       <input id="6"><FiberCassette crate="8" pos="11" socket="f"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="3"/><Chamber endcap="+" station="4" type="1" number="5"/></input>
-      <input id="7"><FiberCassette crate="8" pos="11" socket="d"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="11"/><Chamber endcap="+" station="4" type="2" number="10"/></input>
+      <!-- <input id="7"><FiberCassette crate="8" pos="11" socket="d"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="11"/><Chamber endcap="+" station="4" type="2" number="10"/></input> -->
+      <input id="7"><FiberCassette crate="2" pos="5" socket="a"/><PeripheralCrate id="28" VMEcrate="4" VMEslot="17"/><Chamber endcap="+" station="4" type="2" number="24"/></input>
       <input id="8"><FiberCassette crate="8" pos="8" socket="f"/><PeripheralCrate id="11" VMEcrate="11" VMEslot="3"/><Chamber endcap="+" station="1" type="1" number="30"/></input>
       <input id="9"><FiberCassette crate="8" pos="8" socket="d"/><PeripheralCrate id="11" VMEcrate="11" VMEslot="17"/><Chamber endcap="+" station="1" type="3" number="30"/></input>
       <input id="10"><FiberCassette crate="8" pos="9" socket="e"/><PeripheralCrate id="18" VMEcrate="6" VMEslot="9"/><Chamber endcap="+" station="2" type="2" number="33"/></input>
       <input id="11"><FiberCassette crate="8" pos="10" socket="e"/><PeripheralCrate id="19" VMEcrate="1" VMEslot="9"/><Chamber endcap="+" station="3" type="2" number="3"/></input>
       <input id="12"><FiberCassette crate="8" pos="8" socket="e"/><PeripheralCrate id="11" VMEcrate="11" VMEslot="9"/><Chamber endcap="+" station="1" type="2" number="30"/></input>
       <input id="13"><FiberCassette crate="8" pos="9" socket="f"/><PeripheralCrate id="18" VMEcrate="6" VMEslot="3"/><Chamber endcap="+" station="2" type="1" number="17"/></input>
-      <input id="14"><FiberCassette crate="8" pos="11" socket="e"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="9"/><Chamber endcap="+" station="4" type="2" number="9"/></input>
+      <!-- <input id="14"><FiberCassette crate="8" pos="11" socket="e"/><PeripheralCrate id="26" VMEcrate="2" VMEslot="9"/><Chamber endcap="+" station="4" type="2" number="9"/></input> -->
+      <input id="14"><FiberCassette crate="1" pos="5" socket="e"/><PeripheralCrate id="28" VMEcrate="4" VMEslot="19"/><Chamber endcap="+" station="4" type="2" number="25"/></input>
     </DDU>
     <DCC fifo="00100" slink="753"/>
   </RUI>
