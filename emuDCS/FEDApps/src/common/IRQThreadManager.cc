@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.35 2012/11/09 16:29:20 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.36 2012/11/23 16:19:45 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -508,6 +508,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	std::map<unsigned int, unsigned int> lastSLinkError;
 
 	DDUWarnMon dduWarnMonitor;
+	int unused = 0; // Unused 2nd parameter of pthread_setcancelstate
 
 	// Continue unless someone tells us to stop.
 	while (1) { // Always looping until the thread is canceled
@@ -524,6 +525,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		LOG4CPLUS_DEBUG(logger, "Starting outer loop for crate " << crateNumber <<
 		", run number " << locdata->runNumStr.str());
+
+		// Make sure thread can be cancelled
+		if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &unused) != 0)
+			LOG4CPLUS_ERROR(logger, "pthread_setcancelstate enable error -- trying to set bad state");
 
 		// Immediate check for cancel
 		pthread_testcancel();
@@ -608,6 +613,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		// Break out of this loop to reset the thread.
 		while (1) {
 
+			if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &unused) != 0)
+				LOG4CPLUS_ERROR(logger, "pthread_setcancelstate enable error -- trying to set bad state");
+			pthread_testcancel();
 			// Increase the ticks.
 			//locdata->ticks[crateNumber]++;
 
@@ -627,6 +635,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				// I know this means the TF DDU will use interrupts, but we'll deal with that hurdle when we come to it.
 				if (myCrate->getController()->waitIRQ(1000) == false) {
 					pthread_testcancel();
+					// Prevent crash that occurs when thread canceled during logging
+					if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &unused) != 0)
+						LOG4CPLUS_ERROR(logger, "pthread_setcancelstate error -- trying to set bad state");
 
 					// INTERRUPT!
 					// Read out the error information into a local variable.
@@ -1063,13 +1074,20 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 					MY_REVOKE_ALARM("IRQThreadGeneralError");
 					
+					if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &unused) != 0)
+						LOG4CPLUS_ERROR(logger, "pthread_setcancelstate enable error -- trying to set bad state");
 					pthread_testcancel();
 					
 					// Emergency break if we think a reset has happened under our noses.
-					if (doReset || locdata->resetCount) break;
+					if (doReset || locdata->resetCount)
+						break;
 
 				} else {
 					pthread_testcancel();
+
+					// Prevent thread cancellation because cancel during logging causes crash
+					if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &unused) != 0)
+						LOG4CPLUS_ERROR(logger, "pthread_setcancelstate disable error -- trying to set bad state");
 
 					// ALL CLEAR!
 
@@ -1098,8 +1116,13 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							if (myDDU->readFiberErrors() < lastDDUError[lastDDU]) {
 								LOG4CPLUS_INFO(logger, "Resync detected on crate " << crateNumber << ": checking again to make sure...");
 
+								if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &unused) != 0)
+									LOG4CPLUS_ERROR(logger, "pthread_setcancelstate enable error -- trying to set bad state");
 								usleep(100);
 								pthread_testcancel();
+								// Prevent crash that occurs when thread canceled during logging
+								if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &unused) != 0)
+									LOG4CPLUS_ERROR(logger, "pthread_setcancelstate error -- trying to set bad state");
 
 								if (myDDU->readFiberErrors() < lastDDUError[lastDDU]) {
 									LOG4CPLUS_INFO(logger, "Resync confirmed on crate " << crateNumber);
@@ -1266,7 +1289,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						}
 
 					} // End TF/DCC checks
-
+					if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &unused) != 0)
+						LOG4CPLUS_ERROR(logger, "pthread_setcancelstate enable error -- trying to set bad state");
+					pthread_testcancel();
 				} // End all clear
 				
 			} catch (emu::fed::exception::Exception &e) {
@@ -1279,7 +1304,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadWait", "ERROR", error.str(), tag.str(), e);
 				pthread_exit(NULL);
 			}
-			
 		}
 
 	}
