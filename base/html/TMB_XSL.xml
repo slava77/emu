@@ -286,7 +286,7 @@
   </xsl:template>
 
   <xsl:template name="focusedChamberLabel">
-    <rect xmlns="http://www.w3.org/2000/svg" id="focusedChamberBox" visibility="hidden" opacity="1" x="-1700" y="750" width="600" height="200" fill="#000000"/>    
+    <rect xmlns="http://www.w3.org/2000/svg" id="focusedChamberBox" visibility="hidden" opacity="1" x="-1750" y="750" width="700" height="200" fill="#000000"/>    
     <text xmlns="http://www.w3.org/2000/svg" id="focusedChamberText" visibility="hidden" text-anchor="middle" x="-1400" y="890" font-size="100" fill="#ffff00">MEES/T/Ch</text>
   </xsl:template>
 
@@ -296,7 +296,7 @@
   </xsl:template>
 
   <xsl:template name="focusedDMBLabel">
-    <rect xmlns="http://www.w3.org/2000/svg" id="focusedDMBBox" visibility="hidden" opacity="1" x="-3100" y="750" width="600" height="200" fill="#000000"/>    
+    <rect xmlns="http://www.w3.org/2000/svg" id="focusedDMBBox" visibility="hidden" opacity="1" x="-3150" y="750" width="700" height="200" fill="#000000"/>    
     <text xmlns="http://www.w3.org/2000/svg" id="focusedDMBText" visibility="hidden" text-anchor="middle" x="-2800" y="890" font-size="100" fill="#ffff00">VME id</text>
   </xsl:template>
 
