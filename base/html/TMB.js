@@ -217,7 +217,7 @@ function TMBPanel( dataURLs ) {
 		document.getElementById('focusedDMBBox').setAttribute('visibility','visible');
 		var t = document.getElementById('focusedDMBText');
 		//console.log(allChambers[i].parentNode.getAttribute('id').substr(6));
-		t.firstChild.nodeValue = 'DMB '+DMBSlotToNumber[ allChambers[i].textContent ];
+		t.firstChild.nodeValue = 'TMB/DMB '+DMBSlotToNumber[ allChambers[i].textContent ];
 		t.setAttribute('visibility','visible');		
 	    }
 	}
