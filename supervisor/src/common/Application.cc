@@ -1276,10 +1276,12 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
   toolbox::fsm::FailedEvent &failed = dynamic_cast<toolbox::fsm::FailedEvent&>(*event);
   
   stringstream reason;
-  reason << "Failure occurred when performing transition"
+  reason << "<![CDATA["
+	 << "Failure occurred when performing transition"
 	 << " from "        << failed.getFromState()
 	 << " to "          << failed.getToState()
-	 << ". Exception: " << xcept::stdformat_exception_history( failed.getException() );
+	 << ". Exception: " << xcept::stdformat_exception_history( failed.getException() )
+	 << "]]";
   
   reasonForFailure_ = reason.str();
   LOG4CPLUS_ERROR(getApplicationLogger(), reason.str());
