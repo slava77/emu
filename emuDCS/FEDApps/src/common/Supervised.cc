@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Supervised.cc,v 1.5 2010/03/17 16:45:57 paste Exp $
+* $Id: Supervised.cc,v 1.6 2012/11/25 23:29:50 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/Supervised.h"
 
@@ -30,28 +30,6 @@ fromSOAP_(true)
 }
 
 
-/*
-void emu::fed::Supervised::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-{
-	state_ = fsm.getStateName(fsm.getCurrentState());
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "StateChanged: " << state_.toString());
-}
-*/
-
-/*
-void emu::fed::Supervised::transitionFailed(toolbox::Event::Reference event)
-{
-	toolbox::fsm::FailedEvent &failed = dynamic_cast<toolbox::fsm::FailedEvent &>(*event);
-
-	std::ostringstream error;
-	error <<  "Failure occurred when performing transition from " << failed.getFromState() << " to " << failed.getToState() << ", exception: " << failed.getException().what();
-	LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-	XCEPT_DECLARE_NESTED(emu::fed::exception::FSMException, e, error.str(), failed.getException());
-	notifyQualified("FATAL", e);
-}
-*/
-
-
 void emu::fed::Supervised::fireEvent(std::string name)
 {
 	if (fromSOAP_) {
@@ -76,6 +54,7 @@ void emu::fed::Supervised::fireEvent(std::string name)
 		XCEPT_DECLARE_NESTED(emu::fed::exception::FSMException, e2, error.str(), e);
 		LOG4CPLUS_FATAL(getApplicationLogger(), xcept::stdformat_exception_history(e2));
 		notifyQualified("FATAL", e2);
+		throw e;
 	}
 }
 

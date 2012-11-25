@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.h,v 1.9 2010/03/17 16:45:51 paste Exp $
+* $Id: Manager.h,v 1.10 2012/11/25 23:29:50 banicz Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MANAGER_H__
 #define __EMU_FED_MANAGER_H__
@@ -56,9 +56,6 @@ namespace emu {
 			/** Send the 'Halt' command to the Communicator applications **/
 			void haltAction(toolbox::Event::Reference event)
 			throw (toolbox::fsm::exception::Exception);
-
-			/** Transition into an unknown FSM state because the underlying Communicator applications' FSM states do not agree **/
-			void unknownAction(toolbox::Event::Reference event);
 
 			// FSM state change call-back function
 			/** Decault FSM state change call-back function **/

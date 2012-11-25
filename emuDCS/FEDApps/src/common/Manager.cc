@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.24 2012/11/05 10:46:02 cvuosalo Exp $
+* $Id: Manager.cc,v 1.25 2012/11/25 23:29:50 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -48,38 +48,23 @@ ttsBits_(0)
 	fsm_.addState('H', "Halted", this, &emu::fed::Manager::stateChanged);
 	fsm_.addState('C', "Configured", this, &emu::fed::Manager::stateChanged);
 	fsm_.addState('E', "Enabled", this, &emu::fed::Manager::stateChanged);
-	fsm_.addState('U', "Indefinite", this, &emu::fed::Manager::stateChanged);
 
 	// FSM transition definitions
-	fsm_.addStateTransition('H', 'C', "Configure", this, &emu::fed::Manager::configureAction); // valid
-	fsm_.addStateTransition('C', 'C', "Configure", this, &emu::fed::Manager::configureAction); // valid
-	fsm_.addStateTransition('E', 'C', "Configure", this, &emu::fed::Manager::configureAction); // invalid
-	fsm_.addStateTransition('U', 'C', "Configure", this, &emu::fed::Manager::configureAction); // valid
-	fsm_.addStateTransition('F', 'C', "Configure", this, &emu::fed::Manager::configureAction); // invalid
+	fsm_.addStateTransition('H', 'C', "Configure", this, &emu::fed::Manager::configureAction);
+	fsm_.addStateTransition('C', 'C', "Configure", this, &emu::fed::Manager::configureAction);
+	fsm_.addStateTransition('E', 'C', "Configure", this, &emu::fed::Manager::configureAction);
 
-	fsm_.addStateTransition('H', 'C', "Disable", this, &emu::fed::Manager::disableAction); // invalid
-	fsm_.addStateTransition('C', 'C', "Disable", this, &emu::fed::Manager::disableAction); // invalid
-	fsm_.addStateTransition('E', 'C', "Disable", this, &emu::fed::Manager::disableAction); // valid
-	fsm_.addStateTransition('U', 'C', "Disable", this, &emu::fed::Manager::disableAction); // invalid
-	fsm_.addStateTransition('F', 'C', "Disable", this, &emu::fed::Manager::disableAction); // invalid
+	fsm_.addStateTransition('H', 'C', "Disable", this, &emu::fed::Manager::disableAction);
+	fsm_.addStateTransition('C', 'C', "Disable", this, &emu::fed::Manager::disableAction);
+	fsm_.addStateTransition('E', 'C', "Disable", this, &emu::fed::Manager::disableAction);
 
-	fsm_.addStateTransition('H', 'E', "Enable", this, &emu::fed::Manager::enableAction); // invalid
-	fsm_.addStateTransition('C', 'E', "Enable", this, &emu::fed::Manager::enableAction); // valid
-	fsm_.addStateTransition('E', 'E', "Enable", this, &emu::fed::Manager::enableAction); // invalid
-	fsm_.addStateTransition('U', 'E', "Enable", this, &emu::fed::Manager::enableAction); // invalid
-	fsm_.addStateTransition('F', 'E', "Enable", this, &emu::fed::Manager::enableAction); // invalid
+	fsm_.addStateTransition('H', 'E', "Enable", this, &emu::fed::Manager::enableAction);
+	fsm_.addStateTransition('C', 'E', "Enable", this, &emu::fed::Manager::enableAction);
+	fsm_.addStateTransition('E', 'E', "Enable", this, &emu::fed::Manager::enableAction);
 
-	fsm_.addStateTransition('H', 'H', "Halt", this, &emu::fed::Manager::haltAction); // valid
-	fsm_.addStateTransition('C', 'H', "Halt", this, &emu::fed::Manager::haltAction); // valid
-	fsm_.addStateTransition('E', 'H', "Halt", this, &emu::fed::Manager::haltAction); // valid
-	fsm_.addStateTransition('U', 'H', "Halt", this, &emu::fed::Manager::haltAction); // valid
-	fsm_.addStateTransition('F', 'H', "Halt", this, &emu::fed::Manager::haltAction); // valid
-
-	fsm_.addStateTransition('H', 'U', "Unknown", this, &emu::fed::Manager::unknownAction); // invalid
-	fsm_.addStateTransition('C', 'U', "Unknown", this, &emu::fed::Manager::unknownAction); // invalid
-	fsm_.addStateTransition('E', 'U', "Unknown", this, &emu::fed::Manager::unknownAction); // invalid
-	fsm_.addStateTransition('U', 'U', "Unknown", this, &emu::fed::Manager::unknownAction); // invalid
-	fsm_.addStateTransition('F', 'U', "Unknown", this, &emu::fed::Manager::unknownAction); // invalid
+	fsm_.addStateTransition('H', 'H', "Halt", this, &emu::fed::Manager::haltAction);
+	fsm_.addStateTransition('C', 'H', "Halt", this, &emu::fed::Manager::haltAction);
+	fsm_.addStateTransition('E', 'H', "Halt", this, &emu::fed::Manager::haltAction);
 
 	fsm_.setInitialState('H');
 	fsm_.reset();
@@ -427,7 +412,7 @@ throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Configure");
 
-	if (state_.toString() != "Halted") {
+	if ( fsm_.getCurrentState() != 'H' ) {
 		std::ostringstream error;
 		error << state_.toString() << "->Configured via action 'Configure' is not valid:  transitioning through 'Halted' first";
 		XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
@@ -460,24 +445,14 @@ throw (toolbox::fsm::exception::Exception)
 	}
 
 	std::string underlyingStates = getManagerState("Configured", getUnderlyingStatus());
-	if (underlyingStates == "Failed") {
+	if ( underlyingStates == "Failed" || underlyingStates == "Unknown" ) {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
 		notifyQualified("FATAL", e);
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-	} else if (underlyingStates == "Unknown") {
-		try {
-			fireEvent("Unknown");
-		} catch (toolbox::fsm::exception::Exception &e) {
-			std::ostringstream error;
-			error << "Exception transitioning to 'Unknown' state.  What the . . . ?";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			notifyQualified("FATAL", e);
-			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-		}
-	}
+	} 
 }
 
 
@@ -523,23 +498,13 @@ throw (toolbox::fsm::exception::Exception)
 	}
 
 	std::string underlyingStates = getManagerState("Enabled", getUnderlyingStatus());
-	if (underlyingStates == "Failed") {
+	if ( underlyingStates == "Failed" || underlyingStates == "Unknown" ) {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
 		notifyQualified("FATAL", e);
 		XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str() );
-	} else if (underlyingStates == "Unknown") {
-		try {
-			fireEvent("Unknown");
-		} catch (toolbox::fsm::exception::Exception &e) {
-			std::ostringstream error;
-			error << "Exception transitioning to 'Unknown' state.  What the . . . ?";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			notifyQualified("FATAL", e);
-			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-		}
 	}
 }
 
@@ -575,23 +540,13 @@ throw (toolbox::fsm::exception::Exception)
 	}
 
 	std::string underlyingStates = getManagerState("Configured", getUnderlyingStatus());
-	if (underlyingStates == "Failed") {
+	if ( underlyingStates == "Failed" || underlyingStates == "Unknown" ) {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
 		notifyQualified("FATAL", e);
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-	} else if (underlyingStates == "Unknown") {
-		try {
-			fireEvent("Unknown");
-		} catch (toolbox::fsm::exception::Exception &e) {
-			std::ostringstream error;
-			error << "Exception transitioning to 'Unknown' state.  What the . . . ?";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			notifyQualified("FATAL", e);
-			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-		}
 	}
 }
 
@@ -614,37 +569,15 @@ throw (toolbox::fsm::exception::Exception)
 	}
 
 	std::string underlyingStates = getManagerState("Halted", getUnderlyingStatus());
-	if (underlyingStates == "Failed") {
+	if ( underlyingStates == "Failed" || underlyingStates == "Unknown" ) {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
 		notifyQualified("FATAL", e);
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-	} else if (underlyingStates == "Unknown") {
-		try {
-			fireEvent("Unknown");
-		} catch (toolbox::fsm::exception::Exception &e) {
-			std::ostringstream error;
-			error << "Exception transitioning to 'Unknown' state.  What the . . . ?";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			notifyQualified("FATAL", e);
-			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-		}
 	}
 }
-
-
-
-void emu::fed::Manager::unknownAction(toolbox::Event::Reference event)
-{
-	std::ostringstream error;
-	error << "FSM transition to Unknown encountered";
-	XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
-	LOG4CPLUS_ERROR(getApplicationLogger(), xcept::stdformat_exception_history(e2));
-	notifyQualified("WARN", e2);
-}
-
 
 
 std::string emu::fed::Manager::getManagerState(const std::string &targetState, const JSONSpirit::Array &underlyingStatus)
