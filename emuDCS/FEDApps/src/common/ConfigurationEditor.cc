@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: ConfigurationEditor.cc,v 1.16 2010/05/31 14:57:20 paste Exp $
+* $Id: ConfigurationEditor.cc,v 1.17 2012/11/25 23:36:49 banicz Exp $
 \*****************************************************************************/
 #include "emu/fed/ConfigurationEditor.h"
 
@@ -101,10 +101,11 @@ void emu::fed::ConfigurationEditor::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("name", "xmlFile")
 		.set("id", "xml_file_upload")
 		.set("type", "file") << std::endl;
-	*out << cgicc::form() << std::endl;
 	*out << cgicc::button("Upload")
 		.set("name", "xmlFileButton")
+		.set("type", "submit")
 		.set("id", "xml_file_button") << std::endl;
+	*out << cgicc::form() << std::endl;
 	*out << cgicc::iframe()
 		.set("name", "xml_file_frame")
 		.set("id", "xml_file_frame")
