@@ -104,6 +104,8 @@ void emu::step::Application::stateChanged( toolbox::fsm::FiniteStateMachine &fsm
 
 void emu::step::Application::fireEvent( string name ){
   toolbox::Event::Reference event( new toolbox::Event(name, this) );
+  // fsm_.fireEvent( event ) expects a toolbox::fsm::exception::Exception to be thrown.
+  // It catches it but instead of rethrowing it, it sets the state to 'F' (Failed).
   fsm_.fireEvent( event );
 }
 
