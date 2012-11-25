@@ -45,10 +45,14 @@ void emu::base::Supervised::transitionFailed(toolbox::Event::Reference event)
 			dynamic_cast<toolbox::fsm::FailedEvent &>(*event);
 
 	stringstream reason;
-	reason << "Failure occurred when performing transition"
-	       << " from: "      << failed.getFromState()
-	       << " to: "        << failed.getToState()
-	       << " exception: " << xcept::stdformat_exception_history( failed.getException() );
+	reason << "<![CDATA[" 
+	       << endl
+	       << "Failure occurred when performing transition"
+	       << " from "        << failed.getFromState()
+	       << " to "          << failed.getToState()
+	       << ". Exception: " << xcept::stdformat_exception_history( failed.getException() )  
+	       << endl
+	       << "]]>";
 
 	reasonForFailure_ = reason.str();
 
