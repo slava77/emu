@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Supervised.h,v 1.6 2012/02/02 12:44:48 banicz Exp $
+* $Id: Supervised.h,v 1.7 2012/11/25 23:29:50 banicz Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SUPERVISED_H__
 #define __EMU_FED_SUPERVISED_H__
@@ -25,7 +25,15 @@
 xoap::MessageReference on ##COMMAND(xoap::MessageReference message) \
 { \
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM state change requested:  " #COMMAND); \
-	fireEvent(#COMMAND); \
+	try{ \
+	  fireEvent(#COMMAND);	     \
+	} \
+	catch( toolbox::fsm::exception::Exception& e ){ \
+	  XCEPT_RETHROW( xoap::exception::Exception, "Failed to execute SOAP command '"#COMMAND"'.", e ); \
+	} \
+	if ( fsm_.getCurrentState() == 'F' ){				\
+	  XCEPT_RAISE( xoap::exception::Exception, std::string( "Failed to execute SOAP command '"#COMMAND"'. " ) + reasonForFailure_.toString()  ); \
+	}								\
 	return createReply(message); \
 }
 

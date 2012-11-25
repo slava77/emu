@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: manager.js,v 1.4 2009/07/01 14:54:02 paste Exp $
+* $Id: manager.js,v 1.5 2012/11/25 23:29:50 banicz Exp $
 \*****************************************************************************/
 
 Event.observe(window, "load", function(event) {
@@ -97,10 +97,6 @@ function updateSystemStatus(transport) {
 	} else if (state == "Failed") {
 		$("status_description").update("Either one of the underlying Communicator applications is in the Failed state, or the Manager detected an error when attempting to transition between states.  If sending a Halt command does not fix this, call an expert.");
 		$("statusicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/dialog-error.png");
-		$("halt_button").disabled = false;
-	} else if (state == "Indefinite") {
-		$("status_description").update("The underlying Communicator applications are not in the same state.  This can be expected if the system is being debugged by an expert.  If sending a Halt command does not fix this, call an expert.");
-		$("statusicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/dialog-warning.png");
 		$("halt_button").disabled = false;
 	} else if (state == "Halted") {
 		$("status_description").update("The FED system is ready to be configured.");
