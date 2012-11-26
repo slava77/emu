@@ -76,10 +76,11 @@ void emu::step::Manager::createConfiguration(){
   configuration_ = new emu::step::Configuration( namespace_, 
 						 testParametersFileName_,
 						 pCrateSettingsFileNames );
-  prepareFEDSettings();
 }
 
-void emu::step::Manager::prepareFEDSettings(){
+
+void emu::step::Manager::startFED(){
+  // If we use FED crate(s), we control the FED system here. (If the DDU is in the PCrate, we'll set it up together with it for each individual test.)
   set<xdaq::ApplicationDescriptor *> apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors( "emu::fed::Communicator" );
 
   if ( apps.size() == 0 ){
@@ -97,7 +98,7 @@ void emu::step::Manager::prepareFEDSettings(){
     xdata::String xmlFileName;
     m.getParameters( *app, emu::soap::Parameters().add( "xmlFileName", &xmlFileName ) );
     fedSettingsFileNames.insert( xmlFileName.toString() );
-    LOG4CPLUS_INFO( logger_, "Found " << (*app)->getClassName() << " instance " << (*app)->getInstance() << "' with settings in " << xmlFileName.toString() );
+    LOG4CPLUS_INFO( logger_, "Found " << (*app)->getClassName() << " of instance " << (*app)->getInstance() << " with settings in " << xmlFileName.toString() );
   }
 
   // Build XPath expression to unkill tested chambers' fibers in the FED settings files
@@ -115,16 +116,11 @@ void emu::step::Manager::prepareFEDSettings(){
     // while in the PCrate settings XML file, it's the other way round...
       fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber[@CHAMBER='" + emu::utils::Chamber( ( dynamic_cast<xdata::String*>( chamberLabels.elementAt( iChamber ) ) )->toString() ).name().substr( 2 ) + "']/@KILLED", "0" );
     }
-    cout << fedSettingsXML << endl;
-    //utils::writeFile( *fn, fedSettingsXML );
+    // cout << fedSettingsXML << endl;
+    utils::writeFile( *fn, fedSettingsXML );
+    LOG4CPLUS_INFO( logger_, "Updated FED Crates' configuration XML in " << *fn );
   }
-}
 
-void emu::step::Manager::startFED(){
-  // If we use FED crate(s), we control the FED system here. (If the DDU is in the PCrate, we'll set it up together with it for each individual test.)
-  if ( getApplicationContext()->getDefaultZone()->getApplicationDescriptors( "emu::fed::Communicator" ).size() == 0 ) return;
-
-  emu::soap::Messenger m( this );
   // Halt all Communicators
   m.sendCommand( "emu::fed::Communicator", "Halt" );
   // Configure DDUs in passthrough mode
