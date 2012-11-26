@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.20 2012/10/16 22:39:07 liu Exp $
+// $Id: DAQMB.h,v 1.21 2012/11/26 21:10:02 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.21  2012/11/26 21:10:02  liu
+// add DCFEB pipeline_depth parameter
+//
 // Revision 1.20  2012/10/16 22:39:07  liu
 // read & write FPGA internal registers
 //
@@ -722,7 +725,7 @@ public:
   void FADC_Initialize(CFEB & cfeb);
   void FADC_ShiftData(CFEB & cfeb, unsigned bits);
   void Pipeline_Restart(CFEB & cfeb);
-  void Set_PipelineDepth(CFEB & cfeb, short int depth);
+  void dcfeb_set_PipelineDepth(CFEB & cfeb, short int depth);
   void Set_NSAMPLE(CFEB & cfeb, int nsample);
   unsigned short dcfeb_fine_delay(CFEB & cfeb, unsigned short delay);
   void dcfeb_set_comp_thresh_bc(float thresh);

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.cc,v 3.4 2012/10/08 18:03:55 liu Exp $
+// $Id: CFEB.cc,v 3.5 2012/11/26 21:10:02 liu Exp $
 // $Log: CFEB.cc,v $
+// Revision 3.5  2012/11/26 21:10:02  liu
+// add DCFEB pipeline_depth parameter
+//
 // Revision 3.4  2012/10/08 18:03:55  liu
 // DCFEB update
 //
@@ -39,6 +42,7 @@ CFEB::CFEB(int number, std::vector<BuckeyeChip> buckeyes) :
   buckeyeChips_(buckeyes)
 {
   hardware_version_=0;
+  pipeline_depth_=60;
 }
 
 

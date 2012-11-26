@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.91 2012/11/15 18:12:10 liu Exp $
+// $Id: DAQMB.cc,v 3.92 2012/11/26 21:10:02 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.92  2012/11/26 21:10:02  liu
+// add DCFEB pipeline_depth parameter
+//
 // Revision 3.91  2012/11/15 18:12:10  liu
 // *** empty log message ***
 //
@@ -780,6 +783,15 @@ void DAQMB::configure() {
      free(flash_content);     
      //
 
+   }
+
+   // set each DCFEB's pipeline depth
+   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+      int hversion=cfebs_[lfeb].GetHardwareVersion();
+      if(hversion==2)
+      {
+         dcfeb_set_PipelineDepth(cfebs_[lfeb], cfebs_[lfeb].GetPipelineDepth());
+      }
    }
 
   // ***  This part is related to the SFM (Serial Flash Memory) ****
@@ -7346,7 +7358,7 @@ void DAQMB::Pipeline_Restart(CFEB & cfeb)
   return;
 }
 
-void DAQMB::Set_PipelineDepth(CFEB & cfeb, short int depth)
+void DAQMB::dcfeb_set_PipelineDepth(CFEB & cfeb, short int depth)
 {
   unsigned temp;
   dcfeb_hub(cfeb, Pipeline_Depth, 9, &depth, (char *)&temp, NOW);
