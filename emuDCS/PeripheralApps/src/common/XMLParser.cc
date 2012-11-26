@@ -882,6 +882,10 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
               if(fillInt("hardware_version", ivalue)){
                  cfeb.SetHardwareVersion(ivalue);   
               }
+
+              if(fillInt("pipeline_depth", ivalue)){
+                 cfeb.SetPipelineDepth(ivalue);   
+              }
               
 	      if (fillLongIntX("cfeb_firmware_tag", long_value) ) 
 		daqmb_->SetExpectedCFEBFirmwareTag(number,long_value);

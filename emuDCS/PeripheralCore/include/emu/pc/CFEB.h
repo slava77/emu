@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.h,v 1.4 2012/10/08 18:04:00 liu Exp $
+// $Id: CFEB.h,v 1.5 2012/11/26 21:10:02 liu Exp $
 // $Log: CFEB.h,v $
+// Revision 1.5  2012/11/26 21:10:02  liu
+// add DCFEB pipeline_depth parameter
+//
 // Revision 1.4  2012/10/08 18:04:00  liu
 // DCFEB update
 //
@@ -50,12 +53,16 @@ public:
   //
   inline void SetHardwareVersion(int version) {hardware_version_ = version;}
   inline int GetHardwareVersion() {return hardware_version_;}
+  inline void SetPipelineDepth(int value) {pipeline_depth_ = value;}
+  inline int GetPipelineDepth() {return pipeline_depth_;}
+
   int SelectorBit();
         
 private:
   int number_;
   std::vector<BuckeyeChip> buckeyeChips_;
   int hardware_version_;     
+  int pipeline_depth_;
 };
 
 
