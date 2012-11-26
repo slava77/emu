@@ -48,7 +48,6 @@ namespace emu { namespace step {
       void exportParameters();
       void bindWebInterface();
       void createConfiguration();
-      void prepareFEDSettings();
       void startFED();
       void haltFED();
       bool testSequenceInWorkLoop( toolbox::task::WorkLoop *wl );
