@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.9 2012/11/05 10:46:01 cvuosalo Exp $
+* $Id: IRQThreadManager.h,v 1.10 2012/11/27 19:40:06 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -43,15 +43,16 @@ namespace emu {
 			/** Constructor
 			*
 			*	@param application The application from which this thread is run (for SOAP alarms)
-			*	@param systemName The name of the system from which this thread is run (for log file naming)
+			*	@param fmmErrorThreshold The number of errors that trigger release of FMMs
 			**/
-			IRQThreadManager(emu::fed::Communicator *application, const unsigned int &fmmErrorThreshold = 0);
+			IRQThreadManager(emu::fed::Communicator *application,
+				const unsigned int &fmmErrorThreshold = 0);
 			
 			/** Default destructor **/
 			~IRQThreadManager();
 			
-			/** Attach a crate object for monitoring. **/
-			void attachCrate(Crate *crate);
+			/** Attach crate objects for monitoring. **/
+			void attachCrates(std::vector<Crate *> &crateVec);
 			
 			/** Begin monitoring with an optional run number. **/
 			void startThreads(const unsigned int &runNumber = 0)
@@ -69,6 +70,9 @@ namespace emu {
 			
 			/** Change the error threshold **/
 			inline void setFMMErrorThreshold(const unsigned int &threshold) { fmmErrorThreshold_ = threshold; }
+		
+			/** Change the FMM wait time **/
+			inline void setWaitTimeAfterFMM(const unsigned int &watiTime) { waitTimeAfterFMM_ = watiTime; }
 		
 			/** The actual thread routine **/
 			static void *IRQThread(void *data);
@@ -91,6 +95,9 @@ namespace emu {
 			
 			/// The number of chambers in error per system before the FMMs are released
 			unsigned int fmmErrorThreshold_;
+			
+			/// Number of seconds thread should wait after releasing FMMs, default is 5
+			unsigned int waitTimeAfterFMM_;
 			
 			/// The application from where to send the SOAP messages
 			emu::fed::Communicator *application_;

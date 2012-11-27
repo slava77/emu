@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.36 2012/11/23 16:19:45 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.37 2012/11/27 19:40:06 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -29,6 +29,7 @@
 emu::fed::IRQThreadManager::IRQThreadManager(emu::fed::Communicator *application, const unsigned int &fmmErrorThreshold):
 systemName_(""),
 fmmErrorThreshold_(fmmErrorThreshold),
+waitTimeAfterFMM_(5),
 application_(application)
 {
 	data_ = new IRQData(application_);
@@ -49,12 +50,13 @@ emu::fed::IRQThreadManager::~IRQThreadManager()
 
 
 
-void emu::fed::IRQThreadManager::attachCrate(Crate *crate)
+void emu::fed::IRQThreadManager::attachCrates(std::vector<Crate *> &crateVec)
 {
-
-	pthread_t threadID = 0;
-	threadVector_.push_back(std::pair<Crate *, pthread_t>(crate, threadID));
-
+	threadVector_.clear();
+	for (std::vector<Crate *>::iterator iCrate = crateVec.begin(); iCrate != crateVec.end(); iCrate++) {
+		pthread_t threadID = 0;
+		threadVector_.push_back(std::pair<Crate *, pthread_t>(*iCrate, threadID));
+	}
 }
 
 
@@ -65,8 +67,9 @@ throw (emu::fed::exception::FMMThreadException)
 
 	// Make the shared data object that will be passed between threads and the
 	// mother program.
-	data_ = new IRQData(application_);
+	// data_ = new IRQData(application_); // Instantiate in constructor, not here
 	data_->fmmErrorThreshold = fmmErrorThreshold_;
+	data_->waitTimeAfterFMM = waitTimeAfterFMM_;
 
 	char datebuf[32];
 	std::stringstream fileName;
@@ -94,6 +97,10 @@ throw (emu::fed::exception::FMMThreadException)
 	//data_->exit = false;
 
 	// First, load up the data_ object with the crates that I govern.
+	while (data_->crateQueue.empty() == false)
+		data_->crateQueue.pop();
+	data_->crateVec.clear();
+	data_->nCrates = 0;
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); ++iThread) {
 		data_->crateQueue.push(threadVector_[iThread].first);
 		data_->crateVec.push_back(threadVector_[iThread].first);
@@ -952,6 +959,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					for (std::map<unsigned int, unsigned int>::const_iterator iCount = locdata->ignErrCnt.begin(); iCount != locdata->ignErrCnt.end(); ++iCount) {
 						numIgnFibers += iCount->second;
 					}
+					pthread_mutex_unlock(&locdata->errorCountMutex);
+
 					// If resync occurred, only count errors from current DDU because rest should have been cleared
 					if (doReset) {
 						totalErrors = nErrors[slot] - nIgnFibers[slot];
@@ -984,9 +993,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 							<< " is less than FMM error threshold of " <<
 							locdata->fmmErrorThreshold << std::endl);
 					}
-					
-					pthread_mutex_unlock(&locdata->errorCountMutex);
-					
 					// Make and send the fact to the expert system
 					emu::base::TypedFact<emu::fed::DDUFMMErrorFact> fact;
 					std::ostringstream component;
@@ -1071,17 +1077,22 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						if (totReppErrs > 0)
 							sendRepErrFact(crateNumber, locdata, repErrChambers.str(), totReppErrs);
 					}
-
 					MY_REVOKE_ALARM("IRQThreadGeneralError");
 					
 					if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &unused) != 0)
 						LOG4CPLUS_ERROR(logger, "pthread_setcancelstate enable error -- trying to set bad state");
 					pthread_testcancel();
 					
+					if (fmmsReleased && locdata->waitTimeAfterFMM > 0 && locdata->waitTimeAfterFMM < 61) {
+						// If wait time has reasonable value, wait after releasing FMMs.
+						// This wait avoids hitting the GT limit on the number of errors.
+						// If the GT receives 3 Errors within 9 seconds, it doesn't issue
+						// hard reset but requires a manual hard reset from the DAQ shifter
+						(void) sleep(locdata->waitTimeAfterFMM);	// Time in seconds
+					}
 					// Emergency break if we think a reset has happened under our noses.
 					if (doReset || locdata->resetCount)
 						break;
-
 				} else {
 					pthread_testcancel();
 
