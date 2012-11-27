@@ -23,7 +23,7 @@ Test_AFEB06::Test_AFEB06(std::string dfile): Test_Generic(dfile)
   num_thresh    = 70;
   first_thresh  = 1;
   thresh_step   = 1;
-  ev_per_thresh = 100;
+  ev_per_thresh = nExpectedEvents / (num_thresh * num_tpamps);// 100;
 
   pass    = 0;
 
@@ -182,7 +182,7 @@ void Test_AFEB06::analyze(const char * data, int32_t dataSize, uint32_t errorSta
     if  (DDUstats[dduID].empty_evt_cntr==0)
     {
       LOG4CPLUS_INFO(logger, "No LTC/TTC double L1A bug in data");
-      ltc_bug=1;
+      // ltc_bug=1;
     }
     else
     {
@@ -190,7 +190,8 @@ void Test_AFEB06::analyze(const char * data, int32_t dataSize, uint32_t errorSta
     }
 
 
-  int threshSwitch = ev_per_thresh*ltc_bug; /// # of events before AFEB threshold value switch
+  // int threshSwitch = ev_per_thresh*ltc_bug; /// # of events before AFEB threshold value switch
+   int threshSwitch = nExpectedEvents / (num_thresh * num_tpamps);
 
   int passSwitch = threshSwitch * num_thresh; /// # of events before test pulse pass switch
 
