@@ -170,37 +170,44 @@ int main(int argc, char **argv)
   // Test_CFEB02 test_analyzer(datafile);
   Test_Generic* test_analyzer = NULL;
 
-  if (datafile.find("CFEB_SCAPed") != std::string::npos)
+
+  if ( (datafile.find("CFEB_SCAPed") != std::string::npos) ||
+        (datafile.find("Test_15") != std::string::npos) )
   {
     LOG4CPLUS_INFO(logger, "Detected data for Test CFEB02: Pedestals and Noise");
     test_analyzer = new Test_CFEB02(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB02.xml";
   }
-  else if (datafile.find("CFEB_CrossTalk") != std::string::npos)
+  else if ( (datafile.find("CFEB_CrossTalk") != std::string::npos) ||
+	(datafile.find("Test_17_") != std::string::npos) )
   {
     LOG4CPLUS_INFO(logger, "Detected data for Test CFEB03: Pulse Response and Cross Talks");
     test_analyzer = new Test_CFEB03(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB03.xml";
   }
-  else if (datafile.find("CFEB_Gains") != std::string::npos)
+  else if ( (datafile.find("CFEB_Gains") != std::string::npos) ||
+	(datafile.find("Test_17b") != std::string::npos) )
   {
     LOG4CPLUS_INFO(logger, "Detected data for Test CFEB04: Amplifier Gain");
     test_analyzer = new Test_CFEB04(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB04.xml";
-  }
-  else if (datafile.find("ALCT_Connectivity") != std::string::npos)
-  {
+  } 
+  else if ( (datafile.find("ALCT_Connectivity") != std::string::npos) ||
+        (datafile.find("Test_12") != std::string::npos) )
+  {   
     LOG4CPLUS_INFO(logger, "Detected data for Test AFEB05: Connectivity");
     test_analyzer = new Test_AFEB05(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB05.xml";
   }
-  else if (datafile.find("ALCT_Thresholds") != std::string::npos)
+  else if ( (datafile.find("ALCT_Thresholds") != std::string::npos) ||
+        (datafile.find("Test_13") != std::string::npos) )
   {
     LOG4CPLUS_INFO(logger, "Detected data for Test AFEB06: Thresholds and Analog Noise");
     test_analyzer = new Test_AFEB06(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB06.xml";
   }
-  else if (datafile.find("ALCT_Delays") != std::string::npos)
+  else if ( (datafile.find("ALCT_Delays") != std::string::npos) ||
+        (datafile.find("Test_14") != std::string::npos) )
   {
     LOG4CPLUS_INFO(logger, "Detected data for Test AFEB07: AFEB-ALCT Time Delays");
     test_analyzer = new Test_AFEB07(datafile);
