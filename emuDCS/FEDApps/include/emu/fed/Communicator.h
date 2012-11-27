@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.16 2012/11/09 16:31:39 banicz Exp $
+* $Id: Communicator.h,v 1.17 2012/11/27 19:40:06 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -185,6 +185,12 @@ namespace emu {
 			
 			/// The threshold number of chambers required to be in an error state before sending an FMM
 			xdata::UnsignedInteger fmmErrorThreshold_;
+			
+			/// Lifetime of the dynamic ignore list of bad chambers -- either by "run" or "red" for red recycle
+			xdata::String ignoreListLifetime_;
+			
+			/// Number of seconds thread should wait after releasing FMMs, default is 5
+			xdata::UnsignedInteger waitTimeAfterFMM_;
 			
 			/// Stored facts to be forcefully sent to the MasterSystem as soon as there is a problem
 			std::list<emu::base::Fact> storedFacts_;

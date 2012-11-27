@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.47 2012/11/09 16:31:41 banicz Exp $
+* $Id: Communicator.cc,v 1.48 2012/11/27 19:40:06 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -41,7 +41,9 @@ ttsBits_(0),
 fibersWithErrors_(0),
 totalDCCInputRate_(0),
 totalDCCOutputRate_(0),
-dduInPassthroughMode_( false )
+dduInPassthroughMode_( false ),
+ignoreListLifetime_("run"),
+waitTimeAfterFMM_(5)
 {
 
 	// Variables that are to be made available to other applications
@@ -53,6 +55,8 @@ dduInPassthroughMode_( false )
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCInputRate", &totalDCCInputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCOutputRate", &totalDCCOutputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("fmmErrorThreshold", &fmmErrorThreshold_);
+	getApplicationInfoSpace()->fireItemAvailable("waitTimeAfterFMM", &waitTimeAfterFMM_);
+	getApplicationInfoSpace()->fireItemAvailable("ignoreListLifetime", &ignoreListLifetime_);
 	getApplicationInfoSpace()->fireItemAvailable("dduInPassthroughMode", &dduInPassthroughMode_);
 
 	// HyperDAQ pages
@@ -1151,13 +1155,17 @@ throw (toolbox::fsm::exception::Exception)
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), exceptions[0]);
 	}
 
-	// PGK You have to wipe the thread manager and start over to clear memory
-	delete TM_;
-	TM_ = new IRQThreadManager(this, fmmErrorThreshold_);
-	TM_->setSystemName(systemName_);
-	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-		TM_->attachCrate(*iCrate);
+	// If lifetime of ignore list is by run, not by fill (red-recycle), clear object
+	if (ignoreListLifetime_ != "red") {
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Clearing dynamic ignore list at start of run");
+		if (TM_ != NULL)
+			delete TM_;
+		TM_ = new IRQThreadManager(this, fmmErrorThreshold_);
 	}
+	TM_->setFMMErrorThreshold(fmmErrorThreshold_);
+	TM_->setSystemName(systemName_);
+	TM_->setWaitTimeAfterFMM(waitTimeAfterFMM_);
+	TM_->attachCrates(crateVector_);
 
 	// PGK We now have the run number from CSCSV
 	try {

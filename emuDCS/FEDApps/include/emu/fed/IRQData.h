@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.6 2012/11/05 10:46:01 cvuosalo Exp $
+* $Id: IRQData.h,v 1.7 2012/11/27 19:40:06 cvuosalo Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQDATA_H__
 #define __EMU_FED_IRQDATA_H__
@@ -36,6 +36,7 @@ namespace emu {
 			runNumber(0),
 			runNumStr("0"),
 			fmmErrorThreshold(0),
+			waitTimeAfterFMM(5),
 			application(myApplication)
 			{
 				pthread_mutex_init(&crateQueueMutex, NULL);
@@ -61,6 +62,7 @@ namespace emu {
 				runNumber = other.runNumber;
 				runNumStr << other.runNumStr.str();
 				fmmErrorThreshold = other.fmmErrorThreshold;
+				waitTimeAfterFMM = other.waitTimeAfterFMM;
 				application = other.application;
 
 				pthread_mutex_init(&crateQueueMutex, NULL);
@@ -86,6 +88,7 @@ namespace emu {
 				runNumber = other.runNumber;
 				runNumStr << other.runNumStr.str();
 				fmmErrorThreshold = other.fmmErrorThreshold;
+				waitTimeAfterFMM = other.waitTimeAfterFMM;
 				application = other.application;
 
 				pthread_mutex_init(&crateQueueMutex, NULL);
@@ -147,6 +150,9 @@ namespace emu {
 			
 			/// Threshold number of chambers before releasing the FMM signal
 			unsigned int fmmErrorThreshold;
+			
+			/// Number of seconds thread should wait after releasing FMMs, default is 5
+			unsigned int waitTimeAfterFMM;
 			
 			// "Local" variables -- each thread tries to increment only its own.
 			// The number of FMM errors since reset, indexed by crate number
