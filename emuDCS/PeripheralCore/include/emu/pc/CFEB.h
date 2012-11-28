@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.h,v 1.5 2012/11/26 21:10:02 liu Exp $
+// $Id: CFEB.h,v 1.6 2012/11/28 03:14:04 liu Exp $
 // $Log: CFEB.h,v $
+// Revision 1.6  2012/11/28 03:14:04  liu
+// add DCFEB fine delay parameter
+//
 // Revision 1.5  2012/11/26 21:10:02  liu
 // add DCFEB pipeline_depth parameter
 //
@@ -55,6 +58,8 @@ public:
   inline int GetHardwareVersion() {return hardware_version_;}
   inline void SetPipelineDepth(int value) {pipeline_depth_ = value;}
   inline int GetPipelineDepth() {return pipeline_depth_;}
+  inline void SetFineDelay(int value) {fine_delay_ = value;}
+  inline int GetFineDelay() {return fine_delay_;}
 
   int SelectorBit();
         
@@ -63,6 +68,7 @@ private:
   std::vector<BuckeyeChip> buckeyeChips_;
   int hardware_version_;     
   int pipeline_depth_;
+  int fine_delay_;
 };
 
 

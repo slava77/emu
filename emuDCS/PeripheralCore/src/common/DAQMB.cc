@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.92 2012/11/26 21:10:02 liu Exp $
+// $Id: DAQMB.cc,v 3.93 2012/11/28 03:14:04 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.93  2012/11/28 03:14:04  liu
+// add DCFEB fine delay parameter
+//
 // Revision 3.92  2012/11/26 21:10:02  liu
 // add DCFEB pipeline_depth parameter
 //
@@ -785,12 +788,16 @@ void DAQMB::configure() {
 
    }
 
-   // set each DCFEB's pipeline depth
+   // set each DCFEB's pipeline depth and fine delay
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
       int hversion=cfebs_[lfeb].GetHardwareVersion();
       if(hversion==2)
       {
          dcfeb_set_PipelineDepth(cfebs_[lfeb], cfebs_[lfeb].GetPipelineDepth());
+ 	 usleep(100);
+ 	 Pipeline_Restart(cfebs_[lfeb]);
+ 	 usleep(100);
+ 	 dcfeb_fine_delay(cfebs_[lfeb], cfebs_[lfeb].GetFineDelay());
       }
    }
 

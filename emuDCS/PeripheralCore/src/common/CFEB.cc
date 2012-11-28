@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.cc,v 3.5 2012/11/26 21:10:02 liu Exp $
+// $Id: CFEB.cc,v 3.6 2012/11/28 03:14:04 liu Exp $
 // $Log: CFEB.cc,v $
+// Revision 3.6  2012/11/28 03:14:04  liu
+// add DCFEB fine delay parameter
+//
 // Revision 3.5  2012/11/26 21:10:02  liu
 // add DCFEB pipeline_depth parameter
 //
@@ -43,6 +46,7 @@ CFEB::CFEB(int number, std::vector<BuckeyeChip> buckeyes) :
 {
   hardware_version_=0;
   pipeline_depth_=60;
+  fine_delay_=0;
 }
 
 
