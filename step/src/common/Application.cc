@@ -14,13 +14,16 @@ emu::step::Application::Application( xdaq::ApplicationStub *s ) :
   fsm_.setFailedStateTransitionChanged(this, &emu::step::Application::stateChanged);
   
   fsm_.addStateTransition('H', 'C', "Configure", this, &emu::step::Application::configureAction);
-  fsm_.addStateTransition('C', 'C', "Configure", this, &emu::step::Application::noAction);
   fsm_.addStateTransition('C', 'E', "Enable",    this, &emu::step::Application::enableAction);
   fsm_.addStateTransition('E', 'C', "Stop",      this, &emu::step::Application::stopAction);
   fsm_.addStateTransition('C', 'H', "Halt",      this, &emu::step::Application::haltAction);
   fsm_.addStateTransition('E', 'H', "Halt",      this, &emu::step::Application::haltAction);
-  fsm_.addStateTransition('H', 'E', "Enable",    this, &emu::step::Application::noAction);    
+  fsm_.addStateTransition('C', 'C', "Configure", this, &emu::step::Application::noAction);
+  fsm_.addStateTransition('C', 'C', "Stop",      this, &emu::step::Application::noAction);
+  fsm_.addStateTransition('H', 'H', "Enable",    this, &emu::step::Application::noAction);    
+  fsm_.addStateTransition('H', 'H', "Stop",      this, &emu::step::Application::noAction);
   fsm_.addStateTransition('H', 'H', "Halt",      this, &emu::step::Application::noAction);
+  fsm_.addStateTransition('E', 'E', "Configure", this, &emu::step::Application::noAction);
   fsm_.addStateTransition('E', 'E', "Enable",    this, &emu::step::Application::noAction);
   fsm_.setFailedStateTransitionAction(           this, &emu::step::Application::failAction);
   // Define "Fail" transition explicitly for moveToFailedState to work:
