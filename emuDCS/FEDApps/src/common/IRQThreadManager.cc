@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.37 2012/11/27 19:40:06 cvuosalo Exp $
+* $Id: IRQThreadManager.cc,v 1.38 2012/11/29 16:02:37 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -92,6 +92,7 @@ throw (emu::fed::exception::FMMThreadException)
 	logger.addAppender(myAppend);
 
 	data_->runNumber = runNumber;
+	data_->runNumStr.str("");		// Clear previous run num
 	data_->runNumStr << runNumber;
 	// Do not quit the threads immediately.
 	//data_->exit = false;
