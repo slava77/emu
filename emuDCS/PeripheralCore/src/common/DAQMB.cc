@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.93 2012/11/28 03:14:04 liu Exp $
+// $Id: DAQMB.cc,v 3.94 2012/12/03 17:01:04 banicz Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.94  2012/12/03 17:01:04  banicz
+// Dan's changes:
+// add a function to set and initialize the dcfeb pipeline and fine delays for use after hard resets which wipe these values from the dcfebs.
+//
 // Revision 3.93  2012/11/28 03:14:04  liu
 // add DCFEB fine delay parameter
 //
@@ -788,18 +792,7 @@ void DAQMB::configure() {
 
    }
 
-   // set each DCFEB's pipeline depth and fine delay
-   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-      int hversion=cfebs_[lfeb].GetHardwareVersion();
-      if(hversion==2)
-      {
-         dcfeb_set_PipelineDepth(cfebs_[lfeb], cfebs_[lfeb].GetPipelineDepth());
- 	 usleep(100);
- 	 Pipeline_Restart(cfebs_[lfeb]);
- 	 usleep(100);
- 	 dcfeb_fine_delay(cfebs_[lfeb], cfebs_[lfeb].GetFineDelay());
-      }
-   }
+   set_and_initalize_pipelines_and_fine_delays();
 
   // ***  This part is related to the SFM (Serial Flash Memory) ****
    //
@@ -7370,6 +7363,23 @@ void DAQMB::dcfeb_set_PipelineDepth(CFEB & cfeb, short int depth)
   unsigned temp;
   dcfeb_hub(cfeb, Pipeline_Depth, 9, &depth, (char *)&temp, NOW);
   return;
+}
+
+// set pipeline depths and fine delays for all DCFEBs; this is necessary to
+// properly read out data
+void DAQMB::set_and_initalize_pipelines_and_fine_delays() {
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+    int hversion=cfebs_[lfeb].GetHardwareVersion();
+    if(hversion==2)
+      {
+	dcfeb_set_PipelineDepth(cfebs_[lfeb], cfebs_[lfeb].GetPipelineDepth());
+	usleep(100);
+	Pipeline_Restart(cfebs_[lfeb]);
+	usleep(100);
+	dcfeb_fine_delay(cfebs_[lfeb], cfebs_[lfeb].GetFineDelay());
+	usleep(100);
+      }
+  }
 }
 
 void DAQMB::Set_NSAMPLE(CFEB & cfeb, int nsample)

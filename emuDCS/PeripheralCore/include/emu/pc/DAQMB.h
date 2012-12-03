@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.21 2012/11/26 21:10:02 liu Exp $
+// $Id: DAQMB.h,v 1.22 2012/12/03 17:00:55 banicz Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.22  2012/12/03 17:00:55  banicz
+// Dan's changes:
+// add a function to set and initialize the dcfeb pipeline and fine delays for use after hard resets which wipe these values from the dcfebs.
+//
 // Revision 1.21  2012/11/26 21:10:02  liu
 // add DCFEB pipeline_depth parameter
 //
@@ -726,6 +730,7 @@ public:
   void FADC_ShiftData(CFEB & cfeb, unsigned bits);
   void Pipeline_Restart(CFEB & cfeb);
   void dcfeb_set_PipelineDepth(CFEB & cfeb, short int depth);
+  void set_and_initalize_pipelines_and_fine_delays();
   void Set_NSAMPLE(CFEB & cfeb, int nsample);
   unsigned short dcfeb_fine_delay(CFEB & cfeb, unsigned short delay);
   void dcfeb_set_comp_thresh_bc(float thresh);
