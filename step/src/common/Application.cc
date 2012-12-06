@@ -152,7 +152,9 @@ string emu::step::Application::xhtmlformat_exception_history( xcept::Exception& 
   while ( i != history.rend() ){
     ss << "<tr>";
     ss << "<td style=\"width: 1%;\">" << iLayer << "</td>";
-    ss << "<td style=\"background-color: #dddd11;\"><![CDATA[" << i->getProperty("message") << "]]></td>";
+    // Do not put message in a CDATA section as the message may already contain one, and CDATA sections are not allowed to be nested.
+    // ss << "<td style=\"background-color: #dddd11;\"><![CDATA[" << i->getProperty("message") << "]]></td>";
+    ss << "<td style=\"background-color: #dddd11;\">" << i->getProperty("message") << "</td>";
     ss << "<td style=\"text-align: left;\">" << i->getProperty("function") << " (" << i->getProperty("module") << ":" << i->getProperty("line") << ")</td>";
     ss << "</tr>";
     ++i;
