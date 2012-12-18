@@ -70,6 +70,7 @@ namespace emu{
       void createEndcap( const string& generalSettingsXML,
 			 const string& specialSettingsXML  );
       int getDDUInputFiberMask( int crateId, int dduSlot );
+      void setUpDDU(emu::pc::Crate*);
       void configureCrates();
       string withoutChars( const string& chars, const string& str );
       void enableTrigger();
