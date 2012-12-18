@@ -1,0 +1,20 @@
+.layout { width: 100%; background-color: transparent; padding: 0px; border-collapse: collapse; }
+.idle { background-color:#dddddd; }
+.running { background-color:#ffff44; }
+.done { background-color:#22dd22; }
+.Halted { background-color:#9999ff; }
+.Configured { background-color:#ffff44; }
+.Enabled { background-color:#22dd22; }
+.Failed { background-color:#ff9999; text-decoration:blink; }
+
+body { background-color:#eeeeee; }
+table { width: 100%; background-color:#ffffff; border-collapse: separate; }
+td, th { color:#000000; font-size:90%; }
+th { background-color:#dddddd; }
+td { background-color:#eeeeee; text-align:center; padding-left: 10px; padding-right: 10px; }
+td.text { text-align:left; }
+td.number { text-align:right; }
+table.layout td { vertical-align:top; }
+div.progressbox { width:100%; height:15px; background-color:#ffff44; }
+div.progressbar { height:15px; background-color:#22dd22; }
+span.select { color:#0000dd; }
