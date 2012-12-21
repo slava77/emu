@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.94 2012/12/03 17:01:04 banicz Exp $
+// $Id: DAQMB.cc,v 3.95 2012/12/21 16:48:41 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.95  2012/12/21 16:48:41  liu
+// bug fix in buck_shift()
+//
 // Revision 3.94  2012/12/03 17:01:04  banicz
 // Dan's changes:
 // add a function to set and initialize the dcfeb pipeline and fine delays for use after hard resets which wipe these values from the dcfebs.
@@ -2544,10 +2547,6 @@ char shft_bits[6][6];
 
   for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) 
   {
-    int hversion=cfebItr->GetHardwareVersion();
-    if(hversion<=1)
-    {            
-      DEVTYPE dv = cfebItr->scamDevice();
       int brd=cfebItr->number();
       for(lay=0;lay<6;lay++){
         shft_bits[lay][0]=((shift_array[brd][lay][13]<<6)|(shift_array[brd][lay][14]<<3)|shift_array[brd][lay][15])&0XFF;
@@ -2557,6 +2556,10 @@ char shft_bits[6][6];
         shft_bits[lay][4]=((shift_array[brd][lay][2]<<7)|(shift_array[brd][lay][3]<<4)|(shift_array[brd][lay][4]<<1)|(shift_array[brd][lay][5]>>2))&0XFF;
         shft_bits[lay][5]=((shift_array[brd][lay][0]<<5)|(shift_array[brd][lay][1]<<2)|(shift_array[brd][lay][2]>>1))&0XFF;
       }
+    int hversion=cfebItr->GetHardwareVersion();
+    if(hversion<=1)
+    {            
+      DEVTYPE dv = cfebItr->scamDevice();
       cmd[0]=VTX_USR1;
       sndbuf[0]=CHIP_MASK;
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
@@ -7340,7 +7343,7 @@ void DAQMB::FADC_SetMask(CFEB & cfeb, short int mask)
 void DAQMB::FADC_Initialize(CFEB & cfeb)
 {
   char tmp[2];
-  dcfeb_hub(cfeb, FADC_INIT, 0, &tmp, tmp, NOW);
+  dcfeb_hub(cfeb, FADC_INIT, 0, tmp, tmp, NOW);
   return;
 }
 
@@ -7354,7 +7357,7 @@ void DAQMB::FADC_ShiftData(CFEB & cfeb, unsigned bits)
 void DAQMB::Pipeline_Restart(CFEB & cfeb)
 {
   char tmp[2];
-  dcfeb_hub(cfeb, Pipeline_Restrt, 0, &tmp, tmp, NOW);
+  dcfeb_hub(cfeb, Pipeline_Restrt, 0, tmp, tmp, NOW);
   return;
 }
 
