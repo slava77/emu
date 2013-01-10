@@ -20,11 +20,17 @@ Package = me11dev
 PackageName= emume11dev
 Description="Emu ME1/1 development tools"
 Summary="Emu ME1/1 development tools"
-Authors="Brant Rumberger"
+Authors="Dan King, Brant Rumberger, Joe Haley"
 Link=""
 
 Sources = \
-	Application.cc \
+	utils.cc \
+	Manager.cc \
+	Action.cc \
+	ButtonAction.cc \
+	LongTextBoxAction.cc \
+	LogAction.cc \
+	Buttons.cc \
 	version.cc
 TestSources =
 TestIncludeDirs =

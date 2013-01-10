@@ -15,8 +15,8 @@
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPeripheralApps.so</xc:Module>
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemume11dev.so</xc:Module>
 
-    <xc:Application id="20" instance="0" class="emu::me11dev::Application" network="local">
-      <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::me11dev::Application">
+    <xc:Application id="20" instance="0" class="emu::me11dev::Manager" network="local">
+      <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::me11dev::Manager">
       </properties>
     </xc:Application>
 
