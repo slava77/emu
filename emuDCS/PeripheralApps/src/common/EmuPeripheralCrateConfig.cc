@@ -603,11 +603,11 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
         }
         xdata::UnsignedInteger64 flashid_64 = myTStore->readLastConfigIdFlashed((Valid_config_ID=="-1")?"plus":"minus");
         InFlash_config_ID = flashid_64.toString();
-        configIDs=myTStore->readIDs((Valid_config_ID=="-1")?1:2,50);
+        configIDs=myTStore->readIDs((Valid_config_ID=="-1")?1:2,500);
         
         *out << "Config ID in FLASH is :" << InFlash_config_ID << cgicc::br() << std::endl;
         int n_ids = configIDs.size();
-        if(n_ids>0 && n_ids<51)
+        if(n_ids>0 && n_ids<501)
         {
           // Begin select config ID
            *out << cgicc::form().set("action",
