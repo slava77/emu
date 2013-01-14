@@ -278,6 +278,11 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
      if(!parsed) ParsingXML();
      if(total_crates_<=0) return;
 
+      int TOTAL_DCS_COUNTERS=48;
+      int TOTAL_TMB_VOLTAGES=16;
+      std::vector<DAQMB*> myDmbs;
+      std::vector<TMB*> myTmbs;
+      
         // Initialize TMB,DMB and Other Counter Names
         InitCounterNames();
         //Create infospaces for monitoring
@@ -288,6 +293,8 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 std::cout << "Crate " << i << " " << urn.toString() << std::endl;
                 monitorables_.push_back(urn.toString());
                 xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(urn.toString());
+                myDmbs=crateVector[i]->daqmbs();
+                myTmbs=crateVector[i]->tmbs();
 
             // for CCB, MPC, TTC etc.
                 is->fireItemAvailable("CCBcounter",new xdata::Vector<xdata::UnsignedShort>());
@@ -316,6 +323,12 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 is->fireItemAvailable("TMBchamber",new xdata::UnsignedShort(0));
                 is->fireItemAvailable("TMBitime",new xdata::UnsignedInteger32(0));
                 is->fireItemAvailable("TMBstime",new xdata::TimeVal);
+
+            // initialize the float vectors
+                xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
+                if(dmbdata) for(unsigned ii=0; ii<myDmbs.size()*TOTAL_DCS_COUNTERS; ii++) dmbdata->push_back(0.);
+                xdata::Vector<xdata::Float> *tmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("TMBvolts"));
+                if(tmbdata) for(unsigned ii=0; ii<myTmbs.size()*TOTAL_TMB_VOLTAGES; ii++) tmbdata->push_back(0.);
          }
      Monitor_Ready_=true;
 }
@@ -2944,7 +2957,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
-     if(dmbdata==NULL || dmbdata->size()==0)
+     if(dmbdata==NULL || dmbdata->size()<myVector.size()*TOTAL_DCS_COUNTERS)
      {  gooddata=false;
         crateok=0;
         readtime=0;
@@ -2963,7 +2976,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            else good_chamber = (*counter16);
      }
      xdata::Vector<xdata::Float> *tmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("TMBvolts"));
-     if(tmbdata==NULL || tmbdata->size()==0)
+     if(tmbdata==NULL || tmbdata->size()<myVector.size()*TOTAL_TMB_VOLTAGES)
      {  goodtmb=false;
      }
      else
