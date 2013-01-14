@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.12 2012/10/16 22:39:07 liu Exp $
+// $Id: VMEModule.h,v 1.13 2013/01/14 03:44:19 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.13  2013/01/14 03:44:19  liu
+// increase array size for DCFEB
+//
 // Revision 1.12  2012/10/16 22:39:07  liu
 // read & write FPGA internal registers
 //
@@ -244,13 +247,13 @@ protected:
   VMEController * theController;
   int theSlot;
   
-  // Liu--2007, Nov. 26
-  // reduced array sizes from 4096 to 1024,
-  // I even believe 16 should be enough.
-  char sndbuf[1024];
-  char rcvbuf[1024];
-  char rcvbuf2[1024];
-  char cmd[1024];
+  // Liu--2013, Jan. 11
+  // Increase array size to 8192 to accomodate BPI interface of DCFEB and ODMB.
+  //
+  char sndbuf[8192];
+  char rcvbuf[8192];
+  char rcvbuf2[8192];
+  char cmd[8192];
   //
   // for PROM read back
   FILE *bitfile;
