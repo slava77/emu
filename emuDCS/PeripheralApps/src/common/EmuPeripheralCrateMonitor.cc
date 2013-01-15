@@ -2926,10 +2926,10 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
+     myVector = crateVector[i]->daqmbs();
      ip=crateVector[i]->CrateID();
      if(crate_off[i])
      {  // for OFF crates, send -2. in all fields, timestamp is current
-        myVector = crateVector[i]->daqmbs();
         for(unsigned int j=0; j<myVector.size(); j++) 
         {
            slot = myVector[j]->slot();
@@ -3002,7 +3002,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      bad_module = (good_chamber>>10) & 0xF;
 
      *out << std::setprecision(5);
-     myVector = crateVector[i]->daqmbs();
+//     myVector = crateVector[i]->daqmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
         int imask= 0x3F & (myVector[j]->GetPowerMask());
