@@ -7998,7 +7998,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   //
   //
   *out << cgicc::pre();
-  *out << "On-board temperatures and voltages:" << std::endl;
+  *out << "On-board temperatures and voltages (in decimal) :" << std::endl;
   *out << cgicc::pre();  
   //
   const int TMB_MAX_TEMP = 40;
@@ -8009,7 +8009,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   } else {
     *out << cgicc::span().set("style","color:green");
   }
-  *out << "TMB (FPGA)       =   " << TMBtempFPGA << " deg C" << std::endl;
+  *out << std::dec << "TMB (FPGA)       =   " << TMBtempFPGA << " deg C" << std::endl;
   *out << cgicc::span();
   //
   int TMBtempPCB = thisTMB->ReadTMBtempPCB();  
