@@ -731,4 +731,9 @@ void igb_procfs_topdir_exit(void);
 #endif /* IGB_PROCFS */
 #endif /* IGB_SYSFS */
 
+extern int netif_rx_hook_2(struct sk_buff *skb);
+extern int netif_rx_hook_3(struct sk_buff *skb);
+extern int netif_rx_hook_4(struct sk_buff *skb);
+extern int netif_rx_hook_5(struct sk_buff *skb);
+
 #endif /* _IGB_H_ */
