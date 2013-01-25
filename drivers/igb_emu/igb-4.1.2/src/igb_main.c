@@ -1,3 +1,4 @@
+/* #define DEBUG_PRINT */
 /*******************************************************************************
 
   Intel(R) Gigabit Ethernet Linux driver
@@ -66,10 +67,10 @@
 #define BUILD 2
 #define DRV_VERSION __stringify(MAJ) "." __stringify(MIN) "." __stringify(BUILD) VERSION_SUFFIX DRV_DEBUG DRV_HW_PERF
 
-char igb_driver_name[] = "igb";
+char igb_driver_name[] = "igb_emu";
 char igb_driver_version[] = DRV_VERSION;
 static const char igb_driver_string[] =
-                                "Intel(R) Gigabit Ethernet Network Driver";
+                                "Intel(R) Gigabit Ethernet Network Driver with hooks for Emu DDU spy readout and PCrate control";
 static const char igb_copyright[] =
 				"Copyright (c) 2007-2012 Intel Corporation.";
 
@@ -6963,6 +6964,15 @@ static bool igb_clean_rx_irq(struct igb_q_vector *q_vector, int budget)
 	u16 cleaned_count = igb_desc_unused(rx_ring);
 	u16 i = rx_ring->next_to_clean;
 
+#ifdef DEBUG_PRINT
+	int j;
+#ifdef CONFIG_IGB_DISABLE_PACKET_SPLIT
+	printk(KERN_INFO "%s i = %d, sizeof(rx_ring->rx_buffer_info) = %ld, sizeof(rx_ring->rx_buffer_info[i]) = %ld, rx_ring->rx_buffer_len = %d\n",netdev_ring(rx_ring)->name,i,sizeof(rx_ring->rx_buffer_info),sizeof(rx_ring->rx_buffer_info[i]),rx_ring->rx_buffer_len);
+#else
+	printk(KERN_INFO "%s i = %d, sizeof(rx_ring->rx_buffer_info) = %ld, sizeof(rx_ring->rx_buffer_info[i]) = %ld, budget = %d\n",netdev_ring(rx_ring)->name,i,sizeof(rx_ring->rx_buffer_info),sizeof(rx_ring->rx_buffer_info[i]),budget);
+#endif
+#endif
+
 	rx_desc = IGB_RX_DESC(rx_ring, i);
 
 	while (igb_test_staterr(rx_desc, E1000_RXD_STAT_DD)) {
@@ -7057,17 +7067,46 @@ static bool igb_clean_rx_irq(struct igb_q_vector *q_vector, int budget)
 
 		skb->protocol = eth_type_trans(skb, netdev_ring(rx_ring));
 
+#ifdef DEBUG_PRINT
+   printk(KERN_INFO "%s skb->len = %d,  total_bytes = %d, total_packets = %d\n",netdev_ring(rx_ring)->name,skb->len,total_bytes,total_packets);
+   printk(KERN_INFO "%s  ",netdev_ring(rx_ring)->name);
+   for(j=90;j>=-50;j-=2)
+     printk("%+4d ",-j);
+   printk("\n");
+   printk(KERN_INFO "%s  ",netdev_ring(rx_ring)->name);
+   for(j=90;j>=-50;j-=2)
+     printk("%04x ",*(unsigned short int*)(skb->data+skb->len-j));
+   printk("\n");
+   for(j=-32;j<(int)(skb->len);j+=2){
+     if ( j%16 == 0 ) printk("%04d   ",j);
+     printk("%04x ",*(unsigned short int*)(skb->data+j));
+     if ( (j+2)%16 == 0 ) printk("\n");
+   }
+   printk("\n");
+#endif
+
 #ifndef IGB_NO_LRO
 		if (igb_can_lro(rx_ring, rx_desc, skb))
 			buffer_info->skb = igb_lro_queue(q_vector, skb);
 		else
 #endif
+		  {
+		    if      (strcmp(netdev_ring(rx_ring)->name,"eth2")==0){
+		      netif_rx_hook_2(skb);
+		    }else if(strcmp(netdev_ring(rx_ring)->name,"eth3")==0){
+		      netif_rx_hook_3(skb);
+		    }else if(strcmp(netdev_ring(rx_ring)->name,"eth4")==0){
+		      netif_rx_hook_4(skb);
+		    }else if(strcmp(netdev_ring(rx_ring)->name,"eth5")==0){
+		      netif_rx_hook_5(skb);
+		    }else{
 #ifdef HAVE_VLAN_RX_REGISTER
 			igb_receive_skb(q_vector, skb);
 #else
 			napi_gro_receive(&q_vector->napi, skb);
 #endif
-
+		    }
+		  }
 #ifndef NETIF_F_GRO
 		netdev_ring(rx_ring)->last_rx = jiffies;
 
