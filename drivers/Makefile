@@ -3,7 +3,8 @@ DAQSUBDIRS904= dl2khook/eth_hook_2_nobigphysxxx dl2khook/dl2k_driver
 PCVMEDIRS= gbit-vme/eth_hook_jtag_simple gbit-vme/dl2k_driver
 PCVMESLC5DIRS= gbit-vme-slc5/eth_hook_jtag_simple gbit-vme-slc5/dl2k_driver
 DAQPCVMESUBDIRS= dlk2-daq-pcvme/dl2k_driver dlk2-daq-pcvme/eth_hook_3_nobigphysxxx dlk2-daq-pcvme/eth_hook_jtag_simple
-SUBDIRS=$(DAQSUBDIRS) $(DAQSUBDIRS904) $(PCVMEDIRS) $(DAQPCVMESUBDIRS)
+IGBEMUSUBDIRS= igb_emu/eth_hook_2_daq igb_emu/eth_hook_2_vme igb_emu/eth_hook_3_daq igb_emu/eth_hook_4_daq igb_emu/eth_hook_5_daq igb_emu/igb-4.1.2/src
+SUBDIRS=$(DAQSUBDIRS) $(DAQSUBDIRS904) $(PCVMEDIRS) $(DAQPCVMESUBDIRS) $(IGBEMUSUBDIRS)
 
 all:
 	@echo "*** Error: No target specified. ***"
@@ -19,6 +20,8 @@ all:
 	@echo "   pcvmeslc5rpm"
 	@echo "   daqpcvme"
 	@echo "   daqpcvmerpm"
+	@echo "   igbemu"
+	@echo "   igbemurpm"
 	@echo "For example, to compile the local DAQ drivers and pack them in an RPM:"
 	@echo "   make daqdriverrpm"
 	@echo "Exiting."
@@ -104,4 +107,17 @@ daqpcvme:
 daqpcvmerpm:	daqpcvme
 	mkdir -p rpm/{BUILD,RPMS}
 	rpmbuild -bb -vv emu-daqpcvme.spec
+
+#################################################################
+# Local DAQ and PC VME driver for the Intel dual port I350-F2 NIC
+#################################################################
+igbemu:
+	@for i in $(IGBEMUSUBDIRS); do \
+        echo "make in $$i..."; \
+	(cd $$i; make); \
+	done
+
+igbemurpm:	igbemu
+	mkdir -p rpm/{BUILD,RPMS}
+	rpmbuild -bb -vv emu-igb_emu.spec
 
