@@ -41,7 +41,7 @@ ifeq (,$(BUILD_KERNEL))
 BUILD_KERNEL=$(shell uname -r)
 endif
 
-DRIVER_NAME=igb
+DRIVER_NAME=igb_emu
 
 ###########################################################################
 # Environment tests
@@ -146,6 +146,7 @@ endif
 EXTRA_CFLAGS += -DDRIVER_$(shell echo $(DRIVER_NAME) | tr '[a-z]' '[A-Z]')
 EXTRA_CFLAGS += -DDRIVER_NAME=$(DRIVER_NAME)
 EXTRA_CFLAGS += -DDRIVER_NAME_CAPS=$(shell echo $(DRIVER_NAME) | tr '[a-z]' '[A-Z]')
+EXTRA_CFLAGS += -DCONFIG_IGB_DISABLE_PACKET_SPLIT
 # standard flags for module builds
 EXTRA_CFLAGS += -DLINUX -D__KERNEL__ -DMODULE -O2 -pipe -Wall
 EXTRA_CFLAGS += -I$(KSRC)/generated/uapi -I/include -I.
