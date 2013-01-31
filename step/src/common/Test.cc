@@ -11,6 +11,7 @@
 #include "emu/pc/DAQMB.h"
 #include "emu/pc/DDU.h"
 #include "emu/pc/ALCTController.h"
+#include "emu/pc/ChamberUtilities.h"
 
 #include "xcept/tools.h"
 
@@ -286,6 +287,27 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 	    std::cout << "... config check not OK for DMB "  << std::endl;
 	  }
 
+}
+
+void emu::step::Test::PrintDmbValuesAndScopes( emu::pc::TMB* tmb, emu::pc::DAQMB* dmb, emu::pc::CCB* ccb, emu::pc::MPC* mpc ){
+  stringstream ss;
+  ss << "DMB values and scopes for chamber " << tmb->getChamber()->GetLabel() << endl;
+  if ( pLogger_ ){ 
+    LOG4CPLUS_INFO( *pLogger_, ss.str() ); 
+  }
+  ss.str("");
+  emu::pc::ChamberUtilities MyTest;
+  MyTest.SetTMB( tmb );
+  MyTest.SetDMB( dmb );
+  MyTest.SetCCB( ccb );
+  MyTest.SetMPC( mpc );
+  MyTest.RedirectOutput( &ss );
+  MyTest.ReadAllDmbValuesAndScopes();
+  MyTest.RedirectOutput( &ss );
+  MyTest.PrintAllDmbValuesAndScopes();
+  if ( pLogger_ ){ 
+    LOG4CPLUS_INFO( *pLogger_, ss.str() ); 
+  }
 }
 
 void emu::step::Test::_11(){
@@ -947,6 +969,10 @@ void emu::step::Test::_15(){ // OK
 	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	  }
 	}
+//	// Find the time between the DMB's receiving CLCT pretrigger and L1A:
+// 	for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+// 	  PrintDmbValuesAndScopes( *tmb, (*crate)->GetChamber( *tmb )->GetDMB(), (*crate)->ccb(), (*crate)->mpc() );
+// 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 	if ( isToStop_ ) return;
       } // for (iTrigger = 1; iTrigger <= events_total; ++iTrigger)
       
@@ -1680,7 +1706,7 @@ void emu::step::Test::_19(){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
       tmb->EnableClctExtTrig(); // TODO: via XML
       usleep(1000);
-      (*dmb)->dcfeb_configure_non_flash(); // configures comparator mode, threshold, finedelay, and pipeline_depth
+      // Not yet at P5: (*dmb)->dcfeb_configure_non_flash(); // configures comparator mode, threshold, finedelay, and pipeline_depth
       usleep(50000);
       (*dmb)->configure(); // NB: the dmb must be configured *after* the dcfebs are configured
       usleep(50000);
