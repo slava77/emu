@@ -57,6 +57,15 @@ namespace emu{
       ///
       void stop(){ isToStop_ = true; }
 
+      /// Diagnostic method for histograming and printing out (among other things) the time between the DMB's receiving CLCT pretrigger and L1A.
+      ///
+      /// @param tmb Pointer to the TMB associated with this DMB.
+      /// @param dmb Pointer to the DMB.
+      /// @param ccb Pointer to the CCB in the same crate.
+      /// @param mpc Pointer to the MPC in the same crate.
+      ///
+      void PrintDmbValuesAndScopes( emu::pc::TMB* tmb, emu::pc::DAQMB* dmb, emu::pc::CCB* ccb, emu::pc::MPC* mpc );
+
     private:
       string              group_; ///< Name of the VME crate group that this emu::step::Test instance handles.
       bool                isFake_; ///< If \em true, the test will just be simulated without VME communication.
