@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.102 2012/09/30 21:19:42 liu Exp $
+// $Id: TMB.cc,v 3.103 2013/02/04 21:07:45 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.103  2013/02/04 21:07:45  liu
+// add delay in ADCvoltages() otherwise read back errors on fast Intel Gbit card
+//
 // Revision 3.102  2012/09/30 21:19:42  liu
 // update for ME11 new electronics
 //
@@ -4571,6 +4574,7 @@ void TMB::ADCvoltages(float * voltage){
     SetVoltageADCSerialClock(0);
     SetVoltageADCChipSelect(1);
     WriteRegister(vme_adc_adr);
+    udelay(100);
     //
     SetVoltageADCChipSelect(0);
     //
