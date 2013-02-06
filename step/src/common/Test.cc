@@ -1705,41 +1705,43 @@ void emu::step::Test::_19(){
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
       tmb->EnableClctExtTrig(); // TODO: via XML
-      usleep(1000);
-      // Not yet at P5: (*dmb)->dcfeb_configure_non_flash(); // configures comparator mode, threshold, finedelay, and pipeline_depth
-      usleep(50000);
-      (*dmb)->configure(); // NB: the dmb must be configured *after* the dcfebs are configured
-      usleep(50000);
-      setUpDDU(*crate); // NB: the ddu must be configured *after* the dmb is confrigured
-      usleep(50000);
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+        usleep(1000);
+        // Not yet at P5: (*dmb)->dcfeb_configure_non_flash(); // configures comparator mode, threshold, finedelay, and pipeline_depth
+        usleep(50000);
+        (*dmb)->configure(); // NB: the dmb must be configured *after* the dcfebs are configured
+        usleep(50000);
+        setUpDDU(*crate); // NB: the ddu must be configured *after* the dmb is confrigured
+        usleep(50000);
+      } // if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 )
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
 
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
-
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	if ( dmbs.at( 0 )->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	  (*crate)->ccb()->l1aReset();
-	}
+        int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion(); // All CFEBs should have the same HW version; get it from the first.
+        if ( CFEBHardwareVersion == 2 ){ 
+          (*crate)->ccb()->l1aReset();
+        }
 
-	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?
+        (*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?
 
-	if ( dmbs.at( 0 )->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	  usleep(100000); // setting the external chanx takes a lot more time for DCFEBs...
-	}
+        if ( CFEBHardwareVersion == 2 ){
+          usleep(100000); // setting the external chanx takes a lot more time for DCFEBs...
+        }
 
-	(*dmb)->buck_shift();
+        (*dmb)->buck_shift();
 
-	if ( dmbs.at( 0 )->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	  usleep(100000); // buck shifting takes a lot more time for DCFEBs
-	}
+        if ( CFEBHardwareVersion == 2 ){
+          usleep(100000); // buck shifting takes a lot more time for DCFEBs
+        }
 
-	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
+        (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
 
-	if ( dmbs.at( 0 )->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	  usleep(50000);
-	  (*crate)->ccb()->bc0();
-	}
+        if ( CFEBHardwareVersion == 2 ){
+          usleep(50000);
+          (*crate)->ccb()->bc0();
+        }
       } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
       
       for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp ){
@@ -1748,7 +1750,7 @@ void emu::step::Test::_19(){
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	  float dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
  	  (*dmb)->set_dac( 0, dac * 5. / 4096. ); // dac values in t19 assume 12-bit DAC
-	  if ( dmbs.at( 0 )->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	    usleep(100000); // setting the dac lot more time for DCFEBs...
 	  }
 	  // calculate first thresholds based on current dac value
@@ -1758,13 +1760,15 @@ void emu::step::Test::_19(){
 	
 	for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold ){
 	  
+      uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
 	  vector<uint64_t>::const_iterator first_threshold = first_thresholds.begin();
 	  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	    // set cfeb thresholds (for the entire test)
 	    float threshold = (float)( iThreshold * thresh_step + *first_threshold ) / 1000.;
 	    (*dmb)->set_comp_thresh( threshold );
-	    if ( dmbs.at( 0 )->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	    if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	      usleep(500000); // set_comp_thresh takes a lot more time for DCFEBs...
+          usWaitAfterPulse = 10000; // pulsing takes a lot more time for DCFEBs...
 	    }
 	    ++first_threshold;
 	  } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
@@ -1773,10 +1777,7 @@ void emu::step::Test::_19(){
 	  
 	  for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse ){
 	    (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
-	    if ( dmbs.at( 0 )->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	      usleep(10000); // pulsing takes a lot more time for DCFEBs...
-	    }
-	    ::usleep( 10 );
+	    ::usleep( usWaitAfterPulse );
 	    bsem_.take();
 	    iEvent_++;
 	    bsem_.give();
