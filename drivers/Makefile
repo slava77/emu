@@ -3,7 +3,7 @@ DAQSUBDIRS904= dl2khook/eth_hook_2_nobigphysxxx dl2khook/dl2k_driver
 PCVMEDIRS= gbit-vme/eth_hook_jtag_simple gbit-vme/dl2k_driver
 PCVMESLC5DIRS= gbit-vme-slc5/eth_hook_jtag_simple gbit-vme-slc5/dl2k_driver
 DAQPCVMESUBDIRS= dlk2-daq-pcvme/dl2k_driver dlk2-daq-pcvme/eth_hook_3_nobigphysxxx dlk2-daq-pcvme/eth_hook_jtag_simple
-IGBEMUSUBDIRS= igb_emu/eth_hook_2_daq igb_emu/eth_hook_2_vme igb_emu/eth_hook_3_daq igb_emu/eth_hook_4_daq igb_emu/eth_hook_5_daq igb_emu/igb-4.1.2/src
+IGBEMUSUBDIRS= igb_emu/eth_hook_2_daq igb_emu/eth_hook_2_vme igb_emu/eth_hook_3_daq igb_emu/eth_hook_3_vme igb_emu/eth_hook_4_daq igb_emu/eth_hook_4_vme igb_emu/eth_hook_5_daq igb_emu/eth_hook_5_vme igb_emu/igb-4.1.2/src
 SUBDIRS=$(DAQSUBDIRS) $(DAQSUBDIRS904) $(PCVMEDIRS) $(DAQPCVMESUBDIRS) $(IGBEMUSUBDIRS)
 
 all:
