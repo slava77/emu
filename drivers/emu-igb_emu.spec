@@ -28,6 +28,9 @@ cp %{workingDir}/igb_emu/eth_hook_3_daq/eth_hook_3_daq.ko $RPM_BUILD_ROOT/usr/lo
 cp %{workingDir}/igb_emu/eth_hook_4_daq/eth_hook_4_daq.ko $RPM_BUILD_ROOT/usr/local/bin
 cp %{workingDir}/igb_emu/eth_hook_5_daq/eth_hook_5_daq.ko $RPM_BUILD_ROOT/usr/local/bin
 cp %{workingDir}/igb_emu/eth_hook_2_vme/eth_hook_2_vme.ko $RPM_BUILD_ROOT/usr/local/bin
+cp %{workingDir}/igb_emu/eth_hook_3_vme/eth_hook_3_vme.ko $RPM_BUILD_ROOT/usr/local/bin
+cp %{workingDir}/igb_emu/eth_hook_4_vme/eth_hook_4_vme.ko $RPM_BUILD_ROOT/usr/local/bin
+cp %{workingDir}/igb_emu/eth_hook_5_vme/eth_hook_5_vme.ko $RPM_BUILD_ROOT/usr/local/bin
 cp %{workingDir}/igb_emu/igb-4.1.2/src/igb_emu.ko         $RPM_BUILD_ROOT/usr/local/bin
 cp %{workingDir}/script/load_igb_emu.sh                   $RPM_BUILD_ROOT/usr/local/bin
 touch %{_topdir}/BUILD/ChangeLog
@@ -45,6 +48,9 @@ touch %{_topdir}/BUILD/MAINTAINER
 /usr/local/bin/eth_hook_4_daq.ko
 /usr/local/bin/eth_hook_5_daq.ko
 /usr/local/bin/eth_hook_2_vme.ko
+/usr/local/bin/eth_hook_3_vme.ko
+/usr/local/bin/eth_hook_4_vme.ko
+/usr/local/bin/eth_hook_5_vme.ko
 /usr/local/bin/igb_emu.ko
 /usr/local/bin/load_igb_emu.sh
 # Files required by Quattor
