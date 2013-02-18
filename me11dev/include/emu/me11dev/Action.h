@@ -87,24 +87,35 @@ namespace emu { namespace me11dev {
       static string getFormValueString(const string form_element, xgi::Input *in);
 
       static void AddButton(xgi::Output *out,
-			    const string button_name)
+			    const string button_name,
+			    const string button_style="min-width: 25em; width: 25%; ")
 	throw (xgi::exception::Exception);
+
       static void AddButtonWithTextBox(xgi::Output *out,
 				       const string button_name,
-				       const string textboxname,
-				       const string textbox_default_value)
+				       const string textbox_name,
+				       const string textbox_default_value,
+				       const string button_style="min-width: 25em; width: 25%; ",
+				       const string textbox_style="")
 	throw (xgi::exception::Exception);
+
       static void AddButtonWithTwoTextBoxes(xgi::Output *out,
 					    const string button_name,
-					    const string textboxname1,
+					    const string textbox_name1,
 					    const string textbox_default_value1,
-					    const string textboxname2,
-					    const string textbox_default_value2)
+					    const string textbox_name2,
+					    const string textbox_default_value2,
+					    const string button_style="min-width: 25em; width: 25%; ",
+					    const string textbox_style1="",
+					    const string textbox_style2="")
 	throw (xgi::exception::Exception);
+
       static void AddButtonWithLongTextBox(xgi::Output *out,
 					   const string button_name,
-					   const string textboxname,
-					   const string textbox_default_value)
+					   const string textbox_name,
+					   const string textbox_default_value,
+					   const string button_style="min-width: 25em; width: 25%; ",
+					   const string textbox_style="width: 100%; margin-top: 1em; height: 10em; ")
 	throw (xgi::exception::Exception);
 
     };

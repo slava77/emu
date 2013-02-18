@@ -26,6 +26,7 @@ namespace emu { namespace me11dev {
 	{
 	  XCEPT_RAISE( xcept::Exception, "Form element, " + form_element + ", was not found." );
 	}
+      cout<<"\""<<form_element<<"\"->"<<form_value<<endl;
       return form_value;
     }
 
@@ -45,6 +46,7 @@ namespace emu { namespace me11dev {
 	{
 	  XCEPT_RAISE( xcept::Exception, "Form element, " + form_element + ", was not found." );
 	}
+      cout<<"\""<<form_element<<"\"->"<<form_value<<endl;
       return form_value;
     }
 
@@ -62,6 +64,7 @@ namespace emu { namespace me11dev {
 	{
 	  XCEPT_RAISE( xcept::Exception, "Form element, " + form_element + ", was not found." );
 	}
+      cout<<"\""<<form_element<<"\"->"<<form_value<<endl;
       return form_value;
     }
 
@@ -78,68 +81,87 @@ namespace emu { namespace me11dev {
 	{
 	  XCEPT_RAISE( xcept::Exception, "Form element, " + form_element + ", was not found." );
 	}
+      cout<<"\""<<form_element<<"\"->"<<form_value<<endl;
       return form_value;
     }
 
     void Action::AddButton(xgi::Output *out,
-			   const string button_name)
+			   const string button_name,
+			   const string button_style)
       throw (xgi::exception::Exception)
     {
-      *out << cgicc::input().set("type","submit")
-	                    .set("value",button_name)
+      *out << cgicc::input()
+	.set("type","submit")
+	.set("style",button_style)
+	.set("value",button_name)
 	   << endl;
     }
 
     void Action::AddButtonWithTextBox(xgi::Output *out,
 				      const string button_name,
-				      const string textboxname,
-				      const string textbox_default_value)
+				      const string textbox_name,
+				      const string textbox_default_value,
+				      const string button_style,
+				      const string textbox_style)
       throw (xgi::exception::Exception)
     {
-      *out << cgicc::input().set("type","submit")
-	                    .set("value",button_name)
+      *out << cgicc::input()
+	.set("type","submit")
+	.set("style", button_style)
+	.set("value",button_name)
 	   << endl
-	   << cgicc::input().set("type","text")
-	                    .set("value",textbox_default_value)
-                            .set("name",textboxname);
+	   << cgicc::input()
+	.set("type","text")
+	.set("value",textbox_default_value)
+	.set("style", textbox_style)
+	.set("name",textbox_name);
     }
 
     void Action::AddButtonWithTwoTextBoxes(xgi::Output *out,
 					   const string button_name,
-					   const string textboxname1,
+					   const string textbox_name1,
 					   const string textbox_default_value1,
-					   const string textboxname2,
-					   const string textbox_default_value2)
+					   const string textbox_name2,
+					   const string textbox_default_value2,
+					   const string button_style,
+					   const string textbox_style1,
+					   const string textbox_style2)
       throw (xgi::exception::Exception)
     {
-      *out << cgicc::input().set("type","submit")
-	                    .set("value",button_name)
+      *out << cgicc::input()
+	.set("type","submit")
+	.set("style",button_style)
+	.set("value",button_name)
 	   << endl
-	   << cgicc::input().set("type","text")
-	                    .set("value",textbox_default_value1)
-                            .set("name",textboxname1)
-	   << cgicc::input().set("type","text")
-	                    .set("value",textbox_default_value2)
-                            .set("name",textboxname2);
+	   << cgicc::input()
+	.set("type","text")
+	.set("value",textbox_default_value1)
+	.set("style",textbox_style1)
+	.set("name",textbox_name1)
+	   << cgicc::input()
+	.set("type","text")
+	.set("value",textbox_default_value2)
+	.set("style",textbox_style2)
+	.set("name",textbox_name2);
     }
 
     void Action::AddButtonWithLongTextBox(xgi::Output *out,
 					  const string button_name,
-					  const string textboxname,
-					  const string textbox_default_value)
+					  const string textbox_name,
+					  const string textbox_default_value,
+					  const string button_style,
+					  const string textbox_style)
       throw (xgi::exception::Exception) {
-      *out << cgicc::div().set("style",
-			       // we need a std::string to use `+'
-			       string("border: #000 solid 1px; ")
-			       + "padding: 1em; ")
-	   << cgicc::input().set("type","submit")
-	                    .set("value",button_name)
+      *out << cgicc::div()
+	.set("style", "border: #000 solid 1px; padding: 1em; ")
+	   << cgicc::input()
+	.set("type","submit")
+	.set("style",button_style)
+	.set("value",button_name)
 	   << endl << cgicc::br() << endl
-	   << cgicc::textarea().set("style",
-				    string("width: 100%; ")
-				    + "margin-top: 1em; "
-				    + "height: 10em; ")
-	                       .set("name",textboxname)
+	   << cgicc::textarea()
+	.set("style", textbox_style)
+	.set("name",textbox_name)
 	   << textbox_default_value
 	   << cgicc::textarea()
 	   << cgicc::div();

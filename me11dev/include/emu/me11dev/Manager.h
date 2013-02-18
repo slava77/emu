@@ -1,6 +1,8 @@
 #ifndef __emu_me11dev_Manager_h__
 #define __emu_me11dev_Manager_h__
 
+#include<map>
+
 #include "xdaq/ApplicationGroup.h"
 #include "xdaq/WebApplication.h"
 #include "xdaq/NamespaceURI.h"
@@ -19,6 +21,9 @@
 
 #include "emu/me11dev/Action.h"
 #include "emu/me11dev/LogAction.h"
+#include "emu/me11dev/Buttons.h"
+#include "emu/me11dev/utils.h"
+
 #include <boost/shared_ptr.hpp>
 
 #include "emu/pc/Crate.h"
@@ -41,6 +46,9 @@ using namespace emu::pc;
 using namespace boost;
 
 namespace emu { namespace me11dev {
+
+    typedef vector< shared_ptr< Action> > t_actionvector;
+    typedef map< string, t_actionvector > t_vectormap;
 
     class Manager : public virtual xdaq::WebApplication
     {
@@ -72,17 +80,22 @@ namespace emu { namespace me11dev {
     protected:
       ostringstream webOutputLog;
       // see the comment above addAction for why we use a vector of shared_ptr
-      vector<shared_ptr<Action> > actions;
       vector<shared_ptr<Action> > commonActions;
+      t_vectormap groupactions; // map between the group names and they vector of associated actions
+      vector<string> groups; // vector of the group names (determines the order of the groups on the GUI)
       vector<shared_ptr<LogAction> > logActions;
       Logger logger_;
 
+
+      t_actionvector* current_actionvector; // pointer to the actionvector for the "current group"
+      void PutButtonsInGroup(string groupname); // put buttons in this group, create the group if it doesn't exist
       string generateLoggerName();
       void bindWebInterface();
       void defaultWebPage(xgi::Input *in, xgi::Output *out);
       template <typename T> string numberToString(T number);
       void commonActionsCallback(xgi::Input *in, xgi::Output *out);
       void actionsCallback(xgi::Input *in, xgi::Output *out);
+      void groupActionsCallback(xgi::Input *in, xgi::Output *out);
       void logActionsCallback(xgi::Input *in, xgi::Output *out);
       static int getFormValueInt(const string form_element, xgi::Input *in);
       static void BackToMainPage(xgi::Input * in, xgi::Output * out );

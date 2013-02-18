@@ -7,6 +7,7 @@ namespace emu{
   namespace me11dev{
 
     unsigned int BinaryString_to_UInt(std::string str);
+    std::string withoutSpecialChars(std::string s);
     
   }
 }

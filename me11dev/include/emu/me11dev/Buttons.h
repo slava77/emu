@@ -20,7 +20,6 @@
 #include <iomanip>
 
 #include "emu/me11dev/Action.h"
-#include "emu/me11dev/ButtonAction.h"
 #include "emu/me11dev/LogAction.h"
 #include "emu/me11dev/LongTextBoxAction.h"
 #include "emu/me11dev/utils.h"
@@ -53,38 +52,25 @@ namespace emu { namespace me11dev {
      * no text boxes 
      *************************************************************************/
 
-    class HardReset : public ButtonAction {
+    class HardReset : public Action {
     public:
-      HardReset(Crate * crate) : ButtonAction(crate, "Hard Reset") { }
+      HardReset(Crate * crate) : Action(crate) {}
+      void display(xgi::Output * out) { AddButton(out, "Hard Reset", "width: 100%; "); }
       void respond(xgi::Input * in, ostringstream & out) { ccb->hardReset(); }
     };
-
-    class L1Reset : public ButtonAction {
+    
+    class L1Reset : public Action {
     public:
-      L1Reset(Crate * crate) : ButtonAction(crate, "L1 Reset (Resync)") { }
+      L1Reset(Crate * crate) : Action(crate) {}
+      void display(xgi::Output * out) { AddButton(out, "L1 Reset (Resync)", "width: 100%; "); }
       void respond(xgi::Input * in, ostringstream & out) { ccb->l1aReset(); }
     };
 
-    class BC0 : public ButtonAction {
+    class BC0 : public Action {
     public:
-      BC0(Crate * crate) : ButtonAction(crate, "BC0") { }
+      BC0(Crate * crate) : Action(crate) {}
+      void display(xgi::Output * out) { AddButton(out, "BC0", "width: 100%; "); }
       void respond(xgi::Input * in, ostringstream & out) { ccb->bc0(); }
-    };
-
-    /**************************************************************************
-     * Log Buttons
-     *
-     * These are special actions that modify the log
-     *************************************************************************/
-
-    class ClearLog : public LogAction {
-    public:
-      ClearLog(Crate * crate) : LogAction(crate) { }
-      void display(xgi::Output * out) { AddButton(out, "Clear Log"); }
-      void respond(xgi::Input * in, ostringstream & out, ostringstream & log) {
-	log.clear(); // remove any error flags
-	log.str(""); // empty the log
-      }
     };
 
     /**************************************************************************
@@ -92,9 +78,17 @@ namespace emu { namespace me11dev {
      *
      *************************************************************************/
 
-    class ReadBackUserCodes : public ButtonAction {
+    // class Header_GeneralFunctions : public Header {
+    // public:
+    //   Header_GeneralFunctions(Crate * crate);
+    //   void display(xgi::Output * out);
+    //  };
+
+
+    class ReadBackUserCodes : public Action {
     public:
       ReadBackUserCodes(Crate * crate);
+      void display(xgi::Output * out);
       void respond(xgi::Input * in, ostringstream & out);
     };
 
@@ -203,16 +197,49 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, ostringstream & out);
     };
 
+    class BuckShiftTest : public Action {
+    public:
+      BuckShiftTest(Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, ostringstream & out);
+    };
+    
+    class IndaraButton : public Action {
+    public:
+      IndaraButton(Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, ostringstream & out);
+    };     
+
     /**************************************************************************
      * ExecuteVMEDSL
      *
      * A domain-specific-lanaguage for issuing vme commands.
      *************************************************************************/
-    class ExecuteVMEDSL : public LongTextBoxAction {
+    class ExecuteVMEDSL : public Action {
     public:
       ExecuteVMEDSL(Crate * crate);
+      void display(xgi::Output * out);
       void respond(xgi::Input * in, ostringstream & out);
     };
+
+
+    /**************************************************************************
+     * Log Buttons
+     *
+     * These are special actions that modify the log
+     *************************************************************************/
+
+    class ClearLog : public LogAction {
+    public:
+      ClearLog(Crate * crate) : LogAction(crate) { }
+      void display(xgi::Output * out) { AddButton(out, "Clear Log"); }
+      void respond(xgi::Input * in, ostringstream & out, ostringstream & log) {
+	log.clear(); // remove any error flags
+	log.str(""); // empty the log
+      }
+    };
+
   }
 }
 
