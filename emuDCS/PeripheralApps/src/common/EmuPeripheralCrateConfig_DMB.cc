@@ -611,7 +611,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
     } else {
       *out << cgicc::span().set("style","color:red");
       *out << buf;
-      *out << " (Should be 0x" << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index) << ") ";
+      *out << " (Should be 0x" << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index-1) << ") " << std::dec;
       *out << cgicc::span();
     }
   } else if(hversion==2)
@@ -633,7 +633,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
     } else {
       *out << cgicc::span().set("style","color:red");
       *out << buf;
-      *out << " (Should be 0x" << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index) << ") ";
+      *out << " (Should be 0x" << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index-1) << ") " << std::dec;
       *out << cgicc::span();
     }
   }
@@ -661,7 +661,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
            sprintf(buf, "DCFEB %d : VIRTEX-6 monitor: Temp=%5.2f (C); Vccin=%5.2f V; Vccaux=%5.2f V.", cfeb_index, mon[0], mon[1], mon[2]);
            *out << buf << cgicc::br() << std::endl;
            *out << "DCFEB " << cfeb_index << " : Status Register: " << std::hex << thisDMB->dcfeb_read_status(*cfebItr);
-           *out << ";  BPI status: " << thisDMB->dcfeb_bpi_status()  << std::dec;           
+           *out << ";  BPI status: " << thisDMB->dcfeb_bpi_status() << cgicc::br()  << std::dec << std::endl;           
         }
      }
      //
