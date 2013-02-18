@@ -1,4 +1,5 @@
 #include "emu/me11dev/Buttons.h"
+#include <ctime>
 
 /******************************************************************************
  * Some classes are declared in the header file because they are short and
@@ -17,9 +18,12 @@ namespace emu { namespace me11dev {
      *************************************************************************/
 
     ReadBackUserCodes::ReadBackUserCodes(Crate * crate)
-      : ButtonAction(crate, "Read back usercodes")
+      : Action(crate)
     { /* ... nothing to see here ... */ }
 
+    void ReadBackUserCodes::display(xgi::Output * out){
+      AddButton(out, "Read back usercodes");
+    }
 
     void ReadBackUserCodes::respond(xgi::Input * in, ostringstream & out) {
       for(vector <DAQMB*>::iterator dmb = dmbs.begin();
@@ -52,13 +56,13 @@ namespace emu { namespace me11dev {
 
     void SetComparatorThresholds::display(xgi::Output * out) {
       AddButtonWithTextBox(out,
-			   "Set Comparator Thresholds (in volts):",
+			   "Set Comparator Thresholds (volts):",
 			   "ComparatorThresholds",
-			   ".030");
+			   "0.03");
     }
 
     void SetComparatorThresholds::respond(xgi::Input * in, ostringstream & out) {
-      int ComparatorThresholds = getFormValueInt("ComparatorThresholds", in);
+      float ComparatorThresholds = getFormValueFloat("ComparatorThresholds", in);
 
       for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
 	{
@@ -77,13 +81,13 @@ namespace emu { namespace me11dev {
 
     void SetComparatorThresholdsBroadcast::display(xgi::Output * out) {
       AddButtonWithTextBox(out,
-			   "Set Comparator Thresholds-broadcast (in volts):",
+			   "Set Comparator Thresholds-broadcast (volts):",
 			   "ComparatorThresholds",
-			   ".030");
+			   "0.03");
     }
 
     void SetComparatorThresholdsBroadcast::respond(xgi::Input * in, ostringstream & out) {
-      int ComparatorThresholds = getFormValueInt("ComparatorThresholds", in);
+      float ComparatorThresholds = getFormValueFloat("ComparatorThresholds", in);
 
       for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
 	{
@@ -111,20 +115,24 @@ namespace emu { namespace me11dev {
       int halfstrip = getFormValueInt("halfstrip", in);
 
       ccb->hardReset();
-      sleep(5);
 
       tmb->SetClctPatternTrigEnable(1);
       tmb->WriteRegister(emu::pc::seq_trig_en_adr);
 
       for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
 	{
-	  int hp[6] = {halfstrip+1, halfstrip, halfstrip+1, halfstrip, halfstrip+1, halfstrip};
-	  (*dmb)->trigsetx(hp,0x7f);
-	  (*dmb)->buck_shift();
+	  int hp[6] = {halfstrip+1, halfstrip, halfstrip+1, halfstrip, halfstrip+1, halfstrip}; 
+	  // Note: +1 for layers 0,2,4 is because ME1/1 doesn't have
+	  // staggered strips, but DAQMB codes assumes staggering.
+	  int CFEB_mask = 0x7f;
+
+	  (*dmb)->trigsetx(hp,CFEB_mask); // this calls chan2shift, which I think is buggy -Joe
+	  //(*dmb)->buck_shift(); // I think trigsetx is supposed to do the shift, too. -Joe
+	  usleep(100);
 	}
 
       ccb->syncReset();//check
-      sleep(1);
+      usleep(100);
       ccb->bx0();   //check
     }
 
@@ -145,22 +153,27 @@ namespace emu { namespace me11dev {
     }
 
     void SetUpPrecisionCapacitors::respond(xgi::Input * in, ostringstream & out) {
+
+
       int strip_to_pulse = getFormValueInt("StripToPulse", in);
 
       ccb->hardReset();
-      sleep(5);
 
       tmb->SetClctPatternTrigEnable(1);
       tmb->WriteRegister(emu::pc::seq_trig_en_adr);
 
+
+      crate->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
       for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
 	{
 	  (*dmb)->set_ext_chanx(strip_to_pulse);//check
-	  (*dmb)->buck_shift();//check
+	  (*dmb)->buck_shift();
+	  usleep(100);
 	}
+      crate->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
 
       ccb->syncReset();//check
-      sleep(1);
+      usleep(100);
       ccb->bx0();
     }
 
@@ -255,7 +268,7 @@ namespace emu { namespace me11dev {
 
     void SetDMBDACs::display(xgi::Output * out) {
       AddButtonWithTextBox(out,
-			   "Set DMB DACs 0 and 1 to (in volts):",
+			   "Set DMB DACs 0 and 1 to (volts):",
 			   "DAC",
 			   "1.0");
     }
@@ -371,6 +384,11 @@ namespace emu { namespace me11dev {
       int expected_year = tmb->GetExpectedTmbFirmwareYear();
       int expected_type = tmb->GetExpectedTmbFirmwareType();
       int expected_version = tmb->GetExpectedTmbFirmwareVersion();
+      int hiccup_number = 0;
+
+      time_t now = time(0);
+      struct tm* tm = localtime(&now);
+      out << "Beginning time: " << tm->tm_hour << ":" << tm->tm_min << ":" << tm->tm_sec << endl;
 
       int i; // we'll want to get the value of this after the loop is complete
       // in order to print how many succesful hard resets we ran
@@ -394,7 +412,8 @@ namespace emu { namespace me11dev {
 	  const int maximum_firmware_readback_attempts = 2;
 	  int firmware_readback_attempts = 0;
 	  do {
-	    tmb->FirmwareDate(); // reads the month and day off of the tmb
+	    firmware_lost = false;
+            tmb->FirmwareDate(); // reads the month and day off of the tmb
 	    int actual_day = tmb->GetReadTmbFirmwareDay();
 	    int actual_month = tmb->GetReadTmbFirmwareMonth();
 	    tmb->FirmwareYear(); // reads the year off of the tmb
@@ -409,22 +428,26 @@ namespace emu { namespace me11dev {
 		(actual_type != expected_type) ||
 		(actual_version != expected_version)) {
 	      firmware_lost = true;
-	      sleep(1); // sometimes the readback fails, so wait one second and
-	      // try again
+              hiccup_number++;
+	      usleep(1000); // sometimes the readback fails, so wait and try again
 	    }
 
 	    // if we haven't gone over our maximum number of readback attempts and
 	    // the firmware was "lost" (i.e. the readback didn't match the expected
 	    // values), then try again.
-	    // NB: ++x increments x before evaluating the boolean expression
 	  } while (++firmware_readback_attempts < maximum_firmware_readback_attempts &&
 		   firmware_lost);
 	}
 
       ccb->RedirectOutput(&cout);
 
+      now = time(0);
+      tm =  localtime(&now);
+      out << "End time: " << tm->tm_hour << ":" << tm->tm_min << ":" << tm->tm_sec << endl;
+      out << "Number of hiccups: " << hiccup_number << endl;
+
       if(firmware_lost) {
-	out << "The frimware was lost after " << i << " hard resets." << endl;
+        out << "The frimware was lost after " << i << " hard resets." << endl;
       } else {
 	out << "The firmware was *never* lost after " << i << " hard resets." << endl;
       }
@@ -469,7 +492,7 @@ namespace emu { namespace me11dev {
 
     void DDUWriteKillFiber::display(xgi::Output * out) {
       AddButtonWithTextBox(out,
-			   "Write DDU Kill Fiber (in hex, 15 bits)",
+			   "Write DDU Kill Fiber (15 bits in hex)",
 			   "KillFiber",
 			   "7fff");
     }
@@ -493,13 +516,22 @@ namespace emu { namespace me11dev {
     *************************************************************************/
 
     ExecuteVMEDSL::ExecuteVMEDSL(Crate * crate)
-      : LongTextBoxAction(crate, "Execute VME DSL program")
+      : Action(crate)
     { /* ... nothing to see here ... */ }
     
+    void ExecuteVMEDSL::display(xgi::Output * out) {
+      AddButtonWithTextBox(out,
+			   "Execute VME DSL commands in file:",
+			   "VMEProgramFile",
+			   "/local.home/cscme11/vme.commands",
+			   "min-width: 25em; width: 25%; ",
+			   "min-width: 40em; width: 70%; ");
+    }
+
     void ExecuteVMEDSL::respond(xgi::Input * in, ostringstream & out) {
-      LongTextBoxAction::respond(in, out);
       
       int slot = 15; // hard code a default VME slot number
+      string programfile = getFormValueString("VMEProgramFile", in);
 
       //// the arguments for vme_controller ////
       char rcv[2];
@@ -516,10 +548,20 @@ namespace emu { namespace me11dev {
       // 5 loop back (disabled)
       // 6 delay
       
-      istringstream alltext(this->textBoxContents); // get all the text
-      string line;
-      while (getline(alltext,line,'\n')) { // read in one line at a time
 
+      // Read in commands from specified file
+      stringstream alltext;
+      ifstream file( programfile.c_str() );
+      if ( file ){
+	alltext << file.rdbuf();
+	file.close();
+      }
+
+      //stringstream alltext(this->textBoxContents); // get all the text
+      string line;
+
+      while (getline(alltext,line,'\n')) { // read in one line at a time
+	
       	if(!line.size()) continue; // Next line, please.
 
       	istringstream iss(line);
@@ -583,6 +625,11 @@ namespace emu { namespace me11dev {
       
       	}else{//// Parse the line as follows:
 	  //
+	  // readfile <int> : 
+	  // Readfile <int> : 
+	  // READFILE <int> : 
+	  //  Read in VME commands from this file.
+	  //	  //
 	  // slot <int> : 
 	  // Slot <int> : 
 	  // SLOT <int> : 
@@ -603,7 +650,20 @@ namespace emu { namespace me11dev {
 	  string key;
 	  iss >> key;
 	  
-	  if( key == "slot" ||
+	  if( key == "readfile" ||
+	      key == "Readfile" ||
+	      key == "READFILE" ){ // 
+	    string tmp_filename;
+	    if( iss >> tmp_filename ){
+	      programfile = tmp_filename;
+	      out << "Read commands from file: " << programfile << endl;
+	      continue; // Next line, please.
+	    }else{
+	      out<<"ERROR: did not find an integer number after \""<<key<<"\" on the line: "<<line<<endl;
+	      out<<"  Aborting further execution."<<endl;
+	      return;
+	    }
+	  }else if( key == "slot" ||
 	      key == "Slot" ||
 	      key == "SLOT" ){ // Try to change the slot number
 	    int tmp_slot;
@@ -653,21 +713,58 @@ namespace emu { namespace me11dev {
       } // while parsing lines
     }
 
-			     //    /**************************************************************************
+
+    /**************************************************************************
+     * Buck Shift Test
+     *
+     *************************************************************************/
+
+    BuckShiftTest::BuckShiftTest(Crate * crate)
+      : Action(crate)
+    { /* ... nothing to see here ... */ }
+
+    void BuckShiftTest::display(xgi::Output * out) {
+      AddButton(out, "Buck Shift Test");
+    }
+
+    void BuckShiftTest::respond(xgi::Input * in, ostringstream & out) {
+      out << "=== Buck Shift Test ===" << endl;
+      crate->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
+      for(vector <DAQMB*>::iterator dmb = dmbs.begin();
+	  dmb != dmbs.end();
+	  ++dmb) {
+	int val = (*dmb)->buck_shift_test();
+	cout<<"Buck Shift Test returns: "<<val<<endl;
+      }
+      crate->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
+    }
+
+
+    IndaraButton::IndaraButton(Crate * crate)
+     : Action(crate)
+    { }
+
+    void IndaraButton::display(xgi::Output * out) {
+      AddButton(out, "IndaraButton");
+    }
+    void IndaraButton::respond(xgi::Input * in, ostringstream & out) {
+      out << "You Pushed Indara's Buttons!! " <<endl;
+
+   }
+//    /**************************************************************************
 //     * ActionTemplate
 //     *
 //     *************************************************************************/
-//
-//    ActionTemplate::ActionTemplate(Crate * crate)
-//      : Action(crate)
-//    { /* ... nothing to see here ... */ }
-//
-//    void ActionTemplate::display(xgi::Output * out) {
-//
-//    }
-//
-//    void ActionTemplate::respond(xgi::Input * in, ostringstream & out) {
-//
-//    }
+/*
+    ActionTemplate::ActionTemplate(Crate * crate)
+     : Action(crate)
+    { }
+
+    void ActionTemplate::display(xgi::Output * out) {
+
+    }
+    void ActionTemplate::respond(xgi::Input * in, ostringstream & out) {
+
+   }*/
   }
 }

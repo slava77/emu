@@ -1,6 +1,8 @@
 #!/bin/bash
 
+exedir=`pwd`/`dirname $0`
+
 kill -9 $(ps aux | grep xdaq | grep 9000 | awk '{print $2}')
 set -m
-./startME11Dev.sh &> me11dev.log &
-tail -f -n 100 me11dev.log
+$exedir/startME11Dev.sh &> $exedir/me11dev.log &
+tail -f -n 100 $exedir/me11dev.log

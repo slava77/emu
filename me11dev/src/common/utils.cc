@@ -20,6 +20,19 @@ namespace emu{
       return uint;
     }
 
+    std::string withoutSpecialChars(std::string sin){
+      std::string sout = sin;
+      char c;
+
+      c=' ';      while(sout.find(c,0) != std::string::npos) sout.erase(sout.find(c,0),1);
+      c='/';      while(sout.find(c,0) != std::string::npos) sout.erase(sout.find(c,0),1);
+      c='#';      while(sout.find(c,0) != std::string::npos) sout.erase(sout.find(c,0),1);
+      c='\t';      while(sout.find(c,0) != std::string::npos) sout.erase(sout.find(c,0),1);
+      c='\n';      while(sout.find(c,0) != std::string::npos) sout.erase(sout.find(c,0),1);
+
+      return sout;
+    }
+
   }
 }
 
