@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.95 2012/12/21 16:48:41 liu Exp $
+// $Id: DAQMB.cc,v 3.96 2013/02/18 21:52:21 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.96  2013/02/18 21:52:21  liu
+// add debug info
+//
 // Revision 3.95  2012/12/21 16:48:41  liu
 // bug fix in buck_shift()
 //
@@ -7136,13 +7139,18 @@ void DAQMB::write_cfeb_selector(int cfeb_mask)
   char temp[4];
   unsigned short mask = cfeb_mask&0xFF;
   write_now(WRITE_CFEB_SELECTOR, mask, temp);
+  std::cout << "Write CFEB selector: " << std::hex << cfeb_mask << std::dec << std::endl;
+  udelay(1000);
+  int mask_read=read_cfeb_selector();
+  if(mask_read != (cfeb_mask&0xFF))
+    std::cout << "ERROR: read back CFEB selector: " << std::hex << mask_read << std::dec << std::endl;
 }
 
 int DAQMB::read_cfeb_selector()
 {
   int mask;
   read_now(READ_CFEB_SELECTOR, (char *)&mask);
-  mask &=0xFF;
+  mask &= ((hardware_version_==2)?0x3F:0x1F);
   return mask;
 }
 
@@ -7216,6 +7224,7 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
      {
         data += 0x10000;
         cfeb_do(0, buf, 32, &data, (char *)&ibrd, NOW|READ_YES);
+        udelay(100);
         adc = (ibrd>>6)&0x3FF;
         if(i==0)
           readf=adc*503.975/1024.0-273.15;
@@ -7229,6 +7238,7 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
      {
         data += 0x10000;
         cfeb_do(0, buf, 32, &data, (char *)&ibrd, NOW|READ_YES);
+        udelay(100);
         adc = (ibrd>>6)&0x3FF;
         if(i<6 && i!=3)
           // currents
@@ -7240,6 +7250,7 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
      }
      comd=VTX6_BYPASS;
      cfeb_do(10, &comd, 0, &data, rcvbuf, NOW);
+     udelay(1000);
   }
   return readout;
 }
@@ -7271,12 +7282,14 @@ void DAQMB::dcfeb_core(int jfunc, int nbit,void *inbuf, char *outbuf, int option
            comd=VTX6_USR1;
            buf[0]=NOOP;
            cfeb_do(10, &comd, 8, buf, rcvbuf, LATER);
+           vme_delay(10);
         }
      }
      if((option & NO_BYPASS)==0)
      {
         comd=VTX6_BYPASS;
         cfeb_do(10, &comd, 0, buf, rcvbuf, NOW);
+        udelay(10);
      }
   return;
 }
@@ -7308,10 +7321,11 @@ void DAQMB::dcfeb_sys_reset(CFEB & cfeb)
 unsigned DAQMB::dcfeb_read_status(CFEB & cfeb)
 {
   unsigned temp;
-  char buf[4]={0xFF,0xFF,0xFF,0xFF};
+  char buf[4]={0,0,0,0};
   dcfeb_hub(cfeb, 2, 32, buf, (char *)&temp, NOW|READ_YES);
   return temp;
 }
+
 void DAQMB::BuckeyeShift(int chip_mask,char shft_bits[6][6], char *shft_out)
 {
   int lay;
