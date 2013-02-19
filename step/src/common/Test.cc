@@ -1164,6 +1164,10 @@ void emu::step::Test::_16(){
 	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	  }
 	}
+// 	// Find the time between the DMB's receiving CLCT pretrigger and L1A:
+// 	for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+// 	  PrintDmbValuesAndScopes( *tmb, (*crate)->GetChamber( *tmb )->GetDMB(), (*crate)->ccb(), (*crate)->mpc() );
+// 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 	if ( isToStop_ ) return;
       } // for (iPulse = 1; iPulse <= events_per_layer; ++iPulse)
       
@@ -1346,6 +1350,10 @@ void emu::step::Test::_17(){ // OK
 	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	    }
 	  }
+// 	  // Find the time between the DMB's receiving CLCT pretrigger and L1A:
+// 	  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+// 	    PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
+// 	  } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 	  if ( isToStop_ ) return;
 	} // for (iPulse = 1; iPulse <= events_per_delay; ++iPulse)
 	  
@@ -1530,6 +1538,10 @@ void emu::step::Test::_17b(){ // OK
 	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	    }
 	  }
+// 	  // Find the time between the DMB's receiving CLCT pretrigger and L1A:
+// 	  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+// 	    PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
+// 	  } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 	  if ( isToStop_ ) return;
 	} // for ( uint64_t iPulse = 1; iPulse <= events_per_pulsedac; ++iPulse )
 
@@ -1705,6 +1717,7 @@ void emu::step::Test::_19(){
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
       tmb->EnableClctExtTrig(); // TODO: via XML
+      // cout << "(*dmb)->cfebs().at( 0 ).GetHardwareVersion() = " << (*dmb)->cfebs().at( 0 ).GetHardwareVersion() << endl;
       if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
         usleep(1000);
         // Not yet at P5: (*dmb)->dcfeb_configure_non_flash(); // configures comparator mode, threshold, finedelay, and pipeline_depth
@@ -1720,6 +1733,7 @@ void emu::step::Test::_19(){
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
         int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion(); // All CFEBs should have the same HW version; get it from the first.
+	// cout << "CFEBHardwareVersion = " << CFEBHardwareVersion << endl;
         if ( CFEBHardwareVersion == 2 ){ 
           (*crate)->ccb()->l1aReset();
         }
@@ -1792,6 +1806,10 @@ void emu::step::Test::_19(){
 		LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	      }
 	    }
+// 	    // Find the time between the DMB's receiving CLCT pretrigger and L1A:
+// 	    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+// 	      PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
+// 	    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 	    if ( isToStop_ ) return;
 	    
 	    (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
@@ -1960,6 +1978,10 @@ void emu::step::Test::_21(){
 	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	  }
 	}
+// 	// Find the time between the DMB's receiving CLCT pretrigger and L1A:
+// 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+// 	  PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
+// 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 	if ( isToStop_ ) return;
 	
 	(*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
@@ -2220,6 +2242,13 @@ void emu::step::Test::_27(){
   while( true ){
     if ( isToStop_ ) return;
     ::sleep( 1 );
+//     // Find the time between the DMB's receiving CLCT pretrigger and L1A:
+//     for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+//       vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
+//       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+// 	PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
+//       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+//     } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
   }
 }
 
