@@ -75,7 +75,12 @@ while read LINE; do
     LINES2+=$LINE
 done < $DVCA2
 
-[[ ${#LINES1} -eq ${#LINES2} ]] && ((N=${#LINES1})) || { print "$DVCA1 and $DVCA2 contain different number of lines. This shouldn't happen. Exiting."; exit 1: }
+if [[ ${#LINES1} -eq ${#LINES2} ]]; then
+    ((N=${#LINES1}))
+else
+    print "$DVCA1 and $DVCA2 contain different number of lines. This shouldn't happen. Exiting."
+    exit 1
+fi
 
 for ((I=1;I<=$N;I++)); do
     # Use 'read' to make sure everything after the XPath expression goes into a single variable (in case the attribute value contains blanks) 
