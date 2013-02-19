@@ -3456,10 +3456,12 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name0 = cgi.getElement("readback");
   int n_readbacks = 0;
-  if(name0 != cgi.getElements().end()) {
-    n_readbacks = cgi["readback"]->getIntegerValue();
-    std::cout << "readback = " << n_readbacks << std::endl;
-  }
+/* disable DMB/CFEB PROM readback by letting n_readbacks always 0 */
+//
+//  if(name0 != cgi.getElements().end()) {
+//    n_readbacks = cgi["readback"]->getIntegerValue();
+//    std::cout << "readback = " << n_readbacks << std::endl;
+//  }
 
 	cgicc::form_iterator name1 = cgi.getElement("ncrt");
   int crate_index;
