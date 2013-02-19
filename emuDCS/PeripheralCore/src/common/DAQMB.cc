@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.96 2013/02/18 21:52:21 liu Exp $
+// $Id: DAQMB.cc,v 3.97 2013/02/19 04:49:34 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.97  2013/02/19 04:49:34  liu
+// avoid a crash in epromread()
+//
 // Revision 3.96  2013/02/18 21:52:21  liu
 // add debug info
 //
@@ -3666,6 +3669,7 @@ void DAQMB::epromread(DEVTYPE devnum){
     printf(" geo.jchan %d \n",geo[dv].jchan);
     fflush(stdout);  
     fpout=fopen("/tmp/eprom.bit","w");
+    if(fpout==NULL) continue;
     chmod("/tmp/eprom.bit",S_IRUSR| S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     //Loading device with 'idcode' instruction.
     nbits=8;
@@ -7150,7 +7154,7 @@ int DAQMB::read_cfeb_selector()
 {
   int mask;
   read_now(READ_CFEB_SELECTOR, (char *)&mask);
-  mask &= ((hardware_version_==2)?0x3F:0x1F);
+  mask &= ((hardware_version_==2)?0x7F:0x1F);
   return mask;
 }
 
