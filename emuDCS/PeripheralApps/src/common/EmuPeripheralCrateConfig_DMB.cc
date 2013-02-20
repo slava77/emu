@@ -647,23 +647,63 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   // section for DCFEB only
   if(ndcfebs>0)
   {
+     double monitor_dcfebs[200];
+     for(unsigned c=0; c<19*7; c++) monitor_dcfebs[c] = -1.0;
+     std::vector<std::string> chname;
+     chname.clear();
+     chname.push_back("Temperature (C)");
+     chname.push_back("Vcc_in (V)");
+     chname.push_back("Vcc_aux (V)");
+     chname.push_back("DV4P_3_CUR (A)");
+     chname.push_back("DV3P_2_CUR (A)");
+     chname.push_back("DV3P_25_CUR (A)");
+     chname.push_back("V3P_DCOMP (V)");
+     chname.push_back("AV54P_3_CUR (A)");
+     chname.push_back("AV54P_5_CUR (A)");
+     chname.push_back("V3PIO (V)");
+     chname.push_back("N.A.");
+     chname.push_back("V25IO (V)");
+     chname.push_back("V5PACOMP (V)");
+     chname.push_back("V5PAMP (V)");
+     chname.push_back("V18PDAC (V)");
+     chname.push_back("N.A.");
+     chname.push_back("V33PAADC (V)");
+     chname.push_back("V5PPA (V)");
+     chname.push_back("V5PSUB (V)");
+
      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
      *out << std::endl;
      //
-     *out << cgicc::legend("DCFEB status").set("style","color:blue") << std::endl ;
+     *out << cgicc::legend("DCFEB Virtex-6 Monitoring").set("style","color:blue") << std::endl ;
      for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) 
      {
         hversion=cfebItr->GetHardwareVersion();    //
-        cfeb_index = (*cfebItr).number() + 1;
+        cfeb_index = (*cfebItr).number();
         if(hversion ==2)
         {
            std::vector<float> mon=thisDMB->dcfeb_fpga_monitor(*cfebItr);
-           sprintf(buf, "DCFEB %d : VIRTEX-6 monitor: Temp=%5.2f (C); Vccin=%5.2f V; Vccaux=%5.2f V.", cfeb_index, mon[0], mon[1], mon[2]);
-           *out << buf << cgicc::br() << std::endl;
-           *out << "DCFEB " << cfeb_index << " : Status Register: " << std::hex << thisDMB->dcfeb_read_status(*cfebItr);
-           *out << ";  BPI status: " << thisDMB->dcfeb_bpi_status() << cgicc::br()  << std::dec << std::endl;           
+           for (unsigned c=0; c<mon.size() && c<19; c++) monitor_dcfebs[cfeb_index*19+c]=mon[c];
         }
      }
+     *out << cgicc::table().set("border","1");
+     //
+     *out <<cgicc::td() << "Channel" << std::setprecision(3)<< cgicc::td();
+     for(int ch=0; ch<20; ch++)
+     {
+       if(ch) *out << cgicc::td() << chname[ch-1] << cgicc::td();
+       for(int feb=0; feb<7; feb++)
+       {
+          if(ch==0) *out << cgicc::td() << "CFEB " << feb+1 << cgicc::td();
+          else
+          {   *out << cgicc::td();
+              if( monitor_dcfebs[feb*19+ch-1]>=0.) *out << monitor_dcfebs[feb*19+ch-1];
+              *out << cgicc::td();
+          }
+       }
+     *out << cgicc::tr() << cgicc::tr() << std::endl;
+     }
+     *out << cgicc::table() << std::setprecision(5) << std::endl;
+     
      //
      *out << cgicc::fieldset();
 
