@@ -1077,6 +1077,79 @@ void EmuPeripheralCrateConfig::DCFEBProgramEprom(xgi::Input * in, xgi::Output * 
      this->CFEBUtils(in,out);                    
 }
   
+void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Not dmb" << std::endl ;
+    dmb = DMB_;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  Chamber * thisChamber = chamberVector[dmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s LVMB status, crate=%s, DMBslot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
+  //
+  MyHeader(in,out,Name);
+  //
+  *out << cgicc::fieldset().set("style","font-size: 12pt; font-family: arial;");
+  *out << std::endl;
+  //
+  *out << cgicc::legend("ADC Channels Readback").set("style","color:blue") << std::endl ;
+  //
+  char buf[2000];
+  int hversion=thisDMB->GetHardwareVersion();
+  int nadcs, indx;
+  unsigned short *ubuf=(unsigned short *)buf;
+  double fvalue[100];
+  //
+  int n=thisDMB->DCSreadAll(buf);
+  if(n<=0) 
+  {
+     *out << "ERROR: Failed to read LVMB!!!" << cgicc::br() << std::endl;
+     return;
+  }
+  nadcs=5;
+  if (hversion==2) nadcs=7;
+
+  for(int i=0; i<8*nadcs; i++)  fvalue[i]=(ubuf[i]&0xFFF)*10.0/4096.0;
+
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out << "Channel";
+  *out <<cgicc::td();
+  for(int ch=0; ch<9; ch++)
+  {
+     if(ch) *out << cgicc::td() << ch-1 << cgicc::td();
+     for(int adc=0; adc<nadcs; adc++)
+     {
+        if(ch==0) *out << cgicc::td() << "ADC " << adc+1 << cgicc::td();
+        else
+        {
+           indx=adc*8+ch-1;
+           *out << cgicc::td() << fvalue[indx];
+           if (hversion<=1 && indx<19) *out << "A";
+           else *out << "V";
+           *out << cgicc::td();
+        }
+     }
+     *out << cgicc::tr() << cgicc::tr() << std::endl;
+  }
+  *out << cgicc::table() << std::endl;
+  *out << cgicc::fieldset();
+}
+
 void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -2097,6 +2170,9 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
       toolbox::toString("/%s/CFEBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),dmb);
     *out << cgicc::a("CFEB Status").set("href",CFEBStatus) << std::endl;
   }
+  std::string LVMBStatus =
+      toolbox::toString("/%s/LVMBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),dmb);
+  *out << cgicc::a("LVMB Status").set("href",LVMBStatus) << cgicc::br() << std::endl;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;

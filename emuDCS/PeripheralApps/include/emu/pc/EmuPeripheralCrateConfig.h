@@ -359,6 +359,7 @@ private:
   void MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DDUStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void LVMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // Crate tests
   void CrateTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
