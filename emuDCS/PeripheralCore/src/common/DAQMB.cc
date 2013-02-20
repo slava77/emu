@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.97 2013/02/19 04:49:34 liu Exp $
+// $Id: DAQMB.cc,v 3.98 2013/02/20 20:02:39 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.98  2013/02/20 20:02:39  liu
+// new code to read new LVMB's ADCs
+//
 // Revision 3.97  2013/02/19 04:49:34  liu
 // avoid a crash in epromread()
 //
@@ -6815,7 +6818,8 @@ int DAQMB::DCSreadAll(char *data)
 {
   unsigned short n, m;
   int retn=0;
-
+ if (hardware_version_<=1)
+ {
   if(checkvme_fail()) return 0;
 
   for(int i=1; i<6; i++)
@@ -6841,6 +6845,54 @@ int DAQMB::DCSreadAll(char *data)
      if(j==5) retn=read_now(0x7004, data);
      else     read_later(0x7004);
   }
+ }
+ else if (hardware_version_==2)
+ {
+   // this is for the ODMB test_firmware version with direct MAX1271 access
+   // VME commands not buffered
+     unsigned select_addr=0x7c, write_addr=0x7a, read_addr=4;
+     unsigned short adc_select_word, control_byte, CLK=1, SDI=2, dout, rback;
+     unsigned short *data2=(unsigned short *)data;
+     char tmp[1000];
+     
+     // init
+     write_now(write_addr, 0, tmp);
+     // loop through all 7 ADCs
+     for(int i=0; i<7; i++)
+     {
+         adc_select_word = 0xFFFF^(1<<i);
+         write_now(select_addr, adc_select_word, tmp);
+         // loop through 8 channels
+         for(int ch=0; ch<8; ch++)
+         {
+            control_byte=0x89+(ch<<4);  // binary=1xxx1001, xxx=channel
+            // send 8 bits of controll_word, MSB first
+            for(int l=7; l>=0; l--)
+            {  
+               dout = ((control_byte>>l)&1) * SDI;
+               for(int j=0;j<3;j++) write_now(write_addr, (j==1)?(dout+CLK):dout, tmp);
+               write_now(write_addr, 0, tmp);
+            }
+            // send 4 clocks
+            for(int k=0; k<4; k++)
+            {  
+               for(int j=0;j<2;j++) write_now(write_addr, (j==0)?CLK:0, tmp);
+            }
+            // read 12 bits of data
+            rback=0;
+            for(int k=0; k<12; k++)
+            {  
+               rback <<= 1;
+               for(int j=0;j<2;j++) write_now(write_addr, (j==0)?CLK:0, tmp);
+               read_now(read_addr, tmp);
+               rback += (tmp[0]&1);
+            }
+            data2[i*8+ch]=rback;
+            retn++;
+         }
+     }
+     write_now(select_addr,0xFFFF, tmp);
+ }
   return retn;
 }
 
