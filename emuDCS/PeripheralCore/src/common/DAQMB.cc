@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.98 2013/02/20 20:02:39 liu Exp $
+// $Id: DAQMB.cc,v 3.99 2013/02/20 22:20:55 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.99  2013/02/20 22:20:55  liu
+// update DCFEB voltages/currents monitoring code
+//
 // Revision 3.98  2013/02/20 20:02:39  liu
 // new code to read new LVMB's ADCs
 //
@@ -7297,11 +7300,14 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
         udelay(100);
         adc = (ibrd>>6)&0x3FF;
         if(i<6 && i!=3)
-          // currents
-          readf=adc*2000./1024.0;
+          // currents in (A) not (mA) !
+          readf=adc*2./1024.0;
         else
-          // voltages
-          readf=adc*5.008/1024.0;
+        {
+          // voltages in (V)
+          if((i>8 && i<11) || i>13) readf=adc*10.5/1024.0;  // TODO: the conversion factor 10.5 is not accurate
+          else readf=adc*5.008/1024.0;
+        }
         readout.push_back(readf);
      }
      comd=VTX6_BYPASS;
