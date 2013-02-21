@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.99 2013/02/20 22:20:55 liu Exp $
+// $Id: DAQMB.cc,v 3.100 2013/02/21 16:09:14 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.100  2013/02/21 16:09:14  liu
+// add extra delays for LVMB reading
+//
 // Revision 3.99  2013/02/20 22:20:55  liu
 // update DCFEB voltages/currents monitoring code
 //
@@ -6863,32 +6866,38 @@ int DAQMB::DCSreadAll(char *data)
      // loop through all 7 ADCs
      for(int i=0; i<7; i++)
      {
+         udelay(100);
          adc_select_word = 0xFFFF^(1<<i);
          write_now(select_addr, adc_select_word, tmp);
+         udelay(100);
          // loop through 8 channels
          for(int ch=0; ch<8; ch++)
          {
             control_byte=0x89+(ch<<4);  // binary=1xxx1001, xxx=channel
-            // send 8 bits of controll_word, MSB first
+            // send 8 bits of control_byte, MSB first
             for(int l=7; l>=0; l--)
             {  
                dout = ((control_byte>>l)&1) * SDI;
                for(int j=0;j<3;j++) write_now(write_addr, (j==1)?(dout+CLK):dout, tmp);
                write_now(write_addr, 0, tmp);
             }
+            udelay(1000);
             // send 4 clocks
             for(int k=0; k<4; k++)
             {  
                for(int j=0;j<2;j++) write_now(write_addr, (j==0)?CLK:0, tmp);
             }
-            // read 12 bits of data
+            // read 12 bits of data, plus 3 extra clocks
             rback=0;
-            for(int k=0; k<12; k++)
+            for(int k=0; k<15; k++)
             {  
-               rback <<= 1;
                for(int j=0;j<2;j++) write_now(write_addr, (j==0)?CLK:0, tmp);
-               read_now(read_addr, tmp);
-               rback += (tmp[0]&1);
+               if(k<12)
+               {
+                  read_now(read_addr, tmp);
+                  rback <<= 1;
+                  rback += (tmp[0]&1);
+               }
             }
             data2[i*8+ch]=rback;
             retn++;
