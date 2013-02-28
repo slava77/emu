@@ -2,7 +2,7 @@
 
 namespace emu { namespace me11dev {
 
-    LongTextBoxAction::LongTextBoxAction(emu::pc::Crate * crate, std::string buttonLabel)
+    LongTextBoxAction::LongTextBoxAction(emu::pc::Crate * crate, const std::string& buttonLabel)
       : Action(crate)
     {
       this->buttonLabel = buttonLabel;

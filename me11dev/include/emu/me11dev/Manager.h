@@ -81,7 +81,7 @@ namespace me11dev {
 
 
       t_actionvector* current_actionvector; // pointer to the actionvector for the "current group"
-      void PutButtonsInGroup(std::string groupname); // put buttons in this group, create the group if it doesn't exist
+      void PutButtonsInGroup(const std::string& groupname); // put buttons in this group, create the group if it doesn't exist
       std::string generateLoggerName();
       void bindWebInterface();
       void defaultWebPage(xgi::Input *in, xgi::Output *out);
@@ -90,7 +90,7 @@ namespace me11dev {
       void actionsCallback(xgi::Input *in, xgi::Output *out);
       void groupActionsCallback(xgi::Input *in, xgi::Output *out);
       void logActionsCallback(xgi::Input *in, xgi::Output *out);
-      static int getFormValueInt(const std::string form_element, xgi::Input *in);
+      static int getFormValueInt(const std::string& form_element, xgi::Input *in);
       static void BackToMainPage(xgi::Input * in, xgi::Output * out );
   };
 

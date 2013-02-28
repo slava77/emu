@@ -35,7 +35,7 @@ namespace emu { namespace me11dev {
     {
     public:
 
-      LongTextBoxAction(emu::pc::Crate * crate, std::string buttonLabel);
+      LongTextBoxAction(emu::pc::Crate * crate, const std::string& buttonLabel);
 
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
