@@ -287,6 +287,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBLoadFirmware, "CCBLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::PrepareForTriggering, "PrepareForTriggering");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBConfig, "CCBConfig");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBSignals, "CCBSignals");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCConfig, "MPCConfig");
