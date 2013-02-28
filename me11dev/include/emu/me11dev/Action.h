@@ -97,16 +97,14 @@ namespace me11dev {
 
       static void AddButton(xgi::Output *out,
 			    const std::string button_name,
-			    const std::string button_style="min-width: 25em; width: 25%; ")
-	throw (xgi::exception::Exception);
+			    const std::string button_style="min-width: 25em; width: 25%; ");
 
       static void AddButtonWithTextBox(xgi::Output *out,
 				       const std::string button_name,
 				       const std::string textbox_name,
 				       const std::string textbox_default_value,
 				       const std::string button_style="min-width: 25em; width: 25%; ",
-				       const std::string textbox_style="")
-	throw (xgi::exception::Exception);
+				       const std::string textbox_style="");
 
       static void AddButtonWithTwoTextBoxes(xgi::Output *out,
 					    const std::string button_name,
@@ -116,16 +114,14 @@ namespace me11dev {
 					    const std::string textbox_default_value2,
 					    const std::string button_style="min-width: 25em; width: 25%; ",
 					    const std::string textbox_style1="",
-					    const std::string textbox_style2="")
-	throw (xgi::exception::Exception);
+					    const std::string textbox_style2="");
 
       static void AddButtonWithLongTextBox(xgi::Output *out,
 					   const std::string button_name,
 					   const std::string textbox_name,
 					   const std::string textbox_default_value,
 					   const std::string button_style="min-width: 25em; width: 25%; ",
-					   const std::string textbox_style="width: 100%; margin-top: 1em; height: 10em; ")
-	throw (xgi::exception::Exception);
+					   const std::string textbox_style="width: 100%; margin-top: 1em; height: 10em; ");
 
     };
   }
