@@ -15,17 +15,16 @@ using namespace emu::pc;
 
 namespace emu { namespace me11dev {
 
-    Action::Action(Crate * crate) {
-      this->crate = crate;
+    Action::Action(Crate * crate):
+      crate_(crate),
+      dmbs_(crate_->daqmbs()),
+      ddus_(crate_->ddus()),
+      tmb_(crate_->tmbs().at(0)),
+      ccb_(crate_->ccb())
+    {}
 
-      ccb = this->crate->ccb();
-      ddus = this->crate->ddus();
-      tmb = this->crate->tmbs().at(0);
-      dmbs = this->crate->daqmbs();
-    }
 
-
-    void Action::AddButton(xgi::Output *out,
+    void Action::addButton(xgi::Output *out,
 			   const string& button_name,
 			   const string& button_style)
     {
@@ -36,7 +35,7 @@ namespace emu { namespace me11dev {
 	   << endl;
     }
 
-    void Action::AddButtonWithTextBox(xgi::Output *out,
+    void Action::addButtonWithTextBox(xgi::Output *out,
 				      const string& button_name,
 				      const string& textbox_name,
 				      const string& textbox_default_value,
@@ -55,7 +54,7 @@ namespace emu { namespace me11dev {
 	.set("name",textbox_name);
     }
 
-    void Action::AddButtonWithTwoTextBoxes(xgi::Output *out,
+    void Action::addButtonWithTwoTextBoxes(xgi::Output *out,
 					   const string& button_name,
 					   const string& textbox_name1,
 					   const string& textbox_default_value1,
@@ -82,7 +81,7 @@ namespace emu { namespace me11dev {
 	.set("name",textbox_name2);
     }
 
-    void Action::AddButtonWithLongTextBox(xgi::Output *out,
+    void Action::addButtonWithLongTextBox(xgi::Output *out,
 					  const string& button_name,
 					  const string& textbox_name,
 					  const string& textbox_default_value,
@@ -105,3 +104,4 @@ namespace emu { namespace me11dev {
     }
   }
 }
+

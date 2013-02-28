@@ -42,10 +42,11 @@ namespace emu { namespace me11dev {
 
     protected:
 
-      std::string buttonLabel;
-      std::string textBoxContents;
+      std::string buttonLabel_;
+      std::string textBoxContents_;
     };
   }
 }
 
 #endif
+

@@ -71,15 +71,15 @@ namespace me11dev {
 
     protected:
 
-      std::ostringstream webOutputLog;
+      std::ostringstream webOutputLog_;
       // see the comment above addAction for why we use a vector of boost::shared_ptr
-      t_actionvector commonActions;
-      t_vectormap groupactions; // map between the group names and their vector of associated actions
-      std::vector<std::string> groups; // vector of the group names (determines the order of the groups on the GUI)
-      t_logactionvector logActions;
+      t_actionvector commonActions_;
+      t_vectormap groupActions_; // map between the group names and their vector of associated actions
+      std::vector<std::string> groups_; // vector of the group names (determines the order of the groups on the GUI)
+      t_logactionvector logActions_;
 
-      t_actionvector* current_actionvector; // pointer to the actionvector for the "current group"
-      void PutButtonsInGroup(const std::string& groupname); // put buttons in this group, create the group if it doesn't exist
+      t_actionvector* currentActionVector_; // pointer to the actionvector for the "current group"
+      void putButtonsInGroup(const std::string& groupname); // put buttons in this group, create the group if it doesn't exist
 
       std::string generateLoggerName();
       Logger logger_;
@@ -90,9 +90,10 @@ namespace me11dev {
       void actionsCallback(xgi::Input *in, xgi::Output *out);
       void groupActionsCallback(xgi::Input *in, xgi::Output *out);
       void logActionsCallback(xgi::Input *in, xgi::Output *out);
-      static void BackToMainPage(xgi::Input * in, xgi::Output * out );
+      static void backToMainPage(xgi::Input * in, xgi::Output * out );
   };
 
 }}
 
 #endif
+

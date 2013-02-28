@@ -84,25 +84,24 @@ namespace me11dev {
       typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
       typedef std::vector<emu::pc::CFEB>::reverse_iterator CFEBrevItr;
 
-      emu::pc::Crate * crate;
-      std::vector<emu::pc::DAQMB*> dmbs;
-      std::vector<emu::pc::DDU*> ddus;
-      emu::pc::TMB* tmb;
-      emu::pc::CCB* ccb;
+      emu::pc::Crate * crate_;
+      std::vector<emu::pc::DAQMB*> dmbs_;
+      std::vector<emu::pc::DDU*> ddus_;
+      emu::pc::TMB* tmb_;
+      emu::pc::CCB* ccb_;
 
-
-      static void AddButton(xgi::Output *out,
+      static void addButton(xgi::Output *out,
 			    const std::string& button_name,
 			    const std::string& button_style="min-width: 25em; width: 25%; ");
 
-      static void AddButtonWithTextBox(xgi::Output *out,
+      static void addButtonWithTextBox(xgi::Output *out,
 				       const std::string& button_name,
 				       const std::string& textbox_name,
 				       const std::string& textbox_default_value,
 				       const std::string& button_style="min-width: 25em; width: 25%; ",
 				       const std::string& textbox_style="");
 
-      static void AddButtonWithTwoTextBoxes(xgi::Output *out,
+      static void addButtonWithTwoTextBoxes(xgi::Output *out,
 					    const std::string& button_name,
 					    const std::string& textbox_name1,
 					    const std::string& textbox_default_value1,
@@ -112,7 +111,7 @@ namespace me11dev {
 					    const std::string& textbox_style1="",
 					    const std::string& textbox_style2="");
 
-      static void AddButtonWithLongTextBox(xgi::Output *out,
+      static void addButtonWithLongTextBox(xgi::Output *out,
 					   const std::string& button_name,
 					   const std::string& textbox_name,
 					   const std::string& textbox_default_value,
@@ -124,3 +123,4 @@ namespace me11dev {
 }
 
 #endif
+

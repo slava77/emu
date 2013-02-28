@@ -36,8 +36,8 @@ namespace emu { namespace me11dev {
      *************************************************************************/
     Manager::Manager( xdaq::ApplicationStub *s ) :
       xdaq::WebApplication( s ),
-      webOutputLog(),
-      current_actionvector(0),
+      webOutputLog_(),
+      currentActionVector_(0),
       logger_( Logger::getInstance( generateLoggerName() ) )
     {
       XMLParser xmlparser;
@@ -72,10 +72,10 @@ namespace emu { namespace me11dev {
        *
        ***********************************************************************/
       
-      PutButtonsInGroup( "Routine Tests" );
+      putButtonsInGroup( "Routine Tests" );
       addActionByTypename<ReadBackUserCodes>(crate);
 
-      PutButtonsInGroup( "DCFEB Settings" );
+      putButtonsInGroup( "DCFEB Settings" );
       addActionByTypename<SetDMBDACs>(crate);
       addActionByTypename<SetComparatorThresholds>(crate);
       addActionByTypename<SetComparatorThresholdsBroadcast>(crate);
@@ -85,17 +85,17 @@ namespace emu { namespace me11dev {
       addActionByTypename<SetFineDelayForADCFEB>(crate);
       addActionByTypename<ShiftBuckeyesNormRun>(crate);
 
-      PutButtonsInGroup( "DCFEB Tests" );
+      putButtonsInGroup( "DCFEB Tests" );
       addActionByTypename<BuckShiftTest>(crate);
 
-      PutButtonsInGroup( "TMB/Trigger Tests" );
+      putButtonsInGroup( "TMB/Trigger Tests" );
       addActionByTypename<PulseInternalCapacitors>(crate);
       addActionByTypename<PulseInternalCapacitorsCCB>(crate);
       addActionByTypename<PulsePrecisionCapacitors>(crate);
       addActionByTypename<PulsePrecisionCapacitorsCCB>(crate);
       addActionByTypename<TMBHardResetTest>(crate);
       
-      PutButtonsInGroup("Other Functions" );
+      putButtonsInGroup("Other Functions" );
       addActionByTypename<DDUReadKillFiber>(crate);
       addActionByTypename<DDUWriteKillFiber>(crate);
       addActionByTypename<ExecuteVMEDSL>(crate);
@@ -118,12 +118,12 @@ namespace emu { namespace me11dev {
     }
 
 
-    void Manager::PutButtonsInGroup(const string& groupname){
-      if( find(groups.begin(),groups.end(), groupname) == groups.end() ){
+    void Manager::putButtonsInGroup(const string& groupname){
+      if( find(groups_.begin(),groups_.end(), groupname) == groups_.end() ){
 	// If this group doesn't exist, add it to the list (also, map::operator[] will create it automatically)
-	groups.push_back(groupname);
+	groups_.push_back(groupname);
       }
-      current_actionvector = &groupactions[groupname];
+      currentActionVector_ = &groupActions_[groupname];
     }
 
     void Manager::bindWebInterface()
@@ -201,7 +201,7 @@ namespace emu { namespace me11dev {
 	   << h3() << endl;
 
       // this is only for common actions which we always want visible
-      for(unsigned int i = 0; i < commonActions.size(); ++i) {
+      for(unsigned int i = 0; i < commonActions_.size(); ++i) {
         // this multi-line statement sets up a form for the action,
         // which will create buttons, etc. The __action_to_call hidden
         // form element tells the Manager which action to use when
@@ -217,7 +217,7 @@ namespace emu { namespace me11dev {
 	  .set("name","__action_to_call")
              << endl;
 	
-        commonActions[i]->display(out);
+        commonActions_[i]->display(out);
 	
         // and here we close the form
         *out << cgicc::form()
@@ -230,9 +230,9 @@ namespace emu { namespace me11dev {
 
       
       //// Make links to each group header
-      for(uint g=0; g<groups.size(); ++g) {
-	*out << a().set("href","#"+withoutSpecialChars(groups[g]))
-	     << groups[g]
+      for(uint g=0; g<groups_.size(); ++g) {
+	*out << a().set("href","#"+withoutSpecialChars(groups_[g]))
+	     << groups_[g]
 	     << a()
 	     << br() << endl;
       }
@@ -243,20 +243,20 @@ namespace emu { namespace me11dev {
 
 
       // most actions will appear here
-      for(uint g=0; g<groups.size(); ++g) {
+      for(uint g=0; g<groups_.size(); ++g) {
 
 	// Group anchor and header
-	*out << a().set("name",withoutSpecialChars(groups[g]))
+	*out << a().set("name",withoutSpecialChars(groups_[g]))
 	     << a()
 	     << endl;
 	*out << hr()
 	     << h3()
-	     << groups[g]
+	     << groups_[g]
 	     << "&nbsp;&nbsp;&nbsp;" << a().set("href","") << "(top)" << a() 
 	     << h3()
 	     << endl;
 
-	t_actionvector av=groupactions[groups[g]];
+	t_actionvector av=groupActions_[groups_[g]];
 	for(unsigned int i = 0; i <av.size(); ++i) {
 
 	  // this multi-line statement sets up a form for the action,
@@ -269,7 +269,7 @@ namespace emu { namespace me11dev {
 	    .set("action", "groupActions")
 	       << cgicc::input()
 	    .set("type","hidden")
-	    .set("value",numberToString(i*groups.size()+g))
+	    .set("value",numberToString(i*groups_.size()+g))
 	    .set("name","__action_to_call")
 	       << endl;
 	  
@@ -291,7 +291,7 @@ namespace emu { namespace me11dev {
 	<< "&nbsp;&nbsp;&nbsp;" << a().set("href","") << "(top)" << a() 
 	<< h3();
 		   
-      for(unsigned int i = 0; i < logActions.size(); ++i) { // display log buttons at the top
+      for(unsigned int i = 0; i < logActions_.size(); ++i) { // display log buttons at the top
         *out << p()
 	     << cgicc::form()
 	  .set("method","GET")
@@ -301,7 +301,7 @@ namespace emu { namespace me11dev {
 	  .set("value",numberToString(i))
 	  .set("name","__action_to_call");
 	
-	logActions[i]->display(out);
+	logActions_[i]->display(out);
 	
 	*out << cgicc::form()
 	     << p();
@@ -310,10 +310,10 @@ namespace emu { namespace me11dev {
       *out << textarea().set("style","width: 100%; height: 100em; ")
            // NB, I purposely called .str(), I don't want to remove all the
            // contents of the log into the web page, I want them to persist
-           << this->webOutputLog.str()
+           << webOutputLog_.str()
            << textarea();
 
-      for(unsigned int i = 0; i < logActions.size(); ++i) { // display log buttons at the bottom
+      for(unsigned int i = 0; i < logActions_.size(); ++i) { // display log buttons at the bottom
         *out << p()
 	     << cgicc::form()
 	  .set("method","GET")
@@ -323,7 +323,7 @@ namespace emu { namespace me11dev {
 	  .set("value",numberToString(i))
 	  .set("name","__action_to_call");
 	
-	logActions[i]->display(out);
+	logActions_[i]->display(out);
 
 	*out << cgicc::form()
 	     << p();
@@ -341,11 +341,11 @@ namespace emu { namespace me11dev {
 
       ostringstream action_output;
 
-      commonActions.at(action_to_call)->respond(in, action_output);
+      commonActions_.at(action_to_call)->respond(in, action_output);
 
-      this->webOutputLog << action_output.str();
+      webOutputLog_ << action_output.str();
 
-      BackToMainPage(in, out);
+      backToMainPage(in, out);
     }
 
     void Manager::groupActionsCallback(xgi::Input *in, xgi::Output *out)
@@ -354,13 +354,13 @@ namespace emu { namespace me11dev {
 
       ostringstream action_output;
 
-      int g = action_to_call%groups.size();
-      int i = action_to_call/groups.size();
-      groupactions[groups[g]].at(i)->respond(in, action_output);
+      int g = action_to_call%groups_.size();
+      int i = action_to_call/groups_.size();
+      groupActions_[groups_[g]].at(i)->respond(in, action_output);
 
-      this->webOutputLog << action_output.str();
+      webOutputLog_ << action_output.str();
 
-      BackToMainPage(in, out);
+      backToMainPage(in, out);
     }
 
     void Manager::logActionsCallback(xgi::Input *in, xgi::Output *out)
@@ -369,48 +369,48 @@ namespace emu { namespace me11dev {
 
       ostringstream action_output;
 
-      logActions.at(action_to_call)->respond(in, out, action_output, this->webOutputLog);
+      logActions_.at(action_to_call)->respond(in, out, action_output, webOutputLog_);
 
-      this->webOutputLog << action_output.str();
+      webOutputLog_ << action_output.str();
 
       // if the content was saved as a log file,
       // don't append the header to out, and no need to do BackToMainPage
       if (action_output.str() == "*** Contents above was saved to a log file ***") return;
 
-      BackToMainPage(in, out);
+      backToMainPage(in, out);
     }
 
     void Manager::addAction(shared_ptr<Action> act) {
-      if(!current_actionvector) PutButtonsInGroup(UNDEFINEDGROUP);
-      current_actionvector->push_back(act);
+      if(!currentActionVector_) putButtonsInGroup(UNDEFINEDGROUP);
+      currentActionVector_->push_back(act);
     }
 
     template <typename T>
     void Manager::addActionByTypename(Crate * crate) {
-      if(!current_actionvector) PutButtonsInGroup(UNDEFINEDGROUP);
-      current_actionvector->push_back(shared_ptr<T>(new T(crate)));
+      if(!currentActionVector_) putButtonsInGroup(UNDEFINEDGROUP);
+      currentActionVector_->push_back(shared_ptr<T>(new T(crate)));
     }
 
     void Manager::addCommonAction(shared_ptr<Action> act) {
-      commonActions.push_back(act);
+      commonActions_.push_back(act);
     }
 
     template <typename T>
     void Manager::addCommonActionByTypename(Crate * crate) {
-      commonActions.push_back(shared_ptr<T>(new T(crate)));
+      commonActions_.push_back(shared_ptr<T>(new T(crate)));
     }
 
     void Manager::addLogAction(shared_ptr<LogAction> act) {
-      logActions.push_back(act);
+      logActions_.push_back(act);
     }
 
     template <typename T>
     void Manager::addLogActionByTypename(Crate * crate) {
-      logActions.push_back(shared_ptr<T>(new T(crate)));
+      logActions_.push_back(shared_ptr<T>(new T(crate)));
     }
 
 
-    void Manager::BackToMainPage(xgi::Input * in, xgi::Output * out ) // Redirect back to the main page. -Joe
+    void Manager::backToMainPage(xgi::Input * in, xgi::Output * out ) // Redirect back to the main page. -Joe
     {
       //// Use this after a "GET" button press to get back to the base url
       *out << HTMLDoctype(HTMLDoctype::eStrict)
@@ -450,3 +450,4 @@ namespace emu { namespace me11dev {
     XDAQ_INSTANTIATOR_IMPL(Manager)
   }
 }
+

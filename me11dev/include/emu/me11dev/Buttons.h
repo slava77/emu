@@ -40,21 +40,21 @@ namespace emu { namespace me11dev {
     class HardReset : public Action {
     public:
       HardReset(emu::pc::Crate * crate) : Action(crate) {}
-      void display(xgi::Output * out) { AddButton(out, "Hard Reset", "width: 100%; "); }
+      void display(xgi::Output * out) { addButton(out, "Hard Reset", "width: 100%; "); }
       void respond(xgi::Input * in, std::ostringstream & out);
     };
     
     class L1Reset : public Action {
     public:
       L1Reset(emu::pc::Crate * crate) : Action(crate) {}
-      void display(xgi::Output * out) { AddButton(out, "L1 Reset (Resync)", "width: 100%; "); }
+      void display(xgi::Output * out) { addButton(out, "L1 Reset (Resync)", "width: 100%; "); }
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class BC0 : public Action {
     public:
       BC0(emu::pc::Crate * crate) : Action(crate) {}
-      void display(xgi::Output * out) { AddButton(out, "BC0", "width: 100%; "); }
+      void display(xgi::Output * out) { addButton(out, "BC0", "width: 100%; "); }
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
@@ -219,7 +219,7 @@ namespace emu { namespace me11dev {
     class ClearLog : public LogAction {
     public:
       ClearLog(emu::pc::Crate * crate) : LogAction(crate) { }
-      void display(xgi::Output * out) { AddButton(out, "Clear Log"); }
+      void display(xgi::Output * out) { addButton(out, "Clear Log"); }
       void respond(xgi::Input * in, xgi::Output * out, std::ostringstream & ssout, std::ostringstream & log) {
 	log.clear(); // remove any error flags
 	log.str(""); // empty the log
@@ -229,7 +229,7 @@ namespace emu { namespace me11dev {
     class SaveLogAsFile : public LogAction {
     public:
       SaveLogAsFile(emu::pc::Crate * crate) : LogAction(crate) { }
-      void display(xgi::Output * out) { AddButton(out, "Save Log as..."); }
+      void display(xgi::Output * out) { addButton(out, "Save Log as..."); }
       void respond(xgi::Input * in, xgi::Output * out, std::ostringstream & ssout, std::ostringstream & log) {
         std::string file_name = "me11dev_" + emu::utils::getDateTime(true) + ".log";
         emu::utils::saveAsFileDialog(out, log.str(), file_name);
@@ -240,7 +240,7 @@ namespace emu { namespace me11dev {
     class DumpLog : public LogAction {
     public:
       DumpLog(emu::pc::Crate * crate) : LogAction(crate) { }
-      void display(xgi::Output * out) { AddButton(out, "Dump Log to stdout"); }
+      void display(xgi::Output * out) { addButton(out, "Dump Log to stdout"); }
       void respond(xgi::Input * in, xgi::Output * out, std::ostringstream & ssout, std::ostringstream & log) {
         std::cout<<"----- "<<emu::utils::getDateTime(false)<<": Log Dump -----"<<std::endl<<std::endl;
         std::cout<<log.str()<<std::endl;
@@ -254,3 +254,4 @@ namespace emu { namespace me11dev {
 }
 
 #endif //__emu_me11dev_Buttons_h__
+
