@@ -633,8 +633,8 @@ namespace emu { namespace me11dev {
       	    }
 	    
       	    irdwr = (addr_str.at(addr_str.size()-26)=='1')? 2 : 3; // 26th and 25th "bits" from right tell read (10) or write (01)
-      	    addr = BinaryString_to_UInt(addr_str);
-      	    data = BinaryString_to_UInt(data_str);
+      	    addr = binaryStringToUInt(addr_str);
+      	    data = binaryStringToUInt(data_str);
 	    
       	  }else if(num>1){
       	    out<<"sleep for "<<num<<" microseconds"<<endl;

@@ -77,20 +77,19 @@ namespace me11dev {
       t_vectormap groupactions; // map between the group names and their vector of associated actions
       std::vector<std::string> groups; // vector of the group names (determines the order of the groups on the GUI)
       t_logactionvector logActions;
-      Logger logger_;
-
 
       t_actionvector* current_actionvector; // pointer to the actionvector for the "current group"
       void PutButtonsInGroup(const std::string& groupname); // put buttons in this group, create the group if it doesn't exist
+
       std::string generateLoggerName();
+      Logger logger_;
+
       void bindWebInterface();
       void defaultWebPage(xgi::Input *in, xgi::Output *out);
-      template <typename T> std::string numberToString(T number);
       void commonActionsCallback(xgi::Input *in, xgi::Output *out);
       void actionsCallback(xgi::Input *in, xgi::Output *out);
       void groupActionsCallback(xgi::Input *in, xgi::Output *out);
       void logActionsCallback(xgi::Input *in, xgi::Output *out);
-      static int getFormValueInt(const std::string& form_element, xgi::Input *in);
       static void BackToMainPage(xgi::Input * in, xgi::Output * out );
   };
 
