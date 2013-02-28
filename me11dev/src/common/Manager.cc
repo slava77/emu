@@ -118,7 +118,7 @@ namespace emu { namespace me11dev {
     }
 
 
-    void Manager::PutButtonsInGroup(string groupname){
+    void Manager::PutButtonsInGroup(const string& groupname){
       if( find(groups.begin(),groups.end(), groupname) == groups.end() ){
 	// If this group doesn't exist, add it to the list (also, map::operator[] will create it automatically)
 	groups.push_back(groupname);
@@ -409,7 +409,7 @@ namespace emu { namespace me11dev {
       logActions.push_back(shared_ptr<T>(new T(crate)));
     }
 
-    int Manager::getFormValueInt(const string form_element, xgi::Input *in)
+    int Manager::getFormValueInt(const string& form_element, xgi::Input *in)
     {
       const cgicc::Cgicc cgi(in);
       int form_value;

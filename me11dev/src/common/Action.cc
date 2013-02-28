@@ -24,7 +24,7 @@ namespace emu { namespace me11dev {
       dmbs = this->crate->daqmbs();
     }
 
-    int Action::getFormValueInt(const string form_element, xgi::Input *in)
+    int Action::getFormValueInt(const string& form_element, xgi::Input *in)
     {
       const cgicc::Cgicc cgi(in);
       int form_value;
@@ -41,7 +41,7 @@ namespace emu { namespace me11dev {
       return form_value;
     }
 
-    int Action::getFormValueIntHex(const string form_element, xgi::Input *in)
+    int Action::getFormValueIntHex(const string& form_element, xgi::Input *in)
     {
       const cgicc::Cgicc cgi(in);
       int form_value;
@@ -62,7 +62,7 @@ namespace emu { namespace me11dev {
     }
 
 
-    float Action::getFormValueFloat(const string form_element, xgi::Input *in)
+    float Action::getFormValueFloat(const string& form_element, xgi::Input *in)
     {
       const cgicc::Cgicc cgi(in);
       float form_value;
@@ -79,7 +79,7 @@ namespace emu { namespace me11dev {
       return form_value;
     }
 
-    string Action::getFormValueString(const string form_element, xgi::Input *in)
+    string Action::getFormValueString(const string& form_element, xgi::Input *in)
     {
       const cgicc::Cgicc cgi(in);
       string form_value;
@@ -97,8 +97,8 @@ namespace emu { namespace me11dev {
     }
 
     void Action::AddButton(xgi::Output *out,
-			   const string button_name,
-			   const string button_style)
+			   const string& button_name,
+			   const string& button_style)
     {
       *out << cgicc::input()
 	.set("type","submit")
@@ -108,11 +108,11 @@ namespace emu { namespace me11dev {
     }
 
     void Action::AddButtonWithTextBox(xgi::Output *out,
-				      const string button_name,
-				      const string textbox_name,
-				      const string textbox_default_value,
-				      const string button_style,
-				      const string textbox_style)
+				      const string& button_name,
+				      const string& textbox_name,
+				      const string& textbox_default_value,
+				      const string& button_style,
+				      const string& textbox_style)
     {
       *out << cgicc::input()
 	.set("type","submit")
@@ -127,14 +127,14 @@ namespace emu { namespace me11dev {
     }
 
     void Action::AddButtonWithTwoTextBoxes(xgi::Output *out,
-					   const string button_name,
-					   const string textbox_name1,
-					   const string textbox_default_value1,
-					   const string textbox_name2,
-					   const string textbox_default_value2,
-					   const string button_style,
-					   const string textbox_style1,
-					   const string textbox_style2)
+					   const string& button_name,
+					   const string& textbox_name1,
+					   const string& textbox_default_value1,
+					   const string& textbox_name2,
+					   const string& textbox_default_value2,
+					   const string& button_style,
+					   const string& textbox_style1,
+					   const string& textbox_style2)
     {
       *out << cgicc::input()
 	.set("type","submit")
@@ -154,11 +154,11 @@ namespace emu { namespace me11dev {
     }
 
     void Action::AddButtonWithLongTextBox(xgi::Output *out,
-					  const string button_name,
-					  const string textbox_name,
-					  const string textbox_default_value,
-					  const string button_style,
-					  const string textbox_style)
+					  const string& button_name,
+					  const string& textbox_name,
+					  const string& textbox_default_value,
+					  const string& button_style,
+					  const string& textbox_style)
     {
       *out << cgicc::div()
 	.set("style", "border: #000 solid 1px; padding: 1em; ")

@@ -90,38 +90,38 @@ namespace me11dev {
       emu::pc::TMB* tmb;
       emu::pc::CCB* ccb;
 
-      static int getFormValueInt(const std::string form_element, xgi::Input *in);
-      static int getFormValueIntHex(const std::string form_element, xgi::Input *in);
-      static float getFormValueFloat(const std::string form_element, xgi::Input *in);
-      static std::string getFormValueString(const std::string form_element, xgi::Input *in);
+      static int getFormValueInt(const std::string& form_element, xgi::Input *in);
+      static int getFormValueIntHex(const std::string& form_element, xgi::Input *in);
+      static float getFormValueFloat(const std::string& form_element, xgi::Input *in);
+      static std::string getFormValueString(const std::string& form_element, xgi::Input *in);
 
       static void AddButton(xgi::Output *out,
-			    const std::string button_name,
-			    const std::string button_style="min-width: 25em; width: 25%; ");
+			    const std::string& button_name,
+			    const std::string& button_style="min-width: 25em; width: 25%; ");
 
       static void AddButtonWithTextBox(xgi::Output *out,
-				       const std::string button_name,
-				       const std::string textbox_name,
-				       const std::string textbox_default_value,
-				       const std::string button_style="min-width: 25em; width: 25%; ",
-				       const std::string textbox_style="");
+				       const std::string& button_name,
+				       const std::string& textbox_name,
+				       const std::string& textbox_default_value,
+				       const std::string& button_style="min-width: 25em; width: 25%; ",
+				       const std::string& textbox_style="");
 
       static void AddButtonWithTwoTextBoxes(xgi::Output *out,
-					    const std::string button_name,
-					    const std::string textbox_name1,
-					    const std::string textbox_default_value1,
-					    const std::string textbox_name2,
-					    const std::string textbox_default_value2,
-					    const std::string button_style="min-width: 25em; width: 25%; ",
-					    const std::string textbox_style1="",
-					    const std::string textbox_style2="");
+					    const std::string& button_name,
+					    const std::string& textbox_name1,
+					    const std::string& textbox_default_value1,
+					    const std::string& textbox_name2,
+					    const std::string& textbox_default_value2,
+					    const std::string& button_style="min-width: 25em; width: 25%; ",
+					    const std::string& textbox_style1="",
+					    const std::string& textbox_style2="");
 
       static void AddButtonWithLongTextBox(xgi::Output *out,
-					   const std::string button_name,
-					   const std::string textbox_name,
-					   const std::string textbox_default_value,
-					   const std::string button_style="min-width: 25em; width: 25%; ",
-					   const std::string textbox_style="width: 100%; margin-top: 1em; height: 10em; ");
+					   const std::string& button_name,
+					   const std::string& textbox_name,
+					   const std::string& textbox_default_value,
+					   const std::string& button_style="min-width: 25em; width: 25%; ",
+					   const std::string& textbox_style="width: 100%; margin-top: 1em; height: 10em; ");
 
     };
   }
