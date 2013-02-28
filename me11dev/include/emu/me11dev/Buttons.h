@@ -9,6 +9,8 @@
 #include "emu/pc/DDU.h"
 #include "emu/pc/TMB.h"
 #include "emu/pc/TMB_constants.h"
+#include "emu/utils/Cgi.h"
+#include "emu/utils/System.h"
 
 #include "xgi/Method.h"
 
@@ -234,11 +236,35 @@ namespace emu { namespace me11dev {
     public:
       ClearLog(Crate * crate) : LogAction(crate) { }
       void display(xgi::Output * out) { AddButton(out, "Clear Log"); }
-      void respond(xgi::Input * in, ostringstream & out, ostringstream & log) {
+      void respond(xgi::Input * in, xgi::Output * out, ostringstream & ssout, ostringstream & log) {
 	log.clear(); // remove any error flags
 	log.str(""); // empty the log
       }
     };
+
+    class SaveLogAsFile : public LogAction {
+    public:
+      SaveLogAsFile(Crate * crate) : LogAction(crate) { }
+      void display(xgi::Output * out) { AddButton(out, "Save Log as..."); }
+      void respond(xgi::Input * in, xgi::Output * out, ostringstream & ssout, ostringstream & log) {
+        string file_name = "me11dev_" + emu::utils::getDateTime(true) + ".log";
+        emu::utils::saveAsFileDialog(out, log.str(), file_name);
+        ssout.str("*** Contents above was saved to a log file ***");
+      }
+    };
+
+    class DumpLog : public LogAction {
+    public:
+      DumpLog(Crate * crate) : LogAction(crate) { }
+      void display(xgi::Output * out) { AddButton(out, "Dump Log to stdout"); }
+      void respond(xgi::Input * in, xgi::Output * out, ostringstream & ssout, ostringstream & log) {
+        cout<<"----- "<<emu::utils::getDateTime(false)<<": Log Dump -----"<<endl<<endl;
+        cout<<log.str()<<endl;
+        cout<<"----- End of Log Dump -----"<<endl;
+        ssout.str("*** Contents above was dumped to stdout ***");
+      }
+    };
+
 
   }
 }

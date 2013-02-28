@@ -96,6 +96,8 @@ namespace emu { namespace me11dev {
        ***********************************************************************/
 
       addLogActionByTypename<ClearLog>(crate);
+      addLogActionByTypename<DumpLog>(crate);
+      addLogActionByTypename<SaveLogAsFile>(crate);
 
       bindWebInterface();
     }
@@ -352,9 +354,13 @@ namespace emu { namespace me11dev {
 
       ostringstream action_output;
 
-      logActions.at(action_to_call)->respond(in, action_output, this->webOutputLog);
+      logActions.at(action_to_call)->respond(in, out, action_output, this->webOutputLog);
 
       this->webOutputLog << action_output.str();
+
+      // if the content was saved as a log file,
+      // don't append the header to out, and no need to do BackToMainPage
+      if (action_output.str() == "*** Contents above was saved to a log file ***") return;
 
       BackToMainPage(in, out);
     }
