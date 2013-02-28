@@ -13,6 +13,10 @@
 #include <iomanip>
 #include <ctime>
 
+using namespace std;
+using namespace emu::pc;
+
+
 /******************************************************************************
  * Some classes are declared in the header file because they are short and
  * sweet. Check there first!

@@ -27,8 +27,6 @@
  * to ensure that it is recompiled
  *****************************************************************************/
 
-using namespace std;
-using namespace emu::pc;
 
 namespace emu { namespace me11dev {
 
@@ -41,23 +39,23 @@ namespace emu { namespace me11dev {
 
     class HardReset : public Action {
     public:
-      HardReset(Crate * crate) : Action(crate) {}
+      HardReset(emu::pc::Crate * crate) : Action(crate) {}
       void display(xgi::Output * out) { AddButton(out, "Hard Reset", "width: 100%; "); }
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
     
     class L1Reset : public Action {
     public:
-      L1Reset(Crate * crate) : Action(crate) {}
+      L1Reset(emu::pc::Crate * crate) : Action(crate) {}
       void display(xgi::Output * out) { AddButton(out, "L1 Reset (Resync)", "width: 100%; "); }
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class BC0 : public Action {
     public:
-      BC0(Crate * crate) : Action(crate) {}
+      BC0(emu::pc::Crate * crate) : Action(crate) {}
       void display(xgi::Output * out) { AddButton(out, "BC0", "width: 100%; "); }
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
 
@@ -68,135 +66,135 @@ namespace emu { namespace me11dev {
 
     // class Header_GeneralFunctions : public Header {
     // public:
-    //   Header_GeneralFunctions(Crate * crate);
+    //   Header_GeneralFunctions(emu::pc::Crate * crate);
     //   void display(xgi::Output * out);
     //  };
 
 
     class ReadBackUserCodes : public Action {
     public:
-      ReadBackUserCodes(Crate * crate);
+      ReadBackUserCodes(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class SetComparatorThresholds : public Action {
     public:
-      SetComparatorThresholds(Crate * crate);
+      SetComparatorThresholds(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class SetComparatorThresholdsBroadcast : public Action {
     public:
-      SetComparatorThresholdsBroadcast(Crate * crate);
+      SetComparatorThresholdsBroadcast(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class SetUpComparatorPulse : public Action {
     public:
-      SetUpComparatorPulse(Crate * crate);
+      SetUpComparatorPulse(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class SetUpPrecisionCapacitors : public Action {
     public:
-      SetUpPrecisionCapacitors(Crate * crate);
+      SetUpPrecisionCapacitors(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class PulseInternalCapacitors : public Action {
     public:
-      PulseInternalCapacitors(Crate * crate);
+      PulseInternalCapacitors(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class PulseInternalCapacitorsCCB : public Action {
     public:
-      PulseInternalCapacitorsCCB(Crate * crate);
+      PulseInternalCapacitorsCCB(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class PulsePrecisionCapacitors : public Action {
     public:
-      PulsePrecisionCapacitors(Crate * crate);
+      PulsePrecisionCapacitors(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class PulsePrecisionCapacitorsCCB : public Action {
     public:
-      PulsePrecisionCapacitorsCCB(Crate * crate);
+      PulsePrecisionCapacitorsCCB(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class SetDMBDACs : public Action {
     public:
-      SetDMBDACs(Crate * crate);
+      SetDMBDACs(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class ShiftBuckeyesNormRun : public Action {
     public:
-      ShiftBuckeyesNormRun(Crate * crate);
+      ShiftBuckeyesNormRun(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class SetPipelineDepthAllDCFEBs : public Action {
     public:
-      SetPipelineDepthAllDCFEBs(Crate * crate);
+      SetPipelineDepthAllDCFEBs(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class SetFineDelayForADCFEB : public Action {
     public:
-      SetFineDelayForADCFEB(Crate * crate);
+      SetFineDelayForADCFEB(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class TMBHardResetTest : public Action {
     public:
-      TMBHardResetTest(Crate * crate);
+      TMBHardResetTest(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class DDUReadKillFiber : public Action {
     public:
-      DDUReadKillFiber(Crate * crate);
+      DDUReadKillFiber(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class DDUWriteKillFiber : public Action {
     public:
-      DDUWriteKillFiber(Crate * crate);
+      DDUWriteKillFiber(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
     class BuckShiftTest : public Action {
     public:
-      BuckShiftTest(Crate * crate);
+      BuckShiftTest(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
     
     class IndaraButton : public Action {
     public:
-      IndaraButton(Crate * crate);
+      IndaraButton(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };     
 
     /**************************************************************************
@@ -206,9 +204,9 @@ namespace emu { namespace me11dev {
      *************************************************************************/
     class ExecuteVMEDSL : public Action {
     public:
-      ExecuteVMEDSL(Crate * crate);
+      ExecuteVMEDSL(emu::pc::Crate * crate);
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };
 
 
@@ -220,9 +218,9 @@ namespace emu { namespace me11dev {
 
     class ClearLog : public LogAction {
     public:
-      ClearLog(Crate * crate) : LogAction(crate) { }
+      ClearLog(emu::pc::Crate * crate) : LogAction(crate) { }
       void display(xgi::Output * out) { AddButton(out, "Clear Log"); }
-      void respond(xgi::Input * in, xgi::Output * out, ostringstream & ssout, ostringstream & log) {
+      void respond(xgi::Input * in, xgi::Output * out, std::ostringstream & ssout, std::ostringstream & log) {
 	log.clear(); // remove any error flags
 	log.str(""); // empty the log
       }
@@ -230,10 +228,10 @@ namespace emu { namespace me11dev {
 
     class SaveLogAsFile : public LogAction {
     public:
-      SaveLogAsFile(Crate * crate) : LogAction(crate) { }
+      SaveLogAsFile(emu::pc::Crate * crate) : LogAction(crate) { }
       void display(xgi::Output * out) { AddButton(out, "Save Log as..."); }
-      void respond(xgi::Input * in, xgi::Output * out, ostringstream & ssout, ostringstream & log) {
-        string file_name = "me11dev_" + emu::utils::getDateTime(true) + ".log";
+      void respond(xgi::Input * in, xgi::Output * out, std::ostringstream & ssout, std::ostringstream & log) {
+        std::string file_name = "me11dev_" + emu::utils::getDateTime(true) + ".log";
         emu::utils::saveAsFileDialog(out, log.str(), file_name);
         ssout.str("*** Contents above was saved to a log file ***");
       }
@@ -241,12 +239,12 @@ namespace emu { namespace me11dev {
 
     class DumpLog : public LogAction {
     public:
-      DumpLog(Crate * crate) : LogAction(crate) { }
+      DumpLog(emu::pc::Crate * crate) : LogAction(crate) { }
       void display(xgi::Output * out) { AddButton(out, "Dump Log to stdout"); }
-      void respond(xgi::Input * in, xgi::Output * out, ostringstream & ssout, ostringstream & log) {
-        cout<<"----- "<<emu::utils::getDateTime(false)<<": Log Dump -----"<<endl<<endl;
-        cout<<log.str()<<endl;
-        cout<<"----- End of Log Dump -----"<<endl;
+      void respond(xgi::Input * in, xgi::Output * out, std::ostringstream & ssout, std::ostringstream & log) {
+        std::cout<<"----- "<<emu::utils::getDateTime(false)<<": Log Dump -----"<<std::endl<<std::endl;
+        std::cout<<log.str()<<std::endl;
+        std::cout<<"----- End of Log Dump -----"<<std::endl;
         ssout.str("*** Contents above was dumped to stdout ***");
       }
     };

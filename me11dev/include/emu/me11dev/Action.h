@@ -18,7 +18,6 @@
  * not do so.
  *****************************************************************************/
 
-using namespace std;
 
 namespace emu { 
 
@@ -34,11 +33,12 @@ class TMB;
 
 namespace me11dev {
 
-using namespace emu::pc;
-
-    class Action {
+    class Action
+    {
     public:
-      Action(Crate * crate);
+
+      Action(emu::pc::Crate * crate);
+
       // a virtual destructor removes a warning about have a class with virtual
       // methods but a non-virtual destructor
       virtual ~Action() { };
@@ -77,52 +77,54 @@ using namespace emu::pc;
        * Finally, note that we've already defined type aliases for the cfeb
        * iterators.
        ***********************************************************************/
-      virtual void respond(xgi::Input * in, ostringstream & out) = 0;
+      virtual void respond(xgi::Input * in, std::ostringstream & out) = 0;
+
     protected:
-      typedef vector<CFEB>::iterator CFEBItr;
-      typedef vector<CFEB>::reverse_iterator CFEBrevItr;
 
-      Crate * crate;
-      vector <DAQMB*> dmbs;
-      vector <DDU*> ddus;
-      TMB* tmb;
-      CCB* ccb;
+      typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+      typedef std::vector<emu::pc::CFEB>::reverse_iterator CFEBrevItr;
 
-      static int getFormValueInt(const string form_element, xgi::Input *in);
-      static int getFormValueIntHex(const string form_element, xgi::Input *in);
-      static float getFormValueFloat(const string form_element, xgi::Input *in);
-      static string getFormValueString(const string form_element, xgi::Input *in);
+      emu::pc::Crate * crate;
+      std::vector<emu::pc::DAQMB*> dmbs;
+      std::vector<emu::pc::DDU*> ddus;
+      emu::pc::TMB* tmb;
+      emu::pc::CCB* ccb;
+
+      static int getFormValueInt(const std::string form_element, xgi::Input *in);
+      static int getFormValueIntHex(const std::string form_element, xgi::Input *in);
+      static float getFormValueFloat(const std::string form_element, xgi::Input *in);
+      static std::string getFormValueString(const std::string form_element, xgi::Input *in);
 
       static void AddButton(xgi::Output *out,
-			    const string button_name,
-			    const string button_style="min-width: 25em; width: 25%; ")
+			    const std::string button_name,
+			    const std::string button_style="min-width: 25em; width: 25%; ")
 	throw (xgi::exception::Exception);
 
       static void AddButtonWithTextBox(xgi::Output *out,
-				       const string button_name,
-				       const string textbox_name,
-				       const string textbox_default_value,
-				       const string button_style="min-width: 25em; width: 25%; ",
-				       const string textbox_style="")
+				       const std::string button_name,
+				       const std::string textbox_name,
+				       const std::string textbox_default_value,
+				       const std::string button_style="min-width: 25em; width: 25%; ",
+				       const std::string textbox_style="")
 	throw (xgi::exception::Exception);
 
       static void AddButtonWithTwoTextBoxes(xgi::Output *out,
-					    const string button_name,
-					    const string textbox_name1,
-					    const string textbox_default_value1,
-					    const string textbox_name2,
-					    const string textbox_default_value2,
-					    const string button_style="min-width: 25em; width: 25%; ",
-					    const string textbox_style1="",
-					    const string textbox_style2="")
+					    const std::string button_name,
+					    const std::string textbox_name1,
+					    const std::string textbox_default_value1,
+					    const std::string textbox_name2,
+					    const std::string textbox_default_value2,
+					    const std::string button_style="min-width: 25em; width: 25%; ",
+					    const std::string textbox_style1="",
+					    const std::string textbox_style2="")
 	throw (xgi::exception::Exception);
 
       static void AddButtonWithLongTextBox(xgi::Output *out,
-					   const string button_name,
-					   const string textbox_name,
-					   const string textbox_default_value,
-					   const string button_style="min-width: 25em; width: 25%; ",
-					   const string textbox_style="width: 100%; margin-top: 1em; height: 10em; ")
+					   const std::string button_name,
+					   const std::string textbox_name,
+					   const std::string textbox_default_value,
+					   const std::string button_style="min-width: 25em; width: 25%; ",
+					   const std::string textbox_style="width: 100%; margin-top: 1em; height: 10em; ")
 	throw (xgi::exception::Exception);
 
     };

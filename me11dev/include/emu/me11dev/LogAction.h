@@ -10,13 +10,14 @@
  * the web output log so that they can modify it.
  *****************************************************************************/
 
-using namespace std;
-using namespace emu::pc;
 
 namespace emu { namespace me11dev {
-    class LogAction : public Action {
+
+    class LogAction : public Action
+    {
     public:
-      LogAction(Crate * crate);
+
+      LogAction(emu::pc::Crate * crate);
 
       // "= 0" forces subclases to implement this
       virtual void display(xgi::Output * out) = 0;
@@ -30,8 +31,9 @@ namespace emu { namespace me11dev {
        * "displayable" class. God, class-based object-oriented models are
        * annoying.
        ************************************************************************/
-      void respond(xgi::Input * in, ostringstream & out);
-      virtual void respond(xgi::Input * in, xgi::Output * out, ostringstream & ssout, ostringstream & webOutputLog) = 0;
+      void respond(xgi::Input * in, std::ostringstream & out);
+
+      virtual void respond(xgi::Input * in, xgi::Output * out, std::ostringstream & ssout, std::ostringstream & webOutputLog) = 0;
     };
   }
 }
