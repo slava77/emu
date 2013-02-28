@@ -1,16 +1,9 @@
 #ifndef __emu_me11dev_Action_h__
 #define __emu_me11dev_Action_h__
 
-#include "emu/pc/Crate.h"
-#include "emu/pc/CFEB.h"
-#include "emu/pc/DAQMB.h"
-#include "emu/pc/CCB.h"
-#include "emu/pc/DDU.h"
-#include "emu/pc/TMB.h"
-#include "xgi/Method.h"
-#include "cgicc/HTMLClasses.h"
-#include "xcept/tools.h"
-#include "xcept/Exception.h"
+#include "xgi/exception/Exception.h"
+#include "xgi/Input.h"
+#include "xgi/Output.h"
 
 #include <iostream>
 #include <sstream>
@@ -26,9 +19,23 @@
  *****************************************************************************/
 
 using namespace std;
+
+namespace emu { 
+
+// forward declarations:
+namespace pc {
+class Crate;
+class CFEB;
+class DAQMB;
+class CCB;
+class DDU;
+class TMB;
+}
+
+namespace me11dev {
+
 using namespace emu::pc;
 
-namespace emu { namespace me11dev {
     class Action {
     public:
       Action(Crate * crate);

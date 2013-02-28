@@ -1,30 +1,15 @@
 #ifndef __emu_me11dev_Buttons_h__
 #define __emu_me11dev_Buttons_h__
 
-#include "emu/pc/Crate.h"
-#include "emu/pc/VMEController.h"
-#include "emu/pc/CFEB.h"
-#include "emu/pc/DAQMB.h"
-#include "emu/pc/CCB.h"
-#include "emu/pc/DDU.h"
-#include "emu/pc/TMB.h"
-#include "emu/pc/TMB_constants.h"
 #include "emu/utils/Cgi.h"
 #include "emu/utils/System.h"
 
-#include "xgi/Method.h"
-
-#include "xcept/tools.h"
-#include "xcept/Exception.h"
-
 #include <vector>
 #include <sstream>
-#include <iomanip>
 
 #include "emu/me11dev/Action.h"
 #include "emu/me11dev/LogAction.h"
 #include "emu/me11dev/LongTextBoxAction.h"
-#include "emu/me11dev/utils.h"
 
 /******************************************************************************
  * The Buttons
@@ -58,22 +43,23 @@ namespace emu { namespace me11dev {
     public:
       HardReset(Crate * crate) : Action(crate) {}
       void display(xgi::Output * out) { AddButton(out, "Hard Reset", "width: 100%; "); }
-      void respond(xgi::Input * in, ostringstream & out) { ccb->hardReset(); }
+      void respond(xgi::Input * in, ostringstream & out);
     };
     
     class L1Reset : public Action {
     public:
       L1Reset(Crate * crate) : Action(crate) {}
       void display(xgi::Output * out) { AddButton(out, "L1 Reset (Resync)", "width: 100%; "); }
-      void respond(xgi::Input * in, ostringstream & out) { ccb->l1aReset(); }
+      void respond(xgi::Input * in, ostringstream & out);
     };
 
     class BC0 : public Action {
     public:
       BC0(Crate * crate) : Action(crate) {}
       void display(xgi::Output * out) { AddButton(out, "BC0", "width: 100%; "); }
-      void respond(xgi::Input * in, ostringstream & out) { ccb->bc0(); }
+      void respond(xgi::Input * in, ostringstream & out);
     };
+
 
     /**************************************************************************
      * Other Buttons
