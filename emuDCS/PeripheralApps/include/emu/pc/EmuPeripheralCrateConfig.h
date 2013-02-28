@@ -500,6 +500,7 @@ private:
   void CCBConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBSignals(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void PrepareForTriggering(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // DDU utils
   void DDUUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
