@@ -1,32 +1,19 @@
 #ifndef __emu_me11dev_Manager_h__
 #define __emu_me11dev_Manager_h__
 
-#include<map>
 
-#include "xdaq/ApplicationGroup.h"
 #include "xdaq/WebApplication.h"
-#include "xdaq/NamespaceURI.h"
-
-#include "emu/pc/XMLParser.h"
-#include "emu/pc/EmuEndcap.h"
-#include "emu/pc/Crate.h"
 
 #include "xgi/Method.h"
-
-#include "xcept/tools.h"
-#include "xcept/Exception.h"
-
-#include <iomanip>
-#include <sstream>
 
 #include "emu/me11dev/Action.h"
 #include "emu/me11dev/LogAction.h"
 #include "emu/me11dev/Buttons.h"
-#include "emu/me11dev/utils.h"
 
 #include <boost/shared_ptr.hpp>
+#include <sstream>
+#include <map>
 
-#include "emu/pc/Crate.h"
 
 /******************************************************************************
  * The Manager Class
@@ -45,7 +32,14 @@ using namespace std;
 using namespace emu::pc;
 using namespace boost;
 
-namespace emu { namespace me11dev {
+namespace emu { 
+
+// forward declarations
+namespace pc {
+class Crate;
+}
+
+namespace me11dev {
 
     typedef vector< shared_ptr< Action> > t_actionvector;
     typedef map< string, t_actionvector > t_vectormap;

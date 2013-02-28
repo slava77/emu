@@ -1,4 +1,16 @@
 #include "emu/me11dev/Manager.h"
+#include "emu/me11dev/utils.h"
+
+#include "emu/pc/XMLParser.h"
+#include "emu/pc/EmuEndcap.h"
+#include "emu/pc/Crate.h"
+
+//#include "xdaq/NamespaceURI.h"
+
+#include "cgicc/HTMLClasses.h"
+
+#include <iomanip>
+
 
 #define USE_CRATE_N 0 // ignore anything but the first crate
 #define XML_CONFIGURATION_FILE "/local.home/cscme11/config/pc/dans-crate-config.xml"

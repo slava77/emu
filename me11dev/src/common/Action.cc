@@ -1,5 +1,14 @@
 #include "emu/me11dev/Action.h"
 
+#include "emu/pc/Crate.h"
+#include "emu/pc/CFEB.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/DDU.h"
+#include "emu/pc/TMB.h"
+
+#include "cgicc/HTMLClasses.h"
+
 using namespace cgicc;
 
 namespace emu { namespace me11dev {

@@ -1,4 +1,16 @@
 #include "emu/me11dev/Buttons.h"
+#include "emu/me11dev/utils.h"
+
+#include "emu/pc/Crate.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/CFEB.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/DDU.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/TMB_constants.h"
+
+#include <iomanip>
 #include <ctime>
 
 /******************************************************************************
@@ -11,6 +23,13 @@
  *****************************************************************************/
 
 namespace emu { namespace me11dev {
+
+    void HardReset::respond(xgi::Input * in, ostringstream & out) { ccb->hardReset(); }
+
+    void L1Reset::respond(xgi::Input * in, ostringstream & out) { ccb->l1aReset(); }
+
+    void BC0::respond(xgi::Input * in, ostringstream & out) { ccb->bc0(); }
+
 
     /**************************************************************************
      * Reads back the user codes
