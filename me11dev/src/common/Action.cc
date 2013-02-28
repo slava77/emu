@@ -10,6 +10,8 @@
 #include "cgicc/HTMLClasses.h"
 
 using namespace cgicc;
+using namespace std;
+using namespace emu::pc;
 
 namespace emu { namespace me11dev {
 

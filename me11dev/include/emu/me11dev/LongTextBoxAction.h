@@ -28,19 +28,22 @@
  *
  *****************************************************************************/
 
-using namespace std;
-using namespace emu::pc;
 
 namespace emu { namespace me11dev {
-    class LongTextBoxAction : public Action {
+
+    class LongTextBoxAction : public Action
+    {
     public:
-      LongTextBoxAction(Crate * crate, string buttonLabel);
+
+      LongTextBoxAction(emu::pc::Crate * crate, std::string buttonLabel);
 
       void display(xgi::Output * out);
-      void respond(xgi::Input * in, ostringstream & out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+
     protected:
-      string buttonLabel;
-      string textBoxContents;
+
+      std::string buttonLabel;
+      std::string textBoxContents;
     };
   }
 }

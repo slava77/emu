@@ -28,9 +28,6 @@
  * method to provide access to other form elements.
  *****************************************************************************/
 
-using namespace std;
-using namespace emu::pc;
-using namespace boost;
 
 namespace emu { 
 
@@ -41,8 +38,9 @@ class Crate;
 
 namespace me11dev {
 
-    typedef vector< shared_ptr< Action> > t_actionvector;
-    typedef map< string, t_actionvector > t_vectormap;
+    typedef std::vector< boost::shared_ptr< Action > > t_actionvector;
+    typedef std::vector< boost::shared_ptr< LogAction > > t_logactionvector;
+    typedef std::map< std::string, t_actionvector > t_vectormap;
 
     class Manager : public virtual xdaq::WebApplication
     {
@@ -56,42 +54,43 @@ namespace me11dev {
 
       // We have to use a pointer because otherwise you get "object slicing"
       // where C++ uses the superclass method instead of the subclass method.
-      // Additionally, we use shared_ptr because we store them in a vector and
+      // Additionally, we use boost::shared_ptr because we store them in a vector and
       // vectors are easier to delete when they do not contain raw pointers
       //
       // All that said, you probably want to use the ...ByTypename methods
       // which reduce your typing overhead
-      void addAction(shared_ptr<Action> act);
-      void addCommonAction(shared_ptr<Action> act);
-      void addLogAction(shared_ptr<LogAction> act);
+      void addAction(boost::shared_ptr<Action> act);
+      void addCommonAction(boost::shared_ptr<Action> act);
+      void addLogAction(boost::shared_ptr<LogAction> act);
 
       // These work analgously to the above methods, except they use a bit of
       // STL type hackery to reduce the repitition of the class name
-      template <typename T> void addActionByTypename(Crate * crate);
-      template <typename T> void addCommonActionByTypename(Crate * crate);
-      template <typename T> void addLogActionByTypename(Crate * crate);
+      template <typename T> void addActionByTypename(emu::pc::Crate * crate);
+      template <typename T> void addCommonActionByTypename(emu::pc::Crate * crate);
+      template <typename T> void addLogActionByTypename(emu::pc::Crate * crate);
 
     protected:
-      ostringstream webOutputLog;
-      // see the comment above addAction for why we use a vector of shared_ptr
-      vector<shared_ptr<Action> > commonActions;
-      t_vectormap groupactions; // map between the group names and they vector of associated actions
-      vector<string> groups; // vector of the group names (determines the order of the groups on the GUI)
-      vector<shared_ptr<LogAction> > logActions;
+
+      std::ostringstream webOutputLog;
+      // see the comment above addAction for why we use a vector of boost::shared_ptr
+      t_actionvector commonActions;
+      t_vectormap groupactions; // map between the group names and their vector of associated actions
+      std::vector<std::string> groups; // vector of the group names (determines the order of the groups on the GUI)
+      t_logactionvector logActions;
       Logger logger_;
 
 
       t_actionvector* current_actionvector; // pointer to the actionvector for the "current group"
-      void PutButtonsInGroup(string groupname); // put buttons in this group, create the group if it doesn't exist
-      string generateLoggerName();
+      void PutButtonsInGroup(std::string groupname); // put buttons in this group, create the group if it doesn't exist
+      std::string generateLoggerName();
       void bindWebInterface();
       void defaultWebPage(xgi::Input *in, xgi::Output *out);
-      template <typename T> string numberToString(T number);
+      template <typename T> std::string numberToString(T number);
       void commonActionsCallback(xgi::Input *in, xgi::Output *out);
       void actionsCallback(xgi::Input *in, xgi::Output *out);
       void groupActionsCallback(xgi::Input *in, xgi::Output *out);
       void logActionsCallback(xgi::Input *in, xgi::Output *out);
-      static int getFormValueInt(const string form_element, xgi::Input *in);
+      static int getFormValueInt(const std::string form_element, xgi::Input *in);
       static void BackToMainPage(xgi::Input * in, xgi::Output * out );
   };
 

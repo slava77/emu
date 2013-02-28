@@ -17,6 +17,9 @@
 #define UNDEFINEDGROUP "No Group Defined"
 
 using namespace cgicc;
+using namespace std;
+using namespace emu::pc;
+using namespace boost;
 
 namespace emu { namespace me11dev {
 
