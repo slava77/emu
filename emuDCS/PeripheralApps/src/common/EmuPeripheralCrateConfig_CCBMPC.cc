@@ -214,6 +214,14 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
      
   //End select signal
 
+  std::string PrepareForTriggering =
+    toolbox::toString("/%s/PrepareForTriggering",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",PrepareForTriggering) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Prepare For Triggering");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br() << std::endl;
+  //
   std::string ccbConfig =
     toolbox::toString("/%s/CCBConfig",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ccbConfig) << std::endl ;
@@ -221,6 +229,7 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br() << std::endl;
+  //
   std::string HardReset =
     toolbox::toString("/%s/HardReset",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",HardReset) << std::endl ;
@@ -290,6 +299,36 @@ void EmuPeripheralCrateConfig::CCBReadFirmware(xgi::Input * in, xgi::Output * ou
     throw (xgi::exception::Exception)
   {
     thisCCB->configure();
+    this->CCBUtils(in,out);
+  }
+
+  void EmuPeripheralCrateConfig::PrepareForTriggering(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //// could we just do:
+    //thisCCB->EnableL1aFromTmbL1aReq();
+    //thisCCB->enablet()
+    //?
+
+    // set register 0 appropriately for communication over the VME backplane,
+    // this is necessary for the CCB to issue hard resets and to respond to L1
+    // requests from the TMB.
+    thisCCB->setCCBMode(CCB::VMEFPGA);
+
+    // re-load the userPROMs and FPGA PROMs to be certain that every board is in
+    // the desired state
+    thisCCB->hardReset();
+
+    // reset every board's counters (including the bunch crossing number)
+    thisCCB->l1aReset();
+
+    // tell the CCB to respond to L1 requests on the backplane (from the TMB)
+    // with L1 accepts (L1As)
+    thisCCB->EnableL1aFromTmbL1aReq();
+
+    // initiate triggering (tell all board the first bunch crossing has occured)
+    thisCCB->bc0();
+
     this->CCBUtils(in,out);
   }
 
