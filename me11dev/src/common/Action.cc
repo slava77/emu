@@ -99,7 +99,6 @@ namespace emu { namespace me11dev {
     void Action::AddButton(xgi::Output *out,
 			   const string button_name,
 			   const string button_style)
-      throw (xgi::exception::Exception)
     {
       *out << cgicc::input()
 	.set("type","submit")
@@ -114,7 +113,6 @@ namespace emu { namespace me11dev {
 				      const string textbox_default_value,
 				      const string button_style,
 				      const string textbox_style)
-      throw (xgi::exception::Exception)
     {
       *out << cgicc::input()
 	.set("type","submit")
@@ -137,7 +135,6 @@ namespace emu { namespace me11dev {
 					   const string button_style,
 					   const string textbox_style1,
 					   const string textbox_style2)
-      throw (xgi::exception::Exception)
     {
       *out << cgicc::input()
 	.set("type","submit")
@@ -162,7 +159,7 @@ namespace emu { namespace me11dev {
 					  const string textbox_default_value,
 					  const string button_style,
 					  const string textbox_style)
-      throw (xgi::exception::Exception) {
+    {
       *out << cgicc::div()
 	.set("style", "border: #000 solid 1px; padding: 1em; ")
 	   << cgicc::input()
