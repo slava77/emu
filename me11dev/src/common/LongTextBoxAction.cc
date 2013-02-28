@@ -1,5 +1,7 @@
 #include "emu/me11dev/LongTextBoxAction.h"
 
+#include "emu/me11dev/utils.h"
+
 namespace emu { namespace me11dev {
 
     LongTextBoxAction::LongTextBoxAction(emu::pc::Crate * crate, const std::string& buttonLabel)

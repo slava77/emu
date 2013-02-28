@@ -37,8 +37,8 @@ namespace emu { namespace me11dev {
     Manager::Manager( xdaq::ApplicationStub *s ) :
       xdaq::WebApplication( s ),
       webOutputLog(),
-      logger_( Logger::getInstance( generateLoggerName() ) ),
-      current_actionvector(0)
+      current_actionvector(0),
+      logger_( Logger::getInstance( generateLoggerName() ) )
     {
       XMLParser xmlparser;
       xmlparser.parseFile(XML_CONFIGURATION_FILE);
@@ -409,21 +409,6 @@ namespace emu { namespace me11dev {
       logActions.push_back(shared_ptr<T>(new T(crate)));
     }
 
-    int Manager::getFormValueInt(const string& form_element, xgi::Input *in)
-    {
-      const cgicc::Cgicc cgi(in);
-      int form_value;
-      cgicc::const_form_iterator name = cgi.getElement(form_element);
-      if(name !=cgi.getElements().end())
-        {
-          form_value = cgi[form_element]->getIntegerValue();
-        }
-      else
-        {
-          XCEPT_RAISE( xcept::Exception, "Form element, " + form_element + ", was not found." );
-        }
-      return form_value;
-    }
 
     void Manager::BackToMainPage(xgi::Input * in, xgi::Output * out ) // Redirect back to the main page. -Joe
     {
@@ -444,12 +429,6 @@ namespace emu { namespace me11dev {
            << endl;
     }
 
-    template <typename T>
-    string Manager::numberToString(T number) {
-      stringstream convert;
-      convert << number;
-      return convert.str();
-    }
 
     string Manager::generateLoggerName()
     {

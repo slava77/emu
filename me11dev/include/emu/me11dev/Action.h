@@ -90,10 +90,6 @@ namespace me11dev {
       emu::pc::TMB* tmb;
       emu::pc::CCB* ccb;
 
-      static int getFormValueInt(const std::string& form_element, xgi::Input *in);
-      static int getFormValueIntHex(const std::string& form_element, xgi::Input *in);
-      static float getFormValueFloat(const std::string& form_element, xgi::Input *in);
-      static std::string getFormValueString(const std::string& form_element, xgi::Input *in);
 
       static void AddButton(xgi::Output *out,
 			    const std::string& button_name,
