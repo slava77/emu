@@ -2,6 +2,7 @@
 #define __emu_me11dev_LongTextBoxAction_h__
 
 #include "emu/me11dev/Action.h"
+#include "emu/me11dev/ActionValue.h"
 
 /******************************************************************************
  * The LongTextBoxAction Class
@@ -31,7 +32,7 @@
 
 namespace emu { namespace me11dev {
 
-    class LongTextBoxAction : public Action
+    class LongTextBoxAction : public Action, public ActionValue<std::string>
     {
     public:
 
@@ -43,10 +44,10 @@ namespace emu { namespace me11dev {
     protected:
 
       std::string buttonLabel_;
-      std::string textBoxContents_;
     };
   }
 }
 
 #endif
+
 

@@ -10,6 +10,7 @@
 #include "emu/me11dev/Action.h"
 #include "emu/me11dev/LogAction.h"
 #include "emu/me11dev/LongTextBoxAction.h"
+#include "emu/me11dev/ActionValue.h"
 
 /******************************************************************************
  * The Buttons
@@ -78,28 +79,28 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetComparatorThresholds : public Action {
+    class SetComparatorThresholds : public Action, public ActionValue<float> {
     public:
       SetComparatorThresholds(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetComparatorThresholdsBroadcast : public Action {
+    class SetComparatorThresholdsBroadcast : public Action, public ActionValue<float> {
     public:
       SetComparatorThresholdsBroadcast(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetUpComparatorPulse : public Action {
+    class SetUpComparatorPulse : public Action, public ActionValue<int> {
     public:
       SetUpComparatorPulse(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetUpPrecisionCapacitors : public Action {
+    class SetUpPrecisionCapacitors : public Action, public ActionValue<int> {
     public:
       SetUpPrecisionCapacitors(emu::pc::Crate * crate);
       void display(xgi::Output * out);
@@ -134,7 +135,7 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetDMBDACs : public Action {
+    class SetDMBDACs : public Action, public ActionValue<float> {
     public:
       SetDMBDACs(emu::pc::Crate * crate);
       void display(xgi::Output * out);
@@ -148,21 +149,21 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetPipelineDepthAllDCFEBs : public Action {
+    class SetPipelineDepthAllDCFEBs : public Action, public ActionValue<int> {
     public:
       SetPipelineDepthAllDCFEBs(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetFineDelayForADCFEB : public Action {
+    class SetFineDelayForADCFEB : public Action, public Action2Values<int, int> {
     public:
       SetFineDelayForADCFEB(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class TMBHardResetTest : public Action {
+    class TMBHardResetTest : public Action, public ActionValue<int> {
     public:
       TMBHardResetTest(emu::pc::Crate * crate);
       void display(xgi::Output * out);
@@ -176,7 +177,7 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class DDUWriteKillFiber : public Action {
+    class DDUWriteKillFiber : public Action, public ActionValue<std::string> {
     public:
       DDUWriteKillFiber(emu::pc::Crate * crate);
       void display(xgi::Output * out);
@@ -202,7 +203,7 @@ namespace emu { namespace me11dev {
      *
      * A domain-specific-lanaguage for issuing vme commands.
      *************************************************************************/
-    class ExecuteVMEDSL : public Action {
+    class ExecuteVMEDSL : public Action, public ActionValue<std::string> {
     public:
       ExecuteVMEDSL(emu::pc::Crate * crate);
       void display(xgi::Output * out);
@@ -254,4 +255,5 @@ namespace emu { namespace me11dev {
 }
 
 #endif //__emu_me11dev_Buttons_h__
+
 
