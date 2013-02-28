@@ -31,7 +31,7 @@ namespace emu { namespace me11dev {
        * annoying.
        ************************************************************************/
       void respond(xgi::Input * in, ostringstream & out);
-      virtual void respond(xgi::Input * in, ostringstream & out, ostringstream & webOutputLog) = 0;
+      virtual void respond(xgi::Input * in, xgi::Output * out, ostringstream & ssout, ostringstream & webOutputLog) = 0;
     };
   }
 }
