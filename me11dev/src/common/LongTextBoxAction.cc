@@ -5,15 +5,14 @@
 namespace emu { namespace me11dev {
 
     LongTextBoxAction::LongTextBoxAction(emu::pc::Crate * crate, const std::string& buttonLabel)
-      : Action(crate)
-    {
-      this->buttonLabel = buttonLabel;
-      this->textBoxContents = std::string("");
-    }
+      : Action(crate),
+        buttonLabel_(buttonLabel),
+        textBoxContents_("")
+    {}
 
     void LongTextBoxAction::display(xgi::Output * out){
-      AddButtonWithLongTextBox(out,
-			       this->buttonLabel,
+      addButtonWithLongTextBox(out,
+			       buttonLabel_,
 			       "longtextbox",
 			       "");
     }
@@ -21,7 +20,8 @@ namespace emu { namespace me11dev {
     // remember to call this base method with you override it, otherwise
     // textBoxContents will be empty!
     void LongTextBoxAction::respond(xgi::Input * in, std::ostringstream & out){
-      this->textBoxContents = getFormValueString("longtextbox", in);
+      textBoxContents_ = getFormValueString("longtextbox", in);
     }
   }
 }
+

@@ -28,11 +28,11 @@ using namespace emu::pc;
 
 namespace emu { namespace me11dev {
 
-    void HardReset::respond(xgi::Input * in, ostringstream & out) { ccb->hardReset(); }
+    void HardReset::respond(xgi::Input * in, ostringstream & out) { ccb_->hardReset(); }
 
-    void L1Reset::respond(xgi::Input * in, ostringstream & out) { ccb->l1aReset(); }
+    void L1Reset::respond(xgi::Input * in, ostringstream & out) { ccb_->l1aReset(); }
 
-    void BC0::respond(xgi::Input * in, ostringstream & out) { ccb->bc0(); }
+    void BC0::respond(xgi::Input * in, ostringstream & out) { ccb_->bc0(); }
 
 
     /**************************************************************************
@@ -45,12 +45,12 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void ReadBackUserCodes::display(xgi::Output * out){
-      AddButton(out, "Read back usercodes");
+      addButton(out, "Read back usercodes");
     }
 
     void ReadBackUserCodes::respond(xgi::Input * in, ostringstream & out) {
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin();
-	  dmb != dmbs.end();
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin();
+	  dmb != dmbs_.end();
 	  ++dmb) {
 	vector <CFEB> cfebs = (*dmb)->cfebs();
 	for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb) {
@@ -78,7 +78,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void SetComparatorThresholds::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "Set Comparator Thresholds (volts):",
 			   "ComparatorThresholds",
 			   "0.03");
@@ -87,7 +87,7 @@ namespace emu { namespace me11dev {
     void SetComparatorThresholds::respond(xgi::Input * in, ostringstream & out) {
       float ComparatorThresholds = getFormValueFloat("ComparatorThresholds", in);
 
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->set_comp_thresh(ComparatorThresholds);
 	}
@@ -103,7 +103,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void SetComparatorThresholdsBroadcast::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "Set Comparator Thresholds-broadcast (volts):",
 			   "ComparatorThresholds",
 			   "0.03");
@@ -112,7 +112,7 @@ namespace emu { namespace me11dev {
     void SetComparatorThresholdsBroadcast::respond(xgi::Input * in, ostringstream & out) {
       float ComparatorThresholds = getFormValueFloat("ComparatorThresholds", in);
 
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->dcfeb_set_comp_thresh_bc(ComparatorThresholds);
 	}
@@ -128,7 +128,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void SetUpComparatorPulse::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "Set up internal capacitor pulse on halfstrip:",
 			   "halfstrip",
 			   "16");
@@ -137,12 +137,12 @@ namespace emu { namespace me11dev {
     void SetUpComparatorPulse::respond(xgi::Input * in, ostringstream & out) {
       int halfstrip = getFormValueInt("halfstrip", in);
 
-      ccb->hardReset();
+      ccb_->hardReset();
 
-      tmb->SetClctPatternTrigEnable(1);
-      tmb->WriteRegister(emu::pc::seq_trig_en_adr);
+      tmb_->SetClctPatternTrigEnable(1);
+      tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
 
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  int hp[6] = {halfstrip+1, halfstrip, halfstrip+1, halfstrip, halfstrip+1, halfstrip}; 
 	  // Note: +1 for layers 0,2,4 is because ME1/1 doesn't have
@@ -154,9 +154,9 @@ namespace emu { namespace me11dev {
 	  usleep(100);
 	}
 
-      ccb->syncReset();//check
+      ccb_->syncReset();//check
       usleep(100);
-      ccb->bx0();   //check
+      ccb_->bx0();   //check
     }
 
     /**************************************************************************
@@ -169,7 +169,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void SetUpPrecisionCapacitors::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "Set up precision capacitor pulse on strip:",
 			   "StripToPulse",
 			   "8");
@@ -180,24 +180,24 @@ namespace emu { namespace me11dev {
 
       int strip_to_pulse = getFormValueInt("StripToPulse", in);
 
-      ccb->hardReset();
+      ccb_->hardReset();
 
-      tmb->SetClctPatternTrigEnable(1);
-      tmb->WriteRegister(emu::pc::seq_trig_en_adr);
+      tmb_->SetClctPatternTrigEnable(1);
+      tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
 
 
-      crate->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->set_ext_chanx(strip_to_pulse);//check
 	  (*dmb)->buck_shift();
 	  usleep(100);
 	}
-      crate->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
+      crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
 
-      ccb->syncReset();//check
+      ccb_->syncReset();//check
       usleep(100);
-      ccb->bx0();
+      ccb_->bx0();
     }
 
     /**************************************************************************
@@ -210,11 +210,11 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void PulseInternalCapacitors::display(xgi::Output * out) {
-      AddButton(out, "Pulse internal capacitors via DMB");
+      addButton(out, "Pulse internal capacitors via DMB");
     }
 
     void PulseInternalCapacitors::respond(xgi::Input * in, ostringstream & out) {
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->inject(1,0);
 	}
@@ -230,13 +230,13 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void PulseInternalCapacitorsCCB::display(xgi::Output * out) {
-      AddButton(out, "Pulse internal capacitors via CCB");
+      addButton(out, "Pulse internal capacitors via CCB");
     }
 
     void PulseInternalCapacitorsCCB::respond(xgi::Input * in, ostringstream & out) {
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
-	  ccb->inject(1,0);
+	  ccb_->inject(1,0);
 	}
     }
 
@@ -250,11 +250,11 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void PulsePrecisionCapacitors::display(xgi::Output * out) {
-      AddButton(out, "Pulse precision capacitors via DMB");
+      addButton(out, "Pulse precision capacitors via DMB");
     }
 
     void PulsePrecisionCapacitors::respond(xgi::Input * in, ostringstream & out) {
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->pulse(1,0);
 	}
@@ -270,13 +270,13 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void PulsePrecisionCapacitorsCCB::display(xgi::Output * out) {
-      AddButton(out, "Pulse precision capacitors via CCB");
+      addButton(out, "Pulse precision capacitors via CCB");
     }
 
     void PulsePrecisionCapacitorsCCB::respond(xgi::Input * in, ostringstream & out) {
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
-	  ccb->pulse(1,0);
+	  ccb_->pulse(1,0);
 	}
     }
 
@@ -290,7 +290,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void SetDMBDACs::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "Set DMB DACs 0 and 1 to (volts):",
 			   "DAC",
 			   "1.0");
@@ -298,7 +298,7 @@ namespace emu { namespace me11dev {
 
     void SetDMBDACs::respond(xgi::Input * in, ostringstream & out) {
       float DAC = getFormValueFloat("DAC", in);
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->set_dac(DAC,DAC);
 	}
@@ -314,11 +314,11 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void ShiftBuckeyesNormRun::display(xgi::Output * out) {
-      AddButton(out, "Shift Buckeyes into normal mode");
+      addButton(out, "Shift Buckeyes into normal mode");
     }
 
     void ShiftBuckeyesNormRun::respond(xgi::Input * in, ostringstream & out) {
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->shift_all(NORM_RUN);
 	}
@@ -334,7 +334,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void SetPipelineDepthAllDCFEBs::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "Set pipeline depth on all DCFEBs:",
 			   "depth",
 			   "61");
@@ -342,7 +342,7 @@ namespace emu { namespace me11dev {
 
     void SetPipelineDepthAllDCFEBs::respond(xgi::Input * in, ostringstream & out) {
       int depth = getFormValueInt("depth", in);
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  vector <CFEB> cfebs = (*dmb)->cfebs();
 	  for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb)
@@ -362,7 +362,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void SetFineDelayForADCFEB::display(xgi::Output * out) {
-      AddButtonWithTwoTextBoxes(out,
+      addButtonWithTwoTextBoxes(out,
 				"Set Fine Delay on FEB(0-4) to (0-15):",
 				"DcfebNumber",
 				"1",
@@ -373,7 +373,7 @@ namespace emu { namespace me11dev {
     void SetFineDelayForADCFEB::respond(xgi::Input * in, ostringstream & out) {
       int delay = getFormValueInt("FineDelay", in);
       int cfeb_number = getFormValueInt("DcfebNumber", in);
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb)
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  vector <CFEB> cfebs = (*dmb)->cfebs();
 	  (*dmb)->dcfeb_fine_delay(cfebs.at(cfeb_number), delay);
@@ -392,7 +392,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void TMBHardResetTest::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "TMB Hard Reset Test, number of resets:",
 			   "NumberOfHardResets",
 			   "100");
@@ -402,11 +402,11 @@ namespace emu { namespace me11dev {
       int NumberOfHardResets = getFormValueInt("NumberOfHardResets", in);
       out << "=== TMB Hard Reset Test ===\n";
 
-      int expected_day = tmb->GetExpectedTmbFirmwareDay();
-      int expected_month = tmb->GetExpectedTmbFirmwareMonth();
-      int expected_year = tmb->GetExpectedTmbFirmwareYear();
-      int expected_type = tmb->GetExpectedTmbFirmwareType();
-      int expected_version = tmb->GetExpectedTmbFirmwareVersion();
+      int expected_day = tmb_->GetExpectedTmbFirmwareDay();
+      int expected_month = tmb_->GetExpectedTmbFirmwareMonth();
+      int expected_year = tmb_->GetExpectedTmbFirmwareYear();
+      int expected_type = tmb_->GetExpectedTmbFirmwareType();
+      int expected_version = tmb_->GetExpectedTmbFirmwareVersion();
       int hiccup_number = 0;
 
       time_t now = time(0);
@@ -420,7 +420,7 @@ namespace emu { namespace me11dev {
       // the CCB writes to stdout every time it issues a hard rest, but we
       // don't care we turn this back on after the loop
       ostringstream waste;
-      ccb->RedirectOutput(&waste);
+      ccb_->RedirectOutput(&waste);
 
       for (i = 0;
 	   i < NumberOfHardResets && !firmware_lost;
@@ -430,20 +430,20 @@ namespace emu { namespace me11dev {
 	    out << "Hard Reset Number " << i << endl;
 	  }
 
-	  ccb->hardReset();
+	  ccb_->hardReset();
 
 	  const int maximum_firmware_readback_attempts = 2;
 	  int firmware_readback_attempts = 0;
 	  do {
 	    firmware_lost = false;
-            tmb->FirmwareDate(); // reads the month and day off of the tmb
-	    int actual_day = tmb->GetReadTmbFirmwareDay();
-	    int actual_month = tmb->GetReadTmbFirmwareMonth();
-	    tmb->FirmwareYear(); // reads the year off of the tmb
-	    int actual_year = tmb->GetReadTmbFirmwareYear();
-	    tmb->FirmwareVersion(); // reads the version off of the tmb
-	    int actual_type = tmb->GetReadTmbFirmwareType();
-	    int actual_version = tmb->GetReadTmbFirmwareVersion();
+            tmb_->FirmwareDate(); // reads the month and day off of the tmb
+	    int actual_day = tmb_->GetReadTmbFirmwareDay();
+	    int actual_month = tmb_->GetReadTmbFirmwareMonth();
+	    tmb_->FirmwareYear(); // reads the year off of the tmb
+	    int actual_year = tmb_->GetReadTmbFirmwareYear();
+	    tmb_->FirmwareVersion(); // reads the version off of the tmb
+	    int actual_type = tmb_->GetReadTmbFirmwareType();
+	    int actual_version = tmb_->GetReadTmbFirmwareVersion();
 
 	    if ((actual_day != expected_day) ||
 		(actual_month != expected_month) ||
@@ -462,7 +462,7 @@ namespace emu { namespace me11dev {
 		   firmware_lost);
 	}
 
-      ccb->RedirectOutput(&cout);
+      ccb_->RedirectOutput(&cout);
 
       now = time(0);
       tm =  localtime(&now);
@@ -486,14 +486,14 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void DDUReadKillFiber::display(xgi::Output * out) {
-      AddButton(out, "Read DDU Kill Fiber");
+      addButton(out, "Read DDU Kill Fiber");
     }
 
     void DDUReadKillFiber::respond(xgi::Input * in, ostringstream & out) {
       out << "=== DDU Read Kill Fiber ===" << endl;
 
-      for(vector <DDU*>::iterator ddu = ddus.begin();
-	  ddu != ddus.end();
+      for(vector <DDU*>::iterator ddu = ddus_.begin();
+	  ddu != ddus_.end();
 	  ++ddu) {
 	out << "DDU with ctrl fpga user code: " << (*ddu)->CtrlFpgaUserCode()
 	    << hex << setfill('0') // set up for next two hex values
@@ -514,7 +514,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void DDUWriteKillFiber::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "Write DDU Kill Fiber (15 bits in hex)",
 			   "KillFiber",
 			   "7fff");
@@ -525,8 +525,8 @@ namespace emu { namespace me11dev {
 
       out << "=== DDU Write Kill Fiber ===" << endl;
 
-      for(vector <DDU*>::iterator ddu = ddus.begin();
-	  ddu != ddus.end();
+      for(vector <DDU*>::iterator ddu = ddus_.begin();
+	  ddu != ddus_.end();
 	  ++ddu) {
 	(*ddu)->writeFlashKillFiber(KillFiber);
       }
@@ -543,7 +543,7 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
     
     void ExecuteVMEDSL::display(xgi::Output * out) {
-      AddButtonWithTextBox(out,
+      addButtonWithTextBox(out,
 			   "Execute VME DSL commands in file:",
 			   "VMEProgramFile",
 			   "/local.home/cscme11/vme.commands",
@@ -724,7 +724,7 @@ namespace emu { namespace me11dev {
 	addr = (addr&0x07ffff) | slot<<19;
 	
 	printf("Calling:  vme_controller(%d,%06x,&%04x,{%02x,%02x})  ",irdwr,addr&0xffffff,data&0xffff,rcv[0]&0xff,rcv[1]&0xff);
-	crate->vmeController()->vme_controller(irdwr,addr,&data,rcv); // Send the VME command!
+	crate_->vmeController()->vme_controller(irdwr,addr,&data,rcv); // Send the VME command!
 	VMEController::print_decoded_vme_address(addr,&data);
 	usleep(1);
 	
@@ -747,19 +747,19 @@ namespace emu { namespace me11dev {
     { /* ... nothing to see here ... */ }
 
     void BuckShiftTest::display(xgi::Output * out) {
-      AddButton(out, "Buck Shift Test");
+      addButton(out, "Buck Shift Test");
     }
 
     void BuckShiftTest::respond(xgi::Input * in, ostringstream & out) {
       out << "=== Buck Shift Test ===" << endl;
-      crate->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
-      for(vector <DAQMB*>::iterator dmb = dmbs.begin();
-	  dmb != dmbs.end();
+      crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin();
+	  dmb != dmbs_.end();
 	  ++dmb) {
 	int val = (*dmb)->buck_shift_test();
 	cout<<"Buck Shift Test returns: "<<val<<endl;
       }
-      crate->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
+      crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
     }
 
 
@@ -768,7 +768,7 @@ namespace emu { namespace me11dev {
     { }
 
     void IndaraButton::display(xgi::Output * out) {
-      AddButton(out, "IndaraButton");
+      addButton(out, "IndaraButton");
     }
     void IndaraButton::respond(xgi::Input * in, ostringstream & out) {
       out << "You Pushed Indara's Buttons!! " <<endl;
@@ -791,3 +791,4 @@ namespace emu { namespace me11dev {
    }*/
   }
 }
+
