@@ -20,7 +20,10 @@
       </properties>
     </xc:Application>
 
+  </xc:Context>
 
+  <xc:Context url="http://emume11.cern.ch:20200">
+    <xc:Application id="12" instance="0" class="emu::daq::manager::Application" network="local"/>
   </xc:Context>
 
 </xc:Partition>

@@ -11,6 +11,7 @@
 #include "emu/me11dev/LogAction.h"
 #include "emu/me11dev/LongTextBoxAction.h"
 #include "emu/me11dev/ActionValue.h"
+#include "emu/me11dev/Manager.h"
 
 /******************************************************************************
  * The Buttons
@@ -37,6 +38,8 @@ namespace emu { namespace me11dev {
      * For tests/actions that are one or two lines and just need a button and
      * no text boxes 
      *************************************************************************/
+
+    class Manager;
 
     class HardReset : public Action {
     public:
@@ -194,6 +197,13 @@ namespace emu { namespace me11dev {
     class IndaraButton : public Action {
     public:
       IndaraButton(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };     
+
+    class PipelineDepthScanButton : public Action, public Action2Values<int, int> {
+    public:
+      PipelineDepthScanButton(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };     

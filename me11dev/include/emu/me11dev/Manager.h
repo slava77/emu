@@ -1,6 +1,7 @@
 #ifndef __emu_me11dev_Manager_h__
 #define __emu_me11dev_Manager_h__
 
+#define UNDEFINEDGROUP "No Group Defined"
 
 #include "xdaq/WebApplication.h"
 
@@ -65,9 +66,14 @@ namespace me11dev {
 
       // These work analgously to the above methods, except they use a bit of
       // STL type hackery to reduce the repitition of the class name
+      template <typename T> void addActionByTypename(emu::pc::Crate * crate, emu::me11dev::Manager* manager );
       template <typename T> void addActionByTypename(emu::pc::Crate * crate);
       template <typename T> void addCommonActionByTypename(emu::pc::Crate * crate);
       template <typename T> void addLogActionByTypename(emu::pc::Crate * crate);
+
+      void startDAQ( const std::string& runtype );
+      void stopDAQ();
+      bool waitForDAQToExecute( const std::string command, const uint64_t seconds );
 
     protected:
 

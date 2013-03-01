@@ -33,11 +33,14 @@ class TMB;
 
 namespace me11dev {
 
+  class Manager;
+
     class Action
     {
     public:
 
       Action(emu::pc::Crate * crate);
+      Action(emu::pc::Crate * crate, Manager* manager);
 
       // a virtual destructor removes a warning about have a class with virtual
       // methods but a non-virtual destructor
@@ -89,6 +92,7 @@ namespace me11dev {
       std::vector<emu::pc::DDU*> ddus_;
       emu::pc::TMB* tmb_;
       emu::pc::CCB* ccb_;
+      emu::me11dev::Manager* manager_;
 
       static void addButton(xgi::Output *out,
 			    const std::string& button_name,
