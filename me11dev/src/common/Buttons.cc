@@ -1,5 +1,6 @@
 #include "emu/me11dev/Buttons.h"
 #include "emu/me11dev/utils.h"
+#include "emu/me11dev/Manager.h"
 
 #include "emu/pc/Crate.h"
 #include "emu/pc/VMEController.h"

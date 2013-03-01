@@ -11,7 +11,6 @@
 #include "emu/me11dev/LogAction.h"
 #include "emu/me11dev/LongTextBoxAction.h"
 #include "emu/me11dev/ActionValue.h"
-#include "emu/me11dev/Manager.h"
 
 /******************************************************************************
  * The Buttons
