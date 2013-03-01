@@ -20,7 +20,17 @@ namespace emu { namespace me11dev {
       dmbs_(crate_->daqmbs()),
       ddus_(crate_->ddus()),
       tmb_(crate_->tmbs().at(0)),
-      ccb_(crate_->ccb())
+      ccb_(crate_->ccb()),
+      manager_(NULL)
+    {}
+
+    Action::Action(Crate * crate, emu::me11dev::Manager* manager):
+      crate_(crate),
+      dmbs_(crate_->daqmbs()),
+      ddus_(crate_->ddus()),
+      tmb_(crate_->tmbs().at(0)),
+      ccb_(crate_->ccb()),
+      manager_(manager)
     {}
 
 

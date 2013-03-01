@@ -5,9 +5,14 @@
 #include "emu/pc/EmuEndcap.h"
 #include "emu/pc/Crate.h"
 
+#include "emu/soap/Messenger.h"
+
 //#include "xdaq/NamespaceURI.h"
 
 #include "cgicc/HTMLClasses.h"
+#include "xdata/Integer64.h"
+#include "xdata/Boolean.h"
+#include "xdata/String.h"
 
 #include <iomanip>
 
@@ -100,6 +105,7 @@ namespace emu { namespace me11dev {
       addActionByTypename<DDUWriteKillFiber>(crate);
       addActionByTypename<ExecuteVMEDSL>(crate);
       addActionByTypename<IndaraButton>(crate);
+      addActionByTypename<PipelineDepthScanButton>( crate, this );
 
 
       /************************************************************************
@@ -391,6 +397,12 @@ namespace emu { namespace me11dev {
       currentActionVector_->push_back(shared_ptr<T>(new T(crate)));
     }
 
+    template <typename T>
+    void Manager::addActionByTypename(Crate * crate, emu::me11dev::Manager* manager ) {
+      if(!currentActionVector_) putButtonsInGroup(UNDEFINEDGROUP);
+      currentActionVector_->push_back(shared_ptr<T>(new T(crate, manager)));
+    }
+
     void Manager::addCommonAction(shared_ptr<Action> act) {
       commonActions_.push_back(act);
     }
@@ -442,6 +454,61 @@ namespace emu { namespace me11dev {
       loggerName = ss.str();
 
       return loggerName;
+    }
+
+    void Manager::startDAQ( const string& runtype ){
+      emu::soap::Messenger m( this );
+      //
+      // Configure DAQ
+      //
+      xdata::String    runType            = ( runtype.size() == 0 ? "Monitor" : runtype );
+      xdata::Integer64 maxNumberOfEvents  = -1; // unlimited if negative
+      xdata::Boolean   writeBadEventsOnly = false;
+      m.setParameters( "emu::daq::manager::Application", 
+		       emu::soap::Parameters()
+		       .add( "runType"           , &runType            )
+		       .add( "maxNumberOfEvents" , &maxNumberOfEvents  )
+		       .add( "writeBadEventsOnly", &writeBadEventsOnly ) );
+      m.sendCommand( "emu::daq::manager::Application", "Configure" );      
+      waitForDAQToExecute( "Configure", 10 );
+      //
+      // Enable DAQ
+      //
+      m.sendCommand( "emu::daq::manager::Application", "Enable" );
+      waitForDAQToExecute( "Enable", 10 );
+    }
+
+    void Manager::stopDAQ(){
+      emu::soap::Messenger( this ).sendCommand( "emu::daq::manager::Application", "Halt" );
+      waitForDAQToExecute( "Halt", 10 );
+    }
+
+    bool Manager::waitForDAQToExecute( const string command, const uint64_t seconds ){
+      string expectedState;
+      if      ( command == "Configure" ){ expectedState = "Ready";   }
+      else if ( command == "Enable"    ){ expectedState = "Enabled"; }
+      else if ( command == "Halt"      ){ expectedState = "Halted";  }
+      else                              { return true; }
+      
+      // Poll, and return TRUE if and only if DAQ gets into the expected state before timeout.
+      emu::soap::Messenger m( this );
+      xdata::String  daqState;
+      for ( uint64_t i=0; i<=seconds; ++i ){
+	m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "daqState", &daqState ) );
+	if ( daqState.toString() != "Halted"  && daqState.toString() != "Ready" && 
+	     daqState.toString() != "Enabled" && daqState.toString() != "INDEFINITE" ){
+	  LOG4CPLUS_ERROR( logger_, "Local DAQ is in " << daqState.toString() << " state. Please destroy and recreate local DAQ." );
+	  return false;
+	}
+	if ( daqState.toString() == expectedState ){ return true; }
+	LOG4CPLUS_INFO( logger_, "Waited " << i << " sec so far for local DAQ to get " 
+			<< expectedState << ". It is still in " << daqState.toString() << " state." );
+	::sleep( 1 );
+      }
+      
+      LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
+		       << ". It is in " << daqState.toString() << " state." );
+      return false;
     }
 
     /**

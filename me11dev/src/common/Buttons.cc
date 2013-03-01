@@ -10,6 +10,8 @@
 #include "emu/pc/TMB.h"
 #include "emu/pc/TMB_constants.h"
 
+#include "emu/utils/String.h"
+
 #include <iomanip>
 #include <ctime>
 
@@ -368,6 +370,8 @@ namespace emu { namespace me11dev {
         for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb)
         {
           (*dmb)->dcfeb_set_PipelineDepth(*cfeb, depth);
+	  usleep(100);
+	  (*dmb)->Pipeline_Restart( *cfeb );
         }
       }
     }
@@ -405,6 +409,102 @@ namespace emu { namespace me11dev {
         (*dmb)->dcfeb_fine_delay(cfebs.at(cfeb_number), delay);
         usleep(100);
         (*dmb)->Pipeline_Restart(cfebs[cfeb_number]);
+      }
+    }
+
+    /**************************************************************************
+     * PipelineDepthScanButton
+     *
+     *************************************************************************/
+
+    PipelineDepthScanButton::PipelineDepthScanButton(Crate * crate, emu::me11dev::Manager* manager)
+      : Action( crate, manager ),
+        Action2Values<int, int>(40, 70) {}
+
+    void PipelineDepthScanButton::display(xgi::Output * out)
+    {
+      addButtonWithTwoTextBoxes(out,
+                                "Scan pipeline depth in 50ns time bins",
+                                "From",
+                                numberToString(value1()),
+                                "To",
+                                numberToString(value2()));
+    }
+
+    void PipelineDepthScanButton::respond(xgi::Input * in, ostringstream & out)
+    {
+      int fromDepth = getFormValueInt("From", in);
+      value1( fromDepth ); // save the value
+
+      int toDepth = getFormValueInt("To", in);
+      value2( toDepth ); // save the value
+
+      const int strip_to_pulse = 8; // TODO: make configurable
+
+      // set register 0 appropriately for communication over the VME backplane,
+      // this is necessary for the CCB to issue hard resets and to respond to L1
+      // requests from the TMB.
+      ccb_->setCCBMode(CCB::VMEFPGA);
+
+      //
+      // SetUpPrecisionCapacitors
+      //
+      ccb_->hardReset();
+
+      tmb_->SetClctPatternTrigEnable(1);
+      tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
+
+      crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+      {
+        (*dmb)->set_ext_chanx(strip_to_pulse);//check
+        (*dmb)->buck_shift();
+        usleep(100);
+      }
+      crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
+
+      ccb_->syncReset();//check
+      usleep(100);
+      ccb_->bx0();
+
+      // reset every board's counters (including the bunch crossing number)
+      ccb_->l1aReset();
+      
+      // tell the CCB to respond to L1 requests on the backplane (from the TMB)
+      // with L1 accepts (L1As)
+      ccb_->EnableL1aFromTmbL1aReq();
+      
+      // initiate triggering (tell all board the first bunch crossing has occured)
+      ccb_->bc0();
+      
+      //
+      // Loop over the requested range of pipeline depth
+      //
+      for ( int iDepth = fromDepth; iDepth <= toDepth; ++iDepth ){
+
+	manager_->startDAQ( string("Pipeline")+emu::utils::stringFrom<int>( iDepth ) );
+    
+	ccb_->l1aReset();
+	
+	for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+	  {
+	    vector<CFEB> cfebs = (*dmb)->cfebs();
+	    for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb)
+	      {
+		(*dmb)->dcfeb_set_PipelineDepth( *cfeb, iDepth );
+		usleep(100);
+		(*dmb)->Pipeline_Restart( *cfeb );
+	      }
+	  }
+	
+	ccb_->bc0();
+	
+	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+	  {
+	    (*dmb)->pulse(5,0); // (N_pulses,t_delay)
+	  }
+
+	manager_->stopDAQ();
       }
     }
 
