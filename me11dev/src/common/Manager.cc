@@ -366,7 +366,8 @@ namespace emu { namespace me11dev {
 
       webOutputLog_ << action_output.str();
 
-      backToMainPage(in, out);
+      string anchor = "#"+withoutSpecialChars(groups_[g]);
+      backToMainPage(in, out, anchor);
     }
 
     void Manager::logActionsCallback(xgi::Input *in, xgi::Output *out)
@@ -383,7 +384,7 @@ namespace emu { namespace me11dev {
       // don't append the header to out, and no need to do BackToMainPage
       if (action_output.str() == "*** Contents above was saved to a log file ***") return;
 
-      backToMainPage(in, out);
+      backToMainPage(in, out, "#OutputLog");
     }
 
     void Manager::addAction(shared_ptr<Action> act) {
@@ -422,7 +423,8 @@ namespace emu { namespace me11dev {
     }
 
 
-    void Manager::backToMainPage(xgi::Input * in, xgi::Output * out ) // Redirect back to the main page. -Joe
+    // Redirect back to the main page. -Joe
+    void Manager::backToMainPage(xgi::Input * in, xgi::Output * out, const std::string& anchor )
     {
       //// Use this after a "GET" button press to get back to the base url
       *out << HTMLDoctype(HTMLDoctype::eStrict)
@@ -430,7 +432,7 @@ namespace emu { namespace me11dev {
            << html().set("lang", "en").set("dir","ltr")
            << endl
            << head()
-           << meta().set("http-equiv","Refresh").set("content","0; url=./")
+           << meta().set("http-equiv","Refresh").set("content","0; url=./" + anchor)
            << head()
            << endl
            << body()
