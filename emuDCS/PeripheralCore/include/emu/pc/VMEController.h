@@ -241,6 +241,7 @@ public:
   void do_vme(char fcn, char vme,const char *snd,char *rcv, int wrt);
   int new_vme(char fcn, unsigned vme, unsigned short data, char *rcv, int when);
 
+  void SetPrintVMECommands(bool state){print_VME_commands = state;}
   void SetUseDelay(bool state){usedelay_ = state;}
   void SetUseDCS(bool state){useDCS_ = state;}
   void SetWarn_On_Shtdwn(bool state){Warn_On_Shtdwn = state;}
@@ -297,6 +298,7 @@ public:
   void scan_word(int reg, const char *snd, int cnt, char *rcv,int ird);
   void shift_bits(int reg,const char *snd, int cnt, char *rcv,int ird);
   void shift_state(int cnt, int mask);
+  static const void print_decoded_vme_address(const unsigned int ptr, const unsigned short int *data);
   
   //
   void  sleep_vme(const char *outbuf);   // time in usec
@@ -355,6 +357,7 @@ public:
   int NoWriteToEther;
    //
 private:
+  bool print_VME_commands;
   bool usedelay_;
   bool useDCS_;
   bool Warn_On_Shtdwn;
