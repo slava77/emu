@@ -33,7 +33,6 @@ namespace emu {
 
 void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
 {
-  DEBUG = print_VME_commands; // debug print forced when print_VME_commands =1 
   char cmd2[9000];
   char tmp[4];
   int kbit,kbybit;
