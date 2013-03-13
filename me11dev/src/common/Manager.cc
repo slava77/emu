@@ -18,7 +18,7 @@
 
 
 #define USE_CRATE_N 0 // ignore anything but the first crate
-#define XML_CONFIGURATION_FILE "/local.home/cscme11/config/pc/dans-crate-config.xml"
+#define XML_CONFIGURATION_FILE "/home/cscme11/config/pc/dans-crate-config.xml"
 #define UNDEFINEDGROUP "No Group Defined"
 
 using namespace cgicc;
@@ -87,6 +87,7 @@ namespace emu { namespace me11dev {
       addActionByTypename<SetUpComparatorPulse>(crate);
       addActionByTypename<SetUpPrecisionCapacitors>(crate);
       addActionByTypename<SetPipelineDepthAllDCFEBs>(crate);
+      addActionByTypename<ReadPipelineDepthAllDCFEBs>(crate);
       addActionByTypename<SetFineDelayForADCFEB>(crate);
       addActionByTypename<ShiftBuckeyesNormRun>(crate);
 
@@ -98,13 +99,15 @@ namespace emu { namespace me11dev {
       addActionByTypename<PulseInternalCapacitorsCCB>(crate);
       addActionByTypename<PulsePrecisionCapacitors>(crate);
       addActionByTypename<PulsePrecisionCapacitorsCCB>(crate);
+      addActionByTypename<TMBRegisters>(crate);
+      addActionByTypename<TMBDisableCopper>(crate);
+      addActionByTypename<TMBSetRegisters>(crate, this);
       addActionByTypename<TMBHardResetTest>(crate);
       
       putButtonsInGroup("Other Functions" );
       addActionByTypename<DDUReadKillFiber>(crate);
       addActionByTypename<DDUWriteKillFiber>(crate);
       addActionByTypename<ExecuteVMEDSL>(crate);
-      addActionByTypename<IndaraButton>(crate);
       addActionByTypename<PipelineDepthScanButton>( crate, this );
 
 
