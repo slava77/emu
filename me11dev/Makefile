@@ -37,6 +37,7 @@ TestIncludeDirs =
 IncludeDirs = \
 	$(XDAQ_ROOT)/include \
 	$(BUILD_HOME)/emu/base/include \
+	$(BUILD_HOME)/emu/soap/include \
 	$(BUILD_HOME)/emu/emuDCS/PeripheralCore/include \
 	$(BUILD_HOME)/emu/emuDCS/PeripheralApps/include \
 	$(BUILD_HOME)/emu/me11dev/include
