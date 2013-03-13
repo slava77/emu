@@ -158,6 +158,14 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
+    class ReadPipelineDepthAllDCFEBs : public Action {
+    public:
+      ReadPipelineDepthAllDCFEBs(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+  
+
     class SetFineDelayForADCFEB : public Action, public Action2Values<int, int> {
     public:
       SetFineDelayForADCFEB(emu::pc::Crate * crate);
@@ -193,12 +201,27 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
     
-    class IndaraButton : public Action {
+    class TMBRegisters : public Action {
     public:
-      IndaraButton(emu::pc::Crate * crate);
+      TMBRegisters(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
-    };     
+    };
+
+    class TMBSetRegisters : public Action, public Action2Values<std::string, std::string> {
+    public:
+      TMBSetRegisters(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+   
+    class TMBDisableCopper : public Action {
+    public:
+      TMBDisableCopper(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+     
 
     class PipelineDepthScanButton : public Action, public Action2Values<int, int> {
     public:

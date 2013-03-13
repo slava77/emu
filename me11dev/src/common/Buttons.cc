@@ -151,11 +151,12 @@ namespace emu { namespace me11dev {
     {
       int halfstrip = getFormValueInt("halfstrip", in);
       value(halfstrip); // save the value
-
-      ccb_->hardReset();
+     
+      //remove hard reset and do it only at "Prepare for triggering"     
+      //ccb_->hardReset();
       tmb_->SetClctPatternTrigEnable(1);
       tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
-
+      
       int hp[6] = {halfstrip+1, halfstrip, halfstrip+1, halfstrip, halfstrip+1, halfstrip};
       // Note: +1 for layers 0,2,4 is because ME1/1 doesn't have
       // staggered strips, but DAQMB codes assumes staggering.
@@ -194,8 +195,8 @@ namespace emu { namespace me11dev {
     {
       int strip_to_pulse = getFormValueInt("StripToPulse", in);
       value(strip_to_pulse); // save the value
-
-      ccb_->hardReset();
+    //remove hard reset and do it only at "Prepare for triggering"
+    //  ccb_->hardReset();
 
       tmb_->SetClctPatternTrigEnable(1);
       tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
@@ -376,6 +377,48 @@ namespace emu { namespace me11dev {
         }
       }
     }
+
+
+    /**************************************************************************
+     * ReadPipelineDepthAllDCFEBs
+     *
+     *Added by J. Pilot 5 Mar 2013
+     *************************************************************************/
+
+    ReadPipelineDepthAllDCFEBs::ReadPipelineDepthAllDCFEBs(Crate * crate)
+      : Action(crate)
+        {}
+
+    void ReadPipelineDepthAllDCFEBs::display(xgi::Output * out)
+    {
+      addButton(out, "Read Pipeline Depth");
+    }
+
+    void ReadPipelineDepthAllDCFEBs::respond(xgi::Input * in, ostringstream & out)
+    {
+      //int depth = getFormValueInt("depth", in);
+      //value(depth); // save the value
+
+      out << "Reading pipeline depth....." << endl;
+
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+      {
+        vector <CFEB> cfebs = (*dmb)->cfebs();
+        int currentPD = -1;
+        for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb)
+        {
+	  out << "ReadPipelineDepthAllDCFEBs is still under constuction." << endl;
+          	// currentPD = (*cfeb).GetPipelineDepth();
+		// out << "Pipeline Depth is: " << currentPD << endl;
+		// (*dmb)->dcfeb_set_PipelineDepth(*cfeb, currentPD);
+		// usleep(100);
+		// (*dmb)->Pipeline_Restart( *cfeb );
+        }
+      }
+    }
+
+
+
 
     /**************************************************************************
      * SetFineDelayForADCFEB
@@ -561,7 +604,7 @@ namespace emu { namespace me11dev {
           out << "Hard Reset Number " << i << endl;
         }
 
-        ccb_->hardReset();
+        //ccb_->hardReset();
 
         const int maximum_firmware_readback_attempts = 2;
         int firmware_readback_attempts = 0;
@@ -607,6 +650,86 @@ namespace emu { namespace me11dev {
         out << "The firmware was *never* lost after " << i << " hard resets." << endl;
       }
     }
+
+    TMBRegisters::TMBRegisters(Crate * crate)
+     : Action(crate) { }
+
+    void TMBRegisters::display(xgi::Output * out)
+    {
+      addButton(out, "Read TMB Registers");
+    }
+
+    void TMBRegisters::respond(xgi::Input * in, ostringstream & out)
+    {
+     
+      //Print out current registers
+      out<< "Initial Register for Fiberr 0-6 "<<endl;
+      out<<" 0x14a \t"<<std::hex<<tmb_->ReadRegister(0x14a)<<endl; 
+      out<<" 0x14c \t"<<std::hex<<tmb_->ReadRegister(0x14c)<<endl;
+      out<<" 0x14e \t"<<std::hex<<tmb_->ReadRegister(0x14e)<<endl;
+      out<<" 0x150 \t"<<std::hex<<tmb_->ReadRegister(0x150)<<endl;
+      out<<" 0x152 \t"<<std::hex<<tmb_->ReadRegister(0x152)<<endl;
+      out<<" 0x154 \t"<<std::hex<<tmb_->ReadRegister(0x154)<<endl;
+      out<<" 0x156 \t"<<std::hex<<tmb_->ReadRegister(0x156)<<endl;
+      out<<" 0x158 \t"<<std::hex<<tmb_->ReadRegister(0x158)<<endl;
+      
+      
+    }
+    
+    TMBSetRegisters::TMBSetRegisters(Crate * crate, emu::me11dev::Manager* manager)
+      : Action( crate, manager ),
+        Action2Values<string, string>("0x14a", "0x0001") {}
+
+    void TMBSetRegisters::display(xgi::Output * out)
+    {
+      addButtonWithTwoTextBoxes(out,
+                                "Set TMB Registers (hex)",
+                                "Register",
+                                value1(),
+                                "Value",
+                                value2());
+    }
+
+    void TMBSetRegisters::respond(xgi::Input * in, ostringstream & out)
+    {
+      int RegisterValue = getFormValueIntHex("Register", in);
+      int setting = getFormValueIntHex("Value", in);
+
+      std::stringstream hexstr_RegisterValue;
+      hexstr_RegisterValue << std::hex << RegisterValue;
+      value1( hexstr_RegisterValue.str() ); // save value in hex
+      
+      std::stringstream hexstr_setting;
+      hexstr_setting << std::hex << setting;
+      value2( hexstr_setting.str() ); // save value in hex
+      
+      tmb_->WriteRegister(RegisterValue,setting);										      
+      usleep(100000);
+      
+      out<<"Set TMB Register: "<<std::hex<<RegisterValue<<" to "<<std::hex<<tmb_->ReadRegister(RegisterValue)<<endl;
+    }
+    
+    TMBDisableCopper::TMBDisableCopper(Crate * crate)
+     : Action(crate) { }
+
+    void TMBDisableCopper::display(xgi::Output * out)
+    {
+      addButton(out, "TMB Disable Copper");
+    }
+
+    void TMBDisableCopper::respond(xgi::Input * in, ostringstream & out)
+    {
+
+      tmb_->SetDistripHotChannelMask(0,0x00000000ff);                       
+      tmb_->SetDistripHotChannelMask(1,0x00000000ff);                        
+      tmb_->SetDistripHotChannelMask(2,0x00000000ff);                        
+      tmb_->SetDistripHotChannelMask(3,0x00000000ff);                        
+      tmb_->SetDistripHotChannelMask(4,0x00000000ff);  
+      tmb_->SetDistripHotChannelMask(5,0x00000000ff);                      
+      tmb_->WriteDistripHotChannelMasks(); 
+
+    }
+ 
 
     /**************************************************************************
      * DDUReadKillFiber
@@ -681,7 +804,7 @@ namespace emu { namespace me11dev {
 
     ExecuteVMEDSL::ExecuteVMEDSL(Crate * crate)
       : Action(crate),
-        ActionValue<string>("/local.home/cscme11/vme.commands") {}
+        ActionValue<string>("/home/cscme11/vme.commands") {}
     
     void ExecuteVMEDSL::display(xgi::Output * out)
     {
@@ -931,18 +1054,7 @@ namespace emu { namespace me11dev {
     }
 
 
-    IndaraButton::IndaraButton(Crate * crate)
-     : Action(crate) { }
 
-    void IndaraButton::display(xgi::Output * out)
-    {
-      addButton(out, "IndaraButton");
-    }
-
-    void IndaraButton::respond(xgi::Input * in, ostringstream & out)
-    {
-      out << "You Pushed Indara's Buttons!! " <<endl;
-    }
 
 //    /**************************************************************************
 //     * ActionTemplate
