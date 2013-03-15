@@ -26,8 +26,8 @@ function load_igb_emu(){
     done
 
     # Copy the driver and the requested hooks
-    rm /lib/modules/$(uname -r)/kernel/drivers/net/igb/igb_emu.ko
-    rm /lib/modules/$(uname -r)/kernel/drivers/net/eth_hook_*.ko
+    rm -f /lib/modules/$(uname -r)/kernel/drivers/net/igb/igb_emu.ko
+    rm -f /lib/modules/$(uname -r)/kernel/drivers/net/eth_hook_*.ko
     cp ${DRIVERS_DIR}/igb_emu.ko /lib/modules/$(uname -r)/kernel/drivers/net/igb
     for HOOK in "$@"; do
 	cp ${DRIVERS_DIR}/${HOOK}.ko /lib/modules/$(uname -r)/kernel/drivers/net/
@@ -55,7 +55,7 @@ function load_igb_emu(){
 DRIVERS_DIR=${0%/*}
 
 # Only load the drivers on hosts in this list of aliases:
-for ALIAS in vmepc-e1x07-26-01; do
+for ALIAS in vmepc-e1x07-26-01 emuslice06 emuslice12; do
     if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
 	load_igb_emu eth_hook_2_vme eth_hook_3_daq eth_hook_4_daq eth_hook_5_daq
 	exit 0
