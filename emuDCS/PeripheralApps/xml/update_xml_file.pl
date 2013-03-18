@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 ################################################################################
 # update_xml_file.pl = changes old variable names in xml files into new ones
 #
