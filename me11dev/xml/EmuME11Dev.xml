@@ -17,6 +17,7 @@
 
     <xc:Application id="20" instance="0" class="emu::me11dev::Manager" network="local">
       <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::me11dev::Manager">
+        <XMLConfigFilename xsi:type="xsd:string">/home/cscme11/config/pc/dans-crate-config.xml</XMLConfigFilename>
       </properties>
     </xc:Application>
 
