@@ -4,7 +4,7 @@
 #define UNDEFINEDGROUP "No Group Defined"
 
 #include "xdaq/WebApplication.h"
-
+#include "xdata/String.h"
 #include "xgi/Method.h"
 
 #include "emu/me11dev/Action.h"
@@ -90,8 +90,12 @@ namespace me11dev {
       std::string generateLoggerName();
       Logger logger_;
 
+      void firstUse();
+      xdata::String xmlConfig_;
+
       void bindWebInterface();
       void defaultWebPage(xgi::Input *in, xgi::Output *out);
+
       void commonActionsCallback(xgi::Input *in, xgi::Output *out);
       void actionsCallback(xgi::Input *in, xgi::Output *out);
       void groupActionsCallback(xgi::Input *in, xgi::Output *out);

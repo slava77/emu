@@ -4,7 +4,7 @@
 #include "emu/pc/XMLParser.h"
 #include "emu/pc/EmuEndcap.h"
 #include "emu/pc/Crate.h"
-
+#include "emu/utils/System.h"
 #include "emu/soap/Messenger.h"
 
 //#include "xdaq/NamespaceURI.h"
@@ -18,7 +18,6 @@
 
 
 #define USE_CRATE_N 0 // ignore anything but the first crate
-#define XML_CONFIGURATION_FILE "/home/cscme11/config/pc/dans-crate-config.xml"
 #define UNDEFINEDGROUP "No Group Defined"
 
 using namespace cgicc;
@@ -45,19 +44,55 @@ namespace emu { namespace me11dev {
       currentActionVector_(0),
       logger_( Logger::getInstance( generateLoggerName() ) )
     {
-      XMLParser xmlparser;
-      xmlparser.parseFile(XML_CONFIGURATION_FILE);
+      bindWebInterface();
 
-      if (!xmlparser.GetEmuEndcap()) {
+      xdata::InfoSpace *is = getApplicationInfoSpace();
+      is->fireItemAvailable( "XMLConfigFilename", &xmlConfig_);
+      //is->fireItemAvailable( "", &_ );
+    }
+
+
+    void Manager::bindWebInterface()
+    {
+      xgi::bind( this, &Manager::defaultWebPage, "Default" );
+      xgi::bind( this, &Manager::commonActionsCallback, "commonActions" );
+      xgi::bind( this, &Manager::groupActionsCallback, "groupActions" );
+      xgi::bind( this, &Manager::logActionsCallback, "logActions" );
+    }
+
+
+    void Manager::putButtonsInGroup(const string& groupname)
+    {
+      if( find(groups_.begin(),groups_.end(), groupname) == groups_.end() ){
+        // If this group doesn't exist, add it to the list (also, map::operator[] will create it automatically)
+        groups_.push_back(groupname);
+      }
+      currentActionVector_ = &groupActions_[groupname];
+    }
+
+
+    void Manager::firstUse()
+    {
+      static bool firstTime = true;
+      if (firstTime) firstTime = false;
+      else return;
+
+      // expand possible environment variables
+      xmlConfig_.fromString(emu::utils::performExpansions( xmlConfig_.toString() ));
+
+      cout<<"Will load XML configuration file: '"<<xmlConfig_.toString()<<"'"<<endl;
+      XMLParser xmlparser;
+      xmlparser.parseFile(xmlConfig_.toString());
+
+      if (!xmlparser.GetEmuEndcap()) 
+      {
         // if something went wrong while parsing ...
         XCEPT_RAISE(xcept::Exception,
-                    string("Could not parse xml crate configuration file, ") +
-                    XML_CONFIGURATION_FILE + ".");
+            string("Could not parse xml crate configuration file, ") +
+            xmlConfig_.toString() + ".");
       }
 
       Crate * crate = xmlparser.GetEmuEndcap()->crates().at(USE_CRATE_N); // we could make this a member variable and not need to pass it around everywhere
-
-
 
       /************************************************************************
        * The Common Buttons, which are always available on the right hand-side
@@ -69,7 +104,6 @@ namespace emu { namespace me11dev {
       addCommonActionByTypename<L1Reset>(crate);
       addCommonActionByTypename<BC0>(crate);
       addCommonActionByTypename<ReadBackUserCodes>(crate);
-
 
 
       /************************************************************************
@@ -122,29 +156,13 @@ namespace emu { namespace me11dev {
       addLogActionByTypename<ClearLog>(crate);
       addLogActionByTypename<DumpLog>(crate);
       addLogActionByTypename<SaveLogAsFile>(crate);
-
-      bindWebInterface();
     }
 
-
-    void Manager::putButtonsInGroup(const string& groupname){
-      if( find(groups_.begin(),groups_.end(), groupname) == groups_.end() ){
-	// If this group doesn't exist, add it to the list (also, map::operator[] will create it automatically)
-	groups_.push_back(groupname);
-      }
-      currentActionVector_ = &groupActions_[groupname];
-    }
-
-    void Manager::bindWebInterface()
-    {
-      xgi::bind( this, &Manager::defaultWebPage, "Default" );
-      xgi::bind( this, &Manager::commonActionsCallback, "commonActions" );
-      xgi::bind( this, &Manager::groupActionsCallback, "groupActions" );
-      xgi::bind( this, &Manager::logActionsCallback, "logActions" );
-    }
 
     void Manager::defaultWebPage(xgi::Input *in, xgi::Output *out)
     {
+      firstUse();
+
       *out << HTMLDoctype(HTMLDoctype::eStrict)
            << endl
            << endl
