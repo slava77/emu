@@ -82,7 +82,7 @@ namespace emu { namespace me11dev {
       // expand possible environment variables
       xmlConfig_.fromString(emu::utils::performExpansions( xmlConfig_.toString() ));
 
-      cout<<"Will load XML configuration file: '"<<xmlConfig_.toString()<<"'"<<endl;
+      cout<<"ME11Dev: will load XML config file: '"<<xmlConfig_.toString()<<"'"<<endl;
       XMLParser xmlparser;
       xmlparser.parseFile(xmlConfig_.toString());
 
@@ -96,7 +96,7 @@ namespace emu { namespace me11dev {
 
       Crate * crate = xmlparser.GetEmuEndcap()->crates().at(USE_CRATE_N); // we could make this a member variable and not need to pass it around everywhere
 
-      cout<<"Configured to test TMB in slot "<<int(tmbSlot_)<<endl;
+      cout<<"ME11Dev: configured to test TMB in slot "<<int(tmbSlot_)<<endl;
 
 
       /************************************************************************
@@ -190,15 +190,18 @@ namespace emu { namespace me11dev {
               "}"
            << script()
            << head()
-	   << endl
+           << endl
            << body().set("style","padding-bottom: 10em; color: #333; ")
-	   << endl
+           << endl
+           << cgicc::div().set("style","font-size: xx-small")
+           << a().set("href","/") << "<< back to XDAQ" << a()
+           << cgicc::div()
+           << endl
            << h1()
            << "ME1/1 B904 Test Routines"
            << h1()
-	   << endl
-	   << endl;
-	
+           << endl << endl;
+
 
       // begin: floating right hand side box
       *out << cgicc::div()

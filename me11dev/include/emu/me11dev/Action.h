@@ -86,7 +86,7 @@ namespace me11dev {
        * This method allows to assign a TMB in a specific slot for this action.
        * By default, in the constructor, the first available TMB with the lowest
        * slot number is used. Also, if slot<=0, the assignment doesn't change.
-       * Throws  whether tmb was successfully assigned.
+       * Throws when tmb was not successfully assigned.
        */
       void useTMBInSlot(int slot);
 
