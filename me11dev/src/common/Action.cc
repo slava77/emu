@@ -1,5 +1,5 @@
 #include "emu/me11dev/Action.h"
-
+#include "emu/utils/String.h"
 #include "emu/pc/Crate.h"
 #include "emu/pc/CFEB.h"
 #include "emu/pc/DAQMB.h"
@@ -32,6 +32,27 @@ namespace emu { namespace me11dev {
       ccb_(crate_->ccb()),
       manager_(manager)
     {}
+
+
+    void Action::useTMBInSlot(int slot)
+    {
+      if (slot <= 0 && tmb_ != NULL) return; // keep the default tmb_
+
+      vector<TMB*> tmbs = crate_->tmbs();
+      for (size_t k = 0; k < tmbs.size(); ++k)
+      {
+        if (tmbs[k]->GetTmbSlot() == slot)
+        {
+          tmb_ = tmbs[k];
+          return;
+        }
+      }
+
+      // don't have this specified slot
+      XCEPT_RAISE(xcept::Exception,
+          string("Misconfiguration: could not assign TMB with slot ") +
+          emu::utils::stringFrom(slot) );
+    }
 
 
     void Action::addButton(xgi::Output *out,
