@@ -5,6 +5,7 @@
 
 #include "xdaq/WebApplication.h"
 #include "xdata/String.h"
+#include "xdata/Integer.h"
 #include "xgi/Method.h"
 
 #include "emu/me11dev/Action.h"
@@ -92,6 +93,7 @@ namespace me11dev {
 
       void firstUse();
       xdata::String xmlConfig_;
+      xdata::Integer tmbSlot_;
 
       void bindWebInterface();
       void defaultWebPage(xgi::Input *in, xgi::Output *out);

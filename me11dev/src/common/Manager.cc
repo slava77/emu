@@ -12,7 +12,6 @@
 #include "cgicc/HTMLClasses.h"
 #include "xdata/Integer64.h"
 #include "xdata/Boolean.h"
-#include "xdata/String.h"
 
 #include <iomanip>
 
@@ -42,12 +41,14 @@ namespace emu { namespace me11dev {
       xdaq::WebApplication( s ),
       webOutputLog_(),
       currentActionVector_(0),
-      logger_( Logger::getInstance( generateLoggerName() ) )
+      logger_( Logger::getInstance( generateLoggerName() ) ),
+      tmbSlot_(-1)
     {
       bindWebInterface();
 
       xdata::InfoSpace *is = getApplicationInfoSpace();
       is->fireItemAvailable( "XMLConfigFilename", &xmlConfig_);
+      is->fireItemAvailable( "TMBSlot", &tmbSlot_ );
       //is->fireItemAvailable( "", &_ );
     }
 
@@ -73,6 +74,7 @@ namespace emu { namespace me11dev {
 
     void Manager::firstUse()
     {
+      // run it only once when the Default page is loaded
       static bool firstTime = true;
       if (firstTime) firstTime = false;
       else return;
@@ -93,6 +95,9 @@ namespace emu { namespace me11dev {
       }
 
       Crate * crate = xmlparser.GetEmuEndcap()->crates().at(USE_CRATE_N); // we could make this a member variable and not need to pass it around everywhere
+
+      cout<<"Configured to test TMB in slot "<<int(tmbSlot_)<<endl;
+
 
       /************************************************************************
        * The Common Buttons, which are always available on the right hand-side
@@ -411,36 +416,43 @@ namespace emu { namespace me11dev {
     void Manager::addAction(shared_ptr<Action> act) {
       if(!currentActionVector_) putButtonsInGroup(UNDEFINEDGROUP);
       currentActionVector_->push_back(act);
+      currentActionVector_->back()->useTMBInSlot(tmbSlot_);
     }
 
     template <typename T>
     void Manager::addActionByTypename(Crate * crate) {
       if(!currentActionVector_) putButtonsInGroup(UNDEFINEDGROUP);
       currentActionVector_->push_back(shared_ptr<T>(new T(crate)));
+      currentActionVector_->back()->useTMBInSlot(tmbSlot_);
     }
 
     template <typename T>
     void Manager::addActionByTypename(Crate * crate, emu::me11dev::Manager* manager ) {
       if(!currentActionVector_) putButtonsInGroup(UNDEFINEDGROUP);
       currentActionVector_->push_back(shared_ptr<T>(new T(crate, manager)));
+      currentActionVector_->back()->useTMBInSlot(tmbSlot_);
     }
 
     void Manager::addCommonAction(shared_ptr<Action> act) {
+      act->useTMBInSlot(tmbSlot_);
       commonActions_.push_back(act);
     }
 
     template <typename T>
     void Manager::addCommonActionByTypename(Crate * crate) {
       commonActions_.push_back(shared_ptr<T>(new T(crate)));
+      commonActions_.back()->useTMBInSlot(tmbSlot_);
     }
 
     void Manager::addLogAction(shared_ptr<LogAction> act) {
       logActions_.push_back(act);
+      logActions_.back()->useTMBInSlot(tmbSlot_);
     }
 
     template <typename T>
     void Manager::addLogActionByTypename(Crate * crate) {
       logActions_.push_back(shared_ptr<T>(new T(crate)));
+      logActions_.back()->useTMBInSlot(tmbSlot_);
     }
 
 
