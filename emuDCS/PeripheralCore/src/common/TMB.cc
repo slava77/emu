@@ -4509,7 +4509,7 @@ int TMB::dsnIO(int writeData){
   int busy = 1;
   int nbusy = 1;
   //
-  while (busy) {
+  while (busy && nbusy<101) {
     readData = ReadRegister(vme_dsn_adr);
     //
     // check busy on all components:
@@ -4518,12 +4518,13 @@ int TMB::dsnIO(int writeData){
     rat_busy = (readData>>13) & 0x1;
     busy = tmb_busy | mez_busy | rat_busy;
     //
-    if (nbusy%1000 == 0) {
+    if (nbusy%10 == 0) {
       (*MyOutput_) << "dsnIO: DSN state machine busy, nbusy = "
                 << nbusy << ", readData = " 
-		<< std::hex << readData << std::endl;  
+		<< std::hex << readData << std::dec << std::endl;  
     }
     nbusy++;
+    udelay(10);
   }
   //
   // end previous cycle

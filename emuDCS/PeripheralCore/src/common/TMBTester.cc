@@ -582,6 +582,7 @@ bool TMBTester::testDSN(int BoardType){
   //
   // get the digital serial number
   dsn = tmb_->dsnRead(BoardType);
+  (*MyOutput_) << "DSN readback (Hex): " << std::hex << dsn.to_ulong() << std::dec << std::endl;
   //
   // compute the CRC
   int crc = dowCRC(dsn);
