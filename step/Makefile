@@ -17,7 +17,7 @@ PACKAGE_VER_PATCH=00
 #
 Project = emu
 Package = step
-PackageName= emustep
+PackageName= step
 Description="Emu (CSC) STEP (System Test of Endcap Peripheral crate and chamber electronics)"
 Summary="Emu (CSC) STEP"
 Authors="Karoly Banicz, Alex Madorsky"
