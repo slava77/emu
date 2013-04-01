@@ -27,7 +27,6 @@ Sources = \
 	utils.cc \
 	Manager.cc \
 	Action.cc \
-	LongTextBoxAction.cc \
 	LogAction.cc \
 	Buttons.cc \
 	version.cc

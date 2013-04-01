@@ -15,7 +15,7 @@
 #include <boost/shared_ptr.hpp>
 #include <sstream>
 #include <map>
-
+#include <string>
 
 /******************************************************************************
  * The Manager Class
@@ -72,6 +72,7 @@ namespace me11dev {
       template <typename T> void addCommonActionByTypename(emu::pc::Crate * crate);
       template <typename T> void addLogActionByTypename(emu::pc::Crate * crate);
 
+      void setDAQOutSubdir( const std::string& subdir );
       void startDAQ( const std::string& runtype );
       void stopDAQ();
       bool waitForDAQToExecute( const std::string command, const uint64_t seconds );

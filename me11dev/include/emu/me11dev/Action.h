@@ -19,6 +19,7 @@
  *****************************************************************************/
 
 
+
 namespace emu { 
 
 // forward declarations:
@@ -29,14 +30,22 @@ class DAQMB;
 class CCB;
 class DDU;
 class TMB;
+class ALCTController;
 }
 
 namespace me11dev {
 
+
+  const std::string default_button_style="min-width: 25em; width: 25%; ";
+  const std::string default_textbox_style="min-width: 4em; width: 8%; ";
+  //long_textbox_style="width: 100%; margin-top: 1em; height: 10em; ";
+
   class Manager;
+
 
     class Action
     {
+
     public:
 
       Action(emu::pc::Crate * crate);
@@ -100,18 +109,19 @@ namespace me11dev {
       std::vector<emu::pc::DDU*> ddus_;
       emu::pc::TMB* tmb_;
       emu::pc::CCB* ccb_;
+      emu::pc::ALCTController* alct_;
       emu::me11dev::Manager* manager_;
 
       static void addButton(xgi::Output *out,
 			    const std::string& button_name,
-			    const std::string& button_style="min-width: 25em; width: 25%; ");
+			    const std::string& button_style=default_button_style);
 
       static void addButtonWithTextBox(xgi::Output *out,
 				       const std::string& button_name,
 				       const std::string& textbox_name,
 				       const std::string& textbox_default_value,
-				       const std::string& button_style="min-width: 25em; width: 25%; ",
-				       const std::string& textbox_style="");
+				       const std::string& button_style=default_button_style,
+				       const std::string& textbox_style=default_textbox_style);
 
       static void addButtonWithTwoTextBoxes(xgi::Output *out,
 					    const std::string& button_name,
@@ -119,16 +129,9 @@ namespace me11dev {
 					    const std::string& textbox_default_value1,
 					    const std::string& textbox_name2,
 					    const std::string& textbox_default_value2,
-					    const std::string& button_style="min-width: 25em; width: 25%; ",
-					    const std::string& textbox_style1="",
-					    const std::string& textbox_style2="");
-
-      static void addButtonWithLongTextBox(xgi::Output *out,
-					   const std::string& button_name,
-					   const std::string& textbox_name,
-					   const std::string& textbox_default_value,
-					   const std::string& button_style="min-width: 25em; width: 25%; ",
-					   const std::string& textbox_style="width: 100%; margin-top: 1em; height: 10em; ");
+					    const std::string& button_style=default_button_style,
+					    const std::string& textbox_style1=default_textbox_style,
+					    const std::string& textbox_style2=default_textbox_style);
 
     };
   }

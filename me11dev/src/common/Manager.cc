@@ -17,6 +17,7 @@
 
 
 #define USE_CRATE_N 0 // ignore anything but the first crate
+//#define XML_CONFIGURATION_FILE "/home/cscme11/config/pc/pcrate37-config.xml"
 #define UNDEFINEDGROUP "No Group Defined"
 
 using namespace cgicc;
@@ -115,6 +116,7 @@ namespace emu { namespace me11dev {
        * The Buttons, which are listed in the below order on the web page.
        *
        ***********************************************************************/
+
       
       putButtonsInGroup( "Routine Tests" );
       addActionByTypename<ReadBackUserCodes>(crate);
@@ -126,28 +128,40 @@ namespace emu { namespace me11dev {
       addActionByTypename<SetUpComparatorPulse>(crate);
       addActionByTypename<SetUpPrecisionCapacitors>(crate);
       addActionByTypename<SetPipelineDepthAllDCFEBs>(crate);
-      addActionByTypename<ReadPipelineDepthAllDCFEBs>(crate);
+      addActionByTypename<Stans_SetPipelineDepthAllDCFEBs>(crate);
+      //addActionByTypename<ReadPipelineDepthAllDCFEBs>(crate);
       addActionByTypename<SetFineDelayForADCFEB>(crate);
       addActionByTypename<ShiftBuckeyesNormRun>(crate);
+      addActionByTypename<SetTMBdavDelay>(crate);
 
       putButtonsInGroup( "DCFEB Tests" );
       addActionByTypename<BuckShiftTest>(crate);
 
       putButtonsInGroup( "TMB/Trigger Tests" );
-      addActionByTypename<PulseInternalCapacitors>(crate);
+      //addActionByTypename<PulseInternalCapacitorsDMB>(crate); // don't use DMB pulse/inject because they do not send an L1a to the whole system
+      //addActionByTypename<PulsePrecisionCapacitorsDMB>(crate);
       addActionByTypename<PulseInternalCapacitorsCCB>(crate);
-      addActionByTypename<PulsePrecisionCapacitors>(crate);
       addActionByTypename<PulsePrecisionCapacitorsCCB>(crate);
       addActionByTypename<TMBRegisters>(crate);
       addActionByTypename<TMBDisableCopper>(crate);
       addActionByTypename<TMBSetRegisters>(crate, this);
       addActionByTypename<TMBHardResetTest>(crate);
       
+      putButtonsInGroup( "AFEB Buttons" );
+      addActionByTypename<PulseWires>(crate);
+
+      putButtonsInGroup("Scans" );
+      addActionByTypename<PipelineDepthScan_Cosmics>( crate, this );
+      addActionByTypename<PipelineDepthScan_Pulses>( crate, this );
+      addActionByTypename<L1aDelayScan>( crate, this );
+      addActionByTypename<TmbDavDelayScan>( crate, this );
+
       putButtonsInGroup("Other Functions" );
       addActionByTypename<DDUReadKillFiber>(crate);
       addActionByTypename<DDUWriteKillFiber>(crate);
       addActionByTypename<ExecuteVMEDSL>(crate);
-      addActionByTypename<PipelineDepthScanButton>( crate, this );
+      addActionByTypename<dcfebDebugDump>(crate);
+      addActionByTypename<enableVmeDebugPrintout>(crate);
 
 
       /************************************************************************
@@ -494,6 +508,12 @@ namespace emu { namespace me11dev {
       return loggerName;
     }
 
+    void Manager::setDAQOutSubdir( const string& subdir ){
+      xdata::String pathToRUIDataOutFile = string( "/local/data/" ) + subdir;
+      emu::utils::execShellCommand( string( "mkdir -p " ) + (string) pathToRUIDataOutFile );
+      emu::soap::Messenger( this ).setParameters( "emu::daq::rui::Application", emu::soap::Parameters().add( "pathToRUIDataOutFile", &pathToRUIDataOutFile ) );
+    }
+
     void Manager::startDAQ( const string& runtype ){
       emu::soap::Messenger m( this );
       //
@@ -517,6 +537,7 @@ namespace emu { namespace me11dev {
     }
 
     void Manager::stopDAQ(){
+      emu::soap::Messenger m( this );
       emu::soap::Messenger( this ).sendCommand( "emu::daq::manager::Application", "Halt" );
       waitForDAQToExecute( "Halt", 10 );
     }
