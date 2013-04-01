@@ -9,6 +9,7 @@
 #include "emu/pc/CCB.h"
 #include "emu/pc/DDU.h"
 #include "emu/pc/TMB.h"
+#include "emu/pc/ALCTController.h"
 #include "emu/pc/TMB_constants.h"
 
 #include "emu/utils/String.h"
@@ -31,11 +32,15 @@ using namespace emu::pc;
 
 namespace emu { namespace me11dev {
 
-    void HardReset::respond(xgi::Input * in, ostringstream & out) { ccb_->hardReset(); }
+    void HardReset::respond(xgi::Input * in, ostringstream & out) { cout<<"==>HardReset"<<endl; 
+      if(ccb_->GetCCBmode() != CCB::VMEFPGA) ccb_->setCCBMode(CCB::VMEFPGA); // we want the CCB in this mode for out test stand
+      ccb_->HardReset_crate(); // send a simple hard reset without any sleeps
+      usleep(150000); // need at least 150 ms after hard reset 
+    }
 
-    void L1Reset::respond(xgi::Input * in, ostringstream & out) { ccb_->l1aReset(); }
+    void L1Reset::respond(xgi::Input * in, ostringstream & out) { cout<<"==>L1Reset"<<endl; ccb_->l1aReset(); }
 
-    void BC0::respond(xgi::Input * in, ostringstream & out) { ccb_->bc0(); }
+    void BC0::respond(xgi::Input * in, ostringstream & out) { cout<<"==>BC0"<<endl; ccb_->bc0(); }
 
 
     /**************************************************************************
@@ -53,25 +58,25 @@ namespace emu { namespace me11dev {
 
     void ReadBackUserCodes::respond(xgi::Input * in, ostringstream & out)
     {
-      for(vector <DAQMB*>::iterator dmb = dmbs_.begin();
-          dmb != dmbs_.end();
-          ++dmb)
-      {
-        vector <CFEB> cfebs = (*dmb)->cfebs();
-        for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb)
-        {
-          int cfeb_index = (*cfeb).number();
+      cout<<"==>ReadBackUserCodes"<<endl; 
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+	{
+	  vector <CFEB> cfebs = (*dmb)->cfebs();
+      
+	  for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb)      
+	    {
+	      int cfeb_index = (*cfeb).number();
 
-          out << " ********************* " << endl
-              << " FEB" << cfeb_index << " : "
-              << " Usercode: " << hex << (*dmb)->febfpgauser(*cfeb) << endl
-              << " Virtex 6 Status: " << (*dmb)->virtex6_readreg(7);
-        }
+	      out << " ********************* " << endl
+		  << " FEB" << cfeb_index << " : "
+		  << " Usercode: " << hex << (*dmb)->febfpgauser(*cfeb) << endl
+		  << " Virtex 6 Status: " << (*dmb)->virtex6_readreg(7);
+	    }
 
-        (*dmb)->RedirectOutput(&out);
-        (*dmb)->daqmb_adc_dump();
-        (*dmb)->RedirectOutput(&cout);
-      }
+	  (*dmb)->RedirectOutput(&out);
+	  (*dmb)->daqmb_adc_dump();
+	  (*dmb)->RedirectOutput(&cout);
+	}
     }
 
     /**************************************************************************
@@ -93,13 +98,14 @@ namespace emu { namespace me11dev {
 
     void SetComparatorThresholds::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>SetComparatorThresholds"<<endl; 
       float ComparatorThresholds = getFormValueFloat("ComparatorThresholds", in);
       value(ComparatorThresholds); // save the value
 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        (*dmb)->set_comp_thresh(ComparatorThresholds);
-      }
+	{
+	  (*dmb)->set_comp_thresh(ComparatorThresholds);
+	}
     }
 
     /**************************************************************************
@@ -121,13 +127,14 @@ namespace emu { namespace me11dev {
 
     void SetComparatorThresholdsBroadcast::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>SetComparatorThresholdsBroadcast"<<endl; 
       float ComparatorThresholds = getFormValueFloat("ComparatorThresholds", in);
       value(ComparatorThresholds); // save the value
 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        (*dmb)->dcfeb_set_comp_thresh_bc(ComparatorThresholds);
-      }
+	{
+	  (*dmb)->dcfeb_set_comp_thresh_bc(ComparatorThresholds);
+	}
     }
 
     /**************************************************************************
@@ -137,37 +144,53 @@ namespace emu { namespace me11dev {
 
     SetUpComparatorPulse::SetUpComparatorPulse(Crate * crate)
       : Action(crate),
-        ActionValue<int>(16) {}
+        Action2Values<int,int>(16,-1) {}
 
     void SetUpComparatorPulse::display(xgi::Output * out)
     {
-      addButtonWithTextBox(out,
-                           "Set up internal capacitor pulse on halfstrip:",
-                           "halfstrip",
-                           numberToString(value()));
+      addButtonWithTwoTextBoxes(out,
+				"Set up comparator pulse: halfstrip(0-31), DCFEB(0-4):",
+				"halfstrip",
+				numberToString(value1()),
+				"dcfeb_number",
+				numberToString(value2()));
     }
 
     void SetUpComparatorPulse::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>SetUpComparatorPulse"<<endl; 
       int halfstrip = getFormValueInt("halfstrip", in);
-      value(halfstrip); // save the value
+      int dcfeb_number = getFormValueInt("dcfeb_number", in);
+      value1(halfstrip); // save the value
+      value2(dcfeb_number); // save the value
      
-      //remove hard reset and do it only at "Prepare for triggering"     
-      //ccb_->hardReset();
-      tmb_->SetClctPatternTrigEnable(1);
+      tmb_->SetClctPatternTrigEnable(1); // enable CLCT pretriggers
       tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
+
+      // enable L1A and clct_pretrig from any of dmb_cfeb_calib
+      // signals and disable all other trigger sources
+      ccb_->EnableL1aFromDmbCfebCalibX();
+      usleep(100);
       
       int hp[6] = {halfstrip+1, halfstrip, halfstrip+1, halfstrip, halfstrip+1, halfstrip};
       // Note: +1 for layers 0,2,4 is because ME1/1 doesn't have
       // staggered strips, but DAQMB codes assumes staggering.
-      int CFEB_mask = 0x7f;
+      int CFEB_mask = 0xff;
+
+      switch(dcfeb_number){
+      case 0: CFEB_mask = 0x01; break;
+      case 1: CFEB_mask = 0x02; break;
+      case 2: CFEB_mask = 0x04; break;
+      case 3: CFEB_mask = 0x08; break;
+      case 4: CFEB_mask = 0x10; break;
+      default: CFEB_mask = 0x1f; break;
+      }
 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        (*dmb)->trigsetx(hp, CFEB_mask); // this calls chan2shift, which I think is buggy -Joe
-        //(*dmb)->buck_shift(); // I think trigsetx is supposed to do the shift, too. -Joe
-        usleep(100);
-      }
+	{
+	  (*dmb)->trigsetx(hp, CFEB_mask); // this calls chan2shift, which does the shift
+	  usleep(100);
+	}
 
       ccb_->syncReset();//check
       usleep(100);
@@ -181,54 +204,99 @@ namespace emu { namespace me11dev {
 
     SetUpPrecisionCapacitors::SetUpPrecisionCapacitors(Crate * crate)
       : Action(crate),
-        ActionValue<int>(8) {}
+        Action2Values<int,int>(8,-1) {}
 
     void SetUpPrecisionCapacitors::display(xgi::Output * out)
     {
-      addButtonWithTextBox(out,
-                           "Set up precision capacitor pulse on strip:",
-                           "StripToPulse",
-                           numberToString(value()));
+      addButtonWithTwoTextBoxes(out,
+				"Set up precision pulse: strip(0-15), DCFEB(0-4)",
+				"StripToPulse",
+				numberToString(value1()),
+				"dcfeb_number",
+				numberToString(value2()));
     }
 
     void SetUpPrecisionCapacitors::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>SetUpPrecisionCapacitors"<<endl; 
       int strip_to_pulse = getFormValueInt("StripToPulse", in);
-      value(strip_to_pulse); // save the value
-    //remove hard reset and do it only at "Prepare for triggering"
-    //  ccb_->hardReset();
+      int dcfeb_number = getFormValueInt("dcfeb_number", in);
+      value1(strip_to_pulse); // save the value
+      value2(dcfeb_number); // save the value
+      
+      //tmb_->SetClctPatternTrigEnable(1); // set flag to enable CLCT pretriggers
+      //usleep(1000);
+      //tmb_->WriteRegister(emu::pc::seq_trig_en_adr); // make it so
+      //usleep(1000);
+      //tmb_->SetTmbAllowClct(1); // set flag to enable CLCT only triggers
+      //usleep(1000);
+      //tmb_->SetTmbAllowMatch(1); // set flag to enable CLCT+ALCT match triggers
+      //usleep(1000);
+      //tmb_->WriteRegister(emu::pc::tmb_trig_adr); /// make it so
+      //usleep(1000);
 
-      tmb_->SetClctPatternTrigEnable(1);
-      tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
-
-      crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
-      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        (*dmb)->set_ext_chanx(strip_to_pulse);//check
-        (*dmb)->buck_shift();
-        usleep(100);
-      }
-      crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
-
-      ccb_->syncReset();//check
+      // enable L1A and clct_pretrig from any of dmb_cfeb_calib
+      // signals and disable all other trigger sources
+      ccb_->EnableL1aFromDmbCfebCalibX();
       usleep(100);
+      
+      
+      //crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+	{
+	  (*dmb)->set_ext_chanx(strip_to_pulse, dcfeb_number); // this only sets the array in software
+	  (*dmb)->buck_shift(); // this shifts the array into the buckeyes
+	  usleep(100);
+	}
+      //crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
+
+      ccb_->l1aReset();
+      usleep(1000);
       ccb_->bx0();
+      usleep(1000);
+    }
+
+
+    SetTMBdavDelay::SetTMBdavDelay(Crate * crate)
+      : Action(crate),
+        ActionValue<int>(22) {}
+
+    void SetTMBdavDelay::display(xgi::Output * out)
+    {
+      addButtonWithTextBox(out,
+                           "Set tmb_dav_delay",
+			   "idelay",
+                           numberToString(value()));
+    }
+
+    void SetTMBdavDelay::respond(xgi::Input * in, ostringstream & out)
+    {
+      cout<<"==>SetTMBdavDelay"<<endl; 
+      int idelay = getFormValueInt("idelay", in);
+      value(idelay); // save the value
+      
+      for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+        {
+          (*dmb)->varytmbdavdelay(idelay);
+        }   
+
     }
 
     /**************************************************************************
-     * PulseInternalCapacitors
+     * PulseInternalCapacitorsDMB
      *
      *************************************************************************/
 
-    PulseInternalCapacitors::PulseInternalCapacitors(Crate * crate)
+    PulseInternalCapacitorsDMB::PulseInternalCapacitorsDMB(Crate * crate)
       : Action(crate)
     { /* ... nothing to see here ... */ }
 
-    void PulseInternalCapacitors::display(xgi::Output * out) {
+    void PulseInternalCapacitorsDMB::display(xgi::Output * out) {
       addButton(out, "Pulse internal capacitors via DMB");
     }
 
-    void PulseInternalCapacitors::respond(xgi::Input * in, ostringstream & out) {
+    void PulseInternalCapacitorsDMB::respond(xgi::Input * in, ostringstream & out) {
+      cout<<"==>PulseInternalCapacitorsDMB"<<endl; 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->inject(1,0);
@@ -249,6 +317,7 @@ namespace emu { namespace me11dev {
     }
 
     void PulseInternalCapacitorsCCB::respond(xgi::Input * in, ostringstream & out) {
+      cout<<"==>PulseInternalCapacitorsCCB"<<endl; 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  ccb_->inject(1,0);
@@ -256,19 +325,20 @@ namespace emu { namespace me11dev {
     }
 
     /**************************************************************************
-     * PulsePrecisionCapacitors
+     * PulsePrecisionCapacitorsDMB
      *
      *************************************************************************/
 
-    PulsePrecisionCapacitors::PulsePrecisionCapacitors(Crate * crate)
+    PulsePrecisionCapacitorsDMB::PulsePrecisionCapacitorsDMB(Crate * crate)
       : Action(crate)
     { /* ... nothing to see here ... */ }
 
-    void PulsePrecisionCapacitors::display(xgi::Output * out) {
+    void PulsePrecisionCapacitorsDMB::display(xgi::Output * out) {
       addButton(out, "Pulse precision capacitors via DMB");
     }
 
-    void PulsePrecisionCapacitors::respond(xgi::Input * in, ostringstream & out) {
+    void PulsePrecisionCapacitorsDMB::respond(xgi::Input * in, ostringstream & out) {
+      cout<<"==>PulsePrecisionCapacitorsDMB"<<endl; 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
 	  (*dmb)->pulse(1,0);
@@ -289,10 +359,8 @@ namespace emu { namespace me11dev {
     }
 
     void PulsePrecisionCapacitorsCCB::respond(xgi::Input * in, ostringstream & out) {
-      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-	{
-	  ccb_->pulse(1,0);
-	}
+      cout<<"==>PulsePrecisionCapacitorsCCB"<<endl; 
+      ccb_->pulse(1,0);
     }
 
     /**************************************************************************
@@ -314,13 +382,14 @@ namespace emu { namespace me11dev {
 
     void SetDMBDACs::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>SetDMBDACs"<<endl; 
       float DAC = getFormValueFloat("DAC", in);
       value(DAC); // save the value
 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        (*dmb)->set_dac(DAC,DAC);
-      }
+	{
+	  (*dmb)->set_dac(DAC,DAC); // I'm not sure this is working 100%. -Joe
+	}
     }
 
     /**************************************************************************
@@ -338,12 +407,13 @@ namespace emu { namespace me11dev {
 
     void ShiftBuckeyesNormRun::respond(xgi::Input * in, ostringstream & out)
     {
-      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        (*dmb)->shift_all(NORM_RUN);
+      cout<<"==>ShiftBuckeyesNormRun"<<endl; 
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->shift_all(NORM_RUN);
+	(*dmb)->buck_shift();
       }
     }
-
+    
     /**************************************************************************
      * SetPipelineDepthAllDCFEBs
      *
@@ -351,7 +421,7 @@ namespace emu { namespace me11dev {
 
     SetPipelineDepthAllDCFEBs::SetPipelineDepthAllDCFEBs(Crate * crate)
       : Action(crate),
-        ActionValue<int>(61) {}
+        ActionValue<int>(66) {}
 
     void SetPipelineDepthAllDCFEBs::display(xgi::Output * out)
     {
@@ -363,19 +433,62 @@ namespace emu { namespace me11dev {
 
     void SetPipelineDepthAllDCFEBs::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>SetPipelineDepthAllDCFEBs"<<endl; 
       int depth = getFormValueInt("depth", in);
       value(depth); // save the value
 
-      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        vector <CFEB> cfebs = (*dmb)->cfebs();
-        for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb)
-        {
-          (*dmb)->dcfeb_set_PipelineDepth(*cfeb, depth);
+      //crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+      	vector <CFEB> cfebs = (*dmb)->cfebs();
+	
+	for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb){
+	  (*dmb)->dcfeb_set_PipelineDepth(*cfeb, depth);
 	  usleep(100);
 	  (*dmb)->Pipeline_Restart( *cfeb );
-        }
+	}
       }
+      //crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
+    }
+
+
+    Stans_SetPipelineDepthAllDCFEBs::Stans_SetPipelineDepthAllDCFEBs(Crate * crate)
+      : Action(crate),
+        ActionValue<int>(66) {}
+
+    void Stans_SetPipelineDepthAllDCFEBs::display(xgi::Output * out)
+    {
+      addButtonWithTextBox(out,
+                           "Stan's Set pipeline depth on all DCFEBs:",
+                           "depth",
+                           numberToString(value()));
+    }
+
+    void Stans_SetPipelineDepthAllDCFEBs::respond(xgi::Input * in, ostringstream & out)
+    {
+      cout<<"==>Stans_SetPipelineDepthAllDCFEBs"<<endl; 
+      int depth = getFormValueInt("depth", in);
+      value(depth); // save the value
+
+      //crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
+      //// HACK to see if Stan's functions work better -Joe
+      DAQMB* dmb = dmbs_[0];
+      //// This is the same orders and the oringinal
+      dmb->Set_PipelineDepth_Stan(F1DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F1DCFEBM );
+      usleep(100);
+      dmb->Set_PipelineDepth_Stan(F2DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F2DCFEBM );
+      usleep(100);
+      dmb->Set_PipelineDepth_Stan(F3DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F3DCFEBM );
+      usleep(100);
+      dmb->Set_PipelineDepth_Stan(F4DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F4DCFEBM );
+      usleep(100);
+      dmb->Set_PipelineDepth_Stan(F5DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F5DCFEBM );
+      usleep(100);
+      //crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
     }
 
 
@@ -387,7 +500,7 @@ namespace emu { namespace me11dev {
 
     ReadPipelineDepthAllDCFEBs::ReadPipelineDepthAllDCFEBs(Crate * crate)
       : Action(crate)
-        {}
+    {}
 
     void ReadPipelineDepthAllDCFEBs::display(xgi::Output * out)
     {
@@ -396,27 +509,26 @@ namespace emu { namespace me11dev {
 
     void ReadPipelineDepthAllDCFEBs::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>ReadPipelineDepthAllDCFEBs"<<endl; 
       //int depth = getFormValueInt("depth", in);
       //value(depth); // save the value
-
+      
       out << "Reading pipeline depth....." << endl;
-
-      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        vector <CFEB> cfebs = (*dmb)->cfebs();
-        int currentPD = -1;
-        for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb)
-        {
+      
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	vector <CFEB> cfebs = (*dmb)->cfebs();
+	//int currentPD = -1;
+	
+	for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb){
 	  out << "ReadPipelineDepthAllDCFEBs is still under constuction." << endl;
-          	// currentPD = (*cfeb).GetPipelineDepth();
-		// out << "Pipeline Depth is: " << currentPD << endl;
-		// (*dmb)->dcfeb_set_PipelineDepth(*cfeb, currentPD);
-		// usleep(100);
-		// (*dmb)->Pipeline_Restart( *cfeb );
-        }
+	  // currentPD = (*cfeb).GetPipelineDepth();
+	  // out << "Pipeline Depth is: " << currentPD << endl;
+	  // (*dmb)->dcfeb_set_PipelineDepth(*cfeb, currentPD);
+	  // usleep(100);
+	  // (*dmb)->Pipeline_Restart( *cfeb );
+	}
       }
     }
-
 
 
 
@@ -432,51 +544,51 @@ namespace emu { namespace me11dev {
     void SetFineDelayForADCFEB::display(xgi::Output * out)
     {
       addButtonWithTwoTextBoxes(out,
-                                "Set Fine Delay on FEB(0-4) to (0-15):",
-                                "DcfebNumber",
-                                numberToString(value1()),
+                                "Set Fine Delay: delay(0-15), DCFEB(0-4):",
                                 "FineDelay",
+                                numberToString(value1()),
+                                "DcfebNumber",
                                 numberToString(value2()));
     }
-
+    
     void SetFineDelayForADCFEB::respond(xgi::Input * in, ostringstream & out)
     {
-      int cfeb_number = getFormValueInt("DcfebNumber", in);
-      value1(cfeb_number); // save the value
-
+      cout<<"==>SetFineDelayForADCFEB"<<endl; 
       int delay = getFormValueInt("FineDelay", in);
-      value2(delay); // save the value
-
-      for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        vector<CFEB> cfebs = (*dmb)->cfebs();
-        (*dmb)->dcfeb_fine_delay(cfebs.at(cfeb_number), delay);
-        usleep(100);
-        (*dmb)->Pipeline_Restart(cfebs[cfeb_number]);
+      int cfeb_number = getFormValueInt("DcfebNumber", in);
+      value1(delay); // save the value
+      value2(cfeb_number); // save the value
+      
+      for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	vector<CFEB> cfebs = (*dmb)->cfebs();
+	(*dmb)->dcfeb_fine_delay(cfebs.at(cfeb_number), delay); // careful, I this may depend on the order in the xml
+	usleep(100);
+	(*dmb)->Pipeline_Restart(cfebs[cfeb_number]); // careful, I this may depend on the order in the xml
       }
     }
 
     /**************************************************************************
-     * PipelineDepthScanButton
+     * PipelineDepthScan with Pulses
      *
      *************************************************************************/
 
-    PipelineDepthScanButton::PipelineDepthScanButton(Crate * crate, emu::me11dev::Manager* manager)
+    PipelineDepthScan_Pulses::PipelineDepthScan_Pulses(Crate * crate, emu::me11dev::Manager* manager)
       : Action( crate, manager ),
-        Action2Values<int, int>(40, 70) {}
+        Action2Values<int, int>(50, 70) {}
 
-    void PipelineDepthScanButton::display(xgi::Output * out)
+    void PipelineDepthScan_Pulses::display(xgi::Output * out)
     {
       addButtonWithTwoTextBoxes(out,
-                                "Scan pipeline depth in 50ns time bins",
+                                "Scan pipeline depth with pulses",
                                 "From",
                                 numberToString(value1()),
                                 "To",
                                 numberToString(value2()));
     }
 
-    void PipelineDepthScanButton::respond(xgi::Input * in, ostringstream & out)
+    void PipelineDepthScan_Pulses::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>PipelineDepthScan_Pulses"<<endl; 
       int fromDepth = getFormValueInt("From", in);
       value1( fromDepth ); // save the value
 
@@ -484,10 +596,252 @@ namespace emu { namespace me11dev {
       value2( toDepth ); // save the value
 
       const int strip_to_pulse = 8; // TODO: make configurable
+      int n_pulses = 5; // TODO: make configurable
 
+      for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu){
+	(*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+      }
+      
       // set register 0 appropriately for communication over the VME backplane,
       // this is necessary for the CCB to issue hard resets and to respond to L1
       // requests from the TMB.
+      ccb_->setCCBMode(CCB::VMEFPGA);
+      usleep(100);
+
+      //// Hard Reset ////
+      // ccb_->HardReset_crate(); // send a simple hard reset without
+      // any sleeps usleep(150000); // need at least 150 ms after hard reset
+      ccb_->hardReset();
+      
+      //// Set DAC (pulse height) ////
+      float DAC = 1.0;
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->set_dac(DAC,DAC); // I'm not sure this is working. -Joe
+      }
+      usleep(100);
+      
+      //// Set comparator thresholds ////
+      float ComparatorThresholds = 0.05;
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->set_comp_thresh(ComparatorThresholds);
+      }
+      usleep(100);
+      
+      
+      //// Resync ////
+      //ccb_->l1aReset();
+      //usleep(10000);
+      
+      //// SetUpPrecisionCapacitors
+      
+      //// This should enable CLCT pretriggers and trigger with a CLCT
+      //tmb_->SetClctPatternTrigEnable(1); // set flag to enable CLCT pretriggers
+      //usleep(1000);
+      //tmb_->WriteRegister(emu::pc::seq_trig_en_adr); // make it so
+      //usleep(1000);
+      //tmb_->SetTmbAllowClct(1); // set flag to enable CLCT only triggers
+      //usleep(1000);
+      //tmb_->SetTmbAllowMatch(1); // set flag to enable CLCT+ALCT match triggers
+      //usleep(1000);
+      //tmb_->WriteRegister(emu::pc::tmb_trig_adr); /// make it so
+      //usleep(1000);
+
+      // enable L1A and clct_pretrig from any of dmb_cfeb_calib
+      // signals and disable all other trigger sources
+      if(n_pulses>0){
+	ccb_->EnableL1aFromDmbCfebCalibX();
+	usleep(100);
+	
+	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	  (*dmb)->set_ext_chanx(strip_to_pulse);
+	  (*dmb)->buck_shift();
+	  usleep(10);
+	}
+      }else{
+	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	  (*dmb)->shift_all(NORM_RUN);
+	  (*dmb)->buck_shift();
+	  usleep(10);
+	}
+      }
+      usleep(100);
+      ccb_->l1aReset(); // needed after shifting buckeyes
+      usleep(100);
+      
+      string subdir = "PipelineScan_" + emu::utils::getDateTime( true );
+      manager_->setDAQOutSubdir( subdir );
+      //
+      // Loop over the requested range of pipeline depth
+      //
+      for ( int iDepth = fromDepth; iDepth <= toDepth; ++iDepth ){
+	
+	
+	//// Set the pipeline depth on all DCFEBs ////
+	for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	  vector<CFEB> cfebs = (*dmb)->cfebs();
+	  for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb){
+	    
+	    (*dmb)->dcfeb_set_PipelineDepth( *cfeb, iDepth );
+	    usleep(100);
+	    (*dmb)->Pipeline_Restart( *cfeb );
+	    usleep(100);
+	  }
+	}
+	ccb_->l1aReset(); // needed after setting/restarting pipeline
+	usleep(100);
+
+	//// Start triggering
+	ccb_->bc0();
+	usleep(100);
+
+	// start DAQ
+	cout<<"starting DAQ..."<<endl;
+	manager_->startDAQ( string("Pipeline")+emu::utils::stringFrom<int>( iDepth ) );
+
+	// send pulses
+	for(int i=0; i<n_pulses; ++i){
+	  ccb_->pulse(1,0); // (N_pulses,t_delay)
+	  usleep(10000);
+	}
+	
+	// stop DAQ
+	cout<<"stopping DAQ..."<<endl;
+	manager_->stopDAQ();
+	
+      } // loop over next pipeline depth
+      manager_->setDAQOutSubdir( "" );
+    }
+
+    /**************************************************************************
+     * PipelineDepthScan with Cosmics
+     *
+     *************************************************************************/
+
+    PipelineDepthScan_Cosmics::PipelineDepthScan_Cosmics(Crate * crate, emu::me11dev::Manager* manager)
+      : Action( crate, manager ),
+        Action2Values<int, int>(50, 70) {}
+
+    void PipelineDepthScan_Cosmics::display(xgi::Output * out)
+    {
+      addButtonWithTwoTextBoxes(out,
+                                "Scan pipeline depth with cosmics",
+                                "From",
+                                numberToString(value1()),
+                                "To",
+                                numberToString(value2()));
+    }
+
+    void PipelineDepthScan_Cosmics::respond(xgi::Input * in, ostringstream & out)
+    {
+      cout<<"==>PipelineDepthScan_Cosmics"<<endl; 
+      int fromDepth = getFormValueInt("From", in);
+      value1( fromDepth ); // save the value
+
+      int toDepth = getFormValueInt("To", in);
+      value2( toDepth ); // save the value
+
+      for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu){
+	(*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+      }
+      
+      // set register 0 appropriately for communication over the VME backplane,
+      // this is necessary for the CCB to issue hard resets and to respond to L1
+      // requests from the TMB.
+      ccb_->setCCBMode(CCB::VMEFPGA);
+      usleep(10000);
+
+      //// Hard Reset ////
+      // ccb_->HardReset_crate(); // send a simple hard reset without
+      // any sleeps usleep(150000); // need at least 150 ms after hard reset
+      ccb_->hardReset();
+
+      //// Set comparator thresholds ////
+      float ComparatorThresholds = 0.05;
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->set_comp_thresh(ComparatorThresholds);
+      }
+      usleep(10000);
+      
+      //// Shift into normal mode
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->shift_all(NORM_RUN);
+	(*dmb)->buck_shift();
+	usleep(10);
+      }
+      usleep(10000);
+      ccb_->l1aReset(); // needed after buckeye shift
+      usleep(10000);
+
+      //
+      // Loop over the requested range of pipeline depth
+      //
+      for ( int iDepth = fromDepth; iDepth <= toDepth; ++iDepth ){
+	
+	//// Set the pipeline depth on all DCFEBs ////
+	for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	  vector<CFEB> cfebs = (*dmb)->cfebs();
+	  for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb){
+	    
+	    (*dmb)->dcfeb_set_PipelineDepth( *cfeb, iDepth );
+	    usleep(100);
+	    (*dmb)->Pipeline_Restart( *cfeb );
+	    usleep(100);
+	  }
+	}
+	ccb_->l1aReset(); // needed after setting/restarting pipeline
+	usleep(100);
+
+	//// Start triggering
+	ccb_->bc0();
+	usleep(100);
+
+	// start DAQ
+	cout<<"starting DAQ..."<<endl;
+	manager_->startDAQ( string("Pipeline")+emu::utils::stringFrom<int>( iDepth ) );
+
+	//// Take cosmics
+	sleep(1);
+	
+	// stop DAQ
+	cout<<"stopping DAQ..."<<endl;
+	manager_->stopDAQ();
+	
+      } // loop over next pipeline depth
+    }
+    
+    /**************************************************************************
+     * TmbDavDelayScan
+     *
+     *************************************************************************/
+
+    TmbDavDelayScan::TmbDavDelayScan(Crate * crate, emu::me11dev::Manager* manager)
+      : Action( crate, manager ),
+        Action2Values<int, int>(0, 31) {}
+
+    void TmbDavDelayScan::display(xgi::Output * out)
+    {
+      addButtonWithTwoTextBoxes(out,
+                                "Scan TMB DAV delay with pulses",
+                                "From",
+                                numberToString(value1()),
+                                "To",
+                                numberToString(value2()));
+    }
+
+    void TmbDavDelayScan::respond(xgi::Input * in, ostringstream & out)
+    {
+      cout<<"==>TmbDavDelayScan"<<endl; 
+      int fromdelay = getFormValueInt("From", in);
+      value1( fromdelay ); // save the value
+
+      int todelay = getFormValueInt("To", in);
+      value2( todelay ); // save the value
+
+      const int strip_to_pulse = 8; // TODO: make configurable
+
+      // set register 0 appropriately for communication over the VME
+      // backplane, this is necessary for the CCB to issue hard resets
+      // and to respond to L1 requests from the TMB.
       ccb_->setCCBMode(CCB::VMEFPGA);
 
       //
@@ -495,58 +849,124 @@ namespace emu { namespace me11dev {
       //
       ccb_->hardReset();
 
-      tmb_->SetClctPatternTrigEnable(1);
-      tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
 
-      crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
-      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-      {
-        (*dmb)->set_ext_chanx(strip_to_pulse);//check
-        (*dmb)->buck_shift();
-        usleep(100);
-      }
-      crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
+      // tmb_->SetClctPatternTrigEnable(1); // enable CLCT pretriggers
+      // tmb_->WriteRegister(emu::pc::seq_trig_en_adr);
 
-      ccb_->syncReset();//check
+      // enable L1A and clct_pretrig from any of dmb_cfeb_calib
+      // signals and disable all other trigger sources
+      ccb_->EnableL1aFromDmbCfebCalibX();
       usleep(100);
-      ccb_->bx0();
 
-      // reset every board's counters (including the bunch crossing number)
-      ccb_->l1aReset();
-      
-      // tell the CCB to respond to L1 requests on the backplane (from the TMB)
-      // with L1 accepts (L1As)
-      ccb_->EnableL1aFromTmbL1aReq();
-      
-      // initiate triggering (tell all board the first bunch crossing has occured)
-      ccb_->bc0();
-      
-      //
-      // Loop over the requested range of pipeline depth
-      //
-      for ( int iDepth = fromDepth; iDepth <= toDepth; ++iDepth ){
 
-	manager_->startDAQ( string("Pipeline")+emu::utils::stringFrom<int>( iDepth ) );
-    
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+	{
+	  (*dmb)->set_ext_chanx(strip_to_pulse);
+	  (*dmb)->buck_shift();
+	  usleep(100);
+	}
+
+
+      //
+      // Loop over the requested range of dav delays
+      //
+      for ( int idelay = fromdelay; idelay <= todelay; ++idelay ){
+	
 	ccb_->l1aReset();
+	usleep(100);
 	
-	for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-	  {
-	    vector<CFEB> cfebs = (*dmb)->cfebs();
-	    for(CFEBrevItr cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb)
-	      {
-		(*dmb)->dcfeb_set_PipelineDepth( *cfeb, iDepth );
-		usleep(100);
-		(*dmb)->Pipeline_Restart( *cfeb );
-	      }
-	  }
+	for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	  (*dmb)->varytmbdavdelay(idelay);
+	}
 	
+	ccb_->l1aReset();
+	usleep(100);
 	ccb_->bc0();
 	
-	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
-	  {
-	    (*dmb)->pulse(5,0); // (N_pulses,t_delay)
-	  }
+	manager_->startDAQ( string("TmbDavDelay")+emu::utils::stringFrom<int>( idelay ) );
+	
+	// for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	//   (*dmb)->pulse(1,0); // (N_pulses,t_delay)
+	// }
+	ccb_->pulse(1,0);
+	
+	manager_->stopDAQ();
+      }
+    }
+
+
+    /**************************************************************************
+     * L1aDelayScan
+     *
+     *************************************************************************/
+
+    L1aDelayScan::L1aDelayScan(Crate * crate, emu::me11dev::Manager* manager)
+    : Action( crate, manager ),
+	    Action2Values<int, int>(100, 140) {}
+
+    void L1aDelayScan::display(xgi::Output * out)
+    {
+      addButtonWithTwoTextBoxes(out,
+                                "Scan CCB L1A delay with pulses",
+                                "From",
+                                numberToString(value1()),
+                                "To",
+                                numberToString(value2()));
+    }
+
+    void L1aDelayScan::respond(xgi::Input * in, ostringstream & out)
+    {
+      cout<<"==>L1aDelayScan"<<endl; 
+      int fromdelay = getFormValueInt("From", in);
+      value1( fromdelay ); // save the value
+
+      int todelay = getFormValueInt("To", in);
+      value2( todelay ); // save the value
+
+      const int strip_to_pulse = 8; // TODO: make configurable
+
+      // set register 0 appropriately for communication over the VME
+      // backplane, this is necessary for the CCB to issue hard resets
+      // and to respond to L1 requests from the TMB.
+      ccb_->setCCBMode(CCB::VMEFPGA);
+
+      //
+      // SetUpPrecisionCapacitors
+      //
+      ccb_->hardReset();
+
+      // enable L1A and clct_pretrig from any of dmb_cfeb_calib
+      // signals and disable all other trigger sources
+      ccb_->EnableL1aFromDmbCfebCalibX();
+      usleep(100);
+      //ccb_->SetExtTrigDelay(19);
+      //usleep(100);
+
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->set_ext_chanx(strip_to_pulse);
+	(*dmb)->buck_shift();
+	usleep(100);
+      }
+
+
+      //
+      // Loop over the requested range of l1a delays
+      //
+      for ( int idelay = fromdelay; idelay <= todelay; ++idelay ){
+
+	ccb_->l1aReset();
+	usleep(100);
+	
+	ccb_->SetL1aDelay(idelay);
+
+	ccb_->l1aReset();
+	usleep(100);
+	ccb_->bc0();
+	
+	manager_->startDAQ( string("L1aDelay")+emu::utils::stringFrom<int>( idelay ) );
+    
+	ccb_->pulse(1,0); // (N_pulses,t_delay)
+	usleep(10);
 
 	manager_->stopDAQ();
       }
@@ -571,6 +991,7 @@ namespace emu { namespace me11dev {
 
     void TMBHardResetTest::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>TMBHardResetTest"<<endl; 
       int NumberOfHardResets = getFormValueInt("NumberOfHardResets", in);
       value(NumberOfHardResets); // save the value
 
@@ -599,43 +1020,45 @@ namespace emu { namespace me11dev {
       for (i = 0;
            i < NumberOfHardResets && !firmware_lost;
            ++i)
-      {
-        if (i % 500 == 0) {
-          out << "Hard Reset Number " << i << endl;
-        }
+	{
+	  if (i % 500 == 0) {
+	    out << "Hard Reset Number " << i << endl;
+	  }
 
-        //ccb_->hardReset();
+	  //ccb_->hardReset(); // slow
+	  ccb_->HardReset_crate(); // no sleeps
+	  usleep(400000); // need at least 150 ms for hard resets
 
-        const int maximum_firmware_readback_attempts = 2;
-        int firmware_readback_attempts = 0;
-        do {
-          firmware_lost = false;
-          tmb_->FirmwareDate(); // reads the month and day off of the tmb
-          int actual_day = tmb_->GetReadTmbFirmwareDay();
-          int actual_month = tmb_->GetReadTmbFirmwareMonth();
-          tmb_->FirmwareYear(); // reads the year off of the tmb
-          int actual_year = tmb_->GetReadTmbFirmwareYear();
-          tmb_->FirmwareVersion(); // reads the version off of the tmb
-          int actual_type = tmb_->GetReadTmbFirmwareType();
-          int actual_version = tmb_->GetReadTmbFirmwareVersion();
+	  const int maximum_firmware_readback_attempts = 2;
+	  int firmware_readback_attempts = 0;
+	  do {
+	    firmware_lost = false;
+	    tmb_->FirmwareDate(); // reads the month and day off of the tmb
+	    int actual_day = tmb_->GetReadTmbFirmwareDay();
+	    int actual_month = tmb_->GetReadTmbFirmwareMonth();
+	    tmb_->FirmwareYear(); // reads the year off of the tmb
+	    int actual_year = tmb_->GetReadTmbFirmwareYear();
+	    tmb_->FirmwareVersion(); // reads the version off of the tmb
+	    int actual_type = tmb_->GetReadTmbFirmwareType();
+	    int actual_version = tmb_->GetReadTmbFirmwareVersion();
 
-          if ((actual_day != expected_day) ||
-              (actual_month != expected_month) ||
-              (actual_year != expected_year) ||
-              (actual_type != expected_type) ||
-              (actual_version != expected_version))
-          {
-            firmware_lost = true;
-            hiccup_number++;
-            usleep(1000); // sometimes the readback fails, so wait and try again
-          }
-          // if we haven't gone over our maximum number of readback attempts and
-          // the firmware was "lost" (i.e. the readback didn't match the expected
-          // values), then try again.
+	    if ((actual_day != expected_day) ||
+		(actual_month != expected_month) ||
+		(actual_year != expected_year) ||
+		(actual_type != expected_type) ||
+		(actual_version != expected_version))
+	      {
+		firmware_lost = true;
+		hiccup_number++;
+		usleep(1000); // sometimes the readback fails, so wait and try again
+	      }
+	    // if we haven't gone over our maximum number of readback attempts and
+	    // the firmware was "lost" (i.e. the readback didn't match the expected
+	    // values), then try again.
 
-        } while (++firmware_readback_attempts < maximum_firmware_readback_attempts &&
-                 firmware_lost);
-      }
+	  } while (++firmware_readback_attempts < maximum_firmware_readback_attempts &&
+		   firmware_lost);
+	}
 
       ccb_->RedirectOutput(&cout);
 
@@ -652,7 +1075,7 @@ namespace emu { namespace me11dev {
     }
 
     TMBRegisters::TMBRegisters(Crate * crate)
-     : Action(crate) { }
+      : Action(crate) { }
 
     void TMBRegisters::display(xgi::Output * out)
     {
@@ -661,9 +1084,9 @@ namespace emu { namespace me11dev {
 
     void TMBRegisters::respond(xgi::Input * in, ostringstream & out)
     {
-     
+      cout<<"==>TMBRegisters"<<endl;      
       //Print out current registers
-      out<< "Initial Register for Fiberr 0-6 "<<endl;
+      out<< "Initial Register for Fiber 0-6 "<<endl;
       out<<" 0x14a \t"<<std::hex<<tmb_->ReadRegister(0x14a)<<endl; 
       out<<" 0x14c \t"<<std::hex<<tmb_->ReadRegister(0x14c)<<endl;
       out<<" 0x14e \t"<<std::hex<<tmb_->ReadRegister(0x14e)<<endl;
@@ -672,7 +1095,32 @@ namespace emu { namespace me11dev {
       out<<" 0x154 \t"<<std::hex<<tmb_->ReadRegister(0x154)<<endl;
       out<<" 0x156 \t"<<std::hex<<tmb_->ReadRegister(0x156)<<endl;
       out<<" 0x158 \t"<<std::hex<<tmb_->ReadRegister(0x158)<<endl;
-      
+      out<<"COPPER REGISTERS"<<endl;
+      out<<" 0x42 \t"<<std::hex<<tmb_->ReadRegister(0x42)<<endl;
+      out<<" 0x4a \t"<<std::hex<<tmb_->ReadRegister(0x4a)<<endl;
+      out<<" 0x4c \t"<<std::hex<<tmb_->ReadRegister(0x4c)<<endl;
+      out<<" 0x4e \t"<<std::hex<<tmb_->ReadRegister(0x4e)<<endl;
+      out<<" 0x50 \t"<<std::hex<<tmb_->ReadRegister(0x50)<<endl;
+      out<<" 0x52 \t"<<std::hex<<tmb_->ReadRegister(0x52)<<endl;
+      out<<" 0x54 \t"<<std::hex<<tmb_->ReadRegister(0x54)<<endl;
+      out<<" 0x56 \t"<<std::hex<<tmb_->ReadRegister(0x56)<<endl;
+      out<<" 0x58 \t"<<std::hex<<tmb_->ReadRegister(0x58)<<endl;
+      out<<" 0x5a \t"<<std::hex<<tmb_->ReadRegister(0x5a)<<endl;
+      out<<" 0x5c \t"<<std::hex<<tmb_->ReadRegister(0x5c)<<endl;
+      out<<" 0x5e \t"<<std::hex<<tmb_->ReadRegister(0x5e)<<endl;
+      out<<" 0x60 \t"<<std::hex<<tmb_->ReadRegister(0x60)<<endl;
+      out<<" 0x62 \t"<<std::hex<<tmb_->ReadRegister(0x62)<<endl;
+      out<<" 0x64 \t"<<std::hex<<tmb_->ReadRegister(0x64)<<endl;
+      out<<" 0x66 \t"<<std::hex<<tmb_->ReadRegister(0x66)<<endl;
+      out<<" 0x16e \t"<<std::hex<<tmb_->ReadRegister(0x16e)<<endl;
+      out<<" 0x170 \t"<<std::hex<<tmb_->ReadRegister(0x170)<<endl;
+      out<<" 0x172 \t"<<std::hex<<tmb_->ReadRegister(0x172)<<endl;
+      out<<" 0x174 \t"<<std::hex<<tmb_->ReadRegister(0x174)<<endl;
+      out<<" 0x176 \t"<<std::hex<<tmb_->ReadRegister(0x176)<<endl;
+      out<<" 0x178 \t"<<std::hex<<tmb_->ReadRegister(0x178)<<endl;
+      out<<"bad bit registers"<<endl;
+      out<<" 0x122 \t"<<std::hex<<tmb_->ReadRegister(0x122)<<endl;
+      out<<" 0x15c \t"<<std::hex<<tmb_->ReadRegister(0x15c)<<endl; 
       
     }
     
@@ -692,6 +1140,7 @@ namespace emu { namespace me11dev {
 
     void TMBSetRegisters::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>TMBSetRegisters"<<endl; 
       int RegisterValue = getFormValueIntHex("Register", in);
       int setting = getFormValueIntHex("Value", in);
 
@@ -710,7 +1159,7 @@ namespace emu { namespace me11dev {
     }
     
     TMBDisableCopper::TMBDisableCopper(Crate * crate)
-     : Action(crate) { }
+      : Action(crate) { }
 
     void TMBDisableCopper::display(xgi::Output * out)
     {
@@ -719,7 +1168,10 @@ namespace emu { namespace me11dev {
 
     void TMBDisableCopper::respond(xgi::Input * in, ostringstream & out)
     {
-
+      cout<<"==>TMBDisableCopper"<<endl; 
+      
+      out<<" Initial TMB Register 42 = "<<std::hex<<tmb_->ReadRegister(42)<<endl;
+      
       tmb_->SetDistripHotChannelMask(0,0x00000000ff);                       
       tmb_->SetDistripHotChannelMask(1,0x00000000ff);                        
       tmb_->SetDistripHotChannelMask(2,0x00000000ff);                        
@@ -727,10 +1179,158 @@ namespace emu { namespace me11dev {
       tmb_->SetDistripHotChannelMask(4,0x00000000ff);  
       tmb_->SetDistripHotChannelMask(5,0x00000000ff);                      
       tmb_->WriteDistripHotChannelMasks(); 
-
+      
+      
+      
+      out<<" TMB Register 42 = "<<std::hex<<tmb_->ReadRegister(42)<<endl;
+      /* tmb_->WriteRegister(42,0x0000);	     
+	 usleep(100000);
+	 
+	 out<<"Set TMB Register: "<<std::hex<<0x0000<<" to "<<std::hex<<tmb_->ReadRegister(42)<<endl;
+      */
+      
     }
  
 
+    /**************************************************************************
+     * PulseWires (based on STEP test 16)
+     *
+     *************************************************************************/
+
+    PulseWires::PulseWires(Crate * crate)
+      : Action(crate), 
+	ActionValue<int>(20) {}
+
+    void PulseWires::display(xgi::Output * out)
+    {
+
+      addButtonWithTextBox(out,
+                           "Pulse Wires with External Trigger Delay =",
+                           "ExTrigDelay",
+                           numberToString(value()));
+
+    }
+
+    void PulseWires::respond(xgi::Input * in, ostringstream & out)
+    {
+
+      unsigned int ExTrigDelay = getFormValueInt("ExTrigDelay", in);
+      value(ExTrigDelay); // save the value
+
+      for(unsigned int ExTrigDelay=5; ExTrigDelay<=50; ExTrigDelay++){
+	for(int AFEB_STANDBY=1; AFEB_STANDBY<2; AFEB_STANDBY++){
+	  for(int sync_index=0; sync_index<=1; sync_index++){
+
+	    ostream noBuffer( NULL );
+	    const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
+	    uint64_t events_per_layer    = 1; //parameters_["events_per_layer"]; normally 1000
+	    uint64_t alct_test_pulse_amp = 255; //parameters_["alct_test_pulse_amp"];
+
+
+	    // /home/cscme11/TriDAS/emu/emuDCS/PeripheralCore/include/emu/pc
+	    // CCB.h 
+	    ccb_->EnableL1aFromSyncAdb();
+      
+	    // fixed to unsigned int
+	    ccb_->SetExtTrigDelay(ExTrigDelay); 
+
+	    std::cout<<" ************************** "<<std::endl;
+	    std::cout<<" ************************** "<<std::endl;
+	    std::cout<<" ************************** "<<std::endl;
+	    std::cout<<" ************************** "<<std::endl;
+
+	    std::cout<<" ExTrigDelay = "<<ExTrigDelay<<" AFEB_STANDBY = "<<AFEB_STANDBY<<std::endl;
+
+	    std::cout<<" ************************** "<<std::endl;
+	    std::cout<<" ************************** "<<std::endl;
+	    std::cout<<" ************************** "<<std::endl;
+	    std::cout<<" ************************** "<<std::endl;
+
+	    //	  uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them from test 16
+	    uint64_t afebGroupMask = 0x3fff; // all afebs from test 14
+
+	
+	    //	    alct_->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
+
+	    tmb_->EnableClctExtTrig();
+	    alct_->SetInvertPulse_(ON);  
+	    std::cout<<" invert pulse has been set to "<<alct_->Get_InvertPulse()<<std::endl;
+
+	    alct_->FillTriggerRegister_();
+	    alct_->WriteTriggerRegister_();
+
+	    // added a call to the print out 
+	    alct_->PrintTriggerRegister_();
+
+	    // moved here
+	    alct_->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
+
+	    // added a call to the config printout 
+	    alct_->PrintALCTConfiguration();
+
+
+
+	    for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
+	      {
+
+		// reprogram standby register to enable 2 layers at a time
+		const int standby_fmask[nLayerPairs] = {066, 055, 033};
+
+
+
+		if(AFEB_STANDBY==1)
+		  {
+
+		    alct_->WriteStandbyRegister_(); // duplicate added here 
+
+
+		    for (int lct_chip = 0; lct_chip < alct_->MaximumUserIndex() / 6; lct_chip++)
+		      {
+			int astandby = standby_fmask[iLayerPair];
+			for (int afeb = 0; afeb < 6; afeb++)
+			  {
+			    alct_->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
+			  }
+		      }
+		    // based on the description duplicating this above :
+		    alct_->WriteStandbyRegister_();
+		  }
+		//ccb_->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+		ccb_->RedirectOutput( &cout ); // ccb prints a line on each test pulse - waste it
+
+		      
+		for ( uint64_t iPulse = 1; iPulse <= events_per_layer; ++iPulse )
+		  {
+		    if(sync_index == 0)
+		      {
+			// from test 14 also throw in this call
+			ccb_->GenerateAlctAdbASync();
+			usleep(10000);	 
+		      }
+
+		    if(sync_index == 1)
+		      {
+			// from test 19
+			ccb_->GenerateAlctAdbSync();
+			usleep(10);	  
+		      } 
+		 
+		  } 
+      
+		ccb_->RedirectOutput (&cout); // get back ccb output
+
+		/////////
+
+	      }
+	  }
+	}
+      }
+    }
+    
+    
+    
+    
+    
     /**************************************************************************
      * DDUReadKillFiber
      *
@@ -746,19 +1346,20 @@ namespace emu { namespace me11dev {
 
     void DDUReadKillFiber::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>DDUReadKillFiber"<<endl; 
       out << "=== DDU Read Kill Fiber ===" << endl;
 
       for(vector <DDU*>::iterator ddu = ddus_.begin();
-          ddu != ddus_.end();
-          ++ddu)
-      {
-        out << "DDU with ctrl fpga user code: " << (*ddu)->CtrlFpgaUserCode()
-            << hex << setfill('0') // set up for next two hex values
-            << " and vme prom user code: "
-            << setw(8) << (*ddu)->VmePromUserCode()
-            << " has Kill Fiber is set to: "
-            << setw(4) << (*ddu)->readFlashKillFiber() << endl;
-      }
+	  ddu != ddus_.end();
+	  ++ddu)
+	{
+	  out << "DDU with ctrl fpga user code: " << (*ddu)->CtrlFpgaUserCode()
+	      << hex << setfill('0') // set up for next two hex values
+	      << " and vme prom user code: "
+	      << setw(8) << (*ddu)->VmePromUserCode()
+	      << " has Kill Fiber is set to: "
+	      << setw(4) << (*ddu)->readFlashKillFiber() << endl;
+	}
     }
 
     /**************************************************************************
@@ -768,18 +1369,19 @@ namespace emu { namespace me11dev {
 
     DDUWriteKillFiber::DDUWriteKillFiber(Crate * crate)
       : Action(crate),
-        ActionValue<string>("7fff") {}
+	ActionValue<string>("7fff") {}
 
     void DDUWriteKillFiber::display(xgi::Output * out)
     {
       addButtonWithTextBox(out,
-                           "Write DDU Kill Fiber (15 bits in hex)",
-                           "KillFiber",
-                           value());
+			   "Write DDU Kill Fiber (15 bits in hex)",
+			   "KillFiber",
+			   value());
     }
 
     void DDUWriteKillFiber::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>DDUWriteKillFiber"<<endl; 
       int KillFiber = getFormValueIntHex("KillFiber", in);
 
       std::stringstream hexstr_KillFiber;
@@ -789,35 +1391,36 @@ namespace emu { namespace me11dev {
       out << "=== DDU Write Kill Fiber ===" << endl;
 
       for(vector <DDU*>::iterator ddu = ddus_.begin();
-          ddu != ddus_.end();
-          ++ddu)
-      {
-        (*ddu)->writeFlashKillFiber(KillFiber);
-      }
+	  ddu != ddus_.end();
+	  ++ddu)
+	{
+	  (*ddu)->writeFlashKillFiber(KillFiber);
+	}
     }
 
-   /**************************************************************************
-    * ExecuteVMEDSL
-    *
-    * A domain-specific-lanaguage for issuing vme commands. 
-    *************************************************************************/
+    /**************************************************************************
+     * ExecuteVMEDSL
+     *
+     * A domain-specific-lanaguage for issuing vme commands. 
+     *************************************************************************/
 
     ExecuteVMEDSL::ExecuteVMEDSL(Crate * crate)
       : Action(crate),
-        ActionValue<string>("/home/cscme11/vme.commands") {}
+	ActionValue<string>("/home/cscme11/vme.commands") {}
     
     void ExecuteVMEDSL::display(xgi::Output * out)
     {
       addButtonWithTextBox(out,
-                           "Execute VME DSL commands in file:",
-                           "VMEProgramFile",
-                           value(),
-                           "min-width: 25em; width: 25%; ",
-                           "min-width: 40em; width: 70%; ");
+			   "Execute VME DSL commands in file:",
+			   "VMEProgramFile",
+			   value(),
+			   "min-width: 25em; width: 25%; ",
+			   "min-width: 40em; width: 70%; ");
     }
 
     void ExecuteVMEDSL::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>ExecuteVMEDSL"<<endl; 
       int slot = 15; // hard code a default VME slot number
       string programfile = getFormValueString("VMEProgramFile", in);
       value(programfile); // save the value
@@ -841,188 +1444,188 @@ namespace emu { namespace me11dev {
       stringstream alltext;
       ifstream file( programfile.c_str() );
       if ( file ){
-        alltext << file.rdbuf();
-        file.close();
+	alltext << file.rdbuf();
+	file.close();
       }
 
       //stringstream alltext(this->textBoxContents); // get all the text
       string line;
 
       while (getline(alltext,line,'\n')) // read in one line at a time
-      {
-        if(!line.size()) continue; // Next line, please.
+	{
+	  if(!line.size()) continue; // Next line, please.
 
-        istringstream iss(line);
+	  istringstream iss(line);
 
-        int num=0;
-        if(iss >> num && iss.good()) // the first token is a number, which we interpret as:
-        {
-          //
-          // 0 : end of run, stop execution
-          //
-          // 1 : The rest of the line must contain exactly 64
-          // characters, which are interpreted as a 32 bit address and
-          // 32 bits of data (to match simulation files).  Spaces are
-          // ignored and characters that are not 0 are interpreted as
-          // 1.  Only the lowest 19 bits of address and 16 bits of
-          // data are used with the exception that the 26th bit (from
-          // right) of address determines read(1) or write(0).
-          //
-          // >1 : Produces a sleep for that number of microseconds
-          //
-          // <0 : Send an error message to the output and abort further execution.
+	  int num=0;
+	  if(iss >> num && iss.good()) // the first token is a number, which we interpret as:
+	    {
+	      //
+	      // 0 : end of run, stop execution
+	      //
+	      // 1 : The rest of the line must contain exactly 64
+	      // characters, which are interpreted as a 32 bit address and
+	      // 32 bits of data (to match simulation files).  Spaces are
+	      // ignored and characters that are not 0 are interpreted as
+	      // 1.  Only the lowest 19 bits of address and 16 bits of
+	      // data are used with the exception that the 26th bit (from
+	      // right) of address determines read(1) or write(0).
+	      //
+	      // >1 : Produces a sleep for that number of microseconds
+	      //
+	      // <0 : Send an error message to the output and abort further execution.
 
-          if(num==0){
-            out<<"Found EOR, exiting."<<endl;
-            return; // EOR instruction
-          }
-          else if(num==1) // The line begins with 1, so now expect 32 bits for address and 32 bits for data
-          {
-            string addr_str;
-            string data_str;
-            string tmp_str;
+	      if(num==0){
+		out<<"Found EOR, exiting."<<endl;
+		return; // EOR instruction
+	      }
+	      else if(num==1) // The line begins with 1, so now expect 32 bits for address and 32 bits for data
+		{
+		  string addr_str;
+		  string data_str;
+		  string tmp_str;
 
-            while(addr_str.size()<32 && iss.good()) // read in 32 bits for address
-            {
-              iss >> tmp_str;
-              addr_str += tmp_str;
-              //out<<"addr_str:"<<addr_str<<endl;
-            }
-            while(data_str.size()<32 && iss.good()) // read in 32 bits for data
-            {
-              iss >> tmp_str;
-              data_str += tmp_str;
-              //out<<"data_str:"<<data_str<<endl;
-            }
+		  while(addr_str.size()<32 && iss.good()) // read in 32 bits for address
+		    {
+		      iss >> tmp_str;
+		      addr_str += tmp_str;
+		      //out<<"addr_str:"<<addr_str<<endl;
+		    }
+		  while(data_str.size()<32 && iss.good()) // read in 32 bits for data
+		    {
+		      iss >> tmp_str;
+		      data_str += tmp_str;
+		      //out<<"data_str:"<<data_str<<endl;
+		    }
 
-            if(addr_str.size()!=32 || data_str.size()!=32)
-            {
-              out<<"ERROR: address("<<addr_str<<") or data("<<data_str<<") is not 32 bits on line: "<<line<<endl;
-              return;
-            }
+		  if(addr_str.size()!=32 || data_str.size()!=32)
+		    {
+		      out<<"ERROR: address("<<addr_str<<") or data("<<data_str<<") is not 32 bits on line: "<<line<<endl;
+		      return;
+		    }
 
-            irdwr = (addr_str.at(addr_str.size()-26)=='1')? 2 : 3; // 26th and 25th "bits" from right tell read (10) or write (01)
-            addr = binaryStringToUInt(addr_str);
-            data = binaryStringToUInt(data_str);
-          }
-          else if(num > 1)
-          {
-            out<<"sleep for "<<num<<" microseconds"<<endl;
-            out<<flush;
-            usleep(num);
-            continue; // Next line, please.
-          }
-          else
-          { // This shouldn't happen
-            out<<"ERROR: line begins with unexpected number = "<<num<<".  Aborting further execution."<<endl;
-            return;
-          }
+		  irdwr = (addr_str.at(addr_str.size()-26)=='1')? 2 : 3; // 26th and 25th "bits" from right tell read (10) or write (01)
+		  addr = binaryStringToUInt(addr_str);
+		  data = binaryStringToUInt(data_str);
+		}
+	      else if(num > 1)
+		{
+		  out<<"sleep for "<<num<<" microseconds"<<endl;
+		  out<<flush;
+		  usleep(num);
+		  continue; // Next line, please.
+		}
+	      else
+		{ // This shouldn't happen
+		  out<<"ERROR: line begins with unexpected number = "<<num<<".  Aborting further execution."<<endl;
+		  return;
+		}
       
-        }
-        else
-        {
-          // Parse the line as follows:
-          //
-          // readfile <int> :
-          // Readfile <int> :
-          // READFILE <int> :
-          //  Read in VME commands from this file.
-          //	  //
-          // slot <int> :
-          // Slot <int> :
-          // SLOT <int> :
-          //  Change the slot number to <int>.
-          //
-          // w <hex address> <hex data> :
-          // W <hex address> <hex data> :
-          //  A write command using the lowest 19/16 bits of give address/data.
-          //
-          // r <hex address> <hex data> :
-          // R <hex address> <hex data> :
-          //  A read command using the lowest 19/16 bits of give address/data.
-          //
-          // Anything else is treated as a comment.
+	    }
+	  else
+	    {
+	      // Parse the line as follows:
+	      //
+	      // readfile <int> :
+	      // Readfile <int> :
+	      // READFILE <int> :
+	      //  Read in VME commands from this file.
+	      //	  //
+	      // slot <int> :
+	      // Slot <int> :
+	      // SLOT <int> :
+	      //  Change the slot number to <int>.
+	      //
+	      // w <hex address> <hex data> :
+	      // W <hex address> <hex data> :
+	      //  A write command using the lowest 19/16 bits of give address/data.
+	      //
+	      // r <hex address> <hex data> :
+	      // R <hex address> <hex data> :
+	      //  A read command using the lowest 19/16 bits of give address/data.
+	      //
+	      // Anything else is treated as a comment.
 
-          iss.clear(); // reset iss
-          iss.str(line); // not needed, but just to make it clear
-          string key;
-          iss >> key;
+	      iss.clear(); // reset iss
+	      iss.str(line); // not needed, but just to make it clear
+	      string key;
+	      iss >> key;
 
-          if( key == "readfile" ||
-              key == "Readfile" ||
-              key == "READFILE" )
-          { //
-            string tmp_filename;
-            if( iss >> tmp_filename )
-            {
-              programfile = tmp_filename;
-              out << "Read commands from file: " << programfile << endl;
-              continue; // Next line, please.
-            }
-            else
-            {
-              out<<"ERROR: did not find an integer number after \""<<key<<"\" on the line: "<<line<<endl;
-              out<<"  Aborting further execution."<<endl;
-              return;
-            }
-          }
-          else if( key == "slot" ||
-                   key == "Slot" ||
-                   key == "SLOT" ) // Try to change the slot number
-          {
-            int tmp_slot;
-            if( iss >> tmp_slot )
-            {
-              slot = tmp_slot;
-              out << "Slot number set to " << slot << endl;
-              continue; // Next line, please.
-            }
-            else
-            {
-              out<<"ERROR: did not find an integer number after \""<<key<<"\" on the line: "<<line<<endl;
-              out<<"  Aborting further execution."<<endl;
-              return;
-            }
-          }
-          else if( key == "w" ||
-                   key == "W" ||
-                   key == "r" ||
-                   key == "R" )
-          {
-            if( key == "w" || key == "W" ) irdwr = 2;
-            else irdwr = 3;
+	      if( key == "readfile" ||
+		  key == "Readfile" ||
+		  key == "READFILE" )
+		{ //
+		  string tmp_filename;
+		  if( iss >> tmp_filename )
+		    {
+		      programfile = tmp_filename;
+		      out << "Read commands from file: " << programfile << endl;
+		      continue; // Next line, please.
+		    }
+		  else
+		    {
+		      out<<"ERROR: did not find an integer number after \""<<key<<"\" on the line: "<<line<<endl;
+		      out<<"  Aborting further execution."<<endl;
+		      return;
+		    }
+		}
+	      else if( key == "slot" ||
+		       key == "Slot" ||
+		       key == "SLOT" ) // Try to change the slot number
+		{
+		  int tmp_slot;
+		  if( iss >> tmp_slot )
+		    {
+		      slot = tmp_slot;
+		      out << "Slot number set to " << slot << endl;
+		      continue; // Next line, please.
+		    }
+		  else
+		    {
+		      out<<"ERROR: did not find an integer number after \""<<key<<"\" on the line: "<<line<<endl;
+		      out<<"  Aborting further execution."<<endl;
+		      return;
+		    }
+		}
+	      else if( key == "w" ||
+		       key == "W" ||
+		       key == "r" ||
+		       key == "R" )
+		{
+		  if( key == "w" || key == "W" ) irdwr = 2;
+		  else irdwr = 3;
 
-            if( !(iss >> hex >> addr) || !(iss >> hex >> data) )
-            { // put hex string directly into addr/data
-              out<<"ERROR: problem reading hex values for address or data on the line: "<<line<<endl;
-              out<<"  Aborting further execution."<<endl;
-              return;
-            }
+		  if( !(iss >> hex >> addr) || !(iss >> hex >> data) )
+		    { // put hex string directly into addr/data
+		      out<<"ERROR: problem reading hex values for address or data on the line: "<<line<<endl;
+		      out<<"  Aborting further execution."<<endl;
+		      return;
+		    }
 
-          }
-          else
-          {
-            out<<"COMMENT: "<<line<<endl;
-            continue; // Next line, please.
-          }
-        }
+		}
+	      else
+		{
+		  out<<"COMMENT: "<<line<<endl;
+		  continue; // Next line, please.
+		}
+	    }
 
-        //// If we make it here, we have a VME command to run! ////
+	  //// If we make it here, we have a VME command to run! ////
 
-        // set the top bits of address to the slot number
-        addr = (addr&0x07ffff) | slot<<19;
+	  // set the top bits of address to the slot number
+	  addr = (addr&0x07ffff) | slot<<19;
 
-        printf("Calling:  vme_controller(%d,%06x,&%04x,{%02x,%02x})  ",irdwr,addr&0xffffff,data&0xffff,rcv[0]&0xff,rcv[1]&0xff);
-        crate_->vmeController()->vme_controller(irdwr,addr,&data,rcv); // Send the VME command!
-        VMEController::print_decoded_vme_address(addr,&data);
-        usleep(1);
+	  printf("Calling:  vme_controller(%d,%06x,&%04x,{%02x,%02x})  ",irdwr,addr&0xffffff,data&0xffff,rcv[0]&0xff,rcv[1]&0xff);
+	  crate_->vmeController()->vme_controller(irdwr,addr,&data,rcv); // Send the VME command!
+	  VMEController::print_decoded_vme_address(addr,&data);
+	  usleep(1);
 
-        // if it was a read, then show the result
-        if(irdwr==2) printf("  ==> rcv[1,0] = %02x %02x",rcv[1]&0xff,rcv[0]&0xff);
-        printf("\n");
-        fflush(stdout);
+	  // if it was a read, then show the result
+	  if(irdwr==2) printf("  ==> rcv[1,0] = %02x %02x",rcv[1]&0xff,rcv[0]&0xff);
+	  printf("\n");
+	  fflush(stdout);
 
-      } // while parsing lines
+	} // while parsing lines
     }
 
 
@@ -1041,39 +1644,100 @@ namespace emu { namespace me11dev {
 
     void BuckShiftTest::respond(xgi::Input * in, ostringstream & out)
     {
+      cout<<"==>BuckShiftTest"<<endl; 
       out << "=== Buck Shift Test ===" << endl;
-      crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
-      for(vector <DAQMB*>::iterator dmb = dmbs_.begin();
-          dmb != dmbs_.end();
-          ++dmb)
-      {
-        int val = (*dmb)->buck_shift_test();
-        cout<<"Buck Shift Test returns: "<<val<<endl;
+
+      //crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
+
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	int val = (*dmb)->buck_shift_test();
+	cout<<"Buck Shift Test returns: "<<val<<endl;
       }
-      crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
+
+      //crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
     }
+    
 
 
 
+    /**************************************************************************
+     * Enable VME debug printouts
+     *
+     *************************************************************************/
 
-//    /**************************************************************************
-//     * ActionTemplate
-//     *
-//     *************************************************************************/
-/*
-    ActionTemplate::ActionTemplate(Crate * crate)
-     : Action(crate) {}
+    enableVmeDebugPrintout::enableVmeDebugPrintout(Crate * crate)
+      : Action(crate), ActionValue<int>(0) {}
 
-    void ActionTemplate::display(xgi::Output * out)
+    void enableVmeDebugPrintout::display(xgi::Output * out)
     {
-
+      addButtonWithTextBox(out, 
+			   "Enable VME Debug Printouts",
+			   "enable",
+			   numberToString(value()));
     }
-
-    void ActionTemplate::respond(xgi::Input * in, ostringstream & out)
+    
+    void enableVmeDebugPrintout::respond(xgi::Input * in, ostringstream & out)
     {
-
+      cout<<"==>enableVmeDebugPrintout"<<endl; 
+      bool enable = getFormValueInt("enable", in);
+      value(int(enable)); // save the value
+      crate_->vmeController()->SetPrintVMECommands(enable); // turn on/off debug printouts of VME commands
     }
-*/
+
+
+    /**************************************************************************
+     * DCFEB debug dump
+     *
+     *************************************************************************/
+
+    dcfebDebugDump::dcfebDebugDump(Crate * crate)
+      : Action(crate) {}
+
+    void dcfebDebugDump::display(xgi::Output * out)
+    {
+      addButton(out, "DCFEB Debug Dump");
+    }
+
+    void dcfebDebugDump::respond(xgi::Input * in, ostringstream & out)
+    {
+      cout<<"==>dcfebDebugDump"<<endl; 
+      out << "DCFEB Debug Dump send to stdout" << endl;
+
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
+	{
+	  vector <CFEB> cfebs = (*dmb)->cfebs();
+	  for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb)	
+	    {
+	      int cfeb_index = (*cfeb).number();
+	      
+	      cout << " ********************* " << endl
+		   << " FEB" << cfeb_index << " : " << endl;
+	      (*dmb)->dcfeb_readreg_statusvirtex6( *cfeb );
+	      (*dmb)->dcfeb_readreg_cor0virtex6( *cfeb );
+	      (*dmb)->dcfeb_readreg_cor1virtex6( *cfeb ); 
+	    }
+	}
+    }
+
+
+    //    /**************************************************************************
+    //     * ActionTemplate
+    //     *
+    //     *************************************************************************/
+    /*
+      ActionTemplate::ActionTemplate(Crate * crate)
+      : Action(crate) {}
+
+      void ActionTemplate::display(xgi::Output * out)
+      {
+
+      }
+
+      void ActionTemplate::respond(xgi::Input * in, ostringstream & out)
+      {
+
+      }
+    */
 
   }
 }

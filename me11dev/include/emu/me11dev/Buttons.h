@@ -9,7 +9,6 @@
 
 #include "emu/me11dev/Action.h"
 #include "emu/me11dev/LogAction.h"
-#include "emu/me11dev/LongTextBoxAction.h"
 #include "emu/me11dev/ActionValue.h"
 
 /******************************************************************************
@@ -81,6 +80,13 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
+    class SetTMBdavDelay : public Action, public ActionValue<int> {
+    public:
+      SetTMBdavDelay(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
     class SetComparatorThresholds : public Action, public ActionValue<float> {
     public:
       SetComparatorThresholds(emu::pc::Crate * crate);
@@ -95,23 +101,23 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetUpComparatorPulse : public Action, public ActionValue<int> {
+    class SetUpComparatorPulse : public Action, public Action2Values<int,int> {
     public:
       SetUpComparatorPulse(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class SetUpPrecisionCapacitors : public Action, public ActionValue<int> {
+    class SetUpPrecisionCapacitors : public Action, public Action2Values<int,int> {
     public:
       SetUpPrecisionCapacitors(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class PulseInternalCapacitors : public Action {
+    class PulseInternalCapacitorsDMB : public Action {
     public:
-      PulseInternalCapacitors(emu::pc::Crate * crate);
+      PulseInternalCapacitorsDMB(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
@@ -123,9 +129,9 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class PulsePrecisionCapacitors : public Action {
+    class PulsePrecisionCapacitorsDMB : public Action {
     public:
-      PulsePrecisionCapacitors(emu::pc::Crate * crate);
+      PulsePrecisionCapacitorsDMB(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
@@ -151,9 +157,25 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
+
+    class PulseWires : public Action, public ActionValue<int> {
+    public:
+      PulseWires(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+
     class SetPipelineDepthAllDCFEBs : public Action, public ActionValue<int> {
     public:
       SetPipelineDepthAllDCFEBs(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+    class Stans_SetPipelineDepthAllDCFEBs : public Action, public ActionValue<int> {
+    public:
+      Stans_SetPipelineDepthAllDCFEBs(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
@@ -223,9 +245,30 @@ namespace emu { namespace me11dev {
     };
      
 
-    class PipelineDepthScanButton : public Action, public Action2Values<int, int> {
+    class PipelineDepthScan_Pulses : public Action, public Action2Values<int, int> {
     public:
-      PipelineDepthScanButton(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      PipelineDepthScan_Pulses(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };     
+
+    class PipelineDepthScan_Cosmics : public Action, public Action2Values<int, int> {
+    public:
+      PipelineDepthScan_Cosmics(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };     
+
+    class TmbDavDelayScan : public Action, public Action2Values<int, int> {
+    public:
+      TmbDavDelayScan(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };     
+
+    class L1aDelayScan : public Action, public Action2Values<int, int> {
+    public:
+      L1aDelayScan(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };     
@@ -281,6 +324,22 @@ namespace emu { namespace me11dev {
         ssout.str("*** Contents above was dumped to stdout ***");
       }
     };
+
+    class dcfebDebugDump : public Action {
+    public:
+      dcfebDebugDump(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+
+    class enableVmeDebugPrintout : public Action, ActionValue<int> {
+    public:
+      enableVmeDebugPrintout(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
 
 
   }

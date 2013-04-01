@@ -6,6 +6,7 @@
 #include "emu/pc/CCB.h"
 #include "emu/pc/DDU.h"
 #include "emu/pc/TMB.h"
+#include "emu/pc/ALCTController.h"
 
 #include "cgicc/HTMLClasses.h"
 
@@ -21,6 +22,7 @@ namespace emu { namespace me11dev {
       ddus_(crate_->ddus()),
       tmb_(crate_->tmbs().at(0)),
       ccb_(crate_->ccb()),
+      alct_(tmb_->alctController()),
       manager_(NULL)
     {}
 
@@ -30,6 +32,7 @@ namespace emu { namespace me11dev {
       ddus_(crate_->ddus()),
       tmb_(crate_->tmbs().at(0)),
       ccb_(crate_->ccb()),
+      alct_(tmb_->alctController()),
       manager_(manager)
     {}
 
@@ -112,27 +115,6 @@ namespace emu { namespace me11dev {
 	.set("name",textbox_name2);
     }
 
-    void Action::addButtonWithLongTextBox(xgi::Output *out,
-					  const string& button_name,
-					  const string& textbox_name,
-					  const string& textbox_default_value,
-					  const string& button_style,
-					  const string& textbox_style)
-    {
-      *out << cgicc::div()
-	.set("style", "border: #000 solid 1px; padding: 1em; ")
-	   << cgicc::input()
-	.set("type","submit")
-	.set("style",button_style)
-	.set("value",button_name)
-	   << endl << cgicc::br() << endl
-	   << cgicc::textarea()
-	.set("style", textbox_style)
-	.set("name",textbox_name)
-	   << textbox_default_value
-	   << cgicc::textarea()
-	   << cgicc::div();
-    }
   }
 }
 
