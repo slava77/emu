@@ -473,21 +473,25 @@ namespace emu { namespace me11dev {
       //// HACK to see if Stan's functions work better -Joe
       DAQMB* dmb = dmbs_[0];
       //// This is the same orders and the oringinal
-      dmb->Set_PipelineDepth_Stan(F1DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F1DCFEBM );
-      usleep(100);
-      dmb->Set_PipelineDepth_Stan(F2DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F2DCFEBM );
-      usleep(100);
-      dmb->Set_PipelineDepth_Stan(F3DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F3DCFEBM );
-      usleep(100);
-      dmb->Set_PipelineDepth_Stan(F4DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F4DCFEBM );
-      usleep(100);
-      dmb->Set_PipelineDepth_Stan(F5DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F5DCFEBM );
-      usleep(100);
+
+      //// For SVN, this is commented out to do nothing because the methods called are just experimental and not in SVN.
+      out << "THIS DOES NOTHING UNLESS YOU UNCOMMENT THE EXPERIMENTAL CODE." << endl;
+
+      // dmb->Set_PipelineDepth_Stan(F1DCFEBM, depth);
+      // dmb->Pipeline_Restart_Stan( F1DCFEBM );
+      // usleep(100);
+      // dmb->Set_PipelineDepth_Stan(F2DCFEBM, depth);
+      // dmb->Pipeline_Restart_Stan( F2DCFEBM );
+      // usleep(100);
+      // dmb->Set_PipelineDepth_Stan(F3DCFEBM, depth);
+      // dmb->Pipeline_Restart_Stan( F3DCFEBM );
+      // usleep(100);
+      // dmb->Set_PipelineDepth_Stan(F4DCFEBM, depth);
+      // dmb->Pipeline_Restart_Stan( F4DCFEBM );
+      // usleep(100);
+      // dmb->Set_PipelineDepth_Stan(F5DCFEBM, depth);
+      // dmb->Pipeline_Restart_Stan( F5DCFEBM );
+      // usleep(100);
       //crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
     }
 
