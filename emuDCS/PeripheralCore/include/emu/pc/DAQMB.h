@@ -588,7 +588,7 @@ public:
   void cfeb_vtx_prom(enum DEVTYPE devnum);
   void febpromuser2(const CFEB &,char *cbrdnum);
   void toggle_caltrg();
-  void set_ext_chanx(int chan);
+  void set_ext_chanx(int chan, int feb=-1);
   void setpulsedelay(int tinj);
   void devdoReset();
 
@@ -769,6 +769,16 @@ public:
   void dcfeb_test_dummy(CFEB & cfeb, int test);
   unsigned virtex6_readreg(int reg);
   void virtex6_writereg(int reg, unsigned value);
+  
+  unsigned dcfeb_readreg_virtex6(CFEB & cfeb,int test);
+  void dcfeb_readreg_statusvirtex6(CFEB& cfeb); 
+  void dcfeb_readreg_cor0virtex6(CFEB& cfeb);
+  void dcfeb_readreg_cor1virtex6(CFEB& cfeb);
+  void dcfeb_readreg_idcodevirtex6(CFEB& cfeb);
+  void dcfeb_readreg_farvirtex6(CFEB& cfeb);
+  void dcfeb_readreg_ctl0virtex6(CFEB& cfeb);
+  void dcfeb_readreg_crcvirtex6(CFEB& cfeb);
+  void dcfeb_readreg_wbstarvirtex6(CFEB& cfeb);
 
  private:
   //

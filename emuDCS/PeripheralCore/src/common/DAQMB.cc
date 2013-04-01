@@ -5063,14 +5063,14 @@ void DAQMB::toggle_caltrg()
   printf("Toggled Cal_trigger_generation_disable in MCTRL FPGA\n");
 }
 
-void DAQMB::set_ext_chanx(int schan)
+void DAQMB::set_ext_chanx(int schan, int feb)
 {
   for(int brd=0;brd<5;brd++){
     for(int chip=0;chip<6;chip++){
       for(int ch=0;ch<16;ch++){
         shift_array[brd][chip][ch]=NORM_RUN;
       }
-      shift_array[brd][chip][schan]=EXT_CAP;
+      if(feb<0 || feb==brd) shift_array[brd][chip][schan]=EXT_CAP;
     }
   }
 }
@@ -7897,6 +7897,60 @@ void DAQMB::dcfeb_test_dummy(CFEB & cfeb, int test)
      write_cfeb_selector(cfeb.SelectorBit());
      virtex6_readreg(test);
      
+}
+
+unsigned  DAQMB::dcfeb_readreg_virtex6(CFEB & cfeb,int test){
+  write_cfeb_selector(cfeb.SelectorBit());                                   
+  unsigned out=virtex6_readreg(test);
+  return out;         
+}
+
+void DAQMB::dcfeb_readreg_statusvirtex6(CFEB& cfeb)
+{
+  printf("Virtex 6 status: %08x \n",dcfeb_readreg_virtex6(cfeb,VTX6_REG_STAT));
+  return;
+}
+
+void DAQMB::dcfeb_readreg_cor0virtex6(CFEB& cfeb)
+{
+  printf("Virtex 6 cor0: %08x \n",dcfeb_readreg_virtex6(cfeb,VTX6_REG_COR0));
+  return;
+}
+
+void DAQMB::dcfeb_readreg_cor1virtex6(CFEB& cfeb)
+{
+  printf("Virtex 6 cor1: %08x \n",dcfeb_readreg_virtex6(cfeb,VTX6_REG_COR1));
+  return;
+}
+
+void DAQMB::dcfeb_readreg_idcodevirtex6(CFEB& cfeb)
+{
+
+  printf("Virtex 6 IDCODE: %08x \n",dcfeb_readreg_virtex6(cfeb,VTX6_REG_IDCODE));
+  return;
+}
+
+void DAQMB::dcfeb_readreg_farvirtex6(CFEB& cfeb)
+{
+  unsigned int far=dcfeb_readreg_virtex6(cfeb,VTX6_REG_FAR);
+  printf("Virtex 6 IDCODE: %08x \n",far);
+}
+void DAQMB::dcfeb_readreg_ctl0virtex6(CFEB& cfeb)
+{
+  printf("Virtex 6 ctl0: %08x \n",dcfeb_readreg_virtex6(cfeb,VTX6_REG_CTL0));
+  return;
+}
+
+void DAQMB::dcfeb_readreg_crcvirtex6(CFEB& cfeb)
+{
+  printf("Virtex 6 CRC: %08x \n",dcfeb_readreg_virtex6(cfeb,VTX6_REG_CRC));
+  return;
+}
+
+void DAQMB::dcfeb_readreg_wbstarvirtex6(CFEB& cfeb)
+{
+  printf("Virtex 6 WBSTAR: %08x \n",dcfeb_readreg_virtex6(cfeb,VTX6_REG_WBSTAR));
+  return;
 }
 
 void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
