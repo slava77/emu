@@ -155,7 +155,7 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate) {
     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeGbEPrescale(0xF0F0) in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
     (*ddu)->writeGbEPrescale(0xF0F0);
     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFakeL1(0x8787) in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
-    (*ddu)->writeFakeL1(0x0000); // was 0x8787
+    (*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
   }
 
 }
@@ -287,6 +287,34 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 	    std::cout << "... config check not OK for DMB "  << std::endl;
 	  }
 
+}
+
+void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, short int depth ){
+  if ( dmb->cfebs().at( 0 ).GetHardwareVersion() != 2 ) return; // All CFEBs should have the same HW version; get it from the first.
+  vector <emu::pc::CFEB> cfebs = dmb->cfebs();
+  for( vector<emu::pc::CFEB>::reverse_iterator cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb){
+    dmb->dcfeb_set_PipelineDepth( *cfeb, depth );
+    usleep(100);
+    dmb->Pipeline_Restart( *cfeb );
+    usleep(100);
+  }
+}
+
+void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb ){
+  // Reset pipeline depth again to its original config (XML) value as it may have been zeroed by a hard reset.
+  if ( dmb->cfebs().at( 0 ).GetHardwareVersion() != 2 ) return; // All CFEBs should have the same HW version; get it from the first.
+  vector <emu::pc::CFEB> cfebs = dmb->cfebs();
+  for( vector<emu::pc::CFEB>::reverse_iterator cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb){
+    if ( pLogger_ ){
+      stringstream ss;
+      ss << "Setting pipeline depth to " << cfeb->GetPipelineDepth();
+      LOG4CPLUS_INFO( *pLogger_, ss.str() ); 
+    }
+    dmb->dcfeb_set_PipelineDepth( *cfeb, cfeb->GetPipelineDepth() ); // set it to its original config (XML) value
+    usleep(100);
+    dmb->Pipeline_Restart( *cfeb );
+    usleep(100);
+  }
 }
 
 void emu::step::Test::PrintDmbValuesAndScopes( emu::pc::TMB* tmb, emu::pc::DAQMB* dmb, emu::pc::CCB* ccb, emu::pc::MPC* mpc ){
@@ -1304,39 +1332,68 @@ void emu::step::Test::_17(){ // OK
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    (*crate)->ccb()->SetExtTrigDelay( 17 ); // TODO: make configurable
+    (*crate)->ccb()->SetExtTrigDelay( 17 ); // Delay of ALCT and CLCT external triggers before distribution to backplane
     
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
 
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      tmb->DisableALCTInputs();
-      tmb->DisableCLCTInputs();
-      tmb->EnableClctExtTrig();
+      tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
+      tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
+      tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
       setUpDMB( *dmb );
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
       
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+        int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion(); // All CFEBs should have the same HW version; get it from the first.
+        if ( CFEBHardwareVersion == 2 ){ 
+          usleep(50000);
+	  setAllDCFEBsPipelineDepth( *dmb );
+          usleep(50000);
+          (*crate)->ccb()->l1aReset();
+        }
+
 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
+
 	(*dmb)->buck_shift();
+        if ( CFEBHardwareVersion == 2 ){
+          usleep(100000); // buck shifting takes a lot more time for DCFEBs
+          (*crate)->ccb()->l1aReset();
+	  usleep(100000);
+        }
+
 	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
+        if ( CFEBHardwareVersion == 2 ){
+          usleep(50000);
+          (*crate)->ccb()->bc0();
+        }
       } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
       for ( uint64_t iDelay = 0; iDelay < delays_per_strip; ++iDelay ){
 
+	uint64_t msWaitAfterPulse = 1; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
+
 	uint64_t timesetting = iDelay%10 + 5;
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	  (*dmb)->set_cal_tim_pulse( timesetting );
+	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	    usleep(500000);
+	    msWaitAfterPulse = 10; // pulsing takes a lot more time for DCFEBs...
+	  }
 	} // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 	log4cplus::helpers::sleepmillis(400);
 
 	(*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
 
 	for ( uint64_t iPulse = 1; iPulse <= events_per_delay; ++iPulse ){
+	  // Dmb_cfeb_calibrate0 14 CFEB Calibrate Pre-Amp Gain
+	  // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
+	  // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	  (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
-	  log4cplus::helpers::sleepmillis(1);
+	  log4cplus::helpers::sleepmillis( msWaitAfterPulse );
 	  bsem_.take();
 	  iEvent_++;
 	  bsem_.give();
@@ -1466,6 +1523,8 @@ void emu::step::Test::_17b(){ // OK
 
   uint64_t events_per_pulsedac = parameters_["events_per_pulsedac"];
   uint64_t pulse_dac_settings  = parameters_["pulse_dac_settings"];
+  uint64_t dac_first_mV        = parameters_["dac_first_mV"];
+  uint64_t dac_step_mV         = parameters_["dac_step_mV"];
   uint64_t strips_per_run      = parameters_["strips_per_run"];
   uint64_t strip_first         = parameters_["strip_first"];
   uint64_t strip_step          = parameters_["strip_step"];
@@ -1492,39 +1551,69 @@ void emu::step::Test::_17b(){ // OK
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    (*crate)->ccb()->SetExtTrigDelay( 17 ); // TODO: make configurable
+    (*crate)->ccb()->SetExtTrigDelay( 17 );
 
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
 
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      tmb->DisableALCTInputs();
-      tmb->DisableCLCTInputs();
-      tmb->EnableClctExtTrig();
+      tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
+      tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
+      tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
       setUpDMB( *dmb );
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
 
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+        int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion(); // All CFEBs should have the same HW version; get it from the first.
+        if ( CFEBHardwareVersion == 2 ){ 
+          usleep(50000);
+	  setAllDCFEBsPipelineDepth( *dmb );
+          usleep(50000);
+          (*crate)->ccb()->l1aReset();
+        }
+
 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
+
 	(*dmb)->buck_shift();
+        if ( CFEBHardwareVersion == 2 ){
+          usleep(100000); // buck shifting takes a lot more time for DCFEBs
+          (*crate)->ccb()->l1aReset();
+	  usleep(100000);
+        }
+
 	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
+        if ( CFEBHardwareVersion == 2 ){
+          usleep(50000);
+          (*crate)->ccb()->bc0();
+        }
       } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
       for ( uint64_t iDACSetting = 0; iDACSetting < pulse_dac_settings; ++iDACSetting ){
 
-	double dac = 0.1 + 0.25*iDACSetting; //actual test at P5
+	// double dac = 0.1 + 0.25*iDACSetting; //actual test at P5
+	double dac = ( dac_first_mV + dac_step_mV * iDACSetting ) / 1000.; // mV --> V
+
+	uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	  (*dmb)->set_cal_dac( dac, dac );
+	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	    usleep(500000);
+	    usWaitAfterPulse = 10000; // pulsing takes a lot more time for DCFEBs...
+	  }
 	} // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 	::usleep( 100 );
 
 	(*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
     
 	for ( uint64_t iPulse = 1; iPulse <= events_per_pulsedac; ++iPulse ){
+	  // Dmb_cfeb_calibrate0 14 CFEB Calibrate Pre-Amp Gain
+	  // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
+	  // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	  (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
-	  ::usleep( 10 );
+	  ::usleep( usWaitAfterPulse );
 	  bsem_.take();
 	  iEvent_++;
 	  bsem_.give();
@@ -1709,24 +1798,35 @@ void emu::step::Test::_19(){
   //
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    
-    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX(); // TODO: via XML
-    (*crate)->ccb()->SetExtTrigDelay( 19 ); // TODO: via XML
+    // CCB::EnableL1aFromDmbCfebCalibX sets these:
+    // | bit | value | meaning                                                                                                     |
+    // |-----+-------+-------------------------------------------------------------------------------------------------------------|
+    // |   0 |     1 | CCB in VME FPGA mode                                                                                        |
+    // |   1 |     0 | -                                                                                                           |
+    // |   2 |     0 | -                                                                                                           |
+    // |   3 |     1 | Mask L1ACC source from TTCrx: disabled                                                                      |
+    // |     |       |                                                                                                             |
+    // |   4 |     1 | Mask L1ACC from VME command: disabled                                                                       |
+    // |   5 |     1 | Mask L1ACC from TMB_L1A_REQ backplane line: disabled                                                        |
+    // |   6 |     1 | Mask L1ACC from TMB_L1A_REL backplane line: disabled                                                        |
+    // |   7 |     1 | Mask L1ACC from the front panel: disabled                                                                   |
+    // |     |       |                                                                                                             |
+    // |   8 |     0 | Disable all inputs from the front panel                                                                     |
+    // |   9 |     1 | Mask generation of delayed ALCT_external_trigger signal from any L1A source: disabled                       |
+    // |  10 |     0 | Mask generation of delayed CLCT_external_trigger signal from any L1A source: enabled                        |
+    // |  11 |     1 | Mask generation of delayed Pretriggers and delayed L1ACC from any of ALCT_adb_sync_pulse sources: disabled  |
+    // |     |       |                                                                                                             |
+    // |  12 |     1 | Mask generation of delayed Pretriggers and delayed L1ACC from any of ALCT_adb_async_pulse sources: disabled |
+    // |  13 |     0 | L1ACC and Pretriggers are enabled unconditionally                                                           |
+    // |  14 |     0 | Tmb_l1A_Release signal from custom backplane: enabled                                                       |
+    // |  15 |     0 | Dmb_l1A_Release signal from custom backplane: enabled                                                       |
+    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+    (*crate)->ccb()->SetExtTrigDelay( 19 ); // Delay of ALCT and CLCT external triggers before distribution to backplane
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      tmb->EnableClctExtTrig(); // TODO: via XML
-      // cout << "(*dmb)->cfebs().at( 0 ).GetHardwareVersion() = " << (*dmb)->cfebs().at( 0 ).GetHardwareVersion() << endl;
-      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-        usleep(1000);
-        // Not yet at P5: (*dmb)->dcfeb_configure_non_flash(); // configures comparator mode, threshold, finedelay, and pipeline_depth
-        usleep(50000);
-        (*dmb)->configure(); // NB: the dmb must be configured *after* the dcfebs are configured
-        usleep(50000);
-        setUpDDU(*crate); // NB: the ddu must be configured *after* the dmb is confrigured
-        usleep(50000);
-      } // if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 )
+      tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
 
@@ -1735,19 +1835,19 @@ void emu::step::Test::_19(){
         int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion(); // All CFEBs should have the same HW version; get it from the first.
 	// cout << "CFEBHardwareVersion = " << CFEBHardwareVersion << endl;
         if ( CFEBHardwareVersion == 2 ){ 
+          usleep(50000);
+	  setAllDCFEBsPipelineDepth( *dmb );
+          usleep(50000);
           (*crate)->ccb()->l1aReset();
         }
-
         (*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?
-
-        if ( CFEBHardwareVersion == 2 ){
-          usleep(100000); // setting the external chanx takes a lot more time for DCFEBs...
-        }
 
         (*dmb)->buck_shift();
 
         if ( CFEBHardwareVersion == 2 ){
           usleep(100000); // buck shifting takes a lot more time for DCFEBs
+          (*crate)->ccb()->l1aReset();
+	  usleep(100000);
         }
 
         (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
@@ -1763,7 +1863,7 @@ void emu::step::Test::_19(){
 	vector<uint64_t> first_thresholds; // the first threshold for each DMB
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	  float dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
- 	  (*dmb)->set_dac( 0, dac * 5. / 4096. ); // dac values in t19 assume 12-bit DAC
+ 	  (*dmb)->set_dac( 0, dac * 5. / 4095. ); // DAQMB::set_dac( voltage of calib1 DAC, voltage of calib0 DAC )
 	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	    usleep(100000); // setting the dac lot more time for DCFEBs...
 	  }
@@ -1774,7 +1874,7 @@ void emu::step::Test::_19(){
 	
 	for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold ){
 	  
-      uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
+	  uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
 	  vector<uint64_t>::const_iterator first_threshold = first_thresholds.begin();
 	  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	    // set cfeb thresholds (for the entire test)
@@ -1782,7 +1882,7 @@ void emu::step::Test::_19(){
 	    (*dmb)->set_comp_thresh( threshold );
 	    if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	      usleep(500000); // set_comp_thresh takes a lot more time for DCFEBs...
-          usWaitAfterPulse = 10000; // pulsing takes a lot more time for DCFEBs...
+	      usWaitAfterPulse = 10000; // pulsing takes a lot more time for DCFEBs...
 	    }
 	    ++first_threshold;
 	  } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
@@ -1790,7 +1890,10 @@ void emu::step::Test::_19(){
 	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
 	  
 	  for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse ){
-	    (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
+	    // Dmb_cfeb_calibrate0 14 CFEB Calibrate Pre-Amp Gain
+	    // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
+	    // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
+	    (*crate)->ccb()->GenerateDmbCfebCalib0(); // Generate “DMB_cfeb_calibrate[0]” 25 ns pulse
 	    ::usleep( usWaitAfterPulse );
 	    bsem_.take();
 	    iEvent_++;
@@ -1801,15 +1904,16 @@ void emu::step::Test::_19(){
 		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
 		   << ", strip " << iStrip+1 << "/" << strips_per_run
 		   << ", amplitude " << iAmp+1 << "/" << dmb_tpamps_per_strip
-		   << ", threshold " << " " << iThreshold+1 << "/" << threshs_per_tpamp
+		   << ", threshold " << iThreshold+1 << "/" << threshs_per_tpamp
 		   << ", pulses " << iPulse << "/" << events_per_thresh << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
 		LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	      }
 	    }
-// 	    // Find the time between the DMB's receiving CLCT pretrigger and L1A:
-// 	    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-// 	      PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
-// 	    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+	    // Find the time between the DMB's receiving CLCT pretrigger and L1A:
+	    // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+	    //   PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
+	    // } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+
 	    if ( isToStop_ ) return;
 	    
 	    (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
@@ -1945,7 +2049,7 @@ void emu::step::Test::_21(){
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 256., 0 ); // set inject amplitude - first parameter (same for the entire test) // TODO: via XML
+      (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 4095., 0 ); // set inject amplitude - first parameter (same for the entire test)
       (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test) // TODO: via XML
       (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT // TODO: via XML
 
