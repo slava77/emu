@@ -70,14 +70,10 @@
   </test_config>
   <test_config>
         <test>                  17b     </test>
-        <dmb_test_pulse_amp>    75   </dmb_test_pulse_amp>
         <events_per_pulsedac>   25   </events_per_pulsedac>
         <pulse_dac_settings>    20   </pulse_dac_settings>
-<!--dac_first and dac_step are divided by 100, effectively
-dac_first = 0.2, dac_step = 0.25
- -->
-        <dac_first>             10  </dac_first>
-        <dac_step>              25  </dac_step>
+        <dac_first_mV>          100  </dac_first_mV>
+        <dac_step_mV>           250  </dac_step_mV>
         <strips_per_run>        16   </strips_per_run>
         <strip_first>           1    </strip_first>
         <strip_step>            1    </strip_step>
@@ -109,7 +105,7 @@ dac_first = 0.2, dac_step = 0.25
 
   <test_config>
         <test>                  21       </test>
-        <dmb_test_pulse_amp>    10   </dmb_test_pulse_amp>
+        <dmb_test_pulse_amp>    160  </dmb_test_pulse_amp>
         <cfeb_threshold>        50   </cfeb_threshold>
         <events_per_hstrip>     250  </events_per_hstrip>
         <hstrips_per_run>       32   </hstrips_per_run>
