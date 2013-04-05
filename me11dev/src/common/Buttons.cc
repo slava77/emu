@@ -30,14 +30,15 @@ using namespace emu::pc;
  * 
  *****************************************************************************/
 
-namespace emu { namespace me11dev {
-
+namespace emu {
+  namespace me11dev {
+    
     void HardReset::respond(xgi::Input * in, ostringstream & out) { cout<<"==>HardReset"<<endl; 
       if(ccb_->GetCCBmode() != CCB::VMEFPGA) ccb_->setCCBMode(CCB::VMEFPGA); // we want the CCB in this mode for out test stand
       ccb_->HardReset_crate(); // send a simple hard reset without any sleeps
       usleep(150000); // need at least 150 ms after hard reset 
     }
-
+    
     void L1Reset::respond(xgi::Input * in, ostringstream & out) { cout<<"==>L1Reset"<<endl; ccb_->l1aReset(); }
 
     void BC0::respond(xgi::Input * in, ostringstream & out) { cout<<"==>BC0"<<endl; ccb_->bc0(); }
@@ -360,7 +361,8 @@ namespace emu { namespace me11dev {
 
     void PulsePrecisionCapacitorsCCB::respond(xgi::Input * in, ostringstream & out) {
       cout<<"==>PulsePrecisionCapacitorsCCB"<<endl; 
-      ccb_->pulse(1,0);
+      //ccb_->pulse(1,0); // send the pulses 
+      ccb_->GenerateDmbCfebCalib0(); // send a pulse
     }
 
     /**************************************************************************
@@ -388,7 +390,7 @@ namespace emu { namespace me11dev {
 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb)
 	{
-	  (*dmb)->set_dac(DAC,DAC); // I'm not sure this is working 100%. -Joe
+	  (*dmb)->set_dac(DAC,DAC); // this was tested and appeared to work correctly
 	}
     }
 
@@ -704,7 +706,8 @@ namespace emu { namespace me11dev {
 
 	// send pulses
 	for(int i=0; i<n_pulses; ++i){
-	  ccb_->pulse(1,0); // (N_pulses,t_delay)
+	  ccb_->pulse(1,0); // this seems to work fine here
+	  //ccb_->GenerateDmbCfebCalib0(); // haven't tried this yet
 	  usleep(10000);
 	}
 	
@@ -889,10 +892,8 @@ namespace emu { namespace me11dev {
 	
 	manager_->startDAQ( string("TmbDavDelay")+emu::utils::stringFrom<int>( idelay ) );
 	
-	// for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
-	//   (*dmb)->pulse(1,0); // (N_pulses,t_delay)
-	// }
-	ccb_->pulse(1,0);
+	ccb_->pulse(1,0); // this seems to work fine here
+	  //ccb_->GenerateDmbCfebCalib0(); // haven't tried this yet
 	
 	manager_->stopDAQ();
       }
@@ -969,7 +970,8 @@ namespace emu { namespace me11dev {
 	
 	manager_->startDAQ( string("L1aDelay")+emu::utils::stringFrom<int>( idelay ) );
     
-	ccb_->pulse(1,0); // (N_pulses,t_delay)
+	ccb_->pulse(1,0); // not sure if this will work more than once
+	//ccb_->GenerateDmbCfebCalib0(); // haven't tried this yet
 	usleep(10);
 
 	manager_->stopDAQ();
@@ -1722,7 +1724,7 @@ namespace emu { namespace me11dev {
 	    }
 	}
     }
-
+  
 
     //    /**************************************************************************
     //     * ActionTemplate
@@ -1736,13 +1738,154 @@ namespace emu { namespace me11dev {
       {
 
       }
-
+      
       void ActionTemplate::respond(xgi::Input * in, ostringstream & out)
       {
-
+      
       }
     */
+  
+    /**************************************************************************
+     * RoutineTest_PrecisionPulses
+     *
+     *************************************************************************/
+  
+    RoutineTest_PrecisionPulses::RoutineTest_PrecisionPulses(Crate * crate, emu::me11dev::Manager* manager)
+      : Action( crate, manager ) {}
+    void RoutineTest_PrecisionPulses::display(xgi::Output * out)
+    {
+      addButton(out,"Routine Test - Precision Pulses");
+    }
+    
+    void RoutineTest_PrecisionPulses::respond(xgi::Input * in, ostringstream & out)
+    {
+      cout<<"==>RoutineTest_PrecisionPulses"<<endl; 
 
-  }
-}
+      const int N_DCFEBS = 5; // number of DCFEBs per DMB
+      const int N_STRIPS = 16; // number of strips per DCFEB
+      int n_pulses = 2; // this must be >1 because there is a "feature" that the DAQ doesn't record the first pulse after an l1aReset (except for the very first event)
+
+      for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu){
+	(*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+      	usleep(1000);
+      }
+      
+      // set register 0 appropriately for communication over the VME backplane.
+      ccb_->setCCBMode(CCB::VMEFPGA);
+      usleep(1000);
+
+      ccb_->hardReset();
+      usleep(1000);
+
+      //// Set pulse height ////
+      float PulseHeight = 0.5;
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->set_dac(PulseHeight, PulseHeight);
+      }
+      usleep(1000);
+
+      //// Set comparator thresholds ////
+      float ComparatorThresholds = 0.05;
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->set_comp_thresh(ComparatorThresholds);
+      }
+      usleep(1000);
+
+      //// Set the pipeline depth on all DCFEBs ////
+      for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	vector<CFEB> cfebs = (*dmb)->cfebs();
+	for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb){
+	  
+	  //int depth = cfeb->GetPipelineDepth(); // get value that was read in from the crate config xml (unless it was changed later)
+	  int depth = 64; // get value that was read in from the crate config xml (unless it was changed later)
+	  (*dmb)->dcfeb_set_PipelineDepth( *cfeb, depth ); // set it on the hardware
+	  usleep(1000);
+	  (*dmb)->Pipeline_Restart( *cfeb ); // must restart pipeline after setting it
+	  usleep(1000);
+	}
+      }
+      ccb_->l1aReset(); // needed after setting/restarting pipeline
+      usleep(1000);
+      
+
+
+      //// Still need to figure out L1A settings to get TMB data, but we can worry about that later ////
+      // enable L1A and clct_pretrig from any of dmb_cfeb_calib
+      // signals and disable all other trigger sources
+      ccb_->EnableL1aFromDmbCfebCalibX();
+      usleep(1000);
+
+
+
+      // start DAQ
+      cout<<"starting DAQ..."<<endl;
+      manager_->startDAQ( string("ME11DevRoutineTest_PrecisionPulses") );
+      
+      //// Pulse individual DCFEBs ////
+      int strip_to_pulse = 7;
+      int feb_to_pulse = -1;
+      for(feb_to_pulse=0; feb_to_pulse < N_DCFEBS; ++feb_to_pulse){
+	strip_to_pulse = 1 + 13*feb_to_pulse/(N_DCFEBS-1); // just a cute way to move the pulse along with the DCFEB
+	
+	ccb_->l1aReset(); // stop triggering
+	//ccb_->stopTrigger();
+      	usleep(1000);
+	
+	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	  (*dmb)->set_ext_chanx(strip_to_pulse, feb_to_pulse); // this only sets the array in software
+	  (*dmb)->buck_shift(); // this shifts the array into the buckeyes
+	  usleep(100);
+	}
+	//// We are now configured to send pulses
+	
+	ccb_->l1aReset();
+	//ccb_->stopTrigger();
+        usleep(1000);
+	ccb_->bc0(); // start triggering
+        usleep(50000);
+	
+	for(int p=0; p<n_pulses; ++p){
+	  cout<<"pulsing dcfeb "<<feb_to_pulse<<", strip "<<strip_to_pulse<<endl;
+	  //ccb_->pulse(1,0); // we only get 1 event / file with this
+	  ccb_->GenerateDmbCfebCalib0(); // send the pulses 
+	  usleep(10000);
+	}
+      }	
+      
+
+      //// Loop over strips, pulsing all DCFEBs ("walking one")////
+      feb_to_pulse = -1; // -1 means all DCFEBs
+      for(strip_to_pulse=0; strip_to_pulse < N_STRIPS; ++strip_to_pulse){
+
+	ccb_->l1aReset(); // stop triggering
+      	usleep(1000);
+	
+	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	  (*dmb)->set_ext_chanx(strip_to_pulse, feb_to_pulse); // this only sets the array in software
+	  (*dmb)->buck_shift(); // this shifts the array into the buckeyes
+	  usleep(100);
+	}
+	//// We are now configured to send pulses
+
+	ccb_->l1aReset();
+        usleep(1000);
+	ccb_->bc0(); // start triggering
+        usleep(50000);
+
+	for(int p=0; p<n_pulses; ++p){
+	  cout<<"pulsing dcfeb "<<feb_to_pulse<<", strip "<<strip_to_pulse<<endl;
+	  //ccb_->pulse(1,0); // we only get 1 event / file with this
+	  ccb_->GenerateDmbCfebCalib0(); // send the pulses 
+	  usleep(10000);
+	}
+      }	
+      
+      // stop DAQ
+      cout<<"stopping DAQ..."<<endl;
+      manager_->stopDAQ();
+    }
+    
+    
+  } // namespace me11dev
+} // namespace emu
 
