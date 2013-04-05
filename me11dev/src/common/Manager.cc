@@ -40,7 +40,8 @@ namespace emu { namespace me11dev {
      *************************************************************************/
     Manager::Manager( xdaq::ApplicationStub *s ) :
       xdaq::WebApplication( s ),
-      webOutputLog_(),
+      webOutputLog_(), 
+      OutputLogTitle_("Output Log"),
       currentActionVector_(0),
       logger_( Logger::getInstance( generateLoggerName() ) ),
       tmbSlot_(-1)
@@ -120,35 +121,36 @@ namespace emu { namespace me11dev {
       
       putButtonsInGroup( "Routine Tests" );
       addActionByTypename<ReadBackUserCodes>(crate);
+      addActionByTypename<RoutineTest_ShortCosmicsRun>(crate, this);
       addActionByTypename<RoutineTest_PrecisionPulses>(crate, this);
 
-      putButtonsInGroup( "DCFEB Settings" );
+      putButtonsInGroup( "DCFEB" );
       addActionByTypename<SetDMBDACs>(crate);
       addActionByTypename<SetComparatorThresholds>(crate);
-      addActionByTypename<SetComparatorThresholdsBroadcast>(crate);
-      addActionByTypename<SetUpComparatorPulse>(crate);
-      addActionByTypename<SetUpPrecisionCapacitors>(crate);
+      //addActionByTypename<SetComparatorThresholdsBroadcast>(crate);
       addActionByTypename<SetPipelineDepthAllDCFEBs>(crate);
-      addActionByTypename<Stans_SetPipelineDepthAllDCFEBs>(crate);
       //addActionByTypename<ReadPipelineDepthAllDCFEBs>(crate);
       addActionByTypename<SetFineDelayForADCFEB>(crate);
       addActionByTypename<ShiftBuckeyesNormRun>(crate);
-      addActionByTypename<SetTMBdavDelay>(crate);
-
-      putButtonsInGroup( "DCFEB Tests" );
       addActionByTypename<BuckShiftTest>(crate);
+      addActionByTypename<dcfebDebugDump>(crate);
 
-      putButtonsInGroup( "TMB/Trigger Tests" );
-      //addActionByTypename<PulseInternalCapacitorsDMB>(crate); // don't use DMB pulse/inject because they do not send an L1a to the whole system
-      //addActionByTypename<PulsePrecisionCapacitorsDMB>(crate);
+      putButtonsInGroup( "Pulsing" );
+      addActionByTypename<SetUpComparatorPulse>(crate);
       addActionByTypename<PulseInternalCapacitorsCCB>(crate);
+      //addActionByTypename<PulseInternalCapacitorsDMB>(crate); // don't use DMB pulse/inject because they do not send an L1a to the whole system
+      addActionByTypename<SetUpPrecisionCapacitors>(crate);
       addActionByTypename<PulsePrecisionCapacitorsCCB>(crate);
+      //addActionByTypename<PulsePrecisionCapacitorsDMB>(crate);
+
+      putButtonsInGroup( "TMB" );
       addActionByTypename<TMBRegisters>(crate);
       addActionByTypename<TMBDisableCopper>(crate);
       addActionByTypename<TMBSetRegisters>(crate, this);
       addActionByTypename<TMBHardResetTest>(crate);
+      addActionByTypename<SetTMBdavDelay>(crate);
       
-      putButtonsInGroup( "AFEB Buttons" );
+      putButtonsInGroup( "AFEB" );
       addActionByTypename<PulseWires>(crate);
 
       putButtonsInGroup("Scans" );
@@ -157,11 +159,14 @@ namespace emu { namespace me11dev {
       addActionByTypename<L1aDelayScan>( crate, this );
       addActionByTypename<TmbDavDelayScan>( crate, this );
 
-      putButtonsInGroup("Other Functions" );
-      addActionByTypename<DDUReadKillFiber>(crate);
-      addActionByTypename<DDUWriteKillFiber>(crate);
+      putButtonsInGroup("DDU" );
+      addActionByTypename<DDU_KillFiber>(crate);
+      addActionByTypename<DDU_EthPrescale>(crate);
+      addActionByTypename<DDU_FakeL1>(crate);
+
+      putButtonsInGroup("Special Functions" );
+      //addActionByTypename<Stans_SetPipelineDepthAllDCFEBs>(crate);
       addActionByTypename<ExecuteVMEDSL>(crate);
-      addActionByTypename<dcfebDebugDump>(crate);
       addActionByTypename<enableVmeDebugPrintout>(crate);
 
 
@@ -281,14 +286,10 @@ namespace emu { namespace me11dev {
       
       //// Make links to each group header
       for(uint g=0; g<groups_.size(); ++g) {
-	*out << a().set("href","#"+withoutSpecialChars(groups_[g]))
-	     << groups_[g]
-	     << a()
+	*out << a().set("href","#"+withoutSpecialChars(groups_[g])) << groups_[g] << a()
 	     << br() << endl;
       }
-      *out << a().set("href","#OutputLog")
-	   << "Output Log"
-	   << a()
+      *out << a().set("href",string("#")+withoutSpecialChars(OutputLogTitle_)) << OutputLogTitle_ << a()
 	   << br() << endl;
 
 
@@ -301,7 +302,7 @@ namespace emu { namespace me11dev {
 	     << endl;
 	*out << hr()
 	     << h3()
-	     << groups_[g]
+	     << a().set("href",string("#")+withoutSpecialChars(groups_[g])) << groups_[g] << a()
 	     << "&nbsp;&nbsp;&nbsp;" << a().set("href","") << "(top)" << a() 
 	     << h3()
 	     << endl;
@@ -335,9 +336,9 @@ namespace emu { namespace me11dev {
 
       *out
 	<< endl
-	<< a().set("name","OutputLog") << a() << endl
+	<< a().set("name",withoutSpecialChars(OutputLogTitle_)) << a() << endl
 	<< hr()
-	<< h3() << "Output Log"
+	<< h3() << a().set("href",string("#")+withoutSpecialChars(OutputLogTitle_)) << OutputLogTitle_ << a()
 	<< "&nbsp;&nbsp;&nbsp;" << a().set("href","") << "(top)" << a() 
 	<< h3();
 		   
@@ -428,7 +429,7 @@ namespace emu { namespace me11dev {
       // don't append the header to out, and no need to do BackToMainPage
       if (action_output.str() == "*** Contents above was saved to a log file ***") return;
 
-      backToMainPage(in, out, "#OutputLog");
+      backToMainPage(in, out, string("#")+withoutSpecialChars(OutputLogTitle_));
     }
 
     void Manager::addAction(shared_ptr<Action> act) {

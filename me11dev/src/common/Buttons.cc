@@ -473,7 +473,7 @@ namespace emu {
 
       //crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
       //// HACK to see if Stan's functions work better -Joe
-      DAQMB* dmb = dmbs_[0];
+      // DAQMB* dmb = dmbs_[0];
       //// This is the same orders and the oringinal
 
       //// For SVN, this is commented out to do nothing because the methods called are just experimental and not in SVN.
@@ -706,8 +706,8 @@ namespace emu {
 
 	// send pulses
 	for(int i=0; i<n_pulses; ++i){
-	  ccb_->pulse(1,0); // this seems to work fine here
-	  //ccb_->GenerateDmbCfebCalib0(); // haven't tried this yet
+	  ccb_->pulse(1,0);
+	  //ccb_->GenerateDmbCfebCalib0();
 	  usleep(10000);
 	}
 	
@@ -892,8 +892,8 @@ namespace emu {
 	
 	manager_->startDAQ( string("TmbDavDelay")+emu::utils::stringFrom<int>( idelay ) );
 	
-	ccb_->pulse(1,0); // this seems to work fine here
-	  //ccb_->GenerateDmbCfebCalib0(); // haven't tried this yet
+	ccb_->pulse(1,0);
+	  //ccb_->GenerateDmbCfebCalib0();
 	
 	manager_->stopDAQ();
       }
@@ -970,8 +970,8 @@ namespace emu {
 	
 	manager_->startDAQ( string("L1aDelay")+emu::utils::stringFrom<int>( idelay ) );
     
-	ccb_->pulse(1,0); // not sure if this will work more than once
-	//ccb_->GenerateDmbCfebCalib0(); // haven't tried this yet
+	ccb_->pulse(1,0);
+	//ccb_->GenerateDmbCfebCalib0();
 	usleep(10);
 
 	manager_->stopDAQ();
@@ -1092,7 +1092,7 @@ namespace emu {
     {
       cout<<"==>TMBRegisters"<<endl;      
       //Print out current registers
-      out<< "Initial Register for Fiber 0-6 "<<endl;
+      out<< "GTX Registers for fibers 0-6 "<<endl;
       out<<" 0x14a \t"<<std::hex<<tmb_->ReadRegister(0x14a)<<endl; 
       out<<" 0x14c \t"<<std::hex<<tmb_->ReadRegister(0x14c)<<endl;
       out<<" 0x14e \t"<<std::hex<<tmb_->ReadRegister(0x14e)<<endl;
@@ -1101,7 +1101,7 @@ namespace emu {
       out<<" 0x154 \t"<<std::hex<<tmb_->ReadRegister(0x154)<<endl;
       out<<" 0x156 \t"<<std::hex<<tmb_->ReadRegister(0x156)<<endl;
       out<<" 0x158 \t"<<std::hex<<tmb_->ReadRegister(0x158)<<endl;
-      out<<"COPPER REGISTERS"<<endl;
+      out<<"Hot Channel Masks"<<endl;
       out<<" 0x42 \t"<<std::hex<<tmb_->ReadRegister(0x42)<<endl;
       out<<" 0x4a \t"<<std::hex<<tmb_->ReadRegister(0x4a)<<endl;
       out<<" 0x4c \t"<<std::hex<<tmb_->ReadRegister(0x4c)<<endl;
@@ -1189,11 +1189,6 @@ namespace emu {
       
       
       out<<" TMB Register 42 = "<<std::hex<<tmb_->ReadRegister(42)<<endl;
-      /* tmb_->WriteRegister(42,0x0000);	     
-	 usleep(100000);
-	 
-	 out<<"Set TMB Register: "<<std::hex<<0x0000<<" to "<<std::hex<<tmb_->ReadRegister(42)<<endl;
-      */
       
     }
  
@@ -1220,188 +1215,279 @@ namespace emu {
     void PulseWires::respond(xgi::Input * in, ostringstream & out)
     {
 
+
+
+      ////////////////// -- set xml parameters specific to test 1
+
+      int x_CCBmode = 1;
+      int x_l1aDelay = 155;
+      int x_alct_send_empty = 1;
+      int x_alct_trig_mode = 0;
+      int x_all_cfeb_active = 1;
+      int x_clct_pretrig_enable = 0;
+      int x_clct_readout_without_trig = 0;
+      int x_clct_trig_enable = 1;
+      int x_match_trig_enable = 0;
+      int x_request_l1a = 1;
+      int x_alct_l1a_delay = 146;
+
+      ccb_->SetCCBmode(x_CCBmode);
+      ccb_->Setl1adelay(x_l1aDelay);
+      alct_->SetSendEmpty(x_alct_send_empty);
+      alct_->SetTriggerMode(x_alct_trig_mode);
+      tmb_->SetEnableAllCfebsActive(x_all_cfeb_active);
+      tmb_->SetClctPatternTrigEnable(x_clct_pretrig_enable); // actually named pretrig in xml
+      tmb_->SetAllowClctNontrigReadout(x_clct_readout_without_trig);
+      tmb_->SetTmbAllowClct(x_clct_trig_enable);
+      tmb_->SetTmbAllowMatch(x_match_trig_enable);
+      tmb_->SetRequestL1a(x_request_l1a);
+      alct_->SetL1aDelay(x_alct_l1a_delay);
+      // tmb_->SetL1aDelay(x_alct_l1a_delay);
+      alct_->configure();
+
+      for(unsigned long int numReg = 0; numReg<  tmb_->TMBConfigurationRegister.size(); numReg++)
+	{
+	  unsigned long int x_address = tmb_->TMBConfigurationRegister.at(numReg);
+	  tmb_->WriteRegister(x_address);
+	}
+	  
+      //////////////////
+
+
       unsigned int ExTrigDelay = getFormValueInt("ExTrigDelay", in);
       value(ExTrigDelay); // save the value
 
-      for(unsigned int ExTrigDelay=5; ExTrigDelay<=50; ExTrigDelay++){
-	for(int AFEB_STANDBY=1; AFEB_STANDBY<2; AFEB_STANDBY++){
-	  for(int sync_index=0; sync_index<=1; sync_index++){
-
-	    ostream noBuffer( NULL );
-	    const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
-	    uint64_t events_per_layer    = 1; //parameters_["events_per_layer"]; normally 1000
-	    uint64_t alct_test_pulse_amp = 255; //parameters_["alct_test_pulse_amp"];
-
-
-	    // /home/cscme11/TriDAS/emu/emuDCS/PeripheralCore/include/emu/pc
-	    // CCB.h 
-	    ccb_->EnableL1aFromSyncAdb();
       
-	    // fixed to unsigned int
-	    ccb_->SetExtTrigDelay(ExTrigDelay); 
+      for(int AFEB_STANDBY=0; AFEB_STANDBY<=1; AFEB_STANDBY++){
 
-	    std::cout<<" ************************** "<<std::endl;
-	    std::cout<<" ************************** "<<std::endl;
-	    std::cout<<" ************************** "<<std::endl;
-	    std::cout<<" ************************** "<<std::endl;
 
-	    std::cout<<" ExTrigDelay = "<<ExTrigDelay<<" AFEB_STANDBY = "<<AFEB_STANDBY<<std::endl;
+	ostream noBuffer( NULL );
+	const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
+	uint64_t events_per_layer    = 1; //parameters_["events_per_layer"]; normally 1000
+	uint64_t alct_test_pulse_amp = 255; //parameters_["alct_test_pulse_amp"];
 
-	    std::cout<<" ************************** "<<std::endl;
-	    std::cout<<" ************************** "<<std::endl;
-	    std::cout<<" ************************** "<<std::endl;
-	    std::cout<<" ************************** "<<std::endl;
 
-	    //	  uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them from test 16
-	    uint64_t afebGroupMask = 0x3fff; // all afebs from test 14
+	// /home/cscme11/TriDAS/emu/emuDCS/PeripheralCore/include/emu/pc
+	// CCB.h 
+	ccb_->EnableL1aFromSyncAdb();
+      
+	// fixed to unsigned int
+	ccb_->SetExtTrigDelay(ExTrigDelay); 
+
+	std::cout<<" ************************** "<<std::endl;
+	std::cout<<" ************************** "<<std::endl;
+	std::cout<<" ************************** "<<std::endl;
+	std::cout<<" ************************** "<<std::endl;
+
+	std::cout<<" ExTrigDelay = "<<ExTrigDelay<<" AFEB_STANDBY = "<<AFEB_STANDBY<<std::endl;
+
+	std::cout<<" ************************** "<<std::endl;
+	std::cout<<" ************************** "<<std::endl;
+	std::cout<<" ************************** "<<std::endl;
+	std::cout<<" ************************** "<<std::endl;
+
+	uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them from test 16
+	// uint64_t afebGroupMask = 0x3fff; // all afebs from test 14
 
 	
-	    //	    alct_->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
+	alct_->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
 
-	    tmb_->EnableClctExtTrig();
-	    alct_->SetInvertPulse_(ON);  
-	    std::cout<<" invert pulse has been set to "<<alct_->Get_InvertPulse()<<std::endl;
+	tmb_->EnableClctExtTrig();
+	alct_->SetInvertPulse_(ON);  
+	std::cout<<" invert pulse has been set to "<<alct_->Get_InvertPulse()<<std::endl;
 
-	    alct_->FillTriggerRegister_();
-	    alct_->WriteTriggerRegister_();
+	alct_->FillTriggerRegister_();
+	alct_->WriteTriggerRegister_();
 
-	    // added a call to the print out 
-	    alct_->PrintTriggerRegister_();
-
-	    // moved here
-	    alct_->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
-
-	    // added a call to the config printout 
-	    alct_->PrintALCTConfiguration();
+	// added a call to the print out 
+	alct_->PrintTriggerRegister_();
 
 
 
-	    for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
+	// added a call to the config printout 
+	alct_->PrintALCTConfiguration();
+
+
+
+	for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
+	  {
+
+	    // reprogram standby register to enable 2 layers at a time
+	    const int standby_fmask[nLayerPairs] = {066, 055, 033};
+
+
+
+	    if(AFEB_STANDBY==1)
 	      {
 
-		// reprogram standby register to enable 2 layers at a time
-		const int standby_fmask[nLayerPairs] = {066, 055, 033};
-
-
-
-		if(AFEB_STANDBY==1)
+		for (int lct_chip = 0; lct_chip < alct_->MaximumUserIndex() / 6; lct_chip++)
 		  {
-
-		    alct_->WriteStandbyRegister_(); // duplicate added here 
-
-
-		    for (int lct_chip = 0; lct_chip < alct_->MaximumUserIndex() / 6; lct_chip++)
+		    int astandby = standby_fmask[iLayerPair];
+		    for (int afeb = 0; afeb < 6; afeb++)
 		      {
-			int astandby = standby_fmask[iLayerPair];
-			for (int afeb = 0; afeb < 6; afeb++)
-			  {
-			    alct_->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
-			  }
+			//	alct_->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
+		
 		      }
-		    // based on the description duplicating this above :
-		    alct_->WriteStandbyRegister_();
 		  }
-		//ccb_->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-		ccb_->RedirectOutput( &cout ); // ccb prints a line on each test pulse - waste it
+		//		alct_->WriteStandbyRegister_();
+		sleep(10);
+	      }
+	    //ccb_->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+	    ccb_->RedirectOutput( &cout ); // ccb prints a line on each test pulse - waste it
 
 		      
-		for ( uint64_t iPulse = 1; iPulse <= events_per_layer; ++iPulse )
-		  {
-		    if(sync_index == 0)
-		      {
-			// from test 14 also throw in this call
-			ccb_->GenerateAlctAdbASync();
-			usleep(10000);	 
-		      }
+	    for ( uint64_t iPulse = 1; iPulse <= events_per_layer; ++iPulse )
+	      {
 
-		    if(sync_index == 1)
-		      {
-			// from test 19
-			ccb_->GenerateAlctAdbSync();
-			usleep(10);	  
-		      } 
+		// from test 14 also throw in this call
+		//    ccb_->GenerateAlctAdbASync();
+		//    usleep(10000);	 
+
+
+
+		// from test 16
+		ccb_->GenerateAlctAdbSync();
+		usleep(10);	  
+
 		 
-		  } 
+	      } 
       
-		ccb_->RedirectOutput (&cout); // get back ccb output
+	    ccb_->RedirectOutput (&cout); // get back ccb output
 
-		/////////
+	    /////////
 
-	      }
+	     
 	  }
-	}
       }
+
     }
     
     
-    
-    
-    
+
     /**************************************************************************
-     * DDUReadKillFiber
+     * DDU_KillFiber
      *
      *************************************************************************/
 
-    DDUReadKillFiber::DDUReadKillFiber(Crate * crate)
-      : Action(crate) {}
+    DDU_KillFiber::DDU_KillFiber(Crate * crate)
+      : Action(crate),
+	ActionValue<string>("read") {}
 
-    void DDUReadKillFiber::display(xgi::Output * out)
+    void DDU_KillFiber::display(xgi::Output * out)
     {
-      addButton(out, "Read DDU Kill Fiber");
+      addButtonWithTextBox(out,
+			   "Read(read)/Write(15bit hex#) DDU Kill Fiber",
+			   "KillFiber",
+			   value());
     }
 
-    void DDUReadKillFiber::respond(xgi::Input * in, ostringstream & out)
+    void DDU_KillFiber::respond(xgi::Input * in, ostringstream & out)
     {
-      cout<<"==>DDUReadKillFiber"<<endl; 
-      out << "=== DDU Read Kill Fiber ===" << endl;
-
-      for(vector <DDU*>::iterator ddu = ddus_.begin();
-	  ddu != ddus_.end();
-	  ++ddu)
-	{
-	  out << "DDU with ctrl fpga user code: " << (*ddu)->CtrlFpgaUserCode()
+      cout<<"==>DDU_KillFiber"<<endl; 
+      int KillFiber = getFormValueIntHex("KillFiber", in);
+      string KillFiberString = getFormValueString("KillFiber", in);
+      
+      //std::stringstream hexstr_KillFiber;
+      //hexstr_KillFiber << std::hex << KillFiber;
+      //value( hexstr_KillFiber.str() ); // save value in hex
+      value( KillFiberString ); // save value in hex
+ 
+      if( KillFiberString == "read" ){ // READ
+	out << "DDU Read Kill Fiber:" << endl;
+	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu){
+	  out << "  DDU in slot " << (*ddu)->slot() << ": " << endl;
+	  out << "  DDU with ctrl fpga user code: " << (*ddu)->CtrlFpgaUserCode()
 	      << hex << setfill('0') // set up for next two hex values
 	      << " and vme prom user code: "
 	      << setw(8) << (*ddu)->VmePromUserCode()
 	      << " has Kill Fiber is set to: "
 	      << setw(4) << (*ddu)->readFlashKillFiber() << endl;
 	}
+      }else{  // WRITE
+	out << "DDU Write Kill Fiber:" << endl;
+	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu){
+	  out << "  DDU in slot " << (*ddu)->slot() << "..." << endl;
+	  (*ddu)->writeFlashKillFiber(KillFiber);
+	}
+      }
     }
 
     /**************************************************************************
-     * DDUWriteKillFiber
+     * DDU_EthPrescale
      *
      *************************************************************************/
 
-    DDUWriteKillFiber::DDUWriteKillFiber(Crate * crate)
+    DDU_EthPrescale::DDU_EthPrescale(Crate * crate)
       : Action(crate),
-	ActionValue<string>("7fff") {}
-
-    void DDUWriteKillFiber::display(xgi::Output * out)
+	ActionValue<string>("read") {}
+    
+    void DDU_EthPrescale::display(xgi::Output * out)
     {
       addButtonWithTextBox(out,
-			   "Write DDU Kill Fiber (15 bits in hex)",
-			   "KillFiber",
+			   "Read(read)/Write(hex#) DDU Gb Eth Prescale",
+			   "prescale",
 			   value());
     }
-
-    void DDUWriteKillFiber::respond(xgi::Input * in, ostringstream & out)
+    
+    void DDU_EthPrescale::respond(xgi::Input * in, ostringstream & out)
     {
-      cout<<"==>DDUWriteKillFiber"<<endl; 
-      int KillFiber = getFormValueIntHex("KillFiber", in);
-
-      std::stringstream hexstr_KillFiber;
-      hexstr_KillFiber << std::hex << KillFiber;
-      value( hexstr_KillFiber.str() ); // save value in hex
-
-      out << "=== DDU Write Kill Fiber ===" << endl;
-
-      for(vector <DDU*>::iterator ddu = ddus_.begin();
-	  ddu != ddus_.end();
-	  ++ddu)
-	{
-	  (*ddu)->writeFlashKillFiber(KillFiber);
+      cout<<"==>DDU_EthPrescale"<<endl; 
+      int prescale = getFormValueIntHex("prescale", in);
+      string prescaleString = getFormValueString("prescale", in);
+      value( prescaleString );
+      
+      if(prescaleString == "read" ){ // READ
+	out << "DDU Read Gb Eth Prescale: " << endl;
+	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu) {
+	  out << "  DDU in slot " << (*ddu)->slot() << hex << setfill('0') << ": " << setw(4) << (*ddu)->readGbEPrescale() << dec << endl;
 	}
+	
+      }else{ // WRITE
+	out << "DDU Write Gb Eth Prescale: " << endl;
+	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu) {
+	  out << "  DDU in slot " << (*ddu)->slot() << "..." << endl;
+	  (*ddu)->writeGbEPrescale(prescale);
+	}
+      }
+    }
+
+    /**************************************************************************
+     * DDU_FakeL1
+     *
+     *************************************************************************/
+
+    DDU_FakeL1::DDU_FakeL1(Crate * crate)
+      : Action(crate),
+	ActionValue<string>("read") {}
+    
+    void DDU_FakeL1::display(xgi::Output * out)
+    {
+      addButtonWithTextBox(out,
+			   "Read(read)/Write(hex#) DDU Fake L1 (passthrough)",
+			   "prescale",
+			   value());
+    }
+    
+    void DDU_FakeL1::respond(xgi::Input * in, ostringstream & out)
+    {
+      cout<<"==>DDU_FakeL1"<<endl; 
+      int prescale = getFormValueIntHex("prescale", in);
+      string prescaleString = getFormValueString("prescale", in);
+      value( prescaleString );
+      
+      if(prescaleString == "read" ){ // READ
+	out << "DDU Read Fake L1 (passthrough): " << endl;
+	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu) {
+	  out << "  DDU in slot " << (*ddu)->slot() << hex << setfill('0') << ": " << setw(4) << (*ddu)->readFakeL1() << dec << endl;
+	}
+	
+      }else{ // WRITE
+	out << "DDU Write Fake L1 (passthrough): " << endl;
+	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu) {
+	  out << "  DDU in slot " << (*ddu)->slot() << "..." << endl;
+	  (*ddu)->writeFakeL1(prescale);
+	}
+      }
     }
 
     /**************************************************************************
@@ -1725,26 +1811,92 @@ namespace emu {
 	}
     }
   
-
-    //    /**************************************************************************
-    //     * ActionTemplate
-    //     *
-    //     *************************************************************************/
-    /*
-      ActionTemplate::ActionTemplate(Crate * crate)
-      : Action(crate) {}
-
-      void ActionTemplate::display(xgi::Output * out)
-      {
-
-      }
-      
-      void ActionTemplate::respond(xgi::Input * in, ostringstream & out)
-      {
-      
-      }
-    */
   
+    /**************************************************************************
+     * RoutineTest_ShortCosmicsRun
+     * -- S.Z. Shalhout April 4, 2013 (sshalhou@cern.ch)
+     *************************************************************************/
+
+    RoutineTest_ShortCosmicsRun::RoutineTest_ShortCosmicsRun(Crate * crate, emu::me11dev::Manager* manager)
+      : Action( crate, manager ),
+	ActionValue<int>(10) {}
+    
+    void RoutineTest_ShortCosmicsRun::display(xgi::Output * out)
+    {
+      addButtonWithTextBox(out,
+			   "Routine Test - Short Cosmics Run (HV should be ON)",
+			   "time",
+                           numberToString(value()));
+    }
+    
+    void RoutineTest_ShortCosmicsRun::respond(xgi::Input * in, ostringstream & out)
+    {
+      
+      // Assuming that you have HV on, and have already written FLASH to crate with
+      // the needed xml parameters ...
+      
+      // equivalent to EmuPeripheralCrateConfig::PrepareForTriggering
+      
+      int _time = getFormValueIntHex("time", in);      
+      
+      ccb_->setCCBMode(CCB::VMEFPGA);
+      ccb_->hardReset();
+      ccb_->EnableL1aFromTmbL1aReq();
+      usleep(1000);
+
+      for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu){
+	(*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+      	usleep(10);
+	(*ddu)->writeGbEPrescale( 0x7878 ); // 0x7878: test-stand without TCC
+      	usleep(10);
+      }
+
+      // set comparator threshold 
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->set_comp_thresh(0.03);
+      }
+      usleep(1000);
+      
+      
+      //  set the pipeline depth
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	vector <CFEB> cfebs = (*dmb)->cfebs();
+	for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb){
+	  int depth = cfeb->GetPipelineDepth(); // get value that was read in from the crate config xml (unless it was changed later)
+	  (*dmb)->dcfeb_set_PipelineDepth(*cfeb, depth);
+	  usleep(100);
+	  (*dmb)->Pipeline_Restart( *cfeb );
+	  usleep(100);
+	}
+      }
+      ccb_->l1aReset();
+      usleep(1000);
+     
+      // shift buckeyes into normal mode
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+	(*dmb)->shift_all(NORM_RUN);
+	(*dmb)->buck_shift();
+	usleep(100);
+      }
+
+      ccb_->l1aReset();
+      usleep(1000);
+      ccb_->bc0();
+      usleep(1000);
+      
+      // start DAQ
+      cout<<"starting DAQ..."<<endl;
+      manager_->startDAQ( string("ME11Test_ShortCosmicsRun")+emu::utils::stringFrom<int>( _time )+string("s") );
+      
+      sleep(_time); // take data
+      
+      // stop DAQ 
+      cout<<"stopping DAQ..."<<endl;
+      manager_->stopDAQ();
+      cout<<" Done "<<endl;
+    }
+    
+    
     /**************************************************************************
      * RoutineTest_PrecisionPulses
      *
@@ -1765,17 +1917,20 @@ namespace emu {
       const int N_STRIPS = 16; // number of strips per DCFEB
       int n_pulses = 2; // this must be >1 because there is a "feature" that the DAQ doesn't record the first pulse after an l1aReset (except for the very first event)
 
-      for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu){
-	(*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
-      	usleep(1000);
-      }
-      
       // set register 0 appropriately for communication over the VME backplane.
       ccb_->setCCBMode(CCB::VMEFPGA);
+      ccb_->hardReset();
+      // Enable L1A and clct_pretrig from any of dmb_cfeb_calib signals and disable all other trigger sources
+      ccb_->EnableL1aFromDmbCfebCalibX();
       usleep(1000);
 
-      ccb_->hardReset();
-      usleep(1000);
+      for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu){
+	(*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+      	usleep(10);
+	(*ddu)->writeGbEPrescale( 0x7878 ); // 0x7878: test-stand without TCC
+      	usleep(10);
+      }
+      
 
       //// Set pulse height ////
       float PulseHeight = 0.5;
@@ -1799,30 +1954,25 @@ namespace emu {
 	  //int depth = cfeb->GetPipelineDepth(); // get value that was read in from the crate config xml (unless it was changed later)
 	  int depth = 64; // get value that was read in from the crate config xml (unless it was changed later)
 	  (*dmb)->dcfeb_set_PipelineDepth( *cfeb, depth ); // set it on the hardware
-	  usleep(1000);
+	  usleep(100);
 	  (*dmb)->Pipeline_Restart( *cfeb ); // must restart pipeline after setting it
-	  usleep(1000);
+	  usleep(100);
 	}
       }
       ccb_->l1aReset(); // needed after setting/restarting pipeline
       usleep(1000);
       
 
-
-      //// Still need to figure out L1A settings to get TMB data, but we can worry about that later ////
-      // enable L1A and clct_pretrig from any of dmb_cfeb_calib
-      // signals and disable all other trigger sources
-      ccb_->EnableL1aFromDmbCfebCalibX();
-      usleep(1000);
-
-
+      //// Still need settings to time in TMB data with L1a from pulse
+      // I think this means tuning CCB l1aDelay and CCB external trigger delay, but this can come later
+      
 
       // start DAQ
       cout<<"starting DAQ..."<<endl;
-      manager_->startDAQ( string("ME11DevRoutineTest_PrecisionPulses") );
+      manager_->startDAQ( string("ME11Test_PrecisionPulses") );
       
       //// Pulse individual DCFEBs ////
-      int strip_to_pulse = 7;
+      int strip_to_pulse = 0;
       int feb_to_pulse = -1;
       for(feb_to_pulse=0; feb_to_pulse < N_DCFEBS; ++feb_to_pulse){
 	strip_to_pulse = 1 + 13*feb_to_pulse/(N_DCFEBS-1); // just a cute way to move the pulse along with the DCFEB
@@ -1842,11 +1992,11 @@ namespace emu {
 	//ccb_->stopTrigger();
         usleep(1000);
 	ccb_->bc0(); // start triggering
-        usleep(50000);
+        usleep(1000);
 	
 	for(int p=0; p<n_pulses; ++p){
 	  cout<<"pulsing dcfeb "<<feb_to_pulse<<", strip "<<strip_to_pulse<<endl;
-	  //ccb_->pulse(1,0); // we only get 1 event / file with this
+	  //ccb_->pulse(1,0); // send the pulses
 	  ccb_->GenerateDmbCfebCalib0(); // send the pulses 
 	  usleep(10000);
 	}
@@ -1870,11 +2020,11 @@ namespace emu {
 	ccb_->l1aReset();
         usleep(1000);
 	ccb_->bc0(); // start triggering
-        usleep(50000);
+        usleep(1000);
 
 	for(int p=0; p<n_pulses; ++p){
 	  cout<<"pulsing dcfeb "<<feb_to_pulse<<", strip "<<strip_to_pulse<<endl;
-	  //ccb_->pulse(1,0); // we only get 1 event / file with this
+	  //ccb_->pulse(1,0); // send the pulses
 	  ccb_->GenerateDmbCfebCalib0(); // send the pulses 
 	  usleep(10000);
 	}

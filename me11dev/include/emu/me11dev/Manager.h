@@ -80,6 +80,7 @@ namespace me11dev {
     protected:
 
       std::ostringstream webOutputLog_;
+      std::string OutputLogTitle_;
       // see the comment above addAction for why we use a vector of boost::shared_ptr
       t_actionvector commonActions_;
       t_vectormap groupActions_; // map between the group names and their vector of associated actions
