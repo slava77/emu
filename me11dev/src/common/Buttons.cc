@@ -1386,12 +1386,9 @@ namespace emu {
       cout<<"==>DDU_KillFiber"<<endl; 
       int KillFiber = getFormValueIntHex("KillFiber", in);
       string KillFiberString = getFormValueString("KillFiber", in);
-      
-      //std::stringstream hexstr_KillFiber;
-      //hexstr_KillFiber << std::hex << KillFiber;
-      //value( hexstr_KillFiber.str() ); // save value in hex
-      value( KillFiberString ); // save value in hex
- 
+      //value( KillFiberString ); // save value in hex
+      value("read"); // always default to "read"
+
       if( KillFiberString == "read" ){ // READ
 	out << "DDU Read Kill Fiber:" << endl;
 	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu){
@@ -1434,8 +1431,9 @@ namespace emu {
       cout<<"==>DDU_EthPrescale"<<endl; 
       int prescale = getFormValueIntHex("prescale", in);
       string prescaleString = getFormValueString("prescale", in);
-      value( prescaleString );
-      
+      //value( prescaleString );
+      value("read"); // always default to "read"      
+
       if(prescaleString == "read" ){ // READ
 	out << "DDU Read Gb Eth Prescale: " << endl;
 	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu) {
@@ -1464,18 +1462,19 @@ namespace emu {
     {
       addButtonWithTextBox(out,
 			   "Read(read)/Write(hex#) DDU Fake L1 (passthrough)",
-			   "prescale",
+			   "mode",
 			   value());
     }
     
     void DDU_FakeL1::respond(xgi::Input * in, ostringstream & out)
     {
       cout<<"==>DDU_FakeL1"<<endl; 
-      int prescale = getFormValueIntHex("prescale", in);
-      string prescaleString = getFormValueString("prescale", in);
-      value( prescaleString );
+      int mode = getFormValueIntHex("mode", in);
+      string modeString = getFormValueString("mode", in);
+      //value( modeString );
+      value("read"); // always default to "read"
       
-      if(prescaleString == "read" ){ // READ
+      if(modeString == "read" ){ // READ
 	out << "DDU Read Fake L1 (passthrough): " << endl;
 	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu) {
 	  out << "  DDU in slot " << (*ddu)->slot() << hex << setfill('0') << ": " << setw(4) << (*ddu)->readFakeL1() << dec << endl;
@@ -1485,7 +1484,7 @@ namespace emu {
 	out << "DDU Write Fake L1 (passthrough): " << endl;
 	for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end(); ++ddu) {
 	  out << "  DDU in slot " << (*ddu)->slot() << "..." << endl;
-	  (*ddu)->writeFakeL1(prescale);
+	  (*ddu)->writeFakeL1(mode);
 	}
       }
     }
