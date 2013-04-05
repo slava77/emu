@@ -341,6 +341,13 @@ namespace emu { namespace me11dev {
     };
 
 
+    class RoutineTest_PrecisionPulses : public Action {
+    public:
+      RoutineTest_PrecisionPulses(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };     
+
 
   }
 }
