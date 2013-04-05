@@ -202,16 +202,23 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class DDUReadKillFiber : public Action {
+    class DDU_KillFiber : public Action, public ActionValue<std::string> {
     public:
-      DDUReadKillFiber(emu::pc::Crate * crate);
+      DDU_KillFiber(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-    class DDUWriteKillFiber : public Action, public ActionValue<std::string> {
+    class DDU_EthPrescale : public Action, public ActionValue<std::string> {
     public:
-      DDUWriteKillFiber(emu::pc::Crate * crate);
+      DDU_EthPrescale(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+    class DDU_FakeL1 : public Action, public ActionValue<std::string> {
+    public:
+      DDU_FakeL1(emu::pc::Crate * crate);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
@@ -336,6 +343,14 @@ namespace emu { namespace me11dev {
     class enableVmeDebugPrintout : public Action, ActionValue<int> {
     public:
       enableVmeDebugPrintout(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+
+  class RoutineTest_ShortCosmicsRun : public Action, public ActionValue<int> {
+    public:
+      RoutineTest_ShortCosmicsRun(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
