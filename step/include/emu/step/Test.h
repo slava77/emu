@@ -85,6 +85,8 @@ namespace emu{
       void enableTrigger();
       void disableTrigger();
       void setUpDMB( emu::pc::DAQMB *dmb );
+      void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, short int depth );
+      void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb );
       void _11();
       void _12();
       void _13();
