@@ -120,6 +120,7 @@ namespace emu { namespace me11dev {
       
       putButtonsInGroup( "Routine Tests" );
       addActionByTypename<ReadBackUserCodes>(crate);
+      addActionByTypename<RoutineTest_PrecisionPulses>(crate, this);
 
       putButtonsInGroup( "DCFEB Settings" );
       addActionByTypename<SetDMBDACs>(crate);
@@ -534,6 +535,14 @@ namespace emu { namespace me11dev {
       //
       m.sendCommand( "emu::daq::manager::Application", "Enable" );
       waitForDAQToExecute( "Enable", 10 );
+
+//       xdata::Integer64 tmp;
+//       m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "maxNumberOfEvents", &tmp ) );
+//       cout<<" emu::daq::manager::Application ==> maxNumberOfEvents = "<<tmp.toString()<<endl;
+//       cout<<" emu::daq::manager::Application ==> maxNumberOfEvents = "<<tmp.toString()<<endl;
+//       cout<<" emu::daq::manager::Application ==> maxNumberOfEvents = "<<tmp.toString()<<endl;
+//       cout<<" emu::daq::manager::Application ==> maxNumberOfEvents = "<<tmp.toString()<<endl;
+//       cout<<" emu::daq::manager::Application ==> maxNumberOfEvents = "<<tmp.toString()<<endl;
     }
 
     void Manager::stopDAQ(){
@@ -562,7 +571,7 @@ namespace emu { namespace me11dev {
 	if ( daqState.toString() == expectedState ){ return true; }
 	LOG4CPLUS_INFO( logger_, "Waited " << i << " sec so far for local DAQ to get " 
 			<< expectedState << ". It is still in " << daqState.toString() << " state." );
-	::sleep( 1 );
+	sleep( 1 );
       }
       
       LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
