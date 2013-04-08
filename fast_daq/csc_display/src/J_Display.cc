@@ -74,27 +74,31 @@ int crate = -1, chamber = -1;
 
 int main(int argc, char **argv)
 {
+  bool havefile=0;
   if (argc < 2)
     {
       std::cerr <<" Please choose a file from the Select menu " << std::endl;
     }
-
+  
   if ( event_display_global_init(argc, argv) != 0 )
     {
       std::cout << "event_display : Initialization failed\n";
       exit(1);
     }
-
-
+  
+  
   timer = new TTimer();
-
+  
   // theApp modifies argv, so have to save it here
   char filename[500];
-
-  if(argc>=2) {strcpy(filename, argv[1]); 
+  
+  if(argc>=2) {
+    strcpy(filename, argv[1]); 
     std::cout << "Opening data file: " << argv[1] << std::endl;
-    connect_data_file(filename);}
-
+    connect_data_file(filename);
+    havefile=1;
+  }
+  
   if (argc > 2)
     {
       crate = strtol(argv[2], NULL, 10);
@@ -106,17 +110,13 @@ int main(int argc, char **argv)
   jd = new J_Display();
   timer->Connect("Timeout()", "J_Display", jd, "cbShowEvent_m()");
 
-  // connect_data_file should be called from button handler in the main window
-  // it should open file selector, etc. Now it just gets a hardcoded file
-  //	std::cout << "data file: " << argv[1] << std::endl;
-
-  //if(argc>=2){ connect_data_file(filename); std::cout << "Opening data file: " << argv[1] << std::endl; }
-
   jd->layout();
 
-  // default to wires/strips display
-  //jd->handle_menu(M_WIRES_STRIPS);
-  jd->handle_menu(M_CTRIG);
+  if(havefile){
+    // default to wires/strips display
+    //jd->handle_menu(M_WIRES_STRIPS);
+    jd->handle_menu(M_CTRIG);
+  }
 
   theApp.Run();
 
@@ -141,9 +141,8 @@ void J_Display::layout()
 
       show_menus();
 
-      // Don't need this
-      //nodispcan = new TRootEmbeddedCanvas("no displays canvas", fMain, 700, 300);
-      //fMain->AddFrame(nodispcan, new TGLayoutHints(kLHintsTop|kLHintsExpandX));
+      nodispcan = new TRootEmbeddedCanvas("no displays canvas", fMain, 700, 300);
+      fMain->AddFrame(nodispcan, new TGLayoutHints(kLHintsTop|kLHintsExpandX));
 
       show_status_bars();
 
