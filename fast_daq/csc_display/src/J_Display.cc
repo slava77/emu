@@ -1993,9 +1993,9 @@ void J_Display::Print()
       cmain->Print(buffer, "png");
       break;
     case M_WIRES_STRIPS:
-      sprintf(buffer, "run%d_event%d_id%d_WIRES.png", upevt_.run_number, upevt_.event_number, activeDisp);
-      chist->Print(buffer, "png");
       sprintf(buffer, "run%d_event%d_id%d_STRIPS.png", upevt_.run_number, upevt_.event_number, activeDisp);
+      chist->Print(buffer, "png");
+      sprintf(buffer, "run%d_event%d_id%d_WIRES.png", upevt_.run_number, upevt_.event_number, activeDisp);
       cmain->Print(buffer, "png");
       break;
     case M_SCA:
