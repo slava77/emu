@@ -75,7 +75,7 @@ LOCINC     = -I$(IDIR) -I$(CERNDIR)/include/cfortran \
              -I$(DAQHOME)/alct_jtag/include
 
 all : versioning $(OBJECTS_ONLINE) $(OBJECTS_OFFLINE)
-	sed "s-#define KEY_FILE \"/tmp/daq_ipc/.*-#define KEY_FILE \"/tmp/daq_ipc/$(USER)\"         /* Directory to use in ftok calls */-g" include/daq_ipc.h > include/daq_ipc.h.sed
+	sed "s-#define KEY_FILE \"/tmp/daq_ipc_.*-#define KEY_FILE \"/tmp/daq_ipc_$(USER)\"         /* Directory to use in ftok calls */-g" include/daq_ipc.h > include/daq_ipc.h.sed
 	mv include/daq_ipc.h.sed include/daq_ipc.h
 	rm -rf $(LDIR)
 	ln -s $(AFSDIR) $(LDIR)
