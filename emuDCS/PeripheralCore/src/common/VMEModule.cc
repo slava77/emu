@@ -1415,9 +1415,9 @@ void VMEModule::write_mcs(char *buf, int nbytes, FILE *outf)
 
 int VMEModule::read_mcs(char *binbuf, FILE *finp)
 {
-   unsigned ext_add, loc_add, dsize, current_ext=0, current_add, index, i, j;
+   unsigned ext_add, loc_add, dsize, current_ext=0, current_add, index, i;
    char buf[1024], addbuf[5]={0,0,0,0,0}, lenbuf[3]={0,0,0};
-   int finish=0, segmented=0, lines=0, c, n, chksum, crc;
+   int finish=0, segmented=0, lines=0, chksum, crc, n, c;
    int total_read=0;
 
    rewind(finp);
@@ -1446,7 +1446,7 @@ int VMEModule::read_mcs(char *binbuf, FILE *finp)
                           // bit-flip here if to compare with bit file
                           // not need for JTAG
                           n=0;
-                          for(j=0;j<8;j++)
+                          for(int j=0;j<8;j++)
                           {
                              n <<= 1;
                              n |= (c & 1);
@@ -1648,6 +1648,149 @@ unsigned int ptr_r;
       udelay(extras);
    }    
  }
+}
+
+// JTAG engine for DMB & DDU's emergency PROM access (write only), 
+//             and ODMB's discrete logic interface (read and write)
+void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv, int ird, int when)
+{
+// dev= VME address of the register (bits 18-0)
+//
+// reg = 0 instruction shift;
+//     = 1  data shift;
+//     = 2  empty clocks; 
+// ird = 0  no TDO read   
+//     = 1  read TDO      
+// when = 0  send vme packet LATER; 
+//      = 1  send vme packet NOW;   
+  int DEBUG=0;
+  int i, j, k, bit, cnt8;
+  unsigned short int ival, d;
+  int TDI_ = 1;
+  int TMS_ = 0;
+  int TDO_ = 0;
+  unsigned short int TMS=(1<<TMS_);
+  unsigned short int pvme=0;
+  unsigned int ptr= (dev & 0x7FFFF) + (theSlot<<19);
+  unsigned char *rcv2, bdata, *data, mytmp[MAXLINE];
+  
+  if(cnt==0 || reg<0 || reg>2)return;
+  for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
+ 
+  rcv2=(unsigned char *)rcv;
+  data=(unsigned char *)snd;
+ 
+ // Jinghua Liu on March-20-2013: 
+ //   all VME commands are buffered.
+ //
+  if (DEBUG) {
+      printf("Jtag_Lite: dev=%d, reg=%d, cnt=%d, ird=%d, when=%d, Send %02x %02x\n", 
+              dev, reg, cnt, ird, when, snd[0]&0xff, snd[1]&0xff);
+  }
+
+  //  reset JTAG State Machine to Idle state
+  if(reg==0 && cnt<0)
+  {
+   for(i=0; i<6; i++)
+   {
+     d=pvme;
+     if(i<5) d |=TMS;  // five tms=1, followed by one tms=0
+     theController->VME_controller((i<5)?1:3,ptr,&d,rcv);        
+   }
+     
+   return;
+  }
+
+  //  clocks
+  if(reg==2)
+  {
+     d=pvme;
+     for(i=0;i <cnt; i++)
+     {
+        theController->VME_controller((i<(cnt-1))?1:3,ptr,&d,rcv);        
+//        vme_delay(1);
+     }
+     return;
+  }
+
+   //  reg=0: instruction
+   //  reg=1: data
+   //
+   for(i=reg; i<4; i++)
+   {
+     d=pvme;
+     if(i<2) d |=TMS;
+     theController->VME_controller(1,ptr,&d,rcv);        
+//        vme_delay(1);
+   }
+
+  // Loop to shift in/out bits
+  bit=0;
+  k=0;
+  bdata = data[k];
+  for(i=0;i<cnt;i++) 
+  {
+     ival = bdata&0x01;
+     bdata >>= 1;
+     bit++;
+     if(bit==8) 
+     { 
+        bit=0;
+        k++;
+        bdata = data[k];
+     }
+
+     // data bit to write is in the lowest bit of ival
+     d=pvme|(ival<<TDI_);
+     // at the last shift, we need set TMS=1
+     if(i==cnt-1) d |=TMS;
+     theController->VME_controller(1,ptr,&d, rcv);
+//        vme_delay(1);
+
+// Liu April-8-2013: shift data out AFTER shift data in,
+//                   this is different from regular JTAG machine
+     if(ird){
+       // read out one bit
+       theController->VME_controller(0,ptr,&d,(char *)(mytmp+2*i));
+     }
+  }
+  
+  // printf("done loop\n");
+  // Now put the state machine into idle.
+  for(i=0; i<2; i++)
+  {
+     d=pvme;
+     if(i==0) d |=TMS;
+     // In the last VME WRITE send the packets, and READ back all data 
+     theController->VME_controller((i==1)?3:1,ptr,&d,(char *)mytmp);        
+//        vme_delay(1);
+  }
+
+  if(ird)
+  {
+    // combine bits in mytmp[] into bytes in rcv[].
+    // for(i=0; i<cnt*2; i++) printf("%02x ", mytmp[i]&0xff);
+    //  printf("\n");
+     bit=0; 
+     bdata=0; 
+     j=0;
+     // Use cnt8 instead of cnt, to make sure the bits are in right place.
+     cnt8 = 8*((cnt+7)/8);
+     for(i=0;i<cnt8;i++)
+     {                           
+       if(i<cnt) bdata |= ((mytmp[2*i] & (1<<TDO_))<<(7-TDO_));
+  
+       if(bit==7)
+	 { rcv2[j++]=bdata;  bit=0;  bdata=0; }
+       else
+	 { bdata >>= 1;     bit++; }
+     }
+     if (DEBUG) {
+       printf("Jtag_Lite output: ");
+       for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
+       printf("\n");
+     }
+  }
 }
 
 void VMEModule::udelay(long int usec)
