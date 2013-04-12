@@ -359,6 +359,8 @@ public:
   void inject_delay_l1a(int l1a_delay);
   void enablet();
 
+  int readDSN(void *data);
+
 public:
   //
   //-- Control and Status Registers for CCB2004
@@ -400,6 +402,12 @@ public:
   static const unsigned int readL1aCounterMSB  = 0x92;
   static const unsigned int resetL1aCounter    = 0x94;
   static const unsigned int enableL1aCounter   = 0x96;
+
+  static const unsigned int DSNreset   = 0x9a;
+  static const unsigned int DSNread    = 0x9c;
+  static const unsigned int DSNclear   = 0x9e;
+  static const unsigned int DSNwrite0  = 0xa0;
+  static const unsigned int DSNwrite1  = 0xa2;
 
 protected:
   int mCCBMode;  // current CCB hardware Mode

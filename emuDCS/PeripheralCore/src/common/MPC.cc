@@ -981,6 +981,52 @@ void MPC::start() {
   theController->goToScanLevel();
 }
 
+int MPC::readDSN(void *data)
+{
+   char *dsn=(char *)data;
+   int iloop=0, error, i, j, dsnstate, rd, c;
+
+   WriteRegister(DSNclear,0);
+   udelay(100);
+   WriteRegister(DSNreset,0);
+   udelay(2000);
+   dsnstate=ReadRegister(CSR6);
+   while((dsnstate&5)!=4 && iloop<5)
+   {
+       udelay(1000*iloop);
+       dsnstate=ReadRegister(CSR6);
+       iloop++;
+   }
+   if((dsnstate&5)!=4) return -1;
+   int readcmd=0xF;   
+   for(i=0; i<8; i++)
+   {
+      // WriteRegister(DSNclear,0);
+      if(readcmd&1) WriteRegister(DSNwrite1, 0);
+      else WriteRegister(DSNwrite0, 0);
+      readcmd >>= 1;
+      udelay(60);
+   }
+   error=0;
+   for(i=0; i<8; i++)
+   {
+      rd=0;
+      for(j=0; j<8; j++)
+      {
+         WriteRegister(DSNread, 0);
+         udelay(10);
+         c=ReadRegister(CSR6);
+         if(c&8)
+            rd |= (((c>>1)&1)<<j);        
+         else
+            error++;
+         udelay(5);
+      }
+      dsn[i]=rd;
+   }      
+   if(error) std::cout << "Errors in reading DSN: " << error << std::endl;
+   return error;
+}
 
 } // namespace emu::pc
 } // namespace emu
