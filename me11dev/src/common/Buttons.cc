@@ -807,7 +807,7 @@ namespace emu {
 	manager_->startDAQ( string("Pipeline")+emu::utils::stringFrom<int>( iDepth ) );
 
 	//// Take cosmics
-	sleep(1);
+	::sleep(1);
 	
 	// stop DAQ
 	cout<<"stopping DAQ..."<<endl;
@@ -1330,7 +1330,7 @@ namespace emu {
 		      }
 		  }
 		//		alct_->WriteStandbyRegister_();
-		sleep(10);
+		::sleep(10);
 	      }
 	    //ccb_->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
 	    ccb_->RedirectOutput( &cout ); // ccb prints a line on each test pulse - waste it
@@ -1887,7 +1887,7 @@ namespace emu {
       cout<<"starting DAQ..."<<endl;
       manager_->startDAQ( string("ME11Test_ShortCosmicsRun")+emu::utils::stringFrom<int>( _time )+string("s") );
       
-      sleep(_time); // take data
+      ::sleep(_time); // take data
       
       // stop DAQ 
       cout<<"stopping DAQ..."<<endl;
