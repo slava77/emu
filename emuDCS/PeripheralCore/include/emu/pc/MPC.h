@@ -227,6 +227,7 @@ class MPC : public VMEModule, public EmuLogger {
   void setTransparentMode(unsigned int);
   void setSorterMode();
   void check_generation();
+  int readDSN(void *data);
 
  protected:
   /// MPC base address should always correspond to VME Slot 12 (=0x600000)
@@ -251,8 +252,13 @@ class MPC : public VMEModule, public EmuLogger {
     /// Transmit 511 words from all FIFO_A in test-mode (write only)
     TXMIT511 = 0xB2,
     /// Send TxEn "0" pulse to all three TLK2501 transmitters (write only)
-    TXENALL = 0xB6
+    TXENALL = 0xB6,
     // DATE     = 0xAA, STATUS   = 0xAE
+    DSNreset   = 0xc0,
+    DSNread    = 0xc2,
+    DSNclear   = 0xc4,
+    DSNwrite0  = 0xc6,
+    DSNwrite1  = 0xc8
   };
   enum CSR0options {
     CSR0_FPGATestMode = 0x01, CSR0_FPGAResetLogic = 0x02,
