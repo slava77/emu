@@ -55,7 +55,7 @@ function load_igb_emu(){
 DRIVERS_DIR=${0%/*}
 
 # Only load the drivers on hosts in this list of aliases:
-for ALIAS in vmepc-e1x07-26-01 emuslice06 emuslice12; do
+for ALIAS in vmepc-e1x07-26-01 emuslice06 emuslice12 emu-me11-step{1,2,3,4}; do
     if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
 	load_igb_emu eth_hook_2_vme eth_hook_3_daq eth_hook_4_daq eth_hook_5_daq
 	exit 0
