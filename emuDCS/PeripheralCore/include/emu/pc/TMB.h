@@ -2142,6 +2142,11 @@ public:
   bool checkvme_fail(); /// true=no vme access (whatever reason) 
 
   void EnableClctExtTrig();  // used by STEP
+  void program_virtex6(const char *mcsfile);
+  unsigned virtex6_readreg(int reg);
+  void virtex6_writereg(int reg, unsigned value);
+  std::vector<float> virtex6_monitor();
+  int virtex6_dna(void *data);
   //
   FILE *pfile;
   int ucla_ldev;

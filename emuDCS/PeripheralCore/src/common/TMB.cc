@@ -8847,6 +8847,230 @@ void TMB::EnableClctExtTrig()
   WriteRegister(seq_trig_en_adr, data_to_write);
 }
 
+// code used by new ME11 OTMB
+//
+void TMB::program_virtex6(const char *mcsfile)
+{
+   const int FIRMWARE_SIZE=9232444; // in bytes
+   char *bufin, c;
+   bufin=(char *)malloc(16*1024*1024);
+   if(bufin==NULL)  return;
+   FILE *fin=fopen(mcsfile,"r");
+   if(fin==NULL ) 
+   { 
+      free(bufin);  
+      std::cout << "ERROR: Unable to open MCS file :" << mcsfile << std::endl;
+      return; 
+   }
+   int mcssize=read_mcs(bufin, fin);
+   fclose(fin);
+   std::cout << "Read MCS size: " << std::dec << mcssize << " bytes" << std::endl;
+   if(mcssize<FIRMWARE_SIZE)
+   {
+       std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
+       free(bufin);
+       return;
+   }
+// byte swap
+//   for(int i=0; i<FIRMWARE_SIZE/2; i++)
+//   {  c=bufin[i*2];
+//      bufin[i*2]=bufin[i*2+1];
+//      bufin[i*2+1]=c;
+//   }
+
+     int blocks=FIRMWARE_SIZE/4;  // firmware size must be in units of 32-bit words
+     int p1pct=blocks/100;
+     int j=0, pcnts=0;
+     unsigned short comd, tmp;
+     unsigned long ttt=0, tout=0;
+
+//    getTheController()->Debug(2);
+
+     setup_jtag(ChainTmbMezz);
+    //restore idle;
+    RestoreIdle();
+
+//
+// The IEEE 1532 ISC (In-System-Configuration) procedure is used.       
+// The bitstream doesn't need to be sent in one JTAG package.
+// It is different from Xilinx's Jtag procedure which uses CFG_IN.
+//
+   
+     comd=VTX6_IDCODE;
+     scan(0, (char *)&comd, 10, rcvbuf, 1);
+     scan(1, (char *)&ttt, 32, (char *)&tout, 1);     
+     std::cout << "IDCODE=" << std::hex << tout << std::dec << std::endl;
+
+     comd=VTX6_SHUTDN;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     std::cout <<" Start sending 4000 clocks... " << std::endl;
+     getTheController()->CycleIdle_jtag(4000);
+     udelay(10000);
+
+     comd=VTX6_JPROG;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+
+     comd=VTX6_ISC_NOOP; 
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     udelay(10000);
+     comd=VTX6_ISC_ENABLE; 
+     tmp=0;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     scan(1, (char *)&tmp, 5, rcvbuf, 0);
+    std::cout <<" Start sending 128 clocks... " << std::endl;
+    getTheController()->CycleIdle_jtag(128);
+
+//     udelay(100);
+     comd=VTX6_ISC_PROGRAM; 
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+    for(int i=0; i<blocks-1; i++)
+    {
+//    if(i>50) getTheController()->Debug(0);
+       scan(1, bufin+4*i, 32, rcvbuf, 0);
+       udelay(32);
+       j++;
+       if(j==p1pct)
+       {  pcnts++;
+          if(pcnts<100) std::cout << "Sending " << pcnts <<"%..." << std::endl;
+          j=0;
+       }   
+    }
+    std::cout << "Sending 100%..." << std::endl;
+//    getTheController()->Debug(2);
+
+    comd=VTX6_ISC_DISABLE; 
+    scan(0, (char *)&comd, 10, rcvbuf, 0);
+    std::cout <<" Start sending clocks... " << std::endl;
+    getTheController()->CycleIdle_jtag(128);
+//    scan(0, 0, (char *)&comd, -100, &tmp, rcvbuf, 0);
+    udelay(100);
+    comd=VTX6_BYPASS;
+    scan(0, (char *)&comd, 10, rcvbuf, 0);
+
+    comd=VTX6_JSTART;
+    scan(0, (char *)&comd, 10, rcvbuf, 0);
+    std::cout <<" Start sending clocks... " << std::endl;
+    getTheController()->CycleIdle_jtag(128);
+    //restore idle;
+    RestoreIdle();
+    comd=VTX6_BYPASS;
+    scan(0, (char *)&comd, 10, rcvbuf, 0);
+    
+    std::cout << "FPGA configuration done!" << std::endl;             
+    free(bufin);
+//    UnjamFPGA();
+}
+
+unsigned TMB::virtex6_readreg(int reg)
+{
+     unsigned short comd;
+     unsigned data[7]={0x66AA9955, 4, 0, 4, 4, 4};
+     unsigned *rt, rtv;
+     comd=VTX6_CFG_IN;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     unsigned ins=((reg&0x1F)<<13)+(1<<27)+(1<<29)+1;
+     data[2]=shuffle32(ins);
+     scan(1, (char *)data, 6*32, rcvbuf, 0);     
+
+     comd=VTX6_CFG_OUT;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     data[0]=0;
+     scan(1, (char *)data, 32, rcvbuf, 1);     
+     rt = (unsigned *)rcvbuf;
+     rtv=shuffle32(*rt);
+//     printf("return: %08X\n", rtv);
+     comd=VTX6_BYPASS;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     return rtv;
+}
+
+void TMB::virtex6_writereg(int reg, unsigned value)
+{
+     unsigned short comd;
+     unsigned data[6]={0x66AA9955, 4, 0, 0, 4, 4};
+     comd=VTX6_CFG_IN;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     unsigned ins=((reg&0x1F)<<13)+(2<<27)+(1<<29)+1;
+     data[2]=shuffle32(ins);
+     data[3]=shuffle32(value);
+     scan(1, (char *)data, 6*32, rcvbuf, 0);     
+     comd=VTX6_BYPASS;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+}
+
+std::vector<float> TMB::virtex6_monitor()
+{
+  std::vector<float> readout;
+  int comd=VTX6_SYSMON;
+  unsigned data, ibrd, adc;
+  float readf;
+
+  readout.clear();
+  int hversion=GetHardwareVersion();
+  if(hversion==2)
+  {
+     setup_jtag(ChainTmbMezz);
+     comd=VTX6_SYSMON;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+//     this can be used to change register 0x48 to enable more channels
+//     data=0x8483F00;
+//     scan(1,(char *)&data, 32, rcvbuf, 1);
+     data=0x4000000;
+     scan(1, (char *)&data, 32, rcvbuf, 1);     
+     for(unsigned i=0; i<3; i++)
+     {
+        data += 0x10000;
+        scan(1, (char *)&data, 32, (char *)&ibrd, 1);     
+//        std::cout << "S Channel: " << i << std::hex << " readout " << ibrd << std::endl;  
+        udelay(100);
+        adc = (ibrd>>6)&0x3FF;
+        if(i==0)
+          readf=adc*503.975/1024.0-273.15;
+        else
+          readf=adc*3.0/1024.0;
+        readout.push_back(readf);
+//        std::cout << " result: " << std::dec<< readf << std::endl; 
+     }
+     comd=VTX6_BYPASS;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     udelay(1000);
+  }
+  return readout;
+}
+
+int TMB::virtex6_dna(void *dna)
+{
+     unsigned short comd;
+     unsigned char *dout, data[8];
+     int rtv;
+
+     // random bits as signature
+     data[0]=((int)time(NULL) & 0xFF);
+
+     dout=(unsigned char *)dna;
+     comd=VTX6_ISC_ENABLE;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     udelay(1000);
+     comd=VTX6_ISC_DNA;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     udelay(1000);
+     scan(1, (char *)data, 64, (char *)dna, 1);     
+     
+     // the last 7 bits must be the same as the signature's lowest 7 bits
+     if((dout[7]>>1)==(data[0]&0x7F))
+     {
+        shuffle57(dout);
+        rtv=0;
+     }
+     else
+     {
+        rtv=-1;
+        std::cout << "Error: DNA readback verification failed!" << std::endl;
+     }
+     comd=VTX6_BYPASS;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+     return rtv;
+}
+
 } // namespace emu::pc  
 } // namespace emu  
-
