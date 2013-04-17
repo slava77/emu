@@ -1695,7 +1695,7 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
    {
      d=pvme;
      if(i<5) d |=TMS;  // five tms=1, followed by one tms=0
-     theController->VME_controller(3,ptr,&d,rcv);        
+     theController->VME_controller((i<5)?1:3,ptr,&d,rcv);        
    }
      
    return;
@@ -1707,7 +1707,7 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
      d=pvme;
      for(i=0;i <cnt; i++)
      {
-        theController->VME_controller(3,ptr,&d,rcv);        
+        theController->VME_controller((i<(cnt-1))?1:3,ptr,&d,rcv);        
 //        vme_delay(1);
      }
      return;
@@ -1720,7 +1720,7 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
    {
      d=pvme;
      if(i<2) d |=TMS;
-     theController->VME_controller(3,ptr,&d,rcv);        
+     theController->VME_controller(1,ptr,&d,rcv);        
 //        vme_delay(1);
    }
 
@@ -1744,14 +1744,14 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
      d=pvme|(ival<<TDI_);
      // at the last shift, we need set TMS=1
      if(i==cnt-1) d |=TMS;
-     theController->VME_controller(3,ptr,&d, rcv);
+     theController->VME_controller(1,ptr,&d, rcv);
 //        vme_delay(1);
 
 // Liu April-8-2013: shift data out AFTER shift data in,
 //                   this is different from regular JTAG machine
      if(ird){
        // read out one bit
-       theController->VME_controller(2,ptr,&d,(char *)(mytmp+2*i));
+       theController->VME_controller(0,ptr,&d,(char *)(mytmp+2*i));
      }
   }
   
@@ -1762,7 +1762,7 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
      d=pvme;
      if(i==0) d |=TMS;
      // In the last VME WRITE send the packets, and READ back all data 
-     theController->VME_controller(3,ptr,&d,(char *)mytmp);        
+     theController->VME_controller((i==1)?3:1,ptr,&d,(char *)mytmp);        
 //        vme_delay(1);
   }
 
