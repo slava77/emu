@@ -243,6 +243,7 @@ protected:
   void Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv, int ird, int when);
   void udelay(long int usec);
   unsigned shuffle32(unsigned value);
+  void shuffle57(void *data);
 
   Crate * theCrate_;
   VMEController * theController;
