@@ -4524,7 +4524,7 @@ int TMB::dsnIO(int writeData){
 		<< std::hex << readData << std::dec << std::endl;  
     }
     nbusy++;
-    udelay(10);
+    udelay(20);
   }
   //
   // end previous cycle
@@ -9047,6 +9047,14 @@ int TMB::virtex6_dna(void *dna)
      // random bits as signature
      data[0]=((int)time(NULL) & 0xFF);
 
+     setup_jtag(ChainTmbMezz);
+
+     comd=VTX6_SHUTDN;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+//     std::cout <<" Start sending 128 clocks... " << std::endl;
+     getTheController()->CycleIdle_jtag(128);
+     udelay(10000);
+
      dout=(unsigned char *)dna;
      comd=VTX6_ISC_ENABLE;
      scan(0, (char *)&comd, 10, rcvbuf, 0);
@@ -9069,6 +9077,15 @@ int TMB::virtex6_dna(void *dna)
      }
      comd=VTX6_BYPASS;
      scan(0, (char *)&comd, 10, rcvbuf, 0);
+
+     comd=VTX6_JSTART;
+     scan(0, (char *)&comd, 10, rcvbuf, 0);
+//     std::cout <<" Start sending 128 clocks... " << std::endl;
+     getTheController()->CycleIdle_jtag(128);
+     udelay(100000);
+
+     UnjamFPGA();
+     udelay(1000);
      return rtv;
 }
 

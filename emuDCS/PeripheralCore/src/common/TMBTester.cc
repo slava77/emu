@@ -551,6 +551,22 @@ bool TMBTester::testDSN(){
   //
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for Mezzanine" << std::endl;
   bool mezzanineDSN = testDSN(1);
+  if(tmb_->GetHardwareVersion()==2)
+  {
+     (*MyOutput_) << "TMBTester: Checking Virtex-6 FPGA's DNA" << std::endl;
+     unsigned char dna[8];
+     char buf[40];
+     int r=tmb_->virtex6_dna(dna);
+     if(r==0)
+     {    sprintf(buf, "DNA (Hex) : %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n", 
+           dna[7],dna[6],dna[5],dna[4],dna[3],dna[2],dna[1],dna[0]);  
+           (*MyOutput_) << buf;
+     }
+     else
+     {
+          (*MyOutput_) << "DNA readback failed!" << std::endl;
+     }
+  }
   //::sleep(1);
   //
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for RAT" << std::endl;
