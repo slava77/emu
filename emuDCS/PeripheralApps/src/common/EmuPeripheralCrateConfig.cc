@@ -2430,7 +2430,7 @@ void EmuPeripheralCrateConfig::CheckCrateFirmware(xgi::Input * in, xgi::Output *
   //  
   std::cout << "Button: Check CSC firmware in one crate" << std::endl;
   //
-  std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
+  std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::dec << std::endl;
   //
   CheckPeripheralCrateFirmware();
   //
@@ -4363,7 +4363,7 @@ void EmuPeripheralCrateConfig::SetTTCDelays(xgi::Input * in, xgi::Output * out )
 	  int delay = thisCCB->ConvertNanosecondsToFineDelayUnits(TTCrxFineDelay_&0xff);
 	  std::cout << "write TTCrxFineDelay_ = " << TTCrxFineDelay_ 
 		    << " (TTCrx value = 0x" << std::hex << delay << ") to registers 0 and 1" 
-		    << std::endl;
+		    << std::dec << std::endl;
 	  thisCCB->WriteTTCrxReg(0,delay);
 	  thisCCB->WriteTTCrxReg(1,delay);
 	}
@@ -4376,11 +4376,11 @@ void EmuPeripheralCrateConfig::SetTTCDelays(xgi::Input * in, xgi::Output * out )
 	int rx;
 	rx=(int) (thisCCB->ReadTTCrxReg(2).to_ulong());
 	if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
-	  std::cout << "ERROR: TTCrx Coarse Delay register readback " << std::hex << (rx&0xff) << std::endl; 
+	  std::cout << "ERROR: TTCrx Coarse Delay register readback " << std::hex << (rx&0xff) << std::dec << std::endl; 
 	//
 	rx=(int)(thisCCB->ReadTTCrxReg(3).to_ulong());
 	if((rx&0xff) != 0xB3) 
-	  std::cout << "ERROR: TTCrx Control register readback " << std::hex << (rx&0xff) << std::endl; 
+	  std::cout << "ERROR: TTCrx Control register readback " << std::hex << (rx&0xff) << std::dec << std::endl; 
 	//
 	std::cout << "After writing..." << std::endl;
 	thisCCB->PrintTTCrxRegs();
@@ -7930,7 +7930,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
 	 << "/"      << thisTMB->GetExpectedTmbFirmwareDay()
 	 << "/"      << thisTMB->GetExpectedTmbFirmwareYear()
 	 << " - "   
-	 << std::hex << thisTMB->GetTMBFirmwareCompileType() 
+	 << std::hex << thisTMB->GetTMBFirmwareCompileType() << std::dec
 	 << ")";
 
     *out << cgicc::span();
@@ -7949,7 +7949,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   } else {
     *out << cgicc::span().set("style","color:red");
     *out << buf;
-    *out << "--->> BAD <<--- should be " << std::hex << thisTMB->GetExpectedTmbFirmwareType();
+    *out << "--->> BAD <<--- should be " << std::hex << thisTMB->GetExpectedTmbFirmwareType() << std::dec;
     *out << cgicc::span();
   }
   *out << cgicc::br();
@@ -8511,12 +8511,10 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << std::endl ;
   }
   //
-  if (standalone_) {
+  if (thisTMB->GetHardwareVersion()==2) {
     *out << cgicc::br() << std::endl;
     *out << cgicc::br() << std::endl;
-    *out << "ME11 New Electronics:" << cgicc::br() << std::endl;
     *out << "new TMB firmware version = " << FirmwareDir_ + "tmb/tmb_me11_virtex6.svf" << cgicc::br() << std::endl;
-    *out << "new ALCT firmware version = " << FirmwareDir_ + "alct/alct_mez_spartan6.svf" << cgicc::br() << std::endl;
 
     std::string LoadVirtex6TMBFirmware = toolbox::toString("/%s/LoadVirtex6TMBFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadVirtex6TMBFirmware) << std::endl ;
@@ -8525,7 +8523,12 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
+  }
 
+  if (alct->GetHardwareVersion()==2) {
+    *out << cgicc::br() << std::endl;
+    *out << cgicc::br() << std::endl;
+    *out << "new ALCT firmware version = " << FirmwareDir_ + "alct/alct_mez_spartan6.svf" << cgicc::br() << std::endl;
     std::string LoadSpartan6ALCTFirmware = toolbox::toString("/%s/LoadSpartan6ALCTFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadSpartan6ALCTFirmware) << std::endl ;
     sprintf(buf,"Load ALCT Spartan 6 Firmware in slot %d",tmbVector[tmb]->slot());
@@ -8533,7 +8536,6 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
-
   }
   //
   *out << cgicc::fieldset();
@@ -9003,8 +9005,6 @@ void EmuPeripheralCrateConfig::LoadALCTSlowFirmware(xgi::Input * in, xgi::Output
 void EmuPeripheralCrateConfig::LoadVirtex6TMBFirmware(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
-if(standalone_)
-{
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name2 = cgi.getElement("tmb");
@@ -9019,13 +9019,13 @@ if(standalone_)
   //
   TMB * thisTMB=NULL;
   if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
-  if(thisTMB)
+  if(thisTMB && (thisTMB->GetHardwareVersion()==2))
   {
     std::string svffile = FirmwareDir_ + "tmb/tmb_me11_virtex6.svf";
     // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
     thisCCB->setCCBMode(CCB::VMEFPGA);
       //
-    std::cout  << getLocalDateTime() <<  "Write TMB ME11 (Virtex 6) firmware to slot " << thisTMB->slot() << std::endl;
+    std::cout  << getLocalDateTime() <<  " Write TMB ME11 (Virtex 6) firmware to slot " << thisTMB->slot() << std::endl;
       //
     thisTMB->setup_jtag(ChainTmbMezz);
     thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
@@ -9042,7 +9042,6 @@ if(standalone_)
     thisCCB->setCCBMode(CCB::DLOG);
   }
   //
-}
 this->TMBUtils(in,out);
 }
 
@@ -9050,8 +9049,6 @@ this->TMBUtils(in,out);
 void EmuPeripheralCrateConfig::LoadSpartan6ALCTFirmware(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
-if(standalone_)
-{  
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name2 = cgi.getElement("tmb");
@@ -9068,20 +9065,23 @@ if(standalone_)
   if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
   if(thisTMB)
   {
-    std::string svffile = FirmwareDir_ + "alct/alct_mez_spartan6.svf";
-    // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
-    thisCCB->setCCBMode(CCB::VMEFPGA);
-      //
-    std::cout  << getLocalDateTime() <<  "Write new ALCT Mezzanine (Spartan 6) firmware to slot " << thisTMB->slot() << std::endl;
-      //
-    thisTMB->setup_jtag(ChainAlctFastMezz);
-    thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
+    ALCTController * thisALCT = thisTMB->alctController();
+    if(thisALCT && (thisALCT->GetHardwareVersion()==2))
+    {
+       std::string svffile = FirmwareDir_ + "alct/alct_mez_spartan6.svf";
+       // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
+       thisCCB->setCCBMode(CCB::VMEFPGA);
+       //
+       std::cout  << getLocalDateTime() <<  "Write new ALCT Mezzanine (Spartan 6) firmware to slot " << thisTMB->slot() << std::endl;
+       //
+       thisTMB->setup_jtag(ChainAlctFastMezz);
+       thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
 
-    // Put CCB back into DLOG mode to listen to TTC commands...
-    thisCCB->setCCBMode(CCB::DLOG);
+       // Put CCB back into DLOG mode to listen to TTC commands...
+       thisCCB->setCCBMode(CCB::DLOG);
+    }
   }
   //
-}
 this->TMBUtils(in,out);
 }
 
@@ -9442,7 +9442,7 @@ void EmuPeripheralCrateConfig::CheckTMBFirmware(xgi::Input * in, xgi::Output * o
     if (thisTMB->slot() < 22) {
       short unsigned int BootReg;
       thisTMB->tmb_get_boot_reg(&BootReg);
-      std::cout << "Boot register = 0x" << std::hex << BootReg << std::endl;
+      std::cout << "Boot register = 0x" << std::hex << BootReg << std::dec << std::endl;
       //
       if (thisTMB->GetBootVMEReady() != 1) tmb_vme_ready = 0;
     }
