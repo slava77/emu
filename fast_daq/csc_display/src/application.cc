@@ -9,11 +9,12 @@
 extern "C"
 {
 #include "application.h"
-#include "event_display_common.h"
 #include "daq_module.h"
 #include "daq_ipc.h"
 #include "daq_conf.h"
 }
+
+extern daq_global_shmem_type *daq_global_shmem;
 
 // IMPORTANT: libemudaqreader must be compiled in standalone mode with "make Standalone=yes" 
 // and then the resulting *sa_.so file copied to this project lib directory.
@@ -43,9 +44,7 @@ int disp_atrig,           atrig_active;
 int disp_ctrig,           ctrig_active;
 int disp_sci_strips, sci_strips_active;
 int disp_sci_wires,   sci_wires_active;
-int autoscale;
 
-float timer_delay;  /* Number of seconds between display updates */
 int disp_paused;  /* Equals 1 if display is paused */
 int rewind_comm; // set by rewind button, reset by rewind action
 
@@ -66,64 +65,6 @@ extern daq_conf_shmem_type *daq_conf_shmem[NRUN];
 
 
 
-
-/*
- * Input: 0 <= irun < NRUN : Connnect shared ememory for that run
- *
-*/
-/*
-extern "C" int connect_active_run(int irun)
-{
-	int imap;
-	short buf[22];   // The size of the event header
-
-	make_status_paused();
-
-	detach_shmem();
-
-	if (fd != NULL)
-	{
-		delete fd;
-		fd = NULL;
-	}
-
-// Attach the event shared memory
-	syslog(LOG_LOCAL1+LOG_INFO, "Attach event shared memory. II\n");
-	if(evt_buf_ipc_setup(irun) != 0) {
-		syslog(LOG_LOCAL1+LOG_ERR, "Attach event shared memory failed. EE\n");
-		exit(1);
-	}
-	pevt = evt_shmem[irun]; // Pointer to the event shared memory
-
-// Attach the DAQ conf shared memory
-	syslog(LOG_LOCAL1+LOG_INFO, "Attach DAQ conf shared memory. II\n");
-	if(daq_conf_ipc_setup(irun) != 0) {
-		syslog(LOG_LOCAL1+LOG_ERR, "Attach DAQ conf shared memory failed. EE\n");
-		exit(1);
-	}
-	pconf = daq_conf_shmem[irun]; // Pointer to the DAQ conf shared memory
-
-// Read the cable map file
-	if (fd == NULL)
-	{
-//		 Get cable map ID from DAQ conf shared memory
-		imap = pconf->cable_map_file_id;
-		printf("fd = NULL\n");
-	}
-	else {
-		imap = 4000; // default cable map
-	}
-#ifdef DEBUG
-	printf("cable_map_file_id = %d\n", imap);
-#endif
-	read_cable_map(imap);
-
-	make_status_running();
-
-	return 0;
-
-}
-*/
 char file_name[1000];
 
 int connect_data_file(char *sel_fn)
@@ -146,16 +87,6 @@ int connect_data_file(char *sel_fn)
   if (sel_fn == NULL) return 0;
   sprintf(file_name, "%s", sel_fn);
 
-  // prepare and display file selector
-//	FD_FSELECTOR * fds = fl_get_fselector_fdstruct();
-//	fl_set_form_geometry(fds->fselect, 100, 100, 500, 500); // set larger size for longer filenames
-//	fl_set_dirlist_sort(FL_RMTIMESORT); // reverse mod. time order, so latest files are on top
-//	sel_fn = fl_show_fselector("Select a Data File", full_path, "*.raw", " ");
-
-  // file selector here
-//	sel_fn = "/data/csc_00000001_EmuRUI01_Test_12_ALCT_Connectivity_000_091016_153811_UTC.raw";
-//	sel_fn = "/data/csc_00000002_EmuRUI00_STEP_12_000_071218_163953_UTC.raw";
-
 #ifdef DEBUG
   printf("Open file %s\n", file_name);
 #endif
@@ -175,19 +106,6 @@ int connect_data_file(char *sel_fn)
 
   event_num = 1;
 
-//	int sret = sscanf(file_name, "/data/csc_%08d", &run_num);
-//	if (sret != 1) std::cout << "cannot read run number" << endl;
-
-  /* Read the cable map file */
-  /*	if (fd == NULL)
-  	{
-  #ifdef DEBUG
-  		printf("Get cable map ID from shared memory\n");
-  #endif
-  		imap = pconf->cable_map_file_id;
-  	}
-  	else
-  */
   {
 #ifdef DEBUG
     printf("Get cable map ID from the data file\n");
@@ -242,30 +160,18 @@ extern "C" void make_status_running()
   if (first)
     {
       timer->Start(1000, kFALSE);   // 2 seconds
-//		fl_set_timer(fd_event_display->show_event_timer, (double )timer_delay);
-//		fl_show_object(fd_event_display->pause_button);
-//		fl_show_object(fd_event_display->print_button);
     }
   else
     {
       if (disp_paused)
         {
           timer->Start(1000, kFALSE);   // 2 seconds
-//			fl_resume_timer(fd_event_display->show_event_timer);
-//			fl_hide_object(fd_event_display->continue_button);
-//			fl_show_object(fd_event_display->pause_button);
-//			fl_set_object_lcolor(fd_event_display->status_mess,FL_GREEN);
         }
       else
         {
           timer->Start(1000, kFALSE);   // 2 seconds
-//			fl_set_timer(fd_event_display->show_event_timer, (double )timer_delay);
         }
     }
-
-//	fl_set_object_lcolor(fd_event_display->status_mess,FL_GREEN);
-//	fl_set_object_label(fd_event_display->status_mess,
-//						"Event display running.");
 
   /* At start of new run we start by displaying all */
   disp_wire_strip = 1;
@@ -284,23 +190,11 @@ extern "C" void make_status_running()
 
 extern "C" void make_status_paused()
 {
-
-  if (disp_paused) return;
-  /*
-    fl_suspend_timer(fd_event_display->show_event_timer);
-    fl_hide_object(fd_event_display->pause_button);
-    fl_show_object(fd_event_display->continue_button);
-    fl_set_object_lcolor(fd_event_display->status_mess,FL_BLUE);
-    fl_set_object_label(fd_event_display->status_mess,
-    "Event display paused");
-  */
   disp_paused = 1;
-
 }
 
 extern "C" void detach_shmem()
 {
-
   if (pconf != NULL) {
     if(shmdt(pconf) != 0) {
       syslog(LOG_LOCAL1+LOG_ERR,
@@ -318,7 +212,6 @@ extern "C" void detach_shmem()
     }
     pevt = NULL;
   }
-
 }
 
 extern "C" void reset_data_file()
@@ -335,33 +228,82 @@ extern "C" void reset_data_file()
 
 }
 
+int event_display_global_init(int argc, char *argv[])
+{
+  char *print_command;
 
-/*
-  extern "C" void create_event_display() {
-  if(wire_strip_active)
-  make_wires_strips_hardcopy_(&autoscale);
+  /* Start message logging */
+  openlog(argv[0], LOG_NDELAY, LOG_LOCAL1);
+  syslog(LOG_LOCAL1|LOG_NOTICE, "Event display program starting. NN\n");
 
-  if(sca_active)
-  make_sca_hardcopy_();
 
-  if(atrig_active)
-  make_atrig_hardcopy_();
-
-  if(ctrig_active)
-  make_ctrig_hardcopy_();
-
-  if(sci_strips_active)
-  make_scint_strips_hardcopy_();
-
-  if(sci_wires_active)
-  make_scint_wires_hardcopy_();
-
-  if(alct_time_active)
-  make_alct_time_hardcopy_();
-
-  if(clct_time_active)
-  make_clct_time_hardcopy_();
-
+  /* Attach the DAQ global shared memory */
+  syslog(LOG_LOCAL1|LOG_INFO, "Attach DAQ global shared memory. II\n");
+  if(daq_global_ipc_setup() != 0) {
+    syslog(LOG_LOCAL1|LOG_ERR, "Attach DAQ global shared memory failed. EE\n");
+    exit(1);
   }
-*/
+  pglobal = daq_global_shmem;
 
+  /* Get list of active runs from DAQ global shared memory */
+  //	get_run_list(fd_event_display->file_menu, 0);
+
+  /* Set the default print command */
+  print_command = getenv("PRINT_CMD");
+  //	fl_set_input(fd_print->print_command, print_command);
+
+  /* Hide the pause and continue buttons */
+  //	fl_hide_object(fd_event_display->pause_button);
+  //	fl_hide_object(fd_event_display->continue_button);
+  //	fl_hide_object(fd_event_display->print_button);
+
+  /*
+   * Initialize more event display stuff
+   */
+  re_read_peds = 0;
+
+  disp_wire_strip = 1;
+  disp_alct_time = 1;
+  disp_clct_time = 1;
+  disp_sca        = 1;
+  disp_atrig      = 1;
+  disp_ctrig      = 1;
+  disp_sci_strips = 1;
+  disp_sci_wires  = 1;
+  disp_paused     = 1;
+
+  wire_strip_active = 1;
+  alct_time_active = 0;
+  clct_time_active = 0;
+  sca_active        = 0;
+  atrig_active      = 0;
+  ctrig_active      = 0;
+  sci_strips_active = 0;
+  sci_wires_active  = 0;
+
+  pevt  = NULL;
+  pconf = NULL;
+
+  //  fd = -1;
+
+  //	timer_delay = fl_get_counter_value(fd_config->timer_delay);
+
+  //	init_display_();
+  //  wire_geom_();
+  //	wire_geom_3_();
+  //	atrig_wire_geom_();
+  //	scint_geom_();
+
+
+  /*
+   *atrig_wire_geom_();
+   *read_clct_patterns_();
+   *read_alct_patterns_();
+   */
+
+#ifdef DEBUG
+  printf("EventDisplay : event_display_global_init finished\n");
+#endif
+
+  return 0;
+}

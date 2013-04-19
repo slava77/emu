@@ -36,7 +36,7 @@
 #define NRUN 4                   /* Number of concurrent runs, must range between 1 to 10 */
 #define DATA_BUF_LEN 0x800000    /* Length in 16-bit words of data buffer */
 #define PTR_BUF_LEN   0x40000    /* Length of the event pointer array */
-#define KEY_FILE "/tmp/daq_ipc_cscme11"         /* Directory to use in ftok calls */
+#define KEY_FILE "/tmp/daq_ipc_jhaley"         /* Directory to use in ftok calls */
 
 /***************************************************************************/
 /* Offsets of project id's to be used in calls to ftok. This is to insure

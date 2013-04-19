@@ -60,7 +60,7 @@ endif
 #***************************************************************************
 ## other includes and libs
 Project = emu
-LOCINC     = -I$(IDIR) -I$(DAQCOMMON)/include -I$(BUILD_HOME)/$(Project)/daq/reader/include/  -I$(ROOTSYS)/include -I$(BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw -I$(CMSSW) -I$(BUILD_HOME)/emu/dqm/common/include/ -I$(XDAQ_ROOT)/include
+LOCINC     = -I$(IDIR) -I$(DAQCOMMON)/include -I$(BUILD_HOME)/$(Project)/daq/reader/include  -I$(ROOTSYS)/include -I$(BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw -I$(CMSSW) -I$(BUILD_HOME)/emu/dqm/common/include -I$(XDAQ_ROOT)/include
 
 ifeq ($(OS),Linux)
   LINUX_VERSION := $(shell uname -r)
@@ -74,11 +74,10 @@ ifeq ($(OS),Linux)
   endif
 endif
 
+J_DISPLAYDICT	=rootcint -f src/J_DisplayDict.cc -c -p $(LOCINC) $(IDIR)/J_Display.h 
+
 $(BDIR)/csc_display :  \
-	$(ODIR)/event_display_init.o \
-	$(ODIR)/event_display_cb.o \
 	$(ODIR)/application.o \
-	$(ODIR)/decode_triads.o \
 	$(ODIR)/J_Display.o \
 	$(ODIR)/J_DisplayDict.o \
 	$(ODIR)/unpack_data.o \
@@ -86,12 +85,8 @@ $(BDIR)/csc_display :  \
 	$(DAQCOMMON)/obj/get_next_event.o \
 	$(DAQCOMMON)/obj/lex_cable_map.o \
 	$(DAQCOMMON)/obj/crcdivide.o 
-#           $(DAQCOMMON)/obj/pedestal.o 
 	$(CXX) -o $(BDIR)/csc_display  \
-		$(ODIR)/event_display_init.o \
-		$(ODIR)/event_display_cb.o \
 		$(ODIR)/application.o \
-		$(ODIR)/decode_triads.o \
 		$(ODIR)/J_Display.o \
 		$(ODIR)/J_DisplayDict.o \
 		$(ODIR)/unpack_data.o \
@@ -100,58 +95,29 @@ $(BDIR)/csc_display :  \
 		$(DAQCOMMON)/obj/lex_cable_map.o \
 		$(DAQCOMMON)/obj/crcdivide.o \
 		$(LIB) $(XLIB) $(EXTLIB)
-#           $(CERNLIB) 
-#           $(DAQCOMMON)/obj/pedestal.o 
 
 
-
-$(ODIR)/event_display_init.o : $(SDIR)/event_display_init.c \
-                               $(IDIR)/application.h  \
-                               $(IDIR)/event_display_common.h \
-                               $(DAQCOMMON)/include/daq_ipc.h \
-                               $(DAQCOMMON)/include/daq_conf.h
-	$(CC) $(CCOPT) $(LOCINC) $(XINC) -o $(ODIR)/event_display_init.o \
-          -c $(SDIR)/event_display_init.c
-
-
-$(ODIR)/J_Display.o : $(SDIR)/J_Display.cc $(IDIR)/event_display_common.h \
-                                           $(DAQCOMMON)/include/csc_event.h \
+$(ODIR)/J_Display.o : $(SDIR)/J_Display.cc $(DAQCOMMON)/include/csc_event.h \
                                            $(DAQCOMMON)/include/daq_conf.h \
-                                           $(DAQCOMMON)/include/j_common_data.h
+                                           $(DAQCOMMON)/include/j_common_data.h \
+					   $(IDIR)/J_Display.h
 	$(CC) $(CCOPT) $(LOCINC) $(XINC) -o $(ODIR)/J_Display.o \
 	 -c $(SDIR)/J_Display.cc
-	rootcint -f src/J_DisplayDict.cc -c include/J_Display.h
+	$(J_DISPLAYDICT)
 
 $(ODIR)/J_DisplayDict.o : $(SDIR)/J_DisplayDict.cc $(IDIR)/J_Display.h
-	rootcint -f src/J_DisplayDict.cc -c include/J_Display.h
+	$(J_DISPLAYDICT)
 	$(CC) $(CCOPT) -I. $(LOCINC) $(XINC) -o $(ODIR)/J_DisplayDict.o \
 	-c $(SDIR)/J_DisplayDict.cc
 
-$(ODIR)/unpack_data.o : $(SDIR)/unpack_data.cc $(IDIR)/event_display_common.h \
+$(ODIR)/unpack_data.o : $(SDIR)/unpack_data.cc \
                                            $(DAQCOMMON)/include/csc_event.h \
                                            $(DAQCOMMON)/include/daq_conf.h \
                                            $(DAQCOMMON)/include/j_common_data.h
 	$(CC) $(CCOPT) $(LOCINC) $(XINC) -o $(ODIR)/unpack_data.o \
           -c $(SDIR)/unpack_data.cc 
 
-$(ODIR)/event_display_cb.o : $(SDIR)/event_display_cb.cc \
-                             $(IDIR)/application.h \
-                             $(IDIR)/event_display_common.h \
-                             $(DAQCOMMON)/include/daq_ipc.h \
-                             $(DAQCOMMON)/include/daq_module.h \
-                             $(DAQCOMMON)/include/csc_event.h \
-                             $(DAQCOMMON)/include/pedestal.h
-	$(CXX) $(CCOPT) $(LOCINC) $(XINC) -o $(ODIR)/event_display_cb.o \
-          -c $(SDIR)/event_display_cb.cc
-
-$(ODIR)/decode_triads.o : $(SDIR)/decode_triads.cc \
-                          $(DAQCOMMON)/include/csc_event.h \
-                          $(DAQCOMMON)/include/csc_parameters.h
-	$(CC) $(CCOPT) $(LOCINC) $(XINC) -o $(ODIR)/decode_triads.o \
-          -c $(SDIR)/decode_triads.cc
-
 $(ODIR)/application.o : $(SDIR)/application.cc $(IDIR)/application.h \
-                        $(IDIR)/event_display_common.h \
                         $(DAQCOMMON)/include/daq_module.h \
                         $(DAQCOMMON)/include/daq_ipc.h \
                         $(DAQCOMMON)/include/daq_conf.h
@@ -163,9 +129,6 @@ $(DAQCOMMON)/obj/daq_ipc.o :
 
 $(DAQCOMMON)/obj/get_next_event.o :
 	cd $(DAQCOMMON) ; make $(DAQCOMMON)/obj/get_next_event.o
-
-#$(DAQCOMMON)/obj/pedestal.o :
-#	cd $(DAQCOMMON) ; make $(DAQCOMMON)/obj/pedestal.o
 
 $(DAQCOMMON)/obj/crcdivide.o :
 	cd $(DAQCOMMON) ; make $(DAQCOMMON)/obj/crcdivide.o
