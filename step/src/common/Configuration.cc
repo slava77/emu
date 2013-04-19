@@ -11,12 +11,19 @@
 using namespace emu::utils;
 
 emu::step::Configuration::Configuration( const string& XMLnamespace, 
+					 xdata::String& configurationXSLFileName,
 					 xdata::String& testParametersFileName,
 					 const map<string,string>& pCrateSettingsFileNames )
   : bsem_( toolbox::BSem::FULL ) // unlocked
   , namespace_( XMLnamespace )
 {
   bsem_.take();
+
+  xslt_ = emu::utils::readFile( emu::utils::performExpansions( configurationXSLFileName.toString() ) );
+  if ( xslt_.size() == 0 ){
+    XCEPT_RAISE( xcept::Exception, configurationXSLFileName.toString() + " could not be read in or is empty." );
+  }
+
   testParametersXML_ = emu::utils::readFile( emu::utils::performExpansions( testParametersFileName ) );
   if ( testParametersXML_.size() == 0 ){
     XCEPT_RAISE( xcept::Exception, testParametersFileName.toString() + " could not be read in or is empty." );
@@ -38,11 +45,6 @@ emu::step::Configuration::Configuration( const string& XMLnamespace,
 
 void emu::step::Configuration::createXML()
 {
-  string xslt( emu::utils::readFile( emu::utils::performExpansions( "${BUILD_HOME}/emu/step/xml/configuration.xsl" ) ) );
-  if ( xslt.size() == 0 ){
-    XCEPT_RAISE( xcept::Exception, "${BUILD_HOME}/emu/step/xml/configuration.xsl could not be read in or is empty." );
-  }
-
   stringstream source;
   stringstream xsl;
   stringstream crates;
@@ -55,7 +57,7 @@ void emu::step::Configuration::createXML()
   xml_ = "<es:configuration xmlns:es=\"" + namespace_ + "\" modificationTime=\"" + modificationTime_ + "\"/>";
 
   source.str( testParametersXML_ );
-  xsl.str( xslt );
+  xsl.str( xslt_ );
   emu::utils::transformStreams( source, xsl, tests );
   xml_ = emu::utils::appendToSelectedNode( xml_, "/es:configuration", tests.str() );
 
@@ -66,7 +68,7 @@ void emu::step::Configuration::createXML()
       source.clear(); // reset control state to good after previous operation
       source.str( p->second ); // refill buffer
       xsl.clear(); // reset control state to good after previous operation
-      xsl.str( xslt ); // refill buffer
+      xsl.str( xslt_ ); // refill buffer
       crates.clear(); // reset control state to good after previous operation
       crates.str(""); // reset buffer
       emu::utils::transformWithParams( source, xsl, crates, param );

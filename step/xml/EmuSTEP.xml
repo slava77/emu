@@ -9,6 +9,7 @@
 
     <xc:Application id="20" instance="0" class="emu::step::Manager" network="local">
       <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::step::Manager">
+	<configurationXSLFileName xsi:type="xsd:string">${BUILD_HOME}/emu/step/xml/configuration.xsl</configurationXSLFileName>
 	<testParametersFileName xsi:type="xsd:string">${BUILD_HOME}/emu/step/xml/testParameters.xml</testParametersFileName>
 	<specialVMESettingsFileName xsi:type="xsd:string">${BUILD_HOME}/emu/step/xml/TestSpecificVME.xml</specialVMESettingsFileName>
       </properties>
