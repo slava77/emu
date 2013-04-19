@@ -22,6 +22,7 @@ namespace emu { namespace step {
 
       /// constructor
       Configuration( const string& XMLnamespace, 
+		     xdata::String& configurationXSLFileName,
 		     xdata::String& testParametersFileName,
 		     const map<string,string>& pCrateSettingsFileNames );
       xdata::Vector<xdata::String> getCrateIds( const string& group ) const;
@@ -43,6 +44,7 @@ namespace emu { namespace step {
       mutable toolbox::BSem bsem_;	///< Binary semaphore.
       string namespace_;
       string xml_; ///< The configuration XML.
+      string xslt_; ///< The configuration XSLT.
       string modificationTime_; ///< Date and time of last modification.
       string testParametersXML_;
       string plusSideVMESettingsXML_;

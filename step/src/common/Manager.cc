@@ -37,6 +37,7 @@ emu::step::Manager::Manager( xdaq::ApplicationStub *s )
 
 void emu::step::Manager::exportParameters(){
   xdata::InfoSpace *s = getApplicationInfoSpace();
+  s->fireItemAvailable( "configurationXSLFileName"  , &configurationXSLFileName_   );
   s->fireItemAvailable( "testParametersFileName"    , &testParametersFileName_     );
   s->fireItemAvailable( "specialVMESettingsFileName", &specialVMESettingsFileName_ );
   // s->fireItemAvailable( "", &_ );
@@ -74,6 +75,7 @@ void emu::step::Manager::createConfiguration(){
   // cout << pCrateSettingsFileNames << endl;
 
   configuration_ = new emu::step::Configuration( namespace_, 
+						 configurationXSLFileName_,
 						 testParametersFileName_,
 						 pCrateSettingsFileNames );
 }

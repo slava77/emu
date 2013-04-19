@@ -62,6 +62,7 @@ namespace emu { namespace step {
       static const string namespace_; ///< the namespace for Emu STEP
       static const string workLoopType_; ///< the type of the work loop
       string workLoopName_;              ///< the name of the work loop
+      xdata::String configurationXSLFileName_;
       xdata::String testParametersFileName_;
       xdata::String specialVMESettingsFileName_;
       emu::step::Configuration* configuration_;  ///< configuration
