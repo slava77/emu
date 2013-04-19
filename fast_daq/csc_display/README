@@ -28,6 +28,7 @@ mv lib/linux/x86_64_slc5/libemudqmcommon_sa.a $BUILD_HOME/emu/fast_daq/csc_displ
 cd $BUILD_HOME/emu/fast_daq/daq_common
 make
 
+mkdir -p ~/bin
 cd $BUILD_HOME/emu/fast_daq/csc_display
 make
 

@@ -1,28 +1,36 @@
-#include<iostream>
-#include<string.h>
-#include<stdio.h>
-#include<libgen.h>
-
-#include "TRootHelpDialog.h" // szs
-#include "TGFileDialog.h" // szs
-
-extern "C" {
-#include "daq_conf.h"
-#include "csc_event.h"
-#include "application.h"
-}
-
-#include "j_common_data.h"
-
-#ifndef __CINT__
 #include "J_Display.h"
 
 
 using namespace std;
 
+static char buffer[400];
+static bool firstTime = true;
+static bool firstTimeWires = true;
+static bool firstTimeSca = true;
+static bool firstTimeCtrig = true;
+static bool firstTimeN = true;
+static bool initial = true;
+static int returnValue = 1;
+static int activeDisp = 0;
+static TH1F* hist[NLAYER];
+static TGraph* graph[NLAYER][5];
+static bool softhalfstrip[2][NSTRIP][NLAYER];
+
+static const double ctrighist_x1=0.1;
+static const double ctrighist_x2=0.999;
+
+extern int rewind_comm;
+extern emu::daq::reader::RawDataFile *fd;
+extern char file_name[1000];
+
+csc_event_type upevt_;
+j_common_type j_data;
+long event_num;
+J_Display *jd;
+TTimer *timer;
+
 enum CommandIdentifiers
   {
-
     M_WIRES_STRIPS = 1,
     M_ATRIG,
     M_ALCT_TIME,
@@ -41,33 +49,196 @@ const char *filetypes[] = { "RAW files",    "*.raw",
                             0,               0
 };
 
-int strips_per_plane, wires_per_plane;
-static char buffer[400];
-csc_event_type upevt_;
-static int alct_chamber = -1;
-static int clct_chamber = -1;
-static bool firstTime = true;
-static bool firstTimeWires = true;
-static bool firstTimeSca = true;
-static bool firstTimeCtrig = true;
-static bool firstTimeN = true;
-static bool initial = true;
-static int returnValue = 1;
-static int activeDisp = 0;
-static int init = 1;
-static TH1F* hist[NLAYER];
-static TH1F* ctrighist[NLAYER];
-static TGraph* graph[NLAYER][5];
-bool softhalfstrip[2][NSTRIP][NLAYER];
-extern int rewind_comm;
-
-J_Display *jd;
-TTimer *timer;
-extern void cbShowEvent();
-
 void J_Display::cbShowEvent_m()
 {
-  cbShowEvent();
+  int    istat, rtval;
+  int    offset;
+  short  event_wc;
+  static float mean[NSTRIP*NLAYER], rms[NSTRIP*NLAYER];
+  static int oneliner = 0;
+  //	FL_Coord  x, y, w, h;
+  char   message[60];
+  unsigned int evnum;
+  static int first_time = 1;
+
+
+  int block_wc;
+  // fake header, to satisfy the old unpacker
+  short fake_head[] = {
+    0x001d, 0x4845, 0x4144, 0x0000, 0x0003, 0x04d2, 0x0000, 0x0000,
+    0x0002, 0x0000, 0x5a01, 0x0000, 0x6803, 0x100b, 0x201d,	0x000a,
+    0x9a58, 0x102c, 0x0fa0, 0x0fa0, 0x102c, 0x100e, 0x001f, 0x001a,
+    0x00c8, 0x001a, 0x0001, 0x0001, 0x001d
+  };
+  
+  if (need_event && !disp_paused)
+    {
+
+      // RawDataFile
+      do
+        {
+          if ((fd != NULL && first_time) || rewind_comm)
+            {
+
+              if (rewind_comm)
+                {
+                  // RawDataFile
+                  fd->close();
+                  // RawDataFile
+                  fd->open(file_name);
+                  event_num = 1;
+                  rewind_comm = 0;
+                  first_time = 1;
+                }
+              // RawDataFile
+              rtval = fd->readNextEvent();
+              // std::cout<<"event display rtval next event "<<rtval<<endl;
+
+              upevt_.event_number = evnum = event_num++;
+
+//			std::cout << "event number 189: " << upevt_.event_number << std::endl;
+
+              // run number
+              fake_head[5] = run_num;
+
+              // event number
+              fake_head[6] = (evnum << 16) & 0xffff; // MSB first (f@&k)
+              fake_head[7] = evnum & 0xffff;
+	      
+              // chamber type cannot be determined at this point. Could also be different chambers in one file.
+              // event display just shows the available number of wiregroups for each event
+	      
+	      // RawDataFile
+	      block_wc = fd->dataLength()/sizeof(short) + 4; // add 4 for DDU2 header, block_wc in front and rear
+	      event_wc = block_wc + 200; // add size of header (roughly)
+	      if( rtval == 0 ) 
+		{
+		  disp_paused = 1; // end of file, pause
+		}
+
+	      short buf[100000];
+	      //				buf = (short int*)malloc(event_wc*sizeof(short));
+	      int i = 1;
+	      memcpy(buf + i, fake_head, sizeof(fake_head)); // fake event header
+	      i += sizeof(fake_head)/sizeof(short); // move index
+	      buf[i++] = block_wc; // event block word count
+	      buf[i++] = 0x4444; // 'DD' header
+	      buf[i++] = 0x5532; // 'U2' header
+	      // RawDataFile
+	      memcpy(buf + i, fd->data(), fd->dataLength()); // event itself
+	      // RawDataFile
+	      i +=  fd->dataLength() / sizeof(short); // move index				
+	      buf[i++] = block_wc; // duplicate block_wc at the end of data block
+	      
+              // printf ("BLOCK WORDS: %d, event read result: %d\n", block_wc, rtval);
+	      
+              event_wc = i;
+              buf[0] = event_wc; // total event word count;
+
+            }
+
+          // Unpack the event and release its buffer space
+          if (upevt_.event_number >= requested_event)
+            {
+              std::cout << "==> Calling get_next_event event number/req event "<<upevt_.event_number<<"/"<<requested_event<<endl;
+              // istat = get_next_event(buf, first_time); // unpack only if needed
+              istat = get_next_event_cmssw(fd->data(), fd->dataLength(), first_time); // unpack only if needed
+              upevt_.event_number = event_num;
+              // std::cout << "get next event return status: " << istat << endl;
+
+              if (istat & 2) first_time = 0;
+              else
+                {
+                  // std::cout <<  "starting new event, istat: "<< istat <<"\n";
+                  first_time = 1;
+                }
+            }
+          else
+            istat = 0;
+
+          // RawDataFile
+//			if (fd != NULL && first_time) free(buf);
+        }
+      while (istat & 1); // if required chamber not found, just get the next event.
+
+      if (istat & 4)
+        {
+          syslog(LOG_LOCAL1+LOG_ERR, "Could not get next event. EE");
+          // set timer here
+	  //			fl_set_timer(fd_event_display->show_event_timer, (double)timer_delay);
+          need_event = 1;
+          return;
+        }
+      else
+        {
+          if (upevt_.event_number < requested_event)
+            {
+
+              printf("==> Fast forward to event %d\n", requested_event);
+
+              do
+                {
+                  // RawDataFile
+                  rtval = fd->readNextEvent();
+                  upevt_.event_number = evnum = event_num++;
+
+//					std::cout << "event number 265: " << upevt_.event_number << std::endl;
+
+                  if ( rtval == 0 )
+                    {
+                      /* If at end of file then set fd back to the beginning */
+                      printf("==> Reached end of data file. Rewinding...\n");
+                      requested_event = 0;
+                      // RawDataFile
+                      fd->close();
+                      // RawDataFile
+                      fd->open(file_name);
+                      event_num = 1;
+                      // set timer here
+		      //						fl_set_timer(fd_event_display->show_event_timer, (double)timer_delay);
+                      break;
+                    }
+                }
+              while (evnum < requested_event-1);
+              // set timer here
+	      //				fl_set_timer(fd_event_display->show_event_timer, 0.1);
+              need_event = 1;
+              return;
+            }
+          else
+            {
+              need_event = 0;
+	      //				subtract_monitor_peds(mean, rms);
+
+              // Copy data from up upevt_ into common blocks used by event display
+	      //				unpack_data_();
+              unpack_data_cc(); //added 10-30-07
+            }
+        }
+
+    } /* end if need_event */
+
+// show events here
+//	j_display_cc();
+  jd->layout();
+
+  // set timer here
+//	fl_set_timer(fd_event_display->show_event_timer, (double)timer_delay);
+/*
+  Removed large section of commented code
+*/
+  disp_wire_strip = wire_strip_active;
+  disp_alct_time = alct_time_active;
+  disp_clct_time = clct_time_active;
+  disp_sca        = sca_active;
+  disp_atrig      = atrig_active;
+  disp_ctrig      = ctrig_active;
+  disp_sci_strips = sci_strips_active;
+  disp_sci_wires  = sci_wires_active;
+  need_event = 1;
+  // set timer here
+//	fl_set_timer(fd_event_display->show_event_timer, (double)timer_delay);
+
 }
 
 int crate = -1, chamber = -1;
@@ -122,7 +293,7 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif
+//#endif
 
 void J_Display::layout()
 {
@@ -133,7 +304,6 @@ void J_Display::layout()
 
   if (initial)
     {
-      //		activeDisp = M_WIRES_STRIPS;
       fMain = new TGMainFrame(gClient->GetRoot(), 800, 800);
       fMain->Connect("CloseWindow()", "J_Display", this, "CloseWindow()");
       initial = false;
@@ -167,7 +337,7 @@ void J_Display::layout()
       this->display_atrig_cc();
       break;
     case M_ALCT_TIME:
-      this->plot_wires_alct_time_cc();
+      this->display_wires_alct_time_cc();
       break;
     case M_CLCT_TIME:
       this->display_clct_time();
@@ -319,7 +489,7 @@ void J_Display::request_event_num()
 
   //  std::cout << "--> Request event: " << selEvent->GetIntNumber() << endl;
   evtSlider->SetPosition(selEvent->GetIntNumber());
-  if (selEvent->GetIntNumber() < requested_event)
+  if (ulong( selEvent->GetIntNumber() ) < requested_event)
     {
       reset_data_file();
     }
@@ -335,7 +505,7 @@ void J_Display::request_event(int pos)
   if (frm->IsA()->InheritsFrom(TGSlider::Class()))
     {
       selEvent->SetNumber(evtSlider->GetPosition());
-      if (evtSlider->GetPosition() < requested_event)
+      if (ulong( evtSlider->GetPosition() ) < requested_event)
         {
           reset_data_file();
         }
@@ -353,7 +523,7 @@ void J_Display::update_status_bars()
   lblOpenFile->SetText(Form("Opened File: %s", file_name));
   evtSlider->SetRange(1, total_events);
   selEvent->SetLimits(TGNumberFormat::kNELLimitMinMax, 1, total_events);
-  if ((event_num >= requested_event)  && !disp_paused)
+  if ((ulong( event_num ) >= requested_event)  && !disp_paused)
     {
       // std::cout << "=> Updating " << event_num << std::endl;
       evtSlider->SetPosition(event_num);
@@ -363,19 +533,25 @@ void J_Display::update_status_bars()
 }
 
 
+void J_Display::display_wires_alct_time_cc()
+{
+  this->normal_layout();
+  this->plot_wires_alct_time_cc();
+  this->label_display_cc();
+}
+
 void J_Display::plot_wires_alct_time_cc()
 {
   int alct_time_tmp;
   float x_coord[2], y_coord[2];
   float x_shift, x_step, y_shift, y_step, y_time_step;
   int color, i, j, ij;
-  int wires_per_plane;
 
-  this->normal_layout();
   sprintf(buffer, "");
-  this->label_display_cc();
-  TLine *line = new TLine();
-  TText *text = new TText(0, 0, buffer);
+
+
+  if(line) delete line; line = new TLine;
+  if(text) delete text; text = new TText(0, 0, buffer);
   x_shift = .01;
   x_step = .008;
   y_shift = .98;
@@ -388,49 +564,13 @@ void J_Display::plot_wires_alct_time_cc()
   text->SetTextSize(.020);
   text->SetTextFont(102);
 
-  if (upevt_.chamber_type_id == 11)
-    {
-      wires_per_plane = 48;
-      x_step*=2;
-    }
-  else if (upevt_.chamber_type_id == 12)
-    {
-      wires_per_plane = 64;
-      x_step*=1.5;
-    }
-  else if (upevt_.chamber_type_id == 13)
-    {
-      wires_per_plane = 32;
-      x_step*=3;
-    }
-  else if (upevt_.chamber_type_id == 21)
-    {
-      wires_per_plane = 112;
-    }
-  else if (upevt_.chamber_type_id == 22)
-    {
-      wires_per_plane = 64;
-      x_step*=1.5;
-    }
-  else if (upevt_.chamber_type_id == 31)
-    {
-      wires_per_plane = 96;
-    }
-  else if (upevt_.chamber_type_id == 41)
-    {
-      wires_per_plane = 96;
-    }
-  else
-    {
-      wires_per_plane = 64;
-      x_step*=1.5;
-    }
+  x_step *= 8*12/NWIRE;
 
   line->SetLineColor(1);
   for (j=1; j<=NLAYER; j++)
     {
       x_coord[0] = x_shift + x_step;
-      x_coord[1] = x_shift + (wires_per_plane+1)*x_step;
+      x_coord[1] = x_shift + (NWIRE+1)*x_step;
       y_coord[0] = y_shift - 0*y_time_step - j*y_step;
       y_coord[1] = y_coord[0];
       line->DrawLine(x_coord[0], y_coord[0], x_coord[1], y_coord[1]);
@@ -440,11 +580,11 @@ void J_Display::plot_wires_alct_time_cc()
           text->DrawText(x_coord[1]+.01, y_coord[0], buffer);
         }
     }
-
+  
   line->SetLineColor(2);
   for (j=1; j<=NLAYER; j++)
     {
-      for (ij=1; ij<=wires_per_plane; ij++)
+      for (ij=1; ij<=NWIRE; ij++)
         {
           alct_time_tmp = upevt_.alct_dump[j-1][ij-1];
           if (alct_time_tmp != 0)
@@ -457,7 +597,7 @@ void J_Display::plot_wires_alct_time_cc()
             }
         }
     }
-
+  
   color = 1;
   std::cout<<"alct_nbucket: "<<upevt_.alct_nbucket<<endl;
   for (i=1; i<=upevt_.alct_nbucket; i++)
@@ -476,7 +616,7 @@ void J_Display::plot_wires_alct_time_cc()
       for (j=1; j<=NLAYER; j++)
         {
           x_coord[0] = x_shift + x_step;
-          x_coord[1] = x_shift + (wires_per_plane+1)*x_step;
+          x_coord[1] = x_shift + (NWIRE+1)*x_step;
           y_coord[0] = y_shift - i*y_time_step - j*y_step;
           y_coord[1] = y_coord[0];
           line->DrawLine(x_coord[0], y_coord[0], x_coord[1], y_coord[1]);
@@ -490,7 +630,7 @@ void J_Display::plot_wires_alct_time_cc()
               text->SetTextSize(.02);
               sprintf(buffer, "%d", 1);
               text->DrawText(x_coord[0]-.005, y_coord[0]-.02, buffer);
-              sprintf(buffer, "%d", wires_per_plane);
+              sprintf(buffer, "%d", NWIRE);
               text->DrawText(x_coord[1]-.005, y_coord[0]-.02, buffer);
             }
         }
@@ -500,7 +640,7 @@ void J_Display::plot_wires_alct_time_cc()
     {
       for (j=1; j<=NLAYER; j++)
         {
-          for (ij=1; ij<=wires_per_plane; ij++)
+          for (ij=1; ij<=NWIRE; ij++)
             {
               alct_time_tmp = upevt_.alct_dump[j-1][ij-1];
               if ((1&(alct_time_tmp)>>(i-1))==1)
@@ -516,8 +656,6 @@ void J_Display::plot_wires_alct_time_cc()
     }
   cmain->Update();
 
-  delete text;
-  delete line;
   return;
 }
 
@@ -529,77 +667,6 @@ void J_Display::label_display_cc()
   label->SetLabel(buffer);
   label->Draw();
   clabel->Update();
-  return;
-}
-
-void J_Display::wire_geom_cc()
-{
-  int i;
-  float dy_even, dy_odd, xmid, ymid_index;
-  /*	j_data.x0 = .1; //4.93
-    dy_even = .04; //.2
-    dy_odd = .16; //.8
-  */
-  if (upevt_.chamber_type_id == 11)
-    {
-      wires_per_plane = 48;
-      strips_per_plane = 80;
-    }
-  else if (upevt_.chamber_type_id == 12)
-    {
-      wires_per_plane = 64;
-      strips_per_plane = 80;
-    }
-  else if (upevt_.chamber_type_id == 13)
-    {
-      wires_per_plane = 32;
-      strips_per_plane = 64;
-    }
-  else if (upevt_.chamber_type_id == 21)
-    {
-      wires_per_plane = 112;
-      strips_per_plane = 80;
-    }
-  else if (upevt_.chamber_type_id == 22)
-    {
-      wires_per_plane = 64;
-      strips_per_plane = 80;
-    }
-  else if (upevt_.chamber_type_id == 31)
-    {
-      wires_per_plane = 96;
-      strips_per_plane = 80;
-    }
-  else if (upevt_.chamber_type_id == 41)
-    {
-      wires_per_plane = 96;
-      strips_per_plane = 80;
-    }
-  else
-    {
-      wires_per_plane = 64;
-      strips_per_plane = 80;
-    }
-  /*
-    j_data.dx = .024*(48.0/wires_per_plane);
-
-    for(i=1; i<=11; i+=2) {
-    j_data.nch[i-1] = wires_per_plane;
-    }
-    for(i=2; i<=10; i+=2) {
-    j_data.nch[i-1] = wires_per_plane;
-    }
-    ymid_index = 0 +.5*dy_odd;
-    for(i=1; i<=11; i++) {
-    j_data.ymid[i-1] = ymid_index;
-    ymid_index = ymid_index+.5*(dy_even+dy_odd);
-    }
-    xmid = j_data.x0;
-    for(i=1; i<=11; i++) {
-    j_data.dy = dy_odd;
-    if(i%2 == 0) j_data.dy = dy_even;
-    this->get_polyline_cc(j_data.chx[i-1], j_data.chy[i-1], j_data.nch[i-1], xmid, j_data.ymid[i-1], j_data.dx, j_data.dy);
-    }*/
   return;
 }
 
@@ -686,14 +753,14 @@ void J_Display::atrig_wire_geom_cc()
   j_data.x0 = 1;
   dy_even = .0025;
   dy_odd = .0141;
-  j_data.dx = .10*(48.0/wires_per_plane);
+  j_data.dx = .10*(48.0/NWIRE);
   for (i=1; i<=11; i+=2)
     {
-      j_data.nch[i-1] = wires_per_plane;
+      j_data.nch[i-1] = NWIRE;
     }
   for (i=2; i<=10; i+=2)
     {
-      j_data.nch[i-1] = -wires_per_plane;
+      j_data.nch[i-1] = -NWIRE;
     }
   ymid_index = 0.0 + .5*dy_odd;
   for (i=1; i<=11; i++)
@@ -714,7 +781,7 @@ void J_Display::atrig_wire_geom_cc()
   return;
 }
 
-void J_Display::atrig_boxit_cc(float y, float x, float dy, float dx, TBox* box)
+void J_Display::atrig_boxit_cc(float y, float x, float dy, float dx, TBox* abox)
 {
   float ax[2], ay[2];
   ax[0] = x; //-.5*dx;
@@ -723,7 +790,7 @@ void J_Display::atrig_boxit_cc(float y, float x, float dy, float dx, TBox* box)
   ay[1] = ay[0] + dy;
 
   cmain->cd();
-  box->DrawBox(ax[0], ay[0], ax[1], ay[1]);
+  abox->DrawBox(ax[0], ay[0], ax[1], ay[1]);
   cmain->Update();
 
   return;
@@ -732,7 +799,6 @@ void J_Display::atrig_boxit_cc(float y, float x, float dy, float dx, TBox* box)
 void J_Display::display_atrig_cc()
 {
   this->normal_layout();
-  this->wire_geom_cc();
   this->atrig_wire_geom_cc();
   this->label_display_cc();
   this->j_plot_atrig_wires();
@@ -743,10 +809,10 @@ void J_Display::j_plot_atrig_wires()
 {
   int i, j, ilayer, igroup;
   double dx, dy, x0, y0, x1, y1, x2, y2, why, ex, xk;
-  TBox *box = new TBox;
+  if(box) delete box; box = new TBox;
   sprintf(buffer, " ");
-  TText *text = new TText(0, 0, buffer);
-  TLine *line = new TLine;
+  if(text) delete text; text = new TText(0, 0, buffer);
+  if(line) delete line; line = new TLine;
 
   cmain->cd();
   cmain->Clear();
@@ -818,20 +884,20 @@ void J_Display::j_plot_atrig_wires()
   sprintf(buffer, "Wire Group 1");
   text->DrawText(x0-1.6*dx, y0, buffer);
 
-  sprintf(buffer, "Wire Group %d", wires_per_plane);
-  text->DrawText(x0-1.6*dx, y0 + (wires_per_plane-1)*dy, buffer);
+  sprintf(buffer, "Wire Group %d", NWIRE);
+  text->DrawText(x0-1.6*dx, y0 + (NWIRE-1)*dy, buffer);
 
   line->DrawLine(x1, y1, x1+NLAYER*(dx+.01)-.01, y1);
 
   for (i=1; i<=NLAYER; i++)
     {
-      for (j=1; j<=wires_per_plane; j++)
+      for (j=1; j<=NWIRE; j++)
         {
           box->DrawBox(x1, y1, x2, y2);
           y1 += dy;
           y2 += dy;
 
-          if (i==1&&(j==wires_per_plane||j%10==0))
+          if (i==1&&(j==NWIRE||j%10==0))
             {
               line->DrawLine(x1, y1, x1+NLAYER*(dx+.01)-.01, y1);
             }
@@ -918,15 +984,12 @@ void J_Display::j_plot_atrig_wires()
 
   cmain->Update();
 
-  delete text;
-  delete box;
   return;
 }
 
 void J_Display::display_wires_strips_cc()
 {
   this->wires_strips_layout();
-  this->wire_geom_cc();
   cmain = wirescan->GetCanvas();
   this->j_plot_wires();
   this->j_plot_strips();
@@ -943,9 +1006,9 @@ void J_Display::j_plot_wires()
   int wghv96[4] = { 32, 64, 64, 64 };
   int wghv112[4] = { 44, 80, 80, 80 };
   double x[2], y[2];
-  TLine *line = new TLine;
-  TText *text = new TText(0, 0, buffer);
-  TBox *box = new TBox;
+  if(line) delete line; line = new TLine;
+  if(text) delete text; text = new TText(0, 0, buffer);
+  if(box) delete box; box = new TBox;
 
   cmain->cd();
   cmain->Clear();
@@ -964,7 +1027,7 @@ void J_Display::j_plot_wires()
 
   x0 = .10;
   y0 = .15;
-  dx = .80/(wires_per_plane);
+  dx = .80/(NWIRE);
   dy = .50/NLAYER;
 
   x1 = x0;
@@ -976,7 +1039,7 @@ void J_Display::j_plot_wires()
 
   for (i=1; i<=NLAYER; i++)
     {
-      for (j=1; j<=wires_per_plane; j++)
+      for (j=1; j<=NWIRE; j++)
         {
           box->DrawBox(x1, y1, x2, y2);
           x1+=dx;
@@ -995,24 +1058,24 @@ void J_Display::j_plot_wires()
   line->SetLineColor(7);
   y1 = y0;
   y2 = y0 + NLAYER*(dy+.007) - .007;
-  if (wires_per_plane==48) {}
+  if (NWIRE==48) {}
   else
     {
       for (j=0; j<4; j++)
         {
-          if (wires_per_plane==32)
+          if (NWIRE==32)
             {
               x1 = x0 + wghv32[j]*dx;
             }
-          else if (wires_per_plane==64)
+          else if (NWIRE==64)
             {
               x1 = x0 + wghv64[j]*dx;
             }
-          else if (wires_per_plane==96)
+          else if (NWIRE==96)
             {
               x1 = x0 + wghv96[j]*dx;
             }
-          else if (wires_per_plane==112)
+          else if (NWIRE==112)
             {
               x1 = x0 + wghv112[j]*dx;
             }
@@ -1038,9 +1101,9 @@ void J_Display::j_plot_wires()
           sprintf(buffer, "Layer %d", ilayer);
           text->DrawText(x1-.01, y1-.02, buffer);
         }
-      for (igroup=1; igroup<=wires_per_plane; igroup++)
+      for (igroup=1; igroup<=NWIRE; igroup++)
         {
-          if ((ilayer==6)&&(igroup==1||igroup==wires_per_plane))
+          if ((ilayer==6)&&(igroup==1||igroup==NWIRE))
             {
               text->SetTextSize(.035);
               text->SetTextAlign(13);
@@ -1064,46 +1127,33 @@ void J_Display::j_plot_wires()
   text->SetTextSize(.045);
   text->DrawText(.5, .06, "Wire Group Number");
 
-  delete line;
-  delete box;
-  delete text;
   return;
 }
 
 void J_Display::j_plot_strips()
 {
   int layer_no, i;
-  //if(autoscale>0) {
   this->scale_y();
-  //}
-  /*else {
-    for(layer_no=1; layer_no<=6; layer_no++) {
-    j_data.ymin[layer_no-1] = 0;
-    j_data.ymax[layer_no-1] = 1000;
-    }
-    }*/
   gStyle->SetOptStat(0);
   gStyle->SetLabelSize(.15, "X");
   gStyle->SetLabelSize(.1, "Y");
   for (i=1; i<=NLAYER; i++)
     {
       sprintf(buffer, "hist%d", i-1);
-      hist[i-1] = new TH1F(buffer, "", 82, 0, 81);
+      hist[i-1] = new TH1F(buffer, "", NSTRIP+2, 0, NSTRIP+1);
     }
 
   for (layer_no=1; layer_no<=NLAYER; layer_no++)
     {
       hist[layer_no-1]->SetFillStyle(1001);
       hist[layer_no-1]->SetFillColor(2);
-      for (i=1; i<=strips_per_plane; i++)
+      for (i=1; i<=NSTRIP; i++)
         {
           if (j_data.strips[i-1][layer_no-1]<0)
             {
-              j_data.strips[i-1][layer_no-1] *= .1;
+              j_data.strips[i-1][layer_no-1] *= 0.1;
             }
           hist[layer_no-1]->Fill((double)i, j_data.strips[i-1][layer_no-1]);
-	  //         hist[layer_no-1]->Fill((double)i, j_data.strips[i-1][layer_no-1] - j_data.strips[7][layer_no-1]); // Joe ped subtraction HACK
-		
         }
     }
 
@@ -1119,7 +1169,7 @@ void J_Display::j_plot_strips()
 
   for (i=1; i<=NLAYER; i++)
     {
-      delete hist[i-1];
+      if(hist[i-1]) delete hist[i-1]; hist[i-1]=0;
     }
 
   return;
@@ -1133,7 +1183,7 @@ void J_Display::scale_y()
     {
       j_data.ymin[ilayer-1]=0.0;
       j_data.ymax[ilayer-1]=50.0;
-      for (j=1; j<=strips_per_plane; j++)
+      for (j=1; j<=NSTRIP; j++)
         {
           if (j_data.strips[j-1][ilayer-1]>j_data.ymax[ilayer-1])
             {
@@ -1148,9 +1198,8 @@ void J_Display::scale_y()
 void J_Display::wires_strips_label()
 {
   TCanvas *c;
-  TText *text;
   sprintf(buffer, " ");
-  text = new TText(0,0,buffer);
+  if(text) delete text; text = new TText(0,0,buffer);
   text->SetTextAlign(21);
   text->SetTextFont(82);
   text->SetTextSize(.18);
@@ -1241,7 +1290,7 @@ void J_Display::plot_samples()
   int lineStyle[5] = {9, 1, 2, 4, 3};
   int lineColor[5] = {2, 3, 1, 6, 4};
   sprintf(buffer, " ");
-  TText *text = new TText(0, 0, buffer);
+  if(text) delete text; text = new TText(0, 0, buffer);
   this->scale_sca_y();
   gStyle->SetOptStat(0);
   gStyle->SetLabelSize(.12, "X");
@@ -1289,12 +1338,13 @@ void J_Display::plot_samples()
       gPad->Update();
     }
 
-  //delete graphs
+  ///delete graphs
   for (layer_no=1; layer_no<=NLAYER; layer_no++)
     {
       for (istrip=1; istrip<=5; istrip++)
         {
-          delete graph[layer_no-1][istrip-1];
+          if(graph[layer_no-1][istrip-1]) delete graph[layer_no-1][istrip-1];
+	  graph[layer_no-1][istrip-1]=0;
         }
     }
 
@@ -1330,8 +1380,8 @@ void J_Display::sca_label()
   int layer_no;
   TCanvas *tcan;
   sprintf(buffer, " ");
-  TText *text = new TText(0,0,buffer);
-  TLine *line = new TLine;
+  if(text) delete text; text = new TText(0,0,buffer);
+  if(line) delete line; line = new TLine;
   text->SetTextFont(82);
 
   tcan = keycan->GetCanvas();
@@ -1464,10 +1514,9 @@ void J_Display::sca_layout()
 void J_Display::display_ctrig()
 {
   this->ctrig_layout();
-  this->wire_geom_cc();
   this->getsoft();
+  this->ctrig_banner();
   this->plot_ctrig_strips();
-  this->ctrig_label();
 }
 
 void J_Display::getsoft()
@@ -1522,9 +1571,9 @@ void J_Display::plot_ctrig_strips()
 {
   int i, layer_no, j;
   double x0, x1, dx;
-  TBox *box = new TBox;
-  TGaxis *axis = new TGaxis;
-  TLine *line = new TLine;
+
+  if(axis) delete axis;  axis = new TGaxis;
+  if(line) delete line;  line = new TLine;
 
   this->ctrig_scale_y();
 
@@ -1536,50 +1585,50 @@ void J_Display::plot_ctrig_strips()
   for (i=1; i<=NLAYER; i++)
     {
       sprintf(buffer, "ctrighist%d", i-1);
-      ctrighist[i-1] = new TH1F(buffer, "", 82, 0, 81);
+      if(ctrighist[i-1]) delete ctrighist[i-1]; 
+      ctrighist[i-1] = new TH1F(buffer, "", NSTRIP+2, 0, NSTRIP+1);
     }
-
+  
   //fill histograms
   for (layer_no=1; layer_no<=NLAYER; layer_no++)
     {
       ctrighist[layer_no-1]->SetFillStyle(1001);
       ctrighist[layer_no-1]->SetFillColor(2);
-      for (i=1; i<=strips_per_plane; i++)
+      for (i=1; i<=NSTRIP; i++)
         {
           if (j_data.strips[i-1][layer_no-1]<0)
             {
               j_data.strips[i-1][layer_no-1] *= .1;
             }
           ctrighist[layer_no-1]->Fill((double)i, j_data.strips[i-1][layer_no-1]);
-	  //   ctrighist[layer_no-1]->Fill((double)i, j_data.sample[i-1][layer_no-1][2] - j_data.sample[i-1][layer_no-1][7]); // Joe : manual ped removal HACK
-       
-
         }
     }
 
-  x0 = .100;
-  dx = 0.879/strips_per_plane;
+  dx = (ctrighist_x2 - ctrighist_x1)/(ctrighist[0]->GetNbinsX());
+  x0 = ctrighist_x1;
+
   for (i=1; i<=2*NLAYER; i++)
     {
-      ctrigcan->cd(i);
+      ctrigcan->cd(i+1);
       gPad->Clear();
-      
+
       if (i%2==1)
-        {
-          (ctrighist[(i-1)/2]->GetYaxis())->SetRangeUser(j_data.ymin[(i-1)/2], j_data.ymax[(i-1)/2]);
-          //(ctrighist[(i-1)/2]->GetYaxis())->SetRangeUser(0, 1000);
-          ctrighist[(i-1)/2]->Draw();
+        { //// Draw CFEB data
+	  int index = (i-1)/2;
+          (ctrighist[index]->GetYaxis())->SetRangeUser(j_data.ymin[index], j_data.ymax[index]);
+          if( ctrighist[index]->GetMaximum()<1100 ) (ctrighist[index]->GetYaxis())->SetRangeUser(0, 1000);
+          ctrighist[index]->Draw();
         }
       else
-        {
-
-
+        { //// Draw trigger information
+	  if(box) delete box;  box = new TBox;
 	  float btop = 1.0;
 	  float bsize = 0.66;
-          for (j=1; j<=strips_per_plane; j++)
+          for (j=1; j<=NSTRIP; j++)
             {
               x1 = x0 + j*dx;
-              box->SetLineColor(1);
+
+	      box->SetLineColor(1);
 	      
               if (softhalfstrip[0][j-1][(i/2)-1])
                 {
@@ -1637,33 +1686,16 @@ void J_Display::plot_ctrig_strips()
                   box->SetFillColor(1);
                   box->DrawBox(x1+dx/2.0, btop-bsize, x1+dx, btop);
                 }
-
             }
           if (i==12)
             {
-              line->DrawLine(.1, .18, .1, 1);
-              line->DrawLine(.9999, .18, .9999, 1);
-              axis->SetLabelSize(.25);
-              axis->DrawAxis(.1, .18, 1, .18, 0, 81);
-            }
-          else
-            {
-              line->DrawLine(.1, 0, .1, 1);
-              line->DrawLine(.9999, 0, .9999, 1);
-
+              axis->SetLabelSize(0.25);
+              axis->DrawAxis(ctrighist_x1, 0.18, ctrighist_x2, 0.18, ctrighist[0]->GetBinLowEdge(1),ctrighist[0]->GetBinLowEdge(ctrighist[0]->GetNbinsX()));
             }
         }
-
       gPad->Update();
     }
-
-  //delete histograms
-  for (layer_no=0; layer_no<NLAYER; layer_no++)
-    {
-      delete ctrighist[layer_no];
-    }
-  delete box;
-  delete axis;
+  
 }
 
 void J_Display::ctrig_scale_y()
@@ -1674,7 +1706,7 @@ void J_Display::ctrig_scale_y()
     {
       j_data.ymin[layer_no-1] = 0;
       j_data.ymax[layer_no-1] = 10;
-      for (i=1; i<=strips_per_plane; i++)
+      for (i=1; i<=NSTRIP; i++)
         {
           if (j_data.strips[i-1][layer_no-1]>j_data.ymax[layer_no-1])
             {
@@ -1688,12 +1720,12 @@ void J_Display::ctrig_scale_y()
   return;
 }
 
-void J_Display::ctrig_label()
+void J_Display::ctrig_banner()
 {
   sprintf(buffer, " ");
-  TText *text = new TText(0, 0, buffer);
-  TBox *box = new TBox;
-  TLine *line = new TLine;
+  if(text) delete text; text = new TText(0, 0, buffer);
+  if(box) delete box; box = new TBox;
+  if(line) delete line; line = new TLine;
 
   TCanvas *tempcan = ctrigtopcan->GetCanvas();
   tempcan->cd();
@@ -1706,6 +1738,17 @@ void J_Display::ctrig_label()
   text->SetTextSize(.25);
   text->DrawText(.5, .1, "Cathode Trigger Display");
   tempcan->Update();
+
+  return;
+}
+
+void J_Display::ctrig_label()
+{
+  sprintf(buffer, " ");
+  if(text) delete text; text = new TText(0, 0, buffer);
+  if(box) delete box; box = new TBox;
+  if(line) delete line; line = new TLine;
+  TCanvas* tempcan;
 
   tempcan = ctlmidcan->GetCanvas();
   tempcan->cd();
@@ -1762,26 +1805,56 @@ void J_Display::ctrig_label()
   text->DrawText(.2, .17, "halfstrip");
   tempcan->Update();
 
-  tempcan = ctriglowcan->GetCanvas();
-  tempcan->cd();
-  tempcan->Clear();
-  text->SetTextSize(.3);
+  tempcan = ctrigcan->GetCanvas();
+  tempcan->cd(2*NLAYER + 2);
+  
+  gPad->SetPad(gPad->GetXlowNDC(),0,gPad->GetXlowNDC()+gPad->GetWNDC(),1);
+  gPad->SetFillStyle(4001);
+  text->SetTextSizePixels(20);
   text->SetTextFont(82);
   text->SetTextAlign(23);
   text->SetTextColor(1);
-  text->DrawText(.55, .92, "Strip Number");
+  text->DrawText(0.5, 0.05, "Strip Number");
+
+  float histstop = 0.924;
+  float histsbottom = 0.094;
+  line->SetLineColor(1);
+  line->SetLineWidth(1);
+  line->SetLineStyle(1);
+  line->DrawLine(ctrighist_x1, histsbottom, ctrighist_x1, histstop);
+  line->DrawLine(ctrighist_x2, histsbottom, ctrighist_x2, histstop);
+
+  line->SetLineColor(17);
+  line->SetLineStyle(3);
+  for(int i=1; i<NCFEB; ++i){
+    double dx = (ctrighist_x2-ctrighist_x1)/(NSTRIP+2);
+    double cfebedge = ctrighist_x1 + dx + dx*i*NCFEB_STRIP;
+    line->DrawLine(cfebedge, histsbottom, cfebedge, histstop);
+  }
+  if(NCFEB==7){
+    int i=4;
+    double dx = (ctrighist_x2-ctrighist_x1)/(NSTRIP+2);
+    double cfebedge = ctrighist_x1 + dx + dx*i*NCFEB_STRIP;
+    line->SetLineColor(17);
+    line->SetLineWidth(2);
+    line->SetLineStyle(1);
+    line->DrawLine(cfebedge, 0.07, cfebedge, 0.95);
+    tempcan->cd(1);
+    text->SetTextSize(0.4);
+    text->SetTextFont(82);
+    text->SetTextAlign(23);
+    text->SetTextColor(1);
+    text->DrawText(0.35, 0.4, "ME1/1B");
+    text->DrawText(0.80, 0.4, "ME1/1A");
+  }
   tempcan->Update();
-
-
-  delete text;
-  delete line;
-  delete box;
 
   return;
 }
 
 void J_Display::ctrig_layout()
 {
+  gStyle->SetFillStyle(0);
   int i;
   if (firstTimeCtrig)
     {
@@ -1801,13 +1874,13 @@ void J_Display::ctrig_layout()
       midcan = new TRootEmbeddedCanvas("middle canvas", ctrigmidFrame, 610, 700);
 
       ctrigtopcan = new TRootEmbeddedCanvas("title canvas", ctrigtopFrame, 700, 70);
-      ctriglowcan = new TRootEmbeddedCanvas("wires canvas", ctriglowFrame, 700, 40);
+      //ctriglowcan = new TRootEmbeddedCanvas("wires canvas", ctriglowFrame, 700, 40);
 
       ctrigmidFrame->AddFrame(ctlmidcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
       ctrigmidFrame->AddFrame(midcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
 
       ctrigtopFrame->AddFrame(ctrigtopcan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
-      ctriglowFrame->AddFrame(ctriglowcan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
+      //ctriglowFrame->AddFrame(ctriglowcan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
 
       fMain->AddFrame(ctrigtopFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
       fMain->AddFrame(ctrigmidFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
@@ -1819,15 +1892,15 @@ void J_Display::ctrig_layout()
       fMain->Resize(fMain->GetDefaultSize());
       fMain->MapWindow();
       ctrigcan = midcan->GetCanvas();
-      ctrigcan->Divide(1, NLAYER*2, 0, 0);
-    }
+      ctrigcan->Divide(1, NLAYER*2 +2, 0, 0);
 
+      ctrig_label();
+    }
 }
 
 void J_Display::display_clct_time()
 {
   this->normal_layout();
-  this->wire_geom_cc();
   this->plot_cath_clct_time();
   this->label_display_cc();
 
@@ -1845,7 +1918,7 @@ void J_Display::plot_cath_clct_time()
   char t[NLAYER][NSTRIP/2];
   char string[NLAYER/2];
   char temp[100];
-  TLine *line = new TLine;
+  if(line) delete line; line = new TLine;
   sprintf(buffer, " ");
   TText *text_draw = new TText(0, 0, buffer);
 
@@ -1975,8 +2048,7 @@ void J_Display::plot_cath_clct_time()
 
   cmain->Update();
 
-  delete line;
-  delete text_draw;
+  if(text_draw) delete text_draw; text_draw=0;
   return;
 }
 

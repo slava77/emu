@@ -33,7 +33,6 @@ extern int disp_atrig,           atrig_active;
 extern int disp_ctrig,           ctrig_active;
 extern int disp_sci_strips, sci_strips_active;
 extern int disp_sci_wires,   sci_wires_active;
-extern int autoscale;
 extern char file_name[1000]; //v
 
 extern float timer_delay;  /* Number of seconds between display updates */

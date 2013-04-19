@@ -9,7 +9,6 @@
 #define MAX_SCINT_TDC_TO_DISPLAY 1600
 
 #include "j_common_data.h"
-#include "decode_triads.h"
 
 extern "C"
 {
@@ -278,262 +277,19 @@ extern "C" void unpack_data_cc()
 	  else if( upevt_.clct_dump_halfstrips[ilayer-1][istrip-1][1] ) j_data.halfstrip[1][istrip-1][ilayer-1] = true;
         }
     }
-
-
-//   for (ilayer=1; ilayer<=NLAYER; ilayer++)
-//     {
-//       //for (distrip=1; distrip<=(NSTRIP/2); distrip++)
-//       for (distrip=1; distrip<=(NSTRIP); distrip++)
-//         {
-//           for (itime=1; itime<=(upevt_.clct_nbucket-2); itime++)
-//             {
-//               if ((upevt_.clct_dump_strips[ilayer-1][distrip-1]>>(itime-1))&1)
-//                 {
-//                   if ((upevt_.clct_dump_strips[ilayer-1][distrip-1]>>(itime))&1)
-//                     {
-//                       //istrip = 2*distrip;
-//                       istrip = distrip;
-//                     }
-//                   else
-//                     {
-//                       //istrip = 2*distrip - 1;
-//                       istrip = distrip - 1;
-//                     }
-//                   if ((upevt_.clct_dump_strips[ilayer-1][distrip-1]>>(itime+1))&1)
-//                     {
-//                       ihalf_strip = 1;
-//                     }
-//                   else
-//                     {
-//                       ihalf_strip = 0;
-//                     }
-//                   j_data.halfstrip[ihalf_strip][istrip-1][ilayer-1] = true;
-//                   break;
-//                 }
-//             }
-//         }
-//     }
-
-
-
-
-/*
-  //////////////
-  // my test imp -- start
-
-  int my_triads[NLAYER][NSTRIP/2][NCLCT_BUCKET];
-  init_array(my_triads);
-  int my_halfstrip;
-
-  for(ilayer=0; ilayer < NLAYER; ilayer++)
-    {
-      for(idistrip=0; idistrip < NSTRIP/2; idistrip++)
-	{
-	  for(ibucket=0; ibucket < upevt_.clct_nbucket-2 ; ibucket ++)
-	    {
-	     
-
-
-	      if (my_triads[ilayer][idistrip][ibucket] == 1)
-		{
-		  my_halfstrip =  calculate_halfstrip(my_triads,ilayer,idistrip, ibucket);
-		  std::cout<<" halfstrip = "<<my_halfstrip<<" distrip "<<idistrip<<std::endl;
-
-		  j_data.halfstrip[0][int(my_halfstrip/4.0)][ilayer-1] = true; break;
-
-		}
-
-	  
-	
-	    }
-
-	}
-    }
-
-*/
-
-
-
-  /*
-  int my_triads[NLAYER][NSTRIP/2][NCLCT_BUCKET];
-    init_array(my_triads);
-
-  for(ilayer=0; ilayer < NLAYER; ilayer++)
-    {
-      for(idistrip=0; idistrip < NSTRIP/2; idistrip++)
-	{
-      	  
-	  std::cout<<" ilayer, idistrip, ibucket "<<ilayer<<" , "<<idistrip<<" , "<<ibucket<<std::endl;
-	  std::cout<<" clct_dump "<<upevt_.clct_dump[ilayer][idistrip];
-	  std::cout<<" triads ";
-	
-	  if(upevt_.clct_dump[ilayer][idistrip] != 0)
-	    {
-
-	      for(ibucket=0; ibucket < upevt_.clct_nbucket-2 ; ibucket ++)
-		{
-		  std::cout<<my_triads[ilayer][idistrip][ibucket];
-
-		}
-
-
-	  }
-	  std::cout<<endl;
-	}
-    }
-  */
-    
-
-
-
-  // my test imp -- end
-  /////////////
-
-
-  /*
-  //calculate half strip -- original start
-  for (ilayer=1; ilayer<=NLAYER; ilayer++)
-  {
-  for (distrip=1; distrip<=(NSTRIP/2); distrip++)
-  {
-  for (itime=1; itime<=(upevt_.clct_nbucket-2); itime++)
-  {
-  if ((upevt_.clct_dump[ilayer-1][distrip-1]>>(itime-1))&1)
-  {
-  if ((upevt_.clct_dump[ilayer-1][distrip-1]>>(itime))&1)
-  {
-  istrip = 2*distrip;
-  }
-  else
-  {
-  istrip = 2*distrip - 1;
-  }
-  if ((upevt_.clct_dump[ilayer-1][distrip-1]>>(itime+1))&1)
-  {
-  ihalf_strip = 1;
-  }
-  else
-  {
-  ihalf_strip = 0;
-  }
-  j_data.halfstrip[ihalf_strip][istrip-1][ilayer-1] = true;
-  break;
-  }
-  }
-  }
-  }
-  //calculate half strip -- original end
-  */
-  /*
-////////////////////////
-// loop over layers   //
-////////////////////////
-
-     
-std::cout<<" NSTRIP "<<NSTRIP<<" NLAYER  "<<NLAYER<<std::endl;
-
-for (ilayer=0; ilayer<NLAYER; ilayer++)
-{
-for (int astrip=0; astrip<(NSTRIP); astrip++)
-{
-for (itime=1; itime<=(upevt_.clct_nbucket-2); itime++)
-{
-////////////////////
-// loop over layers, strips, and time buckets
-
-if ((upevt_.clct_dump[ilayer][astrip]>>(itime-1))&1)
-{
-std::cout<<" check "<<upevt_.clct_dump[ilayer][astrip]<<std::endl;
-printBin(upevt_.clct_dump[ilayer][astrip]);
-printBin(upevt_.clct_dump[ilayer][astrip]>>(itime-1)&1);
-std::cout<<" ilayer, astrip "<<ilayer<<" , "<<astrip<<std::endl;
-}
-
-if ((upevt_.clct_dump[ilayer][astrip]>>(itime-1))&1)
-{
-////////
-// somehow we decide istrip as astrip or astrip - 1
-// although it seems it is always astrip - 1
-// OK astrip-1 is wrong in this loop as it causes an offset
-
-istrip = astrip;
-
-///////////////
-// somehow we next decide ihalf_strip = 0 or ihalf_strip = 1 
-// but it always seems as if ihalf_strip = 0
-
-ihalf_strip = 0;
-
-////////////////////
-j_data.halfstrip[ihalf_strip][istrip*2][ilayer] = true;
-		
-break;
-}
-}
-}
-}
-
-// loop over layers end
-*/
-
-
-
-  /*
-    for (ilayer=1; ilayer<=NLAYER; ilayer++)
-    {
-    for (distrip=1; distrip<=(NSTRIP); distrip++)
-    {
-    for (itime=1; itime<=(upevt_.clct_nbucket-2); itime++)
-    {
-	    
-
-
-
-    if ((upevt_.clct_dump[ilayer-1][distrip-1]>>(itime-1))&1)
-    {
-    if ((upevt_.clct_dump[ilayer-1][distrip-1]>>(itime))&1)
-    {
-    istrip = distrip;  std::cout<<" A " <<std::endl;
-    }
-    else
-    {
-    istrip = distrip - 1; std::cout<<" B " <<std::endl;
-    }
-    if ((upevt_.clct_dump[ilayer-1][distrip-1]>>(itime+1))&1)
-    {
-    ihalf_strip = 1; std::cout<<" C " <<std::endl;
-    }
-    else
-    {
-    ihalf_strip = 0; std::cout<<" D " <<std::endl;
-    }
-
-    std::cout<<istrip<<" strip # "<<std::endl;
-    j_data.halfstrip[ihalf_strip][istrip][ilayer-1] = true;
-    break;
-    }
-    }
-    }
-    }
-  */
-
-
+  
   return;
 }
 
 
 
 
-
-
-template<typename T> inline CSCCFEBDataWord const * const
-timeSample( T const & data, int nCFEB,int nSample,int nLayer, int nStrip)
+template<typename T> inline CSCCFEBDataWord const * const timeSample( T const & data, int nCFEB,int nSample,int nLayer, int nStrip)
 {
   return data.cfebData(nCFEB)->timeSlice(nSample)->timeSample(nLayer,nStrip);
 }
 
-template<typename T> inline CSCCFEBTimeSlice const * const
-timeSlice( T const & data, int nCFEB, int nSample)
+template<typename T> inline CSCCFEBTimeSlice const * const timeSlice( T const & data, int nCFEB, int nSample)
 {
   return (CSCCFEBTimeSlice *)(data.cfebData(nCFEB)->timeSlice(nSample));
 }
@@ -589,14 +345,30 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
   chamberDatas = dduData.cscData();
 
   int nCSCs = chamberDatas.size();
+  //nCSCs = 1;
 
   std::cout << "Found " << nCSCs << " chamber(s) in event" << std::endl;
-  
+
+  /***************************************************************
+
+  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING
+
+  I am adding a super hack to make the precision strip data for 
+  strips 1-32 from the first CSC show up as strips 81-112 of the
+  second CSC.  This is just a quick and dirty way to make the
+  OTMB + 2DMB setup at B904 looks good.
+  The modified code is indicated by the comment "2DMB HACK"
+  ~Joe
+
+   ***************************************************************/
+  const bool HACK_ME11_2DMB = 1; // flag to turn on/off B904 2DMB hack
+
   for (int i=0; i< nCSCs; i++)
     {
+      
       /// process_chamber_data(chamberDatas[i]);
       CSCEventData& data = chamberDatas[i];
-
+      
       //tmb_bxn=data.tmbHeader()->BXNCount();
       //tmb_l1a_num=data.tmbHeader()->L1ANumber();
 
@@ -615,7 +387,17 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
       dmbID         = dmbHeader->dmbID();
       ChamberID     = (((crateID) << 4) + dmbID) & 0xFFF;
 
-      std::cout<<"== Read data for Chamber "<<ChamberID<<" =="<<endl;
+      std::cout<<"== Read data for: =="<<endl;
+      cout<<"crateID:"<<crateID<<endl;
+      cout<<"dmbID:"<<dmbID<<endl;
+      cout<<"ChamberID:"<<ChamberID<<endl;
+
+      upevt_.chamber_type_id = 0;
+      if(crateID==10 && dmbID<=3){
+	upevt_.chamber_type_id = 11; // ME11
+      }
+
+
 
       int iendcap = -1;
       int istation = -1;
@@ -649,9 +431,6 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
 	  int                       fwVersion       = alctHeader->alctFirmwareVersion();
 	  const     CSCALCTTrailer* alctTrailer     = data.alctTrailer();
 	  const     CSCAnodeData*   alctData        = data.alctData();
-
-	  //change later to chamber_type_id=42
-	  upevt_.chamber_type_id = 42;
 
 	  if (alctHeader && alctTrailer)
 	    {
@@ -733,9 +512,6 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
           int                 tmbfwVersion = tmbHeader->FirmwareVersion();
           const CSCTMBTrailer* tmbTrailer=data.tmbData()->tmbTrailer();
 
-          //change later to chamber_type_id=42
-          upevt_.chamber_type_id = 21;
-
           if (tmbHeader && tmbTrailer){
 	    upevt_.clct_nbucket = tmbHeader->NTBins();
 	    //cout<<"tmb header NTbins "<<tmbHeader->NTBins()<<endl;
@@ -816,7 +592,9 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
 
       
       ///** CFEBs Found
-      int N_CFEBs=5, N_Samples=16, N_Layers = 6, N_Strips = 16;
+      //int N_CFEBs=5;
+      int N_CFEBs=5;
+      int N_Samples=16, N_Layers = 6, N_Strips = 16;
       int TrigTime, SCA_BLK, NmbTimeSamples, ADC, OutOfRange;
       
       upevt_.sca_clock_phase = 0;
@@ -839,10 +617,9 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
                 {
                   for (int nSample = 0; nSample < NmbTimeSamples; ++nSample)
                     {
-
                       if (timeSlice(data, nCFEB, nSample) == 0)
                         {
-                          std::cerr <<  "CFEB" << nCFEB << " nSample: " << nSample << " - B-Word" << std::endl;
+                          //std::cerr <<  "CFEB" << nCFEB << " nSample: " << nSample << " - B-Word" << std::endl;
                           continue;
                         }
 
@@ -859,6 +636,17 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
 
                           upevt_.sca_block[nLayer-1][nCFEB*N_Strips+nStrip-1][nSample]  = SCA_BLK;
                           upevt_.sca_trig_time[nLayer-1][nCFEB*N_Strips+nStrip-1][nSample] = TrigTime;
+
+
+			  // Start 2DMB HACK -->  (see comment about this hack above)
+			  if(HACK_ME11_2DMB && i==0){
+			    upevt_.adc_out_of_range[nLayer-1][(nCFEB+5)*N_Strips+nStrip-1][nSample] = OutOfRange;
+			    upevt_.sca[nLayer-1][(nCFEB+5)*N_Strips+nStrip-1][nSample] = ADC;
+			    
+			    upevt_.sca_block[nLayer-1][(nCFEB+5)*N_Strips+nStrip-1][nSample]  = SCA_BLK;
+			    upevt_.sca_trig_time[nLayer-1][(nCFEB+5)*N_Strips+nStrip-1][nSample] = TrigTime;
+			  }
+			  // <-- End 2DMB HACK
                         }
                     }
                 }

@@ -13,47 +13,51 @@
 #ifndef __CSC_PARAMETERS_H__
 #define __CSC_PARAMETERS_H__
 
-#define NLAYER          6     /* Number of layers per chamber                */
-#define NSTRIP         80     /* Number of strips per layer                  */
-//#define NSTRIP         112     /* Number of strips per layer                  */
-#define NWIRE          112    /* Number of wire groups per layer             */
-#define NWIRES_MAX     112    /* MAX Number of wire groups per layer         */
-#define MAX_WIRE_HITS 6144    /* Max number of TDC hits allow per event      */
+#define NCFEB           7                            /* Number of cathode front-end boards          */
+#define NLAYER          6                            /* Number of layers per chamber                */
+#define NCFEB_STRIP     16                           /* Number of strips per CFEB                   */
+#define NSTRIP          NCFEB_STRIP*NCFEB            /* Number of strips per layer                  */
+#define NCFEB_CHAN      NCFEB_STRIP*NCFEB*NLAYER     /* Number of channels per CFEB                 */
+#define NCFEB_MAX       7                            /* Max Number of cathode front-end boards      */
 
-#define NMOD_HEAD       4     /* Number of generic module header words       */
+#define NAFEB           6                            /* Number of anode front-end boards            */
+#define NAFEB_MAX      48                            /* Max Number of anode front-end boards        */
+#define NAFEB_CHIP      6                            /* Number of chips per AFEB                    */
+#define NAFEB_CHAN     96                            /* Number of channels per AFEB                 */
 
-#define NLCT_HEAD       8     /* Number of LCT99, 00, 01  header words       */
-#define NTMB2_HEAD     21     /* Number of TMB2 header words                 */
-#define NTMB2_TRAIL     4     /* Number of TMB2 trailer words                */
-#define NDDU2_HEAD      8     /* Number of DDU2 data header words            */
-#define NDDU2_TRAIL     8     /* Number of DDU2 trailer words                */
-#define NDDU_HEAD       6     /* Number of DDU data header words             */
-#define NDDU_TRAIL      2     /* Number of DDU trailer words                 */
+#define NWIRE_AFEB     8                             /* Number of wire groups per AFEB/Layer        */
+#define NWIRE          NWIRE_AFEB*NAFEB              /* Number of wire groups per layer             */
+#define NWIRES_MAX     NWIRE_AFEB*NAFEB_MAX          /* MAX Number of wire groups per layer         */
+#define MAX_WIRE_HITS  6144                          /* Max number of TDC hits allow per event      */
 
-#define NCFEB           5     /* Max Number of cathode front-end boards      */
-#define NCFEB_CHAN     96     /* Number of channels per CFEB                 */
-#define NCFEB_TRAIL     4     /* Number of CFEB trailer words, DMB01         */
+#define NMOD_HEAD       4                            /* Number of generic module header words       */
 
-#define NAFEB           4     /* Number of anode front-end boards            */
-#define NAFEB_CHIP      6     /* Number of chips per AFEB                    */
-#define NAFEB_CHAN     96     /* Number of channels per AFEB                 */
+#define NLCT_HEAD       8                            /* Number of LCT99, 00, 01  header words       */
+#define NTMB2_HEAD     21                            /* Number of TMB2 header words                 */
+#define NTMB2_TRAIL     4                            /* Number of TMB2 trailer words                */
+#define NDDU2_HEAD      8                            /* Number of DDU2 data header words            */
+#define NDDU2_TRAIL     8                            /* Number of DDU2 trailer words                */
+#define NDDU_HEAD       6                            /* Number of DDU data header words             */
+#define NDDU_TRAIL      2                            /* Number of DDU trailer words                 */
 
-#define MAX_SCA_SAMPLE 16     /* Max number of SCA time samples              */
-#define NALCT_BUCKET   31     /* Max number of ALCT time buckets             */
-#define NCLCT_BUCKET   16     /* Max number of CLCT time buckets             */
+#define NCFEB_TRAIL     4                            /* Number of CFEB trailer words, DMB01         */
 
-#define NRPC_SECTOR     6     /* Number sectors per RPC                      */
-#define NRPC_STRIP     32     /* Number of channels per sector               */
-#define NRPC_HIT       16     /* Number of hits allowed per channel          */
+#define MAX_SCA_SAMPLE 16                            /* Max number of SCA time samples              */
+#define NALCT_BUCKET   31                            /* Max number of ALCT time buckets             */
+#define NCLCT_BUCKET   16                            /* Max number of CLCT time buckets             */
 
-#define NBEAM_CHAM_LAYER  6   /* Number of Beam Chamber Layers               */
+#define NRPC_SECTOR     6                            /* Number sectors per RPC                      */
+#define NRPC_STRIP     32                            /* Number of channels per sector               */
+#define NRPC_HIT       16                            /* Number of hits allowed per channel          */
 
-#define NSCINT         48     /* Number of trigger scintillators             */
-#define NSCINT_LAYERS   4     /* Number of scintillator layers               */
-#define NSCINT_PER_LAYER 12   /* Number of scint (phototubes) per layer      */
-#define MAX_SCINT_HITS 100    /* Max Number of trigger scintillators hits    */
+#define NBEAM_CHAM_LAYER  6                          /* Number of Beam Chamber Layers               */
 
-#define NSCALER_CHAN   12     /* Number of Lecroy 2551 scaler channels       */
+#define NSCINT         48                            /* Number of trigger scintillators             */
+#define NSCINT_LAYERS   4                            /* Number of scintillator layers               */
+#define NSCINT_PER_LAYER 12                          /* Number of scint (phototubes) per layer      */
+#define MAX_SCINT_HITS 100                           /* Max Number of trigger scintillators hits    */
+
+#define NSCALER_CHAN   12                            /* Number of Lecroy 2551 scaler channels       */
 
 /*
  * FEB data size in 16-bit words:
@@ -63,8 +67,7 @@
 
 #define ALCT_NO_DUMP_SIZE    10
 #define CLCT_NO_DUMP_SIZE    10
-#define ALCT_FULL_DUMP_SIZE 730 /* 10 header words + 
-				   12 words * 4 LCTs * 15 time bins */
+#define ALCT_FULL_DUMP_SIZE 730                      /* 10 header words + 12 words * 4 LCTs * 15 time bins */
 #define CLCT_FULL_DUMP_SIZE 220    
 
 #endif /* if not included already */

@@ -60,7 +60,7 @@ typedef struct {
   char site[SITE_LENGTH]; /* podobno */
 /*
  * Anode wire data from 3377 TDC's
-*/
+ */
 
   /* List of leading edge wire times    */
   unsigned short wire_times_lead[MAX_WIRE_HITS]; 

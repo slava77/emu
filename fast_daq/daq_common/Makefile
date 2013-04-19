@@ -61,13 +61,11 @@ CXXFLAGS	= -O -m64 -Wall -fno-rtti -fno-exceptions -fPIC
 
 OBJECTS_ONLINE =  $(ODIR)/daq_ipc.o $(ODIR)/get_next_event.o \
                   $(ODIR)/lex_cable_map.o  \
-                  $(ODIR)/crcdivide.o $(ODIR)/test_ipc.o 
-#			      $(ODIR)/pedestal.o
+                  $(ODIR)/crcdivide.o 
 
 OBJECTS_OFFLINE = $(ODIR)/crcdivide.o \
                   $(ODIR)/get_next_event_offline.o \
                   $(ODIR)/lex_cable_map_offline.o 
-#				  $(ODIR)/pedestal.o 
 
 #***************************************************************************
 ## other includes and libs
@@ -100,12 +98,6 @@ $(ODIR)/get_next_event_offline.o : $(SDIR)/get_next_event.c \
 	$(CC) $(CCOPT) -DOFFLINE_ONLY $(LOCINC) \
           -o $(ODIR)/get_next_event_offline.o -c $(SDIR)/get_next_event.c
 
-$(ODIR)/pedestal.o : $(SDIR)/pedestal.c $(IDIR)/csc_event.h \
-          $(IDIR)/csc_parameters.h $(IDIR)/pedestal.h $(IDIR)/daq_module.h \
-          $(IDIR)/daq_histo.h
-	$(CC) $(CCOPT) $(LOCINC) -o $(ODIR)/pedestal.o \
-          -c $(SDIR)/pedestal.c
-
 $(ODIR)/lex_cable_map.o : $(SDIR)/lex_cable_map.c $(IDIR)/daq_module.h \
                           $(IDIR)/csc_parameters.h
 	$(CC) $(CCOPT) $(LOCINC) -o $(ODIR)/lex_cable_map.o \
@@ -122,11 +114,6 @@ $(SDIR)/lex_cable_map.c: $(SDIR)/lex_cable_map.l
 $(ODIR)/crcdivide.o : $(SDIR)/crcdivide.c
 	$(CC) -O -o $(ODIR)/crcdivide.o -c $(SDIR)/crcdivide.c
 
-# added to get run_control to build, and release interdependency with
-# test_manager
-$(ODIR)/test_ipc.o : $(SDIR)/test_ipc.cpp $(IDIR)/test_ipc.h
-	g++ $(CCOPT) $(LOCINC) $(CXXFLAGS) -o $(ODIR)/test_ipc.o  \
-		-c  $(SDIR)/test_ipc.cpp
 clean :
 	cd $(ODIR) ; rm -f *.o
 	cd $(LDIR) ; rm -f *.a

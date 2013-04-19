@@ -1,6 +1,8 @@
 #ifndef _CSC_UNPACKER_H_
 #define _CSC_UNPACKER_H_
 
+#include "daq_module.h"
+#include "daq_conf.h" /* to get the user name and site maximum lengths. */
 #include "csc_event.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
