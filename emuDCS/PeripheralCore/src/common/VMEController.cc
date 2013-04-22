@@ -352,8 +352,9 @@ namespace emu {
 VMEController::VMEController(): 
   port_(2), indian(SWAP),  max_buff(0), tot_buff(0), 
   plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0),
-  ok_vme_write_(false), fill_write_vme_vectors_(false), print_VME_commands(0)
+  ok_vme_write_(false), fill_write_vme_vectors_(false)
 {
+  print_VME_commands = 0;
   //
   fpacket_delay = 0;
   packet_delay = 0;
@@ -1313,7 +1314,7 @@ int VMEController::VME_controller(int irdwr,unsigned int ptr,unsigned short int 
 
   if(print_VME_commands){
     // For debugging. -Joe
-    printf(" vme_controller: %d %08x %04x   ",irdwr,(unsigned long int)ptr,data[0]);
+    printf(" vme_controller: %d %08x %04x   ",irdwr,(unsigned int)ptr,data[0]);
     printf("--------------------------");
     print_decoded_vme_address(ptr, data);
     printf("\n"); 
