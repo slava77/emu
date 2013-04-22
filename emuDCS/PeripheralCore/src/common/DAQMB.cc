@@ -7208,10 +7208,10 @@ void DAQMB::write_cfeb_selector(int cfeb_mask)
   unsigned short mask = cfeb_mask&0xFF;
   write_now(WRITE_CFEB_SELECTOR, mask, temp);
   std::cout << "Write CFEB selector: " << std::hex << cfeb_mask << std::dec << std::endl;
-  udelay(1000);
-  int mask_read=read_cfeb_selector();
-  if(mask_read != (cfeb_mask&0xFF))
-    std::cout << "ERROR: read back CFEB selector: " << std::hex << mask_read << std::dec << std::endl;
+  udelay(100);
+//  int mask_read=read_cfeb_selector();
+//  if(mask_read != (cfeb_mask&0xFF))
+//    std::cout << "ERROR: read back CFEB selector: " << std::hex << mask_read << std::dec << std::endl;
 }
 
 int DAQMB::read_cfeb_selector()
@@ -7343,16 +7343,17 @@ void DAQMB::dcfeb_core(int jfunc, int nbit,void *inbuf, char *outbuf, int option
 
      comd=VTX6_USR1;
      buf[0]=jfunc&0xFF;
-     cfeb_do(10, &comd, 8, buf, rcvbuf, LATER);
+     cfeb_do(10, &comd, 8, buf, rcvbuf, (nbit>0)?LATER:NOW);
      if(nbit>0)
      {
+        vme_delay(10);
         comd=VTX6_USR2;
         cfeb_do(10, &comd, nbit, inbuf, outbuf, option&0x3);
         if(option & NOOP_YES) 
         {
            comd=VTX6_USR1;
            buf[0]=NOOP;
-           cfeb_do(10, &comd, 8, buf, rcvbuf, LATER);
+           cfeb_do(10, &comd, 8, buf, rcvbuf, (option & NO_BYPASS)?LATER:NOW);
            vme_delay(10);
         }
      }
