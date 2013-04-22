@@ -31,7 +31,6 @@ J_Display *jd;
 TTimer *timer;
 
 int crate = -1, chamber = -1;
-
 enum CommandIdentifiers
   {
     M_WIRES_STRIPS = 1,
@@ -280,8 +279,10 @@ int main(int argc, char **argv)
 
   if(havefile){
     // default to wires/strips display
-    jd->handle_menu(M_WIRES_STRIPS);
+    //jd->handle_menu(M_WIRES_STRIPS);
     //jd->handle_menu(M_CTRIG);
+    //jd->handle_menu(M_CLCT_TIME);
+    jd->handle_menu(M_ATRIG);
   }
 
   theApp.Run();
@@ -370,11 +371,11 @@ void J_Display::normal_layout()
       bannerFrame->AddFrame(bannercan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
 
       // body
-      canFrame = new TGCompositeFrame(fMain, 700, 700);
+      canFrame = new TGCompositeFrame(fMain, 700, 400);
       fMain->AddFrame(canFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
 
       // plots
-      can1 = new TRootEmbeddedCanvas("drawing canvas", canFrame, 610, 700);
+      can1 = new TRootEmbeddedCanvas("drawing canvas", canFrame, 700, 400);
       canFrame->AddFrame(can1, new TGLayoutHints(kLHintsTop|kLHintsExpandX));
 
       show_status_bars();
@@ -546,19 +547,18 @@ void J_Display::plot_wires_alct_time_cc()
 
   if(line) delete line; line = new TLine;
   if(text) delete text; text = new TText;
-  x_shift = .01;
-  x_step = .008;
-  y_shift = .98;
-  y_step = .004;
-  y_time_step = (6.5)*y_step;
+
+  x_shift = 0.01;
+  x_step = 0.85/(NWIRE);
+  y_shift = 0.98;
+  y_step = 0.7/(NLAYER*upevt_.alct_nbucket);
+  y_time_step = (NLAYER+1)*y_step;
 
   cmain->cd();
   cmain->Clear();
-  line->SetLineWidth(3);
-  text->SetTextSize(.020);
+  line->SetLineWidth(4);
+  text->SetTextSize(0.040);
   text->SetTextFont(102);
-
-  x_step *= 8*12/NWIRE;
 
   line->SetLineColor(1);
   for (j=1; j<=NLAYER; j++)
@@ -616,16 +616,18 @@ void J_Display::plot_wires_alct_time_cc()
           line->DrawLine(x_coord[0], y_coord[0], x_coord[1], y_coord[1]);
           if (j==(NLAYER/2+2))
             {
-              text->SetTextSize(.02);
-              text->DrawText(x_coord[1]+.01, y_coord[0], buffer);
+              text->SetTextSize(0.04);
+              text->DrawText(x_coord[1]+0.01, y_coord[0], buffer);
             }
           if ((j==NLAYER&&i==upevt_.alct_nbucket))
             {
-              text->SetTextSize(.02);
+	      text->SetTextAlign(22);
+              text->SetTextSize(0.04);
               sprintf(buffer, "%d", 1);
-              text->DrawText(x_coord[0]-.005, y_coord[0]-.02, buffer);
+              text->DrawText(x_coord[0]+0.005, y_coord[0]-0.03, buffer);
               sprintf(buffer, "%d", NWIRE);
-              text->DrawText(x_coord[1]-.005, y_coord[0]-.02, buffer);
+              text->DrawText(x_coord[1]-0.005, y_coord[0]-0.03, buffer);
+	      text->DrawText((x_coord[1]-x_coord[0])/2, y_coord[0]-0.05, "Wire Group Number");
             }
         }
     }
@@ -799,10 +801,10 @@ void J_Display::j_plot_atrig_wires()
   cmain->cd();
   cmain->Clear();
 
-  x0 = .20;
-  y0 = .05;
-  dx = .075;
-  dy = .0075;
+  x0 = 0.20;
+  y0 = 0.05;
+  dx = 0.075;
+  dy = 0.8/(NWIRE); //0.0075;
 
   x1 = x0;
   y1 = y0;
@@ -862,15 +864,17 @@ void J_Display::j_plot_atrig_wires()
 
   text->SetTextFont(42);
 
-  text->SetTextSize(.019);
+  text->SetTextAlign(32);
+  text->SetTextSize(.04);
   sprintf(buffer, "Wire Group 1");
-  text->DrawText(x0-1.6*dx, y0, buffer);
+  text->DrawText(x0-0.01, y0, buffer);
 
   sprintf(buffer, "Wire Group %d", NWIRE);
-  text->DrawText(x0-1.6*dx, y0 + (NWIRE-1)*dy, buffer);
+  text->DrawText(x0-0.01, y0 + (NWIRE-1)*dy, buffer);
 
   line->DrawLine(x1, y1, x1+NLAYER*(dx+.01)-.01, y1);
 
+  text->SetTextAlign(11);
   for (i=1; i<=NLAYER; i++)
     {
       for (j=1; j<=NWIRE; j++)
@@ -888,7 +892,7 @@ void J_Display::j_plot_atrig_wires()
 
       if (i==1 || i==NLAYER)
         {
-          text->SetTextSize(.025);
+          text->SetTextSize(.05);
           sprintf(buffer, "Layer %d", i);
           text->DrawText(x1, y1+.008, buffer);
         }
@@ -899,70 +903,75 @@ void J_Display::j_plot_atrig_wires()
       y2 = y0 + dy;
     }
 
-  text->SetTextSize(.03);
-  text->DrawText(.03, .53, "ANODE");
-  text->DrawText(.03, .5, "TRIGGER");
-  text->DrawText(.03, .47, "DISPLAY");
+  text->SetTextSize(0.05);
+  text->DrawText(0.03, 0.55, "ANODE");
+  text->DrawText(0.03, 0.5, "TRIGGER");
+  text->DrawText(0.03, 0.45, "DISPLAY");
 
   //KEY
+  float keybottom = 0.1;
+  float keyheight = 0.6;
+
   text->SetTextAlign(22);
-  xk = x0+(NLAYER+1)*(dx+.01);
+  xk = x0+(NLAYER+1)*(dx+0.01);
   dy*=2;
 
-  text->SetTextSize(.019);
-  text->DrawText(xk+.5*dx, .65, "KEY");
+  text->SetTextSize(0.04);
+  text->DrawText(xk+0.5*dx, keybottom + keyheight, "KEY");
+  line->DrawLine(xk-0.5*dx, keybottom + keyheight*0.95,xk+1.5*dx, keybottom + keyheight*0.95);
 
+  text->SetTextSize(0.035);
   box->SetFillStyle(1001);
   box->SetFillColor(4);
-  box->DrawBox(xk, .60, xk+.25*dx, .60+dy);
+  box->DrawBox(xk, keybottom + keyheight*0.85, xk+0.25*dx, keybottom + keyheight*0.85+dy);
   box->SetFillStyle(0);
   box->SetFillColor(1);
-  box->DrawBox(xk, .60, xk+dx, .60+dy);
+  box->DrawBox(xk, keybottom + keyheight*0.85, xk+dx, keybottom + keyheight*0.85+dy);
   text->SetTextColor(4);
-  text->DrawText(xk+.5*dx, .58, "The wire had");
-  text->DrawText(xk+.5*dx, .56, "a TDC hit");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.8, "The wire had");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.75, "a TDC hit");
 
   box->SetFillStyle(1001);
   box->SetFillColor(3);
-  box->DrawBox(xk+.25*dx, .50, xk+.5*dx, .50+dy);
+  box->DrawBox(xk+0.25*dx, keybottom + keyheight*0.65, xk+0.5*dx, keybottom + keyheight*0.65+dy);
   box->SetFillStyle(0);
   box->SetFillColor(1);
-  box->DrawBox(xk, .50, xk+dx, .50+dy);
+  box->DrawBox(xk, keybottom + keyheight*0.65, xk+dx, keybottom + keyheight*0.65+dy);
   text->SetTextColor(3);
-  text->DrawText(xk+.5*dx, .48, "The wire appears");
-  text->DrawText(xk+.5*dx, .46, "in the ALCT");
-  text->DrawText(xk+.5*dx, .44, "raw hits data");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.6, "The wire appears");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.55, "in the ALCT");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.5, "raw hits data");
 
   box->SetFillStyle(1001);
   box->SetFillColor(6);
-  box->DrawBox(xk+.5*dx, .40, xk+.75*dx, .40+dy);
+  box->DrawBox(xk+0.5*dx, keybottom + keyheight*0.4, xk+0.75*dx, keybottom + keyheight*0.4+dy);
   box->SetFillStyle(3002);
-  box->DrawBox(xk+.5*dx, .37, xk+.75*dx, .37+dy);
+  box->DrawBox(xk+0.5*dx, keybottom + keyheight*0.35, xk+0.75*dx, keybottom + keyheight*0.35+dy);
   box->SetFillStyle(0);
   box->SetFillColor(1);
-  box->DrawBox(xk, .40, xk+dx, .40+dy);
-  box->DrawBox(xk, .37, xk+dx, .37+dy);
+  box->DrawBox(xk, keybottom + keyheight*0.4, xk+dx, keybottom + keyheight*0.4+dy);
+  box->DrawBox(xk, keybottom + keyheight*0.35, xk+dx, keybottom + keyheight*0.35+dy);
   text->SetTextColor(6);
-  text->DrawText(xk+.5*dx, .35, "The best and 2nd");
-  text->DrawText(xk+.5*dx, .33, "best LCT pattern");
-  text->DrawText(xk+.5*dx, .31, "matched in this event");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.3, "The best and 2nd");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.25, "best LCT pattern");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.2, "matched in this event");
 
   box->SetFillStyle(1001);
   box->SetFillColor(2);
-  box->DrawBox(xk+.75*dx, .25, xk+dx, .25+dy);
+  box->DrawBox(xk+0.75*dx, keybottom + keyheight*0.1, xk+dx, keybottom + keyheight*0.1+dy);
   box->SetFillStyle(0);
   box->SetFillColor(1);
-  box->DrawBox(xk, .25, xk+dx, .25+dy);
+  box->DrawBox(xk, keybottom + keyheight*0.1, xk+dx, keybottom + keyheight*0.1+dy);
   text->SetTextColor(2);
-  text->DrawText(xk+.5*dx, .23, "The wire was part of");
-  text->DrawText(xk+.5*dx, .21, "the TMB choice");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.05, "The wire was part of");
+  text->DrawText(xk+0.5*dx, keybottom + keyheight*0.0, "the TMB choice");
 
   text->SetTextColor(1);
   text->SetTextAlign(32);
   sprintf(buffer, "ALCT0 quality %d", j_data.alct_q[0]);
-  text->DrawText(.95, .80, buffer);
+  text->DrawText(0.95, 0.85, buffer);
   sprintf(buffer, "ALCT1 quality %d", j_data.alct_q[1]);
-  text->DrawText(.95, .78, buffer);
+  text->DrawText(0.95, 0.8, buffer);
 
   cmain->Update();
 
@@ -999,7 +1008,7 @@ void J_Display::j_plot_wires()
   line->SetLineColor(4);
 
   text->SetTextAlign(23);
-  text->SetTextSize(.09);
+  text->SetTextSize(0.09);
   text->SetTextFont(102);
   text->DrawText(0.5, 0.95, "Wires");
 
@@ -1516,7 +1525,7 @@ void J_Display::sca_label()
   text->SetTextAngle(0);
   text->SetTextSize(0.3);
   text->SetTextAlign(23);
-  text->DrawText(0.47, 0.94, "CFEB Data Sample Number");
+  text->DrawText(0.47, 0.94, "CFEB Data Time Sample");
   c->Update();
 
   return;
@@ -1920,20 +1929,25 @@ void J_Display::plot_cath_clct_time()
   float x_shift, x_step, y_shift, y_step, y_time_step;
   int color, i, j, ij, ijk;
   int text_index[NLAYER][NSTRIP/2];
-  char text[NLAYER];
   char t[NLAYER][NSTRIP/2];
   char string[NLAYER/2];
   char temp[100];
   if(line) delete line; line = new TLine;
+  if(text) delete text; text = new TText;
   TText *text_draw = new TText;
+
+  x_shift = 0.01;
+  x_step = 0.85/(NSTRIP/2);
+  y_shift = 0.85;
+  y_step = 0.6/(NLAYER*upevt_.clct_nbucket);
+  y_time_step = (NLAYER+1)*y_step;
 
   cmain->cd();
   cmain->Clear();
+  line->SetLineWidth(4);
+  text->SetTextSize(0.040);
+  text->SetTextFont(102);
 
-  for (i=0; i<NLAYER; i++)
-    {
-      text[i] = ' ';
-    }
   for (j=1; j<=NLAYER; j++)
     {
       for (i=1; i<=NSTRIP/2; i++)
@@ -1941,14 +1955,6 @@ void J_Display::plot_cath_clct_time()
           text_index[j-1][i-1] = 0;
         }
     }
-
-  x_shift = .1;
-  x_step = .019;
-  y_shift = .85;
-  y_step = .005;
-  y_time_step = (6+1)*y_step;
-
-  line->SetLineWidth(3);
 
   color = 1;
   for (i=1; i<=upevt_.clct_nbucket; i++)
@@ -1963,6 +1969,7 @@ void J_Display::plot_cath_clct_time()
           line->SetLineColor(3);
           color = 1;
         }
+      sprintf(buffer, "%d", i);
       for (j=1; j<=NLAYER; j++)
         {
           x_coord[0] = x_shift + x_step;
@@ -1970,6 +1977,21 @@ void J_Display::plot_cath_clct_time()
           y_coord[0] = y_shift - i*y_time_step - j*y_step;
           y_coord[1] = y_coord[0];
           line->DrawLine(x_coord[0], y_coord[0], x_coord[1], y_coord[1]);
+          if (j==(NLAYER/2+2))
+            {
+              text->SetTextSize(0.04);
+              text->DrawText(x_coord[1]+0.01, y_coord[0], buffer);
+            }
+          if ((j==NLAYER&&i==upevt_.clct_nbucket))
+            {
+	      text->SetTextAlign(22);
+              text->SetTextSize(0.04);
+              sprintf(buffer, "%d", 1);
+              text->DrawText(x_coord[0]+0.005, y_coord[0]-0.03, buffer);
+              sprintf(buffer, "%d", NSTRIP/2);
+              text->DrawText(x_coord[1]-0.005, y_coord[0]-0.03, buffer);
+	      text->DrawText((x_coord[1]-x_coord[0])/2, y_coord[0]-0.05, "Distrip Number");
+            }
         }
     }
 
