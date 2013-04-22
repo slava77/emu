@@ -70,16 +70,14 @@ class J_Display {
         TGDockableFrame *menuDock;
 	//TGNumberEntry *alctChamber, *clctChamber;
 	TGNumberEntry *alctChamber, *clctChamber, *selEvent; //v
-// for display_wires_strips
+	// for display_wires_strips
         TGCompositeFrame *titleFrame, *wiresFrame;
         TGCompositeFrame *midFrame;
         TRootEmbeddedCanvas *titlecan, *lmidcan, *hmidcan, *rmidcan, *wirescan;
-// for display_sca
-        TGCompositeFrame *topFrame, *scaMidFrame, *lowFrame; 
-        TRootEmbeddedCanvas *topcan, *lscamidcan, *graphcan, *keycan, *lowcan;
-//for display_ctrig
-        TGCompositeFrame *ctrigtopFrame, *ctrigmidFrame, *ctriglowFrame;
-        TRootEmbeddedCanvas *ctrigtopcan, *ctriglowcan, *ctlmidcan, *midcan;
+
+	// banner canvas for all displays
+        TGCompositeFrame *bannerFrame;
+        TRootEmbeddedCanvas *bannercan;
 	
 //tool bar
 	TGToolBar *toolBar;
@@ -116,7 +114,6 @@ class J_Display {
 	void update_status_bars();
         void display_wires_alct_time_cc();
         void plot_wires_alct_time_cc();
-        void label_display_cc();
         void get_polyline_cc(float chx[300], float chy[300], int nch, float xmid, float ymid, float dx, float dy);
         void atrig_wire_geom_cc();
         void atrig_boxit_cc(float y, float x, float dy, float dx, TBox* box);
@@ -137,7 +134,7 @@ class J_Display {
         void getsoft();
         void plot_ctrig_strips();
         void ctrig_scale_y();
-        void ctrig_banner();
+        void update_banner(string title);
         void ctrig_label();
         void ctrig_layout();
         void display_clct_time();
