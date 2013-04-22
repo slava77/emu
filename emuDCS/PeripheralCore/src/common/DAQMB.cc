@@ -6854,6 +6854,36 @@ int DAQMB::DCSreadAll(char *data)
  }
  else if (hardware_version_==2)
  {
+  if(checkvme_fail()) return 0;
+
+  for(int i=1; i<8; i++)
+  {
+     // devdo() dev=25, ncmd=16, Cmd[0]=i, Cmd[1]=j
+
+     m = i-1;
+     for(int j=0;j<8; j++)
+     {
+        write_later(0x8020, m);
+        n=(j<<4) + 0xFF89;
+        write_later(0x8000, n);
+        if( i==7 && j==7) read_now(0x8004, data);
+        else read_later(0x8004);
+     }
+  }
+/* no ADC on ODMB
+  for(int j=0; j<6; j++)
+  {
+     // devdo() dev=17, ncmd=16, Cmd[0]=1, Cmd[1]=j
+
+     write_later(0x7020, 0x0E);
+     n=(j<<4) + 0xFF89;
+     write_later(0x7000, n);
+     if(j==5) retn=read_now(0x7004, data);
+     else     read_later(0x7004);
+  }
+*/
+#if 0
+//comment out this, for test_firmware only
    // this is for the ODMB test_firmware version with direct MAX1271 access
    // VME commands not buffered
      unsigned select_addr=0x7c, write_addr=0x7a, read_addr=4;
@@ -6904,6 +6934,7 @@ int DAQMB::DCSreadAll(char *data)
          }
      }
      write_now(select_addr,0xFFFF, tmp);
+#endif
  }
   return retn;
 }
