@@ -1,3 +1,4 @@
+
 #include "J_Display.h"
 
 
@@ -16,8 +17,8 @@ static TH1F* hist[NLAYER];
 static TGraph* graph[NLAYER][5];
 static bool softhalfstrip[2][NSTRIP][NLAYER];
 
-static const double ctrighist_x1=0.1;
-static const double ctrighist_x2=0.999;
+static const double striphist_x1=0.1;
+static const double striphist_x2=0.999;
 
 extern int rewind_comm;
 extern emu::daq::reader::RawDataFile *fd;
@@ -28,6 +29,8 @@ j_common_type j_data;
 long event_num;
 J_Display *jd;
 TTimer *timer;
+
+int crate = -1, chamber = -1;
 
 enum CommandIdentifiers
   {
@@ -60,7 +63,6 @@ void J_Display::cbShowEvent_m()
   char   message[60];
   unsigned int evnum;
   static int first_time = 1;
-
 
   int block_wc;
   // fake header, to satisfy the old unpacker
@@ -222,11 +224,6 @@ void J_Display::cbShowEvent_m()
 //	j_display_cc();
   jd->layout();
 
-  // set timer here
-//	fl_set_timer(fd_event_display->show_event_timer, (double)timer_delay);
-/*
-  Removed large section of commented code
-*/
   disp_wire_strip = wire_strip_active;
   disp_alct_time = alct_time_active;
   disp_clct_time = clct_time_active;
@@ -240,8 +237,6 @@ void J_Display::cbShowEvent_m()
 //	fl_set_timer(fd_event_display->show_event_timer, (double)timer_delay);
 
 }
-
-int crate = -1, chamber = -1;
 
 int main(int argc, char **argv)
 {
@@ -285,15 +280,15 @@ int main(int argc, char **argv)
 
   if(havefile){
     // default to wires/strips display
-    //jd->handle_menu(M_WIRES_STRIPS);
-    jd->handle_menu(M_CTRIG);
+    jd->handle_menu(M_WIRES_STRIPS);
+    //jd->handle_menu(M_CTRIG);
   }
 
   theApp.Run();
 
   return 0;
 }
-//#endif
+
 
 void J_Display::layout()
 {
@@ -359,31 +354,35 @@ void J_Display::layout()
 void J_Display::normal_layout()
 {
 
-
-
   int i;
   if (firstTimeN)
     {
       firstTimeN = false;
-      fMain->SetLayoutManager(new TGVerticalLayout(fMain));
+
+      fMain->SetLayoutManager(new TGVerticalLayout(fMain)); // make frames top-to-bottom
 
       show_menus();
 
-      canFrame = new TGCompositeFrame(fMain, 700, 680);
-      canFrame->SetLayoutManager(new TGVerticalLayout(canFrame));
+      // banner
+      bannerFrame = new TGCompositeFrame(fMain, 700, 100);
+      fMain->AddFrame(bannerFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      bannercan = new TRootEmbeddedCanvas("title canvas", bannerFrame, 700, 70);
+      bannerFrame->AddFrame(bannercan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
 
-      can1 = new TRootEmbeddedCanvas("drawing canvas", canFrame, 700, 605);
-      can2 = new TRootEmbeddedCanvas("label canvas", canFrame, 700, 100);
+      // body
+      canFrame = new TGCompositeFrame(fMain, 700, 700);
+      fMain->AddFrame(canFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
 
+      // plots
+      can1 = new TRootEmbeddedCanvas("drawing canvas", canFrame, 610, 700);
       canFrame->AddFrame(can1, new TGLayoutHints(kLHintsTop|kLHintsExpandX));
-      canFrame->AddFrame(can2, new TGLayoutHints(kLHintsTop|kLHintsExpandX));
-      fMain->AddFrame(canFrame, new TGLayoutHints(kLHintsTop|kLHintsExpandX));
 
       show_status_bars();
 
       fMain->MapSubwindows();
       fMain->Resize(fMain->GetDefaultSize());
       fMain->MapWindow();
+
       label = new TPaveLabel(.1, .1, .9, .9, "No Active Displays");
       cmain = can1->GetCanvas();
       cmain->cd();
@@ -405,8 +404,6 @@ void J_Display::handle_menu(int id)
   firstTimeWires = true;
   firstTimeSca = true;
   firstTimeCtrig = true;
-  firstTimeN = true;
-
 }
 
 void J_Display::handle_run_menu(int id)
@@ -536,8 +533,8 @@ void J_Display::update_status_bars()
 void J_Display::display_wires_alct_time_cc()
 {
   this->normal_layout();
+  this->update_banner("ALCT Time");
   this->plot_wires_alct_time_cc();
-  this->label_display_cc();
 }
 
 void J_Display::plot_wires_alct_time_cc()
@@ -547,11 +544,8 @@ void J_Display::plot_wires_alct_time_cc()
   float x_shift, x_step, y_shift, y_step, y_time_step;
   int color, i, j, ij;
 
-  sprintf(buffer, "");
-
-
   if(line) delete line; line = new TLine;
-  if(text) delete text; text = new TText(0, 0, buffer);
+  if(text) delete text; text = new TText;
   x_shift = .01;
   x_step = .008;
   y_shift = .98;
@@ -656,17 +650,6 @@ void J_Display::plot_wires_alct_time_cc()
     }
   cmain->Update();
 
-  return;
-}
-
-void J_Display::label_display_cc()
-{
-  clabel = can2->GetCanvas();
-  clabel->cd();
-  sprintf(buffer, "Run: %d   Event: %d          ALCT Chamber No:%d    CLCT Chamber No:%d", upevt_.run_number, upevt_.event_number, upevt_.alct_csc_id, upevt_.clct_csc_id);
-  label->SetLabel(buffer);
-  label->Draw();
-  clabel->Update();
   return;
 }
 
@@ -800,7 +783,7 @@ void J_Display::display_atrig_cc()
 {
   this->normal_layout();
   this->atrig_wire_geom_cc();
-  this->label_display_cc();
+  this->update_banner("Anode Trigger");
   this->j_plot_atrig_wires();
   return;
 }
@@ -810,8 +793,7 @@ void J_Display::j_plot_atrig_wires()
   int i, j, ilayer, igroup;
   double dx, dy, x0, y0, x1, y1, x2, y2, why, ex, xk;
   if(box) delete box; box = new TBox;
-  sprintf(buffer, " ");
-  if(text) delete text; text = new TText(0, 0, buffer);
+  if(text) delete text; text = new TText;
   if(line) delete line; line = new TLine;
 
   cmain->cd();
@@ -990,10 +972,9 @@ void J_Display::j_plot_atrig_wires()
 void J_Display::display_wires_strips_cc()
 {
   this->wires_strips_layout();
-  cmain = wirescan->GetCanvas();
+  this->update_banner("Wires & Strips");
   this->j_plot_wires();
   this->j_plot_strips();
-  this->wires_strips_label();
 }
 
 void J_Display::j_plot_wires()
@@ -1007,28 +988,29 @@ void J_Display::j_plot_wires()
   int wghv112[4] = { 44, 80, 80, 80 };
   double x[2], y[2];
   if(line) delete line; line = new TLine;
-  if(text) delete text; text = new TText(0, 0, buffer);
+  if(text) delete text; text = new TText;
   if(box) delete box; box = new TBox;
 
-  cmain->cd();
-  cmain->Clear();
+  wirescan->GetCanvas()->cd();
+  wirescan->GetCanvas()->Clear();
 
   box->SetFillStyle(0);
   box->SetLineColor(4);
   line->SetLineColor(4);
 
-  text->SetTextSize(.06);
   text->SetTextAlign(23);
-  text->SetTextFont(82);
-  text->DrawText(.58, .95, "Strip Number");
   text->SetTextSize(.09);
   text->SetTextFont(102);
-  text->DrawText(.5, .75, "Wires");
+  text->DrawText(0.5, 0.95, "Wires");
 
-  x0 = .10;
-  y0 = .15;
-  dx = .80/(NWIRE);
-  dy = .50/NLAYER;
+  text->SetTextAlign(21);
+  text->SetTextSize(.055);
+  text->DrawText(0.5, 0.1, "Wire Group Number");
+
+  x0 = 0.10;
+  y0 = 0.2;
+  dx = 0.80/(NWIRE);
+  dy = 0.60/NLAYER;
 
   x1 = x0;
   y1 = y0;
@@ -1123,10 +1105,6 @@ void J_Display::j_plot_wires()
       y2 = y1 - dy;
     }
 
-  text->SetTextAlign(21);
-  text->SetTextSize(.045);
-  text->DrawText(.5, .06, "Wire Group Number");
-
   return;
 }
 
@@ -1140,6 +1118,7 @@ void J_Display::j_plot_strips()
   for (i=1; i<=NLAYER; i++)
     {
       sprintf(buffer, "hist%d", i-1);
+      if(hist[i-1]) delete hist[i-1];
       hist[i-1] = new TH1F(buffer, "", NSTRIP+2, 0, NSTRIP+1);
     }
 
@@ -1160,16 +1139,12 @@ void J_Display::j_plot_strips()
   for (layer_no=1; layer_no<=NLAYER; layer_no++)
     {
       (hist[layer_no-1]->GetYaxis())->SetRangeUser(j_data.ymin[layer_no-1], j_data.ymax[layer_no-1]);
-      chist->cd(layer_no);
+      (hist[layer_no-1]->GetYaxis())->SetNdivisions(404);
+      (hist[layer_no-1]->GetYaxis())->SetLabelSize(0.2);
+      chist->cd(layer_no+1);
       gPad->Clear();
       hist[layer_no-1]->Draw();
       gPad->Update();
-    }
-
-
-  for (i=1; i<=NLAYER; i++)
-    {
-      if(hist[i-1]) delete hist[i-1]; hist[i-1]=0;
     }
 
   return;
@@ -1195,42 +1170,6 @@ void J_Display::scale_y()
   return;
 }
 
-void J_Display::wires_strips_label()
-{
-  TCanvas *c;
-  sprintf(buffer, " ");
-  if(text) delete text; text = new TText(0,0,buffer);
-  text->SetTextAlign(21);
-  text->SetTextFont(82);
-  text->SetTextSize(.18);
-
-  c = lmidcan->GetCanvas();
-  c->cd();
-  c->Clear();
-  text->DrawText(.5, .90, "Layer 1");
-  text->DrawText(.5, .05, "Layer 6");
-  text->SetTextAngle(90);
-  text->SetTextSize(.25);
-  text->SetTextAlign(23);
-  text->DrawText(.6, .50, "ADC Counts");
-  c->Update();
-
-  c = titlecan->GetCanvas();
-  c->cd();
-  c->Clear();
-  text->SetTextAngle(0);
-  text->SetTextSize(.25);
-  text->SetTextAlign(23);
-  text->SetTextFont(102);
-  sprintf(buffer, "Run: %d   Event: %d          ALCT Chamber No:%d    CLCT Chamber No:%d", upevt_.run_number, upevt_.event_number, upevt_.alct_csc_id, upevt_.clct_csc_id);
-  text->DrawText(.5, .9, buffer);
-  text->SetTextSize(.35);
-  text->DrawText(.58, .30, "Strips");
-  c->Update();
-
-  return;
-}
-
 void J_Display::wires_strips_layout()
 {
   int i;
@@ -1240,47 +1179,129 @@ void J_Display::wires_strips_layout()
 
       fMain->SetLayoutManager(new TGVerticalLayout(fMain));
 
-
       show_menus();
 
-      titleFrame = new TGCompositeFrame(fMain, 700, 100);
-      midFrame = new TGCompositeFrame(fMain, 700, 450);
-      wiresFrame = new TGCompositeFrame(fMain, 700, 300);
+      // banner
+      bannerFrame = new TGCompositeFrame(fMain, 700, 100);
+      fMain->AddFrame(bannerFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      bannercan = new TRootEmbeddedCanvas("title canvas", bannerFrame, 700, 70);
+      bannerFrame->AddFrame(bannercan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
 
-      midFrame->SetLayoutManager(new TGHorizontalLayout(midFrame));
+      // body
+      midFrame = new TGCompositeFrame(fMain, 700, 500);
+      fMain->AddFrame(midFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      midFrame->SetLayoutManager(new TGHorizontalLayout(midFrame)); // to make side-by-side frames
 
-      lmidcan = new TRootEmbeddedCanvas("left canvas", midFrame, 90, 450);
-      hmidcan = new TRootEmbeddedCanvas("histogram canvas", midFrame, 610, 450);
-
-      titlecan = new TRootEmbeddedCanvas("title canvas", titleFrame, 700, 70);
-      wirescan = new TRootEmbeddedCanvas("wires canvas", wiresFrame, 700, 300);
-
+      // legend
+      lmidcan = new TRootEmbeddedCanvas("left canvas", midFrame, 90, 500);
       midFrame->AddFrame(lmidcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
+
+      // strips
+      hmidcan = new TRootEmbeddedCanvas("histogram canvas", midFrame, 610, 500);
       midFrame->AddFrame(hmidcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
 
-      titleFrame->AddFrame(titlecan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
-      wiresFrame->AddFrame(wirescan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
-
-      fMain->AddFrame(titleFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
-      fMain->AddFrame(midFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      // wires
+      wiresFrame = new TGCompositeFrame(fMain, 700, 300);
       fMain->AddFrame(wiresFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      wirescan = new TRootEmbeddedCanvas("wires canvas", wiresFrame, 700, 300);
+      wiresFrame->AddFrame(wirescan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
 
       show_status_bars();
 
       fMain->MapSubwindows();
       fMain->Resize(fMain->GetDefaultSize());
       fMain->MapWindow();
-      chist = hmidcan->GetCanvas();
-      chist->Divide(1, NLAYER, 0, 0);
-    }
 
+      // divide canvas for individual layer plots
+      chist = hmidcan->GetCanvas();
+      chist->Divide(1, NLAYER+2, 0, 0);
+
+      // set labels
+      wires_strips_label();
+    }
 }
+
+void J_Display::wires_strips_label()
+{
+  TCanvas *c;
+  if(text) delete text; text = new TText;
+  if(axis) delete axis;  axis = new TGaxis;
+  if(line) delete line; line = new TLine;
+
+  c = hmidcan->GetCanvas();
+  c->cd(NLAYER+2);
+  text->SetTextAngle(0);
+  
+  gPad->SetPad(gPad->GetXlowNDC(),0,gPad->GetXlowNDC()+gPad->GetWNDC(),1); //expand height
+  gPad->SetFillStyle(4001); // make transparent
+  text->SetTextSize(0.04);
+  text->SetTextFont(82);
+  text->SetTextAlign(23);
+  text->SetTextColor(1);
+  text->DrawText(0.5, 0.05, "Strip Number");
+
+  float histstop = 0.87;
+  float histsbottom = 0.135;
+  line->SetLineColor(1);
+  line->SetLineWidth(1);
+  line->SetLineStyle(1);
+  line->DrawLine(striphist_x1, histsbottom, striphist_x1, histstop);
+  line->DrawLine(striphist_x2, histsbottom, striphist_x2, histstop);
+
+  // x-axis at the bottom
+  axis->SetLabelSize(0.04);
+  axis->SetLabelColor(1);
+  axis->DrawAxis(striphist_x1, histsbottom, striphist_x2, histsbottom, 0, NSTRIP+2, 3206);
+  
+  line->SetLineColor(17);
+  line->SetLineStyle(3);
+  for(int i=1; i<NCFEB; ++i){
+    double dx = (striphist_x2-striphist_x1)/(NSTRIP+2);
+    double cfebedge = striphist_x1 + dx + dx*i*NCFEB_STRIP;
+    line->DrawLine(cfebedge, histsbottom, cfebedge, histstop);
+  }
+  if(NCFEB==7){
+    int i=4;
+    double dx = (striphist_x2-striphist_x1)/(NSTRIP+2);
+    double cfebedge = striphist_x1 + dx + dx*i*NCFEB_STRIP;
+    line->SetLineColor(17);
+    line->SetLineWidth(2);
+    line->SetLineStyle(1);
+    line->DrawLine(cfebedge, histsbottom-0.02, cfebedge, histstop+0.03);
+    c->cd(1);
+    text->SetTextSize(0.4);
+    text->SetTextFont(82);
+    text->SetTextAlign(23);
+    text->SetTextColor(1);
+    text->DrawText(0.35, 0.4, "ME1/1B");
+    text->DrawText(0.80, 0.4, "ME1/1A");
+  }
+  c->Update();
+
+  c = lmidcan->GetCanvas();
+  c->cd();
+  c->Clear();
+  text->SetTextAlign(21);
+  text->SetTextFont(82);
+  text->SetTextSize(0.18);
+  text->DrawText(0.5, histstop - 0.05, "Layer 1");
+  text->DrawText(0.5, histsbottom + 0.05, "Layer 6");
+  text->SetTextAngle(90);
+  text->SetTextSize(0.25);
+  text->SetTextAlign(23);
+  text->DrawText(0.6, 0.50, "ADC Counts");
+  c->Update();
+
+  return;
+}
+
+
 
 void J_Display::display_sca()
 {
   this->sca_layout();
+  this->update_banner("CFEB Time Samples");
   this->plot_samples();
-  this->sca_label();
 }
 
 void J_Display::plot_samples()
@@ -1289,12 +1310,14 @@ void J_Display::plot_samples()
   float px[j_data.nsamples], py[j_data.nsamples];
   int lineStyle[5] = {9, 1, 2, 4, 3};
   int lineColor[5] = {2, 3, 1, 6, 4};
-  sprintf(buffer, " ");
-  if(text) delete text; text = new TText(0, 0, buffer);
+  if(text) delete text; text = new TText;
+
   this->scale_sca_y();
+
   gStyle->SetOptStat(0);
   gStyle->SetLabelSize(.12, "X");
   gStyle->SetLabelSize(.1, "Y");
+
   //create graph
   if (!j_data.nsamples) return;
   for (layer_no=1; layer_no<=NLAYER; layer_no++)
@@ -1306,6 +1329,7 @@ void J_Display::plot_samples()
               px[isample-1] = isample;
               py[isample-1] = j_data.sample[istrip-1][layer_no-1][isample-1];
             }
+          if(graph[layer_no-1][istrip-1]) delete graph[layer_no-1][istrip-1];
           graph[layer_no-1][istrip-1] = new TGraph(j_data.nsamples, px, py);
         }
     }
@@ -1316,7 +1340,7 @@ void J_Display::plot_samples()
   text->SetTextAlign(11);
   for (layer_no=1; layer_no<=NLAYER; layer_no++)
     {
-      cgraph->cd(layer_no);
+      chist->cd(layer_no);
       gPad->Clear();
       for (istrip=1; istrip<=5; istrip++)
         {
@@ -1336,16 +1360,6 @@ void J_Display::plot_samples()
       sprintf(buffer, "  Peak Strip: %d", j_data.peak_strip[layer_no-1]);
       text->DrawText(.35, .6, buffer);
       gPad->Update();
-    }
-
-  ///delete graphs
-  for (layer_no=1; layer_no<=NLAYER; layer_no++)
-    {
-      for (istrip=1; istrip<=5; istrip++)
-        {
-          if(graph[layer_no-1][istrip-1]) delete graph[layer_no-1][istrip-1];
-	  graph[layer_no-1][istrip-1]=0;
-        }
     }
 
   return;
@@ -1375,96 +1389,6 @@ void J_Display::scale_sca_y()
   return;
 }
 
-void J_Display::sca_label()
-{
-  int layer_no;
-  TCanvas *tcan;
-  sprintf(buffer, " ");
-  if(text) delete text; text = new TText(0,0,buffer);
-  if(line) delete line; line = new TLine;
-  text->SetTextFont(82);
-
-  tcan = keycan->GetCanvas();
-  tcan->cd();
-  tcan->Clear();
-  text->SetTextSize(.15);
-  text->SetTextAlign(23);
-  text->DrawText(.5, .95, "Switched-");
-  text->DrawText(.5, .90, "Capacitor");
-  text->DrawText(.5, .85, "Array");
-  text->DrawText(.5, .80, "Display");
-  //create key
-  text->SetTextSize(.12);
-  text->DrawText(.5, .3, "Key");
-  line->SetLineStyle(1);
-  line->SetLineColor(1);
-  line->DrawLine(.25, .28, .75, .28);
-  text->SetTextAlign(12);
-  text->SetTextSize(.10);
-  text->SetTextColor(2);
-  text->DrawText(.05, .25, "Peak-2");
-  line->SetLineColor(2);
-  line->SetLineStyle(9);
-  line->DrawLine(.5, .25, .9, .25);
-  text->SetTextColor(3);
-  text->DrawText(.05, .22, "Peak-1");
-  line->SetLineColor(3);
-  line->SetLineStyle(1);
-  line->DrawLine(.5, .22, .9, .22);
-  text->SetTextColor(1);
-  text->DrawText(.05, .19, "Peak Strip");
-  line->SetLineColor(1);
-  line->SetLineStyle(2);
-  line->DrawLine(.65, .19, .9, .19);
-  text->SetTextColor(6);
-  text->DrawText(.05, .16, "Peak+1");
-  line->SetLineColor(6);
-  line->SetLineStyle(4);
-  line->DrawLine(.5, .16, .9, .16);
-  text->SetTextColor(4);
-  text->DrawText(.05, .13, "Peak+2");
-  line->SetLineColor(4);
-  line->SetLineStyle(3);
-  line->DrawLine(.5, .13, .9, .13);
-  tcan->Update();
-
-  //left label
-  tcan = lscamidcan->GetCanvas();
-  tcan->cd();
-  tcan->Clear();
-  text->SetTextColor(1);
-  text->SetTextAlign(22);
-  text->SetTextSize(.2);
-  text->DrawText(.5, .91, "Layer 6");
-  text->DrawText(.5, .09, "Layer 1");
-  text->SetTextAngle(90);
-  text->DrawText(.8, .5, "ADC Counts");
-  text->SetTextAngle(0);
-  tcan->Update();
-
-  //bottom label
-  tcan = lowcan->GetCanvas();
-  tcan->cd();
-  tcan->Clear();
-  text->SetTextSize(.3);
-  text->SetTextAlign(23);
-  text->DrawText(.47, .94, "SCA Sample Number");
-  tcan->Update();
-
-  //top label
-  tcan = topcan->GetCanvas();
-  tcan->cd();
-  tcan->Clear();
-  text->SetTextAlign(22);
-  text->SetTextSize(.15);
-  text->SetTextFont(102);
-  sprintf(buffer, "Run: %d   Event: %d          ALCT Chamber No:%d    CLCT Chamber No:%d", upevt_.run_number, upevt_.event_number, upevt_.alct_csc_id, upevt_.clct_csc_id);
-  text->DrawText(.5, .5, buffer);
-  tcan->Update();
-
-  return;
-}
-
 void J_Display::sca_layout()
 {
   int i;
@@ -1476,46 +1400,133 @@ void J_Display::sca_layout()
 
       show_menus();
 
-      topFrame = new TGCompositeFrame(fMain, 800, 100);
-      scaMidFrame = new TGCompositeFrame(fMain, 800, 650);
-      lowFrame = new TGCompositeFrame(fMain, 800, 70);
+      // banner
+      bannerFrame = new TGCompositeFrame(fMain, 700, 100);
+      fMain->AddFrame(bannerFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      bannercan = new TRootEmbeddedCanvas("title canvas", bannerFrame, 700, 70);
+      bannerFrame->AddFrame(bannercan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
 
-      scaMidFrame->SetLayoutManager(new TGHorizontalLayout(scaMidFrame));
+      // body
+      midFrame = new TGCompositeFrame(fMain, 700, 700);
+      fMain->AddFrame(midFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      midFrame->SetLayoutManager(new TGHorizontalLayout(midFrame)); // to make side-by-side frames
 
-      lscamidcan = new TRootEmbeddedCanvas("left canvas", scaMidFrame, 90, 650);
-      graphcan = new TRootEmbeddedCanvas("graph canvas", scaMidFrame, 550, 650);
-      keycan = new TRootEmbeddedCanvas("key canvas", scaMidFrame, 160, 650);
+      // legend
+      lmidcan = new TRootEmbeddedCanvas("left canvas", midFrame, 120, 700);
+      midFrame->AddFrame(lmidcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
 
-      topcan = new TRootEmbeddedCanvas("top canvas", topFrame, 800, 100);
-      lowcan = new TRootEmbeddedCanvas("lower canvas", lowFrame, 800, 40);
-
-      scaMidFrame->AddFrame(lscamidcan, new TGLayoutHints(kLHintsExpandY));
-      scaMidFrame->AddFrame(graphcan, new TGLayoutHints(kLHintsExpandY));
-      scaMidFrame->AddFrame(keycan, new TGLayoutHints(kLHintsExpandY));
-
-      topFrame->AddFrame(topcan, new TGLayoutHints(kLHintsExpandY|kLHintsExpandX));
-      lowFrame->AddFrame(lowcan, new TGLayoutHints(kLHintsExpandY|kLHintsExpandX));
-
-      fMain->AddFrame(topFrame, new TGLayoutHints(kLHintsExpandX));
-      fMain->AddFrame(scaMidFrame, new TGLayoutHints(kLHintsExpandX));
-      fMain->AddFrame(lowFrame, new TGLayoutHints(kLHintsExpandX));
+      // plots
+      hmidcan = new TRootEmbeddedCanvas("histogram canvas", midFrame, 580, 700);
+      midFrame->AddFrame(hmidcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
 
       show_status_bars();
 
       fMain->MapSubwindows();
       fMain->Resize(fMain->GetDefaultSize());
       fMain->MapWindow();
-      cgraph = graphcan->GetCanvas();
-      cgraph->Divide(1, NLAYER, 0, 0);
+
+      // divide canvas for individual layer plots
+      chist = hmidcan->GetCanvas();
+      chist->Divide(1, NLAYER+1, 0, 0);
+
+      sca_label();
     }
 
+}
+
+void J_Display::sca_label()
+{
+  int layer_no;
+  TCanvas *c;
+  if(text) delete text; text = new TText;
+  if(line) delete line; line = new TLine;
+  text->SetTextFont(82);
+
+
+  c = lmidcan->GetCanvas();
+  c->cd();
+  c->Clear();
+  text->SetTextAlign(23);
+  //create key
+  float keytop=0.45;
+  float keyheight = 0.22;
+  float y;
+  text->SetTextSize(0.2);
+  text->DrawText(0.5, keytop, "Key");
+  line->SetLineStyle(1);
+  line->SetLineColor(1);
+  y=keytop-keyheight*1/6;
+  line->DrawLine(0.25, y, 0.75, y);
+  text->SetTextAlign(12);
+  text->SetTextSize(0.13);
+  text->SetTextColor(2);
+  y=keytop-keyheight*2/6;
+  text->DrawText(0.05, y, "Peak-2");
+  line->SetLineColor(2);
+  line->SetLineStyle(9);
+  line->DrawLine(0.7, y, 0.97, y);
+  text->SetTextColor(3);
+  y=keytop-keyheight*3/6;
+  text->DrawText(0.05, y, "Peak-1");
+  line->SetLineColor(3);
+  line->SetLineStyle(1);
+  line->DrawLine(0.7, y, 0.97, y);
+  text->SetTextColor(1);
+  y=keytop-keyheight*4/6;
+  text->DrawText(0.05, y, "Peak Strip");
+  line->SetLineColor(1);
+  line->SetLineStyle(2);
+  line->DrawLine(0.8, y, 0.97, y);
+  text->SetTextColor(6);
+  y=keytop-keyheight*5/6;
+  text->DrawText(0.05, y, "Peak+1");
+  line->SetLineColor(6);
+  line->SetLineStyle(4);
+  line->DrawLine(0.7, y, 0.97, y);
+  text->SetTextColor(4);
+  y=keytop-keyheight*6/6;
+  text->DrawText(0.05, y, "Peak+2");
+  line->SetLineColor(4);
+  line->SetLineStyle(3);
+  line->DrawLine(0.7, y, 0.97, y);
+  c->Update();
+
+  text->SetTextColor(1);
+  text->SetTextAlign(22);
+  text->SetTextSize(0.2);
+  text->DrawText(0.5, 0.91, "Layer 6");
+  text->DrawText(0.5, 0.09, "Layer 1");
+  text->SetTextAngle(90);
+  text->DrawText(0.8, 0.6, "ADC Counts");
+  text->SetTextAngle(0);
+  c->Update();
+
+
+  //bottom label
+  c = hmidcan->GetCanvas();
+
+  // expand canvas for bottom layer to show x-axis
+  c->cd(NLAYER);
+  gPad->SetPad(gPad->GetXlowNDC(),gPad->GetYlowNDC()-gPad->GetHNDC()*0.1,gPad->GetXlowNDC()+gPad->GetWNDC(),gPad->GetYlowNDC()+gPad->GetHNDC());
+  gPad->SetBottomMargin(0.1);
+
+  // x-axis label
+  c->cd(NLAYER+1);
+  gPad->SetPad(0,0,1,0.1);
+  text->SetTextAngle(0);
+  text->SetTextSize(0.3);
+  text->SetTextAlign(23);
+  text->DrawText(0.47, 0.94, "CFEB Data Sample Number");
+  c->Update();
+
+  return;
 }
 
 void J_Display::display_ctrig()
 {
   this->ctrig_layout();
+  this->update_banner("Cathode Trigger Display");
   this->getsoft();
-  this->ctrig_banner();
   this->plot_ctrig_strips();
 }
 
@@ -1572,9 +1583,6 @@ void J_Display::plot_ctrig_strips()
   int i, layer_no, j;
   double x0, x1, dx;
 
-  if(axis) delete axis;  axis = new TGaxis;
-  if(line) delete line;  line = new TLine;
-
   this->ctrig_scale_y();
 
   gStyle->SetOptStat(0);
@@ -1604,8 +1612,8 @@ void J_Display::plot_ctrig_strips()
         }
     }
 
-  dx = (ctrighist_x2 - ctrighist_x1)/(ctrighist[0]->GetNbinsX());
-  x0 = ctrighist_x1;
+  dx = (striphist_x2 - striphist_x1)/(ctrighist[0]->GetNbinsX());
+  x0 = striphist_x1;
 
   for (i=1; i<=2*NLAYER; i++)
     {
@@ -1616,7 +1624,6 @@ void J_Display::plot_ctrig_strips()
         { //// Draw CFEB data
 	  int index = (i-1)/2;
           (ctrighist[index]->GetYaxis())->SetRangeUser(j_data.ymin[index], j_data.ymax[index]);
-          if( ctrighist[index]->GetMaximum()<1100 ) (ctrighist[index]->GetYaxis())->SetRangeUser(0, 1000);
           ctrighist[index]->Draw();
         }
       else
@@ -1687,11 +1694,6 @@ void J_Display::plot_ctrig_strips()
                   box->DrawBox(x1+dx/2.0, btop-bsize, x1+dx, btop);
                 }
             }
-          if (i==12)
-            {
-              axis->SetLabelSize(0.25);
-              axis->DrawAxis(ctrighist_x1, 0.18, ctrighist_x2, 0.18, ctrighist[0]->GetBinLowEdge(1),ctrighist[0]->GetBinLowEdge(ctrighist[0]->GetNbinsX()));
-            }
         }
       gPad->Update();
     }
@@ -1705,7 +1707,7 @@ void J_Display::ctrig_scale_y()
   for (layer_no=1; layer_no<=6; layer_no++)
     {
       j_data.ymin[layer_no-1] = 0;
-      j_data.ymax[layer_no-1] = 10;
+      j_data.ymax[layer_no-1] = 800;
       for (i=1; i<=NSTRIP; i++)
         {
           if (j_data.strips[i-1][layer_no-1]>j_data.ymax[layer_no-1])
@@ -1714,45 +1716,90 @@ void J_Display::ctrig_scale_y()
             }
         }
       j_data.ymax[layer_no-1] = j_data.ymax[layer_no-1] + .3*(j_data.ymax[layer_no-1] - j_data.ymin[layer_no-1]);
-      //		j_data.ymax[layer_no-1] *=2; not necessary??
     }
 
   return;
 }
 
-void J_Display::ctrig_banner()
+void J_Display::update_banner(string title)
 {
-  sprintf(buffer, " ");
-  if(text) delete text; text = new TText(0, 0, buffer);
+  if(text) delete text; text = new TText;
   if(box) delete box; box = new TBox;
-  if(line) delete line; line = new TLine;
 
-  TCanvas *tempcan = ctrigtopcan->GetCanvas();
+  TCanvas *tempcan = bannercan->GetCanvas();
   tempcan->cd();
   tempcan->Clear();
   text->SetTextFont(102);
-  text->SetTextSize(.25);
   text->SetTextAlign(21);
+
+  text->SetTextSize(0.35);
+  text->DrawText(0.5, 0.6, title.c_str());
+
+  text->SetTextSize(0.25);
   sprintf(buffer, "Run: %d   Event: %d          ALCT Chamber No:%d    CLCT Chamber No:%d", upevt_.run_number, upevt_.event_number, upevt_.alct_csc_id, upevt_.clct_csc_id);
-  text->DrawText(.5, .5, buffer);
-  text->SetTextSize(.25);
-  text->DrawText(.5, .1, "Cathode Trigger Display");
+  text->DrawText(0.5, 0.1, buffer);
   tempcan->Update();
 
   return;
 }
 
+void J_Display::ctrig_layout()
+{
+  gStyle->SetFillStyle(0);
+  int i;
+  if (firstTimeCtrig)
+    {
+      firstTimeCtrig = false;
+
+      fMain->SetLayoutManager(new TGVerticalLayout(fMain));
+
+      show_menus();
+
+      // banner
+      bannerFrame = new TGCompositeFrame(fMain, 700, 100);
+      fMain->AddFrame(bannerFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      bannercan = new TRootEmbeddedCanvas("title canvas", bannerFrame, 700, 70);
+      bannerFrame->AddFrame(bannercan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
+
+      // body
+      midFrame = new TGCompositeFrame(fMain, 700, 700);
+      fMain->AddFrame(midFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+      midFrame->SetLayoutManager(new TGHorizontalLayout(midFrame)); // to make side-by-side frames
+
+      // legend
+      lmidcan = new TRootEmbeddedCanvas("left canvas", midFrame, 90, 700);
+      midFrame->AddFrame(lmidcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
+
+      // plots
+      hmidcan = new TRootEmbeddedCanvas("histogram canvas", midFrame, 610, 700);
+      midFrame->AddFrame(hmidcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
+
+      show_status_bars();
+
+      fMain->MapSubwindows();
+      fMain->Resize(fMain->GetDefaultSize());
+      fMain->MapWindow();
+
+      // Divide canvas for individual layer plots
+      ctrigcan = hmidcan->GetCanvas();
+      ctrigcan->Divide(1, NLAYER*2 +2, 0, 0);
+
+      // set labels
+      ctrig_label();
+    }
+}
+
 void J_Display::ctrig_label()
 {
-  sprintf(buffer, " ");
-  if(text) delete text; text = new TText(0, 0, buffer);
+  if(text) delete text; text = new TText;
   if(box) delete box; box = new TBox;
   if(line) delete line; line = new TLine;
-  TCanvas* tempcan;
+  if(axis) delete axis;  axis = new TGaxis;
+  TCanvas* c;
 
-  tempcan = ctlmidcan->GetCanvas();
-  tempcan->cd();
-  tempcan->Clear();
+  c = lmidcan->GetCanvas();
+  c->cd();
+  c->Clear();
   text->SetTextFont(82);
   text->SetTextSize(.2);
   text->SetTextAlign(22);
@@ -1803,14 +1850,14 @@ void J_Display::ctrig_label()
   text->SetTextColor(1);
   text->DrawText(.2, .19, "Key");
   text->DrawText(.2, .17, "halfstrip");
-  tempcan->Update();
+  c->Update();
 
-  tempcan = ctrigcan->GetCanvas();
-  tempcan->cd(2*NLAYER + 2);
+  c = ctrigcan->GetCanvas();
+  c->cd(2*NLAYER + 2);
   
   gPad->SetPad(gPad->GetXlowNDC(),0,gPad->GetXlowNDC()+gPad->GetWNDC(),1);
   gPad->SetFillStyle(4001);
-  text->SetTextSizePixels(20);
+  text->SetTextSize(0.03);
   text->SetTextFont(82);
   text->SetTextAlign(23);
   text->SetTextColor(1);
@@ -1821,25 +1868,30 @@ void J_Display::ctrig_label()
   line->SetLineColor(1);
   line->SetLineWidth(1);
   line->SetLineStyle(1);
-  line->DrawLine(ctrighist_x1, histsbottom, ctrighist_x1, histstop);
-  line->DrawLine(ctrighist_x2, histsbottom, ctrighist_x2, histstop);
+  line->DrawLine(striphist_x1, histsbottom, striphist_x1, histstop);
+  line->DrawLine(striphist_x2, histsbottom, striphist_x2, histstop);
 
+  // x-axis at the bottom
+  axis->SetLabelSize(0.04);
+  axis->SetLabelColor(1);
+  axis->DrawAxis(striphist_x1, histsbottom, striphist_x2, histsbottom, 0, NSTRIP+2, 3206);
+  
   line->SetLineColor(17);
   line->SetLineStyle(3);
   for(int i=1; i<NCFEB; ++i){
-    double dx = (ctrighist_x2-ctrighist_x1)/(NSTRIP+2);
-    double cfebedge = ctrighist_x1 + dx + dx*i*NCFEB_STRIP;
+    double dx = (striphist_x2-striphist_x1)/(NSTRIP+2);
+    double cfebedge = striphist_x1 + dx + dx*i*NCFEB_STRIP;
     line->DrawLine(cfebedge, histsbottom, cfebedge, histstop);
   }
   if(NCFEB==7){
     int i=4;
-    double dx = (ctrighist_x2-ctrighist_x1)/(NSTRIP+2);
-    double cfebedge = ctrighist_x1 + dx + dx*i*NCFEB_STRIP;
+    double dx = (striphist_x2-striphist_x1)/(NSTRIP+2);
+    double cfebedge = striphist_x1 + dx + dx*i*NCFEB_STRIP;
     line->SetLineColor(17);
     line->SetLineWidth(2);
     line->SetLineStyle(1);
-    line->DrawLine(cfebedge, 0.07, cfebedge, 0.95);
-    tempcan->cd(1);
+    line->DrawLine(cfebedge, histsbottom-0.02, cfebedge, histstop+0.03);
+    c->cd(1);
     text->SetTextSize(0.4);
     text->SetTextFont(82);
     text->SetTextAlign(23);
@@ -1847,62 +1899,16 @@ void J_Display::ctrig_label()
     text->DrawText(0.35, 0.4, "ME1/1B");
     text->DrawText(0.80, 0.4, "ME1/1A");
   }
-  tempcan->Update();
+  c->Update();
 
   return;
-}
-
-void J_Display::ctrig_layout()
-{
-  gStyle->SetFillStyle(0);
-  int i;
-  if (firstTimeCtrig)
-    {
-      firstTimeCtrig = false;
-
-      fMain->SetLayoutManager(new TGVerticalLayout(fMain));
-
-      show_menus();
-
-      ctrigtopFrame = new TGCompositeFrame(fMain, 700, 100);
-      ctrigmidFrame = new TGCompositeFrame(fMain, 700, 700);
-      ctriglowFrame = new TGCompositeFrame(fMain, 700, 100);
-
-      ctrigmidFrame->SetLayoutManager(new TGHorizontalLayout(ctrigmidFrame));
-
-      ctlmidcan = new TRootEmbeddedCanvas("left canvas", ctrigmidFrame, 90, 700);
-      midcan = new TRootEmbeddedCanvas("middle canvas", ctrigmidFrame, 610, 700);
-
-      ctrigtopcan = new TRootEmbeddedCanvas("title canvas", ctrigtopFrame, 700, 70);
-      //ctriglowcan = new TRootEmbeddedCanvas("wires canvas", ctriglowFrame, 700, 40);
-
-      ctrigmidFrame->AddFrame(ctlmidcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
-      ctrigmidFrame->AddFrame(midcan, new TGLayoutHints(kLHintsExpandY, 0, 0, 0, 0));
-
-      ctrigtopFrame->AddFrame(ctrigtopcan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
-      //ctriglowFrame->AddFrame(ctriglowcan, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,0,0));
-
-      fMain->AddFrame(ctrigtopFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
-      fMain->AddFrame(ctrigmidFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
-      fMain->AddFrame(ctriglowFrame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
-
-      show_status_bars();
-
-      fMain->MapSubwindows();
-      fMain->Resize(fMain->GetDefaultSize());
-      fMain->MapWindow();
-      ctrigcan = midcan->GetCanvas();
-      ctrigcan->Divide(1, NLAYER*2 +2, 0, 0);
-
-      ctrig_label();
-    }
 }
 
 void J_Display::display_clct_time()
 {
   this->normal_layout();
   this->plot_cath_clct_time();
-  this->label_display_cc();
+  this->update_banner("CLCT Time");
 
 }
 
@@ -1919,8 +1925,7 @@ void J_Display::plot_cath_clct_time()
   char string[NLAYER/2];
   char temp[100];
   if(line) delete line; line = new TLine;
-  sprintf(buffer, " ");
-  TText *text_draw = new TText(0, 0, buffer);
+  TText *text_draw = new TText;
 
   cmain->cd();
   cmain->Clear();
@@ -2030,7 +2035,6 @@ void J_Display::plot_cath_clct_time()
         }
     }
 
-  sprintf(buffer, "");
   double dy = .018;
   double dx, x0;
   x0 = .1;
@@ -2071,7 +2075,7 @@ void J_Display::Print()
       cmain->Print(buffer, "png");
       break;
     case M_SCA:
-      cgraph->Print(buffer, "png");
+      chist->Print(buffer, "png");
       break;
     case M_CTRIG:
       ctrigcan->Print(buffer, "png");
@@ -2094,9 +2098,9 @@ void J_Display::show_menus()
   menuConfigure = new TGPopupMenu(gClient->GetRoot());
   menuConfigure->AddEntry("&Wires Strips", M_WIRES_STRIPS);
   menuConfigure->AddEntry("At&rig", M_ATRIG);
-  menuConfigure->AddEntry("&Alct time", M_ALCT_TIME);
-  menuConfigure->AddEntry("&Clct time", M_CLCT_TIME);
-  menuConfigure->AddEntry("&SCA", M_SCA);
+  menuConfigure->AddEntry("&ALCT time", M_ALCT_TIME);
+  menuConfigure->AddEntry("&CLCT time", M_CLCT_TIME);
+  menuConfigure->AddEntry("CFEB time &samples", M_SCA);
   menuConfigure->AddEntry("C&trig", M_CTRIG);
 
   menuConfigure->Connect("Activated(int)", "J_Display", this, "handle_menu(int)");
