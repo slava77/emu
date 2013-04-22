@@ -86,8 +86,6 @@ typedef struct {
   unsigned short alctcal_num_points;//used and set in test
   unsigned short alctcal_num_points_2nd_param;//used and set in test
 
-  /* Thresholds set by anode JTAG       */
-  unsigned short anode_threshold[NAFEB][NAFEB_CHIP];
 
 /*
  * Trigger scintillator data (Cosmic ray trigger at FNAL)

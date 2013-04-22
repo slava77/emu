@@ -20,9 +20,8 @@
 #define NCFEB_CHAN      NCFEB_STRIP*NCFEB*NLAYER     /* Number of channels per CFEB                 */
 #define NCFEB_MAX       7                            /* Max Number of cathode front-end boards      */
 
-#define NAFEB           6                            /* Number of anode front-end boards            */
-#define NAFEB_MAX      48                            /* Max Number of anode front-end boards        */
-#define NAFEB_CHIP      6                            /* Number of chips per AFEB                    */
+#define NAFEB           6                            /* Number of rows of anode front-end boards    */
+#define NAFEB_MAX      16                            /* Max Number of rows of anode front-end boards */
 #define NAFEB_CHAN     96                            /* Number of channels per AFEB                 */
 
 #define NWIRE_AFEB     8                             /* Number of wire groups per AFEB/Layer        */
