@@ -40,12 +40,14 @@
         <delays_per_run>            16  </delays_per_run>
         <delay_first>           0       </delay_first>
         <delay_step>            1       </delay_step> 
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>ALCT-AFEB Time Delay</description>
   </test_config>
 
   <test_config>
         <test>                  15        </test>
         <events_total>          5000  </events_total>
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>CFEB Pedestals and Noise</description>
   </test_config>
 
@@ -53,6 +55,7 @@
         <test>                  16       </test>
         <events_per_layer>      1000  </events_per_layer>
         <alct_test_pulse_amp>   255  </alct_test_pulse_amp>
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>CFEB Connectivity</description>
   </test_config>
 
@@ -66,6 +69,7 @@
         <strips_per_run>        16   </strips_per_run>
         <strip_first>           1    </strip_first>
         <strip_step>            1    </strip_step>
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>CFEB Pulse Shape and Crosstalk</description>
   </test_config>
   <test_config>
@@ -77,6 +81,7 @@
         <strips_per_run>        16   </strips_per_run>
         <strip_first>           1    </strip_first>
         <strip_step>            1    </strip_step>
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>CFEB Gain</description>
   </test_config>
 
@@ -100,6 +105,7 @@
         <strips_per_run>        16   </strips_per_run>
         <strip_first>           1    </strip_first>
         <strip_step>            1    </strip_step>
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>Comparator Thresholds and Analog Noise</description>
   </test_config>
 
@@ -111,6 +117,7 @@
         <hstrips_per_run>       32   </hstrips_per_run>
         <hstrip_first>          1    </hstrip_first>
         <hstrip_step>           1    </hstrip_step>
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>Comparator Logic</description>
   </test_config>
 
