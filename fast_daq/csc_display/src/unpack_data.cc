@@ -33,6 +33,13 @@ void printBin(char c)
 extern "C" void unpack_data_cc()
 {
 
+  /**** Semi-hack ****/
+  //// ME1/1 chambers have opposite ordering for the A and B
+  //// ends, thus the CLCT key halfstip needs to be inverted
+  //// in one end or the other.
+  bool invert_CLCT_for_ME11A = 1;
+  bool invert_CLCT_for_ME11B = 0;
+  
   int ibucket, ihalf_strip, half_strip_index, distrip, idistrip, itime;
 
   // What is this?
@@ -236,7 +243,7 @@ extern "C" void unpack_data_cc()
     }
 
 
-  //get CLCT half strip info
+  //get comparator halfstrip info
   for (ilayer=1; ilayer<=NLAYER; ilayer++)
     {
       for (istrip=1; istrip<=NSTRIP; istrip++)
@@ -251,13 +258,27 @@ extern "C" void unpack_data_cc()
     }
 
 
-  //key half strip layer 3
+  // CLCT key halfstrip layer 3
   for (ilct=1; ilct<=2; ilct++)
     {
       if (upevt_.clct_valid_patt[ilct-1]==1)
         {
           ihalf_strip = upevt_.clct_half_strip[ilct-1]%2;
 	  istrip = upevt_.clct_half_strip[ilct-1]/2 + 1;
+
+	  if(NCFEB==7) // Use NCFEB==7 to determine that this is an ME1/1 chamber
+	    {
+	      if(invert_CLCT_for_ME11A && istrip > 4*NCFEB_STRIP)
+		{
+		  istrip = 1 + 4*NCFEB_STRIP + 3*NCFEB_STRIP - (istrip - 4*NCFEB_STRIP);
+		  ihalf_strip = !ihalf_strip;
+		}
+	      if(invert_CLCT_for_ME11B && istrip <= 4*NCFEB_STRIP)
+		{
+		  istrip = 1 + 4*NCFEB_STRIP - istrip;
+		  ihalf_strip = !ihalf_strip;
+		}
+	    }
 	  
 	  j_data.clct[ihalf_strip][istrip-1][2] = true; //changed
 	  //std::cout<<"Key Halfstrip: j_data.clct["<<ihalf_strip<<"]["<<istrip<<"-1][2] = true"<<std::endl;
@@ -268,7 +289,7 @@ extern "C" void unpack_data_cc()
 	}
     }
 
-  //calculate half strip
+  //calculate halfstrip from CFEB data
   for (ilayer=1; ilayer<=NLAYER; ilayer++)
     {
       for (istrip=1; istrip<=NSTRIP; istrip++)
