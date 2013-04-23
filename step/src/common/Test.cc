@@ -808,6 +808,7 @@ void emu::step::Test::_14(){
   uint64_t delay_step          = parameters_["delay_step"];
   uint64_t events_per_delay    = parameters_["events_per_delay"];
   uint64_t alct_test_pulse_amp = parameters_["alct_test_pulse_amp"];
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
@@ -853,7 +854,7 @@ void emu::step::Test::_14(){
 	
 	for ( uint64_t iPulse = 1; iPulse <= events_per_delay; ++iPulse ){
 	  (*crate)->ccb()->GenerateAlctAdbASync();
-	  usleep(1000);
+	  usleep( 1000 + 1000*msec_between_pulses );
 	  bsem_.take();
 	  iEvent_++;
 	  bsem_.give();
@@ -951,7 +952,8 @@ void emu::step::Test::_14(){
 void emu::step::Test::_15(){ // OK
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_15 (parallel) starting" ); }
 
-  uint64_t events_total = parameters_["events_total"];
+  uint64_t events_total        = parameters_["events_total"];
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
@@ -985,7 +987,7 @@ void emu::step::Test::_15(){ // OK
 	
       for ( uint64_t iTrigger = 1; iTrigger <= events_total; ++iTrigger ){
 	(*crate)->ccb()->GenerateL1A();
-	usleep(10);
+	usleep( 10 + 1000*msec_between_pulses );
 	bsem_.take();
 	iEvent_++;
 	bsem_.give();
@@ -1195,7 +1197,7 @@ void emu::step::Test::_16()
   const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
   uint64_t events_per_layer    = parameters_["events_per_layer"];
   uint64_t alct_test_pulse_amp = parameters_["alct_test_pulse_amp"];
-  
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];  
   
   ostream noBuffer( NULL );
 
@@ -1266,7 +1268,7 @@ void emu::step::Test::_16()
 	  for ( uint64_t iPulse = 1; iPulse <=events_per_layer; ++iPulse )
 	    {
 	      (*crate)->ccb()->GenerateAlctAdbSync();
-	      usleep(10);
+	      usleep( 10 + 1000*msec_between_pulses );
 	      bsem_.take();
 	      iEvent_++;
 	      bsem_.give();
@@ -1402,11 +1404,12 @@ void emu::step::Test::_16()
 void emu::step::Test::_17(){ // OK
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_17 (parallel) starting" ); }
 
-  uint64_t events_per_delay = parameters_["events_per_delay"];
-  uint64_t delays_per_strip = parameters_["delays_per_strip"];
-  uint64_t strips_per_run   = parameters_["strips_per_run"];
-  uint64_t strip_first      = parameters_["strip_first"];
-  uint64_t strip_step       = parameters_["strip_step"];
+  uint64_t events_per_delay    = parameters_["events_per_delay"];
+  uint64_t delays_per_strip    = parameters_["delays_per_strip"];
+  uint64_t strips_per_run      = parameters_["strips_per_run"];
+  uint64_t strip_first         = parameters_["strip_first"];
+  uint64_t strip_step          = parameters_["strip_step"];
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
@@ -1491,7 +1494,7 @@ void emu::step::Test::_17(){ // OK
 	  // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
 	  // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	  (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
-	  log4cplus::helpers::sleepmillis( msWaitAfterPulse );
+	  log4cplus::helpers::sleepmillis( msWaitAfterPulse  + msec_between_pulses );
 	  bsem_.take();
 	  iEvent_++;
 	  bsem_.give();
@@ -1626,6 +1629,7 @@ void emu::step::Test::_17b(){ // OK
   uint64_t strips_per_run      = parameters_["strips_per_run"];
   uint64_t strip_first         = parameters_["strip_first"];
   uint64_t strip_step          = parameters_["strip_step"];
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
@@ -1711,7 +1715,7 @@ void emu::step::Test::_17b(){ // OK
 	  // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
 	  // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	  (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
-	  ::usleep( usWaitAfterPulse );
+	  ::usleep( usWaitAfterPulse + msec_between_pulses );
 	  bsem_.take();
 	  iEvent_++;
 	  bsem_.give();
@@ -1879,6 +1883,7 @@ void emu::step::Test::_19(){
   uint64_t strips_per_run       = parameters_["strips_per_run"];
   uint64_t strip_first          = parameters_["strip_first"];
   uint64_t strip_step           = parameters_["strip_step"];
+  uint64_t msec_between_pulses  = parameters_["msec_between_pulses"];
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
@@ -1992,7 +1997,7 @@ void emu::step::Test::_19(){
 	    // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
 	    // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	    (*crate)->ccb()->GenerateDmbCfebCalib0(); // Generate “DMB_cfeb_calibrate[0]” 25 ns pulse
-	    ::usleep( usWaitAfterPulse );
+	    ::usleep( usWaitAfterPulse + 1000*msec_between_pulses );
 	    bsem_.take();
 	    iEvent_++;
 	    bsem_.give();
@@ -2118,12 +2123,13 @@ void emu::step::Test::_19(){
 
 void emu::step::Test::_21(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 (parallel) starting" ); }
-  uint64_t dmb_test_pulse_amp = parameters_["dmb_test_pulse_amp"];
-  uint64_t cfeb_threshold = parameters_["cfeb_threshold"];
-  uint64_t events_per_hstrip  = parameters_["events_per_hstrip"];
-  uint64_t hstrips_per_run = parameters_["hstrips_per_run"];
-  uint64_t hstrip_first = parameters_["hstrip_first"];
-  uint64_t hstrip_step = parameters_["hstrip_step"];
+  uint64_t dmb_test_pulse_amp  = parameters_["dmb_test_pulse_amp"];
+  uint64_t cfeb_threshold      = parameters_["cfeb_threshold"];
+  uint64_t events_per_hstrip   = parameters_["events_per_hstrip"];
+  uint64_t hstrips_per_run     = parameters_["hstrips_per_run"];
+  uint64_t hstrip_first        = parameters_["hstrip_first"];
+  uint64_t hstrip_step         = parameters_["hstrip_step"];
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
@@ -2167,7 +2173,7 @@ void emu::step::Test::_21(){
       
       for ( uint64_t iPulse = 1; iPulse <= events_per_hstrip; ++iPulse ){
 	(*crate)->ccb()->GenerateDmbCfebCalib1(); // pulse
-	::usleep( 10 );
+	::usleep( 10 + 1000*msec_between_pulses );
 	bsem_.take();
 	iEvent_++;
 	bsem_.give();
