@@ -280,9 +280,9 @@ int main(int argc, char **argv)
   if(havefile){
     // default to wires/strips display
     //jd->handle_menu(M_WIRES_STRIPS);
-    //jd->handle_menu(M_CTRIG);
+    jd->handle_menu(M_CTRIG);
     //jd->handle_menu(M_CLCT_TIME);
-    jd->handle_menu(M_ATRIG);
+    //jd->handle_menu(M_ATRIG);
   }
 
   theApp.Run();
@@ -1645,7 +1645,8 @@ void J_Display::plot_ctrig_strips()
               x1 = x0 + j*dx;
 
 	      box->SetLineColor(1);
-	      
+
+	      // Software halfstrip from CFEB data
               if (softhalfstrip[0][j-1][(i/2)-1])
                 {
                   box->SetFillStyle(1001);
@@ -1665,6 +1666,7 @@ void J_Display::plot_ctrig_strips()
                   box->DrawBox(x1+dx/2.0, btop-bsize, x1+dx, btop);
                 }
 
+	      // Comparator halfstrips
               if (j_data.halfstrip[0][j-1][(i/2)-1])
                 {
                   box->SetFillStyle(1001);
@@ -1684,6 +1686,7 @@ void J_Display::plot_ctrig_strips()
                   box->DrawBox(x1+dx/2.0, btop-bsize, x1+dx, btop);
                 }
 
+	      // CLCT key halfstrip
               if (j_data.clct[0][j-1][(i/2)-1])
                 {
                   box->SetFillStyle(1001);
