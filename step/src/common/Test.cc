@@ -142,21 +142,80 @@ int emu::step::Test::getDDUInputFiberMask( int crateId, int dduSlot ){
   return mask;
 }
 
-void emu::step::Test::setUpDDU(emu::pc::Crate* crate) {
+void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
+{
   vector<emu::pc::DDU*> ddus = crate->ddus();
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, ddus.size() << " DDUs" ); }
-  for ( vector<emu::pc::DDU*>::iterator ddu = ddus.begin(); ddu != ddus.end(); ++ddu ){
-    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU at " << *ddu ); }
-    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU's controller at " << (*ddu)->getTheController() << ", DDU in slot " << (*ddu)->slot() ); }
-    int dduInputFiberMask = getDDUInputFiberMask( crate->CrateID(), (*ddu)->slot() );
-    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFlashKillFiber(" << dduInputFiberMask << ") in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
-    // (*ddu)->writeFlashKillFiber(1);
-    (*ddu)->writeFlashKillFiber( dduInputFiberMask );
-    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeGbEPrescale(0xF0F0) in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
-    (*ddu)->writeGbEPrescale(0xF0F0);
-    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFakeL1(0x8787) in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
-    (*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
-  }
+
+  //////////////////
+  // setUpDDU performs the following 
+  // (*ddu)->writeFlashKillFiber(0x7fff);
+  // (*crate)->ccb()->HardReset_crate();
+  // (*ddu)->writeGbEPrescale( 0x7878 );
+  // (*ddu)->writeFakeL1( 0x0000 );
+  // (*crate)->ccb()->l1aReset();
+  // (*crate)->ccb()->bc0();
+  // including appropriate sleeps 
+  // Note : setUpDDU should be called after every hard reset, 
+  // as hard resets zero GbEPrescale and FakeL1
+  // (this is true for Track-Finder DDUs)
+  // S.Z. Shalhout (April 23, 2013) sshalhou@CERN.CH
+
+  if ( pLogger_ )
+    { 
+      LOG4CPLUS_INFO( *pLogger_, ddus.size() << " DDUs" ); 
+    }
+
+
+  for ( vector<emu::pc::DDU*>::iterator ddu = ddus.begin(); ddu != ddus.end(); ++ddu )
+    {
+
+      if ( pLogger_ )
+	{
+	  LOG4CPLUS_INFO( *pLogger_, "DDU at " << *ddu ); 
+	  LOG4CPLUS_INFO( *pLogger_, "DDU's controller at " << (*ddu)->getTheController() << ", DDU in slot " << (*ddu)->slot() ); 
+	}
+
+      (*ddu)->writeFlashKillFiber(0x7fff); 
+      usleep(20);
+      (crate)->ccb()->HardReset_crate();
+      usleep(250000);
+      (*ddu)->writeGbEPrescale( 0x7878 ); // 0x7878: test-stand without TCC
+      usleep(10);
+      (*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+      usleep(10);
+      (crate)->ccb()->l1aReset();
+      usleep(50000);
+      usleep(50000);
+      (crate)->ccb()->bc0();
+      
+      if ( pLogger_ )
+	{
+	  LOG4CPLUS_INFO( *pLogger_,"CKill Fiber is set to: "<<  setw(4) << hex << (*ddu)->readFlashKillFiber() << dec);
+	  LOG4CPLUS_INFO( *pLogger_,"GbEPrescale is set to: "<<  setw(4) << hex << (*ddu)->readGbEPrescale() << dec);
+	  LOG4CPLUS_INFO( *pLogger_,"Fake L1A is set to: "<<   setw(4) << hex << (*ddu)->readFakeL1() <<dec);
+	}
+
+    }
+
+
+
+
+  /* Original Version of the Function
+     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, ddus.size() << " DDUs" ); }
+     for ( vector<emu::pc::DDU*>::iterator ddu = ddus.begin(); ddu != ddus.end(); ++ddu ){
+     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU at " << *ddu ); }
+     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU's controller at " << (*ddu)->getTheController() << ", DDU in slot " << (*ddu)->slot() ); }
+     int dduInputFiberMask = getDDUInputFiberMask( crate->CrateID(), (*ddu)->slot() );
+     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFlashKillFiber(" << dduInputFiberMask << ") in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
+     // (*ddu)->writeFlashKillFiber(1);
+     (*ddu)->writeFlashKillFiber( dduInputFiberMask );
+     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeGbEPrescale(0xF0F0) in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
+     (*ddu)->writeGbEPrescale(0xF0F0);
+     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFakeL1(0x8787) in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
+     (*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+     }
+  */
+
 
 }
 
@@ -172,10 +231,12 @@ void emu::step::Test::configureCrates(){
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->configure( 0 ) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
       (*crate)->configure( 0 );
       // Set up the DDU if there's one in this crate
+      // S.Z. Shalhout Apr 23, 2013- note the new version of setUpDDU
+      // includes a hard reset 
       setUpDDU(*crate);
       // Perform a Hard-Reset to all modules in the crate and ensure configuration is uploaded to eproms
-      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
-      (*crate)->ccb()->HardReset_crate();
+      // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
+      //(*crate)->ccb()->HardReset_crate();
       // Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
       ::sleep( 1 );
       // Set ccb mode once more separately, as it is screwed up inside ccb->configure
@@ -689,8 +750,8 @@ void emu::step::Test::_16()
   // S.Z. Shalhout (April 8, 2013)
 
   ///////////////////
-  // parameter scans revealed that
-  // a pipeline depth of 62 was best
+  // parameter scans used to find working 
+  // pipeline depth 
   // for DCFEBS 
   // (this is now read in from the test specific xml)
 
@@ -715,11 +776,10 @@ void emu::step::Test::_16()
 	      // this reads in the software value of pipelinedepth
 	      // all cfebs should have same pipeline depth so index 0 is all we need
 	      // to check
-	      short int depthX =   (*dmb)->cfebs().at( 0 ).GetPipelineDepth(); 
 
 	      (*crate)->ccb()->l1aReset();
 	      usleep(50000);
-	      setAllDCFEBsPipelineDepth( *dmb, depthX );
+              setAllDCFEBsPipelineDepth( *dmb );
 	      usleep(50000);
 	    }
 
@@ -746,7 +806,7 @@ void emu::step::Test::_16()
 
 
   ///////////////
-  // the value of ExtTrigDelay=20 was also 
+  // the value of ExtTrigDelay was also 
   // found using a parameter scan
 
   unsigned int ExtTrigDelay=20; 
@@ -820,7 +880,7 @@ void emu::step::Test::_16()
 		  for (int afeb = 0; afeb < 6; afeb++)
 		    {
 		      alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
-		      std::cout<<" SZS "<<lct_chip*6 + afeb<<std::endl;
+
 		    }
 		}
 	      alct->WriteStandbyRegister_();
@@ -919,6 +979,7 @@ void emu::step::Test::_17(){ // OK
       if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
+
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
       
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
@@ -927,7 +988,12 @@ void emu::step::Test::_17(){ // OK
           usleep(50000);
 	  setAllDCFEBsPipelineDepth( *dmb );
           usleep(50000);
-          (*crate)->ccb()->l1aReset();
+
+	  // replacing  next line S.Z. Shalhout (Apr 23, 2013)
+	  // (*crate)->ccb()->l1aReset();
+          for ( vector<emu::pc::DAQMB*>::iterator dmbX = dmbs.begin(); dmbX != dmbs.end(); ++dmbX ){ (*dmbX)->restoreCFEBIdle(); }
+
+
         }
 
 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
@@ -935,7 +1001,11 @@ void emu::step::Test::_17(){ // OK
 	(*dmb)->buck_shift();
         if ( CFEBHardwareVersion == 2 ){
           usleep(100000); // buck shifting takes a lot more time for DCFEBs
-          (*crate)->ccb()->l1aReset();
+
+	  // replacing  next line S.Z. Shalhout (Apr 23, 2013)
+	  // (*crate)->ccb()->l1aReset();
+          for ( vector<emu::pc::DAQMB*>::iterator dmbX = dmbs.begin(); dmbX != dmbs.end(); ++dmbX ){ (*dmbX)->restoreCFEBIdle(); }          
+
 	  usleep(100000);
         }
 
@@ -1055,7 +1125,11 @@ void emu::step::Test::_17b(){ // OK
           usleep(50000);
 	  setAllDCFEBsPipelineDepth( *dmb );
           usleep(50000);
-          (*crate)->ccb()->l1aReset();
+        
+	  // replacing  next line S.Z. Shalhout (Apr 23, 2013)
+	  // (*crate)->ccb()->l1aReset();
+          for ( vector<emu::pc::DAQMB*>::iterator dmbX = dmbs.begin(); dmbX != dmbs.end(); ++dmbX ){ (*dmbX)->restoreCFEBIdle(); }          
+
         }
 
 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
@@ -1063,7 +1137,11 @@ void emu::step::Test::_17b(){ // OK
 	(*dmb)->buck_shift();
         if ( CFEBHardwareVersion == 2 ){
           usleep(100000); // buck shifting takes a lot more time for DCFEBs
-          (*crate)->ccb()->l1aReset();
+
+	  // replacing  next line S.Z. Shalhout (Apr 23, 2013)
+	  // (*crate)->ccb()->l1aReset();
+          for ( vector<emu::pc::DAQMB*>::iterator dmbX = dmbs.begin(); dmbX != dmbs.end(); ++dmbX ){ (*dmbX)->restoreCFEBIdle(); }          
+
 	  usleep(100000);
         }
 
@@ -1077,11 +1155,20 @@ void emu::step::Test::_17b(){ // OK
       for ( uint64_t iDACSetting = 0; iDACSetting < pulse_dac_settings; ++iDACSetting ){
 
 	// double dac = 0.1 + 0.25*iDACSetting; //actual test at P5
-	double dac = ( dac_first_mV + dac_step_mV * iDACSetting ) / 1000.; // mV --> V
+	// S.Z. Shalhout Apr 24, 2013
+	// replaced next line
+	//	double dac = ( dac_first_mV + dac_step_mV * iDACSetting ) / 1000.; // mV --> V
+	double dac = 0.2;
+
 
 	uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	  (*dmb)->set_cal_dac( dac, dac );
+  
+	  /// added next 2 lines S.Z. Shalhout Apr 24, 2013
+          float ComparatorThresholds = 0.03;
+          (*dmb)->set_comp_thresh(ComparatorThresholds);
+
 	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	    usleep(500000);
 	    usWaitAfterPulse = 10000; // pulsing takes a lot more time for DCFEBs...
@@ -1219,7 +1306,12 @@ void emu::step::Test::_19(){
           usleep(50000);
 	  setAllDCFEBsPipelineDepth( *dmb );
           usleep(50000);
-          (*crate)->ccb()->l1aReset();
+
+	  // replacing  next line S.Z. Shalhout (Apr 23, 2013)
+	  // (*crate)->ccb()->l1aReset();
+          for ( vector<emu::pc::DAQMB*>::iterator dmbX = dmbs.begin(); dmbX != dmbs.end(); ++dmbX ){ (*dmbX)->restoreCFEBIdle(); }          
+       
+
         }
         (*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?
 
@@ -1227,7 +1319,12 @@ void emu::step::Test::_19(){
 
         if ( CFEBHardwareVersion == 2 ){
           usleep(100000); // buck shifting takes a lot more time for DCFEBs
-          (*crate)->ccb()->l1aReset();
+
+	  // replacing  next line S.Z. Shalhout (Apr 23, 2013)
+	  // (*crate)->ccb()->l1aReset();
+          for ( vector<emu::pc::DAQMB*>::iterator dmbX = dmbs.begin(); dmbX != dmbs.end(); ++dmbX ){ (*dmbX)->restoreCFEBIdle(); }          
+
+
 	  usleep(100000);
         }
 
@@ -1245,6 +1342,7 @@ void emu::step::Test::_19(){
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	  float dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
  	  (*dmb)->set_dac( 0, dac * 5. / 4095. ); // DAQMB::set_dac( voltage of calib1 DAC, voltage of calib0 DAC )
+
 	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	    usleep(100000); // setting the dac lot more time for DCFEBs...
 	  }
