@@ -1244,7 +1244,9 @@ void DAQMB::restoreCFEBIdle() {
 // Liu Oct. 1, 2012
 // Set all CFEB's JTAG state machines
    char temp[4];
-   write_cfeb_selector(0x7f);
+  char cfeb_maskX = 0x1f;
+//   write_cfeb_selector(0x7f);   
+   write_cfeb_selector(cfeb_maskX); 
    write_now(0x1018, 0, temp);
 //  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
 //    DEVTYPE dv = cfebs_[icfeb].scamDevice();
