@@ -278,7 +278,7 @@ attlist.DAQMB &=
    attribute xLatency { xsd:unsignedInt },
    attribute xFineLatency { xsd:unsignedInt },
    attribute comp_timing { xsd:unsignedInt },
-   attribute feb_clock_delay { xsd:unsignedInt },
+   attribute feb_clock_delay { xsd:unsignedInt { minInclusive="0" maxInclusive="31" } },
    attribute calibration_LCT_delay { xsd:unsignedInt },
    attribute calibration_l1acc_delay { xsd:unsignedInt },
    attribute pulse_delay { xsd:unsignedInt },
