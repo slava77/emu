@@ -8202,5 +8202,65 @@ void DAQMB::virtex6_writereg(int reg, unsigned value)
    cfeb_do(10, &comd, 0, data, rcvbuf, NOW);
 }
 
+void DAQMB::dcfeb_fpga_shutdown()
+{
+   unsigned short comd;
+   unsigned ndata[14]={0x66AA9955, 4, 0x8001000C, 0xD0000000, 4, 0x8001000C, 0xE0000000, 4, 4, 4, 4, 4, 4, 4};
+   comd=VTX6_CFG_IN;
+   cfeb_do(10, &comd, 14*32, ndata, rcvbuf, NOW);
+   udelay(50000);
+}
+
+int DAQMB::dcfeb_dna(CFEB & cfeb, void *dna)
+{
+     unsigned short comd, tmp;
+     unsigned char *dout;
+     unsigned short data[4]={0,0,0,0};
+     int rtv;
+     
+     write_cfeb_selector(cfeb.SelectorBit());
+
+     // shutdown FPGA
+     dcfeb_fpga_shutdown();
+
+     // random bits as signature
+     data[0]=((int)time(NULL) & 0xFF);
+
+     dout=(unsigned char *)dna;
+     comd=VTX6_ISC_ENABLE;
+     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+     udelay(1000);
+     comd=VTX6_ISC_DNA;
+     cfeb_do(10, &comd, 64, data, (char *)dna, NOW|READ_YES);
+
+//      printf("DNA: %02x %02X %02x %02X %02x %02X %02x %02X\n",
+//            dout[7], dout[6], dout[5], dout[4], dout[3], dout[2], dout[1], dout[0]);
+                                       
+     // the last 7 bits must be the same as the signature's lowest 7 bits
+     if((dout[7]>>1)==(data[0]&0x7F))
+     {
+        shuffle57(dout);
+        rtv=0;
+     }
+     else
+     {
+        rtv=-1;
+        std::cout << "Error: DNA readback verification failed!" << std::endl;
+     }
+     comd=VTX6_BYPASS;
+     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+     udelay(100);
+
+     // restart FPGA
+     comd=VTX6_JSTART;
+     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+     cfeb_do(0, &comd, -4000, &tmp, rcvbuf, NOW);
+     udelay(1000000);
+     // restore Idle state
+     cfeb_do(-1, &comd, 0, &tmp, rcvbuf, NOW);
+
+     return rtv;
+}
+
 } // namespace emu::pc
 } // namespace emu
