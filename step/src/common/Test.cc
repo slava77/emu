@@ -197,26 +197,6 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
 
     }
 
-
-
-
-  /* Original Version of the Function
-     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, ddus.size() << " DDUs" ); }
-     for ( vector<emu::pc::DDU*>::iterator ddu = ddus.begin(); ddu != ddus.end(); ++ddu ){
-     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU at " << *ddu ); }
-     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "DDU's controller at " << (*ddu)->getTheController() << ", DDU in slot " << (*ddu)->slot() ); }
-     int dduInputFiberMask = getDDUInputFiberMask( crate->CrateID(), (*ddu)->slot() );
-     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFlashKillFiber(" << dduInputFiberMask << ") in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
-     // (*ddu)->writeFlashKillFiber(1);
-     (*ddu)->writeFlashKillFiber( dduInputFiberMask );
-     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeGbEPrescale(0xF0F0) in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
-     (*ddu)->writeGbEPrescale(0xF0F0);
-     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*ddu)->writeFakeL1(0x8787) in " << (crate->IsAlive()?"live":"dead") << " crate " << crate->GetLabel() ); }
-     (*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
-     }
-  */
-
-
 }
 
 void emu::step::Test::configureCrates(){
@@ -1183,7 +1163,7 @@ void emu::step::Test::_17b(){ // OK
 	  // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
 	  // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	  (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
-	  ::usleep( usWaitAfterPulse + msec_between_pulses );
+	  ::usleep( usWaitAfterPulse + 1000*msec_between_pulses );
 	  bsem_.take();
 	  iEvent_++;
 	  bsem_.give();
