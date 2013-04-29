@@ -1134,12 +1134,7 @@ void emu::step::Test::_17b(){ // OK
 
       for ( uint64_t iDACSetting = 0; iDACSetting < pulse_dac_settings; ++iDACSetting ){
 
-	// double dac = 0.1 + 0.25*iDACSetting; //actual test at P5
-	// S.Z. Shalhout Apr 24, 2013
-	// replaced next line
-	//	double dac = ( dac_first_mV + dac_step_mV * iDACSetting ) / 1000.; // mV --> V
-	double dac = 0.2;
-
+	double dac = ( dac_first_mV + dac_step_mV * iDACSetting ) / 1000.; // mV --> V
 
 	uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
