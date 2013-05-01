@@ -241,6 +241,7 @@ protected:
   // new Jtag routines to bypass VMEController_jtag 
   void Jtag_Ohio(int dev, int reg, const char *snd, int cnt, char *rcv, int ird, int when); 
   void Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv, int ird, int when);
+  void Jtag_Test(int dev, int reg, const char *snd, int cnt, char *rcv, int ird, int when);
   void udelay(long int usec);
   unsigned shuffle32(unsigned value);
   void shuffle57(void *data);

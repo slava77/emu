@@ -7448,7 +7448,9 @@ void DAQMB::BuckeyeShift(int chip_mask,char shft_bits[6][6], char *shft_out)
 	 }
 	 j++;
       }
+  udelay(20);
   dcfeb_core(CHIP_SHFT, 288, sndbuf, rcvbuf, NOW|NOOP_YES|readback);
+  udelay(200);
   if(readback)  memcpy(shft_out, rcvbuf, 36);
 }
 
@@ -8260,6 +8262,58 @@ int DAQMB::dcfeb_dna(CFEB & cfeb, void *dna)
      cfeb_do(-1, &comd, 0, &tmp, rcvbuf, NOW);
 
      return rtv;
+}
+
+int DAQMB::dcfeb_adc(CFEB & cfeb, int chan)
+{
+     int temp;
+     unsigned char *dout;
+     char data[4]={0,0,0,0}, tchan[8]={0,4,2,6,1,5,3,7};
+     
+     write_cfeb_selector(cfeb.SelectorBit());
+     data[0]=0x91|(tchan[chan&7]<<1);
+     dcfeb_core(ADC_ctrl, 25, data, (char *)&temp, NOW|NO_BYPASS);
+     udelay(1000);
+     data[0]=0;
+     temp=0;
+     dcfeb_core(ADC_rdbk, 16, data, (char *)&temp, NOW|READ_YES|NOOP_YES);     
+     return (temp&0xFFFF);
+}
+
+// ODMB discrete logic JTAG port.This method has exactly the same interface as cfeb_do(). 
+void DAQMB::dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd)
+{
+  int DISC_LOG=0xFFFC;
+  char tmp[2];
+
+  /* irdsnd for jtag
+          irdsnd = 0 no read, later
+          irdsnd = 1 no read, now
+          irdsnd = 2    read, later
+          irdsnd = 3    read, now
+  */
+   if(ncmd<0)
+   { // Reset Jtag State Machine
+     Jtag_Lite(DISC_LOG, 0, tmp,-1, tmp, 0, (irdsnd&1));
+     return;
+   }
+   if(ncmd>0) Jtag_Lite(DISC_LOG, 0, (char *)cmd,ncmd, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
+//   if(ncmd>0 && nbuf>0) vme_delay(100); 
+   if(nbuf>0) Jtag_Lite(DISC_LOG, 1,(char *)inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&NOW);
+
+// send empty clocks |nbuf|, inbuf & outbuf not used
+   if(nbuf<0) Jtag_Lite(DISC_LOG, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
+}
+
+void DAQMB::odmb_fpga_call(int inst, unsigned data, char *outbuf)
+{
+  char temp[4];
+  dlog_do(-1, &inst, 0, &data, outbuf, NOW);
+  udelay(100);
+  dlog_do(10, &inst, 32, &data, outbuf, NOW|READ_YES);
+  udelay(100);
+  int comd=VTX6_BYPASS;
+  dlog_do(10, &comd, 0, &data, temp, NOW);
 }
 
 } // namespace emu::pc

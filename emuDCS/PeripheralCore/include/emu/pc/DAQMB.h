@@ -782,6 +782,11 @@ public:
 
   void dcfeb_fpga_shutdown();
   int dcfeb_dna(CFEB & cfeb, void *dna);
+  int dcfeb_adc(CFEB & cfeb, int chan);
+
+  // code for ODMB
+  void dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);
+  void odmb_fpga_call(int inst, unsigned data, char *outbuf);
 
  private:
   //
