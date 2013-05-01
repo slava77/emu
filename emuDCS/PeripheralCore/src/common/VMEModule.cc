@@ -1793,6 +1793,20 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
   }
 }
 
+// empty test routine
+void VMEModule::Jtag_Test(int dev, int reg, const char *snd, int cnt, char *rcv, int ird, int when)
+{
+// dev= VME address of the register (bits 18-0)
+//
+// reg = 0 instruction shift;
+//     = 1  data shift;
+//     = 2  empty clocks; 
+// ird = 0  no TDO read   
+//     = 1  read TDO      
+// when = 0  send vme packet LATER; 
+//      = 1  send vme packet NOW;   
+}
+
 void VMEModule::udelay(long int usec)
 {
     if(usec>=1000000)

@@ -162,6 +162,13 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define EPROM_bpi_enable 27
 #define FINE_DELAY 28
 #define TMB_TRANSMIT_MODE 29
+#define TMB_HALF_STRIP 30
+#define TMB_LAYER_MASK 31
+#define DAQ_low 32
+#define DAQ_high 33
+#define Calib_DAC 34
+#define ADC_ctrl 35
+#define ADC_rdbk 36
 
 /* VIRTEX6 fpga scan instructions */
 #define VTX6_EXTEST 0x3C0
