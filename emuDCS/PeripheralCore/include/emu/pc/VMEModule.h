@@ -162,6 +162,7 @@ public:
   VMEModule(Crate *, int );
   virtual ~VMEModule() {};
   int crate();
+  inline Crate* getCrate(){ return theCrate_; };
   int slot() const {return theSlot;}
   bool exist();
   
