@@ -75,6 +75,8 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_trig_enable"              value="1"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@match_trig_enable"             value="0"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@request_l1a"                   value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/ALCT/@alct_l1a_delay"   value="146"/>    	
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/DAQMB/CFEB/@pipeline_depth" value="61"/>	
   </test>
 
   <test id="17"><!-- OK (same as test 15 except for CCB/@l1aDelay and the CFEB delays) -->
@@ -154,6 +156,13 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_trig_enable"              value="1"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@match_trig_enable"             value="0"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@request_l1a"                   value="1"/><!-- makes no difference -->
+
+    <!-- these were not in 21 before -->
+    <set xpath="//EmuSystem/PeripheralCrate[CSC/DAQMB/CFEB/@hardware_version='2']/CCB/@l1aDelay"              value="121"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/@tmb_l1a_delay"         value="86"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/ALCT/@alct_l1a_delay"   value="160"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/DAQMB/CFEB/@pipeline_depth" value="44"/>
+
     <!-- These below are different from test 17 -->
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@rpc_read_enable"               value="0"/>  <!-- important!!! -->
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@miniscope_enable"              value="1"/>  <!-- important!!! -->

@@ -66,6 +66,8 @@ namespace emu{
       ///
       void PrintDmbValuesAndScopes( emu::pc::TMB* tmb, emu::pc::DAQMB* dmb, emu::pc::CCB* ccb, emu::pc::MPC* mpc );
 
+      enum { pipelineDepthFromXML = -99 };
+
     private:
       string              group_; ///< Name of the VME crate group that this emu::step::Test instance handles.
       bool                isFake_; ///< If \em true, the test will just be simulated without VME communication.
@@ -85,8 +87,7 @@ namespace emu{
       void enableTrigger();
       void disableTrigger();
       void setUpDMB( emu::pc::DAQMB *dmb );
-      void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, short int depth );
-      void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb );
+      void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, short int depth = pipelineDepthFromXML );
       void _11();
       void _12();
       void _13();
