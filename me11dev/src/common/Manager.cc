@@ -111,7 +111,9 @@ namespace emu { namespace me11dev {
       addCommonActionByTypename<L1Reset>(crate);
       addCommonActionByTypename<BC0>(crate);
       addCommonActionByTypename<ReadBackUserCodes>(crate);
-
+      addCommonActionByTypename<CommonUtilities_restoreCFEBIdle>(crate);
+      addCommonActionByTypename<CommonUtilities_setupDDU>(crate);
+      //addCommonActionByTypename<ButtonTests>(crate,this);
 
       /************************************************************************
        * The Buttons, which are listed in the below order on the web page.
@@ -120,9 +122,9 @@ namespace emu { namespace me11dev {
 
       
       putButtonsInGroup( "Routine Tests" );
-      addActionByTypename<ReadBackUserCodes>(crate);
       addActionByTypename<RoutineTest_ShortCosmicsRun>(crate, this);
       addActionByTypename<RoutineTest_PrecisionPulses>(crate, this);
+      addActionByTypename<RoutineTest_PatternPulses_TMBCounters>(crate, this);
 
       putButtonsInGroup( "DCFEB" );
       addActionByTypename<SetDMBDACs>(crate);
@@ -146,6 +148,8 @@ namespace emu { namespace me11dev {
       putButtonsInGroup( "TMB" );
       addActionByTypename<TMBRegisters>(crate);
       addActionByTypename<TMBDisableCopper>(crate);
+      addActionByTypename<TMBEnableCLCTInput>(crate);
+      addActionByTypename<TMBDisableCLCTInput>(crate);
       addActionByTypename<TMBSetRegisters>(crate, this);
       addActionByTypename<TMBHardResetTest>(crate);
       addActionByTypename<SetTMBdavDelay>(crate);
@@ -165,6 +169,7 @@ namespace emu { namespace me11dev {
       addActionByTypename<DDU_FakeL1>(crate);
 
       putButtonsInGroup("Special Functions" );
+      addActionByTypename<ButtonTests>(crate,this);
       //addActionByTypename<Stans_SetPipelineDepthAllDCFEBs>(crate);
       addActionByTypename<ExecuteVMEDSL>(crate);
       addActionByTypename<enableVmeDebugPrintout>(crate);
@@ -455,6 +460,12 @@ namespace emu { namespace me11dev {
     void Manager::addCommonAction(shared_ptr<Action> act) {
       act->useTMBInSlot(tmbSlot_);
       commonActions_.push_back(act);
+    }
+
+    template <typename T>
+    void Manager::addCommonActionByTypename(Crate * crate, emu::me11dev::Manager* manager ) {
+      commonActions_.push_back(shared_ptr<T>(new T(crate, manager)));
+      commonActions_.back()->useTMBInSlot(tmbSlot_);
     }
 
     template <typename T>
