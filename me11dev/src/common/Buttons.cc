@@ -479,24 +479,24 @@ namespace emu {
       //// This is the same orders and the oringinal
 
       //// For SVN, this is commented out to do nothing because the methods called are just experimental and not in SVN.
-      //out << "THIS DOES NOTHING UNLESS YOU UNCOMMENT THE EXPERIMENTAL CODE." << endl;
+      out << "THIS DOES NOTHING UNLESS YOU UNCOMMENT THE EXPERIMENTAL CODE." << endl;
 
       //// Experimental code not in SVN:
-      dmb->Set_PipelineDepth_Stan(F1DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F1DCFEBM );
-      usleep(100);
-      dmb->Set_PipelineDepth_Stan(F2DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F2DCFEBM );
-      usleep(100);
-      dmb->Set_PipelineDepth_Stan(F3DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F3DCFEBM );
-      usleep(100);
-      dmb->Set_PipelineDepth_Stan(F4DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F4DCFEBM );
-      usleep(100);
-      dmb->Set_PipelineDepth_Stan(F5DCFEBM, depth);
-      dmb->Pipeline_Restart_Stan( F5DCFEBM );
-      usleep(100);
+//       dmb->Set_PipelineDepth_Stan(F1DCFEBM, depth);
+//       dmb->Pipeline_Restart_Stan( F1DCFEBM );
+//       usleep(100);
+//       dmb->Set_PipelineDepth_Stan(F2DCFEBM, depth);
+//       dmb->Pipeline_Restart_Stan( F2DCFEBM );
+//       usleep(100);
+//       dmb->Set_PipelineDepth_Stan(F3DCFEBM, depth);
+//       dmb->Pipeline_Restart_Stan( F3DCFEBM );
+//       usleep(100);
+//       dmb->Set_PipelineDepth_Stan(F4DCFEBM, depth);
+//       dmb->Pipeline_Restart_Stan( F4DCFEBM );
+//       usleep(100);
+//       dmb->Set_PipelineDepth_Stan(F5DCFEBM, depth);
+//       dmb->Pipeline_Restart_Stan( F5DCFEBM );
+//       usleep(100);
 
       //crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
     }
@@ -509,8 +509,7 @@ namespace emu {
      *************************************************************************/
 
     ReadPipelineDepthAllDCFEBs::ReadPipelineDepthAllDCFEBs(Crate * crate)
-      : Action(crate)
-    {}
+      : Action(crate){}
 
     void ReadPipelineDepthAllDCFEBs::display(xgi::Output * out)
     {
@@ -2165,14 +2164,14 @@ namespace emu {
 	  int depth = cfeb->GetPipelineDepth(); // get value that was read in from the crate config xml (unless it was changed later)
 	  //int depth = 44; // get value that was read in from the crate config xml (unless it was changed later)
 	  (*dmb)->dcfeb_set_PipelineDepth( *cfeb, depth ); // set it on the hardware
-	  usleep(100);
+	  usleep(1000);
 	  (*dmb)->Pipeline_Restart( *cfeb ); // must restart pipeline after setting it
-	  usleep(100);
+	  usleep(1000);
 	}
       }
       //szs ccb_->l1aReset(); // needed after setting/restarting pipeline
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
-      usleep(1000);
+      usleep(10000);
       
       //// Still need settings to time in TMB data with L1a from pulse
       // I think this means tuning CCB l1aDelay and CCB external trigger delay, but this can come later
@@ -2193,21 +2192,21 @@ namespace emu {
 	//szs	ccb_->l1aReset(); // stop triggering
 	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
 	//ccb_->stopTrigger();
-      	usleep(1000);
+      	usleep(10000);
 	
 	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
 	  (*dmb)->set_ext_chanx(strip_to_pulse, dcfeb_to_pulse); // this only sets the array in software
 	  (*dmb)->buck_shift(); // this shifts the array into the buckeyes
-	  usleep(100);
+	  usleep(10000);
 	}
 	//// We are now configured to send pulses
 	
 	//szs	ccb_->l1aReset();
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
 	//ccb_->stopTrigger();
-        usleep(1000);
+        usleep(10000);
 	ccb_->bc0(); // start triggering
-        usleep(1000);
+        usleep(10000);
 cout<<"npulses = "<<n_pulses<<endl;
 	for(int p=0; p<n_pulses; ++p){
 	  cout<<"pulsing dcfeb "<<dcfeb_to_pulse<<", strip "<<strip_to_pulse<<endl;
@@ -2224,20 +2223,20 @@ cout<<"npulses = "<<n_pulses<<endl;
 
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
 	//	ccb_->l1aReset(); // stop triggering
-      	usleep(1000);
+      	usleep(10000);
 	
 	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
 	  (*dmb)->set_ext_chanx(strip_to_pulse, feb_to_pulse); // this only sets the array in software
 	  (*dmb)->buck_shift(); // this shifts the array into the buckeyes
-	  usleep(100);
+	  usleep(1000);
 	}
 	//// We are now configured to send pulses
 
 	//	ccb_->l1aReset();
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
-        usleep(1000);
+        usleep(10000);
 	ccb_->bc0(); // start triggering
-        usleep(1000);
+        usleep(10000);
 
 	for(int p=0; p<n_pulses; ++p){
 	  cout<<"pulsing dcfeb "<<feb_to_pulse<<", strip "<<strip_to_pulse<<endl;
