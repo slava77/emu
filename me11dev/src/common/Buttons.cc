@@ -475,7 +475,7 @@ namespace emu {
 
       //crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
       //// HACK to see if Stan's functions work better -Joe
-      DAQMB* dmb = dmbs_[0];
+//      DAQMB* dmb = dmbs_[0];
       //// This is the same orders and the oringinal
 
       //// For SVN, this is commented out to do nothing because the methods called are just experimental and not in SVN.
@@ -1457,7 +1457,7 @@ namespace emu {
 		    }
 		}
 	      //		alct_->WriteStandbyRegister_();
-	      sleep(10);
+	      ::sleep(10);
 	    }
 	  //ccb_->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
 	  ccb_->RedirectOutput( &cout ); // ccb prints a line on each test pulse - waste it
@@ -2296,9 +2296,9 @@ cout<<"npulses = "<<n_pulses<<endl;
      // int hp[6] = {halfstrip2+1, halfstrip2, halfstrip2+1, halfstrip2, halfstrip2+1, halfstrip2};
       int dcfeb_pulsed = 0;
       char dcfebtrig[5] = {0x01,0x02,0x04,0x08,0x10};
-      int position;
+      //int position;
       int counter_DCFEB[7]; 
-      int sum_DCFEBCounters=0;
+      //int sum_DCFEBCounters=0;
      
       int last_keyhalfstrip_pulsed = 0;
      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
@@ -2474,7 +2474,7 @@ cout<<"npulses = "<<n_pulses<<endl;
       cout<<"starting DAQ..."<<endl;
       manager_->startDAQ( string("ME11Test_ButtonTests") );
 
-      sleep(3);
+      ::sleep(3);
       
       // stop DAQ 
       cout<<"stopping DAQ..."<<endl;
