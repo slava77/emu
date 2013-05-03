@@ -69,6 +69,7 @@ namespace me11dev {
       // STL type hackery to reduce the repitition of the class name
       template <typename T> void addActionByTypename(emu::pc::Crate * crate, emu::me11dev::Manager* manager );
       template <typename T> void addActionByTypename(emu::pc::Crate * crate);
+      template <typename T> void addCommonActionByTypename(emu::pc::Crate * crate, emu::me11dev::Manager* manager );
       template <typename T> void addCommonActionByTypename(emu::pc::Crate * crate);
       template <typename T> void addLogActionByTypename(emu::pc::Crate * crate);
 

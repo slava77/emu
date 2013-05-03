@@ -250,7 +250,20 @@ namespace emu { namespace me11dev {
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
-     
+
+   class TMBEnableCLCTInput : public Action, public ActionValue<int> {
+    public:
+      TMBEnableCLCTInput(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+   };
+ 
+   class TMBDisableCLCTInput : public Action, public ActionValue<int> {
+    public:
+      TMBDisableCLCTInput(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+   };  
 
     class PipelineDepthScan_Pulses : public Action, public Action2Values<int, int> {
     public:
@@ -348,6 +361,22 @@ namespace emu { namespace me11dev {
     };
 
 
+   class CommonUtilities_setupDDU : public Action {
+   public:
+      CommonUtilities_setupDDU(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+   };
+
+
+   class CommonUtilities_restoreCFEBIdle : public Action {
+   public:
+      CommonUtilities_restoreCFEBIdle(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+   };
+
+
   class RoutineTest_ShortCosmicsRun : public Action, public ActionValue<int> {
     public:
       RoutineTest_ShortCosmicsRun(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
@@ -355,15 +384,26 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
-
     class RoutineTest_PrecisionPulses : public Action {
     public:
       RoutineTest_PrecisionPulses(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
+    };
+    class RoutineTest_PatternPulses_TMBCounters : public Action {
+    public:
+      RoutineTest_PatternPulses_TMBCounters(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
     };     
 
-
+    class ButtonTests : public Action {
+    public:
+      ButtonTests(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };     
+    
   }
 }
 

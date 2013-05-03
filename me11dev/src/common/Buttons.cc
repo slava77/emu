@@ -13,6 +13,7 @@
 #include "emu/pc/TMB_constants.h"
 
 #include "emu/utils/String.h"
+#include "cgicc/HTMLClasses.h"
 
 #include <iomanip>
 #include <ctime>
@@ -52,9 +53,10 @@ namespace emu {
     ReadBackUserCodes::ReadBackUserCodes(Crate * crate)
       : Action(crate) {}
 
+
     void ReadBackUserCodes::display(xgi::Output * out)
     {
-      addButton(out, "Read back usercodes");
+      addButton(out, "Read back usercodes","width: 100%; ");
     }
 
     void ReadBackUserCodes::respond(xgi::Input * in, ostringstream & out)
@@ -473,27 +475,29 @@ namespace emu {
 
       //crate_->vmeController()->SetPrintVMECommands(1); // turn on debug printouts of VME commands
       //// HACK to see if Stan's functions work better -Joe
-      // DAQMB* dmb = dmbs_[0];
+      DAQMB* dmb = dmbs_[0];
       //// This is the same orders and the oringinal
 
       //// For SVN, this is commented out to do nothing because the methods called are just experimental and not in SVN.
-      out << "THIS DOES NOTHING UNLESS YOU UNCOMMENT THE EXPERIMENTAL CODE." << endl;
+      //out << "THIS DOES NOTHING UNLESS YOU UNCOMMENT THE EXPERIMENTAL CODE." << endl;
 
-      // dmb->Set_PipelineDepth_Stan(F1DCFEBM, depth);
-      // dmb->Pipeline_Restart_Stan( F1DCFEBM );
-      // usleep(100);
-      // dmb->Set_PipelineDepth_Stan(F2DCFEBM, depth);
-      // dmb->Pipeline_Restart_Stan( F2DCFEBM );
-      // usleep(100);
-      // dmb->Set_PipelineDepth_Stan(F3DCFEBM, depth);
-      // dmb->Pipeline_Restart_Stan( F3DCFEBM );
-      // usleep(100);
-      // dmb->Set_PipelineDepth_Stan(F4DCFEBM, depth);
-      // dmb->Pipeline_Restart_Stan( F4DCFEBM );
-      // usleep(100);
-      // dmb->Set_PipelineDepth_Stan(F5DCFEBM, depth);
-      // dmb->Pipeline_Restart_Stan( F5DCFEBM );
-      // usleep(100);
+      //// Experimental code not in SVN:
+      dmb->Set_PipelineDepth_Stan(F1DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F1DCFEBM );
+      usleep(100);
+      dmb->Set_PipelineDepth_Stan(F2DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F2DCFEBM );
+      usleep(100);
+      dmb->Set_PipelineDepth_Stan(F3DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F3DCFEBM );
+      usleep(100);
+      dmb->Set_PipelineDepth_Stan(F4DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F4DCFEBM );
+      usleep(100);
+      dmb->Set_PipelineDepth_Stan(F5DCFEBM, depth);
+      dmb->Pipeline_Restart_Stan( F5DCFEBM );
+      usleep(100);
+
       //crate_->vmeController()->SetPrintVMECommands(0); // turn off debug printouts of VME commands
     }
 
@@ -674,7 +678,7 @@ namespace emu {
       ccb_->l1aReset(); // needed after shifting buckeyes
       usleep(100);
       
-      string subdir = "PipelineScan_" + emu::utils::getDateTime( true );
+      string subdir = "PDScan_Pulses_" + emu::utils::getDateTime( true );
       manager_->setDAQOutSubdir( subdir );
       //
       // Loop over the requested range of pipeline depth
@@ -779,6 +783,11 @@ namespace emu {
       ccb_->l1aReset(); // needed after buckeye shift
       usleep(10000);
 
+      
+
+      string subdir = "PDScan_Cosmics_" + emu::utils::getDateTime( true );
+      manager_->setDAQOutSubdir( subdir );
+
       //
       // Loop over the requested range of pipeline depth
       //
@@ -814,6 +823,7 @@ namespace emu {
 	manager_->stopDAQ();
 	
       } // loop over next pipeline depth
+      manager_->setDAQOutSubdir( "" );
     }
     
     /**************************************************************************
@@ -1033,7 +1043,7 @@ namespace emu {
 
 	  //ccb_->hardReset(); // slow
 	  ccb_->HardReset_crate(); // no sleeps
-	  usleep(400000); // need at least 150 ms for hard resets
+	  usleep(800000); // need at least 150 ms for hard resets
 
 	  const int maximum_firmware_readback_attempts = 2;
 	  int firmware_readback_attempts = 0;
@@ -1163,6 +1173,126 @@ namespace emu {
       
       out<<"Set TMB Register: "<<std::hex<<RegisterValue<<" to "<<std::hex<<tmb_->ReadRegister(RegisterValue)<<endl;
     }
+    TMBEnableCLCTInput::TMBEnableCLCTInput(Crate * crate)
+      : Action(crate),
+        ActionValue<int>(1) {}
+
+    void TMBEnableCLCTInput::display(xgi::Output * out)
+    {
+      addButtonWithTextBox(out,
+                           "Enable DCFEB:",
+                           "(1-7)",
+                           numberToString(value()));
+    }
+
+    void TMBEnableCLCTInput::respond(xgi::Input * in, ostringstream & out)
+    {
+      int DCFEBtoEnable = getFormValueInt("(1-7)", in);
+      value(DCFEBtoEnable); // save the value
+      if(DCFEBtoEnable ==1){
+        tmb_->WriteRegister(0x4a,0xffff);
+        tmb_->WriteRegister(0x4c,0xffff);
+        tmb_->WriteRegister(0x4e,0xffff);
+        if(tmb_->ReadRegister(0x4a)==0xffff && tmb_->ReadRegister(0x4c)==0xffff &&tmb_->ReadRegister(0x4e)==0xffff) out<<"FELICIDADES! Has prendido el DCFEB1"<<endl;
+      }
+      if(DCFEBtoEnable ==2){
+        tmb_->WriteRegister(0x50,0xffff);
+        tmb_->WriteRegister(0x52,0xffff);
+        tmb_->WriteRegister(0x54,0xffff);
+        if(tmb_->ReadRegister(0x50)==0xffff && tmb_->ReadRegister(0x52)==0xffff &&tmb_->ReadRegister(0x54)==0xffff) out<<"FELICIDADES! Has prendido el DCFEB2"<<endl;
+      }
+      if(DCFEBtoEnable ==3){
+        tmb_->WriteRegister(0x56,0xffff);
+        tmb_->WriteRegister(0x58,0xffff);
+        tmb_->WriteRegister(0x5a,0xffff);
+        if(tmb_->ReadRegister(0x56)==0xffff && tmb_->ReadRegister(0x58)==0xffff &&tmb_->ReadRegister(0x5a)==0xffff) out<<"FELICIDADES! Has prendido el DCFEB3"<<endl;
+      }
+      if(DCFEBtoEnable ==4){
+        tmb_->WriteRegister(0x5c,0xffff);
+        tmb_->WriteRegister(0x5e,0xffff);
+        tmb_->WriteRegister(0x60,0xffff);
+        if(tmb_->ReadRegister(0x5c)==0xffff && tmb_->ReadRegister(0x5e)==0xffff &&tmb_->ReadRegister(0x60)==0xffff) out<<"FELICIDADES! Has prendido el DCFEB4"<<endl;
+      }
+      if(DCFEBtoEnable ==5){
+        tmb_->WriteRegister(0x62,0xffff);
+        tmb_->WriteRegister(0x64,0xffff);
+        tmb_->WriteRegister(0x66,0xffff);
+        if(tmb_->ReadRegister(0x62)==0xffff && tmb_->ReadRegister(0x64)==0xffff &&tmb_->ReadRegister(0x66)==0xffff) out<<"FELICIDADES! Has prendido el DCFEB5"<<endl;
+      }
+      if(DCFEBtoEnable ==6){
+        tmb_->WriteRegister(0x16e,0xffff);
+        tmb_->WriteRegister(0x170,0xffff);
+        tmb_->WriteRegister(0x172,0xffff);
+        if(tmb_->ReadRegister(0x16e)==0xffff && tmb_->ReadRegister(0x170)==0xffff &&tmb_->ReadRegister(0x172)==0xffff) out<<"FELICIDADES! Has prendido el DCFEB6"<<endl;
+      }
+      if(DCFEBtoEnable ==7){
+        tmb_->WriteRegister(0x174,0xffff);
+        tmb_->WriteRegister(0x176,0xffff);
+        tmb_->WriteRegister(0x178,0xffff);
+        if(tmb_->ReadRegister(0x174)==0xffff && tmb_->ReadRegister(0x176)==0xffff &&tmb_->ReadRegister(0x178)==0xffff) out<<"FELICIDADES! Has prendido el DCFEB7"<<endl;
+      }
+    }
+
+    TMBDisableCLCTInput::TMBDisableCLCTInput(Crate * crate)
+      : Action(crate),
+        ActionValue<int>(1) {}
+
+    void TMBDisableCLCTInput::display(xgi::Output * out)
+    {
+      addButtonWithTextBox(out,
+                           "Disable DCFEB:",
+                           "(1-7)", 
+                           numberToString(value()));
+    }
+
+    void TMBDisableCLCTInput::respond(xgi::Input * in, ostringstream & out)
+    {
+      int DCFEBtoDisable = getFormValueInt("(1-7)", in);
+      value(DCFEBtoDisable); // save the value
+      if(DCFEBtoDisable ==1){ 
+        tmb_->WriteRegister(0x4a,0);
+        tmb_->WriteRegister(0x4c,0);
+        tmb_->WriteRegister(0x4e,0);
+        if(tmb_->ReadRegister(0x4a)==0 && tmb_->ReadRegister(0x4c)==0 &&tmb_->ReadRegister(0x4e)==0) out<<"FELICIDADES! Has apagado el DCFEB1"<<endl;
+      }
+      if(DCFEBtoDisable ==2){  
+        tmb_->WriteRegister(0x50,0);
+        tmb_->WriteRegister(0x52,0);
+        tmb_->WriteRegister(0x54,0);
+        if(tmb_->ReadRegister(0x50)==0 && tmb_->ReadRegister(0x52)==0 &&tmb_->ReadRegister(0x54)==0) out<<"FELICIDADES! Has apagado el DCFEB2"<<endl;
+      }
+      if(DCFEBtoDisable ==3){
+        tmb_->WriteRegister(0x56,0);
+        tmb_->WriteRegister(0x58,0);
+        tmb_->WriteRegister(0x5a,0);
+        if(tmb_->ReadRegister(0x56)==0 && tmb_->ReadRegister(0x58)==0 &&tmb_->ReadRegister(0x5a)==0) out<<"FELICIDADES! Has apagado el DCFEB3"<<endl;
+      }
+      if(DCFEBtoDisable ==4){
+        tmb_->WriteRegister(0x5c,0);
+        tmb_->WriteRegister(0x5e,0);
+        tmb_->WriteRegister(0x60,0);
+        if(tmb_->ReadRegister(0x5c)==0 && tmb_->ReadRegister(0x5e)==0 &&tmb_->ReadRegister(0x60)==0) out<<"FELICIDADES! Has apagado el DCFEB4"<<endl;
+      }
+      if(DCFEBtoDisable ==5){
+        tmb_->WriteRegister(0x62,0);
+        tmb_->WriteRegister(0x64,0);
+        tmb_->WriteRegister(0x66,0);
+        if(tmb_->ReadRegister(0x62)==0 && tmb_->ReadRegister(0x64)==0 &&tmb_->ReadRegister(0x66)==0) out<<"FELICIDADES! Has apagado el DCFEB5"<<endl;
+      }
+      if(DCFEBtoDisable ==6){
+        tmb_->WriteRegister(0x16e,0);
+        tmb_->WriteRegister(0x170,0);
+        tmb_->WriteRegister(0x172,0);
+        if(tmb_->ReadRegister(0x16e)==0 && tmb_->ReadRegister(0x170)==0 &&tmb_->ReadRegister(0x172)==0) out<<"FELICIDADES! Has apagado el DCFEB6"<<endl;
+      }
+      if(DCFEBtoDisable ==7){
+        tmb_->WriteRegister(0x174,0);
+        tmb_->WriteRegister(0x176,0);
+        tmb_->WriteRegister(0x178,0);
+        if(tmb_->ReadRegister(0x174)==0 && tmb_->ReadRegister(0x176)==0 &&tmb_->ReadRegister(0x178)==0) out<<"FELICIDADES! Has apagado el DCFEB7)"<<endl;
+      }
+    }
+
     
     TMBDisableCopper::TMBDisableCopper(Crate * crate)
       : Action(crate) { }
@@ -1245,12 +1375,11 @@ namespace emu {
       // tmb_->SetL1aDelay(x_alct_l1a_delay);
       alct_->configure();
 
-      for(unsigned long int numReg = 0; numReg<  tmb_->TMBConfigurationRegister.size(); numReg++)
-	{
-	  unsigned long int x_address = tmb_->TMBConfigurationRegister.at(numReg);
-	  tmb_->WriteRegister(x_address);
-	}
-	  
+      for(unsigned long int numReg = 0; numReg<  tmb_->TMBConfigurationRegister.size(); numReg++){
+	unsigned long int x_address = tmb_->TMBConfigurationRegister.at(numReg);
+	tmb_->WriteRegister(x_address);
+      }
+      
       //////////////////
 
 
@@ -1309,57 +1438,54 @@ namespace emu {
 
 
 
-	for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
-	  {
+	for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair ){
 
-	    // reprogram standby register to enable 2 layers at a time
-	    const int standby_fmask[nLayerPairs] = {066, 055, 033};
-
+	  // reprogram standby register to enable 2 layers at a time
+	  //const int standby_fmask[nLayerPairs] = {066, 055, 033};
 
 
-	    if(AFEB_STANDBY==1)
-	      {
 
-		for (int lct_chip = 0; lct_chip < alct_->MaximumUserIndex() / 6; lct_chip++)
-		  {
-		    int astandby = standby_fmask[iLayerPair];
-		    for (int afeb = 0; afeb < 6; afeb++)
-		      {
-			//	alct_->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
+	  if(AFEB_STANDBY==1)
+	    {
+
+	      for (int lct_chip = 0; lct_chip < alct_->MaximumUserIndex() / 6; lct_chip++)
+		{
+		  //int astandby = standby_fmask[iLayerPair];
+		  for (int afeb = 0; afeb < 6; afeb++)
+		    {
+		      //	alct_->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
 		
-		      }
-		  }
-		//		alct_->WriteStandbyRegister_();
-		::sleep(10);
-	      }
-	    //ccb_->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-	    ccb_->RedirectOutput( &cout ); // ccb prints a line on each test pulse - waste it
+		    }
+		}
+	      //		alct_->WriteStandbyRegister_();
+	      sleep(10);
+	    }
+	  //ccb_->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+	  ccb_->RedirectOutput( &cout ); // ccb prints a line on each test pulse - waste it
 
 		      
-	    for ( uint64_t iPulse = 1; iPulse <= events_per_layer; ++iPulse )
-	      {
+	  for ( uint64_t iPulse = 1; iPulse <= events_per_layer; ++iPulse )
+	    {
 
-		// from test 14 also throw in this call
-		//    ccb_->GenerateAlctAdbASync();
-		//    usleep(10000);	 
+	      // from test 14 also throw in this call
+	      //    ccb_->GenerateAlctAdbASync();
+	      //    usleep(10000);	 
 
 
 
-		// from test 16
-		ccb_->GenerateAlctAdbSync();
-		usleep(10);	  
+	      // from test 16
+	      ccb_->GenerateAlctAdbSync();
+	      usleep(10);	  
 
 		 
-	      } 
+	    } 
       
-	    ccb_->RedirectOutput (&cout); // get back ccb output
+	  ccb_->RedirectOutput (&cout); // get back ccb output
 
-	    /////////
-
+	  /////////
 	     
-	  }
+	}
       }
-
     }
     
     
@@ -1809,9 +1935,68 @@ namespace emu {
 	    }
 	}
     }
-  
+
+    /**************************************************************************
+     * CommonUtilities_setupDDU
+     * -- S.Z. Shalhout April 26, 2013 (sshalhou@cern.ch)
+     *************************************************************************/
+
+    CommonUtilities_setupDDU::CommonUtilities_setupDDU(Crate * crate)
+      : Action(crate) {}
+ 
+    void CommonUtilities_setupDDU::display(xgi::Output * out)
+    {
+      addButton(out, "SetUp DDU ","width: 100%; ");
+    } 
+
+    void CommonUtilities_setupDDU::respond(xgi::Input * in, ostringstream & out)
+    {
+
+      for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu)
+	{
+	
+	  (*ddu)->writeFlashKillFiber(0x7fff); 
+	  usleep(20);
+	  ccb_->HardReset_crate();
+	  usleep(250000);
+	  (*ddu)->writeGbEPrescale( 0x7878 ); // 0x7878: test-stand without TCC
+	  usleep(10);
+	  (*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+	  usleep(10);
+	  ccb_->l1aReset();
+	  usleep(50000);
+	  usleep(50000);
+	  ccb_->bc0();
+
+
+	} 
+
+    }
+
+
   
     /**************************************************************************
+     * CommonUtilities_restoreCFEBIdle
+     * -- S.Z. Shalhout April 26, 2013 (sshalhou@cern.ch)
+     *************************************************************************/
+
+    CommonUtilities_restoreCFEBIdle::CommonUtilities_restoreCFEBIdle(Crate * crate)
+      : Action(crate) {}
+ 
+    void CommonUtilities_restoreCFEBIdle::display(xgi::Output * out)
+    {
+      addButton(out, "Restore CFEBS to IDLE","width: 100%; ");
+    } 
+
+    void CommonUtilities_restoreCFEBIdle::respond(xgi::Input * in, ostringstream & out)
+    {
+
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
+
+    }
+
+
+     /**************************************************************************
      * RoutineTest_ShortCosmicsRun
      * -- S.Z. Shalhout April 4, 2013 (sshalhou@cern.ch)
      *************************************************************************/
@@ -1836,7 +2021,7 @@ namespace emu {
       
       // equivalent to EmuPeripheralCrateConfig::PrepareForTriggering
       
-      int _time = getFormValueIntHex("time", in);      
+      int _time = getFormValueInt("time", in);      
       
       ccb_->setCCBMode(CCB::VMEFPGA);
       ccb_->hardReset();
@@ -1877,7 +2062,29 @@ namespace emu {
 	(*dmb)->buck_shift();
 	usleep(100);
       }
-
+      //Indara Needs for ALCT-only cosmic run//
+     /*   tmb_->WriteRegister(0x4a,0);
+        tmb_->WriteRegister(0x4c,0);
+        tmb_->WriteRegister(0x4e,0);
+        tmb_->WriteRegister(0x50,0);
+        tmb_->WriteRegister(0x52,0);
+        tmb_->WriteRegister(0x54,0);
+        tmb_->WriteRegister(0x56,0);
+        tmb_->WriteRegister(0x58,0);
+        tmb_->WriteRegister(0x5a,0);
+        tmb_->WriteRegister(0x5c,0);
+        tmb_->WriteRegister(0x5e,0);
+        tmb_->WriteRegister(0x60,0);
+        tmb_->WriteRegister(0x62,0);
+        tmb_->WriteRegister(0x64,0);
+        tmb_->WriteRegister(0x66,0);
+        tmb_->WriteRegister(0x16e,0);
+        tmb_->WriteRegister(0x170,0);
+        tmb_->WriteRegister(0x172,0);
+        tmb_->WriteRegister(0x174,0);
+        tmb_->WriteRegister(0x176,0);
+        tmb_->WriteRegister(0x178,0);      */
+  
       ccb_->l1aReset();
       usleep(1000);
       ccb_->bc0();
@@ -1919,15 +2126,19 @@ namespace emu {
       // set register 0 appropriately for communication over the VME backplane.
       ccb_->setCCBMode(CCB::VMEFPGA);
       ccb_->hardReset();
+      usleep(250000);
       // Enable L1A and clct_pretrig from any of dmb_cfeb_calib signals and disable all other trigger sources
       ccb_->EnableL1aFromDmbCfebCalibX();
+      ccb_->SetExtTrigDelay( 19 ); // Delay of ALCT and CLCT external triggers before distribution to backplane
+
+
       usleep(1000);
 
       for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu){
 	(*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
       	usleep(10);
 	(*ddu)->writeGbEPrescale( 0x7878 ); // 0x7878: test-stand without TCC
-      	usleep(10);
+      	usleep(100);
       }
       
 
@@ -1937,31 +2148,32 @@ namespace emu {
 	(*dmb)->set_dac(PulseHeight, PulseHeight);
       }
       usleep(1000);
-
+      
       //// Set comparator thresholds ////
-      float ComparatorThresholds = 0.05;
+      float ComparatorThresholds = 0.01;
       for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
 	(*dmb)->set_comp_thresh(ComparatorThresholds);
       }
       usleep(1000);
-
+  
       //// Set the pipeline depth on all DCFEBs ////
       for(vector<DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
 	vector<CFEB> cfebs = (*dmb)->cfebs();
+        out<<cfebs.size()<<endl; 
 	for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb){
 	  
-	  //int depth = cfeb->GetPipelineDepth(); // get value that was read in from the crate config xml (unless it was changed later)
-	  int depth = 64; // get value that was read in from the crate config xml (unless it was changed later)
+	  int depth = cfeb->GetPipelineDepth(); // get value that was read in from the crate config xml (unless it was changed later)
+	  //int depth = 44; // get value that was read in from the crate config xml (unless it was changed later)
 	  (*dmb)->dcfeb_set_PipelineDepth( *cfeb, depth ); // set it on the hardware
 	  usleep(100);
 	  (*dmb)->Pipeline_Restart( *cfeb ); // must restart pipeline after setting it
 	  usleep(100);
 	}
       }
-      ccb_->l1aReset(); // needed after setting/restarting pipeline
+      //szs ccb_->l1aReset(); // needed after setting/restarting pipeline
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
       usleep(1000);
       
-
       //// Still need settings to time in TMB data with L1a from pulse
       // I think this means tuning CCB l1aDelay and CCB external trigger delay, but this can come later
       
@@ -1973,28 +2185,32 @@ namespace emu {
       //// Pulse individual DCFEBs ////
       int strip_to_pulse = 0;
       int feb_to_pulse = -1;
-      for(feb_to_pulse=0; feb_to_pulse < N_DCFEBS; ++feb_to_pulse){
-	strip_to_pulse = 1 + 13*feb_to_pulse/(N_DCFEBS-1); // just a cute way to move the pulse along with the DCFEB
+
+
+      for(int dcfeb_to_pulse=0; dcfeb_to_pulse < N_DCFEBS; ++dcfeb_to_pulse){
+	strip_to_pulse = 1 + 13*dcfeb_to_pulse/(N_DCFEBS-1); // just a cute way to move the pulse along with the DCFEB
 	
-	ccb_->l1aReset(); // stop triggering
+	//szs	ccb_->l1aReset(); // stop triggering
+	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
 	//ccb_->stopTrigger();
       	usleep(1000);
 	
 	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
-	  (*dmb)->set_ext_chanx(strip_to_pulse, feb_to_pulse); // this only sets the array in software
+	  (*dmb)->set_ext_chanx(strip_to_pulse, dcfeb_to_pulse); // this only sets the array in software
 	  (*dmb)->buck_shift(); // this shifts the array into the buckeyes
 	  usleep(100);
 	}
 	//// We are now configured to send pulses
 	
-	ccb_->l1aReset();
+	//szs	ccb_->l1aReset();
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
 	//ccb_->stopTrigger();
         usleep(1000);
 	ccb_->bc0(); // start triggering
         usleep(1000);
-	
+cout<<"npulses = "<<n_pulses<<endl;
 	for(int p=0; p<n_pulses; ++p){
-	  cout<<"pulsing dcfeb "<<feb_to_pulse<<", strip "<<strip_to_pulse<<endl;
+	  cout<<"pulsing dcfeb "<<dcfeb_to_pulse<<", strip "<<strip_to_pulse<<endl;
 	  //ccb_->pulse(1,0); // send the pulses
 	  ccb_->GenerateDmbCfebCalib0(); // send the pulses 
 	  usleep(10000);
@@ -2006,7 +2222,8 @@ namespace emu {
       feb_to_pulse = -1; // -1 means all DCFEBs
       for(strip_to_pulse=0; strip_to_pulse < N_STRIPS; ++strip_to_pulse){
 
-	ccb_->l1aReset(); // stop triggering
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
+	//	ccb_->l1aReset(); // stop triggering
       	usleep(1000);
 	
 	for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
@@ -2016,7 +2233,8 @@ namespace emu {
 	}
 	//// We are now configured to send pulses
 
-	ccb_->l1aReset();
+	//	ccb_->l1aReset();
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){ (*dmb)->restoreCFEBIdle(); }
         usleep(1000);
 	ccb_->bc0(); // start triggering
         usleep(1000);
@@ -2034,7 +2252,236 @@ namespace emu {
       manager_->stopDAQ();
     }
     
+    /**************************************************************************
+     * RoutineTest_PatternPulses:Counters
+     * I. Suarez
+     *************************************************************************/
+    RoutineTest_PatternPulses_TMBCounters::RoutineTest_PatternPulses_TMBCounters(Crate * crate, emu::me11dev::Manager* manager)
+      : Action( crate, manager ) {}
+    void RoutineTest_PatternPulses_TMBCounters::display(xgi::Output * out)
+    {
+      addButton(out,"Routine Test - Pattern Pulses");
+    }
+
+    void RoutineTest_PatternPulses_TMBCounters::respond(xgi::Input * in, ostringstream & out)
+    {
+
+      // set register 0 appropriately for communication over the VME backplane.
+      ccb_->setCCBMode(CCB::VMEFPGA);
+      ccb_->hardReset();
+
+      //tmb_->SetRequestL1a(0);  //do not request l1a cause the pulse comes with one            
+      
+      for(vector <DDU*>::iterator ddu = ddus_.begin(); ddu != ddus_.end();++ddu){
+        (*ddu)->writeFakeL1( 0x0000 ); // 0x8787: passthrough // 0x0000: normal
+        usleep(10);
+        (*ddu)->writeGbEPrescale( 0x7878 ); // 0x7878: test-stand without TCC
+        usleep(10);
+      }
+
+      // Enable L1A and clct_pretrig from any of dmb_cfeb_calib signals and disable all other trigger sources
+      ccb_->EnableL1aFromDmbCfebCalibX();
+      ccb_->SetExtTrigDelay( 19 ); // Delay of ALCT and CLCT external triggers before distribution to backplane
+      usleep(100);
+
+      //// Set pulse height ////
+      float PulseHeight = 25.0;
+      float ComparatorThresholds = 2.5;
+      int NumberofPulses = 1;
+      int timebetweenpulse = 400;
+      ccb_->l1aReset(); // needed after setting/restarting pipeline
+      usleep(100);
+      int DMBposition=0;
+
+     // int halfstrip2 = 10;
+     // int hp[6] = {halfstrip2+1, halfstrip2, halfstrip2+1, halfstrip2, halfstrip2+1, halfstrip2};
+      int dcfeb_pulsed = 0;
+      char dcfebtrig[5] = {0x01,0x02,0x04,0x08,0x10};
+      int position;
+      int counter_DCFEB[7]; 
+      int sum_DCFEBCounters=0;
+     
+      int last_keyhalfstrip_pulsed = 0;
+     for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+        vector<CFEB> cfebs = (*dmb)->cfebs();
+        for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb){
+          int depth = 64; // get value that was read in from the crate config xml (unless it was changed later)
+          (*dmb)->dcfeb_set_PipelineDepth( *cfeb, depth ); // set it on the hardware
+          usleep(100);
+          (*dmb)->Pipeline_Restart( *cfeb ); // must restart pipeline after setting it
+          usleep(100);
+          ccb_->l1aReset(); // needed after setting/restarting pipeline
+          usleep(100);
+        }
+      }
+     
+      // start DAQ
+      cout<<"starting DAQ..."<<endl;
+      manager_->startDAQ( string("ME11Test_PatternPulses") );
+
+
+      for(vector <DAQMB*>::iterator dmb = dmbs_.begin(); dmb != dmbs_.end(); ++dmb){
+        (*dmb)->set_dac(PulseHeight, PulseHeight);
+        (*dmb)->set_comp_thresh(ComparatorThresholds);
+        DMBposition = int(dmb - dmbs_.begin());
+        if(DMBposition==0) dcfeb_pulsed=5;
+        if(DMBposition==1) dcfeb_pulsed=0;
+        vector<CFEB> cfebs = (*dmb)->cfebs();
+
+        for(CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); cfeb++){
+          for(int halfstrip = 0; halfstrip<32; ++halfstrip){
+          int  hp[6] = {halfstrip+1, halfstrip, halfstrip+1, halfstrip, halfstrip+1, halfstrip};
+          (*dmb)->trigsetx(hp, dcfebtrig[cfeb->number()]);
+          ccb_->l1aReset(); // needed after setting/restarting pipeline
+          usleep(1000);
+          ccb_->bc0(); // start triggering
+          usleep(1000);
+
+          tmb_->ResetCounters();
+          usleep(1000);
+          //if(halfstrip==0) 
+          out<<dcfeb_pulsed+1<<"\t"<<NumberofPulses<<"\t"<<halfstrip<<"\t";
+          ccb_->inject(NumberofPulses,timebetweenpulse); // send the pulses
+          usleep(100000);
+	  
+          last_keyhalfstrip_pulsed = int(((tmb_->ReadRegister(0x8a78) & 0xff00)>>8 ));
+          out<<last_keyhalfstrip_pulsed<<"\t";
+
+          tmb_->WriteRegister(0xd0,0x1ce2);
+          counter_DCFEB[0] = int(tmb_->ReadRegister(0xd2));
+          //if(counter_DCFEB[0]>0) 
+          out<<counter_DCFEB[0]<<"\t";
+
+          tmb_->WriteRegister(0xd0,0x1ee2);
+          counter_DCFEB[1] = int(tmb_->ReadRegister(0xd2));
+          //if(counter_DCFEB[1]>0) 
+          out<<counter_DCFEB[1]<<"\t";
+
+          tmb_->WriteRegister(0xd0,0x20e2);
+          counter_DCFEB[2] = int(tmb_->ReadRegister(0xd2));
+          //if(counter_DCFEB[2]>0) 
+          out<<counter_DCFEB[2]<<"\t"; 
+
+          tmb_->WriteRegister(0xd0,0x22e2);
+          counter_DCFEB[3] = int(tmb_->ReadRegister(0xd2));
+          //if(counter_DCFEB[3]>0) 
+          out<<counter_DCFEB[3]<<"\t";
+
+          tmb_->WriteRegister(0xd0,0x24e2);
+          counter_DCFEB[4] = int(tmb_->ReadRegister(0xd2));
+          //if(counter_DCFEB[4]>0) 
+          out<<counter_DCFEB[4]<<"\t";
+
+          tmb_->WriteRegister(0xd0,0x26e2);
+          counter_DCFEB[5] = int(tmb_->ReadRegister(0xd2));
+          //if(counter_DCFEB[5]>0) 
+          out<<counter_DCFEB[5]<<"\t";
+
+          tmb_->WriteRegister(0xd0,0x28e2);
+          counter_DCFEB[6] = int(tmb_->ReadRegister(0xd2));
+	  //if(counter_DCFEB[6]>0)  
+          out<<counter_DCFEB[6]<<endl;  
+
+          //if(NumberofPulses != counter_DCFEB[dcfeb_pulsed]) out<<"Houston, we got problems.  DCFEB"<<dcfeb_pulsed+1<<" got "<<counter_DCFEB[dcfeb_pulsed]<<" and expected "<<NumberofPulses<<endl;
+          //sum_DCFEBCounters = counter_DCFEB[0]+counter_DCFEB[1]+counter_DCFEB[2]+counter_DCFEB[3]+counter_DCFEB[4]+counter_DCFEB[5]+counter_DCFEB[6];     
+          //if((sum_DCFEBCounters - counter_DCFEB[dcfeb_pulsed]) > 0) out<<"More than 1 DCFEB was pulsed"<<endl;
+
+         //shifting everything back to normal
+         (*dmb)->shift_all(NORM_RUN);
+         (*dmb)->buck_shift();
+          usleep(100);
+          ccb_->l1aReset();
+          }
+          dcfeb_pulsed++;
+        }
+      }
+
+      // stop DAQ
+      cout<<"stopping DAQ..."<<endl;
+      manager_->stopDAQ();
+
+    }
+
+    /***********************************************
+     *  A place to run other buttons in some sequence
+     ***********************************************/
+
+    ButtonTests::ButtonTests(Crate * crate, emu::me11dev::Manager* manager)
+      : Action( crate, manager ){}
     
+    void ButtonTests::display(xgi::Output * out)
+    {
+      addButton(out, "Button Tests");
+
+      *out << cgicc::input().set("type","hidden").set("name","depth").set("value","67")<< endl;
+      *out << cgicc::input().set("type","hidden").set("name","ComparatorThresholds").set("value","0.03")<< endl;
+      
+    }
+    
+    void ButtonTests::respond(xgi::Input * in, ostringstream & out)
+    {
+
+      int sleeptime=300000;
+
+      // Hard Reset
+      HardReset hr(crate_);
+      hr.respond(in,out);
+      
+      usleep(sleeptime);
+
+      // Setup DDU
+      CommonUtilities_setupDDU setupDDU(crate_);
+      setupDDU.respond(in,out);
+      
+      usleep(sleeptime);
+
+      //Set pipeine depth: 68
+      SetPipelineDepthAllDCFEBs pd(crate_);
+      pd.respond(in,out);
+
+      usleep(sleeptime);
+
+      //Restore CFEBs
+      CommonUtilities_restoreCFEBIdle restore(crate_);
+      //restore.respond(in,out);
+      ccb_->l1aReset();
+      
+      usleep(sleeptime);
+
+      //Set comp thresh: 0.03
+      SetComparatorThresholds comp(crate_);
+      comp.respond(in,out);
+      
+      usleep(sleeptime);
+
+      //Shift to normal mode
+      ShiftBuckeyesNormRun norm(crate_);
+      norm.respond(in,out);
+
+      usleep(sleeptime);
+
+      //Restore CFEBs
+      restore.respond(in,out);
+      //ccb_->l1aReset();
+
+      usleep(sleeptime);
+
+      //BC0
+      ccb_->bc0();
+
+      usleep(sleeptime);
+
+      // start DAQ
+      cout<<"starting DAQ..."<<endl;
+      manager_->startDAQ( string("ME11Test_ButtonTests") );
+
+      sleep(3);
+      
+      // stop DAQ 
+      cout<<"stopping DAQ..."<<endl;
+      manager_->stopDAQ();
+      cout<<" Done "<<endl;
+    }
+
   } // namespace me11dev
 } // namespace emu
-
