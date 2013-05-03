@@ -146,55 +146,41 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
 {
   vector<emu::pc::DDU*> ddus = crate->ddus();
 
-  //////////////////
-  // setUpDDU performs the following 
-  // (*ddu)->writeFlashKillFiber(0x7fff);
-  // (*crate)->ccb()->HardReset_crate();
-  // (*ddu)->writeGbEPrescale( 0x7878 );
-  // (*ddu)->writeFakeL1( 0x0000 );
-  // (*crate)->ccb()->l1aReset();
-  // (*crate)->ccb()->bc0();
-  // including appropriate sleeps 
   // Note : setUpDDU should be called after every hard reset, 
   // as hard resets zero GbEPrescale and FakeL1
   // (this is true for Track-Finder DDUs)
   // S.Z. Shalhout (April 23, 2013) sshalhou@CERN.CH
   // Joe: Shortened some long sleeps (April 30, 2013
-  if ( pLogger_ )
-    { 
-      LOG4CPLUS_INFO( *pLogger_, ddus.size() << " DDUs" ); 
+  if ( pLogger_ ){ 
+    LOG4CPLUS_INFO( *pLogger_, ddus.size() << " DDUs" ); 
+  }
+
+  for ( vector<emu::pc::DDU*>::iterator ddu = ddus.begin(); ddu != ddus.end(); ++ddu ){
+    
+    if ( pLogger_ ){
+      LOG4CPLUS_INFO( *pLogger_, "DDU at " << *ddu ); 
+      LOG4CPLUS_INFO( *pLogger_, "DDU's controller at " << (*ddu)->getTheController() << ", DDU in slot " << (*ddu)->slot() ); 
     }
-
-
-  for ( vector<emu::pc::DDU*>::iterator ddu = ddus.begin(); ddu != ddus.end(); ++ddu )
-    {
-
-      if ( pLogger_ )
-	{
-	  LOG4CPLUS_INFO( *pLogger_, "DDU at " << *ddu ); 
-	  LOG4CPLUS_INFO( *pLogger_, "DDU's controller at " << (*ddu)->getTheController() << ", DDU in slot " << (*ddu)->slot() ); 
-	}
-
-      (*ddu)->writeFlashKillFiber(0x7fff); 
-      usleep(20);
-      (crate)->ccb()->HardReset_crate();
-      usleep(250000); // must be >200ms
-      (*ddu)->writeGbEPrescale( 8 ); // 8: test-stand without TCC
-      usleep(10);
-      (*ddu)->writeFakeL1( 0 ); // 7: passthrough // 0: normal
-      usleep(10);
-      (crate)->ccb()->l1aReset();
-      usleep(1000);
-      (crate)->ccb()->bc0();
-      
-      if ( pLogger_ )
-	{
+    
+    (*ddu)->writeFlashKillFiber(0x7fff); 
+    usleep(20);
+    (crate)->ccb()->HardReset_crate();
+    usleep(250000); // must be >200ms
+    (*ddu)->writeGbEPrescale( 8 ); // 8: test-stand without TCC
+    usleep(10);
+    (*ddu)->writeFakeL1( 0 ); // 7: passthrough // 0: normal
+    usleep(10);
+    (crate)->ccb()->l1aReset();
+    usleep(1000);
+    (crate)->ccb()->bc0();
+    
+    if ( pLogger_ ){
 	  LOG4CPLUS_INFO( *pLogger_,"CKill Fiber is set to: "<<  setw(4) << hex << (*ddu)->readFlashKillFiber() << dec);
 	  LOG4CPLUS_INFO( *pLogger_,"GbEPrescale is set to: "<<  setw(4) << hex << (*ddu)->readGbEPrescale() << dec);
-	  LOG4CPLUS_INFO( *pLogger_,"Fake L1A is set to: "<<   setw(4) << hex << (*ddu)->readFakeL1() <<dec);
+	  LOG4CPLUS_INFO( *pLogger_,"Fake L1A is set to: "   <<  setw(4) << hex << (*ddu)->readFakeL1() <<dec);
 	}
 
-    }
+  }
 
 }
 
@@ -331,11 +317,7 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 
 // One pipeline fuction to rule them all.
 void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, short int depth ){
-  // Joe (April 30, 2013): Make this function do everything that needs
-  //   to be done when setting the pipeline depths.
-  
-  // If depth=0, then reset pipeline depth to its config (XML) value as it may have been zeroed by a hard reset.
-  // If crate is not null, then it will do the required l1aReset (+bc0)
+  // If depth is omitted, then reset pipeline depth to its config (XML) value as it may have been zeroed by a hard reset.
 
   if ( dmb->cfebs().at( 0 ).GetHardwareVersion() != 2 ) return; // All CFEBs should have the same HW version; get it from the first.
 
@@ -729,72 +711,18 @@ void emu::step::Test::_15(){ // OK
 }
 
 
-void emu::step::Test::_16()
-{
+void emu::step::Test::_16(){
+  if ( pLogger_ ){ 
+    LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) starting" ); 
+  }
 
-  //////////////////
-  // STEP Test #16 - should work with both updated ME1/1 chambers
-  // and other types
-  // S.Z. Shalhout (April 8, 2013)
-
-  ///////////////////
-  // parameter scans used to find working 
-  // pipeline depth 
-  // for DCFEBS 
-  // (this is now read in from the test specific xml)
-
-  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
-
-  ///////////////////////////////////////
-  // Read in pipeline depths from XML
-  // and set for each DCFEB (HardwareVersion==2)
- 
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
-    {
-      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
-      
-      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
-	{
-
-	  setAllDCFEBsPipelineDepth( *dmb );
-	  
-	  (*dmb)->buck_shift();
-
- 	  int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion();
-	  if ( CFEBHardwareVersion == 2 )
-	    {
-	      usleep(100000); // buck shifting takes a lot more time for DCFEBs
-	      (*dmb)->restoreCFEBIdle();
-	      usleep(100000);
-	      (*crate)->ccb()->bc0(); // this may not be needed, should check
-	    }
-
-	  // Is this supposed to be commented out?:
-	  //	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
-	  
-	} 
-      
-    }
-
-
-  ///////////////
-  // the value of ExtTrigDelay was also 
-  // found using a parameter scan
-
-  unsigned int ExtTrigDelay=20; 
-
-
-
-  if ( pLogger_ )
-    { 
-      LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) starting" ); 
-    }
-
+  const unsigned int extTrigDelay = 20;
   const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
   uint64_t events_per_layer    = parameters_["events_per_layer"];
   uint64_t alct_test_pulse_amp = parameters_["alct_test_pulse_amp"];
   uint64_t msec_between_pulses = parameters_["msec_between_pulses"];  
   
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
 
   //
@@ -805,21 +733,36 @@ void emu::step::Test::_16()
   nEvents_ = crates.size() * nLayerPairs * events_per_layer;
   bsem_.give();
 
+  // Set pipeline depth for each DCFEB (HardwareVersion==2)
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+
+	  setAllDCFEBsPipelineDepth( *dmb );
+	  
+ 	  int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion();
+	  if ( CFEBHardwareVersion == 2 ){
+        (*dmb)->buck_shift();
+        usleep(100000); // buck shifting takes a lot more time for DCFEBs
+        (*dmb)->restoreCFEBIdle();
+        usleep(100000);
+        (*crate)->ccb()->bc0(); // this may not be needed, should check
+      }
+	} 
+  }
+
   //
   // Deliver pulses
   //
 
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
-    {
-      // if ( (*crate)->IsAlive() ){
-      //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
-      (*crate)->ccb()->EnableL1aFromSyncAdb();
-      (*crate)->ccb()->SetExtTrigDelay( ExtTrigDelay ); // TODO: make configurable in xml file
+    (*crate)->ccb()->EnableL1aFromSyncAdb();
+    (*crate)->ccb()->SetExtTrigDelay( extTrigDelay );
     
-      vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
-	{
+    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
 	  //cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
 	  emu::pc::ALCTController* alct = (*tmb)->alctController();
 	  uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them
@@ -832,76 +775,60 @@ void emu::step::Test::_16()
 	  alct->WriteTriggerRegister_();
 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
-      for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
-	{ // layer loop
+    for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair ){ // layer loop
 	  //cout << "    Layers " << iLayerPair*2+1 << " and  " << iLayerPair*2+2 << endl << flush;
       
-	  for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
-	    {
-	      emu::pc::ALCTController* alct = (*tmb)->alctController();
-	      // reprogram standby register to enable 2 layers at a time
-	      const int standby_fmask[nLayerPairs] = {066, 055, 033};
-	      for (int lct_chip = 0; lct_chip <= alct->MaximumUserIndex() / 6; lct_chip++)
-		{
-	  
+	  for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+        emu::pc::ALCTController* alct = (*tmb)->alctController();
+        // reprogram standby register to enable 2 layers at a time
+        const int standby_fmask[nLayerPairs] = {066, 055, 033};
+        for (int lct_chip = 0; lct_chip < alct->MaximumUserIndex() / 6; lct_chip++){
 		  int astandby = standby_fmask[iLayerPair];
-		  if ( pLogger_ )
-		    {
-		      LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to 0x" << hex << astandby << dec );
-		    }
-		  for (int afeb = 0; afeb < 6; afeb++)
-		    {
-		      alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
-
-		    }
-		}
-	      alct->WriteStandbyRegister_();
-	      //sleep(10);
-	    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+		  if ( pLogger_ ){
+            LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to 0x" << hex << astandby << dec );
+          }
+		  for (int afeb = 0; afeb < 6; afeb++){
+            alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
+          }
+        }
+        alct->WriteStandbyRegister_();
+      } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
       
 	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
       
-	  for ( uint64_t iPulse = 1; iPulse <=events_per_layer; ++iPulse )
-	    {
-	      (*crate)->ccb()->GenerateAlctAdbSync();
-	      usleep( 10 + 1000*msec_between_pulses );
-	      bsem_.take();
-	      iEvent_++;
-	      bsem_.give();
-	      if (iPulse % 100 == 0) 
-		{
-		  if ( pLogger_ )
-		    {
-		      stringstream ss;
-		      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-			 << ", layer pairs " << iLayerPair+1 << "/" << nLayerPairs
-			 << ", pulses " << iPulse << "/" << events_per_layer << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
-		      LOG4CPLUS_INFO( *pLogger_, ss.str() );
-		    }
+	  for ( uint64_t iPulse = 1; iPulse <=events_per_layer; ++iPulse ){
+        (*crate)->ccb()->GenerateAlctAdbSync();
+        usleep( 10 + 1000*msec_between_pulses );
+        bsem_.take();
+        iEvent_++;
+        bsem_.give();
+        if (iPulse % 100 == 0){
+		  if ( pLogger_ ){
+            stringstream ss;
+            ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+               << ", layer pairs " << iLayerPair+1 << "/" << nLayerPairs
+               << ", pulses " << iPulse << "/" << events_per_layer << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+            LOG4CPLUS_INFO( *pLogger_, ss.str() );
+          }
 		}
-	      // 	// Find the time between the DMB's receiving CLCT pretrigger and L1A:
-	      // 	for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-	      // 	  PrintDmbValuesAndScopes( *tmb, (*crate)->GetChamber( *tmb )->GetDMB(), (*crate)->ccb(), (*crate)->mpc() );
-	      // 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
-	      if ( isToStop_ ) 
-		{
+        // 	// Find the time between the DMB's receiving CLCT pretrigger and L1A:
+        // 	for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+        // 	  PrintDmbValuesAndScopes( *tmb, (*crate)->GetChamber( *tmb )->GetDMB(), (*crate)->ccb(), (*crate)->mpc() );
+        // 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+        if ( isToStop_ ) {
 		  return;
 		}
-	    } // for (iPulse = 1; iPulse <= events_per_layer; ++iPulse)
+      } // for (iPulse = 1; iPulse <= events_per_layer; ++iPulse)
       
 	  (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
       
 	} // for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
     
-      // } // if ( (*crate)->IsAlive() )
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
-    } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
-
-  if ( pLogger_ )
-    { 
-      LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) ending" ); 
-    }
-      
+  if ( pLogger_ ){ 
+    LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) ending" ); 
+  }
 
 }
 
@@ -1379,27 +1306,20 @@ void emu::step::Test::_21(){
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
-    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX(); // TODO: via XML
-    (*crate)->ccb()->SetExtTrigDelay( 17 ); // TODO: via XML
+    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+    (*crate)->ccb()->SetExtTrigDelay( 17 );
 
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
 
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-
-
-      tmb->EnableClctExtTrig(); // TODO: via XML
-      //setUpDMB( *dmb ); // Done in 17 & 17b
-      //if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
-      
-      // Set pipeline depth on DCFEBs
       setAllDCFEBsPipelineDepth( *dmb );
 
-      // Do we need any extra sleeps here for DCFEBs?
       (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 4095., 0 ); // set inject amplitude - first parameter (same for the entire test)
-      (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test) // TODO: via XML
-      (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT // TODO: via XML
+      (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test)
+      (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT
 
+      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
+      tmb->EnableClctExtTrig();
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
     for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip ){
@@ -1407,44 +1327,44 @@ void emu::step::Test::_21(){
       int64_t halfStrip = iHalfStrip * hstrip_step + hstrip_first - 1;
       
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	(*dmb)->trighalfx( halfStrip );
+        (*dmb)->trighalfx( halfStrip );
 
-	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+        if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
           (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
           usleep(50000);
           (*crate)->ccb()->bc0(); // may not need this (should check)
-	  usleep(100000);
+          usleep(100000);
         }
-
+        
       } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
       
       
       (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
       
       for ( uint64_t iPulse = 1; iPulse <= events_per_hstrip; ++iPulse ){
-	(*crate)->ccb()->GenerateDmbCfebCalib1(); // pulse
-	usleep( 10 + 1000*msec_between_pulses );
-	bsem_.take();
-	iEvent_++;
-	bsem_.give();
-	if (iPulse % 100 == 0) {
-	  if ( pLogger_ ){
-	    stringstream ss;
-	    ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-	       << ", half strip " << iHalfStrip+1 << "/" << hstrips_per_run << " (" << halfStrip << ")"
-	       << ", pulses " << iPulse  << "/" << events_per_hstrip << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
-	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
-	  }
-	}
-// 	// Find the time between the DMB's receiving CLCT pretrigger and L1A:
-// 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-// 	  PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
-// 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
-	if ( isToStop_ ) return;
-	
-	(*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
-	
+        (*crate)->ccb()->GenerateDmbCfebCalib1(); // pulse
+        usleep( 10 + 1000*msec_between_pulses );
+        bsem_.take();
+        iEvent_++;
+        bsem_.give();
+        if (iPulse % 100 == 0) {
+          if ( pLogger_ ){
+            stringstream ss;
+            ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+               << ", half strip " << iHalfStrip+1 << "/" << hstrips_per_run << " (" << halfStrip << ")"
+               << ", pulses " << iPulse  << "/" << events_per_hstrip << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+            LOG4CPLUS_INFO( *pLogger_, ss.str() );
+          }
+        }
+        // 	// Find the time between the DMB's receiving CLCT pretrigger and L1A:
+        // 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+        // 	  PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
+        // 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+        if ( isToStop_ ) return;
+        
+        (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+        
       } // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
       
     } // for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip )
