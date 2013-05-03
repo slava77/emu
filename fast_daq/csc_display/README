@@ -1,4 +1,11 @@
-
+2013-05-03
+Modified to use rpm-installed libraries and to create an rpm.
+Build by issuing
+  TriDAS/emu/fast_daq/build.sh
+    Executable will be TriDAS/emu/fast_daq/csc_display/lib/csc_display
+    RPM will be in TriDAS/emu/fast_daq/rpm
+When the RPM is installed, run the program by
+  /opt/xdaq/bin/csc_display.sh
 
 ========================================================================
 Cookbook instructions for setting up csc_display on emume11
