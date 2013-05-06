@@ -87,6 +87,7 @@ namespace emu{
       void enableTrigger();
       void disableTrigger();
       void setUpDMB( emu::pc::DAQMB *dmb );
+      void setUpDMB_Joe( emu::pc::DAQMB *dmb ); // temporary function to help understand setupDMB
       void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, short int depth = pipelineDepthFromXML );
       void _11();
       void _12();

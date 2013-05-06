@@ -280,7 +280,6 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 	   
   dmb->restoreCFEBIdle();
   dmb->restoreMotherboardIdle();
-  //float dac=1.00;
   dmb->set_cal_dac(dac,dac);
   dmb->setcaldelay(dword);
 
@@ -301,6 +300,76 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
   dmb->SetCfebCableDelay(feb_cable_delay);
   dmb->calctrl_global();
   //
+  // Now check the DAQMB status.  Did the configuration "take"?
+  std::cout << "After config: check status " << std::endl;
+  usleep(50);
+  dmb->dmb_readstatus(dmbstatus);
+  if( ((dmbstatus[9]&0xff)==0x00 || (dmbstatus[9]&0xff)==0xff) || 
+      ((dmbstatus[8]&0xff)==0x00 || (dmbstatus[8]&0xff)==0xff) ||
+      ((dmbstatus[7]&0xff)==0x00 || (dmbstatus[7]&0xff)==0xff) ||
+      ((dmbstatus[6]&0xff)==0x00 || (dmbstatus[6]&0xff)==0xff) ||
+      ((dmbstatus[0]&0xff)!=0x21)                              ) {
+    std::cout << "... config check not OK for DMB "  << std::endl;
+  }
+
+}
+
+void emu::step::Test::setUpDMB_Joe( emu::pc::DAQMB *dmb ){
+
+  //test values take them maybe out
+  char dmbstatus[11];
+  // the below should be done via XML params
+  // ccb_SetExtTrigDelay(ccb, 34);
+	
+  dmb->calctrl_fifomrst(); // Some sort of reset of the FIFOs
+  usleep(5000);
+
+  // Some resets of the CFEBs and DMB
+  dmb->restoreCFEBIdle();
+  dmb->restoreMotherboardIdle();
+
+  float dac=1.00;
+  dmb->set_cal_dac(dac,dac); // Write the pulse dac values to the DMB FPGA
+
+  //// Set calibration delay parameters for DMB (What do these actually do?)
+  //int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff; // old code
+  int calibration_LCT_delay = 6;
+  int calibration_l1acc_delay = 20;
+  int pulse_delay = 10;
+  int inject_delay = 15;
+  int dword = (calibration_LCT_delay & 0xF)
+    | (calibration_l1acc_delay  & 0x1F) << 4
+    | (pulse_delay  & 0x1F) << 9
+    | (inject_delay & 0x1F) << 14;
+  std::cout<<"start dword: "<<dword<<std::endl;
+  dmb->setcaldelay(dword); // Write the calibration delay parameters to the DMB FPGA
+
+  //dmb->settrgsrc(1);
+
+  int pre_block_end=7; // this is the default in the DAQMB constructor
+  dmb->fxpreblkend(pre_block_end); // Some CFEB/DCFEB thing, but not sure what this is
+
+  //// Following three commands are just to get the cfeb clock delay changed
+  int cfeb_clk_delay=31; // Why 31???
+  dmb->SetCfebClkDelay(cfeb_clk_delay); // Sets the CFEB Clock Delay in the software
+  dmb->setfebdelay(dmb->GetKillFlatClk()); // Writes the values for CFEB kill mask, CFEB Clock Delay, xLatency, and xFineLatancy to the DMB FPGA
+  dmb->load_feb_clk_delay(); // Tell DMB to load the feb clock delay settings
+
+  //// Following 12 lines are just to change the CFEB cable delay to 0 and change the CFEB DAV cable delay to compensate, if needed
+  if(dmb->GetCfebCableDelay() == 1){
+    // In the calibration, we set all cfeb_cable_delay=0 for all DMB's for
+    // timing analysis.  If the collision setting is normally cfeb_cable_delay=1,
+    // in order to ensure the proper timing of the CFEB DAV, we will need to 
+    // adjust cfeb_dav_cable_delay to follow the change of cfeb_cable_delay...
+    dmb->SetCfebDavCableDelay(dmb->GetCfebDavCableDelay()+1);
+    std::cout<<"in cable delay==1 : "<<dmb->GetCfebDavCableDelay()+1<<"/"<<dmb->GetCableDelay()<<std::endl;
+  }
+  dmb->setcbldly(dmb->GetCableDelay()); // Write all cable delay settings to DMB FPGA
+  int feb_cable_delay=0;
+  dmb->SetCfebCableDelay(feb_cable_delay); // Zero the CFEB cable delay variable in software (Souldn't this be done before dmb->setcbldly(...)???)
+  
+  dmb->calctrl_global(); // Some sort of calibration reset
+
   // Now check the DAQMB status.  Did the configuration "take"?
   std::cout << "After config: check status " << std::endl;
   usleep(50);
@@ -865,7 +934,8 @@ void emu::step::Test::_17(){ // OK
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    (*crate)->ccb()->SetExtTrigDelay( 17 ); // Delay of ALCT and CLCT external triggers before distribution to backplane
+    //(*crate)->ccb()->SetExtTrigDelay( 17 ); // Delay of ALCT and CLCT external triggers before distribution to backplane
+    (*crate)->ccb()->SetExtTrigDelay( 19 ); // change to match test 19 -Joe
     
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
 
@@ -874,11 +944,19 @@ void emu::step::Test::_17(){ // OK
       tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
       tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
       tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-      setUpDMB( *dmb );
-      //if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() != 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	setUpDMB( *dmb );
+      }
       
       // Set pipeline depth on DCFEBs
       setAllDCFEBsPipelineDepth( *dmb );
+
+      // Maybe we don't care about this for this test becasue we disable CLCTs
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	float ComparatorThresholds = (*dmb)->GetCompThresh();
+	(*dmb)->set_comp_thresh(ComparatorThresholds);
+	usleep(100000);
+      } 
 
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
@@ -908,7 +986,7 @@ void emu::step::Test::_17(){ // OK
 
 	uint64_t timesetting = iDelay%10 + 5;
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	  (*dmb)->set_cal_tim_pulse( timesetting );
+	  (*dmb)->set_cal_tim_pulse( timesetting ); // Change pulse delay on DMB FPGA
 	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	    usleep(500000);
 	    msWaitAfterPulse = 10; // pulsing takes a lot more time for DCFEBs...
@@ -999,14 +1077,22 @@ void emu::step::Test::_17b(){ // OK
       tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
       tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
       tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-      setUpDMB( *dmb );
-      //if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() != 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	setUpDMB( *dmb );
+      }
       
       // Set pipeline depth on DCFEBs
       setAllDCFEBsPipelineDepth( *dmb );
       
+      // Maybe we don't care about this for this test becasue we disable CLCTs
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	float ComparatorThresholds = (*dmb)->GetCompThresh();
+	(*dmb)->set_comp_thresh(ComparatorThresholds);
+	usleep(100000);
+      } 
+      
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
-
+    
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
 
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
@@ -1028,23 +1114,17 @@ void emu::step::Test::_17b(){ // OK
       } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
       for ( uint64_t iDACSetting = 0; iDACSetting < pulse_dac_settings; ++iDACSetting ){
-
+	
 	double dac = ( dac_first_mV + dac_step_mV * iDACSetting ) / 1000.; // mV --> V
-
+	
 	uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	  (*dmb)->set_cal_dac( dac, dac );
-  
-	  /// added next 2 lines S.Z. Shalhout Apr 24, 2013
-          float ComparatorThresholds = 0.03;
-          (*dmb)->set_comp_thresh(ComparatorThresholds);
-
-	  // Should check this:
-	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	    usleep(500000);
-	    usWaitAfterPulse = 10000; // pulsing takes a lot more time for DCFEBs...
-	  }
-
+	  (*dmb)->set_cal_dac( 0, dac );
+	  
+ 	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+ 	    usleep(100000); // setting the dac lot more time for DCFEBs... (this should be checked again)
+ 	  }
+	  
 	} // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 	usleep( 100 );
 
@@ -1116,6 +1196,7 @@ void emu::step::Test::_19(){
   uint64_t dmb_tpamp_first      = parameters_["dmb_tpamp_first"];
   uint64_t dmb_tpamp_step       = parameters_["dmb_tpamp_step"];
   uint64_t scale_turnoff        = parameters_["scale_turnoff"];
+  uint64_t scale_turnoff_dcfeb  = parameters_["scale_turnoff_dcfeb"];
   uint64_t range_turnoff        = parameters_["range_turnoff"];
   uint64_t strips_per_run       = parameters_["strips_per_run"];
   uint64_t strip_first          = parameters_["strip_first"];
@@ -1170,7 +1251,7 @@ void emu::step::Test::_19(){
 
 
       tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-      //setUpDMB( *dmb ); // Done in 17 & 17b
+
       //if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
 
       // Set pipeline depth on DCFEBs
@@ -1211,7 +1292,11 @@ void emu::step::Test::_19(){
  	  }
 	  
 	  // calculate first thresholds based on current dac value
-	  first_thresholds.push_back( max( int64_t( 0 ), (int64_t)(dac * scale_turnoff / 16 - range_turnoff) ) );
+	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){
+	    first_thresholds.push_back( max( int64_t( 0 ), (int64_t)(dac * scale_turnoff_dcfeb / 16 - range_turnoff) ) );
+	  }else{
+	    first_thresholds.push_back( max( int64_t( 0 ), (int64_t)(dac * scale_turnoff / 16 - range_turnoff) ) );
+	  }
 	} // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 	
 	
