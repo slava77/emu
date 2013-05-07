@@ -95,6 +95,7 @@ throw (xdaq::exception::Exception) :
     // Fill the application's default info space
     putParamsIntoInfoSpace(stdConfigParams_ , appInfoSpace_);
     putParamsIntoInfoSpace(stdMonitorParams_, appInfoSpace_);
+    attachListeners();
 
     bindFsmSoapCallbacks();
     bindI2oCallbacks();
@@ -774,8 +775,10 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     params.push_back(pair<string,xdata::Serializable *>("badEventCount", &badEventCount_));
 
     persistentDDUError_ = "";
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("persistentDDUError", &persistentDDUError_));
+    params.push_back(pair<string,xdata::Serializable *>("persistentDDUError", &persistentDDUError_));
+
+    dataFileNames_.clear();
+    params.push_back(pair<string,xdata::Serializable *>("dataFileNames", &dataFileNames_));
 
     fileWritingVetoed_ = false;
     params.push_back(pair<string,xdata::Serializable *>
@@ -819,6 +822,9 @@ void emu::daq::rui::Application::putParamsIntoInfoSpace
     }
 }
 
+void emu::daq::rui::Application::attachListeners(){
+  appInfoSpace_->addItemRetrieveListener("dataFileNames",this);
+}
 
 void emu::daq::rui::Application::stateChanged(toolbox::fsm::FiniteStateMachine & fsm)
 throw (toolbox::fsm::exception::Exception)
@@ -1302,6 +1308,8 @@ throw (toolbox::fsm::exception::Exception)
 {
   logMessageCounter_.reset();
 
+  destroyFileWriter();
+
   // ATCP must be started explicitly
   try{
     startATCP();
@@ -1592,8 +1600,6 @@ throw (toolbox::fsm::exception::Exception)
     // Close data file
     if ( fileWriter_ ){
       fileWriter_->endRun( runStopTime_.toString() );
-      delete fileWriter_;
-      fileWriter_ = NULL;
     }
     // Destroy rate limiter, too.
     if ( rateLimiter_ ){
@@ -2120,67 +2126,64 @@ throw (emu::daq::rui::exception::Exception)
 
 }
 
-void emu::daq::rui::Application::createFileWriters(){
-    // Just in case there's a writer, terminate it in an orderly fashion
-    if ( fileWriter_ )
-      {
-	LOG4CPLUS_WARN( logger_, "Terminating leftover file writer." );
-	stringstream ss37;
-	ss37 <<  "Terminating leftover file writer." ;
-	XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss37.str() );
-	this->notifyQualified( "warning", eObj );
-	fileWriter_->endRun();
-	delete fileWriter_;
-	fileWriter_ = NULL;
-      }
-    // Destroy rate limiter, too, if any.
-    if ( rateLimiter_ )
-      {
-	delete rateLimiter_;
-	rateLimiter_ = NULL;
-      }
+void emu::daq::rui::Application::destroyFileWriter(){
+  if ( fileWriter_ ){
+    fileWriter_->endRun();
+    delete fileWriter_;
+    fileWriter_ = NULL;
+  }
+  // Destroy rate limiter, too, if any.
+  if ( rateLimiter_ ){
+    delete rateLimiter_;
+    rateLimiter_ = NULL;
+  }
+}
 
-	  // create new writers if path is not empty
-	  if ( pathToDataOutFile_ != string("") && 
-	       (xdata::UnsignedInteger64) fileSizeInMegaBytes_ > (uint64_t) 0 )
-	    {
-	      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
-	      fileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_, 
-							       pathToDataOutFile_.toString(), 
-							       u.getHost(), "EmuRUI", instance_, emudaqrui::versions, &logger_ );
-	      // Create a rate limiter, but not for calibration or STEP runs.
-	      if ( runType_.toString() == "Monitor" ||
-		   runType_.toString() == "Debug"      ){
-		rateLimiter_ = new emu::daq::writer::RateLimiter( fileWritingRateLimitInHz_, fileWritingRateSampleSize_ );
-		fileWritingVetoed_ = false;
-	      }
-	    }
-	  else if ( runType_.toString() != "Monitor" &&
-		    runType_.toString() != "Debug"      ) // must be a calibration or STEP run...
-	    {
-	      LOG4CPLUS_FATAL( logger_, "A calibration run or a STEP run has been started without specifying a directory and/or maximum size for data files. Please set \"pathToRUIDataOutFile\" and \"ruiFileSizeInMegaBytes\" to nonzero values in the XML configuration file." );
-	      stringstream ss39;
-	      ss39 <<  "A calibration run or a STEP run has been started without specifying a directory and/or maximum size for data files. Please set \"pathToRUIDataOutFile\" and \"ruiFileSizeInMegaBytes\" to nonzero values in the XML configuration file." ;
-	      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss39.str() );
-	      this->notifyQualified( "fatal", eObj );
-	      moveToFailedState( ss39.str() );
-	    }
+void emu::daq::rui::Application::createFileWriter(){
+  // Just in case there's a writer, terminate it in an orderly fashion
+  destroyFileWriter();
 
-	  // inform the file writer about the new run
-	  try{
-	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
-							 isBookedRunNumber_.value_,
-							 runStartTime_, 
-							 ( writeBadEventsOnly_.value_ ? "BadEvents" : runType_ ) );
-	  }
-	  catch(string e){
-	    LOG4CPLUS_FATAL( logger_, e );
-	    stringstream ss40;
-	    ss40 <<  e ;
-	    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss40.str() );
-	    this->notifyQualified( "fatal", eObj );
-	    moveToFailedState( ss40.str() );
-	  }
+  // create new writers if path is not empty
+  if ( pathToDataOutFile_ != string("") && 
+       (xdata::UnsignedInteger64) fileSizeInMegaBytes_ > (uint64_t) 0 )
+    {
+      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
+      fileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_, 
+						       pathToDataOutFile_.toString(), 
+						       u.getHost(), "EmuRUI", instance_, emudaqrui::versions, &logger_ );
+      // Create a rate limiter, but not for calibration or STEP runs.
+      if ( runType_.toString() == "Monitor" ||
+	   runType_.toString() == "Debug"      ){
+	rateLimiter_ = new emu::daq::writer::RateLimiter( fileWritingRateLimitInHz_, fileWritingRateSampleSize_ );
+	fileWritingVetoed_ = false;
+      }
+    }
+  else if ( runType_.toString() != "Monitor" &&
+	    runType_.toString() != "Debug"      ) // must be a calibration or STEP run...
+    {
+      LOG4CPLUS_FATAL( logger_, "A calibration run or a STEP run has been started without specifying a directory and/or maximum size for data files. Please set \"pathToRUIDataOutFile\" and \"ruiFileSizeInMegaBytes\" to nonzero values in the XML configuration file." );
+      stringstream ss39;
+      ss39 <<  "A calibration run or a STEP run has been started without specifying a directory and/or maximum size for data files. Please set \"pathToRUIDataOutFile\" and \"ruiFileSizeInMegaBytes\" to nonzero values in the XML configuration file." ;
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss39.str() );
+      this->notifyQualified( "fatal", eObj );
+      moveToFailedState( ss39.str() );
+    }
+
+  // inform the file writer about the new run
+  try{
+    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
+						 isBookedRunNumber_.value_,
+						 runStartTime_, 
+						 ( writeBadEventsOnly_.value_ ? "BadEvents" : runType_ ) );
+  }
+  catch(string e){
+    LOG4CPLUS_FATAL( logger_, e );
+    stringstream ss40;
+    ss40 <<  e ;
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss40.str() );
+    this->notifyQualified( "fatal", eObj );
+    moveToFailedState( ss40.str() );
+  }
 }
 
 void emu::daq::rui::Application::writeDataToFile( const char* const data, const size_t dataLength, const bool newEvent ){
@@ -2367,7 +2370,7 @@ int32_t emu::daq::rui::Application::continueConstructionOfSuperFrag()
     // first event started --> a new run
 
     insideEvent_ = false;
-    createFileWriters();
+    createFileWriter();
 
     // inform emuTA about the L1A number of the first event read
     try{
@@ -2670,7 +2673,7 @@ int32_t emu::daq::rui::Application::continueSTEPRun()
     // first event started --> a new run
 
     insideEvent_ = false;
-    createFileWriters();
+    createFileWriter();
 
     // inform emuTA about the L1A number of the first event read
     try{
@@ -3622,6 +3625,30 @@ emu::daq::rui::Application::findFacts() {
 
   cout << "emu::daq::rui::Application::findFacts ***" << endl;
   return fc;
+}
+
+void emu::daq::rui::Application::actionPerformed(xdata::Event & received )
+{
+  // implementation of virtual method of class xdata::ActionListener
+
+  xdata::ItemEvent& e = dynamic_cast<xdata::ItemEvent&>(received);
+  
+  LOG4CPLUS_INFO(logger_, 
+                 "Received an InfoSpace event" <<
+                 " Event type: " << e.type() <<
+                 " Event name: " << e.itemName() <<
+                 " Serializable: " << std::hex << e.item() << std::dec <<
+                 " Type of serializable: " << e.item()->type() );
+
+  if ( e.itemName() == "dataFileNames" && e.type() == "ItemRetrieveEvent" ){
+    dataFileNames_.clear();
+    if ( fileWriter_ ){
+      vector<string> dataFileNames = fileWriter_->getFileNames();
+      for ( vector<string>::const_iterator dfn=dataFileNames.begin(); dfn!=dataFileNames.end(); ++dfn ){
+	dataFileNames_.push_back( *dfn );
+      }
+    }
+  }
 }
 
 /**

@@ -2103,6 +2103,30 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
     return stats;
 }
 
+void emu::daq::manager::Application::getDataFileNames(){
+  emu::soap::Messenger m( this );
+  
+  dataFileNames_.clear(); // All RUIs' all data file names
+  for ( vector<xdaq::ApplicationDescriptor*>::iterator rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); ++rui ){
+    string ruiHost;
+    xdata::Vector<xdata::String> dataFileNames;
+    try{
+      m.getParameters( *rui, emu::soap::Parameters().add( "dataFileNames", &dataFileNames ) );
+      ruiHost = toolbox::net::URL( (*rui)->getContextDescriptor()->getURL() ).getHost();
+    }
+    catch(xcept::Exception &e){
+      stringstream ss;
+      ss << "Failed to get list of data files from " << (*rui)->getClassName() << "." << (*rui)->getInstance() << " : " ;
+      LOG4CPLUS_WARN(logger_, ss.str() + xcept::stdformat_exception_history(e));
+    }
+    // Add this RUI's data file names with the host name prepended:
+    for ( size_t i = 0; i < dataFileNames.elements(); ++i ){
+      dataFileNames_.push_back( ruiHost + ":" + ( dynamic_cast<xdata::String*> ( dataFileNames.elementAt(i)) )->toString() );
+    }
+
+  }
+}
+
 
 void emu::daq::manager::Application::createAllAppStates(){
   currentAppStates_.clear();
@@ -3510,8 +3534,8 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable("calibStepIndex",    &calibStepIndex_   );
   s->fireItemAvailable("calibNSteps"   ,    &calibNSteps_      );
   
-  //s->addItemChangedListener("isGlobalInControl",this);
-
+  s->fireItemAvailable("dataFileNames", &dataFileNames_ );
+  s->addItemRetrieveListener("dataFileNames",this);
 
   // Parameters to obtain from TTCciControl
   TTCci_ClockSource_   = "UNKNOWN";
@@ -4951,6 +4975,7 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
 		 " Type of serializable: " << e.item()->type() );
 
   if      ( e.itemName() == "daqState"       && e.type() == "ItemRetrieveEvent" ){ daqState_ = getDAQState();        }
+  else if ( e.itemName() == "dataFileNames"  && e.type() == "ItemRetrieveEvent" ){ getDataFileNames();               }
   else if ( e.itemName() == "STEPFinished"   && e.type() == "ItemRetrieveEvent" ){ STEPFinished_ = isSTEPFinished(); }
   else if ( e.itemName() == "STEPCount"      && e.type() == "ItemRetrieveEvent" ){ STEPFinished_ = isSTEPFinished(); }
   else if ( e.itemName() == "supervisedMode" && e.type() == "ItemChangedEvent"  ){
