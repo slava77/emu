@@ -49,17 +49,17 @@ namespace emu { namespace daq { namespace writer {
   class RawDataFile{
 
   private:
-    uint32_t      maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened
+    uint32_t          maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened
     string            pathToFile_;	///< direcory where the file is to be written
     string            host_;          ///< host name
     string            appName_;	///< name of application producing the data
-    uint32_t      appInstance_;	///< instance of application producing the data
+    uint32_t          appInstance_;	///< instance of application producing the data
     string            appVersion_;    ///< version of application producing the data
     log4cplus::Logger logger_;	///< logger
     string            runStartTime_;	///< date and time of start of run
     string            runStopTime_;	///< date and time of end of run
     string            runType_;	///< run type
-    uint32_t      runNumber_;	///< run number
+    uint32_t          runNumber_;	///< run number
     bool              isBookedRunNumber_; ///< whether or not this run number was booked with the database
     uint64_t          bytesInFileCounter_; ///< number of bytes written into this file so far
     uint64_t          eventsInFileCounter_; ///< number of events written into this file so far
@@ -67,8 +67,8 @@ namespace emu { namespace daq { namespace writer {
     uint64_t          bytesInRunCounter_; ///< number of bytes written in this run so far
     uint64_t          eventsInRunCounter_; ///< number of events written in this run so far
     string            fileName_;	///< file name
-    string            markerFileName_; ///< name of marker file [ <em>file_name_base</em>.<tt>is_closed</tt> ]
     string            metaFileName_; ///< name of metadata file [ <em>file_name_base</em>.<tt>meta</tt> ]
+    vector<string>    fileNames_;	///< names of files opened so far
     fstream          *fs_;		///< output file stream
 
     /// Names the file to be written.
@@ -93,7 +93,7 @@ namespace emu { namespace daq { namespace writer {
     ///
     /// @return Unix time. 0 if conversion fails.
     ///
-    time_t toUnixTime( const std::string YYMMDD_hhmmss_UTC );
+    time_t toUnixTime( const std::string YYMMDD_hhmmss_UTC ) const;
 
     /// Names the stream, which will appear as a subdirectory name in CASTOR.
 
@@ -167,20 +167,19 @@ namespace emu { namespace daq { namespace writer {
     ///
     int getFileSize();
 
-    /// Removes file.
-    void removeFile();
-
     /// accessor of run number
 
     /// @return run number
     ///
-    uint32_t getRunNumber(){ return runNumber_; }
+    uint32_t getRunNumber() const { return runNumber_; }
 
     /// accessor of number of events written in this run
 
     /// @return number of events written in this run
     ///
-    uint64_t getNumberOfEventsWritten(){ return eventsInRunCounter_; }
+    uint64_t getNumberOfEventsWritten() const { return eventsInRunCounter_; }
+
+    vector<string> getFileNames() const { return fileNames_; }
   };
 
 }}} // namespace emu::daq::writer
