@@ -40,7 +40,7 @@ while [[ $1 = -* ]]; do
 	    echo '  ------   -------                            -------'
 	    echo '      -A   application                        emu::daq::manager::Application'
 	    echo '      -P   parameter name                     stateName'
-	    echo '      -T   parameter type                     xsd:string'
+	    echo '      -T   parameter type                     xsd:string (For array, use "soapenc:Array")'
 	    echo '      -h   print help                         do not print help'
 	    echo '      -I   server application instance        0'
 	    echo '      -L   server application lid             <not used; application instance used instead>'
@@ -56,13 +56,18 @@ while [[ $1 = -* ]]; do
     shift
 done
 
+ARRAYTYPEATTR=''
+if [[ $(echo $TYPE | grep -c Array) -eq 1 ]]; then
+    ARRAYTYPEATTR=' soapenc:arrayType=\"xsd:ur-type[0]\"'
+fi
+
 if [[ ${#SERVERAPPLID} == 0 ]]; then
     HEADER="\"SOAPAction: urn:xdaq-application:class=$SERVERAPP,instance=$SERVERAPPINSTANCE\""
 else
     HEADER="\"SOAPAction: urn:xdaq-application:lid=$SERVERAPPLID\""
 fi
 
-MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:soap-env=\\\"http://schemas.xmlsoap.org/soap/envelope/\\\" xmlns:xsd=\\\"http://www.w3.org/2001/XMLSchema\\\" xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:soapenc=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\"><soap-env:Header/><soap-env:Body><xdaq:ParameterGet xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\"><xapp:properties xmlns:xapp=\\\"urn:xdaq-application:$SERVERAPP\\\" xsi:type=\\\"soapenc:Struct\\\"><xapp:$PARAMETER xsi:type=\\\"$TYPE\\\"/></xapp:properties></xdaq:ParameterGet></soap-env:Body></soap-env:Envelope>\""
+MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:soap-env=\\\"http://schemas.xmlsoap.org/soap/envelope/\\\" xmlns:xsd=\\\"http://www.w3.org/2001/XMLSchema\\\" xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:soapenc=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\"><soap-env:Header/><soap-env:Body><xdaq:ParameterGet xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\"><xapp:properties xmlns:xapp=\\\"urn:xdaq-application:$SERVERAPP\\\" xsi:type=\\\"soapenc:Struct\\\"><xapp:$PARAMETER xsi:type=\\\"$TYPE\\\" $ARRAYTYPEATTR/></xapp:properties></xdaq:ParameterGet></soap-env:Body></soap-env:Envelope>\""
 
 WRITEOUT=""
 if [[ $VERBOSITY = "1" ]]; then
