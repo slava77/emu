@@ -24,7 +24,6 @@ void emu::daq::writer::RawDataFile::nameFile(){
   // Insert start time to make sure the name will be unique if it's not a booked run number or it's a debug run:
   if ( !isBookedRunNumber_ || runType_ == "Debug" ) fileNameStream << "_" << runStartTime_;
   fileName_       = fileNameStream.str() + ".raw";
-  markerFileName_ = fileNameStream.str() + ".is_closed";
   metaFileName_   = fileNameStream.str() + ".meta";
 }
 
@@ -33,6 +32,7 @@ void emu::daq::writer::RawDataFile::open(){
   nameFile();
   fs_->open(fileName_.c_str(), ios::out | ios::binary);
   if ( fs_->is_open() ){
+    fileNames_.push_back( fileName_ );
     bytesInFileCounter_  = 0;
     eventsInFileCounter_ = 0;
     filesInRunCounter_++;
@@ -49,30 +49,24 @@ void emu::daq::writer::RawDataFile::open(){
 }
 
 void emu::daq::writer::RawDataFile::close(){ 
-  /// Closes file, and writes an empty <em>file_name_base</em>.<tt>is_closed</tt> marker file.
-  fs_->close();
-  LOG4CPLUS_INFO( logger_, "Wrote "                           << 
-		  eventsInFileCounter_ << " events ("         << 
-		  bytesInFileCounter_  << " bytes) to "       << 
-		  fileName_ 	       << "; so far "         << 
-		  eventsInRunCounter_  << " events ("         << 
-		  bytesInRunCounter_   << " bytes) in run "   << 
-		  runNumber_ );
+  /// Closes file, and writes a metafile.
+  if ( fs_->is_open() ){
+    fs_->close();
+    LOG4CPLUS_INFO( logger_, "Wrote "                           << 
+		    eventsInFileCounter_ << " events ("         << 
+		    bytesInFileCounter_  << " bytes) to "       << 
+		    fileName_ 	       << "; so far "         << 
+		    eventsInRunCounter_  << " events ("         << 
+		    bytesInRunCounter_   << " bytes) in run "   << 
+		    runNumber_ );
+  }
   // Let the world know it's closed (if it indeed is...)
   if ( fs_->is_open() ){
     LOG4CPLUS_ERROR( logger_, fileName_ << " could not be closed.");
   }
   else{
-    // .meta file makes writeMarkerFile(); redundant
     writeMetaFile();
   }
-}
-
-void emu::daq::writer::RawDataFile::writeMarkerFile(){
-  /// Writes an empty <em>file_name_base</em>.<tt>is_closed</tt> marker file.
-  if ( fs_->is_open() ) fs_->close(); // just in case...
-  fs_->open( markerFileName_.c_str(), ios::out );
-  fs_->close();
 }
 
 void emu::daq::writer::RawDataFile::writeMetaFile(){
@@ -99,7 +93,7 @@ void emu::daq::writer::RawDataFile::writeMetaFile(){
   fs_->close();
 }
 
-time_t emu::daq::writer::RawDataFile::toUnixTime( const std::string YYMMDD_hhmmss_UTC ){
+time_t emu::daq::writer::RawDataFile::toUnixTime( const std::string YYMMDD_hhmmss_UTC ) const {
   /// Converts time given as string to Unix time
   if ( YYMMDD_hhmmss_UTC.size() < 17 ) return time_t(0);
 
@@ -221,14 +215,7 @@ void emu::daq::writer::RawDataFile::endRun(){
 void emu::daq::writer::RawDataFile::endRun( const string runStopTime ){ 
   /// To be called when the run ends.
   runStopTime_ = runStopTime;
-  close();
-  LOG4CPLUS_INFO( logger_, 
-		  "End of run "       <<
-		  runNumber_          << ". Wrote "  <<
-		  eventsInRunCounter_ << " events (" <<
-		  bytesInRunCounter_  <<" bytes) in "<<
-		  filesInRunCounter_  <<" file"      <<
-		  (filesInRunCounter_==1?".":"s.")      );
+  endRun();
 }
 
 int emu::daq::writer::RawDataFile::getFileSize(){
@@ -253,17 +240,3 @@ int emu::daq::writer::RawDataFile::getFileSize(){
   }
   return int(-1);
 }
-
-void emu::daq::writer::RawDataFile::removeFile(){
-  /// Removes file.
-  if ( fs_->is_open() ) fs_->close();
-  if ( ::remove( fileName_.c_str() ) == -1 ){
-    LOG4CPLUS_WARN( logger_, "Error deleting file " << fileName_ );
-  }
-  else{
-    LOG4CPLUS_INFO( logger_, "Deleted empty file " << fileName_ );
-    // Delete the status file too
-    ::remove( markerFileName_.c_str() );
-  }
-}
-
