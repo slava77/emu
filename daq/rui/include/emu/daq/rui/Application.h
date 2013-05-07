@@ -39,8 +39,8 @@ using namespace std;
 namespace emu { namespace daq { namespace rui {
 
 class Application :
-//     public xdaq::WebApplication,
-    public emu::base::FactFinder
+    public emu::base::FactFinder,
+    public xdata::ActionListener
 {
 public:
 
@@ -57,6 +57,7 @@ public:
 
 
 private:
+  virtual void actionPerformed(xdata::Event & received ); // inherited from xdata::ActionListener
 
   bool serverLoopAction(toolbox::task::WorkLoop *wl);
 
@@ -121,11 +122,10 @@ private:
   uint32_t                            inputDataFormatInt_;   // emu::daq::reader::Base::DDU or emu::daq::reader::Base::DCC
   uint64_t                            previousEventNumber_;
 
-  void createFileWriters();
+  void createFileWriter();
+  void destroyFileWriter();
   void createDeviceReader();
   void destroyDeviceReader();
-//   void createDeviceReaders();
-//   void destroyDeviceReaders();
   void createServers();
   void destroyServers();
   bool createI2OServer( string clientName, uint32_t clientInstance );
@@ -153,6 +153,7 @@ private:
   xdata::UnsignedInteger64                 nEventsOfMultipleBlocks_;	///< Number of events read out in more than one pass (and thus put in multiple blocks).
   xdata::String                       persistentDDUError_;
   emu::daq::writer::RawDataFile       *fileWriter_;
+  xdata::Vector<xdata::String>        dataFileNames_;
   uint64_t                            nReadingPassesInEvent_;
   bool                                insideEvent_;
   uint16_t                            errorFlag_;
@@ -503,6 +504,11 @@ private:
         vector< pair<string, xdata::Serializable*> > &params,
         xdata::InfoSpace                             *s
     );
+
+  /// 
+  /// Attaches listeners to some infospace members
+  ///
+    void attachListeners();
 
     /**
      * Binds the SOAP callbacks required to implement the finite state machine

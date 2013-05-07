@@ -260,6 +260,7 @@ private:
   xdata::UnsignedInteger32 calibNRuns_;
   xdata::UnsignedInteger32 calibStepIndex_;
   xdata::UnsignedInteger32 calibNSteps_;
+  xdata::Vector<xdata::String> dataFileNames_; // all possible run types
   uint32_t purgeIntNumberString( string* s );
 
   xdata::String hardwareMapping_; // file of the hardware mapping (path relative to XDAQ_ROOT
@@ -278,6 +279,7 @@ private:
   string reformatTime( string time );
   vector< pair<xdaq::ApplicationDescriptor*, string> > daqAppStates_;
   set<string> daqContexts_; // all different DAQ contexts with apps controlled by emu::daq::manager::Application
+  void   getDataFileNames();
   void   createAllAppStates();
   void   queryAppStates();
   string getDAQState();
