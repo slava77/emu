@@ -1720,6 +1720,9 @@ throw (xgi::exception::Exception)
 void emu::daq::rui::Application::defaultWebPage(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
 {
+  // Normally, parameter "datafilenames" is only updated when retrieved by a SOAP query. Update it now explicitly:
+  updateDataFileNames();
+
     *out << "<html>"                                                   << endl;
 
     *out << "<head>"                                                   << endl;
@@ -3627,6 +3630,19 @@ emu::daq::rui::Application::findFacts() {
   return fc;
 }
 
+void emu::daq::rui::Application::updateDataFileNames(){
+  // Update the value of exported xdata parameter "dataFileNames".
+  applicationBSem_.take();
+  dataFileNames_.clear();
+  if ( fileWriter_ ){
+    vector<string> dataFileNames = fileWriter_->getFileNames();
+    for ( vector<string>::const_iterator dfn=dataFileNames.begin(); dfn!=dataFileNames.end(); ++dfn ){
+      dataFileNames_.push_back( *dfn );
+    }
+  }
+  applicationBSem_.give();
+}
+
 void emu::daq::rui::Application::actionPerformed(xdata::Event & received )
 {
   // implementation of virtual method of class xdata::ActionListener
@@ -3641,13 +3657,7 @@ void emu::daq::rui::Application::actionPerformed(xdata::Event & received )
                  " Type of serializable: " << e.item()->type() );
 
   if ( e.itemName() == "dataFileNames" && e.type() == "ItemRetrieveEvent" ){
-    dataFileNames_.clear();
-    if ( fileWriter_ ){
-      vector<string> dataFileNames = fileWriter_->getFileNames();
-      for ( vector<string>::const_iterator dfn=dataFileNames.begin(); dfn!=dataFileNames.end(); ++dfn ){
-	dataFileNames_.push_back( *dfn );
-      }
-    }
+    updateDataFileNames();
   }
 }
 
