@@ -158,6 +158,7 @@ private:
   bool                                insideEvent_;
   uint16_t                            errorFlag_;
   bool                                ableToWriteToDisk_;
+  void updateDataFileNames();
 
   // file writing rate limiter
   emu::daq::writer::RateLimiter       *rateLimiter_;
