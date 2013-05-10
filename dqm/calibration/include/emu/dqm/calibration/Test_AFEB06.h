@@ -58,6 +58,7 @@ public:
 
 protected:
 
+  void setTestParams(); // set Test parameters from Config section of parsed xml and test_params map
   void initCSC(std::string cscID);
   void analyzeCSC(const CSCEventData& data);
   void finishCSC(std::string cscID);
@@ -76,6 +77,8 @@ protected:
   int num_thresh;
   int first_thresh;
   int thresh_step;
+  int tpamp_first;
+  int tpamp_step;
   int ev_per_thresh;
   int pass;
 

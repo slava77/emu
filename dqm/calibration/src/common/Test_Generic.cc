@@ -341,7 +341,9 @@ int Test_Generic::loadTestCfg()
 
   }
 
+  
   ///* Find and parse Test configuration parameters
+  test_params.clear();
   itemList = doc->getElementsByTagName( XMLString::transcode("Config") );
   if ( itemList->getLength() == 0 )
   {
@@ -359,6 +361,7 @@ int Test_Generic::loadTestCfg()
         {
           std::string param = std::string(XMLString::transcode(children->item(i)->getFirstChild()->getNodeValue()));
           obj_info[paramname] = param;
+	  test_params[paramname] = param;
         }
       }
 
@@ -382,7 +385,7 @@ TestData2D parseMask(std::string s)
 {
 
   TestData2D mask;
-  mask.Nbins = 80;
+  mask.Nbins = 112;
   mask.Nlayers = 6;
   memset(mask.content, 0, sizeof (mask.content));
   memset(mask.cnts, 0, sizeof (mask.cnts));
