@@ -26,9 +26,11 @@
 #ifndef TEST_CANVAS_6GR1H_H
 #define TEST_CANVAS_6GR1H_H
 
+
 #include <iostream>
 #include <string.h>
 #include <vector>
+#include <stdint.h>
 
 #include <TROOT.h>
 #include <TFile.h>

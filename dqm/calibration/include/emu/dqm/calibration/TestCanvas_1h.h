@@ -29,6 +29,7 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
+#include <stdint.h>
 
 #include <TROOT.h>
 #include <TFile.h>

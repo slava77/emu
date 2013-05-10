@@ -64,7 +64,7 @@ typedef ConsumerCanvas MonitoringCanvas;
 #define ANALYSIS_VER "2.0"
 
 #define NLAYERS 6
-#define MAX_STRIPS 80
+#define MAX_STRIPS 112
 #define MAX_WIREGROUPS 112
 #define SCA_CELLS 96
 #define MAX_ALCT_TIMEBINS 32
@@ -286,6 +286,7 @@ public:
   {
     configFile=cfgfile;
     loadTestCfg();
+    setTestParams();
   }
   void setMasksFile(std::string mfile)
   {
@@ -319,6 +320,7 @@ protected:
   // bool fillCrateMapOracle(CSCCrateMap* mapobj); 	// Fill CSCCrateMap from Oracle DB
   void addCSCtoMap(std::string, int, int);
 
+  virtual void setTestParams() {};
   int loadTestCfg();
   int loadMasks();
   // virtual void bookTestCanvases(std::string cscID);
@@ -346,7 +348,9 @@ protected:
   std::map<std::string, uint32_t> nCSCBadEvents;
   std::string dataFile;
   std::string outDir;
+  std::map<std::string, std::string> test_params;
   uint32_t nExpectedEvents;
+  uint16_t theFormatVersion;
 
   CSCDCCExaminer bin_checker;
   CSCReadoutMappingFromFile cscMapping;

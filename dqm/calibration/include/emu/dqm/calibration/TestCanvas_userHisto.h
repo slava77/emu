@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <stdint.h>
 
 #include <TROOT.h>
 #include <TFile.h>
