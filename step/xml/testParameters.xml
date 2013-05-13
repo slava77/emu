@@ -93,7 +93,8 @@
 
   <test_config>
         <test>                  19       </test>
-        <scale_turnoff>         12   </scale_turnoff> <!-- ME1/1 needs 18 or the threshold will not cross the higher pulses -->
+        <scale_turnoff>         12   </scale_turnoff>
+        <scale_turnoff_dcfeb>   18   </scale_turnoff_dcfeb>
         <range_turnoff>         20   </range_turnoff>
         <events_per_thresh>     15   </events_per_thresh>
         <threshs_per_tpamp>     35   </threshs_per_tpamp>
