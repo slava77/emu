@@ -515,7 +515,8 @@ void Test_AFEB07::finishCSC(std::string cscID)
       }
 
       /* Find the average slope and delay offset of all the chips */
-      for (int chip = 0, avg = 0, avg_slope = 0, n = 0; chip < nAFEBs; chip++) {
+      avg = 0; avg_slope = 0; n = 0;
+      for (int chip = 0; chip < nAFEBs; chip++) {
         if (ngood[chip] >= 0) {
           avg_slope += m_avg[chip];
           avg += d[chip] - rint(d[chip]);
@@ -539,7 +540,7 @@ void Test_AFEB07::finishCSC(std::string cscID)
         if (ngood[chip] > 0) d[chip] = ((bmax + avg) - b_avg[chip])
                                          / m_avg[chip];
         else d[chip] = -1;
-        // std::cout << Form("chip%d bmax:%.f avg:%.f b_avg:%.f m_avg:%.f dchip:%.f\n", chip, bmax, avg, b_avg[chip], m_avg[chip], d[chip]);
+        std::cout << Form("chip%d bmax:%.f avg:%.f b_avg:%.f m_avg:%.f dchip:%.f\n", chip, bmax, avg, b_avg[chip], m_avg[chip], d[chip]);
         idelay[chip] = rint(d[chip]);
       }
 
