@@ -294,7 +294,8 @@ std::string emu::utils::appendToSelectedNode( const std::string &XML,
 
 std::string emu::utils::setSelectedNodesValues( const std::string &XML,
 						const std::string &xPathToNode,
-						const std::string &value )
+						const std::string &value,
+						Operation_t operation )
 {
   // Based on the idea in http://www.opensubscriber.com/message/xalan-c-users@xml.apache.org/2655850.html
 
@@ -354,7 +355,29 @@ std::string emu::utils::setSelectedNodesValues( const std::string &XML,
       DOMNode* node = const_cast< DOMNode* >(docWrapper->mapNode( nodes.item(i) ) );
       if ( node )
       {
-        emu::utils::setNodeValue( node, value );
+	if ( operation == emu::utils::replace ){
+	  emu::utils::setNodeValue( node, value );
+	  }
+	else if ( operation == emu::utils::add ){
+	  std::string oldValue = emu::utils::getNodeValue( node );
+	  if ( value.find_first_of(".eE") != std::string::npos || oldValue.find_first_of(".eE") != std::string::npos ){
+	    emu::utils::setNodeValue( node, emu::utils::stringFrom<double>( emu::utils::stringTo<double>( oldValue ) + emu::utils::stringTo<double>( value ) ) );
+	  }
+	  else{
+	    emu::utils::setNodeValue( node, emu::utils::stringFrom<int>( emu::utils::stringTo<int>( oldValue ) + emu::utils::stringTo<int>( value ) ) );
+	  }
+	}
+	else if ( operation == emu::utils::prepend ){
+	  emu::utils::setNodeValue( node, value + emu::utils::getNodeValue( node ) );
+	}
+	else if ( operation == emu::utils::append ){
+	  emu::utils::setNodeValue( node, emu::utils::getNodeValue( node ) + value );
+	}
+	else{
+	  std::stringstream ss;
+	  ss << "Unknown operation (" << operation << ") on node value.";
+	  XCEPT_RAISE( xcept::Exception, ss.str() );
+	}
       }
     }
 
@@ -420,7 +443,8 @@ std::string emu::utils::setSelectedNodesValues( const std::string &XML,
 
 
 std::string emu::utils::setSelectedNodesValues(const std::string &XML,
-                                               const std::map<std::string, std::string> &values)
+                                               const std::map<std::string, std::string> &values,
+					       Operation_t operation)
 {
   // Based on the idea in http://www.opensubscriber.com/message/xalan-c-users@xml.apache.org/2655850.html
 
@@ -483,7 +507,30 @@ std::string emu::utils::setSelectedNodesValues(const std::string &XML,
 	DOMNode* node = const_cast< DOMNode* >(docWrapper->mapNode( nodes.item(i) ) );
 	if ( node )
 	{
-	  emu::utils::setNodeValue( node, v->second );
+	  if ( operation == emu::utils::replace ){
+	    emu::utils::setNodeValue( node, v->second );
+	  }
+	  else if ( operation == emu::utils::add ){
+	    std::string oldValue = emu::utils::getNodeValue( node );
+	    std::cout << "oldValue = " << oldValue << std::endl;
+	    if ( v->second.find_first_of(".eE") != std::string::npos || oldValue.find_first_of(".eE") != std::string::npos ){
+	      emu::utils::setNodeValue( node, emu::utils::stringFrom<double>( emu::utils::stringTo<double>( oldValue ) + emu::utils::stringTo<double>( v->second ) ) );
+	    }
+	    else{
+	      emu::utils::setNodeValue( node, emu::utils::stringFrom<int>( emu::utils::stringTo<int>( oldValue ) + emu::utils::stringTo<int>( v->second ) ) );
+	    }
+	  }
+	  else if ( operation == emu::utils::prepend ){
+	    emu::utils::setNodeValue( node, v->second + emu::utils::getNodeValue( node ) );
+	  }
+	  else if ( operation == emu::utils::append ){
+	    emu::utils::setNodeValue( node, emu::utils::getNodeValue( node ) + v->second );
+	  }
+	  else{
+	    std::stringstream ss;
+	    ss << "Unknown operation (" << operation << ") on node value.";
+	    XCEPT_RAISE( xcept::Exception, ss.str() );
+	  }
 	}
       }
       
@@ -873,6 +920,26 @@ std::string emu::utils::getSelectedNode(const std::string &XML,
   return nodeXML;
 }
 
+
+std::string emu::utils::getNodeValue( const DOMNode* const node )
+{
+  std::string value;
+  if (node)
+  {
+    if (node->getNodeType() == DOMNode::ELEMENT_NODE && node->getFirstChild())
+    {
+      if (node->getFirstChild()->getNodeType() == DOMNode::TEXT_NODE)
+      {
+        value = xoap::XMLCh2String( node->getFirstChild()->getNodeValue() );
+      }
+    }
+    else
+    {
+      value = xoap::XMLCh2String( node->getNodeValue() );
+    }
+  }
+  return value;
+}
 
 std::string emu::utils::getNodeValue( const XalanNode* const node )
 {

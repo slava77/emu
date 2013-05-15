@@ -13,6 +13,9 @@ XERCES_CPP_NAMESPACE_USE
 
 namespace emu { namespace utils {
 
+
+enum Operation_t { replace, add, prepend, append }; ///< To replace old value with new, to add, prepend or append new value to old.
+
 /**
  *
  */
@@ -36,12 +39,14 @@ std::string appendToSelectedNode(const std::string &XML,
     /// @param XML Original XML string.
     /// @param xPathToNode XPath expression selecting the targeted node(s).
     /// @param value Value to set the node(s) to.
+    /// @param operation The operation to be performed on the old value with the new one.
     ///
     /// @return Modified XML string.
     ///
 std::string setSelectedNodesValues(const std::string &XML,
 				   const std::string &xPathToNode,
-				   const std::string &value);
+				   const std::string &value,
+				   Operation_t operation = replace );
 
     /// Set the value of the node(s) selected by a set of XPath expressions.
     /// The XPath expressions should match disjunct sets of nodes, or else the result will be
@@ -49,11 +54,13 @@ std::string setSelectedNodesValues(const std::string &XML,
     ///
     /// @param XML Original XML string.
     /// @param values Container of XPath expression and value pairs.
+    /// @param operation The operation to be performed on the old value with the new one.
     ///
     /// @return Modified XML string.
     ///
 std::string setSelectedNodesValues(const std::string &XML,
-                                   const std::map< std::string, std::string >& values);
+                                   const std::map< std::string, std::string >& values,
+				   Operation_t operation = replace );
 
     /// Get the value of the \e first node selected by an XPath expression.
     /// If \e all selected values need to be returned, use the method \c getSelectedNodesValues.
@@ -82,6 +89,14 @@ std::vector< std::pair< std::string, std::string > > getSelectedNodesValues(cons
  */
 std::string getSelectedNode(const std::string &XML,
                             const std::string &xpath);
+
+/// Return the value of an attribute node or text content of an element node.
+///
+/// @param node 
+///
+/// @return The value.
+///
+std::string getNodeValue(const DOMNode* const node);
 
 XALAN_USING_XALAN(XalanNode)
 
