@@ -1590,15 +1590,22 @@ void emu::step::Test::_27(){
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      setAllDCFEBsPipelineDepth( *dmb );
-    }
 
     (*crate)->ccb()->EnableL1aFromTmbL1aReq();
-    if ( isToStop_ ) return;
-  }
+    
+    // Configure DCFEB.
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      setAllDCFEBsPipelineDepth( *dmb );      
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+    } 
 
+    if ( isToStop_ ) return;
+
+  }
+  
+  
+    
   // Let's stay here until we're told to stop. Only then should we go on to disable trigger.
   while( true ){
     if ( isToStop_ ) return;
