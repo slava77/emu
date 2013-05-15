@@ -96,23 +96,28 @@ void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId ) 
 void emu::step::Test::createEndcap( const string& generalSettingsXML,
 				    const string& specialSettingsXML  ){
 
-  // cout << generalSettingsXML << endl;
-  // cout << specialSettingsXML << endl;
-
-  // Get the parameters to be changed for this test:
-  vector< pair< string, string > > xpaths = utils::getSelectedNodesValues( specialSettingsXML, 
-									   "//settings/test[@id='" + id_ + "']/set/@xpath" );
-  vector< pair< string, string > > values = utils::getSelectedNodesValues( specialSettingsXML, 
-									   "//settings/test[@id='" + id_ + "']/set/@value" );
-  // cout << xpaths << endl;
-  // cout << values << endl;
-  
-  // Change those parameters:
+  vector< pair< string, string > > xpaths;
+  vector< pair< string, string > > values;
   map< string, string > valuesMap;
   vector< pair< string, string > >::const_iterator x, v;
+					 
+  // Get the parameters to be substituted for their general values for this test:
+  xpaths = utils::getSelectedNodesValues( specialSettingsXML, "//settings/test[@id='" + id_ + "']/set/@xpath" );
+  values = utils::getSelectedNodesValues( specialSettingsXML, "//settings/test[@id='" + id_ + "']/set/@value" );
+  // Replace those parameters' old (general setting) values:
+  valuesMap.clear();
   for ( x = xpaths.begin(), v = values.begin(); x != xpaths.end() && v != values.end(); ++x, ++v ) valuesMap[x->second] = v->second;
-  // cout << valuesMap << endl;
   VME_XML_ = utils::setSelectedNodesValues( generalSettingsXML, valuesMap );
+
+
+  // Get the parameters to be added to their general values for this test:
+  xpaths = utils::getSelectedNodesValues( specialSettingsXML, "//settings/test[@id='" + id_ + "']/addTo/@xpath" );
+  values = utils::getSelectedNodesValues( specialSettingsXML, "//settings/test[@id='" + id_ + "']/addTo/@value" );
+  // Add them to those parameters' old (general setting) values:
+  valuesMap.clear();
+  for ( x = xpaths.begin(), v = values.begin(); x != xpaths.end() && v != values.end(); ++x, ++v ) valuesMap[x->second] = v->second;
+  VME_XML_ = utils::setSelectedNodesValues( VME_XML_, valuesMap, utils::add );
+
 
   // Save XML in file:
   string fileName( "VME_" + withoutChars( " \t:;<>'\",?/~`!@#$%^&*()=[]|\\", group_ ) + "_Test" + id_ + ".xml" );
