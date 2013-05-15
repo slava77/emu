@@ -29,8 +29,6 @@ fi
 print "Using CMSSW installation $HOME/CMSSW"
 print
 
-cd $BUILD_HOME/emu/fast_daq/daq_common && make clean && make -j4
-
-cd $BUILD_HOME/emu/fast_daq/csc_display && make clean && make -j4
-
+cd $BUILD_HOME/emu/fast_daq/daq_common && make clean && make -j4 && \
+cd $BUILD_HOME/emu/fast_daq/csc_display && make clean && make -j4 && make install && \
 cd $BUILD_HOME/emu/fast_daq && mkdir -p rpm/{BUILD,RPMS} && rpmbuild -bb emu-cscdisplay.spec
