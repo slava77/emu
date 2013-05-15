@@ -6,9 +6,13 @@ Build by issuing
     RPM will be in TriDAS/emu/fast_daq/rpm
 When the RPM is installed, run the program by
   /opt/xdaq/bin/csc_display.sh
+When the RPM is not installed, just run the program directly:
+  TriDAS/emu/fast_daq/csc_display/lib/csc_display
+
 
 ========================================================================
-Cookbook instructions for setting up csc_display on emume11
+Don't use these anymore, but kept for history:
+Old cookbook instructions for setting up csc_display on emume11 with standalone libs
 jhaley@cern.ch
 ========================================================================
 
@@ -37,7 +41,7 @@ make
 
 mkdir -p ~/bin
 cd $BUILD_HOME/emu/fast_daq/csc_display
-make
+make install
 
 ========================================================================
 

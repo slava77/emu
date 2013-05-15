@@ -55,7 +55,7 @@ ifeq ($(OS),Linux)
 XINC       = -I/usr/include/X11 -I/usr/X11R6/include -I/usr/include
 XLIB       = -L/usr/X11R6/lib -L/usr/lib64 -lXpm -lX11
 #EXTLIB	   = -L$(XDAQ_ROOT)/lib -L$(BUILD_HOME)/emu/daq/reader/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) -L$(BUILD_HOME)/emu/dqm/common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) -L$(BUILD_HOME)/emu/dqm/cmssw/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) -lemudaqreader_sa  -lemudqmcommon_sa -lCSCRawToDigi -lCSCDigi  -llog4cplus 
-EXTLIB	   = -L$(XDAQ_ROOT)/lib -lemudaqreader -lemudqmcommon -lCSCRawToDigi -lCSCDigi  -llog4cplus -lxerces-c -lxoap -lxcept -ltoolbox -lasyncresolv -lxdaq -lxdata -lcgicc -lxgi -lconfig -lpeer -llogudpappender -llogxmlappender -lmimetic -luuid
+EXTLIB	   = -L$(BUILD_HOME)/$(XDAQ_PLATFORM)/lib -lemudaqreader -lemudqmcommon -L$(BUILD_HOME)/emu/dqm/cmssw/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) -lCSCRawToDigi -lCSCDigi -L$(XDAQ_ROOT)/lib -llog4cplus -lxerces-c -lxoap -lxcept -ltoolbox -lasyncresolv -lxdaq -lxdata -lcgicc -lxgi -lconfig -lpeer -llogudpappender -llogxmlappender -lmimetic -luuid
 endif
 
 #***************************************************************************
@@ -141,3 +141,7 @@ clean :
 	cd $(ODIR) ; rm -f *.o 
 	find . -name "*~" -exec rm {} \;
 	rm -f $(LDIR)/csc_display
+
+install : 
+	make
+	cp $(LDIR)/csc_display $(BDIR)/
