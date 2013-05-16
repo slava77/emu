@@ -10,6 +10,19 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@request_l1a"                   value="1"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_l1a_delay"           value="146"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@alct_pretrig_enable"           value="1"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_readout_without_trig"     value="0"/>
+
+    <!-- ME4/2 -->
+    <set xpath="//EmuSystem/PeripheralCrate[not(CSC/DAQMB/CFEB/@hardware_version='2')]/CCB/@l1aDelay"                      value="108"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[not(DAQMB/CFEB/@hardware_version='2')]/TMB/@alct_trig_enable"              value="0"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[not(DAQMB/CFEB/@hardware_version='2')]/TMB/ALCT/@alct_l1a_delay"           value="146"/>
+
+    <!-- ME1/1 -->
+    <set xpath="//EmuSystem/PeripheralCrate[CSC/DAQMB/CFEB/@hardware_version='2']/CCB/@l1aDelay"              value="121"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/@tmb_l1a_delay"         value="132"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/ALCT/@alct_l1a_delay"   value="160"/>
+    <set xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/DAQMB/CFEB/@pipeline_depth" value="68"/>
+
   </test>
 
   <test id="12"><!-- Cannot work on ME11 -->
