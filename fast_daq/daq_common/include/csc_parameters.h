@@ -13,6 +13,8 @@
 #ifndef __CSC_PARAMETERS_H__
 #define __CSC_PARAMETERS_H__
 
+// For ME1/1 with 7 DCFEB, set NCFEB to 7
+// Else, set NCFEB to 5
 #define NCFEB           7                            /* Number of cathode front-end boards          */
 #define NLAYER          6                            /* Number of layers per chamber                */
 #define NCFEB_STRIP     16                           /* Number of strips per CFEB                   */
@@ -20,6 +22,8 @@
 #define NCFEB_CHAN      NCFEB_STRIP*NCFEB*NLAYER     /* Number of channels per CFEB                 */
 #define NCFEB_MAX       7                            /* Max Number of cathode front-end boards      */
 
+// For ME1/1, set NAFEB = 6
+// For ME4/2, set NAFEB = 8
 #define NAFEB           6                            /* Number of rows of anode front-end boards    */
 #define NAFEB_MAX      16                            /* Max Number of rows of anode front-end boards */
 #define NAFEB_CHAN     96                            /* Number of channels per AFEB                 */
