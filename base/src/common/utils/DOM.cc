@@ -512,7 +512,6 @@ std::string emu::utils::setSelectedNodesValues(const std::string &XML,
 	  }
 	  else if ( operation == emu::utils::add ){
 	    std::string oldValue = emu::utils::getNodeValue( node );
-	    std::cout << "oldValue = " << oldValue << std::endl;
 	    if ( v->second.find_first_of(".eE") != std::string::npos || oldValue.find_first_of(".eE") != std::string::npos ){
 	      emu::utils::setNodeValue( node, emu::utils::stringFrom<double>( emu::utils::stringTo<double>( oldValue ) + emu::utils::stringTo<double>( v->second ) ) );
 	    }
