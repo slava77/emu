@@ -751,7 +751,7 @@ void emu::step::Test::_15(){ // OK
     // if ( (*crate)->IsAlive() ){
       cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
-      (*crate)->ccb()->EnableL1aFromVme();
+      (*crate)->ccb()->EnableL1aFromVme(); // enable L1A and clct_pretrig from VME command, disable all other trigger sources
       (*crate)->ccb()->SetExtTrigDelay( 0 ); // TODO: make configurable
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
@@ -763,7 +763,7 @@ void emu::step::Test::_15(){ // OK
       (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
 	
       for ( uint64_t iTrigger = 1; iTrigger <= events_total; ++iTrigger ){
-	(*crate)->ccb()->GenerateL1A();
+	(*crate)->ccb()->GenerateL1A();// generate L1A and pretriggers
 	usleep( 10 + 1000*msec_between_pulses );
 	bsem_.take();
 	iEvent_++;
@@ -844,70 +844,84 @@ void emu::step::Test::_16(){
     (*crate)->ccb()->SetExtTrigDelay( extTrigDelay );
     
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-	  //cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
-	  emu::pc::ALCTController* alct = (*tmb)->alctController();
-	  uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them
-	  alct->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
-      
-	  (*tmb)->EnableClctExtTrig();
-      
-	  alct->SetInvertPulse_(ON);    
-	  alct->FillTriggerRegister_();
-	  alct->WriteTriggerRegister_();
-	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
-    for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair ){ // layer loop
-	  //cout << "    Layers " << iLayerPair*2+1 << " and  " << iLayerPair*2+2 << endl << flush;
+    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+
+      //cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
+      emu::pc::ALCTController* alct = (*tmb)->alctController();
+      uint64_t afebGroupMask = 0x7f; // AFEB mask - pulse all of them
+      alct->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_SYNC );
       
-	  for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+      (*tmb)->EnableClctExtTrig();
+      
+      alct->SetInvertPulse_(ON);    
+      alct->FillTriggerRegister_();
+      alct->WriteTriggerRegister_();
+    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+    
+    for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair ){ // layer loop
+
+      //cout << "    Layers " << iLayerPair*2+1 << " and  " << iLayerPair*2+2 << endl << flush;
+      
+      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+
         emu::pc::ALCTController* alct = (*tmb)->alctController();
         // reprogram standby register to enable 2 layers at a time
-        const int standby_fmask[nLayerPairs] = {066, 055, 033};
-        for (int lct_chip = 0; lct_chip < alct->MaximumUserIndex() / 6; lct_chip++){
-		  int astandby = standby_fmask[iLayerPair];
-		  if ( pLogger_ ){
+        const int standby_fmask[nLayerPairs] = {066, 055, 033}; // in binary => 110110, 101101, 011011
+
+	const int NUMBER_OF_CHIPS_PER_GROUP = 6;
+	int n_lct_chip = (alct->MaximumUserIndex()+1) / NUMBER_OF_CHIPS_PER_GROUP;
+	// ME4/2: alct->MaximumUserIndex() = 23 ==> max_lct_chip = 4
+	// ME1/1: alct->MaximumUserIndex() = 17 ==> max_lct_chip = 3
+
+        for (int lct_chip = 0; lct_chip < n_lct_chip; lct_chip++){
+
+	  int astandby = standby_fmask[iLayerPair];
+	  if ( pLogger_ ){
             LOG4CPLUS_INFO( *pLogger_, "Setting standby " << lct_chip << " to 0x" << hex << astandby << dec );
           }
-		  for (int afeb = 0; afeb < 6; afeb++){
-            alct->SetStandbyRegister_(lct_chip*6 + afeb, (astandby >> afeb) & 1);
+
+	  for (int afeb = 0; afeb < NUMBER_OF_CHIPS_PER_GROUP; afeb++){
+            //cout << "alct->SetStandbyRegister_(" << lct_chip*NUMBER_OF_CHIPS_PER_GROUP + afeb << ", " << int((astandby >> afeb) & 1) << ");" << endl;
+            alct->SetStandbyRegister_(lct_chip*NUMBER_OF_CHIPS_PER_GROUP + afeb, (astandby >> afeb) & 1);
           }
+
         }
         alct->WriteStandbyRegister_();
       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
       
-	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+      (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
       
-	  for ( uint64_t iPulse = 1; iPulse <=events_per_layer; ++iPulse ){
+      for ( uint64_t iPulse = 1; iPulse <=events_per_layer; ++iPulse ){
         (*crate)->ccb()->GenerateAlctAdbSync();
         usleep( 10 + 1000*msec_between_pulses );
         bsem_.take();
         iEvent_++;
         bsem_.give();
         if (iPulse % 100 == 0){
-		  if ( pLogger_ ){
+	  if ( pLogger_ ){
             stringstream ss;
             ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
                << ", layer pairs " << iLayerPair+1 << "/" << nLayerPairs
                << ", pulses " << iPulse << "/" << events_per_layer << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
             LOG4CPLUS_INFO( *pLogger_, ss.str() );
           }
-		}
+	}
         // 	// Find the time between the DMB's receiving CLCT pretrigger and L1A:
         // 	for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
         // 	  PrintDmbValuesAndScopes( *tmb, (*crate)->GetChamber( *tmb )->GetDMB(), (*crate)->ccb(), (*crate)->mpc() );
         // 	} // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
         if ( isToStop_ ) {
-		  return;
-		}
+	  return;
+	}
       } // for (iPulse = 1; iPulse <= events_per_layer; ++iPulse)
       
-	  (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+      (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
       
-	} // for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
+    } // for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair )
     
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
-
+  
   if ( pLogger_ ){ 
     LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) ending" ); 
   }
