@@ -660,7 +660,7 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
 
 
 			  // Start 2DMB HACK -->  (see comment about this hack above)
-			  if(HACK_ME11_2DMB && i==0){
+			  if(HACK_ME11_2DMB && i==0 && nCFEB < 2){
 			    upevt_.adc_out_of_range[nLayer-1][(nCFEB+5)*N_Strips+nStrip-1][nSample] = OutOfRange;
 			    upevt_.sca[nLayer-1][(nCFEB+5)*N_Strips+nStrip-1][nSample] = ADC;
 			    
