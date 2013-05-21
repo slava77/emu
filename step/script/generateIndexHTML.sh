@@ -4,7 +4,7 @@
 #    generateIndexHTML.sh <results_directory>
 # where <results_directory> is the directory containing the Test_AFEB*, Test_CFEB* directories.
 
-DATAPATH=/csc/test/csc_00000001_EmuRUI01_Test_15_000_130131_170332_UTC.raw
+DATAPATH=$1
 DATADIR=${DATAPATH:h}
 DATAFILE=${DATAPATH:t}
 
@@ -13,7 +13,7 @@ RESULTSDIR=$( print $DATADIR/Test_[AC]FEB??/${DATAFILE:r}.plots(/om[1]) )
 [[ -d $RESULTSDIR ]] || { print "Directory of results \"${RESULTSDIR}\" not found. Exiting."; exit 1 }
 cd $RESULTSDIR
 
-print "Generating $D/index.html"
+print "Generating $RESULTSDIR/index.html"
 {
     SUMIMAGEFILES=( $(print ./EMU/sum*.png) )
     CSCS=( $(print ME*(/) ) )
