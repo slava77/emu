@@ -112,4 +112,10 @@ for DATAFILE in $DATAFILES; do
     DATADIRNAME=${DATAFILENAME:h}
     print "cd $DATADIRNAME && $ANALYZER $DATAFILENAME"
     cd $DATADIRNAME && $ANALYZER $DATAFILENAME
+    if [[ -x ${0:h}/generateIndexHTML.sh ]]; then
+	print "Generating web page with ${0:h}/generateIndexHTML.sh $DATAFILENAME"
+	${0:h}/generateIndexHTML.sh $DATAFILENAME
+    else
+	print "** Warning: Web page generator script ${0:h}/generateIndexHTML.sh not found."
+    fi
 done
