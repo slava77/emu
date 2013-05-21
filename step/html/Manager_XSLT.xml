@@ -59,6 +59,7 @@
 	  <hr/>
 	  <xsl:apply-templates select="es:configuration"/>
 	</form>
+	  <xsl:apply-templates select="es:dataFiles[es:dataFile]"/>
 	<hr/>
 	<p style="text-align:center;">Emu STEP version  <xsl:value-of select="@softwareVersion"/></p>
       </body>
@@ -248,6 +249,20 @@
 	</xsl:otherwise>
       </xsl:choose>
     </td>
+  </xsl:template>
+
+  <xsl:template match="es:dataFiles">
+    <hr/>
+    <table class="dataFiles">
+      <tr>
+	<th>Data files</th>
+      </tr>
+      <xsl:apply-templates select="es:dataFile"/>
+    </table>
+  </xsl:template>
+
+  <xsl:template match="es:dataFile">
+    <tr><td class="text"><xsl:value-of select="."/></td></tr>
   </xsl:template>
 
 </xsl:transform>
