@@ -21,7 +21,7 @@ ulimit -c unlimited
 
 # BUILD_HOME, XDAQ_ROOT and ROOTSYS should be set. Their default values are:
 # export BUILD_HOME=${BUILD_HOME:-$PWD/${0:h}/../../..}
-export BUILD_HOME=${BUILD_HOME:-$HOME/CMS/TriDAS}
+export BUILD_HOME=${BUILD_HOME:-$HOME/TriDAS}
 export XDAQ_ROOT=${XDAQ_ROOT:-$HOME/XDAQ}
 export ROOTSYS=${ROOTSYS:-$HOME/ROOT/root}
 
@@ -34,6 +34,7 @@ elif [[ -f /etc/issue ]]; then
 fi
 export XDAQ_PLATFORM
 export XDAQ_DOCUMENT_ROOT=${XDAQ_ROOT}/htdocs
+export DQMCONFIG=$HOME/config/dqm
 export LD_LIBRARY_PATH=$ROOTSYS/lib:$XDAQ_ROOT/lib
 
 print
@@ -44,20 +45,21 @@ print "    XDAQ_OS            = $XDAQ_OS"
 print "    XDAQ_PLATFORM      = $XDAQ_PLATFORM"
 print "    XDAQ_DOCUMENT_ROOT = $XDAQ_DOCUMENT_ROOT"
 print "    ROOTSYS            = $ROOTSYS"
+print "    DQMCONFIG          = $DQMCONFIG"
 print "    LD_LIBRARY_PATH    = $LD_LIBRARY_PATH"
 print
 
-#OPTIONS="\
-# -h localhost \
-# -p 10000 \
-# -c ${BUILD_HOME}/emu/step/xml/EmuSTEP.xml \
-# -e ${BUILD_HOME}/emu/step/xml/EmuSTEP.profile"
-
 OPTIONS="\
- -h emu42fastprod01.cern.ch \
+ -h $HOST \
  -p 10000 \
- -c /home/cscupdate/config/fm/Commissioning/startNewSTEP.xml \
+ -c ${BUILD_HOME}/emu/step/xml/EmuSTEP.xml \
  -e ${BUILD_HOME}/emu/step/xml/EmuSTEP.profile"
+
+#OPTIONS="\
+# -h emu42fastprod01.cern.ch \
+# -p 10000 \
+# -c /home/cscupdate/config/fm/Commissioning/startNewSTEP.xml \
+# -e ${BUILD_HOME}/emu/step/xml/EmuSTEP.profile"
 
 if [[ $RUNINDEBUGGER = "true" ]]; then
     print "Execute in ddd the command:"
