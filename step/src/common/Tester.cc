@@ -38,6 +38,7 @@ void emu::step::Tester::exportParameters(){
   s->fireItemAvailable( "crateIds"                  , &crateIds_                   );
   s->fireItemAvailable( "chamberLabels"             , &chamberLabels_              );
   s->fireItemAvailable( "progress"                  , &progress_                   );
+  s->fireItemAvailable( "chamberMaps"               , &chamberMaps_                );
   // s->fireItemAvailable( "", &_ );
   s->addItemRetrieveListener( "progress", this );
 }
@@ -87,6 +88,37 @@ string emu::step::Tester::selectCratesAndChambers( const string& vmeSettingsXML 
   return emu::utils::removeSelectedNode( selectedCratesOnlyXML, xpath.str() );
 }
 
+void emu::step::Tester::createChamberMaps( const string& selectedVMESettingsXML ){
+  // Get the chamber-mapping parameters from the VME config (containing the selected chambers only) and fill the exported parameter chamberMaps with them.
+  // This map will be needed to let the analysis program know what kind of chamber's data it's dealing with when STEP is run on a test stand. 
+  // This mapping is well defined for the on-detector chambers, but it keeps changing on the test stands.
+  // Peripheral crates on test stands should have a DDU.
+
+  chamberMaps_.clear();
+
+  // Look for a DDU in each crate to see if we're running on a test stand. If not, don't fill chamberMaps, it won't be needed.
+  vector< pair< string, string > > dduSlots( utils::getSelectedNodesValues( selectedVMESettingsXML, "//PeripheralCrate/DDU/@slot" ) );
+  for ( vector< pair< string, string > >::const_iterator d = dduSlots.begin(); d != dduSlots.end(); ++d ){
+    if ( d->second.size() == 0 ){
+      LOG4CPLUS_WARN( logger_, "A selected peripheral crate contains no DDU therefore no chamber mapping will be created for group " + group_.toString() );
+      return;
+    }
+  }
+
+  // Get the chamber labels
+  vector< pair< string, string > > labels( utils::getSelectedNodesValues( selectedVMESettingsXML, "//PeripheralCrate/CSC/@label" ) );
+
+  // For each chamber label, get the corresponding DMB slot and crate id
+  for ( vector< pair< string, string > >::const_iterator l = labels.begin(); l != labels.end(); ++l ){
+    xdata::Bag<ChamberMap> map;
+    map.bag.chamberLabel_ = l->second; // l->first is the node name, l->second the node value
+    map.bag.dmbSlot_      = utils::getSelectedNodeValue( selectedVMESettingsXML, "//PeripheralCrate/CSC[@label='" + l->second + "']/DAQMB/@slot" );
+    map.bag.crateId_      = utils::getSelectedNodeValue( selectedVMESettingsXML, "//PeripheralCrate[CSC/@label='" + l->second + "']/@crateID" );
+    chamberMaps_.push_back( map );
+  }
+  
+}
+
 void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
   LOG4CPLUS_INFO( logger_, "Configuring." );
 
@@ -106,6 +138,7 @@ void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
 		      specialVMESettingsXML_,
 		      (bool) fakeTests_,
 		      &logger_                );
+    createChamberMaps( selectedVMESettingsXML );
     LOG4CPLUS_INFO( logger_, "Created " << ( (bool) fakeTests_ ? "fake " : "" ) << " test " << testId_.toString() );
   }
   catch ( xcept::Exception &e ){

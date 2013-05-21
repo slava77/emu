@@ -3,6 +3,7 @@
 
 #include "emu/step/Application.h"
 #include "emu/step/Configuration.h"
+#include "emu/step/ChamberMap.h"
 #include "emu/soap/Messenger.h"
 
 #include "xdaq/ApplicationGroup.h"
@@ -51,6 +52,9 @@ namespace emu { namespace step {
       void startFED();
       void haltFED();
       bool testSequenceInWorkLoop( toolbox::task::WorkLoop *wl );
+      void updateChamberMaps();
+      void updateDataFileNames();
+      void runAnalysis( const string& testId );
       void defaultWebPage( xgi::Input *in, xgi::Output *out );
       void controlWebPage( xgi::Input *in, xgi::Output *out );
       string createXMLWebPage();
@@ -65,6 +69,8 @@ namespace emu { namespace step {
       xdata::String configurationXSLFileName_;
       xdata::String testParametersFileName_;
       xdata::String specialVMESettingsFileName_;
+      xdata::String analysisScriptName_; ///< full path to the analysis script
+      xdata::String analysisExeName_; ///< full path to the analysis executable
       emu::step::Configuration* configuration_;  ///< configuration
       xdata::Vector<xdata::String> crateIds_;
       xdata::Vector<xdata::String> testSequence_;
@@ -72,6 +78,9 @@ namespace emu { namespace step {
       toolbox::task::WorkLoop *workLoop_; ///< work loop for the test procedure to be executed in a separate thread
       toolbox::task::ActionSignature *testSequenceSignature_;
       map<string,xdaq::ApplicationDescriptor*> testerDescriptors_; ///< peripheral crate group --> emu::step::Tester application descriptor map
+      //      xdata::Vector<xdata::String> dataFileNames_; ///< The names of all data files written since the last configure
+      set<string> dataFileNames_; ///< The names of all data files written since the last configure
+      xdata::Vector< xdata::Bag<ChamberMap> > chamberMaps_; ///< the parameters that the analysis program will use for identifying which chamber the data belongs to
     };
 
 }}
