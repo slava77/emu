@@ -30,6 +30,7 @@ Sources = \
 	Configuration.cc \
 	TestParameters.cc	\
 	Test.cc	\
+	ChamberMap.cc	\
 	version.cc
 TestSources =
 TestIncludeDirs =
