@@ -25,10 +25,10 @@ namespace emu { namespace step {
 		     xdata::String& configurationXSLFileName,
 		     xdata::String& testParametersFileName,
 		     const map<string,string>& pCrateSettingsFileNames );
-      xdata::Vector<xdata::String> getCrateIds( const string& group ) const;
-      xdata::Vector<xdata::String> getChamberLabels( const string& group ) const;
-      xdata::Vector<xdata::String> getChamberLabels() const;
-      xdata::Vector<xdata::String> getTestIds() const;
+      xdata::Vector<xdata::String> getCrateIds( const string& group ) const; ///< Returns the selected crate ids in the given group.
+      xdata::Vector<xdata::String> getChamberLabels( const string& group ) const; ///< Returns the selected chamber labels in the given group.
+      xdata::Vector<xdata::String> getChamberLabels() const; ///< Returns the selected chamber labels.
+      xdata::Vector<xdata::String> getTestIds() const; ///< Returns the selected crate ids.
       string getXML() const { return xml_; }
       string getTestParametersXML() const { return testParametersXML_; }
       string getModificationTime() const { return modificationTime_; }
@@ -47,8 +47,6 @@ namespace emu { namespace step {
       string xslt_; ///< The configuration XSLT.
       string modificationTime_; ///< Date and time of last modification.
       string testParametersXML_;
-      string plusSideVMESettingsXML_;
-      string minusSideVMESettingsXML_;
       map<string,string> pCrateSettingsXMLs_; ///< peripheral crate group --> peripheral crate XML map
     };
 
