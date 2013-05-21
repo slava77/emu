@@ -2,7 +2,8 @@
 <?xml-stylesheet type="text/xml" href="../EmuDAQConfig.xsl"?>
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
-  <xc:Context url="http://localhost:10000">
+  <!-- <xc:Context url="http://localhost:10000"> -->
+  <xc:Context url="http://csc-pc.cms904:10000">
 
     <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
     <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
@@ -12,14 +13,16 @@
 	<configurationXSLFileName xsi:type="xsd:string">${BUILD_HOME}/emu/step/xml/configuration.xsl</configurationXSLFileName>
 	<testParametersFileName xsi:type="xsd:string">${BUILD_HOME}/emu/step/xml/testParameters.xml</testParametersFileName>
 	<specialVMESettingsFileName xsi:type="xsd:string">${BUILD_HOME}/emu/step/xml/TestSpecificVME.xml</specialVMESettingsFileName>
+	<analysisScriptName xsi:type="xsd:string">${BUILD_HOME}/emu/step/script/runAnalysis.sh</analysisScriptName>
+	<analysisExeName xsi:type="xsd:string">${BUILD_HOME}/${XDAQ_PLATFORM}/bin/runEmuCalibAnalysis.exe</analysisExeName>
       </properties>
     </xc:Application>
 
     <xc:Application id="21" instance="0" class="emu::step::Tester" network="local">
       <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::step::Tester">
-	<group xsi:type="xsd:string">Plus Side</group>
-	<vmeSettingsFileName xsi:type="xsd:string">${BUILD_HOME}/emu/step/xml/VME_PLUS.xml</vmeSettingsFileName>
-	<fakeTests xsi:type="xsd:boolean">true</fakeTests>
+    	<group xsi:type="xsd:string">Plus Side</group>
+    	<vmeSettingsFileName xsi:type="xsd:string">${BUILD_HOME}/emu/step/xml/VME_PLUS.xml</vmeSettingsFileName>
+    	<fakeTests xsi:type="xsd:boolean">true</fakeTests>
       </properties>
     </xc:Application>
 
@@ -39,6 +42,10 @@
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPeripheralApps.so</xc:Module>
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemustep.so</xc:Module>
 
+  </xc:Context>
+
+  <xc:Context url="http://csc-daq.cms904:20200">
+    <xc:Application instance="0" class="emu::daq::manager::Application" network="local" id="12"/>
   </xc:Context>
 
 </xc:Partition>
