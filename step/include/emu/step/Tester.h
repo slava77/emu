@@ -3,6 +3,7 @@
 
 #include "emu/step/Application.h"
 #include "emu/step/Test.h"
+#include "emu/step/ChamberMap.h"
 
 #include "emu/utils/System.h"
 
@@ -45,6 +46,7 @@ namespace emu{
       void exportParameters();
       void loadFiles();
       string selectCratesAndChambers( const string& generalVMESettingsXML );
+      void createChamberMaps( const string& selectedVMESettingsXML );
       bool testInWorkLoop( toolbox::task::WorkLoop *wl );
       void actionPerformed( xdata::Event& received );
       
@@ -55,6 +57,7 @@ namespace emu{
       xdata::String  vmeSettingsFileName_; ///< name of file containing the XML of the PCrate and on-chamber electronics settings
       xdata::String  specialVMESettingsFileName_; ///< name of file containing the XML of the PCrate and on-chamber electronics settings specific to the tests
       xdata::String  testId_;	///< test id
+      xdata::Vector< xdata::Bag<ChamberMap> > chamberMaps_; ///< the parameters that the analysis program will use for identifying which chamber the data belongs to
       xdata::Boolean fakeTests_; ///< if \em true, the software just fakes the tests, no attempt is made to access hardware
       xdata::Boolean testDone_; ///< if \em true, the test has been executed or aborted
       xdata::Vector<xdata::String> crateIds_; ///< ids of crates that this emu::step::Tester instance handles

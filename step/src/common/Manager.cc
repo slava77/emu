@@ -40,6 +40,8 @@ void emu::step::Manager::exportParameters(){
   s->fireItemAvailable( "configurationXSLFileName"  , &configurationXSLFileName_   );
   s->fireItemAvailable( "testParametersFileName"    , &testParametersFileName_     );
   s->fireItemAvailable( "specialVMESettingsFileName", &specialVMESettingsFileName_ );
+  s->fireItemAvailable( "analysisScriptName"        , &analysisScriptName_         );
+  s->fireItemAvailable( "analysisExeName"           , &analysisExeName_            );
   // s->fireItemAvailable( "", &_ );
 }
 
@@ -149,6 +151,8 @@ void emu::step::Manager::haltFED(){
 void emu::step::Manager::configureAction(toolbox::Event::Reference e){
   LOG4CPLUS_INFO( logger_, "emu::step::Manager::configureAction" );
 
+  dataFileNames_.clear();
+
   configuration_->setTestStatus( "idle" );
 
   try{
@@ -208,6 +212,8 @@ void emu::step::Manager::enableAction(toolbox::Event::Reference e){
 
 void emu::step::Manager::haltAction(toolbox::Event::Reference e){
   LOG4CPLUS_DEBUG( logger_, "emu::step::Manager::haltAction" );
+
+  dataFileNames_.clear();
 
   emu::soap::Messenger m( this );
 
@@ -293,7 +299,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
   //
   for ( size_t iTest = 0; iTest < testIds.elements(); iTest++ ){
 
-    xdata::String testId = *dynamic_cast<xdata::String*>( testIds.elementAt( iTest ) );;
+    xdata::String testId = *dynamic_cast<xdata::String*>( testIds.elementAt( iTest ) );
     emu::step::TestParameters testParameters( testId.toString(), configuration_->getTestParametersXML(), &logger_ );
     bsem_.take();
     isCurrentTestDurationUndefined_ = ( testParameters.getNEvents() > 0 );
@@ -337,6 +343,10 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       waitForDAQToExecute( "Halt", 10 );
       configuration_->setTestStatus( testId, "done" );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
+      //
+      // Run analysis
+      //
+      runAnalysis( testId.toString(0) );
     }
     catch ( xcept::Exception& e ){
       stringstream ss;
@@ -349,6 +359,90 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
   } // for ( size_t iTest = 0; iTest < testIds.elements(); iTest++ ){
   
   return false;
+}
+
+void emu::step::Manager::updateChamberMaps(){
+  // Collect chamber maps from all Testers
+  try{
+    chamberMaps_.clear();
+    emu::soap::Messenger m( this );
+    for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app ){
+      xdata::Vector< xdata::Bag<ChamberMap> > maps;
+      m.getParameters( app->second , emu::soap::Parameters().add( "chamberMaps", &maps ) );
+      if ( maps.elements() == 0 ){
+	chamberMaps_.clear();
+	LOG4CPLUS_WARN( logger_, "Group '" + app->first + "' has DDU missing. No chamber mapping will be created at all. (Only a problem on a test stand.)" );
+	return;
+      }
+      for ( size_t iMap = 0; iMap < maps.size(); ++iMap ){
+	chamberMaps_.push_back( maps[iMap] );
+      }
+    }
+    stringstream ss;
+    ss << "Chamber maps: [";
+    for ( size_t iMap = 0; iMap < chamberMaps_.size(); ++iMap ){
+      ss << chamberMaps_[iMap].bag.toString() << (iMap+1<chamberMaps_.size()?", ":"");
+    }
+    ss << "]";
+    LOG4CPLUS_INFO( logger_, ss.str() );
+  } catch( xcept::Exception& e ){
+    XCEPT_RETHROW( xcept::Exception, "Failed to get chamber maps.", e );
+  } catch( std::exception& e ){
+    XCEPT_RAISE( xcept::Exception, string( "Failed to get chamber maps: ") + e.what() );
+  } catch( ... ){
+    XCEPT_RAISE( xcept::Exception, "Failed to get chamber maps. Unknown exception." );
+  }
+}
+
+void emu::step::Manager::updateDataFileNames(){
+  try{
+    emu::soap::Messenger m( this );
+    // Get data file names written in this test
+    xdata::Vector<xdata::String> dataFileNames;
+    m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "dataFileNames", &dataFileNames ) );
+    // cout << "dataFileNames" << dataFileNames.toString() << endl;
+    // Add them to the list of all data file names written in this run
+    for ( size_t iFile = 0; iFile < dataFileNames.elements(); iFile++ ){
+      dataFileNames_.insert( ( dynamic_cast<xdata::String*>( dataFileNames.elementAt( iFile ) ) )->toString() );
+    }
+  } catch( xcept::Exception& e ){
+    XCEPT_RETHROW( xcept::Exception, "Failed to get data file names.", e );
+  } catch( std::exception& e ){
+    XCEPT_RAISE( xcept::Exception, string( "Failed to get data file names: ") + e.what() );
+  } catch( ... ){
+    XCEPT_RAISE( xcept::Exception, "Failed to get data file names. Unknown exception." );
+  }
+}
+
+void emu::step::Manager::runAnalysis( const string& testId ){
+  // Update data file names
+  try{
+    bsem_.take();
+    updateDataFileNames();
+    updateChamberMaps();
+    bsem_.give();
+  } catch( xcept::Exception& e ){
+    bsem_.give();
+    XCEPT_RETHROW( xcept::Exception, string("Failed to run analysis of test ") + testId + ".", e );
+  }
+
+  // Invoke analysis script as
+  // analysisScriptName analysisExeName 'dataFile1 dataFile2 ...' 'crateId1 dmbSlot1 chamberLabel1' 'crateId2 dmbSlot2 chamberLabel2' ...
+  stringstream command;
+  command << analysisScriptName_.toString() << " " << analysisExeName_.toString() << " '";
+  for ( set<string>::iterator dfn = dataFileNames_.begin(); dfn != dataFileNames_.end(); ++dfn ){
+    command << ( dfn == dataFileNames_.begin() ? "" : " " ) << *dfn;
+  }
+  command << "' ";
+  for ( size_t iMap = 0; iMap < chamberMaps_.size(); ++iMap ){
+    command << "'" << chamberMaps_[iMap].bag.crateId_.toString()
+	    << " " << chamberMaps_[iMap].bag.dmbSlot_.toString()
+	    << " " << chamberMaps_[iMap].bag.chamberLabel_.toString()
+	    << "'";
+  }
+  command << " > /tmp/STEPAnalysis_Test_" << testId << "_" << utils::getDateTime( true ) << ".log 2>&1 &";
+  LOG4CPLUS_INFO( logger_, "Executing shell command\n" + command.str() );
+  utils::execShellCommand( command.str() );
 }
 
 void emu::step::Manager::defaultWebPage(xgi::Input *in, xgi::Output *out)
@@ -485,6 +579,15 @@ string emu::step::Manager::createXMLWebPage(){
   }
 
   ss << "  </es:application>" << endl;
+
+  // Data file names
+  ss << "  <es:dataFiles>" << endl;
+  for ( set<string>::iterator dfn = dataFileNames_.begin(); dfn != dataFileNames_.end(); ++dfn ){
+    ss << "    <es:dataFile>" << *dfn << "</es:dataFile>" << endl;  
+  }
+  ss << "  </es:dataFiles>" << endl;
+ 
+
   ss << "</es:Manager>";
 
   return emu::utils::appendToSelectedNode( ss.str(), "/es:Manager", configuration_->getXML() );
@@ -522,6 +625,7 @@ bool emu::step::Manager::waitForDAQToExecute( const string command, const uint64
 void emu::step::Manager::waitForTestsToFinish( const bool isTestDurationUndefined ){
   emu::soap::Messenger m( this );
   while ( fsm_.getCurrentState() != 'H' ){
+    updateDataFileNames();
     bool allFinished = true;
     if ( isTestDurationUndefined ){
       // Query the local DAQ
