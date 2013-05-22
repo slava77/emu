@@ -460,7 +460,7 @@ void emu::step::Test::_11(){
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       setAllDCFEBsPipelineDepth( *dmb );      
       (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+    } 
 
     if ( isToStop_ ) return;
   }
@@ -586,6 +586,13 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
     //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
     (*crate)->ccb()->EnableL1aFromSyncAdb();
+
+    // Configure DCFEB.  
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      setAllDCFEBsPipelineDepth( *dmb );      
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+    } 
     
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
     for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
@@ -674,6 +681,13 @@ void emu::step::Test::_14(){
       cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
       (*crate)->ccb()->EnableL1aFromASyncAdb();
+      
+      // Configure DCFEB.
+      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+	setAllDCFEBsPipelineDepth( *dmb );      
+	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      } 
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
@@ -753,6 +767,13 @@ void emu::step::Test::_15(){ // OK
 
       (*crate)->ccb()->EnableL1aFromVme(); // enable L1A and clct_pretrig from VME command, disable all other trigger sources
       (*crate)->ccb()->SetExtTrigDelay( 0 ); // TODO: make configurable
+
+      // Configure DCFEB.
+      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+	setAllDCFEBsPipelineDepth( *dmb );      
+	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      } 
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
@@ -1505,6 +1526,7 @@ void emu::step::Test::_25(){
 
   uint64_t nSettings = 0;
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
     for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
       nSettings += trig_settings;
@@ -1525,6 +1547,13 @@ void emu::step::Test::_25(){
   usleep(100);
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+    // Configure DCFEB.
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      setAllDCFEBsPipelineDepth( *dmb );      
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+    } 
 
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
 
