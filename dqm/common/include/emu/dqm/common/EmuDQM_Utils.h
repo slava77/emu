@@ -1,6 +1,7 @@
 #ifndef _EmuDQM_Utils_h_
 #define _EmuDQM_Utils_h_
 
+#include <stdint.h>
 #include <iostream>
 #include <vector>
 #include <map>
