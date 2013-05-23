@@ -32,6 +32,7 @@
 #include "emu/dqm/calibration/Test_AFEB05.h"
 #include "emu/dqm/calibration/Test_AFEB06.h"
 #include "emu/dqm/calibration/Test_AFEB07.h"
+#include "emu/dqm/calibration/Test_GasGain.h"
 
 using namespace log4cplus;
 using namespace log4cplus::helpers;
@@ -213,6 +214,13 @@ int main(int argc, char **argv)
     test_analyzer = new Test_AFEB07(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB07.xml";
   }
+  else if (datafile.find("STEP_27") != std::string::npos)
+    {
+      LOG4CPLUS_INFO(logger, "Detected data for Gas Gain Test");
+      test_analyzer = new Test_GasGain(datafile);
+      xmlTestCfg = "file://" + cfgDir +"/emuTest_GasGain.xml";
+      cout<<xmlTestCfg<<endl;
+    }
   else
   {
     LOG4CPLUS_FATAL (logger, "Unrecognizable Test Type for data file name " << datafile);

@@ -34,7 +34,8 @@ Sources=\
 	Test_CFEB04.cc \
 	Test_AFEB05.cc \
 	Test_AFEB06.cc \
-	Test_AFEB07.cc
+	Test_AFEB07.cc \
+	Test_GasGain.cc
 	
 
 
