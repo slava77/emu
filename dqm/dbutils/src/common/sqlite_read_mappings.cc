@@ -1,6 +1,8 @@
 #include <iostream>
 #include <sstream>
 #include <sqlite3.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "emu/dqm/dbutils/cscmap1.h"
 #include "CondFormats/CSCObjects/interface/CSCMapItem.h"
 #include "CondFormats/CSCObjects/interface/CSCCrateMap.h"
