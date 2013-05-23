@@ -7239,6 +7239,7 @@ void DAQMB::write_cfeb_selector(int cfeb_mask)
 {
   char temp[4];
   unsigned short mask = cfeb_mask&0xFF;
+  vme_delay(20);
   write_now(WRITE_CFEB_SELECTOR, mask, temp);
   std::cout << "Write CFEB selector: " << std::hex << cfeb_mask << std::dec << std::endl;
   udelay(100);
@@ -7389,6 +7390,7 @@ void DAQMB::dcfeb_core(int jfunc, int nbit,void *inbuf, char *outbuf, int option
            buf[0]=NOOP;
            cfeb_do(10, &comd, 8, buf, rcvbuf, (option & NO_BYPASS)?LATER:NOW);
            vme_delay(10);
+           udelay(10);
         }
      }
      if((option & NO_BYPASS)==0)
@@ -7640,7 +7642,7 @@ void DAQMB::epromdirect_manual(int cnt, unsigned short *manbuf)
     comd=VTX6_BYPASS;
     tmp=0;
     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
-                                         
+    udelay(10);                             
     return;
 }
 
@@ -7664,6 +7666,7 @@ void DAQMB::epromdirect_bufferprogram(unsigned nwords,unsigned short *prm_dat)
     comd=VTX6_BYPASS;
     tmp=0;
     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+    udelay(10);
     return;
 }
 
@@ -7708,6 +7711,7 @@ void DAQMB::epromdirect_read(unsigned nwords, unsigned short *pdata)
       comd=VTX6_BYPASS;
       tmp=0;
       cfeb_do(10, &comd, 0, &tmp, rcvbuf, sendnow);
+      udelay(10);
     }
     memcpy(pdata, rcvbuf, nwords*2);
     return;
@@ -8204,6 +8208,7 @@ void DAQMB::virtex6_writereg(int reg, unsigned value)
    cfeb_do(10, &comd, 6*32, data, rcvbuf, NOW);
    comd=VTX6_BYPASS;
    cfeb_do(10, &comd, 0, data, rcvbuf, NOW);
+   udelay(10);
 }
 
 void DAQMB::dcfeb_fpga_shutdown()
@@ -8279,6 +8284,7 @@ int DAQMB::dcfeb_adc(CFEB & cfeb, int chan)
      data[0]=0;
      temp=0;
      dcfeb_core(ADC_rdbk, 16, data, (char *)&temp, NOW|READ_YES|NOOP_YES);     
+     udelay(100);
      return (temp&0xFFFF);
 }
 
