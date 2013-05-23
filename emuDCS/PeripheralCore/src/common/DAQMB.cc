@@ -7298,6 +7298,7 @@ void DAQMB::dcfeb_fpga_call(int inst, unsigned data, char *outbuf)
   cfeb_do(10, &inst, 32, &data, outbuf, NOW|READ_YES);
   int comd=VTX6_BYPASS;
   cfeb_do(10, &comd, 0, &data, temp, NOW);
+  udelay(10);
 }
 
 std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
@@ -7354,7 +7355,7 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
      }
      comd=VTX6_BYPASS;
      cfeb_do(10, &comd, 0, &data, rcvbuf, NOW);
-     udelay(1000);
+     udelay(10);
   }
   return readout;
 }
@@ -8165,7 +8166,7 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
     cfeb_do(-1, &comd, 0, &tmp, rcvbuf, NOW);    
     comd=VTX6_BYPASS;
     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
-    
+    udelay(10);
     std::cout << "FPGA configuration done!" << std::endl;             
     free(bufin);
 }
@@ -8188,6 +8189,7 @@ unsigned DAQMB::virtex6_readreg(int reg)
    // printf("return: %08X\n", rtv);
    comd=VTX6_BYPASS;
    cfeb_do(10, &comd, 0, data, rcvbuf, NOW);
+   udelay(10);
    return rtv;
 }
 
