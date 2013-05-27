@@ -430,8 +430,12 @@ void emu::step::Manager::runAnalysis( const string& testId ){
   // analysisScriptName analysisExeName 'dataFile1 dataFile2 ...' 'crateId1 dmbSlot1 chamberLabel1' 'crateId2 dmbSlot2 chamberLabel2' ...
   stringstream command;
   command << analysisScriptName_.toString() << " " << analysisExeName_.toString() << " '";
+  uint32_t nDataFilesOfThisTest = 0;
   for ( set<string>::iterator dfn = dataFileNames_.begin(); dfn != dataFileNames_.end(); ++dfn ){
-    command << ( dfn == dataFileNames_.begin() ? "" : " " ) << *dfn;
+    if ( dfn->find( "Test_"+testId ) != string::npos || dfn->find( "STEP_"+testId ) != string::npos ){
+      command << ( nDataFilesOfThisTest == 0 ? "" : " " ) << *dfn;
+      ++nDataFilesOfThisTest;
+    }
   }
   command << "' ";
   for ( size_t iMap = 0; iMap < chamberMaps_.size(); ++iMap ){
