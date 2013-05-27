@@ -122,13 +122,15 @@ fi
 DATAFILES=( $(print $2) )
 for DATAFILE in $DATAFILES; do
     DATAHOSTNAME=${DATAFILE%:*}
-    DATAFILENAME=${DATAFILE#*:}
-    DATADIRNAME=${DATAFILENAME:h}
-    print "cd $DATADIRNAME && $ANALYZER $DATAFILENAME"
-    cd $DATADIRNAME && $ANALYZER $DATAFILENAME
+    DATAPATHNAME=${DATAFILE#*:}
+    RESULTSTOPDIR=${DATAPATHNAME:h}/Tests_results
+    [[ -d $RESULTSTOPDIR ]] || mkdir -p $RESULTSTOPDIR
+    print "cd $RESULTSTOPDIR && $ANALYZER $DATAPATHNAME"
+    cd $RESULTSTOPDIR && $ANALYZER $DATAPATHNAME
+    RESULTSDIR=$( print $RESULTSTOPDIR/Test_*/${DATAPATHNAME:t:r}.plots(/om[1]) )
     if [[ -x ${0:h}/generateIndexHTML.sh ]]; then
-	print "Generating web page with ${0:h}/generateIndexHTML.sh $DATAFILENAME"
-	${0:h}/generateIndexHTML.sh $DATAFILENAME
+	print "Generating web page with ${0:h}/generateIndexHTML.sh $RESULTSDIR"
+	${0:h}/generateIndexHTML.sh $RESULTSDIR
     else
 	print "** Warning: Web page generator script ${0:h}/generateIndexHTML.sh not found."
     fi
