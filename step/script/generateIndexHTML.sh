@@ -2,14 +2,10 @@
 # Generates a web page (index.html) for the results of the STEP analyzer (runEmuCalibAnalysis.exe).
 # Invoke it as
 #    generateIndexHTML.sh <results_directory>
-# where <results_directory> is the directory containing the Test_AFEB*, Test_CFEB* directories.
-
-DATAPATH=$1
-DATADIR=${DATAPATH:h}
-DATAFILE=${DATAPATH:t}
+# where <results_directory> is the directory containing the Test_AFEB*, Test_CFEB*, etc., directories.
 
 # Go to the corresponding result directory
-RESULTSDIR=$( print $DATADIR/Test_[AC]FEB??/${DATAFILE:r}.plots(/om[1]) )
+RESULTSDIR=$1
 [[ -d $RESULTSDIR ]] || { print "Directory of results \"${RESULTSDIR}\" not found. Exiting."; exit 1 }
 cd $RESULTSDIR
 
