@@ -390,7 +390,7 @@ void emu::step::Test::setUpDMB_Joe( emu::pc::DAQMB *dmb ){
 }
 
 // One pipeline fuction to rule them all.
-void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, short int depth ){
+void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const short int depth ){
   // If depth is omitted, then reset pipeline depth to its config (XML) value as it may have been zeroed by a hard reset.
 
   if ( dmb->cfebs().at( 0 ).GetHardwareVersion() != 2 ) return; // All CFEBs should have the same HW version; get it from the first.
@@ -398,17 +398,15 @@ void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, short int 
   vector <emu::pc::CFEB> cfebs = dmb->cfebs();
   for( vector<emu::pc::CFEB>::reverse_iterator cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb){
 
-    if( depth == pipelineDepthFromXML ){
-      depth = cfeb->GetPipelineDepth();
-    }
+    short int pipelineDepth = ( depth == pipelineDepthFromXML ? cfeb->GetPipelineDepth() : depth );
 
     if ( pLogger_ ){
       stringstream ss;
-      ss << "Setting pipeline depth to " << depth;
+      ss << "Setting pipeline depth to " << pipelineDepth;
       LOG4CPLUS_INFO( *pLogger_, ss.str() ); 
     }
 
-    dmb->dcfeb_set_PipelineDepth( *cfeb, depth ); // set the pipeline depth
+    dmb->dcfeb_set_PipelineDepth( *cfeb, pipelineDepth ); // set the pipeline depth
     usleep(100);
     dmb->Pipeline_Restart( *cfeb ); // and then restart the pipeline
     usleep(100);
