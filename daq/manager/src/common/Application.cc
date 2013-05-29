@@ -3525,6 +3525,7 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   calibNSteps_       = 0;
   s->fireItemAvailable("runNumber",         &runNumber_        );
   s->fireItemAvailable("maxNumberOfEvents", &maxNumberOfEvents_);
+  s->fireItemAvailable("runStartTime",      &runStartTime_);
   s->fireItemAvailable("runType",           &runType_          );
   s->fireItemAvailable("runTypes",          &runTypes_         );
   s->fireItemAvailable("isGlobalInControl", &isGlobalInControl_);
@@ -3533,8 +3534,9 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable("calibNRuns"    ,    &calibNRuns_       );
   s->fireItemAvailable("calibStepIndex",    &calibStepIndex_   );
   s->fireItemAvailable("calibNSteps"   ,    &calibNSteps_      );
-  
   s->fireItemAvailable("dataFileNames", &dataFileNames_ );
+
+  s->addItemRetrieveListener("runStartTime" ,this);
   s->addItemRetrieveListener("dataFileNames",this);
 
   // Parameters to obtain from TTCciControl
@@ -4984,6 +4986,9 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
   else if ( e.itemName() == "stateName"      && e.type() == "ItemChangedEvent"  ){
     if ( state_ == "Halted" || state_ == "Enabled" || state_ == "Failed" )
     sendFact( "emu::daq::manager::Application", LocalDAQStatusFact::getTypeName() );
+  }
+  else if ( e.itemName() == "runStartTime"   && e.type() == "ItemRetrieveEvent" ){
+    emu::soap::Messenger( this ).getParameters( taDescriptors_[0], emu::soap::Parameters().add( "runStartTime" , &runStartTime_ ) );
   }
 
   // Commented out because this may happen too late, and then the RUIs won't be configured properly:

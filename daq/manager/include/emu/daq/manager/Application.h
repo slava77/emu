@@ -250,6 +250,7 @@ private:
   xdata::UnsignedInteger32 runNumber_;
   xdata::UnsignedInteger32 runSequenceNumber_;
   xdata::Integer64 maxNumberOfEvents_;
+  xdata::String runStartTime_;
   xdata::Vector<xdata::String> runTypes_; // all possible run types
   xdata::String runType_; // the current run type
   xdata::Boolean isGlobalInControl_;
