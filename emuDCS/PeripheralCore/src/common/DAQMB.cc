@@ -649,6 +649,21 @@ void DAQMB::init(){
 bool DAQMB::SelfTest(){
   return 0;
 }
+
+int DAQMB::ReadRegister(unsigned address)
+{
+   int temp;
+   read_now(address, (char *)&temp);
+   return temp&0xFFFF;
+}
+
+void DAQMB::WriteRegister(unsigned address, int value)
+{
+   char temp[64];
+   unsigned short data = value & 0xFFFF;
+   write_now(address, data, temp);
+}
+
 //
 std::ostream & operator<<(std::ostream & os, DAQMB & daqmb) {
   os << std::dec << "feb_dav_delay " << daqmb.feb_dav_delay_ << std::endl
@@ -6863,12 +6878,14 @@ int DAQMB::DCSreadAll(char *data)
      // devdo() dev=25, ncmd=16, Cmd[0]=i, Cmd[1]=j
 
      m = i-1;
+     write_later(0x8020, m);
      for(int j=0;j<8; j++)
      {
-        write_later(0x8020, m);
+        vme_delay(10);
         n=(j<<4) + 0xFF89;
         write_later(0x8000, n);
-        if( i==7 && j==7) read_now(0x8004, data);
+        vme_delay(10);
+        if( i==7 && j==7) retn=read_now(0x8004, data);
         else read_later(0x8004);
      }
   }
@@ -6948,7 +6965,7 @@ bool DAQMB::checkvme_fail()
    unsigned short data;
 
    failed_checkvme_ = 0;
-   int i=read_now(0x7024, (char *) &data);
+   int i=read_now(0x8024, (char *) &data);
    if(i<=0) failed_checkvme_ = 1;  // if VCC problem
    else if(data==0xBAAD)  failed_checkvme_ = 1; // DMB time-out
    return (bool)failed_checkvme_;
@@ -8274,7 +8291,6 @@ int DAQMB::dcfeb_dna(CFEB & cfeb, void *dna)
 int DAQMB::dcfeb_adc(CFEB & cfeb, int chan)
 {
      int temp;
-     unsigned char *dout;
      char data[4]={0,0,0,0}, tchan[8]={0,4,2,6,1,5,3,7};
      
      write_cfeb_selector(cfeb.SelectorBit());

@@ -636,6 +636,8 @@ public:
   inline void SetHardwareVersion(int version) {hardware_version_ = version;}
   inline int GetHardwareVersion() {return hardware_version_;}
       
+  int ReadRegister(unsigned  address);
+  void WriteRegister(unsigned address, int value);
   //
   //
 public:
@@ -868,6 +870,36 @@ public:
   unsigned int NBB,NBBwrd[20],NBBbit[20],NBBtyp[20],NBBTOT;
 
   int hardware_version_;
+
+  // VME registers defined in ODMB for direct access
+  // Liu May 29, 2013. ODMB firmware version 0.0
+  //
+  static const unsigned set_ODMB_CTRL = 0x3000;
+  static const unsigned read_ODMB_CTRL = 0x3004;
+  static const unsigned read_ODMB_DATA = 0x3008;
+  static const unsigned set_DCFEB_CTRL = 0x3010;
+  static const unsigned read_DCFEB_CTRL = 0x3014;
+
+  static const unsigned set_LCT_L1A_DLY = 0x4000;
+  static const unsigned set_TMB_DLY = 0x4004;
+  static const unsigned set_PUSH_DLY = 0x4008;
+  static const unsigned set_ALCT_DLY = 0x400C;
+  static const unsigned set_INJ_DLY = 0x4010;
+  static const unsigned set_EXT_DLY = 0x4014;
+  static const unsigned set_CAL_DLY = 0x4018;
+  static const unsigned set_KILL = 0x401C;
+  static const unsigned set_CRATEID = 0x4020;
+  static const unsigned read_LCT_L1A_DLY = 0x4400;
+  static const unsigned read_TMB_DLY = 0x4404;
+  static const unsigned read_PUSH_DLY = 0x4408;
+  static const unsigned read_ALCT_DLY = 0x440C;
+  static const unsigned read_INJ_DLY = 0x4410;
+  static const unsigned read_EXT_DLY = 0x4414;
+  static const unsigned read_CAL_DLY = 0x4418;
+  static const unsigned read_KILL = 0x441C;
+  static const unsigned read_CRATEID = 0x4420;
+  static const unsigned read_FW_VERSION = 0x4424;
+
 }; 
 
   } // namespace emu::pc
