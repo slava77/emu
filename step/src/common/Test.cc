@@ -18,7 +18,8 @@
 #include "log4cplus/helpers/sleep.h" // sleepmillis()
 
 #include <iomanip>
-#include <cmath>
+//#include <cmath>
+#include <sys/stat.h>
 
 using namespace emu::utils;
 
@@ -33,6 +34,8 @@ emu::step::Test::Test( const string& id,
   , group_( group )
   , isFake_( isFake )
   , isToStop_( false )
+  , runNumber_( 0 )
+  , runStartTime_( "YYYY-MM-DD hh:mm:ss UTC" )
   , iEvent_( 0 )
   , procedure_( getProcedure( id ) ){
 
@@ -191,7 +194,7 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
 
 void emu::step::Test::configureCrates(){
 
-  cout << "emu::step::Test::configureCrates: Test " << id_ << " isFake_ = " << isFake_ << endl << flush;
+  // cout << "emu::step::Test::configureCrates: Test " << id_ << " isFake_ = " << isFake_ << endl << flush;
   if ( isFake_ ) return;
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
@@ -225,7 +228,7 @@ void emu::step::Test::configureCrates(){
 
 void emu::step::Test::enableTrigger(){
 
-  cout << "emu::step::Test::enableTrigger: Test " << id_ << " isFake_ = " << isFake_ << endl << flush;
+  // cout << "emu::step::Test::enableTrigger: Test " << id_ << " isFake_ = " << isFake_ << endl << flush;
   if ( isFake_ ) return;
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
@@ -244,7 +247,7 @@ void emu::step::Test::enableTrigger(){
 
 void emu::step::Test::disableTrigger(){
 
-  cout << "emu::step::Test::disableTrigger: Test " << id_ << " isFake_ = " << isFake_ << endl << flush;
+  // cout << "emu::step::Test::disableTrigger: Test " << id_ << " isFake_ = " << isFake_ << endl << flush;
 
   if ( isFake_ ) return;
 
@@ -269,7 +272,7 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
   int feb_cable_delay=0;
   int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
   float dac=1.00;
-  std::cout<<"start dword: "<<dword<<std::endl;
+  // std::cout<<"start dword: "<<dword<<std::endl;
   // the below should be done via XML params
   // tmb->DisableALCTInputs();
   // tmb->DisableCLCTInputs();
@@ -440,6 +443,30 @@ void emu::step::Test::PrintDmbValuesAndScopes( emu::pc::TMB* tmb, emu::pc::DAQMB
     LOG4CPLUS_INFO( *pLogger_, ss.str() ); 
   }
 }
+
+string emu::step::Test::getDataDirName() const {
+  // Get the directory that exists on this host of all the data directory names found in the emu::daq::rui apps.
+  // It should normally be the same for all emu::daq::rui apps, but in case they're different, check all of them. One will hopefully work here...
+
+  // Collect unique dir names
+  // cout << endl << "dataDirNames_ " << dataDirNames_ << endl ;
+  set<string> dirs;
+  for ( vector<string>::const_iterator d = dataDirNames_.begin(); d != dataDirNames_.end(); ++d ){
+    vector<string> tokens( utils::splitString( *d, ":" ) ); // split hostname:directory
+    // cout << endl << "tokens " << tokens << endl ;
+    if ( tokens.size() == 2 ){
+      dirs.insert( tokens.at( 1 ) );
+    }
+  }
+  // cout << endl << "dirs " << dirs << endl ;
+  // Check them until one is found on this host
+  for ( set<string>::iterator d = dirs.begin(); d != dirs.end(); ++d ){
+    struct stat sb;
+    if ( stat( d->c_str(), &sb ) == 0 && ( S_ISDIR( sb.st_mode ) || S_ISLNK( sb.st_mode ) ) ) return *d;
+  }
+  return string();
+}
+
 
 void emu::step::Test::_11(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_11 starting" ); }
@@ -676,7 +703,7 @@ void emu::step::Test::_14(){
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     // if ( (*crate)->IsAlive() ){
-      cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+      // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
       (*crate)->ccb()->EnableL1aFromASyncAdb();
       
@@ -689,7 +716,7 @@ void emu::step::Test::_14(){
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
       for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-	cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
+	// cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
 	(*tmb)->EnableClctExtTrig();
 	uint64_t afebGroupMask = 0x3fff; // all afebs
 	(*tmb)->alctController()->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_ASYNC );
@@ -697,7 +724,7 @@ void emu::step::Test::_14(){
 
       for ( uint64_t iDelay = 0; iDelay < delays_per_run; ++iDelay ){
 	uint64_t delay = delay_first + iDelay * delay_step;
-	cout << "    Delay " << iDelay << ": " << delay << endl << flush;
+	// cout << "    Delay " << iDelay << ": " << delay << endl << flush;
 	
 	for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
 	  for ( int64_t c = 0; c <= (*tmb)->alctController()->MaximumUserIndex(); c++ ){
@@ -761,7 +788,7 @@ void emu::step::Test::_15(){ // OK
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     // if ( (*crate)->IsAlive() ){
-      cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+    // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
       (*crate)->ccb()->EnableL1aFromVme(); // enable L1A and clct_pretrig from VME command, disable all other trigger sources
       (*crate)->ccb()->SetExtTrigDelay( 0 ); // TODO: make configurable
@@ -1516,6 +1543,12 @@ void emu::step::Test::_25(){
 
   ostream noBuffer( NULL );
 
+  string dataDir( getDataDirName() ); 
+  if ( dataDir.size() == 0 ){
+    if ( pLogger_ ){ LOG4CPLUS_WARN( *pLogger_, "No data directory found on this host. Time stamp files for Test 25  will be saved in /tmp instead." ); }
+    dataDir = "/tmp";
+  }
+
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
 
   //
@@ -1537,8 +1570,6 @@ void emu::step::Test::_25(){
   //
   // Apply settings
   //
-
-  string dateTime( emu::utils::getDateTime( true ) );
 
   struct timeval start, end;
 
@@ -1574,10 +1605,12 @@ void emu::step::Test::_25(){
       stringstream timeStampFileName;
       timeStampFileName << "Test25_"  << (*crate)->GetLabel()
 			<< "_TMBslot" << (*tmb)->slot()
-			<< "_"        << dateTime
+			<< "_"        << setfill('0') << setw(8) << runNumber_
+			<< "_"        << runStartTime_
 			<< ".txt";
       ofstream timeStampFile;
-      timeStampFile.open( timeStampFileName.str().c_str() );
+      timeStampFile.open( ( dataDir + "/" + timeStampFileName.str() ).c_str() );
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Opened " << dataDir << "/" << timeStampFileName.str() ); }
       timeStampFile << "#crate    :\t" << (*crate)->GetLabel() << endl;
       timeStampFile << "#TMB slot :\t" << (*tmb)->slot() << endl;
       timeStampFile << "#chamber  :\t" << (*tmb)->getChamber()->GetLabel() << endl;
@@ -1675,17 +1708,17 @@ void emu::step::Test::_27(){
 }
 
 void emu::step::Test::_fake(){
-  cout << "emu::step::Test::_fake called" << endl << flush;
+  // cout << "emu::step::Test::_fake called" << endl << flush;
   uint64_t nEvents = 10;
   bsem_.take();
   nEvents_ = nEvents;
   bsem_.give();
   for ( uint64_t iEvent = 0; iEvent < nEvents; ++iEvent ){
     if ( isToStop_ ){
-      cout << "emu::step::Test::_fake interrupted." << endl << flush;
+      // cout << "emu::step::Test::_fake interrupted." << endl << flush;
       return;
     }
-    cout << "  Event " << iEvent << endl << flush;
+    // cout << "  Event " << iEvent << endl << flush;
     bsem_.take();
     iEvent_ = iEvent;
     bsem_.give();
@@ -1694,5 +1727,5 @@ void emu::step::Test::_fake(){
   bsem_.take();
   iEvent_ = nEvents;
   bsem_.give();
-  cout << "emu::step::Test::_fake returning" << endl << flush;
+  // cout << "emu::step::Test::_fake returning" << endl << flush;
 }

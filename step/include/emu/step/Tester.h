@@ -37,6 +37,8 @@ namespace emu{
       
       Tester( xdaq::ApplicationStub *s );
       
+      vector<string> getDataDirNamesSTL();
+
       virtual void configureAction( toolbox::Event::Reference e );
       virtual void enableAction   ( toolbox::Event::Reference e );
       virtual void haltAction     ( toolbox::Event::Reference e );
@@ -63,6 +65,9 @@ namespace emu{
       xdata::Vector<xdata::String> crateIds_; ///< ids of crates that this emu::step::Tester instance handles
       xdata::Vector<xdata::String> chamberLabels_; ///< labels (names) of chambers that this emu::step::Tester instance handles
       xdata::Double  progress_;	///< progress in percent of the ongoing test
+      xdata::UnsignedInteger32 runNumber_;  ///< run number as obtained from the local DAQ
+      xdata::String  runStartTime_;	///< time of start of run as obtained from the local DAQ (e.g., 130529_154434_UTC)
+      xdata::Vector<xdata::String> dataDirNames_;  ///< all RUIs' data directory names (hostname:directory)
 
       Test* test_;
       toolbox::task::WorkLoop *workLoop_; ///< work loop for the test procedure to be executed in a separate thread

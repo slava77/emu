@@ -26,6 +26,12 @@ emu::step::Tester::Tester( xdaq::ApplicationStub *s )
     + emu::utils::stringFrom<int>( getApplicationDescriptor()->getInstance() );
 }
 
+vector<string> emu::step::Tester::getDataDirNamesSTL(){
+  vector<string> dirs;
+  for ( xdata::Vector<xdata::String>::iterator d = dataDirNames_.begin(); d != dataDirNames_.end(); ++d ) dirs.push_back( ( dynamic_cast<xdata::String*>( &*d ) )->toString() );
+  return dirs;
+}
+
 void emu::step::Tester::exportParameters(){
   xdata::InfoSpace *s = getApplicationInfoSpace();
   s->fireItemAvailable( "group"                     , &group_                      );
@@ -39,6 +45,9 @@ void emu::step::Tester::exportParameters(){
   s->fireItemAvailable( "chamberLabels"             , &chamberLabels_              );
   s->fireItemAvailable( "progress"                  , &progress_                   );
   s->fireItemAvailable( "chamberMaps"               , &chamberMaps_                );
+  s->fireItemAvailable( "runNumber"                 , &runNumber_                  );
+  s->fireItemAvailable( "runStartTime"              , &runStartTime_               );
+  s->fireItemAvailable( "dataDirNames"              , &dataDirNames_               );
   // s->fireItemAvailable( "", &_ );
   s->addItemRetrieveListener( "progress", this );
 }
@@ -208,7 +217,7 @@ void emu::step::Tester::stopAction( toolbox::Event::Reference e ){
 bool emu::step::Tester::testInWorkLoop( toolbox::task::WorkLoop *wl ){
   if ( test_ ){
     LOG4CPLUS_INFO( logger_, "Executing test " << test_->getId() );
-    test_->execute();
+    test_->setRunStartTime( runStartTime_ ).setRunNumber( runNumber_ ).setDataDirNames( getDataDirNamesSTL() ).execute();
     testDone_ = true;
     LOG4CPLUS_INFO( logger_, "Executed test " << test_->getId() );
   }

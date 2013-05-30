@@ -40,6 +40,31 @@ namespace emu{
 	    const bool    isFake,
 	    Logger*       pLogger              );
 
+
+      /// Setter of run number
+      ///
+      /// @param runStartTime Run number as obtained from the local DAQ.
+      ///
+      /// @return Reference to this Test object.
+      ///
+      Test& setRunNumber( const uint32_t runNumber ){ runNumber_ = runNumber; return *this; }
+
+      /// Setter of run start time
+      ///
+      /// @param runStartTime Time of start of run as obtained from the local DAQ (e.g., 130529_154434_UTC).
+      ///
+      /// @return Reference to this Test object.
+      ///
+      Test& setRunStartTime( const string& runStartTime ){ runStartTime_ = runStartTime; return *this; }
+
+      /// Setter of data directory names
+      ///
+      /// @param dataDirNames Data directory names (hostname:directory) of all RUIs
+      ///
+      /// @return Reference to this Test object.
+      ///
+      Test& setDataDirNames( const vector<string>& dataDirNames ){ dataDirNames_ = dataDirNames; return *this; }
+
       /// Execute the test.
       ///
       ///
@@ -73,6 +98,10 @@ namespace emu{
       bool                isFake_; ///< If \em true, the test will just be simulated without VME communication.
       bool                isToStop_; ///< Set this to \em true to interrupt the test.
       string              VME_XML_; ///< The VME configuration XML for this test.
+      uint32_t            runNumber_; ///< run number as obtained from the local DAQ
+      string              runStartTime_; ///< time of start of run as obtained from the local DAQ (e.g., 130529_154434_UTC)
+      vector<string>      dataDirNames_; // all RUIs' data directory names
+
       emu::pc::XMLParser  parser_;
       uint64_t            iEvent_; ///< Progress counter.
       void ( emu::step::Test::* procedure_ )();
@@ -89,6 +118,7 @@ namespace emu{
       void setUpDMB( emu::pc::DAQMB *dmb );
       void setUpDMB_Joe( emu::pc::DAQMB *dmb ); // temporary function to help understand setupDMB
       void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const short int depth = pipelineDepthFromXML );
+      string getDataDirName() const;
       void _11();
       void _12();
       void _13();
