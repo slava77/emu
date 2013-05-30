@@ -2103,15 +2103,17 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
     return stats;
 }
 
-void emu::daq::manager::Application::getDataFileNames(){
+void emu::daq::manager::Application::getDataPaths(){
   emu::soap::Messenger m( this );
   
   dataFileNames_.clear(); // All RUIs' all data file names
+  dataDirNames_.clear(); // All RUIs' data directory names
   for ( vector<xdaq::ApplicationDescriptor*>::iterator rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); ++rui ){
     string ruiHost;
     xdata::Vector<xdata::String> dataFileNames;
+    xdata::String dataDirName;
     try{
-      m.getParameters( *rui, emu::soap::Parameters().add( "dataFileNames", &dataFileNames ) );
+      m.getParameters( *rui, emu::soap::Parameters().add( "dataFileNames", &dataFileNames ).add( "pathToRUIDataOutFile", &dataDirName ) );
       ruiHost = toolbox::net::URL( (*rui)->getContextDescriptor()->getURL() ).getHost();
     }
     catch(xcept::Exception &e){
@@ -2123,7 +2125,8 @@ void emu::daq::manager::Application::getDataFileNames(){
     for ( size_t i = 0; i < dataFileNames.elements(); ++i ){
       dataFileNames_.push_back( ruiHost + ":" + ( dynamic_cast<xdata::String*> ( dataFileNames.elementAt(i)) )->toString() );
     }
-
+    // Add this RUI's data directory name with the host name prepended:
+    dataDirNames_.push_back( ruiHost + ":" + dataDirName.toString() );
   }
 }
 
@@ -3534,10 +3537,12 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable("calibNRuns"    ,    &calibNRuns_       );
   s->fireItemAvailable("calibStepIndex",    &calibStepIndex_   );
   s->fireItemAvailable("calibNSteps"   ,    &calibNSteps_      );
-  s->fireItemAvailable("dataFileNames", &dataFileNames_ );
+  s->fireItemAvailable("dataFileNames",     &dataFileNames_    );
+  s->fireItemAvailable("dataDirNames",      &dataDirNames_     );
 
   s->addItemRetrieveListener("runStartTime" ,this);
   s->addItemRetrieveListener("dataFileNames",this);
+  s->addItemRetrieveListener("dataDirNames" ,this);
 
   // Parameters to obtain from TTCciControl
   TTCci_ClockSource_   = "UNKNOWN";
@@ -4977,7 +4982,8 @@ void emu::daq::manager::Application::actionPerformed(xdata::Event & received )
 		 " Type of serializable: " << e.item()->type() );
 
   if      ( e.itemName() == "daqState"       && e.type() == "ItemRetrieveEvent" ){ daqState_ = getDAQState();        }
-  else if ( e.itemName() == "dataFileNames"  && e.type() == "ItemRetrieveEvent" ){ getDataFileNames();               }
+  else if ( e.itemName() == "dataFileNames"  && e.type() == "ItemRetrieveEvent" ){ getDataPaths();                   }
+  else if ( e.itemName() == "dataDirNames"   && e.type() == "ItemRetrieveEvent" ){ getDataPaths();                   }
   else if ( e.itemName() == "STEPFinished"   && e.type() == "ItemRetrieveEvent" ){ STEPFinished_ = isSTEPFinished(); }
   else if ( e.itemName() == "STEPCount"      && e.type() == "ItemRetrieveEvent" ){ STEPFinished_ = isSTEPFinished(); }
   else if ( e.itemName() == "supervisedMode" && e.type() == "ItemChangedEvent"  ){
