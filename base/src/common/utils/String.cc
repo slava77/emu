@@ -17,6 +17,7 @@ std::vector< std::string > emu::utils::splitString(const std::string& str, const
     start = found + 1;
     found = str.find_first_of(delimiters, start);
   }
+  pieces.push_back(str.substr(start));
   return pieces;
 }
 
