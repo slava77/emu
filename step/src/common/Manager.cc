@@ -330,8 +330,24 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       //
       // Enable all Tester apps
       //
+      // First enable the local DAQ
       m.sendCommand( "emu::daq::manager::Application", "Enable" );
       waitForDAQToExecute( "Enable", 10 );
+      // Get the number and start time of run and the data directories from the local DAQ and pass them on to the Testers
+      xdata::String runStartTime;
+      xdata::UnsignedInteger32 runNumber;
+      xdata::Vector<xdata::String> dataDirNames; // all RUIs' data directory names
+      m.getParameters( "emu::daq::manager::Application", 0, 
+		       emu::soap::Parameters()
+		       .add( "runNumber"   , &runNumber    )
+		       .add( "runStartTime", &runStartTime )
+		       .add( "dataDirNames", &dataDirNames ) );
+      m.setParameters( "emu::step::Tester",
+		       emu::soap::Parameters()
+		       .add( "runNumber"   , &runNumber    )
+		       .add( "runStartTime", &runStartTime )
+		       .add( "dataDirNames", &dataDirNames ) );
+      // The Testers can be enabled now
       m.sendCommand( "emu::step::Tester", "Enable" );
       waitForTestsToFinish( (bool) isCurrentTestDurationUndefined_ );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
