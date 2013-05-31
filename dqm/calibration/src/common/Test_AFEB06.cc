@@ -926,6 +926,7 @@ void Test_AFEB06::setTestParams()
 
   LOG4CPLUS_INFO (logger, "Setting additional test parameters.");
   std::map<std::string, std::string>::iterator itr;
+ 
   itr = test_params.find("tpamp_first");
   if (itr != test_params.end() )
     {

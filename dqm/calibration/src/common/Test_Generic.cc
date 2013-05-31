@@ -365,12 +365,22 @@ int Test_Generic::loadTestCfg()
         }
       }
 
+      ///* Change default test name with a value from the xml config file
+      itr = obj_info.find("TestName");
+      if (itr != obj_info.end() )
+      {
+        testID = (itr->second).c_str();
+        LOG4CPLUS_INFO (logger, "Test Name: " << testID);
+      }
+
+      ///* Change default the number of expected events in data file paramater with a value from the xml config file
       itr = obj_info.find("ExpectedEvents");
       if (itr != obj_info.end() )
       {
         nExpectedEvents = atoi((itr->second).c_str());
         LOG4CPLUS_INFO (logger, "Number of Expected Events: " << nExpectedEvents);
       }
+
     }
   }
 
