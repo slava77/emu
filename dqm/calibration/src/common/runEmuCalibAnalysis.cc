@@ -230,7 +230,7 @@ int main(int argc, char **argv)
 
   test_analyzer->setSQLiteDBName(SQLiteDB);
   test_analyzer->init();
-  test_analyzer->setCSCMapFile(cscMapFile);
+  // test_analyzer->setCSCMapFile(cscMapFile); ///* Getting rid of csc_map.txt based mapping access to use only sqlite
   test_analyzer->setConfigFile(xmlTestCfg);
   test_analyzer->setMasksFile(masksCfg);
   test_analyzer->setAFEBCalibFolder(cscAFEBCalibFolder);
