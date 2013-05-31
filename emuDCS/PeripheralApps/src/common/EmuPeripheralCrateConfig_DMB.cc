@@ -1032,9 +1032,14 @@ void EmuPeripheralCrateConfig::DCFEBReadFirmware(xgi::Input * in, xgi::Output * 
      std::vector<CFEB> cfebs = thisDMB->cfebs() ;
      if(icfeb<0 || icfeb>cfebs.size()) icfeb=0;
      std::string chambername= thisCrate->GetChamber(thisDMB)->GetLabel();
-     chambername.replace(6,1,"_");
-     chambername.replace(4,1,"_");
-     std::string mcsfile="/tmp/DCFEB_"+chambername+"_C"+cfeb_value+".mcs";
+     unsigned t = chambername.find('/');
+     unsigned s = chambername.size();
+     while(t<=s )
+     { 
+        chambername.replace(t,1,"_");
+        t = chambername.find('/');        
+     } 
+    std::string mcsfile="/tmp/DCFEB_"+chambername+"_C"+cfeb_value+".mcs";
                 
 
      std::cout << getLocalDateTime() << " DCFEB firmware read back from DMB " << dmb << " CFEB " << cfebs[icfeb].number()+1 << std::endl;
