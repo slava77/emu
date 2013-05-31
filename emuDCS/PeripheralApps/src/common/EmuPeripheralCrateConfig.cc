@@ -3545,8 +3545,13 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
       // to read the ALCT's PROM content and save as a .mcs file
 
       std::string chambername= thisCrate->GetChamber(thisTMB)->GetLabel();
-      chambername.replace(6,1,"_");
-      chambername.replace(4,1,"_");
+      unsigned t = chambername.find('/');
+      unsigned s = chambername.size();
+      while(t<=s )
+      {
+         chambername.replace(t,1,"_");
+         t = chambername.find('/');
+      }
       std::string mcsfile="/tmp/ALCT_"+ chambername + "_" + getLocalDateTime(true) + ".mcs";
       std::string jtagfile;
       std::string alcttype=thisALCT->GetChamberType();
@@ -8895,8 +8900,13 @@ void EmuPeripheralCrateConfig::TMBReadFirmware(xgi::Input * in, xgi::Output * ou
   if(thisTMB)
   {
     std::string chambername= thisCrate->GetChamber(thisTMB)->GetLabel();
-    chambername.replace(6,1,"_");
-    chambername.replace(4,1,"_");
+    unsigned t = chambername.find('/');
+    unsigned s = chambername.size();
+    while(t<=s )
+    {
+        chambername.replace(t,1,"_");
+        t = chambername.find('/');
+    }
     std::string mcsfile="/tmp/TMB_"+ chambername + ".mcs";
     std::string jtagfile=XMLDIR+"/tmb.vrf";
     // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
@@ -8942,8 +8952,13 @@ void EmuPeripheralCrateConfig::ALCTReadFirmware(xgi::Input * in, xgi::Output * o
   if(thisTMB)
   {
     std::string chambername= thisCrate->GetChamber(thisTMB)->GetLabel();
-    chambername.replace(6,1,"_");
-    chambername.replace(4,1,"_");
+    unsigned t = chambername.find('/');
+    unsigned s = chambername.size();
+    while(t<=s )
+    {
+        chambername.replace(t,1,"_");
+        t = chambername.find('/');
+    }
     std::string mcsfile="/tmp/ALCT_"+ chambername + ".mcs";
     std::string jtagfile;
     ALCTController * thisALCT = thisTMB->alctController();
