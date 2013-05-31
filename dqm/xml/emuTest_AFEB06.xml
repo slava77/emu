@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Config>
-                <ExpectedEvents>14000</ExpectedEvents>
+                <ExpectedEvents>13910</ExpectedEvents>
                 <Description>AFEB Thresholds</Description>
                 <tpamp_first>23</tpamp_first>
                 <tpamp_step>18</tpamp_step>
+                <TestName>13_AFEB_Thresholds</TestName>
         </Config>
         <TestResult>
 		<Test>AFEB06</Test>
