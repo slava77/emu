@@ -36,7 +36,7 @@ attlist.EmuSystem &=
    attribute date { text }?,
    attribute version { text }?
 PeripheralCrate =
-   element PeripheralCrate { attlist.PeripheralCrate, (VCC & CCB & MPC & CSC+) }
+   element PeripheralCrate { attlist.PeripheralCrate, (VCC & CCB & MPC & CSC+), DDU? }
 attlist.PeripheralCrate &=
    attribute crateID { xsd:unsignedInt },
    attribute label { text }
@@ -204,7 +204,8 @@ attlist.TMB &=
    attribute cfeb4_rxd_int_delay { xsd:unsignedInt },
    attribute cfeb_badbits_block { xsd:unsignedInt },
    attribute cfeb_badbits_readout { "0" | "1" },
-   attribute miniscope_enable { "0" | "1" }
+   attribute miniscope_enable { "0" | "1" },
+   attribute hardware_version { xsd:unsignedInt }
 
 ALCT = element ALCT { attlist.ALCT, AnodeChannel* }
 attlist.ALCT &=
@@ -286,7 +287,7 @@ attlist.DAQMB &=
    attribute pul_dac_set { xsd:decimal },
    attribute inj_dac_set { xsd:decimal },
    attribute comp_mode { xsd:unsignedInt },
-   attribute pre_block_end { xsd:unsignedInt },
+   attribute pre_block_end { xsd:unsignedInt { minInclusive="0" maxInclusive="15" } },
    attribute kill_input { xsd:unsignedInt }
 CFEB = element CFEB { attlist.CFEB, empty }
 attlist.CFEB &= 
@@ -305,5 +306,13 @@ attlist.CFEB &=
    attribute kill_chip2 { xsd:string { pattern="[0-9a-fA-F]+" } },
    attribute kill_chip3 { xsd:string { pattern="[0-9a-fA-F]+" } },
    attribute kill_chip4 { xsd:string { pattern="[0-9a-fA-F]+" } },
-   attribute kill_chip5 { xsd:string { pattern="[0-9a-fA-F]+" } }
+   attribute kill_chip5 { xsd:string { pattern="[0-9a-fA-F]+" } },
+   attribute hardware_version { xsd:unsignedInt }
+DDU = element DDU { attlist.DDU, input+ }
+attlist.DDU &= 
+   attribute slot { xsd:unsignedInt }
+input = element input { attlist.input, empty }
+attlist.input &=
+   attribute number { xsd:unsignedInt { minInclusive="0" maxInclusive="14" } },
+   attribute dmbSlot { "3" | "5" | "7" | "9" | "11" | "15" | "17" | "19" | "21" }
 start = EmuSystem
