@@ -116,7 +116,6 @@ namespace emu{
       void enableTrigger();
       void disableTrigger();
       void setUpDMB( emu::pc::DAQMB *dmb );
-      void setUpDMB_Joe( emu::pc::DAQMB *dmb ); // temporary function to help understand setupDMB
       void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const short int depth = pipelineDepthFromXML );
       string getDataDirName() const;
       void _11();
