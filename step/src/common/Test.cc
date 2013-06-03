@@ -267,65 +267,6 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 
   //test values take them maybe out
   char dmbstatus[11];
-  int cfeb_clk_delay=31;
-  int pre_block_end=7;
-  int feb_cable_delay=0;
-  int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
-  float dac=1.00;
-  // std::cout<<"start dword: "<<dword<<std::endl;
-  // the below should be done via XML params
-  // tmb->DisableALCTInputs();
-  // tmb->DisableCLCTInputs();
-  // tmb_EnableClctExtTrig(tmb);
-  // ccb_EnableL1aFromDmbCfebCalibX(ccb);
-  // ccb_SetExtTrigDelay(ccb, 34);
-  // std::cout<<"extTrigDelay "<<34<<std::endl;
-  //dmb->set_dac(0, (float)tcs.t17.dmb_test_pulse_amp * 5. / 256.);
-  //loop over strips - 16
-	
-  dmb->calctrl_fifomrst();
-  usleep(5000);
-	   
-  dmb->restoreCFEBIdle();
-  dmb->restoreMotherboardIdle();
-  dmb->set_cal_dac(dac,dac);
-  dmb->setcaldelay(dword);
-
-  //dmb->settrgsrc(1);
-  dmb->fxpreblkend(pre_block_end);
-  dmb->SetCfebClkDelay(cfeb_clk_delay);
-  dmb->setfebdelay(dmb->GetKillFlatClk());
-  dmb->load_feb_clk_delay();
-  if(dmb->GetCfebCableDelay() == 1){
-    // In the calibration, we set all cfeb_cable_delay=0 for all DMB's for
-    // timing analysis.  If the collision setting is normally cfeb_cable_delay=1,
-    // in order to ensure the proper timing of the CFEB DAV, we will need to 
-    // adjust cfeb_dav_cable_delay to follow the change of cfeb_cable_delay...
-    dmb->SetCfebDavCableDelay(dmb->GetCfebDavCableDelay()+1);
-    std::cout<<"in cable delay==1 : "<<dmb->GetCfebDavCableDelay()+1<<"/"<<dmb->GetCableDelay()<<std::endl;
-  }
-  dmb->setcbldly(dmb->GetCableDelay());
-  dmb->SetCfebCableDelay(feb_cable_delay);
-  dmb->calctrl_global();
-  //
-  // Now check the DAQMB status.  Did the configuration "take"?
-  std::cout << "After config: check status " << std::endl;
-  usleep(50);
-  dmb->dmb_readstatus(dmbstatus);
-  if( ((dmbstatus[9]&0xff)==0x00 || (dmbstatus[9]&0xff)==0xff) || 
-      ((dmbstatus[8]&0xff)==0x00 || (dmbstatus[8]&0xff)==0xff) ||
-      ((dmbstatus[7]&0xff)==0x00 || (dmbstatus[7]&0xff)==0xff) ||
-      ((dmbstatus[6]&0xff)==0x00 || (dmbstatus[6]&0xff)==0xff) ||
-      ((dmbstatus[0]&0xff)!=0x21)                              ) {
-    std::cout << "... config check not OK for DMB "  << std::endl;
-  }
-
-}
-
-void emu::step::Test::setUpDMB_Joe( emu::pc::DAQMB *dmb ){
-
-  //test values take them maybe out
-  char dmbstatus[11];
   // the below should be done via XML params
   // ccb_SetExtTrigDelay(ccb, 34);
 	
@@ -873,8 +814,6 @@ void emu::step::Test::_16(){
 	  if ( CFEBHardwareVersion == 2 ){
         (*dmb)->buck_shift();
         usleep(100000); // buck shifting takes a lot more time for DCFEBs
-        (*dmb)->restoreCFEBIdle();
-        usleep(100000);
         (*crate)->ccb()->bc0(); // this may not be needed, should check
       }
 	} 
@@ -1017,9 +956,7 @@ void emu::step::Test::_17(){ // OK
       tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
       tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
       tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() != 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	setUpDMB( *dmb );
-      }
+      setUpDMB( *dmb );
       
       // Set pipeline depth on DCFEBs
       setAllDCFEBsPipelineDepth( *dmb );
@@ -1043,8 +980,6 @@ void emu::step::Test::_17(){ // OK
 
 	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
-          (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
-          usleep(50000);
           (*crate)->ccb()->bc0(); // may not need this (should check)
 	  usleep(100000);
         }
@@ -1150,9 +1085,7 @@ void emu::step::Test::_17b(){ // OK
       tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
       tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
       tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() != 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	setUpDMB( *dmb );
-      }
+      setUpDMB( *dmb );
       
       // Set pipeline depth on DCFEBs
       setAllDCFEBsPipelineDepth( *dmb );
@@ -1176,8 +1109,6 @@ void emu::step::Test::_17b(){ // OK
 
 	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
-          (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
-          usleep(50000);
           (*crate)->ccb()->bc0(); // may not need this (should check)
 	  usleep(100000);
         }
@@ -1342,8 +1273,6 @@ void emu::step::Test::_19(){
 
 	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
-          (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
-          usleep(50000);
           (*crate)->ccb()->bc0(); // may not need this (should check)
 	  usleep(100000);
         }
@@ -1489,8 +1418,6 @@ void emu::step::Test::_21(){
 
         if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
-          (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
-          usleep(50000);
           (*crate)->ccb()->bc0(); // may not need this (should check)
           usleep(100000);
         }
