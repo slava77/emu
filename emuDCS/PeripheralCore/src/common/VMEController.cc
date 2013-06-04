@@ -1468,7 +1468,7 @@ int VMEController::VME_controller(int irdwr,unsigned int ptr,unsigned short int 
   /* for normal READ/WRITE, need copy the data out of the spebuff. */
   actual_return=0; 
   if(LRG_read_flag==0 && LRG_read_pnt>0)
-  {   memcpy(rcv, spebuff, LRG_read_pnt);
+  {   if(rcv) memcpy(rcv, spebuff, LRG_read_pnt);
       actual_return += LRG_read_pnt/2;
   } 
   /* read back bytes from vme if needed */
@@ -1590,8 +1590,12 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
     {  // normal read
 // Jinghua Liu: byte swap!!!
        for(i=0;i<r_num;i++)
-       {  rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];
-          rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];
+       {  
+          if(rcv)
+          {
+             rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];
+             rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];
+          }
           if(DEBUG) printf("return data: %02X %02X\n", r_datat[2*i]&0xFF, r_datat[2*i+1]&0xFF);
        }
        actual_return += r_num;
