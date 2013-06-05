@@ -561,6 +561,7 @@ std::string Test_Generic::getCSCTypeLabel(int endcap, int station, int ring )
 
 std::string Test_Generic::getCSCFromMap(int crate, int slot, int& csctype, int& cscposition)
 {
+  std::string cscid = "";
   int iendcap = -1;
   int istation = -1;
   int iring = -1;
@@ -579,7 +580,7 @@ std::string Test_Generic::getCSCFromMap(int crate, int slot, int& csctype, int& 
   */
 
   ///* Mapping access replaced with slqite-based access
-  ///!!! This original CMSSW code throws exception 
+  ///!!! This original CMSSW code throws exception
   try
     {
       CSCDetId cid = cratemap->detId(crate, slot, 0, 0);
@@ -595,7 +596,8 @@ std::string Test_Generic::getCSCFromMap(int crate, int slot, int& csctype, int& 
       return "";
     }
 
-
+  /// Get chamber label by constructing it with endcap/station/ring/position (txt and sqlite-based mapping)
+  /*
   std::string tlabel = getCSCTypeLabel(iendcap, istation, iring );
   std::map<std::string,int>::const_iterator it = tmap.find( tlabel );
   if (it != tmap.end())
@@ -609,6 +611,25 @@ std::string Test_Generic::getCSCFromMap(int crate, int slot, int& csctype, int& 
 
 
   return tlabel+"."+Form("%02d", cscposition);
+  */
+
+  /// Get chamber label from the mapping entry chamberLabel field directly (sqlite-based mapping)
+  try
+    {
+      int dmb = slot;
+      if (dmb >= 6) --dmb;
+      int id = 10*crate+dmb;
+      CSCMapItem::MapItem mapitem = cratemap->item(id);
+      cscid = mapitem.chamberLabel;
+      std::replace(cscid.begin(), cscid.end(), '/', '.'); /// Can't use '/' in CSC name -> invalid folder name
+    }
+  catch (...)
+    {
+      LOG4CPLUS_ERROR (logger, "Invalid CSC Id detected -> VME crate:" << crate << ", DMB slot" << slot);
+      return "";
+    }
+
+  return cscid;
 }
 
 
@@ -1456,22 +1477,22 @@ void Test_Generic::finish()
                           if (data.content[i][j] < limits[0])
                             {
                               validity="L1";
-                              l0_cnt++;
+                              if (!mask.content[i][j]) l0_cnt++;
                             }
                           else if (data.content[i][j] < limits[1])
                             {
                               validity="L0";
-                              l1_cnt++;
+                              if (!mask.content[i][j]) l1_cnt++;
                             }
                           else if (data.content[i][j] > limits[3])
                             {
                               validity="H1";
-                              h1_cnt++;
+                              if (!mask.content[i][j]) h1_cnt++;
                             }
                           else if (data.content[i][j] > limits[2])
                             {
                               validity="H0";
-                              h0_cnt++;
+                              if (!mask.content[i][j]) h0_cnt++;
                             }
                           // if (validity != "OK") failed_cnt++;
                           int prec=2;
