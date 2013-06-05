@@ -659,9 +659,8 @@ int DAQMB::ReadRegister(unsigned address)
 
 void DAQMB::WriteRegister(unsigned address, int value)
 {
-   char temp[64];
    unsigned short data = value & 0xFFFF;
-   write_now(address, data, temp);
+   write_now(address, data, NULL);
 }
 
 //
@@ -1043,6 +1042,8 @@ void DAQMB::CheckCFEBsConfiguration(bool print_errors) {
 //
 void DAQMB::enable_cfeb() {
   //
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=LOAD_STR;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -1058,10 +1059,13 @@ void DAQMB::enable_cfeb() {
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  }
 }
 //
 void DAQMB::setcrateid(int dword)
 {
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CRATE_ID;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -1085,10 +1089,17 @@ void DAQMB::setcrateid(int dword)
   cmd[0]=VTX2_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  }
+  else if(hardware_version_==2)
+  {
+     WriteRegister(set_CRATEID, CRATE_ID);
+  }
 }
 //
 void DAQMB::setfebdelay(int dword)
 {
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=FEB_DELAY;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -1117,11 +1128,17 @@ void DAQMB::setfebdelay(int dword)
   cmd[0]=VTX2_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  }
+  else if(hardware_version_==2)
+  {
+  } 
 }
 
 void DAQMB::setcaldelay(int dword)
 {
   //
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CAL_DELAY;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -1137,11 +1154,18 @@ void DAQMB::setcaldelay(int dword)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2); 
   //(*MyOutput_) << "caldelay was set to " << std::hex << dword <<std::dec << std::endl;
+  }
+  else if(hardware_version_==2)
+  {
+     WriteRegister(set_CAL_DLY, dword);
+  }
   //
 }
 
 void DAQMB::setdavdelay(int dword)
 {
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=TRG_DAV_DELAY;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -1158,6 +1182,10 @@ void DAQMB::setdavdelay(int dword)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   (*MyOutput_) << "set dav delay to " << dword << std::endl;
+  }
+  else if(hardware_version_==2)
+  {
+  } 
 }
 
 void DAQMB::fxpreblkend(int dword)
@@ -1214,12 +1242,15 @@ void DAQMB::LctL1aDelay(int dword,unsigned icfeb) // Set cfeb latency (0=2.9us,1
   else if (hversion==2)
   {
       dcfeb_hub(cfebs_[icfeb], LCTL1ADELAY, 2, &dword, rcvbuf, NOW);
+      udelay(1000);
   }  
 }
 
 
 void DAQMB::calctrl_fifomrst()
 {
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CAL_FIFOMRST;
   std::cout << " CAL_FIFOMRST " << std::hex << (sndbuf[0]&0xff) << std::dec << std::endl;
@@ -1238,11 +1269,14 @@ void DAQMB::calctrl_fifomrst()
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   std::cout << " FIFOMRST reset done " << std::endl;
+  }
 }
 
 void DAQMB::calctrl_global()
 {
 
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=GLOBAL_RST;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -1252,26 +1286,24 @@ void DAQMB::calctrl_global()
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
   usleep(10000);
+  }
 }
 
 
 void DAQMB::restoreCFEBIdle() {
 // Liu Oct. 1, 2012
 // Set all CFEB's JTAG state machines
-   char temp[4];
-  char cfeb_maskX = 0x1f;
-//   write_cfeb_selector(0x7f);   
+   char cfeb_maskX = (hardware_version_<=1)?0x1f:0x7f;
    write_cfeb_selector(cfeb_maskX); 
-   write_now(0x1018, 0, temp);
-//  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
-//    DEVTYPE dv = cfebs_[icfeb].scamDevice();
-//    devdo(dv,-1,cmd,0,sndbuf,rcvbuf,2);
-//  }
+   WriteRegister(reset_CFEB_JTAG, 0);
 }
 
 
 void DAQMB::restoreMotherboardIdle() {
-  devdo(MCTRL,-1,cmd,0,sndbuf,rcvbuf,2);
+  if(hardware_version_<=1)
+  {
+    devdo(MCTRL,-1,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 /* DAQMB trigger primitives */
@@ -1299,6 +1331,7 @@ void  DAQMB::set_comp_mode(int dword)
     else if (hversion==2)
     {
       dcfeb_hub(cfebs_[icfeb], COMP_MODE, 5, &dword, rcvbuf, NOW);
+      udelay(100);
     }  
   }
   (*MyOutput_) << "calling set_comp_mode " << std::hex << (dword & 0x1F) << std::dec << std::endl;
@@ -1346,6 +1379,7 @@ void DAQMB::set_comp_thresh_bc(float thresh)
  else if (hversion==2)
  {
    dcfeb_set_comp_thresh_bc(thresh);
+   udelay(100);
  }
 }
 
@@ -1368,7 +1402,7 @@ void DAQMB::dcfeb_set_comp_thresh_bc(float thresh)
    // enable all DCFEBs for broadcast
    write_cfeb_selector(0x7F);
    dcfeb_core(COMP_DAC, 15, dt, rcvbuf, NOW|NOOP_YES);
-   usleep(20);
+   usleep(200);
 }
 
 void DAQMB::set_comp_thresh(float thresh)
@@ -1416,7 +1450,7 @@ char dt[2];
   {
    dcfeb_hub(cfebs_[icfeb], COMP_DAC, 15, dt, rcvbuf, NOW|NOOP_YES);
   }          
-   usleep(20);
+   usleep(200);
  }
 }
 //
@@ -1464,28 +1498,14 @@ char dt[2];
   {
     dcfeb_hub(cfebs_[icfeb], COMP_DAC, 15, dt, rcvbuf, NOW|NOOP_YES);
   }          
- usleep(20);
+ usleep(200);
 }
+
+// TODO: remove set_dac() and use only set_cal_dac()
 //
 void DAQMB::set_dac(float volt0,float volt1)
 {
-  unsigned short int dacout0,dacout1;
-  /* digitize voltages */
-  dacout0=(unsigned short int)(volt0*4095./5.0);
-  dacout1=(unsigned short int)(volt1*4095./5.0);
-  /* load cdac */
-  /* cmd[0]=(0xff&dacout0);
-     cmd[1]=((dacout0>>8)&0xff);
-     cmd[2]=(0xff&dacout1);
-     cmd[3]=((dacout1>>8)&0xff);
-  */
-  //Temperarily swapped here, GU
-  cmd[2]=(0xff&dacout0);
-  cmd[3]=((dacout0>>8)&0xff);
-  cmd[0]=(0xff&dacout1);
-  cmd[1]=((dacout1>>8)&0xff);
-  //printf(" CDAC %04x %04x %02x %02x \n",dacout0,dacout1,cmd[0]&0xff,cmd[1])&0xff;
-  devdo(CDAC,32,cmd,0,sndbuf,rcvbuf,2); 
+   set_cal_dac(volt0, volt1);
 }
 
 
@@ -1926,6 +1946,8 @@ void DAQMB::trigtest()
 void DAQMB::settrgsrc(int dword)
 {
   //
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=37;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -1945,35 +1967,50 @@ void DAQMB::settrgsrc(int dword)
   //
   printf("Cal_trg source are Set to %01x (Hex). \n",dword&0xf);
   //
+  }
 }
 
 
 /* DAQMB   Voltages  */
 
 float DAQMB::adcplus(int ichp,int ichn){
+  if(hardware_version_<=1)
+  {
   unsigned int ival= (readADC(ichp, ichn)&0x0fff);
   return (float) ival;
+  }
+  else return 0.;
 }
 
 //
 float DAQMB::adcminus(int ichp,int ichn){
+  if(hardware_version_<=1)
+  {
   short int ival= (readADC(ichp, ichn)&0x0fff);
   if((0x0800&ival)==0x0800)ival=ival|0xf000;
   float cval;
   cval = ival;
   return (float) ival;
+  }
+  else return 0.;
 }
 
 //
 float DAQMB::adc16(int ichp,int ichn){
+  if(hardware_version_<=1)
+  {
   unsigned int ival= readADC(ichp, ichn);
   float cval=ival*4.999924/65535.;
   return cval;
+  }
+  else return 0.;
 }
 
 
 void DAQMB::dmb_readstatus(char status[11])
 {
+  if(hardware_version_<=1)
+  {
   //
   int i;
   //
@@ -2031,7 +2068,7 @@ void DAQMB::dmb_readstatus(char status[11])
 
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
-
+  }
 }
 
 void DAQMB::cfebs_readstatus()
@@ -2214,7 +2251,9 @@ void DAQMB::cfebs_readstatus()
 
 float DAQMB::readthermx(int feb)
 {
-  float cval,fval;
+  float cval=0.0,fval=0.0;
+  if(hardware_version_<=1)
+  {
   float Vout= (float) readADC(1, feb) / 1000.;
   if(feb<7){
     cval = 1/(0.1049406423E-2+0.2133635468E-3*log(65000.0/Vout-13000.0)+0.7522287E-7*pow(log(65000.0/Vout-13000.0),3.0))-0.27315E3;
@@ -2222,15 +2261,20 @@ float DAQMB::readthermx(int feb)
   }else{
     fval=Vout;
   }
-  return fval;
+  }
+  return cval;
 }
 
 
 unsigned int DAQMB::readADC(int ireg, int ichn) {
+  if(hardware_version_<=1)
+  {
   cmd[0]=ireg; /* register 1-4 */
   cmd[1]=ichn; /* channel 0-7 */
   devdo(MADC,16,cmd,0,sndbuf,rcvbuf,2);
   return unpack_ival();
+  } 
+  else return 0;
 }
 
 
@@ -2238,6 +2282,7 @@ unsigned int DAQMB::readADC(int ireg, int ichn) {
 
 float DAQMB::lowv_adc(int ichp,int ichn)
 {
+/*
 static int conv_lowv[5][8]={
   {2,2,1,1,2,2,1,2},
   {2,1,2,2,1,2,2,1},
@@ -2253,23 +2298,28 @@ static int conv_lowv[5][8]={
   ival=ival*conv_lowv[ichp-1][ichn];
  float cval=ival*5.0/4.096;
   return cval;
+*/
+     int n, iv;
+     WriteRegister(set_ADC_SELECT, ichp-1);
+     n=(ichn<<4) + 0xFF89;
+     WriteRegister(ADC_CTRL_BYTE, n);
+     iv=ReadRegister(ADC_READ);
+     float cval=iv*10.0/4.096;
+     return cval;
+
 } 
 
 void DAQMB::lowv_onoff(char c)
 {
- // cmd[0]=0x08; /* write power register */
- // cmd[1]=c; /* 0x3f means all on, 0x00 means all off  */
- // devdo(LOWVOLT,16,cmd,0,sndbuf,rcvbuf,2);
- unsigned short mask= 0x3F & c & (~power_mask_);
- write_now(0x8010, mask, rcvbuf);
+ /* 0x3f (or 0xff for ODMB) means all on, 0x00 means all off  */
+ unsigned short all_mask=(hardware_version_<=1)?0x3F:0xFF;
+ unsigned short mask= all_mask & c & (~power_mask_);
+ WriteRegister(set_POWER_MASK, mask);
 }
 
 unsigned int DAQMB::lowv_rdpwrreg()
 {
- cmd[0]=0x09; /* write power register */
- cmd[1]=0x00; 
- devdo(LOWVOLT,16,cmd,0,sndbuf,rcvbuf,2);
- return unpack_ival();
+ return ReadRegister(read_POWER_MASK);
 }
 
 /* FPGA and PROM codes  */
@@ -2419,10 +2469,10 @@ if(hversion<=1)
   sndbuf[2]=0xFF;
   sndbuf[3]=0xFF;
   devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
-  (*MyOutput_) << " The FEB " << dv-F1SCAM+1 << "FPGA Chip should be 610093 (last 6 digits) "  << std::endl;
-  (*MyOutput_) << " The FPGA Chip IDCODE is " << std::hex << 
-    (0xff&rcvbuf[3]) << (0xff&rcvbuf[2]) << (0xff&rcvbuf[1]) << (0xff&rcvbuf[0]) << std::endl;
-  // RPW not sure about this
+  char sbuf[100];
+  (*MyOutput_) << " The FEB " << dv-F1SCAM+1 << " FPGA Chip should be 610093 (last 6 digits) "  << std::endl;
+  sprintf(sbuf, "%02X%02X%02X%02X", 0xff&rcvbuf[3], 0xff&rcvbuf[2], 0xff&rcvbuf[1], 0xff&rcvbuf[0]);
+  (*MyOutput_) << " The FPGA Chip IDCODE is " << sbuf << std::endl;
   ibrd = unpack_ibrd();
   cmd[0]=VTX_BYPASS;
   sndbuf[0]=0;
@@ -2438,9 +2488,10 @@ else if(hversion==2)
 
 unsigned int DAQMB::mbpromuser(int prom)
 {
-unsigned int ibrd;
-DEVTYPE dv;
- 
+  if(hardware_version_<=1)
+  {
+  unsigned int ibrd;
+  DEVTYPE dv;
 
   if(prom==0){dv=VPROM;}else{dv=MPROM;}
   for (int i=0;i<3;i++) {
@@ -2461,14 +2512,16 @@ DEVTYPE dv;
           ((0xff&rcvbuf[2])!=0xff)||((0xff&rcvbuf[3])!=0xff)) return ibrd;
   }
       return ibrd;
-
+  }
+  else return 0;
 }
 
 unsigned int  DAQMB::mbpromid(int prom)
 {
-unsigned int ibrd;
-DEVTYPE dv;
- 
+  if(hardware_version_<=1)
+  {
+  unsigned int ibrd;
+  DEVTYPE dv;
 
   if(prom==0){dv=VPROM;}else{dv=MPROM;}
       cmd[0]=PROM_IDCODE;
@@ -2483,12 +2536,15 @@ DEVTYPE dv;
       sndbuf[0]=0;
       devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
       return ibrd;
+  }
+  else return 0;
 }
 
 
 unsigned int  DAQMB::mbfpgauser()
 {
- 
+  if(hardware_version_<=1)
+  {
   DEVTYPE dv=MCTRL;
   cmd[0]=VTX2_USERCODE;
   sndbuf[0]=0xFF;
@@ -2502,10 +2558,14 @@ unsigned int  DAQMB::mbfpgauser()
   sndbuf[0]=0;
   devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
   return ibrd;
+  }
+  else return 0;
 }
 
 unsigned int  DAQMB::mbfpgaid()
 {
+  if(hardware_version_<=1)
+  {
   //
   unsigned int ibrd;
   //
@@ -2523,10 +2583,15 @@ unsigned int  DAQMB::mbfpgaid()
   sndbuf[0]=0;
   devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
   return ibrd;
+  }
+  else return 0;
 }
+
 //
 void DAQMB::vmefpgaid()
 {
+  if(hardware_version_<=1)
+  {
   //
   cmd[0]=1;
   cmd[1]=0;
@@ -2546,29 +2611,48 @@ void DAQMB::vmefpgaid()
   fwday_=((rcvbuf[1]<<2)&0x1c)+((rcvbuf[0]>>6)&0x3);
   //cout <<" Date code: Month "<<fwmonth<<" Day "<<fwday<<" Year "<<fwyear<<'\n';
   //
+  }
 }
 //
 // DAQMB calibrate
 //
 void DAQMB::set_cal_dac(float volt0,float volt1)
 {
-unsigned short int dacout0,dacout1;
+  int cfeb_hversion=cfebs_[0].GetHardwareVersion();
+  unsigned short int dacout0,dacout1;
 
-/* digitize voltages */  
+    /* digitize voltages */  
   dacout0=int(volt0*4095./5.0);
   dacout1=int(volt1*4095./5.0);
- /* load cdac */
-  /* cmd[0]=(0xff&dacout0);
- cmd[1]=((dacout0>>8)&0xff);
- cmd[2]=(0xff&dacout1);
- cmd[3]=((dacout1>>8)&0xff);
-  */
-  //Temperarily swapped here, GU
- cmd[2]=(0xff&dacout0);
- cmd[3]=((dacout0>>8)&0xff);
- cmd[0]=(0xff&dacout1);
- cmd[1]=((dacout1>>8)&0xff);
- devdo(CDAC,32,cmd,0,sndbuf,rcvbuf,2); 
+
+  if(hardware_version_<=1)
+  {
+    /* load cdac */
+    /* cmd[0]=(0xff&dacout0);
+      cmd[1]=((dacout0>>8)&0xff);
+      cmd[2]=(0xff&dacout1);
+      cmd[3]=((dacout1>>8)&0xff);
+    */
+    //Temperarily swapped here, GU
+    cmd[2]=(0xff&dacout0);
+    cmd[3]=((dacout0>>8)&0xff);
+    cmd[0]=(0xff&dacout1);
+    cmd[1]=((dacout1>>8)&0xff);
+    devdo(CDAC,32,cmd,0,sndbuf,rcvbuf,2); 
+  }
+  else if(hardware_version_==2 && cfeb_hversion==2)
+  {
+    for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) 
+    {
+       unsigned cw, dword;
+       cw=0x4000|(dacout0<<1);
+       dword=shuffle32(cw)>>16;
+       dcfeb_hub(cfebs_[icfeb], Calib_DAC, 16, &dword, rcvbuf, NO_BYPASS|NOW);
+       cw=0x4000|(dacout1<<1);
+       dword=shuffle32(cw)>>16;
+       dcfeb_core(Calib_DAC, 16, &dword, rcvbuf, NOOP_YES|NOW);
+    }
+  }
 }
 
 void DAQMB::buck_shift()
@@ -2864,6 +2948,8 @@ void DAQMB::set_cal_tim_inject(int ntim)
 
 void DAQMB::toggle_pedestal()
 {
+  if(hardware_version_<=1)
+  {
     cmd[0]=VTX2_USR1;
     sndbuf[0]=PED_TRIG;
     devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,1);
@@ -2878,12 +2964,15 @@ void DAQMB::toggle_pedestal()
     /*  printf(" Returned from NOOP instr: %02X  \n",rcvbuf[0]&0xFF);*/
     cmd[0]=VTX2_BYPASS;
     devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 
 void DAQMB::pulse(int Num_pulse,unsigned int pulse_delay)
 {
-  int j;
+  if(hardware_version_<=1)
+  {
+   int j;
    for(j=0;j<Num_pulse;j++){
      sndbuf[1]=(pulse_delay&0xff00)>>8;
      sndbuf[0]=(pulse_delay&0x00ff);
@@ -2904,11 +2993,14 @@ void DAQMB::pulse(int Num_pulse,unsigned int pulse_delay)
      devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
      }
    }
+  }
 }
 
 void DAQMB::inject(int Num_pulse,unsigned int pulse_delay)
 {
 
+  if(hardware_version_<=1)
+  {
    (*MyOutput_) << "DAQMB.inject " << std::endl;
 
    for(int j=0;j<Num_pulse;j++){
@@ -2932,6 +3024,7 @@ void DAQMB::inject(int Num_pulse,unsigned int pulse_delay)
 	devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
      }
    }
+  }
 }
 
 
@@ -2960,6 +3053,8 @@ void DAQMB::wrtfifo(int fifo,int nsndfifo,char* sndfifo)
 //
 void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
 {  
+  if(hardware_version_<=1)
+  {
   //
   //(*MyOutput_) << "readfifo" << std::endl;
   //
@@ -3005,6 +3100,7 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   //
   printf("readfifo: %d %02x %02x \n",nrcvfifo,rcvfifo[0]&0xff,rcvfifo[1]&0xff); 
   //
+  }
 }
 
 // DAQMB load and read flash memory (electronics experts only)
@@ -3012,6 +3108,8 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
 void DAQMB::buckflash_load(char *fshift)
 {
   
+  if(hardware_version_<=1)
+  {
   (*MyOutput_) << "inside load" <<std::endl;
   
  cmd[0]=0;
@@ -3023,42 +3121,54 @@ void DAQMB::buckflash_load(char *fshift)
  devdo(BUCSHF,1,cmd,295*8,sndbuf,rcvbuf,0); // load buckeye pattern
  //Just to put some extra TMS low after the process for safety.
  //The exact number needed is 295.
+  }
 }
 
 void DAQMB::buckflash_load2(int nbytes,char *fshift)
 {
+  if(hardware_version_<=1)
+  {
  cmd[0]=0;
  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,0); // initialize programming
  for(int i=0;i<nbytes;i++)sndbuf[i]=fshift[i];
  cmd[0]=1;
  devdo(BUCSHF,1,cmd,nbytes*8,sndbuf,rcvbuf,0); // load buckeye pattern
  //The exact number needed is nbits.
+  }
 }
 
 
 void DAQMB::buckflash_read(char *rshift)
 {
+  if(hardware_version_<=1)
+  {
  cmd[0]=0;
  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); // initialize programming 
  cmd[0]=3;
  //used to be devdo(BUCSHF,1,cmd,0,sndbuf,rshift,1); 
  devdo(BUCSHF,1,cmd,295*8,sndbuf,rshift,1); 
  /* return 296 bits */
+  }
 }
 
 void DAQMB::buckflash_read2(int nbytes,char *rshift)
 {
+  if(hardware_version_<=1)
+  {
   printf("entered buckflash_read2 \n");
   cmd[0]=0;
   devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); // initialize programming
   cmd[0]=3;
   devdo(BUCSHF,1,cmd,nbytes*8,sndbuf,rshift,1);
   /* return bits */
+  }
 }
 
 
 void DAQMB::buckflash_pflash()
 {
+  if(hardware_version_<=1)
+  {
  cmd[0]=0;
  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,0); //initialize the counter
  cmd[0]=2;
@@ -3066,10 +3176,13 @@ void DAQMB::buckflash_pflash()
  // sndbuf[0]=0xff;
  // sndbuf[1]=0xff;
  // devdo(BUCSHF,-99,sndbuf,sndbuf,rcvbuf,0); 
+  }
 }
 
 void DAQMB::buckflash_init()
 {
+  if(hardware_version_<=1)
+  {
  cmd[0]=0;
  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,0); // initialize programming
  cmd[0]=4;
@@ -3077,10 +3190,13 @@ void DAQMB::buckflash_init()
  // sndbuf[0]=0xff;
  // sndbuf[1]=0x03;
  // devdo(BUCSHF,-99,sndbuf,0,sndbuf,rcvbuf,0);
+  }
 }
 
 void DAQMB::buckflash_erase()
 {
+  if(hardware_version_<=1)
+  {
   //
   cmd[0]=0;
   devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); // erase Flash memory
@@ -3089,6 +3205,7 @@ void DAQMB::buckflash_erase()
   (*MyOutput_) << " Wait for 10 Seconds for Flash Memory to finish " << std::endl;
   ::sleep(10);  // 10 seconds are required after erase
   //
+  }
 }
 
 int DAQMB::Fill_BUCK_FLASH_contents(char * flash_content)
@@ -4620,11 +4737,13 @@ void Parse(char *buf,int *Count,char **Word)
 
 void DAQMB::rdbkvirtexII()
 {
-char a[4],b[4];
-#define clbword 2494 //(x32)
-int i,k,totbits,totbytes;
-char sndbuf2[36];
-int ival;
+  if(hardware_version_<=1)
+  {
+  char a[4],b[4]; 
+  #define clbword 2494 //(x32)
+  int i,k,totbits,totbytes;
+  char sndbuf2[36];
+  int ival;
   FILE *fp=fopen("rbk.dat","w");
  
   DEVTYPE dv=MCTRL;
@@ -4808,8 +4927,9 @@ int ival;
     devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
     
   }
- fclose(fp);
-return;
+  fclose(fp);
+  return;
+  }
 }
 
 void shuffle(char *a,char *b)
@@ -4830,12 +4950,14 @@ for(i=0;i<4;i++){
 
 void DAQMB::rdbkvirtex(DEVTYPE devnum)  //FEB FPGA 1-5 or  F1SCAM->F5SCAM
 {
-const int clbword2 = 15876;
-//const int bramword = 780;   // That is just for XCV50
-int i,j,totbits,totbytes,bits;
-char sndbuf2[36];
-int ibstr,ibstr2,ival,imod,imod2,ival2;
-char cval;
+  if(hardware_version_<=1)
+  {
+  const int clbword2 = 15876;
+  //const int bramword = 780;   // That is just for XCV50
+  int i,j,totbits,totbytes,bits;
+  char sndbuf2[36];
+  int ibstr,ibstr2,ival,imod,imod2,ival2;
+  char cval;
   FILE * fp=fopen("rbk.dat","w");
  
   DEVTYPE dv=devnum;
@@ -4948,6 +5070,7 @@ LOOP:
       
       //  printf(" SCA Master Configure file is read back. \n\n");
       fclose(fp);
+  }
 }
 
 
@@ -4996,6 +5119,9 @@ void DAQMB::executeCommand(std::string command) {
 
 
 void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
+  if(hardware_version_<=1)
+  {
+
   //enum DEVTYPE devstp,dv;
   (*MyOutput_) << "DAQMB: cfeb_vtx_prom" << std::endl;
 
@@ -5036,11 +5162,13 @@ void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
  
   (*MyOutput_) << "DAQMB: SCA Master is programmed by PROM (Calcntrl command)." <<std::endl;
+  }
 }
 
 void DAQMB::febpromuser2(const CFEB & cfeb,char *cbrdnum)
 {
-
+// this never been used; use febpromuser() instead
+/*
     DEVTYPE dv = cfeb.promDevice();
       cmd[0]=PROM_USERCODE;
       sndbuf[0]=0xFF;
@@ -5065,10 +5193,13 @@ void DAQMB::febpromuser2(const CFEB & cfeb,char *cbrdnum)
 	if ((rcvbuf[0]!=-1) || (rcvbuf[1]!=-1) || (rcvbuf[2]!=-1) 
 	    || (rcvbuf[3]!=-1) ) return;
       }
+*/
 }
 
 void DAQMB::toggle_caltrg()
 {
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=11;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -5078,6 +5209,7 @@ void DAQMB::toggle_caltrg()
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   printf("Toggled Cal_trigger_generation_disable in MCTRL FPGA\n");
+  }
 }
 
 void DAQMB::set_ext_chanx(int schan, int feb)
@@ -5112,6 +5244,8 @@ void DAQMB::setpulsedelay(int tinj){
 
 void DAQMB::set_rndmtrg_rate(int rate)
 {
+  if(hardware_version_<=1)
+  {
   if (rate<0) rate=0x2db6d;
   cmd[0]=VTX2_USR1;
   sndbuf[0]=TRG_RATE;
@@ -5130,10 +5264,13 @@ void DAQMB::set_rndmtrg_rate(int rate)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   std::cout<< "Random Trigger Rate set to: "<<std::hex<<rate<<std::endl;
+  }
 }
 
 void DAQMB::toggle_rndmtrg_start()
 {
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=RTRG_TGL;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -5149,6 +5286,7 @@ void DAQMB::toggle_rndmtrg_start()
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
   printf("Toggled RandomTrigger Start in MCTRL FPGA, RTRG_TGL %02x\n",RTRG_TGL);
+  }
 }
 //
 void DAQMB::burst_rndmtrg()
@@ -5160,6 +5298,8 @@ void DAQMB::burst_rndmtrg()
 //
 void DAQMB::sfm_test_load(char *sndpat)
 {    
+  if(hardware_version_<=1)
+  {
   //Program SFM with 0,1,2,3,...,263
   cmd[0]=VTX2_USR1;
   sndbuf[0]=35;   //Serial Flash Memory TEST
@@ -5176,10 +5316,13 @@ void DAQMB::sfm_test_load(char *sndpat)
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
+  }
 }
 //
 void DAQMB::sfm_test_read(char *rcvpat)
 {
+  if(hardware_version_<=1)
+  {
   int boffset;
   //Read SFM 
   cmd[0]=VTX2_USR1;
@@ -5205,10 +5348,13 @@ void DAQMB::sfm_test_read(char *rcvpat)
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
+  }
 }
 //
 
 void DAQMB::cbldly_init(){
+  if(hardware_version_<=1)
+  {
 	 printf(" Initialize \n");
          cmd[0]=VTX_USR1; 
          sndbuf[0]=0x1A;
@@ -5218,10 +5364,13 @@ void DAQMB::cbldly_init(){
          devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
          cmd[0]=VTX2_BYPASS;
          devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 void DAQMB::trigset2(int nset, int iuse[5])
 {
+  if(hardware_version_<=1)
+  {
   int i,j,k;
   char tsndbuf[512];
   //
@@ -5266,11 +5415,14 @@ void DAQMB::trigset2(int nset, int iuse[5])
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
+  }
 }
 
 
 void DAQMB::trgfire()
 {
+  if(hardware_version_<=1)
+  {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CYCLE_TRIG;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,1);
@@ -5285,9 +5437,12 @@ void DAQMB::trgfire()
   /*  printf(" Returned from NOOP instr: %02X  \n",rcvbuf[0]&0xFF);*/
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  }
 }
 
 void DAQMB::cbldly_trig(){
+  if(hardware_version_<=1)
+  {
   printf(" Trigger Once \n");
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x03;
@@ -5297,9 +5452,12 @@ void DAQMB::cbldly_trig(){
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 void DAQMB::cbldly_loadfinedelay(){
+  if(hardware_version_<=1)
+  {
   //
   printf(" Load Fine Delay \n");
   cmd[0]=VTX_USR1; 
@@ -5311,9 +5469,12 @@ void DAQMB::cbldly_loadfinedelay(){
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
+  }
 }
 
 void DAQMB::cbldly_programSFM(){
+  if(hardware_version_<=1)
+  {
   (*MyOutput_) <<" Program Serial Flash Memory" << std::endl ;
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x18;
@@ -5323,9 +5484,12 @@ void DAQMB::cbldly_programSFM(){
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 void DAQMB::cbldly_wrtprotectSFM(){
+  if(hardware_version_<=1)
+  {
   (*MyOutput_) << " SFM Write Protect" <<std::endl;
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x1e; 
@@ -5335,9 +5499,12 @@ void DAQMB::cbldly_wrtprotectSFM(){
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 void DAQMB::cbldly_loadmbidSFM(){
+  if(hardware_version_<=1)
+  {
   printf(" Load DAQMB ID to SFM  \n");
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x16;
@@ -5347,9 +5514,12 @@ void DAQMB::cbldly_loadmbidSFM(){
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 void DAQMB::cbldly_loadcfebdlySFM(){
+  if(hardware_version_<=1)
+  {
   printf(" Load CFEB clock delay to SFM \n"); 
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x17;
@@ -5359,9 +5529,12 @@ void DAQMB::cbldly_loadcfebdlySFM(){
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 void DAQMB::cbldly_refreshcfebdly(){
+  if(hardware_version_<=1)
+  {
   printf(" Refresh Onboard CFEB delay \n");
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x1d;
@@ -5371,6 +5544,7 @@ void DAQMB::cbldly_refreshcfebdly(){
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  }
 }
 
 //
@@ -5438,6 +5612,8 @@ void DAQMB::PrintCounters(){
 
 void DAQMB::readtimingCounter()
 {
+  if(hardware_version_<=1)
+  {
   //
   //printf(" Entered READ_TIMING \n");
   //
@@ -5469,10 +5645,13 @@ void DAQMB::readtimingCounter()
   //
   usleep(200);
   //
+  }
 }
 
 void DAQMB::readtimingScope()
 {
+  if(hardware_version_<=1)
+  {
   //printf(" Entered READ_TIMING \n");
   //
   cmd[0]=VTX2_USR1;
@@ -5510,10 +5689,13 @@ void DAQMB::readtimingScope()
   //
   usleep(200);
   //
+  }
 }
 
 char * DAQMB::GetCounters()
 { 
+  if(hardware_version_<=1)
+  {
   //
   //printf(" Entered READ_TIMING \n");
   //
@@ -5586,6 +5768,8 @@ char * DAQMB::GetCounters()
   FinalCounter[8]=l1a_lct_scope_ & 0xff;
 
   return (char *)FinalCounter;
+  }
+  else return NULL;
 }
 
 unsigned DAQMB::GetCounter(int counter)
@@ -5692,6 +5876,8 @@ void DAQMB::daqmb_promfpga_dump()
 }
 //
 void DAQMB::ProgramSFM(){
+  if(hardware_version_<=1)
+  {
   //
   (*MyOutput_) << " Program Serial Flash Memory" << std::endl;
   cmd[0]=VTX_USR1; 
@@ -5703,9 +5889,12 @@ void DAQMB::ProgramSFM(){
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
+  }
 }
 //
 void DAQMB::LoadCFEBDelaySFM(){
+  if(hardware_version_<=1)
+  {
   //
   printf(" Load CFEB clock delay to SFM \n"); 
   cmd[0]=VTX2_USR1; 
@@ -5717,9 +5906,12 @@ void DAQMB::LoadCFEBDelaySFM(){
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
+  }
 }
 //
 void DAQMB::LoadDMBIdSFM(){
+  if(hardware_version_<=1)
+  {
   //
   printf(" Load DAQMB ID to SFM  \n");
   cmd[0]=VTX2_USR1; 
@@ -5731,9 +5923,12 @@ void DAQMB::LoadDMBIdSFM(){
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
+  }
 }
 //
 void DAQMB::SFMWriteProtect(){
+  if(hardware_version_<=1)
+  {
   //
   (*MyOutput_) << " SFM Write Protect" << std::endl;
   cmd[0]=VTX_USR1; 
@@ -5745,9 +5940,12 @@ void DAQMB::SFMWriteProtect(){
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
+  }
 }
 //
 void DAQMB::ToogleBXN(){
+  if(hardware_version_<=1)
+  {
   //
   cmd[0]=VTX_USR1; 
   sndbuf[0]=34; 
@@ -5758,10 +5956,13 @@ void DAQMB::ToogleBXN(){
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
+  }
 }
 //
 void DAQMB::LoadCableDelaySFM()
 {
+  if(hardware_version_<=1)
+  {
   printf(" Load Cable delay \n");
   cmd[0]=VTX2_USR1; 
   sndbuf[0]=0x15;
@@ -5771,10 +5972,13 @@ void DAQMB::LoadCableDelaySFM()
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);  
+  }
 }
 //
 void DAQMB::setcbldly(int dword)
 {
+  if(hardware_version_<=1)
+  {
   //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=28;
@@ -5801,7 +6005,9 @@ void DAQMB::setcbldly(int dword)
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   //
+  }
 }
+
 void DAQMB::WriteSFM(){
   //
   //setcrateid(0);
@@ -6103,6 +6309,8 @@ void DAQMB::test3()
 //
 void DAQMB::wrtfifox(enum DEVTYPE devnum,unsigned short int pass)
 { 
+  if(hardware_version_<=1)
+  {
 
  if(devnum<FIFO1||devnum>FIFO7){
     printf(" Device is not a FIFO \n");
@@ -6120,11 +6328,13 @@ void DAQMB::wrtfifox(enum DEVTYPE devnum,unsigned short int pass)
    // devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
  else{
    devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
+  }
 }
-//
+
 int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
-     
 {
+  if(hardware_version_<=1)
+  {
  int bad;
  if(devnum<FIFO1||devnum>FIFO7){
     printf(" Device is not a FIFO \n");
@@ -6167,6 +6377,8 @@ int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
  //
  return bad;
  //
+  }
+  else return 0;
 }
 //
 int DAQMB::memchk(enum DEVTYPE devnum)
@@ -6217,8 +6429,9 @@ int DAQMB::memchk(enum DEVTYPE devnum)
 }
 //
 int DAQMB::readfifox_togglechk(enum DEVTYPE devnum)
-  //
 {
+  if(hardware_version_<=1)
+  {
  int bad;
  if(devnum<FIFO1||devnum>FIFO7){
     printf(" Device is not a FIFO \n");
@@ -6257,44 +6470,53 @@ int DAQMB::readfifox_togglechk(enum DEVTYPE devnum)
  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
  
  return bad;
+  }
+  else return 0;
 }
 //
 void DAQMB::wrtfifo_toggle(enum DEVTYPE devnum)
 {
+  if(hardware_version_<=1)
+  {
     if(devnum<FIFO1||devnum>FIFO7){
     printf(" Device is not a FIFO \n");
     return;
- }
+    }
 
    /* fifo write */  
- cmd[0]=2;
- sndbuf[0]=0;
- if(devnum-FIFO7!=0){
-   devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
- else{ 
-   devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
+    cmd[0]=2;
+    sndbuf[0]=0;
+    if(devnum-FIFO7!=0){
+       devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
+    else{ 
+       devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
+  }
 }
 //
 void DAQMB::wrtfifo_123(enum DEVTYPE devnum)
 {
-  if(devnum<FIFO1||devnum>FIFO7){
-    printf(" Device is not a FIFO \n");
-    return;
+  if(hardware_version_<=1)
+  {
+     if(devnum<FIFO1||devnum>FIFO7){
+       printf(" Device is not a FIFO \n");
+       return;
+     }
+     //
+     /* fifo write */  
+     cmd[0]=2;
+     sndbuf[0]=2;
+     if(devnum-FIFO7!=0){
+       devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
+     else{
+       devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
   }
-  //
-  /* fifo write */  
-  cmd[0]=2;
-  sndbuf[0]=2;
-  if(devnum-FIFO7!=0){
-    devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
-  else{
-    devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
 }
 
 //
 int DAQMB::readfifox_123chk(enum DEVTYPE devnum)
-     
 {
+  if(hardware_version_<=1)
+  {
  int bad;
  if(devnum<FIFO1||devnum>FIFO7){
     printf(" Device is not a FIFO \n");
@@ -6332,6 +6554,8 @@ int DAQMB::readfifox_123chk(enum DEVTYPE devnum)
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 
  return bad;
+  }
+  else return 0;
 }
 
 //
@@ -6889,20 +7113,16 @@ int DAQMB::DCSreadAll(char *data)
         else read_later(0x8004);
      }
   }
-/* no ADC on ODMB
-  for(int j=0; j<6; j++)
-  {
-     // devdo() dev=17, ncmd=16, Cmd[0]=1, Cmd[1]=j
 
-     write_later(0x7020, 0x0E);
-     n=(j<<4) + 0xFF89;
-     write_later(0x7000, n);
-     if(j==5) retn=read_now(0x7004, data);
-     else     read_later(0x7004);
-  }
-*/
+// no ADC on ODMB
+// TODO:  add DCFEB monitoring info here
+//     loop through all DCFEBs
+//     {    1. DCFEB ADC
+//          2. DCFEB SYSMON
+//     }
+
 #if 0
-//comment out this, for test_firmware only
+//comment out this, for Mike Matveev's test_firmware only
    // this is for the ODMB test_firmware version with direct MAX1271 access
    // VME commands not buffered
      unsigned select_addr=0x7c, write_addr=0x7a, read_addr=4;
@@ -6936,9 +7156,9 @@ int DAQMB::DCSreadAll(char *data)
             {  
                for(int j=0;j<2;j++) write_now(write_addr, (j==0)?CLK:0, tmp);
             }
-            // read 12 bits of data, plus 3 extra clocks
+            // read 12 bits of data, plus 1 extra clock
             rback=0;
-            for(int k=0; k<15; k++)
+            for(int k=0; k<13; k++)
             {  
                for(int j=0;j<2;j++) write_now(write_addr, (j==0)?CLK:0, tmp);
                if(k<12)
@@ -6965,13 +7185,16 @@ bool DAQMB::checkvme_fail()
    unsigned short data;
 
    failed_checkvme_ = 0;
-   int i=read_now(0x8024, (char *) &data);
+   int i=read_now(read_ADC_SELECT, (char *) &data);
    if(i<=0) failed_checkvme_ = 1;  // if VCC problem
    else if(data==0xBAAD)  failed_checkvme_ = 1; // DMB time-out
    return (bool)failed_checkvme_;
 }
 
 int DAQMB::cfeb_testjtag_shift(int icfeb,char *out){
+  int hversion=cfebs_[icfeb].GetHardwareVersion();
+  if(hversion<=1)
+  {
     int ierr = 0;
     DEVTYPE dv = cfebs_[icfeb].scamDevice();
     cmd[0]=VTX_BYPASS;
@@ -6990,6 +7213,8 @@ int DAQMB::cfeb_testjtag_shift(int icfeb,char *out){
     out[3]=rcvbuf[3];
     out[4]=rcvbuf[4];
     return ierr;
+  }
+  else return 0;
 }
 
 
@@ -7162,6 +7387,9 @@ void DAQMB::small_configure() {
    }
 
 void DAQMB::testlink(DEVTYPE devnum){
+//
+// this function  never been used anywhere
+/*
   cmd[0]=VTX_USR1;
   sndbuf[0]=0x05;
   sndbuf[1]=0x00;
@@ -7179,6 +7407,7 @@ void DAQMB::testlink(DEVTYPE devnum){
   cmd[0]=VTX_BYPASS;
   sndbuf[0]=0x00;
   devdo(devnum,5,cmd,0,sndbuf,rcvbuf,0);
+*/
 }
 
 void DAQMB::varytmbdavdelay(int delay)
@@ -7196,6 +7425,8 @@ void DAQMB::varytmbdavdelay(int delay)
 
 void DAQMB::load_feb_clk_delay()
 {
+  if(hardware_version_<=1)
+  {
   printf(" load_feb_clk_delay called \n");
   cmd[0]=VTX2_USR1;
   sndbuf[0]=0x1D;
@@ -7205,6 +7436,7 @@ void DAQMB::load_feb_clk_delay()
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  }
 }
 
 // code used by STEP
@@ -7340,6 +7572,7 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
 //     cfeb_do(10, &comd, 32, &data, rcvbuf, 3);
      data=0x4000000;
      cfeb_do(10, &comd, 32, &data, rcvbuf, NOW|READ_YES);
+     udelay(100);
      for(unsigned i=0; i<3; i++)
      {
         data += 0x10000;
@@ -7354,6 +7587,7 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
      }
      data=0x4100000;
      cfeb_do(10, &comd, 32, &data, rcvbuf, NOW|READ_YES);
+     udelay(100);
      for(unsigned i=0; i<16; i++)
      {
         data += 0x10000;
@@ -7470,7 +7704,7 @@ void DAQMB::BuckeyeShift(int chip_mask,char shft_bits[6][6], char *shft_out)
       }
   udelay(20);
   dcfeb_core(CHIP_SHFT, 288, sndbuf, rcvbuf, NOW|NOOP_YES|readback);
-  udelay(200);
+  udelay(2000);
   if(readback)  memcpy(shft_out, rcvbuf, 36);
 }
 
@@ -8332,12 +8566,11 @@ void DAQMB::dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int i
 void DAQMB::odmb_fpga_call(int inst, unsigned data, char *outbuf)
 {
   char temp[4];
-  dlog_do(-1, &inst, 0, &data, outbuf, NOW);
-  udelay(100);
   dlog_do(10, &inst, 32, &data, outbuf, NOW|READ_YES);
   udelay(100);
   int comd=VTX6_BYPASS;
   dlog_do(10, &comd, 0, &data, temp, NOW);
+  udelay(20);
 }
 
 } // namespace emu::pc
