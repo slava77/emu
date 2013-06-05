@@ -313,8 +313,6 @@ public:
 
 // DAQMB constants&resets
 
-  static const unsigned int WRITE_CFEB_SELECTOR=0x1020;
-  static const unsigned int READ_CFEB_SELECTOR=0x1024;
   
   friend std::ostream & operator<<(std::ostream & os, DAQMB & daqmb);
 
@@ -900,6 +898,18 @@ public:
   static const unsigned read_CRATEID = 0x4420;
   static const unsigned read_FW_VERSION = 0x4424;
 
+  // The following registers are for CFEB & LVMB access, also valid on DMB
+  static const unsigned WRITE_CFEB_SELECTOR=0x1020;
+  static const unsigned READ_CFEB_SELECTOR=0x1024;
+  static const unsigned reset_CFEB_JTAG = 0x1018;
+
+  static const unsigned ADC_CTRL_BYTE = 0x8000;
+  static const unsigned ADC_READ = 0x8004;
+  static const unsigned set_ADC_SELECT = 0x8020;
+  static const unsigned read_ADC_SELECT = 0x8024;
+  static const unsigned set_POWER_MASK = 0x8010;
+  static const unsigned read_POWER_MASK = 0x8014;
+  
 }; 
 
   } // namespace emu::pc
