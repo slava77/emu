@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
