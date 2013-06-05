@@ -1174,6 +1174,7 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
   *out <<cgicc::td();
   *out << "Channel";
   *out <<cgicc::td();
+  *out << std::setprecision(4);
   for(int ch=0; ch<9; ch++)
   {
      if(ch) *out << cgicc::td() << ch-1 << cgicc::td();
@@ -1184,7 +1185,7 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
         {
            indx=adc*8+ch-1;
            *out << cgicc::td() << fvalue[indx];
-           if (hversion<=1 && indx<19) *out << "A";
+           if ((hversion<=1 && indx<19) || (hversion==2 && indx<25)) *out << "A";
            else *out << "V";
            *out << cgicc::td();
         }
@@ -1215,8 +1216,22 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   Chamber * thisChamber = chamberVector[dmb];
   //
+  int D_hversion=thisDMB->GetHardwareVersion();
+  int tot_p_chans; // total power channels on LVDB
+  int allmask;
   char Name[100];
-  sprintf(Name,"%s DMB utilities, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
+  if(D_hversion<=1)
+  {  
+     sprintf(Name,"%s DMB utilities, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
+     tot_p_chans=6;
+     allmask=0x3F;
+  }
+  else
+  {
+     sprintf(Name,"%s ODMB utilities, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
+     tot_p_chans=8;
+     allmask=0xFF;
+  }
   //
   MyHeader(in,out,Name);
   //
@@ -1240,8 +1255,8 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::table().set("border","1");
   //
-  int power_state[7];
-  int powermask = 0x3F & thisDMB->GetPowerMask();
+  int power_state[9];
+  int powermask = allmask & thisDMB->GetPowerMask();
   unsigned int power_register = thisDMB->lowv_rdpwrreg();
   // std::cout << "power register is " << std::hex << power_register << std::dec << std::endl;
   if (power_register==0xBAAD)
@@ -1249,12 +1264,12 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
         std::cout << "Cannot read DMB" << std::endl;
         power_register=0;  // can't read DMB (mostly DMB VME firmware problem), assume 0
   }
-  int power_read = power_register&0x3F;
-  for(int icc=1; icc<=6; icc++)
+  int power_read = power_register&allmask;
+  for(int icc=1; icc<=tot_p_chans; icc++)
   {   power_state[icc]= power_register & 1;
       power_register = power_register>>1;
   }
-  if(power_read==0)
+  if(power_read==0 && D_hversion<=1)
   {  // if read back is 0 then
      // try read Low voltages and currents to determine if a CFEB/ALCT is on or off
      power_read = thisDMB->DCSreadAll(buf);
@@ -1281,11 +1296,11 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
         }
      }
   }
-  if(powermask)  for(int icc=1; icc<=6; icc++)
+  if(powermask)  for(int icc=1; icc<=tot_p_chans; icc++)
   {   if(powermask & 1)  power_state[icc]= -1;
       powermask = powermask>>1;
   }
-  for(int icc=0; icc<=6; icc++)
+  for(int icc=0; icc<=tot_p_chans; icc++)
   {
      *out << cgicc::td();
      if(power_state[icc]>0)
@@ -1294,11 +1309,11 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
         *out << cgicc::span().set("style","color:red");
      else
         *out << cgicc::span().set("style","color:black");
-     if(icc>0 && icc<6)
+     if(icc>0 && icc<tot_p_chans)
      {
            *out << "CFEB " << icc;
      }
-     else if(icc==6)
+     else if(icc==tot_p_chans)
      {
            *out << "ALCT";
      }
@@ -1307,6 +1322,9 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::tr();
   *out << cgicc::td();
   //
+//debug
+std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
+
   std::string DMBTurnOn = toolbox::toString("/%s/DMBTurnOn",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",DMBTurnOn) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Turn All On") << std::endl ;
@@ -1315,7 +1333,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::td();
-  for(int icc=0; icc<6; icc++)
+  for(int icc=0; icc<tot_p_chans; icc++)
   {
      *out << cgicc::td();
      if(power_state[icc+1]>0)
@@ -1351,7 +1369,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::td();
-  for(int icc=0; icc<6; icc++)
+  for(int icc=0; icc<tot_p_chans; icc++)
   {
      *out << cgicc::td();
      if(power_state[icc+1]>0)
@@ -1547,7 +1565,7 @@ void EmuPeripheralCrateConfig::CFEBTurnOn(xgi::Input * in, xgi::Output * out )
   //
   std::cout << "CFEBTurnOn mask " <<std::hex << mask << std::dec <<std::endl;  
   //
-  if (thisDMB && mask>0) 
+  if (thisDMB && mask>=0)
   {
     mask = mask & 0xFF;
     thisDMB->lowv_onoff(mask);
@@ -2094,8 +2112,10 @@ void EmuPeripheralCrateConfig::DMBTurnOn(xgi::Input * in, xgi::Output * out )
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
+  int D_hversion=thisDMB->GetHardwareVersion();
+  int AllOn = (D_hversion<=1)?0x3F:0xFF;
   if (thisDMB) {
-    thisDMB->lowv_onoff(0x3f);
+    thisDMB->lowv_onoff(AllOn);
     ::sleep(1);
   }
   //
