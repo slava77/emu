@@ -26,12 +26,6 @@ print "Generating $RESULTSDIR/index.html"
     print "<body>"
     print "<a id=\"top\"/>"
     print "<table style=\"font-size:small;\"><tr><th colspan=\"2\">${RESULTSDIR:t}</th></tr>"
-    print "<tr><th>Summaries</th><td>"
-    for IMAGEFILE in $SUMIMAGEFILES; do
-	PLOTCODE=${${IMAGEFILE:r}##*_}
-	print "<a href=\"#sum_$PLOTCODE\">$PLOTCODE</a> |"
-    done
-    print "</td></tr>"
     for CSC in ${CSCS}; do
 	CSCIMAGEFILES=( $(print ./$CSC/*.png) )
 	print "<tr><th>$CSC</th><td>"
@@ -41,16 +35,22 @@ print "Generating $RESULTSDIR/index.html"
 	done
 	print "</td></tr>"
     done
+    print "<tr><th>Summaries</th><td>"
     for IMAGEFILE in $SUMIMAGEFILES; do
 	PLOTCODE=${${IMAGEFILE:r}##*_}
-	print "<tr><td colspan=\"2\"><a id=\"sum_$PLOTCODE\" href=\"#top\"><img src=\"$IMAGEFILE\" alt=\"$IMAGEFILE\"></a></td></tr>"
+	print "<a href=\"#sum_$PLOTCODE\">$PLOTCODE</a> |"
     done
+    print "</td></tr>"
     for CSC in ${CSCS}; do
 	CSCIMAGEFILES=( $(print ./$CSC/*.png) )
 	for IMAGEFILE in $CSCIMAGEFILES; do
 	    PLOTCODE=${${IMAGEFILE:r}##*_}
 	    print "<tr><td colspan=\"2\"><a id=\"csc_$CSC_$PLOTCODE\" href=\"#top\"><img src=\"$IMAGEFILE\" alt=\"$IMAGEFILE\"></a></td></tr>"
 	done
+    done
+    for IMAGEFILE in $SUMIMAGEFILES; do
+	PLOTCODE=${${IMAGEFILE:r}##*_}
+	print "<tr><td colspan=\"2\"><a id=\"sum_$PLOTCODE\" href=\"#top\"><img src=\"$IMAGEFILE\" alt=\"$IMAGEFILE\"></a></td></tr>"
     done
     print "<table>"
     print "</body>"
