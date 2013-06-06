@@ -88,6 +88,7 @@ int main(int argc, char **argv)
     std::string xmlTestCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuTests.xml";
     std::string masksCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuChanMasks.xml";
   */
+  std::string testID=""; // test ID
   std::string xmlHistosBookingCfg = "file://" + cfgDir + "/emuDQMBooking.xml";
   std::string xmlCanvasesCfg = "file://" + cfgDir + "/emuDQMCanvases.xml";
   std::string cscMapFile = cfgDir+"/csc_map.txt";
@@ -178,6 +179,7 @@ int main(int argc, char **argv)
     LOG4CPLUS_INFO(logger, "Detected data for Test CFEB02: Pedestals and Noise");
     test_analyzer = new Test_CFEB02(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB02.xml";
+    testID = "CFEB02";
   }
   else if ( (datafile.find("CFEB_CrossTalk") != std::string::npos) ||
 	(datafile.find("Test_17_") != std::string::npos) )
@@ -185,6 +187,7 @@ int main(int argc, char **argv)
     LOG4CPLUS_INFO(logger, "Detected data for Test CFEB03: Pulse Response and Cross Talks");
     test_analyzer = new Test_CFEB03(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB03.xml";
+    testID = "CFEB03";
   }
   else if ( (datafile.find("CFEB_Gains") != std::string::npos) ||
 	(datafile.find("Test_17b") != std::string::npos) )
@@ -192,6 +195,7 @@ int main(int argc, char **argv)
     LOG4CPLUS_INFO(logger, "Detected data for Test CFEB04: Amplifier Gain");
     test_analyzer = new Test_CFEB04(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_CFEB04.xml";
+    testID = "CFEB04";
   } 
   else if ( (datafile.find("ALCT_Connectivity") != std::string::npos) ||
         (datafile.find("Test_12") != std::string::npos) )
@@ -199,6 +203,7 @@ int main(int argc, char **argv)
     LOG4CPLUS_INFO(logger, "Detected data for Test AFEB05: Connectivity");
     test_analyzer = new Test_AFEB05(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB05.xml";
+    testID = "AFEB05";
   }
   else if ( (datafile.find("ALCT_Thresholds") != std::string::npos) ||
         (datafile.find("Test_13") != std::string::npos) )
@@ -206,6 +211,7 @@ int main(int argc, char **argv)
     LOG4CPLUS_INFO(logger, "Detected data for Test AFEB06: Thresholds and Analog Noise");
     test_analyzer = new Test_AFEB06(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB06.xml";
+    testID = "AFEB06";
   }
   else if ( (datafile.find("ALCT_Delays") != std::string::npos) ||
         (datafile.find("Test_14") != std::string::npos) )
@@ -213,14 +219,15 @@ int main(int argc, char **argv)
     LOG4CPLUS_INFO(logger, "Detected data for Test AFEB07: AFEB-ALCT Time Delays");
     test_analyzer = new Test_AFEB07(datafile);
     xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB07.xml";
+    testID = "AFEB07";
   }
   else if (datafile.find("STEP_27") != std::string::npos)
-    {
-      LOG4CPLUS_INFO(logger, "Detected data for Gas Gain Test");
-      test_analyzer = new Test_GasGain(datafile);
-      xmlTestCfg = "file://" + cfgDir +"/emuTest_GasGain.xml";
-      cout<<xmlTestCfg<<endl;
-    }
+  {
+    LOG4CPLUS_INFO(logger, "Detected data for Gas Gain Test");
+    test_analyzer = new Test_GasGain(datafile);
+    xmlTestCfg = "file://" + cfgDir +"/emuTest_GasGain.xml";
+    testID = "GasGain";
+  }
   else
   {
     LOG4CPLUS_FATAL (logger, "Unrecognizable Test Type for data file name " << datafile);
@@ -232,7 +239,7 @@ int main(int argc, char **argv)
   test_analyzer->init();
   // test_analyzer->setCSCMapFile(cscMapFile); ///* Getting rid of csc_map.txt based mapping access to use only sqlite
   test_analyzer->setConfigFile(xmlTestCfg);
-  test_analyzer->setMasksFile(masksCfg);
+  test_analyzer->setMasksFile(masksCfg, testID);
   test_analyzer->setAFEBCalibFolder(cscAFEBCalibFolder);
 
   Logger::getInstance("CSCRawUnpacking").setLogLevel(OFF_LOG_LEVEL);

@@ -393,6 +393,13 @@ int Test_Generic::loadTestCfg()
   return 0;
 }
 
+void addMasks(TestData2D& current_mask, TestData2D new_mask)
+{
+  for (int i = 0; i < current_mask.Nlayers; i++)
+    for (int j = 0; j < current_mask.Nbins; j++)
+      if (new_mask.content[i][j] > 0 ) current_mask.content[i][j] = new_mask.content[i][j];
+}
+
 TestData2D parseMask(std::string s)
 {
 
@@ -444,12 +451,13 @@ TestData2D parseMask(std::string s)
               ch_end = ch_start;
             }
 
+	
           for (int i=ly_start; i<=ly_end; i++)
             {
               for (int j=ch_start; j<= ch_end; j++)
                 {
                   mask.content[i-1][j-1]=1;
-                  //       std::cout << Form("mask chan %d:%d", i, j) << std::endl;
+                  // std::cout << Form("mask chan %d:%d", i, j) << std::endl;
                 }
             }
 
@@ -461,8 +469,10 @@ TestData2D parseMask(std::string s)
   return mask;
 }
 
-
-int Test_Generic::loadMasks()
+/***
+ * Load channels mask from the masking file
+ ***/
+int Test_Generic::loadMasks(std::string testID)
 {
   if (masksFile == "")
     {
@@ -506,16 +516,38 @@ int Test_Generic::loadMasks()
               obj_info[paramname] = param;
             }
         }
+
+      /// Find chamber entry with masked channels 
       itr = obj_info.find("CSC");
+
+      /// Load cathode channels masks
+      /// Filter masks using test ID and <Test> tag in xml file
+      /// If there is no <Test> tag entry then load common mask
       if (itr != obj_info.end())
         {
-          //      std::cout << "Found masks for " << itr->second << std::endl;
-          if (obj_info["CFEBChans"] != "")
+          if ((obj_info["CFEBChans"] != "") &&
+	       ( (testID == "") || (obj_info["Test"] == "") || (testID == obj_info["Test"])))
             {
-              LOG4CPLUS_DEBUG(logger, "Found masks for " << itr->second << ": " << obj_info["CFEBChans"]);
-              tmasks[itr->second]=parseMask(obj_info["CFEBChans"]);
+              LOG4CPLUS_DEBUG(logger, "Found cathode masks for " << testID << " " << itr->second << ": " << obj_info["CFEBChans"]);
+	      if (tmasks.find(itr->second) == tmasks.end()) { tmasks[itr->second] = parseMask(obj_info["CFEBChans"]); }
+	      else { addMasks(tmasks[itr->second], parseMask(obj_info["CFEBChans"])); }
             }
         }
+ 
+      /// Load anode channels masks
+      /// Filter masks using test ID and <Test> tag in xml file
+      /// If there is no <Test> tag entry then load common mask
+      if (itr != obj_info.end())
+        {
+          if ((obj_info["AFEBChans"] != "") &&
+              ( (testID == "") || (obj_info["Test"] == "") || (testID == obj_info["Test"]) ) )
+            {
+              LOG4CPLUS_DEBUG(logger, "Found anode masks for " << testID << " " << itr->second << ": " << obj_info["AFEBChans"]);
+	      if (amasks.find(itr->second) == amasks.end()) { amasks[itr->second] = parseMask(obj_info["AFEBChans"]); }
+	      else { addMasks(amasks[itr->second], parseMask(obj_info["AFEBChans"])); }
+            }
+        }
+
     }
   delete parser;
   return 0;
