@@ -551,7 +551,9 @@ void shuffle(char *a,char *b);
 
 // static init
 const int DAQMB::layers[6] = {2,0,4,5,3,1};
-const int DAQMB::chip_use[5][6] = {
+const int DAQMB::chip_use[7][6] = {
+  {1,1,1,1,1,1},
+  {1,1,1,1,1,1},
   {1,1,1,1,1,1},
   {1,1,1,1,1,1},
   {1,1,1,1,1,1},
@@ -559,7 +561,7 @@ const int DAQMB::chip_use[5][6] = {
   {1,1,1,1,1,1}
 };
 
-const int DAQMB::nchips[5] = {6,6,6,6,6};
+const int DAQMB::nchips[7] = {6,6,6,6,6,6,6};
 
 DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   VMEModule(theCrate, newslot),
@@ -2320,6 +2322,13 @@ void DAQMB::lowv_onoff(char c)
 unsigned int DAQMB::lowv_rdpwrreg()
 {
  return ReadRegister(read_POWER_MASK);
+}
+
+int DAQMB::lvmb_power_state()
+{
+  // TODO: try to get the REAL power state of CFEB/ALCT from LVMB
+  int all_mask = (hardware_version_<=1)?0x3F:0xFF;
+  return (all_mask & ReadRegister(read_POWER_MASK));
 }
 
 /* FPGA and PROM codes  */

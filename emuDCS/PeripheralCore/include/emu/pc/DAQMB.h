@@ -397,7 +397,7 @@ public:
 // DAQMB LVMB routines
   float lowv_adc(int ichp,int ichn);
   void lowv_onoff(char c);
-  unsigned int lowv_rdpwrreg(); 
+  unsigned int lowv_rdpwrreg();
 // DAQMB prom readbacks
   unsigned int febpromuser(CFEB &);
   unsigned int febpromid(CFEB &);
@@ -457,42 +457,42 @@ public:
   bool CheckCFEBFirmwareVersion(CFEB & cfeb_to_check);
   //
   //
-  void SetFebDavDelay(int delay){feb_dav_delay_ = delay;}
+  inline void SetFebDavDelay(int delay){feb_dav_delay_ = delay;}
   inline int GetFebDavDelay(){return feb_dav_delay_;}
   //
-  void SetTmbDavDelay(int delay){tmb_dav_delay_ = delay;}
+  inline void SetTmbDavDelay(int delay){tmb_dav_delay_ = delay;}
   inline int GetTmbDavDelay(){return tmb_dav_delay_;}
   //
-  void SetPushDavDelay(int delay){push_dav_delay_ = delay;}
+  inline void SetPushDavDelay(int delay){push_dav_delay_ = delay;}
   inline int GetPushDavDelay(){return push_dav_delay_;}
   //
-  void SetL1aDavDelay(int delay){l1acc_dav_delay_ = delay;}
+  inline void SetL1aDavDelay(int delay){l1acc_dav_delay_ = delay;}
   inline int GetL1aDavDelay(){return l1acc_dav_delay_;}
   //
-  void SetAlctDavDelay(int delay){ALCT_dav_delay_ = delay;}
+  inline void SetAlctDavDelay(int delay){ALCT_dav_delay_ = delay;}
   inline int GetAlctDavDelay(){return ALCT_dav_delay_;}
   //
-  void SetCalibrationLctDelay(int delay){calibration_LCT_delay_ = delay;}
+  inline void SetCalibrationLctDelay(int delay){calibration_LCT_delay_ = delay;}
   inline int GetCalibrationLctDelay(){return calibration_LCT_delay_;}
   //
-  void SetCalibrationL1aDelay(int delay){calibration_l1acc_delay_ = delay;}
+  inline void SetCalibrationL1aDelay(int delay){calibration_l1acc_delay_ = delay;}
   inline int GetCalibrationL1aDelay(){return calibration_l1acc_delay_;}
   //
-  void SetPulseDelay(int delay){pulse_delay_ = delay;}
+  inline void SetPulseDelay(int delay){pulse_delay_ = delay;}
   inline int GetPulseDelay(){return pulse_delay_;}
   //
-  void SetInjectDelay(int delay){inject_delay_ = delay;}
+  inline void SetInjectDelay(int delay){inject_delay_ = delay;}
   inline int GetInjectDelay(){return inject_delay_;}
   //
   //void SetFebClockDelay(int delay){feb_clock_delay_ = delay;}
   //
-  void SetCompMode(int mode){comp_mode_ = mode;}
+  inline void SetCompMode(int mode){comp_mode_ = mode;}
   inline int GetCompMode(){return comp_mode_;}
   //
-  void SetCompTiming(int delay){comp_timing_ = delay;}
+  inline void SetCompTiming(int delay){comp_timing_ = delay;}
   inline int GetCompTiming(){return comp_timing_;}
   //
-  void SetPreBlockEnd(int delay){pre_block_end_ = delay;}
+  inline void SetPreBlockEnd(int delay){pre_block_end_ = delay;}
   inline int GetPreBlockEnd(){return pre_block_end_ ;}
   //
   //  void SetCableDelay(int delay){cable_delay_ = delay;}
@@ -507,15 +507,15 @@ public:
   inline int GetCfebDavCableDelay() { return ((cable_delay_ >> 4) & 0x03); }
   inline int GetAlctDavCableDelay() { return ((cable_delay_ >> 6) & 0x03); }
   //
-  void SetCrateId(int id){crate_id_ = id;}
+  inline void SetCrateId(int id){crate_id_ = id;}
   //
-  void SetCfebClkDelay(int delay){killflatclk_ = (killflatclk_&0x3fe0)+(delay&0x1f);}
+  inline void SetCfebClkDelay(int delay){killflatclk_ = (killflatclk_&0x3fe0)+(delay&0x1f);}
   inline int GetCfebClkDelay(){return (killflatclk_&0x1f);}
   //
-  void SetxLatency(int latency){killflatclk_= (killflatclk_&0x3f9f)+(( latency<<5)&0x60);}
+  inline void SetxLatency(int latency){killflatclk_= (killflatclk_&0x3f9f)+(( latency<<5)&0x60);}
   inline int GetxLatency(){return ((killflatclk_>>5)&0x03);}
   //
-  void SetxFineLatency(int finelatency){killflatclk_ = (killflatclk_&0x3ff)+((finelatency<<10)&0x3c00);}
+  inline void SetxFineLatency(int finelatency){killflatclk_ = (killflatclk_&0x3ff)+((finelatency<<10)&0x3c00);}
   inline int GetxFineLatency(){return ((killflatclk_>>10)&0x0f);}
   //
   //Input values for SetKillInput(int killinput):
@@ -528,23 +528,30 @@ public:
   //killinput="6" CFEB#4 data are disabled
   //killinput="7" CFEB#5 data are disabled
   //
-  void SetKillInput(int killinput){killflatclk_ = (killflatclk_&0x3c7f)+((killinput<<7)&0x380);}
+  inline void SetKillInput(int killinput){killflatclk_ = (killflatclk_&0x3c7f)+((killinput<<7)&0x380);}
   inline int GetKillInput(){return ((killflatclk_>>7)&0x07);}
+
+  // The following two are for ODMB.  Cannot share the two methods above with DMB,
+  // because these methods might be called before hardware_version_ has been set.
+  // Internally, DMB uses killflatclk_, ODMB use kill_input_mask_).
+  inline void SetKillInputMask(int killinput) {kill_input_mask_ = killinput;}
+  inline int GetKillInputMask() {return kill_input_mask_;}
+ 
   //
-  void SetPulseDac(float value){pul_dac_set_= value;}
+  inline void SetPulseDac(float value){pul_dac_set_= value;}
   inline float GetPulseDac(){return pul_dac_set_;}
   //
-  void SetInjectorDac(float value){inj_dac_set_=value;}
+  inline void SetInjectorDac(float value){inj_dac_set_=value;}
   inline float GetInjectorDac(){return inj_dac_set_;}
   //
-  void SetCompThresh(float value){set_comp_thresh_=value;}
+  inline void SetCompThresh(float value){set_comp_thresh_=value;}
   inline float GetCompThresh(){return set_comp_thresh_;}
   //
-  void SetCompModeCfeb(int cfeb, int value){comp_mode_cfeb_[cfeb]=value;}
-  void SetCompTimingCfeb(int cfeb, int value){comp_timing_cfeb_[cfeb]=value;}
-  void SetCompThresholdsCfeb(int cfeb, float value){comp_thresh_cfeb_[cfeb]=value;}
-  void SetPreBlockEndCfeb(int cfeb, int value){pre_block_end_cfeb_[cfeb]=value;}
-  void SetL1aExtraCfeb(int cfeb, int value){L1A_extra_cfeb_[cfeb]=value;}
+  inline void SetCompModeCfeb(int cfeb, int value){comp_mode_cfeb_[cfeb]=value;}
+  inline void SetCompTimingCfeb(int cfeb, int value){comp_timing_cfeb_[cfeb]=value;}
+  inline void SetCompThresholdsCfeb(int cfeb, float value){comp_thresh_cfeb_[cfeb]=value;}
+  inline void SetPreBlockEndCfeb(int cfeb, int value){pre_block_end_cfeb_[cfeb]=value;}
+  inline void SetL1aExtraCfeb(int cfeb, int value){L1A_extra_cfeb_[cfeb]=value;}
   //
   void LctL1aDelay(int);
   void LctL1aDelay(int,unsigned);
@@ -633,7 +640,7 @@ public:
   //
   inline void SetHardwareVersion(int version) {hardware_version_ = version;}
   inline int GetHardwareVersion() {return hardware_version_;}
-      
+
   int ReadRegister(unsigned  address);
   void WriteRegister(unsigned address, int value);
   //
@@ -685,7 +692,7 @@ public:
   }
   //
 
-  int shift_array[5][6][16];
+  int shift_array[7][6][16];
 
   inline void SetShiftArray(int cfeb, int chip, int chan, int value){
     shift_array_[cfeb][chip][chan] = value;
@@ -784,19 +791,42 @@ public:
   int dcfeb_dna(CFEB & cfeb, void *dna);
   int dcfeb_adc(CFEB & cfeb, int chan);
 
+  int lvmb_power_state();
   // code for ODMB
   void dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);
   void odmb_fpga_call(int inst, unsigned data, char *outbuf);
 
+  // various delays in ODMB
+  inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(set_LCT_L1A_DLY, delay&0x3F); }  // 6 bits
+  inline void odmb_set_TMB_delay(int delay) { WriteRegister(set_TMB_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Push_delay(int delay) { WriteRegister(set_PUSH_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_ALCT_delay(int delay) { WriteRegister(set_ALCT_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Inj_delay(int delay) { WriteRegister(set_INJ_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Ext_delay(int delay) { WriteRegister(set_EXT_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Cal_delay(int delay) { WriteRegister(set_CAL_DLY, delay&0x1F); }  // 5 bits
+  inline int odmb_read_LCT_L1A_delay() { return ReadRegister(read_LCT_L1A_DLY) & 0x3F; }  // 6 bits
+  inline int odmb_read_TMB_delay() { return ReadRegister(read_TMB_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Push_delay() { return ReadRegister(read_PUSH_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_ALCT_delay() { return ReadRegister(read_ALCT_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Inj_delay() { return ReadRegister(read_INJ_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Ext_delay() { return ReadRegister(read_EXT_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Cal_delay() { return ReadRegister(read_CAL_DLY) & 0x1F; }  // 5 bits
+
+  // kill input from boards (CFEBs, TMB, ALCT) mask; multiple boards can be killed
+  inline void odmb_set_kill_mask(int kill) { WriteRegister(set_KILL, kill); }
+  inline int odmb_read_kill_mask() { return ReadRegister(read_KILL); } 
+
+  inline int odmb_firmware_version() { return ReadRegister(read_FW_VERSION); }  
+
  private:
   //
-  int shift_array_[5][6][16];
-  static const int nchips[5];
-  static const int chip_use[5][6];
+  int shift_array_[7][6][16];
+  static const int nchips[7];
+  static const int chip_use[7][6];
   static const int layers[6];
-  char febstat_[5][4];
+  char febstat_[7][4];
   //
-  int kill_chip_[5][6];
+  int kill_chip_[7][6];
   //
   int number_of_configuration_reads_; 
   int fwyear_, fwmonth_, fwday_, fwvers_, fwrv_;
@@ -841,13 +871,13 @@ public:
   //
   int cfeb_clk_delay_;
   int xlatency_, xfinelatency_,killinput_;
-  int comp_mode_cfeb_[5];
-  int comp_timing_cfeb_[5];
-  int pre_block_end_cfeb_[5];
-  int L1A_extra_cfeb_[5];
-  float comp_thresh_cfeb_[5];
+  int comp_mode_cfeb_[7];
+  int comp_timing_cfeb_[7];
+  int pre_block_end_cfeb_[7];
+  int L1A_extra_cfeb_[7];
+  float comp_thresh_cfeb_[7];
   //
-  int shift_out[5][36];
+  int shift_out[7][36];
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
   int  TestStatus_[20];
@@ -856,10 +886,10 @@ public:
   unsigned long int expected_control_firmware_tag_;
   int       expected_vme_firmware_tag_;
   int       expected_firmware_revision_;
-  unsigned long int expected_cfeb_firmware_tag_[5];
+  unsigned long int expected_cfeb_firmware_tag_[7];
   //
-  bool cfeb_config_status_[5];
-  bool smoking_gun_status_[5];
+  bool cfeb_config_status_[7];
+  bool smoking_gun_status_[7];
   bool dmb_smoking_gun_status_;
   //
   int failed_checkvme_;
@@ -868,7 +898,8 @@ public:
   unsigned int NBB,NBBwrd[20],NBBbit[20],NBBtyp[20],NBBTOT;
 
   int hardware_version_;
-
+  int kill_input_mask_;
+  
   // VME registers defined in ODMB for direct access
   // Liu May 29, 2013. ODMB firmware version 0.0
   //
