@@ -3,6 +3,7 @@
 # Invoke it as
 #   analysisScriptName analysisExeName 'dataFile1 dataFile2 ...' ['crateId1 dmbSlot1 chamberLabel1' 'crateId2 dmbSlot2 chamberLabel2' ...]
 
+ulimit -c unlimited
 
 print
 print "Environment variables:"
@@ -47,7 +48,7 @@ if [[ $# -gt 2 ]]; then
 
     [[ -e $P5_DB_FILE ]] || { print "*** Error: P5 db file $P5_DB_FILE not found. Exiting."; exit 1 }
 
-    [[ -e $TESTSTAND_DB_FILE ]] && { print "Removing old $TESTSTAND_DB_FILE"; rm $TESTSTAND_DB_FILE }
+    [[ -e $TESTSTAND_DB_FILE ]] && { print "Removing old $DQMCONFIG/$TESTSTAND_DB_FILE"; rm $TESTSTAND_DB_FILE }
 
     # Copy csc_map table definition from P5 db into test stand db
     # LIMIT 0 prevents the records from being copied in sqlite3 3.7.13. It prevents the table from being created altogether in sqlite3 v3.3.6 ...
@@ -73,39 +74,37 @@ if [[ $# -gt 2 ]]; then
 	MAPPING=( $(print ${(P)I}) )
 	CRATEID=${MAPPING[1]}
 	DMB=${dmbSlotToId[${MAPPING[2]}]}
+	(( $DMB<6 )) && (( CSCID=$DMB )) || (( CSCID=$DMB-1 ))
 	CHAMBER=${MAPPING[3]}
 	print $CRATEID $DMB $CHAMBER
 	case $CHAMBER in
-
-	    ( ME[+-]1/1/<37-99> | ME[+-]4/2/<37-99> )
-
-	    print "Dummy chamber label ${(qq)CHAMBER} is added to test stand mapping db."
-	    # Copy from the P5 CSC mapping db a row that corresponds to an existing chamber in this ring (say, chamber 01)
-	    EXISTINGCHAMBER="${CHAMBER[1,-3]}01"
-	    sqlite3 -line $TESTSTAND_DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; INSERT INTO main.csc_map SELECT * FROM P5.csc_map WHERE chamberLabel=${(qq)EXISTINGCHAMBER};"
-	    # Change the crate id and DMB id to those of the test stand in order for the analysis program to know to what chamber the data containing these ids belong to. Change the chamber label, too (to the dummy one).
-	    sqlite3 -line $TESTSTAND_DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, dmb=${(qq)DMB}, chamberLabel=${(qq)CHAMBER} WHERE chamberLabel=${(qq)EXISTINGCHAMBER};"
-	    ;;
-
 
 	    ( ME[+-]1/<1-3>/<01-36> | ME[+-]<2-4>/1/<01-18> | ME[+-]<2-4>/2/<01-36> )
 
 	    print "Canonical chamber label ${(qq)CHAMBER} is added to test stand mapping db."
 	    # Copy this chamber's row from the P5 CSC mapping db
 	    sqlite3 -line $TESTSTAND_DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; INSERT INTO main.csc_map SELECT * FROM P5.csc_map WHERE chamberLabel=${(qq)CHAMBER};"
-	    # Change the crate id and DMB id to those of the test stand in order for the analysis program to know to what chamber the data containing these ids belong to
-	    sqlite3 -line $TESTSTAND_DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, dmb=${(qq)DMB} WHERE chamberLabel=${(qq)CHAMBER};"
+	    # Change the crate id, csc id, csc index and DMB id to those of the test stand in order for the analysis program to know to what chamber the data containing these ids belong to
+	    sqlite3 -line $TESTSTAND_DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, cscid=${(qq)CSCID}, dmb=${(qq)DMB}, cscIndex=${(qq)$(( 10*$CRATEID+$CSCID ))} WHERE chamberLabel=${(qq)CHAMBER};"
+	    ;;
+
+
+	    ( ME[+-]1/<1-3>/* | ME[+-]<2-4>/1/* | ME[+-]<2-4>/2/* )
+
+	    print "Non-canonical chamber label ${(qq)CHAMBER} is added to test stand mapping db."
+	    # Copy from the P5 CSC mapping db a row that corresponds to an existing chamber in this ring (say, chamber 01)
+	    EXISTINGCHAMBER="${CHAMBER[1,7]}01"
+	    sqlite3 -line $TESTSTAND_DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; INSERT INTO main.csc_map SELECT * FROM P5.csc_map WHERE chamberLabel=${(qq)EXISTINGCHAMBER};"
+	    # Change the crate id, csc id, csc index and DMB id to those of the test stand in order for the analysis program to know to what chamber the data containing these ids belong to. Change the chamber label, too (to the dummy one).
+	    sqlite3 -line $TESTSTAND_DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, cscid=${(qq)CSCID}, dmb=${(qq)DMB}, cscIndex=${(qq)$(( 10*$CRATEID+$CSCID ))}, chamberLabel=${(qq)CHAMBER} WHERE chamberLabel=${(qq)EXISTINGCHAMBER};"
 	    ;;
 
 
 	    ( * )
 
-	    print "Non-canonical chamber label ${(qq)CHAMBER}. Adding it to test stand mapping db assuming the properties of ME+4/2/01"
-	    # ME+4/2/01 implies chamberId=142010
-	    # Copy ME+4/2/01's row from the P5 CSC mapping db
-	    sqlite3 -line $TESTSTAND_DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; INSERT INTO main.csc_map SELECT * FROM P5.csc_map WHERE chamberId=142010;"
-	    # Change the crate id and DMB id to those of the test stand in order for the analysis program to know to what chamber the data containing these ids belong to
-	    sqlite3 -line $TESTSTAND_DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, dmb=${(qq)DMB}, chamberLabel=${(qq)CHAMBER} WHERE chamberId=142010;"
+	    print "*** Error: Malformed chamber label ${(qq)CHAMBER}. Exiting."
+	    print '           Note that all chamber labels must be canonical up to the ring. A well-formed non-canonical chamber label example: ME+4/2/_239_'
+	    exit 1
 	    ;;
 
 	esac
@@ -133,5 +132,11 @@ for DATAFILE in $DATAFILES; do
 	${0:h}/generateIndexHTML.sh $RESULTSDIR
     else
 	print "** Warning: Web page generator script ${0:h}/generateIndexHTML.sh not found."
+    fi
+    if [[ -x ${0:h}/linkToChambers.sh ]]; then
+	print "Generating chamber-oriented directory structure in $RESULTSTOPDIR"
+	${0:h}/linkToChambers.sh $RESULTSTOPDIR $RESULTSTOPDIR
+    else
+	print "** Warning: Chamber-oriented directory generator script ${0:h}/linkToChambers.sh not found."
     fi
 done
