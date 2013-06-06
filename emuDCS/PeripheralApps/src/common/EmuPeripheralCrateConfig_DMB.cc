@@ -1152,11 +1152,11 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::legend("ADC Channels Readback").set("style","color:blue") << std::endl ;
   //
-  char buf[2000];
+  char buf[2000], sbuf[100];
   int hversion=thisDMB->GetHardwareVersion();
-  int nadcs, indx;
+  int nadcs, indx, cfebs, vstart, feed;
   unsigned short *ubuf=(unsigned short *)buf;
-  double fvalue[100];
+  double val, fvalue[100];
   //
   int n=thisDMB->DCSreadAll(buf);
   if(n<=0) 
@@ -1165,8 +1165,16 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
      return;
   }
   nadcs=5;
-  if (hversion==2) nadcs=7;
-
+  cfebs=5;
+  vstart=19;
+  feed=38;
+  if (hversion==2)
+  { 
+     nadcs=7;
+     cfebs=7;
+     vstart=25;
+     feed=50;
+  }
   for(int i=0; i<8*nadcs; i++)  fvalue[i]=(ubuf[i]&0xFFF)*10.0/4096.0;
 
   *out << cgicc::table().set("border","1");
@@ -1174,7 +1182,7 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
   *out <<cgicc::td();
   *out << "Channel";
   *out <<cgicc::td();
-  *out << std::setprecision(4);
+  *out << std::setprecision(3);
   for(int ch=0; ch<9; ch++)
   {
      if(ch) *out << cgicc::td() << ch-1 << cgicc::td();
@@ -1184,15 +1192,111 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
         else
         {
            indx=adc*8+ch-1;
-           *out << cgicc::td() << fvalue[indx];
-           if ((hversion<=1 && indx<19) || (hversion==2 && indx<25)) *out << "A";
-           else *out << "V";
+           if(fvalue[indx]>=0.01)
+           {
+              sprintf(sbuf, "% 5.2f ", fvalue[indx]);
+              *out << cgicc::td() << sbuf;
+              if ((hversion<=1 && indx<19) || (hversion==2 && indx<25)) *out << "A";
+              else *out << "V";
+           }
+           else *out << cgicc::td() << "0";
            *out << cgicc::td();
         }
      }
      *out << cgicc::tr() << cgicc::tr() << std::endl;
   }
   *out << cgicc::table() << std::endl;
+
+
+  *out << cgicc::br() << cgicc::b("CFEB Low Voltages and Currents") << std::endl;
+
+  // CFEBs
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td() << cgicc::td();
+  *out <<cgicc::td() << ((hversion<=1)?"3.3 V":"3.0 V") << cgicc::td();
+  *out <<cgicc::td() << "I (A)" << cgicc::td();
+  *out <<cgicc::td() << ((hversion<=1)?"5.0 V":"4.0 V") << cgicc::td();
+  *out <<cgicc::td() << "I (A)" << cgicc::td();
+  *out <<cgicc::td() << ((hversion<=1)?"6.0 V":"5.5 V") << cgicc::td();
+  *out <<cgicc::td() << "I (A)" << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+
+  for(int feb=0; feb<cfebs; feb++)
+  {
+     *out <<cgicc::td() << "CFEB " << feb+1 << cgicc::td();
+     for(int cnt=0; cnt<3; cnt++)
+     {
+        val=fvalue[vstart+3*feb+cnt];
+        sprintf(sbuf, " %5.2f ", val);
+        *out << cgicc::td();
+        if(val>=0.01)  *out << sbuf;  
+        else           *out << "0";
+        *out << cgicc::td();
+        val=fvalue[3*feb+cnt];
+        sprintf(sbuf, " %5.2f ", val);
+        *out <<cgicc::td();
+        if(val>=0.01)  *out << sbuf;  
+        else           *out << "0";
+        *out << cgicc::td();
+     }
+     *out << cgicc::tr() << std::endl;
+  }
+  *out << cgicc::table() << cgicc::br() << std::endl;
+
+  *out << cgicc::b("ALCT Low Voltages and Currents") << std::endl;
+  // ALCT
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td() << cgicc::td();
+  *out <<cgicc::td() << "3.3 V" << cgicc::td();
+  *out <<cgicc::td() << "I (A)" << cgicc::td();
+  *out <<cgicc::td() << "1.8 V" << cgicc::td();
+  *out <<cgicc::td() << "I (A)" << cgicc::td();
+  *out <<cgicc::td() << "5.5 V B" << cgicc::td();
+  *out <<cgicc::td() << "I (A)" << cgicc::td();
+  *out <<cgicc::td() << "5.5 V A" << cgicc::td();
+  *out <<cgicc::td() << "I (A)" << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+
+     *out <<cgicc::td() << "ALCT" << cgicc::td();
+     for(int cnt=0; cnt<4; cnt++)
+     {
+        val=fvalue[vstart+3*cfebs+cnt];
+        sprintf(sbuf, " %5.2f ", val);
+        *out <<cgicc::td();
+        if(val>=0.01)  *out << sbuf;  
+        else           *out << "0";
+        *out << cgicc::td();
+        val=fvalue[3*cfebs+cnt];
+        sprintf(sbuf, " %5.2f ", val);
+        *out <<cgicc::td();
+        if(val>=0.01)  *out << sbuf;  
+        else           *out << "0";
+        *out << cgicc::td();
+     }
+     *out << cgicc::tr() << std::endl;
+
+  *out << cgicc::table() << cgicc::br()<< std::endl;
+
+  *out << cgicc::b("Feed Voltages") << cgicc::br() << std::endl;
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td() << " Analog Feed " << cgicc::td();
+  sprintf(sbuf, " %6.2f V", fvalue[feed]);
+  *out  << cgicc::td()<< sbuf<< cgicc::td() << cgicc::tr() << std::endl;
+  *out <<cgicc::td() << " Digital Feed " << cgicc::td();
+  sprintf(sbuf, " %6.2f V", fvalue[feed+1]);
+  *out  << cgicc::td()<< sbuf<< cgicc::td() << cgicc::tr() << std::endl;
+  *out << cgicc::table() << cgicc::br()<< std::endl;
+
+  if(hversion==2)
+  {
+     double tp = sqrt(2.1962*1000000 + 1000000*(1.8639-fvalue[55])/3.88)-1481.96;
+     *out << cgicc::br() << cgicc::b("LVDB7 Temperature sensor") << std::endl;
+     sprintf(sbuf, "%8.2f", tp);
+     *out << cgicc::br() << sbuf << " (C)" << cgicc::br()<< std::endl; 
+  }
   *out << cgicc::fieldset();
 }
 
