@@ -131,6 +131,7 @@ namespace emu{
       void _21();
       void _25();
       void _27();
+      void _30();
       void _fake();
 
     };
