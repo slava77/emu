@@ -92,6 +92,7 @@ void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId ) 
   if ( testId == "21"  ) return &emu::step::Test::_21;
   if ( testId == "25"  ) return &emu::step::Test::_25;
   if ( testId == "27"  ) return &emu::step::Test::_27;
+  if ( testId == "30"  ) return &emu::step::Test::_30;
   return 0;
 }
 
@@ -186,7 +187,7 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
 	  LOG4CPLUS_INFO( *pLogger_,"CKill Fiber is set to: "<<  setw(4) << hex << (*ddu)->readFlashKillFiber() << dec);
 	  LOG4CPLUS_INFO( *pLogger_,"GbEPrescale is set to: "<<  setw(4) << hex << (*ddu)->readGbEPrescale() << dec);
 	  LOG4CPLUS_INFO( *pLogger_,"Fake L1A is set to: "   <<  setw(4) << hex << (*ddu)->readFakeL1() <<dec);
-	}
+		}
 
   }
 
@@ -815,8 +816,8 @@ void emu::step::Test::_16(){
         (*dmb)->buck_shift();
         usleep(100000); // buck shifting takes a lot more time for DCFEBs
         (*crate)->ccb()->bc0(); // this may not be needed, should check
-      }
-	} 
+     }
+		} 
   }
 
   //
@@ -1632,6 +1633,94 @@ void emu::step::Test::_27(){
 //       } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 //     } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
   }
+}
+
+void emu::step::Test::_30(){
+  // TODO:
+  // This can be run with one chamber per crate at a time while the other chambers in the crate must be disabled.
+  // In principle, it could be run in parallel in different crates, but only if their data all go into different files...
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_30 (multichamber) starting" ); }
+
+  uint64_t fromDepth = parameters_["fromDepth"];
+  uint64_t toDepth = parameters_["toDepth"];
+
+  ostream noBuffer( NULL );
+
+  string dateTime( emu::utils::getDateTime( true ) );
+
+  struct timeval start, end;
+
+  usleep(100);
+  
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+		stringstream timeStampFileName;
+		timeStampFileName << "Test30_" << (*crate)->GetLabel()
+		<< "_PipelineDepth_" << fromDepth
+		<< "_to_" << toDepth
+		<< "_" << dateTime
+		<< ".txt";
+		ofstream timeStampFile;
+		timeStampFile.open( timeStampFileName.str().c_str() );
+		timeStampFile << "#crate    :\t" << (*crate)->GetLabel() << endl;
+		timeStampFile << "#time [ms]\tevent counts" << endl;
+
+		vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
+
+		for(vector <emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb){
+			(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb
+			(*dmb)->shift_all(NORM_RUN);
+			(*dmb)->buck_shift();
+
+       			usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
+       			(*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
+		}
+
+	
+		for (uint64_t iDepth = fromDepth; iDepth <= toDepth; ++iDepth ){
+
+			for(vector <emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb){
+      				setAllDCFEBsPipelineDepth( *dmb, iDepth ); 
+			}
+
+			(*crate)->ccb()->WriteRegister( emu::pc::CCB::enableL1aCounter, 0 );
+			(*crate)->ccb()->WriteRegister( emu::pc::CCB::resetL1aCounter , 0 ); // zero L1A counter
+	
+			// Start triggering
+			(*crate)->ccb()->EnableL1aFromTmbL1aReq();
+			gettimeofday( &start, NULL );
+			
+			log4cplus::helpers::sleepmillis(5000);			
+
+			(*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+			gettimeofday( &end, NULL );
+
+			bsem_.take();
+			iEvent_++;
+			bsem_.give();
+
+			uint32_t l1a_counter_LSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterLSB ) & 0xffff; // read lower 16 bits
+			uint32_t l1a_counter_MSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterMSB ) & 0xffff; // read higher 16 bits
+			uint32_t l1a_counter     = l1a_counter_LSB | (l1a_counter_MSB << 16); // merge into counter
+
+			timeStampFile 
+				<< "Pipeline_Depth_" << iDepth
+				<< "\t\t" << ( end.tv_sec - start.tv_sec) * 1000 + ( end.tv_usec - start.tv_usec ) / 1000. 
+				<< "\t\t" << l1a_counter << endl;
+			
+			if ( pLogger_ ){
+				stringstream ss;
+				ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+					 << ", Pipeline_Depth " << iDepth
+					 << ", L1A " << l1a_counter;
+				LOG4CPLUS_INFO( *pLogger_, ss.str() );
+			}
+		}
+			timeStampFile.close();
+  }
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_30 (multichamber) ending" ); }
 }
 
 void emu::step::Test::_fake(){
