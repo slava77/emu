@@ -808,18 +808,19 @@ void emu::step::Test::_16(){
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-
-	  setAllDCFEBsPipelineDepth( *dmb );
-	  
- 	  int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion();
-	  if ( CFEBHardwareVersion == 2 ){
+      
+      setAllDCFEBsPipelineDepth( *dmb );
+      
+      int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion();
+      if ( CFEBHardwareVersion == 2 ){
+	(*dmb)->shift_all(NORM_RUN);
         (*dmb)->buck_shift();
         usleep(100000); // buck shifting takes a lot more time for DCFEBs
         (*crate)->ccb()->bc0(); // this may not be needed, should check
-     }
-		} 
+      }
+    } 
   }
-
+  
   //
   // Deliver pulses
   //
