@@ -592,7 +592,7 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   expected_vme_firmware_tag_     = 9999;
   expected_firmware_revision_    = 9999;
   //
-  for (int cfeb=0; cfeb<5; cfeb++) {
+  for (int cfeb=0; cfeb<7; cfeb++) {
     expected_cfeb_firmware_tag_[cfeb] = 9999;
     comp_mode_cfeb_[cfeb]   = comp_mode_;
     comp_timing_cfeb_[cfeb] = comp_timing_;
@@ -827,6 +827,12 @@ void DAQMB::configure() {
    }
 
    set_and_initalize_pipelines_and_fine_delays();
+   
+   if(hardware_version_==2)
+   {
+   // set delays
+
+   }
 
   // ***  This part is related to the SFM (Serial Flash Memory) ****
    //
@@ -2253,15 +2259,14 @@ void DAQMB::cfebs_readstatus()
 
 float DAQMB::readthermx(int feb)
 {
-  float cval=0.0,fval=0.0;
+  float cval=0.0;
   if(hardware_version_<=1)
   {
   float Vout= (float) readADC(1, feb) / 1000.;
-  if(feb<7){
+  if(feb!=6){
     cval = 1/(0.1049406423E-2+0.2133635468E-3*log(65000.0/Vout-13000.0)+0.7522287E-7*pow(log(65000.0/Vout-13000.0),3.0))-0.27315E3;
-    fval=9.0/5.0*cval+32.;
   }else{
-    fval=Vout;
+    cval=Vout;
   }
   }
   return cval;
@@ -2657,7 +2662,7 @@ void DAQMB::set_cal_dac(float volt0,float volt1)
        cw=0x4000|(dacout0<<1);
        dword=shuffle32(cw)>>16;
        dcfeb_hub(cfebs_[icfeb], Calib_DAC, 16, &dword, rcvbuf, NO_BYPASS|NOW);
-       cw=0x4000|(dacout1<<1);
+       cw=0xc000|(dacout1<<1);
        dword=shuffle32(cw)>>16;
        dcfeb_core(Calib_DAC, 16, &dword, rcvbuf, NOOP_YES|NOW);
     }
@@ -6670,7 +6675,7 @@ int DAQMB::test4()
   temp=readthermx(0); 
   (*MyOutput_) << "The temperature is " << temp <<" F " << std::endl;
   //
-  if(temp>=50.0 &&temp<=95.0){
+  if(temp>=10.0 &&temp<=45.0){
     (*MyOutput_) << "The temperature on DMB is good " << std::endl;
   } else {
     (*MyOutput_) << "The temperature on DMB is out of range" << std::endl;
@@ -6682,7 +6687,7 @@ int DAQMB::test4()
     temp = readthermx(k);
     (*MyOutput_) << "The temperature is " << temp << " F " << std::endl;
     //
-    if(temp>=50.0 && temp<=95.0){
+    if(temp>=10.0 && temp<=45.0){
       (*MyOutput_) << "The temperature on CFEB"<<k<<" is good " << std::endl;
       
     }else{
