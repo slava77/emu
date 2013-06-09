@@ -2557,6 +2557,8 @@ unsigned int  DAQMB::mbpromid(int prom)
 
 unsigned int  DAQMB::mbfpgauser()
 {
+  unsigned int ibrd=0;
+
   if(hardware_version_<=1)
   {
   DEVTYPE dv=MCTRL;
@@ -2567,23 +2569,24 @@ unsigned int  DAQMB::mbfpgauser()
   sndbuf[3]=0xFF;
   sndbuf[4]=0xFF;
   devdo(dv,6,cmd,32,sndbuf,rcvbuf,1);
-  unsigned int ibrd=unpack_ibrd();
+  ibrd=unpack_ibrd();
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
-  return ibrd;
   }
-  else return 0;
+  else
+  {
+     odmb_fpga_call(VTX6_USERCODE, 0, (char *)&ibrd);
+  } 
+  return ibrd;
 }
 
 unsigned int  DAQMB::mbfpgaid()
 {
+  unsigned int ibrd=0;
+
   if(hardware_version_<=1)
   {
-  //
-  unsigned int ibrd;
-  //
-  ibrd=0;
   DEVTYPE dv=MCTRL;
   cmd[0]=VTX2_IDCODE;
   sndbuf[0]=0xFF;
@@ -2596,9 +2599,12 @@ unsigned int  DAQMB::mbfpgaid()
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
-  return ibrd;
   }
-  else return 0;
+  else
+  {
+     odmb_fpga_call(VTX6_IDCODE, 0, (char *)&ibrd);
+  } 
+  return ibrd;
 }
 
 //

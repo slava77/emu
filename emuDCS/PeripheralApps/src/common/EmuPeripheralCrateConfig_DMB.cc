@@ -1150,7 +1150,7 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 12pt; font-family: arial;");
   *out << std::endl;
   //
-  *out << cgicc::legend("ADC Channels Readback").set("style","color:blue") << std::endl ;
+  *out << cgicc::legend("LVMB Readback").set("style","color:blue") << std::endl ;
   //
   char buf[2000], sbuf[100];
   int hversion=thisDMB->GetHardwareVersion();
@@ -1175,45 +1175,43 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
      vstart=25;
      feed=50;
   }
-  for(int i=0; i<8*nadcs; i++)  fvalue[i]=(ubuf[i]&0xFFF)*10.0/4096.0;
-
-  *out << cgicc::table().set("border","1");
+  for(int i=0; i<8*nadcs; i++)
+  {   
+      if(ubuf[i]==0xBAAD || ubuf[i]==0xFFFF) fvalue[i]=0.0;
+      else fvalue[i]=(ubuf[i]&0xFFF)*10.0/4096.0;
+  }
+  *out << cgicc::br() << cgicc::b("ADC Channels") << std::endl;
+  *out << cgicc::table().set("border","1").set("cellpadding","4") << std::endl;
   //
-  *out <<cgicc::td();
-  *out << "Channel";
-  *out <<cgicc::td();
   *out << std::setprecision(3);
   for(int ch=0; ch<9; ch++)
   {
-     if(ch) *out << cgicc::td() << ch-1 << cgicc::td();
+     *out << cgicc::tr() << cgicc::td();
+     if(ch) *out << ch-1 << cgicc::td();
+     else *out << "Channel" << cgicc::td();
      for(int adc=0; adc<nadcs; adc++)
      {
-        if(ch==0) *out << cgicc::td() << "ADC " << adc+1 << cgicc::td();
+        if(ch==0) *out << cgicc::td() << " ADC " << adc+1 << cgicc::td();
         else
         {
            indx=adc*8+ch-1;
-           if(fvalue[indx]>=0.01)
-           {
-              sprintf(sbuf, "% 5.2f ", fvalue[indx]);
+              sprintf(sbuf, "% 6.2f ", fvalue[indx]);
               *out << cgicc::td() << sbuf;
               if ((hversion<=1 && indx<19) || (hversion==2 && indx<25)) *out << "A";
               else *out << "V";
-           }
-           else *out << cgicc::td() << "0";
            *out << cgicc::td();
         }
      }
-     *out << cgicc::tr() << cgicc::tr() << std::endl;
+     *out << cgicc::tr() << std::endl;
   }
   *out << cgicc::table() << std::endl;
 
-
+  // CFEBs
   *out << cgicc::br() << cgicc::b("CFEB Low Voltages and Currents") << std::endl;
 
-  // CFEBs
-  *out << cgicc::table().set("border","1");
+  *out << cgicc::table().set("border","1").set("cellpadding","4");
   //
-  *out <<cgicc::td() << cgicc::td();
+  *out <<cgicc::tr() << cgicc::td() << cgicc::td();
   *out <<cgicc::td() << ((hversion<=1)?"3.3 V":"3.0 V") << cgicc::td();
   *out <<cgicc::td() << "I (A)" << cgicc::td();
   *out <<cgicc::td() << ((hversion<=1)?"5.0 V":"4.0 V") << cgicc::td();
@@ -1224,30 +1222,30 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
 
   for(int feb=0; feb<cfebs; feb++)
   {
+     *out << cgicc::tr();
      *out <<cgicc::td() << "CFEB " << feb+1 << cgicc::td();
      for(int cnt=0; cnt<3; cnt++)
      {
         val=fvalue[vstart+3*feb+cnt];
-        sprintf(sbuf, " %5.2f ", val);
+        sprintf(sbuf, " %6.2f ", val);
         *out << cgicc::td();
-        if(val>=0.01)  *out << sbuf;  
-        else           *out << "0";
+        *out << sbuf;  
         *out << cgicc::td();
         val=fvalue[3*feb+cnt];
-        sprintf(sbuf, " %5.2f ", val);
+        sprintf(sbuf, " %6.2f ", val);
         *out <<cgicc::td();
-        if(val>=0.01)  *out << sbuf;  
-        else           *out << "0";
+        *out << sbuf;  
         *out << cgicc::td();
      }
      *out << cgicc::tr() << std::endl;
   }
   *out << cgicc::table() << cgicc::br() << std::endl;
 
-  *out << cgicc::b("ALCT Low Voltages and Currents") << std::endl;
   // ALCT
-  *out << cgicc::table().set("border","1");
+  *out << cgicc::b("ALCT Low Voltages and Currents") << std::endl;
+  *out << cgicc::table().set("border","1").set("cellpadding","4") << std::endl;
   //
+  *out << cgicc::tr();
   *out <<cgicc::td() << cgicc::td();
   *out <<cgicc::td() << "3.3 V" << cgicc::td();
   *out <<cgicc::td() << "I (A)" << cgicc::td();
@@ -1259,20 +1257,19 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
   *out <<cgicc::td() << "I (A)" << cgicc::td();
   *out << cgicc::tr() << std::endl;
 
+     *out << cgicc::tr();
      *out <<cgicc::td() << "ALCT" << cgicc::td();
      for(int cnt=0; cnt<4; cnt++)
      {
         val=fvalue[vstart+3*cfebs+cnt];
-        sprintf(sbuf, " %5.2f ", val);
+        sprintf(sbuf, " %6.2f ", val);
         *out <<cgicc::td();
-        if(val>=0.01)  *out << sbuf;  
-        else           *out << "0";
+        *out << sbuf;  
         *out << cgicc::td();
         val=fvalue[3*cfebs+cnt];
-        sprintf(sbuf, " %5.2f ", val);
+        sprintf(sbuf, " %6.2f ", val);
         *out <<cgicc::td();
-        if(val>=0.01)  *out << sbuf;  
-        else           *out << "0";
+        *out << sbuf;  
         *out << cgicc::td();
      }
      *out << cgicc::tr() << std::endl;
@@ -1280,12 +1277,12 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table() << cgicc::br()<< std::endl;
 
   *out << cgicc::b("Feed Voltages") << cgicc::br() << std::endl;
-  *out << cgicc::table().set("border","1");
+  *out << cgicc::table().set("border","1").set("cellpadding","4") << std::endl;
   //
-  *out <<cgicc::td() << " Analog Feed " << cgicc::td();
+  *out << cgicc::tr() << cgicc::td() << " Analog Feed " << cgicc::td();
   sprintf(sbuf, " %6.2f V", fvalue[feed]);
   *out  << cgicc::td()<< sbuf<< cgicc::td() << cgicc::tr() << std::endl;
-  *out <<cgicc::td() << " Digital Feed " << cgicc::td();
+  *out << cgicc::tr() << cgicc::td() << " Digital Feed " << cgicc::td();
   sprintf(sbuf, " %6.2f V", fvalue[feed+1]);
   *out  << cgicc::td()<< sbuf<< cgicc::td() << cgicc::tr() << std::endl;
   *out << cgicc::table() << cgicc::br()<< std::endl;
@@ -2307,22 +2304,23 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
       isME13 = true;
   //
   Chamber * thisChamber = chamberVector[dmb];
-      std::string chamber=thisChamber->GetLabel();
-      unsigned long int cfebID[5], cfebIDread[5];
-      std::vector <CFEB> thisCFEBs=thisDMB->cfebs();
-      //
-      for (unsigned i=0;i<thisCFEBs.size();i++) {
-        cfebIDread[i]=thisDMB->febpromuser(thisCFEBs[i]);
-        cfebID[i]=brddb->ChamberToCFEBID(chamber,i+1);
-        std::cout<<" DB_check CFEB # "<<i<<" ID readback: "<<(cfebIDread[i]&0xfff)<<" Look up from DB: "<<(cfebID[i]&0xfff)<<std::endl;
-      }
-      std::string crate=thisCrate->GetLabel();
-      int slot=thisDMB->slot();
-      std::cout<<" Crate: "<<crate<<" slot "<<slot<<std::endl;
-      int dmbID=brddb->CrateToDMBID(crate,slot);
-      //The readback
-      unsigned long int dmbIDread=thisDMB->mbpromuser(0);
-      std::cout<<" DB_check DMB ID readback: "<<(dmbIDread&0xfff)<<" look up from DB: "<<(dmbID&0xfff)<<std::endl;
+  std::string chamber=thisChamber->GetLabel();
+  int hversion=thisDMB->GetHardwareVersion();
+  char buf[2000], sbuf[100];
+  int nadcs, indx, cfebs, vstart, feed;
+  unsigned short *ubuf=(unsigned short *)buf;
+  double val, fvalue[100];
+  nadcs=5;
+  cfebs=5;
+  vstart=19;
+  feed=38;
+  if (hversion==2)
+  { 
+     nadcs=7;
+     cfebs=7;
+     vstart=25;
+     feed=50;
+  }
   //
   char Name[100];
   sprintf(Name,"%s DMB status, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());	
@@ -2331,8 +2329,6 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   //*out << cgicc::h1(Name);
   //*out << cgicc::br();
-  //
-  char buf[200] ;
   //
   if( thisDMB->cfebs().size() > 0 ) {
     std::string CFEBStatus =
@@ -2349,59 +2345,117 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::legend("DMB IDs").set("style","color:blue") << std::endl ;
   //
   *out << cgicc::pre();
+  if(hversion<=1)
+  {
   //
-  thisDMB->vmefpgaid();
-  sprintf(buf,"DMB vme FPGA : Version %d Revision %x Day %d Month %d Year %d",
+      unsigned long int cfebID[5], cfebIDread[5];
+      std::vector <CFEB> thisCFEBs=thisDMB->cfebs();
+      //
+      for (unsigned i=0;i<thisCFEBs.size();i++) {
+        cfebIDread[i]=thisDMB->febpromuser(thisCFEBs[i]);
+        cfebID[i]=brddb->ChamberToCFEBID(chamber,i+1);
+        std::cout<<" DB_check CFEB # "<<i<<" ID readback: "<<(cfebIDread[i]&0xfff)<<" Look up from DB: "<<(cfebID[i]&0xfff)<<std::endl;
+      }
+      std::string crate=thisCrate->GetLabel();
+      int slot=thisDMB->slot();
+      std::cout<<" Crate: "<<crate<<" slot "<<slot<<std::endl;
+      int dmbID=brddb->CrateToDMBID(crate,slot);
+      //The readback
+      unsigned long int dmbIDread=thisDMB->mbpromuser(0);
+      std::cout<<" DB_check DMB ID readback: "<<(dmbIDread&0xfff)<<" look up from DB: "<<(dmbID&0xfff)<<std::endl;
+
+    thisDMB->vmefpgaid();
+    sprintf(buf,"DMB vme FPGA : Version %d Revision %x Day %d Month %d Year %d",
 	  (int)thisDMB->GetFirmwareVersion(),(int)thisDMB->GetFirmwareRevision(),
 	  (int)thisDMB->GetFirmwareDay(),(int)thisDMB->GetFirmwareMonth(),(int)thisDMB->GetFirmwareYear());
-  //
-  if ( thisDMB->CheckVMEFirmwareVersion() ) {
-    *out << cgicc::span().set("style","color:green");
-    *out << buf;
-    *out << "...OK...";
-    *out << cgicc::span();
-  } else {
-    *out << cgicc::span().set("style","color:red");
-    *out << buf;
-    *out << "--->> BAD <<--- should be "
+    //
+    if ( thisDMB->CheckVMEFirmwareVersion() ) {
+      *out << cgicc::span().set("style","color:green");
+      *out << buf;
+      *out << "...OK...";
+      *out << cgicc::span();
+    } else {
+      *out << cgicc::span().set("style","color:red");
+      *out << buf;
+      *out << "--->> BAD <<--- should be "
 	 << std::dec << thisDMB->GetExpectedVMEFirmwareTag();
-    *out << cgicc::span();
-  }
-  *out << cgicc::br();
-  //
-  sprintf(buf,"DMB prom VME->Motherboard          : %08x ",(int)thisDMB->mbpromuser(0));
-  *out << buf ;
-  *out << cgicc::br();
-  //
-  sprintf(buf,"DMB prom Motherboard Controller    : %08x ",(int)thisDMB->mbpromuser(1));
-  *out << buf  ;
-  *out << cgicc::br();
-  //
-  sprintf(buf,"DMB fpga id                        : %08x ",(int)thisDMB->mbfpgaid());
-  *out << buf  ;
-  *out << cgicc::br();
-  //
-  sprintf(buf,"DMB prom VME->Motherboard ID       : %08x ",(int)thisDMB->mbpromid(0));
-  *out << buf  ;
-  *out << cgicc::br();
-  //
-  sprintf(buf,"DMB prom Motherboard Controller ID : %08x ",(int) thisDMB->mbpromid(1));
-  *out << buf  ;
-  *out << cgicc::br();
-  //
-  sprintf(buf,"DMB fpga user id                   : %x ", (int) thisDMB->mbfpgauser());
+      *out << cgicc::span();
+    }
+    *out << cgicc::br();
+    //
+    sprintf(buf,"DMB prom VME->Motherboard          : %08x ",(int)thisDMB->mbpromuser(0));
+    *out << buf ;
+    *out << cgicc::br();
+    //
+    sprintf(buf,"DMB prom Motherboard Controller    : %08x ",(int)thisDMB->mbpromuser(1));
+    *out << buf  ;
+    *out << cgicc::br();
+    //
+    sprintf(buf,"DMB fpga id                        : %08x ",(int)thisDMB->mbfpgaid());
+    *out << buf  ;
+    *out << cgicc::br();
+    //
+    sprintf(buf,"DMB prom VME->Motherboard ID       : %08x ",(int)thisDMB->mbpromid(0));
+    *out << buf  ;
+    *out << cgicc::br();
+    //
+    sprintf(buf,"DMB prom Motherboard Controller ID : %08x ",(int) thisDMB->mbpromid(1));
+    *out << buf  ;
+    *out << cgicc::br();
+    //
+    sprintf(buf,"DMB fpga user id                   : %x ", (int) thisDMB->mbfpgauser());
   
-  if ( thisDMB->CheckControlFirmwareVersion() ) {
-    *out << cgicc::span().set("style","color:green");
-    *out << buf;
-    *out << "...OK...";
-    *out << cgicc::span();
-  } else {
-    *out << cgicc::span().set("style","color:red");
-    *out << buf;
-    *out << "--->> BAD <<--- should be "
-	 << std::hex << thisDMB->GetExpectedControlFirmwareTag();
-    *out << cgicc::span();
+    if ( thisDMB->CheckControlFirmwareVersion() ) {
+      *out << cgicc::span().set("style","color:green");
+      *out << buf;
+      *out << "...OK...";
+      *out << cgicc::span();
+    } else {
+      *out << cgicc::span().set("style","color:red");
+      *out << buf;
+      *out << "--->> BAD <<--- should be "
+	 << std::hex << thisDMB->GetExpectedControlFirmwareTag() << std::dec;
+      *out << cgicc::span();
+    }
+  }
+  else if(hversion==2)
+  {
+     int fwv=thisDMB->odmb_firmware_version();
+     int fw_xml=thisDMB->GetExpectedControlFirmwareTag();
+     sprintf(buf,"ODMB firmware version : V%02X_%02X (tag %02X%02X)",(fwv>>4)&0xF, fwv&0xF,(fwv>>4)&0xF, fwv&0xF);
+     if ( (fwv&0xFFFF)==(fw_xml&0xFFFF) ) 
+     {
+        *out << cgicc::span().set("style","color:green");
+        *out << buf << " ...OK...";
+        *out << cgicc::span();
+     } else 
+     {
+        *out << cgicc::span().set("style","color:red");
+        *out << buf;
+        *out << "--->> BAD <<--- should be ";
+        sprintf(buf,"V%02X_%02X (tag %02X%02X)",(fw_xml>>4)&0xF, fw_xml&0xF,(fw_xml>>4)&0xF, fw_xml&0xF);
+        *out << cgicc::span();
+    }
+     *out << cgicc::br();
+     int idcode=thisDMB->mbfpgaid();
+     sprintf(buf,"ODMB fpga ID Code     : %08X ",idcode);
+     if ( (idcode&0xFFFFFFF)==(0x8424A093&0xFFFFFFF) ) 
+     {
+        *out << cgicc::span().set("style","color:green");
+        *out << buf << " ...OK...";
+        *out << cgicc::span();
+     } else 
+     {
+        *out << cgicc::span().set("style","color:red");
+        *out << buf;
+        *out << "--->> BAD <<--- should be 0x8424A093";
+        *out << cgicc::span();
+    }
+     *out << cgicc::br();
+     sprintf(buf,"ODMB fpga User Code   : %08X ", (int)thisDMB->mbfpgauser());
+     *out << buf << std::endl;
+     // ODMB Control
+     // DCFEB Control
   }
   //
   *out << cgicc::pre();
@@ -2414,12 +2468,46 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::fieldset();
   *out << std::endl ;
+ 
+  if(hversion==2)
+  {
+     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+     *out << std::endl ;
+     *out << cgicc::legend("ODMB Settings").set("style","color:blue") 
+          << std::endl ;
+     *out << cgicc::table().set("border","1").set("cellpadding","4");
+     *out << cgicc::tr();
+     *out << cgicc::td() << "LCT_L1A delay: " << thisDMB->odmb_read_LCT_L1A_delay() << cgicc::td();      
+     *out << cgicc::td() << "TMB delay: " << thisDMB->odmb_read_TMB_delay() << cgicc::td();      
+     *out << cgicc::td() << "PUSH delay: " << thisDMB->odmb_read_Push_delay() << cgicc::td();      
+     *out << cgicc::td() << "ALCT delay: " << thisDMB->odmb_read_ALCT_delay() << cgicc::td();      
+     *out << cgicc::tr() << std::endl;
+     *out << cgicc::tr();
+     *out << cgicc::td() << "Inj delay: " << thisDMB->odmb_read_Inj_delay() << cgicc::td();      
+     *out << cgicc::td() << "Ext delay: " << thisDMB->odmb_read_Ext_delay() << cgicc::td();      
+     *out << cgicc::td() << "Cal delay: " << thisDMB->odmb_read_Cal_delay() << cgicc::td();      
+     *out << cgicc::td() << cgicc::td() << cgicc::tr() << std::endl;
+     *out << cgicc::table();
+     *out << cgicc::fieldset() << cgicc::br() << std::endl;
+  }
+
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl ;
   //
   *out << cgicc::legend("Voltages, Temperatures, & Currents").set("style","color:blue") 
        << std::endl ;
+  //
+  int n=thisDMB->DCSreadAll(buf);
+  if(n<=0) 
+  {
+     *out << "ERROR: Failed to read LVMB!!!" << cgicc::br() << std::endl;
+  }
+  for(int i=0; i<8*nadcs; i++)
+  {   
+      if(ubuf[i]==0xBAAD || ubuf[i]==0xFFFF) fvalue[i]=0.0;
+      else fvalue[i]=(ubuf[i]&0xFFF)*10.0/4096.0;
+  }
   //
   *out << cgicc::table().set("border","1");
   //
@@ -2717,8 +2805,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table().set("border","1");;
   //
   *out << cgicc::td();
-  sprintf(buf,"DMB temperature = %3.1f ",(value=thisDMB->readthermx(0)));
-  if ( value > 50 && value < 95 ) {
+  sprintf(buf,"DMB temperature = %3.1f C",(value=thisDMB->readthermx(0)));
+  if ( value > 10 && value < 45 ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
@@ -2728,8 +2816,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"FEB1 temperature = %3.1f ",(value=thisDMB->readthermx(1)));
-  if ( value > 50 && value < 95 ) {
+  sprintf(buf,"CFEB1 temperature = %3.1f C",(value=thisDMB->readthermx(1)));
+  if ( value > 10 && value < 45 ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
@@ -2739,8 +2827,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"FEB2 temperature = %3.1f ",(value=thisDMB->readthermx(2)));
-  if ( value > 50 && value < 95 ) {
+  sprintf(buf,"CFEB2 temperature = %3.1f C",(value=thisDMB->readthermx(2)));
+  if ( value > 10 && value < 45 ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
@@ -2752,8 +2840,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::tr();
   //
   *out << cgicc::td();
-  sprintf(buf,"FEB3 temperature = %3.1f ",(value=thisDMB->readthermx(3)));
-  if ( value > 50 && value < 95 ) {
+  sprintf(buf,"CFEB3 temperature = %3.1f C",(value=thisDMB->readthermx(3)));
+  if ( value > 10 && value < 45 ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
@@ -2763,8 +2851,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"FEB4 temperature = %3.1f ",(value=thisDMB->readthermx(4)));
-  if ( value > 50 && value < 95 ) {
+  sprintf(buf,"CFEB4 temperature = %3.1f C",(value=thisDMB->readthermx(4)));
+  if ( value > 10 && value < 45 ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
@@ -2774,10 +2862,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"FEB5 temperature = %3.1f ",(value=thisDMB->readthermx(5)));
+  sprintf(buf,"CFEB5 temperature = %3.1f C",(value=thisDMB->readthermx(5)));
   if (isME13) { 
     *out << cgicc::span().set("style","color:black");
-  } else if ( value > 50 && value < 95 ) {
+  } else if ( value > 10 && value < 45 ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
