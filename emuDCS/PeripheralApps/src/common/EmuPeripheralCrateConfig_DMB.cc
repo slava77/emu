@@ -2460,8 +2460,6 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::pre();
   //
-  *out << cgicc::br();
-  //
   //thisDMB->lowv_dump();
   //thisDMB->daqmb_adc_dump();
   //thisDMB->daqmb_promfpga_dump();
