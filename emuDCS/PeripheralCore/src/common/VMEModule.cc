@@ -1740,6 +1740,12 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
         bdata = data[k];
      }
 
+     // Liu June-8-2013: shift data same as regular JTAG machine, for fixed ODMB
+     if(ird){
+       // read out one bit
+       theController->VME_controller(0,ptr,&d,(char *)(mytmp+2*i));
+     }
+
      // data bit to write is in the lowest bit of ival
      d=pvme|(ival<<TDI_);
      // at the last shift, we need set TMS=1
@@ -1747,12 +1753,6 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
      theController->VME_controller(1,ptr,&d, rcv);
 //        vme_delay(1);
 
-// Liu April-8-2013: shift data out AFTER shift data in,
-//                   this is different from regular JTAG machine
-     if(ird){
-       // read out one bit
-       theController->VME_controller(0,ptr,&d,(char *)(mytmp+2*i));
-     }
   }
   
   // printf("done loop\n");
