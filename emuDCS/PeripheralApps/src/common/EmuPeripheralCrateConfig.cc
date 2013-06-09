@@ -4879,7 +4879,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   //
   //
-  *out << cgicc::pre();
+  //  *out << cgicc::pre();
   *out << "--------------------------------------------------------------------------" << std::endl;
   *out << " Synchronization step-by-step" << std::endl;
   *out << "--------------------------------------------------------------------------" << std::endl;
