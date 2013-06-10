@@ -532,6 +532,7 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
   uint64_t events_per_threshold = parameters_["events_per_threshold"]; // events per each threshold
   uint64_t tpamp_first          = parameters_["tpamp_first"];
   uint64_t tpamp_step           = parameters_["tpamp_step"];
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
@@ -588,7 +589,7 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
 	
 	for ( uint64_t iPulse = 1; iPulse <= events_per_threshold; ++iPulse ){
 	  (*crate)->ccb()->GenerateAlctAdbSync();
-	  usleep(1000);
+	  usleep( 1000 + 1000*msec_between_pulses );
 	  bsem_.take();
 	  iEvent_++;
 	  bsem_.give();

@@ -11,6 +11,7 @@
         <tpamps_per_run>            2   </tpamps_per_run>
         <tpamp_first>           23      </tpamp_first>
         <tpamp_step>            18      </tpamp_step> 
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>AFEB Threshold and Analog Noise</description>
   </test_config>
 
