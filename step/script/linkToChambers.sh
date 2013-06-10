@@ -52,6 +52,11 @@ if [[ $# -ne 2 || ${1[1]} != "/" || ${2[1]} != "/" ]]; then
     exit 1
 fi
 
+# Remove old chamber-oriented directory structure...
+OLDDIRS=( $2/(EMU|ME(+|-)(1|2|3|4)\.(1|2|3)\.)*(/N) )
+[[ ${#OLDDIRS} -gt 0 ]] && rm -rf $OLDDIRS
+
+# ...and recreate it
 IFS='/'
 for DIR in $1/Test_*/csc_*.plots/*(/); do
     DIRARRAY=( ${=DIR} )
