@@ -37,8 +37,8 @@ for PLOTDIR in $PLOTDIRS; do
     RUNNUMBERS+=( $(print $PLOTDIR | sed 's/.*csc_\([0-9]\{8\}\)_.*/\1/') )
     RUNTIMES+=( $(print $PLOTDIR | sed 's/.*_\([0-9]\{6\}_[0-9]\{6\}_UTC\).*/\1/') )
 done
-print ${fg_bold[black]}"Runs in "${fg_no_bold[black]} $RAWDATADIR/Tests_results
-print ${fg_bold[black]}"index  run type     run number start time"${fg_no_bold[black]}
+print ${fg_bold[default]}"Runs in "${fg_no_bold[default]} $RAWDATADIR/Tests_results
+print ${fg_bold[default]}"index  run type     run number start time"${fg_no_bold[default]}
 for INDEX in $INDICES; do
     print "${(l:5:)INDEX}  ${(r:12:)RUNTYPES[$INDEX]} ${(r:10:)RUNNUMBERS[$INDEX]} ${(r:22:)RUNTIMES[$INDEX]}"
 done
@@ -46,7 +46,7 @@ done
 #
 # Prompt user to select runs to comment from the above list
 #
-print -n ${fg[blue]}'Select runs as a space-separated list of indices or index ranges (e.g., 1 3,7). \nUse * for all, nothing for none: '${fg[black]}
+print -n ${fg[blue]}'Select runs as a space-separated list of indices or index ranges (e.g., 1 3,7). \nUse * for all, nothing for none: '${fg[default]}
 read SELECTION
 SUBSCRIPTARRAY=( $( print $SELECTION ) )
 # Collect into INDICESARRAY all elements specified by indices or index arrays
@@ -54,22 +54,22 @@ typeset -a INDICESARRAY
 for SUBSCRIPT in $SUBSCRIPTARRAY; do
     eval 'INDICESARRAY+=( ${INDICES['$SUBSCRIPT']} )'
 done
-print ${fg_bold[black]}"index  run type     run number start time"${fg_no_bold[black]}
+print ${fg_bold[default]}"index  run type     run number start time"${fg_no_bold[default]}
 for I in $INDICESARRAY; do
     print "${(l:5:)I}  ${(r:12:)RUNTYPES[$I]} ${(r:10:)RUNNUMBERS[$I]} ${(r:22:)RUNTIMES[$I]}"
 done
 # Prompt user for comment (same for all the selected runs)
-print -n ${fg[blue]}"Enter comment in one line for the selected runs [${(qq)CONDEMNED}]: "${fg[black]}
+print -n ${fg[blue]}"Enter comment in one line for the selected runs [${(qq)CONDEMNED}]: "${fg[default]}
 read COMMENT
 if [[ ${#COMMENT} -eq 0 ]]; then
     COMMENT=$CONDEMNED
 fi
 # Ask user for confirmation
-print ${fg_bold[black]}"index  run type     run number start time             comment"${fg_no_bold[black]}
+print ${fg_bold[default]}"index  run type     run number start time             comment"${fg_no_bold[default]}
 for I in $INDICESARRAY; do
     print "${(l:5:)I}  ${(r:12:)RUNTYPES[$I]} ${(r:10:)RUNNUMBERS[$I]} ${(r:22:)RUNTIMES[$I]} ${(qq)COMMENT}"
 done
-print -n ${fg[blue]}"Is this OK [y|n]? "${fg[black]}
+print -n ${fg[blue]}"Is this OK [y|n]? "${fg[default]}
 read -q || exit 0
 
 #
