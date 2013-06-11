@@ -101,7 +101,8 @@ for I in $INDICESARRAY; do
     # Move the analysis ROOT files (and any other files with the same file name)
     ROOTFILES=( ${PLOTDIRS[$I]:r}*(.N) )
     for ROOTFILE in $ROOTFILES; do
-	mv $ROOTFILE ${PLOTDIRS/$RAWDATADIR/$DESTDIR}
+	print "mv $ROOTFILE ${${PLOTDIRS[$I]/$RAWDATADIR/$DESTDIR}:h}"
+	mv $ROOTFILE ${${PLOTDIRS[$I]/$RAWDATADIR/$DESTDIR}:h}
     done
 done
 
