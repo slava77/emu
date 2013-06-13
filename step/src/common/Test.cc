@@ -176,6 +176,9 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
     usleep(20);
     (crate)->ccb()->HardReset_crate();
     usleep(250000); // must be >200ms
+    int dduInputFiberMask = getDDUInputFiberMask( crate->CrateID(), (*ddu)->slot() );
+    (*ddu)->writeFlashKillFiber( dduInputFiberMask );
+    usleep(10);
     (*ddu)->writeGbEPrescale( 8 ); // 8: test-stand without TCC
     usleep(10);
     (*ddu)->writeFakeL1( 0 ); // 7: passthrough // 0: normal
