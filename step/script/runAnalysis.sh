@@ -28,7 +28,13 @@ print $0 "$@"
 
 [[ $# -lt 2 ]] && { print "*** Error: At least 2 arguments are needed. Exiting."; exit 1 }
 
-ANALYZER=$1
+if [[ $2 == *STEP_27* ]]; then
+    ANALYZER=${1:h}/runEmuCSCAnalyzer.exe
+    print "Looks like test 27, a high-statistics cosmic run. Will try to analyze it with $ANALYZER"
+else
+    ANALYZER=$1
+fi
+
 [[ -x $ANALYZER ]] || { print "*** Error: Analyzer \"$ANALYZER\" not found or not executable. Exiting."; exit 1 }
 
 [[ -d $DQMCONFIG ]] || { print "*** Error: DQM config dir \"$DQMCONFIG\" not found. Exiting."; exit 1 }
@@ -69,6 +75,9 @@ if [[ $# -gt 2 ]]; then
 	21 10
     )
 
+    # Create a chamber list
+    CHAMBERARRAY=()
+
     # Loop over the arguments beyond the second one
     for I in {3..$#}; do
 	MAPPING=( $(print ${(P)I}) )
@@ -76,6 +85,7 @@ if [[ $# -gt 2 ]]; then
 	DMB=${dmbSlotToId[${MAPPING[2]}]}
 	(( $DMB<6 )) && (( CSCID=$DMB )) || (( CSCID=$DMB-1 ))
 	CHAMBER=${MAPPING[3]}
+	CHAMBERARRAY+=$CHAMBER
 	print $CRATEID $DMB $CHAMBER
 	case $CHAMBER in
 
@@ -124,14 +134,20 @@ for DATAFILE in $DATAFILES; do
     DATAPATHNAME=${DATAFILE#*:}
     RESULTSTOPDIR=${DATAPATHNAME:h}/Tests_results
     [[ -d $RESULTSTOPDIR ]] || mkdir -p $RESULTSTOPDIR
-    print "cd $RESULTSTOPDIR && $ANALYZER $DATAPATHNAME"
-    cd $RESULTSTOPDIR && $ANALYZER $DATAPATHNAME
-    RESULTSDIR=$( print $RESULTSTOPDIR/Test_*/${DATAPATHNAME:t:r}.plots(/om[1]) )
-    if [[ -x ${0:h}/generateIndexHTML.sh ]]; then
-	print "Generating web page with ${0:h}/generateIndexHTML.sh $RESULTSDIR"
-	${0:h}/generateIndexHTML.sh $RESULTSDIR
+    if [[ $DATAPATHNAME == *STEP_27* ]]; then
+	# For test 27, the high-stat cosmics, first produce the .root file, then the plots. Finally, list the chambers in chambers.txt for linkToChambers.sh to know which chambers' data these results contain.
+	print "cd $RESULTSTOPDIR && mkdir -p Test_27_Cosmics && cd Test_27_Cosmics && $ANALYZER $DATAPATHNAME && $ANALYZER ${DATAPATHNAME:t:r}.root && cd ${DATAPATHNAME:t:r}.plots && { print $CHAMBERARRAY > chambers.txt }"
+	cd $RESULTSTOPDIR && mkdir -p Test_27_Cosmics && cd Test_27_Cosmics && $ANALYZER $DATAPATHNAME && $ANALYZER ${DATAPATHNAME:t:r}.root && cd ${DATAPATHNAME:t:r}.plots && { print $CHAMBERARRAY > chambers.txt }
     else
-	print "** Warning: Web page generator script ${0:h}/generateIndexHTML.sh not found."
+	print "cd $RESULTSTOPDIR && $ANALYZER $DATAPATHNAME"
+	cd $RESULTSTOPDIR && $ANALYZER $DATAPATHNAME
+	RESULTSDIR=$( print $RESULTSTOPDIR/Test_*/${DATAPATHNAME:t:r}.plots(/om[1]) )
+	if [[ -x ${0:h}/generateIndexHTML.sh ]]; then
+	    print "Generating web page with ${0:h}/generateIndexHTML.sh $RESULTSDIR"
+	    ${0:h}/generateIndexHTML.sh $RESULTSDIR
+	else
+	    print "** Warning: Web page generator script ${0:h}/generateIndexHTML.sh not found."
+	fi
     fi
     if [[ -x ${0:h}/linkToChambers.sh ]]; then
 	print "Generating chamber-oriented directory structure in $RESULTSTOPDIR"
