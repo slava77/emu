@@ -56,11 +56,23 @@ fi
 OLDDIRS=( $2/(EMU|ME(+|-)(1|2|3|4)\.(1|2|3)\.)*(/N) )
 [[ ${#OLDDIRS} -gt 0 ]] && rm -rf $OLDDIRS
 
-# ...and recreate it
+# ...and recreate it for all tests but test 27 (Cosmics)
+setopt extendedglob # needed for the ~ glob operator to work (to exclude pattern)
+OLDIFS=$IFS
 IFS='/'
-for DIR in $1/Test_*/csc_*.plots/*(/); do
+for DIR in $1/Test_*/csc_*.plots/*~*Test_27*(/); do
     DIRARRAY=( ${=DIR} )
     mkdir -p $2/${DIRARRAY[-1]}/${DIRARRAY[-3]}/${DIRARRAY[-2]%.plots}
     [[ -L $2/${DIRARRAY[-1]}/${DIRARRAY[-3]}/${DIRARRAY[-2]%.plots}/plots ]] || ln -s $DIR $2/${DIRARRAY[-1]}/${DIRARRAY[-3]}/${DIRARRAY[-2]%.plots}/plots
     generateWebPage $2/${DIRARRAY[-1]}/${DIRARRAY[-3]}/${DIRARRAY[-2]%.plots}
+done
+IFS=$OLDIFS
+
+# Test 27 (Cosmics) is special in that runEmuCSCAnalyzer.exe creates a web page for the results. We just need to link to it.
+for CHAMBERLISTFILE in $1/Test_27_Cosmics/csc_*.plots/chambers.txt; do
+    for CHAMBERNAME in $( cat $CHAMBERLISTFILE ); do
+	CHAMBER=${CHAMBERNAME//\//.} # replace slashes with dots
+	mkdir -p $2/$CHAMBER/Test_27_Cosmics
+	[[ -L $2/$CHAMBER/Test_27_Cosmics/${CHAMBERLISTFILE:h:t} ]] || ln -s ${CHAMBERLISTFILE:h} $2/$CHAMBER/Test_27_Cosmics/${CHAMBERLISTFILE:h:t}
+    done
 done
