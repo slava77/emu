@@ -97,12 +97,100 @@ namespace emu{
       void includeParameters( xoap::MessageReference message, xoap::SOAPElement* parent, const emu::soap::Parameters &parameters );
 
       /// 
-      /// Parses a SOAP reply to extract the specified parameters.
+      /// Parses a SOAP message to extract the specified attributes of the command.
       /// 
-      /// @param reply SOAP message reference.
+      /// @param message SOAP message reference.
+      /// @param attributes Command attributes to extract. If a parameter has no namespace URI defined, any namespace will match it.
+      /// 
+      /// Given the following SOAP message in msg
+      /// \code
+      /// <soap-env:Envelope soap-env:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" 
+      /// 		   xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
+      /// 		   xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+      /// 		   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+      /// 		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      ///   <soap-env:Header/>
+      ///   <soap-env:Body>
+      ///     <emu-soap:command emu-soap:commandAttr1Name="commandAttr1Value" emu-soap:commandAttr2Name="2" xmlns:emu-soap="urn:emu-soap:example">
+      ///       <emu-soap:param1Name param1Attr1Name="param1Attr1Value" param1Attr2Name="param1Attr2Value" xsi:type="xsd:string">param1Value</emu-soap:param1Name>
+      ///       <emu-soap:param2Name emu-soap:param2AttrName="param2AttrValue" xsi:type="xsd:double">1.234567e+00</emu-soap:param2Name>
+      ///       <emu-soap:param3Name soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+      /// 	<emu-soap:item soapenc:position="[0]" xsi:type="xsd:integer">123</emu-soap:item>
+      /// 	<emu-soap:item soapenc:position="[1]" xsi:type="xsd:integer">456</emu-soap:item>
+      /// 	<emu-soap:item soapenc:position="[2]" xsi:type="xsd:integer">789</emu-soap:item>
+      ///       </emu-soap:param3Name>
+      ///       <p4:param4Name xmlns:p4="p4URI" xsi:type="xsd:integer">-4444</p4:param4Name>
+      ///     </emu-soap:command>
+      ///   </soap-env:Body>
+      /// </soap-env:Envelope>
+      /// \endcode
+      /// the code
+      /// \code
+      /// xdata::Integer commandAttr2;
+      /// extractCommandAttributes( msg, emu::soap::Attributes().add( "commandAttr2Name", &commandAttr2 ) );
+      /// cout << "commandAttr2Name " << commandAttr2 << endl;
+      /// \endcode
+      /// produces the output
+      /// \code
+      /// commandAttr2Name 2
+      /// \endcode
+      ///
+      void extractCommandAttributes( xoap::MessageReference message, emu::soap::Attributes &attributes );
+
+      /// 
+      /// Parses a SOAP message to extract the specified parameters.
+      /// 
+      /// @param message SOAP message reference.
       /// @param parameters Parameters to extract. If a parameter has no namespace URI defined, any namespace will match it.
       /// 
-      /// Example for sending a command and extracting parameters from the reply:
+      /// Given the following SOAP message in msg
+      /// \code
+      /// <soap-env:Envelope soap-env:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" 
+      /// 		   xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
+      /// 		   xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+      /// 		   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+      /// 		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      ///   <soap-env:Header/>
+      ///   <soap-env:Body>
+      ///     <emu-soap:command emu-soap:commandAttr1Name="commandAttr1Value" emu-soap:commandAttr2Name="2" xmlns:emu-soap="urn:emu-soap:example">
+      ///       <emu-soap:param1Name param1Attr1Name="param1Attr1Value" param1Attr2Name="param1Attr2Value" xsi:type="xsd:string">param1Value</emu-soap:param1Name>
+      ///       <emu-soap:param2Name emu-soap:param2AttrName="param2AttrValue" xsi:type="xsd:double">1.234567e+00</emu-soap:param2Name>
+      ///       <emu-soap:param3Name soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+      /// 	<emu-soap:item soapenc:position="[0]" xsi:type="xsd:integer">123</emu-soap:item>
+      /// 	<emu-soap:item soapenc:position="[1]" xsi:type="xsd:integer">456</emu-soap:item>
+      /// 	<emu-soap:item soapenc:position="[2]" xsi:type="xsd:integer">789</emu-soap:item>
+      ///       </emu-soap:param3Name>
+      ///       <p4:param4Name xmlns:p4="p4URI" xsi:type="xsd:integer">-4444</p4:param4Name>
+      ///     </emu-soap:command>
+      ///   </soap-env:Body>
+      /// </soap-env:Envelope>
+      /// \endcode
+      /// the code
+      /// \code
+      /// xdata::String param2Attr;
+      /// emu::soap::Attributes param2Attributes = emu::soap::Attributes().add( "param2AttrName", &param2Attr );
+      /// xdata::Double param2;
+      /// xdata::Vector<xdata::Integer> param3;
+      /// xdata::Integer param4;
+      /// extractParameters( msg, 
+      ///                    emu::soap::Parameters()
+      ///		     .add( "param2Name"                                     , &param2, &param2Attributes ) 
+      ///		     .add( emu::soap::QualifiedName( "param4Name", "p4URI" ), &param4                    ) 
+      ///		     .add( "param3Name"                                     , &param3                    ) );
+      /// cout << "param2Name " << param2 << endl;
+      /// cout << "param2Attributes " << param2Attributes << endl;
+      /// cout << "param4Name " << param4 << endl;
+      /// cout << "param3Name " << param3 << endl;
+      /// \endcode
+      /// produces the output
+      /// \code
+      /// param2Name 1.23457
+      /// param2Attributes [(name:'param2AttrName' type:'string' value:'param2AttrValue')]
+      /// param4Name -4444
+      /// param3Name [123,456,789]
+      /// \endcode
+      ///
+      /// Example for sending a command and extracting parameters from the message:
       /// \code
       ///       xdata::String                start_time;
       ///       xdata::String                stop_time;
@@ -113,7 +201,7 @@ namespace emu{
       ///                                                   .add( "rui_counts", &rui_counts ) );
       /// \endcode
       ///
-      void extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters );
+      void extractParameters( xoap::MessageReference message, emu::soap::Parameters &parameters );
 
       /// 
       /// Converts a SOAP fault reply to plain text.
