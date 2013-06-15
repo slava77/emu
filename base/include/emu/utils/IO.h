@@ -23,6 +23,17 @@ std::ostream& operator<<(std::ostream& os, const std::vector< T >& t)
   return os;
 }
 
+template< typename T >
+std::ostream& operator<<(std::ostream& os, std::vector< T >& t)
+{
+  os << "[";
+  typename std::vector< T >::iterator it;
+  for (it = t.begin(); it != t.end(); ++it)
+    os << *it << (it + 1 != t.end() ? "," : "");
+  os << "]";
+  return os;
+}
+
 /**
  * quick set dump
  */
