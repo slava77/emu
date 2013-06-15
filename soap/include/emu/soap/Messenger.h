@@ -250,7 +250,7 @@ namespace emu{
       ///                                              emu::soap::Parameters()
       ///                                                .add( "param1Name", &param1, &param1Attributes )
       ///                                                .add( "param2Name", &param2, &param2Attributes )
-      ///                                                .add( "param3Name", &param3                    ),
+      ///                                                .add( "param3Name", &param3                    )
       /// 					         .add( emu::soap::QualifiedName( "param4Name", "p4URI", "p4" ), &param4 ),
       ///                                              emu::soap::Attributes()
       ///                                                .add( "commandAttr1Name", &commandAttr1 )
