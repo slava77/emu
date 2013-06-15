@@ -215,15 +215,55 @@ emu::soap::includeParameters( xoap::MessageReference message, xoap::SOAPElement*
 }
 
 void
-emu::soap::extractParameters( xoap::MessageReference reply, emu::soap::Parameters &parameters ){
+emu::soap::extractCommandAttributes( xoap::MessageReference message, emu::soap::Attributes &attributes ){
+  DOMNodeList *children = message->getSOAPPart().getEnvelope().getBody().getDOM()->getChildNodes(); // Child nodes of the SOAP body
+  for ( XMLSize_t i = 0; i < children->getLength(); ++i ){
+    if ( children->item( i )->getNodeType() == DOMNode::ELEMENT_NODE ){
+      // This must be the command element.
+      DOMNode* c = children->item( i );
+      // Loop the sought attributes, if any.
+      for ( emu::soap::Attributes::const_iterator attribute=attributes.begin(); attribute!=attributes.end(); ++attribute ){
+	DOMNamedNodeMap* nnm = c->getAttributes();
+	DOMNode* a;
+	if ( attribute->first.getNamespaceURI().size() > 0 ){
+	  // Looking for an explicitly specified namespace
+	  a = nnm->getNamedItemNS( xoap::XStr( attribute->first.getNamespaceURI().c_str() ), 
+				   xoap::XStr( attribute->first.getName()        .c_str() ) );
+	}
+	else if ( xoap::XMLCh2String( c->getNamespaceURI() ).size() > 0 ){
+	  // If not specified otherwise explicitly, the attribute normally inherits its parent's namespace in SOAP
+	  a = nnm->getNamedItemNS( c->getNamespaceURI(), 
+				   xoap::XStr( attribute->first.getName().c_str() ) );
+	}
+	else{
+	  // Apparently, this attribute has a different namespace or none.
+	  a = nnm->getNamedItem( xoap::XStr( attribute->first.getName().c_str() ) );
+	}
+	if ( a != NULL ){
+	  // xdata::soap::Serializer cannot import XML attributes... serializer.import( attribute->second, a );
+	  attribute->second->fromString( xoap::XMLCh2String( a->getNodeValue() ) );
+	}
+	else{
+	  std::stringstream ss;
+	  ss << "Failed to extract attribute '" << attribute->first << "' of the command '" << xoap::XMLCh2String( c->getNodeName() ) << "' from SOAP message.";
+	  XCEPT_RAISE( xcept::Exception, ss.str() );
+	}
+	
+      }
+    }
+  }
+}
+
+void
+emu::soap::extractParameters( xoap::MessageReference message, emu::soap::Parameters &parameters ){
   try{
 
-    // Parse reply and deserialize the requested parameters
+    // Parse message and deserialize the requested parameters
     xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
     xdata::soap::Serializer serializer;
 
     string s;
-    reply->writeTo( s );
+    message->writeTo( s );
     DOMDocument* doc = parser->parse( s );
     for ( emu::soap::Parameters::iterator p=parameters.begin(); p!=parameters.end(); ++p ){
       // If this parameter has no namespace URI defined, let any namespace match in the search:
@@ -232,10 +272,41 @@ emu::soap::extractParameters( xoap::MessageReference reply, emu::soap::Parameter
 						)->item(0);
       if ( n != NULL ){
 	serializer.import( p->second.first, n );
+	// Loop over this parameter's sought attributes, if any
+	const emu::soap::Attributes* attributes = p->second.second;
+	if ( attributes != NULL ){
+	  for ( emu::soap::Attributes::const_iterator attribute=attributes->begin(); attribute!=attributes->end(); ++attribute ){
+	    DOMNamedNodeMap* nnm = n->getAttributes();
+	    DOMNode* a;
+	    if ( attribute->first.getNamespaceURI().size() > 0 ){
+	      // Looking for an explicitly specified namespace
+	      a = nnm->getNamedItemNS( xoap::XStr( attribute->first.getNamespaceURI().c_str() ), 
+				       xoap::XStr( attribute->first.getName()        .c_str() ) );
+	    }
+	    else if ( xoap::XMLCh2String( n->getNamespaceURI() ).size() > 0 ){
+	      // If not specified otherwise explicitly, the attribute normally inherits its parent's namespace in SOAP
+	      a = nnm->getNamedItemNS( n->getNamespaceURI(), 
+				       xoap::XStr( attribute->first.getName().c_str() ) );
+	    }
+	    else{
+	      // Apparently, this attribute has a different namespace or none.
+	      a = nnm->getNamedItem( xoap::XStr( attribute->first.getName().c_str() ) );
+	    }
+	    if ( a != NULL ){
+	      // xdata::soap::Serializer cannot import XML attributes... serializer.import( attribute->second, a );
+	      attribute->second->fromString( xoap::XMLCh2String( a->getNodeValue() ) );
+	    }
+	    else{
+	      std::stringstream ss;
+	      ss << "Failed to extract attribute '" << attribute->first << "' of parameter '" << p->first << "' from SOAP message.";
+	      XCEPT_RAISE( xcept::Exception, ss.str() );
+	    }
+	  }
+	}
       }
       else{
 	std::stringstream ss;
-	ss << "Failed to extract parameter '" << p->first << "' from ParameterGetResponse SOAP message ";
+	ss << "Failed to extract parameter '" << p->first << "' from SOAP message.";
 	XCEPT_RAISE( xcept::Exception, ss.str() );
       }
     }
