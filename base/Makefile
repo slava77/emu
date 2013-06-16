@@ -37,6 +37,7 @@ Sources = \
 	utils/SimpleTimer.cc \
 	utils/SerializableFactory.cc \
 	utils/Chamber.cc \
+	utils/Progress.cc \
 	version.cc
 
 IncludeDirs = \
