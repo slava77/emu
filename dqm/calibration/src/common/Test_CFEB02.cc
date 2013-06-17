@@ -57,6 +57,9 @@ void Test_CFEB02::initCSC(std::string cscID)
   for (int i=0; i<TEST_DATA2D_NLAYERS; i++)
     for (int j=0; j<TEST_DATA2D_NBINS; j++) cfebdata.content[i][j]=0.;
 
+	//isME11() in emu::dqm::utils uses cscID.find("ME+1/1")
+  // instead of cscID.find("ME+1.1") so it doesn't work
+  isME11 = ((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 ));
 
   // mv0 - initial pedestals
   cscdata["_MV0"]=cfebdata;
@@ -307,7 +310,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
 
           if (v02) v02->Fill(Q4-Q12);
 
-          // int offset=0;
+           //int offset=0;
           int blk_strt=0;
           int cap=0;
 
@@ -428,9 +431,19 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
                 }
 
                 int scaNumber=8*conv_blk[scaBlock]+cap;
-
-                // int scaNumber = 8*conv_blk[scaBlock]+(offset+itime)%8;
-
+				
+                if(scaNumber < 0) {
+                  if(isME11) {
+                    scaNumber = 0;
+                  } else {
+                    LOG4CPLUS_ERROR(logger, "cap < 0");
+                    return;
+                  }
+                }
+				
+                 //int scaNumber2 = 8*conv_blk[scaBlock]+(offset+itime)%8;
+                //cout << nEvents << ": scaNumber " << scaNumber << " scaNumber2 " << scaNumber2 << " trigTime " << trigTime << " scaBlock " << scaBlock << " lctPhase " << lctPhase << " itime " << itime << " blk_strt " << blk_strt << " cap " << cap << endl;
+				
                 if (scaNumber >= 96)
                 {
                   LOG4CPLUS_ERROR(logger, "Invalid SCA cell");
