@@ -1411,6 +1411,7 @@ std::string TMB::CounterName(int counter){
   // Note to TMB software developer:  When modifying the counters, do not forget to modify the 
   // index tags in TMB_constants.h...
   //
+  int adjustcounter = 0;
   std::string name = "Not defined";
   //
   if( counter == 0 ) name = "ALCT: alct0 valid pattern flag received                 ";
@@ -1434,80 +1435,86 @@ std::string TMB::CounterName(int counter){
   if( counter == 16) name = "CLCT: Pretrigger on CFEB2                               ";
   if( counter == 17) name = "CLCT: Pretrigger on CFEB3                               ";
   if( counter == 18) name = "CLCT: Pretrigger on CFEB4                               ";
+  //firmware check for new oTMB to determine the next counters
+  if( GetHardwareVersion() == 2){ 
+    adjustcounter  = 2;
+    if( counter == 19) name = "CLCT: Pretrigger on CFEB5                               ";
+    if( counter == 20) name = "CLCT: Pretrigger on CFEB6                               ";
+  } else adjustcounter  = 0; 
   //
-  if( counter == 19) name = "CLCT: Pretrigger on ME1A CFEB 4 only                    ";
-  if( counter == 20) name = "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 ";
-  if( counter == 21) name = "CLCT: Discarded, no wrbuf available, buffer stalled     ";
-  if( counter == 22) name = "CLCT: Discarded, no ALCT in window                      ";
-  if( counter == 23) name = "CLCT: Discarded, CLCT0 invalid pattern after drift      ";
-  if( counter == 24) name = "CLCT: CLCT0 pass hit thresh, fail pid_thresh_postdrift  ";
-  if( counter == 25) name = "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  ";
-  if( counter == 26) name = "CLCT: BX pretrig waiting for triads to dissipate        ";
+  if( counter == 19 + adjustcounter ) name = "CLCT: Pretrigger on ME1A CFEB 4 only                    ";
+  if( counter == 20 + adjustcounter ) name = "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 ";
+  if( counter == 21 + adjustcounter ) name =  "CLCT: Discarded, no wrbuf available, buffer stalled     ";
+  if( counter == 22 + adjustcounter ) name =  "CLCT: Discarded, no ALCT in window                      ";
+  if( counter == 23 + adjustcounter ) name =  "CLCT: Discarded, CLCT0 invalid pattern after drift      ";
+  if( counter == 24 + adjustcounter ) name =  "CLCT: CLCT0 pass hit thresh, fail pid_thresh_postdrift  ";
+  if( counter == 25 + adjustcounter ) name =  "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  ";
+  if( counter == 26 + adjustcounter ) name =  "CLCT: BX pretrig waiting for triads to dissipate        ";
   //
-  if( counter == 27) name = "CLCT: clct0 sent to TMB matching section                ";
-  if( counter == 28) name = "CLCT: clct1 sent to TMB matching section                ";
+  if( counter == 27 + adjustcounter ) name =  "CLCT: clct0 sent to TMB matching section                ";
+  if( counter == 28 + adjustcounter ) name =  "CLCT: clct1 sent to TMB matching section                ";
   //
-  if( counter == 29) name = "TMB:  TMB accepted alct*clct, alct-only, or clct-only   ";
-  if( counter == 30) name = "TMB:  TMB clct*alct matched trigger                     ";
-  if( counter == 31) name = "TMB:  TMB alct-only trigger                             ";
-  if( counter == 32) name = "TMB:  TMB clct-only trigger                             ";
+  if( counter == 29 + adjustcounter ) name =  "TMB:  TMB accepted alct*clct, alct-only, or clct-only   ";
+  if( counter == 30 + adjustcounter ) name =  "TMB:  TMB clct*alct matched trigger                     ";
+  if( counter == 31 + adjustcounter ) name =  "TMB:  TMB alct-only trigger                             ";
+  if( counter == 32 + adjustcounter ) name =  "TMB:  TMB clct-only trigger                             ";
   //
-  if( counter == 33) name = "TMB:  TMB match reject event                            ";
-  if( counter == 34) name = "TMB:  TMB match reject event, queued for nontrig readout";
-  if( counter == 35) name = "TMB:  TMB matching discarded an ALCT pair               ";
-  if( counter == 36) name = "TMB:  TMB matching discarded a CLCT pair                ";
-  if( counter == 37) name = "TMB:  TMB matching discarded CLCT0 from ME1A            ";
-  if( counter == 38) name = "TMB:  TMB matching discarded CLCT1 from ME1A            ";
+  if( counter == 33 + adjustcounter ) name =  "TMB:  TMB match reject event                            ";
+  if( counter == 34 + adjustcounter ) name =  "TMB:  TMB match reject event, queued for nontrig readout";
+  if( counter == 35 + adjustcounter ) name =  "TMB:  TMB matching discarded an ALCT pair               ";
+  if( counter == 36 + adjustcounter ) name =  "TMB:  TMB matching discarded a CLCT pair                ";
+  if( counter == 37 + adjustcounter ) name =  "TMB:  TMB matching discarded CLCT0 from ME1A            ";
+  if( counter == 38 + adjustcounter ) name =  "TMB:  TMB matching discarded CLCT1 from ME1A            ";
   //
-  if( counter == 39) name = "TMB:  Matching found no ALCT                            ";
-  if( counter == 40) name = "TMB:  Matching found no CLCT                            ";
-  if( counter == 41) name = "TMB:  Matching found one ALCT                           ";
-  if( counter == 42) name = "TMB:  Matching found one CLCT                           ";
-  if( counter == 43) name = "TMB:  Matching found two ALCTs                          ";
-  if( counter == 44) name = "TMB:  Matching found two CLCTs                          ";
+  if( counter == 39 + adjustcounter ) name =  "TMB:  Matching found no ALCT                            ";
+  if( counter == 40 + adjustcounter ) name =  "TMB:  Matching found no CLCT                            ";
+  if( counter == 41 + adjustcounter ) name =  "TMB:  Matching found one ALCT                           ";
+  if( counter == 42 + adjustcounter ) name =  "TMB:  Matching found one CLCT                           ";
+  if( counter == 43 + adjustcounter ) name =  "TMB:  Matching found two ALCTs                          ";
+  if( counter == 44 + adjustcounter ) name =  "TMB:  Matching found two CLCTs                          ";
   //
-  if( counter == 45) name = "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           ";
-  if( counter == 46) name = "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           ";
-  if( counter == 47) name = "TMB:  LCT1 has higher quality than LCT0 (ranking error) ";
+  if( counter == 45 + adjustcounter ) name =  "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           ";
+  if( counter == 46 + adjustcounter ) name =  "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           ";
+  if( counter == 47 + adjustcounter ) name =  "TMB:  LCT1 has higher quality than LCT0 (ranking error) ";
   //
-  if( counter == 48) name = "TMB:  Transmitted LCT0 to MPC                           ";
-  if( counter == 49) name = "TMB:  Transmitted LCT1 to MPC                           ";
+  if( counter == 48 + adjustcounter ) name =  "TMB:  Transmitted LCT0 to MPC                           ";
+  if( counter == 49 + adjustcounter ) name =  "TMB:  Transmitted LCT1 to MPC                           ";
   //
-  if( counter == 50) name = "TMB:  MPC accepted LCT0                                 ";
-  if( counter == 51) name = "TMB:  MPC accepted LCT1                                 ";
-  if( counter == 52) name = "TMB:  MPC rejected both LCT0 and LCT1                   ";
+  if( counter == 50 + adjustcounter ) name =  "TMB:  MPC accepted LCT0                                 ";
+  if( counter == 51 + adjustcounter ) name =  "TMB:  MPC accepted LCT1                                 ";
+  if( counter == 52 + adjustcounter ) name =  "TMB:  MPC rejected both LCT0 and LCT1                   ";
   //
-  if( counter == 53) name = "L1A:  L1A received                                      ";
-  if( counter == 54) name = "L1A:  L1A received, TMB in L1A window                   ";
-  if( counter == 55) name = "L1A:  L1A received, no TMB in window                    ";
-  if( counter == 56) name = "L1A:  TMB triggered, no L1A in window                   ";
-  if( counter == 57) name = "L1A:  TMB readouts completed                            ";
-  if( counter == 58) name = "L1A:  TMB readouts lost by 1-event-per-L1A limit        ";
+  if( counter == 53 + adjustcounter ) name =  "L1A:  L1A received                                      ";
+  if( counter == 54 + adjustcounter ) name =  "L1A:  L1A received, TMB in L1A window                   ";
+  if( counter == 55 + adjustcounter ) name =  "L1A:  L1A received, no TMB in window                    ";
+  if( counter == 56 + adjustcounter ) name =  "L1A:  TMB triggered, no L1A in window                   ";
+  if( counter == 57 + adjustcounter ) name =  "L1A:  TMB readouts completed                            ";
+  if( counter == 58 + adjustcounter ) name =  "L1A:  TMB readouts lost by 1-event-per-L1A limit        ";
   //
-  if( counter == 59) name = "STAT: CLCT Triads skipped                               ";
-  if( counter == 60) name = "STAT: Raw hits buffer had to be reset                   ";
-  if( counter == 61) name = "STAT: TTC Resyncs received                              ";
-  if( counter == 62) name = "STAT: Sync Error, BC0/BXN=offset mismatch               ";
-  if( counter == 63) name = "STAT: Parity Error in CFEB or RPC raw hits RAM          ";
+  if( counter == 59 + adjustcounter ) name =  "STAT: CLCT Triads skipped                               ";
+  if( counter == 60 + adjustcounter ) name =  "STAT: Raw hits buffer had to be reset                   ";
+  if( counter == 61 + adjustcounter ) name =  "STAT: TTC Resyncs received                              ";
+  if( counter == 62 + adjustcounter ) name =  "STAT: Sync Error, BC0/BXN=offset mismatch               ";
+  if( counter == 63 + adjustcounter ) name =  "STAT: Parity Error in CFEB or RPC raw hits RAM          ";
   //
   // The following are not cleared via VME
-  if( counter == 64) name = "HDR:  Pretrigger counter                                ";
-  if( counter == 65) name = "HDR:  CLCT counter                                      ";
-  if( counter == 66) name = "HDR:  TMB trigger counter                               ";
-  if( counter == 67) name = "HDR:  ALCTs received counter                            ";
-  if( counter == 68) name = "HDR:  L1As received counter (12 bits)                   ";
-  if( counter == 69) name = "HDR:  Readout counter (12 bits)                         ";
-  if( counter == 70) name = "HDR:  Orbit counter                                     ";
+  if( counter == 64 + adjustcounter ) name =  "HDR:  Pretrigger counter                                ";
+  if( counter == 65 + adjustcounter ) name =  "HDR:  CLCT counter                                      ";
+  if( counter == 66 + adjustcounter ) name =  "HDR:  TMB trigger counter                               ";
+  if( counter == 67 + adjustcounter ) name =  "HDR:  ALCTs received counter                            ";
+  if( counter == 68 + adjustcounter ) name =  "HDR:  L1As received counter (12 bits)                   ";
+  if( counter == 69 + adjustcounter ) name =  "HDR:  Readout counter (12 bits)                         ";
+  if( counter == 70 + adjustcounter ) name =  "HDR:  Orbit counter                                     ";
   //
-  if( counter == 71) name = "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 ";
-  if( counter == 72) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ";
-  if( counter == 73) name = "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ";
-  if( counter == 74) name = "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ";
-  if( counter == 75) name = "ALCT:Struct Error, expect ALCT1[10:1]>0 when alct1vpf=1 ";
-  if( counter == 76) name = "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ";
+  if( counter == 71 + adjustcounter ) name =  "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 ";
+  if( counter == 72 + adjustcounter ) name =  "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ";
+  if( counter == 73 + adjustcounter ) name =  "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ";
+  if( counter == 74 + adjustcounter ) name =  "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ";
+  if( counter == 75 + adjustcounter ) name =  "ALCT:Struct Error, expect ALCT1[10:1]>0 when alct1vpf=1 ";
+  if( counter == 76 + adjustcounter ) name =  "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ";
   //
-  if( counter == 77) name = "CCB:  TTCrx lock lost                                   ";
-  if( counter == 78) name = "CCB:  qPLL lock lost                                    ";
+  if( counter == 77 + adjustcounter ) name =  "CCB:  TTCrx lock lost                                   ";
+  if( counter == 78 + adjustcounter ) name =  "CCB:  qPLL lock lost                                    ";
   //
   return name;
 }
@@ -1559,7 +1566,10 @@ int * TMB::NewCounters(){
 
   // CFEB BadBits registers: 0x122->0x142, total 17 words => 9 counters (32-bit)
   for(unsigned short add=0x122; add<=0x144; add+=2) read_later(add);
-
+  //for 7DCFEB firmware
+  if( GetHardwareVersion() == 2){  
+    for(unsigned short add=0x15c; add<=0x168; add+=2) read_later(add);
+  }
   // time since last hard_reset (in seconds)
   read_now(0xE8, (char *)FinalCounter);
   //

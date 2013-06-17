@@ -589,16 +589,18 @@ public:
   int  GetCounter(int counter);         /// return counter value
   void PrintCounters(int counter=-1);   /// print counter value (-1 means print all)
   std::string CounterName(int counter); /// return counter label
-  inline int GetMaxCounter() { return MaxCounter; }
+  inline int GetMaxCounter() { return ((hardware_version_<=1) ? MaxCounter : (MaxCounter + 9)); }
   inline int GetALCTSentToTMBCounterIndex()  { return alct_sent_to_tmb_counter_index_;  }
   inline int GetECCTriggerPathOneErrorCounterIndex()  { return ecc_trigger_path_one_error_counter_index_;  }
   inline int GetECCTriggerPathTwoErrorsCounterIndex()  { return ecc_trigger_path_two_errors_counter_index_;  }
   inline int GetECCTriggerPathMoreThanTwoErrorsCounterIndex()  { return ecc_trigger_path_more_than_two_errors_counter_index_;  }
   inline int GetALCTRawHitsReadoutCounterIndex()  { return alct_raw_hits_readout_counter_index_;  }
   inline int GetCLCTPretriggerCounterIndex() { return clct_pretrigger_counter_index_;   }
-  inline int GetLCTSentToMPCCounterIndex()   { return lct_sent_to_mpc_counter_index_;   }
-  inline int GetLCTAcceptedByMPCCounterIndex()   { return lct_accepted_by_mpc_counter_index_;   }
-  inline int GetL1AInTMBWindowCounterIndex() { return l1a_in_tmb_window_counter_index_; }
+
+  // for OTMB, the following counters shifted by 2
+  inline int GetLCTSentToMPCCounterIndex()   { return ((hardware_version_<=1) ? lct_sent_to_mpc_counter_index_ : (lct_sent_to_mpc_counter_index_ + 2));   }
+  inline int GetLCTAcceptedByMPCCounterIndex()   { return ((hardware_version_<=1) ? lct_accepted_by_mpc_counter_index_ : (lct_accepted_by_mpc_counter_index_ + 2));   }
+  inline int GetL1AInTMBWindowCounterIndex() { return ((hardware_version_<=1) ? l1a_in_tmb_window_counter_index_ : (l1a_in_tmb_window_counter_index_ + 2)); }
   //
   void FireALCTInjector();
   void FireCLCTInjector();
@@ -2210,7 +2212,7 @@ private:
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
   static const int MaxCounter = 79;
-  int FinalCounter[MaxCounter+20];
+  int FinalCounter[MaxCounter+40];
   int alct_sent_to_tmb_counter_index_;
   int ecc_trigger_path_one_error_counter_index_;
   int ecc_trigger_path_two_errors_counter_index_;
