@@ -310,8 +310,27 @@ static const unsigned long int	badbits401_adr	        = 0x00013E;
 //
 static const unsigned long int	badbits423_adr	        = 0x000140;
 static const unsigned long int	badbits445_adr	        = 0x000142;
+
+// extra DCFEB Bad Bits on OTMB 
+static const unsigned long int  dcfeb_badbits_ctrl_adr  = 0x00015C;  //DCFEB Bad Bit Control/Status extends Adr 122
+static const unsigned long int  badbits501_adr          = 0x00015E;  //ADR_V6_CFEB5_BADBITS_LY01
+static const unsigned long int  badbits523_adr          = 0x000160;  //ADR_V6_CFEB5_BADBITS_LY23
+static const unsigned long int  badbits545_adr          = 0x000162;  //ADR_V6_CFEB5_BADBITS_LY45
+static const unsigned long int  badbits601_adr          = 0x000164;  //ADR_V6_CFEB6_BADBITS_LY01
+static const unsigned long int  badbits623_adr          = 0x000166;  //ADR_V6_CFEB6_BADBITS_LY23
+static const unsigned long int  badbits645_adr          = 0x000168;  //ADR_V6_CFEB6_BADBITS_LY45
+
+// extra DCFEB Hot Channel Mask on OTMB
+static const unsigned long int  hcm501_adr              = 0x00016E;
+static const unsigned long int  hcm523_adr              = 0x000170;
+static const unsigned long int  hcm545_adr              = 0x000172;
+static const unsigned long int  hcm601_adr              = 0x000174;
+static const unsigned long int  hcm623_adr              = 0x000176;
+static const unsigned long int  hcm645_adr              = 0x000178;
+
 //
 static const int LARGEST_VME_ADDRESS = badbits445_adr;
+static const int OTMB_LARGEST_VME_ADDRESS = hcm645_adr;
 //
 //
 // TMB counter indices:
@@ -943,6 +962,8 @@ const int start_pattern_inj_default =  0;
 //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
 //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
 //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+//0x16E,170,172 = ADR_HCM401,HCM423,HCM445 = CFEB5 Hot Channel Masks  --- added on OTMB
+//0x174,176,178 = ADR_HCM401,HCM423,HCM445 = CFEB6 Hot Channel Masks  --- added on OTMB
 //------------------------------------------------------------------
 // bit-map for layers and distrips covered by each of the registers
 const int cfeb0_layer01_hotchannelmask_vmereg          = hcm001_adr;
@@ -1009,8 +1030,33 @@ const int cfeb4_layer45_hotchannelmask_vmereg          = hcm445_adr;
 const int cfeb4_layer45_hotchannelmask_layer_map[16]   = { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5};
 const int cfeb4_layer45_hotchannelmask_distrip_map[16] = {32,33,34,35,36,37,38,39,32,33,34,35,36,37,38,39};
 //
-const int hot_channel_mask_default = ON; 
+// 
+const int cfeb5_layer01_hotchannelmask_vmereg          = hcm501_adr;
+const int cfeb5_layer01_hotchannelmask_layer_map[16]   = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1};
+const int cfeb5_layer01_hotchannelmask_distrip_map[16] = {40,41,42,43,44,45,46,47,40,41,42,43,44,45,46,47};
 //
+const int cfeb5_layer23_hotchannelmask_vmereg          = hcm523_adr;
+const int cfeb5_layer23_hotchannelmask_layer_map[16]   = { 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3};
+const int cfeb5_layer23_hotchannelmask_distrip_map[16] = {40,41,42,43,44,45,46,47,40,41,42,43,44,45,46,47};
+//
+const int cfeb5_layer45_hotchannelmask_vmereg          = hcm545_adr;
+const int cfeb5_layer45_hotchannelmask_layer_map[16]   = { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5};
+const int cfeb5_layer45_hotchannelmask_distrip_map[16] = {40,41,42,43,44,45,46,47,40,41,42,43,44,45,46,47};
+//
+// 
+const int cfeb6_layer01_hotchannelmask_vmereg          = hcm601_adr;
+const int cfeb6_layer01_hotchannelmask_layer_map[16]   = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1};
+const int cfeb6_layer01_hotchannelmask_distrip_map[16] = {48,49,50,51,52,53,54,55,48,49,50,51,52,53,54,55};
+//
+const int cfeb6_layer23_hotchannelmask_vmereg          = hcm623_adr;
+const int cfeb6_layer23_hotchannelmask_layer_map[16]   = { 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3};
+const int cfeb6_layer23_hotchannelmask_distrip_map[16] = {48,49,50,51,52,53,54,55,48,49,50,51,52,53,54,55};
+//
+const int cfeb6_layer45_hotchannelmask_vmereg          = hcm645_adr;
+const int cfeb6_layer45_hotchannelmask_layer_map[16]   = { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5};
+const int cfeb6_layer45_hotchannelmask_distrip_map[16] = {48,49,50,51,52,53,54,55,48,49,50,51,52,53,54,55};
+//
+const int hot_channel_mask_default = ON; 
 //
 //------------------------------------------------------------------
 //0X68 = ADR_SEQ_TRIG_EN:  Sequencer Trigger Source Enables
