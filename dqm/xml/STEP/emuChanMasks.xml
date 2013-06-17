@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Masks xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<!--CSCMasks>
+                <CSC>ME+1.1.06</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:32-49)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+1.1.11</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:48-65)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+2.2.04</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(2:1-2)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+2.2.26</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(3:49-64)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+1.1.26</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:64-80)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+1.1.34</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:33-48)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+1.1.35</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:1-17)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+1.2.01</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:32-49)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+1.2.21</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:64-80)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+3.2.07</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(2:31-32)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+3.2.08</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:1-17)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+3.2.34</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:16-33)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME+3.2.35</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:48-65)</CFEBChans>
+        </CSCMasks>
+	<CSCMasks>
+                <CSC>ME-1.1.11</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:32-49)</CFEBChans>
+        </CSCMasks>
+
+        <CSCMasks>
+                <CSC>ME-1.1.23</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:1-17)</CFEBChans>
+        </CSCMasks>
+
+         <CSCMasks>
+                <CSC>ME-1.2.20</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:64-80)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME-2.2.03</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:16-33)</CFEBChans>
+        </CSCMasks>
+
+
+	<CSCMasks>
+                <CSC>ME-3.1.15</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:16-33)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME-3.2.15</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(6:48-65)</CFEBChans>
+        </CSCMasks>
+
+	<CSCMasks>
+                <CSC>ME-3.2.22</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:32-49)</CFEBChans>
+        </CSCMasks-->
+
+	<!--CSCMasks>
+                <CSC>ME-3.2.29</CSC>
+                <Test>CFEB03</Test>
+                <CFEBChans>(1-6:69)</CFEBChans>
+        </CSCMasks-->
+
+
+</Masks>
