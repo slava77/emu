@@ -7,7 +7,7 @@
 #ifndef TEST_DATA1D_H
 #define TEST_DATA1D_H
 
-#define TEST_DATA1D_NBINS 112
+#define TEST_DATA1D_NBINS 224
 
 struct TestData1D
 {

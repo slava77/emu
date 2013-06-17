@@ -1,8 +1,10 @@
 #include "emu/dqm/calibration/Test_Generic.h"
+#include "emu/utils/IO.h"
 
 using namespace XERCES_CPP_NAMESPACE;
 
 using namespace emu::dqm::utils;
+using namespace emu::utils;
 
 time_sample Test_Generic::CalculateCorrectedPulseAmplitude(pulse_fit& fit)
 {
@@ -42,6 +44,11 @@ int Test_Generic::getNumStrips(std::string cscID)
   else return 80;
 }
 */
+
+bool Test_Generic::isME11(std::string cscID)
+{
+  return ((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0));
+}
 
 Test_Generic::Test_Generic(std::string dfile): dataFile(dfile), logger(Logger::getInstance("Generic"))
 {
@@ -299,6 +306,10 @@ int Test_Generic::loadTestCfg()
 
   parser->parse(configFile.c_str());
   DOMDocument *doc = parser->getDocument();
+  if (!doc)
+    {
+      LOG4CPLUS_ERROR (logger, "Failed to load or parse config file: tried "<<configFile);
+    }
   DOMNodeList *l = doc->getElementsByTagName( XMLString::transcode("Booking") );
   if ( l->getLength() != 1 )
     {
@@ -386,6 +397,9 @@ int Test_Generic::loadTestCfg()
         }
     }
 
+
+  //if we got to this point, the config was loaded OK
+  LOG4CPLUS_INFO (logger, "Done loading test config file: " << configFile);
   delete parser;
 
   bookCommonHistos();
@@ -451,13 +465,13 @@ TestData2D parseMask(std::string s)
               ch_end = ch_start;
             }
 
-	
+
           for (int i=ly_start; i<=ly_end; i++)
             {
               for (int j=ch_start; j<= ch_end; j++)
                 {
                   mask.content[i-1][j-1]=1;
-                  // std::cout << Form("mask chan %d:%d", i, j) << std::endl;
+                  //       std::cout << Form("mask chan %d:%d", i, j) << std::endl;
                 }
             }
 
@@ -517,7 +531,7 @@ int Test_Generic::loadMasks(std::string testID)
             }
         }
 
-      /// Find chamber entry with masked channels 
+      /// Find chamber entry with masked channels
       itr = obj_info.find("CSC");
 
       /// Load cathode channels masks
@@ -526,14 +540,20 @@ int Test_Generic::loadMasks(std::string testID)
       if (itr != obj_info.end())
         {
           if ((obj_info["CFEBChans"] != "") &&
-	       ( (testID == "") || (obj_info["Test"] == "") || (testID == obj_info["Test"])))
+              ( (testID == "") || (obj_info["Test"] == "") || (testID == obj_info["Test"])))
             {
               LOG4CPLUS_DEBUG(logger, "Found cathode masks for " << testID << " " << itr->second << ": " << obj_info["CFEBChans"]);
-	      if (tmasks.find(itr->second) == tmasks.end()) { tmasks[itr->second] = parseMask(obj_info["CFEBChans"]); }
-	      else { addMasks(tmasks[itr->second], parseMask(obj_info["CFEBChans"])); }
+              if (tmasks.find(itr->second) == tmasks.end())
+                {
+                  tmasks[itr->second] = parseMask(obj_info["CFEBChans"]);
+                }
+              else
+                {
+                  addMasks(tmasks[itr->second], parseMask(obj_info["CFEBChans"]));
+                }
             }
         }
- 
+
       /// Load anode channels masks
       /// Filter masks using test ID and <Test> tag in xml file
       /// If there is no <Test> tag entry then load common mask
@@ -543,8 +563,14 @@ int Test_Generic::loadMasks(std::string testID)
               ( (testID == "") || (obj_info["Test"] == "") || (testID == obj_info["Test"]) ) )
             {
               LOG4CPLUS_DEBUG(logger, "Found anode masks for " << testID << " " << itr->second << ": " << obj_info["AFEBChans"]);
-	      if (amasks.find(itr->second) == amasks.end()) { amasks[itr->second] = parseMask(obj_info["AFEBChans"]); }
-	      else { addMasks(amasks[itr->second], parseMask(obj_info["AFEBChans"])); }
+              if (amasks.find(itr->second) == amasks.end())
+                {
+                  amasks[itr->second] = parseMask(obj_info["AFEBChans"]);
+                }
+              else
+                {
+                  addMasks(amasks[itr->second], parseMask(obj_info["AFEBChans"]));
+                }
             }
         }
 
@@ -633,13 +659,13 @@ std::string Test_Generic::getCSCFromMap(int crate, int slot, int& csctype, int& 
   std::string tlabel = getCSCTypeLabel(iendcap, istation, iring );
   std::map<std::string,int>::const_iterator it = tmap.find( tlabel );
   if (it != tmap.end())
-    {
-      csctype = it->second;
-    }
+  {
+    csctype = it->second;
+  }
   else
-    {
-      csctype = 0;
-    }
+  {
+    csctype = 0;
+  }
 
 
   return tlabel+"."+Form("%02d", cscposition);
@@ -1014,7 +1040,8 @@ void Test_Generic::bookCommonHistos()
             {
               ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
             }
-          if ((cnvtype == "strips_cnv") || (cnvtype == "wires_cnv") || (cnvtype == "cfeb_cnv")|| (cnvtype == "gasgain_cnv"))
+
+          if ((cnvtype == "strips_cnv") || (cnvtype == "wires_cnv") || (cnvtype == "cfeb_cnv") || (cnvtype == "halfstrips_cnv") || (cnvtype == "mwires_cnv") || (cnvtype == "gasgain_cnv"))
             {
               /*
                   // = Set actual number of strips depending on Chamber type
@@ -1056,7 +1083,7 @@ void Test_Generic::bookCommonHistos()
 
               emucnvs[itr->first]=cnv;
             }
-          if ((cnvtype.find("h") == 0) && (scope=="EMU"))
+          if ((cnvtype.find("h") == 0 && !(cnvtype.find("half") == 0)) && (scope=="EMU"))
             {
               // std::cout << "Booking " << name << std::endl;
               if (cnvtype.find("h1") != std::string::npos)
@@ -1115,6 +1142,7 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
           std::string ytitle = params["YTitle"];
           double low0limit=0., low1limit=0.;
           double high0limit=0., high1limit=0.;
+
           if (params["XMin"] != "")
             {
               xmin = atof(params["XMin"].c_str());
@@ -1139,6 +1167,35 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
             {
               ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
             }
+
+          if(isME11(cscID))
+            {
+              if (params["XMin_ME11"] != "")
+                {
+                  xmin = atof(params["XMin_ME11"].c_str());
+                }
+              if (params["XMax_ME11"] != "")
+                {
+                  xmax = atof(params["XMax_ME11"].c_str());
+                }
+              if (params["YMin_ME11"] != "")
+                {
+                  ymin = atof(params["YMin_ME11"].c_str());
+                }
+              if (params["YMax_ME11"] != "")
+                {
+                  ymax = atof(params["YMax_ME11"].c_str());
+                }
+              if (params["XBins_ME11"] != "")
+                {
+                  xbins = strtol(params["XBins_ME11"].c_str(), &stopstring, 10);
+                }
+              if (params["YBins_ME11"] != "")
+                {
+                  ybins = strtol(params["YBins_ME11"].c_str(), &stopstring, 10);
+                }
+            }
+
           if (params["XScale"] != "")
             {
               if (params["XScale"] == "wires")
@@ -1152,6 +1209,12 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
                   xmin=0;
                   xmax=getNumStrips(cscID);
                   xbins=getNumStrips(cscID);
+                }
+              if (params["XScale"] == "halfstrips")
+                {
+                  xmin=0;
+                  xmax=getNumStrips(cscID)*2;
+                  xbins=getNumStrips(cscID)*2;
                 }
               // params["SetNdivisionsX"]=Form("%d",(int)xbins);;
             }
@@ -1170,10 +1233,16 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
                   ymax=getNumStrips(cscID);
                   ybins=getNumStrips(cscID);
                 }
+              if (params["YScale"] == "halfstrips")
+                {
+                  ymin=0;
+                  ymax=getNumStrips(cscID)*2;
+                  ybins=getNumStrips(cscID)*2;
+                }
               // params["SetNdivisionsY"]=Form("%d",(int)ybins);
             }
 
-          if ((cnvtype == "strips_cnv") || (cnvtype == "wires_cnv") || (cnvtype == "cfeb_cnv")|| (cnvtype == "gasgain_cnv") )
+          if ((cnvtype == "strips_cnv") || (cnvtype == "wires_cnv") || (cnvtype == "cfeb_cnv") || (cnvtype == "halfstrips_cnv") || (cnvtype == "mwires_cnv") || (cnvtype == "gasgain_cnv"))
             {
               if (cnvtype == "strips_cnv")
                 {
@@ -1181,7 +1250,24 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
                   xbins = getNumStrips(cscID);
                   xmax = getNumStrips(cscID);
                 }
-              if (cnvtype == "wires_cnv")
+              if (cnvtype == "halfstrips_cnv")
+                {
+                  // = Set actual number of strips depending on Chamber type
+                  xbins = getNumStrips(cscID)*2;
+                  xmax = getNumStrips(cscID)*2;
+                  if (isME11(cscID) && params["n_ME11_TMB_DCFEBs"] != "")
+                    {
+                      int nDCFEBs =  atof(params["n_ME11_TMB_DCFEBs"].c_str());
+                      LOG4CPLUS_INFO(logger, "Detected n_ME11_TMB_DCFEBs and it's ME11, use the value "<< nDCFEBs);
+                      if (nDCFEBs >7 ) nDCFEBs = 7;
+                      if (nDCFEBs > 0 )
+                        {
+                          xbins = nDCFEBs*16*2;
+                          xmax = xbins;
+                        }
+                    }
+                }
+              if (cnvtype == "wires_cnv" || (cnvtype == "mwires_cnv"))
                 {
                   // = Set actual number of wiregroups depending on Chamber type
                   xbins = getNumWireGroups(cscID);
@@ -1202,6 +1288,7 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
                 }
 
 
+
               if (params["Low0Limit"] != "")
                 {
                   low0limit = atof(params["Low0Limit"].c_str());
@@ -1219,8 +1306,29 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
                   high1limit = atof(params["High1Limit"].c_str());
                 }
 
+
+              if(isME11(cscID))
+                {
+                  if (params["Low0Limit_ME11"] != "")
+                    {
+                      low0limit = atof(params["Low0Limit_ME11"].c_str());
+                    }
+                  if (params["Low1Limit_ME11"] != "")
+                    {
+                      low1limit = atof(params["Low1Limit_ME11"].c_str());
+                    }
+                  if (params["High0Limit_ME11"] != "")
+                    {
+                      high0limit = atof(params["High0Limit_ME11"].c_str());
+                    }
+                  if (params["High1Limit_ME11"] != "")
+                    {
+                      high1limit = atof(params["High1Limit_ME11"].c_str());
+                    }
+                }
+
               // TestCanvas_6gr1h* cnv = new TestCanvas_6gr1h((cscID+"_CFEB02_R03").c_str(), (cscID+": CFEB02 R03").c_str(),80, 0.0, 80.0, 60, 0., 6.0);
-              TestCanvas_6gr1h* cnv = new TestCanvas_6gr1h(name, title,xbins, xmin, xmax, ybins, ymin, ymax);
+              TestCanvas_6gr1h* cnv = new TestCanvas_6gr1h(name, title,xbins, xmin, xmax, ybins, ymin, ymax, cnvtype);
               cnv->SetXTitle(xtitle);
               cnv->SetYTitle(ytitle);
               cnv->AddTextTest(testID);
@@ -1230,7 +1338,7 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
               csccnvs[itr->first]=cnv;
             }
 
-          if ((cnvtype.find("h") == 0) && (scope=="CSC"))
+          if ((cnvtype.find("h") == 0 && !(cnvtype.find("half") == 0)) && (scope=="CSC"))
             {
               if (cnvtype.find("h1") != std::string::npos)
                 {
@@ -1461,6 +1569,7 @@ void Test_Generic::finish()
               if (itr != cscdata.end())
                 {
                   TestData2D& data = itr->second;
+
                   cnv->AddTextDatafile(dataFile);
                   cnv->AddTextRun(dataTime);
                   cnv->AddTextAnalysis(testTime +", version " + ANALYSIS_VER);
@@ -1494,7 +1603,9 @@ void Test_Generic::finish()
                   //    if (fEnoughData) {
                   std::string cnvtype = cnv->GetCanvasType();
                   if (cnvtype == "strips_cnv") text_res <<  "Layer Strip    Value Status Masked" << std::endl;
+                  else if (cnvtype == "halfstrips_cnv") text_res <<  "Layer  HalfStrip    Value Status Masked" << std::endl;
                   else if (cnvtype == "wires_cnv") text_res <<  "Layer  Wire    Value Status Masked" << std::endl;
+                  else if (cnvtype == "mwires_cnv") text_res <<  "m/6 Planes  Wire    Value Status Masked" << std::endl;
                   else if (cnvtype == "cfeb_cnv") text_res <<  "Layer  CFEB    Value Status Masked" << std::endl;
                   else if (cnvtype == "afeb_cnv") text_res <<  "AFEB    Value Status Masked" << std::endl;
                   else if (cnvtype == "gasgain_cnv") text_res <<  "GasGain    Value Status Masked" << std::endl;
@@ -1591,6 +1702,9 @@ void Test_Generic::finish()
               applyCanvasParameters(cPad, m_itr->second, params);
 
               gStyle->SetPalette(1,0);
+
+              // std::cout << "subtestID: " << subtestID << std::endl;
+              //std::cout << "params: " << params << std::endl;
               //  m_itr->second->Draw();
 
               // if (m_itr->second != NULL)

@@ -205,20 +205,6 @@ typedef struct XtalkData
 } XtalkData;
 
 
-typedef struct gasgain_step
-{
-  double content;
-  int cnt;
-} gasgain_step;
-
-
-typedef struct GasgainData
-{
-  int Nbins;
-  int Nlayers;
-  gasgain_step content[NLAYERS][MAX_STRIPS];
-} GasgainData;
-
 typedef struct delay_step
 {
    int cnt;
@@ -262,7 +248,6 @@ typedef std::map<std::string, TPeakData> 	cscTPeakData;
 typedef std::map<std::string, GainData> 	cscGainData;
 typedef std::map<std::string, XtalkData> 	cscXtalkData;
 typedef std::map<std::string, DelayScanData> 	cscDelayScanData;
-typedef std::map<std::string, GasgainData> cscGasgainData;
 typedef std::map<std::string, AFEBCalibParams>    cscAFEBCalibParams;
 
 
@@ -327,6 +312,7 @@ protected:
   // int getNumStrips(std::string cscID);
   void saveCSCList();
   void doBinCheck();
+  bool isME11(std::string cscID);
 
   virtual void initCSC(std::string cscID) = 0;
   virtual void bookTestsForCSC(std::string cscID);

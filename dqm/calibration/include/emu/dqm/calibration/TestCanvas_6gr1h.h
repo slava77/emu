@@ -77,6 +77,7 @@ class TestCanvas_6gr1h: public TCanvas
   int theColorWhite;       ///< White
   int theColorGray;        ///< Gray
   int theColorGreenLight;  ///< Light green
+  int theColorGreen;   ///< Dark green
   int theColorGreenDark;   ///< Dark green
   int theColorRedLight;    ///< Light red
   int theColorRedDark;     ///< Dark red
@@ -152,7 +153,7 @@ class TestCanvas_6gr1h: public TCanvas
   TGraph* theGraphRedEmptyTriangleDown[NLAYERS];
 
 public:
-  TestCanvas_6gr1h (std::string , std::string , Int_t, Double_t, Double_t, Int_t, Double_t, Double_t);
+  TestCanvas_6gr1h (std::string , std::string , Int_t, Double_t, Double_t, Int_t, Double_t, Double_t, std::string);
   ~TestCanvas_6gr1h ();
   std::string GetName(void);                           ///< Get name of canvas
   std::string GetTitle(void);                          ///< Get title of canvas

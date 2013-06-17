@@ -1,11 +1,18 @@
 ##
 #
-# This is the TriDAS/daq/xoap Package Makefile
+# This is the TriDAS/emu/dqm/calibration Package Makefile
 #
 ##
-include ../config/compdef.mk
-include ../config/xdaq.mk
-include ../config/site.mk
+ifeq ("$(USELOCALBUILD)", "yes")
+INST_BUILD_HOME:=$(TRIDASDIST)
+$(info using INST_BUILD_HOME=$(TRIDASDIST))
+else 
+INST_BUILD_HOME:=$(BUILD_HOME)
+endif  
+EMU_DQM_CONFIG = $(INST_BUILD_HOME)/emu/dqm/config
+include $(EMU_DQM_CONFIG)/compdef.mk
+include $(EMU_DQM_CONFIG)/xdaq.mk
+include $(EMU_DQM_CONFIG)/site.mk
 
 
 #OPT_FORMAT = METB_FORMAT
@@ -35,8 +42,13 @@ Sources=\
 	Test_AFEB05.cc \
 	Test_AFEB06.cc \
 	Test_AFEB07.cc \
+	Test_11_AFEBNoise.cc \
+	Test_16_CFEBConnectivity.cc \
+	Test_19_CFEBComparators.cc \
+	Test_21_CFEBComparatorLogic.cc \
+	Test_25_ALCTTrigger.cc \
+	Test_30_PipelineDepth.cc \
 	Test_GasGain.cc
-	
 
 
 Executables = runEmuCalibAnalysis.cc
@@ -45,21 +57,32 @@ TestLibraries =
 TestExecutables =  
 
 ExternalObjects = \
-	$(BUILD_HOME)/emu/dqm/common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemudqmcommon.a \
-	$(BUILD_HOME)/emu/dqm/cmssw/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libCSCRawToDigi.a \
-        $(BUILD_HOME)/emu/dqm/cmssw/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libCSCDigi.a 
+	$(INST_BUILD_HOME)/emu/dqm/common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemudqmcommon.a \
+	$(INST_BUILD_HOME)/emu/dqm/cmssw/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libCSCRawToDigi.a \
+        $(INST_BUILD_HOME)/emu/dqm/cmssw/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libCSCDigi.a 
+ifeq ("$(USELOCALBUILD)", "yes")
+ExternalObjects =
+endif
 
-IncludeDirs = $(XdaqIncludeDirs) \
-	$(BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw \
-	$(BUILD_HOME)/emu/dqm/common/include \
-	$(BUILD_HOME)/emu/daq/reader/include \
+IncludeDirs = $(XdaqIncludeDirs)
+ifeq ("$(USELOCALBUILD)", "yes")
+#put the central install includes first (start from local, then look in central)
+IncludeDirs += $(BUILD_HOME)/$(XDAQ_PLATFORM)/include
+IncludeDirs += $(INST_BUILD_HOME)/$(XDAQ_PLATFORM)/include
+endif
+IncludeDirs += 	$(INST_BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw \
+	$(INST_BUILD_HOME)/emu/dqm/common/include \
+	$(INST_BUILD_HOME)/emu/daq/reader/include \
 	$(CMSSW) \
 	$(BOOST) \
 	$(ORA_DIR)/include \
 	$(SQLITE)/include
 
 
-LibraryDirs = $(XdaqLibraryDirs) $(SQLITE)/lib
+LibraryDirs = $(XdaqLibraryDirs) $(SQLITE)/lib 
+ifeq ("$(USELOCALBUILD)", "yes")
+LibraryDirs += $(INST_BUILD_HOME)/$(XDAQ_PLATFORM)/lib
+endif
 
 
 UserSourcePath = 
@@ -73,7 +96,10 @@ UserExecutableLinkFlags += $(ROOTGLIBS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) emudaqreader Minuit sqlite3
+Libraries = $(XdaqLibraries) emudaqreader Minuit sqlite3 
+ifeq ("$(USELOCALBUILD)", "yes")
+Libraries += emudqmcommon CSCRawToDigi CSCDigi
+endif
 
 
 #

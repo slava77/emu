@@ -1,6 +1,6 @@
 #include "emu/dqm/calibration/TestCanvas_6gr1h.h"
 
-TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t Nbinsx, Double_t xlow, Double_t xup, Int_t Nbinsy, Double_t ylow, Double_t yup)
+TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t Nbinsx, Double_t xlow, Double_t xup, Int_t Nbinsy, Double_t ylow, Double_t yup, std::string cnvtype)
 {
 
   theName  = name.c_str();
@@ -20,6 +20,7 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   theColorWhite         = TColor::GetColor("#ffffff"); ///< White
   theColorGray          = TColor::GetColor("#aaaaaa"); ///< Gray
   theColorGreenLight    = TColor::GetColor("#009900"); ///< Light green
+  theColorGreen         = TColor::GetColor("#007a00"); ///< Light green
   theColorGreenDark     = TColor::GetColor("#005500"); ///< Dark green
   theColorRedLight      = TColor::GetColor("#ff0000"); ///< Light red
   theColorRedDark       = TColor::GetColor("#cc0000"); ///< Dark red
@@ -171,9 +172,13 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   std::string fTitleLeftHisto;
   for (fIndexLeftHisto = 0; fIndexLeftHisto < NLAYERS; fIndexLeftHisto++)
   {
+    
     fTitleLeftHisto = Form("Layer_%d", fIndexLeftHisto + 1);
-    theLeftHisto[fIndexLeftHisto] = new TH2F((name+"_"+fTitleLeftHisto).c_str(), fTitleLeftHisto.c_str(), theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
+    if(cnvtype == "mwires_cnv") {
+        fTitleLeftHisto = Form("%d/6 plane", fIndexLeftHisto + 1);
+    }
 
+    theLeftHisto[fIndexLeftHisto] = new TH2F((name+"_"+fTitleLeftHisto).c_str(), fTitleLeftHisto.c_str(), theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
     theLeftHisto[fIndexLeftHisto]->GetXaxis()->CenterTitle(true);
     theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitle("Title X");
     theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitleFont(fTextFont);
@@ -429,8 +434,11 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
       fY[fNbin] = data.content[fNlayer][fNbin];
 
       // if (fY[fNbin] == -999.) continue;
-
-      theRightHisto->Fill(fY[fNbin]);
+		
+      if (mask.content[fNlayer][fNbin] == 0)
+      {
+        theRightHisto->Fill(fY[fNbin]);
+      }
 
       if (fY[fNbin] <= theHighLimit && fY[fNbin] >= theLowLimit)
       {
@@ -546,7 +554,7 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
   }
   if (!fIsRedSolid && !fIsYellowSolid && fIsEmpty)
   {
-    theFillColor = theColorBlueLight;
+    theFillColor = theColorGreen;//all unmasked are good, use a different shade of green
     fQualityTest = 3;
   }
   if (fIsRedSolid)

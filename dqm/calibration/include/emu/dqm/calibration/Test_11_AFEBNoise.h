@@ -1,6 +1,5 @@
-#ifndef _Test_CFEB02_h_
-#define _Test_CFEB02_h_
-
+#ifndef _Test_11_AFEBNoise_h_
+#define _Test_11_AFEBNoise_h_
 
 #include <iostream>
 #include <iomanip>
@@ -15,10 +14,10 @@
 #include <TProfile.h>
 #include <TFile.h>
 
-class Test_CFEB02: public Test_Generic
+class Test_11_AFEBNoise: public Test_Generic
 {
 public:
-  Test_CFEB02(std::string datafile);
+  Test_11_AFEBNoise(std::string datafile);
   void analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
 
 protected:
@@ -27,9 +26,13 @@ protected:
   void analyzeCSC(const CSCEventData& data);
   void finishCSC(std::string cscID);
   bool checkResults(std::string cscID);
+  void setTestParams();
+  
+  int num_wires_hit[NLAYERS];
+  int last_wire[NLAYERS];
+  
+  int duration_ms;
 
-  cscCFEBSCAData sdata;
-  bool isME11;
 
 };
 
