@@ -179,7 +179,7 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
     int dduInputFiberMask = getDDUInputFiberMask( crate->CrateID(), (*ddu)->slot() );
     (*ddu)->writeFlashKillFiber( dduInputFiberMask );
     usleep(10);
-    (*ddu)->writeGbEPrescale( 8 ); // 8: test-stand without TCC
+    (*ddu)->writeGbEPrescale( 8 ); // 8: no prescaling in local run without DCC (ignore back-pressure)
     usleep(10);
     (*ddu)->writeFakeL1( 0 ); // 7: passthrough // 0: normal
     usleep(10);
@@ -188,10 +188,10 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
     (crate)->ccb()->bc0();
     
     if ( pLogger_ ){
-	  LOG4CPLUS_INFO( *pLogger_,"CKill Fiber is set to: "<<  setw(4) << hex << (*ddu)->readFlashKillFiber() << dec);
-	  LOG4CPLUS_INFO( *pLogger_,"GbEPrescale is set to: "<<  setw(4) << hex << (*ddu)->readGbEPrescale() << dec);
-	  LOG4CPLUS_INFO( *pLogger_,"Fake L1A is set to: "   <<  setw(4) << hex << (*ddu)->readFakeL1() <<dec);
-		}
+      LOG4CPLUS_INFO( *pLogger_, "Kill Fiber  is set to 0x" << hex << ( (*ddu)->readFlashKillFiber() & 0xffff ) << dec );
+      LOG4CPLUS_INFO( *pLogger_, "GbEPrescale is set to 0x" << hex << ( (*ddu)->readGbEPrescale()    & 0xffff ) << dec );
+      LOG4CPLUS_INFO( *pLogger_, "Fake L1A    is set to 0x" << hex << ( (*ddu)->readFakeL1()         & 0xffff ) << dec );
+    }
 
   }
 
