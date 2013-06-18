@@ -324,15 +324,19 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
 		       .add( "writeBadEventsOnly", &writeBadEventsOnly ) );
       m.sendCommand( "emu::daq::manager::Application", "Configure" );      
       m.sendCommand( "emu::step::Tester", "Configure" );
-      waitForDAQToExecute( "Configure", 10 );
-      configuration_->setTestStatus( testId, "running" );
+      const uint64_t daqTimeOutInSeconds = 15;
+      if ( ! waitForDAQToExecute( "Configure", daqTimeOutInSeconds ) ){
+	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Configure' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
+      }
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
       //
       // Enable all Tester apps
       //
       // First enable the local DAQ
       m.sendCommand( "emu::daq::manager::Application", "Enable" );
-      waitForDAQToExecute( "Enable", 10 );
+      if ( ! waitForDAQToExecute( "Enable", daqTimeOutInSeconds ) ){
+	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Enable' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
+      }
       // Get the number and start time of run and the data directories from the local DAQ and pass them on to the Testers
       xdata::String runStartTime;
       xdata::UnsignedInteger32 runNumber;
@@ -356,7 +360,9 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       //
       m.sendCommand( "emu::step::Tester", "Halt" );
       m.sendCommand( "emu::daq::manager::Application", "Halt" );
-      waitForDAQToExecute( "Halt", 10 );
+      if ( ! waitForDAQToExecute( "Halt", daqTimeOutInSeconds ) ){
+	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Halt' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
+      }
       configuration_->setTestStatus( testId, "done" );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
       //
