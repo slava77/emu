@@ -7727,6 +7727,20 @@ void DAQMB::BuckeyeShift(int chip_mask,char shft_bits[6][6], char *shft_out)
   udelay(2000);
   if(readback)  memcpy(shft_out, rcvbuf, 36);
 }
+    
+void DAQMB::dcfeb_Set_ReadAnyL1a(CFEB & cfeb)
+{
+  char tmp[2];
+  dcfeb_hub(cfeb, SET_ANYL1AFLAG, 0, tmp, tmp, NOW);
+  return;
+}
+    
+void DAQMB::dcfeb_Clear_ReadAnyL1a(CFEB & cfeb)
+{
+  char tmp[2];
+  dcfeb_hub(cfeb, CLEAR_ANYL1AFLAG, 0, tmp, tmp, NOW);
+  return;
+}
 
 void DAQMB::FADC_SetMask(CFEB & cfeb, short int mask)
 {
