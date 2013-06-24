@@ -337,6 +337,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       if ( ! waitForDAQToExecute( "Enable", daqTimeOutInSeconds ) ){
 	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Enable' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
       }
+      configuration_->setTestStatus( testId, "running" );
       // Get the number and start time of run and the data directories from the local DAQ and pass them on to the Testers
       xdata::String runStartTime;
       xdata::UnsignedInteger32 runNumber;
