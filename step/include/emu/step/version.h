@@ -5,7 +5,7 @@
 
 namespace emustep {
 	const std::string package     = "emustep";
-	const std::string versions    = "03.01.00";
+	const std::string versions    = "03.01.01";
 	const std::string description = "Emu (CSC) System Test of Endcap Peripheral crate and chamber electronics (STEP)";
 
 	const std::string summary     = "Emu (CSC) System Test of Endcap Peripheral crate and chamber electronics (STEP)";

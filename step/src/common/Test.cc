@@ -359,6 +359,11 @@ void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const shor
     usleep(100);
     dmb->Pipeline_Restart( *cfeb ); // and then restart the pipeline
     usleep(100);
+
+    if(dmb->GetHardwareVersion() != 2){
+      // set DCFEBs to behave line CFEBs and send data on any L1A, required when not using ODMB
+      dmb->dcfeb_Set_ReadAnyL1a( *cfeb );
+    }
   }
 
   if( dmb->getCrate() ){
@@ -813,7 +818,6 @@ void emu::step::Test::_16(){
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      
       setAllDCFEBsPipelineDepth( *dmb );
       
       int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion();
