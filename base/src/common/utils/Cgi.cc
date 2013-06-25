@@ -80,11 +80,23 @@ void emu::utils::redirect(xgi::Input *in, xgi::Output *out)
     header.getReasonPhrase("See Other");
     // Use the following line to redirect to the default web page in the same directory.
     header.addHeader("Location", url.substr(0, p) + "/");
-    // Use the following line to redirect to the same page stripped of the query string.
-    // header.addHeader( "Location", url.substr(0, p) + "/" + in->getenv("PATH_INFO") );
   }
 }
 
+void emu::utils::redirectToSelf(xgi::Input *in, xgi::Output *out)
+{
+  // Redirect for the action not to be repeated if the 'reload' button is hit.
+  std::string url = in->getenv("PATH_TRANSLATED");
+  std::size_t p = url.find("/" + in->getenv("PATH_INFO") + "?");
+  if (p != std::string::npos)
+  {
+    cgicc::HTTPResponseHeader &header = out->getHTTPResponseHeader();
+    header.getStatusCode(303);
+    header.getReasonPhrase("See Other");
+    // Use the following line to redirect to the same page stripped of the query string.
+    header.addHeader( "Location", url.substr(0, p) + "/" + in->getenv("PATH_INFO") );
+  }
+}
 
 void emu::utils::redirectTo(const std::string newURL, xgi::Output *out)
 {
