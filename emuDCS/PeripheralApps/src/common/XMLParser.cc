@@ -6,6 +6,7 @@
 #include <xercesc/framework/XMLPScanToken.hpp>
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/framework/MemBufInputSource.hpp>
 
 #include "emu/pc/CCB.h"
 #include "emu/pc/MPC.h"
@@ -1218,6 +1219,76 @@ void XMLParser::parseFile(const std::string name)
   //  The DOM document and its contents are reference counted, and need
   //  no explicit deletion.
   //
+}
+
+void XMLParser::parseString(const std::string& xml)
+{ 
+  //
+  /// Initialize XML4C system
+  try{
+    xercesc::XMLPlatformUtils::Initialize();
+  }
+  catch(const xercesc::XMLException& toCatch){
+    std::cerr << "Error during Xerces-c Initialization.\n"
+	      << "  Exception message:"
+	      << xercesc::XMLString::transcode(toCatch.getMessage()) << std::endl;
+    return ;
+  }
+ 
+  //  Create our parser, then attach an error handler to the parser.
+  //  The parser will call back to methods of the ErrorHandler if it
+  //  discovers errors during the course of parsing the XML document.
+  //
+  xercesc::XercesDOMParser *parser = new xercesc::XercesDOMParser;
+  parser->setValidationScheme(xercesc::XercesDOMParser::Val_Auto);
+  parser->setDoNamespaces(false);
+  parser->setCreateEntityReferenceNodes(false);
+  //parser->setToCreateXMLDeclTypeNode(true);
+  
+ 
+  //  Parse the XML file, catching any XML exceptions that might propogate
+  //  out of it.
+  //
+  bool errorsOccured = false;
+  try{
+    parser->parse( xercesc::MemBufInputSource( (XMLByte*)xml.c_str(), xml.size(), "emu::pc::XMLParser::parseString" ) );
+  }
+  catch (const xercesc::XMLException& e){
+    std::cerr << "An error occured during parsing\n   Message: "
+	 << xercesc::XMLString::transcode(e.getMessage()) << std::endl;
+    errorsOccured = true;
+  }
+  catch (const xercesc::DOMException& e){
+    std::cerr << "An error occured during parsing\n   Message: "
+	      << xercesc::XMLString::transcode(e.msg) << std::endl;
+    errorsOccured = true;
+  }
+  catch (...){
+    std::cerr << "An error occured during parsing" << std::endl;
+    errorsOccured = true;
+  }
+
+  // If the parse was successful, output the document data from the DOM tree
+  if (!errorsOccured){
+    xercesc::DOMNode * pDoc = parser->getDocument();
+    xercesc::DOMNode * pNode1 = pDoc->getFirstChild();
+    while (pNode1) {
+      if (pNode1->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+	if (strcmp("EmuSystem",xercesc::XMLString::transcode(pNode1->getNodeName()))==0
+         || strcmp("EmuEndcap",xercesc::XMLString::transcode(pNode1->getNodeName()))==0)
+        {
+	  emuEndcap_ = EmuEndcapParser(pNode1);
+	} else 
+        {
+	  std::cerr << "XMLParser.ERROR: First tag must be EmuEndcap or EmuSystem" << std::endl;
+	}
+      }
+      pNode1 = pNode1->getNextSibling();
+    } // end of Top Element Loop, <EMU> only (pNode1)
+    //
+  } //end of parsing config file
+  
+  delete parser;
 }
   } // namespace emu::pc
   } // namespace emu

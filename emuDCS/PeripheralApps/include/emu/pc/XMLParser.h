@@ -36,6 +36,7 @@ public:
   void PeripheralCrateParser(xercesc::DOMNode *pNode,EmuEndcap * endcap,xercesc::DOMNode *pNodeGlobal);
   EmuEndcap * EmuEndcapParser(xercesc::DOMNode *pNode);
   void parseFile(const std::string name);
+  void parseString(const std::string& xml);
 
 protected:
   xercesc::DOMNamedNodeMap * pAttributes_;
