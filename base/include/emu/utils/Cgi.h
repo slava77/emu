@@ -14,9 +14,14 @@ namespace emu { namespace utils {
 std::multimap<std::string,std::string> selectFromQueryString( std::vector<cgicc::FormEntry>& fev, const std::string namePattern );
 
 /**
- * Redirect for the action not to be repeated if the 'reload' button is hit.
+ * Redirect to the default page for the action not to be repeated if the 'reload' button is hit.
  */
 void redirect(xgi::Input *in, xgi::Output *out);
+
+/**
+ * Safely redirect to the same page for the action not to be repeated if the 'reload' button is hit.
+ */
+void redirectToSelf(xgi::Input *in, xgi::Output *out);
 
 /**
  * simple redirect to new URL
