@@ -1251,7 +1251,8 @@ void XMLParser::parseString(const std::string& xml)
   //
   bool errorsOccured = false;
   try{
-    parser->parse( xercesc::MemBufInputSource( (XMLByte*)xml.c_str(), xml.size(), "emu::pc::XMLParser::parseString" ) );
+    xercesc::MemBufInputSource mbis( (XMLByte*)xml.c_str(), xml.size(), "emu::pc::XMLParser::parseString" );
+    parser->parse( mbis );
   }
   catch (const xercesc::XMLException& e){
     std::cerr << "An error occured during parsing\n   Message: "
