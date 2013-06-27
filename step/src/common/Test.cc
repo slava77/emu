@@ -1542,7 +1542,8 @@ void emu::step::Test::_25(){
       
       stringstream timeStampFileName;
       timeStampFileName << "Test25_"  << (*crate)->GetLabel()
-			<< "_TMBslot" << (*tmb)->slot()
+			<< "_CrateId" << setfill('0') << setw(2) << (*crate)->CrateID()
+			<< "_TMBslot" << setfill('0') << setw(2) << (*tmb)->slot()
 			<< "_"        << setfill('0') << setw(8) << runNumber_
 			<< "_"        << runStartTime_
 			<< ".txt";

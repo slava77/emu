@@ -35,7 +35,7 @@ namespace emu { namespace step {
       void setSelection( const multimap<string,string>& values );
       void setTestStatus( const string& testId, const string& status );
       void setTestStatus( const string& status );
-      void setTestProgress( const map<string,double>& groupsProgress );
+      void setTestProgress( const map<string,pair<double,string> >& groupsProgress );
 
     private:
 

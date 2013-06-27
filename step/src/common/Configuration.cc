@@ -162,13 +162,17 @@ void emu::step::Configuration::setTestStatus( const string& status ){
   bsem_.give();
 }
 
-void emu::step::Configuration::setTestProgress( const map<string,double>& groupsProgress ){
-  map<string,string> values;
-  for ( map<string,double>::const_iterator p = groupsProgress.begin(); p != groupsProgress.end(); ++p )
-    {
-      values["//es:peripheralCrates[@group='" + p->first + "']/@progress"] = emu::utils::stringFrom<int>( (int)p->second );
-    }
+void emu::step::Configuration::setTestProgress( const map<string,pair<double,string> >& groupsProgress ){
+  map<string,string> progressValues;
+  for ( map<string,pair<double,string> >::const_iterator p = groupsProgress.begin(); p != groupsProgress.end(); ++p ){
+    progressValues["//es:peripheralCrates[@group='" + p->first + "']/@progress" ] = emu::utils::stringFrom<int>( (int)p->second.first );
+    bsem_.take();
+    xml_ = emu::utils::removeSelectedNode( xml_, "//es:peripheralCrates[@group='" + p->first + "']/es:message" );
+    xml_ = emu::utils::appendToSelectedNode( xml_, "//es:peripheralCrates[@group='" + p->first + "']", 
+					     "<es:message>" + p->second.second + "</es:message>" );
+    bsem_.give();
+  }
   bsem_.take();
-  xml_ = emu::utils::setSelectedNodesValues( xml_, values );
+  xml_ = emu::utils::setSelectedNodesValues( xml_, progressValues );
   bsem_.give();
 }

@@ -14,6 +14,7 @@
 
   <xsl:template match="/EmuSystem">
     <es:peripheralCrates group="{$GROUP}" progress="0">
+      <es:message></es:message>
       <xsl:apply-templates select="PeripheralCrate"/>
     </es:peripheralCrates>
   </xsl:template>
