@@ -632,9 +632,8 @@ bool emu::step::Manager::waitForDAQToExecute( const string command, const uint64
   xdata::String  daqState;
   for ( uint64_t i=0; i<=seconds; ++i ){
     m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "daqState", &daqState ) );
-    if ( daqState.toString() != "Halted"  && daqState.toString() != "Ready" && 
-	 daqState.toString() != "Enabled" && daqState.toString() != "INDEFINITE" ){
-      LOG4CPLUS_ERROR( logger_, "Local DAQ is in " << daqState.toString() << " state. Please destroy and recreate local DAQ." );
+    if ( daqState.toString() == "Failed" ){
+      LOG4CPLUS_ERROR( logger_, "Local DAQ is in 'Failed' state. Please destroy and recreate local DAQ." );
       return false;
     }
     if ( daqState.toString() == expectedState ){ return true; }
