@@ -191,6 +191,7 @@
 	      </div>
 	    </div>
 	  </xsl:if>
+	  <xsl:copy-of select="es:message"/>
 	</th>
       </tr>
       <tr>

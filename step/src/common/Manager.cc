@@ -656,18 +656,22 @@ void emu::step::Manager::waitForTestsToFinish( const bool isTestDurationUndefine
     bool allFinished = true;
     if ( isTestDurationUndefined ){
       // Query the local DAQ
+      xdata::String  reasonForFailure;
       xdata::Integer64 maxNumberOfEvents;
       xdata::UnsignedInteger64 STEPCount;
       m.getParameters( "emu::daq::manager::Application", 0, 
 		       emu::soap::Parameters()
+		       .add( "reasonForFailure" , &reasonForFailure  ) // empty if not in failed state
 		       .add( "maxNumberOfEvents", &maxNumberOfEvents )
 		       .add( "STEPCount"        , &STEPCount         ) );
       if ( (uint64_t) maxNumberOfEvents > 0 ){
 	double progress = 100. * double( STEPCount.value_ ) / double( maxNumberOfEvents.value_ ); // in %
 	// Assign every group the same progress. It would be complicated to attribute, and it wouldn't make much sense anyway.
-	map<string,double> groupsProgress;
-	for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app ) groupsProgress[app->first] = progress;
-	// cout << groupsProgress << endl;
+	map<string,pair<double,string> > groupsProgress; // group -> ( progress, message )
+	map<string,xdaq::ApplicationDescriptor*>::iterator app;
+	for ( app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app ){
+	  groupsProgress[app->first] = make_pair<double,string>( progress, reasonForFailure );
+	}
 	configuration_->setTestProgress( groupsProgress );
       }
       allFinished = ( (int64_t) STEPCount.value_ >= maxNumberOfEvents );
@@ -675,16 +679,19 @@ void emu::step::Manager::waitForTestsToFinish( const bool isTestDurationUndefine
     }
     else{
       // Query the Tester apps
-      map<string,double> groupsProgress;
+      map<string,pair<double,string> > groupsProgress; // group -> ( progress, message )
       for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app ){
-	xdata::Double progress;
+	xdata::String  reasonForFailure;
+	xdata::Double  progress;
 	xdata::Boolean testDone;
 	m.getParameters( app->second, 
 			 emu::soap::Parameters()
-			 .add( "progress", &progress )
-			 .add( "testDone", &testDone ) );
-	groupsProgress[app->first] = double( progress );
-	allFinished &= (bool) testDone;
+			 .add( "reasonForFailure", &reasonForFailure    ) // empty if not in failed state
+			 .add( "progress"        , &progress            )
+			 .add( "testDone"        , &testDone            ) );
+	groupsProgress[app->first] = make_pair<double,string>( progress , reasonForFailure );
+	if ( reasonForFailure.toString().size() > 0 ) allFinished &= true;
+	else                                          allFinished &= (bool) testDone;
 	// LOG4CPLUS_INFO( logger_, app->first << ( (bool) testDone ? " is done." : " is not yet done." ) );
 	if ( testDone ){ LOG4CPLUS_INFO( logger_, app->first << " is done."); }
       }

@@ -217,7 +217,17 @@ void emu::step::Tester::stopAction( toolbox::Event::Reference e ){
 bool emu::step::Tester::testInWorkLoop( toolbox::task::WorkLoop *wl ){
   if ( test_ ){
     LOG4CPLUS_INFO( logger_, "Executing test " << test_->getId() );
-    test_->setRunStartTime( runStartTime_ ).setRunNumber( runNumber_ ).setDataDirNames( getDataDirNamesSTL() ).execute();
+    try{
+      test_->setRunStartTime( runStartTime_ ).setRunNumber( runNumber_ ).setDataDirNames( getDataDirNamesSTL() ).execute();
+    }
+    catch ( xcept::Exception& e ){
+      stringstream ss;
+      ss << "Failed to execute test " <<  test_->getId();
+      XCEPT_DECLARE_NESTED( xcept::Exception, ee, ss.str(), e );
+      LOG4CPLUS_FATAL( logger_, stdformat_exception_history( ee ) );
+      moveToFailedState( ee );
+      return false;
+    }
     testDone_ = true;
     LOG4CPLUS_INFO( logger_, "Executed test " << test_->getId() );
   }
