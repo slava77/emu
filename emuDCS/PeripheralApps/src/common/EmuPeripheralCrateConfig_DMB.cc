@@ -902,6 +902,16 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
     .set("value", "Program EPROM") << std::endl;
   *out << cgicc::form() << FirmwareDir_+"cfeb/me11_dcfeb.mcs" << cgicc::br() << cgicc::hr() << std::endl;
   
+  std::string CFEBwritefirmall =
+      toolbox::toString("/%s/DCFEBProgramEpromAll",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("action", CFEBwritefirmall) << std::endl;
+  
+  *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
+  *out << cgicc::input().set("type", "submit")
+    .set("name", "command")
+    .set("value", "Program EPROM - All CFEBs") << std::endl;
+  *out << cgicc::form() << FirmwareDir_+"cfeb/me11_dcfeb.mcs" << cgicc::br() << cgicc::hr() << std::endl;
+  
   std::string CFEBprogfpga =
       toolbox::toString("/%s/DCFEBProgramFpga",getApplicationDescriptor()->getURN().c_str());
   *out << "Use this one ONLY if power-cycle failed to recover the FPGA:" << cgicc::br()<< std::endl;
@@ -1119,6 +1129,39 @@ void EmuPeripheralCrateConfig::DCFEBProgramEprom(xgi::Input * in, xgi::Output * 
      thisDMB->dcfeb_program_eprom(cfebs[icfeb], mcsfile.c_str());
      
      std::cout << getLocalDateTime() << " DCFEB program EPROM finished." << std::endl;
+     this->CFEBUtils(in,out);                    
+}
+  
+void EmuPeripheralCrateConfig::DCFEBProgramEpromAll(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception)
+{
+
+  cgicc::Cgicc cgi(in);
+
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Not dmb" << std::endl ;
+    dmb = DMB_;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+
+     std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+     std::string mcsfile= FirmwareDir_+ "cfeb/me11_dcfeb.mcs";
+
+     for(uint icfeb=0; icfeb<cfebs.size(); ++icfeb){
+       std::cout << getLocalDateTime() << " DCFEB program EPROM on DMB " << dmb << " CFEB " << cfebs[icfeb].number()+1 << std::endl;
+       std::cout << "Use mcs file: " << mcsfile << std::endl;
+       
+       thisDMB->dcfeb_program_eprom(cfebs[icfeb], mcsfile.c_str());
+       
+       std::cout << getLocalDateTime() << " DCFEB program EPROM finished." << std::endl;
+     }
      this->CFEBUtils(in,out);                    
 }
   
