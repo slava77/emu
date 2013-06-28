@@ -29,7 +29,7 @@ typeset -a INDICES
 typeset -a RUNTYPES
 typeset -a RUNNUMBERS
 typeset -a RUNTIMES
-PLOTDIRS=( $RAWDATADIR/Tests_results/Test_*/csc_*plots(/Ne{'[[ ! -f $REPLY/README ]]'}) )
+PLOTDIRS=( $RAWDATADIR/Tests_results/Test_*/csc_*plots(/OcNe{'[[ ! -f $REPLY/README ]]'}) )
 for PLOTDIR in $PLOTDIRS; do
     ((INDEX++))
     INDICES+=( $INDEX )
