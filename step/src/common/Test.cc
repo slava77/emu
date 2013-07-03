@@ -1541,7 +1541,7 @@ void emu::step::Test::_25(){
       usleep(100);
       
       stringstream timeStampFileName;
-      timeStampFileName << "Test25_"  << (*crate)->GetLabel()
+      timeStampFileName << "Test25"
 			<< "_CrateId" << setfill('0') << setw(2) << (*crate)->CrateID()
 			<< "_TMBslot" << setfill('0') << setw(2) << (*tmb)->slot()
 			<< "_"        << setfill('0') << setw(8) << runNumber_
@@ -1550,7 +1550,7 @@ void emu::step::Test::_25(){
       ofstream timeStampFile;
       timeStampFile.open( ( dataDir + "/" + timeStampFileName.str() ).c_str() );
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Opened " << dataDir << "/" << timeStampFileName.str() ); }
-      timeStampFile << "#crate    :\t" << (*crate)->GetLabel() << endl;
+      timeStampFile << "#crate id :\t" << (*crate)->CrateID() << endl;
       timeStampFile << "#TMB slot :\t" << (*tmb)->slot() << endl;
       timeStampFile << "#chamber  :\t" << (*tmb)->getChamber()->GetLabel() << endl;
       timeStampFile << "#time [ms]\tevent counts" << endl;
