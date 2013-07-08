@@ -1250,6 +1250,9 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table() << std::endl;
 
   // CFEBs
+  int chn2pos[8];
+  for (int i=0; i<8; i++) chn2pos[i]=thisDMB->LVDB_map(i);
+  //
   *out << cgicc::br() << cgicc::b("CFEB Low Voltages and Currents") << std::endl;
 
   *out << cgicc::table().set("border","1").set("cellpadding","4");
@@ -1265,16 +1268,17 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
 
   for(int feb=0; feb<cfebs; feb++)
   {
+     int lfeb=chn2pos[feb];
      *out << cgicc::tr();
      *out <<cgicc::td() << "CFEB " << feb+1 << cgicc::td();
      for(int cnt=0; cnt<3; cnt++)
      {
-        val=fvalue[vstart+3*feb+cnt];
+        val=fvalue[vstart+3*lfeb+cnt];
         sprintf(sbuf, " %6.2f ", val);
         *out << cgicc::td();
         *out << sbuf;  
         *out << cgicc::td();
-        val=fvalue[3*feb+cnt];
+        val=fvalue[3*lfeb+cnt];
         sprintf(sbuf, " %6.2f ", val);
         *out <<cgicc::td();
         *out << sbuf;  
@@ -1393,13 +1397,16 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   unsigned short *voltbuf;
   voltbuf = (unsigned short *)buf;
   //
+  int chn2pos[8];
+  for (int i=0; i<8; i++) chn2pos[i]=thisDMB->LVDB_map(i);
+  //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
   //
   *out << cgicc::legend("Power Control").set("style","color:blue") ;
   //
   *out << cgicc::table().set("border","1");
   //
-  int power_state[9];
+  int power_state[9]={0,0,0,0,0,0,0,0,0};
   int powermask = allmask & thisDMB->GetPowerMask();
   unsigned int power_register = thisDMB->lowv_rdpwrreg();
   // std::cout << "power register is " << std::hex << power_register << std::dec << std::endl;
@@ -1446,10 +1453,11 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   }
   for(int icc=0; icc<=tot_p_chans; icc++)
   {
+     int licc=chn2pos[icc-1];
      *out << cgicc::td();
-     if(power_state[icc]>0)
+     if(power_state[licc+1]>0)
         *out << cgicc::span().set("style","color:green");
-     else if(power_state[icc]==0)
+     else if(power_state[licc+1]==0)
         *out << cgicc::span().set("style","color:red");
      else
         *out << cgicc::span().set("style","color:black");
@@ -1479,12 +1487,13 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
   *out << cgicc::td();
   for(int icc=0; icc<tot_p_chans; icc++)
   {
+     int licc=chn2pos[icc];
      *out << cgicc::td();
-     if(power_state[icc+1]>0)
+     if(power_state[licc+1]>0)
      {
         *out << "On";
      }
-     else if(power_state[icc+1]<0)
+     else if(power_state[licc+1]<0)
      {
         *out << "Masked";
      }
@@ -1495,7 +1504,7 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
         *out << cgicc::input().set("type","submit").set("value","Turn On") << std::endl ;
         sprintf(buf,"%d",dmb);
         *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-        sprintf(nbuf, "%d", power_read|(1<<icc) ); 
+        sprintf(nbuf, "%d", power_read|(1<<licc) ); 
         *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
         *out << cgicc::form() << std::endl ;
      }
@@ -1515,19 +1524,20 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
   *out << cgicc::td();
   for(int icc=0; icc<tot_p_chans; icc++)
   {
+     int licc=chn2pos[icc];
      *out << cgicc::td();
-     if(power_state[icc+1]>0)
+     if(power_state[licc+1]>0)
      {
         std::string CFEBTurnOn = toolbox::toString("/%s/CFEBTurnOn",getApplicationDescriptor()->getURN().c_str());
         *out << cgicc::form().set("method","GET").set("action",CFEBTurnOn) << std::endl ;
         *out << cgicc::input().set("type","submit").set("value","Turn Off") << std::endl ;
         sprintf(buf,"%d",dmb);
         *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-        sprintf(nbuf, "%d", power_read & (~(1<<icc)) );
+        sprintf(nbuf, "%d", power_read & (~(1<<licc)) );
         *out << cgicc::input().set("type","hidden").set("value",nbuf).set("name","cfeb");
         *out << cgicc::form() << std::endl ;
      }
-     else if(power_state[icc+1]<0)
+     else if(power_state[licc+1]<0)
      {
         *out << "Masked";
      }
