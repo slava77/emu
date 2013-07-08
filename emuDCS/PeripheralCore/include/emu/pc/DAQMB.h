@@ -443,6 +443,10 @@ public:
   void set_cal_tim_pulse(int ntim);
   void set_cal_tim_inject(int ntim);
   //
+  inline void SetLVDBMapping(int map) { lvdb_mapping_ = map; }
+  inline int GetLVDBMapping() { return lvdb_mapping_; }
+  int LVDB_map(int chn);
+  
   // firmware version tags:
   inline void SetExpectedControlFirmwareTag(long int tag) { expected_control_firmware_tag_ = (unsigned long int) tag; }
   inline unsigned long int GetExpectedControlFirmwareTag()  { return expected_control_firmware_tag_; }
@@ -901,6 +905,7 @@ public:
 
   int hardware_version_;
   int kill_input_mask_;
+  int lvdb_mapping_;
   
   // VME registers defined in ODMB for direct access
   // Liu May 29, 2013. ODMB firmware version 0.0

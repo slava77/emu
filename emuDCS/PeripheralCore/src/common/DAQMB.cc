@@ -581,6 +581,7 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   failed_checkvme_(-1), power_mask_(0)
 {
    hardware_version_=0;
+   lvdb_mapping_=0;
    //
    //get the initial value first:
    killinput_=GetKillInput();
@@ -8570,6 +8571,19 @@ int DAQMB::dcfeb_adc(CFEB & cfeb, int chan)
      dcfeb_core(ADC_rdbk, 16, data, (char *)&temp, NOW|READ_YES|NOOP_YES);     
      udelay(100);
      return (temp&0xFFFF);
+}
+
+int DAQMB::LVDB_map(int chn)
+{
+     // return the LVDB position (0-7) of channel <chn> (for CFEB<chn+1>)
+
+     int lvdb7_f[8]={3,5,6,4,2,0,1,7};  // on LVDB: 6,7,5,1,4,2,3,8
+     int lvdb7_b[8] ={3,2,1,0,4,5,6,7};  // on LVDB: 4,3,2,1,5,6,7,8
+     if(chn<0 || chn>7) return 0;
+     if(hardware_version_<=1 || lvdb_mapping_==0) return chn;
+     if(lvdb_mapping_==1) return lvdb7_f[chn];
+     else if(lvdb_mapping_==2) return lvdb7_b[chn];
+     else return chn;
 }
 
 // ODMB discrete logic JTAG port.This method has exactly the same interface as cfeb_do(). 
