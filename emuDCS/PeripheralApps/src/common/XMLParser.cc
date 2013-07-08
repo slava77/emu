@@ -769,6 +769,9 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 //     if(fillInt("ALCT_dav_delay", delay)){
 //       daqmb_->SetAlctDavDelay(delay);
 //     }
+    if(fillInt("lvdb7_mapping", ivalue)){
+      daqmb_->SetLVDBMapping(ivalue);
+    }
     if(fillInt("hardware_version", ivalue)){
       daqmb_->SetHardwareVersion(ivalue);
     }
