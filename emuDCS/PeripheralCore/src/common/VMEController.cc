@@ -295,7 +295,10 @@
 #include "emu/pc/VMEController.h"
 #include <cmath>
 #include <string>
-#include <stdio.h>
+#include <stdexcept> 
+#include <cerrno>  // for errno
+#include <cstring> // for std::strerror
+#include <stdio.h> // for std::runtime_error
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
@@ -311,7 +314,6 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
-
 
 #define SCHAR_IOCTL_BASE	0xbb
 #define SCHAR_RESET     	_IO(SCHAR_IOCTL_BASE, 0)
@@ -704,7 +706,7 @@ int VMEController::do_schar(int open_or_close)
        if (schsocket == -1) 
        {
           std::cout << "ERROR opening /dev/schar device...ERROR" << std::endl;
-          exit(-1);
+	  throw std::runtime_error( std::string( "Failed to open /dev/schar device: " ) + std::strerror( errno ) );
        }
        // eth_enableblock();
        eth_reset(schsocket);
