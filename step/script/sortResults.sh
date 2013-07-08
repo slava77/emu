@@ -33,7 +33,7 @@ PLOTDIRS=( $RAWDATADIR/Tests_results/Test_*/csc_*plots(/OcNe{'[[ ! -f $REPLY/REA
 for PLOTDIR in $PLOTDIRS; do
     ((INDEX++))
     INDICES+=( $INDEX )
-    RUNTYPES+=( $(print $PLOTDIR | sed 's/.*_\(Test_[^_]\+\).*/\1/') )
+    RUNTYPES+=( $(print $PLOTDIR | sed -e '/Test_GasGain/ {s/.*/Test_27g/}' -e '/Test_GasGain/ !{ s:.*/csc_[0-9]\{8\}_[^_]\+_\(Test\|STEP\)_\([^_]\+\).*:Test_\2: }') )
     RUNNUMBERS+=( $(print $PLOTDIR | sed 's/.*csc_\([0-9]\{8\}\)_.*/\1/') )
     RUNTIMES+=( $(print $PLOTDIR | sed 's/.*_\([0-9]\{6\}_[0-9]\{6\}_UTC\).*/\1/') )
 done
