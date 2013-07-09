@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Config>
-                <ExpectedEvents>10000</ExpectedEvents>
+                <ExpectedEvents>15000</ExpectedEvents>
                 <Description>CFEB Pedestals and Noise</Description>
+		<accept_all_events>0</accept_all_events>
         </Config>
         <TestResult>
 		<Test>CFEB02</Test>
@@ -15,8 +16,8 @@
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
                 <YMin>0</YMin>
-                <YMax>1200</YMax>
-                <YBins>240</YBins>
+                <YMax>1400</YMax>
+                <YBins>280</YBins>
                 <YTitle>Pedestal Mean, ADC counts</YTitle>
 		<Low1Limit>400</Low1Limit>
 		<Low0Limit>400</Low0Limit>
@@ -85,13 +86,18 @@
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
                 <YMin>0</YMin>
-                <YMax>1200</YMax>
-                <YBins>240</YBins>
+                <YMax>1400</YMax>
+                <YBins>280</YBins>
                 <YTitle>Pedestal Mean, ADC counts</YTitle>
                 <Low1Limit>400</Low1Limit>
                 <Low0Limit>400</Low0Limit>
                 <High0Limit>800</High0Limit>
                 <High1Limit>800</High1Limit>
+
+		<Low1Limit_ME11>950</Low1Limit_ME11>
+		<Low0Limit_ME11>950</Low0Limit_ME11>
+		<High0Limit_ME11>1200</High0Limit_ME11>
+		<High1Limit_ME11>1200</High1Limit_ME11>
         </TestResult>
 
 	<TestResult>
@@ -126,13 +132,18 @@
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
                 <YMin>0</YMin>
-                <YMax>1200</YMax>
-                <YBins>240</YBins>
+                <YMax>1400</YMax>
+                <YBins>280</YBins>
                 <YTitle>Pedestal Mean, ADC counts</YTitle>
                 <Low1Limit>400</Low1Limit>
                 <Low0Limit>400</Low0Limit>
                 <High0Limit>800</High0Limit>
                 <High1Limit>800</High1Limit>
+
+		<Low1Limit_ME11>950</Low1Limit_ME11>
+		<Low0Limit_ME11>950</Low0Limit_ME11>
+		<High0Limit_ME11>1200</High0Limit_ME11>
+		<High1Limit_ME11>1200</High1Limit_ME11>
         </TestResult>
 
         <TestResult>
