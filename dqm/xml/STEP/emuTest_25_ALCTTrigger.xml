@@ -14,10 +14,13 @@
                 <YMax>20</YMax>
                 <YBins>30</YBins>
                 <YTitle>4/6 planes rate, Hz/m</YTitle>
-		<Low1Limit>0</Low1Limit>
-		<Low0Limit>0</Low0Limit>
-		<High0Limit>15</High0Limit>
-		<High1Limit>20</High1Limit>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0</Low0Limit>
+                <High0Limit>15</High0Limit>
+                <High1Limit>20</High1Limit>
+        
+                <High0Limit2>100</High0Limit2>
+                <High1Limit2>105</High1Limit2>
         </TestResult> 
 		
 		<TestResult>
