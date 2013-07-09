@@ -71,6 +71,7 @@ class TestCanvas_6gr1h: public TCanvas
   int theNbinsy;   ///< Number of bins along Y axis of graphs
   double theYlow; ///< Low edge of first bin along Y axis of graphs
   double theYup;  ///< Upper edge of last bin along Y axis of graphs (not included in last bin)
+  double theYup2;
 
 // Color index settings:
   int theFillColor;        ///< Canvas fill color
@@ -98,12 +99,18 @@ class TestCanvas_6gr1h: public TCanvas
   double theLowLowLimit;
   double theHighLimit;
   double theHighHighLimit;
+  
+  double theHighLimit2;
+  double theHighHighLimit2;
 
 // Lines to show performance range on left graphs
   TLine* theLowLine;
   TLine* theHighLine;
   TLine* theLowLowLine;
   TLine* theHighHighLine;
+  
+  TLine* theHighLine2;
+  TLine* theHighHighLine2;
 // Lines to show performance range on right histogram
   TLine* theRightLowLine;
   TLine* theRightHighLine;
@@ -153,7 +160,7 @@ class TestCanvas_6gr1h: public TCanvas
   TGraph* theGraphRedEmptyTriangleDown[NLAYERS];
 
 public:
-  TestCanvas_6gr1h (std::string , std::string , Int_t, Double_t, Double_t, Int_t, Double_t, Double_t, std::string);
+  TestCanvas_6gr1h (std::string , std::string , Int_t, Double_t, Double_t, Int_t, Double_t, Double_t, std::string, Double_t);
   ~TestCanvas_6gr1h ();
   std::string GetName(void);                           ///< Get name of canvas
   std::string GetTitle(void);                          ///< Get title of canvas
@@ -163,7 +170,8 @@ public:
   void SetTitle (std::string);                         ///< Set title of canvas
   void SetXTitle (std::string);                        ///< Set x-title of graphs (see canvas layout above)
   void SetYTitle (std::string);                        ///< Set y-title of graphs (see canvas layout above)
-  void SetLimits(Double_t,Double_t,Double_t,Double_t); ///< Set performance range limits
+  // void SetLimits(Double_t,Double_t,Double_t,Double_t,Double_t h0lim2 = 0, Double_t h1lim2 = 0); ///< Set performance range limits
+  void SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t highLimit,Double_t highHighLimit,Double_t highLimit2=0,Double_t highHighLimit2=0);
   std::vector<Double_t>GetLimits();
   void AddTextTest (std::string);                      ///< Add test name to text box
   void AddTextResult (std::string);                    ///< Add result name to text box

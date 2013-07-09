@@ -27,9 +27,11 @@ protected:
   void analyzeCSC(const CSCEventData& data);
   void finishCSC(std::string cscID);
   bool checkResults(std::string cscID);
+  void setTestParams();
 
   cscCFEBSCAData sdata;
   bool isME11;
+  bool accept_all_events;;
 
 };
 
