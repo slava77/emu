@@ -1,6 +1,6 @@
 #include "emu/dqm/calibration/TestCanvas_6gr1h.h"
 
-TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t Nbinsx, Double_t xlow, Double_t xup, Int_t Nbinsy, Double_t ylow, Double_t yup, std::string cnvtype)
+TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t Nbinsx, Double_t xlow, Double_t xup, Int_t Nbinsy, Double_t ylow, Double_t yup, std::string cnvtype, Double_t yup2=0)
 {
 
   theName  = name.c_str();
@@ -15,6 +15,7 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   theNbinsy = Nbinsy;
   theYlow   = ylow;
   theYup    = yup;
+  theYup2   = yup2;
 
 // Color index settings
   theColorWhite         = TColor::GetColor("#ffffff"); ///< White
@@ -31,6 +32,8 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
 // Default values of performance range limits
   theHighLimit     = (theYup + theYlow)/2.0 + (theYup - theYlow)/6.0;
   theHighHighLimit = (theYup + theYlow)/2.0 + (theYup - theYlow)/3.0;
+  theHighLimit2    = (theYup2 + theYlow)/2.0 + (theYup2 - theYlow)/6.0;
+  theHighHighLimit2= (theYup2 + theYlow)/2.0 + (theYup2 - theYlow)/3.0;
   theLowLimit      = (theYup + theYlow)/2.0 - (theYup - theYlow)/6.0;
   theLowLowLimit   = (theYup + theYlow)/2.0 - (theYup - theYlow)/3.0;
 
@@ -46,6 +49,10 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   theHighLine->SetLineColor(theColorGreenLight);
   theHighLine->SetLineWidth(theLineWidth);
   theHighLine->SetLineStyle(theLineStyle);
+  theHighLine2 = new TLine(theXlow,theHighLimit2,theXup,theHighLimit2); //
+  theHighLine2->SetLineColor(theColorGreenLight); //
+  theHighLine2->SetLineWidth(theLineWidth); //
+  theHighLine2->SetLineStyle(theLineStyle);//
   theLowLowLine = new TLine(theXlow,theLowLowLimit,theXup,theLowLowLimit);
   theLowLowLine->SetLineColor(theColorRedLight);
   theLowLowLine->SetLineWidth(theLineWidth);
@@ -54,6 +61,10 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
   theHighHighLine->SetLineColor(theColorRedLight);
   theHighHighLine->SetLineWidth(theLineWidth);
   theHighHighLine->SetLineStyle(theLineStyle);
+  theHighHighLine2 = new TLine(theXlow,theHighHighLimit2,theXup,theHighHighLimit2); //
+  theHighHighLine2->SetLineColor(theColorRedLight); //
+  theHighHighLine2->SetLineWidth(theLineWidth); //
+  theHighHighLine2->SetLineStyle(theLineStyle); //
 // Lines to show performance range on right histogram
   theRightLowLine = new TLine(theLowLimit,0.0,theLowLimit,100.0);
   theRightLowLine->SetLineColor(theColorGreenLight);
@@ -170,15 +181,17 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
 
   int fIndexLeftHisto;
   std::string fTitleLeftHisto;
+  double epsilon = (theYup-theYlow)/1000.0; //some pts not displayed when on the edge, so push apart range (not test limits) by epsilon
+
   for (fIndexLeftHisto = 0; fIndexLeftHisto < NLAYERS; fIndexLeftHisto++)
   {
     
     fTitleLeftHisto = Form("Layer_%d", fIndexLeftHisto + 1);
     if(cnvtype == "mwires_cnv") {
-        fTitleLeftHisto = Form("%d/6 plane", fIndexLeftHisto + 1);
+        fTitleLeftHisto = Form("%d/6 planes", fIndexLeftHisto + 1);
     }
-
-    theLeftHisto[fIndexLeftHisto] = new TH2F((name+"_"+fTitleLeftHisto).c_str(), fTitleLeftHisto.c_str(), theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
+    
+    theLeftHisto[fIndexLeftHisto] = new TH2F((name+"_"+fTitleLeftHisto).c_str(), fTitleLeftHisto.c_str(), theNbinsx, theXlow, theXup, theNbinsy, theYlow-epsilon, ((fIndexLeftHisto == 0 && cnvtype == "mwires_cnv" && theHighHighLimit2 > 0) ? theYup2+epsilon : theYup+epsilon));
     theLeftHisto[fIndexLeftHisto]->GetXaxis()->CenterTitle(true);
     theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitle("Title X");
     theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitleFont(fTextFont);
@@ -315,7 +328,7 @@ void TestCanvas_6gr1h::SetXTitle (std::string text)
 void TestCanvas_6gr1h::SetYTitle (std::string text)
 {
 
-  theLeftHistoBackground->GetYaxis()->SetTitle(text.c_str());
+  theLeftHistoBackground->GetYaxis()->SetTitle((cnvType != "mwires_cnv") ? text.c_str() : "");
   theRightHisto->GetXaxis()->SetTitle(text.c_str());
 
 }
@@ -376,13 +389,16 @@ void TestCanvas_6gr1h::AddTextLimits (std::string text)
 
 }
 
-void TestCanvas_6gr1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t highLimit,Double_t highHighLimit)
+void TestCanvas_6gr1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t highLimit,Double_t highHighLimit,Double_t highLimit2, Double_t highHighLimit2)
 {
 
   theLowLimit = lowLimit;
   theLowLowLimit = lowLowLimit;
   theHighLimit = highLimit;
   theHighHighLimit = highHighLimit;
+  
+  theHighLimit2 = highLimit2;
+  theHighHighLimit2 = highHighLimit2;
 
   theLowLine->SetY1(theLowLimit);
   theLowLine->SetY2(theLowLimit);
@@ -392,6 +408,11 @@ void TestCanvas_6gr1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_
   theHighLine->SetY2(theHighLimit);
   theHighHighLine->SetY1(theHighHighLimit);
   theHighHighLine->SetY2(theHighHighLimit);
+  
+  theHighLine2->SetY1(theHighLimit2);
+  theHighLine2->SetY2(theHighLimit2);
+  theHighHighLine2->SetY1(theHighHighLimit2);
+  theHighHighLine2->SetY2(theHighHighLimit2);
 
   theRightLowLine->SetX1(theLowLimit);
   theRightLowLine->SetX2(theLowLimit);
@@ -426,21 +447,36 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
 
   int fNlayer;
   int fNbin;
+  
+  double theYupBoth, theHighLimitBoth, theHighHighLimitBoth;
+ 
   for (fNlayer = 0; fNlayer < data.Nlayers; fNlayer++)
   {
+  
+      if(cnvType == "mwires_cnv" && fNlayer == 0 && theYup2 > 0) {
+        theYupBoth = theYup2;
+        theHighLimitBoth = theHighLimit2;
+        theHighHighLimitBoth = theHighHighLimit2;
+      } else {
+        theYupBoth = theYup;
+        theHighLimitBoth = theHighLimit;
+        theHighHighLimitBoth = theHighHighLimit;
+      }
+      
     for (fNbin = 0; fNbin < data.Nbins; fNbin++)
     {
       fX[fNbin] = fNbin;
       fY[fNbin] = data.content[fNlayer][fNbin];
 
       // if (fY[fNbin] == -999.) continue;
+      
 		
       if (mask.content[fNlayer][fNbin] == 0)
       {
         theRightHisto->Fill(fY[fNbin]);
       }
 
-      if (fY[fNbin] <= theHighLimit && fY[fNbin] >= theLowLimit)
+      if (fY[fNbin] <= theHighLimitBoth && fY[fNbin] >= theLowLimit)
       {
         if (mask.content[fNlayer][fNbin] == 0)
         {
@@ -453,7 +489,7 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
         }
 
       }
-      if ((fY[fNbin] > theHighLimit && fY[fNbin] <= theHighHighLimit) || (fY[fNbin] >= theLowLowLimit && fY[fNbin] < theLowLimit))
+      if ((fY[fNbin] > theHighLimitBoth && fY[fNbin] <= theHighHighLimitBoth) || (fY[fNbin] >= theLowLowLimit && fY[fNbin] < theLowLimit))
       {
         if (mask.content[fNlayer][fNbin] == 0)
         {
@@ -466,7 +502,7 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
           theGraphYellowEmpty[fNlayer]->SetPoint(theGraphYellowEmpty[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
         }
       }
-      if ((fY[fNbin] > theHighHighLimit && fY[fNbin] <= theYup) || (fY[fNbin] >= theYlow && fY[fNbin] < theLowLowLimit))
+      if ((fY[fNbin] > theHighHighLimitBoth && fY[fNbin] <= theYupBoth) || (fY[fNbin] >= theYlow && fY[fNbin] < theLowLowLimit))
       {
 
         fNOutOfLimits = fNOutOfLimits + 1;
@@ -481,19 +517,19 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
           theGraphRedEmpty[fNlayer]->SetPoint(theGraphRedEmpty[fNlayer]->GetN(), fX[fNbin], fY[fNbin]);
         }
       }
-      if (fY[fNbin] > theYup)
+      if (fY[fNbin] > theYupBoth)
       {
 
         fNOutOfLimits = fNOutOfLimits + 1;
         if (mask.content[fNlayer][fNbin] == 0)
         {
           if (!fIsRedSolid) fIsRedSolid = true;
-          theGraphRedSolidTriangleUp[fNlayer]->SetPoint(theGraphRedSolidTriangleUp[fNlayer]->GetN(), fX[fNbin], theYup);
+          theGraphRedSolidTriangleUp[fNlayer]->SetPoint(theGraphRedSolidTriangleUp[fNlayer]->GetN(), fX[fNbin], theYupBoth);
         }
         else
         {
           if (!fIsEmpty) fIsEmpty = true;
-          theGraphRedEmptyTriangleUp[fNlayer]->SetPoint(theGraphRedEmptyTriangleUp[fNlayer]->GetN(), fX[fNbin], theYup);
+          theGraphRedEmptyTriangleUp[fNlayer]->SetPoint(theGraphRedEmptyTriangleUp[fNlayer]->GetN(), fX[fNbin], theYupBoth);
         }
       }
       if (fY[fNbin] < theYlow)
@@ -611,8 +647,14 @@ void TestCanvas_6gr1h::Draw (void)
 
     theLowLine->Draw();
     theLowLowLine->Draw();
-    theHighLine->Draw();
-    theHighHighLine->Draw();
+    
+    if(cnvType == "mwires_cnv" && fNlayer == 0 && (theHighHighLimit2 > 0 && theHighLimit2 > 0) ) {
+        theHighHighLine2->Draw();
+        theHighLine2->Draw();
+    } else {
+        theHighLine->Draw();
+        theHighHighLine->Draw();
+    }
 
     if (theGraphGreenSolid[fNlayer]->GetN()           > 0) theGraphGreenSolid[fNlayer]->Draw("P");
     if (theGraphYellowSolid[fNlayer]->GetN()          > 0) theGraphYellowSolid[fNlayer]->Draw("P");

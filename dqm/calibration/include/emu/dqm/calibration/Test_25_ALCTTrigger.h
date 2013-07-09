@@ -15,36 +15,6 @@
 #include <TProfile.h>
 #include <TFile.h>
 
-#define HIST_1PLANE_LOW_LIMIT0        0.
-#define HIST_2PLANE_LOW_LIMIT0        0.
-#define HIST_3PLANE_LOW_LIMIT0        0.
-#define HIST_4PLANE_LOW_LIMIT0        0.
-#define HIST_5PLANE_LOW_LIMIT0        0.
-#define HIST_6PLANE_LOW_LIMIT0        0.
-
-#define HIST_1PLANE_HIGH_LIMIT0     200.
-#define HIST_2PLANE_HIGH_LIMIT0      27.
-#define HIST_3PLANE_HIGH_LIMIT0      27.
-#define HIST_4PLANE_HIGH_LIMIT0      20.
-#define HIST_5PLANE_HIGH_LIMIT0      13.5
-#define HIST_6PLANE_HIGH_LIMIT0      10.5
-
-#define HIST_1PLANE_LOW_LIMIT1        0.
-#define HIST_2PLANE_LOW_LIMIT1        0.
-#define HIST_3PLANE_LOW_LIMIT1        0.
-#define HIST_4PLANE_LOW_LIMIT1        0.
-#define HIST_5PLANE_LOW_LIMIT1        0.
-#define HIST_6PLANE_LOW_LIMIT1        0.
-
-#define HIST_1PLANE_HIGH_LIMIT1   ((source_type) ? 20000. : 2000.)
-#define HIST_2PLANE_HIGH_LIMIT1   ((source_type) ? 200.   : 20.)
-#define HIST_3PLANE_HIGH_LIMIT1   ((source_type) ? 20.    : 10.)
-#define HIST_4PLANE_HIGH_LIMIT1   ((source_type) ? 16.    : 8.)
-#define HIST_5PLANE_HIGH_LIMIT1   10.
-#define HIST_6PLANE_HIGH_LIMIT1   ((source_type) ? 8.     : 5.)
-
-#define MAX_SCALER              1000000.
-
 typedef struct ddu_stats_afeb
 {
   long first_l1a;
@@ -56,6 +26,12 @@ typedef struct ddu_stats_afeb
 
 } ddu_stats_afeb;
 
+struct LimitData { 
+    int events[6];
+    int time[6];
+};
+
+typedef std::map<std::string, LimitData> EventLimits;
 
 class Test_25_ALCTTrigger: public Test_Generic
 {
@@ -69,7 +45,7 @@ protected:
   void analyzeCSC(const CSCEventData& data);
   void finishCSC(std::string cscID);
   bool checkResults(std::string cscID);
-  bool loadThresholdParams(std::string dfile);
+  bool loadThresholdParams(std::string dfile, std::string cscID, int crateID, int DMBslot);
 
   std::map<std::string, uint32_t> l1a_cntrs;
   std::map<int, int> dduL1A;
@@ -77,6 +53,8 @@ protected:
   int startL1A;
   int dduID;
   
+  std::string dataFileName;
+  EventLimits threshold_limit;
 
   std::map<int, ddu_stats_afeb> DDUstats;
   std::map<int, std::map<std::string, test_step> > htree;
@@ -88,11 +66,7 @@ protected:
   unsigned short alct_full_bxn;          /* ALCT Full Bunch Crossing Number  */
   	 
   int first, plane_threshold, pattern_threshold;
-  float all_time[6];
-  int threshold_limit[6];
-  int src_status; // Status of radioactive source for this run, 
   int nwires;
-  int source_type;
 
 };
 

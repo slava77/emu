@@ -20,6 +20,8 @@ Test_CFEB02::Test_CFEB02(std::string dfile): Test_Generic(dfile)
   binCheckMask=0x1FEBF3F6;
   //  binCheckMask=0xF7CB3BF6;
   logger = Logger::getInstance(testID);
+
+  accept_all_events = false;
 }
 
 
@@ -157,6 +159,9 @@ void Test_CFEB02::initCSC(std::string cscID)
   // R23 - C77 covariance matrix element
   cscdata["R23"]=cfebdata;
 
+  // Fraction exceeding 3 sigma cut
+  cscdata["R24"]=cfebdata;
+
   tdata[cscID] = cscdata;;
 
   bookTestsForCSC(cscID);
@@ -269,6 +274,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
   TestData2D& r21 = cscdata["R21"];
   TestData2D& r22 = cscdata["R22"];
   TestData2D& r23 = cscdata["R23"];
+  TestData2D& r24 = cscdata["R24"];
 
   CFEBSCAData& scadata = sdata[cscID];
 
@@ -345,10 +351,16 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
             {
               CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
               int ADC = (int) ((timeSample->adcCounts)&0xFFF);
+
+              r24.cnts[layer-1][strip-1 + icfeb*16]++;
+
               //= Three-sigma cut
               if ( fabs(ADC-mv0) >= 3*rms0)
               {
-                fEventValid=false;
+
+                r24.content[layer-1][strip-1 + icfeb*16]++;
+
+                if(!accept_all_events) fEventValid=false;
                 /*
                 std::cout << "Evt" <<nEvents << " " << cscID << " " << layer << ":"<< (icfeb*16+strip) << " skipped "
                     <<  fabs(ADC-mv0) << ">=" << (3*rms0) <<  std::endl;
@@ -431,7 +443,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
                 }
 
                 int scaNumber=8*conv_blk[scaBlock]+cap;
-				
+
                 if(scaNumber < 0) {
                   if(isME11) {
                     scaNumber = 0;
@@ -632,6 +644,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
     TestData2D& r22 = cscdata["R22"];
     TestData2D& r23 = cscdata["R23"];
 
+    TestData2D& r24 = cscdata["R24"];
     // ResultsCodes& rcodes = rescodes[cscID];
 
     CFEBSCAData& scadata = sdata[cscID];
@@ -921,6 +934,8 @@ void Test_CFEB02::finishCSC(std::string cscID)
             r23.content[i][j] = BAD_VALUE;
           }
 
+          // Calculate fractional rate of exceeding 3 sigma cut
+          r24.content[i][j] /= (float)r24.cnts[i][j];          
 
 
         }
@@ -1075,3 +1090,14 @@ bool Test_CFEB02::checkResults(std::string cscID)
   return isValid;
 }
 
+void Test_CFEB02::setTestParams()
+{
+  LOG4CPLUS_INFO (logger, "Setting additional test parameters.");
+  std::map<std::string, std::string>::iterator itr;
+  itr = test_params.find("accept_all_events");
+  if (itr != test_params.end() )
+  {
+    accept_all_events = (atoi((itr->second).c_str()) == 0) ? false : true;
+    LOG4CPLUS_INFO (logger, "parameter: accept_all_events: " << accept_all_events);
+  }
+}
