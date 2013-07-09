@@ -1724,7 +1724,7 @@ void Test_Generic::finish()
 
               gStyle->SetPalette(1,0);
 
-              std::cout << "subtestID: " << subtestID << std::endl;
+              //std::cout << "subtestID: " << subtestID << std::endl;
               //std::cout << "params: " << params << std::endl;
               //  m_itr->second->Draw();
 
