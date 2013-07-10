@@ -32,7 +32,7 @@ protected:
   int last_wire[NLAYERS];
   
   int duration_ms;
-
+  std::string voltageStr;
 
 };
 

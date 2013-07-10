@@ -304,6 +304,7 @@ void Test_19_CFEBComparators::analyzeCSC(const CSCEventData& data)
   int curr_thresh =  DDUstats[dduID].thresh;
   int curr_amp = DDUstats[dduID].amp; // pulse number (0, 1, 2)
   int curr_strip = DDUstats[dduID].strip;
+  int nCFEBs = getNumStrips(cscID)/16;
 
   tstep.evt_cnt++;
 
@@ -321,6 +322,10 @@ void Test_19_CFEBComparators::analyzeCSC(const CSCEventData& data)
         {
           for (int nLayer=1; nLayer<=6; nLayer++)
             {
+
+              bool alreadyHasHit[nCFEBs];
+              for(int i = 0; i < nCFEBs; i++) alreadyHasHit[i] = false;  
+              
               vector<CSCComparatorDigi> comparatorDigis = clctData->comparatorDigis(nLayer);
 
 
@@ -342,23 +347,29 @@ void Test_19_CFEBComparators::analyzeCSC(const CSCEventData& data)
                   int first_thresh = (int)(dac * scale_turnoff / 16 - range_turnoff);
 
                   int ithresh = (curr_thresh - first_thresh)/thresh_step;
+                  int curr_cfeb = (strip-1)/16; //0..nCFEBs-1
+                  
+                  //if(nCSCEvents[cscID]%2000 == 0) {
+                    /*if((strip == 5 || strip == 9) && nLayer == 1) {
+                      cout << nCSCEvents[cscID] << "- strip " << strip - 1 << " - currstrip-1 " << curr_strip-1 << " - curramp " << curr_amp << " dac " << dac << " first_thresh "
+                      << first_thresh << " curr_thresh " << curr_thresh << " ithresh "
+                      << ithresh << endl;
+                      }*/
 
-                  /*if(nCSCEvents[cscID]%2000 == 0) {
-                  cout << nCSCEvents[cscID] << "- strip " << strip - 1 << " - currstrip-1 " << curr_strip-1 << " - curramp " << curr_amp << " dac " << dac << " first_thresh "
-                       << first_thresh << " curr_thresh " << curr_thresh << " ithresh "
-                  	 << ithresh << endl;
-                  }*/
 
-                  if((strip-curr_strip) % 16 == 0)
-                    thdata.content[curr_amp][nLayer-1][strip-1][ithresh]++;
-
-                }
-
-            }
-        }
-    }
-
-}
+                    if((strip-curr_strip) % 16 == 0) { // only record expected strip hits in each cfeb
+                        if(!alreadyHasHit[curr_cfeb]) { // ignore extra hits for same strip in an event
+                            alreadyHasHit[curr_cfeb] = true;
+                            thdata.content[curr_amp][nLayer-1][strip-1][ithresh]++;
+                        } else {
+                            cout << "multiple hits for evt " << nCSCEvents[cscID] << " - strip " << strip << " layer " << nLayer << endl;
+                        }   
+                    } // if((strip-curr_strip) % 16 == 0)
+                } // for (vector<CSCComparatorDigi>:: iterator comparatorDigisItr ... )
+            } // for (int nLayer=1; nLayer<=6; nLayer++)
+        } // if (clctData)
+    } // if (data.nclct())
+} // analyzeCSC
 
 
 void Test_19_CFEBComparators::finishCSC(std::string cscID)
