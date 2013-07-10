@@ -17,13 +17,16 @@
                 <XBins>112</XBins>
                 <XTitle>Wiregroup Number</XTitle>
                 <YMin>0</YMin>
-                <YMax>200</YMax>
+                <YMax>100</YMax>
                 <YBins>100</YBins>
                 <YTitle>Hz</YTitle>
 		<Low1Limit>0</Low1Limit>
 		<Low0Limit>0</Low0Limit>
-		<High0Limit>30</High0Limit>
-		<High1Limit>30</High1Limit>
+		<High0Limit>40</High0Limit>
+        <High1Limit>100</High1Limit>
+
+        <High0Limit_ME11>30</High0Limit_ME11>
+        <High1Limit_ME11>30</High1Limit_ME11>
         </TestResult> 
 		
 		<TestResult>
@@ -37,7 +40,7 @@
                 <XBins>112</XBins>
                 <XTitle>Wiregroup Number</XTitle>
                 <YMin>0</YMin>
-                <YMax>1</YMax>
+                <YMax>1.1</YMax>
                 <YBins>50</YBins>
                 <YTitle>Probability</YTitle>
 		<Low1Limit>0</Low1Limit>
