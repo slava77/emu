@@ -110,6 +110,12 @@ void Test_30_PipelineDepth::analyzeCSC(const CSCEventData& data)
   TH2F* v04 = reinterpret_cast<TH2F*>(cschistos["V04"]);
   TH2F* v05 = reinterpret_cast<TH2F*>(cschistos["V05"]);
 
+  v01->GetXaxis()->SetLimits(PD_min-0.5,PD_max+0.5);
+  v02->GetXaxis()->SetLimits(PD_min-0.5,PD_max+0.5);
+  v03->GetXaxis()->SetLimits(PD_min-0.5,PD_max+0.5);
+  v04->GetXaxis()->SetLimits(PD_min-0.5,PD_max+0.5);
+  v05->GetXaxis()->SetLimits(PD_min-0.5,PD_max+0.5);
+
   // == Check if CFEB Data Available
   if (dmbHeader->cfebAvailable())
   {

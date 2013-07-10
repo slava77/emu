@@ -16,7 +16,15 @@ Test_11_AFEBNoise::Test_11_AFEBNoise(std::string dfile): Test_Generic(dfile)
   
   duration_ms = 30000;
   
-  
+  if(dfile.find("3600V") != std::string::npos || dfile.find("3600_V") != std::string::npos) {
+    voltageStr = " 3600V";
+    LOG4CPLUS_INFO(logger, "Voltage found:" << voltageStr);
+  } else if(dfile.find("3800V")  != std::string::npos|| dfile.find("3800_V") != std::string::npos) {
+    voltageStr = " 3800V";
+    LOG4CPLUS_INFO(logger, "Voltage found:" << voltageStr);
+  } else {
+    voltageStr = ""; 
+  }
 }
 
 void Test_11_AFEBNoise::initCSC(std::string cscID)
@@ -62,8 +70,7 @@ void Test_11_AFEBNoise::initCSC(std::string cscID)
   tdata[cscID] = cscdata;
 
   bookTestsForCSC(cscID);
-  
-  
+   
 }
 
 void Test_11_AFEBNoise::analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber)
@@ -320,6 +327,17 @@ void Test_11_AFEBNoise::finishCSC(std::string cscID)
 	}
 	
   }
+
+  TestCanvases& cnvs = tcnvs[cscID];
+  std::string resCodeStrs[3] = {"R01", "R02", "R03"};
+  for(int i = 0; i < 3; i++) {
+    TestCanvases::iterator c_itr = cnvs.find(resCodeStrs[i]);
+    if (c_itr != cnvs.end() ) {
+      TestCanvas_6gr1h* cnv = dynamic_cast<TestCanvas_6gr1h*>(c_itr->second);
+      if (cnv != NULL) cnv->SetTitle(cnv->GetTitle() + voltageStr);
+    }
+  }
+
 }
 
 bool Test_11_AFEBNoise::checkResults(std::string cscID)
