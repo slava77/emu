@@ -229,7 +229,7 @@ int cleanup_exit2_3(void)
 int netif_rx_hook_3(struct sk_buff *skb)
 {
 int i,icnt;
-unsigned short int packet_count;
+unsigned short int packet_count=0;
 // unsigned short int gucount;
 unsigned short int missing_mask;
 unsigned short int eevent_mask;
@@ -251,6 +251,7 @@ int DMB_trailer_length;
 // write data to buffer memory
   icnt=(skb->len+SKB_EXTRA)>>3; // Divide by 2^3 as sizeof( unsigned long int ) = 8 on 64-bit systems
 #ifdef DEBUG_PRINT
+  printk(KERN_INFO "-------------------------------------------------------------\n");
   printk(KERN_INFO "ETH3 icnt %d len %d \n",icnt,skb->len);
 #endif
   for(i=0;i<icnt;i++){
@@ -315,7 +316,7 @@ int DMB_trailer_length;
 
 #ifdef DEBUG_PRINT
    // DEBUG START
-   printk(KERN_INFO "ETH3 Length %d, flag_eevent %d, packet_count %04x\n",skb->len,flag_eevent_3,packet_count);
+   printk(KERN_INFO "ETH3 Length %d, packet_count %d, proc_last_pmissing %d, proc_pmissing %ld, missing_mask 0x%04x\n",skb->len,packet_count,proc_last_pmissing_3,proc_pmissing_3,missing_mask);
    printk(KERN_INFO "ETH3  ");
    for(i=90;i>=-50;i-=2)
      printk("%+4d ",-i);
@@ -385,7 +386,9 @@ int DMB_trailer_length;
 	 if(((end1&0xff00)==0xef00)&&((end2&0xff00)==0xaf00)){
 	   // Caught a DCC trailer
 	   eevent_mask=0x4000;
-	   // printk("DCC EoE");
+#ifdef DEBUG_PRINT
+	   printk("DCC EoE");
+#endif
 	 }
 	 //  for(i=0;i<50;i++){
          //    end1=*(unsigned short int *)(end_of_packet-16+i);
@@ -397,7 +400,12 @@ int DMB_trailer_length;
 	 end1=*(unsigned short int *)(end_of_packet-DMB_trailer_length+24); 
 	 end2=*(unsigned short int *)(end_of_packet-DMB_trailer_length+26); 
 	 //  printk(KERN_INFO "%04x %04x  \n",end1,end2);  
-         if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000))eevent_mask=0x4000; 
+         if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000)){
+	   eevent_mask=0x4000; 
+#ifdef DEBUG_PRINT
+	   printk("DMB EoE");
+#endif
+	 }
        }
        // printk("\n");
      } // if ( skb->len+SKB_EXTRA == 64 ) else
