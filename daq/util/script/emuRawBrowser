@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Browse raw data files in hexadecimal format, highlighting unique DDU header and/or trailer words
+
+SEDPATTERNS=""
+
+while [[ $1 = -* ]]; do
+    case $1 in 
+	-H ) SEDPATTERNS="$SEDPATTERNS -e 's/ \(800000018000[^ ][^ ][^ ][^ ]\) / [1;34m\1[0m /g'"
+	    shift ;;
+	-T ) SEDPATTERNS="$SEDPATTERNS -e 's/ \(8000ffff80008000\) / [1;31m\1[0m /g'"
+	    shift ;;
+	*  ) 
+	    echo 'Usage: '
+	    echo "    $0" '[-H] [-T] raw_data_file'
+	    echo
+	    echo '  option   meaning'
+	    echo '  ------   -------'
+	    echo '      -H   highlight unique DDU header word'
+	    echo '      -T   highlight unique DDU trailer word'
+	    exit 1 ;;
+    esac
+done
+
+if [ ${#SEDPATTERNS} != 0 ]; then
+    eval "od -Ad -tx8z -w8 $1 | sed -u $SEDPATTERNS | less -R"
+else
+    od -Ad -tx8z -w8 $1 | less
+fi
