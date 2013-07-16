@@ -3,6 +3,8 @@
 #include "emu/step/version.h"
 #include "emu/step/Test.h"
 
+#include "emu/soap/ToolBox.h"
+
 #include "emu/utils/IO.h"
 #include "emu/utils/DOM.h"
 #include "emu/utils/String.h"
@@ -11,6 +13,7 @@
 #include "emu/utils/Chamber.h"
 
 #include "xdata/Integer64.h"
+#include "xdata/UnsignedInteger32.h"
 #include "xdata/UnsignedInteger64.h"
 #include "toolbox/task/WorkLoopFactory.h"
 #include "toolbox/regex.h"
@@ -153,7 +156,7 @@ void emu::step::Manager::configureAction(toolbox::Event::Reference e){
 
   dataFileNames_.clear();
 
-  configuration_->setTestStatus( "idle" );
+  configuration_->setTestStatus( "idle", "This test is not running yet." );
 
   try{
     list<toolbox::task::WorkLoop*> workloops = toolbox::task::getWorkLoopFactory()->getWorkLoops();
@@ -337,7 +340,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       if ( ! waitForDAQToExecute( "Enable", daqTimeOutInSeconds ) ){
 	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Enable' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
       }
-      configuration_->setTestStatus( testId, "running" );
+      configuration_->setTestStatus( testId, "running", "This test is still in progress." );
       // Get the number and start time of run and the data directories from the local DAQ and pass them on to the Testers
       xdata::String runStartTime;
       xdata::UnsignedInteger32 runNumber;
@@ -364,7 +367,9 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       if ( ! waitForDAQToExecute( "Halt", daqTimeOutInSeconds ) ){
 	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Halt' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
       }
-      configuration_->setTestStatus( testId, "done" );
+      string details = checkDataCompleteness( testId.toString() ); 
+      if ( details.size() == 0 ) configuration_->setTestStatus( testId, "done"      , "This test has finished." );
+      else                       configuration_->setTestStatus( testId, "incomplete", details                   );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
       //
       // Run analysis
@@ -382,6 +387,59 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
   } // for ( size_t iTest = 0; iTest < testIds.elements(); iTest++ ){
   
   return false;
+}
+
+string emu::step::Manager::checkDataCompleteness( const string& testId ){
+  ostringstream oss;
+  try{
+    emu::soap::Messenger m( this );
+    //
+    // Get total number of events to be taken for the current test
+    //
+    set<uint64_t> testsNEvents;
+    for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app ){
+      xdata::UnsignedInteger64 nEvents;
+      m.getParameters( app->second , emu::soap::Parameters().add( "nEvents", &nEvents ) );
+      testsNEvents.insert( uint64_t( nEvents ) );
+    }
+    if ( testsNEvents.size() > 1 ){
+      oss << "Groups have different total number events to take for test " << testId 
+	  << ". Cannot indicate whether DAQ has read the required number of events.";
+	LOG4CPLUS_WARN( logger_, oss.str() );
+      return oss.str();
+    }
+    //
+    // Get number events read by each RUI (DDU) and check if they complete the test.
+    //
+    xdata::Vector<xdata::UnsignedInteger64> rui_counts;
+    xdata::Vector<xdata::UnsignedInteger32> rui_instances;
+    xdata::String xs;
+    emu::soap::extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ), 
+    				  emu::soap::Parameters()
+				  .add( "rui_instances", &rui_instances )
+				  .add( "rui_counts"   , &rui_counts    )                                 );
+    for ( size_t i = 0; i < rui_counts.elements(); i++ ){
+      if ( *testsNEvents.begin() != *dynamic_cast<xdata::UnsignedInteger64*>( rui_counts.elementAt( i ) ) ){
+      oss << "RUI "         << ( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) )->toString()
+	  << " read "       << ( dynamic_cast<xdata::UnsignedInteger64*>(    rui_counts.elementAt( i ) ) )->toString()
+	  << " of "         << *testsNEvents.begin() 
+	  << " events. \n";
+      }
+    }
+  }
+  catch( xcept::Exception& e ){
+    LOG4CPLUS_ERROR( logger_, "Failed to check the completeness of data for test " << testId << " : " << xcept::stdformat_exception_history( e ) );
+    bsem_.give();
+  }
+  catch( std::exception& e ){
+    LOG4CPLUS_ERROR( logger_, "Failed to check the completeness of data for test " << testId << " : " << e.what() );
+    bsem_.give();
+  }
+  catch( ... ){
+    LOG4CPLUS_ERROR( logger_, "Failed to check the completeness of data for test " << testId << " : Unknown exception." );
+    bsem_.give();
+  }
+  return oss.str();
 }
 
 void emu::step::Manager::updateChamberMaps(){

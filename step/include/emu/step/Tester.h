@@ -14,6 +14,7 @@
 #include "xdata/InfoSpace.h"
 #include "xdata/String.h"
 #include "xdata/UnsignedInteger32.h"
+#include "xdata/UnsignedInteger64.h"
 #include "xdata/Double.h"
 #include "xdata/Vector.h"
 
@@ -65,6 +66,7 @@ namespace emu{
       xdata::Vector<xdata::String> crateIds_; ///< ids of crates that this emu::step::Tester instance handles
       xdata::Vector<xdata::String> chamberLabels_; ///< labels (names) of chambers that this emu::step::Tester instance handles
       xdata::Double  progress_;	///< progress in percent of the ongoing test
+      xdata::UnsignedInteger64 nEvents_;  ///< the total number of events to be taken in the test
       xdata::UnsignedInteger32 runNumber_;  ///< run number as obtained from the local DAQ
       xdata::String  runStartTime_;	///< time of start of run as obtained from the local DAQ (e.g., 130529_154434_UTC)
       xdata::Vector<xdata::String> dataDirNames_;  ///< all RUIs' data directory names (hostname:directory)

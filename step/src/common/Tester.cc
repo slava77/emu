@@ -44,12 +44,14 @@ void emu::step::Tester::exportParameters(){
   s->fireItemAvailable( "crateIds"                  , &crateIds_                   );
   s->fireItemAvailable( "chamberLabels"             , &chamberLabels_              );
   s->fireItemAvailable( "progress"                  , &progress_                   );
+  s->fireItemAvailable( "nEvents"                   , &nEvents_                    );
   s->fireItemAvailable( "chamberMaps"               , &chamberMaps_                );
   s->fireItemAvailable( "runNumber"                 , &runNumber_                  );
   s->fireItemAvailable( "runStartTime"              , &runStartTime_               );
   s->fireItemAvailable( "dataDirNames"              , &dataDirNames_               );
   // s->fireItemAvailable( "", &_ );
   s->addItemRetrieveListener( "progress", this );
+  s->addItemRetrieveListener( "nEvents" , this );
 }
 
 void emu::step::Tester::loadFiles(){
@@ -254,7 +256,10 @@ void emu::step::Tester::actionPerformed( xdata::Event& received )
     if ( test_ ) progress_ = test_->getProgress();
     else         progress_ = double( 0 );
   }
-
+  else if ( e.itemName() == "nEvents" && e.type() == "ItemRetrieveEvent" ){
+    if ( test_ ) nEvents_ = test_->getNEvents();
+    else         nEvents_ = 0;
+  }
 }
 
 const string emu::step::Tester::workLoopType_( "waiting" );

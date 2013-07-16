@@ -150,15 +150,17 @@ void emu::step::Configuration::setSelection( const multimap<string,string>& sele
   bsem_.give();
 }
 
-void emu::step::Configuration::setTestStatus( const string& testId, const string& status ){
+void emu::step::Configuration::setTestStatus( const string& testId, const string& status, const string& details ){
   bsem_.take();
-  xml_ = emu::utils::setSelectedNodesValues( xml_, "//es:testSequence/es:test[@id='" + testId + "']/@status", status );
+  xml_ = emu::utils::setSelectedNodesValues( xml_, "//es:testSequence/es:test[@id='" + testId + "']/@status" , status  );
+  xml_ = emu::utils::setSelectedNodesValues( xml_, "//es:testSequence/es:test[@id='" + testId + "']/@details", details );
   bsem_.give();
 }
 
-void emu::step::Configuration::setTestStatus( const string& status ){
+void emu::step::Configuration::setTestStatus( const string& status, const string& details ){
   bsem_.take();
-  xml_ = emu::utils::setSelectedNodesValues( xml_, "//es:testSequence/es:test/@status", status );
+  xml_ = emu::utils::setSelectedNodesValues( xml_, "//es:testSequence/es:test/@status" , status  );
+  xml_ = emu::utils::setSelectedNodesValues( xml_, "//es:testSequence/es:test/@details", details );
   bsem_.give();
 }
 
