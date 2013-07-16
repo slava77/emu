@@ -366,7 +366,7 @@ bool Test_25_ALCTTrigger::checkResults(std::string cscID)
   return isValid;
 }
 
-bool Test_25_ALCTTrigger::loadThresholdParams(std::string dfile, std::string cscID, int crateID, int DMBslot)
+bool Test_25_ALCTTrigger::loadThresholdParams(std::string dfile, std::string cscID, int crateID, int dmbID)
 {
 
   std::string line;
@@ -379,8 +379,18 @@ bool Test_25_ALCTTrigger::loadThresholdParams(std::string dfile, std::string csc
   replace_all(cscIDslash, ".", "/");
   replace_all(fileStr, "raw", "txt");
 
+  // dmb slot := (dmb id * 2 + 1)
+  // tmb slot = dmb slot - 1
+  // dmb id cannot be 6 since slots 12 and 13 are for mpc, ccb
+  int TMBslot = dmbID*2;
+
+  if(dmbID == 6) {
+    LOG4CPLUS_ERROR(logger, "DMBid of 6 is invalid (corresponds to DMBslot of 13)");
+    return false;
+  }
+
   storig << filePath << "Test25_CrateId" << setfill('0') << setw(2) << (crateID)
-         << "_TMBslot" << setfill('0') << setw(2) << (DMBslot-1) << runNumber
+         << "_TMBslot" << setfill('0') << setw(2) << TMBslot << runNumber
          << timeStamp << "_UTC.txt";
 
   straw << fileStr;
