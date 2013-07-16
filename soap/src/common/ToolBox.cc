@@ -115,7 +115,12 @@ emu::soap::includeParameters( xoap::MessageReference message, xoap::SOAPElement*
       parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
       parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
     }
+
     xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+    envelope.addNamespaceDeclaration( "xsi"    , XSI_NAMESPACE_URI     );
+    envelope.addNamespaceDeclaration( "xsd"    , XSD_NAMESPACE_URI     );
+    envelope.addNamespaceDeclaration( "soapenc", SOAPENC_NAMESPACE_URI );
+
     xdata::soap::Serializer serializer;
     emu::soap::Parameters::const_iterator p;
     for ( p=parameters.begin(); p!=parameters.end(); ++p ){
@@ -170,7 +175,12 @@ emu::soap::includeParameters( xoap::MessageReference message, xoap::SOAPElement*
       parentNamespaceURI    = xoap::XMLCh2String( parent->getDOMNode()->getNamespaceURI() );
       parentNamespacePrefix = xoap::XMLCh2String( parent->getDOMNode()->getPrefix()       );
     }
+
     xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+    envelope.addNamespaceDeclaration( "xsi"    , XSI_NAMESPACE_URI     );
+    envelope.addNamespaceDeclaration( "xsd"    , XSD_NAMESPACE_URI     );
+    envelope.addNamespaceDeclaration( "soapenc", SOAPENC_NAMESPACE_URI );
+
     xdata::soap::Serializer serializer;
     emu::soap::Parameters::const_iterator p;
     for ( p=parameters.begin(); p!=parameters.end(); ++p ){
