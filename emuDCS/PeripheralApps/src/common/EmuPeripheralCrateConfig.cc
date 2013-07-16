@@ -7740,6 +7740,8 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
   //    
   std::string LogTMBTestsOutput = toolbox::toString("/%s/LogTMBTestsOutput",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LogTMBTestsOutput) << std::endl ;
+  *out << "Log Filename: TMBTestsLogFile_";
+  *out << cgicc::input().set("type","text").set("name","LogNameSuffix").set("size","20") << ".log" << cgicc::br() << std::endl;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::input().set("type","submit").set("value","Log output").set("name","LogTMBTestsOutput") << std::endl ;
@@ -10146,6 +10148,13 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     //
     cgicc::Cgicc cgi(in);
     //
+    std::string suffix="";
+    cgicc::form_iterator sfn=cgi.getElement("LogNameSuffix");
+    if(sfn != cgi.getElements().end()) 
+    {
+       suffix=cgi["LogNameSuffix"]->getValue();
+    }
+
     cgicc::form_iterator name = cgi.getElement("tmb");
     //
     int tmb;
@@ -10157,6 +10166,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
       std::cout << "Not tmb" << std::endl ;
       tmb = TMB_;
     }
+
     //
     cgicc::form_iterator name2 = cgi.getElement("ClearTMBTestsOutput");
     //
@@ -10175,11 +10185,10 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     //
     TMB * thisTMB = tmbVector[tmb];
     //
-    char buf[20];
-    sprintf(buf,"/tmp/TMBTestsLogFile_%d.log",thisTMB->slot());
+    std::string lfn="/tmp/TMBTestsLogFile_"+suffix+".log";
     //
     std::ofstream TMBTestsLogFile;
-    TMBTestsLogFile.open(buf);
+    TMBTestsLogFile.open(lfn.c_str());
     TMBTestsLogFile << OutputTMBTests[tmb][current_crate_].str() ;
     TMBTestsLogFile.close();
     //
