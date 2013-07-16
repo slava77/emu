@@ -33,8 +33,8 @@ namespace emu { namespace step {
       string getTestParametersXML() const { return testParametersXML_; }
       string getModificationTime() const { return modificationTime_; }
       void setSelection( const multimap<string,string>& values );
-      void setTestStatus( const string& testId, const string& status );
-      void setTestStatus( const string& status );
+      void setTestStatus( const string& testId, const string& status, const string& details );
+      void setTestStatus( const string& status, const string& details );
       void setTestProgress( const map<string,pair<double,string> >& groupsProgress );
 
     private:

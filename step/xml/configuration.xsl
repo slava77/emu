@@ -39,7 +39,7 @@
   </xsl:template>
 
   <xsl:template match="test_config">
-    <es:test id="{translate(test,' ','')}" description="{description}" selected="yes" status="idle"/>
+    <es:test id="{translate(test,' ','')}" description="{description}" selected="yes" status="idle" details=""/>
   </xsl:template>
   
 </xsl:transform>

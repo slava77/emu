@@ -59,8 +59,8 @@ namespace emu { namespace step {
       void controlWebPage( xgi::Input *in, xgi::Output *out );
       string createXMLWebPage();
       bool waitForDAQToExecute( const string command, const uint64_t seconds = std::numeric_limits<uint64_t>::max() );
-      // bool waitForTestersToExecute( const string command, const uint64_t seconds = std::numeric_limits<uint64_t>::max() );
       void waitForTestsToFinish( const bool isTestDurationUndefined );
+      string checkDataCompleteness( const string& testId );
 
       string applicationURLPath_; ///< the path part of the URL of this application
       static const string namespace_; ///< the namespace for Emu STEP

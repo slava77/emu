@@ -2,6 +2,7 @@
 .idle { background-color:#dddddd; }
 .running { background-color:#ffff44; }
 .done { background-color:#22dd22; }
+.incomplete { background-color:#ff9999; }
 .Halted { background-color:#9999ff; }
 .Configured { background-color:#ffff44; }
 .Enabled { background-color:#22dd22; }
