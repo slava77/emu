@@ -7740,7 +7740,7 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
   //    
   std::string LogTMBTestsOutput = toolbox::toString("/%s/LogTMBTestsOutput",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LogTMBTestsOutput) << std::endl ;
-  *out << "Log Filename: TMBTestsLogFile_";
+  *out << "Log Filename: /tmp/TMBTestsLogFile_";
   *out << cgicc::input().set("type","text").set("name","LogNameSuffix").set("size","20") << ".log" << cgicc::br() << std::endl;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
