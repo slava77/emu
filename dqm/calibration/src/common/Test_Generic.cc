@@ -393,7 +393,14 @@ int Test_Generic::loadTestCfg()
               nExpectedEvents = atoi((itr->second).c_str());
               LOG4CPLUS_INFO (logger, "Number of Expected Events: " << nExpectedEvents);
             }
-
+         
+          n_ME11_DCFEBs = -1;
+          itr = obj_info.find("n_ME11_DCFEBs");
+          if (itr != obj_info.end() )
+            {
+              n_ME11_DCFEBs = atoi((itr->second).c_str());
+              LOG4CPLUS_INFO (logger, "n_ME11_DCFEBs: " << n_ME11_DCFEBs);
+            }
         }
     }
 
@@ -1258,6 +1265,12 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
                   // = Set actual number of strips depending on Chamber type
                   xbins = getNumStrips(cscID);
                   xmax = getNumStrips(cscID);
+                  if (isME11(cscID) && n_ME11_DCFEBs > 0)
+                    {
+                      int nDCFEBs =  n_ME11_DCFEBs;
+                      if (nDCFEBs > 7 ) nDCFEBs = 7;
+                      if (nDCFEBs > 0 ) { xbins = nDCFEBs*16; xmax = xbins; }
+                    }
                 }
               if (cnvtype == "halfstrips_cnv")
                 {

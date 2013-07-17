@@ -32,6 +32,7 @@ Test_19_CFEBComparators::Test_19_CFEBComparators(std::string dfile):
   range_turnoff = 20;
   strips_per_run = 16;
 
+  n_ME11_DCFEBs = -1; // by default disabled
 }
 
 Test_19_CFEBComparators::~Test_19_CFEBComparators()
@@ -42,10 +43,17 @@ Test_19_CFEBComparators::~Test_19_CFEBComparators()
 void Test_19_CFEBComparators::initCSC(std::string cscID)
 {
 
+  bool isME11 = (this->isME11(cscID) || emu::dqm::utils::isME11(cscID));
+  if(isME11 && n_ME11_DCFEBs > 0) { 
+    nBins = n_ME11_DCFEBs*16;
+  } else {
+    nBins = getNumStrips(cscID);
+  }
+
   nCSCEvents[cscID]=0;
 
   ThresholdScanDataC thdata;
-  thdata.Nbins = getNumStrips(cscID);
+  thdata.Nbins = nBins;
   thdata.Nlayers = 6;
 
   memset(thdata.content, 0, sizeof (thdata.content));
@@ -53,7 +61,7 @@ void Test_19_CFEBComparators::initCSC(std::string cscID)
   tscan_data[cscID] = thdata;
   TestData cscdata;
   TestData2D cfebdata;
-  cfebdata.Nbins = getNumStrips(cscID);
+  cfebdata.Nbins = nBins;
   cfebdata.Nlayers = NLAYERS;
   memset(cfebdata.content, 0, sizeof (cfebdata.content));
   memset(cfebdata.cnts, 0, sizeof (cfebdata.cnts));
@@ -88,7 +96,7 @@ void Test_19_CFEBComparators::initCSC(std::string cscID)
   //cscdata["R12"]=cfebdata;
 
 
-  cfebdata.Nbins = getNumStrips(cscID)/16;
+  cfebdata.Nbins /= 16; // per CFEB
   cfebdata.Nlayers = 1;
   cscdata["R03"]=cfebdata;//avg per CFEB thresh dac1
   cscdata["R07"]=cfebdata;//avg per CFEB thresh dac2
@@ -304,7 +312,7 @@ void Test_19_CFEBComparators::analyzeCSC(const CSCEventData& data)
   int curr_thresh =  DDUstats[dduID].thresh;
   int curr_amp = DDUstats[dduID].amp; // pulse number (0, 1, 2)
   int curr_strip = DDUstats[dduID].strip;
-  int nCFEBs = getNumStrips(cscID)/16;
+  int nCFEBs = nBins/16;
 
   tstep.evt_cnt++;
 
@@ -362,7 +370,7 @@ void Test_19_CFEBComparators::analyzeCSC(const CSCEventData& data)
                             alreadyHasHit[curr_cfeb] = true;
                             thdata.content[curr_amp][nLayer-1][strip-1][ithresh]++;
                         } else {
-                            cout << "multiple hits for evt " << nCSCEvents[cscID] << " - strip " << strip << " layer " << nLayer << endl;
+                            //cout << "multiple hits for evt " << nCSCEvents[cscID] << " - strip " << strip << " layer " << nLayer << endl;
                         }   
                     } // if((strip-curr_strip) % 16 == 0)
                 } // for (vector<CSCComparatorDigi>:: iterator comparatorDigisItr ... )
@@ -422,7 +430,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
       ThresholdScanDataC& thdata = tscan_data[cscID];
 
-      int nCFEBs = getNumStrips(cscID)/16;
+      int nCFEBs = r01.Nbins/16;
 
       CSCtoHWmap::iterator itr = cscmap.find(cscID);
 
@@ -443,7 +451,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
               for (int i=0; i<NLAYERS; i++)
                 {
-                  for (int j=0; j<getNumStrips(cscID); j++)
+                  for (int j=0; j<r01.Nbins; j++)
                     {
 
                       float  chisq, mean, par[3], rms;
@@ -522,7 +530,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
 
           ///* Calculate CFEB Threshold Offsets for 1st Pulse DAC
-          for (int istrip = 0; istrip < getNumStrips(cscID); istrip++)
+          for (int istrip = 0; istrip < r01.Nbins; istrip++)
             {
               for (int ilayer = 0; ilayer < NLAYERS; ilayer++)
                 {
@@ -557,7 +565,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
 
           ///* Calculate CFEB Threshold Offsets for 2nd Pulse DAC
-          for (int istrip = 0; istrip < getNumStrips(cscID); istrip++)
+          for (int istrip = 0; istrip < r01.Nbins; istrip++)
             {
               for (int ilayer = 0; ilayer < NLAYERS; ilayer++)
                 {
@@ -590,7 +598,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
 
           ///* Calculate CFEB Threshold Offsets for 3rd Pulse DAC
-          for (int istrip = 0; istrip < getNumStrips(cscID); istrip++)
+          for (int istrip = 0; istrip < r01.Nbins; istrip++)
             {
               for (int ilayer = 0; ilayer < NLAYERS; ilayer++)
                 {
@@ -610,7 +618,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
           for (int i=0; i<NLAYERS; i++)
             {
-              for (int j=0; j<getNumStrips(cscID); j++)
+              for (int j=0; j<r01.Nbins; j++)
                 {
                   ///* Calculate CFEB Threshold Slopes
                   r09.content[i][j] = (r06.content[i][j]-r02.content[i][j]) /
@@ -947,6 +955,18 @@ void Test_19_CFEBComparators::setTestParams()
       LOG4CPLUS_INFO (logger, "parameter: strips_per_run: " << strips_per_run);
     }
 
+
+  itr = test_params.find("n_ME11_DCFEBs");
+  if (itr != test_params.end() )
+    {
+      n_ME11_DCFEBs = atoi((itr->second).c_str());
+      LOG4CPLUS_INFO (logger, "parameter: n_ME11_DCFEBs: " << n_ME11_DCFEBs);
+      if (n_ME11_DCFEBs > 7)
+        {
+          LOG4CPLUS_ERROR(logger, "parameter: n_ME11_DCFEBs should be less than 7, default to max 7");
+          n_ME11_DCFEBs = 7;
+        }
+    }
 
   nExpectedEvents = dmb_tpamps_per_strip * strips_per_run * events_per_thresh * threshs_per_tpamp;
   LOG4CPLUS_INFO (logger, "nExpectedEvents: " << nExpectedEvents);
