@@ -103,6 +103,8 @@ protected:
   int scale_turnoff;
   int range_turnoff;
   int strips_per_run;
+  int n_ME11_TMB_DCFEBs;
+  int nBins;
 		  
   
 private:
