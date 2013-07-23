@@ -46,6 +46,12 @@ function load_igb_emu(){
 	/sbin/ifconfig eth${N} promisc mtu 8192 broadcast 192.168.255.255 netmask 255.255.0.0
     done
 
+    # Disable checks that could cause some packets to be dropped
+    for N in 2 3 4 5; do
+	/sbin/ethtool -K eth${N} rx off
+	/sbin/ethtool -K eth${N} sg off
+    done    
+
 }
 
 ####################################################################################################
