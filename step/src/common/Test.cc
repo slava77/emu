@@ -1264,9 +1264,9 @@ void emu::step::Test::_19(){
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
 
-
-      tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-
+      if (tmb) {
+        tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
+      }
       //if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
 
       // Set pipeline depth on DCFEBs
@@ -1417,7 +1417,9 @@ void emu::step::Test::_21(){
       (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT
 
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      tmb->EnableClctExtTrig();
+      if (tmb) {
+        tmb->EnableClctExtTrig();
+      }
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
     for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip ){
