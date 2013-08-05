@@ -21,6 +21,8 @@
 //Flags to control the event display (see cdShowEvent() )
 
 extern int need_event;
+extern int need_refresh; // firman
+extern bool change_chamber; // firman
 extern int re_read_peds;
 extern long total_events; //v
 extern long event_num; //v

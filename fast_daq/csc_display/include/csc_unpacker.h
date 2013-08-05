@@ -31,6 +31,12 @@
 #include "DataFormats/CSCDigi/interface/CSCStripDigi.h"
 #include "emu/dqm/common/CSCReadoutMappingFromFile.h"
 
+int getSelectedChamberID(); // zero means no chamber selected
+void setSelectedChamberID(int);
+int getHackMode();
+void setHackMode(bool);
+
+int get_chambers_data(std::vector<CSCEventData> *chambersData, const char *buf, int32_t evt_size);
 int get_next_event_cmssw(const char * buf, int32_t evt_size, int32_t first_time);
 
 #endif

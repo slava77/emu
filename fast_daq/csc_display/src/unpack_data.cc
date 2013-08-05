@@ -20,6 +20,8 @@ extern "C"
 #include "csc_unpacker.h"
 
 using namespace std;
+int selectedChamberID = 0;
+bool HACK_ME11_2DMB = 0;
 
 void printBin(char c)
 {
@@ -51,11 +53,11 @@ extern "C" void unpack_data_cc()
   
   int i, j, istrip, kstrip, ilayer, ihit, isample, ksample, ilct, iwire, imax, ifirst, ilast;
   float sca_sum, peak_strip_tmp;
+  float sca_temp, sca_max;
 
   int sci_end[4]  = {2, 1, 2, 1};
   int sci_layer[4]  = {2, 2, 1, 1};
   j_data.nsamples = upevt_.nsca_sample;
-
 
   //zero arrays
   for (ilayer=0; ilayer<NLAYER; ilayer++)
@@ -74,6 +76,7 @@ extern "C" void unpack_data_cc()
       for (istrip=1; istrip<=NSTRIP; istrip++)
         {
           j_data.strips[istrip-1][ilayer-1] = 0.0;
+          j_data.strips_peaks[istrip-1][ilayer-1] = 0.0;
         }
     }
   for (ilayer=1; ilayer<=NLAYER; ilayer++)
@@ -110,7 +113,7 @@ extern "C" void unpack_data_cc()
             {
 
 	      //  then do the pedestal subtraction
-	      upevt_.sca[ilayer-1][istrip-1][isample-1] -= temp_ped;        
+	      upevt_.sca[ilayer-1][istrip-1][isample-1] -= temp_ped;
                        
 	      // zero out values > max
               if (upevt_.sca[ilayer-1][istrip-1][isample-1] > upevt_.nsca_sample*4096)  upevt_.sca[ilayer-1][istrip-1][isample-1] = 0;//-(upevt_.sca[ilayer-1][istrip-1][isample-1]-65536);
@@ -126,12 +129,16 @@ extern "C" void unpack_data_cc()
 	  else ilast = imax+2;
             
           sca_sum = 0.0;
+          sca_max = upevt_.sca[0][0][0]; // firman
           for (ksample=ifirst; ksample<=ilast; ksample++)
             {
-              sca_sum = sca_sum + float(upevt_.sca[ilayer-1][istrip-1][ksample-1]);
+              sca_temp = float(upevt_.sca[ilayer-1][istrip-1][ksample-1]); // firman
+              sca_sum += sca_temp; // firman
+              if (sca_temp > sca_max) sca_max = sca_temp; // firman
             }
             
           j_data.strips[istrip-1][ilayer-1] = sca_sum;
+          j_data.strips_peaks[istrip-1][ilayer-1] = sca_max; // firman
 
           if (j_data.strips[istrip-1][ilayer-1] > peak_strip_tmp)
             {
@@ -164,14 +171,14 @@ extern "C" void unpack_data_cc()
       for (istrip=ifirst; istrip<=ilast; istrip++)
         {
           kstrip = istrip - j_data.peak_strip[ilayer-1] + 3;
+          // kstrip = istrip - 80 + 3; // firman
           for (isample=1; isample<=j_data.nsamples; isample++)
             {
               j_data.sample[kstrip-1][ilayer-1][isample-1] = upevt_.sca[ilayer-1][istrip-1][isample-1] + 50;
             }
         }
     }
-            
-
+  
   //fill wire array with new data
   for (ihit=1; ihit<=upevt_.num_wire_hits; ihit++)
     {
@@ -302,9 +309,6 @@ extern "C" void unpack_data_cc()
   return;
 }
 
-
-
-
 template<typename T> inline CSCCFEBDataWord const * const timeSample( T const & data, int nCFEB,int nSample,int nLayer, int nStrip)
 {
   return data.cfebData(nCFEB)->timeSlice(nSample)->timeSample(nLayer,nStrip);
@@ -315,20 +319,15 @@ template<typename T> inline CSCCFEBTimeSlice const * const timeSlice( T const & 
   return (CSCCFEBTimeSlice *)(data.cfebData(nCFEB)->timeSlice(nSample));
 }
 
-
-//*** Unpack data using CMSSW ***//
-int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
+int check_file_binary(CSCDCCExaminer* bin_checker, const char *buf, int32_t evt_size)
 {
-
-
   ///** Create and configure binary buffer checker object
-  CSCDCCExaminer        bin_checker;
-  bin_checker.output1().hide();
-  bin_checker.output2().hide();
-  bin_checker.crcALCT(true);
-  bin_checker.crcTMB (true);
-  bin_checker.crcCFEB(true);
-  bin_checker.modeDDU(true);
+  bin_checker->output1().hide();
+  bin_checker->output2().hide();
+  bin_checker->crcALCT(true);
+  bin_checker->crcTMB (true);
+  bin_checker->crcCFEB(true);
+  bin_checker->modeDDU(true);
 
   uint32_t binCheckMask = 0x16EBF7F6;
   uint32_t dduBinCheckMask = 0x02080016;
@@ -336,23 +335,88 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
   ///** Binary check of the buffer
   uint32_t BinaryErrorStatus = 0, BinaryWarningStatus = 0;
   const uint16_t *tmp = reinterpret_cast<const uint16_t *>(buf);
-  bin_checker.setMask(binCheckMask);
-  if ( bin_checker.check(tmp,evt_size/sizeof(short)) < 0 )
+  bin_checker->setMask(binCheckMask);
+  if ( bin_checker->check(tmp,evt_size/sizeof(short)) < 0 )
     {
       ///**  No ddu trailer found - force checker to summarize errors by adding artificial trailer
       const uint16_t dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
       tmp = dduTrailer;
-      bin_checker.check(tmp,uint32_t(4));
+      bin_checker->check(tmp,uint32_t(4));
     }
 
-  BinaryErrorStatus   = bin_checker.errors();
-  BinaryWarningStatus = bin_checker.warnings();
+  BinaryErrorStatus   = bin_checker->errors();
+  BinaryWarningStatus = bin_checker->warnings();
 
   // This was commented in the past
   if (((BinaryErrorStatus & dduBinCheckMask)>0) || ((BinaryWarningStatus & 0x2) > 0) ){
     std::cerr << "Event is skipped because of format errors" << std::endl;
     return 4; /// Reject bad event data
   }
+  
+  return 0;
+}
+
+int getSelectedChamberID()
+{
+  return selectedChamberID;
+}
+
+void setSelectedChamberID(int id)
+{
+  selectedChamberID = id;
+  printf("Set selected chamber ID: %d\n", selectedChamberID); // firman
+}
+
+int getHackMode()
+{
+  return HACK_ME11_2DMB;
+}
+
+void setHackMode(bool mode)
+{
+  HACK_ME11_2DMB = mode;
+}
+
+int get_chambers_data(std::vector<CSCEventData> *chambersData, const char *buf, int32_t evt_size)
+{
+  int rtval;
+  
+  // chambers data
+  chambersData->clear();
+  
+  // check the binary of the file first
+  CSCDCCExaminer bin_checker;
+  rtval = check_file_binary(&bin_checker, buf, evt_size);
+  
+  // if the binary check is error, return its error code
+  if (rtval > 0) return rtval;
+  
+  // unpack chambers data
+  CSCDDUEventData dduData((uint16_t *) buf, &bin_checker);
+  (*chambersData) = dduData.cscData();
+  
+  // set the selectedChambersID variable to the last chamber ID
+  int lastIdx = chambersData->size() - 1;
+  CSCEventData data = (*chambersData)[lastIdx];
+  const CSCDMBHeader* dmbHeader = data.dmbHeader();
+  int crateID = dmbHeader->crateID();
+  int dmbID = dmbHeader->dmbID();
+  int chamberID = (((crateID) << 4) + dmbID) & 0xFFF;
+  setSelectedChamberID(chamberID);
+  return 0;
+}
+
+//*** Unpack data using CMSSW ***//
+int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
+{
+  int rtval;
+  
+  // check the binary of the file first
+  CSCDCCExaminer bin_checker;
+  rtval = check_file_binary(&bin_checker, buf, evt_size);
+  
+  // if binary checker is error, then return its error code
+  if (rtval == 4) return 4;
 
   ///** Reset legacy event data structure
   memset(&(upevt_), 0x0, sizeof(csc_event_type));
@@ -382,13 +446,13 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
   ~Joe
 
    ***************************************************************/
-  const bool HACK_ME11_2DMB = 1; // flag to turn on/off B904 2DMB hack
+  // const bool HACK_ME11_2DMB = 0; // flag to turn on/off B904 2DMB hack
 
-  for (int i=0; i< nCSCs; i++)
+  for (int ic=0; ic< nCSCs; ic++)
     {
       
       /// process_chamber_data(chamberDatas[i]);
-      CSCEventData& data = chamberDatas[i];
+      CSCEventData& data = chamberDatas[ic];
       
       //tmb_bxn=data.tmbHeader()->BXNCount();
       //tmb_l1a_num=data.tmbHeader()->L1ANumber();
@@ -407,6 +471,8 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
       crateID       = dmbHeader->crateID();
       dmbID         = dmbHeader->dmbID();
       ChamberID     = (((crateID) << 4) + dmbID) & 0xFFF;
+      if ((ChamberID != selectedChamberID) && (selectedChamberID != 0) && ic != 0) continue;
+      printf("-> Selected chamber ID: %d with ic=%d\n", selectedChamberID, ic); // firman
 
       std::cout<<"== Read data for: =="<<endl;
       cout<<"crateID:"<<crateID<<endl;
@@ -428,6 +494,7 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
 
       //uint32_t id = cscMapping.chamber(iendcap, istation, crateID, dmbID, -1);
       uint32_t id=604021272; //for chamber1 types
+      uint32_t binCheckMask = 0x16EBF7F6;
       //id=604029960;
       CSCDetId cid( id );
 
@@ -621,11 +688,8 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
       upevt_.sca_clock_phase = 0;
       for (int nCFEB = 0; nCFEB < N_CFEBs; ++nCFEB)
         {
-
           if (data.cfebData(nCFEB) !=0)
             {
-
-
               NmbTimeSamples= (data.cfebData(nCFEB))->nTimeSamples();
               upevt_.nsca_sample = NmbTimeSamples;
 
@@ -660,7 +724,8 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
 
 
 			  // Start 2DMB HACK -->  (see comment about this hack above)
-			  if(HACK_ME11_2DMB && i==0 && nCFEB < 2){
+              // if the first chamber doesn't have any CLCT data, then the hack does not work
+			  if(HACK_ME11_2DMB && ic==0 && nCFEB < 2){
 			    upevt_.adc_out_of_range[nLayer-1][(nCFEB+5)*N_Strips+nStrip-1][nSample] = OutOfRange;
 			    upevt_.sca[nLayer-1][(nCFEB+5)*N_Strips+nStrip-1][nSample] = ADC;
 			    
@@ -680,3 +745,4 @@ int get_next_event_cmssw(const char *buf, int32_t evt_size, int32_t first_time)
 
   return 0;
 }
+

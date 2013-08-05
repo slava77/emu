@@ -39,6 +39,7 @@ enum CommandIdentifiers
     M_CLCT_TIME,
     M_SCA,
     M_CTRIG,
+    M_WIRES_STRIPS_PEAKS, // firman
     M_SELECT_FILE,
     M_RUN,
     M_PAUSE,
@@ -72,9 +73,11 @@ void J_Display::cbShowEvent_m()
     0x00c8, 0x001a, 0x0001, 0x0001, 0x001d
   };
   
-  if (need_event && !disp_paused)
+  if ((need_event && !disp_paused) || (change_chamber))
     {
-
+      // if ((!disp_paused) && change_chamber) change_chamber = false;
+      if (change_chamber) change_chamber = false;
+      
       // RawDataFile
       do
         {
@@ -83,19 +86,15 @@ void J_Display::cbShowEvent_m()
 
               if (rewind_comm)
                 {
-                  // RawDataFile
-                  fd->close();
-                  // RawDataFile
-                  fd->open(file_name);
-                  event_num = 1;
-                  rewind_comm = 0;
-                  first_time = 1;
+                  this->rewind_display();
                 }
               // RawDataFile
               rtval = fd->readNextEvent();
               // std::cout<<"event display rtval next event "<<rtval<<endl;
 
-              upevt_.event_number = evnum = event_num++;
+              upevt_.event_number = ++event_num; // firman
+              evnum = event_num; // firman
+              // upevt_.event_number = evnum = event_num++;
 
 //			std::cout << "event number 189: " << upevt_.event_number << std::endl;
 
@@ -112,36 +111,24 @@ void J_Display::cbShowEvent_m()
 	      // RawDataFile
 	      block_wc = fd->dataLength()/sizeof(short) + 4; // add 4 for DDU2 header, block_wc in front and rear
 	      event_wc = block_wc + 200; // add size of header (roughly)
-	      if( rtval == 0 ) 
-		{
-		  disp_paused = 1; // end of file, pause
-		}
+          if( rtval == 0 ) 
+            {
+              this->rewind_display();
+              continue;
+            }
 
-	      short buf[100000];
-	      //				buf = (short int*)malloc(event_wc*sizeof(short));
 	      int i = 1;
-	      memcpy(buf + i, fake_head, sizeof(fake_head)); // fake event header
 	      i += sizeof(fake_head)/sizeof(short); // move index
-	      buf[i++] = block_wc; // event block word count
-	      buf[i++] = 0x4444; // 'DD' header
-	      buf[i++] = 0x5532; // 'U2' header
-	      // RawDataFile
-	      memcpy(buf + i, fd->data(), fd->dataLength()); // event itself
-	      // RawDataFile
-	      i +=  fd->dataLength() / sizeof(short); // move index				
-	      buf[i++] = block_wc; // duplicate block_wc at the end of data block
-	      
-              // printf ("BLOCK WORDS: %d, event read result: %d\n", block_wc, rtval);
-	      
+	      i +=  fd->dataLength() / sizeof(short); // move index
+          
               event_wc = i;
-              buf[0] = event_wc; // total event word count;
-
             }
 
           // Unpack the event and release its buffer space
           if (upevt_.event_number >= requested_event)
             {
               std::cout << "==> Calling get_next_event event number/req event "<<upevt_.event_number<<"/"<<requested_event<<endl;
+              // std::cout << "==> Calling get_next_event event number/req event "<<event_num<<"/"<<requested_event<<endl;
               // istat = get_next_event(buf, first_time); // unpack only if needed
               istat = get_next_event_cmssw(fd->data(), fd->dataLength(), first_time); // unpack only if needed
               upevt_.event_number = event_num;
@@ -154,6 +141,7 @@ void J_Display::cbShowEvent_m()
                   first_time = 1;
                 }
             }
+          
           else
             istat = 0;
 
@@ -181,26 +169,19 @@ void J_Display::cbShowEvent_m()
                 {
                   // RawDataFile
                   rtval = fd->readNextEvent();
-                  upevt_.event_number = evnum = event_num++;
+                  upevt_.event_number = evnum = ++event_num;
 
 //					std::cout << "event number 265: " << upevt_.event_number << std::endl;
 
                   if ( rtval == 0 )
                     {
                       /* If at end of file then set fd back to the beginning */
-                      printf("==> Reached end of data file. Rewinding...\n");
-                      requested_event = 0;
-                      // RawDataFile
-                      fd->close();
-                      // RawDataFile
-                      fd->open(file_name);
-                      event_num = 1;
-                      // set timer here
-		      //						fl_set_timer(fd_event_display->show_event_timer, (double)timer_delay);
+                      this->rewind_display();
                       break;
                     }
                 }
-              while (evnum < requested_event-1);
+              while (evnum < requested_event - 1);
+              
               // set timer here
 	      //				fl_set_timer(fd_event_display->show_event_timer, 0.1);
               need_event = 1;
@@ -214,6 +195,7 @@ void J_Display::cbShowEvent_m()
               // Copy data from up upevt_ into common blocks used by event display
 	      //				unpack_data_();
               unpack_data_cc(); //added 10-30-07
+              need_refresh = 1; // firman
             }
         }
 
@@ -221,7 +203,10 @@ void J_Display::cbShowEvent_m()
 
 // show events here
 //	j_display_cc();
-  jd->layout();
+  if (need_refresh) { // firman
+    jd->layout();
+    need_refresh = 0; // firman
+  }
 
   disp_wire_strip = wire_strip_active;
   disp_alct_time = alct_time_active;
@@ -290,6 +275,17 @@ int main(int argc, char **argv)
   return 0;
 }
 
+void J_Display::rewind_display() {
+    printf("==> Rewinding...\n");
+    requested_event = 1;
+    // RawDataFile
+    fd->close();
+    // RawDataFile
+    fd->open(file_name);
+    event_num = 0;
+    rewind_comm = 0;
+    static int first_time = 1;
+}
 
 void J_Display::layout()
 {
@@ -321,14 +317,15 @@ void J_Display::layout()
       fMain->Resize(fMain->GetDefaultSize());
       fMain->MapWindow();
     }
-
-
-
+  
   switch (activeDisp)
     {
     case M_WIRES_STRIPS:
       this->display_wires_strips_cc();
       break;
+    case M_WIRES_STRIPS_PEAKS: // firman
+      this->display_wires_strips_peaks_cc(); // firman
+      break; // firman
     case M_ATRIG:
       this->display_atrig_cc();
       break;
@@ -392,9 +389,6 @@ void J_Display::normal_layout()
 }
 
 
-
-
-
 void J_Display::handle_menu(int id)
 {
   firstTime = true;
@@ -405,6 +399,21 @@ void J_Display::handle_menu(int id)
   firstTimeWires = true;
   firstTimeSca = true;
   firstTimeCtrig = true;
+  need_refresh = 1;
+}
+
+void J_Display::handle_chambers_menu(int id)
+{
+  setSelectedChamberID(id);
+  need_refresh = 1;
+  
+  // to refresh the display 
+  // rewind_comm = 1;
+  requested_event = upevt_.event_number + 1;
+  change_chamber = true;
+  upevt_.event_number = 0;
+  reset_data_file(); // firman ???
+  std::cout << "==> Request event: " << requested_event << endl;
 }
 
 void J_Display::handle_run_menu(int id)
@@ -481,17 +490,24 @@ void J_Display::handle_num()
   std::cout << "Num Entry: " << alctChamber->GetIntNumber() << endl;
 }
 
+void J_Display::handle_hack_mode(bool mode)
+{
+  setHackMode(mode);
+  if (mode) printf("Hack mode enabled\n");
+  else printf("Hack mode disabled\n");
+}
 
 void J_Display::request_event_num()
 {
 
   //  std::cout << "--> Request event: " << selEvent->GetIntNumber() << endl;
   evtSlider->SetPosition(selEvent->GetIntNumber());
-  if (ulong( selEvent->GetIntNumber() ) < requested_event)
+  requested_event = selEvent->GetIntNumber();
+  // if (ulong( selEvent->GetIntNumber() ) < requested_event)
+  if (upevt_.event_number > requested_event)
     {
       reset_data_file();
     }
-  requested_event = selEvent->GetIntNumber();
   std::cout << "==> Request event: " << requested_event << endl;
 }
 
@@ -503,11 +519,12 @@ void J_Display::request_event(int pos)
   if (frm->IsA()->InheritsFrom(TGSlider::Class()))
     {
       selEvent->SetNumber(evtSlider->GetPosition());
-      if (ulong( evtSlider->GetPosition() ) < requested_event)
+      requested_event = evtSlider->GetPosition();
+      // if (ulong( evtSlider->GetPosition() ) < requested_event)
+      if (upevt_.event_number > requested_event)
         {
           reset_data_file();
         }
-      requested_event = evtSlider->GetPosition();
       std::cout << "==> Request event: " << requested_event << endl;
       make_status_running();
     }
@@ -526,7 +543,6 @@ void J_Display::update_status_bars()
       // std::cout << "=> Updating " << event_num << std::endl;
       evtSlider->SetPosition(event_num);
       selEvent->SetNumber(event_num);
-
     }
 }
 
@@ -1305,6 +1321,56 @@ void J_Display::wires_strips_label()
 }
 
 
+void J_Display::display_wires_strips_peaks_cc()
+{
+  this->wires_strips_layout();
+  this->update_banner("Wires & Strips (Peaks)");
+  this->j_plot_wires();
+  this->j_plot_strips_peaks();
+}
+
+void J_Display::j_plot_strips_peaks()
+{
+  int layer_no, i;
+  this->scale_y();
+  gStyle->SetOptStat(0);
+  gStyle->SetLabelSize(.15, "X");
+  gStyle->SetLabelSize(.1, "Y");
+  for (i=1; i<=NLAYER; i++)
+    {
+      sprintf(buffer, "hist%d", i-1);
+      if(hist[i-1]) delete hist[i-1];
+      hist[i-1] = new TH1F(buffer, "", NSTRIP+2, 0, NSTRIP+1);
+    }
+
+  for (layer_no=1; layer_no<=NLAYER; layer_no++)
+    {
+      hist[layer_no-1]->SetFillStyle(1001);
+      hist[layer_no-1]->SetFillColor(2);
+      for (i=1; i<=NSTRIP; i++)
+        {
+          if (j_data.strips_peaks[i-1][layer_no-1]<0)
+            {
+              j_data.strips_peaks[i-1][layer_no-1] *= 0.1;
+            }
+          hist[layer_no-1]->Fill((double)i, j_data.strips_peaks[i-1][layer_no-1]);
+        }
+    }
+
+  for (layer_no=1; layer_no<=NLAYER; layer_no++)
+    {
+      (hist[layer_no-1]->GetYaxis())->SetRangeUser(j_data.ymin[layer_no-1], j_data.ymax[layer_no-1]);
+      (hist[layer_no-1]->GetYaxis())->SetNdivisions(404);
+      (hist[layer_no-1]->GetYaxis())->SetLabelSize(0.2);
+      chist->cd(layer_no+1);
+      gPad->Clear();
+      hist[layer_no-1]->Draw();
+      gPad->Update();
+    }
+
+  return;
+}
+
 
 void J_Display::display_sca()
 {
@@ -1342,7 +1408,7 @@ void J_Display::plot_samples()
           graph[layer_no-1][istrip-1] = new TGraph(j_data.nsamples, px, py);
         }
     }
-
+  
   //draw graphs
   text->SetTextFont(82);
   text->SetTextSize(.13);
@@ -1748,7 +1814,9 @@ void J_Display::update_banner(string title)
   text->DrawText(0.5, 0.6, title.c_str());
 
   text->SetTextSize(0.25);
-  sprintf(buffer, "Run: %d   Event: %d          ALCT Chamber No:%d    CLCT Chamber No:%d", upevt_.run_number, upevt_.event_number, upevt_.alct_csc_id, upevt_.clct_csc_id);
+  // sprintf(buffer, "Run: %d   Event: %d          ALCT Chamber No:%d    CLCT Chamber No:%d", upevt_.run_number, upevt_.event_number, upevt_.alct_csc_id, upevt_.clct_csc_id);
+  sprintf(buffer, "Run: %d   Event: %d          ALCT Chamber No:%d    CLCT Chamber No:%d",
+                  upevt_.run_number, upevt_.event_number, getSelectedChamberID(), getSelectedChamberID());
   text->DrawText(0.5, 0.1, buffer);
   tempcan->Update();
 
@@ -2094,6 +2162,7 @@ void J_Display::Print()
       cmain->Print(buffer, "png");
       break;
     case M_WIRES_STRIPS:
+    case M_WIRES_STRIPS_PEAKS: // firman
       sprintf(buffer, "run%d_event%d_id%d_STRIPS.png", upevt_.run_number, upevt_.event_number, activeDisp);
       chist->Print(buffer, "png");
       sprintf(buffer, "run%d_event%d_id%d_WIRES.png", upevt_.run_number, upevt_.event_number, activeDisp);
@@ -2119,9 +2188,10 @@ void J_Display::CloseWindow()
 
 void J_Display::show_menus()
 {
-
+  // menu to select mode
   menuConfigure = new TGPopupMenu(gClient->GetRoot());
   menuConfigure->AddEntry("&Wires Strips", M_WIRES_STRIPS);
+  menuConfigure->AddEntry("Wires Strips (&Peak)", M_WIRES_STRIPS_PEAKS); // firman
   menuConfigure->AddEntry("At&rig", M_ATRIG);
   menuConfigure->AddEntry("&ALCT time", M_ALCT_TIME);
   menuConfigure->AddEntry("&CLCT time", M_CLCT_TIME);
@@ -2130,15 +2200,48 @@ void J_Display::show_menus()
 
   menuConfigure->Connect("Activated(int)", "J_Display", this, "handle_menu(int)");
 
+  // menu to select run mode
   menuRun = new TGPopupMenu(gClient->GetRoot());
   menuRun->AddEntry("&Select File", M_SELECT_FILE);
   menuRun->AddEntry("&Start", M_RUN);
   menuRun->AddEntry("&Pause", M_PAUSE);
 
   menuRun->Connect("Activated(int)", "J_Display", this, "handle_run_menu(int)");
-
+  
+  // menu to select chamber
+  menuChambers = new TGPopupMenu(gClient->GetRoot());
+  
+  // get the chambers data by reading the first event
+  std::vector<CSCEventData> chambersData;
+  fd->readNextEvent();
+  get_chambers_data(&chambersData, fd->data(), fd->dataLength());
+  fd->close();
+  fd->open(file_name);
+  
+  // creating entries according to chambers crate ID and DMB ID
+  int nChambers = chambersData.size();
+  for (int i = 0; i < nChambers; i++)
+    {
+      // getting chambers crate ID and DMB ID, then calculate chamber ID
+      CSCEventData& data = chambersData[i];
+      const CSCDMBHeader* dmbHeader = data.dmbHeader();
+      int crateID       = dmbHeader->crateID();
+      int dmbID         = dmbHeader->dmbID();
+      int chamberID     = (((crateID) << 4) + dmbID) & 0xFFF;
+      
+      // add entry with chamber ID
+      char buff1[100];
+      sprintf(buff1, "Chamber %d", chamberID);
+      const char* buff2 = buff1;
+      menuChambers->AddEntry(buff2, chamberID);
+      // any handler?
+    }
+  // add handler to chambers menu entry
+  menuChambers->Connect("Activated(int)", "J_Display", this, "handle_chambers_menu(int)");
+  
   menuBar = new TGMenuBar(fMain, 700, 20, kHorizontalFrame);
   menuBar->AddPopup("Con&figure", menuConfigure, new TGLayoutHints(kLHintsTop|kLHintsLeft, 0, 4, 0, 0));
+  menuBar->AddPopup("&Chambers", menuChambers, new TGLayoutHints(kLHintsTop|kLHintsLeft, 0, 4, 0, 0));
   menuBar->AddPopup("&Run", menuRun, new TGLayoutHints(kLHintsTop|kLHintsLeft, 0, 4, 0, 0));
 
   fMain->AddFrame(menuBar, new TGLayoutHints(kLHintsTop|kLHintsExpandX));
@@ -2195,10 +2298,15 @@ void J_Display::show_status_bars()
   selEvent->SetNumber(event_num);
   // selEvent->SetButtonToNum(false);
   selEvent->Connect("ValueSet(Long_t)", "J_Display", this, "request_event_num()");
+  
+  // select hack mode
+  hackSelect = new TGCheckButton(ctrlFrame, "Hack mode");
+  hackSelect->Connect("Toggled(bool)", "J_Display", this, "handle_hack_mode(bool)");
 
   lblTotalEvents = new TGLabel(ctrlFrame, Form("Total Events: %ld", total_events));
   ctrlFrame->AddFrame(lblTotalEvents, new TGLayoutHints(kLHintsCenterY));
   // ctrlFrame->AddFrame(new TGLabel(ctrlFrame, Form("Show Event: %ld", requested_event)), new TGLayoutHints(kLHintsBottom));
+  ctrlFrame->AddFrame(hackSelect, new TGLayoutHints(kLHintsRight));
   ctrlFrame->AddFrame(evtSlider, new TGLayoutHints(kLHintsRight|kLHintsExpandX));
   ctrlFrame->AddFrame(selEvent );
 
