@@ -69,6 +69,13 @@ function load_igb_emu(){
     echo "lsmod | grep igb"
     lsmod | grep igb
 
+    # Disable automatic start on boot
+    for N in 2 3 4 5; do
+	if [[ -f /etc/sysconfig/network-scripts/ifcfg-eth${N} ]]; then
+	    sed -i.bak -e 's/^BOOTPROTO=[[:print:]]*$/BOOTPROTO=static/g' -e 's/^ONBOOT=[[:print:]]*$/ONBOOT=no/g' /etc/sysconfig/network-scripts/ifcfg-eth${N}
+	fi
+    done    
+
     # Bring up the built-in interfaces, too, in case they're also Intel and have been brought down. (No effect if they're not Intel and are still running.)
     echo "Bringing up the built-in interfaces"
     /etc/sysconfig/network-scripts/ifup-eth eth0
