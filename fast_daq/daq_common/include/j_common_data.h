@@ -14,6 +14,7 @@ double ymin[6], ymax[6];
 
 /* common block unpacked */
 float strips[NSTRIP][NLAYER];
+float strips_peaks[NSTRIP][NLAYER]; // firman
 int wires[NWIRE][NLAYER], scint[2][NSCINT][2];
 
 /* common block trigunpacked */

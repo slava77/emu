@@ -66,10 +66,11 @@ class J_Display {
         TCanvas *cmain, *clabel, *chist, *cgraph, *ctrigcan;
         TGTextButton *bWiresStrips, *bAtrig, *bAlctTime, *bClctTime;
         TGMenuBar *menuBar;
-        TGPopupMenu *menuConfigure, *menuChamber, *menuRun;
+        TGPopupMenu *menuConfigure, *menuChambers, *menuRun;
         TGDockableFrame *menuDock;
 	//TGNumberEntry *alctChamber, *clctChamber;
 	TGNumberEntry *alctChamber, *clctChamber, *selEvent; //v
+    TGCheckButton *hackSelect;
 	// for display_wires_strips
         TGCompositeFrame *titleFrame, *wiresFrame;
         TGCompositeFrame *midFrame;
@@ -103,12 +104,15 @@ class J_Display {
 	    text = new TText;
 	  }
 	void cbShowEvent_m();
+    void rewind_display();
 	void layout();
         void normal_layout();
 	void handle_menu(int id);
+        void handle_chambers_menu(int);
         void handle_run_menu(int);
 	void handle_tb(int id);
 	void handle_num();
+    void handle_hack_mode(bool);
 	void request_event(int);
 	void request_event_num();
 	void update_status_bars();
@@ -120,8 +124,10 @@ class J_Display {
         void display_atrig_cc();
         void j_plot_atrig_wires();
         void display_wires_strips_cc();
+        void display_wires_strips_peaks_cc(); // firman
         void j_plot_wires();
         void j_plot_strips();
+        void j_plot_strips_peaks(); // firman
         void scale_y();
         void wires_strips_label();
         void wires_strips_layout();

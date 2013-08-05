@@ -33,6 +33,8 @@ using namespace std;
 /* Flags to control the event display (see cdShowEvent() ) */
 
 int need_event;
+int need_refresh;
+bool change_chamber;
 int re_read_peds;
 long total_events(0);
 unsigned long requested_event;
@@ -104,7 +106,7 @@ int connect_data_file(char *sel_fn)
 
   scan_data_file(file_name);
 
-  event_num = 1;
+  event_num = 0;
 
   {
 #ifdef DEBUG
@@ -181,6 +183,8 @@ extern "C" void make_status_running()
   disp_atrig = 1;
   disp_ctrig = 1;
   need_event = 1;
+  change_chamber = false;
+  need_refresh = 1; // firman
 
   disp_paused = 0;
 
@@ -222,7 +226,7 @@ extern "C" void reset_data_file()
       fd->close();
       // RawDataFile
       fd->open(file_name);
-      event_num = 1;
+      event_num = 0;
       rewind_comm = 0;
     }
 
@@ -263,18 +267,20 @@ int event_display_global_init(int argc, char *argv[])
   re_read_peds = 0;
 
   disp_wire_strip = 1;
-  disp_alct_time = 1;
-  disp_clct_time = 1;
+  disp_alct_time  = 1;
+  disp_clct_time  = 1;
   disp_sca        = 1;
   disp_atrig      = 1;
   disp_ctrig      = 1;
   disp_sci_strips = 1;
   disp_sci_wires  = 1;
   disp_paused     = 1;
+  need_refresh    = 1; // firman
 
+  change_chamber    = false; // firman
   wire_strip_active = 1;
-  alct_time_active = 0;
-  clct_time_active = 0;
+  alct_time_active  = 0;
+  clct_time_active  = 0;
   sca_active        = 0;
   atrig_active      = 0;
   ctrig_active      = 0;
