@@ -51,6 +51,7 @@ function load_igb_emu(){
     echo "Unloading the modules if they've been loaded already"
     echo "lsmod | grep igb"
     lsmod | grep igb
+    lspci -k | grep -A 3 Ethernet
     if [[ $(/sbin/lsmod | grep -c 'igb_emu ') -gt 0 ]]; then
 	echo "/sbin/modprobe -r igb_emu"
 	/sbin/modprobe -r igb_emu
@@ -61,13 +62,15 @@ function load_igb_emu(){
     fi
     echo "lsmod | grep igb"
     lsmod | grep igb
-    
+    lspci -k | grep -A 3 Ethernet
+
     # Load new modules
     echo "Loading igb_emu"
     echo "/sbin/modprobe igb_emu InterruptThrottleRate=$(module_parameters $NPORTS 0) QueuePairs=$(module_parameters $NPORTS 0) EEE=$(module_parameters $NPORTS 0) MDD=$(module_parameters $NPORTS 0)"
     /sbin/modprobe igb_emu InterruptThrottleRate=$(module_parameters $NPORTS 0) QueuePairs=$(module_parameters $NPORTS 0) EEE=$(module_parameters $NPORTS 0) MDD=$(module_parameters $NPORTS 0)
     echo "lsmod | grep igb"
     lsmod | grep igb
+    lspci -k | grep -A 3 Ethernet
 
     # Disable automatic start on boot
     for N in 2 3 4 5; do
@@ -76,10 +79,16 @@ function load_igb_emu(){
 	fi
     done    
 
-    # Bring up the built-in interfaces, too, in case they're also Intel and have been brought down. (No effect if they're not Intel and are still running.)
-    echo "Bringing up the built-in interfaces"
-    /etc/sysconfig/network-scripts/ifup-eth eth0
-    /etc/sysconfig/network-scripts/ifup-eth eth1
+    # Restart the built-in interfaces, too, in case they're also Intel supported by igb.
+    for N in 0 1; do
+	if [[ $( grep -c "^alias eth${N} igb" /etc/modprobe.conf ) -gt 0 ]]; then
+	    sleep 2
+	    echo "Restarting the built-in interface eth${N}"
+	    /etc/sysconfig/network-scripts/ifdown eth${N}
+	    sleep 5
+	    /etc/sysconfig/network-scripts/ifup-eth eth${N}
+	fi
+    done
 
     # Bring up the interfaces for the plugged-in NICs
     echo "Bringing up the interfaces for the plugged-in NICs"
