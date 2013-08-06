@@ -4,7 +4,7 @@
 
 Summary: CMS Emu local DAQ Gbit and peripheral crate VME drivers for kernel %{kernel_version} based on the igb module for the Intel dual port NIC model I350-F2
 Name: emu-igb_emu
-Version: 1.1.2
+Version: 1.1.3
 Release: 1.slc5
 License: none
 Group: none
@@ -60,7 +60,7 @@ touch %{_topdir}/BUILD/MAINTAINER
 %post
 # Have load_daq_pcvme_drivers.sh invoked on booting
 sed -i -e "/\/usr\/local\/bin\/load_igb_emu.sh/d" /etc/rc.d/rc.local
-echo "[[ -x /usr/local/bin/load_igb_emu.sh ]] && /usr/local/bin/load_igb_emu.sh" >> /etc/rc.d/rc.local
+echo "[[ -x /usr/local/bin/load_igb_emu.sh ]] && /usr/local/bin/load_igb_emu.sh > /var/log/load_igb_emu.log 2>&1" >> /etc/rc.d/rc.local
 
 # Load new modules
 /usr/local/bin/load_igb_emu.sh
