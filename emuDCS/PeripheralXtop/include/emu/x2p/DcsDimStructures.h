@@ -32,6 +32,8 @@
 //
 
 #define CFEB_NUMBER 5
+#define DCFEB_NUMBER 7
+#define DCFEB_SM_CHANNEL 18
 
 typedef struct{
   float v33[CFEB_NUMBER];
@@ -41,6 +43,20 @@ typedef struct{
   float c50[CFEB_NUMBER];
   float c60[CFEB_NUMBER];
 }CFEB_LV;
+
+typedef struct{
+  float v30[DCFEB_NUMBER];
+  float v40[DCFEB_NUMBER];
+  float v55[DCFEB_NUMBER];
+  float c30[DCFEB_NUMBER];
+  float c40[DCFEB_NUMBER];
+  float c55[DCFEB_NUMBER];
+}DCFEB_LV;
+
+typedef struct{
+  float vcore[DCFEB_NUMBER];
+  float vaux1[DCFEB_NUMBER];
+}DCFEB_SYSMON;
 
 typedef struct{
   float v18;
@@ -70,7 +86,6 @@ typedef struct{
   float vMAX;
 }TMB_LV;
                 
-                
 typedef struct{
 
   CFEB_LV cfeb;
@@ -87,7 +102,24 @@ typedef struct{
   int status;
 
 }LV_1_DimBroker;
+                
+typedef struct{
 
+  DCFEB_LV dcfeb;
+  ALCT_LV alct;
+  TMB_LV  tmb;
+  DCFEB_SYSMON dsys;
+
+  float A7v;
+  float D7v;
+
+  int CCB_bits;
+  int FPGA_bits;
+
+  int update_time;
+  int status;
+
+}LV_2_DimBroker;
                 
 typedef struct{
 
@@ -124,6 +156,22 @@ typedef struct{
   int status;
 
 }TEMP_1_DimBroker;
+
+typedef struct{
+
+  float t_odmb;
+  float t_otmb;
+  float t_alct;
+  float t_lvdb;
+
+  float t_fpga[DCFEB_NUMBER];
+  float t_pcb1[DCFEB_NUMBER];
+  float t_pcb2[DCFEB_NUMBER];
+
+  int update_time;
+  int status;
+
+}TEMP_2_DimBroker;
 
 
 typedef struct{
