@@ -71,6 +71,7 @@ namespace emu {
 Chamber::Chamber():
 label_("CSC"), active_(0), dataok_(true), ready_(false), corruption(false)
 {
+   type_=0;
 }
 
 Chamber::~Chamber()
@@ -96,7 +97,7 @@ void Chamber::Fill(char *buffer, int source)
            i = atoi(item);
            states[idx] = i; 
        }
-       else if(idx<69)
+       else if(idx<69 || (type_==2 && idx<285))
        {  
            y=strtof(item,NULL);
            values[idx-5]=y;
@@ -105,14 +106,29 @@ void Chamber::Fill(char *buffer, int source)
        item=strtok_r(NULL, sep, &last);
    };
 
+   if(source==1)  type_=states[0];
+
    if(source==0)
    {  
-      if(idx!=68 || values[62]!=(-50.))
-      {   std::cout << label_ << " BAD...total " << idx << " last one " << values[62] << std::endl;
-          corruption = true;
+      if(type_<=1)
+      {
+        if(idx!=68 || values[62]!=(-50.))
+        {   std::cout << label_ << " (type 1) BAD...total " << idx << " last one " << values[62] << std::endl;
+            corruption = true;
+        }
+        else 
+        {   corruption = false;
+        }
       }
-      else 
-      {   corruption = false;
+      else if(type_==2)
+      {
+        if(idx!=282 || values[276]!=(-50.))
+        {   std::cout << label_ << " (type 2) BAD...total " << idx << " last one " << values[276] << std::endl;
+            corruption = true;
+        }
+        else 
+        {   corruption = false;
+        }
       }
 
       if (states[0]!=0)
@@ -137,6 +153,8 @@ void Chamber::Fill(char *buffer, int source)
 
 void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
 {
+   if(type_==2) return;
+
    int *info, this_st;
    float *data;
    //   float V33, V50, V60, C33, C50, C60, V18, V55, V56, C18, C55, C56;
@@ -192,8 +210,75 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
 
 }
 
+void Chamber::GetDimLV2(int hint, LV_2_DimBroker *dim_lv )
+{
+   if(type_<=1) return;
+
+   int *info, this_st;
+   float *data;
+   //   float V33, V50, V60, C33, C50, C60, V18, V55, V56, C18, C55, C56;
+
+   info = &(states[0]);
+   data = &(values[0]);
+
+   this_st = info[0];
+   if(corruption)
+   {
+       this_st |= 4;
+       for(int i=0; i<38; i++) data[i] = -2.;
+   }
+   for(int i=0; i<DCFEB_NUMBER; i++)
+   {
+      dim_lv->dcfeb.v30[i] = data[25+3*i];
+      dim_lv->dcfeb.v40[i] = data[26+3*i];
+      dim_lv->dcfeb.v55[i] = data[27+3*i];
+      dim_lv->dcfeb.c30[i] = data[ 0+3*i];
+      dim_lv->dcfeb.c40[i] = data[ 1+3*i];
+      dim_lv->dcfeb.c55[i] = data[ 2+3*i];
+   }
+      dim_lv->alct.v18 = data[47];
+      dim_lv->alct.v33 = data[46];
+      dim_lv->alct.v55 = data[48];
+      dim_lv->alct.v56 = data[49];
+      dim_lv->alct.c18 = data[22];
+      dim_lv->alct.c33 = data[21];
+      dim_lv->alct.c55 = data[23];
+      dim_lv->alct.c56 = data[24];
+   
+      dim_lv->tmb.v50  = data[65];
+      dim_lv->tmb.v33  = data[66];
+      dim_lv->tmb.v15C = data[67];
+      dim_lv->tmb.v15T = data[68];
+      dim_lv->tmb.v10T = data[69];
+      dim_lv->tmb.c50  = data[70];
+      dim_lv->tmb.c33  = data[71];
+      dim_lv->tmb.c15C = data[72];
+      dim_lv->tmb.c15T = data[73];
+      dim_lv->tmb.cRAT = data[74];
+      dim_lv->tmb.vRAT = data[75];
+      dim_lv->tmb.vREF = data[76];
+      dim_lv->tmb.vGND = data[77];
+      dim_lv->tmb.vMAX = data[78];
+
+   for(int i=0; i<DCFEB_NUMBER; i++)
+   {
+      dim_lv->dsys.vcore[i] = data[81+27*i];
+      dim_lv->dsys.vaux1[i] = data[82+27*i];
+   }
+
+   dim_lv->A7v = data[50];
+   dim_lv->D7v = data[51];
+   dim_lv->CCB_bits = info[3];
+   dim_lv->FPGA_bits = info[4];
+   dim_lv->update_time = info[1];
+   dim_lv->status = this_st;
+
+}
+
 void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
 {
+   if(type_==2) return;
+
    int *info, this_st;
    float *data, total_temp;
 
@@ -217,6 +302,38 @@ void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
    
    total_temp = dim_temp->t_daq + dim_temp->t_cfeb1 + dim_temp->t_cfeb2
             + dim_temp->t_cfeb3 + dim_temp->t_cfeb4 + dim_temp->t_alct;
+
+   dim_temp->update_time = info[1];
+   dim_temp->status = this_st;
+}
+
+void Chamber::GetDimTEMP2(int hint, TEMP_2_DimBroker *dim_temp )
+{
+   if(type_<=1) return;
+
+   int *info, this_st;
+   float *data, total_temp;
+
+      info = &(states[0]);
+      data = &(values[0]);
+
+   this_st = info[0];
+   if(corruption)
+   {
+       this_st |= 4;
+       for(int i=38; i<48; i++) data[i] = -2.;
+   }
+      dim_temp->t_odmb = 0.0;
+      dim_temp->t_otmb = data[57];
+      dim_temp->t_alct = data[56];
+      dim_temp->t_lvdb = data[55];
+      
+      for(int i=0; i<DCFEB_NUMBER; i++)
+      {
+         dim_temp->t_fpga[i] = data[80+27*i];
+         dim_temp->t_pcb1[i] = 0.0;
+         dim_temp->t_pcb2[i] = 0.0;
+      }
 
    dim_temp->update_time = info[1];
    dim_temp->status = this_st;

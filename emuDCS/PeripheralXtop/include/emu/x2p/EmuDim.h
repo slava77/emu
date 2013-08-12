@@ -111,8 +111,8 @@ public:
   int UpdateDDU (int ch);
   int ReadFromFile(const char *filename);
   int ReadFromXmas ();
-  int ParseTXT(char *buff, int buffsize, int source);
-  int FillChamber(char *buff, int source);
+  int ParseTXT(char *buff, int buffsize, int source, int type);
+  int FillChamber(char *buff, int source, int type);
   int ParseDDU(char *buff, int buffsize, int source);
   int FillDDU(char *buff, int source);
   int ChnameToNumber(const char *chname);
@@ -129,6 +129,8 @@ private:
 
   LV_1_DimBroker EmuDim_lv[TOTAL_CHAMBERS];
   TEMP_1_DimBroker EmuDim_temp[TOTAL_CHAMBERS];
+  LV_2_DimBroker EmuDim_lv2[TOTAL_CHAMBERS];
+  TEMP_2_DimBroker EmuDim_temp2[TOTAL_CHAMBERS];
   DDU_1_DimBroker EmuDim_ddu[TOTAL_DDUS];
   CRATE_1_DimBroker EmuDim_crate[TOTAL_CRATES];
   XMAS_1_DimBroker EmuDim_xmas;
@@ -157,7 +159,7 @@ private:
   time_t readtime_;
 
 
-  std::string xmas_root, xmas_load, xmas_start, xmas_stop, xmas_info;
+  std::string xmas_root, xmas_load, xmas_load2, xmas_start, xmas_stop, xmas_info;
   std::string blue_root, blue_info, fedc_root, fedc_load;
              
   int crate_state[TOTAL_CRATES];

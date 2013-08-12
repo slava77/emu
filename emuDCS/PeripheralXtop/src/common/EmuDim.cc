@@ -342,6 +342,7 @@ void EmuDim::Setup()
 
    xmas_root=XmasDcsUrl_;
    xmas_load=xmas_root + "/DCSOutput";
+   xmas_load2=xmas_root + "/DCSOutput2";
    xmas_start=xmas_root + "/MonitorStart";
    xmas_stop=xmas_root + "/MonitorStop";
    xmas_info=xmas_root + "/SwitchBoard";
@@ -387,7 +388,7 @@ int EmuDim::ReadFromFile(const char *filename)
    if(buffer==NULL) return 0;
    // then fill the structure
    readsize=fread(buffer, 1, 100000, fl);
-   if(readsize>40) ch=ParseTXT(buffer, readsize, 1);
+   if(readsize>40) ch=ParseTXT(buffer, readsize, 1, 0);
    std::cout << ch << " Chambers read from file " << filename << std::endl;
    fseek(fl,0,SEEK_SET);
    readsize=fread(buffer, 1, 100000, fl);
@@ -400,17 +401,21 @@ int EmuDim::ReadFromFile(const char *filename)
 
 int EmuDim::ReadFromXmas()
 {
-   int ch=0, du=0;
+   int ch1=0, ch2=0, ch=0, du=0;
 
    readin_=1;
    readtime_=time(NULL);
+   readin_=2; 
+
    // read
    XmasLoader->reload(xmas_load);
-
-   readin_=2; 
    // then fill the structure
-   ch=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), 0);
+   ch1=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), 0, 1);
+   XmasLoader->reload(xmas_load2);
+   ch2=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), 0, 2);
+   ch=ch1+ch2;
    std::cout << "Cycle " << heartbeat << " read " << ch << " Chambers and ";
+   
    // if no chamber info read back, report Xmas state as error
    if(ch>0 && (xmas_state_ & 0x100)) xmas_state_ &= 0xfffffeff;
    if(ch==0 && lastread_ch==0) xmas_state_ |= 0x100;
@@ -430,7 +435,7 @@ int EmuDim::ReadFromXmas()
    return ch;
 }
 
-int EmuDim::ParseTXT(char *buff, int buffsize, int source)
+int EmuDim::ParseTXT(char *buff, int buffsize, int source, int type)
 {
 //
 // source==0  from Xmas
@@ -456,14 +461,14 @@ int EmuDim::ParseTXT(char *buff, int buffsize, int source)
        else
        {
            *endstr=0;
-           chmbs += FillChamber(start, source);
+           chmbs += FillChamber(start, source, type);
        }
        start = endstr+1;
    } while(more_line);
    return chmbs;
 }
 
-int EmuDim::FillChamber(char *buff, int source)
+int EmuDim::FillChamber(char *buff, int source, int type)
 {
    char *content;
    char * endstr;
@@ -477,7 +482,7 @@ int EmuDim::FillChamber(char *buff, int source)
    label=buff;
 //   std::cout << "Found chamber " << label << " with number " << chnumb << std::endl; 
    content = endstr+1;
-   if(strlen(content)>500) std::cout<< label << " WARNING " << content << std::endl;
+   if((type<=1 && strlen(content)>500) || (type==2 && strlen(content)>4000)) std::cout<< label << " WARNING type: " << type << " content: " << content << std::endl;
    if(chnumb>=0 && chnumb <TOTAL_CHAMBERS)
    {   chamb[chnumb].SetLabel(label);
        chamb[chnumb].Fill(content, source);
@@ -616,7 +621,8 @@ void EmuDim::StartDim()
 {
    int total=0, total_d=0, i=0;
    std::string dim_lv_name, dim_temp_name, dim_ddu_name, dim_command, dim_server, pref;
-
+   std::string dim_lv2_name, dim_temp2_name;
+   
    pref=TestPrefix_;
 
    std::string xmas_server = pref + "XMAS_X2P";
@@ -630,6 +636,8 @@ void EmuDim::StartDim()
    {
       if(chamb[i].Ready())
       {
+        if(chamb[i].GetType()<=1)
+        {
          chamb[i].GetDimLV(0, &(EmuDim_lv[i]));
          chamb[i].GetDimTEMP(0, &(EmuDim_temp[i]));
          dim_lv_name = pref + "LV_1_" + chamb[i].GetLabel(); 
@@ -639,7 +647,19 @@ void EmuDim::StartDim()
            &(EmuDim_lv[i]), sizeof(LV_1_DimBroker));
          TEMP_1_Service[i]= new DimService(dim_temp_name.c_str(),"F:7;I:2",
            &(EmuDim_temp[i]), sizeof(TEMP_1_DimBroker));
+        }
+        else
+        {
+         chamb[i].GetDimLV2(0, &(EmuDim_lv2[i]));
+         chamb[i].GetDimTEMP2(0, &(EmuDim_temp2[i]));
+         dim_lv2_name = pref + "LV_2_" + chamb[i].GetLabel(); 
+         dim_temp2_name = pref + "TEMP_2_" + chamb[i].GetLabel(); 
 
+         LV_1_Service[i]= new DimService(dim_lv2_name.c_str(),"F:7;F:7;F:7;F:7;F:7;F:7;F:8;F:14;F:7;F:7;F:2;I:4",
+           &(EmuDim_lv2[i]), sizeof(LV_2_DimBroker));
+         TEMP_1_Service[i]= new DimService(dim_temp2_name.c_str(),"F:4;F:7;F:7;F:7;I:2",
+           &(EmuDim_temp2[i]), sizeof(TEMP_2_DimBroker));
+        }
          total++;
       }
       i++;
@@ -680,8 +700,16 @@ int EmuDim::UpdateChamber(int ch)
    if(mode<=0) mode = 2;
    if(ch>=0 && ch < TOTAL_CHAMBERS && chamb[ch].Ready())
    {
+     if(chamb[ch].GetType()<=1)
+     {
          chamb[ch].GetDimLV(mode, &(EmuDim_lv[ch]));
          chamb[ch].GetDimTEMP(mode, &(EmuDim_temp[ch]));
+     }
+     else
+     {
+         chamb[ch].GetDimLV2(mode, &(EmuDim_lv2[ch]));
+         chamb[ch].GetDimTEMP2(mode, &(EmuDim_temp2[ch]));
+     }
      try 
      {
          if(LV_1_Service[ch]) LV_1_Service[ch]->updateService();
