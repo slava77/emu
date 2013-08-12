@@ -801,6 +801,7 @@ public:
   // code for ODMB
   void dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);
   void odmb_fpga_call(int inst, unsigned data, char *outbuf);
+  int DCSread2(char *data);
 
   // various delays in ODMB
   inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(set_LCT_L1A_DLY, delay&0x3F); }  // 6 bits

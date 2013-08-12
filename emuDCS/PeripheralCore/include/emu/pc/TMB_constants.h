@@ -311,6 +311,8 @@ static const unsigned long int	badbits401_adr	        = 0x00013E;
 static const unsigned long int	badbits423_adr	        = 0x000140;
 static const unsigned long int	badbits445_adr	        = 0x000142;
 
+static const unsigned long int	v6_sysmon_adr	        = 0x00015A;  //ADR_V6_SYSMON
+
 // extra DCFEB Bad Bits on OTMB 
 static const unsigned long int  dcfeb_badbits_ctrl_adr  = 0x00015C;  //DCFEB Bad Bit Control/Status extends Adr 122
 static const unsigned long int  badbits501_adr          = 0x00015E;  //ADR_V6_CFEB5_BADBITS_LY01

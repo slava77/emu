@@ -828,7 +828,10 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
   //                1   good reading
   //                0   bad reading or no reading (skipped/masked)
 
-  int rn, TOTAL_DCS_COUNTERS=48; // aligned at 4 bytes (integer)
+  int rn; 
+  int TOTAL_DMB_COUNTERS=56; // upto 7 ADCs (8 channels/ADC)
+  int TOTAL_TMB_COUNTERS=8;
+  int TOTAL_DCS_COUNTERS=TOTAL_DMB_COUNTERS+TOTAL_TMB_COUNTERS; // aligned at 4 bytes (integer)
   short *buf2, flag=0;
   unsigned dmask, tmask;
 
@@ -842,8 +845,10 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) 
   {
-    int imask= 0x3F & (myDmbs[i]->GetPowerMask());
-    bool chamber_on = (imask!=0x3F);
+    int imask= 0xFF & (myDmbs[i]->GetPowerMask());
+    bool chamber_on = (imask!=0xFF);
+    int Dversion=myDmbs[i]->GetHardwareVersion();
+    int Tversion=myTmbs[i]->GetHardwareVersion();
 
     if(IsAlive() && (dmask & (1<<i))==0)
     {  
@@ -857,7 +862,7 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
     }
     if(IsAlive() && (tmask & (1<<i))==0 && chamber_on)
     {  
-        rn=myTmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS+46*2);
+        rn=myTmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS+TOTAL_DMB_COUNTERS*2);
 /* move this to TMB cycle 
         if( rn>0) flag |= (1<<i);
         else if(rn<0) 
@@ -866,6 +871,48 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
            flag |= ((i+1)<<10);
         }
 */
+    }
+  }
+  *buf2 = (TOTAL_DCS_COUNTERS)*myDmbs.size();
+  *(buf2+1) = flag;
+  return;
+}
+
+void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask) 
+{
+  // flag  bits 13-10:  if !=0, bad TMB/DMB # (1-9)
+  // flag  bit pattern 8-0:  for each TMB/DMB
+  //                1   good reading
+  //                0   bad reading or no reading (skipped/masked)
+
+  int rn, TOTAL_DCS_COUNTERS=28*7; // aligned at 4 bytes (integer)
+  short *buf2, flag=0;
+  unsigned dmask, tmask;
+
+  dmask = mask & 0x1FF;
+  tmask = mask >> 10;
+  buf2=(short *)buf;
+  *buf2 = 0;
+  for(int i=0; i<= TOTAL_DCS_COUNTERS*9; i++) buf2[i]=0;
+  vmeController()->SetUseDelay(true);
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
+  std::vector<TMB*> myTmbs = this->tmbs();
+  for(unsigned i =0; i < myDmbs.size(); ++i) 
+  {
+    int imask= 0xFF & (myDmbs[i]->GetPowerMask());
+    bool chamber_on = (imask!=0xFF);
+    int Dversion=myDmbs[i]->GetHardwareVersion();
+    int Tversion=myTmbs[i]->GetHardwareVersion();
+
+    if(IsAlive() && Dversion==2 && (dmask & (1<<i))==0)
+    {  
+        rn=myDmbs[i]->DCSread2(buf+4+i*2*TOTAL_DCS_COUNTERS);
+        if( rn>0) flag |= (1<<i);
+        else if(rn<0) 
+        {  
+           flag &= 0x3FF; 
+           flag |= ((i+1)<<10);
+        }
     }
   }
   *buf2 = (TOTAL_DCS_COUNTERS)*myDmbs.size();

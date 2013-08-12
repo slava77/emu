@@ -2149,6 +2149,7 @@ public:
   void virtex6_writereg(int reg, unsigned value);
   std::vector<float> virtex6_monitor();
   int virtex6_dna(void *data);
+  int virtex6_sysmon(int chn);
   //
   FILE *pfile;
   int ucla_ldev;

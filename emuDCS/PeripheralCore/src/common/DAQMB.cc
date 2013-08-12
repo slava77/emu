@@ -7511,7 +7511,7 @@ void DAQMB::write_cfeb_selector(int cfeb_mask)
   unsigned short mask = cfeb_mask&0xFF;
   vme_delay(20);
   write_now(WRITE_CFEB_SELECTOR, mask, temp);
-  std::cout << "Write CFEB selector: " << std::hex << cfeb_mask << std::dec << std::endl;
+//  std::cout << "Write CFEB selector: " << std::hex << cfeb_mask << std::dec << std::endl;
   udelay(100);
 //  int mask_read=read_cfeb_selector();
 //  if(mask_read != (cfeb_mask&0xFF))
@@ -8577,7 +8577,7 @@ int DAQMB::LVDB_map(int chn)
 {
      // return the LVDB position (0-7) of channel <chn> (for CFEB<chn+1>)
 
-     int lvdb7_f[8]={3,5,6,4,2,0,1,7};  // on LVDB: 6,7,5,1,4,2,3,8
+     int lvdb7_f[8]={3,6,5,4,2,0,1,7};  // on LVDB: 6,7,5,1,4,3,2,8
      int lvdb7_b[8] ={3,2,1,0,4,5,6,7};  // on LVDB: 4,3,2,1,5,6,7,8
      if(chn<0 || chn>7) return 0;
      if(hardware_version_<=1 || lvdb_mapping_==0) return chn;
@@ -8619,6 +8619,43 @@ void DAQMB::odmb_fpga_call(int inst, unsigned data, char *outbuf)
   int comd=VTX6_BYPASS;
   dlog_do(10, &comd, 0, &data, temp, NOW);
   udelay(20);
+}
+
+int DAQMB::DCSread2(char *data)
+{
+
+// add DCFEB monitoring info here
+//     loop through all DCFEBs
+//     {    1. DCFEB SYSMON
+//          2. DCFEB ADC
+//     }
+
+  int retn=0;
+  short *data2= (short *)data;
+  int TOTAL_SYSMON=19;
+  int TOTAL_ADC=8;
+  int TOTAL_ITEMS=TOTAL_SYSMON+TOTAL_ADC;
+
+  if (hardware_version_!=2) return 0;
+
+  if(checkvme_fail()) return 0;
+
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)
+  {
+      std::vector<float> fsysmon=dcfeb_fpga_monitor(cfebs_[lfeb]);
+      int febnum=cfebs_[lfeb].number();
+      for(unsigned i=0; i<fsysmon.size(); i++)
+      {
+         data2[febnum*TOTAL_ITEMS+i]=int(fsysmon[i]*100);
+      }
+      fsysmon.clear();
+      for(int i=0; i<TOTAL_ADC; i++)
+      {
+         data2[febnum*TOTAL_ITEMS+TOTAL_SYSMON+i]=dcfeb_adc(cfebs_[lfeb], i);
+      } 
+      retn += TOTAL_ITEMS;
+  }
+  return retn;
 }
 
 } // namespace emu::pc
