@@ -8758,7 +8758,7 @@ int TMB::GetHotChannelDistripFromMap_(unsigned long int vme_address, int bit_in_
 int TMB::DCSreadAll(char *data) 
 {
   char out[2];
-  unsigned short tt, tr;
+  unsigned short tt, tr, sysm[6];
 
   if(checkvme_fail()) return 0;
   start(6,1);
@@ -8780,7 +8780,17 @@ int TMB::DCSreadAll(char *data)
   } 
   tr |= (tt & 1);
   memcpy(data, &tr, 2);
-  return 2;
+
+  if(hardware_version_==2)
+  {
+     for(int i=0; i<6; i++)
+     {
+        sysm[i]=virtex6_sysmon(i);
+     }
+     memcpy(data+2, sysm, 6*2);
+     return 14;
+  }
+  else return 2;
 }
 
 int TMB::DCSvoltages(char *databuf) 
@@ -9097,6 +9107,22 @@ int TMB::virtex6_dna(void *dna)
      UnjamFPGA();
      udelay(1000);
      return rtv;
+}
+    
+int TMB::virtex6_sysmon(int chn)
+{
+     float v;
+     WriteRegister(v6_sysmon_adr, chn&0x1F);
+     int i=ReadRegister(v6_sysmon_adr);
+     if(i&0x20)
+     {
+        i >>= 6;
+      
+        if(chn==0) v=i*503.975/1024.0-273.15;
+        else v=i*3.0/1024.0;
+        return int(v*100);
+     }
+     return 0;
 }
 
 } // namespace emu::pc  

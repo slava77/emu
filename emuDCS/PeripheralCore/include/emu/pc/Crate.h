@@ -176,6 +176,7 @@ public:
   void MonitorTMB(int cycle, char * buf, unsigned mask=0);
   void MonitorDMB(int cycle, char * buf, unsigned mask=0);
   void MonitorDCS(int cycle, char * buf, unsigned mask=0);
+  void MonitorDCS2(int cycle, char * buf, unsigned mask=0);
   void MonitorTCS(int cycle, char * buf, unsigned mask=0);
 
 private:
