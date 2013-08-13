@@ -8621,6 +8621,71 @@ void DAQMB::odmb_fpga_call(int inst, unsigned data, char *outbuf)
   udelay(20);
 }
 
+void DAQMB::daqmb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd)
+{
+  int DAQMB_DEV=2;
+  char tmp[2];
+  unsigned short int ishft,temp;
+
+  /* irdsnd for jtag
+          irdsnd = 0 no read, later
+          irdsnd = 1 no read, now
+          irdsnd = 2    read, later
+          irdsnd = 3    read, now
+  */
+   if(ncmd<0)
+   { // Reset Jtag State Machine
+     Jtag_Ohio(DAQMB_DEV, 0, tmp,-1, tmp, 0, (irdsnd&1));
+     return;
+   }
+   if(ncmd>0) Jtag_Ohio(DAQMB_DEV, 0, (char *)cmd,ncmd, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
+//   if(ncmd>0 && nbuf>0) sleep_vme(200); 
+   if(nbuf>0) Jtag_Ohio(DAQMB_DEV, 1,(char *)inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&NOW);
+
+// send empty clocks |nbuf|, inbuf & outbuf not used
+   if(nbuf<0) Jtag_Ohio(DAQMB_DEV, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
+//
+}
+
+std::vector<float> DAQMB::odmb_fpga_monitor()
+{
+  // only read out first 3 channels
+  
+  std::vector<float> readout;
+  char buf[4]={0,0,0,0};
+  int comd=VTX6_SYSMON;
+  unsigned data, ibrd, adc;
+  float readf;
+
+  readout.clear();
+  if(hardware_version_==2)
+  {
+     comd=VTX6_SYSMON;
+//     this can be used to change register 0x48 to enable more channels
+//     data=0x8483F00;
+//     cfeb_do(10, &comd, 32, &data, rcvbuf, 3);
+     data=0x4000000;
+     dlog_do(10, &comd, 32, &data, rcvbuf, NOW|READ_YES);
+     udelay(100);
+     for(unsigned i=0; i<3; i++)
+     {
+        data += 0x10000;
+        dlog_do(0, buf, 32, &data, (char *)&ibrd, NOW|READ_YES);
+        udelay(100);
+        adc = (ibrd>>6)&0x3FF;
+        if(i==0)
+          readf=adc*503.975/1024.0-273.15;
+        else
+          readf=adc*3.0/1024.0;
+        readout.push_back(readf);
+     }
+     comd=VTX6_BYPASS;
+     dlog_do(10, &comd, 0, &data, rcvbuf, NOW);
+     udelay(100);
+  }
+  return readout;
+}
+
 int DAQMB::DCSread2(char *data)
 {
 
@@ -8634,7 +8699,7 @@ int DAQMB::DCSread2(char *data)
   short *data2= (short *)data;
   int TOTAL_SYSMON=19;
   int TOTAL_ADC=8;
-  int TOTAL_ITEMS=TOTAL_SYSMON+TOTAL_ADC;
+  int TOTAL_DCFEB=TOTAL_SYSMON+TOTAL_ADC;
 
   if (hardware_version_!=2) return 0;
 
@@ -8646,15 +8711,21 @@ int DAQMB::DCSread2(char *data)
       int febnum=cfebs_[lfeb].number();
       for(unsigned i=0; i<fsysmon.size(); i++)
       {
-         data2[febnum*TOTAL_ITEMS+i]=int(fsysmon[i]*100);
+         data2[febnum*TOTAL_DCFEB+i]=int(fsysmon[i]*100);
       }
       fsysmon.clear();
       for(int i=0; i<TOTAL_ADC; i++)
       {
-         data2[febnum*TOTAL_ITEMS+TOTAL_SYSMON+i]=dcfeb_adc(cfebs_[lfeb], i);
+         data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+i]=dcfeb_adc(cfebs_[lfeb], i);
       } 
-      retn += TOTAL_ITEMS;
+      retn += TOTAL_DCFEB;
   }
+  std::vector<float> dsysmon=odmb_fpga_monitor();
+  for(int i=0; i<dsysmon.size(); i++)
+  {
+      data2[retn+i]=int(dsysmon[i]*100);
+  }        
+  retn += dsysmon.size();
   return retn;
 }
 

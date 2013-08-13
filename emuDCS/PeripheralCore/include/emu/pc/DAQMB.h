@@ -824,6 +824,8 @@ public:
   inline int odmb_read_kill_mask() { return ReadRegister(read_KILL); } 
 
   inline int odmb_firmware_version() { return ReadRegister(read_FW_VERSION); }  
+  void daqmb_do(int ncmd,void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);   
+  std::vector<float> odmb_fpga_monitor();
 
  private:
   //
