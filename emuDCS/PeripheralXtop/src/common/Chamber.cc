@@ -323,7 +323,7 @@ void Chamber::GetDimTEMP2(int hint, TEMP_2_DimBroker *dim_temp )
        this_st |= 4;
        for(int i=38; i<48; i++) data[i] = -2.;
    }
-      dim_temp->t_odmb = 0.0;
+      dim_temp->t_odmb = data[80+27*DCFEB_NUMBER];
       dim_temp->t_otmb = data[57];
       dim_temp->t_alct = data[56];
       dim_temp->t_lvdb = data[55];
