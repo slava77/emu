@@ -63,6 +63,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStop      ,"MonitorStop");
 
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSOutput, "DCSOutput");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSOutput2, "DCSOutput2");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSDefault, "DCSDefault");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSMain, "DCSMain");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSChamber, "DCSChamber");
@@ -130,6 +131,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   slow_count = 0;
   extra_count = 0;
   x2p_count = 0;
+  x2p_count2 = 0;
   read_interval=0;
 
   global_config_states[0]="UnConfiged";
@@ -278,8 +280,9 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
      if(!parsed) ParsingXML();
      if(total_crates_<=0) return;
 
-      int TOTAL_DCS_COUNTERS=48;
+      int TOTAL_DCS_COUNTERS=64;
       int TOTAL_TMB_VOLTAGES=16;
+      int TOTAL_DCFEB_MONS=196;  // (19+8+1)*7
       std::vector<DAQMB*> myDmbs;
       std::vector<TMB*> myTmbs;
       
@@ -295,6 +298,11 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(urn.toString());
                 myDmbs=crateVector[i]->daqmbs();
                 myTmbs=crateVector[i]->tmbs();
+                int upgraded=0;
+                for(unsigned j=0; j<myDmbs.size(); j++)
+                {
+                   if(myDmbs[j]->GetHardwareVersion()==2) upgraded++;
+                }
 
             // for CCB, MPC, TTC etc.
                 is->fireItemAvailable("CCBcounter",new xdata::Vector<xdata::UnsignedShort>());
@@ -312,6 +320,7 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
 
             // for DCS temps, voltages
                 is->fireItemAvailable("DCStemps",new xdata::Vector<xdata::Float>());
+                is->fireItemAvailable("DCFEBmons",new xdata::Vector<xdata::Float>());
                 is->fireItemAvailable("DCScrate",new xdata::UnsignedShort(0));
                 is->fireItemAvailable("DCSchamber",new xdata::UnsignedShort(0));
                 is->fireItemAvailable("DCSitime",new xdata::UnsignedInteger32(0));
@@ -329,6 +338,11 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 if(dmbdata) for(unsigned ii=0; ii<myDmbs.size()*TOTAL_DCS_COUNTERS; ii++) dmbdata->push_back(0.);
                 xdata::Vector<xdata::Float> *tmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("TMBvolts"));
                 if(tmbdata) for(unsigned ii=0; ii<myTmbs.size()*TOTAL_TMB_VOLTAGES; ii++) tmbdata->push_back(0.);
+                if(upgraded>0)
+                {
+                   xdata::Vector<xdata::Float> *febdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));
+                   if(febdata) for(int ii=0; ii<upgraded*TOTAL_DCFEB_MONS; ii++) febdata->push_back(0.);
+                }              
          }
      Monitor_Ready_=true;
 }
@@ -339,6 +353,10 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
    //           2  slow loop (e.g. temps/voltages)
    //           3  extra loop (e.g. CCB MPC TTC status)
 
+
+      int TOTAL_DCS_COUNTERS=64;
+      int TOTAL_TMB_VOLTAGES=16;
+      int TOTAL_DCFEB_MONS=196;  // (19+8+1)*7
       Crate * now_crate;
       std::vector<DAQMB*> myDmbs;
       xdata::InfoSpace * is;
@@ -362,12 +380,14 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           now_crate=crateVector[i];
           if(now_crate==NULL) continue;
           myDmbs = now_crate->daqmbs();
+          int upgraded=0;
           for(unsigned int dmbn=0; dmbn<myDmbs.size(); dmbn++)
           {   
               int mask=myDmbs[dmbn]->GetPowerMask();
               dmbpoweroff[dmbn]= (mask==0x3F);
+              if(myDmbs[dmbn]->GetHardwareVersion()==2) upgraded++;
           }
-
+                                                                                   
           // begin: reload VCC's FPGA (F9)
           if(cycle>1 && reload_vcc && !(now_crate->IsAlive()))
           {
@@ -449,14 +469,19 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    for(int kk=3; kk<22; kk=kk+2 ) for(int ll=0; ll<7; ll++) bad_read[kk][ll]=0;
                    for(unsigned ii=0; ii<buf2[0]; ii++)
                    {   unsigned short rdv = buf2[ii+2];
-                       unsigned boardid=ii/48;
+                       unsigned boardid=ii/TOTAL_DCS_COUNTERS;
+                       int idx=ii%TOTAL_DCS_COUNTERS;
+                       int dversion=0;
+                       if(myDmbs[boardid]) dversion=myDmbs[boardid]->GetHardwareVersion();
+                     if(dversion<=1)
+                     {  
                        if(rdv >= 0xFFF) rdv = 0;
-                       if((ii%48)<40)
+                       if(idx<40)
                        {
                           (*dmbdata)[ii] = 10.0/4096.0*rdv;
 
                           // for Voltage & Current reading error handling
-                          int dmbslot=(ii/48)*2+3;
+                          int dmbslot=boardid*2+3;
                           if(dmbslot>11) dmbslot += 2;
                           int cfebnum=(ii%48)%19;
                           if(cfebnum>17) cfebnum=17;
@@ -479,7 +504,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           }
 
                        }
-                       else if((ii%48)<46)
+                       else if(idx<46)
                        {  /* DMB Temps */
                           float Vout= rdv/1000.0;
                           if(Vout >0. && Vout<5.0)
@@ -497,7 +522,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                               (*dmbdata)[ii] = -500.0;
 
                           // for ALCT temperature reading error handling
-                          int tmbslot=(ii/48)*2+2;
+                          int tmbslot=boardid+2;
                           if(tmbslot>10) tmbslot += 2;
                           if((dcs_mask[i] & (1<<boardid))>0 || dmbpoweroff[boardid] || (cratename.substr(4,1)=="4" && tmbslot>6))
                           { // ignore masked boards
@@ -506,13 +531,40 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           }
                           else
                           {
-                             if((ii%48)==46 && (rdv==0 || rdv>=1023))
+                             if(idx==46 && (rdv==0 || rdv>=1023))
                              {  std::cout << "ALCT Temperature ERROR: " << cratename
                                        << " slot " << tmbslot << " read back " << std::hex << rdv << std::dec
                                        << " at " << getLocalDateTime() << std::endl; 
                              }
                           }
                        }
+                     }
+                     else if(dversion==2)
+                     {
+                       if(idx<55)
+                       {
+                         (*dmbdata)[ii] = 10.0/4096.0*rdv;
+                       }
+                       else if(idx==55)
+                       {
+                         float fv=10.0/4096.0*rdv;
+                         float t=sqrt(2.1962*1000000 + 1000000*(1.8639-fv)/3.88)-1481.96;
+                         (*dmbdata)[ii] = t;
+                       }
+                       else if(idx==56)
+                       {  /* ALCT Temps */
+                          rdv = rdv & 0x3FF;
+                          float Vout= (float)(rdv)*1.225/1023.0;
+                          if(Vout<1.225)
+                              (*dmbdata)[ii] =100.0*(Vout-0.75)+25.0;
+                          else
+                              (*dmbdata)[ii] = -500.0;
+                       }
+                       else
+                       {
+                         (*dmbdata)[ii] = 0.01*rdv;
+                       }
+                     }
                    }
                    for(int kk=3; kk<22; kk=kk+2)
                    {   if(bad_read[kk][0]>0)
@@ -533,6 +585,24 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                       std::cout << "Bad DMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl; 
                 }
 
+                if(upgraded>0)
+                {
+                  /* DCFEB monitorables */
+                  now_crate-> MonitorDCS2(cycle, buf, dcs_mask[i]);
+                  if(buf2[0])
+                  {
+                     // std::cout << "Crate " << i << " DCFEB counters " << buf2[0] << std::endl;
+                     xdata::Vector<xdata::Float> *febdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));
+                     if(febdata->size()==0)
+                        for(unsigned ii=0; ii<buf2[0]; ii++) febdata->push_back(0.);
+                     for(unsigned ii=0; ii<buf2[0]; ii++)
+                     {   
+                        unsigned short rdv = buf2[ii+2];
+                        (*febdata)[ii] = 0.01*rdv;
+                     }
+                  }
+                }
+                
                 /* TMB voltages */
                 now_crate-> MonitorTCS(cycle, buf, tcs_mask[i]);
                 if(buf2[0])
@@ -572,6 +642,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    if(badboard>0 && badboard<10) 
                       std::cout << "Bad TMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl; 
                 }
+
              }
              else if( cycle==1)
              {
@@ -2907,7 +2978,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   unsigned short crateok, good_chamber=0, ccbtag;
   float val, V7;
   std::vector<DAQMB*> myVector;
-  int TOTAL_DCS_COUNTERS=48;
+  int TOTAL_DCS_COUNTERS=64;
   int TOTAL_TMB_VOLTAGES=16;
   xdata::InfoSpace * is;
   int ip, slot, ch_state;
@@ -2932,6 +3003,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      {  // for OFF crates, send -2. in all fields, timestamp is current
         for(unsigned int j=0; j<myVector.size(); j++) 
         {
+           int dversion=myVector[j]->GetHardwareVersion();
+           if(dversion==2) continue;
            slot = myVector[j]->slot();
            ip = (ip & 0xff) + slot*256;
            *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
@@ -3005,6 +3078,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 //     myVector = crateVector[i]->daqmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
+        int dversion=myVector[j]->GetHardwareVersion();
+        if(dversion==2) continue;
         int imask= 0x3F & (myVector[j]->GetPowerMask());
         bool chamber_off = (imask==0x3F);
         slot = myVector[j]->slot();
@@ -3073,6 +3148,224 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            }             
         }
         *out << " -50" << std::endl;  // as end-of-line marker
+     }
+  }
+
+}
+
+void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+
+           // status bit pattern:
+           //   bit 0 (value   1):  misc. errors
+           //       1 (value   2):  chamber power off from Configuration DB
+           //       2 (value   4):  data corrupted (in infospace or during transimission)
+           //       3 (value   8):  VCC not accessible
+           //       4 (value  16):  DMB Reading error
+           //       5 (value  32):  crate OFF
+           //       6 (value  64):  this DMB module caused reading trouble
+           //       7 (value 128):  TMB reading error
+           //       8 (value 256):  this TMB module caused reading trouble
+           //       9 (value 512):  chamber lost Analog power 
+           //      10 (val  1024):  chamber lost Digital power 
+
+  unsigned int readtime;
+  unsigned short crateok, good_chamber=0, ccbtag;
+  float val, V7;
+  std::vector<DAQMB*> myVector;
+  int TOTAL_DCS_COUNTERS=64;
+  int TOTAL_TMB_VOLTAGES=16;
+  int TOTAL_DCFEB_MONS=196;
+  xdata::InfoSpace * is;
+  int ip, slot, ch_state;
+  unsigned int bad_module, ccbbits;
+  bool gooddata, goodtmb, goodfeb;
+
+  if(!Monitor_Ready_)
+  {  //  X2P will trigger the start of monitoring.
+     //   if monitoring already started but VME access stopped by a button, X2P will not do anything
+     ReadingOn();
+     return;
+  }
+
+  x2p_count2++;
+  std::cout << "Access2 " << x2p_count2 << " at " << getLocalDateTime() << std::endl;
+
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     myVector = crateVector[i]->daqmbs();
+     ip=crateVector[i]->CrateID();
+     if(crate_off[i])
+     {  // for OFF crates, send -2. in all fields, timestamp is current
+        for(unsigned int j=0; j<myVector.size(); j++) 
+        {
+           int dversion=myVector[j]->GetHardwareVersion();
+           if(dversion!=2) continue;
+           slot = myVector[j]->slot();
+           ip = (ip & 0xff) + slot*256;
+           *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+
+           // status 32 ==>crate OFF
+           *out << " 32";
+
+           *out << " " << time(NULL) << " " << ip;
+           *out << " 0 0";
+           for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
+           {  
+              *out << " -2.";
+           }
+           for(int k=0; k<TOTAL_TMB_VOLTAGES-1; k++) 
+           {  
+              *out << " -2.";
+           }
+           *out << " -50";  // as end-of-line marker
+           *out << std::endl;
+        }
+        continue;
+     }  // end of OFF crates 
+
+     is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
+     if(dmbdata==NULL || dmbdata->size()<myVector.size()*TOTAL_DCS_COUNTERS)
+     {  gooddata=false;
+        crateok=0;
+        readtime=0;
+     }
+     else
+     {
+        gooddata=true;
+        xdata::UnsignedInteger32 *counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
+        if (counter32==NULL) readtime=0; 
+           else readtime = (*counter32);
+        xdata::UnsignedShort *counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
+        if (counter16==NULL) crateok= 0; 
+           else crateok = (*counter16);
+        counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCSchamber"));
+        if (counter16==NULL) good_chamber= 0;
+           else good_chamber = (*counter16);
+     }
+     xdata::Vector<xdata::Float> *tmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("TMBvolts"));
+     if(tmbdata==NULL || tmbdata->size()<myVector.size()*TOTAL_TMB_VOLTAGES)
+     {  goodtmb=false;
+     }
+     else
+     {  goodtmb=true;
+     }
+
+     xdata::Vector<xdata::Float> *febdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));
+     if(tmbdata==NULL)
+     {  goodfeb=false;
+     }
+     else
+     {  goodfeb=true;
+     }
+
+     xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
+     if(ccbdata==NULL || ccbdata->size()==0)
+     {  
+        // If CCB data not available or not read out yet, assume they (bits and tag) are OK
+        ccbbits=0x0FF80000;
+        ccbtag= 0xCCB0;
+     }
+     else
+     {
+        unsigned short csra2= (*ccbdata)[1];
+        unsigned short csra3= (*ccbdata)[2];
+        ccbbits= (csra3<<16)+csra2;
+        ccbtag= (*ccbdata)[18];
+     }
+
+     ch_state=0;
+     bad_module = (good_chamber>>10) & 0xF;
+
+     *out << std::setprecision(5);
+     int upgraded=0;
+//     myVector = crateVector[i]->daqmbs();
+     for(unsigned int j=0; j<myVector.size(); j++) 
+     {
+        int dversion=myVector[j]->GetHardwareVersion();
+        if(dversion!=2) continue;
+        int imask= 0xFF & (myVector[j]->GetPowerMask());
+        bool chamber_off = (imask==0xFF);
+        slot = myVector[j]->slot();
+        int dmbN = slot/2;
+        if(dmbN>5) dmbN--;
+        ip = (ip & 0xff) + slot*256;
+        std::string cscname=crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << cscname;
+
+        ch_state=0;
+        if (chamber_off) ch_state |= 2;
+        else if (!gooddata) ch_state |= 4;
+        else if (crateok==0) ch_state |= 8;
+        else if ((good_chamber & (1<<j))==0) ch_state |= 16;
+
+        // the module which probably caused reading trouble
+        if(gooddata && ch_state>0 && bad_module==j+1) ch_state |= 64;
+
+        if((ch_state & 0x7F)==0) 
+        {
+            /* Analog power */
+            V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+38];
+            if(V7<3.0) ch_state |= 512;
+            /* Digital power */
+            V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+39];
+            if(V7<3.0) ch_state |= 1024;
+        }
+        *out << " " << ch_state; 
+
+        *out << " " << readtime << " " << ip;
+
+// CCB bits and FPGA bits
+        int alctbit=(ccbbits>>dmbN)&1;
+        int tmbbit=(ccbbits>>dmbN+9)&1;
+        int dmbbit=1-((ccbbits>>(dmbN+18))&1);   // DM: 1=OK, 0=BAD
+        if(cscname.substr(3,3)=="1/3") dmbbit=0;  // ME1/3 DMB bit is not valid
+        int confbit=alctbit+(tmbbit<<1)+(dmbbit<<2);
+//   CCB bit 7 (value 128) for every chamber is the same and is for CCB itself
+        if((ccbtag&0xFFFF0)!=0xCCB0) confbit += 128; 
+        *out << " " << confbit << " 0";
+
+        *out << std::setprecision(4) << std::fixed;
+        for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
+        {  
+           /* for error conditions on bits 0,2-8, don't send data */
+           if((ch_state & 0x1FD)==0)
+           { 
+              val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
+              *out << " " << val;
+           }
+           else
+           {
+              *out << " -2.";
+           }             
+        }
+        for(int k=0; k<TOTAL_TMB_VOLTAGES; k++) 
+        {  
+           if(goodtmb)
+           { 
+              val= (*tmbdata)[j*TOTAL_TMB_VOLTAGES+k];
+              *out << " " << val;
+           }
+           else
+           {
+              *out << " -2.";
+           }             
+        }
+        for(int k=0; k<TOTAL_DCFEB_MONS; k++) 
+        {  
+           if(goodfeb)
+           { 
+              val= (*febdata)[upgraded*TOTAL_DCFEB_MONS+k];
+              *out << " " << val;
+           }
+           else
+           {
+              *out << " -2.";
+           }             
+        }
+        *out << " -50" << std::endl;  // as end-of-line marker
+        upgraded++;
      }
   }
 

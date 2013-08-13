@@ -119,7 +119,7 @@ protected:
   std::vector< std::string> monitorables_;
   bool Monitor_On_, Monitor_Ready_, new_data_;
   bool fast_on, slow_on, extra_on, reload_vcc;
-  int fast_count, slow_count, extra_count, x2p_count;
+  int fast_count, slow_count, extra_count, x2p_count, x2p_count2;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   toolbox::task::Timer * timer_;
   //
@@ -203,6 +203,7 @@ private:
   // all DCS related methods
   //
   void DCSOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSOutput2(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DCSDefault(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DCSMain(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DCSChamSel(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
