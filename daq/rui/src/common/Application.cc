@@ -36,6 +36,7 @@
 #include "emu/soap/ToolBox.h"
 #include "emu/soap/Messenger.h"
 
+#include "emu/utils/System.h"
 
 emu::daq::rui::Application::Application(xdaq::ApplicationStub *s)
 throw (xdaq::exception::Exception) :
@@ -1034,10 +1035,11 @@ void emu::daq::rui::Application::createDeviceReader(){
   inputDataFormatInt_ = 999999;
   if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = emu::daq::reader::Base::DDU;
   else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = emu::daq::reader::Base::DCC;
+  else if ( inputDataFormat_ == "DMB" ) inputDataFormatInt_ = emu::daq::reader::Base::DMB;
   else{
 	stringstream oss;
 	oss << "No such data format: " << inputDataFormat_.toString() << 
-	  "Use \"DDU\" or \"DCC\"";
+	  "Use \"DDU\" or \"DCC\" or \"DMB\"";
 // 	LOG4CPLUS_FATAL(logger_, oss.str());
 // 	stringstream ss12;
 // 	ss12 <<  oss.str();
@@ -2340,6 +2342,17 @@ int32_t emu::daq::rui::Application::continueConstructionOfSuperFrag()
     this->notifyQualified( "error", eObj );
   }
 
+  // cout << "================================"
+  //      << "\nTime " << emu::utils::getDateTime()
+  //      << "   Data length " << deviceReader_->dataLength() << "   Bytes read " << nBytesRead
+  //      << endl;
+  // if ( deviceReader_->dataLength() > 0 ){
+  //   cout << "Error flag   " << deviceReader_->getErrorFlag()
+  // 	 << "\nEvent number " << deviceReader_->eventNumber()
+  // 	 << "\nLog message  " << deviceReader_->getLogMessage() << "\n";
+  //   printData( cout, deviceReader_->data(), deviceReader_->dataLength() );
+  // }
+
   if ( deviceReader_->getLogMessage().length() > 0 )
     LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
 
@@ -2447,7 +2460,7 @@ int32_t emu::daq::rui::Application::continueConstructionOfSuperFrag()
 	// }
       }
 
-//       printData(ss,data,dataLength);
+      // ss << "\n"; printData(ss,data,dataLength); cout << ss.str() << endl;
 
       if ( insideEvent_ ) {
 
@@ -3009,6 +3022,7 @@ bool emu::daq::rui::Application::hasHeader( char* const data, const size_t dataL
   // By now data must have been stripped of any filler words.
   const size_t DDUHeaderLength = 24; // bytes
   const size_t DCCHeaderLength = 16; // bytes
+  const size_t DMBHeaderLength = 16; // bytes
   bool headerFound = false;
   uint16_t *shortData = reinterpret_cast<uint16_t *>(data);
 
@@ -3030,10 +3044,21 @@ bool emu::daq::rui::Application::hasHeader( char* const data, const size_t dataL
 //     LOG4CPLUS_INFO(logger_,ss.str());
   }
   else if ( inputDataFormatInt_ == emu::daq::reader::Base::DCC ){
-  if ( dataLength < DCCHeaderLength ) return false; // can the data be split in the header???
+    if ( dataLength < DCCHeaderLength ) return false; // can the data be split in the header???
     headerFound = ( (shortData[0] & 0x00ff) == 0x005f &&
 		    (shortData[3] & 0xf000) == 0x5000 &&
 		    (shortData[7] & 0xff00) == 0xd900    );
+  }
+  else if ( inputDataFormatInt_ == emu::daq::reader::Base::DMB ){
+    if ( dataLength < DMBHeaderLength ) return false; // can the data be split in the header???
+    headerFound = ( (shortData[0]&0xf000)==0x9000 && 
+		    (shortData[1]&0xf000)==0x9000 && 
+		    (shortData[2]&0xf000)==0x9000 && 
+		    (shortData[3]&0xf000)==0x9000 && 
+		    (shortData[4]&0xf000)==0xa000 && 
+		    (shortData[5]&0xf000)==0xa000 && 
+		    (shortData[6]&0xf000)==0xa000 && 
+		    (shortData[7]&0xf000)==0xa000    );
   }
   return headerFound;
 }
@@ -3042,6 +3067,7 @@ bool emu::daq::rui::Application::hasTrailer( char* const data, const size_t data
   // By now data must have been stripped of any filler words.
   const size_t DDUTrailerLength = 24; // bytes
   const size_t DCCTrailerLength = 16; // bytes
+  const size_t DMBTrailerLength = 16; // bytes
   bool trailerFound = false;
   uint16_t *shortData = reinterpret_cast<uint16_t *>(data);
 //   std::cout << "inputDataFormatInt ?=? emu::daq::reader::Base::DDU " << inputDataFormatInt_ << " ?=? " << emu::daq::reader::Base::DDU << std::endl << std::flush;
@@ -3084,6 +3110,18 @@ bool emu::daq::rui::Application::hasTrailer( char* const data, const size_t data
     trailerFound = ( (shortData[start+3] & 0xff00) == 0xef00 &&
 		     (shortData[start+4] & 0x000f) == 0x0003 &&
 		     (shortData[start+7] & 0xff00) == 0xaf00    );
+  }
+  else if ( inputDataFormatInt_ == emu::daq::reader::Base::DMB ){
+    if ( dataLength < DMBTrailerLength ) return false; // can the data be split in the trailer???
+    const size_t start = (dataLength - DMBTrailerLength) / 2;
+    trailerFound = ( (shortData[start+0]&0xf000)==0xf000 && 
+		     (shortData[start+1]&0xf000)==0xf000 && 
+		     (shortData[start+2]&0xf000)==0xf000 && 
+		     (shortData[start+3]&0xf000)==0xf000 && 
+		     (shortData[start+4]&0xf000)==0xe000 && 
+		     (shortData[start+5]&0xf000)==0xe000 && 
+		     (shortData[start+6]&0xf000)==0xe000 && 
+		     (shortData[start+7]&0xf000)==0xe000    );
   }
   return trailerFound;
 }

@@ -60,6 +60,11 @@ int emu::daq::reader::SLink::readDDU(unsigned short **buf) {
   return -1;
 }
 
+int emu::daq::reader::SLink::readDMB(unsigned short **buf) {
+  // DMB has no SLink.
+  return -1;
+}
+
 int emu::daq::reader::SLink::readDCC(unsigned short **buf) {
   char b[50000];
   char *c,*d;

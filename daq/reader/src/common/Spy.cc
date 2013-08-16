@@ -430,6 +430,7 @@ int emu::daq::reader::Spy::readDDU(uint16_t*& buf) {
   theErrorFlag |= ( packets > 15 ? 15 : packets ) << 8; 
 
   // Periodically write out counters for debugging purposes
+  // if ( ec->timeIsUp() || len > 0 ){
   if ( ec->timeIsUp() ){
     std::cout << " v:" << std::setw(10) << visitCount
 	      << " o:" << std::setw(10) << oversizedCount
@@ -454,6 +455,10 @@ int emu::daq::reader::Spy::readDDU(uint16_t*& buf) {
 }
 
 int emu::daq::reader::Spy::readDCC(uint16_t*& buf) {
+  return readDDU( buf );
+}
+
+int emu::daq::reader::Spy::readDMB(uint16_t*& buf) {
   return readDDU( buf );
 }
 

@@ -116,6 +116,14 @@ namespace emu { namespace daq { namespace reader {
     ///
     int   readDCC(uint16_t*& buf);
 
+    /// Reads DMB data
+
+    /// @param buf pointer to be set to point to the data
+    ///
+    /// @return number of bytes read
+    ///
+    int   readDMB(uint16_t*& buf);
+
     /// Strips data of ethernet filler words.
 
     /// @param data pointer to start of data

@@ -25,6 +25,7 @@ namespace emu { namespace daq { namespace reader {
     //   struct fedkit_fragment * frag;
     int   readDDU(unsigned short **buf);
     int   readDCC(unsigned short **buf);
+    int   readDMB(unsigned short **buf);
   };
 }}} // namespace emu::daq::reader
 
