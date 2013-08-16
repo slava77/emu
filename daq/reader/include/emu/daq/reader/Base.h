@@ -30,8 +30,8 @@ protected:
   int             theNumberOfReadBytes; ///< what we read in; may contain data and filler words as well!
 
 public:
-  /// for the two possible formats
-  enum { DDU, DCC };
+  /// for the possible formats
+  enum { DDU, DCC, DMB };
 
   /// constructor
   ///
@@ -94,6 +94,8 @@ public:
   virtual int  readDDU( uint16_t*& buf )=0;
   /// not documented here
   virtual int  readDCC( uint16_t*& buf )=0;
+  /// not documented here
+  virtual int  readDMB( uint16_t*& buf )=0;
 };
 
 }}} // namespace emu::daq::reader

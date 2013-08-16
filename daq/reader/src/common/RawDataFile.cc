@@ -160,3 +160,8 @@ int emu::daq::reader::RawDataFile::readDCC(uint16_t*& buf) {
   // TODO
   return -1;
 }
+
+int emu::daq::reader::RawDataFile::readDMB(uint16_t*& buf) {
+  // TODO
+  return -1;
+}
