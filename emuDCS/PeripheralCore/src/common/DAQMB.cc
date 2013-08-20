@@ -2828,10 +2828,14 @@ char pat[42],chk[42] = {0xBA,0xDF,0xEE,0xD5,0xDE,0xAD};
   int pass=0;
   int boffset=xtrabits+swtchbits;
 
-  for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) {
+  for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) 
+  {
+    int hversion=cfebItr->GetHardwareVersion();
+    if(hversion<=1)
+    {            
 
-    DEVTYPE dv = cfebItr->scamDevice();
-    //int brdn=cfebItr->number();
+      DEVTYPE dv = cfebItr->scamDevice();
+      //int brdn=cfebItr->number();
 
       cmd[0]=VTX_USR1;
       sndbuf[0]=CHIP_MASK;
@@ -2882,6 +2886,39 @@ char pat[42],chk[42] = {0xBA,0xDF,0xEE,0xD5,0xDE,0xAD};
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
       cmd[0]=VTX_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
+    }
+    else if(hversion==2)
+    {
+      (*MyOutput_)<<"Buckeye Shift Test for DCFEB #" << cfebItr->number()+1 << std::endl;
+                            
+      char oldpat[36], newpat[36];
+      // initialize some silly data as the test pattern
+      for(int chip=0; chip<6; chip++)
+      {
+          newpat[chip*6+0]=0xAD;
+          newpat[chip*6+1]=0xDE;
+          newpat[chip*6+2]=0xD0+chip;
+          newpat[chip*6+3]=0xEE;
+          newpat[chip*6+4]=0xDF;
+          newpat[chip*6+5]=0xBA;
+      }
+      
+      // first pass: shift the pattern into the Buckeye chips and read out the old data
+      dcfeb_hub(*cfebItr, CHIP_SHFT, 288, newpat, oldpat, NOW|NOOP_YES|READ_YES);
+      udelay(2000);
+      //  second pass: shift the old data back to the Buckeye chips and read out the pattern
+      dcfeb_hub(*cfebItr, CHIP_SHFT, 288, oldpat, rcvbuf, NOW|NOOP_YES|READ_YES);
+      // verify: the read-out must be exactly as the pattern
+      udelay(2000);
+      pass=1;
+      for(i=0;i<36; i++)
+      {
+          printf("byte %02X, data in: %02X; data out: %02X\n", i, newpat[i]&0xFF, rcvbuf[i]&0xFF);
+          if(newpat[i]!=rcvbuf[i]) pass=0;
+      } 
+      if(pass==1) (*MyOutput_)<<"Pattern returned is OK\n";
+      else        (*MyOutput_)<<"Pattern returned is Wrong\n";
+    }
   }
   return pass;
 }
