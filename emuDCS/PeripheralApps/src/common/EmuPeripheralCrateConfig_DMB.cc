@@ -726,7 +726,7 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   FuncName.push_back("Pre Blockend (4)"); 
   FuncName.push_back("Comparator mode timing (5)"); 
   FuncName.push_back("Buckeye mask (6)"); 
-  FuncName.push_back("Shift Buckeye (48)");
+  FuncName.push_back("Shift Buckeye (6*48)");
   FuncName.push_back("ADC mask (12)");
   FuncName.push_back("Initial ADC");
   FuncName.push_back("ADC config memory (26)");
@@ -960,7 +960,7 @@ void EmuPeripheralCrateConfig::CFEBFunction(xgi::Input * in, xgi::Output * out )
   FuncSize.push_back(4);
   FuncSize.push_back(5);
   FuncSize.push_back(6);
-  FuncSize.push_back(48);
+  FuncSize.push_back(288);
   FuncSize.push_back(12);
   FuncSize.push_back(0);
   FuncSize.push_back(26);
@@ -1009,8 +1009,12 @@ void EmuPeripheralCrateConfig::CFEBFunction(xgi::Input * in, xgi::Output * out )
      std::cout << "call CFEB " << cfebs[icfeb].number()+1 << " with JTAG function: " << sig << std::endl;
      std::cout << "CFEB Data In: " << std::hex << CFEBDataIn_ << std::dec << std::endl;
      if(sig>0 && sig<=0x3F) std::cout << "data size is: " << FuncSize[sig] << std::endl;
-
-     thisDMB->dcfeb_hub(cfebs[icfeb], sig, FuncSize[sig], &CFEBDataIn_, (char *)&CFEBDataOut_, 3);
+     
+     char inbuf[200], outbuf[200];
+     for(int i=0;i<200;i++) { inbuf[i]=0; outbuf[i]=0;}
+     memcpy(inbuf, &CFEBDataIn_, 8);
+     thisDMB->dcfeb_hub(cfebs[icfeb], sig, FuncSize[sig], inbuf, outbuf, 3);
+     memcpy(&CFEBDataOut_, outbuf, 8);
 
      std::cout << "CFEB Data Out: " << std::hex << CFEBDataOut_ << std::dec << std::endl;
 
