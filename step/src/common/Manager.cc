@@ -419,11 +419,15 @@ string emu::step::Manager::checkDataCompleteness( const string& testId ){
 				  .add( "rui_instances", &rui_instances )
 				  .add( "rui_counts"   , &rui_counts    )                                 );
     for ( size_t i = 0; i < rui_counts.elements(); i++ ){
-      if ( *testsNEvents.begin() != *dynamic_cast<xdata::UnsignedInteger64*>( rui_counts.elementAt( i ) ) ){
-      oss << "RUI "         << ( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) )->toString()
-	  << " read "       << ( dynamic_cast<xdata::UnsignedInteger64*>(    rui_counts.elementAt( i ) ) )->toString()
-	  << " of "         << *testsNEvents.begin() 
-	  << " events. \n";
+      // In timed tests, where the number of events to take is not predefined (and nEvents=0), 
+      // we cannot tell if the data file is complete.
+      if ( *testsNEvents.begin() != 0 ){
+	if ( *testsNEvents.begin() != *dynamic_cast<xdata::UnsignedInteger64*>( rui_counts.elementAt( i ) ) ){
+	  oss << "RUI "         << ( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) )->toString()
+	      << " read "       << ( dynamic_cast<xdata::UnsignedInteger64*>(    rui_counts.elementAt( i ) ) )->toString()
+	      << " of "         << *testsNEvents.begin() 
+	      << " events. \n";
+	}
       }
     }
   }

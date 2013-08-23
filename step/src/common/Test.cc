@@ -37,7 +37,6 @@ emu::step::Test::Test( const string& id,
   , isToStop_( false )
   , runNumber_( 0 )
   , runStartTime_( "YYYY-MM-DD hh:mm:ss UTC" )
-  , iEvent_( 0 )
   , procedure_( getProcedure( id ) ){
 
   stringstream ss;
@@ -55,6 +54,8 @@ emu::step::Test::Test( const string& id,
     ss << "Failed to create test " << id_ << ".";
     XCEPT_RETHROW( xcept::Exception, ss.str(), e );
   }
+
+  progress_.setTotal( 1 ); // for the percent to be 0 before the total is set to its proper value
 }
 
 //emu::step::Test::~Test(){}
@@ -67,15 +68,7 @@ void emu::step::Test::execute(){
 }
 
 double emu::step::Test::getProgress(){
-  double progress;
-  bsem_.take();
-  progress = ( nEvents_ ? 100 * double( iEvent_ ) / double( nEvents_ ) : double( 0 ) );
-  bsem_.give();
-  // cout << " iEvent_   " << iEvent_
-  //      << " nEvents_  " << nEvents_
-  //      << " progress  " << progress
-  //      << endl;
-  return progress;
+  return progress_.getPercent();
 }
 
 void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId ) )(){
@@ -422,10 +415,7 @@ string emu::step::Test::getDataDirName() const {
 void emu::step::Test::_11(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_11 starting" ); }
   
-  uint64_t durationInSec = parameters_["durationInSec"];
-  bsem_.take();
-  nEvents_ = durationInSec;
-  bsem_.give();
+  progress_.setTotal( (int)parameters_["durationInSec"] );
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
@@ -442,10 +432,8 @@ void emu::step::Test::_11(){
   }
 
   // Wait for durationInSec
-  while ( iEvent_ < durationInSec ){
-    bsem_.take();
-    iEvent_++;
-    bsem_.give();
+  while ( progress_.getPercent() < 100 ){
+    progress_.increment();
     if ( isToStop_ ) return;
     sleep( 1 );
   }
@@ -468,6 +456,7 @@ void emu::step::Test::_12(){ // OK
 
   bsem_.take();
   nEvents_ = crates.size() * nStrips * events_per_strip;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   //
@@ -501,15 +490,13 @@ void emu::step::Test::_12(){ // OK
       (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
       for ( uint64_t iPulse = 1; iPulse <= events_per_strip; ++iPulse ){
 	(*crate)->ccb()->GenerateAlctAdbSync();
-	bsem_.take();
-	iEvent_++;
-	bsem_.give();
+	progress_.increment();
 	if (iPulse % 100 == 0) {
 	  if ( pLogger_ ){
 	    stringstream ss;
 	    ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
 	       << ", strip " << iStrip+1 << "/" << nStrips
-	       << ", pulses " << iPulse << "/" << events_per_strip << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+	       << ", pulses " << iPulse << "/" << events_per_strip << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
 	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	  }
 	}
@@ -552,6 +539,7 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
 
   bsem_.take();
   nEvents_ = crates.size() * events_per_threshold * thresholds_per_tpamp * tpamps_per_run;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   //
@@ -599,16 +587,14 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
 	for ( uint64_t iPulse = 1; iPulse <= events_per_threshold; ++iPulse ){
 	  (*crate)->ccb()->GenerateAlctAdbSync();
 	  usleep( 1000 + 1000*msec_between_pulses );
-	  bsem_.take();
-	  iEvent_++;
-	  bsem_.give();
+	  progress_.increment();
 	  if (iPulse % 100 == 0) {
 	    if ( pLogger_ ){
 	      stringstream ss;
 	      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
 		 << ", amplitude " << iAmp+1 << "/" << tpamps_per_run
 		 << ", threshold " << iThreshold+1 << "/" << thresholds_per_tpamp
-		 << ", pulses " << iPulse << "/" << events_per_threshold << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+		 << ", pulses " << iPulse << "/" << events_per_threshold << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
 	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	    }
 	  }
@@ -647,6 +633,7 @@ void emu::step::Test::_14(){
 
   bsem_.take();
   nEvents_ = crates.size() * delays_per_run * events_per_delay;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   //
@@ -690,15 +677,13 @@ void emu::step::Test::_14(){
 	for ( uint64_t iPulse = 1; iPulse <= events_per_delay; ++iPulse ){
 	  (*crate)->ccb()->GenerateAlctAdbASync();
 	  usleep( 1000 + 1000*msec_between_pulses );
-	  bsem_.take();
-	  iEvent_++;
-	  bsem_.give();
+	  progress_.increment();
 	  if (iPulse % 100 == 0) {
 	    if ( pLogger_ ){
 	      stringstream ss;
 	      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
 		 << ", delay " << iDelay+1 << "/" << delays_per_run
-		 << ", pulses " << iPulse << "/" << events_per_delay << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+		 << ", pulses " << iPulse << "/" << events_per_delay << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
 	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	    }
 	  }
@@ -732,6 +717,7 @@ void emu::step::Test::_15(){ // OK
 
   bsem_.take();
   nEvents_ = crates.size() * events_total;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   //
@@ -763,14 +749,12 @@ void emu::step::Test::_15(){ // OK
       for ( uint64_t iTrigger = 1; iTrigger <= events_total; ++iTrigger ){
 	(*crate)->ccb()->GenerateL1A();// generate L1A and pretriggers
 	usleep( 10 + 1000*msec_between_pulses );
-	bsem_.take();
-	iEvent_++;
-	bsem_.give();
+	progress_.increment();
 	if ( iTrigger % 100 == 0 ){
 	  if ( pLogger_ ){
 	    stringstream ss;
 	    ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-	       << ", triggers " << iTrigger << "/" << events_total << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+	       << ", triggers " << iTrigger << "/" << events_total << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
 	    LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	  }
 	}
@@ -811,6 +795,7 @@ void emu::step::Test::_16(){
   
   bsem_.take();
   nEvents_ = crates.size() * nLayerPairs * events_per_layer;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   // Set pipeline depth for each DCFEB (HardwareVersion==2)
@@ -891,15 +876,13 @@ void emu::step::Test::_16(){
       for ( uint64_t iPulse = 1; iPulse <=events_per_layer; ++iPulse ){
         (*crate)->ccb()->GenerateAlctAdbSync();
         usleep( 10 + 1000*msec_between_pulses );
-        bsem_.take();
-        iEvent_++;
-        bsem_.give();
+	progress_.increment();
         if (iPulse % 100 == 0){
 	  if ( pLogger_ ){
             stringstream ss;
             ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
                << ", layer pairs " << iLayerPair+1 << "/" << nLayerPairs
-               << ", pulses " << iPulse << "/" << events_per_layer << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+               << ", pulses " << iPulse << "/" << events_per_layer << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
             LOG4CPLUS_INFO( *pLogger_, ss.str() );
           }
 	}
@@ -948,6 +931,7 @@ void emu::step::Test::_17(){ // OK
   }
   bsem_.take();
   nEvents_ = nPulses;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   //
@@ -1021,16 +1005,14 @@ void emu::step::Test::_17(){ // OK
 	  // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	  (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
 	  log4cplus::helpers::sleepmillis( msWaitAfterPulse  + msec_between_pulses );
-	  bsem_.take();
-	  iEvent_++;
-	  bsem_.give();
+	  progress_.increment();
 	  if (iPulse % events_per_delay == 0) {
 	    if ( pLogger_ ){
 	      stringstream ss;
 	      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
 		 << ", strip " << iStrip+1 << "/" << strips_per_run
 		 << ", delay " << iDelay+1 << "/" << delays_per_strip
-		 << ", pulses " << iPulse << "/" << events_per_delay << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+		 << ", pulses " << iPulse << "/" << events_per_delay << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
 	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	    }
 	  }
@@ -1078,6 +1060,7 @@ void emu::step::Test::_17b(){ // OK
   }
   bsem_.take();
   nEvents_ = nPulses;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   //
@@ -1151,16 +1134,14 @@ void emu::step::Test::_17b(){ // OK
 	  // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	  (*crate)->ccb()->GenerateDmbCfebCalib0(); // pulse
 	  usleep( usWaitAfterPulse + 1000*msec_between_pulses );
-	  bsem_.take();
-	  iEvent_++;
-	  bsem_.give();
+	  progress_.increment();
 	  if (iPulse % events_per_pulsedac == 0) {
 	    if ( pLogger_ ){
 	      stringstream ss;
 	      ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
 		 << ", strip " << iStrip+1 << "/" << strips_per_run
 		 << ", DAC setting " << iDACSetting+1 << "/" << pulse_dac_settings
-		 << ", pulses " << iPulse << "/" << events_per_pulsedac << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+		 << ", pulses " << iPulse << "/" << events_per_pulsedac << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
 	      LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	    }
 	  }
@@ -1227,6 +1208,7 @@ void emu::step::Test::_19(){
 
   bsem_.take();
   nEvents_ = crates.size() * events_per_thresh * threshs_per_tpamp * dmb_tpamps_per_strip * strips_per_run;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   //
@@ -1340,9 +1322,7 @@ void emu::step::Test::_19(){
 	    // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
 	    (*crate)->ccb()->GenerateDmbCfebCalib0(); // Generate “DMB_cfeb_calibrate[0]” 25 ns pulse
 	    usleep( usWaitAfterPulse + 1000*msec_between_pulses );
-	    bsem_.take();
-	    iEvent_++;
-	    bsem_.give();
+	    progress_.increment();
 	    if (iPulse % events_per_thresh == 0) {
 	      if ( pLogger_ ){
 		stringstream ss;
@@ -1350,7 +1330,7 @@ void emu::step::Test::_19(){
 		   << ", strip " << iStrip+1 << "/" << strips_per_run
 		   << ", amplitude " << iAmp+1 << "/" << dmb_tpamps_per_strip
 		   << ", threshold " << iThreshold+1 << "/" << threshs_per_tpamp
-		   << ", pulses " << iPulse << "/" << events_per_thresh << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+		   << ", pulses " << iPulse << "/" << events_per_thresh << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
 		LOG4CPLUS_INFO( *pLogger_, ss.str() );
 	      }
 	    }
@@ -1396,6 +1376,7 @@ void emu::step::Test::_21(){
 
   bsem_.take();
   nEvents_ = crates.size() * events_per_hstrip * hstrips_per_run;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   //
@@ -1443,15 +1424,13 @@ void emu::step::Test::_21(){
       for ( uint64_t iPulse = 1; iPulse <= events_per_hstrip; ++iPulse ){
         (*crate)->ccb()->GenerateDmbCfebCalib1(); // pulse
         usleep( 10 + 1000*msec_between_pulses );
-        bsem_.take();
-        iEvent_++;
-        bsem_.give();
+	progress_.increment();
         if (iPulse % 100 == 0) {
           if ( pLogger_ ){
             stringstream ss;
             ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
                << ", half strip " << iHalfStrip+1 << "/" << hstrips_per_run << " (" << halfStrip << ")"
-               << ", pulses " << iPulse  << "/" << events_per_hstrip << " ("<< iEvent_ << " of " << nEvents_ << " in total)";
+               << ", pulses " << iPulse  << "/" << events_per_hstrip << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
             LOG4CPLUS_INFO( *pLogger_, ss.str() );
           }
         }
@@ -1503,9 +1482,7 @@ void emu::step::Test::_25(){
       nSettings += trig_settings;
     }
   }
-  bsem_.take();
-  nEvents_ = nSettings;
-  bsem_.give();
+  progress_.setTotal( (int)nSettings );
 
   //
   // Apply settings
@@ -1580,9 +1557,7 @@ void emu::step::Test::_25(){
 	(*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
 	gettimeofday( &end, NULL );
 	
-	bsem_.take();
-	iEvent_++;
-	bsem_.give();
+	progress_.increment();
 	
 	uint32_t l1a_counter_LSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterLSB ) & 0xffff; // read lower 16 bits
 	uint32_t l1a_counter_MSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterMSB ) & 0xffff; // read higher 16 bits
@@ -1666,6 +1641,7 @@ void emu::step::Test::_30(){
 
   bsem_.take();
   nEvents_ = crates.size() * max( int64_t( 0 ), int64_t( toDepth ) - int64_t( fromDepth ) );
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
@@ -1711,9 +1687,7 @@ void emu::step::Test::_30(){
       (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
       gettimeofday( &end, NULL );
 
-      bsem_.take();
-      iEvent_++;
-      bsem_.give();
+      progress_.increment();
 
       uint32_t l1a_counter_LSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterLSB ) & 0xffff; // read lower 16 bits
       uint32_t l1a_counter_MSB = (*crate)->ccb()->ReadRegister( emu::pc::CCB::readL1aCounterMSB ) & 0xffff; // read higher 16 bits
@@ -1743,6 +1717,7 @@ void emu::step::Test::_fake(){
   uint64_t nEvents = 10;
   bsem_.take();
   nEvents_ = nEvents;
+  progress_.setTotal( (int)nEvents_ );
   bsem_.give();
   for ( uint64_t iEvent = 0; iEvent < nEvents; ++iEvent ){
     if ( isToStop_ ){
@@ -1750,13 +1725,9 @@ void emu::step::Test::_fake(){
       return;
     }
     // cout << "  Event " << iEvent << endl << flush;
-    bsem_.take();
-    iEvent_ = iEvent;
-    bsem_.give();
+    progress_.setCurrent( (int)iEvent + 1 );
     sleep( 1 );    
   }
-  bsem_.take();
-  iEvent_ = nEvents;
-  bsem_.give();
+  
   // cout << "emu::step::Test::_fake returning" << endl << flush;
 }
