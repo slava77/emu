@@ -3,6 +3,8 @@
 
 #include "emu/step/TestParameters.h"
 
+#include "emu/utils/Progress.h"
+
 #include "emu/pc/XMLParser.h"
 #include "emu/pc/XMLParser.h"
 #include "emu/pc/EmuEndcap.h"
@@ -102,8 +104,9 @@ namespace emu{
       string              runStartTime_; ///< time of start of run as obtained from the local DAQ (e.g., 130529_154434_UTC)
       vector<string>      dataDirNames_; // all RUIs' data directory names
 
-      emu::pc::XMLParser  parser_;
-      uint64_t            iEvent_; ///< Progress counter.
+      emu::pc::XMLParser   parser_;
+      // uint64_t            iEvent_; ///< Progress counter.
+      emu::utils::Progress progress_; ///< Progress counter.
       void ( emu::step::Test::* procedure_ )();
 
       void ( emu::step::Test::* getProcedure( const string& testId ) )(); 
