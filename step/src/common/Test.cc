@@ -947,10 +947,21 @@ void emu::step::Test::_17(){ // OK
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
 
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
-      tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
-      tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
+      if ( tmb == NULL ){
+	if ( pLogger_ ){
+	  stringstream ss;
+	  ss << "DMB in slot " << (*dmb)->slot() << " of crate " << (*crate)->GetLabel() << " has no corresponding TMB.";
+	  LOG4CPLUS_INFO( *pLogger_, ss.str() );
+	}
+      }
+      else{
+	tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
+	tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
+	tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
+      }
+
       setUpDMB( *dmb );
       
       // Set pipeline depth on DCFEBs
@@ -1075,10 +1086,21 @@ void emu::step::Test::_17b(){ // OK
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
 
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
-      tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
-      tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
+      if ( tmb == NULL ){
+	if ( pLogger_ ){
+	  stringstream ss;
+	  ss << "DMB in slot " << (*dmb)->slot() << " of crate " << (*crate)->GetLabel() << " has no corresponding TMB.";
+	  LOG4CPLUS_WARN( *pLogger_, ss.str() );
+	}
+      }
+      else{
+	tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
+	tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
+	tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
+      }
+
       setUpDMB( *dmb );
       
       // Set pipeline depth on DCFEBs
