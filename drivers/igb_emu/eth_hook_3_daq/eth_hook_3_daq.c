@@ -235,7 +235,6 @@ unsigned short int missing_mask;
 unsigned short int eevent_mask;
 unsigned short int end1,end2,end3,end4;
 unsigned long flags;
-int DMB_trailer_length;
  
   spin_lock_irqsave(&eth_lock,flags);
   
@@ -334,81 +333,59 @@ int DMB_trailer_length;
    // DEBUG END
 #endif
 
-   // check for end of event 0x8000 0xffff 0x8000 0x8000
    eevent_mask=0x0000;
    if(flag_eevent_3==1){
-     // printk(KERN_INFO "ETH3  ");
+#ifdef _DDU_SPY_
+     // Check for end of event 0x8000 0xffff 0x8000 0x8000 (unique word in DDU trailer)
      unsigned char *end_of_packet = skb->data + SKB_OFFSET + skb->len + SKB_EXTRA;
-     // First see if this is minimum-length packet.
-     if ( skb->len+SKB_EXTRA == 64 ){
-       // This is a minimum-length packet. This may mean either that it contains an entire
-       // empty DDU event (48 bytes DDU header+trailer + 16 bytes ethernet filler words)
-       // or that it contains the rump of a long event.
-       // In either case, it _must_ contain the end of an event.
+     const int DDU_trailer_length = 24; // bytes
+     // If present, it must be at the end of packet.
+     end1=*(unsigned short int *)(end_of_packet-DDU_trailer_length+0);
+     end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2);
+     end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4);
+     end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6);
+#ifdef DEBUG_PRINT
+     printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x\n",end1,end2,end3,end4);
+#endif
+     if((end1==0x8000)&&(end2==0x8000)&&(end3==0xffff)&&(end4==0x8000)){
+       // Caught a DDU trailer
        eevent_mask=0x4000;
-
 #ifdef DEBUG_PRINT
-       const int DDU_trailer_length = 24; // bytes
-       end1=*(unsigned short int *)(end_of_packet-DDU_trailer_length+0);
-       end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2);
-       end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4);
-       end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6);
-       printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x\n",end1,end2,end3,end4);
-
-       printk(KERN_INFO "ETH3  minimum-length packet ends event\n");
+       printk(KERN_INFO "ETH3  DDU EoE\n");
 #endif
-     } // if ( skb->len+SKB_EXTRA == 64 )
-     else{
-       // Not a minimum-length packet.
-       // First look for the end-of-event unique word of the DDU trailer.
-       const int DDU_trailer_length = 24; // bytes
-       // If present, it must be at the end of packet.
-       end1=*(unsigned short int *)(end_of_packet-DDU_trailer_length+0);
-       end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2);
-       end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4);
-       end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6);
+     }
+#endif
+#ifdef _DMB_SPY_
+     // Check for 0xf___ 0xf___ 0xf___ 0xf___ 0xe___ 0xe___ 0xe___ 0xe___ (DMB trailer)
+     unsigned char *end_of_packet = skb->data + SKB_OFFSET + skb->len + SKB_EXTRA;
+     const int DMB_trailer_length=16; // bytes
+     unsigned short int end5,end6,end7,end8;
+     end1=*(unsigned short int *)(end_of_packet-DMB_trailer_length+ 0); 
+     end2=*(unsigned short int *)(end_of_packet-DMB_trailer_length+ 2); 
+     end3=*(unsigned short int *)(end_of_packet-DMB_trailer_length+ 4); 
+     end4=*(unsigned short int *)(end_of_packet-DMB_trailer_length+ 6); 
+     end5=*(unsigned short int *)(end_of_packet-DMB_trailer_length+ 8); 
+     end6=*(unsigned short int *)(end_of_packet-DMB_trailer_length+10); 
+     end7=*(unsigned short int *)(end_of_packet-DMB_trailer_length+12); 
+     end8=*(unsigned short int *)(end_of_packet-DMB_trailer_length+14); 
 #ifdef DEBUG_PRINT
-       printk(KERN_INFO "DDU trailer?  %04x %04x %04x %04x\n",end1,end2,end3,end4);
+     printk(KERN_INFO "ETH3  DMB trailer?\n  %04x %04x %04x %04x\n  %04x %04x %04x %04x\n",end1,end2,end3,end4,end5,end6,end7,end8);
 #endif
-       if((end1==0x8000)&&(end2==0x8000)&&(end3==0xffff)&&(end4==0x8000)){
-	 // Caught a DDU trailer
-	 eevent_mask=0x4000;
+     if( ((end1&0xf000)==0xf000) &&
+	 ((end2&0xf000)==0xf000) &&
+	 ((end3&0xf000)==0xf000) &&
+	 ((end4&0xf000)==0xf000) &&
+	 ((end5&0xf000)==0xe000) &&
+	 ((end6&0xf000)==0xe000) &&
+	 ((end7&0xf000)==0xe000) &&
+	 ((end8&0xf000)==0xe000)    ){
+       // Caught a DMB trailer
+       eevent_mask=0x4000;
 #ifdef DEBUG_PRINT
-	 printk(KERN_INFO "ETH3  DDU EoE\n");
+       printk(KERN_INFO "ETH3  DMB EoE\n");
 #endif
-       }
-       else{
-	 // Then look for the end-of-event unique word of the DCC trailer.
-	 const int DCC_trailer_length = 16; // bytes
-	 // TODO: verify these offsets.
-	 end1=*(unsigned short int *)(end_of_packet-DCC_trailer_length+6);
-	 end2=*(unsigned short int *)(end_of_packet-DCC_trailer_length+14);
-	 if(((end1&0xff00)==0xef00)&&((end2&0xff00)==0xaf00)){
-	   // Caught a DCC trailer
-	   eevent_mask=0x4000;
-#ifdef DEBUG_PRINT
-	   printk("DCC EoE");
+     }
 #endif
-	 }
-	 //  for(i=0;i<50;i++){
-         //    end1=*(unsigned short int *)(end_of_packet-16+i);
-         //    printk(KERN_INFO "dmb %d %ld %04x \n",i,end_of_packet-50+i,end1);
-	 // }
-	 // Finally, look for the end-of-event unique word of the DMB trailer.
-	 // TODO: proper offsets must be found for DMB
-	 DMB_trailer_length=16;
-	 end1=*(unsigned short int *)(end_of_packet-DMB_trailer_length+24); 
-	 end2=*(unsigned short int *)(end_of_packet-DMB_trailer_length+26); 
-	 //  printk(KERN_INFO "%04x %04x  \n",end1,end2);  
-         if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000)){
-	   eevent_mask=0x4000; 
-#ifdef DEBUG_PRINT
-	   printk("DMB EoE");
-#endif
-	 }
-       }
-       // printk("\n");
-     } // if ( skb->len+SKB_EXTRA == 64 ) else
    } // if(flag_eevent_3==1)
 
 // write data to ring buffer
