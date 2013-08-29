@@ -7068,29 +7068,39 @@ static bool igb_clean_rx_irq(struct igb_q_vector *q_vector, int budget)
 		skb->protocol = eth_type_trans(skb, netdev_ring(rx_ring));
 
 #ifdef DEBUG_PRINT
-   printk(KERN_INFO "%s skb->len = %d,  total_bytes = %d, total_packets = %d\n",netdev_ring(rx_ring)->name,skb->len,total_bytes,total_packets);
-   printk(KERN_INFO "%s  ",netdev_ring(rx_ring)->name);
-   for(j=90;j>=-50;j-=2)
-     printk("%+4d ",-j);
-   printk("\n");
-   printk(KERN_INFO "%s  ",netdev_ring(rx_ring)->name);
-   for(j=90;j>=-50;j-=2)
-     printk("%04x ",*(unsigned short int*)(skb->data+skb->len-j));
-   printk("\n");
-   for(j=-32;j<(int)(skb->len);j+=2){
-     if ( j%16 == 0 ) printk("%04d   ",j);
-     printk("%04x ",*(unsigned short int*)(skb->data+j));
-     if ( (j+2)%16 == 0 ) printk("\n");
-   }
-   printk("\n");
+  printk(KERN_INFO "%s skb->len = %d,  total_bytes = %d, total_packets = %d\n",netdev_ring(rx_ring)->name,skb->len,total_bytes,total_packets);
+  printk(KERN_INFO "%s  ",netdev_ring(rx_ring)->name);
+  for(j=90;j>=-50;j-=2)
+    printk("%+4d ",-j);
+  printk("\n");
+  printk(KERN_INFO "%s  ",netdev_ring(rx_ring)->name);
+  for(j=90;j>=-50;j-=2)
+    printk("%04x ",*(unsigned short int*)(skb->data+skb->len-j));
+  printk("\n");
+  for(j=-32;j<(int)(skb->len);j+=2){
+    if ( j%16 == 0 ) printk("%04d   ",j);
+    printk("%04x ",*(unsigned short int*)(skb->data+j));
+    if ( (j+2)%16 == 0 ) printk("\n");
+  }
+  printk("\n");
 #endif
 
 #ifndef IGB_NO_LRO
-		if (igb_can_lro(rx_ring, rx_desc, skb))
+#ifdef DEBUG_PRINT
+                printk(KERN_INFO "igb_main: IGB_NO_LRO not defined. netdev_ring(rx_ring)->name = \"%s\"\n",netdev_ring(rx_ring)->name);
+#endif
+                if (igb_can_lro(rx_ring, rx_desc, skb)){
+#ifdef DEBUG_PRINT
+		        printk(KERN_INFO "igb_main: igb_can_lro. netdev_ring(rx_ring)->name = \"%s\"\n",netdev_ring(rx_ring)->name);
+#endif
 			buffer_info->skb = igb_lro_queue(q_vector, skb);
+		}
 		else
 #endif
 		  {
+#ifdef DEBUG_PRINT
+		    printk(KERN_INFO "igb_main: netdev_ring(rx_ring)->name = \"%s\"\n",netdev_ring(rx_ring)->name);
+#endif
 		    if      (strcmp(netdev_ring(rx_ring)->name,"eth2")==0){
 		      netif_rx_hook_2(skb);
 		    }else if(strcmp(netdev_ring(rx_ring)->name,"eth3")==0){
