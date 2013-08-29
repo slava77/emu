@@ -1,16 +1,7 @@
-ifneq ($(KERNELRELEASE),)
-obj-m	:= eth_hook_5_daq.o
-
-else
-KDIR	:= /lib/modules/$(shell uname -r)/build
-PWD	:= $(shell pwd)
-
 default:
-	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
+	cd ddu && make
+	cd dmb && make
 
 clean:
-	rm -fr .tmp_versions *.o *.ko *.mod *.mod.c *.cmd .*.cmd Module.markers Module.symvers
-
-endif
-
-
+	cd ddu && make clean
+	cd dmb && make clean
