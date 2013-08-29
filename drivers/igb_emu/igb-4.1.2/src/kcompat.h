@@ -996,11 +996,12 @@ struct vlan_ethhdr {
 /*****************************************************************************/
 /* 2.4.22 => 2.4.17 */
 
-#if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22) )
+// Disable LRO unconditionally as it results in occasional packet drops:
+// #if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22) )
 #ifndef IGB_NO_LRO
 #define IGB_NO_LRO
 #endif
-#endif
+// #endif
 
 /*****************************************************************************/
 /*****************************************************************************/
