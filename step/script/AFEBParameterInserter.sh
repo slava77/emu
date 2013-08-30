@@ -33,7 +33,7 @@ if [[ $( grep -c -i threshold $RESULTSFILE ) -gt 0 ]]; then
     for I in ${(onk)THRESHOLDS}; do
 	print ${(l:4:)I} ${(l:10:)THRESHOLDS[$I]}
 	mv $VMECONFIGFILE ${VMECONFIGFILE}_tmp
-	xsltproc --stringparam CHAMBERLABEL "ME+2/1/08" --stringparam AFEBNUMBER $I --stringparam AFEBTHRESHOLD ${THRESHOLDS[$I]} ${0:h}/AFEBParameterInserter.xsl ${VMECONFIGFILE}_tmp > ${VMECONFIGFILE}
+	xsltproc --stringparam CHAMBERLABEL $CHAMBERLABEL --stringparam AFEBNUMBER $I --stringparam AFEBTHRESHOLD ${THRESHOLDS[$I]} ${0:h}/AFEBParameterInserter.xsl ${VMECONFIGFILE}_tmp > ${VMECONFIGFILE}
     done
 
     rm ${VMECONFIGFILE}_tmp
@@ -48,7 +48,7 @@ elif [[ $( grep -c -i delay $RESULTSFILE ) -gt 0 ]]; then
 	PARAMETERS=( $( print $LINE ) )
 	print ${(l:4:)PARAMETERS[1]} ${(l:10:)PARAMETERS[5]}
 	mv $VMECONFIGFILE ${VMECONFIGFILE}_tmp
-	xsltproc --stringparam CHAMBERLABEL "ME+2/1/08" --stringparam AFEBNUMBER ${PARAMETERS[1]} --stringparam AFEBFINEDELAY ${PARAMETERS[5]} ${0:h}/AFEBParameterInserter.xsl ${VMECONFIGFILE}_tmp > ${VMECONFIGFILE}
+	xsltproc --stringparam CHAMBERLABEL $CHAMBERLABEL --stringparam AFEBNUMBER ${PARAMETERS[1]} --stringparam AFEBFINEDELAY ${PARAMETERS[5]} ${0:h}/AFEBParameterInserter.xsl ${VMECONFIGFILE}_tmp > ${VMECONFIGFILE}
     done
 
     rm ${VMECONFIGFILE}_tmp
