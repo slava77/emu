@@ -217,7 +217,7 @@
              pul_dac_set="1.000000"
              pulse_delay="0"
              set_comp_thresh="0.030"
-             slot="5"
+             slot="15"
              tmb_lct_cable_delay="0"
              xFineLatency="7"
              xLatency="1">

@@ -3,6 +3,8 @@
 
 #include "emu/utils/Cgi.h"
 #include "emu/utils/System.h"
+#include "emu/pc/VMEController.h"
+//#include "/home/cscme11/XDAQ/11/TriDAS/emu/emuDCS/PeripheralCore/src/common/VMEController.cc"
 
 #include <vector>
 #include <sstream>
@@ -43,6 +45,13 @@ namespace emu { namespace me11dev {
     public:
       HardReset(emu::pc::Crate * crate) : Action(crate) {}
       void display(xgi::Output * out) { addButton(out, "Hard Reset", "width: 100%; "); }
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+    class SoftReset : public Action {
+    public:
+      SoftReset(emu::pc::Crate * crate) : Action(crate) {}
+      void display(xgi::Output * out) { addButton(out, "Soft Reset", "width: 100%; "); }
       void respond(xgi::Input * in, std::ostringstream & out);
     };
     
@@ -87,6 +96,13 @@ namespace emu { namespace me11dev {
       void respond(xgi::Input * in, std::ostringstream & out);
     };
 
+    class SetComparatorMode : public Action, public ActionValue<std::string> {
+    public:
+      SetComparatorMode(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+    
     class SetComparatorThresholds : public Action, public ActionValue<float> {
     public:
       SetComparatorThresholds(emu::pc::Crate * crate);
@@ -229,6 +245,16 @@ namespace emu { namespace me11dev {
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
+
+
+  class BuckShiftTestDebug : public Action, public ActionValue<int> {
+    public:
+     BuckShiftTestDebug(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+
     
     class TMBRegisters : public Action {
     public:
@@ -361,6 +387,14 @@ namespace emu { namespace me11dev {
     };
 
 
+   class CommonUtilities_setupDDU_passThrough : public Action {
+   public:
+      CommonUtilities_setupDDU_passThrough(emu::pc::Crate * crate);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+   };
+
+
    class CommonUtilities_setupDDU : public Action {
    public:
       CommonUtilities_setupDDU(emu::pc::Crate * crate);
@@ -377,12 +411,98 @@ namespace emu { namespace me11dev {
    };
 
 
+
+
+ class ODMB_OTMB_LCT_Testing : public Action, public ActionValue<int> {
+    public:
+     ODMB_OTMB_LCT_Testing(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+  
+
+
+  class Investigate_MissingEvents : public Action, public ActionValue<int> {
+    public:
+     Investigate_MissingEvents(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+
+  class ODMB_L1A_Testing : public Action, public ActionValue<int> {
+    public:
+     ODMB_L1A_Testing(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+
+
+
+  class RoutineTest_StandardCosmics : public Action, public ActionValue<int> {
+    public:
+      RoutineTest_StandardCosmics(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
+
+
+   class STEP15TestBed : public Action, public Action2Values<int, int> {
+   public:
+     STEP15TestBed(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+     void display(xgi::Output * out);
+     void respond(xgi::Input * in, std::ostringstream & out);
+   };
+
+
+   class STEP16TestBed : public Action, public Action2Values<int, int> {
+   public:
+     STEP16TestBed(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+     void display(xgi::Output * out);
+     void respond(xgi::Input * in, std::ostringstream & out);
+   };
+  
+
+
+   class ODMBCosmicsTest : public Action, public Action2Values<int, int> {  
+   public:
+     ODMBCosmicsTest(emu::pc::Crate * crate, emu::me11dev::Manager* manager);  
+     void display(xgi::Output * out);
+     void respond(xgi::Input * in, std::ostringstream & out);
+   };
+
+
+   class ODMBCosmicsTestV2 : public Action, public Action2Values<int, int> {  
+   public:
+     ODMBCosmicsTestV2(emu::pc::Crate * crate, emu::me11dev::Manager* manager);  
+     void display(xgi::Output * out);
+     void respond(xgi::Input * in, std::ostringstream & out);
+   };
+
+
+  class ODMBStepTest16 : public Action {
+    public:
+	ODMBStepTest16(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+	 void display(xgi::Output * out);
+	void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
   class RoutineTest_ShortCosmicsRun : public Action, public ActionValue<int> {
     public:
       RoutineTest_ShortCosmicsRun(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };
+
+  class RoutineTest_ShortCosmicsRun_DDUPT : public Action, public ActionValue<int> {
+    public:
+      RoutineTest_ShortCosmicsRun_DDUPT(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+
 
     class RoutineTest_PrecisionPulses : public Action {
     public:
@@ -393,6 +513,12 @@ namespace emu { namespace me11dev {
     class RoutineTest_PatternPulses_TMBCounters : public Action {
     public:
       RoutineTest_PatternPulses_TMBCounters(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
+      void display(xgi::Output * out);
+      void respond(xgi::Input * in, std::ostringstream & out);
+    };
+    class STEP9bFibers : public Action {
+    public:
+      STEP9bFibers(emu::pc::Crate * crate, emu::me11dev::Manager* manager);
       void display(xgi::Output * out);
       void respond(xgi::Input * in, std::ostringstream & out);
     };     
