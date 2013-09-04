@@ -108,11 +108,13 @@ namespace emu { namespace me11dev {
        ***********************************************************************/
 
       addCommonActionByTypename<HardReset>(crate);
+      addCommonActionByTypename<SoftReset>(crate);
       addCommonActionByTypename<L1Reset>(crate);
       addCommonActionByTypename<BC0>(crate);
       addCommonActionByTypename<ReadBackUserCodes>(crate);
       addCommonActionByTypename<CommonUtilities_restoreCFEBIdle>(crate);
       addCommonActionByTypename<CommonUtilities_setupDDU>(crate);
+      addCommonActionByTypename<CommonUtilities_setupDDU_passThrough>(crate);
       //addCommonActionByTypename<ButtonTests>(crate,this);
 
       /************************************************************************
@@ -122,12 +124,21 @@ namespace emu { namespace me11dev {
 
       
       putButtonsInGroup( "Routine Tests" );
+      //addActionByTypename<STEP16TestBed>(crate,this);
+      //addActionByTypename<STEP15TestBed>(crate,this);
+      addActionByTypename<ODMBCosmicsTest>(crate, this);	
+      addActionByTypename<ODMBCosmicsTestV2>(crate, this);	
+      addActionByTypename<ODMBStepTest16>(crate, this);
+      addActionByTypename<RoutineTest_StandardCosmics>(crate, this);
       addActionByTypename<RoutineTest_ShortCosmicsRun>(crate, this);
+      addActionByTypename<RoutineTest_ShortCosmicsRun_DDUPT>(crate, this);
       addActionByTypename<RoutineTest_PrecisionPulses>(crate, this);
       addActionByTypename<RoutineTest_PatternPulses_TMBCounters>(crate, this);
+      
 
       putButtonsInGroup( "DCFEB" );
       addActionByTypename<SetDMBDACs>(crate);
+      addActionByTypename<SetComparatorMode>(crate);
       addActionByTypename<SetComparatorThresholds>(crate);
       //addActionByTypename<SetComparatorThresholdsBroadcast>(crate);
       addActionByTypename<SetPipelineDepthAllDCFEBs>(crate);
@@ -135,6 +146,7 @@ namespace emu { namespace me11dev {
       addActionByTypename<SetFineDelayForADCFEB>(crate);
       addActionByTypename<ShiftBuckeyesNormRun>(crate);
       addActionByTypename<BuckShiftTest>(crate);
+      addActionByTypename<BuckShiftTestDebug>(crate, this);
       addActionByTypename<dcfebDebugDump>(crate);
 
       putButtonsInGroup( "Pulsing" );
@@ -173,7 +185,10 @@ namespace emu { namespace me11dev {
       //addActionByTypename<Stans_SetPipelineDepthAllDCFEBs>(crate);
       addActionByTypename<ExecuteVMEDSL>(crate);
       addActionByTypename<enableVmeDebugPrintout>(crate);
-
+      addActionByTypename<Investigate_MissingEvents>(crate,this);
+      addActionByTypename<ODMB_L1A_Testing>(crate,this);
+      addActionByTypename<ODMB_OTMB_LCT_Testing>(crate,this);
+      addActionByTypename<STEP9bFibers>(crate,this);
 
       /************************************************************************
        * Log Buttons

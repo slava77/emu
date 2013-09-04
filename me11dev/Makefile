@@ -39,6 +39,7 @@ IncludeDirs = \
 	$(BUILD_HOME)/emu/soap/include \
 	$(BUILD_HOME)/emu/emuDCS/PeripheralCore/include \
 	$(BUILD_HOME)/emu/emuDCS/PeripheralApps/include \
+	$(BUILD_HOME)/emu/emuDCS/FEDCore/include \
 	$(BUILD_HOME)/emu/me11dev/include
 LibraryDirs =
 
