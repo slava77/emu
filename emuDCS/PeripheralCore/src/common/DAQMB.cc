@@ -5133,7 +5133,7 @@ LOOP:
 
 
 void DAQMB::shift_all(int mode) {
-  for(int brd=0;brd<5;brd++){
+  for(int brd=0;brd<7;brd++){
     for(int chip=0;chip<6;chip++){
       for(int ch=0;ch<16;ch++){
         shift_array[brd][chip][ch]=mode;
@@ -5272,7 +5272,7 @@ void DAQMB::toggle_caltrg()
 
 void DAQMB::set_ext_chanx(int schan, int feb)
 {
-  for(int brd=0;brd<5;brd++){
+  for(int brd=0;brd<7;brd++){
     for(int chip=0;chip<6;chip++){
       for(int ch=0;ch<16;ch++){
         shift_array[brd][chip][ch]=NORM_RUN;
