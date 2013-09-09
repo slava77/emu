@@ -8610,6 +8610,13 @@ int DAQMB::dcfeb_adc(CFEB & cfeb, int chan)
      return (temp&0xFFFF);
 }
 
+void DAQMB::dcfeb_adc_finedelay(CFEB & cfeb, unsigned short finedelay)
+{
+  unsigned short temp;
+  dcfeb_hub(cfeb, ADC_Fine_Delay, 3, &finedelay, (char *)&temp, NOW|READ_YES|NOOP_YES);
+  return;
+}
+
 int DAQMB::LVDB_map(int chn)
 {
      // return the LVDB position (0-7) of channel <chn> (for CFEB<chn+1>)
