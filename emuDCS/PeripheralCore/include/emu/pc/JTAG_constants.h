@@ -171,6 +171,7 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define ADC_rdbk 36
 #define CLEAR_ANYL1AFLAG 40
 #define SET_ANYL1AFLAG 41
+#define ADC_Fine_Delay 44
 
 /* VIRTEX6 fpga scan instructions */
 #define VTX6_EXTEST 0x3C0
