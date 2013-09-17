@@ -1101,7 +1101,7 @@ void DAQMB::setcrateid(int dword)
   }
   else if(hardware_version_==2)
   {
-     WriteRegister(set_CRATEID, CRATE_ID);
+     WriteRegister(ODMB_CRATEID, CRATE_ID);
   }
 }
 //
@@ -1166,7 +1166,7 @@ void DAQMB::setcaldelay(int dword)
   }
   else if(hardware_version_==2)
   {
-     WriteRegister(set_CAL_DLY, dword);
+     WriteRegister(CAL_DLY, dword);
   }
   //
 }
@@ -8691,7 +8691,7 @@ void DAQMB::daqmb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int 
 //
 }
 
-std::vector<float> DAQMB::odmb_fpga_monitor()
+std::vector<float> DAQMB::odmb_fpga_sysmon()
 {
   // only read out first 3 channels
   
@@ -8730,6 +8730,35 @@ std::vector<float> DAQMB::odmb_fpga_monitor()
   return readout;
 }
 
+std::vector<float> DAQMB::odmb_fpga_adc()
+{
+
+  unsigned ADC_ADD=0x7000;
+  unsigned short addoff[9]={0, 0x100, 0x110, 0x120, 0x130, 0x140, 0x150, 0x160, 0x170};   
+  float vnorm[9]={0., 3.3, 5.0, 0., 3.3, 2.5, 0., 1.0, 5.0};
+  std::vector<float> readout;
+
+  int adc;
+  float readf;
+
+  readout.clear();
+  if(hardware_version_==2)
+  {
+     for(int i=0; i<9; i++)
+     {
+        adc = ReadRegister(ADC_ADD+addoff[i])&0xFFF;
+        if(i==0)
+          readf=adc*503.975/4096.0-273.15;
+        else if(i==3 || i==6)
+          readf=adc/1024.0;
+        else
+          readf=adc*vnorm[i]/2048.0;
+        readout.push_back(readf);
+     }
+  }
+  return readout;
+}
+
 int DAQMB::DCSread2(char *data)
 {
 
@@ -8764,7 +8793,7 @@ int DAQMB::DCSread2(char *data)
       } 
       retn += TOTAL_DCFEB;
   }
-  std::vector<float> dsysmon=odmb_fpga_monitor();
+  std::vector<float> dsysmon=odmb_fpga_sysmon();
   for(int i=0; i<dsysmon.size(); i++)
   {
       data2[retn+i]=int(dsysmon[i]*100);
