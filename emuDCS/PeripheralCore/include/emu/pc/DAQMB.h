@@ -805,28 +805,32 @@ public:
   int DCSread2(char *data);
 
   // various delays in ODMB
-  inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(set_LCT_L1A_DLY, delay&0x3F); }  // 6 bits
-  inline void odmb_set_TMB_delay(int delay) { WriteRegister(set_TMB_DLY, delay&0x1F); }  // 5 bits
-  inline void odmb_set_Push_delay(int delay) { WriteRegister(set_PUSH_DLY, delay&0x1F); }  // 5 bits
-  inline void odmb_set_ALCT_delay(int delay) { WriteRegister(set_ALCT_DLY, delay&0x1F); }  // 5 bits
-  inline void odmb_set_Inj_delay(int delay) { WriteRegister(set_INJ_DLY, delay&0x1F); }  // 5 bits
-  inline void odmb_set_Ext_delay(int delay) { WriteRegister(set_EXT_DLY, delay&0x1F); }  // 5 bits
-  inline void odmb_set_Cal_delay(int delay) { WriteRegister(set_CAL_DLY, delay&0x1F); }  // 5 bits
-  inline int odmb_read_LCT_L1A_delay() { return ReadRegister(read_LCT_L1A_DLY) & 0x3F; }  // 6 bits
-  inline int odmb_read_TMB_delay() { return ReadRegister(read_TMB_DLY) & 0x1F; }  // 5 bits
-  inline int odmb_read_Push_delay() { return ReadRegister(read_PUSH_DLY) & 0x1F; }  // 5 bits
-  inline int odmb_read_ALCT_delay() { return ReadRegister(read_ALCT_DLY) & 0x1F; }  // 5 bits
-  inline int odmb_read_Inj_delay() { return ReadRegister(read_INJ_DLY) & 0x1F; }  // 5 bits
-  inline int odmb_read_Ext_delay() { return ReadRegister(read_EXT_DLY) & 0x1F; }  // 5 bits
-  inline int odmb_read_Cal_delay() { return ReadRegister(read_CAL_DLY) & 0x1F; }  // 5 bits
+  inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(LCT_L1A_DLY, delay&0x3F); }  // 6 bits
+  inline void odmb_set_TMB_delay(int delay) { WriteRegister(TMB_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Push_delay(int delay) { WriteRegister(PUSH_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_ALCT_delay(int delay) { WriteRegister(ALCT_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Inj_delay(int delay) { WriteRegister(INJ_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Ext_delay(int delay) { WriteRegister(EXT_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Cal_delay(int delay) { WriteRegister(CAL_DLY, delay&0x1F); }  // 5 bits
+  inline int odmb_read_LCT_L1A_delay() { return ReadRegister(LCT_L1A_DLY) & 0x3F; }  // 6 bits
+  inline int odmb_read_TMB_delay() { return ReadRegister(TMB_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Push_delay() { return ReadRegister(PUSH_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_ALCT_delay() { return ReadRegister(ALCT_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Inj_delay() { return ReadRegister(INJ_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Ext_delay() { return ReadRegister(EXT_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Cal_delay() { return ReadRegister(CAL_DLY) & 0x1F; }  // 5 bits
 
   // kill input from boards (CFEBs, TMB, ALCT) mask; multiple boards can be killed
-  inline void odmb_set_kill_mask(int kill) { WriteRegister(set_KILL, kill); }
-  inline int odmb_read_kill_mask() { return ReadRegister(read_KILL); } 
+  inline void odmb_set_kill_mask(int kill) { WriteRegister(ODMB_KILL, kill); }
+  inline int odmb_read_kill_mask() { return ReadRegister(ODMB_KILL); } 
 
   inline int odmb_firmware_version() { return ReadRegister(read_FW_VERSION); }  
   void daqmb_do(int ncmd,void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);   
-  std::vector<float> odmb_fpga_monitor();
+
+  // this one uses discrete logic interface
+  std::vector<float> odmb_fpga_sysmon();
+  // this one uses ODMB Device-7
+  std::vector<float> odmb_fpga_adc();
 
  private:
   //
@@ -914,31 +918,19 @@ public:
   // VME registers defined in ODMB for direct access
   // Liu May 29, 2013. ODMB firmware version 0.0
   //
-  static const unsigned set_ODMB_CTRL = 0x3000;
-  static const unsigned read_ODMB_CTRL = 0x3004;
-  static const unsigned read_ODMB_DATA = 0x3008;
-  static const unsigned set_DCFEB_CTRL = 0x3010;
-  static const unsigned read_DCFEB_CTRL = 0x3014;
+  static const unsigned ODMB_CTRL = 0x3000;
+  static const unsigned DCFEB_CTRL = 0x3010;
 
-  static const unsigned set_LCT_L1A_DLY = 0x4000;
-  static const unsigned set_TMB_DLY = 0x4004;
-  static const unsigned set_PUSH_DLY = 0x4008;
-  static const unsigned set_ALCT_DLY = 0x400C;
-  static const unsigned set_INJ_DLY = 0x4010;
-  static const unsigned set_EXT_DLY = 0x4014;
-  static const unsigned set_CAL_DLY = 0x4018;
-  static const unsigned set_KILL = 0x401C;
-  static const unsigned set_CRATEID = 0x4020;
-  static const unsigned read_LCT_L1A_DLY = 0x4400;
-  static const unsigned read_TMB_DLY = 0x4404;
-  static const unsigned read_PUSH_DLY = 0x4408;
-  static const unsigned read_ALCT_DLY = 0x440C;
-  static const unsigned read_INJ_DLY = 0x4410;
-  static const unsigned read_EXT_DLY = 0x4414;
-  static const unsigned read_CAL_DLY = 0x4418;
-  static const unsigned read_KILL = 0x441C;
-  static const unsigned read_CRATEID = 0x4420;
-  static const unsigned read_FW_VERSION = 0x4424;
+  static const unsigned LCT_L1A_DLY = 0x4000;
+  static const unsigned TMB_DLY = 0x4004;
+  static const unsigned PUSH_DLY = 0x4008;
+  static const unsigned ALCT_DLY = 0x400C;
+  static const unsigned INJ_DLY = 0x4010;
+  static const unsigned EXT_DLY = 0x4014;
+  static const unsigned CAL_DLY = 0x4018;
+  static const unsigned ODMB_KILL = 0x401C;
+  static const unsigned ODMB_CRATEID = 0x4020;
+  static const unsigned read_FW_VERSION = 0x4024;
 
   // The following registers are for CFEB & LVMB access, also valid on DMB
   static const unsigned WRITE_CFEB_SELECTOR=0x1020;

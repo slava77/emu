@@ -2479,7 +2479,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   {
      int fwv=thisDMB->odmb_firmware_version();
      int fw_xml=thisDMB->GetExpectedControlFirmwareTag();
-     sprintf(buf,"ODMB firmware version : V%02X_%02X (tag %02X%02X)",(fwv>>4)&0xF, fwv&0xF,(fwv>>4)&0xF, fwv&0xF);
+     sprintf(buf,"ODMB firmware version : V%02X_%02X (tag %02X%02X)",(fwv>>8)&0xFF, fwv&0xFF,(fwv>>8)&0xFF, fwv&0xFF);
      if ( (fwv&0xFFFF)==(fw_xml&0xFFFF) ) 
      {
         *out << cgicc::span().set("style","color:green");
@@ -2490,8 +2490,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
         *out << cgicc::span().set("style","color:red");
         *out << buf;
         *out << "--->> BAD <<--- should be ";
-        sprintf(buf,"V%02X_%02X (tag %02X%02X)",(fw_xml>>4)&0xF, fw_xml&0xF,(fw_xml>>4)&0xF, fw_xml&0xF);
-        *out << cgicc::span();
+        sprintf(buf,"V%02X_%02X (tag %02X%02X)",(fw_xml>>8)&0xFF, fw_xml&0xFF,(fw_xml>>8)&0xFF, fw_xml&0xF);
+        *out << buf << cgicc::span();
     }
      *out << cgicc::br();
      int idcode=thisDMB->mbfpgaid();
