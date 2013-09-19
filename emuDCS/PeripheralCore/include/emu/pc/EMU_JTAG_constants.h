@@ -908,7 +908,7 @@ const int RTI                              = 1;
 // masks and commands for prom programming:
 /////////////////////////////////////////////
 const int PROM_ID_256k                     = 0x05022093;
-const int MASK_TO_TREAT_512k_LIKE_256k     = 0xfffeefff;
+const int MASK_TO_TREAT_512k_LIKE_256k     = 0x0ffeefff;
 //
 // FPGA ID values:
 const int ID_288384 = 0x0a30093;

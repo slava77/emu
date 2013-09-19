@@ -682,12 +682,14 @@ void TMB::ReadTmbIdCodes() {
   //
   setup_jtag(ChainTmbMezz);
   //
+  int chip_location;
+ if(hardware_version_<=1)
+ {
   ShfIR_ShfDR(ChipLocationTmbMezzFpga,
 	      FPGAidCode,
 	      RegSizeTmbMezzFpga_FPGAidCode);
   tmb_idcode_[device++] = bits_to_int(GetDRtdo(),GetRegLength(),0);
   //
-  int chip_location;
   for (chip_location=1; chip_location<=4; chip_location++){
     ShfIR_ShfDR(chip_location,
 		PROMidCode,
@@ -695,6 +697,16 @@ void TMB::ReadTmbIdCodes() {
     //
     tmb_idcode_[device++] = bits_to_int(GetDRtdo(),GetRegLength(),0);
   }
+ }
+ else if(hardware_version_==2)
+ {
+  unsigned short comd=VTX6_IDCODE;
+  unsigned temp=0, data=0;
+  scan(0, (char *)&comd, 10, rcvbuf, 0);
+  scan(1, (char *)&temp, 32, (char *)&data, 1);
+  tmb_idcode_[device]=data;
+  device += 5;
+ }
   //
   short unsigned int BootReg;
   tmb_get_boot_reg(&BootReg);
