@@ -420,14 +420,21 @@ bool TMBTester::testMezzId(){
   //
   (*MyOutput_) << "TMBTester: Checking Mezzanine FPGA and PROMs ID codes" << std::endl;
   //
-  const int EXPECTED_TMB_MEZZ_FPGA_IDCODE = 0x11050093;
-  const int EXPECTED_TMB_MEZZ_PROM_IDCODE = 0x05036093;
+  const int EXPECTED_TMB_MEZZ_FPGA_IDCODE  = 0x01050093;
+  const int EXPECTED_TMB_MEZZ_FPGA6_IDCODE = 0x04250093;
+  const int EXPECTED_TMB_MEZZ_PROM_IDCODE  = 0x05036093;
   // newer proms have idcode X5036093,  older proms have 05026093.  We just ignore these bytes...
-  const int Mezzanine_promid_mask         = 0x0FFFFFFF;
+  const int Mezzanine_fpgaid_mask         = 0x0FFFFFFF;
+  const int Mezzanine_promid_mask         = 0x0FFEFFFF;
   //
   tmb_->ReadTmbIdCodes();
   //
-  int fpgaIdCode  = tmb_->GetTMBmezzFpgaIdCode();
+  int fpgaIdCode  = (tmb_->GetTMBmezzFpgaIdCode() & Mezzanine_fpgaid_mask);
+
+  bool testOK;
+ int hwv=tmb_->GetHardwareVersion();
+ if(hwv<=1)
+ {
   int prom0IdCode = (tmb_->GetTMBmezzProm0IdCode() & Mezzanine_promid_mask);
   int prom1IdCode = (tmb_->GetTMBmezzProm1IdCode() & Mezzanine_promid_mask);
   int prom2IdCode = (tmb_->GetTMBmezzProm2IdCode() & Mezzanine_promid_mask);
@@ -439,15 +446,18 @@ bool TMBTester::testMezzId(){
   bool testPROMmezz2 = compareValues("Mezz PROM 2 ID code",prom2IdCode,EXPECTED_TMB_MEZZ_PROM_IDCODE,true);  
   bool testPROMmezz3 = compareValues("Mezz PROM 3 ID code",prom3IdCode,EXPECTED_TMB_MEZZ_PROM_IDCODE,true);  
   //
-  bool testOK = (testFPGAmezz  &&
+        testOK = (testFPGAmezz  &&
 		 testPROMmezz0 &&
 		 testPROMmezz1 &&
 		 testPROMmezz2 &&
 		 testPROMmezz3 );
   //
+ }
+ else if(hwv==2)
+ {
+  testOK  = compareValues("Mezz FPGA ID code"  ,fpgaIdCode ,EXPECTED_TMB_MEZZ_FPGA6_IDCODE,true);  
+ }
   messageOK("Mezzanine FPGA/PROM ID",testOK);
-  //int dummy = sleep(3);
-  //
   ResultTestMezzId_ = testOK;
   //
   return testOK;
