@@ -1313,6 +1313,11 @@ void DAQMB::restoreMotherboardIdle() {
   {
     devdo(MCTRL,-1,cmd,0,sndbuf,rcvbuf,2);
   }
+  else if(hardware_version_==2)
+  {
+    dlog_do(-1, NULL, 0, NULL, NULL, 0);
+    daqmb_do(-1, NULL, 0, NULL, NULL, 0);
+  }
 }
 
 /* DAQMB trigger primitives */

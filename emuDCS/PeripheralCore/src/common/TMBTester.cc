@@ -688,7 +688,7 @@ bool TMBTester::testADC(){
   bool v1p5coreOK = compareValues("+1.5V core     ",v1p5core,vcore_expect,0.0015); // most critical value on TMB
   //
   bool v1p5ttOK   = compareValues("+1.5V TT       ",v1p5tt  ,1.493,0.025);
-  bool v1p0OK     = compareValues("+1.0V TT       ",v1p0    ,(hwv<=1)?1.005:1.000,0.003);
+  bool v1p0OK     = compareValues("+1.0V TT       ",v1p0    ,(hwv<=1)?1.005:1.000,0.005);
   bool v1p8ratOK  = compareValues("+1.8V RAT core ",v1p8rat ,1.805,0.025);
   bool vref2OK    = compareValues("+vref/2        ",vref2   ,2.048,0.001);
   bool vzeroOK    = compareValues("+vzero         ",vzero   ,0.0  ,0.001);
