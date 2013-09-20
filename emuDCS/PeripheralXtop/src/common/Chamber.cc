@@ -122,8 +122,8 @@ void Chamber::Fill(char *buffer, int source)
       }
       else if(type_==2)
       {
-        if(idx!=282 || values[276]!=(-50.))
-        {   std::cout << label_ << " (type 2) BAD...total " << idx << " last one " << values[276] << std::endl;
+        if(idx!=286 || values[280]!=(-50.))
+        {   std::cout << label_ << " (type 2) BAD...total " << idx << " last one " << values[280] << std::endl;
             corruption = true;
         }
         else 

@@ -280,9 +280,6 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
      if(!parsed) ParsingXML();
      if(total_crates_<=0) return;
 
-      int TOTAL_DCS_COUNTERS=64;
-      int TOTAL_TMB_VOLTAGES=16;
-      int TOTAL_DCFEB_MONS=196;  // (19+8+1)*7
       std::vector<DAQMB*> myDmbs;
       std::vector<TMB*> myTmbs;
       
@@ -354,9 +351,6 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
    //           3  extra loop (e.g. CCB MPC TTC status)
 
 
-      int TOTAL_DCS_COUNTERS=64;
-      int TOTAL_TMB_VOLTAGES=16;
-      int TOTAL_DCFEB_MONS=196;  // (19+8+1)*7
       Crate * now_crate;
       std::vector<DAQMB*> myDmbs;
       xdata::InfoSpace * is;
@@ -3173,9 +3167,6 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
   unsigned short crateok, good_chamber=0, ccbtag;
   float val, V7;
   std::vector<DAQMB*> myVector;
-  int TOTAL_DCS_COUNTERS=64;
-  int TOTAL_TMB_VOLTAGES=16;
-  int TOTAL_DCFEB_MONS=196;
   xdata::InfoSpace * is;
   int ip, slot, ch_state;
   unsigned int bad_module, ccbbits;
