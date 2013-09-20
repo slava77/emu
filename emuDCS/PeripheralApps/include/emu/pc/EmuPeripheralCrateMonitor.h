@@ -147,6 +147,10 @@ protected:
   xdata::TimeVal last_read_time;
   unsigned short ccbmpcreg[60][4];
   bool first_read[60];
+
+  static const int TOTAL_DCS_COUNTERS=64;
+  static const int TOTAL_TMB_VOLTAGES=16;
+  static const int TOTAL_DCFEB_MONS=200;  // (19+8)*7+9+2 (2 is reserved)
   
 public:
   //
@@ -219,6 +223,7 @@ private:
   //
   void ForEmuPage1(xgi::Input *in, xgi::Output *out) throw (xgi::exception::Exception);
   void msgHandler(std::string msg, int msglevel=0);
+
 };
 
   } // namespace emu::pc

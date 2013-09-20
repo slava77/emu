@@ -766,9 +766,9 @@ public:
   void epromdirect_timerstop();
   void epromdirect_timerreset(); 
   void epromdirect_clearstatus(); 
+  void epromdirect_multi(int cnt, unsigned short *manbuf);
   void epromdirect_unlockerase(); 
   void epromdirect_loadaddress(unsigned short uaddress, unsigned short laddress);
-  void epromdirect_manual(int cnt, unsigned short *manbuf);
   void epromdirect_bufferprogram(unsigned nwords, unsigned short *prm_dat);
   void epromdirect_read(unsigned nwords, unsigned short *pdata);
 
@@ -831,6 +831,30 @@ public:
   std::vector<float> odmb_fpga_sysmon();
   // this one uses ODMB Device-7
   std::vector<float> odmb_fpga_adc();
+
+  // ODMB BPI-->EPROM access rountines
+  void odmb_XPROM_do(unsigned short command);
+  unsigned short odmb_bpi_status();
+  unsigned odmb_bpi_readtimer();
+
+  void odmbeprom_noop();
+  void odmbeprom_lock();
+  void odmbeprom_unlock();
+  void odmbeprom_timerstart();
+  void odmbeprom_timerstop();
+  void odmbeprom_timerreset(); 
+  void odmbeprom_clearstatus(); 
+  void odmbeprom_multi(int cnt, unsigned short *manbuf);
+  void odmbeprom_unlockerase(); 
+  void odmbeprom_loadaddress(unsigned short uaddress, unsigned short laddress);
+  void odmbeprom_bufferprogram(unsigned nwords, unsigned short *prm_dat);
+  void odmbeprom_read(unsigned nwords, unsigned short *pdata);
+
+  void odmbload_parameters(int paramblock,int nval,unsigned short int  *val);
+  void odmbread_parameters(int paramblock,int nval,unsigned short int  *val);         
+
+  void odmb_readfirmware_mcs(const char *filename);
+  void odmb_program_eprom(const char *mcsfile);
 
  private:
   //
@@ -937,6 +961,14 @@ public:
   static const unsigned READ_CFEB_SELECTOR=0x1024;
   static const unsigned reset_CFEB_JTAG = 0x1018;
 
+  static const unsigned BPI_Write = 0x602C;
+  static const unsigned BPI_Read = 0x6030;
+  static const unsigned BPI_Read_n = 0x6034;
+  static const unsigned BPI_Status = 0x6038;
+  static const unsigned BPI_Timer_l = 0x603C;
+  static const unsigned BPI_Timer_h = 0x6040;
+
+  static const unsigned FPGA_ADC_BASE = 0x7000;
   static const unsigned ADC_CTRL_BYTE = 0x8000;
   static const unsigned ADC_READ = 0x8004;
   static const unsigned set_ADC_SELECT = 0x8020;

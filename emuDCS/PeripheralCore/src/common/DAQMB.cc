@@ -7934,23 +7934,7 @@ void DAQMB::epromdirect_timerreset()
 void DAQMB::epromdirect_clearstatus() 
 { dcfeb_XPROM_do(XPROM_Clear_Status); }
 
-void DAQMB::epromdirect_unlockerase() 
-{ 
-   unsigned short tmp[2];
-   tmp[0]=XPROM_Block_UnLock;
-   tmp[1]=XPROM_Block_Erase;
-   epromdirect_manual(2, tmp);
-}
-
-void DAQMB::epromdirect_loadaddress(unsigned short uaddr, unsigned short laddr) 
-{ 
-   unsigned short tmp[2];
-   tmp[0]=((uaddr<<5)&0xffe0)|XPROM_Load_Address;
-   tmp[1]=laddr;
-   epromdirect_manual(2, tmp);
-}
-
-void DAQMB::epromdirect_manual(int cnt, unsigned short *manbuf)
+void DAQMB::epromdirect_multi(int cnt, unsigned short *manbuf)
 {
     unsigned short comd, tmp;
     comd=VTX6_USR1;
@@ -7967,6 +7951,22 @@ void DAQMB::epromdirect_manual(int cnt, unsigned short *manbuf)
     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
     udelay(10);                             
     return;
+}
+
+void DAQMB::epromdirect_unlockerase() 
+{ 
+   unsigned short tmp[2];
+   tmp[0]=XPROM_Block_UnLock;
+   tmp[1]=XPROM_Block_Erase;
+   epromdirect_multi(2, tmp);
+}
+
+void DAQMB::epromdirect_loadaddress(unsigned short uaddr, unsigned short laddr) 
+{ 
+   unsigned short tmp[2];
+   tmp[0]=((uaddr<<5)&0xffe0)|XPROM_Load_Address;
+   tmp[1]=laddr;
+   epromdirect_multi(2, tmp);
 }
 
 void DAQMB::epromdirect_bufferprogram(unsigned nwords,unsigned short *prm_dat)
@@ -8669,7 +8669,7 @@ void DAQMB::daqmb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int 
 {
   int DAQMB_DEV=2;
   char tmp[2];
-  unsigned short int ishft,temp;
+//  unsigned short int ishft,temp;
 
   /* irdsnd for jtag
           irdsnd = 0 no read, later
@@ -8733,7 +8733,6 @@ std::vector<float> DAQMB::odmb_fpga_sysmon()
 std::vector<float> DAQMB::odmb_fpga_adc()
 {
 
-  unsigned ADC_ADD=0x7000;
   unsigned short addoff[9]={0, 0x100, 0x110, 0x120, 0x130, 0x140, 0x150, 0x160, 0x170};   
   float vnorm[9]={0., 3.3, 5.0, 0., 3.3, 2.5, 0., 1.0, 5.0};
   std::vector<float> readout;
@@ -8746,13 +8745,20 @@ std::vector<float> DAQMB::odmb_fpga_adc()
   {
      for(int i=0; i<9; i++)
      {
-        adc = ReadRegister(ADC_ADD+addoff[i])&0xFFF;
+        adc = ReadRegister(FPGA_ADC_BASE+addoff[i])&0xFFF;
         if(i==0)
+        {
           readf=adc*503.975/4096.0-273.15;
+        }
         else if(i==3 || i==6)
-          readf=adc/1024.0;
+        {
+            float Vout=adc;
+            readf=7.865766417e-10*pow(Vout,3) - 7.327237418e-6*pow(Vout,2) + 3.38189673e-2*Vout - 9.678340882;
+        }
         else
+        {
           readf=adc*vnorm[i]/2048.0;
+        }
         readout.push_back(readf);
      }
   }
@@ -8773,6 +8779,7 @@ int DAQMB::DCSread2(char *data)
   int TOTAL_SYSMON=19;
   int TOTAL_ADC=8;
   int TOTAL_DCFEB=TOTAL_SYSMON+TOTAL_ADC;
+  int TOTAL_ODMB=9;
 
   if (hardware_version_!=2) return 0;
 
@@ -8793,13 +8800,262 @@ int DAQMB::DCSread2(char *data)
       } 
       retn += TOTAL_DCFEB;
   }
-  std::vector<float> dsysmon=odmb_fpga_sysmon();
-  for(int i=0; i<dsysmon.size(); i++)
+  std::vector<float> dsysmon=odmb_fpga_adc();
+  for(unsigned int i=0; i<dsysmon.size(); i++)
   {
       data2[retn+i]=int(dsysmon[i]*100);
   }        
-  retn += dsysmon.size();
+  retn += TOTAL_ODMB;
   return retn;
+}
+
+void DAQMB::odmb_XPROM_do(unsigned short command)
+{
+  WriteRegister(BPI_Write, command);
+}
+
+unsigned DAQMB::odmb_bpi_readtimer()
+{
+  return (ReadRegister(BPI_Timer_h)<<16)+ReadRegister(BPI_Timer_l);
+}
+
+unsigned short DAQMB::odmb_bpi_status()
+{
+  /* status register
+     low 8 bits XLINK
+      0-blank write status/multiple work program status
+      1-block protection status
+      2-program suspend status
+      3-vpp status
+      4-program status
+      5-erase/blank check status
+      6-erase/suspend status
+      7-P.E.C. Status
+     high 8 bits Ben
+      0-cmd fifo write error
+      1-cmd fifo read error
+      2-cmd fifo full 
+      3-cmd fifo empty
+      4-rbk fifo write error
+      5-rbk fifo read error
+      6-rbk fifo full 
+      7-rbk fifo empty
+  */  
+  return ReadRegister(BPI_Status);
+}
+
+void DAQMB::odmbeprom_noop() 
+{ odmb_XPROM_do(XPROM_NoOp); }
+
+void DAQMB::odmbeprom_lock() 
+{ odmb_XPROM_do(XPROM_Block_Lock); }
+
+void DAQMB::odmbeprom_unlock() 
+{ odmb_XPROM_do(XPROM_Block_UnLock); }
+
+void DAQMB::odmbeprom_timerstart() 
+{ odmb_XPROM_do(XPROM_Timer_Start); } 
+
+void DAQMB::odmbeprom_timerstop() 
+{ odmb_XPROM_do(XPROM_Timer_Stop); } 
+
+void DAQMB::odmbeprom_timerreset() 
+{ odmb_XPROM_do(XPROM_Timer_Reset); } 
+
+void DAQMB::odmbeprom_clearstatus() 
+{ odmb_XPROM_do(XPROM_Clear_Status); }
+
+void DAQMB::odmbeprom_multi(int cnt, unsigned short *manbuf)
+{
+    for(int i=0; i<cnt; i++)
+    {
+      WriteRegister(BPI_Write, manbuf[i]);
+      udelay(10);                             
+    }
+    return;
+}
+
+void DAQMB::odmbeprom_unlockerase() 
+{ 
+   unsigned short tmp[2];
+   tmp[0]=XPROM_Block_UnLock;
+   tmp[1]=XPROM_Block_Erase;
+   odmbeprom_multi(2, tmp);
+}
+
+void DAQMB::odmbeprom_loadaddress(unsigned short uaddr, unsigned short laddr) 
+{ 
+   unsigned short tmp[2];
+   tmp[0]=((uaddr<<5)&0xffe0)|XPROM_Load_Address;
+   tmp[1]=laddr;
+   odmbeprom_multi(2, tmp);
+}
+
+void DAQMB::odmbeprom_bufferprogram(unsigned nwords,unsigned short *prm_dat)
+{
+    // nwords max. 11 bits (2048 words)
+    unsigned short tmp;
+    tmp= (((nwords-1)<<5)&0xffe0)|XPROM_Buffer_Program;
+    odmb_XPROM_do(tmp);
+
+    // send data
+    odmbeprom_multi(nwords, prm_dat);
+    return;
+}
+
+void DAQMB::odmbeprom_read(unsigned nwords, unsigned short *pdata)
+{
+    // nwords max. 11 bits (2048 words)
+    int toread, leftover, pindex=0;
+    unsigned short tmp;
+    leftover=nwords;
+    while(leftover>0)
+    {
+      toread = (leftover>16)?16:leftover;
+      leftover -= toread;
+      
+      tmp= (((toread-1)<<5)&0xffe0)|XPROM_Read_n;
+      odmb_XPROM_do(tmp);
+      udelay(20);
+      // read in words
+      for(int i=0; i<toread; i++)
+      {
+        pdata[pindex]=ReadRegister(BPI_Read);
+        pindex++;  
+      }
+    }
+    return;
+}
+
+void DAQMB::odmbload_parameters(int paramblock, int nwords, unsigned short int  *val)
+{
+  /*  The highest four blocks in the eprom are parameter banks of
+      length 16k 16 bit words. the starting
+      addresses are:
+
+           block 0  007f 0000
+           block 1  007f 4000
+           block 2  007f 8000
+           block 3  007f c000
+
+     the config program takes up the range
+                    0000 0000
+                    0005 4000
+
+      ref: http://www.xilinx.com/support/documentation/data_sheets/ds617.pdf
+
+                   2-byte words       bytes
+      eprom size     0x00800000        0x01000000
+      mcs size       0x002A0000        0x00540000
+      params addr    0x007f0000        0x00fe0000
+      
+      mcs file addressing is in bytes
+*/
+
+  unsigned int fulladdr;
+  unsigned int uaddr,laddr;
+  unsigned int nxt_blk_addr;
+
+  if(nwords>2048){
+    printf(" Catastrophy:parameter space large rewrite program %d \n",nwords);
+    return;
+  }
+  odmbeprom_timerstop();
+  odmbeprom_timerreset();
+  uaddr=0x007f;  // segment address for parameter blocks
+  laddr=paramblock*0x4000;
+  fulladdr = (uaddr<<16) + laddr;
+  printf(" parameter_write fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+  odmbeprom_timerstart();
+
+  odmbeprom_loadaddress(uaddr,laddr);
+  // unlock and erase the block
+  odmbeprom_unlockerase();
+
+  udelay(400000);
+
+  // program with new data from the beginning of the block
+  odmbeprom_bufferprogram(nwords,val);
+  unsigned int sleeep=1984*64+164;
+  udelay(sleeep);
+  
+  nxt_blk_addr=fulladdr+0x4000;
+  uaddr = (nxt_blk_addr >> 16);
+  laddr = nxt_blk_addr &0xffff;
+  // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+  odmbeprom_loadaddress(uaddr,laddr);
+  // lock last block
+  odmbeprom_lock();
+  udelay(10);
+}
+
+void DAQMB::odmbread_parameters(int paramblock,int nwords,unsigned short int  *val)
+{
+  /*  The highest four blocks in the eprom are parameter banks of
+      length 16k 16 bit words. The starting
+      addresses are:
+
+           block 0  007f 0000
+           block 1  007f 4000
+           block 2  007f 8000
+           block 3  007f c000
+
+      ref: http://www.xilinx.com/support/documentation/data_sheets/ds617.pdf 
+   */
+  
+  unsigned int uaddr,laddr;
+  if(paramblock<0 || paramblock>3) return;
+  
+  if(nwords>2048){
+    printf(" Catastrophy: parameter space too large: %d\n",nwords);
+    return;
+  }
+  uaddr=0x007f;  // segment address for parameter blocks
+  laddr=paramblock*0x4000;
+  printf(" parameter_read fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+  odmbeprom_loadaddress(uaddr,laddr);
+  odmbeprom_read(nwords,val);
+}
+
+void DAQMB::odmb_readfirmware_mcs(const char *filename)
+{
+
+   unsigned fulladdr=0, uaddr, laddr;
+   unsigned read_size=0x800;
+   unsigned short *buf;
+   FILE *mcsfile;
+   int total_blocks=1335;
+// int readback_size=read_size*total_blocks*2=5468160; 
+// XC6VLX130T's configuration bitstream (firmware) is exactly 5464972 bytes:
+
+   const int FIRMWARE_SIZE=5464972;
+
+   mcsfile=fopen(filename, "w");
+   if(mcsfile==NULL)
+   {
+      std::cout << "Unable to open file to write :" << filename << std::endl;
+      return;
+   }
+
+   buf=(unsigned short *)malloc(8*1024*1024);
+   if(buf==NULL) return;
+   
+   for(int i=0; i< total_blocks; i++)
+   {
+       uaddr = (fulladdr >> 16);
+       laddr = fulladdr &0xffff;
+       odmbeprom_loadaddress(uaddr, laddr);
+
+       odmbeprom_read(read_size, buf+i*read_size);
+
+       fulladdr += read_size;
+   }
+
+   write_mcs((char *)buf, FIRMWARE_SIZE, mcsfile);
+   fclose(mcsfile);
+   free(buf);
+   std::cout << " Total " << FIRMWARE_SIZE << " bytes are read back from ODMB's EPROM and saved in mcs-format file: " << filename << std::endl;
+   return;
 }
 
 } // namespace emu::pc

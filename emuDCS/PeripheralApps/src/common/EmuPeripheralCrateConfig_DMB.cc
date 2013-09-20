@@ -250,8 +250,8 @@ void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   //  std::cout << "Done" << std::endl;
-  //
 }
+
 //
 void EmuPeripheralCrateConfig::DMBTestAll(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
@@ -2544,13 +2544,40 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
      *out << cgicc::td() << cgicc::td() << cgicc::tr() << std::endl;
      *out << cgicc::table();
      *out << cgicc::fieldset() << cgicc::br() << std::endl;
+  
+     std::vector<float> adcs=thisDMB->odmb_fpga_adc();
+     *out << std::setprecision(3);
+     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+     *out << std::endl ;
+     *out << cgicc::legend("ODMB Temperatures and Voltages").set("style","color:blue") 
+          << std::endl ;
+     *out << cgicc::table().set("border","1").set("cellpadding","4");
+     *out << cgicc::tr();
+     *out << cgicc::td() << " FPGA  temperature = " << adcs[0] << "C " << cgicc::td();      
+     *out << cgicc::td() << " PCB temperature 1 = " << adcs[6] << "C " << cgicc::td();      
+     *out << cgicc::td() << " PCB temperature 2 = " << adcs[3] << "C " << cgicc::td();      
+     *out << cgicc::table() << cgicc::br() << std::endl;
+
+     *out << cgicc::table().set("border","1").set("cellpadding","4");
+     *out << cgicc::tr();
+     *out << cgicc::td() << " FPGA 3.3V = " << adcs[1] << "V " << cgicc::td();      
+     *out << cgicc::td() << " FPGA 2.5V = " << adcs[5] << "V " << cgicc::td();      
+     *out << cgicc::td() << " FPGA 1.0V = " << adcs[7] << "V " << cgicc::td();      
+     *out << cgicc::tr() << std::endl;
+     *out << cgicc::tr();
+     *out << cgicc::td() << " LVMB 5.0V = " << adcs[8] << "V " << cgicc::td();      
+     *out << cgicc::td() << " PPIB 5.0V = " << adcs[2] << "V " << cgicc::td();      
+     *out << cgicc::td() << " PPIB 3.3V = " << adcs[4] << "V " << cgicc::td();      
+     *out << cgicc::tr() << std::endl;
+     *out << cgicc::table();
+     *out << cgicc::fieldset() << cgicc::br() << std::endl;
   }
 
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl ;
   //
-  *out << cgicc::legend("Voltages, Temperatures, & Currents").set("style","color:blue") 
+  *out << cgicc::legend("Chamber Voltages, Temperatures, & Currents").set("style","color:blue") 
        << std::endl ;
   //
   int n=thisDMB->DCSreadAll(buf);
