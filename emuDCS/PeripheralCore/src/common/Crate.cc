@@ -546,19 +546,21 @@ int Crate::configure(int c, int ID) {
   std::cout << " HardReset, then lowv_onoff " << std::endl;
   ccb->hardReset();
   ::sleep(1);
-  for (unsigned dmb=0; dmb<myDmbs.size(); dmb++) {
+  for (unsigned dmb=0; dmb<myDmbs.size(); dmb++) 
+  {
     std::cout << "DMB slot " << myDmbs[dmb]->slot() 
 	      << " turn ON chamber..." << std::endl;
     if(!IsAlive())
     {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
        return -1;
     }
-    myDmbs[dmb]->lowv_onoff(0x3f);
+    myDmbs[dmb]->lowv_onoff(0xff);
     //
     // The following is not needed, since DMB includes FIFO clear in hard reset
     //    std::cout << "DMB slot " << myDmbs[dmb]->slot() 
     //	      << " call calctrl_fifomrst " << std::endl;
     //    myDmbs[dmb]->calctrl_fifomrst();
+    myDmbs[dmb]->restoreMotherboardIdle();
   }
   ::sleep(2);
 
@@ -615,7 +617,6 @@ int Crate::configure(int c, int ID) {
          return -1;
       }
       myDmbs[i]->restoreCFEBIdle();
-      myDmbs[i]->restoreMotherboardIdle();
       myDmbs[i]->configure();
     }
   }
