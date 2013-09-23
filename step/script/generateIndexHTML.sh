@@ -31,7 +31,7 @@ print "Generating $RESULTSDIR/index.html"
 	print "<tr><th>$CSC</th><td>"
 	for IMAGEFILE in $CSCIMAGEFILES; do
 	    PLOTCODE=${${IMAGEFILE:r}##*_}
-	    print "<a href=\"#csc_$CSC_$PLOTCODE\">$PLOTCODE</a> |"
+	    print "<a href=\"#csc_${CSC}_${PLOTCODE}\">$PLOTCODE</a> |"
 	done
 	print "</td></tr>"
     done
@@ -45,7 +45,7 @@ print "Generating $RESULTSDIR/index.html"
 	CSCIMAGEFILES=( $(print ./$CSC/*.png) )
 	for IMAGEFILE in $CSCIMAGEFILES; do
 	    PLOTCODE=${${IMAGEFILE:r}##*_}
-	    print "<tr><td colspan=\"2\"><a id=\"csc_$CSC_$PLOTCODE\" href=\"#top\"><img src=\"$IMAGEFILE\" alt=\"$IMAGEFILE\"></a></td></tr>"
+	    print "<tr><td colspan=\"2\"><a id=\"csc_${CSC}_${PLOTCODE}\" href=\"#top\"><img src=\"$IMAGEFILE\" alt=\"$IMAGEFILE\"></a></td></tr>"
 	done
     done
     for IMAGEFILE in $SUMIMAGEFILES; do
