@@ -131,8 +131,21 @@ fi
 # The first argument is a space-separated list of data files given in the format host:file
 DATAFILES=( $(print $2) )
 for DATAFILE in $DATAFILES; do
-    DATAHOSTNAME=${DATAFILE%:*}
+    DATAFQHOSTNAME=${DATAFILE%:*}
+    DATAHOSTNAME=${DATAFQHOSTNAME%.*}
+    DATANETNAME=${DATAFQHOSTNAME#*.}
     DATAPATHNAME=${DATAFILE#*:}
+    print "DATAFQHOSTNAME =$DATAFQHOSTNAME"
+    print "DATAHOSTNAME   =$DATAHOSTNAME"
+    print "DATANETNAME    =$DATANETNAME"
+    print "DATAPATHNAME   =$DATAPATHNAME"
+    if [[ $DATANETNAME == "cms" ]]; then
+	# In the .cms network, convert 
+	# csc-daq03.cms:/data/csc_00000001_EmuRUI09_Test_13_000_130924_171005_UTC.raw to
+	# /cmscsc/csc-daq03/csc_00000001_EmuRUI09_Test_13_000_130924_171005_UTC.raw
+	DATAPATHNAME=/cmscsc/${DATAHOSTNAME}/${DATAPATHNAME#/data/}
+    fi
+    print "DATAPATHNAME   =$DATAPATHNAME"
     RESULTSTOPDIR=${DATAPATHNAME:h}/Tests_results
     [[ -d $RESULTSTOPDIR ]] || mkdir -p $RESULTSTOPDIR
 
