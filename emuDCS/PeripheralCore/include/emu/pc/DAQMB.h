@@ -836,6 +836,9 @@ public:
   void odmb_XPROM_do(unsigned short command);
   unsigned short odmb_bpi_status();
   unsigned odmb_bpi_readtimer();
+  void odmb_bpi_reset();
+  void odmb_bpi_disable();
+  void odmb_bpi_enable();
 
   void odmbeprom_noop();
   void odmbeprom_lock();
@@ -961,6 +964,9 @@ public:
   static const unsigned READ_CFEB_SELECTOR=0x1024;
   static const unsigned reset_CFEB_JTAG = 0x1018;
 
+  static const unsigned BPI_Reset = 0x6020;
+  static const unsigned BPI_Disable = 0x6024;
+  static const unsigned BPI_Enable = 0x6028;
   static const unsigned BPI_Write = 0x602C;
   static const unsigned BPI_Read = 0x6030;
   static const unsigned BPI_Read_n = 0x6034;
