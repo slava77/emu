@@ -522,6 +522,7 @@ void emu::step::Manager::runAnalysis( const string& testId ){
       ++nDataFilesOfThisTest;
     }
   }
+  command << "'";
   for ( size_t iMap = 0; iMap < chamberMaps_.size(); ++iMap ){
     command << " '" << chamberMaps_[iMap].bag.crateId_.toString()
 	    << " " << chamberMaps_[iMap].bag.dmbSlot_.toString()
