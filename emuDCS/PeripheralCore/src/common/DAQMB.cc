@@ -8849,6 +8849,15 @@ unsigned short DAQMB::odmb_bpi_status()
   return ReadRegister(BPI_Status);
 }
 
+void DAQMB::odmb_bpi_reset()
+{  WriteRegister(BPI_Reset, 0); }
+
+void DAQMB::odmb_bpi_disable()
+{  WriteRegister(BPI_Disable, 0); }
+
+void DAQMB::odmb_bpi_enable()
+{  WriteRegister(BPI_Enable, 0); }
+
 void DAQMB::odmbeprom_noop() 
 { odmb_XPROM_do(XPROM_NoOp); }
 
@@ -8965,6 +8974,8 @@ void DAQMB::odmbload_parameters(int paramblock, int nwords, unsigned short int  
     printf(" Catastrophy:parameter space large rewrite program %d \n",nwords);
     return;
   }
+  odmb_bpi_reset();
+  odmb_bpi_enable();
   odmbeprom_timerstop();
   odmbeprom_timerreset();
   uaddr=0x007f;  // segment address for parameter blocks
@@ -8991,6 +9002,7 @@ void DAQMB::odmbload_parameters(int paramblock, int nwords, unsigned short int  
   odmbeprom_loadaddress(uaddr,laddr);
   // lock last block
   odmbeprom_lock();
+  odmb_bpi_disable();
   udelay(10);
 }
 
@@ -9015,11 +9027,14 @@ void DAQMB::odmbread_parameters(int paramblock,int nwords,unsigned short int  *v
     printf(" Catastrophy: parameter space too large: %d\n",nwords);
     return;
   }
+  odmb_bpi_reset();
+  odmb_bpi_enable();
   uaddr=0x007f;  // segment address for parameter blocks
   laddr=paramblock*0x4000;
   printf(" parameter_read fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
   odmbeprom_loadaddress(uaddr,laddr);
   odmbeprom_read(nwords,val);
+  odmb_bpi_disable();
 }
 
 void DAQMB::odmb_readfirmware_mcs(const char *filename)
@@ -9044,6 +9059,8 @@ void DAQMB::odmb_readfirmware_mcs(const char *filename)
 
    buf=(unsigned short *)malloc(8*1024*1024);
    if(buf==NULL) return;
+   odmb_bpi_reset();
+   odmb_bpi_enable();
    
    for(int i=0; i< total_blocks; i++)
    {
@@ -9055,7 +9072,8 @@ void DAQMB::odmb_readfirmware_mcs(const char *filename)
 
        fulladdr += read_size;
    }
-
+   odmb_bpi_disable();
+ 
    write_mcs((char *)buf, FIRMWARE_SIZE, mcsfile);
    fclose(mcsfile);
    free(buf);
