@@ -795,7 +795,7 @@ public:
 
   void dcfeb_fpga_shutdown();
   int dcfeb_dna(CFEB & cfeb, void *dna);
-  int dcfeb_adc(CFEB & cfeb, int chan);
+  std::vector<float> dcfeb_adc(CFEB & cfeb);
   void dcfeb_adc_finedelay(CFEB & cfeb, unsigned short finedelay);
 
   int lvmb_power_state();

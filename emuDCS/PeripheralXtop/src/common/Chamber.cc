@@ -331,8 +331,8 @@ void Chamber::GetDimTEMP2(int hint, TEMP_2_DimBroker *dim_temp )
       for(int i=0; i<DCFEB_NUMBER; i++)
       {
          dim_temp->t_fpga[i] = data[80+27*i];
-         dim_temp->t_pcb1[i] = 0.0;
-         dim_temp->t_pcb2[i] = 0.0;
+         dim_temp->t_pcb1[i] = data[80+27*i+22];
+         dim_temp->t_pcb2[i] = data[80+27*i+23];
       }
 
    dim_temp->update_time = info[1];

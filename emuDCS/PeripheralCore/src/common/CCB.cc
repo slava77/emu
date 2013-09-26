@@ -560,57 +560,38 @@ void CCB::DumpAddress(int address) {
   printf("CCB.Dump %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
 }
-//
-std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
-  //
-  std::bitset<8> dummyReturn(0xFF);
-  if(!(theController->IsAlive()))
-  {  std::cout << "ERROR: Crate dead, no TTCrx read access!!" << std::endl;
-     return dummyReturn;
-  }
-  if (ReadTTCrxID_ == -1) {
-    std::cout << "ReadTTCrxReg: No ReadTTCrxID, using TTCrxID from XML: "<< TTCrxID_ << std::endl;
-    ReadTTCrxID_ = TTCrxID_;
-  }
-  //
-  std::bitset<7> pointerRegAddress(ReadTTCrxID_*2);
-  std::bitset<7> DataRegAddress(ReadTTCrxID_*2+1);
-  std::bitset<8> regAddress(registerAdd);
-  //
-  //(*MyOutput_) << " " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
-  //
+
+int CCB::ReadTTCrxReg(int registerAdd)
+{
+  int pointerRegAddress = (ReadTTCrxID_*2);
+  int DataRegAddress = (ReadTTCrxID_*2+1);
+  int i;
   // start I2C
   //
   startI2C();
   //
-  do_vme(VME_READ,CSRA1,sndbuf,rcvbuf,NOW);    
+  ReadRegister(CSRA1);
   //
   // write address of the pointer  register
-  for( int i(6); i>=0; --i) {
-    writeI2C(pointerRegAddress[i]);
+  for( i=6; i>=0; --i) {
+    writeI2C(pointerRegAddress>>i);
   }
   //
   writeI2C(0); // write bit 0 (write) = 0
   //
   readI2C();
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x04; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x04);    
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x02; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x02);    
   //
-  for( int i(7); i>=0; --i) {
-    writeI2C(regAddress[i]);
+  for( i=7; i>=0; --i) {
+    writeI2C(registerAdd>>i);
   }
   //
   readI2C() ;
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x06; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x06);    
   //
   stopI2C();
   //
@@ -619,41 +600,32 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   //
   // write address of the data  register (pointer + 1)
-  for( int i(6); i>=0; --i) {
-    writeI2C(DataRegAddress[i]);
+  for( i=6; i>=0; --i) {
+    writeI2C(DataRegAddress>>i);
   }
   //
   writeI2C(1); // write bit 0 (read) = 1
   //
   readI2C();
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x04; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x04);    
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x02; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x02);    
   //
   // read data
-  int Data;
-  std::bitset<8> data;
-  for(int i(7); i>=0; --i) {
-    Data = readI2C();    
-    //(*MyOutput_) << Data ;
-    data.set(i,Data&0x1);
+  int r;
+  int data=0;
+  for(i=7; i>=0; --i) {
+    data <<= 1;
+    r = readI2C();    
+    data += (r&0x1);
   }      
-  //(*MyOutput_) << std::endl;
   //
   readI2C() ;
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x04 ; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x04);    
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x02; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x04);    
   //  
   // stop condition
   stopI2C();
@@ -661,56 +633,39 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   return data;
   //
 }
-//
-void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
-  //
-  if(!(theController->IsAlive()))
-  {  std::cout << "ERROR: Crate dead, no TTCrx write access!!" << std::endl;
-     return;
-  }
-  if (ReadTTCrxID_ == -1) {
-    (*MyOutput_) << "WriteTTCrxReg: No ReadTTCrxID" << std::endl;
-    return;
-  }
-  //
-  std::bitset<7> pointerRegAddress(ReadTTCrxID_*2);
-  std::bitset<7> DataRegAddress(ReadTTCrxID_*2+1);
-  std::bitset<8> regAddress(registerAdd);
-  //
-  //(*MyOutput_) << "TTCrxAddresses = " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
+
+void CCB::WriteTTCrxReg(int registerAdd,int value)
+{
+  int pointerRegAddress = (ReadTTCrxID_*2);
+  int DataRegAddress = (ReadTTCrxID_*2+1);
+  int i;
   //
   // start I2C
   //
   startI2C();
   //
-  do_vme(VME_READ,CSRA1,sndbuf,rcvbuf,NOW);    
+  ReadRegister(CSRA1);    
   //
   // write address of the pointer  register
-  for( int i(6); i>=0; --i) {
-    writeI2C(pointerRegAddress[i]);
+  for( i=6; i>=0; --i) {
+    writeI2C(pointerRegAddress>>i);
   }
   //
   writeI2C(0); // write bit 0 (write) = 0
   //
   readI2C();
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x04; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x04);    
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x02; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x02);    
   //
-  for( int i(7); i>=0; --i) {
-    writeI2C(regAddress[i]);
+  for( i=7; i>=0; --i) {
+    writeI2C(registerAdd>>i);
   }
   //
   readI2C() ;
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x06; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x06);    
   //
   stopI2C();
   //
@@ -719,35 +674,26 @@ void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
   //
   //
   // write address of the data  register (pointer + 1)
-  for( int i(6); i>=0; --i) {
-    writeI2C(DataRegAddress[i]);
+  for( i=6; i>=0; --i) {
+    writeI2C(DataRegAddress>>i);
   }
   //
   writeI2C(0); // write bit 0 (write) = 1
   //
   readI2C();
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x04; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x04);    
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x02; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x02);    
   //
-  std::bitset<8> inputreadBackDataBit(value);
-  // 
   // Write data
-  for(int i(7); i>=0; --i) {
-    writeI2C(inputreadBackDataBit[i]);
+  for(i=7; i>=0; --i) {
+    writeI2C(value>>i);
   }      
-  //(*MyOutput_) << std::endl;
   //
   readI2C() ;
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x06 ; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  WriteRegister(CSRA1,0x06);    
   //
   // stop condition
   stopI2C();
@@ -755,7 +701,7 @@ void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
   return;
   //
 }
-//
+
 void CCB::HardResetTTCrx(){
   //
   // Hard reset TTCrx....
@@ -1067,7 +1013,7 @@ void CCB::init() {
 }
 void CCB::PrintTTCrxRegs(){
   //
-  (*MyOutput_) << "Register 0 " ;
+  (*MyOutput_) << "Register 0 " << std::hex;
   (*MyOutput_) << ReadTTCrxReg(0);
   (*MyOutput_) << " (fine delay)" << std::endl;
   //
@@ -1145,7 +1091,7 @@ void CCB::PrintTTCrxRegs(){
   //
   (*MyOutput_) << "Register 28 " ;
   (*MyOutput_) << ReadTTCrxReg(28);
-  (*MyOutput_) << std::endl;
+  (*MyOutput_) << std::dec << std::endl;
 
   std::cout << "PrintTTCrxRegs Using ReadTTCrxID_ "<< ReadTTCrxID_ << std::endl;
 
@@ -1178,7 +1124,7 @@ void CCB::configure() {
   //
   // print out TTCrx registers before reset
   for(int i=0; i<4; i++)
-     std::cout << "Register " << i << ":  " << ReadTTCrxReg(i) << std::endl;
+     std::cout << "Register " << i << ":  " << std::hex << ReadTTCrxReg(i) << std::dec << std::endl;
          
   HardResetTTCrx();
   ::usleep(1000);
@@ -1211,11 +1157,11 @@ void CCB::configure() {
 
   // check TTCrx registers
   int rx;
-  rx=(int) (ReadTTCrxReg(2).to_ulong());
+  rx=ReadTTCrxReg(2);
   if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
      std::cout << "ERROR: TTCrx Coarse Delay register readback " << std::hex << (rx&0xff) << std::endl; 
 
-  rx=(int)(ReadTTCrxReg(3).to_ulong());
+  rx=ReadTTCrxReg(3);
   if((rx&0xff) != 0xB3) 
      std::cout << "ERROR: TTCrx Control register readback " << std::hex << (rx&0xff) << std::endl; 
 
@@ -1246,7 +1192,7 @@ int CCB::CheckConfig(int full_check)
   if(full_check)
   {
     // check TTCrx Coarse delay
-    rx=(int) (ReadTTCrxReg(2).to_ulong());
+    rx=ReadTTCrxReg(2);
     //
     read_value = (rx&0xf);
     expected_value = (TTCrxCoarseDelay_&0xf);
@@ -1263,7 +1209,7 @@ int CCB::CheckConfig(int full_check)
     //
     //
     // check TTCrx Control register
-    rx=(int)(ReadTTCrxReg(3).to_ulong());
+    rx=ReadTTCrxReg(3);
     //
     read_value = (rx&0xff);
     expected_value = 0xB3;
@@ -1869,6 +1815,127 @@ int CCB::readDSN(void *data)
    }      
    if(error) std::cout << "Errors in reading DSN: " << error << std::endl;
    return error;
+}
+
+int CCB::TestTTC(int testID, int n_loop)
+{
+   // testID:
+   //     0 ----  all tests
+   //     1 ----  Write-Read loop with fixed  patterns
+   //     2 ----  Write-Read loop with random patterns
+   //     3 ----  Write once-Read loop with random patterns
+// (*MyOutput_)  
+   int error1[4]={0,0,0,0}, error2[4]={0,0,0,0}, error3[4]={0,0,0,0};
+   int tin, treg, rin[4],  pattern[8]={0, 0xFF, 0x55, 0xAA, 0x0F, 0xF0, 0x5A, 0xA5};
+   if(n_loop>=0)
+   {
+       HardResetTTCrx();
+       ReadTTCrxID();
+       srand((unsigned int)time(NULL));
+   }
+   // test 1
+   if(testID==0 || testID==1)
+   {
+       (*MyOutput_) << "Fixed Pattern Write-Read Test......";
+       for(int l=0; l<n_loop; l++)
+       {
+          for(int k=0; k<8; k++)
+          {
+             tin=pattern[k];
+             for(int i=0; i<4; i++)
+             {
+                 WriteTTCrxReg(i, tin);
+             }
+             usleep(100);
+             for(int i=0; i<4; i++)
+             {
+                 treg=ReadTTCrxReg(i);
+                 if((treg&0xFF)!=(tin&0xFF)) error1[i]++;
+             }
+          }
+       }
+       if((error1[0]+error1[1]+error1[2]+error1[3])==0)
+       {  (*MyOutput_) << "PASSED" << std::endl;
+       }
+       else
+       {
+          (*MyOutput_) << "FAILED!!!" << std::endl;
+          for(int i=0; i<4; i++)
+          {
+              if(error1[i]) (*MyOutput_) << "------>> Register " << i << " had " << error1[i] << " errors in " << 8*n_loop << " Write-Read." << std::endl;
+          }
+       }
+   }
+   // test 2
+   if(testID==0 || testID==2)
+   {
+       (*MyOutput_) << "Random Pattern Write-Read Test......";
+       for(int l=0; l<n_loop; l++)
+       {
+          for(int k=0; k<8; k++)
+          {
+             for(int i=0; i<4; i++) rin[i] = (int) (255.0 * (rand() / (RAND_MAX + 1.0)));
+             for(int i=0; i<4; i++)
+             {
+                 WriteTTCrxReg(i, rin[i]);
+             }
+             usleep(100);
+             for(int i=0; i<4; i++)
+             {
+                 treg=ReadTTCrxReg(i);
+                 if((treg&0xFF)!=(rin[i]&0xFF)) error2[i]++;
+             }
+          }
+       }
+       if((error2[0]+error2[1]+error2[2]+error2[3])==0)
+       {  (*MyOutput_) << "PASSED" << std::endl;
+       }
+       else
+       {
+          (*MyOutput_) << "FAILED!!!" << std::endl;
+          for(int i=0; i<4; i++)
+          {
+              if(error2[i]) (*MyOutput_) << "------>> Register " << i << " had " << error2[i] << " errors in " << 8*n_loop << " Write-Read." << std::endl;
+          }
+       }
+   }
+   // test 3
+   if(testID==0 || testID==3)
+   {
+       (*MyOutput_) << "Random Write-Once-Read-Loop Test......";
+       for(int k=0; k<8; k++)
+       {
+          for(int i=0; i<4; i++) rin[i] = (int) (255.0 * (rand() / (RAND_MAX + 1.0)));
+          for(int i=0; i<4; i++)
+          {
+              WriteTTCrxReg(i, rin[i]);
+          }
+          usleep(100);
+          for(int l=0; l<n_loop; l++)
+          {
+              for(int i=0; i<4; i++)
+              {
+                 treg=ReadTTCrxReg(i);
+                 if((treg&0xFF)!=(rin[i]&0xFF)) error3[i]++;
+              }
+              usleep(10);
+          }
+       }
+       if((error3[0]+error3[1]+error3[2]+error3[3])==0)
+       {  (*MyOutput_) << "PASSED" << std::endl;
+       }
+       else
+       {
+          (*MyOutput_) << "FAILED!!!" << std::endl;
+          for(int i=0; i<4; i++)
+          {
+              if(error3[i]) (*MyOutput_) << "------>> Register " << i << " had " << error3[i] << " errors in " << 8*n_loop << " Read." << std::endl;
+          }
+       }
+   }
+   int totalerror=0;
+   for(int i=0; i<4; i++) totalerror += (error1[i]+error2[i]+error3[i]);
+   return totalerror;   
 }
 
   } // namespace emu::pc
