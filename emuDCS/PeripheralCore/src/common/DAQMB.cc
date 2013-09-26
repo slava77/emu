@@ -8599,20 +8599,37 @@ int DAQMB::dcfeb_dna(CFEB & cfeb, void *dna)
      return rtv;
 }
 
-int DAQMB::dcfeb_adc(CFEB & cfeb, int chan)
+std::vector<float> DAQMB::dcfeb_adc(CFEB & cfeb)
 {
+     std::vector<float> readout;
      int temp;
      char data[4]={0,0,0,0}, tchan[8]={0,4,2,6,1,5,3,7};
+     float Vout, therm;
      
+     readout.clear();
      write_cfeb_selector(cfeb.SelectorBit());
-     data[0]=0x91|(tchan[chan&7]<<1);
-     dcfeb_core(ADC_ctrl, 25, data, (char *)&temp, NOW|NO_BYPASS);
-     udelay(1000);
-     data[0]=0;
-     temp=0;
-     dcfeb_core(ADC_rdbk, 16, data, (char *)&temp, NOW|READ_YES|NOOP_YES);     
-     udelay(100);
-     return (temp&0xFFFF);
+     for(int chan=0; chan<8; chan++)
+     {
+       data[0]=0x91|(tchan[chan&7]<<1);
+       dcfeb_core(ADC_ctrl, 25, data, (char *)&temp, NOW|NO_BYPASS);
+       udelay(1000);
+       data[0]=0;
+       temp=0;
+       dcfeb_core(ADC_rdbk, 16, data, (char *)&temp, NOW|READ_YES|NOOP_YES);     
+       udelay(100);
+       Vout=(temp&0xFFF)/1000.;  // convert into Volts 
+       if(chan==3 || chan==4)
+       {
+           // channel 3 & 4 are thermistors; convert into degree C
+           therm=1./(1.049406423E-3+2.133635468E-4*log(65000.0/Vout-13000.0)+7.522287E-8*pow(log(65000.0/Vout-13000.0),3.0))-273.15;
+           readout.push_back(therm);
+       }
+       else 
+       { 
+          readout.push_back(Vout);
+       }
+     }
+     return readout;
 }
 
 void DAQMB::dcfeb_adc_finedelay(CFEB & cfeb, unsigned short finedelay)
@@ -8799,10 +8816,11 @@ int DAQMB::DCSread2(char *data)
          data2[febnum*TOTAL_DCFEB+i]=int(fsysmon[i]*100);
       }
       fsysmon.clear();
-      for(int i=0; i<TOTAL_ADC; i++)
+      std::vector<float> dadc=dcfeb_adc(cfebs_[lfeb]);
+      for(unsigned i=0; i<dadc.size(); i++)
       {
-         data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+i]=dcfeb_adc(cfebs_[lfeb], i);
-      } 
+         data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+i]=int(dadc[i]*100);
+      }
       retn += TOTAL_DCFEB;
   }
   std::vector<float> dsysmon=odmb_fpga_adc();

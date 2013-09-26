@@ -722,5 +722,178 @@ void EmuPeripheralCrateConfig::MPCMask(xgi::Input * in, xgi::Output * out )
   //
 }
 
+//////////////////////////////////////////////////////////////
+// CCB tests
+//////////////////////////////////////////////////////////////
+void EmuPeripheralCrateConfig::CCBTests(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  char Name[100];
+  sprintf(Name,"CCB tests, crate=%s", ThisCrateID_.c_str());
+  //
+  MyHeader(in,out,Name);
+  //
+  char buf[200] ;
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
+  //
+  *out << cgicc::legend("TTCrx Stress Tests").set("style","color:blue") ;
+  //
+  *out << cgicc::span().set("style","color:red") << cgicc::h2("These are TTCrx stress tests, use with caution!") << cgicc::span();
+
+  std::string SetCCBTestLoops = 
+    toolbox::toString("/%s/CCBSetTestLoops",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SetCCBTestLoops) << std::endl ;
+  *out << "Total test iterations: " << std::endl;
+  sprintf(buf, "%d", CCBTestLoops_);  
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","CCBLoops") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Confirm") << std::endl ;
+  *out << cgicc::form();
+  *out << " (1000 iterations take  about 130 seconds.) " << std::endl ;
+  *out << cgicc::hr();
+  std::string CCBTestAll = toolbox::toString("/%s/CCBTestAll",getApplicationDescriptor()->getURN().c_str());
+
+  *out << cgicc::form().set("method","GET").set("action",CCBTestAll) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value"," Run All Tests ") << std::endl ;
+  sprintf(buf,"%d",0);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","testid");
+  *out << cgicc::form() << std::endl; 
+  //
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  ////////////////////////////////////////////
+  *out << cgicc::td();
+  *out << cgicc::form().set("method","GET").set("action",CCBTestAll) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Fix Pattern Write-Read Test") << std::endl ;
+  sprintf(buf,"%d",1);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","testid");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td();
+  *out << cgicc::form().set("method","GET").set("action",CCBTestAll) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Random Pattern Write-Read Test") << std::endl ;
+  sprintf(buf,"%d",2);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","testid");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td();
+  *out << cgicc::form().set("method","GET").set("action",CCBTestAll) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Random Write-Once-Read-Loop Test") << std::endl ;
+  sprintf(buf,"%d",3);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","testid");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::table();
+  //
+  *out << cgicc::fieldset() << std::endl;
+  //
+  *out << cgicc::form().set("method","GET") << std::endl ;
+  *out << cgicc::textarea().set("name","CrateTestCCBOutput").set("WRAP","OFF").set("rows","20").set("cols","60");
+  *out << OutputCCBTests[current_crate_].str() << std::endl ;
+  *out << cgicc::textarea();
+  *out << cgicc::form();
+  //
+  std::string method = toolbox::toString("/%s/LogCCBTestsOutput",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Log output").set("name","LogCCBTestsOutput") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Clear").set("name","ClearCCBTestsOutput") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  //
+  //  std::cout << "Done" << std::endl;
+}
+
+//
+void EmuPeripheralCrateConfig::CCBTestAll(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("testid");
+    //
+  int testid=0;
+  if(name != cgi.getElements().end()) {
+    testid = cgi["testid"]->getIntegerValue();
+    std::cout << "CCB test " << testid << std::endl;
+  }
+  //
+  //
+  if(testid==0)
+     OutputCCBTests[current_crate_] << "CCB all tests with " << CCBTestLoops_ << " iterations." << std::endl ;
+  else
+     OutputCCBTests[current_crate_] << "CCB Test #" << testid << " with " << CCBTestLoops_ << " iterations." << std::endl ;
+
+  //
+  thisCCB->RedirectOutput(&OutputCCBTests[current_crate_]);
+  thisCCB->TestTTC(testid, CCBTestLoops_);
+  thisCCB->RedirectOutput(&std::cout);
+  //
+  this->CCBTests(in,out);
+  //
+}
+//
+  void EmuPeripheralCrateConfig::CCBSetTestLoops(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    
+    cgicc::Cgicc cgi(in);
+    cgicc::form_iterator name2 = cgi.getElement("CCBLoops");
+    int CCBloops = -1;
+    if(name2 != cgi.getElements().end()) {
+      CCBloops = strtol(cgi["CCBLoops"]->getValue().c_str(),NULL,10);
+    }
+    if(CCBloops >= 0)  
+    {  CCBTestLoops_ = CCBloops;
+       std::cout << "Set CCB test iterations: " << CCBloops << std::endl;
+    }    
+    
+    this->CCBTests(in,out);
+    
+  }
+  //
+  void EmuPeripheralCrateConfig::LogCCBTestsOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "LogCCBTestsOutput" << std::endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    //
+    cgicc::form_iterator name2 = cgi.getElement("ClearCCBTestsOutput");
+    //
+    if(name2 != cgi.getElements().end()) {
+      OutputCCBTests[current_crate_].str("");
+      OutputCCBTests[current_crate_] << "CCB Tests output:" << std::endl;
+
+      this->CCBTests(in,out);
+      return;
+    }
+    //
+    char buf[100];
+    sprintf(buf,"/tmp/CCBTestsLogFile_%d.log",current_crate_);
+    //
+    std::ofstream CCBTestsLogFile;
+    CCBTestsLogFile.open(buf);
+    CCBTestsLogFile << OutputCCBTests[current_crate_].str() ;
+    CCBTestsLogFile.close();
+    //
+    OutputCCBTests[current_crate_].str("");
+    OutputCCBTests[current_crate_] << "CCB Tests output:" << std::endl;    
+    //
+    this->CCBTests(in,out);
+    //
+  }
+
  }  // namespace emu::pc
 }  // namespace emu

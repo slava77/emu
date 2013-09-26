@@ -296,8 +296,8 @@ public:
   //
   void CCBStartTrigger();
   void ReadTTCrxID();
-  std::bitset<8> ReadTTCrxReg(const unsigned short);
-  void WriteTTCrxReg(const unsigned short,int);
+  int ReadTTCrxReg(int);
+  void WriteTTCrxReg(int,int);
   int  readI2C();
   void startI2C();
   void stopI2C();
@@ -360,6 +360,7 @@ public:
   void enablet();
 
   int readDSN(void *data);
+  int TestTTC(int testID, int n_loop);
 
 public:
   //

@@ -138,6 +138,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   nTrigger_ = 100;
   MenuMonitor_ = 2;
   //
+  CCBTestLoops_ = 1;
   tmb_vme_ready = -1;
   crate_controller_status = -1;
   //
@@ -202,6 +203,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTests, "DMBTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBUtils, "DMBUtils");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBStatus, "CCBStatus");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBTests, "CCBTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBUtils, "CCBUtils");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCStatus, "MPCStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCUtils, "MPCUtils");
@@ -293,6 +295,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCConfig, "MPCConfig");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBReadFirmware, "CCBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCReadFirmware, "MPCReadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBTestAll, "CCBTestAll");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBSetTestLoops, "CCBSetTestLoops");
+ 
   //
   //-----------------------------------------------
   // VME Controller routines
@@ -423,6 +428,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::LogTestSummary, "LogTestSummary");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogDMBTestsOutput, "LogDMBTestsOutput");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogTMBTestsOutput, "LogTMBTestsOutput");
+  xgi::bind(this,&EmuPeripheralCrateConfig::LogCCBTestsOutput, "LogCCBTestsOutput");
   //
   //----------------------------------------------
   // Bind BC0 methods
@@ -1156,6 +1162,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
 					      << thisCrate->GetChamber(tmbVector[i]->slot())->GetLabel().c_str() 
 					      << " output:" << std::endl;
       }
+      OutputCCBTests[current_crate_] << "CCB Tests output: " << std::endl; 
     }
     //
     SetCurrentCrate(this_crate_no_);
@@ -1522,6 +1529,11 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
       *out << cgicc::td();
       std::string CCBStatus = toolbox::toString("/%s/CCBStatus?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
       *out << cgicc::a("CCB Status").set("href",CCBStatus) << std::endl;
+      *out << cgicc::td();
+      //
+      *out << cgicc::td();
+      std::string CCBTests = toolbox::toString("/%s/CCBTests?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+      *out << cgicc::a("CCB Tests").set("href",CCBTests) << std::endl;
       *out << cgicc::td();
       //
       *out << cgicc::td();
@@ -4381,11 +4393,11 @@ void EmuPeripheralCrateConfig::SetTTCDelays(xgi::Input * in, xgi::Output * out )
 
 	// check TTCrx registers
 	int rx;
-	rx=(int) (thisCCB->ReadTTCrxReg(2).to_ulong());
+	rx=thisCCB->ReadTTCrxReg(2);
 	if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
 	  std::cout << "ERROR: TTCrx Coarse Delay register readback " << std::hex << (rx&0xff) << std::dec << std::endl; 
 	//
-	rx=(int)(thisCCB->ReadTTCrxReg(3).to_ulong());
+	rx=thisCCB->ReadTTCrxReg(3);
 	if((rx&0xff) != 0xB3) 
 	  std::cout << "ERROR: TTCrx Control register readback " << std::hex << (rx&0xff) << std::dec << std::endl; 
 	//
@@ -8015,9 +8027,11 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::pre();  
   //
   const int TMB_MAX_TEMP = 40;
+  const int OTMB_MAX_TEMP = 65;
+
   //
   int TMBtempFPGA = thisTMB->ReadTMBtempFPGA();  
-  if ( TMBtempFPGA > TMB_MAX_TEMP) {  
+  if ( TMBtempFPGA > ((thisTMB->GetHardwareVersion()<=1)?TMB_MAX_TEMP:OTMB_MAX_TEMP)) {  
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");
@@ -10087,59 +10101,6 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
   return;
 }
   //
-  void EmuPeripheralCrateConfig::LogDMBTestsOutput(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    std::cout << "LogDMBTestsOutput" << std::endl;
-    //
-    cgicc::Cgicc cgi(in);
-    //
-    //
-    cgicc::form_iterator name = cgi.getElement("dmb");
-    //
-    //
-    int dmb=0;
-    if(name != cgi.getElements().end()) {
-      dmb = cgi["dmb"]->getIntegerValue();
-      std::cout << "DMB " << dmb << std::endl;
-      DMB_ = dmb;
-    } else {
-      std::cout << "Not dmb" << std::endl ;
-      dmb = DMB_;
-    }
-    //
-    cgicc::form_iterator name2 = cgi.getElement("ClearDMBTestsOutput");
-    //
-    if(name2 != cgi.getElements().end()) {
-      std::cout << "Clear..." << std::endl;
-      std::cout << cgi["ClearDMBTestsOutput"]->getValue() << std::endl ;
-      OutputDMBTests[dmb][current_crate_].str("");
-      OutputDMBTests[dmb][current_crate_] << "DMB-CFEB Tests " 
-					  << thisCrate->GetChamber(dmbVector[dmb]->slot())->GetLabel().c_str() 
-					  << " output:" << std::endl;
-
-      //
-    this->DMBTests(in,out);
-    return;
-    }
-    //
-    DAQMB * thisDMB = dmbVector[dmb];
-    //
-    char buf[20];
-    sprintf(buf,"/tmp/DMBTestsLogFile_%d.log",thisDMB->slot());
-    //
-    std::ofstream DMBTestsLogFile;
-    DMBTestsLogFile.open(buf);
-    DMBTestsLogFile << OutputDMBTests[dmb][current_crate_].str() ;
-    DMBTestsLogFile.close();
-    //
-    OutputDMBTests[dmb][current_crate_].str("");
-    //
-    this->DMBTests(in,out);
-    //
-  }
-  //
   void EmuPeripheralCrateConfig::LogTMBTestsOutput(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -10289,7 +10250,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     //
     TMB * thisTMB = tmbVector[tmb];
     //
-    char buf[20];
+    char buf[100];
     sprintf(buf,"/tmp/ALCT_TMB_communicationLogFile_%d.log",thisTMB->slot());
     //
     std::ofstream ALCT_TMB_communicationLogFile;
@@ -10323,7 +10284,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
       //
     }
     //
-    char buf[20];
+    char buf[100];
     sprintf(buf,"/tmp/CrateTestsLogFile.log");
     //
     std::ofstream CrateTestsLogFile;

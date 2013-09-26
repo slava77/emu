@@ -422,7 +422,7 @@ bool TMBTester::testMezzId(){
   //
   const int EXPECTED_TMB_MEZZ_FPGA_IDCODE  = 0x01050093;
   const int EXPECTED_TMB_MEZZ_FPGA6_IDCODE = 0x04250093;
-  const int EXPECTED_TMB_MEZZ_PROM_IDCODE  = 0x05036093;
+  const int EXPECTED_TMB_MEZZ_PROM_IDCODE  = 0x05026093;
   // newer proms have idcode X5036093,  older proms have 05026093.  We just ignore these bytes...
   const int Mezzanine_fpgaid_mask         = 0x0FFFFFFF;
   const int Mezzanine_promid_mask         = 0x0FFEFFFF;

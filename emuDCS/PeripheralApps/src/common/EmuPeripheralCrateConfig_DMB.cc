@@ -548,6 +548,61 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
   //
   this->DMBTests(in,out);
 }
+
+  //
+  void EmuPeripheralCrateConfig::LogDMBTestsOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "LogDMBTestsOutput" << std::endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    //
+    int dmb=0;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      std::cout << "DMB " << dmb << std::endl;
+      DMB_ = dmb;
+    } else {
+      std::cout << "Not dmb" << std::endl ;
+      dmb = DMB_;
+    }
+    //
+    cgicc::form_iterator name2 = cgi.getElement("ClearDMBTestsOutput");
+    //
+    if(name2 != cgi.getElements().end()) {
+      std::cout << "Clear..." << std::endl;
+      std::cout << cgi["ClearDMBTestsOutput"]->getValue() << std::endl ;
+      OutputDMBTests[dmb][current_crate_].str("");
+      OutputDMBTests[dmb][current_crate_] << "DMB-CFEB Tests " 
+					  << thisCrate->GetChamber(dmbVector[dmb]->slot())->GetLabel().c_str() 
+					  << " output:" << std::endl;
+
+      //
+    this->DMBTests(in,out);
+    return;
+    }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
+    char buf[100];
+    sprintf(buf,"/tmp/DMBTestsLogFile_%d.log",thisDMB->slot());
+    //
+    std::ofstream DMBTestsLogFile;
+    DMBTestsLogFile.open(buf);
+    DMBTestsLogFile << OutputDMBTests[dmb][current_crate_].str() ;
+    DMBTestsLogFile.close();
+    //
+    OutputDMBTests[dmb][current_crate_].str("");
+    //
+    this->DMBTests(in,out);
+    //
+  }
+
 //
 ///////////////////////////////////////////////////////////
 // DMB utilities
