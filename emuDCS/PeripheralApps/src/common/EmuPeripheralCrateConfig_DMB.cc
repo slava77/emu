@@ -703,10 +703,10 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   if(ndcfebs>0)
   {
      double monitor_dcfebs[200];
-     for(unsigned c=0; c<19*7; c++) monitor_dcfebs[c] = -1.0;
+     for(unsigned c=0; c<200; c++) monitor_dcfebs[c] = -1.0;
      std::vector<std::string> chname;
      chname.clear();
-     chname.push_back("Temperature (C)");
+     chname.push_back("Temp(FPGA) (C)");
      chname.push_back("Vcc_in (V)");
      chname.push_back("Vcc_aux (V)");
      chname.push_back("DV4P_3_CUR (A)");
@@ -725,6 +725,8 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
      chname.push_back("V33PAADC (V)");
      chname.push_back("V5PPA (V)");
      chname.push_back("V5PSUB (V)");
+     chname.push_back("Temp(PCB 1) (C)");
+     chname.push_back("Temp(PCB 2) (C)");
 
      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
      *out << std::endl;
@@ -737,13 +739,16 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
         if(hversion ==2)
         {
            std::vector<float> mon=thisDMB->dcfeb_fpga_monitor(*cfebItr);
-           for (unsigned c=0; c<mon.size() && c<19; c++) monitor_dcfebs[cfeb_index*19+c]=mon[c];
+           std::vector<float> dadc=thisDMB->dcfeb_adc(*cfebItr);
+           for (unsigned c=0; c<mon.size() && c<19; c++) monitor_dcfebs[cfeb_index*21+c]=mon[c];
+           monitor_dcfebs[cfeb_index*21+19]=dadc[3];
+           monitor_dcfebs[cfeb_index*21+20]=dadc[4];
         }
      }
      *out << cgicc::table().set("border","1");
      //
      *out <<cgicc::td() << "Channel" << std::setprecision(3)<< cgicc::td();
-     for(int ch=0; ch<20; ch++)
+     for(int ch=0; ch<22; ch++)
      {
        if(ch) *out << cgicc::td() << chname[ch-1] << cgicc::td();
        for(int feb=0; feb<7; feb++)
@@ -751,7 +756,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
           if(ch==0) *out << cgicc::td() << "CFEB " << feb+1 << cgicc::td();
           else
           {   *out << cgicc::td();
-              if( monitor_dcfebs[feb*19+ch-1]>=0.) *out << monitor_dcfebs[feb*19+ch-1];
+              if( monitor_dcfebs[feb*21+ch-1]>=0.) *out << monitor_dcfebs[feb*21+ch-1];
               *out << cgicc::td();
           }
        }
@@ -794,12 +799,19 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   FuncName.push_back("write BPI FIFO (16)");
   FuncName.push_back("read BPI FIFO (16)");
   FuncName.push_back("read BPI status (16)");
-  FuncName.push_back("read BPI timer");
+  FuncName.push_back("read BPI timer (16)");
   FuncName.push_back("Reset BPI");
   FuncName.push_back("Disable BPI");
   FuncName.push_back("Enable BPI");
   FuncName.push_back("Clock phase (4)");
   FuncName.push_back("TMB transmit mode (2)");
+  FuncName.push_back("TMB Half Strip");  
+  FuncName.push_back("TMB Layer Mask");  
+  FuncName.push_back("DAQ low");  
+  FuncName.push_back("DAQ High");  
+  FuncName.push_back("Calib DAC (16)");  
+  FuncName.push_back("ADC Control (25)");  
+  FuncName.push_back("ADC Read (16)");  
 
   cgicc::Cgicc cgi(in);
   //
@@ -1034,6 +1046,13 @@ void EmuPeripheralCrateConfig::CFEBFunction(xgi::Input * in, xgi::Output * out )
   FuncSize.push_back(0);
   FuncSize.push_back(4);
   FuncSize.push_back(2);
+  FuncSize.push_back(0);
+  FuncSize.push_back(0);
+  FuncSize.push_back(0);
+  FuncSize.push_back(0);
+  FuncSize.push_back(16);
+  FuncSize.push_back(25);
+  FuncSize.push_back(16);
 
   cgicc::Cgicc cgi(in);
 
@@ -1510,7 +1529,8 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   {   if(powermask & 1)  power_state[icc]= -1;
       powermask = powermask>>1;
   }
-  for(int icc=0; icc<=tot_p_chans; icc++)
+  *out << cgicc::td() << cgicc::td();
+  for(int icc=1; icc<=tot_p_chans; icc++)
   {
      int licc=chn2pos[icc-1];
      *out << cgicc::td();
@@ -2645,146 +2665,48 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
       if(ubuf[i]==0xBAAD || ubuf[i]==0xFFFF) fvalue[i]=0.0;
       else fvalue[i]=(ubuf[i]&0xFFF)*10.0/4096.0;
   }
+  int chn2pos[8];
+  for (int i=0; i<8; i++) chn2pos[i]=thisDMB->LVDB_map(i);
   //
-  *out << cgicc::table().set("border","1");
+  float normv[3]={0.,0.,0.};
+  if (hversion<=1) 
+     { normv[0]=3.3; normv[1]=5.0; normv[2]=6.0; }
+  else if (hversion==2) 
+     { normv[0]=3.0; normv[1]=4.0; normv[2]=4.5; }
+
+  *out << cgicc::table().set("border","1").set("cellpadding","4");
+  //
+  for(int feb=0; feb<cfebs; feb++)
+  {
+     int lfeb=chn2pos[feb];
+     *out << cgicc::tr();
+     for(int cnt=0; cnt<3; cnt++)
+     {
+        val=fvalue[vstart+3*lfeb+cnt];
+        sprintf(sbuf, "CFEB%d %3.1fV = %6.2f ",feb+1, normv[cnt], val);
+        *out << cgicc::td();
+        if ( val < normv[cnt]*(0.95) ||  val > normv[cnt]*(1.05) )	 
+           *out << cgicc::span().set("style","color:red");
+        else
+           *out << cgicc::span().set("style","color:green");
+        *out << sbuf;  
+        *out << cgicc::span();
+        *out << cgicc::td();
+     }
+     *out << cgicc::tr() << std::endl;
+  }
+  *out << cgicc::table() << cgicc::br() << std::endl;
+
   //
   float value;
   //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB1 3.3V = %3.2f ",(value=thisDMB->lowv_adc(3,3))/1000.);
-  if ( value/1000. < 3.3*(0.95) ||
-       value/1000. > 3.3*(1.05) ) {	 
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB1 5.0V = %3.2f ",(value=thisDMB->lowv_adc(3,4))/1000.);
-  if ( value/1000. < 5.0*0.95 ||
-       value/1000. > 5.0*1.05 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB1 6.0V = %3.2f ",(value=thisDMB->lowv_adc(3,5))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.05  ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
   *out << cgicc::table().set("border","1");
   //
   *out << cgicc::td();
-  sprintf(buf,"CFEB2 3.3V = %3.2f ",(value=thisDMB->lowv_adc(3,6))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB2 5.0V = %3.2f ",(value=thisDMB->lowv_adc(3,7))/1000.);
-  if ( value/1000. < 5.0*0.95 ||
-       value/1000. > 5.0*1.05 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB2 6.0V = %3.2f ",(value=thisDMB->lowv_adc(4,0))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.95 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
-  *out << cgicc::table().set("border","1");
-  *out << cgicc::td();
-  sprintf(buf,"CFEB3 3.3V = %3.2f ",(value=thisDMB->lowv_adc(4,1))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB3 5.0V = %3.2f ",(value=thisDMB->lowv_adc(4,2))/1000.);
-  if (  value/1000. < 5.0*0.95 ||
-	value/1000. > 5.0*1.05 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB3 6.0V = %3.2f ",(value=thisDMB->lowv_adc(4,3))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.05 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
-  *out << cgicc::table().set("border","1");
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB4 3.3V = %3.2f ",(value=thisDMB->lowv_adc(4,4))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB4 5.0V = %3.2f ",(value=thisDMB->lowv_adc(4,5))/1000.);
-  if ( value/1000. < 5.0*0.95 ||
-       value/1000. > 5.0*1.05 ) {
+  value=fvalue[vstart+3*cfebs+0];
+  sprintf(buf,"ALCT  3.3V = %3.2f ",value);
+  if ( value < 3.3*0.95 ||
+       value > 3.3*1.05 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -2794,27 +2716,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"CFEB4 6.0V = %3.2f ",(value=thisDMB->lowv_adc(4,6))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.05 ){
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
-  *out << cgicc::table().set("border","1");
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB5 3.3V = %3.2f ",(value=thisDMB->lowv_adc(4,7))/1000.);
-  if (isME13) { 
-    *out << cgicc::span().set("style","color:black");
-  } else if ( value/1000. < 3.3*0.95 ||
-	      value/1000. > 3.3*1.05 ) {
+  value=fvalue[vstart+3*cfebs+1];
+  sprintf(buf,"ALCT  1.8V = %3.2f ",value);
+  if ( value < 1.8*0.95 ||
+       value > 1.8*1.95 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -2824,11 +2729,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"CFEB5 5.0V = %3.2f ",(value=thisDMB->lowv_adc(5,0))/1000.);
-  if (isME13) { 
-    *out << cgicc::span().set("style","color:black");
-  } else if ( value/1000. < 5.0*0.95 ||
-	      value/1000. > 5.0*1.05 ) { 
+  value=fvalue[vstart+3*cfebs+2];
+  sprintf(buf,"ALCT  5.5V(B) = %3.2f ",value);
+  if ( value < 5.5*0.95 ||
+       value > 5.5*1.05 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -2838,11 +2742,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"CFEB5 6.0V = %3.2f ",(value=thisDMB->lowv_adc(5,1))/1000.);
-  if (isME13) { 
-    *out << cgicc::span().set("style","color:black");
-  } else if ( value/1000. < 6.0*0.95 ||
-	      value/1000. > 6.0*1.05 ) {
+  value=fvalue[vstart+3*cfebs+3];
+  sprintf(buf,"ALCT  5.5V(A) = %3.2f ",value);
+  if ( value < 5.5*0.95 ||
+       value > 5.5*1.05 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -2858,9 +2761,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table().set("border","1");
   //
   *out << cgicc::td();
-  sprintf(buf,"ALCT  3.3V = %3.2f ",(value=thisDMB->lowv_adc(5,2))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
+  value=fvalue[feed];
+  sprintf(buf,"Analog  7.5V = %3.2f ",value);
+  if ( value < 5.0 ||
+       value > 7.5*1.5 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -2870,33 +2774,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"ALCT  1.8V = %3.2f ",(value=thisDMB->lowv_adc(5,3))/1000.);
-  if ( value/1000. < 1.8*0.95 ||
-       value/1000. > 1.8*1.95 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"ALCT  5.5V B = %3.2f ",(value=thisDMB->lowv_adc(5,4))/1000.);
-  if ( value/1000. < 5.5*0.95 ||
-       value/1000. > 5.5*1.05 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"ALCT  5.5V A = %3.2f ",(value=thisDMB->lowv_adc(5,5))/1000.);
-  if ( value/1000. < 5.5*0.95 ||
-       value/1000. > 5.5*1.05 ) {
+  value=fvalue[feed+1];
+  sprintf(buf,"Digital  7.5V = %3.2f ",value);
+  if ( value < 5.0 ||
+       value > 7.5*1.5 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -2909,36 +2790,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
-  *out << cgicc::table().set("border","1");
-  //
-  *out << cgicc::td();
-  sprintf(buf,"Analog  7.5V = %3.2f ",(value=thisDMB->lowv_adc(5,6))/1000.);
-  if ( value/1000. < 5.0 ||
-       value/1000. > 7.5*1.5 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"Digital  7.5V = %3.2f ",(value=thisDMB->lowv_adc(5,7))/1000.);
-  if ( value/1000. < 5.0 ||
-       value/1000. > 7.5*1.5 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
-  *out << cgicc::br();
-  //
+  if(hversion<=1)
+  {
   *out << cgicc::table().set("border","1");;
   //
   *out << cgicc::td();
@@ -3125,208 +2978,39 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table();
   //
   *out << cgicc::br();
+  }
   //
   // DMB currents:
+  *out << cgicc::table().set("border","1").set("cellpadding","4");
   //
-  *out << cgicc::table().set("border","1");
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB1 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,0))/1000.);
-  if ( value/1000. < 3.3*(0.95) ||
-       value/1000. > 3.3*(1.05) ) {	 
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");
+  for(int feb=0; feb<cfebs; feb++)
+  {
+     int lfeb=chn2pos[feb];
+     *out << cgicc::tr();
+     for(int cnt=0; cnt<3; cnt++)
+     {
+        val=fvalue[3*lfeb+cnt];
+        sprintf(sbuf, "CFEB%d  %3.1fV, I = %6.2f ",feb+1, normv[cnt], val);
+        *out << cgicc::td();
+        if(cnt==1)
+        {
+           if ( val< 0.8 ||  val > 1.2 )	 
+              *out << cgicc::span().set("style","color:red");
+           else
+              *out << cgicc::span().set("style","color:green");
+        }
+        else 
+        {
+           *out << cgicc::span().set("style","color:black");
+        }
+        *out << sbuf;  
+        *out << cgicc::span();
+        *out << cgicc::td();
+     }
+     *out << cgicc::tr() << std::endl;
   }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB1 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,1))/1000.);
-  if ( value/1000. < 0.85 ||
-       value/1000. > 1.20 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB1 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,2))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.05  ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
-  *out << cgicc::table().set("border","1");
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB2 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,3))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB2 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,4))/1000.);
-  if ( value/1000. < 0.85 ||
-       value/1000. > 1.2 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB2 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,5))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.95 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
-  *out << cgicc::table().set("border","1");
-  *out << cgicc::td();
-  sprintf(buf,"CFEB3 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,6))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB3 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,7))/1000.);
-  if (  value/1000. < 0.85 ||
-	value/1000. > 1.2 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB3 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,0))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
-  *out << cgicc::table().set("border","1");
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB4 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,1))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");      
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB4 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,2))/1000.);
-  if ( value/1000. < 0.85 ||
-       value/1000. > 1.2 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB4 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,3))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.05 ){
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
-  *out << cgicc::table().set("border","1");
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB5 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,4))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB5 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,5))/1000.);
-  if ( value/1000. < 0.85 ||
-       value/1000. > 1.2 ) {
-    *out << cgicc::span().set("style","color:red");
-  } else {
-    *out << cgicc::span().set("style","color:green");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  sprintf(buf,"CFEB5 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,6))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");  
-  }
-  *out << buf ;
-  *out << cgicc::span();
-  *out << cgicc::td();
-  //
-  *out << cgicc::table();
-  //
+  *out << cgicc::table() << cgicc::br() << std::endl;
+
   // ALCT currents
   //
   *out << cgicc::br();
@@ -3334,51 +3018,27 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table().set("border","1");
   //
   *out << cgicc::td();
-  sprintf(buf,"ALCT  3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,7))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");  
-  }
+  value=fvalue[3*cfebs+0];
+  sprintf(buf,"ALCT  3.3 V, I = %3.2f ",value);
   *out << buf ;
-  *out << cgicc::span();
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"ALCT  1.8 V, I = %3.2f ",(value=thisDMB->lowv_adc(3,0))/1000.);
-  if ( value/1000. < 1.8*0.95 ||
-       value/1000. > 1.8*1.95 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");  
-  }
+  value=fvalue[3*cfebs+1];
+  sprintf(buf,"ALCT  1.8 V, I = %3.2f ",value);
   *out << buf ;
-  *out << cgicc::span();
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"ALCT  5.5A V, I = %3.2f ",(value=thisDMB->lowv_adc(3,1))/1000.);
-  if ( value/1000. < 5.5*0.95 ||
-       value/1000. > 5.5*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");  
-  }
+  value=fvalue[3*cfebs+2];
+  sprintf(buf,"ALCT  5.5V(B), I = %3.2f ",value);
   *out << buf ;
-  *out << cgicc::span();
   *out << cgicc::td();
   //
   *out << cgicc::td();
-  sprintf(buf,"ALCT  5.5B V, I = %3.2f ",(value=thisDMB->lowv_adc(3,2))/1000.);
-  if ( value/1000. < 5.5*0.95 ||
-       value/1000. > 5.5*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
-  } else {
-    *out << cgicc::span().set("style","color:black");  
-  }
+  value=fvalue[3*cfebs+3];
+  sprintf(buf,"ALCT  5.5(A) V, I = %3.2f ",value);
   *out << buf ;
-  *out << cgicc::span();
   *out << cgicc::td();
   //
   *out << cgicc::table();
