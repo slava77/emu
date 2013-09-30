@@ -594,8 +594,6 @@ public:
   void setcbldly(int );
   
   /// 
-  void cfeb_vtx_prom(enum DEVTYPE devnum);
-  void febpromuser2(const CFEB &,char *cbrdnum);
   void toggle_caltrg();
   void set_ext_chanx(int chan, int feb=-1);
   void setpulsedelay(int tinj);
@@ -751,30 +749,8 @@ public:
   void dcfeb_Set_ReadAnyL1a(CFEB & cfeb);
   void dcfeb_Clear_ReadAnyL1a(CFEB & cfeb);
 
-  // DCFEB BPI-->EPROM access rountines
-  void dcfeb_XPROM_do(unsigned short command);
-  unsigned short dcfeb_bpi_status();
-  unsigned dcfeb_bpi_readtimer();
-  void dcfeb_bpi_reset();
-  void dcfeb_bpi_disable();
-  void dcfeb_bpi_enable();
-
-  void epromdirect_noop();
-  void epromdirect_lock();
-  void epromdirect_unlock();
-  void epromdirect_timerstart();
-  void epromdirect_timerstop();
-  void epromdirect_timerreset(); 
-  void epromdirect_clearstatus(); 
-  void epromdirect_multi(int cnt, unsigned short *manbuf);
-  void epromdirect_unlockerase(); 
-  void epromdirect_loadaddress(unsigned short uaddress, unsigned short laddress);
-  void epromdirect_bufferprogram(unsigned nwords, unsigned short *prm_dat);
-  void epromdirect_read(unsigned nwords, unsigned short *pdata);
-
-  void epromload_parameters(int paramblock,int nval,unsigned short int  *val);
-  void epromread_parameters(int paramblock,int nval,unsigned short int  *val);         
-
+  void dcfeb_loadparam(int paramblock,int nval,unsigned short int  *val);
+  void dcfeb_readparam(int paramblock,int nval,unsigned short int  *val);         
   void dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename);
   void dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile);
   void dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile);
@@ -800,6 +776,7 @@ public:
 
   int lvmb_power_state();
   // code for ODMB
+  void daqmb_do(int ncmd,void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd, int dev);   
   void dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);
   void odmb_fpga_call(int inst, unsigned data, char *outbuf);
   int DCSread2(char *data);
@@ -825,12 +802,41 @@ public:
   inline int odmb_read_kill_mask() { return ReadRegister(ODMB_KILL); } 
 
   inline int odmb_firmware_version() { return ReadRegister(read_FW_VERSION); }  
-  void daqmb_do(int ncmd,void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);   
 
   // this one uses discrete logic interface
   std::vector<float> odmb_fpga_sysmon();
   // this one uses ODMB Device-7
   std::vector<float> odmb_fpga_adc();
+
+
+  void odmb_loadparam(int paramblock,int nval,unsigned short int  *val);
+  void odmb_readparam(int paramblock,int nval,unsigned short int  *val);         
+
+  void odmb_readfirmware_mcs(const char *filename);
+  void odmb_program_eprom(const char *mcsfile);
+
+ private:
+
+  // DCFEB BPI-->EPROM access rountines
+  void dcfeb_XPROM_do(unsigned short command);
+  unsigned short dcfeb_bpi_status();
+  unsigned dcfeb_bpi_readtimer();
+  void dcfeb_bpi_reset();
+  void dcfeb_bpi_disable();
+  void dcfeb_bpi_enable();
+
+  inline void dcfebprom_noop() { dcfeb_XPROM_do(XPROM_NoOp); }
+  inline void dcfebprom_lock() { dcfeb_XPROM_do(XPROM_Block_Lock); }
+  inline void dcfebprom_unlock() { dcfeb_XPROM_do(XPROM_Block_UnLock); }
+  inline void dcfebprom_timerstart() { dcfeb_XPROM_do(XPROM_Timer_Start); } 
+  inline void dcfebprom_timerstop() { dcfeb_XPROM_do(XPROM_Timer_Stop); } 
+  inline void dcfebprom_timerreset() { dcfeb_XPROM_do(XPROM_Timer_Reset); } 
+  inline void dcfebprom_clearstatus() { dcfeb_XPROM_do(XPROM_Clear_Status); }
+  void dcfebprom_multi(int cnt, unsigned short *manbuf);
+  void dcfebprom_unlockerase(); 
+  void dcfebprom_loadaddress(unsigned short uaddress, unsigned short laddress);
+  void dcfebprom_bufferprogram(unsigned nwords, unsigned short *prm_dat);
+  void dcfebprom_read(unsigned nwords, unsigned short *pdata);
 
   // ODMB BPI-->EPROM access rountines
   void odmb_XPROM_do(unsigned short command);
@@ -840,26 +846,19 @@ public:
   void odmb_bpi_disable();
   void odmb_bpi_enable();
 
-  void odmbeprom_noop();
-  void odmbeprom_lock();
-  void odmbeprom_unlock();
-  void odmbeprom_timerstart();
-  void odmbeprom_timerstop();
-  void odmbeprom_timerreset(); 
-  void odmbeprom_clearstatus(); 
+  inline void odmbeprom_noop() { odmb_XPROM_do(XPROM_NoOp); }
+  inline void odmbeprom_lock() { odmb_XPROM_do(XPROM_Block_Lock); }
+  inline void odmbeprom_unlock() { odmb_XPROM_do(XPROM_Block_UnLock); }
+  inline void odmbeprom_timerstart() { odmb_XPROM_do(XPROM_Timer_Start); } 
+  inline void odmbeprom_timerstop() { odmb_XPROM_do(XPROM_Timer_Stop); } 
+  inline void odmbeprom_timerreset() { odmb_XPROM_do(XPROM_Timer_Reset); } 
+  inline void odmbeprom_clearstatus() { odmb_XPROM_do(XPROM_Clear_Status); }
   void odmbeprom_multi(int cnt, unsigned short *manbuf);
   void odmbeprom_unlockerase(); 
   void odmbeprom_loadaddress(unsigned short uaddress, unsigned short laddress);
   void odmbeprom_bufferprogram(unsigned nwords, unsigned short *prm_dat);
   void odmbeprom_read(unsigned nwords, unsigned short *pdata);
 
-  void odmbload_parameters(int paramblock,int nval,unsigned short int  *val);
-  void odmbread_parameters(int paramblock,int nval,unsigned short int  *val);         
-
-  void odmb_readfirmware_mcs(const char *filename);
-  void odmb_program_eprom(const char *mcsfile);
-
- private:
   //
   int shift_array_[7][6][16];
   static const int nchips[7];
@@ -959,11 +958,6 @@ public:
   static const unsigned ODMB_CRATEID = 0x4020;
   static const unsigned read_FW_VERSION = 0x4024;
 
-  // The following registers are for CFEB & LVMB access, also valid on DMB
-  static const unsigned WRITE_CFEB_SELECTOR=0x1020;
-  static const unsigned READ_CFEB_SELECTOR=0x1024;
-  static const unsigned reset_CFEB_JTAG = 0x1018;
-
   static const unsigned BPI_Reset = 0x6020;
   static const unsigned BPI_Disable = 0x6024;
   static const unsigned BPI_Enable = 0x6028;
@@ -973,8 +967,13 @@ public:
   static const unsigned BPI_Status = 0x6038;
   static const unsigned BPI_Timer_l = 0x603C;
   static const unsigned BPI_Timer_h = 0x6040;
-
   static const unsigned FPGA_ADC_BASE = 0x7000;
+
+  // The following registers are for CFEB & LVMB access, also valid on DMB
+  static const unsigned WRITE_CFEB_SELECTOR=0x1020;
+  static const unsigned READ_CFEB_SELECTOR=0x1024;
+  static const unsigned reset_CFEB_JTAG = 0x1018;
+
   static const unsigned ADC_CTRL_BYTE = 0x8000;
   static const unsigned ADC_READ = 0x8004;
   static const unsigned set_ADC_SELECT = 0x8020;

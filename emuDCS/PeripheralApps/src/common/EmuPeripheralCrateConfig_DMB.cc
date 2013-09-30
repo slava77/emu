@@ -2672,7 +2672,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   if (hversion<=1) 
      { normv[0]=3.3; normv[1]=5.0; normv[2]=6.0; }
   else if (hversion==2) 
-     { normv[0]=3.0; normv[1]=4.0; normv[2]=4.5; }
+     { normv[0]=3.0; normv[1]=4.0; normv[2]=5.5; }
 
   *out << cgicc::table().set("border","1").set("cellpadding","4");
   //
@@ -2762,9 +2762,9 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   value=fvalue[feed];
-  sprintf(buf,"Analog  7.5V = %3.2f ",value);
+  sprintf(buf,"Analog  7 V = %3.2f ",value);
   if ( value < 5.0 ||
-       value > 7.5*1.5 ) {
+       value > 7.0*1.5 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -2775,9 +2775,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   value=fvalue[feed+1];
-  sprintf(buf,"Digital  7.5V = %3.2f ",value);
-  if ( value < 5.0 ||
-       value > 7.5*1.5 ) {
+  sprintf(buf,"Digital  7 V = %3.2f ",value);
+  float ndigif= ((hversion<=1)?7.0:6.0);
+  if ( value < ndigif*0.7 ||
+       value > ndigif*1.5 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -2992,7 +2993,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
         val=fvalue[3*lfeb+cnt];
         sprintf(sbuf, "CFEB%d  %3.1fV, I = %6.2f ",feb+1, normv[cnt], val);
         *out << cgicc::td();
-        if(cnt==1)
+        if(cnt==1 && hversion<=1)
         {
            if ( val< 0.8 ||  val > 1.2 )	 
               *out << cgicc::span().set("style","color:red");

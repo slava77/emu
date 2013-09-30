@@ -1316,7 +1316,7 @@ void DAQMB::restoreMotherboardIdle() {
   else if(hardware_version_==2)
   {
     dlog_do(-1, NULL, 0, NULL, NULL, 0);
-    daqmb_do(-1, NULL, 0, NULL, NULL, 0);
+    daqmb_do(-1, NULL, 0, NULL, NULL, 0, 2);
   }
 }
 
@@ -5179,86 +5179,6 @@ void DAQMB::executeCommand(std::string command) {
 */
 }
 
-
-
-void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
-  if(hardware_version_<=1)
-  {
-
-  //enum DEVTYPE devstp,dv;
-  (*MyOutput_) << "DAQMB: cfeb_vtx_prom" << std::endl;
-
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=CAL_PROGFEB;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-      
-  cmd[0]=VTX2_USR2;
-  sndbuf[0]=0xFF;
-  devdo(MCTRL,6,cmd,4,sndbuf,rcvbuf,0);
- 
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=CAL_PROGFEB;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-      
-  cmd[0]=VTX2_USR2;
-  sndbuf[0]=0x00;
-  devdo(MCTRL,6,cmd,4,sndbuf,rcvbuf,0);
-
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=CAL_PROGFEB;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-      
-  cmd[0]=VTX2_USR2;
-  sndbuf[0]=0xFF;
-  devdo(MCTRL,6,cmd,4,sndbuf,rcvbuf,0);
- 
-  cmd[0]=VTX2_BYPASS;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
- 
-  (*MyOutput_) << "DAQMB: SCA Master is programmed by PROM (Calcntrl command)." <<std::endl;
-  }
-}
-
-void DAQMB::febpromuser2(const CFEB & cfeb,char *cbrdnum)
-{
-// this never been used; use febpromuser() instead
-/*
-    DEVTYPE dv = cfeb.promDevice();
-      cmd[0]=PROM_USERCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      for (int i=0;i<3;i++) {
-        devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
-        rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
-        rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
-        rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
-        rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
-        printf(" The ISPROM USERCODE is %02x%02x%02x%02x  \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-        cbrdnum[0]=rcvbuf[0];
-        cbrdnum[1]=rcvbuf[1];
-        cbrdnum[2]=rcvbuf[2];
-        cbrdnum[3]=rcvbuf[3];
-        cmd[0]=PROM_BYPASS;
-        sndbuf[0]=0;
-        devdo(dv,8,cmd,0,sndbuf,rcvbuf,1);
-	if ((rcvbuf[0]!=-1) || (rcvbuf[1]!=-1) || (rcvbuf[2]!=-1) 
-	    || (rcvbuf[3]!=-1) ) return;
-      }
-*/
-}
-
 void DAQMB::toggle_caltrg()
 {
   if(hardware_version_<=1)
@@ -7570,41 +7490,16 @@ int DAQMB::read_cfeb_selector()
 
 void DAQMB::cfeb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd)
 {
-  int CFEB_DEV=1;
-  char tmp[2];
-  unsigned short int ishft,temp;
-
   /* irdsnd for jtag
           irdsnd = 0 no read, later
           irdsnd = 1 no read, now
           irdsnd = 2    read, later
           irdsnd = 3    read, now
   */
-   if(ncmd<0)
-   { // Reset Jtag State Machine
-     Jtag_Ohio(CFEB_DEV, 0, tmp,-1, tmp, 0, (irdsnd&1));
-     return;
-   }
-   if(ncmd>0) Jtag_Ohio(CFEB_DEV, 0, (char *)cmd,ncmd, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
-//   if(ncmd>0 && nbuf>0) sleep_vme(200); 
-   if(nbuf>0) Jtag_Ohio(CFEB_DEV, 1,(char *)inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&NOW);
-
-// send empty clocks |nbuf|, inbuf & outbuf not used
-   if(nbuf<0) Jtag_Ohio(CFEB_DEV, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
-//
-// Liu Spet. 2012
-// the following is not useful if the packets are buffered
-// TODO
-   if((irdsnd&3)==3 && nbuf%16!=0)
-   {
-     ishft=16-nbuf%16;
-     temp=((outbuf[nbuf/8+1]<<8)&0xff00)|(outbuf[nbuf/8]&0xff);
-     temp=(temp>>ishft);
-     outbuf[nbuf/8+1]=(temp&0xff00)>>8;
-     outbuf[nbuf/8]=temp&0x00ff;
-   }
+   // code moved to daqmb_do()
+   daqmb_do(ncmd, cmd, nbuf, inbuf, outbuf, irdsnd, 1);
 }
-//
+
 void DAQMB::dcfeb_fpga_call(int inst, unsigned data, char *outbuf)
 {
   char temp[4];
@@ -7918,28 +7813,7 @@ unsigned short DAQMB::dcfeb_bpi_status()
   return temp;
 }
 
-void DAQMB::epromdirect_noop() 
-{ dcfeb_XPROM_do(XPROM_NoOp); }
-
-void DAQMB::epromdirect_lock() 
-{ dcfeb_XPROM_do(XPROM_Block_Lock); }
-
-void DAQMB::epromdirect_unlock() 
-{ dcfeb_XPROM_do(XPROM_Block_UnLock); }
-
-void DAQMB::epromdirect_timerstart() 
-{ dcfeb_XPROM_do(XPROM_Timer_Start); } 
-
-void DAQMB::epromdirect_timerstop() 
-{ dcfeb_XPROM_do(XPROM_Timer_Stop); } 
-
-void DAQMB::epromdirect_timerreset() 
-{ dcfeb_XPROM_do(XPROM_Timer_Reset); } 
-
-void DAQMB::epromdirect_clearstatus() 
-{ dcfeb_XPROM_do(XPROM_Clear_Status); }
-
-void DAQMB::epromdirect_multi(int cnt, unsigned short *manbuf)
+void DAQMB::dcfebprom_multi(int cnt, unsigned short *manbuf)
 {
     unsigned short comd, tmp;
     comd=VTX6_USR1;
@@ -7958,23 +7832,23 @@ void DAQMB::epromdirect_multi(int cnt, unsigned short *manbuf)
     return;
 }
 
-void DAQMB::epromdirect_unlockerase() 
+void DAQMB::dcfebprom_unlockerase() 
 { 
    unsigned short tmp[2];
    tmp[0]=XPROM_Block_UnLock;
    tmp[1]=XPROM_Block_Erase;
-   epromdirect_multi(2, tmp);
+   dcfebprom_multi(2, tmp);
 }
 
-void DAQMB::epromdirect_loadaddress(unsigned short uaddr, unsigned short laddr) 
+void DAQMB::dcfebprom_loadaddress(unsigned short uaddr, unsigned short laddr) 
 { 
    unsigned short tmp[2];
    tmp[0]=((uaddr<<5)&0xffe0)|XPROM_Load_Address;
    tmp[1]=laddr;
-   epromdirect_multi(2, tmp);
+   dcfebprom_multi(2, tmp);
 }
 
-void DAQMB::epromdirect_bufferprogram(unsigned nwords,unsigned short *prm_dat)
+void DAQMB::dcfebprom_bufferprogram(unsigned nwords,unsigned short *prm_dat)
 {
 // nwords max. 11 bits (2048 words)
     unsigned short comd, tmp;
@@ -7999,7 +7873,7 @@ void DAQMB::epromdirect_bufferprogram(unsigned nwords,unsigned short *prm_dat)
 }
 
 
-void DAQMB::epromdirect_read(unsigned nwords, unsigned short *pdata)
+void DAQMB::dcfebprom_read(unsigned nwords, unsigned short *pdata)
 {
 // nwords max. 11 bits (2048 words)
     int toread, leftover;
@@ -8047,7 +7921,7 @@ void DAQMB::epromdirect_read(unsigned nwords, unsigned short *pdata)
 
 // copied from Stan's DCFEB code
 // must select a DCFEB first before calling it
-void DAQMB::epromload_parameters(int paramblock, int nwords, unsigned short int  *val)
+void DAQMB::dcfeb_loadparam(int paramblock, int nwords, unsigned short int  *val)
 {
   /*  The highest four blocks in the eprom are parameter banks of
       length 16k 16 bit words. the starting
@@ -8082,22 +7956,22 @@ void DAQMB::epromload_parameters(int paramblock, int nwords, unsigned short int 
   }
   dcfeb_bpi_reset();
   dcfeb_bpi_enable();
-  epromdirect_timerstop();
-  epromdirect_timerreset();
+  dcfebprom_timerstop();
+  dcfebprom_timerreset();
   uaddr=0x007f;  // segment address for parameter blocks
   laddr=paramblock*0x4000;
   fulladdr = (uaddr<<16) + laddr;
   printf(" parameter_write fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
-  epromdirect_timerstart();
+  dcfebprom_timerstart();
 
-  epromdirect_loadaddress(uaddr,laddr);
+  dcfebprom_loadaddress(uaddr,laddr);
   // unlock and erase the block
-  epromdirect_unlockerase();
+  dcfebprom_unlockerase();
 
   udelay(400000);
 
   // program with new data from the beginning of the block
-  epromdirect_bufferprogram(nwords,val);
+  dcfebprom_bufferprogram(nwords,val);
   unsigned int sleeep=1984*64+164;
   udelay(sleeep);
   
@@ -8105,15 +7979,15 @@ void DAQMB::epromload_parameters(int paramblock, int nwords, unsigned short int 
   uaddr = (nxt_blk_addr >> 16);
   laddr = nxt_blk_addr &0xffff;
   // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
-  epromdirect_loadaddress(uaddr,laddr);
+  dcfebprom_loadaddress(uaddr,laddr);
   // lock last block
-  epromdirect_lock();
+  dcfebprom_lock();
   dcfeb_bpi_disable();
   udelay(10);
 }
 
 // must select a DCFEB first before calling it
-void DAQMB::epromread_parameters(int paramblock,int nwords,unsigned short int  *val)
+void DAQMB::dcfeb_readparam(int paramblock,int nwords,unsigned short int  *val)
 {
   /*  The highest four blocks in the eprom are parameter banks of
       length 16k 16 bit words. The starting
@@ -8139,8 +8013,8 @@ void DAQMB::epromread_parameters(int paramblock,int nwords,unsigned short int  *
   uaddr=0x007f;  // segment address for parameter blocks
   laddr=paramblock*0x4000;
   printf(" parameter_read fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
-  epromdirect_loadaddress(uaddr,laddr);
-  epromdirect_read(nwords,val);
+  dcfebprom_loadaddress(uaddr,laddr);
+  dcfebprom_read(nwords,val);
   dcfeb_bpi_disable();
 }
 
@@ -8173,9 +8047,9 @@ void DAQMB::dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename)
    {
        uaddr = (fulladdr >> 16);
        laddr = fulladdr &0xffff;
-       epromdirect_loadaddress(uaddr, laddr);
+       dcfebprom_loadaddress(uaddr, laddr);
 
-       epromdirect_read(read_size, buf+i*read_size);
+       dcfebprom_read(read_size, buf+i*read_size);
 
        fulladdr += read_size;
    }
@@ -8215,7 +8089,7 @@ void DAQMB::dcfeb_configure(CFEB & cfeb)
 
   for (int i = 0; i < 44; i++)
     bytesToLoad[i] = 0;
-  epromread_parameters (3, 22, (unsigned short int *) bytesToLoad);
+  dcfeb_readparam(3, 22, (unsigned short int *) bytesToLoad);
   changed = bytesToLoad[36] != comp_mode_cfeb_[number_]
          || bytesToLoad[37] != comp_timing_cfeb_[number_]
          || bytesToLoad[38] != dt[0]
@@ -8244,7 +8118,7 @@ void DAQMB::dcfeb_configure(CFEB & cfeb)
       bytesToLoad[43] = 0;
 
       printf ("parameters from configuration file do not match currently stored values\n");
-      epromload_parameters (3, 22, (unsigned short int *) bytesToLoad);
+      dcfeb_loadparam(3, 22, (unsigned short int *) bytesToLoad);
 
       printf ("  new values of parameters in parameter block 3:\n");
       printf ("    comp_mode: %d\n", bytesToLoad[36]);
@@ -8361,9 +8235,9 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
       write_cfeb_selector(cfeb.SelectorBit());
       dcfeb_bpi_reset();
       dcfeb_bpi_enable();
-      epromdirect_timerstop();
-      epromdirect_timerreset();
-      epromdirect_timerstart();
+      dcfebprom_timerstop();
+      dcfebprom_timerreset();
+      dcfebprom_timerstart();
 // 2. erase eprom
    blocks=FIRMWARE_SIZE/BLOCK_SIZE;
    if((FIRMWARE_SIZE%BLOCK_SIZE)>0) blocks++;
@@ -8374,9 +8248,9 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
       laddr=0;
 
       // printf(" eprom_load fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
-      epromdirect_loadaddress(uaddr,laddr);
+      dcfebprom_loadaddress(uaddr,laddr);
       // unlock and erase the block
-      epromdirect_unlockerase();
+      dcfebprom_unlockerase();
 
       udelay(1000000);
    }
@@ -8397,9 +8271,9 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
       uaddr = (fulladdr >> 16);
       laddr = fulladdr &0xffff;
       // printf(" load address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
-      epromdirect_loadaddress(uaddr,laddr);
+      dcfebprom_loadaddress(uaddr,laddr);
       // program with new data from the beginning of the block
-      epromdirect_bufferprogram(nwords,bufw+i*WRITE_SIZE);
+      dcfebprom_bufferprogram(nwords,bufw+i*WRITE_SIZE);
       udelay(120000);
       fulladdr += 0x800;
        j++;
@@ -8413,8 +8287,8 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
    uaddr = (fulladdr >> 16);
    laddr = fulladdr &0xffff;
    // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
-   epromdirect_loadaddress(uaddr,laddr);
-   epromdirect_lock();
+   dcfebprom_loadaddress(uaddr,laddr);
+   dcfebprom_lock();
    dcfeb_bpi_disable();
    free(bufin);
 }
@@ -8655,26 +8529,7 @@ int DAQMB::LVDB_map(int chn)
 // ODMB discrete logic JTAG port.This method has exactly the same interface as cfeb_do(). 
 void DAQMB::dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd)
 {
-  int DISC_LOG=0xFFFC;
-  char tmp[2];
-
-  /* irdsnd for jtag
-          irdsnd = 0 no read, later
-          irdsnd = 1 no read, now
-          irdsnd = 2    read, later
-          irdsnd = 3    read, now
-  */
-   if(ncmd<0)
-   { // Reset Jtag State Machine
-     Jtag_Lite(DISC_LOG, 0, tmp,-1, tmp, 0, (irdsnd&1));
-     return;
-   }
-   if(ncmd>0) Jtag_Lite(DISC_LOG, 0, (char *)cmd,ncmd, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
-//   if(ncmd>0 && nbuf>0) vme_delay(100); 
-   if(nbuf>0) Jtag_Lite(DISC_LOG, 1,(char *)inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&NOW);
-
-// send empty clocks |nbuf|, inbuf & outbuf not used
-   if(nbuf<0) Jtag_Lite(DISC_LOG, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
+     daqmb_do(ncmd, cmd, nbuf, inbuf, outbuf, irdsnd, 0);
 }
 
 void DAQMB::odmb_fpga_call(int inst, unsigned data, char *outbuf)
@@ -8687,30 +8542,97 @@ void DAQMB::odmb_fpga_call(int inst, unsigned data, char *outbuf)
   udelay(20);
 }
 
-void DAQMB::daqmb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd)
+void DAQMB::daqmb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd, int dev)
 {
-  int DAQMB_DEV=2;
+     // dev=0  discrete logic (O/DMB emergency PROM access)
+     //    =1  D/CFEB      (device 1 direct)
+     //    =2  O/DMB FPGA  (device 2)
+     //    =3  DMB PROM    (device 3)
+     //    =4  VME PROM    (device 4)
+     //    =5  CFEB PROM   (device 1 with head-tail)
+     //    =6  CFEB FPGA   (device 1 with head-tail)
+
+     // irdsnd for jtag
+     //     irdsnd = 0 no read, later
+     //     irdsnd = 1 no read, now
+     //     irdsnd = 2    read, later
+     //     irdsnd = 3    read, now
+     //
+
+  if(dev<0 || dev>6) return;
+  int DAQMB_DEV;
   char tmp[2];
-//  unsigned short int ishft,temp;
+  int ncmd_u, nbuf_u;
+  
+  if(dev==0)
+  {
+     int DAQMB_DEV=0xFFFC;
+     if(ncmd<0)
+     { // Reset Jtag State Machine
+         Jtag_Lite(DAQMB_DEV, 0, tmp,-1, tmp, 0, (irdsnd&1));
+         return;
+     }
+     if(ncmd>0) Jtag_Lite(DAQMB_DEV, 0, (char *)cmd,ncmd, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
+     //   if(ncmd>0 && nbuf>0) vme_delay(100); 
+     if(nbuf>0) Jtag_Lite(DAQMB_DEV, 1,(char *)inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&NOW);
 
-  /* irdsnd for jtag
-          irdsnd = 0 no read, later
-          irdsnd = 1 no read, now
-          irdsnd = 2    read, later
-          irdsnd = 3    read, now
-  */
-   if(ncmd<0)
-   { // Reset Jtag State Machine
-     Jtag_Ohio(DAQMB_DEV, 0, tmp,-1, tmp, 0, (irdsnd&1));
-     return;
-   }
-   if(ncmd>0) Jtag_Ohio(DAQMB_DEV, 0, (char *)cmd,ncmd, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
-//   if(ncmd>0 && nbuf>0) sleep_vme(200); 
-   if(nbuf>0) Jtag_Ohio(DAQMB_DEV, 1,(char *)inbuf,nbuf,outbuf,(irdsnd>>1)&1,irdsnd&NOW);
+     // send empty clocks |nbuf|, inbuf & outbuf not used
+     if(nbuf<0) Jtag_Lite(DAQMB_DEV, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
+  }
+  else
+  {  
+     ncmd_u=ncmd;
+     nbuf_u=nbuf;
+     if(dev==5) 
+     { 
+         DAQMB_DEV=1;
+         if(ncmd>0) { add_headtail((char *)cmd, ncmd, 0, 5);   ncmd_u += 5; }
+         if(nbuf>0) { add_headtail((char *)inbuf, nbuf, 0, 1); nbuf_u += 1; }
+     } 
+     else if(dev==6)
+     { 
+         DAQMB_DEV=1;
+         if(ncmd>0) { add_headtail((char *)cmd, ncmd, 8, 0);   ncmd_u += 8; }
+         if(nbuf>0) { add_headtail((char *)inbuf, nbuf, 1, 0); nbuf_u += 1; }
+     } 
+     else
+     {
+         DAQMB_DEV=dev;
+     } 
+     if(ncmd<0)
+     { // Reset Jtag State Machine
+         Jtag_Ohio(DAQMB_DEV, 0, tmp,-1, tmp, 0, (irdsnd&1));
+         return;
+     }
+     if(ncmd>0) Jtag_Ohio(DAQMB_DEV, 0, (char *)cmd, ncmd_u, outbuf,0,(nbuf>0)?LATER:(irdsnd&NOW));
+     //   if(ncmd>0 && nbuf>0) sleep_vme(200); 
+     if(nbuf>0) Jtag_Ohio(DAQMB_DEV, 1,(char *)inbuf,nbuf_u, outbuf,(irdsnd>>1)&1,irdsnd&NOW);
 
-// send empty clocks |nbuf|, inbuf & outbuf not used
-   if(nbuf<0) Jtag_Ohio(DAQMB_DEV, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
-//
+     // send empty clocks |nbuf|, inbuf & outbuf not used
+     if(nbuf<0) Jtag_Ohio(DAQMB_DEV, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
+
+     // !!!!!>>>> Never buffer read with odd bits (nbuf%10!=0)
+     if((irdsnd&3)==3 && nbuf%16!=0)
+     {
+        // The last short-word (16 bit) contains the real data bits
+        // at the MSB. Must shift them to the LSB. 
+        int ishft=16-nbuf%16;
+        unsigned temp=((outbuf[nbuf/8+1]<<8)&0xff00)|(outbuf[nbuf/8]&0xff);
+        temp=(temp>>ishft);
+        outbuf[nbuf/8+1]=(temp&0xff00)>>8;
+        outbuf[nbuf/8]=temp&0x00ff;
+     }
+
+     if(dev==5) 
+     { 
+         if(nbuf>0 && (irdsnd&3)==3) cut_headtail((char *)outbuf, nbuf_u, 0, 1);
+     } 
+     else if(dev==6)
+     { 
+         if(nbuf>0 && (irdsnd&3)==3) cut_headtail((char *)outbuf, nbuf_u, 1, 0);
+     } 
+     
+  }
 }
 
 std::vector<float> DAQMB::odmb_fpga_sysmon()
@@ -8837,6 +8759,15 @@ void DAQMB::odmb_XPROM_do(unsigned short command)
   WriteRegister(BPI_Write, command);
 }
 
+void DAQMB::odmb_bpi_reset()
+{  WriteRegister(BPI_Reset, 0); }
+
+void DAQMB::odmb_bpi_disable()
+{  WriteRegister(BPI_Disable, 0); }
+
+void DAQMB::odmb_bpi_enable()
+{  WriteRegister(BPI_Enable, 0); }
+
 unsigned DAQMB::odmb_bpi_readtimer()
 {
   return (ReadRegister(BPI_Timer_h)<<16)+ReadRegister(BPI_Timer_l);
@@ -8866,36 +8797,6 @@ unsigned short DAQMB::odmb_bpi_status()
   */  
   return ReadRegister(BPI_Status);
 }
-
-void DAQMB::odmb_bpi_reset()
-{  WriteRegister(BPI_Reset, 0); }
-
-void DAQMB::odmb_bpi_disable()
-{  WriteRegister(BPI_Disable, 0); }
-
-void DAQMB::odmb_bpi_enable()
-{  WriteRegister(BPI_Enable, 0); }
-
-void DAQMB::odmbeprom_noop() 
-{ odmb_XPROM_do(XPROM_NoOp); }
-
-void DAQMB::odmbeprom_lock() 
-{ odmb_XPROM_do(XPROM_Block_Lock); }
-
-void DAQMB::odmbeprom_unlock() 
-{ odmb_XPROM_do(XPROM_Block_UnLock); }
-
-void DAQMB::odmbeprom_timerstart() 
-{ odmb_XPROM_do(XPROM_Timer_Start); } 
-
-void DAQMB::odmbeprom_timerstop() 
-{ odmb_XPROM_do(XPROM_Timer_Stop); } 
-
-void DAQMB::odmbeprom_timerreset() 
-{ odmb_XPROM_do(XPROM_Timer_Reset); } 
-
-void DAQMB::odmbeprom_clearstatus() 
-{ odmb_XPROM_do(XPROM_Clear_Status); }
 
 void DAQMB::odmbeprom_multi(int cnt, unsigned short *manbuf)
 {
@@ -8959,7 +8860,7 @@ void DAQMB::odmbeprom_read(unsigned nwords, unsigned short *pdata)
     return;
 }
 
-void DAQMB::odmbload_parameters(int paramblock, int nwords, unsigned short int  *val)
+void DAQMB::odmb_loadparam(int paramblock, int nwords, unsigned short int  *val)
 {
   /*  The highest four blocks in the eprom are parameter banks of
       length 16k 16 bit words. the starting
@@ -9024,7 +8925,7 @@ void DAQMB::odmbload_parameters(int paramblock, int nwords, unsigned short int  
   udelay(10);
 }
 
-void DAQMB::odmbread_parameters(int paramblock,int nwords,unsigned short int  *val)
+void DAQMB::odmb_readparam(int paramblock,int nwords,unsigned short int  *val)
 {
   /*  The highest four blocks in the eprom are parameter banks of
       length 16k 16 bit words. The starting
