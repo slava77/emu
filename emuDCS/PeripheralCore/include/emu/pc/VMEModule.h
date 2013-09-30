@@ -246,6 +246,8 @@ protected:
   void udelay(long int usec);
   unsigned shuffle32(unsigned value);
   void shuffle57(void *data);
+  char* add_headtail(char *datain, int osize, int head, int tail);
+  char* cut_headtail(char *datain, int osize, int head, int tail);
 
   Crate * theCrate_;
   VMEController * theController;

@@ -1858,5 +1858,69 @@ void VMEModule::shuffle57(void *data)
    *dna = d2;
 }
 
+char* VMEModule::add_headtail(char *datain, int osize, int head, int tail)
+{
+    if(osize<=0 || head<0 || tail<0 || datain==NULL) return datain;
+    int nsize=osize+head+tail; 
+    int nbytes=(nsize+7)/8;
+    int bdata;
+    char buf[9000];
+    bzero(buf, 9000);
+    int nbitpos=0, nbytepos=0, obitpos=0, obytepos=0;
+    for(int i=0; i<nsize; i++)
+    { 
+        // step 1, get the data bit
+        if(i<tail || i>=(tail+osize)) 
+        {  // data bit from head & tail, always 1
+           bdata=1;
+        }
+        else
+        {  // data bit from old buffer
+           bdata=(datain[obytepos]>>obitpos)&1;
+           obitpos++;
+           if(obitpos==8) { obitpos=0; obytepos++; }
+        }
+
+        // step 2, put the data bit into new buffer
+        buf[nbytepos] |= (bdata << nbitpos);
+        nbitpos++;
+        if(nbitpos==8) { nbitpos=0; nbytepos++; }
+    }
+    // step 3, copy the data back to the old buffer
+    memcpy(datain, buf, nbytes);
+    return datain;
+}
+
+char* VMEModule::cut_headtail(char *datain, int osize, int head, int tail)
+{
+    if(osize<=0 || head<0 || tail<=0 || datain==NULL) return datain;
+    int nsize=osize-head-tail; 
+    if(nsize<0) return datain;
+    int nbytes=(nsize+7)/8;
+    int bdata;
+    char buf[9000];
+    bzero(buf, 9000);
+    int nbitpos=0, nbytepos=0, obitpos=0, obytepos=0;
+    for(int i=0; i<osize; i++)
+    { 
+        // step 1, get the data bit from old buffer
+        bdata=(datain[obytepos]>>obitpos)&1;
+        obitpos++;
+        if(obitpos==8) { obitpos=0; obytepos++; }
+        
+        // step 2, put the data bit into new buffer if needed
+        if(i>=tail && i<(osize-head)) 
+        {
+           buf[nbytepos] |= (bdata << nbitpos);
+           nbitpos++;
+           if(nbitpos==8) { nbitpos=0; nbytepos++; }
+        }
+    }
+    // step 3, copy the data back to the old buffer
+    memcpy(datain, buf, nbytes);
+    return datain;
+}
+
   } // namespace emu::pc
 } // namespace emu
+	
