@@ -97,7 +97,7 @@ void Chamber::Fill(char *buffer, int source)
            i = atoi(item);
            states[idx] = i; 
        }
-       else if(idx<69 || (type_==2 && idx<285))
+       else if(idx<69 || (type_==2 && idx<286))
        {  
            y=strtof(item,NULL);
            values[idx-5]=y;
