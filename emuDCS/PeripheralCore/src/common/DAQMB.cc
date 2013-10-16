@@ -2150,6 +2150,11 @@ void DAQMB::cfebs_readstatus()
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
       //}
     }
+    else if(hversion==2)
+    {
+       unsigned st = dcfeb_read_status(cfebs_[icfeb]);
+       memcpy(&febstat_[icfeb][0],&st, 4);
+    }
   }
   printf("Boards in use              ");
   for(i=0;i<5;i++){
@@ -7639,7 +7644,7 @@ unsigned DAQMB::dcfeb_read_status(CFEB & cfeb)
 {
   unsigned temp;
   char buf[4]={0,0,0,0};
-  dcfeb_hub(cfeb, 2, 32, buf, (char *)&temp, NOW|READ_YES);
+  dcfeb_hub(cfeb, 3, 32, buf, (char *)&temp, NOW|READ_YES);
   return temp;
 }
 
