@@ -727,6 +727,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
      chname.push_back("V5PSUB (V)");
      chname.push_back("Temp(PCB 1) (C)");
      chname.push_back("Temp(PCB 2) (C)");
+     chname.push_back("Comparator DAC");
 
      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
      *out << std::endl;
@@ -740,15 +741,16 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
         {
            std::vector<float> mon=thisDMB->dcfeb_fpga_monitor(*cfebItr);
            std::vector<float> dadc=thisDMB->dcfeb_adc(*cfebItr);
-           for (unsigned c=0; c<mon.size() && c<19; c++) monitor_dcfebs[cfeb_index*21+c]=mon[c];
-           monitor_dcfebs[cfeb_index*21+19]=dadc[3];
-           monitor_dcfebs[cfeb_index*21+20]=dadc[4];
+           for (unsigned c=0; c<mon.size() && c<19; c++) monitor_dcfebs[cfeb_index*22+c]=mon[c];
+           monitor_dcfebs[cfeb_index*22+19]=dadc[3];
+           monitor_dcfebs[cfeb_index*22+20]=dadc[4];
+           monitor_dcfebs[cfeb_index*22+21]=dadc[0];
         }
      }
      *out << cgicc::table().set("border","1");
      //
      *out <<cgicc::td() << "Channel" << std::setprecision(3)<< cgicc::td();
-     for(int ch=0; ch<22; ch++)
+     for(int ch=0; ch<23; ch++)
      {
        if(ch) *out << cgicc::td() << chname[ch-1] << cgicc::td();
        for(int feb=0; feb<7; feb++)
@@ -756,7 +758,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
           if(ch==0) *out << cgicc::td() << "CFEB " << feb+1 << cgicc::td();
           else
           {   *out << cgicc::td();
-              if( monitor_dcfebs[feb*21+ch-1]>=0.) *out << monitor_dcfebs[feb*21+ch-1];
+              if( monitor_dcfebs[feb*22+ch-1]>=0.) *out << monitor_dcfebs[feb*22+ch-1];
               *out << cgicc::td();
           }
        }
@@ -777,7 +779,7 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   char Name[100];
   FuncName.push_back("NO OP");
   FuncName.push_back("Sys Reset");
-  FuncName.push_back("Read Status Reg (32)"); 
+  FuncName.push_back("JTAG Shift Reg (32)"); 
   FuncName.push_back("Update Status Reg (32)"); 
   FuncName.push_back("Comparator DAC (15)"); 
   FuncName.push_back("L1a Delay (2)"); 
