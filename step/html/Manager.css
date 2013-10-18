@@ -1,5 +1,6 @@
 .layout { width: 100%; background-color: transparent; padding: 0px; border-collapse: collapse; }
 .idle { background-color:#dddddd; }
+.configuring { background-color:#ffff99; }
 .running { background-color:#ffff44; }
 .done { background-color:#22dd22; }
 .incomplete { background-color:#ff9999; }

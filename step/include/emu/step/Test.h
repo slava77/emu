@@ -67,10 +67,15 @@ namespace emu{
       ///
       Test& setDataDirNames( const vector<string>& dataDirNames ){ dataDirNames_ = dataDirNames; return *this; }
 
+      /// Configure the test.
+      ///
+      ///
+      void configure();
+
       /// Execute the test.
       ///
       ///
-      void execute();
+      void enable();
 
       /// Get the progress fo this test.
       ///
@@ -96,6 +101,7 @@ namespace emu{
       enum { pipelineDepthFromXML = -99 };
 
     private:
+      enum State_t        { forConfigure_, forEnable_ };
       string              group_; ///< Name of the VME crate group that this emu::step::Test instance handles.
       bool                isFake_; ///< If \em true, the test will just be simulated without VME communication.
       bool                isToStop_; ///< Set this to \em true to interrupt the test.
@@ -105,11 +111,11 @@ namespace emu{
       vector<string>      dataDirNames_; // all RUIs' data directory names
 
       emu::pc::XMLParser   parser_;
-      // uint64_t            iEvent_; ///< Progress counter.
       emu::utils::Progress progress_; ///< Progress counter.
-      void ( emu::step::Test::* procedure_ )();
+      // void ( emu::step::Test::* configureProcedure_ )();
+      // void ( emu::step::Test::* enableProcedure_ )();
 
-      void ( emu::step::Test::* getProcedure( const string& testId ) )(); 
+      void ( emu::step::Test::* getProcedure( const string& testId, State_t state ) )(); 
       void createEndcap( const string& generalSettingsXML,
 			 const string& specialSettingsXML  );
       int getDDUInputFiberMask( int crateId, int dduSlot );
@@ -119,23 +125,42 @@ namespace emu{
       void enableTrigger();
       void disableTrigger();
       void setUpDMB( emu::pc::DAQMB *dmb );
+      void setUpODMBPulsing( emu::pc::DAQMB *dmb );
       void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const short int depth = pipelineDepthFromXML );
+      void turnONlvDCFEBandALCT( emu::pc::Crate* crate );
+      void configureODMB( emu::pc::Crate* crate );
+      void printDCFEBUserCodes( emu::pc::DAQMB* dmb );
       string getDataDirName() const;
-      void _11();
-      void _12();
-      void _13();
-      void _14();
-      void _15();
-      void _16();
-      void _17();
-      void _17b();
-      void _18();
-      void _19();
-      void _21();
-      void _25();
-      void _27();
-      void _30();
-      void _fake();
+      void configure_11();
+      void configure_12();
+      void configure_13();
+      void configure_14();
+      void configure_15();
+      void configure_16();
+      void configure_17();
+      void configure_17b();
+      void configure_18();
+      void configure_19();
+      void configure_21();
+      void configure_25();
+      void configure_27();
+      void configure_30();
+      void configure_fake();
+      void enable_11();
+      void enable_12();
+      void enable_13();
+      void enable_14();
+      void enable_15();
+      void enable_16();
+      void enable_17();
+      void enable_17b();
+      void enable_18();
+      void enable_19();
+      void enable_21();
+      void enable_25();
+      void enable_27();
+      void enable_30();
+      void enable_fake();
 
     };
   }

@@ -15,13 +15,16 @@ emu::step::Tester::Tester( xdaq::ApplicationStub *s )
   : xdaq::WebApplication( s )
   , emu::step::Application( s )
   , testId_( "0" )
+  , testConfigured_( false )  
   , testDone_( false )
   , test_( NULL )
   , workLoop_( NULL )
-  , testSignature_( NULL )
+  , configureTestSignature_( NULL )
+  , enableTestSignature_( NULL )
 {
   exportParameters();
-  testSignature_ = toolbox::task::bind( this, &emu::step::Tester::testInWorkLoop, "testInWorkLoop" );
+  configureTestSignature_ = toolbox::task::bind( this, &emu::step::Tester::configureTestInWorkLoop, "configureTestInWorkLoop" );
+  enableTestSignature_    = toolbox::task::bind( this, &emu::step::Tester::enableTestInWorkLoop   , "enableTestInWorkLoop"    );
   workLoopName_ = getApplicationDescriptor()->getClassName() + "." 
     + emu::utils::stringFrom<int>( getApplicationDescriptor()->getInstance() );
 }
@@ -40,6 +43,7 @@ void emu::step::Tester::exportParameters(){
   s->fireItemAvailable( "specialVMESettingsFileName", &specialVMESettingsFileName_ );
   s->fireItemAvailable( "testId"                    , &testId_                     );
   s->fireItemAvailable( "fakeTests"                 , &fakeTests_                  );
+  s->fireItemAvailable( "testConfigured"            , &testConfigured_             );
   s->fireItemAvailable( "testDone"                  , &testDone_                   );
   s->fireItemAvailable( "crateIds"                  , &crateIds_                   );
   s->fireItemAvailable( "chamberLabels"             , &chamberLabels_              );
@@ -136,7 +140,8 @@ void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
   delete test_;
   test_ = NULL;
 
-  testDone_ = false;
+  testConfigured_ = false;
+  testDone_       = false;
 
   // Create the test
   try{
@@ -178,25 +183,55 @@ void emu::step::Tester::configureAction( toolbox::Event::Reference e ){
     }
   }
   
-  // Schedule test procedure to be executed in a separate thread
+  // Schedule test procedure to be configured in a separate thread
   try{
-    workLoop_->submit( testSignature_ );
-    LOG4CPLUS_INFO( logger_, "Submitted test action to " << workLoopType_ << " work loop " << workLoopName_ );
+    workLoop_->submit( configureTestSignature_ );
+    LOG4CPLUS_INFO( logger_, "Submitted configure action to " << workLoopType_ << " work loop " << workLoopName_ );
   } catch( xcept::Exception &e ){
-    XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to submit test action to work loop.", e );
+    XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to submit configure action to work loop.", e );
   }
-  LOG4CPLUS_INFO( logger_, "Configured." );
+
+  // Configure the test procedure in a separate thread:
+  if ( ! workLoop_->isActive() ){
+    try{
+      workLoop_->activate();
+      LOG4CPLUS_INFO( logger_, "Activated work loop for configuring test." );
+    } catch( xcept::Exception &e ){
+      XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to activate work loop for configuring test.", e );
+    }
+  }
 }
 
 void emu::step::Tester::enableAction( toolbox::Event::Reference e ){
   LOG4CPLUS_INFO( logger_, "Enabling." );
+
+  testDone_ = false;
+
+  // Cancel workloop
+  if ( workLoop_->isActive() ){
+    try{
+      workLoop_->cancel();
+      LOG4CPLUS_INFO( logger_, "Cancelled work loop." );
+    } catch( xcept::Exception &e ){
+      XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to cancel work loop.", e );
+    }
+  }
+  
+  // Schedule test procedure to be executed in a separate thread
+  try{
+    workLoop_->submit( enableTestSignature_ );
+    LOG4CPLUS_INFO( logger_, "Submitted enable action to " << workLoopType_ << " work loop " << workLoopName_ );
+  } catch( xcept::Exception &e ){
+    XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to submit configure action to work loop.", e );
+  }
+
   // Execute the test procedure in a separate thread:
   if ( ! workLoop_->isActive() ){
     try{
       workLoop_->activate();
-      LOG4CPLUS_INFO( logger_, "Activated work loop." );
+      LOG4CPLUS_INFO( logger_, "Activated work loop for executing test." );
     } catch( xcept::Exception &e ){
-      XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to activate work loop.", e );
+      XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to activate work loop for executing test.", e );
     }
   }
 }
@@ -216,11 +251,34 @@ void emu::step::Tester::stopAction( toolbox::Event::Reference e ){
   haltAction( e );
 }
 
-bool emu::step::Tester::testInWorkLoop( toolbox::task::WorkLoop *wl ){
+bool emu::step::Tester::configureTestInWorkLoop( toolbox::task::WorkLoop *wl ){
   if ( test_ ){
     LOG4CPLUS_INFO( logger_, "Executing test " << test_->getId() );
     try{
-      test_->setRunStartTime( runStartTime_ ).setRunNumber( runNumber_ ).setDataDirNames( getDataDirNamesSTL() ).execute();
+      test_->configure();
+    }
+    catch ( xcept::Exception& e ){
+      stringstream ss;
+      ss << "Failed to configure test " <<  test_->getId();
+      XCEPT_DECLARE_NESTED( xcept::Exception, ee, ss.str(), e );
+      LOG4CPLUS_FATAL( logger_, stdformat_exception_history( ee ) );
+      moveToFailedState( ee );
+      return false;
+    }
+    testConfigured_ = true;
+    LOG4CPLUS_INFO( logger_, "Configured test " << test_->getId() );
+  }
+  else{
+    LOG4CPLUS_ERROR( logger_, "No test has been defined." );
+  }
+  return false;
+}
+
+bool emu::step::Tester::enableTestInWorkLoop( toolbox::task::WorkLoop *wl ){
+  if ( test_ ){
+    LOG4CPLUS_INFO( logger_, "Executing test " << test_->getId() );
+    try{
+      test_->setRunStartTime( runStartTime_ ).setRunNumber( runNumber_ ).setDataDirNames( getDataDirNamesSTL() ).enable();
     }
     catch ( xcept::Exception& e ){
       stringstream ss;
