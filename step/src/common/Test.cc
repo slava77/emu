@@ -6,6 +6,7 @@
 #include "emu/utils/System.h"
 
 #include "emu/pc/Crate.h"
+#include "emu/pc/VMEController.h"
 #include "emu/pc/CCB.h"
 #include "emu/pc/TMB.h"
 #include "emu/pc/DAQMB.h"
@@ -36,12 +37,11 @@ emu::step::Test::Test( const string& id,
   , isFake_( isFake )
   , isToStop_( false )
   , runNumber_( 0 )
-  , runStartTime_( "YYYY-MM-DD hh:mm:ss UTC" )
-  , procedure_( getProcedure( id ) ){
+  , runStartTime_( "YYYY-MM-DD hh:mm:ss UTC" ){
 
   stringstream ss;
-  if ( ! procedure_ ){
-    ss << "Failed to create test " << id_ << " because no procedure is defined for it.";
+  if ( ! getProcedure( id, emu::step::Test::forConfigure_ ) || ! getProcedure( id, emu::step::Test::forEnable_ ) ){
+    ss << "Failed to create test " << id_ << " because no configure and enable procedures are defined for it.";
     XCEPT_RAISE( xcept::Exception, ss.str() );
   }
   try{
@@ -60,10 +60,14 @@ emu::step::Test::Test( const string& id,
 
 //emu::step::Test::~Test(){}
 
-void emu::step::Test::execute(){
+void emu::step::Test::configure(){
   configureCrates();
-  enableTrigger();
-  ( this->*emu::step::Test::procedure_ )();
+  ( this->*emu::step::Test::getProcedure( id_, emu::step::Test::forConfigure_ ) )();
+}
+
+void emu::step::Test::enable(){
+  // enableTrigger(); moved to individual tests' configure
+  ( this->*emu::step::Test::getProcedure( id_, emu::step::Test::forEnable_ ) )();
   disableTrigger();
 }
 
@@ -71,23 +75,23 @@ double emu::step::Test::getProgress(){
   return progress_.getPercent();
 }
 
-void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId ) )(){
-  if ( isFake_         ) return &emu::step::Test::_fake;
-  if ( testId == "11"  ) return &emu::step::Test::_11;
-  if ( testId == "12"  ) return &emu::step::Test::_12;
-  if ( testId == "13"  ) return &emu::step::Test::_13;
-  if ( testId == "14"  ) return &emu::step::Test::_14;
-  if ( testId == "15"  ) return &emu::step::Test::_15;
-  if ( testId == "16"  ) return &emu::step::Test::_16;
-  if ( testId == "17"  ) return &emu::step::Test::_17;
-  if ( testId == "17b" ) return &emu::step::Test::_17b;
-  if ( testId == "18"  ) return &emu::step::Test::_18;
-  if ( testId == "19"  ) return &emu::step::Test::_19;
-  if ( testId == "21"  ) return &emu::step::Test::_21;
-  if ( testId == "25"  ) return &emu::step::Test::_25;
-  if ( testId == "27"  ) return &emu::step::Test::_27;
-  if ( testId == "30"  ) return &emu::step::Test::_30;
-  return 0;
+void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId, State_t state ) )(){
+  if ( isFake_         ) return ( state == forConfigure_ ? &emu::step::Test::configure_fake : &emu::step::Test::enable_fake );
+  if ( testId == "11"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_11   : &emu::step::Test::enable_11   );
+  if ( testId == "12"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_12   : &emu::step::Test::enable_12   );
+  if ( testId == "13"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_13   : &emu::step::Test::enable_13   );
+  if ( testId == "14"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_14   : &emu::step::Test::enable_14   );
+  if ( testId == "15"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_15   : &emu::step::Test::enable_15   );
+  if ( testId == "16"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_16   : &emu::step::Test::enable_16   );
+  if ( testId == "17"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_17   : &emu::step::Test::enable_17   );
+  if ( testId == "17b" ) return ( state == forConfigure_ ? &emu::step::Test::configure_17b  : &emu::step::Test::enable_17b  );
+  if ( testId == "18"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_18   : &emu::step::Test::enable_18   );
+  if ( testId == "19"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_19   : &emu::step::Test::enable_19   );
+  if ( testId == "21"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_21   : &emu::step::Test::enable_21   );
+  if ( testId == "25"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_25   : &emu::step::Test::enable_25   );
+  if ( testId == "27"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_27   : &emu::step::Test::enable_27   );
+  if ( testId == "30"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_30   : &emu::step::Test::enable_30   );
+  return NULL;
 }
 
 
@@ -168,7 +172,11 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
     (*ddu)->writeFlashKillFiber(0x7fff); 
     usleep(20);
     (crate)->ccb()->HardReset_crate();
-    usleep(250000); // must be >200ms
+    sleep(1);
+
+    // Make sure ODMB LV on-off registers are all on (their value is unpredictable after a hard reset)
+    turnONlvDCFEBandALCT(crate);
+
     int dduInputFiberMask = getDDUInputFiberMask( crate->CrateID(), (*ddu)->slot() );
     (*ddu)->writeFlashKillFiber( dduInputFiberMask );
     usleep(10);
@@ -200,16 +208,37 @@ void emu::step::Test::configureCrates(){
     if ( (*crate)->IsAlive() ){
        // (Power-on chambers if not already on) & write flash
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->configure( 0 ) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
+
       (*crate)->configure( 0 );
-      // Set up the DDU if there's one in this crate
-      // S.Z. Shalhout Apr 23, 2013- note the new version of setUpDDU
-      // includes a hard reset 
+
+      // Set up the DDU if and only if there's one in this crate. Includes a hard reset
       setUpDDU(*crate);
+
       // Perform a Hard-Reset to all modules in the crate and ensure configuration is uploaded to eproms
+      // Only do this if there's no DDU in the PCrate. (If there is, the hard reset was issued in setUpDDU.)
+      if ( (*crate)->ddus().size() == 0 ){
+	if ( pLogger_ ){ 
+	  LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); 
+	}
+
+	(*crate)->ccb()->HardReset_crate();
+	sleep( 2 );
+
+	// Make sure ODMB LV on-off registers are all on (their value is unpredictable after a hard reset)
+        turnONlvDCFEBandALCT(*crate);
+
+	// 	usleep(250000); // must be >200ms
+	sleep( 2 );
+      }
+
       // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
       //(*crate)->ccb()->HardReset_crate();
       // Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
       sleep( 1 );
+
+      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ) printDCFEBUserCodes( *dmb );
+
       // Set ccb mode once more separately, as it is screwed up inside ccb->configure
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA ) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
       (*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA );
@@ -231,7 +260,7 @@ void emu::step::Test::enableTrigger(){
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    if ( true ){ //( (*crate)->IsAlive() ){
+    if ( (*crate)->IsAlive() ){
 	(*crate)->ccb()->l1aReset();
 	(*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
 	(*crate)->ccb()->bc0(); 
@@ -265,8 +294,6 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 
   //test values take them maybe out
   char dmbstatus[11];
-  // the below should be done via XML params
-  // ccb_SetExtTrigDelay(ccb, 34);
 	
   dmb->calctrl_fifomrst(); // Some sort of reset of the FIFOs
   usleep(5000);
@@ -331,6 +358,33 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 
 }
 
+void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb ){
+  if( dmb->GetHardwareVersion() < 2 ) return;
+
+  int slot_number  = dmb->slot();
+  char rcv[2];
+  unsigned int addr;
+  unsigned short int data;
+  int irdwr;
+  // set ODMB to Pedestal mode
+  irdwr = 3;
+  addr = (0x003000)| slot_number<<19;
+  data = 0x2000;
+  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+  // Set OTMB_DLY  
+  irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
+  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+  // Kill No Boards test 19
+  irdwr = 3; addr = (0x00401c) | slot_number<<19; data = 0x0100;
+  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+  //  Set LCT_L1A_DLY
+  irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x001a;
+  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+  // Set EXT_DLY      
+  irdwr = 3; addr = (0x004014)| slot_number<<19; data = 0x0000;
+  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+}
+
 // One pipeline fuction to rule them all.
 void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const short int depth ){
   // If depth is omitted, then reset pipeline depth to its config (XML) value as it may have been zeroed by a hard reset.
@@ -349,21 +403,132 @@ void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const shor
     }
 
     dmb->dcfeb_set_PipelineDepth( *cfeb, pipelineDepth ); // set the pipeline depth
-    usleep(100);
+    sleep( 1 );
     dmb->Pipeline_Restart( *cfeb ); // and then restart the pipeline
-    usleep(100);
+    sleep( 1 );
 
     if(dmb->GetHardwareVersion() != 2){
-      // set DCFEBs to behave line CFEBs and send data on any L1A, required when not using ODMB
+      // set DCFEBs to behave like CFEBs and send data on any L1A, required when not using ODMB
       dmb->dcfeb_Set_ReadAnyL1a( *cfeb );
     }
+
+    dmb->shift_all( NORM_RUN );
+    dmb->buck_shift();
+    sleep( 2 );
   }
 
   if( dmb->getCrate() ){
     dmb->getCrate()->ccb()->l1aReset(); // need to do this after restarting DCFEB pipelines
     usleep(100);
-    dmb->getCrate()->ccb()->bc0(); // need bc0 to get back to triggering mode
-    usleep(100);
+  }
+}
+
+
+void emu::step::Test::turnONlvDCFEBandALCT(emu::pc::Crate* crate ) {
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "turning all on-chamber boards ON" ); }
+
+  vector<emu::pc::DAQMB *> dmbs = crate->daqmbs();    
+  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+    
+    if( (*dmb)->GetHardwareVersion() == 2 ) {
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "turning on-chamber boards ON for this ODMB" ); }
+      int state = (*dmb)->lvmb_power_state();
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "low voltage power state before power on: " << state ); }
+      sleep(2);
+      (*dmb)->lowv_onoff( 0xff ); // 8 bits = 1 ALCT + 7 DCFEBs
+      sleep(3);
+      state = (*dmb)->lvmb_power_state();
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "low voltage power state after power on: " << state ); }
+
+      vector<emu::pc::TMB*> tmbs = (crate)->tmbs();
+      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+
+	(*tmb)->configure();
+	usleep(100);
+
+	emu::pc::ALCTController* alct = (*tmb)->alctController();
+	alct->configure();
+	usleep(100);
+
+      } // reconfigure alct
+
+      (crate)->ccb()->HardReset_crate();
+      sleep(3);
+
+      // (*dmb)->set_comp_thresh((*dmb)->GetCompThresh());
+      // sleep(1);
+
+      // setAllDCFEBsPipelineDepth(*dmb);
+      // sleep(1);
+
+    } //  ODMB hv = 2
+    
+  } // loop daqmb
+
+
+} // turnONlvDCFEBandALCT
+
+
+void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
+  vector<emu::pc::DAQMB *> dmbs = crate->daqmbs();    
+  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+    
+    if( (*dmb)->GetHardwareVersion() == 2 ) {
+      int _slot_number  = (*dmb)->slot();
+
+      char rcv[2];
+      unsigned int addr;
+      unsigned short int data;
+      int irdwr;
+
+      // ODMB Reset
+      irdwr = 3; addr = (0x003000) | _slot_number<<19; data = 0x0100;
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      usleep(10000000);
+  
+      // Reprogram All DCFEBs
+      irdwr = 3; addr = 0x003010 | (_slot_number<<19); data = 0x0001;      
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      sleep(1);
+
+      // Kill No Boards
+      irdwr = 3; addr = (0x00401c) | _slot_number<<19; data = 0x0000;
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      
+      //  Set LCT_L1A_DLY
+      irdwr = 3; addr = (0x004000)| _slot_number<<19; data = 0x001a;
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      
+      // Set OTMB_DLY
+      irdwr = 3; addr = (0x004004)| _slot_number<<19; data = 0x0001;
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      
+      //    Set ALCT_DLY
+      irdwr = 3; addr = (0x00400c)| _slot_number<<19; data = 0x001e;
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+
+      // ODMB configured to accept real triggers
+      irdwr = 3; addr = (0x003000)| _slot_number<<19; data = 0x0000;
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+
+    } // if( (*dmb)->GetHardwareVersion() == 2 )
+  } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+} 
+
+
+void emu::step::Test::printDCFEBUserCodes( emu::pc::DAQMB* dmb ){
+  if ( dmb->cfebs().at( 0 ).GetHardwareVersion() != 2 ) return;  // All CFEBs should have the same HW version; get it from the first.
+
+  vector <emu::pc::CFEB> cfebs = dmb->cfebs();
+  for( vector<emu::pc::CFEB>::reverse_iterator cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb){
+    ostringstream oss;
+    oss << "CFEB: " << cfeb->number()
+	<< ", user code: " << hex << dmb->febfpgauser( *cfeb )
+	<< ", Virtex status: " << dmb->virtex6_readreg( 7 );
+    if ( pLogger_ ){ 
+      LOG4CPLUS_INFO( *pLogger_, oss.str() ); 
+    }
   }
 }
 
@@ -412,21 +577,40 @@ string emu::step::Test::getDataDirName() const {
 }
 
 
-void emu::step::Test::_11(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_11 starting" ); }
+void emu::step::Test::configure_11(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_11 starting" ); }
   
+  progress_.setTotal( (int)parameters_["durationInSec"] );
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+
+    // Configure DCFEB.
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      setAllDCFEBsPipelineDepth( *dmb );      
+    } 
+
+    if ( isToStop_ ) return;
+  }
+}
+
+void emu::step::Test::enable_11(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_11 starting" ); }
   progress_.setTotal( (int)parameters_["durationInSec"] );
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     (*crate)->ccb()->EnableL1aFromTmbL1aReq();
 
-    // Configure DCFEB.
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      setAllDCFEBsPipelineDepth( *dmb );      
-      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-    } 
+    (*crate)->ccb()->l1aReset();
+    (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
+    (*crate)->ccb()->bc0(); 
 
     if ( isToStop_ ) return;
   }
@@ -439,9 +623,30 @@ void emu::step::Test::_11(){
   }
 }
 
+void emu::step::Test::configure_12(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_12 (parallel) starting" ); }
 
-void emu::step::Test::_12(){ // OK
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_12 (parallel) starting" ); }
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    // if ( (*crate)->IsAlive() ){
+    // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() ); }
+
+    (*crate)->ccb()->EnableL1aFromSyncAdb();
+
+    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+      (*tmb)->EnableClctExtTrig();
+      if ( isToStop_ ) return;
+    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+
+  }
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_12 (parallel) ending" ); }
+}
+
+void emu::step::Test::enable_12(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_12 (parallel) starting" ); }
   
   const uint64_t nStrips = 6; // strips to scan, never changes
   uint64_t events_per_strip = parameters_["events_per_strip"];
@@ -467,12 +672,11 @@ void emu::step::Test::_12(){ // OK
     // if ( (*crate)->IsAlive() ){
     // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() ); }
 
-    (*crate)->ccb()->EnableL1aFromSyncAdb();
+    (*crate)->ccb()->l1aReset();
+    (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
+    (*crate)->ccb()->bc0(); 
 
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-      (*tmb)->EnableClctExtTrig();
-    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
     for ( uint64_t iStrip = 0; iStrip < nStrips; ++iStrip ){
 
@@ -514,12 +718,48 @@ void emu::step::Test::_12(){ // OK
     // }
   }
 
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_12 (parallel) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_12 (parallel) ending" ); }
 }
 
 
-void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p2.2.01/t13.xml
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_13 (parallel) starting" ); }
+void emu::step::Test::configure_13(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_13 (parallel) starting" ); }
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+
+    (*crate)->ccb()->EnableL1aFromSyncAdb();
+
+    // Configure DCFEB.  
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      sleep(1);
+      setAllDCFEBsPipelineDepth( *dmb );
+      sleep(1);
+      if ( isToStop_ ) return;
+    }
+    
+    (*crate)->ccb()->bc0(); // this may not be needed, should check
+
+    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+      (*tmb)->EnableClctExtTrig();
+      if ( isToStop_ ) return;
+    }
+    
+  }
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_13 (parallel) ending" ); }
+}
+
+void emu::step::Test::enable_13(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_13 (parallel) starting" ); }
 
   uint64_t tpamps_per_run       = parameters_["tpamps_per_run"]; // how many test pulse amplitudes to scan
   uint64_t thresholds_per_tpamp = parameters_["thresholds_per_tpamp"]; // number of thresholds to scan with each test pulse amp
@@ -547,22 +787,7 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
   //
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    //if ( (*crate)->IsAlive() ){
-    //cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
-
-    (*crate)->ccb()->EnableL1aFromSyncAdb();
-
-    // Configure DCFEB.  
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      setAllDCFEBsPipelineDepth( *dmb );      
-      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-    } 
-    
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-      (*tmb)->EnableClctExtTrig();
-    }
     
     for ( uint64_t iAmp = 0; iAmp < tpamps_per_run; ++iAmp ){
       uint64_t amplitude = tpamp_first + iAmp * tpamp_step;
@@ -610,18 +835,61 @@ void emu::step::Test::_13(){ // Tested OK with old /home/cscme42/STEP/data/xml/p
 
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_13 (parallel) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_13 (parallel) ending" ); }
 }
 
 
-void emu::step::Test::_14(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_14 (parallel) starting" ); }
+void emu::step::Test::configure_14(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_14 (parallel) starting" ); }
+
+  uint64_t alct_test_pulse_amp = parameters_["alct_test_pulse_amp"];
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    // if ( (*crate)->IsAlive() ){
+      // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+
+      configureODMB( *crate ); 
+      usleep(1000);
+      (*crate)->ccb()->l1aReset();
+
+      (*crate)->ccb()->EnableL1aFromASyncAdb();
+      
+      // Configure DCFEB.
+      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)
+	sleep(1);
+	setAllDCFEBsPipelineDepth( *dmb );  
+	sleep(1);
+	if ( isToStop_ ) return;
+      } 
+
+      (*crate)->ccb()->bc0(); // this may not be needed, should check
+
+      vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+	// cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
+	(*tmb)->EnableClctExtTrig();
+	uint64_t afebGroupMask = 0x3fff; // all afebs
+	(*tmb)->alctController()->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_ASYNC );
+	if ( isToStop_ ) return;
+      } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+      
+      // } // if ( (*crate)->IsAlive() )
+      
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_14 (parallel) starting" ); }
+}
+
+void emu::step::Test::enable_14(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_14 (parallel) starting" ); }
 
   uint64_t delays_per_run      = parameters_["delays_per_run"];
   uint64_t delay_first         = parameters_["delay_first"];
   uint64_t delay_step          = parameters_["delay_step"];
   uint64_t events_per_delay    = parameters_["events_per_delay"];
-  uint64_t alct_test_pulse_amp = parameters_["alct_test_pulse_amp"];
   uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
@@ -644,22 +912,7 @@ void emu::step::Test::_14(){
     // if ( (*crate)->IsAlive() ){
       // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
-      (*crate)->ccb()->EnableL1aFromASyncAdb();
-      
-      // Configure DCFEB.
-      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
-      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	setAllDCFEBsPipelineDepth( *dmb );      
-	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-      } 
-
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-	// cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
-	(*tmb)->EnableClctExtTrig();
-	uint64_t afebGroupMask = 0x3fff; // all afebs
-	(*tmb)->alctController()->SetUpPulsing( alct_test_pulse_amp, PULSE_AFEBS, afebGroupMask, ADB_ASYNC );
-      } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
 
       for ( uint64_t iDelay = 0; iDelay < delays_per_run; ++iDelay ){
 	uint64_t delay = delay_first + iDelay * delay_step;
@@ -698,12 +951,85 @@ void emu::step::Test::_14(){
       
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_14 (parallel) starting" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_14 (parallel) starting" ); }
 }
 
 
-void emu::step::Test::_15(){ // OK
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_15 (parallel) starting" ); }
+void emu::step::Test::configure_15(){ // OK
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_15 (parallel) starting" ); }
+
+  // If ext_trig_delay is increased, tmb_l1a_delay should be decreased by the same amount
+  // For ODMB, a different external trigger delay may be needed
+  uint64_t ext_trig_delay      = ( parameters_.find( "ext_trig_delay"      ) == parameters_.end() ? 0 : parameters_[ "ext_trig_delay"      ] );
+  uint64_t ext_trig_delay_odmb = ( parameters_.find( "ext_trig_delay_odmb" ) == parameters_.end() ? 0 : parameters_[ "ext_trig_delay_odmb" ] );
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    // if ( (*crate)->IsAlive() ){
+    // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
+
+      configureODMB( *crate ); 
+      usleep(1000);
+      (*crate)->ccb()->l1aReset();
+
+      // Configure DCFEB.
+      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+
+	if( (*dmb)->GetHardwareVersion() == 2 ){
+	  int _slot_number  = (*dmb)->slot();
+          // the arguments for vme_controller //
+	  char rcv[2];
+	  unsigned int addr;
+	  unsigned short int data;
+	  int irdwr;
+	  // kill alct/tmb
+	  // all cfebs active	 
+	  irdwr = 3;
+	  addr = (0x00401c)| _slot_number<<19;	
+	  data = 0x0180;			
+	  (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+	  // set ODMB to PEDESTAL mode
+	  irdwr = 3;
+	  addr = (0x003000)| _slot_number<<19;
+	  data = 0x2000;
+	  (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+	} // if( (*dmb)->GetHardwareVersion() == 2 )
+	sleep(1);
+
+	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+	sleep(2);
+
+	setAllDCFEBsPipelineDepth( *dmb );      
+	sleep(2);
+
+	if ( isToStop_ ) return;
+      } 
+
+      (*crate)->ccb()->EnableL1aFromVme(); // enable L1A and clct_pretrig from VME command, disable all other trigger sources
+
+      // Take the hardware version of the first DMB, assuming ODMB and copper DMB are never tested simulatenously!!!
+      uint64_t extTrigDelay = ( (*crate)->daqmbs().at(0)->GetHardwareVersion() == 2 ? ext_trig_delay_odmb : ext_trig_delay );
+      (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
+
+      vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+	// cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
+	(*tmb)->EnableClctExtTrig();
+      } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+      
+    // } // if ( (*crate)->IsAlive() )
+
+      if ( isToStop_ ) return;
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_15 (parallel) ending" ); }
+}
+
+void emu::step::Test::enable_15(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_15 (parallel) starting" ); }
 
   uint64_t events_total        = parameters_["events_total"];
   uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
@@ -728,24 +1054,10 @@ void emu::step::Test::_15(){ // OK
     // if ( (*crate)->IsAlive() ){
     // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
-      (*crate)->ccb()->EnableL1aFromVme(); // enable L1A and clct_pretrig from VME command, disable all other trigger sources
-      (*crate)->ccb()->SetExtTrigDelay( 0 ); // TODO: make configurable
-
-      // Configure DCFEB.
-      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
-      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	setAllDCFEBsPipelineDepth( *dmb );      
-	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-      } 
-
-      vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-      for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-	// cout << "  TMB " << tmb-tmbs.begin() << " in slot " << (*tmb)->slot() << endl << flush;
-	(*tmb)->EnableClctExtTrig();
-      } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
-
       (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
 	
+      (*crate)->ccb()->bc0(); 
+
       for ( uint64_t iTrigger = 1; iTrigger <= events_total; ++iTrigger ){
 	(*crate)->ccb()->GenerateL1A();// generate L1A and pretriggers
 	usleep( 10 + 1000*msec_between_pulses );
@@ -771,58 +1083,66 @@ void emu::step::Test::_15(){ // OK
 
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_15 (parallel) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_15 (parallel) ending" ); }
 }
 
 
-void emu::step::Test::_16(){
+void emu::step::Test::configure_16(){
   if ( pLogger_ ){ 
-    LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) starting" ); 
+    LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_16 (parallel) starting" ); 
   }
-
-  const unsigned int extTrigDelay = 20;
-  const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
-  uint64_t events_per_layer    = parameters_["events_per_layer"];
   uint64_t alct_test_pulse_amp = parameters_["alct_test_pulse_amp"];
-  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];  
+  // If ext_trig_delay is increased, tmb_l1a_delay should be decreased by the same amount
+  // For ODMB, a different external trigger delay may be needed
+  uint64_t ext_trig_delay      = ( parameters_.find( "ext_trig_delay"      ) == parameters_.end() ? 20 : parameters_[ "ext_trig_delay"      ] );
+  uint64_t ext_trig_delay_odmb = ( parameters_.find( "ext_trig_delay_odmb" ) == parameters_.end() ? 20 : parameters_[ "ext_trig_delay_odmb" ] );
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   ostream noBuffer( NULL );
 
-  //
-  // Count pulses to deliver
-  //
-  
-  bsem_.take();
-  nEvents_ = crates.size() * nLayerPairs * events_per_layer;
-  progress_.setTotal( (int)nEvents_ );
-  bsem_.give();
-
   // Set pipeline depth for each DCFEB (HardwareVersion==2)
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      setAllDCFEBsPipelineDepth( *dmb );
       
-      int CFEBHardwareVersion = (*dmb)->cfebs().at( 0 ).GetHardwareVersion();
-      if ( CFEBHardwareVersion == 2 ){
-	(*dmb)->shift_all(NORM_RUN);
-        (*dmb)->buck_shift();
-        usleep(100000); // buck shifting takes a lot more time for DCFEBs
-        (*crate)->ccb()->bc0(); // this may not be needed, should check
-      }
-    } 
-  }
-  
-  //
-  // Deliver pulses
-  //
+      if( (*dmb)->GetHardwareVersion() == 2 ){
+	int _slot_number  = (*dmb)->slot();
+	// the arguments for vme_controller //
+	char rcv[2];
+	unsigned int addr;
+	unsigned short int data;
+	int irdwr;
+	// kill alct/tmb
+	// all cfebs active	 
+	irdwr = 3;
+	addr = (0x00401c)| _slot_number<<19;	
+	data = 0x0180;			
+	(*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+	// set ODMB to PEDESTAL mode
+	irdwr = 3;
+	addr = (0x003000)| _slot_number<<19;
+	data = 0x2000;
+	(*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      } // if( (*dmb)->GetHardwareVersion() == 2 )
+      sleep(1);
+      
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      sleep(2);
 
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    
+      setAllDCFEBsPipelineDepth( *dmb );
+    }
+
     (*crate)->ccb()->EnableL1aFromSyncAdb();
-    (*crate)->ccb()->SetExtTrigDelay( extTrigDelay );
+
+    // Take the hardware version of the first DMB, assuming ODMB and copper DMB are never tested simulatenously!!!
+    uint64_t extTrigDelay = ( (*crate)->daqmbs().at(0)->GetHardwareVersion() == 2 ? ext_trig_delay_odmb : ext_trig_delay );
+    (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
+    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
     
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
 
@@ -839,7 +1159,46 @@ void emu::step::Test::_16(){
       alct->FillTriggerRegister_();
       alct->WriteTriggerRegister_();
     } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+  
+  if ( pLogger_ ){ 
+    LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_16 (parallel) ending" ); 
+  }
+
+}
+
+void emu::step::Test::enable_16(){
+  if ( pLogger_ ){ 
+    LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_16 (parallel) starting" ); 
+  }
+
+  const uint64_t nLayerPairs = 3; // Pairs of layers to scan, never changes. (Scans 2 layers at a time.)
+  uint64_t events_per_layer    = parameters_["events_per_layer"];
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];  
+  
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  ostream noBuffer( NULL );
+
+  //
+  // Count pulses to deliver
+  //
+  
+  bsem_.take();
+  nEvents_ = crates.size() * nLayerPairs * events_per_layer;
+  progress_.setTotal( (int)nEvents_ );
+  bsem_.give();
+  
+  //
+  // Deliver pulses
+  //
+
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
+    (*crate)->ccb()->bc0(); 
+
+    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+
     for ( uint64_t iLayerPair = 0; iLayerPair < nLayerPairs; ++iLayerPair ){ // layer loop
 
       //cout << "    Layers " << iLayerPair*2+1 << " and  " << iLayerPair*2+2 << endl << flush;
@@ -902,14 +1261,72 @@ void emu::step::Test::_16(){
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
   
   if ( pLogger_ ){ 
-    LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_16 (parallel) ending" ); 
+    LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_16 (parallel) ending" ); 
   }
-
 }
 
+void emu::step::Test::configure_17(){ // OK
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_17 (parallel) starting" ); }
 
-void emu::step::Test::_17(){ // OK
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_17 (parallel) starting" ); }
+  // If ext_trig_delay is increased, tmb_l1a_delay should be decreased by the same amount
+  // For ODMB, a different external trigger delay may be needed
+  uint64_t ext_trig_delay      = ( parameters_.find( "ext_trig_delay"      ) == parameters_.end() ? 17 : parameters_[ "ext_trig_delay"      ] );
+  uint64_t ext_trig_delay_odmb = ( parameters_.find( "ext_trig_delay_odmb" ) == parameters_.end() ? 23 : parameters_[ "ext_trig_delay_odmb" ] );
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+
+    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+
+    // Take the hardware version of the first DMB, assuming ODMB and copper DMB are never tested simulatenously!!!
+    uint64_t extTrigDelay = ( (*crate)->daqmbs().at(0)->GetHardwareVersion() == 2 ? ext_trig_delay_odmb : ext_trig_delay );
+    (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
+    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
+    
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
+
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+
+      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
+      if ( tmb == NULL ){
+	if ( pLogger_ ){
+	  stringstream ss;
+	  ss << "DMB in slot " << (*dmb)->slot() << " of crate " << (*crate)->GetLabel() << " has no corresponding TMB.";
+	  LOG4CPLUS_INFO( *pLogger_, ss.str() );
+	}
+      }
+      else{
+	tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
+	tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
+	tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
+      }
+
+      setUpDMB( *dmb );
+
+      setUpODMBPulsing( *dmb );
+
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	float ComparatorThresholds = (*dmb)->GetCompThresh();
+	(*dmb)->set_comp_thresh(ComparatorThresholds);
+	usleep(100000);
+      } 
+
+      // Set pipeline depth on DCFEBs
+      setAllDCFEBsPipelineDepth( *dmb );
+
+    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_17 (parallel) ending" ); }
+}
+
+void emu::step::Test::enable_17(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_17 (parallel) starting" ); }
 
   uint64_t events_per_delay    = parameters_["events_per_delay"];
   uint64_t delays_per_strip    = parameters_["delays_per_strip"];
@@ -940,41 +1357,9 @@ void emu::step::Test::_17(){ // OK
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
-    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    //(*crate)->ccb()->SetExtTrigDelay( 17 ); // Delay of ALCT and CLCT external triggers before distribution to backplane
-    (*crate)->ccb()->SetExtTrigDelay( 19 ); // change to match test 19 -Joe
-    
+    (*crate)->ccb()->bc0(); 
+
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
-
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-
-      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      if ( tmb == NULL ){
-	if ( pLogger_ ){
-	  stringstream ss;
-	  ss << "DMB in slot " << (*dmb)->slot() << " of crate " << (*crate)->GetLabel() << " has no corresponding TMB.";
-	  LOG4CPLUS_INFO( *pLogger_, ss.str() );
-	}
-      }
-      else{
-	tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
-	tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
-	tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-      }
-
-      setUpDMB( *dmb );
-      
-      // Set pipeline depth on DCFEBs
-      setAllDCFEBsPipelineDepth( *dmb );
-
-      // Maybe we don't care about this for this test becasue we disable CLCTs
-      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	float ComparatorThresholds = (*dmb)->GetCompThresh();
-	(*dmb)->set_comp_thresh(ComparatorThresholds);
-	usleep(100000);
-      } 
-
-    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
       
@@ -983,14 +1368,18 @@ void emu::step::Test::_17(){ // OK
 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
 
 	(*dmb)->buck_shift();
+        usleep(100000); // buck shifting takes a lot more time for DCFEBs
+	// (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
+	// (*crate)->ccb()->l1aReset();
+	// if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Resync after buck shift" ); }
 
 	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
-          (*crate)->ccb()->bc0(); // may not need this (should check)
+          (*crate)->ccb()->bc0(); // needed after DCFEB buck shifting?
 	  usleep(100000);
         }
 
-	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
+	if( (*dmb)->GetHardwareVersion() < 2 ) (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT
 
       } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
@@ -1000,7 +1389,24 @@ void emu::step::Test::_17(){ // OK
 
 	uint64_t timesetting = iDelay%10 + 5;
 	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	  (*dmb)->set_cal_tim_pulse( timesetting ); // Change pulse delay on DMB FPGA
+
+	  if      ( (*dmb)->GetHardwareVersion()  < 2 ){
+	    (*dmb)->set_cal_tim_pulse( timesetting ); // Change pulse delay on DMB FPGA
+	  }
+	  else if ( (*dmb)->GetHardwareVersion() == 2 ){
+	    int _slot_number  = (*dmb)->slot();
+	    char rcv[2];
+	    unsigned int addr;
+	    unsigned short int data = timesetting;
+	    int irdwr;
+	    // set ODMB EXT_DLY
+	    irdwr = 3;
+	    addr = (0x004014)| _slot_number<<19;
+	    (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+	    // (*crate)->ccb()->l1aReset();
+	    // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Resync after setting ODMB EXT_DLY" ); }
+	  }
+
 	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	    usleep(500000);
 	    msWaitAfterPulse = 10; // pulsing takes a lot more time for DCFEBs...
@@ -1042,12 +1448,71 @@ void emu::step::Test::_17(){ // OK
 
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_17 (parallel) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_17 (parallel) ending" ); }
 }
 
+void emu::step::Test::configure_17b(){ // OK
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_17b (parallel) starting" ); }
 
-void emu::step::Test::_17b(){ // OK
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_17b (parallel) starting" ); }
+  // If ext_trig_delay is increased, tmb_l1a_delay should be decreased by the same amount
+  // For ODMB, a different external trigger delay may be needed
+  uint64_t ext_trig_delay      = ( parameters_.find( "ext_trig_delay"      ) == parameters_.end() ? 17 : parameters_[ "ext_trig_delay"      ] );
+  uint64_t ext_trig_delay_odmb = ( parameters_.find( "ext_trig_delay_odmb" ) == parameters_.end() ? 23 : parameters_[ "ext_trig_delay_odmb" ] );
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+
+    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+
+    // Take the hardware version of the first DMB, assuming ODMB and copper DMB are never tested simulatenously!!!
+    uint64_t extTrigDelay = ( (*crate)->daqmbs().at(0)->GetHardwareVersion() == 2 ? ext_trig_delay_odmb : ext_trig_delay );
+    (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
+    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
+
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
+
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+
+      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
+      if ( tmb == NULL ){
+	if ( pLogger_ ){
+	  stringstream ss;
+	  ss << "DMB in slot " << (*dmb)->slot() << " of crate " << (*crate)->GetLabel() << " has no corresponding TMB.";
+	  LOG4CPLUS_WARN( *pLogger_, ss.str() );
+	}
+      }
+      else{
+	tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
+	tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
+	tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
+      }
+
+      setUpDMB( *dmb );
+
+      setUpODMBPulsing( *dmb );
+      
+      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+	float ComparatorThresholds = (*dmb)->GetCompThresh();
+	(*dmb)->set_comp_thresh(ComparatorThresholds);
+	usleep(100000);
+      } 
+      
+      // Set pipeline depth on DCFEBs
+      setAllDCFEBsPipelineDepth( *dmb );
+      
+    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+    
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_17b (parallel) ending" ); }
+}
+
+void emu::step::Test::enable_17b(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_17b (parallel) starting" ); }
 
   uint64_t events_per_pulsedac = parameters_["events_per_pulsedac"];
   uint64_t pulse_dac_settings  = parameters_["pulse_dac_settings"];
@@ -1080,41 +1545,10 @@ void emu::step::Test::_17b(){ // OK
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
-    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    (*crate)->ccb()->SetExtTrigDelay( 17 );
+    (*crate)->ccb()->bc0();
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
 
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-
-      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      if ( tmb == NULL ){
-	if ( pLogger_ ){
-	  stringstream ss;
-	  ss << "DMB in slot " << (*dmb)->slot() << " of crate " << (*crate)->GetLabel() << " has no corresponding TMB.";
-	  LOG4CPLUS_WARN( *pLogger_, ss.str() );
-	}
-      }
-      else{
-	tmb->DisableALCTInputs(); // Asserts alct_clear (blanking ALCT received data)
-	tmb->DisableCLCTInputs(); // Sets all 5 CFEBs' bits in enableCLCTInputs to 0. TODO: 7 DCFEBs
-	tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-      }
-
-      setUpDMB( *dmb );
-      
-      // Set pipeline depth on DCFEBs
-      setAllDCFEBsPipelineDepth( *dmb );
-      
-      // Maybe we don't care about this for this test becasue we disable CLCTs
-      if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
-	float ComparatorThresholds = (*dmb)->GetCompThresh();
-	(*dmb)->set_comp_thresh(ComparatorThresholds);
-	usleep(100000);
-      } 
-      
-    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
-    
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
 
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
@@ -1122,14 +1556,15 @@ void emu::step::Test::_17b(){ // OK
 	(*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?)
 
 	(*dmb)->buck_shift();
+        usleep(100000); // buck shifting takes a lot more time for DCFEBs
 
 	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
-          (*crate)->ccb()->bc0(); // may not need this (should check)
+          (*crate)->ccb()->bc0(); // needed after DCFEB buck shifting?
 	  usleep(100000);
         }
 
-	(*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
+	if( (*dmb)->GetHardwareVersion() < 2 ) (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT
 
       } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
@@ -1182,11 +1617,14 @@ void emu::step::Test::_17b(){ // OK
       
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_17b (parallel) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_17b (parallel) ending" ); }
 }
 
-void emu::step::Test::_18(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_18 starting" ); }
+void emu::step::Test::configure_18(){
+}
+
+void emu::step::Test::enable_18(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_18 starting" ); }
 
   // Test of undefined duration, progress should be monitored in local DAQ.
   
@@ -1203,8 +1641,74 @@ void emu::step::Test::_18(){
 }
 
 
-void emu::step::Test::_19(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_19 (parallel) starting" ); }
+void emu::step::Test::configure_19(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_19 (parallel) starting" ); }
+  
+  // If ext_trig_delay is increased, tmb_l1a_delay should be decreased by the same amount
+  // For ODMB, a different external trigger delay may be needed
+  uint64_t ext_trig_delay      = ( parameters_.find( "ext_trig_delay"      ) == parameters_.end() ? 19 : parameters_[ "ext_trig_delay"      ] );
+  uint64_t ext_trig_delay_odmb = ( parameters_.find( "ext_trig_delay_odmb" ) == parameters_.end() ? 23 : parameters_[ "ext_trig_delay_odmb" ] );
+  
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+
+    // CCB::EnableL1aFromDmbCfebCalibX sets these:
+    // | bit | value | meaning                                                                                                     |
+    // |-----+-------+-------------------------------------------------------------------------------------------------------------|
+    // |   0 |     1 | CCB in VME FPGA mode                                                                                        |
+    // |   1 |     0 | -                                                                                                           |
+    // |   2 |     0 | -                                                                                                           |
+    // |   3 |     1 | Mask L1ACC source from TTCrx: disabled                                                                      |
+    // |     |       |                                                                                                             |
+    // |   4 |     1 | Mask L1ACC from VME command: disabled                                                                       |
+    // |   5 |     1 | Mask L1ACC from TMB_L1A_REQ backplane line: disabled                                                        |
+    // |   6 |     1 | Mask L1ACC from TMB_L1A_REL backplane line: disabled                                                        |
+    // |   7 |     1 | Mask L1ACC from the front panel: disabled                                                                   |
+    // |     |       |                                                                                                             |
+    // |   8 |     0 | Disable all inputs from the front panel                                                                     |
+    // |   9 |     1 | Mask generation of delayed ALCT_external_trigger signal from any L1A source: disabled                       |
+    // |  10 |     0 | Mask generation of delayed CLCT_external_trigger signal from any L1A source: enabled                        |
+    // |  11 |     1 | Mask generation of delayed Pretriggers and delayed L1ACC from any of ALCT_adb_sync_pulse sources: disabled  |
+    // |     |       |                                                                                                             |
+    // |  12 |     1 | Mask generation of delayed Pretriggers and delayed L1ACC from any of ALCT_adb_async_pulse sources: disabled |
+    // |  13 |     0 | L1ACC and Pretriggers are enabled unconditionally                                                           |
+    // |  14 |     0 | Tmb_l1A_Release signal from custom backplane: enabled                                                       |
+    // |  15 |     0 | Dmb_l1A_Release signal from custom backplane: enabled                                                       |
+    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+
+    // Take the hardware version of the first DMB, assuming ODMB and copper DMB are never tested simulatenously!!!
+    uint64_t extTrigDelay = ( (*crate)->daqmbs().at(0)->GetHardwareVersion() == 2 ? ext_trig_delay_odmb : ext_trig_delay );
+    (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
+    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
+
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
+
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
+
+      if (tmb) {
+        tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
+      }
+
+      setUpODMBPulsing( *dmb );
+
+      // Set pipeline depth on DCFEBs
+      setAllDCFEBsPipelineDepth( *dmb );
+
+    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+    
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+  
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_19 (parallel) ending" ); }
+}
+
+void emu::step::Test::enable_19(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_19 (parallel) starting" ); }
 
   uint64_t events_per_thresh    = parameters_["events_per_thresh"];
   uint64_t threshs_per_tpamp    = parameters_["threshs_per_tpamp"];
@@ -1238,45 +1742,10 @@ void emu::step::Test::_19(){
   //
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    // CCB::EnableL1aFromDmbCfebCalibX sets these:
-    // | bit | value | meaning                                                                                                     |
-    // |-----+-------+-------------------------------------------------------------------------------------------------------------|
-    // |   0 |     1 | CCB in VME FPGA mode                                                                                        |
-    // |   1 |     0 | -                                                                                                           |
-    // |   2 |     0 | -                                                                                                           |
-    // |   3 |     1 | Mask L1ACC source from TTCrx: disabled                                                                      |
-    // |     |       |                                                                                                             |
-    // |   4 |     1 | Mask L1ACC from VME command: disabled                                                                       |
-    // |   5 |     1 | Mask L1ACC from TMB_L1A_REQ backplane line: disabled                                                        |
-    // |   6 |     1 | Mask L1ACC from TMB_L1A_REL backplane line: disabled                                                        |
-    // |   7 |     1 | Mask L1ACC from the front panel: disabled                                                                   |
-    // |     |       |                                                                                                             |
-    // |   8 |     0 | Disable all inputs from the front panel                                                                     |
-    // |   9 |     1 | Mask generation of delayed ALCT_external_trigger signal from any L1A source: disabled                       |
-    // |  10 |     0 | Mask generation of delayed CLCT_external_trigger signal from any L1A source: enabled                        |
-    // |  11 |     1 | Mask generation of delayed Pretriggers and delayed L1ACC from any of ALCT_adb_sync_pulse sources: disabled  |
-    // |     |       |                                                                                                             |
-    // |  12 |     1 | Mask generation of delayed Pretriggers and delayed L1ACC from any of ALCT_adb_async_pulse sources: disabled |
-    // |  13 |     0 | L1ACC and Pretriggers are enabled unconditionally                                                           |
-    // |  14 |     0 | Tmb_l1A_Release signal from custom backplane: enabled                                                       |
-    // |  15 |     0 | Dmb_l1A_Release signal from custom backplane: enabled                                                       |
-    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    (*crate)->ccb()->SetExtTrigDelay( 19 ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
+
+    (*crate)->ccb()->bc0();
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
-
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-
-      if (tmb) {
-        tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
-      }
-      //if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ) (*crate)->ccb()->l1aReset();
-
-      // Set pipeline depth on DCFEBs
-      setAllDCFEBsPipelineDepth( *dmb );
-
-    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
 
@@ -1285,14 +1754,17 @@ void emu::step::Test::_19(){
         (*dmb)->set_ext_chanx( iStrip * strip_step + strip_first - 1 ); // strips start from 1 in config file (is that important for analysis?
 
         (*dmb)->buck_shift();
+        usleep(100000); // buck shifting takes a lot more time for DCFEBs
+
+	// (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
 
 	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
-          (*crate)->ccb()->bc0(); // may not need this (should check)
+          (*crate)->ccb()->bc0(); // needed after DCFEB buck shifting?
 	  usleep(100000);
         }
 
-        (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT, should be via XML	
+        if( (*dmb)->GetHardwareVersion() < 2 ) (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT	
 
       } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
       
@@ -1375,14 +1847,59 @@ void emu::step::Test::_19(){
     
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
   
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_19 (parallel) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_19 (parallel) ending" ); }
 }
 
+void emu::step::Test::configure_21(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_21 (parallel) starting" ); }
 
-void emu::step::Test::_21(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 (parallel) starting" ); }
   uint64_t dmb_test_pulse_amp  = parameters_["dmb_test_pulse_amp"];
   uint64_t cfeb_threshold      = parameters_["cfeb_threshold"];
+  // If ext_trig_delay is increased, tmb_l1a_delay should be decreased by the same amount
+  // For ODMB, a different external trigger delay may be needed
+  uint64_t ext_trig_delay      = ( parameters_.find( "ext_trig_delay"      ) == parameters_.end() ? 17 : parameters_[ "ext_trig_delay"      ] );
+  uint64_t ext_trig_delay_odmb = ( parameters_.find( "ext_trig_delay_odmb" ) == parameters_.end() ? 23 : parameters_[ "ext_trig_delay_odmb" ] );
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+
+    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
+
+    // Take the hardware version of the first DMB, assuming ODMB and copper DMB are never tested simulatenously!!!
+    uint64_t extTrigDelay = ( (*crate)->daqmbs().at(0)->GetHardwareVersion() == 2 ? ext_trig_delay_odmb : ext_trig_delay );
+    (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
+    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
+
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
+
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+
+      setUpODMBPulsing( *dmb );
+
+      (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 4095., 0 ); // set inject amplitude - first parameter (same for the entire test)
+      (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test)
+
+      if( (*dmb)->GetHardwareVersion() < 2 ) (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT
+
+      setAllDCFEBsPipelineDepth( *dmb );
+
+      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
+      if (tmb) {
+        tmb->EnableClctExtTrig();
+      }
+    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+  
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_21 (parallel) ending" ); }
+}
+
+void emu::step::Test::enable_21(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_21 (parallel) starting" ); }
   uint64_t events_per_hstrip   = parameters_["events_per_hstrip"];
   uint64_t hstrips_per_run     = parameters_["hstrips_per_run"];
   uint64_t hstrip_first        = parameters_["hstrip_first"];
@@ -1407,23 +1924,9 @@ void emu::step::Test::_21(){
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
-    (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
-    (*crate)->ccb()->SetExtTrigDelay( 17 );
+    (*crate)->ccb()->bc0();
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
-
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      setAllDCFEBsPipelineDepth( *dmb );
-
-      (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 4095., 0 ); // set inject amplitude - first parameter (same for the entire test)
-      (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test)
-      (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT
-
-      emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
-      if (tmb) {
-        tmb->EnableClctExtTrig();
-      }
-    } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
     for ( uint64_t iHalfStrip = 0; iHalfStrip < hstrips_per_run; ++iHalfStrip ){
       
@@ -1470,57 +1973,28 @@ void emu::step::Test::_21(){
     
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
   
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_21 (parallel) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_21 (parallel) ending" ); }
 }
 
-
-void emu::step::Test::_25(){
+void emu::step::Test::configure_25(){
   // TODO:
   // This can be run with one chamber per crate at a time while the other chambers in the crate must be disabled.
   // In principle, it could be run in parallel in different crates, but only if their data all go into different files...
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_25 (multichamber) starting" ); }
-
-  uint64_t trig_settings       = parameters_["trig_settings"];
-
-  ostream noBuffer( NULL );
-
-  string dataDir( getDataDirName() ); 
-  if ( dataDir.size() == 0 ){
-    if ( pLogger_ ){ LOG4CPLUS_WARN( *pLogger_, "No data directory found on this host. Time stamp files for Test 25  will be saved in /tmp instead." ); }
-    dataDir = "/tmp";
-  }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_25 (multichamber) starting" ); }
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
 
-  //
-  // Count settings to apply
-  //
-
-  uint64_t nSettings = 0;
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
-    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
-    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-      nSettings += trig_settings;
-    }
-  }
-  progress_.setTotal( (int)nSettings );
-
-  //
-  // Apply settings
-  //
-
-  struct timeval start, end;
-
-  usleep(100);
-
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
 
     // Configure DCFEB.
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      setAllDCFEBsPipelineDepth( *dmb );      
       (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      setAllDCFEBsPipelineDepth( *dmb );      
     } 
 
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
@@ -1541,6 +2015,61 @@ void emu::step::Test::_25(){
       alct->configure();
       usleep(100);
       
+    } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+
+  } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
+
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_25 (multichamber) ending" ); }
+}
+
+void emu::step::Test::enable_25(){
+  // TODO:
+  // This can be run with one chamber per crate at a time while the other chambers in the crate must be disabled.
+  // In principle, it could be run in parallel in different crates, but only if their data all go into different files...
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_25 (multichamber) starting" ); }
+
+  uint64_t trig_settings       = parameters_["trig_settings"];
+
+  ostream noBuffer( NULL );
+
+  string dataDir( getDataDirName() ); 
+  if ( dataDir.size() == 0 ){
+    if ( pLogger_ ){ LOG4CPLUS_WARN( *pLogger_, "No data directory found on this host. Time stamp files for Test 25  will be saved in /tmp instead." ); }
+    dataDir = "/tmp";
+  }
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+
+  //
+  // Count settings to apply
+  //
+
+  uint64_t nSettings = 0;
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    nSettings += trig_settings * (*crate)->tmbs().size();
+  }
+  progress_.setTotal( (int)nSettings );
+
+  //
+  // Apply settings
+  //
+
+  struct timeval start, end;
+
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+    (*crate)->ccb()->startTrigger();
+    usleep(10000);
+    (*crate)->ccb()->bc0(); 
+    usleep(10000);
+
+    vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+
+    // Loop over TMBs to test them one by one.
+    for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+      
+      emu::pc::ALCTController* alct = (*tmb)->alctController();
+
       stringstream timeStampFileName;
       timeStampFileName << "Test25"
 			<< "_CrateId" << setfill('0') << setw(2) << (*crate)->CrateID()
@@ -1605,32 +2134,52 @@ void emu::step::Test::_25(){
 
   } // for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate )
 
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_25 (multichamber) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_25 (multichamber) ending" ); }
 }
 
-void emu::step::Test::_27(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_27 starting" ); }
+void emu::step::Test::configure_27(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_27 starting" ); }
+  
+  // Test of undefined duration, progress should be monitored in local DAQ.
+  
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    
+    configureODMB( *crate );
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+
+    // Configure DCFEB.
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();  
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      sleep(2);
+      setAllDCFEBsPipelineDepth( *dmb );      
+      sleep(2);
+      if ( isToStop_ ) return;
+    } 
+
+    (*crate)->ccb()->EnableL1aFromTmbL1aReq();
+
+    if ( isToStop_ ) return;
+
+  }
+}
+
+void emu::step::Test::enable_27(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_27 starting" ); }
   
   // Test of undefined duration, progress should be monitored in local DAQ.
   
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
-    (*crate)->ccb()->EnableL1aFromTmbL1aReq();
-    
-    // Configure DCFEB.
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
-    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-      setAllDCFEBsPipelineDepth( *dmb );      
-      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-    } 
+    (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
+    (*crate)->ccb()->bc0(); 
 
     if ( isToStop_ ) return;
-
   }
-  
-  
-    
+      
   // Let's stay here until we're told to stop. Only then should we go on to disable trigger.
   while( true ){
     if ( isToStop_ ) return;
@@ -1645,8 +2194,13 @@ void emu::step::Test::_27(){
   }
 }
 
-void emu::step::Test::_30(){
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_30 (multichamber) starting" ); }
+void emu::step::Test::configure_30(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_30 (multichamber) starting" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_30 (multichamber) ending" ); }
+}
+
+void emu::step::Test::enable_30(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_30 (multichamber) starting" ); }
 
   uint64_t fromDepth = parameters_["fromDepth"];
   uint64_t toDepth   = parameters_["toDepth"  ];
@@ -1731,25 +2285,35 @@ void emu::step::Test::_30(){
     timeStampFile.close();
   }
 
-  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::_30 (multichamber) ending" ); }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_30 (multichamber) ending" ); }
 }
 
-void emu::step::Test::_fake(){
-  // cout << "emu::step::Test::_fake called" << endl << flush;
-  uint64_t nEvents = 10;
+void emu::step::Test::configure_fake(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_fake starting" ); }
+  for ( uint64_t i = 0; i < 30; ++i ){
+    if ( isToStop_ ) return;
+    sleep( 1 );    
+  }
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_fake ending" ); }
+}
+
+void emu::step::Test::enable_fake(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_fake starting" ); }
+
+  uint64_t nEvents = 30;
   bsem_.take();
   nEvents_ = nEvents;
   progress_.setTotal( (int)nEvents_ );
   bsem_.give();
   for ( uint64_t iEvent = 0; iEvent < nEvents; ++iEvent ){
-    if ( isToStop_ ){
-      // cout << "emu::step::Test::_fake interrupted." << endl << flush;
+    if ( isToStop_ ){ 
+      if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_fake ending forced" ); }
       return;
     }
-    // cout << "  Event " << iEvent << endl << flush;
+    if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Event " << iEvent + 1 ); }
     progress_.setCurrent( (int)iEvent + 1 );
     sleep( 1 );    
   }
   
-  // cout << "emu::step::Test::_fake returning" << endl << flush;
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_fake ending" ); }
 }

@@ -49,7 +49,7 @@ namespace emu { namespace step {
       void exportParameters();
       void bindWebInterface();
       void createConfiguration();
-      void startFED();
+      void startFED( bool inPassthroughMode );
       void haltFED();
       bool testSequenceInWorkLoop( toolbox::task::WorkLoop *wl );
       void updateChamberMaps();
@@ -59,6 +59,7 @@ namespace emu { namespace step {
       void controlWebPage( xgi::Input *in, xgi::Output *out );
       string createXMLWebPage();
       bool waitForDAQToExecute( const string command, const uint64_t seconds = std::numeric_limits<uint64_t>::max() );
+      void waitForTestsToConfigure();
       void waitForTestsToFinish( const bool isTestDurationUndefined );
       string checkDataCompleteness( const string& testId );
 

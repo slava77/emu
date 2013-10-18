@@ -86,7 +86,7 @@ void emu::step::Manager::createConfiguration(){
 }
 
 
-void emu::step::Manager::startFED(){
+void emu::step::Manager::startFED( bool inPassthroughMode ){
   // If we use FED crate(s), we control the FED system here. (If the DDU is in the PCrate, we'll set it up together with it for each individual test.)
   set<xdaq::ApplicationDescriptor *> apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors( "emu::fed::Communicator" );
 
@@ -95,7 +95,7 @@ void emu::step::Manager::startFED(){
     return;
   }
   else{
-    LOG4CPLUS_INFO( logger_, "Found " << apps.size() << "emu::fed::Communicator application(s)." );
+    LOG4CPLUS_INFO( logger_, "Found " << apps.size() << " emu::fed::Communicator application(s)." );
   }
 
   // Get the FED settings file names
@@ -131,11 +131,14 @@ void emu::step::Manager::startFED(){
   // Halt all Communicators
   m.sendCommand( "emu::fed::Communicator", "Halt" );
   // Configure DDUs in passthrough mode
-  xdata::Boolean dduInPassthroughMode = true;
+  xdata::Boolean dduInPassthroughMode = inPassthroughMode;
   m.setParameters( "emu::fed::Communicator", emu::soap::Parameters().add( "dduInPassthroughMode" , &dduInPassthroughMode ) );
   m.sendCommand( "emu::fed::Communicator", "Configure" );
+  sleep( 1 );
   // Start all Communicators
   m.sendCommand( "emu::fed::Communicator", "Enable" );
+  sleep( 1 );
+  LOG4CPLUS_INFO( logger_, "Configured DDUs in " << ( inPassthroughMode ? "passthrough" : "normal" ) << " mode." );
 }
 
 void emu::step::Manager::haltFED(){
@@ -183,17 +186,10 @@ void emu::step::Manager::configureAction(toolbox::Event::Reference e){
     XCEPT_RETHROW( toolbox::fsm::exception::Exception, ss.str(), e );
   }
 
-  // Set up and start the FED
-  try{
-    startFED();
-  } catch( xcept::Exception &e ){
-    XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to start the FED system.", e );
-  }
-
   // Schedule test procedure to be executed in a separate thread
   try{
     workLoop_->submit( testSequenceSignature_ );
-    LOG4CPLUS_INFO( logger_, "Submitted tes action to " << workLoopType_ << " work loop " << workLoopName_ );
+    LOG4CPLUS_INFO( logger_, "Submitted test action to " << workLoopType_ << " work loop " << workLoopName_ );
   } catch( xcept::Exception &e ){
     XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to submit test action to work loop.", e );
   }
@@ -296,7 +292,6 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
     
   if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
 
-
   //
   // Loop over tests and execute them
   //
@@ -310,13 +305,27 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
 
     try{
       //
+      // Set the FED crate to normal (not passthrough) mode to immunize it to ODMB data bursts on hard reset
+      //
+      try{
+	startFED( false );
+      } catch( xcept::Exception &e ){
+	XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to set the FED system to normal mode.", e );
+      }
+      //
       // Set test id in all Tester apps
       //
       m.setParameters( "emu::step::Tester", emu::soap::Parameters().add( "testId", &testId ) );
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
       //
-      // Configure all Tester apps
+      // Configure all Tester apps and local DAQ
       //
+      configuration_->setTestStatus( testId, "configuring", "This test is being prepared." );
+      const uint64_t daqTimeOutInSeconds = 15;
+      m.sendCommand( "emu::daq::manager::Application", "Halt" );      
+      if ( ! waitForDAQToExecute( "Halt", daqTimeOutInSeconds ) ){
+	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Halt' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
+      }
       xdata::String             runType = string( ( (bool) isCurrentTestDurationUndefined_ ) ? "STEP_" : "Test_" ) + testId.toString();
       xdata::Integer64  maxNumberOfEvents = ( ( (bool) isCurrentTestDurationUndefined_ ) ? (int) testParameters.getNEvents() : -1 ); // unlimited if negative
       xdata::Boolean writeBadEventsOnly = false;
@@ -327,11 +336,21 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
 		       .add( "writeBadEventsOnly", &writeBadEventsOnly ) );
       m.sendCommand( "emu::daq::manager::Application", "Configure" );      
       m.sendCommand( "emu::step::Tester", "Configure" );
-      const uint64_t daqTimeOutInSeconds = 15;
       if ( ! waitForDAQToExecute( "Configure", daqTimeOutInSeconds ) ){
 	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Configure' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
       }
       if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
+      // Be sure configuration has finished before enabling
+      waitForTestsToConfigure();
+
+      //
+      // Set up and start the FED crate
+      //
+      try{
+	startFED( true );
+      } catch( xcept::Exception &e ){
+	XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to start the FED system.", e );
+      }
       //
       // Enable all Tester apps
       //
@@ -693,6 +712,7 @@ bool emu::step::Manager::waitForDAQToExecute( const string command, const uint64
   emu::soap::Messenger m( this );
   xdata::String  daqState;
   for ( uint64_t i=0; i<=seconds; ++i ){
+    if ( fsm_.getCurrentState() == 'H' || fsm_.getCurrentState() == 'F' ) return true; // Get out of here if we've been stopped in the meantime.
     m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "daqState", &daqState ) );
     if ( daqState.toString() == "Failed" ){
       LOG4CPLUS_ERROR( logger_, "Local DAQ is in 'Failed' state. Please destroy and recreate local DAQ." );
@@ -710,9 +730,37 @@ bool emu::step::Manager::waitForDAQToExecute( const string command, const uint64
 }
 
 
+void emu::step::Manager::waitForTestsToConfigure(){
+  emu::soap::Messenger m( this );
+  while ( fsm_.getCurrentState() != 'H' && fsm_.getCurrentState() != 'F' ){
+    bool allConfigured = true;
+    // Query the Tester apps
+    map<string,pair<double,string> > groupsProgress; // group -> ( progress, message )
+    for ( map<string,xdaq::ApplicationDescriptor*>::iterator app = testerDescriptors_.begin(); app != testerDescriptors_.end(); ++app ){
+      xdata::String  reasonForFailure;
+      xdata::Double  progress;
+      xdata::Boolean testConfigured;
+      m.getParameters( app->second, 
+		       emu::soap::Parameters()
+		       .add( "reasonForFailure", &reasonForFailure    ) // empty if not in failed state
+		       .add( "progress"        , &progress            )
+		       .add( "testConfigured"  , &testConfigured      ) );
+      groupsProgress[app->first] = make_pair<double,string>( progress , reasonForFailure );
+      if ( reasonForFailure.toString().size() > 0 ) allConfigured &= true;
+      else                                          allConfigured &= (bool) testConfigured;
+      LOG4CPLUS_INFO( logger_, app->first << ( (bool)testConfigured ? " is configured." : " is not yet configured." ) );
+      if ( testConfigured ){ LOG4CPLUS_INFO( logger_, app->first << " is configured."); }
+    }
+    //cout << groupsProgress << endl;
+    configuration_->setTestProgress( groupsProgress );
+    if ( allConfigured ) { return; }
+    ::sleep( 1 );
+  }
+}
+
 void emu::step::Manager::waitForTestsToFinish( const bool isTestDurationUndefined ){
   emu::soap::Messenger m( this );
-  while ( fsm_.getCurrentState() != 'H' ){
+  while ( fsm_.getCurrentState() != 'H' && fsm_.getCurrentState() != 'F' ){
     updateDataFileNames();
     bool allFinished = true;
     if ( isTestDurationUndefined ){
