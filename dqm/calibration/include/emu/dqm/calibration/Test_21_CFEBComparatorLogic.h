@@ -24,6 +24,8 @@ public:
   Test_21_CFEBComparatorLogic(std::string datafile);
   ~Test_21_CFEBComparatorLogic();
   
+  void analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
+  
 protected:
 
   void initCSC(std::string cscID);

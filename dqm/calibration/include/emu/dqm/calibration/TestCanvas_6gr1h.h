@@ -171,7 +171,7 @@ public:
   void SetXTitle (std::string);                        ///< Set x-title of graphs (see canvas layout above)
   void SetYTitle (std::string);                        ///< Set y-title of graphs (see canvas layout above)
   // void SetLimits(Double_t,Double_t,Double_t,Double_t,Double_t h0lim2 = 0, Double_t h1lim2 = 0); ///< Set performance range limits
-  void SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t highLimit,Double_t highHighLimit,Double_t highLimit2=0,Double_t highHighLimit2=0);
+  void SetLimits(Double_t,Double_t,Double_t,Double_t,Double_t,Double_t);
   std::vector<Double_t>GetLimits();
   void AddTextTest (std::string);                      ///< Add test name to text box
   void AddTextResult (std::string);                    ///< Add result name to text box

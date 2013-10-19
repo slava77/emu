@@ -535,7 +535,7 @@ void Test_AFEB07::finishCSC(std::string cscID)
           if (c_itr != cnvs.end() )
             {
               TestCanvas_6gr1h* cnv = dynamic_cast<TestCanvas_6gr1h*>(c_itr->second);
-              if (cnv != NULL) cnv->SetLimits(intercept_lower_limit-5, intercept_lower_limit, intercept_upper_limit, intercept_upper_limit+5);
+              if (cnv != NULL) cnv->SetLimits(intercept_lower_limit-5, intercept_lower_limit, intercept_upper_limit, intercept_upper_limit+5,0,0);
             }
 
 

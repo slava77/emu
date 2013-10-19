@@ -389,7 +389,7 @@ void TestCanvas_6gr1h::AddTextLimits (std::string text)
 
 }
 
-void TestCanvas_6gr1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t highLimit,Double_t highHighLimit,Double_t highLimit2, Double_t highHighLimit2)
+void TestCanvas_6gr1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t highLimit,Double_t highHighLimit,Double_t highLimit2=0,Double_t highHighLimit2=0)
 {
 
   theLowLimit = lowLimit;
@@ -437,7 +437,8 @@ std::vector<Double_t> TestCanvas_6gr1h::GetLimits()
 
 int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
 {
-  Double_t fX[NBINS], fY[NBINS];
+  // Double_t fX[NBINS], fY[NBINS];
+  Double_t fX[TEST_DATA2D_NBINS], fY[TEST_DATA2D_NBINS];
   int fQualityTest = 1;
   int fNOutOfLimits = 0;
 
@@ -449,8 +450,8 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
   int fNbin;
   
   double theYupBoth, theHighLimitBoth, theHighHighLimitBoth;
- 
-  for (fNlayer = 0; fNlayer < data.Nlayers; fNlayer++)
+
+  for (int fNlayer = 0; fNlayer < data.Nlayers; fNlayer++)
   {
   
       if(cnvType == "mwires_cnv" && fNlayer == 0 && theYup2 > 0) {
@@ -466,9 +467,8 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask)
     for (fNbin = 0; fNbin < data.Nbins; fNbin++)
     {
       fX[fNbin] = fNbin;
+      //std::cout << "in TestCanvas6gr1h " << fNlayer << "/" << data.Nlayers << " " << fNbin << "/" << data.Nbins << " " << std::endl;
       fY[fNbin] = data.content[fNlayer][fNbin];
-
-      // if (fY[fNbin] == -999.) continue;
       
 		
       if (mask.content[fNlayer][fNbin] == 0)

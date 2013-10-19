@@ -43,7 +43,6 @@ void Test_21_CFEBComparatorLogic::initCSC(std::string cscID)
   //isME11() in emu::dqm::utils uses cscID.find("ME+1/1")
   // instead of cscID.find("ME+1.1") so it doesn't work
   bool isME11 = (this->isME11(cscID) || emu::dqm::utils::isME11(cscID));
-
   int n_TMB_DCFEBs = getNumCFEBs(cscID); 
   if (isME11 && n_ME11_TMB_DCFEBs > 0 )
     {
@@ -109,6 +108,46 @@ void Test_21_CFEBComparatorLogic::initCSC(std::string cscID)
   bookTestsForCSC(cscID);
 }
 
+void Test_21_CFEBComparatorLogic::analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber)
+{
+
+  nTotalEvents++;
+
+  //= Examiner checks
+  const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
+  bin_checker.setMask( binCheckMask);
+  if ( bin_checker.check(tmp,dataSize/sizeof(short)) < 0 )
+    {
+      //   No ddu trailer found - force checker to summarize errors by adding artificial trailer
+      const uint16_t dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
+      tmp = dduTrailer;
+      bin_checker.check(tmp,uint32_t(4));
+    }
+
+  if (bin_checker.errors() != 0)
+    {
+      //doBinCheck();
+      //return;
+    }
+
+  CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
+  dduData.setDebug(false);
+  dduData.setErrorMask(0xFFFF);
+
+  std::vector<CSCEventData> chamberDatas;
+  chamberDatas = dduData.cscData();
+  CSCDDUHeader dduHeader  = dduData.header();
+
+  int nCSCs = chamberDatas.size();
+
+  for (std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin();
+       chamberDataItr != chamberDatas.end(); ++chamberDataItr)
+  {
+    analyzeCSC(*chamberDataItr);
+  }
+
+}
+
 void Test_21_CFEBComparatorLogic::analyzeCSC(const CSCEventData& data)
 {
   
@@ -118,13 +157,10 @@ void Test_21_CFEBComparatorLogic::analyzeCSC(const CSCEventData& data)
     {
       return;
     }
-  
   int csctype=0, cscposition=0;
   std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
   if (cscID == "")  return;
   
-
-
   cscTestData::iterator td_itr = tdata.find(cscID);
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) )
     {
@@ -141,7 +177,6 @@ void Test_21_CFEBComparatorLogic::analyzeCSC(const CSCEventData& data)
   
   nCSCEvents[cscID]++;
   
-
   int NCFEBs = getNumCFEBs(cscID);
   if ((this->isME11(cscID) || emu::dqm::utils::isME11(cscID)) && n_ME11_TMB_DCFEBs > 0 )
     {
