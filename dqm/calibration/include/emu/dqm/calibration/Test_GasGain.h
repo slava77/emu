@@ -33,6 +33,11 @@ protected:
   TH1F* hist_truncated(TH1F* hist,float ratio);
 
 
+  static const unsigned int Nbins_wires;
+  static const unsigned int Nbins_strips;
+  static const unsigned int NStrips_per_CFEB;
+  static const unsigned int NLayer;
+  static const unsigned int nsegments;
   std::map<std::string, uint32_t> l1a_cntrs;
   //std::map<std::string, test_step> test_steps;
   std::map<int, int> dduL1A;

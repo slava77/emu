@@ -55,7 +55,6 @@ void Test_CFEB02::initCSC(std::string cscID)
   {
     cscdata["_MASK"]=cfebdata;
   }
-
   for (int i=0; i<TEST_DATA2D_NLAYERS; i++)
     for (int j=0; j<TEST_DATA2D_NBINS; j++) cfebdata.content[i][j]=0.;
 
@@ -169,7 +168,7 @@ void Test_CFEB02::initCSC(std::string cscID)
 
 void Test_CFEB02::analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber)
 {
-
+  
   nTotalEvents++;
 
   //= Examiner checks
@@ -212,7 +211,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
 {
 
   int conv_blk[16]= {0,1,2,3,4,5,6,7,8,8,9,9,10,10,11,11}; // Mapping of SCA blocks
-
+  
   const CSCDMBHeader* dmbHeader = data.dmbHeader();
   const CSCDMBTrailer* dmbTrailer = data.dmbTrailer();
   if (!dmbHeader && !dmbTrailer)
@@ -662,7 +661,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
 
       CSCMapItem::MapItem mapitem = cratemap->item(id);
       int first_strip_index=mapitem.stripIndex;
-      int strips_per_layer=mapitem.strips;
+      int strips_per_layer=getNumStrips(cscID);
 
       // int strips_per_layer = getNumStrips(cscID);
       double rms = 0.;
