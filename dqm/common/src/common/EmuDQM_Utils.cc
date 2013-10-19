@@ -53,6 +53,8 @@ int getNumStrips(std::string cscID)
 {
   if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )
       || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") == 0 )) return 64;
+  else if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
+      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0 )) return 112;
   else return 80;
 }
 
@@ -60,6 +62,8 @@ int getNumCFEBs(std::string cscID)
 {
   if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )
       || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0 )) return 4;
+  else if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
+      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) return 7;
   else return 5;
 }
 
@@ -141,7 +145,8 @@ int getHVSegmentNumber(std::string cscID, uint32_t aseg)
 
 bool isME11(std::string cscID)
 {
-  if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )) {
+  if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 ) 
+   || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) {
     return true;
   } else return false;
 }
