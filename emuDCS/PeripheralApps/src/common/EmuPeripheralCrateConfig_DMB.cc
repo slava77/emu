@@ -978,7 +978,7 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
   *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "Program EPROM - All CFEBs") << std::endl;
+    .set("value", "Broadcast Program EPROM - All CFEBs") << std::endl;
   *out << cgicc::form() << FirmwareDir_+"cfeb/me11_dcfeb.mcs" << cgicc::br() << cgicc::hr() << std::endl;
   
   std::string CFEBprogfpga =
@@ -1233,7 +1233,7 @@ void EmuPeripheralCrateConfig::DCFEBProgramEpromAll(xgi::Input * in, xgi::Output
 
      std::vector<CFEB> cfebs = thisDMB->cfebs() ;
      std::string mcsfile= FirmwareDir_+ "cfeb/me11_dcfeb.mcs";
-
+/*
      for(uint icfeb=0; icfeb<cfebs.size(); ++icfeb){
        std::cout << getLocalDateTime() << " DCFEB program EPROM on DMB " << dmb << " CFEB " << cfebs[icfeb].number()+1 << std::endl;
        std::cout << "Use mcs file: " << mcsfile << std::endl;
@@ -1242,6 +1242,13 @@ void EmuPeripheralCrateConfig::DCFEBProgramEpromAll(xgi::Input * in, xgi::Output
        
        std::cout << getLocalDateTime() << " DCFEB program EPROM finished." << std::endl;
      }
+*/
+       std::cout << getLocalDateTime() << " Program all DCFEB EPROMs via broadcast on DMB " << dmb << std::endl;
+       std::cout << "Use mcs file: " << mcsfile << std::endl;
+       
+       thisDMB->dcfeb_program_eprom(cfebs[0], mcsfile.c_str(), 1); // broadcast
+       std::cout << getLocalDateTime() << " DCFEB program EPROM finished." << std::endl;
+     
      this->CFEBUtils(in,out);                    
 }
   
@@ -2633,7 +2640,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
      *out << cgicc::td() << " FPGA  temperature = " << adcs[0] << "C " << cgicc::td();      
      *out << cgicc::td() << " PCB temperature 1 = " << adcs[6] << "C " << cgicc::td();      
      *out << cgicc::td() << " PCB temperature 2 = " << adcs[3] << "C " << cgicc::td();      
-     *out << cgicc::table() << cgicc::br() << std::endl;
+     *out << cgicc::tr() << cgicc::table() << cgicc::br() << std::endl;
 
      *out << cgicc::table().set("border","1").set("cellpadding","4");
      *out << cgicc::tr();
