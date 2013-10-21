@@ -8201,7 +8201,7 @@ void DAQMB::dcfeb_readreg_wbstarvirtex6(CFEB& cfeb)
   return;
 }
 
-void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
+void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
 {
    unsigned int fulladdr;
    unsigned int uaddr,laddr;
@@ -8237,7 +8237,11 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile)
        return;
    }
 
+   if(broadcast)
+      write_cfeb_selector(0x7F);   // broadcast to all DCFEBs
+   else
       write_cfeb_selector(cfeb.SelectorBit());
+
       dcfeb_bpi_reset();
       dcfeb_bpi_enable();
       dcfebprom_timerstop();
