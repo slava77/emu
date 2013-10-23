@@ -5,6 +5,7 @@
 #include "emu/utils/DOM.h"
 #include "emu/utils/String.h"
 #include "emu/utils/System.h"
+#include "emu/utils/Chamber.h"
 
 #include "toolbox/task/WorkLoopFactory.h"
 #include "xcept/tools.h"
@@ -112,12 +113,12 @@ void emu::step::Tester::createChamberMaps( const string& selectedVMESettingsXML 
   chamberMaps_.clear();
 
   // Look for a DDU in each crate to see if we're running on a test stand. If not, don't fill chamberMaps, it won't be needed.
-  vector< pair< string, string > > dduSlots( utils::getSelectedNodesValues( selectedVMESettingsXML, "//PeripheralCrate/DDU/@slot" ) );
-  for ( vector< pair< string, string > >::const_iterator d = dduSlots.begin(); d != dduSlots.end(); ++d ){
-    if ( d->second.size() == 0 ){
-      LOG4CPLUS_WARN( logger_, "A selected peripheral crate contains no DDU therefore no chamber mapping will be created for group " + group_.toString() );
-      return;
-    }
+  vector< pair< string, string > > cratesWithNoDDU( utils::getSelectedNodesValues( selectedVMESettingsXML, "//PeripheralCrate[not(DDU)]/@label" ) );
+  if ( cratesWithNoDDU.size() > 0 ){
+    ostringstream oss;
+    oss << cratesWithNoDDU;
+    LOG4CPLUS_INFO( logger_, "No special chamber maps will be created as in group " + group_.toString() + " the following crates have no DDU: " + oss.str() );
+    return; // Chamber maps will be empty, the canonical mapping should be used instead in the analysis.
   }
 
   // Get the chamber labels
@@ -126,7 +127,7 @@ void emu::step::Tester::createChamberMaps( const string& selectedVMESettingsXML 
   // For each chamber label, get the corresponding DMB slot and crate id
   for ( vector< pair< string, string > >::const_iterator l = labels.begin(); l != labels.end(); ++l ){
     xdata::Bag<ChamberMap> map;
-    map.bag.chamberLabel_ = l->second; // l->first is the node name, l->second the node value
+    map.bag.chamberLabel_ = emu::utils::Chamber( l->second ).name(); // l->first is the node name, l->second the node value
     map.bag.dmbSlot_      = utils::getSelectedNodeValue( selectedVMESettingsXML, "//PeripheralCrate/CSC[@label='" + l->second + "']/DAQMB/@slot" );
     map.bag.crateId_      = utils::getSelectedNodeValue( selectedVMESettingsXML, "//PeripheralCrate[CSC/@label='" + l->second + "']/@crateID" );
     chamberMaps_.push_back( map );
