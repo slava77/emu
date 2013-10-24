@@ -45,22 +45,22 @@ fi
 # Prepare CSC-mapping database
 #
 
+P5_DB_FILE=csc_map_P5.db
+DB_FILE=csc_map.db
+
 # If we have more than two arguments, those beyond the second one are mappings of the form 'crateId dmbSlot chamberLabel'
 if [[ $# -gt 2 ]]; then
 
     cd $DQMCONFIG
 
-    P5_DB_FILE=csc_map_P5.db
-    TESTSTAND_DB_FILE=csc_map.db
-
     [[ -e $P5_DB_FILE ]] || { print "*** Error: P5 db file $P5_DB_FILE not found. Exiting."; exit 1 }
 
-    [[ -e $TESTSTAND_DB_FILE ]] && { print "Removing old $DQMCONFIG/$TESTSTAND_DB_FILE"; rm $TESTSTAND_DB_FILE }
+    [[ -e $DB_FILE ]] && { print "Removing old $DQMCONFIG/$DB_FILE"; rm $DB_FILE }
 
     # Copy csc_map table definition from P5 db into test stand db
     # LIMIT 0 prevents the records from being copied in sqlite3 3.7.13. It prevents the table from being created altogether in sqlite3 v3.3.6 ...
-    # sqlite3 -line $TESTSTAND_DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; CREATE TABLE main.csc_map AS SELECT * FROM P5.csc_map LIMIT 0;"
-    sqlite3 -line $TESTSTAND_DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; CREATE TABLE main.csc_map AS SELECT * FROM P5.csc_map WHERE chamberLabel='nonexistent';"
+    # sqlite3 -line $DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; CREATE TABLE main.csc_map AS SELECT * FROM P5.csc_map LIMIT 0;"
+    sqlite3 -line $DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; CREATE TABLE main.csc_map AS SELECT * FROM P5.csc_map WHERE chamberLabel='nonexistent';"
 
     # DMB slot --> DMB id associative array
     typeset -A dmbSlotToId 
@@ -94,9 +94,9 @@ if [[ $# -gt 2 ]]; then
 
 	    print "Canonical chamber label ${(qq)CHAMBER} is added to test stand mapping db."
 	    # Copy this chamber's row from the P5 CSC mapping db
-	    sqlite3 -line $TESTSTAND_DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; INSERT INTO main.csc_map SELECT * FROM P5.csc_map WHERE chamberLabel=${(qq)CHAMBER};"
+	    sqlite3 -line $DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; INSERT INTO main.csc_map SELECT * FROM P5.csc_map WHERE chamberLabel=${(qq)CHAMBER};"
 	    # Change the crate id, csc id, csc index and DMB id to those of the test stand in order for the analysis program to know to what chamber the data containing these ids belong to
-	    sqlite3 -line $TESTSTAND_DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, cscid=${(qq)CSCID}, dmb=${(qq)DMB}, cscIndex=${(qq)$(( 10*$CRATEID+$CSCID ))} WHERE chamberLabel=${(qq)CHAMBER};"
+	    sqlite3 -line $DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, cscid=${(qq)CSCID}, dmb=${(qq)DMB}, cscIndex=${(qq)$(( 10*$CRATEID+$CSCID ))} WHERE chamberLabel=${(qq)CHAMBER};"
 	    ;;
 
 
@@ -105,9 +105,9 @@ if [[ $# -gt 2 ]]; then
 	    print "Non-canonical chamber label ${(qq)CHAMBER} is added to test stand mapping db."
 	    # Copy from the P5 CSC mapping db a row that corresponds to an existing chamber in this ring (say, chamber 01)
 	    EXISTINGCHAMBER="${CHAMBER[1,7]}01"
-	    sqlite3 -line $TESTSTAND_DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; INSERT INTO main.csc_map SELECT * FROM P5.csc_map WHERE chamberLabel=${(qq)EXISTINGCHAMBER};"
+	    sqlite3 -line $DB_FILE "ATTACH ${(qq)P5_DB_FILE} AS P5; INSERT INTO main.csc_map SELECT * FROM P5.csc_map WHERE chamberLabel=${(qq)EXISTINGCHAMBER};"
 	    # Change the crate id, csc id, csc index and DMB id to those of the test stand in order for the analysis program to know to what chamber the data containing these ids belong to. Change the chamber label, too (to the dummy one).
-	    sqlite3 -line $TESTSTAND_DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, cscid=${(qq)CSCID}, dmb=${(qq)DMB}, cscIndex=${(qq)$(( 10*$CRATEID+$CSCID ))}, chamberLabel=${(qq)CHAMBER} WHERE chamberLabel=${(qq)EXISTINGCHAMBER};"
+	    sqlite3 -line $DB_FILE "UPDATE csc_map SET crateid=${(qq)CRATEID}, cscid=${(qq)CSCID}, dmb=${(qq)DMB}, cscIndex=${(qq)$(( 10*$CRATEID+$CSCID ))}, chamberLabel=${(qq)CHAMBER} WHERE chamberLabel=${(qq)EXISTINGCHAMBER};"
 	    ;;
 
 
@@ -121,6 +121,9 @@ if [[ $# -gt 2 ]]; then
 	esac
     done
 
+else
+    # No explicit chamber mappings specified. Use the canonical one of P5.
+    [[ -e $P5_DB_FILE ]] && cp $P5_DB_FILE $DB_FILE
 fi
 
 
