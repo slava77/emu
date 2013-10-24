@@ -10,7 +10,7 @@ include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 PACKAGE_VER_MAJOR=04
 PACKAGE_VER_MINOR=00
-PACKAGE_VER_PATCH=00
+PACKAGE_VER_PATCH=01
 
 #
 # Packages to be built
