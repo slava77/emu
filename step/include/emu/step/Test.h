@@ -20,6 +20,18 @@ namespace emu{
   namespace step{
 
     enum ODMBMode_t { ODMBNormalMode, ODMBPedestalMode, ODMBCalibrationMode };
+    enum ODMBInputKill_t { kill_None   = 0x0000,
+			   kill_DCFEB1 = 0x0001, 
+			   kill_DCFEB2 = 0x0002, 
+			   kill_DCFEB3 = 0x0004, 
+			   kill_DCFEB4 = 0x0008, 
+			   kill_DCFEB5 = 0x0010, 
+			   kill_DCFEB6 = 0x0020, 
+			   kill_DCFEB7 = 0x0040, 
+			   kill_TMB    = 0x0080,
+			   kill_ALCT   = 0x0100, 
+                           kill_DCFEBs = 0x007f,
+			   kill_All    = 0x01ff };
 
 
     class Test : public TestParameters {
@@ -116,8 +128,6 @@ namespace emu{
 
       emu::pc::XMLParser   parser_;
       emu::utils::Progress progress_; ///< Progress counter.
-      // void ( emu::step::Test::* configureProcedure_ )();
-      // void ( emu::step::Test::* enableProcedure_ )();
 
       void ( emu::step::Test::* getProcedure( const string& testId, State_t state ) )(); 
       void createEndcap( const string& generalSettingsXML,
@@ -128,7 +138,7 @@ namespace emu{
       string withoutChars( const string& chars, const string& str );
       void disableTrigger();
       void setUpDMB( emu::pc::DAQMB *dmb );
-      void setUpODMBPulsing( emu::pc::DAQMB *dmb, emu::step::ODMBMode_t mode );
+      void setUpODMBPulsing( emu::pc::DAQMB *dmb, ODMBMode_t mode, ODMBInputKill_t killInput );
       void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const short int depth = pipelineDepthFromXML );
       void turnONlvDCFEBandALCT( emu::pc::Crate* crate );
       void configureODMB( emu::pc::Crate* crate );

@@ -319,7 +319,7 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 
 }
 
-void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, emu::step::ODMBMode_t mode ){
+void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, ODMBMode_t mode, ODMBInputKill_t killInput ){
   if( dmb->GetHardwareVersion() < 2 ) return;
 
   int slot_number  = dmb->slot();
@@ -336,8 +336,8 @@ void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, emu::step::ODMBMode
   // Set OTMB_DLY  
   irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-  // Kill No Boards test 19
-  irdwr = 3; addr = (0x00401c) | slot_number<<19; data = 0x0100;
+  // Kill ODMB inputs
+  irdwr = 3; addr = (0x00401c) | slot_number<<19; data = killInput;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
   //  Set LCT_L1A_DLY
   irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x001a;
@@ -457,13 +457,8 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       usleep(300000);
   
-//       // Reprogram All DCFEBs
-//       irdwr = 3; addr = 0x003010 | (slot_number<<19); data = 0x0001;      
-//       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-//       sleep(1);
-
       // Kill No Boards
-      irdwr = 3; addr = (0x00401c) | slot_number<<19; data = 0x0000;
+      irdwr = 3; addr = (0x00401c) | slot_number<<19; data = kill_None;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       
       //  Set LCT_L1A_DLY
@@ -1015,7 +1010,7 @@ void emu::step::Test::configure_15(){ // OK
 	  // all cfebs active	 
 	  irdwr = 3;
 	  addr = (0x00401c)| slot_number<<19;	
-	  data = 0x0180;			
+	  data = kill_ALCT | kill_TMB;			
 	  (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	  // set ODMB to PEDESTAL mode
 	  irdwr = 3;
@@ -1152,7 +1147,7 @@ void emu::step::Test::configure_16(){
 	// all cfebs active	 
 	irdwr = 3;
 	addr = (0x00401c)| slot_number<<19;	
-	data = 0x0180;			
+	data = kill_ALCT | kill_TMB;			
 	(*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	// set ODMB to PEDESTAL mode
 	irdwr = 3;
@@ -1341,8 +1336,8 @@ void emu::step::Test::configure_17(){ // OK
 
       setUpDMB( *dmb );
 
-      setUpODMBPulsing( *dmb, emu::step::ODMBCalibrationMode );
-
+      setUpODMBPulsing( *dmb, ODMBCalibrationMode, ODMBInputKill_t( kill_ALCT | kill_TMB ) );
+      
       if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	float ComparatorThresholds = (*dmb)->GetCompThresh();
 	(*dmb)->set_comp_thresh(ComparatorThresholds);
@@ -1531,7 +1526,7 @@ void emu::step::Test::configure_17b(){ // OK
 
       setUpDMB( *dmb );
 
-      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode );
+      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode, kill_ALCT );
       
       if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	float ComparatorThresholds = (*dmb)->GetCompThresh();
@@ -1737,7 +1732,7 @@ void emu::step::Test::configure_19(){
         tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
       }
 
-      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode );
+      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode, kill_ALCT );
 
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
     
@@ -1924,7 +1919,7 @@ void emu::step::Test::configure_21(){
 
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 
-      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode );
+      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode, kill_ALCT );
 
       (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 4095., 0 ); // set inject amplitude - first parameter (same for the entire test)
       (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test)
