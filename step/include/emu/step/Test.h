@@ -18,6 +18,10 @@ using namespace std;
 
 namespace emu{
   namespace step{
+
+    enum ODMBMode_t { ODMBNormalMode, ODMBPedestalMode, ODMBCalibrationMode };
+
+
     class Test : public TestParameters {
 
     public:
@@ -122,13 +126,14 @@ namespace emu{
       void setUpDDU(emu::pc::Crate*);
       void configureCrates();
       string withoutChars( const string& chars, const string& str );
-      void enableTrigger();
       void disableTrigger();
       void setUpDMB( emu::pc::DAQMB *dmb );
-      void setUpODMBPulsing( emu::pc::DAQMB *dmb );
+      void setUpODMBPulsing( emu::pc::DAQMB *dmb, emu::step::ODMBMode_t mode );
       void setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const short int depth = pipelineDepthFromXML );
       void turnONlvDCFEBandALCT( emu::pc::Crate* crate );
       void configureODMB( emu::pc::Crate* crate );
+      void resyncDCFEBs(emu::pc::Crate* crate); ///< Temporary method until ODMB firmware takes care of it.
+      void hardResetOTMBs(emu::pc::Crate* crate); ///< hard-reset all OTMBs *only* (to clean the hot channel masks)
       void printDCFEBUserCodes( emu::pc::DAQMB* dmb );
       string getDataDirName() const;
       void configure_11();

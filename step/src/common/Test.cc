@@ -66,7 +66,6 @@ void emu::step::Test::configure(){
 }
 
 void emu::step::Test::enable(){
-  // enableTrigger(); moved to individual tests' configure
   ( this->*emu::step::Test::getProcedure( id_, emu::step::Test::forEnable_ ) )();
   disableTrigger();
 }
@@ -214,30 +213,10 @@ void emu::step::Test::configureCrates(){
       // Set up the DDU if and only if there's one in this crate. Includes a hard reset
       setUpDDU(*crate);
 
-      // Perform a Hard-Reset to all modules in the crate and ensure configuration is uploaded to eproms
-      // Only do this if there's no DDU in the PCrate. (If there is, the hard reset was issued in setUpDDU.)
-      if ( (*crate)->ddus().size() == 0 ){
-	if ( pLogger_ ){ 
-	  LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); 
-	}
+      hardResetOTMBs( *crate );
 
-	(*crate)->ccb()->HardReset_crate();
-	sleep( 2 );
-
-	// Make sure ODMB LV on-off registers are all on (their value is unpredictable after a hard reset)
-        turnONlvDCFEBandALCT(*crate);
-
-	// 	usleep(250000); // must be >200ms
-	sleep( 2 );
-      }
-
-      // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->HardReset_crate() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
-      //(*crate)->ccb()->HardReset_crate();
-      // Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
-      sleep( 1 );
-
-      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
-      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ) printDCFEBUserCodes( *dmb );
+//       vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+//       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ) printDCFEBUserCodes( *dmb );
 
       // Set ccb mode once more separately, as it is screwed up inside ccb->configure
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->setCCBMode( emu::pc::CCB::VMEFPGA ) in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
@@ -253,24 +232,6 @@ void emu::step::Test::configureCrates(){
 
 }
 
-void emu::step::Test::enableTrigger(){
-
-  // cout << "emu::step::Test::enableTrigger: Test " << id_ << " isFake_ = " << isFake_ << endl << flush;
-  if ( isFake_ ) return;
-
-  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
-  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    if ( (*crate)->IsAlive() ){
-	(*crate)->ccb()->l1aReset();
-	(*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
-	(*crate)->ccb()->bc0(); 
-    }
-    else{
-      XCEPT_RAISE( xcept::Exception, "Crate " + (*crate)->GetLabel() + " is dead or incommunicado." );
-    }
-  }
-
-}
 
 void emu::step::Test::disableTrigger(){
 
@@ -358,7 +319,7 @@ void emu::step::Test::setUpDMB( emu::pc::DAQMB *dmb ){
 
 }
 
-void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb ){
+void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, emu::step::ODMBMode_t mode ){
   if( dmb->GetHardwareVersion() < 2 ) return;
 
   int slot_number  = dmb->slot();
@@ -369,7 +330,8 @@ void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb ){
   // set ODMB to Pedestal mode
   irdwr = 3;
   addr = (0x003000)| slot_number<<19;
-  data = 0x2000;
+  if      ( mode == emu::step::ODMBPedestalMode )    data = 0x2000;
+  else if ( mode == emu::step::ODMBCalibrationMode ) data = 0x003f;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
   // Set OTMB_DLY  
   irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
@@ -391,6 +353,17 @@ void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const shor
 
   if ( dmb->cfebs().at( 0 ).GetHardwareVersion() != 2 ) return; // All CFEBs should have the same HW version; get it from the first.
 
+  if ( dmb->GetHardwareVersion() == 2) { // reprogram DCFEBs
+    char rcv[2];
+    unsigned int addr;
+    unsigned short int data;
+    int irdwr;
+    int slot = dmb->slot();
+    irdwr = 3; addr = 0x003010 | (slot<<19); data = 0x0001;      
+    dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+    usleep(300000);
+  }
+
   vector <emu::pc::CFEB> cfebs = dmb->cfebs();
   for( vector<emu::pc::CFEB>::reverse_iterator cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb){
 
@@ -403,9 +376,9 @@ void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const shor
     }
 
     dmb->dcfeb_set_PipelineDepth( *cfeb, pipelineDepth ); // set the pipeline depth
-    sleep( 1 );
+    usleep( 100000 );
     dmb->Pipeline_Restart( *cfeb ); // and then restart the pipeline
-    sleep( 1 );
+    usleep( 100000 );
 
     if(dmb->GetHardwareVersion() != 2){
       // set DCFEBs to behave like CFEBs and send data on any L1A, required when not using ODMB
@@ -414,12 +387,15 @@ void emu::step::Test::setAllDCFEBsPipelineDepth( emu::pc::DAQMB* dmb, const shor
 
     dmb->shift_all( NORM_RUN );
     dmb->buck_shift();
-    sleep( 2 );
+    usleep( 100000 );
+
+    if ( isToStop_ ) return;
   }
 
   if( dmb->getCrate() ){
     dmb->getCrate()->ccb()->l1aReset(); // need to do this after restarting DCFEB pipelines
-    usleep(100);
+    usleep(1000);
+    resyncDCFEBs( dmb->getCrate() ); // TODO: remove once firmware takes care of it
   }
 }
 
@@ -456,12 +432,6 @@ void emu::step::Test::turnONlvDCFEBandALCT(emu::pc::Crate* crate ) {
       (crate)->ccb()->HardReset_crate();
       sleep(3);
 
-      // (*dmb)->set_comp_thresh((*dmb)->GetCompThresh());
-      // sleep(1);
-
-      // setAllDCFEBsPipelineDepth(*dmb);
-      // sleep(1);
-
     } //  ODMB hv = 2
     
   } // loop daqmb
@@ -475,7 +445,7 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
   for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
     
     if( (*dmb)->GetHardwareVersion() == 2 ) {
-      int _slot_number  = (*dmb)->slot();
+      int slot_number  = (*dmb)->slot();
 
       char rcv[2];
       unsigned int addr;
@@ -483,39 +453,71 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
       int irdwr;
 
       // ODMB Reset
-      irdwr = 3; addr = (0x003000) | _slot_number<<19; data = 0x0100;
+      irdwr = 3; addr = (0x003000) | slot_number<<19; data = 0x0100;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-      usleep(10000000);
+      usleep(300000);
   
-      // Reprogram All DCFEBs
-      irdwr = 3; addr = 0x003010 | (_slot_number<<19); data = 0x0001;      
-      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-      sleep(1);
+//       // Reprogram All DCFEBs
+//       irdwr = 3; addr = 0x003010 | (slot_number<<19); data = 0x0001;      
+//       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+//       sleep(1);
 
       // Kill No Boards
-      irdwr = 3; addr = (0x00401c) | _slot_number<<19; data = 0x0000;
+      irdwr = 3; addr = (0x00401c) | slot_number<<19; data = 0x0000;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       
       //  Set LCT_L1A_DLY
-      irdwr = 3; addr = (0x004000)| _slot_number<<19; data = 0x001a;
+      irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x000d; // P5 // 0x001a; B904
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       
       // Set OTMB_DLY
-      irdwr = 3; addr = (0x004004)| _slot_number<<19; data = 0x0001;
+      irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       
       //    Set ALCT_DLY
-      irdwr = 3; addr = (0x00400c)| _slot_number<<19; data = 0x001e;
+      irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001e;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
       // ODMB configured to accept real triggers
-      irdwr = 3; addr = (0x003000)| _slot_number<<19; data = 0x0000;
+      irdwr = 3; addr = (0x003000)| slot_number<<19; data = 0x0000;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
     } // if( (*dmb)->GetHardwareVersion() == 2 )
   } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 } 
 
+void emu::step::Test::resyncDCFEBs(emu::pc::Crate* crate){
+  
+  char rcv[2];
+  unsigned int addr;
+  unsigned short int data;
+  int irdwr;
+  int slot_number;
+
+  vector<emu::pc::DAQMB *> dmbs = crate->daqmbs();
+  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+    if( (*dmb)->GetHardwareVersion() == 2 ) {
+      slot_number  = (*dmb)->slot();
+      // Resync ODMB and DCFEB L1A Counters
+      irdwr = 3; addr = 0x003010 | (slot_number<<19); data = 0x0002;
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      cout<<" Calling Resync "<<endl;
+    } // ODMB only
+  } // loop DMBs
+
+  usleep(1000);
+
+}
+
+void emu::step::Test::hardResetOTMBs(emu::pc::Crate* crate){
+  //hard-reset all OTMBs *only* (to clean the hot channel masks)
+  vector<emu::pc::TMB *> tmbs = crate->tmbs();
+  for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+    if ((*tmb)->GetHardwareVersion() == 2) {
+      (*tmb)->tmb_hard_reset_tmb_fpga();
+    }
+  }    
+}
 
 void emu::step::Test::printDCFEBUserCodes( emu::pc::DAQMB* dmb ){
   if ( dmb->cfebs().at( 0 ).GetHardwareVersion() != 2 ) return;  // All CFEBs should have the same HW version; get it from the first.
@@ -585,16 +587,21 @@ void emu::step::Test::configure_11(){
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
-    configureODMB( *crate ); 
-    usleep(1000);
-    (*crate)->ccb()->l1aReset();
-
     // Configure DCFEB.
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      usleep( 10000 );
       setAllDCFEBsPipelineDepth( *dmb );      
     } 
+
+    hardResetOTMBs( *crate );
+
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     if ( isToStop_ ) return;
   }
@@ -609,6 +616,8 @@ void emu::step::Test::enable_11(){
     (*crate)->ccb()->EnableL1aFromTmbL1aReq();
 
     (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
     (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
     (*crate)->ccb()->bc0(); 
 
@@ -673,6 +682,8 @@ void emu::step::Test::enable_12(){
     // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() ); }
 
     (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
     (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
     (*crate)->ccb()->bc0(); 
 
@@ -729,22 +740,25 @@ void emu::step::Test::configure_13(){
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
-    configureODMB( *crate ); 
-    usleep(1000);
-    (*crate)->ccb()->l1aReset();
-
-    (*crate)->ccb()->EnableL1aFromSyncAdb();
-
     // Configure DCFEB.  
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-      sleep(1);
+      usleep(10000);
       setAllDCFEBsPipelineDepth( *dmb );
-      sleep(1);
       if ( isToStop_ ) return;
     }
     
+    hardResetOTMBs( *crate );
+
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
+
+    (*crate)->ccb()->EnableL1aFromSyncAdb();
+
     (*crate)->ccb()->bc0(); // this may not be needed, should check
 
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
@@ -849,22 +863,25 @@ void emu::step::Test::configure_14(){
     // if ( (*crate)->IsAlive() ){
       // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
-      configureODMB( *crate ); 
-      usleep(1000);
-      (*crate)->ccb()->l1aReset();
-
-      (*crate)->ccb()->EnableL1aFromASyncAdb();
-      
       // Configure DCFEB.
       vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)
-	sleep(1);
+	usleep(10000);
 	setAllDCFEBsPipelineDepth( *dmb );  
-	sleep(1);
 	if ( isToStop_ ) return;
       } 
 
+      hardResetOTMBs( *crate );
+
+      configureODMB( *crate ); 
+      usleep(1000);
+      (*crate)->ccb()->l1aReset();
+      usleep(1000);
+      resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
+
+      (*crate)->ccb()->EnableL1aFromASyncAdb();
+      
       (*crate)->ccb()->bc0(); // this may not be needed, should check
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
@@ -969,16 +986,26 @@ void emu::step::Test::configure_15(){ // OK
     // if ( (*crate)->IsAlive() ){
     // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
+      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+      for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+ 	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+	usleep(10000);
+	setAllDCFEBsPipelineDepth( *dmb );
+      }
+
+      hardResetOTMBs( *crate );
+
       configureODMB( *crate ); 
       usleep(1000);
       (*crate)->ccb()->l1aReset();
+      usleep(1000);
+      resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
       // Configure DCFEB.
-      vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 
 	if( (*dmb)->GetHardwareVersion() == 2 ){
-	  int _slot_number  = (*dmb)->slot();
+	  int slot_number  = (*dmb)->slot();
           // the arguments for vme_controller //
 	  char rcv[2];
 	  unsigned int addr;
@@ -987,22 +1014,16 @@ void emu::step::Test::configure_15(){ // OK
 	  // kill alct/tmb
 	  // all cfebs active	 
 	  irdwr = 3;
-	  addr = (0x00401c)| _slot_number<<19;	
+	  addr = (0x00401c)| slot_number<<19;	
 	  data = 0x0180;			
 	  (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	  // set ODMB to PEDESTAL mode
 	  irdwr = 3;
-	  addr = (0x003000)| _slot_number<<19;
+	  addr = (0x003000)| slot_number<<19;
 	  data = 0x2000;
 	  (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	} // if( (*dmb)->GetHardwareVersion() == 2 )
 	sleep(1);
-
-	(*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-	sleep(2);
-
-	setAllDCFEBsPipelineDepth( *dmb );      
-	sleep(2);
 
 	if ( isToStop_ ) return;
       } 
@@ -1103,15 +1124,25 @@ void emu::step::Test::configure_16(){
   // Set pipeline depth for each DCFEB (HardwareVersion==2)
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      usleep(10000);
+      setAllDCFEBsPipelineDepth( *dmb );
+    }
+    
+    hardResetOTMBs( *crate );
+
     configureODMB( *crate ); 
     usleep(1000);
     (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       
       if( (*dmb)->GetHardwareVersion() == 2 ){
-	int _slot_number  = (*dmb)->slot();
+	int slot_number  = (*dmb)->slot();
 	// the arguments for vme_controller //
 	char rcv[2];
 	unsigned int addr;
@@ -1120,21 +1151,17 @@ void emu::step::Test::configure_16(){
 	// kill alct/tmb
 	// all cfebs active	 
 	irdwr = 3;
-	addr = (0x00401c)| _slot_number<<19;	
+	addr = (0x00401c)| slot_number<<19;	
 	data = 0x0180;			
 	(*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	// set ODMB to PEDESTAL mode
 	irdwr = 3;
-	addr = (0x003000)| _slot_number<<19;
+	addr = (0x003000)| slot_number<<19;
 	data = 0x2000;
 	(*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       } // if( (*dmb)->GetHardwareVersion() == 2 )
       sleep(1);
       
-      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-      sleep(2);
-
-      setAllDCFEBsPipelineDepth( *dmb );
     }
 
     (*crate)->ccb()->EnableL1aFromSyncAdb();
@@ -1276,9 +1303,18 @@ void emu::step::Test::configure_17(){ // OK
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      setAllDCFEBsPipelineDepth( *dmb );
+    }
+    
+    hardResetOTMBs( *crate );
+
     configureODMB( *crate ); 
     usleep(1000);
     (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
 
@@ -1287,8 +1323,6 @@ void emu::step::Test::configure_17(){ // OK
     (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
     
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
-
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
@@ -1307,16 +1341,13 @@ void emu::step::Test::configure_17(){ // OK
 
       setUpDMB( *dmb );
 
-      setUpODMBPulsing( *dmb );
+      setUpODMBPulsing( *dmb, emu::step::ODMBCalibrationMode );
 
       if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	float ComparatorThresholds = (*dmb)->GetCompThresh();
 	(*dmb)->set_comp_thresh(ComparatorThresholds);
 	usleep(100000);
       } 
-
-      // Set pipeline depth on DCFEBs
-      setAllDCFEBsPipelineDepth( *dmb );
 
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
 
@@ -1394,14 +1425,14 @@ void emu::step::Test::enable_17(){
 	    (*dmb)->set_cal_tim_pulse( timesetting ); // Change pulse delay on DMB FPGA
 	  }
 	  else if ( (*dmb)->GetHardwareVersion() == 2 ){
-	    int _slot_number  = (*dmb)->slot();
+	    int slot_number  = (*dmb)->slot();
 	    char rcv[2];
 	    unsigned int addr;
 	    unsigned short int data = timesetting;
 	    int irdwr;
 	    // set ODMB EXT_DLY
 	    irdwr = 3;
-	    addr = (0x004014)| _slot_number<<19;
+	    addr = (0x004014)| slot_number<<19;
 	    (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	    // (*crate)->ccb()->l1aReset();
 	    // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Resync after setting ODMB EXT_DLY" ); }
@@ -1462,9 +1493,18 @@ void emu::step::Test::configure_17b(){ // OK
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      setAllDCFEBsPipelineDepth( *dmb );
+    }
+    
+    hardResetOTMBs( *crate );
+
     configureODMB( *crate ); 
     usleep(1000);
     (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
 
@@ -1472,8 +1512,6 @@ void emu::step::Test::configure_17b(){ // OK
     uint64_t extTrigDelay = ( (*crate)->daqmbs().at(0)->GetHardwareVersion() == 2 ? ext_trig_delay_odmb : ext_trig_delay );
     (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
-
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
 
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 
@@ -1493,16 +1531,13 @@ void emu::step::Test::configure_17b(){ // OK
 
       setUpDMB( *dmb );
 
-      setUpODMBPulsing( *dmb );
+      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode );
       
       if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
 	float ComparatorThresholds = (*dmb)->GetCompThresh();
 	(*dmb)->set_comp_thresh(ComparatorThresholds);
 	usleep(100000);
       } 
-      
-      // Set pipeline depth on DCFEBs
-      setAllDCFEBsPipelineDepth( *dmb );
       
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
     
@@ -1653,9 +1688,18 @@ void emu::step::Test::configure_19(){
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      setAllDCFEBsPipelineDepth( *dmb );
+    }
+    
+    hardResetOTMBs( *crate );
+
     configureODMB( *crate ); 
     usleep(1000);
     (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     // CCB::EnableL1aFromDmbCfebCalibX sets these:
     // | bit | value | meaning                                                                                                     |
@@ -1686,8 +1730,6 @@ void emu::step::Test::configure_19(){
     (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
 
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
-
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
 
@@ -1695,10 +1737,7 @@ void emu::step::Test::configure_19(){
         tmb->EnableClctExtTrig(); // Allow CLCT external triggers from CCB
       }
 
-      setUpODMBPulsing( *dmb );
-
-      // Set pipeline depth on DCFEBs
-      setAllDCFEBsPipelineDepth( *dmb );
+      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode );
 
     } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
     
@@ -1863,9 +1902,18 @@ void emu::step::Test::configure_21(){
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      setAllDCFEBsPipelineDepth( *dmb );
+    }
+    
+    hardResetOTMBs( *crate );
+
     configureODMB( *crate ); 
     usleep(1000);
     (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     (*crate)->ccb()->EnableL1aFromDmbCfebCalibX();
 
@@ -1874,18 +1922,14 @@ void emu::step::Test::configure_21(){
     (*crate)->ccb()->SetExtTrigDelay( extTrigDelay ); // Delay of ALCT and CLCT external triggers before distribution to backplane      
     if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "ext_trig_delay set to " << extTrigDelay ); }
 
-    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
-
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 
-      setUpODMBPulsing( *dmb );
+      setUpODMBPulsing( *dmb, emu::step::ODMBPedestalMode );
 
       (*dmb)->set_dac( (float)dmb_test_pulse_amp * 5. / 4095., 0 ); // set inject amplitude - first parameter (same for the entire test)
       (*dmb)->set_comp_thresh( (float)cfeb_threshold / 1000. ); // set cfeb thresholds (for the entire test)
 
       if( (*dmb)->GetHardwareVersion() < 2 ) (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT
-
-      setAllDCFEBsPipelineDepth( *dmb );
 
       emu::pc::TMB* tmb = (*crate)->GetChamber( *dmb )->GetTMB();
       if (tmb) {
@@ -1986,16 +2030,21 @@ void emu::step::Test::configure_25(){
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
-    configureODMB( *crate ); 
-    usleep(1000);
-    (*crate)->ccb()->l1aReset();
-
     // Configure DCFEB.
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      usleep(10000);
       setAllDCFEBsPipelineDepth( *dmb );      
     } 
+
+    hardResetOTMBs( *crate );
+
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
 
@@ -2145,19 +2194,22 @@ void emu::step::Test::configure_27(){
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
-    configureODMB( *crate );
-    usleep(1000);
-    (*crate)->ccb()->l1aReset();
-
     // Configure DCFEB.
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();  
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
-      sleep(2);
+      usleep(10000);
       setAllDCFEBsPipelineDepth( *dmb );      
-      sleep(2);
       if ( isToStop_ ) return;
     } 
+
+    hardResetOTMBs( *crate );
+
+    configureODMB( *crate );
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     (*crate)->ccb()->EnableL1aFromTmbL1aReq();
 
