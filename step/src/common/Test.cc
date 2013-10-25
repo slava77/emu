@@ -470,11 +470,16 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       
       //    Set ALCT_DLY
-      irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001e;
+      irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001e; // ME+1/1/34
+//       irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001f; // ME+1/1/35
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
       // ODMB configured to accept real triggers
       irdwr = 3; addr = (0x003000)| slot_number<<19; data = 0x0000;
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+
+      // Temporary fix to explicitly set crate id in ODMB
+      irdwr = 3; addr = (0x004020)| slot_number<<19; data = crate->CrateID();
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
     } // if( (*dmb)->GetHardwareVersion() == 2 )
@@ -493,6 +498,10 @@ void emu::step::Test::resyncDCFEBs(emu::pc::Crate* crate){
   for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
     if( (*dmb)->GetHardwareVersion() == 2 ) {
       slot_number  = (*dmb)->slot();
+
+      unsigned int fw_version = (*dmb)->odmb_firmware_version();
+      if (fw_version >= 265) continue; // 265 == 0x0109
+
       // Resync ODMB and DCFEB L1A Counters
       irdwr = 3; addr = 0x003010 | (slot_number<<19); data = 0x0002;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
