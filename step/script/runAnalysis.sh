@@ -123,7 +123,7 @@ if [[ $# -gt 2 ]]; then
 
 else
     # No explicit chamber mappings specified. Use the canonical one of P5.
-    [[ -e $P5_DB_FILE ]] && cp $P5_DB_FILE $DB_FILE
+    [[ -e $DQMCONFIG/$P5_DB_FILE ]] && cp $DQMCONFIG/$P5_DB_FILE $DQMCONFIG/$DB_FILE
 fi
 
 
