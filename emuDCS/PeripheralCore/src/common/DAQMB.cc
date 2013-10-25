@@ -1523,7 +1523,7 @@ void DAQMB::set_dac(float volt0,float volt1)
 }
 
 
-void DAQMB::halfset(int icrd,int ipln,int ihalf,int chan[5][6][16])
+void DAQMB::halfset(int icrd,int ipln,int ihalf,int chan[7][6][16])
 {
 
    int ichan,iside;
@@ -1543,14 +1543,14 @@ void DAQMB::halfset(int icrd,int ipln,int ihalf,int chan[5][6][16])
 	 if(ichan-1<0&&icrd-1>=0)chan[icrd-1][ipln][15]=MEDIUM_CAP;	 
 	 if(ichan>=0&&ichan<=15)chan[icrd][ipln][ichan]=LARGE_CAP;	 
 	 if(ichan+1<=15)chan[icrd][ipln][ichan+1]=SMALL_CAP;
-	 if(ichan+1>15&&icrd+1<5)chan[icrd+1][ipln][0]=SMALL_CAP;
+	 if(ichan+1>15&&icrd+1<7)chan[icrd+1][ipln][0]=SMALL_CAP;
       }
       if(iside==1){
 	 if(ichan-1>=0)chan[icrd][ipln][ichan-1]=SMALL_CAP;
 	 if(ichan-1<0&&icrd-1>=0)chan[icrd-1][ipln][15]=SMALL_CAP;	 
 	 if(ichan>=0&&ichan<=15)chan[icrd][ipln][ichan]=LARGE_CAP;	 
 	 if(ichan+1<=15)chan[icrd][ipln][ichan+1]=MEDIUM_CAP;
-	 if(ichan+1>15&&icrd+1<5)chan[icrd+1][ipln][0]=MEDIUM_CAP;
+	 if(ichan+1>15&&icrd+1<7)chan[icrd+1][ipln][0]=MEDIUM_CAP;
       }
       //}
       //else {
@@ -1571,7 +1571,7 @@ void  DAQMB::halfset(int ifeb,int ipln,int ihalf)
       if(ichan>=0&&ichan<=15) shift_array[ifeb][ipln][ichan]=LARGE_CAP;
 
       if(ichan+1<=15) shift_array[ifeb][ipln][ichan+1]=SMALL_CAP;
-      if(ichan+1>15&&ifeb+1<5) shift_array[ifeb+1][ipln][0]=SMALL_CAP;
+      if(ichan+1>15&&ifeb+1<7) shift_array[ifeb+1][ipln][0]=SMALL_CAP;
     }
     if(iside==1){
       if(ichan-1>=0) shift_array[ifeb][ipln][ichan-1]=SMALL_CAP;
@@ -1580,7 +1580,7 @@ void  DAQMB::halfset(int ifeb,int ipln,int ihalf)
       if(ichan>=0&&ichan<=15) shift_array[ifeb][ipln][ichan]=LARGE_CAP;
 
       if(ichan+1<=15) shift_array[ifeb][ipln][ichan+1]=MEDIUM_CAP;
-      if(ichan+1>15&&ifeb+1<5) shift_array[ifeb+1][ipln][0]=MEDIUM_CAP;
+      if(ichan+1>15&&ifeb+1<7) shift_array[ifeb+1][ipln][0]=MEDIUM_CAP;
     }
   }
 
@@ -1595,8 +1595,8 @@ void DAQMB::trigsetx(int *hp, int CFEBInput)
   //
   int hs[6];
   int i,j,k;
-  int chan[5][6][16];
-  for(i=0;i<5;i++){
+  int chan[7][6][16];
+  for(i=0;i<7;i++){
     for(j=0;j<6;j++){
       for(k=0;k<16;k++){
         chan[i][j][k]=NORM_RUN;
@@ -7433,8 +7433,8 @@ void DAQMB::trighalfx(int ihalf)
 {
     int hs[6];
     int i,j,k,pln,crd;
-    int chan[5][6][16];
-    for(i=0;i<5;i++)
+    int chan[7][6][16];
+    for(i=0;i<7;i++)
     {
 		for(j=0;j<6;j++)
 		{
@@ -7449,14 +7449,14 @@ void DAQMB::trighalfx(int ihalf)
 		hs[i]=ihalf;
 		hs[i+1]=ihalf;
     }
-    for(crd=0;crd<5;crd++)
+    for(crd=0;crd<7;crd++)
     {
 		for(pln=0;pln<6;pln++)
 		{
 			halfset(crd,pln,hs[pln],chan);
 		}
     }
-    for(i=0;i<5;i++)
+    for(i=0;i<7;i++)
     {
 		for(j=0;j<6;j++)
 		{
@@ -9007,6 +9007,102 @@ void DAQMB::odmb_readfirmware_mcs(const char *filename)
    free(buf);
    std::cout << " Total " << FIRMWARE_SIZE << " bytes are read back from ODMB's EPROM and saved in mcs-format file: " << filename << std::endl;
    return;
+}
+
+void DAQMB::odmb_program_eprom(const char *mcsfile)
+{
+   unsigned int fulladdr;
+   unsigned int uaddr,laddr;
+   unsigned int i, blocks, lastblock;
+
+   const int FIRMWARE_SIZE=5464972/2; // in words
+
+   // each eprom block has 0x10000 words
+   const int BLOCK_SIZE=0x10000; // in words
+
+   // each write call takes 0x800 words
+   const int WRITE_SIZE=0x800;  // in words
+
+// 1. read mcs file
+   char *bufin;
+   bufin=(char *)malloc(16*1024*1024);
+   if(bufin==NULL)  return;
+   unsigned short *bufw= (unsigned short *)bufin;
+   FILE *fin=fopen(mcsfile,"r");
+   if(fin==NULL ) 
+   { 
+      free(bufin);  
+      std::cout << "ERROR: Unable to open MCS file :" << mcsfile << std::endl;
+      return; 
+   }
+   int mcssize=read_mcs(bufin, fin);
+   fclose(fin);
+   std::cout << "Read MCS size: " << mcssize << " bytes" << std::endl;
+   if(mcssize<FIRMWARE_SIZE)
+   {
+       std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
+       free(bufin);
+       return;
+   }
+
+      odmb_bpi_reset();
+      odmb_bpi_enable();
+      odmbeprom_timerstop();
+      odmbeprom_timerreset();
+      odmbeprom_timerstart();
+// 2. erase eprom
+   blocks=FIRMWARE_SIZE/BLOCK_SIZE;
+   if((FIRMWARE_SIZE%BLOCK_SIZE)>0) blocks++;
+   std::cout << "Erasing EPROM..." << std::endl;
+   for(i=0; i<blocks; i++)
+   {
+      uaddr=i;
+      laddr=0;
+
+      // printf(" eprom_load fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+      odmbeprom_loadaddress(uaddr,laddr);
+      // unlock and erase the block
+      odmbeprom_unlockerase();
+
+      udelay(1000000);
+   }
+
+// 3. write eprom
+   blocks=FIRMWARE_SIZE/WRITE_SIZE;
+   lastblock=FIRMWARE_SIZE%WRITE_SIZE;
+   int p1pct=blocks/100;
+   int j=0, pcnts=0;
+   if(lastblock>0) blocks++;
+   else lastblock=WRITE_SIZE;
+   std::cout << "Start programming EPROM..." << std::endl;
+   fulladdr=0;
+   for(i=0; i<blocks; i++)  
+   {
+      int nwords=WRITE_SIZE;
+      if(i==blocks-1) nwords=lastblock;
+      uaddr = (fulladdr >> 16);
+      laddr = fulladdr &0xffff;
+      // printf(" load address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+      odmbeprom_loadaddress(uaddr,laddr);
+      // program with new data from the beginning of the block
+      odmbeprom_bufferprogram(nwords,bufw+i*WRITE_SIZE);
+      udelay(120000);
+      fulladdr += 0x800;
+       j++;
+       if(j==p1pct)
+       {  pcnts++;
+          if(pcnts<100) std::cout << "Sending " << pcnts <<"%..." << std::endl;
+          j=0;
+       }   
+   }
+    std::cout << "Sending 100%..." << std::endl;
+   uaddr = (fulladdr >> 16);
+   laddr = fulladdr &0xffff;
+   // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+   odmbeprom_loadaddress(uaddr,laddr);
+   odmbeprom_lock();
+   odmb_bpi_disable();
+   free(bufin);
 }
 
 } // namespace emu::pc

@@ -353,6 +353,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTurnOn, "CFEBTurnOn");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCMask, "MPCMask");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBLoadFirmware, "DMBLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DMBReadFirmware, "DMBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmware, "DMBVmeLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBLoadFirmware, "CFEBLoadFirmware");
