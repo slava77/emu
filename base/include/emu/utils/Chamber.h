@@ -57,7 +57,7 @@ namespace emu { namespace utils {
 
 	/// Ctor from name (not necessarily the canonical one).
 	///
-	/// @param name Can be of any reasonable format, e.g., "MEm1.2.3" or "me-1_2_3" or the canonical "ME-1/2/3".
+	/// @param name Can be of any reasonable format, e.g., "MEm1.2.3" or "me-1_2_3" or the canonical "ME-1/2/03".
 	///
 	Chamber( const string& name );
 
@@ -72,7 +72,7 @@ namespace emu { namespace utils {
 	/// Get the canonical chamber name, i.e., ME[+-][1-4]/[1-3]/[0-3][0-9]
 	///
 	///
-	/// @return The canonical chamber name if it is a valid chamber, empty string otherwise.
+	/// @return The canonical chamber name if it is a valid chamber; empty string or the original name (if that was the argument of the ctor) otherwise.
 	///
 	string name() const { return name_; }
 

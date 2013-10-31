@@ -46,7 +46,8 @@ emu::utils::Chamber::Chamber( const string& name )
     ring_    = utils::stringTo<int>( matches[3] );
     chamber_ = utils::stringTo<int>( matches[4] );
   }
-  name_ = canonicalName();
+  if ( isValid() ) name_ = canonicalName();
+  else             name_ = name;
 }
 
 string emu::utils::Chamber::canonicalName() const {
