@@ -662,7 +662,8 @@ void emu::step::Test::enable_12(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_12 (parallel) starting" ); }
   
   const uint64_t nStrips = 6; // strips to scan, never changes
-  uint64_t events_per_strip = parameters_["events_per_strip"];
+  uint64_t events_per_strip    = parameters_["events_per_strip"];
+  uint64_t msec_between_pulses = parameters_["msec_between_pulses"];
   string pulseAmpNameBase( "alct_test_pulse_amp_" );
   ostream noBuffer( NULL );
 
@@ -721,7 +722,7 @@ void emu::step::Test::enable_12(){
 	}
 	if ( isToStop_ ) return;
 	// Need to slow down otherwise ALCT data will be missing in some events:
-	usleep(1000);
+	usleep( 1000 + 1000*msec_between_pulses );
       }
       (*crate)->ccb()->RedirectOutput( &cout ); // get back ccb output
 	  
