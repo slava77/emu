@@ -25,6 +25,7 @@
         <alct_test_pulse_amp_32>        30          </alct_test_pulse_amp_32>
         <alct_test_pulse_amp_42>        30          </alct_test_pulse_amp_42>
         <!--add more alct_test_pulse_amp_XX items where XX is chamber type-->
+	<msec_between_pulses>   0    </msec_between_pulses>
         <description>AFEB Connectivity and Crosstalk</description>
   </test_config>
   
