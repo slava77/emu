@@ -4572,14 +4572,14 @@ void TMB::ADCvoltages(float * voltage){
   //
   //Read the ADC of the voltage values ->
   //voltage[0] = +5.0V TMB
-  //       [1] = +3.3V TMB
+  //       [1] = +3.3V TMB; for 2013 OTMB baseboard, this is "MEZ +3.3V"
   //       [2] = +1.5V core
   //       [3] = +1.5V TT
   //       [4] = +1.0V TT
   //       [5] = +5.0V Current (A) TMB
   //       [6] = +3.3V Current (A) TMB
   //       [7] = +1.5V core Current (A) TMB
-  //       [8] = +1.5V TT Current (A) TMB
+  //       [8] = +1.5V TT Current (A) TMB; for 2013 OTMB baseboard, this is "TMB+RAT 3.3V"
   //       [9] = if SH921 set 1-2, +1.8V RAT current (A)
   //           = if SH921 set 2-3, +3.3V RAT
   //      [10] = +1.8V RAT core
