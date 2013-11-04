@@ -98,46 +98,66 @@ void emu::step::Manager::startFED( bool inPassthroughMode ){
     LOG4CPLUS_INFO( logger_, "Found " << apps.size() << " emu::fed::Communicator application(s)." );
   }
 
-  // Get the FED settings file names
-  set<string> fedSettingsFileNames;
-  emu::soap::Messenger m( this );
-  for ( set<xdaq::ApplicationDescriptor*>::iterator app = apps.begin(); app != apps.end(); ++app ) {
-    xdata::String xmlFileName;
-    m.getParameters( *app, emu::soap::Parameters().add( "xmlFileName", &xmlFileName ) );
-    fedSettingsFileNames.insert( xmlFileName.toString() );
-    LOG4CPLUS_INFO( logger_, "Found " << (*app)->getClassName() << " of instance " << (*app)->getInstance() << " with settings in " << xmlFileName.toString() );
-  }
-
-  // Build XPath expression to unkill tested chambers' fibers in the FED settings files
-  xdata::Vector<xdata::String> chamberLabels = configuration_->getChamberLabels();
-  for ( set<string>::iterator fn = fedSettingsFileNames.begin(); fn != fedSettingsFileNames.end(); ++fn ) {
-    string fedSettingsXML = emu::utils::readFile( emu::utils::performExpansions( *fn ) );
-    if ( fedSettingsXML.size() == 0 ){
-      XCEPT_RAISE( xcept::Exception, *fn + " could not be read in or is empty." );
+  // Make three attempts to set up FED. (Sometimes it fails...)
+  const int nAttempts = 3;
+  bool successful = false;
+  int iAttempt = 1;
+  while ( iAttempt <= nAttempts && !successful ){
+    try{
+      // Get the FED settings file names
+      set<string> fedSettingsFileNames;
+      emu::soap::Messenger m( this );
+      for ( set<xdaq::ApplicationDescriptor*>::iterator app = apps.begin(); app != apps.end(); ++app ) {
+	xdata::String xmlFileName;
+	m.getParameters( *app, emu::soap::Parameters().add( "xmlFileName", &xmlFileName ) );
+	fedSettingsFileNames.insert( xmlFileName.toString() );
+	LOG4CPLUS_INFO( logger_, "Found " << (*app)->getClassName() << " of instance " << (*app)->getInstance() << " with settings in " << xmlFileName.toString() );
+      }
+      
+      // Build XPath expression to unkill tested chambers' fibers in the FED settings files
+      xdata::Vector<xdata::String> chamberLabels = configuration_->getChamberLabels();
+      for ( set<string>::iterator fn = fedSettingsFileNames.begin(); fn != fedSettingsFileNames.end(); ++fn ) {
+	string fedSettingsXML = emu::utils::readFile( emu::utils::performExpansions( *fn ) );
+	if ( fedSettingsXML.size() == 0 ){
+	  XCEPT_RAISE( xcept::Exception, *fn + " could not be read in or is empty." );
+	}
+	// First kill all chambers' fibers...
+	fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber/@KILLED" , "1" );
+	// ...then unkill the tested chambers'
+	for ( size_t iChamber = 0; iChamber < chamberLabels.elements(); ++iChamber ){
+	  // In the FED settings XML file, chamber names are zero-padded, but without "ME", e.g., CHAMBER="-1/2/08"
+	  // while in the PCrate settings XML file, it's the other way round...
+	  fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber[@CHAMBER='" + emu::utils::Chamber( ( dynamic_cast<xdata::String*>( chamberLabels.elementAt( iChamber ) ) )->toString() ).name().substr( 2 ) + "']/@KILLED", "0" );
+	}
+	// cout << fedSettingsXML << endl;
+	utils::writeFile( *fn, fedSettingsXML );
+	LOG4CPLUS_INFO( logger_, "Updated FED Crates' configuration XML in " << *fn );
+      }
+      
+      // Halt all Communicators
+      m.sendCommand( "emu::fed::Communicator", "Halt" );
+      // Configure DDUs in passthrough mode
+      xdata::Boolean dduInPassthroughMode = inPassthroughMode;
+      m.setParameters( "emu::fed::Communicator", emu::soap::Parameters().add( "dduInPassthroughMode" , &dduInPassthroughMode ) );
+      m.sendCommand( "emu::fed::Communicator", "Configure" );
+      sleep( 1 );
+      // Start all Communicators
+      m.sendCommand( "emu::fed::Communicator", "Enable" );
+      sleep( 1 );
+      successful = true;
     }
-    // First kill all chambers' fibers...
-    fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber/@KILLED" , "1" );
-    // ...then unkill the tested chambers'
-    for ( size_t iChamber = 0; iChamber < chamberLabels.elements(); ++iChamber ){
-    // In the FED settings XML file, chamber names are zero-padded, but without "ME", e.g., CHAMBER="-1/2/08"
-    // while in the PCrate settings XML file, it's the other way round...
-      fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber[@CHAMBER='" + emu::utils::Chamber( ( dynamic_cast<xdata::String*>( chamberLabels.elementAt( iChamber ) ) )->toString() ).name().substr( 2 ) + "']/@KILLED", "0" );
+    catch ( xcept::Exception &e ){
+      ostringstream oss;
+      oss << "Attempt " << iAttempt << " to set up FED failed. " << xcept::stdformat_exception_history( e );
+      LOG4CPLUS_WARN( logger_, oss.str() );
+      if ( iAttempt == nAttempts ){
+	oss.str("");
+	oss << "All " << nAttempts << " attempts to set up FED failed.";
+	XCEPT_RETHROW( xcept::Exception, oss.str(), e );
+      }
+      sleep( 2 );
     }
-    // cout << fedSettingsXML << endl;
-    utils::writeFile( *fn, fedSettingsXML );
-    LOG4CPLUS_INFO( logger_, "Updated FED Crates' configuration XML in " << *fn );
-  }
-
-  // Halt all Communicators
-  m.sendCommand( "emu::fed::Communicator", "Halt" );
-  // Configure DDUs in passthrough mode
-  xdata::Boolean dduInPassthroughMode = inPassthroughMode;
-  m.setParameters( "emu::fed::Communicator", emu::soap::Parameters().add( "dduInPassthroughMode" , &dduInPassthroughMode ) );
-  m.sendCommand( "emu::fed::Communicator", "Configure" );
-  sleep( 1 );
-  // Start all Communicators
-  m.sendCommand( "emu::fed::Communicator", "Enable" );
-  sleep( 1 );
+  } // while ( iAttempt <= nAttempts && !successful ){
   LOG4CPLUS_INFO( logger_, "Configured DDUs in " << ( inPassthroughMode ? "passthrough" : "normal" ) << " mode." );
 }
 
