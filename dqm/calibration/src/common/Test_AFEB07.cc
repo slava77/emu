@@ -457,7 +457,7 @@ void Test_AFEB07::finishCSC(std::string cscID)
                               ndelays = k+1;
                               tavg = w_sum/sum;
                               terr = sqrt( (e_sum / sum) - tavg*tavg) / sqrt(sum);
-
+                              if (terr <= 0) terr = 0.001;
                             }
                         }
 
