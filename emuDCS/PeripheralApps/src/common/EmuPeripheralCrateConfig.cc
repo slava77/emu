@@ -8105,7 +8105,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   if(hversion==2)
   {
      *out << cgicc::tr() << cgicc::td().set("ALIGN","left");
-     *out << "TMB 3.3 V &RAT";
+     *out << "TMB 3.3 V";
      *out << cgicc::td();
      //
      *out << cgicc::td().set("ALIGN","center");
@@ -8113,7 +8113,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
      else       *out << cgicc::span().set("style","color:red");
      *out << std::setprecision(2) << std::fixed << thisTMB->Get1p5aTT();
      *out << cgicc::span();
-     *out << cgicc::td() << cgicc::tr();
+     *out << cgicc::td() << cgicc::td() << cgicc::td() << cgicc::tr();
 
   }
   ////////////////////////////////////////
@@ -8172,6 +8172,10 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
      *out << cgicc::td().set("ALIGN","center");
      *out << std::setprecision(2) << thisTMB->Get1p5aTT();
   }
+  else
+  {
+      *out << cgicc::td() <<  cgicc::td();
+  }
   *out << cgicc::td() << cgicc::tr();
   ////////////////////////////////////////
   *out << cgicc::tr() << cgicc::td().set("ALIGN","left");
@@ -8184,7 +8188,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   else       *out << cgicc::span().set("style","color:red");
   *out << std::setprecision(2) << thisTMB->Get1p0vTT();
   *out << cgicc::span();
-  *out << cgicc::td() << cgicc::tr();
+  *out << cgicc::td() << cgicc::td() << cgicc::td() << cgicc::tr();
   ////////////////////////////////////////
   *out << cgicc::tr() << cgicc::td().set("ALIGN","left");
   *out << "RAT 1.8 V";
@@ -8205,6 +8209,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   ////////////////////////////////////////
   *out << cgicc::table();
   //
+  *out << "Total 3.3V Suply current = " << thisTMB->Get3p3a()+thisTMB->Get1p5aCore() << "A";
   //
   *out << cgicc::br();
   //
