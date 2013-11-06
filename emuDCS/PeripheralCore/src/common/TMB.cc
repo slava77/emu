@@ -4635,7 +4635,10 @@ void TMB::ADCvoltages(float * voltage){
   voltage[5] /= 0.2;                      // 200mV/Amp
   voltage[6] /= 0.2;                      // 200mV/Amp
   voltage[7] /= 0.2;                      // 200mV/Amp
-  voltage[8] /= 0.2;                      // 200mV/Amp
+  if(hardware_version_<=1)
+  {  // only cdo conversion for currents. for OTMB, this is voltage, no conversion needed
+     voltage[8] /= 0.2;                      // 200mV/Amp
+  }
   voltage[9] /= 0.2;                      // 200mV/Amp if SH921 set 1-2, else comment out line
   //
   v5p0_	    = voltage[0];	      
