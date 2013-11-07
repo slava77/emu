@@ -653,7 +653,7 @@ function Panel( name, refreshPeriod, dataURL ) {
 
     this.TTCFromJson = function (){
 	// Get info on Track Finder from csctf_emupageone flashlist
-	$.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:ttc_ttcci_config', function(json){
+	$.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:ttcci_conf', function(json){
 	    var combinedState = null;
 	    $.each( json.table.rows, function(i,row){
 		if ( row.ComponentKey.substr(0,3) == 'CSC' ){
@@ -667,7 +667,7 @@ function Panel( name, refreshPeriod, dataURL ) {
 	    $('#'+self.name+'-a_value_State').attr( 'title', (combinedState == 'INDEFINITE' ? 'Not all TTC applications are in the same FSM state.' : 'All TTC applications are '+combinedState) );
 	    
 	}).success( function(){
-	    $.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:ttc_ttcci_scalers', function(json){
+	    $.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:ttcci_scalers', function(json){
 		var time = toUnixTime( json.table.properties.LastUpdate );
 		$('#'+self.name+'-td_localDateTime').text( timeToString( time ) );
 		var minL1ARate = Number.POSITIVE_INFINITY;
