@@ -20,9 +20,9 @@ table.mapping td { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; colo
 table.mapping th { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; color:#99BBFF; font-size:small; }
 table.mapping { background-color: #2A3B90; }
 table.mapping td.RUI,td.DCC,td.PC { background-color: #334499; }
-table.mapping td.chamber,td.DDU,td.fiber { background-color: #223388; }
+table.mapping td.chamber,td.DDU,td.fiber,td.SP { background-color: #223388; }
 table.mapping th.RUI,th.DCC,th.PC { background-color: #112277; }
-table.mapping th.chamber,th.DDU,th.fiber { background-color: #001177; }
+table.mapping th.chamber,th.DDU,th.fiber,th.SP { background-color: #001177; }
 table.mapping td {  text-align:center; }
 
 div.tooltip { position:fixed; z-index:100; visibility:hidden; padding: 2px 2px 2px 2px; background-color:#dddddd; }

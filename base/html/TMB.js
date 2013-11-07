@@ -182,6 +182,7 @@ function TMBPanel( dataURLs ) {
 		// console.log(allChambers[i].parentNode.getAttribute('id').substr(7));
 		t.firstChild.nodeValue = 'RUI '+allChambers[i].parentNode.getAttribute('id').substr(7);
 		t.setAttribute('visibility','visible');		
+		break;
 	    }
 	}
     }
@@ -196,6 +197,7 @@ function TMBPanel( dataURLs ) {
 			document.getElementById( siblingChambers[j].getAttribute('id').substr(4) ).setAttribute('stroke','');
 		document.getElementById('focusedRUIText').setAttribute('visibility','hidden');
 		document.getElementById('focusedRUIBox' ).setAttribute('visibility','hidden');
+		break;
 	    }
 	}
     }
@@ -219,6 +221,7 @@ function TMBPanel( dataURLs ) {
 		//console.log(allChambers[i].parentNode.getAttribute('id').substr(6));
 		t.firstChild.nodeValue = 'TMB/DMB '+DMBSlotToNumber[ allChambers[i].textContent ];
 		t.setAttribute('visibility','visible');		
+		break;
 	    }
 	}
     }
@@ -235,6 +238,7 @@ function TMBPanel( dataURLs ) {
 		document.getElementById('focusedVMEBox' ).setAttribute('visibility','hidden');
 		document.getElementById('focusedDMBText').setAttribute('visibility','hidden');
 		document.getElementById('focusedDMBBox' ).setAttribute('visibility','hidden');
+		break;
 	    }
 	}
     }
@@ -265,7 +269,21 @@ function TMBPanel( dataURLs ) {
 	var c = chamber.getAttribute('name');
 	if ( c == '-1' ){ t.firstChild.nodeValue = 'no access'; }
 	else            { t.firstChild.nodeValue = c; }
-    }
+
+	// Display Sector Processor label
+	var b = document.getElementById('sectorProcessorLabelBox');
+	b.setAttribute('visibility','visible');
+	var t = document.getElementById('sectorProcessorLabelText')
+	t.setAttribute('visibility','visible');
+ 	var allChambers = document.getElementById('div_SPs').getElementsByTagName('div');
+	for ( var i=0; i < allChambers.length; i++ ){
+	  if ( allChambers[i].getAttribute('id').substr(4) == chamber.id ){
+	    // This is the chamber we're looking for. Get its parent's id, which is the Sector Processor number.
+	    t.firstChild.nodeValue = 'SP '+allChambers[i].parentNode.getAttribute('id').substr(6); // e.g.: div_SP11
+	    break;
+	  }
+	}
+   }
     
     this.dullChamber = function( chamber ){
 	self.dullChambersInSameRUI( chamber );
@@ -280,6 +298,9 @@ function TMBPanel( dataURLs ) {
 	// Hide count label
 	document.getElementById('countLabelBox' ).setAttribute('visibility','hidden');
 	document.getElementById('countLabelText').setAttribute('visibility','hidden');
+	// Hide Sector Processor label
+	document.getElementById('sectorProcessorLabelBox' ).setAttribute('visibility','hidden');
+	document.getElementById('sectorProcessorLabelText').setAttribute('visibility','hidden');
     }
     
     this.onMouseOverCell = function(evt){
