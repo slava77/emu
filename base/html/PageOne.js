@@ -1251,7 +1251,7 @@ function Trend( maxSize ){
 	if ( this.points.length < 2 ) return 0;
 	var iLast = Math.min( this.points.length, Math.max( 2, sampleSize ) ) - 1;
 	if ( this.points[iLast].time <= this.points[0].time ) return 0;
-	return ( this.points[iLast].value - this.points[0].value ) * 1000. / ( this.points[iLast].time - this.points[0].time ); // ms --> s
+	return Math.max( 0, ( this.points[iLast].value - this.points[0].value ) * 1000. / ( this.points[iLast].time - this.points[0].time ) ); // ms --> s
     };
     this.difference = function( sampleSize ){
 	if ( this.points.length < 2 ) return 0;
