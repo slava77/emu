@@ -9105,5 +9105,88 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
    free(bufin);
 }
 
+void DAQMB::odmb_program_virtex6(const char *mcsfile)
+{
+   const int FIRMWARE_SIZE=5464972; // in bytes
+   char *bufin, c;
+   bufin=(char *)malloc(16*1024*1024);
+   if(bufin==NULL)  return;
+   FILE *fin=fopen(mcsfile,"r");
+   if(fin==NULL ) 
+   { 
+      free(bufin);  
+      std::cout << "ERROR: Unable to open MCS file :" << mcsfile << std::endl;
+      return; 
+   }
+   int mcssize=read_mcs(bufin, fin);
+   fclose(fin);
+   std::cout << "Read MCS size: " << mcssize << " bytes" << std::endl;
+   if(mcssize<FIRMWARE_SIZE)
+   {
+       std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
+       free(bufin);
+       return;
+   }
+// byte swap
+   for(int i=0; i<FIRMWARE_SIZE/2; i++)
+   {  c=bufin[i*2];
+      bufin[i*2]=bufin[i*2+1];
+      bufin[i*2+1]=c;
+   }
+     int blocks=FIRMWARE_SIZE/4;  // firmware size must be in units of 32-bit words
+     int p1pct=blocks/100;
+     int j=0, pcnts=0;
+     unsigned short comd, tmp;
+//
+// The IEEE 1532 ISC (In-System-Configuration) procedure is used.       
+// The bitstream doesn't need to be sent in one JTAG package.
+// It is different from Xilinx's Jtag procedure which uses CFG_IN.
+//
+     comd=VTX6_JPROG;
+     dlog_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+
+     comd=VTX6_ISC_NOOP; 
+     dlog_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+     udelay(200000);
+     comd=VTX6_ISC_ENABLE; 
+     tmp=0;
+     dlog_do(10, &comd, 5, &tmp, rcvbuf, NOW);
+//    dlog_do(0, &comd, -200, &tmp, rcvbuf, NOW);
+     udelay(100);
+     comd=VTX6_ISC_PROGRAM; 
+     dlog_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+    for(int i=0; i<blocks; i++)
+    {
+       dlog_do(0, &comd, 32, bufin+4*i, rcvbuf, NOW);
+       udelay(32);
+       j++;
+       if(j==p1pct)
+       {  pcnts++;
+          if(pcnts<100) std::cout << "Sending " << pcnts <<"%..." << std::endl;
+          j=0;
+       }   
+    }
+    std::cout << "Sending 100%..." << std::endl;
+
+    comd=VTX6_ISC_DISABLE; 
+    dlog_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+//    dlog_do(0, &comd, -100, &tmp, rcvbuf, NOW);
+    udelay(100);
+    comd=VTX6_BYPASS;
+    dlog_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+
+    comd=VTX6_JSTART;
+    dlog_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+    std::cout <<" Start sending clocks... " << std::endl;
+    dlog_do(0, &comd, -4000, &tmp, rcvbuf, NOW);
+    //restore idle;
+    dlog_do(-1, &comd, 0, &tmp, rcvbuf, NOW);    
+    comd=VTX6_BYPASS;
+    dlog_do(10, &comd, 0, &tmp, rcvbuf, NOW);
+    udelay(10);
+    std::cout << "FPGA configuration done!" << std::endl;             
+    free(bufin);
+}
+
 } // namespace emu::pc
 } // namespace emu

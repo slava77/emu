@@ -353,6 +353,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTurnOn, "CFEBTurnOn");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCMask, "MPCMask");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBLoadFirmware, "DMBLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DMBLoadFPGA, "DMBLoadFPGA");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBReadFirmware, "DMBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmware, "DMBVmeLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
@@ -8207,9 +8208,9 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << std::setprecision(2) << thisTMB->Get1p8aRAT();
   *out << cgicc::td() << cgicc::tr();
   ////////////////////////////////////////
-  *out << cgicc::table();
+  *out << cgicc::table() << cgicc::br();
   //
-  *out << "Total 3.3V Suply current = " << thisTMB->Get3p3a()+thisTMB->Get1p5aCore() << "A";
+  *out << "Total 3.3V Supply current = " << thisTMB->Get3p3a()+thisTMB->Get1p5aCore() << "A";
   //
   *out << cgicc::br();
   //
