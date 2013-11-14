@@ -1777,6 +1777,16 @@ else if(D_hversion==2)
      *out << FirmwareDir_+"odmb/me11_odmb.mcs";
      *out << cgicc::form() << std::endl ;
      //
+     *out << cgicc::br() <<cgicc::hr() << std::endl;
+     *out << "Use this one ONLY if power-cycle failed to recover the FPGA:" << cgicc::br()<< std::endl;
+     std::string DMBLoadFPGA = toolbox::toString("/%s/DMBLoadFPGA",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",DMBLoadFPGA) << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","ODMB Program FPGA") << std::endl ;
+     sprintf(buf,"%d",dmb);
+     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+     *out << FirmwareDir_+"odmb/me11_odmb.mcs";
+     *out << cgicc::form() << std::endl ;
+     //
      *out << cgicc::br();
 }
 	//
@@ -1785,11 +1795,13 @@ else if(D_hversion==2)
   *out << cgicc::input().set("type","submit").set("value","CCB hard reset") << std::endl ;
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::fieldset();
+  //
   // Output area
   //
   *out << cgicc::form().set("method","GET") << std::endl ;
   *out << cgicc::pre();
-  *out << cgicc::textarea().set("name","CrateTestDMBOutput").set("rows","50").set("cols","150").set("WRAP","OFF");
+  *out << cgicc::textarea().set("name","CrateTestDMBOutput").set("rows","30").set("cols","132").set("WRAP","OFF");
 	if (total_bad_cfeb_bits >= 0) {
 		*out << "CFEB FPGA check:  Total bad bits =  " << std::dec << total_bad_cfeb_bits;
 		*out << ", total good bits = " << total_good_cfeb_bits;
@@ -1804,8 +1816,6 @@ else if(D_hversion==2)
   OutputStringDMBStatus[dmb].str("");
   *out << cgicc::pre();
   *out << cgicc::form() << std::endl ;
-  //
-  *out << cgicc::fieldset();
   //
 }
 //
@@ -1917,6 +1927,48 @@ void EmuPeripheralCrateConfig::DMBLoadFirmware(xgi::Input * in, xgi::Output * ou
        thisDMB->odmb_program_eprom(mcsfile.c_str());
      
        std::cout << getLocalDateTime() << " ODMB program EPROM finished." << std::endl;
+
+    }
+  }
+  //
+  this->DMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::DMBLoadFPGA(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMBLoadFPGA:  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  //
+  if (thisDMB) 
+  {
+   
+    int hversion=thisDMB->GetHardwareVersion();
+    if(hversion<=1)
+    {
+       thisCCB->hardReset();
+    }
+    else if(hversion==2)
+    {
+       std::string mcsfile= FirmwareDir_+ "odmb/me11_odmb.mcs";
+                
+       std::cout << getLocalDateTime() << " ODMB program FPGA in slot " << thisDMB->slot() << std::endl;
+       std::cout << "Use mcs file: " << mcsfile << std::endl;
+
+       thisDMB->odmb_program_virtex6(mcsfile.c_str());
+     
+       std::cout << getLocalDateTime() << " ODMB program FPGA finished." << std::endl;
 
     }
   }

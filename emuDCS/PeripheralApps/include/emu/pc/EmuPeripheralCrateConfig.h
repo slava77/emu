@@ -400,6 +400,7 @@ private:
   void DMBTurnOff(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBTurnOn(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DMBLoadFPGA(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBVmeLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

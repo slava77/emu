@@ -814,6 +814,7 @@ public:
 
   void odmb_readfirmware_mcs(const char *filename);
   void odmb_program_eprom(const char *mcsfile);
+  void odmb_program_virtex6(const char *mcsfile);
 
  private:
 
