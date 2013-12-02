@@ -212,9 +212,22 @@ void emu::step::Test::configureCrates(){
       // Issue a hard reset or else the events will not have TMB data of the ME4/2 chambers at P5.
       // For the time being, skip hard reset for crates with ODMBs as they unset the LVMB on/off switch.
       if ( (*crate)->daqmbs().size() && (*crate)->daqmbs().at( 0 )->GetHardwareVersion() < 2 ){ // TODO: remove this condition once ODMB is fixed.
-	(*crate)->ccb()->HardReset_crate();
-	// Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
-	::sleep( 1 );
+	// It's only necessary for tests 19 and 21 and 27. In fact, it upsets test 13...
+	if ( id_ == "19" || id_ == "21" || id_ == "27" ){
+	  ::sleep( 1 );
+	  (*crate)->ccb()->HardReset_crate();
+	  // Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
+	  ::sleep( 1 );
+	}
+
+	// Reconfigure ALCTs as it is missing from the events in test 27 if a crate hard reset is issued (see above)...
+	if ( id_ == "27" ){
+	  vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
+	  for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
+	    (*tmb)->alctController()->configure();
+	  }
+	}
+
       }
 
       // Set up the DDU if and only if there's one in this crate. Includes a hard reset
