@@ -155,6 +155,7 @@ void emu::step::Manager::startFED( bool inPassthroughMode ){
 	oss << "All " << nAttempts << " attempts to set up FED failed.";
 	XCEPT_RETHROW( xcept::Exception, oss.str(), e );
       }
+      iAttempt++;
       sleep( 2 );
     }
   } // while ( iAttempt <= nAttempts && !successful ){
