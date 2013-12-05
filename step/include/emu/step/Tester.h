@@ -44,6 +44,7 @@ namespace emu{
       virtual void enableAction   ( toolbox::Event::Reference e );
       virtual void haltAction     ( toolbox::Event::Reference e );
       virtual void stopAction     ( toolbox::Event::Reference e );
+      virtual void failAction     ( toolbox::Event::Reference e );
       
     private:
       void exportParameters();
