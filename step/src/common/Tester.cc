@@ -252,6 +252,17 @@ void emu::step::Tester::stopAction( toolbox::Event::Reference e ){
   haltAction( e );
 }
 
+void emu::step::Tester::failAction( toolbox::Event::Reference e ){
+  // First try to stop the ongoing test (to stop the trigger, 
+  // which could otherwise cause problems when the DDU is set up for the next run)...
+  if ( test_ ){
+    LOG4CPLUS_INFO( logger_, "Stopping test " << test_->getId() << " while going to 'Failed' state." );
+    test_->stop();
+  }
+  // ...then execute the standard 'fail' action.
+  emu::step::Application::failAction( e );
+}
+
 bool emu::step::Tester::configureTestInWorkLoop( toolbox::task::WorkLoop *wl ){
   if ( test_ ){
     LOG4CPLUS_INFO( logger_, "Executing test " << test_->getId() );

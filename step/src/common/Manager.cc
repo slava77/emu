@@ -266,14 +266,22 @@ void emu::step::Manager::resetAction(toolbox::Event::Reference e){
 }
 
 void emu::step::Manager::stopAction(toolbox::Event::Reference e){
-  LOG4CPLUS_DEBUG( logger_, "emu::step::Manager::stopAction" );
+  haltAction( e );
+}
+
+void emu::step::Manager::failAction(toolbox::Event::Reference e){
+  LOG4CPLUS_DEBUG( logger_, "emu::step::Manager::failAction" );
+  // First try to stop the ongoing tests(to stop the trigger, 
+  // which could otherwise cause problems when the DDU is set up for the next run)...
   emu::soap::Messenger m( this );
   try{
-    m.sendCommand( "emu::step::Tester", "Stop" );
-    LOG4CPLUS_INFO( logger_, "Sent 'Stop' command to emu::step::Tester applications." );
+    m.sendCommand( "emu::step::Tester", "Halt" );
+    LOG4CPLUS_INFO( logger_, "Sent 'Halt' command to emu::step::Tester applications while going to 'Failed' state." );
   } catch( xcept::Exception &e ){
-    XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Failed to send 'Stop' command to emu::step::Tester applications.", e );
+    LOG4CPLUS_INFO( logger_, "Failed to send 'Halt' command to emu::step::Tester applications while going to 'Failed' state. " << stdformat_exception_history( e  ) );
   }
+  // ...then execute the standard 'fail' action.
+  emu::step::Application::failAction( e );
 }
 
 bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
@@ -520,23 +528,52 @@ void emu::step::Manager::updateChamberMaps(){
 }
 
 void emu::step::Manager::updateDataFileNames(){
-  try{
-    emu::soap::Messenger m( this );
-    // Get data file names written in this test
-    xdata::Vector<xdata::String> dataFileNames;
-    m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "dataFileNames", &dataFileNames ) );
-    // cout << "dataFileNames" << dataFileNames.toString() << endl;
-    // Add them to the list of all data file names written in this run
-    for ( size_t iFile = 0; iFile < dataFileNames.elements(); iFile++ ){
-      dataFileNames_.insert( ( dynamic_cast<xdata::String*>( dataFileNames.elementAt( iFile ) ) )->toString() );
+  // Make three attempts get data file names. (Sometimes it fails...)
+  const int nAttempts = 3;
+  bool successful = false;
+  int iAttempt = 1;
+  while ( iAttempt <= nAttempts && !successful ){
+    try{
+      emu::soap::Messenger m( this );
+      // Get data file names written in this test
+      xdata::Vector<xdata::String> dataFileNames;
+      m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "dataFileNames", &dataFileNames ) );
+      // cout << "dataFileNames" << dataFileNames.toString() << endl;
+      // Add them to the list of all data file names written in this run
+      for ( size_t iFile = 0; iFile < dataFileNames.elements(); iFile++ ){
+	dataFileNames_.insert( ( dynamic_cast<xdata::String*>( dataFileNames.elementAt( iFile ) ) )->toString() );
+      }
+      // if ( dataFileNames_.size() > 0 ) XCEPT_RAISE( xcept::Exception, "Forced exception for test purposes." );
+      successful = true;
+    } catch( xcept::Exception& e ){
+      ostringstream oss;
+      oss << "Attempt " << iAttempt << " to get data file names failed. " << xcept::stdformat_exception_history( e );
+      LOG4CPLUS_WARN( logger_, oss.str() );
+      if ( iAttempt == nAttempts ){
+	XCEPT_RETHROW( xcept::Exception, "Failed to get data file names.", e );
+      }
+      iAttempt++;
+      sleep( 2 );
+    } catch( std::exception& e ){
+      ostringstream oss;
+      oss << "Attempt " << iAttempt << " to get data file names failed. " << e.what();
+      LOG4CPLUS_WARN( logger_, oss.str() );
+      if ( iAttempt == nAttempts ){
+	XCEPT_RAISE( xcept::Exception, string( "Failed to get data file names: ") + e.what() );
+      }
+      iAttempt++;
+      sleep( 2 );
+    } catch( ... ){
+      ostringstream oss;
+      oss << "Attempt " << iAttempt << " to get data file names failed. Unknown exception.";
+      LOG4CPLUS_WARN( logger_, oss.str() );
+      if ( iAttempt == nAttempts ){
+	XCEPT_RAISE( xcept::Exception, "Failed to get data file names. Unknown exception." );
+      }
+      iAttempt++;
+      sleep( 2 );
     }
-  } catch( xcept::Exception& e ){
-    XCEPT_RETHROW( xcept::Exception, "Failed to get data file names.", e );
-  } catch( std::exception& e ){
-    XCEPT_RAISE( xcept::Exception, string( "Failed to get data file names: ") + e.what() );
-  } catch( ... ){
-    XCEPT_RAISE( xcept::Exception, "Failed to get data file names. Unknown exception." );
-  }
+  }// while ( iAttempt <= nAttempts && !successful )
 }
 
 void emu::step::Manager::runAnalysis( const string& testId ){

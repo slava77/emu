@@ -254,8 +254,7 @@ void emu::step::Test::configureCrates(){
 
 
 void emu::step::Test::disableTrigger(){
-
-  // cout << "emu::step::Test::disableTrigger: Test " << id_ << " isFake_ = " << isFake_ << endl << flush;
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Disabling triggers." ); }
 
   if ( isFake_ ) return;
 
