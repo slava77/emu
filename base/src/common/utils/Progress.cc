@@ -3,14 +3,14 @@
 
 emu::utils::Progress::Progress()
   : bSem_( toolbox::BSem::EMPTY ) // born locked
-  , current_( 0. )  
-  , total_( 0. ){
+  , current_( 0 )  
+  , total_( 0 ){
   bSem_.give();
 }
   
 emu::utils::Progress::Progress( const int total )
   : bSem_( toolbox::BSem::EMPTY ) // born locked
-  , current_( 0. )  
+  , current_( 0 )  
   , total_( total ){
   bSem_.give();
 }
@@ -38,14 +38,14 @@ emu::utils::Progress& emu::utils::Progress::increment( const int increment ){
 
 int emu::utils::Progress::getCurrent() const {
   bSem_.take();
-  double c = current_;
+  int c = current_;
   bSem_.give();
   return c;
 }
 
 int emu::utils::Progress::getTotal() const {
   bSem_.take();
-  double t = total_;
+  int t = total_;
   bSem_.give();
   return t;
 }
@@ -63,7 +63,7 @@ int emu::utils::Progress::getPercent() const {
   bSem_.give();
   if ( done ) return 100;
   double p = 100. * getValue();
-  return ( p < 0. ? ceil( p ) : floor( p ) );
+  return int( p < 0. ? ceil( p ) : floor( p ) );
 }
 
 int emu::utils::Progress::getPermill() const {
@@ -72,5 +72,5 @@ int emu::utils::Progress::getPermill() const {
   bSem_.give();
   if ( done ) return 1000;
   double p = 1000. * getValue();
-  return ( p < 0. ? ceil( p ) : floor( p ) );
+  return int( p < 0. ? ceil( p ) : floor( p ) );
 }
