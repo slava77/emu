@@ -28,7 +28,7 @@ if [[ $( grep -c -i threshold $RESULTSFILE ) -gt 0 ]]; then
     cp $VMECONFIGFILE ${VMECONFIGFILE}_before_inserting_thresholds_${NOW}
 
     typeset -A THRESHOLDS
-    THRESHOLDS=( $( grep '^[ ]*[0-9]\+[ ]*[0-9]\+[ ]*$' $RESULTSFILE ) )
+    THRESHOLDS=( $( grep '^[[:blank:]]*[0-9]\+[[:blank:]]*[0-9]\+[[:blank:]]*$' $RESULTSFILE ) )
     print "AFEB  threshold    for $CHAMBERLABEL"
     for I in ${(onk)THRESHOLDS}; do
 	print ${(l:4:)I} ${(l:10:)THRESHOLDS[$I]}
@@ -44,7 +44,7 @@ elif [[ $( grep -c -i delay $RESULTSFILE ) -gt 0 ]]; then
     cp $VMECONFIGFILE ${VMECONFIGFILE}_before_inserting_delays_${NOW}
 
     print "AFEB      delay    for $CHAMBERLABEL"
-    grep '^[ ]*[0-9]\+[ ]*[0-9]\+[ ]*[0-9.]\+[ ]*[0-9.]\+[ ]*[0-9]\+[ ]*[0-9.]\+[ ]*$' $RESULTSFILE | while read LINE; do
+    grep '^[[:blank:]]*[0-9]\+[[:blank:]]*[0-9]\+[[:blank:]]*[0-9.]\+[[:blank:]]*[0-9.]\+[[:blank:]]*[0-9]\+[[:blank:]]*[0-9.]\+[[:blank:]]*$' $RESULTSFILE | while read LINE; do
 	PARAMETERS=( $( print $LINE ) )
 	print ${(l:4:)PARAMETERS[1]} ${(l:10:)PARAMETERS[5]}
 	mv $VMECONFIGFILE ${VMECONFIGFILE}_tmp
