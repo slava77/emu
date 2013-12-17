@@ -114,12 +114,14 @@ void emu::step::Manager::startFED( bool inPassthroughMode ){
 	LOG4CPLUS_INFO( logger_, "Found " << (*app)->getClassName() << " of instance " << (*app)->getInstance() << " with settings in " << xmlFileName.toString() );
       }
       
+      ruisToReadData_.clear();
+
       // Build XPath expression to unkill tested chambers' fibers in the FED settings files
       xdata::Vector<xdata::String> chamberLabels = configuration_->getChamberLabels();
       for ( set<string>::iterator fn = fedSettingsFileNames.begin(); fn != fedSettingsFileNames.end(); ++fn ) {
 	string fedSettingsXML = emu::utils::readFile( emu::utils::performExpansions( *fn ) );
 	if ( fedSettingsXML.size() == 0 ){
-	  XCEPT_RAISE( xcept::Exception, *fn + " could not be read in or is empty." );
+	  XCEPT_RAISE( xcept::Exception, "FED configuration file '" + *fn + "' could not be read in or is empty." );
 	}
 	// First kill all chambers' fibers...
 	fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber/@KILLED" , "1" );
@@ -128,7 +130,11 @@ void emu::step::Manager::startFED( bool inPassthroughMode ){
 	  // In the FED settings XML file, chamber names are zero-padded, but without "ME", e.g., CHAMBER="-1/2/08"
 	  // while in the PCrate settings XML file, it's the other way round...
 	  fedSettingsXML = emu::utils::setSelectedNodesValues( fedSettingsXML, "//FEDSystem/FEDCrate/DDU/Fiber[@CHAMBER='" + emu::utils::Chamber( ( dynamic_cast<xdata::String*>( chamberLabels.elementAt( iChamber ) ) )->toString() ).name().substr( 2 ) + "']/@KILLED", "0" );
+	  // Also, collect the RUIs that are supposed to read data:
+	  ruisToReadData_.insert( emu::utils::stringTo<unsigned int>( emu::utils::getSelectedNodeValue( fedSettingsXML, 
+													"//FEDSystem/FEDCrate/DDU[Fiber/@CHAMBER='" + emu::utils::Chamber( ( dynamic_cast<xdata::String*>( chamberLabels.elementAt( iChamber ) ) )->toString() ).name().substr( 2 ) + "']/@RUI" ) ) );
 	}
+	LOG4CPLUS_INFO( logger_, "RUIs to read data: " << ruisToReadData_ );
 	// cout << fedSettingsXML << endl;
 	utils::writeFile( *fn, fedSettingsXML );
 	LOG4CPLUS_INFO( logger_, "Updated FED Crates' configuration XML in " << *fn );
@@ -467,14 +473,18 @@ string emu::step::Manager::checkDataCompleteness( const string& testId ){
 				  .add( "rui_instances", &rui_instances )
 				  .add( "rui_counts"   , &rui_counts    )                                 );
     for ( size_t i = 0; i < rui_counts.elements(); i++ ){
-      // In timed tests, where the number of events to take is not predefined (and nEvents=0), 
-      // we cannot tell if the data file is complete.
-      if ( *testsNEvents.begin() != 0 ){
-	if ( *testsNEvents.begin() != *dynamic_cast<xdata::UnsignedInteger64*>( rui_counts.elementAt( i ) ) ){
-	  oss << "RUI "         << ( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) )->toString()
-	      << " read "       << ( dynamic_cast<xdata::UnsignedInteger64*>(    rui_counts.elementAt( i ) ) )->toString()
-	      << " of "         << *testsNEvents.begin() 
-	      << " events. \n";
+      // Only consider RUIs that are actually supposed to read data:
+      if ( ruisToReadData_.size() == 0 ||
+	   ruisToReadData_.find( *(uint32_t*)( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) ) ) != ruisToReadData_.end() ){
+	// In timed tests, where the number of events to take is not predefined (and nEvents=0), 
+	// we cannot tell if the data file is complete.
+	if ( *testsNEvents.begin() != 0 ){
+	  if ( *testsNEvents.begin() != *dynamic_cast<xdata::UnsignedInteger64*>( rui_counts.elementAt( i ) ) ){
+	    oss << "RUI "         << ( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) )->toString()
+		<< " read "       << ( dynamic_cast<xdata::UnsignedInteger64*>(    rui_counts.elementAt( i ) ) )->toString()
+		<< " of "         << *testsNEvents.begin() 
+		<< " events. \n";
+	  }
 	}
       }
     }
