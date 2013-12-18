@@ -361,6 +361,10 @@ void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, ODMBMode_t mode, OD
   //  Set LCT_L1A_DLY
   irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x001a;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+  //    Set INJ_DLY
+  // Set it to 0 explicitly as in some older firmware versions its default value is nonzero.
+  irdwr = 3; addr = (0x004010)| slot_number<<19; data = 0x0000;
+  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
   // Set EXT_DLY      
   irdwr = 3; addr = (0x004014)| slot_number<<19; data = 0x0000;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
@@ -491,6 +495,11 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
       //    Set ALCT_DLY
       irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001e; // ME+1/1/34
 //       irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001f; // ME+1/1/35
+      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+
+      //    Set INJ_DLY
+      // Set it to 0 explicitly as in some older firmware versions its default value is nonzero.
+      irdwr = 3; addr = (0x004010)| slot_number<<19; data = 0x0000; 
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
       // ODMB configured to accept real triggers
