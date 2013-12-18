@@ -284,7 +284,14 @@ void emu::step::Manager::failAction(toolbox::Event::Reference e){
     m.sendCommand( "emu::step::Tester", "Halt" );
     LOG4CPLUS_INFO( logger_, "Sent 'Halt' command to emu::step::Tester applications while going to 'Failed' state." );
   } catch( xcept::Exception &e ){
-    LOG4CPLUS_INFO( logger_, "Failed to send 'Halt' command to emu::step::Tester applications while going to 'Failed' state. " << stdformat_exception_history( e  ) );
+    LOG4CPLUS_INFO( logger_, "Failed to send 'Halt' command to emu::step::Tester applications while going to 'Failed' state. " << stdformat_exception_history( e ) );
+  }
+  // Try to stop the DAQ, too.
+  try{
+    m.sendCommand( "emu::daq::manager::Application", "Halt" );
+    LOG4CPLUS_INFO( logger_, "Sent 'Halt' command to emu::daq::manager::Application while going to 'Failed' state." );
+  } catch( xcept::Exception &e ){
+    LOG4CPLUS_INFO( logger_, "Failed to send 'Halt' command to emu::daq::manager::Application while going to 'Failed' state. " << stdformat_exception_history( e ) );
   }
   // ...then execute the standard 'fail' action.
   emu::step::Application::failAction( e );
@@ -325,7 +332,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
     } // if ( t->second )
   } // for ( map<string,xdaq::ApplicationDescriptor*>::const_iterator t = testerDescriptors_.begin(); t != testerDescriptors_.end(); ++t )
     
-  if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
+  if ( fsm_.getCurrentState() == 'H'  || fsm_.getCurrentState() == 'F' ) return false; // Get out of here if it's been stopped in the meantime.
 
   //
   // Loop over tests and execute them
@@ -351,7 +358,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       // Set test id in all Tester apps
       //
       m.setParameters( "emu::step::Tester", emu::soap::Parameters().add( "testId", &testId ) );
-      if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
+      if ( fsm_.getCurrentState() == 'H'  || fsm_.getCurrentState() == 'F' ) return false; // Get out of here if it's been stopped in the meantime.
       //
       // Configure all Tester apps and local DAQ
       //
@@ -374,7 +381,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       if ( ! waitForDAQToExecute( "Configure", daqTimeOutInSeconds ) ){
 	XCEPT_RAISE( xcept::Exception, string( "DAQ failed to execute 'Configure' in ") + utils::stringFrom<uint64_t>( daqTimeOutInSeconds ) + " seconds." );
       }
-      if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
+      if ( fsm_.getCurrentState() == 'H'  || fsm_.getCurrentState() == 'F' ) return false; // Get out of here if it's been stopped in the meantime.
       // Be sure configuration has finished before enabling
       waitForTestsToConfigure();
 
@@ -412,7 +419,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       // The Testers can be enabled now
       m.sendCommand( "emu::step::Tester", "Enable" );
       waitForTestsToFinish( (bool) isCurrentTestDurationUndefined_ );
-      if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
+      if ( fsm_.getCurrentState() == 'H'  || fsm_.getCurrentState() == 'F' ) return false; // Get out of here if it's been stopped in the meantime.
       //
       // Halt all Tester apps
       //
@@ -424,7 +431,7 @@ bool emu::step::Manager::testSequenceInWorkLoop( toolbox::task::WorkLoop *wl ){
       string details = checkDataCompleteness( testId.toString() ); 
       if ( details.size() == 0 ) configuration_->setTestStatus( testId, "done"      , "This test has finished." );
       else                       configuration_->setTestStatus( testId, "incomplete", details                   );
-      if ( fsm_.getCurrentState() == 'H' ) return false; // Get out of here if it's been stopped in the meantime.
+      if ( fsm_.getCurrentState() == 'H'  || fsm_.getCurrentState() == 'F' ) return false; // Get out of here if it's been stopped in the meantime.
       //
       // Run analysis
       //
