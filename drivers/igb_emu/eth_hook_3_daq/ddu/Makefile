@@ -10,4 +10,4 @@ default:
 	$(MAKE) EXTRA_CFLAGS="-D_DDU_SPY_" -C $(KDIR) SUBDIRS=$(PWD) modules
 
 clean:
-	rm -fr .tmp_versions *.o .*.o.d *.ko *.mod *.mod.c *.cmd .*.cmd Module.markers Module.symvers
+	rm -fr .tmp_versions *.o .*.o.d *.ko *.mod *.mod.c *.cmd .*.cmd Module.markers Module.symvers *.h *.c
