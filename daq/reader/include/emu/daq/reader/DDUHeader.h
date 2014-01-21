@@ -30,8 +30,6 @@ class DDUHeader {
 
   bool check() const;
 
-  // gets some data filled by the event data
-  friend class MuEndDDUEventData;
  private:
    
   unsigned s_link_status_  : 4;
