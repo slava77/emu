@@ -1,7 +1,6 @@
 #ifndef __EMU_DAQ_READER_BASE_H__
 #define __EMU_DAQ_READER_BASE_H__
 
-#include "emu/daq/reader/DDUHeader.h"
 #include <stdint.h>
 
 #include <iostream>
@@ -20,7 +19,7 @@ class Base
 
 protected:
   std::string     theName;       ///< name of this object (file name or board number)
-  int             theFormat;     ///< DDU or DCC
+  int             theFormat;     ///< DDU or DCC or DMB
   bool            theDebugMode;  ///< if \c TRUE , prints debug messages to stdout
   bool            theDeviceIsResetAndEnabled; ///< to know whether it is already reset and enabled
   uint16_t        theErrorFlag;  ///< for DQM
