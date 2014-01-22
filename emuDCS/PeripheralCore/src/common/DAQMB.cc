@@ -9188,5 +9188,15 @@ void DAQMB::odmb_program_virtex6(const char *mcsfile)
     free(bufin);
 }
 
+int DAQMB::read_cfeb_done()
+{
+    int sig=0;
+    if(hardware_version_==2)
+    {
+       sig=ReadRegister(DCFEB_DONE) & 0x7F;
+    }
+    return sig;
+}
+
 } // namespace emu::pc
 } // namespace emu

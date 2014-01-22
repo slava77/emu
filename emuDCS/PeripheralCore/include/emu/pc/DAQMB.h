@@ -780,7 +780,8 @@ public:
   void dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);
   void odmb_fpga_call(int inst, unsigned data, char *outbuf);
   int DCSread2(char *data);
-
+  int read_cfeb_done();
+  
   // various delays in ODMB
   inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(LCT_L1A_DLY, delay&0x3F); }  // 6 bits
   inline void odmb_set_TMB_delay(int delay) { WriteRegister(TMB_DLY, delay&0x1F); }  // 5 bits
@@ -947,6 +948,8 @@ public:
   //
   static const unsigned ODMB_CTRL = 0x3000;
   static const unsigned DCFEB_CTRL = 0x3010;
+  static const unsigned DCFEB_DONE = 0x3120;
+  
 
   static const unsigned LCT_L1A_DLY = 0x4000;
   static const unsigned TMB_DLY = 0x4004;

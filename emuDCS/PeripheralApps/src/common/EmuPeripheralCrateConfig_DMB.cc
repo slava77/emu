@@ -644,6 +644,9 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   //
   typedef std::vector<CFEB>::iterator CFEBItr;
   //
+  int donebits=thisDMB->read_cfeb_done();
+  int cfebdone=0;
+
   for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
     hversion=cfebItr->GetHardwareVersion();    //
     cfeb_index = (*cfebItr).number() + 1;
@@ -671,17 +674,19 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
     }
   } else if(hversion==2)
   {
+    cfebdone=(donebits>>(cfeb_index-1))&1;
     ndcfebs++;
     sprintf(buf,"DCFEB %d : ",cfeb_index);
     *out << buf;
     //
     //*out << cgicc::br();
     //
-    sprintf(buf,"DCFEB FPGA id : %08x;  DCFEB FPGA user code: %08x ",
+    sprintf(buf,"DCFEB FPGA DONE: %d;  FPGA id : %08x;  FPGA user code: %08x ",
+            cfebdone,
 	    thisDMB->febfpgaid(*cfebItr),
 	    thisDMB->febfpgauser(*cfebItr));
     //
-    if ( thisDMB->CheckCFEBFirmwareVersion(*cfebItr) ) {
+    if ( cfebdone && thisDMB->CheckCFEBFirmwareVersion(*cfebItr) ) {
       *out << cgicc::span().set("style","color:green");
       *out << buf;
       *out << cgicc::span();
