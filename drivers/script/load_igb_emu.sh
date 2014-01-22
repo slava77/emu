@@ -117,7 +117,7 @@ DRIVERS_DIR=${0%/*}
 # Only load the drivers on hosts in this list of aliases:
 for ALIAS in vmepc-e1x07-26-01 emuslice06 emuslice12 emu42fastprod01 emu-me11-step{1,2,3,4}; do
     if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
-	load_igb_emu eth_hook_2_vme eth_hook_3_ddu eth_hook_4_ddu eth_hook_5_ddu
+	load_igb_emu eth_hook_2_dmb eth_hook_3_dmb eth_hook_4_ddu eth_hook_5_ddu
 	exit 0
     fi
 done
