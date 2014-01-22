@@ -15,6 +15,8 @@
 //
 
 #include "emu/x2p/DDU.h"
+#include <stdlib.h> // for atoi, strtof
+#include <string.h> // for strtok_r
 
 namespace emu {
   namespace x2p {

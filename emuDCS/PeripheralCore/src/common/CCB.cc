@@ -335,6 +335,7 @@
 #include <string>
 #include <math.h>
 #include "emu/pc/Crate.h"
+#include <stdlib.h> // for rand and srand
 //
 //
 
