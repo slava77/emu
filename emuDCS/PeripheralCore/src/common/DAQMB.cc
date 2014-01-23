@@ -8620,16 +8620,16 @@ void DAQMB::daqmb_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int 
      // send empty clocks |nbuf|, inbuf & outbuf not used
      if(nbuf<0) Jtag_Ohio(DAQMB_DEV, 2, (char *)inbuf, -nbuf, outbuf, 0, irdsnd&NOW);
 
-     // !!!!!>>>> Never buffer read with odd bits (nbuf%10!=0)
+     // !!!!!>>>> Never buffer read with odd bits (nbuf%16!=0)
      if((irdsnd&3)==3 && nbuf%16!=0)
      {
         // The last short-word (16 bit) contains the real data bits
         // at the MSB. Must shift them to the LSB. 
         int ishft=16-nbuf%16;
-        unsigned temp=((outbuf[nbuf/8+1]<<8)&0xff00)|(outbuf[nbuf/8]&0xff);
+        unsigned temp=((outbuf[2*(nbuf/16)+1]<<8)&0xff00)|(outbuf[2*(nbuf/16)]&0xff);
         temp=(temp>>ishft);
-        outbuf[nbuf/8+1]=(temp&0xff00)>>8;
-        outbuf[nbuf/8]=temp&0x00ff;
+        outbuf[2*(nbuf/16)+1]=(temp&0xff00)>>8;
+        outbuf[2*(nbuf/16)]=temp&0x00ff;
      }
 
      if(dev==5) 

@@ -319,10 +319,10 @@ if(idev<=4||idev==11){
    if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
    if(irdsnd==1&&nbuf2%16!=0){
      ishft=16-nbuf2%16;
-     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=((outbuf[2*(nbuf2/16)+1]<<8)&0xff00)|(outbuf[2*(nbuf2/16)]&0xff);
      temp=(temp>>ishft);
-     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
-     outbuf[nbuf2/8]=temp&0x00ff;
+     outbuf[2*(nbuf2/16)+1]=(temp&0xff00)>>8;
+     outbuf[2*(nbuf2/16)]=temp&0x00ff;
    }
    break;
  case 2: /* jtag motherboard cntrl */ 
@@ -338,10 +338,10 @@ if(idev<=4||idev==11){
    if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
    if(irdsnd==1&&nbuf2%16!=0){
      ishft=16-nbuf2%16;
-     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=((outbuf[2*(nbuf2/16)+1]<<8)&0xff00)|(outbuf[2*(nbuf2/16)]&0xff);
      temp=(temp>>ishft);
-     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
-     outbuf[nbuf2/8]=temp&0x00ff;
+     outbuf[2*(nbuf2/16)+1]=(temp&0xff00)>>8;
+     outbuf[2*(nbuf2/16)]=temp&0x00ff;
    }
    break;
  case 3: /* jtag motherboard prom */
@@ -355,10 +355,10 @@ if(idev<=4||idev==11){
    if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
    if(irdsnd==1&&nbuf2%16!=0){
      ishft=16-nbuf2%16;
-     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=((outbuf[2*(nbuf2/16)+1]<<8)&0xff00)|(outbuf[2*(nbuf2/16)]&0xff);
      temp=(temp>>ishft);
-     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
-     outbuf[nbuf2/8]=temp&0x00ff;
+     outbuf[2*(nbuf2/16)+1]=(temp&0xff00)>>8;
+     outbuf[2*(nbuf2/16)]=temp&0x00ff;
    }
    break;
  case 4: /* jtag vme-mthrbrd prom */
@@ -374,10 +374,10 @@ if(idev<=4||idev==11){
    if(nbuf>0)scan(DATA_REG,inbuf,nbuf,outbuf,irdsnd);
    if(irdsnd==1&&nbuf2%16!=0){
      ishft=16-nbuf2%16;
-     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=((outbuf[2*(nbuf2/16)+1]<<8)&0xff00)|(outbuf[2*(nbuf2/16)]&0xff);
      temp=(temp>>ishft);
-     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
-     outbuf[nbuf2/8]=temp&0x00ff;
+     outbuf[2*(nbuf2/16)+1]=(temp&0xff00)>>8;
+     outbuf[2*(nbuf2/16)]=temp&0x00ff;
    }
    break;
  case 11: /* reset vme  prom */
