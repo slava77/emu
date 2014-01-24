@@ -2,7 +2,7 @@
 * $Id: Fiber.cc,v 1.8 2010/11/30 10:08:11 cvuosalo Exp $
 \*****************************************************************************/
 #include "emu/fed/Fiber.h"
-
+#include <stdio.h> // for sscanf
 #include <sstream>
 #include <iomanip>
 

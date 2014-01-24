@@ -4,6 +4,8 @@
 #ifndef __EMU_FED_VMECONTROLLER_H__
 #define __EMU_FED_VMECONTROLLER_H__
 
+#include <stdint.h> // for intN_t
+
 #include "emu/fed/Exception.h"
 #include "emu/fed/VMELock.h"
 
