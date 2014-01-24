@@ -7,6 +7,8 @@
 #include <string>
 #include <list>
 
+#include <stdint.h> // for intN_t
+
 #include "emu/fed/JTAG_constants.h"
 
 namespace emu {
