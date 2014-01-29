@@ -1349,7 +1349,6 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_DCS_COUNTERS=48;
   float temp_max[8]={40., 40., 40., 40., 40., 40., 40., 40.};
   float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
   float cv_max[3]={3.5, 5.4, 6.5};
@@ -1525,7 +1524,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_DCS_COUNTERS=48, Total_count=21;
+  int Total_count=21;
   float lv_max[21]={3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 2.0, 6.0, 6.0, 8.0, 8.0};
   float lv_min[21]={3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 1.6, 5.0, 5.0, 5.0, 5.0};
   float val;
@@ -1613,7 +1612,7 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_DCS_COUNTERS=48, Total_count=19;
+  int Total_count=19;
 //  float lv_max[19]={3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 2.0, 6.0, 6.0};
 //  float lv_min[19]={3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 1.6, 5.0, 5.0};
   float val;
@@ -1703,7 +1702,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_DCS_COUNTERS=48, Total_Temps=7;
+  int  Total_Temps=7;
   float temp_max[8]={40., 40., 40., 40., 40., 40., 40., 40.};
   float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
   float val;
@@ -2972,8 +2971,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   unsigned short crateok, good_chamber=0, ccbtag;
   float val, V7;
   std::vector<DAQMB*> myVector;
-  int TOTAL_DCS_COUNTERS=64;
-  int TOTAL_TMB_VOLTAGES=16;
+  int REAL_DCS_COUNTERS=48;
   xdata::InfoSpace * is;
   int ip, slot, ch_state;
   unsigned int bad_module, ccbbits;
@@ -3008,7 +3006,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
            *out << " " << time(NULL) << " " << ip;
            *out << " 0 0";
-           for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
+           for(int k=0; k<REAL_DCS_COUNTERS-1; k++) 
            {  
               *out << " -2.";
            }
@@ -3116,7 +3114,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         *out << " " << confbit << " 0";
 
         *out << std::setprecision(4) << std::fixed;
-        for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
+        for(int k=0; k<REAL_DCS_COUNTERS-1; k++) 
         {  
            /* for error conditions on bits 0,2-8, don't send data */
            if((ch_state & 0x1FD)==0)
@@ -3201,11 +3199,15 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
 
            *out << " " << time(NULL) << " " << ip;
            *out << " 0 0";
-           for(int k=0; k<TOTAL_DCS_COUNTERS-1; k++) 
+           for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
            {  
               *out << " -2.";
            }
-           for(int k=0; k<TOTAL_TMB_VOLTAGES-1; k++) 
+           for(int k=0; k<TOTAL_TMB_VOLTAGES; k++) 
+           {  
+              *out << " -2.";
+           }
+           for(int k=0; k<TOTAL_DCFEB_MONS; k++) 
            {  
               *out << " -2.";
            }
