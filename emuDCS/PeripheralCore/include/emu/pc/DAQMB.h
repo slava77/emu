@@ -773,6 +773,8 @@ public:
   int dcfeb_dna(CFEB & cfeb, void *dna);
   std::vector<float> dcfeb_adc(CFEB & cfeb);
   void dcfeb_adc_finedelay(CFEB & cfeb, unsigned short finedelay);
+  unsigned dcfeb_startup_status(CFEB & cfeb);
+  unsigned dcfeb_qpll_lost_count(CFEB & cfeb);  
 
   int lvmb_power_state();
   // code for ODMB
@@ -781,6 +783,10 @@ public:
   void odmb_fpga_call(int inst, unsigned data, char *outbuf);
   int DCSread2(char *data);
   int read_cfeb_done();
+  int read_qpll_state();
+  int read_odmb_id();
+  void odmb_save_config();
+  void odmb_retrieve_config();
   
   // various delays in ODMB
   inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(LCT_L1A_DLY, delay&0x3F); }  // 6 bits
@@ -816,6 +822,8 @@ public:
   void odmb_readfirmware_mcs(const char *filename);
   void odmb_program_eprom(const char *mcsfile);
   void odmb_program_virtex6(const char *mcsfile);
+
+  
 
  private:
 
@@ -949,8 +957,8 @@ public:
   static const unsigned ODMB_CTRL = 0x3000;
   static const unsigned DCFEB_CTRL = 0x3010;
   static const unsigned DCFEB_DONE = 0x3120;
+  static const unsigned ODMB_QPLL = 0x3124;
   
-
   static const unsigned LCT_L1A_DLY = 0x4000;
   static const unsigned TMB_DLY = 0x4004;
   static const unsigned PUSH_DLY = 0x4008;
@@ -960,8 +968,13 @@ public:
   static const unsigned CAL_DLY = 0x4018;
   static const unsigned ODMB_KILL = 0x401C;
   static const unsigned ODMB_CRATEID = 0x4020;
-  static const unsigned read_FW_VERSION = 0x4024;
 
+  static const unsigned read_ODMB_ID = 0x4100;
+  static const unsigned read_FW_VERSION = 0x4200;
+  static const unsigned read_FW_BUILD = 0x4300;
+
+  static const unsigned ODMB_Save_Config = 0x6000;
+  static const unsigned ODMB_Retrieve_Config = 0x6004;
   static const unsigned BPI_Reset = 0x6020;
   static const unsigned BPI_Disable = 0x6024;
   static const unsigned BPI_Enable = 0x6028;

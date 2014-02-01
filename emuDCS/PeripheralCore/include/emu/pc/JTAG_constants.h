@@ -173,6 +173,18 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define CLEAR_ANYL1AFLAG 40
 #define SET_ANYL1AFLAG 41
 #define ADC_Fine_Delay 44
+#define PRBS_Test_Mode  45
+#define PRBS_Inject_Error 46
+#define SEM_Control 47
+#define SEM_RST_DED 48
+#define SEM_CMD 49
+#define SEM_SEU_ADD_LINEAR 50
+#define SEM_SEU_ADD_PHYSICAL 51
+#define REG_SEL_WRD 52
+#define REG_RD_WRD 53
+#define QPLL_RST 54
+#define QPLL_LK_LOST_CNT 55
+#define STARTUP_STATUS 56
 
 /* VIRTEX6 fpga scan instructions */
 #define VTX6_EXTEST 0x3C0

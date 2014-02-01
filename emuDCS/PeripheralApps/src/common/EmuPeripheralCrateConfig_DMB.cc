@@ -2722,6 +2722,21 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
         *out << buf << cgicc::span();
     }
      *out << cgicc::br();
+     int qpll_state=thisDMB->read_qpll_state();
+     sprintf(buf,"ODMB QPLL lock state  : %04X ",qpll_state);
+     if ( qpll_state ) 
+     {
+        *out << cgicc::span().set("style","color:green");
+        *out << buf << " ...OK...";
+        *out << cgicc::span();
+     } else 
+     {
+        *out << cgicc::span().set("style","color:red");
+        *out << buf;
+        *out << "--->> BAD <<--- should be 1";
+        *out << cgicc::span();
+    }
+    *out  << std::endl;
      int idcode=thisDMB->mbfpgaid();
      sprintf(buf,"ODMB fpga ID Code     : %08X ",idcode);
      if ( (idcode&0xFFFFFFF)==(0x8424A093&0xFFFFFFF) ) 
@@ -2738,6 +2753,9 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
     }
      *out << cgicc::br();
      sprintf(buf,"ODMB fpga User Code   : %08X ", (int)thisDMB->mbfpgauser());
+     *out << buf << std::endl;
+     int unique_id=thisDMB->read_odmb_id();     
+     sprintf(buf,"ODMB unique id        : %04X ", unique_id);
      *out << buf << std::endl;
      // ODMB Control
      // DCFEB Control

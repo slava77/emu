@@ -828,12 +828,6 @@ void DAQMB::configure() {
    }
 
    set_and_initalize_pipelines_and_fine_delays();
-   
-   if(hardware_version_==2)
-   {
-   // set delays
-
-   }
 
   // ***  This part is related to the SFM (Serial Flash Memory) ****
    //
@@ -868,6 +862,14 @@ void DAQMB::configure() {
      //
      // Load FLASH memory
      WriteSFM();
+   }
+   
+   if(hardware_version_==2)
+   {
+      // set delays
+
+      // save configuration to EPROM
+      odmb_save_config();
    }
 
 }
@@ -7636,7 +7638,7 @@ void DAQMB::dcfeb_hub(CFEB & cfeb, int jfunc, int nbit, void *inbuf, char *outbu
 void DAQMB::dcfeb_sys_reset(CFEB & cfeb)
 {
   char buf[4];
-  dcfeb_hub(cfeb, 1, 0, buf, buf, NOW);
+  dcfeb_hub(cfeb, RESET_MODE, 0, buf, buf, NOW);
   return;
 }
 
@@ -7644,7 +7646,7 @@ unsigned DAQMB::dcfeb_read_status(CFEB & cfeb)
 {
   unsigned temp;
   char buf[4]={0,0,0,0};
-  dcfeb_hub(cfeb, 3, 32, buf, (char *)&temp, NOW|READ_YES);
+  dcfeb_hub(cfeb, STATUS_S, 32, buf, (char *)&temp, NOW|READ_YES);
   return temp;
 }
 
@@ -8522,6 +8524,22 @@ void DAQMB::dcfeb_adc_finedelay(CFEB & cfeb, unsigned short finedelay)
   return;
 }
 
+unsigned DAQMB::dcfeb_startup_status(CFEB & cfeb)
+{
+  unsigned temp=0;
+  char buf[4]={0,0,0,0};
+  dcfeb_hub(cfeb, STARTUP_STATUS, 16, buf, (char *)&temp, NOW|READ_YES);
+  return temp&0xFFFF;
+}
+
+unsigned DAQMB::dcfeb_qpll_lost_count(CFEB & cfeb)
+{
+  unsigned temp=0;
+  char buf[4]={0,0,0,0};
+  dcfeb_hub(cfeb, QPLL_LK_LOST_CNT, 8, buf, (char *)&temp, NOW|READ_YES);
+  return temp&0xFF;
+}
+
 int DAQMB::LVDB_map(int chn)
 {
      // return the LVDB position (0-7) of channel <chn> (for CFEB<chn+1>)
@@ -9196,6 +9214,44 @@ int DAQMB::read_cfeb_done()
        sig=ReadRegister(DCFEB_DONE) & 0x7F;
     }
     return sig;
+}
+
+int DAQMB::read_qpll_state()
+{
+    int sig=0;
+    if(hardware_version_==2)
+    {
+       sig=ReadRegister(ODMB_QPLL) & 0xFFFF;
+    }
+    return sig;
+}
+
+int DAQMB::read_odmb_id()
+{
+    int sig=0;
+    if(hardware_version_==2)
+    {
+       sig=ReadRegister(read_ODMB_ID) & 0xFFFF;
+    }
+    return sig;
+}
+
+void DAQMB::odmb_save_config()
+{
+    if(hardware_version_==2)
+    {
+       WriteRegister(ODMB_Save_Config, 0);
+    }
+    return;
+}
+
+void DAQMB::odmb_retrieve_config()
+{
+    if(hardware_version_==2)
+    {
+       WriteRegister(ODMB_Save_Config, 0);
+    }
+    return;
 }
 
 } // namespace emu::pc
