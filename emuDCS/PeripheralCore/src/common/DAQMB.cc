@@ -8526,6 +8526,22 @@ void DAQMB::dcfeb_adc_finedelay(CFEB & cfeb, unsigned short finedelay)
 
 unsigned DAQMB::dcfeb_startup_status(CFEB & cfeb)
 {
+  /*
+         variable        bits
+         --------        ----
+         por_state        0-2
+         eos              3
+         al_status        4-6
+         run              7
+         adc_rdy          8
+         daq_mmcm_lock    9
+         trg_mmcm_lock   10
+         0               11
+         0               12
+         qpll_cnt_ovrflw 13
+         qpll_error      14
+         qpll_lock       15
+   */
   unsigned temp=0;
   char buf[4]={0,0,0,0};
   dcfeb_hub(cfeb, STARTUP_STATUS, 16, buf, (char *)&temp, NOW|READ_YES);
@@ -9241,6 +9257,7 @@ void DAQMB::odmb_save_config()
     if(hardware_version_==2)
     {
        WriteRegister(ODMB_Save_Config, 0);
+       ::sleep(2);
     }
     return;
 }
@@ -9249,7 +9266,8 @@ void DAQMB::odmb_retrieve_config()
 {
     if(hardware_version_==2)
     {
-       WriteRegister(ODMB_Save_Config, 0);
+       WriteRegister(ODMB_Retrieve_Config, 0);
+       ::sleep(1);
     }
     return;
 }
