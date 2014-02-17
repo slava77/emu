@@ -394,6 +394,11 @@ void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br() << "CSR2 = " << std::hex << thisMPC->ReadRegister(0xAC) << std::endl;
   *out << cgicc::br() << "CSR3 = " << std::hex << thisMPC->ReadRegister(0xAE) << std::endl;
   *out << cgicc::br() << "CSR4 = " << std::hex << thisMPC->ReadRegister(0xB8) << std::endl;
+  *out << cgicc::br() << "CSR5 = " << std::hex << thisMPC->ReadRegister(0xBA) << std::endl;
+  *out << cgicc::br() << "CSR7 = " << std::hex << thisMPC->ReadRegister(0xCA) << std::endl;
+  *out << cgicc::br() << "CSR8 = " << std::hex << thisMPC->ReadRegister(0xCE) << std::endl;
+  *out << cgicc::br() << "CSR9 = " << std::hex << thisMPC->ReadRegister(0xB2) << std::endl;
+  *out << cgicc::br() << "CSR10 = " << std::hex << thisMPC->ReadRegister(0xB4) << std::endl;
   //
   *out << cgicc::fieldset();
   //
