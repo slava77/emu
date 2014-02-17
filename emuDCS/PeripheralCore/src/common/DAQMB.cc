@@ -874,6 +874,7 @@ void DAQMB::configure() {
       odmb_set_Inj_delay(inject_delay_);
       odmb_set_Ext_delay(pulse_delay_);
       odmb_set_Cal_delay(calibration_LCT_delay_);
+      odmb_set_kill_mask(kill_input_mask_);
       // save configuration to EPROM
       odmb_save_config();
    }

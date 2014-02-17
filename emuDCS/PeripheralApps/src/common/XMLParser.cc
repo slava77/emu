@@ -851,6 +851,10 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
     if (fillInt("dmb_vme_firmware_tag", delay) ) 
       daqmb_->SetExpectedVMEFirmwareTag(delay);
     //
+    if (fillInt("odmb_kill_mask", delay) ) 
+      daqmb_->SetKillInputMask(delay);
+    //
+
     int number=0;   
     int kill_chip[6]={0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
     
