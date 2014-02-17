@@ -867,7 +867,13 @@ void DAQMB::configure() {
    if(hardware_version_==2)
    {
       // set delays
-
+      odmb_set_LCT_L1A_delay(l1acc_dav_delay_);
+      odmb_set_TMB_delay(tmb_dav_delay_);
+      odmb_set_Push_delay(push_dav_delay_);
+      odmb_set_ALCT_delay(ALCT_dav_delay_);
+      odmb_set_Inj_delay(inject_delay_);
+      odmb_set_Ext_delay(pulse_delay_);
+      odmb_set_Cal_delay(calibration_LCT_delay_);
       // save configuration to EPROM
       odmb_save_config();
    }
