@@ -790,19 +790,19 @@ public:
   
   // various delays in ODMB
   inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(LCT_L1A_DLY, delay&0x3F); }  // 6 bits
-  inline void odmb_set_TMB_delay(int delay) { WriteRegister(TMB_DLY, delay&0x1F); }  // 5 bits
-  inline void odmb_set_Push_delay(int delay) { WriteRegister(PUSH_DLY, delay&0x1F); }  // 5 bits
-  inline void odmb_set_ALCT_delay(int delay) { WriteRegister(ALCT_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_TMB_delay(int delay) { WriteRegister(TMB_DLY, delay&0x3F); }  // 6 bits
+  inline void odmb_set_Push_delay(int delay) { WriteRegister(PUSH_DLY, delay&0x3F); }  // 6 bits
+  inline void odmb_set_ALCT_delay(int delay) { WriteRegister(ALCT_DLY, delay&0x3F); }  // 6 bits
   inline void odmb_set_Inj_delay(int delay) { WriteRegister(INJ_DLY, delay&0x1F); }  // 5 bits
   inline void odmb_set_Ext_delay(int delay) { WriteRegister(EXT_DLY, delay&0x1F); }  // 5 bits
-  inline void odmb_set_Cal_delay(int delay) { WriteRegister(CAL_DLY, delay&0x1F); }  // 5 bits
+  inline void odmb_set_Cal_delay(int delay) { WriteRegister(CAL_DLY, delay&0xF); }   // 4 bits
   inline int odmb_read_LCT_L1A_delay() { return ReadRegister(LCT_L1A_DLY) & 0x3F; }  // 6 bits
-  inline int odmb_read_TMB_delay() { return ReadRegister(TMB_DLY) & 0x1F; }  // 5 bits
-  inline int odmb_read_Push_delay() { return ReadRegister(PUSH_DLY) & 0x1F; }  // 5 bits
-  inline int odmb_read_ALCT_delay() { return ReadRegister(ALCT_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_TMB_delay() { return ReadRegister(TMB_DLY) & 0x3F; }  // 6 bits
+  inline int odmb_read_Push_delay() { return ReadRegister(PUSH_DLY) & 0x3F; }  // 6 bits
+  inline int odmb_read_ALCT_delay() { return ReadRegister(ALCT_DLY) & 0x3F; }  // 6 bits
   inline int odmb_read_Inj_delay() { return ReadRegister(INJ_DLY) & 0x1F; }  // 5 bits
   inline int odmb_read_Ext_delay() { return ReadRegister(EXT_DLY) & 0x1F; }  // 5 bits
-  inline int odmb_read_Cal_delay() { return ReadRegister(CAL_DLY) & 0x1F; }  // 5 bits
+  inline int odmb_read_Cal_delay() { return ReadRegister(CAL_DLY) & 0xF; }   // 4 bits
 
   // kill input from boards (CFEBs, TMB, ALCT) mask; multiple boards can be killed
   inline void odmb_set_kill_mask(int kill) { WriteRegister(ODMB_KILL, kill); }

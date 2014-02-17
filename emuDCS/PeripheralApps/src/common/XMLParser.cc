@@ -757,18 +757,18 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 //     if ( fillInt("feb_dav_delay", delay)){
 //       daqmb_->SetFebDavDelay(delay);
 //     }
-//     if ( fillInt("tmb_dav_delay", delay) ){
-//       daqmb_->SetTmbDavDelay(delay);
-//     }
-//     if (fillInt("push_dav_delay", delay)){
-//       daqmb_->SetPushDavDelay(delay);
-//     }
-//     if(fillInt("l1acc_dav_delay", delay)){
-//       daqmb_->SetL1aDavDelay(delay);
-//     }
-//     if(fillInt("ALCT_dav_delay", delay)){
-//       daqmb_->SetAlctDavDelay(delay);
-//     }
+     if ( fillInt("tmb_dav_delay", delay) ){
+       daqmb_->SetTmbDavDelay(delay);
+     }
+     if (fillInt("push_dav_delay", delay)){
+       daqmb_->SetPushDavDelay(delay);
+     }
+     if(fillInt("l1acc_dav_delay", delay)){
+       daqmb_->SetL1aDavDelay(delay);
+     }
+     if(fillInt("ALCT_dav_delay", delay)){
+       daqmb_->SetAlctDavDelay(delay);
+     }
     if(fillInt("lvdb7_mapping", ivalue)){
       daqmb_->SetLVDBMapping(ivalue);
     }
