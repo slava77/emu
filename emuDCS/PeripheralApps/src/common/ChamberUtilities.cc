@@ -410,9 +410,9 @@ ChamberUtilities::ChamberUtilities(){
   //
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
   min_alct_l1a_delay_value_ = 134;
-  max_alct_l1a_delay_value_ = 158;
+  max_alct_l1a_delay_value_ = 170;
   min_tmb_l1a_delay_value_  = 115; 
-  max_tmb_l1a_delay_value_  = 139; 
+  max_tmb_l1a_delay_value_  = 150; 
   local_tmb_bxn_offset_     = 3539;
   //
   MyOutput_ = &std::cout ;
@@ -467,7 +467,7 @@ ChamberUtilities::ChamberUtilities(){
   ScopeMin_        = 0;
   ScopeMax_        = 4;
   AffToL1aValueMin_= 110;
-  AffToL1aValueMax_= 140;
+  AffToL1aValueMax_= 160;
   CfebDavValueMin_ = 0;
   CfebDavValueMax_ = 10;
   TmbDavValueMin_  = 0;
