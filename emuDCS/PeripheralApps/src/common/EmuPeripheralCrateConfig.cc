@@ -9043,16 +9043,59 @@ void EmuPeripheralCrateConfig::LoadALCTSlowFirmware(xgi::Input * in, xgi::Output
     std::string chambername = thisCrate->GetChamber(thisTMB)->GetLabel();
     std::string svffile = FirmwareDir_ + ALCT_SLOW_FIRMWARE_FILENAME;
     thisCCB->setCCBMode(CCB::VMEFPGA);
-      //
+      
     std::cout  << getLocalDateTime() << " Download ALCT Slow Control firmware to " << chambername << std::endl;
-      //
+      
+    //disable TMB clocks
+    std::cout << "Disable All TMB Clocks" << std::endl; 
+    thisTMB->disableAllClocks(); //anp
+    ::sleep(10);
+
+    //power cycle ALCT
+    DAQMB * thisDMB = dmbVector[tmb];  // TMB and DMB in a pair should have the the same number
+
+    std::cout << "DMB Turn Off and then On ALCT: DMB " << tmb << std::endl;
+    if (thisDMB) 
+    {
+        int D_hversion=thisDMB->GetHardwareVersion();
+        int alct_on=((D_hversion<=1)?0x20:0x80);
+        int alct_off=((D_hversion<=1)?0x1F:0x7F);
+        int old_powermask=thisDMB->lowv_rdpwrreg();
+        // turn off
+        thisDMB->lowv_onoff(old_powermask & alct_off);
+        ::sleep(2);
+        //turn on
+        thisDMB->lowv_onoff(old_powermask | alct_on);
+    }
+
     thisTMB->setup_jtag(ChainAlctSlowMezz);
     thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
+
+    //reenable TMB clocks
+    std::cout << "Enable All TMB Clocks" << std::endl; 
+    ::sleep(1);
+    thisTMB->enableAllClocks(); //anp
+    
+    //power cycle ALCT again
+
+    std::cout << "DMB Turn Off and then On ALCT: DMB " << tmb << std::endl;
+    if (thisDMB) 
+    {
+        int D_hversion=thisDMB->GetHardwareVersion();
+        int alct_on=((D_hversion<=1)?0x20:0x80);
+        int alct_off=((D_hversion<=1)?0x1F:0x7F);
+        int old_powermask=thisDMB->lowv_rdpwrreg();
+        // turn off
+        thisDMB->lowv_onoff(old_powermask & alct_off);
+        ::sleep(2);
+        //turn on
+        thisDMB->lowv_onoff(old_powermask | alct_on);
+    }
 
     // Put CCB back into DLOG mode to listen to TTC commands...
     thisCCB->setCCBMode(CCB::DLOG);
   }
-  //
+  
   this->TMBUtils(in,out);
 }
 //
