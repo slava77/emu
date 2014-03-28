@@ -1781,6 +1781,15 @@ else if(D_hversion==2)
      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
      *out << FirmwareDir_+"odmb/me11_odmb.mcs";
      *out << cgicc::form() << std::endl ;
+     *out << cgicc::br();
+     //
+     std::string ODMBLoadFirmwarePoll = toolbox::toString("/%s/ODMBLoadFirmwarePoll",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",ODMBLoadFirmwarePoll) << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","ODMB Program EPROM by Polling BPI") << std::endl ;
+     sprintf(buf,"%d",dmb);
+     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+     *out << FirmwareDir_+"odmb/me11_odmb.mcs";
+     *out << cgicc::form() << std::endl ;
      //
      *out << cgicc::br() <<cgicc::hr() << std::endl;
      *out << "Use this one ONLY if power-cycle failed to recover the FPGA:" << cgicc::br()<< std::endl;
@@ -1933,6 +1942,46 @@ void EmuPeripheralCrateConfig::DMBLoadFirmware(xgi::Input * in, xgi::Output * ou
      
        std::cout << getLocalDateTime() << " ODMB program EPROM finished." << std::endl;
 
+    }
+  }
+  //
+  this->DMBUtils(in,out);
+  //
+}
+//
+//
+void EmuPeripheralCrateConfig::ODMBLoadFirmwarePoll(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "ODMBLoadFirmwarePoll:  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  //
+  if (thisDMB) 
+  {
+   
+    int hversion=thisDMB->GetHardwareVersion();
+    if(hversion==2)
+    {
+       std::string mcsfile= FirmwareDir_+ "odmb/me11_odmb.mcs";
+                
+       std::cout << getLocalDateTime() << " ODMB program EPROM by Polling BPI status in slot " << thisDMB->slot() << std::endl;
+       std::cout << "Use mcs file: " << mcsfile << std::endl;
+
+       bool success=thisDMB->odmb_program_eprom_poll(mcsfile.c_str());
+       if(success)     
+          std::cout << getLocalDateTime() << " ODMB program EPROM finished successfully." << std::endl;
+       else
+           std::cout << getLocalDateTime() << " ODMB program EPROM failed." << std::endl;
     }
   }
   //

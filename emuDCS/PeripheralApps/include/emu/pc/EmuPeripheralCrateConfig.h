@@ -420,6 +420,7 @@ private:
   void DCFEBProgramFpga(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DCFEBProgramEprom(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DCFEBProgramEpromAll(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ODMBLoadFirmwarePoll(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
     
   //
   // TMB utils
