@@ -822,7 +822,7 @@ public:
   void odmb_readfirmware_mcs(const char *filename);
   void odmb_program_eprom(const char *mcsfile);
   void odmb_program_virtex6(const char *mcsfile);
-
+  bool odmb_program_eprom_poll(const char *mcsfile);
   
 
  private:
@@ -868,7 +868,9 @@ public:
   void odmbeprom_loadaddress(unsigned short uaddress, unsigned short laddress);
   void odmbeprom_bufferprogram(unsigned nwords, unsigned short *prm_dat);
   void odmbeprom_read(unsigned nwords, unsigned short *pdata);
-
+  bool odmbeprom_cmd_fifo_empty(unsigned int poll_interval = 100 /*us*/);
+  bool odmbeprom_pec_ready(unsigned int poll_interval = 500 /*us*/);
+            
   //
   int shift_array_[7][6][16];
   static const int nchips[7];

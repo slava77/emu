@@ -8853,10 +8853,39 @@ void DAQMB::odmbeprom_multi(int cnt, unsigned short *manbuf)
     for(int i=0; i<cnt; i++)
     {
       WriteRegister(BPI_Write, manbuf[i]);
-      udelay(10);                             
+      udelay(30);                             
     }
     return;
 }
+
+    bool DAQMB::odmbeprom_cmd_fifo_empty(unsigned int poll_interval /*us*/)
+    {
+      const unsigned int max_cnt = 40000000/poll_interval;
+      unsigned int cnt = 0;
+      while ((odmb_bpi_status() & 0x0F00) != 0x0800) {	
+	udelay(poll_interval);
+	cnt++;
+	// if (odmb_eprom_debug) printf("line %d: BPI status (cnt = %d) = %x\n",__LINE__, cnt, status);
+	if (cnt >= max_cnt) return false;
+      }
+
+      return true;
+    }
+
+    bool DAQMB::odmbeprom_pec_ready(unsigned int poll_interval /*us*/)
+    {
+      const unsigned int max_cnt = 40000000/poll_interval;
+      udelay (poll_interval);
+      unsigned int cnt = 0;
+      while ((odmb_bpi_status() & 0xFFF0) != 0x8880) {	
+	udelay(poll_interval);
+	cnt++;
+	// if (odmb_eprom_debug) printf("line %d: BPI status (cnt = %d) = %x\n",__LINE__, cnt, status);
+	if (cnt >= max_cnt) return false;
+      }
+
+      return true;
+    }
 
 void DAQMB::odmbeprom_unlockerase() 
 { 
@@ -8880,6 +8909,7 @@ void DAQMB::odmbeprom_bufferprogram(unsigned nwords,unsigned short *prm_dat)
     unsigned short tmp;
     tmp= (((nwords-1)<<5)&0xffe0)|XPROM_Buffer_Program;
     odmb_XPROM_do(tmp);
+    udelay(40);
 
     // send data
     odmbeprom_multi(nwords, prm_dat);
@@ -9145,6 +9175,200 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
    odmb_bpi_disable();
    free(bufin);
 }
+
+    bool DAQMB::odmb_program_eprom_poll(const char *mcsfile)
+    {
+      bool odmb_eprom_debug=false;
+
+      unsigned int fulladdr;
+      unsigned int uaddr,laddr;
+      unsigned int i, blocks, lastblock;
+
+      const int FIRMWARE_SIZE=5464972/2; // in words
+
+      // each eprom block has 0x10000 words
+      const int BLOCK_SIZE=0x10000; // in words
+
+      // each write call takes 0x800 words
+      const int WRITE_SIZE=0x400;  // in words, was 0x800
+
+      // 1. read mcs file
+      char *bufin;
+      bufin=(char *)malloc(16*1024*1024);
+      if(bufin==NULL) {
+	std::cout << "Nothing in bufin." << std::endl;
+	free(bufin);
+	return false;
+      }
+      unsigned short *bufw= (unsigned short *)bufin;
+      FILE *fin=fopen(mcsfile,"r");
+      if(fin==NULL ) 
+	{ 
+	  free(bufin);  
+	  std::cout << "ERROR: Unable to open MCS file :" << mcsfile << std::endl;
+	  return false;
+	}
+      int mcssize=read_mcs(bufin, fin);
+      fclose(fin);
+      std::cout << "Read MCS size: " << mcssize << " bytes" << std::endl;
+      if(mcssize<FIRMWARE_SIZE)
+	{
+	  free(bufin);
+	  std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
+	  return false;
+	}
+
+      odmb_bpi_reset();
+      odmbeprom_timerstop();
+      odmbeprom_timerreset();
+      odmbeprom_timerstart();
+      odmb_bpi_enable();
+      udelay(1000);
+      odmb_bpi_disable();
+
+      // 2. erase eprom
+      blocks=FIRMWARE_SIZE/BLOCK_SIZE;
+      if((FIRMWARE_SIZE%BLOCK_SIZE)>0) blocks++;
+      std::cout << "Erasing EPROM..." << std::endl;
+      for(i=0; i<blocks; i++)
+	{
+	  uaddr=i;
+	  laddr=0;
+
+	  odmbeprom_clearstatus();
+	  // printf(" eprom_load fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+	  odmbeprom_loadaddress(uaddr,laddr);
+	  // unlock and erase the block
+	  odmbeprom_unlockerase();
+	  udelay(40);
+
+	  odmb_bpi_enable();
+	  udelay(4000);
+
+	  // This is the erase polling that we're trying to implement.  When BPI_STATUS = 8880, 
+	  // we are good to go.
+
+	  unsigned int interval = 500000;
+	  unsigned int max_count = 4000000/interval;
+	  unsigned int cnt = 0;
+	  // unsigned int status = odmb_bpi_status();
+	  while ((odmb_bpi_status() & 0xFFFF) != 0x8880) {
+	    udelay(interval);
+	    ++cnt;
+	    // status = odmb_bpi_status();
+	    if (cnt >= max_count)
+	      {
+		printf("erase time out for block %d, address %04x%04x with status %04x\n", i, uaddr, laddr, odmb_bpi_status());
+		//		throw "took more than 4 seconds to erase a block!";
+		free(bufin);
+		odmb_bpi_disable();
+		return false;
+	      }
+	  }
+
+	  udelay(100);
+	  odmb_bpi_disable();
+
+	}       
+
+      printf("Erase complete.\n");
+
+      // 3. write eprom      
+      int global_write_delay = 2000;
+      blocks=FIRMWARE_SIZE/WRITE_SIZE;
+      lastblock=FIRMWARE_SIZE%WRITE_SIZE;
+      int p1pct=blocks/10;
+      int j=0, pcnts=0;
+      if(lastblock>0) blocks++;
+      else lastblock=WRITE_SIZE;
+      std::cout << "Start programming EPROM..." << std::endl;
+      fulladdr=0;
+      if (odmb_eprom_debug) {
+	udelay(global_write_delay);
+	printf("status before disable %04x\n", odmb_bpi_status());
+      }
+      odmb_bpi_disable();      
+      if (odmb_eprom_debug) {
+	udelay(global_write_delay);
+	printf("status after disable %04x\n", odmb_bpi_status());
+      }
+      int nwords=WRITE_SIZE;
+      for(i=0; i<blocks; i++)  
+	{
+	  if(i==blocks-1) nwords=lastblock;
+	  uaddr = (fulladdr >> 16);
+	  laddr = fulladdr &0xffff;
+	  
+	  if (odmb_eprom_debug) {
+	    printf("beginning write block %i at address %08x\n", i, fulladdr);
+	    printf("status before loadaddress %04x\n", odmb_bpi_status());
+	    udelay(global_write_delay);
+	  }
+	  odmbeprom_loadaddress(uaddr,laddr);
+
+	  if (odmb_eprom_debug) {
+	    udelay(global_write_delay);
+	    printf("status before buffer program %04x\n", odmb_bpi_status());
+	    udelay(global_write_delay);
+	  }
+	  
+	  odmbeprom_bufferprogram(nwords, bufw+i*WRITE_SIZE);
+	  odmb_bpi_enable();
+	  udelay(global_write_delay);
+	  // make sure the status goes back to 8880 => FIFOs empty, ready for next chunk.
+	  if (!odmbeprom_pec_ready(global_write_delay)) {
+	    printf("P/E.C. controller did not return to normal status during program. Exiting with status %04x\n", odmb_bpi_status());
+	    //	    throw "BPI parser failed to empty CMD FIFO";
+	    free(bufin);
+	    odmb_bpi_disable();
+	    return false;
+	  }
+	  udelay(global_write_delay);
+	  odmb_bpi_disable();
+	  udelay(global_write_delay);
+	  unsigned int nwords_rbk = ReadRegister(BPI_Read_n);
+	  
+	  if (odmb_eprom_debug) {
+	    udelay(global_write_delay);
+	    printf("\t%d words remaining in RBK FIFO\n", nwords_rbk);	  
+	    while(nwords_rbk-- > 0) {
+	      udelay(global_write_delay);
+	      printf("\t\trbk %d: %04x\n", nwords_rbk, ReadRegister(BPI_Read));
+	    }
+	  }
+	  
+	  udelay(global_write_delay);
+	  if (odmb_eprom_debug) printf("controller ready status: %04x\n\n", odmb_bpi_status());
+	  
+	  fulladdr += WRITE_SIZE;
+	  
+	  j++;
+	  if(j==p1pct)
+	    {  pcnts++;
+	      if(pcnts<100) std::cout << "Sending " << std::dec << pcnts*10 <<"%..." << std::endl;
+	      j=0;
+	    }   
+	}
+      std::cout << "Sending 100%..." << std::endl;
+      uaddr = (fulladdr >> 16);
+      laddr = fulladdr &0xffff;
+      if (odmb_eprom_debug) printf("line %d: lock address %04x%04x \n", __LINE__, (uaddr&0xFFFF),(laddr&0xFFFF));
+      odmbeprom_loadaddress(uaddr,laddr);
+      odmbeprom_lock();      
+      udelay(global_write_delay);
+      odmb_bpi_enable();
+      if (!odmbeprom_pec_ready(global_write_delay))
+	{
+	  printf("P/E.C. controller did not return to normal status on final lock. Exiting with status %04x\n", odmb_bpi_status());
+	  //	  throw "crashing now";
+	  odmb_bpi_disable();
+	  free(bufin);
+	  return false;
+	}
+      odmb_bpi_disable();
+      free(bufin);
+      return true;
+    }
 
 void DAQMB::odmb_program_virtex6(const char *mcsfile)
 {
