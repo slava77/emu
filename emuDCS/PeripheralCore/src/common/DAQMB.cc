@@ -7842,7 +7842,7 @@ void DAQMB::dcfebprom_multi(int cnt, unsigned short *manbuf)
     comd=VTX6_BYPASS;
     tmp=0;
     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
-    udelay(10);                             
+    udelay(30);                             
     return;
 }
 
@@ -7882,7 +7882,7 @@ void DAQMB::dcfebprom_bufferprogram(unsigned nwords,unsigned short *prm_dat)
     comd=VTX6_BYPASS;
     tmp=0;
     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
-    udelay(10);
+    udelay(40);
     return;
 }
 
@@ -8221,8 +8221,8 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
    // each eprom block has 0x10000 words
    const int BLOCK_SIZE=0x10000; // in words
 
-   // each write call takes 0x800 words
-   const int WRITE_SIZE=0x800;  // in words
+   // each write call takes 0x400 words
+   const int WRITE_SIZE=0x400;  // in words
 
 // 1. read mcs file
    char *bufin;
@@ -8270,7 +8270,7 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
       // unlock and erase the block
       dcfebprom_unlockerase();
 
-      udelay(1000000);
+      udelay(2000000);
    }
 
 // 3. write eprom
@@ -8293,7 +8293,7 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
       // program with new data from the beginning of the block
       dcfebprom_bufferprogram(nwords,bufw+i*WRITE_SIZE);
       udelay(120000);
-      fulladdr += 0x800;
+      fulladdr += WRITE_SIZE;
        j++;
        if(j==p1pct)
        {  pcnts++;
@@ -8307,6 +8307,7 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
    // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
    dcfebprom_loadaddress(uaddr,laddr);
    dcfebprom_lock();
+   udelay(100000);
    dcfeb_bpi_disable();
    free(bufin);
 }
@@ -9091,8 +9092,8 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
    // each eprom block has 0x10000 words
    const int BLOCK_SIZE=0x10000; // in words
 
-   // each write call takes 0x800 words
-   const int WRITE_SIZE=0x800;  // in words
+   // each write call takes 0x400 words
+   const int WRITE_SIZE=0x400;  // in words
 
 // 1. read mcs file
    char *bufin;
@@ -9135,7 +9136,7 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
       // unlock and erase the block
       odmbeprom_unlockerase();
 
-      udelay(1000000);
+      udelay(2000000);
    }
 
 // 3. write eprom
@@ -9158,7 +9159,7 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
       // program with new data from the beginning of the block
       odmbeprom_bufferprogram(nwords,bufw+i*WRITE_SIZE);
       udelay(120000);
-      fulladdr += 0x800;
+      fulladdr += WRITE_SIZE;
        j++;
        if(j==p1pct)
        {  pcnts++;
@@ -9172,6 +9173,7 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
    // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
    odmbeprom_loadaddress(uaddr,laddr);
    odmbeprom_lock();
+   udelay(100000);
    odmb_bpi_disable();
    free(bufin);
 }
