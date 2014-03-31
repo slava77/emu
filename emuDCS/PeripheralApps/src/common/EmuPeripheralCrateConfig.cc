@@ -192,6 +192,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::setConfFile, "setConfFile");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigOneCrate, "ConfigOneCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ConfigDCFEBs, "ConfigDCFEBs");
   //
   //------------------------------------------------------
   // bind buttons -> Crate Configuration pages
@@ -812,6 +813,13 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
         *out << cgicc::input().set("type","submit").set("value","Write FLASH to Crate") << std::endl ;
         *out << cgicc::form() << std::endl ;
         *out << cgicc::td();
+
+        *out << cgicc::td();
+        std::string ConfigDCFEBs = toolbox::toString("/%s/ConfigDCFEBs",getApplicationDescriptor()->getURN().c_str());
+        *out << cgicc::form().set("method","GET").set("action",ConfigDCFEBs) << std::endl ;
+        *out << cgicc::input().set("type","submit").set("value","Configure DCFEBs") << std::endl ;
+        *out << cgicc::form() << std::endl ;
+        *out << cgicc::td();
     }
 
     *out << cgicc::td();
@@ -1010,6 +1018,25 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
      std::cout << "Button: ConfigOneCrate" << std::endl;
      thisCrate->configure(0);
      this->Default(in,out);
+  }
+
+  void EmuPeripheralCrateConfig::ConfigDCFEBs(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+      std::cout << "Button: ConfigDCFEBs" << std::endl;
+      for(std::vector<DAQMB *>::iterator dmb = dmbVector.begin(); dmb != dmbVector.end(); dmb++)
+      {
+        std::vector<CFEB> cfebs = (*dmb)->cfebs ();
+        for(std::vector<CFEB>::iterator cfeb = cfebs.begin(); cfeb != cfebs.end(); cfeb++)
+        {
+          std::cout << "writing parameters to DCFEB " << (cfeb - cfebs.begin () + 1) << "..." << std::endl;
+          unsigned short int bufload[34];
+          (*dmb)->set_dcfeb_parambuffer(*cfeb, bufload);
+          (*dmb)->write_cfeb_selector(cfeb->SelectorBit());
+          (*dmb)->dcfeb_loadparam(3, 34, bufload);
+        }
+      }
+      this->Default(in,out);
   }
 
   void EmuPeripheralCrateConfig::FastConfigCrates(xgi::Input * in, xgi::Output * out ) 
