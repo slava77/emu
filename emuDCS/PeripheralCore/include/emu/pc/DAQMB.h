@@ -554,8 +554,18 @@ public:
   inline void SetCompModeCfeb(int cfeb, int value){comp_mode_cfeb_[cfeb]=value;}
   inline void SetCompTimingCfeb(int cfeb, int value){comp_timing_cfeb_[cfeb]=value;}
   inline void SetCompThresholdsCfeb(int cfeb, float value){comp_thresh_cfeb_[cfeb]=value;}
+  inline void SetCompClockPhaseCfeb(int cfeb, int value){comp_clk_phase_cfeb_[cfeb]=value;}
+  inline void SetADCSampleClockPhaseCfeb(int cfeb, int value){adcsamp_clk_phase_cfeb_[cfeb]=value;}
+  inline void SetNSamplesCfeb(int cfeb, int value){nsample_cfeb_[cfeb]=value;}
   inline void SetPreBlockEndCfeb(int cfeb, int value){pre_block_end_cfeb_[cfeb]=value;}
   inline void SetL1aExtraCfeb(int cfeb, int value){L1A_extra_cfeb_[cfeb]=value;}
+  //
+  inline int GetCompModeCfeb(int cfeb){return comp_mode_cfeb_[cfeb];}
+  inline int GetCompTimingCfeb(int cfeb){return comp_timing_cfeb_[cfeb];}
+  inline float GetCompThresholdsCfeb(int cfeb){return comp_thresh_cfeb_[cfeb];}
+  inline int GetCompClockPhaseCfeb(int cfeb){return comp_clk_phase_cfeb_[cfeb];}
+  inline int GetADCSampleClockPhaseCfeb(int cfeb){return adcsamp_clk_phase_cfeb_[cfeb];}
+  inline int GetNSamplesCfeb(int cfeb){return nsample_cfeb_[cfeb];}
   //
   void LctL1aDelay(int);
   void LctL1aDelay(int,unsigned);
@@ -787,6 +797,13 @@ public:
   int read_odmb_id();
   void odmb_save_config();
   void odmb_retrieve_config();
+
+  inline void set_all_chan_norm(int chan[16]) { for(int i=0;i<16;i++)chan[i]=NORM_RUN; }
+  inline void set_chan_kill(int ichan,int chan[16]) { chan[ichan]=KILL_CHAN; }
+  void chan2shift(int chan[16],unsigned int shft_bits[3]);
+  void set_dcfeb_parambuffer(CFEB &cfeb, unsigned short int bufload[34]);
+  void autoload_select_readback_wrd(CFEB &cfeb, int ival);
+  void autoload_readback_wrd(CFEB &cfeb, char wrd[2]);
   
   // various delays in ODMB
   inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(LCT_L1A_DLY, delay&0x3F); }  // 6 bits
@@ -928,6 +945,9 @@ public:
   int pre_block_end_cfeb_[7];
   int L1A_extra_cfeb_[7];
   float comp_thresh_cfeb_[7];
+  int comp_clk_phase_cfeb_[7];
+  int adcsamp_clk_phase_cfeb_[7];
+  int nsample_cfeb_[7];
   //
   int shift_out[7][36];
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
