@@ -796,20 +796,20 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
     }
     if(fillFloat("set_comp_thresh", value)){
       daqmb_->SetCompThresh(value);
-      for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompThresholdsCfeb(cfeb,value);
+      for(int cfeb=0; cfeb<7; cfeb++) daqmb_->SetCompThresholdsCfeb(cfeb,value);
     }
     int mode;
     if(fillInt("comp_mode", mode)){
       daqmb_->SetCompMode(mode);
-      for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompModeCfeb(cfeb,mode);
+      for(int cfeb=0; cfeb<7; cfeb++) daqmb_->SetCompModeCfeb(cfeb,mode);
     }
     if(fillInt("comp_timing", delay)){
       daqmb_->SetCompTiming(delay);
-      for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompTimingCfeb(cfeb,delay);
+      for(int cfeb=0; cfeb<7; cfeb++) daqmb_->SetCompTimingCfeb(cfeb,delay);
     }
     if(fillInt("pre_block_end", delay)){
       daqmb_->SetPreBlockEnd(delay);
-      for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetPreBlockEndCfeb(cfeb,delay);
+      for(int cfeb=0; cfeb<7; cfeb++) daqmb_->SetPreBlockEndCfeb(cfeb,delay);
     }
     if (fillInt("cfeb_cable_delay", delay)) {
       daqmb_->SetCfebCableDelay(delay); }
@@ -830,7 +830,7 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
     }
     if ( fillInt("xLatency",delay)){
       daqmb_->SetxLatency(delay);
-      for (int cfeb=0; cfeb<5; cfeb++) daqmb_->SetL1aExtraCfeb(cfeb,delay);
+      for (int cfeb=0; cfeb<7; cfeb++) daqmb_->SetL1aExtraCfeb(cfeb,delay);
     }
     if (fillInt("xFineLatency",delay)) {
       daqmb_->SetxFineLatency(delay);
@@ -889,6 +889,18 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 //fg
               if(fillInt("hardware_version", ivalue)){
                  cfeb.SetHardwareVersion(ivalue);   
+              }
+
+              if(fillInt("comp_clk_phase", ivalue)){
+                 daqmb_->SetCompClockPhaseCfeb(number,ivalue);
+              }
+
+              if(fillInt("adcsamp_clk_phase", ivalue)){
+                 daqmb_->SetADCSampleClockPhaseCfeb(number,ivalue);
+              }
+
+              if(fillInt("nsample", ivalue)){
+                 daqmb_->SetNSamplesCfeb(number,ivalue);
               }
 
               if(fillInt("pipeline_depth", ivalue)){
