@@ -49,6 +49,7 @@ public:
 
   int number() const {return number_;}
   DEVTYPE scamDevice() const {return (DEVTYPE) (F1SCAM+number_);}
+  DEVTYPE dscamDevice() const {return (DEVTYPE) (F1DCFEBM+number_);}
   DEVTYPE promDevice() const {return (DEVTYPE) (F1PROM+number_);}
   
   std::vector<BuckeyeChip> buckeyeChips() const {return buckeyeChips_;}
