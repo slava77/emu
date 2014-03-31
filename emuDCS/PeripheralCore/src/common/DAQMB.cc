@@ -7996,6 +7996,7 @@ void DAQMB::dcfeb_loadparam(int paramblock, int nwords, unsigned short int  *val
   dcfebprom_loadaddress(uaddr,laddr);
   // lock last block
   dcfebprom_lock();
+  udelay(500000);
   dcfeb_bpi_disable();
   udelay(10);
 }
@@ -9503,6 +9504,160 @@ void DAQMB::odmb_retrieve_config()
        ::sleep(1);
     }
     return;
+}
+
+void DAQMB::chan2shift(int chan[16],unsigned int shft_bits[3]){
+    shft_bits[0]=((chan[10]<<15)|(chan[11]<<12)|(chan[12]<<9)|(chan[13]<<6)|(chan[14]<<3)|chan[15])&0XFFFF;
+    shft_bits[1]=((chan[5]<<14)|(chan[6]<<11)|(chan[7]<<8)|(chan[8]<<5)|(chan[9]<<2)|(chan[10]>>1))&0XFFFF;
+    shft_bits[2]=((chan[0]<<13)|(chan[1]<<10)|(chan[2]<<7)|(chan[3]<<4)|(chan[4]<<1)|(chan[5]>>2))&0XFFFF;
+}
+
+void DAQMB::set_dcfeb_parambuffer(CFEB &cfeb, unsigned short int bufload[34]){
+    unsigned number = cfeb.number();
+    bufload[0]=0x4321;                         //ready (not 0xffff)
+    float dthresh=0.05;
+    int comp_thresh=int(4095*((3.5-dthresh)/3.5));
+    int pipeline_depth = cfeb.GetPipelineDepth();
+
+    bufload[1]=comp_thresh&0x0fff;               // comp. thresh. 12 bits
+    bufload[2]=comp_mode_cfeb_[number]&0x0003;             // comp. mode 2 bits
+    bufload[3]=comp_timing_cfeb_[number]&0x0007;           // comp. timing 3 bits
+    bufload[4]=comp_clk_phase_cfeb_[number]&0x000f;        // comp. CLK phase 4 bits
+    bufload[5]=adcsamp_clk_phase_cfeb_[number]&0x0007;     // adc samp. CLK phase 3 bits
+    bufload[6]=nsample_cfeb_[number]&0x007f;               // # of samples 7 bits
+    bufload[7]=pipeline_depth&0x01ff;         // pipeline depth 9 bits
+    for(int i=8;i<16;i++)bufload[i]=0xffff;  // reserved
+
+    unsigned int shft_bits[3];
+    int chan[16];
+    set_all_chan_norm(chan);
+    for(int ichan=0;ichan<16;ichan++){
+      unsigned short int mask=(1<<ichan);
+      if((mask&kill_chip_[number][0])!=0x0000)set_chan_kill(ichan,chan);
+    }
+    chan2shift(chan,shft_bits);
+    bufload[16]=shft_bits[0];//bgb order flipped                       // buckshift pln 1
+    bufload[17]=shft_bits[1];
+    bufload[18]=shft_bits[2];
+    set_all_chan_norm(chan);
+    for(int ichan=0;ichan<16;ichan++){
+      unsigned short int mask=(1<<ichan);
+      if((mask&kill_chip_[number][1])!=0x0000)set_chan_kill(ichan,chan);
+    }
+    chan2shift(chan,shft_bits);
+    bufload[19]=shft_bits[0];                       // buckshift pln 3
+    bufload[20]=shft_bits[1];
+    bufload[21]=shft_bits[2];
+    set_all_chan_norm(chan);
+    for(int ichan=0;ichan<16;ichan++){
+      unsigned short int mask=(1<<ichan);
+      if((mask&kill_chip_[number][2])!=0x0000)set_chan_kill(ichan,chan);
+    }
+    chan2shift(chan,shft_bits);
+    bufload[22]=shft_bits[0];                       // buckshift pln 5
+    bufload[23]=shft_bits[1];
+    bufload[24]=shft_bits[2];
+    set_all_chan_norm(chan);
+    for(int ichan=0;ichan<16;ichan++){
+      unsigned short int mask=(1<<ichan);
+      if((mask&kill_chip_[number][3])!=0x0000)set_chan_kill(ichan,chan);
+    }
+    chan2shift(chan,shft_bits);
+    bufload[25]=shft_bits[0];                       // buckshift pln 4
+    bufload[26]=shft_bits[1];
+    bufload[27]=shft_bits[2];
+    set_all_chan_norm(chan);
+    for(int ichan=0;ichan<16;ichan++){
+      unsigned short int mask=(1<<ichan);
+      if((mask&kill_chip_[number][4])!=0x0000)set_chan_kill(ichan,chan);
+    }
+    chan2shift(chan,shft_bits);
+    bufload[28]=shft_bits[0];                       // buckshift pln 0
+    bufload[29]=shft_bits[1];
+    bufload[30]=shft_bits[2];
+    set_all_chan_norm(chan);
+    for(int ichan=0;ichan<16;ichan++){
+      unsigned short int mask=(1<<ichan);
+      if((mask&kill_chip_[number][5])!=0x0000)set_chan_kill(ichan,chan);
+    }
+    chan2shift(chan,shft_bits);
+    bufload[31]=shft_bits[0];                       // buckshift pln 2
+    bufload[32]=shft_bits[1];
+    bufload[33]=shft_bits[2];
+    /* // uncomment for shift test*/
+    // bgb reverse order
+    bufload[33]=0xBADF;
+    bufload[32]=0xEED5;
+    bufload[31]=0xDEAD;
+    bufload[30]=0xBADF;
+    bufload[29]=0xEED5;
+    bufload[28]=0xDEAD;
+    bufload[27]=0xBADF;
+    bufload[26]=0xEED5;
+    bufload[25]=0xDEAD;
+    bufload[24]=0xBADF;
+    bufload[23]=0xEED5;
+    bufload[22]=0xDEAD;
+    bufload[21]=0xBADF;
+    bufload[20]=0xEED5;
+    bufload[19]=0xDEAD;
+    bufload[18]=0xBADF;
+    bufload[17]=0xEED5;
+    bufload[16]=0xDEAD;
+}
+
+void DAQMB::autoload_select_readback_wrd(CFEB &cfeb, int ival){
+  /*
+      0 - xtra l1a w 2 bits
+      1 - pre block end 4 bits
+      2 - comp time[2:0] comp mode [1:0] 5 bits
+      3 - buckeye mask  6 bits
+      4 - adc mask 12 bits
+      5 - adc cnfg mem wrd 26 bits
+      6 - pipeline depth 9 bits
+      7 - ttc source 2 bits
+      8 # samples 7 bits
+      9 bpi write fifo 16 bits
+     10 comp clock phase 4 bits
+     11 samp clock phase 3 bits
+     12 tmb transmit mode 3 bits
+     13 hs settings 30 bits
+     14 tmb layer mask 6 bits
+     15 prbs test mode 3 bits
+     16 sem cmd 3 bits
+     17 reg sel wrd 8 bits
+  */
+    DEVTYPE dv = cfeb.dscamDevice();
+    cmd[0]=(VTX6_USR1&0xff);
+    cmd[1]=((VTX6_USR1&0x300)>>8);
+    sndbuf[0]=REG_SEL_WRD;
+    devdo(dv,10,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=(VTX6_USR2&0xff);
+    cmd[1]=((VTX6_USR2&0x300)>>8);
+    sndbuf[0]=ival;
+    sndbuf[1]=0x00;
+    devdo(dv,10,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=(VTX6_BYPASS&0xff);
+    cmd[1]=((VTX6_BYPASS&0x300)>>8);
+    devdo(dv,10,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2]){
+    DEVTYPE dv = cfeb.dscamDevice();
+    cmd[0]=(VTX6_USR1&0xff);
+    cmd[1]=((VTX6_USR1&0x300)>>8);
+    sndbuf[0]=REG_RD_WRD;
+    devdo(dv,10,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=(VTX6_USR2&0xff);
+    cmd[1]=((VTX6_USR2&0x300)>>8);
+    sndbuf[0]=0xff;
+    sndbuf[1]=0xff;
+    devdo(dv,10,cmd,16,sndbuf,rcvbuf,1);
+    wrd[0]=rcvbuf[0];
+    wrd[1]=rcvbuf[1];
+    cmd[0]=(VTX6_BYPASS&0xff);
+    cmd[1]=((VTX6_BYPASS&0x300)>>8);
+    devdo(dv,10,cmd,0,sndbuf,rcvbuf,2);
 }
 
 } // namespace emu::pc
