@@ -9584,26 +9584,6 @@ void DAQMB::set_dcfeb_parambuffer(CFEB &cfeb, unsigned short int bufload[34]){
     bufload[31]=shft_bits[0];                       // buckshift pln 2
     bufload[32]=shft_bits[1];
     bufload[33]=shft_bits[2];
-    /* // uncomment for shift test*/
-    // bgb reverse order
-    bufload[33]=0xBADF;
-    bufload[32]=0xEED5;
-    bufload[31]=0xDEAD;
-    bufload[30]=0xBADF;
-    bufload[29]=0xEED5;
-    bufload[28]=0xDEAD;
-    bufload[27]=0xBADF;
-    bufload[26]=0xEED5;
-    bufload[25]=0xDEAD;
-    bufload[24]=0xBADF;
-    bufload[23]=0xEED5;
-    bufload[22]=0xDEAD;
-    bufload[21]=0xBADF;
-    bufload[20]=0xEED5;
-    bufload[19]=0xDEAD;
-    bufload[18]=0xBADF;
-    bufload[17]=0xEED5;
-    bufload[16]=0xDEAD;
 }
 
 void DAQMB::autoload_select_readback_wrd(CFEB &cfeb, int ival){
