@@ -461,26 +461,32 @@ const int gtl_oe_bithi           =  9;
 const int ddd_state_machine_start_vmereg              =  vme_dddsm_adr;
 const int ddd_state_machine_start_bitlo               =  0;
 const int ddd_state_machine_start_bithi               =  0;
+const int ddd_state_machine_start_default             =  0;
 //
 const int ddd_state_machine_manual_vmereg             =  vme_dddsm_adr;
 const int ddd_state_machine_manual_bitlo              =  1;
 const int ddd_state_machine_manual_bithi              =  1;
+const int ddd_state_machine_manual_default            =  0; 
 //
 const int ddd_state_machine_latch_vmereg              =  vme_dddsm_adr;
 const int ddd_state_machine_latch_bitlo               =  2;
 const int ddd_state_machine_latch_bithi               =  2;
+const int ddd_state_machine_latch_default             =  1;
 //
 const int ddd_state_machine_serial_in_vmereg          =  vme_dddsm_adr;
 const int ddd_state_machine_serial_in_bitlo           =  3;
 const int ddd_state_machine_serial_in_bithi           =  3;
+const int ddd_state_machine_serial_in_default         =  0;
 //
 const int ddd_state_machine_serial_out_vmereg         =  vme_dddsm_adr;
 const int ddd_state_machine_serial_out_bitlo          =  4;
 const int ddd_state_machine_serial_out_bithi          =  4;
+const int ddd_state_machine_serial_out_default        =  0;
 //
 const int ddd_state_machine_autostart_vmereg          =  vme_dddsm_adr;
 const int ddd_state_machine_autostart_bitlo           =  5;
 const int ddd_state_machine_autostart_bithi           =  5;
+const int ddd_state_machine_autostart_default         =  1;
 //
 const int ddd_state_machine_busy_vmereg               =  vme_dddsm_adr;
 const int ddd_state_machine_busy_bitlo                =  6;
@@ -1748,10 +1754,12 @@ const int TMB_FIRMWARE_TYPE_D = 0xd;
 const int jtag_state_machine_start_vmereg         =  jtag_sm_ctrl_adr;
 const int jtag_state_machine_start_bitlo          =  0;
 const int jtag_state_machine_start_bithi          =  0;
+const int jtag_state_machine_start_default        =  0;
 //
 const int jtag_state_machine_sreset_vmereg        =  jtag_sm_ctrl_adr;
 const int jtag_state_machine_sreset_bitlo         =  1;
 const int jtag_state_machine_sreset_bithi         =  1;
+const int jtag_state_machine_sreset_default       =  0;
 //
 // greg, this needs to be changed to allow selection of ALCT userPROM format
 const int jtag_state_machine_autostart_vmereg     =  jtag_sm_ctrl_adr;
@@ -1805,6 +1813,7 @@ const int jtag_disable_write_to_adr10_default     =  0;
 const int jtag_state_machine_throttle_vmereg      =  jtag_sm_ctrl_adr;
 const int jtag_state_machine_throttle_bitlo       = 12;
 const int jtag_state_machine_throttle_bithi       = 15;
+const int jtag_state_machine_throttle_default     =  0;
 //
 //
 //------------------------------------------------------------------
@@ -1834,10 +1843,12 @@ const int jtag_state_machine_tck_fpga_bithi   = 11;
 const int vme_state_machine_start_vmereg       =  vme_sm_ctrl_adr;
 const int vme_state_machine_start_bitlo        =  0;
 const int vme_state_machine_start_bithi        =  0;
+const int vme_state_machine_start_default      =  0;
 //
 const int vme_state_machine_sreset_vmereg      =  vme_sm_ctrl_adr;
 const int vme_state_machine_sreset_bitlo       =  1;
 const int vme_state_machine_sreset_bithi       =  1;
+const int vme_state_machine_sreset_default     =  0;
 //
 const int vme_state_machine_autostart_vmereg   =  vme_sm_ctrl_adr;
 const int vme_state_machine_autostart_bitlo    =  2;
@@ -1891,6 +1902,7 @@ const int phase_shifter_auto_default           =  1;
 const int vme_state_machine_throttle_vmereg    =  vme_sm_ctrl_adr;
 const int vme_state_machine_throttle_bitlo     = 12;
 const int vme_state_machine_throttle_bithi     = 15;
+const int vme_state_machine_throttle_default   =  0;
 //
 //
 //------------------------------------------------------------------

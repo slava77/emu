@@ -5265,6 +5265,16 @@ void TMB::SetTMBRegisterDefaults() {
   enable_alct_tx_ = enable_alct_tx_default;
   //
   //------------------------------------------------------------------
+  //0X14 = ADR_DDDSM:  3D3444 State Machine Control + DCM Lock Status  
+  //------------------------------------------------------------------
+  ddd_state_machine_start_     = ddd_state_machine_start_default; 
+  ddd_state_machine_manual_    = ddd_state_machine_manual_default; 
+  ddd_state_machine_latch_     = ddd_state_machine_latch_default; 
+  ddd_state_machine_serial_in_ = ddd_state_machine_serial_in_default; 
+  ddd_state_machine_serial_out_= ddd_state_machine_serial_out_default; 
+  ddd_state_machine_autostart_ = ddd_state_machine_autostart_default; 
+  //
+  //------------------------------------------------------------------
   //0X16 = ADR_DDD0:  3D3444 Chip 0 Delays, 1 step = 2ns
   //------------------------------------------------------------------
   alct_tof_delay_      = alct_tof_delay_default     ;
@@ -5542,7 +5552,19 @@ void TMB::SetTMBRegisterDefaults() {
   //------------------------------------------------------------------
   //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
   //------------------------------------------------------------------
+  jtag_state_machine_start_    = jtag_state_machine_start_default   ;
+  jtag_state_machine_sreset_   = jtag_state_machine_sreset_default  ;
   jtag_disable_write_to_adr10_ = jtag_disable_write_to_adr10_default;
+  jtag_state_machine_throttle_ = jtag_state_machine_throttle_default;
+  //
+  //------------------------------------------------------------------
+  //0XDA = ADR_VMESM0:  VME State Machine Control (reads VME PROM)
+  //------------------------------------------------------------------
+  vme_state_machine_start_    = vme_state_machine_start_default;
+  vme_state_machine_sreset_   = vme_state_machine_sreset_default;
+  vme_state_machine_jtag_auto_= vme_state_machine_jtag_auto_default;
+  phase_shifter_auto_         = phase_shifter_auto_default;
+  vme_state_machine_throttle_ = vme_state_machine_throttle_default;
   //
   //------------------------------------------------------------------
   //0XE6 = ADR_DDDR0:  RAT 3D3444 RPC Delays, 1 step = 2ns
