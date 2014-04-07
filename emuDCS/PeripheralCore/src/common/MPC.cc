@@ -587,6 +587,9 @@ void MPC::WriteMask(int mask)
 
 void MPC::check_generation()
 {
+  mpc_generation=hardware_version_;
+  if(mpc_generation==0) mpc_generation=1;
+  return;
   unsigned short old_data[2], data_test, data_cmp;
 
   read_later(CSRM);
