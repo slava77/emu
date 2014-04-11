@@ -627,8 +627,8 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(CFEBTiming_scanType scanType) {
   // Run the scan over all CFEB's regardless of scanType...
   const int MaxTimeDelay=25;
   //
-  int Muons[5][2][MaxTimeDelay] = {};
-  int NoMuons[5][2][MaxTimeDelay] = {};
+  int Muons[5][2][MaxTimeDelay] = {}; memset(Muons, 0, sizeof(Muons));
+  int NoMuons[5][2][MaxTimeDelay] = {}; memset(NoMuons, 0, sizeof(NoMuons));
   //
   for (int posneg=0; posneg<2; posneg++) {
     //
@@ -666,8 +666,8 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(CFEBTiming_scanType scanType) {
       //
       int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
       //
-      int last_pulsed_halfstrip[5] = {};
-      int random_halfstrip[5] = {};
+      int last_pulsed_halfstrip[5] = {}; memset(last_pulsed_halfstrip, 0, sizeof(last_pulsed_halfstrip));
+      int random_halfstrip[5] = {}; memset(random_halfstrip, 0, sizeof(random_halfstrip));
       //
       for (int Nmuons=0; Nmuons<2; Nmuons++){
 	//
@@ -755,8 +755,8 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(CFEBTiming_scanType scanType) {
   //
   // Find the good window for each CFEB and each posneg...
   //
-  int windows_per_cfeb[5][2] = {};
-  int total_number_of_windows[2] = {};
+  int windows_per_cfeb[5][2] = {}; memset(windows_per_cfeb, 0, sizeof(windows_per_cfeb));
+  int total_number_of_windows[2] = {}; memset(total_number_of_windows, 0, sizeof(total_number_of_windows));
   //
   // 1) figure out how many "good windows" each CFEB has for each posneg
   for (int posneg=0; posneg<2; posneg++) {
@@ -768,9 +768,9 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(CFEBTiming_scanType scanType) {
   }
   //
   // 2) determine the average value for each CFEB for each posneg
-  int TimeDelay;
+  int TimeDelay = 0;
   //
-  int MuonsWork[5][2][2*MaxTimeDelay] = {};
+  int MuonsWork[5][2][2*MaxTimeDelay] = {}; memset(MuonsWork, 0, sizeof(MuonsWork));
   //
   // Build-up the data including wrap-around
   for (int posneg=0; posneg<2; posneg++) {
@@ -810,7 +810,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(CFEBTiming_scanType scanType) {
     }
   }
   //
-  float CFEBMeanN[5][2], CFEBMean[5][2];
+  float CFEBMeanN[5][2], CFEBMean[5][2]; memset(CFEBMeanN, 0, sizeof(CFEBMeanN)); memset(CFEBMean, 0, sizeof(CFEBMean));
   for( int j=0; j<2; j++) {
     for( int i=0; i<5; i++) {
       CFEBMean[i][j]  = 0 ;
@@ -862,8 +862,8 @@ void ChamberUtilities::CFEBTiming_with_Posnegs(CFEBTiming_scanType scanType) {
   //
   // pick the posneg value which has 1 window per CFEB
   //
-  int good_scan[2] = {};
-  int bad_cfeb[2] = {};
+  int good_scan[2] = {}; memset(good_scan, 0, sizeof(good_scan));
+  int bad_cfeb[2] = {}; memset(bad_cfeb, 0, sizeof(bad_cfeb));
   //
   for (int posneg=0; posneg<2; posneg++) {
     //
@@ -1197,7 +1197,7 @@ float ChamberUtilities::determine_average_with_wraparound(int val1,
 							  int val4, 
 							  int val5, 
 							  const int max_value ) {
-  int vector_of_vals[50] = {};
+  int vector_of_vals[50] = {}; memset(vector_of_vals, 0, sizeof(vector_of_vals));
 
   // fill the vector with the values we want to average
   for (int i=0; i<max_value; i++) {
@@ -1242,7 +1242,7 @@ float ChamberUtilities::determine_average_with_wraparound(int val1,
 							  int val3, 
 							  int val4, 
 							  const int max_value ) {
-  int vector_of_vals[50] = {};
+  int vector_of_vals[50] = {}; memset(vector_of_vals, 0, sizeof(vector_of_vals));
 
   // fill the vector with the values we want to average
   for (int i=0; i<max_value; i++) {
@@ -1354,8 +1354,8 @@ void ChamberUtilities::CFEBTiming_without_Posnegs(){
   //
   int MaxTimeDelay=25;
   //
-  int Muons[5][MaxTimeDelay];
-  int MuonsWork[5][2*MaxTimeDelay];
+  int Muons[5][MaxTimeDelay]; memset(Muons, 0, sizeof(Muons));
+  int MuonsWork[5][2*MaxTimeDelay]; memset(MuonsWork, 0, sizeof(MuonsWork));
   //
   for(int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) {
     for(int CFEBs=0; CFEBs<5; CFEBs++) {
@@ -1396,8 +1396,8 @@ void ChamberUtilities::CFEBTiming_without_Posnegs(){
     //
     int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
     //
-    int last_pulsed_halfstrip[5] = {};
-    int random_halfstrip[5] = {};
+    int last_pulsed_halfstrip[5] = {}; memset(last_pulsed_halfstrip, 0, sizeof(last_pulsed_halfstrip));
+    int random_halfstrip[5] = {}; memset(random_halfstrip, 0, sizeof(random_halfstrip));
     //
     for (int Nmuons=0; Nmuons<2; Nmuons++){
       //
@@ -1455,7 +1455,7 @@ void ChamberUtilities::CFEBTiming_without_Posnegs(){
     }
   }
   //
-  float CFEBMeanN[5], CFEBMean[5];
+  float CFEBMeanN[5], CFEBMean[5]; memset(CFEBMeanN, 0, sizeof(CFEBMeanN)); memset(CFEBMean, 0, sizeof(CFEBMean));
   //
   for( int i=0; i<5; i++) {
     CFEBMean[i]  = 0 ;
@@ -1476,7 +1476,7 @@ void ChamberUtilities::CFEBTiming_without_Posnegs(){
   }   
   (*MyOutput_) << std::endl ;
   //
-  int TimeDelay;
+  int TimeDelay = 0;
   //
   for (int CFEBs=0; CFEBs<5; CFEBs++) {
     for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
@@ -1704,9 +1704,9 @@ int ChamberUtilities::Find_alct_rx_with_ALCT_to_TMB_evenodd(int number_of_passes
   thisTMB->WriteRegister(alct_cfg_adr);
   //
   // Error accumulators
-  int alct_rx_bad[maximum_number_of_phase_delay_values][28] = {};
-  int alct_sync_1st_err_ff[maximum_number_of_phase_delay_values] = {};
-  int alct_sync_2nd_err_ff[maximum_number_of_phase_delay_values] = {};
+  int alct_rx_bad[maximum_number_of_phase_delay_values][28] = {}; memset(alct_rx_bad, 0, sizeof(alct_rx_bad));
+  int alct_sync_1st_err_ff[maximum_number_of_phase_delay_values] = {}; memset(alct_sync_1st_err_ff, 0, sizeof(alct_sync_1st_err_ff));
+  int alct_sync_2nd_err_ff[maximum_number_of_phase_delay_values] = {}; memset(alct_sync_2nd_err_ff, 0, sizeof(alct_sync_2nd_err_ff));
   //
   // expected patterns:
   const int alct_1st_expect = 0xAAAAAAA;	// Teven
@@ -1738,7 +1738,7 @@ int ChamberUtilities::Find_alct_rx_with_ALCT_to_TMB_evenodd(int number_of_passes
       if (debug_>=10) std::cout << "after unclear errors (0x" << std::hex << alct_sync_ctrl_adr << ") = 0x" << value << std::endl;
       //
       // Read TMB received demux data
-      int alct_demux_rd[8] = {};
+      int alct_demux_rd[8] = {}; memset(alct_demux_rd, 0, sizeof(alct_demux_rd));
       //
       // loop over 1st/2nd demux words
       for (int i=0; i<=7; i++) { 
@@ -1806,7 +1806,7 @@ int ChamberUtilities::Find_alct_rx_with_ALCT_to_TMB_evenodd(int number_of_passes
   }
   //
   // sum up badness over all the cable pairs
-  int nbad[maximum_number_of_phase_delay_values] = {};
+  int nbad[maximum_number_of_phase_delay_values] = {}; memset(nbad, 0, sizeof(nbad));
   //
   for (int delay_value=0; delay_value<maximum_number_of_phase_delay_values; delay_value++) 
     for (int ibit=0; ibit<=27; ++ibit) 
@@ -1936,9 +1936,9 @@ int ChamberUtilities::Find_alct_tx_with_TMB_to_ALCT_evenodd(int number_of_passes
   thisTMB->WriteRegister(ccb_cfg_adr);
   //
   // Error accumulators
-  int alct_rx_bad[maximum_number_of_phase_delay_values][28] = {};
-  int alct_sync_1st_err_ff[maximum_number_of_phase_delay_values] = {};
-  int alct_sync_2nd_err_ff[maximum_number_of_phase_delay_values] = {};
+  int alct_rx_bad[maximum_number_of_phase_delay_values][28] = {}; memset(alct_rx_bad, 0, sizeof(alct_rx_bad));
+  int alct_sync_1st_err_ff[maximum_number_of_phase_delay_values] = {}; memset(alct_sync_1st_err_ff, 0, sizeof(alct_sync_1st_err_ff));
+  int alct_sync_2nd_err_ff[maximum_number_of_phase_delay_values] = {}; memset(alct_sync_2nd_err_ff, 0, sizeof(alct_sync_2nd_err_ff));
   //
   // expected patterns:
   const int alct_1st_expect = 0xAA;	//1st-in-time: Teven = 10'b10 1010 1010
@@ -1992,7 +1992,7 @@ int ChamberUtilities::Find_alct_tx_with_TMB_to_ALCT_evenodd(int number_of_passes
       thisTMB->WriteRegister(alct_sync_ctrl_adr);
       //
       // Read TMB received demux data
-      int alct_demux_rd[8] = {};
+      int alct_demux_rd[8] = {}; memset(alct_demux_rd, 0, sizeof(alct_demux_rd));
       //
       // Tell TMB that it should be receiving DEMUX data (i.e., 1's and 0's) rather than RAW data (anything)
       thisTMB->SetAlctDemuxMode(DEMUX_DATA);
@@ -2061,7 +2061,7 @@ int ChamberUtilities::Find_alct_tx_with_TMB_to_ALCT_evenodd(int number_of_passes
   }
   //
   // sum up badness over all the cable pairs
-  int nbad[maximum_number_of_phase_delay_values] = {};
+  int nbad[maximum_number_of_phase_delay_values] = {}; memset(nbad, 0, sizeof(nbad));
   //
   for (int delay_value=0; delay_value<maximum_number_of_phase_delay_values; delay_value++) 
     for (int ibit=0; ibit<=27; ++ibit) 
@@ -2195,9 +2195,9 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   int good_depth = -999;
   int n_pipe_depth = 0;
   //
-  int temp_display[2][2][16][maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {};
+  int temp_display[2][2][16][maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {}; memset(temp_display, 0, sizeof(temp_display));
   //
-  int good_data[2][2][16] = {};
+  int good_data[2][2][16] = {}; memset(good_data, 0, sizeof(good_data));
   //
   int min_pipedepth=10;
   int max_pipedepth=16;  
@@ -2472,10 +2472,10 @@ void ChamberUtilities::ThoroughRxTxScan(int rx_posneg, int tx_posneg, int pipede
   //
   //
   // A display (statistics) array...
-  int alct_tx_rx_display[maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {};
+  int alct_tx_rx_display[maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {}; memset(alct_tx_rx_display, 0, sizeof(alct_tx_rx_display));
   //
   // An analysis array...
-  int alct_tx_rx_analyze[maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {};
+  int alct_tx_rx_analyze[maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {}; memset(alct_tx_rx_analyze, 0, sizeof(alct_tx_rx_analyze));
   //
   for (int rx_value=0; rx_value<maximum_number_of_phase_delay_values; rx_value++) {
     thisTMB->SetAlctRxClockDelay(rx_value);
@@ -2528,7 +2528,7 @@ void ChamberUtilities::ThoroughRxTxScan(int rx_posneg, int tx_posneg, int pipede
       //
       if (debug_>5) {   // Read TMB received demux data just to see what is going on...
 	//
-	int alct_demux_rd[8] = {};
+	int alct_demux_rd[8] = {}; memset(alct_demux_rd, 0, sizeof(alct_demux_rd));
 	//
 	// Tell TMB that it should be receiving DEMUX data (i.e., 1's and 0's) rather than RAW data (anything)
 	thisTMB->SetAlctDemuxMode(DEMUX_DATA);
@@ -2656,10 +2656,10 @@ int ChamberUtilities::ALCT_TMB_TimingUsingErrorCorrectionCode() {
   int good_depth = -999;
   //
   // A display (statistics) array...
-  int alct_tx_rx_display[maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {};
+  int alct_tx_rx_display[maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {}; memset(alct_tx_rx_display, 0, sizeof(alct_tx_rx_display));
   //
   // The analysis array...
-  int alct_tx_rx_analyze[maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {};
+  int alct_tx_rx_analyze[maximum_number_of_phase_delay_values][maximum_number_of_phase_delay_values] = {}; memset(alct_tx_rx_analyze, 0, sizeof(alct_tx_rx_analyze));
   //
   for (int pipe_depth=0; pipe_depth<16; pipe_depth++) {
     //
@@ -2744,7 +2744,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingErrorCorrectionCode() {
         //
         if (debug_>5) {   // Read TMB received demux data just to see what is going on...
 	  //
-	  int alct_demux_rd[8] = {};
+	  int alct_demux_rd[8] = {}; memset(alct_demux_rd, 0, sizeof(alct_demux_rd));
 	  //
 	  // Tell TMB that it should be receiving DEMUX data (i.e., 1's and 0's) rather than RAW data (anything)
 	  thisTMB->SetAlctDemuxMode(DEMUX_DATA);
@@ -2908,8 +2908,8 @@ int ChamberUtilities::TMB_to_ALCT_walking_ones(int number_of_passes) {
   thisTMB->WriteRegister(ccb_cfg_adr);
   //
   // Error accumulators
-  int alct_walking1_err[28][2][28] = {};
-  int alct_walking1_hit[28][2][28][2] = {};
+  int alct_walking1_err[28][2][28] = {}; memset(alct_walking1_err, 0, sizeof(alct_walking1_err));
+  int alct_walking1_hit[28][2][28][2] = {}; memset(alct_walking1_hit, 0, sizeof(alct_walking1_hit));
   //
   // expected patterns:
   int alct_1st_expect = 0;
@@ -2936,11 +2936,11 @@ int ChamberUtilities::TMB_to_ALCT_walking_ones(int number_of_passes) {
 	int ibank = itransmit / 10;
 	//
 	// "1st_phase" holds the stuff received in first 80MHz phase
-	int alct_1st_phase[3] = {};
+	int alct_1st_phase[3] = {}; memset(alct_1st_phase, 0, sizeof(alct_1st_phase));
 	alct_1st_phase[ibank] = (1 << ibit) * (ifirstsecond==0);
 	//
 	// "2nd_phase" holds the stuff received in second 80MHz phase
-	int alct_2nd_phase[3] = {};
+	int alct_2nd_phase[3] = {}; memset(alct_2nd_phase, 0, sizeof(alct_2nd_phase));
 	alct_2nd_phase[ibank] = (1 << ibit) * (ifirstsecond==1);
 	//
 	int register_address = 0;
@@ -2972,7 +2972,7 @@ int ChamberUtilities::TMB_to_ALCT_walking_ones(int number_of_passes) {
 	}
 	//
 	// Read TMB received demux data
-	int alct_demux_rd[8] = {};
+	int alct_demux_rd[8] = {}; memset(alct_demux_rd, 0, sizeof(alct_demux_rd));
 	//
 	// Tell TMB that it should be receiving DEMUX data (i.e., 1's and 0's) rather than RAW data (anything)
 	thisTMB->SetAlctDemuxMode(DEMUX_DATA);
@@ -3223,7 +3223,7 @@ int ChamberUtilities::ALCTBC0Scan() {
   //
   const int number_of_checks_per_value = 100;
   //
-  int matched[maximum_delay_value*2] = {};
+  int matched[maximum_delay_value*2] = {}; memset(matched, 0, sizeof(matched));
   //
   std::cout << "Scanning alct_bx0_delay from " << std::dec << minimum_delay_value << " to " << maximum_delay_value << std::endl;
   //
@@ -3349,7 +3349,7 @@ int ChamberUtilities::RatTmbDelayScan() {
   //
   //these are the arrays of bits we expect from sync mode:
   const int nbits = 19;
-  int rpc_rdata_expect[4][nbits];
+  int rpc_rdata_expect[4][nbits]; memset(rpc_rdata_expect, 0, sizeof(rpc_rdata_expect));
   bit_to_array(0x2aaaa,rpc_rdata_expect[0],nbits);
   bit_to_array(0x55555,rpc_rdata_expect[1],nbits);
   bit_to_array(0x55555,rpc_rdata_expect[2],nbits);
@@ -3365,8 +3365,8 @@ int ChamberUtilities::RatTmbDelayScan() {
     }
   }
   //
-  int rpc_bad[16] = {};
-  int rpc_data_array[4][nbits];
+  int rpc_bad[16] = {}; memset(rpc_bad, 0, sizeof(rpc_bad));
+  int rpc_data_array[4][nbits]; memset(rpc_data_array, 0, sizeof(rpc_data_array));
   //
   for (int pass=0; pass<=100; pass++) { //collect statistics
     //
@@ -3466,9 +3466,9 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
   //  thisRAT_->ReadRatUser1();                           //read initial delay values
   //  int initial_delay = thisRAT_->GetRpcRatDelay(rpc);  //get values into local variable
   //
-  int delay;
+  int delay = 0;
   //
-  int parity_err_ctr[16] = {};
+  int parity_err_ctr[16] = {}; memset(parity_err_ctr, 0, sizeof(parity_err_ctr));
   //
   for (delay = 0; delay<=12; delay++) {                             //steps of 2ns
     //    (*MyOutput_) << "set delay = " << delay 
@@ -3831,7 +3831,9 @@ int ChamberUtilities::FindWinner(){
   const int delaymin = 0;
   const int delaymax = 10;
   const int histo_size = delaymax - delaymin + 1;
-  int number_of_mpc_accepted[histo_size] = {};
+  int number_of_mpc_accepted[histo_size] = {};  memset(number_of_mpc_accepted, 0, sizeof(number_of_mpc_accepted));
+  // change the above to c++11 brace init, once we actually start using a fresh compiler (SLC5 is too old)
+  memset(number_of_mpc_accepted, 0, sizeof(number_of_mpc_accepted));
   //
   for (int delay_value=delaymin; delay_value<=delaymax; delay_value++) {
     //
@@ -3952,8 +3954,8 @@ int ChamberUtilities::FindWinner(int npulses){
   //
   const int DelaySize = 15;
   //
-  int MPC0Count[DelaySize] = {};
-  int MPC1Count[DelaySize] = {};
+  int MPC0Count[DelaySize] = {}; memset(MPC0Count, 0, sizeof(MPC0Count));
+  int MPC1Count[DelaySize] = {}; memset(MPC1Count, 0, sizeof(MPC1Count));
   //
   //
   for (int i = 0; i < DelaySize; i++){
@@ -4073,11 +4075,13 @@ int ChamberUtilities::MeasureAlctDavCableDelay() {
   const int DelayMin = 0;
   const int DelayMax = 3;
   float Average[4];                             //2-bit delay value
+  memset(Average, 0, sizeof(Average));
   //
   // Range over which to analyze the histogram:
   const int HistoMin = ScopeMin_;        
   const int HistoMax = ScopeMax_;
   int Histo[4][5];                              //Total range available:  scope is 5 bins wide
+  memset(Histo, 0, sizeof(Histo));
   //
   const int desired_value = 2;                  //we want the scope's average to be this value
   //
@@ -4163,11 +4167,13 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   const int DelayMin = 0;
   const int DelayMax = 7;                     //restrict the range to reduce the time for scanning...
   float Average[8];                           //3-bit delay value
+  memset(Average, 0, sizeof(Average));
   //
   // Range over which to analyze the histogram:
   const int HistoMin   = AffToL1aValueMin_;
   const int HistoMax   = AffToL1aValueMax_;
   int Histo[8][256];                          //Total range available:  counter is 8 bits long
+  memset(Histo, 0, sizeof(Histo));
   //
   //  int desired_value = 147;                   // this is the value we want the counter to be...
   //  int desired_value = 131;                   // value for xLatency = 1
@@ -4298,11 +4304,13 @@ int ChamberUtilities::MeasureCfebDavCableDelay() {
   const int DelayMin = 0;
   const int DelayMax = 3;
   float Average[4];              //2-bit delay value
+  memset(Average, 0, sizeof(Average));
   //
   // Range over which to analyze the histogram:
   const int HistoMin = ScopeMin_; 
   const int HistoMax = ScopeMax_;
   int Histo[4][5];               //total range available:  scope is 5 bins wide
+  memset(Histo, 0, sizeof(Histo));
   //
   const int desired_value = 2;   //we want the scope's average to be this value
   //
@@ -4495,14 +4503,14 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
   thisCCB_->RedirectOutput(&std::cout);
   thisMPC->RedirectOutput(&std::cout);
   //
-  int tmb_in_l1a_window[255] = {};
-  int alct_in_l1a_window[255] = {};
+  int tmb_in_l1a_window[255] = {}; memset(tmb_in_l1a_window, 0, sizeof(tmb_in_l1a_window));
+  int alct_in_l1a_window[255] = {}; memset(alct_in_l1a_window, 0, sizeof(alct_in_l1a_window));
   //
-  int tmb_delay_value;
+  int tmb_delay_value = 0;
   int tmb_delay_min = getMinTmbL1aDelayValue();
   int tmb_delay_max = getMaxTmbL1aDelayValue();
   //
-  int alct_delay_value;
+  int alct_delay_value = 0;
   const int alct_delay_min = getMinAlctL1aDelayValue();
   const int alct_delay_max = getMaxAlctL1aDelayValue();
   //
@@ -4642,7 +4650,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max){
   thisCCB_->RedirectOutput(&std::cout);
   thisMPC->RedirectOutput(&std::cout);
   //
-  int tmb_in_l1a_window[255] = {};
+  int tmb_in_l1a_window[255] = {}; memset(tmb_in_l1a_window, 0, sizeof(tmb_in_l1a_window));
   //
   for (int delay=delay_min; delay<=delay_max; delay++){
     //
@@ -4732,7 +4740,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   thisCCB_->RedirectOutput(&std::cout);
   thisMPC->RedirectOutput(&std::cout);
   //
-  int ALCT_l1a_accepted[256] = {};
+  int ALCT_l1a_accepted[256] = {}; memset(ALCT_l1a_accepted, 0, sizeof(ALCT_l1a_accepted));
   //
   for (int delay=minlimit; delay<=maxlimit; delay++) {
     //
@@ -4837,9 +4845,9 @@ void ChamberUtilities::ALCTChamberScan(){
   ::sleep(1);
   //
   int NPulses = 1;
-  int chamberResult[MAX_NUM_WIRES_PER_LAYER];
-  int chamberResult2[MAX_NUM_WIRES_PER_LAYER];
-  int InJected[MAX_NUM_WIRES_PER_LAYER];
+  int chamberResult[MAX_NUM_WIRES_PER_LAYER]; memset(chamberResult, 0, sizeof(chamberResult));
+  int chamberResult2[MAX_NUM_WIRES_PER_LAYER]; memset(chamberResult2, 0, sizeof(chamberResult2));
+  int InJected[MAX_NUM_WIRES_PER_LAYER]; memset(InJected, 0, sizeof(InJected));
   //
   for ( int keyWG=0; keyWG<MAX_NUM_WIRES_PER_LAYER; keyWG++) chamberResult[keyWG] = 0;
   for ( int keyWG=0; keyWG<MAX_NUM_WIRES_PER_LAYER; keyWG++) chamberResult2[keyWG] = 0;
@@ -4990,8 +4998,8 @@ void ChamberUtilities::CFEBChamberScan(){
   int MaxStrip = 160;
   int MaxStripWithinCFEB = 32;
   //
-  int Muons[MaxStrip];
-  int MuonsMaxHits[MaxStrip];
+  int Muons[MaxStrip]; memset(Muons, 0, sizeof(Muons));
+  int MuonsMaxHits[MaxStrip]; memset(MuonsMaxHits, 0, sizeof(MuonsMaxHits));
   //
   for (int j=0; j<MaxStrip; j++) {
     Muons[j] = 0;
@@ -5126,12 +5134,12 @@ void ChamberUtilities::FindDistripHotChannels(){
   int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
   int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
   //
-  int initial_hot_channel_mask[number_of_layers][number_of_distrips_per_layer];
+  int initial_hot_channel_mask[number_of_layers][number_of_distrips_per_layer]; memset(initial_hot_channel_mask, 0, sizeof(initial_hot_channel_mask));
   for (int layer=0; layer<number_of_layers; layer++) 
     for (int distrip=0; distrip<number_of_distrips_per_layer; distrip++) 
       initial_hot_channel_mask[layer][distrip] = thisTMB->GetDistripHotChannelMask(layer,distrip);
   //
-  int hot_channel_mask[number_of_layers][number_of_distrips_per_layer];
+  int hot_channel_mask[number_of_layers][number_of_distrips_per_layer]; memset(hot_channel_mask, 0, sizeof(hot_channel_mask));
   //
   // Enable this TMB for this test
   // We want CLCT to pretrigger on single 1/2-strips to be able to find which (single) distrip is hot:
@@ -5188,7 +5196,7 @@ void ChamberUtilities::FindDistripHotChannels(){
       if (debug_) 
 	std::cout << "HotChannelMask:  Checking (layer,distrip) = " << layer_test << "," << distrip_test << ")" << std::endl;
       //
-      int working_hot_channel_mask[number_of_layers][number_of_distrips_per_layer];
+      int working_hot_channel_mask[number_of_layers][number_of_distrips_per_layer]; memset(working_hot_channel_mask, 0, sizeof(working_hot_channel_mask));
       //
       for (int layer=0; layer<number_of_layers; layer++) {
 	for (int distrip=0; distrip<number_of_distrips_per_layer; distrip++) {
@@ -5229,7 +5237,7 @@ void ChamberUtilities::FindDistripHotChannels(){
   // print out the results:
   //
   for (int layer=0; layer<number_of_layers; layer++) {
-    char print_hot_channel_mask[number_of_distrips_per_layer/8];
+    char print_hot_channel_mask[number_of_distrips_per_layer/8]; memset(print_hot_channel_mask, 0, sizeof(print_hot_channel_mask));
     thisTMB->packCharBuffer(hot_channel_mask[layer],
 			    number_of_distrips_per_layer,
 			    print_hot_channel_mask);
@@ -5479,7 +5487,7 @@ void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmu
   //
   //thisTMB->DiStripHCMask(HalfStrip/4-1); // counting from 0; //Bad...requests L1a....
   //
-  int hp[6];
+  int hp[6]; memset(hp, 0, sizeof(hp));
   //
   if (comparing_with_clct_) {
     //
@@ -5551,8 +5559,8 @@ void ChamberUtilities::InjectMPCData(){
   //
   int   DelaySize = 15;
   //
-  int   MPC0Count[DelaySize];
-  int   MPC1Count[DelaySize];
+  int   MPC0Count[DelaySize]; memset(MPC0Count, 0, sizeof(MPC0Count));
+  int   MPC1Count[DelaySize]; memset(MPC1Count, 0, sizeof(MPC1Count));
   //
   for (int i=0; i<DelaySize; i++ ) {
     MPC0Count[i] = 0;
@@ -5774,7 +5782,7 @@ void ChamberUtilities::ALCT_phase_analysis(int rxtx_timing[25][25]) {
   //now find best position by the non-zero number that is 
   //farthest from zero in both directions
   //
-  int nup, ndown, nleft, nright;
+  int nup=0; int ndown = 0; int nleft = 0; int nright = 0;
   //
   int best_element_row = 999;
   int best_element_col = 999;
@@ -5894,7 +5902,7 @@ int ChamberUtilities::window_analysis(int * data, const int length) {
   //
   // copy data for wrap-around:
   int twotimeslength = 2 * length;
-  int copy[twotimeslength];
+  int copy[twotimeslength]; memset(copy, 0, sizeof(copy));
   int begin_channel = -1;           
   for (int i=0; i<twotimeslength; i++) {
     copy[i] = data[i % length];
@@ -5910,9 +5918,9 @@ int ChamberUtilities::window_analysis(int * data, const int length) {
   //
   // Find the windows of "good data", beginning with the first channel of "bad data"
   window_counter = -1;
-  int window_width[length];
-  int window_start[length];
-  int window_end[length];
+  int window_width[length]; memset(window_width, 0, sizeof(window_width));
+  int window_start[length]; memset(window_start, 0, sizeof(window_start));
+  int window_end[length];   memset(window_end, 0, sizeof(window_end));
   for (int i=0; i<length; i++) {
     window_width[i] = 0;
     window_start[i] = 0;
@@ -5931,7 +5939,7 @@ int ChamberUtilities::window_analysis(int * data, const int length) {
     return -999;
   }    
 
-  int counter;
+  int counter = 0;
   for (counter=0; counter<=window_counter; counter++) {
     window_end[counter] = window_start[counter]+window_width[counter] -1;
     if (debug_>=5) {
@@ -5946,11 +5954,11 @@ int ChamberUtilities::window_analysis(int * data, const int length) {
 	      << width_threshold << " channels wide" << std::endl;
   //
   //Determine middle of window(s)
-  int channel;
-  float value;
-  float channel_ctr;
-  float denominator;
-  float average_channel[length];
+  int channel = 0;
+  float value = 0;
+  float channel_ctr = 0;
+  float denominator = 0;
+  float average_channel[length]; memset(average_channel, 0, sizeof(average_channel));
   //
   int bestValue = -1;
   //
@@ -5989,7 +5997,7 @@ int ChamberUtilities::DelayWhichGivesDesiredValue(float * values, const int min_
   int best_delay_value = -999; 
   //
   const int number_of_values = max_delay - min_delay + 1;
-  float vector_of_differences[number_of_values];
+  float vector_of_differences[number_of_values]; memset(vector_of_differences, 0, sizeof(vector_of_differences));
   //
   for (int delay=min_delay; delay<=max_delay; delay++) 
     vector_of_differences[delay] = fabs(values[delay] - (float)(desired_value)); 
@@ -6079,7 +6087,7 @@ float ChamberUtilities::AverageHistogram(int * histogram, int min_value, int max
     if (debug_>=5) std::cout << "average     = " << average << std::endl;
   }
   //
-  return average;;
+  return average;
 }
 //
 //
@@ -6098,7 +6106,7 @@ void ChamberUtilities::bit_to_array(int data, int * array, const int size) {
 void ChamberUtilities::ALCTScanDelays(){
 
   //  unsigned long HCmask[22];
-  int CountDelay[20];
+  int CountDelay[20]; memset(CountDelay, 0, sizeof(CountDelay));
   int alct0_quality = 0;
   int alct1_quality = 0;
   int alct0_bxn = 0;
