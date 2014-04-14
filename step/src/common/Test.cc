@@ -184,7 +184,6 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
     (*ddu)->writeFakeL1( 0 ); // 7: passthrough // 0: normal
     usleep(10);
     (crate)->ccb()->l1aReset();
-    usleep(1000);
     (crate)->ccb()->bc0();
     
     if ( pLogger_ ){
@@ -346,20 +345,34 @@ void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, ODMBMode_t mode, OD
   unsigned int addr;
   unsigned short int data;
   int irdwr;
+
+  int odmb_fw_vers = (dmb->odmb_firmware_version()/0x100);
+  printf("odmb fw vers read from odmb: %4x\n", dmb->odmb_firmware_version());
+  printf("odmb fw vers: %d\n", odmb_fw_vers);
   // set ODMB to Pedestal mode
   irdwr = 3;
-  addr = (0x003000)| slot_number<<19;
-  if      ( mode == emu::step::ODMBPedestalMode )    data = 0x2000;
-  else if ( mode == emu::step::ODMBCalibrationMode ) data = 0x003f;
+  if      ( mode == emu::step::ODMBPedestalMode ) {
+    addr = (odmb_fw_vers >= 3) ? 0x003400 : 0x003000;
+    addr = addr | slot_number<<19;
+    data = (odmb_fw_vers >= 3) ? 0x01 : 0x2000;
+  }
+  else if ( mode == emu::step::ODMBCalibrationMode ) {
+    addr = (0x003000) | slot_number<<19;
+    data = (odmb_fw_vers >= 3) ? 0x01 : 0x003F;
+  }
+  cout<<"Pulsing: addr ="<<addr<<"  data = "<<data<<endl;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
   // Set OTMB_DLY  
-  irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
+  //irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
+  irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0002;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+  //    Set ALCT_DLY
+  irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001f;
   // Kill ODMB inputs
   irdwr = 3; addr = (0x00401c) | slot_number<<19; data = killInput;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
   //  Set LCT_L1A_DLY
-  irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x001a;
+  irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x000e;//5;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
   //    Set INJ_DLY
   // Set it to 0 explicitly as in some older firmware versions its default value is nonzero.
@@ -367,6 +380,9 @@ void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, ODMBMode_t mode, OD
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
   // Set EXT_DLY      
   irdwr = 3; addr = (0x004014)| slot_number<<19; data = 0x0000;
+  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+  // Set CAL_LCT_DLY      
+  irdwr = 3; addr = (0x004018)| slot_number<<19; data = 0x000f;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 }
 
@@ -476,35 +492,52 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
       int irdwr;
 
       // ODMB Reset
-      irdwr = 3; addr = (0x003000) | slot_number<<19; data = 0x0100;
+      irdwr = 3;
+      int odmb_fw_vers = ((*dmb)->odmb_firmware_version() / 0x100);
+      addr = (odmb_fw_vers >= 3) ? 0x003004 : 0x003000;
+      addr = addr | slot_number<<19;
+      data = (odmb_fw_vers >= 3) ? 0x01 : 0x100;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       usleep(300000);
-  
+
       // Kill No Boards
       irdwr = 3; addr = (0x00401c) | slot_number<<19; data = kill_None;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-      
+
       //  Set LCT_L1A_DLY
-      irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x000d; // P5 // 0x001a; B904
+      irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x001a; // P5 // 0x001a; B904
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-      
+
       // Set OTMB_DLY
-      irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
+      //irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
+      irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0002;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-      
+
       //    Set ALCT_DLY
-      irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001e; // ME+1/1/34
-//       irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001f; // ME+1/1/35
+     //  irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001e; // ME+1/1/34
+      irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001f; // ME+1/1/35
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
       //    Set INJ_DLY
       // Set it to 0 explicitly as in some older firmware versions its default value is nonzero.
-      irdwr = 3; addr = (0x004010)| slot_number<<19; data = 0x0000; 
+      irdwr = 3; addr = (0x004010)| slot_number<<19; data = 0x0000;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
       // ODMB configured to accept real triggers
       irdwr = 3; addr = (0x003000)| slot_number<<19; data = 0x0000;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      if (odmb_fw_vers >= 3) {
+        addr = (0x003300)| slot_number<<19;
+        crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+        addr = (0x003304)| slot_number<<19;
+        crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+        addr = (0x003308)| slot_number<<19;
+        crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+        addr = (0x003400)| slot_number<<19;
+        crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+        addr = (0x003404)| slot_number<<19;
+        crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      }
 
       // Temporary fix to explicitly set crate id in ODMB
       irdwr = 3; addr = (0x004020)| slot_number<<19; data = crate->CrateID();
@@ -531,7 +564,13 @@ void emu::step::Test::resyncDCFEBs(emu::pc::Crate* crate){
       if (fw_version >= 265) continue; // 265 == 0x0109
 
       // Resync ODMB and DCFEB L1A Counters
-      irdwr = 3; addr = 0x003010 | (slot_number<<19); data = 0x0002;
+      irdwr = 3; 
+      if (((*dmb)->odmb_firmware_version() / 0x100) >= 3) {
+        addr = 0x003014 | (slot_number<<19); data = 0x0001;
+      }
+      else {
+	addr = 0x003010 | (slot_number<<19); data = 0x0002;
+      }
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       cout<<" Calling Resync "<<endl;
     } // ODMB only
@@ -651,6 +690,7 @@ void emu::step::Test::enable_11(){
     usleep(1000);
     resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
     (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
+    (*crate)->ccb()->l1aReset();
     (*crate)->ccb()->bc0(); 
 
     if ( isToStop_ ) return;
@@ -718,6 +758,7 @@ void emu::step::Test::enable_12(){
     usleep(1000);
     resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
     (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
+    (*crate)->ccb()->l1aReset();
     (*crate)->ccb()->bc0(); 
 
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
@@ -791,7 +832,7 @@ void emu::step::Test::configure_13(){
     resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     (*crate)->ccb()->EnableL1aFromSyncAdb();
-
+    (*crate)->ccb()->l1aReset();
     (*crate)->ccb()->bc0(); // this may not be needed, should check
 
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
@@ -914,7 +955,7 @@ void emu::step::Test::configure_14(){
       resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
       (*crate)->ccb()->EnableL1aFromASyncAdb();
-      
+     (*crate)->ccb()->l1aReset(); 
       (*crate)->ccb()->bc0(); // this may not be needed, should check
 
       vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
@@ -1052,9 +1093,11 @@ void emu::step::Test::configure_15(){ // OK
 	  (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	  // set ODMB to PEDESTAL mode
 	  irdwr = 3;
-	  addr = (0x003000)| slot_number<<19;
-	  data = 0x2000;
-	  (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+          int odmb_fw_vers = ((*dmb)->odmb_firmware_version() / 0x100 );
+          addr = (odmb_fw_vers >= 3) ? 0x003400 : 0x003000;
+          addr = addr | slot_number<<19;
+          data = (odmb_fw_vers >= 3) ? 0x01 : 0x2000;
+          (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	} // if( (*dmb)->GetHardwareVersion() == 2 )
 	sleep(1);
 
@@ -1109,7 +1152,7 @@ void emu::step::Test::enable_15(){
     // cout << "Crate " << crate-crates.begin() << " : " << (*crate)->GetLabel() << endl << flush;
 
       (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-	
+      (*crate)->ccb()->l1aReset();	
       (*crate)->ccb()->bc0(); 
 
       for ( uint64_t iTrigger = 1; iTrigger <= events_total; ++iTrigger ){
@@ -1189,9 +1232,11 @@ void emu::step::Test::configure_16(){
 	(*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 	// set ODMB to PEDESTAL mode
 	irdwr = 3;
-	addr = (0x003000)| slot_number<<19;
-	data = 0x2000;
-	(*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+        int odmb_fw_vers = ((*dmb)->odmb_firmware_version() / 0x100);
+        addr = (odmb_fw_vers >= 3) ? 0x003400 : 0x003000;
+        addr = addr | slot_number<<19;
+        data = (odmb_fw_vers >= 3) ? 0x01 : 0x2000;
+        (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       } // if( (*dmb)->GetHardwareVersion() == 2 )
       sleep(1);
       
@@ -1254,7 +1299,7 @@ void emu::step::Test::enable_16(){
   //
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    
+    (*crate)->ccb()->l1aReset(); 
     (*crate)->ccb()->bc0(); 
 
     vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
@@ -1420,7 +1465,7 @@ void emu::step::Test::enable_17(){
   //
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    
+   (*crate)->ccb()->l1aReset(); 
     (*crate)->ccb()->bc0(); 
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs(); // TODO: for ODAQMBs, too
@@ -1612,7 +1657,7 @@ void emu::step::Test::enable_17b(){
   //
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    
+    (*crate)->ccb()->l1aReset(); 
     (*crate)->ccb()->bc0();
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
@@ -1731,7 +1776,6 @@ void emu::step::Test::configure_19(){
     configureODMB( *crate ); 
     usleep(1000);
     (*crate)->ccb()->l1aReset();
-    usleep(1000);
     resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     // CCB::EnableL1aFromDmbCfebCalibX sets these:
@@ -1814,7 +1858,7 @@ void emu::step::Test::enable_19(){
   //
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-
+    (*crate)->ccb()->l1aReset();
     (*crate)->ccb()->bc0();
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
@@ -1828,10 +1872,11 @@ void emu::step::Test::enable_19(){
         (*dmb)->buck_shift();
         usleep(100000); // buck shifting takes a lot more time for DCFEBs
 
-	// (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
+	(*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
 
 	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
+          (*crate)->ccb()->l1aReset();
           (*crate)->ccb()->bc0(); // needed after DCFEB buck shifting?
 	  usleep(100000);
         }
@@ -2000,7 +2045,7 @@ void emu::step::Test::enable_21(){
   //
 
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
-    
+    (*crate)->ccb()->l1aReset();    
     (*crate)->ccb()->bc0();
 
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
@@ -2142,6 +2187,7 @@ void emu::step::Test::enable_25(){
 
     (*crate)->ccb()->startTrigger();
     usleep(10000);
+    (*crate)->ccb()->l1aReset();
     (*crate)->ccb()->bc0(); 
     usleep(10000);
 
@@ -2260,6 +2306,7 @@ void emu::step::Test::enable_27(){
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
     (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
+    (*crate)->ccb()->l1aReset();
     (*crate)->ccb()->bc0(); 
 
     if ( isToStop_ ) return;
