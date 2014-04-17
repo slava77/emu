@@ -986,6 +986,17 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset()<< cgicc::br() << std::endl;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("DCFEB Configuration").set("style","color:blue") << std::endl ;
+
+        std::string ConfigDCFEBs = toolbox::toString("/%s/ConfigDCFEBs",getApplicationDescriptor()->getURN().c_str());
+        *out << cgicc::form().set("method","GET").set("action",ConfigDCFEBs) << std::endl ;
+        *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
+        *out << cgicc::input().set("type","submit").set("value","Configure All DCFEBs") << std::endl ;
+        *out << cgicc::form() << std::endl ; 
+
+  *out << cgicc::fieldset()<< cgicc::br() << std::endl;
+
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("DCFEB Firmware").set("style","color:blue") << std::endl ;
   //
   std::string CFEBreadfirm =
@@ -3606,6 +3617,43 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
 
   return createReply(message);
 }
+
+void EmuPeripheralCrateConfig::ConfigDCFEBs(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+  std::cout << "Button: ConfigDCFEBs" << std::endl;
+
+  cgicc::Cgicc cgi(in);
+
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Not dmb" << std::endl ;
+    dmb = DMB_;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+
+     std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+
+     unsigned short int bufload[34];
+     for(std::vector<CFEB>::iterator cfeb = cfebs.begin(); cfeb != cfebs.end(); cfeb++)
+     {
+         if(cfeb->GetHardwareVersion() == 2)
+         {
+              std::cout << "writing parameters to DCFEB " << (cfeb - cfebs.begin () + 1) << "..." << std::endl;
+              thisDMB->set_dcfeb_parambuffer(*cfeb, bufload);
+              thisDMB->write_cfeb_selector(cfeb->SelectorBit());
+              thisDMB->dcfeb_loadparam(3, 34, bufload);
+         }
+     }
+     this->CFEBUtils(in,out);
+}
+
 
  }  // namespace emu::pc
 }  // namespace emu

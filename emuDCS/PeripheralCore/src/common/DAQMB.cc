@@ -879,6 +879,20 @@ void DAQMB::configure() {
       odmb_save_config();
    }
 
+// Write DCFEB cofiguration parameters into EPROM
+// ToDo: should readback EPROM first and compare, 
+//       and then write to EPROM only if they are different
+   unsigned short int bufload[34];
+   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)
+   {
+      if(cfebs_[lfeb].GetHardwareVersion() == 2)
+      {
+         set_dcfeb_parambuffer(cfebs_[lfeb], bufload);   
+         write_cfeb_selector(cfebs_[lfeb].SelectorBit());
+         dcfeb_loadparam(3, 34, bufload);
+      }
+   }
+    
 }
 //
 bool DAQMB::checkDAQMBXMLValues() { 
