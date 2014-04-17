@@ -208,6 +208,9 @@ class MPC : public VMEModule, public EmuLogger {
   inline void SetHardwareVersion(int version) {hardware_version_ = version;}
   inline int GetHardwareVersion() {return hardware_version_;}
   //
+  inline void SetMPCTMBMask(int mask) {mpc_tmb_mask_ = mask;}
+  inline int GetMPCTMBMask() { return mpc_tmb_mask_; }
+  //
   /// used by GUIs
   void executeCommand(std::string command);
 
@@ -286,7 +289,7 @@ class MPC : public VMEModule, public EmuLogger {
   int expected_firmware_day_;
   int expected_firmware_month_; 
   int expected_firmware_year_;
-  int mpc_generation;
+  int mpc_tmb_mask_;
   int hardware_version_;
   //
 };

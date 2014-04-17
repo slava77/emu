@@ -197,6 +197,7 @@ MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),EmuLogger(),
   std::cout << "MPC: in crate=" << this->crate() 
 	    << " slot=" << this->slot() << std::endl;
   hardware_version_=0;
+  mpc_tmb_mask_=0;
   //
   read_firmware_day_   = 9999;
   read_firmware_month_ = 9999;
@@ -206,7 +207,6 @@ MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),EmuLogger(),
   expected_firmware_month_ = 999;
   expected_firmware_year_  = 999;
   //
-  mpc_generation = 0; // unknown
   MyOutput_ = &std::cout ;
 }
 
@@ -242,7 +242,6 @@ void MPC::configure() {
 
   SendOutput("MPC : configure()","INFO");
 
-  check_generation();
   ReadRegister(CSR0);
 
   addr = CSR0;
@@ -262,6 +261,7 @@ void MPC::configure() {
   else
     setSorterMode();
 
+  WriteMask(mpc_tmb_mask_);
   // report firmware version
   firmwareVersion();
   printFirmwareVersion();
@@ -518,9 +518,7 @@ int MPC::ReadMask()
 
   int data, mask=0;
 
-  if(mpc_generation>2 || mpc_generation<1) check_generation();
-
-  if(mpc_generation==1)
+  if(hardware_version_<=1)
   {
      read_later(CSR7);
      read_now(CSR8, (char *) &data);
@@ -533,7 +531,7 @@ int MPC::ReadMask()
         data = data >> 2;
      }
   }
-  else if(mpc_generation==2)
+  else if(hardware_version_==2)
   {
      read_now(CSR7, (char *) &data);
      mask=0;
@@ -551,14 +549,16 @@ int MPC::ReadMask()
 
 void MPC::WriteMask(int mask)
 {
+  // TMB mask value:  bit 0 ---- bit 8
+  //                  TMB9 ....  TMB1
+  // bit=1 if TMB (both LCTs) is disabled 
+  // bit=0 if TMB (either LCT) is enabled
   unsigned short raw;
   unsigned data;
 
   (*MyOutput_) << "write MPC mask : " << std::hex << mask << std::dec << std::endl;
 
-  if(mpc_generation>2 || mpc_generation<1) check_generation();
-
-  if(mpc_generation==1)
+  if(hardware_version_<=1)
   {
      data=0;
      for(int i=0; i<9; i++)
@@ -572,7 +572,7 @@ void MPC::WriteMask(int mask)
      raw = (data>>16)&3;
      write_now(CSR8, raw, rcvbuf);
   }
-  else if(mpc_generation==2)
+  else if(hardware_version_==2)
   {
      raw=0;
      for(int i=0; i<9; i++)
@@ -582,33 +582,6 @@ void MPC::WriteMask(int mask)
         mask = mask >> 1;
      }
      write_now(CSRM, raw, rcvbuf);
-  }
-}
-
-void MPC::check_generation()
-{
-  mpc_generation=hardware_version_;
-  if(mpc_generation==0) mpc_generation=1;
-  return;
-  unsigned short old_data[2], data_test, data_cmp;
-
-  read_later(CSRM);
-  read_now(CSR7, (char *) &old_data);
-
-  // figure out which MPC (old Virtex-E or  new Virtex 5) is in use
-  data_test = (old_data[1]==0x56AB)?0x65BA:0x56AB;
-  write_now(CSRM, data_test, NULL);
-  read_now(CSR7, (char *) &data_cmp);
-
-  if(data_cmp==data_test)
-  {  
-     mpc_generation=2; 
-     write_now(CSRM, old_data[0], NULL); 
-  }  
-  else
-  {
-     mpc_generation=1;
-     write_now(CSR7, old_data[1], NULL);
   }
 }
 
