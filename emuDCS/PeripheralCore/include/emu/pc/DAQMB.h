@@ -762,7 +762,7 @@ public:
   void dcfeb_loadparam(int paramblock,int nval,unsigned short int  *val);
   void dcfeb_readparam(int paramblock,int nval,unsigned short int  *val);         
   void dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename);
-  void dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile);
+  void dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile, int broadcast=0);
   void dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast=0);
   void dcfeb_configure(CFEB & cfeb);
   void dcfeb_test_dummy(CFEB & cfeb, int test);
