@@ -8246,6 +8246,19 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
        free(bufin);
        return;
    }
+   int tag=0;
+   memcpy(&tag, bufin+0x600000, 4);
+   if( (tag & 0x00F0FFFF)==0x00B0FEDC) 
+   {
+       std::cout << "Firmware tag (DCFEB) verified!" << std::endl;
+   }
+   else
+   {
+       std::cout << "ERROR: Firmware tag (DCFEB) not found in MCS file. Quit..." << std::endl; 
+       free(bufin);
+       return;
+                  
+   }
 
    if(broadcast)
       write_cfeb_selector(0x7F);   // broadcast to all DCFEBs
@@ -8313,7 +8326,7 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
    free(bufin);
 }
 
-void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
+void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile, int broadcast)
 {
    const int FIRMWARE_SIZE=5464972; // in bytes
    char *bufin, c;
@@ -8334,6 +8347,20 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
        std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
        free(bufin);
        return;
+    
+   }
+   int tag=0;
+   memcpy(&tag, bufin+0x600000, 4);
+   if( (tag & 0x00F0FFFF)==0x00B0FEDC) 
+   {
+       std::cout << "Firmware tag (DCFEB) verified!" << std::endl;
+   }
+   else
+   {
+       std::cout << "ERROR: Firmware tag (DCFEB) not found in MCS file. Quit..." << std::endl; 
+       free(bufin);
+       return;
+                  
    }
 // byte swap
    for(int i=0; i<FIRMWARE_SIZE/2; i++)
@@ -8341,7 +8368,13 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile)
       bufin[i*2]=bufin[i*2+1];
       bufin[i*2+1]=c;
    }
-     write_cfeb_selector(cfeb.SelectorBit());
+
+
+   if(broadcast)
+      write_cfeb_selector(0x7F);   // broadcast to all DCFEBs
+   else
+      write_cfeb_selector(cfeb.SelectorBit());
+
      int blocks=FIRMWARE_SIZE/4;  // firmware size must be in units of 32-bit words
      int p1pct=blocks/100;
      int j=0, pcnts=0;
