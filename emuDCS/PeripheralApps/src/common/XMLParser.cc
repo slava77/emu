@@ -281,6 +281,10 @@ void XMLParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
     mpc_->SetTMBDelays(value);
   }
 
+  if ( fillInt("mpc_tmb_mask",value) ) {
+    mpc_->SetMPCTMBMask(value);
+  }
+
   if ( fillInt("mpc_firmware_year",value) ) {
     mpc_->SetExpectedFirmwareYear(value);
   }
