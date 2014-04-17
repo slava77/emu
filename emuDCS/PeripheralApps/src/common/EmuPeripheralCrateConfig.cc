@@ -542,7 +542,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MPCWriteValue_ = -1;
   //
   CalibrationState_ = "None";
-  standalone_ = true;
+  standalone_ = false;
   //standalone_ = true;
   //
   for (int i=0; i<9; i++) {
