@@ -370,6 +370,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBFunction, "CFEBFunction");
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBReadFirmware, "DCFEBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramFpga, "DCFEBProgramFpga");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramFpgaAll, "DCFEBProgramFpgaAll");
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramEprom, "DCFEBProgramEprom");
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramEpromAll, "DCFEBProgramEpromAll");
   xgi::bind(this,&EmuPeripheralCrateConfig::LVMBStatus, "LVMBStatus");
@@ -541,7 +542,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MPCWriteValue_ = -1;
   //
   CalibrationState_ = "None";
-  standalone_ = false;
+  standalone_ = true;
   //standalone_ = true;
   //
   for (int i=0; i<9; i++) {
@@ -1026,14 +1027,16 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
       std::cout << "Button: ConfigDCFEBs" << std::endl;
       for(std::vector<DAQMB *>::iterator dmb = dmbVector.begin(); dmb != dmbVector.end(); dmb++)
       {
-        std::vector<CFEB> cfebs = (*dmb)->cfebs ();
-        for(std::vector<CFEB>::iterator cfeb = cfebs.begin(); cfeb != cfebs.end(); cfeb++)
-        {
-          std::cout << "writing parameters to DCFEB " << (cfeb - cfebs.begin () + 1) << "..." << std::endl;
-          unsigned short int bufload[34];
-          (*dmb)->set_dcfeb_parambuffer(*cfeb, bufload);
-          (*dmb)->write_cfeb_selector(cfeb->SelectorBit());
-          (*dmb)->dcfeb_loadparam(3, 34, bufload);
+        if ((*dmb)->GetHardwareVersion() == 2) {
+            std::vector<CFEB> cfebs = (*dmb)->cfebs ();
+            for(std::vector<CFEB>::iterator cfeb = cfebs.begin(); cfeb != cfebs.end(); cfeb++)
+            {
+              std::cout << "writing parameters to DCFEB " << (cfeb - cfebs.begin () + 1) << "..." << std::endl;
+              unsigned short int bufload[34];
+              (*dmb)->set_dcfeb_parambuffer(*cfeb, bufload);
+              (*dmb)->write_cfeb_selector(cfeb->SelectorBit());
+              (*dmb)->dcfeb_loadparam(3, 34, bufload);
+            }
         }
       }
       this->Default(in,out);

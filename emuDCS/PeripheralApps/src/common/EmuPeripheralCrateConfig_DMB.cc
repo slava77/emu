@@ -1040,7 +1040,7 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
   *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "Program EPROM") << std::endl;
+    .set("value", "Program DCFEB EPROM") << std::endl;
   *out << cgicc::form() << FirmwareDir_+"cfeb/me11_dcfeb.mcs" << cgicc::br() << cgicc::hr() << std::endl;
   
   std::string CFEBwritefirmall =
@@ -1050,7 +1050,7 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
   *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "Broadcast Program EPROM - All CFEBs") << std::endl;
+    .set("value", "Broadcast Program EPROM - All DCFEBs") << std::endl;
   *out << cgicc::form() << FirmwareDir_+"cfeb/me11_dcfeb.mcs" << cgicc::br() << cgicc::hr() << std::endl;
   
   std::string CFEBprogfpga =
@@ -1078,9 +1078,19 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
   *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "Program FPGA") << std::endl;
-  *out << cgicc::form() << FirmwareDir_+"cfeb/me11_dcfeb.mcs"  << cgicc::br() << std::endl;
+    .set("value", "Program DCFEB FPGA") << std::endl;
+  *out << cgicc::form() << FirmwareDir_+"cfeb/me11_dcfeb.mcs"  << cgicc::br() << cgicc::hr() << std::endl;
     //
+  std::string CFEBprogfpgaall =
+      toolbox::toString("/%s/DCFEBProgramFpgaAll",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("action", CFEBprogfpgaall) << std::endl;
+  
+  *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
+  *out << cgicc::input().set("type", "submit")
+    .set("name", "command")
+    .set("value", "Program FPGA on all DCFEBs (sequential)") << std::endl;
+  *out << cgicc::form() << FirmwareDir_+"cfeb/me11_dcfeb.mcs" << cgicc::br() << cgicc::hr() << std::endl;
+  //
   *out << cgicc::fieldset()<< cgicc::br() << std::endl;
   //
 
@@ -1213,6 +1223,36 @@ void EmuPeripheralCrateConfig::DCFEBReadFirmware(xgi::Input * in, xgi::Output * 
                     
 }
   
+void EmuPeripheralCrateConfig::DCFEBProgramFpgaAll(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception)
+{
+    cgicc::Cgicc cgi(in);
+    
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    int dmb=0;
+    if(name != cgi.getElements().end()) {
+        dmb = cgi["dmb"]->getIntegerValue();
+        std::cout << "DMB " << dmb << std::endl;
+        DMB_ = dmb;
+    } else {
+        std::cout << "Not dmb" << std::endl ;
+        dmb = DMB_;
+    }
+
+    std::string mcsfile= FirmwareDir_+ "cfeb/me11_dcfeb.mcs";
+    std::cout << getLocalDateTime() << " Programming FPGA on all DCFEBs on DMB " << dmb << std::endl;
+    std::cout << "Using mcs file: " << mcsfile << std::endl;
+    
+    DAQMB * thisDMB = dmbVector[dmb];
+    std::vector<CFEB> cfebs = thisDMB->cfebs();
+    for(std::vector<CFEB>::iterator cfeb = cfebs.begin(); cfeb != cfebs.end(); cfeb++) {
+        std::cout << getLocalDateTime() << " Programming DCFEB FPGA on DMB " << dmb << " DCFEB " << cfeb->number()+1 << std::endl;
+        thisDMB->dcfeb_program_virtex6(*cfeb, mcsfile.c_str());
+        sleep(1);
+    }
+    std::cout << getLocalDateTime() << " Finished programming all DCFEB FPGAs." << std::endl;
+    this->CFEBUtils(in,out);
+}
 
 void EmuPeripheralCrateConfig::DCFEBProgramFpga(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception)
