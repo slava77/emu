@@ -7119,7 +7119,7 @@ int DAQMB::DCSreadAll(char *data)
         vme_delay(10);
         n=(j<<4) + 0xFF89;
         write_later(0x8000, n);
-        vme_delay(10);
+        vme_delay(20);
         if( i==7 && j==7) retn=read_now(0x8004, data);
         else read_later(0x8004);
      }
@@ -9654,37 +9654,18 @@ void DAQMB::autoload_select_readback_wrd(CFEB &cfeb, int ival){
      16 sem cmd 3 bits
      17 reg sel wrd 8 bits
   */
-    DEVTYPE dv = cfeb.dscamDevice();
-    cmd[0]=(VTX6_USR1&0xff);
-    cmd[1]=((VTX6_USR1&0x300)>>8);
-    sndbuf[0]=REG_SEL_WRD;
-    devdo(dv,10,cmd,8,sndbuf,rcvbuf,0);
-    cmd[0]=(VTX6_USR2&0xff);
-    cmd[1]=((VTX6_USR2&0x300)>>8);
-    sndbuf[0]=ival;
-    sndbuf[1]=0x00;
-    devdo(dv,10,cmd,8,sndbuf,rcvbuf,0);
-    cmd[0]=(VTX6_BYPASS&0xff);
-    cmd[1]=((VTX6_BYPASS&0x300)>>8);
-    devdo(dv,10,cmd,0,sndbuf,rcvbuf,2);
+    unsigned tmp;
+    dcfeb_hub(cfeb, REG_SEL_WRD, 8, &ival, (char *)&tmp, NOW);
+    return;
 }
 
-void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2]){
-    DEVTYPE dv = cfeb.dscamDevice();
-    cmd[0]=(VTX6_USR1&0xff);
-    cmd[1]=((VTX6_USR1&0x300)>>8);
-    sndbuf[0]=REG_RD_WRD;
-    devdo(dv,10,cmd,8,sndbuf,rcvbuf,0);
-    cmd[0]=(VTX6_USR2&0xff);
-    cmd[1]=((VTX6_USR2&0x300)>>8);
-    sndbuf[0]=0xff;
-    sndbuf[1]=0xff;
-    devdo(dv,10,cmd,16,sndbuf,rcvbuf,1);
-    wrd[0]=rcvbuf[0];
-    wrd[1]=rcvbuf[1];
-    cmd[0]=(VTX6_BYPASS&0xff);
-    cmd[1]=((VTX6_BYPASS&0x300)>>8);
-    devdo(dv,10,cmd,0,sndbuf,rcvbuf,2);
+void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2])
+{
+    unsigned tmp=0xFFFF;
+    char buf[4];   
+    dcfeb_hub(cfeb, REG_RD_WRD, 16, &tmp, buf, READ_YES|NOW);
+    memcpy(wrd, buf, 2);
+    return;
 }
 
 } // namespace emu::pc
