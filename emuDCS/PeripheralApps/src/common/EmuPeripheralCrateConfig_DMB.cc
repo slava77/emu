@@ -776,6 +776,9 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
      //
      double monitor_dcfebs[200];
      for(unsigned c=0; c<200; c++) monitor_dcfebs[c] = -1.0;
+     int monitor_dcfebs_alert[200];
+     for(unsigned c=0; c<200; c++) monitor_dcfebs_alert[c] = -1;
+     
      std::vector<std::string> chname;
      chname.clear();
      chname.push_back("Temp(FPGA) (C)");
@@ -800,6 +803,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
      chname.push_back("Temp(PCB 1) (C)");
      chname.push_back("Temp(PCB 2) (C)");
      chname.push_back("Comparator DAC");
+     chname.push_back("QPLL lock lost count");
 
      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
      *out << std::endl;
@@ -813,16 +817,19 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
         {
            std::vector<float> mon=thisDMB->dcfeb_fpga_monitor(*cfebItr);
            std::vector<float> dadc=thisDMB->dcfeb_adc(*cfebItr);
-           for (unsigned c=0; c<mon.size() && c<19; c++) monitor_dcfebs[cfeb_index*22+c]=mon[c];
-           monitor_dcfebs[cfeb_index*22+19]=dadc[3];
-           monitor_dcfebs[cfeb_index*22+20]=dadc[4];
-           monitor_dcfebs[cfeb_index*22+21]=dadc[0];
+           unsigned qpllLostCount = thisDMB->dcfeb_qpll_lost_count(*cfebItr);
+           for (unsigned c=0; c<mon.size() && c<19; c++) monitor_dcfebs[cfeb_index*23+c]=mon[c];
+           monitor_dcfebs[cfeb_index*23+19]=dadc[3];
+           monitor_dcfebs[cfeb_index*23+20]=dadc[4];
+           monitor_dcfebs[cfeb_index*23+21]=dadc[0];
+           monitor_dcfebs[cfeb_index*23+22]=qpllLostCount;
+           monitor_dcfebs_alert[cfeb_index*23+22] = (qpllLostCount > 0) ? 1 : 0;
         }
      }
      *out << cgicc::table().set("border","1");
      //
      *out <<cgicc::td() << "Channel" << std::setprecision(3)<< cgicc::td();
-     for(int ch=0; ch<23; ch++)
+     for(int ch=0; ch<24; ch++)
      {
        if(ch) *out << cgicc::td() << chname[ch-1] << cgicc::td();
        for(int feb=0; feb<7; feb++)
@@ -830,7 +837,11 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
           if(ch==0) *out << cgicc::td() << "CFEB " << feb+1 << cgicc::td();
           else
           {   *out << cgicc::td();
-              if( monitor_dcfebs[feb*22+ch-1]>=0.) *out << monitor_dcfebs[feb*22+ch-1];
+              std::string color = "";
+              if( monitor_dcfebs_alert[feb*23+ch-1] >= 0) color = monitor_dcfebs_alert[feb*23+ch-1] ? "red" : "green";
+              if (!color.empty()) *out << cgicc::span().set("style", "color:" + color);
+              if( monitor_dcfebs[feb*23+ch-1]>=0.) *out << monitor_dcfebs[feb*23+ch-1];
+              if (!color.empty()) *out << cgicc::span();
               *out << cgicc::td();
           }
        }
