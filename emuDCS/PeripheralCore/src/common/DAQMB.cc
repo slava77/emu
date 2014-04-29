@@ -1124,7 +1124,7 @@ void DAQMB::setcrateid(int dword)
   }
   else if(hardware_version_==2)
   {
-     WriteRegister(ODMB_CRATEID, CRATE_ID);
+     WriteRegister(ODMB_CRATEID, dword);
   }
 }
 //
