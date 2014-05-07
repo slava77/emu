@@ -53,7 +53,46 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
 
     *out << cgicc::span();
   }
-  *out << cgicc::br();
+  //
+  thisCCB->RedirectOutput(&std::cout);
+  //
+  *out << cgicc::br() << "CCB Mode = ";
+  int ccb_mode = thisCCB->ReadRegister(0);
+  switch(ccb_mode & 1) {
+  case 0:
+    *out << "FPGA;" << std::endl;
+    break;
+  case 1:
+    *out << "DLOG;" << std::endl;
+    break;
+  default:
+    *out << "unknown;" << std::endl;
+    break;
+  }
+
+  ccb_mode = thisCCB->ReadRegister(4);
+  if(((ccb_mode>>13)&1)==1) 
+  { 
+    *out << cgicc::span().set("style","color:green");
+    *out << " TTCrx Ready;" << cgicc::span();
+    // Check for QPLL only if TTXrx Ready
+    if(((ccb_mode>>14)&1)==0) 
+    {
+        *out << cgicc::span().set("style","color:green");
+        *out << " QPLL Locked " << cgicc::span();
+    }
+    else
+    {
+        *out << cgicc::span().set("style","color:red");
+        *out << " QPLL Unlocked " << cgicc::span();
+    }
+  }
+  else
+  {
+     *out << cgicc::span().set("style","color:red");
+     *out << " TTCrx Not Ready;" << cgicc::span();
+  }
+  *out << cgicc::br() << std::endl;
   //
   thisCCB->ReadTTCrxID();
   int readValue   = thisCCB->GetReadTTCrxID();
@@ -69,25 +108,11 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   } else {
     *out << cgicc::span().set("style","color:red");
     *out << buf;
-    *out << " (TTCrxID value in configuration incorrectly set to " << std::dec << configValue << ") ";
+    if( readValue>0 ) *out << " (TTCrxID value in configuration incorrectly set to " << std::dec << configValue << ") ";
     *out << cgicc::span();
   }
-  //
-  thisCCB->RedirectOutput(&std::cout);
-  //
-  *out << cgicc::br() << "CCB Mode = ";
-  int ccb_mode = thisCCB->ReadRegister(0);
-  switch(ccb_mode & 1) {
-  case 0:
-    *out << "FPGA" << std::endl;
-    break;
-  case 1:
-    *out << "DLOG" << std::endl;
-    break;
-  default:
-    *out << "unknown" << std::endl;
-    break;
-  }
+  *out << cgicc::br() << std::endl;
+
   //
   *out << cgicc::br() << "CSRA1 =  " << std::hex << ccb_mode << std::endl;
   *out << cgicc::br() << "CSRA2 =  " << std::hex << thisCCB->ReadRegister(2) << std::endl;
