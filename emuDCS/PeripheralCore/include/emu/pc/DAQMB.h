@@ -820,6 +820,7 @@ public:
   inline int odmb_read_Inj_delay() { return ReadRegister(INJ_DLY) & 0x1F; }  // 5 bits
   inline int odmb_read_Ext_delay() { return ReadRegister(EXT_DLY) & 0x1F; }  // 5 bits
   inline int odmb_read_Cal_delay() { return ReadRegister(CAL_DLY) & 0xF; }   // 4 bits
+  inline int odmb_read_CrateID() { return ReadRegister(ODMB_CRATEID) & 0xFF; }   // 8 bits
 
   // kill input from boards (CFEBs, TMB, ALCT) mask; multiple boards can be killed
   inline void odmb_set_kill_mask(int kill) { WriteRegister(ODMB_KILL, kill); }

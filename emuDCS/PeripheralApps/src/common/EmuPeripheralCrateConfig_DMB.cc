@@ -802,7 +802,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
      chname.push_back("V5PSUB (V)");
      chname.push_back("Temp(PCB 1) (C)");
      chname.push_back("Temp(PCB 2) (C)");
-     chname.push_back("Comparator DAC");
+     chname.push_back("Comparator DAC(V)");
      chname.push_back("QPLL lock lost count");
 
      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
@@ -2961,14 +2961,15 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
      *out << cgicc::tr();
      *out << cgicc::td() << "LCT_L1A delay: " << thisDMB->odmb_read_LCT_L1A_delay() << cgicc::td();      
      *out << cgicc::td() << "TMB delay: " << thisDMB->odmb_read_TMB_delay() << cgicc::td();      
-     *out << cgicc::td() << "PUSH delay: " << thisDMB->odmb_read_Push_delay() << cgicc::td();      
      *out << cgicc::td() << "ALCT delay: " << thisDMB->odmb_read_ALCT_delay() << cgicc::td();      
+     *out << cgicc::td() << "Cal delay: " << thisDMB->odmb_read_Cal_delay() << cgicc::td();      
      *out << cgicc::tr() << std::endl;
      *out << cgicc::tr();
      *out << cgicc::td() << "Inj delay: " << thisDMB->odmb_read_Inj_delay() << cgicc::td();      
      *out << cgicc::td() << "Ext delay: " << thisDMB->odmb_read_Ext_delay() << cgicc::td();      
-     *out << cgicc::td() << "Cal delay: " << thisDMB->odmb_read_Cal_delay() << cgicc::td();      
-     *out << cgicc::td() << cgicc::td() << cgicc::tr() << std::endl;
+     *out << cgicc::td() << "Kill mask: " << std::hex << thisDMB->odmb_read_kill_mask() << std::dec << cgicc::td();      
+     *out << cgicc::td() << "Crate ID: " << thisDMB->odmb_read_CrateID() << cgicc::td();      
+     *out << cgicc::tr() << std::endl;
      *out << cgicc::table();
      *out << cgicc::fieldset() << cgicc::br() << std::endl;
   
@@ -2982,7 +2983,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
      *out << cgicc::tr();
      *out << cgicc::td() << " FPGA  temperature = " << adcs[0] << "C " << cgicc::td();      
      *out << cgicc::td() << " PCB temperature 1 = " << adcs[6] << "C " << cgicc::td();      
-     *out << cgicc::td() << " PCB temperature 2 = " << adcs[3] << "C " << cgicc::td();      
+     *out << cgicc::td() << " PPIB current = " << adcs[3]/1000. << "A " << cgicc::td();      
      *out << cgicc::tr() << cgicc::table() << cgicc::br() << std::endl;
 
      *out << cgicc::table().set("border","1").set("cellpadding","4");
