@@ -7886,6 +7886,7 @@ void DAQMB::dcfebprom_bufferprogram(unsigned nwords,unsigned short *prm_dat)
     comd=VTX6_USR2;
     tmp= (((nwords-1)<<5)&0xffe0)|XPROM_Buffer_Program;
     cfeb_do(10, &comd, 16, &tmp, rcvbuf, LATER);
+    vme_delay(20);
     // send data
     for(unsigned i=0; i<nwords; i++)
     {
@@ -8312,6 +8313,15 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
    fulladdr=0;
    for(i=0; i<blocks; i++)  
    {
+   dcfeb_bpi_disable();
+   udelay(1000);
+   dcfeb_bpi_reset();
+   dcfeb_bpi_enable();
+   dcfebprom_timerstop();
+   dcfebprom_timerreset();
+   dcfebprom_timerstart();
+   udelay(1000);
+   dcfebprom_clearstatus();
       int nwords=WRITE_SIZE;
       if(i==blocks-1) nwords=lastblock;
       uaddr = (fulladdr >> 16);
@@ -8335,7 +8345,7 @@ void DAQMB::dcfeb_program_eprom(CFEB & cfeb, const char *mcsfile, int broadcast)
    // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
    dcfebprom_loadaddress(uaddr,laddr);
    dcfebprom_lock();
-   udelay(100000);
+   udelay(500000);
    dcfeb_bpi_disable();
    free(bufin);
 }
