@@ -8803,7 +8803,11 @@ std::vector<float> DAQMB::odmb_fpga_adc()
         {
           readf=adc*503.975/4096.0-273.15;
         }
-        else if(i==3 || i==6)
+        else if(i==3)
+        {
+            readf=adc*5000./4096.-10.;
+        }
+        else if(i==6)
         {
             float Vout=adc;
             readf=7.865766417e-10*pow(Vout,3) - 7.327237418e-6*pow(Vout,2) + 3.38189673e-2*Vout - 9.678340882;
