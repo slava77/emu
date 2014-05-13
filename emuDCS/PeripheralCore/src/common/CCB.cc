@@ -1939,5 +1939,46 @@ int CCB::TestTTC(int testID, int n_loop)
    return totalerror;   
 }
 
+std::string CCB::GetTTCCommandName( const int ttcCommand ) {
+  const int vsize = 64;
+  if ( ttcCommand < 0 || ttcCommand >= vsize ) return "OUT OF RANGE";
+
+  std::vector<std::string> ttcCommandNames( vsize, "UNDEFINED" );
+  ttcCommandNames[0x01] = "BC0";
+  ttcCommandNames[0x02] = "OC0";
+  ttcCommandNames[0x03] = "L1 Reset";
+  ttcCommandNames[0x04] = "Hard_reset";
+  ttcCommandNames[0x06] = "Start Trigger";
+  ttcCommandNames[0x07] = "Stop Trigger";
+  ttcCommandNames[0x08] = "Test Enable";
+  ttcCommandNames[0x09] = "Private Gap";
+  ttcCommandNames[0x0A] = "Private Orbit";
+  ttcCommandNames[0x0F] = "CCB_hard_reset";
+  ttcCommandNames[0x10] = "Tmb_hard_reset";
+  ttcCommandNames[0x11] = "Alct_hard_reset";
+  ttcCommandNames[0x12] = "Dmb_hard_reset";
+  ttcCommandNames[0x13] = "Mpc_hard_reset";
+  ttcCommandNames[0x14] = "Dmb_cfeb_calibrate0";
+  ttcCommandNames[0x15] = "Dmb_cfeb_calibrate1";
+  ttcCommandNames[0x16] = "Dmb_cfeb_calibrate2";
+  ttcCommandNames[0x17] = "Dmb_cfeb_initiate";
+  ttcCommandNames[0x18] = "Alct_adb_pulse_sync";
+  ttcCommandNames[0x19] = "Alct_adb_pulse_async";
+  ttcCommandNames[0x1A] = "Clct_external_trigger";
+  ttcCommandNames[0x1B] = "Alct_external_trigger";
+  ttcCommandNames[0x1C] = "Soft_reset";
+  ttcCommandNames[0x1D] = "DMB_soft_reset";
+  ttcCommandNames[0x1E] = "TMB_soft_reset";
+  ttcCommandNames[0x1F] = "MPC_soft_reset";
+  ttcCommandNames[0x24] = "Inject patterns from TMBs";
+  ttcCommandNames[0x25] = "Alct_adb_pulse";
+  ttcCommandNames[0x2F] = "Inject patterns from SP";
+  ttcCommandNames[0x30] = "Inject patterns from MPC";
+  ttcCommandNames[0x31] = "Inject patterns from MS";
+  ttcCommandNames[0x32] = "Bunch Counter Reset";
+  
+  return ttcCommandNames[ttcCommand];
+}
+
   } // namespace emu::pc
   } // namespace emu
