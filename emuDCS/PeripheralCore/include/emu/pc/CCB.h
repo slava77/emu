@@ -306,6 +306,7 @@ public:
   //
   /// mostly for GUIs
   void executeCommand(std::string command);
+  std::string GetTTCCommandName( const int ttcCommand );
   //
   void start();
   //
@@ -387,7 +388,10 @@ public:
   static const unsigned int CSRB15 = 0x3c;
   static const unsigned int CSRB16 = 0x3e;
   static const unsigned int CSRB17 = 0x40;
-  static const unsigned int CSRB18  = 0x42;
+  static const unsigned int CSRB18 = 0x42;
+  static const unsigned int CSRB19_LSB = 0x44;
+  static const unsigned int CSRB19_MSB = 0x46;
+  static const unsigned int CSRB21 = 0x48;
   //
   static const unsigned int L1Reset    = 0x50;
   static const unsigned int L1ATrigger = 0x54;
