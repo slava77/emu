@@ -120,6 +120,15 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br() << "CSRB1 =  " << std::hex << thisCCB->ReadRegister(0x20) << std::endl;
   *out << cgicc::br() << "CSRB18 = " << std::hex << thisCCB->ReadRegister(0x42) << std::endl;
   //
+  unsigned lastcmd=(thisCCB->ReadRegister(0x3C) & 0xff)>>2;
+  unsigned bcounter=thisCCB->ReadRegister(0x44) + thisCCB->ReadRegister(0x46)* 65536; 
+  unsigned dcounter=thisCCB->ReadRegister(0x48); 
+  unsigned lcounter=thisCCB->ReadRegister(0x90) + thisCCB->ReadRegister(0x92)* 65536; 
+  *out << cgicc::br() << cgicc::br() << "L1ACC counter =  " << lcounter << std::endl;
+  *out << cgicc::br() << "BRCST counter =  " << bcounter << std::endl;
+  *out << cgicc::br() << "DOUT  counter =  " << dcounter << std::endl;
+  *out << cgicc::br() << "Last TTC command (hex) =  " <<  std::hex << lastcmd << std::dec << std::endl;
+  
   *out << cgicc::fieldset();
   //
 }
