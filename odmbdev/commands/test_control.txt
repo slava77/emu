@@ -1,0 +1,85 @@
+W  3000  100    Reset
+SLEEP 1000
+
+W  3000  280	Select dummy DCFEBs and internally generated triggers and PEDESTAL
+
+W  4000  C	Set LCT_L1A_DLY   
+W  4004  1	Set OTMB_PUSH_DLY
+W  400C  2	Set ALCT_PUSH_DLY
+W  401C  0	Do not Kill anything
+W  4028  4	Number of dummy words
+
+W  20  	 1  	Select FIFO [Time stamp LSB]
+W  8	 10	Write Time stamp LSB
+W  8	 20	Write Time stamp LSB
+
+W  8	 80	Write Time stamp LSB
+W  8	 82	Write Time stamp LSB
+W  8	 83	Write Time stamp LSB
+W  8	 90	Write Time stamp LSB
+W  8	 92	Write Time stamp LSB
+W  8	 93	Write Time stamp LSB
+
+W  20  	 4  	Select FIFO [Triggers]
+W  8	 FF	LCTs on all DCFEBs
+W  8	 FF	LCTs on all DCFEBs
+
+W  8	 400	L1A
+W  8	 100	OTMBDAV
+W  8	 200	ALCTDAV
+W  8	 400	L1A
+W  8	 100	OTMBDAV
+W  8	 200	ALCTDAV
+
+W  30    1000_d	Start 1000 Test Runs
+SLEEP 10000
+
+R  33FC  0      L1A counter
+R  34AC  0      Packets sent to DDU
+R  34BC  0      Packets sent to PC
+
+R  510C  0      Number of words in PC TX FIFO
+
+BL 2
+  ******
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+
+  R  5100  0      Read PC TX FIFO  [ODMB header]
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+
+  BL 36
+    R  5100  0      Read PC TX FIFO
+  EL
+
+  R  5100  0      Read PC TX FIFO  [ODMB trailer]
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+  R  5100  0      Read PC TX FIFO
+
+EL

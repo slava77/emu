@@ -1,0 +1,170 @@
+W  3000  100	Reset FW
+W  3000  280	Select dummy DCFEBs and internally generated triggers
+W  400C  15      Set ALCT_PUSH_DLY
+W  401C  1F	Set KILL
+
+R   371C            0    Read RAW_LCT_COUNTER(1) 
+R   372C            0    Read RAW_LCT_COUNTER(2) 
+R   373C            0    Read RAW_LCT_COUNTER(3) 
+R   374C            0    Read RAW_LCT_COUNTER(4) 
+R   375C            0    Read RAW_LCT_COUNTER(5) 
+R   376C            0    Read RAW_LCT_COUNTER(6) 
+R   377C            0    Read RAW_LCT_COUNTER(7) 
+R   378C            0    Read OTMB_DAV_COUNTER
+R   379C            0    Read ALCT_DAV_COUNTER
+R   321C            0    Read L1A_MATCH_COUNTER(1) 
+R   322C            0    Read L1A_MATCH_COUNTER(2) 
+R   323C            0    Read L1A_MATCH_COUNTER(3) 
+R   324C            0    Read L1A_MATCH_COUNTER(4) 
+R   325C            0    Read L1A_MATCH_COUNTER(5) 
+R   326C            0    Read L1A_MATCH_COUNTER(6) 
+R   327C            0    Read L1A_MATCH_COUNTER(7) 
+R   328C            0    Read L1A_MATCH_COUNTER OTMB
+R   329C            0    Read L1A_MATCH_COUNTER ALCT
+
+R   34AC            0    Read packets sent to DDU
+R   34BC            0    Read packets sent to PC 
+
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+
+W  401C  70	Set KILL
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+W  3010  10	Request packet
+
+R   371C            0    Read RAW_LCT_COUNTER(1) 
+R   372C            0    Read RAW_LCT_COUNTER(2) 
+R   373C            0    Read RAW_LCT_COUNTER(3) 
+R   374C            0    Read RAW_LCT_COUNTER(4) 
+R   375C            0    Read RAW_LCT_COUNTER(5) 
+R   376C            0    Read RAW_LCT_COUNTER(6) 
+R   377C            0    Read RAW_LCT_COUNTER(7) 
+R   378C            0    Read OTMB_DAV_COUNTER
+R   379C            0    Read ALCT_DAV_COUNTER
+R   321C            0    Read L1A_MATCH_COUNTER(1) 
+R   322C            0    Read L1A_MATCH_COUNTER(2) 
+R   323C            0    Read L1A_MATCH_COUNTER(3) 
+R   324C            0    Read L1A_MATCH_COUNTER(4) 
+R   325C            0    Read L1A_MATCH_COUNTER(5) 
+R   326C            0    Read L1A_MATCH_COUNTER(6) 
+R   327C            0    Read L1A_MATCH_COUNTER(7) 
+R   328C            0    Read L1A_MATCH_COUNTER OTMB
+R   329C            0    Read L1A_MATCH_COUNTER ALCT
+
+R   34AC            0    Read packets sent to DDU
+R   34BC            0    Read packets sent to PC 
+
+R  34AC	  0	Number of packets sent out to DDU
+R  34BC	   0	Number of packets sent out to PC
+
+== ============ Reading PC RX FIFO ================ ==
+R 520C 0 Read number of words in PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO [start of header]
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO [ALCT data]
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO [OTMB data]
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO [DCFEB 6 data]
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO [DCFEB 7 data]
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO [start of trailer]
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 520C 0 Read number of words in PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO [start of header]
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 5200 0 Read PC RX FIFO [ALCT data]
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+R 5200 0 Read PC RX FIFO
+
+R 520C 0 Read number of words in PC RX FIFO

@@ -1,0 +1,74 @@
+## Requires these repetitions to give time for the PROM upload
+R  4100  0
+R  4200  0
+R  4300  0
+R  4100  0
+R  4200  0
+R  4300  0
+
+W  3004 0 ODMB soft reset
+
+W  3300  1      Dummy data
+W  3304  1      Internal triggers
+
+W  4000  C	Set LCT_L1A_DLY   
+W  4004  1	Set OTMB_PUSH_DLY
+W  400C  2	Set ALCT_PUSH_DLY
+W  401C  0	Do not Kill anything
+W  4028  400_d	Number of dummy words
+
+## W  3010  10     Request packet
+
+W  20  	 1  	Select FIFO [Time stamp LSB]
+W  8	 10	Write Time stamp LSB
+W  8	 20	Write Time stamp LSB
+W  8	 30	Write Time stamp LSB
+W  8	 40	Write Time stamp LSB
+
+W  8	 80	Write Time stamp LSB
+W  8	 82	Write Time stamp LSB
+W  8	 83	Write Time stamp LSB
+W  8	 90	Write Time stamp LSB
+W  8	 92	Write Time stamp LSB
+W  8	 93	Write Time stamp LSB
+W  8	 A0	Write Time stamp LSB
+W  8	 A2	Write Time stamp LSB
+W  8	 A3	Write Time stamp LSB
+W  8	 B0	Write Time stamp LSB
+W  8	 B2	Write Time stamp LSB
+W  8	 B3	Write Time stamp LSB
+W  8     4000_d   Write Time stamp LSB
+
+W  20  	 4  	Select FIFO [Triggers]
+W  8	 FF	LCTs on all DCFEBs
+W  8	 0	LCTs on no DCFEB
+W  8	 00	LCTs on DCFEBs 1-3
+W  8	 25	LCTs on DCFEBs 2, 5
+
+W  8	 400	L1A
+W  8	 100	OTMBDAV
+W  8	 200	ALCTDAV
+W  8	 400	L1A
+W  8	 000	OTMBDAV
+W  8	 000	ALCTDAV
+W  8	 400	L1A
+W  8	 000	OTMBDAV
+W  8	 000	ALCTDAV
+W  8	 400	L1A
+W  8	 000	OTMBDAV
+W  8	 200	ALCTDAV
+W  8     0
+
+W  30    1000_d	Start 10 Test Runs
+
+SLEEP 100000
+
+R 33FC 0   Read L1A counter
+R 321C 0   Read L1A matches on DCFEB 1
+R 323C 0   Read L1A matches on DCFEB 3
+R 325C 0   Read L1A matches on DCFEB 5        
+R 34AC 0   Read number of packets sent to DDU
+
+BL 200
+R  5300  0      Read DDU TX FIFO
+EL

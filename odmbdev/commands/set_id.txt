@@ -1,0 +1,8 @@
+R   4200          302     FW version
+R   4300            2     FW build
+
+W   4FFF         FFFF     Set mask high
+W   4100         4015     Set Unique ID
+W   6010	    0	  Write to PROM
+R   4100	    0	  Read Unique ID
+

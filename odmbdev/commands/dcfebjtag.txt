@@ -1,0 +1,187 @@
+== =================== DCFEB1 =================== ==
+W   3000   0	Set rx_dcfeb_sel to 0 to use real DCFEBs
+W   1020   01	Select DCFEB
+R   1024   ff81	Read selected DCFEB
+W   191c   3c2	Set IR to *Device select*
+
+W   170c   c	Set DR to "ADC mask"
+W   191c   3c3	Set IR to *Value select*
+W   1b0c   abc	Set DR
+R   1714   0	Read TDO
+
+W   1b0c   bcd	Set DR
+R   1714   0	Read TDO
+W   1b0c   cde	Set DR
+R   1714   0	Read TDO
+W   1b0c   def	Set DR
+R   1714   0	Read TDO
+
+W   191C   3C8  Set IR to *Read UserCode*
+W   1F04   0
+R   1F14   0    Read first half of UserCode
+W   1F08   0    
+R   1F14   0 	Read second half of UserCode
+
+== =================== DCFEB2 =================== ==
+W   1020   02	Select DCFEB
+R   1024   ff81	Read selected DCFEB
+W   191c   3c2	Set IR to *Device select*
+
+W   170c   c	Set DR to "ADC mask"
+W   191c   3c3	Set IR to *Value select*
+W   1b0c   abc	Set DR
+R   1714   0	Read TDO
+
+W   1b0c   bcd	Set DR
+R   1714   0	Read TDO
+W   1b0c   cde	Set DR
+R   1714   0	Read TDO
+W   1b0c   def	Set DR
+R   1714   0	Read TDO
+
+W   191C   3C8  Set IR to *Read UserCode*
+W   1F04   0
+R   1F14   0    Read first half of UserCode
+W   1F08   0    
+R   1F14   0 	Read second half of UserCode
+
+== =================== DCFEB3 =================== ==
+W   1020   04	Select DCFEB
+R   1024   ff81	Read selected DCFEB
+W   191c   3c2	Set IR to *Device select*
+
+W   170c   c	Set DR to "ADC mask"
+W   191c   3c3	Set IR to *Value select*
+W   1b0c   abc	Set DR
+R   1714   0	Read TDO
+
+W   1b0c   bcd	Set DR
+R   1714   0	Read TDO
+W   1b0c   cde	Set DR
+R   1714   0	Read TDO
+W   1b0c   def	Set DR
+R   1714   0	Read TDO
+
+== =================== DCFEB4 =================== ==
+#W   3000   80	Set rx_dcfeb_sel to 1 to use real DCFEBs
+W   1020   08	Select DCFEB
+R   1024   ff81	Read selected DCFEB
+W   191c   3c2	Set IR to *Device select*
+#W   3000   83	Set control register *Read IR*
+#R   3004   3	Read control register instruction
+#R   3008   3c20	Read control register
+
+W   170c   c	Set DR to "ADC mask"
+#W   3000   82	Set control register *MSB selected device*
+#R   3008   0	Read control register
+#W   3000   81	Set control register *LSB selected device*
+#R   3008   1000	Read control register
+R   1714   0	Read TDO
+
+W   170c   c	Set DR to "ADC mask"
+R   1714   0	Read TDO
+
+W   191c   3c3	Set IR to *Value select*
+W   1b0c   abc	Set DR
+R   1714   0	Read TDO
+
+W   1b0c   bcd	Set DR
+R   1714   0	Read TDO
+W   1b0c   cde	Set DR
+R   1714   0	Read TDO
+W   1b0c   def	Set DR
+R   1714   0	Read TDO
+
+== =================== DCFEB5 =================== ==
+#W   3000   80	Set rx_dcfeb_sel to 1 to use real DCFEBs
+W   1020   10	Select DCFEB
+R   1024   ff81	Read selected DCFEB
+W   191c   3c2	Set IR to *Device select*
+#W   3000   83	Set control register *Read IR*
+#R   3004   3	Read control register instruction
+#R   3008   3c20	Read control register
+
+W   170c   c	Set DR to "ADC mask"
+#W   3000   82	Set control register *MSB selected device*
+#R   3008   0	Read control register
+#W   3000   81	Set control register *LSB selected device*
+#R   3008   1000	Read control register
+R   1714   0	Read TDO
+
+W   170c   c	Set DR to "ADC mask"
+R   1714   0	Read TDO
+
+W   191c   3c3	Set IR to *Value select*
+W   1b0c   abc	Set DR
+R   1714   0	Read TDO
+
+W   1b0c   bcd	Set DR
+R   1714   0	Read TDO
+W   1b0c   cde	Set DR
+R   1714   0	Read TDO
+W   1b0c   def	Set DR
+R   1714   0	Read TDO
+
+== =================== DCFEB6 =================== ==
+#W   3000   80	Set rx_dcfeb_sel to 1 to use real DCFEBs
+W   1020   20	Select DCFEB
+R   1024   ff81	Read selected DCFEB
+W   191c   3c2	Set IR to *Device select*
+#W   3000   83	Set control register *Read IR*
+#R   3004   3	Read control register instruction
+#R   3008   3c20	Read control register
+
+W   170c   c	Set DR to "ADC mask"
+#W   3000   82	Set control register *MSB selected device*
+#R   3008   0	Read control register
+#W   3000   81	Set control register *LSB selected device*
+#R   3008   1000	Read control register
+R   1714   0	Read TDO
+
+W   170c   c	Set DR to "ADC mask"
+R   1714   0	Read TDO
+
+W   191c   3c3	Set IR to *Value select*
+W   1b0c   abc	Set DR
+R   1714   0	Read TDO
+
+W   1b0c   bcd	Set DR
+R   1714   0	Read TDO
+W   1b0c   cde	Set DR
+R   1714   0	Read TDO
+W   1b0c   def	Set DR
+R   1714   0	Read TDO
+
+== =================== DCFEB7 =================== ==
+#W   3000   80	Set rx_dcfeb_sel to 1 to use real DCFEBs
+W   1020   40	Select DCFEB
+R   1024   ff81	Read selected DCFEB
+W   191c   3c2	Set IR to *Device select*
+#W   3000   83	Set control register *Read IR*
+#R   3004   3	Read control register instruction
+#R   3008   3c20	Read control register
+
+W   170c   c	Set DR to "ADC mask"
+#W   3000   82	Set control register *MSB selected device*
+#R   3008   0	Read control register
+#W   3000   81	Set control register *LSB selected device*
+#R   3008   1000	Read control register
+R   1714   0	Read TDO
+
+W   170c   c	Set DR to "ADC mask"
+R   1714   0	Read TDO
+
+W   191c   3c3	Set IR to *Value select*
+W   1b0c   abc	Set DR
+R   1714   0	Read TDO
+
+W   1b0c   bcd	Set DR
+R   1714   0	Read TDO
+W   1b0c   cde	Set DR
+R   1714   0	Read TDO
+W   1b0c   def	Set DR
+R   1714   0	Read TDO
+
+0   0	   0	End of file
+
+

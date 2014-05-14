@@ -1,0 +1,130 @@
+W  FFFC  1  
+W  FFFC  1
+W  FFFC  1
+W  FFFC  1
+W  FFFC  1   Reset JTAG to Test-Logic-Reset state
+W  FFFC  0   To Run_Test/Idle
+
+W  FFFC  1   To Select-DR-Scan
+W  FFFC  1   To Select-IR-Scan
+W  FFFC  0   To Capture-IR
+W  FFFC  0   To Shift-IR
+
+W  FFFC  0   Shifting IR (Read UserCode 3C8)
+W  FFFC  0   Shifting IR (Read UserCode 3C8)
+W  FFFC  0   Shifting IR (Read UserCode 3C8)
+W  FFFC  2   Shifting IR (Read UserCode 3C8)
+W  FFFC  0   Shifting IR (Read UserCode 3C8)
+W  FFFC  0   Shifting IR (Read UserCode 3C8)
+W  FFFC  2   Shifting IR (Read UserCode 3C8)
+W  FFFC  2   Shifting IR (Read UserCode 3C8)
+W  FFFC  2   Shifting IR (Read UserCode 3C8)
+W  FFFC  3   Shifting IR (Read UserCode 3C8) and to Exit1-IR
+
+W  FFFC  1   To Update-IR   
+W  FFFC  0   To Run_Test/Idle 
+W  FFFC  1   To Select-DR-Scan
+W  FFFC  0   To Capture-DR
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  2   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  2   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  2   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0) First hex digit
+
+W  FFFC  2   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0) Second hex digit
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0) Third hex digit
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0) Fourth hex digit
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0) Fifth hex digit
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0) Sixth hex digit 
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0) Seventh hex digit
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0) Eighth hex digit
+R  FFFC  0   Shifting DR (Read UserCode 0)
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0) Test
+R  FFFC  0   Shifting DR (Read UserCode 0)
+
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0)
+R  FFFC  0   Shifting DR (Read UserCode 0)
+W  FFFC  0   Shifting DR (Read UserCode 0) Test
+R  FFFC  0   Shifting DR (Read UserCode 0)
+
+
+
+
+
+
+
+
+
+
+
+
+

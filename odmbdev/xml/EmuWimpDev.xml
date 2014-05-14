@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<?xml-stylesheet type="text/xml" href="../EmuDAQConfig.xsl"?>
+<xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+
+  <xc:Context url="http://wimp.physics.ucsb.edu:9991">
+
+    <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
+    <xc:Module>${XDAQ_ROOT}/lib/libtstoreclient.so</xc:Module>
+
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemusoap.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+    <!-- <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libtstoreclient.so</xc:Module> -->
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuOnlineDB.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPeripheralCore.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPeripheralApps.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemuodmbdev.so</xc:Module>
+
+    <xc:Application id="20" instance="0" class="emu::odmbdev::Manager" network="local">
+      <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::odmbdev::Manager">
+        <XMLConfigFilename xsi:type="xsd:string">xml/crate-ucsb.xml</XMLConfigFilename>
+        <TMBSlot  xsi:type="xsd:integer">-1</TMBSlot>
+      </properties>
+    </xc:Application>
+
+  </xc:Context>
+
+</xc:Partition>

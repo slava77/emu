@@ -1,0 +1,87 @@
+== ================ Global reset and MUXes ================ ==
+W  3000 100 	    FW reset
+SLEEP 10000
+W  3000  280	Set dummy data and triggers
+W  3100  1	Set internal loopback
+W  3110  7	Set TXDIFFCTRL
+W  401C  3F	Set KILL
+W  3010  10     Send test L1A(_MATCH) to all DCFEBs, ALCT, OTMB
+
+== ============ Reading OTMB FIFO ================ ==
+R  550C  0      Read number of words in OTMB FIFO
+R  5500  0      Read OTMB FIFO
+R  5500  0      Read OTMB FIFO
+
+R  5500  0      Read OTMB FIFO
+R  5500  0      Read OTMB FIFO
+R  5500  0      Read OTMB FIFO
+R  5500  0      Read OTMB FIFO
+R  5500  0      Read OTMB FIFO
+R  5500  0      Read OTMB FIFO
+R  5500  0      Read OTMB FIFO
+R  5500  0      Read OTMB FIFO
+
+== ============ Reading ALCT FIFO ================ ==
+R  560C  0      Read number of words in ALCT FIFO
+R  5600  0      Read ALCT FIFO
+R  5600  0      Read ALCT FIFO
+
+R  5600  0      Read ALCT FIFO
+R  5600  0      Read ALCT FIFO
+R  5600  0      Read ALCT FIFO
+R  5600  0      Read ALCT FIFO
+R  5600  0      Read ALCT FIFO
+R  5600  0      Read ALCT FIFO
+R  5600  0      Read ALCT FIFO
+R  5600  0      Read ALCT FIFO
+
+== ============ Reading DDU TX FIFO ================ ==
+R  530C  0      Read number of words in DDU TX FIFO
+R  5300  0      Read DDU TX FIFO [start of header]
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+
+R  5300  0      Read DDU TX FIFO [ALCT data]
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+
+R  5300  0      Read DDU TX FIFO [OTMB data]
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+
+R  5300  0      Read DDU TX FIFO [DCFEB 7 data]
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+
+R  5300  0      Read DDU TX FIFO [start of trailer]
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+R  5300  0      Read DDU TX FIFO
+
+R  530C  0      Read number of words in DDU TX FIFO
+
+

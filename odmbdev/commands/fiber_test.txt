@@ -1,0 +1,36 @@
+W 3004 0 ODMB reset
+W 3014 0 L1A reset
+W 401C 1FE Set KILL
+
+W 5010 1 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 2 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 3 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 4 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 5 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 6 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 7 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+
+W 3200 4 Request packet
+
+W 5010 1 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 2 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 3 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 4 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 5 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 6 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+W 5010 7 Select DCFEB
+R 500C 0 Read number of words in DCFEB FIFO
+
