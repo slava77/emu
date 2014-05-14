@@ -176,35 +176,35 @@ char * VMECC::read_customer_code()
 char * VMECC::dcode_msg_pkt(char *buf)
 {
   //  static char *pkt_typ[] = {"INFO","WARN","ERROR","Not a message type"};
-  static char *msg_src[] = {"Misc","VME Ctrl","VME Mstr","VME Rdbk",
-			    "VME IH","VME Slave","VME Arb","Ext FIFO",
-			    "Eth Rcvr","Eth Trns","JTAG mod","Flash mod",
-			    "Config mod","CP mod","Rst Hndlr","StrtupShdwn"};
-  static char *msg_typ[] = {"INF","WRN","ERR","NAL"};
-  // static char *unknwn = "Unknown message";
-  static char *trns_typ[] = {"SNGL", "BLOCK", "RMW", "UNALG"};
-  static char *data_sz[]   = {"D08", "D16", "D32", "D64"};
-  static char *addr_sz[]   = {"Axx","A16","A24","A32","A40","A64","Axx","Axx"};
-  static char *rdwrt[]     = {"Read","Write"};
-  static char *dly_type[]  = {"No_Dly","D4nsX16","D16nsX16","D16usX16",
-			      "D4nsX32","D16nsX32","D16usX32","undefined"};
-  static char *mstr_st[]   = {"M_idle","Capture1","Req_DTB","R1","No_Exe",
-			      "Not_Used","Not_Used","Not_Used","Not_Used",
-			      "Wait_4_DTB",
-                              "Start","Add_Phase","Wait_4_DTACK_Rel","Sngl_Block",
-                              "RMW_1","RMW_Read","RMW_2","RMW_Write","M_Read",
-                              "M_Write","Cycle_Done","Next_Cycle","Xfer_Done",
-                              "Load_Delay","Delay","Ld_Err_Typ","Bus_Error"};
-  static char *ih_st[]     = {"IH_idle","IH_Cap_IRQ","IH_Req_DTB","IH_Wait4DTB",
-                              "IH_Start","IACK_Cycle","Status_ID","IACK_Done",
-                              "IH_Ld_Err","IH_Bus_Err","IH_Rel_BR","Mask_Intr",
-                              "IH_Ld_Warn","IH_Warn"};
+  static const char *msg_src[] = {"Misc","VME Ctrl","VME Mstr","VME Rdbk",
+				  "VME IH","VME Slave","VME Arb","Ext FIFO",
+				  "Eth Rcvr","Eth Trns","JTAG mod","Flash mod",
+				  "Config mod","CP mod","Rst Hndlr","StrtupShdwn"};
+  static const char *msg_typ[] = {"INF","WRN","ERR","NAL"};
+  // static const char *unknwn = "Unknown message";
+  static const char *trns_typ[] = {"SNGL", "BLOCK", "RMW", "UNALG"};
+  static const char *data_sz[]   = {"D08", "D16", "D32", "D64"};
+  static const char *addr_sz[]   = {"Axx","A16","A24","A32","A40","A64","Axx","Axx"};
+  static const char *rdwrt[]     = {"Read","Write"};
+  static const char *dly_type[]  = {"No_Dly","D4nsX16","D16nsX16","D16usX16",
+				    "D4nsX32","D16nsX32","D16usX32","undefined"};
+  static const char *mstr_st[]   = {"M_idle","Capture1","Req_DTB","R1","No_Exe",
+				    "Not_Used","Not_Used","Not_Used","Not_Used",
+				    "Wait_4_DTB",
+				    "Start","Add_Phase","Wait_4_DTACK_Rel","Sngl_Block",
+				    "RMW_1","RMW_Read","RMW_2","RMW_Write","M_Read",
+				    "M_Write","Cycle_Done","Next_Cycle","Xfer_Done",
+				    "Load_Delay","Delay","Ld_Err_Typ","Bus_Error"};
+  static const char *ih_st[]     = {"IH_idle","IH_Cap_IRQ","IH_Req_DTB","IH_Wait4DTB",
+				    "IH_Start","IACK_Cycle","Status_ID","IACK_Done",
+				    "IH_Ld_Err","IH_Bus_Err","IH_Rel_BR","Mask_Intr",
+				    "IH_Ld_Warn","IH_Warn"};
 
-  static char *acc_typ_pg[] = {"DATA","PRGM"};
-  static char *acc_typ_sp[] = {"NPRV","SUPV"};
-  static char *acc_typ_lk[] = {"    ","LOCK"};
-  static char *acc_typ_cr[] = {"    ","CCSR"};
-  static char *acc_typ_ud[] = {"    ","UDAM"};
+  static const char *acc_typ_pg[] = {"DATA","PRGM"};
+  static const char *acc_typ_sp[] = {"NPRV","SUPV"};
+  static const char *acc_typ_lk[] = {"    ","LOCK"};
+  static const char *acc_typ_cr[] = {"    ","CCSR"};
+  static const char *acc_typ_ud[] = {"    ","UDAM"};
 
 
   static char msg[MAX_MSG_SIZE];
@@ -714,10 +714,10 @@ std::string VMECC::print_routines()
 {
   int i,ninstr;
   int rtn;
-  char *rtnstr[] = {"Read Device ID", "Read User Code", "Read Customer Code",
-                    "Readback PROM", "Erase PROM", "Program PROM", 
-                    "Reload FPGA", "Verify PROM", "Check JTAG Connection",
-		    "JC_User"};
+  const char *rtnstr[] = {"Read Device ID", "Read User Code", "Read Customer Code",
+			  "Readback PROM", "Erase PROM", "Program PROM", 
+			  "Reload FPGA", "Verify PROM", "Check JTAG Connection",
+			  "JC_User"};
   char strbuf[256];
   std::string rtns ="";
   for(rtn=JC_Rd_DevID; rtn<=JC_User; rtn++){
