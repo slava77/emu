@@ -237,13 +237,13 @@ struct rspn_t {
 
 struct ucw {
   int code;
-  char *type;
-  char *mnem;
-  char *msg;
+  const char *type;
+  const char *mnem;
+  const char *msg;
 };
 struct ak_st {
-  char *mnem;
-  char *status;
+  const char *mnem;
+  const char *status;
 };
 struct ucw ucwtab[] = {
   {0x000, "INF", "G_No_Info",       "No information."},
