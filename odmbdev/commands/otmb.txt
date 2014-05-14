@@ -1,0 +1,122 @@
+W   3000  100            ODMB reset
+SLEEP 1000
+W   3000  280            Set all dummy
+R   371C            0    Read RAW_LCT_COUNTER(1) 
+R   372C            0    Read RAW_LCT_COUNTER(2) 
+R   373C            0    Read RAW_LCT_COUNTER(3) 
+R   374C            0    Read RAW_LCT_COUNTER(4) 
+R   375C            0    Read RAW_LCT_COUNTER(5) 
+R   376C            0    Read RAW_LCT_COUNTER(6) 
+R   377C            0    Read RAW_LCT_COUNTER(7) 
+R   378C            0    Read OTMB_DAV_COUNTER
+R   379C            0    Read ALCT_DAV_COUNTER
+R   321C            0    Read L1A_MATCH_COUNTER(1) 
+R   322C            0    Read L1A_MATCH_COUNTER(2) 
+R   323C            0    Read L1A_MATCH_COUNTER(3) 
+R   324C            0    Read L1A_MATCH_COUNTER(4) 
+R   325C            0    Read L1A_MATCH_COUNTER(5) 
+R   326C            0    Read L1A_MATCH_COUNTER(6) 
+R   327C            0    Read L1A_MATCH_COUNTER(7) 
+R   328C            0    Read L1A_MATCH_COUNTER OTMB
+R   329C            0    Read L1A_MATCH_COUNTER ALCT
+
+R   34AC            0    Read packets sent to DDU
+R   34BC            0    Read packets sent to PC 
+
+W   401c  0		 Kill nothing
+w   4000   26	    	 Set LCT_L1A_DLY
+w   4004   1	    	 Set OTMB_DLY
+w   400C   30	    	 Set ALCT_DLY
+
+SET_PIPE 60              Set pipeline depth delay
+RESET_ETH
+W   3000    0            Set all real
+Sleeping
+SLEEP 500000
+W   3000  280            Set all dummy
+SLEEP 100
+WRITE_ETH Cosmics
+
+R   371C            0    Read RAW_LCT_COUNTER(1) 
+R   372C            0    Read RAW_LCT_COUNTER(2) 
+R   373C            0    Read RAW_LCT_COUNTER(3) 
+R   374C            0    Read RAW_LCT_COUNTER(4) 
+R   375C            0    Read RAW_LCT_COUNTER(5) 
+R   376C            0    Read RAW_LCT_COUNTER(6) 
+R   377C            0    Read RAW_LCT_COUNTER(7) 
+R   378C            0    Read OTMB_DAV_COUNTER
+R   379C            0    Read ALCT_DAV_COUNTER
+R   321C            0    Read L1A_MATCH_COUNTER(1) 
+R   322C            0    Read L1A_MATCH_COUNTER(2) 
+R   323C            0    Read L1A_MATCH_COUNTER(3) 
+R   324C            0    Read L1A_MATCH_COUNTER(4) 
+R   325C            0    Read L1A_MATCH_COUNTER(5) 
+R   326C            0    Read L1A_MATCH_COUNTER(6) 
+R   327C            0    Read L1A_MATCH_COUNTER(7) 
+R   328C            0    Read L1A_MATCH_COUNTER OTMB
+R   329C            0    Read L1A_MATCH_COUNTER ALCT
+
+R   34AC            0    Read packets sent to DDU
+R   34BC            0    Read packets sent to PC 
+
+R   550C            0    Read number of words in OTMB FIFO
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+R   5500            0    Read word
+
+R   560C            0    Read number of words in ALCT FIFO
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+R   5600            0    Read word
+
+
+W   5010    1            Select DCFEB FIFO (1)
+R   500C            0    Read number of words
+R   5000            0    Read word
+R   5000            0    Read word
+R   5000            0    Read word
+
+W   5010    6            Select DCFEB FIFO (6)
+R   500C            0    Read number of words
+R   5000            0    Read word
+R   5000            0    Read word
+R   5000            0    Read word
+
+W   5010    7            Select DCFEB FIFO (7)
+R   500C            0    Read number of words
+R   5000            0    Read word
+R   5000            0    Read word
+R   5000            0    Read word
+
+R   530C            0	 Read number of words
+R   5300	    0	 Read word
+R   5300	    0	 Read word
+R   5300	    0	 Read word
+R   5300	    0	 Read word
+
+R   5300	    0	 Read word
+R   5300	    0	 Read word
+R   5300	    0	 Read word
+R   5300	    0	 Read word
+
+R   5300	    0	 Read word
+R   5300	    0	 Read word
+

@@ -1,0 +1,104 @@
+## Requires these repetitions to give time for the PROM upload
+R  4100  0
+R  4200  0
+R  4300  0
+R  4100  0
+R  4200  0
+R  4300  0
+
+W  3004 0 ODMB soft reset
+
+W  3300  1      Dummy data
+W  3304  1      Internal triggers
+
+W  4000  C      Set LCT_L1A_DLY   
+W  4004  1      Set OTMB_PUSH_DLY
+W  400C  2      Set ALCT_PUSH_DLY
+W  401C  0      Do not Kill anything
+W  4028  400_d  Number of dummy words
+
+## W  3010  10     Request packet
+
+W  20    1      Select FIFO [Time stamp LSB]
+W  8     10     Write Time stamp LSB
+W  8     13     Write Time stamp LSB
+W  8     16     Write Time stamp LSB
+W  8     19     Write Time stamp LSB
+W  8     1B     Write Time stamp LSB
+
+W  8     80     Write Time stamp LSB
+W  8     81     Write Time stamp LSB
+W  8     82     Write Time stamp LSB
+W  8     83     Write Time stamp LSB
+W  8     85     Write Time stamp LSB
+W  8     86     Write Time stamp LSB
+W  8     88     Write Time stamp LSB
+W  8     89     Write Time stamp LSB
+W  8     8B     Write Time stamp LSB
+W  8     8C     Write Time stamp LSB
+W  8     8D     Write Time stamp LSB
+W  8     8E     Write Time stamp LSB
+W  8     8F     Write Time stamp LSB
+
+W  8     F1     Write Time stamp LSB
+W  8     F3     Write Time stamp LSB
+W  8     F4     Write Time stamp LSB
+W  8     F5     Write Time stamp LSB
+W  8     F7     Write Time stamp LSB
+W  8     F8     Write Time stamp LSB
+W  8     F9     Write Time stamp LSB
+W  8     FB     Write Time stamp LSB
+W  8     FC     Write Time stamp LSB
+W  8     FD     Write Time stamp LSB
+W  8     FF     Write Time stamp LSB
+W  8     100    Write Time stamp LSB
+
+W  8     4000_d   Write Time stamp LSB
+
+W  20    4      Select FIFO [Triggers]
+W  8     FF     10
+W  8     00     13
+W  8     FF     16
+W  8     00     19
+W  8     FF     1C
+W  8     400	80
+W  8     00 	81
+W  8     100	82
+W  8     600	83
+W  8     FF 	85
+W  8     400	86
+W  8     00	88
+W  8     400	89
+W  8     100	8B
+W  8     600	8C
+W  8     FF	8D
+W  8     100	8E
+W  8     200	8F
+W  8	 400	F1
+W  8	 00	F3
+W  8	 00	F4
+W  8	 400	F5
+W  8	 00	F7
+W  8	 00	F8
+W  8	 400	F9
+W  8	 100	FB
+W  8	 200	FC
+W  8	 400	FD
+W  8	 100	FF
+W  8	 200	100
+
+W  8     0
+
+W  30    1000_d Start 10 Test Runs
+
+SLEEP 100000
+
+R 33FC 0   Read L1A counter
+R 321C 0   Read L1A matches on DCFEB 1
+R 323C 0   Read L1A matches on DCFEB 3
+R 325C 0   Read L1A matches on DCFEB 5        
+R 34AC 0   Read number of packets sent to DDU
+
+BL 200
+R  5300  0      Read DDU TX FIFO
+EL
