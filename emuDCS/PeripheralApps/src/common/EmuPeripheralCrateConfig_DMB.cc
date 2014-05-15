@@ -3652,16 +3652,9 @@ void EmuPeripheralCrateConfig::ConfigDCFEBs(xgi::Input * in, xgi::Output * out )
 
      std::vector<CFEB> cfebs = thisDMB->cfebs() ;
 
-     unsigned short int bufload[34];
      for(std::vector<CFEB>::iterator cfeb = cfebs.begin(); cfeb != cfebs.end(); cfeb++)
      {
-         if(cfeb->GetHardwareVersion() == 2)
-         {
-              std::cout << "writing parameters to DCFEB " << (cfeb - cfebs.begin () + 1) << "..." << std::endl;
-              thisDMB->set_dcfeb_parambuffer(*cfeb, bufload);
-              thisDMB->write_cfeb_selector(cfeb->SelectorBit());
-              thisDMB->dcfeb_loadparam(3, 34, bufload);
-         }
+          thisDMB->dcfeb_configure(*cfeb);
      }
      this->CFEBUtils(in,out);
 }

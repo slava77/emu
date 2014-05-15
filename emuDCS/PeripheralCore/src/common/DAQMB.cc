@@ -880,17 +880,9 @@ void DAQMB::configure() {
    }
 
 // Write DCFEB cofiguration parameters into EPROM
-// ToDo: should readback EPROM first and compare, 
-//       and then write to EPROM only if they are different
-   unsigned short int bufload[34];
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)
    {
-      if(cfebs_[lfeb].GetHardwareVersion() == 2)
-      {
-         set_dcfeb_parambuffer(cfebs_[lfeb], bufload);   
-         write_cfeb_selector(cfebs_[lfeb].SelectorBit());
-         dcfeb_loadparam(3, 34, bufload);
-      }
+         dcfeb_configure(cfebs_[lfeb]);   
    }
     
 }
@@ -7990,7 +7982,7 @@ void DAQMB::dcfeb_loadparam(int paramblock, int nwords, unsigned short int  *val
   uaddr=0x007f;  // segment address for parameter blocks
   laddr=paramblock*0x4000;
   fulladdr = (uaddr<<16) + laddr;
-  printf(" parameter_write fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+//  printf(" parameter_write fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
   dcfebprom_timerstart();
 
   dcfebprom_loadaddress(uaddr,laddr);
@@ -8094,73 +8086,27 @@ void DAQMB::dcfeb_readfirmware_mcs(CFEB & cfeb, const char *filename)
 
 void DAQMB::dcfeb_configure(CFEB & cfeb) 
 {
+   const int DCFEB_PARAMETERS=34;
+   int number_ = cfeb.number();
+   bool changed=false;
+   unsigned short int bufload[34], oldbuf[34];
 
-  int number_ = cfeb.number();
+   write_cfeb_selector(cfeb.SelectorBit());
+   if(cfeb.GetHardwareVersion() == 2)
+   {
+      dcfeb_readparam(3, DCFEB_PARAMETERS, oldbuf);
 
-// these values should be set in the config xml file:
-  int pipeline_length_[7]={60,60,60,60,60,60,60};
-  int trigger_clk_phase_[7]={0,0,0,0,0,0,0};
-  int daq_clk_phase_[7]={0,0,0,0,0,0,0};
-  
-  write_cfeb_selector(cfeb.SelectorBit());
-  
-  bool changed = false;
-  char bytesToLoad[44], dt[2];
-
-  dt[0] = dt[1] = 0;
-  int dthresh = int (4095 * ((3.5 - comp_thresh_cfeb_[number_]) / 3.5));
-  for (int i = 0; i < 8; i++)
-    {
-      dt[0] |= ((dthresh >> (i + 7)) & 1) << (7 - i);
-      dt[1] |= ((dthresh >> i) & 1) << (6 - i);
-    }
-  dt[0] = ((dt[1] << 7) & 0x80) + ((dt[0] >> 1) & 0x7f);
-  dt[1] = dt[1] >> 1;
-
-  for (int i = 0; i < 44; i++)
-    bytesToLoad[i] = 0;
-  dcfeb_readparam(3, 22, (unsigned short int *) bytesToLoad);
-  changed = bytesToLoad[36] != comp_mode_cfeb_[number_]
-         || bytesToLoad[37] != comp_timing_cfeb_[number_]
-         || bytesToLoad[38] != dt[0]
-         || bytesToLoad[39] != dt[1]
-         || bytesToLoad[40] != pipeline_length_[number_]
-         || bytesToLoad[41] != trigger_clk_phase_[number_]
-         || bytesToLoad[42] != daq_clk_phase_[number_];
-
-  printf ("current values of parameters in parameter block 3:\n");
-  printf ("  comp_mode: %d\n", bytesToLoad[36]);
-  printf ("  comp_timing: %d\n", bytesToLoad[37]);
-  printf ("  comp_thresh: %d\n", (bytesToLoad[38] & 0x00ff) | (bytesToLoad[39] & 0xff00));
-  printf ("  pipeline_length: %d\n", bytesToLoad[40]);
-  printf ("  trigger_clk_phase: %d\n", bytesToLoad[41]);
-  printf ("  daq_clk_phase: %d\n", bytesToLoad[42]);
-
-  if (changed)
-    {
-      bytesToLoad[36] = comp_mode_cfeb_[number_];
-      bytesToLoad[37] = comp_timing_cfeb_[number_];
-      bytesToLoad[38] = dt[0];
-      bytesToLoad[39] = dt[1];
-      bytesToLoad[40] = pipeline_length_[number_];
-      bytesToLoad[41] = trigger_clk_phase_[number_];
-      bytesToLoad[42] = daq_clk_phase_[number_];
-      bytesToLoad[43] = 0;
-
-      printf ("parameters from configuration file do not match currently stored values\n");
-      dcfeb_loadparam(3, 22, (unsigned short int *) bytesToLoad);
-
-      printf ("  new values of parameters in parameter block 3:\n");
-      printf ("    comp_mode: %d\n", bytesToLoad[36]);
-      printf ("    comp_timing: %d\n", bytesToLoad[37]);
-      printf ("    comp_thresh: %d\n", (bytesToLoad[38] & 0x00ff) | (bytesToLoad[39] & 0xff00));
-      printf ("    pipeline_length: %d\n", bytesToLoad[40]);
-      printf ("    trigger_clk_phase: %d\n", bytesToLoad[41]);
-      printf ("    daq_clk_phase: %d\n", bytesToLoad[42]);
-    }
-  else
-    printf ("parameters in configuration file match currently stored values\n");
-
+      set_dcfeb_parambuffer(cfeb, bufload);  
+      for(int i=0; i<DCFEB_PARAMETERS;i++)
+      {
+          if(bufload[i]!=oldbuf[i]) changed=true;
+      }
+      if(changed)
+      {  
+          std::cout << "Write configuration parameters to EPROM on DCFEB #" << number_+1 << std::endl;
+          dcfeb_loadparam(3, DCFEB_PARAMETERS, bufload);
+      }
+   }
 }
 
 void DAQMB::dcfeb_test_dummy(CFEB & cfeb, int test)
@@ -8169,7 +8115,7 @@ void DAQMB::dcfeb_test_dummy(CFEB & cfeb, int test)
 // require to recompile everything in PeripheralCore & PeripheralApps
      write_cfeb_selector(cfeb.SelectorBit());
      virtex6_readreg(test);
-     
+
 }
 
 unsigned  DAQMB::dcfeb_readreg_virtex6(CFEB & cfeb,int test){
