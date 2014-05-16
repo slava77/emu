@@ -611,14 +611,14 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
      {
         // choose a ID from list
         std::vector<std::string> configIDs;
-        myTStore = GetEmuTStore();
-        if(!myTStore)
+        GetEmuTStore();
+        if(!activeTStore_)
         {  std::cout << "Can't create object TStoreReadWriter" << std::endl;
            return;
         }
-        xdata::UnsignedInteger64 flashid_64 = myTStore->readLastConfigIdFlashed((Valid_config_ID=="-1")?"plus":"minus");
+        xdata::UnsignedInteger64 flashid_64 = activeTStore_->readLastConfigIdFlashed((Valid_config_ID=="-1")?"plus":"minus");
         InFlash_config_ID = flashid_64.toString();
-        configIDs=myTStore->readIDs((Valid_config_ID=="-1")?1:2,500);
+        configIDs=activeTStore_->readIDs((Valid_config_ID=="-1")?1:2,500);
         
         *out << "Config ID in FLASH is :" << InFlash_config_ID << cgicc::br() << std::endl;
         int n_ids = configIDs.size();
@@ -1085,7 +1085,7 @@ void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fs
         try 
         {
            xdata::UnsignedInteger64 id_64 = atoi(Valid_config_ID.c_str());
-           myTStore->writeFlashTime(id_64);
+           activeTStore_->writeFlashTime(id_64);
            std::cout << getLocalDateTime() << " WRITE FLASH recorded in database. Configuration ID: " << Valid_config_ID << " written to " << flashed_crates << " crates." << std::endl;
         }
         catch( const std::exception & e )
@@ -4115,7 +4115,7 @@ void EmuPeripheralCrateConfig::UpdateInFlashKey(xgi::Input * in, xgi::Output * o
         try 
         {
            xdata::UnsignedInteger64 id_64 = atoi(Valid_config_ID.c_str());
-           myTStore->writeFlashTime(id_64);
+           activeTStore_->writeFlashTime(id_64);
            std::cout << getLocalDateTime() << " UPDATE IN-FLASH ID recorded in database. Configuration ID changed to: " << Valid_config_ID << std::endl;
         }
         catch( const std::exception & e )

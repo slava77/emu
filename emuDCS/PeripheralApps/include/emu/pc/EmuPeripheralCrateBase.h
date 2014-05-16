@@ -76,13 +76,13 @@ protected:
   //
   toolbox::fsm::FiniteStateMachine fsm_;
   xdata::String state_;
+  emu::db::TStoreReadWriter* activeTStore_;
 
 private:
   int xml_or_db_;
   std::string real_key_;
   EmuEndcap * activeEndcap_;
   XMLParser * activeParser_;
-  emu::db::TStoreReadWriter* activeTStore_;
 };
 
   } // namespace emu::pc
