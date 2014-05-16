@@ -122,7 +122,7 @@ protected:
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  emu::db::TStoreReadWriter * myTStore;
+  // emu::db::TStoreReadWriter * myTStore; // not needed; base class has it already in EmuPeripheralCrateBase::activeTStore_
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
