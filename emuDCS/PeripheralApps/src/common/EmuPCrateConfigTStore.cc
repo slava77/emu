@@ -1371,6 +1371,7 @@ void EmuPCrateConfigTStore::copyCCBToTable(xdata::Table &newRows, Crate * TStore
   std::string TTCRXCOARSEDELAY("TTCRXCOARSEDELAY");
   std::string TTCRXFINEDELAY("TTCRXFINEDELAY");
   std::string TTCRXID("TTCRXID");
+  std::string HARDWARE_VERSION("HARDWARE_VERSION");
 
   CCB *TStore_thisCCB = TStore_thisCrate->ccb();
   if (TStore_thisCCB)
@@ -1383,6 +1384,7 @@ void EmuPCrateConfigTStore::copyCCBToTable(xdata::Table &newRows, Crate * TStore
     xdata::UnsignedShort _ttcrxcoarsedelay = TStore_thisCCB->GetTTCrxCoarseDelay();
     xdata::UnsignedShort _ttcrxfinedelay = TStore_thisCCB->GetTTCrxFineDelay();
     xdata::UnsignedShort _ttcrxid = TStore_thisCCB->GetTTCrxID();
+    xdata::UnsignedShort _hardware_version = TStore_thisCCB->GetHardwareVersion();
 
     newRows.setValueAt(rowId, CCBMODE, _ccbmode);
     newRows.setValueAt(rowId, CCB_FIRMWARE_DAY, _ccb_firmware_day);
@@ -1392,6 +1394,7 @@ void EmuPCrateConfigTStore::copyCCBToTable(xdata::Table &newRows, Crate * TStore
     newRows.setValueAt(rowId, TTCRXCOARSEDELAY, _ttcrxcoarsedelay);
     newRows.setValueAt(rowId, TTCRXFINEDELAY, _ttcrxfinedelay);
     newRows.setValueAt(rowId, TTCRXID, _ttcrxid);
+    newRows.setValueAt(rowId, HARDWARE_VERSION, _hardware_version);
   }
 }
 
@@ -1434,12 +1437,16 @@ void EmuPCrateConfigTStore::copyMPCToTable(xdata::Table &newRows, Crate * TStore
   std::string MPC_FIRMWARE_YEAR("MPC_FIRMWARE_YEAR");
   std::string SERIALIZERMODE("SERIALIZERMODE");
   std::string TRANSPARENTMODE("TRANSPARENTMODE");
+  std::string HARDWARE_VERSION( "HARDWARE_VERSION" );
+  std::string MPC_TMB_MASK    ( "MPC_TMB_MASK"     );
 
   xdata::UnsignedShort _mpc_firmware_day = TStore_thisMPC->GetExpectedFirmwareDay();
   xdata::UnsignedShort _mpc_firmware_month = TStore_thisMPC->GetExpectedFirmwareMonth();
   xdata::UnsignedShort _mpc_firmware_year = TStore_thisMPC->GetExpectedFirmwareYear();
   xdata::UnsignedShort _serializermode = TStore_thisMPC->GetSerializerMode();
   xdata::UnsignedShort _transparentmode = TStore_thisMPC->GetTransparentMode();
+  xdata::UnsignedShort _hardware_version = TStore_thisMPC->GetHardwareVersion();
+  xdata::UnsignedShort _mpc_tmb_mask     = TStore_thisMPC->GetMPCTMBMask();
 
   newRows = tableDefinitions["mpc"];
   newRows.setValueAt(rowId, MPC_FIRMWARE_DAY, _mpc_firmware_day);
@@ -1447,6 +1454,8 @@ void EmuPCrateConfigTStore::copyMPCToTable(xdata::Table &newRows, Crate * TStore
   newRows.setValueAt(rowId, MPC_FIRMWARE_YEAR, _mpc_firmware_year);
   newRows.setValueAt(rowId, SERIALIZERMODE, _serializermode);
   newRows.setValueAt(rowId, TRANSPARENTMODE, _transparentmode);
+  newRows.setValueAt(rowId, HARDWARE_VERSION, _hardware_version);
+  newRows.setValueAt(rowId, MPC_TMB_MASK    , _mpc_tmb_mask    );
 }
 
 
@@ -1702,6 +1711,12 @@ void EmuPCrateConfigTStore::copyDAQMBToTable(xdata::Table &newRows, DAQMB * TSto
   std::string XFINELATENCY("XFINELATENCY");
   std::string XLATENCY("XLATENCY");
   std::string POWER_MASK("POWER_MASK");
+  std::string HARDWARE_VERSION( "HARDWARE_VERSION" );
+  std::string ALCT_DAV_DELAY  ( "ALCT_DAV_DELAY"   );
+  std::string L1ACC_DAV_DELAY ( "L1ACC_DAV_DELAY"  );
+  std::string LVDB7_MAPPING   ( "LVDB7_MAPPING"    );
+  std::string ODMB_KILL_MASK  ( "ODMB_KILL_MASK"   );
+  std::string TMB_DAV_DELAY   ( "TMB_DAV_DELAY"    );
   
   xdata::UnsignedShort     _alct_dav_cable_delay    = TStore_thisDAQMB->GetAlctDavCableDelay(); 
   xdata::UnsignedShort     _calibration_l1acc_delay = TStore_thisDAQMB->GetCalibrationL1aDelay(); 
@@ -1728,6 +1743,12 @@ void EmuPCrateConfigTStore::copyDAQMBToTable(xdata::Table &newRows, DAQMB * TSto
   xdata::UnsignedShort     _xfinelatency            = TStore_thisDAQMB->GetxFineLatency(); 
   xdata::UnsignedShort     _xlatency                = TStore_thisDAQMB->GetxLatency();
   xdata::UnsignedShort     _power_mask              = TStore_thisDAQMB->GetPowerMask();
+  xdata::UnsignedShort     _hardware_version        = TStore_thisDAQMB->GetHardwareVersion();
+  xdata::UnsignedShort     _alct_dav_delay          = TStore_thisDAQMB->GetAlctDavDelay();
+  xdata::UnsignedShort     _l1acc_dav_delay         = TStore_thisDAQMB->GetL1aDavDelay();
+  xdata::UnsignedShort     _lvdb7_mapping           = TStore_thisDAQMB->GetLVDBMapping();
+  xdata::UnsignedShort     _odmb_kill_mask          = TStore_thisDAQMB->GetKillInputMask();
+  xdata::UnsignedShort     _tmb_dav_delay           = TStore_thisDAQMB->GetTmbDavDelay();
   
   size_t rowId(0);
   newRows.setValueAt(rowId, ALCT_DAV_CABLE_DELAY,    _alct_dav_cable_delay);
@@ -1752,6 +1773,12 @@ void EmuPCrateConfigTStore::copyDAQMBToTable(xdata::Table &newRows, DAQMB * TSto
   newRows.setValueAt(rowId, XFINELATENCY,            _xfinelatency);
   newRows.setValueAt(rowId, XLATENCY,                _xlatency); 
   newRows.setValueAt(rowId, POWER_MASK,              _power_mask);
+  newRows.setValueAt(rowId, HARDWARE_VERSION,        _hardware_version );
+  newRows.setValueAt(rowId, ALCT_DAV_DELAY  ,        _alct_dav_delay   );
+  newRows.setValueAt(rowId, L1ACC_DAV_DELAY ,        _l1acc_dav_delay  );
+  newRows.setValueAt(rowId, LVDB7_MAPPING   ,        _lvdb7_mapping    );
+  newRows.setValueAt(rowId, ODMB_KILL_MASK  ,        _odmb_kill_mask   );
+  newRows.setValueAt(rowId, TMB_DAV_DELAY   ,        _tmb_dav_delay    );
 }
 
 
@@ -1802,6 +1829,12 @@ void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows, DAQMB * TStor
     std::string KILL_CHIP3("KILL_CHIP3");
     std::string KILL_CHIP4("KILL_CHIP4");
     std::string KILL_CHIP5("KILL_CHIP5");
+    std::string HARDWARE_VERSION ( "HARDWARE_VERSION"  );
+    std::string ADCSAMP_CLK_PHASE( "ADCSAMP_CLK_PHASE" );
+    std::string FINE__DELAY	 ( "FINE_DELAY"        ); // FINE_DELAY already defined in emu/pc/JTAG_constants.h 
+    std::string COMP_CLK_PHASE   ( "COMP_CLK_PHASE"    );
+    std::string NSAMPLE	         ( "NSAMPLE"           );
+    std::string PIPELINE_DEPTH   ( "PIPELINE_DEPTH"    );
     
     //was using TStore_thisDAQMB->cfebs();, but this means copying the whole thing,
     //which results in a bad_alloc if there is something uninitialised, making it harder to diagnose problems
@@ -1823,6 +1856,12 @@ void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows, DAQMB * TStor
       xdata::String _kill_chip4 = valueInHex;
       emu::db::convertToHex(valueInHex, "%05x", TStore_thisDAQMB->GetKillChip(_cfeb_number, 5));
       xdata::String _kill_chip5 = valueInHex;
+      xdata::UnsignedShort _hardware_version  = TStore_allCFEBs[j].GetHardwareVersion();
+      xdata::UnsignedShort _fine_delay        = TStore_allCFEBs[j].GetFineDelay();
+      xdata::UnsignedShort _pipeline_depth    = TStore_allCFEBs[j].GetPipelineDepth();
+      xdata::UnsignedShort _adcsamp_clk_phase = TStore_thisDAQMB->GetADCSampleClockPhaseCfeb( j );
+      xdata::UnsignedShort _comp_clk_phase    = TStore_thisDAQMB->GetCompClockPhaseCfeb( j );
+      xdata::UnsignedShort _nsample	      = TStore_thisDAQMB->GetNSamplesCfeb( j );
 
 #ifdef debugV
       std::cout << "-- CFEB cfeb_number ------------ " << _cfeb_number.toString() << std::endl;
@@ -1833,6 +1872,12 @@ void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows, DAQMB * TStor
       std::cout << "-- CFEB kill_chip3 ------------- " << _kill_chip3.toString() << std::endl;
       std::cout << "-- CFEB kill_chip4 ------------- " << _kill_chip4.toString() << std::endl;
       std::cout << "-- CFEB kill_chip5 ------------- " << _kill_chip5.toString() << std::endl;
+      std::cout << "-- CFEB hardware_version  ------ " << _hardware_version .toString() << std::endl;
+      std::cout << "-- CFEB adcsamp_clk_phase ------ " << _adcsamp_clk_phase.toString() << std::endl;
+      std::cout << "-- CFEB fine_delay        ------ " << _fine_delay       .toString() << std::endl;
+      std::cout << "-- CFEB comp_clk_phase    ------ " << _comp_clk_phase   .toString() << std::endl;
+      std::cout << "-- CFEB nsample           ------ " << _nsample          .toString() << std::endl;
+      std::cout << "-- CFEB pipeline_depth    ------ " << _pipeline_depth   .toString() << std::endl;
 #endif
 
       newRows.setValueAt(rowId, CFEB_FIRMWARE_TAG, _cfeb_firmware_tag);
@@ -1843,6 +1888,12 @@ void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows, DAQMB * TStor
       newRows.setValueAt(rowId, KILL_CHIP3,        _kill_chip3);
       newRows.setValueAt(rowId, KILL_CHIP4,        _kill_chip4);
       newRows.setValueAt(rowId, KILL_CHIP5,        _kill_chip5);
+      newRows.setValueAt(rowId, HARDWARE_VERSION , _hardware_version );
+      newRows.setValueAt(rowId, ADCSAMP_CLK_PHASE, _adcsamp_clk_phase);
+      newRows.setValueAt(rowId, FINE__DELAY      , _fine_delay       );
+      newRows.setValueAt(rowId, COMP_CLK_PHASE   , _comp_clk_phase   );
+      newRows.setValueAt(rowId, NSAMPLE          , _nsample          );
+      newRows.setValueAt(rowId, PIPELINE_DEPTH   , _pipeline_depth   );
       rowId++;
     }
   }
@@ -2033,6 +2084,8 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     std::string CFEB_BADBITS_READOUT("CFEB_BADBITS_READOUT");
     std::string L1A_PRIORITY_ENABLE("L1A_PRIORITY_ENABLE");
     std::string MINISCOPE_ENABLE("MINISCOPE_ENABLE");
+    std::string HARDWARE_VERSION("HARDWARE_VERSION");
+
     xdata::UnsignedShort  _adjacent_cfeb_distance      = TStore_thisTMB->GetAdjacentCfebDistance();
     xdata::UnsignedShort  _aff_thresh                  = TStore_thisTMB->GetActiveFebFlagThresh();
     xdata::UnsignedShort  _alct_bx0_delay              = TStore_thisTMB->GetAlctBx0Delay();
@@ -2168,6 +2221,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     xdata::UnsignedShort  _cfeb_badbits_readout          = TStore_thisTMB->GetCFEBBadBitsReadout();
     xdata::UnsignedShort  _l1a_priority_enable           = TStore_thisTMB->GetL1APriorityEnable();
     xdata::UnsignedShort  _miniscope_enable              = TStore_thisTMB->GetMiniscopeEnable();
+    xdata::UnsignedShort  _hardware_version              = TStore_thisTMB->GetHardwareVersion();
 
     newRows.setValueAt(rowId, ADJACENT_CFEB_DISTANCE,        _adjacent_cfeb_distance); 
     newRows.setValueAt(rowId, AFF_THRESH,                    _aff_thresh);
@@ -2295,6 +2349,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     newRows.setValueAt(rowId, CFEB_BADBITS_READOUT,          _cfeb_badbits_readout);
     newRows.setValueAt(rowId, L1A_PRIORITY_ENABLE,           _l1a_priority_enable);
     newRows.setValueAt(rowId, MINISCOPE_ENABLE,              _miniscope_enable);
+    newRows.setValueAt(rowId, HARDWARE_VERSION,              _hardware_version);
   }
   catch (xcept::Exception &e)
   {
@@ -2374,6 +2429,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows, ALCTControlle
   std::string ALCT_TRIG_MODE("ALCT_TRIG_MODE");
   std::string ALCT_ZERO_SUPPRESS("ALCT_ZERO_SUPPRESS");
   std::string CHAMBER_TYPE("CHAMBER_TYPE");
+  std::string HARDWARE_VERSION("HARDWARE_VERSION");
   
   xdata::UnsignedShort _alct_accel_mode                = TStore_thisALCT->GetWriteAlctAmode();
   xdata::UnsignedShort _alct_nplanes_hit_accel_pattern = TStore_thisALCT->GetWriteAcceleratorPatternThresh();
@@ -2408,6 +2464,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows, ALCTControlle
   xdata::UnsignedShort _alct_trig_mode                 = TStore_thisALCT->GetWriteTriggerMode();
   xdata::UnsignedShort _alct_zero_suppress             = TStore_thisALCT->GetWriteAlctZeroSuppress();
   xdata::String        _chamber_type                   = TStore_thisALCT->GetChamberType();
+  xdata::UnsignedShort _hardware_version               = TStore_thisALCT->GetHardwareVersion();
   
 #ifdef debugV
   std::cout << "-- ALCT alct_accel_mode ------------------- " << _alct_accel_mode.toString()                << std::endl;
@@ -2441,6 +2498,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows, ALCTControlle
   std::cout << "-- ALCT alct_trig_info_en ----------------- " << _alct_trig_info_en.toString()              << std::endl;
   std::cout << "-- ALCT alct_trig_mode -------------------- " << _alct_trig_mode.toString()                 << std::endl;
   std::cout << "-- ALCT chamber_type ---------------------- " << _chamber_type.toString()                   << std::endl;
+  std::cout << "-- ALCT hardware_version ------------------ " << _hardware_version.toString()               << std::endl;
 #endif
 
   newRows = tableDefinitions["alct"];
@@ -2477,6 +2535,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows, ALCTControlle
   newRows.setValueAt(rowId, ALCT_TRIG_MODE,                 _alct_trig_mode);
   newRows.setValueAt(rowId, ALCT_ZERO_SUPPRESS,             _alct_zero_suppress);
   newRows.setValueAt(rowId, CHAMBER_TYPE,                   _chamber_type);
+  newRows.setValueAt(rowId, HARDWARE_VERSION,               _hardware_version);
 }
 
 
@@ -2944,6 +3003,7 @@ void EmuPCrateConfigTStore::readCCB(
       if (*column == "CCB_FIRMWARE_YEAR")  ccb_->SetExpectedFirmwareYear(IntValue);
       if (*column == "CCB_FIRMWARE_MONTH") ccb_->SetExpectedFirmwareMonth(IntValue);
       if (*column == "CCB_FIRMWARE_DAY")   ccb_->SetExpectedFirmwareDay(IntValue);
+      if (*column == "HARDWARE_VERSION")   ccb_->SetHardwareVersion(IntValue);
       //std::cout << *column + ": " + StrgValue << std::endl;
     }
   }
@@ -2993,6 +3053,8 @@ void EmuPCrateConfigTStore::readMPC(
       if (*column == "MPC_FIRMWARE_YEAR")  mpc_->SetExpectedFirmwareYear(IntValue);
       if (*column == "MPC_FIRMWARE_MONTH") mpc_->SetExpectedFirmwareMonth(IntValue);
       if (*column == "MPC_FIRMWARE_DAY")   mpc_->SetExpectedFirmwareDay(IntValue);
+      if (*column == "HARDWARE_VERSION")   mpc_->SetHardwareVersion(IntValue);
+      if (*column == "MPC_TMB_MASK")       mpc_->SetMPCTMBMask(IntValue);
       //std::cout << *column + ": " + StrgValue << std::endl;
     }
   }
@@ -3138,6 +3200,12 @@ void EmuPCrateConfigTStore::readDAQMB(
       if (*column == "DMB_VME_FIRMWARE_TAG")    daqmb_->SetExpectedVMEFirmwareTag(IntValue);
       if (*column == "DAQMB_CONFIG_ID")         daqmb_config_id_ = StrgValue;
       if (*column == "POWER_MASK")              daqmb_->SetPowerMask(IntValue);
+      if (*column == "HARDWARE_VERSION" )       daqmb_->SetHardwareVersion(IntValue);
+      if (*column == "ALCT_DAV_DELAY"   )       daqmb_->SetAlctDavDelay(IntValue);
+      if (*column == "L1ACC_DAV_DELAY"  )       daqmb_->SetL1aDavDelay(IntValue);
+      if (*column == "LVDB7_MAPPING"    )       daqmb_->SetLVDBMapping(IntValue);
+      if (*column == "ODMB_KILL_MASK"   )       daqmb_->SetKillInputMask(IntValue);
+      if (*column == "TMB_DAV_DELAY"    )       daqmb_->SetTmbDavDelay(IntValue);
       //std::cout << *column + ": " + StrgValue << std::endl;
     }
     std::string identifier = DAQMBID(chamberID(theCrate->CrateID(), theChamber->GetLabel()), slot);
@@ -3277,6 +3345,13 @@ void EmuPCrateConfigTStore::readCFEB(
         }
       }
       //std::cout << *column + ": " + StrgValue << std::endl;
+      
+      if (*column == "HARDWARE_VERSION" ) cfeb.SetHardwareVersion(IntValue);
+      if (*column == "FINE_DELAY"       ) cfeb.SetFineDelay(IntValue);
+      if (*column == "PIPELINE_DEPTH"   ) cfeb.SetPipelineDepth(IntValue);
+      if (*column == "ADCSAMP_CLK_PHASE") theDaqmb->SetADCSampleClockPhaseCfeb(number, IntValue);
+      if (*column == "COMP_CLK_PHASE"   ) theDaqmb->SetCompClockPhaseCfeb     (number, IntValue);
+      if (*column == "NSAMPLE"          ) theDaqmb->SetNSamplesCfeb           (number, IntValue);
     }
     theDaqmb->cfebs_.push_back(cfeb);
   }
@@ -3526,6 +3601,7 @@ void EmuPCrateConfigTStore::readTMB(
       if (*column == "CFEB_BADBITS_READOUT"  ) tmb_->SetCFEBBadBitsReadout(IntValue);
       if (*column == "L1A_PRIORITY_ENABLE"   ) tmb_->SetL1APriorityEnable(IntValue);
       if (*column == "MINISCOPE_ENABLE"      ) tmb_->SetMiniscopeEnable(IntValue);
+      if (*column == "HARDWARE_VERSION"      ) tmb_->SetHardwareVersion(IntValue);
       
       if (*column == "TMB_CONFIG_ID" ) tmb_config_id_ = StrgValue;
     }
@@ -3663,6 +3739,7 @@ void EmuPCrateConfigTStore::readALCT(
       }
       if (*column == "ALCT_TESTPULSE_DIRECTION"      ) alct_->Set_PulseDirection(StrgValue);
       if (*column == "ALCT_ZERO_SUPPRESS"            ) alct_->SetAlctZeroSuppress(IntValue);
+      if (*column == "HARDWARE_VERSION"              ) alct_->SetHardwareVersion(IntValue);
       if (*column == "ALCT_CONFIG_ID"                ) alct_config_id_ = StrgValue;
       
       //std::cout << *column + ": " + StrgValue << std::endl;
