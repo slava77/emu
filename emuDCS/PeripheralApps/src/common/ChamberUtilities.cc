@@ -374,6 +374,7 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h> // for memset
 #include <iomanip>
 #include <cmath>
 #include <unistd.h> 
