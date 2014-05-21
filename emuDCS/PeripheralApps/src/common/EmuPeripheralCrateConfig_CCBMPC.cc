@@ -57,7 +57,7 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   thisCCB->RedirectOutput(&std::cout);
   //
   *out << cgicc::br() << "CCB Mode = ";
-  int ccb_mode = thisCCB->ReadRegister(0);
+  int ccb_mode = thisCCB->ReadRegister( CCB::CSRA1 );
   switch(ccb_mode & 1) {
   case 0:
     *out << "FPGA;" << std::endl;
@@ -70,13 +70,13 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
     break;
   }
 
-  ccb_mode = thisCCB->ReadRegister(4);
-  if(((ccb_mode>>13)&1)==1) 
+  int ccb_status = thisCCB->ReadRegister( CCB::CSRA3 );
+  if(((ccb_status>>13)&1)==1) 
   { 
     *out << cgicc::span().set("style","color:green");
     *out << " TTCrx Ready;" << cgicc::span();
-    // Check for QPLL only if TTXrx Ready
-    if(((ccb_mode>>14)&1)==0) 
+    // Check for QPLL only if TTCrx Ready
+    if(((ccb_status>>14)&1)==0) 
     {
         *out << cgicc::span().set("style","color:green");
         *out << " QPLL Locked " << cgicc::span();
@@ -114,20 +114,24 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br() << std::endl;
 
   //
-  *out << cgicc::br() << "CSRA1 =  " << std::hex << ccb_mode << std::endl;
-  *out << cgicc::br() << "CSRA2 =  " << std::hex << thisCCB->ReadRegister(2) << std::endl;
-  *out << cgicc::br() << "CSRA3 =  " << std::hex << thisCCB->ReadRegister(4) << std::endl;
-  *out << cgicc::br() << "CSRB1 =  " << std::hex << thisCCB->ReadRegister(0x20) << std::endl;
-  *out << cgicc::br() << "CSRB18 = " << std::hex << thisCCB->ReadRegister(0x42) << std::endl;
+  *out << cgicc::br() << "CSRA1  = 0x" << std::hex << ccb_mode                             << std::endl;
+  *out << cgicc::br() << "CSRA2  = 0x" << std::hex << thisCCB->ReadRegister( CCB::CSRA2  ) << std::endl;
+  *out << cgicc::br() << "CSRA3  = 0x" << std::hex << ccb_status                           << std::endl;
+  *out << cgicc::br() << "CSRB1  = 0x" << std::hex << thisCCB->ReadRegister( CCB::CSRB1  ) << std::endl;
+  *out << cgicc::br() << "CSRB18 = 0x" << std::hex << thisCCB->ReadRegister( CCB::CSRB18 ) << std::endl;
   //
-  unsigned lastcmd=(thisCCB->ReadRegister( CCB::CSRB15 ) & 0xff)>>2;
-  unsigned bcounter=thisCCB->ReadRegister( CCB::CSRB19_LSB ) + thisCCB->ReadRegister( CCB::CSRB19_MSB ) * 0x010000; 
-  unsigned dcounter=thisCCB->ReadRegister( CCB::CSRB21 ); 
-  unsigned lcounter=thisCCB->ReadRegister( CCB::readL1aCounterLSB ) + thisCCB->ReadRegister( CCB::readL1aCounterMSB ) * 0x010000; 
-  *out << cgicc::br() << cgicc::br() << "L1ACC counter =  " << std::dec << lcounter << std::endl;
-  *out << cgicc::br() << "BRCST counter =  " << std::dec << bcounter << std::endl;
-  *out << cgicc::br() << "DOUT  counter =  " << std::dec << dcounter << std::endl;
-  *out << cgicc::br() << "Last TTC command (hex) =  " <<  std::hex << lastcmd << std::dec << " (" << thisCCB->GetTTCCommandName( lastcmd ) << ")" << std::endl;
+  unsigned int qpllerr = thisCCB->ReadRegister( CCB::CSRB24 ) & 0xffff;
+  unsigned int qplllock= thisCCB->ReadRegister( CCB::CSRB22 ) & 0xffff;
+  unsigned int lastcmd =(thisCCB->ReadRegister( CCB::CSRB15 ) & 0xff)>>2;
+  unsigned int bcounter= thisCCB->ReadRegister( CCB::CSRB19_LSB ) + thisCCB->ReadRegister( CCB::CSRB19_MSB ) * 0x010000; 
+  unsigned int dcounter= thisCCB->ReadRegister( CCB::CSRB21 ); 
+  unsigned int lcounter= thisCCB->ReadRegister( CCB::readL1aCounterLSB ) + thisCCB->ReadRegister( CCB::readL1aCounterMSB ) * 0x010000; 
+  *out << cgicc::br() << cgicc::br() << "QPLL error (SEU) counter =  " << std::dec << qpllerr  << std::endl;
+  *out << cgicc::br()                << "QPLL lock counter =  "        << std::dec << qplllock << std::endl;
+  *out << cgicc::br() << cgicc::br() << "L1ACC counter =  "            << std::dec << lcounter << std::endl;
+  *out << cgicc::br()                << "BRCST counter =  "            << std::dec << bcounter << std::endl;
+  *out << cgicc::br()                << "DOUT  counter =  "            << std::dec << dcounter << std::endl;
+  *out << cgicc::br()                << "Last TTC command = 0x"        << std::hex << lastcmd  << std::dec << " (" << thisCCB->GetTTCCommandName( lastcmd ) << ")" << std::endl;
   
   *out << cgicc::fieldset();
   //
