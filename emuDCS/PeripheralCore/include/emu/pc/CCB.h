@@ -392,6 +392,10 @@ public:
   static const unsigned int CSRB19_LSB = 0x44;
   static const unsigned int CSRB19_MSB = 0x46;
   static const unsigned int CSRB21 = 0x48;
+  static const unsigned int CSRB22 = 0x4a;
+  static const unsigned int CSRB23 = 0x4c;
+  static const unsigned int CSRB24 = 0x4e;
+
   //
   static const unsigned int L1Reset    = 0x50;
   static const unsigned int L1ATrigger = 0x54;
