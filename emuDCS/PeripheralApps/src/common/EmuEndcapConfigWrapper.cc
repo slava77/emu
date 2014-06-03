@@ -210,6 +210,7 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("ccb_firmware_year"))  ccb_->SetExpectedFirmwareYear( getInt(conf, "ccb_firmware_year"));
   if (conf->has("ccb_firmware_month")) ccb_->SetExpectedFirmwareMonth( getInt(conf, "ccb_firmware_month"));
   if (conf->has("ccb_firmware_day"))   ccb_->SetExpectedFirmwareDay( getInt(conf, "ccb_firmware_day"));
+  if (conf->has("hardware_version"))   ccb_->SetHardwareVersion( getInt(conf, "hardware_version"));
   
   if(verbose_)
   {
@@ -234,6 +235,8 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("mpc_firmware_year"))  mpc_->SetExpectedFirmwareYear( getInt(conf, "mpc_firmware_year"));
   if (conf->has("mpc_firmware_month")) mpc_->SetExpectedFirmwareMonth( getInt(conf, "mpc_firmware_month"));
   if (conf->has("mpc_firmware_day"))   mpc_->SetExpectedFirmwareDay( getInt(conf, "mpc_firmware_day"));
+  if (conf->has("hardware_version"))   mpc_->SetHardwareVersion( getInt(conf, "hardware_version"));
+  if (conf->has("mpc_tmb_mask"))       mpc_->SetMPCTMBMask( getInt(conf, "mpc_tmb_mask"));
 
   if(verbose_)
   {
@@ -273,6 +276,13 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("DMB_CNTL_FIRMWARE_TAG"))   daqmb_->SetExpectedControlFirmwareTag( getStringAsLongInt(conf, "DMB_CNTL_FIRMWARE_TAG"));
   if (conf->has("DMB_VME_FIRMWARE_TAG"))    daqmb_->SetExpectedVMEFirmwareTag( getInt(conf, "DMB_VME_FIRMWARE_TAG"));
   if (conf->has("POWER_MASK"))              daqmb_->SetPowerMask( getInt(conf, "POWER_MASK"));
+  if (conf->has("hardware_version"))        daqmb_->SetHardwareVersion( getInt(conf, "hardware_version"));
+  if (conf->has("alct_dav_delay"))          daqmb_->SetAlctDavDelay( getInt(conf, "alct_dav_delay"));
+  if (conf->has("l1acc_dav_delay"))         daqmb_->SetL1aDavDelay( getInt(conf, "l1acc_dav_delay"));
+  if (conf->has("lvdb7_mapping"))           daqmb_->SetLVDBMapping( getInt(conf, "lvdb7_mapping"));
+  if (conf->has("odmb_kill_mask"))          daqmb_->SetKillInputMask( getInt(conf, "odmb_kill_mask"));
+  if (conf->has("tmb_dav_delay"))           daqmb_->SetTmbDavDelay( getInt(conf, "tmb_dav_delay"));
+
 
   float float_val;
   int int_val;
@@ -367,6 +377,13 @@ throw (emu::exception::ConfigurationException)
       }
     }
   }
+
+  if (conf->has("hardware_version" )) cfeb.SetHardwareVersion( getInt(conf, "hardware_version"));
+  if (conf->has("fine_delay"       )) cfeb.SetFineDelay      ( getInt(conf, "fine_delay"      ));
+  if (conf->has("pipeline_depth"   )) cfeb.SetPipelineDepth  ( getInt(conf, "pipeline_depth"  ));
+  if (conf->has("adcsamp_clk_phase")) theDaqmb->SetADCSampleClockPhaseCfeb( number, getInt(conf, "adcsamp_clk_phase" ));
+  if (conf->has("comp_clk_phase"   )) theDaqmb->SetCompClockPhaseCfeb     ( number, getInt(conf, "comp_clk_phase"    ));
+  if (conf->has("nsample"          )) theDaqmb->SetNSamplesCfeb           ( number, getInt(conf, "nsample"           ));
 
   theDaqmb->cfebs_.push_back(cfeb);
 
@@ -518,6 +535,7 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("CFEB_BADBITS_READOUT"))   tmb_->SetCFEBBadBitsReadout( getInt(conf, "CFEB_BADBITS_READOUT"));
   if (conf->has("L1A_PRIORITY_ENABLE"))    tmb_->SetL1APriorityEnable( getInt(conf, "L1A_PRIORITY_ENABLE"));
   if (conf->has("MINISCOPE_ENABLE"))       tmb_->SetMiniscopeEnable( getInt(conf, "MINISCOPE_ENABLE"));
+  if (conf->has("HARDWARE_VERSION"))       tmb_->SetHardwareVersion( getInt(conf, "HARDWARE_VERSION"));
 
   if(verbose_)
   {
@@ -586,6 +604,7 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("ALCT_TESTPULSE_INVERT"))          alct_->Set_InvertPulse( getString(conf, "ALCT_TESTPULSE_INVERT"));
   if (conf->has("ALCT_TESTPULSE_DIRECTION"))       alct_->Set_PulseDirection( getString(conf, "ALCT_TESTPULSE_DIRECTION"));
   if (conf->has("ALCT_ZERO_SUPPRESS"))             alct_->SetAlctZeroSuppress( getInt(conf, "ALCT_ZERO_SUPPRESS"));
+  if (conf->has("HARDWARE_VERSION"))               alct_->SetHardwareVersion( getInt(conf, "HARDWARE_VERSION"));
 
   if(verbose_)
   {
