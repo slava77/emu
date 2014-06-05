@@ -7762,8 +7762,8 @@ void DAQMB::Set_NSAMPLE(CFEB & cfeb, int nsample)
 unsigned short DAQMB::dcfeb_fine_delay(CFEB & cfeb, unsigned short delay)
 {
   unsigned short temp;
-  dcfeb_hub(cfeb, FINE_DELAY, 4, &delay, (char *)&temp, NOW|READ_YES);
-  return (temp&0xF);
+  dcfeb_hub(cfeb, FINE_DELAY, 5, &delay, (char *)&temp, NOW|READ_YES);
+  return (temp&0x1F);
 }
 
 void DAQMB::dcfeb_XPROM_do(unsigned short command)
