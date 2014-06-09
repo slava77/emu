@@ -40,6 +40,8 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   DmbControlFPGAFirmwareFile_       = FirmwareDir_+"dmb/dmb6cntl_pro.svf";
   DmbVmeFPGAFirmwareFile_           = FirmwareDir_+"dmb/dmb6vme_pro.svf";
   CfebFPGAFirmwareFile_             = FirmwareDir_+"cfeb/cfeb_pro.svf";
+  ODMBFirmwareFile_                 = FirmwareDir_+"odmb/me11_odmb.mcs";
+  DCFEBFirmwareFile_                = FirmwareDir_+"cfeb/me11_dcfeb.mcs";
 //  CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
 //  MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_100808.svf";
   //
@@ -75,6 +77,12 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDMBControlFPGAFirmware, "LoadDMBControlFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware, "LoadCFEBFPGAFirmware");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadOTMBEPROM, "LoadODMBEPROM");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadOTMBFPGA, "LoadODMBFPGA");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadODMBEPROM, "LoadODMBEPROM");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadODMBFPGA, "LoadODMBFPGA");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDCFEBEPROM, "LoadDCFEBEPROM");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDCFEBFPGA, "LoadDCFEBFPGA");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadRATFirmware , "LoadRATFirmware" );
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCCBFirmware , "LoadCCBFirmware" );
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadMPCFirmware , "LoadMPCFirmware" );
@@ -139,12 +147,10 @@ void EmuPeripheralCrateBroadcast::MainPage(xgi::Input * in, xgi::Output * out ) 
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
-  *out << cgicc::legend("Broadcast to All Crates").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Broadcast to All Crates").set("style","color:blue") << std::endl ;
   //
   std::string LoadDMBCFEBFPGA = toolbox::toString("/%s/LoadDMBCFEBFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",LoadDMBCFEBFPGA) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","!!!      Broadcast Download Firmware      !!!") << std::endl ;
-  *out << cgicc::form();
+  *out << cgicc::a("[Broadcast Download Firmware]").set("href",LoadDMBCFEBFPGA) << std::endl;
   //
    std::string VMECCTestBcast =
      toolbox::toString("/%s/VMECCTestBcast",getApplicationDescriptor()->getURN().c_str());
@@ -278,9 +284,22 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
     EmuEndcap *myEndcap = GetEmuEndcap();
     std::vector<Crate *> tmpcrate = myEndcap->broadcast_crate();
     broadcastCrate = tmpcrate[0];
-    unsigned int ib=(broadcastCrate->daqmbs()).size()-1;
-    broadcastDMB = (broadcastCrate->daqmbs())[ib];
-    broadcastTMB = (broadcastCrate->tmbs())[0];
+    std::vector<DAQMB*> mydmbs = broadcastCrate->daqmbs();
+    for(unsigned i=0;i<mydmbs.size();i++)
+    {
+      if(mydmbs[i] && mydmbs[i]->GetHardwareVersion()<=1)     
+         broadcastDMB = mydmbs[i];
+      else if(mydmbs[i] && mydmbs[i]->GetHardwareVersion()==2)     
+         broadcastODMB = mydmbs[i];
+    }
+    std::vector<TMB*> mytmbs = broadcastCrate->tmbs();
+    for(unsigned i=0;i<mytmbs.size();i++)
+    {
+      if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()<=1)     
+         broadcastTMB = mytmbs[i];
+      else if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()==2)     
+         broadcastOTMB = mytmbs[i];
+    }
     broadcastALCT = broadcastTMB->alctController();
     broadcastRAT  = broadcastTMB->getRAT();
     broadcastMPC  = broadcastCrate->mpc();
@@ -301,6 +320,11 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   //
   DefineBroadcastCrate();
   //
+     std::cout <<"Ready to load firmware for all components ..."<<std::endl;
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  //
+  //
   // load the VMECC controller firmware
   //
      std::string VMECCLoadFirmwareBcast =
@@ -314,11 +338,6 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
      *out << cgicc::form() << std::endl ;
     //
   // load the DAQMB Controller FPGA firmware
-  //
-     std::cout <<"Ready to load firmware for all components ..."<<std::endl;
-  //
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-  //
   std::string LoadDMBvmeFPGA = toolbox::toString("/%s/LoadDMBvmeFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadDMBvmeFPGA) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load DMBs VME FPGA Firmware") << std::endl ;
@@ -384,6 +403,32 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << CCBFirmwareFile_;
   *out << cgicc::form() << std::endl;
   //
+  *out << cgicc::hr() << "For ODMBs ..." << cgicc::br() << std::endl;
+  std::string LoadODMBFpga = toolbox::toString("/%s/LoadODMBFPGA",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadODMBFpga) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load ODMB FPGA") << std::endl ;
+  *out << ODMBFirmwareFile_;
+  *out << cgicc::form() << std::endl;
+  //
+  std::string LoadODMBEprom = toolbox::toString("/%s/LoadODMBEPROM",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadODMBEprom) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load ODMB EPROM") << std::endl ;
+  *out << ODMBFirmwareFile_;
+  *out << cgicc::form() << std::endl;
+  //
+  *out << cgicc::hr() << "For DCFEBs ..." << cgicc::br() << std::endl;
+  std::string LoadDCFEBFpga = toolbox::toString("/%s/LoadDCFEBFPGA",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadDCFEBFpga) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load DCFEB FPGA") << std::endl ;
+  *out << DCFEBFirmwareFile_;
+  *out << cgicc::form() << std::endl;
+  //
+  std::string LoadDCFEBEprom = toolbox::toString("/%s/LoadDCFEBEPROM",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadDCFEBEprom) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load DCFEB EPROM") << std::endl ;
+  *out << DCFEBFirmwareFile_;
+  *out << cgicc::form() << std::endl;
+  //
   *out << cgicc::fieldset() << std::endl;
   //
 }
@@ -440,6 +485,70 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
     this->LoadDMBCFEBFPGAFirmware(in,out);
     //
   }
+//
+void EmuPeripheralCrateBroadcast::LoadOTMBEPROM(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the OTMB firmware to EPROM
+  //
+  this->LoadDMBCFEBFPGAFirmware(in, out);
+}
+//
+void EmuPeripheralCrateBroadcast::LoadOTMBFPGA(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the OTMB firmware to FPGA
+  //
+  this->LoadDMBCFEBFPGAFirmware(in, out);
+}
+//
+void EmuPeripheralCrateBroadcast::LoadODMBEPROM(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the ODMB firmware to EPROM
+  //
+    std::cout << getLocalDateTime() << " Programming EPROM on all ODMBs via broadcast slot" << std::endl;
+    std::cout << "Using mcs file: " << ODMBFirmwareFile_ << std::endl;
+    
+    broadcastODMB->odmb_program_eprom(ODMBFirmwareFile_.c_str());
+    std::cout << getLocalDateTime() << " Finished programming all ODMB EPROMs." << std::endl;
+  this->LoadDMBCFEBFPGAFirmware(in, out);
+}
+//
+void EmuPeripheralCrateBroadcast::LoadODMBFPGA(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the ODMB firmware to FPGA
+  //
+    std::cout << getLocalDateTime() << " Programming FPGA on all ODMBs via broadcast slot" << std::endl;
+    std::cout << "Using mcs file: " << ODMBFirmwareFile_ << std::endl;
+    
+    broadcastODMB->odmb_program_virtex6(ODMBFirmwareFile_.c_str());
+    std::cout << getLocalDateTime() << " Finished programming all ODMB FPGAs." << std::endl;
+  this->LoadDMBCFEBFPGAFirmware(in, out);
+}
+//
+void EmuPeripheralCrateBroadcast::LoadDCFEBEPROM(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the DCFEB firmware to EPROM
+  //
+    std::cout << getLocalDateTime() << " Programming EPROM on all DCFEBs via ODMB broadcast slot" << std::endl;
+    std::cout << "Using mcs file: " << DCFEBFirmwareFile_ << std::endl;
+    
+    std::vector<CFEB> cfebs = broadcastODMB->cfebs();
+    broadcastODMB->dcfeb_program_eprom(cfebs[0], DCFEBFirmwareFile_.c_str(), 1); // broadcast
+    std::cout << getLocalDateTime() << " Finished programming all DCFEB EPROMs." << std::endl;
+  this->LoadDMBCFEBFPGAFirmware(in, out);
+}
+//
+void EmuPeripheralCrateBroadcast::LoadDCFEBFPGA(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the DCFEB firmware to FPGA
+  //
+    std::cout << getLocalDateTime() << " Programming FPGA on all DCFEBs via ODMB broadcast slot" << std::endl;
+    std::cout << "Using mcs file: " << DCFEBFirmwareFile_ << std::endl;
+    
+    std::vector<CFEB> cfebs = broadcastODMB->cfebs();
+    broadcastODMB->dcfeb_program_virtex6(cfebs[0], DCFEBFirmwareFile_.c_str(), 1); // broadcast
+    std::cout << getLocalDateTime() << " Finished programming all DCFEB FPGAs." << std::endl;
+  this->LoadDMBCFEBFPGAFirmware(in, out);
+}
 
 void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception)
 {
