@@ -88,6 +88,9 @@ public:
   std::string DmbControlFPGAFirmwareFile_;
   std::string DmbVmeFPGAFirmwareFile_;
   std::string CfebFPGAFirmwareFile_;
+  std::string ODMBFirmwareFile_;
+  std::string OTMBFirmwareFile_;
+  std::string DCFEBFirmwareFile_;
   std::string RATFirmwareFile_;
   std::string CCBFirmwareFile_;
   std::string MPCFirmwareFile_;
@@ -110,6 +113,12 @@ public:
   void LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw(xgi::exception::Exception);
   void LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
+  void LoadOTMBEPROM(xgi::Input * in, xgi::Output * out );
+  void LoadOTMBFPGA(xgi::Input * in, xgi::Output * out );
+  void LoadODMBEPROM(xgi::Input * in, xgi::Output * out );
+  void LoadODMBFPGA(xgi::Input * in, xgi::Output * out );
+  void LoadDCFEBEPROM(xgi::Input * in, xgi::Output * out );
+  void LoadDCFEBFPGA(xgi::Input * in, xgi::Output * out );
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out );
   void LoadCCBFirmware(xgi::Input * in, xgi::Output * out );
   void LoadMPCFirmware(xgi::Input * in, xgi::Output * out );
@@ -141,7 +150,9 @@ private:
   emu::pc::VMECC* vmecc;
   emu::pc::Crate * broadcastCrate;
   emu::pc::DAQMB * broadcastDMB;
+  emu::pc::DAQMB * broadcastODMB;
   emu::pc::TMB * broadcastTMB;
+  emu::pc::TMB * broadcastOTMB;
   emu::pc::RAT * broadcastRAT;
   emu::pc::MPC * broadcastMPC;
   emu::pc::ALCTController * broadcastALCT;
