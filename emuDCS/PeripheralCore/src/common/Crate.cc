@@ -319,7 +319,7 @@ Crate::Crate(int CrateID, VMEController * controller) :
   label_("label"),
   alive_(true),
   sorted_(false),
-  theModules(28),
+  theModules(32),
   theController(controller)
 {
   for(unsigned i=0;i<theModules.size();i++) theModules[i] = 0;
