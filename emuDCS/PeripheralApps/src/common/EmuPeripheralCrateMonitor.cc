@@ -338,7 +338,7 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 if(upgraded>0)
                 {
                    xdata::Vector<xdata::Float> *febdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));
-                   if(febdata) for(int ii=0; ii<upgraded*TOTAL_DCFEB_MONS; ii++) febdata->push_back(0.);
+                   if(febdata) for(int ii=0; ii<myDmbs.size()*TOTAL_DCFEB_MONS; ii++) febdata->push_back(0.);
                 }              
          }
      Monitor_Ready_=true;
@@ -1098,8 +1098,7 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
   // Begin select station
     *out << cgicc::form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/DCSStatSel") << std::endl;
-	n_keys = 8;
-        if(endcap_side==1) n_keys++;  /* ME 4/2 only on Plus side */
+	n_keys = 9;
 	*out << cgicc::select().set("name", "selected") << std::endl;
 
 	selected_index = dcs_station;
