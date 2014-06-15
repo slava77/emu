@@ -147,17 +147,17 @@ public:
 private:
 
   int calsetup;
-  emu::pc::VMECC* vmecc;
-  emu::pc::Crate * broadcastCrate;
-  emu::pc::DAQMB * broadcastDMB;
-  emu::pc::DAQMB * broadcastODMB;
-  emu::pc::TMB * broadcastTMB;
-  emu::pc::TMB * broadcastOTMB;
-  emu::pc::RAT * broadcastRAT;
-  emu::pc::MPC * broadcastMPC;
-  emu::pc::ALCTController * broadcastALCT;
-  emu::pc::CCB * broadcastCCB;
-
+  VMECC* vmecc;
+  Crate * broadcastCrate;
+  DAQMB * broadcastDMB;
+  DAQMB * broadcastODMB;
+  TMB * broadcastTMB;
+  TMB * broadcastOTMB;
+  RAT * broadcastRAT;
+  MPC * broadcastMPC;
+  ALCTController * broadcastALCT;
+  CCB * broadcastCCB;
+  std::vector <DAQMB *> otherDMBs;
   //
   int number_of_layers_pretrig_;
   int number_of_layers_pattern_;

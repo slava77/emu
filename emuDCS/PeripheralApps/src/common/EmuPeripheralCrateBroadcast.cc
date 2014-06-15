@@ -47,6 +47,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   //
   number_of_layers_pretrig_ = 2;
   number_of_layers_pattern_ = 4;
+  otherDMBs.clear();
   //
   //    std::cout << "PeripheralCrateBroadcastXmlFile_ = " << PeripheralCrateBroadcastXmlFile_ << std::endl;
   //    std::cout << "DmbControlFPGAFirmwareFile_      = " << DmbControlFPGAFirmwareFile_      << std::endl;
@@ -287,17 +288,20 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
     std::vector<DAQMB*> mydmbs = broadcastCrate->daqmbs();
     for(unsigned i=0;i<mydmbs.size();i++)
     {
-      if(mydmbs[i] && mydmbs[i]->GetHardwareVersion()<=1)     
+      if(mydmbs[i] && mydmbs[i]->GetHardwareVersion()<=1 && mydmbs[i]->slot()>21)     
          broadcastDMB = mydmbs[i];
-      else if(mydmbs[i] && mydmbs[i]->GetHardwareVersion()==2)     
+      else if(mydmbs[i] && mydmbs[i]->GetHardwareVersion()==2 && mydmbs[i]->slot()>21)     
          broadcastODMB = mydmbs[i];
+
+      if(mydmbs[i] && mydmbs[i]->slot()<=21)
+         otherDMBs.push_back(mydmbs[i]);
     }
     std::vector<TMB*> mytmbs = broadcastCrate->tmbs();
     for(unsigned i=0;i<mytmbs.size();i++)
     {
-      if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()<=1)     
+      if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()<=1 && mytmbs[i]->slot()>21)     
          broadcastTMB = mytmbs[i];
-      else if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()==2)     
+      else if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()==2 && mydmbs[i]->slot()>21)     
          broadcastOTMB = mytmbs[i];
     }
     broadcastALCT = broadcastTMB->alctController();
@@ -516,12 +520,16 @@ void EmuPeripheralCrateBroadcast::LoadODMBFPGA(xgi::Input * in, xgi::Output * ou
   //
   // load the ODMB firmware to FPGA
   //
-    std::cout << getLocalDateTime() << " Programming FPGA on all ODMBs via broadcast slot" << std::endl;
+    std::cout << getLocalDateTime() << " Programming FPGA on all ODMBs" << std::endl;
     std::cout << "Using mcs file: " << ODMBFirmwareFile_ << std::endl;
-    
-    broadcastODMB->odmb_program_virtex6(ODMBFirmwareFile_.c_str());
+    for(unsigned i=0; i<otherDMBs.size(); i++)
+    {
+       std::cout << " Broadcast on slot " << otherDMBs[i]->slot() << std::endl;
+       if(otherDMBs[i]->GetHardwareVersion()==2)
+          otherDMBs[i]->odmb_program_virtex6(ODMBFirmwareFile_.c_str());
+    }
     std::cout << getLocalDateTime() << " Finished programming all ODMB FPGAs." << std::endl;
-  this->LoadDMBCFEBFPGAFirmware(in, out);
+   this->LoadDMBCFEBFPGAFirmware(in, out);
 }
 //
 void EmuPeripheralCrateBroadcast::LoadDCFEBEPROM(xgi::Input * in, xgi::Output * out )  {
