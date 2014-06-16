@@ -157,6 +157,8 @@ protected:
   long CFEBDataIn_, CFEBDataOut_;
   int CCBRegisterRead_, CCBRegisterValue_, CCBRegisterWrite_, CCBWriteValue_, CCBTestLoops_;
   int MPCRegisterRead_, MPCRegisterValue_, MPCRegisterWrite_, MPCWriteValue_;
+  int DMBRegisterRead_, DMBRegisterValue_, DMBRegisterWrite_, DMBWriteValue_;
+  int TMBRegisterRead_, TMBRegisterValue_, TMBRegisterWrite_, TMBWriteValue_;
   std::vector<TMB*>   tmbVector;
   std::vector<TMBTester>   tmbTestVector;
   std::vector<DAQMB*> dmbVector;
@@ -395,6 +397,8 @@ private:
   //
   // DMB utils
   void DMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ReadDMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void WriteDMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBConfigure(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DMBCheckConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MakeReference(xgi::Input * in , xgi::Output * out );
@@ -427,6 +431,8 @@ private:
   //
   // TMB utils
   void TMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ReadTMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void WriteTMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateControllerFromTMBPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void LoadTMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadCrateTMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

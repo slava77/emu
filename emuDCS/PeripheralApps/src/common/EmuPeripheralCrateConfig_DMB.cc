@@ -1782,6 +1782,32 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
   //
   *out << cgicc::legend("DMB Utils").set("style","color:blue") ;
   //
+  //
+  std::string ReadDMBRegister = 
+    toolbox::toString("/%s/ReadDMBRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadDMBRegister) << std::endl ;
+  *out << "Read Register (hex) " << std::endl;
+  sprintf(buf, "%04X", DMBRegisterRead_);  
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","DMBRegister") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::input().set("type","submit").set("value","Read DMB") << std::endl ;
+  *out << " Register value (hex): " << std::hex << DMBRegisterValue_ << std::endl;
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string WriteDMBRegister = 
+    toolbox::toString("/%s/WriteDMBRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",WriteDMBRegister) << std::endl ;
+  *out << "Write Register (hex) " << std::endl;
+  sprintf(buf, "%04X", DMBRegisterWrite_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","DMBRegister") << std::endl ;
+  *out << "Register value (hex) " << std::endl;
+  sprintf(buf, "%04X", DMBWriteValue_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","DMBValue") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::input().set("type","submit").set("value","Write DMB") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
   std::string DMBPrintCounters = toolbox::toString("/%s/DMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",DMBPrintCounters) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","DMB Print Counters") << std::endl ;
@@ -2773,7 +2799,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   std::string chamber=thisChamber->GetLabel();
   int hversion=thisDMB->GetHardwareVersion();
   char buf[2000], sbuf[100];
-  int nadcs, indx, cfebs, vstart, feed;
+  int nadcs, cfebs, vstart, feed;
   unsigned short *ubuf=(unsigned short *)buf;
   double val, fvalue[100];
   nadcs=5;
@@ -3659,6 +3685,95 @@ void EmuPeripheralCrateConfig::ConfigDCFEBs(xgi::Input * in, xgi::Output * out )
      this->CFEBUtils(in,out);
 }
 
+  //
+  void EmuPeripheralCrateConfig::ReadDMBRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    int dmb=0;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      std::cout << "DMB " << dmb << std::endl;
+      DMB_ = dmb;
+    } else {
+      std::cout << "Not dmb" << std::endl ;
+      dmb = DMB_;
+    }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
+
+    if(thisDMB)
+    {
+      cgicc::form_iterator name2 = cgi.getElement("DMBRegister");
+      int DMBregister = -1;
+      if(name2 != cgi.getElements().end()) {
+        DMBregister = strtol(cgi["DMBRegister"]->getValue().c_str(),NULL,16);
+      }
+      if(DMBregister != -1)  
+      {  DMBRegisterRead_ = DMBregister;
+         std::cout << "DMB read Register: " << std::hex << DMBregister << std::dec << std::endl;
+         DMBRegisterValue_ = thisDMB->ReadRegister(DMBregister);
+      }    
+    } 
+    else
+    {
+      std::cout << "No DMB found!" << std::endl;
+    }
+    //
+    this->DMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrateConfig::WriteDMBRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    int dmb=0;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      std::cout << "DMB " << dmb << std::endl;
+      DMB_ = dmb;
+    } else {
+      std::cout << "Not dmb" << std::endl ;
+      dmb = DMB_;
+    }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
+
+    if(thisDMB)
+    {
+      cgicc::form_iterator name2 = cgi.getElement("DMBRegister");
+      cgicc::form_iterator value2 = cgi.getElement("DMBValue");
+      int DMBregister = -1;
+      int DMBvalue = -1;
+      if(name2 != cgi.getElements().end()) {
+        DMBregister = strtol(cgi["DMBRegister"]->getValue().c_str(),NULL,16);
+      }
+      if(value2 != cgi.getElements().end()) {
+        DMBvalue = strtol(cgi["DMBValue"]->getValue().c_str(),NULL,16);
+      }
+      if( DMBregister != -1 && DMBvalue != -1)  
+      {  DMBRegisterWrite_ = DMBregister;
+         DMBWriteValue_ = DMBvalue;
+         std::cout << "DMB write Register: " << std::hex << DMBregister
+                   << ", Value: " << DMBvalue << std::dec << std::endl;
+         thisDMB->WriteRegister(DMBregister, DMBvalue);
+      }
+    } 
+    else
+    {
+      std::cout << "No DMB found!" << std::endl;
+    }
+    //
+    this->DMBUtils(in,out);
+    //
+  }
 
  }  // namespace emu::pc
 }  // namespace emu
