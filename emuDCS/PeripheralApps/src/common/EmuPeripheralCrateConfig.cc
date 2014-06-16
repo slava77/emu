@@ -347,6 +347,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //-----------------------------------------------
   // DMB utilities
   //-----------------------------------------------
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadDMBRegister, "ReadDMBRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::WriteDMBRegister, "WriteDMBRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBStatus, "CFEBStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBPrintCounters, "DMBPrintCounters");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTurnOff, "DMBTurnOff");
@@ -383,6 +385,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //-----------------------------------------------
   // TMB utilities
   //-----------------------------------------------
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadTMBRegister, "ReadTMBRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::WriteTMBRegister, "WriteTMBRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTStatus, "ALCTStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::RATStatus, "RATStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateControllerFromTMBPage, "CheckCrateControllerFromTMBPage");
@@ -8594,6 +8598,32 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::legend("Other TMB Utilities").set("style","color:blue") ;
   //
+  std::string ReadTMBRegister = 
+    toolbox::toString("/%s/ReadTMBRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadTMBRegister) << std::endl ;
+  *out << "Read Register (hex) " << std::endl;
+  sprintf(buf, "%04X", TMBRegisterRead_);  
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","TMBRegister") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::input().set("type","submit").set("value","Read TMB") << std::endl ;
+  *out << " Register value (hex): " << std::hex << TMBRegisterValue_ << std::endl;
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string WriteTMBRegister = 
+    toolbox::toString("/%s/WriteTMBRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",WriteTMBRegister) << std::endl ;
+  *out << "Write Register (hex) " << std::endl;
+  sprintf(buf, "%04X", TMBRegisterWrite_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","TMBRegister") << std::endl ;
+  *out << "Register value (hex) " << std::endl;
+  sprintf(buf, "%04X", TMBWriteValue_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","TMBValue") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::input().set("type","submit").set("value","Write TMB") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  //
   std::string TMBDumpAllRegisters = toolbox::toString("/%s/TMBDumpAllRegisters",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBDumpAllRegisters) ;
   *out << cgicc::input().set("type","submit").set("value","Dump All TMB VME Registers") ;
@@ -10211,7 +10241,7 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
       //
     }
     //
-    TMB * thisTMB = tmbVector[tmb];
+//    TMB * thisTMB = tmbVector[tmb];
     //
     std::string lfn="/tmp/TMBTestsLogFile_"+suffix+".log";
     //
@@ -10362,6 +10392,96 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
     CrateTestsOutput.str("");
     //
     this->CrateTests(in,out);
+    //
+  }
+
+  //
+  void EmuPeripheralCrateConfig::ReadTMBRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb=0;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      std::cout << "TMB " << tmb << std::endl;
+      TMB_ = tmb;
+    } else {
+      std::cout << "Not tmb" << std::endl ;
+      tmb = TMB_;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+
+    if(thisTMB)
+    {
+      cgicc::form_iterator name2 = cgi.getElement("TMBRegister");
+      int TMBregister = -1;
+      if(name2 != cgi.getElements().end()) {
+        TMBregister = strtol(cgi["TMBRegister"]->getValue().c_str(),NULL,16);
+      }
+      if(TMBregister != -1)  
+      {  TMBRegisterRead_ = TMBregister;
+         std::cout << "TMB read Register: " << std::hex << TMBregister << std::dec << std::endl;
+         TMBRegisterValue_ = thisTMB->ReadRegister(TMBregister);
+      }    
+    } 
+    else
+    {
+      std::cout << "No TMB found!" << std::endl;
+    }
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrateConfig::WriteTMBRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb=0;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      std::cout << "TMB " << tmb << std::endl;
+      TMB_ = tmb;
+    } else {
+      std::cout << "Not tmb" << std::endl ;
+      tmb = TMB_;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+
+    if(thisTMB)
+    {
+      cgicc::form_iterator name2 = cgi.getElement("TMBRegister");
+      cgicc::form_iterator value2 = cgi.getElement("TMBValue");
+      int TMBregister = -1;
+      int TMBvalue = -1;
+      if(name2 != cgi.getElements().end()) {
+        TMBregister = strtol(cgi["TMBRegister"]->getValue().c_str(),NULL,16);
+      }
+      if(value2 != cgi.getElements().end()) {
+        TMBvalue = strtol(cgi["TMBValue"]->getValue().c_str(),NULL,16);
+      }
+      if( TMBregister != -1 && TMBvalue != -1)  
+      {  TMBRegisterWrite_ = TMBregister;
+         TMBWriteValue_ = TMBvalue;
+         std::cout << "TMB write Register: " << std::hex << TMBregister
+                   << ", Value: " << TMBvalue << std::dec << std::endl;
+         thisTMB->WriteRegister(TMBregister, TMBvalue);
+      }
+    } 
+    else
+    {
+      std::cout << "No TMB found!" << std::endl;
+    }
+    //
+    this->TMBUtils(in,out);
     //
   }
 
