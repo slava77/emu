@@ -1004,5 +1004,29 @@ int MPC::readDSN(void *data)
    return error;
 }
 
+int MPC::newPRBS(int mode)
+{
+//  mode 0: standard operation mode, non-PRBS 
+//       1: PRBS-7
+//       2: PRBS-15
+//       3: PRBS-23
+//       4: PRBS-31
+    if(hardware_version_==2)
+    {
+       int v=ReadRegister(CSR4);
+       // if mode==-1 (empty), return current setting
+       if(mode<=0)
+          return (v&0xF)/2; 
+       else
+       {
+          int prbsmode=((mode&7)<<4 | (mode&7)<<1);
+          WriteRegister(CSR4, (v&0xFF00)|prbsmode);
+          return mode&7;
+       }
+    }
+    else 
+     return -1;
+}
+
 } // namespace emu::pc
 } // namespace emu
