@@ -520,6 +520,9 @@
 /* New motherboard VTX2 not VTX  so MCTRL,6  not MCTRL,5 */
 #include "emu/pc/DAQMB.h"
 #include "emu/pc/VMEController.h"
+#include "emu/pc/Unpacker.h"
+//#include "emu/pc/Crate.h"
+//#include "emu/pc/CCB.h"
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
@@ -528,6 +531,8 @@
 #include <cmath>
 #include <unistd.h>
 #include <iomanip>
+#include <utility>
+#include <numeric>
 #include "emu/pc/geom.h"
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -9089,6 +9094,19 @@ void DAQMB::odmb_readfirmware_mcs(const char *filename)
    return;
 }
 
+int DAQMB::odmb_check_mcs(const char*  mcsfile, const char* bufin) {
+
+  // returns 1 if file contains ODMB firmware,
+  // returns 0 otherwise
+  int tag=0;
+  memcpy(&tag, bufin+0x600000, 4);
+  std::cout << "tag: " << std::hex << tag << std::endl;
+
+  if( (tag & 0xFFFFFFFF)==0x1234DBDB) return 1;
+  else return 0;
+
+}
+
 void DAQMB::odmb_program_eprom(const char *mcsfile)
 {
    unsigned int fulladdr;
@@ -9124,6 +9142,15 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
        free(bufin);
        return;
    }
+
+   if(!this->odmb_check_mcs(mcsfile, bufin)) { // check for odmb tag
+     std::cout << "ERROR: found non-ODMB firmware tag. Quit..." << std::endl;
+     free(bufin);
+     return;
+   }
+
+   // If we found the right tag ...
+   std::cout << "Firmware tag (ODMB) verified!" << std::endl; 
 
       odmb_bpi_reset();
       odmb_bpi_enable();
@@ -9628,5 +9655,721 @@ void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2])
     return;
 }
 
+void DAQMB::odmb_dcfeb_tests()
+{
+  // how many L1As will we send with each run?
+  const unsigned long number_of_l1as_to_send=100;
+  if (number_of_l1as_to_send==0) return; // just to be safe
+
+  // get the slot number from the DAQMB 
+  int slot = this->slot();
+  std::cout << "dmb in slot " << slot << std::endl;
+  int hardware_version = this->GetHardwareVersion();
+  std::cout << "hardware version: " << hardware_version << std::endl;
+  if (hardware_version != 2) {
+    std::cout << "skipping DMB (not hardware version 2)" << std::endl;   
+    return;
+  }
+  
+  // Configuration
+  this->odmb_soft_reset();
+  this->odmb_set_muxes(0,1);
+
+  // arrays for storing results of LVMB, copper tests
+  std::vector<std::vector<int> > copper_mapping;
+  bool power_on_correct(true), power_on_others(false);
+  
+  std::vector <CFEB> cfebs = this->cfebs();
+  // begin loop for powering on DCFEBS
+  for(unsigned int dcfeb_dev(0); dcfeb_dev<7; dcfeb_dev++) {
+    unsigned int cmd_kill_d = ~(unsigned int)pow(2,dcfeb_dev);
+    this->odmb_set_kill_mask(cmd_kill_d);
+    // turn off the desired DCFEB:
+    int bits_to_shift = this->LVDB_map(dcfeb_dev);
+    unsigned int mask = 0x01 << bits_to_shift;
+    this->lowv_onoff(mask); // check to see that this issues mask and load
+    usleep(400000);
+    
+    std::vector<int>copper_mapping_local(7,0);
+    // begin loop to read user code
+    for (CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb ) {
+      unsigned int dcfeb_cop = (*cfeb).number();
+      unsigned int dcfeb_usercode = this->febfpgauser(*cfeb);
+      std::cout << " ********************* " << std::endl
+		<< " FEB" << dcfeb_cop+1 << " : "
+		<< " Usercode: " << std::hex << dcfeb_usercode << std::endl;
+      if (dcfeb_usercode >> 12 == 0xDCFEB) {
+	copper_mapping_local[dcfeb_cop]=1;
+	if (dcfeb_cop!=dcfeb_dev) power_on_others=true; // incorrect mapping
+	// else we're good
+      }
+      else if(dcfeb_cop==dcfeb_dev) { // if the one we expect isn't on
+	power_on_correct=false;
+      }
+    } // end loop to read user code
+    // save results in outer vector
+    copper_mapping.push_back(copper_mapping_local);
+  } // end loop for powering on DCFEBs
+
+  // set the power mask back to all on, regardless of test result
+  this->lowv_onoff(0xFF);
+  usleep(3000000);
+	
+  // print results
+  if (!power_on_correct&&!power_on_others) {
+    (*MyOutput_) << "Power-on test failed--no copper communication." << std::endl;
+    return;
+  }
+  else if (power_on_others) { // print incorrect mappings
+    for(unsigned int dcfeb_dev(0); dcfeb_dev<7; dcfeb_dev++) { // analyze results of power-on test
+      std::cout << "dcfeb dev: " << dcfeb_dev+1 << std::endl;
+      for(unsigned int dcfeb_cop(0); dcfeb_cop<7; dcfeb_cop++) { // check coppers mapping for each DCFEB
+	std::cout << "dcfeb copper power: " << dcfeb_cop+1
+		  << "--" << copper_mapping.at(dcfeb_dev)[dcfeb_cop] 
+		  << std::endl;
+	if (copper_mapping.at(dcfeb_dev)[dcfeb_cop]==1 && dcfeb_cop!=dcfeb_dev) { // incorrect mapping
+	  std::cout << "Incorrect mapping--device " << dcfeb_dev+1
+		    << " mapped to copper " << dcfeb_cop+1
+		    << std::endl;
+	  (*MyOutput_) << "Incorrect mapping--device " << dcfeb_dev+1
+		       << " mapped to copper " << dcfeb_cop+1
+		       << std::endl;
+	}
+      } // check coppers loop
+    } // analyze results
+    return;
+  } // print incorrect mappings
+
+  // otherwise, we passed, turn on all DCFEBs
+  (*MyOutput_) << "Power-on test passed for all DCFEBs -- copper mapping is correct." << std::endl;
+ 
+
+  //store results of fiber test
+  std::vector<std::vector<int> > fiber_mapping, nrx_pckt;
+  // now send L1A matches to one DCFEB at a time
+  for (CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb ) { // copper loop	  
+    unsigned int dcfeb_cop = (*cfeb).number();
+    this->odmb_soft_reset();
+    usleep(10000);
+    //unsigned int cmd_kill_d = ~(unsigned int)pow(2,dcfeb_cop);
+    unsigned int cmd_mask_l1a = ~(unsigned int)pow(2,dcfeb_cop+1);
+    // unkill everything, then mask all but the one l1a_match
+    this->odmb_set_kill_mask(0x0);
+    this->odmb_mask_l1a_match(cmd_mask_l1a);
+
+    // W 3200 4    send L1A multiple times
+    send_dcfeb_pulse(L1A_L1A_MATCH,number_of_l1as_to_send); 
+    usleep(10000);
+	  
+    std::vector<int> nrx_pckt_local;
+    std::cout << "Copper selected: " << dcfeb_cop+1 << std::endl;
+    std::vector<int>fiber_mapping_local(7,0);
+    for(unsigned int dcfeb_fib(0); dcfeb_fib<7; dcfeb_fib++) {
+      // vme_wrapper_->VMEWrite(0x5010,dcfeb_fib+1,slot,"Select DCFEB FIFO");
+      unsigned int VMEresult = this->read_n_l1a_match(dcfeb_fib+1);
+      std::cout << "L1A matches for fiber " << dcfeb_fib+1 << ": " << std::dec << VMEresult << std::endl;
+      VMEresult = this->read_nrx_pckt(dcfeb_fib+1);
+      usleep(3);
+      std::cout << "Packets received by fiber " << dcfeb_fib+1 << ": " << std::dec << VMEresult << std::endl;
+      nrx_pckt_local.push_back(VMEresult);
+      if (VMEresult>0) fiber_mapping_local[dcfeb_fib]=1;
+    } // end fiber loop
+    // vme_wrapper_->VMEWrite(0x5020,0x7F,slot,"Reset FIFOs"); 
+    fiber_mapping.push_back(fiber_mapping_local);
+    nrx_pckt.push_back(nrx_pckt_local); // store results for this dev
+  } // end dcfeb_cop loop
+
+  // analyze and print results
+  // bool incorrect_mapping(false), lost_packets(false), nothing(true);
+  bool all_passed(true);
+  for (CFEBItr cfeb = cfebs.begin(); cfeb != cfebs.end(); ++cfeb ) { // copper loop
+    unsigned int dcfeb_cop = (*cfeb).number();	  
+    bool nothing_received(true);
+    for (unsigned int dcfeb_fib(0); dcfeb_fib<7; dcfeb_fib++) {
+      unsigned int nrx = nrx_pckt.at(dcfeb_cop)[dcfeb_fib]; 
+      if (fiber_mapping.at(dcfeb_cop)[dcfeb_fib]==1) {
+	nothing_received=false;
+	if (dcfeb_fib!=dcfeb_cop) { // wrong fiber
+	  all_passed=false;
+	  (*MyOutput_) << "DCFEB " << dcfeb_cop+1 
+		       << " mapped to fiber " << dcfeb_fib+1
+		       << " (" << nrx << " packets received--efficiency = " 
+		       << nrx/(float)number_of_l1as_to_send << ")" 
+		       << std::endl;
+	}
+	else if (nrx < number_of_l1as_to_send) { // right fiber, but lost packets
+	  all_passed=false;
+	  (*MyOutput_) << "DCFEB " << dcfeb_cop+1 
+		       << " lost packets -- efficiency = " 
+		       << nrx << "/" << number_of_l1as_to_send << " ("
+		       << nrx/(float)number_of_l1as_to_send << ")"
+		       << std::endl; 
+	}
+      } // mapping = 1
+    } // fiber loop
+    if (nothing_received) {// if we just got nothing
+      (*MyOutput_) << "The fiber connected to DCFEB " << dcfeb_cop+1
+		   << " sent no packets." << std::endl;
+    }
+  } // copper loop  
+  // otherwise, we're good
+  if(all_passed) {
+    (*MyOutput_) << "All fiber mappings are correct." << std::endl;
+    for (unsigned int dcfeb_fib(0); dcfeb_fib<7; dcfeb_fib++) {
+      int nrx(nrx_pckt[dcfeb_fib].at(dcfeb_fib)); 
+      std::cout << "Fiber " << dcfeb_fib+1 
+		<< " received " << nrx
+		<< "/" << number_of_l1as_to_send
+		<< " packets -- efficiency = " << nrx/(float)number_of_l1as_to_send
+		<< std::endl;
+    } 
+  }
+  std::cout << "\n\n" << std::endl;
+
+
+  fflush(stdout);
+
+}
+
+// Functions for DCFEB mapping test
+void DAQMB::odmb_set_muxes(unsigned short data_mode, unsigned short trig_mode, unsigned short lvmb_mode)
+{
+  // 0 is real/external mode, 1 is dummy/internal mode
+  WriteRegister(DATA_MUX, data_mode);
+  WriteRegister(TRIG_MUX, trig_mode);
+  WriteRegister(LVMB_MUX, lvmb_mode);
+  return;
+}
+
+void DAQMB::send_dcfeb_pulse(unsigned pulse_cmd, unsigned n_pulses)
+{
+  for (unsigned pulse(0); pulse<n_pulses; pulse++) {
+    WriteRegister(DCFEB_PULSE, pulse_cmd);
+    usleep(3);
+  }
+  return;
+}
+
+int DAQMB::read_nrx_pckt(unsigned dev) 
+{
+  // Read packets received by a DCFEB, OTMB, or ALCT -- dev index runs from 1 to 9
+  unsigned int addr_read_nrx_pckt = 0x340C | (0x00F0&((dev)<<4));
+  return ReadRegister(addr_read_nrx_pckt);
+}
+
+int DAQMB::read_n_l1a_match(unsigned dev)
+{
+  // Read L1A_MATCH count for a DCFEB, OTMB, or ALCT -- dev index runs from 1 to 9
+  unsigned int addr_read_n_l1a_match = 0x340C | (0x00F0&((dev)<<4));
+  return ReadRegister(addr_read_n_l1a_match);
+} 
+
+int DAQMB::scan_dcfeb_pipeline_depth(const unsigned lower_depth,
+				      const unsigned upper_depth,
+				     const double run_time, int &pipeline_depth_fine){
+  int ibest_pipeline_depth(-1);
+  pipeline_depth_fine = -1;
+  if(GetHardwareVersion()==2){//Only run for ODMB
+    std::ostringstream oss("");
+    oss << "Scanning pipeline depth to center muons in time bin 4.5 (time bins go from 1 to 8)." << std::endl;
+    std::cout << oss.str() << std::flush;
+    (*MyOutput_) << oss.str() << std::flush;
+
+    double err(0.0);
+    unsigned muons(0);
+    const float best_depth_f(get_best_pipeline_depth(lower_depth,
+						   upper_depth,
+						   run_time,
+						   err,
+						   muons));
+
+    //Get fine delay. This can be done fewer lines, but I was trying to remove a bug and being extra explicit.
+    const unsigned best_depth(static_cast<unsigned>(floor(best_depth_f+0.5)));//round
+    const float frac_part(best_depth_f-best_depth);//[-0.5,0.5)
+    const float lookup(8.0*frac_part);//[-4,4)
+    const int lookup_i(static_cast<int>(floor(lookup+0.5)));//{-4,-3,-2,-1,0,1,2,3,4}
+    const unsigned lookup_u(8-lookup_i);//{12,11,10,9,8,7,6,5,4}
+    const unsigned fine_delay(lookup_u%8);//{4,3,2,1,0,7,6,5,4}
+
+    oss.str("");
+    oss << "Fitted pipeline depth: " << std::setprecision(4) <<best_depth_f << " +- " << std::setprecision(2) << err 
+	<< " (determined from a fit to " << muons << " muon candidates)." << std::endl;
+    std::cout << oss.str() << std::flush;
+    (*MyOutput_) << oss.str() << std::flush;
+    oss.str("");
+    oss << "Set pipeline depth to " << best_depth << " and fine delay to " << fine_delay << '.' << std::endl;
+    std::cout << oss.str() << std::flush;
+    (*MyOutput_) << oss.str() << std::flush;
+    ibest_pipeline_depth = static_cast<int>(best_depth);
+    pipeline_depth_fine = static_cast<int>(fine_delay);
+  }else{
+    std::cout << "Slot " << slot() << " has hardware version " << GetHardwareVersion() << " (want 2)." << std::endl; 
+  }
+  return ibest_pipeline_depth;
+}
+
+float DAQMB::get_best_pipeline_depth(const unsigned lower_depth,
+				     const unsigned upper_depth,
+				     const double run_time,
+				     double& err,
+				     unsigned& muons){
+  const unsigned original_kill(odmb_read_kill_mask());
+  unsigned original_depth[7], original_delay[7];
+  for(unsigned dcfeb(1); dcfeb<=7; ++dcfeb){
+    original_depth[dcfeb]=odmb_read_dcfeb_pipeline_depth(dcfeb);
+    original_delay[dcfeb]=odmb_read_dcfeb_fine_delay(dcfeb);
+  }
+  odmb_set_all_fine_delay_quick(0);
+  
+  //The value that gets returned at the end
+  float best_depth(lower_depth);
+  unsigned total_muons(0);
+
+  //Don't bother running if told to run on null set
+  if(lower_depth<=upper_depth){
+    //Pipeline depth is read/written with only 9 bits
+    const unsigned num_depth_bits(9);
+
+    Packet::Unpacker unpacker;
+
+    //To avoid timeouts later
+    time_t start_time(0), now(0);
+    time(&start_time);
+    now=start_time;
+
+    std::vector<std::pair<float, float> > timing_data(0);
+
+    //Scan over depths
+    for(unsigned depth(lower_depth);
+	depth<=upper_depth && depth<(1ul << num_depth_bits);
+	++depth){
+      std::cout << "Trying pipeline depth " << depth << "...";
+      //Figure out when to move on to next depth
+      const double numerator(static_cast<double>(depth-lower_depth+1));
+      const double denominator(static_cast<double>(upper_depth-lower_depth+1));
+      const double time_limit((numerator/denominator)*run_time);
+      
+
+      odmb_set_all_pipeline_depth_quick(depth);
+      
+      std::vector<double> time_bins(0);
+      muons=0;
+      
+      //Get as many muons as possible in time limit
+      unsigned last_dcfeb_read(0);
+      while(difftime(now, start_time)<=time_limit){
+	std::vector<unsigned> words(get_DCFEB_packet(start_time, time_limit, last_dcfeb_read));
+	
+	//Don't process partial packets
+	if(words.size()>=800 && words.at(799)==0x7FFF){
+	  unpacker.SetData(words, 0, 1);
+	  
+	  //Quality check to avoid processing noise or looking at events where unpacker doesn't know where the muon is
+	  if(unpacker.LooksLikeAMuon()){
+	    const double time_bin(unpacker.GetAverageTimeBin());
+	    time_bins.push_back(time_bin);
+	    timing_data.push_back(std::pair<float, float>(depth, time_bin));
+	    ++muons;
+	  }
+	  ++total_muons;
+	}else{
+	  odmb_rst_dcfeb_fifo(1 << (last_dcfeb_read -1));
+	}
+	time(&now);
+      }//End of muon loop
+
+      std::ostringstream oss("");
+      oss << time_bins.size() << " muons with average time bin " << std::setprecision(3)
+	  << std::accumulate(time_bins.begin(), time_bins.end(), 0.0)/(time_bins.size()?time_bins.size():1.0)
+	  << std::endl;
+      std::cout << oss.str() << std::flush;
+      (*MyOutput_) << oss.str() << std::flush;
+    }//End of depth loop
+
+    best_depth=get_best_pipeline_depth(timing_data);
+    unsigned range_count(0);
+    for(std::vector<std::pair<float, float> >::iterator it(timing_data.begin());
+	it!=timing_data.end();
+	++it){
+      if(it->first>(best_depth-3.5) && it->first<(best_depth+3.5)) ++range_count;
+    }
+    const float score_center(get_timing_score(best_depth, timing_data));
+    const unsigned denom((timing_data.size()-1)*range_count);
+    const float syst(0.0625);
+    const float stat((denom>0)?sqrt(score_center/denom):0.0);
+    err=(denom>0)?sqrt(syst*syst+score_center/denom):0.0;
+    std::ostringstream oss("");
+    oss << "Best depth: " << best_depth << "+-" << stat << "+-" << syst
+	<< " (sum of squares=" << score_center
+	<< ", points=" << timing_data.size()
+	<< ", muons=" << total_muons <<")." << std::endl;
+    std::cout << oss.str() << std::flush;
+    //(MyOutput*) << oss.str() << std::flush;
+
+    std::ofstream ofs("/local/data/cscme11/ucsb/ald/TriDAS/emu/dump.txt");
+    ofs << best_depth << std::endl;
+    for(unsigned i(0); i<timing_data.size(); ++i){
+      ofs << timing_data.at(i).first << ' ' << timing_data.at(i).second << std::endl;
+    }
+    ofs.close();
+
+    muons=timing_data.size();
+
+  }else{//end if(lower_depth<upper_depth)
+    muons=0;
+  }
+
+  //Restore settings we've changed
+  odmb_set_kill_mask(original_kill);
+  for(unsigned dcfeb(1); dcfeb<=7; ++dcfeb){
+    odmb_set_dcfeb_pipeline_depth(dcfeb, original_depth[dcfeb]);
+    odmb_set_dcfeb_fine_delay(dcfeb, original_delay[dcfeb]);
+  }
+
+  return best_depth;
+}
+
+void DAQMB::odmb_set_all_pipeline_depth_quick(const unsigned depth){
+  const unsigned odmb_shift_instr(0x191C);
+  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
+  const unsigned odmb_shift_hdr_tlr_9_bit(0x180C);
+
+  const unsigned original_kill(odmb_read_kill_mask());
+  odmb_set_kill_mask(0xFFFFu);
+  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
+  WriteRegister(ODMB_SEL_DCFEB_JTAG, 0x7F);
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Depth);
+  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
+  WriteRegister(odmb_shift_hdr_tlr_9_bit, depth);
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
+  odmb_rst_dcfeb_fifo(0x7Fu);
+  odmb_set_kill_mask(original_kill);
+}
+
+void DAQMB::odmb_set_all_fine_delay_quick(const unsigned delay){
+  const unsigned odmb_shift_instr(0x191C);
+  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
+  const unsigned odmb_shift_hdr_tlr_3_bit(0x120C);
+
+  const unsigned original_kill(odmb_read_kill_mask());
+  odmb_set_kill_mask(0xFFFFu);
+  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
+  WriteRegister(ODMB_SEL_DCFEB_JTAG, 0x7F);
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, ADC_Fine_Delay);
+  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
+  WriteRegister(odmb_shift_hdr_tlr_3_bit, delay);
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
+  odmb_rst_dcfeb_fifo(0x7Fu);
+  odmb_set_kill_mask(original_kill);
+}
+
+unsigned DAQMB::odmb_read_dcfeb_fine_delay(const unsigned dcfeb){
+  const unsigned odmb_shift_instr(0x191C);
+  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
+  const unsigned odmb_shift_hdr_tlr_3_bit(0x120C);
+
+  const unsigned dcfeb_bit(1 << (dcfeb-1));
+
+  const unsigned original_kill(odmb_read_kill_mask());
+  odmb_set_kill_mask(0xFF10u | dcfeb_bit);
+  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
+  WriteRegister(ODMB_SEL_DCFEB_JTAG, dcfeb_bit);
+
+  //Set to arbitrary value
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, ADC_Fine_Delay);
+  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
+  WriteRegister(odmb_shift_hdr_tlr_3_bit, 0);
+
+  const unsigned fine_delay(ReadRegister(ODMB_DCFEB_TDO));
+
+  //Restore original value
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, ADC_Fine_Delay);
+  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
+  WriteRegister(odmb_shift_hdr_tlr_3_bit, fine_delay);
+
+  //Reset
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
+  odmb_rst_dcfeb_fifo(dcfeb_bit);
+  odmb_set_kill_mask(original_kill);
+  return fine_delay;
+}
+
+unsigned DAQMB::odmb_read_dcfeb_pipeline_depth(const unsigned dcfeb){
+  const unsigned odmb_shift_instr(0x191C);
+  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
+  const unsigned odmb_shift_hdr_tlr_9_bit(0x180C);
+
+  const unsigned dcfeb_bit(1 << (dcfeb-1));
+
+  const unsigned original_kill(odmb_read_kill_mask());
+  odmb_set_kill_mask(0xFF10u | dcfeb_bit);
+  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
+  WriteRegister(ODMB_SEL_DCFEB_JTAG, dcfeb_bit);
+
+  //Set to arbitrary value
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Depth);
+  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
+  WriteRegister(odmb_shift_hdr_tlr_9_bit, 0);
+
+  const unsigned pipeline_depth(ReadRegister(ODMB_DCFEB_TDO));
+
+  //Restore original value
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Depth);
+  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
+  WriteRegister(odmb_shift_hdr_tlr_9_bit, pipeline_depth);
+
+  //Reset
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
+  odmb_rst_dcfeb_fifo(dcfeb_bit);
+  odmb_set_kill_mask(original_kill);
+  return pipeline_depth;
+}
+
+void DAQMB::odmb_set_dcfeb_fine_delay(const unsigned dcfeb, const unsigned delay){
+  const unsigned odmb_shift_instr(0x191C);
+  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
+  const unsigned odmb_shift_hdr_tlr_3_bit(0x120C);
+
+  const unsigned dcfeb_bit(1 << (dcfeb-1));
+
+  const unsigned original_kill(odmb_read_kill_mask());
+  odmb_set_kill_mask(0xFF10u | dcfeb_bit);
+  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
+  WriteRegister(ODMB_SEL_DCFEB_JTAG, dcfeb_bit);
+
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, ADC_Fine_Delay);
+  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
+  WriteRegister(odmb_shift_hdr_tlr_3_bit, delay);
+
+  //Reset
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
+  odmb_rst_dcfeb_fifo(dcfeb_bit);
+  odmb_set_kill_mask(original_kill);
+}
+
+void DAQMB::odmb_set_dcfeb_pipeline_depth(const unsigned dcfeb, const unsigned depth){
+  const unsigned odmb_shift_instr(0x191C);
+  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
+  const unsigned odmb_shift_hdr_tlr_9_bit(0x180C);
+
+  const unsigned dcfeb_bit(1 << (dcfeb-1));
+
+  const unsigned original_kill(odmb_read_kill_mask());
+  odmb_set_kill_mask(0xFF10u | dcfeb_bit);
+  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
+  WriteRegister(ODMB_SEL_DCFEB_JTAG, dcfeb_bit);
+
+  //Set to arbitrary value
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Depth);
+  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
+  WriteRegister(odmb_shift_hdr_tlr_9_bit, depth);
+
+  //Reset
+  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
+  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
+  odmb_rst_dcfeb_fifo(dcfeb_bit);
+  odmb_set_kill_mask(original_kill);
+}
+
+std::vector<unsigned> DAQMB::get_DCFEB_packet(const time_t start_time, const double time_limit, unsigned& dcfeb){
+  //N.B.: This function assumes you've already selected the correct DCFEB FIFO, taken care of necessary resets, etc.
+  unsigned words_in_fifo(0);
+  if(dcfeb<1) dcfeb=1;
+  if(dcfeb>7) dcfeb=7;
+
+  //Wait for 802 words or timeout
+  time_t now;
+  time(&now);
+  while(words_in_fifo<802 && difftime(now, start_time)<=time_limit){
+    if((++dcfeb)==8) dcfeb=1;
+    odmb_sel_dcfeb_fifo(dcfeb);
+    words_in_fifo=odmb_read_dcfeb_fifo_cnt();
+    time(&now);
+  }
+
+  //Discard the L1A...
+  odmb_read_dcfeb_fifo();
+  odmb_read_dcfeb_fifo();
+
+  //Don't read more words than there are in the FIFO
+  const unsigned words_to_read((words_in_fifo>=802)?800:((words_in_fifo>=2)?(words_in_fifo-2):0));
+
+  //Get the words out of the FIFO
+  std::vector<unsigned> words(words_to_read);
+  for(unsigned word(0); word<words_to_read; ++word){
+    words.at(word)=odmb_read_dcfeb_fifo();
+  }
+
+  return words;
+}
+
+float DAQMB::get_best_pipeline_depth(std::vector<std::pair<float, float> >& timing_data){
+  if(timing_data.size()==0) return 0.0;
+    
+  std::sort(timing_data.begin(), timing_data.end());
+  float x1(timing_data.at(0).first-8.0), x4(timing_data.at(timing_data.size()-1).first+8.0);
+
+  const float phi(sqrt(1.25)-0.5);
+  float delta(x4-x1);
+  float x2(x4-delta*phi), x3(x1+delta*phi);
+  float y1(get_timing_score(x1, timing_data));
+  float y2(get_timing_score(x2, timing_data));
+  float y3(get_timing_score(x3, timing_data));
+  float y4(get_timing_score(x4, timing_data));
+
+  while(x3>x2){
+    delta=x3-x1;
+    if(y3>=y2){
+      x4=x3; y4=y3;
+      x3=x2; y3=y2;
+      x2=x4-delta*phi; y2=get_timing_score(x2, timing_data);
+    }else{
+      x1=x2; y1=y2;
+      x2=x3; y2=y3;
+      x3=x1+delta*phi; y3=get_timing_score(x3, timing_data);
+    }
+  }
+  return x2+0.5*(x3-x2);
+}
+
+float DAQMB::get_timing_score(const float depth, const std::vector<std::pair<float, float> >& timing_data){
+  float score(0.0);
+  for(std::vector<std::pair<float, float> >::const_iterator it(timing_data.begin());
+      it!=timing_data.end();
+      ++it){
+    const float delta_x(it->first-depth);
+    const float correct_y((delta_x<-3.5)?1.0:((delta_x>3.5)?8.0:(delta_x+4.5)));
+    const float delta_y(it->second-correct_y);
+    score+=delta_y*delta_y;
+  }
+  //std::cout << "Minimizer at " << depth << ", " << score << std::endl;
+  return score;
+}
+
+int DAQMB::scan_delays(const unsigned device_select,
+			const unsigned lower_limit,
+			const unsigned upper_limit,
+			const double run_time){
+  int ibest_delay(-1);
+  if(GetHardwareVersion()==2){//Only run for ODMB
+    for(unsigned device(1); device<=9; ++device){
+      if(device_select & (1 << (device-1))){
+	const unsigned best_delay(get_best_delay(device, lower_limit, upper_limit, run_time));
+	std::string name("");
+	if(device>=1 && device <=7){
+	  name="L1A_LCT_DLY";
+	}else if(device==8){
+	  name="OTMBDAV_DLY";
+	}else if(device==9){
+	  name="ALCTDAV_DLY";
+	}else{
+	  name="???????????";
+	}
+	std::cout << "Finding delay for " << name << "... delay is " << best_delay << '.' << std::endl;
+	(*MyOutput_) << "Best delay for " << name << " is " << best_delay << '.' << std::endl;;
+	ibest_delay = static_cast<int>(best_delay); // If more than one device selected, the last one is returned
+      }
+    }
+  }else{
+    std::cout << "Slot " << slot() << " has hardware version " << GetHardwareVersion() << " (want 2)." << std::endl; 
+  }
+  return ibest_delay;
+}
+
+unsigned DAQMB::get_best_delay(const unsigned device, const unsigned lower_delay,
+			       const unsigned upper_delay, const double run_time){
+  unsigned best_delay(lower_delay);
+  if(lower_delay<upper_delay){
+    const unsigned num_delay_bits(6);//Delays are read/written with only 6 bits
+
+    const unsigned init_delay(odmb_read_device_delay(device));
+
+    std::cout << std::setfill(' ') << "Device " << device << ":\nDelay: L1A Match Fraction\n";
+      
+    const double single_time(run_time/(upper_delay-lower_delay+1));
+    time_t start_time(0), now(0);
+    time(&start_time);
+    now=start_time;
+    double weight_total(0.0);
+    double avg_total(0.0);
+    for(unsigned delay(lower_delay);
+	delay<=upper_delay && delay<(1 << num_delay_bits);
+	++delay){
+      odmb_write_device_delay(device, delay);
+      unsigned last_num_lct(odmb_read_device_num_lct(device));
+      unsigned last_num_l1a_match(odmb_read_device_num_l1a_match(device));
+          
+      //Subtract starting counts and later keep track of counter overflows
+      int num_l1a_match_offset(-last_num_l1a_match);
+      int num_lct_offset(-last_num_lct);
+        
+      unsigned num_lcts(0);
+      unsigned num_l1a_matches(0);
+        
+      while(difftime(now, start_time)<=((delay-lower_delay+1)*single_time)){
+	const unsigned counter_bits(16);
+	const unsigned this_num_lct(odmb_read_device_num_lct(device));
+	const unsigned this_num_l1a_match(odmb_read_device_num_l1a_match(device));
+            
+	//Check for overflow
+	if(this_num_lct<last_num_lct) num_lct_offset+=(1 << counter_bits);
+	if(this_num_l1a_match<last_num_l1a_match) num_l1a_match_offset+=(1 << counter_bits);
+            
+	//Update counts
+	num_l1a_matches=this_num_l1a_match+num_l1a_match_offset;
+	num_lcts=this_num_lct+num_lct_offset;
+            
+	last_num_l1a_match=this_num_l1a_match;
+	last_num_lct=this_num_lct;
+
+	time(&now);
+      }
+
+      const double match_fraction(num_lcts?(static_cast<double>(num_l1a_matches)/num_lcts):0.0);
+      weight_total+=match_fraction;
+      avg_total+=match_fraction*delay;
+      std::cout << std::setw(5) << delay << ": "
+		<< std::setw(3) << num_l1a_matches << '/'
+		<< std::setw(3) << num_lcts << '='
+		<< std::setw(10) << match_fraction << std::endl;;
+    }//End delay loop
+    best_delay=(weight_total>0.0)?static_cast<unsigned>(floor(0.5+avg_total/weight_total)):0;
+    odmb_write_device_delay(device, init_delay);
+  }
+  return best_delay;
+}
+
+unsigned DAQMB::odmb_read_device_delay(const unsigned device){
+  unsigned delay_addr(LCT_L1A_DLY);
+  switch(device){
+  case 8: delay_addr=TMB_DLY; break;
+  case 9: delay_addr=ALCT_DLY; break;
+  default: break;
+  }
+  return ReadRegister(delay_addr);
+}
+
+void DAQMB::odmb_write_device_delay(const unsigned device, const unsigned delay){
+  unsigned delay_addr(LCT_L1A_DLY);
+  switch(device){
+  case 8: delay_addr=TMB_DLY; break;
+  case 9: delay_addr=ALCT_DLY; break;
+  default: break;
+  }
+  WriteRegister(delay_addr, delay);
+}
 } // namespace emu::pc
 } // namespace emu

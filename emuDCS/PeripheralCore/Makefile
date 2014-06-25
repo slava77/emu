@@ -36,7 +36,8 @@ Sources=\
 	EmuEndcap.cc \
         EmuLogger.cc \
         PROBLEM.cc \
-        DDU.cc
+        DDU.cc \
+	Unpacker.cc
 
 IncludeDirs = 
 

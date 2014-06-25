@@ -231,6 +231,7 @@ class MPC : public VMEModule, public EmuLogger {
   void setSorterMode();
   void check_generation();
   int readDSN(void *data);
+  int newPRBS(int mode);
 
  protected:
   /// MPC base address should always correspond to VME Slot 12 (=0x600000)
