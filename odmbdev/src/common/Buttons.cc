@@ -3992,20 +3992,14 @@ int slot = Manager::getSlotNumber();
       bool debug = false;
       int slot = Manager::getSlotNumber();
       // These are the appropriate R/W addresses for register reset
-      unsigned int read_addr = 0x003000;
-      unsigned int write_addr = 0x003000;
-      unsigned short int reset_command = 0x100;
+      unsigned int write_addr = 0x003004;
+      unsigned short int reset_command = 0x1;
       unsigned short int VMEresult;
    
-      VMEresult = vme_wrapper_->VMERead(read_addr,slot,"Read ODMB_CTRL register");
-      if (debug) out << "read: " << FixLength(VMEresult) << endl;
       vme_wrapper_->VMEWrite(write_addr,reset_command,slot,"Send reset to ODMB_CTRL register");
       usleep(100);
-      vme_wrapper_->VMEWrite(write_addr,VMEresult,slot,"Send VMEresult to ODMB_CTRL register");
-      usleep(100);            
-      VMEresult = vme_wrapper_->VMERead(read_addr,slot,"Read ODMB_CTRL register");
 
-      out << "R  " << FixLength(read_addr & 0xffff) << "        " << FixLength(VMEresult)  << endl<< endl;      
+      out << "W  " << FixLength(write_addr & 0xffff) << "        " << FixLength(1)<<"\tODMB soft reset"  << endl<< endl;      
       
     }
 
