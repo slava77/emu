@@ -1832,6 +1832,67 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
   sprintf(buf,"%d",dmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
+  *out << cgicc::br();
+  //
+  // new tests for DCFEB communication
+  std::string DCFEBTests = toolbox::toString("/%s/DCFEBTests",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",DCFEBTests) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","DCFEB copper/fiber mapping test") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::fieldset() << cgicc::br();
+  //  
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
+
+  // Pipeline Depth Scan
+  //
+  *out << cgicc::legend("ODMB Timing Scans (N.B.: must be taking cosmics to use!)").set("style","color:blue") ;
+  std::string pipeline_depth_scan = toolbox::toString("/%s/PipelineDepthScan",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",pipeline_depth_scan) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Pipeline Depth Scan").set("style", "width: 256px") << std::endl ;
+  *out << " Scan lower bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","63").set("name","lower_limit");
+  *out << " Scan upper bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","71").set("name","upper_limit");
+  *out << " Run time: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","60").set("name","run_time") << " seconds.";
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br();
+  //  
+
+  std::string l1a_lct_scan = toolbox::toString("/%s/L1ALCTScan",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",l1a_lct_scan) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","L1A_LCT_DLY Scan").set("style", "width: 256px") << std::endl ;
+  *out << " Scan lower bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","34").set("name","lower_limit");
+  *out << " Scan upper bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","40").set("name","upper_limit");
+  *out << " Run time: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","15").set("name","run_time") << " seconds.";
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+
+  //
+  std::string otmbdav_scan = toolbox::toString("/%s/OTMBDAVScan",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",otmbdav_scan) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","OTMBDAV_DLY Scan").set("style", "width: 256px") << std::endl ;
+  *out << " Scan lower bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","0").set("name","lower_limit");
+  *out << " Scan upper bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","6").set("name","upper_limit");
+  *out << " Run time: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","15").set("name","run_time") << " seconds.";
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+
+  //
+  std::string ALCTDAV_scan = toolbox::toString("/%s/ALCTDAVScan",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCTDAV_scan) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","ALCTDAV_DLY Scan").set("style", "width: 256px") << std::endl ;
+  *out << " Scan lower bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","28").set("name","lower_limit");
+  *out << " Scan upper bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","34").set("name","upper_limit");
+  *out << " Run time: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","15").set("name","run_time") << " seconds.";
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::fieldset() << cgicc::br();
   //  
@@ -2760,6 +2821,151 @@ void EmuPeripheralCrateConfig::DMBConfigure(xgi::Input * in, xgi::Output * out )
   thisDMB->restoreCFEBIdle();
   thisDMB->restoreMotherboardIdle();
   thisDMB->configure();
+  //
+  this->DMBUtils(in,out);
+  //
+}
+
+// New test button
+void EmuPeripheralCrateConfig::DCFEBTests(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) { 
+  
+  cgicc::Cgicc cgi(in);      
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << getLocalDateTime() << " DCFEBTests  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  // write to output box
+  thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
+  thisDMB->odmb_dcfeb_tests();
+  thisDMB->RedirectOutput(&std::cout);
+  //
+  this->DMBUtils(in,out);
+  //
+}
+
+// Pipeline Depth Scan button
+// Adam Dishaw, 2014-06-11
+void EmuPeripheralCrateConfig::PipelineDepthScan(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) { 
+  
+  cgicc::Cgicc cgi(in);      
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << getLocalDateTime() << " Pipeline Depth Scan  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  // write to output box
+  thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
+  const unsigned lower_limit(strtoul(GetFormString("lower_limit",in).c_str(), NULL, 0));
+  const unsigned upper_limit(strtoul(GetFormString("upper_limit",in).c_str(), NULL, 0));
+  const double run_time(strtod(GetFormString("run_time",in).c_str(), NULL));
+  int pipeline_depth_fine;
+  MyTest[dmb][current_crate_].SetupRadioactiveTriggerConditions();
+  thisDMB->scan_dcfeb_pipeline_depth(lower_limit, upper_limit, run_time, pipeline_depth_fine);
+  MyTest[dmb][current_crate_].ReturnToInitialTriggerConditions();
+  thisDMB->RedirectOutput(&std::cout);
+  //
+  this->DMBUtils(in,out);
+  //
+}
+
+// Timing Scan button
+void EmuPeripheralCrateConfig::L1ALCTScan(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) { 
+  
+  cgicc::Cgicc cgi(in);      
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << getLocalDateTime() << " L1A_LCT_DLY Scan " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  // write to output box
+  thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
+  const unsigned lower_limit(strtoul(GetFormString("lower_limit",in).c_str(), NULL, 0));
+  const unsigned upper_limit(strtoul(GetFormString("upper_limit",in).c_str(), NULL, 0));
+  const double run_time(strtod(GetFormString("run_time",in).c_str(), NULL));
+  MyTest[dmb][current_crate_].SetupRadioactiveTriggerConditions();
+  thisDMB->scan_delays(0x1, lower_limit, upper_limit, run_time);
+  MyTest[dmb][current_crate_].ReturnToInitialTriggerConditions();
+  thisDMB->RedirectOutput(&std::cout);
+  //
+  this->DMBUtils(in,out);
+  //
+}
+
+void EmuPeripheralCrateConfig::OTMBDAVScan(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) { 
+  
+  cgicc::Cgicc cgi(in);      
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << getLocalDateTime() << " OTMBDAV_DLY Scan " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  // write to output box
+  thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
+  const unsigned lower_limit(strtoul(GetFormString("lower_limit",in).c_str(), NULL, 0));
+  const unsigned upper_limit(strtoul(GetFormString("upper_limit",in).c_str(), NULL, 0));
+  const double run_time(strtod(GetFormString("run_time",in).c_str(), NULL));
+  MyTest[dmb][current_crate_].SetupRadioactiveTriggerConditions();
+  thisDMB->scan_delays(0x80, lower_limit, upper_limit, run_time);
+  MyTest[dmb][current_crate_].ReturnToInitialTriggerConditions();
+  thisDMB->RedirectOutput(&std::cout);
+  //
+  this->DMBUtils(in,out);
+  //
+}
+
+void EmuPeripheralCrateConfig::ALCTDAVScan(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) { 
+  
+  cgicc::Cgicc cgi(in);      
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << getLocalDateTime() << " ALCTDAV_DLY Scan " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  // write to output box
+  thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
+  const unsigned lower_limit(strtoul(GetFormString("lower_limit",in).c_str(), NULL, 0));
+  const unsigned upper_limit(strtoul(GetFormString("upper_limit",in).c_str(), NULL, 0));
+  const double run_time(strtod(GetFormString("run_time",in).c_str(), NULL));
+  MyTest[dmb][current_crate_].SetupRadioactiveTriggerConditions();
+  thisDMB->scan_delays(0x100, lower_limit, upper_limit, run_time);
+  MyTest[dmb][current_crate_].ReturnToInitialTriggerConditions();
+  thisDMB->RedirectOutput(&std::cout);
   //
   this->DMBUtils(in,out);
   //

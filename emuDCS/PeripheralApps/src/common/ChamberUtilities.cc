@@ -475,7 +475,14 @@ ChamberUtilities::ChamberUtilities(){
   TmbDavValueMax_  = 10;
   AlctDavValueMin_ = 20;
   AlctDavValueMax_ = 30;
-  //
+  // ODMB
+  l1acc_dav_delay_ = -1;
+  alct_dav_delay_ = -1;
+  tmb_dav_delay_ = -1;
+  // DCFEB
+  pipeline_depth_ = -1;
+  pipeline_depth_fine_ = -1;
+
 }
 //
 //
@@ -3541,6 +3548,48 @@ void ChamberUtilities::FindDAVDelays(){
   //
   return;
 }
+    
+    void ChamberUtilities::FindODMBDelays(){
+      std::cout << "Measuring ODMB delays." << std::endl;
+
+      const unsigned lct_l1a_scan_lower_bound(34);
+      const unsigned lct_l1a_scan_upper_bound(40);
+      const unsigned lct_l1a_scan_runtime(7);
+      //Note: Timer has 1 second resolution, so setting less than 1 second
+      //per scanned depth will result in gaps in the scan. This may result in
+      //failure to find the correct value.
+      l1acc_dav_delay_ = thisDMB->scan_delays(1, lct_l1a_scan_lower_bound, lct_l1a_scan_upper_bound, lct_l1a_scan_runtime);
+
+      const unsigned otmbdav_scan_lower_bound(0);
+      const unsigned otmbdav_scan_upper_bound(6);
+      const unsigned otmbdav_scan_runtime(7);
+      //Note: Timer has 1 second resolution, so setting less than 1 second
+      //per scanned depth will result in gaps in the scan. This may result in
+      //failure to find the correct value.
+      tmb_dav_delay_ = thisDMB->scan_delays(0x80, otmbdav_scan_lower_bound, otmbdav_scan_upper_bound, otmbdav_scan_runtime);
+
+      const unsigned alctdav_scan_lower_bound(27);
+      const unsigned alctdav_scan_upper_bound(34);
+      const unsigned alctdav_scan_runtime(15);
+      //Note: Timer has 1 second resolution, so setting less than 1 second
+      //per scanned depth will result in gaps in the scan. This may result in
+      //failure to find the correct value.
+      alct_dav_delay_ = thisDMB->scan_delays(0x100, alctdav_scan_lower_bound, alctdav_scan_upper_bound, alctdav_scan_runtime);
+    }
+
+    void ChamberUtilities::FindPipelineDepths(){
+      const unsigned scan_lower_bound(56);
+      const unsigned scan_upper_bound(70);
+
+      const unsigned runtime(16);
+      //Note: Timer has 1 second resolution, so setting less than 1 second
+      //per scanned depth will result in gaps in the scan. The algorithm
+      //can still work under these conditions, but the output is less useful
+      //for human cross-checking of its results.
+
+      std::cout << "Measuring pipeline depth." << std::endl;
+      pipeline_depth_ = thisDMB->scan_dcfeb_pipeline_depth(scan_lower_bound, scan_upper_bound, runtime, pipeline_depth_fine_);
+    }
 //
 void ChamberUtilities::FindL1AAndDAVDelays(){
   //

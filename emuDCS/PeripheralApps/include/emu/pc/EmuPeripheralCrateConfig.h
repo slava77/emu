@@ -401,6 +401,11 @@ private:
   void WriteDMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBConfigure(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DMBCheckConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DCFEBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void PipelineDepthScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void L1ALCTScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void OTMBDAVScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ALCTDAVScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MakeReference(xgi::Input * in , xgi::Output * out );
   void DMBTurnOff(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBTurnOn(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -562,6 +567,8 @@ private:
   void QuickScanForChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void QuickScanForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void QuickScanForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
+  void MeasureODMBDelaysForCrate(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
+  void MeasurePipelineDepthForCrate(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
   //
   // BC0 scan functions
   void ALCTBC0Scan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -609,6 +616,7 @@ private:
   void SetTwoLayerTrigger(int tmb);
   //
   void DefineFirmwareFilenames();
+  std::string GetFormString(const std::string& form_element, xgi::Input* in);
 
   //
   std::vector<TMBTester> InitTMBTests(Crate *);
