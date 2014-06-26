@@ -1019,6 +1019,7 @@ int MPC::newPRBS(int mode)
           return (v&0xF)/2; 
        else
        {
+          WriteRegister(CSR5, 0x30); // normal mode
           int prbsmode=((mode&7)<<4 | (mode&7)<<1);
           WriteRegister(CSR4, (v&0xFF00)|prbsmode);
           return mode&7;
