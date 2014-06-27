@@ -9556,7 +9556,7 @@ void DAQMB::set_dcfeb_parambuffer(CFEB &cfeb, unsigned short int bufload[34]){
     bufload[1]=comp_thresh&0x0fff;               // comp. thresh. 12 bits
     bufload[2]=comp_mode_cfeb_[number]&0x0003;             // comp. mode 2 bits
     bufload[3]=comp_timing_cfeb_[number]&0x0007;           // comp. timing 3 bits
-    bufload[4]=comp_clk_phase_cfeb_[number]&0x000f;        // comp. CLK phase 4 bits
+    bufload[4]=comp_clk_phase_cfeb_[number]&0x001f;        // comp. CLK phase 5 bits
     bufload[5]=adcsamp_clk_phase_cfeb_[number]&0x0007;     // adc samp. CLK phase 3 bits
     bufload[6]=nsample_cfeb_[number]&0x007f;               // # of samples 7 bits
     bufload[7]=pipeline_depth&0x01ff;         // pipeline depth 9 bits
@@ -9632,7 +9632,7 @@ void DAQMB::autoload_select_readback_wrd(CFEB &cfeb, int ival){
       7 - ttc source 2 bits
       8 # samples 7 bits
       9 bpi write fifo 16 bits
-     10 comp clock phase 4 bits
+     10 comp clock phase 5 bits
      11 samp clock phase 3 bits
      12 tmb transmit mode 3 bits
      13 hs settings 30 bits
@@ -10371,5 +10371,98 @@ void DAQMB::odmb_write_device_delay(const unsigned device, const unsigned delay)
   }
   WriteRegister(delay_addr, delay);
 }
+
+// OSU's SEM(Single Event Upset) related routines
+// provided by Bingxuan Liu
+void DAQMB::SEM_read_status(CFEB &cfeb, char status[2]){
+     // Function 37:
+     // SEM Status and Configuration Frame Address Register (FAR) capture and shift
+     //	[0] = status_initialization;
+     //	[1] = status_observation;
+     //	[2] = status_correction;
+     //	[3] = status_classification;
+     //	[4] = status_injection;
+     //	[5] = status_essential;
+     //	[6] = status_uncorrectable;
+     //	[7] = 1'b0;
+     //	[8] = CRC error;
+     //	[9] = double error detected;
+      unsigned tmp = 0x5555;
+      char buf[4]; 
+      dcfeb_hub(cfeb, SEM_STATUS,16, &tmp, buf, READ_YES|NOW);
+      memcpy(status, buf, 2);
+      return;
+}
+
+int DAQMB::SEM_multibit_info(char status[2]){
+  int tmp;
+  tmp=0;
+  if((status[1]&0x02)!=0x00)tmp=1;
+  return tmp;
+}
+
+
+void DAQMB::SEM_unpack_status(char status[2]){
+  // unpack SEM status
+  printf("UNPACKED STATUS \n");
+  if((status[0]&0x01)!=0x00)printf("state:initialization\n");
+  if((status[0]&0x02)!=0x00)printf("state:observation\n");
+  if((status[0]&0x04)!=0x00)printf("state:correction\n");
+  if((status[0]&0x08)!=0x00)printf("state:classification\n");
+  if((status[0]&0x10)!=0x00)printf("state:injection\n");
+  if((status[0]&0x20)!=0x00)printf("essential bit set\n");
+  if((status[0]&0x40)!=0x00)printf("uncorrectable bit set\n");
+  if((status[1]&0x01)!=0x00)printf("crc error bit set \n");
+  if((status[1]&0x02)!=0x00)printf("double error bit set\n");
+}
+
+void DAQMB::SEM_read_seu_address_linear(CFEB &cfeb, char blkadd[3]){
+      unsigned tmp = 0x555555;
+      char buf[4]; 
+      dcfeb_hub(cfeb,SEM_SEU_ADD_LINEAR,24, &tmp, buf, READ_YES|NOOP_YES|NOW);
+      memcpy(blkadd, buf, 3);
+      return;
+}
+
+void DAQMB::SEM_read_seu_address_physical(CFEB &cfeb, char faradd[3]){
+      unsigned tmp = 0x55555555;
+      char buf[4]; 
+      dcfeb_hub(cfeb,SEM_SEU_ADD_PHYSICAL, 24, &tmp, buf, READ_YES|NOOP_YES|NOW);
+      memcpy(faradd, buf, 3);
+      return;
+}
+
+void DAQMB::SEM_read_errcnt(CFEB &cfeb, char *singleflip,char *multiflip){
+//
+// Function 39:
+//
+// ECC Error counters capture and shift
+// 16 bit word
+//	[15:8] = multi_bit_err_cnt;
+//	[7:0]  = sngl_bit_err_cnt;
+      unsigned tmp = 0xd5eedfba;
+      char buf[4]; 
+      dcfeb_hub(cfeb,SEM_ERRCNT_READ, 24, &tmp, buf, READ_YES|NOW);
+      memcpy(&singleflip[0], buf, 1);
+      memcpy(&multiflip[0], buf+1, 1);
+      return;
+}
+
+void DAQMB::SEM_control(CFEB &cfeb){
+//  47     | Take control of the SEM command interface
+//         | (only needs to be set after ChipScope Pro has been in control).
+      unsigned tmp=0x0000;
+      char buf[4];
+      dcfeb_hub(cfeb,SEM_Control, 8, &tmp, buf, NOW);
+}
+
+void DAQMB::SEM_rst_doublerrorflag(CFEB &cfeb){
+//  48     | Reset the double error detected flag (SEM module)
+      //write_cfeb_selector(cfeb.SelectorBit());
+      unsigned tmp=0x0000;
+      char buf[4];
+      dcfeb_hub(cfeb,SEM_RST_DED, 8, &tmp, buf, NOW);
+}
+
 } // namespace emu::pc
 } // namespace emu
