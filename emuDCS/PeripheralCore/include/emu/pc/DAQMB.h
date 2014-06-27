@@ -893,6 +893,16 @@ public:
   inline unsigned odmb_read_device_num_l1a_match(const unsigned device){return ReadRegister(0x320C | (device << 4));}
   inline unsigned odmb_read_device_num_lct(const unsigned device){return ReadRegister(0x370C | (device << 4));}
 
+  // for SEM (provided by Bingxuan Liu of OSU)
+  void SEM_read_status(CFEB &cfeb, char status[2]);
+  int SEM_multibit_info(char status[2]);
+  void SEM_unpack_status(char status[2]);
+  void SEM_read_seu_address_linear(CFEB &cfeb, char blkadd[3]);
+  void SEM_read_seu_address_physical(CFEB &cfeb, char faradd[3]);
+  void SEM_read_errcnt(CFEB &cfeb, char *singleflip,char *multiflip);
+  void SEM_control(CFEB &cfeb);
+  void SEM_rst_doublerrorflag(CFEB &cfeb);
+
  private:
 
   // DCFEB BPI-->EPROM access rountines
