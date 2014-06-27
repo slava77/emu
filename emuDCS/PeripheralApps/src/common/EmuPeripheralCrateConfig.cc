@@ -300,6 +300,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCReadFirmware, "MPCReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBTestAll, "CCBTestAll");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBSetTestLoops, "CCBSetTestLoops");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPColdPRBS, "MPColdPRBS");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPCnewPRBS, "MPCnewPRBS");
  
   //
   //-----------------------------------------------

@@ -512,6 +512,8 @@ private:
   void MPCMask(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPCReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MPColdPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MPCnewPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // CCB utils
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

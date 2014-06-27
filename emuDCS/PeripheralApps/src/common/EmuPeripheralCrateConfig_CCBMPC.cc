@@ -573,6 +573,40 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","Read MPC Firmware in MCS format") << std::endl ;
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::fieldset() << cgicc::br();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  //
+  *out << cgicc::legend("MPC PRBS Tests").set("style","color:blue") << std::endl ;
+
+  std::string MPColdprbs =
+    toolbox::toString("/%s/MPColdPRBS",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","POST").set("action",MPColdprbs) << std::endl ;
+  *out << cgicc::input().set("type","radio").set("name","oldPRBS").set("value", "0") << "Disable PRBS";
+  *out << cgicc::input().set("type","radio").set("name","oldPRBS").set("value", "1") << "Enable PRBS";
+  if(thisMPC->GetHardwareVersion()<=1)
+    *out << cgicc::input().set("type","submit").set("value","Select MPC PRBS mode") << std::endl ;
+  else
+    *out << cgicc::input().set("type","submit").set("value","Select MPC old links PRBS mode") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+
+  if(thisMPC->GetHardwareVersion()==2)
+  {
+  *out << cgicc::hr();
+  std::string MPCnewprbs =
+    toolbox::toString("/%s/MPCnewPRBS",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","POST").set("action",MPCnewprbs) << std::endl ;
+  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "0") << "Disable PRBS";
+  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "1") << "PRBS-7";
+  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "2") << "PRBS-15";
+  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "3") << "PRBS-23";
+  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "4") << "PRBS-31";
+  *out << cgicc::input().set("type","submit").set("value","Select MPC new links PRBS mode") << std::endl ;
+  }
+  *out << cgicc::form() << std::endl ;
+  //
+  
+
   *out << cgicc::fieldset();
   //
 }
@@ -936,6 +970,48 @@ void EmuPeripheralCrateConfig::CCBTestAll(xgi::Input * in, xgi::Output * out )
     //
     this->CCBTests(in,out);
     //
+  }
+
+void EmuPeripheralCrateConfig::MPColdPRBS(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) 
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name2 = cgi.getElement("oldPRBS");
+    int prbsmode = -1;
+    if(name2 != cgi.getElements().end()) {
+      prbsmode = atoi(cgi["oldPRBS"]->getValue().c_str());
+    }
+    if(prbsmode != -1)  
+    {  
+       std::cout << "Set MPC old links PRBS mode to: " << prbsmode << std::endl;
+       if(prbsmode)
+         thisMPC->enablePRBS();
+       else
+         thisMPC->disablePRBS();
+    }    
+    this->MPCUtils(in,out);
+  }
+
+void EmuPeripheralCrateConfig::MPCnewPRBS(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) 
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name2 = cgi.getElement("newPRBS");
+    int prbsmode = -1;
+    if(name2 != cgi.getElements().end()) {
+      prbsmode = atoi(cgi["newPRBS"]->getValue().c_str());
+    }
+    if(prbsmode != -1)  
+    {  
+       std::cout << "Set MPC new links PRBS mode to: " << prbsmode << std::endl;
+       thisMPC->newPRBS(prbsmode);
+    }    
+    
+    this->MPCUtils(in,out);
   }
 
  }  // namespace emu::pc
