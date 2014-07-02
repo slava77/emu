@@ -205,6 +205,8 @@ private: // XDAQ parameters
 
         xdata::Boolean controlTFCellOp_;
 
+        xdata::Boolean localDAQWriteBadEventsOnly_;
+
         xdata::String tf_key_;       // Track Finder Key
 	
 	emu::supervisor::RunInfo *runInfo_;         // communicates with run database
