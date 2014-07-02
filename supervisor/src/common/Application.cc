@@ -92,6 +92,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   step_counter_(0),
   error_message_(""), keep_refresh_(false), hide_tts_control_(true),
   controlTFCellOp_(false), // Default MUST be false, i.e., hands off the TF Cell.
+  localDAQWriteBadEventsOnly_(false),
   runInfo_(NULL),
   runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
   runDbWritingCommand_( "java -jar runinfowriter.jar" ),
@@ -126,6 +127,8 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   i->fireItemAvailable("ttsBits", &tts_bits_);
 
   i->fireItemAvailable("controlTFCellOp", &controlTFCellOp_);
+
+  i->fireItemAvailable("localDAQWriteBadEventsOnly", &localDAQWriteBadEventsOnly_);
 
   // Track Finder Key
   tf_key_ = "310309";   // default key as of 31/03/2009
@@ -873,19 +876,19 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       LOG4CPLUS_INFO( logger_, "Sending to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
 		      << ", runType " << run_type_.toString()
 		      << ", isGlobalInControl " << isGlobalInControl.toString()
-		      << ", writeBadEventsOnly " << isGlobalInControl.toString() );
+		      << ", writeBadEventsOnly " << localDAQWriteBadEventsOnly_.toString() );
       m.setParameters( "emu::daq::manager::Application", 
 		       emu::soap::Parameters()
-		       .add( "maxNumberOfEvents" , &nevents_          )
-		       .add( "runType"           , &run_type_         )
-		       .add( "isGlobalInControl" , &isGlobalInControl )
-		       .add( "writeBadEventsOnly", &isGlobalInControl )
+		       .add( "maxNumberOfEvents" , &nevents_                    )
+		       .add( "runType"           , &run_type_                   )
+		       .add( "isGlobalInControl" , &isGlobalInControl           )
+		       .add( "writeBadEventsOnly", &localDAQWriteBadEventsOnly_ )
 		       );
     } catch (xcept::Exception& e) {
       LOG4CPLUS_WARN( logger_, "Failed to send to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
 		      << ", runType " << run_type_.toString()
 		      << ", isGlobalInControl " << isGlobalInControl.toString() 
-		      << ", writeBadEventsOnly " << isGlobalInControl.toString() 
+		      << ", writeBadEventsOnly " << localDAQWriteBadEventsOnly_.toString() 
 		      << ": " << xcept::stdformat_exception_history(e) );
     }
 
