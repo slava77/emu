@@ -1855,6 +1855,8 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
   *out << " Scan lower bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","63").set("name","lower_limit");
   *out << " Scan upper bound: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","71").set("name","upper_limit");
   *out << " Run time: " << cgicc::input().set("type","text").set("style", "width: 64px").set("value","60").set("name","run_time") << " seconds.";
+  *out << " A: " << cgicc::input().set("type","checkbox").set("checked","checked").set("name","check_a");
+  *out << " B: " << cgicc::input().set("type","checkbox").set("checked","checked").set("name","check_b");
   sprintf(buf,"%d",dmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
@@ -2873,9 +2875,11 @@ void EmuPeripheralCrateConfig::PipelineDepthScan(xgi::Input * in, xgi::Output * 
   const unsigned lower_limit(strtoul(GetFormString("lower_limit",in).c_str(), NULL, 0));
   const unsigned upper_limit(strtoul(GetFormString("upper_limit",in).c_str(), NULL, 0));
   const double run_time(strtod(GetFormString("run_time",in).c_str(), NULL));
+  const bool do_a(cgi.queryCheckbox("check_a"));
+  const bool do_b(cgi.queryCheckbox("check_b"));
   int pipeline_depth_fine;
   MyTest[dmb][current_crate_].SetupRadioactiveTriggerConditions();
-  thisDMB->scan_dcfeb_pipeline_depth(lower_limit, upper_limit, run_time, pipeline_depth_fine);
+  thisDMB->scan_dcfeb_pipeline_depth(lower_limit, upper_limit, run_time, pipeline_depth_fine, do_a, do_b);
   MyTest[dmb][current_crate_].ReturnToInitialTriggerConditions();
   thisDMB->RedirectOutput(&std::cout);
   //

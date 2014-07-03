@@ -23,11 +23,11 @@
 #define MaxWords 10000
 using namespace std;
 
-void UpdateLastFewWords(const uint16_t, Packet::svu&);
-bool FindStartOfPacket(std::ifstream&, Packet::svu&);
-void GetRestOfPacket(std::ifstream&, Packet::svu&);
-void GetRestOfDDUPacket(std::ifstream&, Packet::svu&);
-void GetRestOfPCPacket(std::ifstream&, Packet::svu&);
+//void UpdateLastFewWords(const uint16_t, Packet::svu&);
+//bool FindStartOfPacket(std::ifstream&, Packet::svu&);
+//void GetRestOfPacket(std::ifstream&, Packet::svu&);
+//void GetRestOfDDUPacket(std::ifstream&, Packet::svu&);
+//void GetRestOfPCPacket(std::ifstream&, Packet::svu&);
 int calcDDUcrc(unsigned short uipacket[], unsigned int entries);
 using Packet::DataPacket;
 using Packet::svu;

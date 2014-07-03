@@ -571,6 +571,9 @@ private:
   void QuickScanForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void MeasureODMBDelaysForCrate(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
   void MeasurePipelineDepthForCrate(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
+  void MeasureODMBDelaysForEndcap(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
+  void MeasurePipelineDepthForEndcap(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
+
   //
   // BC0 scan functions
   void ALCTBC0Scan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

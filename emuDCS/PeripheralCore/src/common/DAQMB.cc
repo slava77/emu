@@ -6040,180 +6040,217 @@ void DAQMB::PrintCounters(int user_option){
   (*MyOutput_) << "Enter 1 for simple print-out" << std::endl;
   (*MyOutput_) << "      2 for print most frequent values" <<std::endl;
   (*MyOutput_) << "      3 for cuts by TMB DAV and/or same DAV, then print most frequent" <<std::endl;
-  //
-  if(user_option<1 | user_option>3) (*MyOutput_) << "Invalid option entered" << std::endl;
-  //
-  //Simple read counters option:
-  //
-  if(user_option==1) {
+
+  if(hardware_version_<=1){
     //
-    readtimingCounter();
+    if(user_option<1 | user_option>3) (*MyOutput_) << "Invalid option entered" << std::endl;
     //
-    readtimingScope();
+    //Simple read counters option:
     //
-    (*MyOutput_) << "  Counters " << std::endl ;
-    //
-    (*MyOutput_) << "  L1A to LCT delay: " << GetL1aLctCounter()  << std::endl ;
-    (*MyOutput_) << "  CFEB DAV delay:   " << GetCfebDavCounter() << std::endl ;
-    (*MyOutput_) << "  TMB DAV delay:    " << GetTmbDavCounter()  << std::endl ;
-    (*MyOutput_) << "  ALCT DAV delay:   " << GetAlctDavCounter() << std::endl ;
-    //
-    (*MyOutput_) << std::endl ;
-    //
-    int trials = 0;
-    while ( GetL1aLctScope() == 0 && trials < 10 ) {
-      readtimingScope();
-      trials++;
-    }
-    //
-    (*MyOutput_) << "  L1A to LCT Scope: " ;
-    (*MyOutput_) << std::setw(5) << GetL1aLctScope() << " " ;
-    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetL1aLctScope()>>i)&0x1) ;
-    (*MyOutput_) << std::endl ;
-    //
-    trials = 0;
-    while ( GetCfebDavScope() == 0 && trials < 10 ) {
-      readtimingScope();
-      trials++;
-    }
-    //
-    (*MyOutput_) << "  CFEB DAV Scope:   " ;
-    (*MyOutput_) << std::setw(5) << GetCfebDavScope() << " " ;
-    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetCfebDavScope()>>i)&0x1) ;
-    (*MyOutput_) << std::endl ;
-    //
-    trials = 0;
-    while ( GetTmbDavScope() == 0 && trials < 10 ) {
-      readtimingScope();
-      trials++;
-    }
-    //
-    (*MyOutput_) << "  TMB DAV Scope:    " ;
-    (*MyOutput_) << std::setw(5) << GetTmbDavScope() << " " ;
-    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetTmbDavScope()>>i)&0x1) ;
-    (*MyOutput_) << std::endl ;
-    //
-    trials = 0;
-    while ( GetAlctDavScope() == 0 && trials < 10 ) {
-      readtimingScope();
-      trials++;
-    }
-    //
-    (*MyOutput_) << "  ALCT DAV Scope:   " ;
-    (*MyOutput_) << std::setw(5) << GetAlctDavScope() << " " ;
-    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetAlctDavScope()>>i)&0x1) ;
-    (*MyOutput_) << std::endl ;
-    //
-    (*MyOutput_) << "  Active DAV Scope: " ;
-    (*MyOutput_) << std::setw(5) << GetActiveDavScope() << " " ;
-    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetActiveDavScope()>>i)&0x1) ;
-    (*MyOutput_) << std::endl ;
-    //
-    (*MyOutput_) << std::endl ;
-    //
-  }
-  //Loop and choose "best" option:
-  else {
-    //
-    int nloop = 100;
-    //
-    int davsame;
-    int tmbdavcut;
-    if(user_option==3) {
-      (*MyOutput_) << "Enter value of TMB DAV to cut on (suggest 6, use -1 for no cut):" << std::endl;
-      std::cin >> tmbdavcut;
+    if(user_option==1) {
       //
-      (*MyOutput_) << "Enter -1 for no cut against same DAV delays or 1 to use cut:" << std::endl;
-      std::cin >> davsame;
-    }
-    //
-    //Before looping, zero all of the counters
-    //
-    int type;
-    int delay;
-    // counts for [time bin,type] where 
-    //       type=0 for LCT-L1A delay, 1 for CFEBDAV, 2 for TMBDAV, 3 for ALCTDAV
-    int counts[256][4]; 
-    for(type=0;type<4;type++) { 
-      for(delay=0;delay<256;delay++) {
-	counts[delay][type] = 0;}
-    }
-    //
-    //Next read the counters nloop times and accumulate statistics
-    //
-    int iloop;
-    int passcuts=0;
-    for(iloop=0;iloop<nloop;iloop++){
       readtimingCounter();
       //
-      int l1alct  = GetL1aLctCounter();
-      int cfebdav = GetCfebDavCounter();
-      int tmbdav  = GetTmbDavCounter();
-      int alctdav = GetAlctDavCounter();
+      readtimingScope();
       //
-      //	  (*MyOutput_) << "Debug: l1alct= " << l1alct << "cfebdav=" << cfebdav;
-      //      (*MyOutput_) << " tmbdav=" <<tmbdav << " alctdav=" << alctdav << std::endl;
+      (*MyOutput_) << "  Counters " << std::endl ;
       //
-      //Pass cuts?
-      //Maybe no cuts, or else have to 
-      //pass tmbdav value cuts and pass not same cuts
+      (*MyOutput_) << "  L1A to LCT delay: " << GetL1aLctCounter()  << std::endl ;
+      (*MyOutput_) << "  CFEB DAV delay:   " << GetCfebDavCounter() << std::endl ;
+      (*MyOutput_) << "  TMB DAV delay:    " << GetTmbDavCounter()  << std::endl ;
+      (*MyOutput_) << "  ALCT DAV delay:   " << GetAlctDavCounter() << std::endl ;
       //
-      bool nocuts=(user_option==2);
-      bool tmbdavok=(tmbdavcut==-1 || tmbdav==tmbdavcut);
-      bool davdiff=(davsame==-1 || (cfebdav!=tmbdav || cfebdav!=alctdav || tmbdav!=alctdav));
+      (*MyOutput_) << std::endl ;
       //
-      if (nocuts || (tmbdavok && davdiff))
-	{
-	  passcuts+=1;
-	  counts[ l1alct  ][0] += 1;
-	  counts[ cfebdav ][1] += 1;
-	  counts[ tmbdav  ][2] += 1;
-	  counts[ alctdav ][3] += 1;
-	}
-    }
-    //
-    //Next analyze the counters to find the most frequent setting
-    //
-    int maxnum[4],maxdelay[4];
-    //
-    maxnum[0]=-1;
-    maxnum[1]=-1;
-    maxnum[2]=-1;
-    maxnum[3]=-1;
-    //
-    // Exclude delay=0 (no meaning!)
-    //
-    for(delay=1;delay<256;delay++)
-      {
-	//
-	//Debug
-	//	    (*MyOutput_) << "Delay=" << delay << " Counts are";
-	//	    (*MyOutput_) << "  LCT-L1A : " << counts[delay][0]; 
-	//	    (*MyOutput_) << "  CFEB-DAV: " << counts[delay][1];
-	//	    (*MyOutput_) << "  TMB-DAV:  " << counts[delay][2];
-	//	    (*MyOutput_) << "  ALCT-DAV: " << counts[delay][3] << std::endl; 
-	//
-	for(type=0;type<4;type++)
-	  {
-	    if( counts[delay][type] > maxnum[type] )
-	      {
-		maxnum[type]=counts[delay][type];
-		maxdelay[type]=delay;
-	      }
-	  }	    
+      int trials = 0;
+      while ( GetL1aLctScope() == 0 && trials < 10 ) {
+	readtimingScope();
+	trials++;
       }
+      //
+      (*MyOutput_) << "  L1A to LCT Scope: " ;
+      (*MyOutput_) << std::setw(5) << GetL1aLctScope() << " " ;
+      for( int i=4; i>-1; i--) (*MyOutput_) << ((GetL1aLctScope()>>i)&0x1) ;
+      (*MyOutput_) << std::endl ;
+      //
+      trials = 0;
+      while ( GetCfebDavScope() == 0 && trials < 10 ) {
+	readtimingScope();
+	trials++;
+      }
+      //
+      (*MyOutput_) << "  CFEB DAV Scope:   " ;
+      (*MyOutput_) << std::setw(5) << GetCfebDavScope() << " " ;
+      for( int i=4; i>-1; i--) (*MyOutput_) << ((GetCfebDavScope()>>i)&0x1) ;
+      (*MyOutput_) << std::endl ;
+      //
+      trials = 0;
+      while ( GetTmbDavScope() == 0 && trials < 10 ) {
+	readtimingScope();
+	trials++;
+      }
+      //
+      (*MyOutput_) << "  TMB DAV Scope:    " ;
+      (*MyOutput_) << std::setw(5) << GetTmbDavScope() << " " ;
+      for( int i=4; i>-1; i--) (*MyOutput_) << ((GetTmbDavScope()>>i)&0x1) ;
+      (*MyOutput_) << std::endl ;
+      //
+      trials = 0;
+      while ( GetAlctDavScope() == 0 && trials < 10 ) {
+	readtimingScope();
+	trials++;
+      }
+      //
+      (*MyOutput_) << "  ALCT DAV Scope:   " ;
+      (*MyOutput_) << std::setw(5) << GetAlctDavScope() << " " ;
+      for( int i=4; i>-1; i--) (*MyOutput_) << ((GetAlctDavScope()>>i)&0x1) ;
+      (*MyOutput_) << std::endl ;
+      //
+      (*MyOutput_) << "  Active DAV Scope: " ;
+      (*MyOutput_) << std::setw(5) << GetActiveDavScope() << " " ;
+      for( int i=4; i>-1; i--) (*MyOutput_) << ((GetActiveDavScope()>>i)&0x1) ;
+      (*MyOutput_) << std::endl ;
+      //
+      (*MyOutput_) << std::endl ;
+      //
+    }
+    //Loop and choose "best" option:
+    else {
+      //
+      int nloop = 100;
+      //
+      int davsame;
+      int tmbdavcut;
+      if(user_option==3) {
+	(*MyOutput_) << "Enter value of TMB DAV to cut on (suggest 6, use -1 for no cut):" << std::endl;
+	std::cin >> tmbdavcut;
+	//
+	(*MyOutput_) << "Enter -1 for no cut against same DAV delays or 1 to use cut:" << std::endl;
+	std::cin >> davsame;
+      }
+      //
+      //Before looping, zero all of the counters
+      //
+      int type;
+      int delay;
+      // counts for [time bin,type] where 
+      //       type=0 for LCT-L1A delay, 1 for CFEBDAV, 2 for TMBDAV, 3 for ALCTDAV
+      int counts[256][4]; 
+      for(type=0;type<4;type++) { 
+	for(delay=0;delay<256;delay++) {
+	  counts[delay][type] = 0;}
+      }
+      //
+      //Next read the counters nloop times and accumulate statistics
+      //
+      int iloop;
+      int passcuts=0;
+      for(iloop=0;iloop<nloop;iloop++){
+	readtimingCounter();
+	//
+	int l1alct  = GetL1aLctCounter();
+	int cfebdav = GetCfebDavCounter();
+	int tmbdav  = GetTmbDavCounter();
+	int alctdav = GetAlctDavCounter();
+	//
+	//	  (*MyOutput_) << "Debug: l1alct= " << l1alct << "cfebdav=" << cfebdav;
+	//      (*MyOutput_) << " tmbdav=" <<tmbdav << " alctdav=" << alctdav << std::endl;
+	//
+	//Pass cuts?
+	//Maybe no cuts, or else have to 
+	//pass tmbdav value cuts and pass not same cuts
+	//
+	bool nocuts=(user_option==2);
+	bool tmbdavok=(tmbdavcut==-1 || tmbdav==tmbdavcut);
+	bool davdiff=(davsame==-1 || (cfebdav!=tmbdav || cfebdav!=alctdav || tmbdav!=alctdav));
+	//
+	if (nocuts || (tmbdavok && davdiff))
+	  {
+	    passcuts+=1;
+	    counts[ l1alct  ][0] += 1;
+	    counts[ cfebdav ][1] += 1;
+	    counts[ tmbdav  ][2] += 1;
+	    counts[ alctdav ][3] += 1;
+	  }
+      }
+      //
+      //Next analyze the counters to find the most frequent setting
+      //
+      int maxnum[4],maxdelay[4];
+      //
+      maxnum[0]=-1;
+      maxnum[1]=-1;
+      maxnum[2]=-1;
+      maxnum[3]=-1;
+      //
+      // Exclude delay=0 (no meaning!)
+      //
+      for(delay=1;delay<256;delay++)
+	{
+	  //
+	  //Debug
+	  //	    (*MyOutput_) << "Delay=" << delay << " Counts are";
+	  //	    (*MyOutput_) << "  LCT-L1A : " << counts[delay][0]; 
+	  //	    (*MyOutput_) << "  CFEB-DAV: " << counts[delay][1];
+	  //	    (*MyOutput_) << "  TMB-DAV:  " << counts[delay][2];
+	  //	    (*MyOutput_) << "  ALCT-DAV: " << counts[delay][3] << std::endl; 
+	  //
+	  for(type=0;type<4;type++)
+	    {
+	      if( counts[delay][type] > maxnum[type] )
+		{
+		  maxnum[type]=counts[delay][type];
+		  maxdelay[type]=delay;
+		}
+	    }	    
+	}
+      //
+      (*MyOutput_) << std::endl << " Best delay settings in " << nloop << " readings and " 
+		   << passcuts << " passing cuts are:" << std::endl;
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << "  LCT -L1A delay=" << maxdelay[0] << " (" << maxnum[0] << "readings)" << std::endl;
+      (*MyOutput_) << "  CFEB-DAV delay=" << maxdelay[1] << " (" << maxnum[1] << "readings)" << std::endl;
+      (*MyOutput_) << "  TMB -DAV delay=" << maxdelay[2] << " (" << maxnum[2] << "readings)" << std::endl;
+      (*MyOutput_) << "  ALCT-DAV delay=" << maxdelay[3] << " (" << maxnum[3] << "readings)" << std::endl;
+      (*MyOutput_) << std::endl;
+      //
+    }    
     //
-    (*MyOutput_) << std::endl << " Best delay settings in " << nloop << " readings and " 
-		 << passcuts << " passing cuts are:" << std::endl;
+  }else{
+    (*MyOutput_) << std::setw(20) << "L1A Count: " << std::setw(8) << read_l1a_count() << std::endl;
+    (*MyOutput_) << std::setw(20) << "Packets to DDU: " << std::setw(8) << read_num_ddu_packets() << std::endl;
+    (*MyOutput_) << std::setw(20) << "QPLL unlocks: " << std::setw(8) << read_num_qpll_unlocks() << std::endl;
+
+    (*MyOutput_) << std::setw(20) << "L1A matches:";
+    for(unsigned device(1); device<=9; ++device){
+      (*MyOutput_) << ' ' << std::setw(8) << odmb_read_l1a_match(device);
+    }
     (*MyOutput_) << std::endl;
-    (*MyOutput_) << "  LCT -L1A delay=" << maxdelay[0] << " (" << maxnum[0] << "readings)" << std::endl;
-    (*MyOutput_) << "  CFEB-DAV delay=" << maxdelay[1] << " (" << maxnum[1] << "readings)" << std::endl;
-    (*MyOutput_) << "  TMB -DAV delay=" << maxdelay[2] << " (" << maxnum[2] << "readings)" << std::endl;
-    (*MyOutput_) << "  ALCT-DAV delay=" << maxdelay[3] << " (" << maxnum[3] << "readings)" << std::endl;
+
+    (*MyOutput_) << std::setw(20) << "Gap:";
+    for(unsigned device(1); device<=9; ++device){
+      (*MyOutput_) << ' ' << std::setw(8) << odmb_read_gap(device);
+    }
     (*MyOutput_) << std::endl;
-    //
-  }    
-  //
+
+    (*MyOutput_) << std::setw(20) << "Stored packets:";
+    for(unsigned device(1); device<=9; ++device){
+      (*MyOutput_) << ' ' << std::setw(8) << odmb_read_stored_packets(device);
+    }
+    (*MyOutput_) << std::endl;
+
+    (*MyOutput_) << std::setw(20) << "Shipped packets:";
+    for(unsigned device(1); device<=9; ++device){
+      (*MyOutput_) << ' ' << std::setw(8) << odmb_read_shipped_packets(device);
+    }
+    (*MyOutput_) << std::endl;
+
+    (*MyOutput_) << std::setw(20) << "Num. LCTs:";
+    for(unsigned device(1); device<=9; ++device){
+      (*MyOutput_) << ' ' << std::setw(8) << odmb_read_num_lcts(device);
+    }
+    (*MyOutput_) << std::endl;
+  }
 }
 //
 void DAQMB::test3()
@@ -9865,24 +9902,30 @@ int DAQMB::read_n_l1a_match(unsigned dev)
 } 
 
 int DAQMB::scan_dcfeb_pipeline_depth(const unsigned lower_depth,
-				      const unsigned upper_depth,
-				     const double run_time, int &pipeline_depth_fine){
+				     const unsigned upper_depth,
+				     const double run_time, int &pipeline_depth_fine,
+				     bool do_a, bool do_b){
+  if(!do_a && !do_b){
+    do_a=true;
+    do_b=true;
+  }
   int ibest_pipeline_depth(-1);
   pipeline_depth_fine = -1;
   if(GetHardwareVersion()==2){//Only run for ODMB
     std::ostringstream oss("");
     oss << "Scanning pipeline depth to center muons in time bin 4.5 (time bins go from 1 to 8)." << std::endl;
+    oss << "Scanning side" << (do_a?(do_b?"s A and B.":" A."):" B.") << std::endl;
     std::cout << oss.str() << std::flush;
     (*MyOutput_) << oss.str() << std::flush;
 
     double err(0.0);
     unsigned muons(0);
     const float best_depth_f(get_best_pipeline_depth(lower_depth,
-						   upper_depth,
-						   run_time,
-						   err,
-						   muons));
-
+						     upper_depth,
+						     run_time,
+						     err, muons,
+						     do_a, do_b));
+    
     //Get fine delay. This can be done fewer lines, but I was trying to remove a bug and being extra explicit.
     const unsigned best_depth(static_cast<unsigned>(floor(best_depth_f+0.5)));//round
     const float frac_part(best_depth_f-best_depth);//[-0.5,0.5)
@@ -9911,22 +9954,27 @@ int DAQMB::scan_dcfeb_pipeline_depth(const unsigned lower_depth,
 float DAQMB::get_best_pipeline_depth(const unsigned lower_depth,
 				     const unsigned upper_depth,
 				     const double run_time,
-				     double& err,
-				     unsigned& muons){
+				     double& err, unsigned& muons,
+				     const bool do_a, const bool do_b){
   const unsigned original_kill(odmb_read_kill_mask());
   unsigned original_depth[7], original_delay[7];
+  
+  const unsigned new_kill(original_kill | (do_a?0:0x70) | (do_b?0:0xF));
+
   for(unsigned dcfeb(1); dcfeb<=7; ++dcfeb){
-    original_depth[dcfeb]=odmb_read_dcfeb_pipeline_depth(dcfeb);
-    original_delay[dcfeb]=odmb_read_dcfeb_fine_delay(dcfeb);
+    original_depth[dcfeb]=cfebs_[dcfeb].GetPipelineDepth();
+    original_delay[dcfeb]=cfebs_[dcfeb].GetFineDelay();
+    dcfeb_fine_delay(cfebs_[dcfeb], 0);
   }
-  odmb_set_all_fine_delay_quick(0);
   
   //The value that gets returned at the end
   float best_depth(lower_depth);
   unsigned total_muons(0);
 
   //Don't bother running if told to run on null set
-  if(lower_depth<=upper_depth){
+  if(lower_depth<=upper_depth && (new_kill & 0x7F)!=0x7F){
+    odmb_set_kill_mask(new_kill);
+
     //Pipeline depth is read/written with only 9 bits
     const unsigned num_depth_bits(9);
 
@@ -9949,8 +9997,13 @@ float DAQMB::get_best_pipeline_depth(const unsigned lower_depth,
       const double denominator(static_cast<double>(upper_depth-lower_depth+1));
       const double time_limit((numerator/denominator)*run_time);
       
-
-      odmb_set_all_pipeline_depth_quick(depth);
+      odmb_set_kill_mask(0xFFFFu);
+      for(CFEBItr dcfeb(cfebs_.begin()); dcfeb!=cfebs_.end(); ++dcfeb){
+	dcfeb_set_PipelineDepth(*dcfeb, depth);
+	Pipeline_Restart(*dcfeb);
+      }
+      odmb_rst_dcfeb_fifo(0x7Fu);
+      odmb_set_kill_mask(new_kill);
       
       std::vector<double> time_bins(0);
       muons=0;
@@ -10006,13 +10059,6 @@ float DAQMB::get_best_pipeline_depth(const unsigned lower_depth,
     std::cout << oss.str() << std::flush;
     //(MyOutput*) << oss.str() << std::flush;
 
-    std::ofstream ofs("/local/data/cscme11/ucsb/ald/TriDAS/emu/dump.txt");
-    ofs << best_depth << std::endl;
-    for(unsigned i(0); i<timing_data.size(); ++i){
-      ofs << timing_data.at(i).first << ' ' << timing_data.at(i).second << std::endl;
-    }
-    ofs.close();
-
     muons=timing_data.size();
 
   }else{//end if(lower_depth<upper_depth)
@@ -10021,167 +10067,16 @@ float DAQMB::get_best_pipeline_depth(const unsigned lower_depth,
 
   //Restore settings we've changed
   odmb_set_kill_mask(original_kill);
-  for(unsigned dcfeb(1); dcfeb<=7; ++dcfeb){
-    odmb_set_dcfeb_pipeline_depth(dcfeb, original_depth[dcfeb]);
-    odmb_set_dcfeb_fine_delay(dcfeb, original_delay[dcfeb]);
+  for(unsigned dcfeb(0); dcfeb<cfebs_.size() && dcfeb<7; ++dcfeb){
+    odmb_set_kill_mask(0xFFFFu);
+    dcfeb_set_PipelineDepth(cfebs_[dcfeb], original_delay[dcfeb]);
+    dcfeb_fine_delay(cfebs_[dcfeb], original_delay[dcfeb]);
+    Pipeline_Restart(cfebs_[dcfeb]);
+    odmb_rst_dcfeb_fifo(0x7Fu);
+    odmb_set_kill_mask(original_kill);
   }
 
   return best_depth;
-}
-
-void DAQMB::odmb_set_all_pipeline_depth_quick(const unsigned depth){
-  const unsigned odmb_shift_instr(0x191C);
-  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
-  const unsigned odmb_shift_hdr_tlr_9_bit(0x180C);
-
-  const unsigned original_kill(odmb_read_kill_mask());
-  odmb_set_kill_mask(0xFFFFu);
-  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
-  WriteRegister(ODMB_SEL_DCFEB_JTAG, 0x7F);
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Depth);
-  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
-  WriteRegister(odmb_shift_hdr_tlr_9_bit, depth);
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
-  odmb_rst_dcfeb_fifo(0x7Fu);
-  odmb_set_kill_mask(original_kill);
-}
-
-void DAQMB::odmb_set_all_fine_delay_quick(const unsigned delay){
-  const unsigned odmb_shift_instr(0x191C);
-  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
-  const unsigned odmb_shift_hdr_tlr_3_bit(0x120C);
-
-  const unsigned original_kill(odmb_read_kill_mask());
-  odmb_set_kill_mask(0xFFFFu);
-  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
-  WriteRegister(ODMB_SEL_DCFEB_JTAG, 0x7F);
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, ADC_Fine_Delay);
-  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
-  WriteRegister(odmb_shift_hdr_tlr_3_bit, delay);
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
-  odmb_rst_dcfeb_fifo(0x7Fu);
-  odmb_set_kill_mask(original_kill);
-}
-
-unsigned DAQMB::odmb_read_dcfeb_fine_delay(const unsigned dcfeb){
-  const unsigned odmb_shift_instr(0x191C);
-  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
-  const unsigned odmb_shift_hdr_tlr_3_bit(0x120C);
-
-  const unsigned dcfeb_bit(1 << (dcfeb-1));
-
-  const unsigned original_kill(odmb_read_kill_mask());
-  odmb_set_kill_mask(0xFF10u | dcfeb_bit);
-  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
-  WriteRegister(ODMB_SEL_DCFEB_JTAG, dcfeb_bit);
-
-  //Set to arbitrary value
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, ADC_Fine_Delay);
-  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
-  WriteRegister(odmb_shift_hdr_tlr_3_bit, 0);
-
-  const unsigned fine_delay(ReadRegister(ODMB_DCFEB_TDO));
-
-  //Restore original value
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, ADC_Fine_Delay);
-  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
-  WriteRegister(odmb_shift_hdr_tlr_3_bit, fine_delay);
-
-  //Reset
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
-  odmb_rst_dcfeb_fifo(dcfeb_bit);
-  odmb_set_kill_mask(original_kill);
-  return fine_delay;
-}
-
-unsigned DAQMB::odmb_read_dcfeb_pipeline_depth(const unsigned dcfeb){
-  const unsigned odmb_shift_instr(0x191C);
-  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
-  const unsigned odmb_shift_hdr_tlr_9_bit(0x180C);
-
-  const unsigned dcfeb_bit(1 << (dcfeb-1));
-
-  const unsigned original_kill(odmb_read_kill_mask());
-  odmb_set_kill_mask(0xFF10u | dcfeb_bit);
-  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
-  WriteRegister(ODMB_SEL_DCFEB_JTAG, dcfeb_bit);
-
-  //Set to arbitrary value
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Depth);
-  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
-  WriteRegister(odmb_shift_hdr_tlr_9_bit, 0);
-
-  const unsigned pipeline_depth(ReadRegister(ODMB_DCFEB_TDO));
-
-  //Restore original value
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Depth);
-  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
-  WriteRegister(odmb_shift_hdr_tlr_9_bit, pipeline_depth);
-
-  //Reset
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
-  odmb_rst_dcfeb_fifo(dcfeb_bit);
-  odmb_set_kill_mask(original_kill);
-  return pipeline_depth;
-}
-
-void DAQMB::odmb_set_dcfeb_fine_delay(const unsigned dcfeb, const unsigned delay){
-  const unsigned odmb_shift_instr(0x191C);
-  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
-  const unsigned odmb_shift_hdr_tlr_3_bit(0x120C);
-
-  const unsigned dcfeb_bit(1 << (dcfeb-1));
-
-  const unsigned original_kill(odmb_read_kill_mask());
-  odmb_set_kill_mask(0xFF10u | dcfeb_bit);
-  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
-  WriteRegister(ODMB_SEL_DCFEB_JTAG, dcfeb_bit);
-
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, ADC_Fine_Delay);
-  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
-  WriteRegister(odmb_shift_hdr_tlr_3_bit, delay);
-
-  //Reset
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
-  odmb_rst_dcfeb_fifo(dcfeb_bit);
-  odmb_set_kill_mask(original_kill);
-}
-
-void DAQMB::odmb_set_dcfeb_pipeline_depth(const unsigned dcfeb, const unsigned depth){
-  const unsigned odmb_shift_instr(0x191C);
-  const unsigned odmb_shift_hdr_tlr_8_bit(0x170C);
-  const unsigned odmb_shift_hdr_tlr_9_bit(0x180C);
-
-  const unsigned dcfeb_bit(1 << (dcfeb-1));
-
-  const unsigned original_kill(odmb_read_kill_mask());
-  odmb_set_kill_mask(0xFF10u | dcfeb_bit);
-  WriteRegister(ODMB_RST_DCFEB_JTAG, 0x0);
-  WriteRegister(ODMB_SEL_DCFEB_JTAG, dcfeb_bit);
-
-  //Set to arbitrary value
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Depth);
-  WriteRegister(odmb_shift_instr, DCFEB_DATA_REG);
-  WriteRegister(odmb_shift_hdr_tlr_9_bit, depth);
-
-  //Reset
-  WriteRegister(odmb_shift_instr, DCFEB_INSTR_REG);
-  WriteRegister(odmb_shift_hdr_tlr_8_bit, Pipeline_Restrt);
-  odmb_rst_dcfeb_fifo(dcfeb_bit);
-  odmb_set_kill_mask(original_kill);
 }
 
 std::vector<unsigned> DAQMB::get_DCFEB_packet(const time_t start_time, const double time_limit, unsigned& dcfeb){

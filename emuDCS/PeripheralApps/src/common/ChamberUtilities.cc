@@ -480,8 +480,10 @@ ChamberUtilities::ChamberUtilities(){
   alct_dav_delay_ = -1;
   tmb_dav_delay_ = -1;
   // DCFEB
-  pipeline_depth_ = -1;
-  pipeline_depth_fine_ = -1;
+  pipeline_depth_a_ = -1;
+  pipeline_depth_fine_a_ = -1;
+  pipeline_depth_b_ = -1;
+  pipeline_depth_fine_b_ = -1;
 
 }
 //
@@ -3577,18 +3579,25 @@ void ChamberUtilities::FindDAVDelays(){
       alct_dav_delay_ = thisDMB->scan_delays(0x100, alctdav_scan_lower_bound, alctdav_scan_upper_bound, alctdav_scan_runtime);
     }
 
-    void ChamberUtilities::FindPipelineDepths(){
-      const unsigned scan_lower_bound(56);
+    void ChamberUtilities::FindPipelineDepths(const bool do_a, const bool do_b){
+      const unsigned scan_lower_bound(50);
       const unsigned scan_upper_bound(70);
 
-      const unsigned runtime(16);
+      const unsigned runtime(42);
       //Note: Timer has 1 second resolution, so setting less than 1 second
       //per scanned depth will result in gaps in the scan. The algorithm
       //can still work under these conditions, but the output is less useful
       //for human cross-checking of its results.
 
       std::cout << "Measuring pipeline depth." << std::endl;
-      pipeline_depth_ = thisDMB->scan_dcfeb_pipeline_depth(scan_lower_bound, scan_upper_bound, runtime, pipeline_depth_fine_);
+      if(do_a){
+	pipeline_depth_a_ = thisDMB->scan_dcfeb_pipeline_depth(scan_lower_bound, scan_upper_bound, runtime,
+							       pipeline_depth_fine_a_, true, false);
+      }
+      if(do_b){
+	pipeline_depth_b_ = thisDMB->scan_dcfeb_pipeline_depth(scan_lower_bound, scan_upper_bound, runtime,
+							       pipeline_depth_fine_b_, false, true);
+      }
     }
 //
 void ChamberUtilities::FindL1AAndDAVDelays(){
