@@ -1,8 +1,8 @@
 /*
   DDU parsing script
   Parses CSC raw files for either single event or whole file diagnostic report. The diagnostic
-  report produces a 34 bit error-code for each event containing, from MSB to LSB, an L1A
-  mismatch error bit, an uncategorized word error bit, and the 32 bit DDU status
+  report produces a 34 bit error-code for each event containing, from MSB to LSB, the 32-bit DDU status,
+  an uncategorized words error bit, an empty ODMB error bit, and a 4-bit L1A mismatch error (ODMB, ALCT, OTMB, DCFEB)
 
   Command line options:
   -f: Sets input file.
@@ -10,7 +10,7 @@
   -e: Sets the last event to parse and process.
   -t: Text-only mode. Turns off colorization of parsed key words in output.
   -m: Set error bitmask.
-  -k: Set 5 bit kill bitmask indicating which components to print (DDU, ODMB, ALCT+OTMB, DCFEBs, uncategorized)
+  -p: Set 5 bit print bitmask indicating which components to print (DDU, ODMB, ALCT+OTMB, DCFEBs, uncategorized). All on by default.
   -w: Sets the number of words to print per line. Default is 20.
   -c: Counting mode. Counts number of packets without further processing
   -a: Analysis mode. Analyzes events without printing
@@ -18,7 +18,7 @@
   If only one command line option is given (without a "-"), it is used as a file name and a diagnostic report is produced.
 
   Author: Adam Dishaw (ald77@physics.ucsb.edu)
-  Last modified: 2014-05-11
+  Last modified: 2014-05-21
 */
 
 #include <cstdlib>
@@ -40,7 +40,7 @@ using Packet::svu;
 using Packet::InRange;
 
 int main(int argc, char *argv[]){
-  unsigned words_per_line(40);
+  unsigned words_per_line(50);
   std::string filename("");
   unsigned start_entry(0), end_entry(0);
   bool count_mode(false);
@@ -56,26 +56,26 @@ int main(int argc, char *argv[]){
     filename=argv[1];
   }else{
     char opt(' ');
-    while(( opt=getopt(argc, argv, "w:f:s:e:m:k:cta") )!=-1){
+    while(( opt=getopt(argc, argv, "w:f:s:e:m:p:cta") )!=-1){
       switch(opt){
       case 'w':
-        words_per_line=atoi(optarg);
+        words_per_line=GetNumber(optarg);
         break;
       case 'f':
         filename=optarg;
         break;
       case 's':
-        start_entry=atoi(optarg);
+        start_entry=GetNumber(optarg);
         break;
       case 'e':
-        end_entry=atoi(optarg);
+        end_entry=GetNumber(optarg);
         break;
       case 'm':
-	mask=static_cast<DataPacket::ErrorType>(GetNumber(optarg));
+        mask=static_cast<DataPacket::ErrorType>(GetNumber(optarg));
         break;
-      case 'k':
-	kill_mask=GetNumber(optarg);
-	break;
+      case 'p':
+        kill_mask=GetNumber(optarg);
+        break;
       case 'c':
         count_mode=true;
         analysis_mode=false;
@@ -111,6 +111,7 @@ int main(int argc, char *argv[]){
     svu packet(0);
     unsigned entry(1);
     if(analysis_mode){
+      const unsigned DDU_shift(8);
       std::map<DataPacket::ErrorType, unsigned> type_counter;
       std::vector<std::pair<std::pair<DataPacket::ErrorType, std::vector<bool> >, unsigned> > type_record(0);
       for(entry=1; entry<start_entry && FindStartOfNextPacket(ifs, packet); ++entry){
@@ -118,11 +119,11 @@ int main(int argc, char *argv[]){
       for(; entry<=end_entry && FindStartOfNextPacket(ifs, packet); ++entry){
         GetRestOfPacket(ifs, packet);
         data_packet.SetData(packet);
-	
-	const std::vector<bool> is_odmb(data_packet.GetDMBType());
+        
+        const std::vector<bool> is_odmb(data_packet.GetDMBType());
         const DataPacket::ErrorType this_type(static_cast<DataPacket::ErrorType>(mask & data_packet.GetPacketType()));
-	type_record.push_back(std::make_pair(std::make_pair(this_type, is_odmb), entry));
-	
+        type_record.push_back(std::make_pair(std::make_pair(this_type, is_odmb), entry));
+        
         if(type_counter.find(this_type)==type_counter.end()){
           type_counter[this_type]=1;
         }else{
@@ -130,54 +131,59 @@ int main(int argc, char *argv[]){
         }
       }
       for(unsigned i(0); i<type_record.size(); ++i){
-	const DataPacket::ErrorType last((i==0)?(DataPacket::kGood):(type_record.at(i-1).first.first));
-	const DataPacket::ErrorType ups=static_cast<DataPacket::ErrorType>(type_record.at(i).first.first & (~last));
-	const DataPacket::ErrorType downs=static_cast<DataPacket::ErrorType>((~type_record.at(i).first.first) & last);
+        const DataPacket::ErrorType now(type_record.at(i).first.first);
+        const DataPacket::ErrorType last((i==0)?(DataPacket::kGood):(type_record.at(i-1).first.first));
+        const DataPacket::ErrorType ups=static_cast<DataPacket::ErrorType>(now & (~last));
+        const DataPacket::ErrorType downs=static_cast<DataPacket::ErrorType>((~now) & last);
 
-	bool have_dmb(false), have_odmb(false);
-	for(unsigned dmb(0); dmb<type_record.at(i).first.second.size(); ++dmb){
-	  if(type_record.at(i).first.second.at(dmb)){
-	    have_odmb=true;
-	  }else{
-	    have_dmb=true;
-	  }
-	}
-	std::string packet_type("ODMB");
-	if(have_odmb){
-	  if(have_dmb){
-	    packet_type="ODMB+DMB";
-	  }else{
-	    packet_type="    ODMB";
-	  }
-	}else{
-	  if(have_dmb){
-	    packet_type="     DMB";
-	  }else{
-	    packet_type="   Empty";
-	  }
-	}
+        bool have_dmb(false), have_odmb(false);
+        for(unsigned dmb(0); dmb<type_record.at(i).first.second.size(); ++dmb){
+          if(type_record.at(i).first.second.at(dmb)){
+            have_odmb=true;
+          }else{
+            have_dmb=true;
+          }
+        }
+        std::string packet_type("ODMB");
+        if(have_odmb){
+          if(have_dmb){
+            packet_type="ODMB+DMB";
+          }else{
+            packet_type="    ODMB";
+          }
+        }else{
+          if(have_dmb){
+            packet_type="     DMB";
+          }else{
+            packet_type="   Empty";
+          }
+        }
 
-	if(ups | downs){
-	  std::cout << packet_type << " packet " << std::dec << std::setw(8) << std::setfill(' ') << type_record.at(i).second
-		    << " turns on " << std::hex << std::setw(9) << std::setfill('0')
-		    << ups << " and turns off " << std::hex << std::setw(9) << std::setfill('0')
-		    << downs << " (now at " << std::hex << std::setw(9) << std::setfill('0')
-		    << type_record.at(i).first.first << ")." << std::endl;
-	}
+        const uint_fast64_t ups_DDU(ups >> DDU_shift);
+        const uint_fast64_t downs_DDU(downs >> DDU_shift);
+        const uint_fast64_t now_DDU(now >> DDU_shift);
+        const uint_fast64_t ups_other(ups & ~(ups_DDU << DDU_shift)), downs_other(downs & ~(downs_DDU << DDU_shift));
+        const uint_fast64_t now_other(now & ~(now_DDU << DDU_shift));
+
+        if(ups | downs){
+          std::cout << packet_type << " packet " << std::dec << std::setw(8) << std::setfill(' ') << type_record.at(i).second << " turns on " << std::hex << std::setfill('0') << std::setw(8) << ups_DDU <<  '_' << std::setw(2) << ups_other << " and turns off " << std::setw(8) << downs_DDU << '_' << std::setw(2) << downs_other << " (now at " << std::setw(8) << now_DDU << '_' << std::setw(2) << now_other << ")." << std::endl;
+        }
       }
       
       std::cout << std::dec << std::setw(8) << std::setfill(' ') << entry-start_entry
-		<< " total packets:" <<std::endl;
+                << " total packets:" <<std::endl;
       for(std::map<DataPacket::ErrorType, unsigned>::iterator it(type_counter.begin());
-	  it!=type_counter.end(); ++it){
-	std::cout << std::setw(8) << std::dec << std::setfill(' ') << it->second
-		  << " packets of type " << std::setw(9) << std::setfill('0') << std::hex
-		  << it->first << std::endl;
+          it!=type_counter.end(); ++it){
+        const uint_fast64_t DDU_bits(it->first >> DDU_shift);
+        const uint_fast64_t other_bits(it->first & ~(DDU_bits << DDU_shift));
+        std::cout << std::setw(8) << std::dec << std::setfill(' ') << it->second
+                  << " packets of type " << std::setfill('0') << std::hex
+                  << std::setw(8) << DDU_bits << '_' << std::setw(2) << other_bits << std::endl;
       }
     }else if(count_mode){
       unsigned event_count(0);
       for(entry=0; FindStartOfNextPacket(ifs, packet); ++entry){
-	GetRestOfPacket(ifs, packet);
+        GetRestOfPacket(ifs, packet);
         ++event_count;
       }
       std::cout << std::dec << event_count << " total events." << std::endl;

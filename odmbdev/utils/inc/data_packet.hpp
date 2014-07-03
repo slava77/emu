@@ -2,46 +2,13 @@
 #define H_DATAPACKET
 
 #include <vector>
+#include <set>
 #include <string>
-#include "stdint.h"
+#include <utility>
+#include <stdint.h>
+#include "utils.hpp"
 
 namespace Packet{
-  namespace io{
-    const std::string bold("\033[1m");
-    const std::string fg_black("\033[30m");
-    const std::string fg_red("\033[31m");
-    const std::string fg_green("\033[32m");
-    const std::string fg_yellow("\033[33m");
-    const std::string fg_blue("\033[34m");
-    const std::string fg_magenta("\033[35m");
-    const std::string fg_cyan("\033[36m");
-    const std::string fg_white("\033[37m");
-    const std::string bg_black("\033[40m");
-    const std::string bg_red("\033[41m");
-    const std::string bg_green("\033[42m");
-    const std::string bg_yellow("\033[43m");
-    const std::string bg_blue("\033[44m");
-    const std::string bg_magenta("\033[45m");
-    const std::string bg_cyan("\033[46m");
-    const std::string bg_white("\033[47m");
-    const std::string normal("\033[0m");
-  }
-
-  typedef std::vector<uint16_t> svu;
-
-  template<typename t1, typename t2, typename t3> bool InRange(const t1& x,
-                                                               const t2& low,
-                                                               const t3& high){
-    return x>=low && x<=high;
-  }
-
-  bool AllInRange(const svu&, const unsigned, const unsigned,
-                  const uint16_t, const uint16_t);
-  void PutInRange(unsigned&, unsigned&, const unsigned, const unsigned);
-  bool GetBit(const unsigned, const unsigned);
-  
-  void PrintWithStars(const std::string&, const unsigned);
-
   class DataPacket{
   public:
     DataPacket();
@@ -63,14 +30,27 @@ namespace Packet{
     std::vector<bool> GetDMBType() const;
 
     enum ErrorType{
-      kGood               = 0x000000000u,
-      kDDU                = 0x0FFFFFFFFu,
-      kUncategorizedWords = 0x100000000u,
-      kL1AMismatch        = 0x200000000u
+      kGood               = 0x0000000000u,
+      kDDUStatus          = 0xFFFFFFFF00u,
+      kDCFEBL1AMismatch   = 0x0000000001u,
+      kOTMBL1AMismatch    = 0x0000000002u,
+      kALCTL1AMismatch    = 0x0000000004u,
+      kODMBL1AMismatch    = 0x0000000008u,
+      kEmptyODMB          = 0x0000000010u,
+      kUncategorizedWords = 0x0000000020u
     };
     ErrorType GetPacketType() const;
 
+    enum ComponentType{
+      kDDU, kODMB, kALCT, kOTMB, kDCFEB
+    };
+
+    std::vector<std::pair<unsigned, std::vector<dcfeb_data> > > GetValidDCFEBData() const;
+    uint_fast32_t GetL1A() const;
+
   private:
+    typedef std::pair<ComponentType, uint_fast32_t> l1a_t;
+
     svu full_packet_;
     mutable std::vector<bool> colorize_;
     mutable unsigned ddu_header_start_, ddu_header_end_;
@@ -80,7 +60,10 @@ namespace Packet{
     mutable std::vector<std::vector<unsigned> > dcfeb_start_, dcfeb_end_;
     mutable std::vector<unsigned> odmb_trailer_start_, odmb_trailer_end_;
     mutable unsigned ddu_trailer_start_, ddu_trailer_end_;
-    mutable bool parsed_;
+    mutable std::vector<l1a_t> dcfeb_l1as_;
+    mutable std::vector<std::pair<unsigned, std::vector<dcfeb_data> > > dcfeb_data_;
+    mutable bool odmb_l1a_mismatch_, alct_l1a_mismatch_, otmb_l1a_mismatch_, dcfeb_l1a_mismatch_;
+    mutable bool parsed_, unpacked_, checked_l1as_;
 
     void Parse() const;
 
@@ -94,6 +77,9 @@ namespace Packet{
     void FindDCFEBData(const unsigned) const;
     void FindDDUTrailer() const;
 
+    bool IsDCFEB(const unsigned, const unsigned) const;
+    bool IsALCT(const unsigned, const unsigned) const;
+
     svu GetComponent(const unsigned, const unsigned) const;
     void PrintComponent(const std::string&, const unsigned,
                         const unsigned, const unsigned,
@@ -101,7 +87,7 @@ namespace Packet{
     void PrintODMB(const std::string& uncat,
                    const unsigned odmb,
                    const unsigned words_per_line,
-		   const uint_fast64_t kill_mask,
+                   const uint_fast64_t kill_mask,
                    const unsigned text_mode) const;
     void PrintHeader(const std::vector<std::string>&, const unsigned words_per_line) const;
 
@@ -116,16 +102,25 @@ namespace Packet{
 
     bool HasL1AMismatch() const;
 
+    bool HasODMBL1AMismatch() const;
+    bool HasALCTL1AMismatch() const;
+    bool HasOTMBL1AMismatch() const;
+    bool HasDCFEBL1AMismatch() const;
+
     std::vector<unsigned> GetValidDCFEBs(const unsigned) const;
     std::string GetDCFEBText(const unsigned) const;
 
-    std::vector<std::pair<uint_fast32_t, bool> > GetL1As() const;
+    std::vector<l1a_t> GetL1As() const;
     std::string GetL1AText(const bool=false) const;
     std::string GetODMBText() const;
 
     bool HasUncategorizedWords() const;
 
     uint_fast32_t GetDDUStatus() const;
+
+    bool HasEmptyODMB() const;
+
+    void Unpack() const;
   };
 }
 

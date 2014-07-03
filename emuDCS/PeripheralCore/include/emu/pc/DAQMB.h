@@ -823,6 +823,13 @@ public:
   inline int odmb_read_Cal_delay() { return ReadRegister(CAL_DLY) & 0xF; }   // 4 bits
   inline int odmb_read_CrateID() { return ReadRegister(ODMB_CRATEID) & 0xFF; }   // 8 bits
 
+  // various counters in ODMB
+  inline unsigned odmb_read_l1a_match(const unsigned device){return ReadRegister(L1A_MATCH_BASE | (device << 4));}
+  inline unsigned odmb_read_gap(const unsigned device){return ReadRegister(GAP_BASE | (device << 4));}
+  inline unsigned odmb_read_stored_packets(const unsigned device){return ReadRegister(STORED_PACKETS_BASE | (device << 4));}
+  inline unsigned odmb_read_shipped_packets(const unsigned device){return ReadRegister(SHIPPED_PACKETS_BASE | (device << 4));}
+  inline unsigned odmb_read_num_lcts(const unsigned device){return ReadRegister(NUM_LCTS_BASE | (device << 4));}
+
   // kill input from boards (CFEBs, TMB, ALCT) mask; multiple boards can be killed
   inline void odmb_set_kill_mask(int kill) { WriteRegister(ODMB_KILL, kill); }
   inline int odmb_read_kill_mask() { return ReadRegister(ODMB_KILL); } 
@@ -857,27 +864,25 @@ public:
   void send_dcfeb_pulse(unsigned pulse_cmd, unsigned n_pulses=1);
   int read_nrx_pckt(unsigned dev);
   int read_n_l1a_match(unsigned dev);
+  int read_l1a_count(){return ReadRegister(L1A_COUNTER);}
+  int read_num_ddu_packets(){return ReadRegister(DDU_PACKETS);}
+  int read_num_qpll_unlocks(){return ReadRegister(QPLL_UNLOCKS);}
 
   //For DCFEB pipeline depth scan
   int scan_dcfeb_pipeline_depth(const unsigned lower_depth,
 				 const unsigned upper_depth,
-				const double run_time, int &pipeline_depth_fine);
+				const double run_time, int &pipeline_depth_fine,
+				const bool do_a, const bool do_b);
   float get_best_pipeline_depth(const unsigned lower_depth,
 				const unsigned upper_depth,
 				const double run_time,
-				double& err,
-				unsigned& muons);
+				double& err, unsigned& muons,
+				const bool do_a, const bool do_b);
   std::vector<unsigned> get_DCFEB_packet(const time_t start_time,
 					 const double time_limit,
 					 unsigned& dcfeb);
   float get_best_pipeline_depth(std::vector<std::pair<float, float> >& timing_data);
   float get_timing_score(const float depth, const std::vector<std::pair<float, float> >& timing_data);
-  void odmb_set_all_pipeline_depth_quick(const unsigned depth);
-  void odmb_set_all_fine_delay_quick(const unsigned delay);
-  unsigned odmb_read_dcfeb_pipeline_depth(const unsigned dcfeb);
-  unsigned odmb_read_dcfeb_fine_delay(const unsigned dcfeb);
-  void odmb_set_dcfeb_pipeline_depth(const unsigned dcfeb, const unsigned depth);
-  void odmb_set_dcfeb_fine_delay(const unsigned dcfeb, const unsigned delay);
 
   //For delay scans
   int scan_delays(const unsigned device,
@@ -1034,10 +1039,6 @@ public:
   int kill_input_mask_;
   int lvdb_mapping_;
   
-  //Okay, these aren't really ODMB registers, but useful to have here
-  static const unsigned DCFEB_INSTR_REG = 0x3C2;
-  static const unsigned DCFEB_DATA_REG = 0x3C3;
-  
   // VME registers defined in ODMB for direct access
   // Liu May 29, 2013. ODMB firmware version 0.0
   //
@@ -1057,11 +1058,19 @@ public:
   static const unsigned DCFEB_DONE = 0x3120;
   static const unsigned ODMB_QPLL = 0x3124;
   static const unsigned DCFEB_PULSE = 0x3200;
+  static const unsigned L1A_MATCH_BASE = 0x320C;
   static const unsigned DATA_MUX = 0x3300;
   static const unsigned TRIG_MUX = 0x3304;
   static const unsigned LVMB_MUX = 0x3308;
+  static const unsigned GAP_BASE = 0x330C;
+  static const unsigned L1A_COUNTER = 0x33FC;
   static const unsigned L1A_MODE = 0x3400;
   static const unsigned MASK_L1A = 0x3408;
+  static const unsigned STORED_PACKETS_BASE = 0x340C;
+  static const unsigned DDU_PACKETS = 0x34AC;
+  static const unsigned QPLL_UNLOCKS = 0x34FC;
+  static const unsigned SHIPPED_PACKETS_BASE = 0x350C;
+  static const unsigned NUM_LCTS_BASE = 0x370C;
 
   static const unsigned LCT_L1A_DLY = 0x4000;
   static const unsigned TMB_DLY = 0x4004;
