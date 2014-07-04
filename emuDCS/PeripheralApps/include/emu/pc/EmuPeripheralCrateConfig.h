@@ -573,6 +573,8 @@ private:
   void MeasurePipelineDepthForCrate(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
   void MeasureODMBDelaysForEndcap(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
   void MeasurePipelineDepthForEndcap(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
+  void PipelineDepthScanForCrate (xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
+  void PipelineDepthScanForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
 
   //
   // BC0 scan functions
@@ -639,6 +641,11 @@ private:
   int bc0_sync[60][9];
 	int total_bad_cfeb_bits;
 	int total_good_cfeb_bits;
+  //
+  std::string pipelineDepthScanResults_;
+  void PipelineDepthScan( xgi::Input * in, xgi::Output * out, bool allCrates ) throw (xgi::exception::Exception);
+  std::string pipelineDepthDataDir( const std::string& dateTime, Crate* crate, DAQMB* dmb, int depth );
+  std::string dmbsToString( std::set<DAQMB*>& dmbs );
   //
   void SaveTestSummary();
   void SaveLog();

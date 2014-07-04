@@ -842,6 +842,11 @@ public:
   inline unsigned odmb_read_dcfeb_fifo_cnt(){return ReadRegister(ODMB_DCFEB_FIFO_CNT);}
   inline unsigned odmb_read_dcfeb_fifo(){return ReadRegister(ODMB_RD_DCFEB_FIFO);}
 
+  // ODMB's DDU tx FIFO
+  inline void odmb_reset_tx()          { WriteRegister( RESET_TX, 0x01 ); }
+  inline int  odmb_read_tx_wordcount() { return ReadRegister( READ_TX_WORDCOUNT ) & 0xffff; }
+  inline int  odmb_read_tx_word()      { return ReadRegister( READ_TX_WORD      ) & 0xffff; }
+
   // this one uses discrete logic interface
   std::vector<float> odmb_fpga_sysmon();
   // this one uses ODMB Device-7
@@ -1090,6 +1095,10 @@ public:
   static const unsigned ODMB_DCFEB_FIFO_CNT = 0x500C;
   static const unsigned ODMB_SEL_DCFEB_FIFO = 0x5010;
   static const unsigned ODMB_RST_FIFO = 0x5020;
+  static const unsigned READ_TX_WORD      = 0x5300; ///< read one 16-bit word from DDU tx FIFO
+  static const unsigned READ_TX_WORDCOUNT = 0x530c; ///< read number of 16-bit words in DDU tx FIFO
+  static const unsigned RESET_TX          = 0x5320; ///< reset DDU tx FIFO
+
 
   static const unsigned ODMB_Save_Config = 0x6000;
   static const unsigned ODMB_Retrieve_Config = 0x6004;
