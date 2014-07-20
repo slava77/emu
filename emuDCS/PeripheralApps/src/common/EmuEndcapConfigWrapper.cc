@@ -284,40 +284,6 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("tmb_dav_delay"))           daqmb_->SetTmbDavDelay( getInt(conf, "tmb_dav_delay"));
 
 
-  float float_val;
-  int int_val;
-
-  if (conf->has("SET_COMP_THRESH"))
-  {
-    float_val = getFloat(conf, "SET_COMP_THRESH");
-    daqmb_->SetCompThresh(float_val);
-    for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompThresholdsCfeb(cfeb, float_val);
-  }
-  if (conf->has("COMP_MODE"))
-  {
-    int int_val = getInt(conf, "COMP_MODE");
-    daqmb_->SetCompMode(int_val);
-    for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompModeCfeb(cfeb, int_val);
-  }
-  if (conf->has("COMP_TIMING"))
-  {
-    int_val = getInt(conf, "COMP_TIMING");
-    daqmb_->SetCompTiming(int_val);
-    for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompTimingCfeb(cfeb, int_val);
-  }
-  if (conf->has("PRE_BLOCK_END"))
-  {
-    int_val = getInt(conf, "PRE_BLOCK_END");
-    daqmb_->SetPreBlockEnd(int_val);
-    for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetPreBlockEndCfeb(cfeb, int_val);
-  }
-  if (conf->has("XLATENCY"))
-  {
-    int_val = getInt(conf, "XLATENCY");
-    daqmb_->SetxLatency(int_val);
-    for (int cfeb=0; cfeb<5; cfeb++) daqmb_->SetL1aExtraCfeb(cfeb, int_val);
-  }
-
   if(verbose_)
   {
     xdata::Table t = conf->row();
@@ -336,6 +302,40 @@ throw (emu::exception::ConfigurationException)
     {
       XCEPT_RAISE(emu::exception::ConfigurationException, "Unexpected child table type for DAQMB: " + type );
     }
+  }
+
+  float float_val;
+  int int_val;
+
+  if (conf->has("SET_COMP_THRESH"))
+  {
+    float_val = getFloat(conf, "SET_COMP_THRESH");
+    daqmb_->SetCompThresh(float_val);
+    for(size_t cfeb=0; cfeb<daqmb_->cfebs().size(); cfeb++) daqmb_->SetCompThresholdsCfeb(cfeb, float_val);
+  }
+  if (conf->has("COMP_MODE"))
+  {
+    int int_val = getInt(conf, "COMP_MODE");
+    daqmb_->SetCompMode(int_val);
+    for(size_t cfeb=0; cfeb<daqmb_->cfebs().size(); cfeb++) daqmb_->SetCompModeCfeb(cfeb, int_val);
+  }
+  if (conf->has("COMP_TIMING"))
+  {
+    int_val = getInt(conf, "COMP_TIMING");
+    daqmb_->SetCompTiming(int_val);
+    for(size_t cfeb=0; cfeb<daqmb_->cfebs().size(); cfeb++) daqmb_->SetCompTimingCfeb(cfeb, int_val);
+  }
+  if (conf->has("PRE_BLOCK_END"))
+  {
+    int_val = getInt(conf, "PRE_BLOCK_END");
+    daqmb_->SetPreBlockEnd(int_val);
+    for(size_t cfeb=0; cfeb<daqmb_->cfebs().size(); cfeb++) daqmb_->SetPreBlockEndCfeb(cfeb, int_val);
+  }
+  if (conf->has("XLATENCY"))
+  {
+    int_val = getInt(conf, "XLATENCY");
+    daqmb_->SetxLatency(int_val);
+    for(size_t cfeb=0; cfeb<daqmb_->cfebs().size(); cfeb++) daqmb_->SetL1aExtraCfeb(cfeb, int_val);
   }
 
   if(verbose_) std::cout << "#### DAQMB added ####"<< std::endl;
