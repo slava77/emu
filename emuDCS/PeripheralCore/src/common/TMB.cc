@@ -5215,6 +5215,7 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(vme_ddd0_adr        );  //0x16 phases: ALCT tof, ALCTtx, DMBtx, RAT/TMB
   TMBConfigurationRegister.push_back(vme_ddd1_adr        );  //0x18 phases: ALCTrx, CFEB tof, TMB1, CFEB0 tof
   TMBConfigurationRegister.push_back(vme_ddd2_adr        );  //0x1a phases: CFEB4 tof, CFEB3 tof, CFEB2 tof, CFEB1 tof
+  TMBConfigurationRegister.push_back(vme_dddoe_adr        ); //0x1C clock output enable: CFEB4, CFEB3, CFEB2, CFEB1, CFEB0, DCC, MPC, TMB1, RPCtx, DMBtx, ALCTrx, ALCTtx
   TMBConfigurationRegister.push_back(rat_3d_delays_adr   );  //0xE6 phases: RPC1/RAT, RPC0/RAT 
   TMBConfigurationRegister.push_back(phaser_alct_rxd_adr );  //0x10E digital phase shifter: alct_rx
   TMBConfigurationRegister.push_back(phaser_alct_txd_adr );  //0x110 digital phase shifter: alct_tx
@@ -7470,6 +7471,16 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(cfeb3_tof_delay_,cfeb3_tof_delay_bithi,cfeb3_tof_delay_bitlo,&data_word);
     InsertValueIntoDataWord(cfeb4_tof_delay_,cfeb4_tof_delay_bithi,cfeb4_tof_delay_bitlo,&data_word);
     //
+  } else if ( address == vme_dddoe_adr ) {
+    //------------------------------------------------------------------
+    //0X1C = ADR_DDDOE:  3D3444 Delay Chip Output Enables 
+    //------------------------------------------------------------------
+      if (GetHardwareVersion() == 2) {
+          data_word = 0xff7; // enable all clocks except the RPC clock (which otherwise causes problems in OTMB->ALCT communication for certain ALCT TOF delay settings)
+          //data_word = 0x005; // disable all unused clocks in OTMB (according to Jason)
+      } else {
+          data_word = 0xfff; // enable all clocks in TMB
+      }
   } else if ( address == vme_ratctrl_adr ) {
     //------------------------------------------------------------------
     //0X1E = ADR_RATCTRL:  RAT Module Control
