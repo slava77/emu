@@ -411,7 +411,7 @@ ChamberUtilities::ChamberUtilities(){
   //
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
   min_alct_l1a_delay_value_ = 134;
-  max_alct_l1a_delay_value_ = 170;
+  max_alct_l1a_delay_value_ = 175;
   min_tmb_l1a_delay_value_  = 115; 
   max_tmb_l1a_delay_value_  = 150; 
   local_tmb_bxn_offset_     = 3539;
@@ -3555,16 +3555,16 @@ void ChamberUtilities::FindDAVDelays(){
       std::cout << "Measuring ODMB delays." << std::endl;
 
       const unsigned lct_l1a_scan_lower_bound(34);
-      const unsigned lct_l1a_scan_upper_bound(40);
-      const unsigned lct_l1a_scan_runtime(7);
+      const unsigned lct_l1a_scan_upper_bound(47);
+      const unsigned lct_l1a_scan_runtime(14);
       //Note: Timer has 1 second resolution, so setting less than 1 second
       //per scanned depth will result in gaps in the scan. This may result in
       //failure to find the correct value.
       l1acc_dav_delay_ = thisDMB->scan_delays(1, lct_l1a_scan_lower_bound, lct_l1a_scan_upper_bound, lct_l1a_scan_runtime);
 
-      const unsigned otmbdav_scan_lower_bound(0);
-      const unsigned otmbdav_scan_upper_bound(6);
-      const unsigned otmbdav_scan_runtime(7);
+      const unsigned otmbdav_scan_lower_bound(1);
+      const unsigned otmbdav_scan_upper_bound(3);
+      const unsigned otmbdav_scan_runtime(3);
       //Note: Timer has 1 second resolution, so setting less than 1 second
       //per scanned depth will result in gaps in the scan. This may result in
       //failure to find the correct value.
@@ -3612,27 +3612,31 @@ void ChamberUtilities::FindL1AAndDAVDelays(){
     PropagateMeasuredValues(initial_use_measured_values);
     return;
   }
-  //
-  // Since we are getting the L1A for the ALCT, we can determine its DAV timing:
-  if (MeasureAlctDavCableDelay() < 0) {
-    PropagateMeasuredValues(initial_use_measured_values);
-    return;
+  
+  if (thisDMB->GetHardwareVersion() ==2) {
+      FindODMBDelays();
+  } else {
+    //
+    // Since we are getting the L1A for the ALCT, we can determine its DAV timing:
+    if (MeasureAlctDavCableDelay() < 0) {
+      PropagateMeasuredValues(initial_use_measured_values);
+      return;
+    }
+    //
+    // Now receive the L1A for the CFEB:
+    if (MeasureTmbLctCableDelay() < 0) {
+      PropagateMeasuredValues(initial_use_measured_values);
+      return;
+    }
+    //
+    // Since we are getting the L1A for the CFEB, we can determine its DAV timing:
+    if (MeasureCfebDavCableDelay() < 0) {
+      PropagateMeasuredValues(initial_use_measured_values);
+      return;
+    }
   }
   //
-  // Now receive the L1A for the CFEB:
-  if (MeasureTmbLctCableDelay() < 0) {
-    PropagateMeasuredValues(initial_use_measured_values);
-    return;
-  }
-  //
-  // Since we are getting the L1A for the CFEB, we can determine its DAV timing:
-  if (MeasureCfebDavCableDelay() < 0) {
-    PropagateMeasuredValues(initial_use_measured_values);
-    return;
-  }
-  //
-  std::cout << "Successfully found L1A for TMB, ALCT, and CFEB." << std::endl;
-  std::cout << "Successfully found DAVs for ALCT and CFEB." << std::endl;
+  std::cout << "L1A and DAV delay scan is finished." << std::endl;
   //
   PropagateMeasuredValues(initial_use_measured_values);
   return;
