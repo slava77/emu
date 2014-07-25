@@ -602,8 +602,8 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "3") << "PRBS-23";
   *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "4") << "PRBS-31";
   *out << cgicc::input().set("type","submit").set("value","Select MPC new links PRBS mode") << std::endl ;
-  }
   *out << cgicc::form() << std::endl ;
+  }
   //
   
 
