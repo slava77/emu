@@ -564,6 +564,7 @@ void CCB::DumpAddress(int address) {
 
 int CCB::ReadTTCrxReg(int registerAdd)
 {
+  if(ReadTTCrxID_==-1) ReadTTCrxID_=TTCrxID_;
   int pointerRegAddress = (ReadTTCrxID_*2);
   int DataRegAddress = (ReadTTCrxID_*2+1);
   int i;
@@ -637,6 +638,7 @@ int CCB::ReadTTCrxReg(int registerAdd)
 
 void CCB::WriteTTCrxReg(int registerAdd,int value)
 {
+  if(ReadTTCrxID_==-1) ReadTTCrxID_=TTCrxID_;
   int pointerRegAddress = (ReadTTCrxID_*2);
   int DataRegAddress = (ReadTTCrxID_*2+1);
   int i;
