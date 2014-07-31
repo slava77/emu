@@ -1226,7 +1226,7 @@ void VMEController::set_Timeout(int to)
   // "to" is in microsecond
   if(to<0) return;
   unsigned n=(to*1000)>>4;
-  unsigned short tvalue=(n>>8)&0xff +((n&0xff)<<8);
+  unsigned short tvalue=((n>>8)&0xff) +((n&0xff)<<8);
   vcc_write_command(0x13, 1, &tvalue);
   std::cout << "VME Bus Timeout set to " << to << " microseconds" <<std::endl;
   return;
@@ -1237,7 +1237,7 @@ void VMEController::set_GrantTimeout(int to)
   // "to" is in microsecond
   if(to<0) return;
   unsigned n=(to*1000)>>4;
-  unsigned short tvalue=(n>>8)&0xff +((n&0xff)<<8);
+  unsigned short tvalue=((n>>8)&0xff) +((n&0xff)<<8);
   vcc_write_command(0x14, 1, &tvalue);
   std::cout << "VME BusGrant Timeout set to " << to << " microseconds" <<std::endl;
   return;
@@ -1248,17 +1248,38 @@ void VMEController::get_macaddr(int realport)
   int msock_fd;
   struct ifreq mifr;
 
-  char eth[5]="eth2";
+   char eth[5]="eth2"; // the old ethX device
+   eth[3] = '0' + realport;
 
-   eth[3] = '0' + realport; 
+   char pci[5]="p1p1"; // the new pXpY device
+   // I350 card in SLC6: 
+   //     port 2 ---- p1p1
+   //          3 ---- p1p2
+   //     port 4 ---- p2p1
+   //          5 ---- p2p2
+   if(realport<4)
+   {
+      pci[3] = '0' + realport - 1; 
+   }
+   else
+   {
+      pci[1]= '2';
+      pci[3] = '0' + realport - 3; 
+   }
+
    //create socket
    if((msock_fd = socket(PF_INET, SOCK_STREAM, 0)) == -1)
      std::cout << "Error in call: socket()" << std::endl;
      
    //get MAC address
-   strcpy(mifr.ifr_name, eth);
+   strcpy(mifr.ifr_name, pci);   // try the new device first
    if(ioctl(msock_fd,SIOCGIFHWADDR,&mifr) < 0)
-     std::cout << "Error in call ioctl(socket, SIOCGIFHWADDR)" << std::endl;
+   {
+      // if the new device doesn't work, try the old one
+      strcpy(mifr.ifr_name, eth);
+      if(ioctl(msock_fd,SIOCGIFHWADDR,&mifr) < 0)
+         std::cout << "Error in call ioctl(socket, SIOCGIFHWADDR)" << std::endl;
+   }
    
    memcpy(hw_source_addr,mifr.ifr_addr.sa_data, ETH_ALEN);
    memcpy(ether_header.h_source, hw_source_addr, ETH_ALEN);
@@ -1651,7 +1672,7 @@ int VMEController::vme_controller(int irdwr,unsigned int ptr,unsigned short int 
 
 void VMEController::write_Ethernet_CR(unsigned short int val)
 {
-  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  unsigned short tvalue=((val>>8)&0xff) +((val&0xff)<<8);
   vcc_write_command(0x0F, 1, &tvalue);
   std::cout << "Write_Ethernet_CR to " << std::hex << val << std::dec << std::endl;
   return;
@@ -1659,7 +1680,7 @@ void VMEController::write_Ethernet_CR(unsigned short int val)
 
 void VMEController::write_FIFO_CR(unsigned short int val)
 {
-  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  unsigned short tvalue=((val>>8)&0xff) +((val&0xff)<<8);
   vcc_write_command(0x10, 1, &tvalue);
   std::cout << "Write_FIFO_CR to " << std::hex << val << std::dec << std::endl;
   return;
@@ -1667,7 +1688,7 @@ void VMEController::write_FIFO_CR(unsigned short int val)
 
 void VMEController::write_ResetMisc_CR(unsigned short int val)
 {
-  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  unsigned short tvalue=((val>>8)&0xff) +((val&0xff)<<8);
   vcc_write_command(0x11, 1, &tvalue);
   std::cout << "Write_ResetMisc_CR to " << std::hex << val << std::dec << std::endl;
   return;
@@ -1676,8 +1697,8 @@ void VMEController::write_ResetMisc_CR(unsigned short int val)
 void VMEController::write_VME_CR(unsigned int val)
 {
   unsigned short tvalue[2];
-  tvalue[1]=(val>>8)&0xff +((val&0xff)<<8); 
-  tvalue[0]=(val>>24)&0xff +(((val>>16)&0xff)<<8); 
+  tvalue[1]=((val>>8)&0xff) +((val&0xff)<<8); 
+  tvalue[0]=((val>>24)&0xff) +(((val>>16)&0xff)<<8); 
   vcc_write_command(0x12, 2, tvalue);
   std::cout << "Write_VME_CR to " << std::hex << val << std::dec << std::endl;
   return;
@@ -1685,7 +1706,7 @@ void VMEController::write_VME_CR(unsigned int val)
 
 void VMEController::write_BusTimeOut_CR(unsigned short int val)
 {
-  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  unsigned short tvalue=((val>>8)&0xff) +((val&0xff)<<8);
   vcc_write_command(0x13, 1, &tvalue);
   std::cout << "Write_BusTimeOut_CR to " << std::hex << val << std::dec << std::endl;
   return;
@@ -1694,7 +1715,7 @@ void VMEController::write_BusTimeOut_CR(unsigned short int val)
 void VMEController::write_BusGrantTimeOut_CR(unsigned short int val)
 {
 
-  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  unsigned short tvalue=((val>>8)&0xff) +((val&0xff)<<8);
   vcc_write_command(0x14, 1, &tvalue);
   std::cout << "Write_BusGrantTimeOut_CR to " << std::hex << val << std::dec << std::endl;
   return;
