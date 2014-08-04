@@ -2780,7 +2780,10 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	    int cfeb_index = (*cfebItr).number();
 	    cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] += (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
 	  }
-	  //
+	  
+          if(thisDMB->GetHardwareVersion()>1) continue;
+          // The following part is valid for old DMB/CFEB/ALCT only. Skip for ODMB/DCFEB...
+          //
 	  // check if the configuration of the CFEBs and DMBs are OK...
 	  // in particular, check if the "smoking gun" for firmware loss is OK...
 	  //
