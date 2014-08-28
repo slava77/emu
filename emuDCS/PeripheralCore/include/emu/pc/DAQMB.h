@@ -803,9 +803,11 @@ public:
   inline void set_chan_kill(int ichan,int chan[16]) { chan[ichan]=KILL_CHAN; }
   void chan2shift(int chan[16],unsigned int shft_bits[3]);
   void set_dcfeb_parambuffer(CFEB &cfeb, unsigned short int bufload[34]);
-  void autoload_select_readback_wrd(CFEB &cfeb, int ival);
+  unsigned autoload_select_readback_wrd(CFEB &cfeb, int ival);
   void autoload_readback_wrd(CFEB &cfeb, char wrd[2]);
-  
+  void  Set_TMB_TX_MODE(CFEB &cfeb,int mode); 
+  DEVTYPE dscamDevice(int cfebNum) const {return (DEVTYPE) (F1DCFEBM+cfebNum);}
+
   // various delays in ODMB
   inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(LCT_L1A_DLY, delay&0x3F); }  // 6 bits
   inline void odmb_set_TMB_delay(int delay) { WriteRegister(TMB_DLY, delay&0x3F); }  // 6 bits

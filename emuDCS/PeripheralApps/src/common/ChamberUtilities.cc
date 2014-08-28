@@ -3160,6 +3160,8 @@ int ChamberUtilities::ALCTBC0Scan() {
   int initial_bxn_offset         = thisTMB->GetBxnOffset();
   //
   //
+  local_tmb_bxn_offset_=initial_bxn_offset;
+
   if (debug_>=10) {
     std::cout << "Initial values..." << std::endl;
     std::cout << "-> initial_mpc_idle_blank    = " << initial_mpc_idle_blank    << std::endl;
@@ -3181,6 +3183,7 @@ int ChamberUtilities::ALCTBC0Scan() {
   (*MyOutput_) << "alct_tof_delay          = 0x" << std::hex << thisTMB->GetAlctTOFDelay() << std::endl;
   (*MyOutput_) << "tmb_to_alct_data_delay  = 0x" << std::hex << thisTMB->GetALCTTxDataDelay() << std::endl;
   //
+
   // Set up for this test:
   // turn off the one shot L1A (from TMB)...
   thisTMB->SetFireL1AOneshot(0);

@@ -313,6 +313,15 @@ static const unsigned long int	badbits445_adr	        = 0x000142;
 
 static const unsigned long int	v6_sysmon_adr	        = 0x00015A;  //ADR_V6_SYSMON
 
+//GTX link control and monitoring
+static const unsigned long int  v6_gtx_rx0_adr          = 0x00014C;  //ADR_V6_GTX_RX0
+static const unsigned long int  v6_gtx_rx1_adr          = 0x00014E;  //ADR_V6_GTX_RX1
+static const unsigned long int  v6_gtx_rx2_adr          = 0x000150;  //ADR_V6_GTX_RX2
+static const unsigned long int  v6_gtx_rx3_adr          = 0x000152;  //ADR_V6_GTX_RX3
+static const unsigned long int  v6_gtx_rx4_adr          = 0x000154;  //ADR_V6_GTX_RX4
+static const unsigned long int  v6_gtx_rx5_adr          = 0x000156;  //ADR_V6_GTX_RX5
+static const unsigned long int  v6_gtx_rx6_adr          = 0x000158;  //ADR_V6_GTX_RX6
+
 // extra DCFEB Bad Bits on OTMB 
 static const unsigned long int  dcfeb_badbits_ctrl_adr  = 0x00015C;  //DCFEB Bad Bit Control/Status extends Adr 122
 static const unsigned long int  badbits501_adr          = 0x00015E;  //ADR_V6_CFEB5_BADBITS_LY01
@@ -2490,6 +2499,105 @@ const int cfeb_badbits_nbx_bitlo    =  0;
 const int cfeb_badbits_nbx_bithi    =  15;
 const int cfeb_badbits_nbx_default  =  3564;
 //
+//---------------------------------------------------------------------
+// 0X14C - 0X158 = ADR_V6_GTX_RX: GTX link control and monitoring
+//---------------------------------------------------------------------
+const int gtx_rx0_enable_vmereg         =  v6_gtx_rx0_adr;
+const int gtx_rx1_enable_vmereg         =  v6_gtx_rx1_adr;
+const int gtx_rx2_enable_vmereg         =  v6_gtx_rx2_adr;
+const int gtx_rx3_enable_vmereg         =  v6_gtx_rx3_adr;
+const int gtx_rx4_enable_vmereg         =  v6_gtx_rx4_adr;
+const int gtx_rx5_enable_vmereg         =  v6_gtx_rx5_adr;
+const int gtx_rx6_enable_vmereg         =  v6_gtx_rx6_adr;
+const int gtx_rx_enable_bitlo           =  0;
+const int gtx_rx_enable_bithi           =  0;
+const int gtx_rx_enable_default         =  1;
+
+const int gtx_rx0_reset_vmereg          =  v6_gtx_rx0_adr;
+const int gtx_rx1_reset_vmereg          =  v6_gtx_rx1_adr;
+const int gtx_rx2_reset_vmereg          =  v6_gtx_rx2_adr;
+const int gtx_rx3_reset_vmereg          =  v6_gtx_rx3_adr;
+const int gtx_rx4_reset_vmereg          =  v6_gtx_rx4_adr;
+const int gtx_rx5_reset_vmereg          =  v6_gtx_rx5_adr;
+const int gtx_rx6_reset_vmereg          =  v6_gtx_rx6_adr;
+const int gtx_rx_reset_bitlo            =  1;
+const int gtx_rx_reset_bithi            =  1;
+const int gtx_rx_reset_default          =  0;
+
+const int gtx_rx0_prbs_test_enable_vmereg       =  v6_gtx_rx0_adr;
+const int gtx_rx1_prbs_test_enable_vmereg       =  v6_gtx_rx1_adr;
+const int gtx_rx2_prbs_test_enable_vmereg       =  v6_gtx_rx2_adr;
+const int gtx_rx3_prbs_test_enable_vmereg       =  v6_gtx_rx3_adr;
+const int gtx_rx4_prbs_test_enable_vmereg       =  v6_gtx_rx4_adr;
+const int gtx_rx5_prbs_test_enable_vmereg       =  v6_gtx_rx5_adr;
+const int gtx_rx6_prbs_test_enable_vmereg       =  v6_gtx_rx6_adr;
+const int gtx_rx_prbs_test_enable_bitlo        =  2;
+const int gtx_rx_prbs_test_enable_bithi        =  2;
+const int gtx_rx_prbs_test_enable_default      =  0;
+
+const int gtx_rx0_ready_vmereg          =  v6_gtx_rx0_adr;
+const int gtx_rx1_ready_vmereg          =  v6_gtx_rx1_adr;
+const int gtx_rx2_ready_vmereg          =  v6_gtx_rx2_adr;
+const int gtx_rx3_ready_vmereg          =  v6_gtx_rx3_adr;
+const int gtx_rx4_ready_vmereg          =  v6_gtx_rx4_adr;
+const int gtx_rx5_ready_vmereg          =  v6_gtx_rx5_adr;
+const int gtx_rx6_ready_vmereg          =  v6_gtx_rx6_adr;
+const int gtx_rx_ready_bitlo           =  3;
+const int gtx_rx_ready_bithi           =  3;
+
+//GTX link is locked (over 15 BX with clean data frames)
+const int gtx_rx0_link_good_vmereg      =  v6_gtx_rx0_adr;
+const int gtx_rx1_link_good_vmereg      =  v6_gtx_rx1_adr;
+const int gtx_rx2_link_good_vmereg      =  v6_gtx_rx2_adr;
+const int gtx_rx3_link_good_vmereg      =  v6_gtx_rx3_adr;
+const int gtx_rx4_link_good_vmereg      =  v6_gtx_rx4_adr;
+const int gtx_rx5_link_good_vmereg      =  v6_gtx_rx5_adr;
+const int gtx_rx6_link_good_vmereg      =  v6_gtx_rx6_adr;
+const int gtx_rx_link_good_bitlo       =  4;
+const int gtx_rx_link_good_bithi       =  4;
+
+//GTX link had an error (bad data frame) since last reset
+const int gtx_rx0_link_had_error_vmereg =  v6_gtx_rx0_adr;
+const int gtx_rx1_link_had_error_vmereg =  v6_gtx_rx1_adr;
+const int gtx_rx2_link_had_error_vmereg =  v6_gtx_rx2_adr;
+const int gtx_rx3_link_had_error_vmereg =  v6_gtx_rx3_adr;
+const int gtx_rx4_link_had_error_vmereg =  v6_gtx_rx4_adr;
+const int gtx_rx5_link_had_error_vmereg =  v6_gtx_rx5_adr;
+const int gtx_rx6_link_had_error_vmereg =  v6_gtx_rx6_adr;
+const int gtx_rx_link_had_error_bitlo  =  5;
+const int gtx_rx_link_had_error_bithi  =  5;
+
+//GTX link had over 100 errors since last reset
+const int gtx_rx0_link_bad_vmereg       =  v6_gtx_rx0_adr;
+const int gtx_rx1_link_bad_vmereg       =  v6_gtx_rx1_adr;
+const int gtx_rx2_link_bad_vmereg       =  v6_gtx_rx2_adr;
+const int gtx_rx3_link_bad_vmereg       =  v6_gtx_rx3_adr;
+const int gtx_rx4_link_bad_vmereg       =  v6_gtx_rx4_adr;
+const int gtx_rx5_link_bad_vmereg       =  v6_gtx_rx5_adr;
+const int gtx_rx6_link_bad_vmereg       =  v6_gtx_rx6_adr;
+const int gtx_rx_link_bad_bitlo        =  6;
+const int gtx_rx_link_bad_bithi        =  6;
+
+const int gtx_rx0_pol_swap_vmereg       =  v6_gtx_rx0_adr;
+const int gtx_rx1_pol_swap_vmereg       =  v6_gtx_rx1_adr;
+const int gtx_rx2_pol_swap_vmereg       =  v6_gtx_rx2_adr;
+const int gtx_rx3_pol_swap_vmereg       =  v6_gtx_rx3_adr;
+const int gtx_rx4_pol_swap_vmereg       =  v6_gtx_rx4_adr;
+const int gtx_rx5_pol_swap_vmereg       =  v6_gtx_rx5_adr;
+const int gtx_rx6_pol_swap_vmereg       =  v6_gtx_rx6_adr;
+const int gtx_rx_pol_swap_bitlo        =  7;
+const int gtx_rx_pol_swap_bithi        =  7;
+
+const int gtx_rx0_error_count_vmereg    =  v6_gtx_rx0_adr;
+const int gtx_rx1_error_count_vmereg    =  v6_gtx_rx1_adr;
+const int gtx_rx2_error_count_vmereg    =  v6_gtx_rx2_adr;
+const int gtx_rx3_error_count_vmereg    =  v6_gtx_rx3_adr;
+const int gtx_rx4_error_count_vmereg    =  v6_gtx_rx4_adr;
+const int gtx_rx5_error_count_vmereg    =  v6_gtx_rx5_adr;
+const int gtx_rx6_error_count_vmereg    =  v6_gtx_rx6_adr;
+const int gtx_rx_error_count_bitlo     =  8;
+const int gtx_rx_error_count_bithi     =  15;
+
 //
 //////////////////////////////////////////////
 // Bit mapping for TMB Raw Hits

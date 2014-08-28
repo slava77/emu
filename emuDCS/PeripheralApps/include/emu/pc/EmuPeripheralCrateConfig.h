@@ -44,6 +44,7 @@
 #include "emu/pc/Crate.h"
 #include "emu/pc/DAQMB.h"
 #include "emu/pc/TMB.h"
+#include "emu/pc/TMB_constants.h"
 #include "emu/pc/TMBTester.h"
 #include "emu/pc/CCB.h"
 #include "emu/pc/MPC.h"
