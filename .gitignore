@@ -1,1 +1,9 @@
-setup_here.sh
+# localized source script 
+/setup_here.sh
+# build logs
+/*.log
+# emacs stuff
+*~
+# xdaq build directories, hopefully globs are enough
+lib/
+linux/
