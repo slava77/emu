@@ -1574,7 +1574,7 @@ void CCB::signal_csrb2(int cmd){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
   }
-  int i_ccb=cmd & 0x2F;
+  int i_ccb=cmd & 0x3F;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xFC;
   
