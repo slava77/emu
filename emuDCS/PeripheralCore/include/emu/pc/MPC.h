@@ -232,6 +232,9 @@ class MPC : public VMEModule, public EmuLogger {
   void check_generation();
   int readDSN(void *data);
   int newPRBS(int mode);
+  void Fill_FIFO_A();
+  int Read_FIFO_B_Old(int link, unsigned short *data);
+  int Read_FIFO_B_New(int link, unsigned short *data);
 
  protected:
   /// MPC base address should always correspond to VME Slot 12 (=0x600000)
@@ -245,6 +248,8 @@ class MPC : public VMEModule, public EmuLogger {
     FIFO_A9a = 0xA0, FIFO_A9b = 0xA2, 
     /// FIFOs Bx correspond to the x-th best selected LCT
     FIFO_B1  = 0xA4, FIFO_B2  = 0xA6, FIFO_B3  = 0xA8,
+    /// FIFO_Bx_New are for new links, total 8 active
+    FIFO_B1_New = 0xE4,
     /// Various Control & Status registers (CSR3 read only)
     CSR0 = 0x00, CSR1 = 0xAA, CSR2 = 0xAC,
     CSR3 = 0xAE, CSR4 = 0xB8, CSR5 = 0xBA,

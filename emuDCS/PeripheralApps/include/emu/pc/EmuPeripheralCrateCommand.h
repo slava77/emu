@@ -273,7 +273,8 @@ protected:
   unsigned int total_crates_;
   int this_crate_no_;
   std::string ThisCrateID_;
-  
+  int MPClist_;
+    
   bool Monitor_On_, Monitor_Ready_;
   //
   bool ccb_checked_;
@@ -315,7 +316,9 @@ private:
   xoap::MessageReference onEnableCalALCTConnectivity (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalALCTThresholds (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalALCTDelays (xoap::MessageReference message) throw (xoap::exception::Exception);
-  // ---
+
+  // MPC-TF test
+  xoap::MessageReference onFillMPCFIFOAs (xoap::MessageReference message) throw (xoap::exception::Exception);  
 
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void configureFail(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
@@ -329,6 +332,9 @@ private:
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+
+  void ReadMPCFIFOBOld(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ReadMPCFIFOBNew(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
 
   void ResetAllTMBCounters();
   int VerifyCratesConfiguration();

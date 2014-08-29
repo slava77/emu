@@ -1029,5 +1029,73 @@ int MPC::newPRBS(int mode)
      return -1;
 }
 
+void MPC::Fill_FIFO_A()
+{
+/* Write random patterns to MPC's 18 FIFO_As */
+   int ireg, pid, quality;
+
+   for(int i=0; i<18; i++)
+   {
+        ireg=FIFO_A1a+i*2;
+        for(int k=0; k<255; k++)
+        {
+           pid= (int) (65536.0 * (rand() / (RAND_MAX + 1.0)));
+           while(pid==0)
+           {
+               pid= (int) (65536.0 * (rand() / (RAND_MAX + 1.0)));
+           }
+           // first frame
+           quality = (pid>>11)&0xF;
+           if (quality==0) quality=1;
+           pid &= 0x7FF;
+           pid |= (quality<<11);
+           pid |= 0x8000;
+           WriteRegister(ireg,   pid);
+//           usleep(10);
+
+           pid= (int) (65536.0 * (rand() / (RAND_MAX + 1.0)));
+           while(pid==0)
+           {
+               pid= (int) (65536.0 * (rand() / (RAND_MAX + 1.0)));
+           }
+           // second frame
+           pid &= 0xF5FF;
+           pid |= 0x0800; // BC0=1
+           WriteRegister(ireg,   pid);
+//           usleep(10);
+        }
+        pid=0;
+        WriteRegister(ireg,   pid);
+//           usleep(10);
+        pid=ReadRegister(CSR0);
+        WriteRegister(CSR0, pid|1); // put MPC in test mode (use data from FIFO_A)
+   }
+
+}
+
+int MPC::Read_FIFO_B_New(int link, unsigned short *data)
+{
+// data[] must be large enough to hold 511 words
+   if(link<1 || link>8) return -1;
+   int ireg=FIFO_B1_New + (link-1)*2;
+   for(int i=0; i<511; i++)
+   {
+      data[i]=(unsigned short)ReadRegister(ireg);
+   }
+   return 511;
+}
+
+int MPC::Read_FIFO_B_Old(int link, unsigned short *data)
+{
+// data[] must be large enough to hold 511 words
+   if(link<1 || link>3) return -1;
+   int ireg=FIFO_B1 + (link-1)*2;
+   for(int i=0; i<511; i++)
+   {
+      data[i]=(unsigned short)ReadRegister(ireg);
+   }
+   return 511;
+}
+
 } // namespace emu::pc
 } // namespace emu
