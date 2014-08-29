@@ -49,6 +49,8 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
       dmb_check_ok[i][j] = -1;
     }
   }
+  MPClist_ = 0;
+
   //
   xgi::bind(this,&EmuPeripheralCrateCommand::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateCommand::MainPage, "MainPage");
@@ -58,6 +60,9 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   //------------------------------------------------------
   xgi::bind(this,&EmuPeripheralCrateCommand::CheckCrates, "CheckCrates");
   xgi::bind(this,&EmuPeripheralCrateCommand::CheckCratesConfiguration, "CheckCratesConfiguration");
+  // MPC-TF test
+  xgi::bind(this,&EmuPeripheralCrateCommand::ReadMPCFIFOBOld, "ReadMPCFIFOBOld");
+  xgi::bind(this,&EmuPeripheralCrateCommand::ReadMPCFIFOBNew, "ReadMPCFIFOBNew");
 
   // SOAP call-back functions, which relays to *Action method.
   //-----------------------------------------------------------
@@ -72,7 +77,9 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   xoap::bind(this, &EmuPeripheralCrateCommand::onEnableCalALCTConnectivity, "EnableCalALCTConnectivity", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onEnableCalALCTThresholds, "EnableCalALCTThresholds", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateCommand::onEnableCalALCTDelays, "EnableCalALCTDelays", XDAQ_NS_URI);
-// ---
+// MPC-TF test
+  xoap::bind(this, &EmuPeripheralCrateCommand::onFillMPCFIFOAs, "FillMPCFIFOAs", XDAQ_NS_URI);
+  
   //
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
@@ -371,6 +378,41 @@ xoap::MessageReference EmuPeripheralCrateCommand::onHalt (xoap::MessageReference
   //
   current_run_state_ = 0;
   fireEvent("Halt");
+  //
+  return createReply(message);
+}
+//
+xoap::MessageReference EmuPeripheralCrateCommand::onFillMPCFIFOAs (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  std::cout << "SOAP FillMPCFIFOAs" << std::endl;
+  //
+  std::string mpclistST=getAttrFromSOAP(message, "MPCList");
+  std::cout << "MPCList=" << mpclistST << std::endl;
+  int mpclist=0;
+  if(mpclistST!="") mpclist=atoi(mpclistST.c_str());
+  if(mpclist>0)
+  {
+     MPClist_=mpclist & 0x7FFFFFFE;
+     if(!parsed) ParsingXML();
+     if(total_crates_<=0) return createReply(message);
+     srand((unsigned int)time(NULL));
+     for(unsigned i=0; i< crateVector.size(); i++)
+     {
+        if(!crateVector[i]) continue;
+        int id=crateVector[i]->CrateID();
+        if(id>30) id -= 30;
+        if((1<<id) & MPClist_)
+        {
+           std::cout << "Crate " << id << " selected." << std::endl;
+           MPC *myMPC=crateVector[i]->mpc();
+           if(myMPC) myMPC->Fill_FIFO_A();
+        }
+     }
+  }
+  else
+  {
+     std::cout << "Warning: Empty MPC List!" << std::endl;
+  } 
   //
   return createReply(message);
 }
@@ -1177,9 +1219,92 @@ std::string& EmuPeripheralCrateCommand::trim(std::string &str)
 	return str;
 
 }
-// ---
 
+  void EmuPeripheralCrateCommand::ReadMPCFIFOBOld(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+  {  
+     if(MPClist_==0)
+     {
+        std::cout << "Warning: Empty MPC List!" << std::endl; 
+        *out << "Warning: Empty MPC List!" << std::endl; 
+        return;
+     }
+     if(!parsed) ParsingXML();
+     if(total_crates_<=0) return;
+     unsigned short mpcdata[512];
+     for(unsigned i=0; i< crateVector.size(); i++)
+     {
+        if(!crateVector[i]) continue;
+        int id=crateVector[i]->CrateID();
+        if(id>30) id -= 30;
+        if((1<<id) & MPClist_)
+        {
+           MPC *myMPC=crateVector[i]->mpc();
+           if(!myMPC)
+           {
+              *out << "MPC " << id << " 0 0" << std::endl;
+              continue;
+           } 
+           for(int link=1; link<4; link++)
+           {
+              int r=myMPC->Read_FIFO_B_Old(link, mpcdata);
+              if(r>0) 
+              {
+                 *out << "MPC " << id << " " << link << " " << r;
+                 for(int k=0; k<r; k++) *out << " " << std::hex << mpcdata[k] << std::dec;
+                 *out << " FFFF" << std::endl; 
+              }
+              else
+              {
+                 *out << "MPC " << id << " " << link << " 0" << std::endl;
+              }
+           }
+        }
+     }
+  }
 
+  void EmuPeripheralCrateCommand::ReadMPCFIFOBNew(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+  {  
+     if(MPClist_==0)
+     {
+        std::cout << "Warning: Empty MPC List!" << std::endl; 
+        *out << "Warning: Empty MPC List!" << std::endl; 
+        return;
+     }
+     if(!parsed) ParsingXML();
+     if(total_crates_<=0) return;
+     unsigned short mpcdata[512];
+     for(unsigned i=0; i< crateVector.size(); i++)
+     {
+        if(!crateVector[i]) continue;
+        int id=crateVector[i]->CrateID();
+        if(id>30) id -= 30;
+        if((1<<id) & MPClist_)
+        {
+           MPC *myMPC=crateVector[i]->mpc();
+           if(!myMPC)
+           {
+              *out << "MPC " << id << " 0 0" << std::endl;
+              continue;
+           } 
+           for(int link=1; link<9; link++)
+           {
+              int r=myMPC->Read_FIFO_B_New(link, mpcdata);
+              if(r>0) 
+              {
+                 *out << "MPC " << id << " " << link << " " << r;
+                 for(int k=0; k<r; k++) *out << " " << std::hex << mpcdata[k] << std::dec;
+                 *out << " FFFF" << std::endl; 
+              }
+              else
+              {
+                 *out << "MPC " << id << " " << link << " 0" << std::endl;
+              }
+           }
+        }
+     }
+  }
  }  // namespace emu::pc
 }  // namespace emu
 // provides factory method for instantion of HellWorld application
