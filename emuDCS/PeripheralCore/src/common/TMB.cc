@@ -5215,7 +5215,7 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(vme_ddd0_adr        );  //0x16 phases: ALCT tof, ALCTtx, DMBtx, RAT/TMB
   TMBConfigurationRegister.push_back(vme_ddd1_adr        );  //0x18 phases: ALCTrx, CFEB tof, TMB1, CFEB0 tof
   TMBConfigurationRegister.push_back(vme_ddd2_adr        );  //0x1a phases: CFEB4 tof, CFEB3 tof, CFEB2 tof, CFEB1 tof
-  TMBConfigurationRegister.push_back(vme_dddoe_adr        ); //0x1C clock output enable: CFEB4, CFEB3, CFEB2, CFEB1, CFEB0, DCC, MPC, TMB1, RPCtx, DMBtx, ALCTrx, ALCTtx
+  TMBConfigurationRegister.push_back(vme_dddoe_adr       );  //0x1C clock output enable: CFEB4, CFEB3, CFEB2, CFEB1, CFEB0, DCC, MPC, TMB1, RPCtx, DMBtx, ALCTrx, ALCTtx
   TMBConfigurationRegister.push_back(rat_3d_delays_adr   );  //0xE6 phases: RPC1/RAT, RPC0/RAT 
   TMBConfigurationRegister.push_back(phaser_alct_rxd_adr );  //0x10E digital phase shifter: alct_rx
   TMBConfigurationRegister.push_back(phaser_alct_txd_adr );  //0x110 digital phase shifter: alct_tx
@@ -5247,6 +5247,15 @@ void TMB::DefineTMBConfigurationRegisters_(){
   // Automatic masking of bad bits
   TMBConfigurationRegister.push_back(cfeb_badbits_ctrl_adr) ;  //0x122
   //
+  // GTX link monitoring
+  TMBConfigurationRegister.push_back(v6_gtx_rx0_adr) ;  //0x14C GTX link control and monitoring for DCFEB0
+  TMBConfigurationRegister.push_back(v6_gtx_rx1_adr) ;  //0x14E GTX link control and monitoring for DCFEB1
+  TMBConfigurationRegister.push_back(v6_gtx_rx2_adr) ;  //0x150 GTX link control and monitoring for DCFEB2
+  TMBConfigurationRegister.push_back(v6_gtx_rx3_adr) ;  //0x152 GTX link control and monitoring for DCFEB3
+  TMBConfigurationRegister.push_back(v6_gtx_rx4_adr) ;  //0x154 GTX link control and monitoring for DCFEB4
+  TMBConfigurationRegister.push_back(v6_gtx_rx5_adr) ;  //0x156 GTX link control and monitoring for DCFEB5
+  TMBConfigurationRegister.push_back(v6_gtx_rx6_adr) ;  //0x158 GTX link control and monitoring for DCFEB6
+  
   // Not put into xml file, but may want to enable scope for test runs...
   //  TMBConfigurationRegister.push_back(scp_ctrl_adr);         //0x98 scope control
   //
@@ -5715,6 +5724,14 @@ void TMB::SetTMBRegisterDefaults() {
   //---------------------------------------------------------------------
   cfeb_badbits_nbx_ = cfeb_badbits_nbx_default;
   //
+  //---------------------------------------------------------------------
+  // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
+  //---------------------------------------------------------------------
+  for (int i=0; i < 7; i++) {
+      gtx_rx_enable_[i] = gtx_rx_enable_default;
+      gtx_rx_reset_[i] = gtx_rx_reset_default;
+      gtx_rx_prbs_test_enable_[i] = gtx_rx_prbs_test_enable_default;
+  }
   //
   return;
 }
@@ -6487,6 +6504,24 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //---------------------------------------------------------------------
     read_cfeb_badbits_nbx_ = ExtractValueFromData(data,cfeb_badbits_nbx_bitlo,cfeb_badbits_nbx_bithi);
     //
+  } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
+              address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
+              address == v6_gtx_rx6_adr) {
+    //---------------------------------------------------------------------
+    // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
+    //---------------------------------------------------------------------
+    int inputNum = (address - v6_gtx_rx0_adr) / 2;
+    
+    read_gtx_rx_enable_[inputNum] = ExtractValueFromData(data,gtx_rx_enable_bitlo,gtx_rx_enable_bithi);
+    read_gtx_rx_reset_[inputNum] = ExtractValueFromData(data,gtx_rx_reset_bitlo,gtx_rx_reset_bithi);
+    read_gtx_rx_prbs_test_enable_[inputNum] = ExtractValueFromData(data,gtx_rx_prbs_test_enable_bitlo,gtx_rx_prbs_test_enable_bithi);
+    read_gtx_rx_ready_[inputNum] = ExtractValueFromData(data,gtx_rx_ready_bitlo,gtx_rx_ready_bithi);
+    read_gtx_rx_link_good_[inputNum] = ExtractValueFromData(data,gtx_rx_link_good_bitlo,gtx_rx_link_good_bithi);
+    read_gtx_rx_link_had_error_[inputNum] = ExtractValueFromData(data,gtx_rx_link_had_error_bitlo,gtx_rx_link_had_error_bithi);
+    read_gtx_rx_link_bad_[inputNum] = ExtractValueFromData(data,gtx_rx_link_bad_bitlo,gtx_rx_link_bad_bithi);
+    read_gtx_rx_pol_swap_[inputNum] = ExtractValueFromData(data,gtx_rx_pol_swap_bitlo,gtx_rx_pol_swap_bithi);
+    read_gtx_rx_error_count_[inputNum] = ExtractValueFromData(data,gtx_rx_error_count_bitlo,gtx_rx_error_count_bithi);
+    
   } else if ( address == badbits001_adr || address == badbits023_adr || address == badbits045_adr ||
 	      address == badbits101_adr || address == badbits123_adr || address == badbits145_adr ||
 	      address == badbits201_adr || address == badbits223_adr || address == badbits245_adr ||
@@ -7364,6 +7399,51 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << " ->CFEB badbits timer:" << std::endl;
     (*MyOutput_) << "    Check interval for CFEB badbits = " << std::dec << read_cfeb_badbits_nbx_ << std::endl;
     //
+  } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
+              address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
+              address == v6_gtx_rx6_adr) {
+    //---------------------------------------------------------------------
+    // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
+    //---------------------------------------------------------------------
+    
+    (*MyOutput_) << " ->GTX optical input control and monitoring:" << std::endl;
+    
+    (*MyOutput_) << "    Input enable [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_enable_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+    
+    (*MyOutput_) << "    Input reset [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_reset_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+    
+    (*MyOutput_) << "    PRBS test enable [DCFEBs 0-6]: \t[ ";
+    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_prbs_test_enable_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+    
+    (*MyOutput_) << "    Input ready [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_ready_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+    
+    (*MyOutput_) << "    Link good [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_link_good_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+    
+    (*MyOutput_) << "    Link had errors [DCFEBs 0-6]: \t[ ";
+    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_link_had_error_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+    
+    (*MyOutput_) << "    Link bad [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_link_bad_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+    
+//    (*MyOutput_) << "    GTX 4 and 5 have swapped rx board routes [DCFEBs 0-6]: \t\t[ ";
+//    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_pol_swap_[i] << " "; }
+//    (*MyOutput_) << "]" << std::endl;
+    
+    (*MyOutput_) << "    Link error count [DCFEBs 0-6]: \t[ ";
+    for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_error_count_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+    
   } else {
     //
     (*MyOutput_) << " -> Unable to decode register: PLEASE DEFINE" << std::endl;
@@ -7940,6 +8020,15 @@ int TMB::FillTMBRegister(unsigned long int address) {
     // 0X124 = ADR_CFEB_BADBITS_TIMER:  CFEB badbits check interval
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(cfeb_badbits_nbx_,cfeb_badbits_nbx_bithi,cfeb_badbits_nbx_bitlo,&data_word);
+    //
+  } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
+              address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
+              address == v6_gtx_rx6_adr) {
+      
+    int inputNum = (address - v6_gtx_rx0_adr) / 2;
+    InsertValueIntoDataWord(gtx_rx_enable_[inputNum],gtx_rx_enable_bithi,gtx_rx_enable_bitlo,&data_word);
+    InsertValueIntoDataWord(gtx_rx_reset_[inputNum],gtx_rx_reset_bithi,gtx_rx_reset_bitlo,&data_word);
+    InsertValueIntoDataWord(gtx_rx_prbs_test_enable_[inputNum],gtx_rx_prbs_test_enable_bithi,gtx_rx_prbs_test_enable_bitlo,&data_word);
     //
   } else {
     //

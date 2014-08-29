@@ -560,8 +560,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MPCWriteValue_ = -1;
   //
   CalibrationState_ = "None";
-  standalone_ = false;
-  //standalone_ = true;
+  //standalone_ = false;
+  standalone_ = true;
   //
   for (int i=0; i<9; i++) {
     able_to_load_alct[i] = -1;  
@@ -2748,6 +2748,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       // check TMB, DMB, ALCT, and CFEB's attached to this chamber...
       for (unsigned int chamber_index=0; chamber_index<dmbVector.size(); chamber_index++) {
 	DAQMB * thisDMB = dmbVector[chamber_index];
+	if ( thisDMB->GetHardwareVersion() >= 2 ) continue;
 	std::vector<CFEB> thisCFEBs = thisDMB->cfebs() ;
         int dslot = thisDMB->slot();
 	//
@@ -2780,10 +2781,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	    int cfeb_index = (*cfebItr).number();
 	    cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] += (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
 	  }
-	  
-          if(thisDMB->GetHardwareVersion()>1) continue;
-          // The following part is valid for old DMB/CFEB/ALCT only. Skip for ODMB/DCFEB...
-          //
+	  //
 	  // check if the configuration of the CFEBs and DMBs are OK...
 	  // in particular, check if the "smoking gun" for firmware loss is OK...
 	  //
@@ -2917,17 +2915,19 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
     //
     for (unsigned int chamber_index=0; chamber_index<dmbVector.size(); chamber_index++) {
       DAQMB * thisDMB = dmbVector[chamber_index];
+      if ( thisDMB->GetHardwareVersion() >= 2 ) continue;
       std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
       int dslot = thisDMB->slot();
       //
       TMB * thisTMB   = tmbVector[chamber_index];
+      ALCTController * thisALCT   = thisTMB->alctController();
       int tslot = thisTMB->slot();
       //
       if (
 	  //	  alctcfg_ok[crate_index][chamber_index]           != number_of_checks_ ||
 	  //	  alct_adc_current_ok[crate_index][chamber_index]  != number_of_checks_ || 
 	  //	  alct_firmware_ok[crate_index][chamber_index]     != number_of_checks_ ||
-	  alct_lvmb_current_ok[crate_index][chamber_index] != number_of_checks_ 
+	  alct_lvmb_current_ok[crate_index][chamber_index] != number_of_checks_ && thisALCT->GetHardwareVersion()<2
 	  ) {
 	crate_to_reload.push_back(crate_index);
 	slot_to_reload.push_back(tslot);
@@ -2948,7 +2948,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	//	  reason << "I(ADC) bad " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	//	}
 	//
-	if (alct_lvmb_current_ok[crate_index][chamber_index]     != number_of_checks_ ) {
+	if (alct_lvmb_current_ok[crate_index][chamber_index]     != number_of_checks_ && thisALCT->GetHardwareVersion()<2) {
 	  int number_of_bad_readings = number_of_checks_ - alct_lvmb_current_ok[crate_index][chamber_index];
 	  reason << "I(LVMB) low, " << number_of_bad_readings << "/" << number_of_checks_ << " times ";
 	}
@@ -3116,6 +3116,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
     int within_crate_problem_index = -1;
     for (unsigned int chamber_index=0; chamber_index<dmbVector.size(); chamber_index++) {
       DAQMB * thisDMB = dmbVector[chamber_index];
+      if ( thisDMB->GetHardwareVersion() >= 2 ) continue;
       int dslot = thisDMB->slot();
       //
       TMB * thisTMB   = tmbVector[chamber_index];
@@ -6498,7 +6499,9 @@ void EmuPeripheralCrateConfig::TMBL1aTiming(xgi::Input * in, xgi::Output * out )
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].SetupRadioactiveTriggerConditions();
   MyTest[tmb][current_crate_].FindTMB_L1A_delay();
+  MyTest[tmb][current_crate_].ReturnToInitialTriggerConditions();
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -6541,7 +6544,9 @@ void EmuPeripheralCrateConfig::ALCTL1aTiming(xgi::Input * in, xgi::Output * out 
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].SetupRadioactiveTriggerConditions();
   MyTest[tmb][current_crate_].FindALCT_L1A_delay();
+  MyTest[tmb][current_crate_].ReturnToInitialTriggerConditions();
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -7473,7 +7478,10 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   //
   alct->RedirectOutput(out);
   //
-  if ( alct->CheckFirmwareDate() ) {
+  tmbVector[tmb]->ReadRegister(emu::pc::alct_cfg_done_vmereg);
+  int done = tmbVector[tmb]->GetReadALCTConfigDone();
+  //
+  if ( alct->CheckFirmwareDate() && done) {
     *out << cgicc::span().set("style","color:green");  
     alct->PrintFastControlId();
     *out << "...OK...";
@@ -7486,6 +7494,8 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
 	 << " "      << alct->GetExpectedFastControlYear()
 	 << ")";
   }
+  //
+  *out << " DONE = " << done;
   //
   alct->RedirectOutput(&std::cout);
   //
@@ -8615,6 +8625,24 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   thisTMB->RedirectOutput(&std::cout);
   *out << cgicc::pre();
   *out << cgicc::fieldset();
+  //
+  if (thisTMB->GetHardwareVersion() >= 2) {
+    *out << cgicc::fieldset();
+    *out << cgicc::legend("Optical input status").set("style","color:blue") << std::endl ;
+    *out << cgicc::pre();
+    thisTMB->RedirectOutput(out);
+    thisTMB->ReadRegister(v6_gtx_rx0_adr);
+    thisTMB->ReadRegister(v6_gtx_rx1_adr);
+    thisTMB->ReadRegister(v6_gtx_rx2_adr);
+    thisTMB->ReadRegister(v6_gtx_rx3_adr);
+    thisTMB->ReadRegister(v6_gtx_rx4_adr);
+    thisTMB->ReadRegister(v6_gtx_rx5_adr);
+    thisTMB->ReadRegister(v6_gtx_rx6_adr);
+    thisTMB->PrintTMBRegister(v6_gtx_rx0_adr);
+    thisTMB->RedirectOutput(&std::cout);
+    *out << cgicc::pre();
+    *out << cgicc::fieldset();
+  }
   //
   *out << cgicc::fieldset();
   *out << cgicc::legend("Sync Error status").set("style","color:blue") << std::endl ;

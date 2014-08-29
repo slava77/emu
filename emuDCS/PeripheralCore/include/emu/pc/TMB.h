@@ -2015,6 +2015,42 @@ public:
   inline int  GetCFEBBadBitsNbx() { return cfeb_badbits_nbx_; }
   inline int  GetReadCFEBBadBitsNbx() { return read_cfeb_badbits_nbx_; }
   //
+  //---------------------------------------------------------------------
+  // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
+  //---------------------------------------------------------------------
+  //Enable this GTX optical input,  disables copper input
+  inline void SetGtxRxEnable(int cfebNum, int gtx_rx_enable) { gtx_rx_enable_[cfebNum] = gtx_rx_enable; }
+  inline int  GetGtxRxEnable(int cfebNum) { return gtx_rx_enable_[cfebNum]; }
+  inline int  GetReadGtxRxEnable(int cfebNum) { return read_gtx_rx_enable_[cfebNum]; }
+  
+  //Reset this GTX
+  inline void SetGtxRxReset(int cfebNum, int gtx_rx_reset) { gtx_rx_reset_[cfebNum] = gtx_rx_reset; }
+  inline int  GetGtxRxReset(int cfebNum) { return gtx_rx_reset_[cfebNum]; }
+  inline int  GetReadGtxRxReset(int cfebNum) { return read_gtx_rx_reset_[cfebNum]; }
+  
+  //Select this GTX for PRBS test input mode
+  inline void SetGtxRxPrbsTestEnable(int cfebNum, int gtx_rx_prbs_test_enable) { gtx_rx_prbs_test_enable_[cfebNum] = gtx_rx_prbs_test_enable; }
+  inline int  GetGtxRxPrbsTestEnable(int cfebNum) { return gtx_rx_prbs_test_enable_[cfebNum]; }
+  inline int  GetReadGtxRxPrbsTestEnable(int cfebNum) { return read_gtx_rx_prbs_test_enable_[cfebNum]; }
+  
+  //GTX ready
+  inline int  GetReadGtxRxReady(int cfebNum) { return read_gtx_rx_ready_[cfebNum]; }
+  
+  //GTX link is locked (over 15 BX with clean data frames)
+  inline int  GetReadGtxRxLinkGood(int cfebNum) { return read_gtx_rx_link_good_[cfebNum]; }
+  
+  //GTX link had an error (bad data frame) since last reset
+  inline int  GetReadGtxRxLinkHadError(int cfebNum) { return read_gtx_rx_link_had_error_[cfebNum]; }
+  
+  //GTX link had over 100 errors since last reset
+  inline int  GetReadGtxRxLinkBad(int cfebNum) { return read_gtx_rx_link_bad_[cfebNum]; }
+  
+  //GTX 5,6 [ie dcfeb 4,5] have swapped rx board routes
+  inline int  GetReadGtxRxPolSwap(int cfebNum) { return read_gtx_rx_pol_swap_[cfebNum]; }
+  
+  //GTX link error count (full scale count is hex E0)
+  inline int  GetReadGtxRxErrorCount(int cfebNum) { return read_gtx_rx_error_count_[cfebNum]; }
+  
   //
   //------------------------------------------------------------------
   //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks
@@ -3282,6 +3318,22 @@ private:
   //
   int read_cfeb_badbits_nbx_;
   //
+  //---------------------------------------------------------------------
+  // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
+  //---------------------------------------------------------------------
+  int gtx_rx_enable_[7];
+  int gtx_rx_reset_[7];
+  int gtx_rx_prbs_test_enable_[7];
+  
+  int read_gtx_rx_enable_[7];
+  int read_gtx_rx_reset_[7];
+  int read_gtx_rx_prbs_test_enable_[7];
+  int read_gtx_rx_ready_[7];
+  int read_gtx_rx_link_good_[7];
+  int read_gtx_rx_link_had_error_[7];
+  int read_gtx_rx_link_bad_[7];
+  int read_gtx_rx_pol_swap_[7];
+  int read_gtx_rx_error_count_[7];
   //
   //------------------------------------------------------------------
   //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks

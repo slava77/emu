@@ -3658,7 +3658,22 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     DAQMB * thisDMB = dmbVector[dmb];
     //
     thisDMB->RedirectOutput(&std::cout);
-    thisDMB->PrintCounters(1);
+//    thisDMB->PrintCounters(1);
+      std::vector <CFEB> thisCFEBs=thisDMB->cfebs();
+      for (unsigned i=0;i<thisCFEBs.size();i++) {
+         int ival = 12;
+         std::cout << "laba diena: " << thisDMB->autoload_select_readback_wrd(thisCFEBs[i], ival) << std::endl;
+         //std::cout << "laba diena: " << thisDMB->autoload_select_readback_wrd(thisCFEBs[i], ival) << std::endl;
+	 //std::cout << ival << std::endl;
+	 //thisDMB->Set_TMB_TX_MODE(thisCFEBs[i], 1);
+         //std::cout << "laba diena dar: " << thisDMB->autoload_select_readback_wrd(thisCFEBs[i], ival) << std::endl;
+         //std::cout << "laba diena dar: " << thisDMB->autoload_select_readback_wrd(thisCFEBs[i], ival) << std::endl;
+	 //thisDMB->Set_TMB_TX_MODE(thisCFEBs[i], 0);
+         //std::cout << "laba diena ir dar: " << thisDMB->autoload_select_readback_wrd(thisCFEBs[i], ival) << std::endl;
+         //std::cout << "laba diena ir dar: " << thisDMB->autoload_select_readback_wrd(thisCFEBs[i], ival) << std::endl;
+      }
+
+
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBUtils(in,out);

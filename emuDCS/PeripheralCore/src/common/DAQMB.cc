@@ -9657,7 +9657,7 @@ void DAQMB::set_dcfeb_parambuffer(CFEB &cfeb, unsigned short int bufload[34]){
     bufload[33]=shft_bits[2];
 }
 
-void DAQMB::autoload_select_readback_wrd(CFEB &cfeb, int ival){
+unsigned DAQMB::autoload_select_readback_wrd(CFEB &cfeb, int ival){
   /*
       0 - xtra l1a w 2 bits
       1 - pre block end 4 bits
@@ -9680,8 +9680,42 @@ void DAQMB::autoload_select_readback_wrd(CFEB &cfeb, int ival){
   */
     unsigned tmp;
     dcfeb_hub(cfeb, REG_SEL_WRD, 8, &ival, (char *)&tmp, NOW);
-    return;
+    return tmp;
 }
+
+void  DAQMB::Set_TMB_TX_MODE(CFEB &cfeb,int mode) {
+  // set optical tmb path output mode
+  /*
+    mode    function
+    0       comparator mode
+
+    1       fixed patterns  continuous
+    2       counters  countinuous
+    3       prbs continuous
+    5       send 1/2 strip patterns to layers
+
+  */
+  //this->number_ = cfeb.number();
+  DEVTYPE dv   = dscamDevice(cfeb.number());
+  int mmode=mode;  //for comparator mode
+  cmd[0]=(VTX6_USR1&0xff);
+  cmd[1]=((VTX6_USR1&0x300)>>8);
+  sndbuf[0]=TMB_TX_MODE;
+  devdo(dv,10,cmd,8,sndbuf,rcvbuf,0);
+  for(int i=0;i<2;i++)rcvbuf[i]=0x55;
+  cmd[0]=(VTX6_USR2&0xff);
+  cmd[1]=((VTX6_USR2&0x300)>>8);
+  sndbuf[0]=(mode&0x7);
+  sndbuf[1]=0x00;
+  printf(" sndbuf[0] %d \n",sndbuf[0]);fflush(stdout);
+  devdo(dv,10,cmd,3,sndbuf,rcvbuf,2);
+  // printf(" rcvbuf[0] %02x \n",rcvbuf[0]&0xff);fflush(stdout);
+  cmd[0]=(VTX6_BYPASS&0xff);
+  cmd[1]=((VTX6_BYPASS&0x300)>>8);
+  sndbuf[0]=0;
+  devdo(dv,10,cmd,0,sndbuf,rcvbuf,2);
+}
+
 
 void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2])
 {
