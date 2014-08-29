@@ -177,6 +177,25 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   SignalName.push_back("DMB soft reset");
   SignalName.push_back("TMB soft reset");
   SignalName.push_back("MPC soft reset");  // 1F
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back("Inject from TMBs");  //24
+  SignalName.push_back("ALCT ADB pulse ");   //25
+  SignalName.push_back(" ");  
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back(" ");
+  SignalName.push_back("Inject from SP ");   // 2F
+  SignalName.push_back("Inject from MPC ");   // 30
+  SignalName.push_back("Inject from MS ");   // 31
+  SignalName.push_back("Bounch Count Reset");   // 32
 
   sprintf(Name,"CCB utilities, crate=%s, slot=%d",ThisCrateID_.c_str(),thisCCB->slot());
   //
