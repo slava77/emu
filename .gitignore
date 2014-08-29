@@ -7,3 +7,8 @@
 # xdaq build directories, hopefully globs are enough
 lib/
 linux/
+#svn stuff
+.svn/
+# developer tools stuff
+semantic.cache
+nbproject/
