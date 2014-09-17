@@ -247,20 +247,20 @@ void Chamber::GetDimLV2(int hint, LV_2_DimBroker *dim_lv )
       dim_lv->alct.c55 = data[23];
       dim_lv->alct.c56 = data[24];
    
-      dim_lv->tmb.v50  = data[65];
-      dim_lv->tmb.v33  = data[66];
-      dim_lv->tmb.v15C = data[67];
-      dim_lv->tmb.v15T = data[68];
-      dim_lv->tmb.v10T = data[69];
-      dim_lv->tmb.c50  = data[70];
-      dim_lv->tmb.c33  = data[71];
-      dim_lv->tmb.c15C = data[72];
-      dim_lv->tmb.c15T = data[73];
-      dim_lv->tmb.cRAT = data[74];
-      dim_lv->tmb.vRAT = data[75];
-      dim_lv->tmb.vREF = data[76];
-      dim_lv->tmb.vGND = data[77];
-      dim_lv->tmb.vMAX = data[78];
+      dim_lv->tmb.v50  = data[64];
+      dim_lv->tmb.v33  = data[65];
+      dim_lv->tmb.v15C = data[66];
+      dim_lv->tmb.v15T = data[67];
+      dim_lv->tmb.v10T = data[68];
+      dim_lv->tmb.c50  = data[69];
+      dim_lv->tmb.c33  = data[70];
+      dim_lv->tmb.c15C = data[71];
+      dim_lv->tmb.c15T = data[72];
+      dim_lv->tmb.cRAT = data[73];
+      dim_lv->tmb.vRAT = data[74];
+      dim_lv->tmb.vREF = data[75];
+      dim_lv->tmb.vGND = data[76];
+      dim_lv->tmb.vMAX = data[77];
 
    for(int i=0; i<DCFEB_NUMBER; i++)
    {
