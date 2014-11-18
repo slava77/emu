@@ -12,8 +12,6 @@
 #include "xoap/domutils.h"
 #include "xdata/soap/Serializer.h"
 
-#include "xdaq/XceptSerializer.h"
-
 #include <algorithm>
 
 // For emu::soap::Messenger::postSOAP

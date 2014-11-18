@@ -61,7 +61,7 @@ throw (emu::fed::exception::DBException)
 			xdata::Boolean invert_ccb_signals = getValue<xdata::Boolean>(*iRow, "INVERT_CCB_COMMAND_SIGNALS");
 			
 			DDU *newDDU = new DDU(slot, fake);
-			newDDU->setRUI(rui & 0x3f);
+			newDDU->setRUI(rui);
 			newDDU->setFMMID(fmm_id);
 			newDDU->setGbEPrescale(gbe_prescale);
 			

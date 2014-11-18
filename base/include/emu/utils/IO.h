@@ -21,6 +21,10 @@ namespace emu {
 #include "emu/utils/IO.i"
   }
 
+  namespace db {
+#include "emu/utils/IO.i"
+  }
+
 }
 
 #endif

@@ -68,7 +68,7 @@ see:
 #include <asm/segment.h>
 #include <net/irda//wrapper.h>
 
-
+#include "SLC_version.h"
 #include "schar.h"
 //#define VMALLOC_VMADDR(x) ((unsigned long)(x))
 
@@ -113,8 +113,13 @@ static struct file_operations schar_fops = {
 /* sysctl entries */
 static char schar_proc_string_4[SCHAR_MAX_SYSCTL];
 static struct ctl_table_header *schar_root_header_4 = NULL;
+#if   SLC_VERSION == 5
 static int schar_read_proc_4(ctl_table *ctl, int write, struct file *file,
 			   void *buffer, size_t *lenp, loff_t *ppos);
+#elif SLC_VERSION == 6
+static int schar_read_proc_4(struct ctl_table *ctl, int write,
+			     void __user *buffer, size_t *lenp, loff_t *ppos);
+#endif
 
 static ctl_table schar_sysctl_table_4[] = {
 	{ DEV_SCHAR_ENTRY,	/* binary id */
@@ -123,6 +128,9 @@ static ctl_table schar_sysctl_table_4[] = {
 	  SCHAR_MAX_SYSCTL,	/* max size of output */
 	  0644,			/* mode */
 	  0,			/* child - none */
+#if SLC_VERSION == 6
+	  0,			/* parent */
+#endif
 	  &schar_read_proc_4 },	/* set up text */
 	{ 0 }
 };
@@ -496,8 +504,13 @@ unsigned long int pagsiz;
 	return 0;
 }
 
+#if   SLC_VERSION == 5
 static int schar_read_proc_4(ctl_table *ctl, int write, struct file *file,
 			   void *buffer, size_t *lenp, loff_t *ppos)
+#elif SLC_VERSION == 6
+static int schar_read_proc_4(struct ctl_table *ctl, int write,
+			     void __user *buffer, size_t *lenp, loff_t *ppos)
+#endif
 {
 	int len = 0;
 
@@ -526,7 +539,11 @@ static int schar_read_proc_4(ctl_table *ctl, int write, struct file *file,
   	len += sprintf(schar_proc_string_4+len, " ERROR STATISTICS: \n");
       len += sprintf(schar_proc_string_4+len, "  missing packets \t\t%ld\n",proc_pmissing_4);
 	*lenp = len;
+#if   SLC_VERSION == 5
 	return proc_dostring(ctl, write, file, buffer, lenp, ppos);
+#elif SLC_VERSION == 6
+	return proc_dostring(ctl, write, buffer, lenp, ppos);
+#endif
 }
 
 
@@ -564,7 +581,11 @@ int ethinit_module(void)
 	}
 	
 	/* register proc entry */
+#if   SLC_VERSION == 5
 	schar_root_header_4 = register_sysctl_table(schar_root_dir_4, 0);
+#elif SLC_VERSION == 6
+	schar_root_header_4 = register_sysctl_table(schar_root_dir_4);
+#endif
 
 	return 0;
 }
@@ -599,7 +620,11 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
 
   // sbuf=kmalloc(9000,GFP_KERNEL);
   len=count;
+#if   SLC_VERSION == 5
   dev=dev_get_by_name("eth4");
+#elif SLC_VERSION == 6
+  dev=dev_get_by_name(&init_net,"p2p1");
+#endif
   err=-ENODEV;
   if (dev == NULL)
    goto out_unlock;
@@ -634,7 +659,12 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
 * notable one here. This should really be fixed at the driver level.
 */
    skb_reserve(skb,(dev->hard_header_len+15)&~15);
+#if   SLC_VERSION == 5
    skb->nh.raw = skb->data;
+#elif SLC_VERSION == 6
+   skb_reset_network_header(skb);
+#endif
+
    proto=htons(ETH_P_ALL);
    /*     	if (dev->hard_header) {
 		int res;
@@ -645,7 +675,12 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
 			skb->len = 0;
 			} */
         			
+#if   SLC_VERSION == 5
                         skb->tail = skb->data;
+#elif SLC_VERSION == 6
+			skb_reset_tail_pointer(skb);
+#endif
+
 			skb->len = 0;
 
 /* Try to align data part correctly */

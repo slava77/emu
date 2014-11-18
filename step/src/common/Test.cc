@@ -16,6 +16,7 @@
 
 #include "xcept/tools.h"
 
+#include "log4cplus/loggingmacros.h"
 #include "log4cplus/helpers/sleep.h" // sleepmillis()
 
 #include <algorithm>
@@ -507,12 +508,12 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
       //  Set LCT_L1A_DLY
       irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x001a; // P5 // 0x001a; B904
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-
+      
       // Set OTMB_DLY
       //irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
       irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0002;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-
+      
       //    Set ALCT_DLY
      //  irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001e; // ME+1/1/34
       irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001f; // ME+1/1/35

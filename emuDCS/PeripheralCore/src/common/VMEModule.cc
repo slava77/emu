@@ -1546,6 +1546,7 @@ unsigned int ptr_r;
  cnt2=cnt-1;
  data=(unsigned short int *) snd;
 
+ theController->start( theSlot, boardType() );
  if(reg==0)
  {
  /* instr */
@@ -1688,6 +1689,7 @@ void VMEModule::Jtag_Lite(int dev, int reg, const char *snd, int cnt, char *rcv,
               dev, reg, cnt, ird, when, snd[0]&0xff, snd[1]&0xff);
   }
 
+  theController->start( theSlot, boardType() );
   //  reset JTAG State Machine to Idle state
   if(reg==0 && cnt<0)
   {

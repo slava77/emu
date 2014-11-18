@@ -1015,7 +1015,7 @@ int MPC::newPRBS(int mode)
     {
        int v=ReadRegister(CSR4);
        // if mode==-1 (empty), return current setting
-       if(mode<=0)
+       if(mode<0)
           return (v&0xF)/2; 
        else
        {
@@ -1095,6 +1095,33 @@ int MPC::Read_FIFO_B_Old(int link, unsigned short *data)
       data[i]=(unsigned short)ReadRegister(ireg);
    }
    return 511;
+}
+
+int MPC::read_oldPRBS()
+{
+   int i=ReadRegister(CSR0);
+   return i>>15;
+}
+
+int MPC::read_newPRBS()
+{
+   int i=ReadRegister(CSR4);
+   return (i&0x70)>>4;
+}
+
+void MPC::inject_PRBSerror()
+{
+   int i=ReadRegister(CSR4);
+   WriteRegister(CSR4, i|0x8000);
+   ::usleep(10);
+   WriteRegister(CSR4, i);
+}
+
+void MPC::resetGTP(int signal)
+{
+   WriteRegister(CSR11, signal&0xFFF);
+   std::cout << "MPC reset GTP with signal(s): " << std::hex << signal << std::dec << std::endl;
+   ::usleep(10000);
 }
 
 } // namespace emu::pc

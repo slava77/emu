@@ -51,7 +51,7 @@ LibraryDirs = \
 	$(XDAQ_ROOT)/lib
 
 UserCFlags =
-UserCCFlags = -pipe -DLINUX -g -Wall -pedantic-errors -Wno-long-long -isystem $(XDAQ_ROOT)/include -O1
+UserCCFlags = -pipe -DLINUX -g -Wall -pedantic-errors -Wno-long-long -Wno-variadic-macros -isystem $(XDAQ_ROOT)/include -O1
 UserStaticLinkFlags =
 UserDynamicLinkFlags = -lboost_filesystem
 UserExecutableLinkFlags = -D_REENTRAN -pthread -pedantic-errors

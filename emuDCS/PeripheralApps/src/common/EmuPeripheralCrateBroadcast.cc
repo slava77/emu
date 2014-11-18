@@ -42,8 +42,16 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   CfebFPGAFirmwareFile_             = FirmwareDir_+"cfeb/cfeb_pro.svf";
   ODMBFirmwareFile_                 = FirmwareDir_+"odmb/me11_odmb.mcs";
   DCFEBFirmwareFile_                = FirmwareDir_+"cfeb/me11_dcfeb.mcs";
+  OTMBFirmwareFile_                 = FirmwareDir_+"tmb/tmb_me11_virtex6.svf";
 //  CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
 //  MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_100808.svf";
+
+  std::string endcap = getenv("ENDCAP");
+  if (endcap == "P") {
+    OTMBFirmwareFile_ = FirmwareDir_+"tmb/tmb_me11_virtex6_typeC.svf";
+  } else if (endcap == "M") {
+    OTMBFirmwareFile_ = FirmwareDir_+"tmb/tmb_me11_virtex6_typeD.svf";
+  }
   //
   number_of_layers_pretrig_ = 2;
   number_of_layers_pattern_ = 4;
@@ -78,8 +86,8 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDMBControlFPGAFirmware, "LoadDMBControlFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware, "LoadCFEBFPGAFirmware");
-  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadOTMBEPROM, "LoadODMBEPROM");
-  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadOTMBFPGA, "LoadODMBFPGA");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadOTMBEPROM, "LoadOTMBEPROM");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadOTMBFPGA, "LoadOTMBFPGA");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadODMBEPROM, "LoadODMBEPROM");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadODMBFPGA, "LoadODMBFPGA");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDCFEBEPROM, "LoadDCFEBEPROM");
@@ -131,8 +139,8 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
 //
 void EmuPeripheralCrateBroadcast::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/"
-       <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
+  *out << "<head> <meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/"
+       <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\"> </head>" <<std::endl;
 }
 //
 /////////////////////////////////////////////////////////////////////////////////
@@ -301,11 +309,11 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
     {
       if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()<=1 && mytmbs[i]->slot()>21)     
          broadcastTMB = mytmbs[i];
-      else if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()==2 && mydmbs[i]->slot()>21)     
+      else if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()==2 && mytmbs[i]->slot()>21)     
          broadcastOTMB = mytmbs[i];
     }
-    broadcastALCT = broadcastTMB->alctController();
-    broadcastRAT  = broadcastTMB->getRAT();
+    if( broadcastTMB ) broadcastALCT = broadcastTMB->alctController();
+    if( broadcastTMB ) broadcastRAT  = broadcastTMB->getRAT();
     broadcastMPC  = broadcastCrate->mpc();
     broadcastCCB  = broadcastCrate->ccb();
   }
@@ -433,6 +441,13 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << DCFEBFirmwareFile_;
   *out << cgicc::form() << std::endl;
   //
+  *out << cgicc::hr() << "For OTMB ..." << cgicc::br() << std::endl;
+  std::string LoadOTMBEprom = toolbox::toString("/%s/LoadOTMBEPROM",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadOTMBEprom) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load OTMB EPROM") << std::endl ;
+  *out << OTMBFirmwareFile_;
+  *out << cgicc::form() << std::endl;
+  //
   *out << cgicc::fieldset() << std::endl;
   //
 }
@@ -455,7 +470,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
   //
   // load the DAQMB VME FPGA firmware
   //
-  char *outp="0";
+  const char *outp="0";
   std::cout <<" Loading all the DMB's VME FPGAs firmware from " << DmbVmeFPGAFirmwareFile_ <<std::endl;
   std::cout <<" Step 1: Sending SOAP message to all the crates to readback the VME_PROM_ID"<<std::endl;
   std::cout <<"         This is the DMB board number"<<std::endl;
@@ -493,6 +508,31 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
 void EmuPeripheralCrateBroadcast::LoadOTMBEPROM(xgi::Input * in, xgi::Output * out )  {
   //
   // load the OTMB firmware to EPROM
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if( broadcastOTMB )
+  {
+    // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
+    // thisCCB->setCCBMode(CCB::VMEFPGA);
+      //
+    std::cout  << getLocalDateTime() <<  " Broadcast OTMB (Virtex 6) firmware to slot " << broadcastOTMB->slot() << std::endl;
+      //
+    bool broadcast=true;
+    broadcastOTMB->setup_jtag(ChainTmbMezz, broadcast);
+    broadcastOTMB->svfLoad(0,OTMBFirmwareFile_.c_str(), 0, 0);
+
+    // enable VME access to TMB FPGA
+    // from function ClearTMBBootReg()
+        short unsigned int BootReg=0;
+    //    thisTMB->tmb_get_boot_reg(&BootReg);
+        BootReg &= 0xff7f;                    // Give JTAG chain to the FPGA to configure ALCT on hard reset
+        BootReg &= 0xf7ff;                    // Allow FPGA access to the VME register
+        broadcastOTMB->tmb_set_boot_reg(BootReg);
+
+    // Put CCB back into DLOG mode to listen to TTC commands...
+    // thisCCB->setCCBMode(CCB::DLOG);
+  }
   //
   this->LoadDMBCFEBFPGAFirmware(in, out);
 }
@@ -810,7 +850,7 @@ void EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Out
   //
   // load the CFEB FPGA firmware
   //
-  char *outp="0";
+  const char *outp="0";
   //
   std::cout <<" Loading all the CFEBs FPGAs firmware from " << CfebFPGAFirmwareFile_ <<std::endl;
   //

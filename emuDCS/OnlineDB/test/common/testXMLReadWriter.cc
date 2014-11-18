@@ -9,6 +9,8 @@
 #include "emu/db/ConfigTree.h"
 #include "emu/db/PCConfigHierarchy.h"
 
+#include "emu/utils/System.h" // for emu::utils::performExpansions
+
 #include <iostream>
 
 using namespace emu::db;
@@ -17,10 +19,10 @@ using namespace std;
 int main(int argc, char **argv)
 {
   // initialize the configuration tables hierarchy (including table definitions):
-  PCConfigHierarchy h("/home/cscdev/TriDAS/emu/emuDCS/OnlineDB/xml/EMUsystem.view");
+  PCConfigHierarchy h( emu::utils::performExpansions( "${BUILD_HOME}/emu/emuDCS/OnlineDB/xml/EMUsystem.view" ) );
 
   // just read and then write into another file
-  XMLReadWriter xml(&h, "/home/cscdev/config/pc/2000114.xml");
+  XMLReadWriter xml(&h, emu::utils::performExpansions( "${BUILD_HOME}/emu/step/xml/VME_MINUS.xml" ) );
   xml.read(2000114);
   xml.setFileName("test1.xml");
   xml.write();

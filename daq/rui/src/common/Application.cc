@@ -28,6 +28,7 @@
 #include "emu/daq/server/SOAP.h"
 #include <sstream>
 #include <limits>
+#include <stdexcept>
 #include "xdata/soap/Serializer.h"
 #include "xoap/DOMParser.h"
 #include "xoap/DOMParserFactory.h"

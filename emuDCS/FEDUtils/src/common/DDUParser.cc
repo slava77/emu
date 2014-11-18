@@ -22,7 +22,7 @@ throw (emu::fed::exception::ParseException)
 	DDU *ddu_ = new DDU(slot, fake);
 	
 	try {
-		ddu_->setRUI(parser.extract<uint16_t>("RUI") & 0x3f);
+		ddu_->setRUI(parser.extract<uint16_t>("RUI"));
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse RUI from element";

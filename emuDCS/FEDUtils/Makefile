@@ -56,9 +56,9 @@ IncludeDirs = \
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/lib
-	
+
 UserCFlags =
-UserCCFlags = -pipe -DLINUX -g -Wall -pedantic-errors -Wno-long-long -isystem $(XDAQ_ROOT)/include -O2
+UserCCFlags = -pipe -DLINUX -g -Wall -pedantic-errors -Wno-long-long  -Wno-variadic-macros -isystem $(XDAQ_ROOT)/include -O2
 UserStaticLinkFlags =
 UserExecutableLinkFlags = -D_REENTRAN -pthread -pedantic-errors
 

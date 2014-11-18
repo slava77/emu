@@ -1,4 +1,5 @@
 #include "emu/soap/ToolBox.h"
+
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
 #include "xoap/SOAPSerializer.h"
@@ -12,7 +13,7 @@
 #include "xoap/domutils.h"
 #include "xdata/soap/Serializer.h"
 
-#include "xdaq/XceptSerializer.h"
+// #include "xdaq/XceptSerializer.h"
 
 #include <algorithm>
 
@@ -240,11 +241,11 @@ emu::soap::extractCommandAttributes( xoap::MessageReference message, emu::soap::
 	  a = nnm->getNamedItemNS( xoap::XStr( attribute->first.getNamespaceURI().c_str() ), 
 				   xoap::XStr( attribute->first.getName()        .c_str() ) );
 	}
-	else if ( xoap::XMLCh2String( c->getNamespaceURI() ).size() > 0 ){
-	  // If not specified otherwise explicitly, the attribute normally inherits its parent's namespace in SOAP
-	  a = nnm->getNamedItemNS( c->getNamespaceURI(), 
-				   xoap::XStr( attribute->first.getName().c_str() ) );
-	}
+	// else if ( xoap::XMLCh2String( c->getNamespaceURI() ).size() > 0 ){
+	//   // If not specified otherwise explicitly, the attribute normally inherits its parent's namespace in SOAP
+	//   a = nnm->getNamedItemNS( c->getNamespaceURI(), 
+	// 			   xoap::XStr( attribute->first.getName().c_str() ) );
+	// }
 	else{
 	  // Apparently, this attribute has a different namespace or none.
 	  a = nnm->getNamedItem( xoap::XStr( attribute->first.getName().c_str() ) );
@@ -293,11 +294,11 @@ emu::soap::extractParameters( xoap::MessageReference message, emu::soap::Paramet
 	      a = nnm->getNamedItemNS( xoap::XStr( attribute->first.getNamespaceURI().c_str() ), 
 				       xoap::XStr( attribute->first.getName()        .c_str() ) );
 	    }
-	    else if ( xoap::XMLCh2String( n->getNamespaceURI() ).size() > 0 ){
-	      // If not specified otherwise explicitly, the attribute normally inherits its parent's namespace in SOAP
-	      a = nnm->getNamedItemNS( n->getNamespaceURI(), 
-				       xoap::XStr( attribute->first.getName().c_str() ) );
-	    }
+	    // else if ( xoap::XMLCh2String( n->getNamespaceURI() ).size() > 0 ){
+	    //   // If not specified otherwise explicitly, the attribute normally inherits its parent's namespace in SOAP
+	    //   a = nnm->getNamedItemNS( n->getNamespaceURI(), 
+	    // 			       xoap::XStr( attribute->first.getName().c_str() ) );
+	    // }
 	    else{
 	      // Apparently, this attribute has a different namespace or none.
 	      a = nnm->getNamedItem( xoap::XStr( attribute->first.getName().c_str() ) );
@@ -414,17 +415,15 @@ xcept::Exception
 emu::soap::faultToException( xoap::SOAPFault* fault ){
 
   try{
+    // SOAP 1.1
+    stringstream ss;
+    ss << "SOAP Fault code: " << fault->getFaultCode() << ", SOAP Fault message: " << fault->getFaultString();
     if ( fault->hasDetail() ){
-      xcept::Exception ex;
-      xdaq::XceptSerializer::importFrom( fault->getDetail().getDOM(), ex );
-      return ex;
+      // Assuming that 'detail' contains no XML, just plain text:
+      ss << ", SOAP Fault detail: " << xoap::XMLCh2String( fault->getDetail().getDOM()->getFirstChild()->getTextContent() );
     }
-    else{
-      stringstream ss;
-      ss << "Fault code: " << fault->getFaultCode() << ", message: " << fault->getFaultString();
-      XCEPT_DECLARE( xcept::Exception, ex, ss.str() );
-      return ex;
-    }
+    XCEPT_DECLARE( xcept::Exception, ex, ss.str() );
+    return ex;
   }
   catch( xcept::Exception &e ){
     std::stringstream ss;
@@ -460,7 +459,9 @@ emu::soap::createFaultReply( const string& code, const string& reason, xcept::Ex
     if ( exception != NULL ){
       xoap::SOAPName    detail     = envelope.createName( "detail" );
       xoap::SOAPElement detailElem = faultElem.addChildElement( detail );
-      xdaq::XceptSerializer::importFrom( detailElem.getDOM(), *exception );
+      // xdaq::XceptSerializer::importFrom( detailElem.getDOM(), *exception ); // TODO: this doesn't seem to work...
+      // ...do instead simply
+      detailElem.addTextNode( xcept::stdformat_exception_history( *exception ) );
     }
   }
   catch( xcept::Exception &e ){
@@ -485,9 +486,9 @@ std::string
 emu::soap::toStringWithoutAttachments( xoap::MessageReference message ){
   std::string result;
   try{
-    if ( message->getEnvelope() != NULL ){
+    if ( message->getSOAPPart().getEnvelope().getDOM() != NULL ){
       xoap::SOAPSerializer s( result );
-      s.serialize( message->getEnvelope() );
+      s.serialize( message->getSOAPPart().getEnvelope().getDOM() );
     }
   }
   catch( xcept::Exception &e ){

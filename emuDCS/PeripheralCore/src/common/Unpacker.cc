@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include <numeric>
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include <cmath>

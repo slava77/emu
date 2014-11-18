@@ -338,7 +338,7 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 if(upgraded>0)
                 {
                    xdata::Vector<xdata::Float> *febdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));
-                   if(febdata) for(int ii=0; ii<myDmbs.size()*TOTAL_DCFEB_MONS; ii++) febdata->push_back(0.);
+                   if(febdata) for(unsigned ii=0; ii<myDmbs.size()*TOTAL_DCFEB_MONS; ii++) febdata->push_back(0.);
                 }              
          }
      Monitor_Ready_=true;
@@ -1021,7 +1021,7 @@ void EmuPeripheralCrateMonitor::MyHeader(xgi::Input * in, xgi::Output * out, std
   throw (xgi::exception::Exception) {
   //
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  *out << "<html>" << std::endl;
   //
   //*out << cgicc::title(title) << std::endl;
   //*out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
@@ -1362,7 +1362,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   if(!Monitor_Ready_) return;
   //
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  *out << "<html>" << std::endl;
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
@@ -1531,7 +1531,7 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
   if(!Monitor_Ready_) return;
   //
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  *out << "<html>" << std::endl;
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
@@ -1619,7 +1619,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
   if(!Monitor_Ready_) return;
   //
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  *out << "<html>" << std::endl;
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
@@ -1709,7 +1709,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
   if(!Monitor_Ready_) return;
   //
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  *out << "<html>" << std::endl;
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
@@ -1801,7 +1801,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTMB(xgi::Input * in, xgi::Output * out )
   if(!Monitor_Ready_) return;
   //
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  *out << "<html>" << std::endl;
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
@@ -1989,6 +1989,10 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
 
     // std::cout << "Select Over View " << std::endl;
 // now produce the counter view page
+
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    *out << "<html>" << std::endl;
+
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"10; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" << std::endl;
@@ -2031,7 +2035,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
     //
   }
   //
-  *out <<cgicc::tr() << std::endl;
+  *out << "<tr>" << std::endl;
   //
   std::vector<TMB*> myVector;
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
@@ -2122,7 +2126,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
          *out << "L: " << dc;
       *out <<cgicc::td();
     }
-    *out <<cgicc::tr() << std::endl;
+    *out << "<tr>" << std::endl;
   }
   //
   *out << cgicc::table() << std::endl;
@@ -2139,6 +2143,10 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
 
      // std::cout << "Select Crate View " << std::endl;
     cgicc::CgiEnvironment cgiEnvi(in);
+
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    *out << "<html>" << std::endl;
+
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"120; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
     *out << cgicc::b("All Crates") << std::endl;
@@ -2174,7 +2182,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
     //
   }
   //
-  *out <<cgicc::tr() << std::endl;
+  *out << "<tr>" << std::endl;
   //
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
 
@@ -2273,7 +2281,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
       }
       *out <<cgicc::td();
     }
-    *out <<cgicc::tr() << std::endl;
+    *out <<"<tr>" << std::endl;
   }
   //
   *out << cgicc::table() << std::endl;
@@ -2503,7 +2511,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      }
 // now produce the counter view page
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << "<html>" << std::endl;
     //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
@@ -2524,7 +2532,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
 
   std::ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  output << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  output << "<html>" << std::endl;
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
@@ -2968,6 +2976,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
   unsigned int readtime;
   unsigned short crateok, good_chamber=0, ccbtag;
+  unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
   float val, V7;
   std::vector<DAQMB*> myVector;
   int REAL_DCS_COUNTERS=48;
@@ -3053,6 +3062,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         // If CCB data not available or not read out yet, assume they (bits and tag) are OK
         ccbbits=0x0FF80000;
         ccbtag= 0xCCB0;
+        mpcreg0= 0x0201;
      }
      else
      {
@@ -3060,6 +3070,10 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         unsigned short csra3= (*ccbdata)[2];
         ccbbits= (csra3<<16)+csra2;
         ccbtag= (*ccbdata)[18];
+        mpcreg0= (*ccbdata)[11];
+        mpcreg1= (*ccbdata)[12];
+        mpcreg2= (*ccbdata)[13];
+        mpcreg3= (*ccbdata)[14];
      }
 
      ch_state=0;
@@ -3104,12 +3118,18 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
 // CCB bits and FPGA bits
         int alctbit=(ccbbits>>dmbN)&1;
-        int tmbbit=(ccbbits>>dmbN+9)&1;
+        int tmbbit=(ccbbits>>(dmbN+9))&1;
         int dmbbit=1-((ccbbits>>(dmbN+18))&1);   // DM: 1=OK, 0=BAD
         if(cscname.substr(3,3)=="1/3") dmbbit=0;  // ME1/3 DMB bit is not valid
         int confbit=alctbit+(tmbbit<<1)+(dmbbit<<2);
 //   CCB bit 7 (value 128) for every chamber is the same and is for CCB itself
         if((ccbtag&0xFFFF0)!=0xCCB0) confbit += 128; 
+//   CCB bit 8 (value 256) is also for CCB itself
+//   MPC bits 9 (value 512) ia for MPC discrete logic
+        if((mpcreg0&0x8201)!=0x200) confbit += 512; 
+//   MPC bits 10 (value 1024) ia for other MPC status
+        if((mpcreg3&1)!=1 || (mpcreg2&0x30)!=0x30) confbit += 1024; 
+
         *out << " " << confbit << " 0";
 
         *out << std::setprecision(4) << std::fixed;
@@ -3310,7 +3330,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
 
 // CCB bits and FPGA bits
         int alctbit=(ccbbits>>dmbN)&1;
-        int tmbbit=(ccbbits>>dmbN+9)&1;
+        int tmbbit=(ccbbits>>(dmbN+9))&1;
         int dmbbit=1-((ccbbits>>(dmbN+18))&1);   // DM: 1=OK, 0=BAD
         if(cscname.substr(3,3)=="1/3") dmbbit=0;  // ME1/3 DMB bit is not valid
         int confbit=alctbit+(tmbbit<<1)+(dmbbit<<2);
@@ -4076,7 +4096,7 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
         int cr=problist[i]->crate();
         if(cr>30) cr -= 30;   // for Minus Endcap
         int chb=problist[i]->chamber();
-        if(cr>0 & chb>0)
+        if(cr>0 && chb>0)
         {
            Crate * thiscr=crateVector[cr-1];
            if(thiscr)
@@ -4099,7 +4119,7 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
         if(cr>30) cr -= 30;   // for Minus Endcap
         int chb=problist[i]->chamber();
         int md=problist[i]->module();
-        if(cr>0 & chb>0)
+        if(cr>0 && chb>0)
         {
            Crate * thiscr=crateVector[cr-1];
            if(thiscr)

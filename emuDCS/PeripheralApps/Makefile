@@ -41,7 +41,9 @@ IncludeDirs = \
         $(XDAQ_ROOT)/include \
         $(BUILD_HOME)/emu/emuDCS/PeripheralCore/include \
 	$(BUILD_HOME)/emu/emuDCS/OnlineDB/include \
+        $(BUILD_HOME)/emu/soap/include \
         $(BUILD_HOME)/emu/base/include
+
 
 TestLibraryDirs = \
 	$(XDAQ_ROOT)/lib \

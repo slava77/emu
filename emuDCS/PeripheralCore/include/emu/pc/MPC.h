@@ -235,6 +235,10 @@ class MPC : public VMEModule, public EmuLogger {
   void Fill_FIFO_A();
   int Read_FIFO_B_Old(int link, unsigned short *data);
   int Read_FIFO_B_New(int link, unsigned short *data);
+  int read_oldPRBS();
+  int read_newPRBS();
+  void inject_PRBSerror();
+  void resetGTP(int signal);
 
  protected:
   /// MPC base address should always correspond to VME Slot 12 (=0x600000)
@@ -253,7 +257,8 @@ class MPC : public VMEModule, public EmuLogger {
     /// Various Control & Status registers (CSR3 read only)
     CSR0 = 0x00, CSR1 = 0xAA, CSR2 = 0xAC,
     CSR3 = 0xAE, CSR4 = 0xB8, CSR5 = 0xBA,
-    CSR6 = 0xBC, CSR7 = 0xCA, CSR8 = 0xCC,
+    CSR6 = 0xBC, CSR7 = 0xCA, CSR8 = 0xCE,
+    CSR9 = 0xB2, CSR10= 0xB4, CSR11= 0xCC,
     // permanent TMB mask register in new MPC
     CSRM = 0x06,
     /// L1-accept counter (read only)

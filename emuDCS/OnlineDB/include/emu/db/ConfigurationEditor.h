@@ -59,7 +59,7 @@ public:
       ChangeSummary &changes);
   void displayChildConfiguration(xgi::Output * out, const std::string &configName, const std::string &parentIdentifier);
   void displayConfiguration(xgi::Output * out, const std::string &configName, const std::string &identifier);
-  void outputTableEditControls(xgi::Output * out, const std::string &tableName, const std::string &prefix = "");
+  void outputTableEditControls(xgi::Output * out, const std::string &tableName, const std::string &prefix = "", const bool withSelector=false);
   void outputSingleValue(std::ostream * out, xdata::Serializable *value, const std::string &column,
       const std::string &tableName = "", const std::string &identifier = "", int rowIndex = 0);
   void outputCurrentDiff(xgi::Output * out);
@@ -226,6 +226,15 @@ public:
   void createCredentialString();
   void fillCrateRealName(int id, std::string name);
 
+  std::string selectorHTML(const std::string &tableName);
+  std::string cratePattern( cgicc::Cgicc *cgi );
+  std::string chamberPattern( cgicc::Cgicc *cgi );
+  std::string matchingLogic( cgicc::Cgicc *cgi );
+  bool isSelected( const std::string& key, 
+		   const std::string& crateRegex, 
+		   const std::string& chamberRegex, 
+		   const std::string& logic );
+
   std::string xmlpath_;
   std::string dbUserFile_;
   std::string dbUserAndPassword_;
@@ -235,6 +244,10 @@ public:
   std::string syncPattern_;
   xdata::Table configIDs;
   std::string configName_; //to be set by subclasses
+  std::string lastReadConfiguration_;
+  std::string lastUploadedConfiguration_;
+  std::string lastReadConfigurationTime_;
+  std::string lastUploadedConfigurationTime_;
   std::string configurationDirectory_;
   //std::vector<std::string> topLevelIdentifiersInDiff;
   std::string topLevelTableName_;

@@ -472,28 +472,31 @@ throw(emu::fed::exception::ConfigurationException)
 	return dbKeys;
 }
 
+std::vector<std::string> emu::fed::Configurable::getXMLFileNames(const boost::filesystem::path &configPath){
+  // For Boost version 1.41
 
+  std::vector<std::string> xmlFiles;
 
-std::vector<std::string> emu::fed::Configurable::getXMLFileNames(const boost::filesystem::path &configPath)
-{
-	std::vector<std::string> xmlFiles;
+  // Sanity check
+  if ( ! boost::filesystem::exists      ( configPath ) ) return xmlFiles;
+  if ( ! boost::filesystem::is_directory( configPath ) ) return xmlFiles;
 
-	if (boost::filesystem::exists(configPath)) {
-		// The default iterator is the end iterator.
-		boost::filesystem::directory_iterator end;
-		for (boost::filesystem::directory_iterator iFile(configPath); iFile != end; iFile++) {
-			std::string lastThree;
-			try {
-				std::string name = iFile->native_file_string();
-				lastThree = name.substr(name.length() - 3);
-			} catch (...) {
-				// Don't do anything with file names shorter than 3 characters
-				continue;
-			}
-			boost::algorithm::to_lower(lastThree);
-			if (lastThree == "xml") xmlFiles.push_back(iFile->native_file_string());
-		}
+  // Loop over the directory's contents and collect the files with names ending in 'xml'.
+  boost::filesystem::directory_iterator end; // The default iterator is the end iterator.
+  for ( boost::filesystem::directory_iterator di( configPath ); di != end; ++di ){
+    try{
+      if ( boost::filesystem::is_regular_file( di->status() ) ){
+	std::string name( di->path().file_string() );
+	const size_t extensionLength = 3;
+	if ( name.length() >= extensionLength ){
+	  std::string lastThree( name.substr( name.length() - extensionLength ) );
+	  boost::algorithm::to_lower( lastThree );
+	  if ( lastThree == "xml" ) xmlFiles.push_back( name );
 	}
-	
-	return xmlFiles;
+      }
+    }
+    catch ( const std::exception &ignored ){}
+  }
+
+  return xmlFiles;
 }

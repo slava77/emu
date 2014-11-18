@@ -621,13 +621,12 @@ void emu::farmer::Application::createProcessDescriptors()
     processDescriptors_.clear();
 
     XercesDOMParser parser;
-    parser.setDoValidation(true);
     parser.setDoNamespaces(true);
     parser.parse( selectedDUCKName_.c_str() );
     DOMDocument* doc = parser.getDocument();
     
-    XercesDOMSupport support;
-    XercesParserLiaison liaison(support);
+    XercesParserLiaison liaison;
+    XercesDOMSupport support( liaison );
     XercesDOMWrapperParsedSource src(doc, liaison, support);
     XalanDocument* xalanDoc = src.getDocument();
     

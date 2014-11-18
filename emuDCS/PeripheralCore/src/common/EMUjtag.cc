@@ -56,7 +56,7 @@ EMUjtag::~EMUjtag() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Set up your JTAG interface
 //////////////////////////////////////////////////////////////////////////////////////////////
-void EMUjtag::setup_jtag(int chain) {
+void EMUjtag::setup_jtag(int chain, bool broadcast) {
   //
   //This member sets the following characteristics:
   //  - gives control of the JTAG chain to the FPGA
@@ -74,7 +74,10 @@ void EMUjtag::setup_jtag(int chain) {
   // If start(N,source) is called with source=jtagSourceBoot, this call will override this setting here...
   if (GetWriteToDevice_()) {
     short unsigned int BootReg;
-    tmb_->tmb_get_boot_reg(&BootReg);
+    if(broadcast)
+      BootReg=0;
+    else
+      tmb_->tmb_get_boot_reg(&BootReg);
     tmb_->tmb_set_boot_reg(BootReg & 0xff7f);
   }
   //

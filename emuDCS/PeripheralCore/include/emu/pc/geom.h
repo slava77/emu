@@ -25,7 +25,7 @@
 #include "emu/pc/JTAG_constants.h"
 
 struct GEOM {
-    char *nam;
+    const char *nam;
     int jchan;
     char kbypass;
     int kbit;

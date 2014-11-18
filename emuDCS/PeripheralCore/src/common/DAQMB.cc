@@ -521,8 +521,7 @@
 #include "emu/pc/DAQMB.h"
 #include "emu/pc/VMEController.h"
 #include "emu/pc/Unpacker.h"
-//#include "emu/pc/Crate.h"
-//#include "emu/pc/CCB.h"
+#include "emu/pc/geom.h"
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
@@ -533,7 +532,7 @@
 #include <iomanip>
 #include <utility>
 #include <numeric>
-#include "emu/pc/geom.h"
+#include <algorithm>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -889,11 +888,14 @@ void DAQMB::configure() {
    {
          dcfeb_configure(cfebs_[lfeb]);   
    }
-    
+   restoreCFEBIdle();
 }
 //
 bool DAQMB::checkDAQMBXMLValues() { 
   //
+  if(hardware_version_<=1)
+  {
+
   std::cout << "DAQMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
   //
   const int max_number_of_reads = 2;
@@ -987,6 +989,72 @@ bool DAQMB::checkDAQMBXMLValues() {
   //
   return cfebmatch;
   //
+  }
+  else if(hardware_version_==2)
+  {
+    std::cout << "ODAMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+    // check ODMB and DCFEBs here
+    bool print_errors=true;
+    bool confmatch=true;
+    // check ODMB first
+    confmatch &= compareValues("ODMB FPGA ID code",  mbfpgaid() & 0xFFFFFFF , 0x8424A093 & 0xFFFFFFF, print_errors);
+    confmatch &= compareValues("ODMB firmware version",  odmb_firmware_version() , GetExpectedControlFirmwareTag(), print_errors);
+    confmatch &= compareValues("ODMB QPLL lock state",  read_qpll_state(), 1, print_errors);
+
+    if(confmatch)  odmb_retrieve_config();
+    confmatch &= compareValues("ODMB L1ACC dav delay", odmb_read_LCT_L1A_delay(), GetL1aDavDelay(), print_errors);    
+    confmatch &= compareValues("ODMB TMB dav delay", odmb_read_TMB_delay(), GetTmbDavDelay(), print_errors);    
+    confmatch &= compareValues("ODMB ALCT dav delay", odmb_read_ALCT_delay(), GetAlctDavDelay(), print_errors);    
+    confmatch &= compareValues("ODMB inject delay", odmb_read_Inj_delay(), GetInjectDelay(), print_errors);    
+    confmatch &= compareValues("ODMB pulse delay", odmb_read_Ext_delay(), GetPulseDelay(), print_errors);    
+    confmatch &= compareValues("ODMB calibration LCT delay", odmb_read_Cal_delay(), GetCalibrationLctDelay(), print_errors);    
+    confmatch &= compareValues("ODMB kill mask", odmb_read_kill_mask(), GetKillInputMask(), print_errors);    
+    confmatch &= compareValues("ODMB crate ID", odmb_read_CrateID(), crate_id_, print_errors);    
+
+    if(!confmatch) std::cout << "ODMB check failed!" << std::endl;
+
+    std::cout << "DCFEB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+    // next check DCFEBs
+    std::vector<std::string> cfeb_name;
+    cfeb_name.clear();
+    cfeb_name.push_back("DCFEB 1 ");
+    cfeb_name.push_back("DCFEB 2 ");
+    cfeb_name.push_back("DCFEB 3 ");
+    cfeb_name.push_back("DCFEB 4 ");
+    cfeb_name.push_back("DCFEB 5 ");
+    cfeb_name.push_back("DCFEB 6 ");
+    cfeb_name.push_back("DCFEB 7 ");
+    int cfeb_index, cfebdone=0;
+    int donebits = read_cfeb_done();
+    for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr)
+    {
+       cfeb_index = (*cfebItr).number();
+       if(cfeb_index<0 || cfeb_index>6) continue; // should not happen
+       if(cfebItr->GetHardwareVersion() <= 1) continue;
+       cfebdone=(donebits>>cfeb_index)&1;
+
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"FPGA Done", cfebdone, 1, print_errors);
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"FPGA ID code", febfpgaid(*cfebItr) & 0xFFFFFFF, 0x8424A093 & 0xFFFFFFF, print_errors);
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"firmware version", febfpgauser(*cfebItr), GetExpectedCFEBFirmwareTag(cfeb_index), print_errors);
+
+       int compmodetime=dcfeb_read_config(*cfebItr, 2);
+       int compmode=(compmodetime & 3);
+       int comptimi=(compmodetime & 0x1C)>>2;
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"Comparator Mode", compmode, GetCompModeCfeb(cfeb_index), print_errors);            
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"Comparator Timing", comptimi, GetCompTimingCfeb(cfeb_index), print_errors);          
+       int compclock=dcfeb_read_config(*cfebItr, 10);
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"Comparator Clock Phase", compclock, GetCompClockPhaseCfeb(cfeb_index), print_errors);
+       int adcsample=dcfeb_read_config(*cfebItr, 11);
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"ADC Sample Clock Phase", adcsample, GetADCSampleClockPhaseCfeb(cfeb_index), print_errors);          
+       int pipeline=dcfeb_read_config(*cfebItr, 6);
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"Pipeline Depth", pipeline, cfebItr->GetPipelineDepth(), print_errors); 
+       int nsample=dcfeb_read_config(*cfebItr, 8);
+       confmatch &= compareValues(cfeb_name[cfeb_index]+"Number of Samples", nsample, GetNSamplesCfeb(cfeb_index), print_errors);          
+
+    }
+    return confmatch;
+  }
+  else return true;
 }
 //
 void DAQMB::CheckCFEBsConfiguration(bool print_errors) {
@@ -2370,6 +2438,7 @@ int DAQMB::lvmb_power_state()
 /* FPGA and PROM codes  */
 //
 bool DAQMB::CheckVMEFirmwareVersion() {
+  if(hardware_version_ >1) return true;
   //
   // read the value from the DMB:
   vmefpgaid();
@@ -3584,14 +3653,14 @@ void DAQMB::buckflash_dump(int nbuf,char *buf)
 }
 
 // DAQMB program proms
-void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
+void DAQMB::epromload_verify(DEVTYPE devnum,const char *downfile,int writ,const char *cbrdnum)
 {
   //
   std::cout << "New epromload GUJH " << std::endl;
   //
   char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
   DEVTYPE devstp,dv;
-  char *devstr;
+  const char *devstr;
   FILE *dwnfp,*fpout;
   char buf[16384],buf2[256];
   char *Word[256],*lastn;
@@ -3875,7 +3944,7 @@ void DAQMB::epromread(DEVTYPE devnum){
   int nbits,totbits;
   char tmp;
   int pause,xtrbits;
-  char * devstr;
+  const char * devstr;
   DEVTYPE devstp,dv;
   char savbuf[513];
   FILE *fpout;
@@ -4242,14 +4311,14 @@ int DAQMB::check_eprom_readback(const char *rbkfile, const char *expfile){
   return 0;
 }
 
-void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
+void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,const char *cbrdnum)
 {
   //
   std::cout << "New epromload" << std::endl;
   //
   char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
   DEVTYPE devstp,dv;
-  char *devstr;
+  const char *devstr;
   FILE *dwnfp,*fpout;
   char buf[8192],buf2[256];
   char *Word[256],*lastn;
@@ -4392,6 +4461,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 	     }
 	   }
 	 } 
+         ::usleep(5*(nbits+xtrbits));
 	 //  Data readback comparison here:
 	 for (int i=0;i<nbytes;i++) {
 	   tmp=(rcvbuf[i]>>3)&0x1F;
@@ -4519,14 +4589,14 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
   //
 }
 
-void DAQMB::epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum, int ipass)
+void DAQMB::epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,const char *cbrdnum, int ipass)
 {
   //
   std::cout << "Broadcast epromload" << std::endl;
   //
   char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
   DEVTYPE dv;
-  char *devstr;
+  const char *devstr;
   FILE *dwnfp,*fpout;
   char buf[8192],buf2[256];
   char *Word[256],*lastn;
@@ -6043,7 +6113,7 @@ void DAQMB::PrintCounters(int user_option){
 
   if(hardware_version_<=1){
     //
-    if(user_option<1 | user_option>3) (*MyOutput_) << "Invalid option entered" << std::endl;
+    if( (user_option<1) | (user_option>3) ) (*MyOutput_) << "Invalid option entered" << std::endl;
     //
     //Simple read counters option:
     //
@@ -8412,7 +8482,7 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile, int broadcas
     for(int i=0; i<blocks; i++)
     {
        cfeb_do(0, &comd, 32, bufin+4*i, rcvbuf, NOW);
-       udelay(32);
+       udelay(50);
        j++;
        if(j==p1pct)
        {  pcnts++;
@@ -8432,7 +8502,7 @@ void DAQMB::dcfeb_program_virtex6(CFEB & cfeb, const char *mcsfile, int broadcas
     comd=VTX6_JSTART;
     cfeb_do(10, &comd, 0, &tmp, rcvbuf, NOW);
     std::cout <<" Start sending clocks... " << std::endl;
-    cfeb_do(0, &comd, -4000, &tmp, rcvbuf, NOW);
+    cfeb_do(0, &comd, -1000, &tmp, rcvbuf, NOW);
     //restore idle;
     cfeb_do(-1, &comd, 0, &tmp, rcvbuf, NOW);    
     comd=VTX6_BYPASS;
@@ -9131,19 +9201,6 @@ void DAQMB::odmb_readfirmware_mcs(const char *filename)
    return;
 }
 
-int DAQMB::odmb_check_mcs(const char*  mcsfile, const char* bufin) {
-
-  // returns 1 if file contains ODMB firmware,
-  // returns 0 otherwise
-  int tag=0;
-  memcpy(&tag, bufin+0x600000, 4);
-  std::cout << "tag: " << std::hex << tag << std::endl;
-
-  if( (tag & 0xFFFFFFFF)==0x1234DBDB) return 1;
-  else return 0;
-
-}
-
 void DAQMB::odmb_program_eprom(const char *mcsfile)
 {
    unsigned int fulladdr;
@@ -9180,14 +9237,18 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
        return;
    }
 
-   if(!this->odmb_check_mcs(mcsfile, bufin)) { // check for odmb tag
-     std::cout << "ERROR: found non-ODMB firmware tag. Quit..." << std::endl;
-     free(bufin);
-     return;
+   int tag=0;
+   memcpy(&tag, bufin+0x600000, 4);
+   if( (tag & 0xFFFFFFFF)==0x1234DBDB) 
+   {
+       std::cout << "Firmware tag (1234DBDB) verified!" << std::endl;
    }
-
-   // If we found the right tag ...
-   std::cout << "Firmware tag (ODMB) verified!" << std::endl; 
+   else
+   {
+       std::cout << "ERROR: Firmware tag (1234DBDB) not found in MCS file. Quit..." << std::endl; 
+       free(bufin);
+       return;
+   }
 
       odmb_bpi_reset();
       odmb_bpi_enable();
@@ -9291,6 +9352,19 @@ void DAQMB::odmb_program_eprom(const char *mcsfile)
 	  std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
 	  return false;
 	}
+
+   int tag=0;
+   memcpy(&tag, bufin+0x600000, 4);
+   if( (tag & 0xFFFFFFFF)==0x1234DBDB) 
+   {
+       std::cout << "Firmware tag (1234DBDB) verified!" << std::endl;
+   }
+   else
+   {
+       std::cout << "ERROR: Firmware tag (1234DBDB) not found in MCS file. Quit..." << std::endl; 
+       free(bufin);
+       return false;
+   }
 
       odmb_bpi_reset();
       odmbeprom_timerstop();
@@ -9466,6 +9540,19 @@ void DAQMB::odmb_program_virtex6(const char *mcsfile)
        free(bufin);
        return;
    }
+   int tag=0;
+   memcpy(&tag, bufin+0x600000, 4);
+   if( (tag & 0xFFFFFFFF)==0x1234DBDB) 
+   {
+       std::cout << "Firmware tag (1234DBDB) verified!" << std::endl;
+   }
+   else
+   {
+       std::cout << "ERROR: Firmware tag (1234DBDB) not found in MCS file. Quit..." << std::endl; 
+       free(bufin);
+       return;
+   }
+
 // byte swap
    for(int i=0; i<FIRMWARE_SIZE/2; i++)
    {  c=bufin[i*2];
@@ -9497,7 +9584,7 @@ void DAQMB::odmb_program_virtex6(const char *mcsfile)
     for(int i=0; i<blocks; i++)
     {
        dlog_do(0, &comd, 32, bufin+4*i, rcvbuf, NOW);
-       udelay(32);
+       udelay(50);
        j++;
        if(j==p1pct)
        {  pcnts++;
@@ -9690,6 +9777,16 @@ void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2])
     dcfeb_hub(cfeb, REG_RD_WRD, 16, &tmp, buf, READ_YES|NOW);
     memcpy(wrd, buf, 2);
     return;
+}
+
+int DAQMB::dcfeb_read_config(CFEB &cfeb, int ival)
+{
+    unsigned tmp;
+    dcfeb_hub(cfeb, REG_SEL_WRD, 8, &ival, (char *)&tmp, NOW);
+    tmp=0xFFFF;
+    int rb;   
+    dcfeb_core(REG_RD_WRD, 16, &tmp, (char *)&rb, READ_YES|NOW);
+    return rb & 0xFFFF;
 }
 
 void DAQMB::odmb_dcfeb_tests()

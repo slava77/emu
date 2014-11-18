@@ -10,7 +10,7 @@
 #include "xercesc/dom/DOM.hpp"
 #include "xercesc/dom/DOMImplementation.hpp"
 #include "xercesc/dom/DOMImplementationLS.hpp"
-#include "xercesc/dom/DOMWriter.hpp"
+#include "emu/utils/DOM.h"
 #include "emu/fed/DDUParser.h"
 #include "emu/fed/DDU.h"
 #include "emu/fed/Crate.h"
@@ -376,17 +376,7 @@ throw (emu::fed::exception::ConfigurationException)
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
 	
-	// Create a writer
-	xercesc::DOMImplementation *implementationLS = xercesc::DOMImplementationRegistry::getDOMImplementation(X("LS"));
-	xercesc::DOMWriter *writer = ((xercesc::DOMImplementationLS *) implementationLS)->createDOMWriter();
-	
-	// Make things pretty if we can
-	if (writer->canSetFeature(X("format-pretty-print"), true)) writer->setFeature(X("format-pretty-print"), true);
-	
-	// Write
-	std::string returnXML = X(writer->writeToString(*document));
-	
-	delete writer;
+	std::string returnXML( emu::utils::serializeDOM( document ) );
 	
 	// Release all memory used by the document
 	document->release();

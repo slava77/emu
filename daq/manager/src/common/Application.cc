@@ -3577,7 +3577,7 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
 
 void emu::daq::manager::Application::printSoapMsgToStdOut(xoap::MessageReference message)
 {
-    DOMNode *node = message->getEnvelope();
+    DOMNode *node = message->getSOAPPart().getEnvelope().getDOM();
     string msgStr;
 
 

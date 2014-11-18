@@ -21,6 +21,7 @@ Sources = \
     graph.cc \
     utils.cc \
     SimpleWeb.cc \
+    HelloWorld.cc \
     version.cc
 
 IncludeDirs= \

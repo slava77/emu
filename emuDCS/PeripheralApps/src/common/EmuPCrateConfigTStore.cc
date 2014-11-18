@@ -3,6 +3,7 @@
 #include "emu/pc/XMLParser.h"
 #include "emu/db/PCConfigHierarchy.h"
 #include "emu/utils/System.h"
+#include "emu/utils/IO.h"
 #include "emu/db/ConfigIDInfo.h"
 
 #include <time.h>
@@ -207,6 +208,23 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out)
 
 
   std::string urn = "/" + getApplicationDescriptor()->getURN() + "/";
+
+  *out << fieldset().set("style", "font-size: 11pt; font-family: arial;");
+  *out << cgicc::legend("Status").set("style", "color:blue") << std::endl;
+  *out << table().set("border", "0").set("cellpadding", "5") 
+       << cgicc::tr() 
+       << cgicc::td() << "Last read in" << cgicc::td() 
+       << cgicc::td().set("style", "font-weight: bold;") << lastReadConfiguration_ << cgicc::td() 
+       << cgicc::td() << ( lastReadConfigurationTime_.size() ? "at " : "" ) << lastReadConfigurationTime_ <<cgicc:: td() 
+       << cgicc::tr()
+       << cgicc::tr() 
+       << cgicc::td() << "Last uploaded" << cgicc::td() 
+       << cgicc::td().set("style", "font-weight: bold;") << lastUploadedConfiguration_ << cgicc::td() 
+       << cgicc::td() << ( lastUploadedConfigurationTime_.size() ? "at " : "" ) << lastUploadedConfigurationTime_ << cgicc::td() 
+       << cgicc::tr()
+       << table();
+ *out << fieldset() << br();
+
 
   *out << fieldset().set("style", "font-size: 10pt;  font-family: arial;") << endl;
 
@@ -705,10 +723,11 @@ void EmuPCrateConfigTStore::parseTestSummary(xgi::Input * in, xgi::Output * out)
 
 void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception)
 {
+  std::string startTime; 
+  std::string endTime; 
   try
   {
     outputHeader(out);
-    outputStandardInterface(out);
     if (xmlfile_.length() <= 0)
     {
       *out << "No XML file selected. Please select a valid XML file first." << std::endl;
@@ -719,23 +738,19 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
       std::cout << "XML full name " << xmlname << std::endl;
       std::cout << "Parsing of the peripheral crate config XML file into DOM tree ..." << std::endl;
       *out << "Parsing of the peripheral crate config XML file into DOM tree ..." << std::endl;
-      time_t rawtime;
-      struct tm * timeinfo;
-      time(&rawtime);
-      timeinfo = localtime(&rawtime);
-      std::cout << "Parsing started at: " << asctime(timeinfo) << std::endl;
-      *out << "<br>Parsing started at: " << asctime(timeinfo) << std::endl;
+      startTime = emu::utils::getDateTime();
+      std::cout << "Parsing started at: " << startTime << std::endl;
+      *out << "<br>Parsing started at: "  << startTime << std::endl;
 
       XMLParser TStore_emuparser;
       TStore_emuparser.parseFile(xmlname);
       TStore_myEndcap_ = TStore_emuparser.GetEmuEndcap();
 
-      time(&rawtime);
-      timeinfo = localtime(&rawtime);
       if (TStore_myEndcap_)
       {
-        std::cout << "Parsing ended at: " << asctime(timeinfo) << std::endl;
-        *out << "<br>Parsing ended at: " << asctime(timeinfo) << std::endl;
+	endTime = emu::utils::getDateTime();
+        std::cout << "Parsing ended at: " << endTime << std::endl;
+        *out << "<br>Parsing ended at: "  << endTime << std::endl;
 
         // reset config type and description to their default values:
         config_type_ = default_conf_type;
@@ -755,6 +770,10 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
         std::vector<Crate *> myCrates = TStore_myEndcap_->AllCrates();
         xdata::Table dataAsTable;
         getTableDefinitionsIfNecessary();
+
+	// Fill the crates' real names or else the crate numbers will be used in the table identifiers instead of the crate labels:
+	for ( std::vector<Crate *>::iterator c=myCrates.begin(); c!=myCrates.end(); ++c ) fillCrateRealName( (*c)->CrateID(), (*c)->GetLabel() );
+	// std::cout << "crateRealNames: " << crateRealNames << std::endl;
 
         clearCachedTables();
         if (myCrates.size())
@@ -810,7 +829,10 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
             }
           }
         }
+	lastReadConfiguration_     = xmlname;
+	lastReadConfigurationTime_ = endTime;
       }
+      outputStandardInterface(out);
       outputCurrentConfiguration(out);
     }
   }
@@ -862,7 +884,6 @@ void EmuPCrateConfigTStore::readConfigFromDB(xgi::Input * in, xgi::Output * out)
   {
     cgicc::Cgicc cgi(in);
     outputHeader(out);
-    outputStandardInterface(out);
     std::string endcap_side;
     std::string emu_config_id = cgi("configID");
     if (emu_config_id.empty())
@@ -887,6 +908,9 @@ void EmuPCrateConfigTStore::readConfigFromDB(xgi::Input * in, xgi::Output * out)
     //*out << "TStore_myEndcap_=getConfiguredEndcap(" << emu_config_id << ")" << std::endl;
     TStore_myEndcap_ = getConfiguredEndcap(emu_config_id);
     //*out << "TStore_myEndcap_==" << (TStore_myEndcap_?"NOT NULL":"NULL") << std::endl;
+    lastReadConfiguration_     = emu_config_id;
+    lastReadConfigurationTime_ = emu::utils::getDateTime();
+    outputStandardInterface(out);
     outputCurrentConfiguration(out);
   }
   catch (xcept::Exception &e)

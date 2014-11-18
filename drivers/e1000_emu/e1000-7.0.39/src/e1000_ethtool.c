@@ -29,6 +29,7 @@
 
 /* ethtool support for e1000 */
 
+#include "SLC_version.h"
 #include "e1000.h"
 
 #ifdef	SIOCETHTOOL
@@ -878,9 +879,14 @@ e1000_eeprom_test(struct e1000_adapter *adapter, uint64_t *data)
 }
 
 static irqreturn_t
+#if   SLC_VERSION == 5
 e1000_test_intr(int irq,
 		void *data,
 		struct pt_regs *regs)
+#elif SLC_VERSION == 6
+e1000_test_intr(int irq,
+		void *data)
+#endif /* SLC_VERSION */
 {
 	struct net_device *netdev = (struct net_device *) data;
 	struct e1000_adapter *adapter = netdev_priv(netdev);
@@ -902,7 +908,11 @@ e1000_intr_test(struct e1000_adapter *adapter, uint64_t *data)
 	/* Hook up test interrupt handler just for this test */
  	if (!request_irq(irq, &e1000_test_intr, 0, netdev->name, netdev)) {
  		shared_int = FALSE;
+#if   SLC_VERSION == 5
  	} else if (request_irq(irq, &e1000_test_intr, SA_SHIRQ,
+#elif SLC_VERSION == 6
+ 	} else if (request_irq(irq, &e1000_test_intr, IRQF_SHARED,
+#endif /* SLC_VERSION */
 			      netdev->name, netdev)){
 		*data = 1;
 		return -1;
@@ -1909,7 +1919,9 @@ static struct ethtool_ops e1000_ethtool_ops = {
 	.get_stats_count        = e1000_get_stats_count,
 	.get_ethtool_stats      = e1000_get_ethtool_stats,
 #ifdef ETHTOOL_GPERMADDR
-	.get_perm_addr  		= ethtool_op_get_perm_addr,
+#if   SLC_VERSION == 5
+	.get_perm_addr  		= ethtool_op_get_perm_addr, SLC5
+#endif /* SLC_VERSION */
 #endif
 };
 

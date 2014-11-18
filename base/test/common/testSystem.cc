@@ -6,6 +6,7 @@
  */
 
 #include "emu/utils/System.h"
+#include <iostream>
 
 using namespace emu::utils;
 using namespace std;

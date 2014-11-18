@@ -12,7 +12,6 @@
 #include "xercesc/dom/DOM.hpp"
 #include "xercesc/dom/DOMImplementation.hpp"
 #include "xercesc/dom/DOMImplementationLS.hpp"
-#include "xercesc/dom/DOMWriter.hpp"
 
 #define DBG 0
 
@@ -300,27 +299,14 @@ throw (emu::exception::ConfigurationException)
   // recursively create DOM nodes
   fillNode(root, head);
 
-  // Create a writer
-  xercesc::DOMWriter *writer = ((xercesc::DOMImplementationLS *) implementation)->createDOMWriter();
-
-  // Make things pretty if we can
-  if (writer->canSetFeature(X("format-pretty-print"), true)) writer->setFeature(X("format-pretty-print"), true);
-
-  // Write
-  std::string return_xml = X(writer->writeToString(*document_));
-
-  delete writer;
+  // Write XML io string
+  std::string return_xml( emu::utils::serializeDOM( document_ ) );
 
   // Release all memory used by the document
   document_->release();
 
   // Terminate XML services
   xercesc::XMLPlatformUtils::Terminate();
-
-  // a hack to have encoding="UTF-8" instead of UTF-16, as for some reason Xercesc's setEncoding methods can't really do that
-  std::string to_replace = "encoding=\"UTF-16\"";
-  size_t found = return_xml.find(to_replace);
-  if (found != std::string::npos) return_xml.replace(found, to_replace.length(), "encoding=\"UTF-8\"");
 
   return return_xml;
 }

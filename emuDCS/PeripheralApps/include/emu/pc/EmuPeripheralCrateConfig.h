@@ -44,6 +44,7 @@
 #include "emu/pc/Crate.h"
 #include "emu/pc/DAQMB.h"
 #include "emu/pc/TMB.h"
+#include "emu/pc/TMB_constants.h"
 #include "emu/pc/TMBTester.h"
 #include "emu/pc/CCB.h"
 #include "emu/pc/MPC.h"
@@ -514,6 +515,8 @@ private:
   void MPCReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPColdPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPCnewPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MPCPRBSError(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MPCGTPReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // CCB utils
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -618,6 +621,8 @@ private:
   void SetRadioactivityTriggerALCTOnly(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetTTCDelays(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureAllTMBVoltages(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ProgramAllOdmbEproms(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ProgramOdmbEpromsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UpdateInFlashKey(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   void SetTwoLayerTrigger(int tmb);

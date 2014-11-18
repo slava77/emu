@@ -4,8 +4,8 @@
 
 Summary: CMS Emu local DAQ Gbit and peripheral crate VME drivers for kernel %{kernel_version} based on the igb module for the Intel dual port NIC model I350-F2
 Name: emu-igb_emu
-Version: 1.3.1
-Release: 1.slc5
+Version: 2.0.0
+Release: 1.slc6
 License: none
 Group: none
 URL: none
@@ -35,7 +35,7 @@ cp %{workingDir}/igb_emu/eth_hook_2_vme/eth_hook_2_vme.ko $RPM_BUILD_ROOT/usr/lo
 cp %{workingDir}/igb_emu/eth_hook_3_vme/eth_hook_3_vme.ko $RPM_BUILD_ROOT/usr/local/bin
 cp %{workingDir}/igb_emu/eth_hook_4_vme/eth_hook_4_vme.ko $RPM_BUILD_ROOT/usr/local/bin
 cp %{workingDir}/igb_emu/eth_hook_5_vme/eth_hook_5_vme.ko $RPM_BUILD_ROOT/usr/local/bin
-cp %{workingDir}/igb_emu/igb-4.1.2/src/igb_emu.ko         $RPM_BUILD_ROOT/usr/local/bin
+cp %{workingDir}/igb_emu/igb-5.1.2/src/igb_emu.ko         $RPM_BUILD_ROOT/usr/local/bin
 cp %{workingDir}/script/load_igb_emu.sh                   $RPM_BUILD_ROOT/usr/local/bin
 touch %{_topdir}/BUILD/ChangeLog
 touch %{_topdir}/BUILD/README
@@ -66,19 +66,19 @@ touch %{_topdir}/BUILD/MAINTAINER
 %doc MAINTAINER ChangeLog README
 
 %post
-# Have load_daq_pcvme_drivers.sh invoked on booting
-#sed -i -e "/\/usr\/local\/bin\/load_igb_emu.sh/d" /etc/rc.d/rc.local
+# Have load_igb_emu.sh invoked on booting
+#[[ -f /etc/rc.d/rc.local ]] && sed -i -e "/\/usr\/local\/bin\/load_igb_emu.sh/d" /etc/rc.d/rc.local || true
 #echo "[[ -x /usr/local/bin/load_igb_emu.sh ]] && /usr/local/bin/load_igb_emu.sh > /var/log/load_igb_emu.log 2>&1" >> /etc/rc.d/rc.local
 
 # Load new modules
-/usr/local/bin/load_igb_emu.sh
+/usr/local/bin/load_igb_emu.sh || true
 
 %preun
 # Unload modules
-[[ $(/sbin/lsmod | grep -c igb_emu) -eq 0 ]] || /sbin/modprobe -r igb_emu
+[[ $(/sbin/lsmod | grep -c igb_emu) -eq 0 ]] || /sbin/modprobe -r igb_emu || true
 
 # Stop loading daq drivers at boot time.
-sed -i -e "/\/usr\/local\/bin\/load_igb_emu.sh/d" /etc/rc.d/rc.local
+[[ -f /etc/rc.d/rc.local ]] && sed -i -e "/\/usr\/local\/bin\/load_igb_emu.sh/d" /etc/rc.d/rc.local
 
 %postun
 # Remove modules from /lib/modules

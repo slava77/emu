@@ -669,7 +669,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
     } else {
       *out << cgicc::span().set("style","color:red");
       *out << buf;
-      *out << " (Should be 0x" << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index-1) << ") " << std::dec;
+      *out << " (Should be " << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index-1) << ") " << std::dec;
       *out << cgicc::span();
     }
   } else if(hversion==2)
@@ -693,7 +693,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
     } else {
       *out << cgicc::span().set("style","color:red");
       *out << buf;
-      *out << " (Should be 0x" << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index-1) << ") " << std::dec;
+      *out << " (Should be " << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index-1) << ") " << std::dec;
       *out << cgicc::span();
     }
   }
@@ -734,7 +734,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
        thisDMB->autoload_select_readback_wrd(*cfebItr,2);
        thisDMB->autoload_readback_wrd(*cfebItr,wrd);
        dcfeb_par[i][0] = wrd[0] & 0x3;
-       dcfeb_par[i][1] = (wrd[0] & 0xc) >> 2;
+       dcfeb_par[i][1] = (wrd[0] & 0x1c) >> 2;
 
        thisDMB->autoload_select_readback_wrd(*cfebItr,10);
        thisDMB->autoload_readback_wrd(*cfebItr,wrd);
@@ -1834,6 +1834,8 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::br();
   //
+if(D_hversion>=2)
+{
   // new tests for DCFEB communication
   std::string DCFEBTests = toolbox::toString("/%s/DCFEBTests",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",DCFEBTests) << std::endl ;
@@ -1841,13 +1843,16 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
   sprintf(buf,"%d",dmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
+}
   //
   *out << cgicc::fieldset() << cgicc::br();
   //  
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
-
+if(D_hversion>=2)
+{
   // Pipeline Depth Scan
   //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
+
   *out << cgicc::legend("ODMB Timing Scans (N.B.: must be taking cosmics to use!)").set("style","color:blue") ;
   std::string pipeline_depth_scan = toolbox::toString("/%s/PipelineDepthScan",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",pipeline_depth_scan) << std::endl ;
@@ -1897,8 +1902,8 @@ std::cout << "Power Read: " << std::hex << power_read << std::dec <<std::endl;
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::fieldset() << cgicc::br();
+}
   //  
-  //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
   //
 if(D_hversion<=1)
@@ -3165,7 +3170,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
      {
         *out << cgicc::span().set("style","color:red");
         *out << buf;
-        *out << "--->> BAD <<--- should be 0x8424A093";
+        *out << "--->> BAD <<--- should be 8424A093";
         *out << cgicc::span();
     }
      *out << cgicc::br();

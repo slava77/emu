@@ -2,6 +2,8 @@
 
 #include "emu/pc/EmuPeripheralCrateCommand.h"
 
+#include "emu/soap/ToolBox.h"
+
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -385,13 +387,22 @@ xoap::MessageReference EmuPeripheralCrateCommand::onHalt (xoap::MessageReference
 xoap::MessageReference EmuPeripheralCrateCommand::onFillMPCFIFOAs (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   std::cout << "SOAP FillMPCFIFOAs" << std::endl;
-  //
-  std::string mpclistST=getAttrFromSOAP(message, "MPCList");
-  std::cout << "MPCList=" << mpclistST << std::endl;
-  int mpclist=0;
-  if(mpclistST!="") mpclist=atoi(mpclistST.c_str());
-  if(mpclist>0)
-  {
+
+  xdata::String mpclistST;
+  try{
+    emu::soap::extractCommandAttributes( message, emu::soap::Attributes().add( "MPCList", &mpclistST ) );
+  } catch( xcept::Exception e ){
+    return emu::soap::createFaultReply( "Client", "Failed to extract value of attribute 'MPCList'. Check your SOAP message.", &e );
+  }
+  int mpclist = atoi( mpclistST.toString().c_str() );
+  std::cout << "MPCList=" << mpclist << std::endl;
+
+  // Bits 0 and 31 are not used:
+  if ( mpclist & 0x80000000 || mpclist & 0x00000001 ){
+    std::cout << "Warning: Empty MPC List! (Requested MPCList " + mpclistST.toString() + " is invalid.)" << std::endl;
+    return emu::soap::createFaultReply( "Client", "MPCList " + mpclistST.toString() + " is invalid." );
+  }
+  else{
      MPClist_=mpclist & 0x7FFFFFFE;
      if(!parsed) ParsingXML();
      if(total_crates_<=0) return createReply(message);
@@ -409,10 +420,6 @@ xoap::MessageReference EmuPeripheralCrateCommand::onFillMPCFIFOAs (xoap::Message
         }
      }
   }
-  else
-  {
-     std::cout << "Warning: Empty MPC List!" << std::endl;
-  } 
   //
   return createReply(message);
 }

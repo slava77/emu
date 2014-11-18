@@ -1,3 +1,4 @@
+/* #define DEBUG_PRINT */
 
 
 /*
@@ -36,6 +37,7 @@
 #include <asm/io.h>
 // #include <linux/bigphysarea.h>
 
+#include "SLC_version.h"
 #include "schar.h"
 
 #define SCHAR_MAJOR_4 234
@@ -43,7 +45,7 @@
 /* settable parameters */
 static char *schar_name = NULL;
 
-
+void print_skb( char* description, struct sk_buff *skb );
 
 /* forward declarations for _fops */
 void get_event(void);
@@ -79,9 +81,13 @@ static struct file_operations schar_fops = {
 /* sysctl entries */
 static char schar_proc_string_4[SCHAR_MAX_SYSCTL];
 static struct ctl_table_header *schar_root_header_4 = NULL;
+#if   SLC_VERSION == 5
 static int schar_read_proc_4(ctl_table *ctl, int write, struct file *file,
 			   void *buffer, size_t *lenp, loff_t *ppos);
-
+#elif SLC_VERSION == 6
+static int schar_read_proc_4(struct ctl_table *ctl, int write,
+			     void __user *buffer, size_t *lenp, loff_t *ppos);
+#endif
 static ctl_table schar_sysctl_table_4[] = {
 	{ DEV_SCHAR_ENTRY,	/* binary id */
 	  "4",			/* name */
@@ -89,6 +95,9 @@ static ctl_table schar_sysctl_table_4[] = {
 	  SCHAR_MAX_SYSCTL,	/* max size of output */
 	  0644,			/* mode */
 	  0,			/* child - none */
+#if SLC_VERSION == 6
+	  0,			/* parent */
+#endif
 	  &schar_read_proc_4 },	/* set up text */
 	{ 0 }
 };
@@ -177,8 +186,9 @@ int netif_rx_hook_4(struct sk_buff *skb)
   if(nbufw+skb->len+16 > MMT_BUF_SIZE)
   { printk(KERN_INFO "eth_hook_4: out of memory, incoming packet dropped! \n");
     pack_drop++;
-    ERROR=1;
-    kfree_skb(skb);
+    ERROR=ERROR%0xffff + 1;
+    /* kfree_skb(skb); */
+    dev_kfree_skb_any(skb);
     return 1;
   }
 
@@ -194,12 +204,12 @@ int netif_rx_hook_4(struct sk_buff *skb)
   pack_left=pack_left+1; 
  
   if(nbufw+9000> MMT_BUF_SIZE){
-        printk(KERN_CRIT "LSD: Catastropic Error! Overwrote memory! Reset! \n");
+    printk(KERN_CRIT "eth_hook_4: Catastrophic Error! Overwrote memory (nbufw+9000=%d > MMT_BUF_SIZE=%d)! Reset!\n", nbufw+9000, MMT_BUF_SIZE );
 	pack_left=0;
 	bufw=pnt_ring;
 	nbufw=0;
 	bufr=pnt_ring;
-     ERROR=1;
+	ERROR=ERROR%0xffff + 1;
   }
 
 // wake from blocking sleep
@@ -218,7 +228,8 @@ int netif_rx_hook_4(struct sk_buff *skb)
       proc_rbytesH_4=proc_rbytesH_4+1;
    }
 // return to gigabit driver
-  kfree_skb(skb);
+  /* kfree_skb(skb); */
+   dev_kfree_skb_any(skb);
   return 1;
 }
 
@@ -297,8 +308,13 @@ static int schar_ioctl_4(struct inode *inode, struct file *file,
 	return 0;
 }
 
+#if   SLC_VERSION == 5
 static int schar_read_proc_4(ctl_table *ctl, int write, struct file *file,
 			   void *buffer, size_t *lenp, loff_t *ppos)
+#elif SLC_VERSION == 6
+static int schar_read_proc_4(struct ctl_table *ctl, int write,
+			     void __user *buffer, size_t *lenp, loff_t *ppos)
+#endif
 {
 	int len = 0;
 	
@@ -332,7 +348,11 @@ static int schar_read_proc_4(ctl_table *ctl, int write, struct file *file,
         len += sprintf(schar_proc_string_4+len, "  transmit\t\t%d packets \n",proc_tpackets_4);
         len += sprintf(schar_proc_string_4+len, "  transmit    \t\t\t%02d%09ld bytes\n\n",proc_tbytesH_4,proc_tbytesL_4); 
 	*lenp = len;
+#if   SLC_VERSION == 5
 	return proc_dostring(ctl, write, file, buffer, lenp, ppos);
+#elif SLC_VERSION == 6
+	return proc_dostring(ctl, write, buffer, lenp, ppos);
+#endif
 	
 	
 }
@@ -356,15 +376,25 @@ static ssize_t schar_read_4(struct file *file, char *buf, size_t count,
   wakestatus=1;
   wait_event_interruptible_timeout(schar_wq_4,(wakecond!=0),rd_tmo);
   wakestatus=3;
-  if (signal_pending(current))return -EINTR;
+  if (signal_pending(current)){
+#ifdef DEBUG_PRINT
+    printk(KERN_ERR "ETH4 schar_read_4 signal_pending(current)\n" ); 
+#endif
+    return -EINTR;
+  }
 
   if(pack_left>0){
         lsend=*(unsigned short int *)bufr;
         bufr2=bufr+2;
-        if (copy_to_user(buf,bufr2,lsend))
-		return -EFAULT;
+        if (copy_to_user(buf,bufr2,lsend)){
+#ifdef DEBUG_PRINT
+	  printk(KERN_ERR "ETH4 schar_read_4 copy_to_user(buf,bufr2,lsend=%d)\n",lsend); 
+#endif
+	  return -EFAULT;
+	}
         count=lsend;
-	file->f_pos += count;
+	/* file->f_pos += count; */
+	*offset += count;
         bufr=bufr+lsend+2;
         pack_left=pack_left-1;
         if(pack_left<=0){
@@ -373,7 +403,9 @@ static ssize_t schar_read_4(struct file *file, char *buf, size_t count,
                   nbufw=0;
                   bufr=pnt_ring;
         }
-
+#ifdef DEBUG_PRINT
+	printk(KERN_INFO "ETH4 schar_read_4 read: %d pack_left: %d\n", count, pack_left ); 
+#endif
 	return count;
   }else{
           tbuf[0]=4;
@@ -381,8 +413,15 @@ static ssize_t schar_read_4(struct file *file, char *buf, size_t count,
           tbuf[2]=0;
 	  tsend=6;
           count=tsend;
-          if (copy_to_user(buf,tbuf,tsend))
-		return -EFAULT; 
+          if (copy_to_user(buf,tbuf,tsend)){
+#ifdef DEBUG_PRINT
+	    printk(KERN_ERR "ETH4 schar_read_4 copy_to_user(buf,bufr2,tsend=%d)\n",tsend); 
+#endif
+	    return -EFAULT; 
+	  }
+#ifdef DEBUG_PRINT
+	printk(KERN_INFO "ETH4 schar_read_4 read: %d when no packets left\n", count ); 
+#endif
    	return count; 
   }
   if(endcond==1){
@@ -391,9 +430,16 @@ static ssize_t schar_read_4(struct file *file, char *buf, size_t count,
           tbuf[2]=0;
 	  tsend=6;
           count=tsend;
-          if (copy_to_user(buf,tbuf,tsend))
-		return -EFAULT;  
+          if (copy_to_user(buf,tbuf,tsend)){
+#ifdef DEBUG_PRINT
+	  printk(KERN_ERR "ETH4 schar_read_4 copy_to_user(buf,bufr2,tsend=%d) with endcond==1\n",tsend); 
+#endif
+		return -EFAULT;
+	  }
   }
+#ifdef DEBUG_PRINT
+  printk(KERN_INFO "ETH4 schar_read_4 read: %d endcond: %d\n", count, endcond ); 
+#endif
   return count;
 }
 
@@ -432,7 +478,11 @@ int ethinit_module(void)
 	}
 	
 	/* register proc entry */
+#if   SLC_VERSION == 5
 	schar_root_header_4 = register_sysctl_table(schar_root_dir_4, 0);
+#elif SLC_VERSION == 6
+	schar_root_header_4 = register_sysctl_table(schar_root_dir_4);
+#endif
 	// schar_root_dir_4->child->de->fill_inode = &schar_fill_inode_4;
 	
         init_waitqueue_head(&schar_wq_4);
@@ -453,7 +503,12 @@ void ethcleanup_module(void)
 	return;
 }
 
-
+void print_skb( char* description, struct sk_buff *skb ){
+#ifdef DEBUG_PRINT
+  if ( skb ) printk(KERN_INFO "%s head: %p data: %p tail: %d end: %d len: %d network_header: %d\n",description,skb->head,skb->data,skb->tail,skb->end,skb->len,skb->network_header);
+  else       printk(KERN_INFO "%s skb: NULL\n", description );
+#endif
+}
 
 static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
 			   loff_t *offset)
@@ -472,11 +527,21 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
 
   // sbuf=kmalloc(9000,GFP_KERNEL);
   len=count;
+#if   SLC_VERSION == 5
   dev=dev_get_by_name("eth4");
+#elif SLC_VERSION == 6
+  dev=dev_get_by_name(&init_net,"p2p1");
+#endif
   err=-ENODEV;
   if (dev == NULL)
    goto out_unlock;
             
+#ifdef DEBUG_PRINT
+  printk(KERN_INFO "ETH4 schar_write_4 count: %d\n", count);
+  printk(KERN_INFO "ETH4 device name: %s hard_header_len: %d\n", dev->name, dev->hard_header_len);
+  /* printk(KERN_INFO "eth_hook_4_vme BITS_PER_LONG=%d\n", BITS_PER_LONG); */
+#endif
+
 /*
  *      You may not queue a frame bigger than the mtu. This is the lowest level
  *      raw protocol and you must do your own fragmentation at this level.
@@ -489,6 +554,8 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
   err = -ENOBUFS;
   //  skb = sock_wmalloc(sk, len+dev->hard_header_len+15, 0, GFP_KERNEL);
   skb=dev_alloc_skb(len+dev->hard_header_len+15);   
+  
+  print_skb( "ETH4 after dev_alloc_skb", skb );
 /*
  *      If the write buffer is full, then tough. At this level the user gets to
  *      deal with the problem - do your own algorithmic backoffs. That's far
@@ -507,7 +574,14 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
 * notable one here. This should really be fixed at the driver level.
 */
    skb_reserve(skb,(dev->hard_header_len+15)&~15);
+   print_skb( "ETH4 after skb_reserve", skb );
+#if   SLC_VERSION == 5
    skb->nh.raw = skb->data;
+#elif SLC_VERSION == 6
+   skb_reset_network_header(skb);
+#endif
+   print_skb( "ETH4 after skb_reset_network_header", skb );
+
    proto=htons(ETH_P_ALL);
    /*     	if (dev->hard_header) {
 		int res;
@@ -518,7 +592,13 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
 			skb->len = 0;
 			} */
         			
+#if   SLC_VERSION == 5
                         skb->tail = skb->data;
+#elif SLC_VERSION == 6
+			skb_reset_tail_pointer(skb);
+#endif
+			print_skb( "ETH4 after skb_reset_tail_pointer", skb );
+
 			skb->len = 0;
 
 /* Try to align data part correctly */
@@ -533,6 +613,7 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
    //  err = memcpy_fromiovec(skb_put(skb,len), msg->msg_iov, len);
 	
     err = copy_from_user(skb_put(skb,len),buf, count);
+   print_skb( "ETH4 after copy_from_user", skb );
    // err = memcpy_fromio(skb_put(skb,len),sbuf,len);
    // printk(KERN_INFO " lsd: len count %d %d %02x  \n",len,count,*(skb->data+98)&0xff);
    skb->protocol = htons(ETH_P_ALL);
@@ -542,6 +623,8 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
    skb->ip_summed=CHECKSUM_UNNECESSARY;
    if (err)
    goto out_free;
+
+   /* TRY *offset += count; */
      
    err = -ENETDOWN;
    if (!(dev->flags & IFF_UP))
@@ -565,7 +648,8 @@ static ssize_t schar_write_4(struct file *file, const char *buf, size_t count,
    return count;
      
    out_free:
-     kfree_skb(skb);
+   /* kfree_skb(skb); */
+   dev_kfree_skb_any(skb);
    out_unlock:
      // if (dev)dev_put(dev);
       // kfree(sbuf);           

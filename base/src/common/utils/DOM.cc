@@ -37,81 +37,94 @@
 
 XERCES_CPP_NAMESPACE_USE
 
-std::string emu::utils::serializeDOM( DOMNode* node )
-{
+std::string emu::utils::serializeDOM(DOMNode* node) {
   std::string result;
+
+  try {
+    XMLPlatformUtils::Initialize();
+  }
+  catch (const XMLException& toCatch) {
+    char* message = XMLString::transcode(toCatch.getMessage());
+    std::ostringstream oss;
+    oss << "Failed to initialize platform for serializing DOM: " << message;
+    XMLString::release(&message);
+    XCEPT_RAISE( emu::exception::XMLException, oss.str());
+  }
 
   XMLCh tempStr[100];
   XMLString::transcode("LS", tempStr, 99);
   DOMImplementation *impl = DOMImplementationRegistry::getDOMImplementation(tempStr);
-  DOMWriter* theSerializer = ((DOMImplementationLS*) impl)->createDOMWriter();
-
-  try
-  {
-    // optionally you can set some features on this serializer
-    if (theSerializer->canSetFeature(XMLUni::fgDOMWRTDiscardDefaultContent, true))
-      theSerializer->setFeature(XMLUni::fgDOMWRTDiscardDefaultContent, true);
-
-    if (theSerializer->canSetFeature(XMLUni::fgDOMWRTFormatPrettyPrint, true))
-      theSerializer->setFeature(XMLUni::fgDOMWRTFormatPrettyPrint, true);
-
-    // Try to influence what the XML declaration will say:
-    // Set encoding explicitly to UTF-8 (otherwise it'll be UTF-16).
-    XMLCh* encoding = XMLString::transcode( "UTF-8" );
-    theSerializer->setEncoding( encoding );
-    XMLString::release( &encoding );
-
-    // cout << "DOM encoding: " << xoap::XMLCh2String( node->getOwnerDocument()->getEncoding() ) << endl;
-    // cout << "DOM encoding: " << xoap::XMLCh2String( (static_cast<DOMDocument*>(node))->getEncoding() ) << endl;
-    // cout << "Serializer encoding: " << xoap::XMLCh2String( theSerializer->getEncoding() ) << endl;
-
-    MemBufFormatTarget *myFormTarget;
-    myFormTarget = new MemBufFormatTarget();
-
-    //
-    // do the serialization through DOMWriter::writeNode();
-    //
-    theSerializer->writeNode(myFormTarget, *node);
-
-    result.append( (const char*) myFormTarget->getRawBuffer(), (std::string::size_type) myFormTarget->getLen() );
-
-    theSerializer->release();
-
-    //
-    // Filter, formatTarget and error handler are NOT owned by the serializer.
-    //
-    delete myFormTarget;
+  DOMLSSerializer* theSerializer = ((DOMImplementationLS*)impl)->createLSSerializer();
+  
+  // optionally you can set some features on this serializer
+  if (theSerializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTDiscardDefaultContent, true))
+    theSerializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTDiscardDefaultContent, true);
+  
+  if (theSerializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true))
+    theSerializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+  
+  // StdOutFormatTarget prints the resultant XML stream
+  // to stdout once it receives any thing from the serializer.
+  // XMLFormatTarget *myFormTarget = new StdOutFormatTarget();
+  MemBufFormatTarget *myFormTarget = new MemBufFormatTarget();
+  DOMLSOutput* theOutput = ((DOMImplementationLS*)impl)->createLSOutput();
+  theOutput->setByteStream(myFormTarget);
+  
+  // Try to influence what the XML declaration will say:
+  // Set encoding explicitly to UTF-8 (otherwise it'll be UTF-16).
+  XMLCh* encoding = XMLString::transcode( "UTF-8" );
+  theOutput->setEncoding( encoding );
+  XMLString::release( &encoding );
+  
+  try {
+    // do the serialization through DOMLSSerializer::write();
+    theSerializer->write(node, theOutput);
   }
-  catch (xcept::Exception& e)
-  {
-    XCEPT_RETHROW( emu::exception::XMLException, "Failed to serialize DOM: ", e);
-  }
-  catch (const XMLException& toCatch)
-  {
+  catch (const XMLException& toCatch) {
     char* message = XMLString::transcode(toCatch.getMessage());
-    std::stringstream ss;
-    ss << "Failed to serialize DOM: " << message;
+    std::ostringstream oss;
+    oss << "Failed to serialize DOM: " << message;
     XMLString::release(&message);
-    XCEPT_RAISE( emu::exception::XMLException, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, oss.str());
   }
-  catch (const DOMException& toCatch)
-  {
-    char* message = XMLString::transcode(toCatch.getMessage());
-    std::stringstream ss;
-    ss << "Failed to serialize DOM: " << message;
+  catch (const DOMException& toCatch) {
+    char* message = XMLString::transcode(toCatch.msg);
+    std::ostringstream oss;
+    oss << "Failed to serialize DOM: " << message;
     XMLString::release(&message);
-    XCEPT_RAISE( emu::exception::XMLException, ss.str());
+    XCEPT_RAISE( emu::exception::XMLException, oss.str());
   }
-  catch (std::exception& e)
-  {
-    std::stringstream ss;
-    ss << "Failed to serialize DOM: " << e.what();
-    XCEPT_RAISE( emu::exception::XMLException, ss.str());
-  }
-  catch (...)
-  {
+  catch (...) {
     XCEPT_RAISE( emu::exception::UndefinedException, "Failed to serialize DOM: Unexpected exception.");
   }
+  
+  try {
+    result.append( (const char*) myFormTarget->getRawBuffer(), (std::string::size_type) myFormTarget->getLen() );
+  }
+  catch (const std::exception& toCatch) {
+    std::ostringstream oss;
+    oss << "Failed to transfer serialized DOM to std::string: " << toCatch.what();
+    XCEPT_RAISE( emu::exception::XMLException, oss.str());
+  }
+  catch (...) {
+    XCEPT_RAISE( emu::exception::UndefinedException, "Failed to transfer serialized DOM to std::string: Unexpected exception.");
+  }
+
+  theOutput->release();
+  theSerializer->release();
+  delete myFormTarget;
+
+  // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
+  // has been called more times than has XMLPlatformUtils::Terminate(). Although the Programming Guide
+  // for Xerces-C++ version 3.1.1 at http://xerces.apache.org/xerces-c/program-3.html warns that
+  // "You are allowed to call XMLPlatformUtils::Initialize() and XMLPlatformUtils::Terminate 
+  // multiple times, but each call to XMLPlatformUtils::Initialize() must be matched with a call to 
+  // XMLPlatformUtils::Terminate.",
+  // the Doxygen comment at http://xerces.apache.org/xerces-c/apiDocs-3/classXMLPlatformUtils.html 
+  // still says
+  // "The termination call is currently optional, to aid those dynamically loading the parser
+  // to clean up before exit, or to avoid spurious reports from leak detectors."
+  //   XMLPlatformUtils::Terminate();
 
   return result;
 }
@@ -168,11 +181,11 @@ std::string emu::utils::appendToSelectedNode( const std::string &XML,
     XMLPlatformUtils::Initialize();
     XPathEvaluator::initialize();
     
-    XercesDOMSupport theDOMSupport;
-    XercesParserLiaison theLiaison(theDOMSupport);
+    XercesParserLiaison theLiaison;
     theLiaison.setDoNamespaces(true); // although it seems to be already set...
     theLiaison.setBuildWrapperNodes(true);
     theLiaison.setBuildMaps(true);
+    XercesDOMSupport theDOMSupport(theLiaison);
     
     // Create an input source that represents a local file...
     // const XalanDOMString    theFileName(XML.c_str());
@@ -238,7 +251,13 @@ std::string emu::utils::appendToSelectedNode( const std::string &XML,
     // XPathEvaluator::terminate();
 
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
-    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // has been called more times than has XMLPlatformUtils::Terminate(). Although the Programming Guide
+    // for Xerces-C++ version 3.1.1 at http://xerces.apache.org/xerces-c/program-3.html warns that
+    // "You are allowed to call XMLPlatformUtils::Initialize() and XMLPlatformUtils::Terminate 
+    // multiple times, but each call to XMLPlatformUtils::Initialize() must be matched with a call to 
+    // XMLPlatformUtils::Terminate.",
+    // the Doxygen comment at http://xerces.apache.org/xerces-c/apiDocs-3/classXMLPlatformUtils.html 
+    // still says
     // "The termination call is currently optional, to aid those dynamically loading the parser
     // to clean up before exit, or to avoid spurious reports from leak detectors."
     // XMLPlatformUtils::Terminate();
@@ -326,11 +345,11 @@ std::string emu::utils::setSelectedNodesValues( const std::string &XML,
     XMLPlatformUtils::Initialize();
     XPathEvaluator::initialize();
     
-    XercesDOMSupport theDOMSupport;
-    XercesParserLiaison theLiaison(theDOMSupport);
+    XercesParserLiaison theLiaison;
     theLiaison.setDoNamespaces(true); // although it seems to be already set...
     theLiaison.setBuildWrapperNodes(true);
     theLiaison.setBuildMaps(true);
+    XercesDOMSupport theDOMSupport(theLiaison);
     
     // Create an input source that represents a local file...
     // const XalanDOMString    theFileName(XML.c_str());
@@ -388,7 +407,13 @@ std::string emu::utils::setSelectedNodesValues( const std::string &XML,
     // XPathEvaluator::terminate();
 
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
-    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // has been called more times than has XMLPlatformUtils::Terminate(). Although the Programming Guide
+    // for Xerces-C++ version 3.1.1 at http://xerces.apache.org/xerces-c/program-3.html warns that
+    // "You are allowed to call XMLPlatformUtils::Initialize() and XMLPlatformUtils::Terminate 
+    // multiple times, but each call to XMLPlatformUtils::Initialize() must be matched with a call to 
+    // XMLPlatformUtils::Terminate.",
+    // the Doxygen comment at http://xerces.apache.org/xerces-c/apiDocs-3/classXMLPlatformUtils.html 
+    // still says
     // "The termination call is currently optional, to aid those dynamically loading the parser
     // to clean up before exit, or to avoid spurious reports from leak detectors."
     // XMLPlatformUtils::Terminate();
@@ -475,11 +500,11 @@ std::string emu::utils::setSelectedNodesValues(const std::string &XML,
     XMLPlatformUtils::Initialize();
     XPathEvaluator::initialize();
     
-    XercesDOMSupport theDOMSupport;
-    XercesParserLiaison theLiaison(theDOMSupport);
+    XercesParserLiaison theLiaison;
     theLiaison.setDoNamespaces(true); // although it seems to be already set...
     theLiaison.setBuildWrapperNodes(true);
     theLiaison.setBuildMaps(true);
+    XercesDOMSupport theDOMSupport(theLiaison);
     
     // Create an input source that represents a local file...
     // const XalanDOMString    theFileName(XML.c_str());
@@ -543,7 +568,13 @@ std::string emu::utils::setSelectedNodesValues(const std::string &XML,
     // XPathEvaluator::terminate();
 
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
-    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // has been called more times than has XMLPlatformUtils::Terminate(). Although the Programming Guide
+    // for Xerces-C++ version 3.1.1 at http://xerces.apache.org/xerces-c/program-3.html warns that
+    // "You are allowed to call XMLPlatformUtils::Initialize() and XMLPlatformUtils::Terminate 
+    // multiple times, but each call to XMLPlatformUtils::Initialize() must be matched with a call to 
+    // XMLPlatformUtils::Terminate.",
+    // the Doxygen comment at http://xerces.apache.org/xerces-c/apiDocs-3/classXMLPlatformUtils.html 
+    // still says
     // "The termination call is currently optional, to aid those dynamically loading the parser
     // to clean up before exit, or to avoid spurious reports from leak detectors."
     // XMLPlatformUtils::Terminate();
@@ -651,7 +682,13 @@ std::string emu::utils::getSelectedNodeValue( const std::string &XML,
     // XPathEvaluator::terminate();
 
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
-    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // has been called more times than has XMLPlatformUtils::Terminate(). Although the Programming Guide
+    // for Xerces-C++ version 3.1.1 at http://xerces.apache.org/xerces-c/program-3.html warns that
+    // "You are allowed to call XMLPlatformUtils::Initialize() and XMLPlatformUtils::Terminate 
+    // multiple times, but each call to XMLPlatformUtils::Initialize() must be matched with a call to 
+    // XMLPlatformUtils::Terminate.",
+    // the Doxygen comment at http://xerces.apache.org/xerces-c/apiDocs-3/classXMLPlatformUtils.html 
+    // still says
     // "The termination call is currently optional, to aid those dynamically loading the parser
     // to clean up before exit, or to avoid spurious reports from leak detectors."
     // XMLPlatformUtils::Terminate();
@@ -759,7 +796,13 @@ std::vector< std::pair<std::string, std::string> > emu::utils::getSelectedNodesV
     // XPathEvaluator::terminate();
 
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
-    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // has been called more times than has XMLPlatformUtils::Terminate(). Although the Programming Guide
+    // for Xerces-C++ version 3.1.1 at http://xerces.apache.org/xerces-c/program-3.html warns that
+    // "You are allowed to call XMLPlatformUtils::Initialize() and XMLPlatformUtils::Terminate 
+    // multiple times, but each call to XMLPlatformUtils::Initialize() must be matched with a call to 
+    // XMLPlatformUtils::Terminate.",
+    // the Doxygen comment at http://xerces.apache.org/xerces-c/apiDocs-3/classXMLPlatformUtils.html 
+    // still says
     // "The termination call is currently optional, to aid those dynamically loading the parser
     // to clean up before exit, or to avoid spurious reports from leak detectors."
     // XMLPlatformUtils::Terminate();
@@ -836,11 +879,11 @@ std::string emu::utils::getSelectedNode(const std::string &XML,
     XMLPlatformUtils::Initialize();
     XPathEvaluator::initialize();
 
-    XercesDOMSupport theDOMSupport;
-    XercesParserLiaison theLiaison(theDOMSupport);
+    XercesParserLiaison theLiaison;
     theLiaison.setDoNamespaces(true); // although it seems to be already set...
     theLiaison.setBuildWrapperNodes(true);
     theLiaison.setBuildMaps(true);
+    XercesDOMSupport theDOMSupport(theLiaison);
 
     // Create an input source that represents a local file...
     // const XalanDOMString    theFileName(XML.c_str());
@@ -872,7 +915,13 @@ std::string emu::utils::getSelectedNode(const std::string &XML,
     // XPathEvaluator::terminate();
 
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
-    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
+    // has been called more times than has XMLPlatformUtils::Terminate(). Although the Programming Guide
+    // for Xerces-C++ version 3.1.1 at http://xerces.apache.org/xerces-c/program-3.html warns that
+    // "You are allowed to call XMLPlatformUtils::Initialize() and XMLPlatformUtils::Terminate 
+    // multiple times, but each call to XMLPlatformUtils::Initialize() must be matched with a call to 
+    // XMLPlatformUtils::Terminate.",
+    // the Doxygen comment at http://xerces.apache.org/xerces-c/apiDocs-3/classXMLPlatformUtils.html 
+    // still says
     // "The termination call is currently optional, to aid those dynamically loading the parser
     // to clean up before exit, or to avoid spurious reports from leak detectors."
     // XMLPlatformUtils::Terminate();
@@ -993,11 +1042,11 @@ std::string emu::utils::removeSelectedNode( const std::string& XML,
     XMLPlatformUtils::Initialize();
     XPathEvaluator::initialize();
     
-    XercesDOMSupport theDOMSupport;
-    XercesParserLiaison theLiaison(theDOMSupport);
+    XercesParserLiaison theLiaison;
     theLiaison.setDoNamespaces(true); // although it seems to be already set...
     theLiaison.setBuildWrapperNodes(true);
     theLiaison.setBuildMaps(true);
+    XercesDOMSupport theDOMSupport(theLiaison);
     
     // Create an input source that represents a local file...
     // const XalanDOMString    theFileName(XML.c_str());
@@ -1036,12 +1085,15 @@ std::string emu::utils::removeSelectedNode( const std::string& XML,
       switch ( (*dn)->getNodeType() ){
       case DOMNode::ELEMENT_NODE:
       case DOMNode::TEXT_NODE:
+      case DOMNode::PROCESSING_INSTRUCTION_NODE:
+      case DOMNode::COMMENT_NODE:
 	(*dn)->getParentNode()->removeChild( *dn );
 	break;
       case DOMNode::ATTRIBUTE_NODE:
 	DOMAttr *attr = dynamic_cast<DOMAttr*>(*dn);
 	attr->getOwnerElement()->removeAttributeNode( attr );
 	break;
+	// We don't handle other types of nodes
       }
     }
 
@@ -1052,8 +1104,14 @@ std::string emu::utils::removeSelectedNode( const std::string& XML,
     // XPathEvaluator::terminate();
 
     // XMLPlatformUtils::Terminate() causes the program to crash unless XMLPlatformUtils::Initialize()
-    // has been called more times than has XMLPlatformUtils::Terminate(). Anyway, as of Xerces-C++ 2.8.0:
-    // "The termination call is currently optional, to aid those dynamically loading the parser 
+    // has been called more times than has XMLPlatformUtils::Terminate(). Although the Programming Guide
+    // for Xerces-C++ version 3.1.1 at http://xerces.apache.org/xerces-c/program-3.html warns that
+    // "You are allowed to call XMLPlatformUtils::Initialize() and XMLPlatformUtils::Terminate 
+    // multiple times, but each call to XMLPlatformUtils::Initialize() must be matched with a call to 
+    // XMLPlatformUtils::Terminate.",
+    // the Doxygen comment at http://xerces.apache.org/xerces-c/apiDocs-3/classXMLPlatformUtils.html 
+    // still says
+    // "The termination call is currently optional, to aid those dynamically loading the parser
     // to clean up before exit, or to avoid spurious reports from leak detectors."
     // XMLPlatformUtils::Terminate();
   }

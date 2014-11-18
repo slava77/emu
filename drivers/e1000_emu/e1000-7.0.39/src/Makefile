@@ -27,6 +27,9 @@
 #
 ################################################################################
 
+# set to something to prevent error message
+# KBUILD_NOPEDANTIC=1
+
 ###########################################################################
 # Driver files
 
@@ -76,7 +79,7 @@ endif
 ifneq (,$(wildcard /boot/vmlinuz.version.h))
   VERSION_FILE := /boot/vmlinuz.version.h
   CONFIG_FILE  := /boot/vmlinuz.autoconf.h
-  KVER := $(shell $(CC) $(CFLAGS) -E -dM $(VERSION_FILE) | \
+  KVER := $(shell $(CC) $(EXTRA_CFLAGS) -E -dM $(VERSION_FILE) | \
           grep UTS_RELEASE | awk '{ print $$3 }' | sed 's/\"//g')
   ifeq ($(KVER),$(shell uname -r))
     # set up include path to override headers from kernel source
@@ -84,7 +87,7 @@ ifneq (,$(wildcard /boot/vmlinuz.version.h))
     x:=$(shell mkdir -p include/linux)
     x:=$(shell cp /boot/vmlinuz.version.h include/linux/version.h)
     x:=$(shell cp /boot/vmlinuz.autoconf.h include/linux/autoconf.h)
-    CFLAGS += -I./include
+    EXTRA_CFLAGS += -I./include
   else
     VERSION_FILE := $(KOBJ)/include/linux/version.h
     CONFIG_FILE  := $(KSRC)/include/linux/autoconf.h
@@ -119,27 +122,27 @@ endif
 # some additional features are only built on Intel platforms
 ARCH := $(shell uname -m | sed 's/i.86/i386/')
 ifeq ($(ARCH),alpha)
-  CFLAGS += -ffixed-8 -mno-fp-regs
+  EXTRA_CFLAGS += -ffixed-8 -mno-fp-regs
 endif
 ifeq ($(ARCH),x86_64)
-  CFLAGS += -mcmodel=kernel -mno-red-zone
+  EXTRA_CFLAGS += -mcmodel=kernel -mno-red-zone
 endif
 ifeq ($(ARCH),ppc)
-  CFLAGS += -msoft-float
+  EXTRA_CFLAGS += -msoft-float
 endif
 ifeq ($(ARCH),ppc64)
-  CFLAGS += -m64 -msoft-float
+  EXTRA_CFLAGS += -m64 -msoft-float
   LDFLAGS += -melf64ppc
 endif
 
 # standard flags for module builds
-CFLAGS += -DLINUX -D__KERNEL__ -DMODULE -O2 -pipe -Wall 
-CFLAGS += -I$(KSRC)/include -I.
-CFLAGS += $(shell [ -f $(KSRC)/include/linux/modversions.h ] && \
+EXTRA_CFLAGS += -DLINUX -D__KERNEL__ -DMODULE -O2 -pipe -Wall 
+EXTRA_CFLAGS += -I$(KSRC)/include -I.
+EXTRA_CFLAGS += $(shell [ -f $(KSRC)/include/linux/modversions.h ] && \
             echo "-DMODVERSIONS -DEXPORT_SYMTAB \
                   -include $(KSRC)/include/linux/modversions.h")
 
-CFLAGS += $(CFLAGS_EXTRA)
+EXTRA_CFLAGS += $(CFLAGS_EXTRA)
 #ifeq (,$(shell echo $(CFLAGS_EXTRA) | grep NAPI))
 #CFLAGS += -DE1000_NO_NAPI
 #CFLAGS_EXTRA += -DE1000_NO_NAPI
@@ -148,13 +151,13 @@ CFLAGS += $(CFLAGS_EXTRA)
 RHC := $(KSRC)/include/linux/rhconfig.h
 ifneq (,$(wildcard $(RHC)))
   # 7.3 typo in rhconfig.h
-  ifneq (,$(shell $(CC) $(CFLAGS) -E -dM $(RHC) | grep __module__bigmem))
-	CFLAGS += -D__module_bigmem
+  ifneq (,$(shell $(CC) $(EXTRA_CFLAGS) -E -dM $(RHC) | grep __module__bigmem))
+	EXTRA_CFLAGS += -D__module_bigmem
   endif
 endif
 
 # get the kernel version - we use this to find the correct install path
-KVER := $(shell $(CC) $(CFLAGS) -E -dM $(VERSION_FILE) | grep UTS_RELEASE | \
+KVER := $(shell $(CC) $(EXTRA_CFLAGS) -E -dM $(VERSION_FILE) | grep UTS_RELEASE | \
         awk '{ print $$3 }' | sed 's/\"//g')
 
 KKVER := $(shell echo $(KVER) | \
@@ -166,10 +169,10 @@ KKVER := $(shell echo $(KVER) | \
 #endif
 
 # set the install path
-INSTDIR := /lib/modules/$(KVER)/kernel/drivers/net/e1000h
+INSTDIR := /lib/modules/$(KVER)/kernel/drivers/net/e1000
 
 # look for SMP in config.h
-SMP := $(shell $(CC) $(CFLAGS) -E -dM $(CONFIG_FILE) | \
+SMP := $(shell $(CC) $(EXTRA_CFLAGS) -E -dM $(CONFIG_FILE) | \
          grep -w CONFIG_SMP | awk '{ print $$3 }')
 ifneq ($(SMP),1)
   SMP := 0
@@ -190,7 +193,7 @@ ifneq ($(SMP),$(shell uname -a | grep SMP > /dev/null 2>&1 && echo 1 || echo 0))
 endif
 
 ifeq ($(SMP),1)
-  CFLAGS += -D__SMP__
+  EXTRA_CFLAGS += -D__SMP__
 endif
 
 ###########################################################################
@@ -201,18 +204,22 @@ K_VERSION:=$(shell uname -r | cut -c1-3 | sed 's/2\.[56]/2\.6/')
 ifeq ($(K_VERSION), 2.6)
 
 # Makefile for 2.6.x kernel
-TARGET = e1000h.ko
+TARGET = e1000_emu.ko
 
 # man page
 MANSECTION = 7
 MANFILE = $(TARGET:.ko=.$(MANSECTION))
 
+WD=$(shell pwd)
+
 ifneq ($(PATCHLEVEL),)
 EXTRA_CFLAGS += $(CFLAGS_EXTRA)
-obj-m += e1000h.o
-e1000h-objs := $(CFILES:.c=.o)
+obj-m += e1000_emu.o
+e1000_emu-objs := $(CFILES:.c=.o)
 else
 default:
+	$(shell cat $(WD)/../../eth_hook_2_vme/Module.symvers $(WD)/../../eth_hook_3_vme/Module.symvers $(WD)/../../eth_hook_4_vme/Module.symvers $(WD)/../../eth_hook_5_vme/Module.symvers > Module.symvers)
+#       See https://www.kernel.org/doc/Documentation/kbuild/modules.txt
 ifeq ($(KOBJ),$(KSRC))
 	make -C $(KSRC) SUBDIRS=$(shell pwd) modules
 else
@@ -223,7 +230,7 @@ endif
 else # ifeq ($(K_VERSION),2.6)
 
 # Makefile for 2.4.x kernel
-TARGET = e1000h.o
+TARGET = e1000_emu.o
 
 # man page
 MANSECTION = 7
@@ -231,12 +238,12 @@ MANFILE = $(TARGET:.o=.$(MANSECTION))
 
 # Get rid of compile warnings in kernel header files from SuSE
 ifneq (,$(wildcard /etc/SuSE-release))
-  CFLAGS += -Wno-sign-compare -fno-strict-aliasing
+  EXTRA_CFLAGS += -Wno-sign-compare -fno-strict-aliasing
 endif
 
 # Get rid of compile warnings in kernel header files from fedora
 ifneq (,$(wildcard /etc/fedora-release))
-  CFLAGS += -fno-strict-aliasing
+  EXTRA_CFLAGS += -fno-strict-aliasing
 endif
 
 .SILENT: $(TARGET)
@@ -317,4 +324,4 @@ uninstall:
 .PHONY: clean install
 
 clean:
-	rm -rf $(TARGET) $(TARGET:.ko=.o) $(TARGET:.ko=.mod.c) $(TARGET:.ko=.mod.o) $(CFILES:.c=.o) $(MANFILE).gz .*cmd .tmp_versions Module.markers Module.symvers
+	rm -rf $(TARGET) $(TARGET:.ko=.o) $(TARGET:.ko=.mod.c) $(TARGET:.ko=.ko.unsigned) $(TARGET:.ko=.mod.o) $(CFILES:.c=.o) $(MANFILE).gz .*cmd .tmp_versions Module.markers Module.symvers modules.order

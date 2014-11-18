@@ -19,6 +19,9 @@
 //       1 (value   2):  TMB
 //       2 (value   4):  DMB & CFEB (for chamber type ME1/3, always set to 0)
 //       7 (value 128):  CCB tag readback wrong, probably not configured
+//       8 (value 256):  CCB status wrong
+//       9 (value 512):  MPC Main board and old link problem
+//      10 (val  1024):  MPC GTP and new link problem
 //
 // XMAS info bit pattern (April 2012):
 //     ==0:    no action or ignored

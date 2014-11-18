@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// $id: DAQMB.h,v 1.22 2012/12/03 17:00:55 banicz Exp $
+// $Id: DAQMB.h,v 1.22 2012/12/03 17:00:55 banicz Exp $
 // $Log: DAQMB.h,v $
 // Revision 1.22  2012/12/03 17:00:55  banicz
 // Dan's changes:
@@ -427,12 +427,12 @@ public:
   //
   void preamp_initx();
 // DAQMB program proms (electronics experts only)
-  void epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
+  void epromload_verify(DEVTYPE devnum,const char *downfile,int writ,const char *cbrdnum);
 	void epromread(DEVTYPE devnum);
 	int  check_eprom_readback(const char *rbkfile, const char *expfile);
-  void epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
-  void epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum, int ipass);
-  void epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
+  void epromload(DEVTYPE devnum,const char *downfile,int writ,const char *cbrdnum);
+  void epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,const char *cbrdnum, int ipass);
+  void epromloadOld(DEVTYPE devnum,const char *downfile,int writ,const char *cbrdnum);
   void rdbkvirtex(DEVTYPE);
   void rdbkvirtexII();
 // DAQMB calibrate
@@ -805,6 +805,7 @@ public:
   void set_dcfeb_parambuffer(CFEB &cfeb, unsigned short int bufload[34]);
   void autoload_select_readback_wrd(CFEB &cfeb, int ival);
   void autoload_readback_wrd(CFEB &cfeb, char wrd[2]);
+  int dcfeb_read_config(CFEB &cfeb, int ival);
   
   // various delays in ODMB
   inline void odmb_set_LCT_L1A_delay(int delay) { WriteRegister(LCT_L1A_DLY, delay&0x3F); }  // 6 bits
@@ -857,7 +858,6 @@ public:
   void odmb_readparam(int paramblock,int nval,unsigned short int  *val);         
 
   void odmb_readfirmware_mcs(const char *filename);
-  int odmb_check_mcs(const char*  mcsfile, const char* bufin);
   void odmb_program_eprom(const char *mcsfile);
   void odmb_program_virtex6(const char *mcsfile);
   bool odmb_program_eprom_poll(const char *mcsfile);

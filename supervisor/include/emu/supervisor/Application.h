@@ -2,6 +2,10 @@
 #define __emu_supervisor_Application_h__
 
 #include "emu/base/Supervised.h"
+#include "emu/supervisor/RunInfo.h"
+#include "emu/supervisor/CIControl.h"
+#include "emu/supervisor/PMControl.h"
+#include "emu/supervisor/PIControl.h"
 
 #include <string>
 #include <deque>
@@ -10,6 +14,7 @@
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include "toolbox/task/WorkLoop.h"
 #include "toolbox/BSem.h"
+#include "toolbox/exception/Listener.h"
 #include "xdata/Vector.h"
 #include "xdata/Bag.h"
 #include "xdata/String.h"
@@ -17,13 +22,12 @@
 #include "xdata/Integer64.h"
 #include "xdata/UnsignedInteger.h"
 #include "xgi/Method.h"
-#include "emu/supervisor/RunInfo.h"
 #include "xdaq2rc/RcmsStateNotifier.h"
 
 namespace emu {
   namespace supervisor {
 
-class Application : public emu::base::Supervised
+  class Application : public emu::base::Supervised, public toolbox::exception::Listener
 {
 public:
 
@@ -69,6 +73,12 @@ public:
 			throw (xgi::exception::Exception);
 	void webRunSequence(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
+	void webResyncViaTCDS(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
+	void webHardResetViaTCDS(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
+	void webBgoTrainViaTCDS(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
 	void webCalibPC(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 	void webRedirect(xgi::Input *in, xgi::Output *out)
@@ -112,6 +122,20 @@ private: // XDAQ parameters
 		xdata::String ttcci_;
 	};
 
+	class RunParameters
+	{
+	public:
+		void registerFields(xdata::Bag<RunParameters> *bag);
+
+		xdata::String key_;
+		xdata::String command_;
+		xdata::UnsignedInteger loop_;
+		xdata::UnsignedInteger delay_;
+		xdata::String ci_;
+		xdata::String pm_;
+		xdata::String pi_;
+	};
+
         xdaq::ApplicationDescriptor* appDescriptor_;
         Logger logger_;
 
@@ -122,10 +146,7 @@ private: // XDAQ parameters
 
 	xdata::Vector<xdata::String> config_keys_;
 	xdata::Vector<xdata::Bag<CalibParam> > calib_params_;
-	xdata::Vector<xdata::String> pc_keys_;
-	xdata::Vector<xdata::String> pc_configs_;
-	xdata::Vector<xdata::String> fc_keys_;
-	xdata::Vector<xdata::String> fc_configs_;
+	xdata::Vector<xdata::Bag<RunParameters> > runParameters_;
 
 	xdata::String daq_mode_;
 	xdata::String ttc_source_;
@@ -161,13 +182,16 @@ private: // XDAQ parameters
 	string getCGIParameter(xgi::Input *in, string name);
 	int keyToIndex(const string key);
 
+        bool allCalibrationRuns();
 	bool isCalibrationMode();
 	bool isAlctCalibrationMode();
-	int getCalibParamIndex(const string name);
 
-	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
+        xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_, 
+	  *ci_plus_descr_, *ci_minus_descr_, *ci_tf_descr_, *pm_descr_, *pi_plus_descr_, *pi_minus_descr_, *pi_tf_descr_;
 
+        xdaq::ApplicationDescriptor* findAppDescriptor( const string& klass, const string& service );
         void getAppDescriptors();
+        void getTCDSAppDescriptors();
 
   //////////////////////////////////////////////////////////////
 
@@ -185,7 +209,7 @@ private: // XDAQ parameters
 
   bool waitForTFCellOpToReach( const string targetState, const unsigned int seconds );
 
-  bool waitForAppsToReach( const string targetState, const int seconds=-1 );
+  bool waitForAppsToReach( const string targetState, bool includingSupervisor, const int seconds=-1 );
 
 	string getDAQMode();
 	string getTTCciSource();
@@ -194,6 +218,18 @@ private: // XDAQ parameters
 	bool isDAQManagerControlled(string command);
 
         bool waitForDAQToExecute( const string command, const unsigned int seconds, const bool poll = false );
+
+  virtual void onException( xcept::Exception& e ); // callback for toolbox::exception::Listener
+
+  CIControl *ci_plus_;
+  CIControl *ci_minus_;
+  CIControl *ci_tf_;
+  PMControl *pm_;
+  PIControl *pi_plus_;
+  PIControl *pi_minus_;
+  PIControl *pi_tf_;
+
+  xdata::Boolean usePrimaryTCDS_;
 
 	xdata::Integer64 nevents_;
 	unsigned int step_counter_;

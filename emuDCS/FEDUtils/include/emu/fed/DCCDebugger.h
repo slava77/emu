@@ -6,6 +6,7 @@
 
 #include <string>
 #include <map>
+#include <stdint.h> // for intN_t
 
 /** A namespace that reads particular variables from the DCC and returns debugging
 *	information.  Everything is returned as a std::vector of std::pairs, the 2nd element

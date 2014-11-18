@@ -597,7 +597,7 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
   *out << cgicc::legend("MPC PRBS Tests").set("style","color:blue") << std::endl ;
-
+  *out << "old links: ";
   std::string MPColdprbs =
     toolbox::toString("/%s/MPColdPRBS",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","POST").set("action",MPColdprbs) << std::endl ;
@@ -607,27 +607,62 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::input().set("type","submit").set("value","Select MPC PRBS mode") << std::endl ;
   else
     *out << cgicc::input().set("type","submit").set("value","Select MPC old links PRBS mode") << std::endl ;
+    *out << "(current PRBS mode: ";
+  if(thisMPC->read_oldPRBS())
+    *out << "enabled)";
+  else
+    *out << "disabled)";
   *out << cgicc::form() << std::endl ;
 
   if(thisMPC->GetHardwareVersion()==2)
   {
-  *out << cgicc::hr();
-  std::string MPCnewprbs =
-    toolbox::toString("/%s/MPCnewPRBS",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","POST").set("action",MPCnewprbs) << std::endl ;
-  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "0") << "Disable PRBS";
-  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "1") << "PRBS-7";
-  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "2") << "PRBS-15";
-  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "3") << "PRBS-23";
-  *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "4") << "PRBS-31";
-  *out << cgicc::input().set("type","submit").set("value","Select MPC new links PRBS mode") << std::endl ;
-  *out << cgicc::form() << std::endl ;
+    *out << cgicc::hr();
+    *out << "new links: ";
+    std::string MPCnewprbs =
+       toolbox::toString("/%s/MPCnewPRBS",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","POST").set("action",MPCnewprbs) << std::endl ;
+    *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "0") << "Disable PRBS";
+    *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "1") << "PRBS-7";
+    *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "2") << "PRBS-15";
+    *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "3") << "PRBS-23";
+    *out << cgicc::input().set("type","radio").set("name","newPRBS").set("value", "4") << "PRBS-31";
+    *out << cgicc::input().set("type","submit").set("value","Select MPC new links PRBS mode") << std::endl ;
+    *out << "(current PRBS mode: ";
+    switch(thisMPC->read_newPRBS())
+    {
+       case 0: *out << "disabled)"; break;
+       case 1: *out << "PRBS-7  )"; break;
+       case 2: *out << "PRBS-15 )"; break;
+       case 3: *out << "PRBS-23 )"; break;
+       case 4: *out << "PRBS-31 )"; break;
+       default:*out << "Unknown )"; break;
+    }
+    *out << cgicc::form() << std::endl ;
   }
   //
+  std::string prbserror =
+    toolbox::toString("/%s/MPCPRBSError",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",prbserror) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Inject PRBS errors");
+  *out << cgicc::form() << std::endl ;
   
+  *out << cgicc::fieldset() << cgicc::br();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("MPC new links GTP Reset").set("style","color:blue") << std::endl ;
+    std::string MPCgtpreset =
+       toolbox::toString("/%s/MPCGTPReset",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","POST").set("action",MPCgtpreset) << std::endl ;
+    *out << cgicc::input().set("type","checkbox").set("name","GTPreset").set("value", "2") << "GTP receivers";
+    *out << cgicc::input().set("type","checkbox").set("name","GTPreset").set("value", "3") << "GTP transmitters";
+    *out << cgicc::input().set("type","checkbox").set("name","GTPreset").set("value", "4") << "GTP blocks";
+    *out << cgicc::input().set("type","checkbox").set("name","GTPreset").set("value", "5") << "COM latches";
+    *out << cgicc::input().set("type","checkbox").set("name","GTPreset").set("value", "6") << "QPLL";
+    *out << cgicc::input().set("type","checkbox").set("name","GTPreset").set("value", "8") << "Avago transmitter";
+    *out << cgicc::input().set("type","submit").set("value","Send GTP reset signals") << std::endl ;
+    *out << cgicc::form() << std::endl ;
 
   *out << cgicc::fieldset();
-  //
 }
 //
 void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * out ) 
@@ -670,7 +705,6 @@ void EmuPeripheralCrateConfig::MPCReadFirmware(xgi::Input * in, xgi::Output * ou
     thisMPC->configure();
     this->MPCUtils(in,out);
   }
-
   //
   void EmuPeripheralCrateConfig::ReadCCBRegister(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -1032,6 +1066,32 @@ void EmuPeripheralCrateConfig::MPCnewPRBS(xgi::Input * in, xgi::Output * out )
     
     this->MPCUtils(in,out);
   }
+
+  void EmuPeripheralCrateConfig::MPCPRBSError(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    thisMPC->inject_PRBSerror();
+    this->MPCUtils(in,out);
+  }
+
+  void EmuPeripheralCrateConfig::MPCGTPReset(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    int mpc_gtpresets = 0;
+    int gtpreset=0;
+
+    cgicc::Cgicc cgi(in);    
+    
+    for(cgicc::form_iterator name2 = cgi.getElement("GTPreset"); name2 != cgi.getElements().end(); name2++)
+    {
+      gtpreset = atoi(name2->getValue().c_str());
+      // std::cout << "Get GTPreset signal: " << gtpreset << std::endl;
+      if(gtpreset>=0 && gtpreset<=15) mpc_gtpresets |= (1<<gtpreset);
+    }
+    if(mpc_gtpresets > 0) thisMPC->resetGTP(mpc_gtpresets);
+    this->MPCUtils(in,out);
+  }
+
 
  }  // namespace emu::pc
 }  // namespace emu

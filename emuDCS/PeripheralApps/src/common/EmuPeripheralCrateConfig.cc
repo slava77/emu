@@ -242,6 +242,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::SetRadioactivityTriggerALCTOnly, "SetRadioactivityTriggerALCTOnly");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetTTCDelays, "SetTTCDelays");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureAllTMBVoltages, "MeasureAllTMBVoltages");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ProgramAllOdmbEproms, "ProgramAllOdmbEproms");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetTwoLayerTriggerForSystem, "SetTwoLayerTriggerForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForSystem,"MeasureL1AsAndDAVsForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem,"MeasureALCTTMBRxTxForSystem");
@@ -278,6 +279,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForCrate,"MeasureALCTTMBRxTxForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForCrate,"MeasureCFEBTMBRxForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetTwoLayerTriggerForCrate, "SetTwoLayerTriggerForCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ProgramOdmbEpromsForCrate, "ProgramOdmbEpromsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForChamber,"QuickScanForChamber");
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForCrate,"QuickScanForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureODMBDelaysForCrate,"MeasureODMBDelaysForCrate");
@@ -307,6 +309,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBSetTestLoops, "CCBSetTestLoops");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPColdPRBS, "MPColdPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCnewPRBS, "MPCnewPRBS");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPCPRBSError, "MPCPRBSError");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPCGTPReset, "MPCGTPReset");
  
   //
   //-----------------------------------------------
@@ -1828,6 +1832,14 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
+  //
+  *out << cgicc::td();
+  std::string ProgramOdmbEpromsForCrate = toolbox::toString("/%s/ProgramOdmbEpromsForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ProgramOdmbEpromsForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Program all ODMB EPROMs in this crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
   *out << cgicc::table();
   //*out << cgicc::body();
   *out << cgicc::fieldset();
@@ -2781,13 +2793,13 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	    cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] += (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
 	  }
 	  
-          if(thisDMB->GetHardwareVersion()>1) continue;
-          // The following part is valid for old DMB/CFEB/ALCT only. Skip for ODMB/DCFEB...
-          //
 	  // check if the configuration of the CFEBs and DMBs are OK...
 	  // in particular, check if the "smoking gun" for firmware loss is OK...
 	  //
 	  thisDMB->checkDAQMBXMLValues();   //this has the CFEB check implicit in it
+          //
+          if(thisDMB->GetHardwareVersion()>1) continue;
+          // The following part is valid for old DMB/CFEB/ALCT only. Skip for ODMB/DCFEB...
 	  //
 	  // greg, put in cfeb firmware version check in CFEB config check
 	  // greg, split up CFEBs in config check
@@ -4158,6 +4170,13 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
+  *out << cgicc::td();
+  std::string ProgramAllOdmbEproms = toolbox::toString("/%s/ProgramAllOdmbEproms",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ProgramAllOdmbEproms) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Program ALL ODMB EPROMs sequentially (BE CAREFUL!)") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
   *out << cgicc::table() << std::endl ;
   //
   *out << cgicc::fieldset() << cgicc::br();
@@ -4691,6 +4710,72 @@ void EmuPeripheralCrateConfig::MeasureAllTMBVoltages(xgi::Input * in, xgi::Outpu
   this->ExpertToolsPage(in,out);
 }
 //
+void EmuPeripheralCrateConfig::ProgramAllOdmbEproms(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Program all ODMB EEPROMs sequentially (it's a good time to go for lunch now since it'll take quite some time)" << std::endl;
+  std::string mcsfile= FirmwareDir_+ "odmb/me11_odmb.mcs";
+  std::cout << "Using this MCS file: " << mcsfile << std::endl;
+
+  int initial_crate = current_crate_;
+  //
+  if(total_crates_>0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      if ( crateVector[crate_number]->IsAlive() ) {
+	//
+	SetCurrentCrate(crate_number);
+	//
+	for (unsigned int dmb=0; dmb < dmbVector.size() ; dmb++) {
+	  //
+	  Chamber * thisChamber = chamberVector[dmb];
+	  DAQMB * thisDMB = dmbVector[dmb];
+	  if (thisDMB->GetHardwareVersion() == 2) {
+	    std::cout << getLocalDateTime() << " Programming " << thisChamber->GetLabel() << " ODMB with " << mcsfile << std::dec << std::endl;
+            bool success=thisDMB->odmb_program_eprom_poll(mcsfile.c_str());
+            if(success)
+              std::cout << getLocalDateTime() << " ODMB program EPROM finished successfully." << std::endl;
+            else
+              std::cout << getLocalDateTime() << " ODMB program EPROM failed." << std::endl;
+	    thisCCB->hardReset();
+	  }
+	}
+      }
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  this->ExpertToolsPage(in,out);
+}
+//
+void EmuPeripheralCrateConfig::ProgramOdmbEpromsForCrate(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Program all ODMB EEPROMs in one crate sequentially" << std::endl;
+  std::string mcsfile= FirmwareDir_+ "odmb/me11_odmb.mcs";
+  std::cout << "Using this MCS file: " << mcsfile << std::endl;
+
+  if ( crateVector[current_crate_]->IsAlive() ) {
+    //
+    for (unsigned int dmb=0; dmb < dmbVector.size() ; dmb++) {
+      //
+      Chamber * thisChamber = chamberVector[dmb];
+      DAQMB * thisDMB = dmbVector[dmb];
+      if (thisDMB->GetHardwareVersion() == 2) {
+        std::cout << getLocalDateTime() << " Programming " << thisChamber->GetLabel() << " ODMB with " << mcsfile << std::dec << std::endl;
+	bool success=thisDMB->odmb_program_eprom_poll(mcsfile.c_str());
+        if(success)
+          std::cout << getLocalDateTime() << " ODMB program EPROM finished successfully." << std::endl;
+        else
+          std::cout << getLocalDateTime() << " ODMB program EPROM failed." << std::endl;
+	thisCCB->hardReset();
+      }
+    }
+  }
+  //
+  this->CrateConfiguration(in,out);
+}
 /////////////////////////////////////////////////////////////////////
 // Chamber Utilities (synchronization) methods
 /////////////////////////////////////////////////////////////////////
@@ -8615,6 +8700,24 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   thisTMB->RedirectOutput(&std::cout);
   *out << cgicc::pre();
   *out << cgicc::fieldset();
+  //
+  if (thisTMB->GetHardwareVersion() >= 2) {
+    *out << cgicc::fieldset();
+    *out << cgicc::legend("Optical input status").set("style","color:blue") << std::endl ;
+    *out << cgicc::pre();
+    thisTMB->RedirectOutput(out);
+    thisTMB->ReadRegister(v6_gtx_rx0_adr);
+    thisTMB->ReadRegister(v6_gtx_rx1_adr);
+    thisTMB->ReadRegister(v6_gtx_rx2_adr);
+    thisTMB->ReadRegister(v6_gtx_rx3_adr);
+    thisTMB->ReadRegister(v6_gtx_rx4_adr);
+    thisTMB->ReadRegister(v6_gtx_rx5_adr);
+    thisTMB->ReadRegister(v6_gtx_rx6_adr);
+    thisTMB->PrintTMBRegister(v6_gtx_rx0_adr);
+    thisTMB->RedirectOutput(&std::cout);
+    *out << cgicc::pre();
+    *out << cgicc::fieldset();
+  }
   //
   *out << cgicc::fieldset();
   *out << cgicc::legend("Sync Error status").set("style","color:blue") << std::endl ;

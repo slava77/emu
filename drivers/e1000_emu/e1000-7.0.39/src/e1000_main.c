@@ -27,6 +27,7 @@
 
 *******************************************************************************/
 
+#include "SLC_version.h"
 #include "e1000.h"
 
 /* Change Log
@@ -74,7 +75,7 @@
  *   o Support for 8086:10B5 device (Quad Port)
  */
 
-char e1000_driver_name[] = "e1000h";
+char e1000_driver_name[] = "e1000_emu";
 static char e1000_driver_string[] = "Intel(R) PRO/1000 Network Driver";
 #ifndef CONFIG_E1000_NAPI
 #define DRIVERNAPI
@@ -190,7 +191,11 @@ static int e1000_xmit_frame(struct sk_buff *skb, struct net_device *netdev);
 static struct net_device_stats * e1000_get_stats(struct net_device *netdev);
 static int e1000_change_mtu(struct net_device *netdev, int new_mtu);
 static int e1000_set_mac(struct net_device *netdev, void *p);
+#if   SLC_VERSION == 5
 static irqreturn_t e1000_intr(int irq, void *data, struct pt_regs *regs);
+#elif SLC_VERSION == 6
+static irqreturn_t e1000_intr(int irq, void *data);
+#endif
 static boolean_t e1000_clean_tx_irq(struct e1000_adapter *adapter,
                                     struct e1000_tx_ring *tx_ring);
 #ifdef CONFIG_E1000_NAPI
@@ -254,6 +259,36 @@ static struct notifier_block e1000_notifier_reboot = {
 	.priority	= 0
 };
 
+#if   SLC_VERSION == 6
+static const struct net_device_ops e1000_netdev_ops = {
+        .ndo_open               = e1000_open,
+        .ndo_stop               = e1000_close,
+        .ndo_start_xmit         = e1000_xmit_frame,
+        .ndo_get_stats          = e1000_get_stats,
+        .ndo_set_mac_address    = e1000_set_mac,
+        .ndo_change_mtu         = e1000_change_mtu,
+        .ndo_do_ioctl           = e1000_ioctl,
+
+#ifdef HAVE_TX_TIMEOUT
+        .ndo_tx_timeout         = e1000_tx_timeout,
+#endif
+
+        .ndo_validate_addr      = eth_validate_addr,
+#ifdef NETIF_F_HW_VLAN_TX
+	.ndo_vlan_rx_register   = e1000_vlan_rx_register,
+        .ndo_vlan_rx_add_vid    = e1000_vlan_rx_add_vid,
+        .ndo_vlan_rx_kill_vid   = e1000_vlan_rx_kill_vid,
+#endif
+        /* .ndo_set_vf_mac         = e1000_ndo_set_vf_mac, */
+        /* .ndo_set_vf_vlan        = e1000_ndo_set_vf_vlan, */
+        /* .ndo_set_vf_tx_rate     = e1000_ndo_set_vf_bw, */
+        /* .ndo_get_vf_config      = e1000_ndo_get_vf_config, */
+#ifdef CONFIG_NET_POLL_CONTROLLER
+        .ndo_poll_controller    = e1000_netpoll,
+#endif
+};
+#endif /* SLC_VERSION */
+
 /* Exported from other modules */
 
 extern void e1000_check_options(struct e1000_adapter *adapter);
@@ -295,7 +330,11 @@ e1000_init_module(void)
 
 	printk(KERN_INFO "%s\n", e1000_copyright);
 
+#if   SLC_VERSION == 5
 	ret = pci_module_init(&e1000_driver);
+#elif SLC_VERSION == 6
+	ret = pci_register_driver(&e1000_driver);
+#endif /* SLC_VERSION */
 	if (ret >= 0) {
 		register_reboot_notifier(&e1000_notifier_reboot);
 	}
@@ -356,7 +395,11 @@ e1000_update_mng_vlan(struct e1000_adapter *adapter)
 	uint16_t vid = adapter->hw.mng_cookie.vlan_id;
 	uint16_t old_vid = adapter->mng_vlan_id;
 	if (adapter->vlgrp) {
+#if   SLC_VERSION == 5
 		if (!adapter->vlgrp->vlan_devices[vid]) {
+#elif SLC_VERSION == 6
+		if (!adapter->vlgrp->vlan_devices_arrays[vid]) {
+#endif /* SLC_VERSION */
 			if (adapter->hw.mng_cookie.status &
 				E1000_MNG_DHCP_COOKIE_STATUS_VLAN_SUPPORT) {
 				e1000_vlan_rx_add_vid(netdev, vid);
@@ -366,7 +409,11 @@ e1000_update_mng_vlan(struct e1000_adapter *adapter)
 
 			if ((old_vid != (uint16_t)E1000_MNG_VLAN_NONE) &&
 					(vid != old_vid) &&
+#if   SLC_VERSION == 5
 					!adapter->vlgrp->vlan_devices[old_vid])
+#elif SLC_VERSION == 6
+					!adapter->vlgrp->vlan_devices_arrays[old_vid])
+#endif /* SLC_VERSION */
 				e1000_vlan_rx_kill_vid(netdev, old_vid);
 		} else
 			adapter->mng_vlan_id = vid;
@@ -488,9 +535,15 @@ e1000_up(struct e1000_adapter *adapter)
 		}
 	}
 #endif
+#if   SLC_VERSION == 5
 	if ((err = request_irq(adapter->pdev->irq, &e1000_intr,
 		              SA_SHIRQ | SA_SAMPLE_RANDOM,
 		              netdev->name, netdev))) {
+#elif SLC_VERSION == 6
+	if ((err = request_irq(adapter->pdev->irq, &e1000_intr,
+		              IRQF_SHARED | IRQF_SAMPLE_RANDOM,
+		              netdev->name, netdev))) {
+#endif /* SLC_VERSION */
 		DPRINTK(PROBE, ERR,
 		    "Unable to allocate interrupt Error: %d\n", err);
 		return err;
@@ -709,7 +762,9 @@ e1000_probe(struct pci_dev *pdev,
 		goto err_alloc_etherdev;
 	}
 
+#if   SLC_VERSION == 5
 	SET_MODULE_OWNER(netdev);
+#endif /* SLC_VERSION */
 	SET_NETDEV_DEV(netdev, &pdev->dev);
 
 	pci_set_drvdata(pdev, netdev);
@@ -737,6 +792,7 @@ e1000_probe(struct pci_dev *pdev,
 		}
 	}
 
+#if SLC_VERSION == 5
 	netdev->open = &e1000_open;
 	netdev->stop = &e1000_close;
 	netdev->hard_start_xmit = &e1000_xmit_frame;
@@ -745,9 +801,15 @@ e1000_probe(struct pci_dev *pdev,
 	netdev->set_mac_address = &e1000_set_mac;
 	netdev->change_mtu = &e1000_change_mtu;
 	netdev->do_ioctl = &e1000_ioctl;
+#elif SLC_VERSION == 6
+	netdev->netdev_ops = &e1000_netdev_ops; /* SLC6 */
+#endif /* SLC_VERSION */
+
 	e1000_set_ethtool_ops(netdev);
 #ifdef HAVE_TX_TIMEOUT
+#if   SLC_VERSION == 5
 	netdev->tx_timeout = &e1000_tx_timeout;
+#endif /* SLC_VERSION */
 	netdev->watchdog_timeo = 5 * HZ;
 #endif
 #ifdef CONFIG_E1000_NAPI
@@ -755,12 +817,12 @@ e1000_probe(struct pci_dev *pdev,
 	netdev->weight = 64;
 #endif
 #ifdef NETIF_F_HW_VLAN_TX
-	netdev->vlan_rx_register = e1000_vlan_rx_register;
-	netdev->vlan_rx_add_vid = e1000_vlan_rx_add_vid;
-	netdev->vlan_rx_kill_vid = e1000_vlan_rx_kill_vid;
+	/* netdev->vlan_rx_register = e1000_vlan_rx_register; */
+	/* netdev->vlan_rx_add_vid = e1000_vlan_rx_add_vid; */
+	/* netdev->vlan_rx_kill_vid = e1000_vlan_rx_kill_vid; */
 #endif
 #ifdef CONFIG_NET_POLL_CONTROLLER
-	netdev->poll_controller = e1000_netpoll;
+	/* netdev->poll_controller = e1000_netpoll; */
 #endif
 	strcpy(netdev->name, pci_name(pdev));
 
@@ -873,8 +935,13 @@ e1000_probe(struct pci_dev *pdev,
 	adapter->phy_info_timer.function = &e1000_update_phy_info;
 	adapter->phy_info_timer.data = (unsigned long) adapter;
 
+#if   SLC_VERSION == 5
 	INIT_WORK(&adapter->reset_task,
 		(void (*)(void *))e1000_reset_task, netdev);
+#elif SLC_VERSION == 6
+	INIT_WORK(&adapter->reset_task,
+		  (void (*)(struct work_struct *))e1000_reset_task);
+#endif /* SLC_VERSION */
 
 	/* we're going to reset, so assume we have no link for now */
 
@@ -2507,9 +2574,14 @@ e1000_tso(struct e1000_adapter *adapter, struct e1000_tx_ring *tx_ring,
 				return err;
 		}
 
+#if   SLC_VERSION == 5
 		hdr_len = ((skb->h.raw - skb->data) + (skb->h.th->doff << 2));
+#elif SLC_VERSION == 6
+		hdr_len = skb_transport_offset(skb) + tcp_hdrlen(skb);
+#endif /* SLC_VERSION */
 		mss = skb_shinfo(skb)->gso_size;
 		if (skb->protocol == ntohs(ETH_P_IP)) {
+#if   SLC_VERSION == 5
 			skb->nh.iph->tot_len = 0;
 			skb->nh.iph->check = 0;
 			skb->h.th->check =
@@ -2518,10 +2590,25 @@ e1000_tso(struct e1000_adapter *adapter, struct e1000_tx_ring *tx_ring,
 						   0,
 						   IPPROTO_TCP,
 						   0);
+#elif SLC_VERSION == 6
+		        ip_hdr(skb)->tot_len = 0;
+		        ip_hdr(skb)->check = 0;
+			tcp_hdr(skb)->check =
+			        ~csum_tcpudp_magic(ip_hdr(skb)->saddr,
+					           ip_hdr(skb)->daddr,
+						   0,
+						   IPPROTO_TCP,
+						   0);
+#endif /* SLC_VERSION */
 			cmd_length = E1000_TXD_CMD_IP;
+#if   SLC_VERSION == 5
 			ipcse = skb->h.raw - skb->data - 1;
+#elif SLC_VERSION == 6
+			ipcse = skb_transport_offset(skb) - 1;
+#endif /* SLC_VERSION */
 #ifdef NETIF_F_TSO_IPV6
 		} else if (skb->protocol == ntohs(ETH_P_IPV6)) {
+#if   SLC_VERSION == 5
 			skb->nh.ipv6h->payload_len = 0;
 			skb->h.th->check =
 				~csum_ipv6_magic(&skb->nh.ipv6h->saddr,
@@ -2529,13 +2616,29 @@ e1000_tso(struct e1000_adapter *adapter, struct e1000_tx_ring *tx_ring,
 						 0,
 						 IPPROTO_TCP,
 						 0);
+#elif SLC_VERSION == 6
+		        ipv6_hdr(skb)->payload_len = 0;
+			tcp_hdr(skb)->check =
+				~csum_ipv6_magic(&ipv6_hdr(skb)->saddr,
+						 &ipv6_hdr(skb)->daddr,
+						 0,
+						 IPPROTO_TCP,
+						 0);
+#endif /* SLC_VERSION */
 			ipcse = 0;
 #endif
 		}
+#if   SLC_VERSION == 5
 		ipcss = skb->nh.raw - skb->data;
 		ipcso = (void *)&(skb->nh.iph->check) - (void *)skb->data;
 		tucss = skb->h.raw - skb->data;
 		tucso = (void *)&(skb->h.th->check) - (void *)skb->data;
+#elif SLC_VERSION == 6
+		ipcss = skb_network_offset(skb);
+		ipcso = (void *)&(ip_hdr(skb)->check) - (void *)skb->data;
+		tucss = skb_transport_offset(skb);
+		tucso = (void *)&(tcp_hdr(skb)->check) - (void *)skb->data;
+#endif /* SLC_VERSION */
 		tucse = 0;
 
 		cmd_length |= (E1000_TXD_CMD_DEXT | E1000_TXD_CMD_TSE |
@@ -2576,8 +2679,13 @@ e1000_tx_csum(struct e1000_adapter *adapter, struct e1000_tx_ring *tx_ring,
 	unsigned int i;
 	uint8_t css;
 
+#if   SLC_VERSION == 5
 	if (likely(skb->ip_summed == CHECKSUM_HW)) {
 		css = skb->h.raw - skb->data;
+#elif SLC_VERSION == 6
+	if (likely(skb->ip_summed == CHECKSUM_COMPLETE)) {
+		css = skb_transport_offset(skb);
+#endif /* SLC_VERSION */
 
 		i = tx_ring->next_to_use;
 		buffer_info = &tx_ring->buffer_info[i];
@@ -2890,7 +2998,11 @@ e1000_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
 	/* TSO Workaround for 82571/2/3 Controllers -- if skb->data
 	 * points to just header, pull a few bytes of payload from
 	 * frags into skb->data */
+#if   SLC_VERSION == 5
 		hdr_len = ((skb->h.raw - skb->data) + (skb->h.th->doff << 2));
+#elif SLC_VERSION == 6
+		hdr_len = skb_transport_offset(skb) + tcp_hdrlen(skb);
+#endif /* SLC_VERSION */
 		if (skb->data_len && (hdr_len == (skb->len - skb->data_len))) {
 			switch (adapter->hw.mac_type) {
 				unsigned int pull_size;
@@ -2914,11 +3026,19 @@ e1000_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
 	}
 
 	/* reserve a descriptor for the offload context */
+#if   SLC_VERSION == 5
 	if ((mss) || (skb->ip_summed == CHECKSUM_HW))
+#elif SLC_VERSION == 6
+	if ((mss) || (skb->ip_summed == CHECKSUM_COMPLETE))
+#endif /* SLC_VERSION */
 		count++;
 	count++;
 #else
+#if   SLC_VERSION == 5
 	if (skb->ip_summed == CHECKSUM_HW)
+#elif SLC_VERSION == 6
+	if (skb->ip_summed == CHECKSUM_COMPLETE)
+#endif /* SLC_VERSION */
 		count++;
 #endif
 
@@ -3326,7 +3446,11 @@ e1000_update_stats(struct e1000_adapter *adapter)
  **/
 
 static irqreturn_t
+#if   SLC_VERSION == 5
 e1000_intr(int irq, void *data, struct pt_regs *regs)
+#elif SLC_VERSION == 6
+e1000_intr(int irq, void *data)
+#endif /* SLC_VERSION */
 {
 	struct net_device *netdev = data;
 	struct e1000_adapter *adapter = netdev_priv(netdev);
@@ -3624,7 +3748,11 @@ e1000_rx_checksum(struct e1000_adapter *adapter,
 		 */
 		csum = ntohl(csum ^ 0xFFFF);
 		skb->csum = csum;
+#if   SLC_VERSION == 5
 		skb->ip_summed = CHECKSUM_HW;
+#elif SLC_VERSION == 6
+		skb->ip_summed = CHECKSUM_COMPLETE;
+#endif /* SLC_VERSION */
 	}
 	adapter->hw_csum_good++;
 }
@@ -3913,7 +4041,11 @@ e1000_clean_rx_irq_ps(struct e1000_adapter *adapter,
 				PCI_DMA_FROMDEVICE);
 			vaddr = kmap_atomic(ps_page->ps_page[0],
 			                    KM_SKB_DATA_SOFTIRQ);
+#if   SLC_VERSION == 5
 			memcpy(skb->tail, vaddr, l1);
+#elif SLC_VERSION == 6
+			memcpy(skb_tail_pointer(skb), vaddr, l1);
+#endif /* SLC_VERSION */
 			kunmap_atomic(vaddr, KM_SKB_DATA_SOFTIRQ);
 			pci_dma_sync_single_for_device(pdev,
 				ps_page_dma->ps_page_dma[0],
@@ -3947,17 +4079,30 @@ copydone:
 			   cpu_to_le16(E1000_RXDPS_HDRSTAT_HDRSP)))
 			adapter->rx_hdr_split++;
 		//	printk(KERN_INFO " just before netif_rx_hook 2 %s \n",netdev->name);
-                if(strcmp(netdev->name,"eth2")==0){
+                /* if(strcmp(netdev->name,"eth2")==0){ */
+		/*   netif_rx_hook_2(skb); */
+	        /* }else if(strcmp(netdev->name,"eth3")==0){ */
+		/*   netif_rx_hook_3(skb); */
+		/* }else if(strcmp(netdev->name,"eth4")==0){ */
+                /*   netif_rx_hook_4(skb); */
+		/* }else if(strcmp(netdev->name,"eth5")==0){ */
+                /*   netif_rx_hook_5(skb); */
+                /* }else{ */
+		/*   netif_receive_skb(skb); */
+		/* }         */
+
+                if(      strcmp(netdev->name,"p1p1")==0){
 		  netif_rx_hook_2(skb);
-	        }else if(strcmp(netdev->name,"eth3")==0){
+	        }else if(strcmp(netdev->name,"p1p2")==0){
 		  netif_rx_hook_3(skb);
-		}else if(strcmp(netdev->name,"eth4")==0){
+		}else if(strcmp(netdev->name,"p2p1")==0){
                   netif_rx_hook_4(skb);
-		}else if(strcmp(netdev->name,"eth5")==0){
+		}else if(strcmp(netdev->name,"p2p2")==0){
                   netif_rx_hook_5(skb);
                 }else{
 		  netif_receive_skb(skb);
 		}        
+
 		
 // #ifdef CONFIG_E1000_NAPI
 // #ifdef NETIF_F_HW_VLAN_TX
@@ -4542,7 +4687,11 @@ e1000_vlan_rx_kill_vid(struct net_device *netdev, uint16_t vid)
 	e1000_irq_disable(adapter);
 
 	if (adapter->vlgrp)
+#if   SLC_VERSION == 5
 		adapter->vlgrp->vlan_devices[vid] = NULL;
+#elif SLC_VERSION == 6
+		adapter->vlgrp->vlan_devices_arrays[vid] = NULL;
+#endif /* SLC_VERSION */
 
 	e1000_irq_enable(adapter);
 
@@ -4569,7 +4718,11 @@ e1000_restore_vlan(struct e1000_adapter *adapter)
 	if (adapter->vlgrp) {
 		uint16_t vid;
 		for (vid = 0; vid < VLAN_GROUP_ARRAY_LEN; vid++) {
+#if   SLC_VERSION == 5
 			if (!adapter->vlgrp->vlan_devices[vid])
+#elif SLC_VERSION == 6
+			if (!adapter->vlgrp->vlan_devices_arrays[vid])
+#endif /* SLC_VERSION */
 				continue;
 			e1000_vlan_rx_add_vid(adapter->netdev, vid);
 		}
@@ -4833,7 +4986,11 @@ e1000_netpoll(struct net_device *netdev)
 {
 	struct e1000_adapter *adapter = netdev_priv(netdev);
 	disable_irq(adapter->pdev->irq);
+#if   SLC_VERSION == 5
 	e1000_intr(adapter->pdev->irq, netdev, NULL);
+#elif SLC_VERSION == 6
+	e1000_intr(adapter->pdev->irq, netdev);
+#endif /* SLC_VERSION */
 	e1000_clean_tx_irq(adapter, adapter->tx_ring);
 #ifndef CONFIG_E1000_NAPI
 	adapter->clean_rx(adapter, adapter->rx_ring);

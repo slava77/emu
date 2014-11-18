@@ -20,6 +20,12 @@ Link=""
 
 Sources = \
 	Application.cc \
+	TCDSControl.cc \
+	CIControl.cc \
+	PIControl.cc \
+	PMControl.cc \
+	TCDSHardwareLease.cc \
+	RegDumpPreprocessor.cc \
 	RunInfo.cc \
 	version.cc
 
@@ -33,7 +39,7 @@ LibraryDirs = $(XDAQ_ROOT)/lib
 
 UserSourcePath =
 UserCFlags =
-UserCCFlags = -g -Wall -pedantic-errors -Wno-long-long
+UserCCFlags = -g -Wall -pedantic-errors -Wno-long-long -Wno-variadic-macros
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
@@ -50,8 +56,10 @@ ExternalObjects =
 DynamicLibrary = emusupervisor
 StaticLibrary =
 
-TestLibraries=
-TestExecutables=
+TestLibraries=xcept toolbox log4cplus xdata xerces-c xalan-c xdaq xdaq2rc xalanMsg xoap xgi cgicc pthttp peer asyncresolv mimetic config logudpappender logxmlappender uuid sentinelutils emubase emusoap emusupervisor
+TestExecutables=testRegDumpPreprocessor.cc
+# To execute:
+# LD_LIBRARY_PATH=$BUILD_HOME/x86_64_slc6/lib:/opt/xdaq/lib $BUILD_HOME/emu/supervisor/bin/linux/x86_64_slc6/testRegDumpPreprocessor.exe <register_dump>
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 include $(XDAQ_ROOT)/config/mfRPM.rules

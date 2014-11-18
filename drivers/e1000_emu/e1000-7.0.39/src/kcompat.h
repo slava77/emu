@@ -43,11 +43,12 @@
 #include <linux/sched.h>
 #include <asm/io.h>
 
-#ifndef IRQ_HANDLED
-#define irqreturn_t void
-#define IRQ_HANDLED
-#define IRQ_NONE
-#endif
+/* SLC6 */ // To prevent irqreturn_t from being (re)defined as void
+// #ifndef IRQ_HANDLED
+// #define irqreturn_t void
+// #define IRQ_HANDLED
+// #define IRQ_NONE
+// #endif
 
 #ifndef SET_NETDEV_DEV
 #define SET_NETDEV_DEV(net, pdev)

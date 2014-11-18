@@ -729,10 +729,10 @@ void Crate::MonitorCCB(int cycle, char * buf)
   ccb->read_later(0x44);
   ccb->read_later(0x46);
   ccb->read_later(0x48);
-  mpc->read_later(0x0);
-  mpc->read_later(0xB8);
-  mpc->read_later(0xCA);
-  mpc->read_later(0xCC);
+  mpc->read_later(0x0);  // discrete logic control
+  mpc->read_later(0xAC); // FPGA control 
+  mpc->read_later(0xBA); // GTP control
+  mpc->read_later(0xB2); // FPGA status
   ccb->read_later(0x4A);
   ccb->read_later(0x4C);
   ccb->read_later(0x4E);

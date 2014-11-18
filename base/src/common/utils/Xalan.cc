@@ -329,11 +329,11 @@ std::string emu::utils::serializeSelectedNode( const std::string& XML,
     XALAN_USING_XALAN(XPathEvaluator)
     XMLPlatformUtils::Initialize();
 
-    XercesDOMSupport theDOMSupport;
-    XercesParserLiaison theLiaison(theDOMSupport);
+    XercesParserLiaison theLiaison;
     theLiaison.setDoNamespaces(true); // although it seems to be already set...
     theLiaison.setBuildWrapperNodes(true);
     theLiaison.setBuildMaps(true);
+    XercesDOMSupport theDOMSupport(theLiaison);
     
     const char* const id = "dummy";
     MemBufInputSource theInputSource((const XMLByte*) XML.c_str(), (unsigned int) XML.size(), id);

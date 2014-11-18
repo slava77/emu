@@ -4,9 +4,12 @@
 #include "emu/db/TStoreRequest.h"
 #include "emu/db/ConfigIDInfo.h"
 #include "emu/utils/Cgi.h"
+#include "emu/utils/System.h"
+#include "emu/utils/IO.h"
 #include "emu/db/PCConfigHierarchy.h"
 
 #include <time.h>
+#include "toolbox/regex.h"
 #include "toolbox/TimeInterval.h"
 #include "toolbox/TimeVal.h"
 #include "toolbox/Runtime.h"
@@ -27,6 +30,7 @@
 #include "xdata/Boolean.h"
 #include "xoap/domutils.h"
 #include "xoap/DOMParserFactory.h"
+
 
 namespace emu {
 namespace db {
@@ -57,7 +61,9 @@ ConfigurationEditor::ConfigurationEditor(xdaq::ApplicationStub * s) throw (xdaq:
   xmlfile_ = "";
   dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
   crateRealNames.clear();
-  for(int i=0;i<65;i++) crateRealNames.push_back("");
+  crateRealNames.resize( 65, "" );
+  lastReadConfiguration_     = "n/a";
+  lastUploadedConfiguration_ = "n/a";
 }
 
 
@@ -718,7 +724,8 @@ void ConfigurationEditor::outputCurrentConfiguration(xgi::Output * out)
     {
       if (tableDefinition != tableDefinitions.begin() && (*tableDefinition).first != topLevelTableName_)
         *out << cgicc::br() << cgicc::hr() << cgicc::br();
-      outputTableEditControls(out, (*tableDefinition).first);
+      const bool withSelector = true;
+      outputTableEditControls(out, (*tableDefinition).first, "", withSelector);
     }
     *out << "</tr></td></table>";
     std::map<std::string, xdata::Table> &crates = currentTables[topLevelTableName_];
@@ -801,10 +808,10 @@ bool ConfigurationEditor::isNumericType(const std::string &xdataType)
 }
 
 
-void ConfigurationEditor::outputTableEditControls(
-    xgi::Output * out,
-    const std::string &tableName,
-    const std::string &prefix)
+void ConfigurationEditor::outputTableEditControls( xgi::Output * out,
+						   const std::string &tableName,
+						   const std::string &prefix,
+						   const bool withSelector      )
 {
   xdata::Table &definition = tableDefinitions[tableName];
   std::vector<std::string> columns = definition.getColumns();
@@ -819,6 +826,8 @@ void ConfigurationEditor::outputTableEditControls(
   bool fieldsToView = false;
   std::ostringstream view;
 
+  std::string selector( withSelector ? " in " + selectorHTML( tableName ) : " all " );
+
   std::string anchor = tableName + prefix + "edit";
   increment << cgicc::form().set("method", "POST").set("action",
       toolbox::toString("/%s/incrementValue#%s", getApplicationDescriptor()->getURN().c_str(), anchor.c_str()))
@@ -826,7 +835,7 @@ void ConfigurationEditor::outputTableEditControls(
   increment << cgicc::input().set("type", "hidden").set("name", "table").set("value", tableName);
   increment << cgicc::input().set("type", "hidden").set("name", "prefix").set("value", prefix);
 
-  increment << "increment all " << cgicc::select().set("name", "fieldName");
+  increment << "increment" << selector << cgicc::select().set("name", "fieldName");
   //<< cgicc::input().set("type","text").set("name","view").set("value",view) << std::endl;
   for (column = columns.begin(); column != columns.end(); column++)
   {
@@ -849,7 +858,7 @@ void ConfigurationEditor::outputTableEditControls(
       << std::endl;
   set << cgicc::input().set("type", "hidden").set("name", "table").set("value", tableName);
   set << cgicc::input().set("type", "hidden").set("name", "prefix").set("value", prefix);
-  set << "set all " << cgicc::select().set("name", "fieldName");
+  set << "set" << selector << cgicc::select().set("name", "fieldName");
   for (column = columns.begin(); column != columns.end(); column++)
   {
     if (canChangeColumnGlobally(*column, tableName))
@@ -868,7 +877,7 @@ void ConfigurationEditor::outputTableEditControls(
       << std::endl;
   view << cgicc::input().set("type", "hidden").set("name", "table").set("value", tableName);
   view << cgicc::input().set("type", "hidden").set("name", "prefix").set("value", prefix);
-  view << "view all " << cgicc::select().set("name", "fieldName");
+  view << "view" << selector << cgicc::select().set("name", "fieldName");
   for (column = columns.begin(); column != columns.end(); column++)
   {
     if (!columnIsDatabaseOnly(*column, tableName))
@@ -1311,6 +1320,11 @@ void ConfigurationEditor::compareVersions(xgi::Input * in, xgi::Output * out) th
 void ConfigurationEditor::viewValues(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception)
 {
   cgicc::Cgicc cgi(in);
+  std::string crateRegex   = cratePattern  ( &cgi );
+  std::string chamberRegex = chamberPattern( &cgi );
+  std::string logic        = matchingLogic ( &cgi );
+  // std::cout << "crate pattern: "   << crateRegex   << "\n";
+  // std::cout << "chamber pattern: " << chamberRegex << "\n";
   std::string tableName = **cgi["table"];
   std::string fieldName = **cgi["fieldName"];
   outputHeader(out);
@@ -1326,38 +1340,44 @@ void ConfigurationEditor::viewValues(xgi::Input * in, xgi::Output * out) throw (
     std::map<std::string, unsigned int> differentValues;
     for (table = firstTable; table != lastTable; ++table)
     {
-      try
-      {
-        xdata::Table relevantColumns = (*table).second;
-        std::vector<std::string> columns = (*table).second.getColumns();
-        for (std::vector<std::string>::iterator column = columns.begin(); column != columns.end(); ++column)
-        {
-          if (*column != fieldName)
-          {
-            if (*column != "LABEL" && *column != "CFEB_NUMBER" && *column != "AFEB_NUMBER")
-            {
-              relevantColumns.removeColumn(*column);
-            }
-          }
-        }
-        std::string contextColumnName = "Crate/chamber";
-        relevantColumns.addColumn(contextColumnName, "string");
-        int rowCount = (*table).second.getRowCount();
-        for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
-        {
-          xdata::String context = (*table).first;
-          relevantColumns.setValueAt(rowIndex, contextColumnName, context);
-          xdata::Serializable *value = relevantColumns.getValueAt(rowIndex, fieldName);
-          differentValues[value->toString()]++;
-        }
-        if (allTables.getRowCount() == 0) allTables = relevantColumns;
-        else
-          allTables.merge(&allTables, &relevantColumns);
+
+      if ( isSelected( table->first, crateRegex, chamberRegex, logic ) ){
+
+	try
+	  {
+	    xdata::Table relevantColumns = (*table).second;
+	    std::vector<std::string> columns = (*table).second.getColumns();
+	    for (std::vector<std::string>::iterator column = columns.begin(); column != columns.end(); ++column)
+	      {
+		if (*column != fieldName)
+		  {
+		    if (*column != "LABEL" && *column != "CFEB_NUMBER" && *column != "AFEB_NUMBER")
+		      {
+			relevantColumns.removeColumn(*column);
+		      }
+		  }
+	      }
+	    std::string contextColumnName = "Crate/chamber";
+	    relevantColumns.addColumn(contextColumnName, "string");
+	    int rowCount = (*table).second.getRowCount();
+	    for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
+	      {
+		xdata::String context = (*table).first;
+		relevantColumns.setValueAt(rowIndex, contextColumnName, context);
+		xdata::Serializable *value = relevantColumns.getValueAt(rowIndex, fieldName);
+		differentValues[value->toString()]++;
+	      }
+	    if (allTables.getRowCount() == 0) allTables = relevantColumns;
+	    else
+	      allTables.merge(&allTables, &relevantColumns);
+	  }
+	catch (xdata::exception::Exception &e)
+	  {
+	    XCEPT_RETHROW(xgi::exception::Exception,"Could not get all values",e);
+	  }
+
       }
-      catch (xdata::exception::Exception &e)
-      {
-        XCEPT_RETHROW(xgi::exception::Exception,"Could not get all values",e);
-      }
+
     }
     std::string qualifier = "";
     if (!cgi("prefix").empty())
@@ -1653,6 +1673,9 @@ std::string ConfigurationEditor::uniqueIdentifierForRow(
 void ConfigurationEditor::setValue(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception)
 {
   cgicc::Cgicc cgi(in);
+  std::string crateRegex   = cratePattern  ( &cgi );
+  std::string chamberRegex = chamberPattern( &cgi );
+  std::string logic        = matchingLogic ( &cgi );
   std::string tableName = **cgi["table"];
   std::string fieldName = **cgi["fieldName"];
   std::string newValue = **cgi["newValue"];
@@ -1668,20 +1691,26 @@ void ConfigurationEditor::setValue(xgi::Input * in, xgi::Output * out) throw (xg
 
     for (table = firstTable; table != lastTable; ++table)
     {
-      std::string columnType = (*table).second.getColumnType(fieldName);
-      try
-      {
-        int rowCount = (*table).second.getRowCount();
-        for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
-        {
-          xdata::Serializable *value = ((*table).second.getValueAt(rowIndex, fieldName));
-          setValueFromString(value, newValue);
-        }
+
+      if ( isSelected( table->first, crateRegex, chamberRegex, logic ) ){
+
+	std::string columnType = (*table).second.getColumnType(fieldName);
+	try
+	  {
+	    int rowCount = (*table).second.getRowCount();
+	    for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
+	      {
+		xdata::Serializable *value = ((*table).second.getValueAt(rowIndex, fieldName));
+		setValueFromString(value, newValue);
+	      }
+	  }
+	catch (xdata::exception::Exception &e)
+	  {
+	    XCEPT_RETHROW(xgi::exception::Exception,"Value "+newValue+" could not be converted to the data type "+columnType,e);
+	  }
+
       }
-      catch (xdata::exception::Exception &e)
-      {
-        XCEPT_RETHROW(xgi::exception::Exception,"Value "+newValue+" could not be converted to the data type "+columnType,e);
-      }
+
     }
   }
   outputHeader(out);
@@ -1779,6 +1808,9 @@ bool ConfigurationEditor::tableHasColumn(xdata::Table &table, const std::string 
 void ConfigurationEditor::incrementValue(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception)
 {
   cgicc::Cgicc cgi(in);
+  std::string crateRegex   = cratePattern  ( &cgi );
+  std::string chamberRegex = chamberPattern( &cgi );
+  std::string logic        = matchingLogic ( &cgi );
   std::string tableName = **cgi["table"];
   std::string fieldName = **cgi["fieldName"];
   std::string amountToAdd = **cgi["amount"];
@@ -1797,60 +1829,63 @@ void ConfigurationEditor::incrementValue(xgi::Input * in, xgi::Output * out) thr
 
       for (table = firstTable; table != lastTable; ++table)
       {
-        if (tableHasColumn((*table).second, fieldName))
-        {
-          std::string columnType = (*table).second.getColumnType(fieldName);
-          try
-          {
-            if (isNumericType(columnType))
-            {
-              int rowCount = (*table).second.getRowCount();
-              for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
-              {
-                xdata::Serializable *value = (*table).second.getValueAt(rowIndex, fieldName);
-                LOG4CPLUS_DEBUG(this->getApplicationLogger(),"adding "+amountToAdd+ " to "+columnType+" "+value->toString());
-                if (columnType == "int")
-                {
-                  add<xdata::Integer, xdata::IntegerT> (value, amountToAdd);
-                }
-                else if (columnType == "unsigned long")
-                {
-                  add<xdata::UnsignedLong, xdata::UnsignedLongT> (value, amountToAdd);
-                }
-                else if (columnType == "float")
-                {
-                  add<xdata::Float, xdata::FloatT> (value, amountToAdd);
-                }
-                else if (columnType == "double")
-                {
-                  add<xdata::Double, xdata::DoubleT> (value, amountToAdd);
-                }
-                else if (columnType == "unsigned int")
-                {
-                  add<xdata::UnsignedInteger, xdata::UnsignedIntegerT> (value, amountToAdd);
-                }
-                else if (columnType == "unsigned int 32")
-                {
-                  add<xdata::UnsignedInteger32, xdata::UnsignedInteger32T> (value, amountToAdd);
-                }
-                else if (columnType == "unsigned int 64")
-                {
-                  add<xdata::UnsignedInteger64, xdata::UnsignedInteger64T> (value, amountToAdd);
-                }
-                else if (columnType == "unsigned short")
-                {
-                  add<xdata::UnsignedShort, xdata::UnsignedShortT> (value, amountToAdd);
-                }
-                LOG4CPLUS_DEBUG(this->getApplicationLogger(),"result is "+value->toString());
-                (*table).second.setValueAt(rowIndex, fieldName, *value);
-              }
-            }
-          }
-          catch (xdata::exception::Exception &e)
-          {
-            XCEPT_RETHROW(xgi::exception::Exception,"Value "+amountToAdd+" could not be converted to the data type "+columnType,e);
-          }
-        }
+
+	if ( isSelected( table->first, crateRegex, chamberRegex, logic ) ){
+	  if (tableHasColumn((*table).second, fieldName))
+	    {
+	      std::string columnType = (*table).second.getColumnType(fieldName);
+	      try
+		{
+		  if (isNumericType(columnType))
+		    {
+		      int rowCount = (*table).second.getRowCount();
+		      for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
+			{
+			  xdata::Serializable *value = (*table).second.getValueAt(rowIndex, fieldName);
+			  LOG4CPLUS_DEBUG(this->getApplicationLogger(),"adding "+amountToAdd+ " to "+columnType+" "+value->toString());
+			  if (columnType == "int")
+			    {
+			      add<xdata::Integer, xdata::IntegerT> (value, amountToAdd);
+			    }
+			  else if (columnType == "unsigned long")
+			    {
+			      add<xdata::UnsignedLong, xdata::UnsignedLongT> (value, amountToAdd);
+			    }
+			  else if (columnType == "float")
+			    {
+			      add<xdata::Float, xdata::FloatT> (value, amountToAdd);
+			    }
+			  else if (columnType == "double")
+			    {
+			      add<xdata::Double, xdata::DoubleT> (value, amountToAdd);
+			    }
+			  else if (columnType == "unsigned int")
+			    {
+			      add<xdata::UnsignedInteger, xdata::UnsignedIntegerT> (value, amountToAdd);
+			    }
+			  else if (columnType == "unsigned int 32")
+			    {
+			      add<xdata::UnsignedInteger32, xdata::UnsignedInteger32T> (value, amountToAdd);
+			    }
+			  else if (columnType == "unsigned int 64")
+			    {
+			      add<xdata::UnsignedInteger64, xdata::UnsignedInteger64T> (value, amountToAdd);
+			    }
+			  else if (columnType == "unsigned short")
+			    {
+			      add<xdata::UnsignedShort, xdata::UnsignedShortT> (value, amountToAdd);
+			    }
+			  LOG4CPLUS_DEBUG(this->getApplicationLogger(),"result is "+value->toString());
+			  (*table).second.setValueAt(rowIndex, fieldName, *value);
+			}
+		    }
+		}
+	      catch (xdata::exception::Exception &e)
+		{
+		  XCEPT_RETHROW(xgi::exception::Exception,"Value "+amountToAdd+" could not be converted to the data type "+columnType,e);
+		}
+	    }
+	}
       }
     }
     outputHeader(out);
@@ -1883,23 +1918,19 @@ void ConfigurationEditor::uploadConfigToDB(xgi::Input * in, xgi::Output * out) t
   try
   {
     outputHeader(out);
-    outputStandardInterface(out);
 
-    time_t rawtime;
-    struct tm * timeinfo;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    *out << "<br>Upload started at: " << asctime(timeinfo) << std::endl;
-    *out << "<br>Uploading to Database is in progress. This may take over a minute. Please be patient!<br><br>"
-        << std::endl;
+    *out << "<br>Upload started at: " << emu::utils::getDateTime() << std::endl;
+    // *out << "<br>Uploading to Database is in progress. This may take over a minute. Please be patient!<br><br>"
+    //     << std::endl;
 
     startUpload(in);
 
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    *out << "<br>Uploading finished at: " << asctime(timeinfo) << std::endl;
+    lastUploadedConfigurationTime_ = emu::utils::getDateTime();
+    lastUploadedConfiguration_     = emu_config_id_;
+    *out << "<br>Uploading finished at: " << lastUploadedConfigurationTime_ << std::endl;
     *out << "<br>EMU_Config_ID " << emu_config_id_ << " uploaded to Database." << std::endl;
 
+    outputStandardInterface(out);
     outputCurrentConfiguration(out);
   }
   catch (xcept::Exception &e)
@@ -2497,7 +2528,189 @@ std::string ConfigurationEditor::crateIdentifierString(const std::string &crateI
 
 void ConfigurationEditor::fillCrateRealName(int id, std::string name)
 {
-  if(id<65) crateRealNames[id]=name;
+  if(id<int(crateRealNames.size())) crateRealNames[id]=name;
+}
+
+std::string ConfigurationEditor::selectorHTML(const std::string &tableName){
+  // Construct HTML for selecting crates and/or chambers.
+
+// | table name    | identifier example             |
+// |---------------+--------------------------------|
+// | alct          | crate VMEp1_1 chamber ME+1/1/1 |
+// | anodechannel  | crate VMEp1_1 chamber ME+1/1/1 |
+// | ccb           | crate VMEp1_1                  |
+// | cfeb          | crate VMEp1_1 chamber ME+1/1/1 |
+// | configuration | *none*                         |
+// | csc           | crate VMEp1_1 chamber ME+1/1/1 |
+// | daqmb         | crate VMEp1_1 chamber ME+1/1/1 |
+// | mpc           | crate VMEp1_1                  |
+// | tmb           | crate VMEp1_1 chamber ME+1/1/1 |
+// | vcc           | crate VMEp1_1                  |
+
+  if ( tableName == "configuration" ) return std::string();
+  std::ostringstream oss;
+  oss << "matching crate <span style=\"font-weight: bold;\">VME*[</span>";
+  for ( int i=1; i<=4; ++i ) oss << "<input type=\"checkbox\" checked=\"checked\" name=\"vmeStation\" title=\"station " << i 
+				 << "\" value=\"" << i 
+				 << "\"> <span style=\"color:rgb(102, 153, 102);\">" << i << "</span> ";
+  oss << "<span style=\"font-weight: bold;\">]_[</span>";
+  for ( int i=1; i<=12; ++i ) oss << "<input type=\"checkbox\" checked=\"checked\" name=\"vmeNumber\" title=\"crate " << i 
+				  << " on station\" value=\"" << i 
+				  << "\"> <span style=\"color:rgb(0, 0, 200);\">" << i << "</span> ";
+  oss << "<span style=\"font-weight: bold;\">]</span>";
+  if ( tableName == "ccb" || tableName == "mpc" || tableName == "vcc" ){
+    oss << "\n<br/>\n";
+    return oss.str();
+  }
+  oss << "<select name=\"logic\" title=\"Require both (AND) or any (OR) of the crate and chamber selection criteria to match.\"><option selected=\"selected\" title=\"Require both crate and chamber selection criteria. (Intersection of the matched sets.)\" value=\"AND\">AND</option><option  title=\"Require crate or chamber selection criteria. (Union of the matched sets.)\" value=\"OR\">OR</option></select>";
+  oss << "chamber <span style=\"font-weight: bold;\"> ME*[</span>";
+  for ( int i=1; i<=4; ++i ) oss << "<input type=\"checkbox\" title=\"station "        << i 
+				 << "\" checked=\"checked\" name=\"station\" value=\"" << i 
+				 << "\"> <span style=\"color:rgb(102, 153, 102);\">"   << i << "</span> ";
+  oss << "<span style=\"font-weight: bold;\">]/[</span>";
+  for ( int i=1; i<=3; ++i ) oss << "<input type=\"checkbox\" title=\"ring "           << i 
+				 << "\" checked=\"checked\" name=\"ring\" value=\""    << i 
+				 << "\"> <span style=\"color:rgb(155, 145, 109);\">"   << i << "</span> ";
+  oss << "<span style=\"font-weight: bold;\">]/[</span>";
+  for ( int i=1; i<=36; ++i ) oss << "<input type=\"checkbox\" title=\"chamber "        << i 
+				  << "\" checked=\"checked\" name=\"chamber\" value=\"" << i 
+				  << "\"> <span style=\"color:rgb(0, 0, 200);\">"       << i << "</span> ";
+  oss << "<span style=\"font-weight: bold;\">]</span>\n<br/>\n";
+  return oss.str();
+}
+
+std::string ConfigurationEditor::cratePattern( cgicc::Cgicc *cgi ){
+  // Construct a regular expression (to match the table identifier) from the crate selection info in the HTTP query string.
+  std::vector<cgicc::FormEntry> fev = cgi->getElements();
+  std::multimap<std::string,std::string> stations = emu::utils::selectFromQueryString( fev, "^vmeStation$" );
+  std::multimap<std::string,std::string> crates   = emu::utils::selectFromQueryString( fev, "^vmeNumber$" );
+  std::cout << "selected stations: " << stations << "\n";
+  std::cout << "selected crates: " << crates << "\n";
+  if ( stations.size() * crates.size() == 0 ) return std::string();
+  std::ostringstream pattern; 
+  pattern << "VME[pm+-](";
+  for ( std::multimap<std::string,std::string>::const_iterator s=stations.begin(); s!=stations.end(); ++s ){
+    std::multimap<std::string,std::string>::const_iterator next( s );
+    next++;
+    pattern << s->second << ( next==stations.end() ? "" : "|" );
+  }
+  pattern << ")[_/](";
+  for ( std::multimap<std::string,std::string>::const_iterator c=crates.begin(); c!=crates.end(); ++c ){
+    std::multimap<std::string,std::string>::const_iterator next( c );
+    next++;
+    pattern << c->second << ( next==crates.end() ? "" : "|" );
+  }
+  pattern << ")( |$)";
+  return pattern.str();
+}
+
+std::string ConfigurationEditor::chamberPattern( cgicc::Cgicc *cgi ){
+  // Construct a regular expression (to match the table identifier) from the chamber selection info in the HTTP query string.
+  std::vector<cgicc::FormEntry> fev = cgi->getElements();
+  std::multimap<std::string,std::string> stations = emu::utils::selectFromQueryString( fev, "^station$" );
+  std::multimap<std::string,std::string> rings    = emu::utils::selectFromQueryString( fev, "^ring$" );
+  std::multimap<std::string,std::string> chambers = emu::utils::selectFromQueryString( fev, "^chamber$" );
+  std::cout << "selected stations: " << stations << "\n";
+  std::cout << "selected rings: "    << rings    << "\n";
+  std::cout << "selected chambers: " << chambers << "\n";
+  if ( stations.size() * rings.size() * chambers.size() == 0 ) return std::string();
+  std::ostringstream pattern; 
+  pattern << "ME[pm+-](";
+  for ( std::multimap<std::string,std::string>::const_iterator s=stations.begin(); s!=stations.end(); ++s ){
+    std::multimap<std::string,std::string>::const_iterator next( s );
+    next++;
+    pattern << s->second << ( next==stations.end() ? "" : "|" );
+  }
+  pattern << ")[_/](";
+  for ( std::multimap<std::string,std::string>::const_iterator r=rings.begin(); r!=rings.end(); ++r ){
+    std::multimap<std::string,std::string>::const_iterator next( r );
+    next++;
+    pattern << r->second << ( next==rings.end() ? "" : "|" );
+  }
+  pattern << ")[_/](";
+  for ( std::multimap<std::string,std::string>::const_iterator c=chambers.begin(); c!=chambers.end(); ++c ){
+    std::multimap<std::string,std::string>::const_iterator next( c );
+    next++;
+    pattern << c->second << ( next==chambers.end() ? "" : "|" );
+  }
+  pattern << ")( |$)";
+  return pattern.str();
+}
+
+std::string ConfigurationEditor::matchingLogic( cgicc::Cgicc *cgi ){
+  // Get the logic (AND or OR) from the HTTP query string.
+  std::vector<cgicc::FormEntry> fev = cgi->getElements();
+  std::multimap<std::string,std::string> logics = emu::utils::selectFromQueryString( fev, "^logic$" );
+  if ( logics.size() == 0 ) return std::string();
+  return logics.begin()->second;
+}
+
+bool ConfigurationEditor::isSelected( const std::string& identifier, 
+				      const std::string& crateRegex, 
+				      const std::string& chamberRegex, 
+				      const std::string& logic ){
+  // Return TRUE if the identifier is macthed by crateRegex or chamberRegex (if logic=OR) or both (if logic=AND).
+  bool isSelectedIdentifier = false;
+
+  bool isCrateMatched = false;
+  try
+    {
+      if ( crateRegex.size() ) isCrateMatched = toolbox::regx_match( identifier, crateRegex );
+    }
+  catch (xcept::Exception& e)
+    {
+      std::stringstream ss;
+      ss << "Regex match of pattern \"" << crateRegex << "\" failed in \"" << identifier << "\": ";
+      XCEPT_RETHROW( xgi::exception::Exception, ss.str(), e);
+    }
+  catch (std::exception& e)
+    {
+      std::stringstream ss;
+      ss << "Regex match of pattern \"" << crateRegex << "\" failed in \"" << identifier << "\": " << e.what();
+      XCEPT_RAISE( xgi::exception::Exception, ss.str());
+    }
+  catch (...)
+    {
+      std::stringstream ss;
+      ss << "Regex match of pattern \"" << crateRegex << "\" failed in \"" << identifier << "\": Unexpected exception";
+      XCEPT_RAISE( xgi::exception::Exception, ss.str());
+    }      
+  // std::cout << identifier << " matched by " << crateRegex << " ? " << isCrateMatched << std::endl;
+
+  if ( logic.size() == 0 ){
+    isSelectedIdentifier = isCrateMatched;
+  }
+  else{
+    bool isChamberMatched = false;
+    try
+      {
+	if ( chamberRegex.size() ) isChamberMatched = toolbox::regx_match( identifier, chamberRegex );
+      }
+    catch (xcept::Exception& e)
+      {
+	std::stringstream ss;
+	ss << "Regex match of pattern \"" << chamberRegex << "\" failed in \"" << identifier << "\": ";
+	XCEPT_RETHROW( xgi::exception::Exception, ss.str(), e);
+      }
+    catch (std::exception& e)
+      {
+	std::stringstream ss;
+	ss << "Regex match of pattern \"" << chamberRegex << "\" failed in \"" << identifier << "\": " << e.what();
+	XCEPT_RAISE( xgi::exception::Exception, ss.str());
+      }
+    catch (...)
+      {
+	std::stringstream ss;
+	ss << "Regex match of pattern \"" << chamberRegex << "\" failed in \"" << identifier << "\": Unexpected exception";
+	XCEPT_RAISE( xgi::exception::Exception, ss.str());
+      }      
+    // std::cout << identifier << " matched by " << chamberRegex << " ? " << isChamberMatched << std::endl;
+
+    if      ( logic == "AND" ) isSelectedIdentifier = isCrateMatched && isChamberMatched;
+    else if ( logic == "OR"  ) isSelectedIdentifier = isCrateMatched || isChamberMatched;
+  }
+
+  return isSelectedIdentifier;
 }
 
 } // namespace db

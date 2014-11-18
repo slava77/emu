@@ -1,0 +1,3 @@
+aaa[[1-3]].bbb[[2-4]]       0x00000001
+aaa2.bbb4                   0x00000002 # this will be a duplicate
+aaa[[[6-8]]].bbb[[[5-7]]]   0x00000003 # characters [ and ] can still be used
