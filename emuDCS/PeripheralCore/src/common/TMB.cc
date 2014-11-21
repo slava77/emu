@@ -7432,7 +7432,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_link_had_error_[i] << " "; }
     (*MyOutput_) << "]" << std::endl;
     
-    (*MyOutput_) << "    Link unstable [DCFEBs 0-6]: \t\t[ ";
+    (*MyOutput_) << "    Link unstable [DCFEBs 0-6]: \t[ ";
     for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_link_bad_[i] << " "; }
     (*MyOutput_) << "]" << std::endl;
     
