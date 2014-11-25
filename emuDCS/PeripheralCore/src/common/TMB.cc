@@ -8918,6 +8918,7 @@ int TMB::DCSreadAll(char *data)
   tr |= (tt & 1);
   memcpy(data, &tr, 2);
 
+/* disabled by Liu, Nov. 25, 2014
   if(hardware_version_==2)
   {
      for(int i=0; i<6; i++)
@@ -8928,6 +8929,8 @@ int TMB::DCSreadAll(char *data)
      return 14;
   }
   else return 2;
+*/
+  return 2;
 }
 
 int TMB::DCSvoltages(char *databuf) 
