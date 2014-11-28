@@ -639,9 +639,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				break;
 
 			try {
-
-				// I know this means the TF DDU will use interrupts, but we'll deal with that hurdle when we come to it.
-				if (myCrate->getController()->waitIRQ(1000) == false) {
+			        // waitIRQ( timeout_in_ms ) will block VME communication until it returns. 
+			        // Since long waits can slow down concurrent VME access, waitIRQ should time out sooner for the TF crate 
+			        // in order to give the TF Cell more frequent opportunities to communicate with the crate.
+			        if (myCrate->getController()->waitIRQ( myCrate->isTrackFinder() ? 10 : 1000 ) == false) {
 					pthread_testcancel();
 					// Prevent crash that occurs when thread canceled during logging
 					if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &unused) != 0)
