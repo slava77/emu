@@ -751,7 +751,8 @@ void emu::supervisor::Application::webStart(xgi::Input *in, xgi::Output *out)
   // Book run number here to make sure it's done 
   // only when requested by the user from the web page,
   // and not by the FunctionManager via SOAP.
-  bookRunNumber();
+  // Also, no point booking a run number if local DAQ is not available.
+  if ( daq_descr_ != NULL ) bookRunNumber();
 
   try{
     fireEvent("Start");
@@ -844,7 +845,8 @@ void emu::supervisor::Application::webRunSequence(xgi::Input *in, xgi::Output *o
   string value;
   isCommandFromWeb_ = true;
 
-  bookRunNumber();
+  // No point booking a run number if local DAQ is not available.
+  if ( daq_descr_ != NULL ) bookRunNumber();
   
   calib_wl_->submit( sequencer_signature_ );
    
@@ -983,11 +985,24 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     
     m.sendCommand( "emu::pc::EmuPeripheralCrateManager", runParameters_[index].bag.command_.toString() );
 
-    xdata::String attributeValue( "Start" );
-    m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+    // xdata::String attributeValue( "Start" );
+    // m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+
+    if ( pm_ ){
+      LOG4CPLUS_DEBUG(logger_, "Sending Start Bgo to LPM");
+      xdata::String Start( "Start" );
+      pm_->initCyclicGenerators().sendBgo( Start );
+    }
+
     sendCalibrationStatus( iRun, nRuns, step_counter_, runParameters_[index].bag.loop_ );
 
     sleep( runParameters_[index].bag.delay_ );
+
+    if ( pm_ ){
+      LOG4CPLUS_DEBUG(logger_, "Sending Stop Bgo to LPM");
+      xdata::String Stop( "Stop" );
+      pm_->sendBgo( Stop );
+    }
   }
   
   sendCalibrationStatus( ( iRun+1 == nRuns ? nRuns : iRun ), nRuns, step_counter_, runParameters_[index].bag.loop_ );
@@ -1035,13 +1050,12 @@ void emu::supervisor::Application::sendCalibrationStatus( unsigned int iRun, uns
   xdata::UnsignedInteger calibStepIndex( iStep  );
 
   try{
-    if ( daq_descr_ != NULL ) daq_descr_ = m.getAppDescriptor( "emu::daq::manager::Application", 0 );
-    m.setParameters( daq_descr_, 
-		     emu::soap::Parameters()
-		     .add( "calibNRuns"    , &calibNRuns     )
-		     .add( "calibNSteps"   , &calibNSteps    )
-		     .add( "calibRunIndex" , &calibRunIndex  )
-		     .add( "calibStepIndex", &calibStepIndex ) );
+    if ( daq_descr_ != NULL ) m.setParameters( daq_descr_, 
+					       emu::soap::Parameters()
+					       .add( "calibNRuns"    , &calibNRuns     )
+					       .add( "calibNSteps"   , &calibNSteps    )
+					       .add( "calibRunIndex" , &calibRunIndex  )
+					       .add( "calibStepIndex", &calibStepIndex ) );
   }
   catch( xcept::Exception &e ){
     LOG4CPLUS_WARN( logger_, "Failed to send calibration status to emu::daq::manager::Application : " << xcept::stdformat_exception_history(e) );

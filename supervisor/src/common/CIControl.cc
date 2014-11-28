@@ -44,7 +44,10 @@ emu::supervisor::CIControl& emu::supervisor::CIControl::configureSequence(){
   
   switch ( runType_ ){
   case global:
+    // fall through
   case local:
+    // fall through
+  case AFEBcalibration:
     // BEGINSEQUENCE configure
     //   DisableL1A
     //   ResetCounters
@@ -71,8 +74,6 @@ emu::supervisor::CIControl& emu::supervisor::CIControl::configureSequence(){
     // in order for the TF SP links to be synched.
     // sendBgo( Resync );
     // mSleep( 100 );
-    break;
-  case AFEBcalibration:
     break;
   case CFEBcalibration:
     break;
@@ -110,7 +111,10 @@ emu::supervisor::CIControl::CIControl& emu::supervisor::CIControl::stopSequence(
 
   switch ( runType_ ){
   case global:
+    // fall through
   case local:
+    // fall through
+  case AFEBcalibration:
     // Hard reset is needed in order to clear the FIFO of the DDUs 
     // (in case some events have been left there) so that the resync can zero its
     // L1A counter. Otherwise, with nonzero L1A counter, the DDU would fail to be
@@ -120,8 +124,6 @@ emu::supervisor::CIControl::CIControl& emu::supervisor::CIControl::stopSequence(
     mSleep( 500 );
     sendBgo( Resync );
     mSleep( 100 );
-    break;
-  case AFEBcalibration:
     break;
   case CFEBcalibration:
     break;
