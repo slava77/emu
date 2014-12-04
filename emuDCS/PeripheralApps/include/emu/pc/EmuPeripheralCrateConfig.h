@@ -156,6 +156,7 @@ protected:
   int crate_controller_status;
   //
   long CFEBDataIn_, CFEBDataOut_;
+  unsigned DcfebVirtex6RegisterRead_;
   int CCBRegisterRead_, CCBRegisterValue_, CCBRegisterWrite_, CCBWriteValue_, CCBTestLoops_;
   int MPCRegisterRead_, MPCRegisterValue_, MPCRegisterWrite_, MPCWriteValue_;
   int DMBRegisterRead_, DMBRegisterValue_, DMBRegisterWrite_, DMBWriteValue_;
@@ -433,6 +434,8 @@ private:
   void DCFEBProgramEprom(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DCFEBProgramEpromAll(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ODMBLoadFirmwarePoll(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void RestoreCfebJtagIdle(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ReadDcfebVirtex6Reg(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
     
   //
   // TMB utils
@@ -452,6 +455,7 @@ private:
   void EraseRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBDumpAllRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBClearUserProms(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void HardResetTmbFpga(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UnjamTMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBConfigure(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBReadConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -563,6 +567,7 @@ private:
   void MeasureL1AsAndDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MeasureL1AsAndDAVsForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
+  void MeasureDAVsForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void MeasureL1AsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureALCTTMBRxTxForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -623,6 +628,8 @@ private:
   void MeasureAllTMBVoltages(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ProgramAllOdmbEproms(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ProgramOdmbEpromsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void HardResetForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void OtmbFiberTest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UpdateInFlashKey(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   void SetTwoLayerTrigger(int tmb);

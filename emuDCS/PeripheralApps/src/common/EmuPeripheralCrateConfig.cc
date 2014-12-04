@@ -243,13 +243,16 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::SetTTCDelays, "SetTTCDelays");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureAllTMBVoltages, "MeasureAllTMBVoltages");
   xgi::bind(this,&EmuPeripheralCrateConfig::ProgramAllOdmbEproms, "ProgramAllOdmbEproms");
+  xgi::bind(this,&EmuPeripheralCrateConfig::HardResetForSystem, "HardResetForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetTwoLayerTriggerForSystem, "SetTwoLayerTriggerForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForSystem,"MeasureL1AsAndDAVsForSystem");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureDAVsForSystem,"MeasureDAVsForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForSystem,"MeasureALCTTMBRxTxForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureCFEBTMBRxForSystem,"MeasureCFEBTMBRxForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::QuickScanForSystem,"QuickScanForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::PipelineDepthScanForSystem,"PipelineDepthScanForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::UpdateInFlashKey, "UpdateInFlashKey");
+  xgi::bind(this,&EmuPeripheralCrateConfig::OtmbFiberTest,"OtmbFiberTest");
   //
   //------------------------------
   // bind crate utilities
@@ -395,6 +398,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramEpromAll, "DCFEBProgramEpromAll");
   xgi::bind(this,&EmuPeripheralCrateConfig::LVMBStatus, "LVMBStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::ODMBLoadFirmwarePoll, "ODMBLoadFirmwarePoll");
+  xgi::bind(this,&EmuPeripheralCrateConfig::RestoreCfebJtagIdle, "RestoreCfebJtagIdle");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadDcfebVirtex6Reg, "ReadDcfebVirtex6Reg");
   //
   //-----------------------------------------------
   // TMB tests
@@ -413,6 +418,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBHardResetFromTMBPage, "CCBHardResetFromTMBPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTMBFirmware, "CheckTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
+  xgi::bind(this,&EmuPeripheralCrateConfig::HardResetTmbFpga, "HardResetTmbFpga");  
   xgi::bind(this,&EmuPeripheralCrateConfig::UnjamTMB, "UnjamTMB");  
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckAbilityToLoadALCT, "CheckAbilityToLoadALCT");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
@@ -4113,6 +4119,13 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::td();
   //
   *out << cgicc::td();
+  std::string MeasureDAVsForSystem = toolbox::toString("/%s/MeasureDAVsForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureDAVsForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find DAVs") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
   std::string QuickScanForSystem = toolbox::toString("/%s/QuickScanForSystem",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",QuickScanForSystem) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","L1As and DAVs for TOF parameters only") << std::endl ;
@@ -4174,6 +4187,20 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   std::string ProgramAllOdmbEproms = toolbox::toString("/%s/ProgramAllOdmbEproms",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ProgramAllOdmbEproms) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Program ALL ODMB EPROMs sequentially (BE CAREFUL!)") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string HardResetForSystem = toolbox::toString("/%s/HardResetForSystem",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",HardResetForSystem) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","CCB Hard Reset for all crates (sequential)") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string OtmbFiberTest = toolbox::toString("/%s/OtmbFiberTest",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",OtmbFiberTest) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","DCFEB-OTMB fiber test") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
@@ -4737,9 +4764,9 @@ void EmuPeripheralCrateConfig::ProgramAllOdmbEproms(xgi::Input * in, xgi::Output
               std::cout << getLocalDateTime() << " ODMB program EPROM finished successfully." << std::endl;
             else
               std::cout << getLocalDateTime() << " ODMB program EPROM failed." << std::endl;
-	    thisCCB->hardReset();
-	  }
-	}
+            thisCCB->hardReset();
+          }
+        }
       }
     }
   }
@@ -4769,13 +4796,162 @@ void EmuPeripheralCrateConfig::ProgramOdmbEpromsForCrate(xgi::Input * in, xgi::O
           std::cout << getLocalDateTime() << " ODMB program EPROM finished successfully." << std::endl;
         else
           std::cout << getLocalDateTime() << " ODMB program EPROM failed." << std::endl;
-	thisCCB->hardReset();
+        thisCCB->hardReset();
       }
     }
   }
   //
   this->CrateConfiguration(in,out);
 }
+//
+void EmuPeripheralCrateConfig::HardResetForSystem(xgi::Input * in, xgi::Output * out)
+throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: CCB hard reset for all crates (sequential)" << std::endl;
+
+  int initial_crate = current_crate_;
+  //
+  if (total_crates_ > 0) {
+    //
+    for (unsigned crate_number = 0; crate_number < crateVector.size(); crate_number++) {
+      if (crateVector[crate_number]->IsAlive()) {
+        //
+        SetCurrentCrate(crate_number);
+        thisCCB->hardReset();
+      }
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  this->ExpertToolsPage(in, out);
+}
+//
+void EmuPeripheralCrateConfig::OtmbFiberTest(xgi::Input * in, xgi::Output * out)
+throw (xgi::exception::Exception) {
+  //
+  const int testCycles = 100;
+  //this is a map of chamber label to a vector of DCFEBs where each element contains a vector of fiber status statistics in the following order:
+  //  0) Sum of "Input ready"
+  //  1) Sum of "Link good"
+  //  2) Sum of "Link had errors"
+  //  3) Sum of "Link unstable"
+  //  4) Min link error count
+  //  5) Max link error count
+  std::map< std::string, std::vector< std::vector<int> > > result;
+  std::cout << "Button: OTMB fiber test -- CCB hard reset for all ME1/1 crates (sequential) and check GTX status" << std::endl;
+
+  int initial_crate = current_crate_;
+  //
+  if (total_crates_ > 0) {
+    //
+    for (int cycle = 0; cycle < testCycles; cycle++) {
+      for (unsigned crate_number = 0; crate_number < crateVector.size(); crate_number++) {
+        if (crateVector[crate_number]->IsAlive()) {
+          //
+          SetCurrentCrate(crate_number);
+          bool crateHasOtmbs = false;
+          for (unsigned int tmb = 0; tmb < tmbVector.size(); tmb++) {
+            //
+            Chamber * thisChamber = chamberVector[tmb];
+            TMB * thisTMB = tmbVector[tmb];
+            if (thisTMB->GetHardwareVersion() == 2) {
+              crateHasOtmbs = true;
+              std::string label = thisChamber->GetLabel();
+              
+              thisTMB->ReadRegister(v6_gtx_rx0_adr);
+              thisTMB->ReadRegister(v6_gtx_rx1_adr);
+              thisTMB->ReadRegister(v6_gtx_rx2_adr);
+              thisTMB->ReadRegister(v6_gtx_rx3_adr);
+              thisTMB->ReadRegister(v6_gtx_rx4_adr);
+              thisTMB->ReadRegister(v6_gtx_rx5_adr);
+              thisTMB->ReadRegister(v6_gtx_rx6_adr);
+              
+              //initialize the map
+              if (result.find(label) == result.end()) {
+                std::vector< std::vector<int> > dcfebs;
+                for (int dcfeb=0; dcfeb < 7; dcfeb++) {
+                  dcfebs.push_back(std::vector<int>(6, 0));
+                }                
+                result[label] = dcfebs;                
+              }
+              
+              std::vector< std::vector<int> >::iterator dcfebIt = result[label].begin();
+              for (int i=0; dcfebIt != result[label].end(); dcfebIt++, i++) {
+                (*dcfebIt)[0] += thisTMB->GetReadGtxRxReady(i);
+                (*dcfebIt)[1] += thisTMB->GetReadGtxRxLinkGood(i);
+                (*dcfebIt)[2] += thisTMB->GetReadGtxRxLinkHadError(i);
+                (*dcfebIt)[3] += thisTMB->GetReadGtxRxLinkBad(i);
+                if (thisTMB->GetReadGtxRxErrorCount(i) < (*dcfebIt)[4]) {
+                  (*dcfebIt)[4] = thisTMB->GetReadGtxRxErrorCount(i);
+                }
+                if (thisTMB->GetReadGtxRxErrorCount(i) > (*dcfebIt)[5]) {
+                  (*dcfebIt)[5] = thisTMB->GetReadGtxRxErrorCount(i);
+                }
+              }
+            }
+          }
+          if (crateHasOtmbs) {
+            thisCCB->hardReset();
+          }
+        }
+      }
+    }
+  }
+  // lets print the result now
+  std::map< std::string, std::vector< std::vector<int> > >::iterator it = result.begin();
+  for(; it != result.end(); it++) {
+    std::cout << "---=== " << it->first << " ===---" << std::endl;
+    std::cout << "Hard-reset was sent " << testCycles << " times and GTX status was read after each hard-reset, below are some statistics:" << std::endl;
+    for (int statIdx=0; statIdx < 6; statIdx++) {
+      bool problemIfMoreThanZero = false, problemIfLessThanTotal = false;
+      switch (statIdx) {
+        case 0:
+          std::cout << "Sum of \"Input ready\" [DCFEBs 0-6]: \t\t\t[ ";
+          problemIfLessThanTotal = true;
+          break;
+        case 1:
+          std::cout << "Sum of \"Link good\" [DCFEBs 0-6]: \t\t\t[ ";
+          problemIfLessThanTotal = true;
+          break;
+        case 2:
+          std::cout << "Sum of \"Link had at least one error\" [DCFEBs 0-6]: \t[ ";
+          problemIfMoreThanZero = true;
+          break;
+        case 3:
+          std::cout << "Sum of \"Link had over 100 errors\" [DCFEBs 0-6]: \t[ ";
+          problemIfMoreThanZero = true;
+          break;
+        case 4:
+          std::cout << "Min error count [DCFEBs 0-6]: \t\t\t\t[ ";
+          problemIfMoreThanZero = true;
+          break;
+        case 5:
+          std::cout << "Max error count [DCFEBs 0-6]: \t\t\t\t[ ";
+          problemIfMoreThanZero = true;
+          break;
+        default:
+          break;          
+      }
+      bool problem = false;
+      for (int dcfebIdx=0; dcfebIdx < 7; dcfebIdx++) {
+        std::cout << it->second[dcfebIdx][statIdx] << " ";
+        problem = problem || (problemIfMoreThanZero && it->second[dcfebIdx][statIdx] > 0) || 
+                             (problemIfLessThanTotal && it->second[dcfebIdx][statIdx] < testCycles);
+      }
+      std::cout << "]";
+      if (problem) {
+        std::cout << " <-- PROBLEM!";
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  this->ExpertToolsPage(in, out);
+}
+//
 /////////////////////////////////////////////////////////////////////
 // Chamber Utilities (synchronization) methods
 /////////////////////////////////////////////////////////////////////
@@ -6119,6 +6295,47 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForSystem(xgi::Input * in, xgi:
 	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
 	MyTest[tmb][current_crate_].SetupRadioactiveTriggerConditions();
 	MyTest[tmb][current_crate_].FindL1AAndDAVDelays();
+	MyTest[tmb][current_crate_].ReturnToInitialTriggerConditions();
+	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+	//
+      }
+      //
+      SaveLog();
+      //
+      SaveTestSummary();
+      //
+    }
+  }
+  //
+  this->ExpertToolsPage(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureDAVsForSystem(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Find DAVs for System" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find DAVs for the system");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if(!parsed) ParsingXML();
+  //
+  if(total_crates_<=0) return;
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    if ( crateVector[crate_number]->IsAlive() ) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	//
+	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	//
+	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+	MyTest[tmb][current_crate_].SetupRadioactiveTriggerConditions();
+	MyTest[tmb][current_crate_].FindDAVDelays();
 	MyTest[tmb][current_crate_].ReturnToInitialTriggerConditions();
 	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
 	//
@@ -9123,6 +9340,15 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   //
   *out << cgicc::td().set("ALIGN","left");
+  std::string HardResetTmbFpga = toolbox::toString("/%s/HardResetTmbFpga",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",HardResetTmbFpga) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","TMB FPGA Hard Reset") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left");
   std::string UnjamTMB = toolbox::toString("/%s/UnjamTMB",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",UnjamTMB) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Unjam TMB JTAG chains") << std::endl ;
@@ -10087,6 +10313,28 @@ void EmuPeripheralCrateConfig::ClearTMBBootReg(xgi::Input * in, xgi::Output * ou
     //
     std::cout << "TMB is not ready for VME access" << std::endl;
   }
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::HardResetTmbFpga(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  int tmb=0;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  //
+  thisTMB->tmb_hard_reset_tmb_fpga();
   //
   this->TMBUtils(in,out);
   //

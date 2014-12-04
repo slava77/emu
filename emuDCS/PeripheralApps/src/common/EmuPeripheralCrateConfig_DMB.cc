@@ -897,6 +897,32 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   FuncName.push_back("Calib DAC (16)");  
   FuncName.push_back("ADC Control (25)");  
   FuncName.push_back("ADC Read (16)");  
+  FuncName.push_back("Read SEM status (10)");  
+  FuncName.push_back("Reset conf ECC error counter");
+  FuncName.push_back("Read conf ECC error count (16)");  
+  FuncName.push_back("Clear USE_ANY_L1A");  
+  FuncName.push_back("Set USE_ANY_L1A");  
+  FuncName.push_back("Clear L1A_HEAD flag");  
+  FuncName.push_back("Set L1A_HEAD flag");  
+  FuncName.push_back("ADC Fine Delay (3)");  
+  FuncName.push_back("DAQ PRBS Test Mode (3)");  
+  FuncName.push_back("DAQ PRBS Inject Error");  
+  FuncName.push_back("SEM Take Control");  
+  FuncName.push_back("SEM Double Error Detected Flag Reset");  
+  FuncName.push_back("SEM Command (8)");  
+  FuncName.push_back("SEM SEU Address Linear (24)");  
+  FuncName.push_back("SEM_SEU Address Physical (24)");  
+  FuncName.push_back("Register Selection Word (8)");  
+  FuncName.push_back("Readback Selected Register (16)");  
+  FuncName.push_back("QPLL Reset");  
+  FuncName.push_back("QPLL Lock Lost Counter (8)");
+  FuncName.push_back("Startup Status (16)");
+  FuncName.push_back("Read L1A Counter (24)");  
+  FuncName.push_back("Read L1A_MATCH Counter (12)");  
+  FuncName.push_back("Read INJPLS Counter (12)");  
+  FuncName.push_back("Read EXTPLS Counter (12)");  
+  FuncName.push_back("Read BC0 Counter (12)");  
+  FuncName.push_back("Comparator Clock Phase Reset");  
 
   cgicc::Cgicc cgi(in);
   //
@@ -956,6 +982,8 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
     }
     *out << "CFEB " << cfebs[i].number()+1 << cgicc::option() << std::endl;
   }
+  // CFEB #7 will be used for broadcast
+  *out << cgicc::option().set("value", "7") << "All CFEBs" << cgicc::option() << std::endl;
 
   *out << cgicc::select() << std::endl;
 
@@ -991,11 +1019,82 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
    *out << "    ======>> CFEB Data Out (hex): " << std::hex << CFEBDataOut_ << std::endl;
     
   *out << cgicc::form() << cgicc::br() << std::endl;
-     
+
+  std::string RestoreCfebJtagIdle = toolbox::toString("/%s/RestoreCfebJtagIdle",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",RestoreCfebJtagIdle) << std::endl ;
+  *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl ;          
+  *out << cgicc::input().set("type","submit").set("value","Restore CFEB JTAG Idle state") << std::endl ;
+  *out << cgicc::form() << std::endl ; 
+
   //End select signal
     //
   *out << cgicc::fieldset()<< cgicc::br() << std::endl;
+  
+  // --=== Virtex6 register read ===--
   //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Virtex 6 Registers").set("style","color:blue") << std::endl ;
+
+  std::string ReadDcfebVirtex6Reg = toolbox::toString("/%s/ReadDcfebVirtex6Reg",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadDcfebVirtex6Reg) << std::endl ;
+  
+  *out << "Choose CFEB: " << std::endl;
+  *out << cgicc::select().set("name", "cfeb") << std::endl;  
+  for (unsigned i = 0; i < cfebs.size(); ++i) {
+    sprintf(sbuf,"%d",i);
+    if (i == 0) {
+      *out << cgicc::option().set("value", sbuf).set("selected", "");
+    } else {
+      *out << cgicc::option().set("value", sbuf);
+    }
+    *out << "CFEB " << cfebs[i].number()+1 << cgicc::option() << std::endl;
+  }
+  *out << cgicc::select() << std::endl;
+  
+  // make a map of register index -> name
+  std::map<int, std::string> regNames;
+  regNames[VTX6_REG_CRC] = "CRC";
+  regNames[VTX6_REG_FAR] = "FAR";
+  regNames[VTX6_REG_FDRI] = "FDRI";
+  regNames[VTX6_REG_FDR0] = "FDR0";
+  regNames[VTX6_REG_CMS] = "CMS";
+  regNames[VTX6_REG_CTL0] = "CTL0";
+  regNames[VTX6_REG_MASK] = "MASK";
+  regNames[VTX6_REG_STAT] = "STATUS";
+  regNames[VTX6_REG_LOUT] = "LOUT";
+  regNames[VTX6_REG_COR0] = "COR0";
+  regNames[VTX6_REG_MFWR] = "MFWR";
+  regNames[VTX6_REG_CBC] = "CBC";
+  regNames[VTX6_REG_IDCODE] = "IDCODE";
+  regNames[VTX6_REG_AXSS] = "AXSS";
+  regNames[VTX6_REG_COR1] = "COR1";
+  regNames[VTX6_REG_CSOB] = "CSOB";
+  regNames[VTX6_REG_WBSTAR] = "WBSTAR";
+  regNames[VTX6_REG_TIMER] = "TIMER";
+  regNames[VTX6_REG_BOOTSTS] = "BOOTSTS";
+  regNames[VTX6_REG_CTL1] = "CTL1";
+  regNames[VTX6_REG_DWC] = "DWC";
+  
+  // print the drop down list
+  *out << cgicc::select().set("name", "reg") << std::endl;
+  std::map<int, std::string>::iterator it;
+  for (it = regNames.begin(); it != regNames.end(); ++it) {
+    sprintf(sbuf, "%d", it->first);
+    *out << cgicc::option().set("value", sbuf) << it->second << cgicc::option() << std::endl;
+  }
+  *out << cgicc::select() << std::endl;
+
+  *out << cgicc::input().set("type","hidden").set("name","dmb").set("value",dmbstring) << std::endl;
+  *out << cgicc::input().set("type","submit").set("value","Read Virtex6 Register") << std::endl;
+  
+  *out << cgicc::br() << std::endl;
+  *out << "Reult (hex): " << std::hex << DcfebVirtex6RegisterRead_ << std::dec << std::endl;
+  
+  *out << cgicc::form() << std::endl;  
+  *out << cgicc::fieldset()<< cgicc::br() << std::endl;
+  // ================================================
+  
+  // DCFEB configuration
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("DCFEB Configuration").set("style","color:blue") << std::endl ;
 
@@ -1159,6 +1258,32 @@ void EmuPeripheralCrateConfig::CFEBFunction(xgi::Input * in, xgi::Output * out )
   FuncSize.push_back(16);
   FuncSize.push_back(25);
   FuncSize.push_back(16);
+  FuncSize.push_back(10);
+  FuncSize.push_back(0);
+  FuncSize.push_back(16);
+  FuncSize.push_back(0);
+  FuncSize.push_back(0);
+  FuncSize.push_back(0);
+  FuncSize.push_back(0);
+  FuncSize.push_back(3);
+  FuncSize.push_back(3);
+  FuncSize.push_back(0);
+  FuncSize.push_back(0);
+  FuncSize.push_back(0);
+  FuncSize.push_back(8);
+  FuncSize.push_back(24);
+  FuncSize.push_back(24);
+  FuncSize.push_back(8);
+  FuncSize.push_back(16);
+  FuncSize.push_back(0);
+  FuncSize.push_back(8);
+  FuncSize.push_back(16);
+  FuncSize.push_back(24);
+  FuncSize.push_back(12);
+  FuncSize.push_back(12);
+  FuncSize.push_back(12);
+  FuncSize.push_back(12);
+  FuncSize.push_back(0);
 
   cgicc::Cgicc cgi(in);
 
@@ -1184,22 +1309,71 @@ void EmuPeripheralCrateConfig::CFEBFunction(xgi::Input * in, xgi::Output * out )
         CFEBDataIn_ = strtol(cgi["CFEBDataIn"]->getValue().c_str(),NULL,16);
 
      std::vector<CFEB> cfebs = thisDMB->cfebs() ;
-     if(icfeb<0 || icfeb>cfebs.size()) icfeb=0;
+     bool broadcast = (icfeb == 7);
+     if(icfeb<0 || icfeb>cfebs.size()) {
+         std::cout << "Invalid CFEB number... returning." << std::endl;
+         return;
+     }
 
-     std::cout << "call CFEB " << cfebs[icfeb].number()+1 << " with JTAG function: " << sig << std::endl;
+     if (!broadcast) {
+        std::cout << "call CFEB " << cfebs[icfeb].number()+1 << " with JTAG function: " << sig << std::endl;
+     } else {
+        std::cout << "call all CFEBs with JTAG function: " << sig << std::endl;
+     }
+     
      std::cout << "CFEB Data In: " << std::hex << CFEBDataIn_ << std::dec << std::endl;
      if(sig>0 && sig<=0x3F) std::cout << "data size is: " << FuncSize[sig] << std::endl;
      
      char inbuf[200], outbuf[200];
      for(int i=0;i<200;i++) { inbuf[i]=0; outbuf[i]=0;}
      memcpy(inbuf, &CFEBDataIn_, 8);
-     thisDMB->dcfeb_hub(cfebs[icfeb], sig, FuncSize[sig], inbuf, outbuf, 3);
+     if (!broadcast) {
+        thisDMB->dcfeb_hub(cfebs[icfeb], sig, FuncSize[sig], inbuf, outbuf, 3);
+     } else {
+        thisDMB->write_cfeb_selector(0x7F);
+        thisDMB->dcfeb_core(sig, FuncSize[sig], inbuf, outbuf, 3);
+     }
      memcpy(&CFEBDataOut_, outbuf, 8);
 
      std::cout << "CFEB Data Out: " << std::hex << CFEBDataOut_ << std::dec << std::endl;
 
      this->CFEBUtils(in,out);                               
      
+}
+void EmuPeripheralCrateConfig::ReadDcfebVirtex6Reg(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Not dmb" << std::endl ;
+    dmb = DMB_;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+
+     unsigned icfeb=atoi(cgi.getElement("cfeb")->getValue().c_str());
+     int reg = atoi(cgi.getElement("reg")->getValue().c_str());
+     
+     std::cout << "Reading Virtex 6 register " << reg << " on DCFEB " << (icfeb+1) << " (DMB" << dmb << ")" << std::endl;
+     
+     std::vector<CFEB> cfebs = thisDMB->cfebs();
+     if(icfeb < 0 || icfeb >= cfebs.size()) {
+         std::cout << "Invalid CFEB number... returning." << std::endl;
+         return;
+     }
+     
+     DcfebVirtex6RegisterRead_ = thisDMB->dcfeb_readreg_virtex6(cfebs[icfeb], reg);
+     
+     std::cout << "Result: " << std::hex << DcfebVirtex6RegisterRead_ << std::dec << std::endl;
+
+     this->CFEBUtils(in,out);                                    
 }
 
 void EmuPeripheralCrateConfig::DCFEBReadFirmware(xgi::Input * in, xgi::Output * out )
@@ -3899,6 +4073,31 @@ void EmuPeripheralCrateConfig::ConfigDCFEBs(xgi::Input * in, xgi::Output * out )
      }
      this->CFEBUtils(in,out);
 }
+
+void EmuPeripheralCrateConfig::RestoreCfebJtagIdle(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+  std::cout << "Button: Restore CFEB JTAG Idle" << std::endl;
+
+  cgicc::Cgicc cgi(in);
+
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Not dmb" << std::endl ;
+    dmb = DMB_;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  thisDMB->restoreCFEBIdle();
+
+  this->CFEBUtils(in,out);
+}
+
 
   //
   void EmuPeripheralCrateConfig::ReadDMBRegister(xgi::Input * in, xgi::Output * out ) 
