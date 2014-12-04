@@ -170,8 +170,13 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define Calib_DAC 34
 #define ADC_ctrl 35
 #define ADC_rdbk 36
+#define SEM_STATUS 37
+#define ECC_ERR_CNT_RST 38
+#define ECC_ERR_CNT 39
 #define CLEAR_ANYL1AFLAG 40
 #define SET_ANYL1AFLAG 41
+#define CLEAR_L1AHEAD_FLAG 42
+#define SET_L1AHEAD_FLAG 43
 #define ADC_Fine_Delay 44
 #define PRBS_Test_Mode  45
 #define PRBS_Inject_Error 46
