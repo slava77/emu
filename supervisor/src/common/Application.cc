@@ -4,6 +4,7 @@
 #include "emu/supervisor/RegDumpPreprocessor.h"
 #include "emu/base/Stopwatch.h"
 
+#include <exception>
 #include <sstream>
 #include <set>
 #include <map>
@@ -1602,18 +1603,33 @@ void emu::supervisor::Application::stateChanged(toolbox::fsm::FiniteStateMachine
   state_=fsm.getStateName (fsm.getCurrentState());
   try
     {
+      rcmsStateNotifier_.findRcmsStateListener();      	
       LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
       rcmsStateNotifier_.stateChanged((std::string)state_,"");
     }
   catch(xcept::Exception &e)
     {
-      LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control."
-		      << xcept::stdformat_exception_history(e));
-      stringstream ss2;
-      ss2 << "Failed to notify state change to Run Control.";
-      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss2.str(), e );
+      stringstream ss;
+      ss << "Failed to notify state change to Run Control. ";
+      LOG4CPLUS_ERROR(getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e));
+      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
       this->notifyQualified( "error", eObj );
-      std::cout << "rcmsFailed to notify state change to Run Control:" << std::endl;
+    }
+  catch( std::exception& e )
+    {
+      stringstream ss;
+      ss << "Failed to notify state change to Run Control.  std::exception caught: ";
+      LOG4CPLUS_ERROR(getApplicationLogger(), ss.str() << e.what() );
+      XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss.str() );
+      this->notifyQualified( "error", eObj );
+    }
+  catch(...)
+    {
+      stringstream ss;
+      ss << "Failed to notify state change to Run Control. Unknown exception caught.";
+      LOG4CPLUS_ERROR(getApplicationLogger(), ss.str() );
+      XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss.str() );
+      this->notifyQualified( "error", eObj );
     }
   
   emu::base::Supervised::stateChanged(fsm);
@@ -1640,6 +1656,7 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
 
   // Send notification to Run Control
   try {
+    rcmsStateNotifier_.findRcmsStateListener();      	
     LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
     rcmsStateNotifier_.stateChanged("Error",xcept::stdformat_exception_history(failed.getException()));
   } catch(xcept::Exception &e) {
