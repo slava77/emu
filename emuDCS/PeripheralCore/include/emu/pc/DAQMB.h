@@ -743,6 +743,7 @@ public:
   std::vector<float> dcfeb_fpga_monitor(CFEB & cfeb);
   void dcfeb_hub(CFEB & cfeb, int jfunc, int nbit, void *inbuf, char *outbuf, int option);
   void dcfeb_sys_reset(CFEB & cfeb);
+  void dcfeb_comp_clock_phase_reset();
   unsigned dcfeb_read_status(CFEB & cfeb);
   unsigned dcfeb_write_status(CFEB & cfeb, unsigned status);
   void FADC_SetMask(CFEB & cfeb, short int mask);

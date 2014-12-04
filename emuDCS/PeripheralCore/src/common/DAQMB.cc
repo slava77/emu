@@ -7767,6 +7767,14 @@ void DAQMB::dcfeb_sys_reset(CFEB & cfeb)
   return;
 }
 
+void DAQMB::dcfeb_comp_clock_phase_reset()
+{
+  char buf[4];
+  write_cfeb_selector(0x7F);
+  dcfeb_core(COMP_CLK_PHASE_RST, 0, buf, buf, NOW);
+  return;
+}
+
 unsigned DAQMB::dcfeb_read_status(CFEB & cfeb)
 {
   unsigned temp;
