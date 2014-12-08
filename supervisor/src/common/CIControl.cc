@@ -41,13 +41,13 @@ emu::supervisor::CIControl& emu::supervisor::CIControl::configureSequence(){
   xdata::String          BC0( "BC0" );
   xdata::String          TestEnable( "TestEnable" );
   xdata::String          HardReset( "HardReset" );
+  xdata::String          Resync( "Resync" );
+
   
   switch ( runType_ ){
   case global:
     // fall through
   case local:
-    // fall through
-  case AFEBcalibration:
     // BEGINSEQUENCE configure
     //   DisableL1A
     //   ResetCounters
@@ -70,12 +70,40 @@ emu::supervisor::CIControl& emu::supervisor::CIControl::configureSequence(){
     // Do this from the CIs so that it can be sent in both local and global.
     sendBgo( HardReset );
     mSleep( 500 );
-    // Send resync from LPM instead so that it comes in sync across all our partitions 
-    // in order for the TF SP links to be synched.
+    // Send resync from PM instead so that it comes in sync across all our partitions 
+    // in order for the TF SP links to be synched. Note that a resync will be issued
+    // by the PM as part of the standard TCDS 'Start' Bgo train.
     // sendBgo( Resync );
     // mSleep( 100 );
     break;
+  case AFEBcalibration:
   case CFEBcalibration:
+    // BEGINSEQUENCE configure
+    //   DisableL1A
+    //   ResetCounters
+    //   SendLongBDATA 196608
+    //   mSleep 100
+    //   BGO HardReset
+    //   mSleep 500
+    //   BGO Resynch
+    //   mSleep 100
+    //   Periodic 1
+    //   Periodic Off
+    //   EnableL1A
+    // ENDSEQUENCE
+    sendBCommand( data, type, addressOfTTCrx, subaddress, bcommandAddressType );		  
+    mSleep( 100 );
+    // Hard reset is needed in order to clear the FIFO of the DDUs 
+    // (in case some events have been left there) so that the resync can zero its
+    // L1A counter. Otherwise, with nonzero L1A counter, the DDU would fail to be
+    // enabled.
+    // Do this from the CIs so that it can be sent in both local and global.
+    sendBgo( HardReset );
+    mSleep( 500 );
+    // In calibration runs, we disable the standard TCDS Bgo train 'Start' (which
+    // would normally emit a resync), so emit a resync now instead:
+    sendBgo( Resync );
+    mSleep( 100 );
     break;
   default:
     XCEPT_RAISE( xcept::Exception, "Unknown run type." );

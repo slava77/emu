@@ -7,8 +7,6 @@ emu::supervisor::PMControl::PMControl( xdaq::Application *parent,
 
 
 emu::supervisor::PMControl& emu::supervisor::PMControl::configureSequence(){
-  xdata::String Resync( "Resync" );
-
   switch ( runType_ ){
   case global:
     // In global, we're not in control of the PM, therefore:
@@ -36,14 +34,8 @@ emu::supervisor::PMControl::PMControl& emu::supervisor::PMControl::enableSequenc
   case global:
     // In global, we're not in control of the PM, therefore:
     return *this;
-  case local:
-    // First of all, wait for PM to complete 'Enable' transition
-    waitForState( "Enabled", 20 );
-    break;
-  case AFEBcalibration:
-    // First of all, wait for PM to complete 'Enable' transition
-    waitForState( "Enabled", 20 );
-    break;
+  case local:           // fall through
+  case AFEBcalibration: // fall through
   case CFEBcalibration:
     // First of all, wait for PM to complete 'Enable' transition
     waitForState( "Enabled", 20 );
