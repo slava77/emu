@@ -51,6 +51,12 @@ namespace emu {
 			/** Sets the RUI **/
 			inline void setRUI(const uint16_t &rui) { rui_ = rui; }
 
+			/** @returns the DDU source / SLink ID (FED Id) from the configuration **/
+			inline uint16_t getSlinkId() { return slink_id_; }
+
+			/** Sets the DDU source / SLink ID (FED Id) **/
+			inline void setSlinkId(const uint16_t &slink_id) { slink_id_ = slink_id; }
+
 			/** @returns the FMM ID from the configuration **/
 			inline uint16_t getFMMID() { return fmm_id_; }
 
@@ -192,8 +198,8 @@ namespace emu {
 			uint16_t readFlashBoardID()
 			throw (emu::fed::exception::DDUException);
 
-			/** @returns the board RUI stored in flash. **/
-			uint16_t readFlashRUI()
+			/** @returns the board source / SLink ID stored in flash. **/
+			uint16_t readFlashSlinkId()
 			throw (emu::fed::exception::DDUException);
 
 			/** @returns the GbE FIFO thresholds stored in flash. **/
@@ -216,8 +222,8 @@ namespace emu {
 			void writeFlashBoardID(const uint16_t &value)
 			throw (emu::fed::exception::DDUException);
 
-			/** Writes a value to the board RUI flash register. **/
-			void writeFlashRUI(const uint16_t &value)
+			/** Writes a value to the board source / SLink ID flash register. **/
+			void writeFlashSlinkId(const uint16_t &value)
 			throw (emu::fed::exception::DDUException);
 
 			/** Writes a value to the GbE FIFO threshold flash register. **/
@@ -339,8 +345,8 @@ namespace emu {
 			void toggleL1Calibration()
 			throw (emu::fed::exception::DDUException);
 
-			/** @returns the board RUI stored in the DDUFPGA. **/
-			uint16_t readRUI()
+			/** @returns the board source / SLink ID stored in the DDUFPGA. **/
+			uint16_t readSlinkId()
 			throw (emu::fed::exception::DDUException);
 
 			/** Magically sends a fake L1A through the DDU. **/
@@ -519,6 +525,9 @@ namespace emu {
 			/// The RUI from the configuration
 			uint16_t rui_;
 
+			/// The DDU source / SLink ID from the configuration
+			uint16_t slink_id_;
+                        
 			/// The FMM ID from the configuration
 			uint16_t fmm_id_;
 

@@ -81,7 +81,8 @@ throw (emu::fed::exception::ConfigurationException)
 						// Read all the normal configuration information from the board itself
 						testDDU->setGbEPrescale(testDDU->readGbEPrescale());
 						testDDU->setKillFiber((testDDU->readKillFiber() & 0xf7000) | (testDDU->readFlashKillFiber()));
-						testDDU->setRUI(testDDU->readFlashRUI());
+						testDDU->setSlinkId(testDDU->readFlashSlinkId());
+						testDDU->setRUI(testDDU->getSlinkId());
 						ruiTotal += testDDU->getRUI();
 						testCrate->addBoard(testDDU);
 						continue;

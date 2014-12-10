@@ -591,7 +591,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readFlashRUI()
+uint16_t emu::fed::DDU::readFlashSlinkId()
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -715,7 +715,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-void emu::fed::DDU::writeFlashRUI(const uint16_t &value)
+void emu::fed::DDU::writeFlashSlinkId(const uint16_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -1357,7 +1357,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readRUI()
+uint16_t emu::fed::DDU::readSlinkId()
 throw (emu::fed::exception::DDUException)
 {
 	try {

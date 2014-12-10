@@ -2,6 +2,8 @@
 * $Id: DDUDBAgent.cc,v 1.12 2010/05/31 14:05:18 paste Exp $
 \*****************************************************************************/
 
+#include <xdata/String.h>
+
 #include "emu/fed/DDUDBAgent.h"
 #include "emu/fed/FiberDBAgent.h"
 #include "emu/fed/DDU.h"
@@ -52,6 +54,7 @@ throw (emu::fed::exception::DBException)
 			xdata::UnsignedShort slot = getValue<xdata::UnsignedShort>(*iRow, "SLOT");
 			xdata::UnsignedShort rui = getValue<xdata::UnsignedShort>(*iRow, "RUI");
 			xdata::UnsignedInteger fmm_id = getValue<xdata::UnsignedInteger>(*iRow, "FMM_ID");
+			xdata::UnsignedInteger slink_id = getValue<xdata::UnsignedInteger>(*iRow, "SLINK_ID");
 			xdata::UnsignedShort gbe_prescale = getValue<xdata::UnsignedShort>(*iRow, "GBE_PRESCALE");
 			xdata::Boolean bit15 = getValue<xdata::Boolean>(*iRow, "ENABLE_FORCE_CHECKS");
 			xdata::Boolean bit16 = getValue<xdata::Boolean>(*iRow, "FORCE_ALCT_CHECKS");
@@ -62,6 +65,7 @@ throw (emu::fed::exception::DBException)
 			
 			DDU *newDDU = new DDU(slot, fake);
 			newDDU->setRUI(rui);
+      newDDU->setSlinkId(slink_id);
 			newDDU->setFMMID(fmm_id);
 			newDDU->setGbEPrescale(gbe_prescale);
 			
@@ -110,6 +114,7 @@ throw (emu::fed::exception::DBException)
 		table.addColumn("SLOT", "unsigned short");
 		table.addColumn("RUI", "unsigned short");
 		table.addColumn("FMM_ID", "unsigned int");
+		table.addColumn("SLINK_ID", "unsigned int");
 		table.addColumn("ENABLE_FORCE_CHECKS", "bool");
 		table.addColumn("FORCE_ALCT_CHECKS", "bool");
 		table.addColumn("FORCE_TMB_CHECKS", "bool");
@@ -126,6 +131,7 @@ throw (emu::fed::exception::DBException)
 			xdata::UnsignedShort slot = (*iDDU)->getSlot();
 			xdata::UnsignedShort rui = (*iDDU)->getRUI();
 			xdata::UnsignedInteger fmmid = (*iDDU)->getFMMID();
+			xdata::UnsignedInteger slinkid = (*iDDU)->getSlinkId();
 			xdata::Boolean force = (*iDDU)->getKillFiber() & (1 << 15);
 			xdata::Boolean alct = (*iDDU)->getKillFiber() & (1 << 16);
 			xdata::Boolean tmb = (*iDDU)->getKillFiber() & (1 << 17);
@@ -138,6 +144,7 @@ throw (emu::fed::exception::DBException)
 			iRow->setField("SLOT", slot);
 			iRow->setField("RUI", rui);
 			iRow->setField("FMM_ID", fmmid);
+			iRow->setField("SLINK_ID", slinkid);
 			iRow->setField("ENABLE_FORCE_CHECKS", force);
 			iRow->setField("FORCE_ALCT_CHECKS", alct);
 			iRow->setField("FORCE_TMB_CHECKS", tmb);

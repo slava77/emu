@@ -22,10 +22,18 @@ throw (emu::fed::exception::ParseException)
 	DDU *ddu_ = new DDU(slot, fake);
 	
 	try {
-		ddu_->setRUI(parser.extract<uint16_t>("RUI"));
+		ddu_->setRUI(parser.extract<uint16_t>("RUI")); // & 0x3f);
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse RUI from element";
+		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
+	}
+	
+	try {
+		ddu_->setSlinkId (parser.extract<uint16_t>("SLINK_ID"));
+	} catch (emu::fed::exception::ParseException &e) {
+		std::ostringstream error;
+		error << "Unable to parse SLINK_ID from element";
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 	

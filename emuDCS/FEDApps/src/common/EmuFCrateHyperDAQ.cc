@@ -1914,8 +1914,8 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		generalTable(0,2) << "Decoded Status";
 		generalTable[0]->set("class", "header");
 
-		generalTable(1,0) << "DDU RUI (16-bit)";
-		unsigned long int dduValue = myDDU->readRUI();
+		generalTable(1,0) << "DDU Source ID a.k.a. SLink ID (16-bit)";
+		unsigned long int dduValue = myDDU->readSlinkId();
 		generalTable(1,1) << dduValue;
 		generalTable(1,1).setClass("none");
 
@@ -4161,8 +4161,8 @@ void emu::fed::EmuFCrateHyperDAQ::DDUExpert(xgi::Input *in, xgi::Output *out)
 		writableTable(3,2) << cgicc::form() << std::endl;
 		
 
-		writableTable(4,0) << "Flash DDU RUI";
-		writableTable(4,1) << myDDU->readFlashRUI();
+		writableTable(4,0) << "Flash DDU Source ID (a.k.a. SLink ID)";
+		writableTable(4,1) << myDDU->readFlashSlinkId();
 
 		// New Value...
 		writableTable(4,2) << cgicc::form()
@@ -4825,7 +4825,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input *in, xgi::Output *out)
 			break;
 
 		case (17): // Flash RUI
-			myDDU->writeFlashRUI(uploadValue);
+			myDDU->writeFlashSlinkId(uploadValue);
 			break;
 
 		case (18): // Load FMM

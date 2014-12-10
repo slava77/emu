@@ -742,12 +742,12 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						}
 						break;
 
-					case 2: // RUI Number
-						entryObject.push_back(JSONSpirit::Pair("name", "RUI Number"));
+					case 2: // Source / SLink ID
+						entryObject.push_back(JSONSpirit::Pair("name", "Source ID (a.k.a. Slink ID)"));
 						for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
 							JSONSpirit::Object valueObject;
 							valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-							valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readRUI()));
+							valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readSlinkId()));
 							valueObject.push_back(JSONSpirit::Pair("base", 10));
 							// No description
 							valueArray.push_back(valueObject);
@@ -755,11 +755,11 @@ void emu::fed::Commander::webReadDDURegisters(xgi::Input *in, xgi::Output *out)
 						break;
 
 					case 3: // Flash RUI Number
-						entryObject.push_back(JSONSpirit::Pair("name", "Flash RUI Number"));
+						entryObject.push_back(JSONSpirit::Pair("name", "Flash Slink ID"));
 						for (std::vector<DDU *>::iterator iDDU = targetDDUs.begin(); iDDU != targetDDUs.end(); iDDU++) {
 							JSONSpirit::Object valueObject;
 							valueObject.push_back(JSONSpirit::Pair("rui", (*iDDU)->getRUI()));
-							valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readFlashRUI()));
+							valueObject.push_back(JSONSpirit::Pair("value", (*iDDU)->readFlashSlinkId()));
 							valueObject.push_back(JSONSpirit::Pair("base", 10));
 							// No description
 							valueArray.push_back(valueObject);
@@ -3538,8 +3538,8 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 			registerBase = 10;
 			break;
 
-		case 3: // Flash RUI number
-			registerName = "Flash RUI Number";
+		case 3: // Flash source / SLink ID
+			registerName = "Flash Source ID (a.k.a. Slink ID)";
 			registerHelp = "The readout-unit identifier number.  It is inserted into the data stream so that local and central DAQ know from which DDU the data are coming.";
 			registerBase = 10;
 			break;
@@ -3669,8 +3669,8 @@ void emu::fed::Commander::webEditDDURegister(xgi::Input *in, xgi::Output *out)
 				.set("for", "manual_" + ruiString) << std::endl;
 			break;
 
-		case 3: // Flash RUI number
-			registerValue << std::setbase(registerBase) << (*iDDU)->readFlashRUI();
+		case 3: // Flash source / SLink ID
+			registerValue << std::setbase(registerBase) << (*iDDU)->readFlashSlinkId();
 
 			registerOptions << cgicc::input()
 				.set("type", "radio")

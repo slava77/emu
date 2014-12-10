@@ -701,38 +701,22 @@ throw (toolbox::fsm::exception::Exception)
 				REVOKE_ALARM("CommunicatorConfigureFPGAGbEPrescale", NULL);
 #endif
 
-				// Now we should check if the RUI matches the flash value and
+				// Now we should check if the source / SLink ID matches the flash value and
 				//  update it as needed.
-				uint32_t flashRUI = (*iDDU)->readFlashRUI();
-				uint16_t calculatedRUI = (*iCrate)->getRUI((*iDDU)->slot());
-				uint16_t targetRUI = (*iDDU)->getRUI();
+				uint32_t flashSlinkId = (*iDDU)->readFlashSlinkId();
+				uint16_t targetSlinkId = (*iDDU)->getSlinkId();
 
-				LOG4CPLUS_DEBUG(getApplicationLogger(),"RUI: XML(" << targetRUI << ") flash(" << flashRUI << ") calculated(" << calculatedRUI << ")");
+				LOG4CPLUS_DEBUG(getApplicationLogger(),"Source / SLink ID: XML(" << targetSlinkId << ") flash(" << flashSlinkId << ")");
 
-				// This causes a warning only
-				if (calculatedRUI != targetRUI) {
-					std::ostringstream error;
-					error << "XML (" << std::hex << targetRUI << ") and Calculated (" << calculatedRUI << ") RUI for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree";
-					LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-					std::ostringstream tag;
-					tag << "FEDCrate " << (*iCrate)->getNumber() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID();
-#if GCC_VERSION >= 40300
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureCalculatedRUI", "WARN", error.str(), tag.str(), NULL);
-#endif
-				}
-#if GCC_VERSION >= 40300
-				REVOKE_ALARM("CommunicatorConfigureCalculatedRUI", NULL);
-#endif
-
-				if (flashRUI != targetRUI) {
-					LOG4CPLUS_INFO(getApplicationLogger(),"Flash and XML RUI for DDU in crate " << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree:  reloading flash");
-					(*iDDU)->writeFlashRUI(targetRUI);
-
+				if (flashSlinkId != targetSlinkId) {
+					LOG4CPLUS_INFO(getApplicationLogger(),"Flash and XML source / SLink ID for DDU in crate " << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree (in flahsh = " << flashSlinkId << ", XML source / SLink ID = " << targetSlinkId << "):  reloading flash");
+					(*iDDU)->writeFlashSlinkId(targetSlinkId);
+                                        
 					// Check again.
-					uint16_t newRUI = (*iDDU)->readFlashRUI();
-					if (newRUI != targetRUI) {
+					uint16_t newSlinkId = (*iDDU)->readFlashSlinkId();
+					if (newSlinkId != targetSlinkId) {
 						std::ostringstream error;
-						error << "Flash (" << std::hex << newRUI << ") and XML (" << targetRUI << ") RUI for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree after an attempt was made to reload the flash.";
+						error << "Flash (" << std::hex << newSlinkId << ") and XML (" << targetSlinkId << ") source / SLink ID for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << " disagree after an attempt was made to reload the flash.";
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 						std::ostringstream tag;
 						tag << "FEDCrate " << (*iCrate)->getNumber() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID();

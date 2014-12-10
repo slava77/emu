@@ -54,8 +54,10 @@ void emu::fed::IRQThreadManager::attachCrates(std::vector<Crate *> &crateVec)
 {
 	threadVector_.clear();
 	for (std::vector<Crate *>::iterator iCrate = crateVec.begin(); iCrate != crateVec.end(); iCrate++) {
-		pthread_t threadID = 0;
-		threadVector_.push_back(std::pair<Crate *, pthread_t>(*iCrate, threadID));
+		if (!(*iCrate)->isTrackFinder()) { // don't start the IRQ thread for CSCTF crate because that interferes with CSCTF software (only with CONNET 2 cards)
+			pthread_t threadID = 0;
+			threadVector_.push_back(std::pair<Crate *, pthread_t>(*iCrate, threadID));
+		}
 	}
 }
 
@@ -639,10 +641,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				break;
 
 			try {
-			        // waitIRQ( timeout_in_ms ) will block VME communication until it returns. 
-			        // Since long waits can slow down concurrent VME access, waitIRQ should time out sooner for the TF crate 
-			        // in order to give the TF Cell more frequent opportunities to communicate with the crate.
-			        if (myCrate->getController()->waitIRQ( myCrate->isTrackFinder() ? 10 : 1000 ) == false) {
+
+				// I know this means the TF DDU will use interrupts, but we'll deal with that hurdle when we come to it.
+				if (myCrate->getController()->waitIRQ(1000) == false) {
 					pthread_testcancel();
 					// Prevent crash that occurs when thread canceled during logging
 					if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &unused) != 0)
