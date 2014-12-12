@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <time.h>
 #include "emu/pc/EmuEndcap.h"
+#include "emu/utils/System.h"
 
 namespace emu {
   namespace pc {
@@ -46,7 +47,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
 //  CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
 //  MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_100808.svf";
 
-  std::string endcap = getenv("ENDCAP");
+  std::string endcap = emu::utils::performExpansions("$ENDCAP");
   if (endcap == "P") {
     OTMBFirmwareFile_ = FirmwareDir_+"tmb/tmb_me11_virtex6_typeC.svf";
   } else if (endcap == "M") {
