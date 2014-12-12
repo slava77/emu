@@ -93,3 +93,42 @@ std::string csvFrom( const Container& c, const char delimiter = ',' )
   }
   return oss.str();
 }
+
+/// Convert type T to binary number in ASCI string.
+///
+/// @param t Number of type T.
+///
+/// @return  Binary number in ASCI string.
+///
+template <typename T>
+std::string binaryFrom( const T& t ){
+  std::stringstream ss;
+  const int nBits( sizeof( T ) * 8 );
+  const T mask( 1 );
+  for ( int i=nBits-1; i>=0; --i ) ss << ((t>>i) & mask);
+  return ss.str();
+}
+
+/// Convert binary number in ASCI string to type T.
+/// Spaces, underscores, etc. can be used, it ignores everything that is not '0' or '1'.
+///
+/// @param s Binary number in ASCI string.
+///
+/// @return  Number of type T.
+///
+template <typename T>
+T binaryTo( const std::string s )
+{
+  T t( 0 );
+  const T one( 1 );
+  const size_t nBits( sizeof( T ) * 8 );
+  size_t iBit( 0 );
+  for ( std::string::const_reverse_iterator i=s.rbegin(); i!=s.rend() && iBit<nBits; ++i ){
+    if      ( *i == '0' ) ++iBit;
+    else if ( *i == '1' ){
+      t |= one<<iBit;
+      ++iBit;
+    }
+  }
+  return t;
+}
