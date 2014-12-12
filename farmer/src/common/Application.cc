@@ -133,7 +133,9 @@ emu::farmer::Application::startExecutives(){
     allUp = true;
     for ( map<string,ProcessDescriptor>::iterator ex = processDescriptors_.begin(); ex != processDescriptors_.end(); ++ex ){
       if ( ex->second.isSelected() && ex->second.getName() == executiveClass_.toString() ){
-	allUp &= ( ex->second.getState() == "ON" );
+	bool up = ( ex->second.getState() == "ON" );
+	runningExecutives_.add( ex->first, selectedDUCKName_ );
+	allUp &= up;
       }
     }
     if ( allUp ) break;
@@ -145,7 +147,7 @@ emu::farmer::Application::startExecutives(){
     pollProcesses();
   }
   else{
-    XCEPT_RAISE( xcept::Exception, "Failed to create all selected XDAQ exectutives: " );
+    XCEPT_RAISE( xcept::Exception, "Failed to create all selected XDAQ exectutives" );
   }
 }
 
@@ -214,6 +216,7 @@ emu::farmer::Application::destroyExecutives(){
 								     processDescriptors_[pd->second.getJobControlURI()].getURL(),
 								     processDescriptors_[pd->second.getJobControlURI()].getLid() );
 	//reply->writeTo( cout );
+	runningExecutives_.remove( pd->first );
       } catch( xcept::Exception& e ){
 	LOG4CPLUS_WARN( logger_, "Failed to destroy process at " 
 			<< pd->second.getURL() << " : " << xcept::stdformat_exception_history(e) );
@@ -233,7 +236,7 @@ emu::farmer::Application::pollProcesses(){
 
     string parameterName;
     if ( pd->second.getName() == executiveClass_.toString() ) parameterName = "logLevel";
-    else                                                    parameterName = "stateName";
+    else                                                      parameterName = "stateName";
 
     xoap::MessageReference SOAPMessage;
     try{
@@ -263,8 +266,12 @@ emu::farmer::Application::pollProcesses(){
     }  
 
     if ( pd->second.getName() == executiveClass_.toString() ){
-      if ( parameterValue.size() ) pd->second.setState( "ON"  );
-      else                         pd->second.setState( "OFF" );
+      if ( parameterValue.size() ){
+	pd->second.setState( "ON"  );
+      }
+      else{
+	pd->second.setState( "OFF" );
+      }
     }
     else{
       if ( parameterValue.size() ) pd->second.setState( parameterValue );
@@ -552,15 +559,15 @@ string emu::farmer::Application::setProcessingInstruction( const string XML, con
   return target.str();
 }
 
-string emu::farmer::Application::insertStatuses( const string DUCK ){
+string emu::farmer::Application::insertStatuses( const string& DUCK ){
   string result( DUCK );
   for ( map<string,ProcessDescriptor>::iterator pd = processDescriptors_.begin(); pd != processDescriptors_.end(); ++pd ){
-    result = insertStatus( result, &(pd->second) );
+    result = insertStatus( result, pd->first, &(pd->second) );
   }
   return result;
 }
 
-string emu::farmer::Application::insertStatus( const string DUCK, const ProcessDescriptor* pd )
+string emu::farmer::Application::insertStatus( const string& DUCK, const string& URI, const ProcessDescriptor* pd )
   throw( xcept::Exception ){
   stringstream target;
   try{
@@ -572,11 +579,13 @@ string emu::farmer::Application::insertStatus( const string DUCK, const ProcessD
     stringstream source; source << DUCK;
     stringstream port; port << pd->getPort();
     map<string,string> params;
+    params["DUCKNAME"] = string("'") + selectedDUCKName_                       + "'";
     params["HOST"    ] = string("'") + pd->getHost()                           + "'";
     params["PORT"    ] = string("'") + port.str()                              + "'";
     params["URN"     ] = string("'") + pd->getPath()                           + "'";
     params["SELECTED"] = string("'") + ( pd->isSelected() ? "true" : "false" ) + "'";
     params["STATE"   ] = string("'") + pd->getState()                          + "'";
+    params["OWNER"   ] = string("'") + runningExecutives_.getOwnerDuck( URI )  + "'";
     emu::farmer::utils::transformWithParams( source, stylesheet, target, params );
   }catch( xcept::Exception& e ){
     stringstream ess; ess << "Failed to insert process status into '" << DUCK << "'.";
@@ -701,8 +710,15 @@ void emu::farmer::Application::createProcessDescriptors()
 	    }
 	    // Read in config file and store it
 	    if ( configFile.str().size() > 0 ){
-	      string cfgXML( emu::farmer::utils::readFile( configFile.str() ) );
-	      xdaqConfigs_[configFile.str()] = cfgXML;
+	      try{
+		string cfgXML( emu::farmer::utils::readFile( configFile.str() ) );
+		xdaqConfigs_[configFile.str()] = cfgXML;
+	      }
+	      catch( xcept::Exception &e ){
+		stringstream ss;
+		ss << "Failed to load configuration file '" << configFile.str() << "'";
+		XCEPT_RETHROW( xcept::Exception, ss.str(), e );
+	      }
 	    }
 	    else{
 	      XCEPT_RAISE( xcept::Exception, "XDAQ executive has no configuration file." );
@@ -926,9 +942,11 @@ void emu::farmer::Application::selectorWebPage(xgi::Input *in, xgi::Output *out)
 	 << "<selector>" << endl
 	 << "<duckList>" << endl;
     for ( vector<string>::size_type iDuck=0; iDuck < duckList.size(); ++iDuck ){
+
       *out << "<duck"
-	   << " file='" << duckList.at(iDuck)     << "'"
-	   << " time='" << duckTimeList.at(iDuck) << "'"
+	   << " file='" << duckList.at(iDuck)                                         << "'"
+	   << " time='" << duckTimeList.at(iDuck)                                     << "'"
+	   << " nExe='" << runningExecutives_.getExecutiveCount( duckList.at(iDuck) ) << "'"
 	   << "/>" << endl;
     }
     *out << "</duckList>" << endl;

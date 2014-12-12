@@ -10,6 +10,7 @@
 #include "xdata/Vector.h"
 
 #include "emu/farmer/ProcessDescriptor.h"
+#include "emu/farmer/RunningExecutives.h"
 
 #include <set>
 #include <map>
@@ -145,6 +146,11 @@ private:
   ///
   map< string, ProcessDescriptor > processDescriptors_;
 
+  //
+  // Container of running executives (and their owner duck file names).
+  //
+  RunningExecutives runningExecutives_;
+
 
   /// Generates logger name.
 
@@ -192,9 +198,9 @@ private:
   string setProcessingInstruction( const string XML, const string xslURI )
     throw( xcept::Exception );
 
-  string insertStatuses( const string DUCK );
+  string insertStatuses( const string& DUCK );
 
-  string insertStatus( const string DUCK, const ProcessDescriptor* pd )
+  string insertStatus( const string& DUCK, const string& URI, const ProcessDescriptor* pd )
     throw( xcept::Exception );
 
   void createProcessDescriptors()

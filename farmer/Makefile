@@ -25,6 +25,7 @@ Sources = \
 	FileSystem.cc \
 	SOAP.cc \
 	ProcessDescriptor.cc \
+	RunningExecutives.cc \
 	version.cc
 
 IncludeDirs = \

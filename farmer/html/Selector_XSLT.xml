@@ -28,6 +28,7 @@
 	  h2,th { color: #444422;}
 	  span.current { color:#222200; font-size:large; }
 	  input.action { color:#dddddd; float:left; font-size:large; }
+	  option.active { background-color: #ddd0b0; }
 	</style>
 	<title>Selector</title>
       </head>
@@ -77,8 +78,10 @@
   </xsl:template>
 
   <xsl:template match="duck">
+    <xsl:variable name="CLASS"><xsl:if test="number(@nExe)&gt;0">active</xsl:if></xsl:variable>
+    <xsl:variable name="TITLE">Started <xsl:value-of select="@nExe"/> executive(s).</xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(preceding-sibling::duck)"/></xsl:variable>
-    <option value="{$INDEX}"><xsl:value-of select="@time"/><xsl:text> </xsl:text><b><xsl:value-of select="@file"/></b></option>
+    <option value="{$INDEX}" class="{$CLASS}" title="{$TITLE}"><xsl:value-of select="@time"/><xsl:text> </xsl:text><b><xsl:value-of select="@file"/></b></option>
   </xsl:template>
 
 </xsl:transform>
