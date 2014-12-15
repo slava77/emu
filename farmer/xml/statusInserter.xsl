@@ -22,7 +22,7 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match='FunctionManager[not(child::duckFile)]'>
+  <xsl:template match='Configuration[not(child::duckFile)]'>
     <xsl:element name="{name()}">
       <xsl:for-each select="@*">
 	<xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
