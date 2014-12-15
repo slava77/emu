@@ -157,7 +157,7 @@
 	      <a title="Click for details."><xsl:attribute name="href">#<xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/></xsl:attribute>Executive</a>
 	    </th>
 	    <td>
-	      <xsl:if test="./status/@owner != ./ancestor::Configuration/duckFile/@name">
+	      <xsl:if test="./status/@state = 'ON' and ./status/@owner != ./ancestor::Configuration/duckFile/@name">
 		<xsl:attribute name="class">foreign</xsl:attribute>
 		<xsl:attribute name="title">WARNING: This executive was started by another .duck configuration ('<xsl:value-of select="./status/@owner"/>').</xsl:attribute>
 	      </xsl:if>
