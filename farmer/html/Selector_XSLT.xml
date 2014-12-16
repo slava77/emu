@@ -28,7 +28,7 @@
 	  h2,th { color: #444422;}
 	  span.current { color:#222200; font-size:large; }
 	  input.action { color:#dddddd; float:left; font-size:large; }
-	  option.active { background-color: #ddd0b0; }
+	  option.active { color:#eeeeee; background-color: #8888aa; }
 	</style>
 	<title>Selector</title>
       </head>
