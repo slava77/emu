@@ -624,8 +624,8 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
 	   << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << "/>";
       *out << "<select name='bgoTrainName' title='Select a Bgo train to send.'" 
 	   << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << ">";
-      *out << "<option value='TTCHardReset' title='Disable trigger, hard reset, resync, EC0 and enable trigger.'>Hard Reset</option>";
-      *out << "<option value='TTCResync' title='Disable trigger, resync, EC0 and enable trigger.'>Resync</option>";
+      *out << "<option value='HardReset' title='Disable trigger, hard reset, resync, EC0 and enable trigger.'>Hard Reset</option>";
+      *out << "<option value='Resync' title='Disable trigger, resync, EC0 and enable trigger.'>Resync</option>";
       // *out << "<option value='Pause' title='Disable trigger.'>Pause</option>";
       // *out << "<option value='Resume' title='Enable trigger.'>Resume</option>";
       *out << "</select>";
