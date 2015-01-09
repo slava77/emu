@@ -215,7 +215,7 @@ function TMBPanel( dataURLs ) {
 		var t = document.getElementById('focusedVMEText');
 		//console.log(allChambers[i].parentNode.getAttribute('id').substr(6));
 		// t.firstChild.nodeValue = 'VME '+allChambers[i].parentNode.getAttribute('id').substr(7);
-		t.firstChild.nodeValue = allChambers[i].parentNode.getAttributeNS('http://cern.ch/CMS/Emu','VMEName')+' ['+allChambers[i].parentNode.getAttribute('id').substr(7)+']';
+		t.firstChild.nodeValue = allChambers[i].parentNode.getAttribute('VMEName')+' ['+allChambers[i].parentNode.getAttribute('id').substr(7)+']';
 		t.setAttribute('visibility','visible');		
 		document.getElementById('focusedDMBBox').setAttribute('visibility','visible');
 		var t = document.getElementById('focusedDMBText');
