@@ -52,12 +52,15 @@
 #
 #################################################################
 
+# comment out line below for old UNPACKER version
+NEW_UNPACKER2013 = yes
 
 CMSSW	 = $(HOME)/CMSSW/src
 BOOST    = /usr/include
 XDAQDIR    = $(XDAQ_DIR)
 ROOTDIR    = $(ROOTSYS)
-SQLITE	 = $(HOME)/sqlite
+#SQLITE	 = $(HOME)/sqlite
+SQLITE = $(XDAQ_DIR)
 
 
 #################################################################
