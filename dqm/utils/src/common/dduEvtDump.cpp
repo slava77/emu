@@ -15,6 +15,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <vector>
+#include <stdint.h>
+#include <strings.h>
 
 using namespace std;
 
@@ -106,6 +108,8 @@ int main(int argc, char **argv)
   bool fALCT=false;
   bool fTMB=false;
   bool fDDU=false;
+  bool fFormat2013 = false;
+  unsigned DDU_Firmware_Revision = 0;
 
   long EventToPrint=-1;
   long cntDDUHeaders=0, cntDDUTrailers=0, cntDMBHeaders=0;
@@ -190,13 +194,21 @@ int main(int argc, char **argv)
 
           if (cntDDUHeaders==EventToPrint)
             {
+	      DDU_Firmware_Revision    = (buf_1[0] >> 4) & 0xF;
+              if (DDU_Firmware_Revision > 6)
+              {
+                fFormat2013 = true;
+	      }
               DDU_L1A = ((buf_1[2]&0xFFFF) + ((buf_1[3]&0x00FF) << 16));
-	      int DDU_ID = (buf_1[0]>>8);// + ((buf_1[1]&0xF)<<4);
+	      int DDU_ID = (buf_1[0]>>8) + ((buf_1[1]&0xF)<<8);
+	      if (!fFormat2013) DDU_ID &= 0xFF;
               cout << endl << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << endl << endl;
               cout << "DDU  Header Occurrence " << cntDDUHeaders << endl;
               cout << endl << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << endl << endl;
 
-              cout << "<DDU ID"<< DDU_ID << " |      L1A= " << DDU_L1A <<
+              cout << "<- Data Format version: " << (fFormat2013 ? "Post-LS1": "Pre-LS1") << " ->" << endl << endl;
+
+              cout << "<DDU ID"<< DDU_ID << " |      L1A: " << DDU_L1A << ", FWVersion: " << DDU_Firmware_Revision << 
                    "    ( " <<  (buf1[0]&0x000F) << " DMBs in event )" << endl;
 	      printb(buf_1); cout << endl;
 	
@@ -236,15 +248,32 @@ int main(int argc, char **argv)
               cntDMBHeaders++;
               int crate=(buf1[1]>>4)&0xFF;
               int slot=buf1[1]&0xF;
+	      if (fFormat2013) 
+	      {
+		DMB_L1A =  ((buf0[0]&0x0FFF) + ((buf0[1]&0x0FFF) << 12));
+		cout << " " << endl << dec << "<DMB"<<cntDMBHeaders<< " crate:" << crate << " slot:" << slot << "|     L1A= " << DMB_L1A <<
+                   "   ( " << ((buf0[2]&0x0800)>>11) << " ALCT, "
+                   << ((buf0[2]&0x0400)>>10) << " TMB, " <<
+		   ((buf1[0]&0x0040)>>6) <<
+		   ((buf1[0]&0x0020)>>5) <<
+		   ((buf1[0]&0x0010)>>4) <<
+                   ((buf1[0]&0x0008)>>3) <<
+                   ((buf1[0]&0x0004)>>2) <<
+                   ((buf1[0]&0x0002)>>1) <<
+		   ((buf1[0]&0x0001)>>0) << " CFEBs in event )" << endl << hex;
+              }
+	      else 
+	      {
               DMB_L1A =  ((buf0[0]&0x0FFF) + ((buf0[1]&0x0FFF) << 12));
-              cout << " " << endl << "<DMB"<<cntDMBHeaders<< " crate:" << crate << " slot:" << slot << "|     L1A= " << DMB_L1A <<
+              cout << " " << endl << dec << "<DMB"<<cntDMBHeaders<< " crate:" << crate << " slot:" << slot << "|     L1A= " << DMB_L1A <<
                    "   ( " << ((buf0[2]&0x0400)>>10) << " ALCT, "
                    << ((buf0[2]&0x0800)>>11) << " TMB, "
                    << ((buf1[0]&0x0010)>>4) <<
                    ((buf1[0]&0x0008)>>3) <<
                    ((buf1[0]&0x0004)>>2) <<
                    ((buf1[0]&0x0002)>>1) <<
-                   ((buf1[0]&0x0001)>>0) << " CFEBs in event )" << endl;
+		   ((buf1[0]&0x0001)>>0) << " CFEBs in event )" << endl << hex;
+              }
 	      fDMB=true;
 	      dmbData.clear();
             }
@@ -287,7 +316,7 @@ int main(int argc, char **argv)
                  ((buf_1[2]&0xF000)==0xA000) &&
                  ((buf_1[3]&0xF000)==0xA000) )  )
             {
-              ALCT_L1A = (buf0[0]&0x000F);
+              ALCT_L1A = (buf0[2]&0x0FFF);
               cout << " " << endl << "<ALCT2007|     L1A= " << ALCT_L1A <<  endl;
               fALCT=true;
               alctData.clear();
@@ -405,7 +434,8 @@ int main(int argc, char **argv)
           if ( SampleTag )
             {
               int calc_crc = calcCFEBcrc(cfebData);
-              cout << "  |CFEB sample "<<SampleCount<<"> CRC: 0x" << hex << buf0[0] <<", calc CRC: 0x" << hex << calc_crc;
+	      int CFEB_L1A = (buf0[2]>> 6) & 0x3F;
+              cout << "  |CFEB sample "<<SampleCount<<"> L1A: " << CFEB_L1A << " CRC: 0x" << hex << buf0[0] <<", calc CRC: 0x" << hex << calc_crc;
               if (calc_crc != buf0[0]) cout << " !CRC Missmatch!";
               cout << endl;
               SampleTag=false;
@@ -426,7 +456,7 @@ int main(int argc, char **argv)
               int crcALCT = buf0[1] & 0x7FF;
               crcALCT |= (buf0[2] & 0x7FF) << 11;
               cout << "  |ALCT2007> CRC: 0x" << hex << crcALCT << " wordcnt: " << dec << (buf0[3] & 0x7FF) << endl;
-              cout << " ALCT size: " << alctData.size()+4 << " words,  calc CRC: 0x" << hex  << calcALCTcrc(alctData) << endl;
+              cout << " ALCT size: " << alctData.size()+4 << " words,  calc CRC: 0x" << hex  << calcALCTcrc(alctData);
               fALCT=false;
               cfebData.clear();
 
