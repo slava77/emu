@@ -35,6 +35,7 @@ ExternalObjects = \
 	
 
 IncludeDirs = $(XdaqIncludeDirs) \
+	$(BUILD_HOME)/emu/dqm/cmssw/src/common \
 	$(BUILD_HOME)/emu/dqm/common/include \
 	$(ROOTDIR)/include 
 
