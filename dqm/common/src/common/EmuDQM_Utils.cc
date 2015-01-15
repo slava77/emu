@@ -1,4 +1,5 @@
 #include "emu/dqm/common/EmuDQM_Utils.h"
+#include "DataFormats/FEDRawData/interface/FEDNumbering.h"
 
 namespace emu {
 namespace dqm {
@@ -49,21 +50,21 @@ std::string getDateTime(time_t tstamp)
   return ss.str();
 }
 
-int getNumStrips(std::string cscID)
+int getNumStrips(std::string cscID, uint16_t fFormatVersion)
 {
   if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )
       || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") == 0 )) return 64;
-  else if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
-      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0 )) return 112;
+  else if  ( fFormatVersion == 2013 && ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
+      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0 ))) return 112;
   else return 80;
 }
 
-int getNumCFEBs(std::string cscID)
+int getNumCFEBs(std::string cscID, uint16_t fFormatVersion)
 {
   if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )
       || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0 )) return 4;
-  else if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
-      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) return 7;
+  else if  ( fFormatVersion == 2013 && ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
+      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0 ))) return 7;
   else return 5;
 }
 
@@ -145,15 +146,16 @@ int getHVSegmentNumber(std::string cscID, uint32_t aseg)
 
 bool isME11(std::string cscID)
 {
-  if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 ) 
-   || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) {
+  if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
+	|| (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) {
     return true;
   } else return false;
 }
 
 bool isME42(std::string cscID)
 {
-  if ((cscID.find("ME+4/2") == 0) || (cscID.find("ME-4/2") ==0 )) {
+  if ((cscID.find("ME+4/2") == 0) || (cscID.find("ME-4/2") ==0 )
+	|| (cscID.find("ME+4.2") == 0) || (cscID.find("ME-4.2") ==0 )) {
     return true;
   } else return false;
 }
@@ -253,6 +255,30 @@ bool isValidDDUmapping(int dduID, int crate, int slot)
   std::map<std::pair<int, int>, int> CSCtoDDUmap;
   return true;
 }
+
+
+/**
+ * Get RUI Number from DDU source ID for post LS1 configuration
+ **/
+int getRUIfromDDUId(unsigned ddu_id)
+{
+   int rui = -1;
+   const unsigned postLS1_map [] = { 841, 842, 843, 844, 845, 846, 847, 848, 849,
+                                     831, 832, 833, 834, 835, 836, 837, 838, 839,
+                                     861, 862, 863, 864, 865, 866, 867, 868, 869,
+                                     851, 852, 853, 854, 855, 856, 857, 858, 859 };
+   if ( (ddu_id >= FEDNumbering::MINCSCDDUFEDID) && (ddu_id <= FEDNumbering::MAXCSCDDUFEDID) )
+   {
+        for ( int i = 0; i < 36; i++)
+        {
+          if (ddu_id == postLS1_map[i]) { rui = i+1; return rui;}
+        }
+   } else {
+      rui = ddu_id & 0xFF;
+   }
+   return rui;
+}
+
 
 }
 }

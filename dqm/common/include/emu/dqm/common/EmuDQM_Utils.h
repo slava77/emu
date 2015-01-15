@@ -24,8 +24,8 @@ namespace utils
 std::string now(time_t tstamp, const char* format="%Y-%m-%d %H:%M:%S %Z");
 std::string now();
 std::string getDateTime(time_t tstamp = 0);
-int getNumStrips(std::string cscID);
-int getNumCFEBs(std::string cscID);
+int getNumStrips(std::string cscID, uint16_t fFormatVersion = 2005);
+int getNumCFEBs(std::string cscID, uint16_t fFormatVersion = 2005);
 int getNumWireGroups(std::string cscID);
 int getNumAFEBs(std::string cscID);
 int getAFEBPos(int ilayer, int iwire);
@@ -39,6 +39,7 @@ std::string getCSCTypeLabel(int endcap, int station, int ring );
 std::string getCSCName(std::string cscID, int& crate, int& slot, int& CSCtype, int& CSCposition );
 std::map<std::string, int> getCSCTypeToBinMap();
 std::string genCSCTitle(std::string tag);
+int getRUIfromDDUId(unsigned ddu_id);
     
     
 }

@@ -39,9 +39,11 @@ Executables =
 ExternalObjects = $(BUILD_HOME)/emu/dqm/cmssw/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libCSCDQMCommon.a
 
 IncludeDirs = $(XdaqIncludeDirs) \
+	$(BUILD_HOME)/emu/base/include \
 	$(BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw/ \
 	$(ROOTDIR)/include \
-	$(CMSSW)
+	$(CMSSW) \
+	$(BUILD_HOME)/emu/dqm/cmssw/src/common/ 
 
 
 LibraryDirs = $(XdaqLibraryDirs) 
