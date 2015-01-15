@@ -23,6 +23,15 @@ void EmuPlotter::saveToROOTFile(std::string filename)
     ME_List_const_iterator h_itr;
     TDirectory * hdir = f.mkdir("DQMData");
     hdir->cd();
+
+
+    /// Write data Format Version field
+    TObjString FormatVersion;
+    std::stringstream st;
+    st << "<FormatVersion>" << theFormatVersion << "</FormatVersion>";   
+    FormatVersion.SetString(st.str().c_str()); 
+    FormatVersion.Write(st.str().c_str());
+
     for (itr = MEs.begin(); itr != MEs.end(); ++itr)
     {
       TDirectory * rdir = hdir->mkdir((itr->first).c_str());

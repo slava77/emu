@@ -2,10 +2,12 @@
 #include "emu/dqm/cscanalyzer/CSCStripClusterFinder.h"
 #include <TF1.h>
 
+using namespace emu::dqm::utils;
+
 template<typename T> inline CSCCFEBDataWord const * const
 timeSample( T const & data, int nCFEB,int nSample,int nLayer, int nStrip)
 {
-  return data.cfebData(nCFEB)->timeSlice(nSample)->timeSample(nLayer,nStrip);
+  return data.cfebData(nCFEB)->timeSlice(nSample)->timeSample(nLayer,nStrip,data.cfebData(nCFEB)->isDCFEB());
 }
 
 template<typename T> inline CSCCFEBTimeSlice const * const
@@ -49,7 +51,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                                  "Can not unpack DMB Header or/and Trailer");
     return;
   }
+  
+  theFormatVersion = data.getFormatVersion();
 
+  // std::cout << "Format: " << theFormatVersion << ", dmb fmt version: " << dmbHeader->format_version() << std::endl;
 
   //  Unpacking of Chamber Identification number
   int crateID = 0xFF;
@@ -103,12 +108,19 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     */
     return;
   }
+
   CSCDetId cid( id );
 
+  // std::cout << "CID " << cid.rawId() << std::endl;
+  
+  if (cratemap) cid = cratemap->detId(crateID, dmbID,0,1);
 
-  int CSCtype = 0;
-  int CSCposition = 0;
+
+  int CSCtype = -1;
+  int CSCposition = -1;
   std::string cscName = getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
+
+  // std::cout << cscName << " type: " << cid.iChamberType() << std::endl;
 
 
   if ( fCheckMapping &&  (dduID != cscMapping.dduId(cid)) )
@@ -122,6 +134,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     */
     return;
   }
+
+  // std::cout << cscName << " - Format: " << theFormatVersion << ", dmb fmt version: " << dmbHeader->format_version() << std::endl;
+
+  int nCFEBs = 5;
+  nCFEBs = getNumCFEBs(cscName, theFormatVersion);
 
   double DMBEvents  = 0.0;
   DMBEvents = nDMBEvents[cscTag];
@@ -149,7 +166,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   CSCCounters& trigCnts = cscCounters[cscTag];
   trigCnts["DMB"] = nDMBEvents[cscTag];
 
-  if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo))
+  if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_Unpacked", mo))
   {
     mo->Fill(CSCposition, CSCtype);
   }
@@ -169,7 +186,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int dmbHeaderL1A      = 0;
   int dmb_ddu_l1a_diff  = 0;
   // -- Use 6-bit L1A
-  dmbHeaderL1A = dmbHeader->l1a()%64;
+  // dmbHeaderL1A = dmbHeader->l1a()%64;
+  dmbHeaderL1A = dmbHeader->l1a24()%64;
 
 
   // == Calculate difference between L1A numbers from DDU and DMB
@@ -177,6 +195,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (dmb_ddu_l1a_diff != 0) L1A_out_of_sync = true;
   LOG4CPLUS_DEBUG(logger_, "DMB(ID=" << ChamberID  << ") L1A = " << dmbHeaderL1A
                   << " : DMB L1A - DDU L1A = " << dmb_ddu_l1a_diff);
+  
+ /*LOG4CPLUS_WARN(logger_, "DMB(ID=" << ChamberID  << ") L1A = " << dmbHeader->l1a24()
+                  << " : DMB L1A - DDU L1A = " << (int)(dmbHeader->l1a24() - (int)L1ANumber));
+ */
+
 
   // == Init CSC Event Display Histo
   EmuMonitoringObject* mo_EventDisplay = 0;
@@ -249,14 +272,14 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   cfeb_dav  = (int)dmbHeader->cfebAvailable();
 
-  for (int i=0; i<5; i++) cfeb_dav_num += (cfeb_dav>>i) & 0x1;
+  for (int i=0; i<nCFEBs; i++) cfeb_dav_num += (cfeb_dav>>i) & 0x1;
 
   cfeb_movlp    = (int)dmbHeader->cfebMovlp();
   dmb_cfeb_sync = (int)dmbHeader->dmbCfebSync();
 
   if (isMEvalid(cscME, "DMB_CFEB_DAV", mo))
   {
-    for (int i=0; i<5; i++)
+    for (int i=0; i<nCFEBs; i++)
     {
       int cfeb_present = (cfeb_dav>>i) & 0x1;
       if (cfeb_present)
@@ -277,23 +300,23 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (isMEvalid(cscME, "DMB_CFEB_Active", mo)) mo->Fill(dmbHeader->cfebActive());
 
 
-  if (isMEvalid(cscME, "DMB_L1_Pipe", mo)) mo->Fill(dmbTrailer->dmb_l1pipe);
+  if (isMEvalid(cscME, "DMB_L1_Pipe", mo)) mo->Fill(dmbTrailer->dmb_l1pipe());
 
   // == DMB input (7 in total) FIFO stuff goes here
   if (isMEvalid(cscME, "DMB_FIFO_stats", mo))
   {
-    if (dmbTrailer->tmb_empty == 1)   mo->Fill(1.0, 0.0);
-    if (dmbTrailer->tmb_half == 0)  mo->Fill(1.0, 1.0);
-    if (dmbTrailer->tmb_full == 1)  mo->Fill(1.0, 2.0);
-    if (dmbTrailer->alct_empty == 1)  mo->Fill(0.0, 0.0);
-    if (dmbTrailer->alct_half == 0)   mo->Fill(0.0, 1.0);
-    if (dmbTrailer->alct_full == 1)   mo->Fill(0.0, 2.0);
+    if (dmbTrailer->tmb_empty() == 1)   mo->Fill(1.0, 0.0);
+    if (dmbTrailer->tmb_half() == 0)  mo->Fill(1.0, 1.0);
+    if (dmbTrailer->tmb_full() == 1)  mo->Fill(1.0, 2.0);
+    if (dmbTrailer->alct_empty() == 1)  mo->Fill(0.0, 0.0);
+    if (dmbTrailer->alct_half() == 0)   mo->Fill(0.0, 1.0);
+    if (dmbTrailer->alct_full() == 1)   mo->Fill(0.0, 2.0);
 
-    for (int i=0; i<5; i++)
+    for (int i=0; i<nCFEBs; i++)
     {
-      if ((int)((dmbTrailer->cfeb_empty>>i) &0x1) == 1) mo->Fill(i+2,0.0);
-      if ((int)((dmbTrailer->cfeb_half>>i)  &0x1) == 0) mo->Fill(i+2,1);
-      if ((int)((dmbTrailer->cfeb_full>>i)  &0x1) == 1)
+      if ((int)((dmbTrailer->cfeb_empty()>>i) &0x1) == 1) mo->Fill(i+2,0.0);
+      if ((int)((dmbTrailer->cfeb_half()>>i)  &0x1) == 0) mo->Fill(i+2,1);
+      if ((int)((dmbTrailer->cfeb_full()>>i)  &0x1) == 1)
       {
         mo->Fill(i+2,2);
       }
@@ -304,24 +327,24 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   // == DMB input timeout (total 15 bits) goes here
   if (isMEvalid(cscME, "DMB_FEB_Timeouts", mo))
   {
-    if ((dmbTrailer->tmb_timeout==0) && (dmbTrailer->alct_timeout==0) && (dmbTrailer->cfeb_starttimeout==0) && (dmbTrailer->cfeb_endtimeout==0))
+    if ((dmbTrailer->tmb_starttimeout()==0) && (dmbTrailer->alct_starttimeout()==0) && (dmbTrailer->cfeb_starttimeout()==0) && (dmbTrailer->cfeb_endtimeout()==0))
     {
       mo->Fill(0.0);
     }
     else
     {
-      if (dmbTrailer->alct_timeout)   mo->Fill(1);
-      if (dmbTrailer->tmb_timeout)    mo->Fill(2);
-      if (dmbTrailer->alct_endtimeout)  mo->Fill(8);
-      if (dmbTrailer->tmb_endtimeout)   mo->Fill(9);
+      if (dmbTrailer->alct_starttimeout())   mo->Fill(1);
+      if (dmbTrailer->tmb_starttimeout())    mo->Fill(2);
+      if (dmbTrailer->alct_endtimeout())  mo->Fill(8);
+      if (dmbTrailer->tmb_endtimeout())   mo->Fill(9);
     }
-    for (int i=0; i<5; i++)
+    for (int i=0; i<nCFEBs; i++)
     {
-      if ((dmbTrailer->cfeb_starttimeout>>i) & 0x1)
+      if ((dmbTrailer->cfeb_starttimeout()>>i) & 0x1)
       {
         mo->Fill(i+3);
       }
-      if ((dmbTrailer->cfeb_endtimeout>>i) & 0x1)
+      if ((dmbTrailer->cfeb_endtimeout()>>i) & 0x1)
       {
         mo->Fill(i+10);
       }
@@ -333,7 +356,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int alct_dav  = dmbHeader->nalct();
   int tmb_dav   = dmbHeader->nclct();
   int cfeb_dav2 = 0;
-  for (int i=0; i<5; i++) cfeb_dav2 = cfeb_dav2 + (int)((dmbHeader->cfebAvailable()>>i) & 0x1);
+  for (int i=0; i<nCFEBs; i++) cfeb_dav2 = cfeb_dav2 + (int)((dmbHeader->cfebAvailable()>>i) & 0x1);
 
   // == Fill Histogram for FEB DAV Efficiency
 
@@ -445,7 +468,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       if (isMEvalid(cscME, "ALCT_DMB_L1A_diff", mo))
       {
 
-        int alct_dmb_l1a_diff = (int)(alctHeader->L1Acc()%64-dmbHeader->l1a()%64);
+        // int alct_dmb_l1a_diff = (int)(alctHeader->L1Acc()%64-dmbHeader->l1a()%64);
+        int alct_dmb_l1a_diff = (int)(alctHeader->L1Acc()%64-dmbHeader->l1a24()%64);
 
         if (alct_dmb_l1a_diff != 0) {
           L1A_out_of_sync = true;
@@ -464,7 +488,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       }
 
 
-      if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader->L1Acc()%256,dmbHeader->l1a());
+      // if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader->L1Acc()%256,dmbHeader->l1a());
+      if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader->L1Acc()%256,dmbHeader->l1a24()%256);
 
 
       // -- ALCT BXN: 12bits (4096)
@@ -557,11 +582,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
               if (mo_CSC_Minus_endcap_ALCT0_dTime) mo_CSC_Minus_endcap_ALCT0_dTime->Fill(alct_dtime);
             }
 
-            if ( CSCtype && CSCposition && mo_CSC_ALCT0_BXN_mean)
+            if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_ALCT0_BXN_mean)
             {
               mo_CSC_ALCT0_BXN_mean->SetBinContent(CSCposition, CSCtype+1, dTime_mean);
             }
-            if ( CSCtype && CSCposition && mo_CSC_ALCT0_BXN_rms)
+            if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_ALCT0_BXN_rms)
             {
               mo_CSC_ALCT0_BXN_rms->SetBinContent(CSCposition, CSCtype+1 ,dTime_rms);
             }
@@ -615,7 +640,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           if (lct == 0)
           {
             EmuMonitoringObject* mo1 = 0;
-            if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_ALCT0_Quality", mo1))
+            if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_ALCT0_Quality", mo1))
               mo1->SetBinContent(CSCposition, CSCtype+1, mo->getObject()->GetMean());
           }
         }
@@ -713,11 +738,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
         {
           double rawhits_time_mean = mo_AFEB_RawHits_TimeBins->getObject()->GetMean();
           double rawhits_time_rms = mo_AFEB_RawHits_TimeBins->getObject()->GetRMS();
-          if ( CSCtype && CSCposition && mo_CSC_AFEB_RawHits_Time_mean)
+          if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_AFEB_RawHits_Time_mean)
           {
             mo_CSC_AFEB_RawHits_Time_mean->SetBinContent(CSCposition, CSCtype+1, rawhits_time_mean);
           }
-          if ( CSCtype && CSCposition && mo_CSC_AFEB_RawHits_Time_rms)
+          if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_AFEB_RawHits_Time_rms)
           {
             mo_CSC_AFEB_RawHits_Time_rms->SetBinContent(CSCposition, CSCtype+1 ,rawhits_time_rms);
           }
@@ -734,7 +759,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       {
         mo->Fill(NumberOfLayersWithHitsInALCT);
         EmuMonitoringObject* mo1 = 0;
-        if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_ALCT_Planes_with_Hits", mo1))
+        if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_ALCT_Planes_with_Hits", mo1))
           mo1->SetBinContent(CSCposition, CSCtype+1, mo->getObject()->GetMean());
       }
       if (isMEvalid(cscME, "ALCT_Number_Of_WireGroups_With_Hits", mo)) mo->Fill(NumberOfWireGroupsWithHitsInALCT);
@@ -845,6 +870,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
       if (tmbHeader && tmbTrailer)
       {
+/*
+       std::cout << "=== TMB Firmware Version: " << tmbHeader->FirmwareVersion() 
+		<< ",  Revision: 0x" << std::hex << tmbHeader->FirmwareRevision() << std::dec  << std::endl;
+*/
 
         CSCCLCTData* clctData = data.clctData();
 
@@ -870,17 +899,17 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
           if (cid.endcap() == 1)
           {
-            if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Plus_endcap_ALCT_CLCT_Match_Time", mo1))
+            if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_Plus_endcap_ALCT_CLCT_Match_Time", mo1))
               mo1->Fill(tmbHeader->ALCTMatchTime());
           }
           if (cid.endcap() == 2)
           {
-            if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Minus_endcap_ALCT_CLCT_Match_Time", mo1))
+            if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_Minus_endcap_ALCT_CLCT_Match_Time", mo1))
               mo1->Fill(tmbHeader->ALCTMatchTime());
           }
-          if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_ALCT_CLCT_Match_mean", mo1))
+          if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_ALCT_CLCT_Match_mean", mo1))
             mo1->SetBinContent(CSCposition, CSCtype+1, alct_match_mean);
-          if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_ALCT_CLCT_Match_rms", mo1))
+          if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_ALCT_CLCT_Match_rms", mo1))
             mo1->SetBinContent(CSCposition, CSCtype+1, alct_match_rms);
         }
 
@@ -921,7 +950,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
         // -- Use 6-bit L1A
         if (isMEvalid(cscME, "CLCT_DMB_L1A_diff", mo))
         {
-          int clct_dmb_l1a_diff = (int)((tmbHeader->L1ANumber()%64)-dmbHeader->l1a()%64);
+          // int clct_dmb_l1a_diff = (int)((tmbHeader->L1ANumber()%64)-dmbHeader->l1a()%64);
+          int clct_dmb_l1a_diff = (int)((tmbHeader->L1ANumber()%64)-dmbHeader->l1a24()%64);
           if (clct_dmb_l1a_diff != 0) L1A_out_of_sync = true;
           if (clct_dmb_l1a_diff < -32) mo->Fill(clct_dmb_l1a_diff + 64);
           else
@@ -932,7 +962,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
         }
 
-        if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader->L1ANumber()%256,dmbHeader->l1a());
+        // if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader->L1ANumber()%256,dmbHeader->l1a());
+        if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader->L1ANumber()%256,dmbHeader->l1a24()%256);
 
         if (isMEvalid(cscME, "CLCT_DMB_BXN_diff", mo))
         {
@@ -1002,6 +1033,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
           int clct_dtime = clctsDatas[lct].getFullBX() - tmbHeader->BXNCount();
 
+          // std::cout << "TMB: " << tmbHeader->BXNCount() << " CLCT: " << clctsDatas[lct].getFullBX() <<std::endl;
+
           if (clct_dtime > 0)
           {
             clct_dtime -= 3564;
@@ -1030,11 +1063,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                 if (mo_CSC_Minus_endcap_CLCT0_dTime) mo_CSC_Minus_endcap_CLCT0_dTime->Fill(dTime);
               }
 
-              if ( CSCtype && CSCposition && mo_CSC_CLCT0_BXN_mean)
+              if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_CLCT0_BXN_mean)
               {
                 mo_CSC_CLCT0_BXN_mean->SetBinContent(CSCposition, CSCtype+1, dTime_mean);
               }
-              if ( CSCtype && CSCposition && mo_CSC_CLCT0_BXN_rms)
+              if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_CLCT0_BXN_rms)
               {
                 mo_CSC_CLCT0_BXN_rms->SetBinContent(CSCposition, CSCtype+1 ,dTime_rms);
               }
@@ -1048,6 +1081,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           if (clctsDatas[lct].getStripType())   // HalfStrip Type
           {
             if (isMEvalid(cscME,  Form("CLCT%d_KeyHalfStrip", lct), mo)) mo->Fill(clctsDatas[lct].getKeyStrip());
+	    
+            // std::cout << cscTag << " CLCT key-hs: " << clctsDatas[lct].getKeyStrip() << std::endl;
 
             if (isMEvalid(cscME,  Form("CLCT%d_dTime_vs_Half_Strip", lct), mo))
             {
@@ -1133,7 +1168,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
               if (lct == 0)
               {
                 EmuMonitoringObject* mo1 = 0;
-                if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_CLCT0_Quality", mo1))
+                if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_CLCT0_Quality", mo1))
                   mo1->SetBinContent(CSCposition, CSCtype+1, mo->getObject()->GetMean());
               }
             }
@@ -1177,7 +1212,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
         }
 
-        int N_CFEBs=5;
+        // int N_CFEBs=5;
+        int N_CFEBs=tmbHeader->NCFEBs();
+	// std::cout << cscTag << " " << N_CFEBs << " " << tmbHeader->NTBins()<<  std::endl;
 
         int NumberOfLayersWithHitsInCLCT = 0;
         int NumberOfHalfStripsWithHitsInCLCT = 0;
@@ -1202,13 +1239,28 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
               int hstrip_previous    = -1;
               int tbin_clct_previous = -1;
               bool CheckLayerCLCT = true;
-              vector<CSCComparatorDigi> compOutData = clctData->comparatorDigis(nLayer, nCFEB);
+
+              int ilayer = nLayer;
+              if (cratemap) 
+              {
+                   CSCDetId layer = cratemap->detId(crateID, dmbID, nCFEB, nLayer);
+                   ilayer = layer.rawId();
+		   // std::cout << "ilayer id: " << ilayer << std::endl;
+
+              }
+
+
+              // vector<CSCComparatorDigi> compOutData = clctData->comparatorDigis(nLayer, nCFEB);
+              vector<CSCComparatorDigi> compOutData = clctData->comparatorDigis(ilayer, nCFEB);
 
 
               for (vector<CSCComparatorDigi>:: iterator compOutDataItr = compOutData.begin(); compOutDataItr != compOutData.end(); ++compOutDataItr)
               {
                 // =VB= Fix to get correct half-strip
                 int hstrip = 2*(compOutDataItr->getStrip()-1)+compOutDataItr->getComparator();
+                // std::cout <<  cscTag << " hs: " << hstrip <<   " "  << compOutDataItr->getStrip() << " " << compOutDataItr->getComparator() 
+		//	<< " " << compOutDataItr->getTimeBin()  << std::endl; 
+
 
                 vector<int> tbins_clct = compOutDataItr->getTimeBinsOn();
                 int tbin_clct = (int)compOutDataItr->getTimeBin();
@@ -1282,11 +1334,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           {
             double comps_time_mean = mo_CFEB_Comparators_TimeSamples->getObject()->GetMean();
             double comps_time_rms = mo_CFEB_Comparators_TimeSamples->getObject()->GetRMS();
-            if ( CSCtype && CSCposition && mo_CSC_CFEB_Comparators_Time_mean)
+            if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_CFEB_Comparators_Time_mean)
             {
               mo_CSC_CFEB_Comparators_Time_mean->SetBinContent(CSCposition, CSCtype+1, comps_time_mean);
             }
-            if ( CSCtype && CSCposition && mo_CSC_CFEB_Comparators_Time_rms)
+            if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_CFEB_Comparators_Time_rms)
             {
               mo_CSC_CFEB_Comparators_Time_rms->SetBinContent(CSCposition, CSCtype+1 ,comps_time_rms);
             }
@@ -1301,7 +1353,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
         {
           mo->Fill(NumberOfLayersWithHitsInCLCT);
           EmuMonitoringObject* mo1 = 0;
-          if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_CLCT_Planes_with_Hits", mo1))
+          if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_CLCT_Planes_with_Hits", mo1))
             mo1->SetBinContent(CSCposition, CSCtype+1, mo->getObject()->GetMean());
         }
         if (isMEvalid(cscME, "CLCT_Number_Of_HalfStrips_With_Hits", mo))
@@ -1339,29 +1391,30 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   // == CFEB found
 
   int NumberOfUnpackedCFEBs = 0;
-  int N_CFEBs=5, N_Samples=16, N_Layers = 6, N_Strips = 16;
+  int N_CFEBs=nCFEBs;
+  int N_Samples=16, N_Layers = 6, N_Strips = 16, nStrips = nCFEBs * N_Strips;
   int ADC = 0, OutOffRange, Threshold = 30;
   // bool DebugCFEB = false;
-  int Pedestal[5][6][16];
-  std::pair<int,int> CellPeak[5][6][16];
+  int Pedestal[N_CFEBs][6][16];
+  std::pair<int,int> CellPeak[N_CFEBs][6][16];
   memset(CellPeak, 0, sizeof(CellPeak));
-  float PedestalError[5][6][16];
+  float PedestalError[N_CFEBs][6][16];
   bool CheckCFEB = true;
   float Clus_Sum_Charge;
   int TrigTime, L1APhase, UnpackedTrigTime, LCTPhase, SCA_BLK, NmbTimeSamples;
   int  FreeCells, LCT_Pipe_Empty, LCT_Pipe_Full, LCT_Pipe_Count, L1_Pipe_Empty, L1_Pipe_Full, Buffer_Count;
 
-  bool CheckThresholdStripInTheLayer[6][80];
+  bool CheckThresholdStripInTheLayer[6][nStrips];
   for (int i=0; i<6; i++)
   {
-    for (int j=0; j <80; j++) CheckThresholdStripInTheLayer[i][j] = true;
+    for (int j=0; j <nStrips; j++) CheckThresholdStripInTheLayer[i][j] = true;
   }
 
 
-  bool CheckOutOffRangeStripInTheLayer[6][80];
+  bool CheckOutOffRangeStripInTheLayer[6][nStrips];
   for (int i=0; i<6; i++)
   {
-    for (int j=0; j<80; j++) CheckOutOffRangeStripInTheLayer[i][j] = true;
+    for (int j=0; j<112; j++) CheckOutOffRangeStripInTheLayer[i][j] = true;
   }
 
   float cscdata[N_CFEBs<<4][N_Samples][N_Layers];
@@ -1387,7 +1440,18 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   {
     if (data.cfebData(nCFEB) !=0)
     {
-      if (!data.cfebData(nCFEB)->check()) continue;
+	
+      
+      // std::cout << "CFEB data " <<  nCFEB << " samples " << (data.cfebData(nCFEB))->nTimeSamples() << std::endl;
+
+      if (!data.cfebData(nCFEB)->check()) 
+	{
+	  // std::cout << eTag << " ERR: CFEB data failed " <<  nCFEB << std::endl;
+	  continue;
+	}
+ 
+      // std::cout << "CFEB data " <<  nCFEB << " samples " << (data.cfebData(nCFEB))->nTimeSamples(); << std::endl;
+
       FEBunpacked     = FEBunpacked +1;     // Increment number of unpacked FED
       NumberOfUnpackedCFEBs = NumberOfUnpackedCFEBs + 1;  // Increment number of unpaked CFEB
       cfeb_unpacked = 1;
@@ -1467,23 +1531,26 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
             } */
 
+//////
           if (mo_CFEB_DMB_L1A_diff && !fCloseL1As )
           {
-            int cfeb_dmb_l1a_diff = (int)((timeSlice(data, nCFEB, nSample)->get_L1A_number())-dmbHeader->l1a()%64);
+            // int cfeb_dmb_l1a_diff = (int)((timeSlice(data, nCFEB, nSample)->get_L1A_number())-dmbHeader->l1a()%64);
+            int cfeb_dmb_l1a_diff = (int)((timeSlice(data, nCFEB, nSample)->get_L1A_number())-dmbHeader->l1a24()%64);
+
+	    // std::cout << "DMB: " << dmbHeader->l1a24() << " CFEB" << nCFEB << ": " << (timeSlice(data, nCFEB, nSample)->get_L1A_number()) << std::endl;
             if (cfeb_dmb_l1a_diff != 0)
             {
               L1A_out_of_sync = true;
             }
-            if (cfeb_dmb_l1a_diff < -32) mo->Fill(cfeb_dmb_l1a_diff + 64);
+            if (cfeb_dmb_l1a_diff < -32) mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff + 64);
             else
             {
-              if (cfeb_dmb_l1a_diff >= 32) mo->Fill(cfeb_dmb_l1a_diff - 64);
+              if (cfeb_dmb_l1a_diff >= 32) mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff - 64);
               else mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff);
             }
             mo_CFEB_DMB_L1A_diff->SetAxisRange(0.1, 1.1*(1.0
                                                + mo_CFEB_DMB_L1A_diff->GetBinContent(mo_CFEB_DMB_L1A_diff->getObject()->GetMaximumBin())), "Y");
           }
-
 
           TrigTime = (int)(timeSlice(data, nCFEB, nSample)->scaControllerWord(nLayer).trig_time);
 
@@ -1523,7 +1590,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
             if (L1_Pipe_Full == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTxL1->Fill(31.5);
             mo_CFEB_SCA_Blocks_Locked_by_LCTxL1->Fill(Buffer_Count);
           }
-
+	  
           if (nSample == 0 && nLayer == 1)
           {
             TrigTime = (int)(timeSlice(data, nCFEB, nSample)->scaControllerWord(nLayer).trig_time);
@@ -1560,7 +1627,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
             }
 
           }
-
 
           for (int nStrip = 1; nStrip <= N_Strips; ++nStrip)
           {
@@ -1649,7 +1715,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
             mo_CFEB_SCA_Cell_Peak->Fill((int)((nCFEB<<4)+nStrip-1), CellPeak[nCFEB][nLayer-1][nStrip-1].first);
             if (mo_CFEB_SCA_CellPeak_Time)
               mo_CFEB_SCA_CellPeak_Time->Fill(CellPeak[nCFEB][nLayer-1][nStrip-1].first);
-
+	
             if (mo_EventDisplay)
             {
               int peak_sample = CellPeak[nCFEB][nLayer-1][nStrip-1].first;
@@ -1687,7 +1753,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       }
     }
   }
-
+ 
   // == Fill Summary CFEB Raw Hits Timing Plots
   if (mo_CFEB_SCA_CellPeak_Time)
   {
@@ -1695,12 +1761,12 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     double cellpeak_time_mean = mo_CFEB_SCA_CellPeak_Time->getObject()->GetMean();
     double cellpeak_time_rms = mo_CFEB_SCA_CellPeak_Time->getObject()->GetRMS();
 
-    if ( CSCtype && CSCposition && mo_CSC_CFEB_SCA_CellPeak_Time_mean)
+    if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_CFEB_SCA_CellPeak_Time_mean)
     {
       mo_CSC_CFEB_SCA_CellPeak_Time_mean->SetBinContent(CSCposition, CSCtype+1, cellpeak_time_mean);
     }
 
-    if ( CSCtype && CSCposition && mo_CSC_CFEB_SCA_CellPeak_Time_rms)
+    if ( CSCtype>=0 && CSCposition>=0 && mo_CSC_CFEB_SCA_CellPeak_Time_rms)
     {
       mo_CSC_CFEB_SCA_CellPeak_Time_rms->SetBinContent(CSCposition, CSCtype+1 ,cellpeak_time_rms);
     }
@@ -1787,7 +1853,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->Fill(alct_keywg, clct_kewdistrip);
   }
 
-  if (L1A_out_of_sync && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_L1A_out_of_sync", mo))
+  if (L1A_out_of_sync && CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_L1A_out_of_sync", mo))
   {
     mo->Fill(CSCposition, CSCtype);
   }

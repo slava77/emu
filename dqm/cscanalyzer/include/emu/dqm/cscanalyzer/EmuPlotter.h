@@ -45,7 +45,15 @@
 #include "DataFormats/CSCDigi/interface/CSCALCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 
-#include "DQM/CSCMonitorModule/interface/CSCDQM_Summary.h"
+#include "CondFormats/CSCObjects/interface/CSCCrateMap.h"
+
+#include "DataFormats/FEDRawData/interface/FEDNumbering.h"
+
+#ifdef UNPACKER2013
+#include "DQM/CSCMonitorModule/plugins/CSCDQM_Summary.h"
+#else
+#include "DQM/CSCMonitorModule/src/CSCDQM_Summary.h"
+#endif
 
 
 // ==  ROOT Section
@@ -206,6 +214,7 @@ public:
   bool isMEvalid(ME_List&, std::string, EmuMonitoringObject* & );
   MonitorElement* findME(std::string tag, std::string name, TDirectory* rootfolder=NULL);
   std::vector<std::string> getListOfFolders(std::string filter, TDirectory* dir=NULL);
+  int getFormatVersion(TDirectory* dir=NULL);
   std::map<std::string, ME_List >&  getMEs()
   {
     return MEs;
@@ -327,6 +336,7 @@ private:
   uint32_t    nBadEvents;
   uint32_t    nCSCEvents;
   uint32_t    nDetectedCSCs;
+  uint16_t    theFormatVersion;
 
   Logger    logger_;
 
@@ -353,6 +363,7 @@ private:
   std::string     cscMapFile;
 
   CSCReadoutMappingFromFile   cscMapping;
+  CSCCrateMap* cratemap;
   std::map<std::string, int>  tmap;
   std::string       eTag;
   std::map<std::string, CSCCounters>  cscCounters;

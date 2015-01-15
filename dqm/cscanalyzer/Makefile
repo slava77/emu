@@ -18,7 +18,13 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #DebugFlags=
 #CFlags+= -O2
 #CCFlags= -g -Wall -O3 -march=prescott
-CCFlags+= -O3 
+CCFlags+= -O3 -DLOCAL_UNPACK
+
+# check emu/dqm/config/site.mk for NEW_UNPACKER2013 variable and comment it you need old unpacker code prior to CMSSW_6_X_X
+ifdef NEW_UNPACKER2013
+CCFlags+= -DUNPACKER2013
+endif
+
 #
 # Packages to be built
 #
@@ -57,6 +63,7 @@ ExternalObjects = \
 
 IncludeDirs = $(XdaqIncludeDirs) \
 	$(BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw \
+	$(BUILD_HOME)/emu/dqm/cmssw/src/common \
 	$(BUILD_HOME)/emu/dqm/common/include \
 	$(BUILD_HOME)/emu/dqm/common/include/emu/dqm/common \
 	$(BUILD_HOME)/emu/daq/reader/include \

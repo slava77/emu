@@ -88,7 +88,15 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
     for (std::vector<DDUIdType>::iterator ddu_itr = DDUs.begin(); ddu_itr != DDUs.end(); ++ddu_itr)
     {
       long errs = bin_checker.errorsForDDU(*ddu_itr);
-      int dduID = (*ddu_itr)&0xFF;
+      int dduID = (*ddu_itr)&0xFF; /// Only 8bits are significant; format of DDU id is Dxx for old system
+
+      if ( ((*ddu_itr) >= FEDNumbering::MINCSCDDUFEDID) && ((*ddu_itr) <= FEDNumbering::MAXCSCDDUFEDID) )   /// New CSC readout without DCCs. CMS CSC DDU ID range 830-869
+      {
+        // dduID = (*ddu_itr) - FEDNumbering::MINCSCDDUFEDID + 1; /// TODO: Can require DDU-RUI remapping for actual system
+        dduID = emu::dqm::utils::getRUIfromDDUId((*ddu_itr));
+
+      }
+
 
       ///** Trying to remap unknown DDU ID to online node number, to handle missing DDU Header errors
       if (*ddu_itr == 0xFFF)  dduID = nodeNumber;
@@ -123,6 +131,13 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
     if (bin_checker.errors() == 0)
     {
       int dduID = bin_checker.dduSourceID() & 0xFF;
+      if ( (bin_checker.dduSourceID() >= FEDNumbering::MINCSCDDUFEDID)
+           && (bin_checker.dduSourceID() <= FEDNumbering::MAXCSCDDUFEDID) )   /// New CSC readout without DCCs. CMS CSC DDU ID range 830-869
+      {
+        // dduID = bin_checker.dduSourceID() - FEDNumbering::MINCSCDDUFEDID + 1; /// TODO: Can require DDU-RUI remapping for actual system
+        dduID = emu::dqm::utils::getRUIfromDDUId(bin_checker.dduSourceID());
+      }
+
       ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
       if (dduID == 248) dduID = 1;
       std::string dduTag = Form("DDU_%02d",dduID);
@@ -234,7 +249,16 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
     return;
   }
 
-  dduID = dduHeader.source_id()&0xFF; /// Only 8bits are significant; format of DDU id is Dxx
+
+  dduID = dduHeader.source_id()&0xFF; /// Only 8bits are significant; format of DDU id is Dxx for old readout system
+  if ( (dduHeader.source_id() >= FEDNumbering::MINCSCDDUFEDID)
+       && (dduHeader.source_id() <= FEDNumbering::MAXCSCDDUFEDID) )   /// New CSC readout without DCCs. CMS CSC DDU ID range 830-869
+  {
+    // dduID = dduHeader.source_id() - FEDNumbering::MINCSCDDUFEDID + 1; /// TODO: Can require DDU-RUI remapping for actual system
+    dduID = emu::dqm::utils::getRUIfromDDUId(dduHeader.source_id());
+  }
+
+  // std::cout << dduHeader.format_version() << " "  << dduHeader.source_id() << std::endl;
 
   if (debug)
   {
@@ -533,12 +557,13 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
           if (mo_DDU_Output_Path_Status_Rate)  mo_DDU_Output_Path_Status_Rate->Fill(i);
           if (mo_DDU_Output_Path_Status_Table) mo_DDU_Output_Path_Status_Table->Fill(0.,i);
         }
-
-        if (mo_DDU_Output_Path_Status_Rate)
-        {
-          double freq = (100.0*mo_DDU_Output_Path_Status_Rate->GetBinContent(i+1))/nEvents;
-          if (mo_DDU_Output_Path_Status_Frequency) mo_DDU_Output_Path_Status_Frequency->SetBinContent(i+1, freq);
-        }
+        /*
+                  if (mo_DDU_Output_Path_Status_Rate)
+                    {
+                      double freq = (100.0*mo_DDU_Output_Path_Status_Rate->GetBinContent(i+1))/nEvents;
+                      if (mo_DDU_Output_Path_Status_Frequency) mo_DDU_Output_Path_Status_Frequency->SetBinContent(i+1, freq);
+                    }
+        */
       }
     }
     else
@@ -546,6 +571,15 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
       mo->Fill(dduID,0); // No Errors
     }
 
+    for (int i=0; i<16; i++)
+    {
+      if (mo_DDU_Output_Path_Status_Rate)
+      {
+        double freq = (100.0*mo_DDU_Output_Path_Status_Rate->GetBinContent(i+1))/nEvents;
+        if (mo_DDU_Output_Path_Status_Frequency) mo_DDU_Output_Path_Status_Frequency->SetBinContent(i+1, freq);
+      }
+
+    }
   }
 
   if (isMEvalid(dduME,"Output_Path_Status_Table", mo)) mo->SetEntries(nEvents);
@@ -580,17 +614,29 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
           if (mo_DDU_Trailer_ErrorStat_Table) mo_DDU_Trailer_ErrorStat_Table->Fill(0.,i);
 
         }
-        if (mo_DDU_Trailer_ErrorStat_Rate)
-        {
-          double freq = (100.0*mo_DDU_Trailer_ErrorStat_Rate->GetBinContent(i+1))/nEvents;
-          if (mo_DDU_Trailer_ErrorStat_Frequency) mo_DDU_Trailer_ErrorStat_Frequency->SetBinContent(i+1, freq);
-        }
+        /*
+              if (mo_DDU_Trailer_ErrorStat_Rate)
+              {
+                double freq = (100.0*mo_DDU_Trailer_ErrorStat_Rate->GetBinContent(i+1))/nEvents;
+                if (mo_DDU_Trailer_ErrorStat_Frequency) mo_DDU_Trailer_ErrorStat_Frequency->SetBinContent(i+1, freq);
+              }
+        */
       }
     }
     else
     {
       mo->Fill(dduID,0); // No Errors
     }
+    for (int i=0; i<32; i++)
+    {
+
+      if (mo_DDU_Trailer_ErrorStat_Rate)
+      {
+        double freq = (100.0*mo_DDU_Trailer_ErrorStat_Rate->GetBinContent(i+1))/nEvents;
+        if (mo_DDU_Trailer_ErrorStat_Frequency) mo_DDU_Trailer_ErrorStat_Frequency->SetBinContent(i+1, freq);
+      }
+    }
+
 
   }
 
@@ -639,6 +685,14 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
     int CrateID = (chamber->first>>4) & 0xFF;
     int DMBSlot = chamber->first & 0xF;
     int dduID = bin_checker.dduSourceID() & 0xFF;
+
+    if ( (bin_checker.dduSourceID() >= FEDNumbering::MINCSCDDUFEDID)
+         && (bin_checker.dduSourceID() <= FEDNumbering::MAXCSCDDUFEDID) )   /// New CSC readout without DCCs. CMS CSC DDU ID range 830-869
+    {
+      // dduID = dduHeader.source_id() - FEDNumbering::MINCSCDDUFEDID + 1; /// TODO: Can require DDU-RUI remapping for actual system
+      dduID = emu::dqm::utils::getRUIfromDDUId(bin_checker.dduSourceID());
+    }
+
     ///** Fix for b904 TF DDU. remap ID 760 (248) to 1
     if (dduID == 248) dduID = 1;
 
@@ -675,9 +729,10 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
     CSCDetId cid( id );
 
 
-    int CSCtype = 0;
-    int CSCposition = 0;
+    int CSCtype = -1;
+    int CSCposition = -1;
     std::string cscName = getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
+    // bool ME11 = emu::dqm::utils::isME11(cscName);
 
 
     if ( fCheckMapping &&  (dduID != cscMapping.dduId(cid)) )
@@ -718,7 +773,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       mo->Fill(CrateID, DMBSlot);
     }
 
-    if ( CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Reporting", mo))
+    if ( CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_Reporting", mo))
     {
       mo->Fill(CSCposition, CSCtype);
     }
@@ -726,15 +781,17 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
 
     //      Get FEBs Data Available Info
     long payload = chamber->second;
-    int cfeb_dav = (payload>>7) & 0x1F;
+    int cfeb_dav = (payload>>7) & 0x7F;
     int cfeb_active = payload & 0x1F;
+    cfeb_active |= ((payload >> 14) &0x03) << 5;
+    // std::cout << std::hex << "active: " << cfeb_active << " dav: " << cfeb_dav << " payload: " << payload << std::dec << std::endl;
     int alct_dav = (payload>>5) & 0x1;
     int tmb_dav = (payload>>6) & 0x1;
     int cfeb_dav_num=0;
 
     if (alct_dav==0)
     {
-      if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_ALCT", mo))
+      if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_wo_ALCT", mo))
       {
         mo->Fill(CSCposition, CSCtype);
       }
@@ -747,7 +804,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
 
     if (tmb_dav==0)
     {
-      if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_CLCT", mo))
+      if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_wo_CLCT", mo))
       {
         mo->Fill(CSCposition, CSCtype);
       }
@@ -760,7 +817,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
 
     if (cfeb_dav==0)
     {
-      if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_CFEB", mo))
+      if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_wo_CFEB", mo))
       {
         mo->Fill(CSCposition, CSCtype);
       }
@@ -778,7 +835,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       if (isMEvalid(cscME, "DMB_CFEB_DAV_Unpacking_Inefficiency", mo1)
           && isMEvalid(cscME, "DMB_CFEB_DAV", mo2))
       {
-        for (int i=1; i<=5; i++)
+        for (int i=1; i<=7; i++)
         {
           double actual_dav_num = mo->GetBinContent(i);
           double unpacked_dav_num = mo2->GetBinContent(i);
@@ -790,7 +847,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
         }
       }
 
-      for (int i=0; i<5; i++)
+      for (int i=0; i<7; i++)
       {
         int cfeb_present = (cfeb_dav>>i) & 0x1;
         cfeb_dav_num += cfeb_present;
@@ -810,7 +867,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
         && isMEvalid(cscME, "Actual_DMB_CFEB_DAV_multiplicity_Frequency", mof))
     {
 
-      for (int i=1; i<7; i++)
+      for (int i=1; i<9; i++)
       {
         float cfeb_entries =  mo->GetBinContent(i);
         mof->SetBinContent(i, ((float)cfeb_entries/(float)(DMBEvents)*100.0));
@@ -821,7 +878,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
       if (isMEvalid(cscME, "DMB_CFEB_DAV_multiplicity_Unpacking_Inefficiency", mo1)
           && isMEvalid(cscME, "DMB_CFEB_DAV_multiplicity", mo2))
       {
-        for (int i=1; i<7; i++)
+        for (int i=1; i<9; i++)
         {
           float actual_dav_num = mo->GetBinContent(i);
           float unpacked_dav_num = mo2->GetBinContent(i);
@@ -838,7 +895,20 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
     }
 
 
-    if (isMEvalid(cscME, "DMB_CFEB_Active_vs_DAV", mo)) mo->Fill(cfeb_dav,cfeb_active);
+    if (isMEvalid(cscME, "DMB_CFEB_Active_vs_DAV", mo))
+    {
+      /// Wrap for 7 ME11 DCFEBs
+      /*
+      if (ME11) {
+        if ( (cfeb_dav == 0) && (cfeb_active == 0) ) mo->Fill(cfeb_dav,cfeb_active);
+        if ( (cfeb_dav&0xF) || (cfeb_active&0xF) ) mo->Fill(cfeb_dav&0xF,cfeb_active&0xF);
+        if ( ((cfeb_dav>>4)%0x7) || ((cfeb_active>>4)&0x7) ) mo->Fill((cfeb_dav>>4)%0x7,(cfeb_active>>4)&0x7);
+      } else
+      */
+      {
+        mo->Fill(cfeb_dav,cfeb_active);
+      }
+    }
 
     // == Fill Histogram for FEB DAV Efficiency
     if (isMEvalid(cscME, "Actual_DMB_FEB_DAV_Rate", mo))
@@ -964,8 +1034,8 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
 
     ME_List& cscME = MEs[cscTag];
 
-    int CSCtype     = 0;
-    int CSCposition   = 0;
+    int CSCtype     = -1;
+    int CSCposition   = -1;
     getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
 
     if (isMEvalid(cscME, "BinCheck_DataFlow_Problems_Table", mo))
@@ -982,7 +1052,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
     int anyInputFull = chamber->second & 0x3F;
     if (anyInputFull)
     {
-      if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_DMB_input_fifo_full", mo))
+      if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_DMB_input_fifo_full", mo))
       {
         mo->Fill(CSCposition, CSCtype);
       }
@@ -996,7 +1066,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
     int anyInputTO = (chamber->second >> 7) & 0x3FFF;
     if (anyInputTO)
     {
-      if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_DMB_input_timeout", mo))
+      if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_DMB_input_timeout", mo))
       {
         mo->Fill(CSCposition, CSCtype);
       }
@@ -1016,7 +1086,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
         mo->Fill(CrateID, DMBSlot);
       }
 
-      if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Warnings", mo))
+      if (CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_Format_Warnings", mo))
       {
         mo->Fill(CSCposition, CSCtype);
       }
@@ -1094,15 +1164,15 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied)
         mo->Fill(CrateID, DMBSlot);
       }
 
-      int CSCtype   = 0;
-      int CSCposition = 0;
+      int CSCtype   = -1;
+      int CSCposition = -1;
       getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
-      if ( CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Errors", mo))
+      if ( CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_Format_Errors", mo))
       {
         mo->Fill(CSCposition, CSCtype);
       }
 
-      if (!isEventDenied  && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo))
+      if (!isEventDenied  && CSCtype>=0 && CSCposition>=0 && isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo))
       {
         mo->Fill(CSCposition, CSCtype);
       }
@@ -1151,7 +1221,8 @@ void EmuPlotter::updateCSCFractionHistos(std::string cscTag)
           && isMEvalid(cscME, "BinCheck_DataFlow_Problems_Frequency", mof))
       {
         double entries = mo->getObject()->GetEntries();
-        if (entries > 0) {
+        if (entries > 0)
+        {
           mof->getObject()->Reset();
           mof->getObject()->Add(mo->getObject());
           // mof->getObject()->Scale(1./(nDMBEvents[cscName]));
@@ -1168,7 +1239,8 @@ void EmuPlotter::updateCSCFractionHistos(std::string cscTag)
           && isMEvalid(cscME, "BinCheck_Errors_Frequency", mof))
       {
         double entries = mo->getObject()->GetEntries();
-        if (entries > 0) {
+        if (entries > 0)
+        {
           mof->getObject()->Reset();
           mof->getObject()->Add(mo->getObject());
           // mof->getObject()->Scale(1./(nDMBEvents[cscName]));
