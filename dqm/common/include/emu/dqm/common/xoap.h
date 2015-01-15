@@ -14,7 +14,7 @@
 #include "xoap/AttachmentPart.h"
 #include "xoap/exception/Exception.h"
 #include "xoap/SOAPAllocator.h"
-#include "xoap/SOAPConnection.h"
+//#include "xoap/SOAPConnection.h"
 #include "xoap/URLEndpoint.h"
 #include "xoap/Method.h"
 #include "xoap/MessageReference.h"
