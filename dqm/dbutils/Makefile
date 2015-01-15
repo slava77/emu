@@ -47,7 +47,7 @@ UserExecutableLinkFlags =
 # potentially need conditional processing
 #
 # Libraries = cscmap1_32 occi nnz10 clntsh sqlite3 CSCDigi log4cplus
-Libraries = occi nnz11 clntsh sqlite3 log4cplus CSCDigi
+Libraries = occi nnz12 clntsh sqlite3 log4cplus CSCDigi
 
 
 #
