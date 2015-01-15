@@ -26,12 +26,13 @@ Sources=\
 	RegEx.cc           \
 	EmuTFPlotter.cc   
 
-Executables = runEmuTFAnalyzer.cc 
+Executables = runEmuTFAnalyzer.cc runEmuTFAnalyzerTest.cc
 
 ExternalObjects = $(BUILD_HOME)/emu/dqm/common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemudqmcommon.a \
                   $(BUILD_HOME)/emu/dqm/cmssw/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libCSCDQMCommon.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
+	$(BUILD_HOME)/emu/dqm/cmssw/src/common \
         $(BUILD_HOME)/emu/dqm/common/include/ \
 	$(BUILD_HOME)/emu \
 	${CMSSW}

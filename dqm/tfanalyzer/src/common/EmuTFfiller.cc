@@ -445,6 +445,15 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 
               TH1F *WireGroup = (TH1F*)tf.get("WireGroup",sp,mpc,csc);
               if ( lct->wireGroup() && WireGroup ) WireGroup->Fill(lct->wireGroup());
+	      /*
+              if ( lct->wireGroup() && WireGroup ) 
+	      {
+		if ((sp==12) && (csc==8) && (mpc == 5)) { 
+		  std::cout << "wg: " << lct->wireGroup() << std::endl;
+		} 
+		 WireGroup->Fill(lct->wireGroup());
+              }
+              */
 
               TH1F *clct = (TH1F*)tf.get("CLCT",sp,mpc,csc);
               if ( clct ) clct->Fill(lct->pattern());
@@ -589,16 +598,18 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
             -1,10, 11, 12, 13, 14, 15, 16, 17, 18,
             -1,19, 20, 21, 22, 23, 24, 25, 26, 27,
             -1,28, 29, 30, 31, 32, 33, 34, 35, 36,
-            -1,37, 38, 39, -1, -1, -1, -1, -1, -1
-            ///-1,37, 38, 39, 40, 41, 42, 43, 44, 45
+            -1,37, 38, 39, 40, 41, 42, 43, 44, 45
+	    ///            -1,37, 38, 39, -1, -1, -1, -1, -1, -1
           };
           TH2F *csc_timing = (TH2F*)tf.get("csc_timing",sp,mpc1,csc1);
-          if ( csc_timing && id2bin[iter->first.second]>0 ) csc_timing->Fill(iter->second,id2bin[iter->first.second]);
+//          if ( csc_timing && id2bin[iter->first.second]>0 ) csc_timing->Fill(iter->second,id2bin[iter->first.second]-1);
+          if ( csc_timing && id2bin[iter->first.second]>0 ) csc_timing->Fill(iter->second,id2bin[iter->first.second]-1); //sub 1 for bin start at 0
           unsigned short mpc2 = iter->first.second/10+1;
           unsigned short csc2 = iter->first.second%10;
           if ( !tf.isBooked(sp,mpc2,csc2) ) tf.book(sp,mpc2,csc2);
           csc_timing = (TH2F*)tf.get("csc_timing",sp,mpc2,csc2);
-          if ( csc_timing && id2bin[iter->first.first]>0 ) csc_timing->Fill(-iter->second,id2bin[iter->first.first]);
+//          if ( csc_timing && id2bin[iter->first.first]>0 ) csc_timing->Fill(-iter->second,id2bin[iter->first.first]);
+          if ( csc_timing && id2bin[iter->first.first]>0 ) csc_timing->Fill(-iter->second,id2bin[iter->first.first]-1); //sub 1 for bin start at 0
           iter++;
         }
       ///}

@@ -10,6 +10,7 @@
 #include <regex.h>
 #include <iostream>
 #include <string>
+#include <string.h>
 #include <vector>
 #include <map>
 
