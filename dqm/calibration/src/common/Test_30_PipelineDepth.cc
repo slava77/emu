@@ -88,6 +88,8 @@ void Test_30_PipelineDepth::analyzeCSC(const CSCEventData& data)
 		return;
 	}
 
+ 	theFormatVersion = data.getFormatVersion();
+
 	int csctype=0, cscposition=0;
 	std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
 	if (cscID == "") return;
@@ -120,7 +122,7 @@ void Test_30_PipelineDepth::analyzeCSC(const CSCEventData& data)
 	// == Check if CFEB Data Available
 	if (dmbHeader->cfebAvailable())
 	{
-		for (int icfeb=0; icfeb<getNumStrips(cscID)/16; icfeb++) {  // loop over cfebs in a given chamber
+		for (int icfeb=0; icfeb<getNumStrips(cscID, theFormatVersion)/16; icfeb++) {  // loop over cfebs in a given chamber
 			CSCCFEBData * cfebData =  data.cfebData(icfeb);
 			if (!cfebData) continue;
 

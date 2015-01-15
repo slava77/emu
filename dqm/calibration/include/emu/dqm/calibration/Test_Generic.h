@@ -353,8 +353,8 @@ protected:
   std::string outDir;
   std::map<std::string, std::string> test_params;
   uint32_t nExpectedEvents;
-  int n_ME11_DCFEBs;
   uint16_t theFormatVersion;
+  int n_ME11_DCFEBs;
 
   CSCDCCExaminer bin_checker;
   CSCReadoutMappingFromFile cscMapping;

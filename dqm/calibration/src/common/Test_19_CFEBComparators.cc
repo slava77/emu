@@ -45,7 +45,7 @@ void Test_19_CFEBComparators::initCSC(std::string cscID)
     nCSCEvents[cscID]=0;
 
     ThresholdScanDataC thdata;
-    thdata.Nbins = getNumStrips(cscID);
+    thdata.Nbins = getNumStrips(cscID, theFormatVersion);
     thdata.Nlayers = 6;
 
     memset(thdata.content, 0, sizeof (thdata.content));
@@ -53,7 +53,7 @@ void Test_19_CFEBComparators::initCSC(std::string cscID)
     tscan_data[cscID] = thdata;
     TestData cscdata;
     TestData2D cfebdata;
-    cfebdata.Nbins = getNumStrips(cscID);
+    cfebdata.Nbins = getNumStrips(cscID, theFormatVersion);
     cfebdata.Nlayers = NLAYERS;
     memset(cfebdata.content, 0, sizeof (cfebdata.content));
     memset(cfebdata.cnts, 0, sizeof (cfebdata.cnts));
@@ -88,7 +88,7 @@ void Test_19_CFEBComparators::initCSC(std::string cscID)
     //cscdata["R12"]=cfebdata;
 
 
-    cfebdata.Nbins = getNumStrips(cscID)/16;
+    cfebdata.Nbins = getNumStrips(cscID, theFormatVersion)/16;
     cfebdata.Nlayers = 1;
     cscdata["R03"]=cfebdata;//avg per CFEB thresh dac1
     cscdata["R07"]=cfebdata;//avg per CFEB thresh dac2
@@ -276,6 +276,8 @@ void Test_19_CFEBComparators::analyzeCSC(const CSCEventData& data)
     const CSCDMBTrailer* dmbTrailer = data.dmbTrailer();
     if (!dmbHeader && !dmbTrailer) return;
 
+    theFormatVersion = data.getFormatVersion();
+
 
     int csctype=0, cscposition=0;
     std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
@@ -301,7 +303,7 @@ void Test_19_CFEBComparators::analyzeCSC(const CSCEventData& data)
     int curr_thresh =  DDUstats[dduID].thresh;
     int curr_amp = DDUstats[dduID].amp; // pulse number (0, 1, 2)
     int curr_strip = DDUstats[dduID].strip;
-    int nCFEBs = getNumStrips(cscID)/16;
+    int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
 
     tstep.evt_cnt++;
 
@@ -416,7 +418,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
         ThresholdScanDataC& thdata = tscan_data[cscID];
 
-        int nCFEBs = getNumStrips(cscID)/16;
+        int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
 
         CSCtoHWmap::iterator itr = cscmap.find(cscID);
 
@@ -437,7 +439,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
                 for (int i=0; i<NLAYERS; i++)
                 {
-                    for (int j=0; j<getNumStrips(cscID); j++)
+                    for (int j=0; j<getNumStrips(cscID, theFormatVersion); j++)
                     {
 
                         float  chisq, mean, par[3], rms;
@@ -515,7 +517,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
 
             ///* Calculate CFEB Threshold Offsets for 1st Pulse DAC
-            for (int istrip = 0; istrip < getNumStrips(cscID); istrip++)
+            for (int istrip = 0; istrip < getNumStrips(cscID, theFormatVersion); istrip++)
             {
                 for (int ilayer = 0; ilayer < NLAYERS; ilayer++)
                 {
@@ -550,7 +552,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
 
             ///* Calculate CFEB Threshold Offsets for 2nd Pulse DAC
-            for (int istrip = 0; istrip < getNumStrips(cscID); istrip++)
+            for (int istrip = 0; istrip < getNumStrips(cscID, theFormatVersion); istrip++)
             {
                 for (int ilayer = 0; ilayer < NLAYERS; ilayer++)
                 {
@@ -583,7 +585,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
 
             ///* Calculate CFEB Threshold Offsets for 3rd Pulse DAC
-            for (int istrip = 0; istrip < getNumStrips(cscID); istrip++)
+            for (int istrip = 0; istrip < getNumStrips(cscID, theFormatVersion); istrip++)
             {
                 for (int ilayer = 0; ilayer < NLAYERS; ilayer++)
                 {
@@ -603,7 +605,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
             for (int i=0; i<NLAYERS; i++)
             {
-                for (int j=0; j<getNumStrips(cscID); j++)
+                for (int j=0; j<getNumStrips(cscID, theFormatVersion); j++)
                 {
                     ///* Calculate CFEB Threshold Slopes
                     r09.content[i][j] = (r06.content[i][j]-r02.content[i][j]) /
@@ -646,7 +648,7 @@ void Test_19_CFEBComparators::finishCSC(std::string cscID)
 
 
             // Calculate CFEB Threshold Offsets for 15 fC
-            for (int istrip = 0; istrip < getNumStrips(cscID); istrip++)
+            for (int istrip = 0; istrip < getNumStrips(cscID, theFormatVersion); istrip++)
             {
             for (int ilayer = 0; ilayer < NLAYERS; ilayer++)
             {

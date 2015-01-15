@@ -15,7 +15,7 @@ template<typename T> inline CSCCFEBDataWord const * const
 timeSample( T const & data, int nCFEB,int nSample,int nLayer, int nStrip)
 {
   //strips means strip per cfeb so 1- 16
-  return data.cfebData(nCFEB)->timeSlice(nSample)->timeSample(nLayer,nStrip);
+  return data.cfebData(nCFEB)->timeSlice(nSample)->timeSample(nLayer,nStrip,data.cfebData(nCFEB)->isDCFEB());
 }
 
 template<typename T> inline CSCCFEBTimeSlice const * const
@@ -47,8 +47,8 @@ void Test_GasGain::initCSC(std::string cscID)
 
   TestData cscdata;
   TestData2D gasgaindata;
-  // gasgaindata.Nbins = getNumStrips(cscID)/16*5;
-  gasgaindata.Nbins = getNumStrips(cscID) / NStrips_per_CFEB * nsegments;
+  // gasgaindata.Nbins = getNumStrips(cscID, theFormatVersion)/16*5;
+  gasgaindata.Nbins = getNumStrips(cscID, theFormatVersion) / NStrips_per_CFEB * nsegments;
   gasgaindata.Nlayers = NLayer;
   memset(gasgaindata.content, 0, sizeof (gasgaindata.content));
   memset(gasgaindata.cnts, 0, sizeof (gasgaindata.cnts));
@@ -81,7 +81,7 @@ void Test_GasGain::initCSC(std::string cscID)
 
   // const unsigned int NLayer=6;
 
-  const unsigned int N_CFEBS=getNumStrips(cscID)/NStrips_per_CFEB; 
+  const unsigned int N_CFEBS=getNumStrips(cscID, theFormatVersion)/NStrips_per_CFEB; 
   //unused  const unsigned int N_Samples=16;
   //unused  const unsigned int NStrips_per_CFEB=16;
   //unused  const unsigned int NStrips=80;
@@ -236,6 +236,8 @@ void Test_GasGain::analyzeCSC(const CSCEventData& data)
       return;
     }
 
+  theFormatVersion = data.getFormatVersion();
+
   int csctype=0, cscposition=0;
   std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
 
@@ -259,9 +261,9 @@ void Test_GasGain::analyzeCSC(const CSCEventData& data)
 
   // const unsigned int NLayer=6;
 
-  const unsigned int N_CFEBS=getNumStrips(cscID)/NStrips_per_CFEB; 
+  const unsigned int N_CFEBS=getNumStrips(cscID, theFormatVersion)/NStrips_per_CFEB; 
   //unused  const unsigned int N_Samples=16;
-  const unsigned int NStrips=getNumStrips(cscID);//80;
+  const unsigned int NStrips=getNumStrips(cscID, theFormatVersion);//80;
   // const unsigned int nsegments=5;
   const unsigned int NWires=getNumWireGroups(cscID);
 
@@ -357,7 +359,7 @@ void Test_GasGain::analyzeCSC(const CSCEventData& data)
 	      //final analysis strip max index goes from 1 to 80
 	      int strip_max=0;
 	      std::vector<int> tbin_max(NStrips,-1);
-	      for (int icfeb=0; icfeb<getNumStrips(cscID)/NStrips_per_CFEB; icfeb++){ 
+	      for (int icfeb=0; icfeb<getNumStrips(cscID, theFormatVersion)/NStrips_per_CFEB; icfeb++){ 
 		// loop over cfebs in a given chamber   	        
 		CSCCFEBData * cfebData =  data.cfebData(icfeb);
 		if (!cfebData || !cfebData->check()){ 		 
@@ -377,8 +379,8 @@ void Test_GasGain::analyzeCSC(const CSCEventData& data)
 		    }
 		  // == Calculate pedestal from first two time samples
 		  //istrip means strip per cfeb so 1- 16
-		  double Q12=((cfebData->timeSlice(0))->timeSample(layer,istrip)->adcCounts
-			      + (cfebData->timeSlice(1))->timeSample(layer,istrip)->adcCounts)/2.;
+		  double Q12=((cfebData->timeSlice(0))->timeSample(layer,istrip,cfebData->isDCFEB())->adcCounts
+			      + (cfebData->timeSlice(1))->timeSample(layer,istrip,cfebData->isDCFEB())->adcCounts)/2.;
 		  
 		  int sca_max_adc=-1;
 		  //determine maximum over the remaing time bins (two first are pedestals)
@@ -425,8 +427,8 @@ void Test_GasGain::analyzeCSC(const CSCEventData& data)
 	      if(strip_max<3){
 		strip_max=3;
 	      }
-	      if(strip_max>(getNumStrips(cscID)-2)){
-		strip_max=getNumStrips(cscID)-2;
+	      if(strip_max>(getNumStrips(cscID, theFormatVersion)-2)){
+		strip_max=getNumStrips(cscID, theFormatVersion)-2;
 	      }
 	      cluster_sum[layer-1]=0;
 	      //strip can go from 1 to 80
@@ -469,8 +471,8 @@ void Test_GasGain::analyzeCSC(const CSCEventData& data)
 		    //icfeb counts from 0
 		    int icfeb=(peak_strip[ilayer-1]-1)/NStrips_per_CFEB;
 		    int strip_bin=(peak_strip[ilayer-1]-1) / ( NStrips / Nbins_strips );
-		    //r01.content[ilayer-1][icfeb + getNumStrips(cscID)/16*isegment] += cluster_sum[ilayer-1];
-		    //r01.cnts[ilayer-1][icfeb + getNumStrips(cscID)/16*isegment]++;
+		    //r01.content[ilayer-1][icfeb + getNumStrips(cscID, theFormatVersion)/16*isegment] += cluster_sum[ilayer-1];
+		    //r01.cnts[ilayer-1][icfeb + getNumStrips(cscID, theFormatVersion)/16*isegment]++;
 		    unsigned int index=isegment+icfeb*nsegments+(ilayer-1)*N_CFEBS*nsegments;
             //ALCTKeyWG start from 0
             //int wire_bin=ALCTKeyWG/4;
@@ -560,7 +562,7 @@ void Test_GasGain::finishCSC(std::string cscID)
 
 	  // const unsigned int NLayer=6;
 
-	  const unsigned int N_CFEBS=getNumStrips(cscID)/NStrips_per_CFEB; 
+	  const unsigned int N_CFEBS=getNumStrips(cscID, theFormatVersion)/NStrips_per_CFEB; 
       // 	  const unsigned int nsegments=5;
       // const unsigned int Nbins_wires = 16;
       // const unsigned int Nbins_strips=20;

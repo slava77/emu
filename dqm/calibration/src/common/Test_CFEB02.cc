@@ -34,14 +34,14 @@ void Test_CFEB02::initCSC(std::string cscID)
 
   //= Init data structures for storing SCA data and results
   CFEBSCAData scadata;
-  scadata.Nbins = getNumStrips(cscID);
+  scadata.Nbins = getNumStrips(cscID, theFormatVersion);
   scadata.Nlayers = NLAYERS;
   memset(scadata.content, 0, sizeof (scadata.content));
   sdata[cscID] = scadata;
 
   TestData cscdata;
   TestData2D cfebdata;
-  cfebdata.Nbins = getNumStrips(cscID);
+  cfebdata.Nbins = getNumStrips(cscID, theFormatVersion);
   cfebdata.Nlayers = NLAYERS;
   memset(cfebdata.content, 0, sizeof (cfebdata.content));
   memset(cfebdata.cnts, 0, sizeof (cfebdata.cnts));
@@ -58,9 +58,6 @@ void Test_CFEB02::initCSC(std::string cscID)
   for (int i=0; i<TEST_DATA2D_NLAYERS; i++)
     for (int j=0; j<TEST_DATA2D_NBINS; j++) cfebdata.content[i][j]=0.;
 
-	//isME11() in emu::dqm::utils uses cscID.find("ME+1/1")
-  // instead of cscID.find("ME+1.1") so it doesn't work
-  isME11 = ((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 ));
 
   // mv0 - initial pedestals
   cscdata["_MV0"]=cfebdata;
@@ -219,6 +216,9 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
     return;
   }
 
+  theFormatVersion = data.getFormatVersion();
+  // theFormatVersion = 2013;
+  // std::cout << "Format: " << theFormatVersion << std::endl;
 
   int csctype=0, cscposition=0;
   std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
@@ -235,6 +235,8 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
     addCSCtoMap(cscID, dmbHeader->crateID(), dmbHeader->dmbID());
   }
   nCSCEvents[cscID]++;
+
+  isME11 = emu::dqm::utils::isME11(cscID);
 
   // std::cout << nCSCEvents[cscID] << " " << cscID << std::endl;
   // == Define aliases to access chamber specific data
@@ -293,7 +295,8 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
   if (dmbHeader->cfebAvailable())
   {
     double Qmax=0;
-    for (int icfeb=0; icfeb<getNumStrips(cscID)/16; icfeb++)   // loop over cfebs in a given chamber
+    int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
+    for (int icfeb=0; icfeb<nCFEBs; icfeb++)   // loop over cfebs in a given chamber
     {
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
       if (!cfebData) continue;
@@ -307,10 +310,10 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
           bool fSel = false;
           if (cscID == F_CSC && icfeb == F_CFEB && layer == F_LAYER && strip == F_STRIP) fSel = true;
           // - Sum of first two ADC samples
-          double Q12=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts
-                      + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
+          double Q12=((cfebData->timeSlice(0))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts
+                      + (cfebData->timeSlice(1))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts)/2.;
           // - Forth sample
-          double Q4 = (cfebData->timeSlice(3))->timeSample(layer,strip)->adcCounts;
+          double Q4 = (cfebData->timeSlice(3))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts;
           // double Qmax=0;
 
           if (v02) v02->Fill(Q4-Q12);
@@ -323,7 +326,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
 
           for (int itime=0; itime<nTimeSamples; itime++)   // loop over time samples (8 or 16)
           {
-            CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
+            CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip,cfebData->isDCFEB());
             int Qi = (int) ((timeSample->adcCounts)&0xFFF);
             if (v01) v01->Fill(itime, Qi-Q12);
             if (Qi-Q12>Qmax) Qmax=Qi-Q12;
@@ -348,7 +351,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
             // == Check that charges in all timebins satisfy |Qi - mv0| < 3*rms0
             for (int itime=0; itime<nTimeSamples; itime++)
             {
-              CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
+              CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip,cfebData->isDCFEB());
               int ADC = (int) ((timeSample->adcCounts)&0xFFF);
 
               r24.cnts[layer-1][strip-1 + icfeb*16]++;
@@ -371,22 +374,22 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
             {
               double Q12=0, Q345=0, Q3=0, Q4=0, Q5=0, Q6=0, Q7=0;
               /*
-              double Q12=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts
-              + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
-              double Q345=((cfebData->timeSlice(2))->timeSample(layer,strip)->adcCounts
-              + (cfebData->timeSlice(3))->timeSample(layer,strip)->adcCounts
-              + (cfebData->timeSlice(4))->timeSample(layer,strip)->adcCounts)/3.;
-              double Q3 = (cfebData->timeSlice(2))->timeSample(layer,strip)->adcCounts;
-              double Q4 = (cfebData->timeSlice(3))->timeSample(layer,strip)->adcCounts;
-              double Q5 = (cfebData->timeSlice(4))->timeSample(layer,strip)->adcCounts;
-              double Q6 = (cfebData->timeSlice(5))->timeSample(layer,strip)->adcCounts;
-              double Q7 = (cfebData->timeSlice(6))->timeSample(layer,strip)->adcCounts;
+              double Q12=((cfebData->timeSlice(0))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts
+              + (cfebData->timeSlice(1))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts)/2.;
+              double Q345=((cfebData->timeSlice(2))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts
+              + (cfebData->timeSlice(3))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts
+              + (cfebData->timeSlice(4))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts)/3.;
+              double Q3 = (cfebData->timeSlice(2))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts;
+              double Q4 = (cfebData->timeSlice(3))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts;
+              double Q5 = (cfebData->timeSlice(4))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts;
+              double Q6 = (cfebData->timeSlice(5))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts;
+              double Q7 = (cfebData->timeSlice(6))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts;
               */
 
 
               for (int itime=0; itime<nTimeSamples; itime++)
               {
-                CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
+                CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip,cfebData->isDCFEB());
                 int Qi = (int) ((timeSample->adcCounts)&0xFFF);
 
                 //= Charge values Q per time sample
@@ -663,7 +666,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
       int first_strip_index=mapitem.stripIndex;
       int strips_per_layer=getNumStrips(cscID);
 
-      // int strips_per_layer = getNumStrips(cscID);
+      // int strips_per_layer = getNumStrips(cscID, theFormatVersion);
       double rms = 0.;
       double covar = 0;
 

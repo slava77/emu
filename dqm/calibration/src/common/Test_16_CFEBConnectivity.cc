@@ -51,7 +51,7 @@ void Test_16_CFEBConnectivity::initCSC(std::string cscID)
   for (int t = 1; t<16; ++t) // no need to store time bin 0
   {
 	  TestData2D tb_data;
-	  tb_data.Nbins = getNumStrips(cscID);
+	  tb_data.Nbins = getNumStrips(cscID, theFormatVersion);
 	  tb_data.Nlayers = NLAYERS;
 	  memset(tb_data.content, 0, sizeof (tb_data.content));
 	  adcSum[cscID][t] = tb_data;
@@ -63,13 +63,7 @@ void Test_16_CFEBConnectivity::initCSC(std::string cscID)
   
   cfebdata.Nlayers = NLAYERS;
   
-  
-  //isME11() in emu::dqm::utils uses cscID.find("ME+1/1")
-  // instead of cscID.find("ME+1.1") so it doesn't work
-  bool isME11 = false;
-  if ((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) {
-    isME11 = true;
-  }
+  bool isME11 = emu::dqm::utils::isME11(cscID);
  
   if(isME11) 
   {
@@ -83,11 +77,11 @@ void Test_16_CFEBConnectivity::initCSC(std::string cscID)
   
   } else {
 	chamberSides = 1;
-	cfebdata.Nbins = getNumStrips(cscID);
+	cfebdata.Nbins = getNumStrips(cscID, theFormatVersion);
 	cscdata["R01"] = cfebdata;
   }
   
-  cfebdata.Nbins = getNumStrips(cscID);
+  cfebdata.Nbins = getNumStrips(cscID, theFormatVersion);
   
   
   memset(cfebdata.content, 0, sizeof (cfebdata.content));
@@ -164,7 +158,7 @@ void Test_16_CFEBConnectivity::analyzeCSC(const CSCEventData& data)
       return;
     }
 
-    
+  theFormatVersion = data.getFormatVersion(); 
   
   int csctype=0, cscposition=0;
   std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
@@ -197,7 +191,7 @@ void Test_16_CFEBConnectivity::analyzeCSC(const CSCEventData& data)
   TimeBinsTestData& ch_adc_sum2 = adcSum2[cscID];
   
   
-  int NCFEBs = getNumStrips(cscID)/16;
+  int NCFEBs = getNumStrips(cscID, theFormatVersion)/16;
   
   if (dmbHeader->cfebAvailable())
     {
@@ -226,7 +220,7 @@ void Test_16_CFEBConnectivity::analyzeCSC(const CSCEventData& data)
 				  
 				  for (int j=0; j<nTimeSamples; j++)
 				  {
-					  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(j))->timeSample(ilayer,istrip);
+					  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(j))->timeSample(ilayer,istrip, cfebData->isDCFEB());
 					 
 					  
 					  if(timeSample->adcCounts > adc_max)
@@ -246,11 +240,11 @@ void Test_16_CFEBConnectivity::analyzeCSC(const CSCEventData& data)
 				  max_adc_hist->Fill(jmax);
 
 				  // loop for storing the sums and sums of squares of counts above pedestal 
-				  int pedestal = (cfebData->timeSlice(0))->timeSample(ilayer,istrip)->adcCounts;
+				  int pedestal = (cfebData->timeSlice(0))->timeSample(ilayer,istrip,cfebData->isDCFEB())->adcCounts;
 				  //start at 1 instead of 0 since doing difference w.r.t bin 0
 				  for (int j=1; j<nTimeSamples; j++)
 				  {
-						  int adc_count = (cfebData->timeSlice(j))->timeSample(ilayer,istrip)->adcCounts;
+						  int adc_count = (cfebData->timeSlice(j))->timeSample(ilayer,istrip,cfebData->isDCFEB())->adcCounts;
 						  double count_diff = (double) adc_count - (double) pedestal;
 
 										

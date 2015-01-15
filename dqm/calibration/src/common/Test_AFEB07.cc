@@ -280,7 +280,7 @@ void Test_AFEB07::analyzeCSC(const CSCEventData& data)
 
 void Test_AFEB07::finishCSC(std::string cscID)
 {
-  if (nCSCEvents[cscID] < nExpectedEvents)
+  if (nCSCEvents[cscID] < nExpectedEvents/2)
     {
       LOG4CPLUS_ERROR(logger, Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ));
       // = Set error

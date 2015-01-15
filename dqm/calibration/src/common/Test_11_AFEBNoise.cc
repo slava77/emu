@@ -90,10 +90,10 @@ void Test_11_AFEBNoise::analyze(const char * data, int32_t dataSize, uint32_t er
   }
 
 
-  if (bin_checker.errors() != 0)
+  if ((bin_checker.errors() & binCheckMask) != 0)
   {
     doBinCheck();
-    //    return;
+    return;
   }
 
   CSCDDUEventData dduData((uint16_t *) data, &bin_checker);

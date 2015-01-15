@@ -37,7 +37,7 @@ void Test_CFEB04::initCSC(std::string cscID)
 
   // Initialize internal data structire for Gains analysis
   GainData gaindata;
-  gaindata.Nbins = getNumStrips(cscID);
+  gaindata.Nbins = getNumStrips(cscID, theFormatVersion);
   gaindata.Nlayers = 6;
   memset(gaindata.content, 0, sizeof (gaindata.content));
   memset(gaindata.fit, 0, sizeof (gaindata.fit));
@@ -51,7 +51,7 @@ void Test_CFEB04::initCSC(std::string cscID)
 
   TestData cscdata;
   TestData2D cfebdata;
-  cfebdata.Nbins = getNumStrips(cscID);
+  cfebdata.Nbins = getNumStrips(cscID, theFormatVersion);
   cfebdata.Nlayers = 6;
   memset(cfebdata.content, 0, sizeof (cfebdata.content));
   memset(cfebdata.cnts, 0, sizeof (cfebdata.cnts));
@@ -95,7 +95,7 @@ void Test_CFEB04::initCSC(std::string cscID)
   cscdata["R05"]=cfebdata;
 
   // R06 - tpeak data for cathode timing
-  cfebdata.Nbins = getNumStrips(cscID)/16;
+  cfebdata.Nbins = getNumStrips(cscID, theFormatVersion)/16;
   cscdata["R06"]=cfebdata;
 
   tdata[cscID] = cscdata;;
@@ -304,7 +304,8 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
   if (dmbHeader->cfebAvailable())
     {
 
-      for (int icfeb=0; icfeb<getNumStrips(cscID)/16; icfeb++)   // loop over cfebs in a given chamber
+      int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
+      for (int icfeb=0; icfeb<nCFEBs; icfeb++)   // loop over cfebs in a given chamber
         {
 
           CSCCFEBData * cfebData =  data.cfebData(icfeb);
@@ -323,8 +324,8 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
                 }
 
               // == Calculate pedestal
-              double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
-                          + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
+              double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts
+                          + (cfebData->timeSlice(1))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts)/2.;
 
               for (int itime=0; itime<nTimeSamples; itime++)   // loop over time samples (8 or 16)
                 {
@@ -337,7 +338,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
                       // continue;
                     }
 
-                  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+                  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip,cfebData->isDCFEB());
 
                   int Qi = (int) ((timeSample->adcCounts)&0xFFF);
 
@@ -366,12 +367,12 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
               // == Signal line shape at 6th DAC step
               if (curr_dac==5)
                 {
-                  double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
-                              + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
+                  double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts
+                              + (cfebData->timeSlice(1))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts)/2.;
 
                   for (int itime=0; itime<nTimeSamples; itime++)   // loop over time samples (8 or 16)
                     {
-                      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+                      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip,cfebData->isDCFEB());
                       int Qi = (int) ((timeSample->adcCounts)&0xFFF);
                       if (v02)
                         {
@@ -383,14 +384,14 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
               // == Stan's modifications for test pulse peaking analysis
               if (curr_dac==5)
                 {
-                  double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
-                              + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
+                  double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts
+                              + (cfebData->timeSlice(1))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts)/2.;
 
                   double Qmax=-99.;
                   int imax = -1;
                   for (int itime=0; itime<nTimeSamples; itime++)   // loop over time samples (8 or 16)
                     {
-                      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+                      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip,cfebData->isDCFEB());
                       int Qi = (int) ((timeSample->adcCounts)&0xFFF);
                       if (Qi-Q12>Qmax)
                         {
@@ -403,7 +404,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
                       double adc[4];
                       for (int itime=imax-1; itime<imax+3; itime++)
                         {
-                          CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+                          CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip,cfebData->isDCFEB());
                           int Qi = (int) ((timeSample->adcCounts)&0xFFF);
                           adc[itime-imax+1]=Qi-Q12;
                         }
@@ -482,7 +483,8 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
           for (unsigned int layer = 1; layer <= 6; layer++)
             {
-              for (int icfeb=0; icfeb<getNumStrips(cscID)/16; icfeb++)   // loop over cfebs in a given chamber
+	      int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
+              for (int icfeb=0; icfeb<nCFEBs; icfeb++)   // loop over cfebs in a given chamber
                 {
                   {
 
@@ -708,7 +710,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
             }
           for (unsigned int layer = 1; layer <= 6; layer++)
             {
-              for (int strip=0; strip<getNumStrips(cscID); strip++)   // loop over cfebs in a given chamber
+              for (int strip=0; strip<getNumStrips(cscID, theFormatVersion); strip++)   // loop over cfebs in a given chamber
                 {
                   double a = r01.content[layer-1][strip];
                   if ((a<MAX_VALID_SLOPE) && (a>MIN_VALID_SLOPE) && (avg_gain>0) )

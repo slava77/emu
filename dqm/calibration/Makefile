@@ -25,6 +25,7 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #DebugFlags=
 #CFlags+= 
 #CCFlags= -g -O1 -Wall
+CCFlags+= -DLOCAL_UNPACK
 #
 # Packages to be built
 #
@@ -71,6 +72,7 @@ IncludeDirs += $(BUILD_HOME)/$(XDAQ_PLATFORM)/include
 IncludeDirs += $(INST_BUILD_HOME)/$(XDAQ_PLATFORM)/include
 endif
 IncludeDirs += 	$(INST_BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw \
+	$(INST_BUILD_HOME)/emu/dqm/cmssw/src/common \
 	$(INST_BUILD_HOME)/emu/dqm/common/include \
 	$(INST_BUILD_HOME)/emu/daq/reader/include \
 	$(CMSSW) \

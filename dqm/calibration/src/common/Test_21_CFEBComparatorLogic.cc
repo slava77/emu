@@ -38,12 +38,10 @@ void Test_21_CFEBComparatorLogic::initCSC(std::string cscID)
 
   //= Init data structures for storing data and results
   int nLayers = NLAYERS;
-  
-  
-  //isME11() in emu::dqm::utils uses cscID.find("ME+1/1")
-  // instead of cscID.find("ME+1.1") so it doesn't work
-  bool isME11 = (this->isME11(cscID) || emu::dqm::utils::isME11(cscID));
-  int n_TMB_DCFEBs = getNumCFEBs(cscID); 
+
+  bool isME11 = emu::dqm::utils::isME11(cscID);
+
+  int n_TMB_DCFEBs = getNumCFEBs(cscID, theFormatVersion); 
   if (isME11 && n_ME11_TMB_DCFEBs > 0 )
     {
       n_TMB_DCFEBs = n_ME11_TMB_DCFEBs;
@@ -157,6 +155,9 @@ void Test_21_CFEBComparatorLogic::analyzeCSC(const CSCEventData& data)
     {
       return;
     }
+   
+  theFormatVersion = data.getFormatVersion();
+
   int csctype=0, cscposition=0;
   std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
   if (cscID == "")  return;
@@ -177,8 +178,8 @@ void Test_21_CFEBComparatorLogic::analyzeCSC(const CSCEventData& data)
   
   nCSCEvents[cscID]++;
   
-  int NCFEBs = getNumCFEBs(cscID);
-  if ((this->isME11(cscID) || emu::dqm::utils::isME11(cscID)) && n_ME11_TMB_DCFEBs > 0 )
+  int NCFEBs = getNumCFEBs(cscID, theFormatVersion);
+  if (emu::dqm::utils::isME11(cscID) && n_ME11_TMB_DCFEBs > 0 )
     {
       NCFEBs = n_ME11_TMB_DCFEBs;
     } 

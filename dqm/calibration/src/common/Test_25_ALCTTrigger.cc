@@ -194,6 +194,9 @@ void Test_25_ALCTTrigger::analyzeCSC(const CSCEventData& data)
     {
       return;
     }
+
+  theFormatVersion = data.getFormatVersion();
+
   int csctype=0, cscposition=0;
   std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
   //cout << dmbHeader->crateID() << " " << dmbHeader->dmbID() << " " << csctype << " " << cscposition << endl;

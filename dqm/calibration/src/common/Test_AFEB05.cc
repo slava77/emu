@@ -146,16 +146,20 @@ void Test_AFEB05::analyze(const char * data, int32_t dataSize, uint32_t errorSta
         {
           LOG4CPLUS_INFO(logger, "No LTC/TTC double L1A bug in data");
           ltc_bug=1;
-          nEvents = 1000;
+          // nEvents = 1000;
+	  nEvents = nExpectedEvents/6;
         }
       else
         {
           LOG4CPLUS_WARN(logger, "Found LTC/TTC double L1A bug in data");
         }
+	LOG4CPLUS_INFO(logger, "nEvents=" << nEvents << ", nExpectedEvents=" << nExpectedEvents << ", layerSwitch=" << nEvents*ltc_bug);
     }
 
 
-  int layerSwitch=1000*ltc_bug;
+//  int layerSwitch=1000*ltc_bug;
+  int layerSwitch=nEvents*ltc_bug;
+
 
   if (currL1A% layerSwitch ==1)
     {

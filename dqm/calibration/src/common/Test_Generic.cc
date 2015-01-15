@@ -1223,14 +1223,14 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
               if (params["XScale"] == "strips")
                 {
                   xmin=0;
-                  xmax=getNumStrips(cscID);
-                  xbins=getNumStrips(cscID);
+                  xmax=getNumStrips(cscID, theFormatVersion);
+                  xbins=getNumStrips(cscID, theFormatVersion);
                 }
               if (params["XScale"] == "halfstrips")
                 {
                   xmin=0;
-                  xmax=getNumStrips(cscID)*2;
-                  xbins=getNumStrips(cscID)*2;
+                  xmax=getNumStrips(cscID, theFormatVersion)*2;
+                  xbins=getNumStrips(cscID, theFormatVersion)*2;
                 }
               // params["SetNdivisionsX"]=Form("%d",(int)xbins);;
             }
@@ -1246,14 +1246,14 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
               if (params["YScale"] == "strips")
                 {
                   ymin=0;
-                  ymax=getNumStrips(cscID);
-                  ybins=getNumStrips(cscID);
+                  ymax=getNumStrips(cscID, theFormatVersion);
+                  ybins=getNumStrips(cscID, theFormatVersion);
                 }
               if (params["YScale"] == "halfstrips")
                 {
                   ymin=0;
-                  ymax=getNumStrips(cscID)*2;
-                  ybins=getNumStrips(cscID)*2;
+                  ymax=getNumStrips(cscID, theFormatVersion)*2;
+                  ybins=getNumStrips(cscID, theFormatVersion)*2;
                 }
               // params["SetNdivisionsY"]=Form("%d",(int)ybins);
             }
@@ -1263,8 +1263,8 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
               if (cnvtype == "strips_cnv")
                 {
                   // = Set actual number of strips depending on Chamber type
-                  xbins = getNumStrips(cscID);
-                  xmax = getNumStrips(cscID);
+                  xbins = getNumStrips(cscID, theFormatVersion);
+                  xmax = getNumStrips(cscID, theFormatVersion);
                   if (isME11(cscID) && n_ME11_DCFEBs > 0)
                     {
                       int nDCFEBs =  n_ME11_DCFEBs;
@@ -1275,8 +1275,8 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
               if (cnvtype == "halfstrips_cnv")
                 {
                   // = Set actual number of strips depending on Chamber type
-                  xbins = getNumStrips(cscID)*2;
-                  xmax = getNumStrips(cscID)*2;
+                  xbins = getNumStrips(cscID, theFormatVersion)*2;
+                  xmax = getNumStrips(cscID, theFormatVersion)*2;
                   if (isME11(cscID) && params["n_ME11_TMB_DCFEBs"] != "")
                     {
                       int nDCFEBs =  atof(params["n_ME11_TMB_DCFEBs"].c_str());
@@ -1298,12 +1298,12 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
               if (cnvtype == "cfeb_cnv")
                 {
                   // = Set actual number of wiregroups depending on Chamber type
-                  xbins = getNumStrips(cscID)/16;
-                  xmax = getNumStrips(cscID)/16;
+                  xbins = getNumStrips(cscID, theFormatVersion)/16;
+                  xmax = getNumStrips(cscID, theFormatVersion)/16;
                 }
               if(cnvtype == "gasgain_cnv")
                 {
-                  int ncfebs=getNumStrips(cscID)/16;
+                  int ncfebs=getNumStrips(cscID, theFormatVersion)/16;
                   int nsegments=5;
                   xbins=ncfebs*nsegments;
                   xmax=ncfebs*nsegments;
@@ -1451,7 +1451,7 @@ void Test_Generic::doBinCheck()
       // int ChamberID     = chamber->first;
       int CrateID = (chamber->first>>4) & 0xFF;
       int DMBSlot = chamber->first & 0xF;
-      if ((CrateID ==255) ||
+      if ((CrateID ==255) || (CrateID == 0) || (DMBSlot == 0) ||
           (chamber->second & 0x80))
         {
           chamber++;    // = Skip chamber detection if DMB header is missing (Error code 6)

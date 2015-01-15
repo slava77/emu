@@ -24,7 +24,7 @@ void Test_CFEB03::initCSC(std::string cscID)
 {
   nCSCEvents[cscID]=0;
   XtalkData xtalkdata;
-  xtalkdata.Nbins = getNumStrips(cscID);
+  xtalkdata.Nbins = getNumStrips(cscID, theFormatVersion);
   xtalkdata.Nlayers = 6;
 
   memset(xtalkdata.content, 0, sizeof (xtalkdata.content));
@@ -33,7 +33,7 @@ void Test_CFEB03::initCSC(std::string cscID)
 
   TestData cscdata;
   TestData2D cfebdata;
-  cfebdata.Nbins = getNumStrips(cscID);
+  cfebdata.Nbins = getNumStrips(cscID, theFormatVersion);
   cfebdata.Nlayers = 6;
   memset(cfebdata.content, 0, sizeof (cfebdata.content));
   memset(cfebdata.cnts, 0, sizeof (cfebdata.cnts));
@@ -236,6 +236,8 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
       return;
     }
 
+  theFormatVersion = data.getFormatVersion();
+
   int csctype=0, cscposition=0;
   std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition);
 
@@ -299,7 +301,9 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
   // == Check if CFEB Data Available
   if (dmbHeader->cfebAvailable())
     {
-      for (int icfeb=0; icfeb<getNumStrips(cscID)/16; icfeb++)   // loop over cfebs in a given chamber
+      
+      int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
+      for (int icfeb=0; icfeb<nCFEBs; icfeb++)   // loop over cfebs in a given chamber
         {
           CSCCFEBData * cfebData =  data.cfebData(icfeb);
 
@@ -311,7 +315,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
             }
 
           bool fFirstStrip = (curr_strip ==1 && icfeb==0)? true: false;
-          bool fLastStrip = (curr_strip ==16 && icfeb==(getNumStrips(cscID)/16-1))? true: false;
+          bool fLastStrip = (curr_strip ==16 && icfeb==(nCFEBs-1))? true: false;
           if (((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) && ((curr_strip ==1 && icfeb==4)))
             fFirstStrip = true;
 
@@ -329,8 +333,8 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                 }
 
               // Calculate Central strip Pedestals
-              double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
-                          + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
+              double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts
+                          + (cfebData->timeSlice(1))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts)/2.;
 
               // Loop over Central strip timesamples
               for (int itime=0; itime<nTimeSamples; itime++)
@@ -339,7 +343,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                   if (cfebData->timeSlice(itime)->checkCRC())
                     {
 
-                      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+                      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip,cfebData->isDCFEB());
                       int Qi = (int) ((timeSample->adcCounts)&0xFFF);
                       xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].cnt++;
                       xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].mv += Qi-Q12;
@@ -389,8 +393,8 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                       if (cfebData->timeSlice(0)->checkCRC() &&  cfebData->timeSlice(1)->checkCRC())
                         {
                           // Calculate Left Strip Pedestals
-                          Q12_left=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts
-                                    + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
+                          Q12_left=((cfebData->timeSlice(0))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts
+                                    + (cfebData->timeSlice(1))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts)/2.;
 
                           // Loop over Left Strip timesamples
                           for (int itime=0; itime<nTimeSamples; itime++)
@@ -398,7 +402,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                               if (cfebData->timeSlice(itime)->checkCRC())
                                 {
 
-                                  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
+                                  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip,cfebData->isDCFEB());
 
                                   Qi_left = (int) ((timeSample->adcCounts)&0xFFF);
 
@@ -458,8 +462,8 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                         {
 
                           // Calculate Right Strip Pedestals
-                          Q12_right=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts
-                                     + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
+                          Q12_right=((cfebData->timeSlice(0))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts
+                                     + (cfebData->timeSlice(1))->timeSample(layer,strip,cfebData->isDCFEB())->adcCounts)/2.;
 
                           // Loop over Right strip timesamples
                           for (int itime=0; itime<nTimeSamples; itime++)
@@ -468,7 +472,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                               if (cfebData->timeSlice(itime)->checkCRC())
                                 {
 
-                                  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
+                                  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip,cfebData->isDCFEB());
 
                                   Qi_right = (int) ((timeSample->adcCounts)&0xFFF);
 
@@ -586,7 +590,8 @@ void Test_CFEB03::finishCSC(std::string cscID)
           for (unsigned int layer = 1; layer <= 6; layer++)
             {
 
-              for (int icfeb=0; icfeb<getNumStrips(cscID)/16; icfeb++)   // loop over cfebs in a given chamber
+	      int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
+              for (int icfeb=0; icfeb<nCFEBs; icfeb++)   // loop over cfebs in a given chamber
                 {
 
                   for (int strip = 1; strip <=16  ; ++strip)   // loop over cfeb strip
@@ -733,7 +738,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
                           double Qcc_peak_time=0;
 
                           bool fFirstStrip = (strip ==1 && icfeb==0)? true: false;
-                          bool fLastStrip = (strip ==16 && icfeb==(getNumStrips(cscID)/16-1))? true: false;
+                          bool fLastStrip = (strip ==16 && icfeb==(nCFEBs-1))? true: false;
                           if (((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) && ((strip ==1 && icfeb==4)))
                             fFirstStrip = true;
 
