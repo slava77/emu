@@ -39,6 +39,7 @@ IncludeDirs = $(XdaqIncludeDirs) \
 	$(BUILD_HOME)/emu/daq/server/include \
         $(BUILD_HOME)/emu/daq/reader/include \
 	$(BUILD_HOME)/emu/dqm/cmssw/emu/dqm/cmssw \
+	$(BUILD_HOME)/emu/dqm/cmssw/src/common \
 	$(BUILD_HOME)/emu/dqm/common/include \
 	$(BUILD_HOME)/emu/dqm/tfanalyzer/include \
 	$(CMSSW) \
