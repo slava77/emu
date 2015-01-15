@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xml" href="EmuDAQConfig.xsl"?><xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!--EmuDisplayClient-->
+  <xc:Context url="http://csc-C2D08-13.cms:20560">
+    <xc:Application class="EmuDisplayClient" id="1451" instance="1" network="local">
+      <properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
+        <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
+        <imageFormat xsi:type="xsd:string">png</imageFormat>
+        <!-- imagePath xsi:type="xsd:string">/tmp/images</imagePath-->
+        <baseDir xsi:type="xsd:string">/nfshome0/cscdqm/config/browser</baseDir>
+        <resultsDir xsi:type="xsd:string">/data/dqm/online</resultsDir>
+        <viewOnly xsi:type="xsd:boolean">false</viewOnly>
+        <xmlCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMBooking.xml</xmlCfgFile>
+        <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+	<cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
+	<expertSystemURL xsi:type="xsd:string">http://cosmic3.phys.ufl.edu:8080/cdw/factcollection</expertSystemURL>
+        <isFactFinderInDebugMode xsi:type="xsd:boolean">false</isFactFinderInDebugMode>
+        <useExSys xsi:type="xsd:boolean">false</useExSys>
+      </properties>
+    </xc:Application>
+    <!--xc:Module>/opt/xdaq/lib/libtstoreclient.so</xc:Module-->
+    <xc:Module>${XDAQ_ROOT}/lib/libxalan-c.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemusoap.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudqmcscdisplay.so</xc:Module>
+  </xc:Context>
+
+ 
+</xc:Partition>
