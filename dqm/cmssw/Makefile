@@ -11,7 +11,8 @@ Package=dqm/cmssw
 CXX     = g++
 
 #CXXFLAGS  = -g -pedantic -Wno-long-long -Wall -O3 -fPIC -DDQMLOCAL
-CXXFLAGS = $(CCFlags) -O3 -DDQMLOCAL -pedantic -Wno-long-long
+CXXFLAGS = $(CCFlags) -O3 -DDQMLOCAL -DLOCAL_UNPACK -pedantic -Wno-long-long -DNDEBUG
+#CXXFLAGS = $(CCFlags)  -DDQMLOCAL -DLOCAL_UNPACK -pedantic -Wno-long-long
 #-fPIC
 
 LOG4CPLUS = $(XDAQ_ROOT)/include
@@ -52,10 +53,30 @@ OBJS_DIGI      = $(addprefix $(ODIR)/, $(notdir $(SRCS_DIGI:%.cc=%.o)))
 
 CSCRAW   = $(CMSSW)/EventFilter/CSCRawToDigi
 SRCRAW_PATH    = $(CSCRAW)/src
+
+# check emu/dqm/config/site.mk for NEW_UNPACKER2013 variable and comment it you need old unpacker code prior to CMSSW_6_X_X
+ifdef NEW_UNPACKER2013
 SRCS_RAW      = $(SRCRAW_PATH)/bitset_append.cc \
 	$(SRCRAW_PATH)/CSCDCCExaminer.cc $(SRCRAW_PATH)/CSCDCCHeader.cc $(SRCRAW_PATH)/CSCDCCEventData.cc\
 	$(SRCRAW_PATH)/CSCDDUHeader.cc $(SRCRAW_PATH)/CSCDDUEventData.cc \
 	$(SRCRAW_PATH)/CSCDMBHeader.cc $(SRCRAW_PATH)/CSCEventData.cc\
+        $(SRCRAW_PATH)/CSCDMBHeader2005.cc $(SRCRAW_PATH)/CSCDMBHeader2013.cc\
+        $(SRCRAW_PATH)/CSCDMBTrailer.cc \
+	$(SRCRAW_PATH)/CSCCFEBData.cc $(SRCRAW_PATH)/CSCCFEBTimeSlice.cc \
+	$(SRCRAW_PATH)/CSCALCTHeader.cc $(SRCRAW_PATH)/CSCALCTHeader2006.cc $(SRCRAW_PATH)/CSCALCTHeader2007.cc\
+	$(SRCRAW_PATH)/CSCAnodeData.cc $(SRCRAW_PATH)/CSCAnodeData2006.cc $(SRCRAW_PATH)/CSCAnodeData2007.cc \
+	$(SRCRAW_PATH)/CSCALCTTrailer.cc \
+	$(SRCRAW_PATH)/CSCTMBHeader.cc $(SRCRAW_PATH)/CSCTMBHeader2006.cc \
+	$(SRCRAW_PATH)/CSCTMBHeader2007.cc $(SRCRAW_PATH)/CSCTMBHeader2007_rev0x50c3.cc $(SRCRAW_PATH)/CSCTMBHeader2013.cc \
+	$(SRCRAW_PATH)/CSCTMBScope.cc $(SRCRAW_PATH)/CSCTMBData.cc $(SRCRAW_PATH)/CSCTMBTrailer.cc \
+	$(SRCRAW_PATH)/CSCCLCTData.cc $(SRCRAW_PATH)/CSCBadCFEBWord.cc $(SRCRAW_PATH)/CSCBadCFEBTimeSlice.cc \
+	$(SRCRAW_PATH)/CSCRPCData.cc $(SRCRAW_PATH)/CSCTMBBlockedCFEB.cc $(SRCRAW_PATH)/CSCTMBMiniScope.cc
+else
+SRCS_RAW      = $(SRCRAW_PATH)/bitset_append.cc \
+	$(SRCRAW_PATH)/CSCDCCExaminer.cc $(SRCRAW_PATH)/CSCDCCHeader.cc $(SRCRAW_PATH)/CSCDCCEventData.cc\
+	$(SRCRAW_PATH)/CSCDDUHeader.cc $(SRCRAW_PATH)/CSCDDUEventData.cc \
+	$(SRCRAW_PATH)/CSCDMBHeader.cc $(SRCRAW_PATH)/CSCEventData.cc\
+	$(SRCRAW_PATH)/CSCDMBTrailer.cc \
 	$(SRCRAW_PATH)/CSCCFEBData.cc $(SRCRAW_PATH)/CSCCFEBTimeSlice.cc \
 	$(SRCRAW_PATH)/CSCALCTHeader.cc $(SRCRAW_PATH)/CSCALCTHeader2006.cc $(SRCRAW_PATH)/CSCALCTHeader2007.cc\
 	$(SRCRAW_PATH)/CSCAnodeData.cc $(SRCRAW_PATH)/CSCAnodeData2006.cc $(SRCRAW_PATH)/CSCAnodeData2007.cc \
@@ -65,6 +86,8 @@ SRCS_RAW      = $(SRCRAW_PATH)/bitset_append.cc \
 	$(SRCRAW_PATH)/CSCTMBScope.cc $(SRCRAW_PATH)/CSCTMBData.cc $(SRCRAW_PATH)/CSCTMBTrailer.cc \
 	$(SRCRAW_PATH)/CSCCLCTData.cc $(SRCRAW_PATH)/CSCBadCFEBWord.cc $(SRCRAW_PATH)/CSCBadCFEBTimeSlice.cc \
 	$(SRCRAW_PATH)/CSCRPCData.cc $(SRCRAW_PATH)/CSCTMBBlockedCFEB.cc $(SRCRAW_PATH)/CSCTMBMiniScope.cc
+endif
+
 OBJS_RAW      = $(addprefix $(ODIR)/, $(notdir $(SRCS_RAW:%.cc=%.o)))
 
 # CMSSW DQMServices/QualityTests
@@ -86,8 +109,13 @@ OBJS_QLTY      = $(addprefix $(ODIR)/, $(notdir $(SRCS_QLTY:%.cc=%.o)))
 
 
 # CMSSW DQM/CSCMonitorModule
+ifdef NEW_UNPACKER2013
+DQM_MODULE   = $(CMSSW)/DQM/CSCMonitorModule/plugins
+else 
 DQM_MODULE   = $(CMSSW)/DQM/CSCMonitorModule/src
-DQM   = $(CMSSW)/DQM/RenderPlugins
+endif
+#DQM   = $(CMSSW)/DQM/RenderPlugins
+DQM = src/common/DQM/RenderPlugins
 
 SRCDQM_PATH    = $(DQM)/src
 SRCS_DQM     = \

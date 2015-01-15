@@ -19,6 +19,8 @@
 #include "log4cplus/helpers/pointer.h"
 #include "log4cplus/spi/loggingevent.h"
 #include "coloredlayout.h"
+#include "log4cplus/loggingmacros.h"
+
 
 using namespace log4cplus;
 using namespace log4cplus::helpers;
