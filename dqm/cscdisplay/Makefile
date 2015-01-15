@@ -16,7 +16,12 @@ include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 #CCFlags=-g -Wall -O3
-CCflags+= -O3
+CCflags+= -O3 -DLOCAL_UNPACK
+
+# check emu/dqm/config/site.mk for NEW_UNPACKER2013 variable and comment it you need old unpacker code prior to CMSSW_6_X_X
+ifdef NEW_UNPACKER2013
+CCFlags+= -DUNPACKER2013
+endif
 
 #
 # Packages to be built
@@ -47,6 +52,7 @@ IncludeDirs = $(XdaqIncludeDirs) \
 	$(BUILD_HOME)/emu/base/include \
 	$(BUILD_HOME)/emu/dqm/common/include \
 	$(BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw \
+	$(BUILD_HOME)/emu/dqm/cmssw/src/common \
 	$(ROOTDIR)/include \
 	$(CMSSW) \
         $(BOOST)

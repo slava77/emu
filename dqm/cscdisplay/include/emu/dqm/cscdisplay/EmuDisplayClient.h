@@ -9,6 +9,9 @@
 #include <dirent.h>
 #include <errno.h>
 
+#include <sys/stat.h>
+#include <unistd.h>
+
 
 #include "emu/dqm/common/xdaq.h"
 #include "emu/dqm/common/xdata.h"
@@ -37,7 +40,11 @@
 #include "emu/base/WebReporter.h"
 #include "emu/base/FactFinder.h"
 
-#include "DQM/CSCMonitorModule/interface/CSCDQM_Summary.h"
+#ifdef UNPACKER2013
+#include "DQM/CSCMonitorModule/plugins/CSCDQM_Summary.h"
+#else
+#include "DQM/CSCMonitorModule/src/CSCDQM_Summary.h"
+#endif
 
 #include "emu/dqm/common/ConsumerCanvas.hh"
 #include "emu/dqm/common/EmuMonitoringObject.h"
