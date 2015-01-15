@@ -1750,7 +1750,7 @@ function setEntryStatus(objname, severity, hasKnown)
 			m_obj = document.getElementById("cscDDU"+id);
 			if (m_obj) {
 				// addlog(objname + " " + severity, "debug");
-				if (severity >= 0) m_obj.style.background = DQM_SEVERITY[severity].color;			
+				if (severity >=0) m_obj.style.background = DQM_SEVERITY[severity].color;			
 				if (hasKnown) { m_obj.style.border = "2px solid magenta"; }
 				else m_obj.style.border = "";
 				
@@ -1760,7 +1760,7 @@ function setEntryStatus(objname, severity, hasKnown)
 			m_obj = document.getElementById(objname); 
 			if (m_obj) {
 				// addlog(objname + " " + severity, "debug");
-				if (severity >= 0) m_obj.style.background = DQM_SEVERITY[severity].color;			
+				if (severity >=0) m_obj.style.background = DQM_SEVERITY[severity].color;			
 				if (hasKnown) { m_obj.style.border = "2px solid magenta"; }
 				else m_obj.style.border = "";
 			}
@@ -2128,7 +2128,6 @@ function loadRunsList(r_list)
 	// out += "<div><table class='runs_table'>";
 	out = "<table class='runs_table'>";
 	out += "<th>Run</th><th>Analyzed on</th>";
-	out += "<tr><td><a href='' id='Online' onClick='RunName=\"Online\";getTestsList();getCSCCounters();loadCSCList(\"Online\");return false;'>Online</a></td><td></td></tr>";
 	if (r_list) {
 		compare_list = document.getElementById("compare_selection");
 		
@@ -2536,15 +2535,7 @@ function enableCSCTableEntry(entry_key, entry)
 {
 	obj_sel = selectedObjectList[4];
 	var r_link=document.getElementById("RunLink");
-	// if (r_link) r_link.innerHTML = "<a class='RLink' href=''>Run: " + RunNumber + "</a>";
-        if (r_link) {
-		if (RunName == "Online")
-		{
-		  r_link.innerHTML = "<a class='RLink' href=''>Run: " + RunNumber + " (Online)</a>";
-		} else {
-		  r_link.innerHTML = "<a class='RLink' href=''>Run: " + RunName + "</a> [<a href='getROOTFile?file="+ RunName +".root'>Download ROOT File</a>]";
-		}
-	  }
+	if (r_link) r_link.innerHTML = "<a class='RLink' href=''>Run: " + RunNumber + "</a>";
 	if (entry_key.search("EMU") >= 0) {
 		obj = document.getElementById("cscCommon");
 		if (obj) {
@@ -3293,7 +3284,7 @@ function setSelectedRunsTab(obj)
 
 get_element = document.all ?
 	function (s_id) { return document.all[s_id] } :
-	function (s_id) { if (s_id != "") { return document.getElementById(s_id) } else {return null} };
+	function (s_id) { return document.getElementById(s_id) };
 
 </script>
 </head>
@@ -3318,7 +3309,7 @@ get_element = document.all ?
 <tr style='border: 0px black solid;'><td style='border: 0px black solid;'>
 	
 	
-	<fieldset id="DQMControl" title='DQM Run Control action buttons'>
+	<fieldset id="DQMControl" title='DQM Run Control action buttons' style='display: none'>
 		<legend>
 			<a class='winTitle' href='#' onClick='showHide("dqm_control");'>DQM Control</a>
 		</legend>
@@ -3480,7 +3471,7 @@ get_element = document.all ?
 	
 </td><td style='border: 0px black solid;'>	
 
-	<fieldset id="NodesView" title='DQM Monitor Nodes status view'>
+	<fieldset id="NodesView" title='DQM Monitor Nodes status view' style='display: none'>
 		<legend>
 			<a class='winTitle' href='' onClick='return showHide("nodes_div");'>Nodes Status</a>						
 		</legend>
