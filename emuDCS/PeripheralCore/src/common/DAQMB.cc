@@ -3122,6 +3122,10 @@ void DAQMB::toggle_pedestal()
     cmd[0]=VTX2_BYPASS;
     devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   }
+  else if ( hardware_version_ ==2 ){
+    // set ODMB to DCFEB Pedestal mode
+    WriteRegister(L1A_MODE, 1);  /* 0->normal mode; 1->pedestal mode */
+  }
 }
 
 
