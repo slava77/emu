@@ -383,6 +383,7 @@ void EmuTFMonitor::bindSOAPcallbacks()
 // == Bind CGI Callbacks ==//
 void EmuTFMonitor::bindCGIcallbacks()
 {
+  xgi::bind(this, &EmuTFMonitor::Default, "Default");
   xgi::bind(this, &EmuTFMonitor::dispatch, "dispatch");
   xgi::bind(this, &EmuTFMonitor::showStatus, "showStatus");
   xgi::bind(this, &EmuTFMonitor::showControl, "showControl");

@@ -60,6 +60,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuTFDisplayClient)
 
   errorHandler_ = toolbox::exception::bind (this, &EmuTFDisplayClient::onError, "onError");
 
+  xgi::bind(this, &EmuTFDisplayClient::Default, "Default");
   xgi::bind(this, &EmuTFDisplayClient::getRefPlot, "getRefPlot");
   xgi::bind(this, &EmuTFDisplayClient::getNodesStatus, "getNodesStatus");
   xgi::bind(this, &EmuTFDisplayClient::getTFMapping, "getTFMapping");

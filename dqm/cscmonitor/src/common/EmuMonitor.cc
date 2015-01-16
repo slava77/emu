@@ -398,7 +398,7 @@ void EmuMonitor::bindSOAPcallbacks()
 // == Bind CGI Callbacks ==//
 void EmuMonitor::bindCGIcallbacks()
 {
-
+  xgi::bind(this, &EmuMonitor::Default,  "Default");
   xgi::bind(this, &EmuMonitor::dispatch,  "dispatch");
   xgi::bind(this, &EmuMonitor::showStatus,  "showStatus");
   xgi::bind(this, &EmuMonitor::showControl,   "showControl");

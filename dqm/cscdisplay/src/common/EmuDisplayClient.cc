@@ -66,6 +66,7 @@ throw (xdaq::exception::Exception)
 
 
   // Bind CGI callbacks
+  xgi::bind(this, &EmuDisplayClient::Default,  "Default");
   xgi::bind(this, &EmuDisplayClient::getRefPlot,  "getRefPlot");
   xgi::bind(this, &EmuDisplayClient::getPlot,     "getPlot");
   xgi::bind(this, &EmuDisplayClient::getNodesStatus,  "getNodesStatus");
