@@ -31,7 +31,7 @@ Source: http://xdaq.web.cern.ch/xdaq/dist/%{_packagename}/%{_packagename}-%{_ver
 URL: %{_url}
 BuildRoot: %{_tmppath}/%{_packagename}-%{_version}-%{_release}-buildroot
 Prefix: %{_prefix}
-Requires: emu-ROOT = 5.32.0
+Requires: emu-ROOT = 5.32.25
 #AutoReq: 0
 
 %description
@@ -65,18 +65,26 @@ mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/{xml,html}
 
 for x in %{_packages}; do
 #        install -m 655 %{_packagedir}/../$x/lib/%{_os}/%{_platform}/*.so $RPM_BUILD_ROOT/%{_prefix}/lib/
+	if [[ -d  %{_packagedir}/../$x/lib/%{_os}/%{_platform}/ ]]; then
 	( cd %{_packagedir}/../$x/lib/%{_os}/%{_platform};
           find ./ \( -name "*.so" \) \
             -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/lib/{} \;
         )
+	fi
+
+	if [[ -d  %{_packagedir}/../$x/bin/%{_os}/%{_platform}/ ]]; then
 	( cd %{_packagedir}/../$x/bin/%{_os}/%{_platform};
           find ./ \( -name "*.exe" \) \
             -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/bin/{} \;
         )
+	fi
+
+	if [[ -d  %{_packagedir}/../$x/include ]]; then
         ( cd %{_packagedir}/../$x/include;
           find ./ \( -name "*.[hi]" -o -name "*.hpp" -o -name "*.hh" -o -name "*.hxx" \) \
             -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/include/{} \;
         )
+	fi
 done
 
 #mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml
@@ -127,8 +135,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/bin
 %{_prefix}/lib
 %{_prefix}/etc
-# %{_prefix}/htdocs/%{_project}/%{_package}/*/images
-# %{_prefix}/htdocs/%{_project}/%{_package}/*/html
+#%{_prefix}/htdocs/%{_project}/%{_package}/*/images
+#%{_prefix}/htdocs/%{_project}/%{_package}/*/html
 #%{_prefix}/htdocs/%{_project}/%{_package}/*/xml
 %{_prefix}/htdocs/%{_project}/%{_package}/xml
 %{_prefix}/htdocs/%{_project}/%{_package}/html

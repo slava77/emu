@@ -1,0 +1,3 @@
+%_topdir        /home/cscdqm/rpm
+%_tmppath       /home/cscdqm/rpm/tmp
+%_unpackaged_files_terminate_build 0

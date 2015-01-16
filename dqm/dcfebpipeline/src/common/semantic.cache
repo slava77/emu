@@ -1,0 +1,16 @@
+;; Object common/
+;; SEMANTICDB Tags save file
+(semanticdb-project-database-file "common/"
+  :tables (list 
+   (semanticdb-table "PipelineAnalyzer.cc"
+    :major-mode 'c++-mode
+    :tags '(("emu/dqm/dcfebpipeline/PipelineAnalyzer.h" include nil (dependency-file none) [1 52]) ("emu/utils/String.h" include nil (dependency-file none) [54 83]) ("emu/utils/System.h" include nil (dependency-file none) [84 113]) ("EventFilter/CSCRawToDigi/interface/CSCDDUEventData.h" include nil (dependency-file none) [115 178]) ("EventFilter/CSCRawToDigi/interface/CSCCFEBData.h" include nil (dependency-file none) [179 238]) ("DataFormats/CSCDigi/interface/CSCStripDigi.h" include nil (dependency-file none) [239 294]) ("DataFormats/CSCDigi/interface/CSCComparatorDigi.h" include nil (dependency-file none) [295 355]) ("DataFormats/MuonDetId/interface/CSCDetId.h" include nil (dependency-file none) [356 409]) ("pstream.h" include nil (dependency-file none) [411 431]) ("iomanip" include (:system-flag t) (dependency-file none) [455 473]) ("cmath" include (:system-flag t) (dependency-file none) [474 490]) ("PipelineAnalyzer::examinerMask_" variable (:constant-flag t :default-value "binaryTo<ExaminerMaskType>( \"0111 1111 0000 0110 0000\" )" :type ("ExaminerMaskType" type (:type "class") nil nil)) nil [586 700]) ("PipelineAnalyzer" function (:constructor-flag t :parent "PipelineAnalyzer" :arguments (("dataDir" variable (:constant-flag t :type ("string" type (:type "class") nil nil)) (reparse-symbol arg-sub-list) [738 761])) :type ("PipelineAnalyzer" type (:type "class") nil nil)) nil [702 836]) ("analyze" function (:parent "PipelineAnalyzer" :type "void") nil [838 3862]) ("getADCCounts" function (:parent "PipelineAnalyzer" :arguments (("fileNames" variable (:constant-flag t :type ("multimap" type (:type "class") nil nil)) (reparse-symbol arg-sub-list) [3928 3977])) :type ("map" type (:type "class") nil nil)) nil [3864 10563]) ("execShellCommand" function (:parent "PipelineAnalyzer" :arguments (("shellCommand" variable (:constant-flag t :type ("string" type (:type "class") nil nil)) (reparse-symbol arg-sub-list) [10616 10644])) :type ("vector" type (:type "class") nil nil)) nil [10565 10837]) ("openResults" function (:parent "PipelineAnalyzer" :type "void") nil [10839 12836]) ("addToResults" function (:parent "PipelineAnalyzer" :arguments (("crate" variable (:constant-flag t :type "unsigned int") (reparse-symbol arg-sub-list) [12875 12900]) ("slot" variable (:constant-flag t :type "unsigned int") (reparse-symbol arg-sub-list) [12901 12925]) ("cfeb" variable (:constant-flag t :type "unsigned int") (reparse-symbol arg-sub-list) [12926 12950]) ("depth" variable (:constant-flag t :type "double") (reparse-symbol arg-sub-list) [12951 12971])) :type "void") nil [12838 15312]) ("closeResults" function (:parent "PipelineAnalyzer" :type "void") nil [15314 15520]))
+    :file "PipelineAnalyzer.cc"
+    :pointmax 15521
+    :unmatched-syntax 'nil
+    )
+    )
+  :file "semantic.cache"
+  :semantic-tag-version "2.0pre4"
+  :semanticdb-version "2.0pre4"
+  )

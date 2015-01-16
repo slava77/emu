@@ -1,0 +1,29 @@
+Local DQM installation notes
+(01.15.2015  Contact info: Victor Barashko UFL <barvic@ufl.edu>)
+================================
+- check emu/dqm/cmssw/README.txt file, regarding installation intsruction for CMSSW unpacking library code and install it
+- check instruction in emu/dqm/dist/README.txt, regarding preparation of CERN ROOT rpm package. Prepare and install ROOT on your system to /opt/cern/root 
+- make sure that you have XDAQ and BOOST packages installed 
+- adjust your site parameters and paths in emu/dqm/config/site.mk
+- set and adjust shell env variables for your system
+---------------- ( .bash_profile example) -------------------------
+export BASE=$HOME/xdaq
+export DQMCONFIG=$HOME/config
+export ROOTSYS=/opt/cern/root
+export XDAQ_ROOT=/opt/xdaq
+export XDAQ_PLATFORM=x86_64_slc6
+export XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs
+export BUILD_HOME=$BASE/TriDAS
+export LD_LIBRARY_PATH=$BUILD_HOME/$XDAQ_PLATFORM/lib:$XDAQ_ROOT/lib:$ROOTSYS/lib:$LD_LIBRARY_PATH
+export PATH=$BUILD_HOME/$XDAQ_PLATFORM/bin:$BASE/bin:$XDAQ_ROOT/bin:$ROOTSYS/bin:$PATH
+--------------------------------------------------------------------
+- compile local DQM packages 
+	'cd $BUILD_HOME/emu/dqm; make clean; make; make install'
+- optionally create local DQM rpms with 'make rpm'. look for rpms in emu/dqm/rpm folder.
+- create config folder (DQMCONFIG=$HOME/config)
+	copy files and directories from emu/dqm/xml and emu/dqm/html to $DQMCONFIG
+- for online DQM modules create corresponding XDAQ xml run config files
+- common DQM standalone tools:
+	- runEmuCSCAnalyzer.exe - offline local DQM analyzer
+	- runEmuCalibAnalysis.exe - calibration and STEP tests analyzer
+	- dduEvtDump.exe - formated binary event dumper for local DAQ .raw data files
