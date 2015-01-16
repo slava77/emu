@@ -31,6 +31,8 @@ namespace emu {
 const std::string       VMECC_FIRMWARE_DIR = "vcc"; 
 
 EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuPeripheralCrateBase(s)
+										   , broadcastDMB( NULL )
+										   , broadcastODMB( NULL )
 {	
   broadcastCrate = 0;
   HomeDir_     = getenv("HOME");
@@ -1218,6 +1220,20 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   broadcastDMB->toggle_pedestal();
   std::cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<std::endl;
   ::usleep(nsleep);
+
+  if ( broadcastODMB ){
+    std::cout << "ODMB setup for CFEB Pedestal, calsetup= " <<calsetup<< std::endl;
+    //
+    // Start the setup process: Set all channel to normal, DAC to 0, No_pulse:
+    broadcastODMB->buck_shift_ext_bc(-1);
+    dac=0.0;
+    broadcastODMB->set_cal_dac(dac,dac);
+    std::cout <<" The strip was set to: -1, " <<" DAC was set to: "<<dac <<std::endl;
+    ::usleep(nsleep);
+    broadcastODMB->toggle_pedestal();
+    std::cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<std::endl;
+    ::usleep(nsleep);    
+  }
 
   //    fireEvent("Enable");
   //
