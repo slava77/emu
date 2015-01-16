@@ -251,6 +251,9 @@ void MPC::configure() {
 
   ReadRegister(CSR0);
 
+  // set GTP Control Register to enable TX of new links
+  WriteRegister(CSR5, 0x30);
+  
   (*MyOutput_) << "MPC: set default serializer TX mode ..." << std::endl;
   setTLK2501TxMode(TLK2501TxMode_);
 
