@@ -160,10 +160,11 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
           tf.book(sp);
           cout<<"Booking histograms for SP: "<<sp<<" (sector="<<spPtr->header().sector()<<" & endcap="<<spPtr->header().endcap()<<")"<<std::endl;
         }
-
+      if (sp <= 12) {
       TH1F *L1A_increment  = (TH1F*)tf.get("L1A_increment",sp);
-      if ( L1A_increment && prev_l1a[sp]>=0 ) L1A_increment->Fill(spPtr->header().L1A()-prev_l1a[sp]);
-      prev_l1a[sp] = spPtr->header().L1A();
+      if ( L1A_increment && prev_l1a[sp-1]>=0 ) L1A_increment->Fill(spPtr->header().L1A()-prev_l1a[sp-1]);
+      prev_l1a[sp-1] = spPtr->header().L1A();
+      }
 
       TH2F *L1A_queue_size = (TH2F*)tf.get("L1A_queue_size",sp);
       if ( L1A_queue_size )
