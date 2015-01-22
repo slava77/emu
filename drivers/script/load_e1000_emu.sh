@@ -163,7 +163,8 @@ fi
 print "Seems to be SLC${SLC_MAJOR}. Assuming interface names ${IF_NAME}."
 
 # Only load the drivers on hosts in this list of aliases:
-for ALIAS in csc-c2d08-19-01; do
+#for ALIAS in csc-c2d08-19-01; do
+for ALIAS in csc-daq{01..10}.cms; do
     if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
 	load_e1000_emu eth_hook_2_ddu eth_hook_3_ddu eth_hook_4_ddu eth_hook_5_ddu
 	exit 0

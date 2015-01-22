@@ -4,7 +4,7 @@
 
 Summary: CMS Emu local DAQ Gbit and peripheral crate VME drivers for kernel %{kernel_version} based on the e1000 module for the Intel dual port NIC model PRO/1000 PF
 Name: emu-e1000_emu
-Version: 1.0.0
+Version: 1.1.0
 Release: 1.slc6
 License: none
 Group: none
@@ -66,19 +66,19 @@ touch %{_topdir}/BUILD/MAINTAINER
 %doc MAINTAINER ChangeLog README
 
 %post
-# Have load_daq_pcvme_drivers.sh invoked on booting
-#sed -i -e "/\/usr\/local\/bin\/e1000_emu\/load_e1000_emu.sh/d" /etc/rc.d/rc.local
+# Have load_e1000_emu.sh invoked on booting
+#[[ -f /etc/rc.d/rc.local ]] && sed -i -e "/\/usr\/local\/bin\/e1000_emu\/load_e1000_emu.sh/d" /etc/rc.d/rc.local || true
 #echo "[[ -x /usr/local/bin/e1000_emu/load_e1000_emu.sh ]] && /usr/local/bin/e1000_emu/load_e1000_emu.sh > /var/log/load_e1000_emu.log 2>&1" >> /etc/rc.d/rc.local
 
 # Load new modules
-/usr/local/bin/e1000_emu/load_e1000_emu.sh
+/usr/local/bin/e1000_emu/load_e1000_emu.sh || true
 
 %preun
 # Unload modules
-[[ $(/sbin/lsmod | grep -c e1000_emu) -eq 0 ]] || /sbin/modprobe -r e1000_emu
+[[ $(/sbin/lsmod | grep -c e1000_emu) -eq 0 ]] || /sbin/modprobe -r e1000_emu || true
 
 # Stop loading daq drivers at boot time.
-sed -i -e "/\/usr\/local\/bin\/e1000_emu\/load_e1000_emu.sh/d" /etc/rc.d/rc.local
+[[ -f /etc/rc.d/rc.local ]] && sed -i -e "/\/usr\/local\/bin\/e1000_emu\/load_e1000_emu.sh/d" /etc/rc.d/rc.local
 
 %postun
 # Remove modules from /lib/modules
