@@ -1,0 +1,15 @@
+# localized source script
+/setup_here.sh
+# build logs
+/*.log
+# emacs stuff
+*~
+# xdaq build directories, hopefully globs are enough
+lib/
+linux/
+#svn stuff
+.svn/
+# developer tools stuff
+semantic.cache
+nbproject/
+.gitignore
