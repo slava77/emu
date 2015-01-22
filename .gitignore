@@ -12,3 +12,4 @@ linux/
 # developer tools stuff
 semantic.cache
 nbproject/
+.gitignore
