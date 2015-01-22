@@ -115,10 +115,9 @@ function load_igb_emu(){
     for N in 2 3 4 5; do
 	print "/sbin/ifconfig ${IF_NAME[$N]} down"
 	/sbin/ifconfig ${IF_NAME[$N]} down
-	print "/sbin/ifconfig ${IF_NAME[$N]} 192.168.1.${N}"
-	/sbin/ifconfig ${IF_NAME[$N]} 192.168.1.${N} 
-	print "/sbin/ifconfig ${IF_NAME[$N]} promisc mtu 8192"
-	/sbin/ifconfig ${IF_NAME[$N]} promisc mtu 8192
+	sleep 1
+	print "/sbin/ifconfig ${IF_NAME[$N]} promisc mtu 8192 192.168.1.${N}"
+	/sbin/ifconfig ${IF_NAME[$N]} promisc mtu 8192 192.168.1.${N}
     done
 
 }
