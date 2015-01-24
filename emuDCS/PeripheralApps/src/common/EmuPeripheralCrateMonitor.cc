@@ -3125,10 +3125,11 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 //   CCB bit 7 (value 128) for every chamber is the same and is for CCB itself
         if((ccbtag&0xFFFF0)!=0xCCB0) confbit += 128; 
 //   CCB bit 8 (value 256) is also for CCB itself
-//   MPC bits 9 (value 512) ia for MPC discrete logic
+//   MPC bits 9 (value 512) is for MPC discrete logic
         if((mpcreg0&0x8201)!=0x200) confbit += 512; 
-//   MPC bits 10 (value 1024) ia for other MPC status
-        if((mpcreg3&1)!=1 || (mpcreg2&0x30)!=0x30) confbit += 1024; 
+//   MPC bits 10 (value 1024) is for other MPC status
+//   disabled Jan 23,2015: after hard-reset, registers return to 0. 
+//        if((mpcreg3&1)!=1 || (mpcreg2&0x30)!=0x30) confbit += 1024; 
 
         *out << " " << confbit << " 0";
 
