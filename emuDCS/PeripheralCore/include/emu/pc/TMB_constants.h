@@ -288,7 +288,7 @@ static const unsigned long int  phaser_cfeb2_rxd_adr    = 0x000116;
 static const unsigned long int  phaser_cfeb3_rxd_adr    = 0x000118;
 static const unsigned long int  phaser_cfeb4_rxd_adr    = 0x00011A;
 static const unsigned long int  cfeb0_3_interstage_adr  = 0x00011C;
-    static const unsigned long int  cfeb4_6_interstage_adr  = 0x00011E;
+static const unsigned long int  cfeb4_6_interstage_adr  = 0x00011E;
 //
 static const unsigned long int  sync_err_control_adr    = 0x000120;
 static const unsigned long int  cfeb_badbits_ctrl_adr   = 0x000122;
@@ -331,8 +331,8 @@ static const unsigned long int  badbits601_adr          = 0x000164;  //ADR_V6_CF
 static const unsigned long int  badbits623_adr          = 0x000166;  //ADR_V6_CFEB6_BADBITS_LY23
 static const unsigned long int  badbits645_adr          = 0x000168;  //ADR_V6_CFEB6_BADBITS_LY45
 
-    static const unsigned long int  phaser_cfeb5_rxd_adr	= 0x00016A;  
-    static const unsigned long int  phaser_cfeb6_rxd_adr	= 0x00016C;
+static const unsigned long int  phaser_cfeb5_rxd_adr	= 0x00016A;  
+static const unsigned long int  phaser_cfeb6_rxd_adr	= 0x00016C;
 
 // extra DCFEB Hot Channel Mask on OTMB
 static const unsigned long int  hcm501_adr              = 0x00016E;
@@ -2367,20 +2367,20 @@ const int cfeb4_rx_clock_delay_vmereg   =  phaser_cfeb4_rxd_adr;
 const int cfeb4_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
 const int cfeb4_rx_posneg_default       =  0; 
 //
-    //--------------------------------------------------------------
-    //[0X16A] = ADR_PHASER6:  values in the xml file for cfeb5_rx
-    //--------------------------------------------------------------
-    const int cfeb5_rx_clock_delay_vmereg   =  phaser_cfeb5_rxd_adr;
-    const int cfeb5_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
-    const int cfeb5_rx_posneg_default       =  0; 
-    //
-    //--------------------------------------------------------------
-    //[0X16C] = ADR_PHASER6:  values in the xml file for cfeb6_rx
-    //--------------------------------------------------------------
-    const int cfeb6_rx_clock_delay_vmereg   =  phaser_cfeb6_rxd_adr;
-    const int cfeb6_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
-    const int cfeb6_rx_posneg_default       =  0; 
-    //
+//--------------------------------------------------------------
+//[0X16A] = ADR_PHASER6:  values in the xml file for cfeb5_rx
+//--------------------------------------------------------------
+const int cfeb5_rx_clock_delay_vmereg   =  phaser_cfeb5_rxd_adr;
+const int cfeb5_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb5_rx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X16C] = ADR_PHASER6:  values in the xml file for cfeb6_rx
+//--------------------------------------------------------------
+const int cfeb6_rx_clock_delay_vmereg   =  phaser_cfeb6_rxd_adr;
+const int cfeb6_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb6_rx_posneg_default       =  0; 
+//
 //---------------------------------------------------------------------
 // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
 //---------------------------------------------------------------------
@@ -2407,21 +2407,21 @@ const int cfeb3_rxd_int_delay_default =  0;
 //---------------------------------------------------------------------
 // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
 //---------------------------------------------------------------------
-    const int cfeb4_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
+const int cfeb4_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
 const int cfeb4_rxd_int_delay_bitlo   =  0;
 const int cfeb4_rxd_int_delay_bithi   =  3;
 const int cfeb4_rxd_int_delay_default =  0; 
 //
-    const int cfeb5_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
-    const int cfeb5_rxd_int_delay_bitlo   =  4;
-    const int cfeb5_rxd_int_delay_bithi   =  7;
-    const int cfeb5_rxd_int_delay_default =  0; 
-    //
-    const int cfeb6_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
-    const int cfeb6_rxd_int_delay_bitlo   =  8;
-    const int cfeb6_rxd_int_delay_bithi   =  11;
-    const int cfeb6_rxd_int_delay_default =  0; 
-    //
+const int cfeb5_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
+const int cfeb5_rxd_int_delay_bitlo   =  4;
+const int cfeb5_rxd_int_delay_bithi   =  7;
+const int cfeb5_rxd_int_delay_default =  0; 
+//
+const int cfeb6_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
+const int cfeb6_rxd_int_delay_bitlo   =  8;
+const int cfeb6_rxd_int_delay_bithi   =  11;
+const int cfeb6_rxd_int_delay_default =  0; 
+//
 //
 //---------------------------------------------------------------------
 // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
