@@ -543,9 +543,7 @@ private:
   void setTMBCounterReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setDataReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void Automatic(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void CFEBTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void CFEBTimingME11b(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void CFEBTimingME11a(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CFEBTimingSimpleScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void TMBL1aTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ALCTL1aTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //  void ALCTvpf(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -572,8 +570,6 @@ private:
   void MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureALCTTMBRxTxForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureALCTTMBRxTxForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void MeasureCFEBTMBRxForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
-  void MeasureCFEBTMBRxForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void QuickScanForChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void QuickScanForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void QuickScanForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
@@ -583,6 +579,8 @@ private:
   void MeasurePipelineDepthForEndcap(xgi::Input* in, xgi::Output* out) throw(xgi::exception::Exception);
   void PipelineDepthScanForCrate (xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void PipelineDepthScanForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
+  void CFEBTimingSimpleScanSystem_me11(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void CFEBTimingSimpleScanSystem_non_me11(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
 
   //
   // BC0 scan functions
