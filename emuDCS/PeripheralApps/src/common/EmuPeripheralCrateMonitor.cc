@@ -2886,9 +2886,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+30];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+30];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1
 
@@ -2897,9 +2897,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+54];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+54];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // counter error, set it to -1:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
@@ -2940,13 +2940,13 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << n_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+30];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+54];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
