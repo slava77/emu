@@ -252,8 +252,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::PipelineDepthScanForSystem,"PipelineDepthScanForSystem");
   xgi::bind(this,&EmuPeripheralCrateConfig::UpdateInFlashKey, "UpdateInFlashKey");
   xgi::bind(this,&EmuPeripheralCrateConfig::OtmbFiberTest,"OtmbFiberTest");
-      xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11, "CFEBTimingSimpleScanSystem_non_me11");
-      xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11, "CFEBTimingSimpleScanSystem_me11");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11, "CFEBTimingSimpleScanSystem_non_me11");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11, "CFEBTimingSimpleScanSystem_me11");
   //
   //------------------------------
   // bind crate utilities
@@ -477,7 +477,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCT_TMB_communication, "ALCT_TMB_communication");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCT_TMB_Loopback, "ALCT_TMB_Loopback");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMB_to_ALCT_walking_ones, "TMB_to_ALCT_walking_ones");
-      xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTimingSimpleScan, "CFEBTimingSimpleScan");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTimingSimpleScan, "CFEBTimingSimpleScan");
   xgi::bind(this,&EmuPeripheralCrateConfig::RatTmbTiming, "RatTmbTiming");
   xgi::bind(this,&EmuPeripheralCrateConfig::RpcRatTiming, "RpcRatTiming");
   //
@@ -4209,49 +4209,49 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   }
   SetCurrentCrate(initial_crate);
   //
-	  //  ///////////////////////
-	  //
-	  *out << cgicc::br();
-	  //
-	  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-	  *out << cgicc::legend("DCFEB RX Scan on ME1/1s over All Crates").set("style","color:blue")
-	    << std::endl;
-	  //
-	  *out << cgicc::table().set("border","0");
-	  //
-	  *out << cgicc::td();
-	  std::string CFEBTimingSimpleScanSystem_me11 = toolbox::toString("/%s/CFEBTimingSimpleScanSystem_me11",getApplicationDescriptor()->getURN().c_str());
-	  *out << cgicc::form().set("method","GET").set("action",CFEBTimingSimpleScanSystem_me11) << std::endl ;
-	  *out << cgicc::input().set("type","submit").set("value","Scan ME1/1s on All Crates") << std::endl ;
-	  *out << cgicc::form() << std::endl ;
-	  *out << cgicc::td();
-	  //
-	  *out << cgicc::table() << std::endl;
-	  //
-	  *out << cgicc::fieldset();
-	  //
-	  *out << cgicc::br();
-	  //
-	  //  ///////////////////////
-	  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-	  *out << cgicc::legend("CFEB RX Scan on non-ME1/1s over All Crates").set("style","color:blue")
-	    << std::endl;
-	  //
-	  *out << cgicc::table().set("border","0");
-	  //
-	  *out << cgicc::td();
-	  std::string CFEBTimingSimpleScanSystem_non_me11 = toolbox::toString("/%s/CFEBTimingSimpleScanSystem_non_me11",getApplicationDescriptor()->getURN().c_str());
-	  *out << cgicc::form().set("method","GET").set("action",CFEBTimingSimpleScanSystem_non_me11) << std::endl ;
-	  *out << cgicc::input().set("type","submit").set("value","Scan Non-ME1/1s on All Crates") << std::endl ;
-	  *out << cgicc::form() << std::endl ;
-	  *out << cgicc::td();
-	  //
-	  *out << cgicc::table() << std::endl;
-	  //
-	  *out << cgicc::fieldset();
-	  //
-	  *out << cgicc::br();
-	  //
+  //  ///////////////////////
+  //
+  *out << cgicc::br();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("DCFEB RX Scan on ME1/1s over All Crates").set("style","color:blue")
+       << std::endl;
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
+  std::string CFEBTimingSimpleScanSystem_me11 = toolbox::toString("/%s/CFEBTimingSimpleScanSystem_me11",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CFEBTimingSimpleScanSystem_me11) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Scan ME1/1s on All Crates") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table() << std::endl;
+  //
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::br();
+  //
+  //  ///////////////////////
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("CFEB RX Scan on non-ME1/1s over All Crates").set("style","color:blue")
+       << std::endl;
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
+  std::string CFEBTimingSimpleScanSystem_non_me11 = toolbox::toString("/%s/CFEBTimingSimpleScanSystem_non_me11",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CFEBTimingSimpleScanSystem_non_me11) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Scan Non-ME1/1s on All Crates") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table() << std::endl;
+  //
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::br();
+  //
 }
 
 void EmuPeripheralCrateConfig::UpdateInFlashKey(xgi::Input * in, xgi::Output * out )
@@ -5075,7 +5075,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   char buf[20];
   //
   //
-	  //*out << cgicc::tr();
+  //*out << cgicc::tr();
 
   std::string ALCT_TMB_communication = toolbox::toString("/%s/ALCT_TMB_communication",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ALCT_TMB_communication) << std::endl ;
@@ -5084,88 +5084,88 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
-	  //*out << cgicc::table().set("border","0");
+  //*out << cgicc::table().set("border","0");
   //
-	  //*out << cgicc::tr();
-    //
-	  *out << cgicc::form().set("method","GET").set("action", "/" + getApplicationDescriptor()->getURN() + "/CFEBTimingSimpleScan" ) << std::endl;
-    //
-	  //*out << cgicc::br();
-    //
-	  *out << cgicc::table().set("border","0") << std::endl;
-	  *out << cgicc::tr();
-	  //
-	  *out << cgicc::td().set("ALIGN", "left") << "RX Delay" << cgicc::td() << std::endl;
-	  *out << cgicc::td().set("ALIGN", "left") << "CFEB Clock Phase" << cgicc::td() << std::endl;
-	  *out << cgicc::td().set("ALIGN", "left") << "CFEB" << cgicc::td() << std::endl;
-	  *out << cgicc::td().set("ALIGN", "left") << "Pattern Type" << cgicc::td() << std::endl;
-	  *out << cgicc::td().set("ALIGN", "left") << "Half-Strip" << cgicc::td() << std::endl;
-	  //
-	  *out << cgicc::tr();
-	  //
-	  *out << cgicc::br(); 
-	  //
-	  *out << cgicc::tr();
-
-	  *out << cgicc::td().set("ALIGN", "left") << std::endl;
-	  *out << cgicc::select().set("name", "time_delay") << std::endl;
-	  *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Scan" << cgicc::option() << std::endl;
-	  for(int i=0; i<25; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
-	  *out << cgicc::select() << std::endl;
-	  *out << cgicc::td();
-	  *out << cgicc::td().set("ALIGN", "left") << std::endl;
-	  *out << cgicc::select().set("name", "cfeb_phase") << std::endl;
-	  *out << cgicc::option().set("Value", toolbox::toString("%d", 32)) << "XML Inherited" << cgicc::option() << std::endl;
-	  for(int i=0; i<32; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
-	  *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Scan" << cgicc::option() << std::endl;
-	  *out << cgicc::select() << std::endl;
-	  *out << cgicc::td();
-	  *out << cgicc::td().set("ALIGN", "left") << std::endl;
-	  *out << cgicc::select().set("name", "cfeb_num") << std::endl;
-	  *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Scan" << cgicc::option() << std::endl;
-	  for(int i=0; i<thisDMB->cfebs_.size(); ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
-	  *out << cgicc::select() << std::endl;
-	  *out << cgicc::td();
-	  *out << cgicc::td().set("ALIGN", "left") << std::endl;
-	  *out << cgicc::select().set("name", "pattern") << std::endl;
-	  for(int i=0xa; i>0x1; --i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << toolbox::toString("0x%x", i) << cgicc::option() << std::endl;
-	  *out << cgicc::select() << std::endl;
-	  *out << cgicc::td();
-	  *out << cgicc::td().set("ALIGN", "left") << std::endl;
-	  *out << cgicc::select().set("name", "halfstrip") << std::endl;
-	  *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Random" << cgicc::option() << std::endl;
-	  for(int i=0; i<32; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
-	  *out << cgicc::select() << std::endl;
-	  *out << cgicc::td();
-	  *out << cgicc::td();
-	  *out << cgicc::input().set("type","submit").set("value", "CFEB RX Delay Scan").set("style", "color:blue") << std::endl;
-	  *out << cgicc::td();
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::table();
-    //
-	  *out << cgicc::tr();
-    //
-	  *out << cgicc::tr();
-    //
-	  *out << cgicc::td();
+  //*out << cgicc::tr();
+  //
+  *out << cgicc::form().set("method","GET").set("action", "/" + getApplicationDescriptor()->getURN() + "/CFEBTimingSimpleScan" ) << std::endl;
+  //
+  //*out << cgicc::br();
+  //
+  *out << cgicc::table().set("border","0") << std::endl;
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN", "left") << "RX Delay" << cgicc::td() << std::endl;
+  *out << cgicc::td().set("ALIGN", "left") << "CFEB Clock Phase" << cgicc::td() << std::endl;
+  *out << cgicc::td().set("ALIGN", "left") << "CFEB" << cgicc::td() << std::endl;
+  *out << cgicc::td().set("ALIGN", "left") << "Pattern Type" << cgicc::td() << std::endl;
+  *out << cgicc::td().set("ALIGN", "left") << "Half-Strip" << cgicc::td() << std::endl;
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::br(); 
+  //
+  *out << cgicc::tr();
+  
+  *out << cgicc::td().set("ALIGN", "left") << std::endl;
+  *out << cgicc::select().set("name", "time_delay") << std::endl;
+  *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Scan" << cgicc::option() << std::endl;
+  for(int i=0; i<25; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
+  *out << cgicc::select() << std::endl;
+  *out << cgicc::td();
+  *out << cgicc::td().set("ALIGN", "left") << std::endl;
+  *out << cgicc::select().set("name", "cfeb_phase") << std::endl;
+  *out << cgicc::option().set("Value", toolbox::toString("%d", 32)) << "XML Inherited" << cgicc::option() << std::endl;
+  for(int i=0; i<32; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
+  *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Scan" << cgicc::option() << std::endl;
+  *out << cgicc::select() << std::endl;
+  *out << cgicc::td();
+  *out << cgicc::td().set("ALIGN", "left") << std::endl;
+  *out << cgicc::select().set("name", "cfeb_num") << std::endl;
+  *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Scan" << cgicc::option() << std::endl;
+  for(int i=0; i<thisDMB->cfebs_.size(); ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
+  *out << cgicc::select() << std::endl;
+  *out << cgicc::td();
+  *out << cgicc::td().set("ALIGN", "left") << std::endl;
+  *out << cgicc::select().set("name", "pattern") << std::endl;
+  for(int i=0xa; i>0x1; --i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << toolbox::toString("0x%x", i) << cgicc::option() << std::endl;
+  *out << cgicc::select() << std::endl;
+  *out << cgicc::td();
+  *out << cgicc::td().set("ALIGN", "left") << std::endl;
+  *out << cgicc::select().set("name", "halfstrip") << std::endl;
+  *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Random" << cgicc::option() << std::endl;
+  for(int i=0; i<32; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
+  *out << cgicc::select() << std::endl;
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << cgicc::input().set("type","submit").set("value", "CFEB RX Delay Scan").set("style", "color:blue") << std::endl;
+  *out << cgicc::td();
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::table();
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td();
   //
   for(int i=0;i<5;i++) {
     *out << "cfeb" << i << "delay = " << MyTest[tmb][current_crate_].GetCFEBrxPhaseTest(i) 
 	 << " ("  << MyTest[tmb][current_crate_].GetCfebRxClockDelay(i) << ") " <<std::endl;
     *out << cgicc::br();
   }
-	  //
-	  *out << cgicc::td();
-	  *out << cgicc::tr();
+  //
+  *out << cgicc::td();
+  *out << cgicc::tr();
   *out << cgicc::br();
   //
   //
-	  *out << cgicc::tr();
+  *out << cgicc::tr();
   std::string RatTmbTiming = toolbox::toString("/%s/RatTmbTiming",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",RatTmbTiming) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Scan RAT-TMB phase") << std::endl ;
@@ -5175,14 +5175,14 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-	  *out << cgicc::tr();
-	  *out << cgicc::tr();
+  *out << cgicc::tr();
+  *out << cgicc::tr();
   *out << "rat_tmb_delay = " << MyTest[tmb][current_crate_].GetRatTmbDelayTest() 
        << " ("  << MyTest[tmb][current_crate_].GetRatTmbDelay()     << ") " << std::endl;
-	  *out << cgicc::tr();
+  *out << cgicc::tr();
   *out << cgicc::br();
   //
-	  //*out << cgicc::table() << std::endl;
+  //*out << cgicc::table() << std::endl;
   *out << cgicc::fieldset();
   //
   //
@@ -5723,10 +5723,10 @@ void EmuPeripheralCrateConfig::TMB_to_ALCT_walking_ones(xgi::Input * in, xgi::Ou
 }
 //
 
-      void EmuPeripheralCrateConfig::CFEBTimingSimpleScan(xgi::Input * in, xgi::Output * out )
+void EmuPeripheralCrateConfig::CFEBTimingSimpleScan(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
-	  std::cout << "CFEBTiming Simple Scan" << std::endl;
+  std::cout << "CFEBTiming Simple Scan" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "CFEBTiming");
   //
   cgicc::Cgicc cgi(in);
@@ -5737,10 +5737,10 @@ void EmuPeripheralCrateConfig::TMB_to_ALCT_walking_ones(xgi::Input * in, xgi::Ou
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-	    std::cout << "CFEBTiming ME1/1A:  DMB " << dmb << std::endl;
+    std::cout << "CFEBTiming ME1/1A:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-	    std::cout << "CFEBTiming ME1/1A:  No dmb" << std::endl;
+    std::cout << "CFEBTiming ME1/1A:  No dmb" << std::endl;
     dmb = DMB_;
   }
   //
@@ -5748,56 +5748,56 @@ void EmuPeripheralCrateConfig::TMB_to_ALCT_walking_ones(xgi::Input * in, xgi::Ou
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-	    std::cout << "CFEBTiming ME1/1A:  TMB " << tmb << std::endl;
+    std::cout << "CFEBTiming ME1/1A:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-	    std::cout << "CFEBTiming ME1/1A:  No tmb" << std::endl;
+    std::cout << "CFEBTiming ME1/1A:  No tmb" << std::endl;
     tmb = TMB_;
   }
 
-	  int time_delay = -1;
-	  int cfeb_num = 3;
-	  unsigned int layers = 0;
-	  unsigned int pattern = 1;
-	  int halfstrip = 16;
-	  bool print_data = false;
-	  unsigned cfeb_phase = 0x0;
-
+  int time_delay = -1;
+  int cfeb_num = 3;
+  unsigned int layers = 0;
+  unsigned int pattern = 1;
+  int halfstrip = 16;
+  bool print_data = false;
+  unsigned cfeb_phase = 0x0;
+  
   //
-	  name = cgi.getElement("time_delay");
+  name = cgi.getElement("time_delay");
   if(name != cgi.getElements().end()) {
-	    time_delay = cgi["time_delay"]->getIntegerValue();
+    time_delay = cgi["time_delay"]->getIntegerValue();
   }
   //
-	  name = cgi.getElement("cfeb_num");
+  name = cgi.getElement("cfeb_num");
   if(name != cgi.getElements().end()) {
-	    cfeb_num = cgi["cfeb_num"]->getIntegerValue();
+    cfeb_num = cgi["cfeb_num"]->getIntegerValue();
   }
   //
-	  name = cgi.getElement("pattern");
-	  if(name != cgi.getElements().end()) {
-	    pattern = cgi["pattern"]->getIntegerValue();
-}
-  //
-	  name = cgi.getElement("halfstrip");
+  name = cgi.getElement("pattern");
   if(name != cgi.getElements().end()) {
-	    halfstrip = cgi["halfstrip"]->getIntegerValue();
+    pattern = cgi["pattern"]->getIntegerValue();
   }
   //
-	  name = cgi.getElement("cfeb_phase");
+  name = cgi.getElement("halfstrip");
   if(name != cgi.getElements().end()) {
-	    cfeb_phase = cgi["cfeb_phase"]->getIntegerValue();
+    halfstrip = cgi["halfstrip"]->getIntegerValue();
   }
-
-	  std::cout << "time_delay: " << time_delay << std::endl;
-	  std::cout << "cfeb_num: " << cfeb_num << std::endl;
-	  std::cout << "layers: " << layers << std::endl;
-	  std::cout << "pattern: " << pattern << std::endl;
-	  std::cout << "halfstrip: " << halfstrip << std::endl;
-	  std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
+  //
+  name = cgi.getElement("cfeb_phase");
+  if(name != cgi.getElements().end()) {
+    cfeb_phase = cgi["cfeb_phase"]->getIntegerValue();
+  }
+  
+  std::cout << "time_delay: " << time_delay << std::endl;
+  std::cout << "cfeb_num: " << cfeb_num << std::endl;
+  std::cout << "layers: " << layers << std::endl;
+  std::cout << "pattern: " << pattern << std::endl;
+  std::cout << "halfstrip: " << halfstrip << std::endl;
+  std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-	  MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
+  MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -5902,226 +5902,228 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi
   //
 }
 //
-      void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, xgi::Output * out )
-	throw (xgi::exception::Exception) {
+void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "CFEBTiming Simple Scan of ME1/1s over Full System" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "CFEBTiming");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if(!parsed) ParsingXML();
+  //
+  if(total_crates_<=0) return;
+  //
+  int dmb;
 	  //
-	  std::cout << "CFEBTiming Simple Scan of ME1/1s over Full System" << std::endl;
-	  LOG4CPLUS_INFO(getApplicationLogger(), "CFEBTiming");
+  std::ofstream web_backup;
+  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::out);
+  web_backup.close();
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    if(crateVector[crate_number]->IsAlive() ) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	//
+	dmb = tmb;
+	//
+	/*
+	cgicc::form_iterator name = cgi.getElement("dmb");
+	//
+	if(name != cgi.getElements().end()) {
+	dmb = cgi["dmb"]->getIntegerValue();
+	std::cout << "CFEBTiming ME1/1A:  DMB " << dmb << std::endl;
+	DMB_ = dmb;
+	} else {
+	std::cout << "CFEBTiming ME1/1A:  No dmb" << std::endl;
+	dmb = DMB_;
+	}
+	//
+	name = cgi.getElement("tmb");
+	//
+	if(name != cgi.getElements().end()) {
+	tmb = cgi["tmb"]->getIntegerValue();
+	std::cout << "CFEBTiming ME1/1A:  TMB " << tmb << std::endl;
+	TMB_ = tmb;
+	} else {
+	std::cout << "CFEBTiming ME1/1A:  No tmb" << std::endl;
+	tmb = TMB_;
+	}
+	*/
+	
+	int time_delay = -1;
+	int cfeb_num = -1;
+	unsigned int layers = 0;
+	unsigned int pattern = 0xa;
+	int halfstrip = -1;
+	bool print_data = true;
+	unsigned cfeb_phase = 32;
+	
+	//
+	
+	std::cout << "time_delay: " << time_delay << std::endl;
+	std::cout << "cfeb_num: " << cfeb_num << std::endl;
+	std::cout << "layers: " << layers << std::endl;
+	std::cout << "pattern: " << pattern << std::endl;
+	std::cout << "halfstrip: " << halfstrip << std::endl;
+	std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
+	//
+	//
+	if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() != 2) {
 	  //
-	  cgicc::Cgicc cgi(in);
-	  //
-	  if(!parsed) ParsingXML();
-	  //
-	  if(total_crates_<=0) return;
-	  //
-	  int dmb;
-	  //
-	  std::ofstream web_backup;
-	  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::out);
+	  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	  web_backup << "Non-ME1/1 Chamber: omitting..." << std::endl;
 	  web_backup.close();
 	  //
-	  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
-	    //
-	    if(crateVector[crate_number]->IsAlive() ) {
-	      //
-	      SetCurrentCrate(crate_number);
-	      //
-
-	      //
-	      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
-		//
-		dmb = tmb;
-		//
-		/*cgicc::form_iterator name = cgi.getElement("dmb");
-		//
-		if(name != cgi.getElements().end()) {
-		dmb = cgi["dmb"]->getIntegerValue();
-		std::cout << "CFEBTiming ME1/1A:  DMB " << dmb << std::endl;
-		DMB_ = dmb;
-		} else {
-		std::cout << "CFEBTiming ME1/1A:  No dmb" << std::endl;
-		dmb = DMB_;
-		}
-		//
-		name = cgi.getElement("tmb");
-		//
-		if(name != cgi.getElements().end()) {
-		tmb = cgi["tmb"]->getIntegerValue();
-		std::cout << "CFEBTiming ME1/1A:  TMB " << tmb << std::endl;
-		TMB_ = tmb;
-		} else {
-		std::cout << "CFEBTiming ME1/1A:  No tmb" << std::endl;
-		tmb = TMB_;
-		}*/
-
-		int time_delay = -1;
-		int cfeb_num = -1;
-		unsigned int layers = 0;
-		unsigned int pattern = 0xa;
-		int halfstrip = -1;
-		bool print_data = true;
-		unsigned cfeb_phase = 32;
-
-		//
-
-		std::cout << "time_delay: " << time_delay << std::endl;
-		std::cout << "cfeb_num: " << cfeb_num << std::endl;
-	  	std::cout << "layers: " << layers << std::endl;
-		std::cout << "pattern: " << pattern << std::endl;
-		std::cout << "halfstrip: " << halfstrip << std::endl;
-		std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
-		//
-		//
-		if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() != 2) {
-		  //
-		  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
-		  web_backup << "Non-ME1/1 Chamber: omitting..." << std::endl;
-		  web_backup.close();
-		  //
-		  std::cout << "Non-ME1/1 Chamber: omitting..." << std::endl;
-		  //
-		  continue;
-		}
-		//
-		web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
-		//
-		std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
-		web_backup << "Chamber-Crate Phases "<< thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() << " output:" << std::endl << std::endl;
-		//
-		web_backup.close();
-		//
-		MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-		MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
-		MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
-		//
-		web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
-		//
-		web_backup << std::endl << std::endl;
-		web_backup << "-----------------------------------------------------------------------------------------" << std::endl;
-		web_backup << std::endl << std::endl;
-		//
-		web_backup.close();
-		//
-	      }
-	    }
-	  }
+	  std::cout << "Non-ME1/1 Chamber: omitting..." << std::endl;
 	  //
-	  SaveTestSummary();
-	  //
-	  this->ExpertToolsPage(in,out);
-	  //
+	  continue;
 	}
+	//
+	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	//
+	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	web_backup << "Chamber-Crate Phases "<< thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() << " output:" << std::endl << std::endl;
+	//
+	web_backup.close();
+	//
+	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
+	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+	//
+	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	//
+	web_backup << std::endl << std::endl;
+	web_backup << "-----------------------------------------------------------------------------------------" << std::endl;
+	web_backup << std::endl << std::endl;
+	//
+	web_backup.close();
+	//
+      }
+    }
+  }
+  //
+  SaveTestSummary();
+  //
+  this->ExpertToolsPage(in,out);
+  //
+}
       //
-      void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * in, xgi::Output * out )
-	throw (xgi::exception::Exception) {
+void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "CFEBTiming Simple Scan of non-ME1/1s over Full System" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "CFEBTiming");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  if(!parsed) ParsingXML();
+  //
+  if(total_crates_<=0) return;
+  //
+  int dmb;
+  //
+  std::ofstream web_backup;
+  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::out);
+  web_backup.close();
+  //
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+    //
+    if(crateVector[crate_number]->IsAlive() ) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	//
+	dmb = tmb;
+	//
+	/*cgicc::form_iterator name = cgi.getElement("dmb");
+	//
+	if(name != cgi.getElements().end()) {
+	dmb = cgi["dmb"]->getIntegerValue();
+	std::cout << "CFEBTiming ME1/1A:  DMB " << dmb << std::endl;
+	DMB_ = dmb;
+	} else {
+	std::cout << "CFEBTiming ME1/1A:  No dmb" << std::endl;
+	dmb = DMB_;
+	}
+	//
+	name = cgi.getElement("tmb");
+	//
+	if(name != cgi.getElements().end()) {
+	tmb = cgi["tmb"]->getIntegerValue();
+	std::cout << "CFEBTiming ME1/1A:  TMB " << tmb << std::endl;
+	TMB_ = tmb;
+	} else {
+	std::cout << "CFEBTiming ME1/1A:  No tmb" << std::endl;
+	tmb = TMB_;
+	}*/
+	
+	int time_delay = -1;
+	int cfeb_num = -1;
+	unsigned int layers = 0;
+	unsigned int pattern = 0xa;
+	int halfstrip = -1;
+	bool print_data = true;
+	unsigned cfeb_phase = 32;
+	
+	//
+	
+	std::cout << "time_delay: " << time_delay << std::endl;
+	std::cout << "cfeb_num: " << cfeb_num << std::endl;
+	std::cout << "layers: " << layers << std::endl;
+	std::cout << "pattern: " << pattern << std::endl;
+	std::cout << "halfstrip: " << halfstrip << std::endl;
+	std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
+	//
+	//
+	if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() == 2) {
 	  //
-	  std::cout << "CFEBTiming Simple Scan of non-ME1/1s over Full System" << std::endl;
-	  LOG4CPLUS_INFO(getApplicationLogger(), "CFEBTiming");
-	  //
-	  cgicc::Cgicc cgi(in);
-	  //
-	  if(!parsed) ParsingXML();
-	  //
-	  if(total_crates_<=0) return;
-	  //
-	  int dmb;
-	  //
-	  std::ofstream web_backup;
-	  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::out);
+	  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	  web_backup << "ME1/1 Chamber: omitting..." << std::endl;
 	  web_backup.close();
 	  //
-	  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
-	    //
-	    if(crateVector[crate_number]->IsAlive() ) {
-	      //
-	      SetCurrentCrate(crate_number);
-	      //
-
-	      //
-	      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
-		//
-		dmb = tmb;
-		//
-		/*cgicc::form_iterator name = cgi.getElement("dmb");
-		//
-		if(name != cgi.getElements().end()) {
-		dmb = cgi["dmb"]->getIntegerValue();
-		std::cout << "CFEBTiming ME1/1A:  DMB " << dmb << std::endl;
-		DMB_ = dmb;
-		} else {
-		std::cout << "CFEBTiming ME1/1A:  No dmb" << std::endl;
-		dmb = DMB_;
-		}
-		//
-		name = cgi.getElement("tmb");
-		//
-		if(name != cgi.getElements().end()) {
-		tmb = cgi["tmb"]->getIntegerValue();
-		std::cout << "CFEBTiming ME1/1A:  TMB " << tmb << std::endl;
-		TMB_ = tmb;
-		} else {
-		std::cout << "CFEBTiming ME1/1A:  No tmb" << std::endl;
-		tmb = TMB_;
-		}*/
-
-		int time_delay = -1;
-		int cfeb_num = -1;
-		unsigned int layers = 0;
-		unsigned int pattern = 0xa;
-		int halfstrip = -1;
-		bool print_data = true;
-		unsigned cfeb_phase = 32;
-
-		//
-
-		std::cout << "time_delay: " << time_delay << std::endl;
-		std::cout << "cfeb_num: " << cfeb_num << std::endl;
-	  	std::cout << "layers: " << layers << std::endl;
-		std::cout << "pattern: " << pattern << std::endl;
-		std::cout << "halfstrip: " << halfstrip << std::endl;
-		std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
-		//
-		//
-		if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() == 2) {
-		  //
-		  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
-		  web_backup << "ME1/1 Chamber: omitting..." << std::endl;
-		  web_backup.close();
-		  //
-		  std::cout << "ME1/1 Chamber: omitting..." << std::endl;
-		  //
-		  continue;
-		}
-		//
-		web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
-		//
-		std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
-		web_backup << "Chamber-Crate Phases "<< thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() << " output:" << std::endl << std::endl;
-		//
-		web_backup.close();
-		//
-		MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-		MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
-		MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
-		//
-		web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
-		//
-		web_backup << std::endl << std::endl;
-		web_backup << "-----------------------------------------------------------------------------------------" << std::endl;
-		web_backup << std::endl << std::endl;
-		//
-		web_backup.close();
-		//
-	      }
-	    }
-	  }
+	  std::cout << "ME1/1 Chamber: omitting..." << std::endl;
 	  //
-	  SaveTestSummary();
-	  //
-	  this->ExpertToolsPage(in,out);
-	  //
+	  continue;
 	}
-      //
+	//
+	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	//
+	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
+	web_backup << "Chamber-Crate Phases "<< thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() << " output:" << std::endl << std::endl;
+	//
+	web_backup.close();
+	//
+	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
+	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+	//
+	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	//
+	web_backup << std::endl << std::endl;
+	web_backup << "-----------------------------------------------------------------------------------------" << std::endl;
+	web_backup << std::endl << std::endl;
+	//
+	web_backup.close();
+	//
+      }
+    }
+  }
+  //
+  SaveTestSummary();
+  //
+  this->ExpertToolsPage(in,out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::QuickScanForChamber(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //

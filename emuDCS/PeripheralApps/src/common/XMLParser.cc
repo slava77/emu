@@ -611,15 +611,15 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("cfeb4delay"     ,value)) { tmb_->SetCfeb4RxClockDelay(value); }
     if (fillInt("cfeb4posneg",value))     { tmb_->SetCfeb4RxPosNeg(value);     }
     //
-	//
-	//0X16A
-	if (fillInt("cfeb5delay"     ,value)) { tmb_->SetCfeb5RxClockDelay(value); }
-	if (fillInt("cfeb5posneg",value))     { tmb_->SetCfeb5RxPosNeg(value);     }
-	//
-	//0X16C
-	if (fillInt("cfeb6delay"     ,value)) { tmb_->SetCfeb6RxClockDelay(value); }
-	if (fillInt("cfeb6posneg",value))     { tmb_->SetCfeb6RxPosNeg(value);     }
-	//
+    //
+    //0X16A
+    if (fillInt("cfeb5delay"     ,value)) { tmb_->SetCfeb5RxClockDelay(value); }
+    if (fillInt("cfeb5posneg",value))     { tmb_->SetCfeb5RxPosNeg(value);     }
+    //
+    //0X16C
+    if (fillInt("cfeb6delay"     ,value)) { tmb_->SetCfeb6RxClockDelay(value); }
+    if (fillInt("cfeb6posneg",value))     { tmb_->SetCfeb6RxPosNeg(value);     }
+    //
     //0X11C
     if (fillInt("cfeb0_rxd_int_delay",value)) { tmb_->SetCFEB0RxdIntDelay(value); }
     if (fillInt("cfeb1_rxd_int_delay",value)) { tmb_->SetCFEB1RxdIntDelay(value); }
@@ -628,8 +628,8 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //
     //0X11E
     if (fillInt("cfeb4_rxd_int_delay",value)) { tmb_->SetCFEB4RxdIntDelay(value); }
-	if (fillInt("cfeb5_rxd_int_delay",value)) { tmb_->SetCFEB5RxdIntDelay(value); }
-	if (fillInt("cfeb6_rxd_int_delay",value)) { tmb_->SetCFEB6RxdIntDelay(value); }
+    if (fillInt("cfeb5_rxd_int_delay",value)) { tmb_->SetCFEB5RxdIntDelay(value); }
+    if (fillInt("cfeb6_rxd_int_delay",value)) { tmb_->SetCFEB6RxdIntDelay(value); }
     //
     //0X122
     if (fillInt("cfeb_badbits_block",value)) { tmb_->SetCFEBBadBitsBlock(value); }
