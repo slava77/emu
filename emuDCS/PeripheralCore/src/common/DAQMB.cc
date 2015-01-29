@@ -9777,17 +9777,18 @@ void DAQMB::autoload_select_readback_wrd(CFEB &cfeb, int ival){
      16 sem cmd 3 bits
      17 reg sel wrd 8 bits
   */
-  unsigned tmp;
-  dcfeb_hub(cfeb, REG_SEL_WRD, 8, &ival, (char *)&tmp, NOW);
-  return;
+    unsigned tmp;
+    dcfeb_hub(cfeb, REG_SEL_WRD, 8, &ival, (char *)&tmp, NOW);
+    return;
 }
 
-void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2]){
-  unsigned tmp=0xFFFF;
-  char buf[4];   
-  dcfeb_hub(cfeb, REG_RD_WRD, 16, &tmp, buf, READ_YES|NOW);
-  memcpy(wrd, buf, 2);
-  return;
+void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2])
+{
+    unsigned tmp=0xFFFF;
+    char buf[4];   
+    dcfeb_hub(cfeb, REG_RD_WRD, 16, &tmp, buf, READ_YES|NOW);
+    memcpy(wrd, buf, 2);
+    return;
 }
 
 void DAQMB::SetTMBTxMode(int cfeb_number, char mode){
