@@ -714,7 +714,7 @@ public:
   int tmb_read_delays(int);
   //
   inline int  GetCfebRxClockDelay(int CFEB) {
-    int tmp[5] = { cfeb0_rx_clock_delay_, cfeb1_rx_clock_delay_, cfeb2_rx_clock_delay_, cfeb3_rx_clock_delay_, cfeb4_rx_clock_delay_ };
+	  int tmp[7] = { cfeb0_rx_clock_delay_, cfeb1_rx_clock_delay_, cfeb2_rx_clock_delay_, cfeb3_rx_clock_delay_, cfeb4_rx_clock_delay_, cfeb5_rx_clock_delay_, cfeb6_rx_clock_delay_ };
     return tmp[CFEB]; 
   }
   //
@@ -1073,6 +1073,7 @@ public:
   //!cfeb_inj_en_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
   inline void SetEnableCLCTInject(int cfeb_inj_en_sel) { cfeb_inj_en_sel_ = cfeb_inj_en_sel; }  
   inline int  GetEnableCLCTInject() { return cfeb_inj_en_sel_; }
+	inline int  GetReadEnableCLCTInject() { return read_cfeb_inj_en_sel_; }
   //
   //!start_pattern_inj = 1 = start pattern injector
   inline void SetStartPatternInjector(int start_pattern_inj) { start_pattern_inj_ = start_pattern_inj; } 
@@ -1124,6 +1125,7 @@ public:
   //!clct_ext_trig_en = 1 = allow CLCT external triggers (scintillator) from CCB
   inline void SetClctExtTrigEnable(int clct_ext_trig_en) { clct_ext_trig_en_ = clct_ext_trig_en; }
   inline int  GetClctExtTrigEnable() { return clct_ext_trig_en_; }
+	inline int  GetReadClctExtTrigEnable() { return read_clct_ext_trig_en_; }
   //
   //!alct_ext_trig_en = 1 = allow ALCT external triggers from CCB
   inline void SetAlctExtTrigEnable(int alct_ext_trig_en) { alct_ext_trig_en_ = alct_ext_trig_en; }
@@ -1244,18 +1246,22 @@ public:
   //            FIFOMODE_NoCfebRaw_NoHeader      = 4;
   inline void SetFifoMode(int fifo_mode) { fifo_mode_ = fifo_mode; }
   inline int  GetFifoMode() { return fifo_mode_; }
+	inline int  GetReadFifoMode() { return read_fifo_mode_; }
   //
   //!fifo_tbins = [0-31] -> width of window for CLCT/RPC raw data readout (bx)
   inline void SetFifoTbins(int fifo_tbins) { fifo_tbins_ = fifo_tbins; }
   inline int  GetFifoTbins() { return fifo_tbins_ ; }
+	inline int  GetReadFifoTbins() { return read_fifo_tbins_ ; }
   //
   //!fifo_pretrig = [0-31] -> number of time bins before TMB pretrigger to begin data readout window (bx)
   inline void SetFifoPreTrig(int fifo_pretrig) { fifo_pretrig_ = fifo_pretrig; }
   inline int  GetFifoPreTrig() { return fifo_pretrig_; }
+	inline int  GetReadFifoPreTrig() { return read_fifo_pretrig_; }
   //
   //!fifo_no_raw_hits = [0-31] -> number of time bins before TMB pretrigger to begin data readout window (bx)
   inline void SetFifoNoRawHits(int fifo_no_raw_hits) { fifo_no_raw_hits_ = fifo_no_raw_hits; }
   inline int  GetFifoNoRawHits() { return fifo_no_raw_hits_; }
+	inline int  GetReadFifoNoRawHits() { return fifo_no_raw_hits_; } 
   //
   //!cfeb_badbits_readout = 1/0 = enable/disable readout of CFEB badbits into DMB
   inline void SetCFEBBadBitsReadout(int cfeb_badbits_readout) { cfeb_badbits_readout_ = cfeb_badbits_readout; }
@@ -1888,6 +1894,32 @@ public:
   inline int  GetReadCfeb4RxPosNeg() { return read_cfeb4_rx_posneg_; }
   //
   //---------------------------------------------------------------------
+	//0X16A = ADR_V6_PHASER7 digital phase shifter setting for cfeb5_rx
+	//---------------------------------------------------------------------
+	inline void SetCfeb5RxClockDelay(int cfeb5_rx_clock_delay) { cfeb5_rx_clock_delay_ = cfeb5_rx_clock_delay; }
+	inline void SetCFEB5delay(int cfeb5_rx_clock_delay)        { cfeb5_rx_clock_delay_ = cfeb5_rx_clock_delay; } //legacy setter
+	inline int  GetCfeb5RxClockDelay() { return cfeb5_rx_clock_delay_; }
+	inline int  GetCFEB5delay()        { return cfeb5_rx_clock_delay_; } //legacy getter
+	inline int  GetReadCfeb5RxClockDelay() { return read_cfeb5_rx_clock_delay_; }
+	//
+	inline void SetCfeb5RxPosNeg(int cfeb5_rx_posneg) { cfeb5_rx_posneg_ = cfeb5_rx_posneg; }
+	inline int  GetCfeb5RxPosNeg() { return cfeb5_rx_posneg_; }
+	inline int  GetReadCfeb5RxPosNeg() { return read_cfeb5_rx_posneg_; }
+	//
+	//---------------------------------------------------------------------
+	//0X16C = ADR_V6_PHASER8 digital phase shifter setting for cfeb6_rx
+	//---------------------------------------------------------------------
+	inline void SetCfeb6RxClockDelay(int cfeb6_rx_clock_delay) { cfeb6_rx_clock_delay_ = cfeb6_rx_clock_delay; }
+	inline void SetCFEB6delay(int cfeb6_rx_clock_delay)        { cfeb6_rx_clock_delay_ = cfeb6_rx_clock_delay; } //legacy setter
+	inline int  GetCfeb6RxClockDelay() { return cfeb6_rx_clock_delay_; }
+	inline int  GetCFEB6delay()        { return cfeb6_rx_clock_delay_; } //legacy getter
+	inline int  GetReadCfeb6RxClockDelay() { return read_cfeb6_rx_clock_delay_; }
+	//
+	inline void SetCfeb6RxPosNeg(int cfeb6_rx_posneg) { cfeb6_rx_posneg_ = cfeb6_rx_posneg; }
+	inline int  GetCfeb6RxPosNeg() { return cfeb6_rx_posneg_; }
+	inline int  GetReadCfeb6RxPosNeg() { return read_cfeb6_rx_posneg_; }
+	//
+	//---------------------------------------------------------------------
   // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
   //---------------------------------------------------------------------
   //!cfeb0_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
@@ -1919,6 +1951,14 @@ public:
   inline int  GetCFEB4RxdIntDelay() { return cfeb4_rxd_int_delay_; }
   inline int  GetReadCFEB4RxdIntDelay() { return read_cfeb4_rxd_int_delay_; }
   //
+	inline void SetCFEB5RxdIntDelay(int cfeb5_rxd_int_delay) { cfeb5_rxd_int_delay_ = cfeb5_rxd_int_delay; }
+	inline int  GetCFEB5RxdIntDelay() { return cfeb5_rxd_int_delay_; }
+	inline int  GetReadCFEB5RxdIntDelay() { return read_cfeb5_rxd_int_delay_; }
+	//
+	inline void SetCFEB6RxdIntDelay(int cfeb6_rxd_int_delay) { cfeb6_rxd_int_delay_ = cfeb6_rxd_int_delay; }
+	inline int  GetCFEB6RxdIntDelay() { return cfeb6_rxd_int_delay_; }
+	inline int  GetReadCFEB6RxdIntDelay() { return read_cfeb6_rxd_int_delay_; }
+	//
   //
   //---------------------------------------------------------------------
   // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
@@ -3245,6 +3285,26 @@ private:
   int read_cfeb4_rx_posneg_;
   //
   //
+	//--------------------------------------------------------------
+	//[0X16A] = ADR_V6_PHASER7:  values in the xml file for cfeb5_rx
+	//--------------------------------------------------------------
+	int cfeb5_rx_clock_delay_ ;
+	int cfeb5_rx_posneg_;
+	//
+	int read_cfeb5_rx_clock_delay_ ;
+	int read_cfeb5_rx_posneg_;
+	//
+	//
+	//--------------------------------------------------------------
+	//[0X16C] = ADR_V6_PHASER8:  values in the xml file for cfeb6_rx
+	//--------------------------------------------------------------
+	int cfeb6_rx_clock_delay_ ;
+	int cfeb6_rx_posneg_;
+	//
+	int read_cfeb6_rx_clock_delay_ ;
+	int read_cfeb6_rx_posneg_;
+	//
+	//
   //!convert the user value to values which are written to the VME Register
   int ConvertDigitalPhaseToVMERegisterValues_(int digital_phase,int posneg);
   //
@@ -3268,8 +3328,12 @@ private:
   // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
   //---------------------------------------------------------------------
   int cfeb4_rxd_int_delay_;
+	int cfeb5_rxd_int_delay_;
+	int cfeb6_rxd_int_delay_;
   //
   int read_cfeb4_rxd_int_delay_; 
+	int read_cfeb5_rxd_int_delay_; 
+	int read_cfeb6_rxd_int_delay_; 
   //
   //
   //---------------------------------------------------------------------

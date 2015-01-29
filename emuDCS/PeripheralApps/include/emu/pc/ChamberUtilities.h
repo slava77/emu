@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <ctime>
+#include <algorithm>
 
 
 #include "emu/pc/DAQMB.h"
@@ -61,9 +63,165 @@ public:
   enum CFEBTiming_scanType {normal_scan, me11b_scan, me11a_scan};  
   void CFEBTiming();                           //default is normal_scan
   void CFEBTiming(CFEBTiming_scanType);
+	void CFEBTiming_with_Posnegs_simple_routine(int time_delay, int cfeb_num, unsigned int layers, unsigned int pattern, int halfstrip, bool print_data, int cfeb_clock_phase);
   void CFEBTiming_with_Posnegs(CFEBTiming_scanType);
   void CFEBTiming_without_Posnegs();
   //
+	void CFEBTiming_Configure(int * tof = NULL);
+	void CFEBTiming_PulseInject(bool is_inject_scan, int cfeb, unsigned int layer_mask, unsigned int pattern, unsigned int halfstrip, unsigned int n_pulses = 1, unsigned int pulse_delay = 0x4f);
+	void SetCfebRxPosNeg(int posneg);
+	void SetCfebRxClockDelay(int delay);
+	void SetTMBL1ADelay(int delay);
+	int GetTMBL1ADelay();
+	void SetTMBInternalL1A(int delay);
+	int GetTMBInternalL1ADelay();
+	void ResyncDCFEBs();
+	void SetDCFEBsPipelineDepth(int depth);
+	void SetODMBPedestalMode();
+	void CFEBTiming_ConfigureODMB();
+	int GetExtTrigDelay();
+	void Clear_ODMB_FIFO();
+	void Print_ODMB_FIFO();
+	void Print_CLCT0();
+	void Print_CFEB_Masks();
+	std::string CFEBTiming_log_dir_;
+	template <size_t XS_per_CFEB>
+	  int GetOutputXStrip(int cfeb, int input_xstrip); 
+	inline int GetOutputHalfStrip(int cfeb, int input_halfstrip) {
+	  return GetOutputXStrip<32>(cfeb, input_halfstrip);
+	}
+	inline int GetOutputStrip(int cfeb, int input_strip) {
+	  return GetOutputXStrip<16>(cfeb, input_strip);
+	}
+	template <size_t XS_per_CFEB>
+	  int GetInputXStrip(int output_xstrip); 
+	inline int GetInputHalfStrip(int output_halfstrip) {
+	  return GetInputXStrip<32>(output_halfstrip);
+	}
+	inline int GetInputStrip(int output_strip) {
+	  return GetInputXStrip<16>(output_strip);
+	}
+	template <size_t XS_per_CFEB>
+	  int GetInputCFEBByX(int output_xstrip); 
+	int GetInputCFEBByHalfStrip(int output_halfstrip) {
+	  return GetInputCFEBByX<32>(output_halfstrip);
+	}
+	int GetInputCFEBByStrip(int output_strip) {
+	  return GetInputCFEBByX<16>(output_strip);
+	}
+	void halfset(int icrd,int ipln,int ihalf,int chan[][6][16]);
+	//void DisableCCBL1A
+	int * CFEBTiming_L1AWindowScan(bool print_data = true, bool print_clct = true);
+	int CFEBHalfStripToTMBHalfStrip(int cfeb, int halfstrip);
+
+	void original_routine();
+	void new_routine();
+
+	int tmb_l1a_delay;
+	int ccb_l1a_delay;
+
+	struct CFEBTiming_Configuration {
+	  int cfeb_pipeline_depth;
+	  float dac;
+	  float comp_thresh;
+
+	  int clct_pattern_trig_en; //
+	  int clct_ext_trig_en;
+	  int tmb_allow_clct; //
+	  int hs_pretrig_hit_thresh; //
+	  int min_hits_pattern; //
+	  int ignore_ccb_startstop; //
+	  int layer_trigger_en; //
+	  int fifo_mode; //
+	  int fifo_tbins; //
+	  int fifo_pretrig; //
+	  int fifo_no_hits_raw; //
+
+
+	  int tmb_internal_l1a;
+	  int ccb_ext_trig_delay;
+	  int tmb_l1a_delay;
+	  int cfeb_rx_posneg;
+	  int cfeb_rx_clock_delay;
+
+	  int cfeb_mask;
+
+	  int cfeb_clock_phase;
+	  inline CFEBTiming_Configuration():
+	    cfeb_pipeline_depth(0),
+	    dac(0),
+	    comp_thresh(0),
+	    clct_pattern_trig_en(1),
+	    clct_ext_trig_en(1),
+	    tmb_allow_clct(1),
+	    hs_pretrig_hit_thresh(5),
+	    min_hits_pattern(1),
+	    ignore_ccb_startstop(0),
+	    layer_trigger_en(0),
+	    fifo_mode(1),
+	    fifo_tbins(30),
+	    fifo_pretrig(5),
+	    fifo_no_hits_raw(0),
+	    tmb_internal_l1a(0),
+	    ccb_ext_trig_delay(0),
+	    tmb_l1a_delay(0),
+	    cfeb_rx_posneg(0),
+	    cfeb_rx_clock_delay(0),
+	    cfeb_clock_phase(0),
+	    cfeb_mask(0x7f)
+	  {};
+	  inline CFEBTiming_Configuration(const CFEBTiming_Configuration & o):
+	    cfeb_pipeline_depth(o.cfeb_pipeline_depth),
+	    dac(o.dac),
+	    comp_thresh(o.comp_thresh),
+	    tmb_internal_l1a(o.tmb_internal_l1a),
+	    clct_pattern_trig_en(o.clct_pattern_trig_en),
+	    clct_ext_trig_en(o.clct_ext_trig_en),
+	    tmb_allow_clct(o.tmb_allow_clct),
+	    hs_pretrig_hit_thresh(o.hs_pretrig_hit_thresh),
+	    min_hits_pattern(o.min_hits_pattern),
+	    ignore_ccb_startstop(o.ignore_ccb_startstop),
+	    layer_trigger_en(o.layer_trigger_en),
+	    fifo_mode(o.fifo_mode),
+	    fifo_tbins(o.fifo_tbins),
+	    fifo_pretrig(o.fifo_pretrig),
+	    fifo_no_hits_raw(o.fifo_no_hits_raw),
+	    ccb_ext_trig_delay(o.ccb_ext_trig_delay),
+	    tmb_l1a_delay(o.tmb_l1a_delay),
+	    cfeb_rx_posneg(o.cfeb_rx_posneg),
+	    cfeb_rx_clock_delay(o.cfeb_rx_clock_delay),
+	    cfeb_clock_phase(o.cfeb_clock_phase),
+	    cfeb_mask(o.cfeb_mask)
+	  {};
+	};
+
+	inline void CFEBTiming_PrintConfiguration(CFEBTiming_Configuration & config); 
+
+	inline bool CFEBTiming_CheckCLCT(int cfeb, unsigned int layer_mask, unsigned int pattern, unsigned int halfstrip); 
+
+	inline void CFEBTiming_ReadConfiguration(CFEBTiming_Configuration & config); 
+
+	inline bool CFEBTiming_CheckConfiguration(const CFEBTiming_Configuration & orig); 
+
+	inline void ConfigureTMB(const CFEBTiming_Configuration & config, int * cfeb_tof_delay);
+	inline void ConfigureTMB(const CFEBTiming_Configuration & config) {
+
+	  return ConfigureTMB(config, NULL);
+	}
+
+	inline void CFEBTiming_ConfigureLevel(CFEBTiming_Configuration & config, int level, int after);
+	inline void CFEBTiming_ConfigureLevel(CFEBTiming_Configuration & config, int level) {
+
+	  return CFEBTiming_ConfigureLevel(config, level, false);
+	}
+	inline void CFEBTiming_ConfigureLevel(CFEBTiming_Configuration & config) { 
+
+	  return CFEBTiming_ConfigureLevel(config, -1, false); 
+	}
+	//
+	const static int CFEBPatterns[9][6];
+	const static int DMBCounters[60];
+	//
   /// RAT -> TMB communication delays
   int  RatTmbDelayScan();
   void RpcRatDelayScan();       //rpc=0
@@ -168,6 +326,10 @@ public:
   void LoadCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f , bool enable=0);
   void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f , bool enable=0);
   //
+	void LoadCFEB(int * hs, int CLCTInputs, bool enableL1aEmulator = 0);
+	void PulseCFEB(int * hs, int CLCTInputs, bool enableL1aEmulator = 0);
+	void PulseHalfstrips(int * hs, bool enableL1aEmulator = 0);
+	//
   void InjectMPCData() ;
   //
   void PopulateDmbHistograms();
@@ -195,16 +357,29 @@ public:
 		       int cfeb0rx ,int cfeb1rx ,int cfeb2rx ,int cfeb3rx ,int cfeb4rx ,
 		       int cfeb0pn ,int cfeb1pn ,int cfeb2pn ,int cfeb3pn ,int cfeb4pn ,
 		       CFEBTiming_scanType scanType);
+	bool inSpecialRegion(int cfeb0tof,int cfeb1tof,int cfeb2tof,int cfeb3tof,int cfeb4tof,
+	    int cfeb0rx ,int cfeb1rx ,int cfeb2rx ,int cfeb3rx ,int cfeb4rx ,
+	    int cfeb0pn ,int cfeb1pn ,int cfeb2pn ,int cfeb3pn ,int cfeb4pn) {
+
+	  return inSpecialRegion(cfeb0tof, cfeb1tof, cfeb2tof, cfeb3tof, cfeb4tof,
+	      cfeb0rx , cfeb1rx , cfeb2rx , cfeb3rx , cfeb4rx ,
+	      cfeb0pn , cfeb1pn , cfeb2pn , cfeb3pn , cfeb4pn ,
+	      ChamberUtilities::normal_scan); 
+	}  
   float determine_average_with_wraparound(int val1, int val2, int val3, int val4, int val5, const int max_val);
   float determine_average_with_wraparound(int val1, int val2, int val3, int val4, const int max_val);
   float special_region_function(float signed_rx);
+	int me11_wraparound_best_center(int errors[25]);
+	int me11_window_width(int win_center, int errors[25]);
+	int non_me11_wraparound_best_weighted_center(int errors[25], int n_pulses);
   //
   //
   // Following should be deprecated?
   void ALCTScanDelays();
   //
   // Get and Set peripheral crate instances:
-  inline void SetTMB(TMB * myTMB)   {thisTMB = myTMB; alct = myTMB->alctController(); thisRAT_ = myTMB->getRAT();}
+	inline void SetTMB(TMB * myTMB)   {thisTMB = myTMB; alct = myTMB->alctController(); thisRAT_ = myTMB->getRAT(); int compile_type = thisTMB->GetTMBFirmwareCompileType(); is_me11_ = (compile_type == 0xc || compile_type == 0xd);}
+	//
   inline TMB * GetTMB() { return thisTMB; }
   //
   inline void SetDMB(DAQMB * myDMB) {thisDMB = myDMB; }
@@ -324,6 +499,7 @@ private:
   int Npulses_;
   bool comparing_with_clct_;
   int me11_pulsing_;
+	bool is_me11_;
   //
   bool UsePulsing_;
   //
@@ -334,9 +510,9 @@ private:
   MPC * thisMPC;
   RAT * thisRAT_;
   //
-  int CFEBrxPhase_[5];
-  int CFEBrxPosneg_[5];
-  int cfeb_rxd_int_delay[5];
+	int CFEBrxPhase_[7];
+	int CFEBrxPosneg_[7];
+	int cfeb_rxd_int_delay[7];
   int ALCTtxPhase_;
   int ALCTrxPhase_;
   int ALCTrxPosNeg_;

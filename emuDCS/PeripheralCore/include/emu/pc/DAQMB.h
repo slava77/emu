@@ -312,6 +312,11 @@ public:
 
   std::vector<CFEB> cfebs() const {return cfebs_;}
 
+  void SetTMBTxMode(int cfeb_number, char mode);
+	void SetTMBTxModeShiftLayers(int cfeb_number, char hs[6]);
+	void SetTMBTxModeShiftLayers(int cfeb_number, int hs[6]);
+	void SetTMBTxModeLayerMask(int cfeb_number, char layer_mask);
+
 // DAQMB constants&resets
 
   
