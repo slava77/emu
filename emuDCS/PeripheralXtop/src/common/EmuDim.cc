@@ -600,8 +600,16 @@ int EmuDim::FillDDU(char *buff, int source)
    if(endstr==NULL) return 0;
    *endstr=0;
    int chnumb=atoi(buff+3);
-   if(chnumb>100) chnumb=(chnumb%10)+(chnumb%100)/10; // for non-standard DDU #, create one in the range.
-   if(chnumb>18) chnumb -= 18;
+   // names with DDU8XX
+   if(chnumb>860) chnumb=(chnumb-851);
+   else if(chnumb>850) chnumb=(chnumb-850);
+   else if(chnumb>840) chnumb=(chnumb-831);
+   else if(chnumb>830) chnumb=(chnumb-830);
+   else
+   {  // names with DDUxx
+     if(chnumb>100) chnumb=(chnumb%10)+(chnumb%100)/10; // for non-standard DDU #, create one in the range.
+     if(chnumb>18) chnumb -= 18;
+   }
    label=buff;
    // std::cout << "Found DDU " << label << " with number " << chnumb << std::endl; 
    content = endstr+1;
