@@ -9791,7 +9791,7 @@ void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2])
     return;
 }
 
-void DAQMB::SetTMBTxMode(int cfeb_number, char mode){
+void DAQMB::SetTMBTxMode(int cfeb_number, int mode){
   // set optical tmb path output mode
   /*
     mode    function
@@ -9802,91 +9802,21 @@ void DAQMB::SetTMBTxMode(int cfeb_number, char mode){
     5       send 1/2 strip patterns to layers
     
   */
-  
-  write_cfeb_selector(1<<cfeb_number);
-  
-  DEVTYPE dv = (DEVTYPE) (F1DCFEBM + cfeb_number);
-  int mmode = mode;
-  std::cout << "Setting TMB_TX_MODE dv= " << dv << " to " << mmode << std::endl;
-  cmd[0] = (VTX6_USR1 & 0xff);
-  cmd[1] = ((VTX6_USR1 & 0x300) >> 8);
-  sndbuf[0] = TMB_TX_MODE;
-  devdo(dv, 10, cmd, 8, sndbuf, rcvbuf, 0);
-  for (int i = 0; i < 2; i++)
-    rcvbuf[i] = 0x55;
-  cmd[0] = (VTX6_USR2 & 0xff);
-  cmd[1] = ((VTX6_USR2 & 0x300) >> 8);
-  sndbuf[0] = (mode & 0x7);
-  sndbuf[1] = 0x00;
-  printf(" sndbuf[0] %d \n", sndbuf[0]);
-  fflush(stdout);
-  devdo(dv, 10, cmd, 3, sndbuf, rcvbuf, 2);
-  // printf(" rcvbuf[0] %02x \n",rcvbuf[0]&0xff);fflush(stdout);
-  cmd[0] = (VTX6_BYPASS & 0xff);
-  cmd[1] = ((VTX6_BYPASS & 0x300) >> 8);
-  sndbuf[0] = 0;
-  devdo(dv, 10, cmd, 0, sndbuf, rcvbuf, 2);
-}
-
-void DAQMB::SetTMBTxModeShiftLayers(int cfeb_number, int hs[6]) {
-  char ch[6];
-  for(int i=0; i<6; ++i) {
-    ch[i] = hs[i];
-  }
-  SetTMBTxModeShiftLayers(cfeb_number, ch);
+  dcfeb_hub(cfebs_[cfeb_number], TMB_TX_MODE, 3, &mode, rcvbuf, NOW);  
 }
 
 void DAQMB::SetTMBTxModeShiftLayers(int cfeb_number, char hs[6]){
-  write_cfeb_selector(1<<cfeb_number);
-  
-  // set optical tmb path mode 5 1/2 strips
-  DEVTYPE dv = (DEVTYPE) (F1DCFEBM + cfeb_number);
-  std::cout << "Setting TMB_TX_SHIFTLAYERS dv= " << dv << std::endl;
-  cmd[0] = (VTX6_USR1 & 0xff);
-  cmd[1] = ((VTX6_USR1 & 0x300) >> 8);
-  sndbuf[0] = TMB_TX_SHIFTLAYERS;
-  devdo(dv, 10, cmd, 8, sndbuf, rcvbuf, 0);
-  for (int i = 0; i < 4; i++)
-    rcvbuf[i] = 0x55;
-  cmd[0] = (VTX6_USR2 & 0xff);
-  cmd[1] = ((VTX6_USR2 & 0x300) >> 8);
   sndbuf[0] = (hs[0] & 0x1f) | ((hs[1] << 5) & 0xe0);
   sndbuf[1] = ((hs[1] >> 3) & 0x03) | ((hs[2] << 2) & 0x7c)
     | ((hs[3] << 7) & 0x80);
   sndbuf[2] = ((hs[3] >> 1) & 0x0f) | ((hs[4] << 4) & 0xf0);
   sndbuf[3] = ((hs[4] >> 4) & 0x01) | ((hs[5] << 1) & 0x3e);
-  printf(" 1/2 strips %02x%02x%02x%02x \n", sndbuf[3] & 0xff, sndbuf[2] & 0xff,
-	 sndbuf[1] & 0xff, sndbuf[0] &		\
-	 0xff);
-  fflush(stdout);
-  devdo(dv, 10, cmd, 30, sndbuf, rcvbuf, 2);
-  cmd[0] = (VTX6_BYPASS & 0xff);
-  cmd[1] = ((VTX6_BYPASS & 0x300) >> 8);
-  sndbuf[0] = 0;
-  devdo(dv, 10, cmd, 0, sndbuf, rcvbuf, 2);
+  dcfeb_hub(cfebs_[cfeb_number], TMB_TX_SHIFTLAYERS, 30, sndbuf, rcvbuf, NOW);  
+
 }
 
-void DAQMB::SetTMBTxModeLayerMask(int cfeb_number, char layer_mask){
-  write_cfeb_selector(1<<cfeb_number);
-  
-  // set optical tmb path mode 5 1/2 strips patterns
-  DEVTYPE dv = (DEVTYPE) (F1DCFEBM + cfeb_number);
-  std::cout << "Setting TMB_TX_LAYER_MASK dv= " << dv << std::endl;
-  cmd[0] = (VTX6_USR1 & 0xff);
-  cmd[1] = ((VTX6_USR1 & 0x300) >> 8);
-  sndbuf[0] = TMB_TX_LAYER_MASK;
-  devdo(dv, 10, cmd, 8, sndbuf, rcvbuf, 0);
-  rcvbuf[0] = 0x55;
-  cmd[0] = (VTX6_USR2 & 0xff);
-  cmd[1] = ((VTX6_USR2 & 0x300) >> 8);
-  sndbuf[0] = layer_mask & 0x3F;
-  printf(" layer mask %02x \n", sndbuf[0] & 0xff);
-  fflush(stdout);
-  devdo(dv, 10, cmd, 6, sndbuf, rcvbuf, 2);
-  cmd[0] = (VTX6_BYPASS & 0xff);
-  cmd[1] = ((VTX6_BYPASS & 0x300) >> 8);
-  sndbuf[0] = 0;
-  devdo(dv, 10, cmd, 0, sndbuf, rcvbuf, 2);
+void DAQMB::SetTMBTxModeLayerMask(int cfeb_number, int layer_mask){
+  dcfeb_hub(cfebs_[cfeb_number], TMB_TX_LAYER_MASK, 6, &layer_mask, rcvbuf, NOW);  
 }
 
 int DAQMB::dcfeb_read_config(CFEB &cfeb, int ival)
