@@ -196,6 +196,8 @@ protected:
   unsigned long int DMBBoardNumber[62][10];
   unsigned long int CFEBBoardNumber[62][10][7];
 
+  bool tmb_fiber_status_read_;
+
   //VCC Utilities
 
   enum VCC_PAGES {VCC_CMNTSK, VCC_VME, VCC_FRMUTIL, VCC_CNFG, VCC_MAC,
@@ -454,6 +456,7 @@ private:
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void EraseRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBDumpAllRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void TMBFiberReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void TMBClearUserProms(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void HardResetTmbFpga(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UnjamTMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
