@@ -2160,9 +2160,6 @@ public:
 	inline int  GetGtxRxAllPrbsTestEnable() { return gtx_rx_prbs_test_enable_all_; }
 	inline int  GetReadGtxRxAllPrbsTestEnable() { return read_gtx_rx_prbs_test_enable_all_; }
 
-	//Writes all GTX control registers to FPGA
-	void WriteGtxControlRegisters();
-
 	//GTX ready
 	inline int  GetReadGtxRxAllReady() { return read_gtx_rx_ready_all_; }
 
@@ -2255,18 +2252,6 @@ public:
   //!Bit mask for which CFEB has a bad bit found on it...
   inline int GetReadDCFEBBadBitsFound() { return read_dcfeb_badbits_found_; }
   //
-
-  //
-  //------------------------------------------------------------------
-  //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks
-  //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 BadBits Masks
-  //0X132,134,136 = ADR_BADBITS201,BADBITS223,BADBITS245 = CFEB2 BadBits Masks
-  //0X138,13A,13C = ADR_BADBITS301,BADBITS323,BADBITS345 = CFEB3 BadBits Masks
-  //0X13E,140,142 = ADR_BADBITS401,BADBITS423,BADBITS445 = CFEB4 BadBits Masks
-  //------------------------------------------------------------------
-  //!Read and print registers who carry information as to which comparator input is bad
-  void ReadComparatorBadBits();
-  void PrintComparatorBadBits();
   //
   //!layer=[0-5], distrip=[0-39] = 1 = "bad"
   inline int  GetComparatorBadBit(int layer,int distrip) { return read_badbits_[layer][distrip]; }
