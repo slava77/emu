@@ -504,8 +504,10 @@ const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_672   = RegSizeAlctFastFpga_WRT_DELAYL
 const int MAX_NUM_LAYERS = 6;
 const int MAX_NUM_AFEBS = 42;
 const int MAX_NUM_WIRES_PER_LAYER = 112;  // =42 AFEBs * 16 wires/AFEB / 6 layers
-const int MAX_NUM_CFEBS  = 5;
-const int MAX_NUM_DISTRIPS_PER_LAYER = 40; //=5 CFEBs * 8 distrips/CFEB/layer
+const int MAX_NUM_CFEBS  = 5; // Applies to TMB only
+const int MAX_NUM_CFEBS_EXT  = 7; // Applies to both TMB and OTMB cases
+const int MAX_NUM_DISTRIPS_PER_LAYER = MAX_NUM_CFEBS * 8; //=5 CFEBs * 8 distrips/CFEB/layer
+const int MAX_NUM_DISTRIPS_PER_LAYER_EXT = MAX_NUM_CFEBS_EXT * 8; //=7 CFEBs * 8 distrips/CFEB/layer
 //
 //
 ////////////////////////////////////////

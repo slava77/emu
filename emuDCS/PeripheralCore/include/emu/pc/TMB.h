@@ -749,6 +749,45 @@ public:
   inline int  GetEnableAlctTx() { return enable_alct_tx_; }
   //
   //------------------------------------------------------------------
+	//0X14 = ADR_DDDSM:  3D3444 State Machine Control + DCM Lock Status
+	//------------------------------------------------------------------
+  inline void SetDDDStateMachineStart(int ddd_state_machine_start) {ddd_state_machine_start_ = ddd_state_machine_start;}
+	inline int  GetDDDStateMachineStart() {return ddd_state_machine_start_;}
+	inline int  GetReadDDDStateMachineStart() {return read_ddd_state_machine_start_;}
+
+	inline void SetDDDStateMachineManual(int ddd_state_machine_manual) {ddd_state_machine_manual_ = ddd_state_machine_manual;}
+	inline int  GetDDDStateMachineManual() {return ddd_state_machine_manual_;}
+	inline int  GetReadDDDStateMachineManual() {return read_ddd_state_machine_manual_;}
+
+	inline void SetDDDStateMachineLatch(int ddd_state_machine_latch) {ddd_state_machine_latch_ = ddd_state_machine_latch;}
+	inline int  GetDDDStateMachineLatch() {return ddd_state_machine_latch_;}
+	inline int  GetReadDDDStateMachineLatch() {return read_ddd_state_machine_latch_;}
+
+	inline void SetDDDStateMachineSerialIn(int ddd_state_machine_serial_in) {ddd_state_machine_serial_in_ = ddd_state_machine_serial_in;}
+	inline int  GetDDDStateMachineSerialIn() {return ddd_state_machine_serial_in_;}
+	inline int  GetReadDDDStateMachineSerialIn() {return read_ddd_state_machine_serial_in_;}
+
+	inline void SetDDDStateMachineSerialOut(int ddd_state_machine_serial_out) {ddd_state_machine_serial_out_ = ddd_state_machine_serial_out;}
+	inline int  GetDDDStateMachineSerialOut() {return ddd_state_machine_serial_out_;}
+	inline int  GetReadDDDStateMachineSerialOut() {return read_ddd_state_machine_serial_out_;}
+
+	inline void SetDDDStateMachineAutostart(int ddd_state_machine_autostart) {ddd_state_machine_autostart_ = ddd_state_machine_autostart;}
+	inline int  GetDDDStateMachineAutostart() {return ddd_state_machine_autostart_;}
+	inline int  GetReadDDDStateMachineAutostart() {return read_ddd_state_machine_autostart_;}
+
+	inline int  GetReadDDDStateMachineBusy() {return read_ddd_state_machine_busy_;}
+	inline int  GetReadDDDStateMachineVerifyOk() {return read_ddd_state_machine_verify_ok_;}
+	inline int  GetReadDDDStateMachineClock0Lock() {return read_ddd_state_machine_clock0_lock_;}
+	inline int  GetReadDDDStateMachineClock0dLock() {return read_ddd_state_machine_clock0d_lock_;}
+	inline int  GetReadDDDStateMachineClock1Lock() {return read_ddd_state_machine_clock1_lock_;}
+	inline int  GetReadDDDStateMachineClockALCTLock() {return read_ddd_state_machine_clock_alct_lock_;}
+	inline int  GetReadDDDStateMachineClockdALCTLock() {return read_ddd_state_machine_clockd_alct_lock_;}
+	inline int  GetReadDDDStateMachineClockCFEBLock() {return read_ddd_state_machine_clock_cfeb_lock_;}
+	inline int  GetReadDDDStateMachineClockDCCLock() {return read_ddd_state_machine_clock_dcc_lock_;}
+	inline int  GetReadDDDStateMachineClockRPCLock() {return read_ddd_state_machine_clock_rpc_lock_;}
+
+  //
+  //------------------------------------------------------------------
   //0X16 = ADR_DDD0:  3D3444 Chip 0 Delays, 1 step = 2ns
   //------------------------------------------------------------------
   //!alct_tof_delay = [0-15] (2ns)
@@ -1086,18 +1125,32 @@ public:
   //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
   //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
   //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+  //0x16E,170,172 = ADR_HCM401,HCM423,HCM445 = CFEB5 Hot Channel Masks  --- added on OTMB
+  //0x174,176,178 = ADR_HCM401,HCM423,HCM445 = CFEB6 Hot Channel Masks  --- added on OTMB
   //------------------------------------------------------------------
   //!layer=[0-5], distrip=[0-39], on_or_off = 0 = disable
   inline void SetDistripHotChannelMask(int layer,int distrip,int on_or_off) { hot_channel_mask_[layer][distrip] = on_or_off; } 
   inline int  GetDistripHotChannelMask(int layer,int distrip) { return hot_channel_mask_[layer][distrip]; }
   //
+  //!layer=[0-5], distrip=[0-55], on_or_off = 0 = disable
+  inline void SetDistripHotChannelMaskExt(int layer,int distrip,int on_or_off) { hot_channel_mask_ext_[layer][distrip] = on_or_off; }
+  inline int  GetDistripHotChannelMaskExt(int layer,int distrip) { return hot_channel_mask_ext_[layer][distrip]; }
+  //
   //!layer=[0-5], mask=10 hex-characters for the 40 distrips right->left LSB->MSB.  So, to mask off channel 0, mask= fffffffffe
   void SetDistripHotChannelMask(int layer,long long int mask);
   long long int GetDistripHotChannelMask(int layer);
   //
+  //!layer=[0-5], mask=14 hex-characters for the 56 distrips right->left LSB->MSB.  So, to mask off channel 0, mask= fffffffffffffe
+  void SetDistripHotChannelMaskExt(int layer,long long int mask);
+  long long int GetDistripHotChannelMaskExt(int layer);
+  //
   //!Write registers whose values have been set by SetDistripHotChannelMask(...)
   void WriteDistripHotChannelMasks();
   void ReadDistripHotChannelMasks();
+  //
+  //!Write registers whose values have been set by SetDistripHotChannelMaskExt(...)
+  void WriteDistripHotChannelMasksExt();
+  void ReadDistripHotChannelMasksExt();
   //
   //------------------------------------------------------------------
   //0X68 = ADR_SEQ_TRIG_EN:  Sequencer Trigger Source Enables
@@ -2056,6 +2109,75 @@ public:
   inline int  GetCFEBBadBitsNbx() { return cfeb_badbits_nbx_; }
   inline int  GetReadCFEBBadBitsNbx() { return read_cfeb_badbits_nbx_; }
   //
+  //
+  //---------------------------------------------------------------------
+  // 0X146 = ADR_ALCT_STARTUP_STATUS: ALCT startup delay machine status
+  //---------------------------------------------------------------------
+  inline int GetReadGlobalReset() { return read_global_reset_; }
+  inline int GetReadPowerUp()  { return read_power_up_; }
+  inline int GetReadVSMReady() { return read_vsm_ready_; }
+  inline int GetReadALCTStartupMsec() { return read_alct_startup_msec_; }
+  inline int GetReadALCTWaitDLL() { return read_alct_wait_dll_; }
+  inline int GetReadALCTWaitVME() { return read_alct_wait_vme_; }
+  inline int GetReadALCTWaitCfg() { return read_alct_wait_cfg_; }
+  inline int GetReadALCTStartupDone() { return read_alct_startup_done_; }
+  inline int GetReadMMCMLostLockCount() { return read_mmcm_lostlock_count_; }
+  //
+  //---------------------------------------------------------------------
+  // 0X148 = ADR_V6_SNAP12_QUPLL: Virtex-6 SNAP12 Serial interface + QPLL status
+  //---------------------------------------------------------------------
+  //nRest QPLL, 0=reset
+  inline void SetQPLLNrst(int qpll_nrst) { qpll_nrst_ =	qpll_nrst; }
+  inline int  GetQPLLNrst() { return qpll_nrst_; }
+  inline int  GetReadQPLLNrst() { return read_qpll_nrst_; }
+
+  inline int GetReadQPLLLock() { return read_qpll_lock_; }
+  inline int GetReadQPLLErr() { return read_qpll_err_; }
+  inline int GetReadQPLLLostLock() { return read_qpll_lostlock_; }
+  inline int GetReadR12Sclk() { return read_r12_sclk_; }
+  inline int GetReadR12Sdat() { return read_r12_sdat_; }
+  inline int GetReadR12Fok() { return read_r12_fok_; }
+  inline int GetReadMMCMLostLock() { return read_mmcm_lostlock_; }
+  inline int GetReadQPLLLostLockCount() { return read_qpll_lostlock_count_; }
+
+
+
+	//---------------------------------------------------------------------
+	// 0X14A = ADR_V6_GTX_RX_ALL: GTX link control and monitoring
+	//---------------------------------------------------------------------
+	//Enable this GTX optical input,  disables copper input
+  inline void SetGtxRxAllEnable(int gtx_rx_enable) { gtx_rx_enable_all_ = gtx_rx_enable; }
+	inline int  GetGtxRxAllEnable() { return gtx_rx_enable_all_; }
+	inline int  GetReadGtxRxAllEnable() { return read_gtx_rx_enable_all_; }
+
+	//Reset this GTX
+	inline void SetGtxRxAllReset(int gtx_rx_reset) { gtx_rx_reset_all_ = gtx_rx_reset; }
+	inline int  GetGtxRxAllReset() { return gtx_rx_reset_all_; }
+	inline int  GetReadGtxRxAllReset() { return read_gtx_rx_reset_all_; }
+
+	//Select this GTX for PRBS test input mode
+	inline void SetGtxRxAllPrbsTestEnable(int gtx_rx_prbs_test_enable) { gtx_rx_prbs_test_enable_all_ = gtx_rx_prbs_test_enable; }
+	inline int  GetGtxRxAllPrbsTestEnable() { return gtx_rx_prbs_test_enable_all_; }
+	inline int  GetReadGtxRxAllPrbsTestEnable() { return read_gtx_rx_prbs_test_enable_all_; }
+
+	//GTX ready
+	inline int  GetReadGtxRxAllReady() { return read_gtx_rx_ready_all_; }
+
+	//GTX link is locked (over 15 BX with clean data frames)
+	inline int  GetReadGtxRxAllLinkGood() { return read_gtx_rx_link_good_all_; }
+
+	//GTX link had an error (bad data frame) since last reset
+	inline int  GetReadGtxRxAllLinkHadError() { return read_gtx_rx_link_had_error_all_; }
+
+	//GTX link had over 100 errors since last reset
+	inline int  GetReadGtxRxAllLinkBad() { return read_gtx_rx_link_bad_all_; }
+
+	//GTX 5,6 [ie dcfeb 4,5] have swapped rx board routes
+	inline int  GetReadGtxRxAllPolSwap() { return read_gtx_rx_pol_swap_all_; }
+
+	//GTX link error count (full scale count is hex E0)
+	inline int  GetReadGtxRxAllErrorCount() { return read_gtx_rx_error_count_all_; }
+  //
   //---------------------------------------------------------------------
   // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
   //---------------------------------------------------------------------
@@ -2095,6 +2217,13 @@ public:
   //GTX link error count (full scale count is hex E0)
   inline int  GetReadGtxRxErrorCount(int cfebNum) { return read_gtx_rx_error_count_[cfebNum]; }
   
+  inline int GetReadTMBMMCMLockTime() { return read_tmb_mmcm_lock_time_;}
+	inline int GetReadTMBPowerUpTime() { return read_tmb_power_up_time_;}
+	inline int GetReadTMBLoadCfgTime() { return read_tmb_load_cfg_time_;}
+	inline int GetReadALCTPhaserLockTime() { return read_alct_phaser_lock_time_;}
+	inline int GetReadALCTLoadCfgTime() { return read_alct_load_cfg_time_;}
+	inline int GetReadGtxRstDoneTime() { return read_gtx_rst_done_time_;}
+	inline int GetReadGtxSyncDoneTime() { return read_gtx_sync_done_time_;}
   //
   //------------------------------------------------------------------
   //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks
@@ -2106,6 +2235,23 @@ public:
   //!Read and print registers who carry information as to which comparator input is bad
   void ReadComparatorBadBits();
   void PrintComparatorBadBits();
+  //
+  //---------------------------------------------------------------------
+  // 0X15C ADR_V6_CFEB_BADBITS_CTRL: CFEB Bad Bits Control/Status (See Adr 0x122) (extra DCFEB Bad Bits on OTMB)
+  //---------------------------------------------------------------------
+  //!dcfeb_badbits_reset = 1 = Set the reset bit for the "badbits" marker for the last 2 CFEBs
+  void SetDCFEBBadBitsReset(int dcfeb_badbits_reset);
+  int  GetDCFEBBadBitsReset();
+  int  GetReadDCFEBBadBitsReset();
+  //
+  //!dcfeb_badbits_block = 1 = Block channels which have been determined to be "badbits" by the firmware
+  void SetDCFEBBadBitsBlock(int dcfeb_badbits_block);
+  int  GetDCFEBBadBitsBlock();
+  int  GetReadDCFEBBadBitsBlock();
+  //
+  //!Bit mask for which CFEB has a bad bit found on it...
+  inline int GetReadDCFEBBadBitsFound() { return read_dcfeb_badbits_found_; }
+  //
   //
   //!layer=[0-5], distrip=[0-39] = 1 = "bad"
   inline int  GetComparatorBadBit(int layer,int distrip) { return read_badbits_[layer][distrip]; }
@@ -2184,6 +2330,7 @@ public:
   void PrintJTAGStateMachine();
   void PrintRawHitsHeader();
   void PrintDDDStateMachine();
+  void PrintBadBits();
   //
   void PrintTMBRegister(unsigned long int address);  
   void PrintFirmwareDate();                          
@@ -2650,13 +2797,19 @@ private:
   //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
   //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
   //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+  //0x16E,170,172 = ADR_HCM401,HCM423,HCM445 = CFEB5 Hot Channel Masks  --- added on OTMB
+  //0x174,176,178 = ADR_HCM401,HCM423,HCM445 = CFEB6 Hot Channel Masks  --- added on OTMB
   //------------------------------------------------------------------
   int GetHotChannelLayerFromMap_(unsigned long int vme_address, int bit_in_register);
+  int GetHotChannelLayerFromMapExt_(unsigned long int vme_address, int bit_in_register);
   int GetHotChannelDistripFromMap_(unsigned long int vme_address, int bit_in_register);
+  int GetHotChannelDistripFromMapExt_(unsigned long int vme_address, int bit_in_register);
   //
   int hot_channel_mask_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER];
+  int hot_channel_mask_ext_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER_EXT];
   //
   int read_hot_channel_mask_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER];
+  int read_hot_channel_mask_ext_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER_EXT];
   //
   //------------------------------------------------------------------
   //0X68 = ADR_SEQ_TRIG_EN:  Sequencer Trigger Source Enables
@@ -3386,6 +3539,54 @@ private:
   //
   int read_cfeb_badbits_nbx_;
   //
+  //
+  //---------------------------------------------------------------------
+	// 0X146 = ADR_ALCT_STARTUP_STATUS: ALCT startup delay machine status
+  //---------------------------------------------------------------------
+  int read_global_reset_;
+  int read_power_up_;
+  int read_vsm_ready_;
+  int read_alct_startup_msec_;
+  int read_alct_wait_dll_;
+  int read_alct_wait_vme_;
+  int read_alct_wait_cfg_;
+  int read_alct_startup_done_;
+  int read_mmcm_lostlock_count_;
+  //
+  //
+  //---------------------------------------------------------------------
+  // 0X148 = ADR_V6_SNAP12_QUPLL: Virtex-6 SNAP12 Serial interface + QPLL status
+  //---------------------------------------------------------------------
+  int qpll_nrst_;
+  
+  int read_qpll_nrst_;
+	int read_qpll_lock_;
+	int read_qpll_err_;
+	int read_qpll_lostlock_;
+	int read_r12_sclk_;
+	int read_r12_sdat_;
+	int read_r12_fok_;
+	int read_mmcm_lostlock_;
+	int read_qpll_lostlock_count_;
+	//
+	//
+	//---------------------------------------------------------------------
+	// 0X14A = ADR_V6_GTX_RX_ALL: GTX link control and monitoring
+	//---------------------------------------------------------------------
+  int gtx_rx_enable_all_;
+	int gtx_rx_reset_all_;
+	int gtx_rx_prbs_test_enable_all_;
+
+	int read_gtx_rx_enable_all_;
+	int read_gtx_rx_reset_all_;
+	int read_gtx_rx_prbs_test_enable_all_;
+	int read_gtx_rx_ready_all_;
+	int read_gtx_rx_link_good_all_;
+	int read_gtx_rx_link_had_error_all_;
+	int read_gtx_rx_link_bad_all_;
+	int read_gtx_rx_pol_swap_all_;
+	int read_gtx_rx_error_count_all_;
+  //
   //---------------------------------------------------------------------
   // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
   //---------------------------------------------------------------------
@@ -3403,6 +3604,54 @@ private:
   int read_gtx_rx_pol_swap_[7];
   int read_gtx_rx_error_count_[7];
   //
+	//---------------------------------------------------------------------
+	// 0X15C ADR_V6_CFEB_BADBITS_CTRL: CFEB Bad Bits Control/Status (See Adr 0x122) (extra DCFEB Bad Bits on OTMB)
+	//---------------------------------------------------------------------
+  int dcfeb_badbits_reset_  ;
+  int dcfeb_badbits_block_  ;
+  //
+  int read_dcfeb_badbits_reset_  ;
+  int read_dcfeb_badbits_block_  ;
+  int read_dcfeb_badbits_found_  ;
+
+
+
+  //
+  //---------------------------------------------------------------------
+	// 0X186 = ADR_TMB_MMCM_LOCK_TIME
+	//---------------------------------------------------------------------
+  int read_tmb_mmcm_lock_time_;
+  //
+	//---------------------------------------------------------------------
+	// 0X188 = ADR_TMB_POWER_UP_TIME
+	//---------------------------------------------------------------------
+  int read_tmb_power_up_time_;
+  //
+	//---------------------------------------------------------------------
+	// 0X18A = ADR_TMB_LOAD_CFG_TIME
+	//---------------------------------------------------------------------
+  int read_tmb_load_cfg_time_;
+  //
+	//---------------------------------------------------------------------
+	// 0X18C = ADR_ALCT_PHASER_LOCK_TIME
+	//---------------------------------------------------------------------
+  int read_alct_phaser_lock_time_;
+  //
+	//---------------------------------------------------------------------
+	// 0X18E = ADR_ALCT_LOAD_CFG_TIME
+	//---------------------------------------------------------------------
+  int read_alct_load_cfg_time_;
+  //
+	//---------------------------------------------------------------------
+	// 0X190 = ADR_GTX_RST_DONE_TIME
+	//---------------------------------------------------------------------
+  int read_gtx_rst_done_time_;
+  //
+	//---------------------------------------------------------------------
+	// 0X192 = ADR_GTX_SYNC_DONE_TIME
+  //---------------------------------------------------------------------
+  int read_gtx_sync_done_time_;
+
   //------------------------------------------------------------------
   //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks
   //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 BadBits Masks
@@ -3410,7 +3659,7 @@ private:
   //0X138,13A,13C = ADR_BADBITS301,BADBITS323,BADBITS345 = CFEB3 BadBits Masks
   //0X13E,140,142 = ADR_BADBITS401,BADBITS423,BADBITS445 = CFEB4 BadBits Masks
   //------------------------------------------------------------------
-  int read_badbits_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER];
+  int read_badbits_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER_EXT];
   //
   //
   //*******************************************************************
