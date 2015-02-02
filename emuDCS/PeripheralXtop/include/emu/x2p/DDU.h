@@ -19,7 +19,7 @@ public:
   void Fill(char *buf, int source=0);
   //
   inline bool Ready() { return ready_; } 
-  inline void SetLabel(std::string label) { label_ = label; }
+  inline void SetLabel(std::string label) { if(!labeled) {label_ = label; labeled=true;} }
   inline std::string GetLabel() { return label_; }
   inline void SetActive(int act) { active_ = act; }
   inline int GetActive() { return active_; }
@@ -36,7 +36,8 @@ private:
   int active_;
   bool ready_;
   bool corruption;
-
+  bool labeled;
+  
   int states[4];
   float values[10];
 
