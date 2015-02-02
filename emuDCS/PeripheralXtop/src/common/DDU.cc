@@ -23,7 +23,7 @@ namespace emu {
 
 //
 DDU::DDU():
-label_("DDU0"), active_(0), ready_(false), corruption(false)
+label_("DDU0"), active_(0), ready_(false), corruption(false), labeled(false)
 {
 }
 
