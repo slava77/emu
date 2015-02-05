@@ -118,6 +118,8 @@
 //
 //
 
+#ifndef TMB_CONSTANTS_h
+#define TMB_CONSTANTS_h
 
 namespace emu {
   namespace pc {
@@ -3202,3 +3204,4 @@ struct tmb_id_regs
 
   } // namespace emu::pc
   } // namespace emu
+#endif
