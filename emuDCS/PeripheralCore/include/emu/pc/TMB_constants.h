@@ -314,8 +314,11 @@ static const unsigned long int	badbits423_adr	        = 0x000140;
 static const unsigned long int	badbits445_adr	        = 0x000142;
 
 static const unsigned long int	v6_sysmon_adr	        = 0x00015A;  //ADR_V6_SYSMON
+static const unsigned long int	alct_startup_status_adr = 0x000146; //ADR_ALCT_STARTUP_STATUS
+static const unsigned long int	v6_snap12_qpll_adr      = 0x000148; //ADR_V6_SNAP12_QPLL
 
 //GTX link control and monitoring
+static const unsigned long int  v6_gtx_rx_all_adr       = 0x00014A;  //ADR_V6_GTX_RX_ALL //GTX link control and monitoring
 static const unsigned long int  v6_gtx_rx0_adr          = 0x00014C;  //ADR_V6_GTX_RX0
 static const unsigned long int  v6_gtx_rx1_adr          = 0x00014E;  //ADR_V6_GTX_RX1
 static const unsigned long int  v6_gtx_rx2_adr          = 0x000150;  //ADR_V6_GTX_RX2
@@ -344,9 +347,18 @@ static const unsigned long int  hcm601_adr              = 0x000174;
 static const unsigned long int  hcm623_adr              = 0x000176;
 static const unsigned long int  hcm645_adr              = 0x000178;
 
+// config timers on OTMB
+static const unsigned long int tmb_mmcm_lock_time_adr   = 0x000186;
+static const unsigned long int tmb_power_up_time_adr    = 0x000188;
+static const unsigned long int tmb_load_cfg_time_adr    = 0x00018A;
+static const unsigned long int alct_phaser_lock_time_adr= 0x00018C;
+static const unsigned long int alct_load_cfg_time_adr   = 0x00018E;
+static const unsigned long int gtx_rst_done_time_adr    = 0x000190;
+static const unsigned long int gtx_sync_done_time_adr   = 0x000192;
+
 //
 static const int LARGEST_VME_ADDRESS = badbits445_adr;
-static const int OTMB_LARGEST_VME_ADDRESS = hcm645_adr;
+static const int OTMB_LARGEST_VME_ADDRESS = gtx_sync_done_time_adr;
 //
 //
 // TMB counter indices:
@@ -2529,6 +2541,50 @@ const int cfeb_badbits_nbx_bithi    =  15;
 const int cfeb_badbits_nbx_default  =  3564;
 //
 //---------------------------------------------------------------------
+// 0X146 = ADR_ALCT_STARTUP_STATUS: ALCT startup delay machine status
+//---------------------------------------------------------------------
+const int global_reset_bitlo          	  =  0;
+const int global_reset_bithi          	  =  0;
+const int power_up_bitlo              	  =  1;
+const int power_up_bithi              	  =  1;
+const int vsm_ready_bitlo              	  =  2;
+const int vsm_ready_bithi              	  =  2;
+const int alct_startup_msec_bitlo      	  =  3;
+const int alct_startup_msec_bithi         =  3;
+const int alct_wait_dll_bitlo             =  4;
+const int alct_wait_dll_bithi             =  4;
+const int alct_wait_vme_bitlo             =  5;
+const int alct_wait_vme_bithi             =  5;
+const int alct_wait_cfg_bitlo             =  6;
+const int alct_wait_cfg_bithi             =  6;
+const int alct_startup_done_bitlo         =  7;
+const int alct_startup_done_bithi         =  7;
+const int mmcm_lostlock_count_bitlo       =  8;
+const int mmcm_lostlock_count_bithi       =  15;
+//
+//---------------------------------------------------------------------
+// 0X148 = ADR_V6_SNAP12_QUPLL: Virtex-6 SNAP12 Serial interface + QPLL status
+//---------------------------------------------------------------------
+const int qpll_nrst_bitlo                 =  0;
+const int qpll_nrst_bithi                 =  0;
+const int qpll_lock_bitlo                 =  1;
+const int qpll_lock_bithi                 =  1;
+const int qpll_err_bitlo                  =  2;
+const int qpll_err_bithi                  =  2;
+const int qpll_lostlock_bitlo             =  3;
+const int qpll_lostlock_bithi             =  3;
+const int r12_sclk_bitlo                  =  4;
+const int r12_sclk_bithi                  =  4;
+const int r12_sdat_bitlo                  =  5;
+const int r12_sdat_bithi                  =  5;
+const int r12_fok_bitlo                   =  6;
+const int r12_fok_bithi                   =  6;
+const int mmcm_lostlock_bitlo             =  7;
+const int mmcm_lostlock_bithi             =  7;
+const int qpll_lostlock_count_bitlo       =  8;
+const int qpll_lostlock_count_bithi       =  15;
+//
+//---------------------------------------------------------------------
 // 0X14C - 0X158 = ADR_V6_GTX_RX: GTX link control and monitoring
 //---------------------------------------------------------------------
 const int gtx_rx0_enable_vmereg         =  v6_gtx_rx0_adr;
@@ -3201,6 +3257,8 @@ struct tmb_id_regs
   unsigned short int fpga_type; // Xilinx FPGA Type XCV1000E (BCD)
 
 };
+
+const unsigned int TMB_N_FIBERS = 7;
 
   } // namespace emu::pc
   } // namespace emu
