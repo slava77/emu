@@ -4503,7 +4503,7 @@ int TMB::GetReadCFEBBadBitsBlock() {
 }
 
 //
-int TMB::GetDCFEBBadBitsReset() {
+int TMB::GetDCFEB56BadBitsReset() {
   //
   // return a single value which has been set for CFEB's 5 and 6..
   //
@@ -4514,7 +4514,7 @@ int TMB::GetDCFEBBadBitsReset() {
   return return_value;
 }
 //
-int TMB::GetReadDCFEBBadBitsReset() {
+int TMB::GetReadDCFEB56BadBitsReset() {
   //
   // return a single value which has been set for CFEB's 5 and 6..
   //
@@ -4525,7 +4525,7 @@ int TMB::GetReadDCFEBBadBitsReset() {
   return return_value;
 }
 //
-void TMB::SetDCFEBBadBitsBlock(int dcfeb_badbits_block) {
+void TMB::SetDCFEB56BadBitsBlock(int dcfeb_badbits_block) {
   //
   // set the block bit for CFEB's 5 and 6..
   //
@@ -4536,7 +4536,7 @@ void TMB::SetDCFEBBadBitsBlock(int dcfeb_badbits_block) {
   return;
 }
 //
-int TMB::GetDCFEBBadBitsBlock() {
+int TMB::GetDCFEB56BadBitsBlock() {
   //
   // return a single value which has been set for CFEB's 5 and 6..
   //
@@ -4550,7 +4550,7 @@ int TMB::GetDCFEBBadBitsBlock() {
   return return_value;
 }
 //
-int TMB::GetReadDCFEBBadBitsBlock() {
+int TMB::GetReadDCFEB56BadBitsBlock() {
   //
   // return a single value which has been set for CFEB's 5 and 6..
   //

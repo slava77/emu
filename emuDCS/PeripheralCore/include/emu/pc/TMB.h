@@ -2224,13 +2224,13 @@ public:
   //---------------------------------------------------------------------
   //!dcfeb_badbits_reset = 1 = Set the reset bit for the "badbits" marker for the last 2 CFEBs
   void SetDCFEB56BadBitsReset(int dcfeb_badbits_reset);
-  int  GetDCFEBBadBitsReset();
-  int  GetReadDCFEBBadBitsReset();
+  int  GetDCFEB56BadBitsReset();
+  int  GetReadDCFEB56BadBitsReset();
   //
   //!dcfeb_badbits_block = 1 = Block channels which have been determined to be "badbits" by the firmware
-  void SetDCFEBBadBitsBlock(int dcfeb_badbits_block);
-  int  GetDCFEBBadBitsBlock();
-  int  GetReadDCFEBBadBitsBlock();
+  void SetDCFEB56BadBitsBlock(int dcfeb_badbits_block);
+  int  GetDCFEB56BadBitsBlock();
+  int  GetReadDCFEB56BadBitsBlock();
   //
   //!Bit mask for which CFEB has a bad bit found on it...
   inline int GetReadDCFEBBadBitsFound() { return read_dcfeb_badbits_found_; }
