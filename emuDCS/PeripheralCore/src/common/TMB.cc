@@ -7762,8 +7762,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    Mask of DCFEBs to block badbits         = 0x" << std::hex << (read_dcfeb_badbits_block_) << std::endl;
     (*MyOutput_) << "    Mask of DCFEBs with at least one badbit = 0x" << std::hex << (read_dcfeb_badbits_found_) << std::endl;
     //
-  }
-  else {
+  } else {
     //
     (*MyOutput_) << " -> Unable to decode register: PLEASE DEFINE" << std::endl;
     //
