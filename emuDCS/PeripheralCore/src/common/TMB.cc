@@ -4491,7 +4491,7 @@ int TMB::GetReadCFEBBadBitsBlock() {
 }
 //
 //
- void TMB::SetDCFEBBadBitsReset(int dcfeb_badbits_reset) {
+ void TMB::SetDCFEB56BadBitsReset(int dcfeb_badbits_reset) {
   //
   // set the reset bit for CFEB's 5 and 6..
   //.

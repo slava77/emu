@@ -2223,7 +2223,7 @@ public:
   // 0X15C ADR_V6_CFEB_BADBITS_CTRL: CFEB Bad Bits Control/Status (See Adr 0x122) (extra DCFEB Bad Bits on OTMB)
   //---------------------------------------------------------------------
   //!dcfeb_badbits_reset = 1 = Set the reset bit for the "badbits" marker for the last 2 CFEBs
-  void SetDCFEBBadBitsReset(int dcfeb_badbits_reset);
+  void SetDCFEB56BadBitsReset(int dcfeb_badbits_reset);
   int  GetDCFEBBadBitsReset();
   int  GetReadDCFEBBadBitsReset();
   //
