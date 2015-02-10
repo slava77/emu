@@ -2152,9 +2152,6 @@ public:
   inline int  GetGtxRxAllPrbsTestEnable() { return gtx_rx_prbs_test_enable_all_; }
   inline int  GetReadGtxRxAllPrbsTestEnable() { return read_gtx_rx_prbs_test_enable_all_; }
 
-  //Writes all GTX control registers to FPGA
-  void WriteGtxControlRegisters();
-
   //GTX ready
   inline int  GetReadGtxRxAllReady() { return read_gtx_rx_ready_all_; }
 
