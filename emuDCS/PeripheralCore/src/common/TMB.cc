@@ -4319,6 +4319,10 @@ long long int TMB::GetDistripHotChannelMask(int layer) {
   //
   // split it into upper and lower bits because going to ulong will result in an exception, below...
 
+  //
+  // have to cast both parts of this mask in order to make it work...
+  long long int mask;
+
   if (hardware_version_ >= 2){
     std::bitset<28> msb_mask;
     std::bitset<28> lsb_mask;
@@ -4337,9 +4341,7 @@ long long int TMB::GetDistripHotChannelMask(int layer) {
     //
     int highest = (msb_mask.to_ulong() & 0x0fffffff);
     int lowest =  (lsb_mask.to_ulong() & 0x0fffffff);
-    //
-    // have to cast both parts of this mask in order to make it work...
-    long long int mask;
+
     mask = ((long long) lowest | ((long long) highest << 28));
     //
     if (debug_) {
@@ -4365,9 +4367,7 @@ long long int TMB::GetDistripHotChannelMask(int layer) {
     //
     int highest = (msb_mask.to_ulong() & 0x000fffff);
     int lowest =  (lsb_mask.to_ulong() & 0x000fffff);
-    //
-    // have to cast both parts of this mask in order to make it work...
-    long long int mask;
+
     mask = ((long long) lowest | ((long long) highest << 20));
     //
     if (debug_) {
