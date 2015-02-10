@@ -2629,6 +2629,24 @@ const int gtx_rx5_ready_vmereg          =  v6_gtx_rx5_adr;
 const int gtx_rx6_ready_vmereg          =  v6_gtx_rx6_adr;
 const int gtx_rx_ready_bitlo           =  3;
 const int gtx_rx_ready_bithi           =  3;
+//
+//---------------------------------------------------------------------
+// 0X15C ADR_V6_CFEB_BADBITS_CTRL: CFEB Bad Bits Control/Status (See Adr 0x122) (extra DCFEB Bad Bits on OTMB)
+//---------------------------------------------------------------------
+const int dcfeb_badbits_reset_vmereg   =  dcfeb_badbits_ctrl_adr;
+const int dcfeb_badbits_reset_bitlo    =  0;
+const int dcfeb_badbits_reset_bithi    =  1;
+const int dcfeb_badbits_reset_default  =  0;
+//
+const int dcfeb_badbits_block_vmereg   =  dcfeb_badbits_ctrl_adr;
+const int dcfeb_badbits_block_bitlo    =  2;
+const int dcfeb_badbits_block_bithi    =  3;
+const int dcfeb_badbits_block_default  =  0;
+//
+const int dcfeb_badbits_found_vmereg   =  dcfeb_badbits_ctrl_adr;
+const int dcfeb_badbits_found_bitlo    = 4;
+const int dcfeb_badbits_found_bithi    = 5;
+//
 
 //GTX link is locked (over 15 BX with clean data frames)
 const int gtx_rx0_link_good_vmereg      =  v6_gtx_rx0_adr;
