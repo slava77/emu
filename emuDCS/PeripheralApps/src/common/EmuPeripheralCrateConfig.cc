@@ -9652,7 +9652,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   std::string TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
     getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-  *out << cgicc::input().set("type", "submit").set("value", "Read");
+  *out << cgicc::input().set("type", "submit").set("value", "Read GTX Fiber Status");
   sprintf(buf, "%d", tmb);
   *out
     << cgicc::input().set("type", "hidden").set("value", buf).set("name",
