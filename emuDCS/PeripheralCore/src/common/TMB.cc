@@ -4440,51 +4440,63 @@ void TMB::ReadDistripHotChannelMasks(){
 //
 void TMB::SetCFEBBadBitsReset(int cfeb_badbits_reset) {
   //
-  // set the reset bit for all 5 CFEB's..
+  // set the reset bit for all 5 or 7 CFEB's..
   //.
   cfeb_badbits_reset_ = 0;
   for (int cfeb=0; cfeb<5; cfeb++) 
     cfeb_badbits_reset_ |= (cfeb_badbits_reset & 0x1) << cfeb;
+  if(hardware_version_ >= 2) {
+    SetDCFEB56BadBitsReset(cfeb_badbits_reset);
+  }
   //
   return;
 }
 //
 int TMB::GetCFEBBadBitsReset() {
   //
-  // return a single value which has been set for all 5 CFEB's..
+  // return a single value which has been set for all 5 or 7 CFEB's..
   //
   int return_value = 1;
   for (int cfeb=0; cfeb<5; cfeb++) 
     return_value &= (cfeb_badbits_reset_ >> cfeb) & 0x1;
+  if(hardware_version_ >= 2) {
+    return_value &= GetDCFEB56BadBitsReset();
+  }
   //
   return return_value;
 }
 //
 int TMB::GetReadCFEBBadBitsReset() {
   //
-  // return a single value which has been set for all 5 CFEB's..
+  // return a single value which has been set for all 5 or 7 CFEB's..
   //
   int return_value = 1;
   for (int cfeb=0; cfeb<5; cfeb++) 
     return_value &= (read_cfeb_badbits_reset_ >> cfeb) & 0x1;
+  if(hardware_version_ >= 2) {
+    return_value &= GetReadDCFEB56BadBitsReset();
+  }
   //
   return return_value;
 }
 //
 void TMB::SetCFEBBadBitsBlock(int cfeb_badbits_block) {
   //
-  // set the block bit for all 5 CFEB's..
+  // set the block bit for all 5 or 7 CFEB's..
   //.
   cfeb_badbits_block_ = 0;
   for (int cfeb=0; cfeb<5; cfeb++) 
     cfeb_badbits_block_ |= (cfeb_badbits_block & 0x1) << cfeb;
+  if(hardware_version_ >= 2) {
+    SetDCFEB56BadBitsBlock(cfeb_badbits_block);
+  }
   //
   return;
 }
 //
 int TMB::GetCFEBBadBitsBlock() {
   //
-  // return a single value which has been set for all 5 CFEB's..
+  // return a single value which has been set for all 5 or 7 CFEB's..
   //
   //  std::cout << "In software, CFEB Bad Bits Block = 0x" << cfeb_badbits_block_<< std::endl;
   int return_value = 1;
@@ -4492,19 +4504,25 @@ int TMB::GetCFEBBadBitsBlock() {
     return_value &= (cfeb_badbits_block_ >> cfeb) & 0x1;
     //    std::cout << "after bit " << cfeb << "... return value = " << return_value << std::endl;
   }
+  if(hardware_version_ >= 2) {
+    return_value &= GetDCFEB56BadBitsBlock();
+  }
   //
   return return_value;
 }
 //
 int TMB::GetReadCFEBBadBitsBlock() {
   //
-  // return a single value which has been set for all 5 CFEB's..
+  // return a single value which has been set for all 5 or 7 CFEB's..
   //
   //  std::cout << "Read CFEB Bad Bits Block = 0x" << read_cfeb_badbits_block_<< std::endl;
   int return_value = 1;
   for (int cfeb=0; cfeb<5; cfeb++) {
     return_value &= (read_cfeb_badbits_block_ >> cfeb) & 0x1;
     //    std::cout << "after bit " << cfeb << "... return value = " << return_value << std::endl;
+  }
+  if(hardware_version_ >= 2) {
+      return_value &= GetReadDCFEB56BadBitsBlock();
   }
   //
   return return_value;
