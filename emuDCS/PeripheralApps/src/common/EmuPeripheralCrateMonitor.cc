@@ -506,7 +506,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           else
                               (*dmbdata)[ii] = -500.0;
                        }
-                       else
+                       else if(idx==56)
                        {  /* ALCT Temps */
                           rdv = rdv & 0x3FF;
                           float Vout= (float)(rdv)*1.225/1023.0;
@@ -518,14 +518,13 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           // for ALCT temperature reading error handling
                           int tmbslot=boardid+2;
                           if(tmbslot>10) tmbslot += 2;
-                          if((dcs_mask[i] & (1<<boardid))>0 || dmbpoweroff[boardid] || (cratename.substr(4,1)=="4" && tmbslot>6))
+                          if((dcs_mask[i] & (1<<boardid))>0 || dmbpoweroff[boardid])
                           { // ignore masked boards
                             // igonre powered-off boards
-                            // nothing for empty slots
                           }
                           else
                           {
-                             if(idx==46 && (rdv==0 || rdv>=1023))
+                             if(idx==56 && (rdv==0 || rdv>=1023))
                              {  std::cout << "ALCT Temperature ERROR: " << cratename
                                        << " slot " << tmbslot << " read back " << std::hex << rdv << std::dec
                                        << " at " << getLocalDateTime() << std::endl; 
@@ -1366,11 +1365,12 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
-  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-  Page=cgiEnvi.getQueryString();
+  //std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  std::string Page=cgicc::form_urldecode(cgiEnvi.getQueryString());
   std::string cham_name=Page.substr(0,Page.find("=", 0) );
   std::vector<DAQMB*> myVector;
   int mycrate=-1, mychamb=-1;
+  int DHversion;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      myVector = crateVector[i]->daqmbs();
@@ -1379,6 +1379,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
        if(cham_name==crateVector[i]->GetChamber(myVector[j])->GetLabel())
        {  mycrate = i;
           mychamb = j;
+          DHversion=myVector[j]->GetHardwareVersion();
        }
      }
   }
@@ -1503,7 +1504,10 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      for(int cnt=0; cnt<7; cnt++)
      {
         if(cfebs<5 && cnt==5) continue;
-        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+40+cnt];
+        if(cnt==6)
+            val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+56];  // ALCT temp is at position 56
+        else        
+            val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+40+cnt];
         *out <<cgicc::td();
         if(val<0.)    
            *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1770,7 +1774,10 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
 	*out <<cgicc::td() << cgicc::td();
       }
       *out << std::setprecision(1) << std::fixed;
-      val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+40+count];
+      if(count==6)
+         val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+56];  // ALCT temp is at position 56  
+      else
+         val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+40+count];  
       if(val<0.)    
       {
          if(count==5 && val < -50.)  *out << "-";
@@ -2979,7 +2986,6 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
   float val, V7;
   std::vector<DAQMB*> myVector;
-  int REAL_DCS_COUNTERS=48;
   xdata::InfoSpace * is;
   int ip, slot, ch_state;
   unsigned int bad_module, ccbbits;
@@ -3014,11 +3020,11 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
            *out << " " << time(NULL) << " " << ip;
            *out << " 0 0";
-           for(int k=0; k<REAL_DCS_COUNTERS-1; k++) 
+           for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
            {  
               *out << " -2.";
            }
-           for(int k=0; k<TOTAL_TMB_VOLTAGES-1; k++) 
+           for(int k=0; k<TOTAL_TMB_VOLTAGES; k++) 
            {  
               *out << " -2.";
            }
@@ -3131,10 +3137,13 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 //   disabled Jan 23,2015: after hard-reset, registers return to 0. 
 //        if((mpcreg3&1)!=1 || (mpcreg2&0x30)!=0x30) confbit += 1024; 
 
-        *out << " " << confbit << " 0";
+        if((ch_state & 0x28)==0)    // if crate-off or VCC problem, no need to set these bits
+           *out << " " << confbit << " 0";
+         else
+           *out << " 0 0";
 
         *out << std::setprecision(4) << std::fixed;
-        for(int k=0; k<REAL_DCS_COUNTERS-1; k++) 
+        for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
         {  
            /* for error conditions on bits 0,2-8, don't send data */
            if((ch_state & 0x1FD)==0)
@@ -3147,7 +3156,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
               *out << " -2.";
            }             
         }
-        for(int k=0; k<TOTAL_TMB_VOLTAGES-1; k++) 
+        for(int k=0; k<TOTAL_TMB_VOLTAGES; k++) 
         {  
            if(goodtmb)
            { 
@@ -3183,6 +3192,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
 
   unsigned int readtime;
   unsigned short crateok, good_chamber=0, ccbtag;
+  unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
   float val, V7;
   std::vector<DAQMB*> myVector;
   xdata::InfoSpace * is;
@@ -3279,6 +3289,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         // If CCB data not available or not read out yet, assume they (bits and tag) are OK
         ccbbits=0x0FF80000;
         ccbtag= 0xCCB0;
+        mpcreg0= 0x0201;
      }
      else
      {
@@ -3286,6 +3297,10 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         unsigned short csra3= (*ccbdata)[2];
         ccbbits= (csra3<<16)+csra2;
         ccbtag= (*ccbdata)[18];
+        mpcreg0= (*ccbdata)[11];
+        mpcreg1= (*ccbdata)[12];
+        mpcreg2= (*ccbdata)[13];
+        mpcreg3= (*ccbdata)[14];
      }
 
      ch_state=0;
@@ -3319,10 +3334,10 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         if((ch_state & 0x7F)==0) 
         {
             /* Analog power */
-            V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+38];
+            V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+50];
             if(V7<3.0) ch_state |= 512;
             /* Digital power */
-            V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+39];
+            V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+51];
             if(V7<3.0) ch_state |= 1024;
         }
         *out << " " << ch_state; 
@@ -3337,7 +3352,17 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         int confbit=alctbit+(tmbbit<<1)+(dmbbit<<2);
 //   CCB bit 7 (value 128) for every chamber is the same and is for CCB itself
         if((ccbtag&0xFFFF0)!=0xCCB0) confbit += 128; 
-        *out << " " << confbit << " 0";
+//   CCB bit 8 (value 256) is also for CCB itself
+//   MPC bits 9 (value 512) is for MPC discrete logic
+        if((mpcreg0&0x8201)!=0x200) confbit += 512; 
+//   MPC bits 10 (value 1024) is for other MPC status
+//   disabled Jan 23,2015: after hard-reset, registers return to 0. 
+//        if((mpcreg3&1)!=1 || (mpcreg2&0x30)!=0x30) confbit += 1024; 
+
+        if((ch_state & 0x28)==0)    // if crate-off or VCC problem, no need to set these bits
+           *out << " " << confbit << " 0";
+         else
+           *out << " 0 0";
 
         *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
@@ -3592,8 +3617,8 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
 
   *out << cgicc::td() << "ME 4/1" << cgicc::td();
   *out << cgicc::td() << me_total[4][1] << cgicc::td();
-  *out << cgicc::td() << cgicc::td();
-  *out << cgicc::td() << cgicc::td();
+  *out << cgicc::td() << "ME 4/2" << cgicc::td();
+  *out << cgicc::td() << me_total[4][2] << cgicc::td();
   *out << cgicc::td() << cgicc::td();
   *out << cgicc::td() << cgicc::td() << cgicc::tr() << std::endl;
 

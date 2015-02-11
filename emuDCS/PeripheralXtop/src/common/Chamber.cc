@@ -99,7 +99,7 @@ void Chamber::Fill(char *buffer, int source)
            i = atoi(item);
            states[idx] = i; 
        }
-       else if(idx<69 || (type_==2 && idx<286))
+       else if(idx<86 || (type_==2 && idx<286))
        {  
            y=strtof(item,NULL);
            values[idx-5]=y;
@@ -114,7 +114,7 @@ void Chamber::Fill(char *buffer, int source)
    {  
       if(type_<=1)
       {
-        if(idx!=68 || values[62]!=(-50.))
+        if(idx!=86 || values[80]!=(-50.))
         {   std::cout << label_ << " (type 1) BAD...total " << idx << " last one " << values[62] << std::endl;
             corruption = true;
         }
@@ -188,20 +188,20 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->alct.c55 = data[17];
       dim_lv->alct.c56 = data[18];
    
-      dim_lv->tmb.v50  = data[47];
-      dim_lv->tmb.v33  = data[48];
-      dim_lv->tmb.v15C = data[49];
-      dim_lv->tmb.v15T = data[50];
-      dim_lv->tmb.v10T = data[51];
-      dim_lv->tmb.c50  = data[52];
-      dim_lv->tmb.c33  = data[53];
-      dim_lv->tmb.c15C = data[54];
-      dim_lv->tmb.c15T = data[55];
-      dim_lv->tmb.cRAT = data[56];
-      dim_lv->tmb.vRAT = data[57];
-      dim_lv->tmb.vREF = data[58];
-      dim_lv->tmb.vGND = data[59];
-      dim_lv->tmb.vMAX = data[60];
+      dim_lv->tmb.v50  = data[64];
+      dim_lv->tmb.v33  = data[65];
+      dim_lv->tmb.v15C = data[66];
+      dim_lv->tmb.v15T = data[67];
+      dim_lv->tmb.v10T = data[68];
+      dim_lv->tmb.c50  = data[69];
+      dim_lv->tmb.c33  = data[70];
+      dim_lv->tmb.c15C = data[71];
+      dim_lv->tmb.c15T = data[72];
+      dim_lv->tmb.cRAT = data[73];
+      dim_lv->tmb.vRAT = data[74];
+      dim_lv->tmb.vREF = data[75];
+      dim_lv->tmb.vGND = data[76];
+      dim_lv->tmb.vMAX = data[77];
 
    dim_lv->A7v = data[38];
    dim_lv->D7v = data[39];
@@ -300,7 +300,7 @@ void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
       dim_temp->t_cfeb4 = (data[44]<(-30)) ? -3.0 :data[44];
       // 1/3 chambers have no CFEB5
       dim_temp->t_cfeb5 = (data[45]<(-30)) ? -3.0 : data[45];
-      dim_temp->t_alct = (data[46]<(-30)) ? -3.0 : data[46];
+      dim_temp->t_alct = (data[56]<(-30)) ? -3.0 : data[56];
    
    total_temp = dim_temp->t_daq + dim_temp->t_cfeb1 + dim_temp->t_cfeb2
             + dim_temp->t_cfeb3 + dim_temp->t_cfeb4 + dim_temp->t_alct;

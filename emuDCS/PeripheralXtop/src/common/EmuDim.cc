@@ -482,7 +482,7 @@ int EmuDim::FillChamber(char *buff, int source, int type)
    label=buff;
 //   std::cout << "Found chamber " << label << " with number " << chnumb << std::endl; 
    content = endstr+1;
-   if((type<=1 && strlen(content)>500) || (type==2 && strlen(content)>4000)) std::cout<< label << " WARNING type: " << type << " content: " << content << std::endl;
+   if((type<=1 && strlen(content)>800) || (type==2 && strlen(content)>4000)) std::cout<< label << " WARNING type: " << type << " content: " << content << std::endl;
    if(chnumb>=0 && chnumb <TOTAL_CHAMBERS)
    {   chamb[chnumb].SetLabel(label);
        chamb[chnumb].Fill(content, source);
