@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <time.h>
+#include <stdlib.h>
 
 namespace emu {
   namespace pc {
@@ -435,6 +436,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::forceScope, "forceScope");
   xgi::bind(this,&EmuPeripheralCrateConfig::readoutScope, "readoutScope");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBDumpAllRegisters, "TMBDumpAllRegisters");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBFiberReset, "TMBFiberReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBConfigure, "TMBConfigure");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBClearUserProms, "TMBClearUserProms");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadConfiguration, "TMBReadConfiguration");
@@ -566,6 +568,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MPCRegisterValue_ = -1;
   MPCRegisterWrite_ = -1;
   MPCWriteValue_ = -1;
+  //
+  tmb_fiber_status_read_ = false;
   //
   CalibrationState_ = "None";
   standalone_ = false;
@@ -7671,6 +7675,96 @@ void EmuPeripheralCrateConfig::TMBDumpAllRegisters(xgi::Input * in, xgi::Output 
   //
 }
 //
+void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  int tmb = 0;
+  if (name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  //
+  name = cgi.getElement("mode");
+  //
+  std::string mode = "";
+  if (name != cgi.getElements().end()) {
+    mode = cgi["mode"]->getValue();
+  }
+  //
+  name = cgi.getElement("fiber");
+  //
+  std::string fiber = "";
+  if (name != cgi.getElements().end()) {
+    fiber = cgi["fiber"]->getValue();
+  }
+  //
+  bool is_all = false;
+  int fiber_num;
+  if (fiber == "all") {
+    is_all = true;
+  } else {
+    fiber_num = atoi(fiber.c_str());
+  }
+  if (mode == "toggle") {
+    if (tmb_fiber_status_read_) {
+      std::cout << "Toggling fiber enable" << std::endl;
+      int to_write;
+      unsigned long int adr;
+      if (is_all) {
+        adr = v6_gtx_rx_all_adr;
+        to_write = thisTMB->GetReadGtxRxAllEnable();
+      } else {
+        adr = v6_gtx_rx0_adr + (unsigned long int) (2 * fiber_num);
+        to_write = thisTMB->GetReadGtxRxEnable(fiber_num);
+      }
+
+      std::cout << "Enable before: " << to_write << std::endl;
+      to_write = !((bool) to_write);
+
+      if (is_all)
+        thisTMB->SetGtxRxAllEnable(to_write);
+      else
+        thisTMB->SetGtxRxEnable(fiber_num, to_write);
+      std::cout << "Enable after: " << to_write << std::endl;
+      thisTMB->WriteRegister(adr);
+      thisTMB->ReadRegister(adr);
+    }
+  } else if (mode == "reset") {
+    if (is_all) {
+      thisTMB->SetGtxRxAllReset(1);
+      thisTMB->WriteRegister(v6_gtx_rx_all_adr);
+      thisTMB->SetGtxRxAllReset(0);
+      thisTMB->WriteRegister(v6_gtx_rx_all_adr);
+    } else {
+      thisTMB->SetGtxRxReset(fiber_num, 1);
+      thisTMB->WriteRegister(v6_gtx_rx0_adr + (unsigned long int) (2 * fiber_num));
+      thisTMB->SetGtxRxReset(fiber_num, 0);
+      thisTMB->WriteRegister(v6_gtx_rx0_adr + (unsigned long int) (2 * fiber_num));
+    }
+  }
+
+  thisTMB->ReadRegister(v6_gtx_rx_all_adr);
+  for (int i = 0; i < TMB_N_FIBERS; ++i) {
+    unsigned long int adr = v6_gtx_rx0_adr + (unsigned long int) (2 * i);
+    thisTMB->ReadRegister(adr);
+  }
+  tmb_fiber_status_read_ = true;
+  //
+  thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+  //thisTMB->DumpAllRegisters();
+
+  thisTMB->RedirectOutput(&std::cout);
+  //
+  this->TMBUtils(in, out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::TMBClearUserProms(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -9087,12 +9181,56 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::fieldset();
   //
+  // Clocking Status
+  if (thisTMB->GetHardwareVersion() >= 2) {
+  *out << cgicc::fieldset();
+    *out << cgicc::legend("Clocking Status").set("style","color:blue") << std::endl ;
+    thisTMB->ReadRegister(alct_startup_status_adr);
+    thisTMB->ReadRegister(v6_snap12_qpll_adr);
+    thisTMB->ReadRegister(vme_dddsm_adr);
+    *out << cgicc::pre() << std::endl;
+    *out << "MMCM lock status       = " << thisTMB->GetReadDDDStateMachineClock0Lock() << std::endl;
+    *out << "MMCM lost lock history = " << thisTMB->GetReadMMCMLostLock() << std::endl;
+    *out << "MMCM lost lock count   = " << thisTMB->GetReadMMCMLostLockCount() << std::endl;
+    *out << "QPLL lock status       = " << thisTMB->GetReadQPLLLock() << std::endl;
+    *out << "QPLL lost lock history = " << thisTMB->GetReadQPLLLostLock() << std::endl;
+    *out << "QPLL lost lock count   = " << thisTMB->GetReadQPLLLostLockCount() << std::endl;
+    *out << cgicc::pre() << std::endl;
+    *out << cgicc::fieldset();
+  }
+  //
+  // Clocking Status
+  if (thisTMB->GetHardwareVersion() >= 2) {
+    *out << cgicc::fieldset();
+    *out << cgicc::legend("Configuration and programming timers (400 nanosecond units)").set("style","color:blue") << std::endl;
+    thisTMB->ReadRegister(tmb_mmcm_lock_time_adr);
+    thisTMB->ReadRegister(tmb_power_up_time_adr);
+    thisTMB->ReadRegister(tmb_load_cfg_time_adr);
+    thisTMB->ReadRegister(alct_phaser_lock_time_adr);
+    thisTMB->ReadRegister(alct_load_cfg_time_adr);
+    thisTMB->ReadRegister(gtx_rst_done_time_adr);
+    thisTMB->ReadRegister(gtx_sync_done_time_adr);
+    *out << cgicc::pre() << std::endl;
+    *out << "TMB MMCM Lock Time    = " << thisTMB->GetReadTMBMMCMLockTime() << std::endl;
+    *out << "TMB Power Up Time     = " << thisTMB->GetReadTMBPowerUpTime() << std::endl;
+    *out << "TMB Load Cfg Time     = " << thisTMB->GetReadTMBLoadCfgTime() << std::endl;
+    *out << "ALCT Phaser Lock Time = " << thisTMB->GetReadALCTPhaserLockTime() << std::endl;
+    *out << "ALCT Load Cfg Time    = " << thisTMB->GetReadALCTLoadCfgTime() << std::endl;
+    *out << "Gtx Rst Done Time     = " << thisTMB->GetReadGtxRstDoneTime() << std::endl;
+    *out << "Gtx Sync Done Time    = " << thisTMB->GetReadGtxSyncDoneTime() << std::endl;
+    *out << cgicc::pre() << std::endl;
+    *out << cgicc::fieldset();
+  }
+  //
   *out << cgicc::fieldset();
   *out << cgicc::legend("Comparator Badbits").set("style","color:blue") << std::endl ;
   *out << cgicc::pre();
   thisTMB->RedirectOutput(out);
-  thisTMB->ReadRegister(0x122);
-  thisTMB->PrintTMBRegister(0x122);
+  thisTMB->ReadRegister(cfeb_badbits_ctrl_adr);
+  if (thisTMB->GetHardwareVersion() >= 2) {
+    thisTMB->ReadRegister(dcfeb_badbits_ctrl_adr);
+  }
+  thisTMB->PrintBadBits();
   thisTMB->ReadComparatorBadBits();
   thisTMB->PrintComparatorBadBits();
   thisTMB->RedirectOutput(&std::cout);
@@ -9510,6 +9648,89 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
+  //
+  std::string TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
+    getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
+  *out << cgicc::input().set("type", "submit").set("value", "Read GTX Fiber Status");
+  sprintf(buf, "%d", tmb);
+  *out
+    << cgicc::input().set("type", "hidden").set("value", buf).set("name",
+      "tmb");
+  *out
+    << cgicc::input().set("type", "hidden").set("value", "read").set("name",
+      "mode");
+  *out << cgicc::form() << std::endl;
+  //
+  *out << cgicc::table().set("border", "1");
+  *out << cgicc::tr();
+  *out << cgicc::td();
+  *out << "Fiber";
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << "Status/Toggle";
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << "Reset";
+  *out << cgicc::td();
+  *out << cgicc::tr();
+  std::string fiber_num = "all";
+  for (int i = -1; i < ((int) TMB_N_FIBERS); ++i) {
+    *out << cgicc::tr();
+    *out << cgicc::td();
+    *out << fiber_num;
+    *out << cgicc::td();
+    *out << cgicc::td();
+    //
+    if (tmb_fiber_status_read_) {
+      bool read_status = false;
+      if (i < 0) {
+        read_status = thisTMB->GetReadGtxRxAllEnable();
+      } else {
+        read_status = thisTMB->GetReadGtxRxEnable(i);
+      }
+      std::string color;
+      std::string status;
+      if (read_status) {
+        status = "Enabled";
+        color = "color:green";
+      } else {
+        status = "Disabled";
+        color = "color:red";
+      }
+      TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
+        getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
+      *out << cgicc::input().set("type", "submit").set("value", status).set("style", color);
+      sprintf(buf, "%d", tmb);
+      *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
+      *out << cgicc::input().set("type", "hidden").set("value", "toggle").set("name", "mode");
+      *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+      *out << cgicc::form() << std::endl;
+    } else {
+      *out << "N/A";
+    }
+    //
+    *out << cgicc::td();
+    *out << cgicc::td();
+    //
+    TMBFiberReset = toolbox::toString("/%s/TMBFiberReset", getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
+    *out << cgicc::input().set("type", "submit").set("value", "Reset");
+    sprintf(buf, "%d", tmb);
+    *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
+    *out << cgicc::input().set("type", "hidden").set("value", "reset").set("name", "mode");
+    *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+    *out << cgicc::form() << std::endl;
+    //
+    *out << cgicc::td();
+    *out << cgicc::tr();
+    std::stringstream ss;
+    ss << i + 1;
+    fiber_num = ss.str();
+  }
+  *out << cgicc::table();
+
   //
   //--------------------------------------------------------
   *out << cgicc::table().set("border","0");

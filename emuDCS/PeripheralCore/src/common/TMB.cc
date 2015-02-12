@@ -541,6 +541,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdio>
+#include <stdexcept>
 #include <sstream>
 #include <stdlib.h>
 #include <string.h>
@@ -4264,16 +4265,32 @@ void TMB::ExtClctTrigFromCCBonly() {
 /////////////////////////////////////////////////////////////////////
 void TMB::SetDistripHotChannelMask(int layer,long long int mask) {
   //
-  // mask=10-hex characters for the 40 distrips right->left LSB->MSB.  
+  //
+  // For the 5 cfeb model, read the note below.
+  // mask=10-hex characters for the 40 distrips right->left LSB->MSB.
   // So, to mask off channel 0, mask= 0xfffffffffe
   //
-  mask &= 0x000000ffffffffffLL;  //clean mask before processing
+  // For the 7 cfeb model, read the note below.
+  // mask=14-hex characters for the 56 distrips right->left LSB->MSB.
+  // So, to mask off channel 0, mask= 0xfffffffffffffe
   //
-  if (debug_) 
-    std::cout << "TMB: Setting Distrip hot channel mask for Layer " << std::dec << layer 
-	      << " (LSB->MSB right->left): " << std::hex << mask << std::endl;
+  int n;
+  long long m;
+  if (hardware_version_ >= 2){
+    n = 28;
+    m = 0x00ffffffffffffffLL;
+  }
+  else {
+    n = 20;
+    m = 0x000000ffffffffffLL;
+  }
+  mask &= m;  //clean mask before processing
   //
-  for (int channel=39; channel>=0; channel--) {
+  if (debug_)
+    std::cout << "TMB: Setting Distrip hot channel mask for Layer " << std::dec << layer
+      << " (LSB->MSB right->left): " << std::hex << mask << std::endl;
+  //
+  for (int channel=(n*2 - 1); channel>=0; channel--) {
     int on_or_off = (mask >> channel) & 0x1;
     //
     if (debug_) {
@@ -4290,39 +4307,75 @@ void TMB::SetDistripHotChannelMask(int layer,long long int mask) {
 }
 //
 long long int TMB::GetDistripHotChannelMask(int layer) {
-  //
+  // for the 5 cfeb hardware version:
   // return value = 10-hex characters for the 40 distrips right->left LSB->MSB.  
   // If channel 0 is off: return = 0xfffffffffe
+  //
+  // for the 7 cfeb hardware version;
+  // return value = 14-hex characters for the 56 distrips right->left LSB->MSB.
+  // If channel 0 is off: return = 0xfffffffffffffe
   //
   // There must be a cleaner way to do this... but it is working so I leave it alone...
   //
   // split it into upper and lower bits because going to ulong will result in an exception, below...
-  std::bitset<20> msb_mask;  
-  std::bitset<20> lsb_mask;  
-  //
-  if (debug_)
-    std::cout << "TMB: Getting Distrip hot channel mask for Layer " << std::dec << layer 
-	      << " (LSB->MSB right->left): ";
-  //
-  for (int channel=39; channel>=20; channel--) {
-    int msb_index = channel - 20;
-    msb_mask.set(msb_index, (GetDistripHotChannelMask(layer,channel)==1) );
-  }
-  //
-  for (int channel=19; channel>=0; channel--) 
-    lsb_mask.set(channel, (GetDistripHotChannelMask(layer,channel)==1) );
-  //
-  int highest = (msb_mask.to_ulong() & 0x000fffff);
-  int lowest =  (lsb_mask.to_ulong() & 0x000fffff);
+
   //
   // have to cast both parts of this mask in order to make it work...
   long long int mask;
-  mask = ((long long) lowest | ((long long) highest << 20));
-  //
-  if (debug_) {
-    std::cout << msb_mask << " " << lsb_mask << std::endl;
-    std::cout << " = 0x" << std::hex << highest << lowest << " = 0x" << mask << std::endl;
+
+  if (hardware_version_ >= 2){
+    std::bitset<28> msb_mask;
+    std::bitset<28> lsb_mask;
+    //
+    if (debug_)
+      std::cout << "TMB: Getting Distrip hot channel mask for Layer " << std::dec << layer
+          << " (LSB->MSB right->left): ";
+    //
+    for (int channel=55; channel>=28; channel--) {
+      int msb_index = channel - 28;
+      msb_mask.set(msb_index, (GetDistripHotChannelMask(layer,channel)==1) );
+    }
+    //
+    for (int channel=27; channel>=0; channel--)
+      lsb_mask.set(channel, (GetDistripHotChannelMask(layer,channel)==1) );
+    //
+    int highest = (msb_mask.to_ulong() & 0x0fffffff);
+    int lowest =  (lsb_mask.to_ulong() & 0x0fffffff);
+
+    mask = ((long long) lowest | ((long long) highest << 28));
+    //
+    if (debug_) {
+      std::cout << msb_mask << " " << lsb_mask << std::endl;
+      std::cout << " = 0x" << std::hex << highest << lowest << " = 0x" << mask << std::endl;
+    }
   }
+  else {
+    std::bitset<20> msb_mask;
+    std::bitset<20> lsb_mask;
+    //
+    if (debug_)
+      std::cout << "TMB: Getting Distrip hot channel mask for Layer " << std::dec << layer
+          << " (LSB->MSB right->left): ";
+    //
+    for (int channel=39; channel>=20; channel--) {
+      int msb_index = channel - 20;
+      msb_mask.set(msb_index, (GetDistripHotChannelMask(layer,channel)==1) );
+    }
+    //
+    for (int channel=19; channel>=0; channel--)
+      lsb_mask.set(channel, (GetDistripHotChannelMask(layer,channel)==1) );
+    //
+    int highest = (msb_mask.to_ulong() & 0x000fffff);
+    int lowest =  (lsb_mask.to_ulong() & 0x000fffff);
+
+    mask = ((long long) lowest | ((long long) highest << 20));
+    //
+    if (debug_) {
+      std::cout << msb_mask << " " << lsb_mask << std::endl;
+      std::cout << " = 0x" << std::hex << highest << lowest << " = 0x" << mask << std::endl;
+    }
+  }
+
   //
   return mask;
 }
@@ -4344,6 +4397,14 @@ void TMB::WriteDistripHotChannelMasks(){
   WriteRegister(hcm401_adr); 
   WriteRegister(hcm423_adr); 
   WriteRegister(hcm445_adr); 
+  if (hardware_version_ >= 2) {
+    WriteRegister(hcm501_adr);
+    WriteRegister(hcm523_adr);
+    WriteRegister(hcm545_adr);
+    WriteRegister(hcm601_adr);
+    WriteRegister(hcm623_adr);
+    WriteRegister(hcm645_adr);
+  }
   //
   return;
 }
@@ -4365,57 +4426,77 @@ void TMB::ReadDistripHotChannelMasks(){
   ReadRegister(hcm401_adr); 
   ReadRegister(hcm423_adr); 
   ReadRegister(hcm445_adr); 
+  if (hardware_version_ >= 2) {
+    ReadRegister(hcm501_adr);
+    ReadRegister(hcm523_adr);
+    ReadRegister(hcm545_adr);
+    ReadRegister(hcm601_adr);
+    ReadRegister(hcm623_adr);
+    ReadRegister(hcm645_adr);
+  }
   //
   return;
 }
 //
 void TMB::SetCFEBBadBitsReset(int cfeb_badbits_reset) {
   //
-  // set the reset bit for all 5 CFEB's..
+  // set the reset bit for all 5 or 7 CFEB's..
   //.
   cfeb_badbits_reset_ = 0;
   for (int cfeb=0; cfeb<5; cfeb++) 
     cfeb_badbits_reset_ |= (cfeb_badbits_reset & 0x1) << cfeb;
+  if(hardware_version_ >= 2) {
+    SetDCFEB56BadBitsReset(cfeb_badbits_reset);
+  }
   //
   return;
 }
 //
 int TMB::GetCFEBBadBitsReset() {
   //
-  // return a single value which has been set for all 5 CFEB's..
+  // return a single value which has been set for all 5 or 7 CFEB's..
   //
   int return_value = 1;
   for (int cfeb=0; cfeb<5; cfeb++) 
     return_value &= (cfeb_badbits_reset_ >> cfeb) & 0x1;
+  if(hardware_version_ >= 2) {
+    return_value &= GetDCFEB56BadBitsReset();
+  }
   //
   return return_value;
 }
 //
 int TMB::GetReadCFEBBadBitsReset() {
   //
-  // return a single value which has been set for all 5 CFEB's..
+  // return a single value which has been set for all 5 or 7 CFEB's..
   //
   int return_value = 1;
   for (int cfeb=0; cfeb<5; cfeb++) 
     return_value &= (read_cfeb_badbits_reset_ >> cfeb) & 0x1;
+  if(hardware_version_ >= 2) {
+    return_value &= GetReadDCFEB56BadBitsReset();
+  }
   //
   return return_value;
 }
 //
 void TMB::SetCFEBBadBitsBlock(int cfeb_badbits_block) {
   //
-  // set the block bit for all 5 CFEB's..
+  // set the block bit for all 5 or 7 CFEB's..
   //.
   cfeb_badbits_block_ = 0;
   for (int cfeb=0; cfeb<5; cfeb++) 
     cfeb_badbits_block_ |= (cfeb_badbits_block & 0x1) << cfeb;
+  if(hardware_version_ >= 2) {
+    SetDCFEB56BadBitsBlock(cfeb_badbits_block);
+  }
   //
   return;
 }
 //
 int TMB::GetCFEBBadBitsBlock() {
   //
-  // return a single value which has been set for all 5 CFEB's..
+  // return a single value which has been set for all 5 or 7 CFEB's..
   //
   //  std::cout << "In software, CFEB Bad Bits Block = 0x" << cfeb_badbits_block_<< std::endl;
   int return_value = 1;
@@ -4423,18 +4504,98 @@ int TMB::GetCFEBBadBitsBlock() {
     return_value &= (cfeb_badbits_block_ >> cfeb) & 0x1;
     //    std::cout << "after bit " << cfeb << "... return value = " << return_value << std::endl;
   }
+  if(hardware_version_ >= 2) {
+    return_value &= GetDCFEB56BadBitsBlock();
+  }
   //
   return return_value;
 }
 //
 int TMB::GetReadCFEBBadBitsBlock() {
   //
-  // return a single value which has been set for all 5 CFEB's..
+  // return a single value which has been set for all 5 or 7 CFEB's..
   //
   //  std::cout << "Read CFEB Bad Bits Block = 0x" << read_cfeb_badbits_block_<< std::endl;
   int return_value = 1;
   for (int cfeb=0; cfeb<5; cfeb++) {
     return_value &= (read_cfeb_badbits_block_ >> cfeb) & 0x1;
+    //    std::cout << "after bit " << cfeb << "... return value = " << return_value << std::endl;
+  }
+  if(hardware_version_ >= 2) {
+      return_value &= GetReadDCFEB56BadBitsBlock();
+  }
+  //
+  return return_value;
+}
+//
+//
+ void TMB::SetDCFEB56BadBitsReset(int dcfeb_badbits_reset) {
+  //
+  // set the reset bit for CFEB's 5 and 6..
+  //.
+  dcfeb_badbits_reset_ = 0;
+  for (int cfeb=0; cfeb<2; cfeb++)
+    dcfeb_badbits_reset_ |= (dcfeb_badbits_reset & 0x1) << cfeb;
+  //
+  return;
+}
+
+//
+int TMB::GetDCFEB56BadBitsReset() {
+  //
+  // return a single value which has been set for CFEB's 5 and 6..
+  //
+  int return_value = 1;
+  for (int cfeb=0; cfeb<2; cfeb++)
+    return_value &= (dcfeb_badbits_reset_ >> cfeb) & 0x1;
+  //
+  return return_value;
+}
+//
+int TMB::GetReadDCFEB56BadBitsReset() {
+  //
+  // return a single value which has been set for CFEB's 5 and 6..
+  //
+  int return_value = 1;
+  for (int cfeb=0; cfeb<2; cfeb++)
+    return_value &= (read_dcfeb_badbits_reset_ >> cfeb) & 0x1;
+  //
+  return return_value;
+}
+//
+void TMB::SetDCFEB56BadBitsBlock(int dcfeb_badbits_block) {
+  //
+  // set the block bit for CFEB's 5 and 6..
+  //
+  dcfeb_badbits_block_ = 0;
+  for (int cfeb=0; cfeb<2; cfeb++)
+    dcfeb_badbits_block_ |= (dcfeb_badbits_block & 0x1) << cfeb;
+  //
+  return;
+}
+//
+int TMB::GetDCFEB56BadBitsBlock() {
+  //
+  // return a single value which has been set for CFEB's 5 and 6..
+  //
+  //  std::cout << "In software, DCFEB Bad Bits Block = 0x" << dcfeb_badbits_block_<< std::endl;
+  int return_value = 1;
+  for (int cfeb=0; cfeb<2; cfeb++) {
+    return_value &= (dcfeb_badbits_block_ >> cfeb) & 0x1;
+    //    std::cout << "after bit " << cfeb << "... return value = " << return_value << std::endl;
+  }
+  //
+  return return_value;
+}
+//
+int TMB::GetReadDCFEB56BadBitsBlock() {
+  //
+  // return a single value which has been set for CFEB's 5 and 6..
+  //
+  //  std::cout << "Read DCFEB Bad Bits Block = 0x" << read_dcfeb_badbits_block_<< std::endl;
+  int return_value = 1;
+  for (int cfeb=0; cfeb<2; cfeb++) {
+    return_value &= (read_dcfeb_badbits_block_ >> cfeb) & 0x1;
     //    std::cout << "after bit " << cfeb << "... return value = " << return_value << std::endl;
   }
   //
@@ -4458,6 +4619,12 @@ void TMB::ReadComparatorBadBits(){
   ReadRegister(badbits401_adr); 
   ReadRegister(badbits423_adr); 
   ReadRegister(badbits445_adr); 
+  ReadRegister(badbits501_adr);
+  ReadRegister(badbits523_adr);
+  ReadRegister(badbits545_adr);
+  ReadRegister(badbits601_adr);
+  ReadRegister(badbits623_adr);
+  ReadRegister(badbits645_adr);
   //
   return;
 }
@@ -5246,6 +5413,16 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(hcm423_adr);  //0x64 distrip hot channel mask CFEB 4 layers 2,3 
   TMBConfigurationRegister.push_back(hcm445_adr);  //0x66 distrip hot channel mask CFEB 4 layers 4,5 
   //
+  if(hardware_version_ >= 2) {
+    //new CFEBs 5 and 6
+    TMBConfigurationRegister.push_back(hcm501_adr);  //0x16E distrip hot channel mask CFEB 5 layers 0,1
+    TMBConfigurationRegister.push_back(hcm523_adr);  //0x170 distrip hot channel mask CFEB 5 layers 2,3
+    TMBConfigurationRegister.push_back(hcm545_adr);  //0x172 distrip hot channel mask CFEB 5 layers 4,5
+    TMBConfigurationRegister.push_back(hcm601_adr);  //0x174 distrip hot channel mask CFEB 6 layers 0,1
+    TMBConfigurationRegister.push_back(hcm623_adr);  //0x176 distrip hot channel mask CFEB 6 layers 2,3
+    TMBConfigurationRegister.push_back(hcm645_adr);  //0x178 distrip hot channel mask CFEB 6 layers 4,5
+  }
+  //
   // Automatic masking of bad bits
   TMBConfigurationRegister.push_back(cfeb_badbits_ctrl_adr) ;  //0x122
   //
@@ -5390,9 +5567,11 @@ void TMB::SetTMBRegisterDefaults() {
   //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
   //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
   //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+  //0x16E,170,172 = ADR_HCM401,HCM423,HCM445 = CFEB5 Hot Channel Masks  --- added on OTMB
+  //0x174,176,178 = ADR_HCM401,HCM423,HCM445 = CFEB6 Hot Channel Masks  --- added on OTMB
   //------------------------------------------------------------------
-  for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
-    for (int distrip=0; distrip<MAX_NUM_DISTRIPS_PER_LAYER; distrip++)
+  for (int layer=0; layer<MAX_NUM_LAYERS; layer++)
+    for (int distrip=0; distrip<MAX_NUM_DISTRIPS_PER_LAYER_EXT; distrip++)
       hot_channel_mask_[layer][distrip] = hot_channel_mask_default;
   //
   //
@@ -5732,11 +5911,16 @@ void TMB::SetTMBRegisterDefaults() {
   // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
   //---------------------------------------------------------------------
   for (int i=0; i < 7; i++) {
-      gtx_rx_enable_[i] = gtx_rx_enable_default;
-      gtx_rx_reset_[i] = gtx_rx_reset_default;
-      gtx_rx_prbs_test_enable_[i] = gtx_rx_prbs_test_enable_default;
+    gtx_rx_enable_[i] = gtx_rx_enable_default;
+    gtx_rx_reset_[i] = gtx_rx_reset_default;
+    gtx_rx_prbs_test_enable_[i] = gtx_rx_prbs_test_enable_default;
   }
   //
+  //---------------------------------------------------------------------
+  // 0X15C ADR_V6_CFEB_BADBITS_CTRL: CFEB Bad Bits Control/Status (See Adr 0x122) (extra DCFEB Bad Bits on OTMB)
+  //---------------------------------------------------------------------
+  dcfeb_badbits_reset_ = dcfeb_badbits_reset_default;
+  dcfeb_badbits_block_ = dcfeb_badbits_block_default;
   return;
 }
 //
@@ -5992,16 +6176,21 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_start_pattern_inj_ = ExtractValueFromData(data,start_pattern_inj_bitlo,start_pattern_inj_bithi);
     //
   } else if ( address == hcm001_adr || address == hcm023_adr || address == hcm045_adr ||
-	      address == hcm101_adr || address == hcm123_adr || address == hcm145_adr ||
-	      address == hcm201_adr || address == hcm223_adr || address == hcm245_adr ||
-	      address == hcm301_adr || address == hcm323_adr || address == hcm345_adr ||
-	      address == hcm401_adr || address == hcm423_adr || address == hcm445_adr ) {
+              address == hcm101_adr || address == hcm123_adr || address == hcm145_adr ||
+              address == hcm201_adr || address == hcm223_adr || address == hcm245_adr ||
+              address == hcm301_adr || address == hcm323_adr || address == hcm345_adr ||
+              address == hcm401_adr || address == hcm423_adr || address == hcm445_adr ||
+              (hardware_version_ >= 2 && (
+                address == hcm501_adr || address == hcm523_adr || address == hcm545_adr ||
+                address == hcm601_adr || address == hcm623_adr || address == hcm645_adr))) {
     //------------------------------------------------------------------
     //0X4A,4C,4E = ADR_HCM001,HCM023,HCM045 = CFEB0 Hot Channel Masks
     //0X50,52,54 = ADR_HCM101,HCM123,HCM145 = CFEB1 Hot Channel Masks
     //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
     //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
     //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+    //0x16E,170,172 = ADR_HCM401,HCM423,HCM445 = CFEB5 Hot Channel Masks  --- added on OTMB
+    //0x174,176,178 = ADR_HCM401,HCM423,HCM445 = CFEB6 Hot Channel Masks  --- added on OTMB
     //------------------------------------------------------------------
     for (int bit_in_register=0; bit_in_register<16; bit_in_register++) {
       //
@@ -6514,6 +6703,47 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //---------------------------------------------------------------------
     read_cfeb_badbits_nbx_ = ExtractValueFromData(data,cfeb_badbits_nbx_bitlo,cfeb_badbits_nbx_bithi);
     //
+} else if (address == alct_startup_status_adr ) {
+    //---------------------------------------------------------------------
+    // 0X146 = ADR_ALCT_STARTUP_STATUS: ALCT startup delay machine status
+    //---------------------------------------------------------------------
+    read_global_reset_ = ExtractValueFromData(data,global_reset_bitlo,global_reset_bithi);
+    read_power_up_ = ExtractValueFromData(data,power_up_bitlo,power_up_bithi);
+    read_vsm_ready_ = ExtractValueFromData(data,vsm_ready_bitlo,vsm_ready_bithi);
+    read_alct_startup_msec_ = ExtractValueFromData(data,alct_startup_msec_bitlo,alct_startup_msec_bithi);
+    read_alct_wait_dll_ = ExtractValueFromData(data,alct_wait_dll_bitlo,alct_wait_dll_bithi);
+    read_alct_wait_vme_ = ExtractValueFromData(data,alct_wait_vme_bitlo,alct_wait_vme_bithi);
+    read_alct_wait_cfg_ = ExtractValueFromData(data,alct_wait_cfg_bitlo,alct_wait_cfg_bithi);
+    read_alct_startup_done_ = ExtractValueFromData(data,alct_startup_done_bitlo,alct_startup_done_bithi);
+    read_mmcm_lostlock_count_ = ExtractValueFromData(data,mmcm_lostlock_count_bitlo,mmcm_lostlock_count_bithi);
+    //
+  } else if (address == v6_snap12_qpll_adr ) {
+    //---------------------------------------------------------------------
+    // 0X148 = ADR_V6_SNAP12_QUPLL: Virtex-6 SNAP12 Serial interface + QPLL status
+    //---------------------------------------------------------------------
+    read_qpll_nrst_ = ExtractValueFromData(data,qpll_nrst_bitlo,qpll_nrst_bithi);
+    read_qpll_lock_ = ExtractValueFromData(data,qpll_lock_bitlo,qpll_lock_bithi);
+    read_qpll_err_ = ExtractValueFromData(data,qpll_err_bitlo,qpll_err_bithi);
+    read_qpll_lostlock_ = ExtractValueFromData(data,qpll_lostlock_bitlo,qpll_lostlock_bithi);
+    read_r12_sclk_ = ExtractValueFromData(data,r12_sclk_bitlo,r12_sclk_bithi);
+    read_r12_sdat_ = ExtractValueFromData(data,r12_sdat_bitlo,r12_sdat_bithi);
+    read_r12_fok_ = ExtractValueFromData(data,r12_fok_bitlo,r12_fok_bithi);
+    read_mmcm_lostlock_ = ExtractValueFromData(data,mmcm_lostlock_bitlo,mmcm_lostlock_bithi);
+    read_qpll_lostlock_count_ = ExtractValueFromData(data,qpll_lostlock_count_bitlo,qpll_lostlock_count_bithi);
+  } else if ( address == v6_gtx_rx_all_adr) {
+    //---------------------------------------------------------------------
+    // 0X14A = ADR_V6_GTX_RX_ALL: Virtex-6 Virtex-6 master GTX control status
+    //---------------------------------------------------------------------
+    read_gtx_rx_enable_all_ = ExtractValueFromData(data,gtx_rx_enable_bitlo,gtx_rx_enable_bithi);
+    read_gtx_rx_reset_all_ = ExtractValueFromData(data,gtx_rx_reset_bitlo,gtx_rx_reset_bithi);
+    read_gtx_rx_prbs_test_enable_all_ = ExtractValueFromData(data,gtx_rx_prbs_test_enable_bitlo,gtx_rx_prbs_test_enable_bithi);
+    read_gtx_rx_ready_all_ = ExtractValueFromData(data,gtx_rx_ready_bitlo,gtx_rx_ready_bithi);
+    read_gtx_rx_link_good_all_ = ExtractValueFromData(data,gtx_rx_link_good_bitlo,gtx_rx_link_good_bithi);
+    read_gtx_rx_link_had_error_all_ = ExtractValueFromData(data,gtx_rx_link_had_error_bitlo,gtx_rx_link_had_error_bithi);
+    read_gtx_rx_link_bad_all_ = ExtractValueFromData(data,gtx_rx_link_bad_bitlo,gtx_rx_link_bad_bithi);
+    read_gtx_rx_pol_swap_all_ = ExtractValueFromData(data,gtx_rx_pol_swap_bitlo,gtx_rx_pol_swap_bithi);
+    read_gtx_rx_error_count_all_ = ExtractValueFromData(data,gtx_rx_error_count_bitlo,gtx_rx_error_count_bithi);
+    //
   } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
               address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
               address == v6_gtx_rx6_adr) {
@@ -6532,11 +6762,21 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_gtx_rx_pol_swap_[inputNum] = ExtractValueFromData(data,gtx_rx_pol_swap_bitlo,gtx_rx_pol_swap_bithi);
     read_gtx_rx_error_count_[inputNum] = ExtractValueFromData(data,gtx_rx_error_count_bitlo,gtx_rx_error_count_bithi);
     
+  } else if (hardware_version_ >= 2 && (address == dcfeb_badbits_ctrl_adr) ) {
+    //---------------------------------------------------------------------
+    // 0X15C ADR_V6_CFEB_BADBITS_CTRL: CFEB Bad Bits Control/Status (See Adr 0x122) (extra DCFEB Bad Bits on OTMB)
+    //---------------------------------------------------------------------
+    read_dcfeb_badbits_reset_   = ExtractValueFromData(data,dcfeb_badbits_reset_bitlo  ,dcfeb_badbits_reset_bithi  );
+    read_dcfeb_badbits_block_   = ExtractValueFromData(data,dcfeb_badbits_block_bitlo  ,dcfeb_badbits_block_bithi  );
+    read_dcfeb_badbits_found_   = ExtractValueFromData(data,dcfeb_badbits_found_bitlo  ,dcfeb_badbits_found_bithi  );
   } else if ( address == badbits001_adr || address == badbits023_adr || address == badbits045_adr ||
-	      address == badbits101_adr || address == badbits123_adr || address == badbits145_adr ||
-	      address == badbits201_adr || address == badbits223_adr || address == badbits245_adr ||
-	      address == badbits301_adr || address == badbits323_adr || address == badbits345_adr ||
-	      address == badbits401_adr || address == badbits423_adr || address == badbits445_adr ) {
+      address == badbits101_adr || address == badbits123_adr || address == badbits145_adr ||
+      address == badbits201_adr || address == badbits223_adr || address == badbits245_adr ||
+      address == badbits301_adr || address == badbits323_adr || address == badbits345_adr ||
+      address == badbits401_adr || address == badbits423_adr || address == badbits445_adr ||
+      (hardware_version_ >= 2 && (
+        address == badbits501_adr || address == badbits523_adr || address == badbits545_adr ||
+        address == badbits601_adr || address == badbits623_adr || address == badbits645_adr)) ) {
     //------------------------------------------------------------------
     //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 Hot Channel Masks
     //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 Hot Channel Masks
@@ -6553,6 +6793,20 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
       read_badbits_[layer][distrip] = ExtractValueFromData(data,bit_in_register,bit_in_register);
     }
     //
+  } else if ( address == tmb_mmcm_lock_time_adr) {
+    read_tmb_mmcm_lock_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == tmb_power_up_time_adr) {
+    read_tmb_power_up_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == tmb_load_cfg_time_adr) {
+    read_tmb_load_cfg_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == alct_phaser_lock_time_adr) {
+    read_alct_phaser_lock_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == alct_load_cfg_time_adr) {
+    read_alct_load_cfg_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == gtx_rst_done_time_adr) {
+    read_gtx_rst_done_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == gtx_sync_done_time_adr) {
+    read_gtx_sync_done_time_ = ExtractValueFromData(data,0,15);
   }
   //
   // combinations of bits which say which trgmode_ we are using....
@@ -6604,11 +6858,14 @@ void TMB::PrintTMBConfiguration() {
     unsigned long int VMEregister = TMBConfigurationRegister.at(index);
     //
     if (VMEregister != vme_usr_jtag_adr &&      // skip the user jtag register
-	VMEregister != hcm001_adr && VMEregister != hcm023_adr && VMEregister != hcm045_adr &&   //skip the hot channel
-	VMEregister != hcm101_adr && VMEregister != hcm123_adr && VMEregister != hcm145_adr &&   //mask registers... 
-	VMEregister != hcm201_adr && VMEregister != hcm223_adr && VMEregister != hcm245_adr &&   //(print hot channel mask
-	VMEregister != hcm301_adr && VMEregister != hcm323_adr && VMEregister != hcm345_adr &&   //out in a different way)
-	VMEregister != hcm401_adr && VMEregister != hcm423_adr && VMEregister != hcm445_adr )
+      VMEregister != hcm001_adr && VMEregister != hcm023_adr && VMEregister != hcm045_adr &&   //skip the hot channel
+      VMEregister != hcm101_adr && VMEregister != hcm123_adr && VMEregister != hcm145_adr &&   //mask registers...
+      VMEregister != hcm201_adr && VMEregister != hcm223_adr && VMEregister != hcm245_adr &&   //(print hot channel mask
+      VMEregister != hcm301_adr && VMEregister != hcm323_adr && VMEregister != hcm345_adr &&   //out in a different way)
+      VMEregister != hcm401_adr && VMEregister != hcm423_adr && VMEregister != hcm445_adr &&
+      (hardware_version_ >= 2 && (
+        VMEregister != hcm501_adr && VMEregister != hcm523_adr && VMEregister != hcm545_adr &&
+        VMEregister != hcm601_adr && VMEregister != hcm623_adr && VMEregister != hcm645_adr)) )
       PrintTMBRegister(VMEregister);
   }
   //
@@ -6622,20 +6879,27 @@ void TMB::PrintHotChannelMask() {
   (*MyOutput_) << "TMB Hot Channel Mask (from right to left)" << std::endl;
   (*MyOutput_) << "-------------------------------------------" << std::endl;
   //
+  int N_DISTRIPS;
+  if (hardware_version_ >= 2) {
+    N_DISTRIPS = MAX_NUM_DISTRIPS_PER_LAYER_EXT;
+  }
+  else {
+    N_DISTRIPS = MAX_NUM_DISTRIPS_PER_LAYER;
+  }
   for (int layer=5; layer>=0; layer--) {
-    char hot_channel_mask[MAX_NUM_DISTRIPS_PER_LAYER/8];
+    char hot_channel_mask[N_DISTRIPS/8];
     packCharBuffer(read_hot_channel_mask_[layer],
-		   MAX_NUM_DISTRIPS_PER_LAYER,
-		   hot_channel_mask);
+      N_DISTRIPS,
+      hot_channel_mask);
     //
-    int char_counter = MAX_NUM_DISTRIPS_PER_LAYER/8 - 1;
+    int char_counter = N_DISTRIPS/8 - 1;
     //
-    (*MyOutput_) << "Layer " << std::dec << layer << " -> ";    
-    for (int layer_counter=MAX_NUM_DISTRIPS_PER_LAYER/8; layer_counter>0; layer_counter--) {
-      //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
+    (*MyOutput_) << "Layer " << std::dec << layer << " -> ";
+    for (int layer_counter=N_DISTRIPS/8; layer_counter>0; layer_counter--) {
+      //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";
       (*MyOutput_) << std::hex
-		   << ((hot_channel_mask[char_counter] >> 4) & 0xf) 
-		   << (hot_channel_mask[char_counter] & 0xf) << " ";
+        << ((hot_channel_mask[char_counter] >> 4) & 0xf)
+        << (hot_channel_mask[char_counter] & 0xf) << " ";
       char_counter--;
     }
     (*MyOutput_) << std::endl;
@@ -6648,20 +6912,24 @@ void TMB::PrintComparatorBadBits() {
   (*MyOutput_) << "TMB Hot Comparators (from right to left)" << std::endl;
   (*MyOutput_) << "----------------------------------------" << std::endl;
   //
+  int MAX_NUM_DISTRIPS = MAX_NUM_DISTRIPS_PER_LAYER;
+  if (GetHardwareVersion() >= 2) {
+    MAX_NUM_DISTRIPS = MAX_NUM_DISTRIPS_PER_LAYER_EXT;
+  }
   for (int layer=5; layer>=0; layer--) {
-    char badbits[MAX_NUM_DISTRIPS_PER_LAYER/8];
+    char badbits[MAX_NUM_DISTRIPS/8];
     packCharBuffer(read_badbits_[layer],
-		   MAX_NUM_DISTRIPS_PER_LAYER,
-		   badbits);
+        MAX_NUM_DISTRIPS,
+        badbits);
     //
-    int char_counter = MAX_NUM_DISTRIPS_PER_LAYER/8 - 1;
+    int char_counter = MAX_NUM_DISTRIPS/8 - 1;
     //
     (*MyOutput_) << "Layer " << std::dec << layer << " -> ";    
-    for (int layer_counter=MAX_NUM_DISTRIPS_PER_LAYER/8; layer_counter>0; layer_counter--) {
+    for (int layer_counter=MAX_NUM_DISTRIPS/8; layer_counter>0; layer_counter--) {
       //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
       (*MyOutput_) << std::hex
-		   << ((badbits[char_counter] >> 4) & 0xf) 
-		   << (badbits[char_counter] & 0xf) << " ";
+          << ((badbits[char_counter] >> 4) & 0xf)
+          << (badbits[char_counter] & 0xf) << " ";
       char_counter--;
     }
     (*MyOutput_) << std::endl;
@@ -6717,6 +6985,21 @@ void TMB::PrintDDDStateMachine() {
   PrintTMBRegister(vme_dddsm_adr);
   //
   return;
+}
+//
+void TMB::PrintBadBits() {
+  int hardware_mask;
+  if(hardware_version_ >= 2) {
+    hardware_mask = 0x7f;
+  }
+  else {
+    hardware_mask = 0x1f;
+  }
+  (*MyOutput_) << " ->CFEB badbits control/status [6:0]:" << std::endl;
+  (*MyOutput_) << "    Mask of CFEBs to reset badbits         = 0x" << std::hex << ((read_cfeb_badbits_reset_ + (read_dcfeb_badbits_reset_ << 2)) & hardware_mask) << std::endl;
+  (*MyOutput_) << "    Mask of CFEBs to block badbits         = 0x" << std::hex << ((read_cfeb_badbits_block_ + (read_dcfeb_badbits_block_ << 2)) & hardware_mask) << std::endl;
+  (*MyOutput_) << "    Mask of CFEBs with at least one badbit = 0x" << std::hex << ((read_cfeb_badbits_found_ + (read_dcfeb_badbits_found_ << 2)) & hardware_mask) << std::endl;
+  (*MyOutput_) << "    At least one CFEB has a blocked badbit =   " << std::hex << read_cfeb_badbits_blocked_ << std::endl;
 }
 //
 void TMB::PrintTMBRegister(unsigned long int address) {
@@ -7434,6 +7717,35 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << " ->CFEB badbits timer:" << std::endl;
     (*MyOutput_) << "    Check interval for CFEB badbits = " << std::dec << read_cfeb_badbits_nbx_ << std::endl;
     //
+  } else if ( address == alct_startup_status_adr ) {
+    //---------------------------------------------------------------------
+    // 0X146 = ADR_ALCT_STARTUP_STATUS: ALCT startup delay machine status
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->ALCT startup delay machine status:" << std::endl;
+    (*MyOutput_) << "    Global reset                                      = " << read_global_reset_ << std::endl;
+    (*MyOutput_) << "    DLL clock locked                                  = " << read_power_up_ << std::endl;
+    (*MyOutput_) << "    Injector RAM read data MSB                        = " << read_vsm_ready_ << std::endl;
+    (*MyOutput_) << "    Startup machine millisecond pulse                 = " << read_alct_startup_msec_ << std::endl;
+    (*MyOutput_) << "    Startup machine waiting for TMB DLL lock          = " << read_alct_wait_dll_ << std::endl;
+    (*MyOutput_) << "    Startup machine waiting for TMB VME user PROM     = " << read_alct_wait_vme_ << std::endl;
+    (*MyOutput_) << "    Startup machine waiting for ALCT FPGA to config   = " << read_alct_wait_cfg_ << std::endl;
+    (*MyOutput_) << "    Startup machine done ALCT FPGA assumed configured = " << read_alct_startup_done_ << std::endl;
+    (*MyOutput_) << "    FPGA MMCM lock-lock count                         = " << read_mmcm_lostlock_count_ << std::endl;
+  } else if ( address == v6_snap12_qpll_adr ) {
+    //---------------------------------------------------------------------
+    // 0X148 = ADR_V6_SNAP12_QUPLL: Virtex-6 SNAP12 Serial interface + QPLL status
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->Virtex-6 SNAP12 Serial Interface + QPLL status:" << std::endl;
+    (*MyOutput_) << "    nReset QPLL                               = " << read_qpll_nrst_ << std::endl;
+    (*MyOutput_) << "    QPLL locked status                        = " << read_qpll_lock_ << std::endl;
+    (*MyOutput_) << "    QPLL error status                         = " << read_qpll_err_ << std::endl;
+    (*MyOutput_) << "    QPLL lost its lock once since last reset  = " << read_qpll_lostlock_ << std::endl;
+    (*MyOutput_) << "    SNAP12 Serial interface clock, drive high = " << read_r12_sclk_ << std::endl;
+    (*MyOutput_) << "    SNAP12 Serial interface data              = " << read_r12_sdat_ << std::endl;
+    (*MyOutput_) << "    SNAP12 Serial interface status            = " << read_r12_fok_ << std::endl;
+    (*MyOutput_) << "    FPGA MMCM lost its lock since last reset  = " << read_mmcm_lostlock_ << std::endl;
+    (*MyOutput_) << "    QPLL lost-lock count                      = " << read_qpll_lostlock_count_ << std::endl;
+    //
   } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
               address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
               address == v6_gtx_rx6_adr) {
@@ -7479,6 +7791,15 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     for (int i=0; i < 7; i++) { (*MyOutput_) << read_gtx_rx_error_count_[i] << " "; }
     (*MyOutput_) << "]" << std::endl;
     
+  } else if ( address == dcfeb_badbits_ctrl_adr ) {
+    //---------------------------------------------------------------------
+    // 0X15C ADR_V6_CFEB_BADBITS_CTRL: and 0X122 = ADR_CFEB_BADBITS_CTRL:  CFEB badbits control/status
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->DCFEB badbits control/status [6:5]:" << std::endl;
+    (*MyOutput_) << "    Mask of DCFEBs to reset badbits         = 0x" << std::hex << (read_dcfeb_badbits_reset_) << std::endl;
+    (*MyOutput_) << "    Mask of DCFEBs to block badbits         = 0x" << std::hex << (read_dcfeb_badbits_block_) << std::endl;
+    (*MyOutput_) << "    Mask of DCFEBs with at least one badbit = 0x" << std::hex << (read_dcfeb_badbits_found_) << std::endl;
+    //
   } else {
     //
     (*MyOutput_) << " -> Unable to decode register: PLEASE DEFINE" << std::endl;
@@ -7680,16 +8001,21 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(start_pattern_inj_,start_pattern_inj_bithi,start_pattern_inj_bitlo,&data_word);
     //
   } else if ( address == hcm001_adr || address == hcm023_adr || address == hcm045_adr ||
-	      address == hcm101_adr || address == hcm123_adr || address == hcm145_adr ||
-	      address == hcm201_adr || address == hcm223_adr || address == hcm245_adr ||
-	      address == hcm301_adr || address == hcm323_adr || address == hcm345_adr ||
-	      address == hcm401_adr || address == hcm423_adr || address == hcm445_adr ) {
+              address == hcm101_adr || address == hcm123_adr || address == hcm145_adr ||
+              address == hcm201_adr || address == hcm223_adr || address == hcm245_adr ||
+              address == hcm301_adr || address == hcm323_adr || address == hcm345_adr ||
+              address == hcm401_adr || address == hcm423_adr || address == hcm445_adr ||
+              (hardware_version_ >= 2 && (
+                address == hcm501_adr || address == hcm523_adr || address == hcm545_adr ||
+                address == hcm601_adr || address == hcm623_adr || address == hcm645_adr))) {
     //------------------------------------------------------------------
     //0X4A,4C,4E = ADR_HCM001,HCM023,HCM045 = CFEB0 Hot Channel Masks
     //0X50,52,54 = ADR_HCM101,HCM123,HCM145 = CFEB1 Hot Channel Masks
     //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
     //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
     //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+    //0x16E,170,172 = ADR_HCM401,HCM423,HCM445 = CFEB5 Hot Channel Masks  --- added on OTMB
+    //0x174,176,178 = ADR_HCM401,HCM423,HCM445 = CFEB6 Hot Channel Masks  --- added on OTMB
     //------------------------------------------------------------------
     for (int bit_in_register=0; bit_in_register<16; bit_in_register++) {
       //
@@ -8072,10 +8398,26 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(cfeb_badbits_nbx_,cfeb_badbits_nbx_bithi,cfeb_badbits_nbx_bitlo,&data_word);
     //
+  } else if (address == v6_snap12_qpll_adr) {
+    //---------------------------------------------------------------------
+    // 0X148 = ADR_V6_SNAP12_QUPLL: Virtex-6 SNAP12 Serial interface + QPLL status
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(qpll_nrst_,qpll_nrst_bithi,qpll_nrst_bitlo,&data_word);
+    //
+  } else if (address == v6_gtx_rx_all_adr) {
+    //---------------------------------------------------------------------
+    // 0X14A = ADR_V6_GTX_RX_ALL: GTX link control and monitoring
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(gtx_rx_enable_all_,gtx_rx_enable_bithi,gtx_rx_enable_bitlo,&data_word);
+    InsertValueIntoDataWord(gtx_rx_reset_all_,gtx_rx_reset_bithi,gtx_rx_reset_bitlo,&data_word);
+    InsertValueIntoDataWord(gtx_rx_prbs_test_enable_all_,gtx_rx_prbs_test_enable_bithi,gtx_rx_prbs_test_enable_bitlo,&data_word);
+    //
   } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
               address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
               address == v6_gtx_rx6_adr) {
-      
+    //---------------------------------------------------------------------
+    // 0X14C - 0X158 = ADR_V6_GTX_RX: GTX link control and monitoring
+    //---------------------------------------------------------------------
     int inputNum = (address - v6_gtx_rx0_adr) / 2;
     InsertValueIntoDataWord(gtx_rx_enable_[inputNum],gtx_rx_enable_bithi,gtx_rx_enable_bitlo,&data_word);
     InsertValueIntoDataWord(gtx_rx_reset_[inputNum],gtx_rx_reset_bithi,gtx_rx_reset_bitlo,&data_word);
@@ -8375,15 +8717,24 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
     //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
     //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+    //0x16E,170,172 = ADR_HCM401,HCM423,HCM445 = CFEB5 Hot Channel Masks  --- added on OTMB
+    //0x174,176,178 = ADR_HCM401,HCM423,HCM445 = CFEB6 Hot Channel Masks  --- added on OTMB
     //------------------------------------------------------------------
+    int DISTRIPS_PER_LAYER;
+    if (hardware_version_ >= 2){
+      DISTRIPS_PER_LAYER = MAX_NUM_DISTRIPS_PER_LAYER_EXT;
+    }
+    else {
+      DISTRIPS_PER_LAYER = MAX_NUM_DISTRIPS_PER_LAYER;
+    }
     for (int layer=0; layer<MAX_NUM_LAYERS; layer++) {
-      for (int distrip=0; distrip<MAX_NUM_DISTRIPS_PER_LAYER; distrip++) {
-	std::ostringstream hotmasklabel;
-	hotmasklabel << "TMB layer" << layer << "_distrip_hot_chann_mask" << distrip; 
-	config_ok &= compareValues(hotmasklabel.str(),
-				   read_hot_channel_mask_[layer][distrip],
-				   hot_channel_mask_[layer][distrip], 
-				   print_errors);
+      for (int distrip=0; distrip<DISTRIPS_PER_LAYER; distrip++) {
+        std::ostringstream hotmasklabel;
+        hotmasklabel << "TMB layer" << layer << "_distrip_hot_chann_mask" << distrip;
+        config_ok &= compareValues(hotmasklabel.str(),
+          read_hot_channel_mask_[layer][distrip],
+          hot_channel_mask_[layer][distrip],
+          print_errors);
       }
     }
     //
@@ -8902,6 +9253,23 @@ int TMB::GetHotChannelLayerFromMap_(unsigned long int vme_address, int bit_in_re
   } else if (vme_address == hcm445_adr || vme_address == badbits445_adr ) {
     return cfeb4_layer45_hotchannelmask_layer_map[bit_in_register];
     //
+  } else if (vme_address == hcm501_adr || vme_address == badbits501_adr ) {
+    return cfeb5_layer01_hotchannelmask_layer_map[bit_in_register];
+    //
+  } else if (vme_address == hcm523_adr || vme_address == badbits523_adr ) {
+    return cfeb5_layer23_hotchannelmask_layer_map[bit_in_register];
+    //
+  } else if (vme_address == hcm545_adr || vme_address == badbits545_adr ) {
+    return cfeb5_layer45_hotchannelmask_layer_map[bit_in_register];
+    //
+  } else if (vme_address == hcm601_adr || vme_address == badbits601_adr ) {
+    return cfeb6_layer01_hotchannelmask_layer_map[bit_in_register];
+    //
+  } else if (vme_address == hcm623_adr || vme_address == badbits623_adr ) {
+    return cfeb6_layer23_hotchannelmask_layer_map[bit_in_register];
+    //
+  } else if (vme_address == hcm645_adr || vme_address == badbits645_adr ) {
+    return cfeb6_layer45_hotchannelmask_layer_map[bit_in_register];
   } 
   return -999;
 }
@@ -8952,6 +9320,24 @@ int TMB::GetHotChannelDistripFromMap_(unsigned long int vme_address, int bit_in_
     //
   } else if (vme_address == hcm445_adr || vme_address == badbits445_adr ) {
     return cfeb4_layer45_hotchannelmask_distrip_map[bit_in_register];
+    //
+  } else if (vme_address == hcm501_adr || vme_address == badbits501_adr ) {
+    return cfeb5_layer01_hotchannelmask_distrip_map[bit_in_register];
+    //
+  } else if (vme_address == hcm523_adr || vme_address == badbits523_adr ) {
+    return cfeb5_layer23_hotchannelmask_distrip_map[bit_in_register];
+    //
+  } else if (vme_address == hcm545_adr || vme_address == badbits545_adr ) {
+    return cfeb5_layer45_hotchannelmask_distrip_map[bit_in_register];
+    //
+  } else if (vme_address == hcm601_adr || vme_address == badbits601_adr ) {
+    return cfeb6_layer01_hotchannelmask_distrip_map[bit_in_register];
+    //
+  } else if (vme_address == hcm623_adr || vme_address == badbits623_adr ) {
+    return cfeb6_layer23_hotchannelmask_distrip_map[bit_in_register];
+    //
+  } else if (vme_address == hcm645_adr || vme_address == badbits645_adr ) {
+    return cfeb6_layer45_hotchannelmask_distrip_map[bit_in_register];
     //
   } 
   return -999;
@@ -9331,6 +9717,7 @@ int TMB::virtex6_sysmon(int chn)
 }
 
 void TMB::WriteGtxControlRegisters() {
+    WriteRegister(v6_gtx_rx_all_adr);
     WriteRegister(v6_gtx_rx0_adr);
     WriteRegister(v6_gtx_rx1_adr);
     WriteRegister(v6_gtx_rx2_adr);
