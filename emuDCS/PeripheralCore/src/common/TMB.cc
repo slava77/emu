@@ -9355,10 +9355,12 @@ int TMB::DCSreadAll(char *data)
   out[0]=0x12;
   out[1]=0;
   scan(0, out, 6, (char *)&tt, 0);
+  ::usleep(100);
   // read in value
   out[0]=0x5;
   out[1]=0;
   scan(1, out, 11, (char *)&tt, 1);
+  std::cout << "Read ALCT T data: " << std::hex << tt << std::dec << std::endl;
   // tt is LSB, now convert to 11bit MSB
   tr=0;
   for(int i=0;i<10;i++)
@@ -9367,7 +9369,10 @@ int TMB::DCSreadAll(char *data)
       tt >>= 1;
   } 
   tr |= (tt & 1);
+  std::cout << "Good ALCT T data: " << std::hex << tr << std::dec << std::endl;
+  
   memcpy(data, &tr, 2);
+//  RestoreIdle();
 
 /* disabled by Liu, Nov. 25, 2014
   if(hardware_version_==2)
@@ -9381,7 +9386,9 @@ int TMB::DCSreadAll(char *data)
   }
   else return 2;
 */
-  return 2;
+  int TMB_T=100*ReadTMBtempFPGA();
+  memcpy(data+2,&TMB_T,2);
+  return 4;
 }
 
 int TMB::DCSvoltages(char *databuf) 

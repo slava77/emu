@@ -531,6 +531,10 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                              }
                           }
                        }
+                       else
+                       {
+                          (*dmbdata)[ii] = 0.01*rdv;
+                       }
                      }
                      else if(dversion==2)
                      {
