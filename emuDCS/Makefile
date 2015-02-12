@@ -36,7 +36,8 @@ ifeq ($(Set),FEDCrate)
 Packages= \
         emuDCS/FEDCore \
 	emuDCS/FEDUtils \
-	emuDCS/FEDApps
+	emuDCS/FEDApps \
+	emuDCS/OnlineDB 
 endif
 
 include $(XDAQ_ROOT)/config/Makefile.rules
