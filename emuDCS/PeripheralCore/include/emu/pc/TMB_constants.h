@@ -313,7 +313,6 @@ static const unsigned long int	badbits401_adr	        = 0x00013E;
 static const unsigned long int	badbits423_adr	        = 0x000140;
 static const unsigned long int	badbits445_adr	        = 0x000142;
 
-static const unsigned long int	v6_sysmon_adr	        = 0x00015A;  //ADR_V6_SYSMON
 static const unsigned long int	alct_startup_status_adr = 0x000146; //ADR_ALCT_STARTUP_STATUS
 static const unsigned long int	v6_snap12_qpll_adr      = 0x000148; //ADR_V6_SNAP12_QPLL
 
@@ -326,6 +325,8 @@ static const unsigned long int  v6_gtx_rx3_adr          = 0x000152;  //ADR_V6_GT
 static const unsigned long int  v6_gtx_rx4_adr          = 0x000154;  //ADR_V6_GTX_RX4
 static const unsigned long int  v6_gtx_rx5_adr          = 0x000156;  //ADR_V6_GTX_RX5
 static const unsigned long int  v6_gtx_rx6_adr          = 0x000158;  //ADR_V6_GTX_RX6
+
+static const unsigned long int	v6_sysmon_adr	        = 0x00015A;  //ADR_V6_SYSMON
 
 // extra DCFEB Bad Bits on OTMB 
 static const unsigned long int  dcfeb_badbits_ctrl_adr  = 0x00015C;  //DCFEB Bad Bit Control/Status extends Adr 122
