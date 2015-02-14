@@ -8426,6 +8426,13 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(gtx_rx_reset_[inputNum],gtx_rx_reset_bithi,gtx_rx_reset_bitlo,&data_word);
     InsertValueIntoDataWord(gtx_rx_prbs_test_enable_[inputNum],gtx_rx_prbs_test_enable_bithi,gtx_rx_prbs_test_enable_bitlo,&data_word);
     //
+  } else if ( address == dcfeb_badbits_ctrl_adr) {
+    //-------------------------------------------------------------------------------
+    // 0X15C = ADR_V6_CFEB_BADBITS_CTRL CFEB Bad Bits Control/Status (See Adr 0x122)
+    //-------------------------------------------------------------------------------
+    InsertValueIntoDataWord(dcfeb_badbits_reset_  ,dcfeb_badbits_reset_bithi  ,dcfeb_badbits_reset_bitlo  ,&data_word);
+    InsertValueIntoDataWord(dcfeb_badbits_block_  ,dcfeb_badbits_block_bithi  ,dcfeb_badbits_block_bitlo  ,&data_word);
+    //
   } else {
     //
     (*MyOutput_) << "TMB: ERROR in FillTMBRegister, VME address = " << address << " not supported to be filled" << std::endl;
