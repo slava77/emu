@@ -622,6 +622,15 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("cfeb6delay"     ,value)) { tmb_->SetCfeb6RxClockDelay(value); }
     if (fillInt("cfeb6posneg",value))     { tmb_->SetCfeb6RxPosNeg(value);     }
     //
+    //
+    //0X16A
+    if (fillInt("cfeb456delay"     ,value)) { tmb_->SetCfeb456RxClockDelay(value); }
+    if (fillInt("cfeb456posneg",value))     { tmb_->SetCfeb456RxPosNeg(value);     }
+    //
+    //0X16C
+    if (fillInt("cfeb0123delay"     ,value)) { tmb_->SetCfeb0123RxClockDelay(value); }
+    if (fillInt("cfeb0123posneg",value))     { tmb_->SetCfeb0123RxPosNeg(value);     }
+    //
     //0X11C
     if (fillInt("cfeb0_rxd_int_delay",value)) { tmb_->SetCFEB0RxdIntDelay(value); }
     if (fillInt("cfeb1_rxd_int_delay",value)) { tmb_->SetCFEB1RxdIntDelay(value); }
