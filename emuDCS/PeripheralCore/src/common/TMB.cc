@@ -559,7 +559,7 @@ namespace emu {
   namespace pc {
 
 
-TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
+    TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot, int hardware_version) :
   VMEModule(theCrate, slot),
   EMUjtag(this),
   EmuLogger(),
@@ -567,7 +567,7 @@ TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   rat_(0),
   csc_(theChamber)
 {
-  hardware_version_=0;
+  hardware_version_=hardware_version;
   //
   debug_ = false;
   //
@@ -5391,8 +5391,8 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(phaser_cfeb2_rxd_adr);  //0x116 digital phase shifter: cfeb2_rx
   TMBConfigurationRegister.push_back(phaser_cfeb3_rxd_adr);  //0x118 digital phase shifter: cfeb3_rx
   TMBConfigurationRegister.push_back(phaser_cfeb4_rxd_adr);  //0x11A digital phase shifter: cfeb4_rx
-  TMBConfigurationRegister.push_back(phaser_cfeb5_rxd_adr);  //0x16A digital phase shifter: cfeb5_rx
-  TMBConfigurationRegister.push_back(phaser_cfeb6_rxd_adr);  //0x16C digital phase shifter: cfeb6_rx
+  TMBConfigurationRegister.push_back(phaser_cfeb5_rxd_adr);  //0x16A digital phase shifter: cfeb5_rx : ME1/1B side for OTMB
+  TMBConfigurationRegister.push_back(phaser_cfeb6_rxd_adr);  //0x16C digital phase shifter: cfeb6_rx : ME1/1A side for OTMB
   TMBConfigurationRegister.push_back(cfeb0_3_interstage_adr);//0x11C CFEB to TMB data delay: cfeb[0-3]
   TMBConfigurationRegister.push_back(cfeb4_6_interstage_adr);//0x11E CFEB to TMB data delay: cfeb[4-6]
   //
@@ -5425,6 +5425,9 @@ void TMB::DefineTMBConfigurationRegisters_(){
   //
   // Automatic masking of bad bits
   TMBConfigurationRegister.push_back(cfeb_badbits_ctrl_adr) ;  //0x122
+  if (hardware_version_ >= 2){
+    TMBConfigurationRegister.push_back(dcfeb_badbits_ctrl_adr) ;  //0x15C
+  }
   //
   // GTX link control and monitoring
   //TMBConfigurationRegister.push_back(v6_gtx_rx0_adr) ;  //0x14C GTX link control and monitoring for DCFEB0

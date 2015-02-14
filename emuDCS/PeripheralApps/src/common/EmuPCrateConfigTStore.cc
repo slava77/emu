@@ -3460,7 +3460,18 @@ void EmuPCrateConfigTStore::readTMB(
         if (i) slot = (int) *i;
       }
     }
-    TMB * tmb_ = new TMB(theCrate, theChamber, slot);
+    int tmbHwVersion = 0;
+    for (std::vector<std::string>::iterator column = columns.begin(); column != columns.end(); ++column)
+      {
+	if (*column != "HARDWARE_VERSION"      ) continue;
+	value = results.getValueAt(rowIndex, *column);
+	if (results.getColumnType(*column) == "int")
+	  {
+	    xdata::Integer * i = dynamic_cast<xdata::Integer *> (value);
+	    if(! i->isNaN()) tmbHwVersion=(int)*i;
+	  }
+      }
+    TMB * tmb_ = new TMB(theCrate, theChamber, slot, tmbHwVersion);
     for (std::vector<std::string>::iterator column = columns.begin(); column != columns.end(); ++column)
     {
       value = results.getValueAt(rowIndex, *column);
@@ -3625,7 +3636,6 @@ void EmuPCrateConfigTStore::readTMB(
       if (*column == "CFEB_BADBITS_READOUT"  ) tmb_->SetCFEBBadBitsReadout(IntValue);
       if (*column == "L1A_PRIORITY_ENABLE"   ) tmb_->SetL1APriorityEnable(IntValue);
       if (*column == "MINISCOPE_ENABLE"      ) tmb_->SetMiniscopeEnable(IntValue);
-      if (*column == "HARDWARE_VERSION"      ) tmb_->SetHardwareVersion(IntValue);
       
       if (*column == "TMB_CONFIG_ID" ) tmb_config_id_ = StrgValue;
     }

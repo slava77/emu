@@ -430,7 +430,7 @@ public:
   //friend class TMBParser;
   friend class EMUjtag;
   //
-  explicit TMB(Crate * , Chamber *, int );
+  explicit TMB(Crate * , Chamber *, int, int );
   virtual ~TMB();
   //
   //
@@ -501,7 +501,7 @@ public:
   void SetALCTPatternTrigger();
   void SetCLCTPatternTrigger();
   //
-  inline void SetHardwareVersion(int version) {hardware_version_ = version;}
+  //  inline void SetHardwareVersion(int version) {hardware_version_ = version;} //in TMB constructor now
   inline int GetHardwareVersion() {return hardware_version_;}
   //
   //!read the Firmware date from the TMB

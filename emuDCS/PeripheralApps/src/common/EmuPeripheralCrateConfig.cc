@@ -9649,87 +9649,90 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
-  std::string TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
-    getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-  *out << cgicc::input().set("type", "submit").set("value", "Read GTX Fiber Status");
-  sprintf(buf, "%d", tmb);
-  *out
-    << cgicc::input().set("type", "hidden").set("value", buf).set("name",
-      "tmb");
-  *out
-    << cgicc::input().set("type", "hidden").set("value", "read").set("name",
-      "mode");
-  *out << cgicc::form() << std::endl;
-  //
-  *out << cgicc::table().set("border", "1");
-  *out << cgicc::tr();
-  *out << cgicc::td();
-  *out << "Fiber";
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << "Status/Toggle";
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << "Reset";
-  *out << cgicc::td();
-  *out << cgicc::tr();
-  std::string fiber_num = "all";
-  for (int i = -1; i < ((int) TMB_N_FIBERS); ++i) {
-    *out << cgicc::tr();
-    *out << cgicc::td();
-    *out << fiber_num;
-    *out << cgicc::td();
-    *out << cgicc::td();
-    //
-    if (tmb_fiber_status_read_) {
-      bool read_status = false;
-      if (i < 0) {
-        read_status = thisTMB->GetReadGtxRxAllEnable();
-      } else {
-        read_status = thisTMB->GetReadGtxRxEnable(i);
-      }
-      std::string color;
-      std::string status;
-      if (read_status) {
-        status = "Enabled";
-        color = "color:green";
-      } else {
-        status = "Disabled";
-        color = "color:red";
-      }
-      TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
-        getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-      *out << cgicc::input().set("type", "submit").set("value", status).set("style", color);
-      sprintf(buf, "%d", tmb);
-      *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
-      *out << cgicc::input().set("type", "hidden").set("value", "toggle").set("name", "mode");
-      *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
-      *out << cgicc::form() << std::endl;
-    } else {
-      *out << "N/A";
-    }
-    //
-    *out << cgicc::td();
-    *out << cgicc::td();
-    //
-    TMBFiberReset = toolbox::toString("/%s/TMBFiberReset", getApplicationDescriptor()->getURN().c_str());
+
+  if (thisTMB->GetHardwareVersion()==2) {
+    std::string TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
+						  getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-    *out << cgicc::input().set("type", "submit").set("value", "Reset");
+    *out << cgicc::input().set("type", "submit").set("value", "Read GTX Fiber Status");
     sprintf(buf, "%d", tmb);
-    *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
-    *out << cgicc::input().set("type", "hidden").set("value", "reset").set("name", "mode");
-    *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+    *out
+      << cgicc::input().set("type", "hidden").set("value", buf).set("name",
+								    "tmb");
+    *out
+      << cgicc::input().set("type", "hidden").set("value", "read").set("name",
+								       "mode");
     *out << cgicc::form() << std::endl;
     //
+    *out << cgicc::table().set("border", "1");
+    *out << cgicc::tr();
+    *out << cgicc::td();
+    *out << "Fiber";
+    *out << cgicc::td();
+    *out << cgicc::td();
+    *out << "Status/Toggle";
+    *out << cgicc::td();
+    *out << cgicc::td();
+    *out << "Reset";
     *out << cgicc::td();
     *out << cgicc::tr();
-    std::stringstream ss;
-    ss << i + 1;
-    fiber_num = ss.str();
-  }
-  *out << cgicc::table();
+    std::string fiber_num = "all";
+    for (int i = -1; i < ((int) TMB_N_FIBERS); ++i) {
+      *out << cgicc::tr();
+      *out << cgicc::td();
+      *out << fiber_num;
+      *out << cgicc::td();
+      *out << cgicc::td();
+      //
+      if (tmb_fiber_status_read_) {
+	bool read_status = false;
+	if (i < 0) {
+	  read_status = thisTMB->GetReadGtxRxAllEnable();
+	} else {
+	  read_status = thisTMB->GetReadGtxRxEnable(i);
+	}
+	std::string color;
+	std::string status;
+	if (read_status) {
+	  status = "Enabled";
+	  color = "color:green";
+	} else {
+	  status = "Disabled";
+	  color = "color:red";
+	}
+	TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
+					  getApplicationDescriptor()->getURN().c_str());
+	*out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
+	*out << cgicc::input().set("type", "submit").set("value", status).set("style", color);
+	sprintf(buf, "%d", tmb);
+	*out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
+	*out << cgicc::input().set("type", "hidden").set("value", "toggle").set("name", "mode");
+	*out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+	*out << cgicc::form() << std::endl;
+      } else {
+	*out << "N/A";
+      }
+    //
+      *out << cgicc::td();
+      *out << cgicc::td();
+      //
+      TMBFiberReset = toolbox::toString("/%s/TMBFiberReset", getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
+      *out << cgicc::input().set("type", "submit").set("value", "Reset");
+      sprintf(buf, "%d", tmb);
+      *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
+      *out << cgicc::input().set("type", "hidden").set("value", "reset").set("name", "mode");
+      *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+      *out << cgicc::form() << std::endl;
+      //
+      *out << cgicc::td();
+      *out << cgicc::tr();
+      std::stringstream ss;
+      ss << i + 1;
+      fiber_num = ss.str();
+    }
+    *out << cgicc::table();
+  }// GTX monitor for OTMB
 
   //
   //--------------------------------------------------------
@@ -10616,7 +10619,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   // Create a TMB which all TMB's within a crate will listen to....
   //
   Chamber * thisChamber = new Chamber(thisCrate);  // a dummy chamber
-  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26); // must use a dummy chamber, not a real one
+  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26, 0); // must use a dummy chamber, not a real one
   //
   tmb_vme_ready = -1;
   //

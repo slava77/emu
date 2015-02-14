@@ -336,13 +336,15 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     std::cerr << "No slot specified for TMB! " << std::endl;
   } else {
     //
-    TMB * tmb_ = new TMB(theCrate, theChamber, slot);
+    int value;
+    int tmbHwVersion = 0;
+    if (fillInt("hardware_version", value)) { tmbHwVersion = value;  }     
+
+    TMB * tmb_ = new TMB(theCrate, theChamber, slot, tmbHwVersion);
     //
     // need still to put in 
     //   . ddd_oe mask
-    int value;
 
-    if (fillInt("hardware_version", value)) { tmb_->SetHardwareVersion(value);  }     
               
     //////////////////////////////
     // Expected Firmware tags:
