@@ -580,7 +580,7 @@ public:
   void halfset(int icrd,int ipln,int ihalf,int chan[][6][16]);
   void halfset(int icrd,int ipln,int ihalf);
   void trigsetx(int *hp,int CFEBInputs=0x1f);
-  void chan2shift(int chan[][6][16]);
+  void chan2shift(int chan[][6][16], bool debug=false);
   void buck_shift_ext_bc(int nstrip);
   void buck_shift_comp_bc(int nstrip);
 
