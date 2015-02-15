@@ -5104,6 +5104,9 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td().set("ALIGN", "left") << "CFEB" << cgicc::td() << std::endl;
   *out << cgicc::td().set("ALIGN", "left") << "Pattern Type" << cgicc::td() << std::endl;
   *out << cgicc::td().set("ALIGN", "left") << "Half-Strip" << cgicc::td() << std::endl;
+  if (thisTMB->GetHardwareVersion()>=2){
+    *out << cgicc::td().set("ALIGN", "left") << "Group ME11 A and B" << cgicc::td() << std::endl;
+  }
   //
   *out << cgicc::tr();
   //
@@ -5141,6 +5144,14 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   for(int i=0; i<32; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
   *out << cgicc::select() << std::endl;
   *out << cgicc::td();
+  if (thisTMB->GetHardwareVersion()>=2){
+    *out << cgicc::td().set("ALIGN", "left") << std::endl;
+    *out << cgicc::select().set("name", "groupME11AandB") << std::endl;
+    *out << cgicc::option().set("value", "yes") << "yes" << cgicc::option() << std::endl;
+    *out << cgicc::option().set("value", "no") << "no" << cgicc::option() << std::endl;
+    *out << cgicc::select() << std::endl;
+    *out << cgicc::td();
+  }
   *out << cgicc::td();
   *out << cgicc::input().set("type","submit").set("value", "CFEB RX Delay Scan").set("style", "color:blue") << std::endl;
   *out << cgicc::td();
@@ -5767,7 +5778,8 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScan(xgi::Input * in, xgi::Output
   int halfstrip = 16;
   bool print_data = false;
   unsigned cfeb_phase = 0x0;
-  
+  bool groupME11AandB = false;
+
   //
   name = cgi.getElement("time_delay");
   if(name != cgi.getElements().end()) {
@@ -5793,6 +5805,11 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScan(xgi::Input * in, xgi::Output
   if(name != cgi.getElements().end()) {
     cfeb_phase = cgi["cfeb_phase"]->getIntegerValue();
   }
+  //
+  name = cgi.getElement("groupME11AandB");
+  if(name != cgi.getElements().end()) {
+    groupME11AandB = cgi["groupME11AandB"]->getValue() == "yes";
+  }
   
   std::cout << "time_delay: " << time_delay << std::endl;
   std::cout << "cfeb_num: " << cfeb_num << std::endl;
@@ -5800,9 +5817,10 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScan(xgi::Input * in, xgi::Output
   std::cout << "pattern: " << pattern << std::endl;
   std::cout << "halfstrip: " << halfstrip << std::endl;
   std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
+  std::cout << "groupME11AandB: "<< groupME11AandB << std::endl;
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-  MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
+  MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase, groupME11AandB);
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -5968,6 +5986,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	int halfstrip = -1;
 	bool print_data = true;
 	unsigned cfeb_phase = 32;
+	bool groupME11AandB = true;
 	
 	//
 	
@@ -5977,6 +5996,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	std::cout << "pattern: " << pattern << std::endl;
 	std::cout << "halfstrip: " << halfstrip << std::endl;
 	std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
+	std::cout << "groupME11AandB: "<< groupME11AandB << std::endl;
 	//
 	//
 	if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() != 2) {
@@ -5998,7 +6018,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	web_backup.close();
 	//
 	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
+	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase, groupME11AandB);
 	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
 	//
 	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
@@ -6078,7 +6098,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	int halfstrip = -1;
 	bool print_data = true;
 	unsigned cfeb_phase = 32;
-	
+	bool groupME11AandB = true;
 	//
 	
 	std::cout << "time_delay: " << time_delay << std::endl;
@@ -6087,6 +6107,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	std::cout << "pattern: " << pattern << std::endl;
 	std::cout << "halfstrip: " << halfstrip << std::endl;
 	std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
+	std::cout << "groupME11AandB: " << groupME11AandB << std::endl;
 	//
 	//
 	if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() == 2) {
@@ -6108,7 +6129,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	web_backup.close();
 	//
 	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
+	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase, groupME11AandB);
 	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
 	//
 	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
@@ -9649,87 +9670,90 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
-  std::string TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
-    getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-  *out << cgicc::input().set("type", "submit").set("value", "Read GTX Fiber Status");
-  sprintf(buf, "%d", tmb);
-  *out
-    << cgicc::input().set("type", "hidden").set("value", buf).set("name",
-      "tmb");
-  *out
-    << cgicc::input().set("type", "hidden").set("value", "read").set("name",
-      "mode");
-  *out << cgicc::form() << std::endl;
-  //
-  *out << cgicc::table().set("border", "1");
-  *out << cgicc::tr();
-  *out << cgicc::td();
-  *out << "Fiber";
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << "Status/Toggle";
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << "Reset";
-  *out << cgicc::td();
-  *out << cgicc::tr();
-  std::string fiber_num = "all";
-  for (int i = -1; i < ((int) TMB_N_FIBERS); ++i) {
-    *out << cgicc::tr();
-    *out << cgicc::td();
-    *out << fiber_num;
-    *out << cgicc::td();
-    *out << cgicc::td();
-    //
-    if (tmb_fiber_status_read_) {
-      bool read_status = false;
-      if (i < 0) {
-        read_status = thisTMB->GetReadGtxRxAllEnable();
-      } else {
-        read_status = thisTMB->GetReadGtxRxEnable(i);
-      }
-      std::string color;
-      std::string status;
-      if (read_status) {
-        status = "Enabled";
-        color = "color:green";
-      } else {
-        status = "Disabled";
-        color = "color:red";
-      }
-      TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
-        getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-      *out << cgicc::input().set("type", "submit").set("value", status).set("style", color);
-      sprintf(buf, "%d", tmb);
-      *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
-      *out << cgicc::input().set("type", "hidden").set("value", "toggle").set("name", "mode");
-      *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
-      *out << cgicc::form() << std::endl;
-    } else {
-      *out << "N/A";
-    }
-    //
-    *out << cgicc::td();
-    *out << cgicc::td();
-    //
-    TMBFiberReset = toolbox::toString("/%s/TMBFiberReset", getApplicationDescriptor()->getURN().c_str());
+
+  if (thisTMB->GetHardwareVersion()==2) {
+    std::string TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
+						  getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-    *out << cgicc::input().set("type", "submit").set("value", "Reset");
+    *out << cgicc::input().set("type", "submit").set("value", "Read GTX Fiber Status");
     sprintf(buf, "%d", tmb);
-    *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
-    *out << cgicc::input().set("type", "hidden").set("value", "reset").set("name", "mode");
-    *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+    *out
+      << cgicc::input().set("type", "hidden").set("value", buf).set("name",
+								    "tmb");
+    *out
+      << cgicc::input().set("type", "hidden").set("value", "read").set("name",
+								       "mode");
     *out << cgicc::form() << std::endl;
     //
+    *out << cgicc::table().set("border", "1");
+    *out << cgicc::tr();
+    *out << cgicc::td();
+    *out << "Fiber";
+    *out << cgicc::td();
+    *out << cgicc::td();
+    *out << "Status/Toggle";
+    *out << cgicc::td();
+    *out << cgicc::td();
+    *out << "Reset";
     *out << cgicc::td();
     *out << cgicc::tr();
-    std::stringstream ss;
-    ss << i + 1;
-    fiber_num = ss.str();
-  }
-  *out << cgicc::table();
+    std::string fiber_num = "all";
+    for (int i = -1; i < ((int) TMB_N_FIBERS); ++i) {
+      *out << cgicc::tr();
+      *out << cgicc::td();
+      *out << fiber_num;
+      *out << cgicc::td();
+      *out << cgicc::td();
+      //
+      if (tmb_fiber_status_read_) {
+	bool read_status = false;
+	if (i < 0) {
+	  read_status = thisTMB->GetReadGtxRxAllEnable();
+	} else {
+	  read_status = thisTMB->GetReadGtxRxEnable(i);
+	}
+	std::string color;
+	std::string status;
+	if (read_status) {
+	  status = "Enabled";
+	  color = "color:green";
+	} else {
+	  status = "Disabled";
+	  color = "color:red";
+	}
+	TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
+					  getApplicationDescriptor()->getURN().c_str());
+	*out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
+	*out << cgicc::input().set("type", "submit").set("value", status).set("style", color);
+	sprintf(buf, "%d", tmb);
+	*out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
+	*out << cgicc::input().set("type", "hidden").set("value", "toggle").set("name", "mode");
+	*out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+	*out << cgicc::form() << std::endl;
+      } else {
+	*out << "N/A";
+      }
+    //
+      *out << cgicc::td();
+      *out << cgicc::td();
+      //
+      TMBFiberReset = toolbox::toString("/%s/TMBFiberReset", getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
+      *out << cgicc::input().set("type", "submit").set("value", "Reset");
+      sprintf(buf, "%d", tmb);
+      *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
+      *out << cgicc::input().set("type", "hidden").set("value", "reset").set("name", "mode");
+      *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+      *out << cgicc::form() << std::endl;
+      //
+      *out << cgicc::td();
+      *out << cgicc::tr();
+      std::stringstream ss;
+      ss << i + 1;
+      fiber_num = ss.str();
+    }
+    *out << cgicc::table();
+  }// GTX monitor for OTMB
 
   //
   //--------------------------------------------------------
@@ -10616,7 +10640,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   // Create a TMB which all TMB's within a crate will listen to....
   //
   Chamber * thisChamber = new Chamber(thisCrate);  // a dummy chamber
-  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26); // must use a dummy chamber, not a real one
+  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26, 0); // must use a dummy chamber, not a real one
   //
   tmb_vme_ready = -1;
   //

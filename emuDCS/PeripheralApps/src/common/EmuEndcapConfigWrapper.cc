@@ -406,7 +406,9 @@ throw (emu::exception::ConfigurationException)
   {
     XCEPT_RAISE(emu::exception::ConfigurationException, std::string("Failed to get TMB slot") );
   }
-  TMB * tmb_ = new TMB(theCrate, theChamber, slot);
+  int tmbHwVersion = 0;
+  if (conf->has("HARDWARE_VERSION"))       tmbHwVersion =  getInt(conf, "HARDWARE_VERSION");
+  TMB * tmb_ = new TMB(theCrate, theChamber, slot, tmbHwVersion);
 
   if (conf->has("TMB_FIRMWARE_MONTH"))         tmb_->SetExpectedTmbFirmwareMonth( getInt(conf, "TMB_FIRMWARE_MONTH"));
   if (conf->has("TMB_FIRMWARE_DAY"))           tmb_->SetExpectedTmbFirmwareDay( getInt(conf, "TMB_FIRMWARE_DAY"));
@@ -535,7 +537,6 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("CFEB_BADBITS_READOUT"))   tmb_->SetCFEBBadBitsReadout( getInt(conf, "CFEB_BADBITS_READOUT"));
   if (conf->has("L1A_PRIORITY_ENABLE"))    tmb_->SetL1APriorityEnable( getInt(conf, "L1A_PRIORITY_ENABLE"));
   if (conf->has("MINISCOPE_ENABLE"))       tmb_->SetMiniscopeEnable( getInt(conf, "MINISCOPE_ENABLE"));
-  if (conf->has("HARDWARE_VERSION"))       tmb_->SetHardwareVersion( getInt(conf, "HARDWARE_VERSION"));
 
   if(verbose_)
   {

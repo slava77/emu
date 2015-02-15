@@ -336,13 +336,15 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     std::cerr << "No slot specified for TMB! " << std::endl;
   } else {
     //
-    TMB * tmb_ = new TMB(theCrate, theChamber, slot);
+    int value;
+    int tmbHwVersion = 0;
+    if (fillInt("hardware_version", value)) { tmbHwVersion = value;  }     
+
+    TMB * tmb_ = new TMB(theCrate, theChamber, slot, tmbHwVersion);
     //
     // need still to put in 
     //   . ddd_oe mask
-    int value;
 
-    if (fillInt("hardware_version", value)) { tmb_->SetHardwareVersion(value);  }     
               
     //////////////////////////////
     // Expected Firmware tags:
@@ -619,6 +621,15 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //0X16C
     if (fillInt("cfeb6delay"     ,value)) { tmb_->SetCfeb6RxClockDelay(value); }
     if (fillInt("cfeb6posneg",value))     { tmb_->SetCfeb6RxPosNeg(value);     }
+    //
+    //
+    //0X16A
+    if (fillInt("cfeb456delay"     ,value)) { tmb_->SetCfeb456RxClockDelay(value); }
+    if (fillInt("cfeb456posneg",value))     { tmb_->SetCfeb456RxPosNeg(value);     }
+    //
+    //0X16C
+    if (fillInt("cfeb0123delay"     ,value)) { tmb_->SetCfeb0123RxClockDelay(value); }
+    if (fillInt("cfeb0123posneg",value))     { tmb_->SetCfeb0123RxPosNeg(value);     }
     //
     //0X11C
     if (fillInt("cfeb0_rxd_int_delay",value)) { tmb_->SetCFEB0RxdIntDelay(value); }

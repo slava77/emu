@@ -690,6 +690,10 @@ void ChamberUtilities::SetCfebRxPosNeg(int posneg) {
   thisTMB->SetCfeb4RxPosNeg(posneg);
   thisTMB->SetCfeb5RxPosNeg(posneg);
   thisTMB->SetCfeb6RxPosNeg(posneg);
+  if (thisTMB->GetHardwareVersion()>=2){
+    thisTMB->SetCfeb0123RxPosNeg(posneg);
+    thisTMB->SetCfeb456RxPosNeg(posneg);
+  }
   //usleep(10000);
 }
 
@@ -715,13 +719,13 @@ void ChamberUtilities::SetCfebRxClockDelay(int delay) {
   thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
   //
   if(thisTMB->GetHardwareVersion() == 2) {
-    thisTMB->SetCfeb5RxClockDelay(delay);
-    thisTMB->WriteRegister(phaser_cfeb5_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb5_rxd_adr);
+    thisTMB->SetCfeb456RxClockDelay(delay);
+    thisTMB->WriteRegister(phaser_cfeb456_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb456_rxd_adr);
     //
-    thisTMB->SetCfeb6RxClockDelay(delay);
-    thisTMB->WriteRegister(phaser_cfeb6_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb6_rxd_adr);
+    thisTMB->SetCfeb0123RxClockDelay(delay);
+    thisTMB->WriteRegister(phaser_cfeb0123_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb0123_rxd_adr);
   }
   //usleep(10000);
 }
@@ -1171,7 +1175,7 @@ inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration
     //
 void ChamberUtilities::CFEBTiming_PulseInject(bool is_inject_scan, int cfeb, unsigned int layer_mask, unsigned int pattern, 
 					      unsigned int halfstrip, unsigned int n_pulses, unsigned int pulse_delay) {
-  std::cout << "Start: " << __PRETTY_FUNCTION__  << std::endl;
+  if (debug_ >= 5) std::cout << "Start: " << __PRETTY_FUNCTION__  << std::endl;
   const int MaxCFEB = 5;
   const int MaxTimeDelay=25;
   const bool is_cfeb_scan = cfeb < 0;
@@ -1225,7 +1229,7 @@ void ChamberUtilities::CFEBTiming_PulseInject(bool is_inject_scan, int cfeb, uns
       //thisCCB_->inject(1,0x4f);
     }
   }
-  std::cout << "End: " << __PRETTY_FUNCTION__  << std::endl;
+  if (debug_ >= 5) std::cout << "End: " << __PRETTY_FUNCTION__  << std::endl;
 }
     
 void ChamberUtilities::SetTMBL1ADelay(int delay) {
@@ -1514,7 +1518,8 @@ void ChamberUtilities::Print_CFEB_Masks() {
 }
     //
 void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, int cfeb_num, unsigned int layers, unsigned int pattern, 
-							      int halfstrip, bool print_data, int cfeb_clock_phase) {
+							      int halfstrip, bool print_data, int cfeb_clock_phase,
+							      bool groupME11AandB) {
   
   std::time_t init_time=time(0);
   
@@ -1526,8 +1531,10 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     std::fstream bad_packets_file((CFEBTiming_log_dir_ + "SimpleScan_BadPackets.txt").c_str(), std::ios_base::out);*/
   std::ostream * web_out = MyOutput_;
   std::ofstream web_backup;
+  std::string env_user    = std::getenv("USER");
+  std::string out1_file_name = CFEBTiming_log_dir_+"webout_"+env_user+"_backup1.txt";
   if(print_data) web_backup.open((CFEBTiming_log_dir_+"webout_backup_fullcrate.txt").c_str(), std::ios::app);
-  else web_backup.open((CFEBTiming_log_dir_+"webout_backup1.txt").c_str(), std::ios::out);
+  else web_backup.open(out1_file_name.c_str(), std::ios::out);
   
   print_data=false;
   
@@ -1570,7 +1577,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
   if(time_delay >= MaxTimeDelay) return;
   if(cfeb_num >= MaxCFEB) return;
   if(halfstrip >= MaxHalfStrip) return;
-  if(cfeb_clock_phase > MaxCFEBClockPhase) return;
+  if(cfeb_clock_phase > MaxCFEBClockPhase) return; // cfeb_clock_phase==MaxCFEBClockPhase is legal
   
   thisTMB->ReadRegister(non_trig_readout_adr);
   int tmb_compile_type = thisTMB->GetReadTMBFirmwareCompileType();
@@ -1647,29 +1654,51 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
       web_backup << "DCFEB " << cfeb << " clock phase = " << config.cfeb_clock_phase << std::endl;
     }
 
-    thisTMB->ReadRegister(phaser_cfeb0_rxd_adr); // Get phaser information
-    thisTMB->ReadRegister(phaser_cfeb1_rxd_adr);
-    thisTMB->ReadRegister(phaser_cfeb2_rxd_adr);
-    thisTMB->ReadRegister(phaser_cfeb3_rxd_adr);
-    thisTMB->ReadRegister(phaser_cfeb4_rxd_adr);
-    thisTMB->ReadRegister(phaser_cfeb5_rxd_adr);
-    thisTMB->ReadRegister(phaser_cfeb6_rxd_adr);
+    if (!groupME11AandB){
+      thisTMB->ReadRegister(phaser_cfeb0_rxd_adr); // Get phaser information
+      thisTMB->ReadRegister(phaser_cfeb1_rxd_adr);
+      thisTMB->ReadRegister(phaser_cfeb2_rxd_adr);
+      thisTMB->ReadRegister(phaser_cfeb3_rxd_adr);
+      thisTMB->ReadRegister(phaser_cfeb4_rxd_adr);
+      thisTMB->ReadRegister(phaser_cfeb456_rxd_adr);
+      thisTMB->ReadRegister(phaser_cfeb0123_rxd_adr);
+    } else {
+      thisTMB->ReadRegister(phaser_cfeb456_rxd_adr);
+      thisTMB->ReadRegister(phaser_cfeb0123_rxd_adr);
+    }
     //
-    initial_cfeb_phase[0] = thisTMB->GetReadCfeb0RxClockDelay();
-    initial_cfeb_phase[1] = thisTMB->GetReadCfeb1RxClockDelay();
-    initial_cfeb_phase[2] = thisTMB->GetReadCfeb2RxClockDelay();
-    initial_cfeb_phase[3] = thisTMB->GetReadCfeb3RxClockDelay();
-    initial_cfeb_phase[4] = thisTMB->GetReadCfeb4RxClockDelay();
-    initial_cfeb_phase[5] = thisTMB->GetReadCfeb5RxClockDelay();
-    initial_cfeb_phase[6] = thisTMB->GetReadCfeb6RxClockDelay();
-    //
-    initial_cfeb_posneg[0] = thisTMB->GetReadCfeb0RxPosNeg();
-    initial_cfeb_posneg[1] = thisTMB->GetReadCfeb1RxPosNeg();
-    initial_cfeb_posneg[2] = thisTMB->GetReadCfeb2RxPosNeg();
-    initial_cfeb_posneg[3] = thisTMB->GetReadCfeb3RxPosNeg();
-    initial_cfeb_posneg[4] = thisTMB->GetReadCfeb4RxPosNeg();
-    initial_cfeb_posneg[5] = thisTMB->GetReadCfeb5RxPosNeg();
-    initial_cfeb_posneg[6] = thisTMB->GetReadCfeb6RxPosNeg();
+    if (!groupME11AandB){
+      initial_cfeb_phase[0] = thisTMB->GetReadCfeb0RxClockDelay();
+      initial_cfeb_phase[1] = thisTMB->GetReadCfeb1RxClockDelay();
+      initial_cfeb_phase[2] = thisTMB->GetReadCfeb2RxClockDelay();
+      initial_cfeb_phase[3] = thisTMB->GetReadCfeb3RxClockDelay();
+      initial_cfeb_phase[4] = thisTMB->GetReadCfeb4RxClockDelay();
+      initial_cfeb_phase[5] = thisTMB->GetReadCfeb456RxClockDelay();
+      initial_cfeb_phase[6] = thisTMB->GetReadCfeb0123RxClockDelay();
+      //
+      initial_cfeb_posneg[0] = thisTMB->GetReadCfeb0RxPosNeg();
+      initial_cfeb_posneg[1] = thisTMB->GetReadCfeb1RxPosNeg();
+      initial_cfeb_posneg[2] = thisTMB->GetReadCfeb2RxPosNeg();
+      initial_cfeb_posneg[3] = thisTMB->GetReadCfeb3RxPosNeg();
+      initial_cfeb_posneg[4] = thisTMB->GetReadCfeb4RxPosNeg();
+      initial_cfeb_posneg[5] = thisTMB->GetReadCfeb456RxPosNeg();
+      initial_cfeb_posneg[6] = thisTMB->GetReadCfeb0123RxPosNeg();
+    } else {
+      int initialPhase0123 = thisTMB->GetReadCfeb0123RxClockDelay();
+      int initialPhase456 = thisTMB->GetReadCfeb456RxClockDelay();
+
+      int initialPosneg0123 = thisTMB->GetReadCfeb0123RxPosNeg();
+      int initialPosneg456 = thisTMB->GetReadCfeb456RxPosNeg();
+
+      for (int i=0;i<4;++i){
+	initial_cfeb_phase[i] = initialPhase0123;
+	initial_cfeb_posneg[i] = initialPosneg0123;
+      }
+      for (int i=4;i<7;++i){
+	initial_cfeb_phase[i] = initialPhase456;
+	initial_cfeb_posneg[i] = initialPosneg456;
+      }
+    }
     //
     initial_cfeb_rxd_int_delay[0] = thisTMB->GetCFEB0RxdIntDelay();
     initial_cfeb_rxd_int_delay[1] = thisTMB->GetCFEB1RxdIntDelay();
@@ -1681,7 +1710,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     //
     
   }
-  else {
+  else { //not is_me11_
     thisCCB_->setCCBMode(CCB::VMEFPGA);
     thisCCB_->hardReset();
     thisCCB_->setCCBMode(CCB::DLOG);
@@ -1801,11 +1830,13 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
 	if(print_data)
 	  CFEBTiming_ConfigureLevel(config, 3, true);
 	else	SetCfebRxClockDelay(TimeDelay);
+	std::cout<<"Scanning ... now in TimeDelay "<<TimeDelay<<" posneg "<<posneg<<std::endl;
+	  
 	// Loop over CFEBs or choose a single CFEB
 	for(int cfeb = (is_cfeb_scan)?(0):(cfeb_num); ((is_cfeb_scan)?(cfeb<MaxCFEB):(cfeb==cfeb_num)) && (!done); ++cfeb) {
 	  usleep(50);
 	  int last_halfstrip = -1;
-	  
+
 	  for(int ihs = 0; ((is_random_halfstrip)?(ihs<ihs_max):(ihs<1)) && (!done); ++ihs) { 
 	    if(print_data) {
 	      Clear_ODMB_FIFO();
@@ -1871,7 +1902,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
 	      }
 	      
 	      if(thisTMB->GetCLCT0keyHalfStrip() == last_hs[cfeb]) {
-		std::cout << "Got last halfstrip!" << std::endl;
+		if (debug_ >= 5) std::cout << "Got last halfstrip!" << std::endl;
 	      }
 	      
 	      last_hs[cfeb] = thisTMB->GetCLCT0keyHalfStrip();
@@ -1884,6 +1915,10 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
 		++pulse_count_hs_integral[posneg][TimeDelay];
 		++pulse_count_cfeb[cfeb];
 		++pulse_count_cfeb_rx[cfeb][posneg][TimeDelay];
+	        if (cfeb_phase >= 0 && cfeb_phase < MaxCFEBClockPhase){
+		  //fill only when we are really scanning: 32 and -1 inputs are possible for special cases
+		  ++timing_2d_results[posneg][cfeb_phase][TimeDelay];
+		}
 	      }
 	      
 	      if(!good_valid)
@@ -2306,15 +2341,15 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
     //
-    thisTMB->SetCfeb5RxClockDelay(initial_cfeb_phase[5]);
-    thisTMB->SetCfeb5RxPosNeg(initial_cfeb_posneg[5]);
-    thisTMB->WriteRegister(phaser_cfeb5_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb5_rxd_adr);
+    thisTMB->SetCfeb456RxClockDelay(initial_cfeb_phase[5]);
+    thisTMB->SetCfeb456RxPosNeg(initial_cfeb_posneg[5]);
+    thisTMB->WriteRegister(phaser_cfeb456_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb456_rxd_adr);
     //
-    thisTMB->SetCfeb6RxClockDelay(initial_cfeb_phase[6]);
-    thisTMB->SetCfeb6RxPosNeg(initial_cfeb_posneg[6]);
-    thisTMB->WriteRegister(phaser_cfeb6_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb6_rxd_adr);
+    thisTMB->SetCfeb0123RxClockDelay(initial_cfeb_phase[6]);
+    thisTMB->SetCfeb0123RxPosNeg(initial_cfeb_posneg[6]);
+    thisTMB->WriteRegister(phaser_cfeb0123_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb0123_rxd_adr);
     //
     if(!is_cfeb_clock_phase_inherited) {
       //
@@ -2332,7 +2367,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     }
   }
   //
-  else {
+  else {//not is_me11_
     thisTMB->SetCfeb0RxClockDelay(initial_cfeb_phase[0]);
     thisTMB->SetCfeb0RxPosNeg(initial_cfeb_posneg[0]);
     thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);
@@ -7751,7 +7786,7 @@ void ChamberUtilities::PulseHalfstrips(int * hs_normal, bool enableL1aEmulator) 
   }
   //
   // Shift the pulsing information to the CFEBs
-  thisDMB->chan2shift(chan);
+  thisDMB->chan2shift(chan); //use chan2shift(chan, true) to enable debug
   //
   thisTMB->EnableCLCTInputs(CLCTInputs);
   //

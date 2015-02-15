@@ -313,7 +313,6 @@ static const unsigned long int	badbits401_adr	        = 0x00013E;
 static const unsigned long int	badbits423_adr	        = 0x000140;
 static const unsigned long int	badbits445_adr	        = 0x000142;
 
-static const unsigned long int	v6_sysmon_adr	        = 0x00015A;  //ADR_V6_SYSMON
 static const unsigned long int	alct_startup_status_adr = 0x000146; //ADR_ALCT_STARTUP_STATUS
 static const unsigned long int	v6_snap12_qpll_adr      = 0x000148; //ADR_V6_SNAP12_QPLL
 
@@ -327,6 +326,8 @@ static const unsigned long int  v6_gtx_rx4_adr          = 0x000154;  //ADR_V6_GT
 static const unsigned long int  v6_gtx_rx5_adr          = 0x000156;  //ADR_V6_GTX_RX5
 static const unsigned long int  v6_gtx_rx6_adr          = 0x000158;  //ADR_V6_GTX_RX6
 
+static const unsigned long int	v6_sysmon_adr	        = 0x00015A;  //ADR_V6_SYSMON
+
 // extra DCFEB Bad Bits on OTMB 
 static const unsigned long int  dcfeb_badbits_ctrl_adr  = 0x00015C;  //DCFEB Bad Bit Control/Status extends Adr 122
 static const unsigned long int  badbits501_adr          = 0x00015E;  //ADR_V6_CFEB5_BADBITS_LY01
@@ -336,8 +337,8 @@ static const unsigned long int  badbits601_adr          = 0x000164;  //ADR_V6_CF
 static const unsigned long int  badbits623_adr          = 0x000166;  //ADR_V6_CFEB6_BADBITS_LY23
 static const unsigned long int  badbits645_adr          = 0x000168;  //ADR_V6_CFEB6_BADBITS_LY45
 
-static const unsigned long int  phaser_cfeb5_rxd_adr	= 0x00016A;  
-static const unsigned long int  phaser_cfeb6_rxd_adr	= 0x00016C;
+static const unsigned long int  phaser_cfeb456_rxd_adr	 = 0x00016A;  
+static const unsigned long int  phaser_cfeb0123_rxd_adr = 0x00016C;
 
 // extra DCFEB Hot Channel Mask on OTMB
 static const unsigned long int  hcm501_adr              = 0x00016E;
@@ -2382,18 +2383,32 @@ const int cfeb4_rx_clock_delay_default  =  3;                   //default value 
 const int cfeb4_rx_posneg_default       =  0; 
 //
 //--------------------------------------------------------------
-//[0X16A] = ADR_PHASER6:  values in the xml file for cfeb5_rx
+//[0X16A] = ADR_PHASER7:  values in the xml file for cfeb5_rx
 //--------------------------------------------------------------
-const int cfeb5_rx_clock_delay_vmereg   =  phaser_cfeb5_rxd_adr;
+const int cfeb5_rx_clock_delay_vmereg   =  phaser_cfeb456_rxd_adr; // for compatibility, will be removed
 const int cfeb5_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
 const int cfeb5_rx_posneg_default       =  0; 
 //
 //--------------------------------------------------------------
-//[0X16C] = ADR_PHASER6:  values in the xml file for cfeb6_rx
+//[0X16C] = ADR_PHASER8:  values in the xml file for cfeb6_rx
 //--------------------------------------------------------------
-const int cfeb6_rx_clock_delay_vmereg   =  phaser_cfeb6_rxd_adr;
+const int cfeb6_rx_clock_delay_vmereg   =  phaser_cfeb456_rxd_adr; // for compatibility, will be removed
 const int cfeb6_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
 const int cfeb6_rx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X16C] = ADR_PHASER7:  values in the xml file for cfeb0123_rx
+//--------------------------------------------------------------
+const int cfeb0123_rx_clock_delay_vmereg   =  phaser_cfeb0123_rxd_adr;
+const int cfeb0123_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb0123_rx_posneg_default       =  0; 
+//
+//--------------------------------------------------------------
+//[0X16C] = ADR_PHASER8:  values in the xml file for cfeb456_rx
+//--------------------------------------------------------------
+const int cfeb456_rx_clock_delay_vmereg   =  phaser_cfeb456_rxd_adr;
+const int cfeb456_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
+const int cfeb456_rx_posneg_default       =  0; 
 //
 //---------------------------------------------------------------------
 // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays

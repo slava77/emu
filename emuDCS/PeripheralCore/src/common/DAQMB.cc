@@ -1893,7 +1893,7 @@ void DAQMB::dcfeb_buck_shift_comp_bc(int nstrip)
   ::usleep(200);
 }
 
-void DAQMB::chan2shift(int chan[5][6][16])
+void DAQMB::chan2shift(int chan[5][6][16], bool debug)
 {
    
    int i,j;
@@ -1908,19 +1908,21 @@ void DAQMB::chan2shift(int chan[5][6][16])
    //
    //   (*MyOutput_) << std::endl;
    
-   for(lay=0;lay<6;lay++){
-      for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
+   if (debug){
+     for(lay=0;lay<6;lay++){
+       for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
 	 int brdn = cfebs_[icfeb].number();
 	 for(int i=0; i<16;i++) {
 	   // if ( chan[brdn][lay][i] > 0 ) printf("%c", '\033');
-	    (*MyOutput_) << chan[brdn][lay][i] << "" ;
-	    //  printf("%c", '\033'); 
+	   (*MyOutput_) << chan[brdn][lay][i] << "" ;
+	   //  printf("%c", '\033'); 
 	 }
 	 (*MyOutput_) << " | " ;		
-      }
-      (*MyOutput_) << std::endl;
-   }
-   
+       }
+       (*MyOutput_) << std::endl;
+     }
+   }     
+
    for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
       DEVTYPE dv   = cfebs_[icfeb].scamDevice() ;
       int brdn = cfebs_[icfeb].number();
