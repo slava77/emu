@@ -8343,18 +8343,6 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     data_word = ConvertDigitalPhaseToVMERegisterValues_(cfeb4_rx_clock_delay_,cfeb4_rx_posneg_);
     //
-  } else if ( address == phaser_cfeb456_rxd_adr ) {
-    //---------------------------------------------------------------------
-    //0X11A = ADR_PHASER7: digital phase shifter for cfeb456
-    //---------------------------------------------------------------------
-    data_word = ConvertDigitalPhaseToVMERegisterValues_(cfeb456_rx_clock_delay_,cfeb456_rx_posneg_);
-    //
-  } else if ( address == phaser_cfeb0123_rxd_adr ) {
-    //---------------------------------------------------------------------
-    //0X11A = ADR_PHASER8: digital phase shifter for cfeb0123
-    //---------------------------------------------------------------------
-    data_word = ConvertDigitalPhaseToVMERegisterValues_(cfeb0123_rx_clock_delay_,cfeb0123_rx_posneg_);
-    //
   } else if ( address == cfeb0_3_interstage_adr ) {    
     //---------------------------------------------------------------------
     // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
@@ -8432,6 +8420,18 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //-------------------------------------------------------------------------------
     InsertValueIntoDataWord(dcfeb_badbits_reset_  ,dcfeb_badbits_reset_bithi  ,dcfeb_badbits_reset_bitlo  ,&data_word);
     InsertValueIntoDataWord(dcfeb_badbits_block_  ,dcfeb_badbits_block_bithi  ,dcfeb_badbits_block_bitlo  ,&data_word);
+    //
+  } else if ( address == phaser_cfeb456_rxd_adr ) {
+    //---------------------------------------------------------------------
+    //0X16A = ADR_PHASER7: digital phase shifter for cfeb456
+    //---------------------------------------------------------------------
+    data_word = ConvertDigitalPhaseToVMERegisterValues_(cfeb456_rx_clock_delay_,cfeb456_rx_posneg_);
+    //
+  } else if ( address == phaser_cfeb0123_rxd_adr ) {
+    //---------------------------------------------------------------------
+    //0X16C = ADR_PHASER8: digital phase shifter for cfeb0123
+    //---------------------------------------------------------------------
+    data_word = ConvertDigitalPhaseToVMERegisterValues_(cfeb0123_rx_clock_delay_,cfeb0123_rx_posneg_);
     //
   } else {
     //
