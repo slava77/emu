@@ -64,7 +64,7 @@ public:
   void CFEBTiming();                           //default is normal_scan
   void CFEBTiming(CFEBTiming_scanType);
   void CFEBTiming_with_Posnegs_simple_routine(int time_delay, int cfeb_num, unsigned int layers, unsigned int pattern, 
-					      int halfstrip, bool print_data, int cfeb_clock_phase);
+					      int halfstrip, bool print_data, int cfeb_clock_phase, bool groupME11AandB);
   void CFEBTiming_with_Posnegs(CFEBTiming_scanType);
   void CFEBTiming_without_Posnegs();
   //
