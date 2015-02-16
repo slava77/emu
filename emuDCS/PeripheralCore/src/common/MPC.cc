@@ -369,7 +369,7 @@ void MPC::read_fifos() {
   (*MyOutput_) << "MPC:  Read FIFO-B" << std::endl;
   char data[100];
   //read_fifo(STATUS, data);
-  read_now(CSR3, data);
+  read_one(CSR3, data);
   std::cout.fill('0');
   (*MyOutput_) << "begin FIFO status " << std::hex << std::setw(2) << (data[1]&0xFF) << std::setw(2)<< (data[0]&0xFF) << std::endl;
   std::cout.fill(' ');
@@ -420,12 +420,12 @@ void MPC::read_fifos() {
     std::cout.fill(' ');
     (*MyOutput_) << std::dec;    
     //
-    read_now(CSR3, data);
+    read_one(CSR3, data);
     empty_fifob=(data[0]&0x0008)>>3;
     items++;
   }
   //
-  read_now(CSR3, data);
+  read_one(CSR3, data);
   std::cout.fill('0');
   (*MyOutput_) << "end FIFO status " << std::hex << std::setw(2) << (data[1]&0xFF) << std::setw(2)<< (data[0]&0xFF) << std::endl;
   std::cout.fill(' ');
@@ -434,7 +434,7 @@ void MPC::read_fifos() {
 
 void MPC::read_csr0() {
   char data[100];
-  read_now(CSR0,data);
+  read_one(CSR0,data);
   (*MyOutput_).fill('0');
   (*MyOutput_) << "MPC: data read from CSR0: 0x" << std::hex 
        << std::setw(2) << (data[1]&0x00ff) << std::setw(2) << (data[0]&0x00ff)
@@ -520,11 +520,11 @@ int MPC::ReadMask()
   // bit=0 if either LCT is enabled
 
   int data, mask=0;
-
+  char *temp=(char *) &data;
   if(hardware_version_<=1)
   {
-     read_later(CSR7);
-     read_now(CSR8, (char *) &data);
+     read_one(CSR7, temp);
+     read_one(CSR8, temp+2);
 
      mask=0;
      for(int i=0; i<9; i++)
@@ -536,7 +536,7 @@ int MPC::ReadMask()
   }
   else if(hardware_version_==2)
   {
-     read_now(CSR7, (char *) &data);
+     read_one(CSR7, temp);
      mask=0;
      for(int i=0; i<9; i++)
      {

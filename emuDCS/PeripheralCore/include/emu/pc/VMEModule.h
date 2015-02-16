@@ -189,10 +189,11 @@ public:
   int new_vme(char fcn, unsigned vme, 
                        unsigned short data, char *rcv, int when);
   void write_later(unsigned  address, unsigned short data); 
-  void  read_later(unsigned  address);
-  int    write_now(unsigned  address, unsigned short data, char *rdbuf);
-  int     read_now(unsigned  address, char *rdbuf);
-  void   vme_delay(unsigned short useconds);
+  void read_later(unsigned  address);
+  int  write_now(unsigned  address, unsigned short data, char *rdbuf);
+  int  read_now(unsigned  address, char *rdbuf);
+  int  read_one(unsigned  address, char *rdbuf);
+  void vme_delay(unsigned short useconds);
 
   char wbuf[9000];
   int nwbuf;

@@ -1337,6 +1337,13 @@ int VMEModule::read_now(unsigned  address, char *rdbuf)
   return new_vme(VME_READ, address, 0, rdbuf, NOW);
 }
 
+int VMEModule::read_one(unsigned  address, char *rdbuf) 
+{
+  int r=new_vme(VME_READ, address, 0, rcvbuf2, NOW);
+  memcpy(rdbuf, rcvbuf2, 2);
+  return r;
+}
+
 void VMEModule::vme_delay(unsigned short data)
 {
   new_vme(VME_DELAY, 0, data, NULL, LATER);

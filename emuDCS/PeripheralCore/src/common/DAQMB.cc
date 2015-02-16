@@ -660,7 +660,7 @@ bool DAQMB::SelfTest(){
 int DAQMB::ReadRegister(unsigned address)
 {
    int temp;
-   read_now(address, (char *)&temp);
+   read_one(address, (char *)&temp);
    return temp&0xFFFF;
 }
 
@@ -7306,7 +7306,7 @@ bool DAQMB::checkvme_fail()
    unsigned short data;
 
    failed_checkvme_ = 0;
-   int i=read_now(read_ADC_SELECT, (char *) &data);
+   int i=read_one(read_ADC_SELECT, (char *) &data);
    if(i<=0) failed_checkvme_ = 1;  // if VCC problem
    else if(data==0xBAAD)  failed_checkvme_ = 1; // DMB time-out
    return (bool)failed_checkvme_;
@@ -7621,7 +7621,7 @@ void DAQMB::write_cfeb_selector(int cfeb_mask)
 int DAQMB::read_cfeb_selector()
 {
   int mask;
-  read_now(READ_CFEB_SELECTOR, (char *)&mask);
+  read_one(READ_CFEB_SELECTOR, (char *)&mask);
   mask &= ((hardware_version_==2)?0x7F:0x1F);
   return mask;
 }

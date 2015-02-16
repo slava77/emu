@@ -41,7 +41,7 @@ void DDU::writeRegister(unsigned reg, int value)
 int DDU::readRegister(unsigned reg)
 {
   int value;
-  read_now(reg, (char *)(&value));
+  read_one(reg, (char *)(&value));
   return value;
 } 
 
@@ -262,7 +262,7 @@ unsigned DDU::readUserIDCode(int dev, int code, int cnt)
         jtag= jbase + (15 <<8) + (2 <<2);   // SDR with trailer
         write_later(jtag, 0);
         jtag= jbase + (15 <<8) + (5 <<2);   // read
-        read_now(jtag, (char *)(&id));
+        read_one(jtag, (char *)(&id));
         return id;
 }
 
