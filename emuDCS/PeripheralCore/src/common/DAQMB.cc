@@ -5853,13 +5853,29 @@ char * DAQMB::GetCounters()
 
   return (char *)FinalCounter;
   }
+  else if(hardware_version_==2)
+  {
+     read_later(0x300C+0x3F);
+     for(int addr=0x71; addr<=0x77; addr++) read_later(0x300C+addr); 
+     for(int addr=0x21; addr<=0x29; addr++) read_later(0x300C+addr); 
+     read_now(0x300C+0x4A, (char *)NewCounter);
+     return (char *)NewCounter;
+  }
   else return NULL;
 }
 
 unsigned DAQMB::GetCounter(int counter)
 {
-  if(counter>=0 && counter<=8) return FinalCounter[counter];
-  else return 0;
+  unsigned r=0;
+  if(hardware_version_<=1)
+  {
+     if(counter>=0 && counter<=8) r=FinalCounter[counter];
+  }
+  else if(hardware_version_==2)
+  {
+     if(counter>=0 && counter<=18) r=NewCounter[counter];
+  }
+  return r;
 }
 
 void DAQMB::lowv_dump()

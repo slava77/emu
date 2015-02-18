@@ -9407,7 +9407,9 @@ int TMB::DCSreadAll(char *data)
   else return 2;
 */
   // use the following as a temporary solution while OTMB SYSMON disabled 
-  int TMB_T=100*ReadTMBtempFPGA();
+  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
+  int command = 0x01;   // "remote" temperature read
+  int TMB_T = 100*smb_io(smb_adr,command,1);
   memcpy(data+2,&TMB_T,2);
   return 4;
 }

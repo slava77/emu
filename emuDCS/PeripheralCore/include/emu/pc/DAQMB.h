@@ -1030,6 +1030,7 @@ public:
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
   int  TestStatus_[20];
   unsigned char FinalCounter[10];
+  unsigned short NewCounter[20];
   //
   unsigned long int expected_control_firmware_tag_;
   int       expected_vme_firmware_tag_;

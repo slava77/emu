@@ -789,7 +789,7 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
   //                1   good reading
   //                0   bad reading or no reading (skipped/masked)
 
-  int TOTAL_DMB_COUNTERS=12; // aligned at 4 bytes (integer)
+  int TOTAL_DMB_COUNTERS=48; // aligned at 4 bytes (integer)
   char * countbuf;
   short *buf2, flag=0;
 
@@ -802,6 +802,7 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
   {
     int imask= 0x3F & (myDmbs[i]->GetPowerMask());
     bool chamber_on = (imask!=0x3F);
+    int Dversion=myDmbs[i]->GetHardwareVersion();
 
     if(IsAlive() && (mask & (1<<i))==0 && chamber_on)
     {  countbuf=myDmbs[i]->GetCounters();
