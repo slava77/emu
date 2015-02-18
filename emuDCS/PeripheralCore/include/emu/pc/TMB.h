@@ -559,7 +559,7 @@ public:
   void EnableL1aRequest();
   void DisableL1aRequest();
   //
-  void EnableCLCTInputs(int CLCTInputs );
+  void EnableCLCTInputs(int CLCTInputs = 0x7f );
   void DisableCLCTInputs();
   void DisableALCTInputs();
   //
@@ -1102,21 +1102,33 @@ public:
   //0X42 = ADR_CFEB_INJ:  CFEB Injector Control:
   //----------------------------------------------------------------
   //!enableCLCTInputs = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB input
-  inline void SetEnableCLCTInputs(int enableCLCTInputs) { enableCLCTInputs_ = enableCLCTInputs; } 
+  inline void SetEnableCLCTInputs(int enableCLCTInputs) { 
+    enableCLCTInputs_ = (enableCLCTInputs & 0x1f); 
+    enableCLCTInputs_extend_ = ( (enableCLCTInputs >> 5) & 0x3);
+  } 
   inline int  GetEnableCLCTInputs() { return enableCLCTInputs_; }
+  inline int  GetReadEnableCLCTInputs() { return read_enableCLCTInputs_; }
   //
   //!cfeb_ram_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [do not select,select] CFEB for RAM read/write
-  inline void SetSelectCLCTRAM(int cfeb_ram_sel) { cfeb_ram_sel_ = cfeb_ram_sel; }        
+  inline void SetSelectCLCTRAM(int cfeb_ram_sel) { 
+    cfeb_ram_sel_ = ( cfeb_ram_sel & 0x1f ); 
+    cfeb_ram_sel_extend_ = ( (cfeb_ram_sel >> 5) & 0x3 );
+  }        
   inline int  GetSelectCLCTRAM() { return cfeb_ram_sel_; }
+  inline int  GetReadSelectCLCTRAM() { return read_cfeb_ram_sel_; }
   //
   //!cfeb_inj_en_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
-  inline void SetEnableCLCTInject(int cfeb_inj_en_sel) { cfeb_inj_en_sel_ = cfeb_inj_en_sel; }  
+  inline void SetEnableCLCTInject(int cfeb_inj_en_sel) { 
+    cfeb_inj_en_sel_ = ( cfeb_inj_en_sel & 0x1f ); 
+    cfeb_inj_en_sel_extend_ = ( ( cfeb_inj_en_sel >> 5 ) & 0x3 );
+  }  
   inline int  GetEnableCLCTInject() { return cfeb_inj_en_sel_; }
   inline int  GetReadEnableCLCTInject() { return read_cfeb_inj_en_sel_; }
   //
   //!start_pattern_inj = 1 = start pattern injector
   inline void SetStartPatternInjector(int start_pattern_inj) { start_pattern_inj_ = start_pattern_inj; } 
   inline int  GetStartPatternInjector() { return start_pattern_inj_; }
+  inline int  GetReadStartPatternInjector() { return read_start_pattern_inj_; }
   //
   //------------------------------------------------------------------
   //0X4A,4C,4E = ADR_HCM001,HCM023,HCM045 = CFEB0 Hot Channel Masks
@@ -1193,7 +1205,10 @@ public:
   inline int  GetEnableAllCfebsActive() { return all_cfeb_active_; }
   //
   //!cfebs_enabled_ = [0-31] -> normally copied from 0x42.  See TMB documentation before setting these bits...
-  inline void SetCfebEnable(int cfebs_enabled) { cfebs_enabled_ = cfebs_enabled; }
+  inline void SetCfebEnable(int cfebs_enabled) { 
+    cfebs_enabled_ = ( cfebs_enabled & 0x1f ); 
+    cfebs_enabled_extend_ = ( (cfebs_enabled >> 5)  & 0x3);
+  }
   inline int  GetCfebEnable() { return cfebs_enabled_; }
   //
   //! value = 42, 68 = VME register which controls the CFEB mask.  See TMB documentation before setting this value.
@@ -2258,13 +2273,67 @@ public:
   //GTX link error count (full scale count is hex E0)
   inline int  GetReadGtxRxErrorCount(int cfebNum) { return read_gtx_rx_error_count_[cfebNum]; }
   
+  //
+  //----------------------------------------------------------------
+  //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN: 
+  //----------------------------------------------------------------
+  //!enableCLCTInputs for 5-6 = [0-3]... 2 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB input
+  //! SetEnableCLCTInputsExtend shouldn't really be used by itself (see SetEnableCLCTInputs)
+  inline void SetEnableCLCTInputsExtend(int enableCLCTInputs) { enableCLCTInputs_extend_ = enableCLCTInputs; } 
+  inline int  GetEnableCLCTInputsExtend() { return enableCLCTInputs_extend_; }
+  inline int  GetReadEnableCLCTInputsExtend() { return read_enableCLCTInputs_extend_; }
+  //
+  //!cfeb_ram_sel for 5-6 = [0-3]... 2 bit mask, 1 bit per CFEB -> each bit [0,1] = [do not select,select] CFEB for RAM read/write
+  //!SetSelectCLCTRAMExtend shouldn't really be used by itself: preferred way is to set via SetSelectCLCTRAM
+  inline void SetSelectCLCTRAMExtend(int cfeb_ram_sel) { cfeb_ram_sel_extend_ = cfeb_ram_sel; }        
+  inline int  GetSelectCLCTRAMExtend() { return cfeb_ram_sel_extend_; }
+  inline int  GetReadSelectCLCTRAMExtend() { return read_cfeb_ram_sel_extend_; }
+  //
+  //!cfeb_inj_en_sel for 5-6 = [0-3]... 2 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
+  //!SetEnableCLCTInjectExtend shouldn't really be used by itself: preferred way is to set via SetEnableCLCTInject
+  inline void SetEnableCLCTInjectExtend(int cfeb_inj_en_sel) { cfeb_inj_en_sel_extend_ = cfeb_inj_en_sel; }  
+  inline int  GetEnableCLCTInjectExtend() { return cfeb_inj_en_sel_extend_; }
+  inline int  GetReadEnableCLCTInjectExtend() { return read_cfeb_inj_en_sel_extend_; }
+  //
+  //!cfebs_enabled_extend for 5-6 = [0-3] -> normally copied from 0x42.  See TMB documentation before setting these bits...
+  //!SetCfebEnableExtend shouldn't really be used by itself: preferred way is to set via SetCfebEnable
+  inline void SetCfebEnableExtend(int cfebs_enabled) { cfebs_enabled_extend_ = cfebs_enabled; }
+  inline int  GetCfebEnableExtend() { return cfebs_enabled_extend_; }
+  inline int  GetReadCfebEnableExtend() { return read_cfebs_enabled_extend_; }
+  //
+  //!cfebs_enabled_extend_readback  = should be the same as cfebs_enabled_extend for 5-6 
+  inline int  GetReadCfebEnableExtendReadback() { return read_cfebs_enabled_extend_readback_; }
+  //
+  //
+  //---------------------------------------------------------------------
+  // 0X186 = ADR_TMB_MMCM_LOCK_TIME
+  //---------------------------------------------------------------------
   inline int GetReadTMBMMCMLockTime() { return read_tmb_mmcm_lock_time_;}
+  //---------------------------------------------------------------------
+  // 0X188 = ADR_TMB_POWER_UP_TIME
+  //---------------------------------------------------------------------
   inline int GetReadTMBPowerUpTime() { return read_tmb_power_up_time_;}
+  //---------------------------------------------------------------------
+  // 0X18A = ADR_TMB_LOAD_CFG_TIME
+  //---------------------------------------------------------------------
   inline int GetReadTMBLoadCfgTime() { return read_tmb_load_cfg_time_;}
+  //---------------------------------------------------------------------
+  // 0X18C = ADR_ALCT_PHASER_LOCK_TIME
+  //---------------------------------------------------------------------
   inline int GetReadALCTPhaserLockTime() { return read_alct_phaser_lock_time_;}
+  //---------------------------------------------------------------------
+  // 0X18E = ADR_ALCT_LOAD_CFG_TIME
+  //---------------------------------------------------------------------
   inline int GetReadALCTLoadCfgTime() { return read_alct_load_cfg_time_;}
+  //---------------------------------------------------------------------
+  // 0X190 = ADR_GTX_RST_DONE_TIME
+  //---------------------------------------------------------------------
   inline int GetReadGtxRstDoneTime() { return read_gtx_rst_done_time_;}
+  //---------------------------------------------------------------------
+  // 0X192 = ADR_GTX_SYNC_DONE_TIME
+  //---------------------------------------------------------------------
   inline int GetReadGtxSyncDoneTime() { return read_gtx_sync_done_time_;}
+  //
   //---------------------------------------------------------------------
   // 0X15C ADR_V6_CFEB_BADBITS_CTRL: CFEB Bad Bits Control/Status (See Adr 0x122) (extra DCFEB Bad Bits on OTMB)
   //---------------------------------------------------------------------
@@ -3659,6 +3728,22 @@ private:
   int read_dcfeb_badbits_block_  ;
   int read_dcfeb_badbits_found_  ;
   //
+  //------------------------------------------------------------------
+  //0X17A = ADR_V6_EXTEND: extensions of ADR_CFEB_INJ and ADR_SEQ_TRIG_EN 
+  //------------------------------------------------------------------
+  //
+  int enableCLCTInputs_extend_;
+  int cfeb_ram_sel_extend_;
+  int cfeb_inj_en_sel_extend_;
+  //
+  int read_enableCLCTInputs_extend_;
+  int read_cfeb_ram_sel_extend_;
+  int read_cfeb_inj_en_sel_extend_;
+  //
+  int cfebs_enabled_extend_;
+  //
+  int read_cfebs_enabled_extend_;
+  int read_cfebs_enabled_extend_readback_;
   //---------------------------------------------------------------------
   // 0X186 = ADR_TMB_MMCM_LOCK_TIME
   //---------------------------------------------------------------------
