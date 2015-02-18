@@ -2585,6 +2585,12 @@ void TMB::DisableCLCTInputs(){
   sndbuf[1] = (rcvbuf[1]&0xe0) ;
   tmb_vme(VME_WRITE,cfeb_inj_adr,sndbuf,rcvbuf,NOW);
   //
+  if (hardware_version_>=2){
+    tmb_vme(VME_READ,dcfeb_inj_seq_trig_adr,sndbuf,rcvbuf,NOW);
+    sndbuf[0] = (rcvbuf[0]&0xff);
+    sndbuf[1] = (rcvbuf[1]&0xfc) ; //why are the bit fields hardcoded?
+    tmb_vme(VME_WRITE,dcfeb_inj_seq_trig_adr,sndbuf,rcvbuf,NOW);
+  }
 }
 //
 void TMB::DisableExternalCCB(){
@@ -2623,16 +2629,26 @@ void TMB::EnableInternalL1aSequencer(){
   //
 }
 
-void TMB::EnableCLCTInputs(int CLCTInputs = 0x1f){
+void TMB::EnableCLCTInputs(int CLCTInputs){
 //
+   int CLCTInputs0to4 = CLCTInputs & 0x1f;
    int adr;
    int rd_data;
    adr = cfeb_inj_adr ;
    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
    rd_data   = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
    sndbuf[0] = rcvbuf[0];
-   sndbuf[1] = (rcvbuf[1] & 0xe0) | CLCTInputs ;
+   sndbuf[1] = (rcvbuf[1] & 0xe0) | CLCTInputs0to4 ;
    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+
+   if (hardware_version_ >= 2){
+     CLCTInputs56 = ((CLCTInputs>>5) & 0x3);
+     adr = dcfeb_inj_seq_trig_adr;
+     tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+     rd_data   = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+     sndbuf[0] = rcvbuf[0];
+     sndbuf[1] = (rcvbuf[1] & 0xfc) | CLCTInputs56 ;
+   }
 //
 }
 
@@ -5924,6 +5940,16 @@ void TMB::SetTMBRegisterDefaults() {
   //---------------------------------------------------------------------
   dcfeb_badbits_reset_ = dcfeb_badbits_reset_default;
   dcfeb_badbits_block_ = dcfeb_badbits_block_default;
+  //
+  //------------------------------------------------------------------
+  //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN:
+  //------------------------------------------------------------------
+  enableCLCTInputs_extend_           = enableCLCTInputs_extend_default ;
+  cfeb_ram_sel_extend_               = cfeb_ram_sel_extend_default     ;
+  cfeb_inj_en_sel_extend_            = cfeb_inj_en_sel_extend_default  ;
+  cfebs_enabled_extend_              = cfebs_enabled_extend_default     ;  
+  cfebs_enabled_extend_readback_     = cfebs_enabled_extend_readback_default;  
+
   return;
 }
 //
@@ -6796,6 +6822,16 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
       read_badbits_[layer][distrip] = ExtractValueFromData(data,bit_in_register,bit_in_register);
     }
     //
+  } else if ( address == cfeb_inj_adr ) {
+    //------------------------------------------------------------------
+    //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN:
+    //------------------------------------------------------------------
+    read_enableCLCTInputs_extend_       = ExtractValueFromData(data,enableCLCTInputs_extend_bitlo        ,enableCLCTInputs_extend_bithi      );
+    read_cfeb_ram_sel_extend_           = ExtractValueFromData(data,cfeb_ram_sel_extend_bitlo            ,cfeb_ram_sel_extend_bithi          );
+    read_cfeb_inj_en_sel_extend_        = ExtractValueFromData(data,cfeb_inj_en_sel_extend_bitlo         ,cfeb_inj_en_sel_extend_bithi       );
+    read_cfebs_enabled_extend_          = ExtractValueFromData(data,cfebs_enabled_extend_bitlo           ,cfebs_enabled_extend_bithi         );
+    read_cfebs_enabled_extend_readback_ = ExtractValueFromData(data,cfebs_enabled_extend_readback_bitlo  ,cfebs_enabled_extend_readback_bithi);
+    //
   } else if ( address == tmb_mmcm_lock_time_adr) {
     read_tmb_mmcm_lock_time_ = ExtractValueFromData(data,0,15);
   } else if ( address == tmb_power_up_time_adr) {
@@ -7192,6 +7228,18 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    all CFEBs active                = "   << std::hex << read_all_cfeb_active_    << std::endl;
     (*MyOutput_) << "    CFEBs enabled                   = 0x" << std::hex << read_cfebs_enabled_      << std::endl;
     (*MyOutput_) << "    enable CFEBS through VME 0x42   = "   << std::hex << read_cfeb_enable_source_ << std::endl;
+    //
+  } else if ( address == dcfeb_inj_seq_trig_adr ) {
+    //------------------------------------------------------------------
+    //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN: 
+    //------------------------------------------------------------------
+    (*MyOutput_) << " ->CFEB injector control register extension:" << std::endl;
+    (*MyOutput_) << "    CFEB enable mask               = 0x" << std::hex << read_enableCLCTInputs_extend_  << std::endl;
+    (*MyOutput_) << "    select CFEB for RAM read/write = 0x" << std::hex << read_cfeb_ram_sel_extend_      << std::endl;
+    (*MyOutput_) << "    CFEB enable injector mask      = 0x" << std::hex << read_cfeb_inj_en_sel_extend_   << std::endl;
+    (*MyOutput_) << " ->Sequencer Trigger Source Enable register extension:" << std::endl;
+    (*MyOutput_) << "    CFEBs enabled                  = 0x" << std::hex << read_cfebs_enabled_extend_      << std::endl;
+    (*MyOutput_) << "    CFEBs enabled (readback)       = 0x" << std::hex << read_cfebs_enabled_extend_readback_     << std::endl;
     //
   } else if ( address == seq_trig_dly0_adr ) {
     //------------------------------------------------------------------
@@ -8433,6 +8481,15 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     data_word = ConvertDigitalPhaseToVMERegisterValues_(cfeb0123_rx_clock_delay_,cfeb0123_rx_posneg_);
     //
+  } else if ( address == dcfeb_inj_seq_trig_adr ) {
+    //------------------------------------------------------------------
+    //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN: 
+    //------------------------------------------------------------------
+    InsertValueIntoDataWord(enableCLCTInputs_extend_ ,enableCLCTInputs_extend_bithi ,enableCLCTInputs_extend_bitlo ,&data_word);
+    InsertValueIntoDataWord(cfeb_ram_sel_extend_     ,cfeb_ram_sel_extend_bithi     ,cfeb_ram_sel_extend_bitlo     ,&data_word);
+    InsertValueIntoDataWord(cfeb_inj_en_sel_extend_  ,cfeb_inj_en_sel_extend_bithi  ,cfeb_inj_en_sel_extend_bitlo  ,&data_word);
+    InsertValueIntoDataWord(cfebs_enabled_extend_    ,cfebs_enabled_extend_bithi    ,cfebs_enabled_extend_bitlo    ,&data_word);
+    //
   } else {
     //
     (*MyOutput_) << "TMB: ERROR in FillTMBRegister, VME address = " << address << " not supported to be filled" << std::endl;
@@ -8628,11 +8685,14 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     // If no  => expected value of address 0x68 = write value of address 0x68 
     //
     int cfebs_enabled_expected;
+    int cfebs_enabled_extend_expected;
     //
     if (GetCfebEnableSource() == 1) {
       cfebs_enabled_expected = enableCLCTInputs_;
+      cfebs_enabled_extend_expected = enableCLCTInputs_extend_;
     } else {
       cfebs_enabled_expected = cfebs_enabled_; 
+      cfebs_enabled_extend_expected = cfebs_enabled_extend_; 
     }
     //
     //-----------------------------------------------------------------
@@ -9036,6 +9096,18 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //---------------------------------------------------------------------
     // Here check only the bit (ANDed between all five CFEB bits...)
     config_ok &= compareValues("TMB cfeb_badbits_block",GetReadCFEBBadBitsBlock(),GetCFEBBadBitsBlock(),print_errors); 
+    //
+    //
+    //------------------------------------------------------------------
+    //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN:
+    //------------------------------------------------------------------
+    if (hardware_version_>=2){
+      config_ok &= compareValues("TMB enableCLCTInputs_reg42 Extension"                 ,read_enableCLCTInputs_extend_       ,enableCLCTInputs_extend_     , print_errors);
+      config_ok &= compareValues("TMB Select CFEB56 n for RAM read/write (not in xml)"  ,read_cfeb_ram_sel_extend_           ,cfeb_ram_sel_extend_         , print_errors);
+      config_ok &= compareValues("TMB Enable CFEB56 n for injector trigger (not in xml)",read_cfeb_inj_en_sel_extend_        ,cfeb_inj_en_sel_extend_      , print_errors); 
+      config_ok &= compareValues("TMB enableCLCTInputs_reg68 Extension"                 ,read_cfebs_enabled_extend_          ,cfebs_enabled_extend_expected, print_errors);
+      config_ok &= compareValues("TMB enableCLCTInputs_reg68 Extension Readback"        ,read_cfebs_enabled_extend_readback_ ,cfebs_enabled_extend_expected, print_errors);
+    }
     //
   }
   //
