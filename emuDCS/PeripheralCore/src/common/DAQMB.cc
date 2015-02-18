@@ -1118,7 +1118,7 @@ void DAQMB::CheckCFEBsConfiguration(bool print_errors) {
   //
   const float comparison_threshold = 100;
   //
-  float compthresh[7];
+  float compthresh[5];
   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)  compthresh[lfeb]=adcplus(2,lfeb);
   //
   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
@@ -1611,7 +1611,7 @@ void DAQMB::set_dac(float volt0,float volt1)
 }
 
 
-void DAQMB::halfset(int icrd,int ipln,int ihalf,int chan[][6][16])
+void DAQMB::halfset(int icrd,int ipln,int ihalf,int chan[7][6][16])
 {
 
    int ichan,iside;
@@ -1893,7 +1893,7 @@ void DAQMB::dcfeb_buck_shift_comp_bc(int nstrip)
   ::usleep(200);
 }
 
-void DAQMB::chan2shift(int chan[][6][16], bool debug)
+void DAQMB::chan2shift(int chan[5][6][16], bool debug)
 {
    
    int i,j;

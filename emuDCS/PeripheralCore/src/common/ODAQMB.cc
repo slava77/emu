@@ -911,7 +911,7 @@ void ODAQMB::CheckCFEBsConfiguration(bool print_errors) {
   //
   const float comparison_threshold = 100;
   //
-  float compthresh[7];
+  float compthresh[5];
   for(unsigned lfeb=0; lfeb<dcfebs_.size();lfeb++)  compthresh[lfeb]=adcplus(2,lfeb);
   //
   for(unsigned lfeb=0; lfeb<dcfebs_.size();lfeb++){
@@ -1192,7 +1192,7 @@ void ODAQMB::set_dac(float volt0,float volt1)
 }
 
 
-void ODAQMB::halfset(int icrd,int ipln,int ihalf,int chan[][6][16])
+void ODAQMB::halfset(int icrd,int ipln,int ihalf,int chan[7][6][16])
 {
 
    int ichan,iside;
@@ -1282,7 +1282,7 @@ void ODAQMB::trigsetx(int *hp, int CFEBInput)
   //
   //  (*MyOutput_) << " Setting halfset " << std::endl;
   //
-  for(k=0;k<7;k++){
+  for(k=0;k<5;k++){
      for(j=0;j<6;j++){
        if (((CFEBInput>>k)&0x1)&&hp[j]>-1)halfset(k,j,hp[j]+hs[j],chan);
      }
@@ -1335,7 +1335,7 @@ void ODAQMB::buck_shift_comp_bc(int nstrip)
   }
 }
 
-void ODAQMB::chan2shift(int chan[][6][16])
+void ODAQMB::chan2shift(int chan[5][6][16])
 {
    
    int i;
@@ -2324,7 +2324,7 @@ int ODAQMB::Fill_BUCK_FLASH_contents(char * flash_content)
   //flash_content=(char *)malloc(500);
   //
   int tms;
-  int tdo[7];
+  int tdo[5];
   char tbits[6]={0x01,0x02,0x04,0x08,0x10,0x20};
 
   int flash_bytsiz=0;
@@ -2522,7 +2522,7 @@ int ODAQMB::Fill_BUCK_FLASH_contents(char * flash_content)
   jtag_buckflash_engine(flash_bytsiz,flash_content,ninstr,instr_t,instr_d);
   flash_bytsiz=flash_bytsiz+ninstr;
 
-  int thresh[7];
+  int thresh[5];
   for(int cfeb=0;cfeb<7;cfeb++){
    char dt[2];
    int dthresh=int(4095*((3.5-comp_thresh_cfeb_[cfeb])/3.5)); 
