@@ -5366,6 +5366,9 @@ void TMB::DefineTMBConfigurationRegisters_(){
   //
   // (CLCT) pretrigger configuration:
   TMBConfigurationRegister.push_back(seq_trig_en_adr   );   //0x68 sequencer trigger source enables
+  if (hardware_version_>=2){
+    TMBConfigurationRegister.push_back(dcfeb_inj_seq_trig_adr); //0x17A extends 0x68 and 0x42 bit fields for CFEB 5 and 6
+  }
   TMBConfigurationRegister.push_back(seq_clct_adr      );   //0x70 CLCT sequencer configuration
   TMBConfigurationRegister.push_back(seqmod_adr        );   //0xAC sequencer Trigger modifiers
   TMBConfigurationRegister.push_back(layer_trg_mode_adr);   //0xF0 Layer-Trigger mode
