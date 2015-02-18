@@ -876,6 +876,7 @@ inline void ChamberUtilities::CFEBTiming_PrintConfiguration(CFEBTiming_Configura
   (*MyOutput_) << std::setw(23) << "cfeb_rx_posneg: " << std::setw(4) << config.cfeb_rx_posneg << std::endl;
   (*MyOutput_) << std::setw(23) << "cfeb_rx_clock_delay: " << std::setw(4) << config.cfeb_rx_clock_delay << std::endl;
   (*MyOutput_) << std::setw(23) << "cfeb_clock_phase: " << std::setw(4) << config.cfeb_clock_phase << std::endl;
+  (*MyOutput_) << std::setw(23) << "groupME11AandB: " << std::setw(4) << config.groupME11AandB << std::endl;
 }
     //
 inline bool ChamberUtilities::CFEBTiming_CheckCLCT(int cfeb, unsigned int layer_mask, unsigned int pattern, unsigned int halfstrip) {
@@ -930,9 +931,15 @@ inline void ChamberUtilities::CFEBTiming_ReadConfiguration(CFEBTiming_Configurat
     config.tmb_l1a_delay = thisTMB->GetL1aDelay();
   }
   
-  thisTMB->ReadRegister(phaser_cfeb0_rxd_adr); // Get phaser information
-  config.cfeb_rx_posneg = thisTMB->GetReadCfeb0RxPosNeg();
-  config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0RxClockDelay();
+  if (config.groupME11AandB){
+    thisTMB->ReadRegister(phaser_cfeb0123_rxd_adr); // Get phaser information
+    config.cfeb_rx_posneg = thisTMB->GetReadCfeb0123RxPosNeg();
+    config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0123RxPosNegRxClockDelay();
+  } else {
+    thisTMB->ReadRegister(phaser_cfeb0_rxd_adr); // Get phaser information
+    config.cfeb_rx_posneg = thisTMB->GetReadCfeb0RxPosNeg();
+    config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0RxClockDelay();
+  }
 }
     //
 inline bool ChamberUtilities::CFEBTiming_CheckConfiguration(const CFEBTiming_Configuration & orig) {
@@ -1003,6 +1010,10 @@ inline bool ChamberUtilities::CFEBTiming_CheckConfiguration(const CFEBTiming_Con
   }
   if(read.cfeb_rx_clock_delay != orig.cfeb_rx_clock_delay) {
     (*MyOutput_) << std::setw(37) << "BAD cfeb_rx_clock_delay: EXPECTED: " << std::setw(4) << orig.cfeb_rx_clock_delay << " | READ: " << std::setw(4) << read.cfeb_rx_clock_delay << std::endl;
+    same = false;
+  }
+  if(is_me11_ && ( read.groupME11AandB != orig.groupME11AandB )) {
+    (*MyOutput_) << std::setw(37) << "BAD groupME11AandB: EXPECTED: " << std::setw(4) << orig.groupME11AandB << " | READ: " << std::setw(4) << read.groupME11AandB << std::endl;
     same = false;
   }
   return same;
@@ -1176,7 +1187,7 @@ inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration
 void ChamberUtilities::CFEBTiming_PulseInject(bool is_inject_scan, int cfeb, unsigned int layer_mask, unsigned int pattern, 
 					      unsigned int halfstrip, unsigned int n_pulses, unsigned int pulse_delay) {
   if (debug_ >= 5) std::cout << "Start: " << __PRETTY_FUNCTION__  << std::endl;
-  const int MaxCFEB = 5;
+  const int MaxCFEB = is_me11_ ? 7: 5;//this isn't really used
   const int MaxTimeDelay=25;
   const bool is_cfeb_scan = cfeb < 0;
   
@@ -1629,7 +1640,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     config.cfeb_mask = 0x7f;
   else
     config.cfeb_mask = 0x1 << cfeb_num;
-  
+  config.groupME11AandB = groupME11AandB;
   
   CFEBTiming_PrintConfiguration(config);
   

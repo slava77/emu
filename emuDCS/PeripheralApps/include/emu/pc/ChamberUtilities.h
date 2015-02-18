@@ -143,6 +143,7 @@ public:
     int tmb_l1a_delay;
     int cfeb_rx_posneg;
     int cfeb_rx_clock_delay;
+    bool groupME11AandB;
     
     int cfeb_mask;
     
@@ -168,7 +169,8 @@ public:
       cfeb_rx_posneg(0),
       cfeb_rx_clock_delay(0),
       cfeb_clock_phase(0),
-      cfeb_mask(0x7f)
+      cfeb_mask(0x7f),
+      groupME11AandB(false)
     {}
     
     inline CFEBTiming_Configuration(const CFEBTiming_Configuration & o):
@@ -192,7 +194,8 @@ public:
       cfeb_rx_posneg(o.cfeb_rx_posneg),
       cfeb_rx_clock_delay(o.cfeb_rx_clock_delay),
       cfeb_clock_phase(o.cfeb_clock_phase),
-      cfeb_mask(o.cfeb_mask)
+      cfeb_mask(o.cfeb_mask),
+      groupME11AandB(o.groupME11AandB)
     {}
   };
 
