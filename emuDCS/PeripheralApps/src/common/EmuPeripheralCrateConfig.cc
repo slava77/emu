@@ -5535,7 +5535,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","CFEB Scan") << std::endl ;
   *out << cgicc::form() << std::endl ;
   //
-  for (int CFEBs = 0; CFEBs<5; CFEBs++) {
+  int MaxCFEBs = thisTMB->GetHardwareVersion() >= 2 ? 7 : 5;
+  for (int CFEBs = 0; CFEBs<MaxCFEBs; CFEBs++) {
     *out << "CFEB Id="<<CFEBs<< " " ;
     for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) {
       *out << MyTest[tmb][current_crate_].GetCFEBStripScan(CFEBs,HalfStrip) ;
