@@ -337,7 +337,7 @@ static const unsigned long int  badbits601_adr          = 0x000164;  //ADR_V6_CF
 static const unsigned long int  badbits623_adr          = 0x000166;  //ADR_V6_CFEB6_BADBITS_LY23
 static const unsigned long int  badbits645_adr          = 0x000168;  //ADR_V6_CFEB6_BADBITS_LY45
 
-static const unsigned long int  phaser_cfeb456_rxd_adr	 = 0x00016A;  
+static const unsigned long int  phaser_cfeb456_rxd_adr	= 0x00016A;  
 static const unsigned long int  phaser_cfeb0123_rxd_adr = 0x00016C;
 
 // extra DCFEB Hot Channel Mask on OTMB
@@ -347,6 +347,9 @@ static const unsigned long int  hcm545_adr              = 0x000172;
 static const unsigned long int  hcm601_adr              = 0x000174;
 static const unsigned long int  hcm623_adr              = 0x000176;
 static const unsigned long int  hcm645_adr              = 0x000178;
+
+//CFEB enable and mask extension bits for cfeb_inj_adr and seq_trig_en_adr: ADR_V6_EXTEND
+ static const unsigned long int  dcfeb_inj_seq_trig_adr = 0x00017A;
 
 // config timers on OTMB
 static const unsigned long int tmb_mmcm_lock_time_adr   = 0x000186;
@@ -2715,6 +2718,35 @@ const int gtx_rx5_error_count_vmereg    =  v6_gtx_rx5_adr;
 const int gtx_rx6_error_count_vmereg    =  v6_gtx_rx6_adr;
 const int gtx_rx_error_count_bitlo     =  8;
 const int gtx_rx_error_count_bithi     =  15;
+
+//
+//------------------------------------------------------------------
+//0X17A  ADR_V6_EXTEND: extensions of ADR_CFEB_INJ and ADR_SEQ_TRIG_EN
+//------------------------------------------------------------------
+const int enableCLCTInputs_extend_vmereg             = dcfeb_inj_seq_trig_adr;
+const int enableCLCTInputs_extend_bitlo              =   0;
+const int enableCLCTInputs_extend_bithi              =   1;
+const int enableCLCTInputs_extend_default            = 0x3;
+//
+const int cfeb_ram_sel_extend_vmereg                 = dcfeb_inj_seq_trig_adr;
+const int cfeb_ram_sel_extend_bitlo                  =   2;
+const int cfeb_ram_sel_extend_bithi                  =   3;
+const int cfeb_ram_sel_extend_default                =   0;
+//
+const int cfeb_inj_en_sel_extend_vmereg              = dcfeb_inj_seq_trig_adr;
+const int cfeb_inj_en_sel_extend_bitlo               =   4;
+const int cfeb_inj_en_sel_extend_bithi               =   5;
+const int cfeb_inj_en_sel_extend_default             = 0x3;
+//     ADR_SEQ_TRIG_EN parts
+const int cfebs_enabled_extend_vmereg                = dcfeb_inj_seq_trig_adr;
+const int cfebs_enabled_extend_bitlo                 =   6;
+const int cfebs_enabled_extend_bithi                 =   7;
+const int cfebs_enabled_extend_default               = 0x3;
+//
+const int cfebs_enabled_extend_readback_vmereg       = dcfeb_inj_seq_trig_adr;
+const int cfebs_enabled_extend_readback_bitlo        =   8;
+const int cfebs_enabled_extend_readback_bithi        =   9;
+const int cfebs_enabled_extend_readback_default      = 0x3;
 
 //
 //////////////////////////////////////////////
