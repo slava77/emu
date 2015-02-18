@@ -6824,7 +6824,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
       read_badbits_[layer][distrip] = ExtractValueFromData(data,bit_in_register,bit_in_register);
     }
     //
-  } else if ( address == cfeb_inj_adr ) {
+  } else if ( address == dcfeb_inj_seq_trig_adr ) {
     //------------------------------------------------------------------
     //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN:
     //------------------------------------------------------------------
