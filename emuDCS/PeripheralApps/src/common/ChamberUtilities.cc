@@ -935,7 +935,7 @@ inline void ChamberUtilities::CFEBTiming_ReadConfiguration(CFEBTiming_Configurat
   if (config.groupME11AandB){
     thisTMB->ReadRegister(phaser_cfeb0123_rxd_adr); // Get phaser information
     config.cfeb_rx_posneg = thisTMB->GetReadCfeb0123RxPosNeg();
-    config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0123RxPosNegRxClockDelay();
+    config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0123RxClockDelay();
   } else {
     thisTMB->ReadRegister(phaser_cfeb0_rxd_adr); // Get phaser information
     config.cfeb_rx_posneg = thisTMB->GetReadCfeb0RxPosNeg();

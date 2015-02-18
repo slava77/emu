@@ -2642,7 +2642,7 @@ void TMB::EnableCLCTInputs(int CLCTInputs){
    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
 
    if (hardware_version_ >= 2){
-     CLCTInputs56 = ((CLCTInputs>>5) & 0x3);
+     int CLCTInputs56 = ((CLCTInputs>>5) & 0x3);
      adr = dcfeb_inj_seq_trig_adr;
      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
      rd_data   = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
@@ -5948,7 +5948,6 @@ void TMB::SetTMBRegisterDefaults() {
   cfeb_ram_sel_extend_               = cfeb_ram_sel_extend_default     ;
   cfeb_inj_en_sel_extend_            = cfeb_inj_en_sel_extend_default  ;
   cfebs_enabled_extend_              = cfebs_enabled_extend_default     ;  
-  cfebs_enabled_extend_readback_     = cfebs_enabled_extend_readback_default;  
 
   return;
 }
