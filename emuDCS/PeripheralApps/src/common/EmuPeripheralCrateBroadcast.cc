@@ -1115,7 +1115,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
     broadcastTMB->SetL1aWindowSize(7);
     broadcastTMB->WriteRegister(0x74,broadcastTMB->FillTMBRegister(0x74));
     //
-    broadcastTMB->EnableCLCTInputs(0x1f); //enable TMB's CLCT inputs
+    broadcastTMB->EnableCLCTInputs(0x7f); //enable TMB's CLCT inputs
     broadcastDMB->settrgsrc(0); //disable the DMB internal LCT & L1A
   }
   int thresholdsetting =((calsetup-1)%20);   //35 Comparator threshold setting for each channel

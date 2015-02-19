@@ -500,13 +500,14 @@ ChamberUtilities::~ChamberUtilities(){
 //----------------------------------------------
 // CFEB-TMB clock phases
 //----------------------------------------------
+//! not used anymore; see _Simple_*
 void ChamberUtilities::CFEBTiming(){
   //
   // default with no argument is "normal_scan"
   //
   return CFEBTiming_with_Posnegs(normal_scan);
 }
-//
+//! not used anymore: see _Simple_* 
 void ChamberUtilities::CFEBTiming(CFEBTiming_scanType scanType) {
   //
   return CFEBTiming_with_Posnegs(scanType);
@@ -876,6 +877,7 @@ inline void ChamberUtilities::CFEBTiming_PrintConfiguration(CFEBTiming_Configura
   (*MyOutput_) << std::setw(23) << "cfeb_rx_posneg: " << std::setw(4) << config.cfeb_rx_posneg << std::endl;
   (*MyOutput_) << std::setw(23) << "cfeb_rx_clock_delay: " << std::setw(4) << config.cfeb_rx_clock_delay << std::endl;
   (*MyOutput_) << std::setw(23) << "cfeb_clock_phase: " << std::setw(4) << config.cfeb_clock_phase << std::endl;
+  (*MyOutput_) << std::setw(23) << "groupME11AandB: " << std::setw(4) << config.groupME11AandB << std::endl;
 }
     //
 inline bool ChamberUtilities::CFEBTiming_CheckCLCT(int cfeb, unsigned int layer_mask, unsigned int pattern, unsigned int halfstrip) {
@@ -930,9 +932,15 @@ inline void ChamberUtilities::CFEBTiming_ReadConfiguration(CFEBTiming_Configurat
     config.tmb_l1a_delay = thisTMB->GetL1aDelay();
   }
   
-  thisTMB->ReadRegister(phaser_cfeb0_rxd_adr); // Get phaser information
-  config.cfeb_rx_posneg = thisTMB->GetReadCfeb0RxPosNeg();
-  config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0RxClockDelay();
+  if (config.groupME11AandB){
+    thisTMB->ReadRegister(phaser_cfeb0123_rxd_adr); // Get phaser information
+    config.cfeb_rx_posneg = thisTMB->GetReadCfeb0123RxPosNeg();
+    config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0123RxClockDelay();
+  } else {
+    thisTMB->ReadRegister(phaser_cfeb0_rxd_adr); // Get phaser information
+    config.cfeb_rx_posneg = thisTMB->GetReadCfeb0RxPosNeg();
+    config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0RxClockDelay();
+  }
 }
     //
 inline bool ChamberUtilities::CFEBTiming_CheckConfiguration(const CFEBTiming_Configuration & orig) {
@@ -1003,6 +1011,10 @@ inline bool ChamberUtilities::CFEBTiming_CheckConfiguration(const CFEBTiming_Con
   }
   if(read.cfeb_rx_clock_delay != orig.cfeb_rx_clock_delay) {
     (*MyOutput_) << std::setw(37) << "BAD cfeb_rx_clock_delay: EXPECTED: " << std::setw(4) << orig.cfeb_rx_clock_delay << " | READ: " << std::setw(4) << read.cfeb_rx_clock_delay << std::endl;
+    same = false;
+  }
+  if(is_me11_ && ( read.groupME11AandB != orig.groupME11AandB )) {
+    (*MyOutput_) << std::setw(37) << "BAD groupME11AandB: EXPECTED: " << std::setw(4) << orig.groupME11AandB << " | READ: " << std::setw(4) << read.groupME11AandB << std::endl;
     same = false;
   }
   return same;
@@ -1176,7 +1188,7 @@ inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration
 void ChamberUtilities::CFEBTiming_PulseInject(bool is_inject_scan, int cfeb, unsigned int layer_mask, unsigned int pattern, 
 					      unsigned int halfstrip, unsigned int n_pulses, unsigned int pulse_delay) {
   if (debug_ >= 5) std::cout << "Start: " << __PRETTY_FUNCTION__  << std::endl;
-  const int MaxCFEB = 5;
+  const int MaxCFEB = is_me11_ ? 7: 5;//this isn't really used
   const int MaxTimeDelay=25;
   const bool is_cfeb_scan = cfeb < 0;
   
@@ -1629,7 +1641,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     config.cfeb_mask = 0x7f;
   else
     config.cfeb_mask = 0x1 << cfeb_num;
-  
+  config.groupME11AandB = groupME11AandB;
   
   CFEBTiming_PrintConfiguration(config);
   
@@ -2341,15 +2353,16 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
     //
-    thisTMB->SetCfeb456RxClockDelay(initial_cfeb_phase[5]);
-    thisTMB->SetCfeb456RxPosNeg(initial_cfeb_posneg[5]);
+    thisTMB->SetCfeb456RxClockDelay(initial_cfeb_phase[groupME11AandB ? 4 : 5]);
+    thisTMB->SetCfeb456RxPosNeg(initial_cfeb_posneg[groupME11AandB ? 4 : 5]);
     thisTMB->WriteRegister(phaser_cfeb456_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb456_rxd_adr);
     //
-    thisTMB->SetCfeb0123RxClockDelay(initial_cfeb_phase[6]);
-    thisTMB->SetCfeb0123RxPosNeg(initial_cfeb_posneg[6]);
+    thisTMB->SetCfeb0123RxClockDelay(initial_cfeb_phase[groupME11AandB ? 0 : 6]);
+    thisTMB->SetCfeb0123RxPosNeg(initial_cfeb_posneg[groupME11AandB ? 0 : 6]);
     thisTMB->WriteRegister(phaser_cfeb0123_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb0123_rxd_adr);
+
     //
     if(!is_cfeb_clock_phase_inherited) {
       //
@@ -2622,7 +2635,7 @@ int ChamberUtilities::non_me11_wraparound_best_weighted_center(int errors[25], i
   return best_center;	
   
 }
-    //
+    //!not used now
 int ChamberUtilities::CFEBHalfStripToTMBHalfStrip(int cfeb, int halfstrip) {
   int pulsed_halfstrip = -1;
   //
@@ -3442,7 +3455,7 @@ float ChamberUtilities::special_region_function(float signed_rx) {
   //
   return f;
 }
-//
+//! not used anymore
 void ChamberUtilities::CFEBTiming_without_Posnegs(){
   //
   if (debug_) {
@@ -7192,8 +7205,10 @@ void ChamberUtilities::CFEBChamberScan(){
   thisTMB->StartTTC();
   ::sleep(1);
   //
-  int MaxStrip = 160;
-  int MaxStripWithinCFEB = 32;
+  bool has7CFEBs = is_me11_ && thisTMB->GetHardwareVersion() >= 2;
+  const int MaxCFEBs = has7CFEBs ? 7 : 5;
+  const int MaxStrip = has7CFEBs ? 224 : 160;
+  const int MaxStripWithinCFEB = 32;
   //
   int Muons[MaxStrip]; memset(Muons, 0, sizeof(Muons));
   int MuonsMaxHits[MaxStrip]; memset(MuonsMaxHits, 0, sizeof(MuonsMaxHits));
@@ -7203,9 +7218,9 @@ void ChamberUtilities::CFEBChamberScan(){
     MuonsMaxHits[j] = 0;
   }
   //
-  int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
+  int CLCTInputList[7] = {0x1,0x2,0x4,0x8,0x10, 0x20, 0x40};
   //
-  for (int List=0; List<5; List++){
+  for (int List=0; List<MaxCFEBs; List++){
     //
     for (int Nmuons=0; Nmuons < Npulses_; Nmuons++){
       //
@@ -7239,7 +7254,7 @@ void ChamberUtilities::CFEBChamberScan(){
   }
   //
   // preserve the results:
-  for (int i=0;i<5;i++) 
+  for (int i=0;i<MaxCFEBs;i++) 
     for (int j=0; j<MaxStripWithinCFEB; j++) {
       int pulsed_halfstrip = i*MaxStripWithinCFEB + j;
       CFEBStripScan_[i][j] = Muons[pulsed_halfstrip];
@@ -7247,7 +7262,7 @@ void ChamberUtilities::CFEBChamberScan(){
   //
   // print out the results
   (*MyOutput_) << " Number of Muons seen " << std::endl;
-  for (int CFEBs = 0; CFEBs<5; CFEBs++) {
+  for (int CFEBs = 0; CFEBs<MaxCFEBs; CFEBs++) {
     (*MyOutput_) << "CFEB Id="<<CFEBs<< " " ;
     for (int HalfStrip = 0; HalfStrip<MaxStripWithinCFEB; HalfStrip++) {
       int pulsed_halfstrip = CFEBs*MaxStripWithinCFEB + HalfStrip;
@@ -7258,7 +7273,7 @@ void ChamberUtilities::CFEBChamberScan(){
   (*MyOutput_) << std::endl;
   //
   (*MyOutput_) << " Maximum number of hits " << std::endl;
-  for (int CFEBs = 0; CFEBs<5; CFEBs++) {
+  for (int CFEBs = 0; CFEBs<MaxCFEBs; CFEBs++) {
     (*MyOutput_) << "CFEB Id="<<CFEBs<< " " ;
     for (int HalfStrip = 0; HalfStrip<MaxStripWithinCFEB; HalfStrip++) {
       int pulsed_halfstrip = CFEBs*MaxStripWithinCFEB + HalfStrip;
@@ -7316,7 +7331,8 @@ void ChamberUtilities::FindDistripHotChannels(){
   const int usec_wait = 500000;
   //
   const int number_of_layers = 6;
-  const int number_of_distrips_per_layer = 40;
+  bool has7CFEBs = is_me11_ && thisTMB->GetHardwareVersion() >= 2;
+  const int number_of_distrips_per_layer = has7CFEBs ? 56 : 40;
   //
   // send output to std::cout except for the essential information 
   thisTMB->RedirectOutput(&std::cout);
