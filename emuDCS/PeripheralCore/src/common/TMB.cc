@@ -1555,6 +1555,7 @@ int * TMB::GetCounters(){
 }
 //
 int * TMB::NewCounters(){
+  unsigned short *buf2=(unsigned short *)FinalCounter;
   if(checkvme_fail()) return NULL;
   //
   // Take snapshot of current counter state
@@ -1578,13 +1579,17 @@ int * TMB::NewCounters(){
   }   
 
   // CFEB BadBits registers: 0x122->0x142, total 17 words => 9 counters (32-bit)
-  for(unsigned short add=0x122; add<=0x144; add+=2) read_later(add);
+  for(unsigned short add=0x122; add<=0x142; add+=2) read_later(add);
+  read_later(vme_dsn_adr); // adding one extra word to align the data at 32-bit
   //for 7DCFEB firmware
   if( GetHardwareVersion() == 2){  
+    read_later(vme_dsn_adr); // adding one extra word to align the data at 32-bit
     for(unsigned short add=0x15c; add<=0x168; add+=2) read_later(add);
   }
   // time since last hard_reset (in seconds)
   read_now(0xE8, (char *)FinalCounter);
+  buf2[2*GetMaxCounter()+17]=0;
+  if( GetHardwareVersion() == 2)  buf2[2*GetMaxCounter()+18]=0;
   //
   return (int *)FinalCounter;
 }

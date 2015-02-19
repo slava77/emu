@@ -127,6 +127,7 @@ protected:
   std::vector<bool> crate_off;
   //
   std::vector< std::string> TCounterName;
+  std::vector< std::string> TCounterName2;
   std::vector< std::string> DCounterName;
   std::vector< std::string> OCounterName;
   std::vector< std::string> LVCounterName;
@@ -143,7 +144,7 @@ protected:
   int dcs_station, dcs_ring, dcs_chamber;
   time_t old_time;
   int read_interval;
-  int TOTAL_TMB_COUNTERS;      
+  int TOTAL_TMB_COUNTERS, TOTAL_TMB_COUNTERS2;
   xdata::TimeVal last_read_time;
   unsigned short ccbmpcreg[60][4];
   bool first_read[60];
@@ -151,6 +152,7 @@ protected:
   static const int TOTAL_DCS_COUNTERS=64;
   static const int TOTAL_TMB_VOLTAGES=16;
   static const int TOTAL_DCFEB_MONS=200;  // (19+8)*7+9+2 (2 is reserved)
+  static const int MAX_TMB_COUNTERS=120;;
   
 public:
   //
@@ -181,7 +183,9 @@ private:
   void ResetAllCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FullResetTMBC(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DatabaseOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DatabaseOutput2(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void EmuCounterNames(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void EmuCounterNames2(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void XmlOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

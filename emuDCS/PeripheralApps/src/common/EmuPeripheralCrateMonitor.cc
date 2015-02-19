@@ -46,7 +46,9 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::FullResetTMBC, "FullResetTMBC");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DatabaseOutput, "DatabaseOutput");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DatabaseOutput2, "DatabaseOutput2");
   xgi::bind(this,&EmuPeripheralCrateMonitor::EmuCounterNames, "EmuCounterNames");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::EmuCounterNames2, "EmuCounterNames2");
   xgi::bind(this,&EmuPeripheralCrateMonitor::XmlOutput, "XmlOutput");
   xgi::bind(this,&EmuPeripheralCrateMonitor::SwitchBoard, "SwitchBoard");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
@@ -477,10 +479,10 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           // for Voltage & Current reading error handling
                           int dmbslot=boardid*2+3;
                           if(dmbslot>11) dmbslot += 2;
-                          int cfebnum=(ii%48)%19;
+                          int cfebnum=(ii%TOTAL_DCS_COUNTERS)%19;
                           if(cfebnum>17) cfebnum=17;
                           cfebnum= cfebnum/3 + 1;       
-                          if((dcs_mask[i] & (1<<boardid))>0 || dmbpoweroff[boardid] || (ii%48)==17 || (ii%48)>37 || (cratename.substr(4,1)=="4" && dmbslot>7))
+                          if((dcs_mask[i] & (1<<boardid))>0 || dmbpoweroff[boardid] || (ii%TOTAL_DCS_COUNTERS)==17 || (ii%TOTAL_DCS_COUNTERS)>37)
                           { // ignore masked boards
                             // igonre powered-off boards 
                             // ignore ALCT 5.5B current or Analog/Digital Feed
@@ -2542,8 +2544,8 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
                         50, 54, 57, 63, 88};
 
   std::ostringstream output;
-  output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  output << "<html>" << std::endl;
+  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+  *out << "<html>" << std::endl;
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
@@ -2634,6 +2636,8 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
 void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+  *out << "<html>" << std::endl;
   cgicc::CgiEnvironment cgiEnvi(in);
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
@@ -2787,6 +2791,7 @@ void EmuPeripheralCrateMonitor::DatabaseOutput(xgi::Input * in, xgi::Output * ou
      myDmbs = crateVector[i]->daqmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
+        if(myVector[j]->GetHardwareVersion()>=2) continue;
         int imask = 0x3F & (myDmbs[j]->GetPowerMask());
         if (imask==0x3F) continue;
         
@@ -2797,11 +2802,70 @@ void EmuPeripheralCrateMonitor::DatabaseOutput(xgi::Input * in, xgi::Output * ou
         {
            sprintf(tcname+2,"%02d",tc);
            *out << tcname << "=\"";
-           n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+tc];
-           // the last two counters only have 16 bits, not 32 bits
-           if( tc>=(TOTAL_TMB_COUNTERS-2) ) n_value &= 0xFFFF;
-           // counter error, set it to -1 here:
-           if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
+           n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+tc];
+           // the last counter only has 16 bits, not 32 bits
+           if( tc==(TOTAL_TMB_COUNTERS-1) ) n_value &= 0xFFFF;
+           // for real counters, if counter error, set it to -1 here:
+           if((tc < myVector[j]->GetMaxCounter()) && (n_value == 0x3FFFFFFF || n_value <0)) n_value = -1;
+           *out << n_value;
+           *out << "\" ";
+        }
+        *out << "/>" << std::endl;
+     }
+  }
+
+//  *out << "  </sample>" << std::endl;
+  *out << "</emuCounters>" << std::endl;
+}
+
+void EmuPeripheralCrateMonitor::DatabaseOutput2(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+
+  std::vector<TMB*> myVector;
+  std::vector<DAQMB*> myDmbs;
+  int n_value;
+  xdata::InfoSpace * is;
+  char tcname[5]="TC00";
+
+  if((!Monitor_Ready_) || read_interval<=0) return;
+  //
+  *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
+  *out << "<emuCounters dateTime=\"";
+  *out << last_read_time.toString();
+  *out << "\" version=\"2.0\">" << std::endl;
+
+//  *out << "  <sample name=\"cumulative\" delta_t=\"1000\">" << std::endl;
+
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(crate_off[i]) continue;
+ 
+     std::string cratename = crateVector[i]->GetLabel();
+
+     is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     xdata::Vector<xdata::UnsignedInteger32> *tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
+     if(tmbdata==NULL || tmbdata->size()==0) continue;
+     
+     myVector = crateVector[i]->tmbs();
+     myDmbs = crateVector[i]->daqmbs();
+     for(unsigned int j=0; j<myVector.size(); j++) 
+     {
+        if(myVector[j]->GetHardwareVersion()<=1) continue;
+        int imask = 0x7F & (myDmbs[j]->GetPowerMask());
+        if (imask==0x7F) continue;
+        
+        *out << "    <count chamber=\"";
+        *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << "\" ";
+        for(int tc=0; tc<TOTAL_TMB_COUNTERS2; tc++)
+        {
+           sprintf(tcname+2,"%02d",tc);
+           *out << tcname << "=\"";
+           n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+tc];
+           // the last one counter only has 16 bits, not 32 bits
+           if( tc==(TOTAL_TMB_COUNTERS2-1) ) n_value &= 0xFFFF;
+           // for real counters, if counter error, set it to -1 here:
+           if((tc < myVector[j]->GetMaxCounter()) && (n_value == 0x3FFFFFFF || n_value <0)) n_value = -1;
            *out << n_value;
            *out << "\" ";
         }
@@ -2832,6 +2896,31 @@ void EmuPeripheralCrateMonitor::EmuCounterNames(xgi::Input * in, xgi::Output * o
       sprintf(tcname+2,"%02d",tc);
       *out << tcname << "\">";
       *out << TCounterName[tc];
+      *out << "</count>" << std::endl;
+  }
+
+  *out << "</emuCounterNames>" << std::endl;
+}
+
+void EmuPeripheralCrateMonitor::EmuCounterNames2(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+
+  char tcname[5]="TC00";
+
+  if((!Monitor_Ready_) || read_interval<=0) return;
+  //
+  *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
+  *out << "<emuCounterNames dateTime=\"";
+  toolbox::TimeVal currentTime;
+  xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
+  *out << now_time.toString();
+  *out << "\" version=\"2.0\">" << std::endl;
+  for(int tc=0; tc<TOTAL_TMB_COUNTERS2; tc++)
+  {
+      *out << "    <count name=\"";
+      sprintf(tcname+2,"%02d",tc);
+      *out << tcname << "\">";
+      *out << TCounterName2[tc];
       *out << "</count>" << std::endl;
   }
 
@@ -2876,9 +2965,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
         *out << "\" alct=\"";
 //        *out << myVector[j]->GetCounter(0);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+0];
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+0];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+0];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+0];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1
 
@@ -2886,9 +2975,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         if(i_value<-1) i_value=-1;
         *out << i_value;
         *out << "\" clct=\"";
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+13];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+13];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1
 
@@ -2897,9 +2986,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1
 
@@ -2908,9 +2997,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // counter error, set it to -1:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
@@ -2939,25 +3028,25 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
         *out << "\" alct=\"";
 //        *out << myVector[j]->GetCounter(0);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+0];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+0];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" clct=\"";
 //        *out << myVector[j]->GetCounter(5);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+13];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
@@ -2986,7 +3075,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            //      10 (val  1024):  chamber lost Digital power 
 
   unsigned int readtime;
-  unsigned short crateok, good_chamber=0, ccbtag;
+  unsigned short crateok, good_chamber=0, ccbtag, csra2, csra3;
   unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
   float val, V7;
   std::vector<DAQMB*> myVector;
@@ -3070,14 +3159,15 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      if(ccbdata==NULL || ccbdata->size()==0)
      {  
         // If CCB data not available or not read out yet, assume they (bits and tag) are OK
-        ccbbits=0x0FF80000;
+        csra3=0x3FF8;
+        ccbbits=0x3FF80000;
         ccbtag= 0xCCB0;
-        mpcreg0= 0x0201;
+        mpcreg0= 0x0200;
      }
      else
      {
-        unsigned short csra2= (*ccbdata)[1];
-        unsigned short csra3= (*ccbdata)[2];
+        csra2= (*ccbdata)[1];
+        csra3= (*ccbdata)[2];
         ccbbits= (csra3<<16)+csra2;
         ccbtag= (*ccbdata)[18];
         mpcreg0= (*ccbdata)[11];
@@ -3133,10 +3223,19 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         if(cscname.substr(3,3)=="1/3") dmbbit=0;  // ME1/3 DMB bit is not valid
         int confbit=alctbit+(tmbbit<<1)+(dmbbit<<2);
 //   CCB bit 7 (value 128) for every chamber is the same and is for CCB itself
-        if((ccbtag&0xFFFF0)!=0xCCB0) confbit += 128; 
-//   CCB bit 8 (value 256) is also for CCB itself
+        if((ccbtag&0xFFF0)!=0xCCB0) confbit += 128; 
+//   CCB bit 8 (value 256) is for CCB clock
+        if((csra3!=0) && (csra3!=0xFFFF) && (csra3!=0xbaad) && (csra3&0x6000)!=0x2000)
+        {
+           confbit += 256; 
+           std::cout << crateVector[i]->GetLabel() << " CCB bit-8 set with CSRA3=0x" << std::hex << csra3 << std::dec << " at " << getLocalDateTime() << std::endl;
+        }
 //   MPC bits 9 (value 512) is for MPC discrete logic
-        if((mpcreg0&0x8201)!=0x200) confbit += 512; 
+        if((mpcreg0!=0) && (mpcreg0!=0xFFFF) && (mpcreg0!=0xbaad) && (mpcreg0&0x8201)!=0x200)
+        {
+           confbit += 512; 
+           std::cout << crateVector[i]->GetLabel() <<  " MPC bit-9 set with CSR0=0x" << std::hex << mpcreg0 << std::dec << " at " << getLocalDateTime() << std::endl;
+        }
 //   MPC bits 10 (value 1024) is for other MPC status
 //   disabled Jan 23,2015: after hard-reset, registers return to 0. 
 //        if((mpcreg3&1)!=1 || (mpcreg2&0x30)!=0x30) confbit += 1024; 
@@ -3195,7 +3294,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
            //      10 (val  1024):  chamber lost Digital power 
 
   unsigned int readtime;
-  unsigned short crateok, good_chamber=0, ccbtag;
+  unsigned short crateok, good_chamber=0, ccbtag, csra2, csra3;
   unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
   float val, V7;
   std::vector<DAQMB*> myVector;
@@ -3291,14 +3390,15 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
      if(ccbdata==NULL || ccbdata->size()==0)
      {  
         // If CCB data not available or not read out yet, assume they (bits and tag) are OK
-        ccbbits=0x0FF80000;
+        csra3=0x3FF8;
+        ccbbits=0x3FF80000;
         ccbtag= 0xCCB0;
-        mpcreg0= 0x0201;
+        mpcreg0= 0x0200;
      }
      else
      {
-        unsigned short csra2= (*ccbdata)[1];
-        unsigned short csra3= (*ccbdata)[2];
+        csra2= (*ccbdata)[1];
+        csra3= (*ccbdata)[2];
         ccbbits= (csra3<<16)+csra2;
         ccbtag= (*ccbdata)[18];
         mpcreg0= (*ccbdata)[11];
@@ -3356,9 +3456,18 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         int confbit=alctbit+(tmbbit<<1)+(dmbbit<<2);
 //   CCB bit 7 (value 128) for every chamber is the same and is for CCB itself
         if((ccbtag&0xFFFF0)!=0xCCB0) confbit += 128; 
-//   CCB bit 8 (value 256) is also for CCB itself
+//   CCB bit 8 (value 256) is for CCB clock
+        if((csra3!=0) && (csra3!=0xFFFF) && (csra3!=0xbaad) && (csra3&0x6000)!=0x2000)
+        {
+           confbit += 256; 
+           std::cout << crateVector[i]->GetLabel() << " CCB bit-8 set with CSRA3=0x" << std::hex << csra3 << std::dec << " at " << getLocalDateTime() << std::endl;
+        }
 //   MPC bits 9 (value 512) is for MPC discrete logic
-        if((mpcreg0&0x8201)!=0x200) confbit += 512; 
+        if((mpcreg0!=0) && (mpcreg0!=0xFFFF) && (mpcreg0!=0xbaad) && (mpcreg0&0x8201)!=0x200)
+        {
+           confbit += 512; 
+           std::cout << crateVector[i]->GetLabel() << " MPC bit-9 set with CSR0=0x" << std::hex << mpcreg0 << std::dec << " at " << getLocalDateTime() << std::endl;
+        }
 //   MPC bits 10 (value 1024) is for other MPC status
 //   disabled Jan 23,2015: after hard-reset, registers return to 0. 
 //        if((mpcreg3&1)!=1 || (mpcreg2&0x30)!=0x30) confbit += 1024; 
@@ -3447,9 +3556,9 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
         int ring = std::atoi(chname.substr(5,1).c_str());
         int chnumb = std::atoi(chname.substr(7,2).c_str());
 
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+30];
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+30];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+30];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+30];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, set it to 0 here and in the following:
         d_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
@@ -4176,6 +4285,7 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::InitCounterNames()
 {
     TCounterName.clear();
+    TCounterName2.clear();
     DCounterName.clear();
     OCounterName.clear();    
     IsErrCounter.clear();
@@ -4277,7 +4387,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 "); // 75
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ");
     TCounterName.push_back( "CCB:  TTCrx lock lost                                   ");
-    TCounterName.push_back( "CCB:  qPLL lock lost                                    "); 
+    TCounterName.push_back( "CCB:  qPLL lock lost                                    "); // last of real TMB counters
     TCounterName.push_back( "TMB:  CFEB Bad Bits Control                             ");     
 
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 1                           "); // 80    
@@ -4291,7 +4401,131 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 8                           "); //   
     TCounterName.push_back( "TMB:  Time since last Hard Reset                        "); // 88
 
-    TOTAL_TMB_COUNTERS=89;
+    TOTAL_TMB_COUNTERS=TCounterName.size();
+
+    TCounterName2.push_back( "ALCT: alct0 valid pattern flag received                 "); // 0 --
+    TCounterName2.push_back( "ALCT: alct1 valid pattern flag received                 ");
+    TCounterName2.push_back( "ALCT: alct data structure Error                         ");
+    TCounterName2.push_back( "ALCT: trigger path ECC; 1 bit Error corrected           ");
+    TCounterName2.push_back( "ALCT: trigger path ECC; 2 bit Error uncorrected         ");
+
+    TCounterName2.push_back( "ALCT: trigger path ECC; > 2 bit Error uncorrected       "); // 5
+    TCounterName2.push_back( "ALCT: trigger path ECC; > 2 bit Error blanked           ");
+    TCounterName2.push_back( "ALCT: alct replied ECC; 1 bit Error corrected           ");
+    TCounterName2.push_back( "ALCT: alct replied ECC; 2 bit Error uncorrected         ");
+    TCounterName2.push_back( "ALCT: alct replied ECC; > 2 bit Error uncorrected       ");
+
+    TCounterName2.push_back( "ALCT: raw hits readout                                  "); // 10
+    TCounterName2.push_back( "ALCT: raw hits readout - CRC Error                      "); 
+    TCounterName2.push_back( "RESERVED                                                ");
+    TCounterName2.push_back( "CLCT: Pretrigger                                        "); // 13 --
+    TCounterName2.push_back( "CLCT: Pretrigger on CFEB0                               ");
+
+    TCounterName2.push_back( "CLCT: Pretrigger on CFEB1                               "); // 15
+    TCounterName2.push_back( "CLCT: Pretrigger on CFEB2                               "); 
+    TCounterName2.push_back( "CLCT: Pretrigger on CFEB3                               ");
+    TCounterName2.push_back( "CLCT: Pretrigger on CFEB4                               ");
+    TCounterName2.push_back( "CLCT: Pretrigger on CFEB5                               ");
+
+    TCounterName2.push_back( "CLCT: Pretrigger on CFEB6                               "); // 20
+    TCounterName2.push_back( "CLCT: Pretrigger on ME1A CFEB 4 only                    ");
+
+    TCounterName2.push_back( "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 "); // 22
+    TCounterName2.push_back( "CLCT: Discarded, no wrbuf available, buffer stalled     "); 
+    TCounterName2.push_back( "CLCT: Discarded, no ALCT in window                      ");
+    TCounterName2.push_back( "CLCT: Discarded, CLCT0 invalid pattern after drift      ");
+    TCounterName2.push_back( "CLCT: CLCT0 pass hit thresh, fail pid_thresh_postdrift  ");
+
+    TCounterName2.push_back( "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  "); // 27
+    TCounterName2.push_back( "CLCT: BX pretrig waiting for triads to dissipate        "); 
+    TCounterName2.push_back( "CLCT: clct0 sent to TMB matching section                ");
+    TCounterName2.push_back( "CLCT: clct1 sent to TMB matching section                ");
+    TCounterName2.push_back( "TMB:  TMB accepted alct*clct, alct-only, or clct-only   ");
+
+    TCounterName2.push_back( "TMB:  TMB clct*alct matched trigger                     "); // 32 --
+    TCounterName2.push_back( "TMB:  TMB alct-only trigger                             "); 
+    TCounterName2.push_back( "TMB:  TMB clct-only trigger                             ");
+    TCounterName2.push_back( "TMB:  TMB match reject event                            ");
+    TCounterName2.push_back( "TMB:  TMB match reject event, queued for nontrig readout");
+
+    TCounterName2.push_back( "TMB:  TMB matching discarded an ALCT pair               "); // 37
+    TCounterName2.push_back( "TMB:  TMB matching discarded a CLCT pair                "); 
+    TCounterName2.push_back( "TMB:  TMB matching discarded CLCT0 from ME1A            ");
+    TCounterName2.push_back( "TMB:  TMB matching discarded CLCT1 from ME1A            ");
+    TCounterName2.push_back( "TMB:  Matching found no ALCT                            ");
+
+    TCounterName2.push_back( "TMB:  Matching found no CLCT                            "); // 42
+    TCounterName2.push_back( "TMB:  Matching found one ALCT                           "); 
+    TCounterName2.push_back( "TMB:  Matching found one CLCT                           ");
+    TCounterName2.push_back( "TMB:  Matching found two ALCTs                          ");
+    TCounterName2.push_back( "TMB:  Matching found two CLCTs                          ");
+
+    TCounterName2.push_back( "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           "); // 47
+    TCounterName2.push_back( "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           "); 
+    TCounterName2.push_back( "TMB:  LCT1 has higher quality than LCT0 (ranking Error) ");
+    TCounterName2.push_back( "TMB:  Transmitted LCT0 to MPC                           ");
+    TCounterName2.push_back( "TMB:  Transmitted LCT1 to MPC                           ");
+
+    TCounterName2.push_back( "TMB:  MPC accepted LCT0                                 "); // 52
+    TCounterName2.push_back( "TMB:  MPC accepted LCT1                                 "); 
+    TCounterName2.push_back( "TMB:  MPC rejected both LCT0 and LCT1                   ");
+    TCounterName2.push_back( "L1A:  L1A received                                      ");
+    TCounterName2.push_back( "L1A:  L1A received, TMB in L1A window                   "); // 56 --
+
+    TCounterName2.push_back( "L1A:  L1A received, no TMB in window                    "); // 57
+    TCounterName2.push_back( "L1A:  TMB triggered, no L1A in window                   "); 
+    TCounterName2.push_back( "L1A:  TMB readouts completed                            ");
+    TCounterName2.push_back( "L1A:  TMB readouts lost by 1-event-per-L1A limit        ");
+    TCounterName2.push_back( "STAT: CLCT Triads skipped                               ");
+
+    TCounterName2.push_back( "STAT: Raw hits buffer had to be reset                   "); // 62
+    TCounterName2.push_back( "STAT: TTC Resyncs received                              "); 
+    TCounterName2.push_back( "STAT: Sync Error, BC0/BXN=offset mismatch               "); 
+    TCounterName2.push_back( "STAT: Parity Error in CFEB or RPC raw hits RAM          ");
+    TCounterName2.push_back( "HDR:  Pretrigger counter                                ");
+
+    TCounterName2.push_back( "HDR:  CLCT counter                                      "); // 67
+    TCounterName2.push_back( "HDR:  TMB trigger counter                               ");
+    TCounterName2.push_back( "HDR:  ALCTs received counter                            ");
+    TCounterName2.push_back( "HDR:  L1As received counter (12 bits)                   ");
+    TCounterName2.push_back( "HDR:  Readout counter (12 bits)                         ");
+
+    TCounterName2.push_back( "HDR:  Orbit counter                                     "); // 72
+    TCounterName2.push_back( "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 "); 
+    TCounterName2.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ");
+    TCounterName2.push_back( "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ");
+    TCounterName2.push_back( "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ");
+
+    TCounterName2.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 "); // 77
+    TCounterName2.push_back( "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ");
+    TCounterName2.push_back( "CCB:  TTCrx lock lost                                   ");
+    TCounterName2.push_back( "CCB:  qPLL lock lost                                    "); 
+    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count0          "); // 81 
+    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count1          "); 
+    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count2          "); 
+    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count3          "); 
+    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count4          "); 
+    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count5          "); 
+    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count6          "); // 87  last of real OTMB counters
+
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Control                             ");     
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 1                           "); // 89    
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 2                           "); //    
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 3                           "); //    
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 4                           "); //    
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 5                           "); //    
+
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 6                           "); // 94   
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 7                           "); //     
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 8                           "); //   
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Control extension                   "); //     
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern extension 1                 "); //     
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern extension 2                 "); //     
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern extension 3                 "); // 100     
+
+    TCounterName2.push_back( "TMB:  Time since last Hard Reset                        "); // 101
+
+    TOTAL_TMB_COUNTERS2=TCounterName2.size();
 
     DCounterName.push_back( "L1A to LCT delay");  // 0
     DCounterName.push_back( "CFEB DAV delay  ");

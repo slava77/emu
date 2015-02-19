@@ -747,14 +747,14 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
   //                1   good reading
   //                0   bad reading or no reading (skipped/masked)
 
-  int TOTAL_TMB_COUNTERS=89;  // 9 from CFEB BadBits registers
+  int MAX_TMB_COUNTERS=120;  // larger than TMB:89 and OTMB:102 
   int * countbuf, *buf4;
   short *buf2, flag=0;
  
   
   buf2=(short *)buf;
   buf4=(int *)buf;
-  for(int i=0; i<= TOTAL_TMB_COUNTERS*9; i++) buf4[i]=0;
+  for(int i=0; i<= MAX_TMB_COUNTERS*9; i++) buf4[i]=0;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   std::vector<TMB*> myTmbs = this->tmbs();
@@ -767,7 +767,7 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
     {  countbuf=myTmbs[i]->NewCounters();
        if(countbuf)
         {
-            memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
+            memcpy(buf+4+i*4*MAX_TMB_COUNTERS, countbuf, 4*MAX_TMB_COUNTERS);
             flag |= (1<<i);
         }
        else
@@ -777,7 +777,7 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
         }
     }
   }  
-  *buf2 = TOTAL_TMB_COUNTERS*2*myTmbs.size();
+  *buf2 = MAX_TMB_COUNTERS*2*myTmbs.size();
   *(buf2+1) = flag;
   return;
 }
