@@ -5104,9 +5104,6 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td().set("ALIGN", "left") << "CFEB" << cgicc::td() << std::endl;
   *out << cgicc::td().set("ALIGN", "left") << "Pattern Type" << cgicc::td() << std::endl;
   *out << cgicc::td().set("ALIGN", "left") << "Half-Strip" << cgicc::td() << std::endl;
-  if (thisTMB->GetHardwareVersion()>=2){
-    *out << cgicc::td().set("ALIGN", "left") << "Group ME11 A and B" << cgicc::td() << std::endl;
-  }
   //
   *out << cgicc::tr();
   //
@@ -5144,14 +5141,6 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   for(int i=0; i<32; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
   *out << cgicc::select() << std::endl;
   *out << cgicc::td();
-  if (thisTMB->GetHardwareVersion()>=2){
-    *out << cgicc::td().set("ALIGN", "left") << std::endl;
-    *out << cgicc::select().set("name", "groupME11AandB") << std::endl;
-    *out << cgicc::option().set("value", "yes") << "yes" << cgicc::option() << std::endl;
-    *out << cgicc::option().set("value", "no") << "no" << cgicc::option() << std::endl;
-    *out << cgicc::select() << std::endl;
-    *out << cgicc::td();
-  }
   *out << cgicc::td();
   *out << cgicc::input().set("type","submit").set("value", "CFEB RX Delay Scan").set("style", "color:blue") << std::endl;
   *out << cgicc::td();
@@ -5779,7 +5768,6 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScan(xgi::Input * in, xgi::Output
   int halfstrip = 16;
   bool print_data = false;
   unsigned cfeb_phase = 0x0;
-  bool groupME11AandB = false;
 
   //
   name = cgi.getElement("time_delay");
@@ -5807,10 +5795,6 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScan(xgi::Input * in, xgi::Output
     cfeb_phase = cgi["cfeb_phase"]->getIntegerValue();
   }
   //
-  name = cgi.getElement("groupME11AandB");
-  if(name != cgi.getElements().end()) {
-    groupME11AandB = cgi["groupME11AandB"]->getValue() == "yes";
-  }
   
   std::cout << "time_delay: " << time_delay << std::endl;
   std::cout << "cfeb_num: " << cfeb_num << std::endl;
@@ -5818,10 +5802,9 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScan(xgi::Input * in, xgi::Output
   std::cout << "pattern: " << pattern << std::endl;
   std::cout << "halfstrip: " << halfstrip << std::endl;
   std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
-  std::cout << "groupME11AandB: "<< groupME11AandB << std::endl;
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-  MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase, groupME11AandB);
+  MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -5987,8 +5970,6 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	int halfstrip = -1;
 	bool print_data = true;
 	unsigned cfeb_phase = 32;
-	bool groupME11AandB = true;
-	
 	//
 	
 	std::cout << "time_delay: " << time_delay << std::endl;
@@ -5997,7 +5978,6 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	std::cout << "pattern: " << pattern << std::endl;
 	std::cout << "halfstrip: " << halfstrip << std::endl;
 	std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
-	std::cout << "groupME11AandB: "<< groupME11AandB << std::endl;
 	//
 	//
 	if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() != 2) {
@@ -6019,7 +5999,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	web_backup.close();
 	//
 	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase, groupME11AandB);
+	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
 	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
 	//
 	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
@@ -6099,7 +6079,6 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	int halfstrip = -1;
 	bool print_data = true;
 	unsigned cfeb_phase = 32;
-	bool groupME11AandB = true;
 	//
 	
 	std::cout << "time_delay: " << time_delay << std::endl;
@@ -6108,7 +6087,6 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	std::cout << "pattern: " << pattern << std::endl;
 	std::cout << "halfstrip: " << halfstrip << std::endl;
 	std::cout << "cfeb_phase: " << cfeb_phase << std::endl;
-	std::cout << "groupME11AandB: " << groupME11AandB << std::endl;
 	//
 	//
 	if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() == 2) {
@@ -6130,7 +6108,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	web_backup.close();
 	//
 	MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase, groupME11AandB);
+	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
 	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
 	//
 	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);

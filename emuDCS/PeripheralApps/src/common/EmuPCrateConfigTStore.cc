@@ -2001,6 +2001,10 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     std::string CFEB2DELAY("CFEB2DELAY");
     std::string CFEB3DELAY("CFEB3DELAY");
     std::string CFEB4DELAY("CFEB4DELAY");
+    std::string CFEB5DELAY("CFEB5DELAY");
+    std::string CFEB6DELAY("CFEB6DELAY");
+    std::string CFEB0123DELAY("CFEB0123DELAY");
+    std::string CFEB456DELAY("CFEB456DELAY");
     std::string CFEB_ENABLE_SOURCE("CFEB_ENABLE_SOURCE");
     std::string CLCT_BLANKING("CLCT_BLANKING");
     std::string CLCT_BX0_DELAY("CLCT_BX0_DELAY");
@@ -2090,6 +2094,10 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     std::string CFEB2POSNEG("CFEB2POSNEG");
     std::string CFEB3POSNEG("CFEB3POSNEG");
     std::string CFEB4POSNEG("CFEB4POSNEG");
+    std::string CFEB5POSNEG("CFEB5POSNEG");
+    std::string CFEB6POSNEG("CFEB6POSNEG");
+    std::string CFEB0123POSNEG("CFEB0123POSNEG");
+    std::string CFEB456POSNEG("CFEB456POSNEG");
     std::string MPC_SEL_TTC_BX0("MPC_SEL_TTC_BX0");
     std::string ALCT_TOF_DELAY("ALCT_TOF_DELAY");
     std::string TMB_TO_ALCT_DATA_DELAY("TMB_TO_ALCT_DATA_DELAY");
@@ -2105,6 +2113,10 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     std::string CFEB2_RXD_INT_DELAY("CFEB2_RXD_INT_DELAY");
     std::string CFEB3_RXD_INT_DELAY("CFEB3_RXD_INT_DELAY");
     std::string CFEB4_RXD_INT_DELAY("CFEB4_RXD_INT_DELAY");
+    std::string CFEB5_RXD_INT_DELAY("CFEB5_RXD_INT_DELAY");
+    std::string CFEB6_RXD_INT_DELAY("CFEB6_RXD_INT_DELAY");
+    std::string CFEB0123_RXD_INT_DELAY("CFEB0123_RXD_INT_DELAY");
+    std::string CFEB456_RXD_INT_DELAY("CFEB456_RXD_INT_DELAY");
     std::string CFEB_BADBITS_READOUT("CFEB_BADBITS_READOUT");
     std::string L1A_PRIORITY_ENABLE("L1A_PRIORITY_ENABLE");
     std::string MINISCOPE_ENABLE("MINISCOPE_ENABLE");
@@ -2123,11 +2135,20 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     xdata::UnsignedShort  _alct_tx_clock_delay         = TStore_thisTMB->GetALCTtxPhase();
     xdata::UnsignedShort  _alct_posneg		            = TStore_thisTMB->GetAlctPosNeg();
     xdata::UnsignedShort  _all_cfeb_active             = TStore_thisTMB->GetEnableAllCfebsActive();
-    xdata::UnsignedShort  _cfeb0delay                  = TStore_thisTMB->GetCFEB0delay();
-    xdata::UnsignedShort  _cfeb1delay                  = TStore_thisTMB->GetCFEB1delay();
-    xdata::UnsignedShort  _cfeb2delay                  = TStore_thisTMB->GetCFEB2delay();
-    xdata::UnsignedShort  _cfeb3delay                  = TStore_thisTMB->GetCFEB3delay();
-    xdata::UnsignedShort  _cfeb4delay                  = TStore_thisTMB->GetCFEB4delay();
+    bool use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() == 1;//true for ME11 OTMB with grouped CFEB RX delays
+    xdata::UnsignedShort  _cfeb0delay                  = use255 ? 255 : TStore_thisTMB->GetCFEB0delay();
+    xdata::UnsignedShort  _cfeb1delay                  = use255 ? 255 : TStore_thisTMB->GetCFEB1delay();
+    xdata::UnsignedShort  _cfeb2delay                  = use255 ? 255 : TStore_thisTMB->GetCFEB2delay();
+    xdata::UnsignedShort  _cfeb3delay                  = use255 ? 255 : TStore_thisTMB->GetCFEB3delay();
+    xdata::UnsignedShort  _cfeb4delay                  = use255 ? 255 : TStore_thisTMB->GetCFEB4delay();
+    use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() != 1;//for ME11 OTMB with grouped CFEB RX delays
+    xdata::UnsignedShort  _cfeb0123delay               = use255 ? 255 : TStore_thisTMB->GetCFEB0123delay();
+    xdata::UnsignedShort  _cfeb456delay                = use255 ? 255 : TStore_thisTMB->GetCFEB456delay();
+    use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() != 0;//old OTMB FW version with all 7 CFEB RX delays
+    xdata::UnsignedShort  _cfeb5delay                  = use255 ? 255 : TStore_thisTMB->GetCFEB5delay();
+    xdata::UnsignedShort  _cfeb6delay                  = use255 ? 255 : TStore_thisTMB->GetCFEB6delay();
+
+
     xdata::UnsignedShort  _cfeb_enable_source          = TStore_thisTMB->GetCfebEnableSource_orig();
     xdata::UnsignedShort  _clct_blanking               = TStore_thisTMB->GetClctBlanking();
     xdata::UnsignedShort  _clct_bx0_delay              = TStore_thisTMB->GetClctBx0Delay();
@@ -2222,11 +2243,20 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     xdata::UnsignedShort  _write_buffer_autoclear        = TStore_thisTMB->GetWriteBufferAutoclear();
     xdata::UnsignedShort  _write_buffer_continous_enable = TStore_thisTMB->GetClctWriteContinuousEnable();
     xdata::UnsignedShort  _alct_tx_posneg                =  TStore_thisTMB->GetAlctTxPosNeg();
-    xdata::UnsignedShort  _cfeb0posneg                   = TStore_thisTMB->GetCfeb0RxPosNeg();
-    xdata::UnsignedShort  _cfeb1posneg                   = TStore_thisTMB->GetCfeb1RxPosNeg();
-    xdata::UnsignedShort  _cfeb2posneg                   = TStore_thisTMB->GetCfeb2RxPosNeg();
-    xdata::UnsignedShort  _cfeb3posneg                   = TStore_thisTMB->GetCfeb3RxPosNeg();
-    xdata::UnsignedShort  _cfeb4posneg                   = TStore_thisTMB->GetCfeb4RxPosNeg();
+    use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() == 1;//true for ME11 OTMB with grouped CFEB RX delays
+    xdata::UnsignedShort  _cfeb0posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb0RxPosNeg();
+    xdata::UnsignedShort  _cfeb1posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb1RxPosNeg();
+    xdata::UnsignedShort  _cfeb2posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb2RxPosNeg();
+    xdata::UnsignedShort  _cfeb3posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb3RxPosNeg();
+    xdata::UnsignedShort  _cfeb4posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb4RxPosNeg();
+    use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() != 1;//for ME11 OTMB with grouped CFEB RX delays  
+    xdata::UnsignedShort  _cfeb0123posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb0123RxPosNeg();
+    xdata::UnsignedShort  _cfeb456posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb456RxPosNeg();
+    use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() != 0;//old OTMB FW version with all 7 CFEB RX delays
+    xdata::UnsignedShort  _cfeb5posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb5RxPosNeg();
+    xdata::UnsignedShort  _cfeb6posneg                   = use255 ? 255 : TStore_thisTMB->GetCfeb6RxPosNeg();
+
+
     xdata::UnsignedShort  _mpc_sel_ttc_bx0               = TStore_thisTMB->GetSelectMpcTtcBx0();
     xdata::UnsignedShort  _alct_tof_delay                = TStore_thisTMB->GetAlctTOFDelay();
     xdata::UnsignedShort  _tmb_to_alct_data_delay        = TStore_thisTMB->GetALCTTxDataDelay();
@@ -2237,11 +2267,19 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     xdata::UnsignedShort  _cfeb3_tof_delay               = TStore_thisTMB->GetCfeb3TOFDelay();
     xdata::UnsignedShort  _cfeb4_tof_delay               = TStore_thisTMB->GetCfeb4TOFDelay();
     xdata::UnsignedShort  _cfeb_badbits_block            = TStore_thisTMB->GetCFEBBadBitsBlock();
-    xdata::UnsignedShort  _cfeb0_rxd_int_delay           = TStore_thisTMB->GetCFEB0RxdIntDelay();
-    xdata::UnsignedShort  _cfeb1_rxd_int_delay           = TStore_thisTMB->GetCFEB1RxdIntDelay();
-    xdata::UnsignedShort  _cfeb2_rxd_int_delay           = TStore_thisTMB->GetCFEB2RxdIntDelay();
-    xdata::UnsignedShort  _cfeb3_rxd_int_delay           = TStore_thisTMB->GetCFEB3RxdIntDelay();
-    xdata::UnsignedShort  _cfeb4_rxd_int_delay           = TStore_thisTMB->GetCFEB4RxdIntDelay();
+    use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() == 1;//true for ME11 OTMB with grouped CFEB RX delays 
+    xdata::UnsignedShort  _cfeb0_rxd_int_delay           = use255 ? 255 : TStore_thisTMB->GetCFEB0RxdIntDelay();
+    xdata::UnsignedShort  _cfeb1_rxd_int_delay           = use255 ? 255 : TStore_thisTMB->GetCFEB1RxdIntDelay();
+    xdata::UnsignedShort  _cfeb2_rxd_int_delay           = use255 ? 255 : TStore_thisTMB->GetCFEB2RxdIntDelay();
+    xdata::UnsignedShort  _cfeb3_rxd_int_delay           = use255 ? 255 : TStore_thisTMB->GetCFEB3RxdIntDelay();
+    xdata::UnsignedShort  _cfeb4_rxd_int_delay           = use255 ? 255 : TStore_thisTMB->GetCFEB4RxdIntDelay();
+    use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() != 1;//for ME11 OTMB with grouped CFEB RX delays    
+    xdata::UnsignedShort  _cfeb0123_rxd_int_delay        = use255 ? 255 : TStore_thisTMB->GetCFEB0123RxdIntDelay();
+    xdata::UnsignedShort  _cfeb456_rxd_int_delay         = use255 ? 255 : TStore_thisTMB->GetCFEB456RxdIntDelay();
+    use255 = TStore_thisTMB->HasGroupedME11ABCFEBRxValues() != 0;//old OTMB FW version with all 7 CFEB RX delays
+    xdata::UnsignedShort  _cfeb5_rxd_int_delay           = use255 ? 255 : TStore_thisTMB->GetCFEB5RxdIntDelay();
+    xdata::UnsignedShort  _cfeb6_rxd_int_delay           = use255 ? 255 : TStore_thisTMB->GetCFEB6RxdIntDelay();
+
     xdata::UnsignedShort  _cfeb_badbits_readout          = TStore_thisTMB->GetCFEBBadBitsReadout();
     xdata::UnsignedShort  _l1a_priority_enable           = TStore_thisTMB->GetL1APriorityEnable();
     xdata::UnsignedShort  _miniscope_enable              = TStore_thisTMB->GetMiniscopeEnable();
@@ -2266,6 +2304,10 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     newRows.setValueAt(rowId, CFEB2DELAY,                    _cfeb2delay);
     newRows.setValueAt(rowId, CFEB3DELAY,                    _cfeb3delay);
     newRows.setValueAt(rowId, CFEB4DELAY,                    _cfeb4delay);
+    newRows.setValueAt(rowId, CFEB5DELAY,                    _cfeb5delay);
+    newRows.setValueAt(rowId, CFEB6DELAY,                    _cfeb6delay);
+    newRows.setValueAt(rowId, CFEB0123DELAY,                 _cfeb0123delay);
+    newRows.setValueAt(rowId, CFEB456DELAY,                  _cfeb456delay);
     newRows.setValueAt(rowId, CFEB_ENABLE_SOURCE,            _cfeb_enable_source);
     newRows.setValueAt(rowId, CLCT_BLANKING,                 _clct_blanking);
     newRows.setValueAt(rowId, CLCT_BX0_DELAY,                _clct_bx0_delay);
@@ -2355,6 +2397,10 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     newRows.setValueAt(rowId, CFEB2POSNEG,                   _cfeb2posneg);
     newRows.setValueAt(rowId, CFEB3POSNEG,                   _cfeb3posneg);
     newRows.setValueAt(rowId, CFEB4POSNEG,                   _cfeb4posneg);
+    newRows.setValueAt(rowId, CFEB5POSNEG,                   _cfeb5posneg);
+    newRows.setValueAt(rowId, CFEB6POSNEG,                   _cfeb6posneg);
+    newRows.setValueAt(rowId, CFEB0123POSNEG,                _cfeb0123posneg);
+    newRows.setValueAt(rowId, CFEB456POSNEG,                 _cfeb456posneg);
     newRows.setValueAt(rowId, MPC_SEL_TTC_BX0,               _mpc_sel_ttc_bx0);
     newRows.setValueAt(rowId, ALCT_TOF_DELAY,                _alct_tof_delay);
     newRows.setValueAt(rowId, TMB_TO_ALCT_DATA_DELAY,        _tmb_to_alct_data_delay);
@@ -2370,6 +2416,10 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows, TMB * TStore_t
     newRows.setValueAt(rowId, CFEB2_RXD_INT_DELAY,           _cfeb2_rxd_int_delay);
     newRows.setValueAt(rowId, CFEB3_RXD_INT_DELAY,           _cfeb3_rxd_int_delay);
     newRows.setValueAt(rowId, CFEB4_RXD_INT_DELAY,           _cfeb4_rxd_int_delay);
+    newRows.setValueAt(rowId, CFEB5_RXD_INT_DELAY,           _cfeb5_rxd_int_delay);
+    newRows.setValueAt(rowId, CFEB6_RXD_INT_DELAY,           _cfeb6_rxd_int_delay);
+    newRows.setValueAt(rowId, CFEB0123_RXD_INT_DELAY,        _cfeb0123_rxd_int_delay);
+    newRows.setValueAt(rowId, CFEB456_RXD_INT_DELAY,         _cfeb456_rxd_int_delay);
     newRows.setValueAt(rowId, CFEB_BADBITS_READOUT,          _cfeb_badbits_readout);
     newRows.setValueAt(rowId, L1A_PRIORITY_ENABLE,           _l1a_priority_enable);
     newRows.setValueAt(rowId, MINISCOPE_ENABLE,              _miniscope_enable);
@@ -3461,17 +3511,32 @@ void EmuPCrateConfigTStore::readTMB(
       }
     }
     int tmbHwVersion = 0;
+    int tmbFwYear    = 0;
+    int tmbFwMonth   = 0;
+    int tmbFwDay     = 0;
     for (std::vector<std::string>::iterator column = columns.begin(); column != columns.end(); ++column)
-      {
-	if (*column != "HARDWARE_VERSION"      ) continue;
+      {//I don't know the order of columns. So, look first for the things that have to be set first
+	if (*column != "HARDWARE_VERSION"      
+	    && *column != "TMB_FIRMWARE_MONTH"
+	    && *column != "TMB_FIRMWARE_DAY"
+	    && *column != "TMB_FIRMWARE_YEAR") continue;
 	value = results.getValueAt(rowIndex, *column);
+	int intValue = -1;
 	if (results.getColumnType(*column) == "int")
 	  {
 	    xdata::Integer * i = dynamic_cast<xdata::Integer *> (value);
-	    if(! i->isNaN()) tmbHwVersion=(int)*i;
+	    if(! i->isNaN()) intValue=(int)*i;
 	  }
+	if (*column == "HARDWARE_VERSION"             )  tmbHwVersion = intValue;
+	if (*column == "TMB_FIRMWARE_YEAR"            )  tmbFwYear    = intValue;
+	if (*column == "TMB_FIRMWARE_MONTH"           )  tmbFwMonth   = intValue;
+	if (*column == "TMB_FIRMWARE_DAY"             )  tmbFwDay     = intValue;
       }
     TMB * tmb_ = new TMB(theCrate, theChamber, slot, tmbHwVersion);
+    tmb_->SetExpectedTmbFirmwareYear(tmbFwYear);
+    tmb_->SetExpectedTmbFirmwareMonth(tmbFwMonth);
+    tmb_->SetExpectedTmbFirmwareDay(tmbFwDay);
+
     for (std::vector<std::string>::iterator column = columns.begin(); column != columns.end(); ++column)
     {
       value = results.getValueAt(rowIndex, *column);
@@ -3483,9 +3548,6 @@ void EmuPCrateConfigTStore::readTMB(
       }
       StrgValue = value->toString();
       
-      if (*column == "TMB_FIRMWARE_MONTH"           ) tmb_->SetExpectedTmbFirmwareMonth(IntValue);
-      if (*column == "TMB_FIRMWARE_DAY"             ) tmb_->SetExpectedTmbFirmwareDay(IntValue);
-      if (*column == "TMB_FIRMWARE_YEAR"            ) tmb_->SetExpectedTmbFirmwareYear(IntValue);
       if (*column == "TMB_FIRMWARE_VERSION"         ) tmb_->SetExpectedTmbFirmwareVersion(IntValue);
       if (*column == "TMB_FIRMWARE_REVCODE"         ) tmb_->SetExpectedTmbFirmwareRevcode(IntValue);
       if (*column == "TMB_FIRMWARE_TYPE"            ) tmb_->SetExpectedTmbFirmwareType(IntValue);
@@ -3593,11 +3655,23 @@ void EmuPCrateConfigTStore::readTMB(
       if (*column == "ALCT_RX_CLOCK_DELAY"          ) tmb_->SetAlctRXclockDelay(IntValue);
       if (*column == "DMB_TX_DELAY"                 ) tmb_->SetDmbTxDelay(IntValue);
       if (*column == "RAT_TMB_DELAY"                ) tmb_->SetRatTmbDelay(IntValue);
-      if (*column == "CFEB0DELAY"                   ) tmb_->SetCFEB0delay(IntValue);
-      if (*column == "CFEB1DELAY"                   ) tmb_->SetCFEB1delay(IntValue);
-      if (*column == "CFEB2DELAY"                   ) tmb_->SetCFEB2delay(IntValue);
-      if (*column == "CFEB3DELAY"                   ) tmb_->SetCFEB3delay(IntValue);
-      if (*column == "CFEB4DELAY"                   ) tmb_->SetCFEB4delay(IntValue);
+
+      if (not tmb_->ExpectedTmbFirmwareConfigIsSet()) throw "TMB Expected Firmware Is Not Set";
+      if (tmb_->HasGroupedME11ABCFEBRxValues() <= 0){
+	if (*column == "CFEB0DELAY"                   ) tmb_->SetCFEB0delay(IntValue);
+	if (*column == "CFEB1DELAY"                   ) tmb_->SetCFEB1delay(IntValue);
+	if (*column == "CFEB2DELAY"                   ) tmb_->SetCFEB2delay(IntValue);
+	if (*column == "CFEB3DELAY"                   ) tmb_->SetCFEB3delay(IntValue);
+	if (*column == "CFEB4DELAY"                   ) tmb_->SetCFEB4delay(IntValue);
+	if (tmb_->GetHardwareVersion() ==2){
+	  if (*column == "CFEB5DELAY"                   ) tmb_->SetCFEB5delay(IntValue);
+	  if (*column == "CFEB6DELAY"                   ) tmb_->SetCFEB6delay(IntValue);
+	}
+      }
+      if (tmb_->HasGroupedME11ABCFEBRxValues() == 1){
+	if (*column == "CFEB0123DELAY"                  ) tmb_->SetCFEB0123delay(IntValue);
+	if (*column == "CFEB456DELAY"                   ) tmb_->SetCFEB456delay(IntValue);
+      }
       if (*column == "RPC0_RAT_DELAY"               ) tmb_->SetRpc0RatDelay(IntValue);
       if (*column == "RPC1_RAT_DELAY"               ) tmb_->SetRpc1RatDelay(IntValue);
       if (*column == "ADJACENT_CFEB_DISTANCE"       ) tmb_->SetAdjacentCfebDistance(IntValue);
@@ -3613,11 +3687,21 @@ void EmuPCrateConfigTStore::readTMB(
       if (*column == "TMB_FIFO_NO_RAW_HITS"         ) tmb_->SetFifoNoRawHits(IntValue);
       
       if (*column == "ALCT_TX_POSNEG"        ) tmb_->SetAlctTxPosNeg(IntValue);
-      if (*column == "CFEB0POSNEG"           ) tmb_->SetCfeb0RxPosNeg(IntValue);
-      if (*column == "CFEB1POSNEG"           ) tmb_->SetCfeb1RxPosNeg(IntValue);
-      if (*column == "CFEB2POSNEG"           ) tmb_->SetCfeb2RxPosNeg(IntValue);
-      if (*column == "CFEB3POSNEG"           ) tmb_->SetCfeb3RxPosNeg(IntValue);
-      if (*column == "CFEB4POSNEG"           ) tmb_->SetCfeb4RxPosNeg(IntValue);
+      if (tmb_->HasGroupedME11ABCFEBRxValues() <= 0){
+	if (*column == "CFEB0POSNEG"           ) tmb_->SetCfeb0RxPosNeg(IntValue);
+	if (*column == "CFEB1POSNEG"           ) tmb_->SetCfeb1RxPosNeg(IntValue);
+	if (*column == "CFEB2POSNEG"           ) tmb_->SetCfeb2RxPosNeg(IntValue);
+	if (*column == "CFEB3POSNEG"           ) tmb_->SetCfeb3RxPosNeg(IntValue);
+	if (*column == "CFEB4POSNEG"           ) tmb_->SetCfeb4RxPosNeg(IntValue);
+	if (tmb_->GetHardwareVersion() ==2){
+	  if (*column == "CFEB5POSNEG"           ) tmb_->SetCfeb5RxPosNeg(IntValue);
+	  if (*column == "CFEB6POSNEG"           ) tmb_->SetCfeb6RxPosNeg(IntValue);
+	}
+      }
+      if (tmb_->HasGroupedME11ABCFEBRxValues() == 1){
+	if (*column == "CFEB0123POSNEG"           ) tmb_->SetCfeb0123RxPosNeg(IntValue);
+	if (*column == "CFEB456POSNEG"           ) tmb_->SetCfeb456RxPosNeg(IntValue);
+      }
       if (*column == "MPC_SEL_TTC_BX0"       ) tmb_->SetSelectMpcTtcBx0(IntValue);
       if (*column == "ALCT_TOF_DELAY"        ) tmb_->SetAlctTOFDelay(IntValue);
       if (*column == "TMB_TO_ALCT_DATA_DELAY") tmb_->SetALCTTxDataDelay(IntValue);
@@ -3628,11 +3712,21 @@ void EmuPCrateConfigTStore::readTMB(
       if (*column == "CFEB3_TOF_DELAY"       ) tmb_->SetCfeb3TOFDelay(IntValue);
       if (*column == "CFEB4_TOF_DELAY"       ) tmb_->SetCfeb4TOFDelay(IntValue);
       if (*column == "CFEB_BADBITS_BLOCK"    ) tmb_->SetCFEBBadBitsBlock(IntValue);
-      if (*column == "CFEB0_RXD_INT_DELAY"   ) tmb_->SetCFEB0RxdIntDelay(IntValue);
-      if (*column == "CFEB1_RXD_INT_DELAY"   ) tmb_->SetCFEB1RxdIntDelay(IntValue);
-      if (*column == "CFEB2_RXD_INT_DELAY"   ) tmb_->SetCFEB2RxdIntDelay(IntValue);
-      if (*column == "CFEB3_RXD_INT_DELAY"   ) tmb_->SetCFEB3RxdIntDelay(IntValue);
-      if (*column == "CFEB4_RXD_INT_DELAY"   ) tmb_->SetCFEB4RxdIntDelay(IntValue);
+      if (tmb_->HasGroupedME11ABCFEBRxValues() <= 0){
+	if (*column == "CFEB0_RXD_INT_DELAY"   ) tmb_->SetCFEB0RxdIntDelay(IntValue);
+	if (*column == "CFEB1_RXD_INT_DELAY"   ) tmb_->SetCFEB1RxdIntDelay(IntValue);
+	if (*column == "CFEB2_RXD_INT_DELAY"   ) tmb_->SetCFEB2RxdIntDelay(IntValue);
+	if (*column == "CFEB3_RXD_INT_DELAY"   ) tmb_->SetCFEB3RxdIntDelay(IntValue);
+	if (*column == "CFEB4_RXD_INT_DELAY"   ) tmb_->SetCFEB4RxdIntDelay(IntValue);
+	if (tmb_->GetHardwareVersion() ==2){
+	  if (*column == "CFEB5_RXD_INT_DELAY"   ) tmb_->SetCFEB5RxdIntDelay(IntValue);
+	  if (*column == "CFEB6_RXD_INT_DELAY"   ) tmb_->SetCFEB6RxdIntDelay(IntValue);
+	}
+      }
+      if (tmb_->HasGroupedME11ABCFEBRxValues() == 1){
+	if (*column == "CFEB0123_RXD_INT_DELAY"   ) tmb_->SetCFEB0123RxdIntDelay(IntValue);
+	if (*column == "CFEB456_RXD_INT_DELAY"   )  tmb_->SetCFEB456RxdIntDelay(IntValue);
+      }
       if (*column == "CFEB_BADBITS_READOUT"  ) tmb_->SetCFEBBadBitsReadout(IntValue);
       if (*column == "L1A_PRIORITY_ENABLE"   ) tmb_->SetL1APriorityEnable(IntValue);
       if (*column == "MINISCOPE_ENABLE"      ) tmb_->SetMiniscopeEnable(IntValue);
