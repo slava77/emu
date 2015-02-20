@@ -405,6 +405,7 @@
 
 #include "emu/pc/VMEModule.h"
 #include <cstdio>
+#include <cassert>
 #include <vector>
 #include <string>
 #include <bitset>
@@ -546,6 +547,16 @@ public:
   inline int  GetExpectedRatFirmwareYear() { return rat_firmware_year_; }
   //
   int  PowerComparator();
+
+  bool ExpectedTmbFirmwareConfigIsSet(){
+    return GetExpectedTmbFirmwareYear() > 0 && GetExpectedTmbFirmwareMonth() > 0 && GetExpectedTmbFirmwareDay() > 0;
+  }
+  int HasGroupedME11ABCFEBRxValues(){
+    if (GetHardwareVersion() < 2) return -1;
+    if (not ExpectedTmbFirmwareConfigIsSet() ) return -1;
+    if (GetExpectedTmbFirmwareYear() >= 2015 && GetExpectedTmbFirmwareMonth() >= 1 && GetExpectedTmbFirmwareDay() >= 20)  return 1;
+    else return 0;
+  }
   //
   // called by TRGMODE, depending on version_
   void trgmode_bprsq_alct();
@@ -714,9 +725,12 @@ public:
   int tmb_read_delays(int);
   //
   inline int  GetCfebRxClockDelay(int CFEB) {
-    int tmp[7] = { cfeb0_rx_clock_delay_, cfeb1_rx_clock_delay_, cfeb2_rx_clock_delay_, cfeb3_rx_clock_delay_, cfeb4_rx_clock_delay_, 
-		   cfeb5_rx_clock_delay_, cfeb6_rx_clock_delay_ };
-    return tmp[CFEB]; 
+    assert(CFEB < 5 || (CFEB < 7 && GetHardwareVersion() == 2));
+    
+    int tmp[5] = { cfeb0_rx_clock_delay_, cfeb1_rx_clock_delay_, cfeb2_rx_clock_delay_, cfeb3_rx_clock_delay_, cfeb4_rx_clock_delay_};
+    if (CFEB < 5) return tmp[CFEB];
+    else if (CFEB == 5) return GetCfeb5RxClockDelay();
+    else return GetCfeb6RxClockDelay();
   }
   //
   //void SetVersion(std::string version) {version_ = version;}
@@ -1895,182 +1909,205 @@ public:
   //---------------------------------------------------------------------
   //0X112 = ADR_PHASER2 digital phase shifter setting for cfeb0_rx
   //---------------------------------------------------------------------
-  inline void SetCfeb0RxClockDelay(int cfeb0_rx_clock_delay) { cfeb0_rx_clock_delay_ = cfeb0_rx_clock_delay; }
-  inline void SetCFEB0delay(int cfeb0_rx_clock_delay)        { cfeb0_rx_clock_delay_ = cfeb0_rx_clock_delay; } //legacy setter
+  inline void SetCfeb0RxClockDelay(int cfeb0_rx_clock_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb0_rx_clock_delay_ = cfeb0_rx_clock_delay; }
+  inline void SetCFEB0delay(int cfeb0_rx_clock_delay)        { SetCfeb0RxClockDelay(cfeb0_rx_clock_delay); } //legacy setter
   inline int  GetCfeb0RxClockDelay() { return cfeb0_rx_clock_delay_; }
-  inline int  GetCFEB0delay()        { return cfeb0_rx_clock_delay_; } //legacy getter
+  inline int  GetCFEB0delay()        { return GetCfeb0RxClockDelay(); } //legacy getter
   inline int  GetReadCfeb0RxClockDelay() { return read_cfeb0_rx_clock_delay_; }
   //
-  inline void SetCfeb0RxPosNeg(int cfeb0_rx_posneg) { cfeb0_rx_posneg_ = cfeb0_rx_posneg; }
+  inline void SetCfeb0RxPosNeg(int cfeb0_rx_posneg) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb0_rx_posneg_ = cfeb0_rx_posneg; }
   inline int  GetCfeb0RxPosNeg() { return cfeb0_rx_posneg_; }
   inline int  GetReadCfeb0RxPosNeg() { return read_cfeb0_rx_posneg_; }
   //
   //---------------------------------------------------------------------
   //0X114 = ADR_PHASER3 digital phase shifter setting for cfeb1_rx
   //---------------------------------------------------------------------
-  inline void SetCfeb1RxClockDelay(int cfeb1_rx_clock_delay) { cfeb1_rx_clock_delay_ = cfeb1_rx_clock_delay; }
-  inline void SetCFEB1delay(int cfeb1_rx_clock_delay)        { cfeb1_rx_clock_delay_ = cfeb1_rx_clock_delay; } //legacy setter
+  inline void SetCfeb1RxClockDelay(int cfeb1_rx_clock_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb1_rx_clock_delay_ = cfeb1_rx_clock_delay; }
+  inline void SetCFEB1delay(int cfeb1_rx_clock_delay)        { SetCfeb1RxClockDelay(cfeb1_rx_clock_delay); } //legacy setter
   inline int  GetCfeb1RxClockDelay() { return cfeb1_rx_clock_delay_; }
-  inline int  GetCFEB1delay()        { return cfeb1_rx_clock_delay_; } //legacy getter
+  inline int  GetCFEB1delay()        { return GetCfeb1RxClockDelay(); } //legacy getter
   inline int  GetReadCfeb1RxClockDelay() { return read_cfeb1_rx_clock_delay_; }
   //
-  inline void SetCfeb1RxPosNeg(int cfeb1_rx_posneg) { cfeb1_rx_posneg_ = cfeb1_rx_posneg; }
+  inline void SetCfeb1RxPosNeg(int cfeb1_rx_posneg) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb1_rx_posneg_ = cfeb1_rx_posneg; }
   inline int  GetCfeb1RxPosNeg() { return cfeb1_rx_posneg_; }
   inline int  GetReadCfeb1RxPosNeg() { return read_cfeb1_rx_posneg_; }
   //
   //---------------------------------------------------------------------
   //0X116 = ADR_PHASER4 digital phase shifter setting for cfeb2_rx
   //---------------------------------------------------------------------
-  inline void SetCfeb2RxClockDelay(int cfeb2_rx_clock_delay) { cfeb2_rx_clock_delay_ = cfeb2_rx_clock_delay; }
-  inline void SetCFEB2delay(int cfeb2_rx_clock_delay)        { cfeb2_rx_clock_delay_ = cfeb2_rx_clock_delay; } //legacy setter
+  inline void SetCfeb2RxClockDelay(int cfeb2_rx_clock_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb2_rx_clock_delay_ = cfeb2_rx_clock_delay; }
+  inline void SetCFEB2delay(int cfeb2_rx_clock_delay)        { SetCfeb2RxClockDelay(cfeb2_rx_clock_delay); } //legacy setter
   inline int  GetCfeb2RxClockDelay() { return cfeb2_rx_clock_delay_; }
-  inline int  GetCFEB2delay()        { return cfeb2_rx_clock_delay_; } //legacy getter
+  inline int  GetCFEB2delay()        { return GetCfeb2RxClockDelay(); } //legacy getter
   inline int  GetReadCfeb2RxClockDelay() { return read_cfeb2_rx_clock_delay_; }
   //
-  inline void SetCfeb2RxPosNeg(int cfeb2_rx_posneg) { cfeb2_rx_posneg_ = cfeb2_rx_posneg; }
+  inline void SetCfeb2RxPosNeg(int cfeb2_rx_posneg) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb2_rx_posneg_ = cfeb2_rx_posneg; }
   inline int  GetCfeb2RxPosNeg() { return cfeb2_rx_posneg_; }
   inline int  GetReadCfeb2RxPosNeg() { return read_cfeb2_rx_posneg_; }
   //
   //---------------------------------------------------------------------
   //0X118 = ADR_PHASER5 digital phase shifter setting for cfeb3_rx
   //---------------------------------------------------------------------
-  inline void SetCfeb3RxClockDelay(int cfeb3_rx_clock_delay) { cfeb3_rx_clock_delay_ = cfeb3_rx_clock_delay; }
-  inline void SetCFEB3delay(int cfeb3_rx_clock_delay)        { cfeb3_rx_clock_delay_ = cfeb3_rx_clock_delay; } //legacy setter
+  inline void SetCfeb3RxClockDelay(int cfeb3_rx_clock_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb3_rx_clock_delay_ = cfeb3_rx_clock_delay; }
+  inline void SetCFEB3delay(int cfeb3_rx_clock_delay)        { SetCfeb3RxClockDelay(cfeb3_rx_clock_delay); } //legacy setter
   inline int  GetCfeb3RxClockDelay() { return cfeb3_rx_clock_delay_; }
-  inline int  GetCFEB3delay()        { return cfeb3_rx_clock_delay_; } //legacy getter
+  inline int  GetCFEB3delay()        { return GetCfeb3RxClockDelay(); } //legacy getter
   inline int  GetReadCfeb3RxClockDelay() { return read_cfeb3_rx_clock_delay_; }
   //
-  inline void SetCfeb3RxPosNeg(int cfeb3_rx_posneg) { cfeb3_rx_posneg_ = cfeb3_rx_posneg; }
+  inline void SetCfeb3RxPosNeg(int cfeb3_rx_posneg) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb3_rx_posneg_ = cfeb3_rx_posneg; }
   inline int  GetCfeb3RxPosNeg() { return cfeb3_rx_posneg_; }
   inline int  GetReadCfeb3RxPosNeg() { return read_cfeb3_rx_posneg_; }
   //
   //---------------------------------------------------------------------
   //0X11A = ADR_PHASER6 digital phase shifter setting for cfeb4_rx
   //---------------------------------------------------------------------
-  inline void SetCfeb4RxClockDelay(int cfeb4_rx_clock_delay) { cfeb4_rx_clock_delay_ = cfeb4_rx_clock_delay; }  
-  inline void SetCFEB4delay(int cfeb4_rx_clock_delay)        { cfeb4_rx_clock_delay_ = cfeb4_rx_clock_delay; } //legacy setter
+  inline void SetCfeb4RxClockDelay(int cfeb4_rx_clock_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb4_rx_clock_delay_ = cfeb4_rx_clock_delay; }  
+  inline void SetCFEB4delay(int cfeb4_rx_clock_delay)        { SetCfeb4RxClockDelay(cfeb4_rx_clock_delay); } //legacy setter
   inline int  GetCfeb4RxClockDelay() { return cfeb4_rx_clock_delay_; }
-  inline int  GetCFEB4delay()        { return cfeb4_rx_clock_delay_; } //legacy getter
+  inline int  GetCFEB4delay()        { return GetCfeb4RxClockDelay(); } //legacy getter
   inline int  GetReadCfeb4RxClockDelay() { return read_cfeb4_rx_clock_delay_; }
   //
-  inline void SetCfeb4RxPosNeg(int cfeb4_rx_posneg) { cfeb4_rx_posneg_ = cfeb4_rx_posneg; }
+  inline void SetCfeb4RxPosNeg(int cfeb4_rx_posneg) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb4_rx_posneg_ = cfeb4_rx_posneg; }
   inline int  GetCfeb4RxPosNeg() { return cfeb4_rx_posneg_; }
   inline int  GetReadCfeb4RxPosNeg() { return read_cfeb4_rx_posneg_; }
   //
   //---------------------------------------------------------------------
   //0X16A = ADR_V6_PHASER7 digital phase shifter setting for A side dcfebs - cfeb456_rx
   //---------------------------------------------------------------------
-  inline void SetCfeb5RxClockDelay(int cfeb5_rx_clock_delay) { cfeb5_rx_clock_delay_ = cfeb5_rx_clock_delay; }
+  inline void SetCfeb5RxClockDelay(int cfeb5_rx_clock_delay) { assert(HasGroupedME11ABCFEBRxValues()==0); cfeb5_rx_clock_delay_ = cfeb5_rx_clock_delay; }
+  inline void SetCFEB5delay(int cfeb5_rx_clock_delay)        { SetCfeb5RxClockDelay(cfeb5_rx_clock_delay); } //legacy setter
+  inline int  GetCfeb5RxClockDelay() { return cfeb5_rx_clock_delay_; }
+  inline int  GetCFEB5delay()        { return GetCFEB5delay(); } //legacy getter
+  inline int  GetReadCfeb5RxClockDelay() { return read_cfeb5_rx_clock_delay_; }
+  //
+  inline void SetCfeb5RxPosNeg(int cfeb5_rx_posneg) { assert(HasGroupedME11ABCFEBRxValues()==0); cfeb5_rx_posneg_ = cfeb5_rx_posneg; }
+  inline int  GetCfeb5RxPosNeg() { return cfeb5_rx_posneg_; }
+  inline int  GetReadCfeb5RxPosNeg() { return read_cfeb5_rx_posneg_; }
+
   inline void SetCfeb456RxClockDelay(int cfeb456_rx_clock_delay) { 
+    assert(HasGroupedME11ABCFEBRxValues()==1);
     cfeb4_rx_clock_delay_ = cfeb456_rx_clock_delay; 
     cfeb5_rx_clock_delay_ = cfeb456_rx_clock_delay; 
     cfeb6_rx_clock_delay_ = cfeb456_rx_clock_delay; 
     cfeb456_rx_clock_delay_ = cfeb456_rx_clock_delay; 
   }
-  inline void SetCFEB5delay(int cfeb5_rx_clock_delay)        { cfeb5_rx_clock_delay_ = cfeb5_rx_clock_delay; } //legacy setter
-  inline void SetCFEB456delay(int cfeb456_rx_clock_delay)        { 
-    cfeb4_rx_clock_delay_ = cfeb456_rx_clock_delay; 
-    cfeb5_rx_clock_delay_ = cfeb456_rx_clock_delay; 
-    cfeb6_rx_clock_delay_ = cfeb456_rx_clock_delay; 
-    cfeb456_rx_clock_delay_ = cfeb456_rx_clock_delay; 
-  } //legacy setter
-  inline int  GetCfeb5RxClockDelay() { return cfeb5_rx_clock_delay_; }
+  inline void SetCFEB456delay(int cfeb456_rx_clock_delay)        { SetCfeb456RxClockDelay(cfeb456_rx_clock_delay);  } //legacy setter
   inline int  GetCfeb456RxClockDelay() { return cfeb456_rx_clock_delay_; }
-  inline int  GetCFEB5delay()        { return cfeb5_rx_clock_delay_; } //legacy getter
-  inline int  GetCFEB456delay()        { return cfeb456_rx_clock_delay_; } //legacy getter
-  inline int  GetReadCfeb5RxClockDelay() { return read_cfeb5_rx_clock_delay_; }
+  inline int  GetCFEB456delay()        { return GetCFEB456delay(); } //legacy getter
   inline int  GetReadCfeb456RxClockDelay() { return read_cfeb456_rx_clock_delay_; }
   //
-  inline void SetCfeb5RxPosNeg(int cfeb5_rx_posneg) { cfeb5_rx_posneg_ = cfeb5_rx_posneg; }
   inline void SetCfeb456RxPosNeg(int cfeb456_rx_posneg) { 
+    assert(HasGroupedME11ABCFEBRxValues()==1);
     cfeb4_rx_posneg_ = cfeb456_rx_posneg; 
     cfeb5_rx_posneg_ = cfeb456_rx_posneg; 
     cfeb6_rx_posneg_ = cfeb456_rx_posneg; 
     cfeb456_rx_posneg_ = cfeb456_rx_posneg; 
   }
-  inline int  GetCfeb5RxPosNeg() { return cfeb5_rx_posneg_; }
   inline int  GetCfeb456RxPosNeg() { return cfeb456_rx_posneg_; }
-  inline int  GetReadCfeb5RxPosNeg() { return read_cfeb5_rx_posneg_; }
   inline int  GetReadCfeb456RxPosNeg() { return read_cfeb456_rx_posneg_; }
   //
   //---------------------------------------------------------------------
   //0X16C = ADR_V6_PHASER8 digital phase shifter setting for B side dcfebs - cfeb0123_rx
   //---------------------------------------------------------------------
-  inline void SetCfeb6RxClockDelay(int cfeb6_rx_clock_delay) { cfeb6_rx_clock_delay_ = cfeb6_rx_clock_delay; }
+  inline void SetCfeb6RxClockDelay(int cfeb6_rx_clock_delay) { assert(HasGroupedME11ABCFEBRxValues()==0); cfeb6_rx_clock_delay_ = cfeb6_rx_clock_delay; }
+  inline void SetCFEB6delay(int cfeb6_rx_clock_delay)        { SetCfeb6RxClockDelay(cfeb6_rx_clock_delay); } //legacy setter
+  inline int  GetCfeb6RxClockDelay() { return cfeb6_rx_clock_delay_; }
+  inline int  GetCFEB6delay()        { return GetCfeb6RxClockDelay(); } //legacy getter
+  inline int  GetReadCfeb6RxClockDelay() { return read_cfeb6_rx_clock_delay_; }
+  inline void SetCfeb6RxPosNeg(int cfeb6_rx_posneg) { cfeb6_rx_posneg_ = cfeb6_rx_posneg; }
+  inline int  GetCfeb6RxPosNeg() { return cfeb6_rx_posneg_; }
+  inline int  GetReadCfeb6RxPosNeg() { return read_cfeb6_rx_posneg_; }
+
   inline void SetCfeb0123RxClockDelay(int cfeb0123_rx_clock_delay) { 
+    assert(HasGroupedME11ABCFEBRxValues()==1);
     cfeb0_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
     cfeb1_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
     cfeb2_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
     cfeb3_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
     cfeb0123_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
   }
-  inline void SetCFEB6delay(int cfeb6_rx_clock_delay)        { cfeb6_rx_clock_delay_ = cfeb6_rx_clock_delay; } //legacy setter
-  inline void SetCFEB0123delay(int cfeb0123_rx_clock_delay)        { 
-    cfeb0_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
-    cfeb1_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
-    cfeb2_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
-    cfeb3_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
-    cfeb0123_rx_clock_delay_ = cfeb0123_rx_clock_delay; 
-  } //legacy setter
-  inline int  GetCfeb6RxClockDelay() { return cfeb6_rx_clock_delay_; }
+  inline void SetCFEB0123delay(int cfeb0123_rx_clock_delay)        { SetCfeb0123RxClockDelay(cfeb0123_rx_clock_delay);  } //legacy setter
   inline int  GetCfeb0123RxClockDelay() { return cfeb0123_rx_clock_delay_; }
-  inline int  GetCFEB6delay()        { return cfeb6_rx_clock_delay_; } //legacy getter
-  inline int  GetCFEB0123delay()        { return cfeb0123_rx_clock_delay_; } //legacy getter
-  inline int  GetReadCfeb6RxClockDelay() { return read_cfeb6_rx_clock_delay_; }
+  inline int  GetCFEB0123delay()        { return GetCfeb0123RxClockDelay(); } //legacy getter
   inline int  GetReadCfeb0123RxClockDelay() { return read_cfeb0123_rx_clock_delay_; }
   //
-  inline void SetCfeb6RxPosNeg(int cfeb6_rx_posneg) { cfeb6_rx_posneg_ = cfeb6_rx_posneg; }
   inline void SetCfeb0123RxPosNeg(int cfeb0123_rx_posneg) { 
+    assert(HasGroupedME11ABCFEBRxValues()==1);
     cfeb0_rx_posneg_ = cfeb0123_rx_posneg; 
     cfeb1_rx_posneg_ = cfeb0123_rx_posneg; 
     cfeb2_rx_posneg_ = cfeb0123_rx_posneg; 
     cfeb3_rx_posneg_ = cfeb0123_rx_posneg; 
     cfeb0123_rx_posneg_ = cfeb0123_rx_posneg; 
   }
-  inline int  GetCfeb6RxPosNeg() { return cfeb6_rx_posneg_; }
   inline int  GetCfeb0123RxPosNeg() { return cfeb0123_rx_posneg_; }
-  inline int  GetReadCfeb6RxPosNeg() { return read_cfeb6_rx_posneg_; }
   inline int  GetReadCfeb0123RxPosNeg() { return read_cfeb0123_rx_posneg_; }
   //
   //---------------------------------------------------------------------
   // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
   //---------------------------------------------------------------------
   //!cfeb0_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB0RxdIntDelay(int cfeb0_rxd_int_delay) { cfeb0_rxd_int_delay_ = cfeb0_rxd_int_delay; }
-  inline int  GetCFEB0RxdIntDelay() { return cfeb0_rxd_int_delay_; }
-  inline int  GetReadCFEB0RxdIntDelay() { return read_cfeb0_rxd_int_delay_; }
+  inline void SetCFEB0RxdIntDelay(int cfeb0_rxd_int_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb0_rxd_int_delay_ = cfeb0_rxd_int_delay; }
+  inline int  GetCFEB0RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? cfeb0123_rxd_int_delay_ :  cfeb0_rxd_int_delay_; }
+  inline int  GetReadCFEB0RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? read_cfeb0123_rxd_int_delay_ : read_cfeb0_rxd_int_delay_; }
   //
   //!cfeb1_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB1RxdIntDelay(int cfeb1_rxd_int_delay) { cfeb1_rxd_int_delay_ = cfeb1_rxd_int_delay; }
-  inline int  GetCFEB1RxdIntDelay() { return cfeb1_rxd_int_delay_; }
-  inline int  GetReadCFEB1RxdIntDelay() { return read_cfeb1_rxd_int_delay_; }
+  inline void SetCFEB1RxdIntDelay(int cfeb1_rxd_int_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb1_rxd_int_delay_ = cfeb1_rxd_int_delay; }
+  inline int  GetCFEB1RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? cfeb0123_rxd_int_delay_ : cfeb1_rxd_int_delay_; }
+  inline int  GetReadCFEB1RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? read_cfeb0123_rxd_int_delay_ : read_cfeb1_rxd_int_delay_; }
   //
   //!cfeb2_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB2RxdIntDelay(int cfeb2_rxd_int_delay) { cfeb2_rxd_int_delay_ = cfeb2_rxd_int_delay; }
-  inline int  GetCFEB2RxdIntDelay() { return cfeb2_rxd_int_delay_; }
-  inline int  GetReadCFEB2RxdIntDelay() { return read_cfeb2_rxd_int_delay_; }
+  inline void SetCFEB2RxdIntDelay(int cfeb2_rxd_int_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb2_rxd_int_delay_ = cfeb2_rxd_int_delay; }
+  inline int  GetCFEB2RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? cfeb0123_rxd_int_delay_ : cfeb2_rxd_int_delay_; }
+  inline int  GetReadCFEB2RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? read_cfeb0123_rxd_int_delay_ : read_cfeb2_rxd_int_delay_; }
   //
   //!cfeb3_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB3RxdIntDelay(int cfeb3_rxd_int_delay) { cfeb3_rxd_int_delay_ = cfeb3_rxd_int_delay; }
-  inline int  GetCFEB3RxdIntDelay() { return cfeb3_rxd_int_delay_; }
-  inline int  GetReadCFEB3RxdIntDelay() { return read_cfeb3_rxd_int_delay_; }
+  inline void SetCFEB3RxdIntDelay(int cfeb3_rxd_int_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb3_rxd_int_delay_ = cfeb3_rxd_int_delay; }
+  inline int  GetCFEB3RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? cfeb0123_rxd_int_delay_ : cfeb3_rxd_int_delay_; }
+  inline int  GetReadCFEB3RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? read_cfeb0123_rxd_int_delay_ : read_cfeb3_rxd_int_delay_; }
   //
   //
   //---------------------------------------------------------------------
   // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
   //---------------------------------------------------------------------
   //!cfeb4_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB4RxdIntDelay(int cfeb4_rxd_int_delay) { cfeb4_rxd_int_delay_ = cfeb4_rxd_int_delay; }
-  inline int  GetCFEB4RxdIntDelay() { return cfeb4_rxd_int_delay_; }
-  inline int  GetReadCFEB4RxdIntDelay() { return read_cfeb4_rxd_int_delay_; }
+  inline void SetCFEB4RxdIntDelay(int cfeb4_rxd_int_delay) { assert(HasGroupedME11ABCFEBRxValues()<=0); cfeb4_rxd_int_delay_ = cfeb4_rxd_int_delay; }
+  inline int  GetCFEB4RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? cfeb456_rxd_int_delay_ : cfeb4_rxd_int_delay_; }
+  inline int  GetReadCFEB4RxdIntDelay() { return HasGroupedME11ABCFEBRxValues() == 1 ? read_cfeb456_rxd_int_delay_ : read_cfeb4_rxd_int_delay_; }
+  //! set is only for the special version
+  inline void SetCFEB5RxdIntDelay(int cfeb5_rxd_int_delay) { assert(HasGroupedME11ABCFEBRxValues()==0); cfeb5_rxd_int_delay_ = cfeb5_rxd_int_delay; }
+  inline int  GetCFEB5RxdIntDelay() { 
+    assert(HasGroupedME11ABCFEBRxValues()>=0); 
+    return HasGroupedME11ABCFEBRxValues() == 1 ? cfeb456_rxd_int_delay_ : cfeb5_rxd_int_delay_; }
+  inline int  GetReadCFEB5RxdIntDelay() { 
+    assert(HasGroupedME11ABCFEBRxValues()>=0); 
+    return HasGroupedME11ABCFEBRxValues() == 1 ? read_cfeb456_rxd_int_delay_ : read_cfeb5_rxd_int_delay_; }
   //
-  inline void SetCFEB5RxdIntDelay(int cfeb5_rxd_int_delay) { cfeb5_rxd_int_delay_ = cfeb5_rxd_int_delay; }
-  inline int  GetCFEB5RxdIntDelay() { return cfeb5_rxd_int_delay_; }
-  inline int  GetReadCFEB5RxdIntDelay() { return read_cfeb5_rxd_int_delay_; }
+  inline void SetCFEB6RxdIntDelay(int cfeb6_rxd_int_delay) { 
+    assert(HasGroupedME11ABCFEBRxValues()==0); cfeb6_rxd_int_delay_ = cfeb6_rxd_int_delay; }
+  inline int  GetCFEB6RxdIntDelay() { 
+    assert(HasGroupedME11ABCFEBRxValues()>=0); 
+    return HasGroupedME11ABCFEBRxValues() == 1 ? cfeb456_rxd_int_delay_ : cfeb6_rxd_int_delay_; }
+  inline int  GetReadCFEB6RxdIntDelay() { 
+    assert(HasGroupedME11ABCFEBRxValues()>=0); 
+    return HasGroupedME11ABCFEBRxValues() == 1 ? read_cfeb456_rxd_int_delay_ : read_cfeb6_rxd_int_delay_; }
   //
-  inline void SetCFEB6RxdIntDelay(int cfeb6_rxd_int_delay) { cfeb6_rxd_int_delay_ = cfeb6_rxd_int_delay; }
-  inline int  GetCFEB6RxdIntDelay() { return cfeb6_rxd_int_delay_; }
-  inline int  GetReadCFEB6RxdIntDelay() { return read_cfeb6_rxd_int_delay_; }
+  inline void SetCFEB0123RxdIntDelay(int cfeb0123_rxd_int_delay) { 
+    assert(HasGroupedME11ABCFEBRxValues()>0); 
+    cfeb0123_rxd_int_delay_ = cfeb0123_rxd_int_delay; 
+  }
+  inline int  GetCFEB0123RxdIntDelay() { 
+    assert(HasGroupedME11ABCFEBRxValues()>0); return  cfeb0123_rxd_int_delay_; }
+  inline int  GetReadCFEB0123RxdIntDelay() { 
+    assert(HasGroupedME11ABCFEBRxValues()>0); return  read_cfeb0123_rxd_int_delay_; }
+  //
+  inline void SetCFEB456RxdIntDelay(int cfeb456_rxd_int_delay) { 
+    assert(HasGroupedME11ABCFEBRxValues()>0); 
+    cfeb456_rxd_int_delay_ = cfeb456_rxd_int_delay; 
+  }
+  inline int  GetCFEB456RxdIntDelay() { 
+    assert(HasGroupedME11ABCFEBRxValues()>0); return  cfeb456_rxd_int_delay_; }
+  inline int  GetReadCFEB456RxdIntDelay() { 
+    assert(HasGroupedME11ABCFEBRxValues()>0); return  read_cfeb456_rxd_int_delay_; }
   //
   //
   //---------------------------------------------------------------------
@@ -3598,10 +3635,15 @@ private:
   int cfeb4_rxd_int_delay_;
   int cfeb5_rxd_int_delay_;
   int cfeb6_rxd_int_delay_;
+  int cfeb456_rxd_int_delay_;
+  int cfeb0123_rxd_int_delay_;
+  
   //
   int read_cfeb4_rxd_int_delay_; 
   int read_cfeb5_rxd_int_delay_; 
   int read_cfeb6_rxd_int_delay_; 
+  int read_cfeb456_rxd_int_delay_; 
+  int read_cfeb0123_rxd_int_delay_; 
   //
   //
   //---------------------------------------------------------------------

@@ -593,54 +593,70 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("alct_tx_clock_delay",value)) { tmb_->SetAlctTxClockDelay(value); }
     if (fillInt("alct_tx_posneg"     ,value)) { tmb_->SetAlctTxPosNeg(value);     }
     //
-    //0X112
-    if (fillInt("cfeb0delay"     ,value)) { tmb_->SetCfeb0RxClockDelay(value); }
-    if (fillInt("cfeb0posneg",value))     { tmb_->SetCfeb0RxPosNeg(value);     }
+
+    if (not tmb_->ExpectedTmbFirmwareConfigIsSet()) throw "TMB Expected Firmware Is Not Set";
+    if (tmb_->HasGroupedME11ABCFEBRxValues() <= 0){
+      //0X112
+      if (fillInt("cfeb0delay"     ,value)) { tmb_->SetCfeb0RxClockDelay(value); }
+      if (fillInt("cfeb0posneg",value))     { tmb_->SetCfeb0RxPosNeg(value);     }
+      //
+      //0X114
+      if (fillInt("cfeb1delay"     ,value)) { tmb_->SetCfeb1RxClockDelay(value); }
+      if (fillInt("cfeb1posneg",value))     { tmb_->SetCfeb1RxPosNeg(value);     }
+      //
+      //0X116
+      if (fillInt("cfeb2delay"     ,value)) { tmb_->SetCfeb2RxClockDelay(value); }
+      if (fillInt("cfeb2posneg",value))     { tmb_->SetCfeb2RxPosNeg(value);     }
+      //
+      //0X118
+      if (fillInt("cfeb3delay"     ,value)) { tmb_->SetCfeb3RxClockDelay(value); }
+      if (fillInt("cfeb3posneg",value))     { tmb_->SetCfeb3RxPosNeg(value);     }
+      //
+      //0X11A
+      if (fillInt("cfeb4delay"     ,value)) { tmb_->SetCfeb4RxClockDelay(value); }
+      if (fillInt("cfeb4posneg",value))     { tmb_->SetCfeb4RxPosNeg(value);     }
+      //
+      if (tmb_->GetHardwareVersion() ==2){
+	//0X16A
+	if (fillInt("cfeb5delay"     ,value)) { tmb_->SetCfeb5RxClockDelay(value); }
+	if (fillInt("cfeb5posneg",value))     { tmb_->SetCfeb5RxPosNeg(value);     }
+	//
+	//0X16C
+	if (fillInt("cfeb6delay"     ,value)) { tmb_->SetCfeb6RxClockDelay(value); }
+	if (fillInt("cfeb6posneg",value))     { tmb_->SetCfeb6RxPosNeg(value);     }	
+      }
+    }
     //
-    //0X114
-    if (fillInt("cfeb1delay"     ,value)) { tmb_->SetCfeb1RxClockDelay(value); }
-    if (fillInt("cfeb1posneg",value))     { tmb_->SetCfeb1RxPosNeg(value);     }
+    if (tmb_->HasGroupedME11ABCFEBRxValues() == 1){
+      //
+      //0X16A
+      if (fillInt("cfeb456delay"     ,value)) { tmb_->SetCfeb456RxClockDelay(value); }
+      if (fillInt("cfeb456posneg",value))     { tmb_->SetCfeb456RxPosNeg(value);     }
+      //
+      //0X16C
+      if (fillInt("cfeb0123delay"     ,value)) { tmb_->SetCfeb0123RxClockDelay(value); }
+      if (fillInt("cfeb0123posneg",value))     { tmb_->SetCfeb0123RxPosNeg(value);     }
+    }
     //
-    //0X116
-    if (fillInt("cfeb2delay"     ,value)) { tmb_->SetCfeb2RxClockDelay(value); }
-    if (fillInt("cfeb2posneg",value))     { tmb_->SetCfeb2RxPosNeg(value);     }
+    if (tmb_->HasGroupedME11ABCFEBRxValues() <= 0){
+      //0X11C
+      if (fillInt("cfeb0_rxd_int_delay",value)) { tmb_->SetCFEB0RxdIntDelay(value); }
+      if (fillInt("cfeb1_rxd_int_delay",value)) { tmb_->SetCFEB1RxdIntDelay(value); }
+      if (fillInt("cfeb2_rxd_int_delay",value)) { tmb_->SetCFEB2RxdIntDelay(value); }
+      if (fillInt("cfeb3_rxd_int_delay",value)) { tmb_->SetCFEB3RxdIntDelay(value); }
+      //0X11E
+      if (fillInt("cfeb4_rxd_int_delay",value)) { tmb_->SetCFEB4RxdIntDelay(value); }
+      if (tmb_->GetHardwareVersion() ==2){
+      //0X11E
+	if (fillInt("cfeb5_rxd_int_delay",value)) { tmb_->SetCFEB5RxdIntDelay(value); }
+	if (fillInt("cfeb6_rxd_int_delay",value)) { tmb_->SetCFEB6RxdIntDelay(value); }
+      }
+    }
     //
-    //0X118
-    if (fillInt("cfeb3delay"     ,value)) { tmb_->SetCfeb3RxClockDelay(value); }
-    if (fillInt("cfeb3posneg",value))     { tmb_->SetCfeb3RxPosNeg(value);     }
-    //
-    //0X11A
-    if (fillInt("cfeb4delay"     ,value)) { tmb_->SetCfeb4RxClockDelay(value); }
-    if (fillInt("cfeb4posneg",value))     { tmb_->SetCfeb4RxPosNeg(value);     }
-    //
-    //
-    //0X16A
-    if (fillInt("cfeb5delay"     ,value)) { tmb_->SetCfeb5RxClockDelay(value); }
-    if (fillInt("cfeb5posneg",value))     { tmb_->SetCfeb5RxPosNeg(value);     }
-    //
-    //0X16C
-    if (fillInt("cfeb6delay"     ,value)) { tmb_->SetCfeb6RxClockDelay(value); }
-    if (fillInt("cfeb6posneg",value))     { tmb_->SetCfeb6RxPosNeg(value);     }
-    //
-    //
-    //0X16A
-    if (fillInt("cfeb456delay"     ,value)) { tmb_->SetCfeb456RxClockDelay(value); }
-    if (fillInt("cfeb456posneg",value))     { tmb_->SetCfeb456RxPosNeg(value);     }
-    //
-    //0X16C
-    if (fillInt("cfeb0123delay"     ,value)) { tmb_->SetCfeb0123RxClockDelay(value); }
-    if (fillInt("cfeb0123posneg",value))     { tmb_->SetCfeb0123RxPosNeg(value);     }
-    //
-    //0X11C
-    if (fillInt("cfeb0_rxd_int_delay",value)) { tmb_->SetCFEB0RxdIntDelay(value); }
-    if (fillInt("cfeb1_rxd_int_delay",value)) { tmb_->SetCFEB1RxdIntDelay(value); }
-    if (fillInt("cfeb2_rxd_int_delay",value)) { tmb_->SetCFEB2RxdIntDelay(value); }
-    if (fillInt("cfeb3_rxd_int_delay",value)) { tmb_->SetCFEB3RxdIntDelay(value); }
-    //
-    //0X11E
-    if (fillInt("cfeb4_rxd_int_delay",value)) { tmb_->SetCFEB4RxdIntDelay(value); }
-    if (fillInt("cfeb5_rxd_int_delay",value)) { tmb_->SetCFEB5RxdIntDelay(value); }
-    if (fillInt("cfeb6_rxd_int_delay",value)) { tmb_->SetCFEB6RxdIntDelay(value); }
+    if (tmb_->HasGroupedME11ABCFEBRxValues() == 1){
+      if (fillInt("cfeb0123_rxd_int_delay",value)) { tmb_->SetCFEB0123RxdIntDelay(value); }
+      if (fillInt("cfeb456_rxd_int_delay",value)) { tmb_->SetCFEB456RxdIntDelay(value); }
+    }
     //
     //0X122
     if (fillInt("cfeb_badbits_block",value)) { tmb_->SetCFEBBadBitsBlock(value); }

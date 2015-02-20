@@ -494,11 +494,23 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("ALCT_RX_CLOCK_DELAY"))    tmb_->SetAlctRXclockDelay( getInt(conf, "ALCT_RX_CLOCK_DELAY"));
   if (conf->has("DMB_TX_DELAY"))           tmb_->SetDmbTxDelay( getInt(conf, "DMB_TX_DELAY"));
   if (conf->has("RAT_TMB_DELAY"))          tmb_->SetRatTmbDelay( getInt(conf, "RAT_TMB_DELAY"));
-  if (conf->has("CFEB0DELAY"))             tmb_->SetCFEB0delay( getInt(conf, "CFEB0DELAY"));
-  if (conf->has("CFEB1DELAY"))             tmb_->SetCFEB1delay( getInt(conf, "CFEB1DELAY"));
-  if (conf->has("CFEB2DELAY"))             tmb_->SetCFEB2delay( getInt(conf, "CFEB2DELAY"));
-  if (conf->has("CFEB3DELAY"))             tmb_->SetCFEB3delay( getInt(conf, "CFEB3DELAY"));
-  if (conf->has("CFEB4DELAY"))             tmb_->SetCFEB4delay( getInt(conf, "CFEB4DELAY"));
+
+  if (not tmb_->ExpectedTmbFirmwareConfigIsSet()) throw "TMB Expected Firmware Is Not Set";
+  if (tmb_->HasGroupedME11ABCFEBRxValues() <= 0){
+    if (conf->has("CFEB0DELAY"))             tmb_->SetCFEB0delay( getInt(conf, "CFEB0DELAY"));
+    if (conf->has("CFEB1DELAY"))             tmb_->SetCFEB1delay( getInt(conf, "CFEB1DELAY"));
+    if (conf->has("CFEB2DELAY"))             tmb_->SetCFEB2delay( getInt(conf, "CFEB2DELAY"));
+    if (conf->has("CFEB3DELAY"))             tmb_->SetCFEB3delay( getInt(conf, "CFEB3DELAY"));
+    if (conf->has("CFEB4DELAY"))             tmb_->SetCFEB4delay( getInt(conf, "CFEB4DELAY"));
+    if (tmb_->GetHardwareVersion() ==2){
+      if (conf->has("CFEB5DELAY"))             tmb_->SetCFEB3delay( getInt(conf, "CFEB5DELAY"));
+      if (conf->has("CFEB6DELAY"))             tmb_->SetCFEB4delay( getInt(conf, "CFEB6DELAY"));      
+    }
+  } else {
+    if (conf->has("CFEB0123DELAY"))             tmb_->SetCFEB3delay( getInt(conf, "CFEB0123DELAY"));
+    if (conf->has("CFEB456DELAY"))             tmb_->SetCFEB4delay( getInt(conf, "CFEB456DELAY"));
+  }
+
   if (conf->has("RPC0_RAT_DELAY"))         tmb_->SetRpc0RatDelay( getInt(conf, "RPC0_RAT_DELAY"));
   if (conf->has("RPC1_RAT_DELAY"))         tmb_->SetRpc1RatDelay( getInt(conf, "RPC1_RAT_DELAY"));
   if (conf->has("ADJACENT_CFEB_DISTANCE")) tmb_->SetAdjacentCfebDistance( getInt(conf, "ADJACENT_CFEB_DISTANCE"));
@@ -514,11 +526,20 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("TMB_FIFO_NO_RAW_HITS"))   tmb_->SetFifoNoRawHits( getInt(conf, "TMB_FIFO_NO_RAW_HITS"));
 
   if (conf->has("ALCT_TX_POSNEG"))         tmb_->SetAlctTxPosNeg( getInt(conf, "ALCT_TX_POSNEG"));
-  if (conf->has("CFEB0POSNEG"))            tmb_->SetCfeb0RxPosNeg( getInt(conf, "CFEB0POSNEG"));
-  if (conf->has("CFEB1POSNEG"))            tmb_->SetCfeb1RxPosNeg( getInt(conf, "CFEB1POSNEG"));
-  if (conf->has("CFEB2POSNEG"))            tmb_->SetCfeb2RxPosNeg( getInt(conf, "CFEB2POSNEG"));
-  if (conf->has("CFEB3POSNEG"))            tmb_->SetCfeb3RxPosNeg( getInt(conf, "CFEB3POSNEG"));
-  if (conf->has("CFEB4POSNEG"))            tmb_->SetCfeb4RxPosNeg( getInt(conf, "CFEB4POSNEG"));
+  if (tmb_->HasGroupedME11ABCFEBRxValues() <= 0){
+    if (conf->has("CFEB0POSNEG"))            tmb_->SetCfeb0RxPosNeg( getInt(conf, "CFEB0POSNEG"));
+    if (conf->has("CFEB1POSNEG"))            tmb_->SetCfeb1RxPosNeg( getInt(conf, "CFEB1POSNEG"));
+    if (conf->has("CFEB2POSNEG"))            tmb_->SetCfeb2RxPosNeg( getInt(conf, "CFEB2POSNEG"));
+    if (conf->has("CFEB3POSNEG"))            tmb_->SetCfeb3RxPosNeg( getInt(conf, "CFEB3POSNEG"));
+    if (conf->has("CFEB4POSNEG"))            tmb_->SetCfeb4RxPosNeg( getInt(conf, "CFEB4POSNEG"));
+    if (tmb_->GetHardwareVersion() ==2){
+      if (conf->has("CFEB5POSNEG"))             tmb_->SetCfeb5RxPosNeg( getInt(conf, "CFEB5POSNEG"));
+      if (conf->has("CFEB6POSNEG"))             tmb_->SetCfeb6RxPosNeg( getInt(conf, "CFEB6POSNEG"));
+    }
+  } else {
+    if (conf->has("CFEB0123POSNEG"))             tmb_->SetCfeb5RxPosNeg( getInt(conf, "CFEB0123POSNEG"));
+    if (conf->has("CFEB456POSNEG"))             tmb_->SetCfeb6RxPosNeg( getInt(conf, "CFEB456POSNEG"));
+  }
   if (conf->has("MPC_SEL_TTC_BX0"))        tmb_->SetSelectMpcTtcBx0( getInt(conf, "MPC_SEL_TTC_BX0"));
   if (conf->has("ALCT_TOF_DELAY"))         tmb_->SetAlctTOFDelay( getInt(conf, "ALCT_TOF_DELAY"));
   if (conf->has("TMB_TO_ALCT_DATA_DELAY")) tmb_->SetALCTTxDataDelay( getInt(conf, "TMB_TO_ALCT_DATA_DELAY"));
@@ -529,11 +550,20 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("CFEB3_TOF_DELAY"))        tmb_->SetCfeb3TOFDelay( getInt(conf, "CFEB3_TOF_DELAY"));
   if (conf->has("CFEB4_TOF_DELAY"))        tmb_->SetCfeb4TOFDelay( getInt(conf, "CFEB4_TOF_DELAY"));
   if (conf->has("CFEB_BADBITS_BLOCK"))     tmb_->SetCFEBBadBitsBlock( getInt(conf, "CFEB_BADBITS_BLOCK"));
-  if (conf->has("CFEB0_RXD_INT_DELAY"))    tmb_->SetCFEB0RxdIntDelay( getInt(conf, "CFEB0_RXD_INT_DELAY"));
-  if (conf->has("CFEB1_RXD_INT_DELAY"))    tmb_->SetCFEB1RxdIntDelay( getInt(conf, "CFEB1_RXD_INT_DELAY"));
-  if (conf->has("CFEB2_RXD_INT_DELAY"))    tmb_->SetCFEB2RxdIntDelay( getInt(conf, "CFEB2_RXD_INT_DELAY"));
-  if (conf->has("CFEB3_RXD_INT_DELAY"))    tmb_->SetCFEB3RxdIntDelay( getInt(conf, "CFEB3_RXD_INT_DELAY"));
-  if (conf->has("CFEB4_RXD_INT_DELAY"))    tmb_->SetCFEB4RxdIntDelay( getInt(conf, "CFEB4_RXD_INT_DELAY"));
+  if (tmb_->HasGroupedME11ABCFEBRxValues() <= 0){
+    if (conf->has("CFEB0_RXD_INT_DELAY"))    tmb_->SetCFEB0RxdIntDelay( getInt(conf, "CFEB0_RXD_INT_DELAY"));
+    if (conf->has("CFEB1_RXD_INT_DELAY"))    tmb_->SetCFEB1RxdIntDelay( getInt(conf, "CFEB1_RXD_INT_DELAY"));
+    if (conf->has("CFEB2_RXD_INT_DELAY"))    tmb_->SetCFEB2RxdIntDelay( getInt(conf, "CFEB2_RXD_INT_DELAY"));
+    if (conf->has("CFEB3_RXD_INT_DELAY"))    tmb_->SetCFEB3RxdIntDelay( getInt(conf, "CFEB3_RXD_INT_DELAY"));
+    if (conf->has("CFEB4_RXD_INT_DELAY"))    tmb_->SetCFEB4RxdIntDelay( getInt(conf, "CFEB4_RXD_INT_DELAY"));
+    if (tmb_->GetHardwareVersion() ==2){
+      if (conf->has("CFEB5_RXD_INT_DELAY"))    tmb_->SetCFEB3RxdIntDelay( getInt(conf, "CFEB5_RXD_INT_DELAY"));
+      if (conf->has("CFEB6_RXD_INT_DELAY"))    tmb_->SetCFEB4RxdIntDelay( getInt(conf, "CFEB6_RXD_INT_DELAY"));
+    }
+  } else {
+    if (conf->has("CFEB0123_RXD_INT_DELAY"))    tmb_->SetCFEB3RxdIntDelay( getInt(conf, "CFEB0123_RXD_INT_DELAY"));
+    if (conf->has("CFEB456_RXD_INT_DELAY"))    tmb_->SetCFEB4RxdIntDelay( getInt(conf, "CFEB456_RXD_INT_DELAY"));
+  }
   if (conf->has("CFEB_BADBITS_READOUT"))   tmb_->SetCFEBBadBitsReadout( getInt(conf, "CFEB_BADBITS_READOUT"));
   if (conf->has("L1A_PRIORITY_ENABLE"))    tmb_->SetL1APriorityEnable( getInt(conf, "L1A_PRIORITY_ENABLE"));
   if (conf->has("MINISCOPE_ENABLE"))       tmb_->SetMiniscopeEnable( getInt(conf, "MINISCOPE_ENABLE"));

@@ -291,6 +291,7 @@ static const unsigned long int  phaser_cfeb3_rxd_adr    = 0x000118;
 static const unsigned long int  phaser_cfeb4_rxd_adr    = 0x00011A;
 static const unsigned long int  cfeb0_3_interstage_adr  = 0x00011C;
 static const unsigned long int  cfeb4_6_interstage_adr  = 0x00011E;
+static const unsigned long int  dcfeb_me11ab_interstage_adr  = 0x00011E;
 //
 static const unsigned long int  sync_err_control_adr    = 0x000120;
 static const unsigned long int  cfeb_badbits_ctrl_adr   = 0x000122;
@@ -336,6 +337,9 @@ static const unsigned long int  badbits545_adr          = 0x000162;  //ADR_V6_CF
 static const unsigned long int  badbits601_adr          = 0x000164;  //ADR_V6_CFEB6_BADBITS_LY01
 static const unsigned long int  badbits623_adr          = 0x000166;  //ADR_V6_CFEB6_BADBITS_LY23
 static const unsigned long int  badbits645_adr          = 0x000168;  //ADR_V6_CFEB6_BADBITS_LY45
+
+static const unsigned long int  phaser_cfeb5_rxd_adr	= 0x00016A;  
+static const unsigned long int  phaser_cfeb6_rxd_adr    = 0x00016C;
 
 static const unsigned long int  phaser_cfeb456_rxd_adr	= 0x00016A;  
 static const unsigned long int  phaser_cfeb0123_rxd_adr = 0x00016C;
@@ -2388,14 +2392,14 @@ const int cfeb4_rx_posneg_default       =  0;
 //--------------------------------------------------------------
 //[0X16A] = ADR_PHASER7:  values in the xml file for cfeb5_rx
 //--------------------------------------------------------------
-const int cfeb5_rx_clock_delay_vmereg   =  phaser_cfeb456_rxd_adr; // for compatibility, will be removed
+const int cfeb5_rx_clock_delay_vmereg   =  phaser_cfeb5_rxd_adr; // for compatibility, will be removed
 const int cfeb5_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
 const int cfeb5_rx_posneg_default       =  0; 
 //
 //--------------------------------------------------------------
 //[0X16C] = ADR_PHASER8:  values in the xml file for cfeb6_rx
 //--------------------------------------------------------------
-const int cfeb6_rx_clock_delay_vmereg   =  phaser_cfeb456_rxd_adr; // for compatibility, will be removed
+const int cfeb6_rx_clock_delay_vmereg   =  phaser_cfeb6_rxd_adr; // for compatibility, will be removed
 const int cfeb6_rx_clock_delay_default  =  3;                   //default value in nanoseconds (not the VME register values) 
 const int cfeb6_rx_posneg_default       =  0; 
 //
@@ -2444,15 +2448,25 @@ const int cfeb4_rxd_int_delay_bitlo   =  0;
 const int cfeb4_rxd_int_delay_bithi   =  3;
 const int cfeb4_rxd_int_delay_default =  0; 
 //
-const int cfeb5_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
+const int cfeb5_rxd_int_delay_vmereg  = cfeb4_6_interstage_adr;
 const int cfeb5_rxd_int_delay_bitlo   =  4;
 const int cfeb5_rxd_int_delay_bithi   =  7;
 const int cfeb5_rxd_int_delay_default =  0; 
+//
+const int cfeb456_rxd_int_delay_vmereg  =  dcfeb_me11ab_interstage_adr;
+const int cfeb456_rxd_int_delay_bitlo   =  4;
+const int cfeb456_rxd_int_delay_bithi   =  7;
+const int cfeb456_rxd_int_delay_default =  0; 
 //
 const int cfeb6_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
 const int cfeb6_rxd_int_delay_bitlo   =  8;
 const int cfeb6_rxd_int_delay_bithi   =  11;
 const int cfeb6_rxd_int_delay_default =  0; 
+//
+const int cfeb0123_rxd_int_delay_vmereg  =  dcfeb_me11ab_interstage_adr;
+const int cfeb0123_rxd_int_delay_bitlo   =  8;
+const int cfeb0123_rxd_int_delay_bithi   =  11;
+const int cfeb0123_rxd_int_delay_default =  0; 
 //
 //
 //---------------------------------------------------------------------

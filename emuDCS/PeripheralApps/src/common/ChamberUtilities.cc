@@ -684,14 +684,18 @@ void ChamberUtilities::CFEBTiming_Configure(int * tof) {
 }
     
 void ChamberUtilities::SetCfebRxPosNeg(int posneg) {
-  thisTMB->SetCfeb0RxPosNeg(posneg);
-  thisTMB->SetCfeb1RxPosNeg(posneg);
-  thisTMB->SetCfeb2RxPosNeg(posneg);
-  thisTMB->SetCfeb3RxPosNeg(posneg);
-  thisTMB->SetCfeb4RxPosNeg(posneg);
-  thisTMB->SetCfeb5RxPosNeg(posneg);
-  thisTMB->SetCfeb6RxPosNeg(posneg);
-  if (thisTMB->GetHardwareVersion()>=2){
+  if (thisTMB->HasGroupedME11ABCFEBRxValues() <= 0){
+    thisTMB->SetCfeb0RxPosNeg(posneg);
+    thisTMB->SetCfeb1RxPosNeg(posneg);
+    thisTMB->SetCfeb2RxPosNeg(posneg);
+    thisTMB->SetCfeb3RxPosNeg(posneg);
+    thisTMB->SetCfeb4RxPosNeg(posneg);
+  }
+  if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){
+    thisTMB->SetCfeb5RxPosNeg(posneg);
+    thisTMB->SetCfeb6RxPosNeg(posneg);
+  }
+  if (thisTMB->HasGroupedME11ABCFEBRxValues() == 1){
     thisTMB->SetCfeb0123RxPosNeg(posneg);
     thisTMB->SetCfeb456RxPosNeg(posneg);
   }
@@ -699,27 +703,38 @@ void ChamberUtilities::SetCfebRxPosNeg(int posneg) {
 }
 
 void ChamberUtilities::SetCfebRxClockDelay(int delay) {
-  thisTMB->SetCfeb0RxClockDelay(delay); 		// Set delay in TMB object
-  thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);	// Write delay to hardware
-  thisTMB->FirePhaser(phaser_cfeb0_rxd_adr);		// Load delay
+  if (thisTMB->HasGroupedME11ABCFEBRxValues() <= 0){
+    thisTMB->SetCfeb0RxClockDelay(delay); 		// Set delay in TMB object
+    thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);	// Write delay to hardware
+    thisTMB->FirePhaser(phaser_cfeb0_rxd_adr);		// Load delay
+    //
+    thisTMB->SetCfeb1RxClockDelay(delay);
+    thisTMB->WriteRegister(phaser_cfeb1_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb1_rxd_adr);
+    //
+    thisTMB->SetCfeb2RxClockDelay(delay);
+    thisTMB->WriteRegister(phaser_cfeb2_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb2_rxd_adr);
+    //
+    thisTMB->SetCfeb3RxClockDelay(delay);
+    thisTMB->WriteRegister(phaser_cfeb3_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb3_rxd_adr);
+    //
+    thisTMB->SetCfeb4RxClockDelay(delay);
+    thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
+  }
+  if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){//ungrouped ME11
+    thisTMB->SetCfeb5RxClockDelay(delay);
+    thisTMB->WriteRegister(phaser_cfeb5_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb5_rxd_adr);
+
+    thisTMB->SetCfeb6RxClockDelay(delay);
+    thisTMB->WriteRegister(phaser_cfeb6_rxd_adr);
+    thisTMB->FirePhaser(phaser_cfeb6_rxd_adr);
+  }
   //
-  thisTMB->SetCfeb1RxClockDelay(delay);
-  thisTMB->WriteRegister(phaser_cfeb1_rxd_adr);
-  thisTMB->FirePhaser(phaser_cfeb1_rxd_adr);
-  //
-  thisTMB->SetCfeb2RxClockDelay(delay);
-  thisTMB->WriteRegister(phaser_cfeb2_rxd_adr);
-  thisTMB->FirePhaser(phaser_cfeb2_rxd_adr);
-  //
-  thisTMB->SetCfeb3RxClockDelay(delay);
-  thisTMB->WriteRegister(phaser_cfeb3_rxd_adr);
-  thisTMB->FirePhaser(phaser_cfeb3_rxd_adr);
-  //
-  thisTMB->SetCfeb4RxClockDelay(delay);
-  thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
-  thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
-  //
-  if(thisTMB->GetHardwareVersion() == 2) {
+  if(thisTMB->HasGroupedME11ABCFEBRxValues() == 1) {//grouped ME11
     thisTMB->SetCfeb456RxClockDelay(delay);
     thisTMB->WriteRegister(phaser_cfeb456_rxd_adr);
     thisTMB->FirePhaser(phaser_cfeb456_rxd_adr);
@@ -877,7 +892,6 @@ inline void ChamberUtilities::CFEBTiming_PrintConfiguration(CFEBTiming_Configura
   (*MyOutput_) << std::setw(23) << "cfeb_rx_posneg: " << std::setw(4) << config.cfeb_rx_posneg << std::endl;
   (*MyOutput_) << std::setw(23) << "cfeb_rx_clock_delay: " << std::setw(4) << config.cfeb_rx_clock_delay << std::endl;
   (*MyOutput_) << std::setw(23) << "cfeb_clock_phase: " << std::setw(4) << config.cfeb_clock_phase << std::endl;
-  (*MyOutput_) << std::setw(23) << "groupME11AandB: " << std::setw(4) << config.groupME11AandB << std::endl;
 }
     //
 inline bool ChamberUtilities::CFEBTiming_CheckCLCT(int cfeb, unsigned int layer_mask, unsigned int pattern, unsigned int halfstrip) {
@@ -932,7 +946,7 @@ inline void ChamberUtilities::CFEBTiming_ReadConfiguration(CFEBTiming_Configurat
     config.tmb_l1a_delay = thisTMB->GetL1aDelay();
   }
   
-  if (config.groupME11AandB){
+  if (thisTMB->HasGroupedME11ABCFEBRxValues()==1){
     thisTMB->ReadRegister(phaser_cfeb0123_rxd_adr); // Get phaser information
     config.cfeb_rx_posneg = thisTMB->GetReadCfeb0123RxPosNeg();
     config.cfeb_rx_clock_delay = thisTMB->GetReadCfeb0123RxClockDelay();
@@ -1011,10 +1025,6 @@ inline bool ChamberUtilities::CFEBTiming_CheckConfiguration(const CFEBTiming_Con
   }
   if(read.cfeb_rx_clock_delay != orig.cfeb_rx_clock_delay) {
     (*MyOutput_) << std::setw(37) << "BAD cfeb_rx_clock_delay: EXPECTED: " << std::setw(4) << orig.cfeb_rx_clock_delay << " | READ: " << std::setw(4) << read.cfeb_rx_clock_delay << std::endl;
-    same = false;
-  }
-  if(is_me11_ && ( read.groupME11AandB != orig.groupME11AandB )) {
-    (*MyOutput_) << std::setw(37) << "BAD groupME11AandB: EXPECTED: " << std::setw(4) << orig.groupME11AandB << " | READ: " << std::setw(4) << read.groupME11AandB << std::endl;
     same = false;
   }
   return same;
@@ -1530,8 +1540,7 @@ void ChamberUtilities::Print_CFEB_Masks() {
 }
     //
 void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, int cfeb_num, unsigned int layers, unsigned int pattern, 
-							      int halfstrip, bool print_data, int cfeb_clock_phase,
-							      bool groupME11AandB) {
+							      int halfstrip, bool print_data, int cfeb_clock_phase) {
   
   std::time_t init_time=time(0);
   
@@ -1641,7 +1650,6 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     config.cfeb_mask = 0x7f;
   else
     config.cfeb_mask = 0x1 << cfeb_num;
-  config.groupME11AandB = groupME11AandB;
   
   CFEBTiming_PrintConfiguration(config);
   
@@ -1666,59 +1674,71 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
       web_backup << "DCFEB " << cfeb << " clock phase = " << config.cfeb_clock_phase << std::endl;
     }
 
-    if (!groupME11AandB){
+    if (thisTMB->HasGroupedME11ABCFEBRxValues()<=0){
       thisTMB->ReadRegister(phaser_cfeb0_rxd_adr); // Get phaser information
       thisTMB->ReadRegister(phaser_cfeb1_rxd_adr);
       thisTMB->ReadRegister(phaser_cfeb2_rxd_adr);
       thisTMB->ReadRegister(phaser_cfeb3_rxd_adr);
       thisTMB->ReadRegister(phaser_cfeb4_rxd_adr);
-      thisTMB->ReadRegister(phaser_cfeb456_rxd_adr);
-      thisTMB->ReadRegister(phaser_cfeb0123_rxd_adr);
+      thisTMB->ReadRegister(phaser_cfeb5_rxd_adr);
+      thisTMB->ReadRegister(phaser_cfeb6_rxd_adr);
     } else {
       thisTMB->ReadRegister(phaser_cfeb456_rxd_adr);
       thisTMB->ReadRegister(phaser_cfeb0123_rxd_adr);
     }
     //
-    if (!groupME11AandB){
+    if (thisTMB->HasGroupedME11ABCFEBRxValues()<=0){
       initial_cfeb_phase[0] = thisTMB->GetReadCfeb0RxClockDelay();
       initial_cfeb_phase[1] = thisTMB->GetReadCfeb1RxClockDelay();
       initial_cfeb_phase[2] = thisTMB->GetReadCfeb2RxClockDelay();
       initial_cfeb_phase[3] = thisTMB->GetReadCfeb3RxClockDelay();
       initial_cfeb_phase[4] = thisTMB->GetReadCfeb4RxClockDelay();
-      initial_cfeb_phase[5] = thisTMB->GetReadCfeb456RxClockDelay();
-      initial_cfeb_phase[6] = thisTMB->GetReadCfeb0123RxClockDelay();
+      if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){
+	initial_cfeb_phase[5] = thisTMB->GetReadCfeb5RxClockDelay();
+	initial_cfeb_phase[6] = thisTMB->GetReadCfeb6RxClockDelay();
+      }
       //
       initial_cfeb_posneg[0] = thisTMB->GetReadCfeb0RxPosNeg();
       initial_cfeb_posneg[1] = thisTMB->GetReadCfeb1RxPosNeg();
       initial_cfeb_posneg[2] = thisTMB->GetReadCfeb2RxPosNeg();
       initial_cfeb_posneg[3] = thisTMB->GetReadCfeb3RxPosNeg();
       initial_cfeb_posneg[4] = thisTMB->GetReadCfeb4RxPosNeg();
-      initial_cfeb_posneg[5] = thisTMB->GetReadCfeb456RxPosNeg();
-      initial_cfeb_posneg[6] = thisTMB->GetReadCfeb0123RxPosNeg();
+      if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){
+	initial_cfeb_posneg[5] = thisTMB->GetReadCfeb5RxPosNeg();
+	initial_cfeb_posneg[6] = thisTMB->GetReadCfeb6RxPosNeg();
+      }
+
+      initial_cfeb_rxd_int_delay[0] = thisTMB->GetCFEB0RxdIntDelay();
+      initial_cfeb_rxd_int_delay[1] = thisTMB->GetCFEB1RxdIntDelay();
+      initial_cfeb_rxd_int_delay[2] = thisTMB->GetCFEB2RxdIntDelay();
+      initial_cfeb_rxd_int_delay[3] = thisTMB->GetCFEB3RxdIntDelay();
+      initial_cfeb_rxd_int_delay[4] = thisTMB->GetCFEB4RxdIntDelay();
+      if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){
+	initial_cfeb_rxd_int_delay[5] = thisTMB->GetCFEB5RxdIntDelay();
+	initial_cfeb_rxd_int_delay[6] = thisTMB->GetCFEB6RxdIntDelay();
+      }
     } else {
       int initialPhase0123 = thisTMB->GetReadCfeb0123RxClockDelay();
       int initialPhase456 = thisTMB->GetReadCfeb456RxClockDelay();
 
       int initialPosneg0123 = thisTMB->GetReadCfeb0123RxPosNeg();
       int initialPosneg456 = thisTMB->GetReadCfeb456RxPosNeg();
-
+      
+      int initialRxdInt0123 = thisTMB->GetReadCFEB0123RxdIntDelay();
+      int initialRxdInt456 = thisTMB->GetReadCFEB456RxdIntDelay();
+      
       for (int i=0;i<4;++i){
 	initial_cfeb_phase[i] = initialPhase0123;
 	initial_cfeb_posneg[i] = initialPosneg0123;
+	initial_cfeb_rxd_int_delay[i] = initialRxdInt0123;
       }
       for (int i=4;i<7;++i){
 	initial_cfeb_phase[i] = initialPhase456;
 	initial_cfeb_posneg[i] = initialPosneg456;
+	initial_cfeb_rxd_int_delay[i] = initialRxdInt456;
       }
     }
     //
-    initial_cfeb_rxd_int_delay[0] = thisTMB->GetCFEB0RxdIntDelay();
-    initial_cfeb_rxd_int_delay[1] = thisTMB->GetCFEB1RxdIntDelay();
-    initial_cfeb_rxd_int_delay[2] = thisTMB->GetCFEB2RxdIntDelay();
-    initial_cfeb_rxd_int_delay[3] = thisTMB->GetCFEB3RxdIntDelay();
-    initial_cfeb_rxd_int_delay[4] = thisTMB->GetCFEB4RxdIntDelay();
-    initial_cfeb_rxd_int_delay[5] = thisTMB->GetCFEB5RxdIntDelay();
-    initial_cfeb_rxd_int_delay[6] = thisTMB->GetCFEB6RxdIntDelay();
     //
     
   }
@@ -2328,40 +2348,57 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
   //
   if(is_me11_) {
     //
-    thisTMB->SetCfeb0RxClockDelay(initial_cfeb_phase[0]);
-    thisTMB->SetCfeb0RxPosNeg(initial_cfeb_posneg[0]);
-    thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb0_rxd_adr);
-    //
-    thisTMB->SetCfeb1RxClockDelay(initial_cfeb_phase[1]);
-    thisTMB->SetCfeb1RxPosNeg(initial_cfeb_posneg[1]);
-    thisTMB->WriteRegister(phaser_cfeb1_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb1_rxd_adr);
-    //
-    thisTMB->SetCfeb2RxClockDelay(initial_cfeb_phase[2]);
-    thisTMB->SetCfeb2RxPosNeg(initial_cfeb_posneg[2]);
-    thisTMB->WriteRegister(phaser_cfeb2_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb2_rxd_adr);
-    //
-    thisTMB->SetCfeb3RxClockDelay(initial_cfeb_phase[3]);
-    thisTMB->SetCfeb3RxPosNeg(initial_cfeb_posneg[3]);
-    thisTMB->WriteRegister(phaser_cfeb3_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb3_rxd_adr);
-    //
-    thisTMB->SetCfeb4RxClockDelay(initial_cfeb_phase[4]);
-    thisTMB->SetCfeb4RxPosNeg(initial_cfeb_posneg[4]);
-    thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
-    //
-    thisTMB->SetCfeb456RxClockDelay(initial_cfeb_phase[groupME11AandB ? 4 : 5]);
-    thisTMB->SetCfeb456RxPosNeg(initial_cfeb_posneg[groupME11AandB ? 4 : 5]);
-    thisTMB->WriteRegister(phaser_cfeb456_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb456_rxd_adr);
-    //
-    thisTMB->SetCfeb0123RxClockDelay(initial_cfeb_phase[groupME11AandB ? 0 : 6]);
-    thisTMB->SetCfeb0123RxPosNeg(initial_cfeb_posneg[groupME11AandB ? 0 : 6]);
-    thisTMB->WriteRegister(phaser_cfeb0123_rxd_adr);
-    thisTMB->FirePhaser(phaser_cfeb0123_rxd_adr);
+    if (thisTMB->HasGroupedME11ABCFEBRxValues() <=0){
+      thisTMB->SetCfeb0RxClockDelay(initial_cfeb_phase[0]);
+      thisTMB->SetCfeb0RxPosNeg(initial_cfeb_posneg[0]);
+      thisTMB->WriteRegister(phaser_cfeb0_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb0_rxd_adr);
+      //
+      thisTMB->SetCfeb1RxClockDelay(initial_cfeb_phase[1]);
+      thisTMB->SetCfeb1RxPosNeg(initial_cfeb_posneg[1]);
+      thisTMB->WriteRegister(phaser_cfeb1_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb1_rxd_adr);
+      //
+      thisTMB->SetCfeb2RxClockDelay(initial_cfeb_phase[2]);
+      thisTMB->SetCfeb2RxPosNeg(initial_cfeb_posneg[2]);
+      thisTMB->WriteRegister(phaser_cfeb2_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb2_rxd_adr);
+      //
+      thisTMB->SetCfeb3RxClockDelay(initial_cfeb_phase[3]);
+      thisTMB->SetCfeb3RxPosNeg(initial_cfeb_posneg[3]);
+      thisTMB->WriteRegister(phaser_cfeb3_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb3_rxd_adr);
+      //
+      thisTMB->SetCfeb4RxClockDelay(initial_cfeb_phase[4]);
+      thisTMB->SetCfeb4RxPosNeg(initial_cfeb_posneg[4]);
+      thisTMB->WriteRegister(phaser_cfeb4_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb4_rxd_adr);
+    }
+    if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){//ungrouped ME11
+      //
+      thisTMB->SetCfeb5RxClockDelay(initial_cfeb_phase[5]);
+      thisTMB->SetCfeb5RxPosNeg(initial_cfeb_posneg[5]);
+      thisTMB->WriteRegister(phaser_cfeb5_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb5_rxd_adr);
+      //
+      thisTMB->SetCfeb6RxClockDelay(initial_cfeb_phase[6]);
+      thisTMB->SetCfeb6RxPosNeg(initial_cfeb_posneg[6]);
+      thisTMB->WriteRegister(phaser_cfeb6_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb6_rxd_adr);
+
+    }
+    if (thisTMB->HasGroupedME11ABCFEBRxValues() == 1){//grouped ME11
+      //
+      thisTMB->SetCfeb456RxClockDelay(initial_cfeb_phase[4]);
+      thisTMB->SetCfeb456RxPosNeg(initial_cfeb_posneg[4]);
+      thisTMB->WriteRegister(phaser_cfeb456_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb456_rxd_adr);
+      //
+      thisTMB->SetCfeb0123RxClockDelay(initial_cfeb_phase[0]);
+      thisTMB->SetCfeb0123RxPosNeg(initial_cfeb_posneg[0]);
+      thisTMB->WriteRegister(phaser_cfeb0123_rxd_adr);
+      thisTMB->FirePhaser(phaser_cfeb0123_rxd_adr);
+    }
 
     //
     if(!is_cfeb_clock_phase_inherited) {
