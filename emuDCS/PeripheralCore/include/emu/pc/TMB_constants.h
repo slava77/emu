@@ -291,6 +291,7 @@ static const unsigned long int  phaser_cfeb3_rxd_adr    = 0x000118;
 static const unsigned long int  phaser_cfeb4_rxd_adr    = 0x00011A;
 static const unsigned long int  cfeb0_3_interstage_adr  = 0x00011C;
 static const unsigned long int  cfeb4_6_interstage_adr  = 0x00011E;
+static const unsigned long int  dcfeb_me11ab_interstage_adr  = 0x00011E;
 //
 static const unsigned long int  sync_err_control_adr    = 0x000120;
 static const unsigned long int  cfeb_badbits_ctrl_adr   = 0x000122;
@@ -2443,16 +2444,16 @@ const int cfeb4_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
 const int cfeb4_rxd_int_delay_bitlo   =  0;
 const int cfeb4_rxd_int_delay_bithi   =  3;
 const int cfeb4_rxd_int_delay_default =  0; 
+//! thse were called cfeb5_* and cfeb6_* before, these are grouped for me11
+const int cfeb456_rxd_int_delay_vmereg  =  dcfeb_me11ab_interstage_adr;
+const int cfeb456_rxd_int_delay_bitlo   =  4;
+const int cfeb456_rxd_int_delay_bithi   =  7;
+const int cfeb456_rxd_int_delay_default =  0; 
 //
-const int cfeb5_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
-const int cfeb5_rxd_int_delay_bitlo   =  4;
-const int cfeb5_rxd_int_delay_bithi   =  7;
-const int cfeb5_rxd_int_delay_default =  0; 
-//
-const int cfeb6_rxd_int_delay_vmereg  =  cfeb4_6_interstage_adr;
-const int cfeb6_rxd_int_delay_bitlo   =  8;
-const int cfeb6_rxd_int_delay_bithi   =  11;
-const int cfeb6_rxd_int_delay_default =  0; 
+const int cfeb0123_rxd_int_delay_vmereg  =  dcfeb_me11ab_interstage_adr;
+const int cfeb0123_rxd_int_delay_bitlo   =  8;
+const int cfeb0123_rxd_int_delay_bithi   =  11;
+const int cfeb0123_rxd_int_delay_default =  0; 
 //
 //
 //---------------------------------------------------------------------

@@ -405,6 +405,7 @@
 
 #include "emu/pc/VMEModule.h"
 #include <cstdio>
+#include <cassert>
 #include <vector>
 #include <string>
 #include <bitset>
@@ -2036,41 +2037,46 @@ public:
   // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
   //---------------------------------------------------------------------
   //!cfeb0_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB0RxdIntDelay(int cfeb0_rxd_int_delay) { cfeb0_rxd_int_delay_ = cfeb0_rxd_int_delay; }
-  inline int  GetCFEB0RxdIntDelay() { return cfeb0_rxd_int_delay_; }
-  inline int  GetReadCFEB0RxdIntDelay() { return read_cfeb0_rxd_int_delay_; }
+  inline void SetCFEB0RxdIntDelay(int cfeb0_rxd_int_delay) { assert(hardware_version_<2); cfeb0_rxd_int_delay_ = cfeb0_rxd_int_delay; }
+  inline int  GetCFEB0RxdIntDelay() { return hardware_version_ >= 2 ? cfeb0123_rxd_int_delay_ :  cfeb0_rxd_int_delay_; }
+  inline int  GetReadCFEB0RxdIntDelay() { return hardware_version_ >= 2 ? read_cfeb0123_rxd_int_delay_ : read_cfeb0_rxd_int_delay_; }
   //
   //!cfeb1_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB1RxdIntDelay(int cfeb1_rxd_int_delay) { cfeb1_rxd_int_delay_ = cfeb1_rxd_int_delay; }
-  inline int  GetCFEB1RxdIntDelay() { return cfeb1_rxd_int_delay_; }
-  inline int  GetReadCFEB1RxdIntDelay() { return read_cfeb1_rxd_int_delay_; }
+  inline void SetCFEB1RxdIntDelay(int cfeb1_rxd_int_delay) { assert(hardware_version_<2); cfeb1_rxd_int_delay_ = cfeb1_rxd_int_delay; }
+  inline int  GetCFEB1RxdIntDelay() { return hardware_version_ >= 2 ? cfeb0123_rxd_int_delay_ : cfeb1_rxd_int_delay_; }
+  inline int  GetReadCFEB1RxdIntDelay() { return hardware_version_ >= 2 ? read_cfeb0123_rxd_int_delay_ : read_cfeb1_rxd_int_delay_; }
   //
   //!cfeb2_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB2RxdIntDelay(int cfeb2_rxd_int_delay) { cfeb2_rxd_int_delay_ = cfeb2_rxd_int_delay; }
-  inline int  GetCFEB2RxdIntDelay() { return cfeb2_rxd_int_delay_; }
-  inline int  GetReadCFEB2RxdIntDelay() { return read_cfeb2_rxd_int_delay_; }
+  inline void SetCFEB2RxdIntDelay(int cfeb2_rxd_int_delay) { assert(hardware_version_<2); cfeb2_rxd_int_delay_ = cfeb2_rxd_int_delay; }
+  inline int  GetCFEB2RxdIntDelay() { return hardware_version_ >= 2 ? cfeb0123_rxd_int_delay_ : cfeb2_rxd_int_delay_; }
+  inline int  GetReadCFEB2RxdIntDelay() { return hardware_version_ >= 2 ? read_cfeb0123_rxd_int_delay_ : read_cfeb2_rxd_int_delay_; }
   //
   //!cfeb3_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB3RxdIntDelay(int cfeb3_rxd_int_delay) { cfeb3_rxd_int_delay_ = cfeb3_rxd_int_delay; }
-  inline int  GetCFEB3RxdIntDelay() { return cfeb3_rxd_int_delay_; }
-  inline int  GetReadCFEB3RxdIntDelay() { return read_cfeb3_rxd_int_delay_; }
+  inline void SetCFEB3RxdIntDelay(int cfeb3_rxd_int_delay) { assert(hardware_version_<2); cfeb3_rxd_int_delay_ = cfeb3_rxd_int_delay; }
+  inline int  GetCFEB3RxdIntDelay() { return hardware_version_ >= 2 ? cfeb0123_rxd_int_delay_ : cfeb3_rxd_int_delay_; }
+  inline int  GetReadCFEB3RxdIntDelay() { return hardware_version_ >= 2 ? read_cfeb0123_rxd_int_delay_ : read_cfeb3_rxd_int_delay_; }
   //
   //
   //---------------------------------------------------------------------
   // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
   //---------------------------------------------------------------------
   //!cfeb4_rxd_int_delay = delay of comparator data into CLCT algorithm (after latching) (bx)
-  inline void SetCFEB4RxdIntDelay(int cfeb4_rxd_int_delay) { cfeb4_rxd_int_delay_ = cfeb4_rxd_int_delay; }
-  inline int  GetCFEB4RxdIntDelay() { return cfeb4_rxd_int_delay_; }
-  inline int  GetReadCFEB4RxdIntDelay() { return read_cfeb4_rxd_int_delay_; }
+  inline void SetCFEB4RxdIntDelay(int cfeb4_rxd_int_delay) { assert(hardware_version_<2); cfeb4_rxd_int_delay_ = cfeb4_rxd_int_delay; }
+  inline int  GetCFEB4RxdIntDelay() { return hardware_version_ >= 2 ? cfeb456_rxd_int_delay_ : cfeb4_rxd_int_delay_; }
+  inline int  GetReadCFEB4RxdIntDelay() { return hardware_version_ >= 2 ? read_cfeb456_rxd_int_delay_ : read_cfeb4_rxd_int_delay_; }
   //
-  inline void SetCFEB5RxdIntDelay(int cfeb5_rxd_int_delay) { cfeb5_rxd_int_delay_ = cfeb5_rxd_int_delay; }
-  inline int  GetCFEB5RxdIntDelay() { return cfeb5_rxd_int_delay_; }
-  inline int  GetReadCFEB5RxdIntDelay() { return read_cfeb5_rxd_int_delay_; }
+  inline void SetCFEB456RxdIntDelay(int cfeb456_rxd_int_delay) { assert(hardware_version_>=2); cfeb456_rxd_int_delay_ = cfeb456_rxd_int_delay; }
+  inline int  GetCFEB456RxdIntDelay() { assert(hardware_version_>=2); return  cfeb456_rxd_int_delay_; }
+  inline int  GetReadCFEB456RxdIntDelay() { assert(hardware_version_>=2); return  read_cfeb456_rxd_int_delay_; }
+  //! to simplify coding patterns
+  inline int  GetCFEB5RxdIntDelay() { assert(hardware_version_>=2); return  cfeb456_rxd_int_delay_; }
+  inline int  GetReadCFEB5RxdIntDelay() { assert(hardware_version_>=2); return  read_cfeb456_rxd_int_delay_; }
+  inline int  GetCFEB6RxdIntDelay() { assert(hardware_version_>=2); return  cfeb456_rxd_int_delay_; }
+  inline int  GetReadCFEB6RxdIntDelay() { assert(hardware_version_>=2); return  read_cfeb456_rxd_int_delay_; }
   //
-  inline void SetCFEB6RxdIntDelay(int cfeb6_rxd_int_delay) { cfeb6_rxd_int_delay_ = cfeb6_rxd_int_delay; }
-  inline int  GetCFEB6RxdIntDelay() { return cfeb6_rxd_int_delay_; }
-  inline int  GetReadCFEB6RxdIntDelay() { return read_cfeb6_rxd_int_delay_; }
+  inline void SetCFEB0123RxdIntDelay(int cfeb0123_rxd_int_delay) { assert(hardware_version_>=2); cfeb0123_rxd_int_delay_ = cfeb0123_rxd_int_delay; }
+  inline int  GetCFEB0123RxdIntDelay() { assert(hardware_version_>=2); return cfeb0123_rxd_int_delay_; }
+  inline int  GetReadCFEB0123RxdIntDelay() { assert(hardware_version_>=2); return read_cfeb0123_rxd_int_delay_; }
   //
   //
   //---------------------------------------------------------------------
@@ -3596,12 +3602,13 @@ private:
   // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
   //---------------------------------------------------------------------
   int cfeb4_rxd_int_delay_;
-  int cfeb5_rxd_int_delay_;
-  int cfeb6_rxd_int_delay_;
+  int cfeb456_rxd_int_delay_;
+  int cfeb0123_rxd_int_delay_;
+  
   //
   int read_cfeb4_rxd_int_delay_; 
-  int read_cfeb5_rxd_int_delay_; 
-  int read_cfeb6_rxd_int_delay_; 
+  int read_cfeb456_rxd_int_delay_; 
+  int read_cfeb0123_rxd_int_delay_; 
   //
   //
   //---------------------------------------------------------------------

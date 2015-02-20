@@ -5417,7 +5417,9 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(phaser_cfeb4_rxd_adr);  //0x11A digital phase shifter: cfeb4_rx
   TMBConfigurationRegister.push_back(phaser_cfeb456_rxd_adr);  //0x16A digital phase shifter: cfeb456_rx; can serve for #5 for bw compatibility
   TMBConfigurationRegister.push_back(phaser_cfeb0123_rxd_adr); //0x16C digital phase shifter: cfeb0123_rx; can serve for #6 for bw compatibility
-  TMBConfigurationRegister.push_back(cfeb0_3_interstage_adr);//0x11C CFEB to TMB data delay: cfeb[0-3]
+  if (GetHardwareVersion() < 2){
+    TMBConfigurationRegister.push_back(cfeb0_3_interstage_adr);//0x11C CFEB to TMB data delay: cfeb[0-3]
+  }
   TMBConfigurationRegister.push_back(cfeb4_6_interstage_adr);//0x11E CFEB to TMB data delay: cfeb[4-6]
   //
   // hot channel masks:
@@ -5898,17 +5900,17 @@ void TMB::SetTMBRegisterDefaults() {
   //--------------------------------------------------------------
   // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
   //--------------------------------------------------------------
-  cfeb0_rxd_int_delay_ = cfeb0_rxd_int_delay_default;
-  cfeb1_rxd_int_delay_ = cfeb1_rxd_int_delay_default;
-  cfeb2_rxd_int_delay_ = cfeb2_rxd_int_delay_default;
-  cfeb3_rxd_int_delay_ = cfeb3_rxd_int_delay_default;
+  cfeb0_rxd_int_delay_ = hardware_version_>=2 ? cfeb0123_rxd_int_delay_default : cfeb0_rxd_int_delay_default;
+  cfeb1_rxd_int_delay_ = hardware_version_>=2 ? cfeb0123_rxd_int_delay_default : cfeb1_rxd_int_delay_default;
+  cfeb2_rxd_int_delay_ = hardware_version_>=2 ? cfeb0123_rxd_int_delay_default : cfeb2_rxd_int_delay_default;
+  cfeb3_rxd_int_delay_ = hardware_version_>=2 ? cfeb0123_rxd_int_delay_default : cfeb3_rxd_int_delay_default;
   //
   //--------------------------------------------------------------
   // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
   //--------------------------------------------------------------
-  cfeb4_rxd_int_delay_ = cfeb4_rxd_int_delay_default;
-  cfeb5_rxd_int_delay_ = cfeb5_rxd_int_delay_default;
-  cfeb6_rxd_int_delay_ = cfeb6_rxd_int_delay_default;
+  cfeb4_rxd_int_delay_ = hardware_version_>=2 ? cfeb456_rxd_int_delay_default : cfeb4_rxd_int_delay_default;
+  cfeb456_rxd_int_delay_ = cfeb456_rxd_int_delay_default;
+  cfeb456_rxd_int_delay_ = cfeb456_rxd_int_delay_default;
   //
   //---------------------------------------------------------------------
   // 0X120 = ADR_SYNC_ERR_CTRL:  Synchronization Error Control
@@ -6700,8 +6702,8 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //---------------------------------------------------------------------
     read_cfeb4_rxd_int_delay_  = ExtractValueFromData(data,cfeb4_rxd_int_delay_bitlo,cfeb4_rxd_int_delay_bithi);    
     if (GetHardwareVersion() == 2) {
-      read_cfeb5_rxd_int_delay_  = ExtractValueFromData(data,cfeb5_rxd_int_delay_bitlo,cfeb5_rxd_int_delay_bithi);    
-      read_cfeb6_rxd_int_delay_  = ExtractValueFromData(data,cfeb6_rxd_int_delay_bitlo,cfeb6_rxd_int_delay_bithi);    
+      read_cfeb0123_rxd_int_delay_  = ExtractValueFromData(data,cfeb0123_rxd_int_delay_bitlo,cfeb0123_rxd_int_delay_bithi);    
+      read_cfeb456_rxd_int_delay_   = ExtractValueFromData(data,cfeb456_rxd_int_delay_bitlo,cfeb456_rxd_int_delay_bithi);    
     }
     //
   } else if ( address == sync_err_control_adr ) {
@@ -7720,21 +7722,27 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     //--------------------------------------------------------------
     // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
     //--------------------------------------------------------------
-    (*MyOutput_) << " ->CFEB to TMB interstage delays:" << std::endl;
-    (*MyOutput_) << "    CFEB0 receive interstage delay    = " << std::dec << read_cfeb0_rxd_int_delay_ << std::endl;
-    (*MyOutput_) << "    CFEB1 receive interstage delay    = " << std::dec << read_cfeb1_rxd_int_delay_ << std::endl;
-    (*MyOutput_) << "    CFEB2 receive interstage delay    = " << std::dec << read_cfeb2_rxd_int_delay_ << std::endl;
-    (*MyOutput_) << "    CFEB3 receive interstage delay    = " << std::dec << read_cfeb3_rxd_int_delay_ << std::endl;
+    if (GetHardwareVersion() <2){
+      (*MyOutput_) << " ->CFEB to TMB interstage delays:" << std::endl;
+      (*MyOutput_) << "    CFEB0 receive interstage delay    = " << std::dec << read_cfeb0_rxd_int_delay_ << std::endl;
+      (*MyOutput_) << "    CFEB1 receive interstage delay    = " << std::dec << read_cfeb1_rxd_int_delay_ << std::endl;
+      (*MyOutput_) << "    CFEB2 receive interstage delay    = " << std::dec << read_cfeb2_rxd_int_delay_ << std::endl;
+      (*MyOutput_) << "    CFEB3 receive interstage delay    = " << std::dec << read_cfeb3_rxd_int_delay_ << std::endl;
+    } else {
+      (*MyOutput_) << " ->CFEB0-3 to TMB interstage delays do nothing for HW version "<<GetHardwareVersion() << std::endl;
+    }
     //
   } else if ( address == cfeb4_6_interstage_adr ) {
     //--------------------------------------------------------------
     // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
     //--------------------------------------------------------------
     (*MyOutput_) << " ->CFEB to TMB interstage delays:" << std::endl;
-    (*MyOutput_) << "    CFEB4 receive interstage delay    = " << std::dec << read_cfeb4_rxd_int_delay_ << std::endl;
+    if (GetHardwareVersion() <2){
+      (*MyOutput_) << "    CFEB4 receive interstage delay    = " << std::dec << read_cfeb4_rxd_int_delay_ << std::endl;
+    }
     if (GetHardwareVersion() == 2) {
-      (*MyOutput_) << "    CFEB5 receive interstage delay    = " << std::dec << read_cfeb5_rxd_int_delay_ << std::endl;
-      (*MyOutput_) << "    CFEB6 receive interstage delay    = " << std::dec << read_cfeb6_rxd_int_delay_ << std::endl;
+      (*MyOutput_) << "    CFEB0123 receive interstage delay    = " << std::dec << read_cfeb0123_rxd_int_delay_ << std::endl;
+      (*MyOutput_) << "    CFEB456  receive interstage delay    = " << std::dec << read_cfeb456_rxd_int_delay_ << std::endl;
     }
     //
   } else if ( address == sync_err_control_adr ) {
@@ -8413,8 +8421,8 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(cfeb4_rxd_int_delay_,cfeb4_rxd_int_delay_bithi,cfeb4_rxd_int_delay_bitlo,&data_word);
     if (GetHardwareVersion() == 2) {
-      InsertValueIntoDataWord(cfeb5_rxd_int_delay_,cfeb5_rxd_int_delay_bithi,cfeb5_rxd_int_delay_bitlo,&data_word);
-      InsertValueIntoDataWord(cfeb6_rxd_int_delay_,cfeb6_rxd_int_delay_bithi,cfeb6_rxd_int_delay_bitlo,&data_word);
+      InsertValueIntoDataWord(cfeb0123_rxd_int_delay_,cfeb0123_rxd_int_delay_bithi,cfeb0123_rxd_int_delay_bitlo,&data_word);
+      InsertValueIntoDataWord(cfeb456_rxd_int_delay_,cfeb456_rxd_int_delay_bithi,cfeb456_rxd_int_delay_bitlo,&data_word);
     }
     //
   } else if ( address == sync_err_control_adr ) {
@@ -9084,18 +9092,22 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //--------------------------------------------------------------
     // 0X11C = ADR_DELAY0_INT:  CFEB to TMB "interstage" delays
     //--------------------------------------------------------------
-    config_ok &= compareValues("TMB cfeb0_rxd_int_delay",read_cfeb0_rxd_int_delay_,cfeb0_rxd_int_delay_, print_errors);
-    config_ok &= compareValues("TMB cfeb1_rxd_int_delay",read_cfeb1_rxd_int_delay_,cfeb1_rxd_int_delay_, print_errors);
-    config_ok &= compareValues("TMB cfeb2_rxd_int_delay",read_cfeb2_rxd_int_delay_,cfeb2_rxd_int_delay_, print_errors);
-    config_ok &= compareValues("TMB cfeb3_rxd_int_delay",read_cfeb3_rxd_int_delay_,cfeb3_rxd_int_delay_, print_errors);
+    if (GetHardwareVersion() < 2){
+      config_ok &= compareValues("TMB cfeb0_rxd_int_delay",read_cfeb0_rxd_int_delay_,cfeb0_rxd_int_delay_, print_errors);
+      config_ok &= compareValues("TMB cfeb1_rxd_int_delay",read_cfeb1_rxd_int_delay_,cfeb1_rxd_int_delay_, print_errors);
+      config_ok &= compareValues("TMB cfeb2_rxd_int_delay",read_cfeb2_rxd_int_delay_,cfeb2_rxd_int_delay_, print_errors);
+      config_ok &= compareValues("TMB cfeb3_rxd_int_delay",read_cfeb3_rxd_int_delay_,cfeb3_rxd_int_delay_, print_errors);
+    }
     //
     //--------------------------------------------------------------
     // 0X11E = ADR_DELAY1_INT:  CFEB to TMB "interstage" delays
     //--------------------------------------------------------------
-    config_ok &= compareValues("TMB cfeb4_rxd_int_delay",read_cfeb4_rxd_int_delay_,cfeb4_rxd_int_delay_, print_errors);
+    if (GetHardwareVersion() < 2){
+      config_ok &= compareValues("TMB cfeb4_rxd_int_delay",read_cfeb4_rxd_int_delay_,cfeb4_rxd_int_delay_, print_errors);
+    }
     if (GetHardwareVersion() == 2) {
-      config_ok &= compareValues("TMB cfeb5_rxd_int_delay",read_cfeb5_rxd_int_delay_,cfeb5_rxd_int_delay_, print_errors);
-      config_ok &= compareValues("TMB cfeb6_rxd_int_delay",read_cfeb6_rxd_int_delay_,cfeb6_rxd_int_delay_, print_errors);
+      config_ok &= compareValues("TMB cfeb0123_rxd_int_delay",read_cfeb0123_rxd_int_delay_,cfeb0123_rxd_int_delay_, print_errors);
+      config_ok &= compareValues("TMB cfeb456_rxd_int_delay", read_cfeb456_rxd_int_delay_,cfeb456_rxd_int_delay_, print_errors);
     }
     //
     //---------------------------------------------------------------------
