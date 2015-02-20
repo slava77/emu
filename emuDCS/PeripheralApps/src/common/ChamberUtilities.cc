@@ -695,7 +695,7 @@ void ChamberUtilities::SetCfebRxPosNeg(int posneg) {
     thisTMB->SetCfeb5RxPosNeg(posneg);
     thisTMB->SetCfeb6RxPosNeg(posneg);
   }
-  if (thisTMB->GetHardwareVersion() == 1){
+  if (thisTMB->HasGroupedME11ABCFEBRxValues() == 1){
     thisTMB->SetCfeb0123RxPosNeg(posneg);
     thisTMB->SetCfeb456RxPosNeg(posneg);
   }
@@ -1693,24 +1693,30 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
       initial_cfeb_phase[2] = thisTMB->GetReadCfeb2RxClockDelay();
       initial_cfeb_phase[3] = thisTMB->GetReadCfeb3RxClockDelay();
       initial_cfeb_phase[4] = thisTMB->GetReadCfeb4RxClockDelay();
-      initial_cfeb_phase[5] = thisTMB->GetReadCfeb5RxClockDelay();
-      initial_cfeb_phase[6] = thisTMB->GetReadCfeb6RxClockDelay();
+      if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){
+	initial_cfeb_phase[5] = thisTMB->GetReadCfeb5RxClockDelay();
+	initial_cfeb_phase[6] = thisTMB->GetReadCfeb6RxClockDelay();
+      }
       //
       initial_cfeb_posneg[0] = thisTMB->GetReadCfeb0RxPosNeg();
       initial_cfeb_posneg[1] = thisTMB->GetReadCfeb1RxPosNeg();
       initial_cfeb_posneg[2] = thisTMB->GetReadCfeb2RxPosNeg();
       initial_cfeb_posneg[3] = thisTMB->GetReadCfeb3RxPosNeg();
       initial_cfeb_posneg[4] = thisTMB->GetReadCfeb4RxPosNeg();
-      initial_cfeb_posneg[5] = thisTMB->GetReadCfeb5RxPosNeg();
-      initial_cfeb_posneg[6] = thisTMB->GetReadCfeb6RxPosNeg();
+      if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){
+	initial_cfeb_posneg[5] = thisTMB->GetReadCfeb5RxPosNeg();
+	initial_cfeb_posneg[6] = thisTMB->GetReadCfeb6RxPosNeg();
+      }
 
       initial_cfeb_rxd_int_delay[0] = thisTMB->GetCFEB0RxdIntDelay();
       initial_cfeb_rxd_int_delay[1] = thisTMB->GetCFEB1RxdIntDelay();
       initial_cfeb_rxd_int_delay[2] = thisTMB->GetCFEB2RxdIntDelay();
       initial_cfeb_rxd_int_delay[3] = thisTMB->GetCFEB3RxdIntDelay();
       initial_cfeb_rxd_int_delay[4] = thisTMB->GetCFEB4RxdIntDelay();
-      initial_cfeb_rxd_int_delay[5] = thisTMB->GetCFEB5RxdIntDelay();
-      initial_cfeb_rxd_int_delay[6] = thisTMB->GetCFEB6RxdIntDelay();
+      if (thisTMB->HasGroupedME11ABCFEBRxValues() == 0){
+	initial_cfeb_rxd_int_delay[5] = thisTMB->GetCFEB5RxdIntDelay();
+	initial_cfeb_rxd_int_delay[6] = thisTMB->GetCFEB6RxdIntDelay();
+      }
     } else {
       int initialPhase0123 = thisTMB->GetReadCfeb0123RxClockDelay();
       int initialPhase456 = thisTMB->GetReadCfeb456RxClockDelay();

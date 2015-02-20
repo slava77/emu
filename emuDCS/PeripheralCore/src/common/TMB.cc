@@ -6935,14 +6935,15 @@ void TMB::PrintTMBConfiguration() {
     unsigned long int VMEregister = TMBConfigurationRegister.at(index);
     //
     if (VMEregister != vme_usr_jtag_adr &&      // skip the user jtag register
-      VMEregister != hcm001_adr && VMEregister != hcm023_adr && VMEregister != hcm045_adr &&   //skip the hot channel
-      VMEregister != hcm101_adr && VMEregister != hcm123_adr && VMEregister != hcm145_adr &&   //mask registers...
-      VMEregister != hcm201_adr && VMEregister != hcm223_adr && VMEregister != hcm245_adr &&   //(print hot channel mask
-      VMEregister != hcm301_adr && VMEregister != hcm323_adr && VMEregister != hcm345_adr &&   //out in a different way)
-      VMEregister != hcm401_adr && VMEregister != hcm423_adr && VMEregister != hcm445_adr &&
-      (hardware_version_ >= 2 && (
-        VMEregister != hcm501_adr && VMEregister != hcm523_adr && VMEregister != hcm545_adr &&
-        VMEregister != hcm601_adr && VMEregister != hcm623_adr && VMEregister != hcm645_adr)) )
+	VMEregister != hcm001_adr && VMEregister != hcm023_adr && VMEregister != hcm045_adr &&   //skip the hot channel
+	VMEregister != hcm101_adr && VMEregister != hcm123_adr && VMEregister != hcm145_adr &&   //mask registers...
+	VMEregister != hcm201_adr && VMEregister != hcm223_adr && VMEregister != hcm245_adr &&   //(print hot channel mask
+	VMEregister != hcm301_adr && VMEregister != hcm323_adr && VMEregister != hcm345_adr &&   //out in a different way)
+	VMEregister != hcm401_adr && VMEregister != hcm423_adr && VMEregister != hcm445_adr &&
+	( ((hardware_version_ >= 2 && (
+				       VMEregister != hcm501_adr && VMEregister != hcm523_adr && VMEregister != hcm545_adr &&
+				       VMEregister != hcm601_adr && VMEregister != hcm623_adr && VMEregister != hcm645_adr)) )
+	  || hardware_version_ < 2) )
       PrintTMBRegister(VMEregister);
   }
   //
