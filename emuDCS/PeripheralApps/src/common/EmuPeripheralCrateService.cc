@@ -41,6 +41,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateService::ChamberOff, "ChamberOff");
   xgi::bind(this,&EmuPeripheralCrateService::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this,&EmuPeripheralCrateService::FastConfigOne, "FastConfigOne");
+  xgi::bind(this,&EmuPeripheralCrateService::UnJamTMB, "UnJamTMB");
   xgi::bind(this,&EmuPeripheralCrateService::FlashHistory, "FlashHistory");
   xgi::bind(this,&EmuPeripheralCrateService::ForEmuPage1, "ForEmuPage1");
   xgi::bind(this,&EmuPeripheralCrateService::SwitchBoard, "SwitchBoard"); 
@@ -525,6 +526,45 @@ bool EmuPeripheralCrateService::ParsingXML(bool reload)
     current_crate_ = cr;
   }
 
+void EmuPeripheralCrateService::UnJamTMB(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception)
+{
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  Page=cgicc::form_urldecode(cgiEnvi.getQueryString());
+  std::string command_name=Page.substr(0,Page.find("=", 0) );
+  std::string command_argu=Page.substr(Page.find("=", 0)+1);
+
+   ParsingXML();
+
+  bool done=false;
+  std::vector<TMB*> myVector;
+
+  if (command_name=="CHAMBER" || command_name=="Chamber" || command_name=="chamber" || command_name=="TMB")
+  {
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        myVector = crateVector[i]->tmbs();
+        if(myVector.size()==0) continue;
+        for(unsigned int j=0; j<myVector.size(); j++) 
+        {
+            if(myVector[j]==NULL) continue;
+            std::string chname = crateVector[i]->GetChamber(myVector[j])->GetLabel();
+            if(chname==command_argu)
+            {
+               if(!Simulation_) myVector[j]->UnjamFPGA();
+               msgHandler("Message: UnJamTMB " + command_argu);
+               *out << "done";
+               done=true;
+            }
+        }
+     }
+     if(!done) msgHandler("ERROR: UnJamTMB failed! Unknown name: " + command_argu);
+     *out << std::endl;
+  }
+}
+
 void EmuPeripheralCrateService::msgHandler(std::string msg)
 {
      std::string logmsg = getLocalDateTime() + " " + msg;
@@ -555,6 +595,8 @@ void EmuPeripheralCrateService::ForEmuPage1(xgi::Input *in, xgi::Output *out)
          <<         "\" valueURL=\"" << main_url_
          << "\"/>" << std::endl;
 
+  if(!Simulation_)
+  {
     *out << "  <monitorable name=\"" << "VME Access"
          <<            "\" value=\"" << "Enabled"
          <<  "\" nameDescription=\"" << " "
@@ -562,7 +604,17 @@ void EmuPeripheralCrateService::ForEmuPage1(xgi::Input *in, xgi::Output *out)
          <<          "\" nameURL=\"" << " "
          <<         "\" valueURL=\"" << " "
          << "\"/>" << std::endl;
-
+  }
+  else
+  {
+    *out << "  <monitorable name=\"" << "VME Access"
+         <<            "\" value=\"" << "Disabled"
+         <<  "\" nameDescription=\"" << " "
+         << "\" valueDescription=\"" << " "
+         <<          "\" nameURL=\"" << " "
+         <<         "\" valueURL=\"" << " "
+         << "\"/>" << std::endl;
+  }
   *out << "</ForEmuPage1>" << std::endl;
 }
 
