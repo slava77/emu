@@ -1325,6 +1325,8 @@ where rownum=1]]>
       <tstore:column name="cfeb2delay" type="unsigned short"/>
       <tstore:column name="cfeb3delay" type="unsigned short"/>
       <tstore:column name="cfeb4delay" type="unsigned short"/>
+      <tstore:column name="cfeb0123delay" type="unsigned short"/>
+      <tstore:column name="cfeb456delay" type="unsigned short"/>
       <tstore:column name="cfeb_enable_source" type="unsigned short"/>
       <tstore:column name="clct_blanking" type="unsigned short"/>
       <tstore:column name="clct_bx0_delay" type="unsigned short"/>
@@ -1414,6 +1416,8 @@ where rownum=1]]>
       <tstore:column name="cfeb2posneg" type="unsigned short"/>
       <tstore:column name="cfeb3posneg" type="unsigned short"/>
       <tstore:column name="cfeb4posneg" type="unsigned short"/>
+      <tstore:column name="cfeb0123posneg" type="unsigned short"/>
+      <tstore:column name="cfeb456posneg" type="unsigned short"/>
       <tstore:column name="mpc_sel_ttc_bx0" type="unsigned short"/>
       <tstore:column name="alct_tof_delay" type="unsigned short"/>
       <tstore:column name="tmb_to_alct_data_delay" type="unsigned short"/>
@@ -1429,22 +1433,12 @@ where rownum=1]]>
       <tstore:column name="cfeb2_rxd_int_delay" type="unsigned short"/>
       <tstore:column name="cfeb3_rxd_int_delay" type="unsigned short"/>
       <tstore:column name="cfeb4_rxd_int_delay" type="unsigned short"/>
+      <tstore:column name="cfeb0123_rxd_int_delay" type="unsigned short"/>
+      <tstore:column name="cfeb456_rxd_int_delay" type="unsigned short"/>
       <tstore:column name="cfeb_badbits_readout" type="unsigned short"/>
       <tstore:column name="l1a_priority_enable" type="unsigned short"/>
       <tstore:column name="miniscope_enable" type="unsigned short"/>
       <tstore:column name="hardware_version" type="unsigned short"/>
-<!--       <tstore:column name="cfeb5delay" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb6delay" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb7delay" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb5posneg" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb6posneg" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb7posneg" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb5_rxd_int_delay" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb6_rxd_int_delay" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb7_rxd_int_delay" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb5_tof_delay" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb6_tof_delay" type="unsigned short"/> -->
-<!--       <tstore:column name="cfeb7_tof_delay" type="unsigned short"/> -->
 
       <tstore:foreignkey references="EMU_CSC">
         <tstore:keycolumn column="csc_config_id" references="csc_config_id"/>

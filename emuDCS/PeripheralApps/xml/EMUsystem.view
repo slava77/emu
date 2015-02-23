@@ -1117,6 +1117,8 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
       <tstore:column name="CFEB2DELAY" type="unsigned short"/>
       <tstore:column name="CFEB3DELAY" type="unsigned short"/>
       <tstore:column name="CFEB4DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB0123DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB456DELAY" type="unsigned short"/>
       <tstore:column name="CFEB_ENABLE_SOURCE" type="unsigned short"/>
       <tstore:column name="CLCT_BLANKING" type="unsigned short"/>
       <tstore:column name="CLCT_BX0_DELAY" type="unsigned short"/>
@@ -1206,6 +1208,8 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
       <tstore:column name="CFEB2POSNEG" type="unsigned short"/>
       <tstore:column name="CFEB3POSNEG" type="unsigned short"/>
       <tstore:column name="CFEB4POSNEG" type="unsigned short"/>
+      <tstore:column name="CFEB0123POSNEG" type="unsigned short"/>
+      <tstore:column name="CFEB456POSNEG" type="unsigned short"/>
       <tstore:column name="MPC_SEL_TTC_BX0" type="unsigned short"/>
       <tstore:column name="ALCT_TOF_DELAY" type="unsigned short"/>
       <tstore:column name="TMB_TO_ALCT_DATA_DELAY" type="unsigned short"/>
@@ -1221,6 +1225,8 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
       <tstore:column name="CFEB2_RXD_INT_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB3_RXD_INT_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB4_RXD_INT_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB0123_RXD_INT_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB456_RXD_INT_DELAY" type="unsigned short"/>
       <tstore:column name="CFEB_BADBITS_READOUT" type="unsigned short"/>
       <tstore:column name="L1A_PRIORITY_ENABLE" type="unsigned short"/>
       <tstore:column name="MINISCOPE_ENABLE" type="unsigned short"/>
