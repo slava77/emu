@@ -474,6 +474,7 @@ xoap::MessageReference emu::supervisor::Application::onRunSequence(xoap::Message
   return createReply(message);
 }
 
+
 void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
 {
@@ -496,7 +497,7 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   // Body
   *out << body() << endl;
   
-  *out << table() << tbody() << tr();
+  *out << table() << tr();
 
   *out << td();
   // Config listbox
@@ -570,7 +571,7 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   
   // Buttons
   
-  *out << table() << tbody() << tr();
+  *out << table() << tr();
 
   *out << td() << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Start") << endl;
@@ -603,36 +604,7 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
     .set("value", "Reset") << endl;
     *out << form() << td() << endl;
 
-    // Single TCDS commands, available only with LPM
-    if ( pm_ ){
-      char state = fsm_.getCurrentState();
-
-      *out << tr() << tr();
-
-      *out << td() << form().set("action", "/" + getApplicationDescriptor()->getURN() + "/ResyncViaTCDS");
-      *out << "<input type='submit' name='command' value='Single Resync' title='Attention! This will send a single, unprotected resync.'" 
-	   << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << "/>";
-      *out << form() << td();
-
-      *out << td() << form().set("action", "/" + getApplicationDescriptor()->getURN() + "/HardResetViaTCDS");
-      *out << "<input type='submit' name='command' value='Single HardReset' title='Attention! This will send a single, unprotected hard reset.'" 
-	   << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << "/>";
-      *out << form() << td();
-
-      *out << td() << form().set("action", "/" + getApplicationDescriptor()->getURN() + "/BgoTrainViaTCDS");
-      *out << "<input type='submit' name='command' value='Send Bgo train' title='Send the selected Bgo train. Use this to send Bgos during the run.'" 
-	   << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << "/>";
-      *out << "<select name='bgoTrainName' title='Select a Bgo train to send.'" 
-	   << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << ">";
-      *out << "<option value='HardReset' title='Disable trigger, hard reset, resync, EC0 and enable trigger.'>Hard Reset</option>";
-      *out << "<option value='Resync' title='Disable trigger, resync, EC0 and enable trigger.'>Resync</option>";
-      // *out << "<option value='Pause' title='Disable trigger.'>Pause</option>";
-      // *out << "<option value='Resume' title='Enable trigger.'>Resume</option>";
-      *out << "</select>";
-      *out << form() << td();
-    }  
-
-  *out << tr() << tbody() << table();
+  *out << tr() << table();
   
   // TTS operation
   if (hide_tts_control_) {
@@ -717,6 +689,47 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   *out << hr() << endl;
   state_table_.webOutput(out, (string)state_);
   
+    // Single TCDS commands, available only with LPM
+  *out << hr() << endl;
+  if ( pm_ ){
+    char state = fsm_.getCurrentState();
+    
+    *out << table(); 
+    *out << tr();
+    
+    *out << td() << form().set("action", "/" + getApplicationDescriptor()->getURN() + "/ResyncViaTCDS");
+    *out << "<input type='submit' name='command' value='Single Resync' title='Attention! This will send a single, unprotected resync.'" 
+	 << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << "/>";
+    *out << form() << td();
+    
+    *out << td() << form().set("action", "/" + getApplicationDescriptor()->getURN() + "/HardResetViaTCDS");
+    *out << "<input type='submit' name='command' value='Single HardReset' title='Attention! This will send a single, unprotected hard reset.'" 
+	 << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << "/>";
+    *out << form() << td();
+    
+    *out << td() << form().set("action", "/" + getApplicationDescriptor()->getURN() + "/BgoTrainViaTCDS");
+    *out << "<input type='submit' name='command' value='Send Bgo train' title='Send the selected Bgo train. Use this to send Bgos during the run.'" 
+	 << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << "/>";
+    *out << "<select name='bgoTrainName' title='Select a Bgo train to send.'" 
+	 << ( state == 'C' || state == 'E' ? "" : " disabled='disabled'" ) << ">";
+    *out << "<option value='HardReset' title='Disable trigger, hard reset, resync, EC0 and enable trigger.'>Hard Reset</option>";
+    *out << "<option value='Resync' title='Disable trigger, resync, EC0 and enable trigger.'>Resync</option>";
+    // *out << "<option value='Pause' title='Disable trigger.'>Pause</option>";
+    // *out << "<option value='Resume' title='Enable trigger.'>Resume</option>";
+    *out << "</select>";
+    *out << form() << td();
+
+    *out << tr();
+    *out << table(); 
+  }  
+
+  // Reason for failure
+  if ( reasonForFailure_.toString().length() > 0 ){
+    *out << hr()
+	 << p()<< "Reason for failure:" << p() 
+	 << code() << span().set("style", "color: red;") << withoutString( "<![CDATA[", withoutString( "]]>", reasonForFailure_.toString() ) ) << span() << code() << "\n";
+  }
+
   // Message logs
   *out << hr() << endl;
   // last_log_.webOutput(out);
@@ -2177,7 +2190,7 @@ void emu::supervisor::Application::StateTable::webOutput(xgi::Output *out, strin
 		throw (xgi::exception::Exception)
 {
 	refresh();
-	*out << table() << tbody() << endl;
+	*out << table() << endl;
 
 	// My state
 	*out << tr();
@@ -2200,7 +2213,7 @@ void emu::supervisor::Application::StateTable::webOutput(xgi::Output *out, strin
 		*out << tr() << endl;
 	}
 
-	*out << tbody() << table() << endl;
+	*out << table() << endl;
 }
 
 ostream& emu::supervisor::operator<<( ostream& os, const emu::supervisor::Application::StateTable& st ){
@@ -2629,6 +2642,14 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
 	}
       }
     }
+}
+
+string emu::supervisor::Application::withoutString( const string& toRemove, const string& str ){
+  // Remove all occurences of a string from str.
+  string s( str );
+  size_t pos = 0;
+  while( ( pos = s.find( toRemove, pos ) ) != string::npos ) s.erase( pos, toRemove.length() );
+  return s;
 }
 
 // End of file

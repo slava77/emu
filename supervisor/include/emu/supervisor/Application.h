@@ -256,6 +256,8 @@ private: // XDAQ parameters
 
         bool isCommandFromWeb_; // TRUE if command issued from web interface
 
+        string withoutString( const string& toRemove, const string& str );
+
 	class StateTable
 	{
 	  friend ostream& operator<<( ostream& os, const emu::supervisor::Application::StateTable& st );
