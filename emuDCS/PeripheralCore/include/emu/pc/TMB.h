@@ -554,7 +554,7 @@ public:
   int HasGroupedME11ABCFEBRxValues(){
     if (GetHardwareVersion() < 2) return -1;
     if (not ExpectedTmbFirmwareConfigIsSet() ) return -1;
-    if (GetExpectedTmbFirmwareYear() >= 2015 && GetExpectedTmbFirmwareMonth() >= 1 && GetExpectedTmbFirmwareDay() >= 20)  return 1;
+    if (GetExpectedTmbFirmwareYear() >= 2015) return 1;
     else return 0;
   }
   //
