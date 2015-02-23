@@ -418,7 +418,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << CCBFirmwareFile_;
   *out << cgicc::form() << std::endl;
   //
-  *out << cgicc::hr() << "For ODMBs ..." << cgicc::br() << std::endl;
+  *out << cgicc::hr() << cgicc::hr() << "For ODMBs ..." << cgicc::br() << std::endl;
   std::string LoadODMBFpga = toolbox::toString("/%s/LoadODMBFPGA",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadODMBFpga) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load ODMB FPGA") << std::endl ;
@@ -431,7 +431,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << ODMBFirmwareFile_;
   *out << cgicc::form() << std::endl;
   //
-  *out << cgicc::hr() << "For DCFEBs ..." << cgicc::br() << std::endl;
+  *out << cgicc::hr() << cgicc::hr() << "For DCFEBs ..." << cgicc::br() << std::endl;
   std::string LoadDCFEBFpga = toolbox::toString("/%s/LoadDCFEBFPGA",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadDCFEBFpga) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load DCFEB FPGA") << std::endl ;
@@ -444,7 +444,13 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << DCFEBFirmwareFile_;
   *out << cgicc::form() << std::endl;
   //
-  *out << cgicc::hr() << "For OTMB ..." << cgicc::br() << std::endl;
+  *out << cgicc::hr() << cgicc::hr() << "For OTMB ..." << cgicc::br() << std::endl;
+  std::string LoadOTMBFpga = toolbox::toString("/%s/LoadOTMBFPGA",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadOTMBFpga) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load OTMB FPGA") << std::endl ;
+  *out << OTMBFirmwareFile_;
+  *out << cgicc::form() << std::endl;
+  //
   std::string LoadOTMBEprom = toolbox::toString("/%s/LoadOTMBEPROM",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadOTMBEprom) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load OTMB EPROM") << std::endl ;
@@ -503,7 +509,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
     std::cout<< " Entered VMECCLoadFirmwareBcast \n" <<std::endl;
     std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
     std::cout << "Path = " << PROM_Path << "\nVer = " << vmecc->VCC_frmw_ver << std::endl;
-    vmecc->prg_vcc_prom_bcast(PROM_Path.c_str(),vmecc->VCC_frmw_ver.c_str());
+//    vmecc->prg_vcc_prom_bcast(PROM_Path.c_str(),vmecc->VCC_frmw_ver.c_str());
     this->LoadDMBCFEBFPGAFirmware(in,out);
     //
   }

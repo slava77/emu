@@ -1359,6 +1359,10 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   float cv_min[3]={3.1, 4.6, 5.5};
   float av_max[4]={3.5, 2.0, 6.0, 6.0};
   float av_min[4]={3.1, 1.6, 5.0, 5.0};
+  float temp_max2[11]={70., 50., 40., 40., 40., 40., 40., 40., 40., 40., 40.};
+  float temp_min2[11]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
+  float cv_max2[3]={3.2, 4.3, 6.0};
+  float cv_min2[3]={2.8, 3.7, 5.0};
   float val;
   int cfebs=5;
   unsigned int readtime;
@@ -1376,7 +1380,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   std::string cham_name=Page.substr(0,Page.find("=", 0) );
   std::vector<DAQMB*> myVector;
   int mycrate=-1, mychamb=-1;
-  int DHversion;
+  int DHversion=0;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      myVector = crateVector[i]->daqmbs();
@@ -1399,6 +1403,11 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   //
   // chamber 1/3 have only 4 CFEBs
   if(cham_name.substr(3,3)=="1/3") cfebs=4;
+  if(cham_name.substr(3,3)=="1/1")
+  {  
+     cfebs=7;
+     for(unsigned i=0; i<3;i++) {  cv_max[i]=cv_max2[i];  cv_min[i]=cv_min2[i];  }
+  }
   *out << cgicc::b("Chamber: "+ cham_name) << std::endl;
   if(Monitor_On_)
   {
@@ -1414,6 +1423,13 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
   xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
   if(dcsdata==NULL || dcsdata->size()==0) return;
+  bool dcfebok=true;
+  xdata::Vector<xdata::Float> *dcfebdata;
+  if(DHversion>=2)
+  {
+     dcfebdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));
+     if(dcfebdata==NULL || dcfebdata->size()==0) dcfebok=false;
+  }
   xdata::UnsignedInteger32 *counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
   if (counter32) 
   {
@@ -1429,20 +1445,31 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table().set("border","1").set("align","center");
   //
   *out <<cgicc::td() << cgicc::td();
-  *out <<cgicc::td() << "3.3V" << cgicc::td();
-  *out <<cgicc::td() << "I" << cgicc::td();
-  *out <<cgicc::td() << "5V" << cgicc::td();
-  *out <<cgicc::td() << "I" << cgicc::td();
-  *out <<cgicc::td() << "6V" << cgicc::td();
-  *out <<cgicc::td() << "I" << cgicc::td();
+  if(DHversion<=1)
+  {
+    *out <<cgicc::td() << "3.3V" << cgicc::td();
+    *out <<cgicc::td() << "I" << cgicc::td();
+    *out <<cgicc::td() << "5V" << cgicc::td();
+    *out <<cgicc::td() << "I" << cgicc::td();
+    *out <<cgicc::td() << "6V" << cgicc::td();
+    *out <<cgicc::td() << "I" << cgicc::td();
+  }
+  else if(DHversion==2)
+  {
+    *out <<cgicc::td() << "3.0V" << cgicc::td();
+    *out <<cgicc::td() << "I" << cgicc::td();
+    *out <<cgicc::td() << "4.0V" << cgicc::td();
+    *out <<cgicc::td() << "I" << cgicc::td();
+    *out <<cgicc::td() << "5.5V" << cgicc::td();
+    *out <<cgicc::td() << "I" << cgicc::td();
+  }
   *out << cgicc::tr() << std::endl;
-
   for(int feb=0; feb<cfebs; feb++)
   {
      *out <<cgicc::td() << "CFEB " << feb+1 << cgicc::td();
      for(int cnt=0; cnt<3; cnt++)
      {
-        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+19+3*feb+cnt];
+        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+19+((DHversion>=2)?6:0)+3*feb+cnt];
         *out << cgicc::td();
         if(val<0.)    
            *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1475,7 +1502,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      *out <<cgicc::td() << "ALCT" << cgicc::td();
      for(int cnt=0; cnt<4; cnt++)
      {
-        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+19+15+cnt];
+        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+19+15+((DHversion>=2)?12:0)+cnt];
         *out <<cgicc::td();
         if(val<0.)    
            *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1484,7 +1511,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
         else 
            *out << val;  
         *out << cgicc::td();
-        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+15+cnt];
+        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+15+((DHversion>=2)?6:0)+cnt];
         *out <<cgicc::td() << val << cgicc::td();
      }
      *out << cgicc::tr() << std::endl;
@@ -1496,15 +1523,17 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table().set("border","1").set("align","center");
   *out << std::setprecision(1) << std::fixed ;
   //
-  *out <<cgicc::td() << cgicc::td();
-  *out <<cgicc::td() << "DMB" << cgicc::td();
-  *out <<cgicc::td() << "CFEB 1" << cgicc::td();
-  *out <<cgicc::td() << "CFEB 2" << cgicc::td();
-  *out <<cgicc::td() << "CFEB 3" << cgicc::td();
-  *out <<cgicc::td() << "CFEB 4" << cgicc::td();
-  if(cfebs==5) *out <<cgicc::td() << "CFEB 5" << cgicc::td();
-  *out <<cgicc::td() << "ALCT" << cgicc::td();
-  *out << cgicc::tr() << std::endl;
+  if(DHversion<=1)
+  {
+     *out <<cgicc::td() << cgicc::td();
+     *out <<cgicc::td() << "DMB" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 1" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 2" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 3" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 4" << cgicc::td();
+     if(cfebs>=5) *out <<cgicc::td() << "CFEB 5" << cgicc::td();
+     *out <<cgicc::td() << "ALCT" << cgicc::td();
+     *out << cgicc::tr() << std::endl;
 
      *out <<cgicc::td() << "Temperature (C)" << cgicc::td();
      for(int cnt=0; cnt<7; cnt++)
@@ -1523,6 +1552,44 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
            *out << val;  
         *out <<cgicc::td();
      }
+  }
+  else if(DHversion==2)
+  {
+     *out <<cgicc::td() << cgicc::td();
+     *out <<cgicc::td() << "OTMB" << cgicc::td();
+     *out <<cgicc::td() << "ODMB" << cgicc::td();
+     *out <<cgicc::td() << "LVDB" << cgicc::td();
+     *out <<cgicc::td() << "ALCT" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 1" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 2" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 3" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 4" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 5" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 6" << cgicc::td();
+     *out <<cgicc::td() << "CFEB 7" << cgicc::td();
+     *out << cgicc::tr() << std::endl;
+     float tp[4];
+     tp[0]=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+57];
+     if(dcfebok) tp[1]=(*dcfebdata)[mychamb*TOTAL_DCFEB_MONS+27*cfebs];
+      else tp[1]=0.;
+     tp[2]=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+55];
+     tp[3]=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+56];
+     *out <<cgicc::td() << "Temperature (C)" << cgicc::td();
+     for(int cnt=0; cnt<11; cnt++)
+     {
+        if(cnt<4)  val=tp[cnt];
+        else if(dcfebok) val=(*dcfebdata)[mychamb*TOTAL_DCFEB_MONS+27*(cnt-4)];
+        else val=0.;
+        *out <<cgicc::td();
+        if(val<0.)    
+           *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+        else if(val > temp_max2[cnt] || val < temp_min2[cnt])
+           *out << cgicc::span().set("style","color:red") << val << cgicc::span();
+        else 
+           *out << val;  
+        *out <<cgicc::td();
+     }     
+  }
 
      *out << cgicc::tr() << std::endl;
 
@@ -1591,10 +1658,12 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
   //
   *out <<cgicc::tr();
   //
-  for (int count=0; count<Total_count; count++) {
+  for (int count=0; count<Total_count; count++) 
+  {
     //
-    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-      //
+    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) 
+    {
+      int DHversion=myVector[dmb]->GetHardwareVersion();
       *out <<cgicc::td();
       //
       if(dmb==0) {
@@ -1602,10 +1671,10 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
 	*out <<cgicc::td() << cgicc::td();
       }
       *out << std::setprecision(2) << std::fixed;
-      val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+19+count];
+      val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+19+((DHversion>=2)?6:0)+((DHversion>=2 && count>=15)?6:0)+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
-      else if(val > lv_max[count] || val < lv_min[count])
+      else if(DHversion<=1 && (val > lv_max[count] || val < lv_min[count]))
          *out << cgicc::span().set("style","color:red") << val << cgicc::span();
       else 
          *out << val;  
@@ -1678,10 +1747,12 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
   //
   *out <<cgicc::tr() << std::endl;
   //
-  for (int count=0; count<Total_count; count++) {
+  for (int count=0; count<Total_count; count++) 
+  {
     //
-    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-      //
+    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) 
+    {
+      int DHversion=myVector[dmb]->GetHardwareVersion();
       *out <<cgicc::td();
       //
       if(dmb==0) {
@@ -1689,7 +1760,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
 	*out <<cgicc::td() << cgicc::td();
       }
       *out << std::setprecision(2) << std::fixed ;
-      val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+count];
+      val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+((DHversion>=2 && count>=15)?6:0)+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
 //
@@ -2321,6 +2392,9 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
         }
      }
 // now produce the counter view page
+
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << "<html>" << std::endl;
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
@@ -2433,6 +2507,9 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
         }
      }
 // now produce the counter view page
+
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << "<html>" << std::endl;
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
