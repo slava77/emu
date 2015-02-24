@@ -23,8 +23,10 @@ EmuPeripheralCrateBase::EmuPeripheralCrateBase(xdaq::ApplicationStub * s): xdaq:
         fsm_.setStateName('F', "Failed");
 
         state_ = "";
+        ViewFile_ = "/opt/xdaq/htdocs/emu/emuDCS/OnlineDB/xml/EMUsystem.view";
         getApplicationInfoSpace()->fireItemAvailable("State", &state_);
         getApplicationInfoSpace()->fireItemAvailable("stateName", &state_);
+        getApplicationInfoSpace()->fireItemAvailable("databaseViewFile", &ViewFile_);
 
         LOG4CPLUS_INFO(getApplicationLogger(), "Supervised");
         activeEndcap_ = NULL;
@@ -357,7 +359,8 @@ emu::db::TStoreReadWriter *EmuPeripheralCrateBase::GetEmuTStore()
 { 
     if(!activeTStore_)
     {
-         emu::db::PCConfigHierarchy *h= new emu::db::PCConfigHierarchy("/opt/xdaq/htdocs/emu/emuDCS/OnlineDB/xml/EMUsystem.view");
+         std::cout << "Use View File: " << ViewFile_.toString() << std::endl;
+         emu::db::PCConfigHierarchy *h= new emu::db::PCConfigHierarchy(ViewFile_.toString());
          activeTStore_ = new emu::db::TStoreReadWriter(h, this, "", 0);
     }
     return activeTStore_; 

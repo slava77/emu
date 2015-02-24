@@ -83,6 +83,7 @@ private:
   std::string real_key_;
   EmuEndcap * activeEndcap_;
   XMLParser * activeParser_;
+  xdata::String ViewFile_;
 };
 
   } // namespace emu::pc
