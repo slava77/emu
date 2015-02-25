@@ -45,6 +45,11 @@
 #endif
 #include "hw.h"
 
+extern int netif_rx_hook_2(struct sk_buff *skb);
+extern int netif_rx_hook_3(struct sk_buff *skb);
+extern int netif_rx_hook_4(struct sk_buff *skb);
+extern int netif_rx_hook_5(struct sk_buff *skb);
+
 struct e1000_info;
 
 #define e_dbg(format, arg...) \

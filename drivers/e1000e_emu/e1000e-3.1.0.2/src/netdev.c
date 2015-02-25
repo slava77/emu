@@ -55,7 +55,7 @@
 #endif
 
 #define DRV_VERSION "3.1.0.2" DRV_EXTRAVERSION
-char e1000e_driver_name[] = "e1000e";
+char e1000e_driver_name[] = "e1000e_emu";
 const char e1000e_driver_version[] = DRV_VERSION;
 
 #define DEFAULT_MSG_ENABLE (NETIF_MSG_DRV|NETIF_MSG_PROBE|NETIF_MSG_LINK)
@@ -569,7 +569,21 @@ static void e1000_receive_skb(struct e1000_adapter *adapter,
 				 le16_to_cpu(vlan), skb);
 	else
 #endif /* NETIF_F_HW_VLAN_TX */
+	  if      (strcmp(adapter->netdev->name,"p1p1")==0){
+	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
+	    netif_rx_hook_2(skb);
+	  }else if(strcmp(adapter->netdev->name,"p1p2")==0){
+	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
+	    netif_rx_hook_3(skb);
+	  }else if(strcmp(adapter->netdev->name,"p2p1")==0){
+	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
+	    netif_rx_hook_4(skb);
+	  }else if(strcmp(adapter->netdev->name,"p2p2")==0){
+	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
+	    netif_rx_hook_5(skb);
+	  }else{
 		napi_gro_receive(&adapter->napi, skb);
+	  }
 #else /* HAVE_VLAN_RX_REGISTER */
 	if (staterr & E1000_RXD_STAT_VP)
 		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), tag);
@@ -583,7 +597,22 @@ static void e1000_receive_skb(struct e1000_adapter *adapter,
 		ret = vlan_hwaccel_rx(skb, adapter->vlgrp, le16_to_cpu(vlan));
 	else
 #endif
+
+	  if      (strcmp(adapter->netdev->name,"p1p1")==0){
+	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
+	    netif_rx_hook_2(skb);
+	  }else if(strcmp(adapter->netdev->name,"p1p2")==0){
+	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
+	    netif_rx_hook_3(skb);
+	  }else if(strcmp(adapter->netdev->name,"p2p1")==0){
+	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
+	    netif_rx_hook_4(skb);
+	  }else if(strcmp(adapter->netdev->name,"p2p2")==0){
+	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
+	    netif_rx_hook_5(skb);
+	  }else{
 		ret = netif_rx(skb);
+	  }
 #else /* HAVE_VLAN_RX_REGISTER */
 	if (staterr & E1000_RXD_STAT_VP)
 		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), tag);
