@@ -608,8 +608,8 @@ int EmuDim::FillDDU(char *buff, int source)
    else
    {  // names with DDUxx
      if(chnumb>100) chnumb=(chnumb%10)+(chnumb%100)/10; // for non-standard DDU #, create one in the range.
-     if(chnumb>18) chnumb -= 18;
    }
+   if(chnumb>18) chnumb -= 18;  // now chnumb is used as the array index (not DDU number) must 0-17
    label=buff;
    // std::cout << "Found DDU " << label << " with number " << chnumb << std::endl; 
    content = endstr+1;
