@@ -274,11 +274,11 @@ static std::string mkBitStr(uint16_t bits)
 
 static void setDDUerr(emu::fed::DDU *myDDU)
 {
-	myDDU->writeFMM( 0xf0ec );
-	(void) usleep(100000);	// 100000 usec = 0.1 second
-	(void) sleep(3);	// 3 seconds
-	// 3.1 seconds total wait to allow GT to see Error and cause hard reset
-	myDDU->writeFMM( 0xfed0 );
+	myDDU->writeFMM( 0xfed8 );
+// 	(void) usleep(100000);	// 100000 usec = 0.1 second
+// 	(void) sleep(3);	// 3 seconds
+// 	// 3.1 seconds total wait to allow GT to see Error and cause hard reset
+// 	myDDU->writeFMM( 0xfed0 );
 }
 
 
