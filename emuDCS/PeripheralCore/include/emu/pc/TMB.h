@@ -1129,24 +1129,36 @@ public:
     enableCLCTInputs_ = (enableCLCTInputs & 0x1f); 
     enableCLCTInputs_extend_ = ( (enableCLCTInputs >> 5) & 0x3);
   } 
-  inline int  GetEnableCLCTInputs() { return enableCLCTInputs_; }
-  inline int  GetReadEnableCLCTInputs() { return read_enableCLCTInputs_; }
+  inline int  GetEnableCLCTInputs() { 
+    return (enableCLCTInputs_ & 0x1f) | ((enableCLCTInputs_extend_ & 0x3) << 5); 
+  }
+  inline int  GetReadEnableCLCTInputs() { 
+    return ( read_enableCLCTInputs_ & 0x1f) | ((read_enableCLCTInputs_extend_ & 0x3) <<5); 
+  }
   //
   //!cfeb_ram_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [do not select,select] CFEB for RAM read/write
   inline void SetSelectCLCTRAM(int cfeb_ram_sel) { 
     cfeb_ram_sel_ = ( cfeb_ram_sel & 0x1f ); 
     cfeb_ram_sel_extend_ = ( (cfeb_ram_sel >> 5) & 0x3 );
   }        
-  inline int  GetSelectCLCTRAM() { return cfeb_ram_sel_; }
-  inline int  GetReadSelectCLCTRAM() { return read_cfeb_ram_sel_; }
+  inline int  GetSelectCLCTRAM() { 
+    return ( cfeb_ram_sel_ &  0x1f ) | ((cfeb_ram_sel_extend_ & 0x3) << 5 ) ; 
+  }
+  inline int  GetReadSelectCLCTRAM() { 
+    return (read_cfeb_ram_sel_ & 0x1f ) | ((read_cfeb_ram_sel_extend_ & 0x3) << 5 );
+  }
   //
   //!cfeb_inj_en_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
   inline void SetEnableCLCTInject(int cfeb_inj_en_sel) { 
     cfeb_inj_en_sel_ = ( cfeb_inj_en_sel & 0x1f ); 
     cfeb_inj_en_sel_extend_ = ( ( cfeb_inj_en_sel >> 5 ) & 0x3 );
   }  
-  inline int  GetEnableCLCTInject() { return cfeb_inj_en_sel_; }
-  inline int  GetReadEnableCLCTInject() { return read_cfeb_inj_en_sel_; }
+  inline int  GetEnableCLCTInject() { 
+    return ( cfeb_inj_en_sel_ 0x1f) | ((cfeb_inj_en_sel_extend_ & 0x3) << 5 ); 
+  }
+  inline int  GetReadEnableCLCTInject() { 
+    return ( read_cfeb_inj_en_sel_ & 0x1f) | ((read_cfeb_inj_en_sel_extend_ & 0x3) << 5 ); 
+  }
   //
   //!start_pattern_inj = 1 = start pattern injector
   inline void SetStartPatternInjector(int start_pattern_inj) { start_pattern_inj_ = start_pattern_inj; } 
