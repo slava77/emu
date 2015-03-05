@@ -1552,8 +1552,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     std::fstream bad_packets_file((CFEBTiming_log_dir_ + "SimpleScan_BadPackets.txt").c_str(), std::ios_base::out);*/
   std::ostream * web_out = MyOutput_;
   std::ofstream web_backup;
-  std::string env_user    = std::getenv("USER");
-  std::string out1_file_name = CFEBTiming_log_dir_+"webout_"+env_user+"_backup1.txt";
+  std::string out1_file_name = CFEBTiming_log_dir_+"webout_backup1.txt";
   if(print_data) web_backup.open((CFEBTiming_log_dir_+"webout_backup_fullcrate.txt").c_str(), std::ios::app);
   else web_backup.open(out1_file_name.c_str(), std::ios::out);
   
