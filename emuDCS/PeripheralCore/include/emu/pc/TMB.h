@@ -733,6 +733,15 @@ public:
     else return GetCfeb6RxClockDelay();
   }
   //
+  inline int  GetCfebRxPosNeg(int CFEB) {
+    assert(CFEB < 5 || (CFEB < 7 && GetHardwareVersion() == 2));
+    
+    int tmp[5] = { cfeb0_rx_posneg_, cfeb1_rx_posneg_, cfeb2_rx_posneg_, cfeb3_rx_posneg_, cfeb4_rx_posneg_};
+    if (CFEB < 5) return tmp[CFEB];
+    else if (CFEB == 5) return GetCfeb5RxPosNeg();
+    else return GetCfeb6RxPosNeg();
+  }
+  //
   //void SetVersion(std::string version) {version_ = version;}
   void SetDisableCLCTInputs(int disable){disableCLCTInputs_ = disable;}
   //

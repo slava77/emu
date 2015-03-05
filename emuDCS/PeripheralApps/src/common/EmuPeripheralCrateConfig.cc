@@ -5161,7 +5161,9 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   int maxCFEB = thisTMB->GetHardwareVersion() >= 2 ? 7 : 5;
   for(int i=0;i<maxCFEB;i++) {
     *out << "cfeb" << i << "delay = " << MyTest[tmb][current_crate_].GetCFEBrxPhaseTest(i) 
-	 << " ("  << MyTest[tmb][current_crate_].GetCfebRxClockDelay(i) << ") " <<std::endl;
+	 << " ("  << MyTest[tmb][current_crate_].GetCfebRxClockDelay(i) << ") "
+	 <<"    posneg = " << MyTest[tmb][current_crate_].GetCFEBrxPosnegTest(i) 
+	 << " ("  << MyTest[tmb][current_crate_].GetCfebRxPosNeg(i) << ") " <<std::endl;
     *out << cgicc::br();
   }
   //

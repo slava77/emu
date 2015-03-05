@@ -393,6 +393,7 @@ public:
   //
   // Get xml values:
   inline int  GetCfebRxClockDelay(int CFEB)      { return thisTMB->GetCfebRxClockDelay(CFEB); }
+  inline int  GetCfebRxPosNeg(int CFEB)          { return thisTMB->GetCfebRxPosNeg(CFEB); }
   inline int  GetAlctRxClockDelay()              { return thisTMB->GetAlctRxClockDelay(); }
   inline int  GetAlctTxClockDelay()              { return thisTMB->GetAlctTxClockDelay(); }
   inline int  GetAlctRxPosNeg()                  { return thisTMB->GetAlctRxPosNeg(); }
