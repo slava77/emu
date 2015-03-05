@@ -461,7 +461,7 @@ ChamberUtilities::ChamberUtilities(){
   TmbDavScopeAverageValue_   = -1;
   AlctDavScopeAverageValue_  = -1;
   //
-  for (int i=0;i<5;i++) 
+  for (int i=0;i<7;i++) 
     for (int j=0; j<32; j++) {
       CFEBStripScan_[i][j] = -1;
     }
@@ -1537,6 +1537,9 @@ void ChamberUtilities::Print_CLCT0() {
 void ChamberUtilities::Print_CFEB_Masks() {
   thisTMB->ReadRegister(seq_trig_en_adr);
   thisTMB->ReadRegister(cfeb_inj_adr);
+  if (thisTMB->GetHardwareVersion() >=2){
+    thisTMB->ReadRegister(dcfeb_inj_seq_trig_adr);
+  }
   thisTMB->GetReadEnableCLCTInject();
 }
     //
