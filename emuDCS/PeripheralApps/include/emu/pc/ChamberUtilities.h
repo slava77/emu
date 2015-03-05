@@ -477,7 +477,7 @@ public:
   inline void SetALCTWireScan(int Wire, int value)             { ALCTWireScan_[Wire] = value; }
   //
   int BestCCBDelaySetting ;
-  float CFEBMean[5];
+  //  float CFEBMean[5];
   int TMB_L1a_timing ;
   int Find_ALCT_L1a_delay;
   int ALCT_L1a_delay ;
@@ -559,7 +559,7 @@ private:
   float best_average_alct_dav_scope_;
   float best_average_cfeb_dav_scope_;
   //
-  int CFEBStripScan_[5][32];
+  int CFEBStripScan_[7][32];
   int ALCTWireScan_[112];
   //
   int AlctInClctMatchWindowHisto_[16];
