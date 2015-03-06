@@ -1125,16 +1125,9 @@ public:
   //0X42 = ADR_CFEB_INJ:  CFEB Injector Control:
   //----------------------------------------------------------------
   //!enableCLCTInputs = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB input
-  //!7 bits for OTMB
-  inline void SetEnableCLCTInputs(int enableCLCTInputs) { 
-    enableCLCTInputs_ = (enableCLCTInputs & 0x1f); 
-    if (GetHardwareVersion()>= 2) enableCLCTInputs_extend_ = ( (enableCLCTInputs >> 5) & 0x3);
-  } 
-  inline int  GetEnableCLCTInputs() { 
-    int val = enableCLCTInputs_ & 0x1f;
-    if (GetHardwareVersion()>= 2) val |= ((enableCLCTInputs_extend_ & 0x3) << 5);
-    return val;
-  }
+  //!7 bits for OTMB from 0X17A = ADR_V6_EXTEND
+  inline void SetEnableCLCTInputs(int enableCLCTInputs) { enableCLCTInputs_ = enableCLCTInputs; }
+  inline int  GetEnableCLCTInputs() { return enableCLCTInputs_; }
   inline int  GetReadEnableCLCTInputs() { 
     int val = ( read_enableCLCTInputs_ & 0x1f);
     if (GetHardwareVersion()>= 2) val |= ((read_enableCLCTInputs_extend_ & 0x3) <<5);
@@ -1143,15 +1136,8 @@ public:
   //
   //!cfeb_ram_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [do not select,select] CFEB for RAM read/write
   //! 7 bits for OTMB
-  inline void SetSelectCLCTRAM(int cfeb_ram_sel) { 
-    cfeb_ram_sel_ = ( cfeb_ram_sel & 0x1f ); 
-    if (GetHardwareVersion()>= 2)    cfeb_ram_sel_extend_ = ( (cfeb_ram_sel >> 5) & 0x3 );
-  }        
-  inline int  GetSelectCLCTRAM() { 
-    int val = ( cfeb_ram_sel_ &  0x1f );
-    if (GetHardwareVersion()>= 2) val |= ((cfeb_ram_sel_extend_ & 0x3) << 5 );
-    return val;
-  }
+  inline void SetSelectCLCTRAM(int cfeb_ram_sel) { cfeb_ram_sel_ = cfeb_ram_sel; }
+  inline int  GetSelectCLCTRAM() { return cfeb_ram_sel_;}
   inline int  GetReadSelectCLCTRAM() { 
     int val = ( read_cfeb_ram_sel_ & 0x1f );
     if (GetHardwareVersion()>= 2) val |= ((read_cfeb_ram_sel_extend_ & 0x3) << 5 );
@@ -1160,15 +1146,8 @@ public:
   //
   //!cfeb_inj_en_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
   //! 7 bits for OTMB
-  inline void SetEnableCLCTInject(int cfeb_inj_en_sel) { 
-    cfeb_inj_en_sel_ = ( cfeb_inj_en_sel & 0x1f ); 
-    if (GetHardwareVersion()>= 2) cfeb_inj_en_sel_extend_ = ( ( cfeb_inj_en_sel >> 5 ) & 0x3 );
-  }  
-  inline int  GetEnableCLCTInject() { 
-    int val = ( cfeb_inj_en_sel_ & 0x1f);
-    if (GetHardwareVersion()>= 2) val |= ((cfeb_inj_en_sel_extend_ & 0x3) << 5 );
-    return val;
-  }
+  inline void SetEnableCLCTInject(int cfeb_inj_en_sel) { cfeb_inj_en_sel_ = cfeb_inj_en_sel; }
+  inline int  GetEnableCLCTInject() { return cfeb_inj_en_sel_; }
   inline int  GetReadEnableCLCTInject() { 
     int val = ( read_cfeb_inj_en_sel_ & 0x1f);
     if (GetHardwareVersion()>= 2) val |= ((read_cfeb_inj_en_sel_extend_ & 0x3) << 5 );
@@ -1255,11 +1234,13 @@ public:
   inline int  GetEnableAllCfebsActive() { return all_cfeb_active_; }
   //
   //!cfebs_enabled_ = [0-31] -> normally copied from 0x42.  See TMB documentation before setting these bits...
-  inline void SetCfebEnable(int cfebs_enabled) { 
-    cfebs_enabled_ = ( cfebs_enabled & 0x1f ); 
-    cfebs_enabled_extend_ = ( (cfebs_enabled >> 5)  & 0x3);
-  }
+  //!7 bits for OTMB to control 0X17A = ADR_V6_EXTEND
+  inline void SetCfebEnable(int cfebs_enabled) { cfebs_enabled_ = cfebs_enabled; }
   inline int  GetCfebEnable() { return cfebs_enabled_; }
+  inline int  GetReadCfebEnable() {
+    int val = read_cfebs_enabled_ & 0x1f;
+    if (GetHardwareVersion()>= 2) val |= ((read_cfebs_enabled_extend_ & 0x3) << 5);
+  }
   //
   //! value = 42, 68 = VME register which controls the CFEB mask.  See TMB documentation before setting this value.
   void Set_cfeb_enable_source(int value); 
@@ -2347,30 +2328,18 @@ public:
   //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN: 
   //----------------------------------------------------------------
   //!enableCLCTInputs for 5-6 = [0-3]... 2 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB input
-  //! SetEnableCLCTInputsExtend shouldn't really be used by itself (see SetEnableCLCTInputs)
-  inline void SetEnableCLCTInputsExtend(int enableCLCTInputs) { enableCLCTInputs_extend_ = enableCLCTInputs; } 
-  inline int  GetEnableCLCTInputsExtend() { return enableCLCTInputs_extend_; }
-  inline int  GetReadEnableCLCTInputsExtend() { return read_enableCLCTInputs_extend_; }
+  //!register-reads only. Configuration is controlled by one value enableCLCTInputs_ and can be read in a fuse by GetReadEnableCLCTInputs()
   //
   //!cfeb_ram_sel for 5-6 = [0-3]... 2 bit mask, 1 bit per CFEB -> each bit [0,1] = [do not select,select] CFEB for RAM read/write
-  //!SetSelectCLCTRAMExtend shouldn't really be used by itself: preferred way is to set via SetSelectCLCTRAM
-  inline void SetSelectCLCTRAMExtend(int cfeb_ram_sel) { cfeb_ram_sel_extend_ = cfeb_ram_sel; }        
-  inline int  GetSelectCLCTRAMExtend() { return cfeb_ram_sel_extend_; }
-  inline int  GetReadSelectCLCTRAMExtend() { return read_cfeb_ram_sel_extend_; }
+  //!register-reads only. Configuration is controlled by one value cfeb_ram_sel_ and can be read in a fuse by GetReadSelectCLCTRAM()
   //
   //!cfeb_inj_en_sel for 5-6 = [0-3]... 2 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
-  //!SetEnableCLCTInjectExtend shouldn't really be used by itself: preferred way is to set via SetEnableCLCTInject
-  inline void SetEnableCLCTInjectExtend(int cfeb_inj_en_sel) { cfeb_inj_en_sel_extend_ = cfeb_inj_en_sel; }  
-  inline int  GetEnableCLCTInjectExtend() { return cfeb_inj_en_sel_extend_; }
-  inline int  GetReadEnableCLCTInjectExtend() { return read_cfeb_inj_en_sel_extend_; }
+  //!register-reads only. Configuration is controlled by one value cfeb_inj_en_sel_ and can be read in a fuse by GetReadEnableCLCTInject()
   //
   //!cfebs_enabled_extend for 5-6 = [0-3] -> normally copied from 0x42.  See TMB documentation before setting these bits...
-  //!SetCfebEnableExtend shouldn't really be used by itself: preferred way is to set via SetCfebEnable
-  inline void SetCfebEnableExtend(int cfebs_enabled) { cfebs_enabled_extend_ = cfebs_enabled; }
-  inline int  GetCfebEnableExtend() { return cfebs_enabled_extend_; }
-  inline int  GetReadCfebEnableExtend() { return read_cfebs_enabled_extend_; }
+  //!register-reads only. Configuration is controlled by one value cfebs_enabled_ and can be read in a fuse by GetReadCfebEnable()
   //
-  //!cfebs_enabled_extend_readback  = should be the same as cfebs_enabled_extend for 5-6 
+  //!cfebs_enabled_extend_readback  = should be the same as GetReadCfebEnable for bits 5-6 
   inline int  GetReadCfebEnableExtendReadback() { return read_cfebs_enabled_extend_readback_; }
   //
   //
@@ -3805,16 +3774,10 @@ private:
   //------------------------------------------------------------------
   //0X17A = ADR_V6_EXTEND: extensions of ADR_CFEB_INJ and ADR_SEQ_TRIG_EN 
   //------------------------------------------------------------------
-  //
-  int enableCLCTInputs_extend_;
-  int cfeb_ram_sel_extend_;
-  int cfeb_inj_en_sel_extend_;
-  //
+  //! only register reads are kept ; settings are from the common place
   int read_enableCLCTInputs_extend_;
   int read_cfeb_ram_sel_extend_;
   int read_cfeb_inj_en_sel_extend_;
-  //
-  int cfebs_enabled_extend_;
   //
   int read_cfebs_enabled_extend_;
   int read_cfebs_enabled_extend_readback_;
