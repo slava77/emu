@@ -1125,39 +1125,54 @@ public:
   //0X42 = ADR_CFEB_INJ:  CFEB Injector Control:
   //----------------------------------------------------------------
   //!enableCLCTInputs = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB input
+  //!7 bits for OTMB
   inline void SetEnableCLCTInputs(int enableCLCTInputs) { 
     enableCLCTInputs_ = (enableCLCTInputs & 0x1f); 
-    enableCLCTInputs_extend_ = ( (enableCLCTInputs >> 5) & 0x3);
+    if (GetHardwareVersion()>= 2) enableCLCTInputs_extend_ = ( (enableCLCTInputs >> 5) & 0x3);
   } 
   inline int  GetEnableCLCTInputs() { 
-    return (enableCLCTInputs_ & 0x1f) | ((enableCLCTInputs_extend_ & 0x3) << 5); 
+    int val = enableCLCTInputs_ & 0x1f;
+    if (GetHardwareVersion()>= 2) val |= ((enableCLCTInputs_extend_ & 0x3) << 5);
+    return val;
   }
   inline int  GetReadEnableCLCTInputs() { 
-    return ( read_enableCLCTInputs_ & 0x1f) | ((read_enableCLCTInputs_extend_ & 0x3) <<5); 
+    int val = ( read_enableCLCTInputs_ & 0x1f);
+    if (GetHardwareVersion()>= 2) val |= ((read_enableCLCTInputs_extend_ & 0x3) <<5);
+    return val;
   }
   //
   //!cfeb_ram_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [do not select,select] CFEB for RAM read/write
+  //! 7 bits for OTMB
   inline void SetSelectCLCTRAM(int cfeb_ram_sel) { 
     cfeb_ram_sel_ = ( cfeb_ram_sel & 0x1f ); 
-    cfeb_ram_sel_extend_ = ( (cfeb_ram_sel >> 5) & 0x3 );
+    if (GetHardwareVersion()>= 2)    cfeb_ram_sel_extend_ = ( (cfeb_ram_sel >> 5) & 0x3 );
   }        
   inline int  GetSelectCLCTRAM() { 
-    return ( cfeb_ram_sel_ &  0x1f ) | ((cfeb_ram_sel_extend_ & 0x3) << 5 ) ; 
+    int val = ( cfeb_ram_sel_ &  0x1f );
+    if (GetHardwareVersion()>= 2) val |= ((cfeb_ram_sel_extend_ & 0x3) << 5 );
+    return val;
   }
   inline int  GetReadSelectCLCTRAM() { 
-    return (read_cfeb_ram_sel_ & 0x1f ) | ((read_cfeb_ram_sel_extend_ & 0x3) << 5 );
+    int val = ( read_cfeb_ram_sel_ & 0x1f );
+    if (GetHardwareVersion()>= 2) val |= ((read_cfeb_ram_sel_extend_ & 0x3) << 5 );
+    return val;
   }
   //
   //!cfeb_inj_en_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
+  //! 7 bits for OTMB
   inline void SetEnableCLCTInject(int cfeb_inj_en_sel) { 
     cfeb_inj_en_sel_ = ( cfeb_inj_en_sel & 0x1f ); 
-    cfeb_inj_en_sel_extend_ = ( ( cfeb_inj_en_sel >> 5 ) & 0x3 );
+    if (GetHardwareVersion()>= 2) cfeb_inj_en_sel_extend_ = ( ( cfeb_inj_en_sel >> 5 ) & 0x3 );
   }  
   inline int  GetEnableCLCTInject() { 
-    return ( cfeb_inj_en_sel_ 0x1f) | ((cfeb_inj_en_sel_extend_ & 0x3) << 5 ); 
+    int val = ( cfeb_inj_en_sel_ & 0x1f);
+    if (GetHardwareVersion()>= 2) val |= ((cfeb_inj_en_sel_extend_ & 0x3) << 5 );
+    return val;
   }
   inline int  GetReadEnableCLCTInject() { 
-    return ( read_cfeb_inj_en_sel_ & 0x1f) | ((read_cfeb_inj_en_sel_extend_ & 0x3) << 5 ); 
+    int val = ( read_cfeb_inj_en_sel_ & 0x1f);
+    if (GetHardwareVersion()>= 2) val |= ((read_cfeb_inj_en_sel_extend_ & 0x3) << 5 );
+    return val;
   }
   //
   //!start_pattern_inj = 1 = start pattern injector
