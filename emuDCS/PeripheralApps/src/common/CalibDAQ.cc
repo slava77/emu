@@ -1365,7 +1365,7 @@ void CalibDAQ::FindL1aDelayComparator() {
       ::usleep(1000);
       //
       for (unsigned i=0; i<myTmbs.size(); i++) {
-	myTmbs[i]->EnableCLCTInputs(0x1f);
+	myTmbs[i]->EnableCLCTInputs(0x7f);
       }
       //
       usleep(1000);

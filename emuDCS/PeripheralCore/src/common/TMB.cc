@@ -5977,10 +5977,7 @@ void TMB::SetTMBRegisterDefaults() {
   //------------------------------------------------------------------
   //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN:
   //------------------------------------------------------------------
-  enableCLCTInputs_extend_           = enableCLCTInputs_extend_default ;
-  cfeb_ram_sel_extend_               = cfeb_ram_sel_extend_default     ;
-  cfeb_inj_en_sel_extend_            = cfeb_inj_en_sel_extend_default  ;
-  cfebs_enabled_extend_              = cfebs_enabled_extend_default     ;  
+  //defaults are pulled from the main parameter fields
 
   return;
 }
@@ -8113,9 +8110,9 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     //0X42 = ADR_CFEB_INJ:  CFEB Injector Control
     //------------------------------------------------------------------
-    InsertValueIntoDataWord(enableCLCTInputs_ ,enableCLCTInputs_bithi ,enableCLCTInputs_bitlo ,&data_word);
-    InsertValueIntoDataWord(cfeb_ram_sel_     ,cfeb_ram_sel_bithi     ,cfeb_ram_sel_bitlo     ,&data_word);
-    InsertValueIntoDataWord(cfeb_inj_en_sel_  ,cfeb_inj_en_sel_bithi  ,cfeb_inj_en_sel_bitlo  ,&data_word);
+    InsertValueIntoDataWord((enableCLCTInputs_&0x1f) ,enableCLCTInputs_bithi ,enableCLCTInputs_bitlo ,&data_word);
+    InsertValueIntoDataWord((cfeb_ram_sel_    &0x1f) ,cfeb_ram_sel_bithi     ,cfeb_ram_sel_bitlo     ,&data_word);
+    InsertValueIntoDataWord((cfeb_inj_en_sel_ &0x1f) ,cfeb_inj_en_sel_bithi  ,cfeb_inj_en_sel_bitlo  ,&data_word);
     InsertValueIntoDataWord(start_pattern_inj_,start_pattern_inj_bithi,start_pattern_inj_bitlo,&data_word);
     //
   } else if ( address == hcm001_adr || address == hcm023_adr || address == hcm045_adr ||
@@ -8148,18 +8145,18 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     //0X68 = ADR_SEQ_TRIG_EN:  Sequencer Trigger Source Enables
     //------------------------------------------------------------------
-    InsertValueIntoDataWord(clct_pat_trig_en_  ,clct_pat_trig_en_bithi  ,clct_pat_trig_en_bitlo  ,&data_word);
-    InsertValueIntoDataWord(alct_pat_trig_en_  ,alct_pat_trig_en_bithi  ,alct_pat_trig_en_bitlo  ,&data_word);
-    InsertValueIntoDataWord(match_pat_trig_en_ ,match_pat_trig_en_bithi ,match_pat_trig_en_bitlo ,&data_word);
-    InsertValueIntoDataWord(adb_ext_trig_en_   ,adb_ext_trig_en_bithi   ,adb_ext_trig_en_bitlo   ,&data_word);
-    InsertValueIntoDataWord(dmb_ext_trig_en_   ,dmb_ext_trig_en_bithi   ,dmb_ext_trig_en_bitlo   ,&data_word);
-    InsertValueIntoDataWord(clct_ext_trig_en_  ,clct_ext_trig_en_bithi  ,clct_ext_trig_en_bitlo  ,&data_word);
-    InsertValueIntoDataWord(alct_ext_trig_en_  ,alct_ext_trig_en_bithi  ,alct_ext_trig_en_bitlo  ,&data_word);
-    InsertValueIntoDataWord(vme_ext_trig_      ,vme_ext_trig_bithi      ,vme_ext_trig_bitlo      ,&data_word);
-    InsertValueIntoDataWord(ext_trig_inject_   ,ext_trig_inject_bithi   ,ext_trig_inject_bitlo   ,&data_word);
-    InsertValueIntoDataWord(all_cfeb_active_   ,all_cfeb_active_bithi   ,all_cfeb_active_bitlo   ,&data_word);
-    InsertValueIntoDataWord(cfebs_enabled_     ,cfebs_enabled_bithi     ,cfebs_enabled_bitlo     ,&data_word);
-    InsertValueIntoDataWord(cfeb_enable_source_,cfeb_enable_source_bithi,cfeb_enable_source_bitlo,&data_word);
+    InsertValueIntoDataWord(clct_pat_trig_en_    ,clct_pat_trig_en_bithi  ,clct_pat_trig_en_bitlo  ,&data_word);
+    InsertValueIntoDataWord(alct_pat_trig_en_    ,alct_pat_trig_en_bithi  ,alct_pat_trig_en_bitlo  ,&data_word);
+    InsertValueIntoDataWord(match_pat_trig_en_   ,match_pat_trig_en_bithi ,match_pat_trig_en_bitlo ,&data_word);
+    InsertValueIntoDataWord(adb_ext_trig_en_     ,adb_ext_trig_en_bithi   ,adb_ext_trig_en_bitlo   ,&data_word);
+    InsertValueIntoDataWord(dmb_ext_trig_en_     ,dmb_ext_trig_en_bithi   ,dmb_ext_trig_en_bitlo   ,&data_word);
+    InsertValueIntoDataWord(clct_ext_trig_en_    ,clct_ext_trig_en_bithi  ,clct_ext_trig_en_bitlo  ,&data_word);
+    InsertValueIntoDataWord(alct_ext_trig_en_    ,alct_ext_trig_en_bithi  ,alct_ext_trig_en_bitlo  ,&data_word);
+    InsertValueIntoDataWord(vme_ext_trig_        ,vme_ext_trig_bithi      ,vme_ext_trig_bitlo      ,&data_word);
+    InsertValueIntoDataWord(ext_trig_inject_     ,ext_trig_inject_bithi   ,ext_trig_inject_bitlo   ,&data_word);
+    InsertValueIntoDataWord(all_cfeb_active_     ,all_cfeb_active_bithi   ,all_cfeb_active_bitlo   ,&data_word);
+    InsertValueIntoDataWord((cfebs_enabled_&0x1f),cfebs_enabled_bithi     ,cfebs_enabled_bitlo     ,&data_word);
+    InsertValueIntoDataWord(cfeb_enable_source_  ,cfeb_enable_source_bithi,cfeb_enable_source_bitlo,&data_word);
     //    
   } else if ( address == seq_trig_dly0_adr ) {
     //------------------------------------------------------------------
@@ -8570,10 +8567,10 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN: 
     //------------------------------------------------------------------
-    InsertValueIntoDataWord(enableCLCTInputs_extend_ ,enableCLCTInputs_extend_bithi ,enableCLCTInputs_extend_bitlo ,&data_word);
-    InsertValueIntoDataWord(cfeb_ram_sel_extend_     ,cfeb_ram_sel_extend_bithi     ,cfeb_ram_sel_extend_bitlo     ,&data_word);
-    InsertValueIntoDataWord(cfeb_inj_en_sel_extend_  ,cfeb_inj_en_sel_extend_bithi  ,cfeb_inj_en_sel_extend_bitlo  ,&data_word);
-    InsertValueIntoDataWord(cfebs_enabled_extend_    ,cfebs_enabled_extend_bithi    ,cfebs_enabled_extend_bitlo    ,&data_word);
+    InsertValueIntoDataWord(((enableCLCTInputs_>>5)&0x3) ,enableCLCTInputs_extend_bithi ,enableCLCTInputs_extend_bitlo ,&data_word);
+    InsertValueIntoDataWord(((cfeb_ram_sel_    >>5)&0x3) ,cfeb_ram_sel_extend_bithi     ,cfeb_ram_sel_extend_bitlo     ,&data_word);
+    InsertValueIntoDataWord(((cfeb_inj_en_sel_ >>5)&0x3) ,cfeb_inj_en_sel_extend_bithi  ,cfeb_inj_en_sel_extend_bitlo  ,&data_word);
+    InsertValueIntoDataWord(((cfebs_enabled_   >>5)&0x3) ,cfebs_enabled_extend_bithi    ,cfebs_enabled_extend_bitlo    ,&data_word);
     //
   } else {
     //
@@ -8770,14 +8767,11 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     // If no  => expected value of address 0x68 = write value of address 0x68 
     //
     int cfebs_enabled_expected;
-    int cfebs_enabled_extend_expected;
     //
     if (GetCfebEnableSource() == 1) {
       cfebs_enabled_expected = enableCLCTInputs_;
-      cfebs_enabled_extend_expected = enableCLCTInputs_extend_;
     } else {
       cfebs_enabled_expected = cfebs_enabled_; 
-      cfebs_enabled_extend_expected = cfebs_enabled_extend_; 
     }
     //
     //-----------------------------------------------------------------
@@ -8875,10 +8869,10 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //------------------------------------------------------------------
     //0X42 = ADR_CFEB_INJ:  CFEB Injector Control
     //------------------------------------------------------------------
-    config_ok &= compareValues("TMB enableCLCTInputs_reg42"                         ,read_enableCLCTInputs_ ,enableCLCTInputs_ , print_errors);
-    config_ok &= compareValues("TMB Select CFEB n for RAM read/write (not in xml)"  ,read_cfeb_ram_sel_     ,cfeb_ram_sel_     , print_errors);
-    config_ok &= compareValues("TMB Enable CFEB n for injector trigger (not in xml)",read_cfeb_inj_en_sel_  ,cfeb_inj_en_sel_  , print_errors); 
-    config_ok &= compareValues("TMB Start CLCT pattern injector (not in xml)"       ,read_start_pattern_inj_,start_pattern_inj_, print_errors);
+    config_ok &= compareValues("TMB enableCLCTInputs_reg42(+17A)"                ,GetReadEnableCLCTInputs()     ,enableCLCTInputs_ , print_errors);
+    config_ok &= compareValues("TMB Select CFEB n for RAM read/write (not in xml)"  ,GetReadSelectCLCTRAM()     ,cfeb_ram_sel_     , print_errors);
+    config_ok &= compareValues("TMB Enable CFEB n for injector trigger (not in xml)",GetReadEnableCLCTInject()  ,cfeb_inj_en_sel_  , print_errors); 
+    config_ok &= compareValues("TMB Start CLCT pattern injector (not in xml)"       ,read_start_pattern_inj_    ,start_pattern_inj_, print_errors);
     //
     //------------------------------------------------------------------
     //0X4A,4C,4E = ADR_HCM001,HCM023,HCM045 = CFEB0 Hot Channel Masks
@@ -8921,7 +8915,7 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     config_ok &= compareValues("TMB Initiate sequencer trigger from VME (not in xml)"     ,read_vme_ext_trig_      ,vme_ext_trig_         , print_errors);
     config_ok &= compareValues("TMB Make clct_ext_trig fire pattern injector (not in xml)",read_ext_trig_inject_   ,ext_trig_inject_      , print_errors);
     config_ok &= compareValues("TMB all_cfeb_active"                                      ,read_all_cfeb_active_   ,all_cfeb_active_      , print_errors);
-    config_ok &= compareValues("TMB enableCLCTInputs_reg68"                               ,read_cfebs_enabled_     ,cfebs_enabled_expected, print_errors);
+    config_ok &= compareValues("TMB enableCLCTInputs_reg68(+17A)"                         ,GetReadCfebEnable()     ,cfebs_enabled_expected, print_errors);
     config_ok &= compareValues("TMB cfeb_enable_source"                                   ,read_cfeb_enable_source_,cfeb_enable_source_   , print_errors);
     //
     //------------------------------------------------------------------
@@ -9227,12 +9221,12 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //------------------------------------------------------------------
     //0X17A = ADR_V6_EXTEND: ADR_CFEB_INJ:  CFEB Injector Control; ADR_SEQ_TRIG_EN:
     //------------------------------------------------------------------
-    if (hardware_version_>=2){
-      config_ok &= compareValues("TMB enableCLCTInputs_reg42 Extension"                 ,read_enableCLCTInputs_extend_       ,enableCLCTInputs_extend_     , print_errors);
-      config_ok &= compareValues("TMB Select CFEB56 n for RAM read/write (not in xml)"  ,read_cfeb_ram_sel_extend_           ,cfeb_ram_sel_extend_         , print_errors);
-      config_ok &= compareValues("TMB Enable CFEB56 n for injector trigger (not in xml)",read_cfeb_inj_en_sel_extend_        ,cfeb_inj_en_sel_extend_      , print_errors); 
-      config_ok &= compareValues("TMB enableCLCTInputs_reg68 Extension"                 ,read_cfebs_enabled_extend_          ,cfebs_enabled_extend_expected, print_errors);
-      config_ok &= compareValues("TMB enableCLCTInputs_reg68 Extension Readback"        ,read_cfebs_enabled_extend_readback_ ,cfebs_enabled_extend_expected, print_errors);
+    if (hardware_version_>=2){//this configuration is already fused into 0x42 and 0x68 configs
+      //      config_ok &= compareValues("TMB enableCLCTInputs_reg42 Extension"                 ,read_enableCLCTInputs_extend_       ,enableCLCTInputs_extend_     , print_errors);
+      //      config_ok &= compareValues("TMB Select CFEB56 n for RAM read/write (not in xml)"  ,read_cfeb_ram_sel_extend_           ,cfeb_ram_sel_extend_         , print_errors);
+      //      config_ok &= compareValues("TMB Enable CFEB56 n for injector trigger (not in xml)",read_cfeb_inj_en_sel_extend_        ,cfeb_inj_en_sel_extend_      , print_errors); 
+      //      config_ok &= compareValues("TMB enableCLCTInputs_reg68 Extension"                 ,read_cfebs_enabled_extend_          ,cfebs_enabled_extend_expected, print_errors);
+      //      config_ok &= compareValues("TMB enableCLCTInputs_reg68 Extension Readback"        ,read_cfebs_enabled_extend_readback_ ,cfebs_enabled_extend_expected, print_errors);
     }
     //
   }

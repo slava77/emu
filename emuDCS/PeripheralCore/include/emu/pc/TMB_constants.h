@@ -980,17 +980,17 @@ const int alct_raw_msbs_bithi        = 14;
 const int enableCLCTInputs_vmereg   =  cfeb_inj_adr;
 const int enableCLCTInputs_bitlo    =  0;
 const int enableCLCTInputs_bithi    =  4;
-const int enableCLCTInputs_default  =0x1f;
+const int enableCLCTInputs_default  =0x7f; //this is the config default: high bits go to enableCLCTInputs_extend_vmereg
 //
 const int cfeb_ram_sel_vmereg       =  cfeb_inj_adr;
 const int cfeb_ram_sel_bitlo        =  5;
 const int cfeb_ram_sel_bithi        =  9;
-const int cfeb_ram_sel_default      =  0;
+const int cfeb_ram_sel_default      =  0; //this is the config default: high bits go to cfeb_ram_sel_extend_vmereg
 //
 const int cfeb_inj_en_sel_vmereg    =  cfeb_inj_adr;
 const int cfeb_inj_en_sel_bitlo     = 10;
 const int cfeb_inj_en_sel_bithi     = 14;
-const int cfeb_inj_en_sel_default   =0x1f;
+const int cfeb_inj_en_sel_default   =0x7f; //this is the config default: high bits go to cfeb_inj_en_sel_extend_vmereg
 //
 const int start_pattern_inj_vmereg  =  cfeb_inj_adr;
 const int start_pattern_inj_bitlo   = 15;
@@ -1157,7 +1157,7 @@ const int all_cfeb_active_default    =  0;
 const int cfebs_enabled_vmereg       =  seq_trig_en_adr;
 const int cfebs_enabled_bitlo        = 10;
 const int cfebs_enabled_bithi        = 14;
-const int cfebs_enabled_default      =0x1f;
+const int cfebs_enabled_default      =0x7f; //this is the config default: high bits go to cfebs_enabled_extend_vmereg
 //
 const int cfeb_enable_source_vmereg  =  seq_trig_en_adr;
 const int cfeb_enable_source_bitlo   = 15;
@@ -2740,27 +2740,22 @@ const int gtx_rx_error_count_bithi     =  15;
 const int enableCLCTInputs_extend_vmereg             = dcfeb_inj_seq_trig_adr;
 const int enableCLCTInputs_extend_bitlo              =   0;
 const int enableCLCTInputs_extend_bithi              =   1;
-const int enableCLCTInputs_extend_default            = 0x3;
 //
 const int cfeb_ram_sel_extend_vmereg                 = dcfeb_inj_seq_trig_adr;
 const int cfeb_ram_sel_extend_bitlo                  =   2;
 const int cfeb_ram_sel_extend_bithi                  =   3;
-const int cfeb_ram_sel_extend_default                =   0;
 //
 const int cfeb_inj_en_sel_extend_vmereg              = dcfeb_inj_seq_trig_adr;
 const int cfeb_inj_en_sel_extend_bitlo               =   4;
 const int cfeb_inj_en_sel_extend_bithi               =   5;
-const int cfeb_inj_en_sel_extend_default             = 0x3;
 //     ADR_SEQ_TRIG_EN parts
 const int cfebs_enabled_extend_vmereg                = dcfeb_inj_seq_trig_adr;
 const int cfebs_enabled_extend_bitlo                 =   6;
 const int cfebs_enabled_extend_bithi                 =   7;
-const int cfebs_enabled_extend_default               = 0x3;
 //
 const int cfebs_enabled_extend_readback_vmereg       = dcfeb_inj_seq_trig_adr;
 const int cfebs_enabled_extend_readback_bitlo        =   8;
 const int cfebs_enabled_extend_readback_bithi        =   9;
-const int cfebs_enabled_extend_readback_default      = 0x3;
 
 //
 //////////////////////////////////////////////
