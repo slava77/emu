@@ -1238,8 +1238,9 @@ public:
   inline void SetCfebEnable(int cfebs_enabled) { cfebs_enabled_ = cfebs_enabled; }
   inline int  GetCfebEnable() { return cfebs_enabled_; }
   inline int  GetReadCfebEnable() {
-    int val = read_cfebs_enabled_ & 0x1f;
+    int val = (read_cfebs_enabled_ & 0x1f);
     if (GetHardwareVersion()>= 2) val |= ((read_cfebs_enabled_extend_ & 0x3) << 5);
+    return val;
   }
   //
   //! value = 42, 68 = VME register which controls the CFEB mask.  See TMB documentation before setting this value.
