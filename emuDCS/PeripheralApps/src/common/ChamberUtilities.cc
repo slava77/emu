@@ -1122,7 +1122,7 @@ inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration
     usleep(100);
     thisCCB_->l1aReset(); // Send a reset?
     usleep(100);
-    ResyncDCFEBs(); // Resync the dcfebs, apparently this is needed after the odmb config
+    thisDMB->odmb_resync_dcfebs(); // Resync the dcfebs, apparently this is needed after the odmb config
     usleep(100);
     thisCCB_->EnableL1aFromDmbCfebCalibX(); // Enable pulsing of the dcfebs
     usleep(100);
@@ -1220,19 +1220,19 @@ void ChamberUtilities::CFEBTiming_PulseInject(bool is_inject_scan, int cfeb, uns
       }
     }
     
-    thisDMB->SetTMBTxMode(cfeb, 5); // Set the mode of the CFEB in question
+    thisDMB->dcfeb_set_TMBTxMode(cfeb, 5); // Set the mode of the CFEB in question
     usleep(100);
     thisDMB->shift_all(KILL_CHAN);
     thisDMB->buck_shift();
     usleep(100);
-    thisDMB->SetTMBTxModeLayerMask(cfeb, layer_mask); // Set the layer mask
+    thisDMB->dcfeb_set_TMBTxModeLayerMask(cfeb, layer_mask); // Set the layer mask
     usleep(100);
     (*MyOutput_) << "Pulsing hs " << test_hs_int[2] << std::endl;
-    thisDMB->SetTMBTxModeShiftLayers(cfeb, test_hs); // Set the half strip for each layer
+    thisDMB->dcfeb_set_TMBTxModeShiftLayers(cfeb, test_hs); // Set the half strip for each layer
     usleep(100);
     thisCCB_->inject(n_pulses, pulse_delay); // Inject the pattern of half strips to the CFEB
     usleep(100);
-    thisDMB->SetTMBTxMode(cfeb, 0); // Return mode to original state
+    thisDMB->dcfeb_set_TMBTxMode(cfeb, 0); // Return mode to original state
     usleep(100);
   }
   else {
@@ -1285,52 +1285,11 @@ int ChamberUtilities::GetTMBInternalL1ADelay() {
   return thisTMB->GetInternalL1a();
 }
 
-void ChamberUtilities::ResyncDCFEBs() {
-  char rcv[2];
-  unsigned int addr;
-  unsigned short int data;
-  int irdwr;
-  int slot_number;
-  
-  if(thisDMB->GetHardwareVersion() == 2) {
-    slot_number = thisDMB->slot();
-    
-    unsigned int fw_version = thisDMB->odmb_firmware_version();
-    if(fw_version < 265) {
-      //continue; // 265 == 0x0109
-      
-      // Resync ODMB and DCFEB L1A Counters
-      irdwr = 3;
-      if((thisDMB->odmb_firmware_version() / 0x100) >= 3) {
-	addr = 0x3014/*DCFEB_RESYNC*/ | (slot_number << 19);
-	data = 0x0001;
-      }
-      else {
-	addr = 0x3010/*DCFEB_REPROGRAM*/ | (slot_number << 19);
-	data = 0x0002;
-      }
-      thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-    }
-    std::cout << " Calling Resync " << std::endl;
-  } // ODMB only
-}
-
 void ChamberUtilities::SetDCFEBsPipelineDepth(int depth) {
   if(thisDMB->cfebs().at(0).GetHardwareVersion() != 2)
     return; // All CFEBs should have the same HW version; get it from the first.
   
-  if(thisDMB->GetHardwareVersion() == 2) { // reprogram DCFEBs
-    char rcv[2];
-    unsigned int addr;
-    unsigned short int data;
-    int irdwr;
-    int slot = thisDMB->slot();
-    irdwr = 3;
-    addr = 0x3010/*DCFEB_REPROGRAM*/ | (slot << 19);
-    data = 0x0001;
-    thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-    usleep(300000);
-  }
+  thisDMB->odmb_reprogram_dcfebs();
   
   std::vector<emu::pc::CFEB> cfebs = thisDMB->cfebs();
   for(std::vector<emu::pc::CFEB>::reverse_iterator cfeb = cfebs.rbegin(); cfeb != cfebs.rend(); ++cfeb) {
@@ -1356,7 +1315,7 @@ void ChamberUtilities::SetDCFEBsPipelineDepth(int depth) {
     thisDMB->getCrate()->ccb()->l1aReset(); // need to do this after restarting DCFEB pipelines
     usleep(1000);
     //resyncDCFEBs(thisDMB->getCrate()); // TODO: remove once firmware takes care of it
-    ResyncDCFEBs();
+    thisDMB->odmb_resync_dcfebs();
     usleep(1000);
   }
 }
@@ -1438,63 +1397,6 @@ void ChamberUtilities::CFEBTiming_ConfigureODMB() {
   }
 }
     
-void ChamberUtilities::SetODMBPedestalMode() {
-  if(thisDMB->GetHardwareVersion() < 2)
-    return;
-  
-  int slot_number = thisDMB->slot();
-  char rcv[2];
-  unsigned int addr;
-  unsigned short int data;
-  int irdwr;
-  
-  int othisDMB__fw_vers = (thisDMB->odmb_firmware_version() / 0x100);
-  printf("othisDMB_ fw vers read from othisDMB_: %4x\n", thisDMB->odmb_firmware_version());
-  printf("othisDMB_ fw vers: %d\n", othisDMB__fw_vers);
-  // set OthisDMB_ to Pedestal mode
-  irdwr = 3;
-  addr = (othisDMB__fw_vers >= 3)?0x3400/*L1A_MODE*/:0x3000/*ODMB_MODE*/;
-  addr = addr | slot_number << 19;
-  data = (othisDMB__fw_vers >= 3)?0x01:0x2000;
-  std::cout << "Pulsing: addr =" << addr << "  data = " << data << std::endl;
-  thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-  // Set OTMB_DLY
-  //irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
-  irdwr = 3;
-  addr = 0x4004/*TMB_DLY*/ | slot_number << 19;
-  data = 0x0002;
-  thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-  //    Set ALCT_DLY
-  irdwr = 3;
-  addr = 0x400C/*ALCT_DLY*/ | slot_number << 19;
-  data = 0x001f;
-  // Kill OthisDMB_ inputs
-  irdwr = 3;
-  addr = 0x401C/*ODMB_KILL*/ | slot_number << 19;
-  data = 0x0100; // Kill ALCT
-  thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-  //  Set LCT_L1A_DLY
-  irdwr = 3;
-  addr = 0x4000/*LCT_L1A_DLY*/ | slot_number << 19;
-  data = 0x000e; //5;
-  thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-  //    Set INJ_DLY
-  // Set it to 0 explicitly as in some older firmware versions its default value is nonzero.
-  irdwr = 3;
-  addr = 0x4010/*INJ_DLY*/ | slot_number << 19;
-  data = 0x0000;
-  thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-  // Set EXT_DLY
-  irdwr = 3;
-  addr = 0x4014/*EXT_DLY*/ | slot_number << 19;
-  data = 0x0000;
-  thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-  // Set CAL_LCT_DLY
-  irdwr = 3;
-  addr = 0x4018/*CAL_DLY*/ | slot_number << 19;
-  data = 0x000f;
-  thisDMB->getCrate()->vmeController()->vme_controller(irdwr, addr, &data, rcv);
-}
     //
 int ChamberUtilities::GetExtTrigDelay() {
   unsigned csrb5 = thisCCB_->ReadRegister(CCB::CSRB5);

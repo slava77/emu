@@ -9809,7 +9809,7 @@ void DAQMB::autoload_readback_wrd(CFEB &cfeb, char wrd[2])
     return;
 }
 
-void DAQMB::SetTMBTxMode(int cfeb_number, int mode){
+void DAQMB::dcfeb_set_TMBTxMode(int cfeb_number, int mode){
   // set optical tmb path output mode
   /*
     mode    function
@@ -9823,17 +9823,16 @@ void DAQMB::SetTMBTxMode(int cfeb_number, int mode){
   dcfeb_hub(cfebs_[cfeb_number], TMB_TX_MODE, 3, &mode, rcvbuf, NOW);  
 }
 
-void DAQMB::SetTMBTxModeShiftLayers(int cfeb_number, char hs[6]){
+void DAQMB::dcfeb_set_TMBTxModeShiftLayers(int cfeb_number, char hs[6]){
   sndbuf[0] = (hs[0] & 0x1f) | ((hs[1] << 5) & 0xe0);
   sndbuf[1] = ((hs[1] >> 3) & 0x03) | ((hs[2] << 2) & 0x7c)
     | ((hs[3] << 7) & 0x80);
   sndbuf[2] = ((hs[3] >> 1) & 0x0f) | ((hs[4] << 4) & 0xf0);
   sndbuf[3] = ((hs[4] >> 4) & 0x01) | ((hs[5] << 1) & 0x3e);
   dcfeb_hub(cfebs_[cfeb_number], TMB_TX_SHIFTLAYERS, 30, sndbuf, rcvbuf, NOW);  
-
 }
 
-void DAQMB::SetTMBTxModeLayerMask(int cfeb_number, int layer_mask){
+void DAQMB::dcfeb_set_TMBTxModeLayerMask(int cfeb_number, int layer_mask){
   dcfeb_hub(cfebs_[cfeb_number], TMB_TX_LAYER_MASK, 6, &layer_mask, rcvbuf, NOW);  
 }
 

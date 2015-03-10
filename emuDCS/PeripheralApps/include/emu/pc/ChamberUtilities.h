@@ -77,9 +77,7 @@ public:
   int GetTMBL1ADelay();
   void SetTMBInternalL1A(int delay);
   int GetTMBInternalL1ADelay();
-  void ResyncDCFEBs();
   void SetDCFEBsPipelineDepth(int depth);
-  void SetODMBPedestalMode();
   void CFEBTiming_ConfigureODMB();
   int GetExtTrigDelay();
   void Clear_ODMB_FIFO();

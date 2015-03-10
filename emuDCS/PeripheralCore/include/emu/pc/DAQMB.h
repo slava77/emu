@@ -312,10 +312,6 @@ public:
 
   std::vector<CFEB> cfebs() const {return cfebs_;}
 
-  void SetTMBTxMode(int cfeb_number, int mode);
-  void SetTMBTxModeShiftLayers(int cfeb_number, char hs[6]);
-  void SetTMBTxModeLayerMask(int cfeb_number, int layer_mask);
-
 // DAQMB constants&resets
 
   
@@ -792,6 +788,10 @@ public:
   unsigned dcfeb_startup_status(CFEB & cfeb);
   unsigned dcfeb_qpll_lost_count(CFEB & cfeb);  
 
+  void dcfeb_set_TMBTxMode(int cfeb_number, int mode);
+  void dcfeb_set_TMBTxModeShiftLayers(int cfeb_number, char hs[6]);
+  void dcfeb_set_TMBTxModeLayerMask(int cfeb_number, int layer_mask);
+
   int lvmb_power_state();
   // code for ODMB
   void daqmb_do(int ncmd,void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd, int dev);   
@@ -870,6 +870,8 @@ public:
   void odmb_dcfeb_tests();
   // functions for ODMB fiber test
   inline void odmb_soft_reset() { WriteRegister(ODMB_SOFT_RESET,0x1); }
+  inline void odmb_resync_dcfebs() { WriteRegister(DCFEB_RESYNC,0x1); }
+  inline void odmb_reprogram_dcfebs() { WriteRegister(DCFEB_REPROGRAM,0x1); }
   void odmb_set_muxes(unsigned short data_mode=0, unsigned short trig_mode=0, unsigned short lvmb_mode=0);
   void send_dcfeb_pulse(unsigned pulse_cmd, unsigned n_pulses=1);
   int read_nrx_pckt(unsigned dev);
@@ -877,6 +879,7 @@ public:
   int read_l1a_count(){return ReadRegister(L1A_COUNTER);}
   int read_num_ddu_packets(){return ReadRegister(DDU_PACKETS);}
   int read_num_qpll_unlocks(){return ReadRegister(QPLL_UNLOCKS);}
+
 
   //For DCFEB pipeline depth scan
   int scan_dcfeb_pipeline_depth(const unsigned lower_depth,
