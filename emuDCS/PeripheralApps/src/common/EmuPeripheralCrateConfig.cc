@@ -572,8 +572,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   tmb_fiber_status_read_ = false;
   //
   CalibrationState_ = "None";
-  standalone_ = false;
-  //standalone_ = true;
+  //standalone_ = false;
+  standalone_ = true;
   //
   for (int i=0; i<9; i++) {
     able_to_load_alct[i] = -1;  
@@ -5926,7 +5926,8 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
   int dmb;
 	  //
   std::ofstream web_backup;
-  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::out);
+  std::string web_out_DateTime_scan = emu::utils::getDateTime(true);
+  web_backup.open(("/tmp/webout_backup_fullcrate_"+web_out_DateTime_scan+".txt").c_str(), std::ios::out);
   web_backup.close();
   //
   for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
@@ -5984,7 +5985,8 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	//
 	if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() != 2) {
 	  //
-	  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	  
+	  web_backup.open(("/tmp/webout_backup_fullcrate_"+web_out_DateTime_scan+".txt").c_str(), std::ios::app);
 	  web_backup << "Non-ME1/1 Chamber: omitting..." << std::endl;
 	  web_backup.close();
 	  //
@@ -5993,7 +5995,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	  continue;
 	}
 	//
-	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	web_backup.open(("/tmp/webout_backup_fullcrate_"+web_out_DateTime_scan+".txt").c_str(), std::ios::app);
 	//
 	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
 	web_backup << "Chamber-Crate Phases "<< thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() << " output:" << std::endl << std::endl;
@@ -6004,7 +6006,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11(xgi::Input * in, 
 	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
 	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
 	//
-	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	web_backup.open(("/tmp/webout_backup_fullcrate_"+web_out_DateTime_scan+".txt").c_str(), std::ios::app);
 	//
 	web_backup << std::endl << std::endl;
 	web_backup << "-----------------------------------------------------------------------------------------" << std::endl;
@@ -6037,7 +6039,8 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
   int dmb;
   //
   std::ofstream web_backup;
-  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::out);
+  std::string web_out_DateTime_scan = emu::utils::getDateTime(true);
+  web_backup.open(("/tmp/webout_backup_fullcrate_"+web_out_DateTime_scan+".txt").c_str(), std::ios::out);
   web_backup.close();
   //
   for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
@@ -6093,7 +6096,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	//
 	if(thisCrate->GetTMB(tmbVector[tmb]->slot())->GetHardwareVersion() == 2) {
 	  //
-	  web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	  web_backup.open(("/tmp/webout_backup_fullcrate_"+web_out_DateTime_scan+".txt").c_str(), std::ios::app);
 	  web_backup << "ME1/1 Chamber: omitting..." << std::endl;
 	  web_backup.close();
 	  //
@@ -6102,7 +6105,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	  continue;
 	}
 	//
-	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	web_backup.open(("/tmp/webout_backup_fullcrate_"+web_out_DateTime_scan+".txt").c_str(), std::ios::app);
 	//
 	std::cout << "crate = " << current_crate_ << ", TMB " << tmb << std::endl;
 	web_backup << "Chamber-Crate Phases "<< thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() << " output:" << std::endl << std::endl;
@@ -6113,7 +6116,7 @@ void EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11(xgi::Input * 
 	MyTest[tmb][current_crate_].CFEBTiming_with_Posnegs_simple_routine(time_delay, cfeb_num, layers, pattern, halfstrip, print_data, cfeb_phase);
 	MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
 	//
-	web_backup.open("/tmp/webout_backup_fullcrate.txt", std::ios::app);
+	web_backup.open(("/tmp/webout_backup_fullcrate_"+web_out_DateTime_scan+".txt").c_str(), std::ios::app);
 	//
 	web_backup << std::endl << std::endl;
 	web_backup << "-----------------------------------------------------------------------------------------" << std::endl;
@@ -11172,62 +11175,108 @@ void EmuPeripheralCrateConfig::SaveTestSummary() {
       //	
       Chamber * thisChamber = chamberVector[i];
       //
+      TMB * thisTMB = tmbVector[i];
+
       LogFile << "slot                  " 
 	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
 	      << std::setw(5) << tmbVector[i]->slot()
 	      << std::endl;
-      LogFile << "cfeb0delay            " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(0)
-	      << std::endl;
-      LogFile << "cfeb1delay            " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(1)
-	      << std::endl;
-      LogFile << "cfeb2delay            " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(2)
-	      << std::endl;
-      LogFile << "cfeb3delay            " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(3)
-	      << std::endl;
-      LogFile << "cfeb4delay            " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(4)
-	      << std::endl;
-      LogFile << "cfeb0posneg           " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(0)
-	      << std::endl;
-      LogFile << "cfeb1posneg           " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(1)
-	      << std::endl;
-      LogFile << "cfeb2posneg           " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(2)
-	      << std::endl;
-      LogFile << "cfeb3posneg           " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(3)
-	      << std::endl;
-      LogFile << "cfeb4posneg           " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(4)
-	      << std::endl;
-      LogFile << "cfeb0_rxd_int_delay   " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(0)
-	      << std::endl;
-      LogFile << "cfeb1_rxd_int_delay   " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(1)
-	      << std::endl;
-      LogFile << "cfeb2_rxd_int_delay   " 
-	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
-	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(2)
-	      << std::endl;
+      if(thisTMB->HasGroupedME11ABCFEBRxValues()<=0){
+	LogFile << "cfeb0delay            " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(0)
+		<< std::endl;
+	LogFile << "cfeb1delay            " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(1)
+		<< std::endl;
+	LogFile << "cfeb2delay            " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(2)
+		<< std::endl;
+	LogFile << "cfeb3delay            " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(3)
+		<< std::endl;
+	LogFile << "cfeb4delay            " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(4)
+		<< std::endl;
+      }
+      if(thisTMB->HasGroupedME11ABCFEBRxValues()==0){
+	LogFile << "cfeb5delay            " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(5)
+		<< std::endl;
+	LogFile << "cfeb6delay            " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(6)
+		<< std::endl;
+      }
+      if(thisTMB->HasGroupedME11ABCFEBRxValues()==1){
+	LogFile << "cfeb0123delay         " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(0)
+		<< std::endl;
+	LogFile << "cfeb456delay          " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(6)
+		<< std::endl;
+      }
+      if(thisTMB->HasGroupedME11ABCFEBRxValues()<=0){
+	LogFile << "cfeb0posneg           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(0)
+		<< std::endl;
+	LogFile << "cfeb1posneg           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(1)
+		<< std::endl;
+	LogFile << "cfeb2posneg           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(2)
+		<< std::endl;
+	LogFile << "cfeb3posneg           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(3)
+		<< std::endl;
+	LogFile << "cfeb4posneg           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(4)
+		<< std::endl;
+      }
+      if(thisTMB->HasGroupedME11ABCFEBRxValues()==0){
+	LogFile << "cfeb5posneg           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(5)
+		<< std::endl;
+	LogFile << "cfeb6posneg           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(6)
+		<< std::endl;
+      }
+      if(thisTMB->HasGroupedME11ABCFEBRxValues()==1){
+	LogFile << "cfeb0123posneg        " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(0)
+		<< std::endl;
+	LogFile << "cfeb456posneg         " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPosnegTest(6)
+		<< std::endl;
+      }
+	LogFile << "cfeb0_rxd_int_delay   " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(0)
+		<< std::endl;
+	LogFile << "cfeb1_rxd_int_delay   " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(1)
+		<< std::endl;
+	LogFile << "cfeb2_rxd_int_delay   " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(2)
+		<< std::endl;
       LogFile << "cfeb3_rxd_int_delay   " 
 	      << std::setw(10) << (thisChamber->GetLabel()).c_str()
 	      << std::setw(5) << MyTest[i][current_crate_].GetCFEBrxdIntDelayTest(3)
