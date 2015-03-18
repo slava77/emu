@@ -847,14 +847,16 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Free_SCA_Cells</Name>
 		<Title>CFEB: Free SCA Cells</Title>
-		<NumPadsX>3</NumPadsX>
+		<NumPadsX>4</NumPadsX>
 		<NumPadsY>2</NumPadsY>
 		<Pad1>CFEB0_Free_SCA_Cells</Pad1>
 		<Pad2>CFEB1_Free_SCA_Cells</Pad2>
 		<Pad3>CFEB2_Free_SCA_Cells</Pad3>
-		<Folder>CFEB</Folder>
 		<Pad4>CFEB3_Free_SCA_Cells</Pad4>
+		<Folder>CFEB</Folder>
 		<Pad5>CFEB4_Free_SCA_Cells</Pad5>
+	        <Pad6>CFEB5_Free_SCA_Cells</Pad6>
+		<Pad7>CFEB6_Free_SCA_Cells</Pad7>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -876,28 +878,32 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Number_of_SCA_blocks_locked_by_LCTs</Name>
 		<Title>CFEB: Number of SCA blocks locked by LCTs</Title>
-		<NumPadsX>3</NumPadsX>
+		<NumPadsX>4</NumPadsX>
 		<NumPadsY>2</NumPadsY>
 		<Pad1>CFEB0_SCA_Blocks_Locked_by_LCTs</Pad1>
 		<Pad2>CFEB1_SCA_Blocks_Locked_by_LCTs</Pad2>
 		<Pad3>CFEB2_SCA_Blocks_Locked_by_LCTs</Pad3>
-		<Folder>CFEB</Folder>
 		<Pad4>CFEB3_SCA_Blocks_Locked_by_LCTs</Pad4>
+		<Folder>CFEB</Folder>
 		<Pad5>CFEB4_SCA_Blocks_Locked_by_LCTs</Pad5>
+		<Pad6>CFEB5_SCA_Blocks_Locked_by_LCTs</Pad6>
+		<Pad7>CFEB6_SCA_Blocks_Locked_by_LCTs</Pad7>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Number_of_SCA_blocks_locked_by_LCTxL1</Name>
 		<Title>CFEB: Number of SCA blocks locked by LCTxL1</Title>
-		<NumPadsX>3</NumPadsX>
+		<NumPadsX>4</NumPadsX>
 		<NumPadsY>2</NumPadsY>
 		<Pad1>CFEB0_SCA_Blocks_Locked_by_LCTxL1</Pad1>
 		<Pad2>CFEB1_SCA_Blocks_Locked_by_LCTxL1</Pad2>
 		<Pad3>CFEB2_SCA_Blocks_Locked_by_LCTxL1</Pad3>
-		<Folder>CFEB</Folder>
 		<Pad4>CFEB3_SCA_Blocks_Locked_by_LCTxL1</Pad4>
+		<Folder>CFEB</Folder>
 		<Pad5>CFEB4_SCA_Blocks_Locked_by_LCTxL1</Pad5>
+		<Pad6>CFEB5_SCA_Blocks_Locked_by_LCTxL1</Pad6>
+		<Pad7>CFEB6_SCA_Blocks_Locked_by_LCTxL1</Pad7>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -1161,15 +1167,17 @@
                 <Name>SYNC_Test01_L1A_Differences</Name>
                 <Title>SYNC: Test01 - L1A Differences</Title>
                 <NumPadsX>4</NumPadsX>
-                <NumPadsY>2</NumPadsY>
+                <NumPadsY>3</NumPadsY>
 		<Pad1>CFEB0_DMB_L1A_diff</Pad1>
 		<Pad2>CFEB1_DMB_L1A_diff</Pad2>
 		<Pad3>CFEB2_DMB_L1A_diff</Pad3>
 		<Pad4>CFEB3_DMB_L1A_diff</Pad4>
 		<Pad5>CFEB4_DMB_L1A_diff</Pad5>
-                <Pad6>ALCT_DMB_L1A_diff</Pad6>
-		<Pad7>CLCT_DMB_L1A_diff</Pad7>
-		<Pad8>DMB_DDU_L1A_diff</Pad8>
+		<Pad6>CFEB5_DMB_L1A_diff</Pad6>
+		<Pad7>CFEB6_DMB_L1A_diff</Pad7>
+                <Pad8>ALCT_DMB_L1A_diff</Pad8>
+		<Pad9>CLCT_DMB_L1A_diff</Pad9>
+		<Pad10>DMB_DDU_L1A_diff</Pad10>
 		<Folder>SYNC</Folder>
         </Canvas>
 
@@ -1179,15 +1187,17 @@
                 <Name>SYNC_Test02_BXN_Differences</Name>
                 <Title>SYNC: Test02 - BXN Differences</Title>
                 <NumPadsX>4</NumPadsX>
-                <NumPadsY>2</NumPadsY>
+                <NumPadsY>3</NumPadsY>
                 <Pad1>CFEB0_L1A_Sync_Time_DMB_diff</Pad1>
                 <Pad2>CFEB1_L1A_Sync_Time_DMB_diff</Pad2>
                 <Pad3>CFEB2_L1A_Sync_Time_DMB_diff</Pad3>
                 <Pad4>CFEB3_L1A_Sync_Time_DMB_diff</Pad4>
                 <Pad5>CFEB4_L1A_Sync_Time_DMB_diff</Pad5>
-                <Pad6>ALCT_DMB_BXN_diff</Pad6>
-                <Pad7>CLCT_DMB_BXN_diff</Pad7>
-                <Pad8>DMB_DDU_BXN_diff</Pad8>
+                <Pad6>CFEB5_L1A_Sync_Time_DMB_diff</Pad6>
+                <Pad7>CFEB6_L1A_Sync_Time_DMB_diff</Pad7>
+                <Pad8>ALCT_DMB_BXN_diff</Pad8>
+                <Pad9>CLCT_DMB_BXN_diff</Pad9>
+                <Pad10>DMB_DDU_BXN_diff</Pad10>
                 <Folder>SYNC</Folder>
         </Canvas>
 
