@@ -83,7 +83,10 @@ void emu::supervisor::Application::RunParameters::registerFields(xdata::Bag<RunP
   command_ = "";
   loop_ = 1U;
   delay_ = 1U;
-  ci_ = "";
+//   ci_ = "";
+  ci_p_  = "";
+  ci_m_  = "";
+  ci_tf_ = "";
   pm_ = "";
   pi_ = "";
   
@@ -91,7 +94,10 @@ void emu::supervisor::Application::RunParameters::registerFields(xdata::Bag<RunP
   bag->addField("command", &command_);
   bag->addField("loop",    &loop_);
   bag->addField("delay",   &delay_);
-  bag->addField("ci",      &ci_);
+//   bag->addField("ci",      &ci_);
+  bag->addField("ci_p",      &ci_p_);
+  bag->addField("ci_m",      &ci_m_);
+  bag->addField("ci_tf",     &ci_tf_);
   bag->addField("pm",      &pm_);
   bag->addField("pi",      &pi_);
 }
@@ -987,7 +993,10 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
 		   << "\n   command: " << runParameters_[index].bag.command_.toString()
 		   << "\n   loop: "    << runParameters_[index].bag.loop_.toString()
 		   << "\n   delay: "   << runParameters_[index].bag.delay_.toString()
-		   << "\n   ci:\n"     << runParameters_[index].bag.ci_.toString() 
+// 		   << "\n   ci:\n"     << runParameters_[index].bag.ci_.toString() 
+		   << "\n   ci_p:\n"   << runParameters_[index].bag.ci_p_.toString() 
+		   << "\n   ci_m:\n"   << runParameters_[index].bag.ci_m_.toString() 
+		   << "\n   ci_tf:\n"  << runParameters_[index].bag.ci_tf_.toString() 
 		   << "\n   pm:\n"     << runParameters_[index].bag.pm_.toString() 
 		   << "\n   pi:\n"     << runParameters_[index].bag.pi_.toString() );
 
@@ -1220,8 +1229,17 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     xdata::String piConf( pp.process( runParameters_[index].bag.pi_.toString() ) );
     if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "PI configuration prepocessor says:\n" << ppMessages.str() );
     ppMessages.str() = "";
-    xdata::String ciConf( pp.process( runParameters_[index].bag.ci_.toString() ) );
-    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI configuration prepocessor says:\n" << ppMessages.str() );
+//     xdata::String ciConf( pp.process( runParameters_[index].bag.ci_.toString() ) );
+//     if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI configuration prepocessor says:\n" << ppMessages.str() );
+//     ppMessages.str() = "";
+    xdata::String ci_p_Conf( pp.process( runParameters_[index].bag.ci_p_.toString() ) );
+    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI P configuration prepocessor says:\n" << ppMessages.str() );
+    ppMessages.str() = "";
+    xdata::String ci_m_Conf( pp.process( runParameters_[index].bag.ci_m_.toString() ) );
+    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI M configuration prepocessor says:\n" << ppMessages.str() );
+    ppMessages.str() = "";
+    xdata::String ci_tf_Conf( pp.process( runParameters_[index].bag.ci_tf_.toString() ) );
+    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI TF configuration prepocessor says:\n" << ppMessages.str() );
     ppMessages.str() = "";
     xdata::String pmConf( pp.process( runParameters_[index].bag.pm_.toString() ) );    
     if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "PM configuration prepocessor says:\n" << ppMessages.str() );
@@ -1233,9 +1251,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
     if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
     // CIs
-    if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ciConf );
-    if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ciConf );
-    if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ciConf );
+//     if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ciConf );
+//     if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ciConf );
+//     if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ciConf );
+    if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ci_p_Conf  );
+    if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ci_m_Conf  );
+    if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ci_tf_Conf );
     if ( ci_plus_  ) ci_plus_ ->configureSequence(); // This waits for the state transition to complete.
     if ( ci_minus_ ) ci_minus_->configureSequence(); // This waits for the state transition to complete.
     if ( ci_tf_    ) ci_tf_   ->configureSequence(); // This waits for the state transition to complete.

@@ -131,7 +131,10 @@ private: // XDAQ parameters
 		xdata::String command_;
 		xdata::UnsignedInteger loop_;
 		xdata::UnsignedInteger delay_;
-		xdata::String ci_;
+// 		xdata::String ci_;
+		xdata::String ci_p_;
+		xdata::String ci_m_;
+		xdata::String ci_tf_;
 		xdata::String pm_;
 		xdata::String pi_;
 	};
