@@ -498,8 +498,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       {
 
         int alct_dmb_bxn_diff = (int)(alctHeader->BXNCount()-dmbHeader->bxn12());
+        // std::cout << cscTag << ": " << alctHeader->BXNCount() << " - " << dmbHeader->bxn12() << " = " << alct_dmb_bxn_diff << std::endl;
         if (alct_dmb_bxn_diff > 0) alct_dmb_bxn_diff -= 3564;
-        alct_dmb_bxn_diff %= 64;
+        alct_dmb_bxn_diff %= 32;
 
         mo->Fill(alct_dmb_bxn_diff);
         mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
