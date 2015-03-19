@@ -18,10 +18,11 @@
 	<rs3UserFileOwner xsi:type="xsd:string">cscdaq</rs3UserFileOwner>
 	<jobControlClass xsi:type="xsd:string">jobcontrol::Application</jobControlClass>
 	<executiveClass  xsi:type="xsd:string">executive::Application</executiveClass>
+	<configureFromFileOrSOAP  xsi:type="xsd:string">file</configureFromFileOrSOAP>
       </properties>
     </xc:Application>
-    <!-- <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemufarmer.so</xc:Module> -->
-    <xc:Module>${XDAQ_ROOT}/lib/libemufarmer.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemufarmer.so</xc:Module>
+    <!-- <xc:Module>${XDAQ_ROOT}/lib/libemufarmer.so</xc:Module> -->
 
   </xc:Context>
 

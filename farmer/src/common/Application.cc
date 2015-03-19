@@ -98,39 +98,36 @@ void emu::farmer::Application::exportParams(){
 
   xdata::InfoSpace *s = getApplicationInfoSpace();;
 
-  outputDir_         = "/tmp/farmer/out";
-  outputDirOwner_    = "cscdaq";
-  rs3UserFile_       = "/nfshome0/cscdaq/config/.rs3User";
-  rs3UserFileOwner_  = "cscdaq";
-  generatingCommand_ = "cd /opt/xdaq/htdocs/emu/farmer/xml && sudo -u cscdaq ./generateConfigs.sh";
-  uploadingCommand_  = "RCMS_HOME=/nfshome0/cscpro/RunControl /nfshome0/cscpro/bin/duckLoader --usc55 ";
-  jobControlClass_   = "jobcontrol::Application";
-  executiveClass_    = "executive::Application";
+  outputDir_               = "/tmp/farmer/out";
+  outputDirOwner_          = "cscdaq";
+  rs3UserFile_             = "/nfshome0/cscdaq/config/.rs3User";
+  rs3UserFileOwner_        = "cscdaq";
+  generatingCommand_       = "cd /opt/xdaq/htdocs/emu/farmer/xml && sudo -u cscdaq ./generateConfigs.sh";
+  uploadingCommand_        = "RCMS_HOME=/nfshome0/cscpro/RunControl /nfshome0/cscpro/bin/duckLoader --usc55 ";
+  jobControlClass_         = "jobcontrol::Application";
+  executiveClass_          = "executive::Application";
+  configureFromFileOrSOAP_ = "file"; // by default, configure executive from a saved file, not directly from SOAP
 
-  s->fireItemAvailable( "outputDir"        , &outputDir_         );
-  s->fireItemAvailable( "outputDirOwner"   , &outputDirOwner_    );
-  s->fireItemAvailable( "rs3UserFile"      , &rs3UserFile_       );
-  s->fireItemAvailable( "rs3UserFileOwner" , &rs3UserFileOwner_  );
-  s->fireItemAvailable( "generatingCommand", &generatingCommand_ );
-  s->fireItemAvailable( "uploadingCommand" , &uploadingCommand_  );
-  s->fireItemAvailable( "jobControlClass"  , &jobControlClass_   );
-  s->fireItemAvailable( "executiveClass"   , &executiveClass_    );
+  s->fireItemAvailable( "outputDir"              , &outputDir_               );
+  s->fireItemAvailable( "outputDirOwner"         , &outputDirOwner_          );
+  s->fireItemAvailable( "rs3UserFile"            , &rs3UserFile_             );
+  s->fireItemAvailable( "rs3UserFileOwner"       , &rs3UserFileOwner_        );
+  s->fireItemAvailable( "generatingCommand"      , &generatingCommand_       );
+  s->fireItemAvailable( "uploadingCommand"       , &uploadingCommand_        );
+  s->fireItemAvailable( "jobControlClass"        , &jobControlClass_         );
+  s->fireItemAvailable( "executiveClass"         , &executiveClass_          );
+  s->fireItemAvailable( "configureFromFileOrSOAP", &configureFromFileOrSOAP_ );
 
 }
 
-
-void 
-emu::farmer::Application::startExecutives(){
-
-  createExecutives();
-
-  bool allUp = true;
+bool
+emu::farmer::Application::areAllExecutivesUp(){
   const int nChecks = 5;
   for ( int iCheck = 0; iCheck<nChecks; iCheck++ ){
     ::sleep( (unsigned int)(1) );
     pollProcesses();
     // Check if all selected executives are up
-    allUp = true;
+    bool allUp = true;
     for ( map<string,ProcessDescriptor>::iterator ex = processDescriptors_.begin(); ex != processDescriptors_.end(); ++ex ){
       if ( ex->second.isSelected() && ex->second.getName() == executiveClass_.toString() ){
 	bool up = ( ex->second.getState() == "ON" );
@@ -138,17 +135,44 @@ emu::farmer::Application::startExecutives(){
 	allUp &= up;
       }
     }
-    if ( allUp ) break;
+    if ( allUp ) return true;
   }
+  return false;
+}
 
-  if ( allUp ){
-    configureExecutives();
+void 
+emu::farmer::Application::startExecutives(){
+
+  if ( configureFromFileOrSOAP_.toString() == "file" || 
+       configureFromFileOrSOAP_.toString() == "File" ||
+       configureFromFileOrSOAP_.toString() == "FILE"    ){
+
+    createAndConfigureExecutives();
+
     ::sleep( (unsigned int)(1) );
-    pollProcesses();
+
+    if ( areAllExecutivesUp() ){
+      pollProcesses();
+    }
+    else{
+      XCEPT_RAISE( xcept::Exception, "Failed to create all selected XDAQ exectutives" );
+    }
+
   }
   else{
-    XCEPT_RAISE( xcept::Exception, "Failed to create all selected XDAQ exectutives" );
-  }
+
+    createExecutives();
+    
+    if ( areAllExecutivesUp() ){
+      configureExecutives();
+      ::sleep( (unsigned int)(1) );
+      pollProcesses();
+    }
+    else{
+      XCEPT_RAISE( xcept::Exception, "Failed to create all selected XDAQ exectutives" );
+    }
+
+  } // if ( configureFromFileOrSOAP_.toString() == "file" ){
 }
 
 void 
@@ -203,6 +227,39 @@ emu::farmer::Application::configureExecutives(){
       }
     }
   }  
+}
+
+void 
+emu::farmer::Application::createAndConfigureExecutives(){
+  for ( map<string,ProcessDescriptor>::iterator pd = processDescriptors_.begin(); pd != processDescriptors_.end(); ++pd ){
+    if ( pd->second.isSelected() && pd->second.getName() == executiveClass_.toString() ){
+      try{
+	xoap::MessageReference message = 
+	  emu::farmer::utils::createStartAndConfigureXdaqExeSOAPMsg( pd->second.getHost(),
+								     pd->second.getPort(),
+								     pd->second.getUser(),
+								     pd->second.getJid(),
+								     pd->second.getPathToExecutive(),
+								     pd->second.getLogLevel(),
+								     pd->second.getEnvironmentVariables(),
+								     xdaqConfigs_[pd->second.getXdaqConfigPath()] );
+	xoap::MessageReference reply = 
+	  emu::farmer::utils::postSOAP( message, 
+					getApplicationDescriptor()->getContextDescriptor()->getURL(),
+					processDescriptors_[pd->second.getJobControlURI()].getURL(),
+					processDescriptors_[pd->second.getJobControlURI()].getLid() );
+	//reply->writeTo( cout );
+	//if ( !reply.isNull() ){
+	//  string jid( emu::farmer::utils::extractJidFromSoapMsg( reply ) );
+	//  pd->second.setJid( jid ); Create jid automatically on creating the process descriptor instead 
+	//                            in order to be able to kill executives after working with some other .duck(s).
+	//}
+      } catch( xcept::Exception& e ){
+	LOG4CPLUS_WARN( logger_, "Failed to create and configure XDAQ executive process at " 
+			<< pd->second.getURL() << " : " << xcept::stdformat_exception_history(e) );
+      }
+    }
+  }
 }
 
 void 

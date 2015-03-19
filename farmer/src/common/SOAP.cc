@@ -45,7 +45,6 @@ xoap::MessageReference emu::farmer::utils::createStartXdaqExeSOAPMsg( const stri
     name = envelope.createName("user", "", "");
     bodyelement.addAttribute( name, user );
     name = envelope.createName("jid", "", "");
-    //bodyelement.addAttribute( name, string("farmer://") + host + ":" + ssport.str() );
     bodyelement.addAttribute( name, jid );
 
     name = envelope.createName("EnvironmentVariable", "", "");
@@ -102,6 +101,61 @@ xoap::MessageReference emu::farmer::utils::createConfigureXdaqExeSOAPMsg( string
     XCEPT_RAISE( xcept::Exception, ess.str() );
   }
   //cout << endl; message->writeTo( cout ); cout.flush(); cout << endl;
+  return message;
+}
+
+xoap::MessageReference 
+emu::farmer::utils::createStartAndConfigureXdaqExeSOAPMsg( const string& host, const int port, const string& user, 
+							   const string& jid, const string& pathToExecutive, const string& logLevel,
+							   map<string,string> environmentVariables,
+							   string& configuration )
+  throw (xcept::Exception){
+  xoap::MessageReference message = xoap::createMessage();
+
+  try{
+    // Construct SOAP
+    xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+
+    xoap::SOAPName name = envelope.createName("startXdaqExe", "xdaq", "urn:xdaq-soap:3.0");
+    xoap::SOAPBodyElement bodyelement = envelope.getBody().addBodyElement(name);
+    name = envelope.createName("execPath", "", "");
+    bodyelement.addAttribute( name, pathToExecutive );
+    name = envelope.createName("argv", "", "");
+    stringstream ssport; ssport << port;
+    bodyelement.addAttribute( name, string("-h ") + host + " -p " + ssport.str() + " -l " + logLevel );
+    name = envelope.createName("user", "", "");
+    bodyelement.addAttribute( name, user );
+    name = envelope.createName("jid", "", "");
+    bodyelement.addAttribute( name, jid );
+
+    name = envelope.createName("EnvironmentVariable", "", "");
+    xoap::SOAPElement childelement = bodyelement.addChildElement( name );
+    for ( map<string,string>::const_iterator e=environmentVariables.begin(); e!=environmentVariables.end(); ++e ){
+      name = envelope.createName( e->first, "", "" );
+      childelement.addAttribute( name, e->second );
+    }
+
+    // Add the configuration XML as text node to ConfigFile element. JobControl will then save it in a file 
+    // and start the executive with the -c option to configure itself from that file.
+    // It must be added as a text node in order to be XML-encoded (&lt; for <, etc.) and treated as plain text.
+    // If it was imported as XML DOM, JobControl wouldn't accept it. Or rather, it would misinterpret it as it looks for 
+    // the value of ConfigFile element's first child, and that would be the value of xc:Partition, which is a null string,
+    // xc:Partition not containing any text node.
+    name = envelope.createName("ConfigFile", "", "");
+    xoap::SOAPElement configFileElement = bodyelement.addChildElement( name );
+    configFileElement.addTextNode( configuration );
+
+  }catch( xcept::Exception& e ){
+    stringstream ess; ess << "Failed to create StartXdaqExe SOAP message with configuration included: ";
+    XCEPT_RETHROW( xcept::Exception, ess.str(), e );
+  }catch( std::exception& e ){
+    stringstream ess; ess << "Failed to create StartXdaqExe SOAP message with configuration included: " << e.what();
+    XCEPT_RAISE( xcept::Exception, ess.str() );
+  }catch(...){
+    stringstream ess; ess << "Failed to create StartXdaqExe SOAP message with configuration included: unexpected exception.";
+    XCEPT_RAISE( xcept::Exception, ess.str() );
+  }
+  // cout << endl; message->writeTo( cout ); cout.flush(); cout << endl;
   return message;
 }
 

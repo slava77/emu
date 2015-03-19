@@ -17,6 +17,12 @@ namespace emu { namespace farmer { namespace utils {
   xoap::MessageReference createConfigureXdaqExeSOAPMsg( string& configuration )
     throw (xcept::Exception);
 
+  xoap::MessageReference createStartAndConfigureXdaqExeSOAPMsg( const string& host, const int port, const string& user, 
+								const string& jid, const string& pathToExecutive, const string& logLevel,
+								map<string,string> environmentVariables,
+								string& configuration )
+    throw (xcept::Exception);
+
   xoap::MessageReference createKillByJidSOAPMsg( const string& jid )
     throw (xcept::Exception);
 

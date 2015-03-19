@@ -90,6 +90,11 @@ private:
   ///
   xdata::String executiveClass_;
 
+  ///
+  /// 
+  ///
+  xdata::String configureFromFileOrSOAP_;
+
 /// @}
 
   ////////////////////////////////////////////////////////
@@ -165,11 +170,15 @@ private:
   /// Exports xdata parameters.
   void exportParams();
 
+  bool areAllExecutivesUp();
+
   void startExecutives();
 
   void configureExecutives();
 
   void createExecutives();
+
+  void createAndConfigureExecutives();
 
   void destroyExecutives();
 
