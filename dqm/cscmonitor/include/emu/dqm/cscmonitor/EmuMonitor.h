@@ -264,6 +264,7 @@ protected:
 
   xdata::Boolean 		useAltFileReader_;
   xdata::Boolean		loopFileReadout_;
+  xdata::Boolean		setPlotterDebug_;	// Enable Plotter Debug flag
 
   emu::daq::reader::Base*  	deviceReader_;  	// Device Reader 
   xdata::String         	inputDeviceName_;      	// Input Device Name (file path or board number)

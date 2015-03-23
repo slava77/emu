@@ -160,6 +160,7 @@ void EmuMonitor::initProperties()
   fCheckMapping_		= true;
   keepRunning           	= false;
   loopFileReadout_  		= false;
+  setPlotterDebug_		= false;
 
   fileSizeInMegaBytes_  	= 200;
   outputDataFile_ 		= "/tmp";
@@ -208,6 +209,7 @@ void EmuMonitor::initProperties()
 
   getApplicationInfoSpace()->fireItemAvailable("useAltFileReader",  &useAltFileReader_);
   getApplicationInfoSpace()->fireItemAvailable("loopFileReadout", &loopFileReadout_);
+  getApplicationInfoSpace()->fireItemAvailable("setPlotterDebug", &setPlotterDebug_);
   getApplicationInfoSpace()->fireItemAvailable("stateName",   &stateName_);
   getApplicationInfoSpace()->fireItemAvailable("stateChangeTime", &stateChangeTime_);
   getApplicationInfoSpace()->fireItemAvailable("lastEventTime",   &lastEventTime_);
@@ -246,6 +248,7 @@ void EmuMonitor::initProperties()
 
   getApplicationInfoSpace()->addItemChangedListener ("useAltFileReader", this);
   getApplicationInfoSpace()->addItemChangedListener ("loopFileReadout", this);
+  getApplicationInfoSpace()->addItemChangedListener ("setPlotterDebug", this);
 
   getApplicationInfoSpace()->addItemChangedListener ("fileSizeInMegaBytes", this);
   getApplicationInfoSpace()->addItemChangedListener ("enableDataWrite", this);
@@ -357,13 +360,18 @@ void EmuMonitor::setupPlotter()
 
   plotter_ = new EmuPlotter(Logger::getInstance(Form("EmuPlotter.%d", appTid_)));
 
-  plotter_->setLogLevel(WARN_LOG_LEVEL);
-  plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);
-  if ( fCheckMapping_ == xdata::Boolean(true) ) plotter_->setCheckMapping(true);
-  else plotter_->setCheckMapping(false);
-  if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
-  if (xmlCanvasesCfgFile_ != "") plotter_->setXMLCanvasesCfgFile(xmlCanvasesCfgFile_.toString());
-  if (cscMapFile_ != "") plotter_->setCSCMapFile(cscMapFile_.toString());
+  if (plotter_ != NULL)
+    {
+      plotter_->setLogLevel(WARN_LOG_LEVEL);
+      plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);
+      if ( fCheckMapping_ == xdata::Boolean(true) ) plotter_->setCheckMapping(true);
+      else plotter_->setCheckMapping(false);
+      if ( setPlotterDebug_ == xdata::Boolean(true) ) plotter_->setDebug(true);
+      else plotter_->setDebug(false);
+      if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
+      if (xmlCanvasesCfgFile_ != "") plotter_->setXMLCanvasesCfgFile(xmlCanvasesCfgFile_.toString());
+      if (cscMapFile_ != "") plotter_->setCSCMapFile(cscMapFile_.toString());
+    }
 
 }
 
@@ -719,6 +727,18 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
             {
               if ( fCheckMapping_ == xdata::Boolean(true) ) plotter_->setCheckMapping(true);
               else plotter_->setCheckMapping(false);
+            }
+
+        }
+      else if ( item == "setPlotterDebug")
+        {
+          LOG4CPLUS_INFO(logger_,
+                         "Set plotter debug flag : " << setPlotterDebug_.toString());
+          if (plotter_ != NULL)
+            {
+
+              if ( setPlotterDebug_ == xdata::Boolean(true) ) plotter_->setDebug(true);
+              else plotter_->setDebug(false);
             }
 
         }
