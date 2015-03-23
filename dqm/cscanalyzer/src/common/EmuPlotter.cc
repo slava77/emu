@@ -14,6 +14,7 @@ EmuPlotter::EmuPlotter(Logger logger):logger_(logger),appBSem_(toolbox::BSem::FU
 
 void EmuPlotter::init()
 {
+  cratemap = NULL;
   debug       = false;
   xmlHistosBookingCfgFile   = "";
   xmlCanvasesCfgFile    = "";
