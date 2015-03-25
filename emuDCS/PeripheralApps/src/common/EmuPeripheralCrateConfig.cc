@@ -9204,7 +9204,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   // Clocking Status
   if (thisTMB->GetHardwareVersion() >= 2) {
     *out << cgicc::fieldset();
-    *out << cgicc::legend("Configuration and programming timers (400 nanosecond units)").set("style","color:blue") << std::endl;
+    *out << cgicc::legend("Configuration and programming timers (100 nanosecond units)").set("style","color:blue") << std::endl;
     thisTMB->ReadRegister(tmb_mmcm_lock_time_adr);
     thisTMB->ReadRegister(tmb_power_up_time_adr);
     thisTMB->ReadRegister(tmb_load_cfg_time_adr);
@@ -9213,13 +9213,13 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     thisTMB->ReadRegister(gtx_rst_done_time_adr);
     thisTMB->ReadRegister(gtx_sync_done_time_adr);
     *out << cgicc::pre() << std::endl;
-    *out << "TMB MMCM Lock Time    = " << thisTMB->GetReadTMBMMCMLockTime() << std::endl;
-    *out << "TMB Power Up Time     = " << thisTMB->GetReadTMBPowerUpTime() << std::endl;
-    *out << "TMB Load Cfg Time     = " << thisTMB->GetReadTMBLoadCfgTime() << std::endl;
-    *out << "ALCT Phaser Lock Time = " << thisTMB->GetReadALCTPhaserLockTime() << std::endl;
-    *out << "ALCT Load Cfg Time    = " << thisTMB->GetReadALCTLoadCfgTime() << std::endl;
-    *out << "Gtx Rst Done Time     = " << thisTMB->GetReadGtxRstDoneTime() << std::endl;
-    *out << "Gtx Sync Done Time    = " << thisTMB->GetReadGtxSyncDoneTime() << std::endl;
+    *out << "Special Test counter                          = " << thisTMB->GetReadTMBMMCMLockTime() << std::endl;
+    *out << "TMB Power Up Time                             = " << thisTMB->GetReadTMBPowerUpTime() << std::endl;
+    *out << "TMB Load Cfg Time                             = " << thisTMB->GetReadTMBLoadCfgTime() << std::endl;
+    *out << "ALCT Phaser Lock Time                         = " << thisTMB->GetReadALCTPhaserLockTime() << std::endl;
+    *out << "ALCT Load Cfg Time (after ALCT startup delay) = " << thisTMB->GetReadALCTLoadCfgTime() << std::endl;
+    *out << "Gtx Rst Done Time                             = " << thisTMB->GetReadGtxRstDoneTime() << std::endl;
+    *out << "Gtx Sync Done Time                            = " << thisTMB->GetReadGtxSyncDoneTime() << std::endl;
     *out << cgicc::pre() << std::endl;
     *out << cgicc::fieldset();
   }
@@ -9649,14 +9649,14 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","Dump All TMB VME Registers") ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  *out << cgicc::form() << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl;
   //
 
   if (thisTMB->GetHardwareVersion()==2) {
     std::string TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
 						  getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-    *out << cgicc::input().set("type", "submit").set("value", "Read GTX Fiber Status");
+    *out << cgicc::input().set("type", "submit").set("value", "Check Current GTX Settings");
     sprintf(buf, "%d", tmb);
     *out
       << cgicc::input().set("type", "hidden").set("value", buf).set("name",
@@ -9665,6 +9665,9 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
       << cgicc::input().set("type", "hidden").set("value", "read").set("name",
 								       "mode");
     *out << cgicc::form() << std::endl;
+    *out << "&nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp";
+    *out << "&nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp";
+    *out << "<font size=+1><b>GTX Fiber Link Controls</b></font>" << std::endl;
     //
     *out << cgicc::table().set("border", "1");
     *out << cgicc::tr();
@@ -9675,14 +9678,20 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << "Status/Toggle";
     *out << cgicc::td();
     *out << cgicc::td();
+    *out << "Enable/Disable Status";
+    *out << cgicc::td();
+    *out << cgicc::td();
     *out << "Reset";
     *out << cgicc::td();
     *out << cgicc::tr();
     std::string fiber_num = "all";
+    std::string button_name = "Force Enable All";
+	std::string status = "N/A";
+	std::string reset_button = "Reset All";
     for (int i = -1; i < ((int) TMB_N_FIBERS); ++i) {
       *out << cgicc::tr();
       *out << cgicc::td();
-      *out << fiber_num;
+      *out << button_name;
       *out << cgicc::td();
       *out << cgicc::td();
       //
@@ -9694,18 +9703,26 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
 	  read_status = thisTMB->GetReadGtxRxEnable(i);
 	}
 	std::string color;
-	std::string status;
+	std::string toggle_button;
 	if (read_status) {
-	  status = "Enabled";
+	  toggle_button = "On/Off";
 	  color = "color:green";
+      status = "Enabled";
+      if (i < 0){
+        status = "All On";
+      }
 	} else {
-	  status = "Disabled";
+	  toggle_button = "On/Off";
 	  color = "color:red";
+      status = "Disabled";
+      if (i < 0){
+        status = "Disables Allowed";
+      }
 	}
 	TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
 					  getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-	*out << cgicc::input().set("type", "submit").set("value", status).set("style", color);
+	*out << cgicc::input().set("type", "submit").set("value", toggle_button).set("style", color);
 	sprintf(buf, "%d", tmb);
 	*out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
 	*out << cgicc::input().set("type", "hidden").set("value", "toggle").set("name", "mode");
@@ -9717,10 +9734,13 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     //
       *out << cgicc::td();
       *out << cgicc::td();
+      *out << status;
+      *out << cgicc::td();
+      *out << cgicc::td();
       //
       TMBFiberReset = toolbox::toString("/%s/TMBFiberReset", getApplicationDescriptor()->getURN().c_str());
       *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-      *out << cgicc::input().set("type", "submit").set("value", "Reset");
+      *out << cgicc::input().set("type", "submit").set("value", reset_button);
       sprintf(buf, "%d", tmb);
       *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
       *out << cgicc::input().set("type", "hidden").set("value", "reset").set("name", "mode");
@@ -9730,12 +9750,17 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
       *out << cgicc::td();
       *out << cgicc::tr();
       std::stringstream ss;
+      std::stringstream bn;
       ss << i + 1;
+      bn << i + 1;
       fiber_num = ss.str();
+      button_name = ss.str();
+      reset_button = "Reset";
     }
     *out << cgicc::table();
   }// GTX monitor for OTMB
 
+  *out << cgicc::br() << std::endl;
   //
   //--------------------------------------------------------
   *out << cgicc::table().set("border","0");
