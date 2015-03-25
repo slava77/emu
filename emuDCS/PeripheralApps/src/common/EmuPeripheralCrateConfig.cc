@@ -9699,7 +9699,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
       *out << cgicc::td();
       //
       if (tmb_fiber_status_read_) {
-      bool read_status = false;
+        bool read_status = false;
         if (i < 0) {
           read_status = thisTMB->GetReadGtxRxAllEnable();
         } else {
