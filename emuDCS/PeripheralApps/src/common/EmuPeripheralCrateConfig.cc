@@ -9689,8 +9689,8 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::tr();
     std::string fiber_num = "all";
     std::string button_name = "Force Enable All";
-	std::string status = "N/A";
-	std::string reset_button = "Reset All";
+    std::string status = "N/A";
+    std::string reset_button = "Reset All";
     for (int i = -1; i < ((int) TMB_N_FIBERS); ++i) {
       *out << cgicc::tr();
       *out << cgicc::td();
@@ -9699,42 +9699,42 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
       *out << cgicc::td();
       //
       if (tmb_fiber_status_read_) {
-	bool read_status = false;
-	if (i < 0) {
-	  read_status = thisTMB->GetReadGtxRxAllEnable();
-	} else {
-	  read_status = thisTMB->GetReadGtxRxEnable(i);
-	}
-	std::string color;
-	std::string toggle_button;
-	if (read_status) {
-	  toggle_button = "On/Off";
-	  color = "color:green";
-      status = "Enabled";
-      if (i < 0){
-        status = "All On";
-      }
-	} else {
-	  toggle_button = "On/Off";
-	  color = "color:red";
-      status = "Disabled";
-      if (i < 0){
-        status = "Disables Allowed";
-      }
-	}
-	TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
-					  getApplicationDescriptor()->getURN().c_str());
-	*out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
-	*out << cgicc::input().set("type", "submit").set("value", toggle_button).set("style", color);
-	sprintf(buf, "%d", tmb);
-	*out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
-	*out << cgicc::input().set("type", "hidden").set("value", "toggle").set("name", "mode");
-	*out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
-	*out << cgicc::form() << std::endl;
+      bool read_status = false;
+        if (i < 0) {
+          read_status = thisTMB->GetReadGtxRxAllEnable();
+        } else {
+          read_status = thisTMB->GetReadGtxRxEnable(i);
+        }
+        std::string color;
+        std::string toggle_button;
+        if (read_status) {
+          toggle_button = "On/Off";
+          color = "color:green";
+          status = "Enabled";
+          if (i < 0){
+            status = "All On";
+          }
+        } else {
+          toggle_button = "On/Off";
+          color = "color:red";
+          status = "Disabled";
+          if (i < 0){
+            status = "Disables Allowed";
+          }
+        }
+        TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
+            getApplicationDescriptor()->getURN().c_str());
+        *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
+        *out << cgicc::input().set("type", "submit").set("value", toggle_button).set("style", color);
+        sprintf(buf, "%d", tmb);
+        *out << cgicc::input().set("type", "hidden").set("value", buf).set("name", "tmb");
+        *out << cgicc::input().set("type", "hidden").set("value", "toggle").set("name", "mode");
+        *out << cgicc::input().set("type", "hidden").set("value", fiber_num).set("name", "fiber");
+        *out << cgicc::form() << std::endl;
       } else {
-	*out << "N/A";
+        *out << "N/A";
       }
-    //
+      //
       *out << cgicc::td();
       *out << cgicc::td();
       *out << status;
