@@ -1,0 +1,2 @@
+aaa[[1-2]].bbb3             0x00000004 # these will replace the same registers in the original
+aaa[8].bbb[7]               0x00000005 # this is also a substitute

@@ -12,6 +12,14 @@ RegDumpPreprocessor::RegDumpPreprocessor()
 {}
 
 std::string
+RegDumpPreprocessor::process( const std::string& original, const std::string& substitutes ){
+  std::string processedOriginal( process( original ) );
+  if ( substitutes.length() == 0 ) return processedOriginal;
+  std::string processedSubstitutes( process( substitutes ) );
+  return makeSubstitutions( processedOriginal, processedSubstitutes );
+}
+
+std::string
 RegDumpPreprocessor::process( const std::string& regDump ){
   if ( commentToken_.length() == 0 ) options_ = ( options_ & ~removeComments );
   lineNumbers_.clear();
@@ -109,3 +117,33 @@ RegDumpPreprocessor::rollOutRange( const std::string& range ) const {
   for (int i=from; i<=to; ++i) v.push_back((dynamic_cast<std::ostringstream*>(&(std::ostringstream() << i)))->str());
   return v;
 }    
+
+std::string
+RegDumpPreprocessor::makeSubstitutions( const std::string& original, const std::string& substitutes ){
+  // If their register names match, replace the original line with that of the substitute.
+  std::string result;
+  std::istringstream originalStream( original );
+  std::istringstream substitutesStream( substitutes );
+  std::string originalLine;
+  std::string substituteLine;
+  std::vector<std::string> substituteLines;
+  while( std::getline( substitutesStream, substituteLine ) ) substituteLines.push_back( substituteLine );
+  // Loop over the original lines:
+  while( std::getline( originalStream, originalLine ) ){
+    std::string bareOriginalLine( removeComment( originalLine ) );
+    bool isSubstituted = false;
+    // Loop over the substitutes to see if any of them are needed to replace the original line:
+    for ( std::vector<std::string>::iterator sub=substituteLines.begin(); sub!= substituteLines.end(); ++sub ){
+      std::string registerToSubstitute = getRegisterName( removeComment( *sub ) );
+      if ( registerToSubstitute.length() > 0 && 
+	   bareOriginalLine.find( registerToSubstitute ) != std::string::npos ){
+	// This line has the same register name that this substitute line has. Add the substitute to the result:
+	result.append( *sub + "\n" );
+	isSubstituted = true;
+      }
+    }
+    // If no substitution was done, add the original line to the result:
+    if ( !isSubstituted ) result.append( originalLine + "\n" );
+  } 
+  return result;
+}

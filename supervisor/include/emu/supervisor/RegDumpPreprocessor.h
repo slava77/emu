@@ -105,6 +105,15 @@ public:
   /// @return Processed register dump.
   ///
   std::string process( const std::string& regDump );
+
+  /// Process original register dump while replacing registers in the original with matching registers from the substitutes.
+  ///
+  /// @param original Register dump that may contain comments and/or ranges.
+  /// @param substitutes Registers that may contain comments and/or ranges and are to be substituted for matching registers in the original register dump.
+  ///
+  /// @return Processed register dump after substitutions.
+  ///
+  std::string process( const std::string& original, const std::string& substitutes );
 private:
   std::string removeComment    ( const std::string& line  ) const;
   std::string expandRange      ( const std::string& lines );
@@ -112,6 +121,7 @@ private:
   void        checkForDuplicate( const std::string& line  );
   void        addLine          ( std::string& result, const std::string& line );
   std::vector<std::string> rollOutRange( const std::string& range ) const;
+  std::string makeSubstitutions( const std::string& original, const std::string& substitutes );
   unsigned int                         options_;
   std::string                          commentToken_;
   unsigned int                         currentLineNumber_;
