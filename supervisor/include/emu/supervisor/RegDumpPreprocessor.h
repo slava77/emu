@@ -31,7 +31,7 @@ public:
   /// \code
   /// RegDumpPreprocessor pp;
   /// ostringstream msg;    // Use this to collect messages in.
-  /// pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( msg );
+  /// pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( msg ).setTitle( "example regDump" );
   /// cout << "Unprocessed regDump:\n"     << ss.str()
   ///      << "\nPreprocessed regDump:\n"  << pp.process( ss.str() );
   /// cout << "\nPreprocessor messages:\n" << msg.str() << endl;
@@ -93,6 +93,14 @@ public:
   ///
   RegDumpPreprocessor& setMessageStream( std::ostream& ms     ){ messageStream_ = &ms; return *this; }
 
+  /// Set the title to be quoted in the messages (if any).
+  ///
+  /// @param title The title of the next regdump to be processed.
+  ///
+  /// @return Reference to this object.
+  ///
+  RegDumpPreprocessor& setTitle( std::string title ){ currentTitle_ = title_ = title; return *this; }
+
 
   unsigned int  getOptions()       const { return options_;       }
   std::string   getCommentToken()  const { return commentToken_;  }
@@ -124,6 +132,8 @@ private:
   std::string makeSubstitutions( const std::string& original, const std::string& substitutes );
   unsigned int                         options_;
   std::string                          commentToken_;
+  std::string                          title_;
+  std::string                          currentTitle_;
   unsigned int                         currentLineNumber_;
   std::map<std::string, unsigned int>  lineNumbers_; ///< register name --> line number
   std::ostream                        *messageStream_;

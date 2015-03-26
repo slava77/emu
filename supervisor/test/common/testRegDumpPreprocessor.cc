@@ -16,12 +16,13 @@ int main( int argc, char** argv ){
 
   RegDumpPreprocessor pp;
   ostringstream msg;    // Use this to collect messages in.
-  pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( msg );
-  cout << "Unprocessed regDump:\n"     << original.str()
-       << "\nPreprocessed regDump:\n"  << pp.process( original.str() );
-  cout << "\nPreprocessor messages:\n" << msg.str() << endl;
-
-  if ( argc == 3 ){
+  pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( msg ).setTitle( "Example regDump" );
+  if ( argc == 2 ){
+    cout << "Unprocessed regDump:\n"     << original.str()
+	 << "\nPreprocessed regDump:\n"  << pp.process( original.str() );
+    cout << "\nPreprocessor messages:\n" << msg.str() << endl;
+  }
+  else if ( argc == 3 ){
     // We have a second argument. Substitute the registers in it for the meatching registers in the original regDump.
     stringstream substitutes;
     fstream substitutesFile( argv[2], fstream::in );
