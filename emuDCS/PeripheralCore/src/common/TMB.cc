@@ -1563,6 +1563,7 @@ int * TMB::NewCounters(){
   write_later(cnt_ctrl_adr,0x22); //snap
   vme_delay(0x20);
   write_later(cnt_ctrl_adr,0x20); //unsnap
+  vme_delay(0x20);
   //
   // Extract counter data whose picture has been taken
   //
@@ -1573,6 +1574,7 @@ int * TMB::NewCounters(){
       int write_value = ((counter << 9) & 0xfe00) | ((odd_even << 8) & 0x0100) | 0x0020;
       //
       write_later(cnt_ctrl_adr,write_value);
+      vme_delay(2);
       //
       read_later(cnt_rdata_adr);
     }
@@ -9617,6 +9619,7 @@ int TMB::DCSvoltages(char *databuf)
   bool badtag;
 
   if(checkvme_fail()) return 0;
+     
   for(int chip=0; chip<= total_chips; chip++)
   {
      vchip = (chip==total_chips)?0:chip;
@@ -9627,14 +9630,18 @@ int TMB::DCSvoltages(char *databuf)
      {
         data_in = ((vchip>>(3-j))&1) ? data_bit : 0;
         write_later(adc_adr, base_value | data_in);
+        vme_delay(2);
         write_later(adc_adr, base_value | data_in | clock_bit);
+        vme_delay(2);
         read_later(adc_adr);
      }
      /* shift out the rest 8 bits of data */
      for(int j=0; j<8; j++)
      {
         write_later(adc_adr, base_value);
+        vme_delay(2);
         write_later(adc_adr, base_value | clock_bit);
+        vme_delay(2);
         read_later(adc_adr);
      }
   }
@@ -9654,8 +9661,27 @@ int TMB::DCSvoltages(char *databuf)
      adc_out[chip]=(badtag?0:data_out);
   }
   memcpy(databuf, adc_out, total_chips*2);
-  
-  return total_chips;
+
+  int extrabytes=0;
+  /* OTMB: read GTX RX status, stored at the end of TMB voltages, at position 14 */
+  if(hardware_version_==2)
+  {
+     for(int i=0; i<6; i++)
+     {
+         read_later(v6_gtx_rx0_adr+i*2);
+     }
+     read_now(v6_gtx_rx0_adr+12, (char *)adc_out);
+     unsigned short bits=0;
+     for(int i=6; i>=0; i--)
+     {
+         bits <<= 1;
+         bits |= (1-(adc_out[i]>>gtx_rx_link_good_bitlo)&1);  /* inverse bit: 0-good, 1-bad */
+     }
+     memcpy(databuf+total_chips*2, &bits, 2);
+     extrabytes=2;
+  }
+
+  return total_chips*2+extrabytes;
 }
 //
 bool TMB::checkvme_fail() 

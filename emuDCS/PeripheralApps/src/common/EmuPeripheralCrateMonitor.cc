@@ -621,6 +621,11 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                           if(vindex>4 && vindex<10)  rdv *= 5; /* current ch: 200 mV -> 1 Amp */
                           (*dmbdata)[ii] = 0.001*rdv;  /* ADC values are in millivolts */
                        }
+                       else if(vindex==14)
+                       {  /* OTMB GTX RX status */
+                          rdv = rdv & 0x7F;
+                          (*dmbdata)[ii] = rdv+0.1;
+                       }
                        else
                        {  /* ALCT Temps */
                           rdv = rdv & 0x3FF;
