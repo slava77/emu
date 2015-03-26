@@ -451,6 +451,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTSlowFirmware, "LoadALCTSlowFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadSpartan6ALCTFirmware, "LoadSpartan6ALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadVirtex6TMBFirmware, "LoadVirtex6TMBFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::LoadVirtex6TMBFPGA, "LoadVirtex6TMBFPGA");
 
   //
   //----------------------------
@@ -9588,11 +9589,25 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   if (thisTMB->GetHardwareVersion()==2) {
     *out << cgicc::br() << std::endl;
     *out << cgicc::br() << std::endl;
-    *out << "new TMB firmware version = " << FirmwareDir_ + "tmb/tmb_me11_virtex6.svf" << cgicc::br() << std::endl;
+    std::string svffile=TMBFirmware_[tmb].toString()+".svf";
+    *out << "new OTMB firmware = " << svffile << cgicc::br() << std::endl;
 
     std::string LoadVirtex6TMBFirmware = toolbox::toString("/%s/LoadVirtex6TMBFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadVirtex6TMBFirmware) << std::endl ;
-    sprintf(buf,"Load TMB Virtex 6 Firmware in slot %d",tmbVector[tmb]->slot());
+    sprintf(buf,"Load OTMB Virtex 6 Firmware in slot %d",tmbVector[tmb]->slot());
+    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+
+    *out << cgicc::br() << std::endl;
+    *out << cgicc::br() << std::endl;
+    std::string mcsfile=TMBFirmware_[tmb].toString()+".mcs";
+    *out << "new OTMB firmware = " << mcsfile << cgicc::br() << std::endl;
+
+    std::string LoadVirtex6TMBFpga = toolbox::toString("/%s/LoadVirtex6TMBFPGA",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadVirtex6TMBFpga) << std::endl ;
+    sprintf(buf,"Program OTMB Virtex 6 FPGA in slot %d",tmbVector[tmb]->slot());
     *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
@@ -10269,11 +10284,11 @@ void EmuPeripheralCrateConfig::LoadVirtex6TMBFirmware(xgi::Input * in, xgi::Outp
   if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
   if(thisTMB && (thisTMB->GetHardwareVersion()==2))
   {
-    std::string svffile = FirmwareDir_ + "tmb/tmb_me11_virtex6.svf";
+    std::string svffile = TMBFirmware_[tmb].toString()+".svf";
     // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
     thisCCB->setCCBMode(CCB::VMEFPGA);
       //
-    std::cout  << getLocalDateTime() <<  " Write TMB ME11 (Virtex 6) firmware to slot " << thisTMB->slot() << std::endl;
+    std::cout  << getLocalDateTime() <<  " Write OTMB (Virtex 6) firmware " << svffile << " to slot " << thisTMB->slot() << std::endl;
       //
     thisTMB->setup_jtag(ChainTmbMezz);
     thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
@@ -10285,6 +10300,40 @@ void EmuPeripheralCrateConfig::LoadVirtex6TMBFirmware(xgi::Input * in, xgi::Outp
         BootReg &= 0xff7f;                    // Give JTAG chain to the FPGA to configure ALCT on hard reset
         BootReg &= 0xf7ff;                    // Allow FPGA access to the VME register
         thisTMB->tmb_set_boot_reg(BootReg);
+
+    // Put CCB back into DLOG mode to listen to TTC commands...
+    thisCCB->setCCBMode(CCB::DLOG);
+  }
+  //
+this->TMBUtils(in,out);
+}
+
+void EmuPeripheralCrateConfig::LoadVirtex6TMBFPGA(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  int tmb;
+  if(name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl ;
+    tmb=-1;
+  }
+  //
+  TMB * thisTMB=NULL;
+  if(tmb>=0 && (unsigned)tmb<tmbVector.size())  thisTMB = tmbVector[tmb];
+  if(thisTMB && (thisTMB->GetHardwareVersion()==2))
+  {
+    std::string mcsfile = TMBFirmware_[tmb].toString()+".mcs";
+    // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
+    thisCCB->setCCBMode(CCB::VMEFPGA);
+      //
+    std::cout  << getLocalDateTime() <<  " Program OTMB (Virtex 6) FPGA with firmware " << mcsfile << " to slot " << thisTMB->slot() << std::endl;
+      //
+    thisTMB->program_virtex6(mcsfile.c_str());
 
     // Put CCB back into DLOG mode to listen to TTC commands...
     thisCCB->setCCBMode(CCB::DLOG);
@@ -10392,22 +10441,35 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     year  = thisTMB->GetExpectedTmbFirmwareYear();
     month = thisTMB->GetExpectedTmbFirmwareMonth();
     day   = thisTMB->GetExpectedTmbFirmwareDay();
-    char tmbdate[9];
+    char tmbdate[9], otmbdate[11];
+    std::string tmbtype;
     sprintf(tmbdate,"%04u%02u%02u",year,month,day);
+    sprintf(otmbdate,"%04u-%02u-%02u",year,month,day);
     //
     std::ostringstream TMBFirmware;
-    TMBFirmware << FirmwareDir_ << "tmb/" << tmbdate;
+    if(thisTMB->GetHardwareVersion()<=1) {
+       TMBFirmware << FirmwareDir_ << "tmb/" << tmbdate;
+    } else {
+       TMBFirmware << FirmwareDir_ << "otmb/" << otmbdate;
+    }
     //
     if (thisTMB->GetTMBFirmwareCompileType() == 0xa ) { 
-      TMBFirmware << "/typeA";
+       TMBFirmware << "/typeA";
+       tmbtype="_typeA";
     } else if (thisTMB->GetTMBFirmwareCompileType() == 0xc ) {
-      TMBFirmware << "/typeC";
+       TMBFirmware << "/typeC";
+       tmbtype="_typeC";
     } else if (thisTMB->GetTMBFirmwareCompileType() == 0xd ) {
-      TMBFirmware << "/typeD";
+       TMBFirmware << "/typeD";
+       tmbtype="_typeD";
     } else {
-      std::cout << " = no type determined" << std::endl;
+       std::cout << " = no type determined" << std::endl;
     }
-    TMBFirmware << "/tmb";    // ".xsvf" is added in SetXsvfFilename
+    if(thisTMB->GetHardwareVersion()<=1) {
+       TMBFirmware << "/tmb";    // ".xsvf" is added in SetXsvfFilename
+    } else {
+       TMBFirmware << "/otmb_" << otmbdate << tmbtype;
+    }
     TMBFirmware_[tmb] = TMBFirmware.str();
     //    std::cout << "TMB " << tmb << " load " << TMBFirmware_[tmb].toString() << std::endl;
     //
