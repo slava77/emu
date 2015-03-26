@@ -9705,11 +9705,11 @@ void TMB::program_virtex6(const char *mcsfile)
        return;
    }
 // byte swap
-//   for(int i=0; i<FIRMWARE_SIZE/2; i++)
-//   {  c=bufin[i*2];
-//      bufin[i*2]=bufin[i*2+1];
-//      bufin[i*2+1]=c;
-//   }
+   for(int i=0; i<FIRMWARE_SIZE/2; i++)
+   {  c=bufin[i*2];
+      bufin[i*2]=bufin[i*2+1];
+      bufin[i*2+1]=c;
+   }
 
      int blocks=FIRMWARE_SIZE/4;  // firmware size must be in units of 32-bit words
      int p1pct=blocks/100;
@@ -9718,7 +9718,8 @@ void TMB::program_virtex6(const char *mcsfile)
      unsigned long ttt=0, tout=0;
 
 //    getTheController()->Debug(2);
-
+     getTheController()->SetUseDelay(true);
+  
      setup_jtag(ChainTmbMezz);
     //restore idle;
     RestoreIdle();
@@ -9791,7 +9792,9 @@ void TMB::program_virtex6(const char *mcsfile)
     
     std::cout << "FPGA configuration done!" << std::endl;             
     free(bufin);
-//    UnjamFPGA();
+    tmb_set_boot_reg(0);
+     getTheController()->SetUseDelay(false);
+
 }
 
 unsigned TMB::virtex6_readreg(int reg)
