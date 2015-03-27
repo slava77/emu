@@ -255,6 +255,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::OtmbFiberTest,"OtmbFiberTest");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_non_me11, "CFEBTimingSimpleScanSystem_non_me11");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTimingSimpleScanSystem_me11, "CFEBTimingSimpleScanSystem_me11");
+  xgi::bind(this,&EmuPeripheralCrateConfig::OTMBConfigBits, "OTMBConfigBits");
   //
   //------------------------------
   // bind crate utilities
@@ -4044,6 +4045,7 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::input().set("type","submit").set("value","Check CFEB FPGAs") << std::endl ;
   *out << cgicc::form() << std::endl ;;
   *out << cgicc::td();
+  *out << "<tr>";
   //
   *out << cgicc::td();
   std::string MeasureODMBDelaysForEndcap = toolbox::toString("/%s/MeasureODMBDelaysForEndcap",getApplicationDescriptor()->getURN().c_str());
@@ -4190,6 +4192,14 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   std::string OtmbFiberTest = toolbox::toString("/%s/OtmbFiberTest",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",OtmbFiberTest) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","DCFEB-OTMB fiber test") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  *out << "<tr>";
+  //
+  *out << cgicc::td();
+  std::string OtmbConfigB = toolbox::toString("/%s/OTMBConfigBits",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",OtmbConfigB) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Read all ME1/1 OTMB-ALCT Configuration Done bits") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
@@ -11792,6 +11802,46 @@ std::string EmuPeripheralCrateConfig::GetFormString(const std::string& form_elem
     //
     this->TMBUtils(in,out);
     //
+  }
+  //
+  void EmuPeripheralCrateConfig::OTMBConfigBits(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     if(!parsed) ParsingXML();  
+     //
+     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+     *out << "<html>" << std::endl;   
+        
+     *out << cgicc::h2("Configuration Done Bits from CCB (OTMB & ALCT only)");
+     *out << cgicc::br();
+     *out << cgicc::table().set("border","1");
+ 
+     CCB* myCCB;
+     for (unsigned int idx=0; idx<crateVector.size(); idx++) 
+     {
+        std::string cratename=crateVector[idx]->GetLabel();
+        int station=std::atoi(cratename.c_str()+4);
+        if(station==1)
+        {
+           *out << "<tr> <td>" <<  cratename << "</td>";
+           myCCB = crateVector[idx]->ccb();
+           if(myCCB)
+           {   myCCB->ReadConfigBits();
+               for(int i=0; i<3; i++)
+               {
+                  *out << "<td>";
+                  if(myCCB->GetReadTMBConfigDone(i)) *out << cgicc::span().set("style","color:red") << " TMB#" << i+1 << " = " << "1" << cgicc::span();
+                     else *out << cgicc::span().set("style","color:green") << " TMB#" << i+1 << " = " << "0" << cgicc::span();
+                  *out << "</td> <td>";
+                  if(myCCB->GetReadALCTConfigDone(i)) *out << cgicc::span().set("style","color:red") << " ALCT#" << i+1 << " = " << "1" << cgicc::span();
+                     else *out << cgicc::span().set("style","color:green") << " ALCT#" << i+1 << " = " << "0" << cgicc::span();
+                 *out << "</td>";
+               }
+           }
+           *out << "</tr>" << std::endl;
+        }
+     }       
+     *out << cgicc::table() << std::endl;
   }
 
  }  // namespace emu::pc

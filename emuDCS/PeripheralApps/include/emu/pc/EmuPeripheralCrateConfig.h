@@ -633,6 +633,7 @@ private:
   void HardResetForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void OtmbFiberTest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UpdateInFlashKey(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void OTMBConfigBits(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   void SetTwoLayerTrigger(int tmb);
   //
