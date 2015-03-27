@@ -1580,8 +1580,8 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
                }
                else
                {
-                  printf("EWI packet %02X, %02X%02X, ", return_type&0xff, r_datat[0]&0xff, r_datat[1]&0xff);
-                  printf("type: %d, source: %d, code: %d from %d, crate %02X, address %08X\n", EWI, Source_ID, error_type, irdwr, hw_dest_addr[5]&0xff, ptr);
+                  printf("EWI packet %02X, %02X%02X-%02X%02X ", return_type&0xff, r_datat[0]&0xff, r_datat[1]&0xff, r_datat[2]&0xff, r_datat[3]&0xff);
+                  printf("type: %d, source: %d, code: %d, op %d, crate %02X, address %08X, %02X%02X-%02X%02X\n", EWI, Source_ID, error_type, irdwr, hw_dest_addr[5]&0xff, ptr, r_datat[8]&0xff, r_datat[9]&0xff, r_datat[10]&0xff, r_datat[11]&0xff);
                }
              }
           }
