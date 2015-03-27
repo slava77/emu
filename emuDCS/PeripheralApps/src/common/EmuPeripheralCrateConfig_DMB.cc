@@ -18,6 +18,10 @@ namespace emu {
 //////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   cgicc::Cgicc cgi(in);
   //
@@ -609,6 +613,10 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
 ///////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   cgicc::Cgicc cgi(in);
   //
@@ -1744,6 +1752,10 @@ void EmuPeripheralCrateConfig::LVMBStatus(xgi::Input * in, xgi::Output * out )
 
 void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   cgicc::Cgicc cgi(in);
   //
@@ -3159,6 +3171,10 @@ void EmuPeripheralCrateConfig::ALCTDAVScan(xgi::Input * in, xgi::Output * out )
 ///////////////////////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   cgicc::Cgicc cgi(in);
   //

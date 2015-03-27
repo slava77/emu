@@ -5043,6 +5043,10 @@ void EmuPeripheralCrateConfig::MPCSafeWindowScan(xgi::Input * in, xgi::Output * 
 ////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   cgicc::Cgicc cgi(in);
   //
@@ -8847,6 +8851,10 @@ void EmuPeripheralCrateConfig::testTMB(xgi::Input * in, xgi::Output * out )
 ///////////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   cgicc::Cgicc cgi(in);
   //
@@ -9309,6 +9317,10 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
 //
 void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
