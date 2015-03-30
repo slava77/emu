@@ -2410,6 +2410,7 @@ public:
   int  FillTMBRegister(unsigned long int address); 
   //
   void UnjamFPGA();
+  void UnjamFPGAMini();
   //
   void ReadTmbIdCodes();
   inline int GetTMBmezzFpgaIdCode() { return tmb_idcode_[0]; }

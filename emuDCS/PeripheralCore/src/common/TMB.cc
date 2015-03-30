@@ -3840,6 +3840,91 @@ void TMB::UnjamFPGA() {
 }
 //
 //
+void TMB::UnjamFPGAMini() {
+  //
+  std::cout << "Mini unjam TMB: resets FPGA JTAG chain..." << std::endl;
+  //
+  const int tck_up = 0x0004;
+  const int tck_dn = 0x0000;
+  //
+  const int tms_up = 0x0002;
+  const int tms_dn = 0x0000;
+  //
+  // Pick the chain according to bits [6:3].  Use the bootstrap register (bit[7]=1)
+  const int tmb_mezz_chain  = 0x00a0;
+  const int alct_jtag_chain = 0x0080;
+  const int tmb_user_chain  = 0x00c0;
+  const int tmb_fpga_chain  = 0x00e0;
+  // read TMB boot register
+  unsigned short int bootRegValue = 0;
+  tmb_get_boot_reg(&bootRegValue);
+  std::cout << "Boot register value before clearing it: 0x" << std::hex << bootRegValue << std::dec << std::endl;
+  // clear TMB boot register
+  tmb_set_boot_reg(0);
+  sleep(1);
+  // read TMB boot register
+  tmb_get_boot_reg(&bootRegValue);
+  std::cout << "Boot register value after clearing it: 0x" << std::hex << bootRegValue << std::dec << std::endl;
+  //
+  std::cout << "Resetting the TMB FPGA JTAG chain to idle state (5 clocks of TMS high)" << std::endl;
+  // Bring the Test Access Port (TAP) state to Run-Test-Idle for each JTAG chain
+  int data_word;
+  int chain_address = tmb_fpga_chain;
+  //
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_up;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  //
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_up;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  //
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_up;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  //
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_up;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  //
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_up;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_up | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  //
+  data_word = chain_address | tms_dn | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_dn | tck_up;
+  tmb_set_boot_reg(data_word);     
+  data_word = chain_address | tms_dn | tck_dn;
+  tmb_set_boot_reg(data_word);     
+  //
+  // read TMB boot register
+  tmb_get_boot_reg(&bootRegValue);
+  std::cout << "Boot register value after unjam but before clearing it: 0x" << std::hex << bootRegValue << std::dec << std::endl;
+  //give the JTAG chain back to the FPGA 
+  tmb_set_boot_reg(0);     
+  // read TMB boot register
+  tmb_get_boot_reg(&bootRegValue);
+  std::cout << "Boot register value after the unjam and after clearing it: 0x" << std::hex << bootRegValue << std::dec << std::endl;
+  return;
+}
+//
+//
 int TMB::tmb_hard_reset_alct_fpga() {
   //
   unsigned short int value = 0;
