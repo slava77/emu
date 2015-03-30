@@ -422,6 +422,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
   xgi::bind(this,&EmuPeripheralCrateConfig::HardResetTmbFpga, "HardResetTmbFpga");  
   xgi::bind(this,&EmuPeripheralCrateConfig::UnjamTMB, "UnjamTMB");  
+  xgi::bind(this,&EmuPeripheralCrateConfig::UnjamTmbFpga, "UnjamTmbFpgaJtagChain");  
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckAbilityToLoadALCT, "CheckAbilityToLoadALCT");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadCrateALCTFirmware, "LoadCrateALCTFirmware");
@@ -9829,6 +9830,15 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string UnjamTmbFpgaJtagChain = toolbox::toString("/%s/UnjamTmbFpgaJtagChain",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",UnjamTmbFpgaJtagChain) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Mini TMB Unjam (only FPGA JTAG chain)") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
   //  *out << cgicc::td().set("ALIGN","left");
   //  std::string ReadbackALCTFirmware = toolbox::toString("/%s/ReadbackALCTFirmware",getApplicationDescriptor()->getURN().c_str());
   //  *out << cgicc::form().set("method","GET").set("action",ReadbackALCTFirmware) << std::endl ;
@@ -10876,6 +10886,29 @@ void EmuPeripheralCrateConfig::UnjamTMB(xgi::Input * in, xgi::Output * out )
   TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->UnjamFPGA();
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+//
+void EmuPeripheralCrateConfig::UnjamTmbFpga(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  int tmb=0;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  //
+  thisTMB->UnjamFPGAMini();
   //
   this->TMBUtils(in,out);
   //
