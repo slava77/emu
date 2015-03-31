@@ -532,14 +532,14 @@ or exists (
       <sql:parameter name="XXX_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
-      <![CDATA[select * from EMU_CFEB where EMU_CONFIG_ID=$EMU_CONFIG_ID and DAQMB_CONFIG_ID=$XXX_CONFIG_ID]]>
+      <![CDATA[select * from EMU_CFEB where EMU_CONFIG_ID=$EMU_CONFIG_ID and DAQMB_CONFIG_ID=$XXX_CONFIG_ID order by CFEB_NUMBER]]>
     </sql:query>
 
     <sql:query xmlns:sql="urn:tstore-view-SQL" name="cfeb_all" expectedRows="1350">
       <sql:parameter name="ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
-      <![CDATA[select * from EMU_CFEB where EMU_CONFIG_ID=$ID order by CFEB_CONFIG_ID]]>
+      <![CDATA[select * from EMU_CFEB where EMU_CONFIG_ID=$ID order by DAQMB_CONFIG_ID, CFEB_NUMBER]]>
     </sql:query>
 
     <sql:query xmlns:sql="urn:tstore-view-SQL" name="cfeb_diff" expectedRows="5">
