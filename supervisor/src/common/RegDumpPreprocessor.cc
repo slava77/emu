@@ -3,6 +3,7 @@
 // #include "emu/utils/IO.h"
 
 #include "toolbox/regex.h"
+#include "xcept/tools.h"
 #include <sstream>
 
 RegDumpPreprocessor::RegDumpPreprocessor()
@@ -131,36 +132,40 @@ RegDumpPreprocessor::makeSubstitutions( const std::string& original, const std::
   std::string originalLine;
   std::string substituteLine;
   std::vector< std::pair<std::string,bool> > substituteLines; // the bool means "this line has already been substituted"
-  while( std::getline( substitutesStream, substituteLine ) ) substituteLines.push_back( std::make_pair( substituteLine, false ) );
+  while( std::getline( substitutesStream, substituteLine ) ){
+    std::string bareSubstituteLine( removeComment( substituteLine ) );
+    // Only take this line if something other than white space is left after comments are removed:
+    if ( bareSubstituteLine.find_first_not_of(" \t") != std::string::npos ) substituteLines.push_back( std::make_pair( bareSubstituteLine, false ) );
+  }
   // Loop over the original lines:
   while( std::getline( originalStream, originalLine ) ){
     std::string bareOriginalLine( removeComment( originalLine ) );
     bool isReplaced = false;
     // Loop over the substitutes to see if any of them are needed to replace the original line:
     for ( std::vector< std::pair<std::string,bool> >::iterator sub=substituteLines.begin(); sub!= substituteLines.end(); ++sub ){
-      std::string registerToSubstitute = getRegisterName( removeComment( sub->first ) );
-      if ( registerToSubstitute.length() > 0 && 
-	   bareOriginalLine.find( registerToSubstitute ) != std::string::npos ){
-	// This line has the same register name that this substitute line has. Add the substitute to the result:
+      std::string registerToSubstitute = getRegisterName( sub->first );
+      if ( ! sub->second                     && // This substitute has not been used yet.
+	   registerToSubstitute.length() > 0 && 
+	   getRegisterName( bareOriginalLine ) == registerToSubstitute ){
+	// This line has the same register name that this unused substitute line has. Add the substitute to the result:
 	result.append( sub->first + "\n" );
-	sub->second = true;
-	isReplaced = true;
+	sub->second = true; // Mark this substitute as used.
+	isReplaced = true; // This original line has been substituted for.
       }
     }
     // If no substitution was done, add the original line to the result:
     if ( ! isReplaced ) result.append( originalLine + "\n" );
-  } 
+  }
   // Look for unused substitute line(s) and report them:
   bool allUsed = true;
   for ( std::vector< std::pair<std::string,bool> >::iterator sub=substituteLines.begin(); sub!= substituteLines.end(); ++sub ) allUsed &= sub->second;
-  if ( ! allUsed && messageStream_ ){
-    *messageStream_ << title_
-		    << ": The following lines have not been substituted. Perhaps these registers do not appear in the original?\n";
-      for ( std::vector< std::pair<std::string,bool> >::iterator sub=substituteLines.begin(); sub!= substituteLines.end(); ++sub ){
-	if ( ! sub->second ){
-	  *messageStream_ << sub->first << "\n";
-	}
-      }
+  if ( ! allUsed ){
+    std::ostringstream oss;
+    oss << title_ << ": The following lines have not been substituted. Perhaps these registers do not appear in the original?\n";
+    for ( std::vector< std::pair<std::string,bool> >::iterator sub=substituteLines.begin(); sub!= substituteLines.end(); ++sub ){
+      if ( ! sub->second ) oss << sub->first << "\n";
+    }
+    XCEPT_RAISE( xcept::Exception, std::string( "Error in TCDS register configuration: " ) + oss.str() );
   }
   return result;
 }

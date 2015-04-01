@@ -83,7 +83,7 @@ void emu::supervisor::Application::RunParameters::registerFields(xdata::Bag<RunP
   command_ = "";
   loop_ = 1U;
   delay_ = 1U;
-//   ci_ = "";
+  ci_    = "";
   ci_p_  = "";
   ci_m_  = "";
   ci_tf_ = "";
@@ -94,10 +94,10 @@ void emu::supervisor::Application::RunParameters::registerFields(xdata::Bag<RunP
   bag->addField("command", &command_);
   bag->addField("loop",    &loop_);
   bag->addField("delay",   &delay_);
-//   bag->addField("ci",      &ci_);
-  bag->addField("ci_p",      &ci_p_);
-  bag->addField("ci_m",      &ci_m_);
-  bag->addField("ci_tf",     &ci_tf_);
+  bag->addField("ci",      &ci_);
+  bag->addField("ci_p",    &ci_p_);
+  bag->addField("ci_m",    &ci_m_);
+  bag->addField("ci_tf",   &ci_tf_);
   bag->addField("pm",      &pm_);
   bag->addField("pi",      &pi_);
 }
@@ -993,7 +993,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
 		   << "\n   command: " << runParameters_[index].bag.command_.toString()
 		   << "\n   loop: "    << runParameters_[index].bag.loop_.toString()
 		   << "\n   delay: "   << runParameters_[index].bag.delay_.toString()
-// 		   << "\n   ci:\n"     << runParameters_[index].bag.ci_.toString() 
+		   << "\n   ci:\n"     << runParameters_[index].bag.ci_.toString() 
 		   << "\n   ci_p:\n"   << runParameters_[index].bag.ci_p_.toString() 
 		   << "\n   ci_m:\n"   << runParameters_[index].bag.ci_m_.toString() 
 		   << "\n   ci_tf:\n"  << runParameters_[index].bag.ci_tf_.toString() 
@@ -1226,42 +1226,30 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     RegDumpPreprocessor pp;
     ostringstream ppMessages;
     pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( ppMessages );
-    xdata::String piConf( pp.process( runParameters_[index].bag.pi_.toString() ) );
-    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "PI configuration prepocessor says:\n" << ppMessages.str() );
-    ppMessages.str() = "";
-//     xdata::String ciConf( pp.process( runParameters_[index].bag.ci_.toString() ) );
-//     if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI configuration prepocessor says:\n" << ppMessages.str() );
-//     ppMessages.str() = "";
-    xdata::String ci_p_Conf( pp.process( runParameters_[index].bag.ci_p_.toString() ) );
-    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI P configuration prepocessor says:\n" << ppMessages.str() );
-    ppMessages.str() = "";
-    xdata::String ci_m_Conf( pp.process( runParameters_[index].bag.ci_m_.toString() ) );
-    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI M configuration prepocessor says:\n" << ppMessages.str() );
-    ppMessages.str() = "";
-    xdata::String ci_tf_Conf( pp.process( runParameters_[index].bag.ci_tf_.toString() ) );
-    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "CI TF configuration prepocessor says:\n" << ppMessages.str() );
-    ppMessages.str() = "";
-    xdata::String pmConf( pp.process( runParameters_[index].bag.pm_.toString() ) );    
-    if ( ppMessages.str().length() ) LOG4CPLUS_WARN( logger_, "PM configuration prepocessor says:\n" << ppMessages.str() );
+    xdata::String pi_conf   ( pp.setTitle("PI"   ).process( runParameters_[index].bag.pi_.toString() ) );
+    xdata::String ci_p_conf ( pp.setTitle("CI P" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_p_ .toString() ) );
+    xdata::String ci_m_conf ( pp.setTitle("CI M" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_m_ .toString() ) );
+    xdata::String ci_tf_conf( pp.setTitle("CI TF").process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_tf_.toString() ) );
+    xdata::String pm_conf   ( pp.setTitle("PM"   ).process( runParameters_[index].bag.pm_.toString() ) );
+    if ( ppMessages.str().length() > 0 ){
+      LOG4CPLUS_WARN( logger_, string( "TCDS register preprocessor says: " ) + ppMessages.str() );
+    }
     // PIs
-    if ( pi_plus_  ) pi_plus_ ->setRunType( run_type_ ).configure( piConf );
-    if ( pi_minus_ ) pi_minus_->setRunType( run_type_ ).configure( piConf );
-    if ( pi_tf_    ) pi_tf_   ->setRunType( run_type_ ).configure( piConf );
+    if ( pi_plus_  ) pi_plus_ ->setRunType( run_type_ ).configure( pi_conf );
+    if ( pi_minus_ ) pi_minus_->setRunType( run_type_ ).configure( pi_conf );
+    if ( pi_tf_    ) pi_tf_   ->setRunType( run_type_ ).configure( pi_conf );
     if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
     if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
     if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
     // CIs
-//     if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ciConf );
-//     if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ciConf );
-//     if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ciConf );
-    if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ci_p_Conf  );
-    if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ci_m_Conf  );
-    if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ci_tf_Conf );
+    if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ci_p_conf  );
+    if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ci_m_conf  );
+    if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ci_tf_conf );
     if ( ci_plus_  ) ci_plus_ ->configureSequence(); // This waits for the state transition to complete.
     if ( ci_minus_ ) ci_minus_->configureSequence(); // This waits for the state transition to complete.
     if ( ci_tf_    ) ci_tf_   ->configureSequence(); // This waits for the state transition to complete.
     // LPM
-    if ( pm_       ) pm_      ->setRunType( run_type_ ).configure( pmConf ).configureSequence(); // This waits for the state transition to complete.
+    if ( pm_       ) pm_      ->setRunType( run_type_ ).configure( pm_conf ).configureSequence(); // This waits for the state transition to complete.
 
     xdata::String runType( "global" );
     if      ( isCalibrationMode()     ) runType = "calibration";
@@ -1477,9 +1465,9 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     // to be ready to be started again.
     // The CSC FEDs don't seem to fail this way, but let's do them, too, to be absolutely sure.
     // Do this through the CIs as the PM is not under our control in global runs.
-    if ( ci_plus_  ) ci_plus_ ->stopSequence();
-    if ( ci_minus_ ) ci_minus_->stopSequence();
-    if ( ci_tf_    ) ci_tf_   ->stopSequence();
+    // if ( ci_plus_  ) ci_plus_ ->configureSequence();
+    // if ( ci_minus_ ) ci_minus_->configureSequence();
+    // if ( ci_tf_    ) ci_tf_   ->configureSequence();
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Stop was issued from the web interface
     if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
