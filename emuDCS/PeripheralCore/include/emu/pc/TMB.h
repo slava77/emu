@@ -2520,6 +2520,16 @@ public:
   //!layer=[0-5], distrip=[0-39] = 1 = "bad"
   inline int  GetComparatorBadBit(int layer,int distrip) { return read_badbits_[layer][distrip]; }
   //
+  //------------------------------------------------------------------
+  //0X184 = ADR_MPC_FRAMES_FIFO_CTRL:  Controls FIFO
+  //------------------------------------------------------------------
+  inline void SetMPCFramesFifoCtrlWrEn(int mpc_frames_fifo_ctrl_wr_en) { mpc_frames_fifo_ctrl_wr_en_ = mpc_frames_fifo_ctrl_wr_en; }
+  inline int  GetMPCFramesFifoCtrlWrEn() { return mpc_frames_fifo_ctrl_wr_en_; }
+  inline int  GetReadMPCFramesFifoCtrlWrEn() { return read_mpc_frames_fifo_ctrl_wr_en_; }
+
+  inline void SetMPCFramesFifoCtrlRdEn(int mpc_frames_fifo_ctrl_rd_en) { mpc_frames_fifo_ctrl_rd_en_ = mpc_frames_fifo_ctrl_rd_en; }
+  inline int  GetMPCFramesFifoCtrlRdEn() { return mpc_frames_fifo_ctrl_rd_en_; }
+  inline int  GetReadMPCFramesFifoCtrlRdEn() { return read_mpc_frames_fifo_ctrl_rd_en_; }
   //
   // **********************************************************************************
   //
@@ -2699,6 +2709,18 @@ private:
   //
   int CLCT0_data_;
   int CLCT1_data_;
+  //
+  int mpc0_frame0_data_;
+  int mpc0_frame1_data_;
+  int mpc1_frame0_data_;
+  int mpc1_frame1_data_;
+  //
+  int mpc0_frame0_fifo_data_;
+  int mpc0_frame1_fifo_data_;
+  int mpc1_frame0_fifo_data_;
+  int mpc1_frame1_fifo_data_;
+  //
+  int mpc_frames_fifo_ctrl_data_;
   //
   int ALCT0_data_;
   int ALCT1_data_;
@@ -3233,6 +3255,78 @@ private:
   int read_mpc_sel_ttc_bx0_;
   int read_mpc_idle_blank_;
   int read_mpc_output_enable_;
+  //
+  //------------------------------------------------------------------
+  //0X88 = ADR_MPC0_FRAME0:  MPC0 Frame0 Data Sent to MPC
+  //------------------------------------------------------------------
+  int read_mpc0_frame0_alct_first_key_;
+  int read_mpc0_frame0_clct_first_pat_;
+  int read_mpc0_frame0_lct_first_quality_;
+  int read_mpc0_frame0_first_vpf_;
+  //
+  //------------------------------------------------------------------
+  //0X8A = ADR_MPC0_FRAME1:  MPC0 Frame1 Data Sent to MPC
+  //------------------------------------------------------------------
+  int read_mpc0_frame1_clct_first_key_;
+  int read_mpc0_frame1_clct_first_bend_;
+  int read_mpc0_frame1_sync_err_;
+  int read_mpc0_frame1_alct_first_bxn_;
+  int read_mpc0_frame1_clct_first_bx0_local_;
+  int read_mpc0_frame1_csc_id_;
+  //
+  //------------------------------------------------------------------
+  //0X8C = ADR_MPC1_FRAME0:  MPC1 Frame0 Data Sent to MPC
+  //------------------------------------------------------------------
+  int read_mpc1_frame0_alct_second_key_;
+  int read_mpc1_frame0_clct_second_pat_;
+  int read_mpc1_frame0_lct_second_quality_;
+  int read_mpc1_frame0_second_vpf_;
+  //
+  //------------------------------------------------------------------
+  //0X8E = ADR_MPC1_FRAME1:  MPC1 Frame1 Data Sent to MPC
+  //------------------------------------------------------------------
+  int read_mpc1_frame1_clct_second_key_;
+  int read_mpc1_frame1_clct_second_bend_;
+  int read_mpc1_frame1_sync_err_;
+  int read_mpc1_frame1_alct_second_bxn_;
+  int read_mpc1_frame1_clct_second_bx0_local_;
+  int read_mpc1_frame1_csc_id_;
+  //
+  //------------------------------------------------------------------
+  //0X17C = ADR_MPC0_FRAME0_FIFO:  MPC0 Frame0 Data Sent to MPC and Stored in FIFO
+  //------------------------------------------------------------------
+  int read_mpc0_frame0_fifo_alct_first_key_;
+  int read_mpc0_frame0_fifo_clct_first_pat_;
+  int read_mpc0_frame0_fifo_lct_first_quality_;
+  int read_mpc0_frame0_fifo_first_vpf_;
+  //
+  //------------------------------------------------------------------
+  //0X17E = ADR_MPC0_FRAME1_FIFO:  MPC0 Frame1 Data Sent to MPC and Stored in FIFO
+  //------------------------------------------------------------------
+  int read_mpc0_frame1_fifo_clct_first_key_;
+  int read_mpc0_frame1_fifo_clct_first_bend_;
+  int read_mpc0_frame1_fifo_sync_err_;
+  int read_mpc0_frame1_fifo_alct_first_bxn_;
+  int read_mpc0_frame1_fifo_clct_first_bx0_local_;
+  int read_mpc0_frame1_fifo_csc_id_;
+  //
+  //------------------------------------------------------------------
+  //0X180 = ADR_MPC1_FRAME0_FIFO:  MPC1 Frame0 Data Sent to MPC and Stored in FIFO
+  //------------------------------------------------------------------
+  int read_mpc1_frame0_fifo_alct_second_key_;
+  int read_mpc1_frame0_fifo_clct_second_pat_;
+  int read_mpc1_frame0_fifo_lct_second_quality_;
+  int read_mpc1_frame0_fifo_second_vpf_;
+  //
+  //------------------------------------------------------------------
+  //0X182 = ADR_MPC1_FRAME1_FIFO:  MPC1 Frame1 Data Sent to MPC and Stored in FIFO
+  //------------------------------------------------------------------
+  int read_mpc1_frame1_fifo_clct_second_key_;
+  int read_mpc1_frame1_fifo_clct_second_bend_;
+  int read_mpc1_frame1_fifo_sync_err_;
+  int read_mpc1_frame1_fifo_alct_second_bxn_;
+  int read_mpc1_frame1_fifo_clct_second_bx0_local_;
+  int read_mpc1_frame1_fifo_csc_id_;
   //
   //------------------------------------------------------------------
   //0X98 = ADR_SCP_CTRL:  Scope control
@@ -3943,6 +4037,24 @@ private:
   //0X13E,140,142 = ADR_BADBITS401,BADBITS423,BADBITS445 = CFEB4 BadBits Masks
   //------------------------------------------------------------------
   int read_badbits_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER_EXT];
+  //
+  //
+  //------------------------------------------------------------------
+  //0X184 = ADR_MPC_FRAMES_FIFO_CTRL:  Controls FIFO
+  //------------------------------------------------------------------
+  int mpc_frames_fifo_ctrl_wr_en_;
+  int mpc_frames_fifo_ctrl_rd_en_;
+  //
+  int read_mpc_frames_fifo_ctrl_wr_en_;
+  int read_mpc_frames_fifo_ctrl_rd_en_;
+  int read_mpc_frames_fifo_ctrl_full_;
+  int read_mpc_frames_fifo_ctrl_wr_ack_;
+  int read_mpc_frames_fifo_ctrl_overflow_;
+  int read_mpc_frames_fifo_ctrl_empty_;
+  int read_mpc_frames_fifo_ctrl_prog_full_;
+  int read_mpc_frames_fifo_ctrl_sbiterr_;
+  int read_mpc_frames_fifo_ctrl_sditter_;
+  //
   //
   //
   //*******************************************************************
