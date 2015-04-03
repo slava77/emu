@@ -385,17 +385,6 @@ const int LCT_ACCEPTED_BY_MPC_COUNTER_INDEX                   = 50;
 const int L1A_IN_TMB_WINDOW_COUNTER_INDEX                     = 54; 
 //
 //
-// VME registers defined in TMB for direct access
-// OTMB BPI Interface
-//  static const unsigned OTMB_BPI_Reset   = 0x29020;
-//  static const unsigned OTMB_BPI_Disable = 0x29024;
-//  static const unsigned OTMB_BPI_Enable  = 0x29028;
-//  static const unsigned OTMB_BPI_Write   = 0x2902C;
-//  static const unsigned OTMB_BPI_Read    = 0x29030;
-//  static const unsigned OTMB_BPI_Read_n  = 0x29034;
-//  static const unsigned OTMB_BPI_Status  = 0x29038;
-//  static const unsigned OTMB_BPI_Timer_l = 0x2903C;
-//  static const unsigned OTMB_BPI_Timer_h = 0x29040;
 
 static const unsigned OTMB_BPI_Reset = 0x28020;
 static const unsigned OTMB_BPI_Disable = 0x28024;
@@ -406,16 +395,6 @@ static const unsigned OTMB_BPI_Read_n = 0x28034;
 static const unsigned OTMB_BPI_Status = 0x28038;
 static const unsigned OTMB_BPI_Timer_l = 0x2803C;
 static const unsigned OTMB_BPI_Timer_h = 0x28040;
-
-//  static const unsigned OTMB_BPI_Reset   = 0x50040;
-//  static const unsigned OTMB_BPI_Disable = 0x50048;
-//  static const unsigned OTMB_BPI_Enable  = 0x50050;
-//  static const unsigned OTMB_BPI_Write   = 0x50058;
-//  static const unsigned OTMB_BPI_Read    = 0x50060;
-//  static const unsigned OTMB_BPI_Read_n  = 0x50068;
-//  static const unsigned OTMB_BPI_Status  = 0x50070;
-//  static const unsigned OTMB_BPI_Timer_l = 0x50078;
-//  static const unsigned OTMB_BPI_Timer_h = 0x50080;
 
 //
 /////////////////////////////////////////////////////////////////////////////////////
