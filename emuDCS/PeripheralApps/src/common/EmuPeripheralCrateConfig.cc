@@ -12147,6 +12147,463 @@ void EmuPeripheralCrateConfig::ReadOTMBVirtex6Reg(xgi::Input * in, xgi::Output *
      this->TMBUtils(in,out);                                    
 }
 
+void EmuPeripheralCrateConfig::TMBBPIReset(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Reset" << std::endl;
+    thisTMB->otmb_bpi_reset(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIDisable(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Disable" << std::endl;
+    thisTMB->otmb_bpi_disable(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIEnable(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Enable" << std::endl;
+    thisTMB->otmb_bpi_enable(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIWrite(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  unsigned short bpi_word_to_write = 0;
+  if (name2 != cgi.getElements().end()) {
+    std::string str_bpi_word_to_write = cgi["bpi_word_to_write"]->getValue();
+    // convert to HEX
+    if (str_bpi_word_to_write.substr(0, 2) == "0x") {
+      std::istringstream inStream(str_bpi_word_to_write.substr(2));
+      inStream >> std::hex >> bpi_word_to_write;
+    }
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Write to Command FIFO (16 bits)" << std::endl;
+    thisTMB->otmb_bpi_write_to_command_fifo(bpi_word_to_write, true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIRead(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Read (16 bits)" << std::endl;
+    thisTMB->otmb_bpi_read(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIReadN(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Read Number of Remaining Words (11 bits)" << std::endl;
+    thisTMB->otmb_bpi_read_n_words(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIStatus(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Status" << std::endl;
+    thisTMB->otmb_bpi_status(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPITimerRead(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Timer Read" << std::endl;
+    thisTMB->otmb_bpi_timer_read(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromBlockErase(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Block Erase" << std::endl;
+    thisTMB->otmb_bpi_prom_block_erase(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromBlockLock(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Block Lock" << std::endl;
+    thisTMB->otmb_bpi_prom_block_lock(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromBlockUnlock(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Block Unlock" << std::endl;
+    thisTMB->otmb_bpi_prom_block_unlock(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromTimerStart(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Timer Start" << std::endl;
+    thisTMB->otmb_bpi_prom_timerstart(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromTimerStop(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Timer Stop" << std::endl;
+    thisTMB->otmb_bpi_prom_timerstop(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromTimerReset(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Timer Reset" << std::endl;
+    thisTMB->otmb_bpi_prom_timerreset(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromClearStatus(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Clear Status" << std::endl;
+    thisTMB->otmb_bpi_prom_clearstatus(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromLoadAddress(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Load Address" << std::endl;
+    thisTMB->otmb_bpi_prom_loadaddress(0, 0, true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
 
  }  // namespace emu::pc
 }  // namespace emu
