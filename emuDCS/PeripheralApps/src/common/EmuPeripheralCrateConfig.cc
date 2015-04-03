@@ -449,6 +449,22 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBRawHits, "TMBRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTRawHits, "ALCTRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadFirmware, "TMBReadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIReset, "TMBBPIReset");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIDisable, "TMBBPIDisable");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIEnable, "TMBBPIEnable");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIWrite, "TMBBPIWrite");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIRead, "TMBBPIRead");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIReadN, "TMBBPIReadN");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIStatus, "TMBBPIStatus");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPITimerRead, "TMBBPITimerRead");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromTimerReset, "TMBBPIPromTimerReset");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromTimerStop, "TMBBPIPromTimerStop");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromTimerStart, "TMBBPIPromTimerStart");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromClearStatus, "TMBBPIPromClearStatus");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromLoadAddress, "TMBBPIPromLoadAddress");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromBlockUnlock, "TMBBPIPromBlockUnlock");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromBlockErase, "TMBBPIPromBlockErase");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromBlockLock, "TMBBPIPromBlockLock");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTReadFirmware, "ALCTReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTSlowFirmware, "LoadALCTSlowFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadSpartan6ALCTFirmware, "LoadSpartan6ALCTFirmware");
@@ -10118,6 +10134,218 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() ;
+  *out << cgicc::td();
+  //
+  //////////////////////////////////////////////
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << cgicc::br();
+  *out << cgicc::td();
+  //
+  //////////////////////////////////////////////
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "TMB BPI:";
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "Functions to access VME registers";
+  *out << cgicc::br();
+  *out << "defined for BPI:";
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "Sequence of commands to erase";
+  *out << cgicc::br();
+  *out << "first block in PROM:";
+  *out << cgicc::td();
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left").set("VALIGN","top");
+  //
+  std::string TMBBPIReset = toolbox::toString("/%s/TMBBPIReset",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIReset) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Reset") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIDisable = toolbox::toString("/%s/TMBBPIDisable",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIDisable) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Disable Comand FIFO") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIEnable = toolbox::toString("/%s/TMBBPIEnable",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIEnable) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Enable Command FIFO") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIWrite = toolbox::toString("/%s/TMBBPIWrite",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIWrite) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Write to Command FIFO");
+  *out << cgicc::br();
+  *out << "Word 16 bits:" << std::endl;
+  *out << cgicc::input().set("type","text").set("value","0x0000").set("name","bpi_word_to_write") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIRead = toolbox::toString("/%s/TMBBPIRead",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIRead) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Read (16 bits)") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIReadN = toolbox::toString("/%s/TMBBPIReadN",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIReadN) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Read Number of Remaining Words") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIStatus = toolbox::toString("/%s/TMBBPIStatus",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIStatus) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Status Read (16 bits)").set("style","color:red");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPITimerRead = toolbox::toString("/%s/TMBBPITimerRead",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPITimerRead) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Timer Read (32 bits)");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left").set("VALIGN","top");
+  //
+  //
+  // std::string TMBBPIReset = toolbox::toString("/%s/TMBBPIReset",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIReset) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Reset") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::br();
+  //
+  // std::string TMBBPIEnable = toolbox::toString("/%s/TMBBPIEnable",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIEnable) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Enable Command FIFO") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIPromTimerStop = toolbox::toString("/%s/TMBBPIPromTimerStop",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIPromTimerStop) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI PROM Timer Stop");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIPromTimerReset = toolbox::toString("/%s/TMBBPIPromTimerReset",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIPromTimerReset) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI PROM Timer Reset");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIPromTimerStart = toolbox::toString("/%s/TMBBPIPromTimerStart",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIPromTimerStart) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI PROM Timer Start");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIPromClearStatus = toolbox::toString("/%s/TMBBPIPromClearStatus",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIPromClearStatus) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI PROM Clear Status");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIPromLoadAddress = toolbox::toString("/%s/TMBBPIPromLoadAddress",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIPromLoadAddress) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI PROM Load Address");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIPromBlockUnlock = toolbox::toString("/%s/TMBBPIPromBlockUnlock",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIPromBlockUnlock) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI PROM Block Unlock");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIPromBlockErase = toolbox::toString("/%s/TMBBPIPromBlockErase",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIPromBlockErase) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI PROM Block Erase");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  std::string TMBBPIPromBlockLock = toolbox::toString("/%s/TMBBPIPromBlockLock",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIPromBlockLock) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI PROM Block Lock");
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form();
+  //
+  *out << cgicc::br();
+  //
+  // std::string TMBBPIDisable = toolbox::toString("/%s/TMBBPIDisable",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBBPIDisable) ;
+  *out << cgicc::input().set("type","submit").set("value","BPI Disable Comand FIFO") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
   *out << cgicc::td();
   //
   //--------------------------------------------------------
