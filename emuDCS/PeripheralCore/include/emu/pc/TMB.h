@@ -577,24 +577,16 @@ public:
   void EnableL1aRequest();
   void DisableL1aRequest();
   //
-  //void EnableCLCTInputs(int CFEBnOn = 0x7f, bool debug = false);
   void EnableCLCTInputs(int CLCTInputs = 0x7f );
-  //void DisableCLCTInputs(bool debug = false);
   void DisableCLCTInputs();
-  //void DisableALCTInputs(bool debug = false);
   void DisableALCTInputs();
   void EnableCLCTsToTrigger(bool debug = false);
   //
-  //void DisableALCTCLCTSync(bool debug = false);
   void DisableALCTCLCTSync();
-  void SetALCTInjectorDelay(unsigned int injectorDelay = 13, bool debug = false);
   //
-  //void DisableExternalCCB(bool debug = false);
   void DisableExternalCCB();
   //
-  //void EnableInternalL1aEmulator(bool debug = false);
   void EnableInternalL1aEmulator();
-  void RequestCCBL1aOnSequencer(bool debug = false);
   void DisableInternalL1aSequencer();
   void EnableInternalL1aSequencer();
   //
