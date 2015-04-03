@@ -131,10 +131,10 @@ private: // XDAQ parameters
 		xdata::String command_;
 		xdata::UnsignedInteger loop_;
 		xdata::UnsignedInteger delay_;
-// 		xdata::String ci_;
-		xdata::String ci_p_;
-		xdata::String ci_m_;
-		xdata::String ci_tf_;
+		xdata::String ci_; ///< common
+		xdata::String ci_p_; ///< specific to plus side, to override what's in common ci_
+		xdata::String ci_m_; ///< specific to minus side, to override what's in common ci_
+		xdata::String ci_tf_; ///< specific to track finder, to override what's in common ci_
 		xdata::String pm_;
 		xdata::String pi_;
 	};
