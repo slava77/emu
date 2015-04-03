@@ -405,7 +405,6 @@
 
 #include "emu/pc/VMEModule.h"
 #include "emu/pc/JTAG_constants.h"
-#include "emu/pc/TMB_trigInjector_test.h"
 #include <cstdio>
 #include <cassert>
 #include <vector>
@@ -694,17 +693,6 @@ public:
   void otmb_bpi_prom_block_unlockerase(bool debug = false);
   void otmb_bpi_prom_loadaddress(unsigned short uaddress, unsigned short laddress, bool debug = true);
 
-  // Old OTMB BPI-->EPROM access rountines
-  void otmbeprom_multi(int cnt, unsigned short *manbuf);
-  bool otmbeprom_pec_ready(unsigned int poll_interval);
-  void otmbeprom_read(unsigned nwords, unsigned short *pdata);
-  void otmbeprom_bufferprogram(unsigned nwords, unsigned short *prm_dat);
-  void otmb_readparam(int paramblock,int nval,unsigned short int  *val);
-  void otmb_loadparam(int paramblock,int nval,unsigned short int  *val);
-  void otmb_readfirmware_mcs(const char *filename);
-  void otmb_program_eprom(const char *mcsfile);
-  bool otmb_program_eprom_poll(const char *mcsfile);
-
   //
   ////////////////////////
   // The following methods deal with data going from TMB to MPC...
@@ -740,67 +728,6 @@ public:
   //------------------------------------------------------------------------------
   void TriggerTestInjectALCT();
   void TriggerTestInjectCLCT();
-    void TriggerTestInjectALCTCLCT();
-  int  TriggerTestInjectALCTCLCT_Readout();
-  int  TriggerTestFire_L1A_to_ALCT();
-  void TriggerTestFire_CLCT_ext_trig_with_ALCT ();
-  void TriggerTestInject_walking_CLCT();
-  void TriggerTestExternalTriggerALCTCLCT();
-  void TriggerTestExternalTriggerALCT();
-  void TriggerTestExternalTriggerCLCT();
-  void TriggerTestExternalTriggerALCTCLCTwithGTLpulser();
-  void TriggerTestExternalALCTCLCTwithGTLpulserCheckCRC();
-  void TriggerTestTestBXNCounter();
-  int  TriggerTestFireL1A();
-  int  TriggerTestForceCLCTtriggerandReadout();
-  void pause (std::string s);
-  void stop (std::string s);
-  void lct_quality(int &ACC, int &A, int &C, int &A4, int &C4, int &P, int &CPAT, int &Q);
-  void decode_readout(int	vf_data[mxframe],int &dmb_wdcnt, bool &err_check);
-  int vme_write(unsigned long &adr, unsigned short &wr_data);
-  int vme_read(unsigned long &adr, unsigned short &rd_data);
-  void scope160c (
-          unsigned long	 scp_ctrl_adr,
-          unsigned long	 scp_rdata_adr,
-          int				 scp_arm,
-          int				 scp_readout,
-          int				 scp_raw_decode,
-          int				 scp_silent,
-          int				 scp_playback,
-          int				 scp_raw_data[512*160/16]
-          ) ;
-  void pattern_finder
-      (
-       // Inputs
-       int hs[6][160],
-       int &csc_type,
-       int &clct_sep,
-       int &adjcfeb_dist,
-       int	&layer_trig_en,
-       int	cfeb_en[5],
-
-       int &hit_thresh_pretrig,
-       int &pid_thresh_pretrig,
-       int &dmb_thresh_pretrig,
-       int &lyr_thresh_pretrig,
-
-       // Outputs
-       int cfeb_active[5],
-       int &nlayers_hit,
-       int	&layer_trig,
-
-       int &hs_key_1st,
-       int &hs_pid_1st,
-       int &hs_hit_1st,
-
-       int &hs_key_2nd,
-       int &hs_pid_2nd,
-       int &hs_hit_2nd
-           );
-  void miniscope16 (int ntbins, int miniscope_data[16]);
-  void pattern_unit (
-          int ly0[], int ly1[], int ly2[], int ly3[], int ly4[], int ly5[], // Inputs
-          int &pat_nhits, int &pat_id); // Outputs
 
   //------------------------------------------------------------------------------
   //
