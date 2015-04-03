@@ -548,6 +548,7 @@
 #include<math.h>
 
 #include "emu/pc/TMB_constants.h"
+#include "emu/pc/JTAG_constants.h"
 #include "emu/pc/ALCTController.h"
 #include "emu/pc/RAT.h"
 #include "emu/pc/Chamber.h"
@@ -10063,5 +10064,206 @@ void TMB::WriteGtxControlRegisters() {
     WriteRegister(v6_gtx_rx6_adr);
 }
 
-} // namespace emu::pc  
-} // namespace emu  
+// *****************************************************************************
+// Functions to access VME registers defined for BPI
+// *****************************************************************************
+
+void TMB::otmb_bpi_reset(bool debug)
+{
+	if ( debug ) printf("   otmb_bpi_reset: Begin write (no data) to register 0x%04x\n", OTMB_BPI_Reset);
+	WriteRegister(OTMB_BPI_Reset, 0);
+	if ( debug ) printf("   otmb_bpi_reset: End\n");
+}
+
+void TMB::otmb_bpi_disable(bool debug)
+{  
+	if ( debug ) printf("   otmb_bpi_disable: Begin write (no data) to register 0x%04x\n", OTMB_BPI_Disable);
+	WriteRegister(OTMB_BPI_Disable, 0);
+	if ( debug ) printf("   otmb_bpi_disable: End\n");
+}
+
+void TMB::otmb_bpi_enable(bool debug)
+{  
+	if ( debug ) printf("   otmb_bpi_enable: Begin write (no data) to register 0x%04x\n", OTMB_BPI_Enable);
+	WriteRegister(OTMB_BPI_Enable, 0);
+	if ( debug ) printf("   otmb_bpi_enable:End\n");
+}
+
+void TMB::otmb_bpi_write_to_command_fifo(unsigned short command, bool debug)
+{
+  if ( debug ) printf("   otmb_bpi_write_to_command_fifo: Begin write 16-bit word = 0x%04x to command FIFO register 0x%04x\n", command, OTMB_BPI_Write);
+  WriteRegister(OTMB_BPI_Write, command);
+  if ( debug ) printf("   otmb_bpi_write_to_command_fifo: End\n");
+}
+
+unsigned short TMB::otmb_bpi_read(bool debug)
+{
+  if ( debug ) printf("   otmb_bpi_read: Begin read 16-bit word from readback FIFO (16 bits) 0x%04x\n", OTMB_BPI_Read);
+  unsigned short read_word = ReadRegister(OTMB_BPI_Read);
+  if ( debug ) printf("   otmb_bpi_read: End read word = 0x%04x\n", read_word);
+  return read_word;
+}
+
+unsigned short TMB::otmb_bpi_read_n_words(bool debug)
+{
+  if ( debug ) printf("   otmb_bpi_read_n_words: Begin read number of 16-bit words remaining in readback FIFO (11 bits) 0x%04x\n", OTMB_BPI_Read_n);
+  unsigned short n_words = ReadRegister(OTMB_BPI_Read_n);
+  if ( debug ) printf("   otmb_bpi_read_n_words: End read number of remaining words = 0x%04x\n", n_words);
+  return n_words;
+}
+
+unsigned short TMB::otmb_bpi_status(bool debug)
+{
+  /* status register
+     low 8 bits XLINK
+      0-blank write status/multiple work program status
+      1-block protection status
+      2-program suspend status
+      3-vpp status
+      4-program status
+      5-erase/blank check status
+      6-erase/suspend status
+      7-P.E.C. Status
+     high 8 bits Ben
+      0-cmd fifo write error
+      1-cmd fifo read error
+      2-cmd fifo full 
+      3-cmd fifo empty
+      4-rbk fifo write error
+      5-rbk fifo read error
+      6-rbk fifo full
+      7-rbk fifo empty
+      
+      0x8880 = 1000 1000 1000 0000
+      0x8000 = 1000 0000 0000 0000
+  */  
+  if ( debug ) printf("   otmb_bpi_status: Begin read 16-bit status from register 0x%04x\n", OTMB_BPI_Status);
+  unsigned short status = ReadRegister(OTMB_BPI_Status);
+  if ( debug ) {
+  	printf("   otmb_bpi_status: Status = 0x%04x\n", status);
+  	printf("   otmb_bpi_status:     15 = %d - rbk fifo empty\n", (status>>15)&0x1 );
+  	printf("   otmb_bpi_status:     14 = %d - rbk fifo full\n", (status>>14)&0x1 );
+  	printf("   otmb_bpi_status:     13 = %d - rbk fifo read error\n", (status>>13)&0x1 );
+  	printf("   otmb_bpi_status:     12 = %d - rbk fifo write error\n", (status>>12)&0x1 );
+  	printf("   otmb_bpi_status:     11 = %d - cmd fifo empty\n", (status>>11)&0x1 );
+  	printf("   otmb_bpi_status:     10 = %d - cmd fifo full\n", (status>>10)&0x1 );
+  	printf("   otmb_bpi_status:     09 = %d - cmd fifo read error\n", (status>> 9)&0x1 );
+  	printf("   otmb_bpi_status:     08 = %d - cmd fifo write error\n", (status>> 8)&0x1 );
+  	printf("   otmb_bpi_status:     07 = %d - P.E.C. Status\n", (status>> 7)&0x1 );
+  	printf("   otmb_bpi_status:     06 = %d - erase/suspend status\n", (status>> 6)&0x1 );
+  	printf("   otmb_bpi_status:     05 = %d - erase/blank check status\n", (status>> 5)&0x1 );
+  	printf("   otmb_bpi_status:     04 = %d - program status\n", (status>> 4)&0x1 );
+  	printf("   otmb_bpi_status:     03 = %d - vpp status\n", (status>> 3)&0x1 );
+  	printf("   otmb_bpi_status:     02 = %d - program suspend status\n", (status>> 2)&0x1 );
+  	printf("   otmb_bpi_status:     01 = %d - block protection status\n", (status>> 1)&0x1 );
+  	printf("   otmb_bpi_status:     00 = %d - blank write status/multiple work program status\n", (status>> 0)&0x1 );
+  }
+  if ( debug ) printf("   otmb_bpi_status: End read status\n");
+  return status;
+}
+
+unsigned TMB::otmb_bpi_timer_read(bool debug)
+{
+  if ( debug ) printf("   otmb_bpi_timer_read: Begin read timer low bits 15:0 from register 0x%04x\n", OTMB_BPI_Timer_l);
+  unsigned timer_l = ReadRegister(OTMB_BPI_Timer_l);
+  if ( debug ) printf("   otmb_bpi_timer_read: read timer low bits = 0x%04x\n", timer_l);
+  //
+  if ( debug ) printf("   otmb_bpi_timer_read: Begin read timer high bits 31:16 from register 0x%04x\n", OTMB_BPI_Timer_h);
+  unsigned timer_h = ReadRegister(OTMB_BPI_Timer_h);
+  if ( debug ) printf("   otmb_bpi_timer_read: read timer high bits = 0x%04x\n", timer_h);
+  //
+  unsigned timer = (timer_h<<16) + timer_l;
+  if ( debug ) printf("   otmb_bpi_timer_read: End read timer bits = 0x%08x\n", timer);
+  return timer;
+}
+
+// *****************************************************************************
+// Functions to send commands to BPI command FIFO through BPI_Write VME register
+// *****************************************************************************
+
+void TMB::otmb_bpi_prom_noop(bool debug)
+{
+  if ( debug ) printf("  otmb_bpi_prom_noop: Begin\n");
+	otmb_bpi_write_to_command_fifo(XPROM_NoOp);
+	if ( debug ) printf("  otmb_bpi_prom_noop: End\n");
+}
+
+void TMB::otmb_bpi_prom_block_erase(bool debug)
+{
+  if ( debug ) printf("  otmb_bpi_prom_block_erase: Begin\n");
+	otmb_bpi_write_to_command_fifo(XPROM_Block_Erase);
+	if ( debug ) printf("  otmb_bpi_prom_block_erase: End\n");
+}
+
+void TMB::otmb_bpi_prom_block_lock(bool debug)
+{
+  if ( debug ) printf("  otmb_bpi_prom_block_lock: Begin\n");
+	otmb_bpi_write_to_command_fifo(XPROM_Block_Lock);
+	if ( debug ) printf("  otmb_bpi_prom_block_lock: End\n");
+}
+
+void TMB::otmb_bpi_prom_block_unlock(bool debug)
+{
+  if ( debug ) printf("  otmb_bpi_prom_block_unlock: Begin\n");
+	otmb_bpi_write_to_command_fifo(XPROM_Block_UnLock);
+	if ( debug ) printf("  otmb_bpi_prom_block_unlock: End\n");
+}
+
+void TMB::otmb_bpi_prom_timerstart(bool debug)
+{
+	if ( debug ) printf("  otmb_bpi_prom_timerstart: Begin\n");
+	otmb_bpi_write_to_command_fifo(XPROM_Timer_Start);
+	if ( debug ) printf("  otmb_bpi_prom_timerstart: End\n");
+}
+
+void TMB::otmb_bpi_prom_timerstop(bool debug)
+{
+	if ( debug ) printf("  otmb_bpi_prom_timerstop: Begin\n");
+	otmb_bpi_write_to_command_fifo(XPROM_Timer_Stop);
+	if ( debug ) printf("  otmb_bpi_prom_timerstop: End\n");
+}
+
+void TMB::otmb_bpi_prom_timerreset(bool debug)
+{
+	if ( debug ) printf("  otmb_bpi_prom_timerreset: Begin\n");
+	otmb_bpi_write_to_command_fifo(XPROM_Timer_Reset);
+	if ( debug ) printf("  otmb_bpi_prom_timerreset: End\n");
+}
+
+void TMB::otmb_bpi_prom_clearstatus(bool debug)
+{
+	if ( debug ) printf("  otmb_bpi_prom_clearstatus: Begin\n");
+	otmb_bpi_write_to_command_fifo(XPROM_Clear_Status);
+	if ( debug ) printf("  otmb_bpi_prom_clearstatus: End\n");
+}
+
+// *****************************************************************************
+// Functions to send sequence of commands to BPI command FIFO
+// *****************************************************************************
+
+void TMB::otmb_bpi_prom_block_unlockerase(bool debug) 
+{ 
+   if ( debug ) printf(" otmb_bpi_prom_block_unlockerase: Begin\n");
+   otmb_bpi_prom_block_unlock(debug);
+   if ( debug ) printf(" otmb_bpi_prom_block_unlockerase: Delay 10 us\n");
+   udelay(10);
+   otmb_bpi_prom_block_erase(debug);
+   if ( debug ) printf(" otmb_bpi_prom_block_unlockerase: End\n");
+}
+
+void TMB::otmb_bpi_prom_loadaddress(unsigned short uaddr, unsigned short laddr, bool debug) 
+{ 
+   if ( debug ) printf(" otmb_bpi_prom_loadaddress: Begin load uaddr = %d (0x%02x) laddr = %d (0x%02x)\n", uaddr, uaddr, laddr, laddr);
+   unsigned short uaddr_tmp = ((uaddr<<5)&0xffe0)|XPROM_Load_Address;
+   if ( debug ) printf(" otmb_bpi_prom_loadaddress: Convert uaddr from 0x%02x to 0x%04x\n",uaddr, uaddr_tmp);
+   if ( debug ) printf(" otmb_bpi_prom_loadaddress: Write uaddr 0x%04x\n", uaddr_tmp);
+   otmb_bpi_write_to_command_fifo(uaddr_tmp);
+   if ( debug ) printf(" otmb_bpi_prom_loadaddress: Delay 10 us\n");
+   udelay(10);
+   if ( debug ) printf(" otmb_bpi_prom_loadaddress: Write laddr 0x%02x\n", laddr);
+   otmb_bpi_write_to_command_fifo(laddr);
+   if ( debug ) printf(" otmb_bpi_prom_loadaddress: End\n");
+}
+
+} // namespace emu::pc
+} // namespace emu
