@@ -1396,6 +1396,79 @@ void TMB::PrintCLCT() {
   return;
 }
 //
+void TMB::DecodeMPCFramesFromFIFO(){
+  //
+  int data_to_write;
+  //
+  // Enable reading from FIFO
+  SetMPCFramesFifoCtrlRdEn(1);
+  data_to_write = FillTMBRegister(mpc_frames_fifo_ctrl_adr);
+  WriteRegister(mpc_frames_fifo_ctrl_adr, data_to_write);
+  //
+  // Read ONE EVENT from VME registers connected to FIFO
+  int mpc0_frame0_fifo = ReadRegister(mpc0_frame0_fifo_adr); // 0x17C
+  int mpc0_frame1_fifo = ReadRegister(mpc0_frame1_fifo_adr); // 0x17E
+  int mpc1_frame0_fifo = ReadRegister(mpc1_frame0_fifo_adr); // 0x180
+  int mpc1_frame1_fifo = ReadRegister(mpc1_frame1_fifo_adr); // 0x182
+  //
+  // Read from VME registers connected to FIFO control
+  int mpc_frames_fifo_ctrl = ReadRegister(mpc_frames_fifo_ctrl_adr); // 0x184
+  //
+  mpc0_frame0_fifo_data_ = (mpc0_frame0_fifo & 0xffff);
+  mpc0_frame1_fifo_data_ = (mpc0_frame1_fifo & 0xffff);
+  mpc1_frame0_fifo_data_ = (mpc1_frame0_fifo & 0xffff);
+  mpc1_frame1_fifo_data_ = (mpc1_frame1_fifo & 0xffff);
+  //
+  mpc_frames_fifo_ctrl_data_ = (mpc_frames_fifo_ctrl & 0xffff);
+  //
+  // Disable reading from FIFO
+  SetMPCFramesFifoCtrlRdEn(0);
+  data_to_write = FillTMBRegister(mpc_frames_fifo_ctrl_adr);
+  WriteRegister(mpc_frames_fifo_ctrl_adr, data_to_write);
+  //
+  return;
+}
+//
+void TMB::PrintMPCFramesFromFIFO() {
+  //
+  std::cout << "MPC0 frame0 from FIFO data = 0x" << std::hex << mpc0_frame0_fifo_data_ << std::endl;
+  std::cout << "MPC0 frame1 from FIFO data = 0x" << std::hex << mpc0_frame1_fifo_data_ << std::endl;
+  std::cout << "MPC1 frame0 from FIFO data = 0x" << std::hex << mpc1_frame0_fifo_data_ << std::endl;
+  std::cout << "MPC1 frame1 from FIFO data = 0x" << std::hex << mpc1_frame1_fifo_data_ << std::endl;
+  //
+  (*MyOutput_) << "----------------------"                                                                 << std::endl;
+  (*MyOutput_) << "MPC0 from FIFO frame0 data                  = 0x" << std::hex << mpc0_frame0_fifo_data_ << std::endl;
+  (*MyOutput_) << "               frame1 data                  = 0x" << std::hex << mpc0_frame1_fifo_data_ << std::endl;
+  (*MyOutput_) << "MPC1 from FIFO frame0 data                  = 0x" << std::hex << mpc1_frame0_fifo_data_ << std::endl;
+  (*MyOutput_) << "               frame1 data                  = 0x" << std::hex << mpc1_frame1_fifo_data_ << std::endl;
+  (*MyOutput_) << "----------------------"                                                                                   << std::endl;
+  (*MyOutput_) << "MPC0 from FIFO frame0.alct_first_key        =   " << std::dec << read_mpc0_frame0_fifo_alct_first_key_    << std::endl;
+  (*MyOutput_) << "               frame0.clct_first_pat        = 0x" << std::hex << read_mpc0_frame0_fifo_clct_first_pat_    << std::endl;
+  (*MyOutput_) << "               frame0.lct_first_quality     = 0x" << std::hex << read_mpc0_frame0_fifo_lct_first_quality_ << std::endl;
+  (*MyOutput_) << "               frame0.first_vpf             = 0x" << std::hex << read_mpc0_frame0_fifo_first_vpf_         << std::endl;
+  (*MyOutput_) << "----------------------"                                                                                   << std::endl;
+  (*MyOutput_) << "MPC0 from FIFO frame1.clct_first_key        =   " << std::dec << read_mpc0_frame1_fifo_clct_first_key_       << std::endl;
+  (*MyOutput_) << "               frame1.clct_first_bend       = 0x" << std::hex << read_mpc0_frame1_fifo_clct_first_bend_      << std::endl;
+  (*MyOutput_) << "               frame1.sync_err              = 0x" << std::hex << read_mpc0_frame1_fifo_sync_err_             << std::endl;
+  (*MyOutput_) << "               frame1.alct_first_bxn        = 0x" << std::hex << read_mpc0_frame1_fifo_alct_first_bxn_       << std::endl;
+  (*MyOutput_) << "               frame1.clct_first_bx0_local  = 0x" << std::hex << read_mpc0_frame1_fifo_clct_first_bx0_local_ << std::endl;
+  (*MyOutput_) << "               frame1.csc_id                = 0x" << std::hex << read_mpc0_frame1_fifo_csc_id_               << std::endl;
+  (*MyOutput_) << "----------------------"                                                                                    << std::endl;
+  (*MyOutput_) << "MPC1 from FIFO frame0.alct_second_key       =   " << std::dec << read_mpc1_frame0_fifo_alct_second_key_    << std::endl;
+  (*MyOutput_) << "               frame0.clct_second_pat       = 0x" << std::hex << read_mpc1_frame0_fifo_clct_second_pat_    << std::endl;
+  (*MyOutput_) << "               frame0.lct_second_quality    = 0x" << std::hex << read_mpc1_frame0_fifo_lct_second_quality_ << std::endl;
+  (*MyOutput_) << "               frame0.second_vpf            = 0x" << std::hex << read_mpc1_frame0_fifo_second_vpf_         << std::endl;
+  (*MyOutput_) << "----------------------"                                                                                       << std::endl;
+  (*MyOutput_) << "MPC1 from FIFO frame1.clct_first_key        =   " << std::dec            << read_mpc1_frame1_fifo_clct_second_key_       << std::endl;
+  (*MyOutput_) << "               frame1.clct_second_bend      = 0x" << std::hex << read_mpc1_frame1_fifo_clct_second_bend_      << std::endl;
+  (*MyOutput_) << "               frame1.sync_err              = 0x" << std::hex << read_mpc1_frame1_fifo_sync_err_              << std::endl;
+  (*MyOutput_) << "               frame1.alct_second_bxn       = 0x" << std::hex << read_mpc1_frame1_fifo_alct_second_bxn_       << std::endl;
+  (*MyOutput_) << "               frame1.clct_second_bx0_local = 0x" << std::hex << read_mpc1_frame1_fifo_clct_second_bx0_local_ << std::endl;
+  (*MyOutput_) << "               frame1.csc_id                = 0x" << std::hex << read_mpc1_frame1_fifo_csc_id_                << std::endl;
+  //
+  return;
+}
+//
 int TMB::FmState(){
   //
   tmb_vme(VME_READ,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
