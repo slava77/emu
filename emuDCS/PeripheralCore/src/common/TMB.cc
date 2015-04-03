@@ -7033,6 +7033,99 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_mpc_idle_blank_      = ExtractValueFromData(data,mpc_idle_blank_bitlo     ,mpc_idle_blank_bithi     );
     read_mpc_output_enable_   = ExtractValueFromData(data,mpc_output_enable_bitlo  ,mpc_output_enable_bithi  );
     //
+  } else if ( address == mpc0_frame0_adr ) {
+    //------------------------------------------------------------------
+    //0X88 = ADR_MPC0_FRAME0:  MPC0 Frame0 Data Sent to MPC
+    //------------------------------------------------------------------
+    read_mpc0_frame0_alct_first_key_    = ExtractValueFromData(data,mpc0_frame0_alct_first_key_bitlo,    mpc0_frame0_alct_first_key_bithi);
+    read_mpc0_frame0_clct_first_pat_    = ExtractValueFromData(data,mpc0_frame0_clct_first_pat_bitlo,    mpc0_frame0_clct_first_pat_bithi);
+    read_mpc0_frame0_lct_first_quality_ = ExtractValueFromData(data,mpc0_frame0_lct_first_quality_bitlo, mpc0_frame0_lct_first_quality_bithi);
+    read_mpc0_frame0_first_vpf_         = ExtractValueFromData(data,mpc0_frame0_first_vpf_bitlo,         mpc0_frame0_first_vpf_bithi);
+    //
+  } else if ( address == mpc0_frame1_adr ) {
+    //------------------------------------------------------------------
+    //0X8A = ADR_MPC0_FRAME1:  MPC0 Frame1 Data Sent to MPC
+    //------------------------------------------------------------------
+    read_mpc0_frame1_clct_first_key_       = ExtractValueFromData(data,mpc0_frame1_clct_first_key_bitlo,       mpc0_frame1_clct_first_key_bithi);
+    read_mpc0_frame1_clct_first_bend_      = ExtractValueFromData(data,mpc0_frame1_clct_first_bend_bitlo,      mpc0_frame1_clct_first_bend_bithi);
+    read_mpc0_frame1_sync_err_             = ExtractValueFromData(data,mpc0_frame1_sync_err_bitlo,             mpc0_frame1_sync_err_bithi);
+    read_mpc0_frame1_alct_first_bxn_       = ExtractValueFromData(data,mpc0_frame1_alct_first_bxn_bitlo,       mpc0_frame1_alct_first_bxn_bithi);
+    read_mpc0_frame1_clct_first_bx0_local_ = ExtractValueFromData(data,mpc0_frame1_clct_first_bx0_local_bitlo, mpc0_frame1_clct_first_bx0_local_bithi);
+    read_mpc0_frame1_csc_id_               = ExtractValueFromData(data,mpc0_frame1_csc_id_bitlo,               mpc0_frame1_csc_id_bithi);
+    //
+  } else if ( address == mpc1_frame0_adr ) {
+    //------------------------------------------------------------------
+    //0X8C = ADR_MPC1_FRAME0:  MPC1 Frame0 Data Sent to MPC
+    //------------------------------------------------------------------
+    read_mpc1_frame0_alct_second_key_    = ExtractValueFromData(data,mpc1_frame0_alct_second_key_bitlo,    mpc1_frame0_alct_second_key_bithi);
+    read_mpc1_frame0_clct_second_pat_    = ExtractValueFromData(data,mpc1_frame0_clct_second_pat_bitlo,    mpc1_frame0_clct_second_pat_bithi);
+    read_mpc1_frame0_lct_second_quality_ = ExtractValueFromData(data,mpc1_frame0_lct_second_quality_bitlo, mpc1_frame0_lct_second_quality_bithi);
+    read_mpc1_frame0_second_vpf_         = ExtractValueFromData(data,mpc1_frame0_second_vpf_bitlo,         mpc1_frame0_second_vpf_bithi);
+    //
+  } else if ( address == mpc1_frame1_adr ) {
+    //------------------------------------------------------------------
+    //0X8E = ADR_MPC1_FRAME1:  MPC1 Frame1 Data Sent to MPC
+    //------------------------------------------------------------------
+    read_mpc1_frame1_clct_second_key_       = ExtractValueFromData(data,mpc1_frame1_clct_second_key_bitlo,       mpc1_frame1_clct_second_key_bithi);
+    read_mpc1_frame1_clct_second_bend_      = ExtractValueFromData(data,mpc1_frame1_clct_second_bend_bitlo,      mpc1_frame1_clct_second_bend_bithi);
+    read_mpc1_frame1_sync_err_              = ExtractValueFromData(data,mpc1_frame1_sync_err_bitlo,              mpc1_frame1_sync_err_bithi);
+    read_mpc1_frame1_alct_second_bxn_       = ExtractValueFromData(data,mpc1_frame1_alct_second_bxn_bitlo,       mpc1_frame1_alct_second_bxn_bithi);
+    read_mpc1_frame1_clct_second_bx0_local_ = ExtractValueFromData(data,mpc1_frame1_clct_second_bx0_local_bitlo, mpc1_frame1_clct_second_bx0_local_bithi);
+    read_mpc1_frame1_csc_id_                = ExtractValueFromData(data,mpc1_frame1_csc_id_bitlo,                mpc1_frame1_csc_id_bithi);
+    //
+  } else if ( address == mpc0_frame0_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X17C = ADR_MPC0_FRAME0_FIFO:  MPC0 Frame0 Data Sent to MPC and Stored in FIFO
+    //------------------------------------------------------------------
+    read_mpc0_frame0_fifo_alct_first_key_    = ExtractValueFromData(data,mpc0_frame0_fifo_alct_first_key_bitlo,    mpc0_frame0_fifo_alct_first_key_bithi);
+    read_mpc0_frame0_fifo_clct_first_pat_    = ExtractValueFromData(data,mpc0_frame0_fifo_clct_first_pat_bitlo,    mpc0_frame0_fifo_clct_first_pat_bithi);
+    read_mpc0_frame0_fifo_lct_first_quality_ = ExtractValueFromData(data,mpc0_frame0_fifo_lct_first_quality_bitlo, mpc0_frame0_fifo_lct_first_quality_bithi);
+    read_mpc0_frame0_fifo_first_vpf_         = ExtractValueFromData(data,mpc0_frame0_fifo_first_vpf_bitlo,         mpc0_frame0_fifo_first_vpf_bithi);
+    //
+  } else if ( address == mpc0_frame1_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X17E = ADR_MPC0_FRAME1_FIFO:  MPC0 Frame1 Data Sent to MPC and Stored in FIFO
+    //------------------------------------------------------------------
+    read_mpc0_frame1_fifo_clct_first_key_       = ExtractValueFromData(data,mpc0_frame1_fifo_clct_first_key_bitlo,       mpc0_frame1_fifo_clct_first_key_bithi);
+    read_mpc0_frame1_fifo_clct_first_bend_      = ExtractValueFromData(data,mpc0_frame1_fifo_clct_first_bend_bitlo,      mpc0_frame1_fifo_clct_first_bend_bithi);
+    read_mpc0_frame1_fifo_sync_err_             = ExtractValueFromData(data,mpc0_frame1_fifo_sync_err_bitlo,             mpc0_frame1_fifo_sync_err_bithi);
+    read_mpc0_frame1_fifo_alct_first_bxn_       = ExtractValueFromData(data,mpc0_frame1_fifo_alct_first_bxn_bitlo,       mpc0_frame1_fifo_alct_first_bxn_bithi);
+    read_mpc0_frame1_fifo_clct_first_bx0_local_ = ExtractValueFromData(data,mpc0_frame1_fifo_clct_first_bx0_local_bitlo, mpc0_frame1_fifo_clct_first_bx0_local_bithi);
+    read_mpc0_frame1_fifo_csc_id_               = ExtractValueFromData(data,mpc0_frame1_fifo_csc_id_bitlo,               mpc0_frame1_fifo_csc_id_bithi);
+    //
+  } else if ( address == mpc1_frame0_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X180 = ADR_MPC1_FRAME0_FIFO:  MPC1 Frame0 Data Sent to MPC and Stored in FIFO
+    //------------------------------------------------------------------
+    read_mpc1_frame0_fifo_alct_second_key_    = ExtractValueFromData(data,mpc1_frame0_fifo_alct_second_key_bitlo,    mpc1_frame0_fifo_alct_second_key_bithi);
+    read_mpc1_frame0_fifo_clct_second_pat_    = ExtractValueFromData(data,mpc1_frame0_fifo_clct_second_pat_bitlo,    mpc1_frame0_fifo_clct_second_pat_bithi);
+    read_mpc1_frame0_fifo_lct_second_quality_ = ExtractValueFromData(data,mpc1_frame0_fifo_lct_second_quality_bitlo, mpc1_frame0_fifo_lct_second_quality_bithi);
+    read_mpc1_frame0_fifo_second_vpf_         = ExtractValueFromData(data,mpc1_frame0_fifo_second_vpf_bitlo,         mpc1_frame0_fifo_second_vpf_bithi);
+    //
+  } else if ( address == mpc1_frame1_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X182 = ADR_MPC1_FRAME1_FIFO:  MPC1 Frame1 Data Sent to MPC and Stored in FIFO
+    //------------------------------------------------------------------
+    read_mpc1_frame1_fifo_clct_second_key_       = ExtractValueFromData(data,mpc1_frame1_fifo_clct_second_key_bitlo,       mpc1_frame1_fifo_clct_second_key_bithi);
+    read_mpc1_frame1_fifo_clct_second_bend_      = ExtractValueFromData(data,mpc1_frame1_fifo_clct_second_bend_bitlo,      mpc1_frame1_fifo_clct_second_bend_bithi);
+    read_mpc1_frame1_fifo_sync_err_              = ExtractValueFromData(data,mpc1_frame1_fifo_sync_err_bitlo,              mpc1_frame1_fifo_sync_err_bithi);
+    read_mpc1_frame1_fifo_alct_second_bxn_       = ExtractValueFromData(data,mpc1_frame1_fifo_alct_second_bxn_bitlo,       mpc1_frame1_fifo_alct_second_bxn_bithi);
+    read_mpc1_frame1_fifo_clct_second_bx0_local_ = ExtractValueFromData(data,mpc1_frame1_fifo_clct_second_bx0_local_bitlo, mpc1_frame1_fifo_clct_second_bx0_local_bithi);
+    read_mpc1_frame1_fifo_csc_id_                = ExtractValueFromData(data,mpc1_frame1_fifo_csc_id_bitlo,                mpc1_frame1_fifo_csc_id_bithi);
+    //
+  } else if ( address == mpc_frames_fifo_ctrl_adr ) {
+    //------------------------------------------------------------------
+    //0X184 = ADR_MPC_FRAMES_FIFO_CTRL:  Controls FIFO
+    //------------------------------------------------------------------
+    read_mpc_frames_fifo_ctrl_wr_en_     = ExtractValueFromData(data, mpc_frames_fifo_ctrl_wr_en_bitlo,     mpc_frames_fifo_ctrl_wr_en_bithi);
+    read_mpc_frames_fifo_ctrl_rd_en_     = ExtractValueFromData(data, mpc_frames_fifo_ctrl_rd_en_bitlo,     mpc_frames_fifo_ctrl_rd_en_bithi);
+    read_mpc_frames_fifo_ctrl_full_      = ExtractValueFromData(data, mpc_frames_fifo_ctrl_full_bitlo,      mpc_frames_fifo_ctrl_full_bithi);
+    read_mpc_frames_fifo_ctrl_wr_ack_    = ExtractValueFromData(data, mpc_frames_fifo_ctrl_wr_ack_bitlo,    mpc_frames_fifo_ctrl_wr_ack_bithi);
+    read_mpc_frames_fifo_ctrl_overflow_  = ExtractValueFromData(data, mpc_frames_fifo_ctrl_overflow_bitlo,  mpc_frames_fifo_ctrl_overflow_bithi);
+    read_mpc_frames_fifo_ctrl_empty_     = ExtractValueFromData(data, mpc_frames_fifo_ctrl_empty_bitlo,     mpc_frames_fifo_ctrl_empty_bithi);
+    read_mpc_frames_fifo_ctrl_prog_full_ = ExtractValueFromData(data, mpc_frames_fifo_ctrl_prog_full_bitlo, mpc_frames_fifo_ctrl_prog_full_bithi);
+    read_mpc_frames_fifo_ctrl_sbiterr_   = ExtractValueFromData(data, mpc_frames_fifo_ctrl_sbiterr_bitlo,   mpc_frames_fifo_ctrl_sbiterr_bithi);
+    read_mpc_frames_fifo_ctrl_sditter_   = ExtractValueFromData(data, mpc_frames_fifo_ctrl_sditter_bitlo,   mpc_frames_fifo_ctrl_sditter_bithi);
   } else if ( address == scp_ctrl_adr ) {
     //------------------------------------------------------------------
     //0X98 = ADR_SCP_CTRL:  Scope Control
@@ -9234,6 +9327,13 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(((cfeb_ram_sel_    >>5)&0x3) ,cfeb_ram_sel_extend_bithi     ,cfeb_ram_sel_extend_bitlo     ,&data_word);
     InsertValueIntoDataWord(((cfeb_inj_en_sel_ >>5)&0x3) ,cfeb_inj_en_sel_extend_bithi  ,cfeb_inj_en_sel_extend_bitlo  ,&data_word);
     InsertValueIntoDataWord(((cfebs_enabled_   >>5)&0x3) ,cfebs_enabled_extend_bithi    ,cfebs_enabled_extend_bitlo    ,&data_word);
+    //
+  } else if ( address == mpc_frames_fifo_ctrl_adr ) {
+    //------------------------------------------------------------------
+    //0X184 = ADR_MPC_FRAMES_FIFO_CTRL:  Controls FIFO
+    //------------------------------------------------------------------
+    InsertValueIntoDataWord(mpc_frames_fifo_ctrl_wr_en_, mpc_frames_fifo_ctrl_wr_en_bithi, mpc_frames_fifo_ctrl_wr_en_bitlo, &data_word);
+    InsertValueIntoDataWord(mpc_frames_fifo_ctrl_rd_en_, mpc_frames_fifo_ctrl_rd_en_bithi, mpc_frames_fifo_ctrl_rd_en_bitlo, &data_word);
     //
   } else {
     //
