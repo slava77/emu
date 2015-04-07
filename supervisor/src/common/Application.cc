@@ -1461,13 +1461,13 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
 
     // The TF FED software will fail on starting if not having just been configured 
     // (i.e., when the previous run was 'stop'-ped) because the TF DDU L1A counter won't be 0. 
-    // Let's run the configure sequence now (which will issue a hard reset and a resync) to zero that counter
+    // Let's run the stop sequence now (which will issue a hard reset and a resync) to zero that counter
     // to be ready to be started again.
     // The CSC FEDs don't seem to fail this way, but let's do them, too, to be absolutely sure.
     // Do this through the CIs as the PM is not under our control in global runs.
-    // if ( ci_plus_  ) ci_plus_ ->configureSequence();
-    // if ( ci_minus_ ) ci_minus_->configureSequence();
-    // if ( ci_tf_    ) ci_tf_   ->configureSequence();
+    if ( ci_plus_  ) ci_plus_ ->stopSequence();
+    if ( ci_minus_ ) ci_minus_->stopSequence();
+    if ( ci_tf_    ) ci_tf_   ->stopSequence();
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Stop was issued from the web interface
     if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
