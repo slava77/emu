@@ -795,6 +795,10 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
 
   buf2=(short *)buf;
   *buf2 = 0;
+
+// April 8,2015 by Liu: disable reading DMB counters
+  return;
+
   for(int i=0; i<= TOTAL_DMB_COUNTERS*9; i++) buf2[i]=0;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
