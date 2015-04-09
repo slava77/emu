@@ -480,7 +480,8 @@ private:
   void armScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void forceScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void readoutScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void TriggerTestInjectCLCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void TriggerTestInjectCLCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void TMBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   
   void TMBBPIReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

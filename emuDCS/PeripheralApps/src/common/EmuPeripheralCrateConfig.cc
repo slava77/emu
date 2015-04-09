@@ -450,6 +450,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBResetSyncError, "TMBResetSyncError");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBRawHits, "TMBRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTRawHits, "ALCTRawHits");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBLoadFirmware, "TMBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadFirmware, "TMBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIReset, "TMBBPIReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIDisable, "TMBBPIDisable");
@@ -10367,6 +10368,18 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() ;
   *out << cgicc::td();
   //
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string TMBLoadFirmware = toolbox::toString("/%s/TMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBLoadFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load TMB firmware to PROM") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::br();
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << FirmwareDir_+"otmb/me11_otmb.mcs";
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
   //////////////////////////////////////////////
   *out << cgicc::tr();
   //
@@ -10668,6 +10681,36 @@ void EmuPeripheralCrateConfig::TMBReadFirmware(xgi::Input * in, xgi::Output * ou
   }
   //
   this->TMBUtils(in,out);
+}
+//
+void EmuPeripheralCrateConfig::TMBLoadFirmware(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::string mcsfile = FirmwareDir_ + "otmb/me11_otmb.mcs";
+    std::cout << getLocalDateTime() << " OTMB program EPROM in slot " << thisTMB->slot() << " using MCS file" << mcsfile << std::endl;
+    thisTMB->otmb_program_eprom_poll(mcsfile.c_str());
+    std::cout << getLocalDateTime() << " OTMB program EPROM finished." << std::endl;
+  }
+  //
+  this->TMBUtils(in, out);
+  //
 }
 //
 void EmuPeripheralCrateConfig::ALCTReadFirmware(xgi::Input * in, xgi::Output * out )
