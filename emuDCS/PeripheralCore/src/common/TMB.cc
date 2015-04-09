@@ -1622,7 +1622,7 @@ void TMB::DecodeAndPrintMPCFrames(unsigned int event_n = 0) {
   //
   std::cout << "LCT Info: Frames Sent to MPC" << std::endl;
   if (event_n > 0) {
-    std::cout << "                          \t| \tExtended MPC frames from FIFO:" << std::endl;
+    std::cout << "                          \t| \tLast 10 MPC frames from FIFO:" << std::endl;
     std::cout << "                          \t| ";
     for (unsigned int i = 0; i < event_n; i++)
       std::cout << "\t" << std::dec << i + 1;
