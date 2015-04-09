@@ -1656,7 +1656,7 @@ void TMB::DecodeAndPrintMPCFrames(unsigned int event_n = 0) {
   //
   (*MyOutput_) << "-------------------------------------------------" << std::endl;
   if (event_n > 0) {
-    (*MyOutput_) << "                                          \t| \tExtended MPC frames from FIFO:" << std::endl;
+    (*MyOutput_) << "                                          \t| \Last 10 MPC frames from FIFO:" << std::endl;
     (*MyOutput_) << "                                          \t| ";
     for (unsigned int i = 0; i < event_n; i++)
       (*MyOutput_) << "\t" << std::dec << i + 1;
