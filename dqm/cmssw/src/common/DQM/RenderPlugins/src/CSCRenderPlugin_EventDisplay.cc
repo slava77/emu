@@ -399,7 +399,8 @@ int EventDisplay::countStrips(int station, int ring) const {
  * @return number of strips in inner corner
  */
 int EventDisplay::countStripsNose(int station, int ring) const {
-  if (station == 1 && ring == 1) return 16;
+//  if (station == 1 && ring == 1) return 16;
+  if (station == 1 && ring == 1) return 48; // For Run2 ME11 with 7 DCFEBs
   return 0;
 }
 
