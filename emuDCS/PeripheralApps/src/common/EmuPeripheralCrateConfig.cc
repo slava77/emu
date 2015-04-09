@@ -9328,24 +9328,26 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     *out << cgicc::fieldset();
   }
   //
-  *out << cgicc::fieldset();
-  *out
+  if(thisTMB->GetHardwareVersion() >= 2) {
+    *out << cgicc::fieldset();
+    *out
       << cgicc::legend("LCT Info: Frames Sent to MPC").set("style", "color:red")
       << std::endl;
-  *out << cgicc::pre();
-  thisTMB->RedirectOutput(out);
-  // thisTMB->DecodeMPCFrames(); // Decode MPC frames for LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
-  // thisTMB->PrintMPCFrames();  // Print  MPC frames for LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
-  //
-  // thisTMB->DecodeMPCFramesFromFIFO(); // Decode MPC frames for ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
-  // thisTMB->PrintMPCFramesFromFIFO();  // Print  MPC frames for ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
-  //
-  thisTMB->DecodeAndPrintMPCFrames(10); // Decode and print MPC frames for both cases:
-                                        //   1. LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
-                                        //   2. ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
-  thisTMB->RedirectOutput(&std::cout);
-  *out << cgicc::pre();
-  *out << cgicc::fieldset();
+    *out << cgicc::pre();
+    thisTMB->RedirectOutput(out);
+    // thisTMB->DecodeMPCFrames(); // Decode MPC frames for LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
+    // thisTMB->PrintMPCFrames();  // Print  MPC frames for LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
+    //
+    // thisTMB->DecodeMPCFramesFromFIFO(); // Decode MPC frames for ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
+    // thisTMB->PrintMPCFramesFromFIFO();  // Print  MPC frames for ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
+    //
+    thisTMB->DecodeAndPrintMPCFrames(10); // Decode and print MPC frames for both cases:
+                      //   1. LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
+                      //   2. ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
+    thisTMB->RedirectOutput(&std::cout);
+    *out << cgicc::pre();
+    *out << cgicc::fieldset();
+  }
   //
   *out << std::endl;    
   //
