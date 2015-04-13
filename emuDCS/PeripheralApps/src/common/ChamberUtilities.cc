@@ -3726,6 +3726,11 @@ void ChamberUtilities::CFEBTiming_without_Posnegs(){
 //----------------------------------------------
 void ChamberUtilities::ALCT_TMB_Loopback() {
   //
+  int initial_alct_clear = thisTMB->GetAlctClear();
+  if (initial_alct_clear == 1) {
+    thisTMB->SetAlctClear(0);
+    thisTMB->WriteRegister(alct_inj_adr);
+  }
   bool initial_use_measured_values = use_measured_values_;
   PropagateMeasuredValues(true);
   //
@@ -3750,6 +3755,10 @@ void ChamberUtilities::ALCT_TMB_Loopback() {
   //
   PropagateMeasuredValues(initial_use_measured_values);
   //
+  if (initial_alct_clear == 1) {
+    thisTMB->SetAlctClear(initial_alct_clear);
+    thisTMB->WriteRegister(alct_inj_adr);
+  }
   return;
 }
 //
