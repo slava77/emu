@@ -920,6 +920,8 @@ public:
   void SEM_read_errcnt(CFEB &cfeb, char *singleflip,char *multiflip);
   void SEM_control(CFEB &cfeb);
   void SEM_rst_doublerrorflag(CFEB &cfeb);
+            
+  int SVFLoad(int dev, const char *fn, int db, int verify );
 
  private:
 
@@ -966,7 +968,7 @@ public:
   void odmbeprom_read(unsigned nwords, unsigned short *pdata);
   bool odmbeprom_cmd_fifo_empty(unsigned int poll_interval = 100 /*us*/);
   bool odmbeprom_pec_ready(unsigned int poll_interval = 500 /*us*/);
-            
+  
   //
   int shift_array_[7][6][16];
   static const int nchips[7];
