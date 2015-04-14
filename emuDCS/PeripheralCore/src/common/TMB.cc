@@ -3869,7 +3869,7 @@ void TMB::UnjamFPGAMini() {
   std::cout << "Resetting the TMB FPGA JTAG chain to idle state (5 clocks of TMS high)" << std::endl;
   // Bring the Test Access Port (TAP) state to Run-Test-Idle for each JTAG chain
   int data_word;
-  int chain_address = tmb_fpga_chain;
+  int chain_address = tmb_mezz_chain;
   //
   data_word = chain_address | tms_up | tck_dn;
   tmb_set_boot_reg(data_word);     
