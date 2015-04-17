@@ -397,6 +397,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramFpga, "DCFEBProgramFpga");
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramFpgaAll, "DCFEBProgramFpgaAll");
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramEprom, "DCFEBProgramEprom");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramEpromSVF, "DCFEBProgramEpromSVF");
   xgi::bind(this,&EmuPeripheralCrateConfig::DCFEBProgramEpromAll, "DCFEBProgramEpromAll");
   xgi::bind(this,&EmuPeripheralCrateConfig::LVMBStatus, "LVMBStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::ODMBLoadFirmwarePoll, "ODMBLoadFirmwarePoll");
