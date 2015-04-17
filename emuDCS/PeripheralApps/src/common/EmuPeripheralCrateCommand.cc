@@ -607,7 +607,7 @@ int EmuPeripheralCrateCommand::VerifyCCBs()
     crateVector[i]->SetLife( cr );
     if(!cr) OutputCheckConfiguration << getLocalDateTime()<< " Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
     if ( crateVector[i]->IsAlive() ) {
-      OutputCheckConfiguration << getLocalDateTime()<< " Check CCB in Crate " << crateVector[i]->GetLabel() << std::endl;
+      OutputCheckConfiguration << getLocalDateTime()<< " Check CCB & MPC in Crate " << crateVector[i]->GetLabel() << std::endl;
       //
       crateVector[i]->ccb()->RedirectOutput(&OutputCheckConfiguration);  
       ccb_check_ok[i] = crateVector[i]->ccb()->CheckConfig(1);
@@ -619,6 +619,12 @@ int EmuPeripheralCrateCommand::VerifyCCBs()
       crateVector[i]->ccb()->RedirectOutput(&std::cout);
       //
       all_crates_ok &= ccb_check_ok[i];
+
+      crateVector[i]->mpc()->RedirectOutput(&OutputCheckConfiguration);  
+      mpc_check_ok[i] = crateVector[i]->mpc()->CheckConfig();
+      crateVector[i]->mpc()->RedirectOutput(&std::cout);
+      //
+      all_crates_ok &= mpc_check_ok[i];
     }
   }
   SetCurrentCrate(initialcrate);

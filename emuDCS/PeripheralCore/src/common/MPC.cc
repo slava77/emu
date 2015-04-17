@@ -272,6 +272,7 @@ void MPC::configure() {
 
 int MPC::CheckConfig()
 {
+   std::cout << "MPC: configuration check..." << std::endl;
    int rx;
    rx=ReadRegister(CSR0);
    //
@@ -291,6 +292,11 @@ int MPC::CheckConfig()
    //                << std::hex << (rx&0xffff) << std::dec << std::endl;
    //      return 0;
    //   }
+
+   // check TMB mask
+   int tmb_mask = ReadMask();
+   config_ok &= compareValues("MPC TMB Mask", tmb_mask & 0x1FF, mpc_tmb_mask_ & 0x1FF);
+
    return (int) config_ok;
 }
 
