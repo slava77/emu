@@ -685,6 +685,17 @@ public:
   void otmb_bpi_prom_block_unlockerase(bool debug = false);
   void otmb_bpi_prom_loadaddress(unsigned short uaddress, unsigned short laddress, bool debug = true);
 
+  // Old OTMB BPI-->EPROM access rountines
+  void otmbeprom_multi(int cnt, unsigned short *manbuf);
+  bool otmbeprom_pec_ready(unsigned int poll_interval);
+  void otmbeprom_read(unsigned nwords, unsigned short *pdata);
+  void otmbeprom_bufferprogram(unsigned nwords, unsigned short *prm_dat);
+  void otmb_readparam(int paramblock,int nval,unsigned short int  *val);
+  void otmb_loadparam(int paramblock,int nval,unsigned short int  *val);
+  void otmb_readfirmware_mcs(const char *filename);
+  void otmb_program_eprom(const char *mcsfile);
+  bool otmb_program_eprom_poll(const char *mcsfile);
+
   //
   ////////////////////////
   // The following methods deal with data going from TMB to MPC...
