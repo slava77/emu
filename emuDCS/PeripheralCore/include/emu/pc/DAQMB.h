@@ -772,14 +772,14 @@ public:
   void virtex6_writereg(int reg, unsigned value);
     
   unsigned dcfeb_readreg_virtex6(CFEB & cfeb,int test);
-  void dcfeb_readreg_statusvirtex6(CFEB& cfeb); 
-  void dcfeb_readreg_cor0virtex6(CFEB& cfeb);
-  void dcfeb_readreg_cor1virtex6(CFEB& cfeb);
-  void dcfeb_readreg_idcodevirtex6(CFEB& cfeb);
-  void dcfeb_readreg_farvirtex6(CFEB& cfeb);
-  void dcfeb_readreg_ctl0virtex6(CFEB& cfeb);
-  void dcfeb_readreg_crcvirtex6(CFEB& cfeb);
-  void dcfeb_readreg_wbstarvirtex6(CFEB& cfeb);
+  unsigned dcfeb_readreg_statusvirtex6(CFEB& cfeb) { return dcfeb_readreg_virtex6(cfeb, VTX6_REG_STAT); } 
+  unsigned dcfeb_readreg_cor0virtex6(CFEB& cfeb) { return dcfeb_readreg_virtex6(cfeb, VTX6_REG_COR0); }
+  unsigned dcfeb_readreg_cor1virtex6(CFEB& cfeb) { return dcfeb_readreg_virtex6(cfeb, VTX6_REG_COR1); }
+  unsigned dcfeb_readreg_idcodevirtex6(CFEB& cfeb) { return dcfeb_readreg_virtex6(cfeb, VTX6_REG_IDCODE); }
+  unsigned dcfeb_readreg_farvirtex6(CFEB& cfeb) { return dcfeb_readreg_virtex6(cfeb, VTX6_REG_FAR); }
+  unsigned dcfeb_readreg_ctl0virtex6(CFEB& cfeb) { return dcfeb_readreg_virtex6(cfeb, VTX6_REG_CTL0); }
+  unsigned dcfeb_readreg_crcvirtex6(CFEB& cfeb) { return dcfeb_readreg_virtex6(cfeb, VTX6_REG_CRC); }
+  unsigned dcfeb_readreg_wbstarvirtex6(CFEB& cfeb) { return dcfeb_readreg_virtex6(cfeb, VTX6_REG_WBSTAR); }
 
   void dcfeb_fpga_shutdown();
   int dcfeb_dna(CFEB & cfeb, void *dna);
