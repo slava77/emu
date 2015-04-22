@@ -186,9 +186,13 @@ int netif_rx_hook_5(struct sk_buff *skb)
   if(nbufw+skb->len+16 > MMT_BUF_SIZE)
   { printk(KERN_INFO "eth_hook_5: out of memory, incoming packet dropped! \n");
     pack_drop++;
+#if   SLC_VERSION == 5
+    ERROR=1;
+    kfree_skb(skb);
+#elif SLC_VERSION == 6
     ERROR=ERROR%0xffff + 1;
-    /* kfree_skb(skb); */
     dev_kfree_skb_any(skb);
+#endif
     return 1;
   }
 
@@ -209,7 +213,11 @@ int netif_rx_hook_5(struct sk_buff *skb)
 	bufw=pnt_ring;
 	nbufw=0;
 	bufr=pnt_ring;
-	ERROR=ERROR%0xffff + 1;
+#if   SLC_VERSION == 5
+    ERROR=1;
+#elif SLC_VERSION == 6
+    ERROR=ERROR%0xffff + 1;
+#endif
   }
 
 // wake from blocking sleep
@@ -228,8 +236,11 @@ int netif_rx_hook_5(struct sk_buff *skb)
       proc_rbytesH_5=proc_rbytesH_5+1;
    }
 // return to gigabit driver
-  /* kfree_skb(skb); */
-   dev_kfree_skb_any(skb);
+#if   SLC_VERSION == 5
+    kfree_skb(skb);
+#elif SLC_VERSION == 6
+    dev_kfree_skb_any(skb);
+#endif
   return 1;
 }
 
@@ -393,8 +404,11 @@ static ssize_t schar_read_5(struct file *file, char *buf, size_t count,
 	  return -EFAULT;
 	}
         count=lsend;
-	/* file->f_pos += count; */
+#if   SLC_VERSION == 5
+	file->f_pos += count;
+#elif SLC_VERSION == 6
 	*offset += count;
+#endif
         bufr=bufr+lsend+2;
         pack_left=pack_left-1;
         if(pack_left<=0){
@@ -648,8 +662,11 @@ static ssize_t schar_write_5(struct file *file, const char *buf, size_t count,
    return count;
      
    out_free:
-   /* kfree_skb(skb); */
+#if   SLC_VERSION == 5
+   kfree_skb(skb);
+#elif SLC_VERSION == 6
    dev_kfree_skb_any(skb);
+#endif
    out_unlock:
      // if (dev)dev_put(dev);
       // kfree(sbuf);           

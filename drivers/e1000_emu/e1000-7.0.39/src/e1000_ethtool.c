@@ -1920,7 +1920,7 @@ static struct ethtool_ops e1000_ethtool_ops = {
 	.get_ethtool_stats      = e1000_get_ethtool_stats,
 #ifdef ETHTOOL_GPERMADDR
 #if   SLC_VERSION == 5
-	.get_perm_addr  		= ethtool_op_get_perm_addr, SLC5
+	.get_perm_addr  		= ethtool_op_get_perm_addr
 #endif /* SLC_VERSION */
 #endif
 };

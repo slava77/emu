@@ -38,6 +38,10 @@ function load_e1000_emu(){
 	echo "/sbin/modprobe -r e1000e"
 	/sbin/modprobe -r e1000e
     fi
+#    if [[ $(/sbin/lsmod | grep -c 'igb ') -gt 0 ]]; then
+#	echo "/sbin/modprobe -r igb"
+#	/sbin/modprobe -r igb
+#    fi
     echo "lsmod | grep e1000"
     /sbin/lsmod | grep e1000
     /sbin/lspci -k | grep -A 3 Ethernet
@@ -63,7 +67,7 @@ function load_e1000_emu(){
     # Module aliases. Note that, in the case of a built-in Intel NIC with module e1000, it will also be replaced with e1000_emu.
     if [[ $SLC_MAJOR -eq 5 ]]; then
 	echo "Updating /etc/modprobe.conf"
-	[[ -f /etc/modprobe.conf ]] && sed -i.bak -e 's/^alias eth\([012345]\) e1000$/alias eth\1 e1000_emu/g' /etc/modprobe.conf
+	[[ -f /etc/modprobe.conf ]] && sed -i.bak -e 's/^alias eth\([012345]\) e1000[^ ]*/alias eth\1 e1000_emu/g' /etc/modprobe.conf
         # Count the number of on-board ports to be served by e1000_emu
 	[[ -f /etc/modprobe.conf ]] && (( NPORTS+=$(grep -c '^alias eth[01] e1000' /etc/modprobe.conf) ))
     elif [[ $SLC_MAJOR -eq 6 ]]; then
@@ -164,9 +168,9 @@ print "Seems to be SLC${SLC_MAJOR}. Assuming interface names ${IF_NAME}."
 
 # Only load the drivers on hosts in this list of aliases:
 #for ALIAS in csc-c2d08-19-01; do
-for ALIAS in csc-daq{01..10}.cms; do
+for ALIAS in csc-daq{01..10}.cms emume42; do
     if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
-	load_e1000_emu eth_hook_2_ddu eth_hook_3_ddu eth_hook_4_ddu eth_hook_5_ddu
+	load_e1000_emu eth_hook_2_vme eth_hook_3_ddu eth_hook_4_ddu eth_hook_5_ddu
 	exit 0
     fi
 done

@@ -817,12 +817,16 @@ e1000_probe(struct pci_dev *pdev,
 	netdev->weight = 64;
 #endif
 #ifdef NETIF_F_HW_VLAN_TX
-	/* netdev->vlan_rx_register = e1000_vlan_rx_register; */
-	/* netdev->vlan_rx_add_vid = e1000_vlan_rx_add_vid; */
-	/* netdev->vlan_rx_kill_vid = e1000_vlan_rx_kill_vid; */
+#if   SLC_VERSION == 5
+	netdev->vlan_rx_register = e1000_vlan_rx_register;
+	netdev->vlan_rx_add_vid = e1000_vlan_rx_add_vid;
+	netdev->vlan_rx_kill_vid = e1000_vlan_rx_kill_vid;
+#endif
 #endif
 #ifdef CONFIG_NET_POLL_CONTROLLER
-	/* netdev->poll_controller = e1000_netpoll; */
+#if   SLC_VERSION == 5
+	netdev->poll_controller = e1000_netpoll;
+#endif
 #endif
 	strcpy(netdev->name, pci_name(pdev));
 
@@ -4079,30 +4083,32 @@ copydone:
 			   cpu_to_le16(E1000_RXDPS_HDRSTAT_HDRSP)))
 			adapter->rx_hdr_split++;
 		//	printk(KERN_INFO " just before netif_rx_hook 2 %s \n",netdev->name);
-                /* if(strcmp(netdev->name,"eth2")==0){ */
-		/*   netif_rx_hook_2(skb); */
-	        /* }else if(strcmp(netdev->name,"eth3")==0){ */
-		/*   netif_rx_hook_3(skb); */
-		/* }else if(strcmp(netdev->name,"eth4")==0){ */
-                /*   netif_rx_hook_4(skb); */
-		/* }else if(strcmp(netdev->name,"eth5")==0){ */
-                /*   netif_rx_hook_5(skb); */
-                /* }else{ */
-		/*   netif_receive_skb(skb); */
-		/* }         */
 
-                if(      strcmp(netdev->name,"p1p1")==0){
+#if   SLC_VERSION == 5
+        if(      strcmp(netdev->name,"eth2")==0){
 		  netif_rx_hook_2(skb);
-	        }else if(strcmp(netdev->name,"p1p2")==0){
+        }else if(strcmp(netdev->name,"eth3")==0){
+		  netif_rx_hook_3(skb);
+		}else if(strcmp(netdev->name,"eth4")==0){
+          netif_rx_hook_4(skb);
+		}else if(strcmp(netdev->name,"eth5")==0){
+          netif_rx_hook_5(skb);
+        }else{
+		  netif_receive_skb(skb);
+		}
+#elif SLC_VERSION == 6
+        if(      strcmp(netdev->name,"p1p1")==0){
+		  netif_rx_hook_2(skb);
+        }else if(strcmp(netdev->name,"p1p2")==0){
 		  netif_rx_hook_3(skb);
 		}else if(strcmp(netdev->name,"p2p1")==0){
-                  netif_rx_hook_4(skb);
+          netif_rx_hook_4(skb);
 		}else if(strcmp(netdev->name,"p2p2")==0){
-                  netif_rx_hook_5(skb);
-                }else{
+          netif_rx_hook_5(skb);
+        }else{
 		  netif_receive_skb(skb);
 		}        
-
+#endif
 		
 // #ifdef CONFIG_E1000_NAPI
 // #ifdef NETIF_F_HW_VLAN_TX
