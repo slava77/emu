@@ -21,20 +21,21 @@ ulimit -c unlimited
 
 # BUILD_HOME, XDAQ_ROOT and ROOTSYS should be set. Their default values are:
 # export BUILD_HOME=${BUILD_HOME:-$PWD/${0:h}/../../..}
-export BUILD_HOME=${BUILD_HOME:-$HOME/CMS/TriDAS}
-export XDAQ_ROOT=${XDAQ_ROOT:-$HOME/XDAQ}
-export ROOTSYS=${ROOTSYS:-$HOME/ROOT/root}
+export BUILD_HOME=${BUILD_HOME:-$HOME/TriDAS}
+export XDAQ_ROOT=${XDAQ_ROOT:-/opt/xdaq}
+export ROOTSYS=${ROOTSYS:-/opt/cern/root}
 
 export XDAQ_OS=linux
 [[ $(uname -m) == "x86_64" ]] && XDAQ_PLATFORM="x86_64" || XDAQ_PLATFORM="x86"
 if [[ ${#DISTRIB_ID} -gt 0 ]]; then
     XDAQ_PLATFORM=${XDAQ_PLATFORM}_$DISTRIB_ID
 elif [[ -f /etc/issue ]]; then
-    XDAQ_PLATFORM=${XDAQ_PLATFORM}_$(/bin/sed -n -e 's/[^0-9]*\([0-9]\).[0-9][^0-9]*/slc\1/p' /etc/issue)
+    XDAQ_PLATFORM=${XDAQ_PLATFORM}_$(/bin/sed -n -e 's/[^0-9]*\([0-9]\).[0-9]\+[^0-9]*/slc\1/p' /etc/issue)
 fi
 export XDAQ_PLATFORM
 export XDAQ_DOCUMENT_ROOT=${XDAQ_ROOT}/htdocs
 export LD_LIBRARY_PATH=$ROOTSYS/lib:$XDAQ_ROOT/lib
+export WEBCSCDISP_DIR=$BUILD_HOME/emu/web_csc_display/
 
 print
 print "Environment variables:"
@@ -48,7 +49,7 @@ print "    LD_LIBRARY_PATH    = $LD_LIBRARY_PATH"
 print
 
 OPTIONS="\
- -h emume11.cern.ch \
+ -h $(hostname) \
  -p 9093 \
  -c ${BUILD_HOME}/emu/web_csc_display/xml/csc_display.xml"
 

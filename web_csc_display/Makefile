@@ -21,7 +21,6 @@ Sources = \
     graph.cc \
     utils.cc \
     SimpleWeb.cc \
-    HelloWorld.cc \
     version.cc
 
 IncludeDirs= \
@@ -35,7 +34,7 @@ IncludeDirs= \
 LibraryDirs=$(ROOTSYS)/lib
 
 UserCFlags=$(ROOTCFLAGS)
-UserCCFlags=-O0 -g -Wall -Wno-long-long $(ROOTCFLAGS)
+UserCCFlags=-O0 -g -Wall -Wno-long-long $(ROOTCFLAGS) -DLOCAL_UNPACK
 UserDynamicLinkFlags=$(ROOTLIBS)
 
 DynamicLibrary=csc_display

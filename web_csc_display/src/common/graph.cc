@@ -311,6 +311,7 @@ void getCFEBTimeScaleGraph (TVirtualPad* c, data_type data, j_common_type j_data
     graph = (TGraph***) malloc(sizeof(TGraph**)*NLAYER);
     for (i = 0; i < NLAYER; i++) {
         graph[i] = (TGraph**) malloc(sizeof(TGraph*)*5);
+        for ( j=0; j < 5; j++ ) graph[i][j] = NULL;
     }
     
     // divide the canvas into 2 parts: left and right
