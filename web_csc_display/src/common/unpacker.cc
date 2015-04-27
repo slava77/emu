@@ -208,7 +208,7 @@ int getDataFromFD(emu::daq::reader::RawDataFile* fd, const char* filename, int e
 
         ///** Get FEBs Data Available Info
         int cfeb_dav2 = 0;
-        for (int i=0; i<5; i++) cfeb_dav2 = cfeb_dav2 + (int)((dmbHeader->cfebAvailable()>>i) & 0x1);
+        for (int i=0; i<NCFEB; i++) cfeb_dav2 = cfeb_dav2 + (int)((dmbHeader->cfebAvailable()>>i) & 0x1);
 
         ///** ALCT Found
         if (data.nalct()) {
@@ -254,7 +254,7 @@ int getDataFromFD(emu::daq::reader::RawDataFile* fd, const char* filename, int e
 
 
                 ///** Process anode raw data
-                for (int nLayer=1; nLayer<=6; nLayer++) {
+                for (int nLayer=1; nLayer<=NLAYER; nLayer++) {
                     vector<CSCWireDigi> wireDigis = alctData->wireDigis(nLayer);
                     for (vector<CSCWireDigi>:: iterator wireDigisItr = wireDigis.begin(); wireDigisItr != wireDigis.end(); ++wireDigisItr) {
                         int wg = wireDigisItr->getWireGroup();
@@ -320,7 +320,7 @@ int getDataFromFD(emu::daq::reader::RawDataFile* fd, const char* filename, int e
             // nclct>0 checked before
 
             ///** Process cathode raw data - layers count from 1
-            for (int nLayer=1; nLayer<=6; nLayer++) {
+            for (int nLayer=1; nLayer<=NLAYER; nLayer++) {
                 vector<CSCComparatorDigi> comparatorDigis = data.clctData()->comparatorDigis(nLayer);
 
                 for(vector<CSCComparatorDigi>::iterator compDigisItr= comparatorDigis.begin();compDigisItr != comparatorDigis.end();++compDigisItr) {
@@ -344,8 +344,8 @@ int getDataFromFD(emu::daq::reader::RawDataFile* fd, const char* filename, int e
 
         ///** CFEBs Found
         //int N_CFEBs=5;
-        int N_CFEBs=5;
-        int N_Layers = 6, N_Strips = 16;
+        int N_CFEBs=NCFEB;
+        int N_Layers = NLAYER, N_Strips = NCFEB_STRIP;
         int TrigTime, SCA_BLK, NmbTimeSamples, ADC, OutOfRange;
 
         (*upevt).sca_clock_phase = 0;
