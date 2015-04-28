@@ -548,6 +548,7 @@
 #include<math.h>
 
 #include "emu/pc/TMB_constants.h"
+#include "emu/pc/JTAG_constants.h"
 #include "emu/pc/ALCTController.h"
 #include "emu/pc/RAT.h"
 #include "emu/pc/Chamber.h"
@@ -1389,6 +1390,492 @@ void TMB::PrintCLCT() {
   (*MyOutput_) << "CLCT1.Key HStrip = "   << std::dec << read_CLCT1_keyHalfStrip_ << std::endl;
   (*MyOutput_) << "CLCT1.BXN        = 0x" << std::hex << read_CLCT_BXN_           << std::endl;
   (*MyOutput_) << "CLCT1.sync err   = 0x" << std::hex << read_CLCT_sync_err_      << std::endl;
+  //
+  return;
+}
+//
+void TMB::DecodeMPCFrames(){
+  //
+  int mpc0_frame0 = ReadRegister(mpc0_frame0_adr); // 0x88
+  int mpc0_frame1 = ReadRegister(mpc0_frame1_adr); // 0x8a
+  int mpc1_frame0 = ReadRegister(mpc1_frame0_adr); // 0x8c
+  int mpc1_frame1 = ReadRegister(mpc1_frame1_adr); // 0x8e
+  //
+  mpc0_frame0_data_ = (mpc0_frame0 & 0xffff);
+  mpc0_frame1_data_ = (mpc0_frame1 & 0xffff);
+  mpc1_frame0_data_ = (mpc1_frame0 & 0xffff);
+  mpc1_frame1_data_ = (mpc1_frame1 & 0xffff);
+  //
+  //   PrintCLCT();
+  //
+  return;
+}
+//
+void TMB::PrintMPCFrames() {
+  //
+  std::cout << "MPC0 frame0 data = 0x" << std::hex << mpc0_frame0_data_ << std::endl;
+  std::cout << "MPC0 frame1 data = 0x" << std::hex << mpc0_frame1_data_ << std::endl;
+  std::cout << "MPC1 frame0 data = 0x" << std::hex << mpc1_frame0_data_ << std::endl;
+  std::cout << "MPC1 frame1 data = 0x" << std::hex << mpc1_frame1_data_ << std::endl;
+  //
+  (*MyOutput_) << "----------------------"                                                 << std::endl;
+  (*MyOutput_) << "MPC0 frame0 data                 = 0x" << std::hex << mpc0_frame0_data_ << std::endl;
+  (*MyOutput_) << "     frame1 data                 = 0x" << std::hex << mpc0_frame1_data_ << std::endl;
+  (*MyOutput_) << "MPC1 frame0 data                 = 0x" << std::hex << mpc1_frame0_data_ << std::endl;
+  (*MyOutput_) << "     frame1 data                 = 0x" << std::hex << mpc1_frame1_data_ << std::endl;
+  (*MyOutput_) << "----------------------"                                                                    << std::endl;
+  (*MyOutput_) << "MPC0 frame0.alct_first_key        =   "             << read_mpc0_frame0_alct_first_key_    << std::endl;
+  (*MyOutput_) << "     frame0.clct_first_pat        = 0x" << std::hex << read_mpc0_frame0_clct_first_pat_    << std::endl;
+  (*MyOutput_) << "     frame0.lct_first_quality     = 0x" << std::hex << read_mpc0_frame0_lct_first_quality_ << std::endl;
+  (*MyOutput_) << "     frame0.first_vpf             = 0x" << std::hex << read_mpc0_frame0_first_vpf_         << std::endl;
+  (*MyOutput_) << "----------------------"                                                                    << std::endl;
+  (*MyOutput_) << "MPC0 frame1.clct_first_key        =   "             << read_mpc0_frame1_clct_first_key_       << std::endl;
+  (*MyOutput_) << "     frame1.clct_first_bend       = 0x" << std::hex << read_mpc0_frame1_clct_first_bend_      << std::endl;
+  (*MyOutput_) << "     frame1.sync_err              = 0x" << std::hex << read_mpc0_frame1_sync_err_             << std::endl;
+  (*MyOutput_) << "     frame1.alct_first_bxn        = 0x" << std::hex << read_mpc0_frame1_alct_first_bxn_       << std::endl;
+  (*MyOutput_) << "     frame1.clct_first_bx0_local  = 0x" << std::hex << read_mpc0_frame1_clct_first_bx0_local_ << std::endl;
+  (*MyOutput_) << "     frame1.csc_id                = 0x" << std::hex << read_mpc0_frame1_csc_id_               << std::endl;
+  (*MyOutput_) << "----------------------"                                                                       << std::endl;
+  (*MyOutput_) << "MPC1 frame0.alct_second_key       =   "             << read_mpc1_frame0_alct_second_key_    << std::endl;
+  (*MyOutput_) << "     frame0.clct_second_pat       = 0x" << std::hex << read_mpc1_frame0_clct_second_pat_    << std::endl;
+  (*MyOutput_) << "     frame0.lct_second_quality    = 0x" << std::hex << read_mpc1_frame0_lct_second_quality_ << std::endl;
+  (*MyOutput_) << "     frame0.second_vpf            = 0x" << std::hex << read_mpc1_frame0_second_vpf_         << std::endl;
+  (*MyOutput_) << "----------------------"                                                                        << std::endl;
+  (*MyOutput_) << "MPC1 frame1.clct_first_key        =   "             << read_mpc1_frame1_clct_second_key_       << std::endl;
+  (*MyOutput_) << "     frame1.clct_second_bend      = 0x" << std::hex << read_mpc1_frame1_clct_second_bend_      << std::endl;
+  (*MyOutput_) << "     frame1.sync_err              = 0x" << std::hex << read_mpc1_frame1_sync_err_              << std::endl;
+  (*MyOutput_) << "     frame1.alct_second_bxn       = 0x" << std::hex << read_mpc1_frame1_alct_second_bxn_       << std::endl;
+  (*MyOutput_) << "     frame1.clct_second_bx0_local = 0x" << std::hex << read_mpc1_frame1_clct_second_bx0_local_ << std::endl;
+  (*MyOutput_) << "     frame1.csc_id                = 0x" << std::hex << read_mpc1_frame1_csc_id_                << std::endl;
+  //
+  return;
+}
+//
+void TMB::DecodeMPCFramesFromFIFO(){
+  //
+  int data_to_write;
+  //
+  // Enable reading from FIFO
+  SetMPCFramesFifoCtrlRdEn(1);
+  data_to_write = FillTMBRegister(mpc_frames_fifo_ctrl_adr);
+  WriteRegister(mpc_frames_fifo_ctrl_adr, data_to_write);
+  //
+  // Read ONE EVENT from VME registers connected to FIFO
+  int mpc0_frame0_fifo = ReadRegister(mpc0_frame0_fifo_adr); // 0x17C
+  int mpc0_frame1_fifo = ReadRegister(mpc0_frame1_fifo_adr); // 0x17E
+  int mpc1_frame0_fifo = ReadRegister(mpc1_frame0_fifo_adr); // 0x180
+  int mpc1_frame1_fifo = ReadRegister(mpc1_frame1_fifo_adr); // 0x182
+  //
+  // Read from VME registers connected to FIFO control
+  int mpc_frames_fifo_ctrl = ReadRegister(mpc_frames_fifo_ctrl_adr); // 0x184
+  //
+  mpc0_frame0_fifo_data_ = (mpc0_frame0_fifo & 0xffff);
+  mpc0_frame1_fifo_data_ = (mpc0_frame1_fifo & 0xffff);
+  mpc1_frame0_fifo_data_ = (mpc1_frame0_fifo & 0xffff);
+  mpc1_frame1_fifo_data_ = (mpc1_frame1_fifo & 0xffff);
+  //
+  mpc_frames_fifo_ctrl_data_ = (mpc_frames_fifo_ctrl & 0xffff);
+  //
+  // Disable reading from FIFO
+  SetMPCFramesFifoCtrlRdEn(0);
+  data_to_write = FillTMBRegister(mpc_frames_fifo_ctrl_adr);
+  WriteRegister(mpc_frames_fifo_ctrl_adr, data_to_write);
+  //
+  return;
+}
+//
+void TMB::PrintMPCFramesFromFIFO() {
+  //
+  std::cout << "MPC0 frame0 from FIFO data = 0x" << std::hex << mpc0_frame0_fifo_data_ << std::endl;
+  std::cout << "MPC0 frame1 from FIFO data = 0x" << std::hex << mpc0_frame1_fifo_data_ << std::endl;
+  std::cout << "MPC1 frame0 from FIFO data = 0x" << std::hex << mpc1_frame0_fifo_data_ << std::endl;
+  std::cout << "MPC1 frame1 from FIFO data = 0x" << std::hex << mpc1_frame1_fifo_data_ << std::endl;
+  //
+  (*MyOutput_) << "----------------------"                                                                 << std::endl;
+  (*MyOutput_) << "MPC0 from FIFO frame0 data                  = 0x" << std::hex << mpc0_frame0_fifo_data_ << std::endl;
+  (*MyOutput_) << "               frame1 data                  = 0x" << std::hex << mpc0_frame1_fifo_data_ << std::endl;
+  (*MyOutput_) << "MPC1 from FIFO frame0 data                  = 0x" << std::hex << mpc1_frame0_fifo_data_ << std::endl;
+  (*MyOutput_) << "               frame1 data                  = 0x" << std::hex << mpc1_frame1_fifo_data_ << std::endl;
+  (*MyOutput_) << "----------------------"                                                                                   << std::endl;
+  (*MyOutput_) << "MPC0 from FIFO frame0.alct_first_key        =   " << std::dec << read_mpc0_frame0_fifo_alct_first_key_    << std::endl;
+  (*MyOutput_) << "               frame0.clct_first_pat        = 0x" << std::hex << read_mpc0_frame0_fifo_clct_first_pat_    << std::endl;
+  (*MyOutput_) << "               frame0.lct_first_quality     = 0x" << std::hex << read_mpc0_frame0_fifo_lct_first_quality_ << std::endl;
+  (*MyOutput_) << "               frame0.first_vpf             = 0x" << std::hex << read_mpc0_frame0_fifo_first_vpf_         << std::endl;
+  (*MyOutput_) << "----------------------"                                                                                   << std::endl;
+  (*MyOutput_) << "MPC0 from FIFO frame1.clct_first_key        =   " << std::dec << read_mpc0_frame1_fifo_clct_first_key_       << std::endl;
+  (*MyOutput_) << "               frame1.clct_first_bend       = 0x" << std::hex << read_mpc0_frame1_fifo_clct_first_bend_      << std::endl;
+  (*MyOutput_) << "               frame1.sync_err              = 0x" << std::hex << read_mpc0_frame1_fifo_sync_err_             << std::endl;
+  (*MyOutput_) << "               frame1.alct_first_bxn        = 0x" << std::hex << read_mpc0_frame1_fifo_alct_first_bxn_       << std::endl;
+  (*MyOutput_) << "               frame1.clct_first_bx0_local  = 0x" << std::hex << read_mpc0_frame1_fifo_clct_first_bx0_local_ << std::endl;
+  (*MyOutput_) << "               frame1.csc_id                = 0x" << std::hex << read_mpc0_frame1_fifo_csc_id_               << std::endl;
+  (*MyOutput_) << "----------------------"                                                                                    << std::endl;
+  (*MyOutput_) << "MPC1 from FIFO frame0.alct_second_key       =   " << std::dec << read_mpc1_frame0_fifo_alct_second_key_    << std::endl;
+  (*MyOutput_) << "               frame0.clct_second_pat       = 0x" << std::hex << read_mpc1_frame0_fifo_clct_second_pat_    << std::endl;
+  (*MyOutput_) << "               frame0.lct_second_quality    = 0x" << std::hex << read_mpc1_frame0_fifo_lct_second_quality_ << std::endl;
+  (*MyOutput_) << "               frame0.second_vpf            = 0x" << std::hex << read_mpc1_frame0_fifo_second_vpf_         << std::endl;
+  (*MyOutput_) << "----------------------"                                                                                       << std::endl;
+  (*MyOutput_) << "MPC1 from FIFO frame1.clct_first_key        =   " << std::dec            << read_mpc1_frame1_fifo_clct_second_key_       << std::endl;
+  (*MyOutput_) << "               frame1.clct_second_bend      = 0x" << std::hex << read_mpc1_frame1_fifo_clct_second_bend_      << std::endl;
+  (*MyOutput_) << "               frame1.sync_err              = 0x" << std::hex << read_mpc1_frame1_fifo_sync_err_              << std::endl;
+  (*MyOutput_) << "               frame1.alct_second_bxn       = 0x" << std::hex << read_mpc1_frame1_fifo_alct_second_bxn_       << std::endl;
+  (*MyOutput_) << "               frame1.clct_second_bx0_local = 0x" << std::hex << read_mpc1_frame1_fifo_clct_second_bx0_local_ << std::endl;
+  (*MyOutput_) << "               frame1.csc_id                = 0x" << std::hex << read_mpc1_frame1_fifo_csc_id_                << std::endl;
+  //
+  return;
+}
+//
+void TMB::DecodeAndPrintMPCFrames(unsigned int event_n = 0) {
+  //
+  DecodeMPCFrames();
+  //
+  // Vectors below store data from MPC frames of last event_n events
+  //   we need to decode data event_n times (see below) to fill these vectors
+  //   this is the reason the function is called "DecodeAndPrint"
+  //
+  std::vector<int> v_mpc0_frame0_fifo_data_;
+  std::vector<int> v_mpc0_frame1_fifo_data_;
+  std::vector<int> v_mpc1_frame0_fifo_data_;
+  std::vector<int> v_mpc1_frame1_fifo_data_;
+  //
+  std::vector<int> v_read_mpc0_frame0_fifo_alct_first_key_;
+  std::vector<int> v_read_mpc0_frame0_fifo_clct_first_pat_;
+  std::vector<int> v_read_mpc0_frame0_fifo_lct_first_quality_;
+  std::vector<int> v_read_mpc0_frame0_fifo_first_vpf_;
+  //
+  std::vector<int> v_read_mpc0_frame1_fifo_clct_first_key_;
+  std::vector<int> v_read_mpc0_frame1_fifo_clct_first_bend_;
+  std::vector<int> v_read_mpc0_frame1_fifo_sync_err_;
+  std::vector<int> v_read_mpc0_frame1_fifo_alct_first_bxn_;
+  std::vector<int> v_read_mpc0_frame1_fifo_clct_first_bx0_local_;
+  std::vector<int> v_read_mpc0_frame1_fifo_csc_id_;
+  //
+  std::vector<int> v_read_mpc1_frame0_fifo_alct_second_key_;
+  std::vector<int> v_read_mpc1_frame0_fifo_clct_second_pat_;
+  std::vector<int> v_read_mpc1_frame0_fifo_lct_second_quality_;
+  std::vector<int> v_read_mpc1_frame0_fifo_second_vpf_;
+  //
+  std::vector<int> v_read_mpc1_frame1_fifo_clct_second_key_;
+  std::vector<int> v_read_mpc1_frame1_fifo_clct_second_bend_;
+  std::vector<int> v_read_mpc1_frame1_fifo_sync_err_;
+  std::vector<int> v_read_mpc1_frame1_fifo_alct_second_bxn_;
+  std::vector<int> v_read_mpc1_frame1_fifo_clct_second_bx0_local_;
+  std::vector<int> v_read_mpc1_frame1_fifo_csc_id_;
+  //
+  std::vector<int> v_mpc_frames_fifo_ctrl_data_;
+  //
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_wr_en_;
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_rd_en_;
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_full_;
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_wr_ack_;
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_overflow_;
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_empty_;
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_prog_full_;
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_sbiterr_;
+  std::vector<int> v_read_mpc_frames_fifo_ctrl_sditter_;
+  //
+  for (unsigned int i = 0; i < event_n; i++) {
+    DecodeMPCFramesFromFIFO();
+    //
+    v_mpc0_frame0_fifo_data_.push_back(mpc0_frame0_fifo_data_);
+    v_mpc0_frame1_fifo_data_.push_back(mpc0_frame1_fifo_data_);
+    v_mpc1_frame0_fifo_data_.push_back(mpc1_frame0_fifo_data_);
+    v_mpc1_frame1_fifo_data_.push_back(mpc1_frame1_fifo_data_);
+    //
+    v_read_mpc0_frame0_fifo_alct_first_key_.push_back(read_mpc0_frame0_fifo_alct_first_key_);
+    v_read_mpc0_frame0_fifo_clct_first_pat_.push_back(read_mpc0_frame0_fifo_clct_first_pat_);
+    v_read_mpc0_frame0_fifo_lct_first_quality_.push_back(read_mpc0_frame0_fifo_lct_first_quality_);
+    v_read_mpc0_frame0_fifo_first_vpf_.push_back(read_mpc0_frame0_fifo_first_vpf_);
+    //
+    v_read_mpc0_frame1_fifo_clct_first_key_.push_back(read_mpc0_frame1_fifo_clct_first_key_);
+    v_read_mpc0_frame1_fifo_clct_first_bend_.push_back(read_mpc0_frame1_fifo_clct_first_bend_);
+    v_read_mpc0_frame1_fifo_sync_err_.push_back(read_mpc0_frame1_fifo_sync_err_);
+    v_read_mpc0_frame1_fifo_alct_first_bxn_.push_back(read_mpc0_frame1_fifo_alct_first_bxn_);
+    v_read_mpc0_frame1_fifo_clct_first_bx0_local_.push_back(read_mpc0_frame1_fifo_clct_first_bx0_local_);
+    v_read_mpc0_frame1_fifo_csc_id_.push_back(read_mpc0_frame1_fifo_csc_id_);
+    //
+    v_read_mpc1_frame0_fifo_alct_second_key_.push_back(read_mpc1_frame0_fifo_alct_second_key_);
+    v_read_mpc1_frame0_fifo_clct_second_pat_.push_back(read_mpc1_frame0_fifo_clct_second_pat_);
+    v_read_mpc1_frame0_fifo_lct_second_quality_.push_back(read_mpc1_frame0_fifo_lct_second_quality_);
+    v_read_mpc1_frame0_fifo_second_vpf_.push_back(read_mpc1_frame0_fifo_second_vpf_);
+    //
+    v_read_mpc1_frame1_fifo_clct_second_key_.push_back(read_mpc1_frame1_fifo_clct_second_key_);
+    v_read_mpc1_frame1_fifo_clct_second_bend_.push_back(read_mpc1_frame1_fifo_clct_second_bend_);
+    v_read_mpc1_frame1_fifo_sync_err_.push_back(read_mpc1_frame1_fifo_sync_err_);
+    v_read_mpc1_frame1_fifo_alct_second_bxn_.push_back(read_mpc1_frame1_fifo_alct_second_bxn_);
+    v_read_mpc1_frame1_fifo_clct_second_bx0_local_.push_back(read_mpc1_frame1_fifo_clct_second_bx0_local_);
+    v_read_mpc1_frame1_fifo_csc_id_.push_back(read_mpc1_frame1_fifo_csc_id_);
+    //
+    v_mpc_frames_fifo_ctrl_data_.push_back(mpc_frames_fifo_ctrl_data_);
+    //
+    v_read_mpc_frames_fifo_ctrl_wr_en_.push_back(read_mpc_frames_fifo_ctrl_wr_en_);
+    v_read_mpc_frames_fifo_ctrl_rd_en_.push_back(read_mpc_frames_fifo_ctrl_rd_en_);
+    v_read_mpc_frames_fifo_ctrl_full_.push_back(read_mpc_frames_fifo_ctrl_full_);
+    v_read_mpc_frames_fifo_ctrl_wr_ack_.push_back(read_mpc_frames_fifo_ctrl_wr_ack_);
+    v_read_mpc_frames_fifo_ctrl_overflow_.push_back(read_mpc_frames_fifo_ctrl_overflow_);
+    v_read_mpc_frames_fifo_ctrl_empty_.push_back(read_mpc_frames_fifo_ctrl_empty_);
+    v_read_mpc_frames_fifo_ctrl_prog_full_.push_back(read_mpc_frames_fifo_ctrl_prog_full_);
+    v_read_mpc_frames_fifo_ctrl_sbiterr_.push_back(read_mpc_frames_fifo_ctrl_sbiterr_);
+    v_read_mpc_frames_fifo_ctrl_sditter_.push_back(read_mpc_frames_fifo_ctrl_sditter_);
+  }
+  //
+  std::cout << "LCT Info: Frames Sent to MPC" << std::endl;
+  if (event_n > 0) {
+    std::cout << "                          \t| \tLast 10 MPC frames from FIFO:" << std::endl;
+    std::cout << "                          \t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      std::cout << "\t" << std::dec << i + 1;
+    std::cout << std::endl;
+  }
+  std::cout << "LCT0 MPC0 frame0 data = 0x" << std::hex << mpc0_frame0_data_;
+  if (event_n > 0)
+    std::cout << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    std::cout << "\t0x" << std::hex << v_mpc0_frame0_fifo_data_[i];
+  std::cout << std::endl;
+  std::cout << "     MPC0 frame1 data = 0x" << std::hex << mpc0_frame1_data_;
+  if (event_n > 0)
+    std::cout << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    std::cout << "\t0x" << std::hex << v_mpc0_frame1_fifo_data_[i];
+  std::cout << std::endl;
+  std::cout << "LCT1 MPC1 frame0 data = 0x" << std::hex << mpc1_frame0_data_;
+  if (event_n > 0)
+    std::cout << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    std::cout << "\t0x" << std::hex << v_mpc1_frame0_fifo_data_[i];
+  std::cout << std::endl;
+  std::cout << "     MPC1 frame1 data = 0x" << std::hex << mpc1_frame1_data_;
+  if (event_n > 0)
+    std::cout << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    std::cout << "\t0x" << std::hex << v_mpc1_frame1_fifo_data_[i];
+  std::cout << std::endl;
+  std::cout << "MPC frames FIFO control data = 0x" << std::hex << mpc_frames_fifo_ctrl_data_ << std::endl;
+  //
+  (*MyOutput_) << "-------------------------------------------------" << std::endl;
+  if (event_n > 0) {
+    (*MyOutput_) << "                                          \t| \Last 10 MPC frames from FIFO:" << std::endl;
+    (*MyOutput_) << "                                          \t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t" << std::dec << i + 1;
+    (*MyOutput_) << std::endl;
+  }
+  (*MyOutput_) << "-------------------------------------------------" << std::endl;
+  (*MyOutput_) << "LCT0 MPC0 frame0 data                  = 0x" << std::hex << mpc0_frame0_data_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_mpc0_frame0_fifo_data_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame1 data                  = 0x" << std::hex << mpc0_frame1_data_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_mpc0_frame1_fifo_data_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "LCT1 MPC1 frame0 data                  = 0x" << std::hex << mpc1_frame0_data_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_mpc1_frame0_fifo_data_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame1 data                  = 0x" << std::hex << mpc1_frame1_data_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_mpc1_frame1_fifo_data_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "-------------------------------------------------" << std::endl;
+  (*MyOutput_) << "LCT0 MPC0 frame0.alct_first_key        = " << std::dec << read_mpc0_frame0_alct_first_key_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t" << std::dec << v_read_mpc0_frame0_fifo_alct_first_key_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame0.clct_first_pat        = 0x" << std::hex << read_mpc0_frame0_clct_first_pat_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc0_frame0_fifo_clct_first_pat_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame0.lct_first_quality     = 0x" << std::hex << read_mpc0_frame0_lct_first_quality_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc0_frame0_fifo_lct_first_quality_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame0.first_vpf             = 0x" << std::hex << read_mpc0_frame0_first_vpf_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc0_frame0_fifo_first_vpf_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "-------------------------------------------------" << std::endl;
+  (*MyOutput_) << "LCT0 MPC0 frame1.clct_first_key        = " << std::dec << read_mpc0_frame1_clct_first_key_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t" << std::dec << v_read_mpc0_frame1_fifo_clct_first_key_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame1.clct_first_bend       = 0x" << std::hex << read_mpc0_frame1_clct_first_bend_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc0_frame1_fifo_clct_first_bend_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame1.sync_err              = 0x" << std::hex << read_mpc0_frame1_sync_err_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc0_frame1_fifo_sync_err_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame1.alct_first_bxn        = 0x" << std::hex << read_mpc0_frame1_alct_first_bxn_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc0_frame1_fifo_alct_first_bxn_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame1.clct_first_bx0_local  = 0x" << std::hex << read_mpc0_frame1_clct_first_bx0_local_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc0_frame1_fifo_clct_first_bx0_local_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC0 frame1.csc_id                = 0x" << std::hex << read_mpc0_frame1_csc_id_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc0_frame1_fifo_csc_id_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "-------------------------------------------------" << std::endl;
+  (*MyOutput_) << "LCT1 MPC1 frame0.alct_second_key       = " << std::dec << read_mpc1_frame0_alct_second_key_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t" << std::dec << v_read_mpc1_frame0_fifo_alct_second_key_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame0.clct_second_pat       = 0x" << std::hex << read_mpc1_frame0_clct_second_pat_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc1_frame0_fifo_clct_second_pat_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame0.lct_second_quality    = 0x" << std::hex << read_mpc1_frame0_lct_second_quality_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc1_frame0_fifo_lct_second_quality_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame0.second_vpf            = 0x" << std::hex << read_mpc1_frame0_second_vpf_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc1_frame0_fifo_second_vpf_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "-------------------------------------------------" << std::endl;
+  (*MyOutput_) << "LCT1 MPC1 frame1.clct_second_key       = " << std::dec << read_mpc1_frame1_clct_second_key_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t" << std::dec << v_read_mpc1_frame1_fifo_clct_second_key_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame1.clct_second_bend      = 0x" << std::hex << read_mpc1_frame1_clct_second_bend_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc1_frame1_fifo_clct_second_bend_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame1.sync_err              = 0x" << std::hex << read_mpc1_frame1_sync_err_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc1_frame1_fifo_sync_err_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame1.alct_second_bxn       = 0x" << std::hex << read_mpc1_frame1_alct_second_bxn_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc1_frame1_fifo_alct_second_bxn_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame1.clct_second_bx0_local = 0x" << std::hex << read_mpc1_frame1_clct_second_bx0_local_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc1_frame1_fifo_clct_second_bx0_local_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "     MPC1 frame1.csc_id                = 0x" << std::hex << read_mpc1_frame1_csc_id_;
+  if (event_n > 0)
+    (*MyOutput_) << "\t| ";
+  for (unsigned int i = 0; i < event_n; i++)
+    (*MyOutput_) << "\t0x" << std::hex << v_read_mpc1_frame1_fifo_csc_id_[i];
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "-------------------------------------------------" << std::endl;
+  //
+  // Print out FIFO status and control registers
+  if (event_n > 0) {
+    (*MyOutput_) << "MPC frames FIFO control data           =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_mpc_frames_fifo_ctrl_data_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "-------------------------------------------------" << std::endl;
+    (*MyOutput_) << "     Write enable                      =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_wr_en_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "     Read enable                       =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_rd_en_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "     Full                              =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_full_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "     Write acknowledge                 =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_wr_ack_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "     Overflow                          =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_overflow_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "     Empty                             =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_empty_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "     Prog full                         =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_prog_full_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "     sbiterr                           =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_sbiterr_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "     sditter                           =   ";
+    if (event_n > 0)
+      (*MyOutput_) << "\t| ";
+    for (unsigned int i = 0; i < event_n; i++)
+      (*MyOutput_) << "\t0x" << std::hex << v_read_mpc_frames_fifo_ctrl_sditter_[i];
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "-------------------------------------------------" << std::endl;
+  }
   //
   return;
 }
@@ -6457,6 +6944,99 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_mpc_idle_blank_      = ExtractValueFromData(data,mpc_idle_blank_bitlo     ,mpc_idle_blank_bithi     );
     read_mpc_output_enable_   = ExtractValueFromData(data,mpc_output_enable_bitlo  ,mpc_output_enable_bithi  );
     //
+  } else if ( address == mpc0_frame0_adr ) {
+    //------------------------------------------------------------------
+    //0X88 = ADR_MPC0_FRAME0:  MPC0 Frame0 Data Sent to MPC
+    //------------------------------------------------------------------
+    read_mpc0_frame0_alct_first_key_    = ExtractValueFromData(data,mpc0_frame0_alct_first_key_bitlo,    mpc0_frame0_alct_first_key_bithi);
+    read_mpc0_frame0_clct_first_pat_    = ExtractValueFromData(data,mpc0_frame0_clct_first_pat_bitlo,    mpc0_frame0_clct_first_pat_bithi);
+    read_mpc0_frame0_lct_first_quality_ = ExtractValueFromData(data,mpc0_frame0_lct_first_quality_bitlo, mpc0_frame0_lct_first_quality_bithi);
+    read_mpc0_frame0_first_vpf_         = ExtractValueFromData(data,mpc0_frame0_first_vpf_bitlo,         mpc0_frame0_first_vpf_bithi);
+    //
+  } else if ( address == mpc0_frame1_adr ) {
+    //------------------------------------------------------------------
+    //0X8A = ADR_MPC0_FRAME1:  MPC0 Frame1 Data Sent to MPC
+    //------------------------------------------------------------------
+    read_mpc0_frame1_clct_first_key_       = ExtractValueFromData(data,mpc0_frame1_clct_first_key_bitlo,       mpc0_frame1_clct_first_key_bithi);
+    read_mpc0_frame1_clct_first_bend_      = ExtractValueFromData(data,mpc0_frame1_clct_first_bend_bitlo,      mpc0_frame1_clct_first_bend_bithi);
+    read_mpc0_frame1_sync_err_             = ExtractValueFromData(data,mpc0_frame1_sync_err_bitlo,             mpc0_frame1_sync_err_bithi);
+    read_mpc0_frame1_alct_first_bxn_       = ExtractValueFromData(data,mpc0_frame1_alct_first_bxn_bitlo,       mpc0_frame1_alct_first_bxn_bithi);
+    read_mpc0_frame1_clct_first_bx0_local_ = ExtractValueFromData(data,mpc0_frame1_clct_first_bx0_local_bitlo, mpc0_frame1_clct_first_bx0_local_bithi);
+    read_mpc0_frame1_csc_id_               = ExtractValueFromData(data,mpc0_frame1_csc_id_bitlo,               mpc0_frame1_csc_id_bithi);
+    //
+  } else if ( address == mpc1_frame0_adr ) {
+    //------------------------------------------------------------------
+    //0X8C = ADR_MPC1_FRAME0:  MPC1 Frame0 Data Sent to MPC
+    //------------------------------------------------------------------
+    read_mpc1_frame0_alct_second_key_    = ExtractValueFromData(data,mpc1_frame0_alct_second_key_bitlo,    mpc1_frame0_alct_second_key_bithi);
+    read_mpc1_frame0_clct_second_pat_    = ExtractValueFromData(data,mpc1_frame0_clct_second_pat_bitlo,    mpc1_frame0_clct_second_pat_bithi);
+    read_mpc1_frame0_lct_second_quality_ = ExtractValueFromData(data,mpc1_frame0_lct_second_quality_bitlo, mpc1_frame0_lct_second_quality_bithi);
+    read_mpc1_frame0_second_vpf_         = ExtractValueFromData(data,mpc1_frame0_second_vpf_bitlo,         mpc1_frame0_second_vpf_bithi);
+    //
+  } else if ( address == mpc1_frame1_adr ) {
+    //------------------------------------------------------------------
+    //0X8E = ADR_MPC1_FRAME1:  MPC1 Frame1 Data Sent to MPC
+    //------------------------------------------------------------------
+    read_mpc1_frame1_clct_second_key_       = ExtractValueFromData(data,mpc1_frame1_clct_second_key_bitlo,       mpc1_frame1_clct_second_key_bithi);
+    read_mpc1_frame1_clct_second_bend_      = ExtractValueFromData(data,mpc1_frame1_clct_second_bend_bitlo,      mpc1_frame1_clct_second_bend_bithi);
+    read_mpc1_frame1_sync_err_              = ExtractValueFromData(data,mpc1_frame1_sync_err_bitlo,              mpc1_frame1_sync_err_bithi);
+    read_mpc1_frame1_alct_second_bxn_       = ExtractValueFromData(data,mpc1_frame1_alct_second_bxn_bitlo,       mpc1_frame1_alct_second_bxn_bithi);
+    read_mpc1_frame1_clct_second_bx0_local_ = ExtractValueFromData(data,mpc1_frame1_clct_second_bx0_local_bitlo, mpc1_frame1_clct_second_bx0_local_bithi);
+    read_mpc1_frame1_csc_id_                = ExtractValueFromData(data,mpc1_frame1_csc_id_bitlo,                mpc1_frame1_csc_id_bithi);
+    //
+  } else if ( address == mpc0_frame0_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X17C = ADR_MPC0_FRAME0_FIFO:  MPC0 Frame0 Data Sent to MPC and Stored in FIFO
+    //------------------------------------------------------------------
+    read_mpc0_frame0_fifo_alct_first_key_    = ExtractValueFromData(data,mpc0_frame0_fifo_alct_first_key_bitlo,    mpc0_frame0_fifo_alct_first_key_bithi);
+    read_mpc0_frame0_fifo_clct_first_pat_    = ExtractValueFromData(data,mpc0_frame0_fifo_clct_first_pat_bitlo,    mpc0_frame0_fifo_clct_first_pat_bithi);
+    read_mpc0_frame0_fifo_lct_first_quality_ = ExtractValueFromData(data,mpc0_frame0_fifo_lct_first_quality_bitlo, mpc0_frame0_fifo_lct_first_quality_bithi);
+    read_mpc0_frame0_fifo_first_vpf_         = ExtractValueFromData(data,mpc0_frame0_fifo_first_vpf_bitlo,         mpc0_frame0_fifo_first_vpf_bithi);
+    //
+  } else if ( address == mpc0_frame1_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X17E = ADR_MPC0_FRAME1_FIFO:  MPC0 Frame1 Data Sent to MPC and Stored in FIFO
+    //------------------------------------------------------------------
+    read_mpc0_frame1_fifo_clct_first_key_       = ExtractValueFromData(data,mpc0_frame1_fifo_clct_first_key_bitlo,       mpc0_frame1_fifo_clct_first_key_bithi);
+    read_mpc0_frame1_fifo_clct_first_bend_      = ExtractValueFromData(data,mpc0_frame1_fifo_clct_first_bend_bitlo,      mpc0_frame1_fifo_clct_first_bend_bithi);
+    read_mpc0_frame1_fifo_sync_err_             = ExtractValueFromData(data,mpc0_frame1_fifo_sync_err_bitlo,             mpc0_frame1_fifo_sync_err_bithi);
+    read_mpc0_frame1_fifo_alct_first_bxn_       = ExtractValueFromData(data,mpc0_frame1_fifo_alct_first_bxn_bitlo,       mpc0_frame1_fifo_alct_first_bxn_bithi);
+    read_mpc0_frame1_fifo_clct_first_bx0_local_ = ExtractValueFromData(data,mpc0_frame1_fifo_clct_first_bx0_local_bitlo, mpc0_frame1_fifo_clct_first_bx0_local_bithi);
+    read_mpc0_frame1_fifo_csc_id_               = ExtractValueFromData(data,mpc0_frame1_fifo_csc_id_bitlo,               mpc0_frame1_fifo_csc_id_bithi);
+    //
+  } else if ( address == mpc1_frame0_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X180 = ADR_MPC1_FRAME0_FIFO:  MPC1 Frame0 Data Sent to MPC and Stored in FIFO
+    //------------------------------------------------------------------
+    read_mpc1_frame0_fifo_alct_second_key_    = ExtractValueFromData(data,mpc1_frame0_fifo_alct_second_key_bitlo,    mpc1_frame0_fifo_alct_second_key_bithi);
+    read_mpc1_frame0_fifo_clct_second_pat_    = ExtractValueFromData(data,mpc1_frame0_fifo_clct_second_pat_bitlo,    mpc1_frame0_fifo_clct_second_pat_bithi);
+    read_mpc1_frame0_fifo_lct_second_quality_ = ExtractValueFromData(data,mpc1_frame0_fifo_lct_second_quality_bitlo, mpc1_frame0_fifo_lct_second_quality_bithi);
+    read_mpc1_frame0_fifo_second_vpf_         = ExtractValueFromData(data,mpc1_frame0_fifo_second_vpf_bitlo,         mpc1_frame0_fifo_second_vpf_bithi);
+    //
+  } else if ( address == mpc1_frame1_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X182 = ADR_MPC1_FRAME1_FIFO:  MPC1 Frame1 Data Sent to MPC and Stored in FIFO
+    //------------------------------------------------------------------
+    read_mpc1_frame1_fifo_clct_second_key_       = ExtractValueFromData(data,mpc1_frame1_fifo_clct_second_key_bitlo,       mpc1_frame1_fifo_clct_second_key_bithi);
+    read_mpc1_frame1_fifo_clct_second_bend_      = ExtractValueFromData(data,mpc1_frame1_fifo_clct_second_bend_bitlo,      mpc1_frame1_fifo_clct_second_bend_bithi);
+    read_mpc1_frame1_fifo_sync_err_              = ExtractValueFromData(data,mpc1_frame1_fifo_sync_err_bitlo,              mpc1_frame1_fifo_sync_err_bithi);
+    read_mpc1_frame1_fifo_alct_second_bxn_       = ExtractValueFromData(data,mpc1_frame1_fifo_alct_second_bxn_bitlo,       mpc1_frame1_fifo_alct_second_bxn_bithi);
+    read_mpc1_frame1_fifo_clct_second_bx0_local_ = ExtractValueFromData(data,mpc1_frame1_fifo_clct_second_bx0_local_bitlo, mpc1_frame1_fifo_clct_second_bx0_local_bithi);
+    read_mpc1_frame1_fifo_csc_id_                = ExtractValueFromData(data,mpc1_frame1_fifo_csc_id_bitlo,                mpc1_frame1_fifo_csc_id_bithi);
+    //
+  } else if ( address == mpc_frames_fifo_ctrl_adr ) {
+    //------------------------------------------------------------------
+    //0X184 = ADR_MPC_FRAMES_FIFO_CTRL:  Controls FIFO
+    //------------------------------------------------------------------
+    read_mpc_frames_fifo_ctrl_wr_en_     = ExtractValueFromData(data, mpc_frames_fifo_ctrl_wr_en_bitlo,     mpc_frames_fifo_ctrl_wr_en_bithi);
+    read_mpc_frames_fifo_ctrl_rd_en_     = ExtractValueFromData(data, mpc_frames_fifo_ctrl_rd_en_bitlo,     mpc_frames_fifo_ctrl_rd_en_bithi);
+    read_mpc_frames_fifo_ctrl_full_      = ExtractValueFromData(data, mpc_frames_fifo_ctrl_full_bitlo,      mpc_frames_fifo_ctrl_full_bithi);
+    read_mpc_frames_fifo_ctrl_wr_ack_    = ExtractValueFromData(data, mpc_frames_fifo_ctrl_wr_ack_bitlo,    mpc_frames_fifo_ctrl_wr_ack_bithi);
+    read_mpc_frames_fifo_ctrl_overflow_  = ExtractValueFromData(data, mpc_frames_fifo_ctrl_overflow_bitlo,  mpc_frames_fifo_ctrl_overflow_bithi);
+    read_mpc_frames_fifo_ctrl_empty_     = ExtractValueFromData(data, mpc_frames_fifo_ctrl_empty_bitlo,     mpc_frames_fifo_ctrl_empty_bithi);
+    read_mpc_frames_fifo_ctrl_prog_full_ = ExtractValueFromData(data, mpc_frames_fifo_ctrl_prog_full_bitlo, mpc_frames_fifo_ctrl_prog_full_bithi);
+    read_mpc_frames_fifo_ctrl_sbiterr_   = ExtractValueFromData(data, mpc_frames_fifo_ctrl_sbiterr_bitlo,   mpc_frames_fifo_ctrl_sbiterr_bithi);
+    read_mpc_frames_fifo_ctrl_sditter_   = ExtractValueFromData(data, mpc_frames_fifo_ctrl_sditter_bitlo,   mpc_frames_fifo_ctrl_sditter_bithi);
   } else if ( address == scp_ctrl_adr ) {
     //------------------------------------------------------------------
     //0X98 = ADR_SCP_CTRL:  Scope Control
@@ -8659,6 +9239,13 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(((cfeb_inj_en_sel_ >>5)&0x3) ,cfeb_inj_en_sel_extend_bithi  ,cfeb_inj_en_sel_extend_bitlo  ,&data_word);
     InsertValueIntoDataWord(((cfebs_enabled_   >>5)&0x3) ,cfebs_enabled_extend_bithi    ,cfebs_enabled_extend_bitlo    ,&data_word);
     //
+  } else if ( address == mpc_frames_fifo_ctrl_adr ) {
+    //------------------------------------------------------------------
+    //0X184 = ADR_MPC_FRAMES_FIFO_CTRL:  Controls FIFO
+    //------------------------------------------------------------------
+    InsertValueIntoDataWord(mpc_frames_fifo_ctrl_wr_en_, mpc_frames_fifo_ctrl_wr_en_bithi, mpc_frames_fifo_ctrl_wr_en_bitlo, &data_word);
+    InsertValueIntoDataWord(mpc_frames_fifo_ctrl_rd_en_, mpc_frames_fifo_ctrl_rd_en_bithi, mpc_frames_fifo_ctrl_rd_en_bitlo, &data_word);
+    //
   } else {
     //
     (*MyOutput_) << "TMB: ERROR in FillTMBRegister, VME address = " << address << " not supported to be filled" << std::endl;
@@ -10063,5 +10650,876 @@ void TMB::WriteGtxControlRegisters() {
     WriteRegister(v6_gtx_rx6_adr);
 }
 
-} // namespace emu::pc  
-} // namespace emu  
+// *****************************************************************************
+// Functions to access VME registers defined for BPI
+// *****************************************************************************
+
+void TMB::otmb_bpi_reset(bool debug) {
+  if (debug)
+    printf("   otmb_bpi_reset: Begin write (no data) to register 0x%04x\n", OTMB_BPI_Reset);
+  WriteRegister(OTMB_BPI_Reset, 0);
+  if (debug)
+    printf("   otmb_bpi_reset: End\n");
+}
+
+void TMB::otmb_bpi_disable(bool debug) {
+  if (debug)
+    printf("   otmb_bpi_disable: Begin write (no data) to register 0x%04x\n", OTMB_BPI_Disable);
+  WriteRegister(OTMB_BPI_Disable, 0);
+  if (debug)
+    printf("   otmb_bpi_disable: End\n");
+}
+
+void TMB::otmb_bpi_enable(bool debug) {
+  if (debug)
+    printf("   otmb_bpi_enable: Begin write (no data) to register 0x%04x\n", OTMB_BPI_Enable);
+  WriteRegister(OTMB_BPI_Enable, 0);
+  if (debug)
+    printf("   otmb_bpi_enable:End\n");
+}
+
+void TMB::otmb_bpi_write_to_command_fifo(unsigned short command, bool debug) {
+  if (debug)
+    printf("   otmb_bpi_write_to_command_fifo: Begin write 16-bit word = 0x%04x to command FIFO register 0x%04x\n", command, OTMB_BPI_Write);
+  WriteRegister(OTMB_BPI_Write, command);
+  if (debug)
+    printf("   otmb_bpi_write_to_command_fifo: End\n");
+}
+
+unsigned short TMB::otmb_bpi_read(bool debug) {
+  if (debug)
+    printf("   otmb_bpi_read: Begin read 16-bit word from readback FIFO (16 bits) 0x%04x\n", OTMB_BPI_Read);
+  unsigned short read_word = ReadRegister(OTMB_BPI_Read);
+  if (debug)
+    printf("   otmb_bpi_read: End read word = 0x%04x\n", read_word);
+  return read_word;
+}
+
+unsigned short TMB::otmb_bpi_read_n_words(bool debug) {
+  if (debug)
+    printf("   otmb_bpi_read_n_words: Begin read number of 16-bit words remaining in readback FIFO (11 bits) 0x%04x\n", OTMB_BPI_Read_n);
+  unsigned short n_words = ReadRegister(OTMB_BPI_Read_n);
+  if (debug)
+    printf("   otmb_bpi_read_n_words: End read number of remaining words = 0x%04x\n", n_words);
+  return n_words;
+}
+
+unsigned short TMB::otmb_bpi_status(bool debug) {
+  /* status register
+   low 8 bits XLINK
+   0-blank write status/multiple work program status
+   1-block protection status
+   2-program suspend status
+   3-vpp status
+   4-program status
+   5-erase/blank check status
+   6-erase/suspend status
+   7-P.E.C. Status
+   high 8 bits Ben
+   0-cmd fifo write error
+   1-cmd fifo read error
+   2-cmd fifo full
+   3-cmd fifo empty
+   4-rbk fifo write error
+   5-rbk fifo read error
+   6-rbk fifo full
+   7-rbk fifo empty
+
+   0x8880 = 1000 1000 1000 0000
+   0x8000 = 1000 0000 0000 0000
+   */
+  if (debug)
+    printf("   otmb_bpi_status: Begin read 16-bit status from register 0x%04x\n", OTMB_BPI_Status);
+  unsigned short status = ReadRegister(OTMB_BPI_Status);
+  if (debug) {
+    printf("   otmb_bpi_status: Status = 0x%04x\n", status);
+    printf("   otmb_bpi_status:     15 = %d - rbk fifo empty\n", (status >> 15) & 0x1);
+    printf("   otmb_bpi_status:     14 = %d - rbk fifo full\n", (status >> 14) & 0x1);
+    printf("   otmb_bpi_status:     13 = %d - rbk fifo read error\n", (status >> 13) & 0x1);
+    printf("   otmb_bpi_status:     12 = %d - rbk fifo write error\n", (status >> 12) & 0x1);
+    printf("   otmb_bpi_status:     11 = %d - cmd fifo empty\n", (status >> 11) & 0x1);
+    printf("   otmb_bpi_status:     10 = %d - cmd fifo full\n", (status >> 10) & 0x1);
+    printf("   otmb_bpi_status:     09 = %d - cmd fifo read error\n", (status >> 9) & 0x1);
+    printf("   otmb_bpi_status:     08 = %d - cmd fifo write error\n", (status >> 8) & 0x1);
+    printf("   otmb_bpi_status:     07 = %d - P.E.C. Status\n", (status >> 7) & 0x1);
+    printf("   otmb_bpi_status:     06 = %d - erase/suspend status\n", (status >> 6) & 0x1);
+    printf("   otmb_bpi_status:     05 = %d - erase/blank check status\n", (status >> 5) & 0x1);
+    printf("   otmb_bpi_status:     04 = %d - program status\n", (status >> 4) & 0x1);
+    printf("   otmb_bpi_status:     03 = %d - vpp status\n", (status >> 3) & 0x1);
+    printf("   otmb_bpi_status:     02 = %d - program suspend status\n", (status >> 2) & 0x1);
+    printf("   otmb_bpi_status:     01 = %d - block protection status\n", (status >> 1) & 0x1);
+    printf("   otmb_bpi_status:     00 = %d - blank write status/multiple work program status\n", (status >> 0) & 0x1);
+  }
+  if (debug)
+    printf("   otmb_bpi_status: End read status\n");
+  return status;
+}
+
+unsigned TMB::otmb_bpi_timer_read(bool debug) {
+  if (debug)
+    printf("   otmb_bpi_timer_read: Begin read timer low bits 15:0 from register 0x%04x\n", OTMB_BPI_Timer_l);
+  unsigned timer_l = ReadRegister(OTMB_BPI_Timer_l);
+  if (debug)
+    printf("   otmb_bpi_timer_read: read timer low bits = 0x%04x\n", timer_l);
+  //
+  if (debug)
+    printf("   otmb_bpi_timer_read: Begin read timer high bits 31:16 from register 0x%04x\n", OTMB_BPI_Timer_h);
+  unsigned timer_h = ReadRegister(OTMB_BPI_Timer_h);
+  if (debug)
+    printf("   otmb_bpi_timer_read: read timer high bits = 0x%04x\n", timer_h);
+  //
+  unsigned timer = (timer_h << 16) + timer_l;
+  if (debug)
+    printf("   otmb_bpi_timer_read: End read timer bits = 0x%08x\n", timer);
+  return timer;
+}
+
+// *****************************************************************************
+// Functions to send commands to BPI command FIFO through BPI_Write VME register
+// *****************************************************************************
+
+void TMB::otmb_bpi_prom_noop(bool debug) {
+  if (debug)
+    printf("  otmb_bpi_prom_noop: Begin\n");
+  otmb_bpi_write_to_command_fifo(XPROM_NoOp);
+  if (debug)
+    printf("  otmb_bpi_prom_noop: End\n");
+}
+
+void TMB::otmb_bpi_prom_block_erase(bool debug) {
+  if (debug)
+    printf("  otmb_bpi_prom_block_erase: Begin\n");
+  otmb_bpi_write_to_command_fifo(XPROM_Block_Erase);
+  if (debug)
+    printf("  otmb_bpi_prom_block_erase: End\n");
+}
+
+void TMB::otmb_bpi_prom_block_lock(bool debug) {
+  if (debug)
+    printf("  otmb_bpi_prom_block_lock: Begin\n");
+  otmb_bpi_write_to_command_fifo(XPROM_Block_Lock);
+  if (debug)
+    printf("  otmb_bpi_prom_block_lock: End\n");
+}
+
+void TMB::otmb_bpi_prom_block_unlock(bool debug) {
+  if (debug)
+    printf("  otmb_bpi_prom_block_unlock: Begin\n");
+  otmb_bpi_write_to_command_fifo(XPROM_Block_UnLock);
+  if (debug)
+    printf("  otmb_bpi_prom_block_unlock: End\n");
+}
+
+void TMB::otmb_bpi_prom_timerstart(bool debug) {
+  if (debug)
+    printf("  otmb_bpi_prom_timerstart: Begin\n");
+  otmb_bpi_write_to_command_fifo(XPROM_Timer_Start);
+  if (debug)
+    printf("  otmb_bpi_prom_timerstart: End\n");
+}
+
+void TMB::otmb_bpi_prom_timerstop(bool debug) {
+  if (debug)
+    printf("  otmb_bpi_prom_timerstop: Begin\n");
+  otmb_bpi_write_to_command_fifo(XPROM_Timer_Stop);
+  if (debug)
+    printf("  otmb_bpi_prom_timerstop: End\n");
+}
+
+void TMB::otmb_bpi_prom_timerreset(bool debug) {
+  if (debug)
+    printf("  otmb_bpi_prom_timerreset: Begin\n");
+  otmb_bpi_write_to_command_fifo(XPROM_Timer_Reset);
+  if (debug)
+    printf("  otmb_bpi_prom_timerreset: End\n");
+}
+
+void TMB::otmb_bpi_prom_clearstatus(bool debug) {
+  if (debug)
+    printf("  otmb_bpi_prom_clearstatus: Begin\n");
+  otmb_bpi_write_to_command_fifo(XPROM_Clear_Status);
+  if (debug)
+    printf("  otmb_bpi_prom_clearstatus: End\n");
+}
+
+// *****************************************************************************
+// Functions to send sequence of commands to BPI command FIFO
+// *****************************************************************************
+
+void TMB::otmb_bpi_prom_block_unlockerase(bool debug) {
+  if (debug)
+    printf(" otmb_bpi_prom_block_unlockerase: Begin\n");
+  otmb_bpi_prom_block_unlock(debug);
+  if (debug)
+    printf(" otmb_bpi_prom_block_unlockerase: Delay 10 us\n");
+  udelay(10);
+  otmb_bpi_prom_block_erase(debug);
+  if (debug)
+    printf(" otmb_bpi_prom_block_unlockerase: End\n");
+}
+
+void TMB::otmb_bpi_prom_loadaddress(unsigned short uaddr, unsigned short laddr, bool debug) {
+  if (debug)
+    printf(" otmb_bpi_prom_loadaddress: Begin load uaddr = %d (0x%02x) laddr = %d (0x%02x)\n", uaddr, uaddr, laddr, laddr);
+  unsigned short uaddr_tmp = ((uaddr << 5) & 0xffe0) | XPROM_Load_Address;
+  if (debug)
+    printf(" otmb_bpi_prom_loadaddress: Convert uaddr from 0x%02x to 0x%04x\n", uaddr, uaddr_tmp);
+  if (debug)
+    printf(" otmb_bpi_prom_loadaddress: Write uaddr 0x%04x\n", uaddr_tmp);
+  otmb_bpi_write_to_command_fifo(uaddr_tmp);
+  if (debug)
+    printf(" otmb_bpi_prom_loadaddress: Delay 10 us\n");
+  udelay(10);
+  if (debug)
+    printf(" otmb_bpi_prom_loadaddress: Write laddr 0x%02x\n", laddr);
+  otmb_bpi_write_to_command_fifo(laddr);
+  if (debug)
+    printf(" otmb_bpi_prom_loadaddress: End\n");
+}
+
+// *****************************************************************************
+// Old OTMB BPI-->EPROM access rountines
+// *****************************************************************************
+
+void TMB::otmbeprom_multi(int cnt, unsigned short *manbuf) {
+  for (int i = 0; i < cnt; i++) {
+    WriteRegister(OTMB_BPI_Write, manbuf[i]);
+    udelay(10);
+  }
+  return;
+}
+
+// -----------------------------------------------------------------------------
+
+bool TMB::otmbeprom_pec_ready(unsigned int poll_interval /*us*/) {
+  const unsigned int max_cnt = 40000000 / poll_interval;
+  udelay(poll_interval);
+  unsigned int cnt = 0;
+  while ((otmb_bpi_status() & 0xFFF0) != 0x8880) {
+    udelay(poll_interval);
+    cnt++;
+    // if (otmb_eprom_debug) printf("line %d: BPI status (cnt = %d) = %x\n",__LINE__, cnt, status);
+    if (cnt >= max_cnt)
+      return false;
+  }
+
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+
+void TMB::otmbeprom_read(unsigned nwords, unsigned short *pdata) {
+  // nwords max. 11 bits (2048 words)
+  int toread, leftover, pindex = 0;
+  unsigned short tmp;
+  leftover = nwords;
+  while (leftover > 0) {
+    toread = (leftover > 16) ? 16 : leftover;
+    leftover -= toread;
+
+    tmp = (((toread - 1) << 5) & 0xffe0) | XPROM_Read_n;
+    otmb_bpi_write_to_command_fifo(tmp);
+    udelay(20);
+    // read in words
+    for (int i = 0; i < toread; i++) {
+      pdata[pindex] = ReadRegister(OTMB_BPI_Read);
+      pindex++;
+    }
+  }
+  return;
+}
+
+// -----------------------------------------------------------------------------
+
+void TMB::otmbeprom_bufferprogram(unsigned nwords, unsigned short *prm_dat) {
+  // nwords max. 11 bits (2048 words)
+  unsigned short tmp;
+  tmp = (((nwords - 1) << 5) & 0xffe0) | XPROM_Buffer_Program;
+  otmb_bpi_write_to_command_fifo(tmp);
+
+  // send data
+  otmbeprom_multi(nwords, prm_dat);
+  return;
+}
+
+// -----------------------------------------------------------------------------
+
+void TMB::otmb_readparam(int paramblock, int nwords, unsigned short int *val) {
+  /*  The highest four blocks in the eprom are parameter banks of
+   length 16k 16 bit words. The starting
+   addresses are:
+
+   block 0  007f 0000
+   block 1  007f 4000
+   block 2  007f 8000
+   block 3  007f c000
+
+   ref: http://www.xilinx.com/support/documentation/data_sheets/ds617.pdf
+   */
+
+  unsigned int uaddr, laddr;
+  if (paramblock < 0 || paramblock > 3)
+    return;
+
+  if (nwords > 2048) {
+    printf(" Catastrophy: parameter space too large: %d\n", nwords);
+    return;
+  }
+  otmb_bpi_reset();
+  otmb_bpi_enable();
+  uaddr = 0x007f;  // segment address for parameter blocks
+  laddr = paramblock * 0x4000;
+  printf(" parameter_read fulladdr %04x%04x \n", (uaddr & 0xFFFF), (laddr & 0xFFFF));
+  otmb_bpi_prom_loadaddress(uaddr, laddr);
+  otmbeprom_read(nwords, val);
+  otmb_bpi_disable();
+}
+
+// -----------------------------------------------------------------------------
+
+void TMB::otmb_loadparam(int paramblock, int nwords, unsigned short int *val) {
+  /*  The highest four blocks in the eprom are parameter banks of
+   length 16k 16 bit words. the starting
+   addresses are:
+
+   block 0  007f 0000
+   block 1  007f 4000
+   block 2  007f 8000
+   block 3  007f c000
+
+   the config program takes up the range
+   0000 0000
+   0005 4000
+
+   ref: http://www.xilinx.com/support/documentation/data_sheets/ds617.pdf
+
+   2-byte words       bytes
+   eprom size     0x00800000        0x01000000
+   mcs size       0x002A0000        0x00540000
+   params addr    0x007f0000        0x00fe0000
+
+   mcs file addressing is in bytes
+   */
+
+  unsigned int fulladdr;
+  unsigned int uaddr, laddr;
+  unsigned int nxt_blk_addr;
+
+  if (nwords > 2048) {
+    printf(" Catastrophy:parameter space large rewrite program %d \n", nwords);
+    return;
+  }
+  otmb_bpi_reset();
+  otmb_bpi_enable();
+  otmb_bpi_prom_timerstop();
+  otmb_bpi_prom_timerreset();
+  uaddr = 0x007f;  // segment address for parameter blocks
+  laddr = paramblock * 0x4000;
+  fulladdr = (uaddr << 16) + laddr;
+  printf(" parameter_write fulladdr %04x%04x \n", (uaddr & 0xFFFF), (laddr & 0xFFFF));
+  otmb_bpi_prom_timerstart();
+
+  otmb_bpi_prom_loadaddress(uaddr, laddr);
+  // unlock and erase the block
+  otmb_bpi_prom_block_unlockerase();
+
+  udelay(400000);
+
+  // program with new data from the beginning of the block
+  otmbeprom_bufferprogram(nwords, val);
+  unsigned int sleeep = 1984 * 64 + 164;
+  udelay(sleeep);
+
+  nxt_blk_addr = fulladdr + 0x4000;
+  uaddr = (nxt_blk_addr >> 16);
+  laddr = nxt_blk_addr & 0xffff;
+  // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+  otmb_bpi_prom_loadaddress(uaddr, laddr);
+  // lock last block
+  otmb_bpi_prom_block_lock();
+  otmb_bpi_disable();
+  udelay(10);
+}
+
+// -----------------------------------------------------------------------------
+
+void TMB::otmb_readfirmware_mcs(const char *filename) {
+
+  unsigned fulladdr = 0, uaddr, laddr;
+  unsigned read_size = 0x800;
+  unsigned short *buf;
+  FILE *mcsfile;
+  int total_blocks = 2255;
+// int readback_size=read_size*total_blocks*2=9,236,480;
+// XC6VLX130T's configuration bitstream (firmware) is exactly 9232444 bytes:
+
+  const int FIRMWARE_SIZE = 9232444;
+
+  mcsfile = fopen(filename, "w");
+  if (mcsfile == NULL) {
+    std::cout << "Unable to open file to write :" << filename << std::endl;
+    return;
+  }
+
+  buf = (unsigned short *) malloc(8 * 1024 * 1024);
+  if (buf == NULL)
+    return;
+  otmb_bpi_reset();
+  otmb_bpi_enable();
+
+  for (int i = 0; i < total_blocks; i++) {
+    uaddr = (fulladdr >> 16);
+    laddr = fulladdr & 0xffff;
+    otmb_bpi_prom_loadaddress(uaddr, laddr);
+
+    otmbeprom_read(read_size, buf + i * read_size);
+
+    fulladdr += read_size;
+  }
+  otmb_bpi_disable();
+
+  write_mcs((char *) buf, FIRMWARE_SIZE, mcsfile);
+  fclose(mcsfile);
+  free(buf);
+  std::cout << " Total " << FIRMWARE_SIZE << " bytes are read back from OTMB's EPROM and saved in mcs-format file: " << filename << std::endl;
+  return;
+}
+
+// -----------------------------------------------------------------------------
+
+void TMB::otmb_program_eprom(const char *mcsfile) {
+  unsigned int fulladdr;
+  unsigned int uaddr, laddr;
+  unsigned int i, blocks, lastblock;
+
+  const int FIRMWARE_SIZE = 9232444 / 2; // in words
+
+  // each eprom block has 0x10000 words
+  const int BLOCK_SIZE = 0x10000; // in words
+
+  // each write call takes 0x800 words
+  const int WRITE_SIZE = 0x800;  // in words
+
+// 1. read mcs file
+  char *bufin;
+  bufin = (char *) malloc(16 * 1024 * 1024);
+  if (bufin == NULL)
+    return;
+  unsigned short *bufw = (unsigned short *) bufin;
+  FILE *fin = fopen(mcsfile, "r");
+  if (fin == NULL) {
+    free(bufin);
+    std::cout << "ERROR: Unable to open OTMB MCS file :" << mcsfile << std::endl;
+    return;
+  }
+  int mcssize = read_mcs(bufin, fin);
+  fclose(fin);
+  std::cout << "Read OTMB MCS size: " << mcssize << " bytes" << std::endl;
+  if (mcssize < FIRMWARE_SIZE) {
+    std::cout << "ERROR: Wrong OTMB MCS file. Quit..." << std::endl;
+    free(bufin);
+    return;
+  }
+
+  otmb_bpi_reset();
+  otmb_bpi_enable();
+  otmb_bpi_prom_timerstop();
+  otmb_bpi_prom_timerreset();
+  otmb_bpi_prom_timerstart();
+// 2. erase eprom
+  blocks = FIRMWARE_SIZE / BLOCK_SIZE;
+  if ((FIRMWARE_SIZE % BLOCK_SIZE) > 0)
+    blocks++;
+  std::cout << "Erasing OTMB EPROM..." << std::endl;
+  for (i = 0; i < blocks; i++) {
+    uaddr = i;
+    laddr = 0;
+
+    // printf(" eprom_load fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+    otmb_bpi_prom_loadaddress(uaddr, laddr);
+    // unlock and erase the block
+    otmb_bpi_prom_block_unlockerase();
+
+    udelay(1000000);
+  }
+
+// 3. write eprom
+  blocks = FIRMWARE_SIZE / WRITE_SIZE;
+  lastblock = FIRMWARE_SIZE % WRITE_SIZE;
+  int p1pct = blocks / 100;
+  int j = 0, pcnts = 0;
+  if (lastblock > 0)
+    blocks++;
+  else
+    lastblock = WRITE_SIZE;
+  std::cout << "Start programming OTMB EPROM..." << std::endl;
+  fulladdr = 0;
+  for (i = 0; i < blocks; i++) {
+    int nwords = WRITE_SIZE;
+    if (i == blocks - 1)
+      nwords = lastblock;
+    uaddr = (fulladdr >> 16);
+    laddr = fulladdr & 0xffff;
+    // printf(" load address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+    otmb_bpi_prom_loadaddress(uaddr, laddr);
+    // program with new data from the beginning of the block
+    otmbeprom_bufferprogram(nwords, bufw + i * WRITE_SIZE);
+    udelay(120000);
+    fulladdr += 0x800;
+    j++;
+    if (j == p1pct) {
+      pcnts++;
+      if (pcnts < 100)
+        std::cout << "Sending " << pcnts << "%..." << std::endl;
+      j = 0;
+    }
+  }
+  std::cout << "Sending 100%..." << std::endl;
+  uaddr = (fulladdr >> 16);
+  laddr = fulladdr & 0xffff;
+  // printf(" lock address %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+  otmb_bpi_prom_loadaddress(uaddr, laddr);
+  otmb_bpi_prom_block_lock();
+  otmb_bpi_disable();
+  free(bufin);
+}
+
+// -----------------------------------------------------------------------------
+
+bool TMB::otmb_program_eprom_poll(const char *mcsfile) {
+
+  bool otmb_eprom_debug = true;
+  if (otmb_eprom_debug)
+    std::cout << "otmb_program_eprom_poll STARTS" << std::endl;
+
+  unsigned int fulladdr;
+  unsigned int uaddr, laddr;
+  unsigned int i, blocks, lastblock;
+
+  const int FIRMWARE_SIZE = 9232444; // in 8-bit words
+
+  // each eprom block has 0x10000 16-bit words = 65,536 16-bit words
+  const int BLOCK_SIZE = 0x10000; // in 16-bit words
+
+  // each write call takes 0x800 16-bit words = 1,024 16-bit words
+  const int WRITE_SIZE = 0x400;  // in 16-bit words, was 0x800
+
+  // Allocate input buffer
+  if (otmb_eprom_debug)
+    std::cout << " Allocate input buffer" << std::endl;
+  char *bufin;
+  bufin = (char *) malloc(16 * 1024 * 1024);
+  if (bufin == NULL) {
+    std::cout << " ERROR: Nothing in input buffer" << std::endl;
+    if (otmb_eprom_debug)
+      std::cout << "otmb_program_eprom_poll QUITS" << std::endl;
+    free(bufin);
+    return false;
+  }
+  unsigned short *bufw = (unsigned short *) bufin;
+  if (otmb_eprom_debug)
+    std::cout << " Input buffer is successully allocated" << std::endl;
+
+  // Open MCS file
+  if (otmb_eprom_debug)
+    std::cout << " Open MCS file " << mcsfile << std::endl;
+  FILE *fin = fopen(mcsfile, "r");
+  if (fin == NULL) {
+    std::cout << " ERROR: Unable to open MCS file " << mcsfile << std::endl;
+    if (otmb_eprom_debug)
+      std::cout << "otmb_program_eprom_poll QUITS" << std::endl;
+    free(bufin);
+    return false;
+  }
+  if (otmb_eprom_debug)
+    std::cout << " MCS file " << mcsfile << " successully opened" << std::endl;
+
+  // Read MCS file and close
+  if (otmb_eprom_debug)
+    std::cout << " Read MCS file " << mcsfile << " to input buffer" << std::endl;
+  int mcssize = read_mcs(bufin, fin);
+  fclose(fin);
+  if (otmb_eprom_debug)
+    std::cout << " Close MCS file " << mcsfile << std::endl;
+
+  // Check size of MCS file and compare to pre-set value
+  if (otmb_eprom_debug)
+    std::cout << " Check size of MCS file" << std::endl;
+  if (otmb_eprom_debug)
+    std::cout << "  MCS file size: " << mcssize << " 8-bit words" << std::endl;
+  if (otmb_eprom_debug)
+    std::cout << "  Default file size: " << FIRMWARE_SIZE << " 8-bit words" << std::endl;
+  if (mcssize != FIRMWARE_SIZE) {
+    std::cout << " ERROR: MCS file size is not equal to expected default value" << std::endl;
+    if (otmb_eprom_debug)
+      std::cout << "otmb_program_eprom_poll QUITS" << std::endl;
+    free(bufin);
+    return false;
+  }
+  if (otmb_eprom_debug)
+    std::cout << " MCS file size successfully matches to expected default value" << std::endl;
+
+  if (otmb_eprom_debug)
+    std::cout << " otmb_bpi_reset" << std::endl;
+  otmb_bpi_reset(true);
+  if (otmb_eprom_debug)
+    printf("  BPI Status %04x\n", otmb_bpi_status());
+
+  /* status register
+   low 8 bits XLINK
+   0-blank write status/multiple work program status
+   1-block protection status
+   2-program suspend status
+   3-vpp status
+   4-program status
+   5-erase/blank check status
+   6-erase/suspend status
+   7-P.E.C. Status
+   high 8 bits Ben
+   0-cmd fifo write error
+   1-cmd fifo read error
+   2-cmd fifo full
+   3-cmd fifo empty
+   4-rbk fifo write error
+   5-rbk fifo read error
+   6-rbk fifo full
+   7-rbk fifo empty
+
+   0x8880 = 1000 1000 1000 0000
+   0x8000 = 1000 0000 0000 0000
+   */
+
+  if (otmb_eprom_debug)
+    std::cout << " otmb_bpi_prom_timerstop" << std::endl;
+  otmb_bpi_prom_timerstop();
+  if (otmb_eprom_debug)
+    printf("  BPI Status %04x\n", otmb_bpi_status());
+
+  if (otmb_eprom_debug)
+    std::cout << " otmb_bpi_prom_timerreset" << std::endl;
+  otmb_bpi_prom_timerreset();
+  if (otmb_eprom_debug)
+    printf("  BPI Status %04x\n", otmb_bpi_status());
+
+  if (otmb_eprom_debug)
+    std::cout << " otmb_bpi_prom_timerstart" << std::endl;
+  otmb_bpi_prom_timerstart();
+  if (otmb_eprom_debug)
+    printf("  BPI Status %04x\n", otmb_bpi_status());
+
+  if (otmb_eprom_debug)
+    std::cout << " otmb_bpi_enable" << std::endl;
+  otmb_bpi_enable(true);
+  if (otmb_eprom_debug)
+    printf("  BPI Status %04x\n", otmb_bpi_status());
+
+  if (otmb_eprom_debug)
+    std::cout << " delay 1000 microsecond" << std::endl;
+  udelay(1000);
+
+  if (otmb_eprom_debug)
+    std::cout << " otmb_bpi_disable" << std::endl;
+  otmb_bpi_disable(true);
+  if (otmb_eprom_debug)
+    printf("  BPI Status %04x\n", otmb_bpi_status());
+
+  // Calculate number of blocks
+  if (otmb_eprom_debug)
+    std::cout << " Calculate number of blocks in MCS file" << std::endl;
+  blocks = FIRMWARE_SIZE / BLOCK_SIZE;
+  if ((FIRMWARE_SIZE % BLOCK_SIZE) > 0)
+    blocks++;
+  if (otmb_eprom_debug)
+    std::cout << "  Number of blocks in MCS file = " << blocks << std::endl;
+
+  // Erase eprom
+  std::cout << " Erasing EPROM..." << std::endl;
+  for (i = 0; i < blocks; i++) {
+    uaddr = i;
+    laddr = 0;
+
+    if (otmb_eprom_debug)
+      std::cout << "  clearstatus" << std::endl;
+    otmb_bpi_prom_clearstatus();
+    if (otmb_eprom_debug)
+      printf("   BPI Status %04x\n", otmb_bpi_status());
+    // printf(" eprom_load fulladdr %04x%04x \n",(uaddr&0xFFFF),(laddr&0xFFFF));
+
+    if (otmb_eprom_debug)
+      std::cout << "  loadaddress" << std::endl;
+    otmb_bpi_prom_loadaddress(uaddr, laddr);
+    if (otmb_eprom_debug)
+      printf("   BPI Status %04x\n", otmb_bpi_status());
+
+    // unlock and erase the block
+    if (otmb_eprom_debug)
+      std::cout << "  unlockerase" << std::endl;
+    otmb_bpi_prom_block_unlockerase();
+    if (otmb_eprom_debug)
+      printf("   BPI Status %04x\n", otmb_bpi_status());
+    udelay(40);
+
+    if (otmb_eprom_debug)
+      std::cout << "  bpi_enable" << std::endl;
+    otmb_bpi_enable(true);
+    if (otmb_eprom_debug)
+      printf("   BPI Status %04x\n", otmb_bpi_status());
+
+    if (otmb_eprom_debug)
+      std::cout << "  delay 4000 microsecond" << std::endl;
+    udelay(4000);
+
+    // This is the erase polling that we're trying to implement.  When BPI_STATUS = 8880,
+    // we are good to go.
+    unsigned int max_interval_sec = 5;
+    unsigned int interval_usec = 500000;
+    unsigned int max_count = max_interval_sec * 1000000 / interval_usec;
+    unsigned int cnt = 0;
+    // unsigned int status = otmb_bpi_status();
+    if (otmb_eprom_debug)
+      std::cout << "  Check BPI status in loop for " << max_interval_sec << " sec" << std::endl;
+    unsigned short otmb_bpi_status_data = otmb_bpi_status();
+    while ((otmb_bpi_status_data & 0xFFFF) != 0x8880) {
+      otmb_bpi_status_data = otmb_bpi_status();
+      if (otmb_eprom_debug)
+        printf("   %d BPI Status %04x\n", cnt, otmb_bpi_status_data);
+      if (otmb_eprom_debug)
+        printf("   delay %d microsecond\n", interval_usec);
+      udelay(interval_usec);
+      ++cnt;
+      if (cnt >= max_count) {
+        printf("   ERROR: Time out for block %d, address %04x%04x with status %04x\n", i, uaddr, laddr, otmb_bpi_status_data);
+        // throw "took more than 4 seconds to erase a block!";
+        if (otmb_eprom_debug)
+          std::cout << "   bpi_disable" << std::endl;
+        otmb_bpi_disable(true);
+        if (otmb_eprom_debug)
+          printf("   BPI Status %04x\n", otmb_bpi_status());
+        if (otmb_eprom_debug)
+          std::cout << "otmb_program_eprom_poll QUITS" << std::endl;
+        free(bufin);
+        return false;
+      }
+    }
+    udelay(100);
+    if (otmb_eprom_debug)
+      std::cout << "  bpi_disable" << std::endl;
+    otmb_bpi_disable(true);
+    if (otmb_eprom_debug)
+      printf("   BPI Status %04x\n", otmb_bpi_status());
+  }
+
+  printf("Erase complete.\n");
+
+  // 3. write eprom
+  int global_write_delay = 2000;
+  blocks = FIRMWARE_SIZE / WRITE_SIZE;
+  lastblock = FIRMWARE_SIZE % WRITE_SIZE;
+  int p1pct = blocks / 10;
+  int j = 0, pcnts = 0;
+  if (lastblock > 0)
+    blocks++;
+  else
+    lastblock = WRITE_SIZE;
+  std::cout << "Start programming EPROM..." << std::endl;
+  fulladdr = 0;
+  if (otmb_eprom_debug) {
+    udelay(global_write_delay);
+    printf("status before disable %04x\n", otmb_bpi_status());
+  }
+
+  otmb_bpi_disable(true);
+
+  if (otmb_eprom_debug) {
+    udelay(global_write_delay);
+    printf("status after disable %04x\n", otmb_bpi_status());
+  }
+
+  int nwords = WRITE_SIZE;
+  for (i = 0; i < blocks; i++) {
+    if (i == blocks - 1)
+      nwords = lastblock;
+    uaddr = (fulladdr >> 16);
+    laddr = fulladdr & 0xffff;
+
+    if (otmb_eprom_debug) {
+      printf("beginning write block %i at address %08x\n", i, fulladdr);
+      printf("status before loadaddress %04x\n", otmb_bpi_status());
+      udelay(global_write_delay);
+    }
+    otmb_bpi_prom_loadaddress(uaddr, laddr);
+
+    if (otmb_eprom_debug) {
+      udelay(global_write_delay);
+      printf("status before buffer program %04x\n", otmb_bpi_status());
+      udelay(global_write_delay);
+    }
+
+    otmbeprom_bufferprogram(nwords, bufw + i * WRITE_SIZE);
+    otmb_bpi_enable(true);
+    udelay(global_write_delay);
+    // make sure the status goes back to 8880 => FIFOs empty, ready for next chunk.
+    if (!otmbeprom_pec_ready(global_write_delay)) {
+      printf("P/E.C. controller did not return to normal status during program. Exiting with status %04x\n", otmb_bpi_status());
+      //	    throw "BPI parser failed to empty CMD FIFO";
+      free(bufin);
+      otmb_bpi_disable(true);
+      return false;
+    }
+    udelay(global_write_delay);
+    otmb_bpi_disable(true);
+    udelay(global_write_delay);
+    unsigned int nwords_rbk = ReadRegister(OTMB_BPI_Read_n);
+
+    if (otmb_eprom_debug) {
+      udelay(global_write_delay);
+      printf("\t%d words remaining in RBK FIFO\n", nwords_rbk);
+      while (nwords_rbk-- > 0) {
+        udelay(global_write_delay);
+        printf("\t\trbk %d: %04x\n", nwords_rbk, ReadRegister(OTMB_BPI_Read));
+      }
+    }
+
+    udelay(global_write_delay);
+    if (otmb_eprom_debug)
+      printf("controller ready status: %04x\n\n", otmb_bpi_status());
+
+    fulladdr += WRITE_SIZE;
+
+    j++;
+    if (j == p1pct) {
+      pcnts++;
+      if (pcnts < 100)
+        std::cout << "Sending " << std::dec << pcnts * 10 << "%..." << std::endl;
+      j = 0;
+    }
+  }
+
+  std::cout << "Sending 100%..." << std::endl;
+  uaddr = (fulladdr >> 16);
+  laddr = fulladdr & 0xffff;
+  if (otmb_eprom_debug)
+    printf("line %d: lock address %04x%04x \n", __LINE__, (uaddr & 0xFFFF), (laddr & 0xFFFF));
+  otmb_bpi_prom_loadaddress(uaddr, laddr);
+  otmb_bpi_prom_block_lock();
+  udelay(global_write_delay);
+  otmb_bpi_enable(true);
+  if (!otmbeprom_pec_ready(global_write_delay)) {
+    printf("P.E.C. controller did not return to normal status on final lock. Exiting with status %04x\n", otmb_bpi_status());
+    //	  throw "crashing now";
+    otmb_bpi_disable(true);
+    if (otmb_eprom_debug)
+      std::cout << "otmb_program_eprom_poll QUITS" << std::endl;
+    free(bufin);
+    return false;
+  }
+
+  otmb_bpi_disable(true);
+  if (otmb_eprom_debug)
+    std::cout << "otmb_program_eprom_poll QUITS" << std::endl;
+  free(bufin);
+  return true;
+}
+
+} // namespace emu::pc
+} // namespace emu
