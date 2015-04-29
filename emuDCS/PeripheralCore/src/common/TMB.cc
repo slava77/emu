@@ -1268,7 +1268,7 @@ void TMB::ReadBackMpcRAM(int nEvents){
     unsigned long int rlct12 = ((rcvbuf[0]&0xff)<<8) | ((rcvbuf[1]&0xff)) ;
     //
     unsigned long int rlct1 = ( ((rlct11 & 0xffff) << 16) | ((rlct12 & 0xffff) << 0) );
-    (*MyOutput_) << "LCT1 = " << std::hex << rlct1 << std::endl;
+    (*MyOutput_) << "LCT1 = " << std::hex << rlct1 << std::dec << std::endl;
     //
   }
   //
@@ -1309,7 +1309,7 @@ void TMB::DataSendMPC(){
   (*MyOutput_) << "LCT1 FRAME0 " << std::hex << mpc1frame0 << std::endl ; 
   //
   int mpc1frame1 = ReadRegister(mpc1_frame1_adr);
-  (*MyOutput_) << "LCT1 FRAME1 " << std::hex << mpc1frame1 << std::endl ; 
+  (*MyOutput_) << "LCT1 FRAME1 " << std::hex << mpc1frame1 << std::dec << std::endl ; 
   //
   return;
 }
@@ -1344,7 +1344,7 @@ void TMB::PrintALCT() {
   (*MyOutput_) << " ALCT1.quality   = "   << std::dec << GetAlct1Quality() << std::endl;
   (*MyOutput_) << " ALCT1.amu       = 0x" << std::hex << GetAlct1Amu()     << std::endl;
   (*MyOutput_) << " ALCT1.key WG    = "   << std::dec << GetAlct1KeyWg()   << std::endl;
-  (*MyOutput_) << " ALCT1.bxn       = 0x" << std::hex << GetAlct1Bxn()     << std::endl;
+  (*MyOutput_) << " ALCT1.bxn       = 0x" << std::hex << GetAlct1Bxn()     << std::dec << std::endl;
   //
   return;
 }
@@ -1366,7 +1366,7 @@ void TMB::DecodeCLCT(){
 void TMB::PrintCLCT() {
   //
   std::cout << "CLCT0 data = 0x"       << std::hex << CLCT0_data_          << std::endl;
-  std::cout << "CLCT1 data = 0x"       << std::hex << CLCT1_data_          << std::endl;
+  std::cout << "CLCT1 data = 0x"       << std::hex << CLCT1_data_          << std::dec << std::endl;
   //
   (*MyOutput_) << "----------------------"                                   << std::endl;
   (*MyOutput_) << "CLCT0 data = 0x"       << std::hex << CLCT0_data_         << std::endl;
@@ -1388,7 +1388,7 @@ void TMB::PrintCLCT() {
   (*MyOutput_) << "CLCT1.pattern    = 0x" << std::hex << read_CLCT1_pattern_      << std::endl;
   (*MyOutput_) << "CLCT1.Key HStrip = "   << std::dec << read_CLCT1_keyHalfStrip_ << std::endl;
   (*MyOutput_) << "CLCT1.BXN        = 0x" << std::hex << read_CLCT_BXN_           << std::endl;
-  (*MyOutput_) << "CLCT1.sync err   = 0x" << std::hex << read_CLCT_sync_err_      << std::endl;
+  (*MyOutput_) << "CLCT1.sync err   = 0x" << std::hex << read_CLCT_sync_err_      << std::dec << std::endl;
   //
   return;
 }
@@ -9910,6 +9910,12 @@ void TMB::program_virtex6(const char *mcsfile)
 
 unsigned TMB::virtex6_readreg(int reg)
 {
+  if(hardware_version_==2)
+  {
+     setup_jtag(ChainTmbMezz);
+     //restore idle;
+     RestoreIdle();
+
      unsigned short comd;
      unsigned data[7]={0x66AA9955, 4, 0, 4, 4, 4};
      unsigned *rt, rtv;
@@ -9929,10 +9935,18 @@ unsigned TMB::virtex6_readreg(int reg)
      comd=VTX6_BYPASS;
      scan(0, (char *)&comd, 10, rcvbuf, 0);
      return rtv;
+  } 
+  else return 0;
 }
 
 void TMB::virtex6_writereg(int reg, unsigned value)
 {
+  if(hardware_version_==2)
+  {
+     setup_jtag(ChainTmbMezz);
+     //restore idle;
+     RestoreIdle();
+
      unsigned short comd;
      unsigned data[6]={0x66AA9955, 4, 0, 0, 4, 4};
      comd=VTX6_CFG_IN;
@@ -9943,6 +9957,7 @@ void TMB::virtex6_writereg(int reg, unsigned value)
      scan(1, (char *)data, 6*32, rcvbuf, 0);     
      comd=VTX6_BYPASS;
      scan(0, (char *)&comd, 10, rcvbuf, 0);
+  }
 }
 
 std::vector<float> TMB::virtex6_monitor()

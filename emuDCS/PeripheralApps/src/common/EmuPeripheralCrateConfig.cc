@@ -455,6 +455,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadSpartan6ALCTFirmware, "LoadSpartan6ALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadVirtex6TMBFirmware, "LoadVirtex6TMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadVirtex6TMBFPGA, "LoadVirtex6TMBFPGA");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadOTMBVirtex6Reg, "ReadOTMBVirtex6Reg");
 
   //
   //----------------------------
@@ -9658,7 +9659,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl ;
   //
-  *out << cgicc::legend("Other TMB Utilities").set("style","color:blue") ;
+  *out << cgicc::legend("TMB Registers").set("style","color:blue") ;
   //
   std::string ReadTMBRegister = 
     toolbox::toString("/%s/ReadTMBRegister",getApplicationDescriptor()->getURN().c_str());
@@ -9802,9 +9803,64 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::table();
   }// GTX monitor for OTMB
 
-  *out << cgicc::br() << std::endl;
   //
+  *out << cgicc::fieldset() << cgicc::br() << std::endl;
+  //
+
+  // --=== Virtex6 register read ===--
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Virtex 6 Registers").set("style","color:blue") << std::endl ;
+
+  std::string ReadOTMBVirtex6Reg = toolbox::toString("/%s/ReadOTMBVirtex6Reg",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadOTMBVirtex6Reg) << std::endl ;
+  
+  // make a map of register index -> name
+  std::map<int, std::string> regNames;
+  regNames[VTX6_REG_CRC] = "CRC";
+  regNames[VTX6_REG_FAR] = "FAR";
+  regNames[VTX6_REG_FDRI] = "FDRI";
+  regNames[VTX6_REG_FDR0] = "FDR0";
+  regNames[VTX6_REG_CMS] = "CMS";
+  regNames[VTX6_REG_CTL0] = "CTL0";
+  regNames[VTX6_REG_MASK] = "MASK";
+  regNames[VTX6_REG_STAT] = "STATUS";
+  regNames[VTX6_REG_LOUT] = "LOUT";
+  regNames[VTX6_REG_COR0] = "COR0";
+  regNames[VTX6_REG_MFWR] = "MFWR";
+  regNames[VTX6_REG_CBC] = "CBC";
+  regNames[VTX6_REG_IDCODE] = "IDCODE";
+  regNames[VTX6_REG_AXSS] = "AXSS";
+  regNames[VTX6_REG_COR1] = "COR1";
+  regNames[VTX6_REG_CSOB] = "CSOB";
+  regNames[VTX6_REG_WBSTAR] = "WBSTAR";
+  regNames[VTX6_REG_TIMER] = "TIMER";
+  regNames[VTX6_REG_BOOTSTS] = "BOOTSTS";
+  regNames[VTX6_REG_CTL1] = "CTL1";
+  regNames[VTX6_REG_DWC] = "DWC";
+  
+  // print the drop down list
+  char sbuf[200];
+  *out << cgicc::select().set("name", "reg") << std::endl;
+  std::map<int, std::string>::iterator it;
+  for (it = regNames.begin(); it != regNames.end(); ++it) {
+    sprintf(sbuf, "%d", it->first);
+    *out << cgicc::option().set("value", sbuf) << it->second << cgicc::option() << std::endl;
+  }
+  *out << cgicc::select() << std::endl;
+  sprintf(buf, "%d", tmb);
+  *out << cgicc::input().set("type","hidden").set("name","tmb").set("value",buf) << std::endl;
+  *out << cgicc::input().set("type","submit").set("value","Read Virtex6 Register") << std::endl;
+  
+  *out << cgicc::br() << std::endl;
+  *out << "Read Back (hex): " << std::hex << OTMBVirtex6RegisterRead_ << std::dec << std::endl;
+  
+  *out << cgicc::form() << std::endl;  
+  *out << cgicc::fieldset() << cgicc::br() << std::endl;
+  // ================================================
   //--------------------------------------------------------
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Other TMB Utilities").set("style","color:blue") << std::endl ;
   *out << cgicc::table().set("border","0");
   //
   ////////////////////////////////////////
@@ -11889,6 +11945,36 @@ std::string EmuPeripheralCrateConfig::GetFormString(const std::string& form_elem
      }       
      *out << cgicc::table() << std::endl;
   }
+
+void EmuPeripheralCrateConfig::ReadOTMBVirtex6Reg(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb=0;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "Not tmb" << std::endl ;
+    tmb = TMB_;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+
+     int reg = atoi(cgi.getElement("reg")->getValue().c_str());
+     
+     std::cout << "Reading Virtex 6 register " << reg << " on TMB " << tmb << std::endl;
+     
+     OTMBVirtex6RegisterRead_ = thisTMB->virtex6_readreg(reg);
+     
+     std::cout << "Result: " << std::hex << OTMBVirtex6RegisterRead_ << std::dec << std::endl;
+
+     this->TMBUtils(in,out);                                    
+}
+
 
  }  // namespace emu::pc
 }  // namespace emu

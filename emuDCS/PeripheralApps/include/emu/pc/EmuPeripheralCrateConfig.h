@@ -157,6 +157,7 @@ protected:
   //
   long CFEBDataIn_, CFEBDataOut_;
   unsigned DcfebVirtex6RegisterRead_;
+  unsigned OTMBVirtex6RegisterRead_;
   int CCBRegisterRead_, CCBRegisterValue_, CCBRegisterWrite_, CCBWriteValue_, CCBTestLoops_;
   int MPCRegisterRead_, MPCRegisterValue_, MPCRegisterWrite_, MPCWriteValue_;
   int DMBRegisterRead_, DMBRegisterValue_, DMBRegisterWrite_, DMBWriteValue_;
@@ -484,6 +485,7 @@ private:
   void LoadVirtex6TMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void LoadVirtex6TMBFPGA(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void LoadSpartan6ALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ReadOTMBVirtex6Reg(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
   // VCC utils
   void VCCHeader(xgi::Input * in, xgi::Output * out, std::string title, std::string heading ) throw (xgi::exception::Exception); 
