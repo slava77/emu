@@ -62,17 +62,23 @@ Test_Generic::~Test_Generic()
 {
   for (cscTestCanvases::iterator itr=tcnvs.begin(); itr != tcnvs.end(); ++itr)
     {
-      TestCanvases& cnvs = itr->second;
+      TestCanvases& cnvs = itr->second; 
       TestCanvases::iterator c_itr;
       for (c_itr=cnvs.begin(); c_itr != cnvs.end(); ++c_itr)
         {
           delete c_itr->second;
         }
+      cnvs.clear();
     }
+  tcnvs.clear();
+
+  for (TestCanvases::iterator c_itr=emucnvs.begin(); c_itr != emucnvs.end(); ++c_itr)
+    {
+      if (c_itr->second != NULL) delete c_itr->second;
+    }
+  emucnvs.clear();
 
   if (cratemap) delete cratemap;
-  // if (map) delete map;
-
 }
 
 std::string timestr(time_t* t)
