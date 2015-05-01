@@ -9235,7 +9235,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     thisTMB->ReadRegister(tmb_load_cfg_time_adr);
     thisTMB->ReadRegister(alct_phaser_lock_time_adr);
     thisTMB->ReadRegister(alct_load_cfg_time_adr);
-    thisTMB->ReadRegister(cfeb_fiber_phaser_lock_time_adr);
+    thisTMB->ReadRegister(gtx_phaser_lock_time_adr);
     thisTMB->ReadRegister(gtx_sync_done_time_adr);
     *out << cgicc::pre() << std::endl;
     *out << "FPGA Mez JTAG Chain Access Count              = " << thisTMB->GetReadMezFpgaJtagCount() << std::endl;
@@ -9243,7 +9243,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     *out << "TMB Load Cfg Time                             = " << thisTMB->GetReadTMBLoadCfgTime() << std::endl;
     *out << "ALCT Phaser Lock Time                         = " << thisTMB->GetReadALCTPhaserLockTime() << std::endl;
     *out << "ALCT Load Cfg Time (after ALCT startup delay) = " << thisTMB->GetReadALCTLoadCfgTime() << std::endl;
-    *out << "Comparator Fiber Phaser Lock Time             = " << thisTMB->GetReadCfebFiberPhaserLockTime() << std::endl;
+    *out << "Comparator Fiber Phaser Lock Time             = " << thisTMB->GetReadGtxPhaserLockTime() << std::endl;
     *out << "Gtx Sync Done Time                            = " << thisTMB->GetReadGtxSyncDoneTime() << std::endl;
     *out << cgicc::pre() << std::endl;
     *out << cgicc::fieldset();

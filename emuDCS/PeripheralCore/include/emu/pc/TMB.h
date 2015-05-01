@@ -2365,9 +2365,9 @@ public:
   //---------------------------------------------------------------------
   inline int GetReadALCTLoadCfgTime() { return read_alct_load_cfg_time_;}
   //---------------------------------------------------------------------
-  // 0X190 = ADR_CFEB_FIBER_PHASER_LOCK_TIME
+  // 0X190 = ADR_GTX_PHASER_LOCK_TIME
   //---------------------------------------------------------------------
-  inline int GetReadCfebFiberPhaserLockTime() { return read_cfeb_fiber_phaser_lock_time_;}
+  inline int GetReadGtxPhaserLockTime() { return read_gtx_phaser_lock_time_;}
   //---------------------------------------------------------------------
   // 0X192 = ADR_GTX_SYNC_DONE_TIME
   //---------------------------------------------------------------------
@@ -3809,9 +3809,9 @@ private:
   int read_alct_load_cfg_time_;
   //
   //---------------------------------------------------------------------
-  // 0X190 = ADR_CFEB_FIBER_PHASER_LOCK_TIME
+  // 0X190 = ADR_GTX_PHASER_LOCK_TIME
   //---------------------------------------------------------------------
-  int read_cfeb_fiber_phaser_lock_time_;
+  int read_gtx_phaser_lock_time_;
   //
   //---------------------------------------------------------------------
   // 0X192 = ADR_GTX_SYNC_DONE_TIME

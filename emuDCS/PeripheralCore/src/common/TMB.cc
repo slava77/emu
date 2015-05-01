@@ -6964,8 +6964,8 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_alct_phaser_lock_time_ = ExtractValueFromData(data,0,15);
   } else if ( address == alct_load_cfg_time_adr) {
     read_alct_load_cfg_time_ = ExtractValueFromData(data,0,15);
-  } else if ( address == cfeb_fiber_phaser_lock_time_adr) {
-    read_cfeb_fiber_phaser_lock_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == gtx_phaser_lock_time_adr) {
+    read_gtx_phaser_lock_time_ = ExtractValueFromData(data,0,15);
   } else if ( address == gtx_sync_done_time_adr) {
     read_gtx_sync_done_time_ = ExtractValueFromData(data,0,15);
   }
