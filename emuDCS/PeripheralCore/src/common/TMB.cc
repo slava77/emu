@@ -6954,8 +6954,8 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_cfebs_enabled_extend_          = ExtractValueFromData(data,cfebs_enabled_extend_bitlo           ,cfebs_enabled_extend_bithi         );
     read_cfebs_enabled_extend_readback_ = ExtractValueFromData(data,cfebs_enabled_extend_readback_bitlo  ,cfebs_enabled_extend_readback_bithi);
     //
-  } else if ( address == tmb_mmcm_lock_time_adr) {
-    read_tmb_mmcm_lock_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == tmb_mez_fpga_jtag_count_adr) {
+    read_mez_fpga_jtag_count_ = ExtractValueFromData(data,0,15);
   } else if ( address == tmb_power_up_time_adr) {
     read_tmb_power_up_time_ = ExtractValueFromData(data,0,15);
   } else if ( address == tmb_load_cfg_time_adr) {
@@ -6964,8 +6964,8 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_alct_phaser_lock_time_ = ExtractValueFromData(data,0,15);
   } else if ( address == alct_load_cfg_time_adr) {
     read_alct_load_cfg_time_ = ExtractValueFromData(data,0,15);
-  } else if ( address == gtx_rst_done_time_adr) {
-    read_gtx_rst_done_time_ = ExtractValueFromData(data,0,15);
+  } else if ( address == gtx_phaser_lock_time_adr) {
+    read_gtx_phaser_lock_time_ = ExtractValueFromData(data,0,15);
   } else if ( address == gtx_sync_done_time_adr) {
     read_gtx_sync_done_time_ = ExtractValueFromData(data,0,15);
   }

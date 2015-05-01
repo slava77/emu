@@ -9230,20 +9230,20 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   if (thisTMB->GetHardwareVersion() >= 2) {
     *out << cgicc::fieldset();
     *out << cgicc::legend("Configuration and programming timers (100 nanosecond units)").set("style","color:blue") << std::endl;
-    thisTMB->ReadRegister(tmb_mmcm_lock_time_adr);
+    thisTMB->ReadRegister(tmb_mez_fpga_jtag_count_adr);
     thisTMB->ReadRegister(tmb_power_up_time_adr);
     thisTMB->ReadRegister(tmb_load_cfg_time_adr);
     thisTMB->ReadRegister(alct_phaser_lock_time_adr);
     thisTMB->ReadRegister(alct_load_cfg_time_adr);
-    thisTMB->ReadRegister(gtx_rst_done_time_adr);
+    thisTMB->ReadRegister(gtx_phaser_lock_time_adr);
     thisTMB->ReadRegister(gtx_sync_done_time_adr);
     *out << cgicc::pre() << std::endl;
-    *out << "Special Test counter                          = " << thisTMB->GetReadTMBMMCMLockTime() << std::endl;
+    *out << "FPGA Mez JTAG Chain Access Count              = " << thisTMB->GetReadMezFpgaJtagCount() << std::endl;
     *out << "TMB Power Up Time                             = " << thisTMB->GetReadTMBPowerUpTime() << std::endl;
     *out << "TMB Load Cfg Time                             = " << thisTMB->GetReadTMBLoadCfgTime() << std::endl;
     *out << "ALCT Phaser Lock Time                         = " << thisTMB->GetReadALCTPhaserLockTime() << std::endl;
     *out << "ALCT Load Cfg Time (after ALCT startup delay) = " << thisTMB->GetReadALCTLoadCfgTime() << std::endl;
-    *out << "Gtx Rst Done Time                             = " << thisTMB->GetReadGtxRstDoneTime() << std::endl;
+    *out << "Comparator Fiber Phaser Lock Time             = " << thisTMB->GetReadGtxPhaserLockTime() << std::endl;
     *out << "Gtx Sync Done Time                            = " << thisTMB->GetReadGtxSyncDoneTime() << std::endl;
     *out << cgicc::pre() << std::endl;
     *out << cgicc::fieldset();
