@@ -2345,9 +2345,9 @@ public:
   //
   //
   //---------------------------------------------------------------------
-  // 0X186 = ADR_TMB_MMCM_LOCK_TIME
+  // 0X186 = ADR_MEZ_FPGA_JTAG_COUNT
   //---------------------------------------------------------------------
-  inline int GetReadTMBMMCMLockTime() { return read_tmb_mmcm_lock_time_;}
+  inline int GetReadMezFpgaJtagCount() { return read_mez_fpga_jtag_count_;}
   //---------------------------------------------------------------------
   // 0X188 = ADR_TMB_POWER_UP_TIME
   //---------------------------------------------------------------------
@@ -2365,9 +2365,9 @@ public:
   //---------------------------------------------------------------------
   inline int GetReadALCTLoadCfgTime() { return read_alct_load_cfg_time_;}
   //---------------------------------------------------------------------
-  // 0X190 = ADR_GTX_RST_DONE_TIME
+  // 0X190 = ADR_CFEB_FIBER_PHASER_LOCK_TIME
   //---------------------------------------------------------------------
-  inline int GetReadGtxRstDoneTime() { return read_gtx_rst_done_time_;}
+  inline int GetReadCfebFiberPhaserLockTime() { return read_cfeb_fiber_phaser_lock_time_;}
   //---------------------------------------------------------------------
   // 0X192 = ADR_GTX_SYNC_DONE_TIME
   //---------------------------------------------------------------------
@@ -3784,9 +3784,9 @@ private:
   int read_cfebs_enabled_extend_;
   int read_cfebs_enabled_extend_readback_;
   //---------------------------------------------------------------------
-  // 0X186 = ADR_TMB_MMCM_LOCK_TIME
+  // 0X186 = ADR_MEZ_FPGA_JTAG_COUNT
   //---------------------------------------------------------------------
-  int read_tmb_mmcm_lock_time_;
+  int read_mez_fpga_jtag_count_;
   //
   //---------------------------------------------------------------------
   // 0X188 = ADR_TMB_POWER_UP_TIME
@@ -3809,9 +3809,9 @@ private:
   int read_alct_load_cfg_time_;
   //
   //---------------------------------------------------------------------
-  // 0X190 = ADR_GTX_RST_DONE_TIME
+  // 0X190 = ADR_CFEB_FIBER_PHASER_LOCK_TIME
   //---------------------------------------------------------------------
-  int read_gtx_rst_done_time_;
+  int read_cfeb_fiber_phaser_lock_time_;
   //
   //---------------------------------------------------------------------
   // 0X192 = ADR_GTX_SYNC_DONE_TIME

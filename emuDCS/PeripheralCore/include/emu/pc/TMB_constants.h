@@ -356,12 +356,12 @@ static const unsigned long int  hcm645_adr              = 0x000178;
  static const unsigned long int  dcfeb_inj_seq_trig_adr = 0x00017A;
 
 // config timers on OTMB
-static const unsigned long int tmb_mmcm_lock_time_adr   = 0x000186;
+static const unsigned long int tmb_mez_fpga_jtag_count_adr   = 0x000186;
 static const unsigned long int tmb_power_up_time_adr    = 0x000188;
 static const unsigned long int tmb_load_cfg_time_adr    = 0x00018A;
 static const unsigned long int alct_phaser_lock_time_adr= 0x00018C;
 static const unsigned long int alct_load_cfg_time_adr   = 0x00018E;
-static const unsigned long int gtx_rst_done_time_adr    = 0x000190;
+static const unsigned long int cfeb_fiber_phaser_lock_time_adr = 0x000190;
 static const unsigned long int gtx_sync_done_time_adr   = 0x000192;
 
 //
