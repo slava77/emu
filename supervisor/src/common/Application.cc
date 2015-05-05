@@ -120,6 +120,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   ci_plus_(NULL), ci_minus_(NULL), ci_tf_(NULL), pm_(NULL),
   pi_plus_(NULL), pi_minus_(NULL), pi_tf_(NULL),
   usePrimaryTCDS_( true ),
+  isUsingTCDS_( true ),
   nevents_(-1),
   step_counter_(0),
   error_message_(""), keep_refresh_(false), hide_tts_control_(true),
@@ -284,6 +285,10 @@ void emu::supervisor::Application::getAppDescriptors(){
   try {
     ttc_descr_ = getApplicationContext()->getDefaultZone()
       ->getApplicationDescriptor("ttc::TTCciControl", 0);
+    isUsingTCDS_ = ( ttc_descr_ == NULL );
+    if ( ! isUsingTCDS_ ){
+      LOG4CPLUS_WARN(logger_, "Legacy TTC application is found and will be used instead of TCDS.");
+    }
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
     LOG4CPLUS_ERROR(logger_, "Failed to get application descriptor for ttc::TTCciControl. "
 		    << xcept::stdformat_exception_history(e));
@@ -510,7 +515,7 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   *out << form().set("action",
 		     "/" + getApplicationDescriptor()->getURN() + "/Configure") << endl;
   
-  int n_keys = runParameters_.size();
+  int n_keys = ( isUsingTCDS_ ? runParameters_.size() : config_keys_.size() );
   
   *out << "Run Type: " << endl;
   *out << cgicc::select().set("name", "runtype") << endl;
@@ -520,19 +525,19 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
   for (int i = 0; i < n_keys; ++i) {
     if (i == selected_index) {
       *out << option()
-	.set("value", (string)runParameters_[i].bag.key_)
+	.set("value", ( isUsingTCDS_ ? (string)(runParameters_[i].bag.key_) : (string)config_keys_[i] ) )
 	.set("selected", "");
     } else {
       *out << option()
-	.set("value", (string)runParameters_[i].bag.key_);
+	.set("value", ( isUsingTCDS_ ? (string)runParameters_[i].bag.key_ : (string)config_keys_[i] ) );
     }
-    *out << (string)runParameters_[i].bag.key_ << option() << endl;
-    cout << "n_keys " << n_keys
-	 << " selected_index " << selected_index
-	 << " (string)runParameters_[" << i << "].bag.key_ " << (string)runParameters_[i].bag.key_.toString()
-	 << " (string)runParameters_[" << i << "].bag.loop_ " << (string)runParameters_[i].bag.loop_.toString()
-	 << " run_type_ " << run_type_.toString()
-	 << endl;
+    *out << ( isUsingTCDS_ ? (string)runParameters_[i].bag.key_ : (string)config_keys_[i] ) << option() << endl;
+    // cout << "n_keys " << n_keys
+    // 	 << " selected_index " << selected_index
+    // 	 << " (string)runParameters_[" << i << "].bag.key_ " << (string)runParameters_[i].bag.key_.toString()
+    // 	 << " (string)runParameters_[" << i << "].bag.loop_ " << (string)runParameters_[i].bag.loop_.toString()
+    // 	 << " run_type_ " << run_type_.toString()
+    // 	 << endl;
   }
   
   *out << cgicc::select() << endl;
@@ -666,17 +671,34 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
 
   *out << table(); 
   *out << tr() << td() << "Run type: " << td() << td() << run_type_.toString();
-  if ( bool(isInCalibrationSequence_) ){
+  if ( isUsingTCDS_ ){
+    if ( bool(isInCalibrationSequence_) ){
       *out << " (run " << keyToIndex(run_type_.toString())+1 << " in an automatic sequence of "
 	   << runParameters_.size() << " calibration runs)";
+    }
+    *out << td() << tr() << endl;
+    if ( isCalibrationMode() ){
+      int index = keyToIndex(run_type_);
+      *out << tr() 
+	   << td() << "Steps completed: " << td() 
+	   << td() << step_counter_ << " of " << runParameters_[index].bag.loop_ << td() 
+	   << tr() << endl;
+    }
   }
-  *out << td() << tr() << endl;
-  if ( isCalibrationMode() ){
-    int index = keyToIndex(run_type_);
-    *out << tr() 
-	 << td() << "Steps completed: " << td() 
-	 << td() << step_counter_ << " of " << runParameters_[index].bag.loop_ << td() 
-	 << tr() << endl;
+  else{ 
+    // using legacy TTC
+    if ( bool(isInCalibrationSequence_) ){
+      *out << " (run " << getCalibParamIndex(run_type_.toString())+1 << " in an automatic sequence of "
+	   << calib_params_.size() << " calibration runs)";
+    }
+    *out << td() << tr() << endl;
+    if ( isCalibrationMode() ){
+      int index = getCalibParamIndex(run_type_);
+      *out << tr() 
+	   << td() << "Steps completed: " << td() 
+	   << td() << step_counter_ << " of " << calib_params_[index].bag.loop_ << td() 
+	   << tr() << endl;
+    }
   }
   refreshConfigParameters();
   
@@ -984,52 +1006,85 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
 {
   LOG4CPLUS_DEBUG(logger_, "calibrationAction " << "(begin)");
   
-  unsigned int index = std::max( 0, keyToIndex(run_type_) );
+  if ( isUsingTCDS_ ){
 
-  unsigned int nRuns = ( bool( isInCalibrationSequence_ ) ? runParameters_.size() : 1 );
-  unsigned int iRun  = ( bool( isInCalibrationSequence_ ) ? index                : 0 );
+    unsigned int index = std::max( 0, keyToIndex(run_type_) );
 
-  LOG4CPLUS_DEBUG( logger_, "Calibration"
-		   << "\n   command: " << runParameters_[index].bag.command_.toString()
-		   << "\n   loop: "    << runParameters_[index].bag.loop_.toString()
-		   << "\n   delay: "   << runParameters_[index].bag.delay_.toString()
-		   << "\n   ci:\n"     << runParameters_[index].bag.ci_.toString() 
-		   << "\n   ci_p:\n"   << runParameters_[index].bag.ci_p_.toString() 
-		   << "\n   ci_m:\n"   << runParameters_[index].bag.ci_m_.toString() 
-		   << "\n   ci_tf:\n"  << runParameters_[index].bag.ci_tf_.toString() 
-		   << "\n   pm:\n"     << runParameters_[index].bag.pm_.toString() 
-		   << "\n   pi:\n"     << runParameters_[index].bag.pi_.toString() );
-
-  emu::soap::Messenger m( this );
-
-  for (step_counter_ = 0; step_counter_ < runParameters_[index].bag.loop_; ++step_counter_) {
-    if (quit_calibration_) { break; }
-    LOG4CPLUS_DEBUG(logger_, "calibrationAction: " << step_counter_);
+    unsigned int nRuns = ( bool( isInCalibrationSequence_ ) ? runParameters_.size() : 1 );
+    unsigned int iRun  = ( bool( isInCalibrationSequence_ ) ? index                : 0 );
     
-    m.sendCommand( "emu::pc::EmuPeripheralCrateManager", runParameters_[index].bag.command_.toString() );
+    LOG4CPLUS_DEBUG( logger_, "Calibration"
+		     << "\n   command: " << runParameters_[index].bag.command_.toString()
+		     << "\n   loop: "    << runParameters_[index].bag.loop_.toString()
+		     << "\n   delay: "   << runParameters_[index].bag.delay_.toString()
+		     << "\n   ci:\n"     << runParameters_[index].bag.ci_.toString() 
+		     << "\n   ci_p:\n"   << runParameters_[index].bag.ci_p_.toString() 
+		     << "\n   ci_m:\n"   << runParameters_[index].bag.ci_m_.toString() 
+		     << "\n   ci_tf:\n"  << runParameters_[index].bag.ci_tf_.toString() 
+		     << "\n   pm:\n"     << runParameters_[index].bag.pm_.toString() 
+		     << "\n   pi:\n"     << runParameters_[index].bag.pi_.toString() );
+    
+    emu::soap::Messenger m( this );
+    
+    for (step_counter_ = 0; step_counter_ < runParameters_[index].bag.loop_; ++step_counter_) {
+      if (quit_calibration_) { break; }
+      LOG4CPLUS_DEBUG(logger_, "calibrationAction: " << step_counter_);
+      
+      m.sendCommand( "emu::pc::EmuPeripheralCrateManager", runParameters_[index].bag.command_.toString() );
 
-    // xdata::String attributeValue( "Start" );
-    // m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+      // xdata::String attributeValue( "Start" );
+      // m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+      
+      if ( pm_ ){
+	LOG4CPLUS_DEBUG(logger_, "Sending Start Bgo to LPM");
+	xdata::String Start( "Start" );
+	pm_->initCyclicGenerators().sendBgo( Start );
+      }
+      
+      sendCalibrationStatus( iRun, nRuns, step_counter_, runParameters_[index].bag.loop_ );
+      
+      sleep( runParameters_[index].bag.delay_ );
 
-    if ( pm_ ){
-      LOG4CPLUS_DEBUG(logger_, "Sending Start Bgo to LPM");
-      xdata::String Start( "Start" );
-      pm_->initCyclicGenerators().sendBgo( Start );
+      if ( pm_ ){
+	LOG4CPLUS_DEBUG(logger_, "Sending Stop Bgo to LPM");
+	xdata::String Stop( "Stop" );
+	pm_->sendBgo( Stop );
+      }
     }
-
-    sendCalibrationStatus( iRun, nRuns, step_counter_, runParameters_[index].bag.loop_ );
-
-    sleep( runParameters_[index].bag.delay_ );
-
-    if ( pm_ ){
-      LOG4CPLUS_DEBUG(logger_, "Sending Stop Bgo to LPM");
-      xdata::String Stop( "Stop" );
-      pm_->sendBgo( Stop );
+  
+    sendCalibrationStatus( ( iRun+1 == nRuns ? nRuns : iRun ), nRuns, step_counter_, runParameters_[index].bag.loop_ );
+  } // if ( isUsingTCDS_ )
+  else{
+    unsigned int index = std::max( 0, getCalibParamIndex(run_type_) );
+    
+    unsigned int nRuns = ( bool( isInCalibrationSequence_ ) ? calib_params_.size() : 1 );
+    unsigned int iRun  = ( bool( isInCalibrationSequence_ ) ? index                : 0 );
+    
+    LOG4CPLUS_DEBUG( logger_, "Calibration" << endl
+		     << "command: " << calib_params_[index].bag.command_.toString()       << endl
+		     << "loop: "    << calib_params_[index].bag.loop_.toString()	        << endl
+		     << "delay: "   << calib_params_[index].bag.delay_.toString()	        << endl
+		     << "ltc: "     << endl << calib_params_[index].bag.ltc_.toString()   << endl
+		     << "ttcci: "   << endl << calib_params_[index].bag.ttcci_.toString() << endl );
+    
+    emu::soap::Messenger m( this );
+    
+    for (step_counter_ = 0; step_counter_ < calib_params_[index].bag.loop_; ++step_counter_) {
+      if (quit_calibration_) { break; }
+      LOG4CPLUS_DEBUG(logger_, "calibrationAction: " << step_counter_);
+      
+      m.sendCommand( "emu::pc::EmuPeripheralCrateManager", calib_params_[index].bag.command_.toString() );
+      
+      xdata::String attributeValue( "Start" );
+      m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+      sendCalibrationStatus( iRun, nRuns, step_counter_, calib_params_[index].bag.loop_ );
+      
+      sleep( calib_params_[index].bag.delay_ );
     }
-  }
   
-  sendCalibrationStatus( ( iRun+1 == nRuns ? nRuns : iRun ), nRuns, step_counter_, runParameters_[index].bag.loop_ );
-  
+    sendCalibrationStatus( ( iRun+1 == nRuns ? nRuns : iRun ), nRuns, step_counter_, calib_params_[index].bag.loop_ );
+  } // if ( isUsingTCDS_ ) else
+
   if (!quit_calibration_) {
     submit(halt_signature_);
   }
@@ -1044,8 +1099,9 @@ bool emu::supervisor::Application::calibrationSequencer(toolbox::task::WorkLoop 
   // Do all calibrations in one go.
   LOG4CPLUS_DEBUG(logger_, "calibrationSequencer " << "(begin)");
   isInCalibrationSequence_ = true;
-  for ( size_t i=0; i<runParameters_.size() && fsm_.getCurrentState() != 'F'; ++i ){
-    run_type_ = runParameters_[i].bag.key_;
+  size_t nRunTypes = ( isUsingTCDS_ ? runParameters_.size() : calib_params_.size() );
+  for ( size_t i=0; i<nRunTypes && fsm_.getCurrentState() != 'F'; ++i ){
+    run_type_ = ( isUsingTCDS_ ? runParameters_[i].bag.key_ : calib_params_[i].bag.key_ );
     if ( !quit_calibration_ ){
       submit(configure_signature_);
       if ( waitForAppsToReach("Configured",true,60) ){
@@ -1210,7 +1266,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     }
 
     // Configure TTC
-    int index = keyToIndex(run_type_);
+    int index = ( isUsingTCDS_ ? keyToIndex(run_type_) : getCalibParamIndex(run_type_) );
     if (index >= 0) {
       m.setParameters( "ttc::TTCciControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
     }
@@ -1222,34 +1278,36 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     }
     m.sendCommand( "ttc::LTCControl", "configure" );
 
-    // Configure TCDS
-    RegDumpPreprocessor pp;
-    ostringstream ppMessages;
-    pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( ppMessages );
-    xdata::String pi_conf   ( pp.setTitle("PI"   ).process( runParameters_[index].bag.pi_.toString() ) );
-    xdata::String ci_p_conf ( pp.setTitle("CI P" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_p_ .toString() ) );
-    xdata::String ci_m_conf ( pp.setTitle("CI M" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_m_ .toString() ) );
-    xdata::String ci_tf_conf( pp.setTitle("CI TF").process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_tf_.toString() ) );
-    xdata::String pm_conf   ( pp.setTitle("PM"   ).process( runParameters_[index].bag.pm_.toString() ) );
-    if ( ppMessages.str().length() > 0 ){
-      LOG4CPLUS_WARN( logger_, string( "TCDS register preprocessor says: " ) + ppMessages.str() );
-    }
-    // PIs
-    if ( pi_plus_  ) pi_plus_ ->setRunType( run_type_ ).configure( pi_conf );
-    if ( pi_minus_ ) pi_minus_->setRunType( run_type_ ).configure( pi_conf );
-    if ( pi_tf_    ) pi_tf_   ->setRunType( run_type_ ).configure( pi_conf );
-    if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
-    if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
-    if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
-    // CIs
-    if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ci_p_conf  );
-    if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ci_m_conf  );
-    if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ci_tf_conf );
-    if ( ci_plus_  ) ci_plus_ ->configureSequence(); // This waits for the state transition to complete.
-    if ( ci_minus_ ) ci_minus_->configureSequence(); // This waits for the state transition to complete.
-    if ( ci_tf_    ) ci_tf_   ->configureSequence(); // This waits for the state transition to complete.
-    // LPM
-    if ( pm_       ) pm_      ->setRunType( run_type_ ).configure( pm_conf ).configureSequence(); // This waits for the state transition to complete.
+    if ( isUsingTCDS_ ){
+      // Configure TCDS
+      RegDumpPreprocessor pp;
+      ostringstream ppMessages;
+      pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( ppMessages );
+      xdata::String pi_conf   ( pp.setTitle("PI"   ).process( runParameters_[index].bag.pi_.toString() ) );
+      xdata::String ci_p_conf ( pp.setTitle("CI P" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_p_ .toString() ) );
+      xdata::String ci_m_conf ( pp.setTitle("CI M" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_m_ .toString() ) );
+      xdata::String ci_tf_conf( pp.setTitle("CI TF").process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_tf_.toString() ) );
+      xdata::String pm_conf   ( pp.setTitle("PM"   ).process( runParameters_[index].bag.pm_.toString() ) );
+      if ( ppMessages.str().length() > 0 ){
+	LOG4CPLUS_WARN( logger_, string( "TCDS register preprocessor says: " ) + ppMessages.str() );
+      }
+      // PIs
+      if ( pi_plus_  ) pi_plus_ ->setRunType( run_type_ ).configure( pi_conf );
+      if ( pi_minus_ ) pi_minus_->setRunType( run_type_ ).configure( pi_conf );
+      if ( pi_tf_    ) pi_tf_   ->setRunType( run_type_ ).configure( pi_conf );
+      if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
+      if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
+      if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
+      // CIs
+      if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ci_p_conf  );
+      if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ci_m_conf  );
+      if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ci_tf_conf );
+      if ( ci_plus_  ) ci_plus_ ->configureSequence(); // This waits for the state transition to complete.
+      if ( ci_minus_ ) ci_minus_->configureSequence(); // This waits for the state transition to complete.
+      if ( ci_tf_    ) ci_tf_   ->configureSequence(); // This waits for the state transition to complete.
+      // LPM
+      if ( pm_       ) pm_      ->setRunType( run_type_ ).configure( pm_conf ).configureSequence(); // This waits for the state transition to complete.
+    } // if ( isUsingTCDS_ )
 
     xdata::String runType( "global" );
     if      ( isCalibrationMode()     ) runType = "calibration";
@@ -1837,7 +1895,12 @@ string emu::supervisor::Application::getCGIParameter(xgi::Input *in, string name
 
 bool emu::supervisor::Application::allCalibrationRuns()
 {
-  for (size_t i = 0; i < runParameters_.size(); ++i) if ( runParameters_[i].bag.key_.toString().substr( 0, 5 ) != "Calib" ) return false;
+  if ( isUsingTCDS_ ){
+    for (size_t i = 0; i < runParameters_.size(); ++i) if ( runParameters_[i].bag.key_.toString().substr( 0, 5 ) != "Calib" ) return false;
+  }
+  else{
+    for (size_t i = 0; i <  calib_params_.size(); ++i) if (  calib_params_[i].bag.key_.toString().substr( 0, 5 ) != "Calib" ) return false;
+  }
   return true;
 }
 
@@ -1848,10 +1911,24 @@ bool emu::supervisor::Application::isCalibrationMode()
 
 bool emu::supervisor::Application::isAlctCalibrationMode()
 {
-	std::cout << "isAlctCalibMode: runtype: " << run_type_.toString() << "index" << keyToIndex(run_type_);
+	// std::cout << "isAlctCalibMode: runtype: " << run_type_.toString() << "index" << keyToIndex(run_type_);
 	bool res = run_type_.toString().find("ALCT") != string::npos;
 	std::cout << "isAlctCalibMode result: " << res << std::endl;
 	return res;
+}
+
+int emu::supervisor::Application::getCalibParamIndex(const string name)
+{
+	int result = -1;
+
+	for (size_t i = 0; i < calib_params_.size(); ++i) {
+		if (calib_params_[i].bag.key_ == name) {
+			result = i;
+			break;
+		}
+	}
+
+	return result;
 }
 
 int emu::supervisor::Application::keyToIndex(const string name)

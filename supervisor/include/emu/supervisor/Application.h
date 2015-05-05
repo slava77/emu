@@ -183,6 +183,7 @@ private: // XDAQ parameters
 	void refreshConfigParameters();
 
 	string getCGIParameter(xgi::Input *in, string name);
+	int getCalibParamIndex(const string name);
 	int keyToIndex(const string key);
 
         bool allCalibrationRuns();
@@ -233,6 +234,8 @@ private: // XDAQ parameters
   PIControl *pi_tf_;
 
   xdata::Boolean usePrimaryTCDS_;
+
+  bool isUsingTCDS_;		///< Will be FALSE if a legacy TTCci application is found. Then the legacy TTC system will be used instead of TCDS.
 
 	xdata::Integer64 nevents_;
 	unsigned int step_counter_;
