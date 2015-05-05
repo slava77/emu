@@ -119,7 +119,8 @@ std::vector< std::pair<int,int> > getHVSegmentsMap(std::string cscID)
     hvSegMap.push_back(std::make_pair(33,64));
     hvSegMap.push_back(std::make_pair(65,96));
   } else if ( (cscID.find("ME+2/2") == 0) || (cscID.find("ME-2/2") ==0)
-              ||  (cscID.find("ME+3/2") == 0) || (cscID.find("ME-3/2") ==0 ) ) {
+              ||  (cscID.find("ME+3/2") == 0) || (cscID.find("ME-3/2") ==0 ) 
+	      ||  (cscID.find("ME+4/2") == 0) || (cscID.find("ME-4/2") ==0 )) {
     hvSegMap.push_back(std::make_pair(1,16));
     hvSegMap.push_back(std::make_pair(17,28));
     hvSegMap.push_back(std::make_pair(29,40));
