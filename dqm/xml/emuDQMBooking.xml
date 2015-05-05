@@ -1208,7 +1208,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <SetGridy>1</SetGridy>
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetMaximum>-140</SetMaximum>
-		<SetMinimum>-170</SetMinimum>
+		<SetMinimum>-200</SetMinimum>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
 E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
                 <DrawType>ChamberMap</DrawType>
@@ -1244,9 +1244,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <Prefix>EMU</Prefix>
                 <Name>CSC_Plus_endcap_CLCT0_dTime</Name>
                 <SetOption>texthist</SetOption>
-                <XMin>-170</XMin>
+                <XMin>-200</XMin>
                 <XMax>-140</XMax>
-                <XBins>30</XBins>
+                <XBins>60</XBins>
                 <XTitle>CLCT0 BXN - CLCT_L1A BXN</XTitle>
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emruo</SetOptStat>
@@ -1259,9 +1259,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <Prefix>EMU</Prefix>
                 <Name>CSC_Minus_endcap_CLCT0_dTime</Name>
                 <SetOption>texthist</SetOption>
-                <XMin>-170</XMin>
+                <XMin>-200</XMin>
                 <XMax>-140</XMax>
-                <XBins>30</XBins>
+                <XBins>60</XBins>
                 <XTitle>CLCT0 BXN - CLCT_L1A BXN</XTitle>
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emruo</SetOptStat>
