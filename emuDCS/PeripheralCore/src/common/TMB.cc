@@ -583,6 +583,7 @@ namespace emu {
   //
   //
   SetTMBRegisterDefaults();
+  if (hardware_version_ < 2) cfeb_inj_en_sel_ &= 0x1F ;  // for Non-ME1/1 chambers, only 5 bits
   DefineTMBConfigurationRegisters_();
   //
   alct_sent_to_tmb_counter_index_                      = ALCT_SENT_TO_TMB_COUNTER_INDEX                     ;
