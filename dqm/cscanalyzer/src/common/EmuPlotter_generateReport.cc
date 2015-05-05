@@ -1425,9 +1425,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 {
 		  // Try to detect Beam run using ME11 DCFEB DAV pattern 
                   if (ME11 &&
-                      ( ((cfebs[4] > 0.6*avg_cfeb_occup) && (cfebs[4] < 2*avg_cfeb_occup))
-                        || ((cfebs[5] > 0.6*avg_cfeb_occup) && (cfebs[5] < 2*avg_cfeb_occup))
-                        || ((cfebs[6] > 0.6*avg_cfeb_occup) && (cfebs[6] < 2*avg_cfeb_occup)) )
+                      ( ((cfebs[4] > 0.5*avg_cfeb_occup) && (cfebs[4] < 2*avg_cfeb_occup))
+                        || ((cfebs[5] > 0.5*avg_cfeb_occup) && (cfebs[5] < 2*avg_cfeb_occup))
+                        || ((cfebs[6] > 0.5*avg_cfeb_occup) && (cfebs[6] < 2*avg_cfeb_occup)) )
                      )
                     {
                       if (!isBeam) LOG4CPLUS_INFO(logger, cscName << " --> Run2 beam collisions data detected");
