@@ -19,10 +19,10 @@
                 <YMax>1400</YMax>
                 <YBins>280</YBins>
                 <YTitle>Pedestal Mean, ADC counts</YTitle>
-		<Low1Limit>400</Low1Limit>
+		<Low1Limit>300</Low1Limit>
 		<Low0Limit>400</Low0Limit>
 		<High0Limit>800</High0Limit>
-		<High1Limit>800</High1Limit>
+		<High1Limit>1000</High1Limit>
         
 		<Low1Limit_ME11>950</Low1Limit_ME11>
 		<Low0Limit_ME11>950</Low0Limit_ME11>
@@ -44,10 +44,10 @@
                 <YMax>12</YMax>
                 <YBins>60</YBins>
                 <YTitle>Pedestal RMS, ADC counts</YTitle>
-                <Low1Limit>1</Low1Limit>
+                <Low1Limit>0.5</Low1Limit>
                 <Low0Limit>1</Low0Limit>
                 <High0Limit>6</High0Limit>
-                <High1Limit>6</High1Limit>
+                <High1Limit>10</High1Limit>
                 
                 <Low1Limit_ME11>1.5</Low1Limit_ME11>
                 <Low0Limit_ME11>1.5</Low0Limit_ME11>
@@ -89,10 +89,10 @@
                 <YMax>1400</YMax>
                 <YBins>280</YBins>
                 <YTitle>Pedestal Mean, ADC counts</YTitle>
-                <Low1Limit>400</Low1Limit>
+                <Low1Limit>300</Low1Limit>
                 <Low0Limit>400</Low0Limit>
                 <High0Limit>800</High0Limit>
-                <High1Limit>800</High1Limit>
+                <High1Limit>1000</High1Limit>
 
 		<Low1Limit_ME11>950</Low1Limit_ME11>
 		<Low0Limit_ME11>950</Low0Limit_ME11>
@@ -114,10 +114,10 @@
                 <YMax>12</YMax>
                 <YBins>60</YBins>
                 <YTitle>Pedestal RMS, ADC counts</YTitle>
-                <Low1Limit>1</Low1Limit>
+                <Low1Limit>0.5</Low1Limit>
                 <Low0Limit>1</Low0Limit>
                 <High0Limit>6</High0Limit>
-                <High1Limit>6</High1Limit>
+                <High1Limit>10</High1Limit>
                 
         </TestResult>
 
@@ -135,10 +135,10 @@
                 <YMax>1400</YMax>
                 <YBins>280</YBins>
                 <YTitle>Pedestal Mean, ADC counts</YTitle>
-                <Low1Limit>400</Low1Limit>
+                <Low1Limit>300</Low1Limit>
                 <Low0Limit>400</Low0Limit>
                 <High0Limit>800</High0Limit>
-                <High1Limit>800</High1Limit>
+                <High1Limit>1000</High1Limit>
 
 		<Low1Limit_ME11>950</Low1Limit_ME11>
 		<Low0Limit_ME11>950</Low0Limit_ME11>
@@ -160,10 +160,10 @@
                 <YMax>12</YMax>
                 <YBins>60</YBins>
                 <YTitle>Pedestal RMS, ADC counts</YTitle>
-                <Low1Limit>1</Low1Limit>
+                <Low1Limit>0.5</Low1Limit>
                 <Low0Limit>1</Low0Limit>
                 <High0Limit>6</High0Limit>
-                <High1Limit>6</High1Limit>
+                <High1Limit>10</High1Limit>
         </TestResult>
 
 	<TestResult>
