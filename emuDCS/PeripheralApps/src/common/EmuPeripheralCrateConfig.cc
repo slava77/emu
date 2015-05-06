@@ -2804,7 +2804,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  //
 	  thisDMB->checkDAQMBXMLValues();   //this has the CFEB check implicit in it
           //
-          if(thisDMB->GetHardwareVersion()>1) continue;
+          if(thisDMB->GetHardwareVersion()>1)  continue;
           // The following part is valid for old DMB/CFEB/ALCT only. Skip for ODMB/DCFEB...
 	  //
 	  // greg, put in cfeb firmware version check in CFEB config check
@@ -2821,6 +2821,8 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	    //	    std::cout << "smoking gun CFEB " << calling_index << " = " << cfeb_config_ok[current_crate_][chamber_index][cfeb_index];
 	  }
 	  //
+          if(thisALCT->GetHardwareVersion()<=1)   // only valid for first generation ALCTs
+          {
 	  // check if the currents drawn by the FPGA are within bounds or without
 	  // ALCT current reading from LVMB
           float alct_lvmb_current = thisDMB->lowv_adc(3,0)/1000.;
@@ -2836,6 +2838,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
             alct_adc_current_ok[current_crate_][chamber_index]++;
 	  else if (alct_adc_current < alct_minimum_current_value)
             alct_adc_current_ok[current_crate_][chamber_index] += 2; //the FPGA is drawing less current than an unloaded FPGA:  blown fuse!
+          }
 	  //
 	  // get the CFEB currents from LVMB.  Note, the ME1/1 have the cabling in a non-standard order on the LVMB
 	  for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
@@ -2939,14 +2942,16 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       int dslot = thisDMB->slot();
       //
       TMB * thisTMB   = tmbVector[chamber_index];
+      ALCTController * thisALCT   = thisTMB->alctController();
       int tslot = thisTMB->slot();
       //
-      if (
+      if(thisALCT->GetHardwareVersion()<=1)   // only valid for first generation ALCTs
+      {
 	  //	  alctcfg_ok[crate_index][chamber_index]           != number_of_checks_ ||
 	  //	  alct_adc_current_ok[crate_index][chamber_index]  != number_of_checks_ || 
 	  //	  alct_firmware_ok[crate_index][chamber_index]     != number_of_checks_ ||
-	  alct_lvmb_current_ok[crate_index][chamber_index] != number_of_checks_ 
-	  ) {
+       if (alct_lvmb_current_ok[crate_index][chamber_index] != number_of_checks_ ) 
+       {
 	crate_to_reload.push_back(crate_index);
 	slot_to_reload.push_back(tslot);
 	component_to_reload.push_back(ALCT_LABEL);
@@ -2979,6 +2984,7 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
       	//
 	reason_for_reload.push_back(reason.str());
 	loaded_ok.push_back(-1);
+       }
       }
       //
       if (
@@ -3026,11 +3032,12 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	reason_for_reload.push_back(reason.str());
 	loaded_ok.push_back(-1);
       }
-      //  
-      if (
+      //
+      if(thisDMB->GetHardwareVersion()<=1)  // only valid for DMB/CFEB
+      {  
 	  //dmb_control_firmware_ok[crate_index][chamber_index] < number_of_checks_ ||
-	  dmb_config_ok[crate_index][chamber_index]   < number_of_checks_ 
-	  ) {
+       if (dmb_config_ok[crate_index][chamber_index]   < number_of_checks_ ) 
+       {
 	crate_to_reload.push_back(crate_index);
 	slot_to_reload.push_back(dslot);
 	component_to_reload.push_back(DMB_CONTROL_LABEL);
@@ -3052,9 +3059,9 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	//
 	reason_for_reload.push_back(reason.str());
 	loaded_ok.push_back(-1);
-      }
-      //
-      for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
+       }
+       //
+       for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
 	if (
 	    //	    cfeb_firmware_ok[crate_index][chamber_index][cfeb_index] < number_of_checks_ ||
 	    cfeb_config_ok[crate_index][chamber_index][cfeb_index]   < number_of_checks_ ||
@@ -3092,7 +3099,8 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 	  reason_for_reload.push_back(reason.str());
 	  loaded_ok.push_back(-1);
 	}
-      } 
+       } 
+      }
       //
     }    //loop over chambers 
   }      //loop over crates
