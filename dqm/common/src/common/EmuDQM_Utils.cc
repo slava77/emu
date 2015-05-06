@@ -1,9 +1,12 @@
 #include "emu/dqm/common/EmuDQM_Utils.h"
 #include "DataFormats/FEDRawData/interface/FEDNumbering.h"
 
-namespace emu {
-namespace dqm {
-namespace utils {
+namespace emu
+{
+namespace dqm
+{
+namespace utils
+{
 
 std::string now(time_t tstamp, const char* format)
 {
@@ -16,10 +19,11 @@ std::string now(time_t tstamp, const char* format)
   std::string time = std::string(buf);
   if (time.find("\n",0) != std::string::npos)
     time = time.substr(0,time.find("\n",0));
-  else {
-    if (time.length() == 0)
-      time = "---";
-  }
+  else
+    {
+      if (time.length() == 0)
+        time = "---";
+    }
   return time;
 
 };
@@ -55,7 +59,7 @@ int getNumStrips(std::string cscID, uint16_t fFormatVersion)
   if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )
       || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") == 0 )) return 64;
   else if  ( fFormatVersion == 2013 && ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
-      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0 ))) return 112;
+                                        || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0 ))) return 112;
   else return 80;
 }
 
@@ -64,7 +68,7 @@ int getNumCFEBs(std::string cscID, uint16_t fFormatVersion)
   if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )
       || (cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0 )) return 4;
   else if  ( fFormatVersion == 2013 && ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
-      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0 ))) return 7;
+                                        || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") == 0 ))) return 7;
   else return 5;
 }
 
@@ -99,34 +103,45 @@ std::vector< std::pair<int,int> > getHVSegmentsMap(std::string cscID)
 {
   std::vector< std::pair<int,int> > hvSegMap;
   hvSegMap.clear();
-  if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )) {
-    hvSegMap.push_back(std::make_pair(1,48));
-  } else if ( (cscID.find("ME+1/2") == 0) || (cscID.find("ME-1/2") ==0)) {
-    hvSegMap.push_back(std::make_pair(1,24));
-    hvSegMap.push_back(std::make_pair(25,48));
-    hvSegMap.push_back(std::make_pair(49,64));
-  } else if ( (cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0)) {
-    hvSegMap.push_back(std::make_pair(1,12));
-    hvSegMap.push_back(std::make_pair(13,22));
-    hvSegMap.push_back(std::make_pair(23,32));
-  } else if ( (cscID.find("ME+2/1") == 0) || (cscID.find("ME-2/1") ==0)) {
-    hvSegMap.push_back(std::make_pair(1,44));
-    hvSegMap.push_back(std::make_pair(45,80));
-    hvSegMap.push_back(std::make_pair(81,112));
-  } else if ( (cscID.find("ME+3/1") == 0) || (cscID.find("ME-3/1") ==0)
-              ||  (cscID.find("ME+4/1") == 0) || (cscID.find("ME-4/1") ==0 ) ) {
-    hvSegMap.push_back(std::make_pair(1,32));
-    hvSegMap.push_back(std::make_pair(33,64));
-    hvSegMap.push_back(std::make_pair(65,96));
-  } else if ( (cscID.find("ME+2/2") == 0) || (cscID.find("ME-2/2") ==0)
-              ||  (cscID.find("ME+3/2") == 0) || (cscID.find("ME-3/2") ==0 ) 
-	      ||  (cscID.find("ME+4/2") == 0) || (cscID.find("ME-4/2") ==0 )) {
-    hvSegMap.push_back(std::make_pair(1,16));
-    hvSegMap.push_back(std::make_pair(17,28));
-    hvSegMap.push_back(std::make_pair(29,40));
-    hvSegMap.push_back(std::make_pair(41,52));
-    hvSegMap.push_back(std::make_pair(53,64));
-  }
+  if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 ))
+    {
+      hvSegMap.push_back(std::make_pair(1,48));
+    }
+  else if ( (cscID.find("ME+1/2") == 0) || (cscID.find("ME-1/2") ==0))
+    {
+      hvSegMap.push_back(std::make_pair(1,24));
+      hvSegMap.push_back(std::make_pair(25,48));
+      hvSegMap.push_back(std::make_pair(49,64));
+    }
+  else if ( (cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0))
+    {
+      hvSegMap.push_back(std::make_pair(1,12));
+      hvSegMap.push_back(std::make_pair(13,22));
+      hvSegMap.push_back(std::make_pair(23,32));
+    }
+  else if ( (cscID.find("ME+2/1") == 0) || (cscID.find("ME-2/1") ==0))
+    {
+      hvSegMap.push_back(std::make_pair(1,44));
+      hvSegMap.push_back(std::make_pair(45,80));
+      hvSegMap.push_back(std::make_pair(81,112));
+    }
+  else if ( (cscID.find("ME+3/1") == 0) || (cscID.find("ME-3/1") ==0)
+            ||  (cscID.find("ME+4/1") == 0) || (cscID.find("ME-4/1") ==0 ) )
+    {
+      hvSegMap.push_back(std::make_pair(1,32));
+      hvSegMap.push_back(std::make_pair(33,64));
+      hvSegMap.push_back(std::make_pair(65,96));
+    }
+  else if ( (cscID.find("ME+2/2") == 0) || (cscID.find("ME-2/2") ==0)
+            ||  (cscID.find("ME+3/2") == 0) || (cscID.find("ME-3/2") ==0 )
+            ||  (cscID.find("ME+4/2") == 0) || (cscID.find("ME-4/2") ==0 ))
+    {
+      hvSegMap.push_back(std::make_pair(1,16));
+      hvSegMap.push_back(std::make_pair(17,28));
+      hvSegMap.push_back(std::make_pair(29,40));
+      hvSegMap.push_back(std::make_pair(41,52));
+      hvSegMap.push_back(std::make_pair(53,64));
+    }
 
   return hvSegMap;
 
@@ -136,11 +151,12 @@ int getHVSegmentNumber(std::string cscID, uint32_t aseg)
 {
   std::vector< std::pair<int,int> > hvSegMap = getHVSegmentsMap(cscID);
   int first_wire = aseg*8+1;
-  for (uint32_t i=0; i<hvSegMap.size(); i++) {
-    if ( (first_wire >= hvSegMap[i].first)
-         && (first_wire < hvSegMap[i].second) )
-      return i;
-  }
+  for (uint32_t i=0; i<hvSegMap.size(); i++)
+    {
+      if ( (first_wire >= hvSegMap[i].first)
+           && (first_wire < hvSegMap[i].second) )
+        return i;
+    }
   return -1;
 
 }
@@ -148,17 +164,49 @@ int getHVSegmentNumber(std::string cscID, uint32_t aseg)
 bool isME11(std::string cscID)
 {
   if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )
-	|| (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) {
-    return true;
-  } else return false;
+      || (cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 ))
+    {
+      return true;
+    }
+  else return false;
 }
 
 bool isME42(std::string cscID)
 {
   if ((cscID.find("ME+4/2") == 0) || (cscID.find("ME-4/2") ==0 )
-	|| (cscID.find("ME+4.2") == 0) || (cscID.find("ME-4.2") ==0 )) {
-    return true;
-  } else return false;
+      || (cscID.find("ME+4.2") == 0) || (cscID.find("ME-4.2") ==0 ))
+    {
+      return true;
+    }
+  else return false;
+}
+
+int getME11a_first_strip_index(std::string cscID, uint16_t fFormatVersion)
+{
+  int index = 0;
+
+  if (isME11(cscID) && fFormatVersion >=2013) // Get ME11 first strip index for Post-LS1 setup
+    {
+      int csc_idx = 0;
+
+      /// get Endcap
+      int endcap = 0;
+      if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME+1.1") ==0 )) endcap = 1;
+
+      /// get CSC position
+      int csc_pos = 1;
+      std::string str_csc_pos = cscID.substr(7, std::string::npos);
+      std::stringstream st(str_csc_pos);
+      int tmp_pos=csc_pos;
+      if (st >> tmp_pos) csc_pos = tmp_pos;
+
+      /// CSC index
+      csc_idx = (36*endcap + csc_pos)-1;
+
+      index = POST_LS1_ME11A_STRIP_START_INDEX+48*6*csc_idx;
+    }
+
+  return index;
 }
 
 std::map<std::string, int> getCSCTypeToBinMap()
@@ -190,9 +238,10 @@ std::string getCSCTypeName(int id)
 {
 
   std::map<std::string, int> tmap = getCSCTypeToBinMap();
-  for (std::map<std::string,int>::iterator it= tmap.begin(); it != tmap.end(); ++it) {
-    if (it->second == id) return it->first;
-  }
+  for (std::map<std::string,int>::iterator it= tmap.begin(); it != tmap.end(); ++it)
+    {
+      if (it->second == id) return it->first;
+    }
   return "";
 }
 
@@ -201,40 +250,53 @@ std::string getCSCTypeLabel(int endcap, int station, int ring )
 {
   std::string label = "Unknown";
   std::ostringstream st;
-  if ((endcap > 0) && (station>0) && (ring>0)) {
-    if (endcap==1) {
-      st << "ME+" << station << "/" << ring;
-      label = st.str();
-    } else if (endcap==2) {
-      st << "ME-" << station << "/" << ring;
-      label = st.str();
-    } else {
-      label = "Unknown";
+  if ((endcap > 0) && (station>0) && (ring>0))
+    {
+      if (endcap==1)
+        {
+          st << "ME+" << station << "/" << ring;
+          label = st.str();
+        }
+      else if (endcap==2)
+        {
+          st << "ME-" << station << "/" << ring;
+          label = st.str();
+        }
+      else
+        {
+          label = "Unknown";
+        }
     }
-  }
   return label;
 }
 
 std::string genCSCTitle(std::string tag)
 {
   std::string title = " " + tag;
-  if (tag.find("DDU_") != std::string::npos ) {
-    int ddu=0;
-    int n = sscanf(tag.c_str(), "DDU_%02d", &ddu);
-    if (n==1) {
-      title = Form(" DDU = %02d", ddu);
-    }
+  if (tag.find("DDU_") != std::string::npos )
+    {
+      int ddu=0;
+      int n = sscanf(tag.c_str(), "DDU_%02d", &ddu);
+      if (n==1)
+        {
+          title = Form(" DDU = %02d", ddu);
+        }
 
-  } else if (tag.find("CSC_") != std::string::npos ) {
-    int crate=0, slot=0;
-    int n = sscanf(tag.c_str(), "CSC_%03d_%02d", &crate, &slot );
-    if (n==2) {
-      title = Form(" Crate ID = %02d. DMB ID = %02d", crate, slot);
     }
+  else if (tag.find("CSC_") != std::string::npos )
+    {
+      int crate=0, slot=0;
+      int n = sscanf(tag.c_str(), "CSC_%03d_%02d", &crate, &slot );
+      if (n==2)
+        {
+          title = Form(" Crate ID = %02d. DMB ID = %02d", crate, slot);
+        }
 
-  } else if (tag.find("EMU") != std::string::npos ) {
-    title = "";
-  }
+    }
+  else if (tag.find("EMU") != std::string::npos )
+    {
+      title = "";
+    }
 
   return title;
 }
@@ -245,9 +307,10 @@ std::string getCSCName(std::string cscID, int& crate, int& slot, int& CSCtype, i
   return cscID;
   //  int crate=0, slot=0;
   std::string cscName="";
-  if (sscanf(cscID.c_str(), "CSC_%03d_%02d", &crate , &slot) == 2) {
-    // cscName=getCSCFromMap(crate,slot, CSCtype, CSCposition );
-  }
+  if (sscanf(cscID.c_str(), "CSC_%03d_%02d", &crate , &slot) == 2)
+    {
+      // cscName=getCSCFromMap(crate,slot, CSCtype, CSCposition );
+    }
   return cscName;
 }
 
@@ -263,21 +326,28 @@ bool isValidDDUmapping(int dduID, int crate, int slot)
  **/
 int getRUIfromDDUId(unsigned ddu_id)
 {
-   int rui = -1;
-   const unsigned postLS1_map [] = { 841, 842, 843, 844, 845, 846, 847, 848, 849,
-                                     831, 832, 833, 834, 835, 836, 837, 838, 839,
-                                     861, 862, 863, 864, 865, 866, 867, 868, 869,
-                                     851, 852, 853, 854, 855, 856, 857, 858, 859 };
-   if ( (ddu_id >= FEDNumbering::MINCSCDDUFEDID) && (ddu_id <= FEDNumbering::MAXCSCDDUFEDID) )
-   {
-        for ( int i = 0; i < 36; i++)
+  int rui = -1;
+  const unsigned postLS1_map [] = { 841, 842, 843, 844, 845, 846, 847, 848, 849,
+                                    831, 832, 833, 834, 835, 836, 837, 838, 839,
+                                    861, 862, 863, 864, 865, 866, 867, 868, 869,
+                                    851, 852, 853, 854, 855, 856, 857, 858, 859
+                                  };
+  if ( (ddu_id >= FEDNumbering::MINCSCDDUFEDID) && (ddu_id <= FEDNumbering::MAXCSCDDUFEDID) )
+    {
+      for ( int i = 0; i < 36; i++)
         {
-          if (ddu_id == postLS1_map[i]) { rui = i+1; return rui;}
+          if (ddu_id == postLS1_map[i])
+            {
+              rui = i+1;
+              return rui;
+            }
         }
-   } else {
+    }
+  else
+    {
       rui = ddu_id & 0xFF;
-   }
-   return rui;
+    }
+  return rui;
 }
 
 

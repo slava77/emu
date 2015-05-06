@@ -1008,6 +1008,7 @@ void Test_Generic::bookCommonHistos()
 {
   MonHistos emuhistos;
   emucnvs.clear();
+  csc_tlimits.clear();
   tlimits.clear();
   char *stopstring;
   for (testParamsCfg::iterator itr=xmlCfg.begin(); itr != xmlCfg.end(); ++itr)
@@ -1137,6 +1138,8 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
   char *stopstring;
 
   ResultsCodes rcodes;
+  std::map<std::string, test_limits> limits;
+  limits.clear();
 
   for (testParamsCfg::iterator itr=xmlCfg.begin(); itr != xmlCfg.end(); ++itr)
     {
@@ -1145,6 +1148,8 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
         {
           std::string cnvtype = params["Type"];
           std::string scope = params["Prefix"];
+          std::string tname = params["Name"];
+
           std::string name = cscID+"_"+testID+"_"+params["Name"];
           std::string title = cscID+": "+testID+" "+params["Title"];
           double xmin=0., xmax=0.;
@@ -1376,6 +1381,12 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
               cnv->AddTextResult(params["Title"]);
               cnv->SetLimits(low1limit,low0limit, high0limit, high1limit, high0limit2, high1limit2);
               csccnvs[itr->first]=cnv;
+
+	      limits[tname].low0 = low0limit;
+              limits[tname].low1 = low1limit;
+              limits[tname].high0 = high0limit;
+              limits[tname].high1 = high1limit;
+
             }
 
           if ((cnvtype.find("h") == 0 && !(cnvtype.find("half") == 0)) && (scope=="CSC"))
@@ -1407,6 +1418,8 @@ void Test_Generic::bookTestsForCSC(std::string cscID)
   mhistos[cscID]=cschistos;
 
   rescodes[cscID] = rcodes;
+
+  csc_tlimits[cscID] = limits;
 
   //  return cschistos;
 }
@@ -1845,23 +1858,30 @@ void Test_Generic::finish()
 
 }
 
-int Test_Generic::checkChannel(TestData& cscdata, std::vector<std::string>& tests, int layer, int strip)
+int Test_Generic::checkChannel(TestData& cscdata, std::vector<std::string>& tests, int layer, int strip, std::string cscID)
 {
+  std::map<std::string, test_limits> &limits = tlimits;
+  if (csc_tlimits.size() > 0 ) {
+      std::map<std::string, std::map<std::string, test_limits> >::iterator itr = csc_tlimits.find(cscID);
+	if (itr != csc_tlimits.end())
+		limits = itr->second;
+  } 
+
   for (unsigned i = 0; i < tests.size(); i++)
     {
-      if ((cscdata[tests[i]].content[layer][strip] > tlimits[tests[i]].high1)
-          || (cscdata[tests[i]].content[layer][strip] < tlimits[tests[i]].low1))
+      if ((cscdata[tests[i]].content[layer][strip] > limits[tests[i]].high1)
+          || (cscdata[tests[i]].content[layer][strip] < limits[tests[i]].low1))
         return 1;
     }
 
   return 0;
 }
 
-
-double Test_Generic::checkChannelConstant(std::string test, double value, double threshold)
+double Test_Generic::checkChannelConstant(std::string test, double value, double threshold, std::string cscID)
 {
-  if ((value > threshold*tlimits[test].high1)
-      || (value < threshold*tlimits[test].low1))  return BAD_VALUE;
+  std::map<std::string, test_limits> &limits = tlimits;
+  if ((value > threshold*limits[test].high1)
+      || (value < threshold*limits[test].low1))  return BAD_VALUE;
   return value;
 }
 

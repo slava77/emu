@@ -13,6 +13,7 @@
 #include <TString.h>
 
 #define MAX_DDU 36
+#define POST_LS1_ME11A_STRIP_START_INDEX 252289
 
 namespace emu
 {
@@ -33,6 +34,7 @@ std::vector< std::pair<int,int> > getHVSegmentsMap(std::string cscID);
 int getHVSegmentNumber(std::string cscID, uint32_t iseg);
 bool isME11(std::string cscID);
 bool isME42(std::string cscID);
+int getME11a_first_strip_index(std::string cscID, uint16_t fFormatVersion = 2013);
 bool isValidDDUmapping(int dduID, int crate, int slot); /// Check that chamber (crate ID, slot) belongs to this DDU ID
 std::string getCSCTypeName(int id);
 std::string getCSCTypeLabel(int endcap, int station, int ring );

@@ -328,8 +328,8 @@ protected:
   // virtual void bookTestCanvases(std::string cscID);
   virtual void analyzeCSC(const CSCEventData& data) = 0;
   virtual void finishCSC(std::string cscID) = 0;
-  virtual int checkChannel(TestData& cscdata, std::vector<std::string>& tests, int layer, int strip);
-  virtual double checkChannelConstant(std::string test, double value, double threshold);
+  virtual int checkChannel(TestData& cscdata, std::vector<std::string>& tests, int layer, int strip, std::string cscID = "");
+  virtual double checkChannelConstant(std::string test, double value, double threshold, std::string cscID = "");
 
 
   unsigned long binCheckMask;
@@ -370,6 +370,7 @@ protected:
   std::map<std::string, TH2F*> hFormatErrors;
   std::map<std::string, int> tmap; // Map of CSC types for Format Errors histogram
   std::map<std::string, test_limits> tlimits;
+  std::map<std::string, std::map<std::string, test_limits> > csc_tlimits;
   CSCtoHWmap cscmap;
   CSCCrateMap* cratemap;
 //  	cscmap1 *map;
