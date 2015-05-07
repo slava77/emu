@@ -41,17 +41,17 @@ const std::string	ALCT_SLOW_FIRMWARE_FILENAME = "alct/slow/slow_control3_verify_
 // In other words:  9 April 2007 firmware should reside in YEARMONTHDAY=20070409
 //
 // The XXX in the ALCT firmware specification corresponds to the following structure:
-const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288";
-const std::string ALCT_READBACK_FILENAME_ME11 = "alct288/alct288_verify";
+const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct_s6_288/alct_s6_288";
+const std::string ALCT_READBACK_FILENAME_ME11 = "alct_s6_288/alct_s6_288_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn";
-const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn_verify";
+const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct_s6_288bn/alct_s6_288bn";
+const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE = "alct_s6_288bn/alct_s6_288bn_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp";
-const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp_verify";
+const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct_s6_288bp/alct_s6_288bp";
+const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE = "alct_s6_288bp/alct_s6_288bp_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp";
-const std::string ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp_verify";
+const std::string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct_s6_288fp/alct_s6_288fp";
+const std::string ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE  = "alct_s6_288fp/alct_s6_288fp_verify";
 //
 const std::string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384"; 
 const std::string ALCT_READBACK_FILENAME_ME12 = "alct384/alct384_verify";
@@ -74,8 +74,8 @@ const std::string ALCT_READBACK_FILENAME_ME32 = "alct384mirror/alct384mirror_ver
 const std::string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror";
 const std::string ALCT_READBACK_FILENAME_ME41 = "alct576mirror/alct576mirror_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME42 = "alct384mirror/alct384mirror";
-const std::string ALCT_READBACK_FILENAME_ME42 = "alct384mirror/alct384mirror_verify";
+const std::string ALCT_FIRMWARE_FILENAME_ME42 = "alct_s6_384mirror/alct_s6_384mirror";
+const std::string ALCT_READBACK_FILENAME_ME42 = "alct_s6_384mirror/alct_s6_384mirror_verify";
 //
 // Old svf files (to be deprecated once it is verified that the xsvf firmware is working...
 //const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf"; //
@@ -9650,7 +9650,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   if (alct->GetHardwareVersion()==2) {
     *out << cgicc::br() << std::endl;
     *out << cgicc::br() << std::endl;
-    *out << "new ALCT firmware version = " << FirmwareDir_ + "alct/alct_mez_spartan6.svf" << cgicc::br() << std::endl;
+    *out << "new ALCT firmware version = " << ALCTFirmware_[tmb].toString() << ".svf" << cgicc::br() << std::endl;
     std::string LoadSpartan6ALCTFirmware = toolbox::toString("/%s/LoadSpartan6ALCTFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadSpartan6ALCTFirmware) << std::endl ;
     sprintf(buf,"Load ALCT Spartan 6 Firmware in slot %d",tmbVector[tmb]->slot());
@@ -10487,7 +10487,7 @@ void EmuPeripheralCrateConfig::LoadSpartan6ALCTFirmware(xgi::Input * in, xgi::Ou
     ALCTController * thisALCT = thisTMB->alctController();
     if(thisALCT && (thisALCT->GetHardwareVersion()==2))
     {
-       std::string svffile = FirmwareDir_ + "alct/alct_mez_spartan6.svf";
+       std::string svffile = ALCTFirmware_[tmb].toString() + ".svf";
        // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset)
        thisCCB->setCCBMode(CCB::VMEFPGA);
        //
