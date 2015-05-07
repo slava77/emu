@@ -1005,7 +1005,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
                   for (int j=0; j<64; j++)
                     {
                       int ch_index = first_strip_index+i*80+j;
-                      res_out << std::fixed << std::setprecision(2) <<  ch_index << " "
+                      res_out << std::fixed << std::setprecision(6) <<  ch_index << " "
                               << r01.content[i][j]  << " " << r02.content[i][j]
                               << " " << (int)(mask.content[i][j])
                               << " " << (int)(checkChannel(cscdata, tests, i, j, cscID))
@@ -1016,7 +1016,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
                   for (int j=64; j<80; j++)
                     {
                       int ch_index = first_strip_index+i*80+j;
-                      res_out << std::fixed << std::setprecision(2) <<  ch_index << " "
+                      res_out << std::fixed << std::setprecision(6) <<  ch_index << " "
                               << 0  << " " << 0
                               << " " << 1 << " " << 1  << std::endl;
                     }
@@ -1025,7 +1025,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
                   for (int j=64; j<strips_per_layer; j++)
                     {
                       int ch_index = emu::dqm::utils::getME11a_first_strip_index(cscID, theFormatVersion) + i*48 + (j-64);
-                      res_out << std::fixed << std::setprecision(2) <<  ch_index << " "
+                      res_out << std::fixed << std::setprecision(6) <<  ch_index << " "
                               << r01.content[i][j]  << " " << r02.content[i][j]
                               << " " << (int)(mask.content[i][j])
                               << " " << (int)(checkChannel(cscdata, tests, i, j, cscID))
@@ -1040,7 +1040,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
                   for (int j=0; j<strips_per_layer; j++)
                     {
                       int ch_index = first_strip_index+i*strips_per_layer+j;
-                      res_out << std::fixed << std::setprecision(2) <<  ch_index << " "
+                      res_out << std::fixed << std::setprecision(6) <<  ch_index << " "
                               << r01.content[i][j]  << " " << r02.content[i][j]
                               << " " << (int)(mask.content[i][j])
                               << " " << (int)(checkChannel(cscdata, tests, i, j, cscID))
@@ -1091,9 +1091,14 @@ void Test_CFEB02::finishCSC(std::string cscID)
                   for (int j=64; j<80; j++)
                     {
                       int ch_index = first_strip_index+i*80+j;
-                      res_out << std::fixed << std::setprecision(2) <<  ch_index << " "
+                      res_out << std::fixed << std::setprecision(6) <<  ch_index << " "
                               << 0  << " " << 0
-                              << " " << 1 << " " << 1  << std::endl;
+                              << " " << 0  << " " << 0
+                              << " " << 0  << " " << 0
+                              << " " << 0  << " " << 0
+                              << " " << 0  << " " << 0
+                              << " " << 0  << " " << 0
+                              << " " << 1  << " " << 1  << std::endl;
                     }
 
                   // Remap post-LS1 ME11a 48 channels

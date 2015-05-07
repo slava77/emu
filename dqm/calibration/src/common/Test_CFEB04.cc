@@ -483,7 +483,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
           for (unsigned int layer = 1; layer <= 6; layer++)
             {
-	      int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
+              int nCFEBs = getNumStrips(cscID, theFormatVersion)/16;
               for (int icfeb=0; icfeb<nCFEBs; icfeb++)   // loop over cfebs in a given chamber
                 {
                   {
@@ -740,30 +740,68 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
           for (int layer=0; layer<NLAYERS; layer++)
             {
-              for (int strip=0; strip<strips_per_layer; strip++)
+              if ( emu::dqm::utils::isME11(cscID) && (theFormatVersion >= 2013)) // Handle post-LS1 ME11s with 7 DCFEBs
                 {
-                  res_out << std::fixed << std::setprecision(6) <<  (first_strip_index+layer*strips_per_layer+strip) << " "
-                          << r01.content[layer][strip]  << " "
-                          /* << r02.content[layer][strip] << "  " */
-                          << r03.content[layer][strip] <<" " << r05.content[layer][strip]
-                          << " " << (int)(mask.content[layer][strip])
-                          << " " << (int)checkChannel(cscdata, tests, layer, strip)
-                          << std::endl;
+
+                  for (int strip=0; strip<64; strip++)
+                    {
+                      int ch_index = first_strip_index+layer*80+strip;
+                      res_out << std::fixed << std::setprecision(6) <<  ch_index << " "
+                              << r01.content[layer][strip] << " "
+                              << r03.content[layer][strip] << " "
+                              << r05.content[layer][strip] << " "
+                              << (int)(mask.content[layer][strip]) << " "
+                              << (int)checkChannel(cscdata, tests, layer, strip, cscID)
+                              << std::endl;
+                    }
+
+                  // Zero 64-80 ME11 channels gap
+                  for (int strip=64; strip<80; strip++)
+                    {
+                      int ch_index = first_strip_index+layer*80+strip;
+                      res_out << std::fixed << std::setprecision(2) <<  ch_index << " "
+                              << 0  << " " << 0 << " " << 0
+                              << " " << 1 << " " << 1  << std::endl;
+                    }
+
+                  // Remap post-LS1 ME11a 48 channels
+                  for (int strip=64; strip<strips_per_layer; strip++)
+                    {
+                      int ch_index = emu::dqm::utils::getME11a_first_strip_index(cscID, theFormatVersion) + layer*48 + (strip-64);
+                      res_out << std::fixed << std::setprecision(6) <<  ch_index << " "
+                              << r01.content[layer][strip] << " "
+                              << r03.content[layer][strip] << " "
+                              << r05.content[layer][strip] << " "
+                              << (int)(mask.content[layer][strip]) << " "
+                              << (int)checkChannel(cscdata, tests, layer, strip, cscID)
+                              << std::endl;
+
+                    }
+
+                }
+              else
+                {
+
+                  for (int strip=0; strip<strips_per_layer; strip++)
+                    {
+                      int ch_index = first_strip_index+layer*strips_per_layer+strip;
+                      res_out << std::fixed << std::setprecision(6) <<  ch_index << " "
+                              << r01.content[layer][strip] << " "
+                              << r03.content[layer][strip] << " "
+                              << r05.content[layer][strip] << " "
+                              << (int)(mask.content[layer][strip]) << " "
+                              << (int)checkChannel(cscdata, tests, layer, strip, cscID)
+                              << std::endl;
+                    }
+
                 }
             }
           res_out.close();
-
-
-
         }
       else
         {
           LOG4CPLUS_WARN(logger, cscID << ": Invalid");
         }
-
-
-      //  }
-
     }
 }
 
