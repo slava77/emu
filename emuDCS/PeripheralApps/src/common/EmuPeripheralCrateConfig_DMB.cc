@@ -1096,7 +1096,7 @@ void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","Read Virtex6 Register") << std::endl;
   
   *out << cgicc::br() << std::endl;
-  *out << "Reult (hex): " << std::hex << DcfebVirtex6RegisterRead_ << std::dec << std::endl;
+  *out << "Result (hex): " << std::hex << DcfebVirtex6RegisterRead_ << std::dec << std::endl;
   
   *out << cgicc::form() << std::endl;  
   *out << cgicc::fieldset()<< cgicc::br() << std::endl;
