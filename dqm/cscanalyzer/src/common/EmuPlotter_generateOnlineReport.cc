@@ -393,6 +393,78 @@ int EmuPlotter::generateOnlineReport(std::string runname)
           }
     }
 
+// == Check for ALCT Timing issues
+  me = findME("EMU", "CSC_ALCT0_BXN_rms",  sourcedir);
+  if (me)
+    {
+      TH2D* h = reinterpret_cast<TH2D*>(me);
+      int csc_cntr=0;
+      uint32_t min_events=300;
+      double rms_limit = 1.81;
+      if (theFormatVersion == 2013) rms_limit = 1.5;
+      for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
+        for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+          {
+            std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+            if (!deadALCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
+              {
+                double limit = rms_limit;
+                if ((theFormatVersion != 2013) && emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
+                double z = h->GetBinContent(i, j+1);
+                double avg = round(z*10.)/10.;
+                if (avg > limit)
+                  {
+                    csc_cntr++;
+                    uint32_t csc_events = csc_stats[cscName];
+                    if (csc_events>min_events)
+                      {
+                        std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, limit);
+
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
+                      }
+                  }
+              }
+
+          }
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with ALCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_ALCT_TIMING"));
+    }
+
+// == Check for CLCT Timing issues
+  me = findME("EMU", "CSC_CLCT0_BXN_rms",  sourcedir);
+  if (me)
+    {
+      TH2D* h = reinterpret_cast<TH2D*>(me);
+      int csc_cntr=0;
+      uint32_t min_events=300;
+      double rms_limit = 2.11;
+      if (theFormatVersion == 2013) rms_limit = 1.7;
+      for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
+        for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
+          {
+            std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
+            if (!deadCLCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
+              {
+                double limit = rms_limit;
+                if ((theFormatVersion != 2013) && emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
+                double z = h->GetBinContent(i, j+1);
+                double avg = round(z*10.)/10.;
+                if (avg > limit)
+                  {
+                    csc_cntr++;
+                    uint32_t csc_events = csc_stats[cscName];
+                    if (csc_events>min_events)
+                      {
+                        std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, limit);
+
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
+                      }
+                  }
+              }
+
+          }
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CLCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_CLCT_TIMING"));
+    }
+
 
   // == Check for chambers with L1A out of sync
   me = findME("EMU", "DMB_L1A_out_of_sync_Fract",  sourcedir);
@@ -534,16 +606,24 @@ int EmuPlotter::generateOnlineReport(std::string runname)
               else
                 {
                   // Try to detect Beam run using ME11 DCFEB DAV pattern
-                  if (ME11 &&
-                      ( ((cfebs[4] > 0.5*avg_cfeb_occup) && (cfebs[4] < 2*avg_cfeb_occup))
-                        || ((cfebs[5] > 0.5*avg_cfeb_occup) && (cfebs[5] < 2*avg_cfeb_occup))
-                        || ((cfebs[6] > 0.5*avg_cfeb_occup) && (cfebs[6] < 2*avg_cfeb_occup)) )
-                     )
+                  if (ME11)
                     {
-                      // if (!isBeam) LOG4CPLUS_INFO(logger, cscName << " --> Run2 beam collisions data detected");
-                      isBeam = true;
+                      int tcnt=0;
+                      double tsum=0.;
+                      for (int i=4; i<7; i++)
+                        {
+                          if (cfebs[i]>0)
+                            {
+                              tsum+=cfebs[i];
+                              tcnt++;
+                            }
+                        }
+                      if (tcnt && (((tsum/tcnt)/avg_cfeb_occup)>0.5))
+                        {
+                          if (!isBeam) LOG4CPLUS_INFO(logger, cscName << " --> Run2 beam collisions data detected");
+                          isBeam = true;
+                        }
                     }
-
                 }
 
 
@@ -578,7 +658,6 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                             }
                           else if (ME11 && icfeb == 4)
                             {
-                              // if (ME11 && isBeam) std::cout << cscName << " Beam Run detected" << std::endl;
                               if (round(z) < avg_cfeb_occup*2)
                                 {
                                   std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
@@ -615,7 +694,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                             }
                           else if (!isBeam && ME11 && icfeb >= 4)
                             {
-                              if (round(z) < 1. || round(z) < 0.15*avg_cfeb_occup)
+                              if ((z < 1.) || round(z) < 0.10*avg_cfeb_occup)
                                 {
                                   std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                                   lowEffCFEBs[icfeb]=1;

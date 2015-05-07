@@ -1092,7 +1092,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=200;
+      uint32_t min_events=100;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -1135,7 +1135,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=200;
+      uint32_t min_events=100;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -1176,7 +1176,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=200;
+      uint32_t min_events=100;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
@@ -1210,31 +1210,35 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       if (me) delete me;
     }
 
-  // == Check for missing ALCT Timing issues
+  // == Check for ALCT Timing issues
   me = findME("EMU", "CSC_ALCT0_BXN_rms",  sourcedir);
   if (me)
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=200;
+      uint32_t min_events=300;
       double rms_limit = 1.81;
+      if (theFormatVersion == 2013) rms_limit = 1.5;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-            double limit = rms_limit;
-            if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
-            double z = h->GetBinContent(i, j+1);
-            double avg = round(z*10.)/10.;
-            if (avg > limit)
+            if (!deadALCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
               {
-                csc_cntr++;
-                uint32_t csc_events = csc_stats[cscName];
-                if (csc_events>min_events)
+                double limit = rms_limit;
+                if ((theFormatVersion != 2013) && emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
+                double z = h->GetBinContent(i, j+1);
+                double avg = round(z*10.)/10.;
+                if (avg > limit)
                   {
-                    std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, limit);
+                    csc_cntr++;
+                    uint32_t csc_events = csc_stats[cscName];
+                    if (csc_events>min_events)
+                      {
+                        std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, limit);
 
-                    dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
+                      }
                   }
               }
 
@@ -1244,22 +1248,23 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     }
 
 
-  // == Check for missing CLCT Timing issues
+  // == Check for CLCT Timing issues
   me = findME("EMU", "CSC_CLCT0_BXN_rms",  sourcedir);
   if (me)
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=200;
+      uint32_t min_events=300;
       double rms_limit = 2.11;
+      if (theFormatVersion == 2013) rms_limit = 1.7;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-            if (!deadALCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
+            if (!deadCLCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
               {
                 double limit = rms_limit;
-                if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
+                if ((theFormatVersion != 2013) && emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
                 double z = h->GetBinContent(i, j+1);
                 double avg = round(z*10.)/10.;
                 if (avg > limit)
@@ -1418,20 +1423,29 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
               if (theFormatVersion != 2013)
                 {
-		  // Try to detect Beam run using ME11 CFEB DAV pattern (CFEB5 should ~ 2.5times higher than average)
+                  // Try to detect Beam run using ME11 CFEB DAV pattern (CFEB5 should ~ 2.5times higher than average)
                   if (ME11 && ((avg_cfeb_occup*2.5)<cfebs[4])) isBeam = true;
                 }
               else
                 {
-		  // Try to detect Beam run using ME11 DCFEB DAV pattern 
-                  if (ME11 &&
-                      ( ((cfebs[4] > 0.5*avg_cfeb_occup) && (cfebs[4] < 2*avg_cfeb_occup))
-                        || ((cfebs[5] > 0.5*avg_cfeb_occup) && (cfebs[5] < 2*avg_cfeb_occup))
-                        || ((cfebs[6] > 0.5*avg_cfeb_occup) && (cfebs[6] < 2*avg_cfeb_occup)) )
-                     )
+                  // Try to detect Beam run using ME11 DCFEB DAV pattern
+                  if (ME11)
                     {
-                      if (!isBeam) LOG4CPLUS_INFO(logger, cscName << " --> Run2 beam collisions data detected");
-                      isBeam = true;
+                      int tcnt=0;
+                      double tsum=0.;
+                      for (int i=4; i<7; i++)
+                        {
+                          if (cfebs[i]>0)
+                            {
+                              tsum+=cfebs[i];
+                              tcnt++;
+                            }
+                        }
+                      if (tcnt && (((tsum/tcnt)/avg_cfeb_occup)>0.5))
+                        {
+                          if (!isBeam) LOG4CPLUS_INFO(logger, cscName << " --> Run2 beam collisions data detected");
+                          isBeam = true;
+                        }
                     }
 
                 }
@@ -1467,7 +1481,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                             }
                           else if (ME11 && icfeb == 4)
                             {
-                              // if (ME11 && isBeam) std::cout << cscName << " Beam Run detected" << std::endl;
                               if (round(z) < avg_cfeb_occup*2)
                                 {
                                   std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
@@ -1480,9 +1493,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                         }
                       else // New DCFEBs
                         {
-                          if (!ME11 || (isBeam && ME11)) 
+                          if (!ME11 || (isBeam && ME11))
                             {
-                              if ((round(z) < 5) || (round(z) < 0.4*avg_cfeb_occup))
+                              if ((round(z) < 5.) || (round(z) < 0.4*avg_cfeb_occup))
                                 {
                                   std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                                   lowEffCFEBs[icfeb]=1;
@@ -1493,7 +1506,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                             }
                           else if (!isBeam && ME11 && (icfeb <4))
                             {
-                              if ((round(z) < 3) || (round(z) < 0.4*avg_cfeb_occup))
+                              if ((round(z) < 3.) || (round(z) < 0.4*avg_cfeb_occup))
                                 {
                                   std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                                   lowEffCFEBs[icfeb]=1;
@@ -1504,7 +1517,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                             }
                           else if (!isBeam && ME11 && icfeb >= 4)
                             {
-                              if (round(z) < 1 || round(z) < 0.15*avg_cfeb_occup)
+                              if ((z < 1.) || (round(z) < 0.10*avg_cfeb_occup))
                                 {
                                   std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                                   lowEffCFEBs[icfeb]=1;
@@ -1783,7 +1796,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
                           if (theFormatVersion != 2013)
                             {
-			      // Don't count ME11 CFEB5 occupancy during Beam
+                              // Don't count ME11 CFEB5 occupancy during Beam
                               if (!isBeam || (isBeam && ME11 && (icfeb!=4) )) allCompsum += cfeb_comp_sum;
                             }
                           else
@@ -1892,44 +1905,44 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                   else
                                     {
                                       // if ( !isBeam )
-                                        {
+                                      {
 
-                                          // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
-                                          if ( (avg < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1) && (!loweredHVsegment[ilayer-1]))
-                                            {
-                                              if (avg < 0.01)
-                                                {
-                                                  std::string diag=Form("CFEB No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);
-                                                  dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
-                                                }
-                                              else
-                                                {
-                                                  std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
-                                                                        avg, low_comp_thresh);
-                                                  dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
-                                                }
-                                            }
+                                        // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
+                                        if ( (avg < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1) && (!loweredHVsegment[ilayer-1]))
+                                          {
+                                            if (avg < 0.01)
+                                              {
+                                                std::string diag=Form("CFEB No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);
+                                                dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                                              }
+                                            else
+                                              {
+                                                std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
+                                                                      avg, low_comp_thresh);
+                                                dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_LOW_EFF"));
+                                              }
+                                          }
 
-                                          // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
-                                          if ( avg >= high_comp_thresh)
-                                            {
-                                              std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f threshold)", icfeb+1, ilayer,
-                                                                    avg, high_comp_thresh);
-                                              dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY"));
-                                            }
+                                        // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
+                                        if ( avg >= high_comp_thresh)
+                                          {
+                                            std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f threshold)", icfeb+1, ilayer,
+                                                                  avg, high_comp_thresh);
+                                            dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY"));
+                                          }
 
-                                          for (int ch=1; ch <=32; ch++)
-                                            {
-                                              double ch_val = h->GetBinContent(ch+icfeb*32-1);
-                                              if (ch_val > 8*avg_comp_ch_occupancy)
-                                                {
-                                                  std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)",
-                                                                          icfeb+1, ilayer, ch+icfeb*32,
-                                                                          ch_val/avg_comp_ch_occupancy);
-                                                  dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY_CHANNEL"));
-                                                }
-                                            }
-                                        }
+                                        for (int ch=1; ch <=32; ch++)
+                                          {
+                                            double ch_val = h->GetBinContent(ch+icfeb*32-1);
+                                            if (ch_val > 8*avg_comp_ch_occupancy)
+                                              {
+                                                std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)",
+                                                                        icfeb+1, ilayer, ch+icfeb*32,
+                                                                        ch_val/avg_comp_ch_occupancy);
+                                                dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY_CHANNEL"));
+                                              }
+                                          }
+                                      }
                                     }
                                 }
                             }
