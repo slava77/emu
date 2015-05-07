@@ -10375,7 +10375,7 @@ void DAQMB::odmb_write_device_delay(const unsigned device, const unsigned delay)
 
 // OSU's SEM(Single Event Upset) related routines
 // provided by Bingxuan Liu
-void DAQMB::SEM_read_status(CFEB &cfeb, char status[2]){
+unsigned DAQMB::SEM_read_status(CFEB &cfeb){
      // Function 37:
      // SEM Status and Configuration Frame Address Register (FAR) capture and shift
      //	[0] = status_initialization;
@@ -10388,52 +10388,45 @@ void DAQMB::SEM_read_status(CFEB &cfeb, char status[2]){
      //	[7] = 1'b0;
      //	[8] = CRC error;
      //	[9] = double error detected;
-      unsigned tmp = 0x5555;
-      char buf[4]; 
-      dcfeb_hub(cfeb, SEM_STATUS,16, &tmp, buf, READ_YES|NOW);
-      memcpy(status, buf, 2);
-      return;
+      unsigned tmp = 0x5555, rb;
+      dcfeb_hub(cfeb, SEM_STATUS,16, &tmp, (char *)&rb, READ_YES|NOW);
+      return (rb & 0xFFFF);
 }
 
-int DAQMB::SEM_multibit_info(char status[2]){
-  int tmp;
-  tmp=0;
-  if((status[1]&0x02)!=0x00)tmp=1;
+int DAQMB::SEM_multibit_info(unsigned status){
+  int tmp=0;
+  if((status & 0x200)!=0x00)tmp=1;
   return tmp;
 }
 
 
-void DAQMB::SEM_unpack_status(char status[2]){
+void DAQMB::SEM_unpack_status(unsigned status){
   // unpack SEM status
   printf("UNPACKED STATUS \n");
-  if((status[0]&0x01)!=0x00)printf("state:initialization\n");
-  if((status[0]&0x02)!=0x00)printf("state:observation\n");
-  if((status[0]&0x04)!=0x00)printf("state:correction\n");
-  if((status[0]&0x08)!=0x00)printf("state:classification\n");
-  if((status[0]&0x10)!=0x00)printf("state:injection\n");
-  if((status[0]&0x20)!=0x00)printf("essential bit set\n");
-  if((status[0]&0x40)!=0x00)printf("uncorrectable bit set\n");
-  if((status[1]&0x01)!=0x00)printf("crc error bit set \n");
-  if((status[1]&0x02)!=0x00)printf("double error bit set\n");
+  if((status & 0x01)!=0x00)printf("state:initialization\n");
+  if((status & 0x02)!=0x00)printf("state:observation\n");
+  if((status & 0x04)!=0x00)printf("state:correction\n");
+  if((status & 0x08)!=0x00)printf("state:classification\n");
+  if((status & 0x10)!=0x00)printf("state:injection\n");
+  if((status & 0x20)!=0x00)printf("essential bit set\n");
+  if((status & 0x40)!=0x00)printf("uncorrectable bit set\n");
+  if((status & 0x100)!=0x00)printf("crc error bit set \n");
+  if((status & 0x200)!=0x00)printf("double error bit set\n");
 }
 
-void DAQMB::SEM_read_seu_address_linear(CFEB &cfeb, char blkadd[3]){
-      unsigned tmp = 0x555555;
-      char buf[4]; 
-      dcfeb_hub(cfeb,SEM_SEU_ADD_LINEAR,24, &tmp, buf, READ_YES|NOOP_YES|NOW);
-      memcpy(blkadd, buf, 3);
-      return;
+unsigned DAQMB::SEM_read_seu_address_linear(CFEB &cfeb){
+      unsigned tmp = 0x555555, rb;
+      dcfeb_hub(cfeb,SEM_SEU_ADD_LINEAR, 24, &tmp, (char *)&rb, READ_YES|NOOP_YES|NOW);
+      return (rb & 0xFFFFFF);
 }
 
-void DAQMB::SEM_read_seu_address_physical(CFEB &cfeb, char faradd[3]){
-      unsigned tmp = 0x55555555;
-      char buf[4]; 
-      dcfeb_hub(cfeb,SEM_SEU_ADD_PHYSICAL, 24, &tmp, buf, READ_YES|NOOP_YES|NOW);
-      memcpy(faradd, buf, 3);
-      return;
+unsigned DAQMB::SEM_read_seu_address_physical(CFEB &cfeb){
+      unsigned tmp = 0x55555555, rb;
+      dcfeb_hub(cfeb,SEM_SEU_ADD_PHYSICAL, 24, &tmp, (char *)&rb, READ_YES|NOOP_YES|NOW);
+      return (rb & 0xFFFFFF);
 }
 
-void DAQMB::SEM_read_errcnt(CFEB &cfeb, char *singleflip,char *multiflip){
+unsigned DAQMB::SEM_read_errcnt(CFEB &cfeb){
 //
 // Function 39:
 //
@@ -10441,12 +10434,9 @@ void DAQMB::SEM_read_errcnt(CFEB &cfeb, char *singleflip,char *multiflip){
 // 16 bit word
 //	[15:8] = multi_bit_err_cnt;
 //	[7:0]  = sngl_bit_err_cnt;
-      unsigned tmp = 0xd5eedfba;
-      char buf[4]; 
-      dcfeb_hub(cfeb,SEM_ERRCNT_READ, 24, &tmp, buf, READ_YES|NOW);
-      memcpy(&singleflip[0], buf, 1);
-      memcpy(&multiflip[0], buf+1, 1);
-      return;
+      unsigned tmp = 0xd5eedfba, rb;
+      dcfeb_hub(cfeb,SEM_ERRCNT_READ, 16, &tmp, (char *)&rb, READ_YES|NOW);
+      return (rb & 0xFFFF);
 }
 
 void DAQMB::SEM_control(CFEB &cfeb){
