@@ -4380,11 +4380,14 @@ int ALCTController::CheckFirmwareConfiguration() {
   int read_fpga_id = GetFastControlMezzFPGAID();
   //
   // Has the user eschewed the database check?
-  if ( xml_crateLabel   == "test_crate"   && 
-       xml_chamberLabel == "test_chamber" ) {
+  const std::string exemptCrate( "test_crate" ); // Crates whose label starts with this string are exempt from sanity check.
+  if ( xml_crateLabel.substr( 0, exemptCrate.length() ) == exemptCrate ){
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+	      << "!!! WARNING: 'test_crate*' is exempt from automatic firmware sanity check. Do check it yourself. !!!\n"
+	      << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
     return -1;
-  }
-  //
+  } 
+ //
   int return_value = 0;
   //
   for (unsigned int config_index=0; config_index<number_of_allowed_firmware_configurations; config_index++) {
