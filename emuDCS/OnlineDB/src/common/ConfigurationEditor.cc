@@ -2584,8 +2584,8 @@ std::string ConfigurationEditor::cratePattern( cgicc::Cgicc *cgi ){
   std::vector<cgicc::FormEntry> fev = cgi->getElements();
   std::multimap<std::string,std::string> stations = emu::utils::selectFromQueryString( fev, "^vmeStation$" );
   std::multimap<std::string,std::string> crates   = emu::utils::selectFromQueryString( fev, "^vmeNumber$" );
-  std::cout << "selected stations: " << stations << "\n";
-  std::cout << "selected crates: " << crates << "\n";
+  // std::cout << "selected stations: " << stations << "\n";
+  // std::cout << "selected crates: " << crates << "\n";
   if ( stations.size() * crates.size() == 0 ) return std::string();
   std::ostringstream pattern; 
   pattern << "VME[pm+-](";
@@ -2610,9 +2610,9 @@ std::string ConfigurationEditor::chamberPattern( cgicc::Cgicc *cgi ){
   std::multimap<std::string,std::string> stations = emu::utils::selectFromQueryString( fev, "^station$" );
   std::multimap<std::string,std::string> rings    = emu::utils::selectFromQueryString( fev, "^ring$" );
   std::multimap<std::string,std::string> chambers = emu::utils::selectFromQueryString( fev, "^chamber$" );
-  std::cout << "selected stations: " << stations << "\n";
-  std::cout << "selected rings: "    << rings    << "\n";
-  std::cout << "selected chambers: " << chambers << "\n";
+  // std::cout << "selected stations: " << stations << "\n";
+  // std::cout << "selected rings: "    << rings    << "\n";
+  // std::cout << "selected chambers: " << chambers << "\n";
   if ( stations.size() * rings.size() * chambers.size() == 0 ) return std::string();
   std::ostringstream pattern; 
   pattern << "ME[pm+-](";
