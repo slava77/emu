@@ -708,6 +708,7 @@ void TMB::ReadTmbIdCodes() {
   scan(1, (char *)&temp, 32, (char *)&data, 1);
   tmb_idcode_[device]=data;
   device += 5;
+  tmb_set_boot_reg(0);  
  }
   //
   short unsigned int BootReg;
@@ -9935,6 +9936,7 @@ unsigned TMB::virtex6_readreg(int reg)
 //     printf("return: %08X\n", rtv);
      comd=VTX6_BYPASS;
      scan(0, (char *)&comd, 10, rcvbuf, 0);
+     tmb_set_boot_reg(0);
      return rtv;
   } 
   else return 0;
@@ -9958,6 +9960,7 @@ void TMB::virtex6_writereg(int reg, unsigned value)
      scan(1, (char *)data, 6*32, rcvbuf, 0);     
      comd=VTX6_BYPASS;
      scan(0, (char *)&comd, 10, rcvbuf, 0);
+     tmb_set_boot_reg(0);
   }
 }
 
@@ -9997,6 +10000,7 @@ std::vector<float> TMB::virtex6_monitor()
      comd=VTX6_BYPASS;
      scan(0, (char *)&comd, 10, rcvbuf, 0);
      udelay(1000);
+     tmb_set_boot_reg(0);
   }
   return readout;
 }
@@ -10047,7 +10051,7 @@ int TMB::virtex6_dna(void *dna)
      getTheController()->CycleIdle_jtag(128);
      udelay(100000);
 
-     UnjamFPGA();
+     tmb_set_boot_reg(0);
      udelay(1000);
      return rtv;
 }

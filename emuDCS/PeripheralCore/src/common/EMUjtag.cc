@@ -2458,11 +2458,15 @@ void EMUjtag::ProgramTMBProms() {
   //
   this->ProgramProms_();
   //
+/*  LIU May 2015: It's not enough to just clear bit 7 of the boot register. Set the boot register to 0 is safe and easier.
+
   if (tmb_->slot() < 22) {
     short unsigned int BootReg;
     tmb_->tmb_get_boot_reg(&BootReg);
     tmb_->tmb_set_boot_reg(BootReg & 0xff7f);     //give the JTAG chain back to the FPGA 
   }
+*/
+  tmb_->tmb_set_boot_reg(0);
   //
   return;
 }
