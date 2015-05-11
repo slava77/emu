@@ -718,6 +718,8 @@ void Crate::MonitorCCB(int cycle, char * buf)
   MPC * mpc = this->mpc();
   //
   if(ccb==NULL || mpc==NULL || !IsAlive()) return;
+  if(vmeController()->GetDebug()) 
+      std::cout << "MonitorCCB in crate " << label_ << std::endl;
   ccb->read_later(0x0);
   ccb->read_later(0x2);
   ccb->read_later(0x4);
@@ -755,6 +757,8 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
   buf2=(short *)buf;
   buf4=(int *)buf;
   for(int i=0; i<= MAX_TMB_COUNTERS*9; i++) buf4[i]=0;
+  if(vmeController()->GetDebug()) 
+      std::cout << "MonitorTMB (counters) in crate " << label_ << std::endl;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   std::vector<TMB*> myTmbs = this->tmbs();
@@ -800,6 +804,8 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
   return;
 
   for(int i=0; i<= TOTAL_DMB_COUNTERS*9; i++) buf2[i]=0;
+  if(vmeController()->GetDebug()) 
+      std::cout << "MonitorDMB (counters) in crate " << label_ << std::endl;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) 
@@ -846,6 +852,8 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
   buf2=(short *)buf;
   *buf2 = 0;
   for(int i=0; i<= TOTAL_DCS_COUNTERS*9; i++) buf2[i]=0;
+  if(vmeController()->GetDebug()) 
+      std::cout << "MonitorDCS (TMB & DMB) in crate " << label_ << std::endl;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   std::vector<TMB*> myTmbs = this->tmbs();
@@ -900,6 +908,8 @@ void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask)
   buf2=(short *)buf;
   *buf2 = 0;
   for(int i=0; i<= TOTAL_DCS_COUNTERS*9; i++) buf2[i]=0;
+  if(vmeController()->GetDebug()) 
+      std::cout << "MonitorDCS2 (ODMB & DCFEB) in crate " << label_ << std::endl;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   std::vector<TMB*> myTmbs = this->tmbs();
@@ -941,6 +951,8 @@ void Crate::MonitorTCS(int cycle, char * buf, unsigned mask)
   buf2=(short *)buf;
   *buf2 = 0;
   for(int i=0; i<= TOTAL_DCS_COUNTERS*9; i++) buf2[i]=0;
+  if(vmeController()->GetDebug()) 
+      std::cout << "MonitorTCS (TMB voltages) in crate " << label_ << std::endl;
   vmeController()->SetUseDelay(true);
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) 

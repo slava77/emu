@@ -147,7 +147,7 @@ protected:
   int TOTAL_TMB_COUNTERS, TOTAL_TMB_COUNTERS2;
   xdata::TimeVal last_read_time;
   unsigned short ccbmpcreg[60][4];
-  bool first_read[60];
+  bool first_read[60], donebits_changed[60];
 
   static const int TOTAL_DCS_COUNTERS=64;
   static const int TOTAL_TMB_VOLTAGES=16;

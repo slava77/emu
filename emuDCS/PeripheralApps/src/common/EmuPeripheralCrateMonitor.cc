@@ -160,8 +160,11 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   dmb_mask.clear();
   vcc_reset.clear();
   crate_off.clear();
-  for(unsigned i=0; i<60; i++) first_read[i]=true;
-
+  for(unsigned i=0; i<60; i++) 
+  {
+     first_read[i]=true;
+     donebits_changed[i]=false;
+  }
   parsed=0;
 }
 
@@ -432,6 +435,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                         {
                            std::cout << "Crate "+cratename+" CCB CSRA2 changed from " << std::hex << ccbmpcreg[i][1] << " to " << buf2[2] << " at " << getLocalDateTime() << std::endl;
                            ccbmpcreg[i][1] = buf2[2];
+                           donebits_changed[i] = true;
                         }
                         if((ccbmpcreg[i][2]) != (buf2[3])) 
                         {
@@ -667,6 +671,16 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                       for(unsigned ii=0; ii<(buf2[0]/2); ii++) (*otmbdata)[ii] = (*tmbdata)[ii];
                    }
                    for(unsigned ii=0; ii<(buf2[0]/2); ii++) (*tmbdata)[ii] = buf4[ii+1];
+                   unsigned reset_time1=0, reset_time2=0, reset_time3=0;
+                   if(buf2[0]/2 >= 7*MAX_TMB_COUNTERS) reset_time1 = buf4[MAX_TMB_COUNTERS*6+TOTAL_TMB_COUNTERS];
+                   if(buf2[0]/2 >= 8*MAX_TMB_COUNTERS) reset_time2 = buf4[MAX_TMB_COUNTERS*7+TOTAL_TMB_COUNTERS];
+                   if(buf2[0]/2 >= 9*MAX_TMB_COUNTERS) reset_time3 = buf4[MAX_TMB_COUNTERS*8+TOTAL_TMB_COUNTERS];
+                   
+                   if(donebits_changed[i])
+                   {   // if CCB CSRA2 changed, then print out time-since-last-hard-reset
+                       std::cout << "Hard Reset time in crate " << cratename << " are: " << reset_time1 << " , " << reset_time2<< " and " << reset_time3 << " at " << getLocalDateTime() << std::endl;
+                       donebits_changed[i] = false;
+                   }
                    int badboard= buf2[1]>>10;
                    if(badboard>0 && badboard<10)
                       std::cout << "Bad TMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl;
@@ -3893,6 +3907,30 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      else if (command_argu=="OFF" || command_argu=="off") reload_vcc = false;
      std::cout << "SwitchBoard: VCC Reset " << command_argu << " at " << getLocalDateTime() << std::endl;
   }
+  else if (command_name=="DEBUGON")
+  {
+     if(!parsed) return;
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(command_argu=="ALL" || command_argu==crateVector[i]->GetLabel())
+        {   
+            crateVector[i]->vmeController()->Debug(1);
+            std::cout << "SwitchBoard: enable debug crate " << command_argu << " at " << getLocalDateTime() << std::endl;
+        }
+     }
+  }
+  else if (command_name=="DEBUGOFF")
+  {
+     if(!parsed) return;
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(command_argu=="ALL" || command_argu==crateVector[i]->GetLabel())
+        {  
+            crateVector[i]->vmeController()->Debug(0);
+            std::cout << "SwitchBoard: disable debug crate " << command_argu << " at " << getLocalDateTime() << std::endl;
+        }
+     }
+  }
   else if (command_name=="STATUS")
   {
      if(!parsed) return;
@@ -4355,7 +4393,9 @@ void EmuPeripheralCrateMonitor::Problems(xgi::Input * in, xgi::Output * out )
            }
            if(md==6)
               *out << ", Module = ALCT " << std::endl;
-           if(md>0 && md<6)
+           else if(md==4)
+              *out << ", Module = TMB " << std::endl;
+           else if(md==5)
               *out << ", Module = DMB/CFEB " << std::endl;
 
         }
