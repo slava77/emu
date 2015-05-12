@@ -48,6 +48,7 @@ ExternalObjects = \
 IncludeDirs = $(XdaqIncludeDirs) \
 	$(BUILD_HOME)/emu/dqm/cmssw/include/emu/dqm/cmssw \
 	$(BUILD_HOME)/emu/dqm/cmssw/src/common \
+	$(BUILD_HOME)/emu/base/include \
 	$(CMSSW)
 
 LibraryDirs = $(XdaqLibraryDirs) 

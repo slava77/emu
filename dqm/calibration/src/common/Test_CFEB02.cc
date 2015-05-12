@@ -336,7 +336,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
                         {
                           _mv0.content[layer-1][icfeb*16+strip-1] += Qi;
                           _mv0.cnts[layer-1][icfeb*16+strip-1]++;
-                          _rms0.content[layer-1][icfeb*16+strip-1] += pow(Qi,2);
+                          _rms0.content[layer-1][icfeb*16+strip-1] += pow(double(Qi),2);
                           _rms0.cnts[layer-1][icfeb*16+strip-1]++;
                         }
                       if (fSel) f << Qi << " ";
@@ -475,7 +475,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data)
 
                               r01.content[layer-1][icfeb*16+strip-1] += Qi;
                               r01.cnts[layer-1][icfeb*16+strip-1]++;
-                              r02.content[layer-1][icfeb*16+strip-1] += pow(Qi,2);
+                              r02.content[layer-1][icfeb*16+strip-1] += pow(double(Qi),2);
                               r02.cnts[layer-1][icfeb*16+strip-1]++;
                             }
 
