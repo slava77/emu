@@ -9776,9 +9776,14 @@ bool TMB::checkvme_fail()
    //       false:  TMB vme access OK
 
    char data[2];
-   int i=read_one(0, data);
-   if(i<=0) return true;  // if VCC problem, or TMB VME access time-out
-   else return false;
+   int i=read_one(0x70000, data);
+   if(data[1]&0x40)
+   {  
+       i=read_one(0, data);
+       if(i<=0) return true;  // if VCC problem, or TMB VME access time-out
+       else return false;
+   }
+   else return true;      // if VME ready bit 0, can't access VME
 }
 
 //
