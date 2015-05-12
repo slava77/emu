@@ -271,7 +271,7 @@ void Chamber::GetDimLV2(int hint, LV_2_DimBroker *dim_lv )
    dim_lv->A7v = data[50];
    dim_lv->D7v = data[51];
    dim_lv->CCB_bits = info[3];
-   dim_lv->FPGA_bits = info[4];
+   dim_lv->FPGA_bits = int(data[78]);
    dim_lv->update_time = info[1];
    dim_lv->status = this_st;
 
