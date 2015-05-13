@@ -50,8 +50,8 @@ class EmuMonitorTimerTask: public Task
 
 public:
 
-  EmuMonitorTimerTask(): 
-	Task("EmuMonitorTimerTask")
+  EmuMonitorTimerTask():
+    Task("EmuMonitorTimerTask")
   {
     timerDelay	= 60;
     plotter 	= NULL;
@@ -59,9 +59,9 @@ public:
     fActive	= false;
   }
 
-  EmuMonitorTimerTask(std::string name): 
-	Task("EmuMonitorTimerTask"), 
-	fname(name)
+  EmuMonitorTimerTask(std::string name):
+    Task("EmuMonitorTimerTask"),
+    fname(name)
   {
     timerDelay	= 120;
     plotter 	= NULL;
@@ -93,8 +93,8 @@ public:
   {
     fActive	= true;
 
-    if (plotter != NULL) 
-	plotter->saveToROOTFile(fname);
+    if (plotter != NULL)
+      plotter->saveToROOTFile(fname);
 
     fActive	= false;
 
@@ -182,7 +182,7 @@ private:
   void bindSOAPcallbacks();
   void bindCGIcallbacks();
   void startATCP()
-	throw (emu::dqm::monitor::exception::Exception);
+  throw (emu::dqm::monitor::exception::Exception);
 
   void getDataServers(xdata::String className);
   void getCollectors(xdata::String className);
@@ -225,8 +225,8 @@ protected:
   xdata::Boolean		fCheckMapping_;  	// Enable or disable DDU-CSC mapping checks
   xdata::String 		daqGroup_;
 
-  // == File Writer 
-  emu::daq::writer::RawDataFile *fileWriter_;           // File Writer 
+  // == File Writer
+  emu::daq::writer::RawDataFile *fileWriter_;           // File Writer
   xdata::Boolean		enableDataWrite_;	// Enable Data File writing
   xdata::String       		outputDataFile_;    	// The path to the file to write the data into (no file written if "")
   xdata::UnsignedLong 		fileSizeInMegaBytes_;  	// When the file size exceeds this, no more events will be written to it (no file written if <=0)
@@ -248,6 +248,7 @@ protected:
 
   xdata::UnsignedInteger 	totalEvents_;		// Total processed events counter
   xdata::UnsignedInteger 	sessionEvents_;		// Session processed events counter
+  xdata::UnsignedInteger	prev_sessionEvents_;
 
   toolbox::PerformanceMeter * 	pmeter_;
   toolbox::PerformanceMeter * 	pmeterCSC_;
@@ -266,7 +267,7 @@ protected:
   xdata::Boolean		loopFileReadout_;
   xdata::Boolean		setPlotterDebug_;	// Enable Plotter Debug flag
 
-  emu::daq::reader::Base*  	deviceReader_;  	// Device Reader 
+  emu::daq::reader::Base*  	deviceReader_;  	// Device Reader
   xdata::String         	inputDeviceName_;      	// Input Device Name (file path or board number)
   xdata::String         	inputDeviceType_;      	// Spy, Slink or File
   xdata::String         	inputDataFormat_;      	// "DDU" or "DCC"
@@ -286,7 +287,7 @@ protected:
   xdata::UnsignedInteger        averageRate_;
 
   xdaq::ApplicationDescriptor 	*appDescriptor_;	// Application's descriptor
-  xdaq::ApplicationContext 	*appContext_;		// Application's context 
+  xdaq::ApplicationContext 	*appContext_;		// Application's context
   int32_t       		appTid_;		// Application's TID (instance)
   xdaq::Zone 			*zone_;			// Application's zone
 

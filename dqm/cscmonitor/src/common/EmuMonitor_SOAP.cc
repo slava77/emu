@@ -239,6 +239,7 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
               && (fsm_.getCurrentState() == 'E')
               && (fSaveROOTFile_ == xdata::Boolean(true))
               && (sessionEvents_ > xdata::UnsignedInteger(0))
+              && (sessionEvents_ != prev_sessionEvents_)
               && (timer_ != NULL)
               && (!timer_->isActive())
              )
@@ -246,7 +247,10 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
             timer_->setPlotter(plotter_);
             timer_->setROOTFileName(getROOTFileName(tstamp));
             timer_->activate();
-          }
+	    prev_sessionEvents_ = sessionEvents_;
+          } else {
+		LOG4CPLUS_INFO(logger_, "Saving of results is skipped." );
+	  }
         }
       }
     }
