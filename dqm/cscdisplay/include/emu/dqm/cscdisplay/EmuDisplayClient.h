@@ -159,6 +159,7 @@ public:
   void getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getDQMReport (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getROOTFile (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void getNodesRates (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
 
   void controlDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void configureDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);

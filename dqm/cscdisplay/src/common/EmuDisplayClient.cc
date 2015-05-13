@@ -74,6 +74,7 @@ throw (xdaq::exception::Exception)
   xgi::bind(this, &EmuDisplayClient::getTestsList,  "getTestsList");
   xgi::bind(this, &EmuDisplayClient::getRunsList,   "getRunsList");
   xgi::bind(this, &EmuDisplayClient::getCSCCounters,  "getCSCCounters");
+  xgi::bind(this, &EmuDisplayClient::getNodesRates,  "getNodesRates");
   xgi::bind(this, &EmuDisplayClient::getDQMReport,  "getDQMReport");
   xgi::bind(this, &EmuDisplayClient::getROOTFile,  "getROOTFile");
   xgi::bind(this, &EmuDisplayClient::controlDQM,  "controlDQM");
@@ -524,6 +525,88 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
   appBSem_.give();
 
 }
+
+void EmuDisplayClient::getNodesRates (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
+{
+  appBSem_.take();
+
+  std::string runname="";
+
+  cgicc::Cgicc cgi(in);
+  cgicc::const_form_iterator stateInputElement = cgi.getElement("run");
+  if (stateInputElement != cgi.getElements().end())
+    {
+      runname = (*stateInputElement).getValue();
+      //       std::cout << runname << std::endl;
+    }
+  (out->getHTTPResponseHeader()).addHeader("Content-Type","text/javascript");
+
+  if (runname.find("Online") != std::string::npos || runname =="")
+    {
+
+      *out << "var NODES_RATES=[" << std::endl;
+      *out << "['Online Run'," << std::endl;
+      try
+        {
+          if (!cscCounters.empty())
+            {
+              CSCCounters::iterator citr;
+              for (citr=cscCounters.begin(); citr != cscCounters.end(); ++citr)
+                {
+                  *out << "['" << citr->first << "',[";
+                  std::map<std::string, std::string>::iterator itr;
+                  for (itr=citr->second.begin(); itr != citr->second.end(); ++itr)   // == Loop and Output Counters
+                    {
+                      *out << "['"<< itr->first << "','" << itr->second <<"'],";
+                    }
+                  *out << "]]," << std::endl;
+                }
+            }
+        }
+      catch (xoap::exception::Exception &e)
+        {
+          if (debug) LOG4CPLUS_ERROR(logger_, "Failed to getNodesRates: "
+                                       << xcept::stdformat_exception_history(e));
+
+        }
+
+      *out << "]]" << std::endl;
+
+    }
+  else
+ {
+
+	*out << "var NODES_RATES=[['Run: "<< runname << "']]" << std::endl;
+/*
+      if (isCSCCountersFileAvailable(runname))
+        {
+          ifstream counters;
+          counters.open( (ResultsDir.toString()+"/"+runname+".plots/csc_counters.js").c_str());
+          if (counters.is_open())
+            {
+              *out << counters.rdbuf();
+              counters.close();
+            }
+          else
+            {
+              // == Empty map
+              *out << "var NODES_RATES=[['Run: "<< runname << "']]" << std::endl;
+            }
+          // Read CSC list from available file
+          appBSem_.give();
+          return;
+        }
+      else
+        {
+          *out << "var NODES_RATES=[['Run: "<< runname << "']]" << std::endl;
+        }
+*/
+    }
+
+  appBSem_.give();
+
+}
+
 
 bool EmuDisplayClient::isDQMReportFileAvailable(std::string runname, std::string ver)
 {
@@ -2797,7 +2880,7 @@ std::string EmuDisplayClient::getDQMEventsRate()
 std::string EmuDisplayClient::getDQMQuality()
 {
 
-  int maxCSCs = 468; // !!! Move it from here
+  int maxCSCs = 540; // !!! Move it from here
   std::string dqmQuality = "1.000";
   float all_cscUnpacked = 0.0;
   std::string cscDetected = "0";
