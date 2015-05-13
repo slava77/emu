@@ -1410,8 +1410,8 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
 
     // Enable TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
-      sendCommandCell("enable");
-      waitForTFCellOpToReach("enabled",10);
+      sendCommandCell("start");
+      waitForTFCellOpToReach("running",10);
     }
 
     // Enable TCDS
