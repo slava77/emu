@@ -350,6 +350,49 @@ int getRUIfromDDUId(unsigned ddu_id)
   return rui;
 }
 
+/**
+ * Get DDU ID from RUI Number for post LS1 configuration
+ **/
+int getDDUfromRUIId(unsigned rui_id)
+{
+  int ddu_id = 0;
+  const unsigned postLS1_map [] = { 841, 842, 843, 844, 845, 846, 847, 848, 849,
+                                    831, 832, 833, 834, 835, 836, 837, 838, 839,
+                                    861, 862, 863, 864, 865, 866, 867, 868, 869,
+                                    851, 852, 853, 854, 855, 856, 857, 858, 859
+                                  };
+
+  if ((rui_id > 0) && (rui_id <36)) ddu_id = postLS1_map[rui_id-1];
+  return ddu_id;
+}
+
+/**
+ * Replace string with RUI number with DDU Id for post LS1 configuration
+ **/
+std::string replaceRUIwithDDUId(std::string rui)
+{
+  std::string ddu_id = "";
+
+  if (rui.find("_") != std::string::npos)
+    {
+      std::string str_id = rui.substr(rui.find("_")+1, std::string::npos);
+      std::stringstream st(str_id);
+      int tmp_id = 0;
+      if (st >> tmp_id)
+        {
+          int id = getDDUfromRUIId(tmp_id);
+          if (id>0)
+            {
+              st.clear();
+	      st.str("");
+              st << "DDU_" << id;
+              ddu_id = st.str();
+            }
+        }
+    }
+
+  return ddu_id;
+}
 
 }
 }

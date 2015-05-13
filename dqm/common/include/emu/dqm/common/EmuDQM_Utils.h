@@ -42,6 +42,8 @@ std::string getCSCName(std::string cscID, int& crate, int& slot, int& CSCtype, i
 std::map<std::string, int> getCSCTypeToBinMap();
 std::string genCSCTitle(std::string tag);
 int getRUIfromDDUId(unsigned ddu_id);
+int getDDUfromRUIId(unsigned ddu_id);
+std::string replaceRUIwithDDUId(std::string rui);
     
     
 }
