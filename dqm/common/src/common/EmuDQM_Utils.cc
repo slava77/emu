@@ -362,7 +362,7 @@ int getDDUfromRUIId(unsigned rui_id)
                                     851, 852, 853, 854, 855, 856, 857, 858, 859
                                   };
 
-  if ((rui_id > 0) && (rui_id <36)) ddu_id = postLS1_map[rui_id-1];
+  if ((rui_id > 0) && (rui_id <=36)) ddu_id = postLS1_map[rui_id-1];
   return ddu_id;
 }
 
