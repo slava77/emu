@@ -43,6 +43,7 @@ var TESTS_MAP = {
 	{"testID": "CSC_WITHOUT_CFEB", "testPlot": "DMB/DMB_Test02_ALCT_TMB_CFEB_Data_Blocks", "testScope": "CSC"},
 	{"testID": "CSC_WITH_L1A_OUT_OF_SYNC", "testPlot": "SYNC/SYNC_Test01_L1A_Differences", "testScope": "CSC"},
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "testPlot": "DMB/DMB_Test03_Individual_CFEB_Data_Blocks", "testScope": "CSC"},
+	{"testID": "CSC_HOT_CFEB_DAV_EFF", "testPlot": "DMB/DMB_Test03_Individual_CFEB_Data_Blocks", "testScope": "CSC"},
 	{"testID": "CSC_CFEB_NO_SCA_DATA", "testPlot": "CFEB/CFEB_SCA_Active_Strips_Occupancy", "testScope": "CSC"},
 	{"testID": "CSC_CFEB_SCA_LOW_EFF", "testPlot": "CFEB/CFEB_SCA_Active_Strips_Occupancy", "testScope": "CSC"},
 	{"testID": "CSC_CFEB_SCA_NOISY", "testPlot": "CFEB/CFEB_SCA_Active_Strips_Occupancy", "testScope": "CSC"},

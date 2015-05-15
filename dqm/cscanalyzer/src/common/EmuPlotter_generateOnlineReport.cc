@@ -543,11 +543,13 @@ int EmuPlotter::generateOnlineReport(std::string runname)
     {
       int crate=0, slot =0;
       uint32_t min_events = 300;
+      double cfeb_hot_thresh = 60.;
       //    std::cout << getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition) << std::endl;
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
       int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName, theFormatVersion);
       bool ME11 = emu::dqm::utils::isME11(cscName);
       bool isBeam = false; // Assume that this is Cosmic run and not Beam
+      bool hasHotCFEB = false; // Check if one of the CFEBs is hot (DAV > cfeb_hot_thresh)
 
       // int nStrips = getNumStrips(cscName);
       int nWireGroups = emu::dqm::utils::getNumWireGroups(cscName);
@@ -590,6 +592,11 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                   // val = round(h->GetBinContent(icfeb+1));
                   val = h->GetBinContent(icfeb+1);
                   cfebs.push_back(val);
+                  if (val>cfeb_hot_thresh)
+                    {
+                      hasHotCFEB = true;
+                      continue; // dont count hot CFEBs
+                    }
                   if (!ME11 || (ME11 && icfeb<4) ) h_tmp->Fill(val);
 
                 }
@@ -612,7 +619,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                       double tsum=0.;
                       for (int i=4; i<7; i++)
                         {
-                          if (cfebs[i]>0)
+                          if ((cfebs[i]>0) && (cfebs[i] < cfeb_hot_thresh))
                             {
                               tsum+=cfebs[i];
                               tcnt++;
@@ -630,7 +637,19 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
               for (int icfeb=0; icfeb< nCFEBs; icfeb++)
                 {
+
                   double z=cfebs[icfeb];
+
+                  if (z > cfeb_hot_thresh) /// Check for hot CFEB
+                    {
+                      std::string diag=Form("CFEB Hot: CFEB%d DAV %.3f%%", icfeb+1, z);
+                      deadCFEBs[icfeb]=1;    // Mark this CFEB as dead
+                      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_HOT_CFEB_DAV_EFF"));
+                      badCFEBs[icfeb]=1;
+                      nbadCFEBs ++;
+                    }
+
+                  if (hasHotCFEB) continue; // Dont check if have Hot CFEB
 
                   if (z==0)
                     {

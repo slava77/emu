@@ -15,21 +15,10 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 ]},
 
 {"objID": "ME+1/2/21", "name": "ME+1/2/21", "list": [
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 Layer2", "severity": "3", "obj": "CFEB2 Layer2"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB2 Layer3", "severity": "2", "obj": "CFEB2 Layer3"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 Layer4", "severity": "3", "obj": "CFEB2 Layer4"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 Layer5", "severity": "3", "obj": "CFEB2 Layer5"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 Layer6", "severity": "3", "obj": "CFEB2 Layer6"},
-	{"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 Layer2", "severity": "3", "obj": "CFEB2 Layer2"},
-	{"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 Layer4", "severity": "3", "obj": "CFEB2 Layer4"},
-	{"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 Layer5", "severity": "3", "obj": "CFEB2 Layer5"},
-	{"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 Layer6", "severity": "3", "obj": "CFEB2 Layer6"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer1", "severity": "3", "obj": "CFEB2 Layer1"},
-        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer2", "severity": "3", "obj": "CFEB2 Layer2"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer3", "severity": "3", "obj": "CFEB2 Layer3"},
-        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer4", "severity": "3", "obj": "CFEB2 Layer4"},
-        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer5", "severity": "3", "obj": "CFEB2 Layer5"},
-        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 Layer6", "severity": "3", "obj": "CFEB2 Layer6"},
+        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2", "severity": "3", "obj": "CFEB2"},
+	{"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2", "severity": "3", "obj": "CFEB2"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2", "severity": "3", "obj": "CFEB2"},
+        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2", "severity": "3", "obj": "CFEB2"},
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB2 DAV 0.000%", "severity": "3", "obj": "CFEB2"}
 ]},
 
@@ -47,21 +36,11 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 ]},
 {"objID": "ME+1/3/22", "name": "ME+1/3/22", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB1 DAV 7.000%", "severity": "2", "obj": "CFEB1"},
-	    {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB1 Layer6 Ch#1", "severity": "1", "obj": "CFEB1 Layer6 Ch#1"}
+        {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB1 Layer6 Ch#1", "severity": "1", "obj": "CFEB1 Layer6 Ch#1"}
 ]},
 {"objID": "ME+1/3/26", "name": "ME+1/3/26", "list": [
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer1 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer1"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer2 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer2"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer3 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer3"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer4 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer4"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer5 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer5"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer6 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer6"},
-	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer1 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer1"},
-	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer2 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer2"},
-	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer3 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer3"},
-	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer4 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer4"},
-	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer5 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer5"},
-	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer6 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer6"}
+	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3"},
+	{"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3"}
 ]},
 {"objID": "ME+2/1/01", "name": "ME+2/1/01", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB5 DAV 0.000%", "severity": "3", "obj": "CFEB5"},
@@ -103,18 +82,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 ]},
 {"objID": "ME+3/1/07", "name": "ME+3/1/07", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB3 DAV 6.000%", "severity": "2", "obj": "CFEB3"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer1 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer1"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer2 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer2"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer3 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer3"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer4 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer4"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer5 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer5"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 Layer6 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer6"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer1 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer1"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer2 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer2"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer3 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer3"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer4 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer4"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer5 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer5"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 Layer6 (< 20.0% from average)", "severity": "2", "obj": "CFEB3 Layer6"}
+	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 (< 20.0% from average)", "severity": "2", "obj": "CFEB3"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 (< 20.0% from average)", "severity": "2", "obj": "CFEB3"},
+        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB3", "severity": "3", "obj": "CFEB3"}
 ]},
 {"objID": "ME+3/1/08", "name": "ME+3/1/08", "list": [
 	{"testID": "CSC_NO_HV_SEGMENT", "scope": "CSC", "descr": "No HV: Segment3 Layer5", "severity": "2", "obj": "Segment3 Layer5"}
@@ -123,6 +93,10 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB2 DAV", "severity": "2", "obj": "CFEB2"}
 ]},
 {"objID": "ME+3/1/11", "name": "ME+3/1/11", "list": [
+        {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB3 DAV", "severity": "2", "obj": "CFEB3"},
+	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 (< 20.0% from average)", "severity": "2", "obj": "CFEB3"},
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 (< 20.0% from average)", "severity": "2", "obj": "CFEB3"},
+        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB3", "severity": "3", "obj": "CFEB3"},
 	{"testID": "CSC_CFEB_SCA_NOISY_CHANNEL", "scope": "CSC", "descr": "CFEB Hot/Noisy SCA channel: CFEB1 Layer1 Ch#4 (occupancy 3.2 times > average)", "severity": "2", "obj": "CFEB1 Layer1 Ch#4"}
 ]},
 {"objID": "ME+3/2/01", "name": "ME+3/2/01", "list": [
@@ -133,24 +107,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 ]},
 {"objID": "ME+3/2/29", "name": "ME+3/2/29", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB4 DAV 0.000%", "severity": "3", "obj": "CFEB4"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer1 (< 20% threshold)", "severity": "2", "obj": "CFEB4"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer2 (< 20% threshold)", "severity": "2", "obj": "CFEB4"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer3 (< 20% threshold)", "severity": "2", "obj": "CFEB4"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer4 (< 20% threshold)", "severity": "2", "obj": "CFEB4"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer5 (< 20% threshold)", "severity": "2", "obj": "CFEB4"},
-        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 Layer6 (< 20% threshold)", "severity": "2", "obj": "CFEB4"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB4 Layer1 (< 20.0% from average)", "severity": "2", "obj": "CFEB4 Layer1"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB4 Layer2 (< 20.0% from average)", "severity": "2", "obj": "CFEB4 Layer2"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB4 Layer3 (< 20.0% from average)", "severity": "2", "obj": "CFEB4 Layer3"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB4 Layer4 (< 20.0% from average)", "severity": "2", "obj": "CFEB4 Layer4"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB4 Layer5 (< 20.0% from average)", "severity": "2", "obj": "CFEB4 Layer5"},
-	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB4 Layer6 (< 20.0% from average)", "severity": "2", "obj": "CFEB4 Layer6"},
-        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB4 Layer1", "severity": "3", "obj": "CFEB4 Layer1"},
-	{"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB4 Layer2", "severity": "3", "obj": "CFEB4 Layer2"},
-	{"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB4 Layer3", "severity": "3", "obj": "CFEB4 Layer3"},
-	{"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB4 Layer4", "severity": "3", "obj": "CFEB4 Layer4"},
-	{"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB4 Layer5", "severity": "3", "obj": "CFEB4 Layer5"},
-	{"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB4 Layer6", "severity": "3", "obj": "CFEB4 Layer6"}
+        {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB4 (< 20% threshold)", "severity": "2", "obj": "CFEB4"},
+	{"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB4 (< 20.0% from average)", "severity": "2", "obj": "CFEB4"},
+	{"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB4" , "severity": "3", "obj": "CFEB4"}
 ]},
 {"objID": "ME+3/2/30", "name": "ME+3/2/30", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB3 DAV 0.000%", "severity": "3", "obj": "CFEB3"}
@@ -198,7 +157,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB3 DAV 0.000%", "severity": "3", "obj": "CFEB3"}
 ]},
 {"objID": "ME-1/2/33", "name": "ME-1/2/33", "list": [
-	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB1 DAV", "severity": "2", "obj": "CFEB1"}
+	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB1 DAV", "severity": "2", "obj": "CFEB1"},
+        {"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB1", "severity": "3", "obj": "CFEB1"},
+        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB1", "severity": "3", "obj": "CFEB1"}
 ]},
 {"objID": "ME-1/3/03", "name": "ME-1/3/03", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
@@ -207,12 +168,7 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB3 DAV", "severity": "2", "obj": "CFEB3"}
 ]},
 {"objID": "ME-1/3/13", "name": "ME-1/3/13", "list": [
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB2 Layer1 (< 20.0% from average)", "severity": "2", "obj": "CFEB2 Layer1"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB2 Layer2 (< 20.0% from average)", "severity": "2", "obj": "CFEB2 Layer2"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB2 Layer3 (< 20.0% from average)", "severity": "2", "obj": "CFEB2 Layer3"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB2 Layer4 (< 20.0% from average)", "severity": "2", "obj": "CFEB2 Layer4"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB2 Layer5 (< 20.0% from average)", "severity": "2", "obj": "CFEB2 Layer5"},
-        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB2 Layer6 (< 20.0% from average)", "severity": "2", "obj": "CFEB2 Layer6"}
+        {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB2 (< 20.0% from average)", "severity": "2", "obj": "CFEB2"},
 ]},
 {"objID": "ME-1/3/30", "name": "ME-1/3/30", "list": [
         {"testID": "CSC_ALCT_AFEB_NOISY", "scope": "CSC", "descr": "Noisy Anodes Segment: AFEB7 Layer2", "severity": "2", "obj": "AFEB7 Layer2"},
@@ -225,7 +181,10 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
 ]},
 {"objID": "ME-2/1/17", "name": "ME-2/1/17", "list": [
-        {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB3 Layer2 Ch#1", "severity": "1", "obj": "CFEB3 Layer2 Ch#1"}
+        {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB3 Layer2 Ch#1", "severity": "1", "obj": "CFEB3 Layer2 Ch#1"},
+	 {"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: (because of Hot CFEB5)", "severity": "4", "obj": "ALCT"},
+        {"testID": "CSC_WITHOUT_CLCT", "scope": "CSC", "descr": "No CLCT Data: (because of Hot CFEB5)", "severity": "4", "obj": "CLCT"},
+        {"testID": "CSC_HOT_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Hot: CFEB5 DAV ( > 60% )", "severity": "3", "obj": "CFEB5"}
 ]},
 {"objID": "ME-2/2/03", "name": "ME-2/2/03", "list": [
         {"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0%", "severity": "4", "obj": "ALCT"},
