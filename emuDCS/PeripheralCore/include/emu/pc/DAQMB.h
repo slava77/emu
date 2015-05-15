@@ -758,6 +758,7 @@ public:
   void dcfeb_buck_shift_ext_bc(int nstrip);
   void dcfeb_buck_shift_comp_bc(int nstrip);
   void BuckeyeShift(int chip_mask, char shft_bits[6][6], char *shft_out=NULL);
+  void Set_ReadAnyL1a();
   void dcfeb_Set_ReadAnyL1a(CFEB & cfeb);
   void dcfeb_Clear_ReadAnyL1a(CFEB & cfeb);
 

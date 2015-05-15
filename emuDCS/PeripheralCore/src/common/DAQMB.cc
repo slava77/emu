@@ -7852,7 +7852,18 @@ void DAQMB::BuckeyeShift(int chip_mask,char shft_bits[6][6], char *shft_out)
   udelay(2000);
   if(readback)  memcpy(shft_out, rcvbuf, 36);
 }
-    
+
+void DAQMB::Set_ReadAnyL1a()
+{
+  if(hardware_version_==2)
+  {
+     for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb)
+     {
+         dcfeb_Set_ReadAnyL1a(cfebs_[icfeb]);  
+     }
+  }
+}    
+
 void DAQMB::dcfeb_Set_ReadAnyL1a(CFEB & cfeb)
 {
   char tmp[2];

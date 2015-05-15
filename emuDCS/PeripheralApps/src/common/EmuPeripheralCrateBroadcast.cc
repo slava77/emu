@@ -1273,6 +1273,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
     std::cout << "ODMB setup for DCFEB Pedestal, calsetup= " <<calsetup<< std::endl;
     //
     // Start the setup process: Set all channel to normal, DAC to 0, No_pulse:
+    broadcastODMB->odmb_mask_pulse(1);   // 1=no EXTPLS/INJPLS
     broadcastODMB->buck_shift_ext_bc(-1);
     dac=0.0;
     broadcastODMB->set_cal_dac(dac,dac);
